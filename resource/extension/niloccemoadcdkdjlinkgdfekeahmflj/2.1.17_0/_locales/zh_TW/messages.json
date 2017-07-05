@@ -1,0 +1,154 @@
+{
+   "background_after_install_error": {
+      "description": "",
+      "message": "噢，此標籤已在您安裝 Pocket 之前開啟。 請重新啟動 Safari 或重新整理此頁面 (⌘R) 以儲存它。"
+   },
+   "background_invalid_url_error": {
+      "description": "",
+      "message": "抱歉，您只能將有效的網頁儲存到 Pocket。"
+   },
+   "background_save_url_error_message": {
+      "description": "",
+      "message": "Pocket 無法儲存，因為 „{$0}“"
+   },
+   "background_save_url_error_no_message": {
+      "description": "",
+      "message": "Pocket 無法儲存該頁面。請確保您在線上，然後重試。"
+   },
+   "contextMenuEntryTitle": {
+      "description": "",
+      "message": "儲存到 Pocket"
+   },
+   "contextMenuEntryVisit": {
+      "description": "",
+      "message": "開啟 Pocket"
+   },
+   "extDescriptionGoogleChrome": {
+      "description": "Chrome 版擴充件說明",
+      "message": "Chrome 版 Pocket 擴充件 - 儲存文章、視訊等的最佳方式"
+   },
+   "extDescriptionOpera": {
+      "description": "Opera 版擴充件說明",
+      "message": "Opera 版 Pocket 擴充件 - 儲存文章、視訊等的最佳方式"
+   },
+   "extDescriptionYandex": {
+      "description": "Extension Description for Yandex.Browser",
+      "message": "Yandex.Browser 版 Pocket 擴充件 - 儲存文章、視訊等的最佳方式"
+   },
+   "login_create_account_link": {
+      "description": "",
+      "message": "建立帳號"
+   },
+   "login_logging_in_text": {
+      "description": "",
+      "message": "登入中..."
+   },
+   "login_login_attempt": {
+      "description": "",
+      "message": "正在檢查您是否已登入..."
+   },
+   "login_login_button_link": {
+      "description": "",
+      "message": "登入"
+   },
+   "login_login_forgot_password_link": {
+      "description": "",
+      "message": "我忘記了使用者名稱或密碼。"
+   },
+   "login_login_subtitle": {
+      "description": "",
+      "message": "您好，很高興再看到您！"
+   },
+   "login_login_title": {
+      "description": "",
+      "message": "登入"
+   },
+   "login_password_placeholder": {
+      "description": "",
+      "message": "密碼"
+   },
+   "login_username_password_wrong": {
+      "description": "",
+      "message": "您輸入的使用者名稱及/或密碼不正確。"
+   },
+   "login_username_placeholder": {
+      "description": "",
+      "message": "電郵地址或使用者名稱"
+   },
+   "options_get_in_touch_on_twitter_link": {
+      "description": "",
+      "message": "在 Twitter 上聯絡"
+   },
+   "options_keyboard_shortcut_enabled": {
+      "description": "",
+      "message": "已啟用"
+   },
+   "options_keyboard_shortcut_title": {
+      "description": "",
+      "message": "鍵盤捷徑："
+   },
+   "options_learn_more_link": {
+      "description": "",
+      "message": "（瞭解更多）"
+   },
+   "options_login_link": {
+      "description": "",
+      "message": "按這裡登入"
+   },
+   "options_login_title": {
+      "description": "",
+      "message": "已登入為： "
+   },
+   "options_logout_link": {
+      "description": "",
+      "message": "登出"
+   },
+   "options_more_ways_to_save_title": {
+      "description": "",
+      "message": "使用 Pocket 的更多方式："
+   },
+   "options_options_title": {
+      "description": "",
+      "message": "選項"
+   },
+   "options_questions_pocket_title": {
+      "description": "",
+      "message": "關於 Pocket 的問題？"
+   },
+   "options_quick_save_services_title": {
+      "description": "",
+      "message": "快速儲存服務："
+   },
+   "options_record_shortcut": {
+      "description": "",
+      "message": "記錄新捷徑"
+   },
+   "options_reset_to_default": {
+      "description": "",
+      "message": "重設為預設值"
+   },
+   "options_search_support_link": {
+      "description": "",
+      "message": "搜尋支援"
+   },
+   "options_send_us_an_email_link": {
+      "description": "",
+      "message": "向我們傳送電子郵件"
+   },
+   "options_services_info": {
+      "description": "",
+      "message": "啟用後，您可以直接從這些服務新增任何項目至 Pocket"
+   },
+   "options_title": {
+      "description": "",
+      "message": "{$0} 版 Pocket 選項"
+   },
+   "toolbarButtonTitle": {
+      "description": "",
+      "message": "儲存到 Pocket"
+   },
+   "yandexBrowser": {
+      "description": "Yandex.Browser",
+      "message": "Yandex.Browser"
+   }
+}

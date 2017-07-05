@@ -1,0 +1,137 @@
+{
+   "action_group_Load": {
+      "message": "Load"
+   },
+   "action_group_Navigations": {
+      "message": "Navigations"
+   },
+   "action_group_None": {
+      "message": "None"
+   },
+   "action_group_Others": {
+      "message": "Others"
+   },
+   "action_group_Scroll": {
+      "message": "Scroll"
+   },
+   "action_group_TabNavigations": {
+      "message": "TabNavigations"
+   },
+   "action_group_Tabs": {
+      "message": "Tabs"
+   },
+   "action_group_Windows": {
+      "message": "Windows"
+   },
+   "action_name_back": {
+      "message": "back"
+   },
+   "action_name_cacheless_reload": {
+      "message": "cacheless reload"
+   },
+   "action_name_clone_tab": {
+      "message": "clone tab"
+   },
+   "action_name_close_left_tabs": {
+      "message": "close left tabs"
+   },
+   "action_name_close_other_tabs": {
+      "message": "close other tabs"
+   },
+   "action_name_close_right_tabs": {
+      "message": "close right tabs"
+   },
+   "action_name_close_this_tab": {
+      "message": "close this tab"
+   },
+   "action_name_close_this_window": {
+      "message": "close this window"
+   },
+   "action_name_config": {
+      "message": "config"
+   },
+   "action_name_forward": {
+      "message": "forward"
+   },
+   "action_name_go_to_parent_dir": {
+      "message": "go to parent dir"
+   },
+   "action_name_no_action": {
+      "message": "no action"
+   },
+   "action_name_open_blank_tab": {
+      "message": "open blank tab"
+   },
+   "action_name_open_blank_tab_background": {
+      "message": "open blank tab background"
+   },
+   "action_name_open_new_tab": {
+      "message": "open new tab"
+   },
+   "action_name_open_new_tab_background": {
+      "message": "open new tab background"
+   },
+   "action_name_open_new_window": {
+      "message": "open new window"
+   },
+   "action_name_pin_this_tab": {
+      "message": "pin this tab"
+   },
+   "action_name_re_open_closed_tab": {
+      "message": "re-open closed tab"
+   },
+   "action_name_reload": {
+      "message": "reload"
+   },
+   "action_name_reload_all_tabs": {
+      "message": "reload all tabs"
+   },
+   "action_name_scroll_down": {
+      "message": "scroll down"
+   },
+   "action_name_scroll_down_half_page": {
+      "message": "scroll down half page"
+   },
+   "action_name_scroll_left": {
+      "message": "scroll left"
+   },
+   "action_name_scroll_right": {
+      "message": "scroll right"
+   },
+   "action_name_scroll_to_bottom": {
+      "message": "scroll to bottom"
+   },
+   "action_name_scroll_to_top": {
+      "message": "scroll to top"
+   },
+   "action_name_scroll_up": {
+      "message": "scroll up"
+   },
+   "action_name_scroll_up_half_page": {
+      "message": "scroll up half page"
+   },
+   "action_name_select_first_tab": {
+      "message": "select first tab"
+   },
+   "action_name_select_last_tab": {
+      "message": "select last tab"
+   },
+   "action_name_select_left_tab": {
+      "message": "select left tab"
+   },
+   "action_name_select_right_tab": {
+      "message": "select right tab"
+   },
+   "action_name_toggle_pin_tab": {
+      "message": "toggle pin tab"
+   },
+   "action_name_unpin_this_tab": {
+      "message": "unpin this tab"
+   },
+   "chrome_extension_description": {
+      "message": "Chrome Mouse Gestures"
+   },
+   "chrome_extension_name": {
+      "message": "Chrome Gestures"
+   }
+}

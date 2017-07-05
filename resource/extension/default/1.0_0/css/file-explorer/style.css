@@ -1,0 +1,43 @@
+
+/**
+ * コンテンツ領域。
+ */
+.l-content {
+  color: #2c3e50;
+  font-size: 14px;
+}
+
+.l-content .title {
+  text-align: center;
+  font-weight: normal;
+  font-size: 2.5em;
+}
+
+.l-content .explorer {
+  margin: auto;
+}
+
+.l-content .explorer ul {
+  margin: 0;
+  padding: 0 0 0 1em;
+  list-style: none;
+}
+
+
+.l-content .explorer [class^="icon-"],
+.l-content .explorer [class*=" icon-"] {
+  margin-right: .2em;
+}
+
+.l-content .explorer .icon-arrow-right,
+.l-content .explorer .icon-arrow-down {
+  color: #95a5a6;
+}
+
+.l-content .explorer .icon-folder {
+  color: #3498db;
+}
+
+.l-content .explorer .icon-file {
+  color: #868686;
+}

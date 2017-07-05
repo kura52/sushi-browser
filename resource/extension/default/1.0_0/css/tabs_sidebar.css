@@ -1,0 +1,8 @@
+.l-content .explorer.history ul {
+     padding-left: 14px;
+}
+
+
+.l-content .explorer.history>div>ul,.l-content .explorer.history>div>ul>li>div>ul {
+    padding-left: 2px;
+}

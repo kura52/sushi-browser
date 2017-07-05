@@ -1,0 +1,88 @@
+/* The main pocket icon
+ *
+ * NOTE - Safari ignores selector specificity with injected stylesheets so
+ * !important's are needed to override the default Twitter styles
+ */
+.pocket-twitter .icon.icon-pocket,
+.pocket-twitter .icon.icon-pocket {
+  position: relative;
+  top: 4px;
+  width: 16px !important;
+  height: 16px !important;
+  background-color: transparent;
+  /* Inline SVG with the color #aab8c2 - Search in XML for %23aab8c2 to change (%23 === encoded #) */
+  background-image: url('data:image/svg+xml;utf8,<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 37.7 35.2" enable-background="new 0 0 37.7 35.2" xml:space="preserve"> <g id="Layer_1"> <path fill="#aab8c2" d="M37.2,2.2C36.7,0.9,35.4,0,34,0h0h-3.2H3.4C2,0,0.7,0.9,0.2,2.2C0.1,2.6,0,3,0,3.4v11.3l0.1,2.2 c0.5,5.1,3.2,9.6,7.3,12.7c0.1,0.1,0.1,0.1,0.2,0.2l0,0c2.2,1.6,4.7,2.7,7.3,3.2c1.2,0.2,2.5,0.4,3.7,0.4c1.1,0,2.3-0.1,3.4-0.3 c0.1,0,0.3-0.1,0.4-0.1c0,0,0.1,0,0.1,0c2.5-0.6,4.9-1.6,7-3.2l0,0c0.1-0.1,0.1-0.1,0.2-0.2c4.1-3.1,6.7-7.6,7.3-12.7l0.1-2.2V3.4 C37.3,3,37.3,2.6,37.2,2.2z M29.3,14l-8.8,8.4c-0.5,0.5-1.1,0.7-1.8,0.7c-0.6,0-1.3-0.2-1.8-0.7L8.1,14c-1-1-1.1-2.6-0.1-3.6 c1-1,2.6-1.1,3.6-0.1l7,6.7l7-6.7c1-1,2.6-0.9,3.6,0.1C30.3,11.4,30.3,13,29.3,14z"/> </g><g id="Layer_2" display="none"><g id="gIgtSB.tif" display="inline"><image overflow="visible" width="50" height="100" id="Layer_0_1_" xlink:href="CDA67C23C4D65623.png"  transform="matrix(1 0 0 1 -180.2623 -56.6885)"></image></g></g></svg>') !important;
+  background-repeat: no-repeat;
+  background-size: 14px 14px; /* Natural is 40x40 */
+  background-position: 50% 0px !important;
+
+}
+.pocket-twitter .icon-pocket:hover,
+.pocket-twitter .icon.icon-pocket:hover,
+.pocket-twitter .ProfileTweet-actionList .ProfileTweet-actionButton:hover .Icon.Icon--pocket,
+.pocket-twitter .ProfileTweet-actionList.withDarkTweetActions .ProfileTweet-actionButton:hover .Icon.Icon--pocket {
+  background-image: url('data:image/svg+xml;utf8,<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 37.7 35.2" enable-background="new 0 0 37.7 35.2" xml:space="preserve"> <g id="Layer_1"> <path fill="#ef4056" d="M37.2,2.2C36.7,0.9,35.4,0,34,0h0h-3.2H3.4C2,0,0.7,0.9,0.2,2.2C0.1,2.6,0,3,0,3.4v11.3l0.1,2.2 c0.5,5.1,3.2,9.6,7.3,12.7c0.1,0.1,0.1,0.1,0.2,0.2l0,0c2.2,1.6,4.7,2.7,7.3,3.2c1.2,0.2,2.5,0.4,3.7,0.4c1.1,0,2.3-0.1,3.4-0.3 c0.1,0,0.3-0.1,0.4-0.1c0,0,0.1,0,0.1,0c2.5-0.6,4.9-1.6,7-3.2l0,0c0.1-0.1,0.1-0.1,0.2-0.2c4.1-3.1,6.7-7.6,7.3-12.7l0.1-2.2V3.4 C37.3,3,37.3,2.6,37.2,2.2z M29.3,14l-8.8,8.4c-0.5,0.5-1.1,0.7-1.8,0.7c-0.6,0-1.3-0.2-1.8-0.7L8.1,14c-1-1-1.1-2.6-0.1-3.6 c1-1,2.6-1.1,3.6-0.1l7,6.7l7-6.7c1-1,2.6-0.9,3.6,0.1C30.3,11.4,30.3,13,29.3,14z"/> </g><g id="Layer_2" display="none"><g id="gIgtSB.tif" display="inline"><image overflow="visible" width="50" height="100" id="Layer_0_1_" xlink:href="CDA67C23C4D65623.png"  transform="matrix(1 0 0 1 -180.2623 -56.6885)"></image></g></g></svg>') !important;
+}
+
+.pocket-twitter .ProfileTweet-action--pocket {
+  /* ensure the same height */
+  max-height: 27px;
+  pointer-events: none; /* Make clicks on padding to the right of the button "pass through" */
+}
+
+.pocket-twitter .ProfileTweet-actionButton {
+  pointer-events: auto; /* This is a click target, don't inherit that property from parent */
+}
+
+.pocket-twitter .ProfileTweet-actionList .Icon.Icon--pocket {
+  width: 16px;
+  height: 18px;
+  background-color: transparent;
+  /* Inline SVG with the color #aab8c2 - Search in XML for %23aab8c2 to change (%23 === encoded #) */
+  background-image: url('data:image/svg+xml;utf8,<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 37.7 35.2" enable-background="new 0 0 37.7 35.2" xml:space="preserve"> <g id="Layer_1"> <path fill="#aab8c2" d="M37.2,2.2C36.7,0.9,35.4,0,34,0h0h-3.2H3.4C2,0,0.7,0.9,0.2,2.2C0.1,2.6,0,3,0,3.4v11.3l0.1,2.2 c0.5,5.1,3.2,9.6,7.3,12.7c0.1,0.1,0.1,0.1,0.2,0.2l0,0c2.2,1.6,4.7,2.7,7.3,3.2c1.2,0.2,2.5,0.4,3.7,0.4c1.1,0,2.3-0.1,3.4-0.3 c0.1,0,0.3-0.1,0.4-0.1c0,0,0.1,0,0.1,0c2.5-0.6,4.9-1.6,7-3.2l0,0c0.1-0.1,0.1-0.1,0.2-0.2c4.1-3.1,6.7-7.6,7.3-12.7l0.1-2.2V3.4 C37.3,3,37.3,2.6,37.2,2.2z M29.3,14l-8.8,8.4c-0.5,0.5-1.1,0.7-1.8,0.7c-0.6,0-1.3-0.2-1.8-0.7L8.1,14c-1-1-1.1-2.6-0.1-3.6 c1-1,2.6-1.1,3.6-0.1l7,6.7l7-6.7c1-1,2.6-0.9,3.6,0.1C30.3,11.4,30.3,13,29.3,14z"/> </g><g id="Layer_2" display="none"><g id="gIgtSB.tif" display="inline"><image overflow="visible" width="50" height="100" id="Layer_0_1_" xlink:href="CDA67C23C4D65623.png"  transform="matrix(1 0 0 1 -180.2623 -56.6885)"></image></g></g></svg>') !important;
+  background-repeat: no-repeat !important;
+  background-position: 0 2px !important;
+  background-size: auto 15px !important;
+}
+
+.pocket-twitter .ProfileTweet-actionList--withCircle .Icon.Icon--pocket {
+  top: -1px;
+  width: auto;
+  height: auto;
+  background-color: transparent;
+  /* Inline SVG with the color #8899a6 - Search in XML for %238899A6 to change (%23 === encoded #) */
+  /* regular pocket icon */
+  background-image: url('data:image/svg+xml;utf8,<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 37.7 35.2" enable-background="new 0 0 37.7 35.2" xml:space="preserve"> <g id="Layer_1"> <path fill="#ef4056" d="M37.2,2.2C36.7,0.9,35.4,0,34,0h0h-3.2H3.4C2,0,0.7,0.9,0.2,2.2C0.1,2.6,0,3,0,3.4v11.3l0.1,2.2 c0.5,5.1,3.2,9.6,7.3,12.7c0.1,0.1,0.1,0.1,0.2,0.2l0,0c2.2,1.6,4.7,2.7,7.3,3.2c1.2,0.2,2.5,0.4,3.7,0.4c1.1,0,2.3-0.1,3.4-0.3 c0.1,0,0.3-0.1,0.4-0.1c0,0,0.1,0,0.1,0c2.5-0.6,4.9-1.6,7-3.2l0,0c0.1-0.1,0.1-0.1,0.2-0.2c4.1-3.1,6.7-7.6,7.3-12.7l0.1-2.2V3.4 C37.3,3,37.3,2.6,37.2,2.2z M29.3,14l-8.8,8.4c-0.5,0.5-1.1,0.7-1.8,0.7c-0.6,0-1.3-0.2-1.8-0.7L8.1,14c-1-1-1.1-2.6-0.1-3.6 c1-1,2.6-1.1,3.6-0.1l7,6.7l7-6.7c1-1,2.6-0.9,3.6,0.1C30.3,11.4,30.3,13,29.3,14z"/> </g><g id="Layer_2" display="none"><g id="gIgtSB.tif" display="inline"><image overflow="visible" width="50" height="100" id="Layer_0_1_" xlink:href="CDA67C23C4D65623.png"  transform="matrix(1 0 0 1 -180.2623 -56.6885)"></image></g></g></svg>') !important;
+  /* new icon w/ circle */
+  /*background-image: url('data:image/svg+xml;utf8,<?xml version="1.0" encoding="UTF-8" standalone="no"?> <svg width="52px" height="52px" viewBox="0 0 52 52" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns"><title>Artboard 1</title><desc>Created with Sketch.</desc><defs></defs><g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" sketch:type="MSPage"><g id="Artboard-1" sketch:type="MSArtboardGroup"><g id="Logomark" sketch:type="MSLayerGroup" transform="translate(13.000000, 12.000000)" fill="#8899A6"><path d="M25.8097734,20.4464609 L22.8520703,19.0833906 C22.5984688,18.9664922 22.1833828,18.9664922 21.9296797,19.0833906 L13.4611953,22.9861328 C13.2075938,23.1030313 12.7924063,23.1030313 12.5388047,22.9861328 L4.07032031,19.0833906 C3.81661719,18.9664922 3.40153125,18.9664922 3.14792969,19.0833906 L0.190226563,20.4464609 C-0.063375,20.5633594 -0.063375,20.7546016 0.190226563,20.8715 L12.5388047,26.5623516 C12.7924063,26.67925 13.2075938,26.67925 13.4611953,26.5623516 L25.8097734,20.8715 C26.063375,20.7546016 26.063375,20.5633594 25.8097734,20.4464609" id="Fill-1" sketch:type="MSShapeGroup"></path><path d="M25.8097734,13.4374297 L22.8520703,12.0744609 C22.5984688,11.9575625 22.1833828,11.9575625 21.9296797,12.0744609 L13.4611953,15.9771016 C13.2075938,16.094 12.7924063,16.094 12.5388047,15.9771016 L4.07032031,12.0744609 C3.81661719,11.9575625 3.40153125,11.9575625 3.14792969,12.0744609 L0.190226563,13.4374297 C-0.063375,13.5543281 -0.063375,13.7456719 0.190226563,13.8625703 L12.5388047,19.5533203 C12.7924063,19.6702187 13.2075938,19.6702187 13.4611953,19.5533203 L25.8097734,13.8625703 C26.063375,13.7456719 26.063375,13.5543281 25.8097734,13.4374297" id="Fill-2" sketch:type="MSShapeGroup"></path><path d="M0.190226563,6.85353906 L12.5388047,12.5443906 C12.7924063,12.6612891 13.2075938,12.6612891 13.4611953,12.5443906 L25.8097734,6.85353906 C26.063375,6.73664063 26.063375,6.54539844 25.8097734,6.4285 L13.4611953,0.737648438 C13.2075938,0.62075 12.7924063,0.62075 12.5388047,0.737648438 L0.190226563,6.4285 C-0.063375,6.54539844 -0.063375,6.73664063 0.190226563,6.85353906" id="Fill-3" sketch:type="MSShapeGroup"></path></g><circle id="Oval-1" stroke="#8899A6" stroke-width="2" sketch:type="MSShapeGroup" cx="26" cy="26" r="26"></circle></g></g></svg>') !important;*/
+  background-repeat: no-repeat !important;
+  background-size: 12px 12px !important; /* Natural is 40x40 */
+  background-position: 50% 50% !important;
+}
+
+.pocket-twitter .ProfileTweet-actionList.withDarkTweetActions .Icon.Icon--pocket {
+  /* Inline SVG with the color #aab8c2 - Search in XML for %23aab8c2 to change (%23 === encoded #) */
+  background-image: url('data:image/svg+xml;utf8,<svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns"><defs></defs><g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" sketch:type="MSPage"><g id="Artboard-1" sketch:type="MSArtboardGroup" transform="translate(-49.000000, -48.000000)" fill="%23aab8c2"><g id="Logomark" sketch:type="MSLayerGroup" transform="translate(49.000000, 48.000000)"><path d="M39.7073437,30.4560937 L35.1570312,28.3590625 C34.766875,28.1792187 34.1282812,28.1792187 33.7379687,28.3590625 L20.7095312,34.3632812 C20.319375,34.543125 19.680625,34.543125 19.2904687,34.3632812 L6.26203125,28.3590625 C5.87171875,28.1792187 5.233125,28.1792187 4.84296875,28.3590625 L0.29265625,30.4560937 C-0.0975,30.6359375 -0.0975,30.9301562 0.29265625,31.11 L19.2904687,39.8651562 C19.680625,40.045 20.319375,40.045 20.7095312,39.8651562 L39.7073437,31.11 C40.0975,30.9301562 40.0975,30.6359375 39.7073437,30.4560937" id="Fill-1" sketch:type="MSShapeGroup"></path><path d="M39.7073437,19.6729687 L35.1570312,17.5760937 C34.766875,17.39625 34.1282812,17.39625 33.7379687,17.5760937 L20.7095312,23.5801562 C20.319375,23.76 19.680625,23.76 19.2904687,23.5801562 L6.26203125,17.5760937 C5.87171875,17.39625 5.233125,17.39625 4.84296875,17.5760937 L0.29265625,19.6729687 C-0.0975,19.8528125 -0.0975,20.1471875 0.29265625,20.3270312 L19.2904687,29.0820312 C19.680625,29.261875 20.319375,29.261875 20.7095312,29.0820312 L39.7073437,20.3270312 C40.0975,20.1471875 40.0975,19.8528125 39.7073437,19.6729687" id="Fill-2" sketch:type="MSShapeGroup"></path><path d="M0.29265625,9.54390625 L19.2904687,18.2990625 C19.680625,18.4789063 20.319375,18.4789063 20.7095312,18.2990625 L39.7073437,9.54390625 C40.0975,9.3640625 40.0975,9.06984375 39.7073437,8.89 L20.7095312,0.13484375 C20.319375,-0.045 19.680625,-0.045 19.2904687,0.13484375 L0.29265625,8.89 C-0.0975,9.06984375 -0.0975,9.3640625 0.29265625,9.54390625" id="Fill-3" sketch:type="MSShapeGroup"></path></g></g></g></svg>') !important;
+}
+
+/* We need to set the content element to get the layout correct due to line heights */
+.pocket-twitter .Icon.Icon--pocket:before {
+  content: ".";
+  color: transparent;
+  visibility: hidden;
+}
+
+.pocket-twitter .Icon.Icon--circle,
+.pocket-twitter .Icon.Icon--circleFill {
+  display: none;
+}
+
+.pocket-twitter .ProfileTweet-actionList--withCircle .Icon.Icon--circle,
+.pocket-twitter .ProfileTweet-actionList--withCircle .Icon.Icon--circleFill {
+  display: inherit;
+}
+
+/*The profile streams appear slightly different */
+.pocket-twitter .ProfileTweet .icon-pocket {
+  background-position: 50% 1px !important;
+}

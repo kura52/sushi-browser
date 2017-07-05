@@ -1,0 +1,10 @@
+.pocket-yahoo-button {
+    background-image: url(chrome-extension://__MSG_@@extension_id__/sites/yahoo/ril-icon-white.png) !important;
+}
+
+@media (-webkit-min-device-pixel-ratio: 2) {
+    .pocket-yahoo-button {
+        background-image: url(chrome-extension://__MSG_@@extension_id__/sites/yahoo/ril-icon-white@2x.png) !important;
+    }
+
+}

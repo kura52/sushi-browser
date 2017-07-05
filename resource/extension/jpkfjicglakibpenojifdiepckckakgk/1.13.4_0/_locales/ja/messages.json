@@ -1,0 +1,254 @@
+{
+   "action_group_Load": {
+      "message": "読み込み"
+   },
+   "action_group_Navigations": {
+      "message": "ナビゲーション"
+   },
+   "action_group_None": {
+      "message": "None"
+   },
+   "action_group_Others": {
+      "message": "その他"
+   },
+   "action_group_Scroll": {
+      "message": "スクロール"
+   },
+   "action_group_TabNavigations": {
+      "message": "タブナビゲーション"
+   },
+   "action_group_Tabs": {
+      "message": "タブ操作"
+   },
+   "action_group_Windows": {
+      "message": "ウィンドウ操作"
+   },
+   "action_name_back": {
+      "message": "戻る"
+   },
+   "action_name_cacheless_reload": {
+      "message": "キャッシュを破棄して再読み込み"
+   },
+   "action_name_clone_tab": {
+      "message": "現在のタブを複製"
+   },
+   "action_name_close_left_tabs": {
+      "message": "現在のタブより左のタブを閉じる"
+   },
+   "action_name_close_other_tabs": {
+      "message": "現在のタブ以外を閉じる"
+   },
+   "action_name_close_right_tabs": {
+      "message": "現在のタブより右のタブを閉じる"
+   },
+   "action_name_close_this_tab": {
+      "message": "現在のタブを閉じる"
+   },
+   "action_name_close_this_window": {
+      "message": "現在のウィンドウを閉じる"
+   },
+   "action_name_config": {
+      "message": "設定を開く"
+   },
+   "action_name_copy_escaped_html": {
+      "message": "エスケープしたHTMLをコピー"
+   },
+   "action_name_copy_escaped_html_by_custom_tag__1": {
+      "message": "エスケープしたHTMLを#1でコピー"
+   },
+   "action_name_copy_html": {
+      "message": "HTMLをコピー"
+   },
+   "action_name_copy_html_by_custom_tag__1": {
+      "message": "HTMLを#1でコピー"
+   },
+   "action_name_copy_text": {
+      "message": "テキストをコピー"
+   },
+   "action_name_copy_text_by_custom_tag__1": {
+      "message": "テキストを#1でコピー"
+   },
+   "action_name_copy_url": {
+      "message": "URLをコピー"
+   },
+   "action_name_copy_url_and_text": {
+      "message": "URLとテキストをコピー"
+   },
+   "action_name_copy_url_and_text_as_html": {
+      "message": "URLとテキストをHTMLとしてコピー"
+   },
+   "action_name_copy_url_and_title": {
+      "message": "URLとタイトルをコピー"
+   },
+   "action_name_copy_url_and_title_as_html": {
+      "message": "URLとタイトルをHTMLとしてコピー"
+   },
+   "action_name_copy_url_and_title_by_custom_tag__1": {
+      "message": "URLとタイトルを#1でコピー"
+   },
+   "action_name_fastback": {
+      "message": "最初のページに戻る"
+   },
+   "action_name_forward": {
+      "message": "進む"
+   },
+   "action_name_go_to__1": {
+      "message": "#1に移動する"
+   },
+   "action_name_go_to_parent_dir": {
+      "message": "上の階層に移動"
+   },
+   "action_name_no_action": {
+      "message": "アクションなし"
+   },
+   "action_name_open__1_in_new_tab": {
+      "message": "#1を新しいタブに開く"
+   },
+   "action_name_open__1_in_new_tab_background": {
+      "message": "#1をバックグラウンドで開く"
+   },
+   "action_name_open_blank_tab": {
+      "message": "ブランクページを開く"
+   },
+   "action_name_open_blank_tab_background": {
+      "message": "ブランクページをバックグラウンドで開く"
+   },
+   "action_name_open_in_background_tab": {
+      "message": "このリンクをバックグラウンドのタブで開く"
+   },
+   "action_name_open_in_new_tab": {
+      "message": "このリンクを新しいタブで開く"
+   },
+   "action_name_open_in_new_window": {
+      "message": "このリンクを新しいウィンドウで開く"
+   },
+   "action_name_open_link_in_new_tab": {
+      "message": "リンクを新しいタブで開く"
+   },
+   "action_name_open_link_in_new_tab_background": {
+      "message": "リンクをバックグラウンドで開く"
+   },
+   "action_name_open_new_tab": {
+      "message": "新しいタブを開く"
+   },
+   "action_name_open_new_tab_background": {
+      "message": "新しいタブをバックグラウンドで開く"
+   },
+   "action_name_open_new_window": {
+      "message": "新しいウィンドウを開く"
+   },
+   "action_name_pin_this_tab": {
+      "message": "タブを固定"
+   },
+   "action_name_re_open_closed_tab": {
+      "message": "最後に閉じたタブを開く"
+   },
+   "action_name_reload": {
+      "message": "再読み込み"
+   },
+   "action_name_reload_all_tabs": {
+      "message": "すべてのタブを再読み込み"
+   },
+   "action_name_run_script__1": {
+      "message": "#1のスクリプトを実行"
+   },
+   "action_name_scroll_down": {
+      "message": "下にスクロール"
+   },
+   "action_name_scroll_down_full_page": {
+      "message": "下に1画面分スクロール"
+   },
+   "action_name_scroll_down_half_page": {
+      "message": "下に半分スクロール"
+   },
+   "action_name_scroll_left": {
+      "message": "左にスクロール"
+   },
+   "action_name_scroll_right": {
+      "message": "右にスクロール"
+   },
+   "action_name_scroll_to_bottom": {
+      "message": "ページの一番下にスクロール"
+   },
+   "action_name_scroll_to_top": {
+      "message": "ページの一番上にスクロール"
+   },
+   "action_name_scroll_up": {
+      "message": "上にスクロール"
+   },
+   "action_name_scroll_up_full_page": {
+      "message": "上に1画面分スクロール"
+   },
+   "action_name_scroll_up_half_page": {
+      "message": "上に半分スクロール"
+   },
+   "action_name_search_with__1_in_background_tab": {
+      "message": "#1で検索(バックグランドのタブ)"
+   },
+   "action_name_search_with__1_in_current_tab": {
+      "message": "#1で検索(現在のタブ)"
+   },
+   "action_name_search_with__1_in_new_tab": {
+      "message": "#1で検索(新しいタブ)"
+   },
+   "action_name_select_first_tab": {
+      "message": "左端のタブを選択"
+   },
+   "action_name_select_last_tab": {
+      "message": "右端のタブを選択"
+   },
+   "action_name_select_left_tab": {
+      "message": "左のタブを選択"
+   },
+   "action_name_select_right_tab": {
+      "message": "右のタブを選択"
+   },
+   "action_name_stop": {
+      "message": "中止"
+   },
+   "action_name_toggle_pin_tab": {
+      "message": "タブの固定を切替"
+   },
+   "action_name_unpin_this_tab": {
+      "message": "タブの固定を解除"
+   },
+   "chrome_extension_description": {
+      "message": "マウスジェスチャーを実現するGoogle Chrome拡張です"
+   },
+   "chrome_extension_name": {
+      "message": "Chrome Gestures"
+   },
+   "options_AccelerationValue": {
+      "message": "加速値"
+   },
+   "options_ScrollSpeedValue": {
+      "message": "スクロール時間(秒)"
+   },
+   "options_minimumUnit": {
+      "message": "最小の移動距離"
+   },
+   "options_mouse_track": {
+      "message": "マウスの軌跡を描画する"
+   },
+   "options_superdrag": {
+      "message": "スーパードラッグ"
+   },
+   "options_suppress_contextmenu": {
+      "message": "ジェスチャーに失敗した場合にコンテキストメニューを出さない"
+   },
+   "options_useMousewheel": {
+      "message": "マウスホイールを使用する(マウスホイールの動きを監視します。これには多少の負荷がかかります。)"
+   },
+   "options_useScrollAcceleration": {
+      "message": "マウスホイールを素早く動かしたときのスクロール量を大きくする"
+   },
+   "options_useSmoothScroll": {
+      "message": "スムーススクロールを使用する"
+   },
+   "options_useTabList": {
+      "message": "右クリックした状態でマウスホイールを動かしたときにタブ切り替えを行う(ページ内にタブのタイトルを表示するため、サイト側からタイトルを読み取られる可能性があります。)"
+   },
+   "options_visualized_arrow": {
+      "message": "矢印を表示"
+   }
+}

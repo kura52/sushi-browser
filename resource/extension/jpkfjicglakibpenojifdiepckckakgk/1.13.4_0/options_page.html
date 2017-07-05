@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Chrome Gestures</title>
+  <script src="js/x.js"></script>
+  <script src="js/tween2.js"></script>
+  <script src="js/chrome_gestures.js"></script>
+  <link href="css/option_page.css" rel="stylesheet" type="text/css">
+<body>
+<div id="">
+<ul class="tabs" id="menu_tabs">
+  <li class="basics"><a href="#basics" class="active"><span>Basics</span></a>
+  <li class="actions"><a href="#actions"><span>Actions</span></a>
+  <li class="drag-actions"><a href="#drag-actions"><span>Drag Actions</span></a>
+  <li class="advanced"><a href="#advanced"><span>Advanced</span></a>
+  <li class="news"><a href="#news"><span>News</span></a>
+  <li class="about"><a href="#about"><span>About</span></a>
+</ul>
+<div id="container">
+<div id="inner_container">
+<section id="basics" class="content">
+  <div><input type="checkbox" id="mouse_track"><label for="mouse_track">Mouse Track</label></div>
+  <div class="sub"><input type="checkbox" id="visualized_arrow"><label for="visualized_arrow">Visualize
+    Arrow</label></div>
+  <div><input type="checkbox" id="superdrag"><label for="superdrag">Super Drag(Drag&amp;Drop Action)</label>
+  </div>
+  <div><input type="checkbox" id="suppress_contextmenu"><label for="suppress_contextmenu">Suppress
+    contextmenu, when gesture failed</label></div>
+  <div>
+    <label for="minimumUnit">Minimum Unit</label>
+
+    <div class="ranges">
+      <span class="mins">0</span>
+      <input type="range" id="minimumUnit" max="50" min="1" step="1" placeholder="10">
+      <span class="maxs">50</span>
+    </div>
+    <span class="outputs" id="minimumUnit_value"></span>
+    <button>reset</button>
+  </div>
+  <div><input type="checkbox" id="useMousewheel"><label for="useMousewheel">use Mouse Wheel</label></div>
+  <div class="sub Mousewheel"><input type="checkbox" id="useTabList"><label for="useTabList">Tabs List(Rigth
+    click &amp; Mouse Wheel. Note:webpage can read your lists.)</label></div>
+  <div class="sub Mousewheel"><input type="checkbox" id="useSmoothScroll"><label for="useSmoothScroll">use
+    Smooth Scroll</label></div>
+  <div class="sub Mousewheel">
+    <label for="ScrollSpeedValue">Speed</label>
+
+    <div class="ranges">
+      <span class="mins">0.1</span>
+      <input type="range" id="ScrollSpeedValue" max="10" min="1" step="1" placeholder="2">
+      <span class="maxs">1</span>
+    </div>
+    <span class="outputs" id="ScrollSpeedValue_value"></span>
+    <button>reset</button>
+  </div>
+  <div class="sub Mousewheel">
+    <input type="checkbox" id="useScrollAcceleration"><label for="useScrollAcceleration">Scroll
+    Acceleration</label>
+  </div>
+  <div class="sub Mousewheel">
+    <label for="AccelerationValue">Acceleration Value</label>
+
+    <div class="ranges">
+      <span class="mins">1</span>
+      <input type="range" id="AccelerationValue" max="20" min="1" step="1" placeholder="5">
+      <span class="maxs">20</span>
+    </div>
+    <span class="outputs" id="AccelerationValue_value"></span>
+    <button>reset</button>
+  </div>
+</section>
+<section id="actions" class="content">
+  <div class="box">
+    <div class="field_action">
+      <button id="normal_append_action">add new gesture</button>
+    </div>
+    <dl id="normal_action_list">
+    </dl>
+  </div>
+</section>
+<section id="drag-actions" class="content">
+  <div class="box">
+    <h3>for link</h3>
+
+    <div class="field_action">
+      <button id="linkdrag_append_action">add new gesture</button>
+    </div>
+    <dl id="linkdrag_action_list">
+    </dl>
+  </div>
+  <div class="box">
+    <h3>for text</h3>
+
+    <div class="field_action">
+      <button id="textdrag_append_action">add new gesture</button>
+    </div>
+    <dl id="textdrag_action_list">
+    </dl>
+  </div>
+</section>
+<section id="advanced" class="content">
+  <textarea id="config_text"></textarea>
+
+  <div>
+    <button id="export_conf">Export Configuration</button>
+  </div>
+  <div>
+    <button id="import_conf">Import Configuration</button>
+  </div>
+  <div class="margin">
+    <button id="reset_all">Reset All Configuration</button>
+    ( Please backup current configuration. )
+  </div>
+</section>
+<section id="news" class="content">
+  <ul>
+    <li>
+      <h4>2013/04/04 08:40</h4>
+
+      <p>一部のページでマウスの軌跡がずれる問題を修正。</p>
+
+      <p>タブの固定の切り替えアクションを追加。</p>
+    </li>
+    <li>
+      <h4>2010/02/11 21:48</h4>
+
+      <p>ページの何もないところでジェスチャーできないケースがあった問題を修正。</p>
+
+      <p>1画面スクロールを追加。</p>
+    </li>
+    <li>
+      <h4>2010/01/26 21:05</h4>
+
+      <p>「ページの読み込み途中でも動作するように修正した」副作用で画像だけを表示した状態のときにジェスチャーが動かなくなっていたので修正。</p>
+    </li>
+    <li>
+      <h4>2010/01/21 23:31</h4>
+
+      <p>ページの読み込み途中でも動作するように修正しました。</p>
+
+      <p>ローカライズをChrome本体の言語設定に従うようにしました。</p>
+
+      <p>閲覧履歴の削除などでローカルストレージが消えた際に、設定を保存し直すようにしました。</p>
+    </li>
+    <li>
+      <h4>2009/12/31 5:47</h4>
+
+      <p>ドラッグ時のアクションを設定できるようにしました。</p>
+    </li>
+    <li>
+      <h4>2009/12/30 2:34</h4>
+
+      <p>ページのURLやタイトルをクリップボードにコピーするアクションを追加しました。</p>
+    </li>
+    <li>
+      <h4>2009/12/14 12:27</h4>
+
+      <p>バックアップした設定をインポートできなかった問題を修正。</p>
+    </li>
+    <li>
+      <h4>2009/12/12 15:27</h4>
+
+      <p>再起動するとローカライズ出来ていなかった問題を修正しました。</p>
+
+      <p>新しいアクションの追加方法を改善しました。</p>
+
+      <p>矢印を可視化するオプションを追加しました。マッチしたアクション名も表示されます。</p>
+
+      <p>新規タブや拡張ギャラリーで動かないのは(今のところ)Chromeの仕様です。将来的には改善されると思います。</p>
+    </li>
+    <li>
+      <h4>2009/12/06 2:47</h4>
+
+      <p>GuesturesをGesturesに修正。「指定のURLに移動する」、「指定のURLを新規タブで開く」、「スクリプトを実行」などのアクションを追加。Thx! <a
+          href="http://bitbucket.org/gimite/" target="_blank">gimite</a></p>
+
+      <p>簡易版のスーパードラッグ追加(リンクをドラッグすると新規タブで開く)</p>
+
+      <p>設定のインポート・エキスポート追加</p>
+
+      <p>Optionsページが表示できていなかった問題を修正。Thx! <a href="http://twitter.com/r_of_p/status/6373273377"
+                                            target="_blank">@r_of_p</a></p>
+
+      <p>一応国際化(日本語とアレな英語だけだけど…)。このNewsは言語設定で日本語を選んでないと出ないようになっています。</p>
+    </li>
+    <li>
+      <h4>2009/11/19 11:34</h4>
+
+      <p>Chromiumでfileスキームを指定できなくなるので緊急対応。設定ページの見た目を弄ってますが、まだ暫定版です。</p>
+    </li>
+    <li>
+      <h4>2009/10/22 15:40</h4>
+
+      <p>スクロール監視をした状態でスムーズスクロールを無効にした場合、ページによってはスクロールできなくなるバグを修正。Thx <a
+          href="http://twitter.com/MJ_twelve/status/5059674711" target="_blank">@MJ_twelve</a></p>
+    </li>
+    <li>
+      <h4>2009/10/11 3:12</h4>
+
+      <p>スムーズスクロールと加速スクロールを実装しました。</p>
+
+      <p>スムーススクロールでは、スクロール時間を0.1秒から1秒の間で指定できます。</p>
+
+      <p>加速スクロールを有効にすると、マウスホイールを素早く動かした場合に、その速度に応じてスクロール量を増やすことができます。</p>
+
+      <p>特にスムーススクロールはページによっては正常に動かないかもしれません。そういったページを見つけた場合は下記からURL付きでバグ報告を頂けると助かります。</p>
+    </li>
+    <li>
+      <h4>2009/10/xx</h4>
+
+      <p>バグ報告、ご要望などは<a href="http://bitbucket.org/os0x/chromegestures/issues/"
+                       target="_blank">bitbucket</a>に頂けると助かります。OpenIDに対応していますので、はてな、Yahoo、mixiなどのアカウントでログインできます。
+      </p>
+    </li>
+  </ul>
+</section>
+<section id="about" class="content">
+  <dl>
+    <dt>Name:
+    <dt>
+    <dd><a href="https://chrome.google.com/extensions/detail/jpkfjicglakibpenojifdiepckckakgk"
+           target="_blank">Chrome Gestures</a></dd>
+    <dt>Version:
+    <dt>
+    <dd>ver <span id="ExtensionVersion"></span></dd>
+    <dt>Author:
+    <dt>
+    <dd><a href="http://ss-o.net/" target="_blank">os0x</a></dd>
+    <dt>License:
+    <dt>
+    <dd><a href="http://creativecommons.org/licenses/MIT/" target="_blank">The MIT license</a></dd>
+    <dt>Thanks:
+    <dt>
+    <dd><a href="http://gimite.net/" target="_blank">Gimite</a></dd>
+    <dd><a href="http://www.xuldev.org/misc/script/MouseGestures.uc.js" target="_blank">Gomita</a>, <a
+        href="http://github.com/ArcCosine/userscript/raw/master/simple_guestures.user.js#"
+        target="_blank">Arc Cosine</a></dd>
+  </dl>
+</section>
+</div>
+</div>
+</div>
+<div id="cover"><!--
+<h3>Please do mouse action</h3>
+<div id="action_result"></div>
+<button id="ok">OK</button>
+<button id="cancel">cancel</button>
+-->
+</div>
+<script src="js/options.js"></script>
+</body>
+</html>

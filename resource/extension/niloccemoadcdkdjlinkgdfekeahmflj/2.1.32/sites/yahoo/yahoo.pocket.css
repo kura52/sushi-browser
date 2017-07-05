@@ -1,0 +1,17 @@
+.type_stream .share-drawer {
+    top: 56px !important;
+}
+
+.pocket-yahoo-button {
+    background-image: url(ril-icon-white.png);
+    background-repeat: no-repeat;
+    background-size: 17px 16px;
+    background-position: center;
+}
+
+@media (-webkit-min-device-pixel-ratio: 2) {
+    .pocket-yahoo-button {
+        background-image: url(ril-icon-white@2x.png);
+    }
+
+}

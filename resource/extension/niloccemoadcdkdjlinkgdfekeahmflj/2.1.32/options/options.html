@@ -1,0 +1,105 @@
+<html>
+	<head>
+		<title></title>
+		<link rel="stylesheet" type="text/css" href="options.css">
+		<script src="../app/scripts/interface.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../app/scripts/jquery-2.1.1.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../app/scripts/background/compat.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../app/scripts/background/shared.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../app/scripts/background/i18n.js" type="text/javascript" charset="utf-8"></script>
+		<script src="options.js" type="text/javascript" charset="utf-8"></script>
+	</head>
+	<body>
+		<div id="content">
+			<div id="header">
+				<img width="283" height="52" src="../app/images/pocket-chrome-optionslogo@2x.png">
+			</div>
+			<div id="content-inner-container">
+				<h2 data-localize="options_options_title">OPTIONS</h2>
+				<div class="section-wrapper">
+					<h3 data-localize="options_login_title">Logged in as: </h3>
+					<ul class="section-item-list">
+						<li><span id="username-field"></span> <span id="logout-link-wrapper">(<a id="logout-link" data-localize="options_logout_link" href='#'>logout</a>)</span><span id="login-link-wrapper"><a id="login-link" data-localize="options_login_link" href="#">Click here to log in</a></span></li>
+					</ul>
+				</div>
+				<div class="section-wrapper" id="ril-keyboard-shortcut">
+					<h3 data-localize="options_keyboard_shortcut_title">Keyboard Shortcut:</h3>
+					<ul class="section-item-list">
+						<li><input id="keyboard-shortcut-checkbox" type="checkbox" class="checkbox" /><label for="keyboard-shortcut-checkbox" data-localize="options_keyboard_shortcut_enabled">Enabled</label></li>
+						<li><input id="keyboard-shortcut-text" type="text" class="text" placeholder="alt+b"/></li>
+						<li class="shortcut-info"></li>
+					</ul>
+				</div>
+				<div class="section-wrapper" id="ril-integrations">
+					<h3 data-localize="options_quick_save_services_title">Quick save services:</h3>
+					<ul class="section-item-list">
+						<li><input id="twitter-checkbox" type="checkbox" class="checkbox" /><label for="twitter-checkbox">Twitter</label></li>
+						<!-- <li><input id="yahoo-checkbox" type="checkbox" class="checkbox" /><label for="yahoo-checkbox">Yahoo!</label></li> -->
+						<li><input id="hackernews-checkbox" type="checkbox" class="checkbox" /><label for="hackernews-checkbox">Hacker News</label></li>
+						<li><input id="reddit-checkbox" type="checkbox" class="checkbox" /><label for="reddit-checkbox">Reddit</label></li>
+						<!--<li><input id="linkedin-checkbox" type="checkbox" class="checkbox" /><label for="linkedin-checkbox">Linkedin</label></li>-->
+						<li class="services-info" data-localize="options_services_info">When enabled, you can add directly to Pocket any items from these services <a href="http://help.getpocket.com/customer/portal/articles/485889" data-localize="options_learn_more_link">(learn more)</a>.</li>
+					</ul>
+					<div class="clear"></div>
+				</div>
+
+				<!--
+				<div class="section-wrapper beta" id="ril-suggestions">
+					<h3>Suggested Tags:</h3>
+					<ul class="section-item-list">
+						<li><input id="suggestions-checkbox" type="checkbox" class="checkbox" /><label for="suggestions-checkbox">Show me suggested tags on save</label></li>
+					</ul>
+					<div class="clear"></div>
+				</div>
+				-->
+				<div class="section-wrapper beta" id="ril-recommendations">
+					<h3>Related Recommendations:</h3>
+					<ul class="section-item-list">
+						<li><input id="recommendation-checkbox" type="checkbox" class="checkbox" /><label for="recommendation-checkbox">Show me recommendations on save</label></li>
+						<li class="services-info">When you save a page, see recommended stories from Pocket based on similar topics.</li>
+					</ul>
+					<div class="clear"></div>
+				</div>
+
+				<div class="section-wrapper beta" id="ril-newtab">
+					<h3>New Tab Recommendations:</h3>
+					<ul class="section-item-list">
+						<li><input id="newtab-checkbox" type="checkbox" class="checkbox" /><label for="newtab-checkbox">Show stories and topics in my new tab</label></li>
+						<li class="services-info">When you open a new tab, see trending stories and topics for you to check out or save to Pocket for later, sourced from millions of curators on Pocket.</li>
+					</ul>
+					<div class="clear"></div>
+				</div>
+
+
+		    	<div id="ril-topics-links-mac" class="ril-topic-footer block">
+    				<h3 data-localize="options_more_ways_to_save_title">More ways to use Pocket:</h3>
+					<ul id="ril-topics">
+					    <li class="ril-web"><a target="_blank" href="http://getpocket.com/a/">Web App</a></li>
+						<li class="ril-iphone-ipad"><a target="_blank" href="http://getpocket.com/ios/">iPhone / iPad</a></li>
+					    <li class="ril-mac"><a target="_blank" href="http://getpocket.com/mac/">Mac</a></li>
+					    <li class="ril-android"><a target="_blank" href="http://getpocket.com/android/">Android</a></li>
+					</ul>
+				</div>
+
+				<div id="ril-topics-links-win" class="ril-topic-footer block">
+    				<h3 data-localize="options_more_ways_to_save_title">More ways to use Pocket:</h3>
+					<ul id="ril-topics">
+					    <li class="ril-web"><a target="_blank" href="http://getpocket.com/a/">Web App</a></li>
+						<li class="ril-iphone"><a target="_blank" href="http://getpocket.com/iphone/">iPhone</a></li>
+					    <li class="ril-ipad"><a target="_blank" href="http://getpocket.com/iphone/">iPad</a></li>
+					    <li class="ril-android"><a target="_blank" href="http://getpocket.com/android/">Android</a></li>
+					</ul>
+				</div>
+
+				<div class="section-wrapper" id="ril-support">
+					<h3 data-localize="options_questions_pocket_title">Questions about Pocket?</h3>
+					<ul class="section-item-list ril-support-text">
+						<li><a href="#" id="search-support-link" data-localize="options_search_support_link">Search support</a>, <a href="#" id="send-us-an-email-link" data-localize="options_send_us_an_email_link">send us an email</a> or </br><a href="#" id="get-in-touch-on-twitter-link" data-localize="options_get_in_touch_on_twitter_link">get in touch on Twitter</a>.</li>
+					</ul>
+					<div class="clear"></div>
+				</div>
+			</div>
+		</div>
+		<div id="copyright">&copy; Copyright 2017 Read It Later Inc.<br> <a href="https://getpocket.com/legal?src=extensions" target="_blank">Legal &amp; Privacy</a></div>
+	</body>
+</html>

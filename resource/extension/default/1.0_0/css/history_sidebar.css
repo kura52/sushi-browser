@@ -1,0 +1,12 @@
+.infinite-tree-content .infinite-tree-item {
+    line-height: 1.4em;
+}
+
+span.margin-left{
+   margin-left: 10px;
+}
+
+.date-slice{
+    font-weight: bold;
+    color: #004ecc;
+}

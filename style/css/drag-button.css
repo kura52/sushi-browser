@@ -1,0 +1,23 @@
+.browser-navbar> div.drag-and-drop {
+    background: linear-gradient(rgba(120, 120, 120,0.2), rgba(100, 100, 100,0.2));
+    font-size: 30px;
+    padding: 5px 2px;
+    margin: 0px;
+    right: 15px;
+    top: 30%;
+    line-height: 1;
+    cursor: move;
+    position: absolute;
+    z-index: 1000;
+    width: 77.45px;
+    border-radius: 5px;
+}
+
+.browser-navbar> div.drag-and-drop a {
+    padding: 0px;
+    margin: 5px;
+}
+
+.drag {
+    z-index: 1001;
+}

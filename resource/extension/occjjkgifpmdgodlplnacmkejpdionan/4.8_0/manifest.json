@@ -1,0 +1,28 @@
+{
+   "background": {
+      "persistent": false,
+      "scripts": [ "main.js" ]
+   },
+   "content_scripts": [ {
+      "all_frames": false,
+      "js": [ "data/defaults.js", "data/AutoScroll.js" ],
+      "matches": [ "\u003Call_urls>" ],
+      "run_at": "document_end"
+   } ],
+   "description": "This extension adds customizable autoscroll support to Chrome.",
+   "icons": {
+      "128": "data/images/icons/icon128.png",
+      "16": "data/images/icons/icon16.png",
+      "32": "data/images/icons/icon32.png",
+      "48": "data/images/icons/icon48.png"
+   },
+   "key": "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDDugJ2CsIwd0EXpUJ1P60zmYVMx3Nkefcsyhu3llsllUrapm3gXJO+0GNvWgSgZ0IUR3hW6occN5uOEmjR5mtcM98vpQC7LmZIzyKWRa6O9LtRBbhSG8GsMUs/oVrJmmj+OuZ3GqY93Nmak2T6HmdR1GRJvCFElzhrOaKj5GqAjwIDAQAB",
+   "manifest_version": 2,
+   "minimum_chrome_version": "29",
+   "name": "AutoScroll",
+   "options_page": "data/options.html",
+   "permissions": [ "storage" ],
+   "update_url": "https://clients2.google.com/service/update2/crx",
+   "version": "4.8",
+   "web_accessible_resources": [ "data/images/origin/*.svg" ]
+}

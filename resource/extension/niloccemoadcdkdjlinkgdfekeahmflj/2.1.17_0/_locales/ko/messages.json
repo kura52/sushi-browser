@@ -1,0 +1,154 @@
+{
+   "background_after_install_error": {
+      "description": "",
+      "message": "Pocket을 설치하기 전에 이 탭이 열려 있습니다. 저장하기 위해 Safari를 다시 시작하거나 이 페이지 (⌘R)를 새로 고치십시오."
+   },
+   "background_invalid_url_error": {
+      "description": "",
+      "message": "유효한 웹 페이지만 Pocket에 저장할 수 있습니다."
+   },
+   "background_save_url_error_message": {
+      "description": "",
+      "message": "„{$0}“ 때문에 Pocket이 저장할 수 없습니다"
+   },
+   "background_save_url_error_no_message": {
+      "description": "",
+      "message": "Pocket이 페이지를 저장하지 못했습니다. 온라인 상태인지 확인하고 다시 시도하십시오."
+   },
+   "contextMenuEntryTitle": {
+      "description": "",
+      "message": "Pocket에 저장"
+   },
+   "contextMenuEntryVisit": {
+      "description": "",
+      "message": "Pocket 열기"
+   },
+   "extDescriptionGoogleChrome": {
+      "description": "Chrome에 대한 확장 설명",
+      "message": "Chrome용 Pocket 확장 - 아티클, 동영상 등을 저장할 최상의 방법"
+   },
+   "extDescriptionOpera": {
+      "description": "Opera에 대한 확장 설명",
+      "message": "Opera용 Pocket 확장 - 아티클, 동영상 등을 저장할 최상의 방법"
+   },
+   "extDescriptionYandex": {
+      "description": "Extension Description for Yandex.Browser",
+      "message": "Yandex.Browser용 Pocket 확장 - 아티클, 동영상 등을 저장할 최상의 방법"
+   },
+   "login_create_account_link": {
+      "description": "",
+      "message": "계정 만들기"
+   },
+   "login_logging_in_text": {
+      "description": "",
+      "message": "로그인 중..."
+   },
+   "login_login_attempt": {
+      "description": "",
+      "message": "로그인 상태인지 확인 중..."
+   },
+   "login_login_button_link": {
+      "description": "",
+      "message": "로그인"
+   },
+   "login_login_forgot_password_link": {
+      "description": "",
+      "message": "사용자 이름 또는 암호를 잊어버렸습니다."
+   },
+   "login_login_subtitle": {
+      "description": "",
+      "message": "안녕하세요. 다시 뵙게 되어 반갑습니다!"
+   },
+   "login_login_title": {
+      "description": "",
+      "message": "로그인"
+   },
+   "login_password_placeholder": {
+      "description": "",
+      "message": "암호"
+   },
+   "login_username_password_wrong": {
+      "description": "",
+      "message": "입력한 사용자 이름 및/또는 암호가 잘못되었습니다."
+   },
+   "login_username_placeholder": {
+      "description": "",
+      "message": "이메일 또는 사용자 이름"
+   },
+   "options_get_in_touch_on_twitter_link": {
+      "description": "",
+      "message": "Twitter의 연락처"
+   },
+   "options_keyboard_shortcut_enabled": {
+      "description": "",
+      "message": "활성화됨"
+   },
+   "options_keyboard_shortcut_title": {
+      "description": "",
+      "message": "키보드 바로 가기:"
+   },
+   "options_learn_more_link": {
+      "description": "",
+      "message": "(더 보기)"
+   },
+   "options_login_link": {
+      "description": "",
+      "message": "로그인하려면 여기를 클릭하십시오"
+   },
+   "options_login_title": {
+      "description": "",
+      "message": "다음으로 로그인: "
+   },
+   "options_logout_link": {
+      "description": "",
+      "message": "로그아웃"
+   },
+   "options_more_ways_to_save_title": {
+      "description": "",
+      "message": "다른 Pocket 사용 방법:"
+   },
+   "options_options_title": {
+      "description": "",
+      "message": "설정"
+   },
+   "options_questions_pocket_title": {
+      "description": "",
+      "message": "Pocket에 대한 질문이 있으십니까?"
+   },
+   "options_quick_save_services_title": {
+      "description": "",
+      "message": "빠른 저장 서비스:"
+   },
+   "options_record_shortcut": {
+      "description": "",
+      "message": "새 바로 가기 기록"
+   },
+   "options_reset_to_default": {
+      "description": "",
+      "message": "기본값으로 재설정"
+   },
+   "options_search_support_link": {
+      "description": "",
+      "message": "지원 검색"
+   },
+   "options_send_us_an_email_link": {
+      "description": "",
+      "message": "이메일 보내기"
+   },
+   "options_services_info": {
+      "description": "",
+      "message": "활성화되면 이 서비스에서 항목을 Pocket에 직접 추가할 수 있습니다."
+   },
+   "options_title": {
+      "description": "",
+      "message": "{$0}용 Pocket 설정"
+   },
+   "toolbarButtonTitle": {
+      "description": "",
+      "message": "Pocket에 저장"
+   },
+   "yandexBrowser": {
+      "description": "Yandex.Browser",
+      "message": "Yandex.Browser"
+   }
+}

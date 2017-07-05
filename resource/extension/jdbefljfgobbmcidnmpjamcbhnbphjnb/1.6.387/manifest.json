@@ -1,0 +1,42 @@
+{
+//   "background": {
+//      "page": "pdfHandler.html"
+//   },
+//   "content_scripts": [ {
+//      "all_frames": true,
+//      "css": [ "contentstyle.css" ],
+//      "js": [ "contentscript.js" ],
+//      "matches": [ "http://*/*", "https://*/*", "ftp://*/*", "file://*/*" ],
+//      "run_at": "document_start"
+//   } ],
+   "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
+   "description": "Uses HTML5 to display PDF files directly in the browser.",
+   "file_browser_handlers": [ {
+      "default_title": "Open with PDF Viewer",
+      "file_filters": [ "filesystem:*.pdf" ],
+      "id": "open-as-pdf"
+   } ],
+   "icons": {
+      "128": "icon128.png",
+      "16": "icon16.png",
+      "48": "icon48.png"
+   },
+   "incognito": "split",
+   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqmqh6Kxmj00IjKvjPsCtw6g2BHvKipjS3fBD0IInXZZ57u5oZfw6q42L7tgWDLrNDPvu3XDH0vpECr+IcgBjkM+w6+2VdTyPj5ubngTwvBqCIPItetpsZNJOJfrFw0OIgmyekZYsI+BsK7wiMtHczwfKSTi0JKgrwIRhHbEhpUnCxFhi+zI61p9jwMb2EBFwxru7MtpP21jG7pVznFeLV9W9BkNL1Th9QBvVs7GvZwtIIIniQkKtqT1wp4IY9/mDeM5SgggKakumCnT9D37ZxDnM2K13BKAXOkeH6JLGrZCl3aXmqDO9OhLwoch+LGb5IaXwOZyGnhdhm9MNA3hgEwIDAQAB",
+   "manifest_version": 2,
+   "name": "PDF Viewer",
+   "page_action": {
+      "default_icon": {
+         "19": "icon19.png",
+         "38": "icon38.png"
+      },
+      "default_popup": "pageAction/popup.html",
+      "default_title": "Show PDF URL"
+   },
+   "permissions": [ "webRequest", "webRequestBlocking", "\u003Call_urls>", "tabs", "webNavigation", "storage" ],
+   "storage": {
+      "managed_schema": "preferences_schema.json"
+   },
+   "version": "1.6.387",
+   "web_accessible_resources": [ "content/web/viewer.html" ]
+}

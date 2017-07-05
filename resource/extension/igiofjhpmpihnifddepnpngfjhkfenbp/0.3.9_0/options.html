@@ -1,0 +1,45 @@
+<html>
+  <head>
+    <link href="options.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript" src="utils.js"></script>
+    <script type="text/javascript" src="locale.js"></script>
+    <script type="text/javascript" src="options.js"></script>
+  </head>
+  <body>
+    <h1><img class="icon" src="icons/icon48.png" /> <span class="i18n">options</span></h1>
+    <div>
+      <form id="settings_form">
+        <div>
+          <label for="form_dm" class="i18n">display_message_bar</label>
+          <input type="checkbox" id="form_dm" />
+        </div>
+        <br />
+
+        <div><label for="form_ep" class="i18n">exclude_patterns</label></div>
+        <div>
+          <textarea id="form_ep" cols="60" rows="7"></textarea>
+        </div>
+
+        <div class="desc">
+          <span class="i18n">example</span>(<span class="i18n">wildcard</span>): <code> http://www.example.com/search?*</code>
+          <br />
+          <span class="i18n">example</span>(<span class="i18n">regexp</span>): <code>/[^.]+\.example\.com\//</code>
+        </div>
+
+        <input class="i18n" type="submit" value="save" />
+      </form>
+    </div>
+
+    <h2 class="i18n">siteinfo</h2>
+    <div><span class="i18n">size</span>: <span id="siteinfo_size"></span></div>
+    <div><span class="i18n">updated_at</span>: <span id="siteinfo_updated_at"></span></div>
+    <form>
+      <input class="i18n" id="update_siteinfo" type="button" value="update_siteinfo" />
+    </form>
+
+    <div class="footer">
+      AutoPagerize
+      <a href="http://autopagerize.net/">http://autopagerize.net/</a>
+    </div>
+  </body>
+</html>

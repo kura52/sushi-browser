@@ -1,0 +1,154 @@
+{
+   "background_after_install_error": {
+      "description": "",
+      "message": "おっと、このタブは Pocket をインストールする前から開いていました。保存するには Safari を再起動するかこのページ（⌘R）をリフレッシュしてください。"
+   },
+   "background_invalid_url_error": {
+      "description": "",
+      "message": "申し訳ございませんが、Pocket に保存できるのは有効なウェブページのみです。"
+   },
+   "background_save_url_error_message": {
+      "description": "",
+      "message": "Pocket は以下の理由で保存に失敗しました „{$0}“"
+   },
+   "background_save_url_error_no_message": {
+      "description": "",
+      "message": "Pocket はページの保存に失敗しました。オンラインであることをご確認のうえ、もう一度お試しください。"
+   },
+   "contextMenuEntryTitle": {
+      "description": "",
+      "message": "Pocket に保存"
+   },
+   "contextMenuEntryVisit": {
+      "description": "",
+      "message": "Pocket を開く"
+   },
+   "extDescriptionGoogleChrome": {
+      "description": "Chrome 向け拡張機能の詳細",
+      "message": "Chrome 向け Pocket 拡張機能 - 記事、ビデオなどを保存するベストな方法"
+   },
+   "extDescriptionOpera": {
+      "description": "Opera 向け拡張機能の詳細",
+      "message": "Opera 向け Pocket 拡張機能 - 記事、ビデオなどを保存するベストな方法"
+   },
+   "extDescriptionYandex": {
+      "description": "Extension Description for Yandex.Browser",
+      "message": "Yandex.Browser 向け Pocket 拡張機能 - 記事、ビデオなどを保存するベストな方法"
+   },
+   "login_create_account_link": {
+      "description": "",
+      "message": "アカウントを作成"
+   },
+   "login_logging_in_text": {
+      "description": "",
+      "message": "ログイン中…"
+   },
+   "login_login_attempt": {
+      "description": "",
+      "message": "ログインされているか確認中..."
+   },
+   "login_login_button_link": {
+      "description": "",
+      "message": "ログイン"
+   },
+   "login_login_forgot_password_link": {
+      "description": "",
+      "message": "ユーザー名またはパスワードを忘れた。"
+   },
+   "login_login_subtitle": {
+      "description": "",
+      "message": "こんにちは。またのご利用ありがとうございます！"
+   },
+   "login_login_title": {
+      "description": "",
+      "message": "ログイン"
+   },
+   "login_password_placeholder": {
+      "description": "",
+      "message": "パスワード"
+   },
+   "login_username_password_wrong": {
+      "description": "",
+      "message": "入力されたユーザー名、および/またはパスワードが間違っています。"
+   },
+   "login_username_placeholder": {
+      "description": "",
+      "message": "Eメールまたはユーザー名"
+   },
+   "options_get_in_touch_on_twitter_link": {
+      "description": "",
+      "message": "Twitter で最新情報をチェック"
+   },
+   "options_keyboard_shortcut_enabled": {
+      "description": "",
+      "message": "有効"
+   },
+   "options_keyboard_shortcut_title": {
+      "description": "",
+      "message": "キーボードショートカット："
+   },
+   "options_learn_more_link": {
+      "description": "",
+      "message": "（詳しく見る）"
+   },
+   "options_login_link": {
+      "description": "",
+      "message": "ここをクリックしてログイン"
+   },
+   "options_login_title": {
+      "description": "",
+      "message": "次のユーザー名でログイン中： "
+   },
+   "options_logout_link": {
+      "description": "",
+      "message": "ログアウト"
+   },
+   "options_more_ways_to_save_title": {
+      "description": "",
+      "message": "その他の Pocket 使用方法："
+   },
+   "options_options_title": {
+      "description": "",
+      "message": "オプション"
+   },
+   "options_questions_pocket_title": {
+      "description": "",
+      "message": "Pocket に関する質問がありますか？"
+   },
+   "options_quick_save_services_title": {
+      "description": "",
+      "message": "クイック保存サービス："
+   },
+   "options_record_shortcut": {
+      "description": "",
+      "message": "新しいショートカットを記録"
+   },
+   "options_reset_to_default": {
+      "description": "",
+      "message": "デフォルトにリセット"
+   },
+   "options_search_support_link": {
+      "description": "",
+      "message": "サポートを検索"
+   },
+   "options_send_us_an_email_link": {
+      "description": "",
+      "message": "メールでお問い合わせ"
+   },
+   "options_services_info": {
+      "description": "",
+      "message": "有効にすると、これらサービスからどんなアイテムでも Pocket に直接追加できるようになります"
+   },
+   "options_title": {
+      "description": "",
+      "message": "{$0} 向け Pocket のオプション"
+   },
+   "toolbarButtonTitle": {
+      "description": "",
+      "message": "Pocket に保存"
+   },
+   "yandexBrowser": {
+      "description": "Yandex.Browser",
+      "message": "Yandex.Browser"
+   }
+}

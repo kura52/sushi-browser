@@ -1,0 +1,21 @@
+{
+  "name": "c",
+  "version": "1.0.0",
+  "description": "Chromagnon is a set of small tools dedicated to _Chrome_/_Chromium_ forensic.",
+  "main": "chromagnonCache.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "binascii": "0.0.1",
+    "command-line-args": "^3.0.5",
+    "filepointer": "0.0.91",
+    "jspack": "0.0.4",
+    "microseconds": "^0.1.0",
+    "non-crypto-hash": "^0.1.2",
+    "python-struct": "^1.0.4",
+    "sprintf-js": "^1.0.3"
+  }
+}

@@ -1,0 +1,154 @@
+{
+   "background_after_install_error": {
+      "description": "",
+      "message": "Questa scheda era aperta prima dell'installazione di Pocket. Riavvia Safari o aggiorna questa pagina (⌘R) per salvarla."
+   },
+   "background_invalid_url_error": {
+      "description": "",
+      "message": "È possibile salvare su Pocket solo pagine web valide."
+   },
+   "background_save_url_error_message": {
+      "description": "",
+      "message": "Pocket non può salvare perché „{$0}“"
+   },
+   "background_save_url_error_no_message": {
+      "description": "",
+      "message": "Pocket non ha potuto salvare la pagina. Assicurati di essere online e riprova."
+   },
+   "contextMenuEntryTitle": {
+      "description": "",
+      "message": "Salva in Pocket"
+   },
+   "contextMenuEntryVisit": {
+      "description": "",
+      "message": "Apri Pocket"
+   },
+   "extDescriptionGoogleChrome": {
+      "description": "Descrizione dell'estensione per Chrome",
+      "message": "Estensione di Pocket per Chrome - il modo migliore per salvare articoli, video e molto altro."
+   },
+   "extDescriptionOpera": {
+      "description": "Descrizione dell'estensione per Opera",
+      "message": "Estensione di Pocket per Opera - il modo migliore per salvare articoli, video e molto altro"
+   },
+   "extDescriptionYandex": {
+      "description": "Extension Description for Yandex.Browser",
+      "message": "Estensione di Pocket per Yandex.Browser - il modo migliore per salvare articoli, video e altro ancora"
+   },
+   "login_create_account_link": {
+      "description": "",
+      "message": "Crea un account"
+   },
+   "login_logging_in_text": {
+      "description": "",
+      "message": "Accesso in corso..."
+   },
+   "login_login_attempt": {
+      "description": "",
+      "message": "Controllo dell'accesso in corso..."
+   },
+   "login_login_button_link": {
+      "description": "",
+      "message": "Accedi"
+   },
+   "login_login_forgot_password_link": {
+      "description": "",
+      "message": "Ho dimenticato il nome utente o la password."
+   },
+   "login_login_subtitle": {
+      "description": "",
+      "message": "Ciao.  È un piacere vederti di nuovo!"
+   },
+   "login_login_title": {
+      "description": "",
+      "message": "ACCEDI"
+   },
+   "login_password_placeholder": {
+      "description": "",
+      "message": "Password"
+   },
+   "login_username_password_wrong": {
+      "description": "",
+      "message": "Il nome utente e/o la password inseriti non sono corretti."
+   },
+   "login_username_placeholder": {
+      "description": "",
+      "message": "Email o nome utente"
+   },
+   "options_get_in_touch_on_twitter_link": {
+      "description": "",
+      "message": "contattaci su Twitter"
+   },
+   "options_keyboard_shortcut_enabled": {
+      "description": "",
+      "message": "Attivato"
+   },
+   "options_keyboard_shortcut_title": {
+      "description": "",
+      "message": "Tasti di scelta rapida:"
+   },
+   "options_learn_more_link": {
+      "description": "",
+      "message": "(maggiori informazioni)"
+   },
+   "options_login_link": {
+      "description": "",
+      "message": "Fai clic qui per accedere"
+   },
+   "options_login_title": {
+      "description": "",
+      "message": "Accesso eseguito come: "
+   },
+   "options_logout_link": {
+      "description": "",
+      "message": "esci"
+   },
+   "options_more_ways_to_save_title": {
+      "description": "",
+      "message": "Altri modi di usare Pocket"
+   },
+   "options_options_title": {
+      "description": "",
+      "message": "OPZIONI"
+   },
+   "options_questions_pocket_title": {
+      "description": "",
+      "message": "Domande su Pocket?"
+   },
+   "options_quick_save_services_title": {
+      "description": "",
+      "message": "Servizi con aggiunta rapida:"
+   },
+   "options_record_shortcut": {
+      "description": "",
+      "message": "Memorizza un nuovo tasto di scelta rapida"
+   },
+   "options_reset_to_default": {
+      "description": "",
+      "message": "Reimposta predefinito"
+   },
+   "options_search_support_link": {
+      "description": "",
+      "message": "Cerca assistenza"
+   },
+   "options_send_us_an_email_link": {
+      "description": "",
+      "message": "inviaci un'email"
+   },
+   "options_services_info": {
+      "description": "",
+      "message": "Quando sono attivati, puoi salvare direttamente in Pocket tutti i contenuti di questi servizi"
+   },
+   "options_title": {
+      "description": "",
+      "message": "Pocket per le opzioni {$0}"
+   },
+   "toolbarButtonTitle": {
+      "description": "",
+      "message": "Salva in Pocket"
+   },
+   "yandexBrowser": {
+      "description": "Yandex.Browser",
+      "message": "Yandex.Browser"
+   }
+}

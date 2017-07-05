@@ -1,0 +1,154 @@
+{
+   "background_after_install_error": {
+      "description": "",
+      "message": "Ups, ta zakładka była otwarta, zanim zainstalowano aplikację Pocket. Ponownie uruchom przeglądarkę Safari lub odśwież tę stronę (⌘R), aby ją zapisać."
+   },
+   "background_invalid_url_error": {
+      "description": "",
+      "message": "Przepraszamy, w aplikacji Pocket można zapisywać tylko prawidłowe witryny internetowe."
+   },
+   "background_save_url_error_message": {
+      "description": "",
+      "message": "Nie można zapisać za pomocą aplikacji Pocket, ponieważ „{$0}“ "
+   },
+   "background_save_url_error_no_message": {
+      "description": "",
+      "message": "Nie można zapisać tej strony za pomocą aplikacji Pocket. Upewnij się, że połączenie z Internetem jest aktywne i spróbuj ponownie."
+   },
+   "contextMenuEntryTitle": {
+      "description": "",
+      "message": "Zapisz w aplikacji Pocket"
+   },
+   "contextMenuEntryVisit": {
+      "description": "",
+      "message": "Otwórz Aplikację Pocket"
+   },
+   "extDescriptionGoogleChrome": {
+      "description": "Opis rozszerzenia dla przeglądarki Chrome",
+      "message": "Rozszerzenie aplikacji Pocket dla przeglądarki Chrome — najlepszy sposób zapisywania artykułów, filmów wideo i nie tylko"
+   },
+   "extDescriptionOpera": {
+      "description": "Opis rozszerzenia dla przeglądarki Opera",
+      "message": "Rozszerzenie aplikacji Pocket dla przeglądarki Opera — najlepsza metoda zapisywania artykułów, filmów wideo i nie tylko"
+   },
+   "extDescriptionYandex": {
+      "description": "Extension Description for Yandex.Browser",
+      "message": "Rozszerzenie aplikacji Pocket dla przeglądarki Yandex.Browser — najlepsza metoda zapisywania artykułów, filmów wideo i nie tylko"
+   },
+   "login_create_account_link": {
+      "description": "",
+      "message": "Utwórz konto"
+   },
+   "login_logging_in_text": {
+      "description": "",
+      "message": "Logowanie..."
+   },
+   "login_login_attempt": {
+      "description": "",
+      "message": "Sprawdzanie zalogowania..."
+   },
+   "login_login_button_link": {
+      "description": "",
+      "message": "Zaloguj się"
+   },
+   "login_login_forgot_password_link": {
+      "description": "",
+      "message": "Nie pamiętam nazwy użytkownika lub hasła"
+   },
+   "login_login_subtitle": {
+      "description": "",
+      "message": "Witaj. Świetnie Cię znowu widzieć!"
+   },
+   "login_login_title": {
+      "description": "",
+      "message": "ZALOGUJ SIĘ"
+   },
+   "login_password_placeholder": {
+      "description": "",
+      "message": "Hasło"
+   },
+   "login_username_password_wrong": {
+      "description": "",
+      "message": "Wprowadzona nazwa użytkownika i/lub hasło są nieprawidłowe."
+   },
+   "login_username_placeholder": {
+      "description": "",
+      "message": "E-mail lub login"
+   },
+   "options_get_in_touch_on_twitter_link": {
+      "description": "",
+      "message": "skontaktuj się za pomocą serwisu Twitter"
+   },
+   "options_keyboard_shortcut_enabled": {
+      "description": "",
+      "message": "Włączono"
+   },
+   "options_keyboard_shortcut_title": {
+      "description": "",
+      "message": "Skróty klawiaturowe:"
+   },
+   "options_learn_more_link": {
+      "description": "",
+      "message": "(dowiedz się więcej)"
+   },
+   "options_login_link": {
+      "description": "",
+      "message": "Kliknij tutaj, aby się zalogować"
+   },
+   "options_login_title": {
+      "description": "",
+      "message": "Zalogowano jako: "
+   },
+   "options_logout_link": {
+      "description": "",
+      "message": "wyloguj"
+   },
+   "options_more_ways_to_save_title": {
+      "description": "",
+      "message": "Więcej metod korzystania z aplikacji Pocket:"
+   },
+   "options_options_title": {
+      "description": "",
+      "message": "OPCJE"
+   },
+   "options_questions_pocket_title": {
+      "description": "",
+      "message": "Masz pytania na temat aplikacji Pocket?"
+   },
+   "options_quick_save_services_title": {
+      "description": "",
+      "message": "Serwisy umożliwiające szybkie zapisywanie:"
+   },
+   "options_record_shortcut": {
+      "description": "",
+      "message": "Zarejestruj nowy skrót"
+   },
+   "options_reset_to_default": {
+      "description": "",
+      "message": "Zresetuj do ustawień domyślnych"
+   },
+   "options_search_support_link": {
+      "description": "",
+      "message": "Znajdź pomoc"
+   },
+   "options_send_us_an_email_link": {
+      "description": "",
+      "message": "wyślij do nas wiadomość e-mail"
+   },
+   "options_services_info": {
+      "description": "",
+      "message": "Po włączeniu tej funkcji elementy z tych serwisów można dodawać bezpośrednio do aplikacji Pocket"
+   },
+   "options_title": {
+      "description": "",
+      "message": "Opcje aplikacji Pocket dla przeglądarki {$0}"
+   },
+   "toolbarButtonTitle": {
+      "description": "",
+      "message": "Zapisz w aplikacji Pocket"
+   },
+   "yandexBrowser": {
+      "description": "Yandex.Browser",
+      "message": "Yandex.Browser"
+   }
+}

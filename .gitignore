@@ -1,0 +1,7 @@
+z.js
+/node_modules/
+/.idea/
+.directory
+/dist/
+/lib/
+.DS_Store

@@ -1,0 +1,154 @@
+{
+   "background_after_install_error": {
+      "description": "",
+      "message": "Oeps, dit tabblad was al open voordat je Pocket installeerde. Herstart Safari of vernieuw deze pagina (⌘R) om 'm op te slaan."
+   },
+   "background_invalid_url_error": {
+      "description": "",
+      "message": "Het spijt ons, je kan enkel geldige webpagina's opslaan naar Pocket."
+   },
+   "background_save_url_error_message": {
+      "description": "",
+      "message": "Pocket kon niet opslaan vanwege „{$0}“"
+   },
+   "background_save_url_error_no_message": {
+      "description": "",
+      "message": "Pocket kon de pagina niet opslaan. Zorg dat je online bent, en probeer het opnieuw."
+   },
+   "contextMenuEntryTitle": {
+      "description": "",
+      "message": "Opslaan naar Pocket"
+   },
+   "contextMenuEntryVisit": {
+      "description": "",
+      "message": "Pocket Openen"
+   },
+   "extDescriptionGoogleChrome": {
+      "description": "Extensie-omschrijving voor Chrome",
+      "message": "Pocket Extensie voor Chrome - De beste manier om artikels, video's en meer op te slaan"
+   },
+   "extDescriptionOpera": {
+      "description": "Extensie-omschrijving voor Opera",
+      "message": "Pocket Extensie voor Opera - De beste manier om artikelen, video's en meer op te slaan"
+   },
+   "extDescriptionYandex": {
+      "description": "Extension Description for Yandex.Browser",
+      "message": "Pocket extensie voor Yandex.Browser - De beste manier om artikelen, video's en meer op te slaan"
+   },
+   "login_create_account_link": {
+      "description": "",
+      "message": "Maak een account aan"
+   },
+   "login_logging_in_text": {
+      "description": "",
+      "message": "Bezig met inloggen..."
+   },
+   "login_login_attempt": {
+      "description": "",
+      "message": "We controleren of je ingelogd bent..."
+   },
+   "login_login_button_link": {
+      "description": "",
+      "message": "Aanmelden"
+   },
+   "login_login_forgot_password_link": {
+      "description": "",
+      "message": "Ik ben mijn gebruikersnaam of wachtwoord vergeten."
+   },
+   "login_login_subtitle": {
+      "description": "",
+      "message": "Hallo. Leuk om je terug te zien!"
+   },
+   "login_login_title": {
+      "description": "",
+      "message": "INLOGGEN"
+   },
+   "login_password_placeholder": {
+      "description": "",
+      "message": "Wachtwoord"
+   },
+   "login_username_password_wrong": {
+      "description": "",
+      "message": "De door jou ingevoerde gebruikersnaam en/of het wachtwoord waren niet correct."
+   },
+   "login_username_placeholder": {
+      "description": "",
+      "message": "E-mail of gebruikersnaam"
+   },
+   "options_get_in_touch_on_twitter_link": {
+      "description": "",
+      "message": "neem contact met ons op via Twitter"
+   },
+   "options_keyboard_shortcut_enabled": {
+      "description": "",
+      "message": "Ingeschakeld"
+   },
+   "options_keyboard_shortcut_title": {
+      "description": "",
+      "message": "Snelkoppeling toetsenbord:"
+   },
+   "options_learn_more_link": {
+      "description": "",
+      "message": "(meer info)"
+   },
+   "options_login_link": {
+      "description": "",
+      "message": "Klik hier om in te loggen "
+   },
+   "options_login_title": {
+      "description": "",
+      "message": "Ingelogd als: "
+   },
+   "options_logout_link": {
+      "description": "",
+      "message": "uitloggen"
+   },
+   "options_more_ways_to_save_title": {
+      "description": "",
+      "message": "Meer manieren om Pocket te gebruiken:"
+   },
+   "options_options_title": {
+      "description": "",
+      "message": "OPTIES"
+   },
+   "options_questions_pocket_title": {
+      "description": "",
+      "message": "Vragen over Pocket?"
+   },
+   "options_quick_save_services_title": {
+      "description": "",
+      "message": "Diensten snel opslaan:"
+   },
+   "options_record_shortcut": {
+      "description": "",
+      "message": "Een nieuwe snelkoppeling vastleggen"
+   },
+   "options_reset_to_default": {
+      "description": "",
+      "message": "Terug naar standaardinstellingen"
+   },
+   "options_search_support_link": {
+      "description": "",
+      "message": "Hulp bij Zoeken"
+   },
+   "options_send_us_an_email_link": {
+      "description": "",
+      "message": "stuur ons een e-mail"
+   },
+   "options_services_info": {
+      "description": "",
+      "message": "Als deze diensten zijn ingeschakeld, kun je vandaaruit rechtstreeks alle items toevoegen aan Pocket"
+   },
+   "options_title": {
+      "description": "",
+      "message": "Pocket voor {$0} opties"
+   },
+   "toolbarButtonTitle": {
+      "description": "",
+      "message": "Opslaan naar Pocket"
+   },
+   "yandexBrowser": {
+      "description": "Yandex.Browser",
+      "message": "Yandex.Browser"
+   }
+}

@@ -1,0 +1,56 @@
+html {
+    height:100%;
+}
+
+body {
+    height:100%;
+    background-color: #101010;
+    margin: 0;
+}
+
+#app{
+    height: 100%;
+    overflow-y: hidden;
+}
+
+#terminal{
+    font-size: 14px;
+    line-height: 1.2;
+    background-color: black;
+    height: 100%;
+    overflow-y: hidden;
+}
+.terminal {
+    font-family: 'DejaVu Sans Mono''Droid Sans Mono', 'Courier New', monospace, 'Droid Sans Fallback' !important;
+}
+.terminal .xterm-viewport {
+    background-color: #101010 !important;
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+::-webkit-scrollbar-button {
+    width: 0px;
+    height: 0px;
+}
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border: 0px none #ffffff;
+    border-radius: 50px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #d1d0d0;
+}
+::-webkit-scrollbar-thumb:active {
+    background: #d1d0d0;
+}
+::-webkit-scrollbar-track {
+    background: #666666;
+    border: 0px none #ffffff;
+    border-radius: 50px;
+}
+::-webkit-scrollbar-corner {
+    background: transparent;
+}

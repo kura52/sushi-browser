@@ -1,0 +1,154 @@
+{
+   "background_after_install_error": {
+      "description": "",
+      "message": "Ой, эта вкладка была открыта до того, как был установлен Pocket. Перезапустите Safari или обновите эту страницу (⌘R), чтобы сохранить её."
+   },
+   "background_invalid_url_error": {
+      "description": "",
+      "message": "Извините, но в Pocket можно сохранять только корректные веб-страницы."
+   },
+   "background_save_url_error_message": {
+      "description": "",
+      "message": "Pocket не смог сохранить страницу, потому что „{$0}“"
+   },
+   "background_save_url_error_no_message": {
+      "description": "",
+      "message": "Pocket не смог сохранить страницу. Убедитесь, что вы подключены к Интернет, и попробуйте еще раз."
+   },
+   "contextMenuEntryTitle": {
+      "description": "",
+      "message": "Сохранить в Pocket"
+   },
+   "contextMenuEntryVisit": {
+      "description": "",
+      "message": "Открыть Pocket"
+   },
+   "extDescriptionGoogleChrome": {
+      "description": "Описание расширения для Chrome",
+      "message": "Расширение Pocket для Chrome - это самый удобный способ сохранять статьи, видео и многое другое"
+   },
+   "extDescriptionOpera": {
+      "description": "Описание расширения для Opera",
+      "message": "Расширение Pocket для Opera - это самый удобный способ сохранять статьи, видео и многое другое"
+   },
+   "extDescriptionYandex": {
+      "description": "Extension Description for Yandex.Browser",
+      "message": "Расширение Pocket для Яндекс.Браузера - Лучший способ сохранять статьи, видео и многое другое"
+   },
+   "login_create_account_link": {
+      "description": "",
+      "message": "Создать аккаунт"
+   },
+   "login_logging_in_text": {
+      "description": "",
+      "message": "Вход..."
+   },
+   "login_login_attempt": {
+      "description": "",
+      "message": "Проверяем, вошли ли вы в Pocket..."
+   },
+   "login_login_button_link": {
+      "description": "",
+      "message": "Вход"
+   },
+   "login_login_forgot_password_link": {
+      "description": "",
+      "message": "Я забыл имя пользователя или пароль."
+   },
+   "login_login_subtitle": {
+      "description": "",
+      "message": "Привет. Рады снова вас видеть!"
+   },
+   "login_login_title": {
+      "description": "",
+      "message": "ВОЙТИ"
+   },
+   "login_password_placeholder": {
+      "description": "",
+      "message": "Пароль"
+   },
+   "login_username_password_wrong": {
+      "description": "",
+      "message": "Неверное имя пользователя и/или пароль."
+   },
+   "login_username_placeholder": {
+      "description": "",
+      "message": "email или имя пользователя"
+   },
+   "options_get_in_touch_on_twitter_link": {
+      "description": "",
+      "message": "или написать нам в Twitter"
+   },
+   "options_keyboard_shortcut_enabled": {
+      "description": "",
+      "message": "Включено"
+   },
+   "options_keyboard_shortcut_title": {
+      "description": "",
+      "message": "Сочетание клавиш:"
+   },
+   "options_learn_more_link": {
+      "description": "",
+      "message": "(узнать больше)"
+   },
+   "options_login_link": {
+      "description": "",
+      "message": "Нажмите, чтобы войти"
+   },
+   "options_login_title": {
+      "description": "",
+      "message": "Вы вошли как: "
+   },
+   "options_logout_link": {
+      "description": "",
+      "message": "выйти"
+   },
+   "options_more_ways_to_save_title": {
+      "description": "",
+      "message": "Больше способов использовать Pocket:"
+   },
+   "options_options_title": {
+      "description": "",
+      "message": "НАСТРОЙКИ"
+   },
+   "options_questions_pocket_title": {
+      "description": "",
+      "message": "Возникли вопросы?"
+   },
+   "options_quick_save_services_title": {
+      "description": "",
+      "message": "Приложения с быстрым сохранением:"
+   },
+   "options_record_shortcut": {
+      "description": "",
+      "message": "Задать новое сочетание клавиш"
+   },
+   "options_reset_to_default": {
+      "description": "",
+      "message": "Сбросить настройки"
+   },
+   "options_search_support_link": {
+      "description": "",
+      "message": "Поиск в базе знаний"
+   },
+   "options_send_us_an_email_link": {
+      "description": "",
+      "message": "написать нам письмо"
+   },
+   "options_services_info": {
+      "description": "",
+      "message": "В этом режиме вы можете сразу добавлять в Pocket материалы из выбранных приложений"
+   },
+   "options_title": {
+      "description": "",
+      "message": "Настройки Pocket для {$0}"
+   },
+   "toolbarButtonTitle": {
+      "description": "",
+      "message": "Сохранить в Pocket"
+   },
+   "yandexBrowser": {
+      "description": "Яндекс.Браузера",
+      "message": "Яндекс.Браузера"
+   }
+}

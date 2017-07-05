@@ -1,0 +1,50 @@
+{
+   "background": {
+      "persistent": true,
+      "scripts": [ "app/scripts/vendor.js", "app/scripts/jquery-2.1.1.min.js", "app/scripts/interface.js", "app/scripts/background/shared.js", "app/scripts/background/i18n.js", "app/scripts/background/api.js", "app/scripts/background/auth.js", "app/scripts/background/background.js" ]
+   },
+   "browser_action": {
+      "default_icon": {
+         "19": "app/images/browser-action-icon-19.png",
+         "38": "app/images/browser-action-icon-38.png"
+      },
+      "default_title": "__MSG_toolbarButtonTitle__"
+   },
+   "content_scripts": [ {
+      "css": [ "app/styles/global.css" ],
+      "js": [ "_locales/locales.js", "app/scripts/keypress/keyboard-shortcut.js", "app/scripts/jquery-2.1.1.min.js", "app/scripts/background/compat.js", "app/scripts/background/shared.js", "app/scripts/vendor.js", "app/scripts/templates.js", "app/scripts/interface.js", "app/scripts/panels.js", "app/scripts/main.js", "app/scripts/newtab.js" ],
+      "matches": [ "*://*/*" ],
+      "run_at": "document_start"
+   }, {
+      "js": [ "app/scripts/jquery-2.1.1.min.js", "app/scripts/background/shared.js", "app/scripts/background/auth-login.js" ],
+      "matches": [ "*://getpocket.com/extension_login_success" ]
+   }, {
+      "js": [ "app/scripts/jquery-2.1.1.min.js", "app/scripts/background/shared.js", "app/scripts/background/auth-logout.js" ],
+      "matches": [ "*://getpocket.com/login?e=4" ]
+   }, {
+      "css": [ "sites/twitter/twitter.ril.css" ],
+      "js": [ "app/scripts/jquery-2.1.1.min.js", "app/scripts/background/shared.js", "sites/twitter/twitter.ril.js" ],
+      "matches": [ "*://twitter.com/*" ]
+   }, {
+      "js": [ "app/scripts/jquery-2.1.1.min.js", "app/scripts/background/shared.js", "sites/hackernews/hn.pocket.js" ],
+      "matches": [ "http://*.ycombinator.org/*", "https://*.ycombinator.org/*", "http://*.ycombinator.com/*", "https://*.ycombinator.com/*" ]
+   }, {
+      "js": [ "app/scripts/jquery-2.1.1.min.js", "app/scripts/background/shared.js", "sites/reddit/reddit.pocket.js" ],
+      "matches": [ "*://*.reddit.com/*" ]
+   } ],
+   "default_locale": "en",
+   "description": "__MSG_extDescriptionGoogleChrome__",
+   "icons": {
+      "128": "app/images/icon-128.png",
+      "16": "app/images/icon-16.png",
+      "48": "app/images/icon-48.png"
+   },
+   "key": "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDKCQwBisK1UcxYMn6MAfDbc8yXWzvbnCzqJwjwbeMaAHji91jdCy3bEzMprTZxW/1Anfk9B4P+hcoTwqUaMUB4WemQMRKRsr9vC45V1iv912nqyGkoGT+cRKZc+niBriAnn4J2GBACHJqkkCiSChphDFt/UNoQEKz4VoqWZDVj/QIDAQAB",
+   "manifest_version": 2,
+   "name": "Save to Pocket",
+   "options_page": "options/options.html",
+   "permissions": [ "tabs", "contextMenus", "cookies", "notifications", "https://readitlaterlist.com/", "http://*/*", "https://*/*" ],
+   "update_url": "https://clients2.google.com/service/update2/crx",
+   "version": "2.1.17",
+   "web_accessible_resources": [ "app/fonts/ProximaNova-Reg-webfont.eot", "app/fonts/ProximaNova-Reg-webfont.woff", "app/fonts/ProximaNova-Reg-webfont.ttf", "app/fonts/ProximaNova-Sbold-webfont.eot", "app/fonts/ProximaNova-Sbold-webfont.woff", "app/fonts/ProximaNova-Sbold-webfont.ttf", "app/fonts/ProximaNova-Bold-webfont.eot", "app/fonts/ProximaNova-Bold-webfont.woff", "app/fonts/ProximaNova-Bold-webfont.ttf", "sites/twitter/twttr-sprite@1x.png", "sites/twitter/twttr-sprite@2x.png", "sites/yahoo/ril-icon-white.png", "sites/yahoo/ril-icon-white@2x.png", "app/images/pocket-logo.png" ]
+}

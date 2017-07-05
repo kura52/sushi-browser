@@ -1,0 +1,11 @@
+{
+  "presets": ["react","babel-preset-stage-2"],
+  "plugins": ["transform-class-properties","add-module-exports","pipe-operator","transform-es2015-modules-commonjs","transform-function-bind",["module-resolver", {
+    "root": ["."]
+    ,"alias": {
+      "react": "inferno-compat",
+      "react-dom": "inferno-compat",
+      "react-dom/server": "inferno-server"
+    }
+  }]]
+}

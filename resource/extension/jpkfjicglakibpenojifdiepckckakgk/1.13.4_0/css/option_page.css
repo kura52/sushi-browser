@@ -1,0 +1,273 @@
+body {
+  width: 800px;
+  color: #222222;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body, ul, li {
+  margin: 0;
+  padding: 0;
+}
+
+section.content > ul {
+  list-style-type: none;
+  overflow: auto;
+}
+
+section.content > ul > li {
+  margin-bottom: 20px;
+}
+
+dt, dd {
+  margin: 0;
+}
+
+section.content div > dl > dd {
+  margin-bottom: 20px;
+}
+
+section.content {
+  display: block;
+  padding: 10px;
+}
+
+#filter_list input[type='text'] {
+  width: 300px;
+}
+
+div.box > dl {
+  overflow: auto;
+  width: 386px;
+}
+
+#menu_tabs {
+  display: block;
+  z-index: 100;
+  padding: 0 0 0 1px;
+}
+
+#menu_tabs li {
+  display: inline-block;
+  margin: 0;
+  padding: 0;
+}
+
+#menu_tabs li a {
+  color: black;
+  text-decoration: none;
+  display: inline-block;
+  background: -webkit-gradient(linear, left top, left bottom, from(#F2F2F2), to(#CFCFCF), color-stop(0.5, #EBEBEB), color-stop(0.5, #DDDDDD));
+  padding: 6px 12px;
+  border: 1px solid #898C95;
+  font-size: 13px;
+  position: relative;
+  margin: 0 0 1px -1px;
+}
+
+#menu_tabs li a.active {
+  background: white;
+  border-bottom: 1px solid white;
+  z-index: 100;
+}
+
+span.key,
+kbd.key {
+  display: inline-block;
+  background: #334455;
+  color: #eeeeee;
+  padding: 6px;
+  border: 2px solid black;
+  -webkit-border-radius: 4px;
+  font-size: x-large;
+  font-weight: bold;
+}
+
+dt.disabled .key,
+li.disabled .key {
+  background: #cccccc;
+  border: 2px solid #bbbbbb;
+}
+
+#container {
+  width: 800px;
+  overflow: hidden;
+  z-index: 10;
+  border: 1px solid #999999;
+}
+
+#container #inner_container {
+  vertical-align: top;
+}
+
+#inner_container section {
+  vertical-align: top;
+  display: inline-block;
+  margin: 0;
+  white-space: normal;
+  width: 778px;
+}
+
+section > div > fieldset {
+  display: inline-block;
+  border: 1px solid #99ccff;
+  -webkit-border-radius: 4px;
+  padding: 1px 4px;
+  margin: 3px;
+}
+
+optgroup {
+  background: #333333;
+  color: #ffffff;
+}
+
+optgroup > option {
+  color: #000000;
+}
+
+.content > div {
+  margin: 20px 10px;
+}
+
+.content > .box {
+  display: inline-block;
+  vertical-align: top;
+  margin: 0;
+}
+
+.content > .box > h3 {
+  margin: 0;
+  padding: 0 10px;
+}
+
+#about dl {
+  margin: 30px;
+}
+
+#about dl dd {
+  margin: 10px 0 20px 50px;
+}
+
+#css_text,
+#config_text {
+  width: 98%;
+  height: 300px;
+}
+
+#advanced .margin {
+  margin: 60px 0 0 0;
+}
+
+input:not([type="text"]), button, label {
+  cursor: pointer;
+}
+
+button {
+  -webkit-appearance: button;
+  background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(white), to(#DDD));
+  border: 1px solid #999;
+  border-bottom-left-radius: 2px 2px;
+  border-bottom-right-radius: 2px 2px;
+  border-top-left-radius: 2px 2px;
+  border-top-right-radius: 2px 2px;
+  margin: 0.2em;
+  padding: 0px 5px;
+}
+
+button:hover:not([disabled]) {
+  background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ffffff), to(#99ccff));
+}
+
+button[disabled] {
+  cursor: default;
+}
+
+section.content > div.sub {
+  margin-left: 2em;
+}
+
+input.input_button {
+  font-size: 110%;
+  min-width: 5em;
+  max-width: 10em;
+  min-height: 2em;
+  background: #ffffff;
+  border-top: #999999 2px solid;
+  border-left: #999999 2px solid;
+  border-right: #cccccc 1px solid;
+  border-bottom: #cccccc 1px solid;
+}
+
+.field_action button {
+  font-size: large;
+  width: 90%;
+  padding: 0.4em;
+}
+
+#cover {
+  position: fixed;
+  background-color: rgba(128, 128, 128, 0.9);
+  z-index: 10000;
+  top: 0px;
+  left: 0px;
+  display: none;
+  text-align: center;
+}
+
+#cover button {
+  font-size: large;
+  margin: 1em;
+}
+
+#action_result {
+  min-height: 40px;
+}
+
+.box textarea {
+  display: block;
+  width: 90%;
+  height: 3em;
+}
+
+.box input[type="text"] {
+  width: 75%;
+}
+
+span.lt {
+  display: inline-block;
+  min-width: 60px;
+}
+
+.box dl dt {
+  padding: .3em .2em;
+  border-top: #cccccc 1px solid;
+  border-left: #cccccc 1px solid;
+  border-right: #cccccc 1px solid;
+}
+
+.box dl dd {
+  padding: .3em .2em;
+  border-bottom: #cccccc 1px solid;
+  border-left: #cccccc 1px solid;
+  border-right: #cccccc 1px solid;
+}
+
+div.ranges {
+  display: inline-block;
+  margin: 0 5px;
+  background: #efefef;
+  border-radius: 4px;
+  padding: 5px;
+}
+
+div span.outputs {
+  background: #dddddd;
+  border-radius: 5px;
+  display: inline-block;
+  padding: 5px 10px;
+  min-width: 4em;
+  text-align: center;
+}
+
+input[type="range"] {
+  width: 300px;
+}

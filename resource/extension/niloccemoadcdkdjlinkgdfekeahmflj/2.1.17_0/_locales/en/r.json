@@ -1,0 +1,19 @@
+{
+  "page_saved": "Page Saved!",
+  "page_removed": "Page Removed!",
+  "page_archived": "Page Archived!",
+  "add_tags": "Add Tags",
+  "view_list": "View List",
+  "save": "Save",
+  "close": "Close",
+  "add_tags_sample": "Add Tags (tag1, tag2)",
+  "add_tags_description": "Add Tags (separated by commas)",
+  "error": "Error!",
+  "removing_from_pocket": "Removing from Pocket…",
+  "saving_to_pocket": "Saving to Pocket…",
+  "getting_tags": "Getting Tags…",
+  "saving_tags": "Saving Tags…",
+  "tags_saved": "Tags Saved!",
+  "archive_page": "Archive Page",
+  "settings" : "Settings"
+}

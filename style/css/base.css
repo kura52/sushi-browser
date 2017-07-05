@@ -1,0 +1,599 @@
+/* Fonts ---------------------------- */
+
+@font-face {
+    font-family: 'Source Code Pro';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Source Code Pro'), local('SourceCodePro'), url(fonts/SourceCodePro-Regular.ttf) format('truetype');
+}
+
+
+/* Global ---------------------------- */
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    height: 100%;
+    font-family: 'BlinkMacSystemFont', 'Lucida Grande', 'Segoe UI', Ubuntu, Cantarell, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    overflow: hidden; /* Prevents rubber-band scrolling of the whole "page" */
+    color: var(--color);
+    background-color: #fff; /* To cover OSes with no default background color */
+}
+
+body {
+    margin: 0;
+    height: 100%;
+    display: flex;
+}
+
+a {
+    color: var(--color-link);
+}
+
+h1,
+h2,
+h3 {
+    margin-top: 0;
+    line-height: 1.5;
+}
+
+h1 {
+    font-size: 1.5em;
+    font-weight: 600;
+}
+
+h2 {
+    font-size: 1.3em;
+    font-weight: normal;
+}
+
+h3 {
+    font-size: 1.12em;
+    font-weight: 600;
+}
+
+table {
+    width: 100%;
+    border-spacing: 0;
+    border: 1px solid hsla(0,0%,0%,.08);
+    border-width: 0 1px 1px 0;
+}
+th {
+    background-color: hsla(0,0%,50%,.06);
+}
+th,
+td {
+    text-align: center;
+    border: 1px solid hsla(0,0%,0%,.08);
+    border-width: 1px 0 0 1px;
+}
+
+svg {
+    fill: currentColor;
+}
+
+/* Code */
+
+code, kbd {
+    font-family: 'Source Code Pro', monospace;
+    border-radius: 4px;
+    padding: 1px 4px;
+    white-space: nowrap;
+    color: hsl(0,0%,36%);
+    background-color: hsla(0,0%,60%,.15);
+}
+
+pre, kbd {
+    font-size: 13px;
+    overflow: auto;
+    padding: 1em;
+    margin: 0;
+    border-radius: 4px;
+    border: 1px solid;
+    border-color: var(--color-border);
+    background-color: white;
+}
+
+pre code {
+    white-space: pre;
+}
+
+pre > .hljs {
+    color: var(--color-subtle);
+    background-color: white;
+}
+
+kbd {
+    padding: 0.5em;
+}
+
+
+/* Utilities ---------------------------- */
+
+.u-avoid-clicks {
+    pointer-events: none;
+}
+
+/* Visually hidden, but will be read by screen readers */
+.u-visible-to-screen-reader {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+.no-display {
+    display: none;
+}
+
+
+/* Content ------------------ */
+
+.content {
+    flex: 1;
+    position: relative;
+    /*overflow: hidden;*/
+    /*visibility: hidden;*/
+    /*opacity: 0;*/
+}
+.content.is-shown {
+    visibility: visible;;
+    opacity: 1;
+}
+
+
+/* Hacks ---------------------------- */
+
+/* Fixes horizontal scrolling in code blocks on OS X El Cap (10.11.3), retina screen
+ *
+ * By adding an invisible outline property, it will force a repaint
+ * which enables the scrolling.
+ */
+
+.hljs:hover,
+.hljs:active {
+    outline: 1px solid transparent;
+}
+
+webview {
+    background-color: #fff;
+    border: 0;
+    height: 100%;
+    width: 100%;
+}
+webview::shadow object{
+    width: 100%;
+    height: 100%;
+}
+
+div.split-window{
+    width: 100%;
+    height: 100%;
+}
+
+
+img.favi{
+    width: 16px;
+    height: 16px;
+}
+
+.sortable-ghost {
+    opacity: .4;
+}
+
+.search-num{
+    position: absolute;
+    right: 78px;
+    z-index: 1001;
+    top: 0px;
+    color: #909090;
+    line-height: 2.2;
+}
+
+.search-next{
+    width: 25px;
+    border-color: #aaa;
+    border-style: solid;
+    border-width: 1px 0px 1px 0px;
+    text-align: center;
+}
+
+
+.search-prev{
+    width: 25px;
+    border-color: #aaa;
+    border-style: solid;
+    border-width: 1px 0px 1px 0px;
+    text-align: center;
+}
+
+
+.search-close{
+    font-size: 1.3em;
+    width: 25px;
+    border-color: #aaa;
+    border-style: solid;
+    border-width: 1px 1px 1px 0px;
+    text-align: center;
+    line-height: 1.3;
+    border-top-right-radius: 0.285714rem;
+    border-bottom-right-radius: 0.285714rem;
+}
+
+a.search-button{
+    text-decoration: none;
+    cursor: pointer;
+    color: #808080;
+}
+
+a.search-button:hover {
+    text-decoration: none;
+    color: blue;
+}
+
+.partition{
+    border-left: solid 1px #b0b0af;
+    margin: 4px 2px 4px 2px;
+}
+.search-text{
+    border: 1px solid #aaa;
+    border-top-left-radius: 0.285714rem;
+    border-bottom-left-radius: 0.285714rem;
+}
+
+.nav-button{
+    line-height: 2.0;
+}
+
+.nav-menu{
+    top: 40% !important;
+    right: -6px !important;
+}
+
+.nav2-menu{
+    top: 90% !important;
+}
+
+.ui.dropdown .menu>.item {
+    padding: .43571429rem 0.94285714rem!important;
+}
+
+.ui.dropdown .menu>.divider {
+    margin: .2em 0;
+}
+
+.ui.pointing.dropdown>.menu {
+    top: 100%;
+    margin-top: .78571429rem;
+    border-radius: .28571429rem;
+}
+.ui.dropdown .menu {
+    left: 0;
+    z-index: 2000;
+}
+
+.rdTabAddButton {
+    transform: skewX(30deg)
+}
+
+.rdTabAddButton:hover {
+    background-image: linear-gradient(rgb(66, 66, 66), rgb(49, 49, 49)) !important;
+    transform: skewX(30deg)
+}
+
+.ui.search>.results {
+    width: 60em;
+    margin-top: 1px;
+    pointer-events: all;
+}
+
+.ui.search>.results .result {
+    padding: .35714286em 1.14285714em;
+    line-height: 1.4;
+}
+
+.ui.search {
+    width: 100%;
+}
+
+.ui.input {
+    width: 100%;
+    height: 100%;
+}
+
+.ui.search .prompt {
+    border-radius: 0;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+}
+
+.rdTabBar{
+    -webkit-app-region: drag;
+}
+/*.browser-navbar{*/
+/*-webkit-app-region: drag;*/
+/*}*/
+
+.rdTab{
+    -webkit-app-region: no-drag;
+}
+
+.rdTabAddButton{
+    -webkit-app-region: no-drag;
+}
+
+.browser-navbar> a{
+    -webkit-app-region: no-drag;
+}
+.browser-navbar> div{
+    /*-webkit-app-region: no-drag;*/
+}
+
+.ui.dropdown {
+    -webkit-app-region: no-drag;
+}
+
+@font-face {
+    font-family: 'typicons';
+    src: url("../../resource/css/typicons/font/typicons.eot");
+    src: url("../../resource/css/typicons/font/typicons.eot?#iefix") format('embedded-opentype'),
+    url("../../resource/css/typicons/font/typicons.woff") format('woff'),
+    url("../../resource/css/typicons/font/typicons.ttf") format('truetype'),
+    url("../../resource/css/typicons/font/typicons.svg#typicons") format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+.typcn {
+    font-size: 24px;
+    margin-right: 4px;
+    -webkit-app-region: no-drag;
+}
+
+
+.typcn:hover {
+    border-radius: 12px;
+    background-color: #9a9696;
+    color: white;
+    margin-bottom: 2px;
+}
+.typcn.typcn-minus:hover {
+    line-height: 0.75;
+}
+.title-button-set{
+    display: flex
+}
+
+.ui.horizontal.segments {
+    position: absolute;
+    bottom: 5px;
+    max-width: calc(100% - 100px);
+    height: 45px;
+    z-index: 2;
+    margin: auto;
+    left: 40px;
+}
+.ui.blue.segment {
+    width: 200px;
+    padding: 0 8px 0 8px;
+}
+
+.download-list-above{
+    position: absolute;
+    right: 0px;
+    top: 2px;
+    font-size: 16px !important;
+}
+.download-list-above:hover{
+    color: #b90101;
+}
+
+.download-list-bottom {
+    position: absolute;
+    top: 22px;
+    right: 1px;
+}
+.download-list-bottom:hover {
+    color: #b90101;
+}
+
+.ui.simple.active.dropdown>.menu {
+    overflow: hidden;
+    width: 0;
+    height: 0;
+    top: -9999px!important;
+    opacity: 0;
+}
+
+.ui.simple.active.dropdown:hover>.menu {
+    overflow: visible;
+    width: auto;
+    height: auto;
+    top: 100%!important;
+    opacity: 1;
+}
+
+.ui.simple.dropdown:active>.menu {
+    overflow: hidden;
+    width: 0;
+    height: 0;
+    top: -9999px!important;
+    opacity: 0;
+}
+
+i.private-mode,i.pin-mode {
+    float: left;
+    font-size: 16px;
+    line-height: 1.2em;
+    color: aquamarine;
+    margin-left: -2px;
+    margin-right: 1px;
+}
+
+
+.ui.top.right.pointing.dropdown>.menu.browser-action{
+    min-width: max-content!important;
+}
+
+div.menu.visible.transition.nav-menu.sync-replace{
+    width: 320px!important;
+    left: -70px;
+    top: 16px !important;
+}
+
+.ui.dropdown .scrolling.menu, .ui.scrolling.dropdown .menu {
+    max-height: 41rem;
+}
+
+.clipboard-btn{
+    padding: 2px 5px;
+    margin-left: 6px;
+    vertical-align: middle;
+    border: none;
+    background: none;
+    outline:none;
+}
+
+.clipboard-btn:hover{
+    background: rgb(221, 221, 221);
+    border-radius: 3px;
+}
+
+.play-btn{
+    padding: 2px 5px;
+    margin-left: 6px;
+    border: none;
+    background: none;
+    outline:none;
+}
+
+.play-btn:hover{
+    background: rgb(221, 221, 221);
+    border-radius: 3px;
+}
+
+.ui.top.right.pointing.dropdown>.menu {
+    max-width: 1000px;
+    overflow-x: auto;
+}
+
+.ui.dropdown .menu>.item>img.favi {
+    vertical-align: sub;
+}
+
+.float-panel{
+    top:40px;
+    left: 40px;
+    width:720px;
+    min-width:200px;
+    height:480px;
+    position: fixed;
+    border: 1px solid rgb(148, 148, 148);
+}
+
+.resizer-common{
+    z-index:2;
+    position: absolute;
+}
+
+.resizer-right{
+    width: 10px;
+    height: 100%;
+    top: 0px;
+    right: -5px;
+    cursor: col-resize;
+}
+.resizer-bottom{
+    width: 100%;
+    height: 10px;
+    bottom: -5px;
+    left: 0px;
+    cursor: row-resize;
+}
+.resizer-left{
+    width: 10px;
+    height: 100%;
+    top: 0px;
+    left: -5px;
+    cursor: col-resize;
+}
+.resizer-top{
+    width: 100%;
+    height: 10px;
+    top: -5px;
+    left: 0px;
+    cursor: row-resize;
+}
+.resizer-right-top{
+    width: 20px;
+    height: 20px;
+    right: -10px;
+    top: -10px;
+    cursor: ne-resize;
+}
+.resizer-right-bottom{
+    width: 20px;
+    height: 20px;
+    right: -10px;
+    bottom: -10px;
+    cursor: se-resize;
+}
+.resizer-left-bottom{
+    width: 20px;
+    height: 20px;
+    left: -10px;
+    bottom: -10px;
+    cursor: sw-resize;
+}
+.resizer-left-top{
+    width: 20px;
+    height: 20px;
+    left: -10px;
+    top: -10px;
+    cursor: nw-resize;
+}
+
+.drag-and-drop .rdTabBar{
+    -webkit-app-region: no-drag !important;
+}
+
+
+div.item.favorite>ul>li>a, div.item.favorite>ul>li>i{
+    display: none !important;
+}
+
+div.item.favorite>ul>li>div>ul{
+    padding-left: 0px !important;
+}
+
+.browser-navbar div.favi-wrap{
+    line-height: 1;
+}
+
+.favi-wrap>img.favi{
+    vertical-align: sub;
+}
+
+.dl-select{
+    outline: none;
+    margin-left: 5px;
+    background-color: #fff;
+    border-radius: 3px;
+    border: 1px solid lightgray;
+}
+
+.ui.dropdown .menu>.item.checkbox {
+    padding-top: 0px !important;
+    padding-bottom: 2px !important;
+}

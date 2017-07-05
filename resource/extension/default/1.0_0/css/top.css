@@ -1,0 +1,19 @@
+.sticky {
+    background-color: white;
+    z-index: 1;
+}
+
+.ui.cards>.card {
+    width: 160px;
+}
+
+.ui.cards {
+    padding-top: 15px;
+}
+
+.ui.big.input {
+    width: 70%;
+    min-width: 500px;
+    margin-top: 50px;
+    margin-bottom: 30px;
+}

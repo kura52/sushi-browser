@@ -1,0 +1,365 @@
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+body {
+	line-height: 1;
+}
+ol, ul {
+	list-style: none;
+}
+blockquote, q {
+	quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: '';
+	content: none;
+}
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+
+body {
+	font-family: ProximaNova, Helvetica, Arial, "Lucida Grande", sans-serif;
+	background-color: #f0f0f0;
+	font-size: 14px;
+}
+
+h2 {
+	font-size: 30px;
+	margin-bottom: 19px;
+}
+
+h3 {
+	font-size: 16px;
+}
+
+a {
+	color: #383838;
+}
+
+a:hover {
+	color: #F3BC00;
+}
+
+label {
+	padding-left: 5px;
+}
+
+.clear {
+	clear: both;
+}
+
+/* header */
+
+#header {
+	height:50px;
+	margin-bottom: 25px;
+	text-align: center;
+}
+
+/* content view */
+
+#content {
+	width: 650px;
+	margin: 0px auto;
+	padding: 20px;
+	color: #383838;
+}
+
+#content p {
+	font-size: 20px;
+	font-weight: bold;
+}
+
+#content input[type='text'] {
+	color: #383838;
+	font-family: ProximaNova, Helvetica, Arial, "Lucida Grande", sans-serif;
+	font-size: 100%;
+}
+
+#content-inner-container {
+	background-color: #fff;
+	border: 1px solid #cacaca;
+	padding: 30px 46px;
+
+	box-shadow: 0px 1px 0px #fff;
+	-webkit-box-shadow: 0px 1px 0px #fff;
+	-mozbox-shadow: 0px 1px 0px #fff;
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
+	-border-radius: 5px;
+}
+
+#content-inner-container h2 {
+	text-align: left;
+	color: #777777;
+	font-size: 18pt;
+}
+
+/* sections */
+
+.section-wrapper {
+	min-height: 60px;
+	border-top: 1px solid #DADADA;
+}
+
+.section-wrapper h3, .ril-topic-footer h3{
+	font-weight: bold;
+	font-size: 14px;
+}
+
+.section-wrapper h3{
+	float:left;
+	line-height: 60px;
+	width: 215px;
+}
+
+.section-item-list {
+	float:right;
+	width: 330px;
+	list-style-type: none;
+	line-height: 60px;
+	font-weight: 300;
+}
+
+#ril-keyboard-shortcut {
+	padding-bottom: 75px;
+}
+
+#ril-keyboard-shortcut input {
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
+	-border-radius: 5px;
+	border: 1px solid #cacaca;
+}
+
+#ril-integrations,
+#ril-recommendations,
+#ril-newtab {
+	border-bottom: 1px solid #DADADA;
+	padding-bottom: 20px;
+}
+
+#ril-integrations li,
+#ril-recommendations li,
+#ril-general li,
+#ril-keyboard-shortcut li,
+#ril-newtab li{
+	line-height: 30px;
+}
+
+#ril-integrations ul li:first-child,
+#ril-recommendations ul li:first-child,
+#ril-newtab ul li:first-child,
+#ril-general ul li:first-child,
+#ril-keyboard-shortcut ul li:first-child {
+	padding-top: 15px;
+}
+
+#ril-keyboard-shortcut input:focus {
+	box-shadow:inset 0 0 0.5em rgba(0, 0, 0, 0.5) !important;
+}
+
+#ril-keyboard-shortcut input.error {
+	box-shadow:inset 0 0 0.5em rgba(255, 0, 0, 0.5) !important;
+	position:relative;
+	margin-bottom:0.667em
+}
+
+#ril-keyboard-shortcut li.shortcut-info {
+	line-height: 1.1em;
+	padding-bottom: 10px;
+	font-size: 13px;
+	color: #666;
+}
+
+#ril-integrations li.services-info,
+#ril-recommendations li.services-info,
+#ril-newtab li.services-info {
+	line-height: 1.1em;
+	font-size: 13px;
+	color: #666;
+}
+
+.checkbox {
+	width: 15px;
+	height: 15px;
+}
+
+.text {
+	width: 100%;
+	display: block;
+	background: #efefef;
+	border: none;
+	outline: none;
+	margin-bottom: 0.667em;
+	margin-top: 0.5em;
+	padding: 1em 1.5em;
+}
+
+.services-info {
+	padding-top: 5px;
+	margin-right: 20px;
+}
+
+/* footer */
+
+.block ul {
+	margin: 0px;
+	padding: 0px;
+	width: 100%;
+}
+
+
+.ril-topic-footer {
+	width: 100%;
+	height: 185px;
+}
+
+.ril-topic-footer h3 {
+	padding-top: 25px;
+	padding-bottom: 25px;
+}
+
+#ril-topics {
+	list-style: none;
+	padding-left: 13px;
+}
+
+#ril-topics li {
+	height: 80px;
+	width: 25%;
+	background-position: top center;
+	background-repeat: no-repeat;
+	background-size: 60px 150px;
+	color: #444;
+	font-weight: bold;
+	text-decoration: none;
+	font-size: 18px;
+	float: left;
+	text-align: center;
+	box-sizing: border-box;
+}
+
+#ril-topics li:hover {
+	background-position: center -79px;
+}
+
+#ril-topics li a {
+	display: block;
+	width: 100%;
+	padding-top: 75px;
+	top: 0px;
+	color: #444;
+	font-weight: bold;
+	text-decoration: none;
+	font-size: 18px;
+	text-align: center !important;
+}
+
+#ril-topics li:hover a {
+	color: #50bbb5;
+}
+
+.ril-iphone {
+	background-image: url(../app/images/iphone.png);
+}
+
+.ril-ipad {
+	background-image: url(../app/images/ipad.png);
+}
+
+.ril-android {
+	background-image: url(../app/images/android.png);
+}
+
+.ril-web {
+	background-image: url(../app/images/web.png);
+}
+
+.ril-mac {
+	background-image: url(../app/images/mac.png);
+}
+
+.ril-iphone-ipad {
+	background-image: url(../app/images/iphone-ipad.png);
+}
+
+@media
+  (min--moz-device-pixel-ratio: 2),
+  (-o-min-device-pixel-ratio: 2/1),
+  (-webkit-min-device-pixel-ratio: 2),
+  (min-device-pixel-ratio: 2) {
+
+  #ril-topics li:hover {
+    background-position: center -79px;
+  }
+  .ril-iphone, .ril-ipad, .ril-android, .ril-web .ril-mac .ril-iphone-ipad {
+    background-size: 75px 150px;
+  }
+
+  .ril-iphone {
+    background-image: url(../app/images/iphone@2x.png);
+  }
+
+  .ril-ipad {
+	background-image: url(../app/images/ipad@2x.png);
+  }
+
+  .ril-android {
+	background-image: url(../app/images/android@2x.png);
+  }
+
+  .ril-web {
+	background-image: url(../app/images/web@2x.png);
+  }
+
+  .ril-mac {
+	background-image: url(../app/images/mac@2x.png);
+  }
+
+  .ril-iphone-ipad {
+	background-image: url(../app/images/iphone-ipad@2x.png);
+  }
+}
+
+/* Support */
+.ril-support-text {
+	margin-top: 20px;
+	line-height: 1.5em;
+}
+
+/* Copyright */
+
+#copyright {
+	text-align: center;
+	color: #777777;
+	font-size: 12px;
+	margin-bottom: 40px;
+	font-weight: 300;
+}

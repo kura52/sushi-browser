@@ -1,0 +1,72 @@
+const path = require('path');
+const webpack = require('webpack');
+
+
+function merge ({fileName,src,dest=src.replace("src/","lib/").replace("src\\","lib\\")}, env) {
+
+  var config = {
+    entry: src + "/" + fileName,
+    output: {
+      path: dest,
+      filename: fileName
+    },}
+  var merged = Object.assign({}, env, config)
+  merged.plugins = (config.plugins || []).concat(env.plugins || [])
+  return merged
+}
+
+const baseConfig = {
+  cache: true,
+  devtool: '#source-map',
+  plugins: [
+    // new webpack.DefinePlugin({'process.env': {NODE_ENV: JSON.stringify("production")}}),
+    // new HappyPack({
+    //     // cache: true,
+    //     loaders: ["babel"],
+    //     threads: 4
+    // }),
+    new webpack.DllReferencePlugin({context: ".",manifest: require('./dist/vendor-manifest.json')})
+  ],
+  node: {
+    process: false,
+    __filename: true,
+    __dirname: true,
+    fs: 'empty'
+  },
+  externals: {
+    'electron': 'chrome'
+  },
+  module: {
+    loaders: [
+      {
+        test: /\.js$/,
+        // exclude: /node_modules\/(base64\-js|ieee754|create\-hash|sha.js|miller\-rabin|elliptic|des.js|minimalistic\-crypto\-utils|bn\.js|ripemd160|react|react-dom|buffer|browserify\-aes|hash\.js|asn1\.js|lodash|react\-addons\-perf|node\-uuid|immutable|inferno|punycode)/,
+        exclude: /node_modules/,
+        loader: "babel-loader",
+        query:{
+          cacheDirectory: true
+        }
+      }
+    ]
+  }
+}
+
+const baseConfig2 = Object.assign({},baseConfig)
+delete baseConfig2.devtool
+delete baseConfig2.plugins
+// delete baseConfig.plugins
+
+module.exports = [
+  merge({fileName:"base.js",src:path.join(__dirname,"./src/render")},baseConfig),
+  // merge({fileName:"top.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
+  // merge({fileName:"download.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
+  // merge({fileName:"history.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
+  // merge({fileName:"historySidebar.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
+  // merge({fileName:"explorerMenu.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
+  // merge({fileName:"explorerSidebar.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
+  // merge({fileName:"favoriteInit.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
+  // merge({fileName:"favoriteSidebar.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
+  // merge({fileName:"terminal.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
+  // merge({fileName:"tabsSidebar.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
+  // merge({fileName:"sync.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
+]
