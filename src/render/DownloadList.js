@@ -6,6 +6,40 @@ const {webContents} = require('electron').remote.require('electron')
 const path = require('path')
 
 
+function multiByteLen(str) {
+  let len = 0;
+  str = escape(str);
+  const strLen = str.length
+  for (let i=0;i<strLen;i++,len++) {
+    if (str.charAt(i) == "%") {
+      if (str.charAt(++i) == "u") {
+        i += 3;
+        len++;
+      }
+      i++;
+    }
+  }
+  return len;
+}
+
+function multiByteSlice(str,end) {
+  let len = 0
+  str = escape(str);
+  const strLen = str.length
+  let i
+  for (i=0;i<strLen;i++,len++) {
+    if(len >= end) break
+    if (str.charAt(i) == "%") {
+      if (str.charAt(++i) == "u") {
+        i += 3;
+        len++;
+      }
+      i++;
+    }
+  }
+  return `${unescape(str.slice(0,i))}${i == str.length ? "" :"..."}`;
+}
+
 export default class DownloadList extends Component{
   constructor(props) {
     super(props)
@@ -81,9 +115,9 @@ export default class DownloadList extends Component{
 
   buildItem(item) {
     const rest = this.calcSpeed(item)
-    const progress = item.state == "progressing" ? `${this.getAppropriateByteUnit(rest.speed).join(" ")}/s ${this.getAppropriateByteUnit(item.receivedBytes).join(" ")} of ${this.getAppropriateByteUnit(item.totalBytes).join(" ")}（Rest ${this.getAppropriateTimeUnit(rest.restTime).join(" ")}）` :
+    const progress = item.state == "progressing" ? `${this.getAppropriateByteUnit(rest.speed).join(" ")}/s ${this.getAppropriateByteUnit(item.receivedBytes).join(" ")} of ${this.getAppropriateByteUnit(item.totalBytes).join(" ")}（Rest ${this.getAppropriateTimeUnit(rest.restTime).join(" ")}）`.replace(/NaN/g,'-') :
       item.state == "completed" ? "Completed" : "Canceled"
-    const fname = item.filename.length > 22 ? `${item.filename.substr(0, 22)}...` : item.filename
+    const fname = multiByteSlice(item.filename, 23)
 
     return <div className="ui blue segment" key={item.savePath}>
       {item.state == "progressing" ? item.isPaused ?

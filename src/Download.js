@@ -27,7 +27,8 @@ export default class Download {
     // ipcMain.on('need-set-save-filename',eventSetSaveFilename)
     PubSub.subscribe('need-set-save-filename',eventNeedSetSaveFilename)
 
-    win.webContents.session.on('will-download', (event, item, webContents) => {
+    const ses = win.webContents.session
+    ses.on('will-download', (event, item, webContents) => {
       let url = item.getURL()
       if(url.startsWith("file://")){
         event.preventDefault()
@@ -66,6 +67,7 @@ export default class Download {
       else {
         console.log(JSON.stringify({a: mainState.downloadNum}))
         const postData = process.downloadParams.get(url)
+        console.log(postData,url)
         if(postData && (Date.now() - postData[1] < 100 * 1000)){
           process.downloadParams.delete(url)
           this.downloadReady(item, url, webContents,win)
@@ -80,15 +82,19 @@ export default class Download {
         const dlUrl = URL.parse(url)
         const port = dlUrl.port
 
-        const dl = downloader.download(url, savePath)
+        const dl = downloader.download(url, savePath,{})
         dl.setOptions({threadsCount: mainState.downloadNum, port})
-        dl.setRetryOptions({maxRetries: 2, retryInterval: 1500})
+        dl.setRetryOptions({maxRetries: 1, retryInterval: 1500})
 
         dl.once('error', (dl) => {
-          isError = true
-          retry.add(url)
-          this.savePath = savePath
-          webContents.downloadURL(url, true)
+          console.log(dl)
+          if(!isError){
+            isError = true
+            retry.add(url)
+            global.downloadItems = global.downloadItems.filter(i => i !== item)
+            this.savePath = savePath
+            webContents.downloadURL(url, true)
+          }
         })
         item = {
           getURL(){
@@ -116,8 +122,16 @@ export default class Download {
           },
           getState(){
             if (dl.status == -3 || dl.status == -1) {
+              clearInterval(id)
+              if(dl.status == -1 && !isError){
+                isError = true
+                retry.add(url)
+                global.downloadItems = global.downloadItems.filter(i => i !== item)
+                this.savePath = savePath
+                webContents.downloadURL(url, true)
+              }
+              fs.unlink(`${dl.filePath}.mtd`,e=> console.log(e))
               if (isError) {
-                clearInterval(id)
                 return "progressing"
               }
               return "cancelled"
@@ -127,6 +141,7 @@ export default class Download {
             // }
             else if (dl.status == 3) {
               return "completed"
+              fs.unlink(`${dl.filePath}.mtd`,e=> console.log(e))
             }
             else {
               return "progressing"

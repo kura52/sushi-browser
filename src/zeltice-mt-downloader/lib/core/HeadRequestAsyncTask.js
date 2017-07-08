@@ -2,6 +2,9 @@ var url = require('url')
 var http = require('http');
 var https = require('https')
 var e = require('../Exceptions');
+const {session} = require('electron')
+const moment = require('moment')
+
 
 var HeadRequest = function (http_url, options) {
 	options = options || {};
@@ -56,6 +59,8 @@ var onHttpHeadRequestComplete = (response, context, callback) => {
 
 		response.destroy();
 
+		console.log(666,response.headers)
+
 		if (isNaN(fileSize)) {
 			context.callback(e(1008, context.url.host));
 			return;
@@ -82,28 +87,42 @@ var _execute = function (callback) {
 	http.Agent.defaultMaxSockets = 200;
 
   var requestOptions = {
-		hostname: self.url.hostname,
-		path: self.url.path,
-		method: 'HEAD',
-		port: self.port,
-		headers: {'user-agent': process.userAgent,...self.headers}
-	};
+    hostname: self.url.hostname,
+    path: self.url.path,
+    method: 'GET',
+    port: self.port,
+    headers: {'user-agent': process.userAgent,...self.headers}
+  };
 
-	// console.log('headers:', self.headers)
-	// console.log('requestOptions', requestOptions)
+	const now = moment().unix()
+  session.defaultSession.cookies.get({url: self.url}, (error, cookies) => {
+		const cookieArray = []
+		if(!error && cookies.expirationDate >= now){
+      cookieArray.push(`${cookies.name}=${cookies.value}`)
+		}
+		console.log(cookieArray)
 
-	var htt_protocol = self.url.protocol == "https:" ? https : http
+		if(cookieArray.length > 0){
+			requestOptions.headers['Cookie'] = cookieArray.join('; ')
+		}
 
-	var the_request = htt_protocol.request(requestOptions, (res) => {
-		onHttpHeadRequestComplete(res, self, callback)
-	})
+    // console.log('headers:', self.headers)
+    // console.log('requestOptions', requestOptions)
 
-	the_request.on('error', (err) => {
-		console.log(err)
-		self.callback(e(1004, self.url.host));
-	})
+    var htt_protocol = self.url.protocol == "https:" ? https : http
 
-	the_request.end();
+    var the_request = htt_protocol.request(requestOptions, (res) => {
+      onHttpHeadRequestComplete(res, self, callback)
+    })
+
+    the_request.on('error', (err) => {
+      console.log(err)
+      self.callback(e(1004, self.url.host));
+    })
+
+    the_request.end();
+  })
+
 };
 
 HeadRequest.prototype.execute = _execute;

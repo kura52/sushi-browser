@@ -2,6 +2,8 @@ var http = require('http')
 var https = require('https')
 var Url = require('url');
 var e = require('../Exceptions');
+const {session} = require('electron')
+const moment = require('moment')
 
 var BodyDownloader = function (url, start, end, options) {
 
@@ -62,14 +64,26 @@ var _start = function (callback) {
 		method: this.method,
 		port: this.port
 	};
-	console.log(requestOptions)
+
+  const now = moment().unix()
+  session.defaultSession.cookies.get({url: self.url}, (error, cookies) => {
+    const cookieArray = []
+    if(!error && cookies.expirationDate >= now){
+      cookieArray.push(`${cookies.name}=${cookies.value}`)
+    }
 
 
-	var htt_protocol = this.url.protocol == "https:" ? https : http
+    if(cookieArray.length > 0){
+      requestOptions.headers['Cookie'] = cookieArray.join('; ')
+    }
 
-	htt_protocol.request(requestOptions, _onStart)
-		.on('error', onError)
-		.end();
+
+    var htt_protocol = this.url.protocol == "https:" ? https : http
+
+    htt_protocol.request(requestOptions, _onStart)
+      .on('error', onError)
+      .end();
+  })
 };
 
 BodyDownloader.prototype.onError = function (e) {

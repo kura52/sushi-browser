@@ -1,5 +1,7 @@
 const {remote} = require('electron')
 const isDarwin = navigator.userAgent.includes('Mac OS X')
+const mainState = remote.require('./mainState')
+const ipc = require('electron').ipcRenderer
 
 export default {
   windowMinimize(){
@@ -11,7 +13,11 @@ export default {
   },
   windowMaximize(){
     const win = remote.getCurrentWindow()
-    if(isDarwin){
+    console.log(1111,mainState.toggleNav)
+    if([2,3].includes(mainState.toggleNav)){
+      ipc.send('toggle-fullscreen')
+    }
+    else if(isDarwin){
       win.setFullScreen(!win.isFullScreen())
     }
     else{

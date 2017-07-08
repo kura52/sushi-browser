@@ -44,6 +44,7 @@ export default class SearchAnything extends Component{
     super(props)
     this.state = {results: []}
     this.keyDown = ::this.keyDown
+    this.keyUp = ::this.keyUp
     this.onBlur = ::this.onBlur
   }
 
@@ -55,7 +56,7 @@ export default class SearchAnything extends Component{
     this.input.focus()
   }
 
-  componentWillMount() {
+  componentWillUnmount() {
     document.removeEventListener("keydown",this.keyDown,{passive:true})
     document.removeEventListener("keyup",this.keyUp,{passive:true})
     // document.removeEventListener("mousedown",this.onBlur)
@@ -69,26 +70,22 @@ export default class SearchAnything extends Component{
   }
 
   keyUp(e){
-    if (e.keyCode != 16 || !this.keydown) return
+    if (e.keyCode != 16 || !this.keyd) return
 
-    this.keyup = true;
-    setTimeout( ()=> {
-      this.keyup = false;
-    }, 300);
+    this.keyu = true
+    setTimeout(_=>this.keyu = false, 300);
   }
 
   keyDown(e){
     if (e.keyCode != 16) return
-    if (this.keyup) {
+    if (this.keyu) {
       this.setState({modalOpen: true})
-      this.clicked = false
+      this.keyd = false
       return
     }
 
-    this.keydown = true;
-    setTimeout( ()=> {
-      this.keydown = false;
-    }, 300);
+    this.keyd = true
+    setTimeout(_=>this.keyd = false, 300);
   }
 
   resetComponent(){

@@ -32,6 +32,7 @@ var read = function(callback) {
 			var data = JSON.parse(meta);
 			callback(err, data);
 		} catch (exp) {
+			console.log(exp)
 			callback(e(1012));
 		}
 

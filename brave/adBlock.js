@@ -101,7 +101,8 @@ ipcMain.on('set-adblock-enable', async (event, datas) => {
 
 const startAdBlocking = (adblock, resourceName, shouldCheckMainFrame) => {
   session.defaultSession.webRequest.onBeforeRequest((details, callback) => {
-    if(details.method == 'POST' && details.uploadData){
+    if(details.method == 'POST' && details.resourceType == 'mainFrame' && details.uploadData){
+      console.log(details)
       process.downloadParams.set(details.firstPartyUrl,[details.uploadData,Date.now()])
     }
     if(!mainState.adBlockEnable || (tabs.has(details.tabId) && !tabs.get(details.tabId))){
