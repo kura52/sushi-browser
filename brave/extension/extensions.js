@@ -138,7 +138,7 @@ module.exports.init = () => {
 
   loadExtension('dckpbojndfoinamcdamhkjhnjnmjkfjd',getPath('default')[1],(void 0),'component')
   loadExtension(...getPath('jdbefljfgobbmcidnmpjamcbhnbphjnb'),(void 0),'component')
-  if(process.platform == 'linux'){
+  if(process.platform != 'win32'){
     loadExtension(...getPath('occjjkgifpmdgodlplnacmkejpdionan'))
   }
 

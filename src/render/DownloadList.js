@@ -5,23 +5,6 @@ const ipc = require('electron').ipcRenderer
 const {webContents} = require('electron').remote.require('electron')
 const path = require('path')
 
-
-function multiByteLen(str) {
-  let len = 0;
-  str = escape(str);
-  const strLen = str.length
-  for (let i=0;i<strLen;i++,len++) {
-    if (str.charAt(i) == "%") {
-      if (str.charAt(++i) == "u") {
-        i += 3;
-        len++;
-      }
-      i++;
-    }
-  }
-  return len;
-}
-
 function multiByteSlice(str,end) {
   let len = 0
   str = escape(str);

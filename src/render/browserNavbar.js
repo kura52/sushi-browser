@@ -158,6 +158,7 @@ class BrowserNavbar  extends Component{
     this.navUrl === nextProps.page.navUrl &&
     this.props.toggleNav === nextProps.toggleNav &&
     this.props.isTopRight === nextProps.isTopRight &&
+    this.props.isTopLeft === nextProps.isTopLeft &&
     (this.richContents||[]).length === (nextProps.richContents||[]).length &&
     (this.caches||[]).length === (nextState.caches||[]).length &&
     this.state.zoom === nextState.zoom &&
@@ -329,8 +330,8 @@ class BrowserNavbar  extends Component{
       <NavbarMenuItem text={this.props.toggleNav == 0 ? 'OneLine Menu(ALL)' : 'Normal Menu(ALL)'} icon="settings"
                       onClick={()=>{cont.hostWebContents.send('toggle-nav',this.props.toggleNav == 0 ? 1 : 0);this.setState({})}}/>
       <NavbarMenuItem text={this.props.toggleNav == 0 ? 'OneLine Menu' : 'Normal Menu'} icon="setting" onClick={()=>{this.props.toggleNavPanel(this.props.toggleNav == 0 ? 1 : 0);this.setState({})}}/>
-      <NavbarMenuItem text={this.props.toggleNav == 3 ? 'Normal Screen Mode' : 'Full Screen Mode'} icon={this.props.toggleNav == 3 ? 'compress' : 'expand'}
-                      onClick={()=>ipc.send('toggle-fullscreen')}/>
+      {isDarwin ? null :<NavbarMenuItem text={this.props.toggleNav == 3 ? 'Normal Screen Mode' : 'Full Screen Mode'} icon={this.props.toggleNav == 3 ? 'compress' : 'expand'}
+                      onClick={()=>ipc.send('toggle-fullscreen')}/>}
 
       <div className="divider" />
 
@@ -512,7 +513,7 @@ class BrowserNavbar  extends Component{
                                k ={this.props.k} onContextMenu={this.props.onLocationContextMenu} page={this.props.page} privateMode={this.props.privateMode}/>
       </div>
 
-      <div className="navbar-margin" style={{width: this.props.toggleNav != 1 ? 0 :this.props.isTopRight ? '45%' : '50%',minWidth: this.props.toggleNav != 1 ? 0 :'80px',background: 'rgb(221, 221, 221)'}}></div>
+      <div className="navbar-margin" style={{width: this.props.toggleNav != 1 ? 0 : ((!isDarwin && this.props.isTopRight) || (isDarwin && this.props.isTopLeft)) ? '45%' : '50%',minWidth: this.props.toggleNav != 1 ? 0 :'80px',background: 'rgb(221, 221, 221)'}}></div>
       {isFixed ? null : <SyncReplace ref="syncReplace" changeSyncMode={this.props.changeSyncMode} replaceInfo={this.props.replaceInfo} updateReplaceInfo={this.props.updateReplaceInfo}/>}
       {isFixed ? null : <BrowserNavbarBtn title="Switch Sync Spread Mode" icon="circle-o" sync={this.props.sync && !this.props.replaceInfo}
                                           onClick={()=>{this.props.changeSyncMode();this.refs.syncReplace.clearAllCheck()}}/>}
@@ -522,9 +523,9 @@ class BrowserNavbar  extends Component{
 
 
       {isFixed ? null : <NavbarMenu k={this.props.k} mouseOver={true} isFloat={isFloatPanel(this.props.k)} title="Open Sidebar" icon="list-ul" onClick={()=>this.props.fixedPanelOpen({dirc:"left"})}>
-        <NavbarMenuItem key="Bottom" text="Bottom" icon="caret down" onClick={()=>this.props.fixedPanelOpen({dirc:"bottom"})}/>
         <NavbarMenuItem key="Left" text="Left" icon="caret left" onClick={()=>this.props.fixedPanelOpen({dirc:"left"})}/>
         <NavbarMenuItem key="Right" text="Right" icon="caret right" onClick={()=>this.props.fixedPanelOpen({dirc:"right"})}/>
+        <NavbarMenuItem key="Bottom" text="Bottom" icon="caret down" onClick={()=>this.props.fixedPanelOpen({dirc:"bottom"})}/>
       </NavbarMenu>}
 
       <BrowserNavbarBtn title="Change to Mobile UserAgent" icon="mobile" styleFont={{fontSize: 20}} sync={this.state.mobile}

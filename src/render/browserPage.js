@@ -95,12 +95,6 @@ class BrowserPage extends Component {
     // webview.addEventListener('did-detach',e=>console.log('did-detach',e))
     // webview.addEventListener('guest-ready',e=>console.log('guest-ready',e))
 
-
-    webview.ondrop = function (e) {
-      e.preventDefault();
-      return true;
-    };
-
     this.tokenWebviewKeydown = PubSub.subscribe("webview-keydown",(msg,e)=>{
       if(e.wv === webview) this.onHandleKeyDown(e.event)
     })

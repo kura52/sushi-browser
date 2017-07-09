@@ -13,12 +13,12 @@ export default {
   },
   windowMaximize(){
     const win = remote.getCurrentWindow()
-    console.log(1111,mainState.toggleNav)
-    if([2,3].includes(mainState.toggleNav)){
-      ipc.send('toggle-fullscreen')
-    }
-    else if(isDarwin){
+    // console.log(1111,mainState.toggleNav)
+    if(isDarwin){
       win.setFullScreen(!win.isFullScreen())
+    }
+    else if(win.isFullScreen()){
+      ipc.send('toggle-fullscreen')
     }
     else{
       if(win.isMaximized())

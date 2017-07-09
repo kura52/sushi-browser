@@ -130,7 +130,9 @@ export default class Download {
                 this.savePath = savePath
                 webContents.downloadURL(url, true)
               }
-              fs.unlink(`${dl.filePath}.mtd`,e=> console.log(e))
+              fs.unlink(`${dl.filePath}.mtd`,e=> {
+                console.log(e)
+              })
               if (isError) {
                 return "progressing"
               }
@@ -141,7 +143,9 @@ export default class Download {
             // }
             else if (dl.status == 3) {
               return "completed"
-              fs.unlink(`${dl.filePath}.mtd`,e=> console.log(e))
+              fs.unlink(`${dl.filePath}.mtd`,e=> {
+                console.log(e)
+              })
             }
             else {
               return "progressing"

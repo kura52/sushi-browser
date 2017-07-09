@@ -239,12 +239,12 @@ export default class SplitWindows extends Component{
       if(flag){
         this._toggleNav = this.state.root.toggleNav
         this.state.root.toggleNav = 2
-        mainState.set('toggleNav',2)
+        // mainState.set('toggleNav',2)
         document.addEventListener('mousemove',this.menuSticky,{passive: true})
       }
       else{
         this.state.root.toggleNav = this._toggleNav
-        mainState.set('toggleNav',this._toggleNav)
+        // mainState.set('toggleNav',this._toggleNav)
         this._toggleNav = void 0
         document.removeEventListener('mousemove',this.menuSticky)
       }

@@ -12,10 +12,10 @@ emptyPort((err,port)=>{
   sock.bind(port,'127.0.0.1')
   fs.writeFileSync(path.join(app.getPath('userData'),'resource/fork.txt').replace(/\\/g,"/"),`${Date.now()}\t${port}`);
   if(isDarwin){
-    global.__CHILD__ = childProcess.exec(__dirname,'../../../MacOS/sushi-browser')
+    global.__CHILD__ = childProcess.exec(path.join(__dirname,'../../../MacOS/sushi-browser'))
   }
   else{
-    global.__CHILD__ = childProcess.fork(path.join(__dirname + '/main.js'))
+    global.__CHILD__ = childProcess.fork(path.join(__dirname,'main.js'))
   }
 })
 

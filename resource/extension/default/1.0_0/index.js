@@ -10,3 +10,8 @@ window.addEventListener('scroll', (e)=>{
     scrollbar: window.innerHeight - document.documentElement.clientHeight
   })
 },{passive:true})
+
+window.addEventListener('drop', function (event) {
+  console.log(event)
+  return true
+});

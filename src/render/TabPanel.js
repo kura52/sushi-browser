@@ -62,6 +62,24 @@ function convertURL(url){
   return convertUrlMap.has(url) ? convertUrlMap.get(url) : url
 }
 
+function multiByteSlice(str,end) {
+  let len = 0
+  str = escape(str);
+  const strLen = str.length
+  let i
+  for (i=0;i<strLen;i++,len++) {
+    if(len >= end) break
+    if (str.charAt(i) == "%") {
+      if (str.charAt(++i) == "u") {
+        i += 3;
+        len++;
+      }
+      i++;
+    }
+  }
+  return `${unescape(str.slice(0,i))}${i == str.length ? "" :"..."}`;
+}
+
 function isFixedPanel(key){
   return key.startsWith('fixed-')
 }
@@ -1857,8 +1875,12 @@ export default class TabPanel extends Component {
 
   onAddFavorites(){
     const keys = []
-    const datas = this.state.tabs.map(tab=>{
+    let head
+    const datas = this.state.tabs.map((tab,i)=>{
         const {page} = tab
+        if(i==0){
+          head = multiByteSlice(page.title,12)
+        }
         const key = uuid.v4()
         keys.push(key)
         return {key, url:page.navUrl, title:page.title, favicon:page.favicon, is_file:true, created_at: Date.now(), updated_at: Date.now()}
@@ -1867,7 +1889,7 @@ export default class TabPanel extends Component {
       const dirc = moment().format("YYYY/MM/DD HH:mm:ss")
       const key = uuid.v4()
       await favorite.insert(datas)
-      await favorite.insert({key, title:dirc, is_file:false, created_at: Date.now(), updated_at: Date.now(),children: keys})
+      await favorite.insert({key, title:`${head} ${dirc}`, is_file:false, created_at: Date.now(), updated_at: Date.now(),children: keys})
       await favorite.update({ key: 'root' }, { $push: { children: key }, $set:{updated_at: Date.now()} })
     })()
   }
@@ -1933,8 +1955,8 @@ export default class TabPanel extends Component {
       menuItems.push(({ label: 'Split Bottom', click: splitFunc.bind(this,'h',1) }))
       menuItems.push(({ type: 'separator' }))
     }
-      menuItems.push(({ label: 'Floating Panel', click: _=>detachToFloatPanel() }))
-      menuItems.push(({ type: 'separator' }))
+    menuItems.push(({ label: 'Floating Panel', click: _=>detachToFloatPanel() }))
+    menuItems.push(({ type: 'separator' }))
     if(!isFixedPanel(this.props.k)){
       menuItems.push(({ label: 'Swap Position', click: ()=> { PubSub.publish(`swap-position_${this.props.k}`)} }))
       menuItems.push(({ label: 'Switch Direction', click: ()=> { PubSub.publish(`toggle-dirction_${this.props.k}`)} }))

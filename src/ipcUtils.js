@@ -265,7 +265,8 @@ ipcMain.on('video-infos',(event,{url})=>{
         event.sender.send('video-infos-reply',{error:'error'})
       }
       console.log(info)
-      if(!info && url.includes("youtube")){
+      if(!info){
+        if(url.includes("youtube")){
         ytdl.getInfo(url, (err, info)=> {
           if (err){
             event.sender.send('video-infos-reply',{error:'error'})
@@ -277,8 +278,14 @@ ipcMain.on('video-infos',(event,{url})=>{
           }
         })
       }
-      const title = info.title
-      event.sender.send('video-infos-reply',{title,formats:info.formats.slice(0.12)})
+      else{
+          event.sender.send('video-infos-reply',{error:'error'})
+        }
+      }
+      else{
+        const title = info.title
+        event.sender.send('video-infos-reply',{title,formats:info.formats.slice(0.12)})
+      }
     });
 })
 

@@ -33,3 +33,8 @@ window.addEventListener('scroll', (e)=>{
   })
 },{passive:true})
 
+
+
+document.addEventListener('drop', function (event) {
+  console.log(event)
+});

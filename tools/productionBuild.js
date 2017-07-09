@@ -3,11 +3,13 @@ const path = require('path')
 const fs = require('fs')
 const glob = require("glob")
 
+const MUON_VERSION = '4.1.8'
+const APP_VERSION = '0.1.1'
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'
 const isLinux = process.platform === 'linux'
-const outDir = 'dist'
+const outDir = 'release-packed'
 const arch = 'x64'
 const buildDir = `sushi-browser-${process.platform}-${arch}`
 console.log(buildDir)
@@ -49,8 +51,8 @@ function fixForInferno(file){
 }
 
 function build(){
-  const platform = isLinux ? 'darwin,linux' : isWindows ? 'win32' : isDarwin ? 'darwin' : 'mas'
-  const ret = sh.exec(`node ./node_modules/electron-packager/cli.js . ${isWindows ? 'brave' : 'sushi-browser'} --platform=${platform} --arch=x64 --overwrite --icon=${appIcon} --version=4.2.1  --asar=false --app-version=0.1 --build-version=4.2.1 --protocol="http" --protocol-name="HTTP Handler" --protocol="https" --protocol-name="HTTPS Handler" --version-string.ProductName="Sushi Browser" --version-string.Copyright="Copyright 2017, Sushi Browser" --version-string.FileDescription="Sushi" --ignore="\\.(cache|babelrc|gitattributes|githug|gitignore|gitattributes|gitignore|gitkeep|gitmodules)|node_modules/(electron-installer-squirrel-windows|electron-installer-debian|node-gyp|npm|electron-download|electron-rebuild|electron-packager|electron-builder|electron-prebuilt|electron-rebuild|electron-winstaller-fixed|muon-winstaller|electron-installer-redhat|react-addons-perf|babel-polyfill|infinite-tree|babel-register|jsx-to-string|happypack|es5-ext|browser-sync-ui|gulp-uglify|devtron|electron|deasync|webpack|babel-runtime|uglify-es)|tools|sushi-browser-"`)
+  const platform = isLinux ? 'linux' : isWindows ? 'win32' : isDarwin ? 'darwin' : 'mas'
+  const ret = sh.exec(`node ./node_modules/electron-packager/cli.js . ${isWindows ? 'brave' : 'sushi-browser'} --platform=${platform} --arch=x64 --overwrite --icon=${appIcon} --version=${MUON_VERSION}  --asar=false --app-version=${APP_VERSION} --build-version=${MUON_VERSION} --protocol="http" --protocol-name="HTTP Handler" --protocol="https" --protocol-name="HTTPS Handler" --version-string.ProductName="Sushi Browser" --version-string.Copyright="Copyright 2017, Sushi Browser" --version-string.FileDescription="Sushi" --ignore="\\.(cache|babelrc|gitattributes|githug|gitignore|gitattributes|gitignore|gitkeep|gitmodules)|node_modules/(electron-installer-squirrel-windows|electron-installer-debian|node-gyp|npm|electron-download|electron-rebuild|electron-packager|electron-builder|electron-prebuilt|electron-rebuild|electron-winstaller-fixed|muon-winstaller|electron-installer-redhat|react-addons-perf|babel-polyfill|infinite-tree|babel-register|jsx-to-string|happypack|es5-ext|browser-sync-ui|gulp-uglify|devtron|electron|deasync|webpack|babel-runtime|uglify-es)|tools|sushi-browser-|release-packed"`)
 
   muonModify()
 
@@ -150,9 +152,11 @@ console.log(pwd)
 
 
 // Remove No Develop Directory
-sh.rm('-rf', 'dist')
-sh.mkdir('dist')
+sh.rm('-rf', 'release-packed')
+sh.mkdir('release-packed')
 sh.rm('-rf', 'lib')
+sh.rm('-rf', 'dist')
+sh.rm('-rf', '.git')
 sh.rm('-rf', '.idea')
 sh.rm('resource/extension/default/1.0_0/js/vendor.dll.js')
 
@@ -189,7 +193,7 @@ glob.sync(`${pwd}/**/.directory`).forEach(file=>{
 
 // Replace console.log
 const jsFiles = glob.sync(`${pwd}/src/**/*.js`)
-filesContentsReplace(jsFiles,/console\.log\(/,'//debug(')
+// filesContentsReplace(jsFiles,/console\.log\(/,'//debug(')
 filesContentsReplace(jsFiles,/window.debug = require\('debug'\)\('info'\)/,"// window.debug = require('debug')('info')")
 filesContentsReplace(jsFiles,/global.debug = require\('debug'\)\('info'\)/,"// global.debug = require('debug')('info')")
 

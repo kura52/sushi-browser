@@ -86,7 +86,7 @@ function create(args){
         ipcMain.once('get-window-state-reply',(e,ret)=>{
           try{
             state.update({ key: 1 }, { $set: {key: 1, ...bounds, maximize,maxBounds,
-              toggleNav:mainState.toggleNav==2 ? 0 :mainState.toggleNav,oppositeGlobal:mainState.oppositeGlobal,adBlockEnable:mainState.adBlockEnable,alwaysOnTop:mainState.alwaysOnTop,keepTabs:mainState.keepTabs,downloadNum:mainState.downloadNum,winState:ret} }, { upsert: true }).then(_=>_)
+              toggleNav:mainState.toggleNav==2 || mainState.toggleNav==3 ? 0 :mainState.toggleNav,oppositeGlobal:mainState.oppositeGlobal,adBlockEnable:mainState.adBlockEnable,alwaysOnTop:mainState.alwaysOnTop,keepTabs:mainState.keepTabs,downloadNum:mainState.downloadNum,winState:ret} }, { upsert: true }).then(_=>_)
             saved = true
             console.log("getState")
             bw.close()

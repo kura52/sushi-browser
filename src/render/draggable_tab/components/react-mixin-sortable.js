@@ -103,7 +103,7 @@
 						_activeComponent = this;
 					}
 					else if (name === 'onAdd' || name === 'onUpdate') {
-						// if(!_activeComponent) return //@TODO
+						if(!_activeComponent) return //@TODO
 						evt.from.insertBefore(evt.item, _nextSibling);
 
 						var newState = {},
