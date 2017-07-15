@@ -334,7 +334,7 @@ class Tabs extends React.Component {
             onDragEnd={this.handleDragEnd.bind(this, [t])}
             onDrop={this.handleDrop.bind(this, t)}
             onMouseDown={this.handleTabClick.bind(this, tab.key)}
-            onContextMenu={this.handleContextMenu.bind(this, tab.key)}
+            // onContextMenu={this.handleContextMenu.bind(this, tab.key)}
             onMouseOver={()=>{
               if(this.state.hoveredTab != tab.key){
                 this.setState({hoveredTab:tab.key})
@@ -471,6 +471,10 @@ class Tabs extends React.Component {
 
   handleTabClick(key, e) {
     if(!e.nativeEvent) e.nativeEvent = e
+    if(e.nativeEvent.which == 3){
+      this.handleContextMenu(key)
+      return
+    }
     if(e.nativeEvent.which == 2){
       this.handleCloseButtonClick(key, e)
       return;

@@ -1,4 +1,5 @@
 var ThreadsGenerator = function(fileSize, options) {
+	console.log(4434,options)
 	options = options || {};
 	this.fileSize = fileSize;
 	this.count = options.count || 2;

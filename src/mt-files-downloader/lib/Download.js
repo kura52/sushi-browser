@@ -91,6 +91,7 @@ Download.prototype.setOptions = function(options) {
   //Control the part of file that needs to be downloaded.
   this.options.range = options.range || '0-100';
 
+  console.log(33333,this.options)
   return this;
 };
 

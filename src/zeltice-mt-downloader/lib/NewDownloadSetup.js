@@ -38,6 +38,7 @@ var Setup_New_Download = function(options) {
 
 Setup_New_Download.prototype.execute = function(callback) {
 	var options = this.options;
+	console.log(112,options)
 
 	this.tasks = {
 
@@ -51,9 +52,6 @@ Setup_New_Download.prototype.execute = function(callback) {
 		'threads-generate': ['http-head',	function(callback, results) {
 			u.executor(ThreadsGenerator,
 			results['http-head'].fileSize,
-			results['http-head'].headers,
-			results['http-head'].port,
-			results['http-head'].url_object,
 			options)(callback);
 		}],
 
@@ -78,8 +76,8 @@ Setup_New_Download.prototype.execute = function(callback) {
 
 		//META(UPDATE AND WRITE TIMELY)
 		'meta-generate': ['threads-generate',	function(callback, results) {
-			// console.log('options so far:', options)
-			// console.log('results[http-head]', results['http-head'])
+			console.log('options so far:', options)
+			console.log('results[http-head]', results['http-head'])
 			u.executor(MetaDataBuilder,
 				results['threads-generate'],
 				results['http-head'].fileSize,

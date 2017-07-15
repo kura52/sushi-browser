@@ -99,11 +99,17 @@
 			'onStart onEnd onAdd onSort onUpdate onRemove onFilter onMove'.split(' ').forEach(function (/** string */name) {
 				copyOptions[name] = function (evt) {
 					if (name === 'onStart') {
+						console.log("onStart",evt,this)
 						_nextSibling = evt.item.nextElementSibling;
 						_activeComponent = this;
 					}
+          if (name === 'onEnd') {
+            console.log("onEnd",evt,this)
+            _activeComponent = null
+          }
 					else if (name === 'onAdd' || name === 'onUpdate') {
-						if(!_activeComponent) return //@TODO
+						console.log(name,evt)
+						if(!_activeComponent) return
 						evt.from.insertBefore(evt.item, _nextSibling);
 
 						var newState = {},
@@ -155,6 +161,7 @@
 
 			if (items) {
 				newState[modelName] = items;
+        // console.log(nextProps,newState,items)
 				this.setState(newState);
 			}
 		},

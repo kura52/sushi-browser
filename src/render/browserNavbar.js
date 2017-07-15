@@ -494,13 +494,13 @@ class BrowserNavbar  extends Component{
 
       {isDarwin && this.props.isTopLeft && this.props.toggleNav == 1 ? <LeftTopBottonSet style={{lineHeight: 0.9,paddingTop: 1}}/> : null }
 
-      <NavbarMenu k={this.props.k} mouseOver={true} isFloat={isFloatPanel(this.props.k)} className={`${this.props.page.canGoBack ? "" : " disabled"}`} title="Back" icon="angle-left fa-lg" onClick={e=>this.props.onClickBack(e)}>
+      <NavbarMenu k={this.props.k} mouseOver={true} isFloat={isFloatPanel(this.props.k)} className={`back-next ${this.props.page.canGoBack ? "" : " disabled"}`} title="Back" icon="angle-left fa-lg" onClick={e=>this.props.onClickBack(e)}>
         {(cont ? historyList.slice(0,currentIndex).reverse().map(
           (x,i)=><NavbarMenuItem key={i} text={this.getTitle(x,this.props.historyMap)} onClick={()=>this.props.onClickIndex(currentIndex -i -1)}/>) : "")}
       </NavbarMenu>
 
 
-      <NavbarMenu k={this.props.k} mouseOver={true} isFloat={isFloatPanel(this.props.k)} className={`${this.props.page.canGoForward ? "" : " disabled"}`} title="Forward" icon="angle-right fa-lg" onClick={e=>this.props.onClickForward(e)} >
+      <NavbarMenu k={this.props.k} mouseOver={true} isFloat={isFloatPanel(this.props.k)} className={`back-next ${this.props.page.canGoForward ? "" : " disabled"}`} title="Forward" icon="angle-right fa-lg" onClick={e=>this.props.onClickForward(e)} >
         {(cont ? historyList.slice(currentIndex+1).map(
           (x,i)=><NavbarMenuItem key={i} text={this.getTitle(x,this.props.historyMap)} onClick={()=>this.props.onClickIndex(currentIndex +i +1)}/>) : "")}
       </NavbarMenu>

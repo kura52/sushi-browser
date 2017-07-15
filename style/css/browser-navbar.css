@@ -24,6 +24,11 @@
   outline: none;
 }
 
+div.back-next > a{
+  padding: 5px 8px;
+}
+
+
 .browser-navbar a.sync {
   color: rgb(171, 71, 0);
 }

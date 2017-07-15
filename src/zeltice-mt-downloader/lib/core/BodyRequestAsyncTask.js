@@ -80,6 +80,7 @@ var _start = function (callback) {
 
     var htt_protocol = this.url.protocol == "https:" ? https : http
 
+		console.log(requestOptions)
     htt_protocol.request(requestOptions, _onStart)
       .on('error', onError)
       .end();

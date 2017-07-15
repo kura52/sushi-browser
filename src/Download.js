@@ -83,7 +83,7 @@ export default class Download {
         const port = dlUrl.port
 
         const dl = downloader.download(url, savePath,{})
-        dl.setOptions({threadsCount: mainState.downloadNum, port})
+        dl.setOptions({count: mainState.downloadNum, port})
         dl.setRetryOptions({maxRetries: 1, retryInterval: 1500})
 
         dl.once('error', (dl) => {

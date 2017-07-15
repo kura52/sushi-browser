@@ -38,8 +38,8 @@ const svg = `<svg version="1.1" id="loader-1" xmlns="http://www.w3.org/2000/svg"
       repeatCount="indefinite"/>
     </path>
   </svg>`
-const dUrl = 'https://www.google.com/?gws_rd=ssl'
 const topURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html'
+const dUrl = topURL //'https://www.google.com/?gws_rd=ssl'
 const sidebarURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html'
 const blankURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html'
 const REG_VIDEO = /^https:\/\/www\.(youtube)\.com\/watch\?v=(.+)&?|^http:\/\/www\.(dailymotion)\.com\/video\/(.+)$|^https:\/\/(vimeo)\.com\/(\d+)$/
@@ -111,7 +111,6 @@ function tabAdd(self, url, isSelect=true,privateMode = false,guestInstanceId,mob
   const t = self.createTab({default_url:url,privateMode,guestInstanceId,rest:{mobile,adBlockThis}})
   const key = t.key
 
-  self.state.selectedKeys.push(key)
 
   if(last){
     self.state.tabs.push(t)
@@ -125,6 +124,7 @@ function tabAdd(self, url, isSelect=true,privateMode = false,guestInstanceId,mob
   }
 
   if(isSelect){
+    self.state.selectedKeys.push(key)
     self.setState({selectedTab: key})
     self.focus_webview(t)
   }
@@ -907,7 +907,7 @@ export default class TabPanel extends Component {
           title: page.title,
           canGoBack: page.canGoBack
         }
-        if (pre.title === 'New' && !pre.canGoBack) {
+        if (pre.title === 'New' && !pre.canGoBack && self.state.tabs.length > 1) {
           self.handleTabClose({noHistory: true, noSync: true}, tab.key)
         }
         page.hid = pre.hid
@@ -1859,17 +1859,18 @@ export default class TabPanel extends Component {
       this.state.tabs.splice(++i, 0, n_tab)
     }
 
-    this.focus_webview(n_tab)
     this.setState({selectedTab: n_tab.key})
+    this.focus_webview(n_tab)
   }
 
   handleTabAddButtonClick(e, currentTabs) {
     // key must be unique
     const t = this.createTab()
     const key = t.key;
+    // this.state.tabs.splice(i+1, 0,t )
     this.state.tabs.push(t)
-    this.focus_webview(t)
     this.setState({selectedTab: key})
+    this.focus_webview(t)
     return t
   }
 
@@ -1899,6 +1900,7 @@ export default class TabPanel extends Component {
     const i = _tabs.findIndex((x)=>x.key===key)
     const t = _tabs[i]
     var menuItems = []
+    // menuItems.push(({ label: 'New Tab', click: ()=>document.querySelector(".rdTabAddButton").click()}))
     menuItems.push(({ label: 'New Tab', click: ()=>this.createNewTab(_tabs, i)}))
     menuItems.push(({ label: 'New Private Tab', click: ()=>this.createNewTab(_tabs, i,{default_url:dUrl,privateMode:Math.random().toString()})}))
 
@@ -1915,8 +1917,9 @@ export default class TabPanel extends Component {
       menuItems.push(({ label: 'Restore Closed Tab', click: ()=> {
         const hist = this.state.history.pop()
         const n_tab = this.createTab({default_url:hist.list[hist.currentIndex],hist})
-        _tabs.splice(i + 1, 0,n_tab )
+        _tabs.splice(i + 1, 0, n_tab )
         this.setState({selectedTab: n_tab.key})
+        this.focus_webview(n_tab)
       } }))
     }
     menuItems.push(({ label: t.pin ? 'Unpin tab' : 'Pin Tab', click: ()=> {t.pin = !t.pin;this.setState({})}}))
@@ -1976,10 +1979,12 @@ export default class TabPanel extends Component {
   }
 
   createNewTab(tabs, i = tabs.length -1,opt={}) {
-    const n_tab = this.createTab(opt)
-    tabs.splice(i + 1, 0, n_tab)
-    this.focus_webview(n_tab)
-    this.setState({selectedTab: n_tab.key})
+    setTimeout(_=>{
+      const n_tab = this.createTab(opt)
+      tabs.splice(i + 1, 0, n_tab)
+      this.setState({tabs,selectedTab: n_tab.key})
+      this.focus_webview(n_tab)
+    },100)
   }
 
 
@@ -2001,8 +2006,8 @@ export default class TabPanel extends Component {
         tabs.splice(++i, 0, n_tab)
       }
 
-      this.focus_webview(n_tab)
       this.setState({selectedTab: n_tab.key})
+      this.focus_webview(n_tab)
     })
   }
 
@@ -2157,7 +2162,7 @@ export default class TabPanel extends Component {
       const active = document.activeElement
       if((flag || active.className != 'prompt')|| active.tagName == 'BODY')
         t.focus()
-    }, 300)
+    }, 100)
   }
 
   updateTitle(cont){
