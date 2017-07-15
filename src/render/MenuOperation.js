@@ -5,7 +5,11 @@ const ipc = require('electron').ipcRenderer
 
 export default {
   windowMinimize(){
-    remote.getCurrentWindow().minimize()
+    const win = remote.getCurrentWindow()
+    if(isDarwin){
+      win.setFullScreen(false)
+    }
+    win.minimize()
   },
   windowIsMaximized(){
     const win = remote.getCurrentWindow()
@@ -28,6 +32,10 @@ export default {
     }
   },
   windowClose(){
-    remote.getCurrentWindow().close()
+    const win = remote.getCurrentWindow()
+    if(isDarwin){
+      win.setFullScreen(false)
+    }
+    win.close()
   }
 }
