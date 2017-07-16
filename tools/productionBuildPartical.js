@@ -28,17 +28,19 @@ function build(){
   const platform = isLinux ? 'darwin,linux' : isWindows ? 'win32' : isDarwin ? 'darwin' : 'mas'
   const ret = sh.exec(`node ./node_modules/electron-packager/cli.js . ${isWindows ? 'brave' : 'sushi-browser'} --platform=${platform} --arch=x64 --overwrite --icon=${appIcon} --version=${MUON_VERSION}  --asar=false --app-version=${APP_VERSION} --build-version=${MUON_VERSION} --protocol="http" --protocol-name="HTTP Handler" --protocol="https" --protocol-name="HTTPS Handler" --version-string.CompanyName="Sushi Browser" --version-string.ProductName="Sushi Browser" --version-string.Copyright="Copyright 2017, Sushi Browser" --version-string.FileDescription="Sushi" --ignore="\\.(cache|babelrc|gitattributes|githug|gitignore|gitattributes|gitignore|gitkeep|gitmodules)|node_modules/(electron-installer-squirrel-windows|electron-installer-debian|node-gyp|npm|electron-download|electron-rebuild|electron-packager|electron-builder|electron-prebuilt|electron-rebuild|electron-winstaller-fixed|muon-winstaller|electron-installer-redhat|react-addons-perf|babel-polyfill|infinite-tree|babel-register|jsx-to-string|happypack|es5-ext|browser-sync-ui|gulp-uglify|devtron|electron|deasync|webpack|babel-runtime|uglify-es|node-inspector|node-pre-gyp)|tools|sushi-browser-|release-packed"`)
 
-  muonModify()
-
   if(ret.code !== 0) {
     console.log("ERROR2")
     process.exit()
   }
 
+  if (isWindows) {
+    sh.mv(`brave-${process.platform}-${arch}`, buildDir)
+    sh.mv(`${buildDir}/brave.exe`, `${buildDir}/sushi.exe`)
+  }
+
+  muonModify()
 
   if (isWindows) {
-    sh.mv(`brave-${process.platform}-${arch}`,buildDir)
-    sh.mv(`${buildDir}/brave.exe`,`${buildDir}/sushi.exe`)
     const muonInstaller = require('muon-winstaller')
     const resultPromise = muonInstaller.createWindowsInstaller({
       appDirectory: buildDir,
@@ -113,6 +115,7 @@ function muonModify(){
   dircs.push(buildDir)
   for(let dirc of dircs){
     const paths = glob.sync(`${pwd}/${dirc}/**/electron.asar`)
+    console.log(paths)
     if(paths.length == 1){
       const base = paths[0].split("/").slice(0,-1).join("/")
       sh.cd(`${base}`)
