@@ -110,13 +110,7 @@ function build(){
 function muonModify(){
   const dircs = []
   const pwd = sh.pwd().toString()
-  if (isWindows) {
-    dircs.push(buildDir)
-  }
-  else if(isLinux){
-    dircs.push(buildDir)
-    dircs.push(`sushi-browser-darwin-${arch}`)
-  }
+  dircs.push(buildDir)
   for(let dirc of dircs){
     const paths = glob.sync(`${pwd}/${dirc}/**/electron.asar`)
     if(paths.length == 1){
