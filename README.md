@@ -3,6 +3,8 @@
 
 マルチパネル機能に特化した次世代webブラウザです。寿司料理のような素晴らしさを目指しています。 :sushi:
 
+![OverView](https://sushib.me/data/overview.gif)
+
 # Why?
 
 Webブラウジングの際、画面の一部しか利用できず、勿体無いと思ったことはありませんか。  
