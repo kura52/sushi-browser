@@ -3,7 +3,6 @@
 
 マルチパネル機能に特化した次世代webブラウザです。寿司料理のような素晴らしさを目指しています。 :sushi:
 
-![OverView](https://sushib.me/data/overview.gif)
 
 # Why?
 
