@@ -10,18 +10,19 @@
 Webブラウジングの際、画面の一部しか利用できず、勿体無いと思ったことはありませんか。  
 「簡単な操作で画面を最大限に活用したい」それが"Sushi Browser"のコンセプトです。
 
-そのため、"マルチパネル、同期スクロール、サイドバー、スリムメニュー、パネル整列"などのギミックを搭載しています。  
+"マルチパネル、同期スクロール、サイドバー、スリムメニュー、パネル整列"などのギミックを搭載しています。  
 
 上記に加え、"AdBlock、マウスジェスチャー、Terminal、動画・並列ダウンロード、AutoPagerize"をはじめとした便利機能も有しています。  
 
-また、Electron([Brave's Fork](https://github.com/brave/muon))で構築されているため、マルチプラットフォーム(Windows, macOS, Linux)で利用できます。([ダウンロード](#ダウンロード))
+また、Electron([Brave's Fork](https://github.com/brave/muon))で構築されているため、マルチプラットフォーム(Windows, macOS, Linux)で利用できます。  
+[ダウンロード](#ダウンロード)
 
 ## Table of Contents
 
 * [特徴](#特徴)
   * [マルチパネル機能](#マルチパネル機能)
   * [ツール](#ツール)
-  * [Muon(Electron Fork)機能](#Muon(Electron Fork)機能)
+  * <a href="#Muon(Electron Fork)機能">Muon(Electron Fork)機能</a>
   * [便利機能](#便利機能)
   * [Webテクノロジー](#Webテクノロジー)
 
