@@ -12,13 +12,16 @@ function getFocusedWebContents(){
   const tmp = webContents.getFocusedWebContents()
   if(tmp && !tmp.isDestroyed() && !tmp.isBackgroundPage()) {
     if(tmp.isGuest()){
+      console.log(88,tmp)
       return new Promise(resolve=>resolve(tmp))
     }
     else{
       cont = tmp
+      console.log(99,cont)
     }
   }
 
+  console.log(77,cont)
   if(!cont){
     const win = getCurrentWindow()
     cont = win.webContents

@@ -284,7 +284,7 @@ export default class SplitWindows extends Component{
       if(!tabId){
         tabId = this.refs2[this.isTopLeft].getSelectedTabId()
       }
-      console.log(tabId)
+      console.log(2323,tabId)
       ipc.send(`get-focused-webContent-reply_${key}`,tabId)
     }
     ipc.on('get-focused-webContent',this.getFocusedWebContent)
@@ -840,7 +840,7 @@ export default class SplitWindows extends Component{
         const key = ele.className.slice(1)
         if(k != key && !isFixedPanel(key)){
           global.lastMouseDownSet  = new Set(eles.reverse())
-          return key
+          return this.getAllKey().includes(key) ? key : false
         }
       }
       else{
@@ -849,7 +849,7 @@ export default class SplitWindows extends Component{
           const key = closestElement.classList[1].slice(1)
           if(k != key && !isFixedPanel(key)){
             global.lastMouseDownSet  = new Set(eles.reverse())
-            return key
+            return this.getAllKey().includes(key) ? key : false
           }
         }
       }

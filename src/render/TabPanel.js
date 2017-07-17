@@ -654,6 +654,7 @@ export default class TabPanel extends Component {
         tab.wv.goToIndex(0)
       },
       onClickBack() {
+        console.log(767,tab)
         // console.log(self)
         const cont = self.getWebContents(tab)
         // newPage.navUrl = cont.history[cont.currentIndex-1]
@@ -670,6 +671,7 @@ export default class TabPanel extends Component {
         tab.wv.reload()
       },
       onClickIndex(ind) {
+        console.log(4367,tab,ind)
         const cont = self.getWebContents(tab)
         // newPage.navUrl = cont.history[ind]
         tab.wv.goToIndex(ind)

@@ -127,7 +127,7 @@ export default class NavbarMenu extends Component {
         <i className={`fa fa-${this.props.icon}`} />
       </a>
       {!this.state.visible ? null : <div ref="menu" className={`menu${this.state.visible ? " visible" : ""} transition ${this.props.mouseOver ? 'nav2-menu' : 'nav-menu'}`} style={this.props.style}>
-        {list.map((child) => {
+        {(list || []).map((child) => {
             if(child && (child.type == NavbarMenuBarItem || (child.type == NavbarMenuItem))){
               return React.cloneElement(child, {
                 onClick(e){
