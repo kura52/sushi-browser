@@ -1405,7 +1405,7 @@ export default class TabPanel extends Component {
 
     tab.syncMode = ({url,dirc,sync,replaceInfo})=> {
       let retryNum = 0
-      const winInfos = this.props.getScrollPriorities(0,dirc)
+      let winInfos = this.props.getScrollPriorities(0,dirc)
       const index = winInfos.findIndex(x=>x[0] == this.props.k)
       const winInfo = winInfos[index]
       console.log('sync-mode', url,dirc,sync,replaceInfo)
@@ -1419,18 +1419,22 @@ export default class TabPanel extends Component {
         let retry = 0
         const id = window.setInterval(()=> {
           retry++
-          if(retry > 1000) {
+          if(retry > 200) {
             clearInterval(id)
             return
           }
           if (!tab.wv || !this.getWebContents(tab)) return
+
+          if(!winInfos){
+            winInfos = this.props.getScrollPriorities(0,dirc)
+          }
 
           exeScript(tab.wv,()=>clearInterval(id), ()=> {
             ___SPLIT___
             let retry = 0
             const id = window.setInterval(()=> {
               retry++
-              if(retry > 1000) {
+              if(retry > 200) {
                 clearInterval(id)
                 return
               }
