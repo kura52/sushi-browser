@@ -22,15 +22,15 @@ Webブラウジングの際、画面の一部しか利用できず、勿体無�
 * [特徴](#特徴)
   * [マルチパネル機能](#マルチパネル機能)
   * [ツール](#ツール)
-  * <a href="#Muon(Electron Fork)機能">Muon(Electron Fork)機能</a>
+  * <a href="#muonelectron-fork機能">Muon(Electron Fork)機能</a>
   * [便利機能](#便利機能)
-  * [Webテクノロジー](#Webテクノロジー)
+  * [Webテクノロジー](#webテクノロジー)
 
 * [ダウンロード](#ダウンロード)
 
-* [Flashの利用](#Flashの利用)
+* [Flashの利用](#flashの利用)
 
-* [TODO](#TODO)
+* [TODO](#todo)
 
 
 # 特徴
