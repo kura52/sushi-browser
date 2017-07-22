@@ -9,7 +9,6 @@ const gulpif = require("gulp-if")
 const uglify = require("gulp-uglify")
 const beautify = require('gulp-beautify')
 const webpack = require("webpack")
-const HappyPack = require('happypack')
 const {execSync} = require('child_process')
 
 var path = require('path')
