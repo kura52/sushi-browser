@@ -651,30 +651,30 @@ export default class TabPanel extends Component {
       onClickHome() {
         const cont = self.getWebContents(tab)
         // newPage.navUrl = cont.history[0]
-        tab.wv.goToIndex(0)
+        cont.goToIndex(0)
       },
       onClickBack() {
         console.log(767,tab)
         // console.log(self)
         const cont = self.getWebContents(tab)
         // newPage.navUrl = cont.history[cont.currentIndex-1]
-        tab.wv.goBack()
+        cont.goBack()
       },
       onClickForward() {
         const cont = self.getWebContents(tab)
         // newPage.navUrl = cont.history[cont.currentIndex+1]
-        tab.wv.goForward()
+        cont.goForward()
       },
       onClickRefresh() {
         const cont = self.getWebContents(tab)
         // newPage.navUrl = cont.history[cont.currentIndex]
-        tab.wv.reload()
+        cont.reload()
       },
       onClickIndex(ind) {
         console.log(4367,tab,ind)
         const cont = self.getWebContents(tab)
         // newPage.navUrl = cont.history[ind]
-        tab.wv.goToIndex(ind)
+        cont.goToIndex(ind)
       },
       onEnterLocation(location) {
         navigateTo(location)
@@ -1186,17 +1186,17 @@ export default class TabPanel extends Component {
         if (type == 'back') {
           // tab.page.navUrl = cont.history[cont.currentIndex - 1]
           tab.page.navUrl = cont.getURLAtIndex(cont.getCurrentEntryIndex() - 1)
-          tab.wv.goBack()
+          cont.goBack()
         }
         else if (type == 'forward') {
           // tab.page.navUrl = cont.history[cont.currentIndex + 1]
           tab.page.navUrl = cont.getURLAtIndex(cont.getCurrentEntryIndex() + 1)
-          tab.wv.goForward()
+          cont.goForward()
         }
         else if (type == 'reload') {
           // tab.page.navUrl = cont.history[cont.currentIndex]
           tab.page.navUrl = cont.getURLAtIndex(cont.getCurrentEntryIndex())
-          tab.wv.reload()
+          cont.reload()
         }
 
       }
