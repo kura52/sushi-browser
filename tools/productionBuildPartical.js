@@ -3,8 +3,8 @@ const path = require('path')
 const fs = require('fs')
 const glob = require("glob")
 
-const MUON_VERSION = '4.3.2'
-const APP_VERSION = '0.1.1'
+const MUON_VERSION = '4.4.3'
+const APP_VERSION = '0.1.0'
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

@@ -3,8 +3,8 @@ const path = require('path')
 const fs = require('fs')
 const glob = require("glob")
 
-const MUON_VERSION = '4.3.2'
-const APP_VERSION = '0.1.1'
+const MUON_VERSION = '4.4.3'
+const APP_VERSION = '0.1.0'
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'
@@ -199,7 +199,7 @@ filesContentsReplace(jsFiles,/global.debug = require\('debug'\)\('info'\)/,"// g
 
 
 // Babel Use babili
-// filesContentsReplace(`${pwd}/.babelrc`,/"babel\-preset\-stage\-2"\]/,'"babel-preset-stage-2","babili"]')
+filesContentsReplace(`${pwd}/.babelrc`,/"babel\-preset\-stage\-2"\]/,'"babel-preset-stage-2","babili"]')
 
 console.log((Date.now() - start)/1000)
 
