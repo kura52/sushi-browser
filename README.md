@@ -1,138 +1,139 @@
 
 # Sushi Browser
 
-マルチパネル機能に特化した次世代webブラウザです。寿司料理のような魅力的なブラウザを目指しています。 :sushi:
-
+A next generation web browser that has been made to specialize in multi panel functions. Its goal is to be as attractive as sushi cuisine.
 ![OverView](https://sushib.me/github/demos.gif)
 
 # Why?
+ 
+When you are browsing the web you can only use a section of your screen. Have you ever thought that that's a waste?   
+The concept of the "Sushi Browser" is wanting to optimize the screen by simple operation.   
 
-Webブラウジングの際、画面の一部しか利用できず、勿体無いと思ったことはありませんか。  
-「簡単な操作で画面を最大限に活用したい」それが"Sushi Browser"のコンセプトです。
+"Multiple panels, sync scrolling, sidebar, slim menu, panel alignment etc. are some of the gimmicks it has onboard. 
 
-"マルチパネル、同期スクロール、サイドバー、スリムメニュー、パネル整列"などのギミックを搭載しています。  
 
-上記に加え、"AdBlock、マウスジェスチャー、Terminal、動画・並列ダウンロード、AutoPagerize"をはじめとした便利機能も有しています。  
-
-また、Electron([Brave's Fork](https://github.com/brave/muon))で構築されているため、マルチプラットフォーム(Windows, macOS, Linux)で利用できます。  
-[ダウンロード](#ダウンロード)
+[Downloads](#Downloads)
 
 ## Table of Contents
 
-* [特徴](#特徴)
-  * [マルチパネル機能](#マルチパネル機能)
-  * [拡張ツール](#拡張ツール)
-  * <a href="#muonelectron-fork機能">Muon(Electron Fork)機能</a>
-  * [便利機能](#便利機能)
-  * [Webテクノロジー](#webテクノロジー)
+* [Special features](#特徴)
+  * [Multi panel](#マルチパネル機能)
+  * [Extension tools](#拡張ツール)
+  * <a href="#muonelectron-fork機能">Muon (Electron Fork)</a>
+  * [Useful features](#便利機能)
+  * [Web Technologies](#webテクノロジー)
 
-* [ダウンロード](#ダウンロード)
+* [Downloads](#ダウンロード)
 
-* [Flashの利用](#flashの利用)
+* [Use of Flash](#flashの利用)
 
 * [TODO](#todo)
 
 
-# 特徴
+# Special features
 
-## マルチパネル機能  
+## Multi panel  
 
-本ブラウザ最大の特徴は、マルチパネルでの表示・操作に特化していることにあります。  
-複数のwebページを並べて表示するだけでなく、様々な機能があります。
+The browser's greatest feature is the specialized display and operation using multiple panels.   
+It not only displays multiple web pages side-by-side but it also has various functions. 
 
-#### 1. 対面パネルでの表示
+#### 1. Display to the opposite panel  
 
-リンクを中クリック(マウスホイールを押す)することで、対面パネルにリンク先のページを開くことができます。  
-１パネルの状態で中クリックすると、自動で２パネルに分割・表示されます。  
-もちろん、通常のブラウザと同じくように新しいタブで開くことも設定可能です。　　
+By center clicking (pressing the mouse wheel) the link you can open the page in the link to the opposite panel.   
+Center clicking with 1 panel automatically splits the display into 2 panels.   
+Of course, just like ordinary browsers, it can be configured to open a new browser. 
 
-#### 2. 同期スクロール
-同期スクロールボタンを押すことで、本の見開き表示のように１つのページを並べて表示することができます。  
-さらに、この状態のパネル群はスクロールやページ遷移、クローズ動作も同期されます。  
+#### 2. Sync scrolling 
 
-また、webページを右クリックして選べるメニューからは左から右への見開きと、右から左への見開きの両方向が選択できます。(通常は左から右)
+By pressing the Sync scroll button, 1 page can be lined up like the pages of a book.  
+Moreover, for a group of panels at this state, you can do actions such as scroll, page transition or close at the same time. 　
+ 
+Also, right clicking the we page, you can choose from a menu for a 2-page spread that reads left to right or from right to left. (Commonly it's left to right) 
 
-#### 3. サイド(ボトム)バー
-お気に入りや履歴などをサイドバーで開くことができます。サイドバーは通常と同じくwebページの表示が可能です。  
-通常パネルとの違いは、ウインドウサイズを変更しても固定幅であること、同期スクロール対象でないことそれだけです。
+#### 3. Side (bottom) bar
 
-#### 4. スリムメニュー
-画面スペースを最大限に活用するために、２つの表示モードが可能です。  
-1. One Lineモード：メニューバーとタブバーを統合した表示形式で、わずか30pxでのメニューを実現しています。
-2. Full Screenモード：メニューバーが非表示となり、最上部にカーソルを移動することでメニューバーが表示されます。
+You can open favorite pages or pages from your history using the side bar.  
+The side bar can display web pages same as common panels. 　　  
+The difference to common panels is even if you change the window size, the width remains fixed, and only this cannot be used with sync scrolling. 
 
-#### 5. パネル移動
-一般的なブラウザは、タブをドラッグ＆ドロップすることで、タブの移動ができます。  
-本ブラウザはタブの移動に加え、タブ追加ボタンをドラッグ＆ドロップすることで、１つのパネルの全タブを他のパネルやウインドウへ移動することができます。
+#### 4. Slim menu 
+In order to optimize the use of screen space, there are 2 possible display modes.  
+- One Line mode: Using a display method that integrates the menu bar and tab bar, it achieves a menu with a mere 30px.   
+- Full screen mode: The menu bar is not displayed and the menu is displayed by moving the cursor. 
 
-#### 6. Floatパネルモード
-タブを右クリックして表示されるメニューからFloating Panelを選択することで、ウインドウ内で移動可能なパネルに分離することができます。  
-Webブラウジング中の動画再生などに活用できる機能です。
+#### 5. Panel movement
+For general browser, by dragging and dropping the tab, you can move the tab.
+In addition to moving the tab, this browser can be moved all the tabs of one tab to other panel or window by dragging or dropping the tab addition button.
 
-#### 7. 同期ページ遷移
+#### 6. Float panel mode
+By selecting Floating Panel from the menu that is displayed by right clicking a tab,you can detach the panel that can be moved within the window.   
+It is a function that can be used for playing videos etc. while web browsing. 
 
-正規表現により、ページURLを置換し、別のページを開くことができます。  
-左側に通常のページ、右側にGoogle翻訳を開くようなことができます。  
+#### 7. Simultaneous page transition 
+By using a regular expression, the page URL can be permutated and opened in a different page.  
+It can also open a normal page at the left and Google Translate at the right.   
 
-入力方法は、左側にURLに対する正規表現、右側に置換後のテキストを入力します。  
-左側に()を使うとキャプチャされ、$数字で置換後の内容に利用できます。($$数字でエンコードしたテキストとして使えます。)  
+The method of entering data is entering the regular expression for the URL at the left, and entering the text after permutation at the right.   
+By using () at the left makes it CAPTCHA, and can be used for the content after permutation using numerals.   
+(It can be used as text which was encoded with $$ numbers.)   
 
-例えば、左側を`(.+)`、右側を`https://www.google.com/search?q=$$1`とすることで、対象のURLをGoogle検索できます。
+For example, by making the left side `(.+)` and the right side `https://www.google.com/search?q=$$1`, the target URL can be Google-searched. 
 
-#### 8. その他
-- パネルの入れ替え：２つのパネルの位置を入れ替えることができます。
-- パネルの整列：水平、垂直方向それぞれに対し、等幅に整列することができます。
-- 方向の転換：横方向に並んでいるパネルを縦方向に、縦方向に並んでいるパネルを横方向に並び直すことができます。
-- 同時スクロール：パネルの境目でマウスホイールを動かすことで、２つのパネルを同時にスクロールできます。
-- Mobileモード：モバイル用のページヘの切り替えが行なえます。(ユーザエージェントの変更)
+#### 8. Other
+- Swapping panels: You can switch the position of 2 panels. 
+- Aligning panels: Panels can be lined up with fixed widths horizontally or vertically. 
+- Switch direction:You can realign vertically-lined panels horizontally or horizontally-lined panels vertically. 
+- Simultaneous scrolling: By moving the mouse wheel, you can scroll 2 panels at the same time.
+- Mobile mode: You can carry out the switch to pages for mobile device use. (Change of user agent)
 
-## 拡張ツール
-特徴的なツールとして、以下機能があります。  
-1. ターミナル：Linux/MacではBash,WindowsではPowerShellの操作ができます。
-2. ファイルエクスプローラ：ファイル操作や閲覧ができます
-3. テキストエディタ：テキストやソースコードの編集ができます
-4. 動画再生：自動再生の動画機能が利用できます
+## Extension tools 
+As a special tool, it has the following functions. 
+1. Terminal: It can operate Bash for Linux/Mac and Power Shell for Windows. 
+2. File explorer: It can manage and browse files. 
+3. Text editor: It can edit text and source codes etc.
+4. Video playback: It can be used for automatic playback of videos. 
 
-上記機能を活用すれば、IDE(統合開発環境)に近い操作も可能になっています。
+By taking advantage of the above functions operation close to IDE (integrated development environment) becomes possible.
 
 
-## Muon(Electron Fork)機能
-本ブラウザは、ブラウザ機能として[Muon](https://github.com/brave/muon)を利用してます。  
-Muonは[Brave browser](https://github.com/brave/browser-laptop)で使用されているElectronのforkで、高速なブラウザ用のフレームワークです。
+## Muon (Electron Fork)
+This browser uses [Muon](https://github.com/brave/muon) as a browser function.  
+Muon is a framework for very fast browser with [Electron's](https://github.com/electron/electron) fork that was used for the [Brave browser](https://github.com/brave/browser-laptop).   
 
-1. AdBlock：ネイティブ実装の高速な広告ブロックを搭載しています。
-2. Chromiun：エンジンにChromeのオープンソース実装であるChromiumが利用されており、最新かつ高速な動作が可能です。
-3. 部分的なChrome拡張機能のサポート：一部のChrome拡張機能が利用可能です。
+1. AdBlock: Equipped with a native-implemented high speed advertisement block.
+2. Chromium: It uses Chromium in its engine, which implemented in Chrome's open source code. The newest, and moreover, high speed execution is possible. 
+3. Partial support from Chrome extensions: It can use some of Chrome's extensions.
 
-## 便利機能
 
-#### 1. ダウンロード機能
-- 動画ダウンロード：動画や音楽情報を検知すると、自動でダウンロードリンクを表示します。
-- 並列ダウンロード：1ファイルに対し、最大8並列までの並列ダウンロードが可能です。
+## Useful features
 
-#### 2. マウスジェスチャー
-Chrome拡張機能によるマウスジェスチャーが利用できます。Mac、LinuxでもWindowsと同じ操作感で利用可能です。
+#### 1. Download function
+- Video download: When downloading video and music information, download link is displayed automatically.  
+- Parallel download: For 1 file it can download with a maximum of 8 parallel downloads. 
 
-#### 3. AutoPagrize
-複数ページに渡るWebサイトの自動先読み機能が利用できます。(Chrome拡張)
+#### 2. Mouse gesture
+It can use mouse gestures from Chrome's extension features. Even in Mac and Linux it can be used with the same operability as in Windows. 
+
+#### 3. AutoPagerize
+It can automatically read ahead websites that spans several pages. (Chrome Extension)
 
 #### 4. Anything Search
-アドレスバーでの入力時および、Shiftキーを２回押すことで、履歴からの検索が行なえます。
+When entering an address in the address bar, or by pressing the Shift key twice, it can carry out a search from the browser history. 
 
-#### 5. データ同期(Experimental)
-Sync Data機能をOnにすると複数端末間で履歴とお気に入りの同期が可能になります。
+#### 5. Data syncing (Experimental)
+Turning Sync Data on makes syncing possible from the history and favorites from multiple machines. 
 
-## Webテクノロジー
+## Web Technologies
 
-本ブラウザーは以下を始めとした素晴らしいwebテクノロジーを利用しています。
-- [Muon](https://github.com/brave/muon) ([Brave browser](https://github.com/brave/browser-laptop)で使用されているElectronのforkで、高速なブラウザ用のフレームワーク)
+This browser makes use of wonderful we b technologies, starting with the following. 
+- [Muon](https://github.com/brave/muon) (A fork from [Electron](https://github.com/electron/electron), used for the [Brave browser](https://github.com/brave/browser-laptop), and a framework for high speed browsers) 
 - [Inferno](https://github.com/infernojs/inferno) (An extremely fast, React-like library)
 - [Semantic UI React](https://github.com/Semantic-Org/Semantic-UI-React)
-- [xterm.js](https://github.com/sourcelair/xterm.js/) (visual studio codeなどで使用されているTerminal)
+- [xterm.js](https://github.com/sourcelair/xterm.js/) (Terminal used for visual studio code etc.)
 
-# ダウンロード
-
-各プラットフォームに対し、インストーラとポータブル版の両方がダウンロードできます。
+# Downloads
+Both the installer for every platform and the portable version can be downloaded.  
+To use the portable edition, please run sushi.exe for Windows and sushi-browser for Mac/Linux after decompressing.
 
 - [Windows Installer v0.1.0](https://sushib.me/dl/sushi-browser-0.1.0-setup-x64.exe)
 - [Windows Portable v0.1.0](https://sushib.me/dl/sushi-browser-0.1.0-win-x64.zip)
@@ -142,30 +143,28 @@ Sync Data機能をOnにすると複数端末間で履歴とお気に入りの同
 - [Linux deb (for Debian/Ubuntu) v0.1.0](https://sushib.me/dl/sushi-browser_0.1.0_amd64.deb)
 - [Linux Portable v0.1.0](https://sushib.me/dl/sushi-browser-0.1.0.tar.bz2)
 
-ポータブル版の利用は、解凍後にWindowsはsushi.exeを、Mac/Linuxはsushi-browserを実行ください。
-
-# Flashの利用
-
-Flashが動かない場合、以下のサイトでFlashをインストールして実行ください。
+# Use of Flash 
+If Flash won't run, please install Flash from the following web sites.  
 - [Adobe Flash Player](https://get.adobe.com/jp/flashplayer/)
 
-また、Linuxの場合は上記インストール後も動作しない場合があります。  
-セキュリティレベルが低下しますが、以下のコマンドで動作する可能性があります。  
+Also, for Linux, there are cases that it won't run after the above install.  
+These will lower the security level but the following commands can be run. 
+ 
 ```
 sushi-browser --no-sandbox
 ```
 
 # TODO
 
-- キーボードショートカット、オプションページ
-- ローカライズ(多言語化)
-- カスタマイズ性の向上(トップページ、検索エンジンなど)
-- Anything Searchの強化
-- adblockの制御パネル
-- 標準のブラウザとして選択可能とする
-- Readmeへのbuild方法の追加
-- リファクタリング、Mobxの導入（現状、PubSubベースで密結合）
-- テストコードの追加
+- Keyboard shortcuts, option page
+- Localization
+- Improved customizability (top page, search engine etc.) 
+- Enhanced Anything Search
+- Adblock control panel
+- can be selected as a standard browser
+- Addition of build method in the Readme
+- Refactoring, introduction of Mobx (currently closely integrated with the PubSub base) 
+- Add test code
 - Auto Update
-- マニュアル
-- 新機能
+- Manual
+- New features  
