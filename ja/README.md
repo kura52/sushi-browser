@@ -3,8 +3,6 @@
 
 マルチパネル機能に特化した次世代webブラウザです。寿司料理のような魅力的なブラウザを目指しています。 :sushi:
 
-![OverView](https://sushib.me/github/demos.gif)
-
 # Why?
 
 Webブラウジングの際、画面の一部しか利用できず、勿体無いと思ったことはありませんか。  
@@ -16,6 +14,8 @@ Webブラウジングの際、画面の一部しか利用できず、勿体無�
 
 また、Electron([Brave's Fork](https://github.com/brave/muon))で構築されているため、マルチプラットフォーム(Windows, macOS, Linux)で利用できます。  
 [ダウンロード](#ダウンロード)
+
+![OverView](https://sushib.me/github/demos.gif)
 
 ## Table of Contents
 

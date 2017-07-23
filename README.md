@@ -1,17 +1,14 @@
 
 # Sushi Browser
 
-A next generation web browser that has been made to specialize in multi panel functions.  
- Its goal is to be as attractive as sushi cuisine.
-![OverView](https://sushib.me/github/demos.gif)
-
-# Why?
+## Why?
  
 When you are browsing the web you can only use a section of your screen. Have you ever thought that that's a waste?   
 The concept of the "Sushi Browser" is wanting to optimize the screen by simple operation.   
 
 "Multiple panels, sync scrolling, sidebar, slim menu, panel alignment etc. are some of the gimmicks it has onboard. 
 
+![OverView](https://sushib.me/github/demos.gif)
 
 [Downloads](#Downloads)
 
@@ -22,7 +19,7 @@ The concept of the "Sushi Browser" is wanting to optimize the screen by simple o
   * [Extension tools](#extension-tools)
   * <a href="#muon-electron-fork">Muon (Electron Fork)</a>
   * [Useful features](#useful-features)
-  * [Web Technologies](#web technologies)
+  * [Web Technologies](#web-technologies)
 
 * [Downloads](#downloads)
 
