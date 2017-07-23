@@ -1,7 +1,8 @@
 
 # Sushi Browser
 
-A next generation web browser that has been made to specialize in multi panel functions. Its goal is to be as attractive as sushi cuisine.
+A next generation web browser that has been made to specialize in multi panel functions.  
+ Its goal is to be as attractive as sushi cuisine.
 ![OverView](https://sushib.me/github/demos.gif)
 
 # Why?
@@ -16,16 +17,16 @@ The concept of the "Sushi Browser" is wanting to optimize the screen by simple o
 
 ## Table of Contents
 
-* [Special features](#特徴)
-  * [Multi panel](#マルチパネル機能)
-  * [Extension tools](#拡張ツール)
-  * <a href="#muonelectron-fork機能">Muon (Electron Fork)</a>
-  * [Useful features](#便利機能)
-  * [Web Technologies](#webテクノロジー)
+* [Special features](#special-features)
+  * [Multi panel](#multi-panel)
+  * [Extension tools](#extension-tools)
+  * <a href="#muon-electron-fork">Muon (Electron Fork)</a>
+  * [Useful features](#useful-features)
+  * [Web Technologies](#web technologies)
 
-* [Downloads](#ダウンロード)
+* [Downloads](#downloads)
 
-* [Use of Flash](#flashの利用)
+* [Use of Flash](#use-of-flash)
 
 * [TODO](#todo)
 
