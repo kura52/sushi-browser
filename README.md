@@ -4,7 +4,7 @@
 ## Why?
  
 When you are browsing the web you can only use a section of your screen. Have you ever thought that that's a waste?   
-The concept of the "Sushi Browser" is wanting to optimize the screen by simple operation.   
+The concept of the "Sushi Browser" is wanting to utilize the screen to the maximum capacity just by a simple operation.  
 
 "Multiple panels, sync scrolling, sidebar, slim menu, panel alignment etc. are some of the gimmicks it has onboard. 
 
@@ -123,7 +123,7 @@ Turning Sync Data on makes syncing possible from the history and favorites from 
 
 ## Web Technologies
 
-This browser makes use of wonderful we b technologies, starting with the following. 
+This browser makes use of wonderful web technologies, starting with the following. 
 - [Muon](https://github.com/brave/muon) (A fork from [Electron](https://github.com/electron/electron), used for the [Brave browser](https://github.com/brave/browser-laptop), and a framework for high speed browsers) 
 - [Inferno](https://github.com/infernojs/inferno) (An extremely fast, React-like library)
 - [Semantic UI React](https://github.com/Semantic-Org/Semantic-UI-React)
