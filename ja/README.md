@@ -147,7 +147,7 @@ Sync Data機能をOnにすると複数端末間で履歴とお気に入りの同
 # Flashの利用
 
 Flashが動かない場合、以下のサイトでFlashをインストールして実行ください。
-- [Adobe Flash Player](https://get.adobe.com/jp/flashplayer/)
+- [Adobe Flash Player](https://get.adobe.com/flashplayer/)
 
 また、Linuxの場合は上記インストール後も動作しない場合があります。  
 セキュリティレベルが低下しますが、以下のコマンドで動作する可能性があります。  

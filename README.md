@@ -143,7 +143,7 @@ To use the portable edition, please run sushi.exe for Windows and sushi-browser 
 
 # Use of Flash 
 If Flash won't run, please install Flash from the following web sites.  
-- [Adobe Flash Player](https://get.adobe.com/jp/flashplayer/)
+- [Adobe Flash Player](https://get.adobe.com/flashplayer/)
 
 Also, for Linux, there are cases that it won't run after the above install.  
 These will lower the security level but the following commands can be run. 

@@ -36,7 +36,7 @@ const defaultConf = {
       // { setting: 'allow', primaryPattern: '[*.]soundcloud.com', secondaryPattern: '*', resourceId: undefined },
       // { setting: 'allow', primaryPattern: '[*.]www.twitch.tv', secondaryPattern: '*', resourceId: undefined },
       // { setting: 'allow', primaryPattern: '[*.]twitter.com', secondaryPattern: '*', resourceId: undefined }
-      ],
+    ],
   doNotTrack: [ { setting: 'block', primaryPattern: '*' } ],
   popups: [ { setting: 'block', primaryPattern: '*' } ],
   adInsertion: [ { setting: 'block', primaryPattern: '*' } ],
@@ -308,10 +308,14 @@ process.on('add-new-contents', async (e, source, newTab, disposition, size, user
 
 
 function setFlash(app){
-  let ppapi_flash_path;
+  let ppapi_flash_path,flash_path;
+  try {
+    flash_path = app.getPath('pepperFlashSystemPlugin')
+  } catch (e) {
+  }
 
   if(process.platform  == 'win32'){
-    let path_flash = app.getPath('pepperFlashSystemPlugin') ? require("glob").sync(app.getPath('pepperFlashSystemPlugin')) : []
+    let path_flash = flash_path ? require("glob").sync(flash_path) : []
     // let path_flash = require("glob").sync(`${process.env["USERPROFILE"]}/AppData/Local/Google/Chrome/User Data/PepperFlash/**/pepflashplayer.dll`)
     // let path_flash = require("glob").sync(`C:/Windows/syswow64/Macromed/Flash/pepflashplayer32*.dll`)
     //https://fpdownload.adobe.com/pub/flashplayer/latest/help/install_flash_player_ppapi.exe
@@ -335,7 +339,7 @@ function setFlash(app){
     }
   }
   else{
-    let path_flash = app.getPath('pepperFlashSystemPlugin') ? require("glob").sync(app.getPath('pepperFlashSystemPlugin')) : require("glob").sync("/Library/Internet Plug-Ins/PepperFlashPlayer/PepperFlashPlayer.plugin")
+    let path_flash = flash_path ? require("glob").sync(flash_path) : require("glob").sync("/Library/Internet Plug-Ins/PepperFlashPlayer/PepperFlashPlayer.plugin")
     if (path_flash.length > 0) {
       ppapi_flash_path = path_flash[0]
       app.commandLine.appendSwitch('ppapi-flash-path', ppapi_flash_path);
@@ -451,7 +455,7 @@ function contextMenu(webContents) {
       menuItems.push({type: 'separator'})
     }
 
-      if (props.linkURL && props.mediaType === 'none') {
+    if (props.linkURL && props.mediaType === 'none') {
       menuItems.push({label: 'Copy Link Address', click: () => clipboard.writeText(props.linkURL)})
       menuItems.push({label: 'Copy Link Text', click: () => clipboard.writeText(props.linkText)})
       if(!hasText){

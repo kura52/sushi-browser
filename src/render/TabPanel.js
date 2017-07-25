@@ -816,7 +816,9 @@ export default class TabPanel extends Component {
         console.log(mainState,mainState.a)
         console.log(tab.wv,tab.wvId,guestIds.tabId,tab.e&&tab.e.tabId,tab.e,e)
         const cont = self.getWebContents(tab)
-        cont.authorizePlugin(mainState.flash)
+
+        let canFlash = mainState.flash
+        if(canFlash) cont.authorizePlugin(canFlash)
 
 
         // tab.wv.send('set-tab',{tab:self.getChromeTab(tab)})
