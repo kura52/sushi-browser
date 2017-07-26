@@ -3,7 +3,7 @@ const path = require('path')
 const fs = require('fs')
 const glob = require("glob")
 
-const MUON_VERSION = '4.4.3'
+const MUON_VERSION = '4.1.9'
 const APP_VERSION = '0.1.0'
 
 const isWindows = process.platform === 'win32'
