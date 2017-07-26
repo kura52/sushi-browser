@@ -47,7 +47,7 @@ function build(){
       outputDirectory: outDir,
       title: 'Sushi Browser',
       authors: 'kura52',
-      // loadingGif: 'res/app.gif',
+      loadingGif: 'res/install.gif',
       // loadingGif: 'res/brave_splash_installing.gif',
       setupIcon: 'res/app.ico',
       iconUrl: 'https://sushib.me/favicon.ico',

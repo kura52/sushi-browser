@@ -13,6 +13,7 @@ Webブラウジングの際、画面の一部しか利用できず、勿体無�
 上記に加え、"AdBlock、マウスジェスチャー、Terminal、動画・並列ダウンロード、AutoPagerize"をはじめとした便利機能も有しています。  
 
 また、Electron([Brave's Fork](https://github.com/brave/muon))で構築されているため、マルチプラットフォーム(Windows, macOS, Linux)で利用できます。  
+
 [ダウンロード](#ダウンロード)
 
 ![OverView](https://sushib.me/github/demos.gif)

@@ -1,5 +1,6 @@
 var fs = require('fs');
 var e = require('../Exceptions');
+global.FHandler = {}
 
 var FileHandleGenerator = function(fileName, truncate) {
 	this.file = fileName;
@@ -20,7 +21,8 @@ var _execute = function(callback) {
 		mode = 'w+';
 	}
 
-	fs.open(this.file, mode, undefined, function(err, fd) {
+	fs.open(this.file, mode, undefined, (err, fd)=> {
+    global.FHandler[this.file] = fd
 		if (err)
 			self.onError(err);
 		else {

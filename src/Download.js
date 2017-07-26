@@ -115,6 +115,9 @@ export default class Download {
           cancel(){
             dl.destroy()
             ended()
+            fs.unlink(`${dl.filePath}.mtd`,e=> {
+              console.log(e)
+            })
             clearInterval(id)
           },
           canResume(){
@@ -234,7 +237,14 @@ export default class Download {
       // ipcMain.removeListener('set-save-filename',eventSetSaveFilename)
     })
     win.webContents.send('download-start')
-    if (item.dl) item.dl.start()
+    if (item.dl){
+      if(!fs.existsSync(`${item.dl.filePath}.mtd`)) {
+        item.dl.start()
+      }
+      else{
+        item.dl.resume()
+      }
+    }
   }
 
 

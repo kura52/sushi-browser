@@ -185,7 +185,7 @@ class DownloadList extends React.Component {
         }}>{moment(item.now).format("MM/DD HH:mm:ss")}</a>
         <List.Header as='a' target="_blank" href={item.url}>{item.filename.length > 55 ? `${item.filename.substr(0, 55)}...` : item.filename}</List.Header>
         <List.Description>{item.url.length > 125 ? `${item.url.substr(0, 125)}...` : item.url}</List.Description>
-        {item.state == "progressing" && !item.isPaused ? <List.Description>{`${this.getAppropriateByteUnit(rest.speed).join(" ")}/sec - ${this.getAppropriateByteUnit(item.receivedBytes).join(" ")} of ${this.getAppropriateByteUnit(item.totalBytes).join(" ")}（Rest ${this.getAppropriateTimeUnit(rest.restTime).join(" ")}）`}</List.Description> : ""}
+        {item.state == "progressing" && !item.isPaused ? <List.Description>{`${this.getAppropriateByteUnit(rest.speed).join(" ")}/sec - ${this.getAppropriateByteUnit(item.receivedBytes).join(" ")} of ${this.getAppropriateByteUnit(item.totalBytes).join(" ")}（${this.getAppropriateTimeUnit(rest.restTime).join(" ")} left）`}</List.Description> : ""}
         {item.receivedBytes ? <Progress percent={rest.percent}  size='small' color='blue' label {...(item.state == "progressing" ? {active: true} : item.state == "completed" ? {success : true} : {})} /> : ""}
         <div style={{display: "flex"}}>
           {item.state == "progressing" ? item.isPaused ?

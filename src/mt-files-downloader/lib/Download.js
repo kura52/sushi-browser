@@ -227,6 +227,7 @@ Download.prototype.getStats = function() {
 Download.prototype._destroyThreads = function() {
   if(this.meta.threads) {
     this.meta.threads.forEach(function(i){
+      console.log(i,i.destroy)
       if(i.destroy) {
         i.destroy();
       }
@@ -247,6 +248,7 @@ Download.prototype.destroy = function() {
 
   this._destroyThreads();
 
+
   this.setStatus(-3);
 
   var filePath = this.filePath;
@@ -256,6 +258,12 @@ Download.prototype.destroy = function() {
   } else {
     filePath = filePath.replace(new RegExp('(.mtd)*$', 'g'), '');
   }
+
+  if(fs.existsSync(tmpFilePath) && global.FHandler[tmpFilePath] != (void 0)){
+    fs.closeSync(global.FHandler[tmpFilePath])
+    delete global.FHandler[tmpFilePath]
+  }
+
 
   fs.unlink(filePath, function() {
     fs.unlink(tmpFilePath, function() {

@@ -742,11 +742,12 @@ export default class TabPanel extends Component {
           if (!self.mounted) return
           // debugger
 
+          const loc = cont.getURL()
           try{
-            page.location = decodeURIComponent(cont.getURL())
+            page.location = decodeURIComponent(loc)
           }catch(e){
             // console.log(cont.getURL(),e)
-            page.location = cont.getURL()
+            page.location = loc
           }
           const entryIndex = cont.getCurrentEntryIndex()
           page.entryIndex = entryIndex
@@ -763,7 +764,7 @@ export default class TabPanel extends Component {
             if((typeof page.hid === 'object' && page.hid !== null ) || (page.hid = await history.findOne({location: page.navUrl}))){
               console.log(22,page.hid)
               if(page.hid.count > 2 && !page.hid.capture){
-                ipc.send('take-capture', {id : page.hid._id,url: page.navUrl})
+                ipc.send('take-capture', {id : page.hid._id,url: page.navUrl,loc})
               }
             }
           })()

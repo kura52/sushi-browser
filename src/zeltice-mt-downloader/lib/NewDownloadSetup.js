@@ -61,7 +61,7 @@ Setup_New_Download.prototype.execute = function(callback) {
 
 		'file-handle': ['file-name', function(callback, results) {
 			// console.log('file-handle')
-			// console.log('  results so far:', results)
+			console.log('  results so far:', results)
 			u.executor(FileHandler, results['file-name'].downloadFile, true)(callback);
 		}],
 

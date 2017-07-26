@@ -98,7 +98,7 @@ export default class DownloadList extends Component{
 
   buildItem(item) {
     const rest = this.calcSpeed(item)
-    const progress = item.state == "progressing" ? `${this.getAppropriateByteUnit(rest.speed).join(" ")}/s ${this.getAppropriateByteUnit(item.receivedBytes).join(" ")} of ${this.getAppropriateByteUnit(item.totalBytes).join(" ")}（Rest ${this.getAppropriateTimeUnit(rest.restTime).join(" ")}）`.replace(/NaN/g,'-') :
+    const progress = item.state == "progressing" ? `${this.getAppropriateByteUnit(rest.speed).join(" ")}/s ${this.getAppropriateByteUnit(item.receivedBytes).join(" ")} of ${this.getAppropriateByteUnit(item.totalBytes).join(" ")}（${this.getAppropriateTimeUnit(rest.restTime).join(" ")} left）`.replace(/NaN/g,'-') :
       item.state == "completed" ? "Completed" : "Canceled"
     const fname = multiByteSlice(item.filename, 23)
 

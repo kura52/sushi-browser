@@ -30,14 +30,14 @@ underscore.keys(fileTypes).forEach((fileType) => {
 signatureMax = Math.ceil(signatureMax * 1.5)
 
 
-async function captureCurrentPage(_id,pageUrl){
+async function captureCurrentPage(_id,pageUrl,loc){
   const cont = await getFocusedWebContents()
   // eval(locus)
   if(cont){
     const url = cont.getURL()
-    console.log(2,url,pageUrl)
-    if(url != pageUrl) return
-    const doc = await image.findOne({url})
+    console.log(2,url,pageUrl,loc)
+    if(url != pageUrl && url != loc) return
+    const doc = await image.findOne({url:pageUrl})
     const d = Date.now()
 
     console.log(3,doc)
@@ -54,10 +54,10 @@ async function captureCurrentPage(_id,pageUrl){
         }
         else{
           if(doc){
-            image.update({url}, {$set:{path:`${id}.png`, title: cont.getTitle(), updated_at: d}})
+            image.update({url:pageUrl}, {$set:{path:`${id}.png`, title: cont.getTitle(), updated_at: d}})
           }
           else{
-            image.insert({url, path:`${id}.png`, title: cont.getTitle(), created_at: d, updated_at: d})
+            image.insert({url:pageUrl, path:`${id}.png`, title: cont.getTitle(), created_at: d, updated_at: d})
           }
           history.update({_id},{$set:{capture:`${id}.png`, updated_at: d}})
         }
@@ -189,8 +189,8 @@ async function getFavicon(){
   }
 }
 
-ipcMain.on('take-capture', (event,{id,url}) => {
-  captureCurrentPage(id,url).then(_=>_)
+ipcMain.on('take-capture', (event,{id,url,loc}) => {
+  captureCurrentPage(id,url,loc).then(_=>_)
 })
 
 

@@ -6,11 +6,11 @@
 When you are browsing the web you can only use a section of your screen. Have you ever thought that that's a waste?   
 The concept of the "Sushi Browser" is wanting to utilize the screen to the maximum capacity just by a simple operation.  
 
-"Multiple panels, sync scrolling, sidebar, slim menu, panel alignment etc. are some of the gimmicks it has onboard. 
-
-![OverView](https://sushib.me/github/demos.gif)
+"Multiple panels, sync scrolling, sidebar, slim menu, panel alignment etc. are some of the gimmicks it has onboard.  
 
 [Downloads](#Downloads)
+
+![OverView](https://sushib.me/github/demos.gif)
 
 ## Table of Contents
 
