@@ -21,7 +21,7 @@
 // // Setup the dnd listeners.
 // document.addEventListener('dragover', handleDragOver, false)
 // document.addEventListener('drop', handleFileSelect, false)
-var ipc = chrome.ipcRenderer
+const ipc = chrome.ipcRenderer
 
 let timer
 window.addEventListener('scroll', (e)=>{
@@ -33,8 +33,41 @@ window.addEventListener('scroll', (e)=>{
   })
 },{passive:true})
 
+//style setting
+let styleVal
+if((styleVal = localStorage.getItem('meiryo')) !== null){
+  if(styleVal === "true"){
+    setTimeout(_=>{
+      const css = document.createElement('style')
+      const rule = document.createTextNode('*{ font-family: Meiryo, sans-serif}')
+      css.appendChild(rule)
+      document.getElementsByTagName('head')[0].appendChild(css)
+    },0)
+  }
+}
+else{
+  ipc.send('need-meiryo')
+  ipc.once('need-meiryo-reply',(e,styleVal)=>{
+    localStorage.setItem('meiryo',styleVal)
+    if(styleVal){
+      const css = document.createElement('style')
+      const rule = document.createTextNode('*{ font-family: Meiryo, sans-serif}')
+      css.appendChild(rule)
+      document.getElementsByTagName('head')[0].appendChild(css)
+    }
+  })
+}
 
 
-document.addEventListener('drop', function (event) {
-  console.log(event)
-});
+// window.addEventListener('DOMContentLoaded', function() {
+//   ipc.send('need-meiryo')
+//   ipc.once('need-meiryo-reply',(e,val)=>{
+//     if(val){
+//       document.body.style.fontFamily = 'Meiryo, sans-serif'
+//     }
+//   })
+// });
+
+// document.addEventListener('drop', function (event) {
+//   console.log(event)
+// });

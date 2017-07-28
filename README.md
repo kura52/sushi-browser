@@ -8,7 +8,7 @@ The concept of the "Sushi Browser" is wanting to utilize the screen to the maxim
 
 "Multiple panels, sync scrolling, sidebar, slim menu, panel alignment etc. are some of the gimmicks it has onboard.  
 
-[Downloads](#Downloads)
+[Downloads](#downloads)
 
 ![OverView](https://sushib.me/github/demos.gif)
 

@@ -10,6 +10,7 @@ const fs = remote.require('fs')
 const BrowserPageSearch = require('./BrowserPageSearch')
 const BrowserPageStatus = require('./BrowserPageStatus')
 const AutofillPopup = require('./AutofillPopup')
+// const isWin = navigator.userAgent.includes('Windows')
 
 function webviewHandler (self, fnName) {
   return function (e) {
@@ -53,6 +54,7 @@ class BrowserPage extends Component {
 
   componentDidMount() {
     const webview = this.refs.webview
+    // if(isWin) webview.webpreferences = `defaultFontFamily: {standard: 'Meiryo UI', serif: 'MS PMincho', sansSerif: 'Meiryo UI', monospace: 'MS Gothic'}`
 
   // webview.addEventListener('did-fail-provisional-load', (e) => {
   //   console.log(e)
@@ -89,6 +91,7 @@ class BrowserPage extends Component {
 
     const tokenDidStartLoading = PubSub.subscribe(`did-start-loading_${this.props.tab.key}`,_=>{
       this.setState({isSearching: false})
+
     })
     //
     // webview.addEventListener('will-detach',e=>console.log('will-detach',e))

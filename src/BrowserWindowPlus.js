@@ -7,6 +7,7 @@ import { state } from './databaseFork'
 import mainState from './mainState'
 const uuid = require("node-uuid")
 const isDarwin = process.platform === 'darwin'
+const lang = Intl.NumberFormat().resolvedOptions().locale
 
 const normalSize = {}
 let saved = false
@@ -158,14 +159,14 @@ export default {
 
       console.log(77,winSetting)
       const win = BrowserWindow.getAllWindows().find(w=>w.getTitle().includes('Closed'))
-      const fontOpt = process.platform !== 'win32' ? {} : {
+      const fontOpt = process.platform == 'win32' && lang == 'ja' ? {
         defaultFontFamily: {
           standard: 'Meiryo UI',
           serif: 'MS PMincho',
           sansSerif: 'Meiryo UI',
           monospace: 'MS Gothic'
         }
-      }
+      } : {}
 
       const winArg = {...opt,
         ...winSetting,

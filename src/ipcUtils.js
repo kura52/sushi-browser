@@ -7,6 +7,7 @@ import path from 'path'
 const ytdl = require('ytdl-core')
 const youtubedl = require('youtube-dl')
 import {getFocusedWebContents} from './util'
+const meiryo = process.platform == 'win32' && Intl.NumberFormat().resolvedOptions().locale == 'ja'
 
 ipcMain.on('file-system',(event,key,method,arg)=>{
   if(!['stat','readdir','rename'].includes(method)) return
@@ -293,6 +294,11 @@ ipcMain.on('open-page',async (event,url)=>{
   const cont = await getFocusedWebContents()
   if(cont) cont.hostWebContents.send('new-tab', cont.getId(), url)
 })
+
+ipcMain.once('need-meiryo',e=>{
+  e.sender.send('need-meiryo-reply',meiryo)
+})
+
 // async function recurSelect(keys){
 //   const ret = await favorite.find({key:{$in: keys}})
 //   const addKey = []
