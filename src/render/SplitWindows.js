@@ -642,6 +642,7 @@ export default class SplitWindows extends Component{
         }
       }
     })
+    ipc.send("change-title")
   }
 
   closeFloat(key){

@@ -1,4 +1,4 @@
-import {ipcMain,app,dialog,BrowserWindow,shell} from 'electron'
+import {ipcMain,app,dialog,BrowserWindow,shell,webContents} from 'electron'
 import fs from 'fs'
 import sh from 'shelljs'
 import uuid from 'node-uuid'
@@ -261,13 +261,13 @@ ipcMain.on('toggle-fullscreen',(event)=> {
 })
 
 ipcMain.on('video-infos',(event,{url})=>{
-    youtubedl.getInfo(url, function(err, info) {
-      if (err){
-        event.sender.send('video-infos-reply',{error:'error'})
-      }
-      console.log(info)
-      if(!info){
-        if(url.includes("youtube")){
+  youtubedl.getInfo(url, function(err, info) {
+    if (err){
+      event.sender.send('video-infos-reply',{error:'error'})
+    }
+    console.log(info)
+    if(!info){
+      if(url.includes("youtube")){
         ytdl.getInfo(url, (err, info)=> {
           if (err){
             event.sender.send('video-infos-reply',{error:'error'})
@@ -280,14 +280,14 @@ ipcMain.on('video-infos',(event,{url})=>{
         })
       }
       else{
-          event.sender.send('video-infos-reply',{error:'error'})
-        }
+        event.sender.send('video-infos-reply',{error:'error'})
       }
-      else{
-        const title = info.title
-        event.sender.send('video-infos-reply',{title,formats:info.formats.slice(0.12)})
-      }
-    });
+    }
+    else{
+      const title = info.title
+      event.sender.send('video-infos-reply',{title,formats:info.formats.slice(0.12)})
+    }
+  });
 })
 
 ipcMain.on('open-page',async (event,url)=>{
@@ -299,6 +299,26 @@ ipcMain.once('need-meiryo',e=>{
   e.sender.send('need-meiryo-reply',meiryo)
 })
 
+ipcMain.on("change-title",(e,title)=>{
+  const bw = BrowserWindow.fromWebContents(e.sender)
+  if(title){
+    bw.setTitle(`${title} - Sushi Browser`)
+  }
+  else{
+    const cont = bw.webContents
+    const key = uuid.v4()
+    return new Promise((resolve,reject)=>{
+      ipcMain.once(`get-focused-webContent-reply_${key}`,(e,tabId)=>{
+        const focusedCont = webContents.fromTabID(tabId)
+        if(focusedCont){
+          bw.setTitle(`${focusedCont.getTitle()} - Sushi Browser`)
+        }
+      })
+      cont.send('get-focused-webContent',key)
+    })
+    bw.setTitle(`${title} - Sushi Browser`)
+  }
+})
 // async function recurSelect(keys){
 //   const ret = await favorite.find({key:{$in: keys}})
 //   const addKey = []

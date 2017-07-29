@@ -460,7 +460,7 @@ export default class TabPanel extends Component {
       }
     })
 
-    if(isFixedPanel(this.props.k)) return [tokenResize,tokenDrag,tokenClose,tokenBodyKeydown,tokenIncludeKey,tokenRichMedia,tokenMultiScroll,tokenCloseTab]
+    if(this.isFixed) return [tokenResize,tokenDrag,tokenClose,tokenBodyKeydown,tokenIncludeKey,tokenRichMedia,tokenMultiScroll,tokenCloseTab]
 
 
     const tokenNewTabFromKey = PubSub.subscribe(`new-tab-from-key_${this.props.k}`, (msg,{url,mobile,adBlockThis})=> {
@@ -753,8 +753,10 @@ export default class TabPanel extends Component {
           page.entryIndex = entryIndex
           page.canGoBack = entryIndex !== 0
           page.canGoForward = entryIndex + 1 !== cont.getEntryCount()
-          if (!page.title)
+          if (!page.title){
             page.title = page.location
+            if(tab.key == self.state.selectedTab && !this.isFixed) ipc.send("change-title",page.title)
+          }
           page.isLoading = false
           if(page.eventDownloadStartTab) ipc.removeListener(`download-start-tab_${tab.wvId}`,page.eventDownloadStartTab)
           clearTimeout(page.downloadTimer)
@@ -788,6 +790,12 @@ export default class TabPanel extends Component {
         if (!self.mounted || !e.isMainFrame) return
 
         page.navUrl = e.url
+        let location = page.navUrl
+        try{
+          location = decodeURIComponent(location)
+        }catch(e){}
+        tab.page.location = location
+
         let match
         if((match = e.url.match(REG_VIDEO))){
           ipc.send('video-infos',{url:e.url})
@@ -826,6 +834,11 @@ export default class TabPanel extends Component {
         page.canGoBack = cont.getCurrentEntryIndex() !== 0
         page.canGoForward = cont.getCurrentEntryIndex() + 1 !== cont.getEntryCount()
         page.canRefresh = true
+
+        const title = cont.getTitle()
+        if(tab.key == self.state.selectedTab && !this.isFixed && title != page.title){
+          ipc.send("change-title",title)
+        }
         page.title = cont.getTitle()
         // cont.openDevTools()
         self.setState({})
@@ -1289,7 +1302,11 @@ export default class TabPanel extends Component {
         // tab.wv.reload()
         const cont = this.getWebContents(tab)
         if(cont){
-          tab.page.title = cont.getTitle()
+          const title = cont.getTitle()
+          if(tab.key == this.state.selectedTab  && !this.isFixed && title != tab.page.title){
+            ipc.send("change-title",title)
+          }
+          tab.page.title = title
           tab.page.location = decodeURIComponent(this.getWebContents(tab).getURL())
           tab.page.titleSet = true
         }
@@ -1443,24 +1460,32 @@ export default class TabPanel extends Component {
               }
               // console.log(window.scrollY)
 
-              if(!window.__blankLast__){
-                const ele = document.createElement('div')
-                ele.id = '__blank-last__'
-                ele.style.height = `${100 * i}vh`
-                ele.style.width = "100%"
-                document.body.appendChild(ele)
-                window.__blankLast__ = true
+              clearInterval(id)
+
+              const loadedEvent = _=>{
+                if(!window.__blankLast__){
+                  const ele = document.createElement('div')
+                  ele.id = '__blank-last__'
+                  ele.style.height = `${100 * i}vh`
+                  ele.style.width = "100%"
+                  document.body.appendChild(ele)
+                  window.__blankLast__ = true
+                }
+                if (!r && window.scrollY < Math.min(200,y) && y !== window.scrollY){
+                  window.scrollTo(window.scrollX, y)
+                  const evt = document.createEvent('HTMLEvents')
+                  evt.initEvent('scroll', true, true)
+                  window.dispatchEvent(evt);
+                }
               }
 
-              if (!r && window.scrollY < Math.min(200,y) && y !== window.scrollY){
-                window.scrollTo(window.scrollX, y)
-                const evt = document.createEvent('HTMLEvents')
-                evt.initEvent('scroll', true, true)
-                window.dispatchEvent(evt);
-                clearInterval(id)
+              if(document.readyState == "loading"){
+                document.addEventListener("DOMContentLoaded",loadedEvent)
               }
-              else
-                clearInterval(id)
+              else{
+                loadedEvent()
+              }
+
 
               if(!r){
                 window.__scrollSync__ = i
@@ -1574,10 +1599,12 @@ export default class TabPanel extends Component {
   componentDidMount() {
     console.log('componentDidMount')
     this.mounted = true
+    this.isFixed = isFixedPanel(this.props.k)
+
     this.webViewCreate()
 
     this.eventOpenPanel = (e, {url,sync,id,dirc=1,fore=true,replaceInfo,needCloseTab=false,mobile,adBlockThis})=> {
-      if(sync && isFixedPanel(this.props.k)) return
+      if(sync && this.isFixed) return
 
       let orgReplaceInfo = replaceInfo
       let singlePane = false
@@ -1590,7 +1617,7 @@ export default class TabPanel extends Component {
             tab.syncReplace = replaceInfo || tab.syncReplace
             replaceInfo = tab.syncReplace
 
-            if(isFixedPanel(this.props.k)) return
+            if(this.isFixed) return
 
             if(sync && !tab.sync){
               tab.sync = sync
@@ -1612,7 +1639,7 @@ export default class TabPanel extends Component {
 
 
       if(!key) {
-        if(isFixedPanel(this.props.k)) return
+        if(this.isFixed) return
 
         const tab = needCloseTab ? this.state.tabs[0] : tabAdd(this, this.syncUrl(url,replaceInfo,(void 0),true),fore,(void 0),(void 0),mobile,adBlockThis)
         // if(needCloseTab) PubSub.publish(`close_tab_${this.props.k}`, {key:this.state.tabs[0].key})
@@ -1651,7 +1678,7 @@ export default class TabPanel extends Component {
 
 
     this.eventOpenLink = (e, {url,sync,id,dirc=1})=> {
-      if(isFixedPanel(this.props.k)) return
+      if(this.isFixed) return
 
       let key,tab
       if(id) {
@@ -1757,6 +1784,9 @@ export default class TabPanel extends Component {
       if(isChangeSelected){
         const isActive = tab.key == this.state.selectedTab
         cont.setActive(isActive)
+        if(isActive && !this.isFixed){
+          ipc.send("change-title",tab.page.title)
+        }
       }
       if(!allKeySame) cont.setTabIndex(this.props.panelId*1000 + i++)
     }
@@ -1767,6 +1797,10 @@ export default class TabPanel extends Component {
 
     const tab = this.state.tabs.find(x => x.key == key)
     if(!tab) return
+
+    if(!this.isFixed){
+      ipc.send("change-title",tab.page.title)
+    }
     PubSub.publish('sync-select-tab',{k:this.props.k,sync:tab.sync})
 
     // this.webViewCreate()
@@ -1971,7 +2005,7 @@ export default class TabPanel extends Component {
       }
     }
 
-    if(!isFixedPanel(this.props.k)){
+    if(!this.isFixed){
       menuItems.push(({ label: 'Split Left', click: splitFunc.bind(this,'v',-1) }))
       menuItems.push(({ label: 'Split Right', click: splitFunc.bind(this,'v',1) }))
       menuItems.push(({ label: 'Split Top', click: splitFunc.bind(this,'h',-1) }))
@@ -1980,7 +2014,7 @@ export default class TabPanel extends Component {
     }
     menuItems.push(({ label: 'Floating Panel', click: _=>detachToFloatPanel() }))
     menuItems.push(({ type: 'separator' }))
-    if(!isFixedPanel(this.props.k)){
+    if(!this.isFixed){
       menuItems.push(({ label: 'Swap Position', click: ()=> { PubSub.publish(`swap-position_${this.props.k}`)} }))
       menuItems.push(({ label: 'Switch Direction', click: ()=> { PubSub.publish(`toggle-dirction_${this.props.k}`)} }))
       menuItems.push(({ type: 'separator' }))
@@ -2053,7 +2087,7 @@ export default class TabPanel extends Component {
   }
 
   changeSyncMode(replaceInfo){
-    if(isFixedPanel(this.props.k)) return
+    if(this.isFixed) return
 
     const tab = this.state.tabs.find(x => x.key == this.state.selectedTab)
     const tabSyncReplace = tab.syncReplace
@@ -2193,11 +2227,19 @@ export default class TabPanel extends Component {
     this.state.tabs.forEach(tab=> {
       if (tab.wvId && tab.wvId === id) {
         console.log('onPageTitleSet')
-        console.log(cont)
+        console.log(cont.getURL())
 
         if (!this.mounted) return
         const url = cont.getURL()
-        tab.page.title = cont.getTitle()
+
+        const title = cont.getTitle()
+        if(tab.key == this.state.selectedTab && !this.isFixed && title != tab.page.title){
+          ipc.send("change-title",title)
+        }
+        tab.page.title = title
+
+        tab.page.navUrl = url
+        tab.prevSyncNav = url //@TOOD arrage navurl,location,sync panel
         try{
           tab.page.location = decodeURIComponent(url)
         }catch(e){

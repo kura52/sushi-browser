@@ -95,12 +95,12 @@ app.on('ready', ()=>{
   ses.userPrefs.setBooleanPref('credentials_enable_autosignin', true)
 
 
-  ses.autofill.getAutofillableLogins((result) => {
-    // console.log(1,result)
-  })
-  ses.autofill.getBlackedlistLogins((result) => {
-    // console.log(2,result)
-  })
+  // ses.autofill.getAutofillableLogins((result) => {
+  //   // console.log(1,result)
+  // })
+  // ses.autofill.getBlackedlistLogins((result) => {
+  //   // console.log(2,result)
+  // })
 
   // loadDevtool(loadDevtool.REACT_DEVELOPER_TOOLS);
   //console.log(app.getPath('pepperFlashSystemPlugin'))

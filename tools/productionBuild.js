@@ -3,7 +3,7 @@ const path = require('path')
 const fs = require('fs')
 const glob = require("glob")
 
-const MUON_VERSION = '4.1.9'
+const MUON_VERSION = fs.readFileSync('../MUON_VERSION.txt').toString()
 const APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
 
 const isWindows = process.platform === 'win32'
