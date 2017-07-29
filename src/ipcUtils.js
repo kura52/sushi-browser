@@ -7,7 +7,8 @@ import path from 'path'
 const ytdl = require('ytdl-core')
 const youtubedl = require('youtube-dl')
 import {getFocusedWebContents} from './util'
-const meiryo = process.platform == 'win32' && Intl.NumberFormat().resolvedOptions().locale == 'ja'
+const isWin = process.platform == 'win32'
+const meiryo = isWin && Intl.NumberFormat().resolvedOptions().locale == 'ja'
 
 ipcMain.on('file-system',(event,key,method,arg)=>{
   if(!['stat','readdir','rename'].includes(method)) return
@@ -295,30 +296,32 @@ ipcMain.on('open-page',async (event,url)=>{
   if(cont) cont.hostWebContents.send('new-tab', cont.getId(), url)
 })
 
-ipcMain.once('need-meiryo',e=>{
+ipcMain.on('need-meiryo',e=>{
   e.sender.send('need-meiryo-reply',meiryo)
 })
 
-ipcMain.on("change-title",(e,title)=>{
-  const bw = BrowserWindow.fromWebContents(e.sender)
-  if(title){
-    bw.setTitle(`${title} - Sushi Browser`)
-  }
-  else{
-    const cont = bw.webContents
-    const key = uuid.v4()
-    return new Promise((resolve,reject)=>{
-      ipcMain.once(`get-focused-webContent-reply_${key}`,(e,tabId)=>{
-        const focusedCont = webContents.fromTabID(tabId)
-        if(focusedCont){
-          bw.setTitle(`${focusedCont.getTitle()} - Sushi Browser`)
-        }
+if(isWin){
+  ipcMain.on("change-title",(e,title)=>{
+    const bw = BrowserWindow.fromWebContents(e.sender)
+    if(title){
+      bw.setTitle(`${title} - Sushi Browser`)
+    }
+    else{
+      const cont = bw.webContents
+      const key = uuid.v4()
+      return new Promise((resolve,reject)=>{
+        ipcMain.once(`get-focused-webContent-reply_${key}`,(e,tabId)=>{
+          const focusedCont = webContents.fromTabID(tabId)
+          if(focusedCont){
+            bw.setTitle(`${focusedCont.getTitle()} - Sushi Browser`)
+          }
+        })
+        cont.send('get-focused-webContent',key)
       })
-      cont.send('get-focused-webContent',key)
-    })
-    bw.setTitle(`${title} - Sushi Browser`)
-  }
-})
+      bw.setTitle(`${title} - Sushi Browser`)
+    }
+  })
+}
 // async function recurSelect(keys){
 //   const ret = await favorite.find({key:{$in: keys}})
 //   const addKey = []
