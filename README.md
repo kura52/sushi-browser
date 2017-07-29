@@ -37,8 +37,8 @@ It not only displays multiple web pages side-by-side but it also has various fun
 
 #### 1. Display to the opposite panel  
 
-By center clicking (pressing the mouse wheel) the link you can open the page in the link to the opposite panel.   
-Center clicking with 1 panel automatically splits the display into 2 panels.   
+By **middle clicking (pressing the mouse wheel)** the link you can open the page in the link to the opposite panel.   
+**Middle clicking** with 1 panel automatically splits the display into 2 panels.   
 Of course, just like ordinary browsers, it can be configured to open a new browser. 
 
 #### 2. Sync scrolling 
