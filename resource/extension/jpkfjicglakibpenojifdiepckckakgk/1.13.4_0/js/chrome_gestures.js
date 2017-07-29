@@ -8,6 +8,8 @@
 (function () {
   if (this.ChromeGesture) return;
 
+  var isWin = navigator.userAgent.includes('Windows')
+
   var connection = {
     postMessage: function (message, response) {
       if (response) {
@@ -508,7 +510,7 @@
       GM.visualized_arrow = GM.config.visualized_arrow;
       //GM.action_config = config.actions;
       window.addEventListener("mousedown", GM, false);
-      window.addEventListener("mousemove", GM, {passive: true});
+      window.addEventListener("mousemove", GM, isWin ? false : {passive: true});
       window.addEventListener("mouseup", GM, false);
       if (config.superdrag) {
         window.addEventListener("dragstart", GM, false);
@@ -558,6 +560,9 @@
           }
           break;
         case "mousemove":
+          if(GM._isMousedown && isWin){
+            e.preventDefault();
+          }
           if (!GM.isLeft && GM._isMousedown && !GM.wheel_action) {
             GM._isMousemove = true;
             GM._progressGesture(e);
@@ -860,7 +865,6 @@
     },
     _stopGuesture: function (e) {
       var isGS = GM._performAction(e);
-      console.log(e)
       GM._directionChain = "";
       return isGS !== false;
     },
@@ -872,7 +876,6 @@
       var act = GM.normal_actions[GM._directionChain];
       var action = act && ACTION[act.name];
       if (act && !action) {
-        console.log(act)
         var ev = document.createEvent('MessageEvent');
         ev.initMessageEvent(act.name, true, false, JSON.stringify(act), location.protocol + "//" + location.host, "", window);
         document.dispatchEvent(ev);

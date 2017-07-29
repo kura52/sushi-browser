@@ -16,7 +16,7 @@ let concatCSP = (cspDirectives) => {
 
 
 
-module.exports.init = () => {
+module.exports.init = (verChange) => {
 //   browserActions.init()
 //   contextMenus.init()
 
@@ -106,7 +106,7 @@ module.exports.init = () => {
     }
     const appPath = path.join(extRootPath,appId)
     const orgPath = path.join(__dirname,'../../resource/extension',appId)
-    if(true || !fs.existsSync(appPath)){
+    if(verChange || true || !fs.existsSync(appPath)){
       if(fs.existsSync(orgPath)){
         fs.copySync(orgPath, appPath)
       }

@@ -737,15 +737,14 @@ export default class SplitWindows extends Component{
     return results
   }
 
-  getScrollPriorities(scrollbar=0,dirc=1){
+  getScrollPriorities(scrollbar=15,dirc=1){
     let jsonState,now
-    if(this.nc===this.prevNc){
+    if(this.scrollbar === scrollbar && this.nc===this.prevNc){
       now = Date.now()
       if(now - this.prevGetScrollDate < 200){
         this.prevGetScrollDate = now
         return this.prevGetScroll
       }
-
       this.prevGetScrollDate = now
       jsonState = JSON.stringify(this.jsonfyiable(this.state.root,{}))
       console.log(jsonState)
@@ -753,8 +752,9 @@ export default class SplitWindows extends Component{
         return this.prevGetScroll
       }
     }
+    this.scrollbar = scrollbar
     const browserNav = document.querySelector(".browser-navbar:not(.fixed-panel) .navbar-margin")
-    const modify = document.querySelector(".rdTabBar").offsetHeight + (browserNav.style.width != "0px" ? 0 : browserNav.offsetHeight)
+    const modify = browserNav.parentNode.style.visibility == "hidden" ? 0 : document.querySelector(".rdTabBar").offsetHeight + (browserNav.style.width != "0px" ? 0 : browserNav.offsetHeight)
     console.log(3300,modify)
     const arr = this._getScrollPriorities(this.state.root,[])
 
@@ -765,10 +765,13 @@ export default class SplitWindows extends Component{
     // })
     const ret = arr.map((x,i)=>{
       const delta = x[1].height - modify - scrollbar
+      console.log("aaaa",x[1].height - modify - scrollbar,x[1].height,modify,scrollbar)
+      console.log("bbbb",delta,accum + delta - (i>0 ? MARGIN : 0),MARGIN)
       accum += delta - (i>0 ? MARGIN : 0)
       return [...x,accum - delta, x[1].height - modify - scrollbar]
     })
     ret[0][4] = accum - MARGIN
+    console.log(8553,accum - MARGIN,scrollbar)
 
     this.prevGetScroll = ret
     this.prevGetScrollState = jsonState || JSON.stringify(this.jsonfyiable(this.state.root,{}))

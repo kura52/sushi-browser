@@ -2,6 +2,7 @@ const electron = require('electron')
 const {BrowserWindow,app,ipcMain} = electron
 const url = require('url')
 const path = require('path')
+const fs = require('fs')
 const initPromise = require('./InitSetting')
 import { state } from './databaseFork'
 import mainState from './mainState'
@@ -86,7 +87,7 @@ function create(args){
         bw.webContents.send('get-window-state',{})
         ipcMain.once('get-window-state-reply',(e,ret)=>{
           try{
-            state.update({ key: 1 }, { $set: {key: 1, ...bounds, maximize,maxBounds,
+            state.update({ key: 1 }, { $set: {key: 1, ver:fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString(), ...bounds, maximize,maxBounds,
               toggleNav:mainState.toggleNav==2 || mainState.toggleNav==3 ? 0 :mainState.toggleNav,oppositeGlobal:mainState.oppositeGlobal,adBlockEnable:mainState.adBlockEnable,alwaysOnTop:mainState.alwaysOnTop,keepTabs:mainState.keepTabs,downloadNum:mainState.downloadNum,winState:ret} }, { upsert: true }).then(_=>_)
             saved = true
             console.log("getState")

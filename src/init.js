@@ -4,9 +4,11 @@ import PubSub from './render/pubsub'
 import mainState from './mainState'
 const BrowserWindowPlus = require('./BrowserWindowPlus')
 const extensionMenu = require('./chromeEvent')
+const initPromise = require('./InitSetting')
 // const loadDevtool = require('electron-load-devtool');
 import path from 'path'
 import uuid from 'node-uuid'
+const fs = require('fs')
 const os = require('os')
 const isDarwin = process.platform == 'darwin'
 const mime = require('mime')
@@ -123,12 +125,14 @@ app.on('ready', ()=>{
   passwordManager = require('./passwordManagerMain')
   require('./importer')
   require('./bookmarksExporter')
-  require('../brave/extension/extensions').init()
+  initPromise.then((setting)=> {
+    require('../brave/extension/extensions').init(setting.ver !== fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString())
 
-  require('./faviconsEvent')(_=>{
-    createWindow()
-    require('./menuSetting')
-    process.emit('app-initialized')
+    require('./faviconsEvent')(_ => {
+      createWindow()
+      require('./menuSetting')
+      process.emit('app-initialized')
+    })
   })
 })
 

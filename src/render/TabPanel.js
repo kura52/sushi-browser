@@ -1408,7 +1408,7 @@ export default class TabPanel extends Component {
 
     tab.syncMode = ({url,dirc,sync,replaceInfo})=> {
       let retryNum = 0
-      let winInfos = this.props.getScrollPriorities(0,dirc)
+      let winInfos = this.props.getScrollPriorities((void 0),dirc)
       const index = winInfos.findIndex(x=>x[0] == this.props.k)
       const winInfo = winInfos[index]
       console.log('sync-mode', url,dirc,sync,replaceInfo)
@@ -1429,7 +1429,7 @@ export default class TabPanel extends Component {
           if (!tab.wv || !this.getWebContents(tab)) return
 
           if(!winInfos){
-            winInfos = this.props.getScrollPriorities(0,dirc)
+            winInfos = this.props.getScrollPriorities((void 0),dirc)
           }
 
           exeScript(tab.wv,()=>clearInterval(id), ()=> {
@@ -1442,11 +1442,22 @@ export default class TabPanel extends Component {
                 return
               }
               // console.log(window.scrollY)
+
+              if(!window.__blankLast__){
+                const ele = document.createElement('div')
+                ele.id = '__blank-last__'
+                ele.style.height = `${100 * i}vh`
+                ele.style.width = "100%"
+                document.body.appendChild(ele)
+                window.__blankLast__ = true
+              }
+
               if (!r && window.scrollY < Math.min(200,y) && y !== window.scrollY){
                 window.scrollTo(window.scrollX, y)
                 const evt = document.createEvent('HTMLEvents')
                 evt.initEvent('scroll', true, true)
                 window.dispatchEvent(evt);
+                clearInterval(id)
               }
               else
                 clearInterval(id)
@@ -2054,6 +2065,9 @@ export default class TabPanel extends Component {
       tab.openLink = void 0
       tab.dirc = void 0
       exeScript(tab.wv, void 0, ()=> {
+        const ele = document.getElementById('__blank-last__')
+        if(ele) ele.parentNode.removeChild(ele)
+
         window.__scrollSync__ = void 0
         window.__syncKey__ = void 0
       },'')
