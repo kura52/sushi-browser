@@ -39,7 +39,7 @@ if((styleVal = localStorage.getItem('meiryo')) !== null){
   if(styleVal === "true"){
     setTimeout(_=>{
       const css = document.createElement('style')
-      const rule = document.createTextNode('*{ font-family: Meiryo, sans-serif}')
+      const rule = document.createTextNode('html{ font-family: Arial, "メイリオ", sans-serif}')
       css.appendChild(rule)
       document.getElementsByTagName('head')[0].appendChild(css)
     },0)
@@ -51,23 +51,9 @@ else{
     localStorage.setItem('meiryo',styleVal)
     if(styleVal){
       const css = document.createElement('style')
-      const rule = document.createTextNode('*{ font-family: Meiryo, sans-serif}')
+      const rule = document.createTextNode('html{ font-family: Arial, "メイリオ", sans-serif}')
       css.appendChild(rule)
       document.getElementsByTagName('head')[0].appendChild(css)
     }
   })
 }
-
-
-// window.addEventListener('DOMContentLoaded', function() {
-//   ipc.send('need-meiryo')
-//   ipc.once('need-meiryo-reply',(e,val)=>{
-//     if(val){
-//       document.body.style.fontFamily = 'Meiryo, sans-serif'
-//     }
-//   })
-// });
-
-// document.addEventListener('drop', function (event) {
-//   console.log(event)
-// });
