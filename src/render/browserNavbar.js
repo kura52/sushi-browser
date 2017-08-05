@@ -509,7 +509,7 @@ class BrowserNavbar  extends Component{
       <BrowserNavbarBtn title="Refresh" icon="repeat" onClick={this.props.onClickRefresh} disabled={!this.props.page.canRefresh} />
 
       <div className="input-group">
-        <BrowserNavbarLocation wv={this.props.wv} navbar={this} onEnterLocation={this.props.onEnterLocation} onChangeLocation={this.props.onChangeLocation}
+        <BrowserNavbarLocation ref="loc" wv={this.props.wv} navbar={this} onEnterLocation={this.props.onEnterLocation} onChangeLocation={this.props.onChangeLocation}
                                k ={this.props.k} onContextMenu={this.props.onLocationContextMenu} page={this.props.page} privateMode={this.props.privateMode}/>
       </div>
 

@@ -5,6 +5,7 @@ const ipc = require('electron').ipcRenderer
 import { Search } from 'semantic-ui-react'
 const uuid = require('node-uuid')
 const PubSub = require('./pubsub')
+const urlutil = require('./urlutil')
 
 const SKIP_CODES = [8,9,13,16,17,18,19,20,27,33,34,35,36,37,38,39,40,45,46,144,145]
 
@@ -178,7 +179,8 @@ export default class BrowserNavbarLocation extends Component {
         // this.props.onEnterLocation(url)
         return
       }
-      const url = e.target.value.includes('://') ? e.target.value : `https://www.google.com/search?q=${e.target.value}`
+      const input = e.target.value
+      const url = urlutil.isURL(input) ? urlutil.getUrlFromInput(input) : `https://www.google.com/search?q=${e.target.value}`
       this.canUpdate = true
       this.props.onEnterLocation(url)
       this.resetComponent()

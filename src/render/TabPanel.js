@@ -2268,7 +2268,7 @@ export default class TabPanel extends Component {
             }
           })()
         }
-
+        this.refs[`navbar-${tab.key}`].refs['loc'].canUpdate = true
         this.setState({})
         // ipc.send('chrome-tab-updated',parseInt(tab.key), cont, this.getChromeTab(tab))
         return
