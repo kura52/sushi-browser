@@ -30,7 +30,19 @@ function handleDragEnd(evt) {
   const target = evt.target
   if(!target) return
 
-  const url = target.href || target.src
+  let url
+  if(target.href){
+    url = target.href
+  }
+  else{
+    const parent = target.closest("a")
+    if(parent){
+      url = parent.href
+    }
+    else{
+      url = target.src
+    }
+  }
   if(!url) return
 
   ipc.sendToHost("link-drop",{screenX: evt.screenX, screenY: evt.screenY, url})
