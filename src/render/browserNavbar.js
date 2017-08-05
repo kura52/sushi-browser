@@ -515,11 +515,11 @@ class BrowserNavbar  extends Component{
 
       <div className="navbar-margin" style={{width: this.props.toggleNav != 1 ? 0 : ((!isDarwin && this.props.isTopRight) || (isDarwin && this.props.isTopLeft)) ? '45%' : '50%',minWidth: this.props.toggleNav != 1 ? 0 :'80px',background: 'rgb(221, 221, 221)'}}></div>
       {isFixed ? null : <SyncReplace ref="syncReplace" changeSyncMode={this.props.changeSyncMode} replaceInfo={this.props.replaceInfo} updateReplaceInfo={this.props.updateReplaceInfo}/>}
-      {isFixed ? null : <BrowserNavbarBtn title="Switch Sync Spread Mode" icon="circle-o" sync={this.props.sync && !this.props.replaceInfo}
+      {isFixed ? null : <BrowserNavbarBtn title="Switch Sync Scroll" icon="circle-o" sync={this.props.sync && !this.props.replaceInfo}
                                           onClick={()=>{this.props.changeSyncMode();this.refs.syncReplace.clearAllCheck()}}/>}
       {isFixed || !this.props.sync || this.props.replaceInfo || !this.props.isTopLeft ? null : <FloatSyncScrollButton toggleNav={this.props.toggleNav} scrollPage={this.props.scrollPage}/>}
 
-      {isFloat ? null: <BrowserNavbarBtn title="Switch Opposite Open Mode" icon="external-link-square" sync={this.props.oppositeMode} onClick={()=>{this.props.changeOppositeMode()}}/>}
+      {isFloat ? null: <BrowserNavbarBtn title="Switch Opposite Open" icon="external-link-square" sync={this.props.oppositeMode} onClick={()=>{this.props.changeOppositeMode()}}/>}
 
 
       {isFixed ? null : <NavbarMenu k={this.props.k} mouseOver={true} isFloat={isFloatPanel(this.props.k)} title="Open Sidebar" icon="list-ul" onClick={()=>this.props.fixedPanelOpen({dirc:"left"})}>

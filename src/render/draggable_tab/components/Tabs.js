@@ -499,34 +499,7 @@ class Tabs extends React.Component {
 
   handleCloseButtonClick(key, e) {
     const ev = this._cancelEventSafety(e);
-    const doClose = () => {
-      let nextSelected,notChange
-      if (this.state.selectedTab === key) {
-        console.log(44)
-        nextSelected = this._getNextTabKey(key);
-        if (!nextSelected) {
-          nextSelected = this._getPrevTabKey(key);
-        }
-      } else {
-        console.log(33)
-        notChange = nextSelected = this.state.selectedTab;
-      }
-
-      const shoudBeNotifyTabChange = this.state.selectedTab !== nextSelected;
-      this.setState({
-        closedTabs: this.state.closedTabs.add(key),
-        selectedTab: nextSelected,
-      }, () => {
-        const currentOpenTabs = this._getCurrentOpenTabs();
-        this.props.onTabClose(ev, key, currentOpenTabs,notChange);
-        // if (shoudBeNotifyTabChange) {
-        //   this.props.onTabSelect(ev, nextSelected, currentOpenTabs);
-        // }
-      });
-    };
-    if (this.props.shouldTabClose(ev, key)) {
-      doClose();
-    }
+    this.props.onTabClose(ev, key);
   }
 
   handleAddButtonClick(e) {

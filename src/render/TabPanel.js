@@ -1822,7 +1822,7 @@ export default class TabPanel extends Component {
     }
   }
 
-  handleTabClose(e, key,currentOpenTabs,selectedTab) {
+  handleTabClose(e, key) {
     if (!this.mounted) return
     console.log('tabClosed key:', key);
     const i = this.state.tabs.findIndex((x)=> x.key == key)
@@ -1845,11 +1845,11 @@ export default class TabPanel extends Component {
     this.state.tabs.splice(i,1)
     const _tabs = this.state.tabs
 
-    console.log(94,selectedTab || this.getPrevSelectedTab(key,_tabs,i),key,_tabs,i)
+    console.log(94,this.getPrevSelectedTab(key,_tabs,i),key,_tabs,i)
 
     if (!this.mounted) return
     this.setState({tabs:_tabs,
-      selectedTab: selectedTab || this.getPrevSelectedTab(key,_tabs,i)
+      selectedTab: this.getPrevSelectedTab(key,_tabs,i)
       // selectedTab: _tabs.length > i ? _tabs[i].key : _tabs.length > 0 ? _tabs[i-1].key : null
     } );
   }
@@ -2268,7 +2268,11 @@ export default class TabPanel extends Component {
             }
           })()
         }
-        this.refs[`navbar-${tab.key}`].refs['loc'].canUpdate = true
+        try{
+          this.refs[`navbar-${tab.key}`].refs['loc'].canUpdate = true
+        }catch(e){
+          console.log(e)
+        }
         this.setState({})
         // ipc.send('chrome-tab-updated',parseInt(tab.key), cont, this.getChromeTab(tab))
         return
