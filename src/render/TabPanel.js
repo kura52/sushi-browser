@@ -601,6 +601,10 @@ export default class TabPanel extends Component {
       }
       this.state.prevAddKeyCount[1].splice(ind,1)
     }
+
+    if(ret && !tabs.find(tab=>tab.key == ret)){
+      ret = (void 0)
+    }
     // console.log(ret)
 
     return ret || (tabs.length > i ? tabs[i].key : tabs.length > 0 ? tabs[i - 1].key : null)
