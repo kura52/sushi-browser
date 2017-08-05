@@ -23,8 +23,10 @@ if (isWindows) {
   appIcon = 'res/app.png'
 }
 
-
 function fileContentsReplace(file, reg, after) {
+  if(typeof reg == "string"){
+    reg = new RegExp(escapeRegExp(reg))
+  }
   const datas = fs.readFileSync(file).toString()
   if (datas.match(reg)) {
     // console.log(file)
@@ -88,8 +90,9 @@ function build(){
   else if(isLinux){
     [`./node_modules/.bin/electron-installer-debian --src ${buildDir}/ --dest ${outDir}/ --arch amd64 --config res/linuxPackaging.json`,
       `./node_modules/.bin/electron-installer-redhat --src ${buildDir}/ --dest ${outDir}/ --arch x86_64 --config res/linuxPackaging.json`,
-      `tar -jcvf ${outDir}/sushi-browser.tar.bz2 ./${buildDir}`].forEach(cmd=>{
+      `tar -jcvf ${outDir}/sushi-browser-${APP_VERSION}.tar.bz2 ./${buildDir}`].forEach(cmd=>{
       sh.exec(cmd, {async:true}, (code, stdout, stderr) => {
+
       })
     })
   }

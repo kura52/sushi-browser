@@ -156,3 +156,15 @@ console.log(pwd)
 build()
 
 
+
+if(isDarwin){
+  glob.sync(`${pwd}/${outDir}/sushi-browser*.zip`).forEach(file=>{
+    sh.mv(file,`${outDir}/sushi-browser-${APP_VERSION}-mac-x64.zip`)
+  })
+}
+
+if(isWindows){
+  sh.mv(`${outDir}/sushi-browser-setup-x64.exe`,`${outDir}/sushi-browser-${APP_VERSION}-setup-x64.exe`)
+  sh.mv('sushi-browser-win32-x64',`sushi-browser-${APP_VERSION}-win-x64`)
+  sh.exec(`"C:/Program Files/7-Zip/7z.exe" a sushi-browser-${APP_VERSION}-win-x64.zip sushi-browser-${NEXT_APP_VERSION}-win-x64`)
+}

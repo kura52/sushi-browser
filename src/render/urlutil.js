@@ -79,6 +79,18 @@ const UrlUtil = {
     }
     try {
       let url = new window.URL(input)
+      return !!url
+    } catch (e) {
+      return false
+    }
+  },
+
+  canParseURL2: function (input) {
+    if (typeof window === 'undefined') {
+      return true
+    }
+    try {
+      let url = new window.URL(input)
       if(!url) return false
       const urlSplit = url.hostname.split(".")
       const topLevelDomain = urlSplit[urlSplit.length-1]
@@ -141,7 +153,7 @@ const UrlUtil = {
       return !caseDomain.test(str + '/')
     }
     str = UrlUtil.prependScheme(str)
-    return !UrlUtil.canParseURL(str)
+    return !UrlUtil.canParseURL2(str)
   },
 
   /**
