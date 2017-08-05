@@ -322,6 +322,7 @@ ipcMain.on("change-title",(e,title)=>{
     bw.setTitle(`${title} - Sushi Browser`)
   }
 })
+
 // async function recurSelect(keys){
 //   const ret = await favorite.find({key:{$in: keys}})
 //   const addKey = []

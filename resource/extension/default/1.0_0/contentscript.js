@@ -1,7 +1,9 @@
+const ipc = chrome.ipcRenderer
+
 // function handleFileSelect(evt) {
+//   console.log(1111,evt)
 //   evt.stopPropagation()
 //   evt.preventDefault()
-//
 //   const files = evt.dataTransfer.files
 //   if(files.length > 0){
 //     chrome.runtime.sendMessage({transitionPath: `file://${files[0].path}`})
@@ -11,17 +13,31 @@
 //   }
 //
 // }
-//
-// function handleDragOver(evt) {
-//   evt.stopPropagation()
-//   evt.preventDefault()
-//   evt.dataTransfer.dropEffect = 'copy' // Explicitly show this is a copy.
+
+// function handleDragStart(evt) {
+//   // evt.stopPropagation()
+//   // evt.preventDefault()
+//   console.log(evt)
+//   evt.dataTransfer.setData("text/plain", "http://www.mozilla.org");
+//   evt.dataTransfer.dropEffect = 'all' // Explicitly show this is a copy.
 // }
 //
 // // Setup the dnd listeners.
-// document.addEventListener('dragover', handleDragOver, false)
+// document.addEventListener('dragstart', handleDragStart, false)
 // document.addEventListener('drop', handleFileSelect, false)
-const ipc = chrome.ipcRenderer
+
+function handleDragEnd(evt) {
+  const target = evt.target
+  if(!target) return
+
+  const url = target.href || target.src
+  if(!url) return
+
+  ipc.sendToHost("link-drop",{screenX: evt.screenX, screenY: evt.screenY, url})
+}
+
+document.addEventListener('dragend', handleDragEnd, false)
+
 
 let timer
 window.addEventListener('scroll', (e)=>{

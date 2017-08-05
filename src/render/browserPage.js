@@ -56,9 +56,9 @@ class BrowserPage extends Component {
     const webview = this.refs.webview
     // if(isWin) webview.webpreferences = `defaultFontFamily: {standard: 'Meiryo UI', serif: 'MS PMincho', sansSerif: 'Meiryo UI', monospace: 'MS Gothic'}`
 
-  // webview.addEventListener('did-fail-provisional-load', (e) => {
-  //   console.log(e)
-  // })
+    // webview.addEventListener('did-fail-provisional-load', (e) => {
+    //   console.log(e)
+    // })
     webview.plugins = true
     // webview.userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.109 Safari/537.366'
 
@@ -76,6 +76,24 @@ class BrowserPage extends Component {
       if(e.channel == 'webview-scroll'){
         PubSub.publishSync("scroll-sync-webview",{sync:this.props.tab.sync,...e.args[0]})
       }
+      else if(e.channel == 'link-drop'){
+        console.log(e)
+        const {screenX,screenY,url} = e.args[0]
+        const cont = e.sender
+
+        const wx = window.screenX
+        const wy = window.screenY
+
+        const ele = document.elementFromPoint(screenX - wx, screenY - wy)
+        if(ele.tagName == "WEBVIEW"){
+          const dropped = ele.dataset.key
+          const src = e.target.dataset.key
+          if(src !== dropped){
+            ele.loadURL(url)
+          }
+        }
+
+      }
     }
     webview.addEventListener('ipc-message',this.wvEvents['ipc-message'])
 
@@ -87,7 +105,7 @@ class BrowserPage extends Component {
         this.setState({result_string: "0/0"})
       }
     }
-      webview.addEventListener('found-in-page',this.wvEvents['found-in-page'] )
+    webview.addEventListener('found-in-page',this.wvEvents['found-in-page'] )
 
     const tokenDidStartLoading = PubSub.subscribe(`did-start-loading_${this.props.tab.key}`,_=>{
       this.setState({isSearching: false})
@@ -122,7 +140,7 @@ class BrowserPage extends Component {
     PubSub.unsubscribe(this.tokenWebviewKeydown)
     PubSub.unsubscribe(this.tokenNotification)
     PubSub.unsubscribe(this.tokenDidStartLoading)
-    }
+  }
 
 
   // shouldComponentUpdate(nextProps, nextState) {
@@ -199,7 +217,7 @@ class BrowserPage extends Component {
     // const preload = path.join(__dirname, './preload/mainPreload.js')
     return <div className="browser-page" ref="browserPage"  onKeyDown={::this.onHandleKeyDown}>
       <BrowserPageSearch isActive={this.state.isSearching} onPageSearch={::this.onPageSearch} progress={this.state.result_string} onClose={::this.onClose}/>
-      <webview ref="webview" className={`w${this.props.k2}`} />
+      <webview ref="webview" className={`w${this.props.k2}`} data-key={this.props.k}/>
       <BrowserPageStatus page={this.props.tab.page}/>
       <AutofillPopup k={this.props.k} pos={this.props.pos}/>
     </div>
