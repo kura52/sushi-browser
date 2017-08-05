@@ -3,7 +3,7 @@
 const fs = require('fs-extra')
 const path = require('path')
 const chromeExtensionPath = require('../../lib/extension/chromeExtensionPath')
-const {BrowserWindow,app} = require('electron')
+const {BrowserWindow,componentUpdater,app} = require('electron')
 // Takes Content Security Policy flags, for example { 'default-src': '*' }
 // Returns a CSP string, for example 'default-src: *;'
 let concatCSP = (cspDirectives) => {
@@ -42,13 +42,13 @@ module.exports.init = (verChange) => {
     // console.log('update-not-updated')
   })
   componentUpdater.on('component-registered', (e, extensionId) => {
-    const extensionPath = extensions.getIn([extensionId, 'filePath'])
-    // If we don't have info on the extension yet, check for an update / install
-    if (!extensionPath) {
-      componentUpdater.checkNow(extensionId)
-    } else {
-      loadExtension(extensionId, extensionPath)
-    }
+    // const extensionPath = extensions.getIn([extensionId, 'filePath'])
+    // // If we don't have info on the extension yet, check for an update / install
+    // if (!extensionPath) {
+    //   componentUpdater.checkNow(extensionId)
+    // } else {
+    //   loadExtension(extensionId, extensionPath)
+    // }
   })
 
   process.on('reload-sync-extension', () => {
@@ -137,7 +137,8 @@ module.exports.init = (verChange) => {
   require('./browserAction')
 
   loadExtension('dckpbojndfoinamcdamhkjhnjnmjkfjd',getPath('default')[1],(void 0),'component')
-  loadExtension(...getPath('jdbefljfgobbmcidnmpjamcbhnbphjnb'),(void 0),'component')
+  loadExtension(...getPath('jdbefljfgobbmcidnmpjamcbhnbphjnb'))
+  componentUpdater.registerComponent('jdbefljfgobbmcidnmpjamcbhnbphjnb', 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqmqh6Kxmj00IjKvjPsCtw6g2BHvKipjS3fBD0IInXZZ57u5oZfw6q42L7tgWDLrNDPvu3XDH0vpECr')
   if(process.platform != 'win32'){
     loadExtension(...getPath('occjjkgifpmdgodlplnacmkejpdionan'))
   }
