@@ -125,6 +125,7 @@ function tabAdd(self, url, isSelect=true,privateMode = false,guestInstanceId,mob
 
   if(isSelect){
     self.state.selectedKeys.push(key)
+    console.log("selected01",key)
     self.setState({selectedTab: key})
     self.focus_webview(t)
   }
@@ -452,6 +453,7 @@ export default class TabPanel extends Component {
       else{
         this.addCloseTabHistory({}, i)
         this.state.tabs.splice(i, 1)
+        console.log("selected02",key)
         this.setState({
           tabs: _tabs,
           // selectedTab: _tabs.length > i ? _tabs[i].key : _tabs.length > 0 ? _tabs[i - 1].key : null
@@ -536,6 +538,7 @@ export default class TabPanel extends Component {
     const tokenSyncSelectTab = PubSub.subscribe('sync-select-tab',(msg,{k,sync})=>{
       if(this.props.k == k || !sync) return
       const tab = this.state.tabs.find(x => x.sync == sync)
+      console.log("selected03",key)
       if(tab) this.setState({selectedTab: tab.key})
     })
 
@@ -1804,6 +1807,7 @@ export default class TabPanel extends Component {
     PubSub.publish('sync-select-tab',{k:this.props.k,sync:tab.sync})
 
     // this.webViewCreate()
+    console.log("selected04",key)
     this.setState({selectedTab: key})
     this.focus_webview(tab)
   }
@@ -1817,6 +1821,7 @@ export default class TabPanel extends Component {
     else{
       if(tab.events) removeEvents(ipc,tab.events)
       this.state.tabs.splice(e.oldIndex,1)
+      console.log("selected05",key)
       this.setState({selectedTab: this.getPrevSelectedTab(tab.key,this.state.tabs,e.oldIndex)})
       // ipc.send('chrome-tab-removed',parseInt(tab.key))
     }
@@ -1848,8 +1853,9 @@ export default class TabPanel extends Component {
     console.log(94,this.getPrevSelectedTab(key,_tabs,i),key,_tabs,i)
 
     if (!this.mounted) return
+    console.log("selected06",key)
     this.setState({tabs:_tabs,
-      selectedTab: this.getPrevSelectedTab(key,_tabs,i)
+      selectedTab: this.state.selectedTab !== key ? this.state.selectedTab : this.getPrevSelectedTab(key,_tabs,i)
       // selectedTab: _tabs.length > i ? _tabs[i].key : _tabs.length > 0 ? _tabs[i-1].key : null
     } );
   }
@@ -1879,6 +1885,7 @@ export default class TabPanel extends Component {
   handleTabUpdated(tab,changeInfo){
     console.log(changeInfo)
     if(changeInfo.active){
+      console.log("selected07",key)
       this.setState({selectedTab: tab.key})
     }
     else if(changeInfo.pinned != (void 0)){
@@ -1891,6 +1898,7 @@ export default class TabPanel extends Component {
     if (!this.mounted) return
 
     // console.log(98)
+    console.log("selected08",key)
     this.setState({tabs: currentTabs.map((x)=>this.state.tabs.find((t)=>t.key === x.key)),selectedTab: key});
   }
 
@@ -1900,8 +1908,8 @@ export default class TabPanel extends Component {
       const orgTab = tab.props.orgTab
       return tab.key == key ? this.createTab({c_page:orgTab.page,c_wv:orgTab.wv,c_key:orgTab.key,rest:{wvId:orgTab.wvId,mobile:orgTab.mobile,adBlockThis:orgTab.adBlockThis,oppositeMode:orgTab.oppositeMode}}) : orgTab
     })
-    this.state.selectedTab = key
-    this.setState({})
+    console.log("selected09",key)
+    this.setState({selectedTab: key})
   }
 
   handleTabAddOtherPanel(key,tabs){
@@ -1912,7 +1920,7 @@ export default class TabPanel extends Component {
       n_tab = this.createTab({c_page:orgTab.page,c_wv:orgTab.wv,c_key:orgTab.key,rest:{wvId:orgTab.wvId,mobile:orgTab.mobile,adBlockThis:orgTab.adBlockThis,oppositeMode:orgTab.oppositeMode}})
       this.state.tabs.splice(++i, 0, n_tab)
     }
-
+    console.log("selected10",key)
     this.setState({selectedTab: n_tab.key})
     this.focus_webview(n_tab)
   }
@@ -1923,6 +1931,7 @@ export default class TabPanel extends Component {
     const key = t.key;
     // this.state.tabs.splice(i+1, 0,t )
     this.state.tabs.push(t)
+    console.log("selected11",key)
     this.setState({selectedTab: key})
     this.focus_webview(t)
     return t
@@ -1972,6 +1981,7 @@ export default class TabPanel extends Component {
         const hist = this.state.history.pop()
         const n_tab = this.createTab({default_url:hist.list[hist.currentIndex],hist})
         _tabs.splice(i + 1, 0, n_tab )
+        console.log("selected12",key)
         this.setState({selectedTab: n_tab.key})
         this.focus_webview(n_tab)
       } }))
@@ -2036,6 +2046,7 @@ export default class TabPanel extends Component {
     setTimeout(_=>{
       const n_tab = this.createTab(opt)
       tabs.splice(i + 1, 0, n_tab)
+      console.log("selected13",key)
       this.setState({tabs,selectedTab: n_tab.key})
       this.focus_webview(n_tab)
     },100)
@@ -2060,6 +2071,7 @@ export default class TabPanel extends Component {
         tabs.splice(++i, 0, n_tab)
       }
 
+      console.log("selected14",key)
       this.setState({selectedTab: n_tab.key})
       this.focus_webview(n_tab)
     })
