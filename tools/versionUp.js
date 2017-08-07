@@ -49,6 +49,7 @@ console.log(pwd)
 
 fileContentsReplace(path.join(pwd,'package.json'),`"version": "${CURRENT_APP_VERSION}"`,`"version": "${NEXT_APP_VERSION}"`)
 fileContentsReplace(path.join(pwd,'VERSION.txt'),/.+/,NEXT_APP_VERSION)
+filesContentsReplace([path.join(pwd,'README.md'),path.join(pwd,'ja','README.md')],CURRENT_APP_VERSION,NEXT_APP_VERSION)
 
 
 glob.sync(`${pwd}/../web/**/index.html`).forEach(file=>{
@@ -68,3 +69,4 @@ console.log(`Sushi Browser v${NEXT_APP_VERSION} ${CODE_NAME}
 - [Linux rpm (for Fedora/CentOS) v${NEXT_APP_VERSION}](https://sushib.me/dl/sushi-browser-${NEXT_APP_VERSION}.x86_64.rpm)
 - [Linux deb (for Debian/Ubuntu) v${NEXT_APP_VERSION}](https://sushib.me/dl/sushi-browser_${NEXT_APP_VERSION}_amd64.deb)
 - [Linux Portable v${NEXT_APP_VERSION}](https://sushib.me/dl/sushi-browser-${NEXT_APP_VERSION}.tar.bz2)`)
+filesContentsReplace(path.join(pwd,'ja','README.md'),CURRENT_APP_VERSION,NEXT_APP_VERSION)
