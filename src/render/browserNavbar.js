@@ -19,7 +19,6 @@ const BrowserActionMenu = require('./BrowserActionMenu')
 const BrowserNavbarLocation = require('./BrowserNavbarLocation')
 const SyncReplace = require('./SyncReplace')
 import RightTopBottonSet from './RightTopBottonSet'
-import LeftTopBottonSet from './LeftTopBottonSet'
 const NavbarMenu = require('./NavbarMenu')
 const {NavbarMenuItem,NavbarMenuBarItem} = require('./NavbarMenuItem')
 const FloatSyncScrollButton = require('./FloatSyncScrollButton')
@@ -127,6 +126,8 @@ class BrowserNavbar  extends Component{
         }
       },500)
     }
+
+
   }
 
   componentWillUnmount() {
@@ -159,6 +160,7 @@ class BrowserNavbar  extends Component{
     this.props.toggleNav === nextProps.toggleNav &&
     this.props.isTopRight === nextProps.isTopRight &&
     this.props.isTopLeft === nextProps.isTopLeft &&
+    this.props.fullscreen === nextProps.fullscreen &&
     (this.richContents||[]).length === (nextProps.richContents||[]).length &&
     (this.caches||[]).length === (nextState.caches||[]).length &&
     this.state.zoom === nextState.zoom &&
@@ -492,7 +494,7 @@ class BrowserNavbar  extends Component{
                 onDrop={(e)=>{e.preventDefault();return false}} style={navbarStyle}>
       {/*<BrowserNavbarBtn title="Rewind" icon="home fa-lg" onClick={this.props.onClickHome} disabled={!this.props.page.canGoBack} />*/}
 
-      {isDarwin && this.props.isTopLeft && this.props.toggleNav == 1 ? <LeftTopBottonSet style={{lineHeight: 0.9,paddingTop: 1}}/> : null }
+      {isDarwin && this.props.isTopLeft && this.props.toggleNav == 1 ? <div style={{width: this.props.fullscreen ? 0 : 62}}/>  : null }
 
       <NavbarMenu k={this.props.k} mouseOver={true} isFloat={isFloatPanel(this.props.k)} className={`back-next ${this.props.page.canGoBack ? "" : " disabled"}`} title="Back" icon="angle-left fa-lg" onClick={e=>{this.props.onClickBack(e);this.forceUpdates=true}}>
         {(cont ? historyList.slice(0,currentIndex).reverse().map(
@@ -513,7 +515,17 @@ class BrowserNavbar  extends Component{
                                k ={this.props.k} onContextMenu={this.props.onLocationContextMenu} page={this.props.page} privateMode={this.props.privateMode}/>
       </div>
 
-      <div className="navbar-margin" style={{width: this.props.toggleNav != 1 ? 0 : ((!isDarwin && this.props.isTopRight) || (isDarwin && this.props.isTopLeft)) ? '45%' : '50%',minWidth: this.props.toggleNav != 1 ? 0 :'80px',background: 'rgb(221, 221, 221)'}}></div>
+      <div className="navbar-margin" style={{width: this.props.toggleNav != 1 ? 0 : ((!isDarwin && this.props.isTopRight) || (isDarwin && this.props.isTopLeft)) ? '45%' : '50%',minWidth: this.props.toggleNav != 1 ? 0 :'80px',background: 'rgb(221, 221, 221)'}}
+        onDoubleClick={isDarwin ? _=>{
+          const win = remote.getCurrentWindow()
+          if(win.isFullScreen()){}
+          else if(win.isMaximized()){
+            win.unmaximize()
+          }
+          else{
+            win.maximize()
+          }
+        }: null}></div>
       {isFixed ? null : <SyncReplace ref="syncReplace" changeSyncMode={this.props.changeSyncMode} replaceInfo={this.props.replaceInfo} updateReplaceInfo={this.props.updateReplaceInfo}/>}
       {isFixed ? null : <BrowserNavbarBtn title="Switch Sync Scroll" icon="circle-o" sync={this.props.sync && !this.props.replaceInfo}
                                           onClick={()=>{this.props.changeSyncMode();this.refs.syncReplace.clearAllCheck()}}/>}

@@ -16,7 +16,6 @@ import SortableMixin from './react-mixin-sortable'
 import reactMixin  from 'react-mixin'
 
 import RightTopBottonSet from '../../RightTopBottonSet'
-import LeftTopBottonSet from '../../LeftTopBottonSet'
 import PubSub from '../../pubsub'
 
 const {remote} = require('electron')
@@ -723,8 +722,18 @@ class Tabs extends React.Component {
               background: 'rgb(221, 221, 221)',
               borderBottom: '1px solid #aaa',
             }}>
-          <ul tabIndex="-1" style={tabInlineStyles.tabBar} className={_tabClassNames.tabBar} ref="ttab" >
-            {isDarwin && this.props.isTopLeft && this.props.toggleNav != 1 ? <LeftTopBottonSet style={{transform:'translateX(6px)'}}/> : ""}
+          <ul tabIndex="-1" style={tabInlineStyles.tabBar} className={_tabClassNames.tabBar} ref="ttab"
+              onDoubleClick={isDarwin ? _=>{
+                const win = remote.getCurrentWindow()
+                if(win.isFullScreen()){}
+                else if(win.isMaximized()){
+                  win.unmaximize()
+                }
+                else{
+                  win.maximize()
+                }
+              }: null}>
+            {isDarwin && this.props.isTopLeft && this.props.toggleNav != 1 ? <div style={{width: this.props.fullscreen ? 0 : 62}}/>  : ""}
             {tabs}
             <span ref="addButton" draggable="true" className="rdTabAddButton"
                   style={Object.assign({},TabStyles.tabAddButton)} onClick={this.handleAddButtonClick.bind(this)}

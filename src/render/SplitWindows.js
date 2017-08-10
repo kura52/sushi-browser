@@ -290,6 +290,13 @@ export default class SplitWindows extends Component{
     ipc.on('get-focused-webContent',this.getFocusedWebContent)
 
 
+    this.fullScreenState = (e,isFullscreen)=>{
+      this.setState({fullscreen: isFullscreen})
+    }
+    ipc.on('enter-full-screen',this.fullScreenState)
+    ipc.on('leave-full-screen',this.fullScreenState)
+
+
     this.tokenAlign = PubSub.subscribe("align",(_,e)=>{
 
       const mapDepth = this.getDepth()
@@ -342,6 +349,8 @@ export default class SplitWindows extends Component{
     ipc.removeListener("switch-fullscreen",this.switchFullscreenEvent)
     ipc.removeListener("get-window-state",this.getWinStateEvent)
     ipc.removeListener("get-focused-webContent",this.getFocusedWebContent)
+    ipc.removeListener("enter-full-screen",this.fullScreenState)
+    ipc.removeListener("leave-full-screen",this.fullScreenState)
 
     PubSub.unsubscribe(this.tokenAlign)
 
@@ -1048,7 +1057,7 @@ export default class SplitWindows extends Component{
             <TabPanel isTopRight={this.checkTopRight(obj,i)  ? isTopRight : false}
                       isTopLeft={isTopLeft} k={x[0]} ref={x[0]}
                       key={x[0]} node={x} split={::this.split} close={::this.close}
-                      getScrollPriorities={::this.getScrollPriorities} child={x[1]}
+                      getScrollPriorities={::this.getScrollPriorities} child={x[1]} fullscreen={this.state.fullscreen}
                       toggleNav={this.state.root.toggleNav} parent={this} getOpposite={::this.getOpposite} getPrevFocusPanel={::this.getPrevFocusPanel} addFloatPanel={::this.addFloatPanel}
                       toggleDirc={::this.toggleDirc} swapPosition={::this.swapPosition} getAllKey={::this.getAllKey}
                       currentWebContents={this.currentWebContents} htmlContentSet={this.htmlContentSet}

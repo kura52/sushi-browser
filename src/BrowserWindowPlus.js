@@ -124,6 +124,17 @@ function create(args){
     }
   })
 
+  if(isDarwin){
+    bw.on('enter-full-screen',_=>{
+      bw.webContents.send('enter-full-screen',true)
+    })
+
+    bw.on('leave-full-screen',_=>{
+      bw.webContents.send('leave-full-screen',false)
+
+    })
+  }
+
   return bw
 }
 
@@ -172,8 +183,11 @@ export default {
       const winArg = {...opt,
         ...winSetting,
         title: 'Sushi Browser',
-        frame: false,
         fullscreenable: isDarwin,
+        // A frame but no title bar and windows buttons in titlebar 10.10 OSX and up only?
+        titleBarStyle: 'hidden',
+        autoHideMenuBar: true,
+        frame: isDarwin,
         show: false,
         webPreferences: {
           plugins: true,
@@ -215,6 +229,7 @@ export default {
         initWindow = create(winArg)
         initWindow.setMenuBarVisibility(true)
         initWindow.loadURL(`chrome://brave/${path.join(__dirname, '../index.html').replace(/\\/g,"/")}${getParam}`)
+        // initWindow.webContents.openDevTools()
         initWindow.webContents.once('did-finish-load', () => {
           initWindow.show()
           if(!initWindow.isMaximized()){

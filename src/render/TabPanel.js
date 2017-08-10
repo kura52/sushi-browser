@@ -2374,6 +2374,7 @@ export default class TabPanel extends Component {
         toggleNav={toggle}
         isTopLeft={this.props.isTopLeft}
         isTopRight={this.props.isTopRight}
+        fullscreen={this.props.fullscreen}
         parent={this}
         isOnlyPanel={!this.props.parent.state.root.r}
         windowId={this.props.windowId}
@@ -2388,7 +2389,8 @@ export default class TabPanel extends Component {
                              scrollPage={::this.scrollPage} historyMap={historyMap} changeSyncMode={::this.changeSyncMode} updateReplaceInfo={::this.updateReplaceInfo}
                              changeOppositeMode={::this.changeOppositeMode} syncZoom={::this.syncZoom} currentWebContents={this.props.currentWebContents}
                              isTopRight={this.props.isTopRight} isTopLeft={this.props.isTopLeft} detachPanel={::this.detachPanel}
-                             fixedPanelOpen={this.props.fixedPanelOpen} toggleNavPanel={::this.toggleNavPanel} tabBar={!this.state.tabBar} hidePanel={this.props.hidePanel}/>
+                             fixedPanelOpen={this.props.fixedPanelOpen} toggleNavPanel={::this.toggleNavPanel} tabBar={!this.state.tabBar} hidePanel={this.props.hidePanel}
+                             fullscreen={this.props.fullscreen}/>
               {this.state.notifications.map((data,i)=>{
                 if(data.needInput){
                   console.log(225,data)
