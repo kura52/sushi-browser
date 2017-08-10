@@ -49,6 +49,7 @@ export default class MainContent extends Component{
     }
     document.addEventListener('mousedown',e=>{
       let ele,key
+      global.middleButtonLongPressing = (void 0)
       global.lastMouseDown = e.target
       global.lastMouseDownSet.delete(e.target)
       global.lastMouseDownSet.add(e.target)
@@ -61,6 +62,15 @@ export default class MainContent extends Component{
       else if(ele = e.target.closest('.float-panel')){
         PubSub.publish('float-panel',{ele})
       }
+
+      if(e.button == 1){
+        global.middleButtonPressing = Date.now()
+      }
+    },{passive:true})
+
+    document.addEventListener('mouseup',e=>{
+      global.middleButtonLongPressing = (void 0)
+      if(global.middleButtonPressing) global.middleButtonLongPressing = Date.now() - global.middleButtonPressing > 250
     },{passive:true})
 
     // window.addEventListener('drop', function (event) {

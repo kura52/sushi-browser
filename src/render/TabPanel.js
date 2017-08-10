@@ -1393,7 +1393,11 @@ export default class TabPanel extends Component {
 
       const url = targetUrl
 
-      if(!tab.sync && !isFloatPanel(this.props.k) && tab.oppositeMode && disposition !== 'foreground-tab'){
+      const opposite = (tab.oppositeMode && !global.middleButtonLongPressing) || (!tab.oppositeMode && global.middleButtonLongPressing)
+
+      global.middleButtonLongPressing = (void 0)
+
+      if(!tab.sync && !isFloatPanel(this.props.k) && opposite && disposition !== 'foreground-tab'){
         const oppositeKey = this.props.getOpposite(this.props.k)
         if (oppositeKey && !isFixedPanel(oppositeKey)){
           PubSub.publish(`new-tab-from-key_${oppositeKey}`, {url,mobile:tab.mobile, adBlockThis: tab.adBlockThis})
