@@ -61,6 +61,13 @@ window.addEventListener('scroll', (e)=>{
   })
 },{passive:true})
 
+
+window.addEventListener('click', e=>{
+  if (e.detail === 3) {
+    window.scrollTo(e.pageX,window.scrollY);
+  }
+},{passive:true});
+
 //style setting
 let styleVal
 if((styleVal = localStorage.getItem('meiryo')) !== null){
