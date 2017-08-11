@@ -56,6 +56,7 @@ const convertUrlMap = new Map([
   ['chrome://tabs-sidebar/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tabs_sidebar.html'],
   ['chrome://download/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html'],
   ['chrome://terminal/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html'],
+  ['chrome://settings/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html'],
 ])
 
 function convertURL(url){
@@ -185,6 +186,7 @@ let historyMap = new Map([
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html',['Explorer','resource/file.png']],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html',['Download','resource/file.png']],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html',['Terminal','resource/file.png']],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html',['History','resource/file.png']],
 ])
 export default class TabPanel extends Component {
   constructor(props) {
@@ -2312,7 +2314,7 @@ export default class TabPanel extends Component {
   }
 
 
-  detachPanel() {
+  detachPanel(bounds={}) {
     if(!this.props.parent.state.root.r) return
     const promises = this.state.tabs.map(tab=>{
       return new Promise((resolve,reject)=>{
@@ -2323,7 +2325,7 @@ export default class TabPanel extends Component {
       })
     })
     Promise.all(promises).then(vals=>{
-      BrowserWindowPlus.load({id:remote.getCurrentWindow().id,tabParam:JSON.stringify(vals)})
+      BrowserWindowPlus.load({id:remote.getCurrentWindow().id,...bounds,tabParam:JSON.stringify(vals)})
       PubSub.publish(`close-panel_${this.props.k}`)
     })
   }
@@ -2394,7 +2396,7 @@ export default class TabPanel extends Component {
                              changeOppositeMode={::this.changeOppositeMode} syncZoom={::this.syncZoom} currentWebContents={this.props.currentWebContents}
                              isTopRight={this.props.isTopRight} isTopLeft={this.props.isTopLeft} detachPanel={::this.detachPanel}
                              fixedPanelOpen={this.props.fixedPanelOpen} toggleNavPanel={::this.toggleNavPanel} tabBar={!this.state.tabBar} hidePanel={this.props.hidePanel}
-                             fullscreen={this.props.fullscreen}/>
+                             fullscreen={this.props.fullscreen} />
               {this.state.notifications.map((data,i)=>{
                 if(data.needInput){
                   console.log(225,data)

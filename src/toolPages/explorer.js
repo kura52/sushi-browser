@@ -475,6 +475,7 @@ class FileExplorer extends React.Component{
         <Menu.Item as='a' href={`${baseURL}/download.html`} key="download" name="Download"/>
         {/*<Menu.Item key="file-explorer" name="File Explorer" active={true}/>*/}
         <Menu.Item as='a' href={`${baseURL}/terminal.html`} key="terminal" name="Terminal"/>
+        <Menu.Item as='a' href={`${baseURL}/settings.html`} key="settings" name="Settings"/>
       </Menu>
     }
 

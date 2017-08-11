@@ -490,6 +490,7 @@ export default class FavoriteExplorer extends React.Component{
         <Menu.Item as='a' href={`${baseURL}/download.html`} key="download" name="Download"/>
         <Menu.Item as='a' href={`${baseURL}/explorer.html`} key="file-explorer" name="File Explorer"/>
         <Menu.Item as='a' href={`${baseURL}/terminal.html`} key="terminal" name="Terminal"/>
+        <Menu.Item as='a' href={`${baseURL}/settings.html`} key="settings" name="Settings"/>
       </Menu>
     }
 

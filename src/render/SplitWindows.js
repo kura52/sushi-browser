@@ -9,6 +9,7 @@ const ipc = require('electron').ipcRenderer
 const {remote} = require('electron')
 const {BrowserWindow} = remote
 const mainState = remote.require('./mainState')
+import MenuOperation from './MenuOperation'
 import url from 'url'
 const FloatPanel = require('./FloatPanel')
 const {token} = require('./databaseRender')
@@ -314,6 +315,36 @@ export default class SplitWindows extends Component{
       PubSub.publish("align-panel",event)
     })
 
+    this.tokenAllDetach = PubSub.subscribe('all-detach',async (_,e)=>{
+      const arr = this.getScrollPriorities()
+      if(arr.length == 1) return
+
+      const [screenX,screenY] = [window.screenX,window.screenY]
+      const bounds = arr.map(ele=>{
+        const key = ele[0]
+        const panel = this.refs2[key]
+        console.log(ReactDOM.findDOMNode(panel))
+        console.log(ReactDOM.findDOMNode(panel).getBoundingClientRect())
+        const bound = ReactDOM.findDOMNode(panel).getBoundingClientRect()
+        return {left:Math.round(bound.left)+1,top:Math.round(bound.top)+1,width:Math.round(bound.width)+1,height:Math.round(bound.height)+1}
+      })
+
+      let i =0
+      for(let ele of arr){
+        const key = ele[0]
+        const panel = this.refs2[key]
+        const b = bounds[i]
+        if(i===0){
+          if(MenuOperation.windowIsMaximized()) MenuOperation.windowMaximize()
+          remote.getCurrentWindow().setBounds({x:b.left+screenX,y:b.top+screenY,width:b.width,height:b.height})
+        }
+        else{
+          await panel.detachPanel({x:b.left+screenX,y:b.top+screenY,width:b.width,height:b.height}),20*i
+        }
+        i++
+      }
+    })
+
     const self = this
 
     this.search = (e)=>{
@@ -353,6 +384,7 @@ export default class SplitWindows extends Component{
     ipc.removeListener("leave-full-screen",this.fullScreenState)
 
     PubSub.unsubscribe(this.tokenAlign)
+    PubSub.unsubscribe(this.tokenAllDetach)
 
     for(let[tab,key,val] of this.tabEvents){
       tab.removeListener(key,val)

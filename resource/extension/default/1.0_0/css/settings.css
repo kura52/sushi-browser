@@ -1,0 +1,22 @@
+.sticky {
+    background-color: white;
+}
+
+.ui.labeled.icon.menu .item {
+    text-transform: capitalize;
+}
+
+.ui.icon.menu .item {
+    text-align: left;
+    padding-left: 20px;
+}
+
+.ui.labeled.icon.menu .item>.icon:not(.dropdown) {
+    display: inline-block;
+    font-size: 1.2em!important;
+    padding-right: 4px;
+}
+
+.ui.menu .item {
+    padding: .72857143em 1.14285714em;
+}

@@ -138,18 +138,23 @@ function create(args){
   return bw
 }
 
-function getSize(id){
-  const bw = BrowserWindow.fromId(id)
-  const maximize = false //bw.isMaximized()
-  const bounds = normalSize[bw.id] //maximize ? normalSize[bw.id] : bw.getBounds()
-  return {...bounds,maximize}
+function getSize(opt){
+  if(opt.x !== (void 0)){
+    return {x:opt.x,y:opt.y,width:opt.width,height:opt.height, maximize: false}
+  }
+  else{
+    const bw = BrowserWindow.fromId(opt.id)
+    const maximize = false //bw.isMaximized()
+    const bounds = normalSize[bw.id] //maximize ? normalSize[bw.id] : bw.getBounds()
+    return {...bounds,maximize}
+  }
 }
 
 export default {
   load(opt){
     let initWindow
     initPromise.then((setting)=>{
-      let winSetting = opt ? getSize(opt.id) : {x: setting.x, y: setting.y, width: setting.width, height: setting.height, maximize: setting.maximize}
+      let winSetting = opt ? getSize(opt) : {x: setting.x, y: setting.y, width: setting.width, height: setting.height, maximize: setting.maximize}
       if(!opt){
         mainState.dragData = null
         mainState.toggleNav = setting.toggleNav === (void 0) ? 0 :setting.toggleNav
@@ -212,9 +217,14 @@ export default {
       let getParam = ""
       if(opt && opt.tabParam){
         getParam = `?tabparam=${encodeURIComponent(opt.tabParam)}`
-        if(opt.x){
-          winArg.x = opt.x - (mainState.toggleNav == 1 && winArg.width ? Math.round(winArg.width / 3) : 0)
-          winArg.y = opt.y
+        if(opt.dropX){
+          winArg.x = opt.dropX - (mainState.toggleNav == 1 && winArg.width ? Math.round(winArg.width / 3) : 0)
+          winArg.y = opt.dropY
+        }
+        else if(opt.x){
+          winArg.x = opt.dropX
+          winArg.y = opt.dropY
+
         }
         delete winArg.tabParam
         mainState.alwaysOnTop = opt.alwaysOnTop
