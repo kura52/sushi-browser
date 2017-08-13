@@ -22,6 +22,11 @@ const convertUrlMap = new Map([
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html','chrome://download/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html','chrome://terminal/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html','chrome://settings/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general','chrome://settings#general'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search','chrome://settings#search'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs','chrome://settings#tabs'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#keyboard','chrome://settings#keyboard'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extension','chrome://settings#extension'],
 ])
 
 const convertUrlReg = /^chrome\-extension:\/\/dckpbojndfoinamcdamhkjhnjnmjkfjd\/(video|ace)\.html\?url=([^&]+)(&type=)?/
@@ -181,17 +186,18 @@ export default class BrowserNavbarLocation extends Component {
         return
       }
       const input = e.target.value
-      const url = urlutil.isURL(input) ? urlutil.getUrlFromInput(input) : `https://www.google.com/search?q=${e.target.value}`
-      this.canUpdate = true
-      this.props.onEnterLocation(url)
-      this.resetComponent()
-      // this.props.onEnterLocation(e.target.value)
-      // if(!this.props.privateMode){
-      //   ;(async ()=>{
-      //     await searchHistory.insert({text:e.target.value ,created_at: Date.now(),updated_at: Date.now()})
-      //   })()
-      // }
-      ;(this.input || ReactDOM.findDOMNode(this.refs.input).querySelector("input")).value = url
+      if(urlutil.isURL(input)){
+        const url = urlutil.getUrlFromInput(input)
+        this.canUpdate = true
+        this.props.onEnterLocation(url)
+        this.resetComponent()
+        // ;(this.input || ReactDOM.findDOMNode(this.refs.input).querySelector("input")).value = url
+      }
+      else{
+        this.props.search(this.props.tab, input, false)
+        this.canUpdate = true
+        this.resetComponent()
+      }
       this.setState({ results: []})
     }
     // else if(e.manualEvent){

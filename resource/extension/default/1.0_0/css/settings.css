@@ -20,3 +20,23 @@
 .ui.menu .item {
     padding: .72857143em 1.14285714em;
 }
+
+.ui.visible.thin.left.sidebar~.pusher {
+    width: calc(100% - 150px);
+}
+
+.ui.table {
+    word-break: break-all;
+}
+
+.ui.multiple.dropdown {
+    padding: .22620476em 0 0 .35714286em;
+}
+
+.ui.selection.dropdown {
+    padding: 0;
+}
+
+.ui.dropdown.type>.text {
+    padding: 6px 0 0 8px;
+}

@@ -513,7 +513,7 @@ class BrowserNavbar  extends Component{
 
       <div className="input-group">
         <BrowserNavbarLocation ref="loc" wv={this.props.wv} navbar={this} onEnterLocation={this.props.onEnterLocation} onChangeLocation={this.props.onChangeLocation}
-                               k ={this.props.k} onContextMenu={this.props.onLocationContextMenu} page={this.props.page} privateMode={this.props.privateMode}/>
+                               k ={this.props.k} onContextMenu={this.props.onLocationContextMenu} tab={this.props.tab} page={this.props.page} privateMode={this.props.privateMode} search={this.props.search}/>
       </div>
 
       <div className="navbar-margin" style={{width: this.props.toggleNav != 1 ? 0 : ((!isDarwin && this.props.isTopRight) || (isDarwin && this.props.isTopLeft)) ? '45%' : '50%',minWidth: this.props.toggleNav != 1 ? 0 :'80px',background: 'rgb(221, 221, 221)'}}

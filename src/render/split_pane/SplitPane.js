@@ -48,16 +48,21 @@ class SplitPane extends Component {
   handleWheel(e){
     // if(!this.webview1){
     const now = Date.now()
-    const xMod = this.props.split === 'vertical' ? 11 : 0
-    const yMod = this.props.split === 'vertical' ? 0 : 50
-    const same = true
+    // const xMod = this.props.split === 'vertical' ? 11 : 0
+    // const yMod = this.props.split === 'vertical' ? 0 : 50
+    const xMod = 11
+    const yMod = 50
     if(!this.preExec || now - this.preExec > 1000){
       const same = false
-      this.webview1 = document.elementFromPoint(e.clientX-xMod,e.clientY-yMod)
-      this.webview2 = document.elementFromPoint(e.clientX+xMod,e.clientY+yMod)
+      this.webviews = new Set()
+      this.webviews.add(document.elementFromPoint(e.clientX-xMod,e.clientY-yMod))
+      this.webviews.add(document.elementFromPoint(e.clientX-xMod,e.clientY+yMod))
+      this.webviews.add(document.elementFromPoint(e.clientX+xMod,e.clientY-yMod))
+      this.webviews.add(document.elementFromPoint(e.clientX+xMod,e.clientY+yMod))
     }
-    PubSub.publishSync('multi-scroll-webviews',{deltaY: - e.deltaY,same,
-      webviews:[{wv:this.webview1,x:e.clientX-xMod,y:e.clientY-yMod,c:0},{wv:this.webview2,x:e.clientX+xMod,y:e.clientY+yMod,c:1}]})
+    PubSub.publishSync('multi-scroll-webviews',{deltaY: - e.deltaY,
+      webviews:this.webviews ? [...this.webviews] : []})
+    // webviews:[{wv:this.webview1,x:e.clientX-xMod,y:e.clientY-yMod,c:0},{wv:this.webview2,x:e.clientX+xMod,y:e.clientY+yMod,c:1}]})
 
     this.preExec = now
     // }
@@ -65,7 +70,7 @@ class SplitPane extends Component {
 
 
   componentDidMount() {
-    this.resizer = ReactDOM.findDOMNode(this).querySelector(".Resizer")
+    this.resizer = ReactDOM.findDOMNode(this).querySelector(`.Resizer.r${this.props.k}`)
     this.resizer.addEventListener('wheel',this.handleWheel,{passive: true})
 
     document.addEventListener('mouseup', this.onMouseUp);
@@ -397,7 +402,7 @@ class SplitPane extends Component {
         </Pane>
         <Resizer
           key="resizer"
-          className={size == "100%" || size == "0%" ? " hide" : ""}
+          className={`${size == "100%" || size == "0%" ? " hide" : ""} r${this.props.k}`}
           resizerClassName={this.props.resizerClassName}
           onMouseDown={this.onMouseDown}
           onTouchStart={this.onTouchStart}

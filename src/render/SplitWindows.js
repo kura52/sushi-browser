@@ -75,6 +75,10 @@ function toBlob(base64) {
   return buffer
 }
 
+function equallyDivide(x,n){
+  return [...new Array(n)].map((v,i) => Math.floor((x+i)/n))
+}
+
 export default class SplitWindows extends Component{
   constructor(props) {
     super(props)
@@ -105,11 +109,122 @@ export default class SplitWindows extends Component{
     const param = getParam()
     console.log(67,param)
     if(param){
-      winState = {dirc: "v",size: '100%',l: [getUuid(),[]],r: null,p: null,key:uuid.v4(),toggleNav: mainState.toggleNav || 0,attach:JSON.parse(decodeURIComponent(param.tabparam))}
-      for(let at of winState.attach){
-        remote.getWebContents(at.wvId,cont=>{
-          this.currentWebContents[at.wvId] = cont
-        })
+      const attach = JSON.parse(decodeURIComponent(param.tabparam))
+      if(Array.isArray(attach)){
+        winState = {dirc: "v",size: '100%',l: [getUuid(),[]],r: null,p: null,key:uuid.v4(),toggleNav: mainState.toggleNav || 0,attach}
+        for(let at of winState.attach){
+          remote.getWebContents(at.wvId,cont=>{
+            this.currentWebContents[at.wvId] = cont
+          })
+        }
+      }
+      else{
+        if(attach.type == "new-win"){
+          console.log(3333,{key: getUuid(),tabs: attach.urls.map(url=>{return {pin:false,tabKey:uuid.v4(),url}})})
+          winState = this.parseRestoreDate({dirc: "v",size: '100%',l: {key: getUuid(),tabs: attach.urls.map(url=>{return {forceKeep:true,pin:false,tabKey:uuid.v4(),url}})},
+          r: null,key:uuid.v4(),toggleNav: mainState.toggleNav || 0},{})
+        }
+        else{
+          const recurDivide = (urls,percentages,obj,rest)=>{
+            if(urls.length == 0) return
+
+            const url = urls.pop()
+            const percent = percentages.pop()
+            if(urls.length == 0){
+              obj.r = {key: getUuid(),tabs: [{forceKeep:true,pin:false,tabKey:uuid.v4(),url}]}
+            }
+            else{
+              obj.r = {dirc: "v", size: `${percent / rest * 100}%`, l:{key: getUuid(),tabs: [{forceKeep:true,pin:false,tabKey:uuid.v4(),url}]}, r:null , pd: "r",key:uuid.v4()}
+            }
+            rest = rest - percent
+            if(urls.length > 0){
+              recurDivide(urls,percentages,obj.r,rest)
+            }
+          }
+
+          const divide = attach.type == "one-line" ? 1 : attach.type == "two-line" ? 2 : 3
+          if(attach.urls.length < divide){
+            attach.urls = attach.urls.concat(attach.urls).concat(attach.urls).slice(0,divide)
+          }
+
+          const divides = equallyDivide(attach.urls.length,divide).reverse()
+          let sum = 0
+          let arrays = []
+          for(let d of divides){
+            arrays.push(attach.urls.slice(sum,sum+d))
+            sum+=d
+          }
+
+
+          let datas
+          if(divide == 1){
+            const percentages = equallyDivide(100,arrays[0].length)
+            const url = arrays[0][0]
+            const percent = percentages.pop()
+            datas = {dirc: "v",key:uuid.v4(),size: `${percent}%`,l: {key: getUuid(),tabs: [{forceKeep:true,pin:false,tabKey:uuid.v4(),url}]}, r: null}
+            recurDivide(arrays[0].slice(1).reverse(),percentages,datas,100 - percent)
+          }
+          else if(divide == 2){
+            const percentages = equallyDivide(100,arrays[0].length)
+            const url = arrays[0][0]
+            const percent = percentages.pop()
+
+            const percentages2 = equallyDivide(100,arrays[1].length)
+            const url2 = arrays[1][0]
+            const percent2 = percentages2.pop()
+
+            datas = {dirc: "h",key:uuid.v4(),size: '50%',l: {dirc: "v",key:uuid.v4(),size: `${percent}%`,pd:"l",l: {key: getUuid(),tabs: [{forceKeep:true,pin:false,tabKey:uuid.v4(),url}]}, r: null},
+              r: {dirc: "v",key:uuid.v4(),size: `${percent2}%`,pd:"r",l: {key: getUuid(),tabs: [{forceKeep:true,pin:false,tabKey:uuid.v4(),url:url2}]}, r: null}}
+
+            recurDivide(arrays[0].slice(1).reverse(),percentages,datas.l,100 - percent)
+            recurDivide(arrays[1].slice(1).reverse(),percentages2,datas.r,100 - percent2)
+            if(datas.l.r===null){
+              datas.l = datas.l.l
+              datas.l.pd = "l"
+            }
+            if(datas.r.r===null){
+              datas.r = datas.r.l
+              datas.r.pd = "r"
+            }
+          }
+          else{
+            const percentages = equallyDivide(100,arrays[0].length)
+            const url = arrays[0][0]
+            const percent = percentages.pop()
+
+            const percentages2 = equallyDivide(100,arrays[1].length)
+            const url2 = arrays[1][0]
+            const percent2 = percentages2.pop()
+
+            const percentages3 = equallyDivide(100,arrays[2].length)
+            const url3 = arrays[2][0]
+            const percent3 = percentages3.pop()
+
+            datas = {dirc: "h",key:uuid.v4(),size: '33%',
+              l: {dirc: "v",key:uuid.v4(),size: `${percent}%`,pd:"l",l: {key: getUuid(),tabs: [{forceKeep:true,pin:false,tabKey:uuid.v4(),url}]}, r: null},
+              r: {dirc: "h",key:uuid.v4(),size: '49%',pd:"r",
+                l: {dirc: "v",key:uuid.v4(),size: `${percent2}%`,pd:"l",l: {key: getUuid(),tabs: [{forceKeep:true,pin:false,tabKey:uuid.v4(),url:url2}]}, r: null},
+                r: {dirc: "v",key:uuid.v4(),size: `${percent3}%`,pd:"r",l: {key: getUuid(),tabs: [{forceKeep:true,pin:false,tabKey:uuid.v4(),url:url3}]}, r: null}}}
+            recurDivide(arrays[0].slice(1).reverse(),percentages,datas.l,100 - percent)
+            recurDivide(arrays[1].slice(1).reverse(),percentages2,datas.r.l,100 - percent2)
+            recurDivide(arrays[2].slice(1).reverse(),percentages3,datas.r.r,100 - percent3)
+            if(datas.l.r===null){
+              datas.l = datas.l.l
+              datas.l.pd = "l"
+            }
+            if(datas.r.l.r===null){
+              datas.r.l = datas.r.l.l
+              datas.r.l.pd = "l"
+            }
+            if(datas.r.r.r===null){
+              datas.r.r = datas.r.r.l
+              datas.r.r.pd = "r"
+            }
+          }
+          console.log(3443333,datas)
+          winState = this.parseRestoreDate({...datas,toggleNav: mainState.toggleNav || 0},{})
+
+        }
       }
     }
 
@@ -324,7 +439,7 @@ export default class SplitWindows extends Component{
         const key = ele[0]
         const panel = this.refs2[key]
         console.log(ReactDOM.findDOMNode(panel))
-        console.log(ReactDOM.findDOMNode(panel).getBoundingClientRect())
+        console.log(71,ReactDOM.findDOMNode(panel).getBoundingClientRect())
         const bound = ReactDOM.findDOMNode(panel).getBoundingClientRect()
         return {left:Math.round(bound.left)+1,top:Math.round(bound.top)+1,width:Math.round(bound.width)+1,height:Math.round(bound.height)+1}
       })

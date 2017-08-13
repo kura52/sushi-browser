@@ -219,6 +219,7 @@ const compiledJsFiles = ['resource/extension/default/1.0_0/js/top.js',
   'resource/extension/default/1.0_0/js/terminal.js',
   'resource/extension/default/1.0_0/js/tabsSidebar.js',
   'resource/extension/default/1.0_0/js/sync.js',
+  'resource/extension/default/1.0_0/js/settings.js',
   'lib/render/base.js']
 
 filesContentsReplace(webpackFile,/merge\({fileName:"([^b])/,'// merge({fileName:"$1')

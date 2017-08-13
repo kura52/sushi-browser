@@ -101,6 +101,7 @@ module.exports.init = (verChange) => {
 
   let getPath = (appId) => {
     const extRootPath = path.join(app.getPath('userData'),'resource/extension')
+    // const extRootPath = path.join(__dirname,'../../resource/extension')
     if(!fs.existsSync(extRootPath)) {
       fs.mkdirSync(extRootPath)
     }

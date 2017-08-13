@@ -22,6 +22,10 @@ import url from 'url'
 const mainState = remote.require('./mainState')
 const BrowserWindowPlus = remote.require('./BrowserWindowPlus')
 const moment = require('moment')
+const urlutil = require('./urlutil')
+let searchProviders,spAliasMap
+updateSearchEngine();
+
 // const chromes =  require('electron').remote.getGlobal('chrome')
 
 // ipc.setMaxListeners(0)
@@ -57,7 +61,20 @@ const convertUrlMap = new Map([
   ['chrome://download/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html'],
   ['chrome://terminal/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html'],
   ['chrome://settings/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html'],
+  ['chrome://settings#general','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general'],
+  ['chrome://settings#search','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search'],
+  ['chrome://settings#tabs','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs'],
+  ['chrome://settings#keyboard','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#keyboard'],
+  ['chrome://settings#extension','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extension'],
 ])
+
+
+function updateSearchEngine(){
+  searchProviders = {...mainState.searchProviders}
+  spAliasMap = new Map(Object.values(searchProviders).map(sp=> [sp.shortcut,sp.name]))
+}
+
+ipc.on("update-search-engine",updateSearchEngine)
 
 function convertURL(url){
   return convertUrlMap.has(url) ? convertUrlMap.get(url) : url
@@ -199,12 +216,14 @@ export default class TabPanel extends Component {
     if(this.mounted === false){
     }
     else if(this.props.attach){
+      console.log(this.props.attach)
       const attachTabs = this.props.attach.data
       this.props.attach.delete()
-      const tabs = attachTabs.map(tab=>{
-        console.log(37,{c_page:tab.c_page,c_key:tab.c_key,privateMode:tab.privateMode,pin:tab.pin,wvId:tab.wvId,guestInstanceId: tab.guestInstanceId,rest:tab.rest})
-        return this.createTab({c_page:tab.c_page,privateMode:tab.privateMode,pin:tab.pin,guestInstanceId: tab.guestInstanceId,rest:tab.rest})
-      })
+      let tabs
+        tabs = attachTabs.map(tab=>{
+          // console.log(37,{c_page:tab.c_page,c_key:tab.c_key,privateMode:tab.privateMode,pin:tab.pin,wvId:tab.wvId,guestInstanceId: tab.guestInstanceId,rest:tab.rest})
+          return this.createTab({c_page:tab.c_page,privateMode:tab.privateMode,pin:tab.pin,guestInstanceId: tab.guestInstanceId,rest:tab.rest})
+        })
 
       this.state = {tokens,
         oppositeGlobal: mainState.oppositeGlobal,
@@ -289,8 +308,11 @@ export default class TabPanel extends Component {
       const restoreTabs = this.props.child
       const tabs = []
       const keepTabs = mainState.keepTabs
+      let forceKeep = false
       for(let tab of restoreTabs){
-        if(!keepTabs && !tab.pin) continue
+        console.log(544,tab)
+        if(!keepTabs && !tab.forceKeep && !tab.pin) continue
+        forceKeep = tab.forceKeep
         tabs.push(this.createTab({default_url:tab.url,pin:tab.pin}))
       }
       if(tabs.length == 0) tabs.push(this.createTab())
@@ -301,8 +323,8 @@ export default class TabPanel extends Component {
         tabBar:props.k.match(/^fixed-bottom/) ? 1 : props.k.match(/^fixed-(left|right)/) ? 0 :(void 0),
         prevAddKeyCount: [null,[]],
         notifications:[],
-        selectedTab: tabs[tabs.length - 1].key,
-        selectedKeys: [tabs[tabs.length - 1].key],
+        selectedTab: forceKeep ? tabs[0].key : tabs[tabs.length - 1].key,
+        selectedKeys: [forceKeep ? tabs[0].key : tabs[tabs.length - 1].key],
         history: [],
         tabKeys: []
       }
@@ -419,9 +441,9 @@ export default class TabPanel extends Component {
       }
     })
 
-    const tokenMultiScroll = PubSub.subscribe('multi-scroll-webviews',(msg,{deltaY,same,webviews})=>{
+    const tokenMultiScroll = PubSub.subscribe('multi-scroll-webviews',(msg,{deltaY,webviews})=>{
       let wv,cont
-      const tab = this.state.tabs.find(t =>t.wv && (wv = webviews.find(w=>w.wv == ReactDOM.findDOMNode(t.wv))))
+      const tab = this.state.tabs.find(t =>t.wv && (wv = webviews.find(w=>w == ReactDOM.findDOMNode(t.wv))))
       if(!tab) return
       cont = this.getWebContents(tab)
       // cont.sendInputEvent({ type: 'mouseWheel', x: wv.x, y: wv.y, deltaX: 0, deltaY, canScroll: true});
@@ -467,10 +489,10 @@ export default class TabPanel extends Component {
     if(this.isFixed) return [tokenResize,tokenDrag,tokenClose,tokenBodyKeydown,tokenIncludeKey,tokenRichMedia,tokenMultiScroll,tokenCloseTab]
 
 
-    const tokenNewTabFromKey = PubSub.subscribe(`new-tab-from-key_${this.props.k}`, (msg,{url,mobile,adBlockThis})=> {
+    const tokenNewTabFromKey = PubSub.subscribe(`new-tab-from-key_${this.props.k}`, (msg,{url,mobile,adBlockThis,notSelected})=> {
       if (!this.mounted) return
       console.log(`new-tab-from-key_${this.props.k}`,this)
-      tabAdd(this, url, true,(void 0),(void 0),(void 0),(void 0));
+      tabAdd(this, url, !notSelected,(void 0),(void 0),(void 0),(void 0));
     })
 
     const tokenToggleDirction = PubSub.subscribe(`toggle-dirction_${this.props.k}`, (msg)=> {
@@ -621,7 +643,7 @@ export default class TabPanel extends Component {
     // }
   }
 
-  locationContextMenu(el, newPage, self, navigateTo) {
+  locationContextMenu(el, tab, newPage, self, navigateTo) {
     const menuItems = []
     menuItems.push(({
       label: 'Copy', click: function () {
@@ -644,9 +666,14 @@ export default class TabPanel extends Component {
     menuItems.push(({
       label: 'Paste and Go', click: function () {
         var location = clipboard.readText()
-        const loc = location.includes('://') ? location : `https://www.google.com/search?q=${location}`
-        el.value = loc
-        navigateTo(loc)
+        if(urlutil.isURL(location)){
+          const url = urlutil.getUrlFromInput(location)
+          el.value = url
+          navigateTo(url)
+        }
+        else{
+          self.search(tab, location, false)
+        }
       }
     }))
     const menu = Menu.buildFromTemplate(menuItems)
@@ -1167,39 +1194,7 @@ export default class TabPanel extends Component {
     tab.events['search-text'] = (e, id, text)=> {
       if (!this.mounted) return
       if (tab.wvId && id == tab.wvId) {
-        const url = `https://www.google.com/search?q=${text}`
-        if(!isFloatPanel(this.props.k) && this.state.oppositeGlobal){
-          const oppositeKey = this.props.getOpposite(this.props.k)
-          if (oppositeKey && !isFixedPanel(oppositeKey))
-            PubSub.publish(`new-tab-from-key_${oppositeKey}`, {url,mobile:tab.mobile, adBlockThis: tab.adBlockThis})
-          else{
-            this.props.split(this.props.k, 'v',1, (void 0), (void 0), {url,mobile:tab.mobile,adBlockThis:tab.adBlockThis})
-          }
-        }
-        else{
-          const t = tabAdd(this, url,(void 0),(void 0),(void 0),tab.mobile,tab.adBlockThis);
-          if(tab.sync){
-            t.sync = uuid.v4()
-            t.dirc = tab.dirc
-            let retry = 0
-            const id = window.setInterval(()=> {
-              retry++
-              if (!t) {
-                clearInterval(id)
-                return
-              }
-              if (retry > 1000) {
-                clearInterval(id)
-                return
-              }
-              if (!t.wv) return
-              const cont = this.getWebContents(t)
-              if (!cont) return
-              clearInterval(id)
-              cont.hostWebContents.send('open-panel', {url,sync:t.sync,id:tab.wvId,dirc:t.dirc,replaceInfo: tab.syncReplace,mobile: tab.mobile, adBlockThis: tab.adBlockThis})
-            }, 100)
-          }
-        }
+        this.search(tab, text,true)
       }
     }
     ipc.on('search-text', tab.events['search-text'])
@@ -1354,7 +1349,7 @@ export default class TabPanel extends Component {
 
     const newPage = c_page || this.createPageObject(default_url)
     const navigateTo = (l)=> this.navigateTo(newPage, l, tab)
-    const locationContextMenu = (el)=> this.locationContextMenu(el, newPage, this, navigateTo)
+    const locationContextMenu = (el)=> this.locationContextMenu(el, tab, newPage, this, navigateTo)
 
     const returnWebView = (wv)=>{
       this.registWebView(tab, wv)
@@ -2359,6 +2354,88 @@ export default class TabPanel extends Component {
     })
   }
 
+  search(tab, text, checkOpposite){
+    const splitText = text.split(/[ \t]+/,2)
+    let engine = mainState.searchEngine
+    if(spAliasMap.has(splitText[0])){
+      engine = spAliasMap.get((splitText[0]))
+      text = splitText[1]
+    }
+
+    let searchMethod = searchProviders[engine]
+    if(searchMethod.search){
+      searchMethod = {multiple: [searchMethod.name], type: 'basic'}
+    }
+    const searchs = searchMethod.multiple
+    const urls = searchs.map(engine=> searchProviders[engine].search.replace('%s',text))
+
+    if(searchMethod.type == 'basic' || searchMethod.type == 'two'){
+      this.searchBasic(tab,urls,checkOpposite,searchMethod.type)
+    }
+    else{
+      BrowserWindowPlus.load({id:remote.getCurrentWindow().id,tabParam:JSON.stringify({urls,type:searchMethod.type})})
+    }
+  }
+
+  searchBasic(tab, urls, checkOpposite, type){
+    let i = 0
+    for(let url of urls) {
+      const isFirst = i === 0 || (i === 1 && type == 'two')
+      const condBasic = type == 'basic' && checkOpposite && !isFloatPanel(this.props.k) && this.state.oppositeGlobal
+      const condTwo = type == 'two' && i % 2 == 1
+      if (condBasic || condTwo) {
+        const oppositeKey = this.props.getOpposite(this.props.k)
+        if (!isFirst || (oppositeKey && !isFixedPanel(oppositeKey)))
+          PubSub.publish(`new-tab-from-key_${oppositeKey}`, {url, mobile: tab.mobile, adBlockThis: tab.adBlockThis,notSelected: !isFirst})
+        else {
+          this.props.split(this.props.k, 'v', 1, (void 0), (void 0), {
+            url,
+            mobile: tab.mobile,
+            adBlockThis: tab.adBlockThis
+          })
+        }
+      }
+      else {
+        if(!checkOpposite && isFirst){
+          this.navigateTo(tab.page, url, tab)
+        }
+        else{
+          const t = tabAdd(this, url, isFirst, (void 0), (void 0), tab.mobile, tab.adBlockThis);
+          if (tab.sync) {
+            t.sync = uuid.v4()
+            t.dirc = tab.dirc
+            let retry = 0
+            const id = window.setInterval(() => {
+              retry++
+              if (!t) {
+                clearInterval(id)
+                return
+              }
+              if (retry > 1000) {
+                clearInterval(id)
+                return
+              }
+              if (!t.wv) return
+              const cont = this.getWebContents(t)
+              if (!cont) return
+              clearInterval(id)
+              cont.hostWebContents.send('open-panel', {
+                url,
+                sync: t.sync,
+                id: tab.wvId,
+                dirc: t.dirc,
+                replaceInfo: tab.syncReplace,
+                mobile: tab.mobile,
+                adBlockThis: tab.adBlockThis
+              })
+            }, 100)
+          }
+        }
+      }
+      i++
+    }
+  }
+
   render() {
     let toggle = this.state.tabBar !== (void 0) ? this.state.tabBar : this.props.toggleNav
     if(toggle == 1 && this.props.k.match(/fixed\-[lr]/)) toggle = 0
@@ -2396,7 +2473,7 @@ export default class TabPanel extends Component {
                              changeOppositeMode={::this.changeOppositeMode} syncZoom={::this.syncZoom} currentWebContents={this.props.currentWebContents}
                              isTopRight={this.props.isTopRight} isTopLeft={this.props.isTopLeft} detachPanel={::this.detachPanel}
                              fixedPanelOpen={this.props.fixedPanelOpen} toggleNavPanel={::this.toggleNavPanel} tabBar={!this.state.tabBar} hidePanel={this.props.hidePanel}
-                             fullscreen={this.props.fullscreen} />
+                             fullscreen={this.props.fullscreen} search={::this.search}/>
               {this.state.notifications.map((data,i)=>{
                 if(data.needInput){
                   console.log(225,data)

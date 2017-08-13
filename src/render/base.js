@@ -70,7 +70,7 @@ export default class MainContent extends Component{
 
     document.addEventListener('mouseup',e=>{
       global.middleButtonLongPressing = (void 0)
-      if(global.middleButtonPressing) global.middleButtonLongPressing = Date.now() - global.middleButtonPressing > 250
+      if(global.middleButtonPressing) global.middleButtonLongPressing = Date.now() - global.middleButtonPressing > 320
     },{passive:true})
 
     // window.addEventListener('drop', function (event) {

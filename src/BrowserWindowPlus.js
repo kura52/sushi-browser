@@ -4,8 +4,9 @@ const url = require('url')
 const path = require('path')
 const fs = require('fs')
 const initPromise = require('./InitSetting')
-import { state } from './databaseFork'
+import { state,searchEngine } from './databaseFork'
 import mainState from './mainState'
+import {settingDefault} from '../resource/defaultValue'
 const uuid = require("node-uuid")
 const isDarwin = process.platform === 'darwin'
 const lang = Intl.NumberFormat().resolvedOptions().locale
@@ -87,13 +88,17 @@ function create(args){
         bw.webContents.send('get-window-state',{})
         ipcMain.once('get-window-state-reply',(e,ret)=>{
           try{
+            const saveState = {}
+            for(let key of Object.keys(settingDefault)){
+              if(key == "toggleNav") continue
+              saveState[key] = mainState[key]
+            }
             state.update({ key: 1 }, { $set: {key: 1, ver:fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString(), ...bounds, maximize,maxBounds,
-              toggleNav:mainState.toggleNav==2 || mainState.toggleNav==3 ? 0 :mainState.toggleNav,oppositeGlobal:mainState.oppositeGlobal,adBlockEnable:mainState.adBlockEnable,alwaysOnTop:mainState.alwaysOnTop,keepTabs:mainState.keepTabs,downloadNum:mainState.downloadNum,winState:ret} }, { upsert: true }).then(_=>_)
+              toggleNav:mainState.toggleNav==2 || mainState.toggleNav==3 ? 0 :mainState.toggleNav,...saveState,winState:ret} }, { upsert: true }).then(_=>_)
             saved = true
             console.log("getState")
             bw.close()
           }catch(e){
-            // console.log(e)
             saved = true
           }
         })
@@ -150,159 +155,126 @@ function getSize(opt){
   }
 }
 
+function setOptionVal(key,dVal,val){
+  mainState[key] = val === (void 0) ? dVal : val
+}
+
 export default {
-  load(opt){
+  async load(opt){
     let initWindow
-    initPromise.then((setting)=>{
-      let winSetting = opt ? getSize(opt) : {x: setting.x, y: setting.y, width: setting.width, height: setting.height, maximize: setting.maximize}
-      if(!opt){
-        mainState.dragData = null
-        mainState.toggleNav = setting.toggleNav === (void 0) ? 0 :setting.toggleNav
-        mainState.adBlockEnable = setting.adBlockEnable === (void 0) ? true :setting.adBlockEnable
-        mainState.oppositeGlobal = setting.oppositeGlobal === (void 0) ? true :setting.oppositeGlobal
-        mainState.alwaysOnTop = setting.alwaysOnTop === (void 0) ? false :setting.alwaysOnTop
-        mainState.keepTabs = setting.keepTabs === (void 0) ? false :setting.keepTabs
-        mainState.downloadNum = setting.downloadNum === (void 0) ? 1 :setting.downloadNum
-        mainState.winState = JSON.stringify(setting.winState)
-        mainState.maxBounds = JSON.stringify(setting.maxBounds)
-        mainState.maxState = JSON.stringify({width: setting.width, height: setting.height, maximize: setting.maximize,maxWidth: setting.maximize && setting.maxBounds.width,maxHeight: setting.maximize && setting.maxBounds.height})
+    const setting = await initPromise
+    let winSetting = opt ? getSize(opt) : {x: setting.x, y: setting.y, width: setting.width, height: setting.height, maximize: setting.maximize}
+    if(!opt){
+      for(let [key,dVal] of Object.entries(settingDefault)){
+        setOptionVal(key,dVal,setting[key])
       }
-      else if(opt.id){
-        const newState = Object.assign({...setting.winState},{key:uuid.v4(),dirc: 'v',pd:'l',l:{key: uuid.v4(),tabs: []},size:'100%'})
-        delete newState.r
-        mainState.winState = JSON.stringify(newState)
+      mainState.dragData = null
+
+      mainState.searchProviders = {}
+      for(let ele of (await searchEngine.find({}))){
+        mainState.searchProviders[ele.name] = ele
       }
+      mainState.winState = JSON.stringify(setting.winState)
+      mainState.maxBounds = JSON.stringify(setting.maxBounds)
+      mainState.maxState = JSON.stringify({width: setting.width, height: setting.height, maximize: setting.maximize,maxWidth: setting.maximize && setting.maxBounds.width,maxHeight: setting.maximize && setting.maxBounds.height})
+    }
+    else if(opt.id){
+      const newState = Object.assign({...setting.winState},{key:uuid.v4(),dirc: 'v',pd:'l',l:{key: uuid.v4(),tabs: []},size:'100%'})
+      delete newState.r
+      mainState.winState = JSON.stringify(newState)
+    }
 
 
-      console.log(77,winSetting)
-      const win = BrowserWindow.getAllWindows().find(w=>w.getTitle().includes('Closed'))
-      const fontOpt = process.platform == 'win32' && lang == 'ja' ? {
-        defaultFontFamily: {
-          standard: 'Meiryo UI',
-          serif: 'MS PMincho',
-          sansSerif: 'Meiryo UI',
-          monospace: 'MS Gothic'
-        }
-      } : {}
-
-      const winArg = {...opt,
-        ...winSetting,
-        title: 'Sushi Browser',
-        fullscreenable: isDarwin,
-        // A frame but no title bar and windows buttons in titlebar 10.10 OSX and up only?
-        titleBarStyle: 'hidden',
-        autoHideMenuBar: true,
-        frame: isDarwin,
-        show: false,
-        webPreferences: {
-          plugins: true,
-          sharedWorker: true,
-          nodeIntegration: false,
-          webSecurity: false,
-          allowFileAccessFromFileUrls: true,
-          allowUniversalAccessFromFileUrls: true,
-          // blinkFeatures:'ResizeObserver',
-          ...fontOpt
-        }
+    console.log(77,winSetting)
+    const win = BrowserWindow.getAllWindows().find(w=>w.getTitle().includes('Closed'))
+    const fontOpt = process.platform == 'win32' && lang == 'ja' ? {
+      defaultFontFamily: {
+        standard: 'Meiryo UI',
+        serif: 'MS PMincho',
+        sansSerif: 'Meiryo UI',
+        monospace: 'MS Gothic'
       }
-      let [maxWidth,maxHeight] = [0,0]
-      for(let display of electron.screen.getAllDisplays()){
-        let {x,y,width,height }= display.bounds
-        maxWidth = Math.max(maxWidth,x+width)
-        maxHeight = Math.max(maxHeight,y+height)
+    } : {}
+
+    const winArg = {...opt,
+      ...winSetting,
+      title: 'Sushi Browser',
+      fullscreenable: isDarwin,
+      // A frame but no title bar and windows buttons in titlebar 10.10 OSX and up only?
+      titleBarStyle: 'hidden',
+      autoHideMenuBar: true,
+      frame: isDarwin,
+      show: false,
+      webPreferences: {
+        plugins: true,
+        sharedWorker: true,
+        nodeIntegration: false,
+        webSecurity: false,
+        allowFileAccessFromFileUrls: true,
+        allowUniversalAccessFromFileUrls: true,
+        // blinkFeatures:'ResizeObserver',
+        ...fontOpt
       }
-      if(winArg.x >= maxWidth) winArg.x = 100
-      if(winArg.y >= maxHeight) winArg.y = 100
+    }
+    let [maxWidth,maxHeight] = [0,0]
+    for(let display of electron.screen.getAllDisplays()){
+      let {x,y,width,height }= display.bounds
+      maxWidth = Math.max(maxWidth,x+width)
+      maxHeight = Math.max(maxHeight,y+height)
+    }
+    if(winArg.x >= maxWidth) winArg.x = 100
+    if(winArg.y >= maxHeight) winArg.y = 100
 
-      let getParam = ""
-      if(opt && opt.tabParam){
-        getParam = `?tabparam=${encodeURIComponent(opt.tabParam)}`
-        if(opt.dropX){
-          winArg.x = opt.dropX - (mainState.toggleNav == 1 && winArg.width ? Math.round(winArg.width / 3) : 0)
-          winArg.y = opt.dropY
-        }
-        else if(opt.x){
-          winArg.x = opt.dropX
-          winArg.y = opt.dropY
-
-        }
-        delete winArg.tabParam
-        mainState.alwaysOnTop = opt.alwaysOnTop
-        console.log(66,opt.alwaysOnTop,66)
-        console.log(opt,winArg)
+    let getParam = ""
+    if(opt && opt.tabParam){
+      getParam = `?tabparam=${encodeURIComponent(opt.tabParam)}`
+      if(opt.dropX){
+        winArg.x = opt.dropX - (mainState.toggleNav == 1 && winArg.width ? Math.round(winArg.width / 3) : 0)
+        winArg.y = opt.dropY
       }
+      else if(opt.x){
+        winArg.x = opt.x
+        winArg.y = opt.y
 
-      console.log(909,winArg)
-      if(!win){
-        winArg.width = winArg.width || setting.width
-        winArg.height = winArg.height || setting.height
-        initWindow = create(winArg)
-        initWindow.setMenuBarVisibility(true)
-        initWindow.loadURL(`chrome://brave/${path.join(__dirname, '../index.html').replace(/\\/g,"/")}${getParam}`)
-        // initWindow.webContents.openDevTools()
-        initWindow.webContents.once('did-finish-load', () => {
-          initWindow.show()
-          if(!initWindow.isMaximized()){
-            normalSize[initWindow.id] = initWindow.getBounds()
-          }
-          if(winArg.maximize) initWindow.maximize()
-        })
-
-        new (require('./Download'))(initWindow)
       }
-      else{
-        initWindow = win
-        win.setBounds({x: winArg.x, y: winArg.y, width: winArg.width || setting.width, height: winArg.height || setting.height})
-        win.setSkipTaskbar(false)
-        win.setTitle('Sushi Browser')
-        win.loadURL(`chrome://brave/${path.join(__dirname, '../index.html').replace(/\\/g,"/")}${getParam}`)
-        console.log(winArg,setting)
+      delete winArg.tabParam
+      mainState.alwaysOnTop = opt.alwaysOnTop
+      console.log(66,opt.alwaysOnTop,66)
+      console.log(opt,winArg)
+    }
 
-        win.webContents.once('did-finish-load', () => {
-          win.show()
-          if(winArg.maximize) win.maximize()
-        })
-      }
+    console.log(909,winArg)
+    if(!win){
+      winArg.width = winArg.width || setting.width
+      winArg.height = winArg.height || setting.height
+      initWindow = create(winArg)
+      initWindow.setMenuBarVisibility(true)
+      initWindow.loadURL(`chrome://brave/${path.join(__dirname, '../index.html').replace(/\\/g,"/")}${getParam}`)
       // initWindow.webContents.openDevTools()
-    })
+      initWindow.webContents.once('did-finish-load', () => {
+        initWindow.show()
+        if(!initWindow.isMaximized()){
+          normalSize[initWindow.id] = initWindow.getBounds()
+        }
+        if(winArg.maximize) initWindow.maximize()
+      })
 
-    // initWindow.loadURL(url.format({
-    //   pathname: path.join(__dirname, '../index.html'),
-    //   protocol: 'file:',
-    //   webPreferences: {
-    //     sharedWorker: true,
-    //     nodeIntegration: false,
-    //     partition: 'default',
-    //     webSecurity: false,
-    //     allowFileAccessFromFileUrls: true,
-    //     allowUniversalAccessFromFileUrls: true
-    //   },
-    //   slashes: true
-    // }))
+      new (require('./Download'))(initWindow)
+    }
+    else{
+      initWindow = win
+      win.setBounds({x: winArg.x, y: winArg.y, width: winArg.width || setting.width, height: winArg.height || setting.height})
+      win.setSkipTaskbar(false)
+      win.setTitle('Sushi Browser')
+      win.loadURL(`chrome://brave/${path.join(__dirname, '../index.html').replace(/\\/g,"/")}${getParam}`)
+      console.log(winArg,setting)
 
-    // global.rlog = (...args)=>{
-    //   const obj = {}
-    //   Error.captureStackTrace( obj, global.rlog );
-    //
-    //   if(Math.round(args[args.length -1]) === args[args.length -1] && args[args.length - 1] >= 2000){
-    //     setTimeout(()=>{
-    //         try{
-    //           if(!initWindow || !initWindow.webContents) return
-    //           initWindow.webContents.send("rlog",args)
-    //           initWindow.webContents.send("rlog",[obj.stack])
-    //         }catch(e){console.log(e)}
-    //       }
-    //       ,args[args.length -1])
-    //   }
-    //   else{
-    //     try{
-    //       if(!initWindow || !initWindow.webContents) return
-    //       initWindow.webContents.send("rlog",args)
-    //       initWindow.webContents.send("rlog",[obj.stack])
-    //     }catch(e){console.log(e)}
-    //   }
-    // }
-
+      win.webContents.once('did-finish-load', () => {
+        win.show()
+        if(winArg.maximize) win.maximize()
+      })
+    }
+    // initWindow.webContents.openDevTools()
     return initWindow
   }
 }

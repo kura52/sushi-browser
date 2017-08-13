@@ -75,10 +75,11 @@ function handler(table){
   }
 }
 
-const dummy = {insert:'',update:'',find_count:'',find:'',count:'',findOne:''}
+const dummy = {insert:'',update:'',find_count:'',find:'',count:'',findOne:'',remove:''}
 
 const db = new Proxy({
   get history(){return new Proxy(dummy, handler('history'))},
+  get searchEngine(){return new Proxy(dummy, handler('searchEngine'))},
   get favorite(){return new Proxy(dummy, handler('favorite'))},
   get download(){return new Proxy(dummy, handler('download'))},
   get state(){return new Proxy(dummy, handler('state'))},

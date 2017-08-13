@@ -2,7 +2,7 @@ import React,{Component} from 'react'
 import { Search, Modal } from 'semantic-ui-react'
 const uuid = require('node-uuid')
 const ipc = require('electron').ipcRenderer
-
+const urlutil = require('./urlutil')
 
 const convertUrlMap = new Map([
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html',''],
@@ -17,6 +17,11 @@ const convertUrlMap = new Map([
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html','chrome://download/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html','chrome://terminal/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html','chrome://settings/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general','chrome://settings#general'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search','chrome://settings#search'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs','chrome://settings#tabs'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#keyboard','chrome://settings#keyboard'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extension','chrome://settings#extension'],
 ])
 
 const convertUrlReg = /^chrome\-extension:\/\/dckpbojndfoinamcdamhkjhnjnmjkfjd\/(video|ace)\.html\?url=([^&]+)(&type=)?/
@@ -98,6 +103,11 @@ export default class SearchAnything extends Component{
     this.modalClose()
   }
 
+  searchPage(text){
+    ipc.send('search-page',text)
+    this.modalClose()
+  }
+
   handleResultSelect(e, result) {
     this.openPage(this.state.results.find(x=> x.title === result.title).url)
     this.resetComponent()
@@ -150,9 +160,17 @@ export default class SearchAnything extends Component{
         this.resetComponent()
         return
       }
-      const url = e.target.value.includes('://') ? e.target.value : `https://www.google.com/search?q=${e.target.value}`
-      this.canUpdate = true
-      this.openPage(url)
+      const input = e.target.value
+      if(urlutil.isURL(input)){
+        const url = urlutil.getUrlFromInput(input)
+        this.canUpdate = true
+        this.openPage(url)
+      }
+      else{
+        this.canUpdate = true
+        this.searchPage(input)
+      }
+
     }
   }
 

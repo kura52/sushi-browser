@@ -2,13 +2,16 @@ import {ipcMain,app,dialog,BrowserWindow,shell,webContents} from 'electron'
 import fs from 'fs'
 import sh from 'shelljs'
 import uuid from 'node-uuid'
-import {favorite} from './databaseFork'
+const {state,favorite} = require('./databaseFork')
+const db = require('./databaseFork')
+
 import path from 'path'
 const ytdl = require('ytdl-core')
 const youtubedl = require('youtube-dl')
 import {getFocusedWebContents} from './util'
 const isWin = process.platform == 'win32'
 const meiryo = isWin && Intl.NumberFormat().resolvedOptions().locale == 'ja'
+import mainState from './mainState'
 
 ipcMain.on('file-system',(event,key,method,arg)=>{
   if(!['stat','readdir','rename'].includes(method)) return
@@ -296,6 +299,11 @@ ipcMain.on('open-page',async (event,url)=>{
   if(cont) cont.hostWebContents.send('new-tab', cont.getId(), url)
 })
 
+ipcMain.on('search-page',async (event,text)=>{
+  const cont = await getFocusedWebContents()
+  if(cont) cont.hostWebContents.send('search-text', cont.getId(), text)
+})
+
 if(isWin){
   ipcMain.on('need-meiryo',e=>{
     e.sender.send('need-meiryo-reply',meiryo)
@@ -320,6 +328,49 @@ ipcMain.on("change-title",(e,title)=>{
       cont.send('get-focused-webContent',key)
     })
     bw.setTitle(`${title} - Sushi Browser`)
+  }
+})
+
+
+ipcMain.on('get-main-state',(e,names)=>{
+  e.sender.send('get-main-state-reply',names.split(" ").map(name=>mainState[name]))
+})
+
+
+ipcMain.on('save-state',async (e,{tableName,key,val})=>{
+  if(tableName == 'state'){
+    // if(key){
+    mainState[key] = val
+    state.update({ key: 1 }, { $set: {[key]: mainState[key]} }).then(_=>_)
+    // }
+    // else{
+    //   const saveState = {}
+    //   for(let key of Object.keys(settingDefault)){
+    //     if(key == 'toggleNav') continue
+    //     saveState[key] = mainState[key]
+    //   }
+    //   state.update({ key: 1 }, { $set: saveState }).then(_=>_)
+    // }
+  }
+  else{
+    if(tableName　== "searchEngine"){
+      const stateName = "searchProviders"
+      mainState[stateName] = {}
+      for(let ele of val){
+        mainState[stateName][ele.name] = ele
+      }
+    }
+    else{
+      mainState[tableName] = val
+    }
+
+    const table = db[tableName]
+    await table.remove({},{ multi: true })
+    table.insert(val).then(_=>_)
+  }
+
+  if(tableName == "searchEngine" || key == "searchEngine"){
+    e.sender.hostWebContents.send("update-search-engine")
   }
 })
 

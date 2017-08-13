@@ -53,7 +53,7 @@ const baseConfig = {
 
 const baseConfig2 = Object.assign({},baseConfig)
 delete baseConfig2.devtool
-delete baseConfig2.plugins
+// delete baseConfig2.plugins
 // delete baseConfig.plugins
 
 module.exports = [
@@ -69,4 +69,5 @@ module.exports = [
   // merge({fileName:"terminal.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
   // merge({fileName:"tabsSidebar.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
   // merge({fileName:"sync.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
+  merge({fileName:"settings.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
 ]

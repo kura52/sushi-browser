@@ -82,7 +82,7 @@ global.rlog = (...args)=>{
 let ptyProcessSet
 let passwordManager
 let extensionInfos
-app.on('ready', ()=>{
+app.on('ready', async ()=>{
   require('./captureEvent')
 
   const ses = session.defaultSession
@@ -125,14 +125,12 @@ app.on('ready', ()=>{
   passwordManager = require('./passwordManagerMain')
   require('./importer')
   require('./bookmarksExporter')
-  initPromise.then((setting)=> {
-    require('../brave/extension/extensions').init(setting.ver !== fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString())
-
-    require('./faviconsEvent')(_ => {
-      createWindow()
-      require('./menuSetting')
-      process.emit('app-initialized')
-    })
+  const setting = await initPromise
+  require('../brave/extension/extensions').init(setting.ver !== fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString())
+  require('./faviconsEvent')(_ => {
+    createWindow()
+    require('./menuSetting')
+    process.emit('app-initialized')
   })
 })
 
