@@ -7,7 +7,9 @@ const ReactDOM = require('react-dom')
 const {  Progress, Segment, Container, List, Menu, Input,Icon,Button } = require('semantic-ui-react')
 const { StickyContainer, Sticky } = require('react-sticky');
 const moment = require('moment')
+const l10n = require('../../brave/js/l10n')
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
+l10n.init()
 
 function downloadingItemReply(callback){
   ipc.on('download-progress', (event, item) => {
@@ -76,12 +78,12 @@ class TopMenu extends React.Component {
           <div>
             <Menu pointing secondary>
               <Menu.Item as='a' href={`${baseURL}/top.html`} key="top" name="Top"/>
-              <Menu.Item as='a' href={`${baseURL}/favorite.html`} key="favorite" name="Favorite"/>
-              <Menu.Item as='a' href={`${baseURL}/history.html`} key="history" name="History"/>
-              <Menu.Item key="download" name="Download" active={true}/>
+              <Menu.Item as='a' href={`${baseURL}/favorite.html`} key="favorite" name={l10n.translation('bookmarks')}/>
+              <Menu.Item as='a' href={`${baseURL}/history.html`} key="history" name={l10n.translation('history')}/>
+              <Menu.Item key="download" name={l10n.translation('downloads')} active={true}/>
               <Menu.Item as='a' href={`${baseURL}/explorer.html`} key="file-explorer" name="File Explorer"/>
               <Menu.Item as='a' href={`${baseURL}/terminal.html`} key="terminal" name="Terminal"/>
-              <Menu.Item as='a' href={`${baseURL}/settings.html`} key="settings" name="Settings"/>
+              <Menu.Item as='a' href={`${baseURL}/settings.html`} key="settings" name={l10n.translation('settings')}/>
               {/*<Menu.Item>*/}
                 {/*<Input ref='input' icon='search' placeholder='Search...' onChange={::this.onChange}/>*/}
               {/*</Menu.Item>*/}

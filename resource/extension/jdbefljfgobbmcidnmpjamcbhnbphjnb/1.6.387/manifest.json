@@ -38,5 +38,5 @@
       "managed_schema": "preferences_schema.json"
    },
    "version": "1.6.387",
-   "web_accessible_resources": [ "content/web/viewer.html" ]
+   "web_accessible_resources": [ "content/web/viewer.html","comicbed/index.html" ]
 }

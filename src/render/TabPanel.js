@@ -23,6 +23,9 @@ const mainState = remote.require('./mainState')
 const BrowserWindowPlus = remote.require('./BrowserWindowPlus')
 const moment = require('moment')
 const urlutil = require('./urlutil')
+const {messages,locale} = require('./localAndMessage')
+
+const canFlash = mainState.flash
 let searchProviders,spAliasMap
 updateSearchEngine();
 
@@ -42,12 +45,23 @@ const svg = `<svg version="1.1" id="loader-1" xmlns="http://www.w3.org/2000/svg"
       repeatCount="indefinite"/>
     </path>
   </svg>`
-const topURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html'
-const dUrl = topURL //'https://www.google.com/?gws_rd=ssl'
+
+let topURL
 const sidebarURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html'
 const blankURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html'
 const REG_VIDEO = /^https:\/\/www\.(youtube)\.com\/watch\?v=(.+)&?|^http:\/\/www\.(dailymotion)\.com\/video\/(.+)$|^https:\/\/(vimeo)\.com\/(\d+)$/
+let newTabMode = mainState.newTabMode
 
+function getNewTabPage(){
+  topURL = newTabMode == 'myHomepage' ? mainState.myHomepage : `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/${newTabMode}.html`
+}
+
+ipc.on('update-mainstate',(e,key,val)=>{
+  if(key == 'myHomepage' || key == 'newTabMode'){
+    getNewTabPage()
+  }
+})
+getNewTabPage()
 
 const convertUrlMap = new Map([
   ['about:blank','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html'],
@@ -205,6 +219,7 @@ let historyMap = new Map([
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html',['Terminal','resource/file.png']],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html',['History','resource/file.png']],
 ])
+
 export default class TabPanel extends Component {
   constructor(props) {
     super(props);
@@ -220,10 +235,10 @@ export default class TabPanel extends Component {
       const attachTabs = this.props.attach.data
       this.props.attach.delete()
       let tabs
-        tabs = attachTabs.map(tab=>{
-          // console.log(37,{c_page:tab.c_page,c_key:tab.c_key,privateMode:tab.privateMode,pin:tab.pin,wvId:tab.wvId,guestInstanceId: tab.guestInstanceId,rest:tab.rest})
-          return this.createTab({c_page:tab.c_page,privateMode:tab.privateMode,pin:tab.pin,guestInstanceId: tab.guestInstanceId,rest:tab.rest})
-        })
+      tabs = attachTabs.map(tab=>{
+        // console.log(37,{c_page:tab.c_page,c_key:tab.c_key,privateMode:tab.privateMode,pin:tab.pin,wvId:tab.wvId,guestInstanceId: tab.guestInstanceId,rest:tab.rest})
+        return this.createTab({c_page:tab.c_page,privateMode:tab.privateMode,pin:tab.pin,guestInstanceId: tab.guestInstanceId,rest:tab.rest})
+      })
 
       this.state = {tokens,
         oppositeGlobal: mainState.oppositeGlobal,
@@ -243,13 +258,16 @@ export default class TabPanel extends Component {
     else if(this.props.node[2] && this.props.node[2].length > 1){
       console.log('TabSplit')
       this.props.node.pop()
-      const index = this.props.node.pop()
+      const indexes = this.props.node.pop()
       const fromTabs = this.props.node.pop()
-      const tab = fromTabs[index]
+      const tabs = indexes.map(i=>{
+        const tab = fromTabs[i]
+        return this.createTab({c_page:tab.page,c_wv:tab.wv,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin
+          ,rest:{wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,mobile:tab.mobile,adBlockThis:tab.adBlockThis}})
+      })
       this.state = {tokens,
         oppositeGlobal: mainState.oppositeGlobal,
-        tabs: [this.createTab({c_page:tab.page,c_wv:tab.wv,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin
-          ,rest:{wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,mobile:tab.mobile,adBlockThis:tab.adBlockThis}})],
+        tabs,
         tabBar:props.k.match(/^fixed-bottom/) ? 1 : props.k.match(/^fixed-(left|right)/) ? 0 :(void 0),
         prevAddKeyCount: [null,[]],
         notifications: [],
@@ -307,7 +325,7 @@ export default class TabPanel extends Component {
       console.log('RestoreTab',this.props.child)
       const restoreTabs = this.props.child
       const tabs = []
-      const keepTabs = mainState.keepTabs
+      const keepTabs = mainState.startsWith == 'startsWithOptionLastTime'
       let forceKeep = false
       for(let tab of restoreTabs){
         console.log(544,tab)
@@ -460,7 +478,7 @@ export default class TabPanel extends Component {
     })
 
 
-    const tokenCloseTab = PubSub.subscribe(`close_tab_${this.props.k}`, (msg,{key,selectedTab})=> {
+    const tokenCloseTab = PubSub.subscribe(`close_tab_${this.props.k}`, (msg,{key,selectedTab,isUpdateState=true})=> {
       if (!this.mounted) return
       const _tabs = this.state.tabs
       const i = this.state.tabs.findIndex(x => x.key == key)
@@ -477,12 +495,14 @@ export default class TabPanel extends Component {
       else{
         this.addCloseTabHistory({}, i)
         this.state.tabs.splice(i, 1)
-        console.log("selected02",selectedTab || this.getPrevSelectedTab(key,_tabs,i))
-        this.setState({
-          tabs: _tabs,
-          // selectedTab: _tabs.length > i ? _tabs[i].key : _tabs.length > 0 ? _tabs[i - 1].key : null
-          selectedTab: selectedTab || this.getPrevSelectedTab(key,_tabs,i)
-        });
+        if(isUpdateState){
+          console.log("selected02",selectedTab || this.getPrevSelectedTab(key,_tabs,i))
+          this.setState({
+            tabs: _tabs,
+            // selectedTab: _tabs.length > i ? _tabs[i].key : _tabs.length > 0 ? _tabs[i - 1].key : null
+            selectedTab: selectedTab || this.getPrevSelectedTab(key,_tabs,i)
+          });
+        }
       }
     })
 
@@ -585,7 +605,10 @@ export default class TabPanel extends Component {
       return false
     }
     else if (page.navUrl.endsWith('.pdf') || page.navUrl.endsWith('.PDF')) {
-      navigateTo(`chrome-extension://jdbefljfgobbmcidnmpjamcbhnbphjnb/content/web/viewer.html?file=${encodeURIComponent(page.navUrl)}`)
+      const url = mainState.pdfMode == "normal" ?
+        `chrome-extension://jdbefljfgobbmcidnmpjamcbhnbphjnb/content/web/viewer.html?file=${encodeURIComponent(page.navUrl)}` :
+        `chrome-extension://jdbefljfgobbmcidnmpjamcbhnbphjnb/comicbed/index.html#?url=${encodeURIComponent(page.navUrl)}`
+      navigateTo(url)
       return true
     }
     else if(page.navUrl.split("?").slice(-2)[0].match(/\.(3gp|3gpp|3gpp2|asf|avi|dv|flv|m2t|m4v|mkv|mov|mp4|mpeg|mpg|mts|oggtheora|ogv|rm|ts|vob|webm|wmv|aac|m4a|mp3|oga|wav)$/)){
@@ -594,6 +617,11 @@ export default class TabPanel extends Component {
     }
     else if (this.props.htmlContentSet.has(page.navUrl)){
       return false
+    }
+    else if(page.navUrl.match(/^file:.+?\.(zip|rar)$/)){
+      const url = `chrome-extension://jdbefljfgobbmcidnmpjamcbhnbphjnb/comicbed/index.html#?url=${encodeURIComponent(page.navUrl)}`
+      navigateTo(url)
+      return true
     }
     else if (page.navUrl.match(/^file:.+?\.(abap|abc|as|ada|adb|htaccess|htgroups|htpasswd|conf|htaccess|htgroups|htpasswd|asciidoc|adoc|asm|a|ahk|bat|cmd|bro|cpp|c|cc|cxx|h|hh|hpp|ino|c9search_results|cirru|cr|clj|cljs|CBL|COB|coffee|cf|cson|Cakefile|cfm|cs|css|curly|d|di|dart|diff|patch|Dockerfile|dot|drl|dummy|dummy|e|ge|ejs|ex|exs|elm|erl|hrl|frt|fs|ldr|fth|4th|f|f90|ftl|gcode|feature|.gitignore|glsl|frag|vert|gbs|go|groovy|haml|hbs|handlebars|tpl|mustache|hs|cabal|hx|htm|html|hjson|xhtml|eex|html.eex|erb|rhtml|html.erb|ini|conf|cfg|prefs|io|jack|jade|pug|java|js|jsm|jsx|json|jq|jsx|jl|kt|kts|tex|latex|ltx|bib|less|liquid|lisp|ls|logic|log|lql|lsl|lua|lp|lucene|Makefile|md|GNUmakefile|makefile|OCamlMakefile|make|markdown|mask|matlab|mz|mel|mc|mush|mysql|nix|nsi|nsh|m|mm|ml|mli|pas|p|pl|pm|pgsql|php|phtml|shtml|php3|php4|php5|phps|phpt|aw|ctp|module|ps1|praat|praatscript|psc|proc|plg|prolog|properties|proto|py|r|cshtml|asp|Rd|Rhtml|rst|rb|ru|gemspec|rake|Guardfile|Rakefile|Gemfile|rs|sass|scad|scala|scm|sm|rkt|oak|scheme|scss|sh|bash|.bashrc|sjs|smarty|tpl|snippets|soy|space|sql|sqlserver|styl|stylus|svg|swift|tcl|tex|txt|textile|toml|tsx|twig|swig|ts|typescript|str|vala|vbs|vb|vm|v|vh|sv|svh|vhd|vhdl|wlk|wpgm|wtest|xml|rdf|rss|wsdl|xslt|atom|mathml|mml|xul|xbl|xaml|xq|yaml|yml)$/) ||
       page.navUrl.match(/\/[^\?=]+?\.(abap|abc|as|ada|adb|htaccess|htgroups|htpasswd|conf|htaccess|htgroups|htpasswd|asciidoc|adoc|asm|a|ahk|bat|cmd|bro|cpp|c|cc|cxx|h|hh|hpp|ino|c9search_results|cirru|cr|clj|cljs|CBL|COB|coffee|cf|cson|Cakefile|cfm|cs|css|curly|d|di|dart|diff|patch|Dockerfile|dot|drl|dummy|dummy|e|ge|ejs|ex|exs|elm|erl|hrl|frt|fs|ldr|fth|4th|f|f90|ftl|gcode|feature|.gitignore|glsl|frag|vert|gbs|go|groovy|hbs|handlebars|tpl|mustache|hs|cabal|hx|hjson|eex|ini|conf|cfg|prefs|io|jack|jade|pug|java|js|jsm|jsx|json|jq|jsx|jl|kt|kts|tex|latex|ltx|bib|less|liquid|lisp|ls|logic|lql|lsl|lua|lp|lucene|Makefile|md|GNUmakefile|makefile|OCamlMakefile|make|markdown|mask|matlab|mz|mel|mc|mush|mysql|nix|nsi|nsh|m|mm|ml|mli|pas|p|pl|pm|pgsql|phps|phpt|aw|ctp|module|ps1|praat|praatscript|psc|proc|plg|prolog|properties|proto|py|r|cshtml|Rd|Rhtml|rst|rb|ru|gemspec|rake|Guardfile|Rakefile|Gemfile|rs|sass|scad|scala|scm|sm|rkt|oak|scheme|scss|sh|bash|.bashrc|sjs|smarty|tpl|snippets|soy|space|sql|sqlserver|styl|stylus|svg|swift|tcl|tex|txt|textile|toml|tsx|twig|swig|ts|typescript|str|vala|vbs|vb|vm|v|vh|sv|svh|vhd|vhdl|wlk|wpgm|wtest|wsdl|xslt|atom|mathml|mml|xul|xbl|xaml|xq|yaml|yml)$/)) {
@@ -646,25 +674,25 @@ export default class TabPanel extends Component {
   locationContextMenu(el, tab, newPage, self, navigateTo) {
     const menuItems = []
     menuItems.push(({
-      label: 'Copy', click: function () {
-        clipboard.writeText(el.value.slice(el.selectionStart, el.selectionEnd))
-      }
-    }))
-    menuItems.push(({
-      label: 'Cut', click: function () {
+      label: locale.translation("cut"), click: function () {
         clipboard.writeText(el.value.slice(el.selectionStart, el.selectionEnd))
         el.value = el.value.slice(0, el.selectionStart) + el.value.slice(el.selectionEnd)
         // self.setState({})
       }
     }))
     menuItems.push(({
-      label: 'Paste', click: function () {
+      label: locale.translation("copy"), click: function () {
+        clipboard.writeText(el.value.slice(el.selectionStart, el.selectionEnd))
+      }
+    }))
+    menuItems.push(({
+      label: locale.translation("paste"), click: function () {
         el.value = el.value.slice(0, el.selectionStart) + clipboard.readText() + el.value.slice(el.selectionEnd)
         // self.setState({})
       }
     }))
     menuItems.push(({
-      label: 'Paste and Go', click: function () {
+      label: locale.translation("pasteAndGo"), click: function () {
         var location = clipboard.readText()
         if(urlutil.isURL(location)){
           const url = urlutil.getUrlFromInput(location)
@@ -857,12 +885,11 @@ export default class TabPanel extends Component {
         console.log('onDomReady',e,tab,Date.now())
         if (!self.mounted) return
 
-        console.log(mainState.flash)
+        console.log(canFlash)
         console.log(mainState,mainState.a)
         console.log(tab.wv,tab.wvId,guestIds.tabId,tab.e&&tab.e.tabId,tab.e,e)
         const cont = self.getWebContents(tab)
 
-        let canFlash = mainState.flash
         if(canFlash) cont.authorizePlugin(canFlash)
 
 
@@ -1161,6 +1188,17 @@ export default class TabPanel extends Component {
       }
     }
     ipc.on('new-tab-opposite', tab.events['new-tab-opposite'])
+
+    tab.events['meun-or-key-events'] = (e, name, id, args)=> {
+      if (!this.mounted) return
+      if (!tab.wvId || id !== tab.wvId) return
+
+      if(name == 'close-tab'){
+        this.handleTabClose({},tab.key)
+      }
+
+    }
+    ipc.on('meun-or-key-events', tab.events['meun-or-key-events'])
 
     // tab.wv._getId = tab.wv.getId
     // tab.wv.getId = function(){
@@ -1832,7 +1870,7 @@ export default class TabPanel extends Component {
     }
   }
 
-  handleTabClose(e, key) {
+  handleTabClose(e, key,isUpdateState=true) {
     if (!this.mounted) return
     console.log('tabClosed key:', key);
     const i = this.state.tabs.findIndex((x)=> x.key == key)
@@ -1859,10 +1897,35 @@ export default class TabPanel extends Component {
 
     if (!this.mounted) return
     console.log("selected06",this.state.selectedTab !== key ? this.state.selectedTab : this.getPrevSelectedTab(key,_tabs,i))
-    this.setState({tabs:_tabs,
-      selectedTab: this.state.selectedTab !== key ? this.state.selectedTab : this.getPrevSelectedTab(key,_tabs,i)
-      // selectedTab: _tabs.length > i ? _tabs[i].key : _tabs.length > 0 ? _tabs[i-1].key : null
-    } );
+
+    if(isUpdateState){
+      this.setState({tabs:_tabs,
+        selectedTab: this.state.selectedTab !== key ? this.state.selectedTab : this.getPrevSelectedTab(key,_tabs,i)
+        // selectedTab: _tabs.length > i ? _tabs[i].key : _tabs.length > 0 ? _tabs[i-1].key : null
+      } )
+    }
+  }
+
+  closeOtherTabs(key){
+    let arr = []
+    for(let tab of this.state.tabs){
+      if(tab.key != key) arr.push(tab.key)
+    }
+    arr.forEach((key,i)=> this.handleTabClose({}, key, i == arr.length - 1))
+  }
+
+  closeRightTabs(key){
+    let arr = []
+    let isAppear = false
+    for(let tab of this.state.tabs){
+      if(isAppear && tab.key != key){
+        arr.push(tab.key)
+      }
+      else if(tab.key == key){
+        isAppear = true
+      }
+    }
+    arr.forEach((t,i)=> this.handleTabClose({}, t, i == arr.length - 1))
   }
 
   addCloseTabHistory(e, i) {
@@ -1969,38 +2032,43 @@ export default class TabPanel extends Component {
     const t = _tabs[i]
     var menuItems = []
     // menuItems.push(({ label: 'New Tab', click: ()=>document.querySelector(".rdTabAddButton").click()}))
-    menuItems.push(({ label: 'New Tab', click: ()=>this.createNewTab(_tabs, i)}))
-    menuItems.push(({ label: 'New Private Tab', click: ()=>this.createNewTab(_tabs, i,{default_url:dUrl,privateMode:Math.random().toString()})}))
-
-    menuItems.push(({ label: 'Duplicate', click: ()=> {
-      // const n_tab = this.createTab({default_url:t.page.location})
-      // _tabs.splice(i + 1, 0,n_tab )
-      // this.focus_webview(n_tab)
-      // this.setState({selectedTab: n_tab.key})
-      ipc.send("set-recent-url",t.page.navUrl)
-      this.getWebContents(t).clone()
-    } }))
-
-    if(this.state.history.length > 0){
-      menuItems.push(({ label: 'Restore Closed Tab', click: ()=> {
-        const hist = this.state.history.pop()
-        const n_tab = this.createTab({default_url:hist.list[hist.currentIndex],hist})
-        _tabs.splice(i + 1, 0, n_tab )
-        console.log("selected12",n_tab.key)
-        this.setState({selectedTab: n_tab.key})
-        this.focus_webview(n_tab)
-      } }))
-    }
-    menuItems.push(({ label: t.pin ? 'Unpin tab' : 'Pin Tab', click: ()=> {t.pin = !t.pin;this.setState({})}}))
+    menuItems.push(({ label: locale.translation('newTab'), click: ()=>this.createNewTab(_tabs, i)}))
+    menuItems.push(({ label: locale.translation('newPrivateTab'), click: ()=>this.createNewTab(_tabs, i,{default_url:topURL,privateMode:Math.random().toString()})}))
     menuItems.push(({ type: 'separator' }))
+
+    // menuItems.push(({ label: locale.translation('reload'), click: ()=>this.getWebContents(t).reload()}))
 
     const splitFunc = (dirc,pos)=> {
       if(_tabs.length > 1) {
         this.props.split(this.props.k,dirc,pos,_tabs,i)
+        this.handleTabClose({}, key)
         PubSub.publish(`close_tab_${this.props.k}`,{key})
       }
       else{
         this.props.split(this.props.k, dirc, pos * -1)
+      }
+    }
+
+    const splitOtherTabsFunc = (dirc,pos)=> {
+      const arr = []
+      const indexes = []
+      let isAppear = false
+      this.state.tabs.forEach((tab,i)=>{
+        if((pos == -1 && !isAppear && tab.key != key)||
+          (pos == 1 && isAppear && tab.key != key)){
+          arr.push(tab.key)
+          indexes.push(i)
+        }
+        else if(tab.key == key){
+          isAppear = true
+        }
+      })
+
+      if(_tabs.length > 1) {
+        this.props.split(this.props.k,dirc,pos,_tabs,indexes)
+        arr.forEach((key,i)=> {
+          PubSub.publish(`close_tab_${this.props.k}`,{key,isUpdateState:i == arr.length - 1})
+        })
       }
     }
 
@@ -2025,8 +2093,10 @@ export default class TabPanel extends Component {
       menuItems.push(({ label: 'Split Right', click: splitFunc.bind(this,'v',1) }))
       menuItems.push(({ label: 'Split Top', click: splitFunc.bind(this,'h',-1) }))
       menuItems.push(({ label: 'Split Bottom', click: splitFunc.bind(this,'h',1) }))
-      menuItems.push(({ type: 'separator' }))
     }
+    menuItems.push(({ type: 'separator' }))
+    // menuItems.push(({ label: 'Split Left Tabs to Left', click: splitOtherTabsFunc.bind(this,'v',-1) }))
+    menuItems.push(({ label: 'Split right tabs to right', click: splitOtherTabsFunc.bind(this,'v',1) }))
     menuItems.push(({ label: 'Floating Panel', click: _=>detachToFloatPanel() }))
     menuItems.push(({ type: 'separator' }))
     if(!this.isFixed){
@@ -2037,13 +2107,49 @@ export default class TabPanel extends Component {
       menuItems.push(({ label: 'Align Vertical', click: ()=> { PubSub.publish('align','v')} }))
       menuItems.push(({ type: 'separator' }))
     }
-    menuItems.push(({ label: 'Add pages to Favorites', click: ::this.onAddFavorites }))
-    menuItems.push(({ label: 'Close All Tabs', click: ()=> {
+
+    menuItems.push(({ label: locale.translation('3007771295016901659'), //'Duplicate',
+      click: ()=> {
+        // const n_tab = this.createTab({default_url:t.page.location})
+        // _tabs.splice(i + 1, 0,n_tab )
+        // this.focus_webview(n_tab)
+        // this.setState({selectedTab: n_tab.key})
+        ipc.send("set-recent-url",t.page.navUrl)
+        this.getWebContents(t).clone()
+      } }))
+
+    menuItems.push(({ label: t.pin ? locale.translation('unpinTab') : locale.translation('pinTab'), click: ()=> {t.pin = !t.pin;this.setState({})}}))
+    menuItems.push(({ type: 'separator' }))
+
+    // menuItems.push(({ label: locale.translation('3551320343578183772'), //close tab
+    //   click: ()=> this.handleTabClose({}, key)}))
+
+    menuItems.push(({ label: 'Close all Tabs', click: ()=> {
       // console.log(this)
       this.props.close(this.props.k)
       this.TabPanelClose()
     } }))
+
+    menuItems.push(({ label: locale.translation('closeOtherTabs'), click: ()=> this.closeOtherTabs(key)}))
+    menuItems.push(({ label: locale.translation('closeTabsToRight'), click: ()=> this.closeRightTabs(key)}))
+
+
+    menuItems.push(({ type: 'separator' }))
+
+    if(this.state.history.length > 0){
+      menuItems.push(({ label: locale.translation('reopenLastClosedTab'), click: ()=> {
+        const hist = this.state.history.pop()
+        const n_tab = this.createTab({default_url:hist.list[hist.currentIndex],hist})
+        _tabs.splice(i + 1, 0, n_tab )
+        console.log("selected12",n_tab.key)
+        this.setState({selectedTab: n_tab.key})
+        this.focus_webview(n_tab)
+      } }))
+    }
+    menuItems.push(({ label: locale.translation('5078638979202084724'),//'Add pages to Favorites',
+      click: ::this.onAddFavorites }))
     let menu = Menu.buildFromTemplate(menuItems)
+
     menu.popup(remote.getCurrentWindow())
   }
 
@@ -2355,11 +2461,11 @@ export default class TabPanel extends Component {
   }
 
   search(tab, text, checkOpposite){
-    const splitText = text.split(/[ \t]+/,2)
+    const splitText = text.match(/^(.+?)([\t ]+)(.+)$/)
     let engine = mainState.searchEngine
-    if(spAliasMap.has(splitText[0])){
-      engine = spAliasMap.get((splitText[0]))
-      text = splitText[1]
+    if(splitText && spAliasMap.has(splitText[1])){
+      engine = spAliasMap.get((splitText[1]))
+      text = splitText[3]
     }
 
     let searchMethod = searchProviders[engine]
@@ -2370,14 +2476,14 @@ export default class TabPanel extends Component {
     const urls = searchs.map(engine=> searchProviders[engine].search.replace('%s',text))
 
     if(searchMethod.type == 'basic' || searchMethod.type == 'two'){
-      this.searchBasic(tab,urls,checkOpposite,searchMethod.type)
+      this.searchSameWindow(tab,urls,checkOpposite,searchMethod.type)
     }
     else{
-      BrowserWindowPlus.load({id:remote.getCurrentWindow().id,tabParam:JSON.stringify({urls,type:searchMethod.type})})
+      BrowserWindowPlus.load({id:remote.getCurrentWindow().id,sameSize:true,tabParam:JSON.stringify({urls,type:searchMethod.type})})
     }
   }
 
-  searchBasic(tab, urls, checkOpposite, type){
+  searchSameWindow(tab, urls, checkOpposite, type){
     let i = 0
     for(let url of urls) {
       const isFirst = i === 0 || (i === 1 && type == 'two')

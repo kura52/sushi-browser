@@ -8,7 +8,10 @@ const ReactDOM = require('react-dom')
 const { Container, List, Menu, Input } = require('semantic-ui-react')
 const { StickyContainer, Sticky } = require('react-sticky');
 const moment = require('moment')
+const l10n = require('../../brave/js/l10n')
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
+l10n.init()
+
 
 
 const convertUrlMap = new Map([
@@ -33,6 +36,7 @@ const convertUrlMap = new Map([
 
 const convertUrlReg = /^chrome\-extension:\/\/dckpbojndfoinamcdamhkjhnjnmjkfjd\/(video|ace)\.html\?url=([^&]+)/
 const convertUrlPdfReg = /^chrome\-extension:\/\/jdbefljfgobbmcidnmpjamcbhnbphjnb\/content\/web\/viewer\.html\?file=(.+?)$/
+const convertUrlPdfReg2 = /^chrome\-extension:\/\/jdbefljfgobbmcidnmpjamcbhnbphjnb\/comicbed\/index\.html#\?url=(.+?)$/
 
 function convertURL(url){
   if(!url) return
@@ -45,7 +49,7 @@ function convertURL(url){
     if(match){
       return decodeURIComponent(match[2])
     }
-    else if(matchPdf = url.match(convertUrlPdfReg)){
+    else if(matchPdf = (url.match(convertUrlPdfReg) || url.match(convertUrlPdfReg2))){
       return decodeURIComponent(matchPdf[1])
     }
     return url
@@ -154,10 +158,11 @@ class TopMenu extends React.Component {
                 marginLeft: 20,
                 paddingLeft: 30
               }}/>
-              <Menu.Item as='a' href={`${baseURL}/favorite.html`} key="favorite" name="Favorite"/>
-              {/*<Menu.Item as='a' href={`${baseURL}/download.html`} key="download" name="Download"/>*/}
+              <Menu.Item as='a' href={`${baseURL}/favorite.html`} key="favorite" name={l10n.translation('bookmarks')}/>
+              <Menu.Item as='a' href={`${baseURL}/download.html`} key="download" name={l10n.translation('downloads')}/>
               <Menu.Item as='a' href={`${baseURL}/explorer.html`} key="file-explorer" name="File Explorer"/>
               <Menu.Item as='a' href={`${baseURL}/terminal.html`} key="terminal" name="Terminal"/>
+              <Menu.Item as='a' href={`${baseURL}/settings.html`} key="settings" name={l10n.translation('settings')}/>
               <Menu.Menu position='right'>
                 <Menu.Item>
                   <Input ref='input' icon='search' placeholder='Search...' onChange={::this.onChange}/>

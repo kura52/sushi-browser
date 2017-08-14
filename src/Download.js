@@ -73,7 +73,7 @@ export default class Download {
           this.downloadReady(item, url, webContents,win)
           return
         }
-        else if(mainState.downloadNum == 0){
+        else if(mainState.downloadNum == 1){
           this.downloadReady(item, url, webContents,win)
           return
         }

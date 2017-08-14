@@ -155,7 +155,9 @@ class Tabs extends React.Component {
     this.tokenResize = PubSub.subscribe("resize",update)
 
     this.bindShortcuts();
-    this.refs.ttab.addEventListener('wheel',::this.handleWheel,{passive: true})
+
+    if(mainState.scrollTab)
+      this.refs.ttab.addEventListener('wheel',::this.handleWheel,{passive: true})
     // this.addDropEvent();
 
     this.token = PubSub.subscribe('tab-move',(msg,k)=>{

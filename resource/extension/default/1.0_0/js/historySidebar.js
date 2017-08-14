@@ -78662,7 +78662,7 @@ var Dropdown = function (_Component) {
       e.stopPropagation();
       // prevent closeOnDocumentClick() if multiple or item is disabled
       if (multiple || item.disabled) {
-        e.nativeEvent.stopImmediatePropagation();
+        ((e.nativeEvent || e) || e).stopImmediatePropagation();
       }
 
       if (item.disabled) return;
@@ -81321,7 +81321,7 @@ var Search = function (_Component) {
       debug('handleInputClick()', e);
 
       // prevent closeOnDocumentClick()
-      e.nativeEvent.stopImmediatePropagation();
+      ((e.nativeEvent || e) || e).stopImmediatePropagation();
 
       _this.tryOpen();
     }, _this.handleItemClick = function (e, _ref2) {
@@ -81332,7 +81332,7 @@ var Search = function (_Component) {
       var result = _this.getSelectedResult(id);
 
       // prevent closeOnDocumentClick()
-      e.nativeEvent.stopImmediatePropagation();
+      ((e.nativeEvent || e) || e).stopImmediatePropagation();
 
       // notify the onResultSelect prop that the user is trying to change value
       _this.setValue(result.title);

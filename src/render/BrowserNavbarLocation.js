@@ -29,21 +29,23 @@ const convertUrlMap = new Map([
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extension','chrome://settings#extension'],
 ])
 
-const convertUrlReg = /^chrome\-extension:\/\/dckpbojndfoinamcdamhkjhnjnmjkfjd\/(video|ace)\.html\?url=([^&]+)(&type=)?/
+
+const convertUrlReg = /^chrome\-extension:\/\/dckpbojndfoinamcdamhkjhnjnmjkfjd\/(video|ace)\.html\?url=([^&]+)/
 const convertUrlPdfReg = /^chrome\-extension:\/\/jdbefljfgobbmcidnmpjamcbhnbphjnb\/content\/web\/viewer\.html\?file=(.+?)$/
+const convertUrlPdfReg2 = /^chrome\-extension:\/\/jdbefljfgobbmcidnmpjamcbhnbphjnb\/comicbed\/index\.html#\?url=(.+?)$/
 
 function convertURL(url){
+  if(!url) return
   if(convertUrlMap.has(url)){
     return convertUrlMap.get(url)
   }
   else{
-    console.log(url)
     const match = url.match(convertUrlReg)
     let matchPdf
     if(match){
       return decodeURIComponent(match[2])
     }
-    else if(matchPdf = url.match(convertUrlPdfReg)){
+    else if(matchPdf = (url.match(convertUrlPdfReg) || url.match(convertUrlPdfReg2))){
       return decodeURIComponent(matchPdf[1])
     }
     return url
@@ -58,6 +60,7 @@ export default class BrowserNavbarLocation extends Component {
   constructor(props) {
     super(props)
     this.keyEvent = ::this.keyEvent
+    this.keyEvent2 = this.keyEvent.bind(this,{channel: 'navbar-search'})
     this.isFloat = isFloatPanel(this.props.k)
   }
 
@@ -73,10 +76,16 @@ export default class BrowserNavbarLocation extends Component {
   }
 
   componentDidMount() {
+    ipc.on('focus-location-bar',this.keyEvent2)
     if(this.props.wv){
       this.input = ReactDOM.findDOMNode(this.refs.input).querySelector("input")
       this.addEvent(this.props)
     }
+  }
+
+  componentWillUnmount() {
+    PubSub.unsubscribe(this.token)
+    ipc.removeListener('focus-location-bar',this.keyEvent2)
   }
 
   addEvent(props) {

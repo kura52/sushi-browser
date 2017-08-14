@@ -10,6 +10,7 @@ import {settingDefault} from '../resource/defaultValue'
 const uuid = require("node-uuid")
 const isDarwin = process.platform === 'darwin'
 const lang = Intl.NumberFormat().resolvedOptions().locale
+const locale = require('../brave/app/locale')
 
 const normalSize = {}
 let saved = false
@@ -143,14 +144,21 @@ function create(args){
   return bw
 }
 
+function getNewPopBounds(bw){
+  const bounds = bw.getBounds()
+  bounds.x += 5
+  bounds.y += 5
+  return bounds
+}
+
 function getSize(opt){
   if(opt.x !== (void 0)){
     return {x:opt.x,y:opt.y,width:opt.width,height:opt.height, maximize: false}
   }
   else{
     const bw = BrowserWindow.fromId(opt.id)
-    const maximize = false //bw.isMaximized()
-    const bounds = normalSize[bw.id] //maximize ? normalSize[bw.id] : bw.getBounds()
+    const maximize = opt.sameSize ? bw.isMaximized() : false
+    const bounds = opt.sameSize ? maximize ? normalSize[bw.id] : getNewPopBounds(bw) : normalSize[bw.id]
     return {...bounds,maximize}
   }
 }
@@ -168,6 +176,13 @@ export default {
       for(let [key,dVal] of Object.entries(settingDefault)){
         setOptionVal(key,dVal,setting[key])
       }
+
+      if(mainState.language == 'default'){
+        mainState.language = locale.defaultLocale()
+      }
+      locale.init(mainState.language).then(locale => app.setLocale(locale))
+
+
       mainState.dragData = null
 
       mainState.searchProviders = {}

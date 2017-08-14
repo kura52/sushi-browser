@@ -119,7 +119,7 @@ export default class SplitWindows extends Component{
         }
       }
       else{
-        if(attach.type == "new-win"){
+        if(attach.type == 'new-win'){
           console.log(3333,{key: getUuid(),tabs: attach.urls.map(url=>{return {pin:false,tabKey:uuid.v4(),url}})})
           winState = this.parseRestoreDate({dirc: "v",size: '100%',l: {key: getUuid(),tabs: attach.urls.map(url=>{return {forceKeep:true,pin:false,tabKey:uuid.v4(),url}})},
           r: null,key:uuid.v4(),toggleNav: mainState.toggleNav || 0},{})
@@ -142,7 +142,7 @@ export default class SplitWindows extends Component{
             }
           }
 
-          const divide = attach.type == "one-line" ? 1 : attach.type == "two-line" ? 2 : 3
+          const divide = attach.type == "one-row" ? 1 : attach.type == "two-row" ? 2 : 3
           if(attach.urls.length < divide){
             attach.urls = attach.urls.concat(attach.urls).concat(attach.urls).slice(0,divide)
           }
@@ -631,23 +631,23 @@ export default class SplitWindows extends Component{
     return obj
   }
 
-  _split(node,key,direction,pos,tabs,index,params){
+  _split(node,key,direction,pos,tabs,indexes,params){
     let flag = false
     if(!Array.isArray(node.l) && node.l instanceof Object){
-      flag = this._split(node.l,key,direction,pos,tabs,index,params)
+      flag = this._split(node.l,key,direction,pos,tabs,indexes,params)
       if(flag) return flag
     }
     else{
       if(node.l[0] == key){
         if(node.p || node.r) {
           console.log("add right")
-          node.l = pos == 1 ? {dirc: direction, size: '50%', l: node.l, r: [getUuid(), [], tabs, index,params], p: node, pd: "l",key:uuid.v4()} :
-            {dirc: direction, size: '50%', l:[getUuid(), [], tabs, index,params] , r: node.l, p: node, pd: "l",key:uuid.v4()}
+          node.l = pos == 1 ? {dirc: direction, size: '50%', l: node.l, r: [getUuid(), [], tabs, indexes,params], p: node, pd: "l",key:uuid.v4()} :
+            {dirc: direction, size: '50%', l:[getUuid(), [], tabs, indexes,params] , r: node.l, p: node, pd: "l",key:uuid.v4()}
         }
         else{
           console.log("update right")
-          Object.assign(node,pos == 1 ? {dirc: direction, size: '50%', l: node.l, r: [getUuid(), [], tabs, index,params], p: null} :
-            {dirc: direction, size: '50%', l: [getUuid(), [], tabs, index,params], r:node.l , p: null})
+          Object.assign(node,pos == 1 ? {dirc: direction, size: '50%', l: node.l, r: [getUuid(), [], tabs, indexes,params], p: null} :
+            {dirc: direction, size: '50%', l: [getUuid(), [], tabs, indexes,params], r:node.l , p: null})
           console.log(node)
         }
         this.setState({})
@@ -658,20 +658,20 @@ export default class SplitWindows extends Component{
     }
 
     if(!Array.isArray(node.r) && node.r instanceof Object){
-      flag = this._split(node.r,key,direction,pos,tabs,index,params)
+      flag = this._split(node.r,key,direction,pos,tabs,indexes,params)
       if(flag) return flag
     }
     else {
       if(node.r[0] == key){
         if(node.p || node.l) {
           console.log("add left")
-          node.r = pos == 1 ? {dirc: direction, size: '50%', l: node.r, r: [getUuid(), [], tabs, index,params], p: node, pd: "r",key:uuid.v4()} :
-            {dirc: direction, size: '50%', l:[getUuid(), [], tabs, index,params], r:node.r , p: node, pd: "r",key:uuid.v4()}
+          node.r = pos == 1 ? {dirc: direction, size: '50%', l: node.r, r: [getUuid(), [], tabs, indexes,params], p: node, pd: "r",key:uuid.v4()} :
+            {dirc: direction, size: '50%', l:[getUuid(), [], tabs, indexes,params], r:node.r , p: node, pd: "r",key:uuid.v4()}
         }
         else{
           console.log("update left")
-          Object.assign(node,pos == 1 ? {dirc: direction, size: '50%', l: [getUuid(), [], tabs, index,params], r: node.r, p: null} :
-            {dirc: direction, size: '50%', l: node.r, r:[getUuid(), [], tabs, index,params] , p: null})
+          Object.assign(node,pos == 1 ? {dirc: direction, size: '50%', l: [getUuid(), [], tabs, indexes,params], r: node.r, p: null} :
+            {dirc: direction, size: '50%', l: node.r, r:[getUuid(), [], tabs, indexes,params] , p: null})
         }
         this.setState({})
         PubSub.publish("resize")
@@ -683,6 +683,7 @@ export default class SplitWindows extends Component{
   }
 
   split(key,direction,pos,tabs,index,params){
+    if(!Array.isArray(index)) index = [index]
     this._split(this.state.root,key,direction,pos,tabs,index,params)
     console.log(this.state.root)
   }

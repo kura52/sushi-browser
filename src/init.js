@@ -2,6 +2,7 @@ import { app, Menu, clipboard, BrowserWindow, ipcMain, session,webContents } fro
 // import ExtensionsMain from './extension/ExtensionsMain'
 import PubSub from './render/pubsub'
 import mainState from './mainState'
+const locale = require('../brave/app/locale')
 const BrowserWindowPlus = require('./BrowserWindowPlus')
 const extensionMenu = require('./chromeEvent')
 const initPromise = require('./InitSetting')
@@ -55,8 +56,17 @@ const defaultConf = {
   flashAllowed: [ { setting: 'allow', primaryPattern: '*' } ]
 }
 
-setFlash(app)
+initPromise.then(setting=>{
+  if(setting.enableFlash){
+    setFlash(app)
+   }
+   else{
+    defaultConf.flashEnabled = [ { setting: 'deny', primaryPattern: '*' } ]
+    session.defaultSession.userPrefs.setDictionaryPref('content_settings', defaultConf)
+  }
+})
 app.commandLine.appendSwitch('touch-events', 'enabled');
+
 // ipcMain.setMaxListeners(0)
 
 const RegNormalResource = /^((?:application\/(?:x(?:-javascript|ml)|j(?:avascript|son))|text\/(?:javascript|plain|html|css)|image))/
@@ -127,8 +137,8 @@ app.on('ready', async ()=>{
   require('./bookmarksExporter')
   const setting = await initPromise
   require('../brave/extension/extensions').init(setting.ver !== fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString())
-  require('./faviconsEvent')(_ => {
-    createWindow()
+  require('./faviconsEvent')(async _ => {
+    await createWindow()
     require('./menuSetting')
     process.emit('app-initialized')
   })
@@ -424,10 +434,22 @@ function contextMenu(webContents) {
       menuItems.push({type: 'separator'})
     }
 
-    if (webContents.canGoBack()) menuItems.push({label: 'Back', click: (item, win)=>win.webContents.send('go-navigate', webContents.getId(), 'back')})
-    if (webContents.canGoForward()) menuItems.push({label: 'Forward', click: (item, win)=>win.webContents.send('go-navigate', webContents.getId(), 'forward')})
-    if (!webContents.isLoading()) menuItems.push({label: 'Reload', click: (item, win)=>win.webContents.send('go-navigate', webContents.getId(), 'reload')})
-    menuItems.push({type: 'separator'})
+
+    const isLink = props.linkURL && props.linkURL !== ''
+    const isImage = props.mediaType === 'image'
+    const isVideo = props.mediaType === 'video'
+    const isAudio = props.mediaType === 'audio'
+    const isInputField = props.isEditable || props.inputFieldType !== 'none'
+    const isTextSelected = props.selectionText && props.selectionText.length > 0
+
+    const isNoAction = !(isTextSelected || isInputField || props.mediaType != 'none' || props.linkURL)
+
+    if(isNoAction){
+      menuItems.push({label: locale.translation('back'),enabled:webContents.canGoBack(),  click: (item, win)=>win.webContents.send('go-navigate', webContents.getId(), 'back')})
+      menuItems.push({label: locale.translation('forward'),enabled: webContents.canGoForward(), click: (item, win)=>win.webContents.send('go-navigate', webContents.getId(), 'forward')})
+      menuItems.push({label: locale.translation('reload'),enabled: !webContents.isLoading(), click: (item, win)=>win.webContents.send('go-navigate', webContents.getId(), 'reload')})
+      menuItems.push({type: 'separator'})
+    }
 
     // helper to call code on the element under the cursor
     const callOnElement = js => {
@@ -440,7 +462,7 @@ function contextMenu(webContents) {
     // links
     if (props.linkURL) {
       menuItems.push({
-        label: 'Open Link in New Tab', click: (item, win) => {
+        label: locale.translation('openInNewTab'), click: (item, win) => {
           win.webContents.send('new-tab', webContents.getId(), props.linkURL)
         }
       })
@@ -450,30 +472,36 @@ function contextMenu(webContents) {
         }
       })
       menuItems.push({
-        label: 'Open Link in New Private Tab', click: (item, win) => {
+        label: locale.translation('openInNewPrivateTab'), click: (item, win) => {
           win.webContents.send('new-tab', webContents.getId(), props.linkURL,true)
+        }
+      })
+      menuItems.push({
+        label: locale.translation('openInNewWindow'), click: (item, win) => {
+          BrowserWindowPlus.load({id:win.id,sameSize:true,tabParam:JSON.stringify({urls:[props.linkURL],type:'new-win'})})
         }
       })
       menuItems.push({type: 'separator'})
     }
 
-    if (props.linkURL && props.mediaType === 'none') {
-      menuItems.push({label: 'Copy Link Address', click: () => clipboard.writeText(props.linkURL)})
-      menuItems.push({label: 'Copy Link Text', click: () => clipboard.writeText(props.linkText)})
-      if(!hasText){
-        menuItems.push({
-          label: `Search [${props.linkText.length > 20 ? `${props.linkText.substr(0, 20)}...` : props.linkText }]`,
-          click: (item, win) =>  win.webContents.send('search-text', webContents.getId(), props.linkText)
-        })
-      }
+    if (props.linkURL) {
       menuItems.push({
-        label: 'Save Link', click: (item, win) => {
+        label: locale.translation('saveLinkAs'), click: (item, win) => {
           PubSub.publishSync('need-set-save-filename')
           console.log("Save Link",win)
           win.webContents.downloadURL(props.linkURL,true)
         }
       })
+      menuItems.push({label: locale.translation('copyLinkAddress'), click: () => clipboard.writeText(props.linkURL)})
+      if(props.mediaType === 'none') menuItems.push({label: 'Copy Link Text', click: () => clipboard.writeText(props.linkText)})
+
       menuItems.push({type: 'separator'})
+      if(!hasText && props.mediaType === 'none'){
+        menuItems.push({
+          label: locale.translation('openSearch').replace(/{{\s*selectedVariable\s*}}/, props.linkText.length > 20 ? `${props.linkText.substr(0, 20)}...` : props.linkText),
+          click: (item, win) =>  win.webContents.send('search-text', webContents.getId(), props.linkText)
+        })
+      }
       // menuItems.push({
       //   label: 'Open Link in Sync Mode at Left to Right', click: (item, win) => {
       //     win.webContents.send('open-panel', props.linkURL, true)
@@ -488,17 +516,22 @@ function contextMenu(webContents) {
     }
 
     // images
-    if (props.mediaType == 'image') {
-      menuItems.push({label: 'Save Image As...', click: downloadPrompt})
-      menuItems.push({label: 'Copy Image', click: () => webContents.copyImageAt(props.x, props.y)})
-      menuItems.push({label: 'Copy Image URL', click: () => clipboard.writeText(props.srcURL)})
+    if (isImage) {
+      menuItems.push({
+        label: locale.translation('openImageInNewTab'), click: (item, win) => {
+          win.webContents.send('new-tab', webContents.getId(), props.srcURL)
+        }
+      })
+      menuItems.push({label: locale.translation('saveImage'), click: downloadPrompt})
+      menuItems.push({label: locale.translation('copyImage'), click: () => webContents.copyImageAt(props.x, props.y)})
+      menuItems.push({label: locale.translation('copyImageAddress'), click: () => clipboard.writeText(props.srcURL)})
       menuItems.push({type: 'separator'})
     }
 
     // videos and audios
-    if (props.mediaType == 'video' || props.mediaType == 'audio') {
+    if (isVideo || isAudio) {
       menuItems.push({
-        label: 'Loop',
+        label: locale.translation('994289308992179865'), //'Loop'
         type: 'checkbox',
         checked: mediaFlags.isLooping,
         click: () => callOnElement('el.loop = !el.loop')
@@ -512,7 +545,7 @@ function contextMenu(webContents) {
         })
       if (mediaFlags.canToggleControls)
         menuItems.push({
-          label: 'Show Controls',
+          label: locale.translation('1725149567830788547'), //'Show Controls'
           type: 'checkbox',
           checked: mediaFlags.isControlsVisible,
           click: () => callOnElement('el.controls = !el.controls')
@@ -521,71 +554,89 @@ function contextMenu(webContents) {
     }
 
     // videos
-    if (props.mediaType == 'video') {
-      menuItems.push({label: 'Save Video As...', click: downloadPrompt})
-      menuItems.push({label: 'Copy Video URL', click: () => clipboard.writeText(props.srcURL)})
+    if (isVideo) {
       menuItems.push({
-        label: 'Open Video in New Tab',
+        label:  locale.translation('4643612240819915418'), //'Open Video in New Tab',
         click: (item, win) => win.webContents.send('new-tab', webContents.getId(), props.srcURL)
       })
+      menuItems.push({label: locale.translation('4256316378292851214'), //'Save Video As...',
+        click: downloadPrompt})
+      menuItems.push({label: locale.translation('782057141565633384'), //'Copy Video URL',
+        click: () => clipboard.writeText(props.srcURL)})
       menuItems.push({type: 'separator'})
     }
 
     // audios
-    if (props.mediaType == 'audio') {
-      menuItems.push({label: 'Save Audio As...', click: downloadPrompt})
-      menuItems.push({label: 'Copy Audio URL', click: () => clipboard.writeText(props.srcURL)})
+    if (isAudio) {
       menuItems.push({
-        label: 'Open Audio in New Tab',
+        label: locale.translation('2019718679933488176'), //'Open Audio in New Tab',
         click: (item, win) => win.webContents.send('new-tab', webContents.getId(), props.srcURL)
       })
+      menuItems.push({label: locale.translation('5116628073786783676'), //'Save Audio As...',
+        click: downloadPrompt})
+      menuItems.push({label: locale.translation('1465176863081977902'), //'Copy Audio URL',
+        click: () => clipboard.writeText(props.srcURL)})
       menuItems.push({type: 'separator'})
     }
 
     // clipboard
     if (props.isEditable) {
-      menuItems.push({label: 'Cut', role: 'cut', enabled: can('Cut')})
-      menuItems.push({label: 'Copy', role: 'copy', enabled: can('Copy')})
-      menuItems.push({label: 'Paste', role: 'paste', enabled: editFlags.canPaste})
+      menuItems.push({label: locale.translation("cut"), role: 'cut', enabled: can('Cut')})
+      menuItems.push({label: locale.translation("copy"), role: 'copy', enabled: can('Copy')})
+      menuItems.push({label: locale.translation("paste"), role: 'paste', enabled: editFlags.canPaste})
       menuItems.push({type: 'separator'})
     }
     else if (hasText) {
-      menuItems.push({label: 'Copy', role: 'copy', enabled: can('Copy')})
+      menuItems.push({label: locale.translation("copy"), role: 'copy', enabled: can('Copy')})
       menuItems.push({
-        label: `Search [${text.length > 20 ? `${text.substr(0, 20)}...` : text }]`,
+        label: locale.translation('openSearch').replace(/{{\s*selectedVariable\s*}}/, text.length > 20 ? `${text.substr(0, 20)}...` : text),
         click: (item, win) => win.webContents.send('search-text', webContents.getId(), text)
       })
       menuItems.push({type: 'separator'})
     }
 
-    menuItems.push({
-      label: 'Change Sync Mode at Left to Right', click: (item, win) => {
-        win.webContents.send('open-panel', {url:webContents.getURL(), sync:uuid.v4(), id:webContents.getId()})
-      }
-    })
-    menuItems.push({
-      label: 'Change Sync Mode at Right to Left', click: (item, win) => {
-        win.webContents.send('open-panel', {url:webContents.getURL(), sync:uuid.v4(), id:webContents.getId(),dirc:-1})
-      }
-    })
-    menuItems.push({type: 'separator'})
-    menuItems.push({
-      label: 'View Page Source', click: (item, win) => {
-        win.webContents.send('new-tab', webContents.getId(), `view-source:${webContents.getURL()}`)
-      }
-    })
-    menuItems.push({label: 'Save Page As...', click: (item, win) => {
-      PubSub.publishSync('need-set-save-filename')
-      win.webContents.downloadURL(webContents.getURL(),true)
-    }})
-    menuItems.push({label: 'Print', click: ()=>webContents.print()})
-    menuItems.push({type: 'separator'})
 
-    menuItems.push({label: 'Add this page to the Favorites', click: (item, win) => {
-      win.webContents.send('add-favorite', webContents.getId())
-    }})
+    if(isNoAction) {
+      menuItems.push({
+        label: locale.translation('savePageAs'), click: (item, win) => {
+          PubSub.publishSync('need-set-save-filename')
+          win.webContents.downloadURL(webContents.getURL(), true)
+        }
+      })
+
+      menuItems.push({
+        label: locale.translation('bookmarkPage'), click: (item, win) => {
+          win.webContents.send('add-favorite', webContents.getId())
+        }
+      })
+      menuItems.push({label: locale.translation('print'), click: () => webContents.print()})
+      menuItems.push({type: 'separator'})
+
+      menuItems.push({
+        label: 'Sync Scroll Left to Right', click: (item, win) => {
+          win.webContents.send('open-panel', {url: webContents.getURL(), sync: uuid.v4(), id: webContents.getId()})
+        }
+      })
+      menuItems.push({
+        label: 'Sync Scroll Right to Left', click: (item, win) => {
+          win.webContents.send('open-panel', {
+            url: webContents.getURL(),
+            sync: uuid.v4(),
+            id: webContents.getId(),
+            dirc: -1
+          })
+        }
+      })
+      menuItems.push({type: 'separator'})
+
+      menuItems.push({
+        label: locale.translation('viewPageSource'), click: (item, win) => {
+          win.webContents.send('new-tab', webContents.getId(), `view-source:${webContents.getURL()}`)
+        }
+      })
+    }
     menuItems.push({
-      label: 'Inspect Element', click: item => {
+      label: locale.translation('inspectElement'), click: item => {
         webContents.inspectElement(props.x, props.y)
         if (webContents.isDevToolsOpened())
           webContents.devToolsWebContents.focus()
@@ -593,13 +644,6 @@ function contextMenu(webContents) {
     })
 
     if(Object.keys(extensionMenu).length){
-      const isLink = props.linkURL && props.linkURL !== ''
-      const isImage = props.mediaType === 'image'
-      const isVideo = props.mediaType === 'video'
-      const isAudio = props.mediaType === 'audio'
-      const isInputField = props.isEditable || props.inputFieldType !== 'none'
-      const isTextSelected = props.selectionText && props.selectionText.length > 0
-
       for(let [extensionId, propertiesList] of Object.entries(extensionMenu)){
         for(let {properties, menuItemId, icon} of propertiesList){
           let contextsPassed = false

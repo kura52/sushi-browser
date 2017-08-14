@@ -12,7 +12,7 @@ var importedSites
 let sender,key,type
 
 ipcMain.on("import-browser-data",e=>{
-  sender = e.sender
+  sender = (e.sender.hostWebContents || e.sender)
   importer.initialize()
 })
 

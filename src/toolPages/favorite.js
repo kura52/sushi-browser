@@ -7,8 +7,10 @@ import Selection from '../render/react-selection/index'
 const Tree = require('../render/rc-tree/index')
 const { StickyContainer, Sticky } = require('react-sticky');
 const { Menu,Segment } = require('semantic-ui-react')
+const l10n = require('../../brave/js/l10n')
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
-// ipc.setMaxListeners(0)
+l10n.init()
+
 
 const {TreeNode} = Tree
 let homePath
@@ -485,12 +487,12 @@ export default class FavoriteExplorer extends React.Component{
     else{
       menu = <Menu pointing secondary >
         <Menu.Item as='a' href={`${baseURL}/top.html`} key="top" name="Top"/>
-        <Menu.Item key="favorite" name="Favorite" active={true}/>
-        <Menu.Item as='a' href={`${baseURL}/history.html`} key="history" name="History"/>
-        <Menu.Item as='a' href={`${baseURL}/download.html`} key="download" name="Download"/>
+        <Menu.Item key="favorite" name={l10n.translation('bookmarks')} active={true}/>
+        <Menu.Item as='a' href={`${baseURL}/history.html`} key="history" name={l10n.translation('history')}/>
+        <Menu.Item as='a' href={`${baseURL}/download.html`} key="download" name={l10n.translation('downloads')}/>
         <Menu.Item as='a' href={`${baseURL}/explorer.html`} key="file-explorer" name="File Explorer"/>
         <Menu.Item as='a' href={`${baseURL}/terminal.html`} key="terminal" name="Terminal"/>
-        <Menu.Item as='a' href={`${baseURL}/settings.html`} key="settings" name="Settings"/>
+        <Menu.Item as='a' href={`${baseURL}/settings.html`} key="settings" name={l10n.translation('settings')}/>
       </Menu>
     }
 

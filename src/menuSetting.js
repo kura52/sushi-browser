@@ -1,74 +1,98 @@
 const {app,Menu,shell,ipcMain,BrowserWindow,session,webContents} = require('electron')
 const BrowserWindowPlus = require('./BrowserWindowPlus')
-const topURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html'
+const locale = require('../brave/app/locale')
+import mainState from './mainState'
+import {getFocusedWebContents, getCurrentWindow} from './util'
+
 const isDarwin = process.platform === 'darwin'
+const topURL = mainState.newTabMode == 'myHomepage' ? mainState.myHomepage : `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/${mainState.newTabMode}.html`
 
 const createFileSubmenu = () => {
   const submenu = [
-    // {
-    //   label: 'New Tab',
-    //   accelerator: 'CmdOrCtrl+T',
-    //   click(item, focusedWindow) {
-    //     focusedWindow.webContents.send('new-tab',webContents.getFocusedWebContents().getId(),topURL)
-    //   }
-    // },
-    // {
-    //   label: 'New Private Tab',
-    //   accelerator: 'Shift+CmdOrCtrl+P',
-    //   click(item, focusedWindow) {
-    //     focusedWindow.webContents.send('new-tab',webContents.getFocusedWebContents().getId(),topURL,true)
-    //   }
-    // },
     {
-      label: 'New &Window',
-      accelerator: 'CmdOrCtrl+N',
+      label: locale.translation('newTab'),
+      accelerator: mainState.keyNewTab,
       click(item, focusedWindow) {
-        BrowserWindowPlus.load({id:focusedWindow.id})
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('new-tab',cont.getId(),topURL)
+        })
       }
     },
-    // { type: 'separator' },
-    // {
-    //   label: locale.translation('closeTab'),
-    //   accelerator: 'CmdOrCtrl+W',
-    //   click: function (item, focusedWindow) {
-    //     appActions.tabCloseRequested(tabState.TAB_ID_ACTIVE)
-    //   }
-    // },
+    {
+      label: locale.translation('newPrivateTab'),
+      accelerator: 'Shift+CmdOrCtrl+P',
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('new-tab',cont.getId(),topURL,true)
+        })
+      }
+    },
+    {
+      label: locale.translation('newWindow'),
+      accelerator: mainState.keyNewWindow,
+      click(item, focusedWindow) {
+        BrowserWindowPlus.load({id:focusedWindow.id,sameSize:true})
+      }
+    },
+    { type: 'separator' },
+    {
+      label: locale.translation('openLocation'),
+      accelerator: mainState.keyOpenLocation,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('focus-location-bar',cont.getId())
+        })
+      }
+    },
+    { type: 'separator' },
+    {
+      label: locale.translation('closeTab'),
+      accelerator: mainState.keyCloseTab,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('meun-or-key-events','close-tab',cont.getId())
+        })
+      }
+    },
     {
       // This should be disabled when no windows are active.
-      label: 'Close WIndow',
-      accelerator: 'CmdOrCtrl+Shift+W',
+      label: locale.translation('closeWindow'),
+      accelerator: mainState.keyCloseWindow,
       click(item, focusedWindow) {
         focusedWindow.close()
       }
     },
-    // { type: 'separator' },
-    // {
-    //   label: locale.translation('savePageAs'),
-    //   accelerator: 'CmdOrCtrl+S',
-    //   click: function (item, focusedWindow) {
-    //     CommonMenu.sendToFocusedWindow(focusedWindow, [messages.SHORTCUT_ACTIVE_FRAME_SAVE])
-    //   }
-    // },
-    // Move inside share menu when it's enabled
-    // { type: 'separator' },
-    // {
-    //   label: 'Print',
-    //   accelerator: 'CmdOrCtrl+P',
-    //   click(item, focusedWindow) {
-    //     webContents.getFocusedWebContents().print()
-    //   }
-    // }
+    { type: 'separator' },
+    {
+      label: locale.translation('savePageAs'),
+      accelerator: mainState.keySavePageAs,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          if(cont){
+            PubSub.publishSync('need-set-save-filename')
+            cont.downloadURL(cont.getURL(), true)
+          }
+        })
+      }
+    },
+    { type: 'separator' },
+    {
+      label: locale.translation('print'),
+      accelerator: mainState.keyPrint,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.print()
+        })
+      }
+    }
   ]
 
   if (!isDarwin) {
     submenu.push({ type: 'separator' })
     submenu.push({
-      label: 'Quit',
-      accelerator: 'CmdOrCtrl+Q',
-      click() {
-        app.quit()
-      }
+      label: locale.translation('quit'),
+      accelerator: mainState.keyQuit,
+      click: function () { app.quit() }
     })
   }
 
@@ -79,30 +103,30 @@ const createFileSubmenu = () => {
 const createEditSubmenu = () => {
   const submenu = [
     {
-      label: 'Undo',
-      accelerator: 'CmdOrCtrl+Z',
+      label: locale.translation('undo'),
+      accelerator: mainState.keyUndo,
       role: 'undo'
     }, {
-      label: 'Redo',
-      accelerator: 'CmdOrCtrl+Y',
+      label: locale.translation('redo'),
+      accelerator: mainState.keyRedo,
       role: 'redo'
     },
     { type: 'separator' },
     {
-      label: 'Cut',
-      accelerator: 'CmdOrCtrl+X',
+      label: locale.translation('cut'),
+      accelerator: mainState.keyCut,
       role: 'cut'
     }, {
-      label: 'Copy',
-      accelerator: 'CmdOrCtrl+C',
+      label: locale.translation('copy'),
+      accelerator: mainState.keyCopy,
       role: 'copy'
     }, {
-      label: 'Paste',
-      accelerator: 'CmdOrCtrl+V',
+      label: locale.translation('paste'),
+      accelerator: mainState.keyPaste,
       role: 'paste'
     }, {
-      label: 'Paste Without Formatting',
-      accelerator: 'Shift+CmdOrCtrl+V',
+      label: locale.translation('pasteWithoutFormatting'),
+      accelerator: mainState.keyPasteWithoutFormatting,
       click: function (item, focusedWindow) {
         focusedWindow.webContents.pasteAndMatchStyle()
       }
@@ -292,8 +316,8 @@ function getTemplate(){
           type: 'separator'
         },
         {
-          label: 'Quit',
-          accelerator: 'Command+Q',
+          label: locale.translation('quit'),
+          accelerator: mainState.keyQuit,
           click: function () { app.quit() }
         }
       ]

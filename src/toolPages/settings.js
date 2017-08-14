@@ -7,7 +7,10 @@ const React = require('react')
 const ReactDOM = require('react-dom')
 const { Sidebar, Segment, Container, Menu, Input,Divider, Button, Checkbox, Icon, Table, Dropdown } = require('semantic-ui-react')
 const { StickyContainer, Sticky } = require('react-sticky');
+const l10n = require('../../brave/js/l10n')
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
+l10n.init()
+
 
 
 class TopMenu extends React.Component {
@@ -26,12 +29,12 @@ class TopMenu extends React.Component {
           <div>
             <Menu pointing secondary >
               <Menu.Item as='a' href={`${baseURL}/top.html`} key="top" name="Top"/>
-              <Menu.Item as='a' href={`${baseURL}/favorite.html`} key="favorite" name="Favorite"/>
-              <Menu.Item as='a' href={`${baseURL}/history.html`} key="history" name="History"/>
-              <Menu.Item as='a' href={`${baseURL}/download.html`} key="download" name="Download"/>
+              <Menu.Item as='a' href={`${baseURL}/favorite.html`} key="favorite" name={l10n.translation('bookmarks')}/>
+              <Menu.Item as='a' href={`${baseURL}/history.html`} key="history" name={l10n.translation('history')}/>
+              <Menu.Item as='a' href={`${baseURL}/download.html`} key="download" name={l10n.translation('downloads')}/>
               <Menu.Item as='a' href={`${baseURL}/explorer.html`} key="file-explorer" name="File Explorer"/>
               <Menu.Item as='a' href={`${baseURL}/terminal.html`} key="terminal" name="Terminal"/>
-              <Menu.Item key="settings" name="Settings" active={true}/>
+              <Menu.Item key="settings" name={l10n.translation('settings')} active={true}/>
             </Menu>
           </div>
         </Sticky>
@@ -41,45 +44,202 @@ class TopMenu extends React.Component {
   }
 }
 
+const startsWithOptions = [
+  {
+    key: 'startsWithOptionLastTime',
+    value: 'startsWithOptionLastTime',
+    text: l10n.translation('startsWithOptionLastTime'),
+  },
+  {
+    key: 'newTab',
+    value: 'newTab',
+    text: l10n.translation('newTab'),
+  }
+]
 
+const newTabModeOptions = [
+  {
+    key: 'myHomepage',
+    value: 'myHomepage',
+    text: l10n.translation('myHomepage'),
+  },
+  {
+    key: 'top',
+    value: 'top',
+    text: 'Top Page',
+  },
+  {
+    key: 'bookmarks',
+    value: 'bookmarks',
+    text: l10n.translation('bookmarks'),
+  },
+  {
+    key: 'history',
+    value: 'history',
+    text: l10n.translation('history'),
+  },
+  {
+    key: 'terminal',
+    value: 'terminal',
+    text: 'Terminal',
+  },
+  {
+    key: 'blank',
+    value: 'blank',
+    text: l10n.translation('newTabEmpty'),
+  }
+]
+
+const downloadNumOptions = Array.from(new Array(8)).map((v,n)=>{
+  return {value: n+1 ,text: n+1}
+})
+
+const sideBarDirectionOptions = [
+  {
+    key: 'left',
+    value: 'left',
+    text: 'Left',
+  },
+  {
+    key: 'right',
+    value: 'right',
+    text: 'Right',
+  },
+  {
+    key: 'bottom',
+    value: 'bottom',
+    text: 'Bottom',
+  }
+]
+
+const availableLanguages = [
+  'bn-BD',
+  'bn-IN',
+  'zh-CN',
+  'cs',
+  'nl-NL',
+  'en-US',
+  'fr-FR',
+  'de-DE',
+  'hi-IN',
+  'id-ID',
+  'it-IT',
+  'ja-JP',
+  'ko-KR',
+  'ms-MY',
+  'pl-PL',
+  'pt-BR',
+  'ru',
+  'sl',
+  'es',
+  'ta',
+  'te',
+  'tr-TR',
+  'uk'
+]
+
+const languageOptions = availableLanguages.map(x=>{
+  return {
+    key: x,
+    value: x,
+    text: l10n.translation(x),
+  }
+})
+
+let generalDefault
 class GeneralSetting extends React.Component {
   constructor(props) {
     super(props)
+    this.state = generalDefault
+  }
+
+  onChange(name,e,data){
+    ipc.send('save-state',{tableName:'state',key:name,val:data.value || data.checked})
   }
 
   render() {
+    console.log(this.state.startsWith,this.state.myHomepage)
     return <div>
-      <h3>General</h3>
+      <h3>{l10n.translation('generalSettings')}</h3>
       <Divider/>
+      <div className="ui form">
+        <div className="field">
+          <label>{l10n.translation('startsWith')}</label>
+          <Dropdown onChange={this.onChange.bind(this,'startsWith')} selection options={startsWithOptions} defaultValue={this.state.startsWith}/>
+        </div>
+        <div className="field">
+          <label>{l10n.translation('newTabMode')}</label>
+          <Dropdown onChange={this.onChange.bind(this,'newTabMode')} selection options={newTabModeOptions} defaultValue={this.state.newTabMode}/>
+        </div>
+        <div className="field">
+          <label>{l10n.translation('myHomepage')}</label>
+          <Input onChange={this.onChange.bind(this,'myHomepage')} defaultValue={this.state.myHomepage}/>
+        </div>
+        <br/>
+
+
+        <div className="field">
+          <label>{`${l10n.translation('2663302507110284145')} (${l10n.translation('requiresRestart').replace('* ','')})`}</label>
+          <Dropdown onChange={this.onChange.bind(this,'language')} selection options={languageOptions} defaultValue={this.state.language}/>
+        </div>
+        <br/>
+
+        <div className="field">
+          <label>Adobe Flash Player</label>
+          <Checkbox defaultChecked={this.state.enableFlash} toggle onChange={this.onChange.bind(this,'enableFlash')}/>
+          <span className="toggle-label">{`${l10n.translation('enableFlash')} (${l10n.translation('requiresRestart').replace('* ','')})`}</span>
+        </div>
+        <br/>
+
+        <div className="field">
+          <label>Default Sidebar Position</label>
+          <Dropdown onChange={this.onChange.bind(this,'sideBarDirection')} selection options={sideBarDirectionOptions} defaultValue={this.state.sideBarDirection}/>
+        </div>
+        <br/>
+
+
+        <div className="field">
+          <label>Tabs</label>
+          <Checkbox defaultChecked={this.state.scrollTab} toggle onChange={this.onChange.bind(this,'scrollTab')}/>
+          <span className="toggle-label">Enable mouse wheel scroll tab selection ({l10n.translation('requiresRestart').replace('* ','')})</span>
+        </div>
+        <br/>
+
+        <div className="field">
+          <label>Max number of connections per item (Parallel Download)</label>
+          <Dropdown onChange={this.onChange.bind(this,'downloadNum')} selection options={downloadNumOptions} defaultValue={this.state.downloadNum}/>
+        </div>
+        <br/>
+
+        <div className="field">
+          <label>{l10n.translation('importBrowserData').replace('…','')}</label>
+          <Button primary content={l10n.translation('import')} onClick={_=>ipc.send("import-browser-data",{})}/>
+        </div>
+
+        <div className="field">
+          <label>{l10n.translation('exportBookmarks').replace('…','')}</label>
+          <Button primary content={l10n.translation('42126664696688958')} onClick={_=>ipc.send("export-bookmark",{})}/>
+        </div>
+
+
+      </div>
     </div>
   }
 }
 
+let searchDefault
 class SearchSetting extends React.Component {
   constructor(props) {
     super(props)
-    this.state = {searchProviders: []}
+    this.state = searchDefault
     this.emitChange = ::this.emitChange
     this.onBlur = ::this.onBlur
     this.changeCheck = ::this.changeCheck
     this.addSite = ::this.addSite
   }
 
-  componentWillMount(){
-    ipc.send("get-main-state","searchProviders searchEngine")
-    ipc.once("get-main-state-reply",(e,data)=>{
-      const [searchProviders, searchEngine] = data
-      let arr = []
-      for(let [name,value] of Object.entries(searchProviders)){
-        arr[value.ind] = value
-      }
-      this.setState({searchProviders: arr.filter(x=>x),default: searchEngine})
-    })
-  }
-
-
   changeCheck(e,i,name,data){
-    const val = data.toggle
+    const val = data.checked
     ipc.send('save-state',{tableName:'state',key:'searchEngine',val:name})
     this.setState({default: name})
   }
@@ -165,13 +325,13 @@ class SearchSetting extends React.Component {
       <td key={`type${i}`}>
         <Dropdown placeholder='State' fluid selection className="type" onChange={this.typeChange.bind(this,i)}
                   options={[
-          { key: 'basic', text: 'open a panel', value: 'basic' },
-          { key: 'two', text: 'open two panel', value: 'two' },
-          { key: 'new-win', text: 'open to new window', value: 'new-win' },
-          { key: 'one-line', text: ' one line in new window', value: 'one-line' },
-          { key: 'two-line', text: 'two line in new window', value: 'two-line' },
-          { key: 'three-line', text: 'three line in new window', value: 'three-line' },
-        ]} defaultValue={type}/>
+                    { key: 'basic', text: 'open a panel', value: 'basic' },
+                    { key: 'two', text: 'open 2 panels', value: 'two' },
+                    { key: 'new-win', text: 'open to new window', value: 'new-win' },
+                    { key: 'one-row', text: ' a row in new window', value: 'one-row' },
+                    { key: 'two-row', text: '2 rows in new window', value: 'two-row' },
+                    { key: 'three-row', text: '3 rows in new window', value: 'three-row' },
+                  ]} defaultValue={type}/>
       </td>
       <td key={`shortcut${i}`} data-num={i} data-name='shortcut' onInput={this.emitChange} onBlur={this.onBlur} contentEditable>{alias}</td>
     </tr>
@@ -182,7 +342,7 @@ class SearchSetting extends React.Component {
     const newRecord = {name:"",search:"",shortcut:"", ind:max,updated_at:Date.now()}
     if(multiple){
       newRecord.multiple = []
-      newRecord.type = 'one-line'
+      newRecord.type = 'one-row'
     }
     this.state.searchProviders.push(newRecord)
     this.setState({})
@@ -195,11 +355,11 @@ class SearchSetting extends React.Component {
       <table className="ui celled compact table">
         <thead>
         <tr>
-          <th>Default</th>
-          <th>Name</th>
-          <th>Search List</th>
-          <th>Type</th>
-          <th>Alias</th>
+          <th>{l10n.translation('default')}</th>
+          <th>{l10n.translation('name')}</th>
+          <th>{l10n.translation('searchEngines')}</th>
+          <th>{l10n.translation('2448312741937722512')}</th>
+          <th>{l10n.translation('engineGoKey')}</th>
         </tr>
         </thead>
         <tbody>
@@ -217,15 +377,15 @@ class SearchSetting extends React.Component {
       </table>
 
 
-      <h3>Search Engine</h3>
+      <h3>{l10n.translation('searchEngine')}</h3>
       <Divider/>
       <table className="ui celled compact table">
         <thead>
         <tr>
-          <th>Default</th>
-          <th>Name</th>
+          <th>{l10n.translation('default')}</th>
+          <th>{l10n.translation('name')}</th>
           <th>Search URL</th>
-          <th>Alias</th>
+          <th>{l10n.translation('engineGoKey')}</th>
         </tr>
         </thead>
         <tbody>
@@ -281,7 +441,7 @@ class ExtensionSetting extends React.Component {
 
   render() {
     return <div>
-      <h3>Extension</h3>
+      <h3>Extensions</h3>
       <Divider/>
     </div>
   }
@@ -292,7 +452,7 @@ const routings = {
   'search' : <SearchSetting/>,
   'tabs' : <TabsSetting/>,
   'keyboard' : <KeyboardSetting/>,
-  'extension' : <ExtensionSetting/>,
+  'extensions' : <ExtensionSetting/>,
 }
 
 class TopList extends React.Component {
@@ -308,9 +468,10 @@ class TopList extends React.Component {
 
   getMenu(name,icon){
     return <Menu.Item as="a" href={`#${name}`} active={this.isActive(name)}
-                      onClick={_=>this.setState({page:name})} name={name}>
+                      onClick={_=>this.setState({page:name})}
+    >
       <Icon name={icon}/>
-      {name}
+      {l10n.translation(name == "keyboard" ? '1524430321211440688' : name)}
     </Menu.Item>
   }
 
@@ -324,9 +485,9 @@ class TopList extends React.Component {
         <Menu.Item></Menu.Item>
         {this.getMenu('general','browser')}
         {this.getMenu('search','search')}
-        {this.getMenu('tabs','table')}
+        {/*{this.getMenu('tabs','table')}*/}
         {this.getMenu('keyboard','keyboard')}
-        {this.getMenu('extension','industry')}
+        {this.getMenu('extensions','industry')}
       </Sidebar>
       <Sidebar.Pusher>
         <Segment basic>
@@ -345,4 +506,16 @@ const App = () => (
 )
 
 
-ReactDOM.render(<App />,  document.getElementById('app'))
+ipc.send("get-main-state",['startsWith','newTabMode','myHomepage','searchProviders','searchEngine','language','enableFlash','downloadNum','sideBarDirection','scrollTab'])
+ipc.once("get-main-state-reply",(e,data)=>{
+  generalDefault = data
+
+  const {searchProviders, searchEngine} = data
+  let arr = []
+  for(let [name,value] of Object.entries(searchProviders)){
+    arr[value.ind] = value
+  }
+  searchDefault = {searchProviders: arr.filter(x=>x),default: searchEngine}
+
+  ReactDOM.render(<App />,  document.getElementById('app'))
+})

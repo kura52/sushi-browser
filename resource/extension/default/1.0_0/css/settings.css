@@ -33,10 +33,28 @@
     padding: .22620476em 0 0 .35714286em;
 }
 
-.ui.selection.dropdown {
+td>.ui.selection.dropdown {
     padding: 0;
 }
 
-.ui.dropdown.type>.text {
+td>.ui.dropdown.type>.text {
     padding: 6px 0 0 8px;
+}
+
+.field .ui.selection.dropdown {
+     min-height: inherit;
+}
+
+.ui.form .field>.selection.dropdown {
+    width: inherit;
+    min-width: 220px;
+}
+
+.ui.visible.thin.left.sidebar~.pusher {
+    min-height: calc(100vh - 70px);
+}
+
+.toggle-label{
+    vertical-align: 8px;
+    padding-left: 12px;
 }

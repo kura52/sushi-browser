@@ -8,7 +8,8 @@ const ReactDOM = require('react-dom')
 const { Container, Card, Menu, Input } = require('semantic-ui-react')
 const { StickyContainer, Sticky } = require('react-sticky');
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
-
+const l10n = require('../../brave/js/l10n')
+l10n.init()
 
 let resourcePath
 let setTime = localStorage.getItem('favicon-set')
@@ -105,12 +106,12 @@ class TopMenu extends React.Component {
           <div>
             <Menu pointing secondary >
               <Menu.Item key="top" name="Top" active={true}/>
-              <Menu.Item as='a' href={`${baseURL}/favorite.html`} key="favorite" name="Favorite"/>
-              <Menu.Item as='a' href={`${baseURL}/history.html`} key="history" name="History"/>
-              <Menu.Item as='a' href={`${baseURL}/download.html`} key="download" name="Download"/>
+              <Menu.Item as='a' href={`${baseURL}/favorite.html`} key="favorite" name={l10n.translation('bookmarks')}/>
+              <Menu.Item as='a' href={`${baseURL}/history.html`} key="history" name={l10n.translation('history')}/>
+              <Menu.Item as='a' href={`${baseURL}/download.html`} key="download" name={l10n.translation('downloads')}/>
               <Menu.Item as='a' href={`${baseURL}/explorer.html`} key="file-explorer" name="File Explorer"/>
               <Menu.Item as='a' href={`${baseURL}/terminal.html`} key="terminal" name="Terminal"/>
-              <Menu.Item as='a' href={`${baseURL}/settings.html`} key="settings" name="Settings"/>
+              <Menu.Item as='a' href={`${baseURL}/settings.html`} key="settings" name={l10n.translation('settings')}/>
             </Menu>
           </div>
         </Sticky>
@@ -139,7 +140,7 @@ class TopSearch extends React.Component {
 
   render(){
     return <div className="ui big icon input">
-      <input ref="input" type="text" placeholder="Focus Search Bar" onFocus={this.sendHost}/>
+      <input ref="input" type="text" placeholder="Focus Location Bar" onFocus={this.sendHost}/>
       <i aria-hidden="true" className="search icon"></i>
     </div>
   }

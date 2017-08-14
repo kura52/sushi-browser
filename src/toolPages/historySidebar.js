@@ -63,19 +63,20 @@ const convertUrlMap = new Map([
 
 const convertUrlReg = /^chrome\-extension:\/\/dckpbojndfoinamcdamhkjhnjnmjkfjd\/(video|ace)\.html\?url=([^&]+)/
 const convertUrlPdfReg = /^chrome\-extension:\/\/jdbefljfgobbmcidnmpjamcbhnbphjnb\/content\/web\/viewer\.html\?file=(.+?)$/
+const convertUrlPdfReg2 = /^chrome\-extension:\/\/jdbefljfgobbmcidnmpjamcbhnbphjnb\/comicbed\/index\.html#\?url=(.+?)$/
 
 function convertURL(url){
+  if(!url) return
   if(convertUrlMap.has(url)){
     return convertUrlMap.get(url)
   }
   else{
-    if(!url) return
     const match = url.match(convertUrlReg)
     let matchPdf
     if(match){
       return decodeURIComponent(match[2])
     }
-    else if(matchPdf = url.match(convertUrlPdfReg)){
+    else if(matchPdf = (url.match(convertUrlPdfReg) || url.match(convertUrlPdfReg2))){
       return decodeURIComponent(matchPdf[1])
     }
     return url

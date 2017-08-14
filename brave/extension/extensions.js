@@ -100,22 +100,22 @@ module.exports.init = (verChange) => {
   }
 
   let getPath = (appId) => {
-    const extRootPath = path.join(app.getPath('userData'),'resource/extension')
-    // const extRootPath = path.join(__dirname,'../../resource/extension')
+    // const extRootPath = path.join(app.getPath('userData'),'resource/extension')
+    const extRootPath = path.join(__dirname,'../../resource/extension')
     if(!fs.existsSync(extRootPath)) {
       fs.mkdirSync(extRootPath)
     }
     const appPath = path.join(extRootPath,appId)
     const orgPath = path.join(__dirname,'../../resource/extension',appId)
-    if(verChange || true || !fs.existsSync(appPath)){
-      if(fs.existsSync(orgPath)){
-        fs.copySync(orgPath, appPath)
-      }
-      else{
-        const dirPath = chromeExtensionPath(appId)
-        fs.copySync(dirPath, appPath)
-      }
-    }
+    // if(verChange || true || !fs.existsSync(appPath)){
+    //   if(fs.existsSync(orgPath)){
+    //     fs.copySync(orgPath, appPath)
+    //   }
+    //   else{
+    //     const dirPath = chromeExtensionPath(appId)
+    //     fs.copySync(dirPath, appPath)
+    //   }
+    // }
     const version = fs.readdirSync(appPath).sort().pop()
     const basePath = path.join(appPath,version)
     return [appId,basePath]
@@ -138,7 +138,7 @@ module.exports.init = (verChange) => {
   require('./browserAction')
 
   loadExtension('dckpbojndfoinamcdamhkjhnjnmjkfjd',getPath('default')[1],(void 0),'component')
-  loadExtension(...getPath('jdbefljfgobbmcidnmpjamcbhnbphjnb'))
+  loadExtension(...getPath('jdbefljfgobbmcidnmpjamcbhnbphjnb'),(void 0),'component')
   componentUpdater.registerComponent('jdbefljfgobbmcidnmpjamcbhnbphjnb', 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqmqh6Kxmj00IjKvjPsCtw6g2BHvKipjS3fBD0IInXZZ57u5oZfw6q42L7tgWDLrNDPvu3XDH0vpECr+IcgBjkM+w6+2VdTyPj5ubngTwvBqCIPItetpsZNJOJfrFw0OIgmyekZYsI+BsK7wiMtHczwfKSTi0JKgrwIRhHbEhpUnCxFhi+zI61p9jwMb2EBFwxru7MtpP21jG7pVznFeLV9W9BkNL1Th9QBvVs7GvZwtIIIniQkKtqT1wp4IY9/mDeM5SgggKakumCnT9D37ZxDnM2K13BKAXOkeH6JLGrZCl3aXmqDO9OhLwoch+LGb5IaXwOZyGnhdhm9MNA3hgEwIDAQAB')
   if(process.platform != 'win32'){
     loadExtension(...getPath('occjjkgifpmdgodlplnacmkejpdionan'))

@@ -333,7 +333,9 @@ ipcMain.on("change-title",(e,title)=>{
 
 
 ipcMain.on('get-main-state',(e,names)=>{
-  e.sender.send('get-main-state-reply',names.split(" ").map(name=>mainState[name]))
+  const ret = {}
+  names.forEach(name=>ret[name] = mainState[name])
+  e.sender.send('get-main-state-reply',ret)
 })
 
 
@@ -371,6 +373,9 @@ ipcMain.on('save-state',async (e,{tableName,key,val})=>{
 
   if(tableName == "searchEngine" || key == "searchEngine"){
     e.sender.hostWebContents.send("update-search-engine")
+  }
+  else{
+    e.sender.hostWebContents.send("update-mainstate",key,val)
   }
 })
 
