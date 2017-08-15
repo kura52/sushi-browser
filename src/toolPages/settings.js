@@ -558,7 +558,7 @@ class KeyboardSetting extends React.Component {
     return <div>
       <h3>{l10n.translation('1524430321211440688')}</h3>
       <Divider/>
-      <p>Please refer <a href="https://github.com/electron/electron/blob/master/docs/api/accelerator.md">here</a> for input method of shortcut</p>
+      <p>Please refer <a target="_blank" href="https://github.com/electron/electron/blob/master/docs/api/accelerator.md">here</a> for input method of shortcut</p>
       <br/>
 
       <Grid >

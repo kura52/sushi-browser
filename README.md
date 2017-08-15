@@ -154,9 +154,8 @@ sushi-browser --no-sandbox
 
 # TODO
 
-- Keyboard shortcuts, option page
-- Localization
-- Improved customizability (top page, search engine etc.) 
+- Improved top page's customizability 
+- Modify prinave mode bugs
 - Enhanced Anything Search
 - Adblock control panel
 - can be selected as a standard browser

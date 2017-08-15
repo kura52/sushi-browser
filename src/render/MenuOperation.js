@@ -37,5 +37,20 @@ export default {
       win.setFullScreen(false)
     }
     win.close()
+  },
+  windowResizeForSplit(){
+    const win = remote.getCurrentWindow()
+
+    if(win.isFullScreen()){
+      if(isDarwin){
+        win.setFullScreen(!win.isFullScreen())
+      }
+      else{
+        ipc.send('toggle-fullscreen')
+      }
+    }
+    else if(win.isMaximized()){
+      win.unmaximize()
+    }
   }
 }

@@ -17,6 +17,7 @@ import firebase,{storage,auth,database} from 'firebase'
 let MARGIN = mainState.syncScrollMargin
 let count = 0
 // ipc.setMaxListeners(0)
+const isDarwin = navigator.userAgent.includes('Mac OS X')
 
 const baseTime = new Date("2017/01/01").getTime()
 
@@ -450,8 +451,13 @@ export default class SplitWindows extends Component{
         const panel = this.refs2[key]
         const b = bounds[i]
         if(i===0){
-          if(MenuOperation.windowIsMaximized()) MenuOperation.windowMaximize()
-          remote.getCurrentWindow().setBounds({x:b.left+screenX,y:b.top+screenY,width:b.width,height:b.height})
+          MenuOperation.windowResizeForSplit()
+          if(isDarwin){
+            setTimeout(_=>remote.getCurrentWindow().setBounds({x:b.left+screenX,y:b.top+screenY,width:b.width,height:b.height}),1000)
+          }
+          else{
+            remote.getCurrentWindow().setBounds({x:b.left+screenX,y:b.top+screenY,width:b.width,height:b.height})
+          }
         }
         else{
           await panel.detachPanel({x:b.left+screenX,y:b.top+screenY,width:b.width,height:b.height}),20*i
