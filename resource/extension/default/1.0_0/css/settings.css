@@ -58,3 +58,7 @@ td>.ui.dropdown.type>.text {
     vertical-align: 8px;
     padding-left: 12px;
 }
+
+.ui.grid>.row {
+    padding: 0.3rem 0;
+}

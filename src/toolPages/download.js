@@ -106,14 +106,17 @@ class DownloadList extends React.Component {
   componentDidMount() {
     downloadingItemReply((item,sender)=>{
       item.sender = sender
-      this.state.downloads.set(item.startTime,item)
+      item.created_at = item.startTime
+      this.state.downloads.set(item.created_at,item)
       this.setState({})
     })
 
     downloadReply((data,flag)=>{
+      let num = 0
       for(let e of data){
-        if(!this.state.downloads.has(e.startTime)){
-          this.state.downloads.set(e.startTime,e)
+        if(!this.state.downloads.has(e.created_at) || num<1000){
+          this.state.downloads.set(e.created_at,e)
+          num++
         }
       }
       this.setState({})
@@ -123,7 +126,7 @@ class DownloadList extends React.Component {
 
   render() {
     const arr = [...this.state.downloads.values()]
-    arr.sort((a,b)=> b.startTime - a.startTime)
+    arr.sort((a,b)=> b.created_at - a.created_at)
 
     const downloadList = []
     for (let item of arr) {
@@ -168,7 +171,7 @@ class DownloadList extends React.Component {
   }
 
   calcSpeed(item){
-    const diff =item.now - item.startTime
+    const diff =item.now - item.created_at
     const percent = this.round(item.receivedBytes / item.totalBytes * 100,2)
     const speed = item.receivedBytes / diff * 1000
     const restTime = (item.totalBytes - item.receivedBytes) / speed
@@ -179,7 +182,7 @@ class DownloadList extends React.Component {
   buildItem(item) {
     const rest = this.calcSpeed(item)
 
-    return <List.Item key={item.startTime}>
+    return <List.Item key={`${item.savePath}_${item.created_at}`}>
       <List.Content>
         <a className="description" style={{
           float: 'right',

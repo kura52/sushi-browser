@@ -59,8 +59,11 @@ function isFloatPanel(key){
 export default class BrowserNavbarLocation extends Component {
   constructor(props) {
     super(props)
+    this.keyEvent2 = (e,id)=>{
+      if (!this.props.tab.wvId || id !== this.props.tab.wvId) return
+      this.keyEvent({channel: 'navbar-search'})
+    }
     this.keyEvent = ::this.keyEvent
-    this.keyEvent2 = this.keyEvent.bind(this,{channel: 'navbar-search'})
     this.isFloat = isFloatPanel(this.props.k)
   }
 
@@ -198,12 +201,17 @@ export default class BrowserNavbarLocation extends Component {
       if(urlutil.isURL(input)){
         const url = urlutil.getUrlFromInput(input)
         this.canUpdate = true
-        this.props.onEnterLocation(url)
+        if(e.altKey){
+          this.props.tab.events['new-tab'](e, this.props.tab.wvId,url,this.props.tab.privateMode)
+        }
+        else{
+          this.props.onEnterLocation(url)
+        }
         this.resetComponent()
         // ;(this.input || ReactDOM.findDOMNode(this.refs.input).querySelector("input")).value = url
       }
       else{
-        this.props.search(this.props.tab, input, false)
+        this.props.search(this.props.tab, input, false, e.altKey)
         this.canUpdate = true
         this.resetComponent()
       }

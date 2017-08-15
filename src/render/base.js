@@ -12,6 +12,7 @@ const PubSub = require('./pubsub')
 const {remote} = require('electron')
 const mainState = remote.require('./mainState')
 const ipc = require('electron').ipcRenderer
+const isDarwin = navigator.userAgent.includes('Mac OS X')
 
 
 require('inferno').options.recyclingEnabled = true; // Advanced optimisation
@@ -43,7 +44,7 @@ export default class MainContent extends Component{
   }
 
   componentDidMount() {
-    window.addEventListener('resize', ::this.handleResize,false);
+    window.addEventListener('resize', ::this.handleResize,{ passive: true });
     if(mainState.alwaysOnTop){
       setTimeout(_=>remote.getCurrentWindow().setAlwaysOnTop(mainState.alwaysOnTop),500)
     }
@@ -73,6 +74,27 @@ export default class MainContent extends Component{
       if(global.middleButtonPressing) global.middleButtonLongPressing = Date.now() - global.middleButtonPressing > 320
     },{passive:true})
 
+    // For window level shortcuts that don't work as local shortcuts
+    document.addEventListener('keydown', (e) => {
+      const isForSecondaryAction = (e) =>
+        (e.ctrlKey && !isDarwin) ||
+        (e.metaKey && isDarwin) ||
+        e.button === 1
+
+      switch (e.which) {
+        case 107:
+          if (isForSecondaryAction(e)) {
+            ipc.send('menu-or-key-events','zoomIn')
+          }
+          break
+        case 109:
+          if (isForSecondaryAction(e)) {
+            ipc.send('menu-or-key-events','zoomOut')
+          }
+          break
+      }
+    }, { passive: true })
+
     // window.addEventListener('drop', function (event) {
     //   // allow webviews to handle dnd
     //   if (event.target.tagName === 'WEBVIEW') {
@@ -84,7 +106,7 @@ export default class MainContent extends Component{
   }
 
   componentWillUnmount() {
-    window.removeEventListener('resize', ::this.handleResize,false);
+    window.removeEventListener('resize', ::this.handleResize,{ passive: true })
   }
 
   render() {
@@ -92,14 +114,17 @@ export default class MainContent extends Component{
   }
 }
 
-render(<WebPageList />, document.querySelector('#wvlist'));
-render(<DownloadList />, document.querySelector('#dllist'));
-render(<MainContent />, document.querySelector('#content'));
-render(<SearchAnything />, document.querySelector('#anything'));
+render(<WebPageList />, document.querySelector('#wvlist'))
+render(<DownloadList />, document.querySelector('#dllist'))
+render(<MainContent />, document.querySelector('#content'))
+
+if(mainState.doubleShift){
+  render(<SearchAnything />, document.querySelector('#anything'))
+}
 
 ipc.on('unmount-components',_=>{
-  unmountComponentAtNode(document.querySelector('#wvlist'));
-  unmountComponentAtNode(document.querySelector('#dllist'));
-  unmountComponentAtNode(document.querySelector('#content'));
-  unmountComponentAtNode(document.querySelector('#anything'));
+  unmountComponentAtNode(document.querySelector('#wvlist'))
+  unmountComponentAtNode(document.querySelector('#dllist'))
+  unmountComponentAtNode(document.querySelector('#content'))
+  unmountComponentAtNode(document.querySelector('#anything'))
 })

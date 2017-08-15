@@ -334,7 +334,18 @@ ipcMain.on("change-title",(e,title)=>{
 
 ipcMain.on('get-main-state',(e,names)=>{
   const ret = {}
-  names.forEach(name=>ret[name] = mainState[name])
+  names.forEach(name=>{
+    if(name == "ALL_KEYS"){
+      for(let [key,val] of Object.entries(mainState)){
+        if(key.startsWith("key")){
+          ret[key] = val
+        }
+      }
+    }
+    else{
+      ret[name] = mainState[name]
+    }
+  })
   e.sender.send('get-main-state-reply',ret)
 })
 
@@ -378,6 +389,13 @@ ipcMain.on('save-state',async (e,{tableName,key,val})=>{
     e.sender.hostWebContents.send("update-mainstate",key,val)
   }
 })
+
+ipcMain.on('menu-or-key-events',(e,name)=>{
+  getFocusedWebContents().then(cont=>{
+    cont && cont.hostWebContents.send('menu-or-key-events',name,cont.getId())
+  })
+})
+
 
 // async function recurSelect(keys){
 //   const ret = await favorite.find({key:{$in: keys}})

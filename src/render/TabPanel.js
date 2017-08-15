@@ -515,7 +515,7 @@ export default class TabPanel extends Component {
       tabAdd(this, url, !notSelected,(void 0),(void 0),(void 0),(void 0));
     })
 
-    const tokenToggleDirction = PubSub.subscribe(`toggle-dirction_${this.props.k}`, (msg)=> {
+    const tokenToggleDirction = PubSub.subscribe(`switch-direction_${this.props.k}`, (msg)=> {
       this.props.toggleDirc(this.props.k)
     })
 
@@ -1189,16 +1189,96 @@ export default class TabPanel extends Component {
     }
     ipc.on('new-tab-opposite', tab.events['new-tab-opposite'])
 
-    tab.events['meun-or-key-events'] = (e, name, id, args)=> {
+    tab.events['menu-or-key-events'] = (e, name, id, args)=> {
       if (!this.mounted) return
       if (!tab.wvId || id !== tab.wvId) return
 
-      if(name == 'close-tab'){
+      let match
+      if(name == 'closeTab'){
         this.handleTabClose({},tab.key)
+      }
+      else if(name == 'navigatePage'){
+        this.navigateTo(tab.page,args,tab)
+      }
+      else if(name == 'reopenLastClosedTab'){
+        if(this.state.history.length > 0) {
+          const hist = this.state.history.pop()
+          const n_tab = this.createTab({default_url: hist.list[hist.currentIndex], hist})
+          this.state.tabs.push(n_tab)
+          console.log("selected20", n_tab.key)
+          this.setState({selectedTab: n_tab.key})
+          this.focus_webview(n_tab)
+        }
+      }
+      else if(name == 'selectNextTab' || name == 'selectPreviousTab'){
+        const selected = this.state.selectedTab
+        const tabs = this.state.tabs
+        const index = tabs.findIndex(tab=>tab.key == selected)
+        const nextIndex =  (index + (name == 'selectNextTab' ? 1 : -1)  + tabs.length) % tabs.length
+        this.setState({selectedTab: tabs[nextIndex].key})
+      }
+      else if((match = name.match(/^tab(\d)$/)) || name == 'lastTab'){
+        const tabs = this.state.tabs
+        const num = (match ? parseInt(match[1]) : tabs.length) - 1
+        if(num < tabs.length){
+          this.setState({selectedTab: tabs[num].key})
+        }
+      }
+      else if(name == 'viewPageSource'){
+        const cont = this.getWebContents(tab)
+        tab.events['new-tab'](e, id, `view-source:${cont.getURL()}`)
+      }
+      else if(name == 'changeFocusPanel'){
+        const winInfos = this.props.getScrollPriorities()
+        const index = winInfos.findIndex(x=>x[0] == this.props.k)
+        const nextIndex =  (index + 1 + winInfos.length) % winInfos.length
+        const ele = winInfos[nextIndex]
+        let ret
+        for(let wv of document.querySelectorAll(`.w${ele[0]}`)){
+          if(wv.parentNode.parentNode.style.visibility != 'hidden'){
+            ret = wv
+            break
+          }
+        }
+        if(ret){
+          ret.focus()
+          global.lastMouseDown = ret
+          global.lastMouseDownSet.delete(ret)
+          global.lastMouseDownSet.add(ret)
+        }
+      }
+      else if((match = name.match(/^split(Left|Right|Top|Bottom)$/))){
+        const tabs = this.state.tabs
+        const n = match[1]
+        const dirc = n == "Left" || n == "Right" ? 'v' : 'h'
+        const pos = n == "Left" || n == "Top" ? -1 : 1
+        const i = tabs.findIndex(t=>tab.key == t.key)
+        this.props.split(this.props.k,dirc,pos,tabs,i)
+      }
+      else if(name == 'swapPosition'){
+        PubSub.publish(`swap-position_${this.props.k}`)
+      }
+      else if(name == 'switchDirection'){
+        PubSub.publish(`switch-direction_${this.props.k}`)
+      }
+      else if(name == 'alignHorizontal'){
+        PubSub.publish('align','h')
+      }
+      else if(name == 'alignVertical'){
+        PubSub.publish('align','v')
+      }
+      else if(name == 'switchSyncScroll'){
+        this.changeSyncMode()
+      }
+      else if(name == 'openSidebar'){
+        this.props.fixedPanelOpen({dirc:mainState.sideBarDirection})
+      }
+      else if(name == 'changeMobileAgent'){
+        this.refs[`navbar-${tab.key}`].handleUserAgent()
       }
 
     }
-    ipc.on('meun-or-key-events', tab.events['meun-or-key-events'])
+    ipc.on('menu-or-key-events', tab.events['menu-or-key-events'])
 
     // tab.wv._getId = tab.wv.getId
     // tab.wv.getId = function(){
@@ -2101,7 +2181,7 @@ export default class TabPanel extends Component {
     menuItems.push(({ type: 'separator' }))
     if(!this.isFixed){
       menuItems.push(({ label: 'Swap Position', click: ()=> { PubSub.publish(`swap-position_${this.props.k}`)} }))
-      menuItems.push(({ label: 'Switch Direction', click: ()=> { PubSub.publish(`toggle-dirction_${this.props.k}`)} }))
+      menuItems.push(({ label: 'Switch Direction', click: ()=> { PubSub.publish(`switch-direction_${this.props.k}`)} }))
       menuItems.push(({ type: 'separator' }))
       menuItems.push(({ label: 'Align Horizontal', click: ()=> { PubSub.publish('align','h')} }))
       menuItems.push(({ label: 'Align Vertical', click: ()=> { PubSub.publish('align','v')} }))
@@ -2144,7 +2224,8 @@ export default class TabPanel extends Component {
         console.log("selected12",n_tab.key)
         this.setState({selectedTab: n_tab.key})
         this.focus_webview(n_tab)
-      } }))
+      }
+      }))
     }
     menuItems.push(({ label: locale.translation('5078638979202084724'),//'Add pages to Favorites',
       click: ::this.onAddFavorites }))
@@ -2460,7 +2541,7 @@ export default class TabPanel extends Component {
     })
   }
 
-  search(tab, text, checkOpposite){
+  search(tab, text, checkOpposite, forceNewTab){
     const splitText = text.match(/^(.+?)([\t ]+)(.+)$/)
     let engine = mainState.searchEngine
     if(splitText && spAliasMap.has(splitText[1])){
@@ -2476,14 +2557,14 @@ export default class TabPanel extends Component {
     const urls = searchs.map(engine=> searchProviders[engine].search.replace('%s',text))
 
     if(searchMethod.type == 'basic' || searchMethod.type == 'two'){
-      this.searchSameWindow(tab,urls,checkOpposite,searchMethod.type)
+      this.searchSameWindow(tab,urls,checkOpposite,searchMethod.type, forceNewTab)
     }
     else{
       BrowserWindowPlus.load({id:remote.getCurrentWindow().id,sameSize:true,tabParam:JSON.stringify({urls,type:searchMethod.type})})
     }
   }
 
-  searchSameWindow(tab, urls, checkOpposite, type){
+  searchSameWindow(tab, urls, checkOpposite, type, forceNewTab){
     let i = 0
     for(let url of urls) {
       const isFirst = i === 0 || (i === 1 && type == 'two')
@@ -2503,10 +2584,15 @@ export default class TabPanel extends Component {
       }
       else {
         if(!checkOpposite && isFirst){
-          this.navigateTo(tab.page, url, tab)
+          if(forceNewTab){
+            tab.events['new-tab']({}, tab.wvId,url,tab.privateMode)
+          }
+          else{
+            this.navigateTo(tab.page, url, tab)
+          }
         }
         else{
-          const t = tabAdd(this, url, isFirst, (void 0), (void 0), tab.mobile, tab.adBlockThis);
+          const t = tabAdd(this, url, isFirst, (void 0), tab.privateMode, tab.mobile, tab.adBlockThis);
           if (tab.sync) {
             t.sync = uuid.v4()
             t.dirc = tab.dirc

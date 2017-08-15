@@ -100,22 +100,22 @@ module.exports.init = (verChange) => {
   }
 
   let getPath = (appId) => {
-    // const extRootPath = path.join(app.getPath('userData'),'resource/extension')
-    const extRootPath = path.join(__dirname,'../../resource/extension')
+    const extRootPath = path.join(app.getPath('userData'),'resource/extension')
+    // const extRootPath = path.join(__dirname,'../../resource/extension')
     if(!fs.existsSync(extRootPath)) {
       fs.mkdirSync(extRootPath)
     }
     const appPath = path.join(extRootPath,appId)
     const orgPath = path.join(__dirname,'../../resource/extension',appId)
-    // if(verChange || true || !fs.existsSync(appPath)){
-    //   if(fs.existsSync(orgPath)){
-    //     fs.copySync(orgPath, appPath)
-    //   }
-    //   else{
-    //     const dirPath = chromeExtensionPath(appId)
-    //     fs.copySync(dirPath, appPath)
-    //   }
-    // }
+    if(verChange || true || !fs.existsSync(appPath)){
+      if(fs.existsSync(orgPath)){
+        fs.copySync(orgPath, appPath)
+      }
+      else{
+        const dirPath = chromeExtensionPath(appId)
+        fs.copySync(dirPath, appPath)
+      }
+    }
     const version = fs.readdirSync(appPath).sort().pop()
     const basePath = path.join(appPath,version)
     return [appId,basePath]

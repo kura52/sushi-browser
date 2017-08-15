@@ -33036,8 +33036,11 @@ var rendererIdentifiers = function () {
   // Caption buttons in titlebar (min/max/close - Windows only)
   'windowCaptionButtonMinimize', 'windowCaptionButtonMaximize', 'windowCaptionButtonRestore', 'windowCaptionButtonClose', 'closeFirefoxWarning', 'importSuccess', 'licenseTextOk', 'closeFirefoxWarningOk', 'importSuccessOk', 'connectionError', 'unknownError', 'allowAutoplay',
 
+  //Add
+  'default', 'name', 'searchEngine', 'searchEngines', 'engineGoKey', 'general', 'generalSettings', 'search', 'tabs', 'extensions', 'myHomepage', 'startsWith', 'startsWithOptionLastTime', 'newTabMode', 'newTabEmpty', 'import', 'bn-BD', 'bn-IN', 'zh-CN', 'cs', 'nl-NL', 'en-US', 'fr-FR', 'de-DE', 'hi-IN', 'id-ID', 'it-IT', 'ja-JP', 'ko-KR', 'ms-MY', 'pl-PL', 'pt-BR', 'ru', 'sl', 'es', 'ta', 'te', 'tr-TR', 'uk', 'requiresRestart', 'enableFlash',
+
   //chrome
-  '994289308992179865', '1725149567830788547', '4643612240819915418', '4256316378292851214', '2019718679933488176', '782057141565633384', '5116628073786783676', '1465176863081977902', '3007771295016901659', '5078638979202084724', '4589268276914962177', '3551320343578183772'];
+  '994289308992179865', '1725149567830788547', '4643612240819915418', '4256316378292851214', '2019718679933488176', '782057141565633384', '5116628073786783676', '1465176863081977902', '3007771295016901659', '5078638979202084724', '4589268276914962177', '3551320343578183772', '2448312741937722512', '1524430321211440688', '42126664696688958', '2663302507110284145', '3635030235490426869', '4888510611625056742', '5860209693144823476', '5846929185714966548', '7955383984025963790', '3128230619496333808', '3391716558283801616', '6606070663386660533', '9011178328451474963'];
 };
 
 var ctx = null;
@@ -33108,6 +33111,7 @@ const defaultLocale = function () {
     return DEFAULT_LANGUAGE;
   }
 };
+exports.defaultLocale = defaultLocale;
 
 // Initialize translations for a language
 exports.init = function (language) {
@@ -33140,7 +33144,7 @@ exports.init = function (language) {
   const propertyFiles = [];
   const appendLangProperties = function (lang) {
     // Property files to parse (only ones containing menu specific identifiers)
-    propertyFiles.push(path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'menu.properties'), path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'app.properties'), path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'error.properties'), path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'passwords.properties'), path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'common.properties'), path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'newtab.properties'), path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'chrome.properties'));
+    propertyFiles.push(path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'menu.properties'), path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'app.properties'), path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'error.properties'), path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'passwords.properties'), path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'common.properties'), path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'newtab.properties'), path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'preferences.properties'), path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'chrome.properties'));
   };
 
   appendLangProperties(lang);
@@ -33321,14 +33325,17 @@ class DownloadList extends React.Component {
   componentDidMount() {
     downloadingItemReply((item, sender) => {
       item.sender = sender;
-      this.state.downloads.set(item.startTime, item);
+      item.created_at = item.startTime;
+      this.state.downloads.set(item.created_at, item);
       this.setState({});
     });
 
     downloadReply((data, flag) => {
+      let num = 0;
       for (let e of data) {
-        if (!this.state.downloads.has(e.startTime)) {
-          this.state.downloads.set(e.startTime, e);
+        if (!this.state.downloads.has(e.created_at) || num < 1000) {
+          this.state.downloads.set(e.created_at, e);
+          num++;
         }
       }
       this.setState({});
@@ -33338,7 +33345,7 @@ class DownloadList extends React.Component {
 
   render() {
     const arr = [...this.state.downloads.values()];
-    arr.sort((a, b) => b.startTime - a.startTime);
+    arr.sort((a, b) => b.created_at - a.created_at);
 
     const downloadList = [];
     for (let item of arr) {
@@ -33380,7 +33387,7 @@ class DownloadList extends React.Component {
   }
 
   calcSpeed(item) {
-    const diff = item.now - item.startTime;
+    const diff = item.now - item.created_at;
     const percent = this.round(item.receivedBytes / item.totalBytes * 100, 2);
     const speed = item.receivedBytes / diff * 1000;
     const restTime = (item.totalBytes - item.receivedBytes) / speed;
@@ -33393,7 +33400,7 @@ class DownloadList extends React.Component {
 
     return React.createElement(
       List.Item,
-      { key: item.startTime },
+      { key: `${item.savePath}_${item.created_at}` },
       React.createElement(
         List.Content,
         null,

@@ -135,13 +135,13 @@ Sync Data機能をOnにすると複数端末間で履歴とお気に入りの同
 
 各プラットフォームに対し、インストーラとポータブル版の両方がダウンロードできます。
 
-- [Windows Installer v0.1.2](https://sushib.me/dl/sushi-browser-0.1.2-setup-x64.exe)
-- [Windows Portable v0.1.2](https://sushib.me/dl/sushi-browser-0.1.2-win-x64.zip)
-- [MacOS dmg v0.1.2](https://sushib.me/dl/SushiBrowser-0.1.2.dmg)
-- [MacOS Portable v0.1.2](https://sushib.me/dl/sushi-browser-0.1.2-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.1.2](https://sushib.me/dl/sushi-browser-0.1.2.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.1.2](https://sushib.me/dl/sushi-browser_0.1.2_amd64.deb)
-- [Linux Portable v0.1.2](https://sushib.me/dl/sushi-browser-0.1.2.tar.bz2)
+- [Windows Installer v0.2.0](https://sushib.me/dl/sushi-browser-0.2.0-setup-x64.exe)
+- [Windows Portable v0.2.0](https://sushib.me/dl/sushi-browser-0.2.0-win-x64.zip)
+- [MacOS dmg v0.2.0](https://sushib.me/dl/SushiBrowser-0.2.0.dmg)
+- [MacOS Portable v0.2.0](https://sushib.me/dl/sushi-browser-0.2.0-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.2.0](https://sushib.me/dl/sushi-browser-0.2.0.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.2.0](https://sushib.me/dl/sushi-browser_0.2.0_amd64.deb)
+- [Linux Portable v0.2.0](https://sushib.me/dl/sushi-browser-0.2.0.tar.bz2)
 
 ポータブル版の利用は、解凍後にWindowsはsushi.exeを、Mac/Linuxはsushi-browserを実行ください。
 

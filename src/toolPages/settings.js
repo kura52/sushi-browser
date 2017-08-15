@@ -1,16 +1,84 @@
-
 window.debug = require('debug')('info')
 import process from './process'
 const ipc = require('electron').ipcRenderer
 const path = require('path')
 const React = require('react')
 const ReactDOM = require('react-dom')
-const { Sidebar, Segment, Container, Menu, Input,Divider, Button, Checkbox, Icon, Table, Dropdown } = require('semantic-ui-react')
+const isAccelerator = require("electron-is-accelerator")
+const { Grid, Sidebar, Segment, Container, Menu, Input,Divider, Button, Checkbox, Icon, Table, Dropdown } = require('semantic-ui-react')
 const { StickyContainer, Sticky } = require('react-sticky');
 const l10n = require('../../brave/js/l10n')
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
 l10n.init()
 
+const isDarwin = navigator.userAgent.includes('Mac OS X')
+const keyMapping = {
+  keySettings: l10n.translation(isDarwin ? 'preferences' : 'settings'),
+  keyNewTab: l10n.translation('newTab'),
+  keyNewPrivateTab: l10n.translation('newPrivateTab'),
+  keyNewWindow: l10n.translation('newWindow'),
+  keyOpenLocation: l10n.translation('openLocation'),
+  keyCloseTab: l10n.translation('closeTab'),
+  keyCloseWindow: l10n.translation('closeWindow'),
+  keySavePageAs: l10n.translation('savePageAs'),
+  keyPrint: l10n.translation('print'),
+  keyQuit: l10n.translation('quitApp').replace('Brave','Sushi Browser'),
+  keyUndo: l10n.translation('undo'),
+  keyRedo: l10n.translation('redo'),
+  keyCut: l10n.translation('cut'),
+  keyCopy: l10n.translation('copy'),
+  keyPaste: l10n.translation('paste'),
+  keyPasteWithoutFormatting: l10n.translation('pasteWithoutFormatting'),
+  keySelectAll: l10n.translation('selectAll'),
+  keyFindOnPage: l10n.translation('findOnPage'),
+  keyFindNext:  l10n.translation('findNext'),
+  keyFindPrevious:  l10n.translation('findPrevious'),
+  keyActualSize: l10n.translation('actualSize'),
+  keyZoomIn: l10n.translation('zoomIn'),
+  keyZoomOut: l10n.translation('zoomOut'),
+  keyStop: l10n.translation('stop'),
+  keyReloadPage: l10n.translation('reloadPage'),
+  keyCleanReload: l10n.translation('cleanReload'),
+  keyToggleDeveloperTools: l10n.translation('toggleDeveloperTools'),
+  keyToggleFullScreenView: l10n.translation('toggleFullScreenView'),
+  keyHome: l10n.translation('home'),
+  keyBack: l10n.translation('back'),
+  keyForward: l10n.translation('forward'),
+  keyReopenLastClosedTab: l10n.translation('reopenLastClosedTab'),
+  keyShowAllHistory: l10n.translation('showAllHistory'),
+  keyBookmarkPage: l10n.translation('bookmarkPage'),
+  keyBookmarksManager: l10n.translation('bookmarksManager'),
+  keyViewPageSource: l10n.translation('viewPageSource'),
+  keyMinimize: l10n.translation('minimize'),
+  keySelectNextTab: l10n.translation('selectNextTab'),
+  keySelectPreviousTab: l10n.translation('selectPreviousTab'),
+  keyTab1: l10n.translation('3635030235490426869'),
+  keyTab2: l10n.translation('4888510611625056742'),
+  keyTab3: l10n.translation('5860209693144823476'),
+  keyTab4: l10n.translation('5846929185714966548'),
+  keyTab5: l10n.translation('7955383984025963790'),
+  keyTab6: l10n.translation('3128230619496333808'),
+  keyTab7: l10n.translation('3391716558283801616'),
+  keyTab8: l10n.translation('6606070663386660533'),
+  keyLastTab: l10n.translation('9011178328451474963'),
+  keyToggleMenuBar: 'Toggle MenuBar',
+  keyChangeFocusPanel: 'Change Focus Panel',
+  keySplitLeft: 'Split Left',
+  keySplitRight: 'Split Right',
+  keySplitTop: 'Split Top',
+  keySplitBottom: 'Split Bottom',
+  keySwapPosition: 'Swap Position',
+  keySwitchDirection: 'Switch Direction',
+  keyAlignHorizontal: 'Align Horizontal',
+  keyAlignVertical: 'Align Vertical',
+  keySwitchSyncScroll: 'Switch Sync Scroll',
+  keyOpenSidebar: 'Open Sidebar',
+  keyChangeMobileAgent: 'Change to Mobile Agent',
+  keyDownloadsManager: l10n.translation('downloadsManager'),
+  keyHideBrave: l10n.translation('hideBrave').replace('Brave','Sushi Browser'),
+  keyHideOthers: l10n.translation('hideOthers'),
+  keyQuit: l10n.translation('quitApp').replace('Brave','Sushi Browser')
+}
 
 
 class TopMenu extends React.Component {
@@ -89,6 +157,11 @@ const newTabModeOptions = [
     text: l10n.translation('newTabEmpty'),
   }
 ]
+
+
+const syncScrollMarginOptions = Array.from(new Array(21)).map((v,n)=>{
+  return {value: n*5 ,text: `${n*5}px`}
+})
 
 const downloadNumOptions = Array.from(new Array(8)).map((v,n)=>{
   return {value: n+1 ,text: n+1}
@@ -202,6 +275,23 @@ class GeneralSetting extends React.Component {
           <label>Tabs</label>
           <Checkbox defaultChecked={this.state.scrollTab} toggle onChange={this.onChange.bind(this,'scrollTab')}/>
           <span className="toggle-label">Enable mouse wheel scroll tab selection ({l10n.translation('requiresRestart').replace('* ','')})</span>
+        </div>
+        <br/>
+
+
+        <div className="field">
+          <label>Special Behavior</label>
+          <Checkbox defaultChecked={this.state.tripleClick} toggle onChange={this.onChange.bind(this,'tripleClick')}/>
+          <span className="toggle-label">Enable horizontal position moving (When you triple left clicking)</span>
+          <br/>
+          <Checkbox defaultChecked={this.state.doubleShift} toggle onChange={this.onChange.bind(this,'doubleShift')}/>
+          <span className="toggle-label">Enable anything search (When you double pressing the shift key)  ({l10n.translation('requiresRestart').replace('* ','')})</span>
+        </div>
+        <br/>
+
+        <div className="field">
+          <label>Sync Scroll Margin({l10n.translation('requiresRestart').replace('* ','')})</label>
+          <Dropdown onChange={this.onChange.bind(this,'syncScrollMargin')} selection options={syncScrollMarginOptions} defaultValue={this.state.syncScrollMargin}/>
         </div>
         <br/>
 
@@ -419,16 +509,61 @@ class TabsSetting extends React.Component {
   }
 }
 
-
+let keyboardDefault
 class KeyboardSetting extends React.Component {
   constructor(props) {
     super(props)
+    this.state = {...keyboardDefault,errors:{}}
+  }
+
+  onChange(name,e,data){
+    if(data.value == "" || isAccelerator(data.value)){
+      ipc.send('save-state',{tableName:'state',key:name,val:data.value })
+      this.state.errors[name] = false
+    }
+    else{
+      this.state.errors[name] = true
+    }
+    this.setState({})
+  }
+
+  eachRender(key,val){
+    return this.state[key] == (void 0) ? null : <Grid.Row>
+      <Grid.Column width={4}>
+        <label style={{verticalAlign: -9}}>{val}</label>
+      </Grid.Column>
+      <Grid.Column width={7}>
+        <Input fluid error={!!this.state.errors[key]} onChange={this.onChange.bind(this,key)} defaultValue={this.state[key]}/>
+      </Grid.Column>
+    </Grid.Row>
+  }
+
+  renderRows(){
+    const ret = []
+    for(let [key,val] of Object.entries(keyMapping)){
+      let row = this.eachRender(key,val)
+      if(row) ret.push(row)
+
+      row = this.eachRender(`${key}_1`,val)
+      if(row) ret.push(row)
+
+      row = this.eachRender(`${key}_2`,val)
+      if(row) ret.push(row)
+    }
+
+    return ret
   }
 
   render() {
     return <div>
-      <h3>Keyboard</h3>
+      <h3>{l10n.translation('1524430321211440688')}</h3>
       <Divider/>
+      <p>Please refer <a href="https://github.com/electron/electron/blob/master/docs/api/accelerator.md">here</a> for input method of shortcut</p>
+      <br/>
+
+      <Grid >
+        {this.renderRows()}
+      </Grid>
     </div>
   }
 }
@@ -441,7 +576,7 @@ class ExtensionSetting extends React.Component {
 
   render() {
     return <div>
-      <h3>Extensions</h3>
+      <h3>{l10n.translation('extensions')}</h3>
       <Divider/>
     </div>
   }
@@ -487,7 +622,7 @@ class TopList extends React.Component {
         {this.getMenu('search','search')}
         {/*{this.getMenu('tabs','table')}*/}
         {this.getMenu('keyboard','keyboard')}
-        {this.getMenu('extensions','industry')}
+        {/*{this.getMenu('extensions','industry')}*/}
       </Sidebar>
       <Sidebar.Pusher>
         <Segment basic>
@@ -506,9 +641,10 @@ const App = () => (
 )
 
 
-ipc.send("get-main-state",['startsWith','newTabMode','myHomepage','searchProviders','searchEngine','language','enableFlash','downloadNum','sideBarDirection','scrollTab'])
+ipc.send("get-main-state",['startsWith','newTabMode','myHomepage','searchProviders','searchEngine','language','enableFlash','downloadNum','sideBarDirection','scrollTab','doubleShift','tripleClick','syncScrollMargin','ALL_KEYS'])
 ipc.once("get-main-state-reply",(e,data)=>{
   generalDefault = data
+  keyboardDefault = data
 
   const {searchProviders, searchEngine} = data
   let arr = []

@@ -267,7 +267,7 @@ class Contents extends React.Component {
 
       if(event.which == 3){
         const nodes = [currentNode,...new Set([selectedNodes,...selectedNodes])]
-        ipc.send("favorite-meun",nodes.map(node=>(node.url || node.title)))
+        ipc.send("favorite-menu",nodes.map(node=>(node.url || node.title)))
         this.menuKey = nodes
         return
       }
@@ -338,7 +338,7 @@ class Contents extends React.Component {
       //   })
       // }
     }
-    ipc.on('favorite-meun-reply', this.event)
+    ipc.on('favorite-menu-reply', this.event)
   }
 
   render() {

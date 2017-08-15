@@ -17,7 +17,7 @@ export default class BrowserPageSearch extends Component {
   onKeyDown(e) {
     if (e.keyCode == 13) {
       e.preventDefault()
-      this.props.onPageSearch(e.target.value)
+      this.props.onPageSearch(e.target.value,!e.shiftKey)
     }
   }
   onChange(e) {

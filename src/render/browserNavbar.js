@@ -449,7 +449,7 @@ class BrowserNavbar extends Component{
       if(!item.title) continue
       const favicon = (item.favicon != "undefined" && localStorage.getItem(item.favicon)) || "resource/file.png"
       menuItems.push(<NavbarMenuItem key={i++} favicon={favicon} text={`[${moment(item.updated_at).format("YYYY/MM/DD HH:mm:ss")}] ${item.title}`} onClick={_=>this.navigate(item.location)} />)
-      if(i > 100) break
+      if(i > 200) break
     }
     return menuItems
   }

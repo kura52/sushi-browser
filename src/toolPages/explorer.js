@@ -184,11 +184,11 @@ class FileExplorer extends React.Component{
         })
       }
     }
-    ipc.on('explorer-meun-reply', this.event)
+    ipc.on('explorer-menu-reply', this.event)
   }
 
   componentWillUnmount(){
-    ipc.removeListener("explorer-meun-reply",this.event)
+    ipc.removeListener("explorer-menu-reply",this.event)
   }
 
   keyDown(e){
@@ -247,7 +247,7 @@ class FileExplorer extends React.Component{
 
   handleMouseDown(key,e){
     if(e.which == 3){
-      ipc.send("explorer-meun",[...new Set([key,...this.refs.tree.state.selectedKeys])].filter(x=>x))
+      ipc.send("explorer-menu",[...new Set([key,...this.refs.tree.state.selectedKeys])].filter(x=>x))
       this.menuKey = key
     }
   }

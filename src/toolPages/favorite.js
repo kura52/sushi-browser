@@ -204,11 +204,11 @@ export default class FavoriteExplorer extends React.Component{
         })
       }
     }
-    ipc.on('favorite-meun-reply', this.event)
+    ipc.on('favorite-menu-reply', this.event)
   }
 
   componentWillUnmount(){
-    if(this.event) ipc.removeListener("favorite-meun-reply",this.event)
+    if(this.event) ipc.removeListener("favorite-menu-reply",this.event)
     if(!this.props.cont) {
       document.addEventListener("keydown", this.keyDown)
       document.addEventListener("keyup", this.keyUp)
@@ -262,7 +262,7 @@ export default class FavoriteExplorer extends React.Component{
   handleMouseDown(key,e){
     if(e.which == 3){
       const keys = [...new Set([key,...this.refs.tree.state.selectedKeys])]
-      ipc.send("favorite-meun",this.getNodesFromKeys(keys).map(node=>(node.props.url || node.props.title)))
+      ipc.send("favorite-menu",this.getNodesFromKeys(keys).map(node=>(node.props.url || node.props.title)))
       this.menuKey = key
     }
   }

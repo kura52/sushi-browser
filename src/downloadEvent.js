@@ -22,7 +22,10 @@ export default class DownloadEvent {
           range.end === void 0 ? { $gte: range.start } :
           { $gte: range.start ,$lte: range.end }
       )}
+
+      console.log(432542,cond)
       const data = await download.find_sort([cond],[{ created_at: -1 }])
+      console.log(data)
       event.sender.send('download-reply', data);
     })
 

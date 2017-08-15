@@ -14,7 +14,7 @@ import url from 'url'
 const FloatPanel = require('./FloatPanel')
 const {token} = require('./databaseRender')
 import firebase,{storage,auth,database} from 'firebase'
-let MARGIN = 30
+let MARGIN = mainState.syncScrollMargin
 let count = 0
 // ipc.setMaxListeners(0)
 

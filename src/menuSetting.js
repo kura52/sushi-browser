@@ -7,6 +7,18 @@ import {getFocusedWebContents, getCurrentWindow} from './util'
 const isDarwin = process.platform === 'darwin'
 const topURL = mainState.newTabMode == 'myHomepage' ? mainState.myHomepage : `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/${mainState.newTabMode}.html`
 
+const preferencesMenuItem = () => {
+  return {
+    label: locale.translation(isDarwin ? 'preferences' : 'settings'),
+    accelerator: mainState.keySettings,
+    click: (item, focusedWindow) => {
+      getFocusedWebContents().then(cont=>{
+        cont && cont.hostWebContents.send('new-tab',cont.getId(),'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html')
+      })
+    }
+  }
+}
+
 const createFileSubmenu = () => {
   const submenu = [
     {
@@ -20,7 +32,7 @@ const createFileSubmenu = () => {
     },
     {
       label: locale.translation('newPrivateTab'),
-      accelerator: 'Shift+CmdOrCtrl+P',
+      accelerator: mainState.keyNewPrivateTab,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
           cont && cont.hostWebContents.send('new-tab',cont.getId(),topURL,true)
@@ -50,7 +62,7 @@ const createFileSubmenu = () => {
       accelerator: mainState.keyCloseTab,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('meun-or-key-events','close-tab',cont.getId())
+          cont && cont.hostWebContents.send('menu-or-key-events','closeTab',cont.getId())
         })
       }
     },
@@ -90,9 +102,9 @@ const createFileSubmenu = () => {
   if (!isDarwin) {
     submenu.push({ type: 'separator' })
     submenu.push({
-      label: locale.translation('quit'),
+      label: locale.translation('quitApp').replace('Brave','Sushi Browser'),
       accelerator: mainState.keyQuit,
-      click: function () { app.quit() }
+      click() { app.quit() }
     })
   }
 
@@ -127,136 +139,394 @@ const createEditSubmenu = () => {
     }, {
       label: locale.translation('pasteWithoutFormatting'),
       accelerator: mainState.keyPasteWithoutFormatting,
-      click: function (item, focusedWindow) {
+      click(item, focusedWindow) {
         focusedWindow.webContents.pasteAndMatchStyle()
       }
     },
     { type: 'separator' },
     {
-      label: 'Delete',
+      label: locale.translation('delete'),
       accelerator: 'Delete',
-      click: function (item, focusedWindow) {
+      click(item, focusedWindow) {
         focusedWindow.webContents.delete()
       }
     }, {
-      label: 'Select All',
-      accelerator: 'CmdOrCtrl+A',
+      label: locale.translation('selectAll'),
+      accelerator: mainState.keySelectAll,
       role: 'selectall'
     },
-    // { type: 'separator' },
-    // CommonMenu.findOnPageMenuItem(),
-    // {
-    //   label: locale.translation('findNext'),
-    //   visible: false,
-    //   accelerator: 'CmdOrCtrl+G'
-    // }, {
-    //   label: locale.translation('findPrevious'),
-    //   visible: false,
-    //   accelerator: 'Shift+CmdOrCtrl+G'
-    // },
-    // CommonMenu.separatorMenuItem
+    { type: 'separator' },
+
+    {
+      label: locale.translation('findOnPage'),
+      accelerator: mainState.keyFindOnPage,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events','findOnPage',cont.getId())
+        })
+      }
+    },
+    // { type: 'separator' }
     // NOTE: macOS inserts "start dictation" and "emoji and symbols" automatically
   ]
 
-  // if (!isDarwin) {
-  //   submenu.push(CommonMenu.preferencesMenuItem())
-  // }
+  if (!isDarwin) {
+    submenu.push({ type: 'separator' })
+    submenu.push(preferencesMenuItem())
+  }
 
   return submenu
 }
 
+const createViewSubmenu = () => {
+  return [
+    {
+      label: locale.translation('actualSize'),
+      accelerator: mainState.keyActualSize,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.zoomReset()
+        })
+      }
+    }, {
+      label: locale.translation('zoomIn'),
+      accelerator: mainState.keyZoomIn,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.zoomIn()
+        })
+      }
+    }, {
+      label: locale.translation('zoomOut'),
+      accelerator: mainState.keyZoomOut,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.zoomOut()
+        })
+      }
+    },
+    { type: 'separator' },
+    {
+      label: locale.translation('stop'),
+      accelerator: mainState.keyStop,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.stop()
+        })
+      }
+    },
+    {
+      label: locale.translation('reloadPage'),
+      accelerator: mainState.keyReloadPage,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.reload()
+        })
+      }
+    },
+    {
+      label: locale.translation('cleanReload'),
+      accelerator: mainState.keyCleanReload,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.reloadIgnoringCache()
+        })
+      }
+    },
+    { type: 'separator' },
+    {
+      label: locale.translation('toggleDeveloperTools'),
+      accelerator: mainState.keyToggleDeveloperTools,
+      click(item) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.openDevTools()
+        })
+      }
+    },
+    { type: 'separator' },
+    {
+      label: locale.translation('toggleFullScreenView'),
+      accelerator: mainState.keyToggleFullScreenView,
+      click(item, focusedWindow) {
+        if (focusedWindow) {
+          if(isDarwin){
+            focusedWindow.setFullScreen(!focusedWindow.isFullScreen())
+          }
+          else{
+            const isFullScreen = focusedWindow.isFullScreen()
+            focusedWindow.webContents.send('switch-fullscreen',!isFullScreen)
+            focusedWindow.setFullScreenable(true)
+            const menubar = focusedWindow.isMenuBarVisible()
+            focusedWindow.setFullScreen(!isFullScreen)
+            focusedWindow.setMenuBarVisibility(menubar)
+            focusedWindow.setFullScreenable(false)
+          }
+        }
+      }
+    }
+  ]
+}
+
 
 const createHistorySubmenu = () => {
-  const submenu = [
+  let submenu = [
+    {
+      label: locale.translation('home'),
+      accelerator: mainState.keyHome,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=> {
+          cont && cont.hostWebContents.send('menu-or-key-events', 'navigatePage', cont.getId(), topURL)
+        })
+      }
+    },
+    {
+      label: locale.translation('back'),
+      accelerator: mainState.keyBack,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=> {
+          cont && cont.goBack()
+        })
+      }
+    },
+    {
+      label: locale.translation('forward'),
+      accelerator: mainState.keyForward,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=> {
+          cont && cont.goForward()
+        })
+      }
+    },
+    { type: 'separator' },
+    {
+      label: locale.translation('reopenLastClosedTab'),
+      accelerator: mainState.keyReopenLastClosedTab,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'reopenLastClosedTab', cont.getId())
+        })
+      }
+    },
+    { type: 'separator' },
+    {
+      label: locale.translation('showAllHistory'),
+      accelerator: mainState.keyShowAllHistory,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('new-tab',cont.getId(),'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html')
+        })
+      }
+    }
   ]
+
+  return submenu
+}
+
+const createBookmarksSubmenu = () => {
+  let submenu = [
+    {
+      label: locale.translation('bookmarkPage'),
+      accelerator: mainState.keyBookmarkPage,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('add-favorite',cont.getId())
+        })
+      }
+    },
+    { type: 'separator' },
+    {
+      label: locale.translation('bookmarksManager'),
+      accelerator: mainState.keyBookmarksManager,
+      click: (item, focusedWindow) => {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('new-tab',cont.getId(),'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html')
+        })
+      }
+    },
+    { type: 'separator' },
+    {
+      label: locale.translation('importBrowserData'),
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          ipcMain.emit("import-browser-data",{sender: cont})
+        })
+      }
+    },
+    {
+      label: locale.translation('exportBookmarks'),
+      click(item, focusedWindow) {
+        ipcMain.emit("export-bookmark")
+      }
+    }
+  ]
+
   return submenu
 }
 
 const createWindowSubmenu = () => {
   const submenu = [
     {
-      label: 'Minimize',
-      accelerator: 'CmdOrCtrl+M',
+      label: locale.translation('minimize'),
+      accelerator: mainState.keyMinimize,
       role: 'minimize'
       // "Minimize all" added automatically
     },
+    { type: 'separator' },
     {
-      label: `Toggle MenuBar`,
-      accelerator: 'Alt+CmdOrCtrl+T',
-      click: function (item, focusedWindow) {
+      label: locale.translation('selectNextTab'),
+      accelerator: mainState.keySelectNextTab,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'selectNextTab', cont.getId())
+        })
+      }
+    },
+    {
+      label: locale.translation('selectPreviousTab'),
+      accelerator: mainState.keySelectPreviousTab,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'selectPreviousTab', cont.getId())
+        })
+      }
+    },
+    { type: 'separator' },
+    {
+      label: 'Toggle MenuBar',
+      accelerator: mainState.keyToggleMenuBar,
+      click(item, focusedWindow) {
         if (focusedWindow) focusedWindow.webContents.send('toggle-nav')
       }
     },
     {
-      label: 'Toggle Full Screen',
-      accelerator: isDarwin ? 'Ctrl+Cmd+F' : 'F11',
+      label: 'Change Focus Panel',
+      accelerator: mainState.keyChangeFocusPanel,
       click(item, focusedWindow) {
-        if (focusedWindow) {
-          const isFullScreen = focusedWindow.isFullScreen()
-          focusedWindow.webContents.send('switch-fullscreen',!isFullScreen)
-          focusedWindow.setFullScreenable(true)
-          const menubar = focusedWindow.isMenuBarVisible()
-          focusedWindow.setFullScreen(!isFullScreen)
-          focusedWindow.setMenuBarVisibility(menubar)
-          focusedWindow.setFullScreenable(false)
-        }
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'changeFocusPanel', cont.getId())
+        })
+      }
+    },
+    { type: 'separator' },
+    {
+      label: 'Split Left',
+      accelerator: mainState.keySplitLeft,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'splitLeft', cont.getId())
+        })
+      }
+    },
+    {
+      label: 'Split Right',
+      accelerator: mainState.keySplitRight,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'splitRight', cont.getId())
+        })
+      }
+    },
+    {
+      label: 'Split Top',
+      accelerator: mainState.keySplitTop,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'splitTop', cont.getId())
+        })
+      }
+    },
+    {
+      label: 'Split Bottom',
+      accelerator: mainState.keySplitBottom,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'splitBottom', cont.getId())
+        })
+      }
+    },
+    { type: 'separator' },
+    {
+      label: 'Swap Position',
+      accelerator: mainState.keySwapPosition,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'swapPosition', cont.getId())
+        })
+      }
+    },
+    {
+      label: 'Switch Direction',
+      accelerator: mainState.keySwitchDirection,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'switchDirection', cont.getId())
+        })
+      }
+    },
+    {
+      label: 'Align Horizontal',
+      accelerator: mainState.keyAlignHorizontal,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'alignHorizontal', cont.getId())
+        })
+      }
+    },
+    {
+      label: 'Align Vertical',
+      accelerator: mainState.keyAlignVertical,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'alignVertical', cont.getId())
+        })
+      }
+    },
+    { type: 'separator' },
+    {
+      label: 'Switch Sync Scroll',
+      accelerator: mainState.keySwitchSyncScroll,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'switchSyncScroll', cont.getId())
+        })
+      }
+    },
+    {
+      label: 'Open Sidebar',
+      accelerator: mainState.keyOpenSidebar,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'openSidebar', cont.getId())
+        })
+      }
+    },
+    {
+      label: 'Change to Mobile Agent',
+      accelerator: mainState.keyChangeMobileAgent,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'changeMobileAgent', cont.getId())
+        })
+      }
+    },
+    { type: 'separator' },
+    {
+      label: locale.translation('downloadsManager'),
+      accelerator: mainState.keyDownloadsManager,
+      click(item, focusedWindow){
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('new-tab',cont.getId(),'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html')
+        })
       }
     }
-    // {
-    //   label: locale.translation('zoom'),
-    //   visible: false
-    // },
-    // CommonMenu.separatorMenuItem,
-    // {
-    //   label: locale.translation('selectNextTab'),
-    //   accelerator: 'Ctrl+Tab',
-    //   click: function (item, focusedWindow) {
-    //     CommonMenu.sendToFocusedWindow(focusedWindow, [messages.SHORTCUT_NEXT_TAB])
-    //   }
-    // }, {
-    //   label: locale.translation('selectPreviousTab'),
-    //   accelerator: 'Ctrl+Shift+Tab',
-    //   click: function (item, focusedWindow) {
-    //     CommonMenu.sendToFocusedWindow(focusedWindow, [messages.SHORTCUT_PREV_TAB])
-    //   }
-    // }, {
-    //   label: locale.translation('moveTabToNewWindow'),
-    //   visible: false
-    // }, {
-    //   label: locale.translation('mergeAllWindows'),
-    //   visible: false
-    // },
-    // CommonMenu.separatorMenuItem,
-    // CommonMenu.bookmarksManagerMenuItem(),
-    // CommonMenu.downloadsMenuItem(),
-    // CommonMenu.extensionsMenuItem(),
-    // CommonMenu.passwordsMenuItem()
   ]
 
   if (isDarwin) {
     submenu.push(
       { type: 'separator' },
       {
-        label: 'Bring All to Front',
+        label: locale.translation('bringAllToFront'),
         role: 'front'
-      }
-    )
-  }
-  else{
-
-    submenu.push(
-      {
-        label: 'Toggle Developer Tools',
-        accelerator: (function () {
-          if (process.platform === 'darwin') {
-            return 'Alt+Command+I'
-          } else {
-            return 'Ctrl+Shift+I'
-          }
-        })(),
-        click: function (item, focusedWindow) {
-          if (focusedWindow) focusedWindow.toggleDevTools()
-        }
       }
     )
   }
@@ -268,61 +538,15 @@ const createWindowSubmenu = () => {
 let appMenu
 function getTemplate(){
   const template = [
-    { label: 'File', submenu: createFileSubmenu() },
-    { label: 'Edit', submenu: createEditSubmenu() },
-    // { label: locale.translation('view'), submenu: createViewSubmenu() },
-    // { label: 'History', submenu: createHistorySubmenu() },
-    // { label: 'bookmark', submenu: createBookmarksSubmenu() },
-    // {
-    //   label: locale.translation('bravery'),
-    //   submenu: [
-    //     CommonMenu.braverySiteMenuItem(),
-    //     CommonMenu.separatorMenuItem,
-    //     CommonMenu.braveryPaymentsMenuItem()
-    //   ]
-    // },
-    { label: 'Window', submenu: createWindowSubmenu(), role: 'window' },
+    { label: locale.translation('file'), submenu: createFileSubmenu() },
+    { label: locale.translation('edit'), submenu: createEditSubmenu() },
+    { label: locale.translation('view'), submenu: createViewSubmenu() },
+    { label: locale.translation('history'), submenu: createHistorySubmenu() },
+    { label: locale.translation('bookmarks'), submenu: createBookmarksSubmenu() },
+    { label: locale.translation('window'), submenu: createWindowSubmenu(), role: 'window' },
     // { label: locale.translation('help'), submenu: createHelpSubmenu(), role: 'help' }
   ]
 
-
-  if (isDarwin) {
-    const name = app.getName()
-    template.unshift({
-      label: name,
-      submenu: [
-        {
-          label: 'About ' + name,
-          role: 'about'
-        },
-        {
-          type: 'separator'
-        },
-        {
-          label: 'Hide ' + name,
-          accelerator: 'Command+H',
-          role: 'hide'
-        },
-        {
-          label: 'Hide Others',
-          accelerator: 'Command+Alt+H',
-          role: 'hideothers'
-        },
-        {
-          label: 'Show All',
-          role: 'unhide'
-        },
-        {
-          type: 'separator'
-        },
-        {
-          label: locale.translation('quit'),
-          accelerator: mainState.keyQuit,
-          click: function () { app.quit() }
-        }
-      ]
-    })
-  }
 
   // const t = [
   //   {
@@ -360,7 +584,7 @@ function getTemplate(){
   //       {
   //         label: `Toggle MenuBar`,
   //         accelerator: 'CmdOrCtrl+Alt+T',
-  //         click: function (item, focusedWindow) {
+  //         click(item, focusedWindow) {
   //           if (focusedWindow) focusedWindow.webContents.send('toggle-nav')
   //         }
   //       },
@@ -373,7 +597,7 @@ function getTemplate(){
   //             return 'F11'
   //           }
   //         })(),
-  //         click: function (item, focusedWindow) {
+  //         click(item, focusedWindow) {
   //           if (focusedWindow) {
   //             focusedWindow.setFullScreenable(true)
   //             const menubar = focusedWindow.isMenuBarVisible()
@@ -392,7 +616,7 @@ function getTemplate(){
   //             return 'Ctrl+Shift+I'
   //           }
   //         })(),
-  //         click: function (item, focusedWindow) {
+  //         click(item, focusedWindow) {
   //           if (focusedWindow) focusedWindow.toggleDevTools()
   //         }
   //       }
@@ -404,7 +628,7 @@ function getTemplate(){
   //     submenu: [
   //       {
   //         label: 'Learn More',
-  //         click: function () { shell.openExternal('http://electron.atom.io') }
+  //         click() { shell.openExternal('http://electron.atom.io') }
   //       }
   //     ]
   //   }
@@ -415,49 +639,43 @@ function getTemplate(){
     template.unshift({
       label: name,
       submenu: [
+        // {
+        //   label: 'About ' + name,
+        //   role: 'about'
+        // },
+        // {
+        //   type: 'separator'
+        // },
+        preferencesMenuItem(),
+        { type: 'separator' },
         {
-          label: 'About ' + name,
-          role: 'about'
+          label: locale.translation('services'),
+          role: 'services'
         },
         {
-          type: 'separator'
-        },
-        {
-          label: 'Hide ' + name,
-          accelerator: 'Command+H',
+          label: locale.translation('hideBrave').replace('Brave','Sushi Browser'),
+          accelerator: mainState.keyHideBrave,
           role: 'hide'
         },
         {
-          label: 'Hide Others',
-          accelerator: 'Command+Alt+H',
+          label: locale.translation('hideOthers'),
+          accelerator: mainState.keyHideOthers,
           role: 'hideothers'
         },
         {
-          label: 'Show All',
+          label: locale.translation('showAll'),
           role: 'unhide'
         },
+        { type: 'separator' },
         {
-          type: 'separator'
-        },
-        {
-          label: 'Quit',
-          accelerator: 'CmdOrCtrl+Q',
+          label: locale.translation('quitApp').replace('Brave','Sushi Browser'),
+          accelerator: mainState.keyQuit,
           click() {
             app.quit()
           }
         }
       ]
     })
-    // Window menu.
-    template[3].submenu.push(
-      {
-        type: 'separator'
-      },
-      {
-        label: 'Bring All to Front',
-        role: 'front'
-      }
-    )
   }
   return template
 }

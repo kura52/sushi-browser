@@ -61,12 +61,17 @@ window.addEventListener('scroll', (e)=>{
   })
 },{passive:true})
 
-
-window.addEventListener('click', e=>{
-  if (e.detail === 3) {
-    window.scrollTo(e.pageX,window.scrollY);
+ipc.send("get-main-state",['tripleClick'])
+ipc.once("get-main-state-reply",(e,data)=>{
+  if(data.tripleClick){
+    window.addEventListener('click', e=>{
+      if (e.detail === 3) {
+        window.scrollTo(e.pageX,window.scrollY);
+      }
+    },{passive:true})
   }
-},{passive:true});
+})
+
 
 //style setting
 let styleVal

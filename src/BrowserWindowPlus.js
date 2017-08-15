@@ -11,6 +11,7 @@ const uuid = require("node-uuid")
 const isDarwin = process.platform === 'darwin'
 const lang = Intl.NumberFormat().resolvedOptions().locale
 const locale = require('../brave/app/locale')
+const localShortcuts = require('../brave/app/localShortcuts')
 
 const normalSize = {}
 let saved = false
@@ -180,7 +181,8 @@ export default {
       if(mainState.language == 'default'){
         mainState.language = locale.defaultLocale()
       }
-      locale.init(mainState.language).then(locale => app.setLocale(locale))
+      const lang = await locale.init(mainState.language)
+      app.setLocale(lang)
 
 
       mainState.dragData = null
@@ -265,6 +267,7 @@ export default {
       initWindow = create(winArg)
       initWindow.setMenuBarVisibility(true)
       initWindow.loadURL(`chrome://brave/${path.join(__dirname, '../index.html').replace(/\\/g,"/")}${getParam}`)
+      localShortcuts.register(initWindow)
       // initWindow.webContents.openDevTools()
       initWindow.webContents.once('did-finish-load', () => {
         initWindow.show()

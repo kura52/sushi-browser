@@ -65,6 +65,7 @@ initPromise.then(setting=>{
     session.defaultSession.userPrefs.setDictionaryPref('content_settings', defaultConf)
   }
 })
+app.setName('Sushi Browser')
 app.commandLine.appendSwitch('touch-events', 'enabled');
 
 // ipcMain.setMaxListeners(0)
@@ -370,11 +371,11 @@ function createWindow (opt) {
 
 
 let explorerMenu,favoriteMenu
-ipcMain.on("favorite-meun",(e,path)=>{
+ipcMain.on("favorite-menu",(e,path)=>{
   favoriteMenu = {sender:e.sender,path}
   setTimeout(_=>favoriteMenu=(void 0),1000)
 })
-ipcMain.on("explorer-meun",(e,path)=>{
+ipcMain.on("explorer-menu",(e,path)=>{
   explorerMenu = {sender:e.sender,path}
   setTimeout(_=>explorerMenu=(void 0),1000)
 })
@@ -407,19 +408,19 @@ function contextMenu(webContents) {
     if(favoriteMenu){
       const favMenu = favoriteMenu
       if(isIndex || sidebar){
-        menuItems.push({label: 'Open',click: (item,win)=>{favMenu.sender.send(`favorite-meun-reply`,'open')}})
+        menuItems.push({label: 'Open',click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'open')}})
         var menu = Menu.buildFromTemplate(menuItems)
         menu.popup(targetWindow)
         return
       }
       else{
-        menuItems.push({label: 'Open',click: (item,win)=>{favMenu.sender.send(`favorite-meun-reply`,'open')}})
+        menuItems.push({label: 'Open',click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'open')}})
         menuItems.push({label: 'Copy',click: (item,win)=>{clipboard.writeText(favMenu.path.join(os.EOL))}})
-        menuItems.push({label: 'Rename',click: (item,win)=>{favMenu.sender.send(`favorite-meun-reply`,'rename')}})
-        menuItems.push({label: 'Delete',click: (item,win)=>{favMenu.sender.send(`favorite-meun-reply`,'delete')}})
+        menuItems.push({label: 'Rename',click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'rename')}})
+        menuItems.push({label: 'Delete',click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'delete')}})
         menuItems.push({type: 'separator'})
-        menuItems.push({label: 'Create New Page',click: (item,win)=>{favMenu.sender.send(`favorite-meun-reply`,'create-page')}})
-        menuItems.push({label: 'Create New Directory',click: (item,win)=>{favMenu.sender.send(`favorite-meun-reply`,'create-dirctory')}})
+        menuItems.push({label: 'Create New Page',click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'create-page')}})
+        menuItems.push({label: 'Create New Directory',click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'create-dirctory')}})
         menuItems.push({type: 'separator'})
       }
     }
@@ -427,10 +428,10 @@ function contextMenu(webContents) {
     if(explorerMenu){
       const expMenu = explorerMenu
       menuItems.push({label: 'Copy Path',click: (item,win)=>{clipboard.writeText(expMenu.path.join(os.EOL))}})
-      menuItems.push({label: 'Create New File',click: (item,win)=>{expMenu.sender.send(`explorer-meun-reply`,'create-file')}})
-      menuItems.push({label: 'Create New Directory',click: (item,win)=>{expMenu.sender.send(`explorer-meun-reply`,'create-dirctory')}})
-      menuItems.push({label: 'Rename',click: (item,win)=>{expMenu.sender.send(`explorer-meun-reply`,'rename')}})
-      menuItems.push({label: 'Delete (Move to Trash)',click: (item,win)=>{expMenu.sender.send(`explorer-meun-reply`,'delete')}})
+      menuItems.push({label: 'Create New File',click: (item,win)=>{expMenu.sender.send(`explorer-menu-reply`,'create-file')}})
+      menuItems.push({label: 'Create New Directory',click: (item,win)=>{expMenu.sender.send(`explorer-menu-reply`,'create-dirctory')}})
+      menuItems.push({label: 'Rename',click: (item,win)=>{expMenu.sender.send(`explorer-menu-reply`,'rename')}})
+      menuItems.push({label: 'Delete (Move to Trash)',click: (item,win)=>{expMenu.sender.send(`explorer-menu-reply`,'delete')}})
       menuItems.push({type: 'separator'})
     }
 

@@ -127,6 +127,25 @@ class BrowserPage extends Component {
 
     PubSub.publish(`regist-webview_${this.props.k}`,this.props.tab)
 
+    this.searchEvent = (e, name, id, args)=> {
+      const tab = this.props.tab
+      if (!tab.wvId || id !== tab.wvId) return
+
+      if(name == 'findOnPage'){
+        this.setState({isSearching: true})
+        this.refs.browserPage.querySelector('.browser-page-search input').focus()
+      }
+      else if(name == 'findNext'){
+        if(this.state.isSearching) this.onPageSearch(this.previous_text)
+      }
+      else if(name == 'findPrevious'){
+        if(this.state.isSearching) this.onPageSearch(this.previous_text,false)
+      }
+
+    }
+    ipc.on('menu-or-key-events', this.searchEvent)
+
+
   }
 
   componentWillUnmount() {
@@ -140,6 +159,8 @@ class BrowserPage extends Component {
     PubSub.unsubscribe(this.tokenWebviewKeydown)
     PubSub.unsubscribe(this.tokenNotification)
     PubSub.unsubscribe(this.tokenDidStartLoading)
+
+    ipc.removeListener('menu-or-key-events', this.searchEvent)
   }
 
 
@@ -172,12 +193,7 @@ class BrowserPage extends Component {
   }
 
   onHandleKeyDown(e){
-    if (e.ctrlKey && e.keyCode == 70) { // Ctrl+F
-      this.setState({isSearching: true})
-      this.refs.browserPage.querySelector('.browser-page-search input').focus()
-      if(e.stopPropagation) e.stopPropagation()
-    }
-    else if (e.keyCode == 27) { // ESC
+    if (e.keyCode == 27) { // ESC
       this.onClose(e)
     }
     else if (e.keyCode == 116) { // F5
