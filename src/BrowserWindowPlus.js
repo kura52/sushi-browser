@@ -3,7 +3,7 @@ const {BrowserWindow,app,ipcMain} = electron
 const url = require('url')
 const path = require('path')
 const fs = require('fs')
-const initPromise = require('./InitSetting')
+const InitSetting = require('./InitSetting')
 import { state,searchEngine } from './databaseFork'
 import mainState from './mainState'
 import {settingDefault} from '../resource/defaultValue'
@@ -97,6 +97,7 @@ function create(args){
             }
             state.update({ key: 1 }, { $set: {key: 1, ver:fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString(), ...bounds, maximize,maxBounds,
               toggleNav:mainState.toggleNav==2 || mainState.toggleNav==3 ? 0 :mainState.toggleNav,...saveState,winState:ret} }, { upsert: true }).then(_=>_)
+            InitSetting.reload()
             saved = true
             console.log("getState")
             bw.close()
@@ -171,7 +172,7 @@ function setOptionVal(key,dVal,val){
 export default {
   async load(opt){
     let initWindow
-    const setting = await initPromise
+    const setting = await InitSetting.val
     let winSetting = opt ? getSize(opt) : {x: setting.x, y: setting.y, width: setting.width, height: setting.height, maximize: setting.maximize}
     if(!opt){
       for(let [key,dVal] of Object.entries(settingDefault)){

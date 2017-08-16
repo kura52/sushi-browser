@@ -56,7 +56,7 @@ function build(){
       exe: 'sushi.exe'
     })
     resultPromise.then(() => {
-      sh.mv(`${outDir}/Setup.exe`,`${outDir}/sushi-browser-setup-${arch}.exe`)
+      // sh.mv(`${outDir}/Setup.exe`,`${outDir}/sushi-browser-setup-${arch}.exe`)
     }, (e) => console.log(`No dice: ${e.message}`))
   }
   else if (isDarwin) {
@@ -134,6 +134,13 @@ function muonModify(){
 
       fs.writeFileSync(file,result)
 
+      const file2 = path.join(sh.pwd().toString(),sh.ls('electron/browser/rpc-server.js')[0])
+
+      const contents2 = fs.readFileSync(file2).toString()
+      const result2 = contents2.replace('throw new Error(`Attempting','// throw new Error(`Attempting')
+
+      fs.writeFileSync(file2,result2)
+
       if(sh.exec('asar pack electron electron.asar').code !== 0) {
         console.log("ERROR")
         process.exit()
@@ -166,6 +173,5 @@ if(isDarwin){
 
 if(isWindows){
   sh.mv(`${outDir}/sushi-browser-setup-x64.exe`,`${outDir}/sushi-browser-${APP_VERSION}-setup-x64.exe`)
-  sh.mv('sushi-browser-win32-x64',`sushi-browser-${APP_VERSION}-win-x64`)
-  sh.exec(`"C:/Program Files/7-Zip/7z.exe" a sushi-browser-${APP_VERSION}-win-x64.zip sushi-browser-${NEXT_APP_VERSION}-win-x64`)
+  sh.exec(`"C:/Program Files/7-Zip/7z.exe" a sushi-browser-${APP_VERSION}-win-x64.zip sushi-browser-win32-x64`)
 }

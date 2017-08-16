@@ -5,7 +5,7 @@ import mainState from './mainState'
 const locale = require('../brave/app/locale')
 const BrowserWindowPlus = require('./BrowserWindowPlus')
 const extensionMenu = require('./chromeEvent')
-const initPromise = require('./InitSetting')
+const InitSetting = require('./InitSetting')
 // const loadDevtool = require('electron-load-devtool');
 import path from 'path'
 import uuid from 'node-uuid'
@@ -56,7 +56,7 @@ const defaultConf = {
   flashAllowed: [ { setting: 'allow', primaryPattern: '*' } ]
 }
 
-initPromise.then(setting=>{
+InitSetting.val.then(setting=>{
   if(setting.enableFlash){
     setFlash(app)
    }
@@ -136,7 +136,7 @@ app.on('ready', async ()=>{
   passwordManager = require('./passwordManagerMain')
   require('./importer')
   require('./bookmarksExporter')
-  const setting = await initPromise
+  const setting = await InitSetting.val
   require('../brave/extension/extensions').init(setting.ver !== fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString())
   require('./faviconsEvent')(async _ => {
     await createWindow()
