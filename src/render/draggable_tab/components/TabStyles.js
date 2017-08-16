@@ -138,9 +138,9 @@ const TabStyles = {
   // },
 
   tabTitleActive: {
-    lineHeight: '1.5em',
+    // lineHeight: '1.5em',
     color: 'rgb(255, 255, 255)',
-    marginTop: '3px',
+    // marginTop: '3px',
   },
 
   tabOnHover: {

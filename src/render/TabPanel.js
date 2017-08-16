@@ -482,6 +482,11 @@ export default class TabPanel extends Component {
       if (!this.mounted) return
       const _tabs = this.state.tabs
       const i = this.state.tabs.findIndex(x => x.key == key)
+       if(i == (void 0)){//@TODO
+          this.setState({})
+         return
+       }
+
       // ipc.send('chrome-tab-removed', parseInt(_tabs[i].key))
       removeEvents(ipc, _tabs[i].events)
       if(this.state.tabs.length==1){

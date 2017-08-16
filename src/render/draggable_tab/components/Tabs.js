@@ -556,6 +556,7 @@ class Tabs extends React.Component {
   }
 
   handleDragEnd(tabs,evt) {
+    console.log("handleDragEnd",Date.now())
     mainState.set('dragData',null)
 
     for(let ele of document.querySelectorAll(".div-back.front")){
@@ -570,6 +571,12 @@ class Tabs extends React.Component {
     }
 
     if(isMove) return
+
+    if(mainState.stopDragEnd){
+      mainState.set('stopDragEnd',false)
+      return
+    }
+    console.log("handleDragEnd2",Date.now())
 
     if(!tabs){
       tabs = []
@@ -613,12 +620,19 @@ class Tabs extends React.Component {
   }
 
   handleDrop(tab,evt) {
+    console.log("handleDrop",Date.now())
+    mainState.set('stopDragEnd',true)
     evt.stopPropagation()
     evt.preventDefault()
     const cont = getWebContents(tab)
     if(cont){
-      console.log(evt.dataTransfer.getData("text/html"))
-      const data = JSON.parse(evt.dataTransfer.getData("text/html"))
+      const dropData = evt.dataTransfer.getData("text/html")
+      let data
+      try{
+        data = JSON.parse(dropData)
+      }catch(e){
+        data = JSON.parse(dropData.split('>')[1])
+      }
       const trans = data.trans
       const winId = this.props.windowId
       if(trans[0].windowId !== winId){
@@ -664,6 +678,7 @@ class Tabs extends React.Component {
 
   handleDragStart(tabs,evt) {
     isMove=false
+    mainState.set('stopDragEnd',false)
     mainState.set('dragData',{tabs:!!tabs,windowId: this.props.windowId,k:this.props.k})
     for(let ele of document.querySelectorAll(".div-back")){
       if(!ele.classList.contains("front")) ele.classList.add("front")
@@ -735,7 +750,7 @@ class Tabs extends React.Component {
                   win.maximize()
                 }
               }: null}>
-            {isDarwin && this.props.isTopLeft && this.props.toggleNav != 1 ? <div style={{width: this.props.fullscreen ? 0 : 62}}/>  : ""}
+            {isDarwin && this.props.isTopRight && this.props.toggleNav != 1 ? <div style={{width: this.props.fullscreen ? 0 : 62}}/>  : ""}
             {tabs}
             <span ref="addButton" draggable="true" className="rdTabAddButton"
                   style={Object.assign({},TabStyles.tabAddButton)} onClick={this.handleAddButtonClick.bind(this)}
