@@ -946,7 +946,12 @@ export default class SplitWindows extends Component{
   }
 
   checkTopRight(obj,i) {
-    return (obj.r && obj.l && (obj.dirc == "v" && (i == 1 || this.hidePanels[obj.r[0]]) ) || (obj.dirc == "h" && i == 0)) || !(obj.r && obj.l);
+    if(isDarwin){
+      return i == 0 && obj.l
+    }
+    else{
+      return (obj.r && obj.l && (obj.dirc == "v" && (i == 1 || this.hidePanels[obj.r[0]]) ) || (obj.dirc == "h" && i == 0)) || !(obj.r && obj.l);
+    }
   };
 
 
@@ -1183,7 +1188,7 @@ export default class SplitWindows extends Component{
 
   addFloatPanel(tabs,index){
     const key = this.getFixedPanelKey('float') + `-${Math.random()}_${count++}`
-    this.state.floatPanels.set(key,[key, [], tabs, index,(void 0)])
+    this.state.floatPanels.set(key,[key, [], tabs, [index],(void 0)])
     this.setState({})
   }
 

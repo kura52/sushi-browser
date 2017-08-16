@@ -501,7 +501,7 @@ class BrowserNavbar extends Component{
                 onDrop={(e)=>{e.preventDefault();return false}} style={navbarStyle}>
       {/*<BrowserNavbarBtn title="Rewind" icon="home fa-lg" onClick={this.props.onClickHome} disabled={!this.props.page.canGoBack} />*/}
 
-      {isDarwin && this.props.isTopLeft && this.props.toggleNav == 1 ? <div style={{width: this.props.fullscreen ? 0 : 62}}/>  : null }
+      {isDarwin && this.props.isTopRight && this.props.toggleNav == 1 ? <div style={{width: this.props.fullscreen ? 0 : 62}}/>  : null }
 
       <NavbarMenu k={this.props.k} mouseOver={true} isFloat={isFloatPanel(this.props.k)} className={`back-next ${this.props.page.canGoBack ? "" : " disabled"}`} title={locale.translation('back')} icon="angle-left fa-lg" onClick={e=>{this.props.onClickBack(e);this.forceUpdates=true}}>
         {(cont ? historyList.slice(0,currentIndex).reverse().map(
@@ -522,7 +522,7 @@ class BrowserNavbar extends Component{
                                k ={this.props.k} onContextMenu={this.props.onLocationContextMenu} tab={this.props.tab} page={this.props.page} privateMode={this.props.privateMode} search={this.props.search}/>
       </div>
 
-      <div className="navbar-margin" style={{width: this.props.toggleNav != 1 ? 0 : ((!isDarwin && this.props.isTopRight) || (isDarwin && this.props.isTopLeft)) ? '45%' : '50%',minWidth: this.props.toggleNav != 1 ? 0 :'80px',background: 'rgb(221, 221, 221)'}}
+      <div className="navbar-margin" style={{width: this.props.toggleNav != 1 ? 0 : this.props.isTopRight ? '45%' : '50%',minWidth: this.props.toggleNav != 1 ? 0 :'80px',background: 'rgb(221, 221, 221)'}}
         onDoubleClick={isDarwin ? _=>{
           const win = remote.getCurrentWindow()
           if(win.isFullScreen()){}
