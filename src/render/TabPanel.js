@@ -482,13 +482,13 @@ export default class TabPanel extends Component {
       if (!this.mounted) return
       const _tabs = this.state.tabs
       const i = this.state.tabs.findIndex(x => x.key == key)
-       if(i == (void 0)){//@TODO
+       if(i === -1){//@TODO
           this.setState({})
          return
        }
 
       // ipc.send('chrome-tab-removed', parseInt(_tabs[i].key))
-      removeEvents(ipc, _tabs[i].events)
+      if(_tabs[i].events) removeEvents(ipc, _tabs[i].events)
       if(this.state.tabs.length==1){
         this.state.tabs.splice(i, 1)
         mainState.set('keepOpen',1)

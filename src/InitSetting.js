@@ -1,12 +1,12 @@
 import { state } from './databaseFork'
 
-let val = state.findOne({key: 1})
+let val = (async ()=>{return (await state.findOne({key: 1})) || {}})()
 export default {
   get val(){
     return val
   },
   reload(){
-    val = state.findOne({key: 1})
+    val = (async ()=>{return (await state.findOne({key: 1})) || {}})()
   }
 }
 
