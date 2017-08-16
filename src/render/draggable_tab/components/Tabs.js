@@ -572,51 +572,55 @@ class Tabs extends React.Component {
 
     if(isMove) return
 
-    if(mainState.stopDragEnd){
-      mainState.set('stopDragEnd',false)
-      return
-    }
-    console.log("handleDragEnd2",Date.now())
+    setTimeout(_=>{
+        if(mainState.stopDragEnd){
+          mainState.set('stopDragEnd',false)
+          return
+        }
+        console.log("handleDragEnd2",Date.now())
 
-    if(!tabs){
-      tabs = []
-      for(let t of this.state.tabs){
-        if (this.state.closedTabs.has(t.key)) continue
-        tabs.push(t.props.orgTab)
-      }
-    }
-    if(this.state.tabs.length < 2 && this.props.isOnlyPanel) return
-    console.log(evt,tabs,this.state.tabs)
-    if(evt.dataTransfer.dropEffect == "move") return
-    if(tabs.length == 1){
-      const tab = tabs[0]
-      getWebContents(tab).detach(_=>{
-        BrowserWindowPlus.load({id:remote.getCurrentWindow().id,dropX:evt.screenX,dropY:evt.screenY,alwaysOnTop: alwaysOnTop[0],
-          tabParam:JSON.stringify([{wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,
-            rest:{wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || getWebContents(tab).guestInstanceId}])})
-        setTimeout(_=>{
-          PubSub.publish('include-key',tab.key)
-          const token = PubSub.subscribe(`include-key-reply_${tab.key}`,(msg,k)=>{
-            PubSub.publish(`close_tab_${k}`, {key:tab.key})
-            PubSub.unsubscribe(token)
-          })
-        },100)
-      })
-    }
-    else{
-      const promises = tabs.map(tab=>{
-        return new Promise((resolve,reject)=>{
+        if(!tabs){
+          tabs = []
+          for(let t of this.state.tabs){
+            if (this.state.closedTabs.has(t.key)) continue
+            tabs.push(t.props.orgTab)
+          }
+        }
+        if(this.state.tabs.length < 2 && this.props.isOnlyPanel) return
+        console.log(evt,tabs,this.state.tabs)
+        if(evt.dataTransfer.dropEffect == "move") return
+        if(tabs.length == 1){
+          const tab = tabs[0]
           getWebContents(tab).detach(_=>{
-            resolve({wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,
-              rest:{wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || getWebContents(tab).guestInstanceId})
+            BrowserWindowPlus.load({id:remote.getCurrentWindow().id,dropX:evt.screenX,dropY:evt.screenY,alwaysOnTop: alwaysOnTop[0],
+              tabParam:JSON.stringify([{wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,
+                rest:{wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || getWebContents(tab).guestInstanceId}])})
+            setTimeout(_=>{
+              PubSub.publish('include-key',tab.key)
+              const token = PubSub.subscribe(`include-key-reply_${tab.key}`,(msg,k)=>{
+                PubSub.publish(`close_tab_${k}`, {key:tab.key})
+                PubSub.unsubscribe(token)
+              })
+            },0)
           })
-        })
-      })
-      Promise.all(promises).then(vals=>{
-        BrowserWindowPlus.load({id:remote.getCurrentWindow().id,x:evt.screenX,y:evt.screenY,tabParam:JSON.stringify(vals)})
-        PubSub.publish(`close-panel_${this.props.k}`)
-      })
-    }
+        }
+        else{
+          const promises = tabs.map(tab=>{
+            return new Promise((resolve,reject)=>{
+              getWebContents(tab).detach(_=>{
+                resolve({wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,
+                  rest:{wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || getWebContents(tab).guestInstanceId})
+              })
+            })
+          })
+          Promise.all(promises).then(vals=>{
+            BrowserWindowPlus.load({id:remote.getCurrentWindow().id,x:evt.screenX,y:evt.screenY,tabParam:JSON.stringify(vals)})
+            PubSub.publish(`close-panel_${this.props.k}`)
+          })
+        }
+      }
+      ,100)
+
   }
 
   handleDrop(tab,evt) {
