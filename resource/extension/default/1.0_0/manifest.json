@@ -6,7 +6,12 @@
       {
       "all_frames": true,
       "js": [ "contentscript.js" ],
-      "matches": [ "http://*/*", "https://*/*", "ftp://*/*", "file://*/*" ],
+      "matches": ["<all_urls>"],
+      "include_globs": [
+            "http://*/*", "https://*/*", "file://*", "data:*", "about:srcdoc",
+         "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/*",
+         "chrome-extension://jdbefljfgobbmcidnmpjamcbhnbphjnb/*"
+         ],
       "run_at": "document_start"
    }
    ],

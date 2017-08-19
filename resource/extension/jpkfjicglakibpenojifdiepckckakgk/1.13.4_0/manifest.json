@@ -6,12 +6,22 @@
    "content_scripts": [ {
       "all_frames": true,
       "js": [ "js/chrome_gestures.js" ],
-      "matches": [ "http://*/*", "https://*/*" ],
+      "matches": ["<all_urls>"],
+      "include_globs": [
+         "http://*/*", "https://*/*", "file://*", "data:*", "about:srcdoc",
+         "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/*",
+         "chrome-extension://jdbefljfgobbmcidnmpjamcbhnbphjnb/*"
+      ],
       "run_at": "document_start"
    }, {
       "all_frames": true,
       "js": [ "js/chrome_gestures.js" ],
-      "matches": [ "http://*/*", "https://*/*" ],
+      "matches": ["<all_urls>"],
+      "include_globs": [
+         "http://*/*", "https://*/*", "file://*", "data:*", "about:srcdoc",
+         "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/*",
+         "chrome-extension://jdbefljfgobbmcidnmpjamcbhnbphjnb/*"
+      ],
       "run_at": "document_end"
    } ],
    "default_locale": "en_US",

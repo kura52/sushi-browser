@@ -6,7 +6,12 @@
    "content_scripts": [ {
       "all_frames": false,
       "js": [ "data/defaults.js", "data/AutoScroll.js" ],
-      "matches": [ "\u003Call_urls>" ],
+      "matches": ["<all_urls>"],
+      "include_globs": [
+         "http://*/*", "https://*/*", "file://*", "data:*", "about:srcdoc",
+         "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/*",
+         "chrome-extension://jdbefljfgobbmcidnmpjamcbhnbphjnb/*"
+      ],
       "run_at": "document_end"
    } ],
    "description": "This extension adds customizable autoscroll support to Chrome.",
