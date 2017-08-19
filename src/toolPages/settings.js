@@ -74,6 +74,8 @@ const keyMapping = {
   keySwitchSyncScroll: 'Switch Sync Scroll',
   keyOpenSidebar: 'Open Sidebar',
   keyChangeMobileAgent: 'Change to Mobile Agent',
+  keyDetachPanel: 'Detach Panel',
+  keyClosePanel: 'Close Panel',
   keyDownloadsManager: l10n.translation('downloadsManager'),
   keyHideBrave: l10n.translation('hideBrave').replace('Brave','Sushi Browser'),
   keyHideOthers: l10n.translation('hideOthers'),
@@ -129,7 +131,7 @@ const newTabModeOptions = [
   {
     key: 'myHomepage',
     value: 'myHomepage',
-    text: l10n.translation('myHomepage'),
+    text: l10n.translation('startsWithOptionHomePage'),
   },
   {
     key: 'top',
@@ -138,7 +140,7 @@ const newTabModeOptions = [
   },
   {
     key: 'bookmarks',
-    value: 'bookmarks',
+    value: 'favorite',
     text: l10n.translation('bookmarks'),
   },
   {
@@ -237,7 +239,7 @@ class GeneralSetting extends React.Component {
       <Divider/>
       <div className="ui form">
         <div className="field">
-          <label>{l10n.translation('startsWith')}</label>
+          <label>{l10n.translation('startsWith').replace('Brave','Sushi Browser')}</label>
           <Dropdown onChange={this.onChange.bind(this,'startsWith')} selection options={startsWithOptions} defaultValue={this.state.startsWith}/>
         </div>
         <div className="field">
@@ -311,6 +313,9 @@ class GeneralSetting extends React.Component {
           <Button primary content={l10n.translation('42126664696688958')} onClick={_=>ipc.send("export-bookmark",{})}/>
         </div>
 
+        <br/>
+        <br/>
+        <br/>
 
       </div>
     </div>
@@ -541,6 +546,7 @@ class KeyboardSetting extends React.Component {
   renderRows(){
     const ret = []
     for(let [key,val] of Object.entries(keyMapping)){
+      val = val.replace('…','')
       let row = this.eachRender(key,val)
       if(row) ret.push(row)
 

@@ -1281,6 +1281,12 @@ export default class TabPanel extends Component {
       else if(name == 'changeMobileAgent'){
         this.refs[`navbar-${tab.key}`].handleUserAgent()
       }
+      else if(name == 'detachPanel'){
+        this.detachPanel()
+      }
+      else if(name == 'closePanel'){
+        PubSub.publish(`close-panel_${this.props.k}`)
+      }
 
     }
     ipc.on('menu-or-key-events', tab.events['menu-or-key-events'])
@@ -2039,7 +2045,7 @@ export default class TabPanel extends Component {
     console.log(changeInfo)
     if(changeInfo.active){
       console.log("selected07",tab.key)
-      this.setState({selectedTab: tab.key})
+      // this.setState({selectedTab: tab.key}) @TODO
     }
     else if(changeInfo.pinned != (void 0)){
       tab.pin = changeInfo.pinned

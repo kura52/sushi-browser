@@ -5,7 +5,7 @@ const glob = require("glob")
 
 const CODE_NAME = 'Tako(Octopus)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.2.0"
+const NEXT_APP_VERSION = "0.2.1"
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

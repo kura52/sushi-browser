@@ -35,7 +35,7 @@ function create(args){
   })
 
   bw.on('close', function (e) {
-    console.log(e.sender.getTitle())
+    console.log('close',e.sender.getTitle())
     const sendTitle = e.sender.getTitle()
     if(sendTitle.includes('Closed')){
       if(!saved){
@@ -96,8 +96,10 @@ function create(args){
               saveState[key] = mainState[key]
             }
             state.update({ key: 1 }, { $set: {key: 1, ver:fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString(), ...bounds, maximize,maxBounds,
-              toggleNav:mainState.toggleNav==2 || mainState.toggleNav==3 ? 0 :mainState.toggleNav,...saveState,winState:ret} }, { upsert: true }).then(_=>_)
-            InitSetting.reload()
+              toggleNav:mainState.toggleNav==2 || mainState.toggleNav==3 ? 0 :mainState.toggleNav,...saveState,winState:ret} }, { upsert: true }).then(_=>{
+              InitSetting.reload()
+            })
+
             saved = true
             console.log("getState")
             bw.close()
@@ -295,6 +297,29 @@ export default {
     }
     // initWindow.webContents.openDevTools()
     return initWindow
+  },
+  saveState(bw,callback){
+    if(!bw) return
+    const maximize = bw.isMaximized()
+    const bounds = maximize ? normalSize[bw.id] : bw.getBounds()
+    const maxBounds = bw.getBounds()
+    bw.webContents.send('get-window-state',{})
+    ipcMain.once('get-window-state-reply',(e,ret)=>{
+      try{
+        const saveState = {}
+        for(let key of Object.keys(settingDefault)){
+          if(key == "toggleNav") continue
+          saveState[key] = mainState[key]
+        }
+        state.update({ key: 1 }, { $set: {key: 1, ver:fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString(), ...bounds, maximize,maxBounds,
+          toggleNav:mainState.toggleNav==2 || mainState.toggleNav==3 ? 0 :mainState.toggleNav,...saveState,winState:ret} }, { upsert: true }).then(_=>_)
+        saved = true
+        console.log("getState")
+      }catch(e){
+        saved = true
+      }
+      if(callback) callback()
+    })
   }
 }
 

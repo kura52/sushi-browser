@@ -511,6 +511,25 @@ const createWindowSubmenu = () => {
     },
     { type: 'separator' },
     {
+      label: 'Detach Panel',
+      accelerator: mainState.keyDetachPanel,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'detachPanel', cont.getId())
+        })
+      }
+    },
+    {
+      label: 'Close Panel',
+      accelerator: mainState.keyClosePanel,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'closePanel', cont.getId())
+        })
+      }
+    },
+    { type: 'separator' },
+    {
       label: locale.translation('downloadsManager'),
       accelerator: mainState.keyDownloadsManager,
       click(item, focusedWindow){

@@ -298,6 +298,7 @@ var rendererIdentifiers = function () {
     'uk',
     'requiresRestart',
     'enableFlash',
+    'startsWithOptionHomePage',
 
     //chrome
     '994289308992179865',

@@ -59,8 +59,8 @@ const defaultConf = {
 InitSetting.val.then(setting=>{
   if(setting.enableFlash){
     setFlash(app)
-   }
-   else{
+  }
+  else{
     defaultConf.flashEnabled = [ { setting: 'deny', primaryPattern: '*' } ]
     session.defaultSession.userPrefs.setDictionaryPref('content_settings', defaultConf)
   }
@@ -145,19 +145,50 @@ app.on('ready', async ()=>{
   })
 })
 
+let beforeQuitFirst = false
+let beforeQuit = false
+app.on('before-quit', (e) => {
+  console.log('before-quit')
+  beforeQuit = true
+  if(isDarwin){
+    if(!beforeQuitFirst){
+      const win = getCurrentWindow()
+      if(win){
+        e.preventDefault()
+        BrowserWindowPlus.saveState(win,_=>{
+          beforeQuitFirst = true
+          app.quit()
+        })
+      }
+      else{
+        beforeQuitFirst = true
+        beforeQuit = true
+      }
+    }
+    else{
+      beforeQuit = true
+    }
+  }
+})
+
 app.on('window-all-closed', function () {
-  console.log(2221)
+  console.log('window-all-closed',2221)
   // require('./databaseFork')._kill()
-  if (!isDarwin) {
+  if (!isDarwin || beforeQuit) {
     for (let ptyProcess of ptyProcessSet){
       ptyProcess.destroy()
     }
     global.__CHILD__.kill()
     app.quit()
   }
+  else{
+
+  }
 })
 
-app.on('before-quit', (e) => {
+
+app.on('will-quit', (e) => {
+  console.log('will-quit')
   for(let cont of webContents.getAllWebContents()){
     cont.removeAllListeners('destroyed')
   }
@@ -170,6 +201,7 @@ app.on('before-quit', (e) => {
   console.log(22222)
 })
 
+
 // app.on('will-quit', (e) => {
 //   console.log(33333)
 // })
@@ -179,6 +211,28 @@ app.on('activate', function () {
     createWindow()
   }
 })
+
+//@TODO
+// app.on('open-url', (event, path) => {
+//   event.preventDefault()
+//   if (!appInitialized) {
+//     newWindowURL = path
+//   } else {
+//     const parsedUrl = urlParse(path)
+//     if (sessionStore.isProtocolHandled(parsedUrl.protocol)) {
+//       focusOrOpenWindow(path)
+//     }
+//   }
+// })
+//
+// // User clicked on a file or dragged a file to the dock on macOS
+// app.on('open-file', (event, path) => {
+//   event.preventDefault()
+//   path = encodeURI(path)
+//   if (!focusOrOpenWindow(path)) {
+//     newWindowURL = path
+//   }
+// })
 
 
 app.on('web-contents-created', (e, tab) => {

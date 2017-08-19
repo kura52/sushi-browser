@@ -86,6 +86,9 @@ const settingDefault =  {
   keyOpenSidebar: 'CmdOrCtrl+Alt+B',
   keyChangeMobileAgent: 'CmdOrCtrl+Alt+M',
 
+  keyDetachPanel: 'CmdOrCtrl+Alt+E',
+  keyClosePanel: 'CmdOrCtrl+Alt+C',
+
   //localshortcut
   keyFindOnPage_1: 'F6',
   keySelectNextTab_1: 'CmdOrCtrl+Shift+]',

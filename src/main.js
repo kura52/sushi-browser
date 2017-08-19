@@ -1,13 +1,12 @@
 global.debug = require('debug')('info')
 const databaseForked = require('./databaseForked')
 import { app } from 'electron'
-const fs = require('fs-extra')
-const path = require('path')
 const isDarwin = process.platform === 'darwin'
 
 process.on('unhandledRejection', r => console.error(r));
 
 if(databaseForked){
+  const fs = require('fs-extra')
   if(isDarwin){
     app.dock.hide()
   }
@@ -21,6 +20,8 @@ if(databaseForked){
   databaseForked()
 }
 else{
+  const fs = require('fs-extra')
+  const path = require('path')
   app.setPath('userData', app.getPath('userData').replace('brave','sushiBrowser'))
   const appPath = app.getPath('userData')
   if (!fs.existsSync(appPath)) {
