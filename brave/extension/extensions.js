@@ -36,7 +36,7 @@ module.exports.init = (verChange) => {
   componentUpdater.on('component-ready', (e, componentId, extensionPath) => {
     // console.log('component-ready', componentId, extensionPath)
     // Re-setup the loadedExtensions info if it exists
-    loadExtension(componentId, extensionPath)
+    // loadExtension(componentId, extensionPath)
   })
   componentUpdater.on('component-not-updated', () => {
     // console.log('update-not-updated')
@@ -79,10 +79,10 @@ module.exports.init = (verChange) => {
     // extensionActions.extensionEnabled(installInfo.id)
   })
 
-  let loadExtension = (extensionId, extensionPath, manifest = {}, manifestLocation = 'unpacked') => {
+  let loadExtension = (ses,extensionId, extensionPath, manifest = {}, manifestLocation = 'unpacked') => {
     fs.exists(path.join(extensionPath, 'manifest.json'), (exists) => {
       if (exists) {
-        session.defaultSession.extensions.load(extensionPath, manifest, manifestLocation)
+        ses.extensions.load(extensionPath, manifest, manifestLocation)
       } else {
         // This is an error condition, but we can recover.
         // extensionInfo.setState(extensionId, undefined)
@@ -137,20 +137,22 @@ module.exports.init = (verChange) => {
 
   require('./browserAction')
 
-  loadExtension('dckpbojndfoinamcdamhkjhnjnmjkfjd',getPath('default')[1],(void 0),'component')
-  loadExtension(...getPath('jdbefljfgobbmcidnmpjamcbhnbphjnb'),(void 0),'component')
-  componentUpdater.registerComponent('jdbefljfgobbmcidnmpjamcbhnbphjnb', 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqmqh6Kxmj00IjKvjPsCtw6g2BHvKipjS3fBD0IInXZZ57u5oZfw6q42L7tgWDLrNDPvu3XDH0vpECr+IcgBjkM+w6+2VdTyPj5ubngTwvBqCIPItetpsZNJOJfrFw0OIgmyekZYsI+BsK7wiMtHczwfKSTi0JKgrwIRhHbEhpUnCxFhi+zI61p9jwMb2EBFwxru7MtpP21jG7pVznFeLV9W9BkNL1Th9QBvVs7GvZwtIIIniQkKtqT1wp4IY9/mDeM5SgggKakumCnT9D37ZxDnM2K13BKAXOkeH6JLGrZCl3aXmqDO9OhLwoch+LGb5IaXwOZyGnhdhm9MNA3hgEwIDAQAB')
-  if(process.platform != 'win32'){
-    loadExtension(...getPath('occjjkgifpmdgodlplnacmkejpdionan'))
-  }
+  module.exports.loadAll = function(ses){
+    loadExtension(ses,'dckpbojndfoinamcdamhkjhnjnmjkfjd',getPath('default')[1],(void 0),'component')
+    loadExtension(ses,...getPath('jdbefljfgobbmcidnmpjamcbhnbphjnb'),(void 0),'component')
+    componentUpdater.registerComponent('jdbefljfgobbmcidnmpjamcbhnbphjnb', 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqmqh6Kxmj00IjKvjPsCtw6g2BHvKipjS3fBD0IInXZZ57u5oZfw6q42L7tgWDLrNDPvu3XDH0vpECr+IcgBjkM+w6+2VdTyPj5ubngTwvBqCIPItetpsZNJOJfrFw0OIgmyekZYsI+BsK7wiMtHczwfKSTi0JKgrwIRhHbEhpUnCxFhi+zI61p9jwMb2EBFwxru7MtpP21jG7pVznFeLV9W9BkNL1Th9QBvVs7GvZwtIIIniQkKtqT1wp4IY9/mDeM5SgggKakumCnT9D37ZxDnM2K13BKAXOkeH6JLGrZCl3aXmqDO9OhLwoch+LGb5IaXwOZyGnhdhm9MNA3hgEwIDAQAB')
+    if(process.platform != 'win32'){
+      loadExtension(ses,...getPath('occjjkgifpmdgodlplnacmkejpdionan'))
+    }
 
-  const appIds = fs.readFileSync(path.join(__dirname,'../../resource/extensions.txt')).toString().split(/\r?\n/)
-  for(let appId of appIds) {
-    if(appId.match(/^[a-z]+$/)){
-      loadExtension(...getPath(appId))
+    const appIds = fs.readFileSync(path.join(__dirname,'../../resource/extensions.txt')).toString().split(/\r?\n/)
+    for(let appId of appIds) {
+      if(appId.match(/^[a-z]+$/)){
+        loadExtension(ses,...getPath(appId))
+      }
     }
   }
-
+  module.exports.loadAll(session.defaultSession)
   // loadExtension(...getPath('occjjkgifpmdgodlplnacmkejpdionan'))
   // loadExtension(...getPath('aeolcjbaammbkgaiagooljfdepnjmkfd'))
   // loadExtension(...getPath('khpcanbeojalbkpgpmjpdkjnkfcgfkhb'))

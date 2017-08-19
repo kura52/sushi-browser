@@ -99,8 +99,8 @@ ipcMain.on('set-adblock-enable', async (event, datas) => {
 })
 
 
-const startAdBlocking = (adblock, resourceName, shouldCheckMainFrame) => {
-  session.defaultSession.webRequest.onBeforeRequest((details, callback) => {
+const startAdBlocking = (adblock, resourceName, shouldCheckMainFrame,ses=session.defaultSession) => {
+  ses.webRequest.onBeforeRequest((details, callback) => {
     if(details.method == 'POST' && details.resourceType == 'mainFrame' && details.uploadData){
       console.log(details)
       process.downloadParams.set(details.firstPartyUrl,[details.uploadData,Date.now()])
@@ -167,8 +167,11 @@ const startAdBlocking = (adblock, resourceName, shouldCheckMainFrame) => {
   });
 }
 
+let adblock
 fs.readFile(path.join(__dirname, '../resource/ABPFilterParserData.dat'),  function (err, text) {
-  const adblock = new AdBlockClient()
+  adblock = new AdBlockClient()
   adblock.deserialize(text);
   startAdBlocking(adblock,null,false)
 });
+
+module.exports = ses=>startAdBlocking(adblock,null,false,ses)

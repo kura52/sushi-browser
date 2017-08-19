@@ -66,7 +66,10 @@ class BrowserPage extends Component {
       webview.attachGuest(this.props.tab.guestInstanceId)
     }
 
-    if(this.props.tab.privateMode) webview.partition = this.props.tab.privateMode
+    if(this.props.tab.privateMode){
+      webview.partition = this.props.tab.privateMode
+      ipc.send('init-private-mode',this.props.tab.privateMode)
+    }
     console.log(this.props.tab.privateMode)
 
     for (var k in webviewEvents)

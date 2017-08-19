@@ -16,6 +16,7 @@ const mime = require('mime')
 import url from 'url'
 const youtubedl = require('youtube-dl')
 import {getFocusedWebContents, getCurrentWindow} from './util'
+let adblock,extensions
 
 // process.on('unhandledRejection', console.dir);
 
@@ -120,7 +121,7 @@ app.on('ready', async ()=>{
   console.log(process.versions)
 
 
-  require('../brave/adBlock')
+  adblock = require('../brave/adBlock')
   // console.log(app.getPath('userData'))
   new (require('./downloadEvent'))()
   require('./historyEvent')
@@ -137,7 +138,8 @@ app.on('ready', async ()=>{
   require('./importer')
   require('./bookmarksExporter')
   const setting = await InitSetting.val
-  require('../brave/extension/extensions').init(setting.ver !== fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString())
+  extensions = require('../brave/extension/extensions')
+  extensions.init(setting.ver !== fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString())
   require('./faviconsEvent')(async _ => {
     await createWindow()
     require('./menuSetting')
@@ -426,6 +428,16 @@ function createWindow (opt) {
   return initWindow
 }
 
+ipcMain.on('init-private-mode',(e,partition)=>{
+  const ses = session.fromPartition(partition)
+  ses.userPrefs.setDictionaryPref('content_settings', defaultConf)
+  ses.userPrefs.setBooleanPref('autofill.enabled', true)
+  ses.userPrefs.setBooleanPref('profile.password_manager_enabled', true)
+  ses.userPrefs.setBooleanPref('credentials_enable_service', true)
+  ses.userPrefs.setBooleanPref('credentials_enable_autosignin', true)
+  adblock(ses)
+  extensions.loadAll(ses)
+})
 
 let explorerMenu,favoriteMenu
 ipcMain.on("favorite-menu",(e,path)=>{

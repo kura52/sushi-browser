@@ -614,7 +614,7 @@ export default class TabPanel extends Component {
           setTimeout(_=>{
             this.handleTabClose({}, dropTabKey)
             PubSub.publish(`close_tab_${this.props.k}`,{key:dropTabKey})
-          },100)
+          },200)
         }
       }
       else{
