@@ -13,6 +13,7 @@ import MenuOperation from './MenuOperation'
 import url from 'url'
 const FloatPanel = require('./FloatPanel')
 const {token} = require('./databaseRender')
+const PanelOverlay = require('./PanelOverlay')
 import firebase,{storage,auth,database} from 'firebase'
 let MARGIN = mainState.syncScrollMargin
 let count = 0
@@ -121,8 +122,8 @@ export default class SplitWindows extends Component{
       }
       else{
         if(attach.type == 'new-win'){
-          console.log(3333,{key: getUuid(),tabs: attach.urls.map(url=>{return {pin:false,tabKey:uuid.v4(),url}})})
-          winState = this.parseRestoreDate({dirc: "v",size: '100%',l: {key: getUuid(),tabs: attach.urls.map(url=>{return {forceKeep:true,pin:false,tabKey:uuid.v4(),url}})},
+          console.log(3333,{key: getUuid(),tabs: attach.urls.map(({url,privateMode})=>{return {pin:false,tabKey:uuid.v4(),url,privateMode}})})
+          winState = this.parseRestoreDate({dirc: "v",size: '100%',l: {key: getUuid(),tabs: attach.urls.map(({url,privateMode})=>{return {forceKeep:true,pin:false,tabKey:uuid.v4(),url,privateMode}})},
           r: null,key:uuid.v4(),toggleNav: mainState.toggleNav || 0},{})
         }
         else{
@@ -394,7 +395,7 @@ export default class SplitWindows extends Component{
       }
       return tabId;
     }
-    this.getFocusedWebContent = (e,key)=>{
+    this.getFocusedWebContent = (e,key,needPrivate)=>{
       console.log(document.activeElement,window.lastMouseDown)
       let tabId = this.getTabId(document.activeElement) || ( window.lastMouseDown&& this.getTabId(global.lastMouseDown))
 
@@ -402,7 +403,22 @@ export default class SplitWindows extends Component{
         tabId = this.refs2[this.isTopLeft].getSelectedTabId()
       }
       console.log(2323,tabId)
-      ipc.send(`get-focused-webContent-reply_${key}`,tabId)
+      if(needPrivate){
+        const keys = []
+        this.allKeys(this.state.root,keys)
+        for(let key of keys){
+          if(this.refs2[key]){
+            const tab = this.refs2[key].getTabFromTabId(tabId)
+            if(tab){
+              ipc.send(`get-focused-webContent-reply_${key}`,tabId,tab)
+              break
+            }
+          }
+        }
+      }
+      else{
+        ipc.send(`get-focused-webContent-reply_${key}`,tabId)
+      }
     }
     ipc.on('get-focused-webContent',this.getFocusedWebContent)
 
@@ -466,6 +482,10 @@ export default class SplitWindows extends Component{
       }
     })
 
+    this.tokenOverlay = PubSub.subscribe('drag-overlay',(msg,val)=>{
+      this.setState({overlay: val})
+    })
+
     const self = this
 
     this.search = (e)=>{
@@ -506,6 +526,7 @@ export default class SplitWindows extends Component{
 
     PubSub.unsubscribe(this.tokenAlign)
     PubSub.unsubscribe(this.tokenAllDetach)
+    PubSub.unsubscribe(this.tokenOverlay)
 
     for(let[tab,key,val] of this.tabEvents){
       tab.removeListener(key,val)
@@ -1253,6 +1274,7 @@ export default class SplitWindows extends Component{
     return <div>
       {this.recur(this.state.root,0,true,{val:false})}
       <div>{arr}</div>
+      {this.state.overlay ? <PanelOverlay/> : null}
     </div>
   }
 }

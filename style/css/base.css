@@ -597,3 +597,21 @@ div.item.favorite>ul>li>div>ul{
     padding-top: 0px !important;
     padding-bottom: 2px !important;
 }
+
+.tabs-layout-overlay {
+    position: absolute;
+    z-index: 10;
+    /*background: blue;*/
+}
+
+.tabs-layout-overlay-wrapper {
+    background: gray;
+    position: absolute;
+    display: block;
+    opacity: 0.0001;
+    /*transition: all 0.2s;*/
+    z-index: 10;
+}
+.tabs-layout-overlay-wrapper.visible {
+     opacity: 0.1;
+ }

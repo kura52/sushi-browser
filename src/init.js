@@ -340,7 +340,7 @@ process.on('add-new-contents', async (e, source, newTab, disposition, size, user
   const targetUrl = recentUrl.shift()
   console.log('add-new-contents', newTab.guestInstanceId);
   console.log(size)
-  rlog('create-web-contents-host',{targetUrl,e, source, newTab, disposition, size, userGesture})
+  console.log('create-web-contents-host',{targetUrl,e, source, newTab, disposition, size, userGesture})
   // eval(locus)
   // console.log(tabEvent)
   // if(newTab.guestInstanceId && tabEvent.windowId !== -1){
@@ -352,8 +352,11 @@ process.on('add-new-contents', async (e, source, newTab, disposition, size, user
 
   if (disposition === 'new-window' || disposition === 'new-popup') {
     const currentWindow = getCurrentWindow()
-    BrowserWindowPlus.load({id:currentWindow.id,x:size.x,y:size.y,width:size.width,height:size.height,disposition,
-      tabParam:JSON.stringify([{wvId:newTab.webContents.getId() ,guestInstanceId: newTab.guestInstanceId}])})
+    ipcMain.once('get-private-reply',(e,privateMode)=>{
+      BrowserWindowPlus.load({id:currentWindow.id,x:size.x,y:size.y,width:size.width,height:size.height,disposition,
+        tabParam:JSON.stringify([{wvId:newTab.webContents.getId(),guestInstanceId: newTab.guestInstanceId,privateMode}])})
+     })
+    currentWindow.webContents.send('get-private', source.getId())
 
   }
   else{
@@ -533,7 +536,10 @@ function contextMenu(webContents) {
       })
       menuItems.push({
         label: locale.translation('openInNewWindow'), click: (item, win) => {
-          BrowserWindowPlus.load({id:win.id,sameSize:true,tabParam:JSON.stringify({urls:[props.linkURL],type:'new-win'})})
+          ipcMain.once('get-private-reply',(e,privateMode)=>{
+            BrowserWindowPlus.load({id:win.id,sameSize:true,tabParam:JSON.stringify({urls:[{url:props.linkURL,privateMode}],type:'new-win'})})
+          })
+          win.webContents.send('get-private', webContents.getId())
         }
       })
       menuItems.push({type: 'separator'})

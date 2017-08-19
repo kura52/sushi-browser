@@ -120,7 +120,7 @@ export default class WebPageList extends Component{
               }
             }
             arr.push([tab.key,
-              <div className={datas.isActive ? "visible" : "visible"} style={style} key={tab.key}>
+              <div className={`browser-page-wrapper ${datas.isActive ? "visible" : "visible"}`} style={style} key={tab.key}>
                 <BrowserPage ref={`page-${tab.key}`} k={tab.key} k2={key} {...tab.pageHandlers}
                              tab={tab} pageIndex={0} isActive={datas.isActive} pos={style}/>
               </div>])

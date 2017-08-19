@@ -67,6 +67,8 @@ class Tabs extends React.Component {
 
     this.state = defaultState;
     this.tabs = []
+
+    this.handlePanelDragOver = ::this.handlePanelDragOver
   }
 
 
@@ -335,7 +337,7 @@ class Tabs extends React.Component {
             onDragEnd={this.handleDragEnd.bind(this, [t])}
             onDrop={this.handleDrop.bind(this, t)}
             onMouseDown={this.handleTabClick.bind(this, tab.key)}
-            // onContextMenu={this.handleContextMenu.bind(this, tab.key)}
+          // onContextMenu={this.handleContextMenu.bind(this, tab.key)}
             onMouseOver={()=>{
               if(this.state.hoveredTab != tab.key){
                 this.setState({hoveredTab:tab.key})
@@ -559,9 +561,14 @@ class Tabs extends React.Component {
     console.log("handleDragEnd",Date.now())
     mainState.set('dragData',null)
 
+    const overlayElement = document.querySelector('.tabs-layout-overlay-wrapper.visible')
+    const overlayClassList = overlayElement && [...overlayElement.classList]
+    PubSub.publish('drag-overlay',false)
+
     for(let ele of document.querySelectorAll(".div-back.front")){
       ele.classList.remove("front")
     }
+
 
     const contentEle = document.getElementById("content")
     for(let ele of contentEle.querySelectorAll(this.props.toggleNav == 1 ? ".navbar-main" : ".rdTabBar")){
@@ -575,6 +582,14 @@ class Tabs extends React.Component {
     setTimeout(_=>{
         if(mainState.stopDragEnd){
           mainState.set('stopDragEnd',false)
+          return
+        }
+
+        if(overlayClassList){
+          console.log(overlayClassList)
+          const [type,droppedKey,droppedTabKey] = [overlayClassList[2],overlayClassList[3].slice(1),overlayClassList[4].slice(1)]
+          console.log({type,dropTabs:this.props.parent.state.tabs,dropTabKey:tabs[0].key,droppedKey,droppedTabKey})
+          PubSub.publish('drag-split',{type,dropTabKey:tabs[0].key,droppedKey})
           return
         }
         console.log("handleDragEnd2",Date.now())
@@ -601,7 +616,7 @@ class Tabs extends React.Component {
                 PubSub.publish(`close_tab_${k}`, {key:tab.key})
                 PubSub.unsubscribe(token)
               })
-            },0)
+            },100)
           })
         }
         else{
@@ -679,6 +694,10 @@ class Tabs extends React.Component {
     // evt.preventDefault()
   }
 
+  handlePanelDragOver(e) {
+    console.log(1)
+    console.log(document.elementFromPoint(e.clientX,e.clientY))
+  }
 
   handleDragStart(tabs,evt) {
     isMove=false
@@ -692,6 +711,11 @@ class Tabs extends React.Component {
     console.log("dragstart,tabs")
     // evt.stopPropagation()
     // evt.preventDefault()
+
+    if(tabs) {
+      PubSub.publish('drag-overlay', true)
+    }
+
     let addButton = false
     if(!tabs){
       addButton = true
@@ -724,25 +748,25 @@ class Tabs extends React.Component {
 
   render() {
     const {_tabClassNames,tabInlineStyles,tabs,content} = this.buildRenderComponent()
-     return (
+    return (
       <div style={tabInlineStyles.tabWrapper} className={_tabClassNames.tabWrapper} ref="div"
-            onDragOver={(e)=>{e.preventDefault();return false}} onDrop={(e)=>{e.preventDefault();return false}}
+           onDragOver={(e)=>{e.preventDefault();return false}} onDrop={(e)=>{e.preventDefault();return false}}
            onKeyDown={this.props.onKeyDown}>
         <div style={this.props.toggleNav == 2 ? {display: 'none'} :
           this.props.toggleNav == 3 ? {
-            height: 27,
-            background: 'rgb(221, 221, 221)',
-            borderBottom: '1px solid #aaa',
-            zIndex: 2,
-            position: 'absolute',
-            width: '100%'
-          }:
-          this.props.toggleNav == 1 ? {} :
-            {
               height: 27,
               background: 'rgb(221, 221, 221)',
               borderBottom: '1px solid #aaa',
-            }}>
+              zIndex: 2,
+              position: 'absolute',
+              width: '100%'
+            }:
+            this.props.toggleNav == 1 ? {} :
+              {
+                height: 27,
+                background: 'rgb(221, 221, 221)',
+                borderBottom: '1px solid #aaa',
+              }}>
           <ul tabIndex="-1" style={tabInlineStyles.tabBar} className={_tabClassNames.tabBar} ref="ttab"
               onDoubleClick={isDarwin ? _=>{
                 const win = remote.getCurrentWindow()

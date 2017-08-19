@@ -92,7 +92,6 @@ class BrowserPage extends Component {
             ele.loadURL(url)
           }
         }
-
       }
     }
     webview.addEventListener('ipc-message',this.wvEvents['ipc-message'])
@@ -160,7 +159,8 @@ class BrowserPage extends Component {
     PubSub.unsubscribe(this.tokenNotification)
     PubSub.unsubscribe(this.tokenDidStartLoading)
 
-    ipc.removeListener('menu-or-key-events', this.searchEvent)
+    if(this.searchEvent)
+      ipc.removeListener('menu-or-key-events', this.searchEvent)
   }
 
 
