@@ -605,17 +605,14 @@ export default class TabPanel extends Component {
       const dirc = type == "left" || type == "right" ? 'v' : 'h'
       const pos = type == "left" || type == "top" ? -1 : 1
       if(this.state.tabs.length > 1 || droppedKey != this.props.k) {
-        this.props.split(droppedKey,dirc,pos,this.state.tabs,index)
         if(this.state.tabs.length > 1){
-          this.handleTabClose({}, dropTabKey)
-          PubSub.publish(`close_tab_${this.props.k}`,{key:dropTabKey})
+          this.props.split(droppedKey,dirc,pos,this.state.tabs,index)
         }
         else{
-          setTimeout(_=>{
-            this.handleTabClose({}, dropTabKey)
-            PubSub.publish(`close_tab_${this.props.k}`,{key:dropTabKey})
-          },200)
+          this.props.split(droppedKey,dirc,pos,[...this.state.tabs,'dummy'],index) //@TODO
         }
+        this.handleTabClose({}, dropTabKey)
+        PubSub.publish(`close_tab_${this.props.k}`,{key:dropTabKey})
       }
       else{
         this.props.split(droppedKey, dirc, pos * -1)
