@@ -5,8 +5,12 @@ const uuid = require('node-uuid')
 const React = require('react')
 const ReactDOM = require('react-dom')
 const path = require('path')
-const { StickyContainer, Sticky } = require('react-sticky');
+const { StickyContainer, Sticky } = require('react-sticky')
 const { Menu,Segment,Input } = require('semantic-ui-react')
+import classNames from 'classnames'
+import elementClass from 'element-class'
+import escapeHTML from 'escape-html'
+import Selection from '../render/react-selection/index'
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
 
 import InfiniteTree from '../render/react-infinite-tree';
@@ -155,10 +159,62 @@ async function getAllChildren(nodePath){
 }
 
 
+let selectedNodes = [];
 let treeAllData
 class App extends React.Component {
   componentDidMount() {
     ReactDOM.findDOMNode(this.refs.stickey).style.height = "100%"
+  }
+
+  afterSelect(selectedTargets){
+    if(selectedTargets.length == 0) return
+
+    const tree = this.refs.content.refs.iTree.tree
+    // const selectedNode = tree.getSelectedNode();
+    // if (selectedNodes.length === 0 && selectedNode) {
+    //   selectedNodes.push(selectedNode);
+    //   tree.state.selectedNode = null;
+    // }
+
+
+    const targetNodes = selectedTargets.map(ele=>{
+      const nodeId = ele.dataset.id
+      return tree.getNodeById(nodeId)
+    })
+
+    for(let currentNode of targetNodes){
+      const index = selectedNodes.indexOf(currentNode);
+
+      // Remove current node if the array length of selected nodes is greater than 1
+      if (index >= 0 && selectedNodes.length > 1) {
+        currentNode.state.selected = false;
+        selectedNodes.splice(index, 1);
+        tree.updateNode(currentNode, {}, { shallowRendering: true },true);
+      }
+
+      // Add current node to the selected nodes
+      if (index < 0) {
+        currentNode.state.selected = true;
+        selectedNodes.push(currentNode);
+        tree.updateNode(currentNode, {}, { shallowRendering: true },true);
+      }
+    }
+
+    tree.update()
+
+  }
+
+  clearSelect(){
+    const tree = this.refs.content.refs.iTree.tree
+    // Empty an array of selected nodes
+    selectedNodes.forEach(selectedNode => {
+      selectedNode.state.selected = false;
+      tree.updateNode(selectedNode, {}, { shallowRendering: true },true)
+    });
+    selectedNodes = [];
+
+    tree.update()
+
   }
 
   recurNewTreeData(datas,reg){
@@ -220,12 +276,14 @@ class App extends React.Component {
           <Input ref='input' icon='search' placeholder='Search...' size="small" onChange={::this.onChange}/>
         </div>
       </Sticky>
-      <Contents ref="content"/>
+      <Selection ref="select" target=".infinite-tree-item" selectedClass="selection-selected"
+                 afterSelect={::this.afterSelect} clearSelect={::this.clearSelect}>
+        <Contents ref="content"/>
+      </Selection>
     </StickyContainer>
   }
 }
 
-let selectedNodes = [];
 class Contents extends React.Component {
   // tree = null;
 
@@ -342,6 +400,7 @@ class Contents extends React.Component {
   }
 
   render() {
+    const self = this
     return (
       <div style={{paddingLeft:4,paddingTop:4,width:'calc(100vw - 4px)'}}>
         <InfiniteTree
@@ -353,6 +412,35 @@ class Contents extends React.Component {
           }}
           rowRenderer={rowRenderer(18)}
           selectable={true} // Defaults to true
+          droppable={{
+            hoverClass: 'infinite-tree-drop-hover',
+            accept: (opts) => {
+              const { type, draggableTarget, droppableTarget, node } = opts;
+
+              if (elementClass(event.target).has('infinite-tree-overlay')) {
+                elementClass(event.target).add('hover'); // add hover class
+              } else {
+                const el = self.refs.iTree.tree.contentElement.querySelector('.infinite-tree-overlay');
+                elementClass(el).remove('hover'); // remove hover class
+              }
+
+              return true;
+            },
+            drop: (e, opts) => {
+              const { draggableTarget, droppableTarget, node } = opts;
+
+              if (elementClass(event.target).has('infinite-tree-overlay')) {
+                elementClass(event.target).remove('hover'); // remove hover class
+                const innerHTML = 'Dropped to an overlay element';
+                document.querySelector('#classic [data-id="dropped-result"]').innerHTML = innerHTML;
+                return;
+              }
+
+              //console.log('drop:', event, event.dataTransfer.getData('text'));
+              // const innerHTML = 'Dropped to <b>' + escapeHTML(node.name) + '</b>';
+              // document.querySelector('#classic [data-id="dropped-result"]').innerHTML = innerHTML;
+            }
+          }}
           shouldSelectNode={(node) => { // Defaults to null
             if (!node || (node === this.refs.iTree.tree.getSelectedNode())) {
               return false; // Prevent from deselecting the current node
@@ -458,6 +546,31 @@ class Contents extends React.Component {
           onCloseNode={(node) => {
             localStorage.setItem("favorite-sidebar-open-node",this.refs.iTree.tree.getOpenNodes().map(node=>node.id).join("\t"))
           }}
+          // onClusterDidChange={() => {
+          //   const tree = this.refs.iTree.tree
+          //   // No overlay on filtered mode
+          //   if (tree.filtered) {
+          //     return;
+          //   }
+          //
+          //   const overlayElement = document.createElement('div');
+          //   const top = tree.nodes.indexOf(tree.getNodeById('<root>.1'));
+          //   const bottom = tree.nodes.indexOf(tree.getNodeById('<root>.2'));
+          //   const el = tree.contentElement.querySelector('.infinite-tree-item');
+          //   if (!el) {
+          //     return;
+          //   }
+          //   const height = parseFloat(getComputedStyle(el).height);
+          //
+          //   overlayElement.className = classNames(
+          //     'infinite-tree-overlay'
+          //   );
+          //   overlayElement.style.top = top * height + 'px';
+          //   overlayElement.style.height = (bottom - top) * height + 'px';
+          //   overlayElement.style.lineHeight = (bottom - top) * height + 'px';
+          //   overlayElement.appendChild(document.createTextNode('OVERLAY'));
+          //   tree.contentElement.appendChild(overlayElement);
+          // }}
           // onSelectNode={(node) => {
           //   this.updatePreview(node);
           // }}

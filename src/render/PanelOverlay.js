@@ -2,12 +2,19 @@ import React,{Component} from 'react'
 const PubSub = require('./pubsub')
 
 const THRESHOLD = 100
+function isFixedPanel(key){
+  return key.startsWith('fixed-')
+}
+
 
 export default class PanelOverlay extends Component{
   constructor(props) {
     super(props)
     this.state = {dragOverElements:[],overlay: {}}
     this.handleMouseMove = ::this.handleMouseMove
+    PubSub.subscribe('drag-over-overlay',(msg,{x,y})=>{
+      this.handleMouseMove({clientX:x,clientX})
+    })
   }
 
   componentWillMount(){
@@ -19,6 +26,10 @@ export default class PanelOverlay extends Component{
     }
     this.fUpdate = true
     const max = {left: 9999999,top:9999999,width:window.innerWidth,height: window.innerHeight}
+    for(let ele of document.querySelectorAll('.rdTabBar.chrome-tabs-content')){
+      ele.style.zIndex = 11
+    }
+
     this.setState({dragOverElements,max})
   }
 
@@ -35,7 +46,9 @@ export default class PanelOverlay extends Component{
     // return fUpdate || JSON.stringify(this.state.overlay) !== JSON.stringify(nextState.overlay)
   // }
 
-  componentWillUnmount(){
+  componentWillUnmount(){for(let ele of document.querySelectorAll('.rdTabBar.chrome-tabs-content')){
+    ele.style.zIndex = null
+  }
     this.setState({dragOverElements:[],overlay: {}})
   }
 
@@ -43,6 +56,7 @@ export default class PanelOverlay extends Component{
     const [x,y] = [e.clientX,e.clientY]
     let ret = {}
     this.state.dragOverElements.forEach((ele,i)=> {
+      if(isFixedPanel(ele.key)) return
       if(x - ele.left > 0 && x - ele.left < THRESHOLD && ele.top <= y && y <= ele.top + ele.height){
         ret.left = ele.left
         ret.top = ele.top

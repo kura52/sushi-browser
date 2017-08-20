@@ -23,7 +23,8 @@ export default function(margin){
         data-selected={selected}
         data-children={childrenLength}
         data-total={total}
-        droppable={droppable}
+        droppable="true"
+        draggable="true"
       >
           <div
             className="infinite-tree-node"

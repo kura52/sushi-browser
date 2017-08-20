@@ -619,8 +619,13 @@ export default class TabPanel extends Component {
       }
     })
 
+    const tokenSearch = PubSub.subscribe(`drag-search_${this.props.k}`,(msg,{key,text})=>{
+      const tab = this.state.tabs.find(x=>x.key == key)
+      if(tab) this.search(tab,text,false)
+    })
+
     // return [tokenResize,tokenDrag,tokenSplit,tokenClose,tokenToggleDirction,tokenSync,tokenSync2,tokenBodyKeydown,tokenNewTabFromKey]
-    return [tokenResize,tokenDrag,tokenClose,tokenToggleDirction,tokenSwapPosition,tokenSync2,tokenCloseSyncTabs,tokenSyncZoom,tokenSyncSelectTab,tokenBodyKeydown,tokenNewTabFromKey,tokenCloseTab,tokenIncludeKey,tokenRichMedia,tokenMultiScroll,tokenOpposite,tokenSplit]
+    return [tokenResize,tokenDrag,tokenClose,tokenToggleDirction,tokenSwapPosition,tokenSync2,tokenCloseSyncTabs,tokenSyncZoom,tokenSyncSelectTab,tokenBodyKeydown,tokenNewTabFromKey,tokenCloseTab,tokenIncludeKey,tokenRichMedia,tokenMultiScroll,tokenOpposite,tokenSplit,tokenSearch]
   }
 
 

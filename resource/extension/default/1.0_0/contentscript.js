@@ -34,6 +34,9 @@ function handleDragEnd(evt) {
   if(target.href){
     url = target.href
   }
+  else if(target.nodeName == "#text"){
+    ipc.sendToHost("link-drop",{screenX: evt.screenX, screenY: evt.screenY, text:window.getSelection().toString() || target.data})
+  }
   else{
     const parent = target.closest("a")
     if(parent){
@@ -43,7 +46,8 @@ function handleDragEnd(evt) {
       url = target.src
     }
   }
-  if(!url) return
+  if(!url){
+  }
 
   ipc.sendToHost("link-drop",{screenX: evt.screenX, screenY: evt.screenY, url})
 }

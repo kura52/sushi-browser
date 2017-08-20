@@ -81,7 +81,7 @@ class BrowserPage extends Component {
       }
       else if(e.channel == 'link-drop'){
         console.log(e)
-        const {screenX,screenY,url} = e.args[0]
+        const {screenX,screenY,url,text} = e.args[0]
         const cont = e.sender
 
         const wx = window.screenX
@@ -92,7 +92,12 @@ class BrowserPage extends Component {
           const dropped = ele.dataset.key
           const src = e.target.dataset.key
           if(src !== dropped){
-            ele.loadURL(url)
+            if(url){
+              ele.loadURL(url)
+            }
+            else{
+              PubSub.publish(`drag-search_${ele.className.slice(1)}`,{key:ele.dataset.key, text})
+            }
           }
         }
       }

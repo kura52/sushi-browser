@@ -13,6 +13,11 @@
   background: #deecfd;
   border: 1px solid #06c;
 }
+.infinite-tree-content .selection-selected.infinite-tree-item,
+.infinite-tree-content .selection-selected.infinite-tree-item:hover {
+  background: #deecfd;
+  border: 1px solid #06c;
+}
 .infinite-tree-content .infinite-tree-item {
   border: 1px solid transparent;
   cursor: default;
@@ -115,6 +120,20 @@
   height: calc(100vh - 89px);
 }
 
+
+#classic .infinite-tree-overlay {
+  position: absolute;
+  background-color: rgba(255, 0, 0, 0.5);
+  border: 1px solid red;
+  font-size: 20px;
+  font-weight: bold;
+  width: 100%;
+  text-align: center;
+}
+
+#classic .infinite-tree-overlay.hover {
+  background-color: rgba(255, 0, 0, 0.6);
+}
 
 @-webkit-keyframes rotating /* Safari and Chrome */ {
   from {

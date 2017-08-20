@@ -12,6 +12,11 @@
          "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/*",
          "chrome-extension://jdbefljfgobbmcidnmpjamcbhnbphjnb/*"
       ],
+      "exclude_globs": [
+         "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/*_sidebar.html",
+         "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html",
+         "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html"
+      ],
       "run_at": "document_start"
    }, {
       "all_frames": true,
@@ -21,6 +26,11 @@
          "http://*/*", "https://*/*", "file://*", "data:*", "about:srcdoc",
          "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/*",
          "chrome-extension://jdbefljfgobbmcidnmpjamcbhnbphjnb/*"
+      ],
+      "exclude_globs": [
+         "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/*_sidebar.html",
+         "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html",
+         "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html"
       ],
       "run_at": "document_end"
    } ],

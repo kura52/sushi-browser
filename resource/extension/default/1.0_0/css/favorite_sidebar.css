@@ -1,0 +1,15 @@
+.react-selection{
+    user-select:none;
+    -webkit-user-select:none;
+    -moz-user-select:none;
+    position:relative;
+}
+
+.react-selection-rectangle{
+    pointer-events:none;
+    transition: opacity .4s;
+    position: absolute;
+    background-color: rgba(204,204,204 .2);
+    border: 1px solid #ccc;
+    opacity: 0;
+}

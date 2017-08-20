@@ -165,6 +165,7 @@ class InfiniteTree extends events.EventEmitter {
         // https://developer.mozilla.org/en-US/docs/Web/Events/dragend
         // The dragend event is fired when a drag operation is being ended (by releasing a mouse button or hitting the escape key).
         'dragend': (event) => {
+            console.log('dragend')
             event = event || window.event;
 
             const { hoverClass = '' } = this.options.droppable;
@@ -181,6 +182,7 @@ class InfiniteTree extends events.EventEmitter {
         // https://developer.mozilla.org/en-US/docs/Web/Events/dragenter
         // The dragenter event is fired when a dragged element or text selection enters a valid drop target.
         'dragenter': (event) => {
+          console.log('dragenter')
             event = event || window.event;
 
             let itemTarget = null;
@@ -230,6 +232,7 @@ class InfiniteTree extends events.EventEmitter {
         // https://developer.mozilla.org/en-US/docs/Web/Events/dragover
         // The dragover event is fired when an element or text selection is being dragged over a valid drop target (every few hundred milliseconds).
         'dragover': (event) => {
+          console.log('dragover')
             event = event || window.event;
 
             preventDefault(event);
@@ -237,6 +240,7 @@ class InfiniteTree extends events.EventEmitter {
         // https://developer.mozilla.org/en-US/docs/Web/Events/drop
         // The drop event is fired when an element or text selection is dropped on a valid drop target.
         'drop': (event) => {
+          console.log('drop')
             event = event || window.event;
 
             // prevent default action (open as link for some elements)
@@ -1334,7 +1338,7 @@ class InfiniteTree extends events.EventEmitter {
     // @param {object} data The data object.
     // @param {object} [options] The options object.
     // @param {boolean} [options.shallowRendering] True to render only the parent node, false to render the parent node and all expanded child nodes. Defaults to false.
-    updateNode(node, data, options) {
+    updateNode(node, data, options,noUpdate) {
         if (!ensureNodeInstance(node)) {
             return;
         }
@@ -1373,7 +1377,7 @@ class InfiniteTree extends events.EventEmitter {
             }
 
             // Updates list with new data
-            this.update();
+            if(!noUpdate) this.update();
         }
     }
 }
