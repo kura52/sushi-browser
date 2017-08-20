@@ -463,6 +463,7 @@ class Tabs extends React.Component {
   }
 
   handleEnd(e) {
+    setTimeout(_=>PubSub.publish('drag-overlay',false),100)
   }
 
   handleWheel(e){
