@@ -2632,12 +2632,14 @@ export default class TabPanel extends Component {
         if (!isFirst || (oppositeKey && !isFixedPanel(oppositeKey)))
           PubSub.publish(`new-tab-from-key_${oppositeKey}`, {url, mobile: tab.mobile, adBlockThis: tab.adBlockThis,notSelected: !isFirst,privateMode:tab.privateMode})
         else {
-          this.props.split(this.props.k, 'v', 1, (void 0), (void 0), {
-            url,
-            mobile: tab.mobile,
-            adBlockThis: tab.adBlockThis,
-            privateMode: tab.privateMode
-          })
+          setTimeout(_=>{
+            this.props.split(this.props.k, 'v', 1, (void 0), (void 0), {
+              url,
+              mobile: tab.mobile,
+              adBlockThis: tab.adBlockThis,
+              privateMode: tab.privateMode
+            })
+          },100)
         }
       }
       else {

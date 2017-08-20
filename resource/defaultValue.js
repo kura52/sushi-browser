@@ -18,6 +18,7 @@ const settingDefault =  {
   doubleShift: true,
   tripleClick: true,
   syncScrollMargin: 30,
+  contextMenuSearchEngines: [],
 
   //keyboard shortcut default
   keyQuit: 'CmdOrCtrl+Q',

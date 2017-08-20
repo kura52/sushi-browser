@@ -369,6 +369,11 @@ class SearchSetting extends React.Component {
     this.setState({})
   }
 
+  contextMenuSearchEngineChange(e,data){
+    this.state.contextMenuSearchEngines = data.value
+    ipc.send('save-state',{tableName:'state',key:'contextMenuSearchEngines',val:data.value})
+    this.setState({})
+  }
 
   buildSearchEngineColumns(){
     const ret = []
@@ -393,9 +398,12 @@ class SearchSetting extends React.Component {
 
   buildMultiSearchColumns(){
     let options = []
+    let optionsAll = []
     for(let values of this.state.searchProviders){
+      const data = { key: values.name, text: values.name, value: values.name }
+      optionsAll.push(data)
       if(values.multiple) continue
-      options.push({ key: values.name, text: values.name, value: values.name })
+      options.push(data)
     }
 
     const ret = []
@@ -403,7 +411,7 @@ class SearchSetting extends React.Component {
       if(!values.multiple) continue
       ret.push(this.buildMultiSearchColumn(values.ind,values.name,values.multiple,values.type,values.shortcut,options))
     }
-    return ret
+    return {ret,optionsAll}
   }
 
   buildMultiSearchColumn(i,name,multiple,type,alias,options){
@@ -444,7 +452,13 @@ class SearchSetting extends React.Component {
   }
 
   render() {
+    const {ret,optionsAll} = this.buildMultiSearchColumns()
+
     return <div>
+      <h3>Right Click Menu Search Engines</h3>
+      <Divider/>
+      <Dropdown fluid multiple search selection onChange={::this.contextMenuSearchEngineChange} options={optionsAll} defaultValue={this.state.contextMenuSearchEngines}/>
+
       <h3>Multi Search</h3>
       <Divider/>
       <table className="ui celled compact table">
@@ -458,7 +472,7 @@ class SearchSetting extends React.Component {
         </tr>
         </thead>
         <tbody>
-        {this.buildMultiSearchColumns()}
+        {ret}
         </tbody>
         <tfoot className="full-width">
         <tr>
@@ -647,17 +661,17 @@ const App = () => (
 )
 
 
-ipc.send("get-main-state",['startsWith','newTabMode','myHomepage','searchProviders','searchEngine','language','enableFlash','downloadNum','sideBarDirection','scrollTab','doubleShift','tripleClick','syncScrollMargin','ALL_KEYS'])
+ipc.send("get-main-state",['startsWith','newTabMode','myHomepage','searchProviders','searchEngine','language','enableFlash','downloadNum','sideBarDirection','scrollTab','doubleShift','tripleClick','syncScrollMargin','contextMenuSearchEngines','ALL_KEYS'])
 ipc.once("get-main-state-reply",(e,data)=>{
   generalDefault = data
   keyboardDefault = data
 
-  const {searchProviders, searchEngine} = data
+  const {searchProviders, searchEngine, contextMenuSearchEngines} = data
   let arr = []
   for(let [name,value] of Object.entries(searchProviders)){
     arr[value.ind] = value
   }
-  searchDefault = {searchProviders: arr.filter(x=>x),default: searchEngine}
+  searchDefault = {searchProviders: arr.filter(x=>x),default: searchEngine,contextMenuSearchEngines}
 
   ReactDOM.render(<App />,  document.getElementById('app'))
 })

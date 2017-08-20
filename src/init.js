@@ -570,10 +570,27 @@ function contextMenu(webContents) {
 
       menuItems.push({type: 'separator'})
       if(!hasText && props.mediaType === 'none'){
-        menuItems.push({
-          label: locale.translation('openSearch').replace(/{{\s*selectedVariable\s*}}/, props.linkText.length > 20 ? `${props.linkText.substr(0, 20)}...` : props.linkText),
-          click: (item, win) =>  win.webContents.send('search-text', webContents.getId(), props.linkText)
-        })
+        if(mainState.contextMenuSearchEngines.length == 0){
+          menuItems.push({
+            label: locale.translation('openSearch').replace(/{{\s*selectedVariable\s*}}/, props.linkText.length > 20 ? `${props.linkText.substr(0, 20)}...` : props.linkText),
+            click: (item, win) =>  win.webContents.send('search-text', webContents.getId(), props.linkText)
+          })
+        }
+        else{
+          for(let engine of mainState.contextMenuSearchEngines){
+            let labelShortcut = ''
+            let searchShortcut = ''
+            if(engine != mainState.searchEngine){
+              const shortcut = mainState.searchProviders[engine].shortcut
+              labelShortcut = `${shortcut}:`
+              searchShortcut = `${shortcut} `
+            }
+            menuItems.push({
+              label: labelShortcut + locale.translation('openSearch').replace(/{{\s*selectedVariable\s*}}/, props.linkText.length > 20 ? `${props.linkText.substr(0, 20)}...` : props.linkText),
+              click: (item, win) =>  win.webContents.send('search-text', webContents.getId(), `${searchShortcut}${props.linkText}`)
+            })
+          }
+        }
       }
       // menuItems.push({
       //   label: 'Open Link in Sync Mode at Left to Right', click: (item, win) => {
@@ -661,10 +678,28 @@ function contextMenu(webContents) {
     }
     else if (hasText) {
       menuItems.push({label: locale.translation("copy"), role: 'copy', enabled: can('Copy')})
-      menuItems.push({
-        label: locale.translation('openSearch').replace(/{{\s*selectedVariable\s*}}/, text.length > 20 ? `${text.substr(0, 20)}...` : text),
-        click: (item, win) => win.webContents.send('search-text', webContents.getId(), text)
-      })
+      if(mainState.contextMenuSearchEngines.length == 0){
+        menuItems.push({
+          label: locale.translation('openSearch').replace(/{{\s*selectedVariable\s*}}/, text.length > 20 ? `${text.substr(0, 20)}...` : text),
+          click: (item, win) => win.webContents.send('search-text', webContents.getId(), text)
+        })
+      }
+      else{
+        for(let engine of mainState.contextMenuSearchEngines){
+          let labelShortcut = ''
+          let searchShortcut = ''
+          if(engine != mainState.searchEngine){
+            const shortcut = mainState.searchProviders[engine].shortcut
+            labelShortcut = `${shortcut}:`
+            searchShortcut = `${shortcut} `
+          }
+          menuItems.push({
+            label: labelShortcut + locale.translation('openSearch').replace(/{{\s*selectedVariable\s*}}/, text.length > 20 ? `${text.substr(0, 20)}...` : text),
+            click: (item, win) =>  win.webContents.send('search-text', webContents.getId(), `${searchShortcut}${text}`)
+          })
+        }
+      }
+
       menuItems.push({type: 'separator'})
     }
 
