@@ -18,7 +18,7 @@ const settingDefault =  {
   doubleShift: true,
   tripleClick: true,
   syncScrollMargin: 30,
-  contextMenuSearchEngines: [],
+  contextMenuSearchEngines: ["Google","google past year and normal","google multi search"],
 
   //keyboard shortcut default
   keyQuit: 'CmdOrCtrl+Q',
