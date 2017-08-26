@@ -371,7 +371,17 @@ export default class SplitWindows extends Component{
     ipc.on('switch-fullscreen',this.switchFullscreenEvent)
 
     this.getWinStateEvent = _=>{
-      if(this.getAllKey().filter(key=>!isFixedPanel(key)).length === 0){
+      const keys = this.getAllKey()
+      for(let key of keys){
+        if(this.refs2[key]){
+          const panel = this.refs2[key]
+          for(let tab of panel.state.tabs){
+            panel._closeBind(tab)
+          }
+        }
+      }
+
+      if(keys.filter(key=>!isFixedPanel(key)).length === 0){
         ipc.send('get-window-state-reply',this.prevState)
       }
       else{

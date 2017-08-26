@@ -615,3 +615,7 @@ div.item.favorite>ul>li>div>ul{
 .tabs-layout-overlay-wrapper.visible {
      opacity: 0.1;
  }
+
+.ui:not(.disabled) .fa.fa-film{
+     color: rgb(171, 71, 0);
+}

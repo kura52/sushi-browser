@@ -10,8 +10,10 @@ const ytdl = require('ytdl-core')
 const youtubedl = require('youtube-dl')
 import {getFocusedWebContents} from './util'
 const isWin = process.platform == 'win32'
+const isLinux = process.platform === 'linux'
 const meiryo = isWin && Intl.NumberFormat().resolvedOptions().locale == 'ja'
 import mainState from './mainState'
+const {execSync} = require('child_process')
 
 ipcMain.on('file-system',(event,key,method,arg)=>{
   if(!['stat','readdir','rename'].includes(method)) return
@@ -397,6 +399,85 @@ ipcMain.on('menu-or-key-events',(e,name)=>{
 })
 
 
+const FRAME = 6
+const TITLE_BAR = 24
+ipcMain.on('set-pos-window',async (e,{id,key,x,y,width,height,top,active,checkClose})=>{
+  if(isWin){
+    const winctl = require('winctl')
+    const win = id ? (await winctl.FindWindows(win => win.getHwnd()))[0] : winctl.GetActiveWindow()
+
+    if(top){
+      if(x){
+        x = x + FRAME / 2
+        y = y + TITLE_BAR + FRAME / 2
+        width = Math.max(0,width - FRAME)
+        height = Math.max(0,height - (TITLE_BAR + FRAME))
+      }
+      win.setWindowPos(top == 'above' ? winctl.HWND.TOPMOST : winctl.HWND.NOTOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 0 : 3)) // 3 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE
+    }
+    else{
+      x = x + FRAME / 2
+      y = y + TITLE_BAR + FRAME / 2
+      width = Math.max(0,width - FRAME)
+      height = Math.max(0,height - (TITLE_BAR + FRAME))
+      win.move(x,y,width,height)
+    }
+    if(key) e.sender.send(`set-pos-window-reply_${key}`,[win.getHwnd(),win.getTitle()])
+  }
+  else if(isLinux){
+    const i = id ? 'i' : ''
+    id = id || ':ACTIVE:'
+
+    if(checkClose){
+      const ret = execSync(`wmctrl -l | grep ${id} | wc -l`).toString()
+      e.sender.send(`set-pos-window-reply_${key}`,{needClose:ret[0] == '0'})
+      return
+    }
+
+    const commands = []
+    if(id == ':ACTIVE:'){
+      commands.push(`wmctrl -v${i} -r ${id} -b remove,maximized_vert,maximized_horz 2>&1`)
+    }
+    if(top){
+      commands.push(`wmctrl -v${i} -r ${id} -b ${top == 'above' ? 'add,above' : 'remove,above'} 2>&1`)
+    }
+    if(x !== (void 0)){
+      x = x + FRAME / 2
+      y = y + TITLE_BAR + FRAME / 2
+      width = Math.max(0,width - FRAME)
+      height = Math.max(0,height - (TITLE_BAR + FRAME))
+      commands.push(`wmctrl -v${i} -r ${id} -e 0,${x},${y},${width},${height} 2>&1`)
+    }
+
+    let reply
+    for(let command of commands){
+      const ret = execSync(command)
+      const id = ret.toString().match(/: *(0x[0-9a-f]+)/)
+      reply = id[1]
+    }
+    if(active) {
+      const ret = execSync(`wmctrl -v -a :ACTIVE: 2>&1`)
+      const mat = ret.toString().match(/: *(0x[0-9a-f]+)/)
+      execSync(`wmctrl -v${i} -a ${id} 2>&1`)
+      execSync(`wmctrl -v${i} -a ${mat[1]} 2>&1`)
+    }
+    if(key){
+      const name = execSync(`wmctrl -l | grep "${reply}"`).toString().match(/[^ ]+ +[^ ]+ +[^ ]+ (.+)/)[1]
+      e.sender.send(`set-pos-window-reply_${key}`,[reply,name])
+    }
+  }
+})
+
+
+ipcMain.on('change-tab-infos',(e,changeTabInfos)=> {
+  for(let c of changeTabInfos){
+    const cont = webContents.fromTabID(c.tabId)
+    if(cont){
+      if(c.active) cont.setActive(c.active)
+      if(c.index !== (void 0)) cont.setTabIndex(c.index)
+    }
+  }
+})
 // async function recurSelect(keys){
 //   const ret = await favorite.find({key:{$in: keys}})
 //   const addKey = []

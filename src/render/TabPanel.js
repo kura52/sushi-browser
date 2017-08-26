@@ -263,7 +263,7 @@ export default class TabPanel extends Component {
       const tabs = indexes.map(i=>{
         const tab = fromTabs[i]
         return this.createTab({c_page:tab.page,c_wv:tab.wv,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin
-          ,rest:{wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,mobile:tab.mobile,adBlockThis:tab.adBlockThis}})
+          ,rest:{wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis}})
       })
       this.state = {tokens,
         oppositeGlobal: mainState.oppositeGlobal,
@@ -288,7 +288,7 @@ export default class TabPanel extends Component {
         this.props.node.pop()
       }
       console.log('TabCreate')
-      const tab = this.createTab(params && {default_url:params.url,privateMode: params.privateMode,rest:{mobile:params.mobile,adBlockThis:params.adBlockThis}})
+      const tab = this.createTab(params && {default_url:params.url,privateMode: params.privateMode,rest:{bind:params.bind,mobile:params.mobile,adBlockThis:params.adBlockThis}})
       this.state = {tokens,
         oppositeGlobal: mainState.oppositeGlobal,
         tabs:[tab],
@@ -310,7 +310,7 @@ export default class TabPanel extends Component {
       this.state = {tokens,
         oppositeGlobal: mainState.oppositeGlobal,
         tabs: this.props.child[0].tabs.map(tab=>this.createTab({c_page:tab.page,c_wv:tab.wv,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,
-          rest:{wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,mobile:tab.mobile,adBlockThis:tab.adBlockThis}})),
+          rest:{wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis}})),
         tabBar:this.props.child[0].tabBar,
         prevAddKeyCount: this.props.child[0].prevAddKeyCount.slice(0),
         notifications: this.props.child[0].notifications,
@@ -378,7 +378,7 @@ export default class TabPanel extends Component {
           const p = new Promise((resolve,reject)=>{
             this.getWebContents(tab).detach(_=>{
               resolve({wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,
-                rest:{wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || this.getWebContents(tab).guestInstanceId})
+                rest:{wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || this.getWebContents(tab).guestInstanceId})
             })
           })
           promises.push(p)
@@ -488,6 +488,8 @@ export default class TabPanel extends Component {
        }
 
       // ipc.send('chrome-tab-removed', parseInt(_tabs[i].key))
+      this._closeBind(_tabs[i])
+
       if(_tabs[i].events) removeEvents(ipc, _tabs[i].events)
       if(this.state.tabs.length==1){
         this.state.tabs.splice(i, 1)
@@ -655,7 +657,7 @@ export default class TabPanel extends Component {
       return true
     }
     else if (page.navUrl.match(/^file:.+?\.(abap|abc|as|ada|adb|htaccess|htgroups|htpasswd|conf|htaccess|htgroups|htpasswd|asciidoc|adoc|asm|a|ahk|bat|cmd|bro|cpp|c|cc|cxx|h|hh|hpp|ino|c9search_results|cirru|cr|clj|cljs|CBL|COB|coffee|cf|cson|Cakefile|cfm|cs|css|curly|d|di|dart|diff|patch|Dockerfile|dot|drl|dummy|dummy|e|ge|ejs|ex|exs|elm|erl|hrl|frt|fs|ldr|fth|4th|f|f90|ftl|gcode|feature|.gitignore|glsl|frag|vert|gbs|go|groovy|haml|hbs|handlebars|tpl|mustache|hs|cabal|hx|htm|html|hjson|xhtml|eex|html.eex|erb|rhtml|html.erb|ini|conf|cfg|prefs|io|jack|jade|pug|java|js|jsm|jsx|json|jq|jsx|jl|kt|kts|tex|latex|ltx|bib|less|liquid|lisp|ls|logic|log|lql|lsl|lua|lp|lucene|Makefile|md|GNUmakefile|makefile|OCamlMakefile|make|markdown|mask|matlab|mz|mel|mc|mush|mysql|nix|nsi|nsh|m|mm|ml|mli|pas|p|pl|pm|pgsql|php|phtml|shtml|php3|php4|php5|phps|phpt|aw|ctp|module|ps1|praat|praatscript|psc|proc|plg|prolog|properties|proto|py|r|cshtml|asp|Rd|Rhtml|rst|rb|ru|gemspec|rake|Guardfile|Rakefile|Gemfile|rs|sass|scad|scala|scm|sm|rkt|oak|scheme|scss|sh|bash|.bashrc|sjs|smarty|tpl|snippets|soy|space|sql|sqlserver|styl|stylus|svg|swift|tcl|tex|txt|textile|toml|tsx|twig|swig|ts|typescript|str|vala|vbs|vb|vm|v|vh|sv|svh|vhd|vhdl|wlk|wpgm|wtest|xml|rdf|rss|wsdl|xslt|atom|mathml|mml|xul|xbl|xaml|xq|yaml|yml)$/) ||
-      page.navUrl.match(/\/[^\?=]+?\.(abap|abc|as|ada|adb|htaccess|htgroups|htpasswd|conf|htaccess|htgroups|htpasswd|asciidoc|adoc|asm|a|ahk|bat|cmd|bro|cpp|c|cc|cxx|h|hh|hpp|ino|c9search_results|cirru|cr|clj|cljs|CBL|COB|coffee|cf|cson|Cakefile|cfm|cs|css|curly|d|di|dart|diff|patch|Dockerfile|dot|drl|dummy|dummy|e|ge|ejs|ex|exs|elm|erl|hrl|frt|fs|ldr|fth|4th|f|f90|ftl|gcode|feature|.gitignore|glsl|frag|vert|gbs|go|groovy|hbs|handlebars|tpl|mustache|hs|cabal|hx|hjson|eex|ini|conf|cfg|prefs|io|jack|jade|pug|java|js|jsm|jsx|json|jq|jsx|jl|kt|kts|tex|latex|ltx|bib|less|liquid|lisp|ls|logic|lql|lsl|lua|lp|lucene|Makefile|md|GNUmakefile|makefile|OCamlMakefile|make|markdown|mask|matlab|mz|mel|mc|mush|mysql|nix|nsi|nsh|m|mm|ml|mli|pas|p|pl|pm|pgsql|phps|phpt|aw|ctp|module|ps1|praat|praatscript|psc|proc|plg|prolog|properties|proto|py|r|cshtml|Rd|Rhtml|rst|rb|ru|gemspec|rake|Guardfile|Rakefile|Gemfile|rs|sass|scad|scala|scm|sm|rkt|oak|scheme|scss|sh|bash|.bashrc|sjs|smarty|tpl|snippets|soy|space|sql|sqlserver|styl|stylus|svg|swift|tcl|tex|txt|textile|toml|tsx|twig|swig|ts|typescript|str|vala|vbs|vb|vm|v|vh|sv|svh|vhd|vhdl|wlk|wpgm|wtest|wsdl|xslt|atom|mathml|mml|xul|xbl|xaml|xq|yaml|yml)$/)) {
+      page.navUrl.match(/\/[^\?=]+?\.(abap|abc|as|ada|adb|htaccess|htgroups|htpasswd|conf|htaccess|htgroups|htpasswd|asciidoc|adoc|asm|a|ahk|bat|cmd|bro|cpp|c|cxx|h|hh|hpp|ino|c9search_results|cirru|cr|clj|cljs|CBL|COB|coffee|cf|cson|Cakefile|cfm|cs|css|curly|d|di|dart|diff|patch|Dockerfile|dot|drl|dummy|dummy|e|ge|ejs|ex|exs|elm|erl|hrl|frt|fs|ldr|fth|4th|f|f90|ftl|gcode|feature|.gitignore|glsl|frag|vert|gbs|go|groovy|hbs|handlebars|tpl|mustache|hs|cabal|hx|hjson|eex|ini|conf|cfg|prefs|io|jack|jade|pug|java|js|jsm|jsx|json|jq|jsx|jl|kt|kts|tex|latex|ltx|bib|less|liquid|lisp|ls|logic|lql|lsl|lua|lp|lucene|Makefile|md|GNUmakefile|makefile|OCamlMakefile|make|markdown|mask|matlab|mz|mel|mc|mush|mysql|nix|nsi|nsh|m|mm|ml|mli|pas|p|pl|pm|pgsql|phps|phpt|aw|ctp|module|ps1|praat|praatscript|psc|proc|plg|prolog|properties|proto|py|r|cshtml|Rd|Rhtml|rst|rb|gemspec|rake|Guardfile|Rakefile|Gemfile|rs|sass|scad|scala|scm|sm|rkt|oak|scheme|scss|sh|bash|.bashrc|sjs|smarty|tpl|snippets|soy|space|sql|sqlserver|styl|stylus|svg|swift|tcl|tex|txt|textile|toml|tsx|twig|swig|ts|typescript|str|vala|vbs|vb|vm|v|vh|sv|svh|vhd|vhdl|wlk|wpgm|wtest|wsdl|xslt|atom|mathml|mml|xul|xbl|xaml|xq|yaml|yml)$/)) {
 
       navigateTo(`chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/ace.html?url=${encodeURIComponent(page.navUrl)}`)
       return true
@@ -1676,8 +1678,13 @@ export default class TabPanel extends Component {
       },1000)
     }
 
+    const key = c_key || `${Date.now().toString()}_${uuid.v4()}`
+    if(rest && rest.bind){
+      setTimeout(_=>PubSub.publish(`bind-window_${key}`),200)
+    }
+
     return Object.assign(tab,
-      {key: c_key || `${Date.now().toString()}_${uuid.v4()}`,
+      {key ,
         // {key: c_key || Date.now().toString(),
         privateMode,
         pin,
@@ -1721,6 +1728,10 @@ export default class TabPanel extends Component {
 
   TabPanelClose(key){
     console.log('TabPanelClose')
+    for(let tab of this.state.tabs){
+      this._closeBind(tab)
+    }
+
     key = key || this.state.selectedTab
     this.closeSyncTabs(key)
     const tab = this.state.tabs.find(x => x.key == key)
@@ -1934,40 +1945,38 @@ export default class TabPanel extends Component {
 
     const allKeySame = this.state.tabKeys.length == this.state.tabs.length &&
       this.state.tabKeys.every((pre,i)=> this.state.tabs[i].key == pre)
-    if(allKeySame) return
+    // if(allKeySame) return
 
     const isChangeSelected = !sameSelected
     if(isChangeSelected) {
       this.state.selectedKeys = this.state.selectedKeys.filter(key => key != this.state.selectedTab && this.state.tabs.some(tab => tab.key == key))
       this.state.selectedKeys.push(this.state.selectedTab)
     }
-    const conts =[]
-    if(!this.state.tabs.every(tab=>{
-        const cont = this.getWebContents(tab)
-        if(!cont) return false
-        else{
-          conts.push(cont)
-          return true
-        }
-      })){
-      return
-    }
+
 
     this.state.tabKeys = []
     let i = 0
     console.log(2222,this.props.panelId)
     this.selectedTab = this.state.selectedTab
+    const changeTabInfos = []
     for(let tab of this.state.tabs){
+      if(tab.wvId === (void 0)) continue
       this.state.tabKeys.push(tab.key)
-      const cont = conts[i]
+      const cont = this.getWebContents(tab)
+      let isActive
       if(isChangeSelected){
-        const isActive = tab.key == this.state.selectedTab
-        cont.setActive(isActive)
+        isActive = tab.key == this.state.selectedTab
         if(isActive && !this.isFixed){
           ipc.send("change-title",tab.page.title)
         }
+        if(tab.bind){
+          ipc.send('set-pos-window',{id:tab.bind.id,top:isActive ? 'above' : 'not-above'})
+        }
       }
-      if(!allKeySame) cont.setTabIndex(this.props.panelId*1000 + i++)
+      if(isActive || !allKeySame) changeTabInfos.push({tabId:tab.wvId,active:isActive,index:allKeySame ? (void 0) : (this.props.panelId*1000 + i++)})
+    }
+    if(changeTabInfos.length > 0){
+      ipc.send('change-tab-infos',changeTabInfos)
     }
   }
 
@@ -1988,8 +1997,28 @@ export default class TabPanel extends Component {
     this.focus_webview(tab)
   }
 
+  _closeBind(tab){
+    if(tab.bind){
+      try{
+        clearInterval(tab.bind.interval)
+        const ob = tab.bind.observe
+        ob[0].unobserve(ob[1])
+        const win = tab.bind.win
+        win.removeListener('move',tab.bind.move)
+        win.removeListener('blur',tab.bind.blur)
+        win.removeListener('focus',tab.bind.focus)
+        ipc.send('set-pos-window',{id:tab.bind.id,top:'not-above'})
+
+      }catch(e){
+        console.log(2525,e)
+      }
+    }
+  }
+
   handleCloseRemoveOtherContainer(e,currentTabs) {
     const tab = this.state.tabs[e.oldIndex]
+
+    this._closeBind(tab)
     if(currentTabs.length==0){
       this.props.close(this.props.k)
       this.TabPanelClose(tab.key)
@@ -2008,6 +2037,7 @@ export default class TabPanel extends Component {
     console.log('tabClosed key:', key);
     const i = this.state.tabs.findIndex((x)=> x.key == key)
 
+    this._closeBind(this.state.tabs[i])
     if(this.state.tabs.length==1){
       if(!e.noSync) this.closeSyncTabs(key)
       this.props.close(this.props.k)
@@ -2107,7 +2137,7 @@ export default class TabPanel extends Component {
     // console.log(98)
     this.state.tabs = currentTabs.map(tab=>{
       const orgTab = tab.props.orgTab
-      return tab.key == key ? this.createTab({c_page:orgTab.page,c_wv:orgTab.wv,c_key:orgTab.key,rest:{wvId:orgTab.wvId,mobile:orgTab.mobile,adBlockThis:orgTab.adBlockThis,oppositeMode:orgTab.oppositeMode}}) : orgTab
+      return tab.key == key ? this.createTab({c_page:orgTab.page,c_wv:orgTab.wv,c_key:orgTab.key,rest:{wvId:orgTab.wvId,bind:orgTab.bind,mobile:orgTab.mobile,adBlockThis:orgTab.adBlockThis,oppositeMode:orgTab.oppositeMode}}) : orgTab
     })
     console.log("selected09",key)
     this.setState({selectedTab: key})
@@ -2118,7 +2148,7 @@ export default class TabPanel extends Component {
     let n_tab
 
     for(let orgTab of tabs){
-      n_tab = this.createTab({c_page:orgTab.page,c_wv:orgTab.wv,c_key:orgTab.key,rest:{wvId:orgTab.wvId,mobile:orgTab.mobile,adBlockThis:orgTab.adBlockThis,oppositeMode:orgTab.oppositeMode}})
+      n_tab = this.createTab({c_page:orgTab.page,c_wv:orgTab.wv,c_key:orgTab.key,rest:{wvId:orgTab.wvId,bind:orgTab.bind,mobile:orgTab.mobile,adBlockThis:orgTab.adBlockThis,oppositeMode:orgTab.oppositeMode}})
       this.state.tabs.splice(++i, 0, n_tab)
     }
     console.log("selected10",n_tab.key)
@@ -2555,7 +2585,7 @@ export default class TabPanel extends Component {
       return new Promise((resolve,reject)=>{
         this.getWebContents(tab).detach(_=>{
           resolve({wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,
-            rest:{wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || this.getWebContents(tab).guestInstanceId})
+            rest:{wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || this.getWebContents(tab).guestInstanceId})
         })
       })
     })
@@ -2720,13 +2750,13 @@ export default class TabPanel extends Component {
           return (<Tab key={tab.key} beforeTitle={tab.page.title && tab.page.favicon !== 'loading' ? (<img className='favi' src={tab.page.favicon} onError={(e)=>{e.target.src = 'resource/file.png'}}/>) : (<svg dangerouslySetInnerHTML={{__html: svg }} />)}
                        title={tab.page.favicon !== 'loading' || tab.page.titleSet ? tab.page.title : 'loading'} orgTab={tab} pin={tab.pin} privateMode={tab.privateMode}>
             <div style={{height: '100%'}} className="div-back" ref={`div-${tab.key}`} >
-              <BrowserNavbar ref={`navbar-${tab.key}`} tabkey={tab.key} k={this.props.k} {...tab.navHandlers} privateMode={tab.privateMode} page={tab.page} tab={tab}
+              <BrowserNavbar ref={`navbar-${tab.key}`} tabkey={tab.key} k={this.props.k} {...tab.navHandlers} parent={this} privateMode={tab.privateMode} page={tab.page} tab={tab}
                              richContents={tab.page.richContents} wv={tab.wv} sync={tab.sync} replaceInfo={tab.syncReplace} oppositeMode={tab.oppositeMode} oppositeGlobal={this.state.oppositeGlobal} toggleNav={toggle}
                              scrollPage={::this.scrollPage} historyMap={historyMap} changeSyncMode={::this.changeSyncMode} updateReplaceInfo={::this.updateReplaceInfo}
                              changeOppositeMode={::this.changeOppositeMode} syncZoom={::this.syncZoom} currentWebContents={this.props.currentWebContents}
                              isTopRight={this.props.isTopRight} isTopLeft={this.props.isTopLeft} detachPanel={::this.detachPanel}
                              fixedPanelOpen={this.props.fixedPanelOpen} toggleNavPanel={::this.toggleNavPanel} tabBar={!this.state.tabBar} hidePanel={this.props.hidePanel}
-                             fullscreen={this.props.fullscreen} search={::this.search}/>
+                             fullscreen={this.props.fullscreen} search={::this.search} bind={tab.bind}/>
               {this.state.notifications.map((data,i)=>{
                 if(data.needInput){
                   console.log(225,data)

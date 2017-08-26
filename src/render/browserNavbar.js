@@ -1,7 +1,7 @@
 const React = require('react')
 const ReactDOM = require('react-dom');
 const {Component} = React
-import { Dropdown } from 'semantic-ui-react'
+import { Dropdown,Modal } from 'semantic-ui-react'
 import path from 'path'
 const PubSub = require('./pubsub')
 const {remote} = require('electron')
@@ -78,6 +78,8 @@ class BrowserNavbar extends Component{
     this.tokenAdblockGlobal = PubSub.subscribe('set-adblock-enable',(msg,enable)=>this.setState({adBlockGlobal:enable}))
     this.tokenPdfMode = PubSub.subscribe('set-pdfmode-enable',(msg,mode)=>this.setState({pdfMode:mode}))
 
+    this.tokenBindWindow = PubSub.subscribe(`bind-window_${this.props.tab.key}`,::this._bindWindow)
+
     let marginEle = ReactDOM.findDOMNode(this).querySelector(".navbar-margin")
     let rdTabBar = marginEle.parentNode.parentNode.parentNode.parentNode.querySelector(".rdTabBar")
     console.log(marginEle,rdTabBar)
@@ -137,6 +139,7 @@ class BrowserNavbar extends Component{
     PubSub.unsubscribe(this.tokenReplaceInfo)
     PubSub.unsubscribe(this.tokenAdblockGlobal)
     PubSub.unsubscribe(this.tokenPdfMode)
+    PubSub.unsubscribe(this.tokenBindWindow)
 
     tabs.add(this.props.tab.wvId)
   }
@@ -156,25 +159,27 @@ class BrowserNavbar extends Component{
     //   currentIndex = cont.getCurrentEntryIndex();
     // }
     const ret = !(this.canGoBack === nextProps.page.canGoBack &&
-    this.canGoForward === nextProps.page.canGoForward &&
-    this.canRefresh === nextProps.page.canRefresh &&
-    this.location === nextProps.page.location &&
-    this.navUrl === nextProps.page.navUrl &&
-    this.props.toggleNav === nextProps.toggleNav &&
-    this.props.isTopRight === nextProps.isTopRight &&
-    this.props.isTopLeft === nextProps.isTopLeft &&
-    this.props.fullscreen === nextProps.fullscreen &&
-    (this.richContents||[]).length === (nextProps.richContents||[]).length &&
-    (this.caches||[]).length === (nextState.caches||[]).length &&
-    this.state.zoom === nextState.zoom &&
-    this.props.sync === nextProps.sync &&
-    this.props.oppositeMode === nextProps.oppositeMode &&
-    this.currentIndex == nextProps.page.entryIndex &&
-    this.state.mobile == nextState.mobile &&
-    this.state.adBlockGlobal == nextState.adBlockGlobal &&
-    this.state.pdfMode == nextState.pdfMode &&
-    this.props.oppositeGlobal == nextProps.oppositeGlobal &&
-    this.state.adBlockThis == nextState.adBlockThis)
+      this.canGoForward === nextProps.page.canGoForward &&
+      this.canRefresh === nextProps.page.canRefresh &&
+      this.location === nextProps.page.location &&
+      this.navUrl === nextProps.page.navUrl &&
+      this.props.toggleNav === nextProps.toggleNav &&
+      this.props.isTopRight === nextProps.isTopRight &&
+      this.props.isTopLeft === nextProps.isTopLeft &&
+      this.props.fullscreen === nextProps.fullscreen &&
+      (this.richContents||[]).length === (nextProps.richContents||[]).length &&
+      (this.caches||[]).length === (nextState.caches||[]).length &&
+      this.state.zoom === nextState.zoom &&
+      this.props.sync === nextProps.sync &&
+      this.props.oppositeMode === nextProps.oppositeMode &&
+      this.currentIndex == nextProps.page.entryIndex &&
+      this.props.bind == nextProps.bind &&
+      this.state.mobile == nextState.mobile &&
+      this.state.bindWindow == nextState.bindWindow &&
+      this.state.adBlockGlobal == nextState.adBlockGlobal &&
+      this.state.pdfMode == nextState.pdfMode &&
+      this.props.oppositeGlobal == nextProps.oppositeGlobal &&
+      this.state.adBlockThis == nextState.adBlockThis)
     if(ret){
       this.canGoBack = nextProps.page.canGoBack
       this.canGoForward = nextProps.page.canGoForward
@@ -326,6 +331,71 @@ class BrowserNavbar extends Component{
     return ret
   }
 
+  _bindWindow({win}){
+    win = win || remote.getCurrentWindow()
+    const tab = this.props.tab
+    for(let ele of document.querySelectorAll('.browser-page-wrapper.visible')){
+      const r =  ele.getBoundingClientRect()
+      const wv = ele.querySelector("webview")
+      const elem = ele
+      if(tab.key === wv.dataset.key){
+        ipc.send('set-pos-window',{key:tab.key,id:tab.bind && tab.bind.id
+          ,x:Math.round(window.screenX + r.left),y:Math.round(window.screenY + r.top),width:Math.round(r.width),height:Math.round(r.height),top:'above'})
+        ipc.once(`set-pos-window-reply_${tab.key}`,(e,[id,name])=>{
+          this.props.parent.navigateTo(tab.page, `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/bind.html?url=${encodeURIComponent(name)}`, tab)
+          const ro = new ResizeObserver((entries, observer) => {
+            for (const entry of entries) {
+              const r = elem.getBoundingClientRect()
+              ipc.send('set-pos-window',{key:tab.key,id:id,x:Math.round(window.screenX + r.left),y:Math.round(window.screenY + r.top),width:Math.round(r.width),height:Math.round(r.height)})
+            }
+          });
+          const key = uuid.v4()
+          const interval = setInterval(_=>{
+            ipc.send('set-pos-window',{key,id,checkClose:true})
+            ipc.once(`set-pos-window-reply_${key}`,(e,{needClose})=>{
+              if(needClose){
+                PubSub.publish(`close_tab_${this.props.k}`,{key:tab.key})
+              }
+            })
+          },1000)
+          ro.observe(wv)
+          tab.bind ={
+            id,
+            win,
+            interval,
+            observe: [ro,wv],
+            move: e=>{
+              setTimeout(_=>{
+                const r = elem.getBoundingClientRect()
+                ipc.send('set-pos-window',{id,x:Math.round(window.screenX + r.left),y:Math.round(window.screenY + r.top),width:Math.round(r.width),height:Math.round(r.height)})
+              },0)
+            },
+            blur: e=>ipc.send('set-pos-window',{id,top:'not-above',active:true}),
+            focus:e=>{
+              if(tab.key == this.props.parent.state.selectedTab){
+                ipc.send('set-pos-window',{id,top:'above'})
+              }
+            },
+          }
+          win.on('move',tab.bind.move)
+          win.on('blur',tab.bind.blur)
+          win.on('focus',tab.bind.focus)
+
+        })
+        break
+      }
+    }
+  }
+
+  bindWindow(){
+    const win = remote.getCurrentWindow()
+    win.once('blur',_=>{
+      this.setState({bindWindow:false})
+      this._bindWindow({win})
+    })
+    this.setState({bindWindow:true})
+  }
+
   mainMenu(cont){
     const {downloadNum} = mainState
     return <NavbarMenu k={this.props.k} isFloat={isFloatPanel(this.props.k)} style={{overflowX: 'visible'}} title={locale.translation('settings')} icon="bars" onClick={_=>PubSub.publishSync(`zoom_${this.props.tabkey}`,this.getWebContents(this.props.tab).getZoomPercent())}>
@@ -341,9 +411,10 @@ class BrowserNavbar extends Component{
                       onClick={()=>{cont.hostWebContents.send('toggle-nav',this.props.toggleNav == 0 ? 1 : 0);this.setState({})}}/>
       <NavbarMenuItem text={this.props.toggleNav == 0 ? 'OneLine Menu' : 'Normal Menu'} icon='ellipsis horizontal' onClick={()=>{this.props.toggleNavPanel(this.props.toggleNav == 0 ? 1 : 0);this.setState({})}}/>
       {isDarwin ? null :<NavbarMenuItem text={this.props.toggleNav == 3 ? 'Normal Screen Mode' : 'Full Screen Mode'} icon={this.props.toggleNav == 3 ? 'compress' : 'expand'}
-                      onClick={()=>ipc.send('toggle-fullscreen')}/>}
+                                        onClick={()=>ipc.send('toggle-fullscreen')}/>}
       <NavbarMenuItem text='Detach This Panel' icon='space shuttle' onClick={this.props.detachPanel}/>
       <NavbarMenuItem text='Panels to Windows' icon='cubes' onClick={_=>PubSub.publish('all-detach')}/>
+      <NavbarMenuItem text='Bind selected Window' icon='crosshairs' onClick={_=>this.bindWindow()}/>
 
       <div className="divider" />
 
@@ -370,10 +441,10 @@ class BrowserNavbar extends Component{
 
 
       {/*<NavbarMenuItem text="Set Parallel DL" icon='arrow-circle-o-down' onClick={_=>_} keepVisible={true} input={downloadNum}*/}
-                      {/*onChange={val=>{*/}
-                        {/*mainState.set('downloadNum',parseInt(val))*/}
-                        {/*this.setState({})*/}
-                      {/*}}*/}
+      {/*onChange={val=>{*/}
+      {/*mainState.set('downloadNum',parseInt(val))*/}
+      {/*this.setState({})*/}
+      {/*}}*/}
       {/*/>*/}
 
       <div className="divider" />
@@ -523,16 +594,16 @@ class BrowserNavbar extends Component{
       </div>
 
       <div className="navbar-margin" style={{width: this.props.toggleNav != 1 ? 0 : this.props.isTopRight ? '45%' : '50%',minWidth: this.props.toggleNav != 1 ? 0 :'80px',background: 'rgb(221, 221, 221)'}}
-        onDoubleClick={isDarwin ? _=>{
-          const win = remote.getCurrentWindow()
-          if(win.isFullScreen()){}
-          else if(win.isMaximized()){
-            win.unmaximize()
-          }
-          else{
-            win.maximize()
-          }
-        }: null}></div>
+           onDoubleClick={isDarwin ? _=>{
+             const win = remote.getCurrentWindow()
+             if(win.isFullScreen()){}
+             else if(win.isMaximized()){
+               win.unmaximize()
+             }
+             else{
+               win.maximize()
+             }
+           }: null}></div>
       {isFixed ? null : <SyncReplace ref="syncReplace" changeSyncMode={this.props.changeSyncMode} replaceInfo={this.props.replaceInfo} updateReplaceInfo={this.props.updateReplaceInfo}/>}
       {isFixed ? null : <BrowserNavbarBtn title="Switch Sync Scroll" icon="circle-o" sync={this.props.sync && !this.props.replaceInfo}
                                           onClick={()=>{this.props.changeSyncMode();this.refs.syncReplace.clearAllCheck()}}/>}
@@ -590,7 +661,11 @@ class BrowserNavbar extends Component{
       {/*{cacheItems}*/}
       {/*</Dropdown.Menu>*/}
       {/*</Dropdown>*/}
-
+      {this.state.bindWindow ? <Modal basic size='small' open={true}>
+        <Modal.Content>
+          <p style={{fontSize: 30,textAlign:'center'}}>Please click other window</p>
+        </Modal.Content>
+      </Modal> : null}
     </div>
   }
 }

@@ -26,9 +26,13 @@ export default class PanelOverlay extends Component{
     }
     this.fUpdate = true
     const max = {left: 9999999,top:9999999,width:window.innerWidth,height: window.innerHeight}
-    for(let ele of document.querySelectorAll('.rdTabBar.chrome-tabs-content')){
+    this.zIndexes = {}
+    for(let ele of document.querySelectorAll('.rdTabBar.chrome-tabs-content,.tab-base')){
+      this.zIndexes[ele.className] = ele.style.zIndex
       ele.style.zIndex = 11
     }
+    const ele = document.querySelector(".dl-list")
+    if(ele) ele.style.zIndex = 0
 
     this.setState({dragOverElements,max})
   }
@@ -46,9 +50,13 @@ export default class PanelOverlay extends Component{
     // return fUpdate || JSON.stringify(this.state.overlay) !== JSON.stringify(nextState.overlay)
   // }
 
-  componentWillUnmount(){for(let ele of document.querySelectorAll('.rdTabBar.chrome-tabs-content')){
-    ele.style.zIndex = null
-  }
+  componentWillUnmount(){
+    for(let ele of document.querySelectorAll('.rdTabBar.chrome-tabs-content,.tab-base')){
+      ele.style.zIndex = this.zIndexes[ele.className]
+    }
+    const ele = document.querySelector(".dl-list")
+    if(ele) ele.style.zIndex = 2
+
     this.setState({dragOverElements:[],overlay: {}})
   }
 

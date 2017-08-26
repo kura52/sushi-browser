@@ -1,7 +1,7 @@
 const sh = require('shelljs')
 const fs = require("fs")
 
-const libs = ['../node_modules/node-pty','../node_modules/youtube-dl']
+const libs = ['../node_modules/node-pty','../node_modules/youtube-dl','../node_modules/winctl']
 
 for(let lib of libs){
   rebuild(lib)

@@ -612,7 +612,7 @@ class Tabs extends React.Component {
           getWebContents(tab).detach(_=>{
             BrowserWindowPlus.load({id:remote.getCurrentWindow().id,dropX:evt.screenX,dropY:evt.screenY,alwaysOnTop: alwaysOnTop[0],
               tabParam:JSON.stringify([{wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,
-                rest:{wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || getWebContents(tab).guestInstanceId}])})
+                rest:{wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || getWebContents(tab).guestInstanceId}])})
             setTimeout(_=>{
               PubSub.publish('include-key',tab.key)
               const token = PubSub.subscribe(`include-key-reply_${tab.key}`,(msg,k)=>{
@@ -627,7 +627,7 @@ class Tabs extends React.Component {
             return new Promise((resolve,reject)=>{
               getWebContents(tab).detach(_=>{
                 resolve({wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,
-                  rest:{wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || getWebContents(tab).guestInstanceId})
+                  rest:{wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || getWebContents(tab).guestInstanceId})
               })
             })
           })
@@ -755,7 +755,7 @@ class Tabs extends React.Component {
       <div style={tabInlineStyles.tabWrapper} className={_tabClassNames.tabWrapper} ref="div"
            onDragOver={(e)=>{e.preventDefault();return false}} onDrop={(e)=>{e.preventDefault();return false}}
            onKeyDown={this.props.onKeyDown}>
-        <div style={this.props.toggleNav == 2 ? {display: 'none'} :
+        <div className="tab-base" style={this.props.toggleNav == 2 ? {display: 'none'} :
           this.props.toggleNav == 3 ? {
               height: 27,
               background: 'rgb(221, 221, 221)',
