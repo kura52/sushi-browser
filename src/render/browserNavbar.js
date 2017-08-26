@@ -342,7 +342,9 @@ class BrowserNavbar extends Component{
         setTimeout(_=>{
           ipc.send('set-pos-window',{key:tab.key,id:tab.bind && tab.bind.id
             ,x:Math.round(window.screenX + r.left),y:Math.round(window.screenY + r.top),width:Math.round(r.width),height:Math.round(r.height),top:'above'})
-          ipc.once(`set-pos-window-reply_${tab.key}`,(e,[id,name])=>{
+          ipc.once(`set-pos-window-reply_${tab.key}`,(e,ret)=>{
+            if(!ret) return
+            const [id,name] = ret
             this.props.parent.navigateTo(tab.page, `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/bind.html?url=${encodeURIComponent(name)}`, tab)
             const ro = new ResizeObserver((entries, observer) => {
               for (const entry of entries) {

@@ -405,10 +405,17 @@ ipcMain.on('set-pos-window',async (e,{id,key,x,y,width,height,top,active,checkCl
   if(isWin){
     const winctl = require('winctl')
     const win = id ? (await winctl.FindWindows(win => id == win.getHwnd()))[0] : winctl.GetActiveWindow()
+    if(!id){
+      const cn = win.getClassName()
+      if(cn == 'Shell_TrayWnd' || cn == 'TaskManagerWindow' || cn == 'Progman' || cn == 'MultitaskingViewFrame' || win.getTitle().includes(' - Sushi Browser')){
+        e.sender.send(`set-pos-window-reply_${key}`,(void 0))
+        return
+      }
+    }
 
     console.log(1)
-    if(checkClose){
-      e.sender.send(`set-pos-window-reply_${key}`,{needClose:!win})
+    if(checkClose || !win){
+      e.sender.send(`set-pos-window-reply_${key}`,checkClose ? {needClose:!win} : (void 0))
       return
     }
     console.log(2)
@@ -422,7 +429,7 @@ ipcMain.on('set-pos-window',async (e,{id,key,x,y,width,height,top,active,checkCl
       console.log(top == 'above' ? winctl.HWND.TOPMOST : winctl.HWND.NOTOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19))
       win.setWindowPos(top == 'above' ? winctl.HWND.TOPMOST : winctl.HWND.NOTOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
     }
-    else{
+    else if(x + y + width + height !== 0){
       x = x + FRAME / 2
       y = y + TITLE_BAR + FRAME / 2
       width = Math.max(0,width - FRAME)
@@ -450,12 +457,19 @@ ipcMain.on('set-pos-window',async (e,{id,key,x,y,width,height,top,active,checkCl
 
     const commands = []
     if(id == ':ACTIVE:'){
+      const ret = execSync(`wmctrl -v -a :ACTIVE: 2>&1`)
+      const mat = ret.toString().match(/: *(0x[0-9a-f]+)/)
+      const level = execSync(`wmctrl -l | grep "${mat[1]}"`).toString().match(/[^ ]+ +([^ ]+)/)[1]
+      if(level == "-1"){
+        e.sender.send(`set-pos-window-reply_${key}`)
+        return
+      }
       commands.push(`wmctrl -v${i} -r ${id} -b remove,maximized_vert,maximized_horz 2>&1`)
     }
     if(top){
       commands.push(`wmctrl -v${i} -r ${id} -b ${top == 'above' ? 'add,above' : 'remove,above'} 2>&1`)
     }
-    if(x !== (void 0)){
+    if(x !== (void 0) && x + y + width + height !== 0){
       x = x + FRAME / 2
       y = y + TITLE_BAR + FRAME / 2
       width = Math.max(0,width - FRAME)
