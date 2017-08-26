@@ -339,49 +339,59 @@ class BrowserNavbar extends Component{
       const wv = ele.querySelector("webview")
       const elem = ele
       if(tab.key === wv.dataset.key){
-        ipc.send('set-pos-window',{key:tab.key,id:tab.bind && tab.bind.id
-          ,x:Math.round(window.screenX + r.left),y:Math.round(window.screenY + r.top),width:Math.round(r.width),height:Math.round(r.height),top:'above'})
-        ipc.once(`set-pos-window-reply_${tab.key}`,(e,[id,name])=>{
-          this.props.parent.navigateTo(tab.page, `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/bind.html?url=${encodeURIComponent(name)}`, tab)
-          const ro = new ResizeObserver((entries, observer) => {
-            for (const entry of entries) {
-              const r = elem.getBoundingClientRect()
-              ipc.send('set-pos-window',{key:tab.key,id:id,x:Math.round(window.screenX + r.left),y:Math.round(window.screenY + r.top),width:Math.round(r.width),height:Math.round(r.height)})
-            }
-          });
-          const key = uuid.v4()
-          const interval = setInterval(_=>{
-            ipc.send('set-pos-window',{key,id,checkClose:true})
-            ipc.once(`set-pos-window-reply_${key}`,(e,{needClose})=>{
-              if(needClose){
-                PubSub.publish(`close_tab_${this.props.k}`,{key:tab.key})
-              }
-            })
-          },1000)
-          ro.observe(wv)
-          tab.bind ={
-            id,
-            win,
-            interval,
-            observe: [ro,wv],
-            move: e=>{
-              setTimeout(_=>{
+        setTimeout(_=>{
+          ipc.send('set-pos-window',{key:tab.key,id:tab.bind && tab.bind.id
+            ,x:Math.round(window.screenX + r.left),y:Math.round(window.screenY + r.top),width:Math.round(r.width),height:Math.round(r.height),top:'above'})
+          ipc.once(`set-pos-window-reply_${tab.key}`,(e,[id,name])=>{
+            this.props.parent.navigateTo(tab.page, `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/bind.html?url=${encodeURIComponent(name)}`, tab)
+            const ro = new ResizeObserver((entries, observer) => {
+              for (const entry of entries) {
                 const r = elem.getBoundingClientRect()
-                ipc.send('set-pos-window',{id,x:Math.round(window.screenX + r.left),y:Math.round(window.screenY + r.top),width:Math.round(r.width),height:Math.round(r.height)})
-              },0)
-            },
-            blur: e=>ipc.send('set-pos-window',{id,top:'not-above',active:true}),
-            focus:e=>{
-              if(tab.key == this.props.parent.state.selectedTab){
-                ipc.send('set-pos-window',{id,top:'above'})
+                ipc.send('set-pos-window',{key:tab.key,id:id,x:Math.round(window.screenX + r.left),y:Math.round(window.screenY + r.top),width:Math.round(r.width),height:Math.round(r.height)})
               }
-            },
-          }
-          win.on('move',tab.bind.move)
-          win.on('blur',tab.bind.blur)
-          win.on('focus',tab.bind.focus)
+            });
+            const key = uuid.v4()
+            const interval = setInterval(_=>{
+              console.log('interval')
+              ipc.send('set-pos-window',{key,id,checkClose:true})
+              ipc.once(`set-pos-window-reply_${key}`,(e,{needClose})=>{
+                if(needClose){
+                  PubSub.publish(`close_tab_${this.props.k}`,{key:tab.key})
+                }
+              })
+            },1000)
+            const token = PubSub.subscribe(`move-window_${this.props.k}`,_=>tab.bind.move())
+            ro.observe(wv)
+            tab.bind ={
+              id,
+              win,
+              token,
+              interval,
+              observe: [ro,wv],
+              move: e=>{
+                setTimeout(_=>{
+                  console.log('move')
+                  const r = elem.getBoundingClientRect()
+                  ipc.send('set-pos-window',{id,x:Math.round(window.screenX + r.left),y:Math.round(window.screenY + r.top),width:Math.round(r.width),height:Math.round(r.height)})
+                },0)
+              },
+              blur: e=>{
+                console.log('blur')
+                ipc.send('set-pos-window',{id,top:'not-above',active:true})
+              },
+              focus:e=>{
+                console.log('focus')
+                if(tab.key == this.props.parent.state.selectedTab){
+                  ipc.send('set-pos-window',{id,top:'above'})
+                }
+              },
+            }
+            win.on('move',tab.bind.move)
+            win.on('blur',tab.bind.blur)
+            win.on('focus',tab.bind.focus)
 
-        })
+          })
+        },100)
         break
       }
     }

@@ -156,6 +156,7 @@ export default class FloatPanel extends Component{
     drag.style.left = `${this.state.style.left}px`
     drag.style.top = `${this.state.style.top}px`
     this.props.children.children.webViewCreate()
+    PubSub.publish(`move-window_${this.props.k}`)
 
     if(this.first){
       document.body.addEventListener("mouseleave", this.mup, false)

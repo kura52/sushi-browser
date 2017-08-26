@@ -482,10 +482,10 @@ export default class TabPanel extends Component {
       if (!this.mounted) return
       const _tabs = this.state.tabs
       const i = this.state.tabs.findIndex(x => x.key == key)
-       if(i === -1){//@TODO
-          this.setState({})
-         return
-       }
+      if(i === -1){//@TODO
+        this.setState({})
+        return
+      }
 
       // ipc.send('chrome-tab-removed', parseInt(_tabs[i].key))
       this._closeBind(_tabs[i])
@@ -1226,10 +1226,10 @@ export default class TabPanel extends Component {
     tab.events['get-private'] = (e, id)=> {
       if (!this.mounted) return
       if (tab.wvId && id == tab.wvId) {
-          console.log(id)
-          ipc.send('get-private-reply',tab.privateMode)
-        }
+        console.log(id)
+        ipc.send('get-private-reply',tab.privateMode)
       }
+    }
     ipc.on('get-private', tab.events['get-private'])
 
 
@@ -2000,6 +2000,7 @@ export default class TabPanel extends Component {
   _closeBind(tab){
     if(tab.bind){
       try{
+        PubSub.unsubscribe(tab.bind.token)
         clearInterval(tab.bind.interval)
         const ob = tab.bind.observe
         ob[0].unobserve(ob[1])

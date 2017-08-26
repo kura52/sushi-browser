@@ -399,13 +399,19 @@ ipcMain.on('menu-or-key-events',(e,name)=>{
 })
 
 
-const FRAME = 6
-const TITLE_BAR = 24
+const FRAME = isLinux ? 6 : 0
+const TITLE_BAR = isLinux ? 24  : 0
 ipcMain.on('set-pos-window',async (e,{id,key,x,y,width,height,top,active,checkClose})=>{
   if(isWin){
     const winctl = require('winctl')
-    const win = id ? (await winctl.FindWindows(win => win.getHwnd()))[0] : winctl.GetActiveWindow()
+    const win = id ? (await winctl.FindWindows(win => id == win.getHwnd()))[0] : winctl.GetActiveWindow()
 
+    console.log(1)
+    if(checkClose){
+      e.sender.send(`set-pos-window-reply_${key}`,{needClose:!win})
+      return
+    }
+    console.log(2)
     if(top){
       if(x){
         x = x + FRAME / 2
@@ -413,14 +419,22 @@ ipcMain.on('set-pos-window',async (e,{id,key,x,y,width,height,top,active,checkCl
         width = Math.max(0,width - FRAME)
         height = Math.max(0,height - (TITLE_BAR + FRAME))
       }
-      win.setWindowPos(top == 'above' ? winctl.HWND.TOPMOST : winctl.HWND.NOTOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 0 : 3)) // 3 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE
+      console.log(top == 'above' ? winctl.HWND.TOPMOST : winctl.HWND.NOTOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19))
+      win.setWindowPos(top == 'above' ? winctl.HWND.TOPMOST : winctl.HWND.NOTOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
     }
     else{
       x = x + FRAME / 2
       y = y + TITLE_BAR + FRAME / 2
       width = Math.max(0,width - FRAME)
       height = Math.max(0,height - (TITLE_BAR + FRAME))
+      console.log(x,y,width,height)
       win.move(x,y,width,height)
+    }
+    if(active) {
+      const win2 = winctl.GetActiveWindow()
+      win.setActiveWindow()
+      win2.setActiveWindow()
+      console.log(win.getTitle(),win2.getTitle())
     }
     if(key) e.sender.send(`set-pos-window-reply_${key}`,[win.getHwnd(),win.getTitle()])
   }
