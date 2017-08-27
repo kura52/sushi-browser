@@ -304,9 +304,9 @@ class GeneralSetting extends React.Component {
         <br/>
 
         <div className="field">
-          <label>Bind Window Title Margin</label>
-          <Input onChange={this.onChange.bind(this,'bindMarginFrame')} defaultValue={this.state.bindMarginFrame}/>
           <label>Bind Window Frame Margin</label>
+          <Input onChange={this.onChange.bind(this,'bindMarginFrame')} defaultValue={this.state.bindMarginFrame}/>
+          <label>Bind Window Title Margin</label>
           <Input onChange={this.onChange.bind(this,'bindMarginTitle')} defaultValue={this.state.bindMarginTitle}/>
         </div>
         <br/>

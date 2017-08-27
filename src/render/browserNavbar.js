@@ -415,7 +415,7 @@ class BrowserNavbar extends Component{
                        onClick={_=>{
       PubSub.publishSync(`zoom_${this.props.tabkey}`,this.getWebContents(this.props.tab).getZoomPercent())
       if(tab.bind){
-        ipc.send('set-pos-window',{id:tab.bind.id,top:'not-above',active:tab.key == this.props.parent.state.selectedTab})
+        ipc.send('set-pos-window',{id:tab.bind.id,top:'not-above'})
       }
     }
     }>

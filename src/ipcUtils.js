@@ -16,6 +16,7 @@ import mainState from './mainState'
 const bindPath = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/bind.html'
 
 function exec(command) {
+  console.log(command)
   return new Promise(function(resolve, reject) {
     require('child_process').exec(command, function(error, stdout, stderr) {
       if (error) {
@@ -421,8 +422,8 @@ ipcMain.on('menu-or-key-events',(e,name)=>{
 
 const restoredMap = {}
 ipcMain.on('set-pos-window',async (e,{id,key,x,y,width,height,top,active,tabId,checkClose,restore})=>{
-  const FRAME = mainState.bindMarginFrame
-  const TITLE_BAR = mainState.bindMarginTitle
+  const FRAME = parseInt(mainState.bindMarginFrame)
+  const TITLE_BAR = parseInt(mainState.bindMarginTitle)
   if(isWin){
     let org
     const winctl = require('winctl')
@@ -499,16 +500,24 @@ ipcMain.on('set-pos-window',async (e,{id,key,x,y,width,height,top,active,tabId,c
     const i = id ? 'i' : ''
     id = id || ':ACTIVE:'
 
+    if(restoredMap[key]){
+      await exec(`wmctrl -v${i} -r ${id} -b add,above 2>&1`)
+      delete restoredMap[key]
+    }
+
+    if(restore){
+      restoredMap[key] = 1
+    }
     if(checkClose){
-      const ret = (await exec(`wmctrl -l | grep ${id}`)).stdout
-      console.log(ret)
-      e.sender.send(`set-pos-window-reply_${key}`,{needClose:!ret})
-      if(ret){
-        const title = ret.match(/[^ ]+ +[^ ]+ +[^ ]+ (.+)/)[1]
-        for (let wc of getBindPage(tabId)) {
-          wc.send('update-bind-title', title)
-        }
-      }
+      // const ret = (await exec(`wmctrl -l | grep ${id}`)).stdout
+      // console.log(ret)
+      // e.sender.send(`set-pos-window-reply_${key}`,{needClose:!ret})
+      // if(ret){
+      //   const title = ret.match(/[^ ]+ +[^ ]+ +[^ ]+ (.+)/)[1]
+      //   for (let wc of getBindPage(tabId)) {
+      //     wc.send('update-bind-title', title)
+      //   }
+      // }
       return
     }
 

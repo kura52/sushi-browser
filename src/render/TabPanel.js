@@ -1974,6 +1974,7 @@ export default class TabPanel extends Component {
           ipc.send("change-title",tab.page.title)
         }
         if(tab.bind){
+          console.log(88988,'tabchange')
           ipc.send('set-pos-window',{id:tab.bind.id,top:isActive ? 'above' : 'not-above'})
         }
       }
@@ -2012,6 +2013,7 @@ export default class TabPanel extends Component {
         win.removeListener('move',tab.bind.move)
         win.removeListener('blur',tab.bind.blur)
         win.removeListener('focus',tab.bind.focus)
+        console.log(889889,'close')
         ipc.send('set-pos-window',{key:tab.key,id:tab.bind.id,top:'not-above',restore:true})
 
       }catch(e){
