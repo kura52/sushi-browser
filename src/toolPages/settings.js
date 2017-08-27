@@ -304,6 +304,14 @@ class GeneralSetting extends React.Component {
         <br/>
 
         <div className="field">
+          <label>Bind Window Title Margin</label>
+          <Input onChange={this.onChange.bind(this,'bindMarginFrame')} defaultValue={this.state.bindMarginFrame}/>
+          <label>Bind Window Frame Margin</label>
+          <Input onChange={this.onChange.bind(this,'bindMarginTitle')} defaultValue={this.state.bindMarginTitle}/>
+        </div>
+        <br/>
+
+        <div className="field">
           <label>{l10n.translation('importBrowserData').replace('…','')}</label>
           <Button primary content={l10n.translation('import')} onClick={_=>ipc.send("import-browser-data",{})}/>
         </div>
@@ -661,7 +669,7 @@ const App = () => (
 )
 
 
-ipc.send("get-main-state",['startsWith','newTabMode','myHomepage','searchProviders','searchEngine','language','enableFlash','downloadNum','sideBarDirection','scrollTab','doubleShift','tripleClick','syncScrollMargin','contextMenuSearchEngines','ALL_KEYS'])
+ipc.send("get-main-state",['startsWith','newTabMode','myHomepage','searchProviders','searchEngine','language','enableFlash','downloadNum','sideBarDirection','scrollTab','doubleShift','tripleClick','syncScrollMargin','contextMenuSearchEngines','ALL_KEYS','bindMarginFrame','bindMarginTitle'])
 ipc.once("get-main-state-reply",(e,data)=>{
   generalDefault = data
   keyboardDefault = data

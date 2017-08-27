@@ -11,4 +11,9 @@ function onMouseDown(){
 }
 document.addEventListener('mousedown',onMouseDown)
 
+document.addEventListener('wheel',(e)=>{
+  const now = myPlayer.currentTime()
+  myPlayer.currentTime(now + (e.deltaY > 0 ? -1 : 1) * 5);
+
+},{passive: true})
 setTimeout(_=>ipc.send('force-click',{x: Math.round(window.innerWidth / 2) ,y:Math.round(window.innerHeight / 2) }),100)

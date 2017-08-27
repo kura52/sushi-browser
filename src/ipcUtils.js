@@ -13,7 +13,24 @@ const isWin = process.platform == 'win32'
 const isLinux = process.platform === 'linux'
 const meiryo = isWin && Intl.NumberFormat().resolvedOptions().locale == 'ja'
 import mainState from './mainState'
-const {execSync} = require('child_process')
+const bindPath = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/bind.html'
+
+function exec(command) {
+  return new Promise(function(resolve, reject) {
+    require('child_process').exec(command, function(error, stdout, stderr) {
+      if (error) {
+        return reject(error);
+      }
+
+      resolve({stdout, stderr});
+    });
+  });
+}
+
+
+function getBindPage(tabId){
+  return webContents.getAllWebContents().filter(wc=>wc.getId() === tabId)
+}
 
 ipcMain.on('file-system',(event,key,method,arg)=>{
   if(!['stat','readdir','rename'].includes(method)) return
@@ -399,9 +416,9 @@ ipcMain.on('menu-or-key-events',(e,name)=>{
 })
 
 
-const FRAME = isLinux ? 6 : 0
-const TITLE_BAR = isLinux ? 24  : 0
-ipcMain.on('set-pos-window',async (e,{id,key,x,y,width,height,top,active,checkClose})=>{
+ipcMain.on('set-pos-window',async (e,{id,key,x,y,width,height,top,active,tabId,checkClose})=>{
+  const FRAME = mainState.bindMarginFrame
+  const TITLE_BAR = mainState.bindMarginTitle
   if(isWin){
     const winctl = require('winctl')
     const win = id ? (await winctl.FindWindows(win => id == win.getHwnd()))[0] : winctl.GetActiveWindow()
@@ -413,12 +430,15 @@ ipcMain.on('set-pos-window',async (e,{id,key,x,y,width,height,top,active,checkCl
       }
     }
 
-    console.log(1)
     if(checkClose || !win){
       e.sender.send(`set-pos-window-reply_${key}`,checkClose ? {needClose:!win} : (void 0))
-      return
+      if(!win) return
+      const title = win.getTitle()
+      for (let wc of getBindPage(tabId)) {
+        wc.send('update-bind-title', title)
+      }
+      if(checkClose) return
     }
-    console.log(2)
     if(top){
       if(x){
         x = x + FRAME / 2
@@ -441,7 +461,6 @@ ipcMain.on('set-pos-window',async (e,{id,key,x,y,width,height,top,active,checkCl
       const win2 = winctl.GetActiveWindow()
       win.setActiveWindow()
       win2.setActiveWindow()
-      console.log(win.getTitle(),win2.getTitle())
     }
     if(key) e.sender.send(`set-pos-window-reply_${key}`,[win.getHwnd(),win.getTitle()])
   }
@@ -450,16 +469,23 @@ ipcMain.on('set-pos-window',async (e,{id,key,x,y,width,height,top,active,checkCl
     id = id || ':ACTIVE:'
 
     if(checkClose){
-      const ret = execSync(`wmctrl -l | grep ${id} | wc -l`).toString()
-      e.sender.send(`set-pos-window-reply_${key}`,{needClose:ret[0] == '0'})
+      const ret = (await exec(`wmctrl -l | grep ${id}`)).stdout
+      console.log(ret)
+      e.sender.send(`set-pos-window-reply_${key}`,{needClose:!ret})
+      if(ret){
+        const title = ret.match(/[^ ]+ +[^ ]+ +[^ ]+ (.+)/)[1]
+        for (let wc of getBindPage(tabId)) {
+           wc.send('update-bind-title', title)
+        }
+      }
       return
     }
 
     const commands = []
     if(id == ':ACTIVE:'){
-      const ret = execSync(`wmctrl -v -a :ACTIVE: 2>&1`)
-      const mat = ret.toString().match(/: *(0x[0-9a-f]+)/)
-      const level = execSync(`wmctrl -l | grep "${mat[1]}"`).toString().match(/[^ ]+ +([^ ]+)/)[1]
+      const ret = (await exec(`wmctrl -v -a :ACTIVE: 2>&1`)).stdout
+      const mat = ret.match(/: *(0x[0-9a-f]+)/)
+      const level = (await exec(`wmctrl -l | grep "${mat[1]}" 2>&1`)).stdout.match(/[^ ]+ +([^ ]+)/)[1]
       if(level == "-1"){
         e.sender.send(`set-pos-window-reply_${key}`)
         return
@@ -479,18 +505,18 @@ ipcMain.on('set-pos-window',async (e,{id,key,x,y,width,height,top,active,checkCl
 
     let reply
     for(let command of commands){
-      const ret = execSync(command)
-      const id = ret.toString().match(/: *(0x[0-9a-f]+)/)
+      const ret = await exec(command)
+      const id = ret.stdout.match(/: *(0x[0-9a-f]+)/)
       reply = id[1]
     }
     if(active) {
-      const ret = execSync(`wmctrl -v -a :ACTIVE: 2>&1`)
-      const mat = ret.toString().match(/: *(0x[0-9a-f]+)/)
-      execSync(`wmctrl -v${i} -a ${id} 2>&1`)
-      execSync(`wmctrl -v${i} -a ${mat[1]} 2>&1`)
+      const ret = await exec(`wmctrl -v -a :ACTIVE: 2>&1`)
+      const mat = ret.stdout.match(/: *(0x[0-9a-f]+)/)
+      await exec(`wmctrl -v${i} -a ${id} 2>&1`)
+      await exec(`wmctrl -v${i} -a ${mat[1]} 2>&1`)
     }
     if(key){
-      const name = execSync(`wmctrl -l | grep "${reply}"`).toString().match(/[^ ]+ +[^ ]+ +[^ ]+ (.+)/)[1]
+      const name = (await exec(`wmctrl -l | grep "${reply}" 2>&1`)).stdout.match(/[^ ]+ +[^ ]+ +[^ ]+ (.+)/)[1]
       e.sender.send(`set-pos-window-reply_${key}`,[reply,name])
     }
   }

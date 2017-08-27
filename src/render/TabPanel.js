@@ -1447,6 +1447,10 @@ export default class TabPanel extends Component {
   navigateTo(newPage, l, tab, guestInstanceId) {
     if (this.mounted){
       console.log(l)
+      if(tab.bind){
+        this._closeBind(tab)
+        tab.bind = (void 0)
+      }
       try{
         newPage.location = decodeURIComponent(l)
       }

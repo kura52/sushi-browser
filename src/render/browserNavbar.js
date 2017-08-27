@@ -355,7 +355,7 @@ class BrowserNavbar extends Component{
             const key = uuid.v4()
             const interval = setInterval(_=>{
               console.log('interval')
-              ipc.send('set-pos-window',{key,id,checkClose:true})
+              ipc.send('set-pos-window',{key,id,tabId:tab.wvId,checkClose:true})
               ipc.once(`set-pos-window-reply_${key}`,(e,{needClose})=>{
                 if(needClose){
                   PubSub.publish(`close_tab_${this.props.k}`,{key:tab.key})
@@ -379,7 +379,7 @@ class BrowserNavbar extends Component{
               },
               blur: e=>{
                 console.log('blur')
-                ipc.send('set-pos-window',{id,top:'not-above',active:true})
+                ipc.send('set-pos-window',{id,top:'not-above',active:tab.key == this.props.parent.state.selectedTab})
               },
               focus:e=>{
                 console.log('focus')

@@ -1,4 +1,5 @@
 const isDarwin = process.platform === 'darwin'
+const isLinux = process.platform === 'linux'
 
 const settingDefault =  {
   toggleNav: 0,
@@ -19,6 +20,9 @@ const settingDefault =  {
   tripleClick: true,
   syncScrollMargin: 30,
   contextMenuSearchEngines: ["Google","google past year and normal","google multi search"],
+
+  bindMarginFrame: isLinux ? 6 : 0,
+  bindMarginTitle: isLinux ? 24  : 0,
 
   //keyboard shortcut default
   keyQuit: 'CmdOrCtrl+Q',
