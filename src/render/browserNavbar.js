@@ -159,27 +159,27 @@ class BrowserNavbar extends Component{
     //   currentIndex = cont.getCurrentEntryIndex();
     // }
     const ret = !(this.canGoBack === nextProps.page.canGoBack &&
-      this.canGoForward === nextProps.page.canGoForward &&
-      this.canRefresh === nextProps.page.canRefresh &&
-      this.location === nextProps.page.location &&
-      this.navUrl === nextProps.page.navUrl &&
-      this.props.toggleNav === nextProps.toggleNav &&
-      this.props.isTopRight === nextProps.isTopRight &&
-      this.props.isTopLeft === nextProps.isTopLeft &&
-      this.props.fullscreen === nextProps.fullscreen &&
-      (this.richContents||[]).length === (nextProps.richContents||[]).length &&
-      (this.caches||[]).length === (nextState.caches||[]).length &&
-      this.state.zoom === nextState.zoom &&
-      this.props.sync === nextProps.sync &&
-      this.props.oppositeMode === nextProps.oppositeMode &&
-      this.currentIndex == nextProps.page.entryIndex &&
-      this.props.bind == nextProps.bind &&
-      this.state.mobile == nextState.mobile &&
-      this.state.bindWindow == nextState.bindWindow &&
-      this.state.adBlockGlobal == nextState.adBlockGlobal &&
-      this.state.pdfMode == nextState.pdfMode &&
-      this.props.oppositeGlobal == nextProps.oppositeGlobal &&
-      this.state.adBlockThis == nextState.adBlockThis)
+    this.canGoForward === nextProps.page.canGoForward &&
+    this.canRefresh === nextProps.page.canRefresh &&
+    this.location === nextProps.page.location &&
+    this.navUrl === nextProps.page.navUrl &&
+    this.props.toggleNav === nextProps.toggleNav &&
+    this.props.isTopRight === nextProps.isTopRight &&
+    this.props.isTopLeft === nextProps.isTopLeft &&
+    this.props.fullscreen === nextProps.fullscreen &&
+    (this.richContents||[]).length === (nextProps.richContents||[]).length &&
+    (this.caches||[]).length === (nextState.caches||[]).length &&
+    this.state.zoom === nextState.zoom &&
+    this.props.sync === nextProps.sync &&
+    this.props.oppositeMode === nextProps.oppositeMode &&
+    this.currentIndex == nextProps.page.entryIndex &&
+    this.props.bind == nextProps.bind &&
+    this.state.mobile == nextState.mobile &&
+    this.state.bindWindow == nextState.bindWindow &&
+    this.state.adBlockGlobal == nextState.adBlockGlobal &&
+    this.state.pdfMode == nextState.pdfMode &&
+    this.props.oppositeGlobal == nextProps.oppositeGlobal &&
+    this.state.adBlockThis == nextState.adBlockThis)
     if(ret){
       this.canGoBack = nextProps.page.canGoBack
       this.canGoForward = nextProps.page.canGoForward
@@ -341,7 +341,7 @@ class BrowserNavbar extends Component{
       if(tab.key === wv.dataset.key){
         setTimeout(_=>{
           ipc.send('set-pos-window',{key:tab.key,id:tab.bind && tab.bind.id
-            ,x:Math.round(window.screenX + r.left),y:Math.round(window.screenY + r.top),width:Math.round(r.width),height:Math.round(r.height),top:'above'})
+            ,x:window.screenX + r.left,y:window.screenY + r.top,width:r.width,height:r.height,top:'above'})
           ipc.once(`set-pos-window-reply_${tab.key}`,(e,ret)=>{
             if(!ret) return
             const [id,name] = ret
@@ -349,7 +349,7 @@ class BrowserNavbar extends Component{
             const ro = new ResizeObserver((entries, observer) => {
               for (const entry of entries) {
                 const r = elem.getBoundingClientRect()
-                ipc.send('set-pos-window',{key:tab.key,id:id,x:Math.round(window.screenX + r.left),y:Math.round(window.screenY + r.top),width:Math.round(r.width),height:Math.round(r.height)})
+                ipc.send('set-pos-window',{key:tab.key,id:id,x:window.screenX + r.left,y:window.screenY + r.top,width:r.width,height:r.height})
               }
             });
             const key = uuid.v4()
@@ -374,7 +374,7 @@ class BrowserNavbar extends Component{
                 setTimeout(_=>{
                   console.log('move')
                   const r = elem.getBoundingClientRect()
-                  ipc.send('set-pos-window',{id,x:Math.round(window.screenX + r.left),y:Math.round(window.screenY + r.top),width:Math.round(r.width),height:Math.round(r.height)})
+                  ipc.send('set-pos-window',{id,x:window.screenX + r.left,y:window.screenY + r.top,width:r.width,height:r.height})
                 },0)
               },
               blur: e=>{
@@ -408,9 +408,17 @@ class BrowserNavbar extends Component{
     this.setState({bindWindow:true})
   }
 
-  mainMenu(cont){
+  mainMenu(cont,tab){
     const {downloadNum} = mainState
-    return <NavbarMenu k={this.props.k} isFloat={isFloatPanel(this.props.k)} style={{overflowX: 'visible'}} title={locale.translation('settings')} icon="bars" onClick={_=>PubSub.publishSync(`zoom_${this.props.tabkey}`,this.getWebContents(this.props.tab).getZoomPercent())}>
+    return <NavbarMenu k={this.props.k} isFloat={isFloatPanel(this.props.k)} style={{overflowX: 'visible'}}
+                       title={locale.translation('settings')} icon="bars" tab={tab.bind && tab}
+                       onClick={_=>{
+      PubSub.publishSync(`zoom_${this.props.tabkey}`,this.getWebContents(this.props.tab).getZoomPercent())
+      if(tab.bind){
+        ipc.send('set-pos-window',{id:tab.bind.id,top:'not-above',active:tab.key == this.props.parent.state.selectedTab})
+      }
+    }
+    }>
       <NavbarMenuBarItem>
         {this.browserAction(cont)}
         <BrowserNavbarBtn title={locale.translation("downloads")} icon="download" onClick={this.onCommon.bind(this,"download")}/>
@@ -426,7 +434,7 @@ class BrowserNavbar extends Component{
                                         onClick={()=>ipc.send('toggle-fullscreen')}/>}
       <NavbarMenuItem text='Detach This Panel' icon='space shuttle' onClick={this.props.detachPanel}/>
       <NavbarMenuItem text='Panels to Windows' icon='cubes' onClick={_=>PubSub.publish('all-detach')}/>
-      <NavbarMenuItem text='Bind selected Window' icon='crosshairs' onClick={_=>this.bindWindow()}/>
+      {isDarwin ? null :<NavbarMenuItem text='Bind selected Window' icon='crosshairs' onClick={_=>this.bindWindow()}/>}
 
       <div className="divider" />
 
@@ -659,7 +667,7 @@ class BrowserNavbar extends Component{
         </Dropdown.Menu>
       </Dropdown>
 
-      {this.mainMenu(cont)}
+      {this.mainMenu(cont,this.props.tab)}
       {isFixed && !isFloat ? <BrowserNavbarBtn style={{fontSize:18}} title="Hide Sidebar" icon={`angle-double-${isFixed == 'bottom' ? 'down' : isFixed}`} onClick={()=>this.props.fixedPanelOpen({dirc:isFixed})}/> : null}
       {!isDarwin && this.props.isTopRight && this.props.toggleNav == 1 ? <RightTopBottonSet style={{lineHeight: 0.9, transform: 'translateX(6px)',paddingTop: 1}}/> : null }
 

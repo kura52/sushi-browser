@@ -4,6 +4,7 @@ const {Component} = React
 const {NavbarMenuItem,NavbarMenuBarItem} = require('./NavbarMenuItem')
 import uuid from 'node-uuid'
 const PubSub = require('./pubsub')
+const ipc = require('electron').ipcRenderer
 
 export default class NavbarMenu extends Component {
   constructor(props) {
@@ -19,7 +20,16 @@ export default class NavbarMenu extends Component {
     // this.setState({tokens: [tokenSetVal]})
     const self = this
     this.outerClick = e=>{
-      if(!e.srcElement.closest(`#${this.uuid}`)) self.setState({visible:false})
+      if(!e.srcElement.closest(`#${this.uuid}`)){
+        self.setState({visible:false})
+        this.closeBind()
+      }
+    }
+  }
+
+  closeBind(){
+    if(this.props.tab){
+      ipc.send('set-pos-window',{id:this.props.tab.bind.id,top:'above'})
     }
   }
 
@@ -116,6 +126,7 @@ export default class NavbarMenu extends Component {
     }
     else{
       this.setState({visible:!this.state.visible})
+      this.closeBind()
     }
   }
 
@@ -133,6 +144,7 @@ export default class NavbarMenu extends Component {
                 onClick(e){
                   if(!child.props.keepVisible){
                     self.setState({visible: false})
+                    self.closeBind()
                   }
                   child.props.onClick(e)
                 }

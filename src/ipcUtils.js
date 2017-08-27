@@ -32,6 +32,10 @@ function getBindPage(tabId){
   return webContents.getAllWebContents().filter(wc=>wc.getId() === tabId)
 }
 
+function scaling(num){
+  return Math.round(num * mainState.scaleFactor)
+}
+
 ipcMain.on('file-system',(event,key,method,arg)=>{
   if(!['stat','readdir','rename'].includes(method)) return
   fs[method](...arg,(err,rets)=>{
@@ -415,11 +419,12 @@ ipcMain.on('menu-or-key-events',(e,name)=>{
   })
 })
 
-
-ipcMain.on('set-pos-window',async (e,{id,key,x,y,width,height,top,active,tabId,checkClose})=>{
+const restoredMap = {}
+ipcMain.on('set-pos-window',async (e,{id,key,x,y,width,height,top,active,tabId,checkClose,restore})=>{
   const FRAME = mainState.bindMarginFrame
   const TITLE_BAR = mainState.bindMarginTitle
   if(isWin){
+    let org
     const winctl = require('winctl')
     const win = id ? (await winctl.FindWindows(win => id == win.getHwnd()))[0] : winctl.GetActiveWindow()
     if(!id){
@@ -428,6 +433,22 @@ ipcMain.on('set-pos-window',async (e,{id,key,x,y,width,height,top,active,tabId,c
         e.sender.send(`set-pos-window-reply_${key}`,(void 0))
         return
       }
+      win.setWindowLongPtr()
+      win.setWindowPos(0,0,0,0,0,39);
+    }
+
+    if(restoredMap[key]){
+      win.setWindowLongPtr()
+      win.setWindowPos(0,0,0,0,0,39);
+      delete restoredMap[key]
+    }
+
+    if(restore){
+      // console.log(32322,styleMap[key])
+      win.setWindowLongPtrRestore()
+      win.setWindowPos(0,0,0,0,0,39);
+      console.log(32323,win.getWindowLongPtr(-16))
+      restoredMap[key] = 1
     }
 
     if(checkClose || !win){
@@ -439,22 +460,32 @@ ipcMain.on('set-pos-window',async (e,{id,key,x,y,width,height,top,active,tabId,c
       }
       if(checkClose) return
     }
+
     if(top){
       if(x){
-        x = x + FRAME / 2
-        y = y + TITLE_BAR + FRAME / 2
-        width = Math.max(0,width - FRAME)
-        height = Math.max(0,height - (TITLE_BAR + FRAME))
+        x = scaling(x + FRAME / 2)
+        y = scaling(y + TITLE_BAR + FRAME / 2)
+        width = scaling(Math.max(0,width - FRAME))
+        height = scaling(Math.max(0,height - (TITLE_BAR + FRAME)))
       }
-      console.log(top == 'above' ? winctl.HWND.TOPMOST : winctl.HWND.NOTOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19))
-      win.setWindowPos(top == 'above' ? winctl.HWND.TOPMOST : winctl.HWND.NOTOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
+      console.log(top == 'above' ? winctl.HWND.TOPMOST : winctl.HWND.BOTTOM,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19))
+
+      if(top == 'above'){
+        win.setWindowPos(winctl.HWND.TOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
+      }
+      else{
+        win.setWindowPos(winctl.HWND.NOTOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
+        if(winctl.GetActiveWindow().getHwnd() !== id){
+          win.setWindowPos(winctl.HWND.BOTTOM,0,0,0,0,19) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
+        }
+      }
+
     }
     else if(x + y + width + height !== 0){
-      x = x + FRAME / 2
-      y = y + TITLE_BAR + FRAME / 2
-      width = Math.max(0,width - FRAME)
-      height = Math.max(0,height - (TITLE_BAR + FRAME))
-      console.log(x,y,width,height)
+      x = scaling(x + FRAME / 2)
+      y = scaling(y + TITLE_BAR + FRAME / 2)
+      width = scaling(Math.max(0,width - FRAME))
+      height = scaling(Math.max(0,height - (TITLE_BAR + FRAME)))
       win.move(x,y,width,height)
     }
     if(active) {
@@ -475,7 +506,7 @@ ipcMain.on('set-pos-window',async (e,{id,key,x,y,width,height,top,active,tabId,c
       if(ret){
         const title = ret.match(/[^ ]+ +[^ ]+ +[^ ]+ (.+)/)[1]
         for (let wc of getBindPage(tabId)) {
-           wc.send('update-bind-title', title)
+          wc.send('update-bind-title', title)
         }
       }
       return
@@ -496,10 +527,10 @@ ipcMain.on('set-pos-window',async (e,{id,key,x,y,width,height,top,active,tabId,c
       commands.push(`wmctrl -v${i} -r ${id} -b ${top == 'above' ? 'add,above' : 'remove,above'} 2>&1`)
     }
     if(x !== (void 0) && x + y + width + height !== 0){
-      x = x + FRAME / 2
-      y = y + TITLE_BAR + FRAME / 2
-      width = Math.max(0,width - FRAME)
-      height = Math.max(0,height - (TITLE_BAR + FRAME))
+      x = scaling(x + FRAME / 2)
+      y = scaling(y + TITLE_BAR + FRAME / 2)
+      width = scaling(Math.max(0,width - FRAME))
+      height = scaling(Math.max(0,height - (TITLE_BAR + FRAME)))
       commands.push(`wmctrl -v${i} -r ${id} -e 0,${x},${y},${width},${height} 2>&1`)
     }
 

@@ -176,6 +176,9 @@ export default {
     let initWindow
     const setting = await InitSetting.val
     let winSetting = opt ? getSize(opt) : {x: setting.x, y: setting.y, width: setting.width, height: setting.height, maximize: setting.maximize}
+
+    mainState.scaleFactor = electron.screen.getPrimaryDisplay().scaleFactor
+
     if(!opt){
       for(let [key,dVal] of Object.entries(settingDefault)){
         setOptionVal(key,dVal,setting[key])

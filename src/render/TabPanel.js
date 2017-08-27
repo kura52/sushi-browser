@@ -2012,7 +2012,7 @@ export default class TabPanel extends Component {
         win.removeListener('move',tab.bind.move)
         win.removeListener('blur',tab.bind.blur)
         win.removeListener('focus',tab.bind.focus)
-        ipc.send('set-pos-window',{id:tab.bind.id,top:'not-above'})
+        ipc.send('set-pos-window',{key:tab.key,id:tab.bind.id,top:'not-above',restore:true})
 
       }catch(e){
         console.log(2525,e)
