@@ -331,6 +331,7 @@ class Contents extends React.Component {
       }
     })
     this.initEvents()
+    this.initDragEvents()
   }
 
   initEvents() {
@@ -399,13 +400,101 @@ class Contents extends React.Component {
     ipc.on('favorite-menu-reply', this.event)
   }
 
+  initDragEvents(){
+
+    const tree = this.refs.iTree.tree
+    let ghostElement = null;
+    let draggingX = 0;
+    let draggingY = 0;
+
+    document.addEventListener('dragstart', (e) => {
+      draggingX = 0;
+      draggingY = 0;
+    });
+
+    document.addEventListener('dragend', (e) => {
+      if (ghostElement) {
+        ghostElement.parentNode.removeChild(ghostElement);
+        ghostElement = null;
+      }
+    });
+
+    tree.contentElement.addEventListener('dragover', (e) => {
+      e.preventDefault();
+
+      const event = e
+
+      const movementX = event.x - (Number(draggingX) || event.x);
+      const movementY = event.y - (Number(draggingY) || event.y);
+
+      draggingX = event.x;
+      draggingY = event.y;
+
+      if (movementY === 0) {
+        return;
+      }
+
+      let el = document.elementFromPoint(event.x, event.y);
+      while (el && el.parentElement !== tree.contentElement) {
+        el = el.parentElement;
+      }
+      if (!el /*|| el === ghostElement*/) {
+        return;
+      }
+
+      const id = el.getAttribute(tree.options.nodeIdAttr);
+      if (id === undefined) {
+        return;
+      }
+
+      const rect = el.getBoundingClientRect();
+      const tolerance = 15;
+
+      if (event.y <= rect.top + tolerance) {
+        if (ghostElement) {
+          ghostElement.parentNode.removeChild(ghostElement);
+          ghostElement = null;
+        }
+
+        if (el.parentNode) {
+          ghostElement = document.createElement('div');
+          ghostElement.style.height = '0px';
+          ghostElement.style.border = '1px dotted #ccc';
+          ghostElement.style.backgroundColor = '#f5f6f7';
+          el.parentNode.insertBefore(ghostElement, el);
+        }
+      }
+      else if (rect.top + el.offsetHeight <= event.y) {
+        if (el.nextSibling !== ghostElement) {
+          if (ghostElement) {
+            ghostElement.parentNode.removeChild(ghostElement);
+            ghostElement = null;
+          }
+
+          if (el.parentNode) {
+            ghostElement = document.createElement('div');
+            ghostElement.style.height = '0px';
+            ghostElement.style.border = '1px dotted #ccc';
+            ghostElement.style.backgroundColor = '#f5f6f7';
+            el.parentNode.insertBefore(ghostElement, el.nextSibling);
+          }
+        }
+      }
+      else if (ghostElement) {
+        ghostElement.parentNode.removeChild(ghostElement);
+        ghostElement = null;
+      }
+    });
+
+  }
+
   render() {
     const self = this
     return (
       <div style={{paddingLeft:4,paddingTop:4,width:'calc(100vw - 4px)'}}>
         <InfiniteTree
           ref="iTree"
-          noDataText="Loading..."
+          noDataText=""
           loadNodes={(parentNode, done) => {
             console.log(11,parentNode.id)
             getAllChildren(parentNode.id).then(children => done(null, children))
@@ -418,6 +507,7 @@ class Contents extends React.Component {
               const { type, draggableTarget, droppableTarget, node } = opts;
 
               if (elementClass(event.target).has('infinite-tree-overlay')) {
+                console.log(33333333333)
                 elementClass(event.target).add('hover'); // add hover class
               } else {
                 const el = self.refs.iTree.tree.contentElement.querySelector('.infinite-tree-overlay');

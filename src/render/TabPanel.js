@@ -937,6 +937,7 @@ export default class TabPanel extends Component {
         }
         page.title = cont.getTitle()
         // cont.openDevTools()
+
         self.setState({})
       },
       onDidFailLoad(e, page, pageIndex) {

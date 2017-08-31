@@ -2,7 +2,7 @@ import {ipcMain,app,dialog,BrowserWindow,shell,webContents} from 'electron'
 import fs from 'fs'
 import sh from 'shelljs'
 import uuid from 'node-uuid'
-const {state,favorite} = require('./databaseFork')
+const {state,favorite,historyFull} = require('./databaseFork')
 const db = require('./databaseFork')
 
 import path from 'path'
@@ -22,12 +22,19 @@ function exec(command) {
       if (error) {
         return reject(error);
       }
-
       resolve({stdout, stderr});
     });
   });
 }
 
+function lazyRun(callback,time){
+  return new Promise((resolve,reject)=>{
+    setTimeout(_=>{
+      callback()
+      resolve()
+    },time)
+  })
+}
 
 function getBindPage(tabId){
   return webContents.getAllWebContents().filter(wc=>wc.getId() === tabId)
@@ -435,19 +442,19 @@ ipcMain.on('set-pos-window',async (e,{id,key,x,y,width,height,top,active,tabId,c
         return
       }
       win.setWindowLongPtr()
-      win.setWindowPos(0,0,0,0,0,39);
+      win.setWindowPos(0,0,0,0,0,39+1024)
     }
 
     if(restoredMap[key]){
       win.setWindowLongPtr()
-      win.setWindowPos(0,0,0,0,0,39);
+      win.setWindowPos(0,0,0,0,0,39+1024);
       delete restoredMap[key]
     }
 
     if(restore){
       // console.log(32322,styleMap[key])
       win.setWindowLongPtrRestore()
-      win.setWindowPos(0,0,0,0,0,39);
+      win.setWindowPos(0,0,0,0,0,39+1024);
       console.log(32323,win.getWindowLongPtr(-16))
       restoredMap[key] = 1
     }
@@ -469,15 +476,15 @@ ipcMain.on('set-pos-window',async (e,{id,key,x,y,width,height,top,active,tabId,c
         width = scaling(Math.max(0,width - FRAME))
         height = scaling(Math.max(0,height - (TITLE_BAR + FRAME)))
       }
-      console.log(top == 'above' ? winctl.HWND.TOPMOST : winctl.HWND.BOTTOM,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19))
+      console.log(top == 'above' ? winctl.HWND.TOPMOST : winctl.HWND.BOTTOM,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024)
 
       if(top == 'above'){
-        win.setWindowPos(winctl.HWND.TOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
+        win.setWindowPos(winctl.HWND.TOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
       }
       else{
-        win.setWindowPos(winctl.HWND.NOTOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
+        win.setWindowPos(winctl.HWND.NOTOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
         if(winctl.GetActiveWindow().getHwnd() !== id){
-          win.setWindowPos(winctl.HWND.BOTTOM,0,0,0,0,19) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
+          win.setWindowPos(winctl.HWND.BOTTOM,0,0,0,0,19+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
         }
       }
 
@@ -491,8 +498,10 @@ ipcMain.on('set-pos-window',async (e,{id,key,x,y,width,height,top,active,tabId,c
     }
     if(active) {
       const win2 = winctl.GetActiveWindow()
-      win.setActiveWindow()
-      win2.setActiveWindow()
+      win.setWindowPos(winctl.HWND.TOPMOST,0,0,0,0,19+1024)
+      win.setWindowPos(winctl.HWND.NOTOPMOST,0,0,0,0,19+1024)
+      win2.setWindowPos(winctl.HWND.TOPMOST,0,0,0,0,19+1024)
+      win2.setWindowPos(winctl.HWND.NOTOPMOST,0,0,0,0,19+1024)
     }
     if(key) e.sender.send(`set-pos-window-reply_${key}`,[win.getHwnd(),win.getTitle()])
   }
@@ -572,6 +581,12 @@ ipcMain.on('change-tab-infos',(e,changeTabInfos)=> {
     }
   }
 })
+
+ipcMain.on('get-inner-text',(e,location,title,text)=>{
+  historyFull.update({location},{location,title,text,updated_at: Date.now()}, { upsert: true }).then(_=>_)
+
+})
+
 // async function recurSelect(keys){
 //   const ret = await favorite.find({key:{$in: keys}})
 //   const addKey = []
