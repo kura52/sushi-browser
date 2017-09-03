@@ -221,6 +221,7 @@ console.log((Date.now() - start)/1000)
 const compiledJsFiles = ['resource/extension/default/1.0_0/js/top.js',
   'resource/extension/default/1.0_0/js/download.js',
   'resource/extension/default/1.0_0/js/history.js',
+  'resource/extension/default/1.0_0/js/historyFull.js',
   'resource/extension/default/1.0_0/js/historySidebar.js',
   'resource/extension/default/1.0_0/js/explorerMenu.js',
   'resource/extension/default/1.0_0/js/explorerSidebar.js',

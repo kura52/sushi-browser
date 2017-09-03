@@ -110,7 +110,7 @@ export default class DownloadList extends Component{
       {item.state == "completed" ?
         <i className="folder icon download-list-above" onClick={()=>ipc.send("download-open-folder", item.savePath)}></i> :
         item.state == "cancelled" ?
-          <i className="video play icon download-list-above"  onClick={()=>ipc.send("download-retry", item.url)}></i> :
+          <i className="video play icon download-list-above"  onClick={()=>ipc.send("download-retry", item.url, item.savePath)}></i> :
           <i className="stop icon download-list-bottom" onClick={()=>ipc.send("download-cancel", item)}></i>
       }
       {/*{item.state == "completed" ? <div><a href="#" onClick={()=>ipc.send("download-open",item)}>{fname}</a></div> : <div>{fname}</div>}*/}
@@ -126,6 +126,7 @@ export default class DownloadList extends Component{
 
     const downloadList = []
     for (let item of arr) {
+      console.log(item)
       downloadList.push(this.buildItem(item))
     }
 

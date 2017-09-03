@@ -1,7 +1,6 @@
 const {BrowserWindow, webContents,dialog,ipcMain,app,shell} = require('electron')
 import mainState from './mainState'
-const Downloader = require('./mt-files-downloader/lib/Downloader')
-const downloader = new Downloader()
+const Aria2cWrapper = require('./Aria2cWrapper')
 
 const path = require('path')
 import {download} from './databaseFork'
@@ -73,113 +72,112 @@ export default class Download {
           this.downloadReady(item, url, webContents,win)
           return
         }
-        else if(mainState.downloadNum == 1){
-          this.downloadReady(item, url, webContents,win)
-          return
-        }
+        // else if(mainState.downloadNum == 1){
+        //   this.downloadReady(item, url, webContents,win)
+        //   return
+        // }
         event.preventDefault()
         let id, updated, ended, isError
-        const dlUrl = URL.parse(url)
-        const port = dlUrl.port
 
-        const dl = downloader.download(url, savePath,{})
-        dl.setOptions({count: mainState.downloadNum, port})
-        dl.setRetryOptions({maxRetries: 1, retryInterval: 1500})
+        const dl = new Aria2cWrapper({url, savePath,downloadNum: mainState.downloadNum})
 
-        dl.once('error', (dl) => {
-          console.log(dl)
-          if(!isError){
-            isError = true
-            retry.add(url)
-            global.downloadItems = global.downloadItems.filter(i => i !== item)
-            this.savePath = savePath
-            webContents.downloadURL(url, true)
-          }
+        dl.download().then(_=>{
+          dl.once('error', (dl) => {
+            console.log(dl)
+            if(!isError){
+              isError = true
+              retry.add(url)
+              global.downloadItems = global.downloadItems.filter(i => i !== item)
+              this.savePath = savePath
+              webContents.downloadURL(url, true)
+            }
+          })
+          this.downloadReady(dl, url, webContents,win)
         })
-        item = {
-          getURL(){
-            return dl.url
-          },
-          getSavePath(){
-            return dl.filePath
-          },
-          isPaused(){
-            return dl.status == -2
-          },
-          resume(){
-            dl.resume()
-          },
-          pause(){
-            dl.stop()
-          },
-          cancel(){
-            dl.destroy()
-            ended()
-            fs.unlink(`${dl.filePath}.mtd`,e=> {
-              console.log(e)
-            })
-            clearInterval(id)
-          },
-          canResume(){
-            // return true
-          },
-          getState(){
-            if (dl.status == -3 || dl.status == -1) {
-              clearInterval(id)
-              if(dl.status == -1 && !isError){
-                isError = true
-                retry.add(url)
-                global.downloadItems = global.downloadItems.filter(i => i !== item)
-                this.savePath = savePath
-                webContents.downloadURL(url, true)
-              }
-              fs.unlink(`${dl.filePath}.mtd`,e=> {
-                console.log(e)
-              })
-              if (isError) {
-                return "progressing"
-              }
-              return "cancelled"
-            }
-            // else if(dl.status == -2){
-            //   return "interrupted"
-            // }
-            else if (dl.status == 3) {
-              return "completed"
-              fs.unlink(`${dl.filePath}.mtd`,e=> {
-                console.log(e)
-              })
-            }
-            else {
-              return "progressing"
-            }
-          },
-          getReceivedBytes(){
-            console.log(dl.status, dl.getStats())
-            return dl.getStats().total.downloaded
-          },
-          getTotalBytes(){
-            return dl.getStats().total.size
-          },
-          on(name, callback){
-            if (name == 'updated') {
-              updated = (dl) => callback()
-              id = setInterval(updated, 1000)
-            }
-          },
-          once(name, callback){
-            if (name == 'done') {
-              ended = (dl) => {
-                callback()
-                clearInterval(id)
-              }
-              dl.once('end', ended)
-            }
-          },
-          dl
-        }
+
+        // item = {
+        //   getURL(){
+        //     return dl.url
+        //   },
+        //   getSavePath(){
+        //     return dl.filePath
+        //   },
+        //   isPaused(){
+        //     return dl.status == -2
+        //   },
+        //   resume(){
+        //     dl.resume()
+        //   },
+        //   pause(){
+        //     dl.stop()
+        //   },
+        //   cancel(){
+        //     dl.destroy()
+        //     ended()
+        //     fs.unlink(`${dl.filePath}.mtd`,e=> {
+        //       console.log(e)
+        //     })
+        //     clearInterval(id)
+        //   },
+        //   canResume(){
+        //     // return true
+        //   },
+        //   getState(){
+        //     if (dl.status == -3 || dl.status == -1) {
+        //       clearInterval(id)
+        //       if(dl.status == -1 && !isError){
+        //         isError = true
+        //         retry.add(url)
+        //         global.downloadItems = global.downloadItems.filter(i => i !== item)
+        //         this.savePath = savePath
+        //         webContents.downloadURL(url, true)
+        //       }
+        //       fs.unlink(`${dl.filePath}.mtd`,e=> {
+        //         console.log(e)
+        //       })
+        //       if (isError) {
+        //         return "progressing"
+        //       }
+        //       return "cancelled"
+        //     }
+        //     // else if(dl.status == -2){
+        //     //   return "interrupted"
+        //     // }
+        //     else if (dl.status == 3) {
+        //       return "completed"
+        //       fs.unlink(`${dl.filePath}.mtd`,e=> {
+        //         console.log(e)
+        //       })
+        //     }
+        //     else {
+        //       return "progressing"
+        //     }
+        //   },
+        //   getReceivedBytes(){
+        //     console.log(dl.status, dl.getStats())
+        //     return dl.getStats().total.downloaded
+        //   },
+        //   getTotalBytes(){
+        //     return dl.getStats().total.size
+        //   },
+        //   on(name, callback){
+        //     if (name == 'updated') {
+        //       updated = (dl) => callback()
+        //       id = setInterval(updated, 1000)
+        //     }
+        //   },
+        //   once(name, callback){
+        //     if (name == 'done') {
+        //       ended = (dl) => {
+        //         callback()
+        //         clearInterval(id)
+        //       }
+        //       dl.once('end', ended)
+        //     }
+        //   },
+        //   dl
+        // }
       }
-      this.downloadReady(item, url, webContents,win)
     })
   }
 
@@ -187,12 +185,11 @@ export default class Download {
     global.downloadItems.push(item)
 
     const eventPause = (event, data) => {
-      if (data.savePath !== item.getSavePath())
-      // return
-        if (item.isPaused())
-          item.resume()
-        else
-          item.pause()
+      if (data.savePath !== item.getSavePath()) return
+      if (item.isPaused())
+        item.resume()
+      else
+        item.pause()
     }
     ipcMain.on('download-pause', eventPause)
 
@@ -237,14 +234,6 @@ export default class Download {
       // ipcMain.removeListener('set-save-filename',eventSetSaveFilename)
     })
     win.webContents.send('download-start')
-    if (item.dl){
-      if(!fs.existsSync(`${item.dl.filePath}.mtd`)) {
-        item.dl.start()
-      }
-      else{
-        item.dl.resume()
-      }
-    }
   }
 
 

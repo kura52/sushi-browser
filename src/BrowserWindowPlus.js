@@ -74,6 +74,9 @@ function create(args){
 
         ipcMain.once(`reply-notification-${key}`,(e,ret)=>{
           if(ret.pressIndex !== 0) return
+          for(let item of global.downloadItems){
+            if(item.aria2c) item.pause()
+          }
           global.downloadItems = []
           bw.close()
         })

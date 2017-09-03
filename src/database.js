@@ -50,7 +50,7 @@ if (!fs.existsSync(searchEnginePath)) {
 
 const db = {};
 db.history = new Datastore({filename: path.join(resourcePath,'history.db'), autoload: true})
-// db.historyFull = new Datastore({filename: path.join(resourcePath,'historyFull.db'), autoload: true})
+db.historyFull = new Datastore({filename: path.join(resourcePath,'historyFull.db'), autoload: true})
 // db.searchHistory = new Datastore({filename: path.join(resourcePath,'searchHistory.db'), autoload: true})
 db.searchEngine = new Datastore({filename: path.join(resourcePath,'searchEngine.db'), autoload: true})
 db.favorite = new Datastore({filename: path.join(resourcePath,'favorite.db'), autoload: true})
@@ -68,7 +68,7 @@ db.token = new Datastore({filename: path.join(resourcePath,'token.db'), autoload
   await db.history.ensureIndex({ fieldName: 'location' })
   await db.history.ensureIndex({ fieldName: 'title' })
   await db.history.ensureIndex({ fieldName: 'updated_at' })
-  // await db.historyFull.ensureIndex({ fieldName: 'updated_at' })
+  await db.historyFull.ensureIndex({ fieldName: 'updated_at' })
   await db.favorite.ensureIndex({ fieldName: 'key' })
   await db.favicon.ensureIndex({ fieldName: 'url' })
   await db.image.ensureIndex({ fieldName: 'url' })

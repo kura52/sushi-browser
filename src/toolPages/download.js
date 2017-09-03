@@ -194,14 +194,14 @@ class DownloadList extends React.Component {
         {item.state == "progressing" && !item.isPaused ? <List.Description>{`${this.getAppropriateByteUnit(rest.speed).join(" ")}/sec - ${this.getAppropriateByteUnit(item.receivedBytes).join(" ")} of ${this.getAppropriateByteUnit(item.totalBytes).join(" ")}（${this.getAppropriateTimeUnit(rest.restTime).join(" ")} left）`}</List.Description> : ""}
         {item.receivedBytes ? <Progress percent={rest.percent}  size='small' color='blue' label {...(item.state == "progressing" ? {active: true} : item.state == "completed" ? {success : true} : {})} /> : ""}
         <div style={{display: "flex"}}>
-          {item.state == "progressing" ? item.isPaused ?
+          {item.sender && item.state == "progressing" ? item.isPaused ?
             <Button size='mini' onClick={()=>item.sender.send("download-pause",item)}><Icon name="play"></Icon>Resume</Button> :
             <Button size='mini' onClick={()=>item.sender.send("download-pause",item)}><Icon name="pause"></Icon>Pause</Button> : ""
           }
           {item.state == "completed" ?
             <Button size='mini' onClick={()=>window.openFolder(item.savePath)}><Icon name="folder"></Icon>Open Folder</Button> :
-            item.state == "cancelled" ?
-              <Button size='mini' onClick={()=>item.sender.send("download-retry", item.url)}><Icon name="video play"></Icon>Retry</Button> :
+            !item.sender ? null : item.state == "cancelled" ?
+              <Button size='mini' onClick={()=>item.sender.send("download-retry", item.url, item.savePath)}><Icon name="video play"></Icon>Retry</Button> :
               <Button size='mini' onClick={()=>item.sender.send("download-cancel", item)}><Icon name="stop"></Icon>Cancel</Button>
           }
         </div>

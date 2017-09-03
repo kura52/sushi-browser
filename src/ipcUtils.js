@@ -3,7 +3,7 @@ const BrowserWindowPlus = require('./BrowserWindowPlus')
 import fs from 'fs'
 import sh from 'shelljs'
 import uuid from 'node-uuid'
-const {state,favorite} = require('./databaseFork')
+const {state,favorite,historyFull} = require('./databaseFork')
 const db = require('./databaseFork')
 
 import path from 'path'
@@ -596,10 +596,10 @@ ipcMain.on('change-tab-infos',(e,changeTabInfos)=> {
   }
 })
 
-// ipcMain.on('get-inner-text',(e,location,title,text)=>{
-//   historyFull.update({location},{location,title,text,updated_at: Date.now()}, { upsert: true }).then(_=>_)
-//
-// })
+ipcMain.on('get-inner-text',(e,location,title,text)=>{
+  historyFull.update({location},{location,title,text,updated_at: Date.now()}, { upsert: true }).then(_=>_)
+
+})
 
 // async function recurSelect(keys){
 //   const ret = await favorite.find({key:{$in: keys}})

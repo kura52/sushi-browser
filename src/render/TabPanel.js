@@ -68,6 +68,7 @@ const convertUrlMap = new Map([
   ['chrome://bookmarks/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html'],
   ['chrome://bookmarks-sidebar/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html'],
   ['chrome://history/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history_full.html','chrome://history-fulltext/'],
   ['chrome://history-sidebar/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history_sidebar.html'],
   ['chrome://explorer/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html'],
   ['chrome://explorer-sidebar/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer_sidebar.html'],
@@ -214,6 +215,7 @@ let historyMap = new Map([
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html',['Blank','resource/file.png']],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html',['Bookmarks','resource/file.png']],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html',['History','resource/file.png']],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history_full.html',['HistoryFulltext','resource/file.png']],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html',['Explorer','resource/file.png']],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html',['Download','resource/file.png']],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html',['Terminal','resource/file.png']],
@@ -1349,7 +1351,7 @@ export default class TabPanel extends Component {
       else if (e.channel == 'open-tab') {
         const url = e.args[1] ? e.args[0] : `file://${e.args[0]}`,
           id = tab.wvId
-        tab.events['new-tab'](e, id, url)
+        tab.events['new-tab-opposite'](e, id, url,true)
       }
       else if(e.channel == 'html-content'){
         this.props.htmlContentSet.add(e.args[0])

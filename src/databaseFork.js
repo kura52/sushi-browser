@@ -52,7 +52,7 @@ function handler(table){
                 for(let cont of webContents.getAllWebContents()){
                   if(!cont.isDestroyed() && !cont.isBackgroundPage() && cont.isGuest()) {
                     const url = cont.getURL()
-                    if(url.endsWith(`${table}_sidebar.html`) ||url.endsWith(`${table}.html`) /*|| (table == 'history' && url.endsWith(`historyFull.html`))*/){
+                    if(url.endsWith(`${table}_sidebar.html`) ||url.endsWith(`${table}.html`) || (table == 'history' && url.endsWith(`historyFull.html`))){
                     console.log(prop,msg)
                     if(prop == "update"){
                       console.log(argumentsList)
@@ -82,7 +82,7 @@ const dummy = {insert:'',update:'',find_count:'',find:'',count:'',findOne:'',rem
 
 const db = new Proxy({
   get history(){return new Proxy(dummy, handler('history'))},
-  // get historyFull(){return new Proxy(dummy, handler('historyFull'))},
+  get historyFull(){return new Proxy(dummy, handler('historyFull'))},
   get searchEngine(){return new Proxy(dummy, handler('searchEngine'))},
   get favorite(){return new Proxy(dummy, handler('favorite'))},
   get download(){return new Proxy(dummy, handler('download'))},

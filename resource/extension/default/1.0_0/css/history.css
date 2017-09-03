@@ -1,3 +1,7 @@
 .sticky {
     background-color: white;
 }
+#app-full .ui.icon.input{
+    width: 100%;
+    padding: 5px 0 10px 0;
+}

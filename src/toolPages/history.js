@@ -11,7 +11,6 @@ const moment = require('moment')
 const l10n = require('../../brave/js/l10n')
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
 const Clusterize = require('clusterize.js')
-const ReactDOMServer =  require('react-dom/server')
 
 l10n.init()
 
@@ -23,6 +22,7 @@ const convertUrlMap = new Map([
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html','chrome://bookmarks/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html','chrome://bookmarks-sidebar/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html','chrome://history/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history_full.html','chrome://history-fulltext/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history_sidebar.html','chrome://history-sidebar/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html','chrome://explorer/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer_sidebar.html','chrome://explorer-sidebar/'],
@@ -170,7 +170,7 @@ class TopMenu extends React.Component {
     clearTimeout(this.timer);
     this.timer = setTimeout(()=>{
       this.token = onceRun(()=>searchHistory(escapeRegExp(data.value).split(/[ 　]+/,-1).filter(x=>x)),this.token)
-    }, 150)
+    }, 200)
   }
 
   render() {
@@ -185,9 +185,14 @@ class TopMenu extends React.Component {
               {/*{this.state.items.map(item=>{*/}
                 {/*return <Menu.Item key={item} name={item} active={activeItem === item} onClick={::this.handleItemClick} />*/}
               {/*})}*/}
-              <Menu.Item as='a' href={`${baseURL}/top.html`} key="top" name="Top" />
-              <Menu.Item as='a' href={`${baseURL}/favorite.html`} key="favorite" name={l10n.translation('bookmarks')}/>
               <Menu.Item key="history" name={l10n.translation('history')} active={true}/>
+              <Menu.Item as='a' href={`${baseURL}/history_full.html`} key="history-full" name="Fulltext History"/>
+              <Menu.Item as='a' href={`${baseURL}/top.html`} key="top" name="Top" style={{
+                borderLeft: "2px solid rgba(34,36,38,.15)",
+                marginLeft: 20,
+                paddingLeft: 30
+              }}/>
+              <Menu.Item as='a' href={`${baseURL}/favorite.html`} key="favorite" name={l10n.translation('bookmarks')}/>
               <Menu.Item as='a' href={`${baseURL}/download.html`} key="download" name={l10n.translation('downloads')}/>
               <Menu.Item as='a' href={`${baseURL}/explorer.html`} key="file-explorer" name="File Explorer"/>
               <Menu.Item as='a' href={`${baseURL}/terminal.html`} key="terminal" name="Terminal"/>

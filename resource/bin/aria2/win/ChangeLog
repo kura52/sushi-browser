@@ -1,0 +1,310 @@
+commit 823bcc4ab0d2ca3b9f3da282f0e6bd7b342b7d94 (HEAD, tag: release-1.32.0, origin/master, origin/HEAD, master)
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-05-17
+Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+CommitDate: 2017-05-17
+
+    Bump up version number to 1.32.0
+
+commit d56ec91cd4cf55b373e4fb6ba28712913d57d03b
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-05-17
+Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+CommitDate: 2017-05-17
+
+    Update NEWS
+
+commit 315218a3b21c3721479e0e5fd057067d5da71404
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-05-17
+Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+CommitDate: 2017-05-17
+
+    Update third-party libraries for binary releases
+
+commit 442b2bcbdc59dcff4b8e4b87438ec39f71fae06a
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-05-17
+Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+CommitDate: 2017-05-17
+
+    Update AUTHORS
+
+commit c90ff13d82c7712bb9620e67ea3f9539afd93628
+Merge: e665ef8f a52a2d84
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-05-10
+Commit:     GitHub <noreply@github.com>
+CommitDate: 2017-05-10
+
+    Merge pull request #910 from ITriskTI/master
+    
+    Update aria2c.rst
+
+commit a52a2d84375f78abf021f3a24d0dc1c232e6fb77
+Author:     it-0x21-rr <it-0x21-rr@ns-5-04.usr>
+AuthorDate: 2017-05-10
+Commit:     it-0x21-rr <it-0x21-rr@ns-5-04.usr>
+CommitDate: 2017-05-10
+
+    Update aria2c.rst
+
+commit e665ef8f3eb4153dcb5766160fa11276d4829478
+Merge: 5eb1f2c5 9ac47a62
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-05-09
+Commit:     GitHub <noreply@github.com>
+CommitDate: 2017-05-09
+
+    Merge pull request #907 from aria2/clarify-max-concurrent-downloads
+    
+    Clarify --max-concurrent-downloads option
+
+commit 5eb1f2c574351e95abc6aa0066771b72f791a853
+Merge: 63ad6e00 fe2226b9
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-05-08
+Commit:     GitHub <noreply@github.com>
+CommitDate: 2017-05-08
+
+    Merge pull request #906 from aria2/fix-compile-error
+    
+    Fix compile error with toolchain which lacks IPV6_TCLASS
+
+commit 9ac47a62b4952175b23697d7ca04b6f5a912c357
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-05-08
+Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+CommitDate: 2017-05-08
+
+    Clarify --max-concurrent-downloads option
+
+commit fe2226b988c96c2380686b6a68665fd830445ddd
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-05-08
+Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+CommitDate: 2017-05-08
+
+    Fix compile error with toolchain which lacks IPV6_TCLASS
+
+commit 63ad6e00725b40d48c784b9451fbc13716fa9ac8
+Merge: 3cbc83dc e07356a5
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-05-08
+Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+CommitDate: 2017-05-08
+
+    Merge branch 'tsekityam-master'
+
+commit e07356a502fc7bad3cfefb27a0077625ea93a7bf
+Author:     Tse Kit Yam <me@kytse.com>
+AuthorDate: 2017-05-03
+Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+CommitDate: 2017-05-08
+
+    Fix typo
+    
+    Although I haven’t checked the code, I believe `unpauseAll` only works
+    on paused downloads.
+
+commit 3cbc83dc07ccb4b990d828c0c2d4252ce51a0683
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-04-29
+Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+CommitDate: 2017-04-29
+
+    Update doc
+
+commit a28396065e3ab0ef6c1379f944088e6da48f5ce7
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-04-16
+Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+CommitDate: 2017-04-16
+
+    Fix broken text formatting
+
+commit 79a20e046f3abb53643682dc2efb3096cf550799
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-04-15
+Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+CommitDate: 2017-04-15
+
+    Fix typo
+
+commit e441cf05755ca783f245cf8012f419979bbd85d2
+Merge: 1d77985a c7a13f93
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-04-13
+Commit:     GitHub <noreply@github.com>
+CommitDate: 2017-04-13
+
+    Merge pull request #885 from aria2/notice-log-level-redirection-uri
+    
+    Log directed URI in notice log level
+
+commit c7a13f934cf690a15cff4daece8eec6ead10a08d
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-04-09
+Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+CommitDate: 2017-04-09
+
+    Log directed URI in notice log level
+
+commit 1d77985abd809ac18e875020854d1e4d1fd09630
+Merge: b51e5814 1e8cf515
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-04-02
+Commit:     GitHub <noreply@github.com>
+CommitDate: 2017-04-02
+
+    Merge pull request #879 from tsekityam/patch-1
+    
+    Fix typo
+
+commit 1e8cf5151e59d04e7b13033e01da435c452daeeb
+Author:     Tse Kit Yam <tsekityam@users.noreply.github.com>
+AuthorDate: 2017-04-01
+Commit:     GitHub <noreply@github.com>
+CommitDate: 2017-04-01
+
+    Fix typo
+
+commit b51e5814f1786cb80a36a97d1f360020dcd71ff9
+Merge: f0adbde2 aa5567d7
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-03-21
+Commit:     GitHub <noreply@github.com>
+CommitDate: 2017-03-21
+
+    Merge pull request #870 from ka7/feature/spelling
+    
+    Feature/spelling
+
+commit aa5567d774692e54cb0c6761a34f9d84faccc8f7
+Author:     klemens <ka7@github.com>
+AuthorDate: 2017-03-20
+Commit:     klemens <ka7@github.com>
+CommitDate: 2017-03-20
+
+    spelling fixes
+
+commit ec2ce4ffe5ca6af1a509dcd5a4d8bf0d5644401d
+Author:     klemens <ka7@github.com>
+AuthorDate: 2017-03-20
+Commit:     klemens <ka7@github.com>
+CommitDate: 2017-03-20
+
+    spelling fixes
+
+commit f0adbde2e6bd46eef13367dc564524c70c0c3916
+Merge: 7db393ec 68edbb35
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-03-19
+Commit:     GitHub <noreply@github.com>
+CommitDate: 2017-03-19
+
+    Merge pull request #868 from fornwall/android-cleanup
+    
+    Remove unused Android parts
+
+commit 68edbb358c49d9a4aa7690b14dc904a0fc166844
+Author:     Fredrik Fornwall <fredrik@fornwall.net>
+AuthorDate: 2017-03-18
+Commit:     Fredrik Fornwall <fredrik@fornwall.net>
+CommitDate: 2017-03-18
+
+    Remove unused Android parts
+    
+    These parts where unused after merging https://github.com/aria2/aria2/pull/736
+
+commit 7db393ec3dca29c905e9fe257a8756879be692f6
+Merge: 9eff8100 bfc54d0b
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-03-05
+Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+CommitDate: 2017-03-05
+
+    Merge branch 'save-control-file-early'
+
+commit bfc54d0b9a694e5d87efd8ed11b5393bc4b66f93
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-03-02
+Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+CommitDate: 2017-03-02
+
+    Save control file early
+
+commit 9eff8100ef28ccda14161a35628c51063cf66f66
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-03-02
+Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+CommitDate: 2017-03-02
+
+    Refactor
+
+commit 924e115e3e1c49ac7d9eab4389dc627da0bbf9b7
+Merge: 6289aafa 0cee6f5a
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-03-02
+Commit:     GitHub <noreply@github.com>
+CommitDate: 2017-03-02
+
+    Merge pull request #860 from mlesniew/update_raspberry_pi_dockerfile
+    
+    Update links in Dockerfile.raspberrypi
+
+commit 6289aafaf850e854e5b03710726db984df7cf82b
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-03-02
+Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+CommitDate: 2017-03-02
+
+    Increase backlog to 1024
+
+commit 0cee6f5a34f0fe9089fb06bca62bbcea6d1a654f
+Author:     Michał Leśniewski <mlesniew@gmail.com>
+AuthorDate: 2017-03-01
+Commit:     Michał Leśniewski <mlesniew@gmail.com>
+CommitDate: 2017-03-02
+
+    Update links in Dockerfile.raspberrypi
+    
+    Some links used in Dockerfile.raspberrypi are not accessible anymore,
+    because they were pointing to old versions of some source packages and
+    new versions were released.  This commit fixes this by changing the
+    links to point to the newest versions.
+
+commit 147c68f4bc3b7b4285cf0007632830d5f5b63f7d
+Merge: 857d6a2a 8fc0c851
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-02-26
+Commit:     GitHub <noreply@github.com>
+CommitDate: 2017-02-26
+
+    Merge pull request #857 from aria2/fix-disk-full-error
+    
+    Propagate disk full error on pre-allocation to last error code
+
+commit 8fc0c85125fc4d30decdedd4c1f454999397406a
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-02-23
+Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+CommitDate: 2017-02-23
+
+    Propagate disk full error on pre-allocation to last error code
+
+commit 857d6a2a8e924618d37e75e6eda5e008a431cc48
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-01-23
+Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+CommitDate: 2017-01-23
+
+    Fix compiler warning with Android NDK clang
+
+commit 13b2c4a0f93bc8345e80fcc7030f90e0530d6734
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-01-23
+Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+CommitDate: 2017-01-23
+
+    Compile using Android NDK clang

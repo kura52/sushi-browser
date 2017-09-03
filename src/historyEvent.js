@@ -1,15 +1,22 @@
 import { ipcMain } from 'electron'
-import {history,image} from './databaseFork'
+import {historyFull,history,image} from './databaseFork'
 
-ipcMain.on('fetch-history', async (event, range, full=false) => {
+ipcMain.on('fetch-history', async (event, range, full=false,limit) => {
   console.log(range)
   const cond =  !Object.keys(range).length ? range :
-  { updated_at: (
-    range.start === void 0 ? { $lte: range.end } :
-      range.end === void 0 ? { $gte: range.start } :
-      { $gte: range.start ,$lte: range.end }
-  )}
-  const data = await (full ? historyFull : history).find_sort([cond],[{ updated_at: -1 }])
+    { updated_at: (
+      range.start === void 0 ? { $lte: range.end } :
+        range.end === void 0 ? { $gte: range.start } :
+          { $gte: range.start ,$lte: range.end }
+    )}
+  let data
+  if(limit){
+    data = await (full ? historyFull : history).find_sort_limit([cond],[{ updated_at: -1 }],[limit])
+  }
+  else{
+    data = await (full ? historyFull : history).find_sort([cond],[{ updated_at: -1 }])
+  }
+
   event.sender.send('history-reply', data);
 })
 
@@ -29,7 +36,7 @@ ipcMain.on('fetch-frequently-history', async (event, range) => {
   }));
 })
 
-ipcMain.on('search-history', async (event, cond, full=false) => {
+ipcMain.on('search-history', async (event, cond, full=false,limit) => {
   if(Array.isArray(cond)){
     const arr = []
     for (let e of cond) {
@@ -41,6 +48,13 @@ ipcMain.on('search-history', async (event, cond, full=false) => {
   else{
     cond = { $or: [{ title: cond }, full ? { text: cond } : { location: cond }]}
   }
-  const data = await (full ? historyFull : history).find_sort([cond],[{ updated_at: -1 }])
+
+  let data
+  if(limit){
+    data = await (full ? historyFull : history).find_sort_limit([cond],[{ updated_at: -1 }],[limit])
+  }
+  else{
+    data = await (full ? historyFull : history).find_sort([cond],[{ updated_at: -1 }])
+  }
   event.sender.send('history-reply', data);
 })

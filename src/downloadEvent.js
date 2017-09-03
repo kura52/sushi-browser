@@ -6,7 +6,8 @@ import fs from 'fs'
 
 export default class DownloadEvent {
   constructor(){
-    ipcMain.on('download-retry',(event,url)=>{
+    ipcMain.on('download-retry',(event,url,savePath)=>{
+      ipcMain.emit('set-save-path', null, path.basename(savePath))
       getCurrentWindow().webContents.downloadURL(url,true)
     })
 
