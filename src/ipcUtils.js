@@ -1,8 +1,9 @@
 import {ipcMain,app,dialog,BrowserWindow,shell,webContents} from 'electron'
+const BrowserWindowPlus = require('./BrowserWindowPlus')
 import fs from 'fs'
 import sh from 'shelljs'
 import uuid from 'node-uuid'
-const {state,favorite,historyFull} = require('./databaseFork')
+const {state,favorite} = require('./databaseFork')
 const db = require('./databaseFork')
 
 import path from 'path'
@@ -100,10 +101,12 @@ ipcMain.on('create-file',(event,key,path,isFile)=>{
   }
 })
 
-ipcMain.on('show-dialog-exploler',(event,key,info)=>{
+ipcMain.on('show-dialog-exploler',(event,key,info,tabId)=>{
+  const cont = tabId !== 0 && webContents.fromTabID(tabId)
+  console.log(tabId,cont)
   if(info.inputable){
-    const key2 = uuid.v4()
-    event.sender.hostWebContents.send('show-notification',{id:event.sender.getId(),key:key2,title:info.title,text:info.text,initValue:info.initValue,needInput:info.needInput || [""]})
+    const key2 = uuid.v4();
+    (cont ? event.sender : event.sender.hostWebContents).send('show-notification',{id:(cont || event.sender).getId(),key:key2,title:info.title,text:info.text,initValue:info.initValue,needInput:info.needInput || [""]})
     ipcMain.once(`reply-notification-${key2}`,(e,ret)=>{
       if(ret.pressIndex !== 0){
         event.sender.send(`show-dialog-exploler-reply_${key}`)
@@ -199,24 +202,35 @@ async function recurFind(keys,list){
   }
 }
 
-ipcMain.on('open-favorite',async (event,key,dbKeys,tabId)=>{
+ipcMain.on('open-favorite',async (event,key,dbKeys,tabId,type)=>{
   let list = []
+  const cont = tabId !== 0 && webContents.fromTabID(tabId)
   const ret = await recurFind(dbKeys,list)
-  const cont = event.sender.hostWebContents
-  for(let url of list){
-    await new Promise((resolve,reject)=>{
-      setTimeout(_=>{
-        if(tabId){
-          event.sender.send("new-tab",tabId,url,false)
-        }
-        else{
-          cont.send("new-tab-opposite", event.sender.getId(),url)
-        }
-        resolve()
-      },200)
-
-    })
+  const host = cont ? event.sender : event.sender.hostWebContents
+   if(type == "openInNewTab" || type=='openInNewPrivateTab'){
+    for(let url of list){
+      await new Promise((resolve,reject)=>{
+        setTimeout(_=>{
+          if(tabId){
+            host.send("new-tab",tabId,url,type=='openInNewPrivateTab')
+          }
+          else{
+            host.send("new-tab-opposite", event.sender.getId(),url,(void 0),type=='openInNewPrivateTab')
+          }
+          resolve()
+        },200)
+      })
+    }
   }
+  else{
+    const win = BrowserWindow.fromWebContents(host)
+    ipcMain.once('get-private-reply',(e,privateMode)=>{
+      BrowserWindowPlus.load({id:win.id,sameSize:true,tabParam:JSON.stringify({urls:list.map(url=>{return {url}}),
+        type: type == 'openInNewWindow' ? 'new-win' : type == 'openInNewWindowWithOneRow' ? 'one-row' : 'two-row'})})
+    })
+    win.webContents.send('get-private', (cont || event.sender).getId())
+  }
+
   console.log(list)
   event.sender.send(`open-favorite-reply_${key}`,key)
 
@@ -582,10 +596,10 @@ ipcMain.on('change-tab-infos',(e,changeTabInfos)=> {
   }
 })
 
-ipcMain.on('get-inner-text',(e,location,title,text)=>{
-  historyFull.update({location},{location,title,text,updated_at: Date.now()}, { upsert: true }).then(_=>_)
-
-})
+// ipcMain.on('get-inner-text',(e,location,title,text)=>{
+//   historyFull.update({location},{location,title,text,updated_at: Date.now()}, { upsert: true }).then(_=>_)
+//
+// })
 
 // async function recurSelect(keys){
 //   const ret = await favorite.find({key:{$in: keys}})

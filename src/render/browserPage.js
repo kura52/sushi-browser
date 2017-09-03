@@ -1,5 +1,6 @@
 const path = require('path')
 const React = require('react')
+const uuid = require("node-uuid")
 import ReactDOM from 'react-dom'
 const {Component} = React
 const ipc = require('electron').ipcRenderer
@@ -67,6 +68,7 @@ class BrowserPage extends Component {
     }
 
     if(this.props.tab.privateMode){
+      if(this.props.tab.privateMode === true) this.props.tab.privateMode = uuid.v4()
       webview.partition = this.props.tab.privateMode
       ipc.send('init-private-mode',this.props.tab.privateMode)
     }

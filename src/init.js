@@ -470,29 +470,41 @@ function contextMenu(webContents) {
 
     const isIndex = props.pageURL.match(/^chrome:\/\/brave.+?\/index.html/)
     console.log(props.pageURL)
-    const sidebar = props.pageURL.match(/^chrome\-extension:\/\/.+?_sidebar.html/)
+    // const sidebar = props.pageURL.match(/^chrome\-extension:\/\/.+?_sidebar.html/)
     if (isIndex && !favoriteMenu)
       return
 
     if(favoriteMenu){
       const favMenu = favoriteMenu
-      if(isIndex || sidebar){
-        menuItems.push({label: 'Open',click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'open')}})
+      // if(isIndex){
+      //   menuItems.push({label: 'Open',click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'open')}})
+      //   var menu = Menu.buildFromTemplate(menuItems)
+      //   menu.popup(targetWindow)
+      //   return
+      // }
+      // else{
+        menuItems.push({label: locale.translation('openInNewTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewTab')}})
+        menuItems.push({label: locale.translation('openInNewPrivateTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewPrivateTab')}})
+        menuItems.push({label: locale.translation('openInNewWindow'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindow')}})
+        menuItems.push({label: 'Open Link in New Window with a Row',click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindowWithOneRow')}})
+        menuItems.push({label: 'Open Link in New Window with two Rows',click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindowWithTwoRow')}})
+
+        menuItems.push({type: 'separator'})
+
+        menuItems.push({label: locale.translation('9065203028668620118'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'edit')}})
+        menuItems.push({type: 'separator'})
+
+        menuItems.push({label: locale.translation('copy'),click: (item,win)=>{clipboard.writeText(favMenu.path.join(os.EOL))}})
+        menuItems.push({label: locale.translation('delete'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'delete')}})
+        menuItems.push({type: 'separator'})
+
+        menuItems.push({label: locale.translation('addBookmark'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'addBookmark')}})
+        menuItems.push({label: locale.translation('addFolder'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'addFolder')}})
         var menu = Menu.buildFromTemplate(menuItems)
         menu.popup(targetWindow)
         return
       }
-      else{
-        menuItems.push({label: 'Open',click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'open')}})
-        menuItems.push({label: 'Copy',click: (item,win)=>{clipboard.writeText(favMenu.path.join(os.EOL))}})
-        menuItems.push({label: 'Rename',click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'rename')}})
-        menuItems.push({label: 'Delete',click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'delete')}})
-        menuItems.push({type: 'separator'})
-        menuItems.push({label: 'Create New Page',click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'create-page')}})
-        menuItems.push({label: 'Create New Directory',click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'create-dirctory')}})
-        menuItems.push({type: 'separator'})
-      }
-    }
+    // }
 
     if(explorerMenu){
       const expMenu = explorerMenu

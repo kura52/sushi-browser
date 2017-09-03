@@ -10,6 +10,9 @@ const { StickyContainer, Sticky } = require('react-sticky');
 const moment = require('moment')
 const l10n = require('../../brave/js/l10n')
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
+const Clusterize = require('clusterize.js')
+const ReactDOMServer =  require('react-dom/server')
+
 l10n.init()
 
 
@@ -103,13 +106,42 @@ function onceRun(func,id){
 function intervalRun(func,id){
   func()
   if(id) window.clearInterval(id)
-  return window.setInterval(func, 10000)
+  return window.setInterval(func, 3000)
 }
 
 class TopMenu extends React.Component {
   constructor(props) {
     super(props)
     this.state = {items:['48 Hours Ago','7 Days Ago','30 Days Ago','All'], activeItem: '48 Hours Ago' }
+    this.updateDatas = []
+  }
+
+  componentDidMount() {
+    fetchHistory({})
+    historyReply((data)=>{
+      this.list = new HistoryList().build(data)
+      if(this.clusterize){
+        this.clusterize.update(this.list)
+      }
+      else{
+        this.clusterize = new Clusterize({
+          rows: this.list,
+          scrollId: 'scrollArea',
+          contentId: 'contentArea'
+        });
+      }
+    })
+    this.eventUpdateDatas = (e,data)=>{
+      this.updateDatas.push(data)
+    }
+    ipc.on("update-datas",this.eventUpdateDatas)
+
+    this.token = intervalRun(()=>{
+      if(this.updateDatas.length > 0){
+        fetchHistory({})
+        this.updateDatas = []
+      }
+    },this.token)
   }
 
   handleItemClick(e, { name }){
@@ -138,7 +170,7 @@ class TopMenu extends React.Component {
     clearTimeout(this.timer);
     this.timer = setTimeout(()=>{
       this.token = onceRun(()=>searchHistory(escapeRegExp(data.value).split(/[ 　]+/,-1).filter(x=>x)),this.token)
-    }, 200)
+    }, 150)
   }
 
   render() {
@@ -150,20 +182,17 @@ class TopMenu extends React.Component {
         <Sticky>
           <div>
             <Menu pointing secondary >
-              {this.state.items.map(item=>{
-                return <Menu.Item key={item} name={item} active={activeItem === item} onClick={::this.handleItemClick} />
-              })}
-              <Menu.Item as='a' href={`${baseURL}/top.html`} key="top" name="Top" style={{
-                borderLeft: "2px solid rgba(34,36,38,.15)",
-                marginLeft: 20,
-                paddingLeft: 30
-              }}/>
+              {/*{this.state.items.map(item=>{*/}
+                {/*return <Menu.Item key={item} name={item} active={activeItem === item} onClick={::this.handleItemClick} />*/}
+              {/*})}*/}
+              <Menu.Item as='a' href={`${baseURL}/top.html`} key="top" name="Top" />
               <Menu.Item as='a' href={`${baseURL}/favorite.html`} key="favorite" name={l10n.translation('bookmarks')}/>
+              <Menu.Item key="history" name={l10n.translation('history')} active={true}/>
               <Menu.Item as='a' href={`${baseURL}/download.html`} key="download" name={l10n.translation('downloads')}/>
               <Menu.Item as='a' href={`${baseURL}/explorer.html`} key="file-explorer" name="File Explorer"/>
               <Menu.Item as='a' href={`${baseURL}/terminal.html`} key="terminal" name="Terminal"/>
               <Menu.Item as='a' href={`${baseURL}/settings.html`} key="settings" name={l10n.translation('settings')}/>
-              <Menu.Menu position='right'>
+              <Menu.Menu >
                 <Menu.Item>
                   <Input ref='input' icon='search' placeholder='Search...' onChange={::this.onChange}/>
                 </Menu.Item>
@@ -171,33 +200,24 @@ class TopMenu extends React.Component {
             </Menu>
           </div>
         </Sticky>
-        <HistoryList setToken={::this.setToken}/>
+        <div id="scrollArea" style="height: calc(100vh - 46px); overflow-y: scroll;">
+          <div role="list" id="contentArea" className="ui divided relaxed list">
+          </div>
+        </div>
       </StickyContainer>
     )
   }
 }
 
-class HistoryList extends React.Component {
-  constructor(props) {
-    super(props)
-    this.state = {history: []}
-  }
-
-  componentDidMount() {
-    historyReply((data)=>{
-      this.setState({history: data})
-    })
-    this.props.setToken(intervalRun(()=>fetchHistory({start: moment().subtract(48, 'hours').valueOf()})))
-  }
-
-  render() {
+class HistoryList{
+  build(data) {
     const historyList = []
     let pre = {location:false}
-    this.state.history.forEach((h,i)=>{
+    data.forEach((h,i)=>{
       h.updated_at = moment(h.updated_at).format("YYYY/MM/DD HH:mm:ss")
       h.yyyymmdd = h.updated_at.slice(0,10)
       if(pre.yyyymmdd != h.yyyymmdd){
-        historyList.push(<h4 key={h.yyyymmdd}>{h.yyyymmdd}</h4>)
+        historyList.push(`<h4>${h.yyyymmdd}</h4>`)
       }
       if(h.location === pre.location){
         if(!pre.title) pre.title = h.title
@@ -209,28 +229,22 @@ class HistoryList extends React.Component {
         pre = h
       }
     })
-
-    return <List divided relaxed>
-      {historyList}
-    </List>
+    return historyList
   }
+
 
   buildItem(h) {
     const favicon = faviconGet(h)
-    return <List.Item key={h._id}>
-      <img src={favicon}
-           style={{width: 20, height: 20, float: 'left', marginRight: 4, marginTop: 6}}/>
-      <List.Content>
-        <a className="description" style={{
-          float: 'right',
-          marginRight: 15,
-          fontSize: "12px"
-        }}>{h.updated_at.slice(5)}</a>
-        {!h.title ? "" : <List.Header as='a' target="_blank" href={h.location}>{h.title.length > 55 ? `${h.title.substr(0, 55)}...` : h.title}</List.Header>}
-        {!h.location ? "" : <List.Description as='a' target="_blank" style={{fontSize: "12px"}} href={h.location}>{h.location.length > 125 ? `${h.location.substr(0, 125)}...` : convertURL(h.location)}</List.Description>}
-      </List.Content>
-    </List.Item>;
+    return `<div role="listitem" class="item">
+      <img src="${favicon}" style="width: 20px; height: 20px; float: left; margin-right: 4px; margin-top: 6px;"/>
+      <div class="content">
+        <a class="description" style="float:right;margin-right:15px;font-size: 12px">${h.updated_at.slice(5)}</a>
+        ${!h.title ? "" : `<a class="header" target="_blank" href=${h.location}>${h.title.length > 55 ? `${h.title.substr(0, 55)}...` : h.title}</a>`}
+        ${!h.location ? "" : `<a class="description" target="_blank" style="fontSize: 12px;" href=${h.location}>${h.location.length > 125 ? `${h.location.substr(0, 125)}...` : convertURL(h.location)}</a>`}
+      </div>
+    </div>`;
   }
+
 }
 
 const App = () => (

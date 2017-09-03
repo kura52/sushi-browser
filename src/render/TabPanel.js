@@ -1203,19 +1203,19 @@ export default class TabPanel extends Component {
     ipc.on('new-tab', tab.events['new-tab'])
 
 
-    tab.events['new-tab-opposite'] = (e, id, url,lastMouseDown)=> {
+    tab.events['new-tab-opposite'] = (e, id, url,lastMouseDown, privateMode)=> {
       if (!this.mounted) return
       if (tab.wvId && id == tab.wvId) {
         const oppositeKey = lastMouseDown ? (this.props.getPrevFocusPanel(this.props.k) || this.props.getOpposite(this.props.k)) : this.props.getOpposite(this.props.k)
         if (oppositeKey && !isFixedPanel(oppositeKey))
-          PubSub.publish(`new-tab-from-key_${oppositeKey}`, {url,mobile:tab.mobile, adBlockThis: tab.adBlockThis, privateMode:tab.privateMode})
+          PubSub.publish(`new-tab-from-key_${oppositeKey}`, {url,mobile:tab.mobile, adBlockThis: tab.adBlockThis, privateMode:privateMode || tab.privateMode})
         else{
           // const selectedTab =  this.state.selectedTab
           // const t = tabAdd(this, url, "nothing",(void 0),(void 0),tab.mobile,tab.adBlockThis,true);
           // setTimeout(_=> {
           //   const _tabs = this.state.tabs
           //   const i = _tabs.length - 1
-          this.props.split(this.props.k, 'v',1, (void 0), (void 0), {url,mobile:tab.mobile,adBlockThis:tab.adBlockThis, privateMode:tab.privateMode})
+          this.props.split(this.props.k, 'v',1, (void 0), (void 0), {url,mobile:tab.mobile,adBlockThis:tab.adBlockThis, privateMode:privateMode || tab.privateMode})
           // PubSub.publish(`close_tab_${this.props.k}`, {key:t.key, selectedTab})
           // },100)
         }
@@ -1345,6 +1345,11 @@ export default class TabPanel extends Component {
         const url = e.args[1] ? e.args[0] : `file://${e.args[0]}`,
           id = tab.wvId
         tab.events['new-tab-opposite'](e, id, url,true)
+      }
+      else if (e.channel == 'open-tab') {
+        const url = e.args[1] ? e.args[0] : `file://${e.args[0]}`,
+          id = tab.wvId
+        tab.events['new-tab'](e, id, url)
       }
       else if(e.channel == 'html-content'){
         this.props.htmlContentSet.add(e.args[0])
@@ -2264,13 +2269,11 @@ export default class TabPanel extends Component {
       menuItems.push(({ label: 'Split Right', click: splitFunc.bind(this,'v',1) }))
       menuItems.push(({ label: 'Split Top', click: splitFunc.bind(this,'h',-1) }))
       menuItems.push(({ label: 'Split Bottom', click: splitFunc.bind(this,'h',1) }))
-    }
     menuItems.push(({ type: 'separator' }))
     // menuItems.push(({ label: 'Split Left Tabs to Left', click: splitOtherTabsFunc.bind(this,'v',-1) }))
     menuItems.push(({ label: 'Split right tabs to right', click: splitOtherTabsFunc.bind(this,'v',1) }))
     menuItems.push(({ label: 'Floating Panel', click: _=>detachToFloatPanel() }))
     menuItems.push(({ type: 'separator' }))
-    if(!this.isFixed){
       menuItems.push(({ label: 'Swap Position', click: ()=> { PubSub.publish(`swap-position_${this.props.k}`)} }))
       menuItems.push(({ label: 'Switch Direction', click: ()=> { PubSub.publish(`switch-direction_${this.props.k}`)} }))
       menuItems.push(({ type: 'separator' }))
@@ -2655,7 +2658,7 @@ export default class TabPanel extends Component {
       this.searchSameWindow(tab,urls,checkOpposite,searchMethod.type, forceNewTab)
     }
     else{
-      BrowserWindowPlus.load({id:remote.getCurrentWindow().id,sameSize:true,tabParam:JSON.stringify({urls,type:searchMethod.type})})
+      BrowserWindowPlus.load({id:remote.getCurrentWindow().id,sameSize:true,tabParam:JSON.stringify({urls:urls.map(url=>{return {url}}),type:searchMethod.type})})
     }
   }
 
@@ -2754,7 +2757,7 @@ export default class TabPanel extends Component {
         windowId={this.props.windowId}
         k={this.props.k}
         ref='tabs'
-        tabs={this.state.tabs.map((tab)=>{
+        tabs={this.state.tabs.map((tab,num)=>{
           return (<Tab key={tab.key} beforeTitle={tab.page.title && tab.page.favicon !== 'loading' ? (<img className='favi' src={tab.page.favicon} onError={(e)=>{e.target.src = 'resource/file.png'}}/>) : (<svg dangerouslySetInnerHTML={{__html: svg }} />)}
                        title={tab.page.favicon !== 'loading' || tab.page.titleSet ? tab.page.title : 'loading'} orgTab={tab} pin={tab.pin} privateMode={tab.privateMode}>
             <div style={{height: '100%'}} className="div-back" ref={`div-${tab.key}`} >
@@ -2765,7 +2768,7 @@ export default class TabPanel extends Component {
                              isTopRight={this.props.isTopRight} isTopLeft={this.props.isTopLeft} detachPanel={::this.detachPanel}
                              fixedPanelOpen={this.props.fixedPanelOpen} toggleNavPanel={::this.toggleNavPanel} tabBar={!this.state.tabBar} hidePanel={this.props.hidePanel}
                              fullscreen={this.props.fullscreen} search={::this.search} bind={tab.bind}/>
-              {this.state.notifications.map((data,i)=>{
+              {num == 0 ? this.state.notifications.map((data,i)=>{
                 if(data.needInput){
                   console.log(225,data)
                   return <InputableDialog data={data} key={i} k={this.props.k} delete={this.deleteNotification.bind(this,i)} />
@@ -2776,7 +2779,7 @@ export default class TabPanel extends Component {
                 else{
                   return <Notification data={data} key={i} k={this.props.k} delete={this.deleteNotification.bind(this,i)} />
                 }
-              })}
+              }) : null}
             </div>
           </Tab>)
         })}

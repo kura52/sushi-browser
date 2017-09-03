@@ -11,12 +11,12 @@
 .infinite-tree-content .infinite-tree-selected.infinite-tree-item,
 .infinite-tree-content .infinite-tree-selected.infinite-tree-item:hover {
   background: #deecfd;
-  border: 1px solid #06c;
+  /*border: 1px solid #06c;*/
 }
 .infinite-tree-content .selection-selected.infinite-tree-item,
 .infinite-tree-content .selection-selected.infinite-tree-item:hover {
   background: #deecfd;
-  border: 1px solid #06c;
+  /*border: 1px solid #06c;*/
 }
 .infinite-tree-content .infinite-tree-item {
   border: 1px solid transparent;
@@ -84,10 +84,6 @@
 #classic .tree {
   border: 1px solid #ccc;
   background-color: #fff;
-}
-#classic .infinite-tree-item.infinite-tree-drop-hover {
-  border: 1px dotted #ccc;
-  background-color: #f5f6f7;
 }
 #classic .infinite-tree-toggler {
   text-align: center;
@@ -225,4 +221,28 @@ html, body { height:100%; margin:0; }
 
 .ui.icon.input input {
   margin-left: 12px;
+}
+
+
+#classic .infinite-tree-item.top-overlap:not(.middle),
+#classic .infinite-tree-item.top-overlap.middle:not(.folder-item),
+#classic .infinite-tree-item.top-next-sibling-overlap{
+  border-top-color: blue;
+}
+
+
+#classic .infinite-tree-item.bottom-overlap.middle:not(.folder-item),
+#classic .infinite-tree-item.bottom-overlap:not(.middle),
+#classic .infinite-tree-item.bottom-previous-sibling-overlap{
+  border-bottom-color: blue;
+}
+
+
+#classic .infinite-tree-item.folder-item {
+  background-color: #bfdaf5;
+}
+
+canvas.drag-image{
+  position:absolute;
+  left:-100%;
 }

@@ -127,6 +127,7 @@ export default class SplitWindows extends Component{
           r: null,key:uuid.v4(),toggleNav: mainState.toggleNav || 0},{})
         }
         else{
+          console.log(33321,attach)
           const recurDivide = (urls,percentages,obj,rest)=>{
             if(urls.length == 0) return
 
@@ -145,6 +146,7 @@ export default class SplitWindows extends Component{
           }
 
           const divide = attach.type == "one-row" ? 1 : attach.type == "two-row" ? 2 : 3
+          attach.urls = attach.urls.map(x=>x.url)
           if(attach.urls.length < divide){
             attach.urls = attach.urls.concat(attach.urls).concat(attach.urls).slice(0,divide)
           }

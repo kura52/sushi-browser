@@ -232,7 +232,6 @@ class InfiniteTree extends events.EventEmitter {
         // https://developer.mozilla.org/en-US/docs/Web/Events/dragover
         // The dragover event is fired when an element or text selection is being dragged over a valid drop target (every few hundred milliseconds).
         'dragover': (event) => {
-          console.log('dragover')
             event = event || window.event;
 
             preventDefault(event);

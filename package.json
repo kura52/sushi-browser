@@ -66,6 +66,7 @@
     "body-parser": "^1.17.2",
     "classnames": "^2.2.5",
     "clipboard": "^1.6.1",
+    "clusterize.js": "^0.17.6",
     "command-line-args": "^4.0.2",
     "debug": "^2.6.6",
     "electron-is-accelerator": "^0.1.2",

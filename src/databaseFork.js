@@ -50,7 +50,9 @@ function handler(table){
               if(msg.key !== key) return
               if((table == "history" || table == "favorite") && (prop == "insert" || prop == "update")){
                 for(let cont of webContents.getAllWebContents()){
-                  if(!cont.isDestroyed() && !cont.isBackgroundPage() && cont.isGuest() && cont.getURL().endsWith(`${table}_sidebar.html`)) {
+                  if(!cont.isDestroyed() && !cont.isBackgroundPage() && cont.isGuest()) {
+                    const url = cont.getURL()
+                    if(url.endsWith(`${table}_sidebar.html`) ||url.endsWith(`${table}.html`) /*|| (table == 'history' && url.endsWith(`historyFull.html`))*/){
                     console.log(prop,msg)
                     if(prop == "update"){
                       console.log(argumentsList)
@@ -62,6 +64,7 @@ function handler(table){
                     else{
                       cont.send('update-datas', msg.result)
                     }
+                  }
                   }
                 }
               }
@@ -79,7 +82,7 @@ const dummy = {insert:'',update:'',find_count:'',find:'',count:'',findOne:'',rem
 
 const db = new Proxy({
   get history(){return new Proxy(dummy, handler('history'))},
-  get historyFull(){return new Proxy(dummy, handler('historyFull'))},
+  // get historyFull(){return new Proxy(dummy, handler('historyFull'))},
   get searchEngine(){return new Proxy(dummy, handler('searchEngine'))},
   get favorite(){return new Proxy(dummy, handler('favorite'))},
   get download(){return new Proxy(dummy, handler('download'))},

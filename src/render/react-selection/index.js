@@ -42,6 +42,7 @@ class Selection extends React.Component {
   mousedown = (ev)=> {
     console.log(ev.srcElement.tagName,ev)
     if(ev.srcElement.tagName != "LI" && ev.srcElement.tagName != "UL" && ev.srcElement.tagName != "DIV") return
+    if(ev.srcElement.classList.contains('infinite-tree-item')) return
 
     const targetSelect = this.props.target
     this.targets = Array.from(this._box.querySelectorAll(targetSelect))

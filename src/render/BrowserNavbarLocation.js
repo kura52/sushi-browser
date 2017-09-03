@@ -226,6 +226,7 @@ export default class BrowserNavbarLocation extends Component {
   }
 
   render() {
+    console.log(this.props)
     const { results } = this.state
     return (
       <Search

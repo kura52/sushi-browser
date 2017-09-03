@@ -26,11 +26,11 @@ const ipc = chrome.ipcRenderer
 // document.addEventListener('dragstart', handleDragStart, false)
 // document.addEventListener('drop', handleFileSelect, false)
 
-if(location.href.startsWith('http') && window == window.parent){
-  document.addEventListener("DOMContentLoaded",_=>{
-    ipc.send('get-inner-text',location.href,document.title,document.documentElement.innerText)
-  })
-}
+// if(location.href.startsWith('http') && window == window.parent){
+//   document.addEventListener("DOMContentLoaded",_=>{
+//     ipc.send('get-inner-text',location.href,document.title,document.documentElement.innerText)
+//   })
+// }
 
 function handleDragEnd(evt) {
   const target = evt.target

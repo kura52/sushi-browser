@@ -1,7 +1,7 @@
 import { ipcMain } from 'electron'
 import {history,image} from './databaseFork'
 
-ipcMain.on('fetch-history', async (event, range) => {
+ipcMain.on('fetch-history', async (event, range, full=false) => {
   console.log(range)
   const cond =  !Object.keys(range).length ? range :
   { updated_at: (
@@ -9,7 +9,7 @@ ipcMain.on('fetch-history', async (event, range) => {
       range.end === void 0 ? { $gte: range.start } :
       { $gte: range.start ,$lte: range.end }
   )}
-  const data = await history.find_sort([cond],[{ updated_at: -1 }])
+  const data = await (full ? historyFull : history).find_sort([cond],[{ updated_at: -1 }])
   event.sender.send('history-reply', data);
 })
 
@@ -29,18 +29,18 @@ ipcMain.on('fetch-frequently-history', async (event, range) => {
   }));
 })
 
-ipcMain.on('search-history', async (event, cond) => {
+ipcMain.on('search-history', async (event, cond, full=false) => {
   if(Array.isArray(cond)){
     const arr = []
     for (let e of cond) {
       e = new RegExp(e,'i')
-      arr.push({ $or: [{ title: e }, { location: e }]})
+      arr.push({ $or: [{ title: e }, full ? { text: e } : { location: e }]})
     }
     cond = cond.length == 1 ? arr[0] : { $and: arr}
   }
   else{
-    cond = { $or: [{ title: cond }, { location: cond }]}
+    cond = { $or: [{ title: cond }, full ? { text: cond } : { location: cond }]}
   }
-  const data = await history.find_sort([cond],[{ updated_at: -1 }])
+  const data = await (full ? historyFull : history).find_sort([cond],[{ updated_at: -1 }])
   event.sender.send('history-reply', data);
 })

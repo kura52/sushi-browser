@@ -49,6 +49,7 @@ export default function(margin){
               :<i
                 className={classNames(
                   'infinite-tree-folder-icon',
+                  { 'folder-icon': more || loadOnDemand },
                   'fa',
                   { 'fa-folder-open folder-open': more && open },
                   { 'fa-folder folder': (loadOnDemand || more) && !open },

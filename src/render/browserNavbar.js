@@ -25,7 +25,8 @@ const FloatSyncScrollButton = require('./FloatSyncScrollButton')
 const mainState = remote.require('./mainState')
 const moment = require('moment')
 const Clipboard = require('clipboard')
-const FavoriteExplorer = require('../toolPages/favorite')
+const FavoriteExplorer = require('../toolPages/favoriteBase')
+const HistoryExplorer = require('../toolPages/historyBase')
 const {messages,locale} = require('./localAndMessage')
 import ResizeObserver from 'resize-observer-polyfill'
 import uuid from 'node-uuid'
@@ -506,20 +507,13 @@ class BrowserNavbar extends Component{
 
   favoriteMenu(cont){
     const menuItems = []
-    return <NavbarMenu k={this.props.k} isFloat={isFloatPanel(this.props.k)} ref="favoriteMenu" className="scrolling" title={locale.translation('bookmarks')} icon="star" onClick={_=>_} timeOut={50}>
+    return <NavbarMenu k={this.props.k} isFloat={isFloatPanel(this.props.k)} ref="favoriteMenu" title={locale.translation('bookmarks')} icon="star" onClick={_=>_} timeOut={50}>
       <NavbarMenuItem bold={true} text='Navigate to the Bookmark Page' onClick={_=>this.onCommon("favorite")} />
       <div className="divider" />
       <NavbarMenuItem bold={true} text='Add this page to the Bookmarks' onClick={_=>this.onAddFavorite(this.props.page.location,this.props.page.title,this.props.page.favicon)} />
       <div className="divider" />
-      <div role="option" className="item favorite">
-        <FavoriteExplorer cont={cont} items={[{
-          name: 'Favorite',
-          path: 'root',
-          type: 'directory',
-          expanded: true,
-          children: [],
-          onClick: _=> this.refs.favoriteMenu.setState({visible:false})
-        }]} />
+      <div role="option" className="item favorite infinite-classic">
+        <FavoriteExplorer cont={cont} onClick={_=> this.refs.favoriteMenu.setState({visible:false})}/>
       </div>
     </NavbarMenu>
   }
@@ -547,11 +541,16 @@ class BrowserNavbar extends Component{
 
   historyMenu(cont){
     const menuItems = []
-    return <NavbarMenu k={this.props.k} isFloat={isFloatPanel(this.props.k)} className="scrolling" title={locale.translation('history')} icon="history" openPromise={this.fetchHistoryDate} onClick={this.historyDataHandle.bind(this,menuItems)}>
+    return <NavbarMenu k={this.props.k} isFloat={isFloatPanel(this.props.k)} ref="historyMenu" title={locale.translation('history')} icon="history" onClick={_=>_} timeOut={50}>
       <NavbarMenuItem bold={true} text='Navigate to the History Page' onClick={_=>this.onCommon("history")} />
       <div className="divider" />
+      <div role="option" className="item favorite infinite-classic">
+        <HistoryExplorer cont={cont} onClick={_=> this.refs.historyMenu.setState({visible:false})}/>
+      </div>
     </NavbarMenu>
   }
+
+
 
   getTitle(x,historyMap){
     console.log(997,historyMap.get(x))
