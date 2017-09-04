@@ -207,7 +207,7 @@ ipcMain.on('open-favorite',async (event,key,dbKeys,tabId,type)=>{
   const cont = tabId !== 0 && webContents.fromTabID(tabId)
   const ret = await recurFind(dbKeys,list)
   const host = cont ? event.sender : event.sender.hostWebContents
-   if(type == "openInNewTab" || type=='openInNewPrivateTab'){
+  if(type == "openInNewTab" || type=='openInNewPrivateTab'){
     for(let url of list){
       await new Promise((resolve,reject)=>{
         setTimeout(_=>{
@@ -596,9 +596,13 @@ ipcMain.on('change-tab-infos',(e,changeTabInfos)=> {
   }
 })
 
-ipcMain.on('get-inner-text',(e,location,title,text)=>{
-  historyFull.update({location},{location,title,text,updated_at: Date.now()}, { upsert: true }).then(_=>_)
-
+ipcMain.on('need-get-inner-text',(e,key)=>{
+  if(mainState.historyFull){
+    ipcMain.once('get-inner-text',(e,location,title,text)=>{
+      historyFull.update({location},{location,title,text,updated_at: Date.now()}, { upsert: true }).then(_=>_)
+    })
+  }
+  e.sender.send(`need-get-inner-text-reply_${key}`,mainState.historyFull)
 })
 
 // async function recurSelect(keys){

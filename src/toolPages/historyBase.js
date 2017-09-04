@@ -230,6 +230,7 @@ export default class App extends React.Component {
   }
 
   onChange(e,data) {
+    const prevState = localStorage.getItem("history-sidebar-open-node")
     e.preventDefault()
     if(!treeAllData) return
 
@@ -241,7 +242,7 @@ export default class App extends React.Component {
       console.log(reg)
 
       const tree = this.refs.content.refs.iTree.tree
-      const openNodes = new Set(tree.getOpenNodes().map(node=>node.id))
+      const openNodes = prevState ? prevState.split("\t",-1) : (void 0)
 
       const newTreeData = []
       for(let dirc of treeAllData){
@@ -269,13 +270,9 @@ export default class App extends React.Component {
         })
       }
       console.log(newTreeData)
-      tree.loadData(newTreeData,true)
+      tree.loadData(newTreeData,false,openNodes)
 
-      for(let nodeId of openNodes){
-        const node = tree.getNodeById(nodeId)
-        tree.openNode(node,void 0,true)
-      }
-      tree.update()
+      localStorage.setItem("history-sidebar-open-node",prevState)
     }, 200)
   }
 
@@ -335,25 +332,16 @@ class Contents extends React.Component {
   }
 
   loadAllData(){
+    const prevState = localStorage.getItem("history-sidebar-open-node")
     const start = Date.now()
     getAllChildren('root').then(data=>{
       console.log(Date.now() - start)
       treeAllData = data
       const tree = this.refs.iTree.tree
-      tree.loadData(data,true)
+
+      localStorage.setItem("history-sidebar-open-node",prevState)
+      tree.loadData(data,false,prevState ? prevState.split("\t",-1) : '24 Hours Ago')
       console.log(Date.now() - start)
-      const prevState  = localStorage.getItem("history-sidebar-open-node")
-      if(prevState){
-        const openNodes = prevState.split("\t",-1)
-        for(let nodeId of openNodes){
-          const node = tree.getNodeById(nodeId)
-          tree.openNode(node,void 0,true)
-        }
-        tree.update()
-      }
-      else{
-        tree.openNode(tree.getChildNodes()[0])
-      }
       console.log((Date.now() - window.start)/1000)
     })
   }

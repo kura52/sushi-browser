@@ -18,11 +18,13 @@ const settingDefault =  {
   scrollTab: true,
   doubleShift: true,
   tripleClick: true,
+  historyFull: true,
   syncScrollMargin: 30,
   contextMenuSearchEngines: ["Google","google past year and normal","google multi search"],
 
   bindMarginFrame: isLinux ? 6 : 0,
   bindMarginTitle: isLinux ? 24  : 0,
+
 
   //keyboard shortcut default
   keyQuit: 'CmdOrCtrl+Q',

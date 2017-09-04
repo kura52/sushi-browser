@@ -258,16 +258,8 @@ export default class App extends React.Component {
     const tree = this.refs.content.refs.iTree.tree
 
 
-    tree.loadData(this.recurNewTreeData(treeAllData,reg),true)
-    if(prevState){
-      const openNodes = prevState.split("\t",-1)
-      openNodes.sort((a,b)=>a.split("/").length - b.split("/").length )
-      for(let nodeId of openNodes){
-        const node = tree.getNodeById(nodeId)
-        tree.openNode(node,void 0,true)
-      }
-    }
-    tree.update()
+    const openNodes = prevState ? prevState.split("\t",-1) : (void 0)
+    tree.loadData(this.recurNewTreeData(treeAllData,reg),false,openNodes)
 
     localStorage.setItem("favorite-sidebar-open-node",prevState)
 
@@ -326,18 +318,11 @@ class Contents extends React.Component {
     getAllChildren('root').then(data=>{
       console.log(data)
       treeAllData = data
-      tree.loadData(data,true);
 
       localStorage.setItem("favorite-sidebar-open-node",prevState)
-      if(prevState){
-        const openNodes = prevState.split("\t",-1)
-        openNodes.sort((a,b)=>a.split("/").length - b.split("/").length )
-        for(let nodeId of openNodes){
-          const node = tree.getNodeById(nodeId)
-          tree.openNode(node,void 0,true)
-        }
-      }
-      tree.update()
+      const openNodes = prevState ? prevState.split("\t",-1) : (void 0)
+      tree.loadData(data,false,openNodes)
+
     })
   }
 

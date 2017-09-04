@@ -29,7 +29,11 @@ const ipc = chrome.ipcRenderer
 if(location.href.startsWith('http') && window == window.parent){
   document.addEventListener("DOMContentLoaded",_=>{
     setTimeout(_=>{
-      ipc.send('get-inner-text',location.href,document.title,document.documentElement.innerText)
+      const key = Math.random().toString()
+      ipc.send('need-get-inner-text',key)
+      ipc.once(`need-get-inner-text-reply_${key}`,(e,result)=>{
+        if(result) ipc.send('get-inner-text',location.href,document.title,document.documentElement.innerText)
+      })
     },1000)
   })
 }

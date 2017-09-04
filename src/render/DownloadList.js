@@ -39,6 +39,7 @@ export default class DownloadList extends Component{
         this.setState({visible: true})
       }
       this.state.downloads.set(item.savePath,item)
+      console.log(item)
       this.setState({})
     }
     ipc.on('download-progress',this.events['download-progress'] )
@@ -126,7 +127,7 @@ export default class DownloadList extends Component{
 
     const downloadList = []
     for (let item of arr) {
-      console.log(item)
+      // console.log(item)
       downloadList.push(this.buildItem(item))
     }
 
@@ -145,7 +146,7 @@ export default class DownloadList extends Component{
             cont = c
             break
           }
-          console.log(cont.getURL())
+          // console.log(cont.getURL())
           cont.hostWebContents.send('new-tab', cont.getId(), 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html')
         }} />
       </div>

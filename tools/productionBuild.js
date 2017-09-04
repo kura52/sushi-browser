@@ -54,7 +54,7 @@ function fixForInferno(file){
 
 function build(){
   const platform = isLinux ? 'linux' : isWindows ? 'win32' : isDarwin ? 'darwin' : 'mas'
-  const ret = sh.exec(`node ./node_modules/electron-packager/cli.js . ${isWindows ? 'brave' : 'sushi-browser'} --platform=${platform} --arch=x64 --overwrite --icon=${appIcon} --version=${MUON_VERSION}  --asar=false --app-version=${APP_VERSION} --build-version=${MUON_VERSION} --protocol="http" --protocol-name="HTTP Handler" --protocol="https" --protocol-name="HTTPS Handler" --version-string.ProductName="Sushi Browser" --version-string.Copyright="Copyright 2017, Sushi Browser" --version-string.FileDescription="Sushi" --ignore="\\.(cache|babelrc|gitattributes|githug|gitignore|gitattributes|gitignore|gitkeep|gitmodules)|node_modules/(electron-installer-squirrel-windows|electron-installer-debian|node-gyp|npm|electron-download|electron-rebuild|electron-packager|electron-builder|electron-prebuilt|electron-rebuild|electron-winstaller-fixed|muon-winstaller|electron-installer-redhat|react-addons-perf|babel-polyfill|infinite-tree|babel-register|jsx-to-string|happypack|es5-ext|browser-sync-ui|gulp-uglify|devtron|electron$|deasync|webpack|babel-runtime|uglify-es)|tools|sushi-browser-|release-packed"`)
+  const ret = sh.exec(`node ./node_modules/electron-packager/cli.js . ${isWindows ? 'brave' : 'sushi-browser'} --platform=${platform} --arch=x64 --overwrite --icon=${appIcon} --version=${MUON_VERSION}  --asar=false --app-version=${APP_VERSION} --build-version=${MUON_VERSION} --protocol="http" --protocol-name="HTTP Handler" --protocol="https" --protocol-name="HTTPS Handler" --version-string.ProductName="Sushi Browser" --version-string.Copyright="Copyright 2017, Sushi Browser" --version-string.FileDescription="Sushi" --ignore="\\.(cache|babelrc|gitattributes|githug|gitignore|gitattributes|gitignore|gitkeep|gitmodules)|node_modules/(electron-installer-squirrel-windows|electron-installer-debian|node-gyp|npm|electron-download|electron-rebuild|electron-packager|electron-builder|electron-prebuilt|electron-rebuild|electron-winstaller-fixed|muon-winstaller|electron-installer-redhat|react-addons-perf|babel-polyfill|infinite-tree|babel-register|jsx-to-string|happypack|es5-ext|browser-sync-ui|gulp-uglify|devtron|electron$|deasync|webpack|babel-runtime|uglify-es)|tools|sushi-browser-|release-packed|cppunitlite|happypack|es3ify"`)
 
   muonModify()
 
@@ -171,7 +171,54 @@ sh.rm('-rf', 'lib')
 sh.rm('-rf', 'dist')
 sh.rm('-rf', '.git')
 sh.rm('-rf', '.idea')
+sh.rm('-rf', 'ja')
+sh.rm('-rf', 'README.md')
 sh.rm('resource/extension/default/1.0_0/js/vendor.dll.js')
+
+sh.rm('-rf','resource/bin/aria2/mac')
+sh.rm('-rf','resource/bin/aria2/win')
+
+glob.sync(`${pwd}/**/*.js.map`).forEach(file=>{
+  fs.unlinkSync(file)
+})
+
+const chrome_valid = new RegExp(`^(${['994289308992179865',
+  '1725149567830788547',
+  '4643612240819915418',
+  '4256316378292851214',
+  '2019718679933488176',
+  '782057141565633384',
+  '5116628073786783676',
+  '1465176863081977902',
+  '3007771295016901659',
+  '5078638979202084724',
+  '4589268276914962177',
+  '3551320343578183772',
+  '2448312741937722512',
+  '1524430321211440688',
+  '42126664696688958',
+  '2663302507110284145',
+  '3635030235490426869',
+  '4888510611625056742',
+  '5860209693144823476',
+  '5846929185714966548',
+  '7955383984025963790',
+  '3128230619496333808',
+  '3391716558283801616',
+  '6606070663386660533',
+  '9011178328451474963',
+  '9065203028668620118'].join("|")})`)
+
+
+
+glob.sync(`${pwd}/resource/extension/default/1.0_0/locales/**/chrome.properties`).forEach(file=>{
+  const datas = fs.readFileSync(file).toString()
+  const ret = []
+  for(let line of datas.split("\n")){
+    if(line.match(chrome_valid)) ret.push(line)
+  }
+  fs.writeFileSync(file, ret.join("\n"))
+})
 
 
 // Remove vender-all

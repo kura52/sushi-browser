@@ -114,10 +114,13 @@ class TopMenu extends React.Component {
     super(props)
     this.state = {items:['48 Hours Ago','7 Days Ago','30 Days Ago','All'], activeItem: '48 Hours Ago' }
     this.updateDatas = []
+    this.token = {}
+    this.cond = {}
+
   }
 
   componentDidMount() {
-    fetchHistory({})
+    fetchHistory(this.cond)
     historyReply((data)=>{
       this.list = new HistoryList().build(data)
       if(this.clusterize){
@@ -138,7 +141,7 @@ class TopMenu extends React.Component {
 
     this.token = intervalRun(()=>{
       if(this.updateDatas.length > 0){
-        fetchHistory({})
+        fetchHistory(this.cond)
         this.updateDatas = []
       }
     },this.token)
@@ -146,16 +149,18 @@ class TopMenu extends React.Component {
 
   handleItemClick(e, { name }){
     this.setState({ activeItem: name })
-    let cond
     switch(name){
       case 'All':
-        this.token = onceRun(()=>fetchHistory({}),this.token)
+        this.cond = {}
+        this.token = onceRun(()=>fetchHistory(this.cond),this.token)
         break;
       case '48 Hours Ago':
-        this.token = intervalRun(()=>fetchHistory({start: moment().subtract(parseInt(name), 'hours').valueOf()}),this.token)
+        this.cond = {start: moment().subtract(parseInt(name), 'hours').valueOf()}
+        this.token = onceRun(()=>fetchHistory(this.cond),this.token)
         break;
       default:
-        this.token = onceRun(()=>fetchHistory({start: moment().subtract(parseInt(name), 'days').valueOf()}),this.token)
+        this.cond = {start: moment().subtract(parseInt(name), 'days').valueOf()}
+        this.token = onceRun(()=>fetchHistory(this.cond),this.token)
         break;
     }
 
@@ -169,7 +174,12 @@ class TopMenu extends React.Component {
     e.preventDefault()
     clearTimeout(this.timer);
     this.timer = setTimeout(()=>{
-      this.token = onceRun(()=>searchHistory(escapeRegExp(data.value).split(/[ 　]+/,-1).filter(x=>x)),this.token)
+      if(data.value){
+        this.token = onceRun(()=>searchHistory(escapeRegExp(data.value).split(/[ 　]+/,-1).filter(x=>x)),this.token)
+      }
+      else{
+        this.token = onceRun(()=>fetchHistory(this.cond),this.token)
+      }
     }, 200)
   }
 
@@ -187,6 +197,11 @@ class TopMenu extends React.Component {
               {/*})}*/}
               <Menu.Item key="history" name={l10n.translation('history')} active={true}/>
               <Menu.Item as='a' href={`${baseURL}/history_full.html`} key="history-full" name="Fulltext History"/>
+              <Menu.Menu >
+                <Menu.Item>
+                  <Input ref='input' icon='search' placeholder='Search...' onChange={::this.onChange}/>
+                </Menu.Item>
+              </Menu.Menu>
               <Menu.Item as='a' href={`${baseURL}/top.html`} key="top" name="Top" style={{
                 borderLeft: "2px solid rgba(34,36,38,.15)",
                 marginLeft: 20,
@@ -197,11 +212,6 @@ class TopMenu extends React.Component {
               <Menu.Item as='a' href={`${baseURL}/explorer.html`} key="file-explorer" name="File Explorer"/>
               <Menu.Item as='a' href={`${baseURL}/terminal.html`} key="terminal" name="Terminal"/>
               <Menu.Item as='a' href={`${baseURL}/settings.html`} key="settings" name={l10n.translation('settings')}/>
-              <Menu.Menu >
-                <Menu.Item>
-                  <Input ref='input' icon='search' placeholder='Search...' onChange={::this.onChange}/>
-                </Menu.Item>
-              </Menu.Menu>
             </Menu>
           </div>
         </Sticky>

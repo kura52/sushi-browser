@@ -736,8 +736,8 @@ class InfiniteTree extends events.EventEmitter {
     }
     // Loads data in the tree.
     // @param {object|array} data The data is an object or array of objects that defines the node.
-    loadData(data = [],noUpdate) {
-        this.nodes = flatten(data, { openAllNodes: this.options.autoOpen });
+    loadData(data = [],noUpdate,openNodes) {
+        this.nodes = flatten(data, { openNodes,openAllNodes: this.options.autoOpen });
 
         // Clear lookup table
         this.nodeTable.clear();

@@ -3,9 +3,9 @@ const path = require('path')
 const fs = require('fs')
 const glob = require("glob")
 
-const CODE_NAME = 'Tako(Octopus)'
+const CODE_NAME = 'Katsuo(Tuna)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.2.1"
+const NEXT_APP_VERSION = "0.3.0"
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

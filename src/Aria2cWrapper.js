@@ -6,7 +6,7 @@ const path = require('path')
 
 const binaryPath = path.join(__dirname, '../resource/bin/aria2',
   process.platform == 'win32' ? 'win/aria2c.exe' :
-  process.platform == 'darwin' ? 'mac/bin/aria2c' : 'linux/aria2c')
+    process.platform == 'darwin' ? 'mac/bin/aria2c' : 'linux/aria2c')
 
 
 
@@ -62,14 +62,14 @@ export default class Aria2cWrapper{
 
   errorCallback(){
     for(let c of this.errorCallbacks){
-      c()
+      setTimeout(c,100)
     }
     this.errorCallbacks = []
   }
 
   closeCallback(){
     for(let c of this.closeCallbacks){
-      c()
+      setTimeout(c,100)
     }
     this.closeCallbacks = []
   }
@@ -84,12 +84,14 @@ export default class Aria2cWrapper{
     const cookie = await getCookieStr(this.url)
 
     let params = cookie ? [`--header=Cookie:${cookie}`] : []
-    params = [...params,'-c',`-x${this.downloadNum}`,'--summary-interval=1','--file-allocation=none',
+    params = [...params,'-c',`-x${this.downloadNum}`,'--auto-file-renaming=false','--allow-overwrite=true',
+      '--check-certificate=false','--summary-interval=1','--file-allocation=none','--bt-metadata-only=true',
       `--user-agent=${process.userAgent}`,`--dir=${path.dirname(this.savePath)}`,`--out=${path.basename(this.savePath)}`,`${this.url}`]
 
     this.aria2c = spawn(binaryPath,params)
 
     this.aria2c.stdout.on('data', (data) => {
+      console.log(`***${data}`)
       const msg = data.toString()
       if(msg.includes('Status Legend:')){
         if(msg.includes('(OK)')){
@@ -117,6 +119,7 @@ export default class Aria2cWrapper{
       // console.log(`stdout: ${data}`);
     });
     this.aria2c.on('close', (code) => {
+      console.log(`*r**${code}`)
       if(this.status != 'PAUSE' && this.status != 'CANCEL' ) this.status = code === 0 ? 'COMPLETE' : 'ERROR'
       if(this.status == 'ERROR'){
         this.errorCallback()
@@ -158,6 +161,12 @@ export default class Aria2cWrapper{
     })
     this.closeCallback()
   }
+  kill(){
+    this.pause()
+    this.stdoutCallbacks = []
+    this.closeCallbacks = []
+    this.errorCallbacks = []
+  }
   canResume(){
     return fs.existsSync(this.savePath)
   }
@@ -180,14 +189,29 @@ export default class Aria2cWrapper{
     return getByte(this.total)
   }
   on(name, callback){
-    this.stdoutCallbacks.push(callback)
+    if(this.status == 'COMPLETE' || this.status == 'ERROR'){
+      setTimeout(callback,300)
+    }
+    else{
+      this.stdoutCallbacks.push(callback)
+    }
   }
   once(name, callback){
     if(name == 'done'){
-      this.closeCallbacks.push(callback)
+      if(this.status == 'COMPLETE'){
+        setTimeout(callback,300)
+      }
+      else{
+        this.closeCallbacks.push(callback)
+      }
     }
     else{
-      this.errorCallbacks.push(callback)
+      if(this.status == 'ERROR'){
+        setTimeout(callback,300)
+      }
+      else {
+        this.errorCallbacks.push(callback)
+      }
     }
   }
   aria2c(){

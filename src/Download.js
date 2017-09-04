@@ -62,11 +62,12 @@ export default class Download {
       timeMap.set(savePath, Date.now())
       if (retry.has(url)) {
         retry.delete(url)
+        this.downloadReady(item, url, webContents,win)
       }
       else {
-        console.log(JSON.stringify({a: mainState.downloadNum}))
+        // console.log(JSON.stringify({a: mainState.downloadNum}))
         const postData = process.downloadParams.get(url)
-        console.log(postData,url)
+        // console.log(postData,url)
         if(postData && (Date.now() - postData[1] < 100 * 1000)){
           process.downloadParams.delete(url)
           this.downloadReady(item, url, webContents,win)
@@ -83,7 +84,8 @@ export default class Download {
 
         dl.download().then(_=>{
           dl.once('error', (dl) => {
-            console.log(dl)
+            console.log('error')
+            // win.webContents.send('download-progress', this.buildItem(dl));
             if(!isError){
               isError = true
               retry.add(url)

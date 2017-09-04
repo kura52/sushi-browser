@@ -470,7 +470,7 @@ class Tabs extends React.Component {
   handleWheel(e){
     const moveKey = e.deltaY > 0 ? this._getNextTabKey(this.state.selectedTab) : this._getPrevTabKey(this.state.selectedTab)
     if(moveKey){
-      this.props.onTabSelect(e, moveKey, this.state.tabs);
+      this.props.onTabSelect(e, moveKey, this.state.tabs,true);
     }
   }
 

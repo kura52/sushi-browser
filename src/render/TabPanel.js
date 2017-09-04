@@ -1993,11 +1993,16 @@ export default class TabPanel extends Component {
     }
   }
 
-  handleTabSelect(e, key) {
+  handleTabSelect(e, key, scroll) {
     console.log('handleTabSelect key:', key)
 
     const tab = this.state.tabs.find(x => x.key == key)
     if(!tab) return
+
+    const selectedTab = this.state.tabs.find(x => x.key == this.state.selectedTab)
+    if(scroll && selectedTab.bind){
+      remote.getCurrentWindow()
+    }
 
     if(!this.isFixed){
       ipc.send("change-title",tab.page.title)

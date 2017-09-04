@@ -6,7 +6,7 @@ function isFixedPanel(key){
   return key.startsWith('fixed-')
 }
 
-
+const zIndexes = {}
 export default class PanelOverlay extends Component{
   constructor(props) {
     super(props)
@@ -26,9 +26,8 @@ export default class PanelOverlay extends Component{
     }
     this.fUpdate = true
     const max = {left: 9999999,top:9999999,width:window.innerWidth,height: window.innerHeight}
-    this.zIndexes = {}
     for(let ele of document.querySelectorAll('.rdTabBar.chrome-tabs-content,.tab-base')){
-      this.zIndexes[ele.className] = ele.style.zIndex
+      if(ele.style.zIndex != 11) zIndexes[ele] = ele.style.zIndex
       ele.style.zIndex = 11
     }
     const ele = document.querySelector(".dl-list")
@@ -52,7 +51,8 @@ export default class PanelOverlay extends Component{
 
   componentWillUnmount(){
     for(let ele of document.querySelectorAll('.rdTabBar.chrome-tabs-content,.tab-base')){
-      ele.style.zIndex = this.zIndexes[ele.className]
+      ele.style.zIndex = zIndexes[ele]
+      delete zIndexes[ele]
     }
     const ele = document.querySelector(".dl-list")
     if(ele) ele.style.zIndex = 2
