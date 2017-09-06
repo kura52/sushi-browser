@@ -31,6 +31,7 @@ const {messages,locale} = require('./localAndMessage')
 import ResizeObserver from 'resize-observer-polyfill'
 import uuid from 'node-uuid'
 const isDarwin = navigator.userAgent.includes('Mac OS X')
+const isWin = navigator.userAgent.includes('Windows')
 
 new Clipboard('.clipboard-btn')
 
@@ -160,27 +161,27 @@ class BrowserNavbar extends Component{
     //   currentIndex = cont.getCurrentEntryIndex();
     // }
     const ret = !(this.canGoBack === nextProps.page.canGoBack &&
-    this.canGoForward === nextProps.page.canGoForward &&
-    this.canRefresh === nextProps.page.canRefresh &&
-    this.location === nextProps.page.location &&
-    this.navUrl === nextProps.page.navUrl &&
-    this.props.toggleNav === nextProps.toggleNav &&
-    this.props.isTopRight === nextProps.isTopRight &&
-    this.props.isTopLeft === nextProps.isTopLeft &&
-    this.props.fullscreen === nextProps.fullscreen &&
-    (this.richContents||[]).length === (nextProps.richContents||[]).length &&
-    (this.caches||[]).length === (nextState.caches||[]).length &&
-    this.state.zoom === nextState.zoom &&
-    this.props.sync === nextProps.sync &&
-    this.props.oppositeMode === nextProps.oppositeMode &&
-    this.currentIndex == nextProps.page.entryIndex &&
-    this.props.bind == nextProps.bind &&
-    this.state.mobile == nextState.mobile &&
-    this.state.bindWindow == nextState.bindWindow &&
-    this.state.adBlockGlobal == nextState.adBlockGlobal &&
-    this.state.pdfMode == nextState.pdfMode &&
-    this.props.oppositeGlobal == nextProps.oppositeGlobal &&
-    this.state.adBlockThis == nextState.adBlockThis)
+      this.canGoForward === nextProps.page.canGoForward &&
+      this.canRefresh === nextProps.page.canRefresh &&
+      this.location === nextProps.page.location &&
+      this.navUrl === nextProps.page.navUrl &&
+      this.props.toggleNav === nextProps.toggleNav &&
+      this.props.isTopRight === nextProps.isTopRight &&
+      this.props.isTopLeft === nextProps.isTopLeft &&
+      this.props.fullscreen === nextProps.fullscreen &&
+      (this.richContents||[]).length === (nextProps.richContents||[]).length &&
+      (this.caches||[]).length === (nextState.caches||[]).length &&
+      this.state.zoom === nextState.zoom &&
+      this.props.sync === nextProps.sync &&
+      this.props.oppositeMode === nextProps.oppositeMode &&
+      this.currentIndex == nextProps.page.entryIndex &&
+      this.props.bind == nextProps.bind &&
+      this.state.mobile == nextState.mobile &&
+      this.state.bindWindow == nextState.bindWindow &&
+      this.state.adBlockGlobal == nextState.adBlockGlobal &&
+      this.state.pdfMode == nextState.pdfMode &&
+      this.props.oppositeGlobal == nextProps.oppositeGlobal &&
+      this.state.adBlockThis == nextState.adBlockThis)
     if(ret){
       this.canGoBack = nextProps.page.canGoBack
       this.canGoForward = nextProps.page.canGoForward
@@ -332,7 +333,7 @@ class BrowserNavbar extends Component{
     return ret
   }
 
-  _bindWindow({win}){
+  _bindWindow({win,hwnd=false}){
     win = win || remote.getCurrentWindow()
     const tab = this.props.tab
     for(let ele of document.querySelectorAll('.browser-page-wrapper.visible')){
@@ -368,6 +369,7 @@ class BrowserNavbar extends Component{
             tab.bind ={
               id,
               win,
+              hwnd,
               token,
               interval,
               observe: [ro,wv],
@@ -380,7 +382,7 @@ class BrowserNavbar extends Component{
               },
               blur: e=>{
                 console.log('blur')
-                ipc.send('set-pos-window',{id,top:'not-above',active:tab.key == this.props.parent.state.selectedTab})
+                ipc.send('set-pos-window',{id,top:'not-above',hwnd:tab.bind.hwnd,active:tab.key == this.props.parent.state.selectedTab})
               },
               focus:e=>{
                 console.log('focus')
@@ -402,11 +404,24 @@ class BrowserNavbar extends Component{
 
   bindWindow(){
     const win = remote.getCurrentWindow()
-    win.once('blur',_=>{
-      this.setState({bindWindow:false})
-      this._bindWindow({win})
-    })
-    this.setState({bindWindow:true})
+    if(isWin){
+      const key = uuid.v4()
+      ipc.send('get-win-hwnd',key)
+      ipc.once(`get-win-hwnd-reply_${key}`,(e,hwnd)=>{
+        win.once('blur',_=>{
+          this.setState({bindWindow:false})
+          this._bindWindow({win,hwnd})
+        })
+        this.setState({bindWindow:true})
+      })
+    }
+    else{
+      win.once('blur',_=>{
+        this.setState({bindWindow:false})
+        this._bindWindow({win})
+      })
+      this.setState({bindWindow:true})
+    }
   }
 
   mainMenu(cont,tab){
@@ -414,12 +429,12 @@ class BrowserNavbar extends Component{
     return <NavbarMenu k={this.props.k} isFloat={isFloatPanel(this.props.k)} style={{overflowX: 'visible'}}
                        title={locale.translation('settings')} icon="bars" tab={tab.bind && tab}
                        onClick={_=>{
-      PubSub.publishSync(`zoom_${this.props.tabkey}`,this.getWebContents(this.props.tab).getZoomPercent())
-      if(tab.bind){
-        ipc.send('set-pos-window',{id:tab.bind.id,top:'not-above'})
-      }
-    }
-    }>
+                         PubSub.publishSync(`zoom_${this.props.tabkey}`,this.getWebContents(this.props.tab).getZoomPercent())
+                         if(tab.bind){
+                           ipc.send('set-pos-window',{id:tab.bind.id,hwnd:tab.bind.hwnd,top:'not-above'})
+                         }
+                       }
+                       }>
       <NavbarMenuBarItem>
         {this.browserAction(cont)}
         <BrowserNavbarBtn title={locale.translation("downloads")} icon="download" onClick={this.onCommon.bind(this,"download")}/>

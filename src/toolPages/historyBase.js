@@ -340,7 +340,7 @@ class Contents extends React.Component {
       const tree = this.refs.iTree.tree
 
       localStorage.setItem("history-sidebar-open-node",prevState)
-      tree.loadData(data,false,prevState ? prevState.split("\t",-1) : '24 Hours Ago')
+      tree.loadData(data,false,prevState ? prevState.split("\t",-1) : ['24 Hours Ago'])
       console.log(Date.now() - start)
       console.log((Date.now() - window.start)/1000)
     })

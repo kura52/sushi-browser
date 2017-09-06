@@ -14,6 +14,7 @@ const mainState = remote.require('./mainState')
 const ipc = require('electron').ipcRenderer
 const isDarwin = navigator.userAgent.includes('Mac OS X')
 
+const longPressMiddle = mainState.longPressMiddle
 
 require('inferno').options.recyclingEnabled = true; // Advanced optimisation
 global.lastMouseDownSet = new Set()
@@ -71,7 +72,7 @@ export default class MainContent extends Component{
 
     document.addEventListener('mouseup',e=>{
       global.middleButtonLongPressing = (void 0)
-      if(global.middleButtonPressing) global.middleButtonLongPressing = Date.now() - global.middleButtonPressing > 320
+      if(global.middleButtonPressing) global.middleButtonLongPressing = longPressMiddle && (Date.now() - global.middleButtonPressing > 320)
     },{passive:true})
 
     // For window level shortcuts that don't work as local shortcuts

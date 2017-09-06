@@ -441,12 +441,45 @@ ipcMain.on('menu-or-key-events',(e,name)=>{
   })
 })
 
+
+if(isWin) {
+  ipcMain.on('get-win-hwnd', async (e, key) => {
+    const winctl = require('winctl')
+    e.sender.send(`get-win-hwnd-reply_${key}`, winctl.GetActiveWindow().getHwnd())
+  })
+
+
+  ipcMain.on('set-active', async (e, key, hwnd) => {
+    const winctl = require('winctl')
+    const aWin = winctl.GetActiveWindow()
+    const aWinHwnd = aWin.getHwnd()
+    if(bindMap[key] === aWinHwnd){
+      setTimeout(_=>{
+        console.log('set-active')
+        aWin.setWindowPos(winctl.HWND.BOTTOM,0,0,0,0,19+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
+      },100)
+    }
+    // const win = (await winctl.FindWindows(win => (hwnd || hwndMap[key]) == win.getHwnd()))[0]
+    // setTimeout(_=>{
+    //   console.log('set-active')
+    //   win.setWindowPos(winctl.HWND.TOPMOST,0,0,0,0,19+1024)
+    //   win.setWindowPos(winctl.HWND.NOTOPMOST,0,0,0,0,19+1024)
+    // },100)
+  })
+
+}
+
 const restoredMap = {}
-ipcMain.on('set-pos-window',async (e,{id,key,x,y,width,height,top,active,tabId,checkClose,restore})=>{
+const hwndMap = {}
+const bindMap = {}
+ipcMain.on('set-pos-window',async (e,{id,hwnd,key,x,y,width,height,top,active,tabId,checkClose,restore})=>{
   const FRAME = parseInt(mainState.bindMarginFrame)
   const TITLE_BAR = parseInt(mainState.bindMarginTitle)
   if(isWin){
     let org
+    if(hwnd){
+      hwndMap[key] = hwnd
+    }
     const winctl = require('winctl')
     const win = id ? (await winctl.FindWindows(win => id == win.getHwnd()))[0] : winctl.GetActiveWindow()
     if(!id){
@@ -456,11 +489,15 @@ ipcMain.on('set-pos-window',async (e,{id,key,x,y,width,height,top,active,tabId,c
         return
       }
       win.setWindowLongPtr()
+      console.log('setWindowPos1')
       win.setWindowPos(0,0,0,0,0,39+1024)
+      bindMap[key] = win.getHwnd()
     }
 
-    if(restoredMap[key]){
+    if(restoredMap[key] !== (void 0)){
+      clearTimeout(restoredMap[key])
       win.setWindowLongPtr()
+      console.log('setWindowPos2')
       win.setWindowPos(0,0,0,0,0,39+1024);
       delete restoredMap[key]
     }
@@ -468,9 +505,17 @@ ipcMain.on('set-pos-window',async (e,{id,key,x,y,width,height,top,active,tabId,c
     if(restore){
       // console.log(32322,styleMap[key])
       win.setWindowLongPtrRestore()
+      console.log('setWindowPos3')
       win.setWindowPos(0,0,0,0,0,39+1024);
-      console.log(32323,win.getWindowLongPtr(-16))
-      restoredMap[key] = 1
+      console.log('setWindowPos51',win.getTitle())
+      const tid = setTimeout(_=>{
+        win.setWindowPos(winctl.HWND.NOTOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
+        // if(winctl.GetActiveWindow().getHwnd() !== id){
+        win.setWindowPos(winctl.HWND.BOTTOM,0,0,0,0,19+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
+        // }
+      },100)
+      restoredMap[key] = tid
+      return
     }
 
     if(checkClose || !win){
@@ -490,13 +535,22 @@ ipcMain.on('set-pos-window',async (e,{id,key,x,y,width,height,top,active,tabId,c
         width = scaling(Math.max(0,width - FRAME))
         height = scaling(Math.max(0,height - (TITLE_BAR + FRAME)))
       }
-      console.log(top == 'above' ? winctl.HWND.TOPMOST : winctl.HWND.BOTTOM,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024)
+      // console.log(top == 'above' ? winctl.HWND.TOPMOST : winctl.HWND.BOTTOM,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024)
 
       if(top == 'above'){
+        console.log('setWindowPos4',win.getTitle())
         win.setWindowPos(winctl.HWND.TOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
       }
       else{
+        console.log('setWindowPos5',win.getTitle()) //hatudouriyuu
         win.setWindowPos(winctl.HWND.NOTOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
+
+        // if(winctl.GetActiveWindow().getHwnd() !== id) {
+        //   const eWin = (await winctl.FindWindows(win => (hwnd || hwndMap[key]) == win.getHwnd()))[0]
+        //   eWin.setWindowPos(winctl.HWND.TOPMOST, 0, 0, 0, 0, 19 + 1024)
+        //   eWin.setWindowPos(winctl.HWND.NOTOPMOST, 0, 0, 0, 0, 19 + 1024)
+        // }
+
         if(winctl.GetActiveWindow().getHwnd() !== id){
           win.setWindowPos(winctl.HWND.BOTTOM,0,0,0,0,19+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
         }
@@ -512,6 +566,7 @@ ipcMain.on('set-pos-window',async (e,{id,key,x,y,width,height,top,active,tabId,c
     }
     if(active) {
       const win2 = winctl.GetActiveWindow()
+      console.log('setWindowPos6',win.getTitle(),win2.getTitle())
       win.setWindowPos(winctl.HWND.TOPMOST,0,0,0,0,19+1024)
       win.setWindowPos(winctl.HWND.NOTOPMOST,0,0,0,0,19+1024)
       win2.setWindowPos(winctl.HWND.TOPMOST,0,0,0,0,19+1024)

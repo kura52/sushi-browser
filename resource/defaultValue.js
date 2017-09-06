@@ -19,6 +19,7 @@ const settingDefault =  {
   doubleShift: true,
   tripleClick: true,
   historyFull: true,
+  longPressMiddle: true,
   syncScrollMargin: 30,
   contextMenuSearchEngines: ["Google","google past year and normal","google multi search"],
 

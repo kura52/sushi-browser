@@ -165,7 +165,7 @@ const syncScrollMarginOptions = Array.from(new Array(21)).map((v,n)=>{
   return {value: n*5 ,text: `${n*5}px`}
 })
 
-const downloadNumOptions = Array.from(new Array(8)).map((v,n)=>{
+const downloadNumOptions = Array.from(new Array(16)).map((v,n)=>{
   return {value: n+1 ,text: n+1}
 })
 
@@ -291,6 +291,10 @@ fsdfs
           <br/>
           <Checkbox defaultChecked={this.state.historyFull} toggle onChange={this.onChange.bind(this,'historyFull')}/>
           <span className="toggle-label">Enable fulltext history search</span>
+          <br/>
+          <Checkbox defaultChecked={this.state.longPressMiddle} toggle onChange={this.onChange.bind(this,'longPressMiddle')}/>
+          <span className="toggle-label">Enable behavior change when long press of middle mouse button ({l10n.translation('requiresRestart').replace('* ','')})</span>
+
         </div>
         <br/>
 
@@ -672,7 +676,7 @@ const App = () => (
 )
 
 
-ipc.send("get-main-state",['startsWith','newTabMode','myHomepage','searchProviders','searchEngine','language','enableFlash','downloadNum','sideBarDirection','scrollTab','doubleShift','tripleClick','syncScrollMargin','contextMenuSearchEngines','ALL_KEYS','bindMarginFrame','bindMarginTitle','historyFull'])
+ipc.send("get-main-state",['startsWith','newTabMode','myHomepage','searchProviders','searchEngine','language','enableFlash','downloadNum','sideBarDirection','scrollTab','doubleShift','tripleClick','syncScrollMargin','contextMenuSearchEngines','ALL_KEYS','bindMarginFrame','bindMarginTitle','historyFull','longPressMiddle'])
 ipc.once("get-main-state-reply",(e,data)=>{
   generalDefault = data
   keyboardDefault = data

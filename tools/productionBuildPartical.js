@@ -161,6 +161,11 @@ sh.cd('../../')
 sh.cd(RELEASE_DIRECTORY)
 const pwd = sh.pwd().toString()
 console.log(pwd)
+
+glob.sync(`${pwd}/**/*.js.map`).forEach(file=>{
+  fs.unlinkSync(file)
+})
+
 build()
 
 

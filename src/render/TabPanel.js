@@ -24,6 +24,7 @@ const BrowserWindowPlus = remote.require('./BrowserWindowPlus')
 const moment = require('moment')
 const urlutil = require('./urlutil')
 const {messages,locale} = require('./localAndMessage')
+const isWin = navigator.userAgent.includes('Windows')
 
 const canFlash = mainState.flash
 let searchProviders,spAliasMap
@@ -1983,7 +1984,7 @@ export default class TabPanel extends Component {
         }
         if(tab.bind){
           console.log(88988,'tabchange')
-          ipc.send('set-pos-window',{id:tab.bind.id,top:isActive ? 'above' : 'not-above'})
+          ipc.send('set-pos-window',{id:tab.bind.id,hwnd:tab.bind.hwnd,top:isActive ? 'above' : 'not-above'})
         }
       }
       if(isActive || !allKeySame) changeTabInfos.push({tabId:tab.wvId,active:isActive,index:allKeySame ? (void 0) : (this.props.panelId*1000 + i++)})
@@ -2001,7 +2002,12 @@ export default class TabPanel extends Component {
 
     const selectedTab = this.state.tabs.find(x => x.key == this.state.selectedTab)
     if(scroll && selectedTab.bind){
-      remote.getCurrentWindow()
+      if(isWin){
+        ipc.send('set-active',this.state.selectedTab,selectedTab.bind.hwnd)
+      }
+      else{
+        remote.getCurrentWindow().focus()
+      }
     }
 
     if(!this.isFixed){
@@ -2027,7 +2033,7 @@ export default class TabPanel extends Component {
         win.removeListener('blur',tab.bind.blur)
         win.removeListener('focus',tab.bind.focus)
         console.log(889889,'close')
-        ipc.send('set-pos-window',{key:tab.key,id:tab.bind.id,top:'not-above',restore:true})
+        ipc.send('set-pos-window',{key:tab.key,id:tab.bind.id,hwnd:tab.bind.hwnd,top:'not-above',restore:true})
 
       }catch(e){
         console.log(2525,e)
@@ -2276,11 +2282,11 @@ export default class TabPanel extends Component {
       menuItems.push(({ label: 'Split Right', click: splitFunc.bind(this,'v',1) }))
       menuItems.push(({ label: 'Split Top', click: splitFunc.bind(this,'h',-1) }))
       menuItems.push(({ label: 'Split Bottom', click: splitFunc.bind(this,'h',1) }))
-    menuItems.push(({ type: 'separator' }))
-    // menuItems.push(({ label: 'Split Left Tabs to Left', click: splitOtherTabsFunc.bind(this,'v',-1) }))
-    menuItems.push(({ label: 'Split right tabs to right', click: splitOtherTabsFunc.bind(this,'v',1) }))
-    menuItems.push(({ label: 'Floating Panel', click: _=>detachToFloatPanel() }))
-    menuItems.push(({ type: 'separator' }))
+      menuItems.push(({ type: 'separator' }))
+      // menuItems.push(({ label: 'Split Left Tabs to Left', click: splitOtherTabsFunc.bind(this,'v',-1) }))
+      menuItems.push(({ label: 'Split right tabs to right', click: splitOtherTabsFunc.bind(this,'v',1) }))
+      menuItems.push(({ label: 'Floating Panel', click: _=>detachToFloatPanel() }))
+      menuItems.push(({ type: 'separator' }))
       menuItems.push(({ label: 'Swap Position', click: ()=> { PubSub.publish(`swap-position_${this.props.k}`)} }))
       menuItems.push(({ label: 'Switch Direction', click: ()=> { PubSub.publish(`switch-direction_${this.props.k}`)} }))
       menuItems.push(({ type: 'separator' }))
@@ -2673,7 +2679,7 @@ export default class TabPanel extends Component {
     let i = 0
     for(let url of urls) {
       const isFirst = i === 0 || (i === 1 && type == 'two')
-      const condBasic = type == 'basic' && checkOpposite && !isFloatPanel(this.props.k) && this.state.oppositeGlobal
+      const condBasic = type == 'basic' && checkOpposite && !isFloatPanel(this.props.k) && tab.oppositeMode
       const condTwo = type == 'two' && i % 2 == 1
       if (condBasic || condTwo) {
         const oppositeKey = this.props.getOpposite(this.props.k)
