@@ -185,7 +185,7 @@ sushi-browser --no-sandbox
 - 右クリックメニューの並び順の改善
 - マウスの中クリックの長押しと通常クリックの挙動を変更（通常クリックの場合、対面パネルにリンクが開かれる。長押しの場合は、同じパネルにbackgroundでリンクが開かれる）
 
-![Newv03](https://sushib.me/github/myimg/new_features_0.3.gif)
+![Newv03](https://sushib.me/myimg/new_features_0.3.gif)
 
 # TODO
 
