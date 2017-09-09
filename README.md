@@ -180,7 +180,7 @@ sushi-browser --no-sandbox
 - Improve right click menu line order
 - Changing the action of the mouse's middle click by pressing for a long time and clicking only. (For normal clicking, the opposite panel will be opened as link. When pressing for a long time, the same panel will be open in the background as link. )
 
-![Newv03](https://sushib.me/github/new_features_0.3.gif)
+![Newv03](https://sushib.me/github/myimg/new_features_0.3.gif)
 
 # TODO
 
