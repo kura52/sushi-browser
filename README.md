@@ -107,7 +107,7 @@ Muon is a framework for very fast browser with [Electron's](https://github.com/e
 
 #### 1. Download function
 - Video download: When downloading video and music information, download link is displayed automatically.  
-- Parallel download: For 1 file it can download with a maximum of 8 parallel downloads. 
+- Parallel download: For 1 file it can download with a maximum of 16 parallel downloads. 
 
 #### 2. Mouse gesture
 It can use mouse gestures from Chrome's extension features. Even in Mac and Linux it can be used with the same operability as in Windows. 
@@ -134,6 +134,7 @@ Both the installer for every platform and the portable version can be downloaded
 To use the portable edition, please run sushi.exe for Windows and sushi-browser for Mac/Linux after decompressing.
 
 - [Windows Installer v0.3.0](https://sushib.me/dl/sushi-browser-0.3.0-setup-x64.exe)
+- [Windows Portable v0.3.0(self-extract)](https://sushib.me/dl/sushi-browser-0.3.0-win-x64.exe)
 - [Windows Portable v0.3.0](https://sushib.me/dl/sushi-browser-0.3.0-win-x64.zip)
 - [MacOS dmg v0.3.0](https://sushib.me/dl/SushiBrowser-0.3.0.dmg)
 - [MacOS Portable v0.3.0](https://sushib.me/dl/sushi-browser-0.3.0-mac-x64.zip)
@@ -151,6 +152,34 @@ These will lower the security level but the following commands can be run.
 ```
 sushi-browser --no-sandbox
 ```
+
+# New Features
+#### New function(v0.30)
+- Able bind other windows to the panel (Only for Windows and Linux )  
+  Note:  Please install wmctrl when using on Linux. (apt-get install wmctrl or yum(dnf) install wmctrl)
+- Multiple search at the same time by right-clicked menu
+- Drop and drag to divide the panel
+- Download function is changed to Aria2's wrapper. It has better performance and stability. The limit of the maximum of parallel download will be changed to 16(Aria2's maximum).
+- Improvement of the sidebar bookmark and the history function.
+- Improvement of the top menu bookmark and the history function.
+- Mouse gesture for special pages like Top Page
+- Improvement of the behavior of the private tab
+- Introducing the full text search in history function (Experimental)
+- Deleting unnecessary data (Reducing some download size)
+
+#### New Function (v0.20-v0.21)
+- Search engines can be selected.
+- Multiple simultaneous search function, (For example, if you input "g4 word" in the address bar, you can search in multiple panels with different conditions simultaneously.)
+- Partial localize.
+- Addition of the setting pages.
+- Addition of the keyboard shortcuts and the setting page for the key bind.
+- Add a function to convert 1 window with multiple panels to multiple windows
+- Improve performance with MacOS
+- Add function of horizontal scrolling by using triple clicks
+- Add comic pdf viewer
+- Improve right click menu line order
+- Changing the action of the mouse's middle click by pressing for a long time and clicking only. (For normal clicking, the opposite panel will be opened as link. When pressing for a long time, the same panel will be open in the background as link. )
+
 
 # TODO
 

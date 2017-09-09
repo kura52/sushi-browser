@@ -608,7 +608,7 @@ div.item.favorite>ul>li>div>ul{
     background: gray;
     position: absolute;
     display: block;
-    opacity: 0.0001;
+    opacity: 0.01;
     /*transition: all 0.2s;*/
     z-index: 10;
 }

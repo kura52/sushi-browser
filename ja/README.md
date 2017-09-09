@@ -109,7 +109,7 @@ Muonは[Brave browser](https://github.com/brave/browser-laptop)で使用され�
 
 #### 1. ダウンロード機能
 - 動画ダウンロード：動画や音楽情報を検知すると、自動でダウンロードリンクを表示します。
-- 並列ダウンロード：1ファイルに対し、最大8並列までの並列ダウンロードが可能です。
+- 並列ダウンロード：1ファイルに対し、最大16並列までの並列ダウンロードが可能です。
 
 #### 2. マウスジェスチャー
 Chrome拡張機能によるマウスジェスチャーが利用できます。Mac、LinuxでもWindowsと同じ操作感で利用可能です。
@@ -136,6 +136,7 @@ Sync Data機能をOnにすると複数端末間で履歴とお気に入りの同
 各プラットフォームに対し、インストーラとポータブル版の両方がダウンロードできます。
 
 - [Windows Installer v0.3.0](https://sushib.me/dl/sushi-browser-0.3.0-setup-x64.exe)
+- [Windows Portable v0.3.0(自己解凍)](https://sushib.me/dl/sushi-browser-0.3.0-win-x64.exe)
 - [Windows Portable v0.3.0](https://sushib.me/dl/sushi-browser-0.3.0-win-x64.zip)
 - [MacOS dmg v0.3.0](https://sushib.me/dl/SushiBrowser-0.3.0.dmg)
 - [MacOS Portable v0.3.0](https://sushib.me/dl/sushi-browser-0.3.0-mac-x64.zip)
@@ -155,6 +156,34 @@ Flashが動かない場合、以下のサイトでFlashをインストールし�
 ```
 sushi-browser --no-sandbox
 ```
+
+# 新機能
+#### 新機能(v0.30)
+- 他のウインドウをパネルに吸着する機能（WindowsとLinuxのみ)  
+  注意：Linuxで利用する場合はwmctrlをインストールください。(apt-get install wmctrl  or yum(dnf) install wmctrl)  
+- 右クリックメニューで複数同時検索
+- ドロップアンドドラッグによるパネル分割機能
+- ダウンロード機能をAria2のラッパーに変更。性能および安定性の向上。最大分割数をaria2の最大数(16)に変更
+- サイドバーのBookmarkおよびHistory機能の改善
+- トップメニューのBookmarkおよびHistory機能の改善
+- Top pageのような特殊ページでのマウスジェスチャー
+- private tabの挙動改善
+- 履歴機能にFulltext検索機能の導入（Experimental)
+- 不要なデータの削除（若干のダウンロードサイズ減少）
+
+
+#### 新機能(v0.20-v0.21)
+- 検索エンジンを選択可能とした
+- 複数同時検索機能（例えば、アドレスバーにg4 wordと入力すると、複数のパネルに異なる条件で同時に検索が可能）
+- 部分的なローカライズ
+- 設定ページの追加
+- キーボード・ショートカットの追加および、キーバインドの設定ページの追加
+- １つのウインドウの複数のパネルを複数のウインドウに変換する機能を追加
+- MacOSでの挙動を改善
+- トリプルクリックによる水平方向のスクロール機能を追加
+- コミックpdfビューアの追加
+- 右クリックメニューの並び順の改善
+- マウスの中クリックの長押しと通常クリックの挙動を変更（通常クリックの場合、対面パネルにリンクが開かれる。長押しの場合は、同じパネルにbackgroundでリンクが開かれる）
 
 # TODO
 

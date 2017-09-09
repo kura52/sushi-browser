@@ -1,5 +1,6 @@
 import React,{Component} from 'react'
 const PubSub = require('./pubsub')
+const isDarwin = navigator.userAgent.includes('Mac OS X')
 
 const THRESHOLD = 100
 function isFixedPanel(key){
@@ -118,10 +119,10 @@ export default class PanelOverlay extends Component{
       const ov = this.state.overlay
       const o = !!ov.key
       const style = {left: ele.left - (o ? ov.left : max.left),top: ele.top - (o ? ov.top : max.top),width:ele.width,height:ele.height}
-      return <div key={i} className="tabs-layout-overlay" style={style} onDragLeave={this.handleMouseMove} onDragOver={this.handleMouseMove}/>
+      return <div key={i} className="tabs-layout-overlay" style={style} onDragLeave={isDarwin ? (void 0) : this.handleMouseMove} onDragOver={this.handleMouseMove}/>
     })
 
-    return <div className={`tabs-layout-overlay-wrapper${!this.state.overlay.key ? '' : ` visible ${this.state.overlay.dirc} o${this.state.overlay.key} o${this.state.overlay.tabKey}`}`} style={this.state.overlay.key ? this.state.overlay : max} onDragLeave={this.handleMouseMove} onDragOver={this.handleMouseMove}>
+    return <div className={`tabs-layout-overlay-wrapper${!this.state.overlay.key ? '' : ` visible ${this.state.overlay.dirc} o${this.state.overlay.key} o${this.state.overlay.tabKey}`}`} style={this.state.overlay.key ? this.state.overlay : max} onDragLeave={isDarwin ? (void 0) : this.handleMouseMove} onDragOver={this.handleMouseMove}>
       {overlays}
     </div>
   }
