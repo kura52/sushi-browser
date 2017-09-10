@@ -25,6 +25,8 @@ The concept of the "Sushi Browser" is wanting to utilize the screen to the maxim
 
 * [Use of Flash](#use-of-flash)
 
+* [New Features](#new-features)
+
 * [TODO](#todo)
 
 
