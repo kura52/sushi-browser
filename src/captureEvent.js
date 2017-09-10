@@ -3,7 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import { history,favicon,image } from './databaseFork'
 import uuid from 'node-uuid'
-import request from './request'
+import {request} from './request'
 const underscore = require('underscore')
 import {getFocusedWebContents} from './util'
 // require('locus')
@@ -73,7 +73,7 @@ const fetchFavIcon = (url, redirects) => {
   return new Promise((resolve,reject)=>{
 
     console.log(url)
-    request.request({ url: url, responseType: 'blob' }, (err, response, blob) => {
+    request({ url: url, responseType: 'blob' }, (err, response, blob) => {
       let matchP, prefix, tail
 
       if (err) {

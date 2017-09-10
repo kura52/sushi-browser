@@ -72,6 +72,7 @@ db.token = new Datastore({filename: path.join(resourcePath,'token.db'), autoload
   await db.favorite.ensureIndex({ fieldName: 'key' })
   await db.favicon.ensureIndex({ fieldName: 'url' })
   await db.image.ensureIndex({ fieldName: 'url' })
+
   // await db.searchHistory.ensureIndex({ fieldName: 'text' }).exec()
   // await db.searchHistory.ensureIndex({ fieldName: 'created_at' }).exec()
 })()

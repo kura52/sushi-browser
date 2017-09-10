@@ -80,6 +80,8 @@ module.exports.init = (verChange) => {
   })
 
   let loadExtension = (ses,extensionId, extensionPath, manifest = {}, manifestLocation = 'unpacked') => {
+    extensionPath = extensionPath.replace('app.asar/','app.asar.unpacked/')
+    console.log(path.join(extensionPath, 'manifest.json'))
     fs.exists(path.join(extensionPath, 'manifest.json'), (exists) => {
       if (exists) {
         ses.extensions.load(extensionPath, manifest, manifestLocation)
@@ -100,22 +102,22 @@ module.exports.init = (verChange) => {
   }
 
   let getPath = (appId) => {
-    // const extRootPath = path.join(app.getPath('userData'),'resource/extension')
-    const extRootPath = path.join(__dirname,'../../resource/extension')
+    const extRootPath = path.join(app.getPath('userData'),'resource/extension')
+    // const extRootPath = path.join(__dirname,'../../resource/extension').replace('app.asar/','app.asar.unpacked/')
     if(!fs.existsSync(extRootPath)) {
       fs.mkdirSync(extRootPath)
     }
     const appPath = path.join(extRootPath,appId)
-    const orgPath = path.join(__dirname,'../../resource/extension',appId)
-    // if(verChange || true || !fs.existsSync(appPath)){
-    //   if(fs.existsSync(orgPath)){
-    //     fs.copySync(orgPath, appPath)
-    //   }
-    //   else{
-    //     const dirPath = chromeExtensionPath(appId)
-    //     fs.copySync(dirPath, appPath)
-    //   }
-    // }
+    const orgPath = path.join(__dirname,'../../resource/extension',appId).replace('app.asar/','app.asar.unpacked/')
+    if(verChange || true || !fs.existsSync(appPath)){
+      if(fs.existsSync(orgPath)){
+        fs.copySync(orgPath, appPath)
+      }
+      else{
+        const dirPath = chromeExtensionPath(appId)
+        fs.copySync(dirPath, appPath)
+      }
+    }
     const version = fs.readdirSync(appPath).sort().pop()
     const basePath = path.join(appPath,version)
     return [appId,basePath]
@@ -147,7 +149,7 @@ module.exports.init = (verChange) => {
       loadExtension(ses,...getPath('occjjkgifpmdgodlplnacmkejpdionan'),(void 0),'component')
     }
 
-    const appIds = fs.readFileSync(path.join(__dirname,'../../resource/extensions.txt')).toString().split(/\r?\n/)
+    const appIds = fs.readFileSync(path.join(__dirname,'../../resource/extensions.txt').replace('app.asar/','app.asar.unpacked/')).toString().split(/\r?\n/)
     for(let appId of appIds) {
       if(appId.match(/^[a-z]+$/)){
         if(!first && appId == 'niloccemoadcdkdjlinkgdfekeahmflj') continue

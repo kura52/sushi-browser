@@ -26,6 +26,7 @@ const settingDefault =  {
   bindMarginFrame: isLinux ? 6 : 0,
   bindMarginTitle: isLinux ? 24  : 0,
 
+  checkedVersion: '0.00',
 
   //keyboard shortcut default
   keyQuit: 'CmdOrCtrl+Q',

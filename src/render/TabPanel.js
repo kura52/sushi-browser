@@ -13,7 +13,7 @@ const ipc = require('electron').ipcRenderer
 const path = require('path');
 const fs = remote.require('fs')
 const mkdirp = remote.require('mkdirp')
-const {favicon,history,media,favorite} = require('./databaseRender')
+const {favicon,history,media,favorite,syncReplace} = require('./databaseRender')
 const db = require('./databaseRender')
 const Notification = require('./Notification')
 const InputableDialog = require('./InputableDialog')
@@ -1376,6 +1376,18 @@ export default class TabPanel extends Component {
     }
     ipc.on('search-text', tab.events['search-text'])
 
+    tab.events['sync-replace-from-menu'] = async (e, id)=> {
+      if (!this.mounted) return
+      if (tab.wvId && id == tab.wvId) {
+      const rec = await syncReplace.findOne({key: 'syncReplace_0'})
+      if(rec){
+        console.log(777666,!tab.syncReplace,(rec.val.split("\t")))
+        this.refs[`navbar-${tab.key}`].refs.syncReplace.setVal(0,0,!tab.syncReplace)
+      }
+      }
+    }
+    ipc.on('sync-replace-from-menu', tab.events['sync-replace-from-menu'])
+
     tab.events['go-navigate'] = (e, id, type)=> {
       if (!this.mounted) return
       const cont = this.getWebContents(tab)
@@ -1780,14 +1792,14 @@ export default class TabPanel extends Component {
     const size = replaceInfo.length
     const info = replaceInfo[index >= size ? (size-1) : index]
 
-    const reg = this.buildRegExp(info[1])
+    const reg = this.buildRegExp(info[2])
     if(!reg) return url
 
-    const to = info[2].replace(/\$(\$\d)/g,`${this.uuid}$1a${this.uuid}`)
+    const to = info[3].replace(/\$(\$\d)/g,`${this.uuid}$1a${this.uuid}`)
 
     const ret = url.replace(reg,to)
-    console.log(to == info[2] ? ret : ret.replace(new RegExp(`${this.uuid}(.+?)a${this.uuid}`),(_,p1)=>encodeURIComponent(p1)))
-    return to == info[2] ? ret : ret.replace(new RegExp(`${this.uuid}(.+?)a${this.uuid}`),(_,p1)=>encodeURIComponent(p1))
+    console.log(to == info[3] ? ret : ret.replace(new RegExp(`${this.uuid}(.+?)a${this.uuid}`),(_,p1)=>encodeURIComponent(p1)))
+    return to == info[3] ? ret : ret.replace(new RegExp(`${this.uuid}(.+?)a${this.uuid}`),(_,p1)=>encodeURIComponent(p1))
 
   }
   componentWillMount(){

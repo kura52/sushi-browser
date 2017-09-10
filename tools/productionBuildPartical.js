@@ -38,6 +38,28 @@ function build(){
     sh.mv(`${buildDir}/brave.exe`, `${buildDir}/sushi.exe`)
   }
 
+    const pwd = sh.pwd().toString()
+  if(isDarwin){
+    sh.cd(`${buildDir}/sushi-browser.app/Contents/Resources`)
+  }
+  else{
+    sh.cd(`${buildDir}/resources`)
+  }
+  if(sh.exec('asar e app.asar app').code !== 0) {
+    console.log("ERROR5")
+    process.exit()
+  }
+  sh.rm('app.asar')
+  sh.rm('-rf','app/resource/bin')
+  sh.rm('-rf','app/resource/extension')
+
+  if(sh.exec('asar pack app app.asar').code !== 0) {
+    console.log("ERROR7")
+    process.exit()
+  }
+  sh.rm('-rf','app')
+  sh.cd(pwd)
+
   muonModify()
 
   if (isWindows) {

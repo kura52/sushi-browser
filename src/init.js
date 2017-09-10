@@ -91,9 +91,7 @@ global.rlog = (...args)=>{
   // setTimeout(_=>global.rlog(...args),3000)
 }
 
-let ptyProcessSet
-let passwordManager
-let extensionInfos
+let ptyProcessSet,passwordManager,extensionInfos,syncReplaceName
 app.on('ready', async ()=>{
   require('./captureEvent')
 
@@ -142,8 +140,20 @@ app.on('ready', async ()=>{
   extensions.init(setting.ver !== fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString())
   require('./faviconsEvent')(async _ => {
     await createWindow()
+
     require('./menuSetting')
     process.emit('app-initialized')
+
+    require('./checkUpdate')
+    const {syncReplace} = require('./databaseFork')
+    let rec
+    if(rec = await syncReplace.findOne({key: 'syncReplace_0'})){
+      syncReplaceName = rec.val.split("\t")[0]
+    }
+    else{
+      syncReplace.insert({key:'syncReplace_0',val:`${locale.translation('2473195200299095979')}\t(.+)\thttps://translate.google.co.jp/translate?sl=auto&ie=UTF-8&u=$$1`})
+      syncReplaceName = locale.translation('2473195200299095979')
+    }
   })
 })
 
@@ -366,6 +376,13 @@ process.on('add-new-contents', async (e, source, newTab, disposition, size, user
     console.log(3333,cont)
     if(!cont){
       source = await getFocusedWebContents()
+      if(!source){
+        setTimeout(async _=>{
+          source = await getFocusedWebContents()
+          source.hostWebContents.send('create-web-contents', { id: source.getId(), targetUrl, disposition, guestInstanceId: newTab.guestInstanceId })
+        },3000)
+        return
+      }
       cont = source.hostWebContents
     }
 
@@ -734,6 +751,7 @@ function contextMenu(webContents) {
         }
       })
       menuItems.push({label: locale.translation('print'), click: () => webContents.print()})
+      menuItems.push({label: syncReplaceName, click: (item, win) => win.webContents.send('sync-replace-from-menu', webContents.getId())})
       menuItems.push({type: 'separator'})
 
       menuItems.push({

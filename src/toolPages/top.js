@@ -5,6 +5,7 @@ const ipc = require('electron').ipcRenderer
 const path = require('path')
 const React = require('react')
 const ReactDOM = require('react-dom')
+const moment = require('moment')
 const { Container, Card, Menu, Input } = require('semantic-ui-react')
 const { StickyContainer, Sticky } = require('react-sticky');
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
@@ -147,10 +148,43 @@ class TopSearch extends React.Component {
 
 }
 
+class HistoryList{
+  build(data) {
+    const historyList = []
+    let pre = {location:false}
+    let count = 0
+    for(let h of data){
+      if(count > 14) break
+      if(h.location.startsWith('chrome-extension')) continue
+      h.updated_at = moment(h.updated_at).format("YYYY/MM/DD HH:mm:ss")
+      if(h.location !== pre.location){
+        historyList.push(this.buildItem(h))
+        count += 1
+        pre = h
+      }
+    }
+    return historyList
+  }
+
+
+  buildItem(h) {
+    const favicon = faviconGet(h)
+    return <div role="listitem" className="item">
+      <img src={favicon} style="width: 20px; height: 20px; float: left; margin-right: 4px; margin-top: 6px;"/>
+      <div className="content">
+        <a className="description" style="float:right;margin-right:15px;font-size: 12px">{h.updated_at.slice(5)}</a>
+        {!h.title ? "" : <a className="header" target="_blank" href={h.location}>{h.title.length > 55 ? `${h.title.substr(0, 55)}...` : h.title}</a>}
+        {!h.location ? "" : <a className="description" target="_blank" style="fontSize: 12px;" href={h.location}>{h.location.length > 125 ? `${h.location.substr(0, 125)}...` : h.location}</a>}
+      </div>
+    </div>;
+  }
+
+}
+
 class TopList extends React.Component {
   constructor(props) {
     super(props)
-    this.state = {history: []}
+    this.state = {history: {freq:[],upd:[]}}
   }
 
   componentDidMount() {
@@ -163,7 +197,7 @@ class TopList extends React.Component {
   render() {
     const topList = new Map()
     let pre = {location:false}
-    this.state.history.forEach((h,i)=>{
+    this.state.history.freq.forEach((h,i)=>{
       if(h.location.startsWith('chrome-extension')) return
       if(h.location === pre.location){
         if(!pre.title) pre.title = h.title
@@ -185,9 +219,16 @@ class TopList extends React.Component {
       result.push(val[0])
     }
 
-    return <Card.Group >
+    const hlist= new HistoryList().build(this.state.history.upd)
+
+    return <div><Card.Group >
       {result.slice(0,18)}
     </Card.Group>
+      <div className="ui divider"/>
+      <div role="list" className="ui divided relaxed list">
+        {hlist}
+      </div>
+    </div>
   }
 
   buildItem(h) {
@@ -196,7 +237,7 @@ class TopList extends React.Component {
       <Card.Description>
         {!h.title ? "" : <Card.Header as='a' href={h.location}><img src={favicon} style={{width: 16, height: 16, verticalAlign: "text-top"}}/>{multiByteSlice(h.title,32)} ({h.count}pv)</Card.Header>}
       </Card.Description>
-      {h.path ? <a href={h.location} style={{textAlign:"center"}}><img className="capture" style={{width:"160px",height:"120px",objectFit: "contain"}} src={`file://${resourcePath}/capture/${h.path}`}/></a> : null}
+      {h.path ? <a href={h.location} style={{textAlign:"center"}}><img className="capture" style={{width:160,height:100,objectFit: "contain"}} src={`file://${resourcePath}/capture/${h.path}`}/></a> : null}
     </Card>;
   }
 }

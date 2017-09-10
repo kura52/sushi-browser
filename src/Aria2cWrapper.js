@@ -6,7 +6,7 @@ const path = require('path')
 
 const binaryPath = path.join(__dirname, '../resource/bin/aria2',
   process.platform == 'win32' ? 'win/aria2c.exe' :
-    process.platform == 'darwin' ? 'mac/bin/aria2c' : 'linux/aria2c')
+    process.platform == 'darwin' ? 'mac/bin/aria2c' : 'linux/aria2c').replace('app.asar/','app.asar.unpacked/')
 
 
 

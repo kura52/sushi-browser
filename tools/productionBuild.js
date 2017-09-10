@@ -54,7 +54,29 @@ function fixForInferno(file){
 
 function build(){
   const platform = isLinux ? 'linux' : isWindows ? 'win32' : isDarwin ? 'darwin' : 'mas'
-  const ret = sh.exec(`node ./node_modules/electron-packager/cli.js . ${isWindows ? 'brave' : 'sushi-browser'} --platform=${platform} --arch=x64 --overwrite --icon=${appIcon} --version=${MUON_VERSION}  --asar=false --app-version=${APP_VERSION} --build-version=${MUON_VERSION} --protocol="http" --protocol-name="HTTP Handler" --protocol="https" --protocol-name="HTTPS Handler" --version-string.ProductName="Sushi Browser" --version-string.Copyright="Copyright 2017, Sushi Browser" --version-string.FileDescription="Sushi" --ignore="\\.(cache|babelrc|gitattributes|githug|gitignore|gitattributes|gitignore|gitkeep|gitmodules)|node_modules/(electron-installer-squirrel-windows|electron-installer-debian|node-gyp|npm|electron-download|electron-rebuild|electron-packager|electron-builder|electron-prebuilt|electron-rebuild|electron-winstaller-fixed|muon-winstaller|electron-installer-redhat|react-addons-perf|babel-polyfill|infinite-tree|babel-register|jsx-to-string|happypack|es5-ext|browser-sync-ui|gulp-uglify|devtron|electron$|deasync|webpack|babel-runtime|uglify-es)|tools|sushi-browser-|release-packed|cppunitlite|happypack|es3ify"`)
+  const ret = sh.exec(`node ./node_modules/electron-packager/cli.js . ${isWindows ? 'brave' : 'sushi-browser'} --platform=${platform} --arch=x64 --overwrite --icon=${appIcon} --version=${MUON_VERSION}  --asar=true --app-version=${APP_VERSION} --build-version=${MUON_VERSION} --protocol="http" --protocol-name="HTTP Handler" --protocol="https" --protocol-name="HTTPS Handler" --version-string.ProductName="Sushi Browser" --version-string.Copyright="Copyright 2017, Sushi Browser" --version-string.FileDescription="Sushi" --asar-unpack-dir="resource/{bin,extension}/**/*" --ignore="\\.(cache|babelrc|gitattributes|githug|gitignore|gitattributes|gitignore|gitkeep|gitmodules)|node_modules/(electron-installer-squirrel-windows|electron-installer-debian|node-gyp|npm|electron-download|electron-rebuild|electron-packager|electron-builder|electron-prebuilt|electron-rebuild|electron-winstaller-fixed|muon-winstaller|electron-installer-redhat|react-addons-perf|babel-polyfill|infinite-tree|babel-register|jsx-to-string|happypack|es5-ext|browser-sync-ui|gulp-uglify|devtron|electron$|deasync|webpack|babel-runtime|uglify-es)|tools|sushi-browser-|release-packed|cppunitlite|happypack|es3ify"`)
+
+  const pwd = sh.pwd().toString()
+  if(isDarwin){
+    sh.cd(`${buildDir}/sushi-browser.app/Contents/Resources`)
+  }
+  else{
+    sh.cd(`${buildDir}/resources`)
+  }
+  if(sh.exec('asar e app.asar app').code !== 0) {
+    console.log("ERROR5")
+    process.exit()
+  }
+  sh.rm('app.asar')
+  sh.rm('-rf','app/resource/bin')
+  sh.rm('-rf','app/resource/extension')
+
+  if(sh.exec('asar pack app app.asar').code !== 0) {
+    console.log("ERROR7")
+    process.exit()
+  }
+  sh.rm('-rf','app')
+  sh.cd(pwd)
 
   muonModify()
 
@@ -163,6 +185,10 @@ sh.cd(RELEASE_DIRECTORY)
 const pwd = sh.pwd().toString()
 console.log(pwd)
 
+  // sh.rm('-rf','sushi-browser-*')
+  // build()
+
+
 
 // Remove No Develop Directory
 sh.rm('-rf', 'release-packed')
@@ -207,7 +233,8 @@ const chrome_valid = new RegExp(`^(${['994289308992179865',
   '3391716558283801616',
   '6606070663386660533',
   '9011178328451474963',
-  '9065203028668620118'].join("|")})`)
+  '9065203028668620118',
+  '2473195200299095979'].join("|")})`)
 
 
 

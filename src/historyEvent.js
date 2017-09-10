@@ -25,7 +25,9 @@ ipcMain.on('fetch-frequently-history', async (event, range) => {
   console.log(range)
   const data = await history.find_sort_limit([{}],[{ count: -1 }],[80])
   const images = await image.find({ url: { $in: data.map(x=>x.location) }})
-  event.sender.send('history-reply', data.map(x=>{
+  const data2 = await history.find_sort_limit([{}],[{ updated_at: -1 }],[30])
+
+  event.sender.send('history-reply', {freq:data.map(x=>{
     if(!x.capture){
       const img = images.find(im=>im.url == x.location)
       if(img){
@@ -33,7 +35,7 @@ ipcMain.on('fetch-frequently-history', async (event, range) => {
       }
     }
     return {...x, path:x.capture ? x.capture : (void 0)}
-  }));
+  }),upd:data2});
 })
 
 ipcMain.on('search-history', async (event, cond, full=false,limit) => {

@@ -447,7 +447,7 @@ i.private-mode,i.pin-mode {
 }
 
 div.menu.visible.transition.nav-menu.sync-replace{
-    width: 320px!important;
+    width: 450px!important;
     left: -70px;
     top: 16px !important;
 }

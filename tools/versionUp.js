@@ -5,7 +5,7 @@ const glob = require("glob")
 
 const CODE_NAME = 'Katsuo(Tuna)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.3.0"
+const NEXT_APP_VERSION = "0.3.1"
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'
@@ -71,7 +71,7 @@ console.log(pwd)
 
 fileContentsReplace(path.join(pwd,'package.json'),`"version": "${CURRENT_APP_VERSION}"`,`"version": "${NEXT_APP_VERSION}"`)
 fileContentsReplace(path.join(pwd,'VERSION.txt'),/.+/,NEXT_APP_VERSION)
-filesContentsReplace([path.join(pwd,'README.md'),path.join(pwd,'ja','README.md')],CURRENT_APP_VERSION,NEXT_APP_VERSION)
+filesContentsReplace([path.join(pwd,'../web/check.json'),path.join(pwd,'README.md'),path.join(pwd,'ja','README.md')],CURRENT_APP_VERSION,NEXT_APP_VERSION)
 
 const htmls = []
 glob.sync(`${pwd}/../web/**/index.html`).forEach(file=>{

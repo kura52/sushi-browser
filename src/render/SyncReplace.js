@@ -18,12 +18,13 @@ export default class SyncReplace extends Component {
         const item = items.find(x=>x.key == this.getInd(i))
         console.log(item)
         if(item){
-          const vals = item.val.split("\t",-1)
+          let vals = item.val.split("\t",-1)
+          if(vals.length == 2) vals = ["",...vals]
           vals.unshift(false)
           this.state[this.getInd(i)] = vals
         }
         else{
-          this.state[this.getInd(i)] = [false,"",""]
+          this.state[this.getInd(i)] = [false,"","",""]
         }
       }
     })()
@@ -115,10 +116,13 @@ export default class SyncReplace extends Component {
           <label />
         </div>
         <div className="ui mini icon input" style={{width: 120}}>
-          <input type="text" placeholder="Search" value={vals[1]} onChange={(e) => this.setVal(i,1,e.target.value)} onBlur={this.handleBlur}/>
+          <input type="text" placeholder="Name" value={vals[1]} onChange={(e) => this.setVal(i,1,e.target.value)} onBlur={this.handleBlur}/>
         </div>
         <div className="ui mini icon input" style={{width: 120}}>
-          <input type="text" placeholder="Replace"  value={vals[2]} onChange={(e) => this.setVal(i,2,e.target.value)} onBlur={this.handleBlur}/>
+          <input type="text" placeholder="Search" value={vals[2]} onChange={(e) => this.setVal(i,2,e.target.value)} onBlur={this.handleBlur}/>
+        </div>
+        <div className="ui mini icon input" style={{width: 120}}>
+          <input type="text" placeholder="Replace"  value={vals[3]} onChange={(e) => this.setVal(i,3,e.target.value)} onBlur={this.handleBlur}/>
         </div>
       </div>)
     }
