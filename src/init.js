@@ -139,7 +139,7 @@ app.on('ready', async ()=>{
   extensions = require('../brave/extension/extensions')
   extensions.init(setting.ver !== fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString())
   require('./faviconsEvent')(async _ => {
-    await createWindow()
+    await createWindow(true)
 
     require('./menuSetting')
     process.emit('app-initialized')
@@ -151,7 +151,7 @@ app.on('ready', async ()=>{
       syncReplaceName = rec.val.split("\t")[0]
     }
     else{
-      syncReplace.insert({key:'syncReplace_0',val:`${locale.translation('2473195200299095979')}\t(.+)\thttps://translate.google.co.jp/translate?sl=auto&ie=UTF-8&u=$$1`})
+      syncReplace.insert({key:'syncReplace_0',val:`${locale.translation('2473195200299095979')}\t(.+)\thttps://translate.google.co.jp/translate?sl=auto&tl=${mainState.lang}&hl=${mainState.lang}&ie=UTF-8&u=$$1`})
       syncReplaceName = locale.translation('2473195200299095979')
     }
   })
@@ -440,8 +440,8 @@ function setFlash(app){
   }
 }
 
-function createWindow (opt) {
-  const initWindow = BrowserWindowPlus.load(opt)
+function createWindow (first) {
+  const initWindow = BrowserWindowPlus.load((void 0),first)
   return initWindow
 }
 

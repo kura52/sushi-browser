@@ -459,14 +459,14 @@ exports.init = function (language) {
   const appendLangProperties = function (lang) {
     // Property files to parse (only ones containing menu specific identifiers)
     propertyFiles.push(
-      path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'menu.properties').replace('app.asar/','app.asar.unpacked/'),
-      path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'app.properties').replace('app.asar/','app.asar.unpacked/'),
-      path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'error.properties').replace('app.asar/','app.asar.unpacked/'),
-      path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'passwords.properties').replace('app.asar/','app.asar.unpacked/'),
-      path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'common.properties').replace('app.asar/','app.asar.unpacked/'),
-      path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'newtab.properties').replace('app.asar/','app.asar.unpacked/'),
-      path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'preferences.properties').replace('app.asar/','app.asar.unpacked/'),
-      path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'chrome.properties').replace('app.asar/','app.asar.unpacked/'))
+      path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'menu.properties').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'),
+      path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'app.properties').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'),
+      path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'error.properties').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'),
+      path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'passwords.properties').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'),
+      path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'common.properties').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'),
+      path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'newtab.properties').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'),
+      path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'preferences.properties').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'),
+      path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'chrome.properties').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'))
   }
 
   appendLangProperties(lang)

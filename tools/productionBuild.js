@@ -70,6 +70,7 @@ function build(){
   sh.rm('app.asar')
   sh.rm('-rf','app/resource/bin')
   sh.rm('-rf','app/resource/extension')
+  sh.cp(`${pwd}/resource/extensions.txt`, `app.asar.unpacked/resource/.`)
 
   if(sh.exec('asar pack app app.asar').code !== 0) {
     console.log("ERROR7")

@@ -24,8 +24,14 @@ global.zoomMapping = new Map([
   [110,1],[125,2],[150,3],[175,4],[200,5],[250,6],[300,7],[400,8],[500,9]
 ])
 
-for(let [url,path] of Object.entries(mainState.favicons)){
-  localStorage.setItem(url,path)
+if(location.href.endsWith("index.html#")){
+  try{
+    for(let [url,path] of Object.entries(mainState.favicons)){
+      localStorage.setItem(url,path)
+    }
+  }catch(e){
+    console.log(e)
+  }
 }
 
 

@@ -133,14 +133,14 @@ This browser makes use of wonderful web technologies, starting with the followin
 Both the installer for every platform and the portable version can be downloaded.  
 To use the portable edition, please run sushi.exe for Windows and sushi-browser for Mac/Linux after decompressing.
 
-- [Windows Installer v0.3.0](https://sushib.me/dl/sushi-browser-0.3.0-setup-x64.exe)
-- [Windows Portable v0.3.0(self-extract)](https://sushib.me/dl/sushi-browser-0.3.0-win-x64.exe)
-- [Windows Portable v0.3.0](https://sushib.me/dl/sushi-browser-0.3.0-win-x64.zip)
-- [MacOS dmg v0.3.0](https://sushib.me/dl/SushiBrowser-0.3.0.dmg)
-- [MacOS Portable v0.3.0](https://sushib.me/dl/sushi-browser-0.3.0-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.3.0](https://sushib.me/dl/sushi-browser-0.3.0.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.3.0](https://sushib.me/dl/sushi-browser_0.3.0_amd64.deb)
-- [Linux Portable v0.3.0](https://sushib.me/dl/sushi-browser-0.3.0.tar.bz2)
+- [Windows Installer v0.3.1](https://sushib.me/dl/sushi-browser-0.3.1-setup-x64.exe)
+- [Windows Portable v0.3.1(self-extract)](https://sushib.me/dl/sushi-browser-0.3.1-win-x64.exe)
+- [Windows Portable v0.3.1](https://sushib.me/dl/sushi-browser-0.3.1-win-x64.zip)
+- [MacOS dmg v0.3.1](https://sushib.me/dl/SushiBrowser-0.3.1.dmg)
+- [MacOS Portable v0.3.1](https://sushib.me/dl/sushi-browser-0.3.1-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.3.1](https://sushib.me/dl/sushi-browser-0.3.1.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.3.1](https://sushib.me/dl/sushi-browser_0.3.1_amd64.deb)
+- [Linux Portable v0.3.1](https://sushib.me/dl/sushi-browser-0.3.1.tar.bz2)
 
 # Use of Flash 
 If Flash won't run, please install Flash from the following web sites.  
@@ -154,6 +154,14 @@ sushi-browser --no-sandbox
 ```
 
 # New Features
+
+#### New function(v0.31)
+- Add page translation function that use Simultaneous page transition to right click menu
+- Reduced the number of files using asar archive
+- Addition of update information notification
+- Add the latest history information to the top page
+- Improved performance when new window is opened
+
 #### New function(v0.30)
 - Able bind other windows to the panel (Only for Windows and Linux )  
   Note:  Please install wmctrl when using on Linux. (apt-get install wmctrl or yum(dnf) install wmctrl)
@@ -166,6 +174,7 @@ sushi-browser --no-sandbox
 - Improvement of the behavior of the private tab
 - Introducing the full text search in history function (Experimental)
 - Deleting unnecessary data (Reducing some download size)
+
 
 #### New Function (v0.20-v0.21)
 - Search engines can be selected.
@@ -180,14 +189,14 @@ sushi-browser --no-sandbox
 - Improve right click menu line order
 - Changing the action of the mouse's middle click by pressing for a long time and clicking only. (For normal clicking, the opposite panel will be opened as link. When pressing for a long time, the same panel will be open in the background as link. )
 
-![Newv03](https://sushib.me/myimg/new_features_0.3.gif)
+![Newv03](https://sushib.me/myimg/new_features5.gif)
 
 # TODO
 
 - Improved top page's customizability 
-- Modify prinave mode bugs
 - Enhanced Anything Search
 - Adblock control panel
+- Make multiple tabs selectable
 - can be selected as a standard browser
 - Addition of build method in the Readme
 - Refactoring, introduction of Mobx (currently closely integrated with the PubSub base) 

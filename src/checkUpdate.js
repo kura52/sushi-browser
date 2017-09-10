@@ -5,6 +5,8 @@ import {state} from './databaseFork'
 import mainState from './mainState'
 const locale = require('../brave/app/locale')
 const uuid = require('node-uuid')
+const path = require('path')
+const fs = require('fs')
 
 
 function checkUpdate(ver,checkedVersion){
@@ -30,7 +32,8 @@ function checkUpdate(ver,checkedVersion){
 }
 
 state.findOne({key: 1}).then(rec=>{
-  const {ver,checkedVersion} = rec
+  const {checkedVersion} = rec
+  const ver = fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString()
   setTimeout(_=>checkUpdate(ver,checkedVersion || '0.00'),1000)
 
   setInterval(_=>checkUpdate(ver,checkedVersion || '0.00'),1000*3600*5)

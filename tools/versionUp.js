@@ -91,8 +91,9 @@ glob.sync(`${pwd}/../${RELEASE_DIRECTORY}/release-packed/*`).forEach(file=>{
 })
 
 
-console.log(`Sushi Browser v${NEXT_APP_VERSION} ${CODE_NAME}`)
+console.log(`Sushi Browser v${NEXT_APP_VERSION}new_features5.gif ${CODE_NAME}
 
+## Applications`)
 let app = `sushi-browser-${NEXT_APP_VERSION}-setup-x64.exe`
 console.log(`- [Windows Installer v${NEXT_APP_VERSION} (${sizeMap[app]})](https://sushib.me/dl/${app})`)
 sizeAdd(htmls,app,sizeMap[app])
@@ -125,8 +126,6 @@ app = `sushi-browser-${NEXT_APP_VERSION}.tar.bz2`
 console.log(`- [Linux Portable v${NEXT_APP_VERSION} (${sizeMap[app]})](https://sushib.me/dl/${app})`)
 sizeAdd(htmls,app,sizeMap[app])
 
-console.log(`
-## Applications`)
 
 
 filesContentsReplace(path.join(pwd,'ja','README.md'),CURRENT_APP_VERSION,NEXT_APP_VERSION)

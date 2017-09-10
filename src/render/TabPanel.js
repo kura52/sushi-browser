@@ -578,7 +578,18 @@ export default class TabPanel extends Component {
     const tokenCloseSyncTabs = PubSub.subscribe('close-sync-tabs',(msg,{k,sync})=>{
       if(this.props.k == k || !sync) return
       const tab = this.state.tabs.find(x => x.sync == sync)
-      if(tab) this.handleTabClose({noSync: true},tab.key)
+      if(tab){
+        if(tab.syncReplace){
+          Array.from(new Array(5)).map((_,n)=>{
+            this.refs[`navbar-${tab.key}`].refs.syncReplace.setVal(n,0,false)
+          })
+          tab.syncReplace = void 0
+          tab.sync = void 0
+        }
+        else{
+          this.handleTabClose({noSync: true},tab.key)
+        }
+      }
     })
 
     const tokenSyncZoom = PubSub.subscribe('sync-zoom',(msg,{k,sync,percent})=>{
@@ -1381,7 +1392,7 @@ export default class TabPanel extends Component {
       if (tab.wvId && id == tab.wvId) {
       const rec = await syncReplace.findOne({key: 'syncReplace_0'})
       if(rec){
-        console.log(777666,!tab.syncReplace,(rec.val.split("\t")))
+        console.log(777666,tab.syncReplace,(rec.val.split("\t")))
         this.refs[`navbar-${tab.key}`].refs.syncReplace.setVal(0,0,!tab.syncReplace)
       }
       }
@@ -1633,7 +1644,7 @@ export default class TabPanel extends Component {
       let retryNum = 0
       let winInfos = this.props.getScrollPriorities((void 0),dirc)
       const index = winInfos.findIndex(x=>x[0] == this.props.k)
-      const winInfo = winInfos[index]
+      let winInfo = winInfos[index]
       console.log('sync-mode', url,dirc,sync,replaceInfo)
 
       const idParent = window.setInterval(()=> {
@@ -1651,8 +1662,10 @@ export default class TabPanel extends Component {
           }
           if (!tab.wv || !this.getWebContents(tab)) return
 
-          if(!winInfos){
-            winInfos = this.props.getScrollPriorities((void 0),dirc)
+          if(!winInfo){
+            const winInfos = this.props.getScrollPriorities(0, dirc);
+            const index = winInfos.findIndex(x => x[0] == this.props.k);
+            winInfo = winInfos[index];
           }
 
           exeScript(tab.wv,()=>clearInterval(id), ()=> {

@@ -15,24 +15,22 @@ const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
 import InfiniteTree from '../render/react-infinite-tree';
 import rowRenderer from '../render/react-infinite-tree/renderer';
 
-let resourcePath
-let setTime = localStorage.getItem('favicon-set')
-ipc.send("favicon-get",setTime ? parseInt(setTime) : null)
-ipc.once("favicon-get-reply",(e,ret)=>{
-  localStorage.setItem('favicon-set',Date.now().toString())
-  for(let [k,v] of Object.entries(ret)){
-    localStorage.setItem(k,v)
-  }
-})
+const isMain = location.href.startsWith("chrome://brave//")
+
+if(!isMain){
+  let setTime = localStorage.getItem('favicon-set')
+  ipc.send("favicon-get", setTime ? parseInt(setTime) : null)
+  ipc.once("favicon-get-reply", (e, ret) => {
+    localStorage.setItem('favicon-set', Date.now().toString())
+    for (let [k, v] of Object.entries(ret)) {
+      localStorage.setItem(k, v)
+    }
+  })
+}
 
 function faviconGet(x){
   return x.favicon == "resource/file.png" ? (void 0) : x.favicon && localStorage.getItem(x.favicon)
 }
-
-ipc.send("get-resource-path",{})
-ipc.once("get-resource-path-reply",(e,data)=>{
-  resourcePath = data
-})
 
 function escapeRegExp(string){
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
@@ -327,6 +325,7 @@ class Contents extends React.Component {
   }
 
   componentDidMount() {
+    if(isMain && !this.props.onClick) return
     this.loadAllData()
     this.eventUpdateDatas = (e,data)=>{
       this.loadAllData()

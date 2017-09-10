@@ -175,7 +175,7 @@ function setOptionVal(key,dVal,val){
 }
 
 export default {
-  async load(opt){
+  async load(opt,first){
     let initWindow
     const setting = await InitSetting.val
     let winSetting = opt ? getSize(opt) : {x: setting.x, y: setting.y, width: setting.width, height: setting.height, maximize: setting.maximize}
@@ -192,6 +192,7 @@ export default {
       }
       const lang = await locale.init(mainState.language)
       app.setLocale(lang)
+      mainState.lang = lang == 'zh-CN' ? lang : lang.slice(0,2)
 
 
       mainState.dragData = null
@@ -252,7 +253,11 @@ export default {
     if(winArg.y >= maxHeight) winArg.y = 100
 
     let getParam = ""
-    if(opt && opt.tabParam){
+
+    if(first){
+      getParam="#"
+    }
+    else if(opt && opt.tabParam){
       getParam = `?tabparam=${encodeURIComponent(opt.tabParam)}`
       if(opt.dropX){
         winArg.x = opt.dropX - (mainState.toggleNav == 1 && winArg.width ? Math.round(winArg.width / 3) : 0)
@@ -268,6 +273,7 @@ export default {
       console.log(66,opt.alwaysOnTop,66)
       console.log(opt,winArg)
     }
+
 
     console.log(909,winArg)
     if(!win){
@@ -293,6 +299,7 @@ export default {
       win.setBounds({x: winArg.x, y: winArg.y, width: winArg.width || setting.width, height: winArg.height || setting.height})
       win.setSkipTaskbar(false)
       win.setTitle('Sushi Browser')
+      // win.reload()
       win.loadURL(`chrome://brave/${path.join(__dirname, '../index.html').replace(/\\/g,"/")}${getParam}`)
       console.log(winArg,setting)
 
