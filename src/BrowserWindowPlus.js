@@ -48,10 +48,10 @@ function create(args){
       console.log(wins.length)
       if(wins.length > 1){ //@TODO close event hang out other windows
         // bw.setSkipTaskbar(true)
-        // bw.webContents.send('unmount-components',{})
-        bw.hide()
-        bw.loadURL(`file://${path.join(__dirname, '../blank.html').replace(/\\/g,"/")}`)
         bw.setTitle('Closed')
+        bw.webContents.send('unmount-components',{})
+        // bw.loadURL(`file://${path.join(__dirname, '../blank.html').replace(/\\/g,"/")}`)
+        bw.hide()
 
         e.preventDefault()
         return

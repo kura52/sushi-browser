@@ -328,10 +328,10 @@ fsdfs
           <Button primary content={l10n.translation('42126664696688958')} onClick={_=>ipc.send("export-bookmark",{})}/>
         </div>
 
-        <div className="field">
-          <label>{l10n.translation('2893168226686371498').replace('…','')} (Windows/Mac)</label>
-          <Button primary content={l10n.translation('9218430445555521422')} onClick={_=>ipc.send("default-browser",{})}/>
-        </div>
+        {/*<div className="field">*/}
+          {/*<label>{l10n.translation('2893168226686371498').replace('…','')} (Windows/Mac)</label>*/}
+          {/*<Button primary content={l10n.translation('9218430445555521422')} onClick={_=>ipc.send("default-browser",{})}/>*/}
+        {/*</div>*/}
 
         <br/>
         <br/>
