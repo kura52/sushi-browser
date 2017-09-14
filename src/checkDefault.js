@@ -8,7 +8,7 @@ const isLinux = process.platform === 'linux'
 function checkDefault(){
   const key = uuid.v4()
   const bw = getCurrentWindow()
-  bw.webContents.send('show-notification',{key,text:locale.translation('makeBraveDefault').replace('Brave','Sushi Browser'), buttons:[locale.translation('9218430445555521422'),locale.translation('notNow'),locale.translation('8926389886865778422')]})
+  bw.webContents.send('show-notification',{key,text:locale.translation('makeBraveDefault').replace('Brave','Sushi Browser'), buttons:[locale.translation('9218430445555521422'),locale.translation('notNow'),locale.translation('8926389886865778422').replace('&apos;',"'")]})
 
   ipcMain.once(`reply-notification-${key}`,(e,ret)=>{
     if(ret.pressIndex === 0){

@@ -147,7 +147,7 @@ app.on('ready', async ()=>{
     process.emit('app-initialized')
 
     require('./checkUpdate')
-    require('./checkDefault')
+    // require('./checkDefault')
     const {syncReplace} = require('./databaseFork')
     let rec
     if(rec = await syncReplace.findOne({key: 'syncReplace_0'})){

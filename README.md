@@ -162,7 +162,6 @@ sushi-browser --no-sandbox
 - Added option page for extensions
 - Fixed bug that does not start on Windows
 - Performance improvement of the top menu history
-- Can be selected as a standard browser(Windows/Mac)
 
 #### New function(v0.30-0.31)
 - Add page translation function that use Simultaneous page transition to right click menu
