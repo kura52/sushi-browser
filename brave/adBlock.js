@@ -8,7 +8,7 @@ const {AdBlockClient, FilterOptions} = require('ad-block')
 const {siteHacks} = require('./siteHacks')
 const getBaseDomain = require('./js/lib/baseDomain').getBaseDomain
 // const DataFile = require('./dataFile')
-const urlParse = require('url').parse
+const urlParse = require('./urlParse')
 const fs = require('fs')
 const path = require('path')
 const mainState = require('../lib/mainState')
@@ -142,6 +142,12 @@ const startAdBlocking = (adblock, resourceName, shouldCheckMainFrame,ses=session
 
     let firstPartyUrlHost = firstPartyUrl.hostname || ''
     const urlHost = urlParse(details.url).hostname
+
+    if(mainState.adBlockDisableSite[firstPartyUrlHost]){
+      callback({})
+      return
+    }
+
     const cancel = firstPartyUrl.protocol &&
       (
         shouldCheckMainFrame ||

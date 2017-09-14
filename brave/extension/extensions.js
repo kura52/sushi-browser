@@ -80,6 +80,7 @@ module.exports.init = (verChange) => {
   })
 
   let loadExtension = (ses,extensionId, extensionPath, manifest = {}, manifestLocation = 'unpacked') => {
+    if(!extensionPath) return
     extensionPath = extensionPath.replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
     console.log(path.join(extensionPath, 'manifest.json'))
     fs.exists(path.join(extensionPath, 'manifest.json'), (exists) => {
@@ -102,26 +103,45 @@ module.exports.init = (verChange) => {
   }
 
   let getPath = (appId) => {
-    const extRootPath = path.join(app.getPath('userData'),'resource/extension')
-    // const extRootPath = path.join(__dirname,'../../resource/extension').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
-    if(!fs.existsSync(extRootPath)) {
-      fs.mkdirSync(extRootPath)
-    }
-    const appPath = path.join(extRootPath,appId)
-    const orgPath = path.join(__dirname,'../../resource/extension',appId).replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
-    if(verChange || true || !fs.existsSync(appPath)){
-      if(fs.existsSync(orgPath)){
-        fs.copySync(orgPath, appPath)
+    const extRootPath = path.join(__dirname,'../../resource/extension').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
+    // if(!fs.existsSync(extRootPath)) {
+    //   fs.mkdirSync(extRootPath)
+    // }
+    let appPath = path.join(extRootPath,appId)
+    if(!fs.existsSync(appPath)){
+      let chromePath = chromeExtensionPath(appId)
+      if(fs.existsSync(chromePath)){
+        appPath = chromePath
       }
       else{
-        const dirPath = chromeExtensionPath(appId)
-        fs.copySync(dirPath, appPath)
+        return [appId,null]
       }
     }
     const version = fs.readdirSync(appPath).sort().pop()
     const basePath = path.join(appPath,version)
     return [appId,basePath]
   }
+
+  // let getPath = (appId) => {
+  //   const extRootPath = path.join(app.getPath('userData'),'resource/extension')
+  //   if(!fs.existsSync(extRootPath)) {
+  //     fs.mkdirSync(extRootPath)
+  //   }
+  //   const appPath = path.join(extRootPath,appId)
+  //   const orgPath = path.join(__dirname,'../../resource/extension',appId).replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
+  //   if(verChange || true || !fs.existsSync(appPath)){
+  //     if(fs.existsSync(orgPath)){
+  //       fs.copySync(orgPath, appPath)
+  //     }
+  //     else{
+  //       const dirPath = chromeExtensionPath(appId)
+  //       fs.copySync(dirPath, appPath)
+  //     }
+  //   }
+  //   const version = fs.readdirSync(appPath).sort().pop()
+  //   const basePath = path.join(appPath,version)
+  //   return [appId,basePath]
+  // }
 
   let registerComponent = (extensionId) => {
     // if (!extensionInfo.isRegistered(extensionId) && !extensionInfo.isRegistering(extensionId)) {

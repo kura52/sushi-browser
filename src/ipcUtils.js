@@ -1,4 +1,4 @@
-import {ipcMain,app,dialog,BrowserWindow,shell,webContents} from 'electron'
+import {ipcMain,app,dialog,BrowserWindow,shell,webContents,session} from 'electron'
 const BrowserWindowPlus = require('./BrowserWindowPlus')
 import fs from 'fs'
 import sh from 'shelljs'
@@ -43,6 +43,10 @@ function getBindPage(tabId){
 
 function scaling(num){
   return Math.round(num * mainState.scaleFactor)
+}
+
+function diffArray(arr1, arr2) {
+  return arr1.filter(e=>!arr2.includes(e))
 }
 
 ipcMain.on('file-system',(event,key,method,arg)=>{
@@ -391,24 +395,31 @@ ipcMain.on('get-main-state',(e,names)=>{
       ret[name] = mainState[name]
     }
   })
+
+  const extInfos = require('./extensionInfos')
+  const extensions = {}
+  const disableExtensions = mainState.disableExtensions
+  for (let [k,v] of Object.entries(extInfos)) {
+    if(!('url' in v) || v.name == "brave") continue
+    extensions[k] = {name:v.name,url:v.url,basePath:v.base_path,optionPage: v.manifest.options_page,icons:v.manifest.icons, version: v.manifest.version, description: v.manifest.description,enabled: !disableExtensions.includes(k) }
+  }
+  ret.extensions = extensions
   e.sender.send('get-main-state-reply',ret)
 })
 
 
 ipcMain.on('save-state',async (e,{tableName,key,val})=>{
   if(tableName == 'state'){
-    // if(key){
+    if(key == 'disableExtensions'){
+      for(let extensionId of diffArray(val,mainState[key])){
+        session.defaultSession.extensions.disable(extensionId)
+      }
+      for(let extensionId of diffArray(mainState[key],val)){
+        session.defaultSession.extensions.enable(extensionId)
+      }
+    }
     mainState[key] = val
     state.update({ key: 1 }, { $set: {[key]: mainState[key]} }).then(_=>_)
-    // }
-    // else{
-    //   const saveState = {}
-    //   for(let key of Object.keys(settingDefault)){
-    //     if(key == 'toggleNav') continue
-    //     saveState[key] = mainState[key]
-    //   }
-    //   state.update({ key: 1 }, { $set: saveState }).then(_=>_)
-    // }
   }
   else{
     if(tableName　== "searchEngine"){
@@ -659,6 +670,7 @@ ipcMain.on('need-get-inner-text',(e,key)=>{
   }
   e.sender.send(`need-get-inner-text-reply_${key}`,mainState.historyFull)
 })
+
 
 // async function recurSelect(keys){
 //   const ret = await favorite.find({key:{$in: keys}})

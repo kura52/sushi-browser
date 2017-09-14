@@ -103,12 +103,19 @@ const fetchFavIcon = (url, redirects) => {
 
         prefix = new Buffer(blob.substr(tail + 8, signatureMax), 'base64')
         underscore.keys(fileTypes).forEach((fileType) => {
+          try{
           if (matchP) return
           if ((prefix.length >= fileTypes[fileType].length) ||
             (fileTypes[fileType].compare(prefix, 0, fileTypes[fileType].length) !== 0)) return
 
           blob = 'data:image/' + fileType + blob.substr(tail)
           matchP = true
+          }
+          catch(e){
+            console.log(e)
+            reject("err1")
+            return
+          }
         })
         if (!matchP) {
           reject("err2");

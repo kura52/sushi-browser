@@ -86,6 +86,7 @@ export default class SplitWindows extends Component{
     super(props)
     this.currentWebContents = {}
     global.currentWebContents = this.currentWebContents
+    global.adBlockDisableSite = {...mainState.adBlockDisableSite}
 
     let winState
     const mState = mainState.winState
@@ -439,8 +440,6 @@ export default class SplitWindows extends Component{
       this.setState({fullscreen: isFullscreen})
     }
     ipc.on('enter-full-screen',this.fullScreenState)
-    ipc.on('leave-full-screen',this.fullScreenState)
-
 
     this.tokenAlign = PubSub.subscribe("align",(_,e)=>{
 
@@ -535,6 +534,7 @@ export default class SplitWindows extends Component{
     ipc.removeListener("get-focused-webContent",this.getFocusedWebContent)
     ipc.removeListener("enter-full-screen",this.fullScreenState)
     ipc.removeListener("leave-full-screen",this.fullScreenState)
+    ipc.removeListener('update-adblock-disable-sites',this.adBlockDisableSiteEvent)
 
     PubSub.unsubscribe(this.tokenAlign)
     PubSub.unsubscribe(this.tokenAllDetach)
@@ -1252,7 +1252,7 @@ export default class SplitWindows extends Component{
                       getScrollPriorities={::this.getScrollPriorities} child={x[1]} fullscreen={this.state.fullscreen}
                       toggleNav={this.state.root.toggleNav} parent={this} getOpposite={::this.getOpposite} getPrevFocusPanel={::this.getPrevFocusPanel} addFloatPanel={::this.addFloatPanel}
                       toggleDirc={::this.toggleDirc} swapPosition={::this.swapPosition} getAllKey={::this.getAllKey}
-                      currentWebContents={this.currentWebContents} htmlContentSet={this.htmlContentSet}
+                      currentWebContents={this.currentWebContents} htmlContentSet={this.htmlContentSet} getKeyPosition={::this.getKeyPosition}
                       fixedPanelOpen={::this.fixedPanelOpen} hidePanel={::this.hidePanel} windowId={this.windowId}
                       attach={this.state.root.attach && {delete: ::this.deleteAttach,data:this.state.root.attach}}
             />
@@ -1270,7 +1270,7 @@ export default class SplitWindows extends Component{
                 getScrollPriorities={::this.getScrollPriorities} child={x[1]}
                 toggleNav={this.state.root.toggleNav} parent={this} addFloatPanel={::this.addFloatPanel}
                 getAllKey={::this.getAllKey} float={true}
-                currentWebContents={this.currentWebContents} htmlContentSet={this.htmlContentSet}
+                currentWebContents={this.currentWebContents} htmlContentSet={this.htmlContentSet} getKeyPosition={::this.getKeyPosition}
                 fixedPanelOpen={::this.fixedPanelOpen} hidePanel={::this.hidePanel} windowId={this.windowId}
                 attach={this.state.root.attach && {delete: ::this.deleteAttach,data:this.state.root.attach}}
       />

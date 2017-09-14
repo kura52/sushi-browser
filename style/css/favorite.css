@@ -128,7 +128,7 @@
 }
 .infinite-classic .infinite-tree-scroll {
     overflow: auto;
-    height: calc(100vh - 250px);
+    height: calc(100vh - 190px);
 }
 
 

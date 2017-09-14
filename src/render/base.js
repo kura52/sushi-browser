@@ -102,6 +102,7 @@ export default class MainContent extends Component{
       }
     }, { passive: true })
 
+
     // window.addEventListener('drop', function (event) {
     //   // allow webviews to handle dnd
     //   if (event.target.tagName === 'WEBVIEW') {

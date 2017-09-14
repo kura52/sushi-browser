@@ -1102,6 +1102,7 @@ export default class TabPanel extends Component {
   }
 
   sendOpenLink(tab, page) {
+    console.log(9999999,tab.dirc,tab)
     if(!tab.sync) return
 
     tab.openLink = this.updateOpenLink(tab.openLink)
@@ -1358,12 +1359,12 @@ export default class TabPanel extends Component {
       if (e.channel == 'open-tab-opposite') {
         const url = e.args[1] ? e.args[0] : `file://${e.args[0]}`,
           id = tab.wvId
-        tab.events['new-tab-opposite'](e, id, url,true)
+        tab.events['new-tab-opposite'](e, id, url)
       }
       else if (e.channel == 'open-tab') {
         const url = e.args[1] ? e.args[0] : `file://${e.args[0]}`,
           id = tab.wvId
-        tab.events['new-tab-opposite'](e, id, url,true)
+        tab.events['new-tab'](e, id, url)
       }
       else if(e.channel == 'html-content'){
         this.props.htmlContentSet.add(e.args[0])
@@ -1792,9 +1793,9 @@ export default class TabPanel extends Component {
     }
   }
 
-  syncUrl(url,replaceInfo,currentUrl,force){
+  syncUrl(url,replaceInfo,dirc,currentUrl,force){
     if(!replaceInfo) return url
-    const winInfos = this.props.getScrollPriorities()
+    const winInfos = this.props.getScrollPriorities((void 0),dirc)
     let index = 0
     if(!force){
       index = winInfos.findIndex(x=>x[0]==this.props.k) - 1
@@ -1851,7 +1852,7 @@ export default class TabPanel extends Component {
               tab.sync = sync
               if(this.props.getAllKey().filter(key=>!isFixedPanel(key)).length == 1){
                 console.log(url)
-                this.props.split(this.props.k,'v',1,(void 0),(void 0),{url:this.syncUrl(url,orgReplaceInfo,(void 0),true),mobile:tab.mobile,adBlockThis:tab.adBlockThis,privateMode:tab.privateMode})
+                this.props.split(this.props.k,'v',1,(void 0),(void 0),{url:this.syncUrl(url,orgReplaceInfo,dirc,(void 0),true),mobile:tab.mobile,adBlockThis:tab.adBlockThis,privateMode:tab.privateMode})
                 setTimeout(()=>{
                   cont.hostWebContents.send('open-panel',{url,sync,id,dirc,replaceInfo:tab.syncReplace,needCloseTab:true,mobile:tab.mobile,adBlockThis:tab.adBlockThis,privateMode:tab.privateMode})
                 },0)
@@ -1859,7 +1860,7 @@ export default class TabPanel extends Component {
               }
               this.setState({})
             }
-            if(sync) setTimeout(()=>tab.syncMode({url,dirc,sync,replaceInfo:replaceInfo}),100)
+            if(sync) setTimeout(()=>tab.syncMode({url,dirc,sync,replaceInfo}),100)
             return
           }
         })
@@ -1869,7 +1870,7 @@ export default class TabPanel extends Component {
       if(!key) {
         if(this.isFixed) return
 
-        const tab = needCloseTab ? this.state.tabs[0] : tabAdd(this, this.syncUrl(url,replaceInfo,(void 0),true),fore,privateMode,(void 0),mobile,adBlockThis)
+        const tab = needCloseTab ? this.state.tabs[0] : tabAdd(this, this.syncUrl(url,replaceInfo,dirc,(void 0),true),fore,privateMode,(void 0),mobile,adBlockThis)
         // if(needCloseTab) PubSub.publish(`close_tab_${this.props.k}`, {key:this.state.tabs[0].key})
 
         key = tab.key
@@ -1882,7 +1883,7 @@ export default class TabPanel extends Component {
               // setTimeout(()=>{
               const cont = this.getWebContents(tab)
               console.log(url)
-              this.props.split(this.props.k,'v',1,(void 0),(void 0),{url:this.syncUrl(url,replaceInfo),mobile:tab.mobile,adBlockThis:tab.adBlockThis,privateMode:tab.privateMode})
+              this.props.split(this.props.k,'v',1,(void 0),(void 0),{url:this.syncUrl(url,replaceInfo,dirc),mobile:tab.mobile,adBlockThis:tab.adBlockThis,privateMode:tab.privateMode})
               setTimeout(()=>{
                 cont.hostWebContents.send('open-panel',{url,sync,id:tab.wvId,dirc,replaceInfo:tab.syncReplace,needCloseTab:true,mobile:tab.mobile,adBlockThis:tab.adBlockThis,privateMode:tab.privateMode})
               },0)
@@ -1934,7 +1935,7 @@ export default class TabPanel extends Component {
         if(tab.page.navUrl == url) return
         console.log(777,tab.prevSyncNav,url)
 
-        const syncUrl = this.syncUrl(url,tab.syncReplace,tab.page.navUrl)
+        const syncUrl = this.syncUrl(url,tab.syncReplace,dirc,tab.page.navUrl)
         if(!syncUrl) return
 
         this.navigateTo(tab.page,syncUrl , tab)
@@ -2447,7 +2448,12 @@ export default class TabPanel extends Component {
     }
     if(!tabSync || (tabSyncReplace && !replaceInfo)||(!tabSyncReplace && replaceInfo)){
       const cont = this.getWebContents(tab)
-      cont.hostWebContents.send('open-panel', {url:tab.page.navUrl, sync:uuid.v4(), id:tab.wvId,replaceInfo,mobile: tab.mobile, adBlockThis: tab.adBlockThis});
+      const val = {url:tab.page.navUrl,sync:uuid.v4(), id:tab.wvId,replaceInfo,mobile: tab.mobile, adBlockThis: tab.adBlockThis}
+      if(replaceInfo){
+        val.dirc = this.props.getKeyPosition(this.props.k).dirc == 'l' ? 1 : -1
+      }
+      console.log(69000,val)
+      cont.hostWebContents.send('open-panel', val);
     }
   }
 

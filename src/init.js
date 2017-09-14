@@ -128,10 +128,10 @@ app.on('ready', async ()=>{
   require('./tabMoveEvent')
   require('./saveEvent')
   require('./userAgentChangeEvent')
+
+
   ptyProcessSet = require('./ptyProcess')
   // ptyProcessSet = new Set()
-  require('./ipcUtils')
-  require('./syncLoop')
   passwordManager = require('./passwordManagerMain')
   require('./importer')
   require('./bookmarksExporter')
@@ -140,11 +140,14 @@ app.on('ready', async ()=>{
   extensions.init(setting.ver !== fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString())
   require('./faviconsEvent')(async _ => {
     await createWindow(true)
+    require('./ipcUtils')
+    require('./syncLoop')
 
     require('./menuSetting')
     process.emit('app-initialized')
 
     require('./checkUpdate')
+    require('./checkDefault')
     const {syncReplace} = require('./databaseFork')
     let rec
     if(rec = await syncReplace.findOne({key: 'syncReplace_0'})){
@@ -595,7 +598,7 @@ function contextMenu(webContents) {
         }
       })
       menuItems.push({label: locale.translation('copyLinkAddress'), click: () => clipboard.writeText(props.linkURL)})
-      if(props.mediaType === 'none') menuItems.push({label: 'Copy Link Text', click: () => clipboard.writeText(props.linkText)})
+      if(props.mediaType === 'none') menuItems.push({label: locale.translation('1047431265488717055'), click: () => clipboard.writeText(props.linkText)})
 
       menuItems.push({type: 'separator'})
       if(!hasText && props.mediaType === 'none'){

@@ -154,7 +154,7 @@ class HistoryList{
     let pre = {location:false}
     let count = 0
     for(let h of data){
-      if(count > 14) break
+      if(count > 9) break
       if(h.location.startsWith('chrome-extension')) continue
       h.updated_at = moment(h.updated_at).format("YYYY/MM/DD HH:mm:ss")
       if(h.location !== pre.location){
@@ -173,8 +173,8 @@ class HistoryList{
       <img src={favicon} style="width: 20px; height: 20px; float: left; margin-right: 4px; margin-top: 6px;"/>
       <div className="content">
         <a className="description" style="float:right;margin-right:15px;font-size: 12px">{h.updated_at.slice(5)}</a>
-        {!h.title ? "" : <a className="header" target="_blank" href={h.location}>{h.title.length > 55 ? `${h.title.substr(0, 55)}...` : h.title}</a>}
-        {!h.location ? "" : <a className="description" target="_blank" style="fontSize: 12px;" href={h.location}>{h.location.length > 125 ? `${h.location.substr(0, 125)}...` : h.location}</a>}
+        {!h.title ? "" : <a className="header" href={h.location}>{h.title.length > 55 ? `${h.title.substr(0, 55)}...` : h.title}</a>}
+        {!h.location ? "" : <a className="description" style="fontSize: 12px;" href={h.location}>{h.location.length > 125 ? `${h.location.substr(0, 125)}...` : h.location}</a>}
       </div>
     </div>;
   }

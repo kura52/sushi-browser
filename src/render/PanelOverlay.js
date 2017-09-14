@@ -28,7 +28,7 @@ export default class PanelOverlay extends Component{
     this.fUpdate = true
     const max = {left: 9999999,top:9999999,width:window.innerWidth,height: window.innerHeight}
     for(let ele of document.querySelectorAll('.rdTabBar.chrome-tabs-content,.tab-base')){
-      if(ele.style.zIndex != 11) zIndexes[ele] = ele.style.zIndex
+      // if(ele.style.zIndex != 11) zIndexes[ele] = ele.style.zIndex
       ele.style.zIndex = 11
     }
     const ele = document.querySelector(".dl-list")
@@ -52,8 +52,7 @@ export default class PanelOverlay extends Component{
 
   componentWillUnmount(){
     for(let ele of document.querySelectorAll('.rdTabBar.chrome-tabs-content,.tab-base')){
-      ele.style.zIndex = zIndexes[ele]
-      delete zIndexes[ele]
+      ele.style.zIndex = ""
     }
     const ele = document.querySelector(".dl-list")
     if(ele) ele.style.zIndex = 2

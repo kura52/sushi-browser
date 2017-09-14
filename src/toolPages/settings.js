@@ -328,6 +328,11 @@ fsdfs
           <Button primary content={l10n.translation('42126664696688958')} onClick={_=>ipc.send("export-bookmark",{})}/>
         </div>
 
+        <div className="field">
+          <label>{l10n.translation('2893168226686371498').replace('…','')} (Windows/Mac)</label>
+          <Button primary content={l10n.translation('9218430445555521422')} onClick={_=>ipc.send("default-browser",{})}/>
+        </div>
+
         <br/>
         <br/>
         <br/>
@@ -604,17 +609,90 @@ class KeyboardSetting extends React.Component {
 }
 
 
+let extensionDefault
 class ExtensionSetting extends React.Component {
   constructor(props) {
     super(props)
+    this.state = {extensions:extensionDefault.extensions}
+  }
+
+
+  changeCheck(id,data){
+    this.state.extensions[id].enabled = data.checked
+    const val = []
+    for(let [id,values] of Object.entries(this.state.extensions)){
+      if(!values.enabled) val.push(id)
+    }
+    ipc.send('save-state',{tableName:'state',key:'disableExtensions',val})
+    this.setState({})
+  }
+
+  buildSearchEngineColumns(){
+    const ret = []
+    let i = 0
+    for(let [id,v] of Object.entries(this.state.extensions)){
+      if(['dckpbojndfoinamcdamhkjhnjnmjkfjd','jdbefljfgobbmcidnmpjamcbhnbphjnb'].includes(id)) continue
+      ret.push(this.buildSearchEngineColumn(i++,id,v))
+    }
+    return ret
+  }
+
+  convertDesc(desc){
+    if(desc == '__MSG_extDescriptionGoogleChrome__'){
+      return l10n.translation('saveToPocketDesc')
+    }
+    return desc
+  }
+
+  buildSearchEngineColumn(i,id,v){
+    console.log(id,v)
+    const icon = v.icons[Math.max(...Object.keys(v.icons))]
+    return <tr key={`tr${i}`}>
+      <td key={`icon${i}`}><img style={{width:32,height:32,margin:'auto'}} src={`file://${v.basePath}/${icon}`}/></td>
+      <td key={`name${i}`}><a target="_blank" href={`https://chrome.google.com/webstore/detail/${id}`}>{v.name}</a></td>
+      <td key={`description${i}`} >{this.convertDesc(v.description)}</td>
+      <td key={`version${i}`} style={{width: 40}}>{v.version}</td>
+      <td key={`option${i}`} style={{fontSize: 20,textAlign: 'center'}}>
+        {v.enabled ? <a href="#" onClick={_=> ipc.sendToHost("open-tab", `chrome-extension://${id}/${v.optionPage}`, true)}>
+          <i aria-hidden="true" class="setting icon"></i>
+        </a> : null}
+      </td>
+      <td key={`enabled${i}`}>
+        <Checkbox checked={v.enabled} toggle onChange={(e,data)=>this.changeCheck(id,data)}/>
+      </td>
+    </tr>
   }
 
   render() {
     return <div>
       <h3>{l10n.translation('extensions')}</h3>
-      <Divider/>
+
+      <table className="ui celled compact table">
+        <thead>
+        <tr>
+          <th></th>
+          <th>{l10n.translation('name')}</th>
+          <th>{l10n.translation('4289540628985791613')}</th>
+          <th>{l10n.translation('3095995014811312755')}</th>
+          <th>{l10n.translation('6550675742724504774')}</th>
+          <th>{l10n.translation('59174027418879706')}</th>
+        </tr>
+        </thead>
+        <tbody>
+        {this.buildSearchEngineColumns()}
+        </tbody>
+        <tfoot className="full-width">
+        <tr>
+          <th>
+          </th>
+          <th colspan="5">
+          </th>
+        </tr>
+        </tfoot>
+      </table>
     </div>
   }
+
 }
 
 const routings = {
@@ -657,7 +735,7 @@ class TopList extends React.Component {
         {this.getMenu('search','search')}
         {/*{this.getMenu('tabs','table')}*/}
         {this.getMenu('keyboard','keyboard')}
-        {/*{this.getMenu('extensions','industry')}*/}
+        {this.getMenu('extensions','industry')}
       </Sidebar>
       <Sidebar.Pusher>
         <Segment basic>
@@ -676,10 +754,11 @@ const App = () => (
 )
 
 
-ipc.send("get-main-state",['startsWith','newTabMode','myHomepage','searchProviders','searchEngine','language','enableFlash','downloadNum','sideBarDirection','scrollTab','doubleShift','tripleClick','syncScrollMargin','contextMenuSearchEngines','ALL_KEYS','bindMarginFrame','bindMarginTitle','historyFull','longPressMiddle'])
+ipc.send("get-main-state",['startsWith','newTabMode','myHomepage','searchProviders','searchEngine','language','enableFlash','downloadNum','sideBarDirection','scrollTab','doubleShift','tripleClick','syncScrollMargin','contextMenuSearchEngines','ALL_KEYS','bindMarginFrame','bindMarginTitle','historyFull','longPressMiddle','checkDefaultBrowser'])
 ipc.once("get-main-state-reply",(e,data)=>{
   generalDefault = data
   keyboardDefault = data
+  extensionDefault = data
 
   const {searchProviders, searchEngine, contextMenuSearchEngines} = data
   let arr = []

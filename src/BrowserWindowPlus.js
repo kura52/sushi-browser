@@ -1,5 +1,5 @@
 const electron = require('electron')
-const {BrowserWindow,app,ipcMain} = electron
+const {BrowserWindow,app,ipcMain,session} = electron
 const url = require('url')
 const path = require('path')
 const fs = require('fs')
@@ -48,10 +48,10 @@ function create(args){
       console.log(wins.length)
       if(wins.length > 1){ //@TODO close event hang out other windows
         // bw.setSkipTaskbar(true)
-        bw.setTitle('Closed')
-        bw.webContents.send('unmount-components',{})
-        // bw.loadURL(`file://${path.join(__dirname, '../blank.html').replace(/\\/g,"/")}`)
+        // bw.webContents.send('unmount-components',{})
         bw.hide()
+        bw.loadURL(`file://${path.join(__dirname, '../blank.html').replace(/\\/g,"/")}`)
+        bw.setTitle('Closed')
 
         e.preventDefault()
         return
@@ -185,6 +185,10 @@ export default {
     if(!opt){
       for(let [key,dVal] of Object.entries(settingDefault)){
         setOptionVal(key,dVal,setting[key])
+      }
+
+      for(let extensionId of mainState.disableExtensions){
+        session.defaultSession.extensions.disable(extensionId)
       }
 
       if(mainState.language == 'default'){

@@ -62,6 +62,7 @@ db.syncReplace = new Datastore({filename: path.join(resourcePath,'syncReplace.db
 db.image = new Datastore({filename: path.join(resourcePath,'image.db'), autoload: true})
 db.favicon = new Datastore({filename: path.join(resourcePath,'favicon.db'), autoload: true})
 db.token = new Datastore({filename: path.join(resourcePath,'token.db'), autoload: true})
+db.extension = new Datastore({filename: path.join(resourcePath,'extension.db'), autoload: true})
 
 
 ;(async ()=>{
@@ -72,6 +73,7 @@ db.token = new Datastore({filename: path.join(resourcePath,'token.db'), autoload
   await db.favorite.ensureIndex({ fieldName: 'key' })
   await db.favicon.ensureIndex({ fieldName: 'url' })
   await db.image.ensureIndex({ fieldName: 'url' })
+  await db.extension.ensureIndex({ fieldName: 'id' })
 
   // await db.searchHistory.ensureIndex({ fieldName: 'text' }).exec()
   // await db.searchHistory.ensureIndex({ fieldName: 'created_at' }).exec()

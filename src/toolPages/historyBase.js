@@ -149,7 +149,7 @@ function dateFormat(d) {
   return `${d.getFullYear()}/${m < 10 ? '0'+ m : m}/${da < 10 ? '0'+ da : da} ${h < 10 ? '0'+ h : h}:${mi < 10 ? '0'+ mi : mi}:${s < 10 ? '0'+ s : s}`
 }
 
-async function getAllChildren(nodePath){
+async function getAllChildren(nodePath,name){
   const later24h = Date.now() - 60 * 60 * 24 * 1000
   const later24hData = {
     id: '24 Hours Ago',
@@ -186,7 +186,7 @@ async function getAllChildren(nodePath){
   }
 
   window.start = Date.now()
-  const ret = await getAllHistory()
+  const ret = name ? (await getHistory(name)) : (await getAllHistory())
   console.log((Date.now() - window.start)/1000)
   // console.log(treeBuild(ret,nodePath))
   const newChildren = []
@@ -330,10 +330,10 @@ class Contents extends React.Component {
     return this.map[url]
   }
 
-  loadAllData(){
+  loadAllData(name){
     const prevState = localStorage.getItem("history-sidebar-open-node")
     const start = Date.now()
-    getAllChildren('root').then(data=>{
+    getAllChildren('root',name).then(data=>{
       console.log(Date.now() - start)
       treeAllData = data
       const tree = this.refs.iTree.tree
@@ -348,10 +348,34 @@ class Contents extends React.Component {
   componentDidMount() {
     console.log(333000,this.props.onClick,this.props.cont)
     if(isMain && !this.props.onClick) return
-    this.loadAllData()
+    if(isMain){
+      this.loadAllData('24 Hours Ago')
+      let loaded = false
+      const self = this
+      this.scrollEvent = function(e){
+        if(loaded) return
+        const scroll = this.scrollTop
+        const range = this.scrollHeight - this.offsetHeight
+
+        if(range - scroll < 300){
+          loaded = true
+          self.loadAllData()
+        }
+      }
+      document.querySelector('.infinite-tree.infinite-tree-scroll').addEventListener('scroll',this.scrollEvent,{passive:true})
+    }
+    else{
+      this.loadAllData()
+    }
     ipc.on("update-datas",(e,data)=>{
       this.updateData(data)
     })
+  }
+
+  componentWillUnmount() {
+    if(isMain) {
+      document.querySelector('.infinite-tree.infinite-tree-scroll').removeEventListener('scroll', this.scrollEvent, {passive: true})
+    }
   }
 
   render() {

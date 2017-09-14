@@ -27,6 +27,9 @@ const settingDefault =  {
   bindMarginTitle: isLinux ? 24  : 0,
 
   checkedVersion: '0.00',
+  checkDefaultBrowser: true,
+  disableExtensions: [],
+  adBlockDisableSite: {},
 
   //keyboard shortcut default
   keyQuit: 'CmdOrCtrl+Q',

@@ -300,6 +300,9 @@ var rendererIdentifiers = function () {
     'enableFlash',
     'startsWithOptionHomePage',
     'updateAvail',
+    'notNow',
+    'makeBraveDefault',
+    'saveToPocketDesc',
 
     //chrome
     '994289308992179865',
@@ -328,7 +331,15 @@ var rendererIdentifiers = function () {
     '6606070663386660533',
     '9011178328451474963',
     '9065203028668620118',
-    '2473195200299095979'
+    '2473195200299095979',
+    '1047431265488717055',
+    '9218430445555521422',
+    '8926389886865778422',
+    '2893168226686371498',
+    '4289540628985791613',
+    '3095995014811312755',
+    '59174027418879706',
+    '6550675742724504774'
   ]
 }
 
@@ -459,6 +470,7 @@ exports.init = function (language) {
   const appendLangProperties = function (lang) {
     // Property files to parse (only ones containing menu specific identifiers)
     propertyFiles.push(
+      path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'extensions.properties').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'),
       path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'menu.properties').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'),
       path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'app.properties').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'),
       path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'error.properties').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'),

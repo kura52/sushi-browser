@@ -28,6 +28,7 @@ const Clipboard = require('clipboard')
 const FavoriteExplorer = require('../toolPages/favoriteBase')
 const HistoryExplorer = require('../toolPages/historyBase')
 const {messages,locale} = require('./localAndMessage')
+const urlParse = require('../../brave/urlParse')
 import ResizeObserver from 'resize-observer-polyfill'
 import uuid from 'node-uuid'
 const isDarwin = navigator.userAgent.includes('Mac OS X')
@@ -324,10 +325,25 @@ class BrowserNavbar extends Component{
     this.setState({adBlockThis: !this.state.adBlockThis})
   }
 
+  handleAdBlockDomain(hostname){
+    const cState = global.adBlockDisableSite[hostname]
+    if(cState){
+      mainState.del('adBlockDisableSite',hostname)
+      delete global.adBlockDisableSite[hostname]
+    }
+    else{
+      mainState.add('adBlockDisableSite',hostname,1)
+      global.adBlockDisableSite[hostname] = 1
+    }
+    this.forceUpdates = true
+    this.setState({})
+  }
+
   browserAction(cont){
     const ret = []
+    const dis = ['dckpbojndfoinamcdamhkjhnjnmjkfjd','jdbefljfgobbmcidnmpjamcbhnbphjnb',...mainState.disableExtensions]
     for(let [id,values] of browserActionMap) {
-      if(['dckpbojndfoinamcdamhkjhnjnmjkfjd','jdbefljfgobbmcidnmpjamcbhnbphjnb'].includes(id)) continue
+      if(dis.includes(id)) continue
       ret.push(<BrowserActionMenu key={id} id={id} values={values} cont={cont} parent={this}/>)
     }
     return ret
@@ -425,6 +441,7 @@ class BrowserNavbar extends Component{
   }
 
   mainMenu(cont,tab){
+    const hostname = this.props.page.navUrl ? urlParse(this.props.page.navUrl).hostname : ""
     const {downloadNum} = mainState
     return <NavbarMenu k={this.props.k} isFloat={isFloatPanel(this.props.k)} style={{overflowX: 'visible'}}
                        title={locale.translation('settings')} icon="bars" tab={tab.bind && tab}
@@ -460,7 +477,8 @@ class BrowserNavbar extends Component{
       <div className="divider" />
 
       <NavbarMenuItem text={`AdBlock ${this.state.adBlockGlobal ? 'OFF' : 'ON'}(ALL)`} icon='hand paper' onClick={::this.handleAdBlockGlobal}/>
-      {this.state.adBlockGlobal ? <NavbarMenuItem text={`AdBlock ${this.state.adBlockThis ? 'OFF' : 'ON'}`} icon='hand paper' onClick={::this.handleAdBlockThis}/> : null}
+      {this.state.adBlockGlobal ? <NavbarMenuItem text={`AdBlock ${this.state.adBlockThis ? 'OFF' : 'ON'}(Panel)`} icon='hand paper' onClick={::this.handleAdBlockThis}/> : null}
+      {this.state.adBlockGlobal ? <NavbarMenuItem text={`AdBlock ${global.adBlockDisableSite[hostname] ? 'ON' : 'OFF'}(Domain)`} icon='hand paper' onClick={_=>this.handleAdBlockDomain(hostname)}/> : null}
       <div className="divider" />
 
       <NavbarMenuItem text={`Change Pdf View to ${this.state.pdfMode == 'normal' ? 'Comic' : 'Normal'}`} icon='file pdf outline' onClick={::this.handlePdfMode}/>

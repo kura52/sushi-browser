@@ -5,7 +5,7 @@ const glob = require("glob")
 
 const CODE_NAME = 'Katsuo(Tuna)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.3.1"
+const NEXT_APP_VERSION = "0.3.2"
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'
@@ -91,7 +91,7 @@ glob.sync(`${pwd}/../${RELEASE_DIRECTORY}/release-packed/*`).forEach(file=>{
 })
 
 
-console.log(`Sushi Browser v${NEXT_APP_VERSION}new_features5.gif ${CODE_NAME}
+console.log(`Sushi Browser v${NEXT_APP_VERSION} ${CODE_NAME}
 
 ## Applications`)
 let app = `sushi-browser-${NEXT_APP_VERSION}-setup-x64.exe`
