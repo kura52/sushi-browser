@@ -135,14 +135,14 @@ This browser makes use of wonderful web technologies, starting with the followin
 Both the installer for every platform and the portable version can be downloaded.  
 To use the portable edition, please run sushi.exe for Windows and sushi-browser for Mac/Linux after decompressing.
 
-- [Windows Installer v0.3.2](https://sushib.me/dl/sushi-browser-0.3.2-setup-x64.exe)
-- [Windows Portable v0.3.2(self-extract)](https://sushib.me/dl/sushi-browser-0.3.2-win-x64.exe)
-- [Windows Portable v0.3.2](https://sushib.me/dl/sushi-browser-0.3.2-win-x64.zip)
-- [MacOS dmg v0.3.2](https://sushib.me/dl/SushiBrowser-0.3.2.dmg)
-- [MacOS Portable v0.3.2](https://sushib.me/dl/sushi-browser-0.3.2-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.3.2](https://sushib.me/dl/sushi-browser-0.3.2.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.3.2](https://sushib.me/dl/sushi-browser_0.3.2_amd64.deb)
-- [Linux Portable v0.3.2](https://sushib.me/dl/sushi-browser-0.3.2.tar.bz2)
+- [Windows Installer v0.3.3](https://sushib.me/dl/sushi-browser-0.3.3-setup-x64.exe)
+- [Windows Portable v0.3.3(self-extract)](https://sushib.me/dl/sushi-browser-0.3.3-win-x64.exe)
+- [Windows Portable v0.3.3](https://sushib.me/dl/sushi-browser-0.3.3-win-x64.zip)
+- [MacOS dmg v0.3.3](https://sushib.me/dl/SushiBrowser-0.3.3.dmg)
+- [MacOS Portable v0.3.3](https://sushib.me/dl/sushi-browser-0.3.3-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.3.3](https://sushib.me/dl/sushi-browser-0.3.3.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.3.3](https://sushib.me/dl/sushi-browser_0.3.3_amd64.deb)
+- [Linux Portable v0.3.3](https://sushib.me/dl/sushi-browser-0.3.3.tar.bz2)
 
 # Use of Flash 
 If Flash won't run, please install Flash from the following web sites.  
@@ -157,13 +157,14 @@ sushi-browser --no-sandbox
 
 # New Features
 
-#### New function(v0.32)
+#### New function(v0.33)
+- Improved top page's customizability 
+- Fixed bug that does not start on Windows
+
+#### New function(v0.30-0.32)
 - Added control of AdBlock by domain
 - Added option page for extensions
-- Fixed bug that does not start on Windows
 - Performance improvement of the top menu history
-
-#### New function(v0.30-0.31)
 - Add page translation function that use Simultaneous page transition to right click menu
 - Reduced the number of files using asar archive
 - Addition of update information notification
@@ -199,7 +200,6 @@ sushi-browser --no-sandbox
 
 # TODO
 
-- Improved top page's customizability 
 - Enhanced Anything Search
 - Adblock control panel
 - Make multiple tabs selectable
