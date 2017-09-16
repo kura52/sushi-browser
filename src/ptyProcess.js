@@ -1,5 +1,6 @@
 import {ipcMain} from 'electron'
-const pty = require('node-pty')
+const path = require('path')
+const pty = require(path.join(__dirname,'../node_modules/node-pty').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'))
 const os = require('os')
 
 var shell = os.platform() === 'win32' ? 'powershell.exe' : 'bash';

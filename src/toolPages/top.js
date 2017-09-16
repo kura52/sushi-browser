@@ -6,7 +6,8 @@ const path = require('path')
 const React = require('react')
 const ReactDOM = require('react-dom')
 const moment = require('moment')
-const { Container, Card, Menu, Input } = require('semantic-ui-react')
+const uuid = require('node-uuid')
+const { Container, Card, Menu, Input, Button } = require('semantic-ui-react')
 const { StickyContainer, Sticky } = require('react-sticky');
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
 const l10n = require('../../brave/js/l10n')
@@ -89,6 +90,28 @@ function multiByteSlice(str,end) {
     }
   }
   return `${unescape(str.slice(0,i))}${i == str.length ? "" :"..."}`;
+}
+
+
+function showDialog(input){
+  return new Promise((resolve,reject)=>{
+    const key = uuid.v4()
+    ipc.send('show-dialog-exploler',key,input)
+    ipc.once(`show-dialog-exploler-reply_${key}`,(event,ret)=>{
+      resolve(ret)
+    })
+  })
+}
+
+
+function insertFavorite(writePath,data){
+  return new Promise((resolve,reject)=>{
+    const key = uuid.v4()
+    ipc.send('insert-favorite',key,writePath,data)
+    ipc.once(`insert-favorite-reply_${key}`,(event,ret)=>{
+      resolve(ret)
+    })
+  })
 }
 
 class TopMenu extends React.Component {
@@ -194,15 +217,42 @@ class TopList extends React.Component {
     fetchHistory({})
   }
 
+  clickButton(){
+    showDialog({
+      inputable: true, title: `Page`,
+      text: `Enter a new page title and URL`,
+      needInput: ["Title","URL"]
+    }).then(value => {
+      console.log(value)
+      if (!value) return
+      let writePath = 'top-page'
+      const data = {title:value[0], url:value[1], is_file:true}
+      insertFavorite('top-page',data).then(ret => {
+        fetchHistory({})
+      })
+    })
+
+    const key = uuid.v4()
+    ipc.send('insert-favorite',key,writePath,data)
+    ipc.once(`insert-favorite-reply_${key}`,(event,ret)=>{
+      resolve(ret)
+    })
+  }
+
   render() {
+    const result = []
     const topList = new Map()
     let pre = {location:false}
     this.state.history.freq.forEach((h,i)=>{
       if(h.location.startsWith('chrome-extension')) return
+      if(h.fav){
+        result.push(this.buildItem(h))
+        return
+      }
       if(h.location === pre.location){
         if(!pre.title) pre.title = h.title
         if(!pre.favicon) pre.favicon = h.favicon
-        topList[topList.length-1] = this.buildItem(pre)
+        topList.set(h.location,[this.buildItem(h),h.count])
       }
       else{
         if(topList.has(h.location)){
@@ -214,15 +264,18 @@ class TopList extends React.Component {
       }
     })
 
-    let result = []
+    let num = result.length
     for(let val of topList.values()){
       result.push(val[0])
+      if(++num - 18 >= 0) break
     }
 
     const hlist= new HistoryList().build(this.state.history.upd)
 
-    return <div><Card.Group >
-      {result.slice(0,18)}
+    return <div>
+      <Card.Group >
+      {result}
+        <Button circular icon='plus' onClick={this.clickButton}/>
     </Card.Group>
       <div className="ui divider"/>
       <div role="list" className="ui divided relaxed list">
@@ -233,9 +286,9 @@ class TopList extends React.Component {
 
   buildItem(h) {
     const favicon = faviconGet(h)
-    return <Card key={h._id}>
+    return <Card color={h.fav ? 'grey' : (void 0)} key={h._id}>
       <Card.Description>
-        {!h.title ? "" : <Card.Header as='a' href={h.location}><img src={favicon} style={{width: 16, height: 16, verticalAlign: "text-top"}}/>{multiByteSlice(h.title,32)} ({h.count}pv)</Card.Header>}
+        {!h.title ? "" : <Card.Header as='a' href={h.location}><img src={favicon} style={{width: 16, height: 16, verticalAlign: "text-top"}}/>{multiByteSlice(h.title,32)} {h.count ? `(${h.count}pv)` : ''}</Card.Header>}
       </Card.Description>
       {h.path ? <a href={h.location} style={{textAlign:"center"}}><img className="capture" style={{width:160,height:100,objectFit: "contain"}} src={`file://${resourcePath}/capture/${h.path}`}/></a> : null}
     </Card>;

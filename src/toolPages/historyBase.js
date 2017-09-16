@@ -331,6 +331,7 @@ class Contents extends React.Component {
   }
 
   loadAllData(name){
+    if(!name) this.loaded = true
     const prevState = localStorage.getItem("history-sidebar-open-node")
     const start = Date.now()
     getAllChildren('root',name).then(data=>{
@@ -350,15 +351,14 @@ class Contents extends React.Component {
     if(isMain && !this.props.onClick) return
     if(isMain){
       this.loadAllData('24 Hours Ago')
-      let loaded = false
+      this.loaded = false
       const self = this
       this.scrollEvent = function(e){
-        if(loaded) return
+        if(this.loaded) return
         const scroll = this.scrollTop
         const range = this.scrollHeight - this.offsetHeight
 
         if(range - scroll < 300){
-          loaded = true
           self.loadAllData()
         }
       }

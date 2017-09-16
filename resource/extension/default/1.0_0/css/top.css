@@ -20,3 +20,9 @@
 .ui.cards>.card {
     margin: .75em .5em;
  }
+
+.ui.cards>.ui.circular.icon.button{
+    height: 100%;
+    margin-top: auto;
+    margin-bottom: 12px;
+}

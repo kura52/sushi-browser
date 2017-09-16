@@ -1,5 +1,5 @@
 import { ipcMain } from 'electron'
-import {historyFull,history,image} from './databaseFork'
+import {historyFull,history,image,favorite} from './databaseFork'
 
 ipcMain.on('fetch-history', async (event, range, full=false,limit) => {
   console.log(range)
@@ -23,9 +23,32 @@ ipcMain.on('fetch-history', async (event, range, full=false,limit) => {
 
 ipcMain.on('fetch-frequently-history', async (event, range) => {
   console.log(range)
-  const data = await history.find_sort_limit([{}],[{ count: -1 }],[80])
+  const ret = await favorite.findOne({key: 'top-page'})
+  let favorites = []
+  if(ret && ret.children){
+    const locs = []
+    ;(await favorite.find({key:{$in: ret.children}})).forEach(x=>{
+      if(x.is_file){
+        favorites.push({fav:1,location:x.url,title:x.title,favicon:x.favicon,created_at:x.created_at,updated_at:x.updated_at})
+        locs.push(x.url)
+      }
+    })
+    if(locs.length > 0){
+      const hists = await history.find({location: {$in: locs}})
+      for(let fav of favorites){
+        let h
+        if((h = hists.find(x=>x.location == fav.location))){
+          fav.count = h.count
+          fav.favicon = h.favicon
+        }
+      }
+    }
+  }
+
+  const data = favorites.concat((await history.find_sort_limit([{}],[{ count: -1 }],[80])))
   const images = await image.find({ url: { $in: data.map(x=>x.location) }})
   const data2 = await history.find_sort_limit([{}],[{ updated_at: -1 }],[30])
+
 
   event.sender.send('history-reply', {freq:data.map(x=>{
     if(!x.capture){

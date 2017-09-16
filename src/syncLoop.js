@@ -44,7 +44,8 @@ async function process(){
     (error, buf)=>{
       if (error) throw error;
       // console.log(new Buffer(buf).toString('base64'))
-      getCurrentWindow().webContents.send('sync-datas',{sync_at,email:datas.email,password:datas.password,base64:new Buffer(buf).toString('base64')})
+      const win = getCurrentWindow()
+      setTimeout(_=>(win || getCurrentWindow()).webContents.send('sync-datas',{sync_at,email:datas.email,password:datas.password,base64:new Buffer(buf).toString('base64')}),win ? 0 : 5000)
     })
 }
 

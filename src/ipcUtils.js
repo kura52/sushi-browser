@@ -148,7 +148,16 @@ ipcMain.on('insert-favorite',(event,key,writePath,data)=>{
   console.log("insert",writePath,data)
   favorite.insert({key,...data,created_at: Date.now(), updated_at: Date.now()}).then(ret=>{
     favorite.update({ key: writePath }, { $push: { children: key }, $set:{updated_at: Date.now()} }).then(ret2=>{
-      event.sender.send(`insert-favorite-reply_${key}`,key)
+      if(ret2 == 0 && writePath == 'top-page'){
+        favorite.insert({key:writePath, children: [key], is_file: false, title: 'Top Page' ,created_at: Date.now(), updated_at: Date.now()}).then(ret=>{
+          favorite.update({ key: 'root' }, { $push: { children: 'top-page' }, $set:{updated_at: Date.now()} }).then(ret2=> {
+            event.sender.send(`insert-favorite-reply_${key}`,key)
+          })
+        })
+      }
+      else{
+        event.sender.send(`insert-favorite-reply_${key}`,key)
+      }
     })
   })
 })
