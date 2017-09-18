@@ -142,7 +142,7 @@ class DownloadList extends React.Component {
     const digit = Math.pow(10, precision)
     return Math.round(val * digit) / digit
   }
-
+  openFolder
   getAppropriateByteUnit(byte){
     if(byte / 1024 < 1){
       return [byte,"B"]
@@ -199,7 +199,7 @@ class DownloadList extends React.Component {
             <Button size='mini' onClick={()=>item.sender.send("download-pause",item)}><Icon name="pause"></Icon>Pause</Button> : ""
           }
           {item.state == "completed" ?
-            <Button size='mini' onClick={()=>window.openFolder(item.savePath)}><Icon name="folder"></Icon>Open Folder</Button> :
+            <Button size='mini' onClick={()=>openFolder(item.savePath)}><Icon name="folder"></Icon>Open Folder</Button> :
             !item.sender ? null : item.state == "cancelled" ?
               <Button size='mini' onClick={()=>item.sender.send("download-retry", item.url, item.savePath)}><Icon name="video play"></Icon>Retry</Button> :
               <Button size='mini' onClick={()=>item.sender.send("download-cancel", item)}><Icon name="stop"></Icon>Cancel</Button>

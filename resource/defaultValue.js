@@ -31,6 +31,8 @@ const settingDefault =  {
   disableExtensions: [],
   adBlockDisableSite: {},
 
+  sendToVideo: isLinux ? 'vlc' : isDarwin ? '"quicktime player"' : 'wmplayer',
+
   //keyboard shortcut default
   keyQuit: 'CmdOrCtrl+Q',
   keyNewTab: 'CmdOrCtrl+T',

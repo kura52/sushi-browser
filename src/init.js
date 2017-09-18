@@ -17,6 +17,7 @@ import url from 'url'
 const youtubedl = require('youtube-dl')
 const {getUrlFromCommandLine,getNewWindowURL} = require('./cmdLine')
 import {getFocusedWebContents, getCurrentWindow} from './util'
+const open = require('./open')
 let adblock,extensions
 
 // process.on('unhandledRejection', console.dir);
@@ -58,6 +59,29 @@ const defaultConf = {
   flashAllowed: [ { setting: 'allow', primaryPattern: '*' } ]
 }
 
+const players = [
+  { value: 'vlc', text: 'VLC Media Player',os:['win','mac','linux']},
+  { value: 'PotPlayerMini64', text: 'PotPlayer',os:['win']},
+  { value: 'mplayerx', text: 'MPlayerX',os:['mac']},
+  { value: 'smplayer', text: 'SMPlayer',os:['win','mac','linux']},
+  { value: '"" "C:\\Program Files\\MPC-HC\\mpc-hc64.exe"', text: 'Media Player Classic(MPC-HC)',os:['win']},
+
+  { value: '"" "C:\\Program Files (x86)\\DearMob\\5KPlayer\\5KPlayer.exe"', text: '5K Player',os:['win']},
+  { value: '5kplayer', text: '5K Player',os:['mac']},
+
+  { value: 'kmplayer', text: 'KMPlayer',os:['win','mac']},
+  { value: 'gom', text: 'GOM Player',os:['win','mac']},
+
+
+  { value: '"" "C:\\Program Files (x86)\\Kodi\\kodi.exe"', text: 'Kodi',os:['win']},
+  { value: 'kodi', text: 'Kodi',os:['mac','linux']},
+
+  { value: 'mpv', text: 'MPV Player',os:['win','mac','linux']},
+  { value: 'wmplayer', text: 'Windows Media Player',os:['win']},
+  { value: '"quicktime player"', text: 'QuickTime Player',os:['mac']},
+  { value: 'itunes', text: 'iTunes',os:['win','mac']},
+]
+
 InitSetting.val.then(setting=>{
   if(setting.enableFlash){
     setFlash(app)
@@ -95,75 +119,75 @@ global.rlog = (...args)=>{
 let ptyProcessSet,passwordManager,extensionInfos,syncReplaceName
 app.on('ready', async ()=>{
   console.log(1)
-    require('./captureEvent')
+  require('./captureEvent')
 
-    const ses = session.defaultSession
-    // ses.setEnableBrotli(true)
-    // ses.contentSettings.set("*","*","plugins",mainState.flashPath,"allow")
-    ses.userPrefs.setDictionaryPref('content_settings', defaultConf)
-    ses.userPrefs.setBooleanPref('autofill.enabled', true)
-    ses.userPrefs.setBooleanPref('profile.password_manager_enabled', true)
-    ses.userPrefs.setBooleanPref('credentials_enable_service', true)
-    ses.userPrefs.setBooleanPref('credentials_enable_autosignin', true)
-
-
-    // ses.autofill.getAutofillableLogins((result) => {
-    //   // console.log(1,result)
-    // })
-    // ses.autofill.getBlackedlistLogins((result) => {
-    //   // console.log(2,result)
-    // })
-
-    // loadDevtool(loadDevtool.REACT_DEVELOPER_TOOLS);
-    //console.log(app.getPath('pepperFlashSystemPlugin'))
-    extensionInfos = require('./extensionInfos')
-    rlog(process)
-    console.log(process.versions)
+  const ses = session.defaultSession
+  // ses.setEnableBrotli(true)
+  // ses.contentSettings.set("*","*","plugins",mainState.flashPath,"allow")
+  ses.userPrefs.setDictionaryPref('content_settings', defaultConf)
+  ses.userPrefs.setBooleanPref('autofill.enabled', true)
+  ses.userPrefs.setBooleanPref('profile.password_manager_enabled', true)
+  ses.userPrefs.setBooleanPref('credentials_enable_service', true)
+  ses.userPrefs.setBooleanPref('credentials_enable_autosignin', true)
 
 
-    adblock = require('../brave/adBlock')
-    // console.log(app.getPath('userData'))
-    new (require('./downloadEvent'))()
-    require('./historyEvent')
-    require('./favoriteEvent')
-    require('./messageEvent')
-    require('./tabMoveEvent')
-    require('./saveEvent')
-    require('./userAgentChangeEvent')
+  // ses.autofill.getAutofillableLogins((result) => {
+  //   // console.log(1,result)
+  // })
+  // ses.autofill.getBlackedlistLogins((result) => {
+  //   // console.log(2,result)
+  // })
+
+  // loadDevtool(loadDevtool.REACT_DEVELOPER_TOOLS);
+  //console.log(app.getPath('pepperFlashSystemPlugin'))
+  extensionInfos = require('./extensionInfos')
+  rlog(process)
+  console.log(process.versions)
 
 
-    ptyProcessSet = require('./ptyProcess')
-    // ptyProcessSet = new Set()
-    passwordManager = require('./passwordManagerMain')
-    require('./importer')
-    require('./bookmarksExporter')
-    const setting = await InitSetting.val
-    extensions = require('../brave/extension/extensions')
-    extensions.init(setting.ver !== fs.readFileSync(path.join(__dirname, '../VERSION.txt')).toString())
-    require('./faviconsEvent')(async _ => {
-      console.log(332,process.argv,getUrlFromCommandLine(process.argv))
-      await createWindow(true,isDarwin ? getNewWindowURL() : getUrlFromCommandLine(process.argv))
-      require('./ipcUtils')
-      require('./syncLoop')
+  adblock = require('../brave/adBlock')
+  // console.log(app.getPath('userData'))
+  new (require('./downloadEvent'))()
+  require('./historyEvent')
+  require('./favoriteEvent')
+  require('./messageEvent')
+  require('./tabMoveEvent')
+  require('./saveEvent')
+  require('./userAgentChangeEvent')
 
-      require('./menuSetting')
-      process.emit('app-initialized')
 
-      require('./checkUpdate')
-      // require('./checkDefault')
-      const {syncReplace} = require('./databaseFork')
-      let rec
-      if (rec = await syncReplace.findOne({key: 'syncReplace_0'})) {
-        syncReplaceName = rec.val.split("\t")[0]
-      }
-      else {
-        syncReplace.insert({
-          key: 'syncReplace_0',
-          val: `${locale.translation('2473195200299095979')}\t(.+)\thttps://translate.google.co.jp/translate?sl=auto&tl=${mainState.lang}&hl=${mainState.lang}&ie=UTF-8&u=$$1`
-        })
-        syncReplaceName = locale.translation('2473195200299095979')
-      }
-    })
+  ptyProcessSet = require('./ptyProcess')
+  // ptyProcessSet = new Set()
+  passwordManager = require('./passwordManagerMain')
+  require('./importer')
+  require('./bookmarksExporter')
+  const setting = await InitSetting.val
+  extensions = require('../brave/extension/extensions')
+  extensions.init(setting.ver !== fs.readFileSync(path.join(__dirname, '../VERSION.txt')).toString())
+  require('./faviconsEvent')(async _ => {
+    console.log(332,process.argv,getUrlFromCommandLine(process.argv))
+    await createWindow(true,isDarwin ? getNewWindowURL() : getUrlFromCommandLine(process.argv))
+    require('./ipcUtils')
+    require('./syncLoop')
+
+    require('./menuSetting')
+    process.emit('app-initialized')
+
+    require('./checkUpdate')
+    // require('./checkDefault')
+    const {syncReplace} = require('./databaseFork')
+    let rec
+    if (rec = await syncReplace.findOne({key: 'syncReplace_0'})) {
+      syncReplaceName = rec.val.split("\t")[0]
+    }
+    else {
+      syncReplace.insert({
+        key: 'syncReplace_0',
+        val: `${locale.translation('2473195200299095979')}\t(.+)\thttps://translate.google.co.jp/translate?sl=auto&tl=${mainState.lang}&hl=${mainState.lang}&ie=UTF-8&u=$$1`
+      })
+      syncReplaceName = locale.translation('2473195200299095979')
+    }
+  })
 })
 
 let beforeQuitFirst = false
@@ -376,7 +400,7 @@ process.on('add-new-contents', async (e, source, newTab, disposition, size, user
     ipcMain.once('get-private-reply',(e,privateMode)=>{
       BrowserWindowPlus.load({id:currentWindow.id,x:size.x,y:size.y,width:size.width,height:size.height,disposition,
         tabParam:JSON.stringify([{wvId:newTab.webContents.getId(),guestInstanceId: newTab.guestInstanceId,privateMode}])})
-     })
+    })
     currentWindow.webContents.send('get-private', source.getId())
 
   }
@@ -513,27 +537,27 @@ function contextMenu(webContents) {
       //   return
       // }
       // else{
-        menuItems.push({label: locale.translation('openInNewTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewTab')}})
-        menuItems.push({label: locale.translation('openInNewPrivateTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewPrivateTab')}})
-        menuItems.push({label: locale.translation('openInNewWindow'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindow')}})
-        menuItems.push({label: 'Open Link in New Window with a Row',click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindowWithOneRow')}})
-        menuItems.push({label: 'Open Link in New Window with two Rows',click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindowWithTwoRow')}})
+      menuItems.push({label: locale.translation('openInNewTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewTab')}})
+      menuItems.push({label: locale.translation('openInNewPrivateTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewPrivateTab')}})
+      menuItems.push({label: locale.translation('openInNewWindow'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindow')}})
+      menuItems.push({label: 'Open Link in New Window with a Row',click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindowWithOneRow')}})
+      menuItems.push({label: 'Open Link in New Window with two Rows',click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindowWithTwoRow')}})
 
-        menuItems.push({type: 'separator'})
+      menuItems.push({type: 'separator'})
 
-        menuItems.push({label: locale.translation('9065203028668620118'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'edit')}})
-        menuItems.push({type: 'separator'})
+      menuItems.push({label: locale.translation('9065203028668620118'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'edit')}})
+      menuItems.push({type: 'separator'})
 
-        menuItems.push({label: locale.translation('copy'),click: (item,win)=>{clipboard.writeText(favMenu.path.join(os.EOL))}})
-        menuItems.push({label: locale.translation('delete'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'delete')}})
-        menuItems.push({type: 'separator'})
+      menuItems.push({label: locale.translation('copy'),click: (item,win)=>{clipboard.writeText(favMenu.path.join(os.EOL))}})
+      menuItems.push({label: locale.translation('delete'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'delete')}})
+      menuItems.push({type: 'separator'})
 
-        menuItems.push({label: locale.translation('addBookmark'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'addBookmark')}})
-        menuItems.push({label: locale.translation('addFolder'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'addFolder')}})
-        var menu = Menu.buildFromTemplate(menuItems)
-        menu.popup(targetWindow)
-        return
-      }
+      menuItems.push({label: locale.translation('addBookmark'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'addBookmark')}})
+      menuItems.push({label: locale.translation('addFolder'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'addFolder')}})
+      var menu = Menu.buildFromTemplate(menuItems)
+      menu.popup(targetWindow)
+      return
+    }
     // }
 
     if(explorerMenu){
@@ -610,6 +634,9 @@ function contextMenu(webContents) {
       menuItems.push({label: locale.translation('copyLinkAddress'), click: () => clipboard.writeText(props.linkURL)})
       if(props.mediaType === 'none') menuItems.push({label: locale.translation('1047431265488717055'), click: () => clipboard.writeText(props.linkText)})
 
+      if(props.linkURL.split("?").slice(-2)[0].match(/\.(3gp|3gpp|3gpp2|asf|avi|dv|flv|m2t|m4v|mkv|mov|mp4|mpeg|mpg|mts|oggtheora|ogv|rm|ts|vob|webm|wmv|aac|m4a|mp3|oga|wav)$/)){
+        menuItems.push({label: `Send URL to ${players.find(x=>x.value == mainState.sendToVideo).text}`, click: () => open(props.linkURL,mainState.sendToVideo)})
+      }
       menuItems.push({type: 'separator'})
       if(!hasText && props.mediaType === 'none'){
         menuItems.push({
@@ -699,6 +726,7 @@ function contextMenu(webContents) {
         click: downloadPrompt})
       menuItems.push({label: locale.translation('782057141565633384'), //'Copy Video URL',
         click: () => clipboard.writeText(props.srcURL)})
+      menuItems.push({label: `Send URL to ${players.find(x=>x.value == mainState.sendToVideo).text}`, click: () => open(props.srcURL,mainState.sendToVideo)})
       menuItems.push({type: 'separator'})
     }
 

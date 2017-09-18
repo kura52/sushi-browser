@@ -341,11 +341,8 @@ class Tabs extends React.Component {
             onDrop={this.handleDrop.bind(this, t)}
             onMouseDown={this.handleTabClick.bind(this, tab.key)}
             onMouseUp={_=>setTimeout(_=>{
-              if(this.enableMulti){
-                this.props.multiSelectionClick(...this.enableMulti)
-                this.enableMulti = (void 0)
-              }
               PubSub.publish('drag-overlay',false)
+              if(this.enableMulti) this.props.multiSelectionClick(...this.enableMulti)
             },100)}
           // onContextMenu={this.handleContextMenu.bind(this, tab.key)}
             onMouseOver={()=>{
@@ -495,9 +492,8 @@ class Tabs extends React.Component {
     }
     PubSub.publish('drag-overlay',true)
 
-    this.enableMulti = e.ctrlKey || e.metaKey || e.shiftKey ? [e,key] : (void 0)
-
-    if(this.enableMulti){
+    this.enableMulti = [e,key]
+    if(e.ctrlKey || e.metaKey || e.shiftKey){
       return
     }
 

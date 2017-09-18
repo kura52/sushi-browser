@@ -12,6 +12,8 @@ const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
 l10n.init()
 
 const isDarwin = navigator.userAgent.includes('Mac OS X')
+const isWin = navigator.userAgent.includes('Windows')
+
 const keyMapping = {
   keySettings: l10n.translation(isDarwin ? 'preferences' : 'settings'),
   keyNewTab: l10n.translation('newTab'),
@@ -169,6 +171,31 @@ const downloadNumOptions = Array.from(new Array(16)).map((v,n)=>{
   return {value: n+1 ,text: n+1}
 })
 
+const sendToVideoOptionsAll = [
+  { value: 'vlc', text: 'VLC Media Player',os:['win','mac','linux']},
+  { value: 'PotPlayerMini64', text: 'PotPlayer',os:['win']},
+  { value: 'mplayerx', text: 'MPlayerX',os:['mac']},
+  { value: 'smplayer', text: 'SMPlayer',os:['win','mac','linux']},
+  { value: '"" "C:\\Program Files\\MPC-HC\\mpc-hc64.exe"', text: 'Media Player Classic(MPC-HC)',os:['win']},
+
+  { value: '"" "C:\\Program Files (x86)\\DearMob\\5KPlayer\\5KPlayer.exe"', text: '5K Player',os:['win']},
+  { value: '5kplayer', text: '5K Player',os:['mac']},
+
+  { value: 'kmplayer', text: 'KMPlayer',os:['win','mac']},
+  { value: 'gom', text: 'GOM Player',os:['win','mac']},
+
+
+  { value: '"" "C:\\Program Files (x86)\\Kodi\\kodi.exe"', text: 'Kodi',os:['win']},
+  { value: 'kodi', text: 'Kodi',os:['mac','linux']},
+
+  { value: 'mpv', text: 'MPV Player',os:['win','mac','linux']},
+  { value: 'wmplayer', text: 'Windows Media Player',os:['win']},
+  { value: '"quicktime player"', text: 'QuickTime Player',os:['mac']},
+  { value: 'itunes', text: 'iTunes',os:['win','mac']},
+]
+
+const sendToVideoOptions = sendToVideoOptionsAll.filter(x=>isWin ? x.os.includes('win') : isDarwin ? x.os.includes('mac') : x.os.includes('linux'))
+
 const sideBarDirectionOptions = [
   {
     key: 'left',
@@ -299,14 +326,20 @@ fsdfs
         <br/>
 
         <div className="field">
-          <label>Sync Scroll Margin({l10n.translation('requiresRestart').replace('* ','')})</label>
-          <Dropdown onChange={this.onChange.bind(this,'syncScrollMargin')} selection options={syncScrollMarginOptions} defaultValue={this.state.syncScrollMargin}/>
+          <label>Send URL to external media player</label>
+          <Dropdown onChange={this.onChange.bind(this,'sendToVideo')} selection options={sendToVideoOptions} defaultValue={this.state.sendToVideo}/>
         </div>
         <br/>
 
         <div className="field">
           <label>Max number of connections per item (Parallel Download)</label>
           <Dropdown onChange={this.onChange.bind(this,'downloadNum')} selection options={downloadNumOptions} defaultValue={this.state.downloadNum}/>
+        </div>
+        <br/>
+
+        <div className="field">
+          <label>Sync Scroll Margin({l10n.translation('requiresRestart').replace('* ','')})</label>
+          <Dropdown onChange={this.onChange.bind(this,'syncScrollMargin')} selection options={syncScrollMarginOptions} defaultValue={this.state.syncScrollMargin}/>
         </div>
         <br/>
 
@@ -754,7 +787,7 @@ const App = () => (
 )
 
 
-ipc.send("get-main-state",['startsWith','newTabMode','myHomepage','searchProviders','searchEngine','language','enableFlash','downloadNum','sideBarDirection','scrollTab','doubleShift','tripleClick','syncScrollMargin','contextMenuSearchEngines','ALL_KEYS','bindMarginFrame','bindMarginTitle','historyFull','longPressMiddle','checkDefaultBrowser'])
+ipc.send("get-main-state",['startsWith','newTabMode','myHomepage','searchProviders','searchEngine','language','enableFlash','downloadNum','sideBarDirection','scrollTab','doubleShift','tripleClick','syncScrollMargin','contextMenuSearchEngines','ALL_KEYS','bindMarginFrame','bindMarginTitle','historyFull','longPressMiddle','checkDefaultBrowser','sendToVideo'])
 ipc.once("get-main-state-reply",(e,data)=>{
   generalDefault = data
   keyboardDefault = data

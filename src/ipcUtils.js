@@ -14,6 +14,7 @@ const isWin = process.platform == 'win32'
 const isLinux = process.platform === 'linux'
 const meiryo = isWin && Intl.NumberFormat().resolvedOptions().locale == 'ja'
 import mainState from './mainState'
+const open = require('./open')
 const bindPath = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/bind.html'
 
 function exec(command) {
@@ -680,7 +681,7 @@ ipcMain.on('need-get-inner-text',(e,key)=>{
   e.sender.send(`need-get-inner-text-reply_${key}`,mainState.historyFull)
 })
 
-
+ipcMain.on('play-external',(e,url)=> open(url,mainState.sendToVideo))
 // async function recurSelect(keys){
 //   const ret = await favorite.find({key:{$in: keys}})
 //   const addKey = []
