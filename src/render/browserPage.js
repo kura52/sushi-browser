@@ -212,7 +212,7 @@ class BrowserPage extends Component {
   }
 
   handleWheel(e){
-    if(!e.ctrlKey) return
+    if(!(e.ctrlKey || e.metaKey)) return
     const webContents = this.getWebContents(this.props.tab)
     if(webContents) {
       console.log(webContents)

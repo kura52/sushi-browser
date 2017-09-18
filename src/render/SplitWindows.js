@@ -497,15 +497,15 @@ export default class SplitWindows extends Component{
       this.setState({overlay: val})
     })
 
-    const self = this
-
-    this.search = (e)=>{
-      if (e.srcElement == this && e.ctrlKey && e.keyCode == 70) { // Ctrl+F
-        const winInfos = self.getScrollPriorities(0)
-        PubSub.publish("body-keydown",{key:winInfos[0][0],ctrlKey: e.ctrlKey,keyCode: e.keyCode})
-      }
-    }
-    document.body.addEventListener("keydown",this.search)
+    // const self = this
+    //
+    // this.search = (e)=>{
+    //   if (e.srcElement == this && e.ctrlKey && e.keyCode == 70) { // Ctrl+F
+    //     const winInfos = self.getScrollPriorities(0)
+    //     PubSub.publish("body-keydown",{key:winInfos[0][0],ctrlKey: e.ctrlKey,keyCode: e.keyCode})
+    //   }
+    // }
+    // document.body.addEventListener("keydown",this.search)
 
     ipc.on('rlog', (e, args)=> {
       console.log(...args)
@@ -526,7 +526,7 @@ export default class SplitWindows extends Component{
       this.refs2[key].TabPanelClose()
     }
 
-    document.body.removeEventListener("keydown",this.search)
+    // document.body.removeEventListener("keydown",this.search)
     ipc.removeListener('sync-datas',this.syncDatasEvent)
     ipc.removeListener("toggle-nav",this.toggleNavEvent)
     ipc.removeListener("switch-fullscreen",this.switchFullscreenEvent)

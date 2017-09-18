@@ -244,7 +244,8 @@ const chrome_valid = new RegExp(`^(${['994289308992179865',
   '4289540628985791613',
   '3095995014811312755',
   '59174027418879706',
-  '6550675742724504774'].join("|")})`)
+  '6550675742724504774',
+  '5453029940327926427'].join("|")})`)
 
 
 
@@ -290,13 +291,13 @@ glob.sync(`${pwd}/**/.directory`).forEach(file=>{
 
 // Replace console.log
 const jsFiles = glob.sync(`${pwd}/src/**/*.js`)
-// filesContentsReplace(jsFiles,/console\.log\(/,'//debug(')
-// filesContentsReplace(jsFiles,/window.debug = require\('debug'\)\('info'\)/,"// window.debug = require('debug')('info')")
-// filesContentsReplace(jsFiles,/global.debug = require\('debug'\)\('info'\)/,"// global.debug = require('debug')('info')")
+filesContentsReplace(jsFiles,/console\.log\(/,'//debug(')
+filesContentsReplace(jsFiles,/window.debug = require\('debug'\)\('info'\)/,"// window.debug = require('debug')('info')")
+filesContentsReplace(jsFiles,/global.debug = require\('debug'\)\('info'\)/,"// global.debug = require('debug')('info')")
 
 
 // Babel Use babili
-// filesContentsReplace(`${pwd}/.babelrc`,/"babel\-preset\-stage\-2"\]/,'"babel-preset-stage-2","babili"]')
+filesContentsReplace(`${pwd}/.babelrc`,/"babel\-preset\-stage\-2"\]/,'"babel-preset-stage-2","babili"]')
 
 console.log((Date.now() - start)/1000)
 

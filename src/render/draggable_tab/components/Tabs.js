@@ -307,6 +307,9 @@ class Tabs extends React.Component {
           li.style['margin-left'] = null
         }
       }
+      if(tab.props.selection){
+        tabClasses = classNames(tabClasses,'chrome-tab-selection')
+      }
       // if(this.props.toggleNav == 1){
       //   tabStyle.marginTop = 3
       // }
@@ -329,7 +332,7 @@ class Tabs extends React.Component {
 
       const t = tab.props.orgTab
       return (
-        <li style={tabStyle} className={tabClasses}
+        <li style={tabStyle} className={tabClasses} draggable
             key={`draggable_tabs_${tab.key}`}
             onDragStart={this.handleDragStart.bind(this, [t])}
             onDragEnter={::this.handleDragEnter}
@@ -337,7 +340,13 @@ class Tabs extends React.Component {
             onDragEnd={this.handleDragEnd.bind(this, [t])}
             onDrop={this.handleDrop.bind(this, t)}
             onMouseDown={this.handleTabClick.bind(this, tab.key)}
-            onMouseUp={_=>setTimeout(_=>PubSub.publish('drag-overlay',false),100)}
+            onMouseUp={_=>setTimeout(_=>{
+              if(this.enableMulti){
+                this.props.multiSelectionClick(...this.enableMulti)
+                this.enableMulti = (void 0)
+              }
+              PubSub.publish('drag-overlay',false)
+            },100)}
           // onContextMenu={this.handleContextMenu.bind(this, tab.key)}
             onMouseOver={()=>{
               if(this.state.hoveredTab != tab.key){
@@ -485,8 +494,12 @@ class Tabs extends React.Component {
       return;
     }
     PubSub.publish('drag-overlay',true)
-    const isBehindTab = key !== this.state.selectedTab;
-    const idx = this._getIndexOfTabByKey(key);
+
+    this.enableMulti = e.ctrlKey || e.metaKey || e.shiftKey ? [e,key] : (void 0)
+
+    if(this.enableMulti){
+      return
+    }
 
     const classes = (e.target.getAttribute('class') || '').split(' ');
     if (classes.indexOf('rdTabCloseIcon') > -1) {
@@ -510,6 +523,7 @@ class Tabs extends React.Component {
 
   handleAddButtonClick(e) {
     // console.log("handleAddButtonClick")
+    this.props.resetSelection()
     this.props.onTabAddButtonClick(e, this._getCurrentOpenTabs());
   }
 
@@ -582,28 +596,40 @@ class Tabs extends React.Component {
 
     if(isMove) return
 
+    const selectionTabs = this.state.tabs.filter(t=>t.props.selection)
+    if(selectionTabs.length > 0) tabs = null
+
     setTimeout(_=>{
         if(mainState.stopDragEnd){
           mainState.set('stopDragEnd',false)
           return
         }
 
-        if(overlayClassList){
-          console.log(overlayClassList)
-          const [type,droppedKey,droppedTabKey] = [overlayClassList[2],overlayClassList[3].slice(1),overlayClassList[4].slice(1)]
-          console.log({type,dropTabs:this.props.parent.state.tabs,dropTabKey:tabs[0].key,droppedKey,droppedTabKey})
-          PubSub.publish('drag-split',{type,dropTabKey:tabs[0].key,droppedKey})
-          return
-        }
         console.log("handleDragEnd2",Date.now())
 
-        if(!tabs){
+        if(selectionTabs.length > 0){
+          tabs = []
+          for(let t of this.state.tabs){
+            if (this.state.closedTabs.has(t.key) || !t.props.selection) continue
+            tabs.push(t.props.orgTab)
+          }
+        }
+        else if(!tabs){
           tabs = []
           for(let t of this.state.tabs){
             if (this.state.closedTabs.has(t.key)) continue
             tabs.push(t.props.orgTab)
           }
         }
+
+        if(overlayClassList){
+          console.log(overlayClassList)
+          const [type,droppedKey,droppedTabKey] = [overlayClassList[2],overlayClassList[3].slice(1),overlayClassList[4].slice(1)]
+          console.log({type,dropTabs:this.props.parent.state.tabs,dropTabKey:tabs[0].key,droppedKey,droppedTabKey})
+          PubSub.publish('drag-split',{type,dropTabKeys:tabs.map(t=>t.key),droppedKey})
+          return
+        }
+
         if(this.state.tabs.length < 2 && this.props.isOnlyPanel) return
         console.log(evt,tabs,this.state.tabs)
         if(evt.dataTransfer.dropEffect == "move") return
@@ -633,7 +659,8 @@ class Tabs extends React.Component {
           })
           Promise.all(promises).then(vals=>{
             BrowserWindowPlus.load({id:remote.getCurrentWindow().id,x:evt.screenX,y:evt.screenY,tabParam:JSON.stringify(vals)})
-            PubSub.publish(`close-panel_${this.props.k}`)
+            console.log(5435,vals)
+            for(let val of vals) PubSub.publish(`close_tab_${this.props.k}`, {key: val.c_key})
           })
         }
       }
@@ -660,12 +687,19 @@ class Tabs extends React.Component {
       if(trans[0].windowId !== winId){
         this.props.createNewTabFromOtherWindow(tab,trans)
       }
-      else if(data.addButton && trans[0].k != this.props.k){
+      else if((data.addButton && trans[0].k != this.props.k) || data.selection){
         console.log(transfer[trans[0].k],trans[0].k)
         if(transfer[trans[0].k]){
           this.props.handleTabAddOtherPanel(tab.key,transfer[trans[0].k])
+          if(data.addButton){
+            PubSub.publish(`close-panel_${trans[0].k}`)
+          }
+          else{
+            for(let t of transfer[trans[0].k]){
+              PubSub.publish(`close_tab_${trans[0].k}`, {key: t.key})
+            }
+          }
           delete transfer[trans[0].k]
-          PubSub.publish(`close-panel_${trans[0].k}`)
         }
         else{
           console.log("missing")
@@ -703,6 +737,8 @@ class Tabs extends React.Component {
   }
 
   handleDragStart(tabs,evt) {
+    const selectionTabs = this.state.tabs.filter(t=>t.props.selection)
+    if(selectionTabs.length > 0) tabs = null
     isMove=false
     mainState.set('stopDragEnd',false)
     mainState.set('dragData',{tabs:!!tabs,windowId: this.props.windowId,k:this.props.k})
@@ -719,8 +755,18 @@ class Tabs extends React.Component {
       PubSub.publish('drag-overlay', true)
     }
 
-    let addButton = false
-    if(!tabs){
+    let addButton = false,selection = false
+    if(selectionTabs.length > 0){
+      evt.stopPropagation()
+      tabs = []
+      selection = true
+      for(let t of this.state.tabs){
+        if (this.state.closedTabs.has(t.key) || !t.props.selection) continue
+        tabs.push(t.props.orgTab)
+      }
+      transfer[this.props.k] = tabs
+    }
+    else if(!tabs){
       addButton = true
       tabs = []
       for(let t of this.state.tabs){
@@ -742,7 +788,7 @@ class Tabs extends React.Component {
       }
     }
     if(data.length > 0){
-      evt.dataTransfer.setData("text/html", JSON.stringify({addButton,trans:data}))
+      evt.dataTransfer.setData("text/html", JSON.stringify({addButton,selection,trans:data}))
     }
     else{
       evt.dataTransfer.setData("text/html", "{}")
@@ -825,57 +871,57 @@ Tabs.defaultProps = {
   width: "100%",
 };
 
-Tabs.propTypes = {
-  tabs: React.PropTypes.arrayOf(React.PropTypes.element),
-
-  selectedTab: React.PropTypes.string,
-  tabsClassNames: React.PropTypes.shape({
-    tabWrapper: React.PropTypes.string,
-    tabBar: React.PropTypes.string,
-    tab: React.PropTypes.string,
-    tabBeforeTitle: React.PropTypes.string,
-    tabTitle: React.PropTypes.string,
-    tabCloseIcon: React.PropTypes.string,
-    tabActive: React.PropTypes.string,
-    tabHover: React.PropTypes.string,
-  }),
-  tabsStyles: React.PropTypes.shape({
-    tabWrapper: React.PropTypes.object,
-    tabBar: React.PropTypes.object,
-    tab: React.PropTypes.object,
-    tabTitle: React.PropTypes.object,
-    tabActive: React.PropTypes.object,
-    tabTitleActive: React.PropTypes.object,
-    tabOnHover: React.PropTypes.object,
-    tabTitleOnHover: React.PropTypes.object,
-    tabBeforeOnHover: React.PropTypes.object,
-    tabCloseIcon: React.PropTypes.object,
-    tabCloseIconOnHover: React.PropTypes.object,
-  }),
-  shortCutKeys: React.PropTypes.shape({
-    close: React.PropTypes.oneOfType(
-      [React.PropTypes.string, React.PropTypes.arrayOf(React.PropTypes.string)]),
-    create: React.PropTypes.oneOfType(
-      [React.PropTypes.string, React.PropTypes.arrayOf(React.PropTypes.string)]),
-    moveRight: React.PropTypes.oneOfType(
-      [React.PropTypes.string, React.PropTypes.arrayOf(React.PropTypes.string)]),
-    moveLeft: React.PropTypes.oneOfType(
-      [React.PropTypes.string, React.PropTypes.arrayOf(React.PropTypes.string)]),
-  }),
-  tabAddButton: React.PropTypes.element,
-  onTabSelect: React.PropTypes.func,
-  onClose: React.PropTypes.func,
-  onTabClose: React.PropTypes.func,
-  onTabContextMenu: React.PropTypes.func,
-  onTabAddButtonClick: React.PropTypes.func,
-  onTabPositionChange: React.PropTypes.func,
-  onKeyDown: React.PropTypes.func,
-  createNewTabFromOtherWindow: React.PropTypes.func,
-  shouldTabClose: React.PropTypes.func,
-  keepSelectedTab: React.PropTypes.bool,
-  disableDrag: React.PropTypes.bool,
-  width: React.PropTypes.string,
-  isTopRight: React.PropTypes.bool,
-};
+// Tabs.propTypes = {
+//   tabs: React.PropTypes.arrayOf(React.PropTypes.element),
+//
+//   selectedTab: React.PropTypes.string,
+//   tabsClassNames: React.PropTypes.shape({
+//     tabWrapper: React.PropTypes.string,
+//     tabBar: React.PropTypes.string,
+//     tab: React.PropTypes.string,
+//     tabBeforeTitle: React.PropTypes.string,
+//     tabTitle: React.PropTypes.string,
+//     tabCloseIcon: React.PropTypes.string,
+//     tabActive: React.PropTypes.string,
+//     tabHover: React.PropTypes.string,
+//   }),
+//   tabsStyles: React.PropTypes.shape({
+//     tabWrapper: React.PropTypes.object,
+//     tabBar: React.PropTypes.object,
+//     tab: React.PropTypes.object,
+//     tabTitle: React.PropTypes.object,
+//     tabActive: React.PropTypes.object,
+//     tabTitleActive: React.PropTypes.object,
+//     tabOnHover: React.PropTypes.object,
+//     tabTitleOnHover: React.PropTypes.object,
+//     tabBeforeOnHover: React.PropTypes.object,
+//     tabCloseIcon: React.PropTypes.object,
+//     tabCloseIconOnHover: React.PropTypes.object,
+//   }),
+//   shortCutKeys: React.PropTypes.shape({
+//     close: React.PropTypes.oneOfType(
+//       [React.PropTypes.string, React.PropTypes.arrayOf(React.PropTypes.string)]),
+//     create: React.PropTypes.oneOfType(
+//       [React.PropTypes.string, React.PropTypes.arrayOf(React.PropTypes.string)]),
+//     moveRight: React.PropTypes.oneOfType(
+//       [React.PropTypes.string, React.PropTypes.arrayOf(React.PropTypes.string)]),
+//     moveLeft: React.PropTypes.oneOfType(
+//       [React.PropTypes.string, React.PropTypes.arrayOf(React.PropTypes.string)]),
+//   }),
+//   tabAddButton: React.PropTypes.element,
+//   onTabSelect: React.PropTypes.func,
+//   onClose: React.PropTypes.func,
+//   onTabClose: React.PropTypes.func,
+//   onTabContextMenu: React.PropTypes.func,
+//   onTabAddButtonClick: React.PropTypes.func,
+//   onTabPositionChange: React.PropTypes.func,
+//   onKeyDown: React.PropTypes.func,
+//   createNewTabFromOtherWindow: React.PropTypes.func,
+//   shouldTabClose: React.PropTypes.func,
+//   keepSelectedTab: React.PropTypes.bool,
+//   disableDrag: React.PropTypes.bool,
+//   width: React.PropTypes.string,
+//   isTopRight: React.PropTypes.bool,
+// };
 
 export default Tabs;

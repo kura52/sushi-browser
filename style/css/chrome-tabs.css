@@ -75,7 +75,8 @@
   fill: #343434;
 }
 
-.chrome-tabs .chrome-tab-drag .chrome-tab-background > svg .chrome-tab-background {
+.chrome-tabs .chrome-tab-drag .chrome-tab-background > svg .chrome-tab-background,
+.chrome-tab-selection{
   stroke: white;
   stroke-width: 3px;
   stroke-dasharray: 10 10;

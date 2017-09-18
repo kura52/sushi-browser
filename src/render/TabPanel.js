@@ -395,8 +395,9 @@ export default class TabPanel extends Component {
         ipc.send("detach-tab-to-main",vals)
         if(vals.length == 1)
           PubSub.publish(`close_tab_${this.props.k}`, {key: vals[0].c_key})
-        else
-          PubSub.publish(`close-panel_${this.props.k}`)
+        else{
+          for(let val of vals) PubSub.publish(`close_tab_${this.props.k}`, {key: val.c_key})
+        }
       })
     }
     ipc.on(`close-tab-from-other-window`,closeTabFromOtherWindow)
@@ -614,21 +615,26 @@ export default class TabPanel extends Component {
       this.setState({oppositeGlobal:enable})
     })
 
-    const tokenSplit = PubSub.subscribe('drag-split',(msg,{type,dropTabKey,droppedKey})=>{
-      const index = this.state.tabs.findIndex(x => x.key == dropTabKey)
-      if(index === -1) return
+    const tokenSplit = PubSub.subscribe('drag-split',(msg,{type,dropTabKeys,droppedKey})=>{
+      const indexes = []
+      this.state.tabs.forEach((x,i) =>{
+        if(dropTabKeys.includes(x.key)) indexes.push(i)
+      })
+      if(indexes.length == 0) return
 
       const dirc = type == "left" || type == "right" ? 'v' : 'h'
       const pos = type == "left" || type == "top" ? -1 : 1
       if(this.state.tabs.length > 1 || droppedKey != this.props.k) {
         if(this.state.tabs.length > 1){
-          this.props.split(droppedKey,dirc,pos,this.state.tabs,index)
+          this.props.split(droppedKey,dirc,pos,this.state.tabs,indexes)
         }
         else{
-          this.props.split(droppedKey,dirc,pos,[...this.state.tabs,'dummy'],index) //@TODO
+          this.props.split(droppedKey,dirc,pos,[...this.state.tabs,'dummy'],indexes) //@TODO
         }
-        this.handleTabClose({}, dropTabKey)
-        PubSub.publish(`close_tab_${this.props.k}`,{key:dropTabKey})
+        for(let dropTabKey of dropTabKeys){
+          this.handleTabClose({}, dropTabKey)
+          PubSub.publish(`close_tab_${this.props.k}`,{key:dropTabKey})
+        }
       }
       else{
         this.props.split(droppedKey, dirc, pos * -1)
@@ -1391,11 +1397,11 @@ export default class TabPanel extends Component {
     tab.events['sync-replace-from-menu'] = async (e, id)=> {
       if (!this.mounted) return
       if (tab.wvId && id == tab.wvId) {
-      const rec = await syncReplace.findOne({key: 'syncReplace_0'})
-      if(rec){
-        console.log(777666,tab.syncReplace,(rec.val.split("\t")))
-        this.refs[`navbar-${tab.key}`].refs.syncReplace.setVal(0,0,!tab.syncReplace)
-      }
+        const rec = await syncReplace.findOne({key: 'syncReplace_0'})
+        if(rec){
+          console.log(777666,tab.syncReplace,(rec.val.split("\t")))
+          this.refs[`navbar-${tab.key}`].refs.syncReplace.setVal(0,0,!tab.syncReplace)
+        }
       }
     }
     ipc.on('sync-replace-from-menu', tab.events['sync-replace-from-menu'])
@@ -2121,6 +2127,14 @@ export default class TabPanel extends Component {
     }
   }
 
+  closeTabs(keys){
+    const len = keys.length
+    keys.forEach((key,i)=>{
+      this.handleTabClose({}, key, i == len - 1)
+    })
+    this.resetSelection()
+  }
+
   closeOtherTabs(key){
     let arr = []
     for(let tab of this.state.tabs){
@@ -2220,6 +2234,81 @@ export default class TabPanel extends Component {
     return t
   }
 
+  setSelection(tab){
+    tab.selection = tab.selection ? (void 0) : Date.now()
+  }
+  getPrevSelectTabPos(){
+    let prevSelectTab = {selection:-1}
+    let ind
+    this.state.tabs.forEach((tab,i)=>{
+      if(tab.selection && tab.selection > prevSelectTab.selection){
+        prevSelectTab = tab
+        ind = i
+      }
+    })
+    if(prevSelectTab.selection != -1){
+      return [prevSelectTab,ind]
+    }
+    else{
+      ind = this.state.tabs.findIndex(x=>x.key == this.state.selectedTab)
+      return [this.state.tabs[ind],ind]
+    }
+  }
+  reverseSelection(from,to){
+    if(from < to){
+      from = from + 1
+    }
+    else if(from > to){
+      [from,to] = [to,from - 1]
+    }
+    else{
+      return
+    }
+    for(let i=from;i<=to;i++){
+      this.setSelection(this.state.tabs[i])
+    }
+  }
+
+  resetSelection(){
+    for(let tab of this.state.tabs){
+      tab.selection = (void 0)
+    }
+  }
+
+  checkEnableSelection(){
+    return this.state.tabs.some(t=>t.selection)
+  }
+
+  multiSelectionClick(e,key){
+    const enableMulti = e.ctrlKey || e.metaKey || e.shiftKey
+    const i = this.state.tabs.findIndex((x)=>x.key===key)
+    const tab = this.state.tabs[i]
+
+    let prevSelectTab,ind
+    if(!(e.ctrlKey || e.metaKey)){
+      [prevSelectTab,ind] = this.getPrevSelectTabPos()
+      this.resetSelection()
+    }
+    if(enableMulti && !this.checkEnableSelection()){
+      this.setSelection(this.state.tabs.find((x)=>x.key===this.state.selectedTab))
+    }
+
+    if(e.ctrlKey || e.metaKey){
+      if(e.shiftKey){
+        this.reverseSelection(ind,i)
+      }
+      else{
+        this.setSelection(tab)
+      }
+    }
+    else if(e.shiftKey){
+      this.reverseSelection(ind,i)
+
+    }
+    this.setState({})
+    return enableMulti
+  }
+
   onAddFavorites(){
     const keys = []
     let head
@@ -2241,10 +2330,26 @@ export default class TabPanel extends Component {
     })()
   }
 
+  getSelectionTabs(){
+    const sTabs = [],nTabs = []
+    for(let tab of this.state.tabs){
+      if(tab.selection){
+        sTabs.push(tab)
+      }
+      else{
+        nTabs.push(tab)
+      }
+    }
+    return [sTabs,nTabs]
+  }
+
   handleContextMenu(e,key,currentTabs,tabs){
     const _tabs = this.state.tabs
     const i = _tabs.findIndex((x)=>x.key===key)
     const t = _tabs[i]
+    const selections = this.getSelectionTabs()
+    const enableSelection = selections[0].length > 0
+
     var menuItems = []
     // menuItems.push(({ label: 'New Tab', click: ()=>document.querySelector(".rdTabAddButton").click()}))
     menuItems.push(({ label: locale.translation('newTab'), click: ()=>this.createNewTab(_tabs, i)}))
@@ -2254,19 +2359,38 @@ export default class TabPanel extends Component {
     // menuItems.push(({ label: locale.translation('reload'), click: ()=>this.getWebContents(t).reload()}))
 
     const splitFunc = (dirc,pos)=> {
-      if(_tabs.length > 1) {
-        this.props.split(this.props.k,dirc,pos,_tabs,i)
-        this.handleTabClose({}, key)
-        PubSub.publish(`close_tab_${this.props.k}`,{key})
+      if(enableSelection){
+        const arr = [],indexes = []
+        this.state.tabs.forEach((tab,i)=> {
+          if(tab.selection){
+            arr.push(tab.key)
+            indexes.push(i)
+          }
+        })
+        if(selections[1].length == 0){
+          this.props.split(this.props.k, dirc, pos * -1)
+        }
+        else{
+          this.props.split(this.props.k,dirc,pos,_tabs,indexes)
+          arr.forEach((key,i)=> {
+            PubSub.publish(`close_tab_${this.props.k}`,{key,isUpdateState:i == arr.length - 1})
+          })
+        }
       }
       else{
-        this.props.split(this.props.k, dirc, pos * -1)
+        if(_tabs.length > 1) {
+          this.props.split(this.props.k,dirc,pos,_tabs,i)
+          this.handleTabClose({}, key)
+          PubSub.publish(`close_tab_${this.props.k}`,{key})
+        }
+        else{
+          this.props.split(this.props.k, dirc, pos * -1)
+        }
       }
     }
 
     const splitOtherTabsFunc = (dirc,pos)=> {
-      const arr = []
-      const indexes = []
+      const arr = [],indexes = []
       let isAppear = false
       this.state.tabs.forEach((tab,i)=>{
         if((pos == -1 && !isAppear && tab.key != key)||
@@ -2288,18 +2412,56 @@ export default class TabPanel extends Component {
     }
 
     const detachToFloatPanel = _=>{
-      if(_tabs.length > 1) {
-        this.props.addFloatPanel(_tabs,i)
-        PubSub.publish(`close_tab_${this.props.k}`,{key})
+      if(enableSelection){
+        if(selections[1].length == 0){
+          const t = this.handleTabAddButtonClick()
+          setTimeout(_=> {
+            const arr = [],indexes = []
+            const _tabs = this.state.tabs
+            this.state.tabs.forEach((tab,i)=> {
+              if(tab.selection){
+                arr.push(tab.key)
+                indexes.push(i)
+              }
+            })
+            let j = 0
+            for(let i of indexes){
+              this.props.addFloatPanel(_tabs,i)
+              PubSub.publish(`close_tab_${this.props.k}`,{key:arr[j]})
+              j++
+            }
+          },100)
+        }
+        else{
+          const arr = [],indexes = []
+          this.state.tabs.forEach((tab,i)=> {
+            if(tab.selection){
+              arr.push(tab.key)
+              indexes.push(i)
+            }
+          })
+          let j = 0
+          for(let i of indexes){
+            this.props.addFloatPanel(_tabs,i)
+            PubSub.publish(`close_tab_${this.props.k}`,{key:arr[j]})
+            j++
+          }
+        }
       }
       else{
-        const t = this.handleTabAddButtonClick()
-        setTimeout(_=> {
-          const _tabs = this.state.tabs
-          const i = _tabs.findIndex((x)=>x.key === key)
-          this.props.addFloatPanel(_tabs, i)
-          PubSub.publish(`close_tab_${this.props.k}`, {key})
-        },100)
+        if(_tabs.length > 1) {
+          this.props.addFloatPanel(_tabs,i)
+          PubSub.publish(`close_tab_${this.props.k}`,{key})
+        }
+        else{
+          const t = this.handleTabAddButtonClick()
+          setTimeout(_=> {
+            const _tabs = this.state.tabs
+            const i = _tabs.findIndex((x)=>x.key === key)
+            this.props.addFloatPanel(_tabs, i)
+            PubSub.publish(`close_tab_${this.props.k}`, {key})
+          },100)
+        }
       }
     }
 
@@ -2310,7 +2472,8 @@ export default class TabPanel extends Component {
       menuItems.push(({ label: 'Split Bottom', click: splitFunc.bind(this,'h',1) }))
       menuItems.push(({ type: 'separator' }))
       // menuItems.push(({ label: 'Split Left Tabs to Left', click: splitOtherTabsFunc.bind(this,'v',-1) }))
-      menuItems.push(({ label: 'Split right tabs to right', click: splitOtherTabsFunc.bind(this,'v',1) }))
+      if(!enableSelection) menuItems.push(({ label: 'Split right tabs to right', click: splitOtherTabsFunc.bind(this,'v',1) }))
+
       menuItems.push(({ label: 'Floating Panel', click: _=>detachToFloatPanel() }))
       menuItems.push(({ type: 'separator' }))
       menuItems.push(({ label: 'Swap Position', click: ()=> { PubSub.publish(`swap-position_${this.props.k}`)} }))
@@ -2321,31 +2484,49 @@ export default class TabPanel extends Component {
       menuItems.push(({ type: 'separator' }))
     }
 
-    menuItems.push(({ label: locale.translation('3007771295016901659'), //'Duplicate',
-      click: ()=> {
-        // const n_tab = this.createTab({default_url:t.page.location})
-        // _tabs.splice(i + 1, 0,n_tab )
-        // this.focus_webview(n_tab)
-        // this.setState({selectedTab: n_tab.key})
-        ipc.send("set-recent-url",t.page.navUrl)
-        this.getWebContents(t).clone()
-      } }))
-
-    menuItems.push(({ label: t.pin ? locale.translation('unpinTab') : locale.translation('pinTab'), click: ()=> {t.pin = !t.pin;this.setState({})}}))
-    menuItems.push(({ type: 'separator' }))
 
     // menuItems.push(({ label: locale.translation('3551320343578183772'), //close tab
     //   click: ()=> this.handleTabClose({}, key)}))
+
+    if(enableSelection){
+      menuItems.push(({ label: locale.translation('3007771295016901659'), //'Duplicate',
+        click: ()=> {
+          for(let t of selections[0]){
+            ipc.send("set-recent-url",t.page.navUrl)
+            this.getWebContents(t).clone()
+          }
+          this.resetSelection()
+        } }))
+
+      const allPined = selections[0].every(t=>t.pin)
+      menuItems.push(({ label: allPined ? locale.translation('unpinTab') : locale.translation('pinTab'), click: ()=> {
+        selections[0].forEach(t=>t.pin = !allPined)
+        this.resetSelection()
+        this.setState({})
+      }}))
+
+      menuItems.push(({ type: 'separator' }))
+      menuItems.push(({ label: locale.translation('5453029940327926427'), click: ()=> this.closeTabs(selections[0].map(t=>t.key))}))
+      menuItems.push(({ label: locale.translation('closeOtherTabs'), click: ()=> this.closeTabs(selections[1].map(t=>t.key))}))
+    }
+    else{
+      menuItems.push(({ label: locale.translation('3007771295016901659'), //'Duplicate',
+        click: ()=> {
+          ipc.send("set-recent-url",t.page.navUrl)
+          this.getWebContents(t).clone()
+        } }))
+
+      menuItems.push(({ label: t.pin ? locale.translation('unpinTab') : locale.translation('pinTab'), click: ()=> {t.pin = !t.pin;this.setState({})}}))
+      menuItems.push(({ type: 'separator' }))
+      menuItems.push(({ label: locale.translation('closeOtherTabs'), click: ()=> this.closeOtherTabs(key)}))
+      menuItems.push(({ label: locale.translation('closeTabsToRight'), click: ()=> this.closeRightTabs(key)}))
+    }
 
     menuItems.push(({ label: 'Close all Tabs', click: ()=> {
       // console.log(this)
       this.props.close(this.props.k)
       this.TabPanelClose()
     } }))
-
-    menuItems.push(({ label: locale.translation('closeOtherTabs'), click: ()=> this.closeOtherTabs(key)}))
-    menuItems.push(({ label: locale.translation('closeTabsToRight'), click: ()=> this.closeRightTabs(key)}))
-
 
     menuItems.push(({ type: 'separator' }))
 
@@ -2790,8 +2971,10 @@ export default class TabPanel extends Component {
         onTabPositionChange={::this.handleTabPositionChange}
         onTabContextMenu={::this.handleContextMenu}
         handleTabAddOtherPanel={::this.handleTabAddOtherPanel}
+        multiSelectionClick={::this.multiSelectionClick}
         onKeyDown={::this.handleKeyDown}
         createNewTabFromOtherWindow={::this.createNewTabFromOtherWindow}
+        resetSelection={::this.resetSelection}
         toggleNav={toggle}
         isTopLeft={this.props.isTopLeft}
         isTopRight={this.props.isTopRight}
@@ -2803,7 +2986,7 @@ export default class TabPanel extends Component {
         ref='tabs'
         tabs={this.state.tabs.map((tab,num)=>{
           return (<Tab key={tab.key} beforeTitle={tab.page.title && tab.page.favicon !== 'loading' ? (<img className='favi' src={tab.page.favicon} onError={(e)=>{e.target.src = 'resource/file.png'}}/>) : (<svg dangerouslySetInnerHTML={{__html: svg }} />)}
-                       title={tab.page.favicon !== 'loading' || tab.page.titleSet ? tab.page.title : 'loading'} orgTab={tab} pin={tab.pin} privateMode={tab.privateMode}>
+                       title={tab.page.favicon !== 'loading' || tab.page.titleSet ? tab.page.title : 'loading'} orgTab={tab} pin={tab.pin} privateMode={tab.privateMode} selection={tab.selection}>
             <div style={{height: '100%'}} className="div-back" ref={`div-${tab.key}`} >
               <BrowserNavbar ref={`navbar-${tab.key}`} tabkey={tab.key} k={this.props.k} {...tab.navHandlers} parent={this} privateMode={tab.privateMode} page={tab.page} tab={tab}
                              richContents={tab.page.richContents} wv={tab.wv} sync={tab.sync} replaceInfo={tab.syncReplace} oppositeMode={tab.oppositeMode} oppositeGlobal={this.state.oppositeGlobal} toggleNav={toggle}
