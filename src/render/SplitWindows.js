@@ -534,7 +534,6 @@ export default class SplitWindows extends Component{
     ipc.removeListener("get-focused-webContent",this.getFocusedWebContent)
     ipc.removeListener("enter-full-screen",this.fullScreenState)
     ipc.removeListener("leave-full-screen",this.fullScreenState)
-    ipc.removeListener('update-adblock-disable-sites',this.adBlockDisableSiteEvent)
 
     PubSub.unsubscribe(this.tokenAlign)
     PubSub.unsubscribe(this.tokenAllDetach)

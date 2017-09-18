@@ -23,7 +23,28 @@ function getFocusedWebContents(){
 
   console.log(77,cont)
   if(!cont){
-    const win = getCurrentWindow()
+    let win = getCurrentWindow()
+    if(!win){
+      // const key = uuid.v4()
+      return new Promise((resolve,reject)=>{
+        // let retry = 0
+        // const id = setInterval(()=> {
+        //   if((win = getCurrentWindow())){
+        //     clearInterval(id)
+        //     ipcMain.once(`get-focused-webContent-reply_${key}`,(e,tabId)=>{
+        //       resolve(webContents.fromTabID(tabId))
+        //     })
+        //     win.webContents.send('get-focused-webContent',key)
+        //   }
+        //   else if(retry++ > 100){
+        //     clearInterval(id)
+        //     resolve(null)
+        //   }
+        // }, 200)
+        resolve(null)
+      })
+    }
+
     cont = win.webContents
   }
   const key = uuid.v4()

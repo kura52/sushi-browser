@@ -15,6 +15,7 @@ const isDarwin = process.platform == 'darwin'
 const mime = require('mime')
 import url from 'url'
 const youtubedl = require('youtube-dl')
+const {getUrlFromCommandLine,getNewWindowURL} = require('./cmdLine')
 import {getFocusedWebContents, getCurrentWindow} from './util'
 let adblock,extensions
 
@@ -75,17 +76,17 @@ const RegNormalResource = /^((?:application\/(?:x(?:-javascript|ml)|j(?:avascrip
 const RegRichMedia = /^(video|audio)/
 // const RegVideo = /1tv|1up\.com|20min|220\.ro|22tracks|24video|3qsdn|3sat|4tube|56\.com|5min|6play|8tracks|91porn|9c9media|9gag|9now\.com\.au|abc\.net\.au|abcnews|abcotvs|academicearth|acast|addanime|adn|adobetv|adobetvchannel|adobetvshow|adobetvvideo|adultswim|aenetworks|afreecatv|airmozilla|aljazeera|allocine|alphaporno|amcnetworks|anderetijden|animeondemand|anvato|anysex|aparat|appleconnect|appledaily|appletrailers|archive\.org|ard|arkena|arte\.tv|asiancrush|asiancrushplaylist|atresplayer|atttechchannel|atvat|audimedia|audioboom|audiomack|auroravid|awaan|awaan|azmedien|azmedienplaylist|azmedienshowplaylist|baiduvideo|bambuser|bandcamp|bangumi\.bilibili\.com|bbc|bbc\.co\.uk|beatport|beeg|behindkink|bellmedia|bet|bigflix|bild|bilibili|biobiochiletv|biqle|bleacherreport|bleacherreportcms|blinkx|bloomberg|bokecc|bostonglobe|bpb|bravotv|break|brightcove|buzzfeed|byutv|byutvevent|camdemy|camdemyfolder|camwithher|canalc2\.tv|canalplus|canvas|carambatv|carambatvpage|cartoonnetwork|cbc\.ca|cbs|cbsinteractive|cbslocal|cbsnews|cbssports|ccma|cctv|cda|ceskatelevize|ceskatelevizeporady|channel9|charlierose|chaturbate|chilloutzone|chirbit|cinchcast|clipfish|cliphunter|cliprs|clipsyndicate|closertotruth|cloudtime|cloudy|clubic|clyp|cmt\.com|cnbc|cnn|cnnarticle|cnnblogs|collegerama|comcarcoff|comedycentral|comedycentralfullepisodes|comedycentralshortname|comedycentraltv|condenast|corus|coub|cracked|crackle|criterion|crooksandliars|crunchyroll|crunchyroll|csnne|cspan|ctsnews|ctvnews|culturebox\.francetvinfo\.fr|cultureunplugged|curiositystream|cwtv|dailymail|dailymotioncloud|daisuki|daisukiplaylist|daum\.net|dbtv|dctptv|deezerplaylist|defense\.gouv\.fr|democracynow|dhm|digitallyspeaking|digiteka|discovery|discoverygo|discoverygoplaylist|discoverynetworksde|discoveryvr|disney|dotsub|douyushow|douyutv|dplay|dplayit|dramafever|drbonanza|dropbox|drtuber|drtv|dumpert|dvtv|eagleplatform|ebaumsworld|echomsk|egghead|ehow|einthusan|eitb\.tv|ellentv|elpais|embedly|empflix|engadget|eporner|eroprofile|escapist|espn|espnarticle|esrivideo|etonline|europa|everyonesmixtape|expotv|extremetube|eyedotv|facebook|facebookpluginsvideo|faz\.net|fc2|fczenit|fernsehkritik\.tv|filmon|firstpost|fivetv|flickr|flipagram|folketinget|footyroom|formula1|fox|fox9|foxgay|foxnews|foxsports|france2\.fr|franceculture|franceinter|francetv|francetvembed|francetvinfo\.fr|freesound|freespeech\.org|freshlive|funimation|funnyordie|fusion|fxnetworks|gameinformer|gameone|gameone|gamersyde|gamespot|gamestar|gaskrank|gazeta|gdcvault|generic|gfycat|giantbomb|giga|glide|globo|globoarticle|go90|godtube|golem|googledrive|goshgay|gputechconf|groupon|hark|hbo|hearthisat|heise|hellporno|helsinki|hentaistigma|hetklokhuis|hgtv\.com|historicfilms|history|hitbox|hitrecord|hornbunny|hotnewhiphop|hotstar|howcast|howstuffworks|hrti|hrtiplaylist|huajiao|huffpost|hypem|iconosquare|ign\.com|imdb|imgur|imguralbum|ina|inc|indavideo|indavideoembed|infoq|instagram|instagram|internetvideoarchive|iprima|iqiyi|ir90tv|itv|ivi|ivideon|iwara|izlesene|jamendo|jamendoalbum|jeuxvideo|jove|jpopsuki\.tv|jwplatform|kaltura|kamcord|kanalplay|kankan|karaoketv|karrierevideos|keek|keezmovies|ketnet|khanacademy|kickstarter|konserthusetplay|kontrtube|krasview|ku6|kusi|kuwo|la7\.it|laola1tv|lci|lcp|lcpplay|learnr|lecture2go|lego|lemonde|leplaylist|letvcloud|libsyn|life|limelight|litv|liveleak|livestream|lnkgo|loc|localnews8|lovehomeporn|lrt\.lt|lynda|macgamestore|mailru|makerschannel|makertv|mangomolo|matchtv|mdr|media\.ccc\.de|medialaan|mediaset|medici|meipai|melonvod|meta|metacafe|metacritic|mgoon|mgtv|miaopai|minhateca|ministrygrid|minoto|miomio\.tv|mitele|mixcloud|mixer|mlb|mnet|moevideo|mofosex|mojvideo|moniker|morningstar|motherless|motorsport|movieclips|moviefap|moviezine|movingimage|mpora|msn|mtg|mtv|mtv\.de|mtv81|mtvservices|muenchentv|musicplayon|mva|mwave|mwavemeetgreet|myspace|myspass|myvi|myvidster|n-tv\.de|natgeo|naver|nba|nbc|nbcnews|nbcolympics|nbcsports|nbcsportsvplayer|ndr|ndtv|nerdcubedfeed|netease|netzkino|newgrounds|newgroundsplaylist|newstube|nextmedia|nextmediaactionnews|nexttv|nfb|nfl\.com|nhkvod|nhl\.com|nick\.com|nick\.de|nicknight|niconicoplaylist|nintendo|njoy|njpwworld|nobelprize|noco|nonktube|noovo|normalboots|nosvideo|nova|nowness|nowtv (currently broken)|nowtvlist|nowvideo|noz|npo|npo\.nl|npr|nrk|nrkplaylist|nrkskole|nrktv|nrktvdirekte|nrktvepisodes|nrktvseries|ntv\.ru|nuvid|nytimes|nytimesarticle|nzz|ocw\.mit\.edu|odatv|odnoklassniki|oktoberfesttv|on\.aol\.com|ondemandkorea|onet\.pl|onet\.tv|onetmvp|onionstudios|ooyala|ooyalaexternal|openload|oratv|orf|packtpub|packtpubcourse|pandatv|pandora\.tv|parliamentlive\.tv|patreon|pbs|pcmag|people|periscope|philharmoniedeparis|phoenix\.de|photobucket|piksel|pinkbike|pladform|play\.fm|playstv|playtvak|playvid|playwire|pluralsight|plus\.google|podomatic|pokemon|polskieradio|polskieradiocategory|porncom|pornflip|pornhd|pornhub|pornhubplaylist|pornhubuservideos|pornotube|pornovoisines|pornoxo|presstv|primesharetv|promptfile|prosiebensat1|puls4|pyvideo|qqmusic|r7|r7article|radio\.de|radiobremen|radiocanada|radiocanadaaudiovideo|radiofrance|radiojavan|rai|raiplay|raiplaylive|rbmaradio|rds|redbulltv|redtube|regiotv|rentv|rentvarticle|restudy|reuters|reverbnation|revision|revision3|rice|ringtv|rmcdecouverte|rockstargames|roosterteeth|rottentomatoes|roxwel|rozhlas|rtbf|rte|rtl\.nl|rtl2|rtp|rts|rtve\.es|rtvnh|rudo|ruhd|ruleporn|rutube|rutv|ruutu|ruv|safari|sandia|sapo|savefrom\.net|sbs|schooltv|screen\.yahoo|screencast|screencastomatic|scrippsnetworks|seeker|senateisvp|sendtonews|servingsys|sexu|shahid|shared|showroomlive|sina|skylinewebcams|skynewsarabia|skysports|slideshare|slutload|smotri|snotr|sohu|sonyliv|soundcloud|soundgasm|southpark\.cc\.com|southpark\.de|southpark\.nl|southparkstudios\.dk|spankbang|spankwire|spiegel|spiegeltv|spike|sport5|sportboxembed|sportdeutschland|sportschau|sprout|srgssr|srgssrplay|stanfordoc|steam|stitcher|streamable|streamango|streamcloud\.eu|streamcz|streetvoice|sunporno|svt|svtplay|swrmediathek|syfy|sztvhu|t-online\.de|tagesschau|tagesschau|tass|tastytrade|tbs|tdslifeway|teachertube|teachingchannel|teamcoco|teamfourstar|techtalks|techtv\.mit\.edu|ted|tele13|telebruxelles|telecinco|telegraaf|telemb|telequebec|teletask|telewebion|tf1|tfo|theintercept|theoperaplatform|theplatform|theplatformfeed|thescene|thesixtyone|thestar|thesun|theweatherchannel|thisamericanlife|thisav|thisoldhouse|tinypic|tmz|tmzarticle|tnaflix|tnaflixnetworkembed|toggle|toongoggles|tosh|tou\.tv|toypics|toypicsuser|traileraddict (currently broken)|trilulilu|trutv|tube8|tubitv|tumblr|tunein|tunepk|turbo|tutv|tv\.dfb\.de|tv2|tv2\.hu|tv2article|tv3|tv4|tv5mondeplus|tva|tvanouvelles|tvanouvellesarticle|tvc|tvcarticle|tvigle|tvland\.com|tvn24|tvnoe|tvp|tvplayer|tweakers|twitch|twitter|udemy|udnembed|uktvplay|unistra|uol\.com\.br|uplynk|upskill|upskillcourse|urort|urplay|usanetwork|usatoday|ustream|ustudio|varzesh3|vbox7|veehd|veoh|vessel|vesti|vevo|vevoplaylist|vgtv|vh1\.com|viafree|vice|viceland|vidbit|viddler|videa|video\.google|video\.mit\.edu|videodetective|videofy\.me|videomega|videomore|videopremium|videopress|videoweed|vidio|vidme|vidzi|vier|viewlift|viewliftembed|viewster|viidea|viki|vimple|vine|vine|viu|viu|vivo|vlive|vodlocker|vodpl|vodplatform|voicerepublic|voxmedia|vporn|vpro|vrak|vrt|vrv|vshare|vube|vuclip|vvvvid|vyborymos|vzaar|walla|washingtonpost|wat\.tv|watchindianporn|wdr|wdr|webcaster|webcasterfeed|webofstories|webofstoriesplaylist|weiqitv|wholecloud|wimp|wistia|wnl|worldstarhiphop|wrzuta\.pl|wsj|wsjarticle|xbef|xboxclips|xfileshare|fastvideo\.me|xhamster|xhamsterembed|xiami|xminus|xnxx|xstream|xtube|xtubeuser|xuite|xvideos|xxxymovies|yahoo|yam|yandexmusic|yesjapan|yinyueta|ynet|youjizz|youku|youporn|yourupload|zapiks|zaq1|zdf|zdfchannel|zingmp3/
 
-const crashReporter = require('electron').crashReporter
-crashReporter.start({
-  productName: 'Sushi Browser',
-  companyName: '',
-  submitURL: '',
-  autoSubmit: false,
-  extra: {
-    node_env: process.env.NODE_ENV,
-    rev: '0.0.1'
-  }
-})
+// const crashReporter = require('electron').crashReporter
+// crashReporter.start({
+//   productName: 'Sushi Browser',
+//   companyName: '',
+//   submitURL: '',
+//   autoSubmit: false,
+//   extra: {
+//     node_env: process.env.NODE_ENV,
+//     rev: '0.0.1'
+//   }
+// })
 
 global.rlog = (...args)=>{
   // setTimeout(_=>global.rlog(...args),3000)
@@ -93,71 +94,76 @@ global.rlog = (...args)=>{
 
 let ptyProcessSet,passwordManager,extensionInfos,syncReplaceName
 app.on('ready', async ()=>{
-  require('./captureEvent')
+  console.log(1)
+    require('./captureEvent')
 
-  const ses = session.defaultSession
-  // ses.setEnableBrotli(true)
-  // ses.contentSettings.set("*","*","plugins",mainState.flashPath,"allow")
-  ses.userPrefs.setDictionaryPref('content_settings', defaultConf)
-  ses.userPrefs.setBooleanPref('autofill.enabled', true)
-  ses.userPrefs.setBooleanPref('profile.password_manager_enabled', true)
-  ses.userPrefs.setBooleanPref('credentials_enable_service', true)
-  ses.userPrefs.setBooleanPref('credentials_enable_autosignin', true)
-
-
-  // ses.autofill.getAutofillableLogins((result) => {
-  //   // console.log(1,result)
-  // })
-  // ses.autofill.getBlackedlistLogins((result) => {
-  //   // console.log(2,result)
-  // })
-
-  // loadDevtool(loadDevtool.REACT_DEVELOPER_TOOLS);
-  //console.log(app.getPath('pepperFlashSystemPlugin'))
-  extensionInfos = require('./extensionInfos')
-  rlog(process)
-  console.log(process.versions)
+    const ses = session.defaultSession
+    // ses.setEnableBrotli(true)
+    // ses.contentSettings.set("*","*","plugins",mainState.flashPath,"allow")
+    ses.userPrefs.setDictionaryPref('content_settings', defaultConf)
+    ses.userPrefs.setBooleanPref('autofill.enabled', true)
+    ses.userPrefs.setBooleanPref('profile.password_manager_enabled', true)
+    ses.userPrefs.setBooleanPref('credentials_enable_service', true)
+    ses.userPrefs.setBooleanPref('credentials_enable_autosignin', true)
 
 
-  adblock = require('../brave/adBlock')
-  // console.log(app.getPath('userData'))
-  new (require('./downloadEvent'))()
-  require('./historyEvent')
-  require('./favoriteEvent')
-  require('./messageEvent')
-  require('./tabMoveEvent')
-  require('./saveEvent')
-  require('./userAgentChangeEvent')
+    // ses.autofill.getAutofillableLogins((result) => {
+    //   // console.log(1,result)
+    // })
+    // ses.autofill.getBlackedlistLogins((result) => {
+    //   // console.log(2,result)
+    // })
+
+    // loadDevtool(loadDevtool.REACT_DEVELOPER_TOOLS);
+    //console.log(app.getPath('pepperFlashSystemPlugin'))
+    extensionInfos = require('./extensionInfos')
+    rlog(process)
+    console.log(process.versions)
 
 
-  ptyProcessSet = require('./ptyProcess')
-  // ptyProcessSet = new Set()
-  passwordManager = require('./passwordManagerMain')
-  require('./importer')
-  require('./bookmarksExporter')
-  const setting = await InitSetting.val
-  extensions = require('../brave/extension/extensions')
-  extensions.init(setting.ver !== fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString())
-  require('./faviconsEvent')(async _ => {
-    await createWindow(true)
-    require('./ipcUtils')
-    require('./syncLoop')
+    adblock = require('../brave/adBlock')
+    // console.log(app.getPath('userData'))
+    new (require('./downloadEvent'))()
+    require('./historyEvent')
+    require('./favoriteEvent')
+    require('./messageEvent')
+    require('./tabMoveEvent')
+    require('./saveEvent')
+    require('./userAgentChangeEvent')
 
-    require('./menuSetting')
-    process.emit('app-initialized')
 
-    require('./checkUpdate')
-    // require('./checkDefault')
-    const {syncReplace} = require('./databaseFork')
-    let rec
-    if(rec = await syncReplace.findOne({key: 'syncReplace_0'})){
-      syncReplaceName = rec.val.split("\t")[0]
-    }
-    else{
-      syncReplace.insert({key:'syncReplace_0',val:`${locale.translation('2473195200299095979')}\t(.+)\thttps://translate.google.co.jp/translate?sl=auto&tl=${mainState.lang}&hl=${mainState.lang}&ie=UTF-8&u=$$1`})
-      syncReplaceName = locale.translation('2473195200299095979')
-    }
-  })
+    ptyProcessSet = require('./ptyProcess')
+    // ptyProcessSet = new Set()
+    passwordManager = require('./passwordManagerMain')
+    require('./importer')
+    require('./bookmarksExporter')
+    const setting = await InitSetting.val
+    extensions = require('../brave/extension/extensions')
+    extensions.init(setting.ver !== fs.readFileSync(path.join(__dirname, '../VERSION.txt')).toString())
+    require('./faviconsEvent')(async _ => {
+      console.log(332,process.argv,getUrlFromCommandLine(process.argv))
+      await createWindow(true,isDarwin ? getNewWindowURL() : getUrlFromCommandLine(process.argv))
+      require('./ipcUtils')
+      require('./syncLoop')
+
+      require('./menuSetting')
+      process.emit('app-initialized')
+
+      require('./checkUpdate')
+      // require('./checkDefault')
+      const {syncReplace} = require('./databaseFork')
+      let rec
+      if (rec = await syncReplace.findOne({key: 'syncReplace_0'})) {
+        syncReplaceName = rec.val.split("\t")[0]
+      }
+      else {
+        syncReplace.insert({
+          key: 'syncReplace_0',
+          val: `${locale.translation('2473195200299095979')}\t(.+)\thttps://translate.google.co.jp/translate?sl=auto&tl=${mainState.lang}&hl=${mainState.lang}&ie=UTF-8&u=$$1`
+        })
+        syncReplaceName = locale.translation('2473195200299095979')
+      }
+    })
 })
 
 let beforeQuitFirst = false
@@ -378,15 +384,19 @@ process.on('add-new-contents', async (e, source, newTab, disposition, size, user
     let cont = source.hostWebContents
     console.log(3333,cont)
     if(!cont){
+      let host,_url
+      if((_url = source.getURL()) && _url.startsWith('chrome://brave')){
+        host = source
+      }
       source = await getFocusedWebContents()
       if(!source){
         setTimeout(async _=>{
           source = await getFocusedWebContents()
-          source.hostWebContents.send('create-web-contents', { id: source.getId(), targetUrl, disposition, guestInstanceId: newTab.guestInstanceId })
+          (host || source.hostWebContents).send('create-web-contents', { id: source.getId(), targetUrl, disposition, guestInstanceId: newTab.guestInstanceId })
         },3000)
         return
       }
-      cont = source.hostWebContents
+      cont = host || source.hostWebContents
     }
 
     console.log(33,source)
@@ -443,8 +453,8 @@ function setFlash(app){
   }
 }
 
-function createWindow (first) {
-  const initWindow = BrowserWindowPlus.load((void 0),first)
+function createWindow (first,url) {
+  const initWindow = BrowserWindowPlus.load((void 0),first,url)
   return initWindow
 }
 

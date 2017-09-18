@@ -1,6 +1,6 @@
 import {ipcMain} from 'electron'
 import {getFocusedWebContents, getCurrentWindow} from './util'
-import https from 'https'
+import {request} from './request'
 import {state} from './databaseFork'
 import mainState from './mainState'
 const locale = require('../brave/app/locale')
@@ -9,19 +9,9 @@ const path = require('path')
 const fs = require('fs')
 
 
-const options = {
-  hostname: 'sushib.me',
-  path: '/check.json'
-}
-
 
 function checkUpdate(ver,checkedVersion){
-  let body = ""
-  const req = https.request(options, (res) => {
-    res.on('data', (chunk) => {
-      body += chunk
-    });
-    res.on('end', () => {
+  request('https://sushib.me/check.json',(err,res,body)=>{
       const updVer = JSON.parse(body).ver
       console.log(ver,updVer,checkedVersion,mainState.checkedVersion)
       if(mainState.checkedVersion > checkedVersion) checkedVersion = mainState.checkedVersion
@@ -39,15 +29,13 @@ function checkUpdate(ver,checkedVersion){
           }
         })
       }
-    });
-  });
-  req.end()
+  })
 }
 
 state.findOne({key: 1}).then(rec=>{
   const {checkedVersion} = rec
   const ver = fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString()
-  setTimeout(_=>checkUpdate(ver,checkedVersion || '0.00'),1000)
+  setTimeout(_=>checkUpdate(ver,checkedVersion || '0.00'),4000)
 
   setInterval(_=>checkUpdate(ver,checkedVersion || '0.00'),1000*3600*5)
 })

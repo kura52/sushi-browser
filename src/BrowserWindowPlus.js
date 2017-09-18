@@ -175,7 +175,7 @@ function setOptionVal(key,dVal,val){
 }
 
 export default {
-  async load(opt,first){
+  async load(opt,first,url){
     let initWindow
     const setting = await InitSetting.val
     let winSetting = opt ? getSize(opt) : {x: setting.x, y: setting.y, width: setting.width, height: setting.height, maximize: setting.maximize}
@@ -205,7 +205,24 @@ export default {
       for(let ele of (await searchEngine.find({}))){
         mainState.searchProviders[ele.name] = ele
       }
-      mainState.winState = JSON.stringify(setting.winState)
+      console.log(90756,url)
+      if(url) {
+        mainState.winState = JSON.stringify({
+          dirc: "v",
+          key: "9b069c3c-bb0d-4267-b0ac-28c6ecb1f1b4",
+          l: {
+            key: "1505620587125_747c1b38-bf28-4a0f-a855-7e9839adc2cf_0",
+            tabs: [{ pin: false, tabKey: "1505620587141_bec149c2-e3da-4ba3-a01a-ce876f2204ac",forceKeep:true, url }]
+          },
+          r: null,
+          size: "100%",
+          toggleNav: setting.winState.toggleNav
+      })
+      }
+      else{
+        mainState.winState = JSON.stringify(setting.winState)
+      }
+      console.log(7778,mainState.winState)
       mainState.maxBounds = JSON.stringify(setting.maxBounds)
       mainState.maxState = JSON.stringify({width: setting.width, height: setting.height, maximize: setting.maximize,maxWidth: setting.maximize && setting.maxBounds.width,maxHeight: setting.maximize && setting.maxBounds.height})
     }
