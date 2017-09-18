@@ -2121,18 +2121,18 @@ export default class TabPanel extends Component {
 
     if(isUpdateState){
       this.setState({tabs:_tabs,
-        selectedTab: this.state.selectedTab !== key ? this.state.selectedTab : this.getPrevSelectedTab(key,_tabs,i)
+        selectedTab: _tabs.find(t=>t.key == this.state.selectedTab) ? this.state.selectedTab : this.getPrevSelectedTab(key,_tabs,i)
         // selectedTab: _tabs.length > i ? _tabs[i].key : _tabs.length > 0 ? _tabs[i-1].key : null
       } )
     }
   }
 
   closeTabs(keys){
+    this.resetSelection()
     const len = keys.length
     keys.forEach((key,i)=>{
       this.handleTabClose({}, key, i == len - 1)
     })
-    this.resetSelection()
   }
 
   closeOtherTabs(key){
@@ -2489,6 +2489,7 @@ export default class TabPanel extends Component {
     //   click: ()=> this.handleTabClose({}, key)}))
 
     if(enableSelection){
+      menuItems.push(({ label: locale.translation('reload'), click: ()=> selections[0].forEach(t=>this.getWebContents(t).reload())}))
       menuItems.push(({ label: locale.translation('3007771295016901659'), //'Duplicate',
         click: ()=> {
           for(let t of selections[0]){

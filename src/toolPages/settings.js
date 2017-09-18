@@ -178,20 +178,21 @@ const sendToVideoOptionsAll = [
   { value: 'smplayer', text: 'SMPlayer',os:['win','mac','linux']},
   { value: 'C:\\Program Files\\MPC-HC\\mpc-hc64.exe', text: 'Media Player Classic(MPC-HC)',os:['win']},
 
-  { value: 'C:\\Program Files (x86)\\DearMob\\5KPlayer\\5KPlayer.exe', text: '5K Player',os:['win']},
-  { value: '5kplayer', text: '5K Player',os:['mac']},
+  // { value: 'C:\\Program Files (x86)\\DearMob\\5KPlayer\\5KPlayer.exe', text: '5K Player',os:['win']},
+  // { value: '5kplayer', text: '5K Player',os:['mac']},
 
   { value: 'kmplayer', text: 'KMPlayer',os:['win','mac']},
   { value: 'gom', text: 'GOM Player',os:['win','mac']},
 
+
+  { value: 'itunes', text: 'iTunes',os:['win','mac']},
+  { value: 'quicktime player', text: 'QuickTime Player',os:['mac']},
 
   { value: 'C:\\Program Files (x86)\\Kodi\\kodi.exe', text: 'Kodi',os:['win']},
   { value: 'kodi', text: 'Kodi',os:['mac','linux']},
 
   { value: 'mpv', text: 'MPV Player',os:['win','mac','linux']},
   { value: 'wmplayer', text: 'Windows Media Player',os:['win']},
-  { value: '"quicktime player"', text: 'QuickTime Player',os:['mac']},
-  { value: 'itunes', text: 'iTunes',os:['win','mac']},
 ]
 
 const sendToVideoOptions = sendToVideoOptionsAll.filter(x=>isWin ? x.os.includes('win') : isDarwin ? x.os.includes('mac') : x.os.includes('linux'))

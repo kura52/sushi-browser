@@ -3,7 +3,7 @@ const path = require('path')
 const fs = require('fs')
 const glob = require("glob")
 
-const CODE_NAME = 'Katsuo(Tuna)'
+const CODE_NAME = 'Sanma(Saury)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
 const NEXT_APP_VERSION = "0.4.0"
 
