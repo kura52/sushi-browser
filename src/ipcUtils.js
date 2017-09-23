@@ -682,6 +682,16 @@ ipcMain.on('need-get-inner-text',(e,key)=>{
 })
 
 ipcMain.on('play-external',(e,url)=> open(url,mainState.sendToVideo))
+
+ipcMain.on('vpn-event',async (e,key,address)=>{
+  if(!address.match(/^[a-zA-Z\d.\-_:]$/)) return
+  const name = address.split(".")
+  const ret = await exec('powershell',`Add-VpnConnection -Name ${name} -ServerAddress ${address} -TunnelType Sstp -AuthentictionMethod MsChapv2`)
+  console.log(ret)
+  const ret2 = await exec('powershell',`rasdial.exe ${name} vpn vpn`)
+  console.log(ret2)
+})
+
 // async function recurSelect(keys){
 //   const ret = await favorite.find({key:{$in: keys}})
 //   const addKey = []

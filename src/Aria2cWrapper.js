@@ -154,10 +154,12 @@ export default class Aria2cWrapper{
     this.status = 'CANCEL'
     this.aria2c.stdin.pause()
     this.aria2c.kill()
+    console.log(this.savePath)
     fs.unlink(this.savePath,e=> {
-      fs.unlink(`${this.savePath}.aria2`,e=> {
-        console.log(e)
-      })
+      setTimeout(
+        _=>{fs.unlink(`${this.savePath}.aria2`,e=> {
+          console.log(e)
+        })},1000)
     })
     this.closeCallback()
   }

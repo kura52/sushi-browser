@@ -12,6 +12,7 @@ export default {
     return <div role="option" className={`item${needInput ? ' checkbox' : ''}`} onClick={handleClick.bind(null,props)}>
       {props.icon ? <i aria-hidden="true" className={`${props.icon} icon`} /> : null}
       {props.favicon ? <img src={props.favicon} className="favi"/> : null}
+      {props.img ? props.img : null}
       <span className="text" style={props.bold ? {fontWeight: 'bold'} : {}}>{props.text}</span>
       {needInput? <div className="ui icon input">
         <select className="dl-select" onChange={e=>{props.onChange(e.target.value)}}>

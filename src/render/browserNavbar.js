@@ -15,6 +15,7 @@ import {favorite} from './databaseRender'
 const {webContents} = remote
 const browserActionMap = require('./browserActionDatas')
 const BrowserActionMenu = require('./BrowserActionMenu')
+const VpnList = require('./VpnList')
 
 const BrowserNavbarLocation = require('./BrowserNavbarLocation')
 const SyncReplace = require('./SyncReplace')
@@ -173,6 +174,7 @@ class BrowserNavbar extends Component{
       (this.richContents||[]).length === (nextProps.richContents||[]).length &&
       (this.caches||[]).length === (nextState.caches||[]).length &&
       this.state.zoom === nextState.zoom &&
+      this.state.vpnList === nextState.vpnList &&
       this.props.sync === nextProps.sync &&
       this.props.oppositeMode === nextProps.oppositeMode &&
       this.currentIndex == nextProps.page.entryIndex &&
@@ -481,6 +483,7 @@ class BrowserNavbar extends Component{
       {this.state.adBlockGlobal ? <NavbarMenuItem text={`AdBlock ${global.adBlockDisableSite[hostname] ? 'ON' : 'OFF'}(Domain)`} icon='hand paper' onClick={_=>this.handleAdBlockDomain(hostname)}/> : null}
       <div className="divider" />
 
+      {isWin || true ? <NavbarMenuItem text={`VPN Mode`} icon='file pdf outline' onClick={_=>this.setState({vpnList:!this.state.vpnList})}/> : null}
       <NavbarMenuItem text={`Change Pdf View to ${this.state.pdfMode == 'normal' ? 'Comic' : 'Normal'}`} icon='file pdf outline' onClick={::this.handlePdfMode}/>
       <NavbarMenuItem text={`Open Opposite ${this.props.oppositeGlobal ? 'OFF' : 'ON'}(ALL)`} icon='columns' onClick={::this.handleOppositeGlobal}/>
       <div className="divider" />
@@ -707,6 +710,7 @@ class BrowserNavbar extends Component{
       </Dropdown>
 
       {this.mainMenu(cont,this.props.tab)}
+      {this.state.vpnList ? <VpnList onClick={_=>this.setState({vpnList:false})}/> : null}
       {isFixed && !isFloat ? <BrowserNavbarBtn style={{fontSize:18}} title="Hide Sidebar" icon={`angle-double-${isFixed == 'bottom' ? 'down' : isFixed}`} onClick={()=>this.props.fixedPanelOpen({dirc:isFixed})}/> : null}
       {!isDarwin && this.props.isTopRight && this.props.toggleNav == 1 ? <RightTopBottonSet style={{lineHeight: 0.9, transform: 'translateX(6px)',paddingTop: 1}}/> : null }
 
