@@ -187,6 +187,7 @@ export default {
         setOptionVal(key,dVal,setting[key])
       }
 
+      mainState.vpn = false
       for(let extensionId of mainState.disableExtensions){
         session.defaultSession.extensions.disable(extensionId)
       }

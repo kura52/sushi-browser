@@ -684,12 +684,37 @@ ipcMain.on('need-get-inner-text',(e,key)=>{
 ipcMain.on('play-external',(e,url)=> open(url,mainState.sendToVideo))
 
 ipcMain.on('vpn-event',async (e,key,address)=>{
-  if(!address.match(/^[a-zA-Z\d.\-_:]$/)) return
-  const name = address.split(".")
-  const ret = await exec('powershell',`Add-VpnConnection -Name ${name} -ServerAddress ${address} -TunnelType Sstp -AuthentictionMethod MsChapv2`)
+  if(mainState.vpn || !address){
+    const ret2 = await exec(`rasdial /disconnect`)
+    console.log(ret2)
+    setTimeout(_=>{
+      exec(`powershell "Remove-VpnConnection -Name sushib-${mainState.vpn} -Force"`)
+      if(!address){
+        mainState.vpn = (void 0)
+        e.sender.send('vpn-event-reply')
+      }
+    },3000)
+  }
+
+  if(!address || !address.match(/^[a-zA-Z\d.\-_:]+$/)) return
+  const name = address.split(".")[0]
+  try{
+  const ret = await exec(`powershell "Add-VpnConnection -Name sushib-${name} -ServerAddress ${address} -TunnelType Sstp -AuthenticationMethod MsChapv2"`)
   console.log(ret)
-  const ret2 = await exec('powershell',`rasdial.exe ${name} vpn vpn`)
-  console.log(ret2)
+  }catch(e2){}
+  try{
+    const ret2 = await exec(`rasdial sushib-${name} vpn vpn`)
+    e.sender.send('show-notification',{key,text:'VPN connection SUCCESS', buttons:['OK']})
+    console.log(ret2)
+    mainState.vpn = name
+  }catch(e2){
+    e.sender.send('show-notification',{key,text:'VPN connection FAILED', buttons:['OK']})
+    setTimeout(_=>{
+      exec(`powershell "Remove-VpnConnection -Name sushib-${name} -Force"`)
+    },3000)
+  }
+  e.sender.send('vpn-event-reply')
+
 })
 
 // async function recurSelect(keys){

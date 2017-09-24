@@ -483,7 +483,10 @@ class BrowserNavbar extends Component{
       {this.state.adBlockGlobal ? <NavbarMenuItem text={`AdBlock ${global.adBlockDisableSite[hostname] ? 'ON' : 'OFF'}(Domain)`} icon='hand paper' onClick={_=>this.handleAdBlockDomain(hostname)}/> : null}
       <div className="divider" />
 
-      {isWin || true ? <NavbarMenuItem text={`VPN Mode`} icon='file pdf outline' onClick={_=>this.setState({vpnList:!this.state.vpnList})}/> : null}
+      {isWin  ? <NavbarMenuItem text={`Change VPN Mode`} icon='plug' onClick={_=>{
+        this.setState({vpnList:!this.state.vpnList})
+      }
+      }/> : null}
       <NavbarMenuItem text={`Change Pdf View to ${this.state.pdfMode == 'normal' ? 'Comic' : 'Normal'}`} icon='file pdf outline' onClick={::this.handlePdfMode}/>
       <NavbarMenuItem text={`Open Opposite ${this.props.oppositeGlobal ? 'OFF' : 'ON'}(ALL)`} icon='columns' onClick={::this.handleOppositeGlobal}/>
       <div className="divider" />

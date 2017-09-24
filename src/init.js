@@ -27,6 +27,19 @@ let adblock,extensions
 //   console.log('unhandledRejection', error);
 // });
 
+
+function exec(command) {
+  console.log(command)
+  return new Promise(function(resolve, reject) {
+    require('child_process').exec(command, function(error, stdout, stderr) {
+      if (error) {
+        return reject(error);
+      }
+      resolve({stdout, stderr});
+    });
+  });
+}
+
 const isWin = os.platform() == 'win32'
 
 process.userAgent = `Mozilla/5.0 (${isWin ? 'Windows NT 10.0; Win64; x64': isDarwin ? 'Macintosh; Intel Mac OS X 10_12_2' : 'X11; Linux x86_64'}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${process.versions.chrome} Safari/537.36`
@@ -237,6 +250,11 @@ app.on('will-quit', (e) => {
   console.log('will-quit')
   for(let cont of webContents.getAllWebContents()){
     cont.removeAllListeners('destroyed')
+  }
+  if(mainState.vpn){
+    exec(`rasdial /disconnect`).then(ret=>{
+      exec(`powershell "Remove-VpnConnection -Name sushib-${mainState.vpn}"`)
+    })
   }
   if(isDarwin){
     for (let ptyProcess of ptyProcessSet){
