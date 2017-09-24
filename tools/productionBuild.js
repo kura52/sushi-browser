@@ -151,15 +151,48 @@ function muonModify(){
 
       fs.writeFileSync(file,result)
 
+      const initFile = path.join(sh.pwd().toString(),sh.ls('electron/browser/init.js')[0])
+      const contents2 = fs.readFileSync(initFile).toString()
+      const result2 = contents2
+        .replace('let packagePath = null',`let packagePath
+const basePath = path.join(__dirname,'../..')
+if(!fs.existsSync(path.join(basePath,'app.asar'))){
+  const binPath = path.join(basePath,\`7zip/\${process.platform === 'win32' ? 'win' : process.platform === 'darwin' ? 'mac' : 'linux'}/7za\`)
+  const execSync = require('child_process').execSync
+  const dataPath = path.join(basePath,'app.asar.unpacked.7z')
+  const result =  execSync(\`\${binPath} x -o\${basePath} \${dataPath}\`)
+  fs.unlinkSync(dataPath)
+  
+  const dataPath2 = path.join(basePath,'app.asar.7z')
+  const result2 =  execSync(\`\${binPath} x -o\${basePath} \${dataPath2}\`)
+  fs.unlinkSync(dataPath2)
+  
+  fs.renameSync(path.join(basePath,'app'),path.join(basePath,'_app'))
+}`)
+      fs.writeFileSync(initFile,result2)
+      sh.mv('app.asar.unpacked/resource/bin/7zip','.')
 
+      if(sh.exec('7z a -t7z -mx=9 app.asar.unpacked.7z app.asar.unpacked').code !== 0) {
+        console.log("ERROR1")
+        process.exit()
+      }
+      sh.rm('-rf','app.asar.unpacked')
 
-      const file2 = path.join(sh.pwd().toString(),sh.ls('electron/browser/rpc-server.js')[0])
+      if(sh.exec('7z a -t7z -mx=9 app.asar.7z app.asar').code !== 0) {
+        console.log("ERROR2")
+        process.exit()
+      }
+      sh.rm('-rf','app.asar')
 
-      const contents2 = fs.readFileSync(file2).toString()
-      const result2 = contents2.replace('throw new Error(`Attempting','// throw new Error(`Attempting')
+      sh.mkdir('app')
+      sh.cp('../../package.json','app/.')
 
-      fs.writeFileSync(file2,result2)
+      const file3 = path.join(sh.pwd().toString(),sh.ls('electron/browser/rpc-server.js')[0])
 
+      const contents3 = fs.readFileSync(file3).toString()
+      const result3 = contents3.replace('throw new Error(`Attempting','// throw new Error(`Attempting')
+
+      fs.writeFileSync(file3,result3)
 
       if(sh.exec('asar pack electron electron.asar').code !== 0) {
         console.log("ERROR")
@@ -205,6 +238,12 @@ sh.rm('resource/extension/default/1.0_0/js/vendor.dll.js')
 
 sh.rm('-rf','resource/bin/aria2/mac')
 sh.rm('-rf','resource/bin/aria2/win')
+
+sh.rm('-rf','resource/bin/ffmpeg/mac')
+sh.rm('-rf','resource/bin/ffmpeg/win')
+
+sh.rm('-rf','resource/bin/7zip/mac')
+sh.rm('-rf','resource/bin/7zip/win')
 
 glob.sync(`${pwd}/**/*.js.map`).forEach(file=>{
   fs.unlinkSync(file)

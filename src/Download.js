@@ -1,6 +1,7 @@
 const {BrowserWindow, webContents,dialog,ipcMain,app,shell} = require('electron')
 import mainState from './mainState'
 const Aria2cWrapper = require('./Aria2cWrapper')
+const FfmpegWrapper = require('./FfmpegWrapper')
 
 const path = require('path')
 import {download} from './databaseFork'
@@ -13,6 +14,27 @@ global.downloadItems = []
 const retry = new Set()
 
 
+function exec(command) {
+  console.log(command)
+  return new Promise(function(resolve, reject) {
+    require('child_process').exec(command, function(error, stdout, stderr) {
+      if (error) {
+        return reject(error);
+      }
+      resolve({stdout, stderr});
+    });
+  });
+}
+
+function shellEscape(s){
+  if (/[^A-Za-z0-9_\/:=-]/.test(s)) {
+    s = "'"+s.replace(/'/g,"'\\''")+"'";
+    s = s.replace(/^(?:'')+/g, '') // unduplicate single-quote at the beginning
+      .replace(/\\'''/g, "\\'" ); // remove non-escaped single-quote if there are enclosed between 2 escaped
+  }
+  return s
+}
+
 export default class Download {
   constructor(win){
     const eventNeedSetSaveFilename = (event)=>{
@@ -23,11 +45,25 @@ export default class Download {
       this.savePath = path.join(app.getPath('downloads'), fname)
     })
 
+    ipcMain.on('set-audio-extract',(e,fname)=>{
+      this.audioExtract = true
+    })
+
     // ipcMain.on('need-set-save-filename',eventSetSaveFilename)
     PubSub.subscribe('need-set-save-filename',eventNeedSetSaveFilename)
 
     const ses = win.webContents.session
     ses.on('will-download', (event, item, webContents) => {
+      let savePath = this.savePath
+      this.savePath = void 0
+      let audioExtract
+
+      if(this.audioExtract){
+        audioExtract = this.audioExtract
+        this.audioExtract = void 0
+      }
+
+
       let url = item.getURL()
       if(url.startsWith("file://")){
         event.preventDefault()
@@ -47,7 +83,7 @@ export default class Download {
         }
         item.setSavePath(filepath)
       }
-      else if(!this.savePath){
+      else if(!savePath){
         if(url.endsWith(".pdf") || url.endsWith(".PDF") ){
           event.preventDefault()
           return
@@ -55,10 +91,11 @@ export default class Download {
         item.setSavePath(this.getUniqFileName(path.join(app.getPath('downloads'), item.getFilename() || path.basename(url))))
       }
       else {
-        item.setSavePath(this.getUniqFileName(this.savePath))
-        this.savePath = void 0
+        const validSavePath = this.getUniqFileName(savePath)
+        item.setSavePath(validSavePath)
       }
-      const savePath = item.getSavePath()
+
+      savePath = item.getSavePath()
       timeMap.set(savePath, Date.now())
       if (retry.has(url)) {
         retry.delete(url)
@@ -94,7 +131,7 @@ export default class Download {
               webContents.downloadURL(url, true)
             }
           })
-          this.downloadReady(dl, url, webContents,win)
+          this.downloadReady(dl, url, webContents,win,audioExtract)
         })
 
         // item = {
@@ -183,7 +220,7 @@ export default class Download {
     })
   }
 
-  downloadReady(item, url, webContents,win) {
+  downloadReady(item, url, webContents,win,audioExtract) {
     global.downloadItems.push(item)
 
     const eventPause = (event, data) => {
@@ -213,7 +250,11 @@ export default class Download {
       win.webContents.send('download-progress', this.buildItem(item))
     })
 
-    item.once('done', (event, state) => {
+    item.once('done', async (event, state) => {
+      console.log(111,audioExtract)
+      if(audioExtract){
+        new FfmpegWrapper(item.getSavePath()).exe(_=>_)
+      }
       for (let wc of this.getDownloadPage()) {
         wc.send('download-progress', this.buildItem(item))
       }

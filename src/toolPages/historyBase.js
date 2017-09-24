@@ -350,11 +350,11 @@ class Contents extends React.Component {
     console.log(333000,this.props.onClick,this.props.cont)
     if(isMain && !this.props.onClick) return
     if(isMain){
-      this.loadAllData('24 Hours Ago')
       this.loaded = false
+      this.loadAllData('24 Hours Ago')
       const self = this
       this.scrollEvent = function(e){
-        if(this.loaded) return
+        if(self.loaded) return
         const scroll = this.scrollTop
         const range = this.scrollHeight - this.offsetHeight
 

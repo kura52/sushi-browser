@@ -252,9 +252,7 @@ app.on('will-quit', (e) => {
     cont.removeAllListeners('destroyed')
   }
   if(mainState.vpn){
-    exec(`rasdial /disconnect`).then(ret=>{
-      exec(`powershell "Remove-VpnConnection -Name sushib-${mainState.vpn}"`)
-    })
+    exec(`rasdial /disconnect`).then(ret=>{})
   }
   if(isDarwin){
     for (let ptyProcess of ptyProcessSet){

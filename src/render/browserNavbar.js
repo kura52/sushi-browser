@@ -244,10 +244,9 @@ class BrowserNavbar extends Component{
     })()
   }
 
-  onMediaDownload(url,fname){
-    if(fname){
-      ipc.send('set-save-path',fname)
-    }
+  onMediaDownload(url,fname,audio){
+    if(fname) ipc.send('set-save-path',fname)
+    if(audio) ipc.send('set-audio-extract')
     const cont = this.getWebContents(this.props.tab)
     cont.hostWebContents.downloadURL(url,true)
   }
@@ -489,6 +488,7 @@ class BrowserNavbar extends Component{
       }/> : null}
       <NavbarMenuItem text={`Change Pdf View to ${this.state.pdfMode == 'normal' ? 'Comic' : 'Normal'}`} icon='file pdf outline' onClick={::this.handlePdfMode}/>
       <NavbarMenuItem text={`Open Opposite ${this.props.oppositeGlobal ? 'OFF' : 'ON'}(ALL)`} icon='columns' onClick={::this.handleOppositeGlobal}/>
+      <NavbarMenuItem text='Extract Audio' icon='audio' onClick={_=>ipc.send('audio-extract')}/>
       <div className="divider" />
 
       <NavbarMenuItem text={`${alwaysOnTop[0] ? 'Disable' : 'Enable'} Always On Top`} icon='level up' onClick={()=>{
@@ -702,6 +702,13 @@ class BrowserNavbar extends Component{
                 ipc.send('play-external',url)
               }}>
                 <i className="fa fa-play-circle-o" aria-hidden="true"></i>
+              </button>
+              <button className="play-btn"  onClick={e=>{
+                e.stopPropagation()
+                const p = e.target.parentNode.parentNode;(e.target.tagName == "I" ? p.parentNode : p).classList.remove("visible")
+                this.onMediaDownload(url,e.fname,true)
+              }}>
+                <i className="fa fa-music" aria-hidden="true"></i>
               </button>
               <button className="clipboard-btn" data-clipboard-text={url}
                       onClick={e=>{e.stopPropagation();const p = e.target.parentNode.parentNode;(e.target.tagName == "IMG" ? p.parentNode : p).classList.remove("visible")}}>

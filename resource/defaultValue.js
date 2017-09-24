@@ -32,6 +32,7 @@ const settingDefault =  {
   adBlockDisableSite: {},
 
   sendToVideo: isLinux ? 'vlc' : isDarwin ? '"quicktime player"' : 'wmplayer',
+  vpnNames: [],
 
   //keyboard shortcut default
   keyQuit: 'CmdOrCtrl+Q',

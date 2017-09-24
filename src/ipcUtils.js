@@ -5,6 +5,7 @@ import sh from 'shelljs'
 import uuid from 'node-uuid'
 const {state,favorite,historyFull} = require('./databaseFork')
 const db = require('./databaseFork')
+const FfmpegWrapper = require('./FfmpegWrapper')
 
 import path from 'path'
 const ytdl = require('ytdl-core')
@@ -683,40 +684,76 @@ ipcMain.on('need-get-inner-text',(e,key)=>{
 
 ipcMain.on('play-external',(e,url)=> open(url,mainState.sendToVideo))
 
+let numVpn = 0
 ipcMain.on('vpn-event',async (e,key,address)=>{
   if(mainState.vpn || !address){
     const ret2 = await exec(`rasdial /disconnect`)
     console.log(ret2)
-    setTimeout(_=>{
-      exec(`powershell "Remove-VpnConnection -Name sushib-${mainState.vpn} -Force"`)
-      if(!address){
-        mainState.vpn = (void 0)
-        e.sender.send('vpn-event-reply')
-      }
-    },3000)
+    mainState.vpn = (void 0)
+    e.sender.send('vpn-event-reply')
   }
 
   if(!address || !address.match(/^[a-zA-Z\d.\-_:]+$/)) return
   const name = address.split(".")[0]
   try{
-  const ret = await exec(`powershell "Add-VpnConnection -Name sushib-${name} -ServerAddress ${address} -TunnelType Sstp -AuthenticationMethod MsChapv2"`)
-  console.log(ret)
-  }catch(e2){}
+    numVpn = (num + 1) % 2
+    const ret = await exec(`powershell "Set-VpnConnection -Name sushib-${numVpn} -ServerAddress ${address} -TunnelType Sstp -AuthenticationMethod MsChapv2"`)
+    console.log(ret)
+  }catch(e2){
+    console.log(e2)
+    try{
+      const ret = await exec(`powershell "Add-VpnConnection -Name sushib-${numVpn} -ServerAddress ${address} -TunnelType Sstp -AuthenticationMethod MsChapv2"`)
+      console.log(ret)
+    }catch(e3){
+      console.log(e3)
+    }
+  }
   try{
-    const ret2 = await exec(`rasdial sushib-${name} vpn vpn`)
+    const ret2 = await exec(`rasdial sushib-${numVpn} vpn vpn`)
     e.sender.send('show-notification',{key,text:'VPN connection SUCCESS', buttons:['OK']})
     console.log(ret2)
     mainState.vpn = name
   }catch(e2){
     e.sender.send('show-notification',{key,text:'VPN connection FAILED', buttons:['OK']})
-    setTimeout(_=>{
-      exec(`powershell "Remove-VpnConnection -Name sushib-${name} -Force"`)
-    },3000)
   }
   e.sender.send('vpn-event-reply')
 
 })
 
+ipcMain.on('audio-extract',e=>{
+  const focusedWindow = BrowserWindow.getFocusedWindow()
+  const files = dialog.showOpenDialog(focusedWindow,{
+    properties: ['openFile'],
+    filters: [{
+      name: 'Select Video Files',
+      extensions: ['3gp','3gpp','3gpp2','asf','avi','dv','flv','m2t','m4v','mkv','mov','mp4','mpeg','mpg','mts','oggtheora','ogv','rm','ts','vob','webm','wmv']
+    }]
+  })
+  if (files && files.length > 0) {
+    for(let file of files){
+      new FfmpegWrapper(file).exe(_=>_)
+    }
+  }
+})
+
+ipcMain.on('get-country-names',e=>{
+  const locale = app.getLocale()
+  let i = 0
+  let base
+  for(let line of fs.readFileSync(path.join(__dirname,'../resource/country.txt')).toString().split("\n")){
+    if(i++===0){
+      base = line.split("\t").slice(1)
+    }
+    if(line.startsWith(locale)){
+      const ret = {}
+      line.split("\t").slice(1).forEach((x,i)=>{
+        ret[base[i]] = x
+      })
+      e.sender.send('get-country-names-reply',ret)
+      break
+    }
+  }
+})
 // async function recurSelect(keys){
 //   const ret = await favorite.find({key:{$in: keys}})
 //   const addKey = []

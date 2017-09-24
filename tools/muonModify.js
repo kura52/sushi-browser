@@ -20,6 +20,8 @@ const result = contents
 
 fs.writeFileSync(file,result)
 
+
+
 if(sh.exec('asar pack electron electron.asar').code !== 0) {
   console.log("ERROR")
   process.exit()

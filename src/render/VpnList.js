@@ -20,10 +20,13 @@ export default class VpnList extends Component {
   componentDidMount() {
     console.log(33)
     document.addEventListener('mousedown',this.outerClick)
-    fetch(`https://sushib.me/vpngate.json?a=${Math.floor(Date.now()/1000/3600)}`).then((response)=>response.json()).then(({list})=>{
-      this.setState({list,visible:true,vpn:mainState.vpn})
-      ipc.on('vpn-event-reply',this.event)
-      console.log(list)
+    fetch(`https://sushib.me/vpngate.json?a=${Math.floor(Date.now()/1000/1800)}`).then((response)=>response.json()).then(({list})=>{
+      ipc.send('get-country-names')
+      ipc.once('get-country-names-reply',(e,countries)=>{
+        this.setState({list,countries,visible:true,vpn:mainState.vpn})
+        ipc.on('vpn-event-reply',this.event)
+        console.log(list,ret)
+      })
     });
   }
 
@@ -70,7 +73,7 @@ export default class VpnList extends Component {
                          }} /> : null}
         {vpn ? <div className="divider" /> : null}
           {this.state.list.map((e,i)=>{
-        return <NavbarMenuItem  text={`${e.c} [${e.a}]  ${e.sp}  ping:${e.p}`} img={<div className={`country-flag flag-${e.c.toLowerCase().replace(/ /g,'-').replace(/[()]/g,'')}`}></div>}
+        return <NavbarMenuItem  text={`${this.state.countries[e.c] || a.c} [${e.a}]  ${e.sp}  ping:${e.p}`} img={<div className={`country-flag flag-${e.c.toLowerCase().replace(/ /g,'-').replace(/[()]/g,'')}`}></div>}
                                 onClick={_=>{
                                   ipc.send('vpn-event',this.uuid,e.a)
                                   this.setState({visible: false})
