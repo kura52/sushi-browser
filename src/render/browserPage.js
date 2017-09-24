@@ -11,6 +11,7 @@ const fs = remote.require('fs')
 const BrowserPageSearch = require('./BrowserPageSearch')
 const BrowserPageStatus = require('./BrowserPageStatus')
 const AutofillPopup = require('./AutofillPopup')
+const isDarwin = navigator.userAgent.includes('Mac OS X')
 // const isWin = navigator.userAgent.includes('Windows')
 
 function webviewHandler (self, fnName) {
@@ -212,7 +213,7 @@ class BrowserPage extends Component {
   }
 
   handleWheel(e){
-    if(!(e.ctrlKey || e.metaKey)) return
+    if(isDarwin || !(e.ctrlKey || e.metaKey)) return
     const webContents = this.getWebContents(this.props.tab)
     if(webContents) {
       console.log(webContents)

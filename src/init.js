@@ -763,12 +763,26 @@ function contextMenu(webContents) {
     // clipboard
     if (props.isEditable) {
       menuItems.push({label: locale.translation("cut"), role: 'cut', enabled: can('Cut')})
-      menuItems.push({label: locale.translation("copy"), role: 'copy', enabled: can('Copy')})
+      if (isDarwin) {
+        menuItems.push({label: locale.translation("copy"), enabled: can('Copy'),
+          click(item, focusedWindow) { getFocusedWebContents().then(cont =>cont && cont.copy())}
+        })
+      }
+      else{
+        menuItems.push({label: locale.translation("copy"), role: 'copy', enabled: can('Copy')})
+      }
       menuItems.push({label: locale.translation("paste"), role: 'paste', enabled: editFlags.canPaste})
       menuItems.push({type: 'separator'})
     }
     else if (hasText) {
-      menuItems.push({label: locale.translation("copy"), role: 'copy', enabled: can('Copy')})
+      if (isDarwin) {
+        menuItems.push({label: locale.translation("copy"), enabled: can('Copy'),
+          click(item, focusedWindow) { getFocusedWebContents().then(cont =>cont && cont.copy())}
+        })
+      }
+      else{
+        menuItems.push({label: locale.translation("copy"), role: 'copy', enabled: can('Copy')})
+      }
       if(mainState.contextMenuSearchEngines.length == 0){
         menuItems.push({
           label: locale.translation('openSearch').replace(/{{\s*selectedVariable\s*}}/, text.length > 20 ? `${text.substr(0, 20)}...` : text),

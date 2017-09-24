@@ -488,7 +488,8 @@ class BrowserNavbar extends Component{
       }/> : null}
       <NavbarMenuItem text={`Change Pdf View to ${this.state.pdfMode == 'normal' ? 'Comic' : 'Normal'}`} icon='file pdf outline' onClick={::this.handlePdfMode}/>
       <NavbarMenuItem text={`Open Opposite ${this.props.oppositeGlobal ? 'OFF' : 'ON'}(ALL)`} icon='columns' onClick={::this.handleOppositeGlobal}/>
-      <NavbarMenuItem text='Extract Audio' icon='audio' onClick={_=>ipc.send('audio-extract')}/>
+      <NavbarMenuItem text='Extract Audio from Video' icon='music' onClick={_=>ipc.send('audio-extract')}/>
+      <NavbarMenuItem text='Developer Tool' icon='music' onClick={_=>cont.hostWebContents.openDevTools()}/>
       <div className="divider" />
 
       <NavbarMenuItem text={`${alwaysOnTop[0] ? 'Disable' : 'Enable'} Always On Top`} icon='level up' onClick={()=>{

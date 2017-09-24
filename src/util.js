@@ -7,7 +7,7 @@ function getCurrentWindow(){
   return BrowserWindow.getAllWindows().find(w=>w.getTitle().includes('Sushi Browser'))
 }
 
-function getFocusedWebContents(){
+function getFocusedWebContents(needSelectedText){
   let cont
   const tmp = webContents.getFocusedWebContents()
   if(tmp && !tmp.isDestroyed() && !tmp.isBackgroundPage()) {
@@ -50,9 +50,9 @@ function getFocusedWebContents(){
   const key = uuid.v4()
   return new Promise((resolve,reject)=>{
     ipcMain.once(`get-focused-webContent-reply_${key}`,(e,tabId)=>{
-      resolve(webContents.fromTabID(tabId))
+      resolve(tabId === -1 ? cont : webContents.fromTabID(tabId))
     })
-    cont.send('get-focused-webContent',key)
+    cont.send('get-focused-webContent',key,void 0,needSelectedText)
   })
 
 }

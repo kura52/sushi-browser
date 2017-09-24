@@ -408,9 +408,13 @@ export default class SplitWindows extends Component{
       }
       return tabId;
     }
-    this.getFocusedWebContent = (e,key,needPrivate)=>{
-      console.log(document.activeElement,window.lastMouseDown)
-      let tabId = this.getTabId(document.activeElement) || ( window.lastMouseDown&& this.getTabId(global.lastMouseDown))
+    this.getFocusedWebContent = (e,key,needPrivate,needSelectedText)=>{
+      const act = document.activeElement
+      if(needSelectedText && act.tagName == 'INPUT' && act.type == 'text'){
+        ipc.send(`get-focused-webContent-reply_${key}`,-1)
+      }
+      console.log(act,window.lastMouseDown)
+      let tabId = this.getTabId(act) || ( window.lastMouseDown&& this.getTabId(global.lastMouseDown))
 
       if(!tabId){
         tabId = this.refs2[this.isTopLeft].getSelectedTabId()

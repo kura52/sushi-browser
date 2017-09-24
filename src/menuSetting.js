@@ -170,10 +170,19 @@ const createEditSubmenu = () => {
     // NOTE: macOS inserts "start dictation" and "emoji and symbols" automatically
   ]
 
-  if (!isDarwin) {
+  if (isDarwin) {
+    delete submenu[4].role
+    submenu[4].click = function(item, focusedWindow) {
+      getFocusedWebContents(true).then(cont=>{
+        cont && cont.copy()
+      })
+    }
+  }
+  else{
     submenu.push({ type: 'separator' })
     submenu.push(preferencesMenuItem())
   }
+
 
   return submenu
 }
