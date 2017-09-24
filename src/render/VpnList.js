@@ -25,7 +25,7 @@ export default class VpnList extends Component {
       ipc.once('get-country-names-reply',(e,countries)=>{
         this.setState({list,countries,visible:true,vpn:mainState.vpn})
         ipc.on('vpn-event-reply',this.event)
-        console.log(list,ret)
+        console.log(list,countries)
       })
     });
   }
@@ -73,7 +73,7 @@ export default class VpnList extends Component {
                          }} /> : null}
         {vpn ? <div className="divider" /> : null}
           {this.state.list.map((e,i)=>{
-        return <NavbarMenuItem  text={`${this.state.countries[e.c] || a.c} [${e.a}]  ${e.sp}  ping:${e.p}`} img={<div className={`country-flag flag-${e.c.toLowerCase().replace(/ /g,'-').replace(/[()]/g,'')}`}></div>}
+        return <NavbarMenuItem  text={`${this.state.countries[e.c] || e.c} [${e.a}]  ${e.sp}  ping:${e.p}`} img={<div className={`country-flag flag-${e.c.toLowerCase().replace(/ /g,'-').replace(/[()]/g,'')}`}></div>}
                                 onClick={_=>{
                                   ipc.send('vpn-event',this.uuid,e.a)
                                   this.setState({visible: false})

@@ -684,7 +684,7 @@ ipcMain.on('need-get-inner-text',(e,key)=>{
 
 ipcMain.on('play-external',(e,url)=> open(url,mainState.sendToVideo))
 
-let numVpn = 0
+let numVpn = 1
 ipcMain.on('vpn-event',async (e,key,address)=>{
   if(mainState.vpn || !address){
     const ret2 = await exec(`rasdial /disconnect`)
@@ -696,7 +696,7 @@ ipcMain.on('vpn-event',async (e,key,address)=>{
   if(!address || !address.match(/^[a-zA-Z\d.\-_:]+$/)) return
   const name = address.split(".")[0]
   try{
-    numVpn = (num + 1) % 2
+    numVpn = (numVpn + 1) % 2
     const ret = await exec(`powershell "Set-VpnConnection -Name sushib-${numVpn} -ServerAddress ${address} -TunnelType Sstp -AuthenticationMethod MsChapv2"`)
     console.log(ret)
   }catch(e2){
@@ -749,6 +749,7 @@ ipcMain.on('get-country-names',e=>{
       line.split("\t").slice(1).forEach((x,i)=>{
         ret[base[i]] = x
       })
+      console.log(ret)
       e.sender.send('get-country-names-reply',ret)
       break
     }
