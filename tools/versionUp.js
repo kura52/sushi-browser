@@ -5,7 +5,7 @@ const glob = require("glob")
 
 const CODE_NAME = 'Sanma(Saury)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.4.0"
+const NEXT_APP_VERSION = "0.5.0"
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

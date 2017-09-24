@@ -27,12 +27,7 @@ function exec(command) {
 }
 
 function shellEscape(s){
-  if (/[^A-Za-z0-9_\/:=-]/.test(s)) {
-    s = "'"+s.replace(/'/g,"'\\''")+"'";
-    s = s.replace(/^(?:'')+/g, '') // unduplicate single-quote at the beginning
-      .replace(/\\'''/g, "\\'" ); // remove non-escaped single-quote if there are enclosed between 2 escaped
-  }
-  return s
+  return '"'+s.replace(/(["\s'$`\\])/g,'\\$1')+'"'
 }
 
 export default class Download {

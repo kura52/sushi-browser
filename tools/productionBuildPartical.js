@@ -38,7 +38,7 @@ function build(){
     sh.mv(`${buildDir}/brave.exe`, `${buildDir}/sushi.exe`)
   }
 
-    const pwd = sh.pwd().toString()
+  const pwd = sh.pwd().toString()
   if(isDarwin){
     sh.cd(`${buildDir}/sushi-browser.app/Contents/Resources`)
   }
@@ -97,10 +97,10 @@ function build(){
     sh.cd(`${buildDir}/sushi-browser.app/Contents/Frameworks`)
 
     console.log(`codesign --deep --force --strict --verbose --sign ${identifier} *`)
-   if(sh.exec(`codesign --deep --force --strict --verbose --sign ${identifier} *`).code !== 0) {
-     console.log("ERROR2")
-     process.exit()
-   }
+    if(sh.exec(`codesign --deep --force --strict --verbose --sign ${identifier} *`).code !== 0) {
+      console.log("ERROR2")
+      process.exit()
+    }
     sh.cd('../../..')
 
     if(sh.exec(`codesign --deep --force --strict --verbose --sign ${identifier} sushi-browser.app/`).code !== 0) {
@@ -167,11 +167,11 @@ if(!fs.existsSync(path.join(basePath,'app.asar'))){
   const binPath = path.join(basePath,\`7zip/\${process.platform === 'win32' ? 'win' : process.platform === 'darwin' ? 'mac' : 'linux'}/7za\`)
   const execSync = require('child_process').execSync
   const dataPath = path.join(basePath,'app.asar.unpacked.7z')
-  const result =  execSync(\`\${binPath} x -o\${basePath} \${dataPath}\`)
+  const result =  execSync(\`\${binPath} x -o"\${basePath}" "\${dataPath}"\`)
   fs.unlinkSync(dataPath)
   
   const dataPath2 = path.join(basePath,'app.asar.7z')
-  const result2 =  execSync(\`\${binPath} x -o\${basePath} \${dataPath2}\`)
+  const result2 =  execSync(\`\${binPath} x -o"\${basePath}" "\${dataPath2}"\`)
   fs.unlinkSync(dataPath2)
   
   fs.renameSync(path.join(basePath,'app'),path.join(basePath,'_app'))
@@ -179,13 +179,13 @@ if(!fs.existsSync(path.join(basePath,'app.asar'))){
       fs.writeFileSync(initFile,result2)
       sh.mv('app.asar.unpacked/resource/bin/7zip','.')
 
-      if(sh.exec('7z a -t7z -mx=9 app.asar.unpacked.7z app.asar.unpacked').code !== 0) {
+      if(sh.exec(`${isWindows ? '"C:/Program Files/7-Zip/7z.exe"' : '7z'} a -t7z -mx=9 app.asar.unpacked.7z app.asar.unpacked`).code !== 0) {
         console.log("ERROR1")
         process.exit()
       }
       sh.rm('-rf','app.asar.unpacked')
 
-      if(sh.exec('7z a -t7z -mx=9 app.asar.7z app.asar').code !== 0) {
+      if(sh.exec(`${isWindows ? '"C:/Program Files/7-Zip/7z.exe"' : '7z'} a -t7z -mx=9 app.asar.7z app.asar`).code !== 0) {
         console.log("ERROR2")
         process.exit()
       }
@@ -225,6 +225,15 @@ console.log(pwd)
 glob.sync(`${pwd}/**/*.js.map`).forEach(file=>{
   fs.unlinkSync(file)
 })
+
+sh.rm('-rf','resource/bin/7zip/linux')
+sh.rm('-rf','resource/bin/aria2/linux')
+sh.rm('-rf','resource/bin/ffmpeg/linux')
+
+const plat = isWindows ? 'win' : isDarwin ? 'mac' : 'linux'
+sh.cp('-Rf',`../bin/7zip/${plat}`,'resource/bin/7zip/.')
+sh.cp('-Rf',`../bin/aria2/${plat}`,'resource/bin/aria2/.')
+sh.cp('-Rf',`../bin/ffmpeg/${plat}`,'resource/bin/ffmpeg/.')
 
 build()
 

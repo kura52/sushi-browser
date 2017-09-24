@@ -151,41 +151,41 @@ function muonModify(){
 
       fs.writeFileSync(file,result)
 
-      const initFile = path.join(sh.pwd().toString(),sh.ls('electron/browser/init.js')[0])
-      const contents2 = fs.readFileSync(initFile).toString()
-      const result2 = contents2
-        .replace('let packagePath = null',`let packagePath
-const basePath = path.join(__dirname,'../..')
-if(!fs.existsSync(path.join(basePath,'app.asar'))){
-  const binPath = path.join(basePath,\`7zip/\${process.platform === 'win32' ? 'win' : process.platform === 'darwin' ? 'mac' : 'linux'}/7za\`)
-  const execSync = require('child_process').execSync
-  const dataPath = path.join(basePath,'app.asar.unpacked.7z')
-  const result =  execSync(\`\${binPath} x -o\${basePath} \${dataPath}\`)
-  fs.unlinkSync(dataPath)
-  
-  const dataPath2 = path.join(basePath,'app.asar.7z')
-  const result2 =  execSync(\`\${binPath} x -o\${basePath} \${dataPath2}\`)
-  fs.unlinkSync(dataPath2)
-  
-  fs.renameSync(path.join(basePath,'app'),path.join(basePath,'_app'))
-}`)
-      fs.writeFileSync(initFile,result2)
-      sh.mv('app.asar.unpacked/resource/bin/7zip','.')
-
-      if(sh.exec('7z a -t7z -mx=9 app.asar.unpacked.7z app.asar.unpacked').code !== 0) {
-        console.log("ERROR1")
-        process.exit()
-      }
-      sh.rm('-rf','app.asar.unpacked')
-
-      if(sh.exec('7z a -t7z -mx=9 app.asar.7z app.asar').code !== 0) {
-        console.log("ERROR2")
-        process.exit()
-      }
-      sh.rm('-rf','app.asar')
-
-      sh.mkdir('app')
-      sh.cp('../../package.json','app/.')
+//       const initFile = path.join(sh.pwd().toString(),sh.ls('electron/browser/init.js')[0])
+//       const contents2 = fs.readFileSync(initFile).toString()
+//       const result2 = contents2
+//         .replace('let packagePath = null',`let packagePath
+// const basePath = path.join(__dirname,'../..')
+// if(!fs.existsSync(path.join(basePath,'app.asar'))){
+//   const binPath = path.join(basePath,\`7zip/\${process.platform === 'win32' ? 'win' : process.platform === 'darwin' ? 'mac' : 'linux'}/7za\`)
+//   const execSync = require('child_process').execSync
+//   const dataPath = path.join(basePath,'app.asar.unpacked.7z')
+//   const result =  execSync(\`\${binPath} x -o\${basePath} \${dataPath}\`)
+//   fs.unlinkSync(dataPath)
+//
+//   const dataPath2 = path.join(basePath,'app.asar.7z')
+//   const result2 =  execSync(\`\${binPath} x -o\${basePath} \${dataPath2}\`)
+//   fs.unlinkSync(dataPath2)
+//
+//   fs.renameSync(path.join(basePath,'app'),path.join(basePath,'_app'))
+// }`)
+//       fs.writeFileSync(initFile,result2)
+//       sh.mv('app.asar.unpacked/resource/bin/7zip','.')
+//
+//       if(sh.exec('7z a -t7z -mx=9 app.asar.unpacked.7z app.asar.unpacked').code !== 0) {
+//         console.log("ERROR1")
+//         process.exit()
+//       }
+//       sh.rm('-rf','app.asar.unpacked')
+//
+//       if(sh.exec('7z a -t7z -mx=9 app.asar.7z app.asar').code !== 0) {
+//         console.log("ERROR2")
+//         process.exit()
+//       }
+//       sh.rm('-rf','app.asar')
+//
+//       sh.mkdir('app')
+//       sh.cp('../../package.json','app/.')
 
       const file3 = path.join(sh.pwd().toString(),sh.ls('electron/browser/rpc-server.js')[0])
 
@@ -330,13 +330,13 @@ glob.sync(`${pwd}/**/.directory`).forEach(file=>{
 
 // Replace console.log
 const jsFiles = glob.sync(`${pwd}/src/**/*.js`)
-filesContentsReplace(jsFiles,/console\.log\(/,'//debug(')
-filesContentsReplace(jsFiles,/window.debug = require\('debug'\)\('info'\)/,"// window.debug = require('debug')('info')")
-filesContentsReplace(jsFiles,/global.debug = require\('debug'\)\('info'\)/,"// global.debug = require('debug')('info')")
+// filesContentsReplace(jsFiles,/console\.log\(/,'//debug(')
+// filesContentsReplace(jsFiles,/window.debug = require\('debug'\)\('info'\)/,"// window.debug = require('debug')('info')")
+// filesContentsReplace(jsFiles,/global.debug = require\('debug'\)\('info'\)/,"// global.debug = require('debug')('info')")
 
 
 // Babel Use babili
-filesContentsReplace(`${pwd}/.babelrc`,/"babel\-preset\-stage\-2"\]/,'"babel-preset-stage-2","babili"]')
+// filesContentsReplace(`${pwd}/.babelrc`,/"babel\-preset\-stage\-2"\]/,'"babel-preset-stage-2","babili"]')
 
 console.log((Date.now() - start)/1000)
 
