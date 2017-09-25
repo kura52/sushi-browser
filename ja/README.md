@@ -137,14 +137,14 @@ Sync Data機能をOnにすると複数端末間で履歴とお気に入りの同
 
 各プラットフォームに対し、インストーラとポータブル版の両方がダウンロードできます。
 
-- [Windows Installer v0.4.0](https://sushib.me/dl/sushi-browser-0.4.0-setup-x64.exe)
-- [Windows Portable v0.4.0(自己解凍)](https://sushib.me/dl/sushi-browser-0.4.0-win-x64.exe)
-- [Windows Portable v0.4.0](https://sushib.me/dl/sushi-browser-0.4.0-win-x64.zip)
-- [MacOS dmg v0.4.0](https://sushib.me/dl/SushiBrowser-0.4.0.dmg)
-- [MacOS Portable v0.4.0](https://sushib.me/dl/sushi-browser-0.4.0-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.4.0](https://sushib.me/dl/sushi-browser-0.4.0.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.4.0](https://sushib.me/dl/sushi-browser_0.4.0_amd64.deb)
-- [Linux Portable v0.4.0](https://sushib.me/dl/sushi-browser-0.4.0.tar.bz2)
+- [Windows Installer v0.5.0](https://sushib.me/dl/sushi-browser-0.5.0-setup-x64.exe)
+- [Windows Portable v0.5.0(自己解凍)](https://sushib.me/dl/sushi-browser-0.5.0-win-x64.exe)
+- [Windows Portable v0.5.0](https://sushib.me/dl/sushi-browser-0.5.0-win-x64.zip)
+- [MacOS dmg v0.5.0](https://sushib.me/dl/SushiBrowser-0.5.0.dmg)
+- [MacOS Portable v0.5.0](https://sushib.me/dl/sushi-browser-0.5.0-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.5.0](https://sushib.me/dl/sushi-browser-0.5.0.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.5.0](https://sushib.me/dl/sushi-browser_0.5.0_amd64.deb)
+- [Linux Portable v0.5.0](https://sushib.me/dl/sushi-browser-0.5.0.tar.bz2)
 
 ポータブル版の利用は、解凍後にWindowsはsushi.exeを、Mac/Linuxはsushi-browserを実行ください。
 
@@ -160,6 +160,13 @@ sushi-browser --no-sandbox
 ```
 
 # 新機能
+
+#### 新機能(v0.50)
+- VPN機能を追加(Windowsのみ)。VPN Gateサービスを利用させて頂いており、MS-SSTP VPNで接続します。(多重proxyではない本当のVPNです。)
+- 動画から音声を抽出する機能を追加(ffmpegを利用)
+- ダウンロードファイルサイズを減少（インストール後の初回起動が若干遅くなっています）
+- Issue #9を修正(Command-scroll wheel to zoom is making my page all sorts of crazy sizes)
+- Issue #10を修正(Copy doesn't work on Mac OS)
 
 #### 新機能(v0.40)
 - 外部メディアプレイヤー(VLC Media Playerなど)にURLを送信し、再生する機能を追加
@@ -204,7 +211,6 @@ sushi-browser --no-sandbox
 - 右クリックメニューの並び順の改善
 - マウスの中クリックの長押しと通常クリックの挙動を変更（通常クリックの場合、対面パネルにリンクが開かれる。長押しの場合は、同じパネルにbackgroundでリンクが開かれる）
 
-![Newv03](https://sushib.me/github/new_features5.gif)
 
 # TODO
 

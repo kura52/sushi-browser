@@ -302,9 +302,9 @@ export default {
       winArg.width = winArg.width || setting.width
       winArg.height = winArg.height || setting.height
       initWindow = create(winArg)
+      localShortcuts.register(initWindow)
       initWindow.setMenuBarVisibility(true)
       initWindow.loadURL(`chrome://brave/${path.join(__dirname, '../index.html').replace(/\\/g,"/")}${getParam}`)
-      localShortcuts.register(initWindow)
       // initWindow.webContents.openDevTools()
       initWindow.webContents.once('did-finish-load', () => {
         initWindow.show()

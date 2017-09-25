@@ -92,9 +92,12 @@ module.exports.register = (win) => {
 })
 
   electronLocalshortcut.register(win, 'Shift+F8', () => {
+    console.log("Shift-F8")
     let win = getCurrentWindow()
+    console.log(win)
     if (win) {
       win.toggleDevTools()
+      console.log(win)
     }
   })
 

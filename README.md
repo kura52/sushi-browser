@@ -135,14 +135,14 @@ This browser makes use of wonderful web technologies, starting with the followin
 Both the installer for every platform and the portable version can be downloaded.  
 To use the portable edition, please run sushi.exe for Windows and sushi-browser for Mac/Linux after decompressing.
 
-- [Windows Installer v0.4.0](https://sushib.me/dl/sushi-browser-0.4.0-setup-x64.exe)
-- [Windows Portable v0.4.0(self-extract)](https://sushib.me/dl/sushi-browser-0.4.0-win-x64.exe)
-- [Windows Portable v0.4.0](https://sushib.me/dl/sushi-browser-0.4.0-win-x64.zip)
-- [MacOS dmg v0.4.0](https://sushib.me/dl/SushiBrowser-0.4.0.dmg)
-- [MacOS Portable v0.4.0](https://sushib.me/dl/sushi-browser-0.4.0-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.4.0](https://sushib.me/dl/sushi-browser-0.4.0.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.4.0](https://sushib.me/dl/sushi-browser_0.4.0_amd64.deb)
-- [Linux Portable v0.4.0](https://sushib.me/dl/sushi-browser-0.4.0.tar.bz2)
+- [Windows Installer v0.5.0](https://sushib.me/dl/sushi-browser-0.5.0-setup-x64.exe)
+- [Windows Portable v0.5.0(self-extract)](https://sushib.me/dl/sushi-browser-0.5.0-win-x64.exe)
+- [Windows Portable v0.5.0](https://sushib.me/dl/sushi-browser-0.5.0-win-x64.zip)
+- [MacOS dmg v0.5.0](https://sushib.me/dl/SushiBrowser-0.5.0.dmg)
+- [MacOS Portable v0.5.0](https://sushib.me/dl/sushi-browser-0.5.0-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.5.0](https://sushib.me/dl/sushi-browser-0.5.0.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.5.0](https://sushib.me/dl/sushi-browser_0.5.0_amd64.deb)
+- [Linux Portable v0.5.0](https://sushib.me/dl/sushi-browser-0.5.0.tar.bz2)
 
 # Use of Flash 
 If Flash won't run, please install Flash from the following web sites.  
@@ -156,6 +156,13 @@ sushi-browser --no-sandbox
 ```
 
 # New Features
+
+#### New function(v0.50)
+- Added VPN function (Windows only). We are using the VPN Gate service and connect with MS-SSTP VPN. (It is a true VPN which is not a multiple proxy.)
+- Added function to extract audio from video (using ffmpeg)
+- Reduce download file size (initial launch after installation is slightly late)
+- Fixed Issue #9 on MacOS(Command-scroll wheel to zoom is making my page all sorts of crazy sizes)
+- Fixed Issue #10 on MacOS (Copy doesn't work on Mac OS)
 
 #### New function(v0.40)
 - The function to send and play URL to the external media player (such as VLC Media Player etc.) was added.
@@ -200,7 +207,6 @@ sushi-browser --no-sandbox
 - Improve right click menu line order
 - Changing the action of the mouse's middle click by pressing for a long time and clicking only. (For normal clicking, the opposite panel will be opened as link. When pressing for a long time, the same panel will be open in the background as link. )
 
-![Newv03](https://sushib.me/github/new_features5.gif)
 
 # TODO
 

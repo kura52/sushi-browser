@@ -21,7 +21,7 @@ function shellEscape(s){
   return '"'+s.replace(/(["\s'$`\\])/g,'\\$1')+'"'
 }
 
-const binaryPath = path.join(__dirname, `../resource/bin/ffmpeg/${process.platform === 'win32' ? 'win' : process.platform === 'darwin' ? 'mac' : 'linux'}/ffmpeg`)
+const binaryPath = path.join(__dirname, `../resource/bin/ffmpeg/${process.platform === 'win32' ? 'win' : process.platform === 'darwin' ? 'mac' : 'linux'}/ffmpeg`).replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
 
 export default class FfmpegWrapper{
   constructor(filePath){

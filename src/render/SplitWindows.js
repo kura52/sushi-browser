@@ -444,6 +444,8 @@ export default class SplitWindows extends Component{
       this.setState({fullscreen: isFullscreen})
     }
     ipc.on('enter-full-screen',this.fullScreenState)
+    ipc.on('leave-full-screen',this.fullScreenState)
+
 
     this.tokenAlign = PubSub.subscribe("align",(_,e)=>{
 
