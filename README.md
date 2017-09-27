@@ -212,8 +212,6 @@ sushi-browser --no-sandbox
 
 - Enhanced Anything Search
 - Adblock control panel
-- Make multiple tabs selectable
-- can be selected as a standard browser
 - Addition of build method in the Readme
 - Refactoring, introduction of Mobx (currently closely integrated with the PubSub base) 
 - Add test code

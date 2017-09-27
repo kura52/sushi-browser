@@ -338,7 +338,8 @@ app.on('web-contents-created', (e, tab) => {
       len = len ? len[0] : null
       parseUrl = url.parse(newURL)
       const pathname = parseUrl.pathname
-      if(ret = (pathname && mime.lookup(pathname).match(RegRichMedia))){
+      let type
+      if(ret = (pathname && (type = mime.getType(pathname)) && type.match(RegRichMedia))){
         const ind = pathname.lastIndexOf('/')
         record = {tabId,type:ret[0],contType,size:len,url:newURL,fname: pathname.slice(ind+1)}
       }

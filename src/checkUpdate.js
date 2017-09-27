@@ -12,7 +12,8 @@ const fs = require('fs')
 
 function checkUpdate(ver,checkedVersion){
   request(`https://sushib.me/check.json?a=${Math.floor(Date.now()/1000/3600)}`,(err,res,body)=>{
-      const updVer = JSON.parse(body).ver
+    if(!body) return
+    const updVer = JSON.parse(body).ver
       console.log(ver,updVer,checkedVersion,mainState.checkedVersion)
       if(mainState.checkedVersion > checkedVersion) checkedVersion = mainState.checkedVersion
       if(updVer > ver && updVer > checkedVersion){

@@ -216,7 +216,6 @@ sushi-browser --no-sandbox
 
 - Anything Searchの強化
 - adblockの制御パネル
-- 標準のブラウザとして選択可能とする
 - Readmeへのbuild方法の追加
 - リファクタリング、Mobxの導入（現状、PubSubベースで密結合）
 - テストコードの追加
