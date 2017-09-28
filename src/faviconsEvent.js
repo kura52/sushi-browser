@@ -14,6 +14,7 @@ export default (cb)=>{
     ipcMain.on("favicon-get",(e,val)=>{
       if(val){
         favicon.find({ updated_at: { $gte: val } }).then(ret=> {
+          console.log(543543543,ret.length,val)
           const favicons = {}
           for (let e of ret) {
             if (!e.data) continue

@@ -255,11 +255,11 @@ export default class SplitWindows extends Component{
       remote.getWebContents(tabId,tab=>{
         this.currentWebContents[tabId] = tab
         const pageUpdate = ()=> {
-          console.log(tab.getTitle())
+          // console.log(tab.getTitle())
           const keys = []
           this.allKeys(this.state.root,keys)
           for(let key of keys){
-            this.refs2[key].updateTitle(tab)
+            this.refs2[key].updateTitle(tabId)
           }
         }
         tab.on('page-title-updated',pageUpdate)

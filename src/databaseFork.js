@@ -103,5 +103,32 @@ ipcMain.on('search-history-loc',(event,key,regText,limit)=>{
   })
 })
 
+ipcMain.on('db-rend',(event,datas)=>{
+  sock.send(datas,msg=>{
+    if(msg.key !== datas.key) return
+    event.sender.send(`db-rend_${datas.key}`,msg.result)
+    const {table,prop,argumentsList} = datas
+    if((table == "history" || table == "favorite") && (prop == "insert" || prop == "update")){
+      for(let cont of webContents.getAllWebContents()){
+        if(!cont.isDestroyed() && !cont.isBackgroundPage() && cont.isGuest()) {
+          const url = cont.getURL()
+          if(url.endsWith(`${table}_sidebar.html`) ||url.endsWith(`${table}.html`) || (table == 'history' && url.endsWith(`historyFull.html`))){
+            console.log(prop,msg)
+            if(prop == "update"){
+              console.log(argumentsList)
+              db[table].findOne(argumentsList[0]).then(ret=>{
+                console.log(ret)
+                cont.send('update-datas', ret)
+              })
+            }
+            else{
+              cont.send('update-datas', msg.result)
+            }
+          }
+        }
+      }
+    }
+  })
+})
 
 export default db

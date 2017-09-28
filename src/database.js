@@ -69,6 +69,7 @@ db.extension = new Datastore({filename: path.join(resourcePath,'extension.db'), 
   await db.history.ensureIndex({ fieldName: 'location' })
   await db.history.ensureIndex({ fieldName: 'title' })
   await db.history.ensureIndex({ fieldName: 'updated_at' })
+  await db.history.ensureIndex({ fieldName: 'count' })
   await db.historyFull.ensureIndex({ fieldName: 'updated_at' })
   await db.favorite.ensureIndex({ fieldName: 'key' })
   await db.favicon.ensureIndex({ fieldName: 'url' })

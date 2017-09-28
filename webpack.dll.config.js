@@ -18,7 +18,6 @@ module.exports = {
       'mousetrap',
       'nedb-promise',
       'node-pty',
-      'node-static',
       'node-uuid',
       'promisify-me',
       'pubsub-js',
@@ -44,7 +43,11 @@ module.exports = {
       "infinite-tree",
       "nedb-party",
       "underscore",
-      'warning']
+      'warning',
+      'classnames',
+      'clusterize.js',
+      'ytdl-core'
+    ]
   },
   output: {
     path: path.join(__dirname, 'dist'),

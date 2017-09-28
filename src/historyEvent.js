@@ -22,8 +22,10 @@ ipcMain.on('fetch-history', async (event, range, full=false,limit) => {
 
 
 ipcMain.on('fetch-frequently-history', async (event, range) => {
+  console.log(1,Date.now())
   console.log(range)
   const ret = await favorite.findOne({key: 'top-page'})
+  console.log(2,Date.now())
   let favorites = []
   if(ret && ret.children){
     const locs = []
@@ -32,9 +34,11 @@ ipcMain.on('fetch-frequently-history', async (event, range) => {
         favorites.push({fav:1,location:x.url,title:x.title,favicon:x.favicon,created_at:x.created_at,updated_at:x.updated_at})
         locs.push(x.url)
       }
+      console.log(3,Date.now())
     })
     if(locs.length > 0){
       const hists = await history.find({location: {$in: locs}})
+      console.log(4,Date.now())
       for(let fav of favorites){
         let h
         if((h = hists.find(x=>x.location == fav.location))){
@@ -46,8 +50,11 @@ ipcMain.on('fetch-frequently-history', async (event, range) => {
   }
 
   const data = favorites.concat((await history.find_sort_limit([{}],[{ count: -1 }],[80])))
+  console.log(5,Date.now())
   const images = await image.find({ url: { $in: data.map(x=>x.location) }})
-  const data2 = await history.find_sort_limit([{}],[{ updated_at: -1 }],[30])
+  console.log(6,Date.now())
+  const data2 = await history.find_sort_limit([{ updated_at: { $gte: Date.now() - 1000 * 3600 * 24 * 14 }} ],[{ updated_at: -1 }],[30])
+  console.log(7,Date.now())
 
 
   event.sender.send('history-reply', {freq:data.map(x=>{

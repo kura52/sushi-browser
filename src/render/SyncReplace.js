@@ -12,22 +12,6 @@ export default class SyncReplace extends Component {
     super(props)
     this.uuid = `a${uuid.v4()}`
     this.state = {visible: false}
-    ;(async _=>{
-      const items = await syncReplace.find({})
-      for(let i=0;i<SYNC_REPLACE_NUM;i++){
-        const item = items.find(x=>x.key == this.getInd(i))
-        console.log(item)
-        if(item){
-          let vals = item.val.split("\t",-1)
-          if(vals.length == 2) vals = ["",...vals]
-          vals.unshift(false)
-          this.state[this.getInd(i)] = vals
-        }
-        else{
-          this.state[this.getInd(i)] = [false,"","",""]
-        }
-      }
-    })()
   }
 
   componentDidMount() {
@@ -45,7 +29,24 @@ export default class SyncReplace extends Component {
   componentDidUpdate(prevProps, prevState){
     if(this.state.visible != prevState.visible){
       if(this.state.visible){
-        document.addEventListener('mousedown',this.outerClick)
+        ;(async _=>{
+          const items = await syncReplace.find({})
+          for(let i=0;i<SYNC_REPLACE_NUM;i++){
+            const item = items.find(x=>x.key == this.getInd(i))
+            console.log(item)
+            if(item){
+              let vals = item.val.split("\t",-1)
+              if(vals.length == 2) vals = ["",...vals]
+              vals.unshift(false)
+              this.state[this.getInd(i)] = vals
+            }
+            else{
+              this.state[this.getInd(i)] = [false,"","",""]
+            }
+          }
+          document.addEventListener('mousedown',this.outerClick)
+          this.setState({})
+        })()
       }
       else{
         document.removeEventListener('mousedown',this.outerClick)

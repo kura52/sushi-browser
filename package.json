@@ -26,7 +26,7 @@
     "babel-plugin-transform-function-bind": "^6.8.0",
     "babel-preset-react": "^6.16.0",
     "babel-preset-stage-2": "^6.18.0",
-    "babili": "0.1.4",
+    "babili": "0.0.12",
     "browser-sync": "^2.17.5",
     "cheerio": "^1.0.0-rc.2",
     "devtron": "^1.4.0",

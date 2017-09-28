@@ -73,9 +73,9 @@ class SplitPane extends Component {
     this.resizer = ReactDOM.findDOMNode(this).querySelector(`.Resizer.r${this.props.k}`)
     this.resizer.addEventListener('wheel',this.handleWheel,{passive: true})
 
-    document.addEventListener('mouseup', this.onMouseUp);
-    document.addEventListener('mousemove', this.onMouseMove);
-    document.addEventListener('touchmove', this.onTouchMove);
+    // document.addEventListener('mouseup', this.onMouseUp);
+    // document.addEventListener('mousemove', this.onMouseMove);
+    // document.addEventListener('touchmove', this.onTouchMove);
     this.tokenResize = PubSub.subscribe("resizeWindow",(_,e)=>{
       this.onResize(e)
     })
@@ -121,6 +121,10 @@ class SplitPane extends Component {
   }
 
   onMouseDown(event) {
+
+    document.addEventListener('mouseup', this.onMouseUp);
+    document.addEventListener('mousemove', this.onMouseMove);
+    document.addEventListener('touchmove', this.onTouchMove);
     const eventWithTouches = Object.assign(
       {},
       event,
@@ -277,6 +281,9 @@ class SplitPane extends Component {
   }
 
   onMouseUp() {
+    document.removeEventListener('mouseup', this.onMouseUp);
+    document.removeEventListener('mousemove', this.onMouseMove);
+    document.removeEventListener('touchmove', this.onTouchMove);
     if (this.props.allowResize) {
       if (this.state.active) {
         if (typeof this.props.onDragFinished === 'function') {

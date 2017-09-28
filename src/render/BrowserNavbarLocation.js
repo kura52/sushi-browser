@@ -108,6 +108,7 @@ export default class BrowserNavbarLocation extends Component {
     if(this.isFloat){
       PubSub.publish(`menu-showed_${this.props.k}`,false)
     }
+    if(this.input) this.input.blur()
     this.setState({ results: []})
   }
 
@@ -124,6 +125,7 @@ export default class BrowserNavbarLocation extends Component {
   }
 
   handleResultSelect(e, result) {
+    if(!result.title) result = result.result
     this.canUpdate = true
     this.props.onEnterLocation(this.state.results.find(x=> x.title === result.title).url)
     this.resetComponent()
@@ -164,10 +166,10 @@ export default class BrowserNavbarLocation extends Component {
 
 
   onFocus(e){
-    if(!this.unselect)
-      (this.input || ReactDOM.findDOMNode(this.refs.input).querySelector("input")).select()
+    const input = this.input || ReactDOM.findDOMNode(this.refs.input).querySelector("input")
+    input.select()
 
-    if(this.isFloat && (this.input || ReactDOM.findDOMNode(this.refs.input).querySelector("input")).value != ""){
+    if(this.isFloat && input.value != ""){
       PubSub.publish(`menu-showed_${this.props.k}`,true)
     }
   }

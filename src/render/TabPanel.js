@@ -26,7 +26,6 @@ const urlutil = require('./urlutil')
 const {messages,locale} = require('./localAndMessage')
 const isWin = navigator.userAgent.includes('Windows')
 
-const canFlash = mainState.flash
 let searchProviders,spAliasMap
 updateSearchEngine();
 
@@ -859,35 +858,38 @@ export default class TabPanel extends Component {
           if (!self.mounted) return
           // debugger
 
-          const loc = cont.getURL()
-          try{
-            page.location = decodeURIComponent(loc)
-          }catch(e){
-            // console.log(cont.getURL(),e)
-            page.location = loc
-          }
-          const entryIndex = cont.getCurrentEntryIndex()
-          page.entryIndex = entryIndex
-          page.canGoBack = entryIndex !== 0
-          page.canGoForward = entryIndex + 1 !== cont.getEntryCount()
-          if (!page.title){
-            page.title = page.location
-            if(tab.key == self.state.selectedTab && !this.isFixed) ipc.send("change-title",page.title)
-          }
-          page.isLoading = false
-          if(page.eventDownloadStartTab) ipc.removeListener(`download-start-tab_${tab.wvId}`,page.eventDownloadStartTab)
-          clearTimeout(page.downloadTimer)
-          // console.log(self.refs)
-          self.setState({})
-          ;(async()=>{
-            if((typeof page.hid === 'object' && page.hid !== null ) || (page.hid = await history.findOne({location: page.navUrl}))){
-              console.log(22,page.hid)
-              if(page.hid.count > 2 && !page.hid.capture){
-                ipc.send('take-capture', {id : page.hid._id,url: page.navUrl,loc})
-              }
+          ipc.send('get-did-stop-loading',tab.wvId)
+          ipc.once(`get-did-stop-loading-reply_${tab.wvId}`,(e,c)=> {
+            const loc = c.url
+            try {
+              page.location = decodeURIComponent(loc)
+            } catch (e) {
+              // console.log(cont.getURL(),e)
+              page.location = loc
             }
-          })()
-          // ipc.send('chrome-tab-updated',parseInt(tab.key), e, self.getChromeTab(tab))
+            const entryIndex = c.currentEntryIndex
+            page.entryIndex = entryIndex
+            page.canGoBack = entryIndex !== 0
+            page.canGoForward = entryIndex + 1 !== c.entryCount
+            if (!page.title) {
+              page.title = page.location
+              if (tab.key == self.state.selectedTab && !this.isFixed) ipc.send("change-title", page.title)
+            }
+            page.isLoading = false
+            if (page.eventDownloadStartTab) ipc.removeListener(`download-start-tab_${tab.wvId}`, page.eventDownloadStartTab)
+            clearTimeout(page.downloadTimer)
+            // console.log(self.refs)
+            self.setState({})
+            ;(async () => {
+              if ((typeof page.hid === 'object' && page.hid !== null ) || (page.hid = await history.findOne({location: page.navUrl}))) {
+                console.log(22, page.hid)
+                if (page.hid.count > 2 && !page.hid.capture) {
+                  ipc.send('take-capture', {id: page.hid._id, url: page.navUrl, loc})
+                }
+              }
+            })()
+            // ipc.send('chrome-tab-updated',parseInt(tab.key), e, self.getChromeTab(tab))
+          })
         })
       },
       // onDidNavigateInPage(e, page) {
@@ -938,27 +940,24 @@ export default class TabPanel extends Component {
         console.log('onDomReady',e,tab,Date.now())
         if (!self.mounted) return
 
-        console.log(canFlash)
-        console.log(mainState,mainState.a)
         console.log(tab.wv,tab.wvId,guestIds.tabId,tab.e&&tab.e.tabId,tab.e,e)
-        const cont = self.getWebContents(tab)
 
-        if(canFlash) cont.authorizePlugin(canFlash)
+        ipc.send('get-on-dom-ready',tab.wvId)
+        ipc.once(`get-on-dom-ready-reply_${tab.wvId}`,(e,c)=>{
+          // tab.wv.send('set-tab',{tab:self.getChromeTab(tab)})
+          page.canGoBack = c.currentEntryIndex !== 0
+          page.canGoForward = c.currentEntryIndex + 1 !== c.entryCount
+          page.canRefresh = true
 
+          const title = c.title
+          if(tab.key == self.state.selectedTab && !this.isFixed && title != page.title){
+            ipc.send("change-title",title)
+          }
+          page.title = title
+          // cont.openDevTools()
 
-        // tab.wv.send('set-tab',{tab:self.getChromeTab(tab)})
-        page.canGoBack = cont.getCurrentEntryIndex() !== 0
-        page.canGoForward = cont.getCurrentEntryIndex() + 1 !== cont.getEntryCount()
-        page.canRefresh = true
-
-        const title = cont.getTitle()
-        if(tab.key == self.state.selectedTab && !this.isFixed && title != page.title){
-          ipc.send("change-title",title)
-        }
-        page.title = cont.getTitle()
-        // cont.openDevTools()
-
-        self.setState({})
+          self.setState({})
+        })
       },
       onDidFailLoad(e, page, pageIndex) {
         console.log('fail',e)
@@ -2746,60 +2745,72 @@ export default class TabPanel extends Component {
     }, 100)
   }
 
-  updateTitle(cont){
-    const id = cont.getId()
+  updateTitle(id){
     this.state.tabs.forEach(tab=> {
       if (tab.wvId && tab.wvId === id) {
-        console.log('onPageTitleSet')
-        console.log(cont.getURL())
+        ipc.send('get-update-title',tab.wvId)
+        ipc.once(`get-update-title-reply_${tab.wvId}`,(e,c)=> {
+          console.log('onPageTitleSet')
+          console.log(c.url)
 
-        if (!this.mounted) return
-        const url = cont.getURL()
+          if (!this.mounted) return
+          const url = c.url
 
-        const title = cont.getTitle()
-        if(tab.key == this.state.selectedTab && !this.isFixed && title != tab.page.title){
-          ipc.send("change-title",title)
-        }
-        tab.page.title = title
+          const title = c.title
+          if (tab.key == this.state.selectedTab && !this.isFixed && title != tab.page.title) {
+            ipc.send("change-title", title)
+          }
+          tab.page.title = title
 
-        tab.page.navUrl = url
-        tab.prevSyncNav = url //@TOOD arrage navurl,location,sync panel
-        try{
-          tab.page.location = decodeURIComponent(url)
-        }catch(e){
-          tab.page.location = url
-        }
-        tab.page.titleSet = true
+          tab.page.navUrl = url
+          tab.prevSyncNav = url //@TOOD arrage navurl,location,sync panel
+          try {
+            tab.page.location = decodeURIComponent(url)
+          } catch (e) {
+            tab.page.location = url
+          }
+          tab.page.titleSet = true
 
-        // console.log(1444,cont.getURL(),tab.page.title)
-        let hist
-        if((hist = historyMap.get(url))){
-          if(!hist[0]) hist[0] = tab.page.title
-        }
-        else{
-          historyMap.set(url,[tab.page.title])
-        }
+          // console.log(1444,cont.getURL(),tab.page.title)
+          let hist
+          if ((hist = historyMap.get(url))) {
+            if (!hist[0]) hist[0] = tab.page.title
+          }
+          else {
+            historyMap.set(url, [tab.page.title])
+          }
 
-        if(!tab.privateMode){
-          ;(async ()=>{
-            // console.log('his-update',tab.page.location)
-            if(tab.page.hid || (tab.page.hid = await history.findOne({location: tab.page.navUrl}))){
-              await history.update({_id: typeof tab.page.hid == "string" ? tab.page.hid : tab.page.hid._id},{ $set:{title: tab.page.title,updated_at: Date.now()},$inc:{count: 1}})
-            }
-            else{
-              // console.log('his-insert',tab.page.location)
-              tab.page.hid = (await history.insert({location:tab.page.navUrl ,title: tab.page.title, created_at: Date.now(),updated_at: Date.now(),count: 1}))._id
-            }
-          })()
-        }
-        try{
-          this.refs[`navbar-${tab.key}`].refs['loc'].canUpdate = true
-        }catch(e){
-          console.log(e)
-        }
-        this.setState({})
-        // ipc.send('chrome-tab-updated',parseInt(tab.key), cont, this.getChromeTab(tab))
-        return
+          if (!tab.privateMode) {
+            ;(async () => {
+              // console.log('his-update',tab.page.location)
+              if (tab.page.hid || (tab.page.hid = await history.findOne({location: tab.page.navUrl}))) {
+                await history.update({_id: typeof tab.page.hid == "string" ? tab.page.hid : tab.page.hid._id}, {
+                  $set: {
+                    title: tab.page.title,
+                    updated_at: Date.now()
+                  }, $inc: {count: 1}
+                })
+              }
+              else {
+                // console.log('his-insert',tab.page.location)
+                tab.page.hid = (await history.insert({
+                  location: tab.page.navUrl,
+                  title: tab.page.title,
+                  created_at: Date.now(),
+                  updated_at: Date.now(),
+                  count: 1
+                }))._id
+              }
+            })()
+          }
+          try {
+            this.refs[`navbar-${tab.key}`].refs['loc'].canUpdate = true
+          } catch (e) {
+            console.log(e)
+          }
+          this.setState({})
+          // ipc.send('chrome-tab-updated',parseInt(tab.key), cont, this.getChromeTab(tab))
+        })
       }
     })
   }

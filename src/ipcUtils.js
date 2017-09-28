@@ -755,6 +755,37 @@ ipcMain.on('get-country-names',e=>{
     }
   }
 })
+
+ipcMain.on('get-on-dom-ready',(e,tabId)=>{
+  const cont = webContents.fromTabID(tabId)
+  if(mainState.flash) cont.authorizePlugin(mainState.flash)
+
+  e.sender.send(`get-on-dom-ready-reply_${tabId}`,{
+    currentEntryIndex: cont.getCurrentEntryIndex(),
+    entryCount: cont.getEntryCount(),
+    title: cont.getTitle()
+  })
+})
+
+ipcMain.on('get-update-title',(e,tabId)=>{
+  const cont = webContents.fromTabID(tabId)
+
+  e.sender.send(`get-update-title-reply_${tabId}`,{
+    title: cont.getTitle(),
+    url: cont.getURL()
+  })
+})
+
+ipcMain.on('get-did-stop-loading',(e,tabId)=>{
+  const cont = webContents.fromTabID(tabId)
+
+  e.sender.send(`get-did-stop-loading-reply_${tabId}`,{
+    currentEntryIndex: cont.getCurrentEntryIndex(),
+    entryCount: cont.getEntryCount(),
+    url: cont.getURL()
+  })
+})
+
 // async function recurSelect(keys){
 //   const ret = await favorite.find({key:{$in: keys}})
 //   const addKey = []
