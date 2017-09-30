@@ -500,7 +500,7 @@ export default class SplitWindows extends Component{
     })
 
     this.tokenOverlay = PubSub.subscribe('drag-overlay',(msg,val)=>{
-      this.setState({overlay: val})
+      if(val != this.state.overlay) this.setState({overlay: val})
     })
 
     // const self = this

@@ -74,7 +74,7 @@ class BrowserNavbar extends Component{
   componentDidMount() {
     this.tokenZoom = PubSub.subscribe(`zoom_${this.props.tabkey}`,(msg,percent)=>{
       this.setState({zoom:percent})
-      if(this.props.sync) this.props.syncZoom(percent,this.props.sync)
+      if(this.props.sync) this.props.parent.syncZoom(percent,this.props.sync)
     })
     this.tokenReplaceInfo = PubSub.subscribe(`update-replace-info_${this.props.tabkey}`,(msg,replaceInfo)=>{
       this.refs.syncReplace.setVals(replaceInfo)
@@ -153,6 +153,10 @@ class BrowserNavbar extends Component{
       this.forceUpdates = false
       return true
     }
+    else if(this.noRender){
+      this.noRender = false
+      return false
+    }
     // console.log("should")
     // let currentIndex
     // const cont = nextProps.wv && this.getWebContents(nextProps.tab)
@@ -204,7 +208,7 @@ class BrowserNavbar extends Component{
       webContents.zoomOut()
       const percent = webContents.getZoomPercent()
       this.setState({zoom:percent})
-      if(this.props.sync) this.props.syncZoom(percent,this.props.sync)
+      if(this.props.sync) this.props.parent.syncZoom(percent,this.props.sync)
     }
   }
   onZoomIn(){
@@ -213,14 +217,14 @@ class BrowserNavbar extends Component{
       webContents.zoomIn()
       const percent = webContents.getZoomPercent()
       this.setState({zoom:percent})
-      if(this.props.sync) this.props.syncZoom(percent,this.props.sync)
+      if(this.props.sync) this.props.parent.syncZoom(percent,this.props.sync)
     }
   }
   noZoom(){
     const webContents = this.getWebContents(this.props.tab)
     if(webContents) webContents.zoomReset()
     this.setState({zoom:100})
-    if(this.props.sync) this.props.syncZoom(100,this.props.sync)
+    if(this.props.sync) this.props.parent.syncZoom(100,this.props.sync)
   }
 
   onCommon(str){
@@ -463,10 +467,10 @@ class BrowserNavbar extends Component{
       <NavbarMenuItem text={locale.translation("newWindow")} icon='clone' onClick={()=>BrowserWindowPlus.load({id:remote.getCurrentWindow().id,sameSize:true})}/>
       <NavbarMenuItem text={this.props.toggleNav == 0 ? 'OneLine Menu(ALL)' : 'Normal Menu(ALL)'} icon='ellipsis horizontal'
                       onClick={()=>{cont.hostWebContents.send('toggle-nav',this.props.toggleNav == 0 ? 1 : 0);this.setState({})}}/>
-      <NavbarMenuItem text={this.props.toggleNav == 0 ? 'OneLine Menu' : 'Normal Menu'} icon='ellipsis horizontal' onClick={()=>{this.props.toggleNavPanel(this.props.toggleNav == 0 ? 1 : 0);this.setState({})}}/>
+      <NavbarMenuItem text={this.props.toggleNav == 0 ? 'OneLine Menu' : 'Normal Menu'} icon='ellipsis horizontal' onClick={()=>{this.props.parent.toggleNavPanel(this.props.toggleNav == 0 ? 1 : 0);this.setState({})}}/>
       {isDarwin ? null :<NavbarMenuItem text={this.props.toggleNav == 3 ? 'Normal Screen Mode' : 'Full Screen Mode'} icon={this.props.toggleNav == 3 ? 'compress' : 'expand'}
                                         onClick={()=>ipc.send('toggle-fullscreen')}/>}
-      <NavbarMenuItem text='Detach This Panel' icon='space shuttle' onClick={this.props.detachPanel}/>
+      <NavbarMenuItem text='Detach This Panel' icon='space shuttle' onClick={this.props.parent.detachPanel}/>
       <NavbarMenuItem text='Panels to Windows' icon='cubes' onClick={_=>PubSub.publish('all-detach')}/>
       {isDarwin ? null :<NavbarMenuItem text='Bind selected Window' icon='crosshairs' onClick={_=>this.bindWindow()}/>}
 
@@ -613,15 +617,7 @@ class BrowserNavbar extends Component{
     // const cacheItems = this.getCacheMediaItems()
     const cont = this.props.wv ? this.getWebContents(this.props.tab) : undefined
 
-    const historyList = []
-    let histNum,currentIndex
-    if(cont){
-      histNum = cont.getEntryCount()
-      currentIndex = cont.getCurrentEntryIndex()
-      for(let i=0;i<histNum;i++){
-        historyList.push(cont.getURLAtIndex(i))
-      }
-    }
+    const [histNum,currentIndex,historyList] = ipc.sendSync('get-sync-cont-history',this.props.tab.wvId)
 
     const navbarStyle = this.props.toggleNav == 2 ? {visibility: "hidden"} : this.props.toggleNav == 3 ? {zIndex: 2, position: "sticky", top: 27} : {}
     // this.props.toggleNav == 1 ? {width : this.props.isTopRight ? '55%' : '50%',float: 'right'} : {}
@@ -633,23 +629,23 @@ class BrowserNavbar extends Component{
 
       {isDarwin && this.props.isTopRight && this.props.toggleNav == 1 ? <div style={{width: this.props.fullscreen ? 0 : 62}}/>  : null }
 
-      <NavbarMenu k={this.props.k} mouseOver={true} isFloat={isFloatPanel(this.props.k)} className={`back-next ${this.props.page.canGoBack ? "" : " disabled"}`} title={locale.translation('back')} icon="angle-left fa-lg" onClick={e=>{this.props.onClickBack(e);this.forceUpdates=true}}>
+      <NavbarMenu k={this.props.k} mouseOver={true} isFloat={isFloatPanel(this.props.k)} className={`back-next ${this.props.page.canGoBack ? "" : " disabled"}`} title={locale.translation('back')} icon="angle-left fa-lg" onClick={e=>{this.props.navHandle.onClickBack(e);this.forceUpdates=true}}>
         {(cont ? historyList.slice(0,currentIndex).reverse().map(
-          (x,i)=><NavbarMenuItem key={i} text={this.getTitle(x,this.props.historyMap)} onClick={()=>{this.props.onClickIndex(currentIndex -i -1);this.forceUpdates=true}}/>) : "")}
+          (x,i)=><NavbarMenuItem key={i} text={this.getTitle(x,this.props.historyMap)} onClick={()=>{this.props.navHandle.onClickIndex(currentIndex -i -1);this.forceUpdates=true}}/>) : "")}
       </NavbarMenu>
 
 
-      <NavbarMenu k={this.props.k} mouseOver={true} isFloat={isFloatPanel(this.props.k)} className={`back-next ${this.props.page.canGoForward ? "" : " disabled"}`} title={locale.translation('forward')} icon="angle-right fa-lg" onClick={e=>{this.props.onClickForward(e);this.forceUpdates=true}} >
+      <NavbarMenu k={this.props.k} mouseOver={true} isFloat={isFloatPanel(this.props.k)} className={`back-next ${this.props.page.canGoForward ? "" : " disabled"}`} title={locale.translation('forward')} icon="angle-right fa-lg" onClick={e=>{this.props.navHandle.onClickForward(e);this.forceUpdates=true}} >
         {(cont ? historyList.slice(currentIndex+1).map(
-          (x,i)=><NavbarMenuItem key={i} text={this.getTitle(x,this.props.historyMap)} onClick={()=>{this.props.onClickIndex(currentIndex +i +1);this.forceUpdates=true}}/>) : "")}
+          (x,i)=><NavbarMenuItem key={i} text={this.getTitle(x,this.props.historyMap)} onClick={()=>{this.props.navHandle.onClickIndex(currentIndex +i +1);this.forceUpdates=true}}/>) : "")}
       </NavbarMenu>
 
 
-      <BrowserNavbarBtn title={locale.translation('reload')} icon="repeat" onClick={this.props.onClickRefresh} disabled={!this.props.page.canRefresh} />
+      <BrowserNavbarBtn title={locale.translation('reload')} icon="repeat" onClick={this.props.navHandle.onClickRefresh} disabled={!this.props.page.canRefresh} />
 
       <div className="input-group">
-        <BrowserNavbarLocation ref="loc" wv={this.props.wv} navbar={this} onEnterLocation={this.props.onEnterLocation} onChangeLocation={this.props.onChangeLocation}
-                               k ={this.props.k} onContextMenu={this.props.onLocationContextMenu} tab={this.props.tab} page={this.props.page} privateMode={this.props.privateMode} search={this.props.search}/>
+        <BrowserNavbarLocation ref="loc" wv={this.props.wv} navbar={this} onEnterLocation={this.props.navHandle.onEnterLocation} onChangeLocation={this.props.navHandle.onChangeLocation}
+                               k ={this.props.k} onContextMenu={this.props.navHandle.onLocationContextMenu} tab={this.props.tab} page={this.props.page} privateMode={this.props.privateMode} search={this.props.parent.search}/>
       </div>
 
       <div className="navbar-margin" style={{width: this.props.toggleNav != 1 ? 0 : this.props.isTopRight ? '45%' : '50%',minWidth: this.props.toggleNav != 1 ? 0 :'80px',background: 'rgb(221, 221, 221)'}}
@@ -663,12 +659,12 @@ class BrowserNavbar extends Component{
                win.maximize()
              }
            }: null}></div>
-      {isFixed ? null : <SyncReplace ref="syncReplace" changeSyncMode={this.props.changeSyncMode} replaceInfo={this.props.replaceInfo} updateReplaceInfo={this.props.updateReplaceInfo}/>}
+      {isFixed ? null : <SyncReplace ref="syncReplace" changeSyncMode={this.props.parent.changeSyncMode} replaceInfo={this.props.replaceInfo} updateReplaceInfo={this.props.parent.updateReplaceInfo}/>}
       {isFixed ? null : <BrowserNavbarBtn title="Switch Sync Scroll" icon="circle-o" sync={this.props.sync && !this.props.replaceInfo}
-                                          onClick={()=>{this.props.changeSyncMode();this.refs.syncReplace.clearAllCheck()}}/>}
-      {isFixed || !this.props.sync || this.props.replaceInfo || !this.props.isTopLeft ? null : <FloatSyncScrollButton toggleNav={this.props.toggleNav} scrollPage={this.props.scrollPage}/>}
+                                          onClick={()=>{this.props.parent.changeSyncMode();this.refs.syncReplace.clearAllCheck()}}/>}
+      {isFixed || !this.props.sync || this.props.replaceInfo || !this.props.isTopLeft ? null : <FloatSyncScrollButton toggleNav={this.props.toggleNav} scrollPage={this.props.parent.scrollPage}/>}
 
-      {isFloat ? null: <BrowserNavbarBtn title="Switch Opposite Open" icon="external-link-square" sync={this.props.oppositeMode} onClick={()=>{this.props.changeOppositeMode()}}/>}
+      {isFloat ? null: <BrowserNavbarBtn title="Switch Opposite Open" icon="external-link-square" sync={this.props.oppositeMode} onClick={()=>{this.props.parent.changeOppositeMode()}}/>}
 
 
       {isFixed ? null : <NavbarMenu k={this.props.k} mouseOver={true} isFloat={isFloatPanel(this.props.k)} title="Open Sidebar" icon="list-ul" onClick={()=>this.props.fixedPanelOpen({dirc:mainState.sideBarDirection})}>

@@ -97,7 +97,8 @@ export default class SyncReplace extends Component {
 
   clearAllCheck(){
     for(let i=0;i<SYNC_REPLACE_NUM;i++){
-      this.state[this.getInd(i)][0] = false
+      if(this.state[this.getInd(i)])
+        this.state[this.getInd(i)][0] = false
     }
   }
 

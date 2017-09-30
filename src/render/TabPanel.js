@@ -32,19 +32,6 @@ updateSearchEngine();
 
 // ipc.setMaxListeners(0)
 // window.setInterval(()=>{console.log(ipc.listenerCount('new-tab'))},1000)
-const svg = <svg dangerouslySetInnerHTML={{__html: `<svg version="1.1" id="loader-1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-     width="16px" height="16px" viewBox="0 0 50 50" style="enable-background:new 0 0 50 50;" xml:space="preserve">
-  <path fill="#4285f4" d="M25.251,6.461c-10.318,0-18.683,8.365-18.683,18.683h4.068c0-8.071,6.543-14.615,14.615-14.615V6.461z">
-    <animateTransform attributeType="xml"
-      attributeName="transform"
-      type="rotate"
-      from="0 25 25"
-      to="360 25 25"
-      dur="1.2s"
-      repeatCount="indefinite"/>
-    </path>
-  </svg>` }} />
-
 let topURL
 const sidebarURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html'
 const blankURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html'
@@ -225,6 +212,7 @@ export default class TabPanel extends Component {
   constructor(props) {
     super(props);
     const self = this
+    this.initFunction()
     const tokens = {pubsub:this.initEventListener(),ipc:this.initIpcEvents()}
     this.uuid = uuid.v4().replace(/\-/g,"")
     console.log(65654,props)
@@ -349,6 +337,29 @@ export default class TabPanel extends Component {
       }
       this.props.child[0] = this.state
     }
+  }
+
+  initFunction(){
+    this.syncZoom = ::this.syncZoom
+    this.toggleNavPanel = ::this.toggleNavPanel
+    this.detachPanel = ::this.detachPanel
+    this.search = ::this.search
+    this.updateReplaceInfo = ::this.updateReplaceInfo
+    this.scrollPage = ::this.scrollPage
+    this.changeOppositeMode = ::this.changeOppositeMode
+    this.changeSyncMode = ::this.changeSyncMode
+    this.handleTabSelect = ::this.handleTabSelect
+    this.handleCloseRemoveOtherContainer = ::this.handleCloseRemoveOtherContainer
+    this.handleTabClose = ::this.handleTabClose
+    this.handleTabAddOtherContainer = ::this.handleTabAddOtherContainer
+    this.handleTabAddButtonClick = ::this.handleTabAddButtonClick
+    this.handleTabPositionChange = ::this.handleTabPositionChange
+    this.handleContextMenu = ::this.handleContextMenu
+    this.handleTabAddOtherPanel = ::this.handleTabAddOtherPanel
+    this.multiSelectionClick = ::this.multiSelectionClick
+    this.handleKeyDown = ::this.handleKeyDown
+    this.createNewTabFromOtherWindow = ::this.createNewTabFromOtherWindow
+    this.resetSelection = ::this.resetSelection
   }
 
   initIpcEvents(){
@@ -943,15 +954,21 @@ export default class TabPanel extends Component {
         console.log('onDomReady',e,tab,Date.now())
         if (!self.mounted) return
 
+
         console.log(tab.wv,tab.wvId,guestIds.tabId,tab.e&&tab.e.tabId,tab.e,e)
 
         ipc.send('get-on-dom-ready',tab.wvId)
         ipc.once(`get-on-dom-ready-reply_${tab.wvId}`,(e,c)=>{
           if(!c) return
+          const pre = {
+            canGoBack: c.currentEntryIndex !== 0,
+            canGoForward:  c.currentEntryIndex + 1 !== c.entryCount
+          }
+
+          if(pre.canGoBack == c.currentEntryIndex !== 0 &&
+            pre.canGoForward == c.currentEntryIndex + 1 !== c.entryCount &&
+            page.canRefresh == false && page.title == c.title) return
           // tab.wv.send('set-tab',{tab:self.getChromeTab(tab)})
-          page.canGoBack = c.currentEntryIndex !== 0
-          page.canGoForward = c.currentEntryIndex + 1 !== c.entryCount
-          page.canRefresh = true
 
           const title = c.title
           if(tab.key == self.state.selectedTab && !this.isFixed && title != page.title){
@@ -960,7 +977,8 @@ export default class TabPanel extends Component {
           page.title = title
           // cont.openDevTools()
 
-          self.setState({})
+          // self.setState({})
+          self.setStatePartical(tab)
         })
       },
       onDidFailLoad(e, page, pageIndex) {
@@ -984,7 +1002,8 @@ export default class TabPanel extends Component {
         if(newPage.navUrl.match(/^https:\/\/www\.google\.([a-z.]+)\/url\?sa=t&/)) return //Google Redirect
         console.log(newPage.navUrl,"onFaviconUpdate")
         newPage.favicon = e.favicons[0]
-        self.setState({})
+        // self.setState({})
+        self.setStatePartical(tab)
 
         let hist
         if((hist = historyMap.get(newPage.navUrl))){
@@ -1084,7 +1103,8 @@ export default class TabPanel extends Component {
       //     })
       //   }
       // }
-      self.setState({})
+      // self.setState({})
+      self.setStatePartical(tab)
     }
 
     if (needFavicon && !tab.privateMode) {
@@ -1103,6 +1123,27 @@ export default class TabPanel extends Component {
         }
       })()
     }
+  }
+
+  setStatePartical(tab){
+    const t = this.refs.tabs.refs[tab.key]
+    if (t){
+      const p = t.querySelector('p')
+      p.setAttribute('title',tab.page.title)
+      p.innerText = tab.page.title
+
+      const img = t.querySelector('span img')
+      if(tab.page.title && tab.page.favicon !== 'loading'){
+        if(img.getAttribute("src") != tab.page.favicon){
+          img.setAttribute("src",tab.page.favicon)
+        }
+      }
+      else if(img.getAttribute("src") != "resource/l.svg"){
+        img.setAttribute("src","resource/l.svg")
+        }
+    }
+    const n = this.refs[`navbar-${tab.key}`]
+    if(n) n.setState({})
   }
 
   updateOpenLink(openLink){
@@ -1504,9 +1545,9 @@ export default class TabPanel extends Component {
       console.log('location-navigateTo',newPage.location)
       if(!tab.guestInstanceId){
         if(tab.wvId){
-            // tab.wv.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',
-            //   `var a_=document.createElement('a');a_.setAttribute('rel','noreferrer');a_.setAttribute('href','${convertURL(l)}');a_.click()`
-            //   ,{})
+          // tab.wv.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',
+          //   `var a_=document.createElement('a');a_.setAttribute('rel','noreferrer');a_.setAttribute('href','${convertURL(l)}');a_.click()`
+          //   ,{})
           this.getWebContents(tab).loadURL(convertURL(l))
         }
         else{
@@ -1541,7 +1582,8 @@ export default class TabPanel extends Component {
       }
       newPage.navUrl = l
       newPage.richContents = []
-      this.setState({})
+      // this.setState({})
+      this.setStatePartical(tab)
     }
   }
 
@@ -1563,7 +1605,8 @@ export default class TabPanel extends Component {
       canGoBack: false,
       canGoForward: false,
       canRefresh: false,
-      favicon: 'loading'
+      favicon: 'loading',
+      richContents: []
     }
   }
 
@@ -2770,6 +2813,10 @@ export default class TabPanel extends Component {
         ipc.send('get-update-title',tab.wvId)
         ipc.once(`get-update-title-reply_${tab.wvId}`,(e,c)=> {
           if(!c) return
+
+          tab.page.canGoBack = c.currentEntryIndex !== 0
+          tab.page.canGoForward = c.currentEntryIndex + 1 !== c.entryCount
+          tab.page.canRefresh = true
           console.log('onPageTitleSet')
           console.log(c.url)
 
@@ -2829,7 +2876,7 @@ export default class TabPanel extends Component {
           } catch (e) {
             console.log(e)
           }
-          this.setState({})
+          this.setStatePartical(tab)
           // ipc.send('chrome-tab-updated',parseInt(tab.key), cont, this.getChromeTab(tab))
         })
       }
@@ -2996,18 +3043,18 @@ export default class TabPanel extends Component {
         tabsClassNames={tabsClassNames}
         tabsStyles={tabsStyles}
         selectedTab={this.state.selectedTab}
-        onTabSelect={::this.handleTabSelect}
-        onClose={::this.handleCloseRemoveOtherContainer}
-        onTabClose={::this.handleTabClose}
-        onTabAddOtherContainer={::this.handleTabAddOtherContainer}
-        onTabAddButtonClick={::this.handleTabAddButtonClick}
-        onTabPositionChange={::this.handleTabPositionChange}
-        onTabContextMenu={::this.handleContextMenu}
-        handleTabAddOtherPanel={::this.handleTabAddOtherPanel}
-        multiSelectionClick={::this.multiSelectionClick}
-        onKeyDown={::this.handleKeyDown}
-        createNewTabFromOtherWindow={::this.createNewTabFromOtherWindow}
-        resetSelection={::this.resetSelection}
+        onTabSelect={this.handleTabSelect}
+        onClose={this.handleCloseRemoveOtherContainer}
+        onTabClose={this.handleTabClose}
+        onTabAddOtherContainer={this.handleTabAddOtherContainer}
+        onTabAddButtonClick={this.handleTabAddButtonClick}
+        onTabPositionChange={this.handleTabPositionChange}
+        onTabContextMenu={this.handleContextMenu}
+        handleTabAddOtherPanel={this.handleTabAddOtherPanel}
+        multiSelectionClick={this.multiSelectionClick}
+        onKeyDown={this.handleKeyDown}
+        createNewTabFromOtherWindow={this.createNewTabFromOtherWindow}
+        resetSelection={this.resetSelection}
         toggleNav={toggle}
         isTopLeft={this.props.isTopLeft}
         isTopRight={this.props.isTopRight}
@@ -3018,16 +3065,13 @@ export default class TabPanel extends Component {
         k={this.props.k}
         ref='tabs'
         tabs={this.state.tabs.map((tab,num)=>{
-          return (<Tab key={tab.key} beforeTitle={tab.page.title && tab.page.favicon !== 'loading' ? (<img className='favi' src={tab.page.favicon} onError={(e)=>{e.target.src = 'resource/file.png'}}/>) : (svg)}
-                       title={tab.page.title} orgTab={tab} pin={tab.pin} privateMode={tab.privateMode} selection={tab.selection}>
+          return (<Tab key={tab.key} page={tab.page} orgTab={tab} pin={tab.pin} privateMode={tab.privateMode} selection={tab.selection}>
             <div style={{height: '100%'}} className="div-back" ref={`div-${tab.key}`} >
-              <BrowserNavbar ref={`navbar-${tab.key}`} tabkey={tab.key} k={this.props.k} {...tab.navHandlers} parent={this} privateMode={tab.privateMode} page={tab.page} tab={tab}
+              <BrowserNavbar ref={`navbar-${tab.key}`} tabkey={tab.key} k={this.props.k} navHandle={tab.navHandlers} parent={this} privateMode={tab.privateMode} page={tab.page} tab={tab}
                              richContents={tab.page.richContents} wv={tab.wv} sync={tab.sync} replaceInfo={tab.syncReplace} oppositeMode={tab.oppositeMode} oppositeGlobal={this.state.oppositeGlobal} toggleNav={toggle}
-                             scrollPage={::this.scrollPage} historyMap={historyMap} changeSyncMode={::this.changeSyncMode} updateReplaceInfo={::this.updateReplaceInfo}
-                             changeOppositeMode={::this.changeOppositeMode} syncZoom={::this.syncZoom} currentWebContents={this.props.currentWebContents}
-                             isTopRight={this.props.isTopRight} isTopLeft={this.props.isTopLeft} detachPanel={::this.detachPanel}
-                             fixedPanelOpen={this.props.fixedPanelOpen} toggleNavPanel={::this.toggleNavPanel} tabBar={!this.state.tabBar} hidePanel={this.props.hidePanel}
-                             fullscreen={this.props.fullscreen} search={::this.search} bind={tab.bind}/>
+                             historyMap={historyMap}  currentWebContents={this.props.currentWebContents}
+                             isTopRight={this.props.isTopRight} isTopLeft={this.props.isTopLeft} fixedPanelOpen={this.props.fixedPanelOpen} tabBar={!this.state.tabBar} hidePanel={this.props.hidePanel}
+                             fullscreen={this.props.fullscreen} bind={tab.bind}/>
               {num == 0 ? this.state.notifications.map((data,i)=>{
                 if(data.needInput){
                   console.log(225,data)

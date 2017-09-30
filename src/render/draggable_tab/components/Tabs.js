@@ -146,7 +146,10 @@ class Tabs extends React.Component {
   }
 
 
-  componentWillMount() {
+  shouldComponentUpdate(nextProps, nextState) {
+    if (!this.noRender) return true
+    this.noRender = false
+    return false
   }
 
   componentDidMount() {
@@ -247,8 +250,7 @@ class Tabs extends React.Component {
         return '';
       }
       let {
-        beforeTitle,
-        title,
+        page,
         afterTitle,
         disableClose,
         tabClassNames,
@@ -263,6 +265,9 @@ class Tabs extends React.Component {
         pin,
         ...others
       } = tab.props;
+
+      const beforeTitle = <img className='favi' src={page.title && page.favicon !== 'loading' ? page.favicon : 'resource/l.svg'} onError={(e)=>{e.target.src = 'resource/file.png'}}/>
+      const title = page.title
 
       containerStyle = containerStyle || {}
       tabStyles = tabStyles || {}
@@ -490,7 +495,7 @@ class Tabs extends React.Component {
       this.handleCloseButtonClick(key, e)
       return;
     }
-    PubSub.publish('drag-overlay',true)
+    // PubSub.publish('drag-overlay',true)
 
     this.enableMulti = [e,key]
     if(e.ctrlKey || e.metaKey || e.shiftKey){

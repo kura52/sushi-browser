@@ -182,9 +182,9 @@ export default class BrowserNavbarLocation extends Component {
   }
 
   onMouseDown(e){
-    if(this.isFloat){
+    // if(this.isFloat){
       e.target.click()
-    }
+    // }
   }
 
 

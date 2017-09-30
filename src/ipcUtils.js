@@ -775,6 +775,8 @@ ipcMain.on('get-update-title',(e,tabId)=>{
   const cont = webContents.fromTabID(tabId)
   const ret = cont ? {
     title: cont.getTitle(),
+    currentEntryIndex: cont.getCurrentEntryIndex(),
+    entryCount: cont.getEntryCount(),
     url: cont.getURL()
   } : null
 
@@ -790,6 +792,21 @@ ipcMain.on('get-did-stop-loading',(e,tabId)=>{
     } : null
 
   e.sender.send(`get-did-stop-loading-reply_${tabId}`,ret)
+})
+
+ipcMain.on('get-sync-cont-history',(e,tabId)=>{
+  const cont = webContents.fromTabID(tabId)
+  if(!cont) e.returnValue = []
+  const historyList = []
+  let histNum,currentIndex
+  if(cont){
+    histNum = cont.getEntryCount()
+    currentIndex = cont.getCurrentEntryIndex()
+    for(let i=0;i<histNum;i++){
+      historyList.push(cont.getURLAtIndex(i))
+    }
+  }
+  e.returnValue = [histNum,currentIndex,historyList]
 })
 
 // async function recurSelect(keys){
