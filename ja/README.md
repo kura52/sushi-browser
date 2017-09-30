@@ -137,14 +137,14 @@ Sync Data機能をOnにすると複数端末間で履歴とお気に入りの同
 
 各プラットフォームに対し、インストーラとポータブル版の両方がダウンロードできます。
 
-- [Windows Installer v0.5.0](https://sushib.me/dl/sushi-browser-0.5.0-setup-x64.exe)
-- [Windows Portable v0.5.0(自己解凍)](https://sushib.me/dl/sushi-browser-0.5.0-win-x64.exe)
-- [Windows Portable v0.5.0](https://sushib.me/dl/sushi-browser-0.5.0-win-x64.zip)
-- [MacOS dmg v0.5.0](https://sushib.me/dl/SushiBrowser-0.5.0.dmg)
-- [MacOS Portable v0.5.0](https://sushib.me/dl/sushi-browser-0.5.0-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.5.0](https://sushib.me/dl/sushi-browser-0.5.0.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.5.0](https://sushib.me/dl/sushi-browser_0.5.0_amd64.deb)
-- [Linux Portable v0.5.0](https://sushib.me/dl/sushi-browser-0.5.0.tar.bz2)
+- [Windows Installer v0.6.0](https://sushib.me/dl/sushi-browser-0.6.0-setup-x64.exe)
+- [Windows Portable v0.6.0(自己解凍)](https://sushib.me/dl/sushi-browser-0.6.0-win-x64.exe)
+- [Windows Portable v0.6.0](https://sushib.me/dl/sushi-browser-0.6.0-win-x64.zip)
+- [MacOS dmg v0.6.0](https://sushib.me/dl/SushiBrowser-0.6.0.dmg)
+- [MacOS Portable v0.6.0](https://sushib.me/dl/sushi-browser-0.6.0-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.6.0](https://sushib.me/dl/sushi-browser-0.6.0.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.6.0](https://sushib.me/dl/sushi-browser_0.6.0_amd64.deb)
+- [Linux Portable v0.6.0](https://sushib.me/dl/sushi-browser-0.6.0.tar.bz2)
 
 ポータブル版の利用は、解凍後にWindowsはsushi.exeを、Mac/Linuxはsushi-browserを実行ください。
 
@@ -160,6 +160,12 @@ sushi-browser --no-sandbox
 ```
 
 # 新機能
+
+#### 新機能(v0.60)
+- 主要な同期処理を非同期化することで高速化
+- 新しいタブの作成処理を高速化
+- Topページの表示処理を高速化
+- npmライブラリを最新化
 
 #### 新機能(v0.50)
 - VPN機能を追加(Windowsのみ)。VPN Gateサービスを利用させて頂いており、MS-SSTP VPNで接続します。(多重proxyではない本当のVPNです。)
