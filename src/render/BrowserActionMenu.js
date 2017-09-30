@@ -2,7 +2,7 @@ const React = require('react')
 const ReactDOM = require('react-dom');
 const {Component} = React
 const ipc = require('electron').ipcRenderer
-import { Dropdown } from 'semantic-ui-react'
+import { Dropdown } from 'semantic-ui-react';
 const {remote} = require('electron')
 const {Menu} = remote
 

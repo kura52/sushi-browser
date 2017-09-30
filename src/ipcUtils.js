@@ -758,6 +758,10 @@ ipcMain.on('get-country-names',e=>{
 
 ipcMain.on('get-on-dom-ready',(e,tabId)=>{
   const cont = webContents.fromTabID(tabId)
+  if(!cont){
+    e.sender.send(`get-on-dom-ready-reply_${tabId}`,null)
+    return
+  }
   if(mainState.flash) cont.authorizePlugin(mainState.flash)
 
   e.sender.send(`get-on-dom-ready-reply_${tabId}`,{
@@ -769,21 +773,23 @@ ipcMain.on('get-on-dom-ready',(e,tabId)=>{
 
 ipcMain.on('get-update-title',(e,tabId)=>{
   const cont = webContents.fromTabID(tabId)
-
-  e.sender.send(`get-update-title-reply_${tabId}`,{
+  const ret = cont ? {
     title: cont.getTitle(),
     url: cont.getURL()
-  })
+  } : null
+
+  e.sender.send(`get-update-title-reply_${tabId}`,ret)
 })
 
 ipcMain.on('get-did-stop-loading',(e,tabId)=>{
   const cont = webContents.fromTabID(tabId)
+  const ret = cont ? {
+      currentEntryIndex: cont.getCurrentEntryIndex(),
+      entryCount: cont.getEntryCount(),
+      url: cont.getURL()
+    } : null
 
-  e.sender.send(`get-did-stop-loading-reply_${tabId}`,{
-    currentEntryIndex: cont.getCurrentEntryIndex(),
-    entryCount: cont.getEntryCount(),
-    url: cont.getURL()
-  })
+  e.sender.send(`get-did-stop-loading-reply_${tabId}`,ret)
 })
 
 // async function recurSelect(keys){

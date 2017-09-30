@@ -1,5 +1,5 @@
 import React,{Component} from 'react'
-import { Input, Button, Header, Modal } from 'semantic-ui-react'
+import { Input, Button, Header, Modal } from 'semantic-ui-react';
 
 export default class InputableDialog extends Component{
 

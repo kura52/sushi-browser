@@ -1,7 +1,7 @@
 const React = require('react')
 const ReactDOM = require('react-dom');
 const {Component} = React
-import { Dropdown,Modal } from 'semantic-ui-react'
+import { Dropdown,Modal } from 'semantic-ui-react';
 import path from 'path'
 const PubSub = require('./pubsub')
 const {remote} = require('electron')

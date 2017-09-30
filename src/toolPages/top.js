@@ -1,16 +1,16 @@
 window.debug = require('debug')('info')
 // require('debug').enable("info")
-import process from './process'
-const ipc = require('electron').ipcRenderer
-const path = require('path')
-const React = require('react')
-const ReactDOM = require('react-dom')
-const moment = require('moment')
-const uuid = require('node-uuid')
-const { Container, Card, Menu, Input, Button } = require('semantic-ui-react')
-const { StickyContainer, Sticky } = require('react-sticky');
-const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
-const l10n = require('../../brave/js/l10n')
+import process from './process';
+import {ipcRenderer as ipc} from 'electron'
+import path from 'path';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import moment from 'moment';
+import uuid from 'node-uuid';
+import { Container, Card, Menu, Input, Button } from 'semantic-ui-react';
+import {StickyContainer, Sticky} from 'react-sticky';
+const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd';
+import l10n from '../../brave/js/l10n';
 l10n.init()
 
 let resourcePath

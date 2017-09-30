@@ -5,7 +5,6 @@ const {app,Menu,clipboard} = remote
 import Tabs from './draggable_tab/components/Tabs'
 import Tab from './draggable_tab/components/Tab'
 const {BrowserNavbar} = require('./browserNavbar')
-const {BrowserPage} = require('./browserPage')
 const PubSub = require('./pubsub')
 const uuid = require('node-uuid')
 const ReactDOM = require('react-dom')
@@ -33,7 +32,7 @@ updateSearchEngine();
 
 // ipc.setMaxListeners(0)
 // window.setInterval(()=>{console.log(ipc.listenerCount('new-tab'))},1000)
-const svg = `<svg version="1.1" id="loader-1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+const svg = <svg dangerouslySetInnerHTML={{__html: `<svg version="1.1" id="loader-1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
      width="16px" height="16px" viewBox="0 0 50 50" style="enable-background:new 0 0 50 50;" xml:space="preserve">
   <path fill="#4285f4" d="M25.251,6.461c-10.318,0-18.683,8.365-18.683,18.683h4.068c0-8.071,6.543-14.615,14.615-14.615V6.461z">
     <animateTransform attributeType="xml"
@@ -44,7 +43,7 @@ const svg = `<svg version="1.1" id="loader-1" xmlns="http://www.w3.org/2000/svg"
       dur="1.2s"
       repeatCount="indefinite"/>
     </path>
-  </svg>`
+  </svg>` }} />
 
 let topURL
 const sidebarURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html'
@@ -211,7 +210,7 @@ const tabsStyles = {
 let ttime = 0
 let guestIds = {}
 let historyMap = new Map([
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html',['Top','resource/file.png']],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html',['Top Page','resource/file.png']],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html',['Blank','resource/file.png']],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html',['Bookmarks','resource/file.png']],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html',['History','resource/file.png']],
@@ -798,6 +797,7 @@ export default class TabPanel extends Component {
       },
       onChangeLocation(location) {
         newPage.location = location
+        console.log('location-onChangeLocation',newPage.location)
         self.setState({})
       },
       onLocationContextMenu(e) {
@@ -860,13 +860,15 @@ export default class TabPanel extends Component {
 
           ipc.send('get-did-stop-loading',tab.wvId)
           ipc.once(`get-did-stop-loading-reply_${tab.wvId}`,(e,c)=> {
+            if(!c) return
             const loc = c.url
-            try {
-              page.location = decodeURIComponent(loc)
-            } catch (e) {
-              // console.log(cont.getURL(),e)
-              page.location = loc
-            }
+            // try {
+            //   page.location = decodeURIComponent(loc)
+            // } catch (e) {
+            //   // console.log(cont.getURL(),e)
+            //   page.location = loc
+            // }
+            // console.log('location-get-did-stop-loading-',page.location)
             const entryIndex = c.currentEntryIndex
             page.entryIndex = entryIndex
             page.canGoBack = entryIndex !== 0
@@ -914,6 +916,7 @@ export default class TabPanel extends Component {
           location = decodeURIComponent(location)
         }catch(e){}
         tab.page.location = location
+        console.log('location-onLoadStart',tab.page.location)
 
         let match
         if((match = e.url.match(REG_VIDEO))){
@@ -944,6 +947,7 @@ export default class TabPanel extends Component {
 
         ipc.send('get-on-dom-ready',tab.wvId)
         ipc.once(`get-on-dom-ready-reply_${tab.wvId}`,(e,c)=>{
+          if(!c) return
           // tab.wv.send('set-tab',{tab:self.getChromeTab(tab)})
           page.canGoBack = c.currentEntryIndex !== 0
           page.canGoForward = c.currentEntryIndex + 1 !== c.entryCount
@@ -977,6 +981,8 @@ export default class TabPanel extends Component {
         // console.log(e,"onDidFrameFinishLoad")
       },
       onFaviconUpdate(e) {
+        if(newPage.navUrl.match(/^https:\/\/www\.google\.([a-z.]+)\/url\?sa=t&/)) return //Google Redirect
+        console.log(newPage.navUrl,"onFaviconUpdate")
         newPage.favicon = e.favicons[0]
         self.setState({})
 
@@ -1041,7 +1047,7 @@ export default class TabPanel extends Component {
           title: page.title,
           canGoBack: page.canGoBack
         }
-        if (pre.title === 'New' && !pre.canGoBack && self.state.tabs.length > 1) {
+        if (!pre.titleSet && !pre.canGoBack && self.state.tabs.length > 1) {
           self.handleTabClose({noHistory: true, noSync: true}, tab.key)
         }
         page.hid = pre.hid
@@ -1495,15 +1501,13 @@ export default class TabPanel extends Component {
       catch(e){
         newPage.location = l
       }
+      console.log('location-navigateTo',newPage.location)
       if(!tab.guestInstanceId){
-        if(tab.wv){
-          const cont = this.getWebContents(tab)
-          if(cont){
-            cont.loadURL(convertURL(l))
-          }
-          else{
-            tab.wv.setAttribute('src', convertURL(l))
-          }
+        if(tab.wvId){
+            // tab.wv.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',
+            //   `var a_=document.createElement('a');a_.setAttribute('rel','noreferrer');a_.setAttribute('href','${convertURL(l)}');a_.click()`
+            //   ,{})
+          this.getWebContents(tab).loadURL(convertURL(l))
         }
         else{
           setTimeout(_=>{
@@ -1521,13 +1525,18 @@ export default class TabPanel extends Component {
         // tab.wv.reload()
         const cont = this.getWebContents(tab)
         if(cont){
-          const title = cont.getTitle()
-          if(tab.key == this.state.selectedTab  && !this.isFixed && title != tab.page.title){
-            ipc.send("change-title",title)
-          }
-          tab.page.title = title
-          tab.page.location = decodeURIComponent(this.getWebContents(tab).getURL())
-          tab.page.titleSet = true
+          ipc.send('get-update-title',tab.wvId)
+          ipc.once(`get-update-title-reply_${tab.wvId}`,(e,c)=> {
+            if(!c) return
+            const title = c.title
+            if(tab.key == this.state.selectedTab  && !this.isFixed && title != tab.page.title){
+              ipc.send("change-title",title)
+            }
+            tab.page.title = title
+            tab.page.location = decodeURIComponent(c.url)
+            console.log('location-get-update-title',tab.page.location)
+            tab.page.titleSet = true
+          })
         }
       }
       newPage.navUrl = l
@@ -1536,10 +1545,19 @@ export default class TabPanel extends Component {
     }
   }
 
-  createPageObject (location) {
+  createPageObject (loc) {
+    loc = loc ||''
+    let location
+    try {
+      location = decodeURIComponent(loc)
+    } catch (e) {
+      location = loc
+    }
+
     return {
-      location: location ||'',
-      title: 'New',
+      location,
+      navUrl: loc,
+      title: loc == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? 'Top Page' : (loc || 'Loading'),
       statusText: false,
       isLoading: false,
       canGoBack: false,
@@ -1567,8 +1585,9 @@ export default class TabPanel extends Component {
     const locationContextMenu = (el)=> this.locationContextMenu(el, tab, newPage, this, navigateTo)
 
     const returnWebView = (wv)=>{
+      console.log("returnWebview")
       this.registWebView(tab, wv)
-      navigateTo(newPage.location)
+      // navigateTo(newPage.location)
       // if(hist){
       // let retry = 0
       // const id = window.setInterval(()=> {
@@ -2750,6 +2769,7 @@ export default class TabPanel extends Component {
       if (tab.wvId && tab.wvId === id) {
         ipc.send('get-update-title',tab.wvId)
         ipc.once(`get-update-title-reply_${tab.wvId}`,(e,c)=> {
+          if(!c) return
           console.log('onPageTitleSet')
           console.log(c.url)
 
@@ -2769,6 +2789,7 @@ export default class TabPanel extends Component {
           } catch (e) {
             tab.page.location = url
           }
+          console.log('location-get-update-title2',tab.page.location)
           tab.page.titleSet = true
 
           // console.log(1444,cont.getURL(),tab.page.title)
@@ -2997,8 +3018,8 @@ export default class TabPanel extends Component {
         k={this.props.k}
         ref='tabs'
         tabs={this.state.tabs.map((tab,num)=>{
-          return (<Tab key={tab.key} beforeTitle={tab.page.title && tab.page.favicon !== 'loading' ? (<img className='favi' src={tab.page.favicon} onError={(e)=>{e.target.src = 'resource/file.png'}}/>) : (<svg dangerouslySetInnerHTML={{__html: svg }} />)}
-                       title={tab.page.favicon !== 'loading' || tab.page.titleSet ? tab.page.title : 'loading'} orgTab={tab} pin={tab.pin} privateMode={tab.privateMode} selection={tab.selection}>
+          return (<Tab key={tab.key} beforeTitle={tab.page.title && tab.page.favicon !== 'loading' ? (<img className='favi' src={tab.page.favicon} onError={(e)=>{e.target.src = 'resource/file.png'}}/>) : (svg)}
+                       title={tab.page.title} orgTab={tab} pin={tab.pin} privateMode={tab.privateMode} selection={tab.selection}>
             <div style={{height: '100%'}} className="div-back" ref={`div-${tab.key}`} >
               <BrowserNavbar ref={`navbar-${tab.key}`} tabkey={tab.key} k={this.props.k} {...tab.navHandlers} parent={this} privateMode={tab.privateMode} page={tab.page} tab={tab}
                              richContents={tab.page.richContents} wv={tab.wv} sync={tab.sync} replaceInfo={tab.syncReplace} oppositeMode={tab.oppositeMode} oppositeGlobal={this.state.oppositeGlobal} toggleNav={toggle}

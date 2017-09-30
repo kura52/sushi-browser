@@ -49,7 +49,7 @@ const webviewEvents = {
 class BrowserPage extends Component {
   constructor(props) {
     super(props)
-    this.state = {isSearching: false,src:"",adblock:false}
+    this.state = {isSearching: false,src:this.props.tab.guestInstanceId === (void 0) ? this.props.tab.page.navUrl : (void 0)}
     this.wvEvents = {}
   }
 
@@ -244,7 +244,7 @@ class BrowserPage extends Component {
     // const preload = path.join(__dirname, './preload/mainPreload.js')
     return <div className="browser-page" ref="browserPage"  onKeyDown={::this.onHandleKeyDown}>
       <BrowserPageSearch isActive={this.state.isSearching} onPageSearch={::this.onPageSearch} progress={this.state.result_string} onClose={::this.onClose}/>
-      <webview ref="webview" className={`w${this.props.k2}`} data-key={this.props.k}/>
+      <webview ref="webview" className={`w${this.props.k2}`} data-key={this.props.k} src={this.state.src}/>
       <BrowserPageStatus page={this.props.tab.page}/>
       <AutofillPopup k={this.props.k} pos={this.props.pos}/>
     </div>

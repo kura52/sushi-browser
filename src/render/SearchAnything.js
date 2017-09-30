@@ -1,5 +1,5 @@
 import React,{Component} from 'react'
-import { Search, Modal } from 'semantic-ui-react'
+import { Search, Modal } from 'semantic-ui-react';
 const uuid = require('node-uuid')
 const ipc = require('electron').ipcRenderer
 const urlutil = require('./urlutil')

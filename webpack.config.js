@@ -19,13 +19,18 @@ const baseConfig = {
   cache: true,
   devtool: '#source-map',
   plugins: [
-    // new webpack.DefinePlugin({'process.env': {NODE_ENV: JSON.stringify("production")}}),
+    new webpack.DllReferencePlugin({context: ".",manifest: require('./dist/vendor-manifest.json')}),
+    new webpack.DefinePlugin({'process.env': {NODE_ENV: JSON.stringify("production")}}),
     // new HappyPack({
     //     // cache: true,
     //     loaders: ["babel"],
     //     threads: 4
     // }),
-    new webpack.DllReferencePlugin({context: ".",manifest: require('./dist/vendor-manifest.json')})
+    new webpack.LoaderOptionsPlugin({
+      minimize: true,
+      debug: false,
+    }),
+    new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
   ],
   node: {
     process: false,
@@ -52,13 +57,14 @@ const baseConfig = {
 }
 
 const baseConfig2 = Object.assign({},baseConfig)
+baseConfig2.plugins.shift()
 delete baseConfig2.devtool
-delete baseConfig2.plugins
+
 // delete baseConfig.plugins
 
 module.exports = [
-  merge({fileName:"base.js",src:path.join(__dirname,"./src/render")},baseConfig),
-  // merge({fileName:"top.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
+  // merge({fileName:"base.js",src:path.join(__dirname,"./src/render")},baseConfig),
+  merge({fileName:"top.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
   // merge({fileName:"download.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
   // merge({fileName:"history.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
   // merge({fileName:"historyFull.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),

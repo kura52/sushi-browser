@@ -1,8 +1,9 @@
 window.debug = require('debug')('info')
 import process from './process'
-const React = require('react')
-const ReactDOM = require('react-dom')
-const App = require('./favoriteBase')
+import React from 'react';
+import ReactDOM from 'react-dom';
+import App from './favoriteBase';
+
 
 
 ReactDOM.render(

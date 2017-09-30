@@ -1,6 +1,6 @@
 {
   "name": "sushi-browser",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Sushi Browser",
   "main": "./lib/main.js",
   "author": "kura52",
@@ -15,6 +15,7 @@
     "babel": "^6.5.2",
     "babel-loader": "^7.1.2",
     "babel-plugin-add-module-exports": "^0.2.1",
+    "babel-plugin-lodash": "^3.2.11",
     "babel-plugin-module-resolver": "^2.4.0",
     "babel-plugin-pipe-operator": "^1.0.0",
     "babel-plugin-transform-async-to-generator": "^6.8.0",
@@ -24,6 +25,7 @@
     "babel-plugin-transform-es2015-modules-commonjs": "^6.14.0",
     "babel-plugin-transform-es2015-parameters": "^6.11.4",
     "babel-plugin-transform-function-bind": "^6.8.0",
+    "babel-preset-env": "^1.6.0",
     "babel-preset-react": "^6.16.0",
     "babel-preset-stage-2": "^6.18.0",
     "babili": "0.0.12",

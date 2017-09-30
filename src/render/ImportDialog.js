@@ -1,5 +1,5 @@
 import React,{Component} from 'react'
-import { Input, Button, Header, Modal,Checkbox,Menu,Dropdown } from 'semantic-ui-react'
+import { Input, Button, Header, Modal,Checkbox,Menu,Dropdown } from 'semantic-ui-react';
 
 export default class ImportDialog extends Component{
 

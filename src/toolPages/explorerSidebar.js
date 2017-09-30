@@ -1,10 +1,10 @@
 window.debug = require('debug')('info')
 // require('debug').enable("info")
 import process from './process'
-const React = require('react')
-const ReactDOM = require('react-dom')
-const {FileExplorer,getHome} = require('./explorer')
-const path = require('path')
+import React from 'react';
+import ReactDOM from 'react-dom';
+import {FileExplorer, getHome} from './explorer';
+import path from 'path';
 
 ;(async ()=>{
   const homePath = await getHome()

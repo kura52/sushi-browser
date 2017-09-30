@@ -1,16 +1,16 @@
 window.debug = require('debug')('info')
 // require('debug').enable("info")
 import process from './process'
-const ipc = require('electron').ipcRenderer
-const path = require('path')
-const React = require('react')
-const ReactDOM = require('react-dom')
-const { Container, List, Menu, Input } = require('semantic-ui-react')
-const { StickyContainer, Sticky } = require('react-sticky');
-const moment = require('moment')
-const l10n = require('../../brave/js/l10n')
+import {ipcRenderer as ipc} from 'electron';
+import path from 'path';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import {Container, List, Menu, Input} from 'semantic-ui-react';
+import {StickyContainer, Sticky} from 'react-sticky';
+import moment from 'moment';
+import l10n from '../../brave/js/l10n';
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
-const Clusterize = require('clusterize.js')
+import Clusterize from 'clusterize.js';
 
 l10n.init()
 

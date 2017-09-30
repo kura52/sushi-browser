@@ -1,11 +1,11 @@
 import process from './process'
-const ipc = require('electron').ipcRenderer
-const uuid = require('node-uuid')
-const React = require('react')
-const ReactDOM = require('react-dom')
-const path = require('path')
-const { StickyContainer, Sticky } = require('react-sticky')
-const { Menu,Segment,Input } = require('semantic-ui-react')
+import {ipcRenderer as ipc} from 'electron';
+import uuid from 'node-uuid';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import path from 'path';
+import {StickyContainer, Sticky} from 'react-sticky';
+import {Menu, Segment, Input} from 'semantic-ui-react';
 import classNames from 'classnames'
 import elementClass from 'element-class'
 import escapeHTML from 'escape-html'

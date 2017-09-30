@@ -2,7 +2,7 @@ const React = require('react')
 const ReactDOM = require('react-dom');
 const {Component} = React
 const ipc = require('electron').ipcRenderer
-import { Search } from 'semantic-ui-react'
+import { Search } from 'semantic-ui-react';
 const uuid = require('node-uuid')
 const PubSub = require('./pubsub')
 const urlutil = require('./urlutil')
@@ -104,11 +104,11 @@ export default class BrowserNavbarLocation extends Component {
     }
   }
 
-  resetComponent(){
+  resetComponent(noBlur){
     if(this.isFloat){
       PubSub.publish(`menu-showed_${this.props.k}`,false)
     }
-    if(this.input) this.input.blur()
+    if(!noBlur && this.input) this.input.blur()
     this.setState({ results: []})
   }
 
@@ -134,7 +134,7 @@ export default class BrowserNavbarLocation extends Component {
   handleSearchChange(e, value){
     // console.log("start",Date.now())
     this.props.onChangeLocation.bind(this)(e.target.value)
-    if (this.props.page.location.length < 1) return this.resetComponent();
+    if (this.props.page.location.length < 1) return this.resetComponent(true);
 
     // if ((lastExecTime + interval) <= new Date().getTime()) {
     //   lastExecTime = new Date().getTime()
@@ -178,6 +178,7 @@ export default class BrowserNavbarLocation extends Component {
     if(this.isFloat){
       PubSub.publish(`menu-showed_${this.props.k}`,false)
     }
+    this.resetComponent()
   }
 
   onMouseDown(e){

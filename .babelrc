@@ -2,10 +2,11 @@
   "presets": ["react","babel-preset-stage-2"],
   "plugins": ["transform-class-properties","transform-do-expressions","add-module-exports","pipe-operator","transform-es2015-modules-commonjs","transform-function-bind",["module-resolver", {
     "root": ["."]
-    ,"alias": {
+  ,"alias": {
       "react": "inferno-compat",
       "react-dom": "inferno-compat",
       "react-dom/server": "inferno-server"
     }
-  }]]
+  }]
+  ] // ,["lodash", { "id": ["lodash", "semantic-ui-react"] }]]
 }

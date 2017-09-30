@@ -1,12 +1,12 @@
 import process from './process'
-const ipc = require('electron').ipcRenderer
-const uuid = require('node-uuid')
-const React = require('react')
-const ReactDOM = require('react-dom')
-const path = require('path')
-const moment = require('moment')
-const { StickyContainer, Sticky } = require('react-sticky');
-const { Menu,Segment,Input } = require('semantic-ui-react')
+import {ipcRenderer as ipc} from 'electron';
+import uuid from 'node-uuid';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import path from 'path';
+import moment from 'moment';
+import {StickyContainer, Sticky} from 'react-sticky';
+import {Menu, Segment, Input} from 'semantic-ui-react';
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
 
 import InfiniteTree from '../render/react-infinite-tree';

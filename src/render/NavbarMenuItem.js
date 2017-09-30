@@ -1,5 +1,5 @@
 const React = require('react')
-import { Dropdown } from 'semantic-ui-react'
+import { Dropdown } from 'semantic-ui-react';
 
 
 function handleClick(props,e){
