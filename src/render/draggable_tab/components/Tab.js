@@ -13,8 +13,6 @@ class Tab extends React.Component {
 }
 
 Tab.defaultProps = {
-  beforeTitle: <span />,
-  title: 'untitled',
   afterTitle: <span />,
   disableClose: false,
   tabClassNames: {
@@ -34,11 +32,6 @@ Tab.defaultProps = {
 };
 
 Tab.propTypes = {
-  beforeTitle: React.PropTypes.element,
-  title: React.PropTypes.oneOfType([
-    React.PropTypes.string,
-    React.PropTypes.element,
-  ]).isRequired,
   afterTitle: React.PropTypes.element,
   disableClose: React.PropTypes.bool,
   tabClassNames: React.PropTypes.shape({

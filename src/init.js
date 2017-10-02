@@ -6,6 +6,7 @@ const locale = require('../brave/app/locale')
 const BrowserWindowPlus = require('./BrowserWindowPlus')
 const extensionMenu = require('./chromeEvent')
 const InitSetting = require('./InitSetting')
+const seq = require('./sequence')
 // const loadDevtool = require('electron-load-devtool');
 import path from 'path'
 import uuid from 'node-uuid'
@@ -306,7 +307,7 @@ app.on('web-contents-created', (e, tab) => {
 
   for(let w of BrowserWindow.getAllWindows()){
     if(w.getTitle().includes('Sushi Browser')){
-      w.webContents.send("web-contents-created",tabId)
+      PubSub.publish("web-contents-created",[tabId,w.webContents])
     }
   }
 
@@ -557,6 +558,7 @@ function contextMenu(webContents) {
       // else{
       menuItems.push({label: locale.translation('openInNewTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewTab')}})
       menuItems.push({label: locale.translation('openInNewPrivateTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewPrivateTab')}})
+      menuItems.push({label: locale.translation('openInNewSessionTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewSessionTab')}})
       menuItems.push({label: locale.translation('openInNewWindow'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindow')}})
       menuItems.push({label: 'Open Link in New Window with a Row',click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindowWithOneRow')}})
       menuItems.push({label: 'Open Link in New Window with two Rows',click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindowWithTwoRow')}})
@@ -627,7 +629,12 @@ function contextMenu(webContents) {
       })
       menuItems.push({
         label: locale.translation('openInNewPrivateTab'), click: (item, win) => {
-          win.webContents.send('new-tab', webContents.getId(), props.linkURL,true)
+          win.webContents.send('new-tab', webContents.getId(), props.linkURL,Math.random().toString())
+        }
+      })
+      menuItems.push({
+        label: locale.translation('openInNewSessionTab'), click: (item, win) => {
+          win.webContents.send('new-tab', webContents.getId(), props.linkURL,`persist:${seq()}`)
         }
       })
       menuItems.push({

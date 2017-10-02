@@ -38,6 +38,7 @@ const settingDefault =  {
   keyQuit: 'CmdOrCtrl+Q',
   keyNewTab: 'CmdOrCtrl+T',
   keyNewPrivateTab: 'Shift+CmdOrCtrl+P',
+  keyNewSessionTab: 'Shift+CmdOrCtrl+S',
   keyNewWindow: 'CmdOrCtrl+N',
   keyOpenLocation: 'CmdOrCtrl+L',
   keyCloseTab: 'CmdOrCtrl+W',

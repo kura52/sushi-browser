@@ -245,7 +245,6 @@ export default class SplitWindows extends Component{
     this.prevNc = 0
     this.htmlContentSet = new Set()
     this.windowId = remote.getCurrentWindow().id
-    this.tabEvents = []
     this.hidePanels = {}
   }
 
@@ -254,34 +253,24 @@ export default class SplitWindows extends Component{
     this.webContentsCreated = (event, tabId)=>{
       remote.getWebContents(tabId,tab=>{
         this.currentWebContents[tabId] = tab
-        const pageUpdate = ()=> {
-          // console.log(tab.getTitle())
-          const keys = []
-          this.allKeys(this.state.root,keys)
-          for(let key of keys){
-            this.refs2[key].updateTitle(tabId)
-          }
-        }
-        tab.on('page-title-updated',pageUpdate)
-
-        const getResponseDetails = (e, record) => {
-          PubSub.publish('rich-media-insert',record)
-        }
-        ipc.on('did-get-response-details', getResponseDetails)
-        const self = this
-        const cleanupWebContents = ()=>{
-          delete self.currentWebContents[tabId]
-          tab.removeListener('page-title-updated',pageUpdate)
-          tab.removeListener('did-get-response-details',getResponseDetails)
-        }
-
-        this.tabEvents.push([tab,'destroyed',cleanupWebContents])
-        tab.once('destroyed', cleanupWebContents)
-      })
-
-
+       })
     }
     ipc.on('web-contents-created', this.webContentsCreated)
+
+    this.pageUpdate = (e,tabId)=> {
+      // console.log(tab.getTitle())
+      const keys = []
+      this.allKeys(this.state.root,keys)
+      for(let key of keys){
+        this.refs2[key].updateTitle(tabId)
+      }
+    }
+    ipc.on('page-title-updated',this.pageUpdate)
+
+    this.getResponseDetails = (e, record) => {
+      PubSub.publish('rich-media-insert',record)
+    }
+    ipc.on('did-get-response-details', this.getResponseDetails)
 
 
     this.syncDatasEvent = async (e,{sync_at,email,password,base64})=>{
@@ -540,14 +529,13 @@ export default class SplitWindows extends Component{
     ipc.removeListener("get-focused-webContent",this.getFocusedWebContent)
     ipc.removeListener("enter-full-screen",this.fullScreenState)
     ipc.removeListener("leave-full-screen",this.fullScreenState)
+    ipc.removeListener("page-title-updated",this.pageUpdate)
+    ipc.removeListener("did-get-response-details",this.getResponseDetails)
 
     PubSub.unsubscribe(this.tokenAlign)
     PubSub.unsubscribe(this.tokenAllDetach)
     PubSub.unsubscribe(this.tokenOverlay)
 
-    for(let[tab,key,val] of this.tabEvents){
-      tab.removeListener(key,val)
-    }
   }
 
   notifyChange(date){

@@ -3,9 +3,17 @@ const path = require('path')
 const fs = require('fs')
 const glob = require("glob")
 
+const BEFORE_CODE_NAME = 'Tobiuo(Flying Fish)'
 const CODE_NAME = 'Tobiuo(Flying Fish)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.6.0"
+const NEXT_APP_VERSION = "0.6.1"
+const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
+
+const CHANGE_ENGLISH = `Added session tab function
+Fixed bug at load start and stop`
+
+const CHANGE_JAPANESE = `セッションタブ機能の追加
+ページ読み込み開始時、完了時の不具合を終了`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'
@@ -14,6 +22,13 @@ const outDir = 'release-packed'
 const arch = 'x64'
 const buildDir = `sushi-browser-${process.platform}-${arch}`
 
+function formatDate(date, format) {
+  if (!format) format = 'YYYY-MM-DD'
+  format = format.replace(/YYYY/g, date.getFullYear())
+  format = format.replace(/MM/g, ('0' + (date.getMonth() + 1)).slice(-2))
+  format = format.replace(/DD/g, ('0' + date.getDate()).slice(-2))
+  return format
+}
 
 function round(val, precision) {
   const digit = Math.pow(10, precision)
@@ -73,13 +88,71 @@ fileContentsReplace(path.join(pwd,'package.json'),`"version": "${CURRENT_APP_VER
 fileContentsReplace(path.join(pwd,'VERSION.txt'),/.+/,NEXT_APP_VERSION)
 filesContentsReplace([path.join(pwd,'../web/check.json'),path.join(pwd,'README.md'),path.join(pwd,'ja','README.md')],CURRENT_APP_VERSION,NEXT_APP_VERSION)
 
+fileContentsReplace(path.join(pwd,'../web/sitemap.xml'),/<lastmod>(.+?)<\/lastmod>/,`<lastmod>${formatDate(new Date())}</lastmod>`)
+
+if(!fs.readFileSync(path.join(pwd,'README.md')).includes(`v${NEXT_APP_VERSION2}`)){
+  fileContentsReplace(path.join(pwd,'README.md'),'# New Features',`# New Features
+
+#### New function(v${NEXT_APP_VERSION2})
+- ${CHANGE_ENGLISH.split("\n").join("\n- ")}`)
+}
+
+
+if(!fs.readFileSync(path.join(pwd,'ja/README.md')).includes(`v${NEXT_APP_VERSION2}`)){
+  fileContentsReplace(path.join(pwd,'ja/README.md'),'# 新機能 ',`# 新機能 
+
+#### 新機能(v${NEXT_APP_VERSION2})
+- ${CHANGE_JAPANESE.split("\n").join("\n- ")}`)
+}
+
+if(!fs.readFileSync(path.join(pwd,'../web/index.html')).includes(`v${NEXT_APP_VERSION2}`)){
+  fileContentsReplace(path.join(pwd,'../web/index.html'),'<!-- REPLACE -->',`<!-- REPLACE -->
+								<h4 class="features-tittle" style="padding-top: 20px;">New function(v${NEXT_APP_VERSION2})</h4>
+								<div style="text-align: left;line-height: inherit;width: 75%;margin: auto;border-bottom: 1px solid #dedede;">
+									<p>${CHANGE_ENGLISH.split("\n").join("</p>\n\t\t\t\t\t\t\t\t\t<p>")}</p>
+								</div>`)
+}
+
+if(!fs.readFileSync(path.join(pwd,'../web/ja/index.html')).includes(`v${NEXT_APP_VERSION2}`)){
+  fileContentsReplace(path.join(pwd,'../web/ja/index.html'),'<!-- REPLACE -->',`<!-- REPLACE -->
+								<h4 class="features-tittle" style="padding-top: 20px;">新機能(v${NEXT_APP_VERSION2})</h4>
+								<div style="text-align: left;line-height: inherit;width: 75%;margin: auto;border-bottom: 1px solid #dedede;">
+									<p>${CHANGE_JAPANESE.split("\n").join("</p>\n\t\t\t\t\t\t\t\t\t<p>")}</p>
+								</div>`)
+}
+
+if(!fs.readFileSync(path.join(pwd,'../web/download.html')).includes(`v${NEXT_APP_VERSION2}`)){
+  fileContentsReplace(path.join(pwd,'../web/download.html'),'<!-- REPLACE -->',`<!-- REPLACE -->
+						<h4 class="features-tittle">New function(v${NEXT_APP_VERSION2})</h4>
+						<div style="text-align: left;line-height: inherit;width: 75%;margin: auto;border-bottom: 1px solid #dedede;">
+							<p>${CHANGE_ENGLISH.split("\n").join("</p>\n\t\t\t\t\t\t\t<p>")}</p>
+						</div>`)
+}
+
+if(!fs.readFileSync(path.join(pwd,'../web/ja/download.html')).includes(`v${NEXT_APP_VERSION2}`)){
+  fileContentsReplace(path.join(pwd,'../web/ja/download.html'),'<!-- REPLACE -->',`<!-- REPLACE -->
+						<h4 class="features-tittle">新機能(v${NEXT_APP_VERSION2})</h4>
+						<div style="text-align: left;line-height: inherit;width: 75%;margin: auto;">
+							<p>${CHANGE_JAPANESE.split("\n").join("</p>\n\t\t\t\t\t\t\t<p>")}</p>
+						</div>`)
+}
+
+
 const htmls = []
 glob.sync(`${pwd}/../web/**/index.html`).forEach(file=>{
   filesContentsReplace(file,CURRENT_APP_VERSION,NEXT_APP_VERSION)
+  filesContentsReplace(file,BEFORE_CODE_NAME,NEXT_APP_VERSION)
+  if(file.includes("/ja/")){
+
+  }
+  else{
+
+  }
   htmls.push(file)
 })
 glob.sync(`${pwd}/../web/**/download.html`).forEach(file=>{
   filesContentsReplace(file,CURRENT_APP_VERSION,NEXT_APP_VERSION)
+  filesContentsReplace(file,BEFORE_CODE_NAME,NEXT_APP_VERSION)
   htmls.push(file)
 })
 
@@ -92,6 +165,9 @@ glob.sync(`${pwd}/../${RELEASE_DIRECTORY}/release-packed/*`).forEach(file=>{
 
 
 console.log(`Sushi Browser v${NEXT_APP_VERSION} ${CODE_NAME}
+
+## New Features
+- ${CHANGE_ENGLISH.split("\n").join("\n- ")}
 
 ## Applications`)
 let app = `sushi-browser-${NEXT_APP_VERSION}-setup-x64.exe`

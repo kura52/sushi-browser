@@ -809,7 +809,8 @@ export default class TabPanel extends Component {
       onChangeLocation(location) {
         newPage.location = location
         console.log('location-onChangeLocation',newPage.location)
-        self.setState({})
+        // self.setState({})
+        self.setStatePartical(tab)
       },
       onLocationContextMenu(e) {
         locationContextMenu(e.target)
@@ -824,7 +825,8 @@ export default class TabPanel extends Component {
         if (!self.mounted) return
         if(page.statusText!==e.url){
           page.statusText = e.url
-          self.setState({})
+          PubSub.publish(`change-status-${tab.key}`)
+         // self.setState({})
         }
       },
       onLoadCommit(e, page) {
@@ -858,52 +860,52 @@ export default class TabPanel extends Component {
         console.log('onGuestReady', e.tabId,page)
 
         const cont = self.getWebContents(tab)
-        cont.on('did-start-loading',e=>{
-          ttime = Date.now()
-          console.log('onDidStartLoading',e,Date.now())
-          PubSub.publish(`did-start-loading_${tab.key}`)
-        })
-        cont.on('did-stop-loading',e=>{
-          console.log('onDidStopLoading',e,Date.now(),page)
-          console.log(tab.wv)
-          if (!self.mounted) return
-          // debugger
 
-          ipc.send('get-did-stop-loading',tab.wvId)
-          ipc.once(`get-did-stop-loading-reply_${tab.wvId}`,(e,c)=> {
-            if(!c) return
+        ipc.send('get-did-start-loading',tab.wvId)
+        const didStart = (e,c)=> {
+          console.log('onDidStartLoading',e,Date.now())
+          if(!c || !self.mounted) return
+          if(c=='destroy'){
+            ipc.removeListener(`get-did-stop-loading-reply_${tab.wvId}`,didStart)
+            return
+          }
+          PubSub.publish(`did-start-loading_${tab.key}`)
+        }
+        ipc.on(`get-did-start-loading-reply_${tab.wvId}`,didStart)
+
+        ipc.send('get-did-stop-loading',tab.wvId)
+        const didStop = (e,c)=> {
+          console.log('onDidStopLoading',e,Date.now(),page)
+          if(!c || !self.mounted) return
+          if(c=='destroy'){
+            ipc.removeListener(`get-did-stop-loading-reply_${tab.wvId}`,didStop)
+            return
+          }
             const loc = c.url
-            // try {
-            //   page.location = decodeURIComponent(loc)
-            // } catch (e) {
-            //   // console.log(cont.getURL(),e)
-            //   page.location = loc
-            // }
-            // console.log('location-get-did-stop-loading-',page.location)
-            const entryIndex = c.currentEntryIndex
-            page.entryIndex = entryIndex
-            page.canGoBack = entryIndex !== 0
-            page.canGoForward = entryIndex + 1 !== c.entryCount
-            if (!page.title) {
-              page.title = page.location
-              if (tab.key == self.state.selectedTab && !this.isFixed) ipc.send("change-title", page.title)
-            }
-            page.isLoading = false
-            if (page.eventDownloadStartTab) ipc.removeListener(`download-start-tab_${tab.wvId}`, page.eventDownloadStartTab)
-            clearTimeout(page.downloadTimer)
-            // console.log(self.refs)
-            self.setState({})
-            ;(async () => {
-              if ((typeof page.hid === 'object' && page.hid !== null ) || (page.hid = await history.findOne({location: page.navUrl}))) {
-                console.log(22, page.hid)
-                if (page.hid.count > 2 && !page.hid.capture) {
-                  ipc.send('take-capture', {id: page.hid._id, url: page.navUrl, loc})
-                }
+          const entryIndex = c.currentEntryIndex
+          page.entryIndex = entryIndex
+          page.canGoBack = entryIndex !== 0
+          page.canGoForward = entryIndex + 1 !== c.entryCount
+          if (!page.title) {
+            page.title = page.location
+            if (tab.key == self.state.selectedTab && !this.isFixed) ipc.send("change-title", page.title)
+          }
+          page.isLoading = false
+          if (page.eventDownloadStartTab) ipc.removeListener(`download-start-tab_${tab.wvId}`, page.eventDownloadStartTab)
+          clearTimeout(page.downloadTimer)
+          // console.log(self.refs)
+          self.setState({})
+          ;(async () => {
+            if ((typeof page.hid === 'object' && page.hid !== null ) || (page.hid = await history.findOne({location: page.navUrl}))) {
+              console.log(22, page.hid)
+              if (page.hid.count > 2 && !page.hid.capture) {
+                ipc.send('take-capture', {id: page.hid._id, url: page.navUrl, loc})
               }
-            })()
-            // ipc.send('chrome-tab-updated',parseInt(tab.key), e, self.getChromeTab(tab))
-          })
-        })
+            }
+          })()
+          // ipc.send('chrome-tab-updated',parseInt(tab.key), e, self.getChromeTab(tab))
+        }
+        ipc.on(`get-did-stop-loading-reply_${tab.wvId}`,didStop)
       },
       // onDidNavigateInPage(e, page) {
       //   console.log('onDidNavigateInPage')
@@ -1013,7 +1015,7 @@ export default class TabPanel extends Component {
           historyMap.set(newPage.navUrl,[newPage.title,newPage.favicon])
         }
 
-        if(!tab.privateMode){
+        if(!tab.privateMode || tab.privateMode.startsWith('persist')){
           ;(async ()=>{
             if(newPage.hid || (newPage.hid = await history.findOne({location: newPage.navUrl}))){
               await history.update({_id: typeof newPage.hid == "string" ? newPage.hid : newPage.hid._id},{ $set:{favicon: newPage.favicon,updated_at: Date.now()}})
@@ -1107,7 +1109,7 @@ export default class TabPanel extends Component {
       self.setStatePartical(tab)
     }
 
-    if (needFavicon && !tab.privateMode) {
+    if (needFavicon && (!tab.privateMode || tab.privateMode.startsWith('persist'))) {
       ;
       (async () => {
         if (page.hid || (page.hid = await history.findOne({location: page.navUrl}))) {
@@ -1126,21 +1128,13 @@ export default class TabPanel extends Component {
   }
 
   setStatePartical(tab){
+    const page = tab.page
     const t = this.refs.tabs.refs[tab.key]
     if (t){
       const p = t.querySelector('p')
-      p.setAttribute('title',tab.page.title)
-      p.innerText = tab.page.title
-
-      const img = t.querySelector('span img')
-      if(tab.page.title && tab.page.favicon !== 'loading'){
-        if(img.getAttribute("src") != tab.page.favicon){
-          img.setAttribute("src",tab.page.favicon)
-        }
-      }
-      else if(img.getAttribute("src") != "resource/l.svg"){
-        img.setAttribute("src","resource/l.svg")
-        }
+      const title = `${page.favicon !== 'loading' || page.titleSet || page.location == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? page.title : page.location} `
+      const beforeTitle = <img className='favi' src={page.title && page.favicon !== 'loading' ? page.favicon : 'resource/l.svg'} onError={(e)=>{e.target.src = 'resource/file.png'}}/>
+      PubSub.publish(`tab-component-update_${tab.key}`,{title,beforeTitle})
     }
     const n = this.refs[`navbar-${tab.key}`]
     if(n) n.setState({})
@@ -2219,7 +2213,7 @@ export default class TabPanel extends Component {
   }
 
   addCloseTabHistory(e, i) {
-    if (!e.noHistory && !this.state.tabs[i].privateMode) {
+    if (!e.noHistory && (!this.state.tabs[i].privateMode || this.state.tabs[i].privateMode.startsWith('persist'))) {
       const cont = this.getWebContents(this.state.tabs[i])
       const list = []
       let histNum, currentIndex
@@ -2415,6 +2409,7 @@ export default class TabPanel extends Component {
     // menuItems.push(({ label: 'New Tab', click: ()=>document.querySelector(".rdTabAddButton").click()}))
     menuItems.push(({ label: locale.translation('newTab'), click: ()=>this.createNewTab(_tabs, i)}))
     menuItems.push(({ label: locale.translation('newPrivateTab'), click: ()=>this.createNewTab(_tabs, i,{default_url:topURL,privateMode:Math.random().toString()})}))
+    menuItems.push(({ label: locale.translation('newSessionTab'), click: ()=>this.createNewTab(_tabs, i,{default_url:topURL,privateMode:`persist:${ipc.sendSync('get-session-sequence')}`})}))
     menuItems.push(({ type: 'separator' }))
 
     // menuItems.push(({ label: locale.translation('reload'), click: ()=>this.getWebContents(t).reload()}))
@@ -2848,7 +2843,7 @@ export default class TabPanel extends Component {
             historyMap.set(url, [tab.page.title])
           }
 
-          if (!tab.privateMode) {
+          if (!tab.privateMode || tab.privateMode.startsWith('persist')) {
             ;(async () => {
               // console.log('his-update',tab.page.location)
               if (tab.page.hid || (tab.page.hid = await history.findOne({location: tab.page.navUrl}))) {

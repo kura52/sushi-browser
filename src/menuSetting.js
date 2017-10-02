@@ -1,5 +1,6 @@
 const {app,Menu,shell,ipcMain,BrowserWindow,session,webContents} = require('electron')
 const BrowserWindowPlus = require('./BrowserWindowPlus')
+const seq = require('./sequence')
 const locale = require('../brave/app/locale')
 import mainState from './mainState'
 import {getFocusedWebContents, getCurrentWindow} from './util'
@@ -36,6 +37,15 @@ const createFileSubmenu = () => {
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
           cont && cont.hostWebContents.send('new-tab',cont.getId(),topURL,true)
+        })
+      }
+    },
+    {
+      label: locale.translation('newSessionTab'),
+      accelerator: mainState.keyNewSessionTab,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('new-tab',cont.getId(),topURL, `persist:${seq()}`)
         })
       }
     },

@@ -36,6 +36,42 @@ function getWebContents(tab){
   return global.currentWebContents[tab.wvId]
 }
 
+class Title extends React.Component {
+  componentDidMount() {
+    PubSub.subscribe(`tab-component-update_${this.props.datas.key}`,(msg,datas)=>{
+      this.title = datas.title
+      this.beforeTitle = datas.beforeTitle
+      this.setState({})
+    })
+  }
+
+  componentWillReceiveProps(nextProps) {
+    this.title = nextProps.datas.title
+    this.beforeTitle = nextProps.datas.beforeTitle
+  }
+
+  render(){
+    const {key,TabStyles,tabBeforeTitleClasses,beforeTitle,tabTiteleStyle,tabTitleClasses,extraAttribute,privateMode,pin,title} = this.props.datas
+
+    let m
+    if(privateMode && (m = privateMode.match(/^persist:(\d+)$/))){
+      m = m[1]
+    }
+
+    return <div style={{display:'unset'}}>
+      <span style={TabStyles.beforeTitle} className={tabBeforeTitleClasses}>{this.beforeTitle || beforeTitle}</span>
+      <p style={tabTiteleStyle}
+         className={tabTitleClasses}
+         {...extraAttribute} >
+        {m ? <span className='private-mode'>[{m}]</span>: privateMode ? <i className="fa fa-eye-slash private-mode" ></i> : ""}
+        {pin ? <i className="fa fa-thumb-tack pin-mode" ></i> : ""}
+        {this.title || title}
+      </p>
+    </div>
+  }
+
+}
+
 let isMove
 let transfer = {}
 class Tabs extends React.Component {
@@ -267,7 +303,9 @@ class Tabs extends React.Component {
       } = tab.props;
 
       const beforeTitle = <img className='favi' src={page.title && page.favicon !== 'loading' ? page.favicon : 'resource/l.svg'} onError={(e)=>{e.target.src = 'resource/file.png'}}/>
-      const title = page.title
+      const title = page.favicon !== 'loading' || page.titleSet  || page.location == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? page.title : page.location
+
+      console.log("tabs",title)
 
       containerStyle = containerStyle || {}
       tabStyles = tabStyles || {}
@@ -361,17 +399,8 @@ class Tabs extends React.Component {
           <div className="chrome-tab-background">
             <svg dangerouslySetInnerHTML={{__html: bgSvg }} />
           </div>
-          <span style={TabStyles.beforeTitle} className={tabBeforeTitleClasses}>{beforeTitle}</span>
-          <p style={tabTiteleStyle}
-             className={tabTitleClasses}
-             {...extraAttribute} >
-            {privateMode ? <i className="fa fa-eye-slash private-mode" ></i> : ""}
-            {pin ? <i className="fa fa-thumb-tack pin-mode" ></i> : ""}
-            {title}
-          </p>
+          <Title datas={{key:tab.key,TabStyles,tabBeforeTitleClasses,beforeTitle,tabTiteleStyle,tabTitleClasses,extraAttribute,privateMode,pin,title}}/>
           {closeButton}
-          {/*<span style={tabBeforeStyle} className={tabBeforeClasses}></span>*/}
-          {/*<span style={tabAfterStyle} className={tabAfterClasses}></span>*/}
         </li>
       );
     });
@@ -798,6 +827,7 @@ class Tabs extends React.Component {
 
   render() {
     const {_tabClassNames,tabInlineStyles,tabs,content} = this.buildRenderComponent()
+    console.log("tabs-rend",tabs)
     return (
       <div style={tabInlineStyles.tabWrapper} className={_tabClassNames.tabWrapper} ref="div"
            onDragOver={(e)=>{e.preventDefault();return false}} onDrop={(e)=>{e.preventDefault();return false}}

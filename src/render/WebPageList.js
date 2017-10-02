@@ -15,27 +15,26 @@ export default class WebPageList extends Component{
 
   componentDidMount() {
     this.mount = true
-    const self = this
     const tokenCreate = PubSub.subscribe("webview-create",(msg,x)=>{
-      if(!self.mount) return
-      const obj = {l: self.state.l}
-      if(!self.state.del_nodes.has(x.key)){
+      if(!this.mount) return
+      const obj = {l: this.state.l}
+      if(!this.state.del_nodes.has(x.key)){
         obj.l[x.key] = x.val
       }
-      self.setState(obj)
+      this.setState(obj)
     })
 
     const tokenClose = PubSub.subscribe("tab-close",(msg,x)=>{
       if(!this.mount) return
-      const obj = {l: self.state.l}
+      const obj = {l: this.state.l}
       delete obj.l[x.key]
-      self.state.del_nodes.add(x.key)
-      self.setState(obj)
+      this.state.del_nodes.add(x.key)
+      this.setState(obj)
     })
 
     const tokenFloatPanel = PubSub.subscribe('float-panel-focus',(msg,key)=>{
       if(!this.mount) return
-      self.setState({floatKey: key})
+      this.setState({floatKey: key})
 
     })
 

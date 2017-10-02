@@ -3,6 +3,8 @@ const BrowserWindowPlus = require('./BrowserWindowPlus')
 import fs from 'fs'
 import sh from 'shelljs'
 import uuid from 'node-uuid'
+import PubSub from './render/pubsub'
+const seq = require('./sequence')
 const {state,favorite,historyFull} = require('./databaseFork')
 const db = require('./databaseFork')
 const FfmpegWrapper = require('./FfmpegWrapper')
@@ -222,15 +224,15 @@ ipcMain.on('open-favorite',async (event,key,dbKeys,tabId,type)=>{
   const cont = tabId !== 0 && webContents.fromTabID(tabId)
   const ret = await recurFind(dbKeys,list)
   const host = cont ? event.sender : event.sender.hostWebContents
-  if(type == "openInNewTab" || type=='openInNewPrivateTab'){
+  if(type == "openInNewTab" || type=='openInNewPrivateTab' || type=='openInNewSessionTab'){
     for(let url of list){
       await new Promise((resolve,reject)=>{
         setTimeout(_=>{
           if(tabId){
-            host.send("new-tab",tabId,url,type=='openInNewPrivateTab')
+            host.send("new-tab",tabId,url,type=='openInNewSessionTab' ? `persist:${seq()}` : type=='openInNewPrivateTab' ? Math.random().toString() : false)
           }
           else{
-            host.send("new-tab-opposite", event.sender.getId(),url,(void 0),type=='openInNewPrivateTab')
+            host.send("new-tab-opposite", event.sender.getId(),url,(void 0),type=='openInNewSessionTab' ? `persist:${seq()}` : type=='openInNewPrivateTab' ? Math.random().toString() : false)
           }
           resolve()
         },200)
@@ -783,15 +785,65 @@ ipcMain.on('get-update-title',(e,tabId)=>{
   e.sender.send(`get-update-title-reply_${tabId}`,ret)
 })
 
+const destroyedMap = new Map()
+function addDestroyedFunc(cont,tabId,sender,msg){
+  if(destroyedMap.has(tabId)){
+    const arr = destroyedMap.get(tabId)
+    arr.push([sender,msg])
+  }
+else{
+    destroyedMap.set(tabId,[[sender,msg]])
+    cont.once('destroyed',_=>{
+      for(let [sender,msg] of destroyedMap.get(tabId)){
+        sender.send(msg,'destroy')
+      }
+    })
+  }
+}
+
+ipcMain.on('get-did-start-loading',(e,tabId)=>{
+  const cont = webContents.fromTabID(tabId)
+  const msg = `get-did-start-loading-reply_${tabId}`
+  if(!cont){
+    e.sender.send(msg)
+    return
+  }
+  addDestroyedFunc(cont,tabId,e.sender,msg)
+  cont.on('did-start-loading',e2=> {
+    e.sender.send(msg,true)
+  })
+})
+
 ipcMain.on('get-did-stop-loading',(e,tabId)=>{
   const cont = webContents.fromTabID(tabId)
-  const ret = cont ? {
+  const msg = `get-did-stop-loading-reply_${tabId}`
+  if(!cont){
+    e.sender.send(msg)
+    return
+  }
+  addDestroyedFunc(cont,tabId,e.sender,msg)
+  cont.on('did-stop-loading',e2=> {
+    const ret = {
       currentEntryIndex: cont.getCurrentEntryIndex(),
       entryCount: cont.getEntryCount(),
       url: cont.getURL()
-    } : null
+    }
+    e.sender.send(msg, ret)
+  })
+})
 
-  e.sender.send(`get-did-stop-loading-reply_${tabId}`,ret)
+PubSub.subscribe("web-contents-created",(msg,[tabId,sender])=>{
+  console.log("web-contents-created",tabId)
+  const cont = webContents.fromTabID(tabId)
+  console.log(cont)
+  if(!cont) return
+
+  sender.send('web-contents-created',tabId)
+
+  cont.on('page-title-updated',e2=> {
+    sender.send('page-title-updated',tabId)
+  })
+
 })
 
 ipcMain.on('get-sync-cont-history',(e,tabId)=>{
@@ -807,6 +859,9 @@ ipcMain.on('get-sync-cont-history',(e,tabId)=>{
     }
   }
   e.returnValue = [histNum,currentIndex,historyList]
+})
+ipcMain.on('get-session-sequence',e=> {
+  e.returnValue = seq()
 })
 
 // async function recurSelect(keys){

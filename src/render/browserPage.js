@@ -69,8 +69,8 @@ class BrowserPage extends Component {
     }
 
     if(this.props.tab.privateMode){
-      if(this.props.tab.privateMode === true) this.props.tab.privateMode = uuid.v4()
       webview.partition = this.props.tab.privateMode
+      webview.setAttribute('src', this.state.src)
       ipc.send('init-private-mode',this.props.tab.privateMode)
     }
     console.log(this.props.tab.privateMode)
@@ -244,8 +244,8 @@ class BrowserPage extends Component {
     // const preload = path.join(__dirname, './preload/mainPreload.js')
     return <div className="browser-page" ref="browserPage"  onKeyDown={::this.onHandleKeyDown}>
       <BrowserPageSearch isActive={this.state.isSearching} onPageSearch={::this.onPageSearch} progress={this.state.result_string} onClose={::this.onClose}/>
-      <webview ref="webview" className={`w${this.props.k2}`} data-key={this.props.k} src={this.state.src}/>
-      <BrowserPageStatus page={this.props.tab.page}/>
+      <webview ref="webview" className={`w${this.props.k2}`} data-key={this.props.k} src={this.props.tab.privateMode ? (void 0) : this.state.src}/>
+      <BrowserPageStatus tab={this.props.tab}/>
       <AutofillPopup k={this.props.k} pos={this.props.pos}/>
     </div>
   }

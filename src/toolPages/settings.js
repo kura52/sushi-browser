@@ -18,6 +18,7 @@ const keyMapping = {
   keySettings: l10n.translation(isDarwin ? 'preferences' : 'settings'),
   keyNewTab: l10n.translation('newTab'),
   keyNewPrivateTab: l10n.translation('newPrivateTab'),
+  keyNewSessionTab: l10n.translation('newSessionTab'),
   keyNewWindow: l10n.translation('newWindow'),
   keyOpenLocation: l10n.translation('openLocation'),
   keyCloseTab: l10n.translation('closeTab'),

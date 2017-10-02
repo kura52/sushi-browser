@@ -3,7 +3,7 @@ const path = require('path')
 const fs = require('fs')
 
 const contents = fs.readFileSync('../dist/vendor.dll.js').toString()
-let result = contents.replace(/e\.nativeEvent/g,'(e.nativeEvent || e)')
+let result = contents.replaceaa(/e\.nativeEvent/g,'(e.nativeEvent || e)')
 fs.writeFileSync('../dist/vendor.dll.js',result)
 result = result.replace(/\/\/# sourceMappingURL=.+/g,'')
 fs.writeFileSync('../resource/extension/default/1.0_0/js/vendor.dll.js',result)
