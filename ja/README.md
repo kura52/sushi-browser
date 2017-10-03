@@ -137,14 +137,14 @@ Sync Data機能をOnにすると複数端末間で履歴とお気に入りの同
 
 各プラットフォームに対し、インストーラとポータブル版の両方がダウンロードできます。
 
-- [Windows Installer v0.6.0](https://sushib.me/dl/sushi-browser-0.6.0-setup-x64.exe)
-- [Windows Portable v0.6.0(自己解凍)](https://sushib.me/dl/sushi-browser-0.6.0-win-x64.exe)
-- [Windows Portable v0.6.0](https://sushib.me/dl/sushi-browser-0.6.0-win-x64.zip)
-- [MacOS dmg v0.6.0](https://sushib.me/dl/SushiBrowser-0.6.0.dmg)
-- [MacOS Portable v0.6.0](https://sushib.me/dl/sushi-browser-0.6.0-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.6.0](https://sushib.me/dl/sushi-browser-0.6.0.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.6.0](https://sushib.me/dl/sushi-browser_0.6.0_amd64.deb)
-- [Linux Portable v0.6.0](https://sushib.me/dl/sushi-browser-0.6.0.tar.bz2)
+- [Windows Installer v0.6.1](https://sushib.me/dl/sushi-browser-0.6.1-setup-x64.exe)
+- [Windows Portable v0.6.1(自己解凍)](https://sushib.me/dl/sushi-browser-0.6.1-win-x64.exe)
+- [Windows Portable v0.6.1](https://sushib.me/dl/sushi-browser-0.6.1-win-x64.zip)
+- [MacOS dmg v0.6.1](https://sushib.me/dl/SushiBrowser-0.6.1.dmg)
+- [MacOS Portable v0.6.1](https://sushib.me/dl/sushi-browser-0.6.1-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.6.1](https://sushib.me/dl/sushi-browser-0.6.1.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.6.1](https://sushib.me/dl/sushi-browser_0.6.1_amd64.deb)
+- [Linux Portable v0.6.1](https://sushib.me/dl/sushi-browser-0.6.1.tar.bz2)
 
 ポータブル版の利用は、解凍後にWindowsはsushi.exeを、Mac/Linuxはsushi-browserを実行ください。
 
@@ -159,7 +159,11 @@ Flashが動かない場合、以下のサイトでFlashをインストールし�
 sushi-browser --no-sandbox
 ```
 
-# 新機能
+# 新機能 
+
+#### 新機能(v0.61)
+- セッションタブ機能の追加
+- ページ読み込み開始時、完了時の不具合を修正
 
 #### 新機能(v0.60)
 - 主要な同期処理を非同期化することで高速化
