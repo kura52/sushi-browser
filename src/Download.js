@@ -36,8 +36,8 @@ export default class Download {
       this.needSavePath = true
     }
 
-    ipcMain.on('set-save-path',(e,fname)=>{
-      this.savePath = path.join(app.getPath('downloads'), fname)
+    ipcMain.on('set-save-path',(e,fname,absolute)=>{
+      this.savePath = absolute ? fname : path.join(app.getPath('downloads'), fname)
     })
 
     ipcMain.on('set-audio-extract',(e,fname)=>{

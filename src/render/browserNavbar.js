@@ -2,6 +2,7 @@ const React = require('react')
 const ReactDOM = require('react-dom');
 const {Component} = React
 import { Dropdown,Modal } from 'semantic-ui-react';
+import localForage from "localforage";
 import path from 'path'
 const PubSub = require('./pubsub')
 const {remote} = require('electron')

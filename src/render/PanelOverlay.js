@@ -52,7 +52,9 @@ export default class PanelOverlay extends Component{
 
   componentWillUnmount(){
     for(let ele of document.querySelectorAll('.rdTabBar.chrome-tabs-content,.tab-base')){
-      ele.style.zIndex = ""
+      if(ele.classList.contains("full-screen")){
+        ele.style.zIndex = ele.classList.contains("full-screen") ? 2 : ""
+      }
     }
     const ele = document.querySelector(".dl-list")
     if(ele) ele.style.zIndex = 2

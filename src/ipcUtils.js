@@ -32,14 +32,6 @@ function exec(command) {
   });
 }
 
-function lazyRun(callback,time){
-  return new Promise((resolve,reject)=>{
-    setTimeout(_=>{
-      callback()
-      resolve()
-    },time)
-  })
-}
 
 function getBindPage(tabId){
   return webContents.getAllWebContents().filter(wc=>wc.getId() === tabId)
@@ -242,6 +234,8 @@ ipcMain.on('open-favorite',async (event,key,dbKeys,tabId,type)=>{
   else{
     const win = BrowserWindow.fromWebContents(host)
     ipcMain.once('get-private-reply',(e,privateMode)=>{
+      console.log(67866,JSON.stringify({urls:list.map(url=>{return {url}}),
+        type: type == 'openInNewWindow' ? 'new-win' : type == 'openInNewWindowWithOneRow' ? 'one-row' : 'two-row'}))
       BrowserWindowPlus.load({id:win.id,sameSize:true,tabParam:JSON.stringify({urls:list.map(url=>{return {url}}),
         type: type == 'openInNewWindow' ? 'new-win' : type == 'openInNewWindowWithOneRow' ? 'one-row' : 'two-row'})})
     })
@@ -669,6 +663,7 @@ ipcMain.on('change-tab-infos',(e,changeTabInfos)=> {
   for(let c of changeTabInfos){
     const cont = webContents.fromTabID(c.tabId)
     if(cont){
+      console.log('change-tab-infos',c)
       if(c.active) cont.setActive(c.active)
       if(c.index !== (void 0)) cont.setTabIndex(c.index)
     }
@@ -835,7 +830,6 @@ ipcMain.on('get-did-stop-loading',(e,tabId)=>{
 PubSub.subscribe("web-contents-created",(msg,[tabId,sender])=>{
   console.log("web-contents-created",tabId)
   const cont = webContents.fromTabID(tabId)
-  console.log(cont)
   if(!cont) return
 
   sender.send('web-contents-created',tabId)

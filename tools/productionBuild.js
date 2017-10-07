@@ -77,7 +77,7 @@ function build(){
   sh.rm('-rf','app/resource/extension')
   sh.rm('-rf','app/node_modules/node-pty')
   sh.rm('-rf','app/node_modules/youtube-dl/bin')
-  sh.cp(`${pwd}/resource/extensions.txt`, `app.asar.unpacked/resource/.`)
+  // sh.cp(`${pwd}/resource/extensions.txt`, `app.asar.unpacked/resource/.`)
 
   if(sh.exec('asar pack app app.asar').code !== 0) {
     console.log("ERROR7")
@@ -152,7 +152,7 @@ function muonModify(){
 
       const contents = fs.readFileSync(file).toString()
       const result = contents
-        .replace('tabContents.close','tabContents.forceClose')
+        .replace('tabContents.close',"tabContents.hostWebContents.send('menu-or-key-events','closeTab',tabId)")
         .replace("evt.sender.send('chrome-tabs-create-response-' + responseId, tab.tabValue(), error)","evt.sender.send('chrome-tabs-create-response-' + responseId, tab && tab.tabValue(), error)")
 
       fs.writeFileSync(file,result)

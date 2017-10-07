@@ -305,8 +305,6 @@ class Tabs extends React.Component {
       const beforeTitle = <img className='favi' src={page.title && page.favicon !== 'loading' ? page.favicon : 'resource/l.svg'} onError={(e)=>{e.target.src = 'resource/file.png'}}/>
       const title = page.favicon !== 'loading' || page.titleSet  || page.location == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? page.title : page.location
 
-      console.log("tabs",title)
-
       containerStyle = containerStyle || {}
       tabStyles = tabStyles || {}
       tabClassNames = tabClassNames || {}
@@ -827,12 +825,11 @@ class Tabs extends React.Component {
 
   render() {
     const {_tabClassNames,tabInlineStyles,tabs,content} = this.buildRenderComponent()
-    console.log("tabs-rend",tabs)
     return (
       <div style={tabInlineStyles.tabWrapper} className={_tabClassNames.tabWrapper} ref="div"
            onDragOver={(e)=>{e.preventDefault();return false}} onDrop={(e)=>{e.preventDefault();return false}}
            onKeyDown={this.props.onKeyDown}>
-        <div className="tab-base" style={this.props.toggleNav == 2 ? {display: 'none'} :
+        <div className={`tab-base${this.props.toggleNav == 3 ? ' full-screen' : ''}`} style={this.props.toggleNav == 2 ? {display: 'none'} :
           this.props.toggleNav == 3 ? {
               height: 27,
               background: 'rgb(221, 221, 221)',

@@ -141,7 +141,7 @@ if(!fs.readFileSync(path.join(pwd,'../web/ja/download.html')).includes(`v${NEXT_
 const htmls = []
 glob.sync(`${pwd}/../web/**/index.html`).forEach(file=>{
   filesContentsReplace(file,CURRENT_APP_VERSION,NEXT_APP_VERSION)
-  filesContentsReplace(file,BEFORE_CODE_NAME,NEXT_APP_VERSION)
+  filesContentsReplace(file,BEFORE_CODE_NAME,CODE_NAME)
   if(file.includes("/ja/")){
 
   }
@@ -152,7 +152,7 @@ glob.sync(`${pwd}/../web/**/index.html`).forEach(file=>{
 })
 glob.sync(`${pwd}/../web/**/download.html`).forEach(file=>{
   filesContentsReplace(file,CURRENT_APP_VERSION,NEXT_APP_VERSION)
-  filesContentsReplace(file,BEFORE_CODE_NAME,NEXT_APP_VERSION)
+  filesContentsReplace(file,BEFORE_CODE_NAME,CODE_NAME)
   htmls.push(file)
 })
 

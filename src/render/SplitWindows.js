@@ -1,6 +1,7 @@
 const React = require('react')
 const ReactDOM = require('react-dom')
 const {Component} = React
+import localForage from "localforage";
 const SplitPane = require('./split_pane/SplitPane')
 const TabPanel = require("./TabPanel")
 const PubSub = require('./pubsub')
@@ -62,7 +63,7 @@ function getParam() {
     const paramName = decodeURIComponent(element[0])
     const paramValue = decodeURIComponent(element[1])
 
-    result[paramName] = decodeURIComponent(paramValue)
+    result[paramName] = paramValue
   }
   return result
 }
@@ -112,7 +113,8 @@ export default class SplitWindows extends Component{
     const param = getParam()
     console.log(67,param)
     if(param){
-      const attach = JSON.parse(decodeURIComponent(param.tabparam))
+      console.log(param.tabparam)
+      const attach = JSON.parse(param.tabparam)
       if(Array.isArray(attach)){
         winState = {dirc: "v",size: '100%',l: [getUuid(),[]],r: null,p: null,key:uuid.v4(),toggleNav: mainState.toggleNav || 0,attach}
         for(let at of winState.attach){
@@ -1191,16 +1193,19 @@ export default class SplitWindows extends Component{
 
 
     const getSize = localStorage.getItem(key)
+    console.log("sizeee3",getSize,key)
     if(getSize){
       size = getSize == "0%" ? 200 : getSize.includes("%") ? getSize : parseInt(getSize)
+      console.log("sizeee2",{key,size,psize:panel.state.size,wholeSize,otherSize})
       PubSub.publishSync("resizeWindow",direction == "v" ? {old_w:wholeSize,new_w:wholeSize - size,old_h:otherSize,new_h:otherSize} : {old_w:otherSize,new_w:otherSize,old_h:wholeSize,new_h:wholeSize - size})
       panel.sizeChange(size,false)
       localStorage.removeItem(key)
       this.setState({})
     }
     else{
-      localStorage.setItem(key,panel.state.size)
+      localStorage.setItem(key,panel.state.size.toString())
       size = key.match(/^fixed-left/) ? panel.state.size : wholeSize - panel.state.size
+      console.log("sizeee",{key,size,psize:panel.state.size,wholeSize,otherSize})
       panel.sizeChange(ret.dirc == "l" ? 0 : 100,true)
       this.setState({})
       PubSub.publish("resizeWindow",direction == "v" ? {old_w:wholeSize - size,new_w:wholeSize,old_h:otherSize,new_h:otherSize} : {old_w:otherSize,new_w:otherSize,old_h:wholeSize - size,new_h:wholeSize})

@@ -136,8 +136,8 @@ const msg = {
   }
 }
 
-chrome.i18n = {}
-chrome.i18n.getMessage = m => msg[m] && msg[m]["message"]
+// chrome.i18n = {}
+// chrome.i18n.getMessage = m => msg[m] && msg[m]["message"]
 
 window.onload = function () {
   setTimeout(__onload, 100);

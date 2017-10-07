@@ -1,5 +1,6 @@
 import process from './process'
 import {ipcRenderer as ipc} from 'electron';
+import localForage from "localforage";
 import uuid from 'node-uuid';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -222,18 +223,28 @@ async function getAllChildren(nodePath,name){
 }
 
 
-let treeAllData
+let treeAllData,loading,gData
 export default class App extends React.Component {
   componentDidMount() {
     ReactDOM.findDOMNode(this.refs.stickey).style.height = "100%"
   }
 
-  onChange(e,data) {
+  async onChange(e,data) {
     const prevState = localStorage.getItem("history-sidebar-open-node")
     e.preventDefault()
     if(!treeAllData) return
-
-
+    if(loading){
+      gData = data
+      return
+    }
+    if(this.name){
+      gData = data
+      loading = true
+      await this.refs.content.loadAllData(void 0,true)
+      loading = false
+      data = gData
+      gData = (void 0)
+    }
     clearTimeout(this.timer);
     this.timer = setTimeout(()=>{
       const regList = [...new Set(escapeRegExp(data.value).split(/[ 　]+/,-1).filter(x=>x))]
@@ -275,6 +286,10 @@ export default class App extends React.Component {
     }, 200)
   }
 
+  setName(name){
+    this.name = name
+  }
+
   render(){
     return <StickyContainer ref="stickey">
       {this.props.sidebar ?
@@ -289,7 +304,7 @@ export default class App extends React.Component {
             <Input ref='input' icon='search' placeholder='Search...' size="small" onChange={::this.onChange}/>
           </div>
         </Sticky> :  <Input ref='input' icon='search' placeholder='Search...' size="small" onChange={::this.onChange}/>}
-      <Contents ref="content" onClick={this.props.onClick} cont={this.props.cont}/>
+      <Contents ref="content" onClick={this.props.onClick} cont={this.props.cont} setName={::this.setName}/>
     </StickyContainer>
   }
 }
@@ -330,20 +345,22 @@ class Contents extends React.Component {
     return this.map[url]
   }
 
-  loadAllData(name){
+  async loadAllData(name,notUpdate){
+    this.props.setName(name)
     if(!name) this.loaded = true
     const prevState = localStorage.getItem("history-sidebar-open-node")
     const start = Date.now()
-    getAllChildren('root',name).then(data=>{
-      console.log(Date.now() - start)
-      treeAllData = data
+    const data = await getAllChildren('root',name)
+    console.log(Date.now() - start)
+    treeAllData = data
+    if(!notUpdate){
       const tree = this.refs.iTree.tree
-
       localStorage.setItem("history-sidebar-open-node",prevState)
       tree.loadData(data,false,prevState ? prevState.split("\t",-1) : ['24 Hours Ago'])
       console.log(Date.now() - start)
       console.log((Date.now() - window.start)/1000)
-    })
+    }
+    return treeAllData
   }
 
   componentDidMount() {

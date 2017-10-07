@@ -53,15 +53,14 @@ function handler(table){
                   if(!cont.isDestroyed() && !cont.isBackgroundPage() && cont.isGuest()) {
                     const url = cont.getURL()
                     if(url.endsWith(`${table}_sidebar.html`) ||url.endsWith(`${table}.html`) || (table == 'history' && url.endsWith(`historyFull.html`))){
-                    console.log(prop,msg)
                     if(prop == "update"){
-                      console.log(argumentsList)
                       db[table].findOne(argumentsList[0]).then(ret=>{
-                        console.log(ret)
+                        console.log(111,'update-datas', ret,cont.getURL())
                         cont.send('update-datas', ret)
                       })
                     }
                     else{
+                      console.log(222,'update-datas', ret,cont.getURL())
                       cont.send('update-datas', msg.result)
                     }
                   }
@@ -108,6 +107,7 @@ ipcMain.on('db-rend',(event,datas)=>{
     if(msg.key !== datas.key) return
     event.sender.send(`db-rend_${datas.key}`,msg.result)
     const {table,prop,argumentsList} = datas
+    console.log(5555,table,prop)
     if((table == "history" || table == "favorite") && (prop == "insert" || prop == "update")){
       for(let cont of webContents.getAllWebContents()){
         if(!cont.isDestroyed() && !cont.isBackgroundPage() && cont.isGuest()) {

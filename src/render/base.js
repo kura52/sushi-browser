@@ -1,6 +1,7 @@
 window.debug = require('debug')('info')
 // require('debug').enable("info")
 const React = require('react')
+import localForage from "localforage"
 const {Component} = React
 const {render,unmountComponentAtNode} = require('react-dom')
 const SplitWindows = require("./SplitWindows")

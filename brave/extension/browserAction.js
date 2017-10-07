@@ -26,7 +26,7 @@ process.on('chrome-browser-action-set-title', (extensionId, details) => {
 })
 
 process.on('chrome-browser-action-popup', (extensionId, tabId, name, popup, props) => {
-  debug('chrome-browser-action-popup', extensionId, tabId, name, popup, props)
+  console.log('chrome-browser-action-popup', extensionId, tabId, name, popup, props)
   // let nodeProps = {
   //   left: props.x,
   //   top: props.y + 20,

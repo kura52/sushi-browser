@@ -625,6 +625,10 @@ div.item.favorite>ul>li>div>ul{
      opacity: 0.1;
  }
 
+.opacity001{
+    opacity: 0.01;
+}
+
 .ui:not(.disabled) .fa.fa-film{
      color: rgb(171, 71, 0);
 }

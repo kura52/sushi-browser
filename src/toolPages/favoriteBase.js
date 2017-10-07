@@ -1,5 +1,6 @@
 import process from './process'
 import {ipcRenderer as ipc} from 'electron';
+import localForage from "localforage";
 import uuid from 'node-uuid';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -328,6 +329,7 @@ class Contents extends React.Component {
     if(isMain && !this.props.onClick) return
     this.loadAllData()
     this.eventUpdateDatas = (e,data)=>{
+      console.log('eventUpdateDatas')
       this.loadAllData()
     }
     ipc.on("update-datas",this.eventUpdateDatas)
@@ -376,7 +378,9 @@ class Contents extends React.Component {
         const nodes = this.menuKey
         this.menuKey = (void 0)
         const parentNodes = nodes.map(n => n.getParent())
-        deleteFavorite(nodes.map(n=>this.getKey(n)),parentNodes.map(parent=>this.getKey(parent))).then(_ => _)
+        deleteFavorite(nodes.map(n=>this.getKey(n)),parentNodes.map(parent=>this.getKey(parent))).then(_ => {
+          if(isMain) this.eventUpdateDatas()
+        })
       }
       else if(cmd == "edit"){
         const nodes = this.menuKey
@@ -514,7 +518,9 @@ class Contents extends React.Component {
         console.log('renameArgs',renameArgs)
         if(renameArgs.length > 0){
           this.prevState = localStorage.getItem("favorite-sidebar-open-node")
-          moveFavorite(renameArgs).then(_ =>_)
+          moveFavorite(renameArgs).then(_ =>{
+            if(isMain) this.eventUpdateDatas()
+          })
         }
 
 

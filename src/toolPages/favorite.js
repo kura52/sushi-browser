@@ -1,4 +1,5 @@
 import {ipcRenderer as ipc} from 'electron';
+import localForage from "localforage";
 import uuid from 'node-uuid';
 import React from 'react';
 import ReactDOM from 'react-dom';

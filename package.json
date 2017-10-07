@@ -94,6 +94,7 @@
     "jsx-to-string": "^1.1.0",
     "keycode": "^2.1.8",
     "l20n": "^5.0.0",
+    "localforage": "^1.5.0",
     "lodash": "^4.17.2",
     "mime": "^2.0.3",
     "mkdirp": "^0.5.1",

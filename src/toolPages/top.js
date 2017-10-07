@@ -2,6 +2,7 @@ window.debug = require('debug')('info')
 // require('debug').enable("info")
 import process from './process';
 import {ipcRenderer as ipc} from 'electron'
+import localForage from "localforage";
 import path from 'path';
 import React from 'react';
 import ReactDOM from 'react-dom';

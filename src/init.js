@@ -161,6 +161,7 @@ app.on('ready', async ()=>{
 
 
   adblock = require('../brave/adBlock')
+  require('./chromeExtensionsIpc')
   // console.log(app.getPath('userData'))
   new (require('./downloadEvent'))()
   require('./historyEvent')
@@ -379,7 +380,7 @@ app.on('web-contents-created', (e, tab) => {
 // });
 process.on('open-url-from-tab', (e, source, targetUrl, disposition) => {
   rlog('open-url-from-tab',e, source, targetUrl, disposition)
-  source.hostWebContents.send('create-web-contents',{id:source.getId(),targetUrl,disposition})
+  source.hostWebContents && source.hostWebContents.send('create-web-contents',{id:source.getId(),targetUrl,disposition})
 })
 
 let recentUrl = []
@@ -404,7 +405,6 @@ process.on('add-new-contents', async (e, source, newTab, disposition, size, user
   const targetUrl = recentUrl.shift()
   console.log('add-new-contents', newTab.guestInstanceId);
   console.log(size)
-  console.log('create-web-contents-host',{targetUrl,e, source, newTab, disposition, size, userGesture})
   // eval(locus)
   // console.log(tabEvent)
   // if(newTab.guestInstanceId && tabEvent.windowId !== -1){
@@ -442,9 +442,6 @@ process.on('add-new-contents', async (e, source, newTab, disposition, size, user
       cont = host || source.hostWebContents
     }
 
-    console.log(33,source)
-    console.log(44,cont)
-
     console.log(22249)
     cont.send('create-web-contents',{id:source.getId(),targetUrl,disposition,guestInstanceId: newTab.guestInstanceId})
   }
@@ -461,15 +458,6 @@ function setFlash(app){
 
   if(process.platform  == 'win32'){
     let path_flash = flash_path ? require("glob").sync(flash_path) : []
-    // let path_flash = require("glob").sync(`${process.env["USERPROFILE"]}/AppData/Local/Google/Chrome/User Data/PepperFlash/**/pepflashplayer.dll`)
-    // let path_flash = require("glob").sync(`C:/Windows/syswow64/Macromed/Flash/pepflashplayer32*.dll`)
-    //https://fpdownload.adobe.com/pub/flashplayer/latest/help/install_flash_player_ppapi.exe
-    // if(path_flash.length == 0) {
-    //   path_flash = require("glob").sync(`C:/Windows/syswow64/Macromed/Flash/pepflashplayer32*.dll`)
-    //   if(path_flash.length == 0) {
-    //     path_flash = require("glob").sync(`C:/Windows/system32/Macromed/Flash/pepflashplayer32*.dll`)
-    //   }
-    // }
 
     if(path_flash.length > 0) {
       ppapi_flash_path = path_flash[0]
@@ -867,6 +855,7 @@ function contextMenu(webContents) {
 
     if(Object.keys(extensionMenu).length){
       for(let [extensionId, propertiesList] of Object.entries(extensionMenu)){
+        const menuList = []
         for(let {properties, menuItemId, icon} of propertiesList){
           let contextsPassed = false
           const info = {}
@@ -906,24 +895,37 @@ function contextMenu(webContents) {
           info['menuItemId'] = menuItemId
 
 
-          menuItems.push({type: 'separator'})
-          menuItems.push({label: properties.title,
+          menuList.push({label: properties.title,
             icon: `${extensionInfos[extensionId].base_path}/${icon}`,
             click(){
               process.emit('chrome-context-menus-clicked',extensionId, webContents.getId(), info)}
+          })
+        }
+        if(menuList.length == 1){
+          menuItems.push({type: 'separator'})
+          menuItems.push(menuList[0])
+        }
+        else if(menuList.length > 1){
+          menuItems.push({type: 'separator'})
+
+          menuItems.push({
+            label: extensionInfos[extensionId].name,
+            icon: menuList[0].icon,
+            submenu: menuList
           })
         }
 
       }
     }
     // show menu
-    var menu = Menu.buildFromTemplate(menuItems)
-    if(isWin){
-      menu.popup(targetWindow)
-    }
-    else{
-      webContents.hostWebContents.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',
-        `(function(){
+    try{
+      var menu = Menu.buildFromTemplate(menuItems)
+      if(isWin){
+        menu.popup(targetWindow)
+      }
+      else{
+        webContents.hostWebContents.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',
+          `(function(){
           const eventMoveHandler = e=>{
             chrome.ipcRenderer.send('context-menu-move',{})
             document.removeEventListener('mousemove',eventMoveHandler)
@@ -937,14 +939,17 @@ function contextMenu(webContents) {
           document.addEventListener('mousemove',eventMoveHandler)
           document.addEventListener('mouseup',eventUpHandler)
         })()`, {},_=>{
-          let isMove = false
-          ipcMain.once('context-menu-move',e => isMove = true)
-          ipcMain.once('context-menu-up',e => {
-            if(!isMove){
-              menu.popup(targetWindow)
-            }
+            let isMove = false
+            ipcMain.once('context-menu-move',e => isMove = true)
+            ipcMain.once('context-menu-up',e => {
+              if(!isMove){
+                menu.popup(targetWindow)
+              }
+            })
           })
-        })
+      }
+    }catch(e){
+      console.log(e)
     }
   })
 };

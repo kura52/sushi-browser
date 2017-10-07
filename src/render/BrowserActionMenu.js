@@ -9,15 +9,33 @@ const {Menu} = remote
 class BrowserActionWebView extends Component {
   constructor(props) {
     super(props)
+    this.state = {style:{opacity: 0.01}}
   }
 
   componentDidMount() {
     const webview = this.refs.webview
-    webview.autosize = true
+
+    webview.addEventListener('did-attach', () => {
+      webview.enablePreferredSizeMode(true);
+    });
+
+    webview.addEventListener('preferred-size-changed', () => {
+      console.log(webview)
+      webview.getPreferredSize((preferredSize) => {
+        console.log(preferredSize)
+        const width = preferredSize.width
+        const height = preferredSize.height
+        this.setState({style:{width,height}},_=>{
+          setTimeout(_=>this.props.setClassName(""),200)
+        })
+
+      })
+
+    })
   }
 
   render(){
-    return <webview ref="webview" src={this.props.url}/>
+    return <webview ref="webview" src={this.props.url} style={this.state.style}/>
   }
 }
 
@@ -26,20 +44,21 @@ export default class BrowserActionMenu extends Component{
     super(props)
     const values = props.values
     const icon = `${values.basePath}/${values.default_icon ? (typeof values.default_icon === "object" ? Object.values(values.default_icon)[0] : values.default_icon) : Object.values(values.icons)[0]}`;
-    this.state = {icon}
+    this.state = {icon,className: 'opacity001'}
   }
 
+  setClassName(className){
+    this.setState({className})
+  }
 
   handleClick(e){
+    console.log(e)
     const extensionId = this.props.id
     const {cont,values} = this.props
     const tabId = cont.getId()
 
     if(e.which != 3) {
-      if (values.default_popup) {
-        return
-      }
-      else if(values.default_icon){
+      if(values.default_icon){
         const iconGet = (e,val) => {
           console.log(e,val)
           values.default_icon = val.path
@@ -57,7 +76,13 @@ export default class BrowserActionMenu extends Component{
           offsetY: e.offsetY
         }
 
-        ipc.send('chrome-browser-action-clicked', extensionId, tabId, "", props);
+        console.log('chrome-browser-action-clicked', extensionId, tabId.toString(), "", props)
+        ipc.send('chrome-browser-action-clicked', extensionId, tabId.toString(), "", props);
+        return
+      }
+      else if (values.default_popup) {
+        // console.log('chrome-browser-action-clicked', extensionId, tabId.toString(), "", props)
+        // ipc.send('chrome-browser-action-clicked', extensionId, tabId.toString(), "", props);
         return
       }
     }
@@ -71,9 +96,9 @@ export default class BrowserActionMenu extends Component{
   render(){
     const id = this.props.id
     const values = this.props.values
-   return <Dropdown onMouseDown={::this.handleClick} scrolling className="nav-button" key={id} trigger={<a href="#" title={values.name}><img style={{width:16,height:16,verticalAlign:'middle'}} src={`file://${this.state.icon}`}/></a>} pointing='top right' icon={null}>
-      <Dropdown.Menu className="browser-action nav-menu">
-        {values.default_popup ? <BrowserActionWebView url={`chrome-extension://${id}/${values.default_popup}`}/>: ""}
+    return <Dropdown onMouseDown={::this.handleClick} scrolling className="nav-button" key={id} trigger={<a href="#" title={values.name}><img style={{width:16,height:16,verticalAlign:'middle'}} src={`file://${this.state.icon}`}/></a>} pointing='top right' icon={null}>
+      <Dropdown.Menu className={`browser-action nav-menu ${this.state.className}`}>
+        {values.default_popup ? <BrowserActionWebView url={`chrome-extension://${id}/${values.default_popup}`} setClassName={::this.setClassName}/>: ""}
       </Dropdown.Menu>
     </Dropdown>
   }

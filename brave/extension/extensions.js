@@ -69,8 +69,57 @@ module.exports.init = (verChange) => {
     // }
   })
 
+  const search = function(obj,messages){
+    if(Array.isArray(obj)){
+      let i = 0
+      for(let v of obj){
+        if(Array.isArray(v) || v instanceof Object){
+          search(v,messages)
+        }
+        else if((typeof (v) == "string" || v instanceof String) && v.startsWith('__MSG_')){
+          const msg = messages[v.slice(6,-2)]
+          if(msg && msg.message){
+            obj[i] = msg.message
+          }
+        }
+        ++i
+      }
+    }
+    else if(obj instanceof Object){
+      for(let [k,v] of Object.entries(obj)){
+        if(Array.isArray(v) || v instanceof Object){
+          search(v,messages)
+        }
+        else if((typeof (v) == "string" || v instanceof String) && v.startsWith('__MSG_')){
+          const msg = messages[v.slice(6,-2)]
+          if(msg && msg.message){
+            obj[k] = msg.message
+          }
+        }
+      }
+    }
+  }
   process.on('extension-ready', (installInfo) => {
     require('../../lib/extensionInfos').setInfo(installInfo)
+    const extensionId = installInfo.id
+    const locale = app.getLocale().replace('-', "_")
+    console.log(extensionId)
+    const [appId, basePath] = getPath(extensionId)
+
+    console.log(appId,basePath)
+    if(!basePath) return
+    let localePath = path.join(basePath, `_locales/${locale}/messages.json`)
+    if (!fs.existsSync(localePath)) {
+      localePath = path.join(basePath, `_locales/${locale.split("_")[0]}/messages.json`)
+      if (!fs.existsSync(localePath)) {
+        localePath = path.join(basePath, `_locales/${installInfo.default_locale}/messages.json`)
+        if (!installInfo.default_locale || !fs.existsSync(localePath)) {
+          return
+        }
+      }
+    }
+    const messages = JSON.parse(fs.readFileSync(localePath))
+    search(installInfo,messages)
     // extensionInfo.setState(installInfo.id, extensionStates.ENABLED)
     // extensionInfo.setInstallInfo(installInfo.id, installInfo)
     // installInfo.filePath = installInfo.base_path
@@ -160,6 +209,7 @@ module.exports.init = (verChange) => {
   require('./browserAction')
 
   let first = true
+  const rejectExtensions = ['jpkfjicglakibpenojifdiepckckakgk','default','jdbefljfgobbmcidnmpjamcbhnbphjnb','occjjkgifpmdgodlplnacmkejpdionan']
   module.exports.loadAll = function(ses){
     loadExtension(ses,...getPath('jpkfjicglakibpenojifdiepckckakgk'),(void 0),'component')
     loadExtension(ses,'dckpbojndfoinamcdamhkjhnjnmjkfjd',getPath('default')[1],(void 0),'component')
@@ -169,9 +219,11 @@ module.exports.init = (verChange) => {
       loadExtension(ses,...getPath('occjjkgifpmdgodlplnacmkejpdionan'),(void 0),'component')
     }
 
-    const appIds = fs.readFileSync(path.join(__dirname,'../../resource/extensions.txt').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')).toString().split(/\r?\n/)
-    for(let appId of appIds) {
-      if(appId.match(/^[a-z]+$/)){
+
+    for(let fullPath of require("glob").sync(path.join(__dirname,'../../resource/extension/*').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'))) {
+      const appId = fullPath.split(/[\/]/).slice(-1)[0]
+      console.log(appId)
+      if(appId.match(/^[a-z]+$/) && !rejectExtensions.includes(appId)){
         if(!first && appId == 'niloccemoadcdkdjlinkgdfekeahmflj') continue
         loadExtension(ses,...getPath(appId))
       }
@@ -179,9 +231,4 @@ module.exports.init = (verChange) => {
     first = false
   }
   module.exports.loadAll(session.defaultSession)
-  // loadExtension(...getPath('occjjkgifpmdgodlplnacmkejpdionan'))
-  // loadExtension(...getPath('aeolcjbaammbkgaiagooljfdepnjmkfd'))
-  // loadExtension(...getPath('khpcanbeojalbkpgpmjpdkjnkfcgfkhb'))
-  // loadExtension(...getPath('niloccemoadcdkdjlinkgdfekeahmflj'))
-  // loadExtension(...getPath('aapbdbdomjkkjkaonfhkkikfgjllcleb'))
 }
