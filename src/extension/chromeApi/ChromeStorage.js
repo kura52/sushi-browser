@@ -32,7 +32,7 @@ export default class ChromeStorage {
 
   setStorage(storageType, storage){
     const json = JSON.stringify(storage)
-    window.localStorage.setItem(`__chrome.storage.${storageType}__${this.appId}`, json)
+    localForage.setItem(`__chrome.storage.${storageType}__${this.appId}`, json)
     // console.log(`__chrome.storage.${storageType}__${this.appId}`, json)
   }
 

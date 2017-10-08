@@ -2,7 +2,7 @@ window.debug = require('debug')('info')
 // require('debug').enable("info")
 import process from './process'
 import {ipcRenderer as ipc} from 'electron';
-import localForage from "localforage";
+import localForage from "../LocalForage";
 import path from 'path';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -62,17 +62,18 @@ function convertURL(url){
 
 
 let resourcePath
-let setTime = localStorage.getItem('favicon-set')
-ipc.send("favicon-get",setTime ? parseInt(setTime) : null)
-ipc.once("favicon-get-reply",(e,ret)=>{
-  localStorage.setItem('favicon-set',Date.now().toString())
-  for(let [k,v] of Object.entries(ret)){
-    localStorage.setItem(k,v)
-  }
+localForage.getItem('favicon-set').then(setTime=>{
+  ipc.send("favicon-get",setTime ? parseInt(setTime) : null)
+  ipc.once("favicon-get-reply",(e,ret)=>{
+    localForage.setItem('favicon-set',Date.now().toString())
+    for(let [k,v] of Object.entries(ret)){
+      localForage.setItem(k,v)
+    }
+  })
 })
 
-function faviconGet(h){
-  return h.favicon ? localStorage.getItem(h.favicon) || `file://${resourcePath}/file.png` : `file://${resourcePath}/file.png`
+async function faviconGet(h){
+  return h.favicon ? (await localForage.getItem(h.favicon)) || `file://${resourcePath}/file.png` : `file://${resourcePath}/file.png`
 }
 
 ipc.send("get-resource-path",{})
@@ -113,17 +114,17 @@ function intervalRun(func,id){
 class TopMenu extends React.Component {
   constructor(props) {
     super(props)
-    this.state = {items:['48 Hours Ago','7 Days Ago','30 Days Ago','All'], activeItem: '48 Hours Ago' }
+    this.state = {items:['48 Hours Ago','All'], activeItem: '48 Hours Ago' }
     this.updateDatas = []
     this.token = {}
-    this.cond = {}
+    this.cond =  {start: moment().subtract(48, 'hours').valueOf()}
 
   }
 
   componentDidMount() {
     fetchHistory(this.cond)
-    historyReply((data)=>{
-      this.list = new HistoryList().build(data)
+    historyReply(async (data)=>{
+      this.list = await new HistoryList().build(data)
       if(this.clusterize){
         this.clusterize.update(this.list)
       }
@@ -193,10 +194,9 @@ class TopMenu extends React.Component {
         <Sticky>
           <div>
             <Menu pointing secondary >
-              {/*{this.state.items.map(item=>{*/}
-                {/*return <Menu.Item key={item} name={item} active={activeItem === item} onClick={::this.handleItemClick} />*/}
-              {/*})}*/}
-              <Menu.Item key="history" name={l10n.translation('history')} active={true}/>
+              {this.state.items.map(item=>{
+                return <Menu.Item key={item} name={item} active={activeItem === item} onClick={activeItem === item ? (void 0) : ::this.handleItemClick} />
+              })}
               <Menu.Item as='a' href={`${baseURL}/history_full.html`} key="history-full" name="Fulltext History"/>
               <Menu.Menu >
                 <Menu.Item>
@@ -226,10 +226,10 @@ class TopMenu extends React.Component {
 }
 
 class HistoryList{
-  build(data) {
+  async build(data) {
     const historyList = []
     let pre = {location:false}
-    data.forEach((h,i)=>{
+    for(let h of data){
       h.updated_at = moment(h.updated_at).format("YYYY/MM/DD HH:mm:ss")
       h.yyyymmdd = h.updated_at.slice(0,10)
       if(pre.yyyymmdd != h.yyyymmdd){
@@ -238,19 +238,19 @@ class HistoryList{
       if(h.location === pre.location){
         if(!pre.title) pre.title = h.title
         if(!pre.favicon) pre.favicon = h.favicon
-        historyList[historyList.length-1] = this.buildItem(pre)
+        historyList[historyList.length-1] = await this.buildItem(pre)
       }
       else{
-        historyList.push(this.buildItem(h))
+        historyList.push(await this.buildItem(h))
         pre = h
       }
-    })
+    }
     return historyList
   }
 
 
-  buildItem(h) {
-    const favicon = faviconGet(h)
+  async buildItem(h) {
+    const favicon = await faviconGet(h)
     return `<div role="listitem" class="item">
       <img src="${favicon}" style="width: 20px; height: 20px; float: left; margin-right: 4px; margin-top: 6px;"/>
       <div class="content">

@@ -182,12 +182,6 @@ class Tabs extends React.Component {
   }
 
 
-  shouldComponentUpdate(nextProps, nextState) {
-    if (!this.noRender) return true
-    this.noRender = false
-    return false
-  }
-
   componentDidMount() {
     const update = (_,e)=>{
       setTimeout(_=>this.setState({}),500)

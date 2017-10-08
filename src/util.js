@@ -7,15 +7,17 @@ function getCurrentWindow(){
   return BrowserWindow.getAllWindows().find(w=>w.getTitle().includes('Sushi Browser'))
 }
 
-function getFocusedWebContents(needSelectedText){
+function getFocusedWebContents(needSelectedText,skipBuildInSearch){
   let cont
-  const tmp = webContents.getFocusedWebContents()
-  if(tmp && !tmp.isDestroyed() && !tmp.isBackgroundPage()) {
-    if(tmp.isGuest()){
-      return new Promise(resolve=>resolve(tmp))
-    }
-    else{
-      cont = tmp
+  if(!skipBuildInSearch){
+    const tmp = webContents.getFocusedWebContents()
+    if(tmp && !tmp.isDestroyed() && !tmp.isBackgroundPage()) {
+      if(tmp.isGuest()){
+        return new Promise(resolve=>resolve(tmp))
+      }
+      else{
+        cont = tmp
+      }
     }
   }
 

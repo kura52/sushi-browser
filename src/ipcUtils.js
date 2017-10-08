@@ -658,14 +658,27 @@ ipcMain.on('set-pos-window',async (e,{id,hwnd,key,x,y,width,height,top,active,ta
   }
 })
 
-
+let timer,timers={}
 ipcMain.on('change-tab-infos',(e,changeTabInfos)=> {
   for(let c of changeTabInfos){
     const cont = webContents.fromTabID(c.tabId)
     if(cont){
-      console.log('change-tab-infos',c)
-      if(c.active) cont.setActive(c.active)
-      if(c.index !== (void 0)) cont.setTabIndex(c.index)
+      if(c.active){
+        if(timer) clearTimeout(timer)
+        timer = setTimeout(()=>{
+          console.log('change-tab-infos',c)
+          cont.setActive(c.active)
+          timer = void 0
+        }, 10)
+      }
+      if(c.index !== (void 0)){
+        if(timers[c.tabId]) clearTimeout(timers[c.tabId])
+        timers[c.tabId] = setTimeout(()=>{
+          console.log('change-tab-infos',c)
+          cont.setTabIndex(c.index)
+          delete timers[c.tabId]
+        }, 10)
+      }
     }
   }
 })

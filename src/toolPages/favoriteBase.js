@@ -1,6 +1,6 @@
 import process from './process'
 import {ipcRenderer as ipc} from 'electron';
-import localForage from "localforage";
+import localForage from "../LocalForage";
 import uuid from 'node-uuid';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -19,18 +19,19 @@ import rowRenderer from '../render/react-infinite-tree/renderer';
 const isMain = location.href.startsWith("chrome://brave//")
 
 if(!isMain){
-  let setTime = localStorage.getItem('favicon-set')
-  ipc.send("favicon-get", setTime ? parseInt(setTime) : null)
-  ipc.once("favicon-get-reply", (e, ret) => {
-    localStorage.setItem('favicon-set', Date.now().toString())
-    for (let [k, v] of Object.entries(ret)) {
-      localStorage.setItem(k, v)
-    }
+  localForage.getItem('favicon-set').then(setTime=>{
+    ipc.send("favicon-get",setTime ? parseInt(setTime) : null)
+    ipc.once("favicon-get-reply",(e,ret)=>{
+      localForage.setItem('favicon-set',Date.now().toString())
+      for(let [k,v] of Object.entries(ret)){
+        localForage.setItem(k,v)
+      }
+    })
   })
 }
 
-function faviconGet(x){
-  return x.favicon == "resource/file.png" ? (void 0) : x.favicon && localStorage.getItem(x.favicon)
+async function faviconGet(x){
+  return x.favicon == "resource/file.png" ? (void 0) : x.favicon && (await localForage.getItem(x.favicon))
 }
 
 function escapeRegExp(string){
@@ -118,7 +119,7 @@ function moveFavorite(args){
   })
 }
 
-function treeBuild(datas,nodePath){
+async function treeBuild(datas,nodePath){
   const newChildren = []
   for(let x of datas){
     const id = `${nodePath}/${x.key}`
@@ -126,12 +127,12 @@ function treeBuild(datas,nodePath){
       id,
       name: x.title,
       url: x.url,
-      favicon: faviconGet(x),
+      favicon: await faviconGet(x),
       // loadOnDemand: !x.is_file,
       type: x.is_file ? 'file' : 'directory'
     }
     if(x.children2){
-      data.children = treeBuild(x.children2,id)
+      data.children = await treeBuild(x.children2,id)
     }
     newChildren.push(data)
   }
@@ -153,7 +154,7 @@ async function getAllChildren(nodePath){
   const dbKey = path.basename(nodePath)
   const ret = await getAllFavorites([dbKey])
   // console.log(treeBuild(ret,nodePath))
-  return treeBuild(ret,'')[0].children
+  return (await treeBuild(ret,''))[0].children
 }
 
 
@@ -245,8 +246,8 @@ export default class App extends React.Component {
     return newDatas
   }
 
-  onChange(e,data) {
-    const prevState = localStorage.getItem("favorite-sidebar-open-node")
+  async onChange(e,data) {
+    const prevState = await localForage.getItem("favorite-sidebar-open-node")
     e.preventDefault()
     if(!treeAllData) return
     const regList = [...new Set(escapeRegExp(data.value).split(/[ 　]+/,-1).filter(x=>x))]
@@ -260,7 +261,7 @@ export default class App extends React.Component {
     const openNodes = prevState ? prevState.split("\t",-1) : (void 0)
     tree.loadData(this.recurNewTreeData(treeAllData,reg),false,openNodes)
 
-    localStorage.setItem("favorite-sidebar-open-node",prevState)
+    localForage.setItem("favorite-sidebar-open-node",prevState)
 
   }
 
@@ -310,18 +311,17 @@ class Contents extends React.Component {
     console.log(node)
   }
 
-  loadAllData(){
-    const prevState  = this.prevState || localStorage.getItem("favorite-sidebar-open-node")
+  async loadAllData(){
+    const prevState = this.prevState || (await localForage.getItem("favorite-sidebar-open-node"))
     this.prevState = (void 0)
     const tree = this.refs.iTree.tree
     getAllChildren('root').then(data=>{
       console.log(data)
       treeAllData = data
 
-      localStorage.setItem("favorite-sidebar-open-node",prevState)
+      localForage.setItem("favorite-sidebar-open-node",prevState)
       const openNodes = prevState ? prevState.split("\t",-1) : (void 0)
       tree.loadData(data,false,openNodes)
-
     })
   }
 
@@ -459,7 +459,7 @@ class Contents extends React.Component {
     }
     document.addEventListener('dragstart', this.onDragStart);
 
-    this.onDragEnd = (e) => {
+    this.onDragEnd = async (e) => {
       if(currentElement){
         console.log('dragend')
 
@@ -517,7 +517,7 @@ class Contents extends React.Component {
         }
         console.log('renameArgs',renameArgs)
         if(renameArgs.length > 0){
-          this.prevState = localStorage.getItem("favorite-sidebar-open-node")
+          this.prevState = await localForage.getItem("favorite-sidebar-open-node")
           moveFavorite(renameArgs).then(_ =>{
             if(isMain) this.eventUpdateDatas()
           })
@@ -782,10 +782,10 @@ class Contents extends React.Component {
           //   this.updatePreview(this.refs.iTree.tree.getSelectedNode());
           // }}
           onOpenNode={(node) => {
-            localStorage.setItem("favorite-sidebar-open-node",this.refs.iTree.tree.getOpenNodes().map(node=>node.id).join("\t"))
+            localForage.setItem("favorite-sidebar-open-node",this.refs.iTree.tree.getOpenNodes().map(node=>node.id).join("\t"))
           }}
           onCloseNode={(node) => {
-            localStorage.setItem("favorite-sidebar-open-node",this.refs.iTree.tree.getOpenNodes().map(node=>node.id).join("\t"))
+            localForage.setItem("favorite-sidebar-open-node",this.refs.iTree.tree.getOpenNodes().map(node=>node.id).join("\t"))
           }}
           // onClusterDidChange={() => {
           //   const tree = this.refs.iTree.tree

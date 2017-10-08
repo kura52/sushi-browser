@@ -413,6 +413,7 @@ process.on('add-new-contents', async (e, source, newTab, disposition, size, user
   //   tabEvent.windowId = -1
   //   return
   // }
+  console.log(disposition)
 
   if (disposition === 'new-window' || disposition === 'new-popup') {
     const currentWindow = getCurrentWindow()
@@ -442,6 +443,13 @@ process.on('add-new-contents', async (e, source, newTab, disposition, size, user
       cont = host || source.hostWebContents
     }
 
+    if(source.getURL().startsWith('chrome-extension')){
+      getFocusedWebContents(false,true).then(source=>{
+        console.log(cont.getURL(),source.getURL());
+        cont.send('create-web-contents', { id: source.getId(), targetUrl, disposition, guestInstanceId: newTab.guestInstanceId })
+      })
+      return
+    }
     console.log(22249)
     cont.send('create-web-contents',{id:source.getId(),targetUrl,disposition,guestInstanceId: newTab.guestInstanceId})
   }
@@ -526,14 +534,12 @@ function contextMenu(webContents) {
     }
 
     var targetWindow = BrowserWindow.getFocusedWindow()
-    if (!targetWindow)
-      return
+    if (!targetWindow) return
 
     const isIndex = props.pageURL.match(/^chrome:\/\/brave.+?\/index.html/)
     console.log(props.pageURL)
     // const sidebar = props.pageURL.match(/^chrome\-extension:\/\/.+?_sidebar.html/)
-    if (isIndex && !favoriteMenu)
-      return
+    if (isIndex && !favoriteMenu) return
 
     if(favoriteMenu){
       const favMenu = favoriteMenu

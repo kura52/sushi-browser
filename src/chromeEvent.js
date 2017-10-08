@@ -21,10 +21,12 @@ process.on('chrome-browser-action-set-title', (extensionId, details) => {
 })
 
 process.on('chrome-tabs-created', (tabId) => {
-  // rlog('chrome-tabs-created',tabId)
+  console.log('chrome-tabs-created',tabId)
 })
 
 process.on('chrome-tabs-updated', (tabId,changeInfo,tab) => {
+  // console.log('chrome-tabs-updated',tabId,changeInfo)
+  changeInfo.active = (void 0)
   // if(changeInfo.status == "complete") return
   if(changeInfo.status == "complete" ||
     (changeInfo.active === (void 0) &&
@@ -33,6 +35,14 @@ process.on('chrome-tabs-updated', (tabId,changeInfo,tab) => {
   const cont = webContents.fromTabID(tabId)
   if(cont && !cont.isDestroyed() && !cont.isBackgroundPage() && cont.isGuest()) {
     if(cont.hostWebContents) cont.hostWebContents.send('chrome-tabs-event', {tabId,changeInfo}, 'updated')
+  }
+})
+
+process.on('chrome-tabs-updated-from-extension', (tabId) => {
+  // console.log(tabId,tab)
+  const cont = webContents.fromTabID(tabId)
+  if(cont && !cont.isDestroyed() && !cont.isBackgroundPage() && cont.isGuest()) {
+    if(cont.hostWebContents) cont.hostWebContents.send('chrome-tabs-event', {tabId,changeInfo:{active:true}}, 'updated')
   }
 })
 

@@ -54,7 +54,24 @@ export default class SyncReplace extends Component {
     }
   }
 
-  setVal(index,order,val){
+  async setVal(index,order,val){
+    if(!this.state[this.getInd(0)]){
+      const items = await syncReplace.find({})
+      for(let i=0;i<SYNC_REPLACE_NUM;i++){
+        const item = items.find(x=>x.key == this.getInd(i))
+        console.log(item)
+        if(item){
+          let vals = item.val.split("\t",-1)
+          if(vals.length == 2) vals = ["",...vals]
+          vals.unshift(false)
+          this.state[this.getInd(i)] = vals
+        }
+        else{
+          this.state[this.getInd(i)] = [false,"","",""]
+        }
+      }
+    }
+
     let preCheck = false
     for(let i=0;i<SYNC_REPLACE_NUM;i++){
       preCheck = preCheck || this.state[this.getInd(i)][0]

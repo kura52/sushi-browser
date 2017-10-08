@@ -2,7 +2,7 @@ window.debug = require('debug')('info')
 // require('debug').enable("info")
 import process from './process'
 import {ipcRenderer as ipc} from 'electron';
-import localForage from "localforage";
+import localForage from "../LocalForage";
 import uuid from 'node-uuid';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -86,17 +86,18 @@ function getHistory(name){
 }
 
 let resourcePath
-let setTime = localStorage.getItem('favicon-set')
-ipc.send("favicon-get",setTime ? parseInt(setTime) : null)
-ipc.once("favicon-get-reply",(e,ret)=>{
-  localStorage.setItem('favicon-set',Date.now().toString())
-  for(let [k,v] of Object.entries(ret)){
-    localStorage.setItem(k,v)
-  }
+localForage.getItem('favicon-set').then(setTime=>{
+  ipc.send("favicon-get",setTime ? parseInt(setTime) : null)
+  ipc.once("favicon-get-reply",(e,ret)=>{
+    localForage.setItem('favicon-set',Date.now().toString())
+    for(let [k,v] of Object.entries(ret)){
+      localForage.setItem(k,v)
+    }
+  })
 })
 
-function faviconGet(x){
-  return x.favicon == "resource/file.png" ? (void 0) : x.favicon && localStorage.getItem(x.favicon)
+async function faviconGet(x){
+  return x.favicon == "resource/file.png" ? (void 0) : x.favicon && (await localForage.getItem(x.favicon))
 }
 
 ipc.send("get-resource-path",{})
@@ -186,7 +187,8 @@ class HistoryExplorer extends React.Component{
         })
       })
       const newChildren = []
-      arr.forEach((panel,i)=>{
+      let i = 0
+      for(let panel of arr){
         let prefix = ""
         if(panel.key.startsWith('fixed')){
           const sp = panel.key.split("-")
@@ -198,24 +200,28 @@ class HistoryExplorer extends React.Component{
           }
         }
         const tabChildren = []
-        const panelChildName = `${prefix}Panel ${`00${i+1}`.slice(-2)}`
+        const panelChildName = `${prefix}Panel ${`00${++i}`.slice(-2)}`
         const panelPath = path.join(nodePath,panelChildName)
-        panel.tabs.forEach((tab,j)=>{
-          const name = `Tab ${`00${j+1}`.slice(-2)}`
+        let j = 0
+        for(let tab of panel.tabs){
+          const name = `Tab ${`00${++j}`.slice(-2)}`
           const tabPath = path.join(panelPath,name)
-          const children = tab.historyList.map((h,k)=>{
+          const children = []
+          let k = 0
+          for(let h of tab.historyList){
             const url = convertURL(h.url)
             const title = `${k+1}. ${convertURL(h.title)|| url}`
-            return {
+            children.push({
               name: title,
               className: tab.currentIndex == k ? 'now' : (void 0),
               url,
               path: path.join(tabPath,k.toString()),
-              favicon: faviconGet(h),
+              favicon: await faviconGet(h),
               type: 'file',
               children: []
-            }
-          })
+            })
+            ++k
+          }
           tabChildren.push({
             name,
             className: tab.selectedTab ? 'selected-tab' : 'not-selected',
@@ -224,7 +230,7 @@ class HistoryExplorer extends React.Component{
             children
           })
           this.nodeMap.set(tabPath,children)
-        })
+        }
 
         newChildren.push({
           name: panelChildName,
@@ -233,7 +239,7 @@ class HistoryExplorer extends React.Component{
           children: tabChildren
         })
         this.nodeMap.set(panelPath,tabChildren)
-      })
+      }
       return newChildren
     }
     // else{

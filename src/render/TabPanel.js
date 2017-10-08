@@ -826,7 +826,7 @@ export default class TabPanel extends Component {
         if(page.statusText!==e.url){
           page.statusText = e.url
           PubSub.publish(`change-status-${tab.key}`)
-         // self.setState({})
+          // self.setState({})
         }
       },
       onLoadCommit(e, page) {
@@ -881,7 +881,7 @@ export default class TabPanel extends Component {
             ipc.removeListener(`get-did-stop-loading-reply_${tab.wvId}`,didStop)
             return
           }
-            const loc = c.url
+          const loc = c.url
           const entryIndex = c.currentEntryIndex
           page.entryIndex = entryIndex
           page.canGoBack = entryIndex !== 0
@@ -894,7 +894,9 @@ export default class TabPanel extends Component {
           if (page.eventDownloadStartTab) ipc.removeListener(`download-start-tab_${tab.wvId}`, page.eventDownloadStartTab)
           clearTimeout(page.downloadTimer)
           // console.log(self.refs)
-          self.setState({})
+          // self.setState({})
+          self.setStatePartical(tab)
+          PubSub.publish(`change-status-${tab.key}`)
           ;(async () => {
             if ((typeof page.hid === 'object' && page.hid !== null ) || (page.hid = await history.findOne({location: page.navUrl}))) {
               console.log(22, page.hid)
@@ -2034,51 +2036,69 @@ export default class TabPanel extends Component {
     }
   }
 
-  componentDidUpdate(prevProps, prevState){
-    // console.log('componentDidUpdate')
-    if(!this.drag){
-      this.webViewCreate()
-      this.props.child[0] = this.state
-    }
-    const sameSelected = this.selectedTab == this.state.selectedTab
-    if(sameSelected) return
+  componentDidUpdate(prevProps, prevState,retry=0){
+    if(this.didUpdateTimer) clearTimeout(this.didUpdateTimer)
+    this.didUpdateTimer = setTimeout(()=>{
+      console.log('componentDidUpdate',{prevProps, prevState,this_selectedTab:this.selectedTab,state:this.state})
+      if(!this.drag){
+        this.webViewCreate()
+        this.props.child[0] = this.state
+      }
+      const sameSelected = this.selectedTab == this.state.selectedTab
+      // if(sameSelected) return
 
-    const allKeySame = this.state.tabKeys.length == this.state.tabs.length &&
-      this.state.tabKeys.every((pre,i)=> this.state.tabs[i].key == pre)
-    // if(allKeySame) return
+      const allKeySame = this.state.tabKeys.length == this.state.tabs.length &&
+        this.state.tabKeys.every((pre,i)=> this.state.tabs[i].key == pre)
+      // if(allKeySame) return
 
-    const isChangeSelected = !sameSelected
-    if(isChangeSelected) {
-      this.state.selectedKeys = this.state.selectedKeys.filter(key => key != this.state.selectedTab && this.state.tabs.some(tab => tab.key == key))
-      this.state.selectedKeys.push(this.state.selectedTab)
-    }
+      const isChangeSelected = !sameSelected
+      if(isChangeSelected) {
+        this.state.selectedKeys = this.state.selectedKeys.filter(key => key != this.state.selectedTab && this.state.tabs.some(tab => tab.key == key))
+        this.state.selectedKeys.push(this.state.selectedTab)
+      }
 
 
-    this.state.tabKeys = []
-    let i = 0
-    console.log(2222,this.props.panelId)
-    this.selectedTab = this.state.selectedTab
-    const changeTabInfos = []
-    for(let tab of this.state.tabs){
-      if(tab.wvId === (void 0)) continue
-      this.state.tabKeys.push(tab.key)
-      const cont = this.getWebContents(tab)
-      let isActive
-      if(isChangeSelected){
-        isActive = tab.key == this.state.selectedTab
-        if(isActive && !this.isFixed){
-          ipc.send("change-title",tab.page.title)
+      this.state._tabKeys = []
+      let i = -1
+      const changeTabInfos = []
+      for(let tab of this.state.tabs){
+        ++i
+        console.log(tab.wvId,i)
+        if(tab.wvId === (void 0)){
+          if(retry < 50){
+            setTimeout(_=>this.componentDidUpdate(prevProps, prevState,retry++),100)
+          }
+          return
         }
-        if(tab.bind){
-          console.log(88988,'tabchange')
-          ipc.send('set-pos-window',{id:tab.bind.id,hwnd:tab.bind.hwnd,top:isActive ? 'above' : 'not-above'})
+        this.state._tabKeys.push(tab.key)
+        const cont = this.getWebContents(tab)
+        let isActive
+        if(isChangeSelected){
+          isActive = tab.key == this.state.selectedTab
+          if(isActive && !this.isFixed){
+            ipc.send("change-title",tab.page.title)
+          }
+          if(tab.bind){
+            console.log(88988,'tabchange')
+            ipc.send('set-pos-window',{id:tab.bind.id,hwnd:tab.bind.hwnd,top:isActive ? 'above' : 'not-above'})
+          }
+        }
+        if(isActive){
+          console.log({tabId:tab.wvId,active:isActive})
+          changeTabInfos.push({tabId:tab.wvId,active:isActive})
+          if(tab.key == this.state.selectedTab) this.selectedTab = this.state.selectedTab
         }
       }
-      if(isActive || !allKeySame) changeTabInfos.push({tabId:tab.wvId,active:isActive,index:allKeySame ? (void 0) : (this.props.panelId*1000 + i++)})
-    }
-    if(changeTabInfos.length > 0){
-      ipc.send('change-tab-infos',changeTabInfos)
-    }
+      this.state.tabKeys = this.state._tabKeys
+
+      if(changeTabInfos.length){
+        ipc.send('change-tab-infos',changeTabInfos)
+      }
+      if(!allKeySame){
+        this.props.parent.orderingIndexes()
+      }
+      this.didUpdateTimer = void 0
+    }, 10)
   }
 
   handleTabSelect(e, key, scroll) {
@@ -2236,11 +2256,11 @@ export default class TabPanel extends Component {
 
   handleTabUpdated(tab,changeInfo){
     console.log(changeInfo)
-    if(changeInfo.active){
+    if(changeInfo.active && tab.key != this.state.selectedTab){
       console.log("selected07",tab.key)
-      // this.setState({selectedTab: tab.key}) @TODO
+      this.setState({selectedTab: tab.key}) //@TODO
     }
-    else if(changeInfo.pinned != (void 0)){
+    if(changeInfo.pinned != (void 0)){
       tab.pin = changeInfo.pinned
       this.setState({})
     }

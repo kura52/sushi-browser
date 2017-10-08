@@ -2,7 +2,7 @@ const React = require('react')
 const ReactDOM = require('react-dom');
 const {Component} = React
 import { Dropdown,Modal } from 'semantic-ui-react';
-import localForage from "localforage";
+import localForage from "../LocalForage";
 import path from 'path'
 const PubSub = require('./pubsub')
 const {remote} = require('electron')
@@ -153,10 +153,6 @@ class BrowserNavbar extends Component{
     if(this.forceUpdates){
       this.forceUpdates = false
       return true
-    }
-    else if(this.noRender){
-      this.noRender = false
-      return false
     }
     // console.log("should")
     // let currentIndex
@@ -539,16 +535,16 @@ class BrowserNavbar extends Component{
     })
   }
 
-  favoriteDataHandle(menuItems,ret){
-    menuItems.splice(0, menuItems.length);
-    let i = 0
-    for(let item of ret){
-      const favicon = (item.favicon != "undefined" && localStorage.getItem(item.favicon)) || "resource/file.png"
-      menuItems.push(<NavbarMenuItem key={i++} favicon={favicon} text={item.title} onClick={_=>this.navigate(item.url)} />)
-      if(i > 100) break
-    }
-    return menuItems
-  }
+  // favoriteDataHandle(menuItems,ret){
+  //   menuItems.splice(0, menuItems.length);
+  //   let i = 0
+  //   for(let item of ret){
+  //     const favicon = (item.favicon != "undefined" && localStorage.getItem(item.favicon)) || "resource/file.png"
+  //     menuItems.push(<NavbarMenuItem key={i++} favicon={favicon} text={item.title} onClick={_=>this.navigate(item.url)} />)
+  //     if(i > 100) break
+  //   }
+  //   return menuItems
+  // }
 
   favoriteMenu(cont){
     const menuItems = []

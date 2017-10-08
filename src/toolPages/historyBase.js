@@ -1,6 +1,6 @@
 import process from './process'
 import {ipcRenderer as ipc} from 'electron';
-import localForage from "localforage";
+import localForage from "../LocalForage";
 import uuid from 'node-uuid';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -16,27 +16,19 @@ import rowRenderer from '../render/react-infinite-tree/renderer';
 const isMain = location.href.startsWith("chrome://brave//")
 
 if(!isMain){
-  let setTime = localStorage.getItem('favicon-set')
-  ipc.send("favicon-get",setTime ? parseInt(setTime) : null)
-  ipc.once("favicon-get-reply",(e,ret)=>{
-    localStorage.setItem('favicon-set',Date.now().toString())
-    for(let [k,v] of Object.entries(ret)){
-      localStorage.setItem(k,v)
-    }
+  localForage.getItem('favicon-set').then(setTime=>{
+    ipc.send("favicon-get",setTime ? parseInt(setTime) : null)
+    ipc.once("favicon-get-reply",(e,ret)=>{
+      localForage.setItem('favicon-set',Date.now().toString())
+      for(let [k,v] of Object.entries(ret)){
+        localForage.setItem(k,v)
+      }
+    })
   })
 }
 
-let memory = {}
-function faviconGet(x){
-  const mem = memory[x.favicon]
-  if(mem){
-    return mem
-  }
-  else{
-    const result =  x.favicon == "resource/file.png" ? (void 0) : x.favicon && localStorage.getItem(x.favicon)
-    memory[x.favicon] = result
-    return result
-  }
+async function faviconGet(x){
+  return x.favicon == "resource/file.png" ? (void 0) : x.favicon && (await localForage.getItem(x.favicon))
 }
 
 
@@ -122,13 +114,13 @@ function getAllHistory(){
   })
 }
 
-function buildItem(h,nodePath){
+async function buildItem(h,nodePath){
   const name = h.title  || h.location
   return {
     name: `[${h.updated_at.slice(11,16)}] ${name && name.length > 55 ? `${name.substr(0, 55)}...` : name}`,
     url: convertURL(h.location),
     id: `${nodePath}/${h.location}`,
-    favicon: faviconGet(h),
+    favicon: await faviconGet(h),
     type: 'file'
   }
 }
@@ -211,10 +203,10 @@ async function getAllChildren(nodePath,name){
     if(h.location === pre.location){
       if(!pre.title) pre.title = h.title
       if(!pre.favicon) pre.favicon = h.favicon
-      dirc[dirc.length-1] = buildItem(pre,nodePath)
+      dirc[dirc.length-1] = await buildItem(pre,nodePath)
     }
     else{
-      dirc.push(buildItem(h,nodePath))
+      dirc.push(await buildItem(h,nodePath))
       pre = h
     }
   }
@@ -230,7 +222,7 @@ export default class App extends React.Component {
   }
 
   async onChange(e,data) {
-    const prevState = localStorage.getItem("history-sidebar-open-node")
+    const prevState = await localForage.getItem("history-sidebar-open-node")
     e.preventDefault()
     if(!treeAllData) return
     if(loading){
@@ -282,7 +274,7 @@ export default class App extends React.Component {
       console.log(newTreeData)
       tree.loadData(newTreeData,false,openNodes)
 
-      localStorage.setItem("history-sidebar-open-node",prevState)
+      localForage.setItem("history-sidebar-open-node",prevState)
     }, 200)
   }
 
@@ -317,7 +309,7 @@ class Contents extends React.Component {
     console.log(node)
   }
 
-  updateData(data){
+  async updateData(data){
     const tree = this.refs.iTree.tree
     const node = this.searchNodeByUrl(data.location)
     if(node){
@@ -326,7 +318,7 @@ class Contents extends React.Component {
     const parent = tree.getChildNodes()[0]
     const beforeNode = parent.getFirstChild()
     console.log(parent)
-    tree.insertNodeAfter(wrapBuildItem(data),beforeNode)
+    tree.insertNodeAfter(await wrapBuildItem(data),beforeNode)
     const insertedNode = beforeNode.getNextSibling()
     this.map[insertedNode.url] = insertedNode
   }
@@ -348,14 +340,14 @@ class Contents extends React.Component {
   async loadAllData(name,notUpdate){
     this.props.setName(name)
     if(!name) this.loaded = true
-    const prevState = localStorage.getItem("history-sidebar-open-node")
+    const prevState = await localForage.getItem("history-sidebar-open-node")
     const start = Date.now()
     const data = await getAllChildren('root',name)
     console.log(Date.now() - start)
     treeAllData = data
     if(!notUpdate){
       const tree = this.refs.iTree.tree
-      localStorage.setItem("history-sidebar-open-node",prevState)
+      localForage.setItem("history-sidebar-open-node",prevState)
       tree.loadData(data,false,prevState ? prevState.split("\t",-1) : ['24 Hours Ago'])
       console.log(Date.now() - start)
       console.log((Date.now() - window.start)/1000)
@@ -363,11 +355,12 @@ class Contents extends React.Component {
     return treeAllData
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     console.log(333000,this.props.onClick,this.props.cont)
     if(isMain && !this.props.onClick) return
     if(isMain){
       this.loaded = false
+      await localForage.setItem("history-sidebar-open-node",'24 Hours Ago')
       this.loadAllData('24 Hours Ago')
       const self = this
       this.scrollEvent = function(e){
@@ -513,10 +506,12 @@ class Contents extends React.Component {
           //   this.updatePreview(this.refs.iTree.tree.getSelectedNode());
           // }}
           onOpenNode={(node) => {
-            localStorage.setItem("history-sidebar-open-node",this.refs.iTree.tree.getOpenNodes().map(node=>node.id).join("\t"))
+            if(isMain && !this.loaded) this.loadAllData()
+            localForage.setItem("history-sidebar-open-node",this.refs.iTree.tree.getOpenNodes().map(node=>node.id).join("\t"))
           }}
           onCloseNode={(node) => {
-            localStorage.setItem("history-sidebar-open-node",this.refs.iTree.tree.getOpenNodes().map(node=>node.id).join("\t"))
+            if(isMain && !this.loaded) this.loadAllData()
+            localForage.setItem("history-sidebar-open-node",this.refs.iTree.tree.getOpenNodes().map(node=>node.id).join("\t"))
           }}
           // onSelectNode={(node) => {
           //   this.updatePreview(node);

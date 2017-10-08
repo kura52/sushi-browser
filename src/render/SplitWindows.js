@@ -1,7 +1,7 @@
 const React = require('react')
 const ReactDOM = require('react-dom')
 const {Component} = React
-import localForage from "localforage";
+import localForage from "../LocalForage";
 const SplitPane = require('./split_pane/SplitPane')
 const TabPanel = require("./TabPanel")
 const PubSub = require('./pubsub')
@@ -46,6 +46,7 @@ function getUuid(){
 
 function getPanelId(key) {
   const keySplit = key.split("_")
+  // setInterval(_=>console.log(console.log('getPanleIdd',key,keySplit[keySplit.length-1])),10)
   return parseInt(keySplit[keySplit.length - 1]);
 }
 
@@ -83,11 +84,29 @@ function equallyDivide(x,n){
 }
 
 export default class SplitWindows extends Component{
+  initBind(){
+    this.split = ::this.split
+    this.close = ::this.close
+    this.getScrollPriorities = ::this.getScrollPriorities
+    this.getOpposite = ::this.getOpposite
+    this.getPrevFocusPanel = ::this.getPrevFocusPanel
+    this.addFloatPanel = ::this.addFloatPanel
+    this.toggleDirc = ::this.toggleDirc
+    this.swapPosition = ::this.swapPosition
+    this.getAllKey = ::this.getAllKey
+    this.getKeyPosition = ::this.getKeyPosition
+    this.fixedPanelOpen = ::this.fixedPanelOpen
+    this.hidePanel = ::this.hidePanel
+    this.deleteAttach = ::this.deleteAttach
+    this.orderingIndexes = ::this.orderingIndexes
+  }
+
   constructor(props) {
     super(props)
     this.currentWebContents = {}
     global.currentWebContents = this.currentWebContents
     global.adBlockDisableSite = {...mainState.adBlockDisableSite}
+    this.initBind()
 
     let winState
     const mState = mainState.winState
@@ -127,7 +146,7 @@ export default class SplitWindows extends Component{
         if(attach.type == 'new-win'){
           console.log(3333,{key: getUuid(),tabs: attach.urls.map(({url,privateMode})=>{return {pin:false,tabKey:uuid.v4(),url,privateMode}})})
           winState = this.parseRestoreDate({dirc: "v",size: '100%',l: {key: getUuid(),tabs: attach.urls.map(({url,privateMode})=>{return {forceKeep:true,pin:false,tabKey:uuid.v4(),url,privateMode}})},
-          r: null,key:uuid.v4(),toggleNav: mainState.toggleNav || 0},{})
+            r: null,key:uuid.v4(),toggleNav: mainState.toggleNav || 0},{})
         }
         else{
           console.log(33321,attach)
@@ -248,6 +267,7 @@ export default class SplitWindows extends Component{
     this.htmlContentSet = new Set()
     this.windowId = remote.getCurrentWindow().id
     this.hidePanels = {}
+    this.preIndexes = {}
   }
 
 
@@ -255,7 +275,7 @@ export default class SplitWindows extends Component{
     this.webContentsCreated = (event, tabId)=>{
       remote.getWebContents(tabId,tab=>{
         this.currentWebContents[tabId] = tab
-       })
+      })
     }
     ipc.on('web-contents-created', this.webContentsCreated)
 
@@ -384,17 +404,18 @@ export default class SplitWindows extends Component{
     }
     ipc.on('get-window-state',this.getWinStateEvent)
 
+    const self = this
     this.getTabId = (activeElement)=>{
       let tabId
       if (activeElement.tagName == 'BODY') {
       }
-      else if(activeElement.tagName == 'WEBVIEW'){
-        tabId = this.refs2[activeElement.className.slice(1)].getSelectedTabId()
+      else if(activeElement.tagName == 'WEBVIEW' && activeElement.className != 'popup'){
+        tabId = self.refs2[activeElement.className.slice(1)].getSelectedTabId()
       }
       else{
         const closestElement = activeElement.closest(".split-window")
         if (closestElement) {
-          tabId = this.refs2[closestElement.classList[1].slice(1)].getSelectedTabId()
+          tabId = self.refs2[closestElement.classList[1].slice(1)].getSelectedTabId()
         }
       }
       return tabId;
@@ -403,9 +424,10 @@ export default class SplitWindows extends Component{
       const act = document.activeElement
       if(needSelectedText && act.tagName == 'INPUT' && act.type == 'text'){
         ipc.send(`get-focused-webContent-reply_${key}`,-1)
+        return
       }
-      console.log(act,window.lastMouseDown)
-      let tabId = this.getTabId(act) || ( window.lastMouseDown&& this.getTabId(global.lastMouseDown))
+      console.log(act,global.lastMouseDown)
+      let tabId = this.getTabId(act) || (global.lastMouseDown[0] && this.getTabId(global.lastMouseDown[0]))
 
       if(!tabId){
         tabId = this.refs2[this.isTopLeft].getSelectedTabId()
@@ -621,6 +643,27 @@ export default class SplitWindows extends Component{
       if(node.r) arr.push(node.r[0])
     }
     return arr
+  }
+
+  orderingIndexes(){
+    const keys = []
+    const indexes = {}
+    this.allKeys(this.state.root,keys)
+    let j = 0
+    const changeTabInfos = []
+    for(let key of keys){
+      for(let tab of this.refs2[key].state.tabs){
+        if(this.preIndexes[tab.wvId] !== j){
+          changeTabInfos.push({tabId:tab.wvId,index:j})
+        }
+        indexes[tab.wvId] = j
+        j++
+      }
+    }
+    if(changeTabInfos.length) {
+      this.preIndexes = indexes
+      ipc.send('change-tab-infos', changeTabInfos)
+    }
   }
 
   jsonfyiable(node,obj,saved=false){
@@ -1088,6 +1131,7 @@ export default class SplitWindows extends Component{
     node.r.pd = "r"
     this.setState({})
     this.refs[`pane_${node.key}`].swapPosition()
+    this.orderingIndexes()
   }
 
   getFixedPanelKey(dirc){
@@ -1192,24 +1236,26 @@ export default class SplitWindows extends Component{
     let size
 
 
-    const getSize = localStorage.getItem(key)
-    console.log("sizeee3",getSize,key)
-    if(getSize){
-      size = getSize == "0%" ? 200 : getSize.includes("%") ? getSize : parseInt(getSize)
-      console.log("sizeee2",{key,size,psize:panel.state.size,wholeSize,otherSize})
-      PubSub.publishSync("resizeWindow",direction == "v" ? {old_w:wholeSize,new_w:wholeSize - size,old_h:otherSize,new_h:otherSize} : {old_w:otherSize,new_w:otherSize,old_h:wholeSize,new_h:wholeSize - size})
-      panel.sizeChange(size,false)
-      localStorage.removeItem(key)
-      this.setState({})
-    }
-    else{
-      localStorage.setItem(key,panel.state.size.toString())
-      size = key.match(/^fixed-left/) ? panel.state.size : wholeSize - panel.state.size
-      console.log("sizeee",{key,size,psize:panel.state.size,wholeSize,otherSize})
-      panel.sizeChange(ret.dirc == "l" ? 0 : 100,true)
-      this.setState({})
-      PubSub.publish("resizeWindow",direction == "v" ? {old_w:wholeSize - size,new_w:wholeSize,old_h:otherSize,new_h:otherSize} : {old_w:otherSize,new_w:otherSize,old_h:wholeSize - size,new_h:wholeSize})
-    }
+    localForage.getItem(key).then(getSize=>{
+      console.log("sizeee3",getSize,key)
+      if(getSize){
+        size = getSize == "0%" ? 200 : getSize.includes("%") ? getSize : parseInt(getSize)
+        size = key.match(/^fixed-left/) ? size : wholeSize - size
+        console.log("sizeee2",{key,size,psize:panel.state.size,wholeSize,otherSize})
+        PubSub.publishSync("resizeWindow",direction == "v" ? {old_w:wholeSize,new_w:wholeSize - size,old_h:otherSize,new_h:otherSize} : {old_w:otherSize,new_w:otherSize,old_h:wholeSize,new_h:wholeSize - size})
+        panel.sizeChange(size,false)
+        localForage.removeItem(key)
+        this.setState({})
+      }
+      else{
+        size = key.match(/^fixed-left/) ? panel.state.size : wholeSize - panel.state.size
+        localForage.setItem(key,size.toString())
+        console.log("sizeee",{key,size,psize:panel.state.size,wholeSize,otherSize})
+        panel.sizeChange(ret.dirc == "l" ? 0 : 100,true)
+        this.setState({})
+        PubSub.publish("resizeWindow",direction == "v" ? {old_w:wholeSize - size,new_w:wholeSize,old_h:otherSize,new_h:otherSize} : {old_w:otherSize,new_w:otherSize,old_h:wholeSize - size,new_h:wholeSize})
+      }
+    })
   }
 
   deleteAttach(){
@@ -1246,13 +1292,14 @@ export default class SplitWindows extends Component{
           return <div className={`split-window s${x[0]}`} key={x[0]}>
             <TabPanel isTopRight={this.checkTopRight(obj,i)  ? isTopRight : false}
                       isTopLeft={isTopLeft} k={x[0]} ref={x[0]}
-                      key={x[0]} node={x} split={::this.split} close={::this.close}
-                      getScrollPriorities={::this.getScrollPriorities} child={x[1]} fullscreen={this.state.fullscreen}
-                      toggleNav={this.state.root.toggleNav} parent={this} getOpposite={::this.getOpposite} getPrevFocusPanel={::this.getPrevFocusPanel} addFloatPanel={::this.addFloatPanel}
-                      toggleDirc={::this.toggleDirc} swapPosition={::this.swapPosition} getAllKey={::this.getAllKey}
-                      currentWebContents={this.currentWebContents} htmlContentSet={this.htmlContentSet} getKeyPosition={::this.getKeyPosition}
-                      fixedPanelOpen={::this.fixedPanelOpen} hidePanel={::this.hidePanel} windowId={this.windowId}
-                      attach={this.state.root.attach && {delete: ::this.deleteAttach,data:this.state.root.attach}}
+                      key={x[0]} node={x} split={this.split} close={this.close}
+                      getScrollPriorities={this.getScrollPriorities} child={x[1]} fullscreen={this.state.fullscreen}
+                      toggleNav={this.state.root.toggleNav} parent={this} getOpposite={this.getOpposite}
+                      getPrevFocusPanel={this.getPrevFocusPanel} addFloatPanel={this.addFloatPanel}
+                      toggleDirc={this.toggleDirc} swapPosition={this.swapPosition} getAllKey={this.getAllKey}
+                      currentWebContents={this.currentWebContents} htmlContentSet={this.htmlContentSet} getKeyPosition={this.getKeyPosition}
+                      fixedPanelOpen={this.fixedPanelOpen} hidePanel={this.hidePanel} windowId={this.windowId}
+                      attach={this.state.root.attach && {delete: this.deleteAttach,data:this.state.root.attach}}
             />
           </div>
         }
@@ -1264,13 +1311,13 @@ export default class SplitWindows extends Component{
     return  <FloatPanel k={x[0]} key={x[0]} style={{}}>
       <TabPanel isTopRight={false}
                 isTopLeft={false} k={x[0]} ref={x[0]}
-                key={x[0]} node={x} split={::this.split} close={::this.closeFloat}
-                getScrollPriorities={::this.getScrollPriorities} child={x[1]}
-                toggleNav={this.state.root.toggleNav} parent={this} addFloatPanel={::this.addFloatPanel}
-                getAllKey={::this.getAllKey} float={true}
-                currentWebContents={this.currentWebContents} htmlContentSet={this.htmlContentSet} getKeyPosition={::this.getKeyPosition}
-                fixedPanelOpen={::this.fixedPanelOpen} hidePanel={::this.hidePanel} windowId={this.windowId}
-                attach={this.state.root.attach && {delete: ::this.deleteAttach,data:this.state.root.attach}}
+                key={x[0]} node={x} split={this.split} close={this.closeFloat}
+                getScrollPriorities={this.getScrollPriorities} child={x[1]}
+                toggleNav={this.state.root.toggleNav} parent={this} addFloatPanel={this.addFloatPanel}
+                getAllKey={this.getAllKey} float={true}
+                currentWebContents={this.currentWebContents} htmlContentSet={this.htmlContentSet} getKeyPosition={this.getKeyPosition}
+                fixedPanelOpen={this.fixedPanelOpen} hidePanel={this.hidePanel} windowId={this.windowId}
+                attach={this.state.root.attach && {delete: this.deleteAttach,data:this.state.root.attach}}
       />
     </FloatPanel>
   }

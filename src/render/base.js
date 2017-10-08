@@ -18,6 +18,7 @@ const isDarwin = navigator.userAgent.includes('Mac OS X')
 const longPressMiddle = mainState.longPressMiddle
 
 require('inferno').options.recyclingEnabled = true; // Advanced optimisation
+global.lastMouseDown = []
 global.lastMouseDownSet = new Set()
 
 global.zoomMapping = new Map([
@@ -28,7 +29,7 @@ global.zoomMapping = new Map([
 if(location.href.endsWith("index.html#")){
   try{
     for(let [url,path] of Object.entries(mainState.favicons)){
-      localStorage.setItem(url,path)
+      localForage.setItem(url,path)
     }
   }catch(e){
     console.log(e)
@@ -59,10 +60,15 @@ export default class MainContent extends Component{
     document.addEventListener('mousedown',e=>{
       let ele,key
       global.middleButtonLongPressing = (void 0)
-      global.lastMouseDown = e.target
       global.lastMouseDownSet.delete(e.target)
       global.lastMouseDownSet.add(e.target)
-      if(e.target.tagName == 'WEBVIEW'){
+
+      const currentTabId = global.lastMouseDown[1]
+      global.lastMouseDown = [e.target,global.lastMouseDown[0] == e.target ? global.lastMouseDown[1] : this.refs.splitWindow.getTabId(e.target)]
+      if(currentTabId !== global.lastMouseDown[1]){
+        ipc.send('change-tab-infos', [{tabId:global.lastMouseDown[1],active:true}])
+      }
+       if(e.target.tagName == 'WEBVIEW'){
         const key = e.target.className
         if(isFloatPanel(key)){
           PubSub.publish('float-panel',{key:key.slice(1)})

@@ -7,6 +7,9 @@ import PubSub from './render/pubsub'
 const seq = require('./sequence')
 const {state,favorite,historyFull} = require('./databaseFork')
 const db = require('./databaseFork')
+const franc = require('franc')
+
+const transLang = {eng:'en', dan:'da', dut:'nl', fin:'fi', fre:'fr', ger:'de', heb:'he', ita:'it', jpn:'ja', kor:'ko', nor:'nb', pol:'pl', por:'pt', rus:'ru', spa:'es', swe:'sv', chi:'zh', cze:'cs', gre:'el', ice:'is', lav:'lv', lit:'lt', rum:'ro', hun:'hu', est:'et', bul:'bg', scr:'hr', scc:'sr', gle:'ga', glg:'gl', tur:'tr', ukr:'uk', hin:'hi', mac:'mk', ben:'bn', ind:'id', lat:'la', may:'ms', mal:'ml', wel:'cy', nep:'ne', tel:'te', alb:'sq', tam:'ta', bel:'be', jav:'jw', oci:'oc', urd:'ur', bih:'bh', guj:'gu', tha:'th', ara:'ar', cat:'ca', epo:'eo', baq:'eu', ina:'ia', kan:'kn', pan:'pa', gla:'gd', swa:'sw', slv:'sl', mar:'mr', mlt:'mt', vie:'vi', fry:'fy', slo:'sk', fao:'fo', sun:'su', uzb:'uz', amh:'am', aze:'az', geo:'ka', tir:'ti', per:'fa', bos:'bs', sin:'si', nno:'nn', xho:'xh', zul:'zu', grn:'gn', sot:'st', tuk:'tk', kir:'ky', bre:'br', twi:'tw', yid:'yi', som:'so', uig:'ug', kur:'ku', mon:'mn', arm:'hy', lao:'lo', snd:'sd', roh:'rm', afr:'af', ltz:'lb', bur:'my', khm:'km', tib:'bo', div:'dv', ori:'or', asm:'as', cos:'co', ine:'ie', kaz:'kk', lin:'ln', mol:'mo', pus:'ps', que:'qu', sna:'sn', tgk:'tg', tat:'tt', tog:'to', yor:'yo', mao:'mi', wol:'wo', abk:'ab', aar:'aa', aym:'ay', bak:'ba', bis:'bi', dzo:'dz', fij:'fj', kal:'kl', hau:'ha', ipk:'ik', iku:'iu', kas:'ks', kin:'rw', mlg:'mg', nau:'na', orm:'om', run:'rn', smo:'sm', sag:'sg', san:'sa', ssw:'ss', tso:'ts', tsn:'tn', vol:'vo', zha:'za', lug:'lg', glv:'gv'}
 
 import path from 'path'
 import {getCurrentWindow,getFocusedWebContents} from './util'
@@ -43,7 +46,7 @@ function diffArray(arr1, arr2) {
 function simpleIpcFunc(name,callback){
   ipcMain.on(name,(event,key,args)=>{
     if(callback){
-      event.sender.send(`${name}-reply_${key}`,callback(...args))
+      event.sender.send(`${name}-reply_${key}`,callback(args))
     }
     else{
       event.sender.send(`${name}-reply_${key}`)
@@ -103,7 +106,7 @@ ipcMain.on('add-extension',(e,id)=>{
   },2000)
 })
 
-simpleIpcFunc('chrome-i18n-getAcceptLanguages',_=>[app.getLocale().slice(0,2)])
+simpleIpcFunc('chrome-i18n-getAcceptLanguages',_=>app.getLocale().slice(0,2))
 
 ipcMain.on('chrome-i18n-getMessage',(event)=>{
   try{
@@ -131,3 +134,14 @@ ipcMain.on('chrome-windows-create',(event,key,createData)=>{
   event.sender.send(`chrome-windows-create-reply_${key}`)
 })
 
+
+ipcMain.on('chrome-tabs-detectLanguage',(event,key,tabId)=>{
+  webContents.fromTabID(tabId).executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',
+    `document.documentElement.innerText`,
+    {}, (err, url, result) =>{
+      console.log(err, url, result)
+      console.log(franc(result[0]))
+      event.sender.send(`chrome-tabs-detectLanguage-reply_${key}`,transLang[franc(result[0])] || 'en')
+    }
+  )
+})

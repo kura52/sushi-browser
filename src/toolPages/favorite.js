@@ -1,5 +1,5 @@
 import {ipcRenderer as ipc} from 'electron';
-import localForage from "localforage";
+import localForage from "../LocalForage";
 import uuid from 'node-uuid';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -17,17 +17,18 @@ const {TreeNode} = Tree
 let homePath
 
 let resourcePath
-let setTime = localStorage.getItem('favicon-set')
-ipc.send("favicon-get",setTime ? parseInt(setTime) : null)
-ipc.once("favicon-get-reply",(e,ret)=>{
-  localStorage.setItem('favicon-set',Date.now().toString())
-  for(let [k,v] of Object.entries(ret)){
-    localStorage.setItem(k,v)
-  }
+localForage.getItem('favicon-set').then(setTime=>{
+  ipc.send("favicon-get",setTime ? parseInt(setTime) : null)
+  ipc.once("favicon-get-reply",(e,ret)=>{
+    localForage.setItem('favicon-set',Date.now().toString())
+    for(let [k,v] of Object.entries(ret)){
+      localForage.setItem(k,v)
+    }
+  })
 })
 
-function faviconGet(h){
-  return h.favicon ? localStorage.getItem(h.favicon) || `file://${resourcePath}/file.png` : `file://${resourcePath}/file.png`
+async function faviconGet(h){
+  return h.favicon ? (await localForage.getItem(h.favicon)) || `file://${resourcePath}/file.png` : `file://${resourcePath}/file.png`
 }
 
 ipc.send("get-resource-path",{})
@@ -246,16 +247,17 @@ export default class FavoriteExplorer extends React.Component{
     const dbKey = path.basename(nodePath)
     console.log(dbKey)
     const ret = await getFavorites(dbKey)
-    const newChildren = ret.map(x=>{
+    const newChildren = []
+    for(let x of ret){
       return {
         name: x.title,
         url: x.url,
         path: path.join(nodePath,x.key),
-        favicon: faviconGet(x),
+        favicon: await faviconGet(x),
         type: x.is_file ? 'file' : 'directory',
         children: []
       }
-    })
+    }
     console.log(newChildren)
     return newChildren
   }

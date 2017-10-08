@@ -330,7 +330,7 @@ export default {
         if(winArg.maximize) win.maximize()
       })
     }
-    // initWindow.webContents.openDevTools()
+    initWindow.webContents.openDevTools()
     return initWindow
   },
   saveState(bw,callback){

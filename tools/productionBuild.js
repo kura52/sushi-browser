@@ -154,6 +154,9 @@ function muonModify(){
       const result = contents
         .replace('tabContents.close',"tabContents.hostWebContents.send('menu-or-key-events','closeTab',tabId)")
         .replace("evt.sender.send('chrome-tabs-create-response-' + responseId, tab.tabValue(), error)","evt.sender.send('chrome-tabs-create-response-' + responseId, tab && tab.tabValue(), error)")
+        .replace('  if (updateProperties.active || updateProperties.selected || updateProperties.highlighted) {',
+          `  if (updateProperties.active || updateProperties.selected || updateProperties.highlighted) {
+    process.emit('chrome-tabs-updated-from-extension', tabId)`)
 
       fs.writeFileSync(file,result)
 

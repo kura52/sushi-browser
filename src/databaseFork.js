@@ -107,7 +107,6 @@ ipcMain.on('db-rend',(event,datas)=>{
     if(msg.key !== datas.key) return
     event.sender.send(`db-rend_${datas.key}`,msg.result)
     const {table,prop,argumentsList} = datas
-    console.log(5555,table,prop)
     if((table == "history" || table == "favorite") && (prop == "insert" || prop == "update")){
       for(let cont of webContents.getAllWebContents()){
         if(!cont.isDestroyed() && !cont.isBackgroundPage() && cont.isGuest()) {

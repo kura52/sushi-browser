@@ -2,7 +2,7 @@ window.debug = require('debug')('info')
 // require('debug').enable("info")
 import process from './process';
 import {ipcRenderer as ipc} from 'electron'
-import localForage from "localforage";
+import localForage from "../LocalForage";
 import path from 'path';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -15,17 +15,18 @@ import l10n from '../../brave/js/l10n';
 l10n.init()
 
 let resourcePath
-let setTime = localStorage.getItem('favicon-set')
-ipc.send("favicon-get",setTime ? parseInt(setTime) : null)
-ipc.once("favicon-get-reply",(e,ret)=>{
-  localStorage.setItem('favicon-set',Date.now().toString())
-  for(let [k,v] of Object.entries(ret)){
-    localStorage.setItem(k,v)
-  }
+localForage.getItem('favicon-set').then(setTime=>{
+  ipc.send("favicon-get",setTime ? parseInt(setTime) : null)
+  ipc.once("favicon-get-reply",(e,ret)=>{
+    localForage.setItem('favicon-set',Date.now().toString())
+    for(let [k,v] of Object.entries(ret)){
+      localForage.setItem(k,v)
+    }
+  })
 })
 
-function faviconGet(h){
-  return h.favicon ? localStorage.getItem(h.favicon) || `file://${resourcePath}/file.png` : `file://${resourcePath}/file.png`
+async function faviconGet(h){
+  return h.favicon ? (await localForage.getItem(h.favicon)) || `file://${resourcePath}/file.png` : `file://${resourcePath}/file.png`
 }
 
 ipc.send("get-resource-path",{})
@@ -173,7 +174,7 @@ class TopSearch extends React.Component {
 }
 
 class HistoryList{
-  build(data) {
+  async build(data) {
     const historyList = []
     let pre = {location:false}
     let count = 0
@@ -182,7 +183,7 @@ class HistoryList{
       if(h.location.startsWith('chrome-extension')) continue
       h.updated_at = moment(h.updated_at).format("YYYY/MM/DD HH:mm:ss")
       if(h.location !== pre.location){
-        historyList.push(this.buildItem(h))
+        historyList.push(await this.buildItem(h))
         count += 1
         pre = h
       }
@@ -191,8 +192,8 @@ class HistoryList{
   }
 
 
-  buildItem(h) {
-    const favicon = faviconGet(h)
+  async buildItem(h) {
+    const favicon = await faviconGet(h)
     return <div role="listitem" className="item">
       <img src={favicon} style="width: 20px; height: 20px; float: left; margin-right: 4px; margin-top: 6px;"/>
       <div className="content">
@@ -208,12 +209,12 @@ class HistoryList{
 class TopList extends React.Component {
   constructor(props) {
     super(props)
-    this.state = {history: {freq:[],upd:[]}}
+    this.state = {rend:""}
   }
 
   componentDidMount() {
     historyReply((data)=>{
-      this.setState({history: data})
+      this._render(data)
     })
     fetchHistory({})
   }
@@ -240,30 +241,30 @@ class TopList extends React.Component {
     })
   }
 
-  render() {
+  async _render(data) {
     const result = []
     const topList = new Map()
     let pre = {location:false}
-    this.state.history.freq.forEach((h,i)=>{
-      if(h.location.startsWith('chrome-extension')) return
+    for(let h of data.freq){
+      if(h.location.startsWith('chrome-extension')) continue
       if(h.fav){
-        result.push(this.buildItem(h))
-        return
+        result.push(await this.buildItem(h))
+        continue
       }
       if(h.location === pre.location){
         if(!pre.title) pre.title = h.title
         if(!pre.favicon) pre.favicon = h.favicon
-        topList.set(h.location,[this.buildItem(h),h.count])
+        topList.set(h.location,[await this.buildItem(h),h.count])
       }
       else{
         if(topList.has(h.location)){
           const ele = topList.get(h.location)
           h.count += ele[1]
         }
-        topList.set(h.location,[this.buildItem(h),h.count])
+        topList.set(h.location,[await this.buildItem(h),h.count])
         pre = h
       }
-    })
+    }
 
     let num = result.length
     for(let val of topList.values()){
@@ -271,22 +272,26 @@ class TopList extends React.Component {
       if(++num - 18 >= 0) break
     }
 
-    const hlist= new HistoryList().build(this.state.history.upd)
+    const hlist= await (new HistoryList().build(data.upd))
 
-    return <div>
+    this.setState({rend:<div>
       <Card.Group >
-      {result}
+        {result}
         <Button circular icon='plus' onClick={this.clickButton}/>
-    </Card.Group>
+      </Card.Group>
       <div className="ui divider"/>
       <div role="list" className="ui divided relaxed list">
         {hlist}
       </div>
-    </div>
+    </div>})
   }
 
-  buildItem(h) {
-    const favicon = faviconGet(h)
+  render(){
+    return this.state.rend
+  }
+
+  async buildItem(h) {
+    const favicon = await faviconGet(h)
     return <Card color={h.fav ? 'grey' : (void 0)} key={h._id}>
       <Card.Description>
         {!h.title ? "" : <Card.Header as='a' href={h.location}><img src={favicon} style={{width: 16, height: 16, verticalAlign: "text-top"}}/>{multiByteSlice(h.title,32)} {h.count ? `(${h.count}pv)` : ''}</Card.Header>}
