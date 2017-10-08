@@ -90,11 +90,12 @@ export default class BrowserActionMenu extends Component{
       }
     }
 
-      const menuItems = []
-      menuItems.push(({label: values.default_title || values.name, click: _=>cont.hostWebContents.send('new-tab', tabId, `https://chrome.google.com/webstore/detail/${extensionId}`)}))
-      if(values.optionPage) menuItems.push(({label: 'Open Option Page' || values.name, click: _=>cont.hostWebContents.send('new-tab', tabId, `chrome-extension://${extensionId}/${values.optionPage}`)}))
-      const menu = Menu.buildFromTemplate(menuItems)
-      menu.popup(remote.getCurrentWindow())
+    const menuItems = []
+    menuItems.push(({label: values.default_title || values.name, click: _=>cont.hostWebContents.send('new-tab', tabId, `https://chrome.google.com/webstore/detail/${extensionId}`)}))
+    if(values.optionPage) menuItems.push(({label: 'Open Option Page', click: _=>cont.hostWebContents.send('new-tab', tabId, `chrome-extension://${extensionId}/${values.optionPage}`)}))
+    if(values.background) menuItems.push(({label: 'Inspect Background Page', click: _=>cont.loadURL(`chrome-extension://${extensionId}/${values.background}`)}))
+    const menu = Menu.buildFromTemplate(menuItems)
+    menu.popup(remote.getCurrentWindow())
   }
 
   render(){

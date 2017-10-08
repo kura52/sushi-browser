@@ -202,6 +202,7 @@ class BrowserNavbar extends Component{
       this.props.oppositeGlobal == nextProps.oppositeGlobal &&
       this.state.adBlockThis == nextState.adBlockThis)
     if(ret){
+      this.currentWebContents = nextProps.currentWebContents
       this.wv = nextProps.tab.wv
       this.wvId = nextProps.tab.wvId
       this.canGoBack = nextProps.page.canGoBack

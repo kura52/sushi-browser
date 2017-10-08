@@ -218,7 +218,7 @@ export default {
           r: null,
           size: "100%",
           toggleNav: setting.winState.toggleNav
-      })
+        })
       }
       else{
         mainState.winState = JSON.stringify(setting.winState)
@@ -330,7 +330,7 @@ export default {
         if(winArg.maximize) win.maximize()
       })
     }
-    initWindow.webContents.openDevTools()
+    // initWindow.webContents.openDevTools()
     return initWindow
   },
   saveState(bw,callback){

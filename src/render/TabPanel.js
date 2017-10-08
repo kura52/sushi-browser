@@ -2475,6 +2475,7 @@ export default class TabPanel extends Component {
       }
       else{
         if(_tabs.length > 1) {
+          // ipc.send('send-keys',{type:'keyDown',keyCode:'Right',modifiers: ['control','alt']})
           this.props.split(this.props.k,dirc,pos,_tabs,i)
           this.handleTabClose({}, key)
           PubSub.publish(`close_tab_${this.props.k}`,{key})
@@ -2483,6 +2484,7 @@ export default class TabPanel extends Component {
           this.props.split(this.props.k, dirc, pos * -1)
         }
       }
+      this.refs.tabs.unmountMount()
     }
 
     const splitOtherTabsFunc = (dirc,pos)=> {
@@ -3105,7 +3107,7 @@ export default class TabPanel extends Component {
               <BrowserNavbar ref={`navbar-${tab.key}`} tabkey={tab.key} k={this.props.k} navHandle={tab.navHandlers} parent={this}
                              privateMode={tab.privateMode} page={tab.page} tab={tab} richContents={tab.page.richContents}
                              oppositeGlobal={this.state.oppositeGlobal} toggleNav={toggle}
-                             historyMap={historyMap}  currentWebContents={this.props.currentWebContents}
+                             historyMap={historyMap} currentWebContents={this.props.currentWebContents}
                              isTopRight={this.props.isTopRight} isTopLeft={this.props.isTopLeft} fixedPanelOpen={this.props.fixedPanelOpen}
                              tabBar={!this.state.tabBar} hidePanel={this.props.hidePanel}
                              fullscreen={this.props.fullscreen} bind={tab.bind}/>

@@ -630,7 +630,7 @@
       this._offUpEvents();
 
       if(!activeGroup){
-        console.log(evt)
+        //debug(evt)
         return
       }
 
