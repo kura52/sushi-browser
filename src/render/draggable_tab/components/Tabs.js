@@ -92,12 +92,12 @@ class Tabs extends React.Component {
     } else if (this.props.tabs) {
       selectedTab = this.props.tabs[0].key;
     }
-    const hoveredTab = '';
+    // const hoveredTab = '';
     const closedTabs = new Set();
     const defaultState = {
       tabs,
       selectedTab,
-      hoveredTab,
+      // hoveredTab,
       closedTabs,
     };
 
@@ -237,7 +237,7 @@ class Tabs extends React.Component {
   buildRenderComponent(){
     // override inline tabs styles
     const tabInlineStyles = {};
-    tabInlineStyles.tabWrapper = StyleOverride.merge(TabStyles.tabWrapper, this.props.tabsStyles.tabWrapper);
+    tabInlineStyles.tabWrapper = TabStyles.tabWrapper //StyleOverride.merge(TabStyles.tabWrapper, this.props.tabsStyles.tabWrapper);
     tabInlineStyles.tabBar = StyleOverride.merge(TabStyles.tabBar, this.props.tabsStyles.tabBar);
     if(this.props.toggleNav == 1){
       tabInlineStyles.tabBar = StyleOverride.merge(tabInlineStyles.tabBar, {display: 'flex',position:'absolute',height: 30});
@@ -252,30 +252,30 @@ class Tabs extends React.Component {
       //     titleElements[i].style.display = "flex"
       //   }
     }
-    tabInlineStyles.tab = StyleOverride.merge(TabStyles.tab, this.props.tabsStyles.tab);
-    tabInlineStyles.tabTitle = StyleOverride.merge(TabStyles.tabTitle, this.props.tabsStyles.tabTitle);
-    tabInlineStyles.tabCloseIcon = StyleOverride.merge(TabStyles.tabCloseIcon, this.props.tabsStyles.tabCloseIcon);
-    tabInlineStyles.tabCloseIconOnHover = StyleOverride.merge(TabStyles.tabCloseIconOnHover, this.props.tabsStyles.tabCloseIconOnHover);
+    tabInlineStyles.tab = TabStyles.tab //StyleOverride.merge(TabStyles.tab, this.props.tabsStyles.tab);
+    tabInlineStyles.tabTitle = TabStyles.tabTitle //StyleOverride.merge(TabStyles.tabTitle, this.props.tabsStyles.tabTitle);
+    tabInlineStyles.tabCloseIcon = TabStyles.tabCloseIcon //StyleOverride.merge(TabStyles.tabCloseIcon, this.props.tabsStyles.tabCloseIcon);
+    tabInlineStyles.tabCloseIconOnHover = TabStyles.tabCloseIconOnHover //StyleOverride.merge(TabStyles.tabCloseIconOnHover, this.props.tabsStyles.tabCloseIconOnHover);
 
-    tabInlineStyles.tabActive = StyleOverride.merge(TabStyles.tabActive, this.props.tabsStyles.tabActive);
-    tabInlineStyles.tabTitleActive = StyleOverride.merge(TabStyles.tabTitleActive, this.props.tabsStyles.tabTitleActive);
-    tabInlineStyles.tabBeforeActive = StyleOverride.merge(TabStyles.tabBeforeActive, this.props.tabsStyles.tabBeforeActive);
+    tabInlineStyles.tabActive = TabStyles.tabActive //StyleOverride.merge(TabStyles.tabActive, this.props.tabsStyles.tabActive);
+    tabInlineStyles.tabTitleActive = TabStyles.tabTitleActive //StyleOverride.merge(TabStyles.tabTitleActive, this.props.tabsStyles.tabTitleActive);
+    tabInlineStyles.tabBeforeActive = TabStyles.tabBeforeActive //StyleOverride.merge(TabStyles.tabBeforeActive, this.props.tabsStyles.tabBeforeActive);
 
-    tabInlineStyles.tabOnHover = StyleOverride.merge(TabStyles.tabOnHover, this.props.tabsStyles.tabOnHover);
-    tabInlineStyles.tabTitleOnHover = StyleOverride.merge(TabStyles.tabTitleOnHover, this.props.tabsStyles.tabTitleOnHover);
+    tabInlineStyles.tabOnHover = TabStyles.tabOnHover //StyleOverride.merge(TabStyles.tabOnHover, this.props.tabsStyles.tabOnHover);
+    tabInlineStyles.tabTitleOnHover = TabStyles.tabTitleOnHover //StyleOverride.merge(TabStyles.tabTitleOnHover, this.props.tabsStyles.tabTitleOnHover);
 
     // append tabs classNames
     const _tabClassNames = {};
-    _tabClassNames.tabWrapper = classNames('rdTabWrapper', this.props.tabsClassNames.tabWrapper);
-    _tabClassNames.tabBar = classNames('rdTabBar', this.props.tabsClassNames.tabBar);
-    _tabClassNames.tab = classNames('rdTab', this.props.tabsClassNames.tab);
-    _tabClassNames.tabTitle = classNames('rdTabTitle', this.props.tabsClassNames.tabTitle);
-    _tabClassNames.tabBeforeTitle = classNames('rdTabBeforeTitle', this.props.tabsClassNames.tabBeforeTitle);
-    _tabClassNames.tabCloseIcon = classNames('rdTabCloseIcon', this.props.tabsClassNames.tabCloseIcon);
+    _tabClassNames.tabWrapper = `rdTabWrapper ${this.props.tabsClassNames.tabWrapper}`
+    _tabClassNames.tabBar = `rdTabBar ${this.props.tabsClassNames.tabBar}`
+    _tabClassNames.tab = `rdTab ${this.props.tabsClassNames.tab}`
+    _tabClassNames.tabTitle = `rdTabTitle ${this.props.tabsClassNames.tabTitle}`
+    _tabClassNames.tabBeforeTitle = `rdTabBeforeTitle ${this.props.tabsClassNames.tabBeforeTitle}`
+    _tabClassNames.tabCloseIcon = `rdTabCloseIcon ${this.props.tabsClassNames.tabCloseIcon}`
 
 
     let content = [];
-    let tabs = _.map(this.state.tabs, (tab,tabNum) => {
+    let tabs = this.state.tabs.map((tab,tabNum) => {
       if (this.state.closedTabs.has(tab.key)) {
         return '';
       }
@@ -299,33 +299,33 @@ class Tabs extends React.Component {
       const beforeTitle = <img className='favi' src={page.title && page.favicon !== 'loading' ? page.favicon : 'resource/l.svg'} onError={(e)=>{e.target.src = 'resource/file.png'}}/>
       const title = page.favicon !== 'loading' || page.titleSet  || page.location == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? page.title : page.location
 
-      containerStyle = containerStyle || {}
-      tabStyles = tabStyles || {}
+      // containerStyle = containerStyle || {}
+      // tabStyles = tabStyles || {}
       tabClassNames = tabClassNames || {}
       // containerStyle.height = `calc(100% - ${this.props.toggleNav == 0 ? 27 : this.props.toggleNav == 1 ? 1 : 0}px)`
       containerStyle.height = `calc(100% - ${this.props.toggleNav == 0 ? 27 : 0}px)`
 
       // override inline each tab styles
-      let tabStyle = StyleOverride.merge(tabInlineStyles.tab, tabStyles.tab);
-      let tabTiteleStyle = StyleOverride.merge(tabInlineStyles.tabTitle, tabStyles.tabTitle);
-      const tabCloseIconStyle = StyleOverride.merge(tabInlineStyles.tabCloseIcon, tabStyles.tabCloseIcon);
+      let tabStyle = tabInlineStyles.tab //StyleOverride.merge(tabInlineStyles.tab, tabStyles.tab);
+      let tabTiteleStyle = tabInlineStyles.tabTitle //StyleOverride.merge(tabInlineStyles.tabTitle, tabStyles.tabTitle);
+      const tabCloseIconStyle = tabInlineStyles.tabCloseIcon //StyleOverride.merge(tabInlineStyles.tabCloseIcon, tabStyles.tabCloseIcon);
 
-      let tabClasses = classNames(_tabClassNames.tab, tabClassNames.tab);
-      let tabTitleClasses = classNames(_tabClassNames.tabTitle, tabClassNames.tabTitle);
-      let tabBeforeTitleClasses = classNames(_tabClassNames.tabBeforeTitle, tabClassNames.tabBeforeTitle);
-      const tabCloseIconClasses = classNames(_tabClassNames.tabCloseIcon, tabClassNames.tabCloseIcon);
+      let tabClasses = `${_tabClassNames.tab} ${tabClassNames.tab}`
+      let tabTitleClasses = `${_tabClassNames.tabTitle} ${tabClassNames.tabTitle}`
+      let tabBeforeTitleClasses = `${_tabClassNames.tabBeforeTitle} ${tabClassNames.tabBeforeTitle}`
+      const tabCloseIconClasses = `${_tabClassNames.tabCloseIcon} ${tabClassNames.tabCloseIcon}`
 
       if (this.state.selectedTab === tab.key) {
-        tabStyle = StyleOverride.merge(StyleOverride.merge(tabInlineStyles.tab, tabInlineStyles.tabActive), tabStyles.tabActive);
-        tabTiteleStyle = StyleOverride.merge(StyleOverride.merge(tabInlineStyles.tabTitle, tabInlineStyles.tabTitleActive), tabStyles.tabTitleActive);
+        tabStyle = StyleOverride.merge(tabInlineStyles.tab, tabInlineStyles.tabActive) //StyleOverride.merge(StyleOverride.merge(tabInlineStyles.tab, tabInlineStyles.tabActive), tabStyles.tabActive);
+        tabTiteleStyle = StyleOverride.merge(tabInlineStyles.tabTitle, tabInlineStyles.tabTitleActive) //StyleOverride.merge(StyleOverride.merge(tabInlineStyles.tabTitle, tabInlineStyles.tabTitleActive), tabStyles.tabTitleActive);
         tabClasses = classNames(tabClasses, 'rdTabActive', this.props.tabsClassNames.tabActive, tabClassNames.tabActive);
         content.push(<TabContainer key={`tabContainer#${tab.key}`} selected={true} style={containerStyle}>{tab}</TabContainer>);
       } else {
-        if (this.state.hoveredTab === tab.key) {
-          tabStyle = StyleOverride.merge(StyleOverride.merge(tabStyle, tabInlineStyles.tabOnHover), tabStyles.tabOnHover);
-          tabTiteleStyle = StyleOverride.merge(StyleOverride.merge(tabTiteleStyle, tabInlineStyles.tabTitleOnHover), tabStyles.tabTitleOnHover);
-          tabClasses = classNames(tabClasses, 'rdTabHover', this.props.tabsClassNames.tabHover, tabClassNames.tabHover);
-        }
+        // if (this.state.hoveredTab === tab.key) {
+        //   tabStyle = StyleOverride.merge(StyleOverride.merge(tabStyle, tabInlineStyles.tabOnHover), tabStyles.tabOnHover);
+        //   tabTiteleStyle = StyleOverride.merge(StyleOverride.merge(tabTiteleStyle, tabInlineStyles.tabTitleOnHover), tabStyles.tabTitleOnHover);
+        //   tabClasses = classNames(tabClasses, 'rdTabHover', this.props.tabsClassNames.tabHover, tabClassNames.tabHover);
+        // }
         content.push(
           <TabContainer key={`tabContainer#${tab.key}`} selected={false} style={containerStyle} hiddenStyle={hiddenContainerStyle}>{tab}</TabContainer>);
       }
@@ -343,7 +343,7 @@ class Tabs extends React.Component {
         }
       }
       if(tab.props.selection){
-        tabClasses = classNames(tabClasses,'chrome-tab-selection')
+        tabClasses = `${tabClasses} chrome-tab-selection`
       }
       // if(this.props.toggleNav == 1){
       //   tabStyle.marginTop = 3
@@ -380,12 +380,12 @@ class Tabs extends React.Component {
               if(this.enableMulti) this.props.multiSelectionClick(...this.enableMulti)
             },100)}
           // onContextMenu={this.handleContextMenu.bind(this, tab.key)}
-            onMouseOver={()=>{
-              if(this.state.hoveredTab != tab.key){
-                this.setState({hoveredTab:tab.key})
-              }
-            }}
-            onMouseOut={()=>this.setState({hoveredTab:undefined})}
+          //   onMouseOver={()=>{
+          //     if(this.state.hoveredTab != tab.key){
+          //       this.setState({hoveredTab:tab.key})
+          //     }
+          //   }}
+          //   onMouseOut={()=>this.setState({hoveredTab:undefined})}
             ref={tab.key}
             {...others}>
           <div className="chrome-tab-background">

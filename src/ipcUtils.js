@@ -234,8 +234,7 @@ ipcMain.on('open-favorite',async (event,key,dbKeys,tabId,type)=>{
   else{
     const win = BrowserWindow.fromWebContents(host)
     ipcMain.once('get-private-reply',(e,privateMode)=>{
-      console.log(67866,JSON.stringify({urls:list.map(url=>{return {url}}),
-        type: type == 'openInNewWindow' ? 'new-win' : type == 'openInNewWindowWithOneRow' ? 'one-row' : 'two-row'}))
+      console.log(67866,JSON.stringify({urls:list.map(url=>{return {url}}), type: type == 'openInNewWindow' ? 'new-win' : type == 'openInNewWindowWithOneRow' ? 'one-row' : 'two-row'}))
       BrowserWindowPlus.load({id:win.id,sameSize:true,tabParam:JSON.stringify({urls:list.map(url=>{return {url}}),
         type: type == 'openInNewWindow' ? 'new-win' : type == 'openInNewWindowWithOneRow' ? 'one-row' : 'two-row'})})
     })
@@ -853,9 +852,12 @@ PubSub.subscribe("web-contents-created",(msg,[tabId,sender])=>{
 
 })
 
-ipcMain.on('get-sync-cont-history',(e,tabId)=>{
+ipcMain.on('get-cont-history',(e,tabId)=>{
   const cont = webContents.fromTabID(tabId)
-  if(!cont) e.returnValue = []
+  if(!cont){
+    e.sender.send(`get-cont-history-reply_${tabId}`)
+    return
+  }
   const historyList = []
   let histNum,currentIndex
   if(cont){
@@ -865,10 +867,14 @@ ipcMain.on('get-sync-cont-history',(e,tabId)=>{
       historyList.push(cont.getURLAtIndex(i))
     }
   }
-  e.returnValue = [histNum,currentIndex,historyList]
+  e.sender.send(`get-cont-history-reply_${tabId}`,currentIndex,historyList,mainState.disableExtensions,mainState.adBlockEnable,mainState.pdfMode)
 })
 ipcMain.on('get-session-sequence',e=> {
   e.returnValue = seq()
+})
+
+ipcMain.on('menu-or-key-events-main',(e,msg,tabId)=>{
+  e.sender.send('menu-or-key-events',msg,tabId)
 })
 
 // async function recurSelect(keys){

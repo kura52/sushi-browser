@@ -28,6 +28,7 @@ const TabStyles = {
     overflowX: 'hidden',
     // paddingRight: '35px',
     height: "27px",
+    padding: 0,
     // zIndex: 10,
     // '-webkit-app-region': 'drag'
   },

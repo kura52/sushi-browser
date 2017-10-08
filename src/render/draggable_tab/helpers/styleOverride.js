@@ -1,6 +1,5 @@
-import Immutable from 'immutable';
 
-const merge = (original, override) => Immutable.Map(original).merge(override).toObject();
+const merge = (original, override) => Object.assign({}, original, override);
 
 export default {
   merge,

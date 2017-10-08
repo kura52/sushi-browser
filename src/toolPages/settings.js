@@ -672,12 +672,6 @@ class ExtensionSetting extends React.Component {
     return ret
   }
 
-  convertDesc(desc){
-    if(desc == '__MSG_extDescriptionGoogleChrome__'){
-      return l10n.translation('saveToPocketDesc')
-    }
-    return desc
-  }
 
   buildSearchEngineColumn(i,id,v){
     console.log(id,v)
@@ -685,7 +679,7 @@ class ExtensionSetting extends React.Component {
     return <tr key={`tr${i}`}>
       <td key={`icon${i}`}><img style={{width:32,height:32,margin:'auto'}} src={`file://${v.basePath}/${icon}`}/></td>
       <td key={`name${i}`}><a target="_blank" href={`https://chrome.google.com/webstore/detail/${id}`}>{v.name}</a></td>
-      <td key={`description${i}`} >{this.convertDesc(v.description)}</td>
+      <td key={`description${i}`} >{v.description}</td>
       <td key={`version${i}`} style={{width: 40}}>{v.version}</td>
       <td key={`option${i}`} style={{fontSize: 20,textAlign: 'center'}}>
         {v.enabled ? <a href="#" onClick={_=> ipc.sendToHost("open-tab", `chrome-extension://${id}/${v.optionPage}`, true)}>

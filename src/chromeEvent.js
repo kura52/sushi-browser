@@ -48,7 +48,7 @@ process.on('chrome-tabs-updated-from-extension', (tabId) => {
 
 
 process.on('chrome-tabs-removed', (tabId) => {
-  rlog('chrome-tabs-removed', tabId)
+  console.log('chrome-tabs-removed', tabId)
   const wins = BrowserWindow.getAllWindows()
   if(!wins) return
 

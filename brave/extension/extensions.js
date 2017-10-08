@@ -4,6 +4,7 @@ const fs = require('fs-extra')
 const path = require('path')
 const chromeExtensionPath = require('../../lib/extension/chromeExtensionPath')
 const {BrowserWindow,componentUpdater,app} = require('electron')
+const extInfos = require('../../lib/extensionInfos')
 // Takes Content Security Policy flags, for example { 'default-src': '*' }
 // Returns a CSP string, for example 'default-src: *;'
 let concatCSP = (cspDirectives) => {
@@ -69,7 +70,7 @@ module.exports.init = (verChange) => {
     // }
   })
 
-  const search = function(obj,messages){
+  function search(obj,messages){
     if(Array.isArray(obj)){
       let i = 0
       for(let v of obj){
@@ -99,9 +100,9 @@ module.exports.init = (verChange) => {
       }
     }
   }
-  process.on('extension-ready', (installInfo) => {
-    require('../../lib/extensionInfos').setInfo(installInfo)
-    const extensionId = installInfo.id
+
+  function transInfos(installInfo){
+    const extensionId = installInfo.id == "knpaeefkaliajllakodljclcnbeplbke" ? 'aapbdbdomjkkjkaonfhkkikfgjllcleb' : installInfo.id
     const locale = app.getLocale().replace('-', "_")
     console.log(extensionId)
     const [appId, basePath] = getPath(extensionId)
@@ -120,6 +121,11 @@ module.exports.init = (verChange) => {
     }
     const messages = JSON.parse(fs.readFileSync(localePath))
     search(installInfo,messages)
+  }
+
+  process.on('extension-ready', (installInfo) => {
+    extInfos.setInfo(installInfo)
+    transInfos(installInfo)
     // extensionInfo.setState(installInfo.id, extensionStates.ENABLED)
     // extensionInfo.setInstallInfo(installInfo.id, installInfo)
     // installInfo.filePath = installInfo.base_path
@@ -131,9 +137,20 @@ module.exports.init = (verChange) => {
   let loadExtension = (ses,extensionId, extensionPath, manifest = {}, manifestLocation = 'unpacked') => {
     if(!extensionPath) return
     extensionPath = extensionPath.replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
-    console.log(path.join(extensionPath, 'manifest.json'))
-    fs.exists(path.join(extensionPath, 'manifest.json'), (exists) => {
+    const manifestPath = path.join(extensionPath, 'manifest.json')
+    fs.exists(manifestPath, (exists) => {
       if (exists) {
+        // if(extInfos[extensionId]) return
+        // try{
+        //   const mani = JSON.parse(fs.readFileSync(manifestPath).toString())
+        //   console.log(mani)
+        //   mani.id = extensionId
+        //   transInfos(mani)
+        //   extInfos.setInfo(mani)
+        //   console.log(mani)
+        // }catch(e){
+        //   console.log(e)
+        // }
         ses.extensions.load(extensionPath, manifest, manifestLocation)
       } else {
         // This is an error condition, but we can recover.

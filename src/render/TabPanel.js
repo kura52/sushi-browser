@@ -186,7 +186,7 @@ const tabsClassNames = {
 
 const tabsStyles = {
   tabWrapper: {},
-  tabBar: {padding: 0},
+  tabBar: {},
   tab:{},
   tabTitle: {},
   tabCloseIcon: {},
@@ -1131,7 +1131,7 @@ export default class TabPanel extends Component {
 
   setStatePartical(tab){
     const page = tab.page
-    const t = this.refs.tabs.refs[tab.key]
+    const t = this.refs.tabs && this.refs.tabs.refs[tab.key]
     if (t){
       const p = t.querySelector('p')
       const title = `${page.favicon !== 'loading' || page.titleSet || page.location == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? page.title : page.location} `
@@ -1361,7 +1361,14 @@ export default class TabPanel extends Component {
         const dirc = n == "Left" || n == "Right" ? 'v' : 'h'
         const pos = n == "Left" || n == "Top" ? -1 : 1
         const i = tabs.findIndex(t=>tab.key == t.key)
-        this.props.split(this.props.k,dirc,pos,tabs,i)
+        if(tabs.length > 1){
+          this.props.split(this.props.k,dirc,pos,tabs,i)
+          this.handleTabClose({}, tab.key)
+          PubSub.publish(`close_tab_${this.props.k}`,{key:tab.key})
+        }
+        else{
+          this.props.split(this.props.k, dirc, pos * -1)
+        }
       }
       else if(name == 'swapPosition'){
         PubSub.publish(`swap-position_${this.props.k}`)
@@ -1602,7 +1609,8 @@ export default class TabPanel extends Component {
       canGoForward: false,
       canRefresh: false,
       favicon: 'loading',
-      richContents: []
+      richContents: [],
+      createdAt: Date.now()
     }
   }
 
@@ -1652,7 +1660,7 @@ export default class TabPanel extends Component {
     if(c_wv) this.registWebView(tab, c_wv)
 
     tab.events['create-web-contents'] = (e,{id,targetUrl,disposition,guestInstanceId})=>{
-      console.log('0create-web-contents',tab,this)
+      console.log('0create-web-contents',id,targetUrl,disposition,guestInstanceId,tab,this)
       if (!this.mounted )
         return
 
@@ -1662,6 +1670,10 @@ export default class TabPanel extends Component {
       console.log('create-web-contents',tab,this)
 
       const url = targetUrl
+
+      if(url === void 0 && tab.privateMode && Date.now() - tab.page.createdAt < 3000 && this.state.tabs.filter(t=>t.privateMode === tab.privateMode).length == 1){
+        return
+      }
 
       const opposite = (tab.oppositeMode && !global.middleButtonLongPressing) || (!tab.oppositeMode && global.middleButtonLongPressing)
 
@@ -1823,12 +1835,12 @@ export default class TabPanel extends Component {
   closeSyncTabs(key){
     if(this.mounted === false) return
     const tab = this.state.tabs.find(x => x.key == key)
-    console.log('closeSyncTab',tab)
     if(!tab || !tab.sync) return
+    console.log('closeSyncTab',tab)
     PubSub.publish('close-sync-tabs',{k:this.props.k,sync:tab.sync})
   }
 
-  TabPanelClose(key){
+  TabPanelClose(key,time){
     console.log('TabPanelClose')
     for(let tab of this.state.tabs){
       this._closeBind(tab)
@@ -1836,11 +1848,17 @@ export default class TabPanel extends Component {
 
     key = key || this.state.selectedTab
     this.closeSyncTabs(key)
-    const tab = this.state.tabs.find(x => x.key == key)
+    // const tab = this.state.tabs.find(x => x.key == key)
     // if(tab) ipc.send('chrome-tab-removed',parseInt(tab.key))
 
     this.mounted = false
-    PubSub.publish('tab-close', {key: this.props.k})
+    if(time){
+      setTimeout(_=>PubSub.publish('tab-close', {key: this.props.k}),time)
+    }
+    else{
+      PubSub.publish('tab-close', {key: this.props.k})
+    }
+
     this.state.tabs.forEach(tab=>{
       removeEvents(ipc,tab.events)
     })
@@ -2151,10 +2169,12 @@ export default class TabPanel extends Component {
   handleCloseRemoveOtherContainer(e,currentTabs) {
     const tab = this.state.tabs[e.oldIndex]
 
+    console.log('handleCloseRemoveOtherContainer')
     this._closeBind(tab)
     if(currentTabs.length==0){
+      console.log('handleCloseRemoveOtherContainer0')
       this.props.close(this.props.k)
-      this.TabPanelClose(tab.key)
+      this.TabPanelClose(tab.key,1000)
     }
     else{
       if(tab.events) removeEvents(ipc,tab.events)
@@ -2237,18 +2257,18 @@ export default class TabPanel extends Component {
       const cont = this.getWebContents(this.state.tabs[i])
       const list = []
       let histNum, currentIndex
-      if (cont && !cont.isDestroyed()) {
-        // currentIndex = cont.getCurrentEntryIndex()
-        // for(let i=0;i<histNum;i++){
-        //   list.push(cont.getURLAtIndex(i))
-        // }
-        currentIndex = 0
-        list.push(this.state.tabs[i].page.navUrl)
-      }
-      else {
-        currentIndex = 0
-        list.push(this.state.tabs[i].page.navUrl)
-      }
+      // if (cont && !cont.isDestroyed()) {
+      //   // currentIndex = cont.getCurrentEntryIndex()
+      //   // for(let i=0;i<histNum;i++){
+      //   //   list.push(cont.getURLAtIndex(i))
+      //   // }
+      //   currentIndex = 0
+      //   list.push(this.state.tabs[i].page.navUrl)
+      // }
+      // else {
+      currentIndex = 0
+      list.push(this.state.tabs[i].page.navUrl)
+      // }
       const history = {list, currentIndex}
       this.state.history.push(history)
     }
@@ -2428,7 +2448,7 @@ export default class TabPanel extends Component {
     var menuItems = []
     // menuItems.push(({ label: 'New Tab', click: ()=>document.querySelector(".rdTabAddButton").click()}))
     menuItems.push(({ label: locale.translation('newTab'), click: ()=>this.createNewTab(_tabs, i)}))
-    menuItems.push(({ label: locale.translation('newPrivateTab'), click: ()=>this.createNewTab(_tabs, i,{default_url:topURL,privateMode:Math.random().toString()})}))
+    menuItems.push(({ label: locale.translation('newPrivateTab'), click: ()=>this.createNewTab(_tabs, i,{default_url:"",privateMode:Math.random().toString()})}))
     menuItems.push(({ label: locale.translation('newSessionTab'), click: ()=>this.createNewTab(_tabs, i,{default_url:topURL,privateMode:`persist:${ipc.sendSync('get-session-sequence')}`})}))
     menuItems.push(({ type: 'separator' }))
 
@@ -2706,7 +2726,7 @@ export default class TabPanel extends Component {
     }
     if(!tabSync || (tabSyncReplace && !replaceInfo)||(!tabSyncReplace && replaceInfo)){
       const cont = this.getWebContents(tab)
-      const val = {url:tab.page.navUrl,sync:uuid.v4(), id:tab.wvId,replaceInfo,mobile: tab.mobile, adBlockThis: tab.adBlockThis}
+      const val = {url:tab.page.navUrl,sync:uuid.v4(), id:tab.wvId,replaceInfo,mobile: tab.mobile, adBlockThis: tab.adBlockThis, privateMode: tab.privateMode}
       if(replaceInfo){
         val.dirc = this.props.getKeyPosition(this.props.k).dirc == 'l' ? 1 : -1
       }
@@ -3056,7 +3076,7 @@ export default class TabPanel extends Component {
     return (
       <Tabs
         tabsClassNames={tabsClassNames}
-        tabsStyles={tabsStyles}
+        // tabsStyles={tabsStyles}
         selectedTab={this.state.selectedTab}
         onTabSelect={this.handleTabSelect}
         onClose={this.handleCloseRemoveOtherContainer}
@@ -3082,10 +3102,12 @@ export default class TabPanel extends Component {
         tabs={this.state.tabs.map((tab,num)=>{
           return (<Tab key={tab.key} page={tab.page} orgTab={tab} pin={tab.pin} privateMode={tab.privateMode} selection={tab.selection}>
             <div style={{height: '100%'}} className="div-back" ref={`div-${tab.key}`} >
-              <BrowserNavbar ref={`navbar-${tab.key}`} tabkey={tab.key} k={this.props.k} navHandle={tab.navHandlers} parent={this} privateMode={tab.privateMode} page={tab.page} tab={tab}
-                             richContents={tab.page.richContents} wv={tab.wv} sync={tab.sync} replaceInfo={tab.syncReplace} oppositeMode={tab.oppositeMode} oppositeGlobal={this.state.oppositeGlobal} toggleNav={toggle}
+              <BrowserNavbar ref={`navbar-${tab.key}`} tabkey={tab.key} k={this.props.k} navHandle={tab.navHandlers} parent={this}
+                             privateMode={tab.privateMode} page={tab.page} tab={tab} richContents={tab.page.richContents}
+                             oppositeGlobal={this.state.oppositeGlobal} toggleNav={toggle}
                              historyMap={historyMap}  currentWebContents={this.props.currentWebContents}
-                             isTopRight={this.props.isTopRight} isTopLeft={this.props.isTopLeft} fixedPanelOpen={this.props.fixedPanelOpen} tabBar={!this.state.tabBar} hidePanel={this.props.hidePanel}
+                             isTopRight={this.props.isTopRight} isTopLeft={this.props.isTopLeft} fixedPanelOpen={this.props.fixedPanelOpen}
+                             tabBar={!this.state.tabBar} hidePanel={this.props.hidePanel}
                              fullscreen={this.props.fullscreen} bind={tab.bind}/>
               {num == 0 ? this.state.notifications.map((data,i)=>{
                 if(data.needInput){

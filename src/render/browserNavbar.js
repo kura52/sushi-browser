@@ -52,6 +52,14 @@ function isFloatPanel(key){
   return key.startsWith('fixed-float')
 }
 
+function equalArray(a,b){
+  const len = a.length
+  if(len != b.length) return false
+  for(let i=0;i<len;i++){
+    if(a[i] !== b[i]) return false
+  }
+  return true
+}
 
 const tabs = new Set()
 
@@ -64,18 +72,21 @@ let alwaysOnTop = [mainState.alwaysOnTop]
 class BrowserNavbar extends Component{
   constructor(props) {
     super(props)
-    this.state = {userAgentBefore: MOBILE_USERAGENT,adBlockGlobal:mainState.adBlockEnable,pdfMode:mainState.pdfMode,adBlockThis:true}
+    this.state = {userAgentBefore: MOBILE_USERAGENT,adBlockGlobal:true,
+      pdfMode:'normal',adBlockThis:true,currentIndex:0,historyList:[],disableExtensions:[]}
     this.canGoBack = this.props.page.canGoBack
     this.canGoForward = this.props.page.canGoForward
     this.canRefresh = this.props.page.canRefresh
     this.location = this.props.page.location
     this.richContents = this.props.richContents
-    this.sync = this.props.sync
+    this.sync = this.props.tab.sync
   }
   componentDidMount() {
+    this.componentDidUpdate()
+
     this.tokenZoom = PubSub.subscribe(`zoom_${this.props.tabkey}`,(msg,percent)=>{
       this.setState({zoom:percent})
-      if(this.props.sync) this.props.parent.syncZoom(percent,this.props.sync)
+      if(this.props.tab.sync) this.props.parent.syncZoom(percent,this.props.tab.sync)
     })
     this.tokenReplaceInfo = PubSub.subscribe(`update-replace-info_${this.props.tabkey}`,(msg,replaceInfo)=>{
       this.refs.syncReplace.setVals(replaceInfo)
@@ -121,7 +132,7 @@ class BrowserNavbar extends Component{
         const tabId = this.props.tab.wvId
         if(!tabs.has(tabId)){
           ipc.send('user-agent-change',{tabId,ua:this.state.userAgent})
-          this.props.wv.reload()
+          this.getWebContents(this.props.tab).reload()
         }
       },500)
     }
@@ -131,12 +142,10 @@ class BrowserNavbar extends Component{
         this.setState({adBlockThis: this.props.tab.adBlockThis})
         if(!tabs.has(tabId)){
           // ipc.send('set-adblock-enable',{tabId:this.props.tab.wvId,global:false})
-          this.props.wv.reload()
+          this.getWebContents(this.props.tab).reload()
         }
       },500)
     }
-
-
   }
 
   componentWillUnmount() {
@@ -156,7 +165,7 @@ class BrowserNavbar extends Component{
     }
     // console.log("should")
     // let currentIndex
-    // const cont = nextProps.wv && this.getWebContents(nextProps.tab)
+    // const cont = nextProps.tab.wv && this.getWebContents(nextProps.tab)
     // if (cont) {
     //   if(cont.isDestroyed()){
     //     return false
@@ -168,16 +177,22 @@ class BrowserNavbar extends Component{
       this.canRefresh === nextProps.page.canRefresh &&
       this.location === nextProps.page.location &&
       this.navUrl === nextProps.page.navUrl &&
+      this.wv === nextProps.tab.wv &&
+      this.wvId === nextProps.tab.wvId &&
       this.props.toggleNav === nextProps.toggleNav &&
       this.props.isTopRight === nextProps.isTopRight &&
       this.props.isTopLeft === nextProps.isTopLeft &&
       this.props.fullscreen === nextProps.fullscreen &&
       (this.richContents||[]).length === (nextProps.richContents||[]).length &&
       (this.caches||[]).length === (nextState.caches||[]).length &&
+      this.state.currentIndex === nextState.currentIndex &&
+      equalArray(this.state.historyList,nextState.historyList) &&
+      equalArray(this.state.disableExtensions,nextState.disableExtensions) &&
       this.state.zoom === nextState.zoom &&
       this.state.vpnList === nextState.vpnList &&
-      this.props.sync === nextProps.sync &&
-      this.props.oppositeMode === nextProps.oppositeMode &&
+      this.sync === nextProps.tab.sync &&
+      this.syncReplace === nextProps.tab.syncReplace &&
+      this.oppositeMode === nextProps.tab.oppositeMode &&
       this.currentIndex == nextProps.page.entryIndex &&
       this.props.bind == nextProps.bind &&
       this.state.mobile == nextState.mobile &&
@@ -187,6 +202,8 @@ class BrowserNavbar extends Component{
       this.props.oppositeGlobal == nextProps.oppositeGlobal &&
       this.state.adBlockThis == nextState.adBlockThis)
     if(ret){
+      this.wv = nextProps.tab.wv
+      this.wvId = nextProps.tab.wvId
       this.canGoBack = nextProps.page.canGoBack
       this.canGoForward = nextProps.page.canGoForward
       this.canRefresh = nextProps.page.canRefresh
@@ -195,8 +212,18 @@ class BrowserNavbar extends Component{
       this.richContents = (nextProps.richContents||[]).slice(0)
       this.caches = nextState.caches
       this.currentIndex = nextProps.page.entryIndex
+      this.sync = nextProps.tab.sync
+      this.syncReplace = nextProps.tab.syncReplace
+      this.oppositeMode = nextProps.tab.oppositeMode
     }
     return ret
+  }
+  componentDidUpdate(prevProps, prevState) {
+    ipc.once(`get-cont-history-reply_${this.props.tab.wvId}`,(e,currentIndex,historyList,disableExtensions,adBlockGlobal,pdfMode)=>{
+      if(currentIndex === (void 0)) return
+      this.setState({currentIndex,historyList,disableExtensions,adBlockGlobal,pdfMode})
+    })
+    ipc.send('get-cont-history',this.props.tab.wvId)
   }
 
   onZoomOut(){
@@ -205,7 +232,7 @@ class BrowserNavbar extends Component{
       webContents.zoomOut()
       const percent = webContents.getZoomPercent()
       this.setState({zoom:percent})
-      if(this.props.sync) this.props.parent.syncZoom(percent,this.props.sync)
+      if(this.props.tab.sync) this.props.parent.syncZoom(percent,this.props.tab.sync)
     }
   }
   onZoomIn(){
@@ -214,14 +241,14 @@ class BrowserNavbar extends Component{
       webContents.zoomIn()
       const percent = webContents.getZoomPercent()
       this.setState({zoom:percent})
-      if(this.props.sync) this.props.parent.syncZoom(percent,this.props.sync)
+      if(this.props.tab.sync) this.props.parent.syncZoom(percent,this.props.tab.sync)
     }
   }
   noZoom(){
     const webContents = this.getWebContents(this.props.tab)
     if(webContents) webContents.zoomReset()
     this.setState({zoom:100})
-    if(this.props.sync) this.props.parent.syncZoom(100,this.props.sync)
+    if(this.props.tab.sync) this.props.parent.syncZoom(100,this.props.tab.sync)
   }
 
   onCommon(str){
@@ -298,7 +325,7 @@ class BrowserNavbar extends Component{
     ipc.send('user-agent-change',{tabId:this.props.tab.wvId,ua:this.state.userAgent})
     this.props.tab.mobile = !this.state.mobile
     this.setState({mobile: !this.state.mobile})
-    this.props.wv.reload()
+    this.getWebContents(this.props.tab).reload()
   }
 
   handleAdBlockGlobal(){
@@ -343,7 +370,7 @@ class BrowserNavbar extends Component{
 
   browserAction(cont){
     const ret = []
-    const dis = ['dckpbojndfoinamcdamhkjhnjnmjkfjd','jdbefljfgobbmcidnmpjamcbhnbphjnb',...mainState.disableExtensions]
+    const dis = ['dckpbojndfoinamcdamhkjhnjnmjkfjd','jdbefljfgobbmcidnmpjamcbhnbphjnb',...this.state.disableExtensions]
     for(let [id,values] of browserActionMap) {
       if(dis.includes(id)) continue
       ret.push(<BrowserActionMenu key={id} id={id} values={values} cont={cont} parent={this}/>)
@@ -444,7 +471,6 @@ class BrowserNavbar extends Component{
 
   mainMenu(cont,tab){
     const hostname = this.props.page.navUrl ? urlParse(this.props.page.navUrl).hostname : ""
-    const {downloadNum} = mainState
     return <NavbarMenu k={this.props.k} isFloat={isFloatPanel(this.props.k)} style={{overflowX: 'visible'}}
                        title={locale.translation('settings')} icon="bars" tab={tab.bind && tab}
                        onClick={_=>{
@@ -612,9 +638,8 @@ class BrowserNavbar extends Component{
     const rich = [...map.values()]
 
     // const cacheItems = this.getCacheMediaItems()
-    const cont = this.props.wv ? this.getWebContents(this.props.tab) : undefined
+    const cont = this.getWebContents(this.props.tab)
 
-    const [histNum,currentIndex,historyList] = ipc.sendSync('get-sync-cont-history',this.props.tab.wvId)
 
     const navbarStyle = this.props.toggleNav == 2 ? {visibility: "hidden"} : this.props.toggleNav == 3 ? {zIndex: 2, position: "sticky", top: 27} : {}
     // this.props.toggleNav == 1 ? {width : this.props.isTopRight ? '55%' : '50%',float: 'right'} : {}
@@ -627,21 +652,21 @@ class BrowserNavbar extends Component{
       {isDarwin && this.props.isTopRight && this.props.toggleNav == 1 ? <div style={{width: this.props.fullscreen ? 0 : 62}}/>  : null }
 
       <NavbarMenu k={this.props.k} mouseOver={true} isFloat={isFloatPanel(this.props.k)} className={`back-next ${this.props.page.canGoBack ? "" : " disabled"}`} title={locale.translation('back')} icon="angle-left fa-lg" onClick={e=>{this.props.navHandle.onClickBack(e);this.forceUpdates=true}}>
-        {(cont ? historyList.slice(0,currentIndex).reverse().map(
-          (x,i)=><NavbarMenuItem key={i} text={this.getTitle(x,this.props.historyMap)} onClick={()=>{this.props.navHandle.onClickIndex(currentIndex -i -1);this.forceUpdates=true}}/>) : "")}
+        {(cont ? this.state.historyList.slice(0,this.state.currentIndex).reverse().map(
+          (x,i)=><NavbarMenuItem key={i} text={this.getTitle(x,this.props.historyMap)} onClick={()=>{this.props.navHandle.onClickIndex(this.state.currentIndex -i -1);this.forceUpdates=true}}/>) : "")}
       </NavbarMenu>
 
 
       <NavbarMenu k={this.props.k} mouseOver={true} isFloat={isFloatPanel(this.props.k)} className={`back-next ${this.props.page.canGoForward ? "" : " disabled"}`} title={locale.translation('forward')} icon="angle-right fa-lg" onClick={e=>{this.props.navHandle.onClickForward(e);this.forceUpdates=true}} >
-        {(cont ? historyList.slice(currentIndex+1).map(
-          (x,i)=><NavbarMenuItem key={i} text={this.getTitle(x,this.props.historyMap)} onClick={()=>{this.props.navHandle.onClickIndex(currentIndex +i +1);this.forceUpdates=true}}/>) : "")}
+        {(cont ? this.state.historyList.slice(this.state.currentIndex+1).map(
+          (x,i)=><NavbarMenuItem key={i} text={this.getTitle(x,this.props.historyMap)} onClick={()=>{this.props.navHandle.onClickIndex(this.state.currentIndex +i +1);this.forceUpdates=true}}/>) : "")}
       </NavbarMenu>
 
 
       <BrowserNavbarBtn title={locale.translation('reload')} icon="repeat" onClick={this.props.navHandle.onClickRefresh} disabled={!this.props.page.canRefresh} />
 
       <div className="input-group">
-        <BrowserNavbarLocation ref="loc" wv={this.props.wv} navbar={this} onEnterLocation={this.props.navHandle.onEnterLocation} onChangeLocation={this.props.navHandle.onChangeLocation}
+        <BrowserNavbarLocation ref="loc" wv={this.props.tab.wv} navbar={this} onEnterLocation={this.props.navHandle.onEnterLocation} onChangeLocation={this.props.navHandle.onChangeLocation}
                                k ={this.props.k} onContextMenu={this.props.navHandle.onLocationContextMenu} tab={this.props.tab} page={this.props.page} privateMode={this.props.privateMode} search={this.props.parent.search}/>
       </div>
 
@@ -656,12 +681,12 @@ class BrowserNavbar extends Component{
                win.maximize()
              }
            }: null}></div>
-      {isFixed ? null : <SyncReplace ref="syncReplace" changeSyncMode={this.props.parent.changeSyncMode} replaceInfo={this.props.replaceInfo} updateReplaceInfo={this.props.parent.updateReplaceInfo}/>}
-      {isFixed ? null : <BrowserNavbarBtn title="Switch Sync Scroll" icon="circle-o" sync={this.props.sync && !this.props.replaceInfo}
+      {isFixed ? null : <SyncReplace ref="syncReplace" changeSyncMode={this.props.parent.changeSyncMode} replaceInfo={this.props.tab.syncReplace} updateReplaceInfo={this.props.parent.updateReplaceInfo}/>}
+      {isFixed ? null : <BrowserNavbarBtn title="Switch Sync Scroll" icon="circle-o" sync={this.props.tab.sync && !this.props.tab.syncReplace}
                                           onClick={()=>{this.props.parent.changeSyncMode();this.refs.syncReplace.clearAllCheck()}}/>}
-      {isFixed || !this.props.sync || this.props.replaceInfo || !this.props.isTopLeft ? null : <FloatSyncScrollButton toggleNav={this.props.toggleNav} scrollPage={this.props.parent.scrollPage}/>}
+      {isFixed || !this.props.tab.sync || this.props.tab.syncReplace || !this.props.isTopLeft ? null : <FloatSyncScrollButton toggleNav={this.props.toggleNav} scrollPage={this.props.parent.scrollPage}/>}
 
-      {isFloat ? null: <BrowserNavbarBtn title="Switch Opposite Open" icon="external-link-square" sync={this.props.oppositeMode} onClick={()=>{this.props.parent.changeOppositeMode()}}/>}
+      {isFloat ? null: <BrowserNavbarBtn title="Switch Opposite Open" icon="external-link-square" sync={this.props.tab.oppositeMode} onClick={()=>{this.props.parent.changeOppositeMode()}}/>}
 
 
       {isFixed ? null : <NavbarMenu k={this.props.k} mouseOver={true} isFloat={isFloatPanel(this.props.k)} title="Open Sidebar" icon="list-ul" onClick={()=>this.props.fixedPanelOpen({dirc:mainState.sideBarDirection})}>
