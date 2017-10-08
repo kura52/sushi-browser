@@ -877,6 +877,10 @@ ipcMain.on('menu-or-key-events-main',(e,msg,tabId)=>{
   e.sender.send('menu-or-key-events',msg,tabId)
 })
 
+// ipcMain.on('send-keys',(e,keys)=>{
+//   e.sender.sendInputEvent(keys)
+// })
+
 // async function recurSelect(keys){
 //   const ret = await favorite.find({key:{$in: keys}})
 //   const addKey = []
