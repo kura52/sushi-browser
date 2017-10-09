@@ -54,7 +54,7 @@ function copyModifyFile(to,flagContent,flagBackground){
 
 function htmlModify(verPath,fname){
   const dirName = path.dirname(fname)
-  const fullPath = path.join(verPath,fname)
+  const fullPath = path.join(verPath,dirName,path.basename(fname).split("?")[0])
   const str = fs.readFileSync(fullPath).toString()
   if(str.includes(backgroundScriptName)) return
 
