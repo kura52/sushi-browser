@@ -23,7 +23,7 @@ const result = contents
   .replace('  if (!error && createProperties.partition) {',`  if(!createProperties.openerTabId){
     const cont = win.webContents
     const key = Math.random().toString()
-    ipcMain.once(\`get-focused-webContent-reply_${key}\`,(e,tabId)=>{
+    ipcMain.once(\`get-focused-webContent-reply_\${key}\`,(e,tabId)=>{
       const opener = webContents.fromTabID(tabId)
       ses = opener.session
       if (!error && createProperties.partition) {

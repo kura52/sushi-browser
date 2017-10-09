@@ -1,28 +1,27 @@
 const {webContents,ipcMain} = require('electron')
-const debug = require('debug')('info')
+const {getFocusedWebContents, getCurrentWindow} = require('../../lib/util')
 
 process.on('chrome-browser-action-registered', (extensionId, details) => {
-  debug('chrome-browser-action-registered', extensionId, details)
+  console.log('chrome-browser-action-registered', extensionId, details)
 })
 
 process.on('chrome-browser-action-set-icon', (extensionId, details) => {
-  debug('chrome-browser-action-set-icon', extensionId, details)
-  for(let cont of webContents.getAllWebContents()){
-    if(!cont.getURL().match(/^chrome:\/\/brave.+?\/index.html/)) continue
-    cont.send('chrome-browser-action-set-icon-ipc',details)
-  }
+  console.log('chrome-browser-action-set-icon', extensionId, details)
+  getFocusedWebContents().then(cont=>{
+    if(cont && cont.hostWebContents) cont.hostWebContents.send(`chrome-browser-action-set-icon-ipc-${extensionId}`,details.tabId || cont.getId(),details)
+  })
 })
 
 process.on('chrome-browser-action-set-badge-text', (extensionId, details) => {
-  debug('chrome-browser-action-set-badge-text', extensionId, details)
+  console.log('chrome-browser-action-set-badge-text', extensionId, details)
 })
 
 process.on('chrome-browser-action-set-badge-background-color', (extensionId, details) => {
-  debug('chrome-browser-action-set-badge-background-color', extensionId, details)
+  console.log('chrome-browser-action-set-badge-background-color', extensionId, details)
 })
 
 process.on('chrome-browser-action-set-title', (extensionId, details) => {
-  debug('chrome-browser-action-set-title', extensionId, details)
+  console.log('chrome-browser-action-set-title', extensionId, details)
 })
 
 process.on('chrome-browser-action-popup', (extensionId, tabId, name, popup, props) => {

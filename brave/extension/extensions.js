@@ -3,6 +3,7 @@
 const fs = require('fs-extra')
 const path = require('path')
 const chromeExtensionPath = require('../../lib/extension/chromeExtensionPath')
+const chromeManifestModify = require('../../lib/chromeManifestModify')
 const {BrowserWindow,componentUpdater,app} = require('electron')
 const extInfos = require('../../lib/extensionInfos')
 // Takes Content Security Policy flags, for example { 'default-src': '*' }
@@ -102,39 +103,43 @@ module.exports.init = (verChange) => {
   }
 
   function transInfos(installInfo){
-    const extensionId = installInfo.id == "knpaeefkaliajllakodljclcnbeplbke" ? 'aapbdbdomjkkjkaonfhkkikfgjllcleb' : installInfo.id
     const locale = app.getLocale().replace('-', "_")
-    console.log(extensionId)
-    const [appId, basePath] = getPath(extensionId)
+    const basePath = installInfo.base_path
 
-    console.log(appId,basePath)
     if(!basePath) return
-    let localePath = path.join(basePath, `_locales/${locale}/messages.json`)
+    let localePath = path.join(basePath, `_locales/${locale.split("_")[0]}/messages.json`)
     if (!fs.existsSync(localePath)) {
-      localePath = path.join(basePath, `_locales/${locale.split("_")[0]}/messages.json`)
+      localePath = path.join(basePath, `_locales/${locale}/messages.json`)
       if (!fs.existsSync(localePath)) {
-        localePath = path.join(basePath, `_locales/${installInfo.default_locale}/messages.json`)
-        if (!installInfo.default_locale || !fs.existsSync(localePath)) {
+        localePath = path.join(basePath, `_locales/${installInfo.manifest.default_locale}/messages.json`)
+        if (!installInfo.manifest.default_locale || !fs.existsSync(localePath)) {
           return
         }
       }
     }
-    const messages = JSON.parse(fs.readFileSync(localePath))
+    const messages = JSON.parse(fs.readFileSync(localePath).toString())
     search(installInfo,messages)
   }
 
   process.on('extension-ready', (installInfo) => {
     extInfos.setInfo(installInfo)
     transInfos(installInfo)
-    // extensionInfo.setState(installInfo.id, extensionStates.ENABLED)
-    // extensionInfo.setInstallInfo(installInfo.id, installInfo)
-    // installInfo.filePath = installInfo.base_path
-    // installInfo.base_path = fileUrl(installInfo.base_path)
-    // extensionActions.extensionInstalled(installInfo.id, installInfo)
-    // extensionActions.extensionEnabled(installInfo.id)
+
+    const wins = BrowserWindow.getAllWindows()
+    if(!wins) return
+
+    for(let win of wins.filter(w=>w.getTitle().includes('Sushi Browser'))){
+      try {
+        if(!win.webContents.isDestroyed()){
+          win.webContents.send('extension-ready',{[installInfo.id]:{...installInfo}});
+        }
+      }catch(e){
+        // console.log(e)
+      }
+    }
   })
 
-  let loadExtension = (ses,extensionId, extensionPath, manifest = {}, manifestLocation = 'unpacked') => {
+  const loadExtension = (ses,extensionId, extensionPath, manifest = {}, manifestLocation = 'unpacked') => {
     if(!extensionPath) return
     extensionPath = extensionPath.replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
     const manifestPath = path.join(extensionPath, 'manifest.json')
@@ -159,90 +164,49 @@ module.exports.init = (verChange) => {
       }
     })
   }
+  module.exports.loadExtension = loadExtension
 
-  let enableExtension = (extensionId) => {
+  const enableExtension = (extensionId) => {
     session.defaultSession.extensions.enable(extensionId)
   }
 
-  let disableExtension = (extensionId) => {
+  const disableExtension = (extensionId) => {
     session.defaultSession.extensions.disable(extensionId)
   }
 
-  let getPath = (appId) => {
-    const extRootPath = path.join(__dirname,'../../resource/extension').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
-    // if(!fs.existsSync(extRootPath)) {
-    //   fs.mkdirSync(extRootPath)
-    // }
-    let appPath = path.join(extRootPath,appId)
-    if(!fs.existsSync(appPath)){
-      let chromePath = chromeExtensionPath(appId)
-      if(fs.existsSync(chromePath)){
-        appPath = chromePath
-      }
-      else{
-        return [appId,null]
-      }
-    }
-    const version = fs.readdirSync(appPath).sort().pop()
-    const basePath = path.join(appPath,version)
-    return [appId,basePath]
-  }
-
-  // let getPath = (appId) => {
-  //   const extRootPath = path.join(app.getPath('userData'),'resource/extension')
-  //   if(!fs.existsSync(extRootPath)) {
-  //     fs.mkdirSync(extRootPath)
-  //   }
-  //   const appPath = path.join(extRootPath,appId)
-  //   const orgPath = path.join(__dirname,'../../resource/extension',appId).replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
-  //   if(verChange || true || !fs.existsSync(appPath)){
-  //     if(fs.existsSync(orgPath)){
-  //       fs.copySync(orgPath, appPath)
-  //     }
-  //     else{
-  //       const dirPath = chromeExtensionPath(appId)
-  //       fs.copySync(dirPath, appPath)
-  //     }
-  //   }
-  //   const version = fs.readdirSync(appPath).sort().pop()
-  //   const basePath = path.join(appPath,version)
-  //   return [appId,basePath]
-  // }
-
-  let registerComponent = (extensionId) => {
-    // if (!extensionInfo.isRegistered(extensionId) && !extensionInfo.isRegistering(extensionId)) {
-    //   extensionInfo.setState(extensionId, extensionStates.REGISTERING)
-    //   componentUpdater.registerComponent(extensionId)
-    // } else {
-    //   const extensions = extensionState.getExxttensions(appStore.getState())
-    //   const extensionPath = extensions.getIn([extensionId, 'filePath'])
-    //   if (extensionPath) {
-    //     // Otheriwse just install it
-    //     loadExtension(extensionId, extensionPath)
-    //   }
-    // }
-  }
+  const {getPath1,getPath2,extensionPath} =　require('../../lib/chromeExtensionUtil')
 
   require('./browserAction')
 
   let first = true
-  const rejectExtensions = ['jpkfjicglakibpenojifdiepckckakgk','default','jdbefljfgobbmcidnmpjamcbhnbphjnb','occjjkgifpmdgodlplnacmkejpdionan']
+  const rejectExtensions = ['jpkfjicglakibpenojifdiepckckakgk','default','jdbefljfgobbmcidnmpjamcbhnbphjnb','occjjkgifpmdgodlplnacmkejpdionan','igiofjhpmpihnifddepnpngfjhkfenbp']
   module.exports.loadAll = function(ses){
-    loadExtension(ses,...getPath('jpkfjicglakibpenojifdiepckckakgk'),(void 0),'component')
-    loadExtension(ses,'dckpbojndfoinamcdamhkjhnjnmjkfjd',getPath('default')[1],(void 0),'component')
-    loadExtension(ses,...getPath('jdbefljfgobbmcidnmpjamcbhnbphjnb'),(void 0),'component')
+    loadExtension(ses,'dckpbojndfoinamcdamhkjhnjnmjkfjd',getPath1('default'),(void 0),'component')
+    loadExtension(ses,'jdbefljfgobbmcidnmpjamcbhnbphjnb',getPath1('jdbefljfgobbmcidnmpjamcbhnbphjnb'),(void 0),'component')
     componentUpdater.registerComponent('jdbefljfgobbmcidnmpjamcbhnbphjnb', 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqmqh6Kxmj00IjKvjPsCtw6g2BHvKipjS3fBD0IInXZZ57u5oZfw6q42L7tgWDLrNDPvu3XDH0vpECr+IcgBjkM+w6+2VdTyPj5ubngTwvBqCIPItetpsZNJOJfrFw0OIgmyekZYsI+BsK7wiMtHczwfKSTi0JKgrwIRhHbEhpUnCxFhi+zI61p9jwMb2EBFwxru7MtpP21jG7pVznFeLV9W9BkNL1Th9QBvVs7GvZwtIIIniQkKtqT1wp4IY9/mDeM5SgggKakumCnT9D37ZxDnM2K13BKAXOkeH6JLGrZCl3aXmqDO9OhLwoch+LGb5IaXwOZyGnhdhm9MNA3hgEwIDAQAB')
+
+    let ext = ['jpkfjicglakibpenojifdiepckckakgk',getPath1('jpkfjicglakibpenojifdiepckckakgk')]
+    if(verChange) chromeManifestModify(...ext)
+    loadExtension(ses,...ext,(void 0),'component')
+
     if(process.platform != 'win32'){
-      loadExtension(ses,...getPath('occjjkgifpmdgodlplnacmkejpdionan'),(void 0),'component')
+      let ext = ['occjjkgifpmdgodlplnacmkejpdionan',getPath1('occjjkgifpmdgodlplnacmkejpdionan')]
+      if(verChange) chromeManifestModify(...ext)
+      loadExtension(ses,...ext,(void 0),'component')
     }
+    ext = ['igiofjhpmpihnifddepnpngfjhkfenbp',getPath1('igiofjhpmpihnifddepnpngfjhkfenbp')]
+    if(verChange) chromeManifestModify(...ext)
+    loadExtension(ses,...ext)
 
-
-    for(let fullPath of require("glob").sync(path.join(__dirname,'../../resource/extension/*').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'))) {
+    //for(let fullPath of require("glob").sync(path.join(__dirname,'../../resource/extension/*').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'))) {
+    for(let fullPath of require("glob").sync(path.join(extensionPath,'*'))) {
       const appId = fullPath.split(/[\/]/).slice(-1)[0]
       console.log(appId)
       if(appId.match(/^[a-z]+$/) && !rejectExtensions.includes(appId)){
-        if(!first && appId == 'niloccemoadcdkdjlinkgdfekeahmflj') continue
-        loadExtension(ses,...getPath(appId))
+        // if(!first && appId == 'niloccemoadcdkdjlinkgdfekeahmflj') continue
+        let ext = [appId,getPath2(appId)]
+        if(verChange) chromeManifestModify(...ext)
+        loadExtension(ses,...ext)
       }
     }
     first = false

@@ -152,12 +152,12 @@ export default class SyncReplace extends Component {
 
   render(){
     return <div id={this.uuid} role="listbox"  style={{lineHeight: 1.9}} className="ui scrolling pointing nav-button dropdown" tabIndex={0}>
-      <a ref="button" href="#" className={this.props.replaceInfo ? "sync" : ""} title="Switch Sync URL Replace Mode" onClick={(e)=>this.setState({visible:!this.state.visible})} >
+      <a ref="button" href="javascript:void(0)" className={this.props.replaceInfo ? "sync" : ""} title="Switch Sync URL Replace Mode" onClick={(e)=>this.setState({visible:!this.state.visible})} >
         <i className="fa fa-circle" />
       </a>
       <div className={`menu${this.state.visible ? " visible" : ""} transition nav-menu sync-replace`}>
         <div style={{position:'fixed',top:-5,right:0,zIndex:3000}}>
-          <a href="#" className="sync-replace" onClick={e=>this.setState({visible:false})}><i aria-hidden="true" className="fa fa-times"></i></a>
+          <a href="javascript:void(0)" className="sync-replace" onClick={e=>this.setState({visible:false})}><i aria-hidden="true" className="fa fa-times"></i></a>
         </div>
         {this.buildSyncMenu()}
       </div>

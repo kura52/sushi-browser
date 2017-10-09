@@ -134,7 +134,7 @@ export default class NavbarMenu extends Component {
     const self = this
     const list = this.state.dataList ? this.props.children.concat(this.state.dataList) : this.props.children
     return <div onMouseOver={this.props.mouseOver ? this.onMouseOver : (void 0)} onMouseLeave={this.props.mouseOver ? this.onMouseLeave : (void 0)} id={this.uuid} ref="div" role="listbox" aria-expanded="false" className={`ui top${this.props.mouseOver ? '' : ' right pointing'} nav-button dropdown ${this.props.className}`} tabIndex={1} style={{lineHeight: '1.9',minWidth:0}}>
-      <a ref="button" href="#" className title={this.props.title} onClick={this.props.mouseOver ? e=>this.props.onClick(e) : ::this.handleClick}>
+      <a ref="button" href="javascript:void(0)" className title={this.props.title} onClick={this.props.mouseOver ? e=>this.props.onClick(e) : ::this.handleClick}>
         <i className={`fa fa-${this.props.icon}`} />
       </a>
       {!this.state.visible ? null : <div ref="menu" className={`menu${this.state.visible ? " visible" : ""} transition ${this.props.mouseOver ? 'nav2-menu' : 'nav-menu'}`} style={this.props.style}>

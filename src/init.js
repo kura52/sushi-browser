@@ -4,12 +4,13 @@ import PubSub from './render/pubsub'
 import mainState from './mainState'
 const locale = require('../brave/app/locale')
 const BrowserWindowPlus = require('./BrowserWindowPlus')
-const extensionMenu = require('./chromeEvent')
+const extensionMenu = require('./chromeEvents')
 const InitSetting = require('./InitSetting')
 const seq = require('./sequence')
 // const loadDevtool = require('electron-load-devtool');
 import path from 'path'
 import uuid from 'node-uuid'
+import mm from 'micromatch'
 const fs = require('fs')
 const os = require('os')
 const isDarwin = process.platform == 'darwin'
@@ -161,7 +162,7 @@ app.on('ready', async ()=>{
 
 
   adblock = require('../brave/adBlock')
-  require('./chromeExtensionsIpc')
+
   // console.log(app.getPath('userData'))
   new (require('./downloadEvent'))()
   require('./historyEvent')
@@ -179,7 +180,8 @@ app.on('ready', async ()=>{
   require('./bookmarksExporter')
   const setting = await InitSetting.val
   extensions = require('../brave/extension/extensions')
-  extensions.init(setting.ver !== fs.readFileSync(path.join(__dirname, '../VERSION.txt')).toString())
+  // extensions.init(setting.ver !== fs.readFileSync(path.join(__dirname, '../VERSION.txt')).toString())
+  extensions.init(true)
   require('./faviconsEvent')(async _ => {
     console.log(332,process.argv,getUrlFromCommandLine(process.argv))
     await createWindow(true,isDarwin ? getNewWindowURL() : getUrlFromCommandLine(process.argv))
@@ -900,12 +902,29 @@ function contextMenu(webContents) {
           if(props.srcURL) info['srcURL'] = props.srcURL
           info['menuItemId'] = menuItemId
 
-
-          menuList.push({label: properties.title,
+          const item = {
+            label: properties.title,
             icon: `${extensionInfos[extensionId].base_path}/${icon}`,
             click(){
               process.emit('chrome-context-menus-clicked',extensionId, webContents.getId(), info)}
-          })
+          }
+          if(properties.checked !== void 0) item.checked = properties.checked
+          if(properties.enabled !== void 0) item.enabled = properties.enabled
+          if(properties.documentUrlPatterns !== void 0){
+            const url = props.pageURL || props.frameURL
+            console.log('documentUrlPatterns',url,properties.documentUrlPatterns)
+            if(url && !mm.isMatch(url, properties.documentUrlPatterns)){
+              item.hide = true
+            }
+          }
+          if(properties.targetUrlPatterns !== void 0){
+            const url = props.linkURL
+            console.log('targetUrlPatterns',url,properties.targetUrlPatterns)
+            if(url && !mm.isMatch(url, properties.targetUrlPatterns)){
+              item.hide = true
+            }
+          }
+          if(!item.hide) menuList.push(item)
         }
         if(menuList.length == 1){
           menuItems.push({type: 'separator'})

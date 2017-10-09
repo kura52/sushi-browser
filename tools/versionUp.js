@@ -22,6 +22,10 @@ const outDir = 'release-packed'
 const arch = 'x64'
 const buildDir = `sushi-browser-${process.platform}-${arch}`
 
+function orderAdd(string){
+  return string.split("\n").map((x,i)=>`${i+1}. ${x}`).join("\n")
+}
+
 function formatDate(date, format) {
   if (!format) format = 'YYYY-MM-DD'
   format = format.replace(/YYYY/g, date.getFullYear())
@@ -109,7 +113,7 @@ if(!fs.readFileSync(path.join(pwd,'../web/index.html')).includes(`v${NEXT_APP_VE
   fileContentsReplace(path.join(pwd,'../web/index.html'),'<!-- REPLACE -->',`<!-- REPLACE -->
 								<h4 class="features-tittle" style="padding-top: 20px;">New function(v${NEXT_APP_VERSION2})</h4>
 								<div style="text-align: left;line-height: inherit;width: 75%;margin: auto;border-bottom: 1px solid #dedede;">
-									<p>${CHANGE_ENGLISH.split("\n").join("</p>\n\t\t\t\t\t\t\t\t\t<p>")}</p>
+									<p>${orderAdd(CHANGE_ENGLISH).split("\n").join("</p>\n\t\t\t\t\t\t\t\t\t<p>")}</p>
 								</div>`)
 }
 
@@ -117,7 +121,7 @@ if(!fs.readFileSync(path.join(pwd,'../web/ja/index.html')).includes(`v${NEXT_APP
   fileContentsReplace(path.join(pwd,'../web/ja/index.html'),'<!-- REPLACE -->',`<!-- REPLACE -->
 								<h4 class="features-tittle" style="padding-top: 20px;">新機能(v${NEXT_APP_VERSION2})</h4>
 								<div style="text-align: left;line-height: inherit;width: 75%;margin: auto;border-bottom: 1px solid #dedede;">
-									<p>${CHANGE_JAPANESE.split("\n").join("</p>\n\t\t\t\t\t\t\t\t\t<p>")}</p>
+									<p>${orderAdd(CHANGE_JAPANESE).split("\n").join("</p>\n\t\t\t\t\t\t\t\t\t<p>")}</p>
 								</div>`)
 }
 
@@ -125,7 +129,7 @@ if(!fs.readFileSync(path.join(pwd,'../web/download.html')).includes(`v${NEXT_APP
   fileContentsReplace(path.join(pwd,'../web/download.html'),'<!-- REPLACE -->',`<!-- REPLACE -->
 						<h4 class="features-tittle">New function(v${NEXT_APP_VERSION2})</h4>
 						<div style="text-align: left;line-height: inherit;width: 75%;margin: auto;border-bottom: 1px solid #dedede;">
-							<p>${CHANGE_ENGLISH.split("\n").join("</p>\n\t\t\t\t\t\t\t<p>")}</p>
+							<p>${orderAdd(CHANGE_ENGLISH).split("\n").join("</p>\n\t\t\t\t\t\t\t<p>")}</p>
 						</div>`)
 }
 
@@ -133,7 +137,7 @@ if(!fs.readFileSync(path.join(pwd,'../web/ja/download.html')).includes(`v${NEXT_
   fileContentsReplace(path.join(pwd,'../web/ja/download.html'),'<!-- REPLACE -->',`<!-- REPLACE -->
 						<h4 class="features-tittle">新機能(v${NEXT_APP_VERSION2})</h4>
 						<div style="text-align: left;line-height: inherit;width: 75%;margin: auto;">
-							<p>${CHANGE_JAPANESE.split("\n").join("</p>\n\t\t\t\t\t\t\t<p>")}</p>
+							<p>${orderAdd(CHANGE_JAPANESE).split("\n").join("</p>\n\t\t\t\t\t\t\t<p>")}</p>
 						</div>`)
 }
 

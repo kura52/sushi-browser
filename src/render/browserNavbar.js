@@ -64,7 +64,7 @@ function equalArray(a,b){
 const tabs = new Set()
 
 function BrowserNavbarBtn(props){
-  return <a href="#" style={props.style} className={`${props.disabled?'disabled':''} ${props.sync ? 'sync' : ''}`} title={props.title} onClick={props.onClick}><i style={props.styleFont} className={`fa fa-${props.icon}`}/></a>
+  return <a href="javascript:void(0)" style={props.style} className={`${props.disabled?'disabled':''} ${props.sync ? 'sync' : ''}`} title={props.title} onClick={props.onClick}><i style={props.styleFont} className={`fa fa-${props.icon}`}/></a>
 }
 
 let alwaysOnTop = [mainState.alwaysOnTop]
@@ -95,6 +95,11 @@ class BrowserNavbar extends Component{
     this.tokenPdfMode = PubSub.subscribe('set-pdfmode-enable',(msg,mode)=>this.setState({pdfMode:mode}))
 
     this.tokenBindWindow = PubSub.subscribe(`bind-window_${this.props.tab.key}`,::this._bindWindow)
+
+    this.tokenForceUpdate = PubSub.subscribe('force-update-navbar',_=>{
+      this.forceUpdates = true
+      this.setState({})
+    })
 
     let marginEle = ReactDOM.findDOMNode(this).querySelector(".navbar-margin")
     let rdTabBar = marginEle.parentNode.parentNode.parentNode.parentNode.querySelector(".rdTabBar")
@@ -154,7 +159,7 @@ class BrowserNavbar extends Component{
     PubSub.unsubscribe(this.tokenAdblockGlobal)
     PubSub.unsubscribe(this.tokenPdfMode)
     PubSub.unsubscribe(this.tokenBindWindow)
-
+    PubSub.unsubscribe(this.tokenForceUpdate)
     tabs.add(this.props.tab.wvId)
   }
 
@@ -369,12 +374,12 @@ class BrowserNavbar extends Component{
     this.setState({})
   }
 
-  browserAction(cont){
+  browserAction(cont,tab){
     const ret = []
     const dis = ['dckpbojndfoinamcdamhkjhnjnmjkfjd','jdbefljfgobbmcidnmpjamcbhnbphjnb',...this.state.disableExtensions]
     for(let [id,values] of browserActionMap) {
       if(dis.includes(id)) continue
-      ret.push(<BrowserActionMenu key={id} id={id} values={values} cont={cont} parent={this}/>)
+      ret.push(<BrowserActionMenu key={id} id={id} values={values} tab={tab} cont={cont} parent={this}/>)
     }
     return ret
   }
@@ -482,7 +487,7 @@ class BrowserNavbar extends Component{
                        }
                        }>
       <NavbarMenuBarItem>
-        {this.browserAction(cont)}
+        {this.browserAction(cont,tab)}
         <BrowserNavbarBtn title={locale.translation("downloads")} icon="download" onClick={this.onCommon.bind(this,"download")}/>
         <BrowserNavbarBtn title="File Explorer" icon="folder" onClick={this.onCommon.bind(this,"explorer")}/>
         <BrowserNavbarBtn title={locale.translation('4589268276914962177')} icon="terminal" onClick={this.onCommon.bind(this,"terminal")}/>

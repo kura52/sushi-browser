@@ -678,7 +678,7 @@ class ExtensionSetting extends React.Component {
     const icon = v.icons[Math.max(...Object.keys(v.icons))]
     return <tr key={`tr${i}`}>
       <td key={`icon${i}`}><img style={{width:32,height:32,margin:'auto'}} src={`file://${v.basePath}/${icon}`}/></td>
-      <td key={`name${i}`}><a target="_blank" href={`https://chrome.google.com/webstore/detail/${id}`}>{v.name}</a></td>
+      <td key={`name${i}`}><a target="_blank" href={`https://chrome.google.com/webstore/detail/${v.basePath.split("/").slice(-2,-1)[0]}`}>{v.name}</a></td>
       <td key={`description${i}`} >{v.description}</td>
       <td key={`version${i}`} style={{width: 40}}>{v.version}</td>
       <td key={`option${i}`} style={{fontSize: 20,textAlign: 'center'}}>

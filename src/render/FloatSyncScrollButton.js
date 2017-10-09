@@ -89,11 +89,11 @@ export default class FloatSyncScrollButton extends Component{
     }
     return <div ref="dad" className="drag-and-drop" style={Object.assign({},style)}
                 onMouseDown={this.mdown} onMouseUp={this.mup} >
-        <a href="#" className="drag-button" onMouseDown={(e)=>{this.props.scrollPage("back");e.stopPropagation()} }>
+        <a href="javascript:void(0)" className="drag-button" onMouseDown={(e)=>{this.props.scrollPage("back");e.stopPropagation()} }>
 
           <i className="fa fa-arrow-left"/>
         </a>
-        <a href="#" className="drag-button" onMouseDown={(e)=>{this.props.scrollPage("next");e.stopPropagation()} }>
+        <a href="javascript:void(0)" className="drag-button" onMouseDown={(e)=>{this.props.scrollPage("next");e.stopPropagation()} }>
           <i className="fa fa-arrow-right"/>
         </a>
       </div>

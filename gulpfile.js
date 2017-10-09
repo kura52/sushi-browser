@@ -43,7 +43,7 @@ gulp.task('main-process', function() {
 
 
 gulp.task('main-process2', function() {
-  return gulp.src(['./src/extension/chromeExtensionPath.js'])
+  return gulp.src(['./src/extension/chromeExtensionPath.js','./src/extension/backgroundScriptModify.js','./src/extension/contentScriptModify.js'])
     .pipe(cache('mainCache'))
     .pipe(plumber())
     .pipe(sourcemaps.init())

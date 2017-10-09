@@ -47,6 +47,23 @@ export default class BrowserActionMenu extends Component{
     this.state = {icon,className: 'opacity001'}
   }
 
+  componentDidMount(){
+    this.iconGet = (e,tabId,val) => {
+      const {tab,values} = this.props
+      console.log("icon-get",e,tabId,val)
+      if(tab.wvId !== tabId) return
+      let _icon = val.path ? typeof val.path === "object" ? Object.values(val.path)[0] : val.path : Object.values(values.icons)[0]
+      if(_icon.startsWith('chrome-extension://')) _icon = _icon.split("/").slice(3).join("/")
+      this.setState({icon: `${values.basePath}/${_icon}`})
+    }
+    ipc.on(`chrome-browser-action-set-icon-ipc-${this.props.id}`,this.iconGet)
+  }
+
+  componentWillUnmount(){
+    ipc.removeListener(`chrome-browser-action-set-icon-ipc-${this.props.id}`,this.iconGet)
+  }
+
+
   setClassName(className){
     this.setState({className})
   }
@@ -62,14 +79,6 @@ export default class BrowserActionMenu extends Component{
 
     if(e.which != 3) {
       if(values.default_icon){
-        const iconGet = (e,val) => {
-          console.log(e,val)
-          values.default_icon = val.path
-          const icon = `${values.basePath}/${values.default_icon ? (typeof values.default_icon === "object" ? Object.values(values.default_icon)[0] : values.default_icon) : Object.values(values.icons)[0]}`;
-          this.setState({icon})
-        }
-        ipc.once('chrome-browser-action-set-icon-ipc',iconGet)
-        setTimeout(_=>ipc.removeListener('chrome-browser-action-set-icon-ipc',iconGet),5000)
         let props = {
           x: e.x,
           y: e.y,
@@ -91,7 +100,7 @@ export default class BrowserActionMenu extends Component{
     }
 
     const menuItems = []
-    menuItems.push(({label: values.default_title || values.name, click: _=>cont.hostWebContents.send('new-tab', tabId, `https://chrome.google.com/webstore/detail/${extensionId}`)}))
+    menuItems.push(({label: values.default_title || values.name, click: _=>cont.hostWebContents.send('new-tab', tabId, `https://chrome.google.com/webstore/detail/${values.orgId}`)}))
     if(values.optionPage) menuItems.push(({label: 'Open Option Page', click: _=>cont.hostWebContents.send('new-tab', tabId, `chrome-extension://${extensionId}/${values.optionPage}`)}))
     if(values.background) menuItems.push(({label: 'Inspect Background Page', click: _=>cont.loadURL(`chrome-extension://${extensionId}/${values.background}`)}))
     const menu = Menu.buildFromTemplate(menuItems)
@@ -101,7 +110,12 @@ export default class BrowserActionMenu extends Component{
   render(){
     const id = this.props.id
     const values = this.props.values
-    return <Dropdown onMouseDown={::this.handleClick} scrolling className="nav-button" key={id} trigger={<a href="#" title={values.name}><img style={{width:16,height:16,verticalAlign:'middle'}} src={`file://${this.state.icon}`}/></a>} pointing='top right' icon={null}>
+    return <Dropdown onMouseDown={::this.handleClick}
+                     // onDragStart={e=>console.log(4342355,e)} onDragEnter={e=>{console.log(4342344,e)}}
+                     scrolling draggable className="nav-button" key={id} trigger={<a href="javascript:void(0)"  title={values.name}><img style={{width:16,height:16,verticalAlign:'middle'}} src={`file://${this.state.icon}`} onError={(e)=>{
+                       console.log(99854,this.state.icon)
+                       e.target.src =  `file://${values.basePath}/${values.default_icon ? (typeof values.default_icon === "object" ? Object.values(values.default_icon)[0] : values.default_icon) : Object.values(values.icons)[0]}`
+                     }} /></a>} pointing='top right' icon={null}>
       <Dropdown.Menu className={`browser-action nav-menu ${this.state.className}`}>
         {values.default_popup ? <BrowserActionWebView url={`chrome-extension://${id}/${values.default_popup}`} setClassName={::this.setClassName}/>: ""}
       </Dropdown.Menu>

@@ -1,4 +1,5 @@
 import {ipcMain,dialog,BrowserWindow } from 'electron'
+import {getCurrentWindow } from './util'
 import uuid from 'node-uuid'
 
 
@@ -13,8 +14,9 @@ import uuid from 'node-uuid'
 // }
 
 function messageBox(webContents, message, cb, buttons) {
-  const bw = BrowserWindow.fromWebContents(webContents.hostWebContents || webContents)
-  console.log(message,buttons,bw)
+  let bw = BrowserWindow.fromWebContents(webContents.hostWebContents || webContents)
+  if(!bw) bw = getCurrentWindow()
+  console.log(55551,message,buttons,bw)
   dialog.showMessageBox(bw, {
     type: 'info',
     buttons,
