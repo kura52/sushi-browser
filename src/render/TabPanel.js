@@ -1421,6 +1421,10 @@ export default class TabPanel extends Component {
           id = tab.wvId
         tab.events['new-tab'](e, id, url)
       }
+      else if(e.channel == 'load-url'){
+        this.getWebContents(tab).loadURL(e.args[0])
+        this.navigateTo(tab.page,e.args[0],tab)
+      }
       else if(e.channel == 'html-content'){
         this.props.htmlContentSet.add(e.args[0])
         this.navigateTo(tab.page,e.args[0],tab)

@@ -179,12 +179,14 @@ app.on('ready', async ()=>{
   require('./importer')
   require('./bookmarksExporter')
   const setting = await InitSetting.val
-  extensions = require('../brave/extension/extensions')
-  // extensions.init(setting.ver !== fs.readFileSync(path.join(__dirname, '../VERSION.txt')).toString())
-  extensions.init(true)
   require('./faviconsEvent')(async _ => {
     console.log(332,process.argv,getUrlFromCommandLine(process.argv))
     await createWindow(true,isDarwin ? getNewWindowURL() : getUrlFromCommandLine(process.argv))
+
+    extensions = require('../brave/extension/extensions')
+    // extensions.init(setting.ver !== fs.readFileSync(path.join(__dirname, '../VERSION.txt')).toString())
+    extensions.init(true)
+
     require('./ipcUtils')
     require('./syncLoop')
 

@@ -5,6 +5,8 @@ const ipc = require('electron').ipcRenderer
 import { Dropdown } from 'semantic-ui-react';
 const {remote} = require('electron')
 const {Menu} = remote
+const {messages,locale} = require('./localAndMessage')
+
 
 class BrowserActionWebView extends Component {
   constructor(props) {
@@ -26,9 +28,16 @@ class BrowserActionWebView extends Component {
         const width = preferredSize.width
         const height = preferredSize.height
         this.setState({style:{width,height}},_=>{
-          setTimeout(_=>this.props.setClassName(""),200)
-        })
+          setTimeout(_=>{
+            this.props.setClassName("")
 
+            const div = webview.parentNode
+            const rect = div.getBoundingClientRect()
+            if(rect.x + width > window.innerWidth){
+              div.style.setProperty("left", `${window.innerWidth - width - rect.x + 18}px`, "important")
+            }
+          },200)
+        })
       })
 
     })
@@ -101,21 +110,24 @@ export default class BrowserActionMenu extends Component{
 
     const menuItems = []
     menuItems.push(({label: values.default_title || values.name, click: _=>cont.hostWebContents.send('new-tab', tabId, `https://chrome.google.com/webstore/detail/${values.orgId}`)}))
-    if(values.optionPage) menuItems.push(({label: 'Open Option Page', click: _=>cont.hostWebContents.send('new-tab', tabId, `chrome-extension://${extensionId}/${values.optionPage}`)}))
-    if(values.background) menuItems.push(({label: 'Inspect Background Page', click: _=>cont.loadURL(`chrome-extension://${extensionId}/${values.background}`)}))
+    if(values.optionPage) menuItems.push(({label: locale.translation('9147392381910171771'), click: _=>cont.hostWebContents.send('new-tab', tabId, `chrome-extension://${extensionId}/${values.optionPage}`)}))
+    if(values.background) menuItems.push(({label: locale.translation("4989966318180235467"), click: _=>cont.loadURL(`chrome-extension://${extensionId}/${values.background}`)}))
+    menuItems.push({label: locale.translation("6326175484149238433").replace('Chrome','Sushi Browser'),click: _=>ipc.send('delete-extension',extensionId,values.orgId)})
     const menu = Menu.buildFromTemplate(menuItems)
     menu.popup(remote.getCurrentWindow())
   }
 
   render(){
+    let retry = 0
     const id = this.props.id
     const values = this.props.values
     return <Dropdown onMouseDown={::this.handleClick}
                      // onDragStart={e=>console.log(4342355,e)} onDragEnter={e=>{console.log(4342344,e)}}
                      scrolling draggable className="nav-button" key={id} trigger={<a href="javascript:void(0)"  title={values.name}><img style={{width:16,height:16,verticalAlign:'middle'}} src={`file://${this.state.icon}`} onError={(e)=>{
                        console.log(99854,this.state.icon)
+                       if(retry++ > 10) return
                        e.target.src =  `file://${values.basePath}/${values.default_icon ? (typeof values.default_icon === "object" ? Object.values(values.default_icon)[0] : values.default_icon) : Object.values(values.icons)[0]}`
-                     }} /></a>} pointing='top right' icon={null}>
+                     }} /></a>} icon={null}>
       <Dropdown.Menu className={`browser-action nav-menu ${this.state.className}`}>
         {values.default_popup ? <BrowserActionWebView url={`chrome-extension://${id}/${values.default_popup}`} setClassName={::this.setClassName}/>: ""}
       </Dropdown.Menu>

@@ -21,6 +21,15 @@ const result = contents
     `  if (updateProperties.active || updateProperties.selected || updateProperties.highlighted) {
     process.emit('chrome-tabs-updated-from-extension', tabId)`)
   .replace('  if (!error && createProperties.partition) {',`  if(!createProperties.openerTabId){
+    if(!win){
+      const focus = BrowserWindow.getFocusedWindow()
+      if(focus && focus.getTitle().includes('Sushi Browser')){
+        win = focus
+      }
+      else{
+        win = BrowserWindow.getAllWindows().find(w=>w.getTitle().includes('Sushi Browser'))  
+      }
+    }
     const cont = win.webContents
     const key = Math.random().toString()
     ipcMain.once(\`get-focused-webContent-reply_\${key}\`,(e,tabId)=>{

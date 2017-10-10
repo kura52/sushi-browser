@@ -32,19 +32,19 @@ if(chrome.contextMenus) {
     console.log({...args[0]})
     const ipcSendVal = {}
     if (args[0] && Object.prototype.toString.call(args[0]) == "[object Object]") {
-      if(args[0].checked){
+      if(args[0].checked !== void 0){
         ipcSendVal.checked = args[0].checked
         delete args[0].checked
       }
-      if(args[0].documentUrlPatterns){
+      if(args[0].documentUrlPatterns !== void 0){
         ipcSendVal.documentUrlPatterns = args[0].documentUrlPatterns
         delete args[0].documentUrlPatterns
       }
-      if(args[0].targetUrlPatterns){
+      if(args[0].targetUrlPatterns !== void 0){
         ipcSendVal.targetUrlPatterns = args[0].targetUrlPatterns
         delete args[0].targetUrlPatterns
       }
-      if(args[0].enabled){
+      if(args[0].enabled !== void 0){
         ipcSendVal.enabled = args[0].enabled
         delete args[0].enabled
       }
@@ -65,16 +65,23 @@ if(chrome.contextMenus) {
 }
 
 if(chrome.windows){
-  chrome.windows.create = (createData,callback)=>{
-    if(typeof createData === 'function') [createData,callback] = [null,createData]
-
-    const key = Math.random().toString()
-    const name = 'chrome-windows-create'
-    chrome.ipcRenderer.once(`${name}-reply_${key}`,(event)=>{
-      setTimeout(_=>chrome.windows.getCurrent({},callback),2000)
-    })
-    chrome.ipcRenderer.send(name,key,createData)
+  chrome.windows._getAll = chrome.windows.getAll
+  chrome.windows.getAll = (getInfo, callback)=>{
+    if(typeof getInfo === 'function') [getInfo,callback] = [null,getInfo]
+    getInfo = getInfo || {}
+    chrome.windows._getAll(getInfo, callback)
   }
+
+
+  chrome.windows._getCurrent = chrome.windows.getCurrent
+  chrome.windows.getCurrent = (getInfo, callback)=>{
+    if(typeof getInfo === 'function') [getInfo,callback] = [null,getInfo]
+    getInfo = getInfo || {}
+    chrome.windows._getCurrent(getInfo, window=>{
+      callback(window.id === -1 ? undefined : window)
+    })
+  }
+
 
   chrome.windows.get = (windowId, getInfo, callback) =>{
     if(typeof getInfo === 'function') [getInfo,callback] = [null,getInfo]
@@ -90,9 +97,42 @@ if(chrome.windows){
       callback(null)
     })
   }
+  chrome.windows.getLastFocused = (getInfo,callback) => {
+    simpleIpcFunc('chrome-windows-getLastFocused',(windowId)=>{
+      chrome.windows.get(windowId, getInfo, callback)
+    })
+  }
+
+  chrome.windows.create = (createData,callback)=>{
+    if(typeof createData === 'function') [createData,callback] = [null,createData]
+
+    const key = Math.random().toString()
+    const name = 'chrome-windows-create'
+    chrome.ipcRenderer.once(`${name}-reply_${key}`,(event)=>{
+      setTimeout(_=>chrome.windows.getCurrent({},callback),2000)
+    })
+    chrome.ipcRenderer.send(name,key,createData)
+  }
+
 }
 
 if(chrome.tabs){
+  chrome.tabs.reload = (tabId, reloadProperties, callback)=>{
+    if(!isFinite(tabId)){
+      if(Object.prototype.toString.call(tabId)=="[object Object]"){
+        [tabId,reloadProperties,callback] = [null,tabId,reloadProperties]
+      }
+      else if(typeof tabId === 'function'){
+        [tabId,reloadProperties,callback] = [null,null,tabId]
+      }
+    }
+    if(typeof tabId === 'function'){
+      [reloadProperties,callback] = [null,reloadProperties]
+    }
+    simpleIpcFunc('chrome-tabs-reload',callback,tabId, reloadProperties)
+
+  }
+
   chrome.tabs.getAllInWindow = (windowId, callback)=>{
     if(typeof windowId === 'function') [windowId,callback] = [null,windowId]
     chrome.tabs.query(windowId ? {windowId} : {},callback)
@@ -245,6 +285,33 @@ if(chrome.management){
   chrome.management.getAll = (callback) => simpleIpcFunc('chrome-management-getAll',callback)
   chrome.management.get = (id,callback) => simpleIpcFunc('chrome-management-get',callback,id)
   chrome.management.getSelf = (callback) => simpleIpcFunc('chrome-management-get',callback,chrome.runtime.id)
+}
+
+if(chrome.webRequest){
+  const ipc = chrome.ipcRenderer
+  const extensionId = chrome.runtime.id
+  const methods = ['onBeforeRequest','onBeforeSendHeaders','onSendHeaders','onHeadersReceived','onResponseStarted','onBeforeRedirect','onCompleted','onErrorOccurred']
+
+  for(let method of methods){
+    const ipcEvents = {}
+    const keys = {}
+    chrome.webRequest[methods] = {
+      addListener: function (cb) {
+        console.log(methods)
+        keys[cb] = Math.random.toString()
+        ipcEvents[cb] = function (e, key2, details) {
+          console.log(details)
+          ipc.send(`chrome-webRequest-${method}_${keys[cb]}-reply_${key2}`,cb(details))
+        }
+        ipc.send(`register-chrome-webRequest-${method}`,extensionId, keys[cb])
+        ipc.on(`chrome-webRequest-${method}_${keys[cb]}`, ipcEvents[cb])
+      },
+      removeListener: function(cb){
+        ipc.send(`unregister-chrome-webRequest-${method}`,extensionId, keys[cb])
+        ipc.removeListener(`chrome-webRequest-${method}_${keys[cb]}`, ipcEvents[cb])
+      }
+    }
+  }
 
 }
 // if(!chrome.types) chrome.types = {}

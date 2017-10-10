@@ -122,6 +122,7 @@ module.exports.init = (verChange) => {
   }
 
   process.on('extension-ready', (installInfo) => {
+    console.log(434343,installInfo)
     extInfos.setInfo(installInfo)
     transInfos(installInfo)
 
@@ -173,6 +174,8 @@ module.exports.init = (verChange) => {
   const disableExtension = (extensionId) => {
     session.defaultSession.extensions.disable(extensionId)
   }
+
+  module.exports.disableExtension = disableExtension
 
   const {getPath1,getPath2,extensionPath} =　require('../../lib/chromeExtensionUtil')
 

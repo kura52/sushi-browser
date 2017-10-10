@@ -407,7 +407,7 @@ ipcMain.on('get-main-state',(e,names)=>{
   const disableExtensions = mainState.disableExtensions
   for (let [k,v] of Object.entries(extInfos)) {
     if(!('url' in v) || v.name == "brave") continue
-    extensions[k] = {name:v.name,url:v.url,basePath:v.base_path,optionPage: v.manifest.options_page,icons:v.manifest.icons, version: v.manifest.version, description: v.manifest.description,enabled: !disableExtensions.includes(k) }
+    extensions[k] = {name:v.name,url:v.url,basePath:v.base_path,optionPage: v.manifest.options_page,background: v.manifest.background && v.manifest.background.page,icons:v.manifest.icons, version: v.manifest.version, description: v.manifest.description,enabled: !disableExtensions.includes(k) }
   }
   ret.extensions = extensions
   e.sender.send('get-main-state-reply',ret)

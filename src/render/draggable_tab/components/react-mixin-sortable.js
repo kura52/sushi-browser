@@ -28,7 +28,7 @@
   var _defaultOptions = {
     ref: 'list',
     model: 'items',
-    animation: 80,
+    animation: 120,
     onStart: 'handleStart',
     onEnd: 'handleEnd',
     onAdd: 'handleAdd',

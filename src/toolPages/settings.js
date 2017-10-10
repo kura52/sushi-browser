@@ -675,19 +675,30 @@ class ExtensionSetting extends React.Component {
 
   buildSearchEngineColumn(i,id,v){
     console.log(id,v)
+    const orgId = v.basePath.split("/").slice(-2,-1)[0]
     const icon = v.icons[Math.max(...Object.keys(v.icons))]
     return <tr key={`tr${i}`}>
       <td key={`icon${i}`}><img style={{width:32,height:32,margin:'auto'}} src={`file://${v.basePath}/${icon}`}/></td>
-      <td key={`name${i}`}><a target="_blank" href={`https://chrome.google.com/webstore/detail/${v.basePath.split("/").slice(-2,-1)[0]}`}>{v.name}</a></td>
+      <td key={`name${i}`}><a target="_blank" href={`https://chrome.google.com/webstore/detail/${orgId}`}>{v.name}</a></td>
       <td key={`description${i}`} >{v.description}</td>
       <td key={`version${i}`} style={{width: 40}}>{v.version}</td>
       <td key={`option${i}`} style={{fontSize: 20,textAlign: 'center'}}>
-        {v.enabled ? <a href="#" onClick={_=> ipc.sendToHost("open-tab", `chrome-extension://${id}/${v.optionPage}`, true)}>
+        {v.enabled && v.optionPage ? <a href="#" onClick={_=> ipc.sendToHost("open-tab", `chrome-extension://${id}/${v.optionPage}`, true)}>
           <i aria-hidden="true" class="setting icon"></i>
         </a> : null}
       </td>
       <td key={`enabled${i}`}>
         <Checkbox checked={v.enabled} toggle onChange={(e,data)=>this.changeCheck(id,data)}/>
+      </td>
+      <td key={`background${i}`} style={{fontSize: 20,textAlign: 'center'}}>
+        {v.enabled && v.background ? <a href="#" onClick={_=> ipc.sendToHost("load-url", `chrome-extension://${id}/${v.background}`, true)}>
+          <i aria-hidden="true" class="bug icon"></i>
+        </a> : null}
+      </td>
+      <td key={`delete${i}`} style={{fontSize: 20,textAlign: 'center'}}>
+        <a href="#" onClick={_=> ipc.send("delete-extension",id,orgId)}>
+          <i aria-hidden="true" class="trash icon"></i>
+        </a>
       </td>
     </tr>
   }
@@ -705,6 +716,9 @@ class ExtensionSetting extends React.Component {
           <th>{l10n.translation('3095995014811312755')}</th>
           <th>{l10n.translation('6550675742724504774')}</th>
           <th>{l10n.translation('59174027418879706')}</th>
+          <th>{l10n.translation('4989966318180235467')}</th>
+          <th>{l10n.translation('6326175484149238433').replace('Chrome','Sushi Browser')}</th>
+
         </tr>
         </thead>
         <tbody>
@@ -714,7 +728,7 @@ class ExtensionSetting extends React.Component {
         <tr>
           <th>
           </th>
-          <th colspan="5">
+          <th colspan="7">
           </th>
         </tr>
         </tfoot>

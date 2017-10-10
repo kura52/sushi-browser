@@ -1,6 +1,7 @@
 import {ipcMain,app,dialog,BrowserWindow,shell,webContents,session} from 'electron'
 const BrowserWindowPlus = require('./BrowserWindowPlus')
 import fs from 'fs'
+import sh from 'shelljs'
 import PubSub from './render/pubsub'
 const seq = require('./sequence')
 const {state,favorite,historyFull} = require('./databaseFork')
@@ -105,6 +106,18 @@ ipcMain.on('add-extension',(e,id)=>{
   },2000)
 })
 
+ipcMain.on('delete-extension',(e,extensionId,orgId)=>{
+  const basePath = getPath2(orgId) || getPath1(orgId)
+  extensions.disableExtension(orgId)
+  if(basePath){
+    const delPath = path.join(basePath,'..')
+    if(delPath.includes(orgId)){
+      sh.rm('-r',delPath)
+    }
+  }
+
+})
+
 //#i18n
 simpleIpcFunc('chrome-i18n-getAcceptLanguages',_=>{
   const lang = app.getLocale()
@@ -114,7 +127,7 @@ simpleIpcFunc('chrome-i18n-getAcceptLanguages',_=>{
 ipcMain.on('chrome-i18n-getMessage',(event)=>{
   try{
     const extensionId = event.sender.getURL().split('/')[2]
-    const basePath = getPath1(extensionId) || getPath2(extensionId)
+    const basePath = getPath2(extensionId) || getPath1(extensionId)
     const locale = app.getLocale().replace('-',"_")
 
     let localePath = path.join(basePath,`_locales/${locale}/messages.json`)
@@ -137,6 +150,11 @@ simpleIpcFunc('chrome-i18n-detectLanguage',inputText=> transLang[franc(inputText
 //#windows
 simpleIpcFunc('chrome-windows-create',createData=>{
   BrowserWindowPlus.load({id:getCurrentWindow().id,x:createData.left,y:createData.top,height:createData.height,width:createData.width,tabParam:JSON.stringify({urls:[{url:createData.url,privateMode:false}],type:'new-win'})})
+})
+
+simpleIpcFunc('chrome-windows-getLastFocused',_=>{
+  const win = getCurrentWindow()
+  return win && win.id
 })
 
 //#tabs
@@ -183,6 +201,12 @@ process.on('chrome-tabs-removed', (tabId) => {
   }
 })
 
+simpleIpcFuncCb('chrome-tabs-reload',async (tabId, reloadProperties,cb)=> {
+  const cont = tabId === null || tabId === (void 0) ? (await getFocusedWebContents()) : webContents.fromTabID(tabId)
+  reloadProperties ? cont.reloadIgnoringCache() : cont.reload()
+  cb()
+})
+
 simpleIpcFuncCb('chrome-tabs-detectLanguage',(tabId,cb)=> {
   webContents.fromTabID(tabId).executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',
     `document.documentElement.innerText`,{},
@@ -198,7 +222,7 @@ simpleIpcFuncCb('chrome-tabs-insertCSS',async (extensionId,tabId,details,cb)=>{
   }
   else if(details.file){
     try{
-      const basePath = getPath1(extensionId) || getPath2(extensionId)
+      const basePath = getPath2(extensionId) || getPath1(extensionId)
       cssText = fs.readFileSync(path.join(basePath,details.file)).toString()
     }catch(e){
       cb()
@@ -241,7 +265,32 @@ simpleIpcFuncCb('chrome-cookies-remove',(details,cb)=>{
 
 //#management
 simpleIpcFunc('chrome-management-getAll',_=> Object.values(require('./extensionInfos')))
-simpleIpcFunc('chrome-management-get',id => Object.values(require('./extensionInfos')).find(x=>x.id === id))
+simpleIpcFunc('chrome-management-get',id => require('./extensionInfos')[id])
+
+//#webRequest
+const methods = ['onBeforeRequest','onBeforeSendHeaders','onSendHeaders','onHeadersReceived','onResponseStarted','onBeforeRedirect','onCompleted','onErrorOccurred']
+
+for(let method of methods){
+  ipcMain.on(`register-chrome-webRequest-${method}`,(e,extensionId,key)=>{
+    const ses = session.defaultSession
+    const extensionInfos = require('./extensionInfos')[extensionId]
+    const filter = {urls : extensionInfos.manifest.permissions ? extensionInfos.manifest.permissions.filter(x=>x.match(/^[a-z\-]*|:\/\//) || x==='<all_urls>') : ['<all_urls>'] }
+
+    ses.webRequest[method](filter, (details, cb) => {
+      const detailsPlus = {
+        frameId: 0,
+        parentFrameId: -1,
+        type: details.resourceType.replace('Frame', '_frame'),
+        ...details
+      }
+      const key2 = Math.random.toString()
+      ipcMain.once(`chrome-webRequest-${method}_${key}-reply_${key2}`,(e,ret)=>{
+        cb(ret || {})
+      })
+      e.sender.send(`chrome-webRequest-${method}_${key}`,key2, detailsPlus)
+    })
+  })
+}
 
 //#contextMenu
 let extensionMenu = {}

@@ -8,17 +8,9 @@ const backgroundScriptName = '___backgroundScriptModify_.js'
 
 const backgroundHtmlName = '___backgroundModify_.html'
 const backgroundHtmlStr = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Background</title>
-  <script src="${backgroundScriptName}"></script>
-  __REPLACE__
-</head>
 <body>
-
-</body>
-</html>`
+<script src="${backgroundScriptName}"></script>
+__REPLACE__`
 
 function findJsTags(obj,callback){
   if(obj.js){
@@ -64,7 +56,7 @@ function htmlModify(verPath,fname){
 
 export default function modify(extensionId,verPath){
   if(!verPath){
-    verPath = getPath1(extensionId) || getPath2(extensionId) //getPath1(extensionId)
+    verPath = getPath2(extensionId) || getPath1(extensionId) //getPath1(extensionId)
   }
 
   const manifestPath = path.join(verPath, 'manifest.json')
@@ -117,6 +109,19 @@ export default function modify(extensionId,verPath){
         flagBackground = true
       }
 
+
+      if(infos.page_action && !infos.browser_action){
+        infos.browser_action = infos.page_action
+        if(infos.browser_action.show){
+          infos.browser_action.enable  = infos.browser_action.show
+          delete infos.browser_action.show
+        }
+        if(infos.browser_action.hide){
+          infos.browser_action.disable = infos.browser_action.hide
+          delete infos.browser_action.hide
+        }
+        delete infos.page_action
+      }
       copyModifyFile(verPath,flagContent,flagBackground)
 
       fs.unlinkSync(manifestPath)
