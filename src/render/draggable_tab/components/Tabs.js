@@ -714,11 +714,11 @@ class Tabs extends React.Component {
         if(transfer[trans[0].k]){
           this.props.handleTabAddOtherPanel(tab.key,transfer[trans[0].k])
           if(data.addButton){
-            PubSub.publish(`close-panel_${trans[0].k}`)
+            PubSub.publish(`close-panel_${trans[0].k}`,1000)
           }
           else{
             for(let t of transfer[trans[0].k]){
-              PubSub.publish(`close_tab_${trans[0].k}`, {key: t.key})
+              PubSub.publish(`close_tab_${trans[0].k}`, {key: t.key,time:1000})
             }
           }
           delete transfer[trans[0].k]

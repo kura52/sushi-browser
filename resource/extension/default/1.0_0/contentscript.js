@@ -40,6 +40,19 @@ if(location.href.startsWith('http') && window == window.parent){
           if(ele && !ele.innerHTML){
             ele.innerHTML = `<div role="button" class="dd-Va g-c-wb g-eg-ua-Uc-c-za g-c-Oc-td-jb-oa g-c g-c-Sc-ci" aria-label="add to chrome" tabindex="0" style="user-select: none;"><div class="g-c-Hf"><div class="g-c-x"><div class="g-c-s g-c-Zi-s g-c-s-L-Si"></div><div class="g-c-R webstore-test-button-label">add to chrome</div></div></div></div>`
             document.querySelector(".dd-Va.g-c-wb.g-eg-ua-Uc-c-za.g-c-Oc-td-jb-oa.g-c.g-c-Sc-ci").addEventListener('click',_=>ipc.send('add-extension',location.href.split("/").slice(-1)[0].split("?")[0]))
+           }
+          else{
+            const buttons = document.querySelectorAll(".dd-Va.g-c-wb.g-eg-ua-Kb-c-za.g-c-Oc-td-jb-oa.g-c")
+            if(buttons && buttons.length){
+              for(let button of buttons){
+                button.addEventListener('click',e=>{
+                  e.stopPropagation()
+                  e.preventDefault()
+                  ipc.send('add-extension',button.parentNode.parentNode.parentNode.parentNode.href.split("/").slice(-1)[0].split("?")[0])
+                },true)
+              }
+            }
+            clearInterval(id)
           }
         },500)
 

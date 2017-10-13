@@ -792,6 +792,17 @@ ipcMain.on('get-update-title',(e,tabId)=>{
   e.sender.send(`get-update-title-reply_${tabId}`,ret)
 })
 
+ipcMain.on('get-did-finish-load',(e,tabId)=>{
+  const cont = webContents.fromTabID(tabId)
+  const ret = cont ? {
+    currentEntryIndex: cont.getCurrentEntryIndex(),
+    entryCount: cont.getEntryCount(),
+    url: cont.getURL()
+  } : null
+
+  e.sender.send(`get-did-finish-load-reply_${tabId}`,ret)
+})
+
 const destroyedMap = new Map()
 function addDestroyedFunc(cont,tabId,sender,msg){
   if(destroyedMap.has(tabId)){

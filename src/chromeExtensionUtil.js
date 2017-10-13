@@ -7,6 +7,11 @@ if (!fs.existsSync(extensionPath)) {
   fs.mkdirSync(extensionPath)
 }
 
+const proxyPath = path.join(app.getPath('userData'),'proxy')
+if (!fs.existsSync(proxyPath)) {
+  fs.mkdirSync(proxyPath)
+}
+
 export default {
   getPath1(appId){
     const extRootPath = path.join(__dirname,'../resource/extension').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')

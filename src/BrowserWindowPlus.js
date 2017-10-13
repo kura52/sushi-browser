@@ -7,6 +7,7 @@ const InitSetting = require('./InitSetting')
 import { state,searchEngine } from './databaseFork'
 import mainState from './mainState'
 import {settingDefault} from '../resource/defaultValue'
+import PubSub from './render/pubsub'
 const uuid = require("node-uuid")
 const isDarwin = process.platform === 'darwin'
 const lang = Intl.NumberFormat().resolvedOptions().locale
@@ -54,6 +55,7 @@ function create(args){
         bw.hide()
 
         e.preventDefault()
+        PubSub.publish('chrome-windows-onRemoved',bw.id)
         return
       }
       else if(mainState.keepOpen){
@@ -117,6 +119,7 @@ function create(args){
         BrowserWindow.getAllWindows().forEach(win=>{
           if(bw!=win) win.close()
         })
+        PubSub.publish('chrome-windows-onRemoved',bw.id)
       }
     }
   })
@@ -136,6 +139,9 @@ function create(args){
       normalSize[bw.id] = bw.getBounds()
     }
   })
+
+  bw.on('blur', ()=> PubSub.publish('chrome-windows-onFocusChanged',bw.id))
+  bw.on('focus', ()=> PubSub.publish('chrome-windows-onFocusChanged',bw.id))
 
   if(isDarwin){
     bw.on('enter-full-screen',_=>{
@@ -331,6 +337,7 @@ export default {
       })
     }
     // initWindow.webContents.openDevTools()
+    PubSub.publish('chrome-windows-onCreated',initWindow.id)
     return initWindow
   },
   saveState(bw,callback){

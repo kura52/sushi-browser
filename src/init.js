@@ -183,15 +183,16 @@ app.on('ready', async ()=>{
     console.log(332,process.argv,getUrlFromCommandLine(process.argv))
     await createWindow(true,isDarwin ? getNewWindowURL() : getUrlFromCommandLine(process.argv))
 
-    extensions = require('../brave/extension/extensions')
-    // extensions.init(setting.ver !== fs.readFileSync(path.join(__dirname, '../VERSION.txt')).toString())
-    extensions.init(true)
 
     require('./ipcUtils')
     require('./syncLoop')
 
     require('./menuSetting')
     process.emit('app-initialized')
+
+    extensions = require('../brave/extension/extensions')
+    // extensions.init(setting.ver !== fs.readFileSync(path.join(__dirname, '../VERSION.txt')).toString())
+    extensions.init(true)
 
     require('./checkUpdate')
     // require('./checkDefault')
@@ -418,6 +419,16 @@ process.on('add-new-contents', async (e, source, newTab, disposition, size, user
   //   return
   // }
   console.log(disposition)
+
+  ipcMain.emit('chrome-webNavigation-onCreatedNavigationTarget',null,{
+    tabId: newTab.getId(),
+    url: targetUrl,
+    processId: -1,
+    sourceTabId: source.getId(),
+    sourceFrameId: 0,
+    sourceProcessId: -1,
+    timeStamp: Date.now()
+  })
 
   if (disposition === 'new-window' || disposition === 'new-popup') {
     const currentWindow = getCurrentWindow()
@@ -915,14 +926,14 @@ function contextMenu(webContents) {
           if(properties.documentUrlPatterns !== void 0){
             const url = props.pageURL || props.frameURL
             console.log('documentUrlPatterns',url,properties.documentUrlPatterns)
-            if(url && !mm.isMatch(url, properties.documentUrlPatterns)){
+            if(url && !mm.some(url, properties.documentUrlPatterns)){
               item.hide = true
             }
           }
           if(properties.targetUrlPatterns !== void 0){
             const url = props.linkURL
             console.log('targetUrlPatterns',url,properties.targetUrlPatterns)
-            if(url && !mm.isMatch(url, properties.targetUrlPatterns)){
+            if(url && !mm.some(url, properties.targetUrlPatterns)){
               item.hide = true
             }
           }

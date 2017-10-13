@@ -86,12 +86,12 @@ ipcMain.on('add-extension',(e,id)=>{
   }
   setTimeout(_=>{
     const intId = setInterval(async _=>{
-      console.log(global.downloadItems)
+      console.log(234,global.downloadItems)
       if(!global.downloadItems.length){
         clearInterval(intId)
         try{
           const ret = await exec(`${exePath[0]} x -o"${extRootPath}_crx" "${extRootPath}.crx"`)
-          console.log(ret)
+          console.log(345,ret)
           const verPath = path.join(extRootPath,JSON.parse(fs.readFileSync(path.join(`${extRootPath}_crx`,'manifest.json'))).version)
           fs.mkdirSync(extRootPath)
           fs.renameSync(`${extRootPath}_crx`, verPath)
@@ -152,6 +152,26 @@ simpleIpcFunc('chrome-windows-create',createData=>{
   BrowserWindowPlus.load({id:getCurrentWindow().id,x:createData.left,y:createData.top,height:createData.height,width:createData.width,tabParam:JSON.stringify({urls:[{url:createData.url,privateMode:false}],type:'new-win'})})
 })
 
+
+const windowsMethods = ['onCreated','onRemoved','onFocusChanged']
+
+for(let method of windowsMethods){
+  const registBackgroundPages = new Set()
+  const name = `chrome-windows-${method}`
+  ipcMain.on(`regist-${name}`,(e)=> registBackgroundPages.add(e.sender))
+  ipcMain.on(`unregist-${name}`,(e)=> registBackgroundPages.delete(e.sender))
+  PubSub.subscribe(name,(msg,windowId)=>{
+    for(let cont of registBackgroundPages) {
+      if (!cont.isDestroyed()) {
+        cont.send(name, windowId)
+      }
+      else{
+        registBackgroundPages.delete(cont)
+      }
+    }
+  })
+}
+
 simpleIpcFunc('chrome-windows-getLastFocused',_=>{
   const win = getCurrentWindow()
   return win && win.id
@@ -168,7 +188,7 @@ process.on('chrome-tabs-updated', (tabId,changeInfo,tab) => {
   // if(changeInfo.status == "complete") return
   if(changeInfo.status == "complete" ||
     (changeInfo.active === (void 0) &&
-      changeInfo.pinned === (void 0))) return
+    changeInfo.pinned === (void 0))) return
   // console.log(tabId,tab)
   const cont = webContents.fromTabID(tabId)
   if(cont && !cont.isDestroyed() && !cont.isBackgroundPage() && cont.isGuest()) {
@@ -267,30 +287,92 @@ simpleIpcFuncCb('chrome-cookies-remove',(details,cb)=>{
 simpleIpcFunc('chrome-management-getAll',_=> Object.values(require('./extensionInfos')))
 simpleIpcFunc('chrome-management-get',id => require('./extensionInfos')[id])
 
-//#webRequest
-const methods = ['onBeforeRequest','onBeforeSendHeaders','onSendHeaders','onHeadersReceived','onResponseStarted','onBeforeRedirect','onCompleted','onErrorOccurred']
+//#webNavigation
+const webNavigationMethods = ['onBeforeNavigate','onCommitted','onDOMContentLoaded','onCompleted','onErrorOccurred','onCreatedNavigationTarget']
 
-for(let method of methods){
-  ipcMain.on(`register-chrome-webRequest-${method}`,(e,extensionId,key)=>{
-    const ses = session.defaultSession
-    const extensionInfos = require('./extensionInfos')[extensionId]
-    const filter = {urls : extensionInfos.manifest.permissions ? extensionInfos.manifest.permissions.filter(x=>x.match(/^[a-z\-]*|:\/\//) || x==='<all_urls>') : ['<all_urls>'] }
-
-    ses.webRequest[method](filter, (details, cb) => {
-      const detailsPlus = {
-        frameId: 0,
-        parentFrameId: -1,
-        type: details.resourceType.replace('Frame', '_frame'),
-        ...details
+for(let method of webNavigationMethods){
+  const registBackgroundPages = new Set()
+  const name = `chrome-webNavigation-${method}`
+  ipcMain.on(`regist-${name}`,(e)=> registBackgroundPages.add(e.sender))
+  ipcMain.on(`unregist-${name}`,(e)=> registBackgroundPages.delete(e.sender))
+  ipcMain.on(name,(e,details)=>{
+    for(let cont of registBackgroundPages) {
+      if (!cont.isDestroyed()) {
+        // try{
+        //   if(details.processId === void 0) details.processId = webContents.fromTabID(details.tabId).getProcessId()
+        // }catch(e){}
+        details.processId = -1
+        cont.send(name, details)
       }
-      const key2 = Math.random.toString()
-      ipcMain.once(`chrome-webRequest-${method}_${key}-reply_${key2}`,(e,ret)=>{
-        cb(ret || {})
-      })
-      e.sender.send(`chrome-webRequest-${method}_${key}`,key2, detailsPlus)
-    })
+      else{
+        registBackgroundPages.delete(cont)
+      }
+    }
   })
 }
+
+//#proxy
+simpleIpcFuncCb('chrome-proxy-settings-set',(details,cb)=>{
+  console.log(details)
+  let config
+  if(!details){
+    config = {}
+    session.defaultSession.setProxy(config,_=>cb())
+    return
+  }
+  details = details.value
+  if(details.mode == 'direct'){
+    config = {
+      proxyRules: 'direct://'
+    }
+  }
+  else if(details.mode == 'auto_detect'){
+    config = {
+      pacScript: 'http://wpad/wpad.dat'
+    }
+  }
+  else if(details.mode == 'pac_script'){
+    const proxyPath = path.join(app.getPath('userData'),'proxy','proxy.txt')
+    if (fs.existsSync(proxyPath)) {
+      fs.unlinkSync(proxyPath)
+    }
+    fs.writeFileSync(proxyPath, details.pacScript.data)
+    console.log(432423423,`file://${proxyPath.replace(/\\/g,'/')}`)
+    config = {
+      pacScript: `file:///${proxyPath.replace(/\\/g,'/')}`
+    }
+  }
+  else if(details.mode == 'fixed_servers'){
+    const rules = details.rules
+    let proxyRules = []
+    if(rules.proxyForHttp){
+      proxyRules.push(`http=${rules.proxyForHttp.scheme}://${rules.proxyForHttp.host}`)
+    }
+    if(rules.proxyForHttps){
+      proxyRules.push(`https=${rules.proxyForHttps.scheme}://${rules.proxyForHttps.host}`)
+    }
+    if(rules.proxyForFtp){
+      proxyRules.push(`ftp=${rules.proxyForFtp.scheme}://${rules.proxyForFtp.host}`)
+    }
+    if(rules.singleProxy){
+      proxyRules.push(`${rules.singleProxy.scheme}://${rules.singleProxy.host}`)
+    }
+    if(rules.fallbackProxy){
+      proxyRules.push(`${rules.fallbackProxy.scheme}://${rules.fallbackProxy.host}`)
+    }
+    config = {
+      proxyRules: proxyRules.join(';')
+    }
+    if(rules && rules.bypassList && rules.bypassList.length){
+      config.bypassList = rules.bypassList
+    }
+  }
+  else if(details.mode == 'system'){
+    config = {}
+  }
+
+  session.defaultSession.setProxy(config,_=>cb())
+})
 
 //#contextMenu
 let extensionMenu = {}

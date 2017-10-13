@@ -122,7 +122,7 @@ module.exports.init = (verChange) => {
   }
 
   process.on('extension-ready', (installInfo) => {
-    console.log(434343,installInfo)
+    // console.log(434343,installInfo)
     extInfos.setInfo(installInfo)
     transInfos(installInfo)
 

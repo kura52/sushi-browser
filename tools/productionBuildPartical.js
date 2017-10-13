@@ -183,12 +183,22 @@ function muonModify(){
 
       const contents = fs.readFileSync(file).toString()
       const result = contents
+      // .replace(/getInfo\.populate/g,'{}')
         .replace('tabContents.close(tabContents)',"tabContents.hostWebContents && tabContents.hostWebContents.send('menu-or-key-events','closeTab',tabId)")
         .replace("evt.sender.send('chrome-tabs-create-response-' + responseId, tab.tabValue(), error)","evt.sender.send('chrome-tabs-create-response-' + responseId, tab && tab.tabValue(), error)")
         .replace('  if (updateProperties.active || updateProperties.selected || updateProperties.highlighted) {',
           `  if (updateProperties.active || updateProperties.selected || updateProperties.highlighted) {
     process.emit('chrome-tabs-updated-from-extension', tabId)`)
         .replace('  if (!error && createProperties.partition) {',`  if(!createProperties.openerTabId){
+    if(!win){
+      const focus = BrowserWindow.getFocusedWindow()
+      if(focus && focus.getTitle().includes('Sushi Browser')){
+        win = focus
+      }
+      else{
+        win = BrowserWindow.getAllWindows().find(w=>w.getTitle().includes('Sushi Browser'))  
+      }
+    }
     const cont = win.webContents
     const key = Math.random().toString()
     ipcMain.once(\`get-focused-webContent-reply_\${key}\`,(e,tabId)=>{

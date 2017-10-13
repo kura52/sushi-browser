@@ -25,6 +25,7 @@ chrome.i18n.getMessage = (messageName) => {
 chrome.i18n.detectLanguage = (inputText,callback) => simpleIpcFunc('chrome-i18n-detectLanguage',callback,inputText)
 
 chrome.extension.isAllowedFileSchemeAccess = (callback)=> callback(true)
+chrome.extension.isAllowedIncognitoAccess = (callback)=> callback(true)
 
 if(chrome.contextMenus) {
   chrome.contextMenus._create = chrome.contextMenus.create
@@ -65,6 +66,8 @@ if(chrome.contextMenus) {
 }
 
 if(chrome.windows){
+  const ipc = chrome.ipcRenderer
+
   chrome.windows._getAll = chrome.windows.getAll
   chrome.windows.getAll = (getInfo, callback)=>{
     if(typeof getInfo === 'function') [getInfo,callback] = [null,getInfo]
@@ -78,7 +81,12 @@ if(chrome.windows){
     if(typeof getInfo === 'function') [getInfo,callback] = [null,getInfo]
     getInfo = getInfo || {}
     chrome.windows._getCurrent(getInfo, window=>{
-      callback(window.id === -1 ? undefined : window)
+      if(window.id === -1){
+        chrome.windows.getLastFocused(getInfo,callback)
+      }
+      else{
+        callback(window)
+      }
     })
   }
 
@@ -105,15 +113,37 @@ if(chrome.windows){
 
   chrome.windows.create = (createData,callback)=>{
     if(typeof createData === 'function') [createData,callback] = [null,createData]
-
-    const key = Math.random().toString()
-    const name = 'chrome-windows-create'
-    chrome.ipcRenderer.once(`${name}-reply_${key}`,(event)=>{
-      setTimeout(_=>chrome.windows.getCurrent({},callback),2000)
-    })
-    chrome.ipcRenderer.send(name,key,createData)
+    simpleIpcFunc('chrome-windows-create',_=>setTimeout(_=>chrome.windows.getCurrent({},callback),3000),createData)
   }
 
+  const methods = ['onCreated','onRemoved','onFocusChanged']
+
+  for(let method of methods){
+    const name = `chrome-windows-${method}`
+    const ipcEvents = {}
+    chrome.windows[method] = {
+      addListener(cb) {
+        console.log(method)
+        ipcEvents[cb] = (e, details) => cb(details)
+        ipc.send(`regist-${name}`)
+        if(name == 'onCreated'){
+          ipc.on(name, windowId=>{
+            chrome.windows.get(windowId, {}, ipcEvents[cb])
+          })
+        }
+        else{
+          ipc.on(name,ipcEvents[cb])
+        }
+      },
+      removeListener(cb){
+        ipc.send(`unregist-${name}`)
+        ipc.removeListener(name, ipcEvents[cb])
+      },
+      hasListener(cb){
+        return !!ipcEvents[cb]
+      }
+    }
+  }
 }
 
 if(chrome.tabs){
@@ -196,6 +226,9 @@ if(chrome.tabs){
     },
     removeListener: function(cb){
       ipc.removeListener('chrome-tabs-updated', onUpdated[cb])
+    },
+    hasListener(cb){
+      return !!onUpdated[cb]
     }
   }
   chrome.tabs.onCreated = {
@@ -208,6 +241,9 @@ if(chrome.tabs){
     },
     removeListener: function(cb){
       ipc.removeListener('chrome-tabs-created', onCreated[cb])
+    },
+    hasListener(cb){
+      return !!onCreated[cb]
     }
   }
   chrome.tabs.onRemoved = {
@@ -220,6 +256,9 @@ if(chrome.tabs){
     },
     removeListener: function(cb){
       ipc.removeListener('chrome-tabs-removed', onRemoved[cb])
+    },
+    hasListener(cb){
+      return !!onRemoved[cb]
     }
   }
   chrome.tabs.onActivated = {
@@ -232,6 +271,9 @@ if(chrome.tabs){
     },
     removeListener: function(cb){
       ipc.removeListener('chrome-tabs-activated', onActivated[cb])
+    },
+    hasListener(cb){
+      return !!onActivated[cb]
     }
   }
   chrome.tabs.onSelectionChanged = {
@@ -244,6 +286,9 @@ if(chrome.tabs){
     },
     removeListener: function(cb){
       ipc.removeListener('chrome-tabs-activated', onSelectionChanged[cb])
+    },
+    hasListener(cb){
+      return !!onSelectionChanged[cb]
     }
   }
   chrome.tabs.onActiveChanged = {
@@ -256,6 +301,9 @@ if(chrome.tabs){
     },
     removeListener: function(cb){
       ipc.removeListener('chrome-tabs-activated', onActiveChanged[cb])
+    },
+    hasListener(cb){
+      return !!onActiveChanged[cb]
     }
   }
 }
@@ -287,41 +335,88 @@ if(chrome.management){
   chrome.management.getSelf = (callback) => simpleIpcFunc('chrome-management-get',callback,chrome.runtime.id)
 }
 
-if(chrome.webRequest){
+if(chrome.privacy){
+  const settingObj = {set(){},get(){return true},clear(){},onChange:{addListener(){},removeListener(){},hasListener(){}}}
+  chrome.privacy.network = {}
+  chrome.privacy.network.networkPredictionEnabled = settingObj
+
+  chrome.privacy.services.alternateErrorPagesEnabled = settingObj
+  chrome.privacy.services.instantEnabled = settingObj
+  chrome.privacy.services.safeBrowsingEnabled = settingObj
+  chrome.privacy.services.searchSuggestEnabled = settingObj
+  chrome.privacy.services.spellingServiceEnabled = settingObj
+  chrome.privacy.services.translationServiceEnabled = settingObj
+
+  chrome.privacy.websites = {}
+  chrome.privacy.websites.thirdPartyCookiesAllowed = settingObj
+  chrome.privacy.websites.hyperlinkAuditingEnabled = settingObj
+  chrome.privacy.websites.referrersEnabled = settingObj
+  chrome.privacy.websites.protectedContentEnabled = settingObj
+}
+
+
+
+if(chrome.webNavigation){
   const ipc = chrome.ipcRenderer
-  const extensionId = chrome.runtime.id
-  const methods = ['onBeforeRequest','onBeforeSendHeaders','onSendHeaders','onHeadersReceived','onResponseStarted','onBeforeRedirect','onCompleted','onErrorOccurred']
+  const methods = ['onBeforeNavigate','onCommitted','onDOMContentLoaded','onCompleted','onErrorOccurred','onCreatedNavigationTarget']
 
   for(let method of methods){
+    const name = `chrome-webNavigation-${method}`
     const ipcEvents = {}
-    const keys = {}
-    chrome.webRequest[methods] = {
-      addListener: function (cb) {
-        console.log(methods)
-        keys[cb] = Math.random.toString()
-        ipcEvents[cb] = function (e, key2, details) {
-          console.log(details)
-          ipc.send(`chrome-webRequest-${method}_${keys[cb]}-reply_${key2}`,cb(details))
-        }
-        ipc.send(`register-chrome-webRequest-${method}`,extensionId, keys[cb])
-        ipc.on(`chrome-webRequest-${method}_${keys[cb]}`, ipcEvents[cb])
+    chrome.webNavigation[method] = {
+      addListener(cb) {
+        console.log(method)
+        ipcEvents[cb] = (e, details) => cb(details)
+        ipc.send(`regist-${name}`)
+        ipc.on(name, ipcEvents[cb])
       },
-      removeListener: function(cb){
-        ipc.send(`unregister-chrome-webRequest-${method}`,extensionId, keys[cb])
-        ipc.removeListener(`chrome-webRequest-${method}_${keys[cb]}`, ipcEvents[cb])
+      removeListener(cb){
+        ipc.send(`unregist-${name}`)
+        ipc.removeListener(name, ipcEvents[cb])
+      },
+      hasListener(cb){
+        return !!ipcEvents[cb]
       }
     }
   }
-
 }
-// if(!chrome.types) chrome.types = {}
-// if(!chrome.types.ChromeSetting) chrome.types.ChromeSetting = {}
-// chrome.types.ChromeSetting.set = (details, callback) =>{
-//   console.log('chrome.types.ChromeSetting.set is not implemented ')
-//   if(callback) callback()
-// }
-//
-// chrome.types.ChromeSetting.get = (details, callback) =>{
-//   console.log('chrome.types.ChromeSetting.get is not implemented ')
-//   if(callback) callback()
-// }
+
+if(chrome.proxy){
+  let datas
+  chrome.proxy.settings.clear = (details,callback)=>{
+    datas = {}
+    simpleIpcFunc('chrome-proxy-settings-set',callback,{})
+  }
+
+  chrome.proxy.settings.get = (details,callback)=> callback(datas)
+
+  const ipcEvents = new Set()
+  chrome.proxy.settings.set = (details,callback)=>{
+    console.log(details)
+    datas = details
+    simpleIpcFunc('chrome-proxy-settings-set',(...args)=>{
+      callback(...args)
+      for(let cb of ipcEvents){
+        cb(datas)
+      }
+    },details)
+  }
+
+  chrome.proxy.settings.onChange = {
+    addListener(cb) {
+      ipcEvents.add(cb)
+    },
+    removeListener(cb){
+      ipcEvents.delete(cb)
+    },
+    hasListener(cb){
+      return ipcEvents.includes(cb)
+    }
+  }
+}
+
+if(chrome.pageAction){
+  chrome.pageAction = chrome.browserAction
+  chrome.browserAction.show = chrome.browserAction.enable
+  chrome.browserAction.hide = chrome.browserAction.disable
+}

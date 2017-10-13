@@ -17,32 +17,32 @@ const isDarwin = navigator.userAgent.includes('Mac OS X')
 function webviewHandler (self, fnName) {
   return function (e) {
     if (self.props[fnName])
-      self.props[fnName](e, self.props.tab.page, self.props.pageIndex)
+      self.props[fnName](e, self.props.tab.page)
   }
 }
 
 const webviewEvents = {
   'guest-ready': 'onGuestReady',
   'load-commit': 'onLoadCommit',
-  'did-start-loading': 'onDidStartLoading',
-  'did-stop-loading': 'onDidStopLoading',
+  // 'did-start-loading': 'onDidStartLoading',
+  // 'did-stop-loading': 'onDidStopLoading',
   'did-finish-load': 'onDidFinishLoading',
   'did-fail-load': 'onDidFailLoad',
   'did-fail-provisional-load':'onDidFailLoad',
   'did-frame-finish-load': 'onDidFrameFinishLoad',
   'did-get-redirect-request': 'onDidGetRedirectRequest',
   'dom-ready': 'onDomReady',
-  'page-title-updated': 'onPageTitleSet',
-  'close': 'onClose',
-  'destroyed': 'onDestroyed',
-  'ipc-message': 'onIpcMessage',
-  'console-message': 'onConsoleMessage',
+  // 'page-title-updated': 'onPageTitleSet',
+  // 'close': 'onClose',
+  // 'destroyed': 'onDestroyed',
+  // 'ipc-message': 'onIpcMessage',
+  // 'console-message': 'onConsoleMessage',
   'page-favicon-updated': 'onFaviconUpdate',
-  'new-window': "onNewWindow",
-  'will-navigate' : "onWillNavigate",
-  'did-navigate' : "onDidNavigate",
+  // 'new-window': "onNewWindow",
+  // 'will-navigate' : "onWillNavigate",
+  // 'did-navigate' : "onDidNavigate",
   'load-start' : "onLoadStart",
-  'did-navigate-in-page' : 'onDidNavigateInPage',
+  // 'did-navigate-in-page' : 'onDidNavigateInPage',
   'update-target-url' : 'onUpdateTargetUrl'
 }
 

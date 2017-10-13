@@ -675,7 +675,7 @@ class ExtensionSetting extends React.Component {
 
   buildSearchEngineColumn(i,id,v){
     console.log(id,v)
-    const orgId = v.basePath.split("/").slice(-2,-1)[0]
+    const orgId = v.basePath.split(/[\/\\]/).slice(-2,-1)[0]
     const icon = v.icons[Math.max(...Object.keys(v.icons))]
     return <tr key={`tr${i}`}>
       <td key={`icon${i}`}><img style={{width:32,height:32,margin:'auto'}} src={`file://${v.basePath}/${icon}`}/></td>

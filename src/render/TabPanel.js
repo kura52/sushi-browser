@@ -437,10 +437,15 @@ export default class TabPanel extends Component {
       this.drag = val
     })
 
-    const tokenClose = PubSub.subscribe(`close-panel_${this.props.k}`, (msg)=> {
+    const tokenClose = PubSub.subscribe(`close-panel_${this.props.k}`, (msg,time)=> {
       mainState.set('keepOpen',1)
       this.props.close(this.props.k)
-      this.TabPanelClose()
+      if(time){
+        this.TabPanelClose(void 0,time)
+      }
+      else{
+        this.TabPanelClose()
+      }
       setTimeout(_=>mainState.set('keepOpen',0),2000)
       // if(!this.props.parent.state.r) remote.getCurrentWindow().hide()
     })
@@ -491,7 +496,7 @@ export default class TabPanel extends Component {
     })
 
 
-    const tokenCloseTab = PubSub.subscribe(`close_tab_${this.props.k}`, (msg,{key,selectedTab,isUpdateState=true})=> {
+    const tokenCloseTab = PubSub.subscribe(`close_tab_${this.props.k}`, (msg,{key,selectedTab,isUpdateState=true,time})=> {
       if (!this.mounted) return
       const _tabs = this.state.tabs
       const i = this.state.tabs.findIndex(x => x.key == key)
@@ -508,7 +513,12 @@ export default class TabPanel extends Component {
         this.state.tabs.splice(i, 1)
         mainState.set('keepOpen',1)
         this.props.close(this.props.k)
-        this.TabPanelClose(key)
+        if(time){
+          this.TabPanelClose(key,time)
+        }
+        else{
+          this.TabPanelClose(key)
+        }
         setTimeout(_=>mainState.set('keepOpen',0),2000)
         // if(!this.props.parent.state.r) remote.getCurrentWindow().hide()
       }
@@ -835,8 +845,13 @@ export default class TabPanel extends Component {
           page.navUrl = e.url;
           self.filterFromContents(page, navigateTo, tab, self);
           self.sendOpenLink(tab, page);
+          ipc.send('chrome-webNavigation-onCommitted',{
+            tabId:tab.wvId,
+            url:e.url,
+            frameId: 0,
+            timeStamp: Date.now()
+          })
         }
-        // ipc.send('chrome-webNavigation-onCommitted',self.createChromeWebNavDetails(tab,e.url,e))
       },
       // onWillNavigate(e, page) {
       //   console.log('onWillNavigate')
@@ -873,7 +888,7 @@ export default class TabPanel extends Component {
         }
         ipc.on(`get-did-start-loading-reply_${tab.wvId}`,didStart)
 
-        ipc.send('get-did-stop-loading',tab.wvId)
+        ipc.send('get-update-title-loading',tab.wvId)
         const didStop = (e,c)=> {
           console.log('onDidStopLoading',e,Date.now(),page)
           if(!c || !self.mounted) return
@@ -907,13 +922,54 @@ export default class TabPanel extends Component {
           })()
           // ipc.send('chrome-tab-updated',parseInt(tab.key), e, self.getChromeTab(tab))
         }
-        ipc.on(`get-did-stop-loading-reply_${tab.wvId}`,didStop)
+        ipc.on(`get-update-title-reply_${tab.wvId}`,didStop)
       },
       // onDidNavigateInPage(e, page) {
       //   console.log('onDidNavigateInPage')
       //   self.sendOpenLink(tab, page);
       //   page.navUrl = e.url
       // },
+      onDidFinishLoading(e, page) {
+        console.log('onDidFinishLoading',e)
+        if (!self.mounted) return
+
+        ipc.send('chrome-webNavigation-onCompleted',{
+          tabId:tab.wvId,
+          url:page.navUrl,
+          frameId: 0,
+          timeStamp: Date.now()
+        })
+
+        ipc.send('get-did-finish-load',tab.wvId)
+        ipc.on(`get-did-finish-load-reply_${tab.wvId}`,(e,c)=> {
+          if(!c || !self.mounted) return
+          const loc = c.url
+          const entryIndex = c.currentEntryIndex
+          page.entryIndex = entryIndex
+          page.canGoBack = entryIndex !== 0
+          page.canGoForward = entryIndex + 1 !== c.entryCount
+          if (!page.title) {
+            page.title = page.location
+            if (tab.key == self.state.selectedTab && !this.isFixed) ipc.send("change-title", page.title)
+          }
+          page.isLoading = false
+          if (page.eventDownloadStartTab) ipc.removeListener(`download-start-tab_${tab.wvId}`, page.eventDownloadStartTab)
+          clearTimeout(page.downloadTimer)
+          // console.log(self.refs)
+          // self.setState({})
+          self.setStatePartical(tab)
+          PubSub.publish(`change-status-${tab.key}`)
+          ;(async () => {
+            if ((typeof page.hid === 'object' && page.hid !== null ) || (page.hid = await history.findOne({location: page.navUrl}))) {
+              console.log(22, page.hid)
+              if (page.hid.count > 2 && !page.hid.capture) {
+                ipc.send('take-capture', {id: page.hid._id, url: page.navUrl, loc})
+              }
+            }
+          })()
+          // ipc.send('chrome-tab-updated',parseInt(tab.key), e, self.getChromeTab(tab))
+        })
+      },
       onDidGetRedirectRequest(e, page) {
         console.log('redirect',e)
         // console.log('onDidGetRedirectRequest',Date.now())
@@ -924,6 +980,15 @@ export default class TabPanel extends Component {
       onLoadStart(e, page) {
         console.log('onLoadStart',e,Date.now() - ttime,Date.now())
         if (!self.mounted || !e.isMainFrame) return
+
+        ipc.send('chrome-webNavigation-onBeforeNavigate',{
+          tabId:tab.wvId,
+          url:e.url,
+          frameId: 0,
+          parentFrameId: -1,
+          processId: -1,
+          timeStamp: Date.now()
+        })
 
         page.navUrl = e.url
         let location = page.navUrl
@@ -958,6 +1023,12 @@ export default class TabPanel extends Component {
         console.log('onDomReady',e,tab,Date.now())
         if (!self.mounted) return
 
+        ipc.send('chrome-webNavigation-onDOMContentLoaded',{
+          tabId:tab.wvId,
+          url:e.url,
+          frameId: 0,
+          timeStamp: Date.now()
+        })
 
         console.log(tab.wv,tab.wvId,guestIds.tabId,tab.e&&tab.e.tabId,tab.e,e)
 
@@ -990,7 +1061,17 @@ export default class TabPanel extends Component {
         // if (page.location !== e.validatedURL || e.errorDescription == 'ERR_ABORTED' || e.errorCode == -3 || e.errorCode == 0) return
         if(e.validatedURL == "chrome://newtab/"){
           self.navigateTo(page, topURL, tab)
+          return
         }
+
+        ipc.send('chrome-webNavigation-onErrorOccurred',{
+          tabId:tab.wvId,
+          url:e.url,
+          frameId: 0,
+          processId: -1,
+          error: e.errorDescription,
+          timeStamp: Date.now()
+        })
         // else if(e.validatedURL == "about:blank"){
         //   self.navigateTo(page, blankURL, tab)
         // }
