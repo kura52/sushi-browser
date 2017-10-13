@@ -23,7 +23,6 @@ process.on('chrome-browser-action-set-badge-background-color', (extensionId, det
 process.on('chrome-browser-action-set-title', (extensionId, details) => {
   console.log('chrome-browser-action-set-title', extensionId, details)
 })
-
 process.on('chrome-browser-action-popup', (extensionId, tabId, name, popup, props) => {
   console.log('chrome-browser-action-popup', extensionId, tabId, name, popup, props)
   // let nodeProps = {
