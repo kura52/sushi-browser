@@ -287,7 +287,7 @@ class GeneralSetting extends React.Component {
           <Dropdown onChange={this.onChange.bind(this,'language')} selection options={languageOptions} defaultValue={this.state.language}/>
         </div>
         <br/>
-fsdfs
+
         <div className="field">
           <label>Adobe Flash Player</label>
           <Checkbox defaultChecked={this.state.enableFlash} toggle onChange={this.onChange.bind(this,'enableFlash')}/>
@@ -306,6 +306,14 @@ fsdfs
           <label>Tabs</label>
           <Checkbox defaultChecked={this.state.scrollTab} toggle onChange={this.onChange.bind(this,'scrollTab')}/>
           <span className="toggle-label">Enable mouse wheel scroll tab selection ({l10n.translation('requiresRestart').replace('* ','')})</span>
+          <br/>
+
+          <Checkbox defaultChecked={this.state.multistageTabs} toggle onChange={this.onChange.bind(this,'multistageTabs')}/>
+          <span className="toggle-label">Enable Multi Row Tabs ({l10n.translation('requiresRestart').replace('* ','')})</span>
+          <br/>
+
+          <label>Tab Min Width</label>
+          <Input onChange={this.onChange.bind(this,'tabMinWidth')} defaultValue={this.state.tabMinWidth}/>
         </div>
         <br/>
 
@@ -364,8 +372,8 @@ fsdfs
         </div>
 
         {/*<div className="field">*/}
-          {/*<label>{l10n.translation('2893168226686371498').replace('…','')} (Windows/Mac)</label>*/}
-          {/*<Button primary content={l10n.translation('9218430445555521422')} onClick={_=>ipc.send("default-browser",{})}/>*/}
+        {/*<label>{l10n.translation('2893168226686371498').replace('…','')} (Windows/Mac)</label>*/}
+        {/*<Button primary content={l10n.translation('9218430445555521422')} onClick={_=>ipc.send("default-browser",{})}/>*/}
         {/*</div>*/}
 
         <br/>
@@ -797,7 +805,7 @@ const App = () => (
 )
 
 
-ipc.send("get-main-state",['startsWith','newTabMode','myHomepage','searchProviders','searchEngine','language','enableFlash','downloadNum','sideBarDirection','scrollTab','doubleShift','tripleClick','syncScrollMargin','contextMenuSearchEngines','ALL_KEYS','bindMarginFrame','bindMarginTitle','historyFull','longPressMiddle','checkDefaultBrowser','sendToVideo'])
+ipc.send("get-main-state",['startsWith','newTabMode','myHomepage','searchProviders','searchEngine','language','enableFlash','downloadNum','sideBarDirection','scrollTab','doubleShift','tripleClick','syncScrollMargin','contextMenuSearchEngines','ALL_KEYS','bindMarginFrame','bindMarginTitle','historyFull','longPressMiddle','checkDefaultBrowser','sendToVideo','multistageTabs','tabMinWidth'])
 ipc.once("get-main-state-reply",(e,data)=>{
   generalDefault = data
   keyboardDefault = data

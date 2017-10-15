@@ -158,6 +158,18 @@ function muonModify(){
         .replace('  if (updateProperties.active || updateProperties.selected || updateProperties.highlighted) {',
           `  if (updateProperties.active || updateProperties.selected || updateProperties.highlighted) {
     process.emit('chrome-tabs-updated-from-extension', tabId)`)
+        .replace('chromeTabsRemoved(tabId)',`chromeTabsRemoved(tabId)
+  delete tabIndexMap[tabId]`)
+        .replace('return result','return result.sort(function(a, b){ return a.index - b.index })')
+        .replace('var getTabValue = function (tabId) {',`const tabIndexMap = {}
+ipcMain.on('update-tab-index-org',(e,tabId,index)=>tabIndexMap[tabId] = index)
+var getTabValue = function (tabId) {`)
+        .replace('return tabContents && !tabContents.isDestroyed() && tabContents.tabValue()',`  const ret = tabContents && !tabContents.isDestroyed() && tabContents.tabValue()
+  let index
+  if(ret && (index = tabIndexMap[ret.id]) !== (void 0)) {
+    ret.index = index
+  }
+  return ret`)
         .replace('  if (!error && createProperties.partition) {',`  if(!createProperties.openerTabId){
     if(!win){
       const focus = BrowserWindow.getFocusedWindow()
@@ -402,6 +414,7 @@ const jsFiles = glob.sync(`${pwd}/src/**/*.js`)
 filesContentsReplace(jsFiles,/console\.log\(/,'//debug(')
 filesContentsReplace(jsFiles,/window.debug = require\('debug'\)\('info'\)/,"// window.debug = require('debug')('info')")
 filesContentsReplace(jsFiles,/global.debug = require\('debug'\)\('info'\)/,"// global.debug = require('debug')('info')")
+filesContentsReplace(jsFiles,/extensions.init\(true\)/,"extensions.init(setting.ver !== fs.readFileSync(path.join(__dirname, '../VERSION.txt')).toString())")
 
 
 // Babel Use babili

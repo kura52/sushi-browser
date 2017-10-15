@@ -69,6 +69,7 @@ TabUtils.actions = {
     if (!count) count = 1;
     chrome.tabs.getAllInWindow(tab.windowId, function (tabs) {
       tabs.forEach(function (_t, i) {
+        console.log(_t)
         if (_t.id === tab.id) {
           var newtab = tabs[(i + count) % tabs.length] || tabs[0];
           if (newtab) {

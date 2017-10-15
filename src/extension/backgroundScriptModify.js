@@ -6,6 +6,9 @@ function simpleIpcFunc(name,callback,...args){
   chrome.ipcRenderer.send(name,key,...args)
 }
 
+simpleIpcFunc('chrome-management-get',details=> chrome.app._details = details,chrome.runtime.id)
+chrome.app.getDetails = _=>chrome.app._details
+
 chrome.i18n.getAcceptLanguages = callback=> simpleIpcFunc('chrome-i18n-getAcceptLanguages',callback)
 chrome.i18n.getUILanguage = chrome.i18n.getAcceptLanguages //@TODO
 
@@ -383,10 +386,6 @@ if(chrome.webNavigation){
 
 if(chrome.proxy){
   let datas
-  chrome.proxy.settings.clear = (details,callback)=>{
-    datas = {}
-    simpleIpcFunc('chrome-proxy-settings-set',callback,{})
-  }
 
   chrome.proxy.settings.get = (details,callback)=> callback(datas)
 
@@ -394,6 +393,7 @@ if(chrome.proxy){
   chrome.proxy.settings.set = (details,callback)=>{
     console.log(details)
     datas = details
+    console.log('chrome-proxy-settings-set',details)
     simpleIpcFunc('chrome-proxy-settings-set',(...args)=>{
       callback(...args)
       for(let cb of ipcEvents){
@@ -402,6 +402,16 @@ if(chrome.proxy){
     },details)
   }
 
+  chrome.proxy.settings.clear = (details,callback)=>{
+    datas = {}
+    simpleIpcFunc('chrome-proxy-settings-set',(...args)=>{
+      callback(...args)
+      for(let cb of ipcEvents){
+        cb({})
+      }
+    },{})
+
+  }
   chrome.proxy.settings.onChange = {
     addListener(cb) {
       ipcEvents.add(cb)

@@ -20,6 +20,18 @@ const result = contents
   .replace('  if (updateProperties.active || updateProperties.selected || updateProperties.highlighted) {',
     `  if (updateProperties.active || updateProperties.selected || updateProperties.highlighted) {
     process.emit('chrome-tabs-updated-from-extension', tabId)`)
+  .replace('chromeTabsRemoved(tabId)',`chromeTabsRemoved(tabId)
+  delete tabIndexMap[tabId]`)
+  .replace('return result','return result.sort(function(a, b){ return a.index - b.index })')
+  .replace('var getTabValue = function (tabId) {',`const tabIndexMap = {}
+ipcMain.on('update-tab-index-org',(e,tabId,index)=>tabIndexMap[tabId] = index)
+var getTabValue = function (tabId) {`)
+  .replace('return tabContents && !tabContents.isDestroyed() && tabContents.tabValue()',`  const ret = tabContents && !tabContents.isDestroyed() && tabContents.tabValue()
+  let index
+  if(ret && (index = tabIndexMap[ret.id]) !== (void 0)) {
+    ret.index = index
+  }
+  return ret`)
   .replace('  if (!error && createProperties.partition) {',`  if(!createProperties.openerTabId){
     if(!win){
       const focus = BrowserWindow.getFocusedWindow()
@@ -76,6 +88,7 @@ const result = contents
   }
 
   if (!error && createProperties.partition) {`)
+
 fs.writeFileSync(file,result)
 
 

@@ -1,6 +1,7 @@
 const React = require('react')
 const {Component} = React
 const {remote} = require('electron');
+const mainState = remote.require('./mainState')
 const {app,Menu,clipboard} = remote
 import Tabs from './draggable_tab/components/Tabs'
 import Tab from './draggable_tab/components/Tab'
@@ -18,7 +19,6 @@ const Notification = require('./Notification')
 const InputableDialog = require('./InputableDialog')
 const ImportDialog = require('./ImportDialog')
 import url from 'url'
-const mainState = remote.require('./mainState')
 const BrowserWindowPlus = remote.require('./BrowserWindowPlus')
 const moment = require('moment')
 const urlutil = require('./urlutil')
@@ -36,10 +36,10 @@ let topURL
 const sidebarURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html'
 const blankURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html'
 const REG_VIDEO = /^https:\/\/www\.(youtube)\.com\/watch\?v=(.+)&?|^http:\/\/www\.(dailymotion)\.com\/video\/(.+)$|^https:\/\/(vimeo)\.com\/(\d+)$/
-let newTabMode = mainState.newTabMode
+let newTabMode = ipc.sendSync('get-sync-main-state','newTabMode')
 
 function getNewTabPage(){
-  topURL = newTabMode == 'myHomepage' ? mainState.myHomepage : `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/${newTabMode}.html`
+  topURL = newTabMode == 'myHomepage' ? ipc.sendSync('get-sync-main-state','myHomepage') : `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/${newTabMode}.html`
 }
 
 ipc.on('update-mainstate',(e,key,val)=>{
@@ -71,7 +71,7 @@ const convertUrlMap = new Map([
 
 
 function updateSearchEngine(){
-  searchProviders = {...mainState.searchProviders}
+  searchProviders = {...ipc.sendSync('get-sync-main-state','searchProviders')}
   spAliasMap = new Map(Object.values(searchProviders).map(sp=> [sp.shortcut,sp.name]))
 }
 
@@ -230,7 +230,7 @@ export default class TabPanel extends Component {
       })
 
       this.state = {tokens,
-        oppositeGlobal: mainState.oppositeGlobal,
+        oppositeGlobal: ipc.sendSync('get-sync-main-state','oppositeGlobal'),
         tabs,
         tabBar:props.k.match(/^fixed-bottom/) ? 1 : props.k.match(/^fixed-(left|right)/) ? 0 :(void 0),
         prevAddKeyCount: [null,[]],
@@ -242,7 +242,7 @@ export default class TabPanel extends Component {
       this.state.selectedKeys = [this.state.selectedTab]
 
       this.focus_webview(this.state.tabs[0],false)
-      this.props.child[0] = this.state
+      this.props.child[0] = this
     }
     else if(this.props.node[2] && this.props.node[2].length > 1){
       console.log('TabSplit')
@@ -251,11 +251,11 @@ export default class TabPanel extends Component {
       const fromTabs = this.props.node.pop()
       const tabs = indexes.map(i=>{
         const tab = fromTabs[i]
-        return this.createTab({c_page:tab.page,c_wv:tab.wv,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin
+        return this.createTab({c_page:tab.page,c_wv:tab.wv,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,guestInstanceId: tab.guestInstanceId
           ,rest:{wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis}})
       })
       this.state = {tokens,
-        oppositeGlobal: mainState.oppositeGlobal,
+        oppositeGlobal: ipc.sendSync('get-sync-main-state','oppositeGlobal'),
         tabs,
         tabBar:props.k.match(/^fixed-bottom/) ? 1 : props.k.match(/^fixed-(left|right)/) ? 0 :(void 0),
         prevAddKeyCount: [null,[]],
@@ -267,7 +267,7 @@ export default class TabPanel extends Component {
       this.state.selectedKeys = [this.state.selectedTab]
 
       this.focus_webview(this.state.tabs[0],false)
-      this.props.child[0] = this.state
+      this.props.child[0] = this
     }
     else if(this.props.child[0] === undefined || this.props.node[4]){
       let params
@@ -277,9 +277,10 @@ export default class TabPanel extends Component {
         this.props.node.pop()
       }
       console.log('TabCreate')
-      const tab = this.createTab(params && {default_url:params.url,privateMode: params.privateMode,rest:{bind:params.bind,mobile:params.mobile,adBlockThis:params.adBlockThis}})
+      const tab = this.createTab(params && {default_url:params.url,privateMode: params.privateMode,guestInstanceId: params.guestInstanceId,
+        rest:{bind:params.bind,mobile:params.mobile,adBlockThis:params.adBlockThis}})
       this.state = {tokens,
-        oppositeGlobal: mainState.oppositeGlobal,
+        oppositeGlobal: ipc.sendSync('get-sync-main-state','oppositeGlobal'),
         tabs:[tab],
         tabBar:props.k.match(/^fixed-bottom/) ? 1 : props.k.match(/^fixed-(left|right)/) ? 0 :(void 0),
         prevAddKeyCount: [null,[]],
@@ -289,44 +290,45 @@ export default class TabPanel extends Component {
         history: [],
         tabKeys: []}
       this.focus_webview(tab,false)
-      this.props.child[0] = this.state
+      this.props.child[0] = this
     }
-    else if(this.props.child[0].tabs){
-      console.log('TabNoCreate')
-      this.props.child[0].tabs.forEach(tab=> removeEvents(ipc,tab.events))
-      this.props.child[0].tokens.pubsub.forEach(x=>PubSub.unsubscribe(x))
-      this.props.child[0].tokens.ipc.forEach(x=>removeEvents(ipc,x))
+    else if(this.props.child[0].state){
+      const {state} = this.props.child[0]
+      console.log('TabNoCreate',state.tabs.map(t=>{return {...t}}),state.selectedTab)
+      state.tabs.forEach(tab=> removeEvents(ipc,tab.events))
+      state.tokens.pubsub.forEach(x=>PubSub.unsubscribe(x))
+      state.tokens.ipc.forEach(x=>removeEvents(ipc,x))
       this.state = {tokens,
-        oppositeGlobal: mainState.oppositeGlobal,
-        tabs: this.props.child[0].tabs.map(tab=>this.createTab({c_page:tab.page,c_wv:tab.wv,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,
+        oppositeGlobal: ipc.sendSync('get-sync-main-state','oppositeGlobal'),
+        tabs: state.tabs.map(tab=>this.createTab({c_page:tab.page,c_wv:tab.wv,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,guestInstanceId: tab.guestInstanceId,
           rest:{wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis}})),
-        tabBar:this.props.child[0].tabBar,
-        prevAddKeyCount: this.props.child[0].prevAddKeyCount.slice(0),
-        notifications: this.props.child[0].notifications,
-        selectedTab: this.props.child[0].selectedTab,
-        selectedKeys: this.props.child[0].selectedKeys,
-        history: this.props.child[0].history,
-        tabKeys: this.props.child[0].tabKeys
+        tabBar:state.tabBar,
+        prevAddKeyCount: state.prevAddKeyCount.slice(0),
+        notifications: state.notifications,
+        selectedTab: state.selectedTab,
+        selectedKeys: state.selectedKeys,
+        history: state.history,
+        tabKeys: state.tabKeys
       }
-      this.props.child[0] = this.state
+      this.props.child[0] = this
     }
     else{
       console.log('RestoreTab',this.props.child)
       const restoreTabs = this.props.child
       const tabs = []
-      const keepTabs = mainState.startsWith == 'startsWithOptionLastTime'
+      const keepTabs = ipc.sendSync('get-sync-main-state','startsWith') == 'startsWithOptionLastTime'
       let forceKeep = false
       for(let tab of restoreTabs){
         console.log(544,tab)
         if(!keepTabs && !tab.forceKeep && !tab.pin) continue
         forceKeep = tab.forceKeep
-        tabs.push(this.createTab({default_url:tab.url,privateMode:tab.privateMode,pin:tab.pin}))
+        tabs.push(this.createTab({default_url:tab.url,privateMode:tab.privateMode,pin:tab.pin,guestInstanceId: tab.guestInstanceId}))
       }
       if(tabs.length == 0) tabs.push(this.createTab())
 
       this.state = {tokens,
         tabs,
-        oppositeGlobal: mainState.oppositeGlobal,
+        oppositeGlobal: ipc.sendSync('get-sync-main-state','oppositeGlobal'),
         tabBar:props.k.match(/^fixed-bottom/) ? 1 : props.k.match(/^fixed-(left|right)/) ? 0 :(void 0),
         prevAddKeyCount: [null,[]],
         notifications:[],
@@ -335,7 +337,7 @@ export default class TabPanel extends Component {
         history: [],
         tabKeys: []
       }
-      this.props.child[0] = this.state
+      this.props.child[0] = this
     }
   }
 
@@ -456,6 +458,7 @@ export default class TabPanel extends Component {
     })
 
     const tokenRichMedia = PubSub.subscribe('rich-media-insert',(msg,record)=>{
+      console.log('rich',record)
       const tab = this.state.tabs.find(t =>t.wvId == record.tabId)
       if(!tab) return
       if(tab.page.navUrl.match(REG_VIDEO)){
@@ -539,10 +542,10 @@ export default class TabPanel extends Component {
     if(this.isFixed) return [tokenResize,tokenDrag,tokenClose,tokenBodyKeydown,tokenIncludeKey,tokenRichMedia,tokenMultiScroll,tokenCloseTab]
 
 
-    const tokenNewTabFromKey = PubSub.subscribe(`new-tab-from-key_${this.props.k}`, (msg,{url,mobile,adBlockThis,notSelected,privateMode})=> {
+    const tokenNewTabFromKey = PubSub.subscribe(`new-tab-from-key_${this.props.k}`, (msg,{url,mobile,adBlockThis,notSelected,privateMode,guestInstanceId})=> {
       if (!this.mounted) return
       console.log(`new-tab-from-key_${this.props.k}`,this)
-      tabAdd(this, url, !notSelected,privateMode,(void 0),(void 0),(void 0));
+      tabAdd(this, url, !notSelected,privateMode,guestInstanceId,(void 0),(void 0));
     })
 
     const tokenToggleDirction = PubSub.subscribe(`switch-direction_${this.props.k}`, (msg)=> {
@@ -658,6 +661,8 @@ export default class TabPanel extends Component {
       else{
         this.props.split(droppedKey, dirc, pos * -1)
       }
+
+      if(this.refs.tabs) this.refs.tabs.unmountMount()
     })
 
     const tokenSearch = PubSub.subscribe(`drag-search_${this.props.k}`,(msg,{key,text})=>{
@@ -677,7 +682,7 @@ export default class TabPanel extends Component {
       return false
     }
     else if (page.navUrl.endsWith('.pdf') || page.navUrl.endsWith('.PDF')) {
-      const url = mainState.pdfMode == "normal" ?
+      const url = ipc.sendSync('get-sync-main-state','pdfMode') == "normal" ?
         `chrome-extension://jdbefljfgobbmcidnmpjamcbhnbphjnb/content/web/viewer.html?file=${encodeURIComponent(page.navUrl)}` :
         `chrome-extension://jdbefljfgobbmcidnmpjamcbhnbphjnb/comicbed/index.html#?url=${encodeURIComponent(page.navUrl)}`
       navigateTo(url)
@@ -1467,7 +1472,7 @@ export default class TabPanel extends Component {
         this.changeSyncMode()
       }
       else if(name == 'openSidebar'){
-        this.props.fixedPanelOpen({dirc:mainState.sideBarDirection})
+        this.props.fixedPanelOpen({dirc:ipc.sendSync('get-sync-main-state','sideBarDirection')})
       }
       else if(name == 'changeMobileAgent'){
         this.refs[`navbar-${tab.key}`].handleUserAgent()
@@ -1706,7 +1711,7 @@ export default class TabPanel extends Component {
     // if(hist) tab.history = hist
     if(rest) Object.assign(tab,rest)
     if(tab.oppositeMode === (void 0)){
-      tab.oppositeMode = isFloatPanel(this.props.k) ? false : this.state ? this.state.oppositeGlobal : mainState.oppositeGlobal
+      tab.oppositeMode = isFloatPanel(this.props.k) ? false : this.state ? this.state.oppositeGlobal : ipc.sendSync('get-sync-main-state','oppositeGlobal')
     }
     if(tab.adBlockThis === (void 0)) tab.adBlockThis = true
 
@@ -1752,7 +1757,7 @@ export default class TabPanel extends Component {
       if (!tab.wvId || tab.wvId !== id)
         return
 
-      console.log('create-web-contents',tab,this)
+      console.log('create-web-contents',tab.page.navUrl,this)
 
       const url = targetUrl
 
@@ -1767,11 +1772,11 @@ export default class TabPanel extends Component {
       if(!tab.sync && !isFloatPanel(this.props.k) && opposite && disposition !== 'foreground-tab'){
         const oppositeKey = this.props.getOpposite(this.props.k)
         if (oppositeKey && !isFixedPanel(oppositeKey)){
-          PubSub.publish(`new-tab-from-key_${oppositeKey}`, {url,mobile:tab.mobile, adBlockThis: tab.adBlockThis,privateMode:tab.privateMode})
+          PubSub.publish(`new-tab-from-key_${oppositeKey}`, {url,mobile:tab.mobile, adBlockThis: tab.adBlockThis,privateMode:tab.privateMode,guestInstanceId})
           return
         }
         else{
-          this.props.split(this.props.k, 'v',1, (void 0), (void 0), {url,mobile:tab.mobile,adBlockThis:tab.adBlockThis,privateMode:tab.privateMode})
+          this.props.split(this.props.k, 'v',1, (void 0), (void 0), {url,mobile:tab.mobile,adBlockThis:tab.adBlockThis,privateMode:tab.privateMode,guestInstanceId})
           return
         }
       }
@@ -1926,7 +1931,7 @@ export default class TabPanel extends Component {
   }
 
   TabPanelClose(key,time){
-    console.log('TabPanelClose')
+    console.log('TabPanelClose',this.state.tabs)
     for(let tab of this.state.tabs){
       this._closeBind(tab)
     }
@@ -1943,12 +1948,6 @@ export default class TabPanel extends Component {
     else{
       PubSub.publish('tab-close', {key: this.props.k})
     }
-
-    this.state.tabs.forEach(tab=>{
-      removeEvents(ipc,tab.events)
-    })
-    if(this.eventOpenPanel) ipc.removeListener('open-panel',this.eventOpenPanel)
-    if(this.eventOpenLink) ipc.removeListener('open-link',this.eventOpenLink)
   }
 
   buildRegExp(fromStr){
@@ -2120,7 +2119,7 @@ export default class TabPanel extends Component {
   }
 
   componentWillUnmount() {
-    console.log('componentWillUnmount')
+    console.log('componentWillUnmount',this.state.selectedTab)
     this.mounted = false
     this.state.tokens.pubsub.forEach(x=>PubSub.unsubscribe(x))
     this.state.tokens.ipc.forEach(x=>removeEvents(ipc,x))
@@ -2140,14 +2139,16 @@ export default class TabPanel extends Component {
   }
 
   componentDidUpdate(prevProps, prevState,retry=0){
+    if(!isFinite(retry)) retry = 0
     if(this.didUpdateTimer) clearTimeout(this.didUpdateTimer)
     this.didUpdateTimer = setTimeout(()=>{
-      console.log('componentDidUpdate',{prevProps, prevState,this_selectedTab:this.selectedTab,state:this.state})
+      // console.log('componentDidUpdate',{prevProps, prevState,this_selectedTab:this.selectedTab,state:this.state})
       if(!this.drag){
         this.webViewCreate()
-        this.props.child[0] = this.state
+        this.props.child[0] = this
       }
       const sameSelected = this.selectedTab == this.state.selectedTab
+      console.log(sameSelected,this.selectedTab,this.state.selectedTab)
       // if(sameSelected) return
 
       const allKeySame = this.state.tabKeys.length == this.state.tabs.length &&
@@ -2272,8 +2273,8 @@ export default class TabPanel extends Component {
 
   handleTabClose(e, key,isUpdateState=true) {
     if (!this.mounted) return
-    console.log('tabClosed key:', key);
     const i = this.state.tabs.findIndex((x)=> x.key == key)
+    console.log('tabClosed key:', key,this.state.tabs[i].page.navUrl,this.state.tabs.length);
 
     this._closeBind(this.state.tabs[i])
     if(this.state.tabs.length==1){
@@ -2294,10 +2295,9 @@ export default class TabPanel extends Component {
     this.state.tabs.splice(i,1)
     const _tabs = this.state.tabs
 
-    console.log(94,this.getPrevSelectedTab(key,_tabs,i),key,_tabs,i)
 
     if (!this.mounted) return
-    console.log("selected06",this.state.selectedTab !== key ? this.state.selectedTab : this.getPrevSelectedTab(key,_tabs,i))
+    console.log("selected06",_tabs.find(t=>t.key == (this.state.selectedTab !== key ? this.state.selectedTab : this.getPrevSelectedTab(key,_tabs,i))),this.state.selectedTab !== key ? this.state.selectedTab : this.getPrevSelectedTab(key,_tabs,i))
 
     if(isUpdateState){
       this.setState({tabs:_tabs,
@@ -2569,7 +2569,7 @@ export default class TabPanel extends Component {
           this.props.split(this.props.k, dirc, pos * -1)
         }
       }
-      this.refs.tabs.unmountMount()
+      if(this.refs.tabs) this.refs.tabs.unmountMount()
     }
 
     const splitOtherTabsFunc = (dirc,pos)=> {
@@ -2592,6 +2592,7 @@ export default class TabPanel extends Component {
           PubSub.publish(`close_tab_${this.props.k}`,{key,isUpdateState:i == arr.length - 1})
         })
       }
+      if(this.refs.tabs) this.refs.tabs.unmountMount()
     }
 
     const detachToFloatPanel = _=>{
@@ -3068,7 +3069,7 @@ export default class TabPanel extends Component {
 
   search(tab, text, checkOpposite, forceNewTab){
     const splitText = text.match(/^(.+?)([\t ]+)(.+)$/)
-    let engine = mainState.searchEngine
+    let engine = ipc.sendSync('get-sync-main-state','searchEngine')
     if(splitText && spAliasMap.has(splitText[1])){
       engine = spAliasMap.get((splitText[1]))
       text = splitText[3]
@@ -3190,7 +3191,7 @@ export default class TabPanel extends Component {
           return (<Tab key={tab.key} page={tab.page} orgTab={tab} pin={tab.pin} privateMode={tab.privateMode} selection={tab.selection}>
             <div style={{height: '100%'}} className="div-back" ref={`div-${tab.key}`} >
               <BrowserNavbar ref={`navbar-${tab.key}`} tabkey={tab.key} k={this.props.k} navHandle={tab.navHandlers} parent={this}
-                             privateMode={tab.privateMode} page={tab.page} tab={tab} richContents={tab.page.richContents}
+                             privateMode={tab.privateMode} page={tab.page} tab={tab}
                              oppositeGlobal={this.state.oppositeGlobal} toggleNav={toggle}
                              historyMap={historyMap} currentWebContents={this.props.currentWebContents}
                              isTopRight={this.props.isTopRight} isTopLeft={this.props.isTopLeft} fixedPanelOpen={this.props.fixedPanelOpen}

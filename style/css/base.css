@@ -366,7 +366,7 @@ body::before {
     border-radius: 12px;
     background-color: #9a9696;
     color: white;
-    margin-bottom: 2px;
+    height: 92%;
 }
 .typcn.typcn-minus:hover {
     line-height: 0.75;
@@ -634,26 +634,15 @@ div.item.favorite>ul>li>div>ul{
 }
 
 .browserActionBadge {
-    -webkit-animation-fill-mode: forwards !important;
-    -webkit-user-select: none !important;
-    -moz-user-select: none !important;
-    -ms-user-select: none !important;
-    -webkit-animation-name: keyframe_cwjpzv !important;
-    -webkit-animation-delay: 120ms !important;
-    -webkit-animation-timing-function: linear !important;
-    -webkit-animation-duration: 120ms !important;
     text-align: center !important;
     border: 0px solid #FFF !important;
     min-width: 10px !important;
     user-select: none !important;
-    opacity: 0 !important;
     top: 14px !important;
     animation-delay: 120ms !important;
     animation-timing-function: linear !important;
     animation-duration: 120ms !important;
     animation-fill-mode: forwards !important;
-    left: -moz-calc(50% - 1px) !important;
-    left: -webkit-calc(50% - 1px) !important;
     left: calc(50% - 1px) !important;
     position: absolute !important;
     color: #FFF !important;

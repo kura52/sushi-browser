@@ -21,11 +21,12 @@ import PubSub from '../../pubsub'
 const {remote} = require('electron')
 const BrowserWindowPlus = remote.require('./BrowserWindowPlus')
 const mainState = remote.require('./mainState')
+const ipc = require('electron').ipcRenderer
 const {alwaysOnTop} = require('../../browserNavbar')
 
 const isDarwin = navigator.userAgent.includes('Mac OS X')
 const bgSvg = `<svg version="1.1" xmlns="http://www.w3.org/2000/svg"><defs><symbol id="topleft" viewBox="0 0 214 29"><path d="M14.3 0.1L214 0.1 214 29 0 29C0 29 12.2 2.6 13.2 1.1 14.3-0.4 14.3 0.1 14.3 0.1Z"></path></symbol><symbol id="topright" viewBox="0 0 214 29"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topleft"></use></symbol><clipPath id="crop"><rect class="mask" width="100%" height="100%" x="0"></rect></clipPath></defs><svg width="50%" height="100%" transfrom="scale(-1, 1)"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topleft" width="214" height="29" class="chrome-tab-background"></use><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topleft" width="214" height="29" class="chrome-tab-shadow"></use></svg><g transform="scale(-1, 1)"><svg width="50%" height="100%" x="-100%" y="0"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topright" width="214" height="29" class="chrome-tab-background"></use><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topright" width="214" height="29" class="chrome-tab-shadow"></use></svg></g></svg>`
-
+let [scrollTab,multistageTabs,tabMinWidth] = ipc.sendSync('get-sync-main-states',['scrollTab','multistageTabs','tabMinWidth'])
 
 function isFixedPanel(key){
   return key.startsWith('fixed-')
@@ -38,17 +39,23 @@ function getWebContents(tab){
 
 class Title extends React.Component {
   componentDidMount() {
-    PubSub.subscribe(`tab-component-update_${this.props.datas.key}`,(msg,datas)=>{
+    this.tokenTabComponentUpdate = PubSub.subscribe(`tab-component-update_${this.props.datas.key}`,(msg,datas)=>{
       this.title = datas.title
       this.beforeTitle = datas.beforeTitle
       this.setState({})
     })
+
   }
 
   componentWillReceiveProps(nextProps) {
     this.title = nextProps.datas.title
     this.beforeTitle = nextProps.datas.beforeTitle
   }
+
+  componentWillUnmount() {
+    PubSub.unsubscribe(this.tokenTabComponentUpdate)
+  }
+
 
   render(){
     const {key,TabStyles,tabBeforeTitleClasses,beforeTitle,tabTiteleStyle,tabTitleClasses,extraAttribute,privateMode,pin,title} = this.props.datas
@@ -58,7 +65,7 @@ class Title extends React.Component {
       m = m[1]
     }
 
-    return <div style={{display:'unset'}}>
+    return <div style={{display:'unset',boxSizing: multistageTabs && this.props.datas.toggleNav == 0 ? 'content-box' : (void 0)}}>
       <span style={TabStyles.beforeTitle} className={tabBeforeTitleClasses}>{this.beforeTitle || beforeTitle}</span>
       <p style={tabTiteleStyle}
          className={tabTitleClasses}
@@ -105,8 +112,12 @@ class Tabs extends React.Component {
     this.tabs = []
 
     this.handlePanelDragOver = ::this.handlePanelDragOver
+    this.handleWheel = ::this.handleWheel
   }
 
+  isMultistageTabsMode(){
+    return multistageTabs && this.props.toggleNav == 0
+  }
 
   _tabStateFromProps(props) {
     const tabs = [];
@@ -189,13 +200,18 @@ class Tabs extends React.Component {
     this.tokenResizeWindow = PubSub.subscribe("resizeWindow",update)
     this.tokenResize = PubSub.subscribe("resize",update)
 
+    this.tokenMultistageTabs = PubSub.subscribe('change-multistage-tabs',(msg,val)=>{
+      multistageTabs = val
+      this.setState({})
+    })
+
     this.bindShortcuts();
 
-    if(mainState.scrollTab)
-      this.refs.ttab.addEventListener('wheel',::this.handleWheel,{passive: true})
+    if(scrollTab) this.refs.ttab.addEventListener('wheel',this.handleWheel,{passive: true})
     // this.addDropEvent();
 
-    this.token = PubSub.subscribe('tab-move',(msg,k)=>{
+    this.tokenTabMove = PubSub.subscribe('tab-move',(msg,k)=>{
+      if(this.isMultistageTabsMode()) return
       let i = 0
       const thisDom = ReactDOM.findDOMNode(this)
       console.log(thisDom.querySelectorAll("li"))
@@ -217,10 +233,14 @@ class Tabs extends React.Component {
     })
   }
 
-
   componentWillUnmount() {
     this.unbindShortcuts();
-    PubSub.unsubscribe(this.token)
+    PubSub.unsubscribe(this.tokenResizeWindow)
+    PubSub.unsubscribe(this.tokenResize)
+    PubSub.unsubscribe(this.tokenMultistageTabs)
+    PubSub.unsubscribe(this.tokenTabMove)
+
+    this.refs.ttab.removeEventListener('wheel',this.handleWheel,{passive: true})
     delete transfer[this.props.k]
   }
 
@@ -239,20 +259,39 @@ class Tabs extends React.Component {
     const tabInlineStyles = {};
     tabInlineStyles.tabWrapper = TabStyles.tabWrapper //StyleOverride.merge(TabStyles.tabWrapper, this.props.tabsStyles.tabWrapper);
     tabInlineStyles.tabBar = StyleOverride.merge(TabStyles.tabBar, this.props.tabsStyles.tabBar);
-    if(this.props.toggleNav == 1){
+    if(this.isMultistageTabsMode()){
+      tabInlineStyles.tabBar.display = "flex"
+      tabInlineStyles.tabBar.height = void 0
+      tabInlineStyles.tabBar.left = '3px'
+      tabInlineStyles.tabBar.right = '3px'
+      tabInlineStyles.tabBar.paddingRight = '4px'
+      tabInlineStyles.tabBar.marginBottom = '-1px'
+    }
+    else if(this.props.toggleNav == 1){
       tabInlineStyles.tabBar = StyleOverride.merge(tabInlineStyles.tabBar, {display: 'flex',position:'absolute',height: 30});
+      tabInlineStyles.tabBar.paddingRight = void 0
+      tabInlineStyles.tabBar.marginBottom = void 0
     }
     // else if(this.props.toggleNav == 3){
     //   tabInlineStyles.tabBar = StyleOverride.merge(tabInlineStyles.tabBar, {display: 'flex',position:'absolute',zIndex: 2});
     // }
     else {
       tabInlineStyles.tabBar.display = "flex"
+      tabInlineStyles.tabBar.paddingRight = void 0
       // const titleElements = document.getElementsByClassName("rdTabBar mfyTabBar")
       //   for (let i = 0; i < titleElements.length; i++) {
       //     titleElements[i].style.display = "flex"
       //   }
     }
     tabInlineStyles.tab = TabStyles.tab //StyleOverride.merge(TabStyles.tab, this.props.tabsStyles.tab);
+    if(this.isMultistageTabsMode()){
+      TabStyles.tab.minWidth = `${tabMinWidth}px`
+      TabStyles.tab.height = '27px'
+    }
+    else{
+      TabStyles.tab.minWidth = '0px'
+      TabStyles.tab.height = void 0
+    }
     tabInlineStyles.tabTitle = TabStyles.tabTitle //StyleOverride.merge(TabStyles.tabTitle, this.props.tabsStyles.tabTitle);
     tabInlineStyles.tabCloseIcon = TabStyles.tabCloseIcon //StyleOverride.merge(TabStyles.tabCloseIcon, this.props.tabsStyles.tabCloseIcon);
     tabInlineStyles.tabCloseIconOnHover = TabStyles.tabCloseIconOnHover //StyleOverride.merge(TabStyles.tabCloseIconOnHover, this.props.tabsStyles.tabCloseIconOnHover);
@@ -303,14 +342,21 @@ class Tabs extends React.Component {
       // tabStyles = tabStyles || {}
       tabClassNames = tabClassNames || {}
       // containerStyle.height = `calc(100% - ${this.props.toggleNav == 0 ? 27 : this.props.toggleNav == 1 ? 1 : 0}px)`
-      containerStyle.height = `calc(100% - ${this.props.toggleNav == 0 ? 27 : 0}px)`
+      if(this.props.toggleNav == 0 && multistageTabs){
+        const ele = document.querySelector(`.s${this.props.k} .tab-base`)
+        containerStyle.height = `calc(100% - ${ele ? ele.offsetHeight : 30}px)`
+      }
+      else{
+        containerStyle.height = `calc(100% - ${this.props.toggleNav == 0 ?  27 : 0}px)`
+      }
 
       // override inline each tab styles
       let tabStyle = tabInlineStyles.tab //StyleOverride.merge(tabInlineStyles.tab, tabStyles.tab);
       let tabTiteleStyle = tabInlineStyles.tabTitle //StyleOverride.merge(tabInlineStyles.tabTitle, tabStyles.tabTitle);
       const tabCloseIconStyle = tabInlineStyles.tabCloseIcon //StyleOverride.merge(tabInlineStyles.tabCloseIcon, tabStyles.tabCloseIcon);
+      if(this.props.toggleNav == 0 && multistageTabs) tabCloseIconStyle.right = '10px'
 
-      let tabClasses = `${_tabClassNames.tab} ${tabClassNames.tab}`
+      let tabClasses = `${_tabClassNames.tab} ${tabClassNames.tab} ${this.props.toggleNav == 0 && multistageTabs ? 'multi-row' : ''}`
       let tabTitleClasses = `${_tabClassNames.tabTitle} ${tabClassNames.tabTitle}`
       let tabBeforeTitleClasses = `${_tabClassNames.tabBeforeTitle} ${tabClassNames.tabBeforeTitle}`
       const tabCloseIconClasses = `${_tabClassNames.tabCloseIcon} ${tabClassNames.tabCloseIcon}`
@@ -330,15 +376,15 @@ class Tabs extends React.Component {
           <TabContainer key={`tabContainer#${tab.key}`} selected={false} style={containerStyle} hiddenStyle={hiddenContainerStyle}>{tab}</TabContainer>);
       }
 
-      tabStyle = StyleOverride.merge(tabStyle, tabNum === 0 ? {marginLeft: this.props.toggleNav == 1 ? 0 : 10} : {left: -13 * tabNum});
+      tabStyle = StyleOverride.merge(tabStyle, tabNum === 0 ? { marginLeft: this.props.toggleNav == 1 || multistageTabs ? 0 : 10} : {left: this.isMultistageTabsMode() ? 0 : -13 * tabNum});
       if(this.refs && this.refs[tab.key]){
         const li = ReactDOM.findDOMNode(this.refs[tab.key])
         if(tabNum === 0){
-          li.style.marginLeft = `${tabStyle.marginLeft}px`
+          li.style.marginLeft = `${this.isMultistageTabsMode() ? 0 : tabStyle.marginLeft}px`
           li.style.left = '0px'
         }
         else{
-          li.style.left = `${tabStyle.left}px`
+          li.style.left = `${this.isMultistageTabsMode() ? 0 : tabStyle.left}px`
           li.style['margin-left'] = null
         }
       }
@@ -388,16 +434,22 @@ class Tabs extends React.Component {
           //   onMouseOut={()=>this.setState({hoveredTab:undefined})}
             ref={tab.key}
             {...others}>
-          <div className="chrome-tab-background">
-            <svg dangerouslySetInnerHTML={{__html: bgSvg }} />
-          </div>
-          <Title datas={{key:tab.key,TabStyles,tabBeforeTitleClasses,beforeTitle,tabTiteleStyle,tabTitleClasses,extraAttribute,privateMode,pin,title}}/>
+          {this.isMultistageTabsMode() ?
+            <div className="chrome-tab-background">
+            </div>
+            :
+            <div className="chrome-tab-background">
+              <svg dangerouslySetInnerHTML={{__html: bgSvg }} />
+            </div>
+          }
+          <Title datas={{key:tab.key,toggleNav:this.props.toggleNav,TabStyles,tabBeforeTitleClasses,beforeTitle,tabTiteleStyle,tabTitleClasses,extraAttribute,privateMode,pin,title}}/>
           {closeButton}
         </li>
       );
     });
 
-    const modifyLeft = 13 * this.state.tabs.length
+    const modifyLeft = this.isMultistageTabsMode() ? 10 :13 * this.state.tabs.length
+    TabStyles.tabAddButton.transform = this.isMultistageTabsMode() ? 'initial' : 'skewX(27deg)'
     TabStyles.tabAddButton.left = modifyLeft * -1
     if(this.props.toggleNav == 1){
       const thisNode = ReactDOM.findDOMNode(this)
@@ -409,10 +461,10 @@ class Tabs extends React.Component {
       }
       // console.log(33,`${prefix || (this.props.toggleNav == 1 && this.props.isTopRight ? "calc(45%" : "calc(50%")} + ${modifyLeft}px)`)
       // console.log(78,prefix)
-      tabInlineStyles.tabBar.width = `calc(${prefix || (this.props.toggleNav == 1 && this.props.isTopRight ? "45%" : "50%")} + ${modifyLeft}px)`
+      tabInlineStyles.tabBar.width = `calc(${prefix || (this.props.toggleNav == 1 && this.props.isTopRight ? "45%" : "50%")} + ${this.isMultistageTabsMode() ? 0 : modifyLeft}px)`
     }
     else{
-      tabInlineStyles.tabBar.width = `calc(100% + ${modifyLeft}px - 8px)`
+      tabInlineStyles.tabBar.width = `calc(100% + ${this.isMultistageTabsMode() ? 0 : modifyLeft - 8}px)`
     }
 
     if(this.props.toggleNav == 1){
@@ -622,7 +674,7 @@ class Tabs extends React.Component {
     if(selectionTabs.length > 0) tabs = null
 
     setTimeout(_=>{
-        if(mainState.stopDragEnd){
+        if(ipc.sendSync('get-sync-main-state','stopDragEnd')){
           mainState.set('stopDragEnd',false)
           return
         }
@@ -737,7 +789,7 @@ class Tabs extends React.Component {
     }
   }
   handleDragEnter(evt){
-    const dragData = mainState.dragData
+    const dragData = ipc.sendSync('get-sync-main-state','dragData')
     if(!dragData) return
     console.log(134,dragData.windowId == this.props.windowId,this.props.k == dragData.k,dragData.tabs,dragData)
     if(dragData.windowId == this.props.windowId){
@@ -832,12 +884,18 @@ class Tabs extends React.Component {
               position: 'absolute',
               width: '100%'
             }:
-            this.props.toggleNav == 1 ? {} :
+            this.isMultistageTabsMode() ?
               {
-                height: 27,
+                height : void 0,
                 background: 'rgb(221, 221, 221)',
                 borderBottom: '1px solid #aaa',
-              }}>
+              } :
+              this.props.toggleNav == 1 ? {} :
+                {
+                  height: 27,
+                  background: 'rgb(221, 221, 221)',
+                  borderBottom: '1px solid #aaa',
+                }}>
           <ul tabIndex="-1" style={tabInlineStyles.tabBar} className={_tabClassNames.tabBar} ref="ttab"
               onDoubleClick={isDarwin ? _=>{
                 const win = remote.getCurrentWindow()
@@ -856,7 +914,7 @@ class Tabs extends React.Component {
                   onDragStart={this.handleDragStart.bind(this, null)} onDragEnd={this.handleDragEnd.bind(this, null)}>
               {this.props.tabAddButton}
             </span>
-            {!isDarwin && this.props.isTopRight && this.props.toggleNav != 1 ? <RightTopBottonSet style={{transform: `translateX(-${this.state.tabs.length * 13 - 6}px)`}}/>: ""}
+            {!isDarwin && this.props.isTopRight && this.props.toggleNav != 1 ? <RightTopBottonSet style={{transform: `translateX(${this.isMultistageTabsMode() ? 1 : - this.state.tabs.length * 13 + 6}px)`}}/>: ""}
           </ul>
         </div>
         {content}

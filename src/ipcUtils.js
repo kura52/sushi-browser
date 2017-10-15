@@ -387,6 +387,7 @@ ipcMain.on("change-title",(e,title)=>{
 })
 
 
+const extInfos = require('./extensionInfos')
 ipcMain.on('get-main-state',(e,names)=>{
   const ret = {}
   names.forEach(name=>{
@@ -402,7 +403,6 @@ ipcMain.on('get-main-state',(e,names)=>{
     }
   })
 
-  const extInfos = require('./extensionInfos')
   const extensions = {}
   const disableExtensions = mainState.disableExtensions
   for (let [k,v] of Object.entries(extInfos)) {
@@ -448,7 +448,7 @@ ipcMain.on('save-state',async (e,{tableName,key,val})=>{
     e.sender.hostWebContents.send("update-search-engine")
   }
   else{
-    e.sender.hostWebContents.send("update-mainstate",key,val)
+    if(e.sender.hostWebContents) e.sender.hostWebContents.send("update-mainstate",key,val)
   }
 })
 
@@ -662,20 +662,21 @@ ipcMain.on('change-tab-infos',(e,changeTabInfos)=> {
   for(let c of changeTabInfos){
     const cont = webContents.fromTabID(c.tabId)
     if(cont){
+      if(c.index !== (void 0)){
+        // if(timers[c.tabId]) clearTimeout(timers[c.tabId])
+        // timers[c.tabId] = setTimeout(()=>{
+          console.log('change-tab-infos',c)
+          // cont.setTabIndex(c.index)
+          ipcMain.emit('update-tab-index-org', null, c.tabId ,c.index)
+          // delete timers[c.tabId]
+        // }, 10)
+      }
       if(c.active){
         if(timer) clearTimeout(timer)
         timer = setTimeout(()=>{
           console.log('change-tab-infos',c)
           cont.setActive(c.active)
           timer = void 0
-        }, 10)
-      }
-      if(c.index !== (void 0)){
-        if(timers[c.tabId]) clearTimeout(timers[c.tabId])
-        timers[c.tabId] = setTimeout(()=>{
-          console.log('change-tab-infos',c)
-          cont.setTabIndex(c.index)
-          delete timers[c.tabId]
         }, 10)
       }
     }
@@ -863,6 +864,10 @@ PubSub.subscribe("web-contents-created",(msg,[tabId,sender])=>{
 
 })
 
+ipcMain.on('get-navbar-menu-order',e=>{
+  e.returnValue = mainState.navbarItems
+})
+
 ipcMain.on('get-cont-history',(e,tabId)=>{
   const cont = webContents.fromTabID(tabId)
   if(!cont){
@@ -878,7 +883,7 @@ ipcMain.on('get-cont-history',(e,tabId)=>{
       historyList.push(cont.getURLAtIndex(i))
     }
   }
-  e.sender.send(`get-cont-history-reply_${tabId}`,currentIndex,historyList,mainState.disableExtensions,mainState.adBlockEnable,mainState.pdfMode)
+  e.sender.send(`get-cont-history-reply_${tabId}`,currentIndex,historyList,mainState.disableExtensions,mainState.adBlockEnable,mainState.pdfMode,mainState.navbarItems)
 })
 ipcMain.on('get-session-sequence',e=> {
   e.returnValue = seq()
@@ -888,6 +893,24 @@ ipcMain.on('menu-or-key-events-main',(e,msg,tabId)=>{
   e.sender.send('menu-or-key-events',msg,tabId)
 })
 
+ipcMain.on('show-notification-sort-menu',(e,key,tabId)=>{
+  e.sender.send('show-notification',{key,text:'End sorting the menu?', buttons:['OK']})
+  ipcMain.once(`reply-notification-${key}`,(e,ret)=>{
+    e.sender.send(`show-notification-sort-menu-reply_${key}`)
+  })
+})
+
+ipcMain.on('get-extension-info',(e,key)=>{
+  e.sender.send(`get-extension-info-reply_${key}`,extInfos)
+})
+
+ipcMain.on('get-sync-main-states',(e,keys)=>{
+  e.returnValue = keys.map(key=>mainState[key])
+})
+
+ipcMain.on('get-sync-main-state',(e,key)=>{
+  e.returnValue = mainState[key]
+})
 // ipcMain.on('send-keys',(e,keys)=>{
 //   e.sender.sendInputEvent(keys)
 // })

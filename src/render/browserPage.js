@@ -66,6 +66,7 @@ class BrowserPage extends Component {
 
     if(this.props.tab.guestInstanceId){
       webview.attachGuest(this.props.tab.guestInstanceId)
+      console.log("webview.attachGuest(this.props.tab.guestInstanceId)",this.props.tab.guestInstanceId)
     }
 
     if(this.props.tab.privateMode){
@@ -155,7 +156,7 @@ class BrowserPage extends Component {
     }
     ipc.on('menu-or-key-events', this.searchEvent)
 
-
+    console.log("BrowserPage componentDidMount(",webview,this.props)
   }
 
   componentWillUnmount() {

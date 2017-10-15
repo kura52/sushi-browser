@@ -33,8 +33,10 @@ const {messages,locale} = require('./localAndMessage')
 const urlParse = require('../../brave/urlParse')
 import ResizeObserver from 'resize-observer-polyfill'
 import uuid from 'node-uuid'
+import menuSortContextMenu from './menuSortContextMenu'
 const isDarwin = navigator.userAgent.includes('Mac OS X')
 const isWin = navigator.userAgent.includes('Windows')
+
 
 new Clipboard('.clipboard-btn')
 
@@ -64,16 +66,16 @@ function equalArray(a,b){
 const tabs = new Set()
 
 function BrowserNavbarBtn(props){
-  return <a href="javascript:void(0)" style={props.style} className={`${props.disabled?'disabled':''} ${props.sync ? 'sync' : ''}`} title={props.title} onClick={props.onClick}><i style={props.styleFont} className={`fa fa-${props.icon}`}/></a>
+  return <a href="javascript:void(0)" onContextMenu={props.onContextMenu} style={props.style} className={`${props.className||''} draggable-source ${props.disabled?'disabled':''} ${props.sync ? 'sync' : ''}`} title={props.title} onClick={props.onClick}><i style={props.styleFont} className={`fa fa-${props.icon}`}/></a>
 }
 
-let alwaysOnTop = [mainState.alwaysOnTop]
+let [alwaysOnTop,multistageTabs,{left,right,backSide}] = ipc.sendSync('get-sync-main-states',['alwaysOnTop','multistageTabs','navbarItems'])
 
 class BrowserNavbar extends Component{
   constructor(props) {
     super(props)
     this.state = {userAgentBefore: MOBILE_USERAGENT,adBlockGlobal:true,
-      pdfMode:'normal',adBlockThis:true,currentIndex:0,historyList:[],disableExtensions:[]}
+      pdfMode:'normal',adBlockThis:true,currentIndex:0,historyList:[],disableExtensions:[],left,right,backSide}
     this.canGoBack = this.props.page.canGoBack
     this.canGoForward = this.props.page.canGoForward
     this.canRefresh = this.props.page.canRefresh
@@ -81,9 +83,8 @@ class BrowserNavbar extends Component{
     this.richContents = this.props.richContents
     this.sync = this.props.tab.sync
   }
-  componentDidMount() {
-    this.componentDidUpdate()
 
+  initEvents(){
     this.tokenZoom = PubSub.subscribe(`zoom_${this.props.tabkey}`,(msg,percent)=>{
       this.setState({zoom:percent})
       if(this.props.tab.sync) this.props.parent.syncZoom(percent,this.props.tab.sync)
@@ -101,6 +102,18 @@ class BrowserNavbar extends Component{
       this.setState({})
     })
 
+    this.tokenMenuSort = PubSub.subscribe('sort-menu',(msg,navbarItems)=>{
+      this.setState({left:navbarItems.left,right:navbarItems.right,backSide:navbarItems.backSide})
+      left = navbarItems.left
+      right = navbarItems.right
+      backSide = navbarItems.backSide
+    })
+
+    this.tokenMultistageTabs = PubSub.subscribe('change-multistage-tabs',(msg,val)=>{
+      multistageTabs = val
+      this.forceUpdates = true
+      this.setState({})
+    })
     let marginEle = ReactDOM.findDOMNode(this).querySelector(".navbar-margin")
     let rdTabBar = marginEle.parentNode.parentNode.parentNode.parentNode.querySelector(".rdTabBar")
     console.log(marginEle,rdTabBar)
@@ -108,7 +121,8 @@ class BrowserNavbar extends Component{
     const self = this
 
     const ro = new ResizeObserver((entries, observer) => {
-      if(this.props.toggleNav != 1 ){
+      if(this.props.toggleNav != 1){
+        if(multistageTabs) return
         rdTabBar.style.left = '0px'
         return
       }
@@ -153,6 +167,11 @@ class BrowserNavbar extends Component{
     }
   }
 
+  componentDidMount() {
+    this.updateStates()
+    this.initEvents()
+  }
+
   componentWillUnmount() {
     PubSub.unsubscribe(this.tokenZoom)
     PubSub.unsubscribe(this.tokenReplaceInfo)
@@ -160,6 +179,8 @@ class BrowserNavbar extends Component{
     PubSub.unsubscribe(this.tokenPdfMode)
     PubSub.unsubscribe(this.tokenBindWindow)
     PubSub.unsubscribe(this.tokenForceUpdate)
+    PubSub.unsubscribe(this.tokenMenuSort)
+    PubSub.unsubscribe(this.tokenMultistageTabs)
     tabs.add(this.props.tab.wvId)
   }
 
@@ -188,11 +209,14 @@ class BrowserNavbar extends Component{
       this.props.isTopRight === nextProps.isTopRight &&
       this.props.isTopLeft === nextProps.isTopLeft &&
       this.props.fullscreen === nextProps.fullscreen &&
-      (this.richContents||[]).length === (nextProps.richContents||[]).length &&
+      (this.richContents||[]).length === (nextProps.tab.page.richContents||[]).length &&
       (this.caches||[]).length === (nextState.caches||[]).length &&
       this.state.currentIndex === nextState.currentIndex &&
       equalArray(this.state.historyList,nextState.historyList) &&
       equalArray(this.state.disableExtensions,nextState.disableExtensions) &&
+      equalArray(this.state.left,nextState.left) &&
+      equalArray(this.state.right,nextState.right) &&
+      equalArray(this.state.backSide,nextState.backSide) &&
       this.state.zoom === nextState.zoom &&
       this.state.vpnList === nextState.vpnList &&
       this.sync === nextProps.tab.sync &&
@@ -215,7 +239,7 @@ class BrowserNavbar extends Component{
       this.canRefresh = nextProps.page.canRefresh
       this.location = nextProps.page.location
       this.navUrl = nextProps.page.navUrl
-      this.richContents = (nextProps.richContents||[]).slice(0)
+      this.richContents = (nextProps.tab.page.richContents||[]).slice(0)
       this.caches = nextState.caches
       this.currentIndex = nextProps.page.entryIndex
       this.sync = nextProps.tab.sync
@@ -224,8 +248,20 @@ class BrowserNavbar extends Component{
     }
     return ret
   }
-  componentDidUpdate(prevProps, prevState) {
-    ipc.once(`get-cont-history-reply_${this.props.tab.wvId}`,(e,currentIndex,historyList,disableExtensions,adBlockGlobal,pdfMode)=>{
+
+  updateStates(){
+    ipc.once(`get-cont-history-reply_${this.props.tab.wvId}`,(e,currentIndex,historyList,disableExtensions,adBlockGlobal,pdfMode,navbarItems)=>{
+      left = navbarItems.left
+      right = navbarItems.right
+      backSide = navbarItems.backSide
+      if(currentIndex === (void 0)) return
+      this.setState({currentIndex,historyList,disableExtensions,adBlockGlobal,pdfMode,...navbarItems})
+    })
+    ipc.send('get-cont-history',this.props.tab.wvId)
+  }
+
+  componentWillUpdate(prevProps, prevState) {
+    ipc.once(`get-cont-history-reply_${this.props.tab.wvId}`,(e,currentIndex,historyList,disableExtensions,adBlockGlobal,pdfMode,navbarItems)=>{
       if(currentIndex === (void 0)) return
       this.setState({currentIndex,historyList,disableExtensions,adBlockGlobal,pdfMode})
     })
@@ -374,16 +410,6 @@ class BrowserNavbar extends Component{
     this.setState({})
   }
 
-  browserAction(cont,tab){
-    const ret = []
-    const dis = ['dckpbojndfoinamcdamhkjhnjnmjkfjd','jdbefljfgobbmcidnmpjamcbhnbphjnb',...this.state.disableExtensions]
-    for(let [id,values] of browserActionMap) {
-      if(dis.includes(id)) continue
-      ret.push(<BrowserActionMenu key={id} id={id} values={values} tab={tab} cont={cont} parent={this}/>)
-    }
-    return ret
-  }
-
   _bindWindow({win,hwnd=false}){
     win = win || remote.getCurrentWindow()
     const tab = this.props.tab
@@ -418,12 +444,7 @@ class BrowserNavbar extends Component{
             const token = PubSub.subscribe(`move-window_${this.props.k}`,_=>tab.bind.move())
             ro.observe(wv)
             tab.bind ={
-              id,
-              win,
-              hwnd,
-              token,
-              interval,
-              observe: [ro,wv],
+              id, win, hwnd, token, interval, observe: [ro,wv],
               move: e=>{
                 setTimeout(_=>{
                   console.log('move')
@@ -475,9 +496,19 @@ class BrowserNavbar extends Component{
     }
   }
 
-  mainMenu(cont,tab){
+  browserAction(cont,tab){
+    const ret = {}
+    const dis = ['dckpbojndfoinamcdamhkjhnjnmjkfjd','jdbefljfgobbmcidnmpjamcbhnbphjnb',...this.state.disableExtensions]
+    for(let [id,values] of browserActionMap) {
+      if(dis.includes(id)) continue
+      ret[id] = <BrowserActionMenu key={id} id={id} values={values} tab={tab} cont={cont} parent={this}/>
+    }
+    return ret
+  }
+
+  mainMenu(cont,tab,menuActions){
     const hostname = this.props.page.navUrl ? urlParse(this.props.page.navUrl).hostname : ""
-    return <NavbarMenu k={this.props.k} isFloat={isFloatPanel(this.props.k)} style={{overflowX: 'visible'}}
+    return <NavbarMenu ref="main-menu" className="main-menu" alwaysView={true} k={this.props.k} isFloat={isFloatPanel(this.props.k)} style={{overflowX: 'visible'}}
                        title={locale.translation('settings')} icon="bars" tab={tab.bind && tab}
                        onClick={_=>{
                          PubSub.publishSync(`zoom_${this.props.tabkey}`,this.getWebContents(this.props.tab).getZoomPercent())
@@ -487,16 +518,18 @@ class BrowserNavbar extends Component{
                        }
                        }>
       <NavbarMenuBarItem>
-        {this.browserAction(cont,tab)}
-        <BrowserNavbarBtn title={locale.translation("downloads")} icon="download" onClick={this.onCommon.bind(this,"download")}/>
-        <BrowserNavbarBtn title="File Explorer" icon="folder" onClick={this.onCommon.bind(this,"explorer")}/>
-        <BrowserNavbarBtn title={locale.translation('4589268276914962177')} icon="terminal" onClick={this.onCommon.bind(this,"terminal")}/>
+        {menuActions}
       </NavbarMenuBarItem>
-
       <NavbarMenuItem text={locale.translation("newWindow")} icon='clone' onClick={()=>BrowserWindowPlus.load({id:remote.getCurrentWindow().id,sameSize:true})}/>
       <NavbarMenuItem text={this.props.toggleNav == 0 ? 'OneLine Menu(ALL)' : 'Normal Menu(ALL)'} icon='ellipsis horizontal'
                       onClick={()=>{cont.hostWebContents.send('toggle-nav',this.props.toggleNav == 0 ? 1 : 0);this.setState({})}}/>
       <NavbarMenuItem text={this.props.toggleNav == 0 ? 'OneLine Menu' : 'Normal Menu'} icon='ellipsis horizontal' onClick={()=>{this.props.parent.toggleNavPanel(this.props.toggleNav == 0 ? 1 : 0);this.setState({})}}/>
+      {this.props.toggleNav == 0 ? <NavbarMenuItem text={multistageTabs ? 'Disable Multi Row Tabs' : 'Enable Multi Row Tabs'} icon='table'
+                       onClick={()=>{
+                         ipc.send('save-state',{tableName:'state',key:'multistageTabs',val:!multistageTabs})
+                         PubSub.publish('change-multistage-tabs',!multistageTabs)
+                       }}/> : null
+      }
       {isDarwin ? null :<NavbarMenuItem text={this.props.toggleNav == 3 ? 'Normal Screen Mode' : 'Full Screen Mode'} icon={this.props.toggleNav == 3 ? 'compress' : 'expand'}
                                         onClick={()=>ipc.send('toggle-fullscreen')}/>}
       <NavbarMenuItem text='Detach This Panel' icon='space shuttle' onClick={this.props.parent.detachPanel}/>
@@ -519,27 +552,19 @@ class BrowserNavbar extends Component{
         this.setState({vpnList:!this.state.vpnList})
       }
       }/> : null}
-      <NavbarMenuItem text={`Change Pdf View to ${this.state.pdfMode == 'normal' ? 'Comic' : 'Normal'}`} icon='file pdf outline' onClick={::this.handlePdfMode}/>
       <NavbarMenuItem text={`Open Opposite ${this.props.oppositeGlobal ? 'OFF' : 'ON'}(ALL)`} icon='columns' onClick={::this.handleOppositeGlobal}/>
       <NavbarMenuItem text='Extract Audio from Video' icon='music' onClick={_=>ipc.send('audio-extract')}/>
-      {/*<NavbarMenuItem text='Developer Tool' icon='music' onClick={_=>cont.hostWebContents.openDevTools()}/>*/}
+      <NavbarMenuItem text={`Change Pdf View to ${this.state.pdfMode == 'normal' ? 'Comic' : 'Normal'}`} icon='file pdf outline' onClick={::this.handlePdfMode}/>
+     {/*<NavbarMenuItem text='Developer Tool' icon='music' onClick={_=>cont.hostWebContents.openDevTools()}/>*/}
       <div className="divider" />
 
-      <NavbarMenuItem text={`${alwaysOnTop[0] ? 'Disable' : 'Enable'} Always On Top`} icon='level up' onClick={()=>{
-        alwaysOnTop[0] = !alwaysOnTop[0]
-        mainState.set('alwaysOnTop',alwaysOnTop[0])
-        remote.getCurrentWindow().setAlwaysOnTop(alwaysOnTop[0])
+      <NavbarMenuItem text={`${alwaysOnTop ? 'Disable' : 'Enable'} Always On Top`} icon='level up' onClick={()=>{
+        alwaysOnTop = !alwaysOnTop
+        mainState.set('alwaysOnTop',alwaysOnTop)
+        remote.getCurrentWindow().setAlwaysOnTop(alwaysOnTop)
         this.forceUpdates = true
         this.setState({})
       }}/>
-
-
-      {/*<NavbarMenuItem text="Set Parallel DL" icon='arrow-circle-o-down' onClick={_=>_} keepVisible={true} input={downloadNum}*/}
-      {/*onChange={val=>{*/}
-      {/*mainState.set('downloadNum',parseInt(val))*/}
-      {/*this.setState({})*/}
-      {/*}}*/}
-      {/*/>*/}
 
       <div className="divider" />
 
@@ -548,8 +573,6 @@ class BrowserNavbar extends Component{
       <NavbarMenuItem text={locale.translation("toggleDeveloperTools")} icon='bug' onClick={()=>this.getWebContents(this.props.tab).openDevTools()}/>
       <div className="divider" />
 
-      {/*<NavbarMenuItem text={locale.translation("importBrowserData")} icon='sign in' onClick={()=>ipc.send("import-browser-data",{})}/>*/}
-      {/*<NavbarMenuItem text={locale.translation('exportBookmarks')} icon='sign out' onClick={()=>ipc.send("export-bookmark",{})}/>*/}
       <NavbarMenuItem text='Sync Datas' icon='exchange' onClick={()=>ipc.send("start-sync",this.props.k)}/>
       <div className="divider" />
 
@@ -578,9 +601,9 @@ class BrowserNavbar extends Component{
   //   return menuItems
   // }
 
-  favoriteMenu(cont){
+  favoriteMenu(cont,onContextMenu){
     const menuItems = []
-    return <NavbarMenu k={this.props.k} isFloat={isFloatPanel(this.props.k)} ref="favoriteMenu" title={locale.translation('bookmarks')} icon="star" onClick={_=>_} timeOut={50}>
+    return <NavbarMenu className="sort-favorite" k={this.props.k} isFloat={isFloatPanel(this.props.k)} ref="favoriteMenu" title={locale.translation('bookmarks')} icon="star" onClick={_=>_} onContextMenu={onContextMenu} timeOut={50}>
       <NavbarMenuItem bold={true} text='Navigate to the Bookmark Page' onClick={_=>this.onCommon("favorite")} />
       <div className="divider" />
       <NavbarMenuItem bold={true} text='Add this page to the Bookmarks' onClick={_=>this.onAddFavorite(this.props.page.location,this.props.page.title,this.props.page.favicon)} />
@@ -612,9 +635,9 @@ class BrowserNavbar extends Component{
     return menuItems
   }
 
-  historyMenu(cont){
+  historyMenu(cont,onContextMenu){
     const menuItems = []
-    return <NavbarMenu k={this.props.k} isFloat={isFloatPanel(this.props.k)} ref="historyMenu" title={locale.translation('history')} icon="history" onClick={_=>_} timeOut={50}>
+    return <NavbarMenu className="sort-history" k={this.props.k} isFloat={isFloatPanel(this.props.k)} ref="historyMenu" title={locale.translation('history')} icon="history" onClick={_=>_} onContextMenu={onContextMenu} timeOut={50}>
       <NavbarMenuItem bold={true} text='Navigate to the History Page' onClick={_=>this.onCommon("history")} />
       <div className="divider" />
       <div role="option" className="item favorite infinite-classic">
@@ -624,7 +647,6 @@ class BrowserNavbar extends Component{
   }
 
 
-
   getTitle(x,historyMap){
     console.log(997,historyMap.get(x))
     const datas = historyMap.get(x)
@@ -632,82 +654,63 @@ class BrowserNavbar extends Component{
   }
 
 
-  render() {
-    const isFixed = isFixedPanel(this.props.k)
-    const isFloat = isFloatPanel(this.props.k)
-    console.log("rend")
-    const _rich = (this.props.richContents || [])
-    const map = new Map()
-    for(let r of _rich){
-      map.set(r.url,r)
-    }
-    const rich = [...map.values()]
-
-    // const cacheItems = this.getCacheMediaItems()
-    const cont = this.getWebContents(this.props.tab)
-
-
-    const navbarStyle = this.props.toggleNav == 2 ? {visibility: "hidden"} : this.props.toggleNav == 3 ? {zIndex: 2, position: "sticky", top: 27} : {}
-    // this.props.toggleNav == 1 ? {width : this.props.isTopRight ? '55%' : '50%',float: 'right'} : {}
-
-
-    return <div className={`navbar-main browser-navbar${isFixed && !isFloat ? " fixed-panel" : ""}`} ref="navbar"  onDragOver={(e)=>{e.preventDefault();return false}}
-                onDrop={(e)=>{e.preventDefault();return false}} style={navbarStyle}>
-      {/*<BrowserNavbarBtn title="Rewind" icon="home fa-lg" onClick={this.props.onClickHome} disabled={!this.props.page.canGoBack} />*/}
-
-      {isDarwin && this.props.isTopRight && this.props.toggleNav == 1 ? <div style={{width: this.props.fullscreen ? 0 : 62}}/>  : null }
-
-      <NavbarMenu k={this.props.k} mouseOver={true} isFloat={isFloatPanel(this.props.k)} className={`back-next ${this.props.page.canGoBack ? "" : " disabled"}`} title={locale.translation('back')} icon="angle-left fa-lg" onClick={e=>{this.props.navHandle.onClickBack(e);this.forceUpdates=true}}>
+  buildItems(isFixed,isFloat,rich,cont,onContextMenu){
+    const items = {
+      back: <NavbarMenu k={this.props.k} onContextMenu={onContextMenu} mouseOver={true} isFloat={isFloatPanel(this.props.k)} className={`sort-back draggable-source back-next ${this.props.page.canGoBack ? "" : " disabled"}`} title={locale.translation('back')} icon="angle-left fa-lg" onClick={e=>{this.props.navHandle.onClickBack(e);this.forceUpdates=true}}>
         {(cont ? this.state.historyList.slice(0,this.state.currentIndex).reverse().map(
           (x,i)=><NavbarMenuItem key={i} text={this.getTitle(x,this.props.historyMap)} onClick={()=>{this.props.navHandle.onClickIndex(this.state.currentIndex -i -1);this.forceUpdates=true}}/>) : "")}
-      </NavbarMenu>
+      </NavbarMenu>,
 
-
-      <NavbarMenu k={this.props.k} mouseOver={true} isFloat={isFloatPanel(this.props.k)} className={`back-next ${this.props.page.canGoForward ? "" : " disabled"}`} title={locale.translation('forward')} icon="angle-right fa-lg" onClick={e=>{this.props.navHandle.onClickForward(e);this.forceUpdates=true}} >
+      forward: <NavbarMenu k={this.props.k} onContextMenu={onContextMenu} mouseOver={true} isFloat={isFloatPanel(this.props.k)} className={`sort-forward draggable-source back-next ${this.props.page.canGoForward ? "" : " disabled"}`} title={locale.translation('forward')} icon="angle-right fa-lg" onClick={e=>{this.props.navHandle.onClickForward(e);this.forceUpdates=true}} >
         {(cont ? this.state.historyList.slice(this.state.currentIndex+1).map(
           (x,i)=><NavbarMenuItem key={i} text={this.getTitle(x,this.props.historyMap)} onClick={()=>{this.props.navHandle.onClickIndex(this.state.currentIndex +i +1);this.forceUpdates=true}}/>) : "")}
-      </NavbarMenu>
+      </NavbarMenu>,
 
+      reload: <BrowserNavbarBtn className="sort-reload" title={locale.translation('reload')} icon="repeat" onContextMenu={onContextMenu} onClick={this.props.navHandle.onClickRefresh} disabled={!this.props.page.canRefresh} />,
 
-      <BrowserNavbarBtn title={locale.translation('reload')} icon="repeat" onClick={this.props.navHandle.onClickRefresh} disabled={!this.props.page.canRefresh} />
-
-      <div className="input-group">
+      addressBar: <div className="input-group">
         <BrowserNavbarLocation ref="loc" wv={this.props.tab.wv} navbar={this} onEnterLocation={this.props.navHandle.onEnterLocation} onChangeLocation={this.props.navHandle.onChangeLocation}
                                k ={this.props.k} onContextMenu={this.props.navHandle.onLocationContextMenu} tab={this.props.tab} page={this.props.page} privateMode={this.props.privateMode} search={this.props.parent.search}/>
-      </div>
+      </div>,
 
-      <div className="navbar-margin" style={{width: this.props.toggleNav != 1 ? 0 : this.props.isTopRight ? '45%' : '50%',minWidth: this.props.toggleNav != 1 ? 0 :'80px',background: 'rgb(221, 221, 221)'}}
-           onDoubleClick={isDarwin ? _=>{
-             const win = remote.getCurrentWindow()
-             if(win.isFullScreen()){}
-             else if(win.isMaximized()){
-               win.unmaximize()
-             }
-             else{
-               win.maximize()
-             }
-           }: null}></div>
-      {isFixed ? null : <SyncReplace ref="syncReplace" changeSyncMode={this.props.parent.changeSyncMode} replaceInfo={this.props.tab.syncReplace} updateReplaceInfo={this.props.parent.updateReplaceInfo}/>}
-      {isFixed ? null : <BrowserNavbarBtn title="Switch Sync Scroll" icon="circle-o" sync={this.props.tab.sync && !this.props.tab.syncReplace}
-                                          onClick={()=>{this.props.parent.changeSyncMode();this.refs.syncReplace.clearAllCheck()}}/>}
-      {isFixed || !this.props.tab.sync || this.props.tab.syncReplace || !this.props.isTopLeft ? null : <FloatSyncScrollButton toggleNav={this.props.toggleNav} scrollPage={this.props.parent.scrollPage}/>}
+      margin: <div className="navbar-margin" style={{width: this.props.toggleNav != 1 ? 0 : this.props.isTopRight ? '45%' : '50%',minWidth: this.props.toggleNav != 1 ? 0 :'80px',background: 'rgb(221, 221, 221)'}}
+                   onDoubleClick={isDarwin ? _=>{
+                     const win = remote.getCurrentWindow()
+                     if(win.isFullScreen()){}
+                     else if(win.isMaximized()){
+                       win.unmaximize()
+                     }
+                     else{
+                       win.maximize()
+                     }
+                   }: null}></div>,
 
-      {isFloat ? null: <BrowserNavbarBtn title="Switch Opposite Open" icon="external-link-square" sync={this.props.tab.oppositeMode} onClick={()=>{this.props.parent.changeOppositeMode()}}/>}
+      syncReplace: isFixed ? null : <SyncReplace ref="syncReplace" onContextMenu={onContextMenu} changeSyncMode={this.props.parent.changeSyncMode} replaceInfo={this.props.tab.syncReplace} updateReplaceInfo={this.props.parent.updateReplaceInfo}/>,
 
+      sync: isFixed ? null : <BrowserNavbarBtn className="sort-sync" title="Switch Sync Scroll" icon="circle-o" sync={this.props.tab.sync && !this.props.tab.syncReplace}
+                                               onContextMenu={onContextMenu}onClick={()=>{this.props.parent.changeSyncMode();this.refs.syncReplace.clearAllCheck()}}/>,
 
-      {isFixed ? null : <NavbarMenu k={this.props.k} mouseOver={true} isFloat={isFloatPanel(this.props.k)} title="Open Sidebar" icon="list-ul" onClick={()=>this.props.fixedPanelOpen({dirc:mainState.sideBarDirection})}>
+      float:   isFixed || !this.props.tab.sync || this.props.tab.syncReplace || !this.props.isTopLeft ? null : <FloatSyncScrollButton  onContextMenu={onContextMenu}toggleNav={this.props.toggleNav} scrollPage={this.props.parent.scrollPage}/>,
+
+      opposite: isFloat ? null: <BrowserNavbarBtn className="sort-opposite" title="Switch Opposite Open" icon="external-link-square" sync={this.props.tab.oppositeMode} onContextMenu={onContextMenu} onClick={()=>{this.props.parent.changeOppositeMode()}}/>,
+
+      sidebar: isFixed ? null : <NavbarMenu className="sort-sidebar" k={this.props.k} mouseOver={true} isFloat={isFloatPanel(this.props.k)}
+                                            title="Open Sidebar" icon="list-ul" onContextMenu={onContextMenu} onClick={()=>this.props.fixedPanelOpen({dirc:mainState.sideBarDirection})}>
         <NavbarMenuItem key="Left" text="Left" icon="caret left" onClick={()=>this.props.fixedPanelOpen({dirc:"left"})}/>
         <NavbarMenuItem key="Right" text="Right" icon="caret right" onClick={()=>this.props.fixedPanelOpen({dirc:"right"})}/>
         <NavbarMenuItem key="Bottom" text="Bottom" icon="caret down" onClick={()=>this.props.fixedPanelOpen({dirc:"bottom"})}/>
-      </NavbarMenu>}
+      </NavbarMenu>,
 
-      <BrowserNavbarBtn title="Change to Mobile UserAgent" icon="mobile" styleFont={{fontSize: 20}} sync={this.state.mobile}
-                        onClick={::this.handleUserAgent}/>
+      mobile: <BrowserNavbarBtn className="sort-mobile" title="Change to Mobile UserAgent" icon="mobile" styleFont={{fontSize: 20}} sync={this.state.mobile} onContextMenu={onContextMenu}
+                                onClick={::this.handleUserAgent}/>,
 
-      {isFixed && !isFloat ? null : this.favoriteMenu(cont)}
-      {isFixed && !isFloat ? null : this.historyMenu(cont)}
+      favorite: isFixed && !isFloat ? null : this.favoriteMenu(cont,onContextMenu),
+      history: isFixed && !isFloat ? null : this.historyMenu(cont,onContextMenu),
 
-      <Dropdown scrolling className="nav-button" style={{minWidth:0}} trigger={<BrowserNavbarBtn title="Rich Media List" icon="film" />} pointing='top right' icon={null} disabled={!rich || !rich.length}>
+      download: <BrowserNavbarBtn className="sort-download" title={locale.translation("downloads")} icon="download" onClick={this.onCommon.bind(this,"download")}/>,
+      folder: <BrowserNavbarBtn className="sort-folder" title="File Explorer" icon="folder" onClick={this.onCommon.bind(this,"explorer")}/>,
+      terminal: <BrowserNavbarBtn className="sort-terminal" title={locale.translation('4589268276914962177')} icon="terminal" onClick={this.onCommon.bind(this,"terminal")}/>,
+      video: <Dropdown scrolling className="sort-video draggable-source nav-button" onContextMenu={onContextMenu} style={{minWidth:0}} trigger={<BrowserNavbarBtn title="Rich Media List" icon="film" />} pointing='top right' icon={null} disabled={!rich || !rich.length}>
         <Dropdown.Menu className="nav-menu">
           {(!rich||!rich.length) ? null : rich.map((e,i)=>{
             const url = e.url
@@ -742,9 +745,62 @@ class BrowserNavbar extends Component{
             </Dropdown.Item>
           })}
         </Dropdown.Menu>
-      </Dropdown>
+      </Dropdown>,
+      ...this.browserAction(cont, this.props.tab)
+    }
+    return items
+  }
 
-      {this.mainMenu(cont,this.props.tab)}
+  render() {
+    const isFixed = isFixedPanel(this.props.k)
+    const isFloat = isFloatPanel(this.props.k)
+    console.log("rend")
+    const _rich = (this.props.tab.page.richContents || [])
+    const map = new Map()
+    for(let r of _rich){
+      map.set(r.url,r)
+    }
+    const rich = [...map.values()]
+
+    // const cacheItems = this.getCacheMediaItems()
+    const cont = this.getWebContents(this.props.tab)
+
+    const onContextMenu = menuSortContextMenu.bind(null,this.props.tab.wvId,this)
+
+    const items = this.buildItems(isFixed,isFloat,rich,cont,onContextMenu)
+    const usedKey = new Set(['float','addressBar','margin'])
+    const navBarMenus = [],backSideMenus = []
+
+    for(let name of ['left','right','backSide']){
+      const menus = name == 'backSide' ? backSideMenus : navBarMenus
+      for(let key of this.state[name]) {
+        menus.push(items[key])
+        usedKey.add(key)
+      }
+      if(name == 'left'){
+        menus.push(items.float)
+        menus.push(items.addressBar)
+        menus.push(items.margin)
+      }
+    }
+    for(let [key,item] of Object.entries(items)){
+      if(!usedKey.has(key)){
+        backSideMenus.push(item)
+      }
+    }
+
+    const navbarStyle = this.props.toggleNav == 2 ? {visibility: "hidden"} : this.props.toggleNav == 3 ? {zIndex: 2, position: "sticky", top: 27} : {}
+    // this.props.toggleNav == 1 ? {width : this.props.isTopRight ? '55%' : '50%',float: 'right'} : {}
+
+
+    return <div className={`navbar-main browser-navbar${isFixed && !isFloat ? " fixed-panel" : ""}`} ref="navbar"  onDragOver={(e)=>{e.preventDefault();return false}}
+                onDrop={(e)=>{e.preventDefault();return false}} style={navbarStyle}>
+      {/*<BrowserNavbarBtn title="Rewind" icon="home fa-lg" onClick={this.props.onClickHome} disabled={!this.props.page.canGoBack} />*/}
+
+      {isDarwin && this.props.isTopRight && this.props.toggleNav == 1 ? <div style={{width: this.props.fullscreen ? 0 : 62}}/>  : null }
+
+      {navBarMenus}
+      {this.mainMenu(cont, this.props.tab, backSideMenus)}
       {this.state.vpnList ? <VpnList onClick={_=>this.setState({vpnList:false})}/> : null}
       {isFixed && !isFloat ? <BrowserNavbarBtn style={{fontSize:18}} title="Hide Sidebar" icon={`angle-double-${isFixed == 'bottom' ? 'down' : isFixed}`} onClick={()=>this.props.fixedPanelOpen({dirc:isFixed})}/> : null}
       {!isDarwin && this.props.isTopRight && this.props.toggleNav == 1 ? <RightTopBottonSet style={{lineHeight: 0.9, transform: 'translateX(6px)',paddingTop: 1}}/> : null }
@@ -754,11 +810,6 @@ class BrowserNavbar extends Component{
         <span className="typcn typcn-times" onClick={()=>PubSub.publish(`close-panel_${this.props.k}`)}></span>
       </div> : null}
 
-      {/*<Dropdown scrolling className="nav-button" onClick={()=>{this.getCacheMediaList().then(_=>_)}} trigger={<BrowserNavbarBtn title="Cache Media List" icon="database" />} pointing='top right' icon={null}>*/}
-      {/*<Dropdown.Menu className="nav-menu">*/}
-      {/*{cacheItems}*/}
-      {/*</Dropdown.Menu>*/}
-      {/*</Dropdown>*/}
       {this.state.bindWindow ? <Modal basic size='small' open={true}>
         <Modal.Content>
           <p style={{fontSize: 30,textAlign:'center'}}>Please click other window</p>

@@ -7,8 +7,8 @@ import Pane from './Pane';
 import Resizer from './Resizer';
 import PubSub from '../pubsub';
 import {windowIsMaximized} from '../MenuOperation'
-const {remote} = require('electron');
-const mainState = remote.require('./mainState')
+const ipc = require('electron').ipcRenderer
+
 
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.2 (KHTML, like Gecko) Safari/537.2';
 
@@ -208,7 +208,7 @@ class SplitPane extends Component {
   onResize(event){
     console.log("eve",event)
     if(!event.old_w && !this.w){
-      const maxBounds = JSON.parse(mainState.maxState)
+      const maxBounds = JSON.parse(ipc.sendSync('get-sync-main-state','maxState'))
       event.old_w = maxBounds.maximize ? maxBounds.maxWidth : maxBounds.width
       event.old_h = maxBounds.maximize ? maxBounds.maxHeight : maxBounds.height
     }

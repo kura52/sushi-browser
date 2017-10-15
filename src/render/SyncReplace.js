@@ -151,7 +151,8 @@ export default class SyncReplace extends Component {
 
 
   render(){
-    return <div id={this.uuid} role="listbox"  style={{lineHeight: 1.9}} className="ui scrolling pointing nav-button dropdown" tabIndex={0}>
+    return <div id={this.uuid} role="listbox"  style={{lineHeight: 1.9}} onContextMenu={this.props.onContextMenu}
+                className="sort-syncReplace draggable-source ui scrolling pointing nav-button dropdown" tabIndex={0}>
       <a ref="button" href="javascript:void(0)" className={this.props.replaceInfo ? "sync" : ""} title="Switch Sync URL Replace Mode" onClick={(e)=>this.setState({visible:!this.state.visible})} >
         <i className="fa fa-circle" />
       </a>

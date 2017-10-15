@@ -6,7 +6,14 @@ import { Dropdown } from 'semantic-ui-react';
 const {remote} = require('electron')
 const {Menu} = remote
 const {messages,locale} = require('./localAndMessage')
+const defaultIcons = {}
 
+ipc.on('chrome-browser-action-set-icon-ipc-all',(e,extensionId,val) => {
+  if(!val.path) return
+  let _icon = typeof val.path === "object" ? Object.values(val.path)[0] : val.path
+  if(_icon.startsWith('chrome-extension://')) _icon = _icon.split("/").slice(3).join("/")
+  defaultIcons[extensionId] = _icon
+})
 
 class BrowserActionWebView extends Component {
   constructor(props) {
@@ -34,8 +41,13 @@ class BrowserActionWebView extends Component {
             const div = webview.parentNode
             const rect = div.getBoundingClientRect()
             if(rect.x + width > window.innerWidth){
-              div.style.setProperty("left", `${window.innerWidth - width - rect.x + 18}px`, "important")
+              div.style.setProperty("left", `${window.innerWidth - width - rect.x - 18}px`, "important")
             }
+            // div.style.setProperty("width", `${width+10}px`, "important")
+            // div.style.height = `${height+10}px`
+            div.style.setProperty("top", '23px', "important")
+            div.style.overflowY = 'hidden'
+            div.style.setProperty("min-width", 'fit-content', "important")
           },200)
         })
       })
@@ -52,24 +64,55 @@ export default class BrowserActionMenu extends Component{
   constructor(props) {
     super(props)
     const values = props.values
-    const icon = `${values.basePath}/${values.default_icon ? (typeof values.default_icon === "object" ? Object.values(values.default_icon)[0] : values.default_icon) : Object.values(values.icons)[0]}`;
+    const icon = `${values.basePath}/${defaultIcons[props.id] ? defaultIcons[props.id] : values.default_icon ? (typeof values.default_icon === "object" ? Object.values(values.default_icon)[0] : values.default_icon) : Object.values(values.icons)[0]}`;
     this.state = {icon,className: 'opacity001'}
   }
 
   componentDidMount(){
-    this.iconGet = (e,tabId,val) => {
+    this.iconSet = (e,tabId,val) => {
       const {tab,values} = this.props
-      console.log("icon-get",e,tabId,val)
-      if(tab.wvId !== tabId) return
-      let _icon = val.path ? typeof val.path === "object" ? Object.values(val.path)[0] : val.path : Object.values(values.icons)[0]
+      // console.log("icon-get",e,tabId,val)
+      if(tab.wvId !== tabId || !val.path) return
+      let path = val.path
+      if(!path[0]){
+        for (let name in path) {
+          if (path.hasOwnProperty(name)) {
+            path = path[name]
+            break
+          }
+        }
+      }
+      let _icon = path
       if(_icon.startsWith('chrome-extension://')) _icon = _icon.split("/").slice(3).join("/")
-      this.setState({icon: `${values.basePath}/${_icon}`})
+      const icon = `${values.basePath}/${_icon}`
+      if(this.state.icon !== icon)  this.setState({icon})
     }
-    ipc.on(`chrome-browser-action-set-icon-ipc-${this.props.id}`,this.iconGet)
+    ipc.on(`chrome-browser-action-set-icon-ipc-${this.props.id}`,this.iconSet)
+
+    this.titleSet = (e,tabId,val) => {
+      if(this.props.tab.wvId !== tabId) return
+      if(this.state.title !== val.title) this.setState({title: val.title})
+    }
+    ipc.on(`chrome-browser-action-set-title-ipc-${this.props.id}`,this.titleSet)
+
+    this.badgeSet = (e,tabId,val) => {
+      if(this.props.tab.wvId !== tabId) return
+      if(this.state.text !== val.text) this.setState({text: val.text})
+    }
+    ipc.on(`chrome-browser-action-set-badge-ipc-${this.props.id}`,this.badgeSet)
+
+    this.backgroundSet = (e,tabId,val) => {
+      if(this.props.tab.wvId !== tabId) return
+      if(this.state.color !== val.color) this.setState({color: val.color})
+    }
+    ipc.on(`chrome-browser-action-set-background-ipc-${this.props.id}`,this.backgroundSet)
   }
 
   componentWillUnmount(){
-    ipc.removeListener(`chrome-browser-action-set-icon-ipc-${this.props.id}`,this.iconGet)
+    ipc.removeListener(`chrome-browser-action-set-icon-ipc-${this.props.id}`,this.iconSet)
+    ipc.removeListener(`chrome-browser-action-set-title-ipc-${this.props.id}`,this.titleSet)
+    ipc.removeListener(`chrome-browser-action-set-badge-ipc-${this.props.id}`,this.badgeSet)
+    ipc.removeListener(`chrome-browser-action-set-background-ipc-${this.props.id}`,this.backgroundSet)
   }
 
 
@@ -123,11 +166,14 @@ export default class BrowserActionMenu extends Component{
     const values = this.props.values
     return <Dropdown onMouseDown={::this.handleClick}
                      // onDragStart={e=>console.log(4342355,e)} onDragEnter={e=>{console.log(4342344,e)}}
-                     scrolling draggable className="nav-button" key={id} trigger={<a href="javascript:void(0)"  title={values.name}><img style={{width:16,height:16,verticalAlign:'middle'}} src={`file://${this.state.icon}`} onError={(e)=>{
+                     scrolling className={`draggable-source nav-button sort-${id}`} key={id} trigger={<a href="javascript:void(0)"  title={this.state.title || values.name}>
+      <img style={{width:16,height:16,verticalAlign:'middle'}} src={`file://${this.state.icon}`} onError={(e)=>{
                        console.log(99854,this.state.icon)
                        if(retry++ > 10) return
                        e.target.src =  `file://${values.basePath}/${values.default_icon ? (typeof values.default_icon === "object" ? Object.values(values.default_icon)[0] : values.default_icon) : Object.values(values.icons)[0]}`
-                     }} /></a>} icon={null}>
+                     }} />
+      {this.state.text ? <div className="browserActionBadge" style={{backgroundColor: this.state.color}}>{this.state.text}</div> : null}
+    </a>} icon={null}>
       <Dropdown.Menu className={`browser-action nav-menu ${this.state.className}`}>
         {values.default_popup ? <BrowserActionWebView url={`chrome-extension://${id}/${values.default_popup}`} setClassName={::this.setClassName}/>: ""}
       </Dropdown.Menu>

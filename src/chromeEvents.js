@@ -118,6 +118,11 @@ ipcMain.on('delete-extension',(e,extensionId,orgId)=>{
 
 })
 
+//#app
+const extInfos = require('./extensionInfos')
+simpleIpcFunc('chrome-app-getDetails',id=>extInfos[id])
+
+
 //#i18n
 simpleIpcFunc('chrome-i18n-getAcceptLanguages',_=>{
   const lang = app.getLocale()
@@ -284,8 +289,8 @@ simpleIpcFuncCb('chrome-cookies-remove',(details,cb)=>{
 })
 
 //#management
-simpleIpcFunc('chrome-management-getAll',_=> Object.values(require('./extensionInfos')))
-simpleIpcFunc('chrome-management-get',id => require('./extensionInfos')[id])
+simpleIpcFunc('chrome-management-getAll',_=> Object.values(extInfos))
+simpleIpcFunc('chrome-management-get',id => extInfos[id])
 
 //#webNavigation
 const webNavigationMethods = ['onBeforeNavigate','onCommitted','onDOMContentLoaded','onCompleted','onErrorOccurred','onCreatedNavigationTarget']
@@ -313,10 +318,12 @@ for(let method of webNavigationMethods){
 
 //#proxy
 simpleIpcFuncCb('chrome-proxy-settings-set',(details,cb)=>{
-  console.log(details)
+  console.log(3456,details)
   let config
-  if(!details){
-    config = {}
+  if(!details || !details.value){
+    config = {
+      proxyRules: 'direct://'
+    }
     session.defaultSession.setProxy(config,_=>cb())
     return
   }
@@ -409,10 +416,10 @@ simpleIpcFunc('chrome-context-menus-remove',(extensionId,menuItemId)=>{
 process.on('chrome-context-menus-create', (extensionId, menuItemId, properties, icon) => {
   if(!extensionMenu[extensionId]) extensionMenu[extensionId] = []
   if(contextMenuVals[extensionId] && contextMenuVals[extensionId][menuItemId]){
-    console.log('chrome-context-menus-create',{...properties},contextMenuVals[extensionId][menuItemId])
     Object.assign(properties,contextMenuVals[extensionId][menuItemId])
     delete contextMenuVals[extensionId][menuItemId]
   }
+  // console.log('chrome-context-menus-create',{properties, menuItemId, icon})
   extensionMenu[extensionId].push({properties, menuItemId, icon})
 })
 

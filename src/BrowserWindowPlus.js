@@ -18,7 +18,7 @@ const normalSize = {}
 let saved = false
 
 function create(args){
-  console.log(44421,args)
+  // console.log(44421,args)
   let bw = new BrowserWindow(args)
   if(args.maximize){
     normalSize[bw.id] = {x: args.x, y: args.y, width: args.width, height: args.height}

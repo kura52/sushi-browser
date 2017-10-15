@@ -88,7 +88,7 @@ export default class FloatSyncScrollButton extends Component{
       style.visibility = 'visible'
     }
     return <div ref="dad" className="drag-and-drop" style={Object.assign({},style)}
-                onMouseDown={this.mdown} onMouseUp={this.mup} >
+                onMouseDown={this.mdown} onMouseUp={this.mup}  onContextMenu={this.props.onContextMenu}>
         <a href="javascript:void(0)" className="drag-button" onMouseDown={(e)=>{this.props.scrollPage("back");e.stopPropagation()} }>
 
           <i className="fa fa-arrow-left"/>

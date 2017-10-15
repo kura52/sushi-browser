@@ -10,7 +10,7 @@ const seq = require('./sequence')
 // const loadDevtool = require('electron-load-devtool');
 import path from 'path'
 import uuid from 'node-uuid'
-import mm from 'micromatch'
+import nm from 'nanomatch'
 const fs = require('fs')
 const os = require('os')
 const isDarwin = process.platform == 'darwin'
@@ -20,7 +20,7 @@ const youtubedl = require('youtube-dl')
 const {getUrlFromCommandLine,getNewWindowURL} = require('./cmdLine')
 import {getFocusedWebContents, getCurrentWindow} from './util'
 const open = require('./open')
-let adblock,extensions
+let adblock,extensions,videoProcessList = []
 
 // process.on('unhandledRejection', console.dir);
 
@@ -244,6 +244,11 @@ app.on('window-all-closed', function () {
     for (let ptyProcess of ptyProcessSet){
       ptyProcess.destroy()
     }
+    for(let process of videoProcessList){
+      try{
+        process.kill()
+      }catch(e){}
+    }
     global.__CHILD__.kill()
     app.quit()
   }
@@ -264,6 +269,11 @@ app.on('will-quit', (e) => {
   if(isDarwin){
     for (let ptyProcess of ptyProcessSet){
       ptyProcess.destroy()
+    }
+    for(let process of videoProcessList){
+      try{
+        process.kill()
+      }catch(e){}
     }
     global.__CHILD__.kill()
   }
@@ -393,11 +403,12 @@ let addContents
 ipcMain.on("set-recent-url",(e,url)=>recentUrl.push(url))
 
 process.on("should-create-web-contents",(e,source, windowContainerType, frameName, targetUrl, partitionId)=>{
-  // rlog("should-create-web-contents",e,source, windowContainerType, frameName, targetUrl, partitionId)
+  console.log("should-create-web-contents",e,source, windowContainerType, frameName, targetUrl, partitionId)
   recentUrl.push(targetUrl)
 })
 
 process.on('add-new-contents', async (e, source, newTab, disposition, size, userGesture) => {
+  console.log('add-new-contents', e, source.getURL(), newTab.guestInstanceId, newTab.getURL(), disposition, size, userGesture)
   if (newTab.isBackgroundPage()) {
     if (newTab.isDevToolsOpened()) {
       newTab.devToolsWebContents.focus()
@@ -409,7 +420,6 @@ process.on('add-new-contents', async (e, source, newTab, disposition, size, user
 
   const targetUrl = recentUrl.shift()
   console.log('add-new-contents', newTab.guestInstanceId);
-  console.log(size)
   // eval(locus)
   // console.log(tabEvent)
   // if(newTab.guestInstanceId && tabEvent.windowId !== -1){
@@ -418,7 +428,6 @@ process.on('add-new-contents', async (e, source, newTab, disposition, size, user
   //   tabEvent.windowId = -1
   //   return
   // }
-  console.log(disposition)
 
   ipcMain.emit('chrome-webNavigation-onCreatedNavigationTarget',null,{
     tabId: newTab.getId(),
@@ -441,7 +450,7 @@ process.on('add-new-contents', async (e, source, newTab, disposition, size, user
   }
   else{
     let cont = source.hostWebContents
-    console.log(3333,cont)
+    // console.log(3333,cont)
     if(!cont){
       let host,_url
       if((_url = source.getURL()) && _url.startsWith('chrome://brave')){
@@ -669,7 +678,7 @@ function contextMenu(webContents) {
       if(props.mediaType === 'none') menuItems.push({label: locale.translation('1047431265488717055'), click: () => clipboard.writeText(props.linkText)})
 
       if(props.linkURL.split("?").slice(-2)[0].match(/\.(3gp|3gpp|3gpp2|asf|avi|dv|flv|m2t|m4v|mkv|mov|mp4|mpeg|mpg|mts|oggtheora|ogv|rm|ts|vob|webm|wmv|aac|m4a|mp3|oga|wav)$/)){
-        menuItems.push({label: `Send URL to ${players.find(x=>x.value == mainState.sendToVideo).text}`, click: () => open(props.linkURL,mainState.sendToVideo)})
+        menuItems.push({label: `Send URL to ${players.find(x=>x.value == mainState.sendToVideo).text}`, click: () => videoProcessList.push(open(props.linkURL,mainState.sendToVideo))})
       }
       menuItems.push({type: 'separator'})
       if(!hasText && props.mediaType === 'none'){
@@ -760,7 +769,7 @@ function contextMenu(webContents) {
         click: downloadPrompt})
       menuItems.push({label: locale.translation('782057141565633384'), //'Copy Video URL',
         click: () => clipboard.writeText(props.srcURL)})
-      menuItems.push({label: `Send URL to ${players.find(x=>x.value == mainState.sendToVideo).text}`, click: () => open(props.srcURL,mainState.sendToVideo)})
+      menuItems.push({label: `Send URL to ${players.find(x=>x.value == mainState.sendToVideo).text}`, click: () => videoProcessList.push(open(props.srcURL,mainState.sendToVideo))})
       menuItems.push({type: 'separator'})
     }
 
@@ -877,6 +886,7 @@ function contextMenu(webContents) {
     if(Object.keys(extensionMenu).length){
       for(let [extensionId, propertiesList] of Object.entries(extensionMenu)){
         const menuList = []
+        // console.log(propertiesList)
         for(let {properties, menuItemId, icon} of propertiesList){
           let contextsPassed = false
           const info = {}
@@ -917,42 +927,58 @@ function contextMenu(webContents) {
 
           const item = {
             label: properties.title,
-            icon: `${extensionInfos[extensionId].base_path}/${icon}`,
             click(){
               process.emit('chrome-context-menus-clicked',extensionId, webContents.getId(), info)}
           }
+          if(menuItemId) item.menuItemId = menuItemId
           if(properties.checked !== void 0) item.checked = properties.checked
           if(properties.enabled !== void 0) item.enabled = properties.enabled
           if(properties.documentUrlPatterns !== void 0){
             const url = props.pageURL || props.frameURL
-            console.log('documentUrlPatterns',url,properties.documentUrlPatterns)
-            if(url && !mm.some(url, properties.documentUrlPatterns)){
+            // console.log('documentUrlPatterns',url,properties.documentUrlPatterns)
+            if(url && !nm.some(url, properties.documentUrlPatterns.map(x=>x=='<all_urls>' ? "**" : x.replace(/\*/,'**')))){
               item.hide = true
             }
           }
           if(properties.targetUrlPatterns !== void 0){
             const url = props.linkURL
-            console.log('targetUrlPatterns',url,properties.targetUrlPatterns)
-            if(url && !mm.some(url, properties.targetUrlPatterns)){
+            // console.log('targetUrlPatterns',url,properties.targetUrlPatterns.map(x=>x=='<all_urls>' ? "**" : x.replace(/\*/,'**')))
+            if(url && !nm.some(url, properties.targetUrlPatterns.map(x=>x=='<all_urls>' ? "**" : x.replace(/\*/,'**')))){
               item.hide = true
             }
           }
-          if(!item.hide) menuList.push(item)
+          if(!item.hide){
+            const addItem = properties.type == "separator" ? {type: 'separator'} : item
+            let parent
+            if(properties.parentId && (parent = menuList.find(m=>m.menuItemId == properties.parentId))){
+              if(parent.submenu === void 0){
+                parent.submenu = [addItem]
+              }
+              else{
+                parent.submenu.push(addItem)
+              }
+            }
+            else{
+              addItem.icon = `${extensionInfos[extensionId].base_path}/${icon}`
+              menuList.push(addItem)
+            }
+          }
         }
-        if(menuList.length == 1){
+        if(menuList.length == 1 || menuList.length == 2){
           menuItems.push({type: 'separator'})
-          menuItems.push(menuList[0])
+          for(let menu of menuList){
+            menuItems.push(menu)
+          }
         }
-        else if(menuList.length > 1){
+        else if(menuList.length > 2){
           menuItems.push({type: 'separator'})
-
           menuItems.push({
             label: extensionInfos[extensionId].name,
             icon: menuList[0].icon,
             submenu: menuList
           })
+          menuList.forEach(menu=>{delete menu.icon})
         }
-
       }
     }
     // show menu

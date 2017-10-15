@@ -28,36 +28,33 @@ const ipc = chrome.ipcRenderer
 
 if(location.href.startsWith('http') && window == window.parent){
   document.addEventListener("DOMContentLoaded",_=>{
-    setTimeout(_=>{
-      const key = Math.random().toString()
-      ipc.send('need-get-inner-text',key)
-      ipc.once(`need-get-inner-text-reply_${key}`,(e,result)=>{
-        if(result) ipc.send('get-inner-text',location.href,document.title,document.documentElement.innerText)
-      })
-      if(location.href.startsWith('https://chrome.google.com/webstore/')){
-        const id = setInterval(_=>{
-          const ele = document.querySelector(".h-e-f-Ra-c.e-f-oh-Md-zb-k")
-          if(ele && !ele.innerHTML){
-            ele.innerHTML = `<div role="button" class="dd-Va g-c-wb g-eg-ua-Uc-c-za g-c-Oc-td-jb-oa g-c g-c-Sc-ci" aria-label="add to chrome" tabindex="0" style="user-select: none;"><div class="g-c-Hf"><div class="g-c-x"><div class="g-c-s g-c-Zi-s g-c-s-L-Si"></div><div class="g-c-R webstore-test-button-label">add to chrome</div></div></div></div>`
-            document.querySelector(".dd-Va.g-c-wb.g-eg-ua-Uc-c-za.g-c-Oc-td-jb-oa.g-c.g-c-Sc-ci").addEventListener('click',_=>ipc.send('add-extension',location.href.split("/").slice(-1)[0].split("?")[0]))
-           }
-          else{
-            const buttons = document.querySelectorAll(".dd-Va.g-c-wb.g-eg-ua-Kb-c-za.g-c-Oc-td-jb-oa.g-c")
-            if(buttons && buttons.length){
-              for(let button of buttons){
-                button.addEventListener('click',e=>{
-                  e.stopPropagation()
-                  e.preventDefault()
-                  ipc.send('add-extension',button.parentNode.parentNode.parentNode.parentNode.href.split("/").slice(-1)[0].split("?")[0])
-                },true)
-              }
-            }
-            clearInterval(id)
+    const key = Math.random().toString()
+    ipc.send('need-get-inner-text',key)
+    ipc.once(`need-get-inner-text-reply_${key}`,(e,result)=>{
+      if(result) ipc.send('get-inner-text',location.href,document.title,document.documentElement.innerText)
+    })
+    if(location.href.startsWith('https://chrome.google.com/webstore/')){
+      setInterval(_=>{
+        const ele = document.querySelector(".h-e-f-Ra-c.e-f-oh-Md-zb-k")
+        if(ele && !ele.innerHTML){
+          ele.innerHTML = `<div role="button" class="dd-Va g-c-wb g-eg-ua-Uc-c-za g-c-Oc-td-jb-oa g-c g-c-Sc-ci" aria-label="add to chrome" tabindex="0" style="user-select: none;"><div class="g-c-Hf"><div class="g-c-x"><div class="g-c-s g-c-Zi-s g-c-s-L-Si"></div><div class="g-c-R webstore-test-button-label">add to chrome</div></div></div></div>`
+          ele.querySelector(".dd-Va.g-c-wb.g-eg-ua-Uc-c-za.g-c-Oc-td-jb-oa.g-c.g-c-Sc-ci").addEventListener('click',_=>ipc.send('add-extension',location.href.split("/").slice(-1)[0].split("?")[0]))
+        }
+        let buttons = document.querySelectorAll(".dd-Va.g-c-wb.g-eg-ua-Kb-c-za.g-c-Oc-td-jb-oa.g-c")
+        if(buttons && buttons.length){
+          for(let button of buttons){
+            const loc = button.parentNode.parentNode.parentNode.parentNode.href.split("/").slice(-1)[0].split("?")[0]
+            const parent = button.parentNode
+            parent.innerHTML = `<div role="button" class="dd-Va g-c-wb g-eg-ua-Kb-c-za g-c-Oc-td-jb-oa g-c" aria-label="add to chrome" tabindex="0" style="user-select: none;"><div class="g-c-Hf"><div class="g-c-x"><div class="g-c-s g-c-Zi-s g-c-s-L-Si"></div><div class="g-c-R webstore-test-button-label">add to chrome</div></div></div></div>`
+            parent.querySelector(".dd-Va.g-c-wb.g-eg-ua-Kb-c-za.g-c-Oc-td-jb-oa.g-c").addEventListener('click',e=>{
+              e.stopPropagation()
+              e.preventDefault()
+              ipc.send('add-extension',loc)},true)
           }
-        },500)
+        }
+      },1000)
 
-      }
-    },1000)
+    }
   })
 }
 

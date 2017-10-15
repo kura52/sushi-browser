@@ -1,7 +1,6 @@
 const electron = require('electron')
 const {remote} = electron
 const ipc = electron.ipcRenderer
-const extInfos = {...remote.require('./extensionInfos')}
 const PubSub = require('./pubsub')
 const browserActionMap = new Map()
 
@@ -33,6 +32,10 @@ ipc.on('extension-ready',(e,info)=>{
   load(info)
   PubSub.publish('force-update-navbar')
 })
-load(extInfos)
+const key = Math.random().toString()
+ipc.send('get-extension-info',key)
+ipc.once(`get-extension-info-reply_${key}`,(e,extInfos)=>load(extInfos))
+
+
 
 export default browserActionMap

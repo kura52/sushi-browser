@@ -16,7 +16,7 @@ const FloatPanel = require('./FloatPanel')
 const {token} = require('./databaseRender')
 const PanelOverlay = require('./PanelOverlay')
 import firebase,{storage,auth,database} from 'firebase'
-let MARGIN = mainState.syncScrollMargin
+let MARGIN = ipc.sendSync('get-sync-main-state','syncScrollMargin')
 let count = 0
 // ipc.setMaxListeners(0)
 const isDarwin = navigator.userAgent.includes('Mac OS X')
@@ -105,16 +105,16 @@ export default class SplitWindows extends Component{
     super(props)
     this.currentWebContents = {}
     global.currentWebContents = this.currentWebContents
-    global.adBlockDisableSite = {...mainState.adBlockDisableSite}
+    global.adBlockDisableSite = {...ipc.sendSync('get-sync-main-state','adBlockDisableSite')}
     this.initBind()
 
     let winState
-    const mState = mainState.winState
+    const mState = ipc.sendSync('get-sync-main-state','winState')
     if(mState){
       const _winState = JSON.parse(mState)
       if(_winState.l){
         winState = this.parseRestoreDate(_winState,{})
-        const maxState = JSON.parse(mainState.maxState)
+        const maxState = JSON.parse(ipc.sendSync('get-sync-main-state','maxState'))
         console.log(maxState,this.getKeyPosition(this.getFixedPanelKey('right'),winState,true))
         if(maxState.maximize){
           let pos
@@ -135,7 +135,7 @@ export default class SplitWindows extends Component{
       console.log(param.tabparam)
       const attach = JSON.parse(param.tabparam)
       if(Array.isArray(attach)){
-        winState = {dirc: "v",size: '100%',l: [getUuid(),[]],r: null,p: null,key:uuid.v4(),toggleNav: mainState.toggleNav || 0,attach}
+        winState = {dirc: "v",size: '100%',l: [getUuid(),[]],r: null,p: null,key:uuid.v4(),toggleNav: ipc.sendSync('get-sync-main-state','toggleNav') || 0,attach}
         for(let at of winState.attach){
           remote.getWebContents(at.wvId,cont=>{
             this.currentWebContents[at.wvId] = cont
@@ -146,7 +146,7 @@ export default class SplitWindows extends Component{
         if(attach.type == 'new-win'){
           console.log(3333,{key: getUuid(),tabs: attach.urls.map(({url,privateMode})=>{return {pin:false,tabKey:uuid.v4(),url,privateMode}})})
           winState = this.parseRestoreDate({dirc: "v",size: '100%',l: {key: getUuid(),tabs: attach.urls.map(({url,privateMode})=>{return {forceKeep:true,pin:false,tabKey:uuid.v4(),url,privateMode}})},
-            r: null,key:uuid.v4(),toggleNav: mainState.toggleNav || 0},{})
+            r: null,key:uuid.v4(),toggleNav: ipc.sendSync('get-sync-main-state','toggleNav') || 0},{})
         }
         else{
           console.log(33321,attach)
@@ -248,7 +248,7 @@ export default class SplitWindows extends Component{
             }
           }
           console.log(3443333,datas)
-          winState = this.parseRestoreDate({...datas,toggleNav: mainState.toggleNav || 0},{})
+          winState = this.parseRestoreDate({...datas,toggleNav: ipc.sendSync('get-sync-main-state','toggleNav') || 0},{})
 
         }
       }
@@ -256,7 +256,7 @@ export default class SplitWindows extends Component{
 
     console.log(22222222222222,winState)
     // const root = {dirc: "v",size: 50,l: [getUuid(),[]],r: [getUuid(),[]],p: null,key:uuid.v4(),toggleNav: 0}
-    const root = winState || {dirc: "v",size: '100%',l: [getUuid(),[]],r: null,p: null,key:uuid.v4(),toggleNav: mainState.toggleNav || 0}
+    const root = winState || {dirc: "v",size: '100%',l: [getUuid(),[]],r: null,p: null,key:uuid.v4(),toggleNav: ipc.sendSync('get-sync-main-state','toggleNav') || 0}
     // root.l = {dirc: "h",size: 50,l: [getUuid(),[]],r: [getUuid(),[]],p: root, pd: "l",key:uuid.v4()}
     this.state = {root,floatPanels: new Map()}
     this.refs2 = {}

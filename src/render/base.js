@@ -11,11 +11,9 @@ const SearchAnything = require("./SearchAnything")
 const PubSub = require('./pubsub')
 // global.Perf = require('react-addons-perf');
 const {remote} = require('electron')
-const mainState = remote.require('./mainState')
 const ipc = require('electron').ipcRenderer
 const isDarwin = navigator.userAgent.includes('Mac OS X')
-
-const longPressMiddle = mainState.longPressMiddle
+const [longPressMiddle,alwaysOnTop,doubleShift] = ipc.sendSync('get-sync-main-states',['longPressMiddle','alwaysOnTop','doubleShift'])
 
 require('inferno').options.recyclingEnabled = true; // Advanced optimisation
 global.lastMouseDown = []
@@ -28,7 +26,7 @@ global.zoomMapping = new Map([
 
 if(location.href.endsWith("index.html#")){
   try{
-    for(let [url,path] of Object.entries(mainState.favicons)){
+    for(let [url,path] of Object.entries(ipc.sendSync('get-sync-main-state','favicons'))){
       localForage.setItem(url,path)
     }
   }catch(e){
@@ -54,8 +52,8 @@ export default class MainContent extends Component{
 
   componentDidMount() {
     window.addEventListener('resize', ::this.handleResize,{ passive: true });
-    if(mainState.alwaysOnTop){
-      setTimeout(_=>remote.getCurrentWindow().setAlwaysOnTop(mainState.alwaysOnTop),500)
+    if(alwaysOnTop){
+      setTimeout(_=>remote.getCurrentWindow().setAlwaysOnTop(alwaysOnTop),500)
     }
     document.addEventListener('mousedown',e=>{
       let ele,key
@@ -80,6 +78,9 @@ export default class MainContent extends Component{
 
       if(e.button == 1){
         global.middleButtonPressing = Date.now()
+      }
+      else{
+        global.middleButtonPressing = void 0
       }
     },{passive:true})
 
@@ -133,7 +134,7 @@ render(<WebPageList />, document.querySelector('#wvlist'))
 render(<DownloadList />, document.querySelector('#dllist'))
 render(<MainContent />, document.querySelector('#content'))
 
-if(mainState.doubleShift){
+if(doubleShift){
   render(<SearchAnything />, document.querySelector('#anything'))
 }
 

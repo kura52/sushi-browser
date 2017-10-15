@@ -46,12 +46,21 @@ function copyModifyFile(to,flagContent,flagBackground){
 
 function htmlModify(verPath,fname){
   const dirName = path.dirname(fname)
+  const backStr = dirName == '.' ? dirName : dirName.split(/[\/\\]/).map(x=>'..').join('/')
+  console.log(verPath,fname,dirName,backStr)
   const fullPath = path.join(verPath,dirName,path.basename(fname).split("?")[0])
   const str = fs.readFileSync(fullPath).toString()
   if(str.includes(backgroundScriptName)) return
 
   fs.unlinkSync(fullPath)
-  fs.writeFileSync(fullPath,str.replace(/< *(head) *>/i,`<$1>\n  <script src="${dirName}/${backgroundScriptName}"></script>`))
+  let writeStr = str.replace(/< *(head)([^>]*)>/i,`<$1$2>\n  <script src="${backStr}/${backgroundScriptName}"></script>`)
+  if(!writeStr.includes(backgroundScriptName)){
+    writeStr = str.replace(/< *(body)([^>]*)>/i,`<$1$2>\n  <script src="${backStr}/${backgroundScriptName}"></script>`)
+  }
+  else if(!writeStr.includes(backgroundScriptName)){
+    writeStr = str.replace(/html>/i,`html>\n  <script src="${backStr}/${backgroundScriptName}"></script>`)
+  }
+  fs.writeFileSync(fullPath,writeStr)
 }
 
 export default function modify(extensionId,verPath){

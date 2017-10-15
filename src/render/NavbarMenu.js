@@ -130,14 +130,25 @@ export default class NavbarMenu extends Component {
     }
   }
 
+  forceOpen(){
+    this.setState({forceOpen:true})
+  }
+
+  forceClose(){
+    this.setState({forceOpen:false})
+  }
+
   render(){
     const self = this
     const list = this.state.dataList ? this.props.children.concat(this.state.dataList) : this.props.children
-    return <div onMouseOver={this.props.mouseOver ? this.onMouseOver : (void 0)} onMouseLeave={this.props.mouseOver ? this.onMouseLeave : (void 0)} id={this.uuid} ref="div" role="listbox" aria-expanded="false" className={`ui top${this.props.mouseOver ? '' : ' right pointing'} nav-button dropdown ${this.props.className}`} tabIndex={1} style={{lineHeight: '1.9',minWidth:0}}>
-      <a ref="button" href="javascript:void(0)" className title={this.props.title} onClick={this.props.mouseOver ? e=>this.props.onClick(e) : ::this.handleClick}>
+    return <div onContextMenu={this.props.onContextMenu} onMouseOver={this.props.mouseOver ? this.onMouseOver : (void 0)}
+                onMouseLeave={this.props.mouseOver ? this.onMouseLeave : (void 0)} id={this.uuid} ref="div" role="listbox"
+                aria-expanded="false" className={`${this.props.className != 'main-menu' ? 'draggable-source' : ''} ui top${this.props.mouseOver ? '' : ' right pointing'} nav-button dropdown ${this.props.className}`}
+                tabIndex={1} style={{lineHeight: '1.9',minWidth:0}}>
+      <a ref="button" href="javascript:void(0)" title={this.props.title} onClick={this.props.mouseOver ? e=>this.props.onClick(e) : ::this.handleClick}>
         <i className={`fa fa-${this.props.icon}`} />
       </a>
-      {!this.state.visible ? null : <div ref="menu" className={`menu${this.state.visible ? " visible" : ""} transition ${this.props.mouseOver ? 'nav2-menu' : 'nav-menu'}`} style={this.props.style}>
+      {!this.state.visible && !this.props.alwaysView ? null : <div ref="menu" className={`menu${this.state.visible || this.state.forceOpen ? " visible" : ""} transition ${this.props.mouseOver ? 'nav2-menu' : 'nav-menu'}`} style={this.props.style}>
         {(list || []).map((child) => {
             if(child && (child.type == NavbarMenuBarItem || (child.type == NavbarMenuItem))){
               return React.cloneElement(child, {

@@ -55,7 +55,7 @@ function open(target, appName, callback) {
     opener = 'sudo -u ' + process.env.SUDO_USER + ' ' + opener;
   }
   console.log(opener + ' "' + escape(target) + '"')
-  return exec(opener + ' "' + escape(target) + '"', callback);
+  return exec(opener + ' "' + escape(target) + '" &', callback);
 }
 
 function escape(s) {

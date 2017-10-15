@@ -33,6 +33,13 @@ const settingDefault =  {
 
   sendToVideo: isLinux ? 'vlc' : isDarwin ? '"quicktime player"' : 'wmplayer',
   vpnNames: [],
+  navbarItems: {
+    left: ['back','forward','reload'],
+    right: ['syncReplace','sync','opposite','sidebar','mobile','favorite','history','video'],
+    backSide: ['download','folder','terminal'],
+  },
+  multistageTabs: false,
+  tabMinWidth: 150,
 
   //keyboard shortcut default
   keyQuit: 'CmdOrCtrl+Q',
