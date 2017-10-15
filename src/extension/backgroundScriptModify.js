@@ -66,6 +66,24 @@ if(chrome.contextMenus) {
     console.log('chrome.contextMenus.remove',menuItemId)
     simpleIpcFunc('chrome-context-menus-remove',callback,chrome.runtime.id,menuItemId)
   }
+
+  const onclickedEvents = new Set()
+  chrome.contextMenus.onClicked._addListener = chrome.contextMenus.onClicked.addListener
+  chrome.contextMenus.onClicked.addListener = (cb)=>{
+    onclickedEvents.add(cb)
+    chrome.contextMenus.onClicked._addListener(cb)
+  }
+  chrome.contextMenus.onClicked._removeListener = chrome.contextMenus.onClicked.removeListener
+  chrome.contextMenus.onClicked.removeListener = (cb)=>{
+    onclickedEvents.delete(cb)
+    chrome.contextMenus.onClicked._removeListener(cb)
+  }
+  chrome.contextMenus.onClicked.hasListener = (cb)=>{
+    return onclickedEvents.has(cb)
+  }
+  chrome.contextMenus.onClicked.hasListeners = (cb)=>{
+    return !!onclickedEvents.size
+  }
 }
 
 if(chrome.windows){
@@ -144,6 +162,9 @@ if(chrome.windows){
       },
       hasListener(cb){
         return !!ipcEvents[cb]
+      },
+      hasListeners(){
+        return !!Object.keys(ipcEvents).length
       }
     }
   }
@@ -232,6 +253,9 @@ if(chrome.tabs){
     },
     hasListener(cb){
       return !!onUpdated[cb]
+    },
+    hasListeners(){
+      return !!Object.keys(onUpdated).length
     }
   }
   chrome.tabs.onCreated = {
@@ -247,6 +271,9 @@ if(chrome.tabs){
     },
     hasListener(cb){
       return !!onCreated[cb]
+    },
+    hasListeners(){
+      return !!Object.keys(onCreated).length
     }
   }
   chrome.tabs.onRemoved = {
@@ -262,6 +289,9 @@ if(chrome.tabs){
     },
     hasListener(cb){
       return !!onRemoved[cb]
+    },
+    hasListeners(){
+      return !!Object.keys(onRemoved).length
     }
   }
   chrome.tabs.onActivated = {
@@ -277,6 +307,9 @@ if(chrome.tabs){
     },
     hasListener(cb){
       return !!onActivated[cb]
+    },
+    hasListeners(){
+      return !!Object.keys(onActivated).length
     }
   }
   chrome.tabs.onSelectionChanged = {
@@ -292,6 +325,9 @@ if(chrome.tabs){
     },
     hasListener(cb){
       return !!onSelectionChanged[cb]
+    },
+    hasListeners(){
+      return !!Object.keys(onSelectionChanged).length
     }
   }
   chrome.tabs.onActiveChanged = {
@@ -307,6 +343,9 @@ if(chrome.tabs){
     },
     hasListener(cb){
       return !!onActiveChanged[cb]
+    },
+    hasListeners(){
+      return !!Object.keys(onActiveChanged).length
     }
   }
 }
@@ -339,7 +378,7 @@ if(chrome.management){
 }
 
 if(chrome.privacy){
-  const settingObj = {set(){},get(){return true},clear(){},onChange:{addListener(){},removeListener(){},hasListener(){}}}
+  const settingObj = {set(){},get(){return true},clear(){},onChange:{addListener(){},removeListener(){},hasListener(){},hasListeners(){}}}
   chrome.privacy.network = {}
   chrome.privacy.network.networkPredictionEnabled = settingObj
 
@@ -379,6 +418,9 @@ if(chrome.webNavigation){
       },
       hasListener(cb){
         return !!ipcEvents[cb]
+      },
+      hasListeners(){
+        return !!Object.keys(ipcEvents).length
       }
     }
   }
@@ -421,6 +463,9 @@ if(chrome.proxy){
     },
     hasListener(cb){
       return ipcEvents.includes(cb)
+    },
+    hasListeners(){
+      return !!Object.keys(ipcEvents).length
     }
   }
 }
@@ -429,4 +474,8 @@ if(chrome.pageAction){
   chrome.pageAction = chrome.browserAction
   chrome.browserAction.show = chrome.browserAction.enable
   chrome.browserAction.hide = chrome.browserAction.disable
+}
+
+if(chrome.storage){
+  chrome.storage.sync = chrome.storage.local
 }

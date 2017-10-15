@@ -4,9 +4,9 @@ const fs = require('fs')
 const glob = require("glob")
 
 const BEFORE_CODE_NAME = 'Tobiuo(Flying Fish)'
-const CODE_NAME = 'Tobiuo(Flying Fish)'
+const CODE_NAME = 'Negitoro'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.6.1"
+const NEXT_APP_VERSION = "0.7.0"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
 const CHANGE_ENGLISH = `Added session tab function
@@ -94,52 +94,53 @@ filesContentsReplace([path.join(pwd,'../web/check.json'),path.join(pwd,'README.m
 
 fileContentsReplace(path.join(pwd,'../web/sitemap.xml'),/<lastmod>(.+?)<\/lastmod>/,`<lastmod>${formatDate(new Date())}</lastmod>`)
 
-if(!fs.readFileSync(path.join(pwd,'README.md')).includes(`v${NEXT_APP_VERSION2}`)){
-  fileContentsReplace(path.join(pwd,'README.md'),'# New Features',`# New Features
 
-#### New function(v${NEXT_APP_VERSION2})
-- ${CHANGE_ENGLISH.split("\n").join("\n- ")}`)
-}
-
-
-if(!fs.readFileSync(path.join(pwd,'ja/README.md')).includes(`v${NEXT_APP_VERSION2}`)){
-  fileContentsReplace(path.join(pwd,'ja/README.md'),'# 新機能 ',`# 新機能 
-
-#### 新機能(v${NEXT_APP_VERSION2})
-- ${CHANGE_JAPANESE.split("\n").join("\n- ")}`)
-}
-
-if(!fs.readFileSync(path.join(pwd,'../web/index.html')).includes(`v${NEXT_APP_VERSION2}`)){
-  fileContentsReplace(path.join(pwd,'../web/index.html'),'<!-- REPLACE -->',`<!-- REPLACE -->
-								<h4 class="features-tittle" style="padding-top: 20px;">New function(v${NEXT_APP_VERSION2})</h4>
-								<div style="text-align: left;line-height: inherit;width: 75%;margin: auto;border-bottom: 1px solid #dedede;">
-									<p>${orderAdd(CHANGE_ENGLISH).split("\n").join("</p>\n\t\t\t\t\t\t\t\t\t<p>")}</p>
-								</div>`)
-}
-
-if(!fs.readFileSync(path.join(pwd,'../web/ja/index.html')).includes(`v${NEXT_APP_VERSION2}`)){
-  fileContentsReplace(path.join(pwd,'../web/ja/index.html'),'<!-- REPLACE -->',`<!-- REPLACE -->
-								<h4 class="features-tittle" style="padding-top: 20px;">新機能(v${NEXT_APP_VERSION2})</h4>
-								<div style="text-align: left;line-height: inherit;width: 75%;margin: auto;border-bottom: 1px solid #dedede;">
-									<p>${orderAdd(CHANGE_JAPANESE).split("\n").join("</p>\n\t\t\t\t\t\t\t\t\t<p>")}</p>
-								</div>`)
-}
-
-if(!fs.readFileSync(path.join(pwd,'../web/download.html')).includes(`v${NEXT_APP_VERSION2}`)){
-  fileContentsReplace(path.join(pwd,'../web/download.html'),'<!-- REPLACE -->',`<!-- REPLACE -->
-						<h4 class="features-tittle">New function(v${NEXT_APP_VERSION2})</h4>
-						<div style="text-align: left;line-height: inherit;width: 75%;margin: auto;border-bottom: 1px solid #dedede;">
-							<p>${orderAdd(CHANGE_ENGLISH).split("\n").join("</p>\n\t\t\t\t\t\t\t<p>")}</p>
-						</div>`)
-}
-
-if(!fs.readFileSync(path.join(pwd,'../web/ja/download.html')).includes(`v${NEXT_APP_VERSION2}`)){
-  fileContentsReplace(path.join(pwd,'../web/ja/download.html'),'<!-- REPLACE -->',`<!-- REPLACE -->
-						<h4 class="features-tittle">新機能(v${NEXT_APP_VERSION2})</h4>
-						<div style="text-align: left;line-height: inherit;width: 75%;margin: auto;">
-							<p>${orderAdd(CHANGE_JAPANESE).split("\n").join("</p>\n\t\t\t\t\t\t\t<p>")}</p>
-						</div>`)
-}
+// if(!fs.readFileSync(path.join(pwd,'README.md')).includes(`v${NEXT_APP_VERSION2}`)){
+//   fileContentsReplace(path.join(pwd,'README.md'),'# New Features',`# New Features
+//
+// #### New function(v${NEXT_APP_VERSION2})
+// - ${CHANGE_ENGLISH.split("\n").join("\n- ")}`)
+// }
+//
+//
+// if(!fs.readFileSync(path.join(pwd,'ja/README.md')).includes(`v${NEXT_APP_VERSION2}`)){
+//   fileContentsReplace(path.join(pwd,'ja/README.md'),'# 新機能 ',`# 新機能
+//
+// #### 新機能(v${NEXT_APP_VERSION2})
+// - ${CHANGE_JAPANESE.split("\n").join("\n- ")}`)
+// }
+//
+// if(!fs.readFileSync(path.join(pwd,'../web/index.html')).includes(`v${NEXT_APP_VERSION2}`)){
+//   fileContentsReplace(path.join(pwd,'../web/index.html'),'<!-- REPLACE -->',`<!-- REPLACE -->
+// 								<h4 class="features-tittle" style="padding-top: 20px;">New function(v${NEXT_APP_VERSION2})</h4>
+// 								<div style="text-align: left;line-height: inherit;width: 75%;margin: auto;border-bottom: 1px solid #dedede;">
+// 									<p>${orderAdd(CHANGE_ENGLISH).split("\n").join("</p>\n\t\t\t\t\t\t\t\t\t<p>")}</p>
+// 								</div>`)
+// }
+//
+// if(!fs.readFileSync(path.join(pwd,'../web/ja/index.html')).includes(`v${NEXT_APP_VERSION2}`)){
+//   fileContentsReplace(path.join(pwd,'../web/ja/index.html'),'<!-- REPLACE -->',`<!-- REPLACE -->
+// 								<h4 class="features-tittle" style="padding-top: 20px;">新機能(v${NEXT_APP_VERSION2})</h4>
+// 								<div style="text-align: left;line-height: inherit;width: 75%;margin: auto;border-bottom: 1px solid #dedede;">
+// 									<p>${orderAdd(CHANGE_JAPANESE).split("\n").join("</p>\n\t\t\t\t\t\t\t\t\t<p>")}</p>
+// 								</div>`)
+// }
+//
+// if(!fs.readFileSync(path.join(pwd,'../web/download.html')).includes(`v${NEXT_APP_VERSION2}`)){
+//   fileContentsReplace(path.join(pwd,'../web/download.html'),'<!-- REPLACE -->',`<!-- REPLACE -->
+// 						<h4 class="features-tittle">New function(v${NEXT_APP_VERSION2})</h4>
+// 						<div style="text-align: left;line-height: inherit;width: 75%;margin: auto;border-bottom: 1px solid #dedede;">
+// 							<p>${orderAdd(CHANGE_ENGLISH).split("\n").join("</p>\n\t\t\t\t\t\t\t<p>")}</p>
+// 						</div>`)
+// }
+//
+// if(!fs.readFileSync(path.join(pwd,'../web/ja/download.html')).includes(`v${NEXT_APP_VERSION2}`)){
+//   fileContentsReplace(path.join(pwd,'../web/ja/download.html'),'<!-- REPLACE -->',`<!-- REPLACE -->
+// 						<h4 class="features-tittle">新機能(v${NEXT_APP_VERSION2})</h4>
+// 						<div style="text-align: left;line-height: inherit;width: 75%;margin: auto;">
+// 							<p>${orderAdd(CHANGE_JAPANESE).split("\n").join("</p>\n\t\t\t\t\t\t\t<p>")}</p>
+// 						</div>`)
+// }
 
 
 const htmls = []
