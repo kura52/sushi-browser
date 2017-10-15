@@ -48,7 +48,7 @@ let result = _=>{
   });
 }
 
-const filePath = path.join(app.getPath('userData').replace('brave','sushiBrowser'),'resource/fork.txt').replace(/\\/g,"/")
+const filePath = path.join(app.getPath('userData').replace('brave','sushiBrowser').replace('sushi-browser','sushiBrowser'),'resource/fork.txt').replace(/\\/g,"/")
 if(fs.existsSync(filePath)){
   const content = fs.readFileSync(filePath).toString().split("\t")
   const date = parseInt(content[0])

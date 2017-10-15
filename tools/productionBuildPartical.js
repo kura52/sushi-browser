@@ -257,6 +257,7 @@ var getTabValue = function (tabId) {`)
   }
 
   if (!error && createProperties.partition) {`)
+        .replace("tabValues[tabId].url.startsWith('chrome://brave')","tabValues[tabId].url && tabValues[tabId].url.startsWith('chrome://brave')")
 
 
       fs.writeFileSync(file,result)

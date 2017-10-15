@@ -33,7 +33,7 @@ if(location.href.startsWith('http') && window == window.parent){
     ipc.once(`need-get-inner-text-reply_${key}`,(e,result)=>{
       if(result) ipc.send('get-inner-text',location.href,document.title,document.documentElement.innerText)
     })
-    if(location.href.startsWith('https://chrome.google.com/webstore/')){
+    if(location.href.startsWith('https://chrome.google.com/webstore')){
       setInterval(_=>{
         const ele = document.querySelector(".h-e-f-Ra-c.e-f-oh-Md-zb-k")
         if(ele && !ele.innerHTML){

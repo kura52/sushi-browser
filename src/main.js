@@ -10,7 +10,7 @@ if(databaseForked){
   if(isDarwin){
     app.dock.hide()
   }
-  app.setPath('userData', app.getPath('userData').replace('brave','sushiBrowserDB'))
+  app.setPath('userData', app.getPath('userData').replace('brave','sushiBrowserDB').replace('sushi-browser','sushiBrowserDB'))
   const appPath = app.getPath('userData')
   if (!fs.existsSync(appPath)) {
     fs.mkdirSync(appPath)
@@ -22,7 +22,7 @@ if(databaseForked){
 else{
   const fs = require('fs-extra')
   const path = require('path')
-  app.setPath('userData', app.getPath('userData').replace('brave','sushiBrowser'))
+  app.setPath('userData', app.getPath('userData').replace('brave','sushiBrowser').replace('sushi-browser','sushiBrowser'))
   const appPath = app.getPath('userData')
   if (!fs.existsSync(appPath)) {
     fs.mkdirSync(appPath)

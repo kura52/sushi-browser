@@ -1143,7 +1143,7 @@ export default class SplitWindows extends Component{
   }
 
   addFixedPanel(direction,pos,node=this.state.root){
-    const fixedKey = this.getFixedPanelKey(direction == "v" ? pos == 1 ? "right" :"left" : pos == 1 ? "bottom" : "top") + `-${Math.random()}_${count++}`
+    const fixedKey = this.getFixedPanelKey(direction == "v" ? pos == 1 ? "right" :"left" : pos == 1 ? "bottom" : "top") + `-${Math.random().toString().replace(".","")}_${count++}`
 
     const ref = this.refs[`pane_${node.key}`].state
     const refSize = this.refs[`pane_${node.key}`].getSize()
@@ -1264,7 +1264,7 @@ export default class SplitWindows extends Component{
   }
 
   addFloatPanel(tabs,index){
-    const key = this.getFixedPanelKey('float') + `-${Math.random()}_${count++}`
+    const key = this.getFixedPanelKey('float') + `-${Math.random().toString().replace(".","")}_${count++}`
     this.state.floatPanels.set(key,[key, [], tabs, [index],(void 0)])
     this.setState({})
   }

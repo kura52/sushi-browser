@@ -168,8 +168,6 @@ class BrowserPage extends Component {
     }
 
     PubSub.unsubscribe(this.tokenWebviewKeydown)
-    PubSub.unsubscribe(this.tokenNotification)
-    PubSub.unsubscribe(this.tokenDidStartLoading)
 
     if(this.searchEvent)
       ipc.removeListener('menu-or-key-events', this.searchEvent)
@@ -190,17 +188,25 @@ class BrowserPage extends Component {
   // }
 
   onPageSearch(query,next=true) {
+    const cont = this.getWebContents(this.props.tab)
+    if(!cont) return
     if(query === ""){
-      this.refs.webview.stopFindInPage('clearSelection')
+      global.searching = true
+      cont.stopFindInPage('clearSelection')
+      global.searching = false
       this.previous_text = ""
       this.setState({result_string: ""})
     }
     else if (this.previous_text === query) {
-      this.refs.webview.findInPage(query, {findNext: true,forward: next});
+      global.searching = true
+      cont.findInPage(query, {findNext: true,forward: next});
+      global.searching = false
     }
     else {
       this.previous_text = query;
-      this.refs.webview.findInPage(query);
+      global.searching = true
+      cont.findInPage(query);
+      global.searching = false
     }
   }
 
@@ -209,7 +215,8 @@ class BrowserPage extends Component {
       this.onClose(e)
     }
     else if (e.keyCode == 116) { // F5
-      this.refs.webview.reload()
+      const cont = this.getWebContents(this.props.tab)
+      cont && cont.reload()
     }
   }
 

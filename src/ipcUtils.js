@@ -675,7 +675,16 @@ ipcMain.on('change-tab-infos',(e,changeTabInfos)=> {
         if(timer) clearTimeout(timer)
         timer = setTimeout(()=>{
           console.log('change-tab-infos',c)
-          cont.setActive(c.active)
+          if(!global.searching){ //@TODO Muon Bug?
+            cont.setActive(c.active)
+          }
+          else{
+            setTimeout(_=>{
+              if(!global.searching) {
+                cont.setActive(c.active)
+              }
+            },10)
+          }
           timer = void 0
         }, 10)
       }
