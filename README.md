@@ -135,14 +135,14 @@ This browser makes use of wonderful web technologies, starting with the followin
 Both the installer for every platform and the portable version can be downloaded.  
 To use the portable edition, please run sushi.exe for Windows and sushi-browser for Mac/Linux after decompressing.
 
-- [Windows Installer v0.6.1](https://sushib.me/dl/sushi-browser-0.6.1-setup-x64.exe)
-- [Windows Portable v0.6.1(self-extract)](https://sushib.me/dl/sushi-browser-0.6.1-win-x64.exe)
-- [Windows Portable v0.6.1](https://sushib.me/dl/sushi-browser-0.6.1-win-x64.zip)
-- [MacOS dmg v0.6.1](https://sushib.me/dl/SushiBrowser-0.6.1.dmg)
-- [MacOS Portable v0.6.1](https://sushib.me/dl/sushi-browser-0.6.1-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.6.1](https://sushib.me/dl/sushi-browser-0.6.1.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.6.1](https://sushib.me/dl/sushi-browser_0.6.1_amd64.deb)
-- [Linux Portable v0.6.1](https://sushib.me/dl/sushi-browser-0.6.1.tar.bz2)
+- [Windows Installer v0.7.0](https://sushib.me/dl/sushi-browser-0.7.0-setup-x64.exe)
+- [Windows Portable v0.7.0(self-extract)](https://sushib.me/dl/sushi-browser-0.7.0-win-x64.exe)
+- [Windows Portable v0.7.0](https://sushib.me/dl/sushi-browser-0.7.0-win-x64.zip)
+- [MacOS dmg v0.7.0](https://sushib.me/dl/SushiBrowser-0.7.0.dmg)
+- [MacOS Portable v0.7.0](https://sushib.me/dl/sushi-browser-0.7.0-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.7.0](https://sushib.me/dl/sushi-browser-0.7.0.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.7.0](https://sushib.me/dl/sushi-browser_0.7.0_amd64.deb)
+- [Linux Portable v0.7.0](https://sushib.me/dl/sushi-browser-0.7.0.tar.bz2)
 
 # Use of Flash 
 If Flash won't run, please install Flash from the following web sites.  
@@ -156,6 +156,39 @@ sushi-browser --no-sandbox
 ```
 
 # New Features
+
+#### New function(v0.70)
+- Implemented partical chrome extensions API (Experimental)
+- Added function that can install Chrome extension from Chrome web store
+- Implemented multi-row tabs
+- By right clicking the icon on the menu bar, we made it possible to sort
+- Performance Improvement
+- Fixed a lot of bugs
+
+
+- Extensions Path (If browser becomes unstable please delete folders)
+  - Windows: C:\Users\[Name]\AppData\Roaming\sushiBrowser\resource\extension
+  - MacOS: /Users/[Name]/Library/Application Support/sushiBrowser/resource/extension
+  - Linux: ~/.config/sushiBrowser/resource/extension/
+
+
+- Partical or All implemented APIs
+  - chrome.browserAction
+  - chrome.contextMenus
+  - chrome.cookies
+  - chrome.extension
+  - chrome.i18
+  - chrome.idle
+  - chrome.pageAction
+  - chrome.proxy
+  - chrome.runtime
+  - chrome.sessions
+  - chrome.storage
+  - chrome.tabs
+  - chrome.webNavigation
+  - chrome.webRequest
+  - chrome.windows
+
 
 #### New function(v0.61)
 - Added session tab function

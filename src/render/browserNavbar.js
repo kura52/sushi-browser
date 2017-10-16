@@ -528,6 +528,7 @@ class BrowserNavbar extends Component{
                        onClick={()=>{
                          ipc.send('save-state',{tableName:'state',key:'multistageTabs',val:!multistageTabs})
                          PubSub.publish('change-multistage-tabs',!multistageTabs)
+                         PubSub.publish("resizeWindow",{})
                        }}/> : null
       }
       {isDarwin ? null :<NavbarMenuItem text={this.props.toggleNav == 3 ? 'Normal Screen Mode' : 'Full Screen Mode'} icon={this.props.toggleNav == 3 ? 'compress' : 'expand'}

@@ -918,7 +918,7 @@ ipcMain.on('get-sync-main-states',(e,keys)=>{
 })
 
 ipcMain.on('get-sync-main-state',(e,key)=>{
-  e.returnValue = mainState[key]
+  e.returnValue = mainState[key] || null
 })
 // ipcMain.on('send-keys',(e,keys)=>{
 //   e.sender.sendInputEvent(keys)

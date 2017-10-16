@@ -84,12 +84,16 @@ ipcMain.on('add-extension',(e,id)=>{
       return
     }
   }
+  let retry = 0
   setTimeout(_=>{
     const intId = setInterval(async _=>{
       console.log(234,global.downloadItems)
+      if(retry++ > 100) clearInterval(intId)
       if(!global.downloadItems.length){
-        clearInterval(intId)
         try{
+          console.log(`${extRootPath}.crx`,retry)
+          if(!fs.existsSync(`${extRootPath}.crx`)) return
+          clearInterval(intId)
           const ret = await exec(`${exePath[0]} x -o"${extRootPath}_crx" "${extRootPath}.crx"`)
           console.log(345,ret)
           const verPath = path.join(extRootPath,JSON.parse(fs.readFileSync(path.join(`${extRootPath}_crx`,'manifest.json'))).version)
