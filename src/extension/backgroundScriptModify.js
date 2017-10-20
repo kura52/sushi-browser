@@ -476,6 +476,28 @@ if(chrome.pageAction){
   chrome.browserAction.hide = chrome.browserAction.disable
 }
 
+if(chrome.browserAction){
+  const ipc = chrome.ipcRenderer
+  const onClicked = {}
+  chrome.browserAction.onClicked = {
+    addListener: function (cb) {
+      onClicked[cb] = function(evt, tab) {
+        cb(tab)
+      }
+      ipc.on('chrome-browser-action-clicked', onClicked[cb])
+    },
+    removeListener: function(cb){
+      ipc.removeListener('chrome-browser-action-clicked', onClicked[cb])
+    },
+    hasListener(cb){
+      return !!onClicked[cb]
+    },
+    hasListeners(){
+      return !!Object.keys(onClicked).length
+    }
+  }
+}
+
 if(chrome.storage){
   chrome.storage.sync = chrome.storage.local
 }

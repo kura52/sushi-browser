@@ -26,11 +26,14 @@ const result = contents
   .replace('var getTabValue = function (tabId) {',`const tabIndexMap = {}
 ipcMain.on('update-tab-index-org',(e,tabId,index)=>tabIndexMap[tabId] = index)
 var getTabValue = function (tabId) {`)
+  .replace("sendToBackgroundPages('all', getSessionForTab(tabId), 'chrome-tabs-created', tabs[tabId].tabValue)",`sendToBackgroundPages('all', getSessionForTab(tabId), 'chrome-tabs-created', tabs[tabId].tabValue)
+  sendToBackgroundPages('all', getSessionForTab(tabId), 'chrome-tabs-updated', tabId, {status:'loading'}, tabs[tabId].tabValue)`)
   .replace('return tabContents && !tabContents.isDestroyed() && tabContents.tabValue()',`  const ret = tabContents && !tabContents.isDestroyed() && tabContents.tabValue()
   let index
   if(ret && (index = tabIndexMap[ret.id]) !== (void 0)) {
     ret.index = index
   }
+  if(!ret.status) ret.status ="loading"
   return ret`)
   .replace('  if (!error && createProperties.partition) {',`  if(!createProperties.openerTabId){
     if(!win){
