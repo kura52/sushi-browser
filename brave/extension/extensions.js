@@ -6,6 +6,7 @@ const chromeExtensionPath = require('../../lib/extension/chromeExtensionPath')
 const chromeManifestModify = require('../../lib/chromeManifestModify')
 const {BrowserWindow,componentUpdater,app} = require('electron')
 const extInfos = require('../../lib/extensionInfos')
+const mainState = require('../../lib/mainState')
 // Takes Content Security Policy flags, for example { 'default-src': '*' }
 // Returns a CSP string, for example 'default-src: *;'
 let concatCSP = (cspDirectives) => {
@@ -126,13 +127,31 @@ module.exports.init = (verChange) => {
     extInfos.setInfo(installInfo)
     transInfos(installInfo)
 
+    const orgId = installInfo.base_path.split(/[\/\\]/).slice(-2,-1)[0]
+    if(mainState.disableExtensions.includes(orgId)){
+      disableExtension(installInfo.id)
+      return
+    }
+
+    const overrides = installInfo.manifest.chrome_url_overrides
+    if(overrides){
+      for(let [key,val] of Object.entries(overrides)){
+        if(key=='newtab') mainState.topPage = `${installInfo.url}${val}`
+        if(key=='bookmark') mainState.bookmarksPage = `${installInfo.url}${val}`
+        if(key=='history') mainState.historyPage = `${installInfo.url}${val}`
+      }
+    }
+
     const wins = BrowserWindow.getAllWindows()
     if(!wins) return
 
     for(let win of wins.filter(w=>w.getTitle().includes('Sushi Browser'))){
       try {
         if(!win.webContents.isDestroyed()){
-          win.webContents.send('extension-ready',{[installInfo.id]:{...installInfo}});
+          win.webContents.send('extension-ready',{[installInfo.id]:{...installInfo}})
+          if(overrides){
+            win.webContents.send('update-mainstate','newTabMode')
+          }
         }
       }catch(e){
         // console.log(e)
@@ -169,10 +188,30 @@ module.exports.init = (verChange) => {
 
   const enableExtension = (extensionId) => {
     session.defaultSession.extensions.enable(extensionId)
+
+    const wins = BrowserWindow.getAllWindows()
+    if(!wins) return
+    for(let win of wins.filter(w=>w.getTitle().includes('Sushi Browser'))){
+      try {
+        if(!win.webContents.isDestroyed()){
+            win.webContents.send('update-mainstate','newTabMode')
+        }
+      }catch(e){}
+    }
   }
 
   const disableExtension = (extensionId) => {
     session.defaultSession.extensions.disable(extensionId)
+
+    const wins = BrowserWindow.getAllWindows()
+    if(!wins) return
+    for(let win of wins.filter(w=>w.getTitle().includes('Sushi Browser'))){
+      try {
+        if(!win.webContents.isDestroyed()){
+          win.webContents.send('update-mainstate','newTabMode')
+        }
+      }catch(e){}
+    }
   }
 
   module.exports.disableExtension = disableExtension
@@ -204,7 +243,7 @@ module.exports.init = (verChange) => {
     //for(let fullPath of require("glob").sync(path.join(__dirname,'../../resource/extension/*').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'))) {
     for(let fullPath of require("glob").sync(path.join(extensionPath,'*'))) {
       const appId = fullPath.split(/[\/]/).slice(-1)[0]
-      console.log(appId)
+      console.log(555,appId,mainState.disableExtensions)
       if(appId.match(/^[a-z]+$/) && !rejectExtensions.includes(appId)){
         // if(!first && appId == 'niloccemoadcdkdjlinkgdfekeahmflj') continue
         let ext = [appId,getPath2(appId)]

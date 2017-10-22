@@ -38,7 +38,7 @@ const convertUrlMap = new Map([
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html','chrome://bookmarks/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html','chrome://bookmarks-sidebar/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html','chrome://history/'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history_full.html','chrome://history-fulltext/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_history_sidebar.html','chrome://tab-history-sidebar/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history_sidebar.html','chrome://history-sidebar/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html','chrome://explorer/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer_sidebar.html','chrome://explorer-sidebar/'],
@@ -290,6 +290,7 @@ export default class App extends React.Component {
             <Menu pointing secondary >
               <Menu.Item as='a' href={`${baseURL}/favorite_sidebar.html`} key="favorite" icon="star"/>
               <Menu.Item key="history" icon="history" active={true}/>
+              <Menu.Item as='a' href={`${baseURL}/tab_history_sidebar.html`} key="tags" icon="tags"/>
               <Menu.Item as='a' href={`${baseURL}/tabs_sidebar.html`} key="tabs" icon="align justify"/>
               <Menu.Item as='a' href={`${baseURL}/explorer_sidebar.html`} key="file-explorer" icon="folder"/>
             </Menu>
@@ -318,7 +319,7 @@ class Contents extends React.Component {
     const parent = tree.getChildNodes()[0]
     const beforeNode = parent.getFirstChild()
     console.log(parent)
-    tree.insertNodeAfter(await wrapBuildItem(data),beforeNode)
+    tree.insertNodeAfter(await wrapBuildItem(data,'root'),beforeNode)
     const insertedNode = beforeNode.getNextSibling()
     this.map[insertedNode.url] = insertedNode
   }
@@ -346,11 +347,20 @@ class Contents extends React.Component {
     console.log(Date.now() - start)
     treeAllData = data
     if(!notUpdate){
-      const tree = this.refs.iTree.tree
-      localForage.setItem("history-sidebar-open-node",prevState)
-      tree.loadData(data,false,prevState ? prevState.split("\t",-1) : ['24 Hours Ago'])
-      console.log(Date.now() - start)
-      console.log((Date.now() - window.start)/1000)
+      if(this.refs.iTree){
+        const tree = this.refs.iTree.tree
+        localForage.setItem("history-sidebar-open-node",prevState)
+        tree.loadData(data,false,prevState ? prevState.split("\t",-1) : ['24 Hours Ago'])
+        console.log(Date.now() - start)
+        console.log((Date.now() - window.start)/1000)
+      }
+      else{
+        setTimeout(_=>{
+          const tree = this.refs.iTree.tree
+          localForage.setItem("history-sidebar-open-node",prevState)
+          tree.loadData(data,false,prevState ? prevState.split("\t",-1) : ['24 Hours Ago'])
+        },100)
+      }
     }
     return treeAllData
   }
@@ -384,7 +394,8 @@ class Contents extends React.Component {
 
   componentWillUnmount() {
     if(isMain) {
-      document.querySelector('.infinite-tree.infinite-tree-scroll').removeEventListener('scroll', this.scrollEvent, {passive: true})
+      const ele = document.querySelector('.infinite-tree.infinite-tree-scroll')
+      if(ele) ele.removeEventListener('scroll', this.scrollEvent, {passive: true})
     }
   }
 
@@ -522,7 +533,9 @@ class Contents extends React.Component {
   }
 }
 
-ReactDOM.render(
-  <App />,
-  document.querySelector('#classic')
-);
+if(!isMain){
+  ReactDOM.render(
+    <App />,
+    document.querySelector('#classic')
+  );
+}

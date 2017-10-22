@@ -101,9 +101,9 @@ class TopMenu extends React.Component {
         <Sticky>
           <div>
             <Menu pointing secondary >
-              <Menu.Item as='a' href={`${baseURL}/top.html`} key="top" name="Top"/>
-              <Menu.Item as='a' href={`${baseURL}/favorite.html`} key="favorite" name={l10n.translation('bookmarks')}/>
-              <Menu.Item as='a' href={`${baseURL}/history.html`} key="history" name={l10n.translation('history')}/>
+              <Menu.Item as='a' href={`chrome://newtab/`} key="top" name="Top"/>
+              <Menu.Item as='a' href={`chrome://bookmarks/`} key="favorite" name={l10n.translation('bookmarks')}/>
+              <Menu.Item as='a' href={`chrome://history/`} key="history" name={l10n.translation('history')}/>
               <Menu.Item as='a' href={`${baseURL}/download.html`} key="download" name={l10n.translation('downloads')}/>
               <Menu.Item as='a' href={`${baseURL}/explorer.html`} key="file-explorer" name="File Explorer"/>
               <Menu.Item as='a' href={`${baseURL}/terminal.html`} key="terminal" name="Terminal"/>
@@ -301,6 +301,17 @@ class GeneralSetting extends React.Component {
         </div>
         <br/>
 
+        <div className="field">
+          <label>Protection</label>
+          <Checkbox defaultChecked={this.state.httpsEverywhereEnable} toggle onChange={this.onChange.bind(this,'httpsEverywhereEnable')}/>
+          <span className="toggle-label">Enable HTTPS Everywhere</span>
+          <br/>
+
+          <Checkbox defaultChecked={this.state.trackingProtectionEnable} toggle onChange={this.onChange.bind(this,'trackingProtectionEnable')}/>
+          <span className="toggle-label">Enable Tracing Protection (e.g. Google Analytics)</span>
+          <br/>
+        </div>
+        <br/>
 
         <div className="field">
           <label>Tabs</label>
@@ -664,7 +675,8 @@ class ExtensionSetting extends React.Component {
     this.state.extensions[id].enabled = data.checked
     const val = []
     for(let [id,values] of Object.entries(this.state.extensions)){
-      if(!values.enabled) val.push(id)
+      const orgId = values.basePath.split(/[\/\\]/).slice(-2,-1)[0]
+      if(!values.enabled) val.push(orgId)
     }
     ipc.send('save-state',{tableName:'state',key:'disableExtensions',val})
     this.setState({})
@@ -684,6 +696,7 @@ class ExtensionSetting extends React.Component {
   buildSearchEngineColumn(i,id,v){
     console.log(id,v)
     const orgId = v.basePath.split(/[\/\\]/).slice(-2,-1)[0]
+    const cannotDisable = orgId == "jpkfjicglakibpenojifdiepckckakgk" || orgId == "occjjkgifpmdgodlplnacmkejpdionan"
     const icon = v.icons[Math.max(...Object.keys(v.icons))]
     return <tr key={`tr${i}`}>
       <td key={`icon${i}`}><img style={{width:32,height:32,margin:'auto'}} src={`file://${v.basePath}/${icon}`}/></td>
@@ -696,7 +709,7 @@ class ExtensionSetting extends React.Component {
         </a> : null}
       </td>
       <td key={`enabled${i}`}>
-        <Checkbox checked={v.enabled} toggle onChange={(e,data)=>this.changeCheck(id,data)}/>
+        <Checkbox checked={v.enabled} disabled={cannotDisable} toggle onChange={(e,data)=>this.changeCheck(id,data)}/>
       </td>
       <td key={`background${i}`} style={{fontSize: 20,textAlign: 'center'}}>
         {v.enabled && v.background ? <a href="#" onClick={_=> ipc.sendToHost("load-url", `chrome-extension://${id}/${v.background}`, true)}>
@@ -704,9 +717,9 @@ class ExtensionSetting extends React.Component {
         </a> : null}
       </td>
       <td key={`delete${i}`} style={{fontSize: 20,textAlign: 'center'}}>
-        <a href="#" onClick={_=> ipc.send("delete-extension",id,orgId)}>
+        {cannotDisable ? null : <a href="#" onClick={_=> ipc.send("delete-extension",id,orgId)}>
           <i aria-hidden="true" class="trash icon"></i>
-        </a>
+        </a>}
       </td>
     </tr>
   }
@@ -805,7 +818,7 @@ const App = () => (
 )
 
 
-ipc.send("get-main-state",['startsWith','newTabMode','myHomepage','searchProviders','searchEngine','language','enableFlash','downloadNum','sideBarDirection','scrollTab','doubleShift','tripleClick','syncScrollMargin','contextMenuSearchEngines','ALL_KEYS','bindMarginFrame','bindMarginTitle','historyFull','longPressMiddle','checkDefaultBrowser','sendToVideo','multistageTabs','tabMinWidth'])
+ipc.send("get-main-state",['startsWith','newTabMode','myHomepage','searchProviders','searchEngine','language','enableFlash','downloadNum','sideBarDirection','scrollTab','doubleShift','tripleClick','syncScrollMargin','contextMenuSearchEngines','ALL_KEYS','bindMarginFrame','bindMarginTitle','historyFull','longPressMiddle','checkDefaultBrowser','sendToVideo','multistageTabs','tabMinWidth','httpsEverywhereEnable','trackingProtectionEnable'])
 ipc.once("get-main-state-reply",(e,data)=>{
   generalDefault = data
   keyboardDefault = data

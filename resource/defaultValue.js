@@ -4,6 +4,8 @@ const isLinux = process.platform === 'linux'
 const settingDefault =  {
   toggleNav: 0,
   adBlockEnable: true,
+  httpsEverywhereEnable: false,
+  trackingProtectionEnable: false,
   pdfMode: 'normal',
   oppositeGlobal: true,
   alwaysOnTop: false,
@@ -35,7 +37,7 @@ const settingDefault =  {
   vpnNames: [],
   navbarItems: {
     left: ['back','forward','reload'],
-    right: ['syncReplace','sync','opposite','sidebar','mobile','favorite','history','video'],
+    right: ['syncReplace','sync','opposite','sidebar','mobile','favorite','history','tabHistory','video'],
     backSide: ['download','folder','terminal'],
   },
   multistageTabs: false,

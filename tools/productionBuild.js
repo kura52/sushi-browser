@@ -417,6 +417,8 @@ filesContentsReplace(jsFiles,/window.debug = require\('debug'\)\('info'\)/,"// w
 filesContentsReplace(jsFiles,/global.debug = require\('debug'\)\('info'\)/,"// global.debug = require('debug')('info')")
 filesContentsReplace(jsFiles,/extensions.init\(true\)/,"extensions.init(setting.ver !== fs.readFileSync(path.join(__dirname, '../VERSION.txt')).toString())")
 
+const jsFiles = glob.sync(`${pwd}/brave/**/*.js`)
+filesContentsReplace(jsFiles,/console\.log\(/,'//debug(')
 
 // Babel Use babili
 filesContentsReplace(`${pwd}/.babelrc`,/"babel\-preset\-stage\-2"\]/,'"babel-preset-stage-2","babili"]')
@@ -433,7 +435,7 @@ filesContentsReplace(`${pwd}/node_modules/youtube-dl/lib/youtube-dl.js`,"(detail
 const compiledJsFiles = ['resource/extension/default/1.0_0/js/top.js',
   'resource/extension/default/1.0_0/js/download.js',
   'resource/extension/default/1.0_0/js/history.js',
-  'resource/extension/default/1.0_0/js/historyFull.js',
+  'resource/extension/default/1.0_0/js/tabHistorySidebar.js',
   'resource/extension/default/1.0_0/js/historySidebar.js',
   'resource/extension/default/1.0_0/js/explorerMenu.js',
   'resource/extension/default/1.0_0/js/explorerSidebar.js',

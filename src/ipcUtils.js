@@ -5,7 +5,7 @@ import sh from 'shelljs'
 import uuid from 'node-uuid'
 import PubSub from './render/pubsub'
 const seq = require('./sequence')
-const {state,favorite,historyFull} = require('./databaseFork')
+const {state,favorite,historyFull,tabState,visit} = require('./databaseFork')
 const db = require('./databaseFork')
 const FfmpegWrapper = require('./FfmpegWrapper')
 
@@ -17,6 +17,7 @@ const isWin = process.platform == 'win32'
 const isLinux = process.platform === 'linux'
 const meiryo = isWin && Intl.NumberFormat().resolvedOptions().locale == 'ja'
 import mainState from './mainState'
+import extensionInfos from "./extensionInfos";
 const open = require('./open')
 const bindPath = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/bind.html'
 
@@ -260,7 +261,7 @@ ipcMain.on('delete-favorite',(event,key,dbKeys,parentKeys)=>{
   recurDelete(dbKeys,deleteList).then(ret=>{
     deleteList = [...new Set(deleteList)]
     console.log('del',deleteList)
-    favorite.remove({key: {$in : deleteList}}).then(ret2=>{
+    favorite.remove({key: {$in : deleteList}}, { multi: true }).then(ret2=>{
       Promise.all(parentKeys.map((parentKey,i)=>{
         const dbKey = dbKeys[i]
         favorite.update({ key: parentKey }, { $pull: { children: dbKey }, $set:{updated_at: Date.now()} })
@@ -319,9 +320,18 @@ ipcMain.on('toggle-fullscreen',(event)=> {
   win.setFullScreenable(false)
 })
 
+const LRUCache = require('lru-cache')
+const videoUrlsCache = new LRUCache(1000)
 ipcMain.on('video-infos',(event,{url})=>{
+  console.log(2222,url)
+  const cache = videoUrlsCache.get(url)
+  if(cache){
+    event.sender.send('video-infos-reply',{cache:true,...cache})
+    return
+  }
   youtubedl.getInfo(url, function(err, info) {
     if (err){
+      videoUrlsCache.set(url,{error:error})
       event.sender.send('video-infos-reply',{error:'error'})
     }
     console.log(info)
@@ -329,21 +339,25 @@ ipcMain.on('video-infos',(event,{url})=>{
       if(url.includes("youtube")){
         ytdl.getInfo(url, (err, info)=> {
           if (err){
+            videoUrlsCache.set(url,{error:error})
             event.sender.send('video-infos-reply',{error:'error'})
           }
           else{
             const title = info.title
             const formats = info.formats
+            videoUrlsCache.set(url,{title,formats:formats.slice(0.12)})
             event.sender.send('video-infos-reply',{title,formats:formats.slice(0.12)})
           }
         })
       }
       else{
+        videoUrlsCache.set(url,{error:error})
         event.sender.send('video-infos-reply',{error:'error'})
       }
     }
     else{
       const title = info.title
+      videoUrlsCache.set(url,{title,formats:info.formats.slice(0.12)})
       event.sender.send('video-infos-reply',{title,formats:info.formats.slice(0.12)})
     }
   });
@@ -407,7 +421,8 @@ ipcMain.on('get-main-state',(e,names)=>{
   const disableExtensions = mainState.disableExtensions
   for (let [k,v] of Object.entries(extInfos)) {
     if(!('url' in v) || v.name == "brave") continue
-    extensions[k] = {name:v.name,url:v.url,basePath:v.base_path,optionPage: v.manifest.options_page,background: v.manifest.background && v.manifest.background.page,icons:v.manifest.icons, version: v.manifest.version, description: v.manifest.description,enabled: !disableExtensions.includes(k) }
+    const orgId = v.base_path.split(/[\/\\]/).slice(-2,-1)[0]
+    extensions[k] = {name:v.name,url:v.url,basePath:v.base_path,optionPage: v.manifest.options_page,background: v.manifest.background && v.manifest.background.page,icons:v.manifest.icons, version: v.manifest.version, description: v.manifest.description,enabled: !disableExtensions.includes(orgId) }
   }
   ret.extensions = extensions
   e.sender.send('get-main-state-reply',ret)
@@ -417,12 +432,22 @@ ipcMain.on('get-main-state',(e,names)=>{
 ipcMain.on('save-state',async (e,{tableName,key,val})=>{
   if(tableName == 'state'){
     if(key == 'disableExtensions'){
-      for(let extensionId of diffArray(val,mainState[key])){
-        session.defaultSession.extensions.disable(extensionId)
+      console.log(val,mainState[key],Object.values(extInfos))
+      for(let orgId of diffArray(val,mainState[key])){
+        console.log(orgId,Object.values(extInfos))
+        const ext = Object.values(extInfos).find(x=>x.base_path && x.base_path.includes(orgId))
+        session.defaultSession.extensions.disable(ext.id)
       }
-      for(let extensionId of diffArray(mainState[key],val)){
-        session.defaultSession.extensions.enable(extensionId)
+      for(let orgId of diffArray(mainState[key],val)){
+        const ext = Object.values(extInfos).find(x=>x.base_path && x.base_path.includes(orgId))
+        session.defaultSession.extensions.enable(ext.id)
       }
+    }
+    else if(key == 'httpsEverywhereEnable'){
+      require('../brave/httpsEverywhere')()
+    }
+    else if(key == 'trackingProtectionEnable'){
+      require('../brave/httpsEverywhere')()
     }
     mainState[key] = val
     state.update({ key: 1 }, { $set: {[key]: mainState[key]} }).then(_=>_)
@@ -665,26 +690,17 @@ ipcMain.on('change-tab-infos',(e,changeTabInfos)=> {
       if(c.index !== (void 0)){
         // if(timers[c.tabId]) clearTimeout(timers[c.tabId])
         // timers[c.tabId] = setTimeout(()=>{
-          console.log('change-tab-infos',c)
-          // cont.setTabIndex(c.index)
-          ipcMain.emit('update-tab-index-org', null, c.tabId ,c.index)
-          // delete timers[c.tabId]
+        console.log('change-tab-infos',c)
+        // cont.setTabIndex(c.index)
+        ipcMain.emit('update-tab-index-org', null, c.tabId ,c.index)
+        // delete timers[c.tabId]
         // }, 10)
       }
       if(c.active){
         if(timer) clearTimeout(timer)
         timer = setTimeout(()=>{
           console.log('change-tab-infos',c)
-          if(!global.searching){ //@TODO Muon Bug?
-            cont.setActive(c.active)
-          }
-          else{
-            setTimeout(_=>{
-              if(!global.searching) {
-                cont.setActive(c.active)
-              }
-            },10)
-          }
+          cont.setActive(c.active)
           timer = void 0
         }, 10)
       }
@@ -775,7 +791,8 @@ ipcMain.on('get-country-names',e=>{
   }
 })
 
-ipcMain.on('get-on-dom-ready',(e,tabId)=>{
+let prevCount = {}
+ipcMain.on('get-on-dom-ready',(e,tabId,tabKey,rSession)=>{
   const cont = webContents.fromTabID(tabId)
   if(!cont){
     e.sender.send(`get-on-dom-ready-reply_${tabId}`,null)
@@ -783,30 +800,85 @@ ipcMain.on('get-on-dom-ready',(e,tabId)=>{
   }
   if(mainState.flash) cont.authorizePlugin(mainState.flash)
 
-  e.sender.send(`get-on-dom-ready-reply_${tabId}`,{
-    currentEntryIndex: cont.getCurrentEntryIndex(),
-    entryCount: cont.getEntryCount(),
-    title: cont.getTitle()
-  })
+  let currentEntryIndex,entryCount = cont.getEntryCount()
+  if(rSession){
+    if(entryCount > (prevCount[tabKey] || 1)){
+      currentEntryIndex = rSession.currentIndex + 1
+      entryCount = rSession.currentIndex + 2
+    }
+    else{
+      currentEntryIndex = rSession.currentIndex
+      entryCount = rSession.urls.length
+    }
+  }
+  else{
+    currentEntryIndex = cont.getCurrentEntryIndex()
+  }
+
+  e.sender.send(`get-on-dom-ready-reply_${tabId}`,{currentEntryIndex,entryCount,title: cont.getTitle()})
 })
 
-ipcMain.on('get-update-title',(e,tabId)=>{
+ipcMain.on('get-update-title',(e,tabId,tabKey,rSession)=>{
   const cont = webContents.fromTabID(tabId)
+  if(!cont){
+    e.sender.send(`get-update-title-reply_${tabId}`,null)
+    return
+  }
+
+  let currentEntryIndex,entryCount = cont.getEntryCount()
+  if(rSession){
+    if(entryCount > (prevCount[tabKey] || 1)){
+      currentEntryIndex = rSession.currentIndex + 1
+      entryCount = rSession.currentIndex + 2
+    }
+    else{
+      currentEntryIndex = rSession.currentIndex
+      entryCount = rSession.urls.length
+    }
+  }
+  else{
+    currentEntryIndex = cont.getCurrentEntryIndex()
+  }
+
+  const url = cont.getURL()
   const ret = cont ? {
     title: cont.getTitle(),
-    currentEntryIndex: cont.getCurrentEntryIndex(),
-    entryCount: cont.getEntryCount(),
-    url: cont.getURL()
+    currentEntryIndex,
+    entryCount,
+    url
   } : null
 
   e.sender.send(`get-update-title-reply_${tabId}`,ret)
+  visit.insert({url,created_at:Date.now()})
 })
 
-ipcMain.on('get-did-finish-load',(e,tabId)=>{
+ipcMain.on('get-did-finish-load',(e,tabId,tabKey,rSession)=>{
   const cont = webContents.fromTabID(tabId)
+  if(!cont){
+    e.sender.send(`get-did-finish-load-reply_${tabId}`,null)
+    return
+  }
+
+  let currentEntryIndex,entryCount = cont.getEntryCount()
+  if(rSession){
+    if(entryCount > (prevCount[tabKey] || 1)){
+      currentEntryIndex = rSession.currentIndex + 1
+      entryCount = rSession.currentIndex + 2
+      console.log(77,currentEntryIndex,entryCount)
+    }
+    else{
+      currentEntryIndex = rSession.currentIndex
+      entryCount = rSession.urls.length
+      console.log(78,currentEntryIndex,entryCount)
+    }
+  }
+  else{
+    currentEntryIndex = cont.getCurrentEntryIndex()
+  }
+
   const ret = cont ? {
-    currentEntryIndex: cont.getCurrentEntryIndex(),
-    entryCount: cont.getEntryCount(),
+    currentEntryIndex,
+    entryCount,
     url: cont.getURL()
   } : null
 
@@ -819,7 +891,7 @@ function addDestroyedFunc(cont,tabId,sender,msg){
     const arr = destroyedMap.get(tabId)
     arr.push([sender,msg])
   }
-else{
+  else{
     destroyedMap.set(tabId,[[sender,msg]])
     cont.once('destroyed',_=>{
       for(let [sender,msg] of destroyedMap.get(tabId)){
@@ -842,23 +914,23 @@ ipcMain.on('get-did-start-loading',(e,tabId)=>{
   })
 })
 
-ipcMain.on('get-did-stop-loading',(e,tabId)=>{
-  const cont = webContents.fromTabID(tabId)
-  const msg = `get-did-stop-loading-reply_${tabId}`
-  if(!cont){
-    e.sender.send(msg)
-    return
-  }
-  addDestroyedFunc(cont,tabId,e.sender,msg)
-  cont.on('did-stop-loading',e2=> {
-    const ret = {
-      currentEntryIndex: cont.getCurrentEntryIndex(),
-      entryCount: cont.getEntryCount(),
-      url: cont.getURL()
-    }
-    e.sender.send(msg, ret)
-  })
-})
+// ipcMain.on('get-did-stop-loading',(e,tabId)=>{
+//   const cont = webContents.fromTabID(tabId)
+//   const msg = `get-did-stop-loading-reply_${tabId}`
+//   if(!cont){
+//     e.sender.send(msg)
+//     return
+//   }
+//   addDestroyedFunc(cont,tabId,e.sender,msg)
+//   cont.on('did-stop-loading',e2=> {
+//     const ret = {
+//       currentEntryIndex: cont.getCurrentEntryIndex(),
+//       entryCount: cont.getEntryCount(),
+//       url: cont.getURL()
+//     }
+//     e.sender.send(msg, ret)
+//   })
+// })
 
 PubSub.subscribe("web-contents-created",(msg,[tabId,sender])=>{
   console.log("web-contents-created",tabId)
@@ -877,22 +949,54 @@ ipcMain.on('get-navbar-menu-order',e=>{
   e.returnValue = mainState.navbarItems
 })
 
-ipcMain.on('get-cont-history',(e,tabId)=>{
+ipcMain.on('get-cont-history',(e,tabId,tabKey,rSession)=>{
   const cont = webContents.fromTabID(tabId)
   if(!cont){
     e.sender.send(`get-cont-history-reply_${tabId}`)
     return
   }
-  const historyList = []
-  let histNum,currentIndex
-  if(cont){
-    histNum = cont.getEntryCount()
-    currentIndex = cont.getCurrentEntryIndex()
+  let histNum = cont.getEntryCount(),
+    currentIndex = cont.getCurrentEntryIndex(),
+    historyList = []
+  const urls = [],titles = []
+  if(!rSession){
     for(let i=0;i<histNum;i++){
-      historyList.push(cont.getURLAtIndex(i))
+      const url = cont.getURLAtIndex(i)
+      const title = cont.getTitleAtIndex(i)
+      urls.push(url)
+      titles.push(title)
+      historyList.push([url,title])
+    }
+    if(currentIndex > -1){
+      tabState.update({tabKey},{tabKey,titles:titles.join("\t"),urls:urls.join("\t"),currentIndex, updated_at: Date.now()},{ upsert: true })
     }
   }
-  e.sender.send(`get-cont-history-reply_${tabId}`,currentIndex,historyList,mainState.disableExtensions,mainState.adBlockEnable,mainState.pdfMode,mainState.navbarItems)
+  else{
+    if(histNum > (prevCount[tabKey] || 1) && currentIndex == histNum - 1){
+      const url = cont.getURLAtIndex(currentIndex)
+      const title = cont.getTitleAtIndex(currentIndex)
+      rSession.urls = rSession.urls.slice(0,rSession.currentIndex+1)
+      rSession.urls.push(url)
+      rSession.titles = rSession.titles.slice(0,rSession.currentIndex+1)
+      rSession.titles.push(title)
+      rSession.currentIndex = rSession.urls.length - 1
+      if(currentIndex > -1) {
+        tabState.update({tabKey}, {$set:{
+          titles: rSession.titles.join("\t"),
+          urls: rSession.urls.join("\t"),
+          currentIndex: rSession.currentIndex,
+          updated_at: Date.now()
+        }})
+      }
+    }
+    if(currentIndex > -1) {
+      tabState.update({tabKey}, {$set:{currentIndex: rSession.currentIndex, updated_at: Date.now()}})
+    }
+    historyList = rSession.urls.map((x,i)=>[x,rSession.titles[i]])
+    currentIndex = rSession.currentIndex
+  }
+  prevCount[tabKey] = histNum
+  e.sender.send(`get-cont-history-reply_${tabId}`,currentIndex,historyList,rSession,mainState.disableExtensions,mainState.adBlockEnable,mainState.pdfMode,mainState.navbarItems)
 })
 ipcMain.on('get-session-sequence',e=> {
   e.returnValue = seq()
@@ -920,6 +1024,13 @@ ipcMain.on('get-sync-main-states',(e,keys)=>{
 ipcMain.on('get-sync-main-state',(e,key)=>{
   e.returnValue = mainState[key] || null
 })
+
+ipcMain.on('get-sync-rSession',(e,keys)=>{
+  tabState.find({tabKey:{$in:keys}}).then(rec=>{
+    e.returnValue = rec
+  })
+})
+
 // ipcMain.on('send-keys',(e,keys)=>{
 //   e.sender.sendInputEvent(keys)
 // })

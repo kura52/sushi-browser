@@ -29,6 +29,7 @@ const moment = require('moment')
 const Clipboard = require('clipboard')
 const FavoriteExplorer = require('../toolPages/favoriteBase')
 const HistoryExplorer = require('../toolPages/historyBase')
+const TabHistoryExplorer = require('../toolPages/tabHistoryBase')
 const {messages,locale} = require('./localAndMessage')
 const urlParse = require('../../brave/urlParse')
 import ResizeObserver from 'resize-observer-polyfill'
@@ -62,20 +63,29 @@ function equalArray(a,b){
   }
   return true
 }
+function equalArray2(a,b){
+  const len = a.length
+  if(len != b.length) return false
+  for(let i=0;i<len;i++){
+    if(a[i][0] !== b[i][0]) return false
+  }
+  return true
+}
+
 
 const tabs = new Set()
 
 function BrowserNavbarBtn(props){
-  return <a href="javascript:void(0)" onContextMenu={props.onContextMenu} style={props.style} className={`${props.className||''} draggable-source ${props.disabled?'disabled':''} ${props.sync ? 'sync' : ''}`} title={props.title} onClick={props.onClick}><i style={props.styleFont} className={`fa fa-${props.icon}`}/></a>
+  return <a href="javascript:void(0)" onContextMenu={props.onContextMenu} style={props.style} className={`${props.className||''} draggable-source ${props.disabled?'disabled':''} ${props.sync ? 'sync' : ''}`} title={props.title} onClick={props.onClick}><i style={props.styleFont} className={`fa fa-${props.icon}`}/>{props.children}</a>
 }
 
 let [alwaysOnTop,multistageTabs,{left,right,backSide}] = ipc.sendSync('get-sync-main-states',['alwaysOnTop','multistageTabs','navbarItems'])
-
+let staticDisableExtensions = []
 class BrowserNavbar extends Component{
   constructor(props) {
     super(props)
     this.state = {userAgentBefore: MOBILE_USERAGENT,adBlockGlobal:true,
-      pdfMode:'normal',adBlockThis:true,currentIndex:0,historyList:[],disableExtensions:[],left,right,backSide}
+      pdfMode:'normal',adBlockThis:true,currentIndex:0,historyList:[],disableExtensions:staticDisableExtensions,left,right,backSide}
     this.canGoBack = this.props.page.canGoBack
     this.canGoForward = this.props.page.canGoForward
     this.canRefresh = this.props.page.canRefresh
@@ -212,7 +222,7 @@ class BrowserNavbar extends Component{
       (this.richContents||[]).length === (nextProps.tab.page.richContents||[]).length &&
       (this.caches||[]).length === (nextState.caches||[]).length &&
       this.state.currentIndex === nextState.currentIndex &&
-      equalArray(this.state.historyList,nextState.historyList) &&
+      equalArray2(this.state.historyList,nextState.historyList) &&
       equalArray(this.state.disableExtensions,nextState.disableExtensions) &&
       equalArray(this.state.left,nextState.left) &&
       equalArray(this.state.right,nextState.right) &&
@@ -250,22 +260,38 @@ class BrowserNavbar extends Component{
   }
 
   updateStates(){
-    ipc.once(`get-cont-history-reply_${this.props.tab.wvId}`,(e,currentIndex,historyList,disableExtensions,adBlockGlobal,pdfMode,navbarItems)=>{
+    ipc.once(`get-cont-history-reply_${this.props.tab.wvId}`,(e,currentIndex,historyList,rSession,disableExtensions,adBlockGlobal,pdfMode,navbarItems)=>{
       left = navbarItems.left
       right = navbarItems.right
       backSide = navbarItems.backSide
       if(currentIndex === (void 0)) return
+      staticDisableExtensions = disableExtensions
+      console.log(9995,this.props.tab.rSession)
+      if(rSession){
+        console.log(9996,rSession)
+        this.props.tab.rSession.urls = rSession.urls
+        this.props.tab.rSession.titles = rSession.titles
+        this.props.tab.rSession.currentIndex = currentIndex
+      }
       this.setState({currentIndex,historyList,disableExtensions,adBlockGlobal,pdfMode,...navbarItems})
     })
-    ipc.send('get-cont-history',this.props.tab.wvId)
+    ipc.send('get-cont-history',this.props.tab.wvId,this.props.tab.key,this.props.tab.rSession)
   }
 
   componentWillUpdate(prevProps, prevState) {
-    ipc.once(`get-cont-history-reply_${this.props.tab.wvId}`,(e,currentIndex,historyList,disableExtensions,adBlockGlobal,pdfMode,navbarItems)=>{
+    ipc.once(`get-cont-history-reply_${this.props.tab.wvId}`,(e,currentIndex,historyList,rSession,disableExtensions,adBlockGlobal,pdfMode,navbarItems)=>{
       if(currentIndex === (void 0)) return
+      staticDisableExtensions = disableExtensions
+      console.log(9997,this.props.tab.rSession)
+      if(rSession){
+        console.log(9998,this.props.tab.rSession)
+        this.props.tab.rSession.urls = rSession.urls
+        this.props.tab.rSession.titles = rSession.titles
+        this.props.tab.rSession.currentIndex = currentIndex
+      }
       this.setState({currentIndex,historyList,disableExtensions,adBlockGlobal,pdfMode})
     })
-    ipc.send('get-cont-history',this.props.tab.wvId)
+    ipc.send('get-cont-history',this.props.tab.wvId,this.props.tab.key,this.props.tab.rSession)
   }
 
   onZoomOut(){
@@ -295,7 +321,8 @@ class BrowserNavbar extends Component{
 
   onCommon(str){
     const cont = this.getWebContents(this.props.tab)
-    cont.hostWebContents.send('new-tab', this.props.tab.wvId, `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/${str}.html`)
+    const url = str == "history" ? "chrome://history/" : str == "favorite" ? "chrome://bookmarks/" : `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/${str}.html`
+    cont.hostWebContents.send('new-tab', this.props.tab.wvId, url)
     // webContents.getAllWebContents().forEach(x=>{console.log(x.getId(),x.hostWebContents && x.hostWebContents.getId())})
   }
 
@@ -500,7 +527,7 @@ class BrowserNavbar extends Component{
     const ret = {}
     const dis = ['dckpbojndfoinamcdamhkjhnjnmjkfjd','jdbefljfgobbmcidnmpjamcbhnbphjnb',...this.state.disableExtensions]
     for(let [id,values] of browserActionMap) {
-      if(dis.includes(id)) continue
+      if(dis.includes(values.orgId) || dis.includes(id)) continue
       ret[id] = <BrowserActionMenu key={id} id={id} values={values} tab={tab} cont={cont} parent={this}/>
     }
     return ret
@@ -647,11 +674,21 @@ class BrowserNavbar extends Component{
     </NavbarMenu>
   }
 
+  tabHistoryMenu(cont,onContextMenu){
+    const menuItems = []
+    return <NavbarMenu className="sort-tabHistory" k={this.props.k} isFloat={isFloatPanel(this.props.k)} ref="tabHistoryMenu" title="History of Tabs" icon="tags" onClick={_=>_} onContextMenu={onContextMenu} timeOut={50}>
+      {/*<NavbarMenuItem bold={true} text='Navigate to the History Page' onClick={_=>this.onCommon("history")} />*/}
+      <div className="divider" />
+      <div role="option" className="item favorite infinite-classic">
+        <TabHistoryExplorer cont={cont} onClick={_=> this.refs.tabHistoryMenu.setState({visible:false})}/>
+      </div>
+    </NavbarMenu>
+  }
 
   getTitle(x,historyMap){
-    console.log(997,historyMap.get(x))
-    const datas = historyMap.get(x)
-    return datas ? <div className="favi-wrap"><img src={datas[1]} className="favi"/>{datas[0]}</div> : datas && datas[0] ? datas[0] : x
+    console.log(997,historyMap.get(x[0]))
+    const datas = historyMap.get(x[0])
+    return datas ? <div className="favi-wrap"><img src={datas[1]} className="favi"/>{x[1]}</div> :  x[1] || x[0]
   }
 
 
@@ -707,24 +744,28 @@ class BrowserNavbar extends Component{
 
       favorite: isFixed && !isFloat ? null : this.favoriteMenu(cont,onContextMenu),
       history: isFixed && !isFloat ? null : this.historyMenu(cont,onContextMenu),
+      tabHistory: isFixed && !isFloat ? null : this.tabHistoryMenu(cont,onContextMenu),
 
       download: <BrowserNavbarBtn className="sort-download" title={locale.translation("downloads")} icon="download" onClick={this.onCommon.bind(this,"download")}/>,
       folder: <BrowserNavbarBtn className="sort-folder" title="File Explorer" icon="folder" onClick={this.onCommon.bind(this,"explorer")}/>,
       terminal: <BrowserNavbarBtn className="sort-terminal" title={locale.translation('4589268276914962177')} icon="terminal" onClick={this.onCommon.bind(this,"terminal")}/>,
-      video: <Dropdown scrolling className="sort-video draggable-source nav-button" onContextMenu={onContextMenu} style={{minWidth:0}} trigger={<BrowserNavbarBtn title="Rich Media List" icon="film" />} pointing='top right' icon={null} disabled={!rich || !rich.length}>
+      video: <Dropdown scrolling className="sort-video draggable-source nav-button" onContextMenu={onContextMenu} style={{minWidth:0}}
+                       trigger={<BrowserNavbarBtn title="Rich Media List" icon="film">{rich && rich.length ? <div className="browserActionBadge video" >{rich.length}</div> : null}</BrowserNavbarBtn>}
+                       pointing='top right' icon={null} disabled={!rich || !rich.length}>
         <Dropdown.Menu className="nav-menu">
           {(!rich||!rich.length) ? null : rich.map((e,i)=>{
             const url = e.url
+            const m3u8 = e.fname.endsWith('.m3u8')
             return <Dropdown.Item key={i} icon={e.type == "audio" ? "music" : e.type }
                                   onClick={()=>this.onMediaDownload(url,e.fname)}>
               {`${e.fname}  ${e.size ? this.getAppropriateByteUnit(e.size).join("") : ""}`}
-              <button className="play-btn"  onClick={e=>{
+              {m3u8 ? null : <button className="play-btn"  onClick={e=>{
                 e.stopPropagation()
                 const p = e.target.parentNode.parentNode;(e.target.tagName == "I" ? p.parentNode : p).classList.remove("visible")
                 cont.hostWebContents.send('new-tab', this.props.tab.wvId, url)
               }}>
                 <i className="fa fa-play" aria-hidden="true"></i>
-              </button>
+              </button>}
               <button className="play-btn"  onClick={e=>{
                 e.stopPropagation()
                 const p = e.target.parentNode.parentNode;(e.target.tagName == "I" ? p.parentNode : p).classList.remove("visible")
@@ -732,13 +773,13 @@ class BrowserNavbar extends Component{
               }}>
                 <i className="fa fa-play-circle-o" aria-hidden="true"></i>
               </button>
-              <button className="play-btn"  onClick={e=>{
+                {m3u8 ? null : <button className="play-btn"  onClick={e=>{
                 e.stopPropagation()
                 const p = e.target.parentNode.parentNode;(e.target.tagName == "I" ? p.parentNode : p).classList.remove("visible")
                 this.onMediaDownload(url,e.fname,true)
               }}>
                 <i className="fa fa-music" aria-hidden="true"></i>
-              </button>
+              </button>}
               <button className="clipboard-btn" data-clipboard-text={url}
                       onClick={e=>{e.stopPropagation();const p = e.target.parentNode.parentNode;(e.target.tagName == "IMG" ? p.parentNode : p).classList.remove("visible")}}>
                 <img width="13" src="data:image/svg+xml;base64,PHN2ZyBoZWlnaHQ9IjEwMjQiIHdpZHRoPSI4OTYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPHBhdGggZD0iTTEyOCA3NjhoMjU2djY0SDEyOHYtNjR6IG0zMjAtMzg0SDEyOHY2NGgzMjB2LTY0eiBtMTI4IDE5MlY0NDhMMzg0IDY0MGwxOTIgMTkyVjcwNGgzMjBWNTc2SDU3NnogbS0yODgtNjRIMTI4djY0aDE2MHYtNjR6TTEyOCA3MDRoMTYwdi02NEgxMjh2NjR6IG01NzYgNjRoNjR2MTI4Yy0xIDE4LTcgMzMtMTkgNDVzLTI3IDE4LTQ1IDE5SDY0Yy0zNSAwLTY0LTI5LTY0LTY0VjE5MmMwLTM1IDI5LTY0IDY0LTY0aDE5MkMyNTYgNTcgMzEzIDAgMzg0IDBzMTI4IDU3IDEyOCAxMjhoMTkyYzM1IDAgNjQgMjkgNjQgNjR2MzIwaC02NFYzMjBINjR2NTc2aDY0MFY3Njh6TTEyOCAyNTZoNTEyYzAtMzUtMjktNjQtNjQtNjRoLTY0Yy0zNSAwLTY0LTI5LTY0LTY0cy0yOS02NC02NC02NC02NCAyOS02NCA2NC0yOSA2NC02NCA2NGgtNjRjLTM1IDAtNjQgMjktNjQgNjR6IiAvPgo8L3N2Zz4K"/>

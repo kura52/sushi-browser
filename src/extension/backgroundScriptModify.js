@@ -6,11 +6,10 @@ function simpleIpcFunc(name,callback,...args){
   chrome.ipcRenderer.send(name,key,...args)
 }
 
-simpleIpcFunc('chrome-management-get',details=> chrome.app._details = details,chrome.runtime.id)
-chrome.app.getDetails = _=>chrome.app._details
+chrome.app.getDetails = _=>chrome.ipcRenderer.sendSync('chrome-management-get-sync',chrome.runtime.id)
 
 chrome.i18n.getAcceptLanguages = callback=> simpleIpcFunc('chrome-i18n-getAcceptLanguages',callback)
-chrome.i18n.getUILanguage = chrome.i18n.getAcceptLanguages //@TODO
+chrome.i18n.getUILanguage = _=> navigator.languages.map(lang=>lang == 'zh-CN' || lang == 'pt-BR' ? lang.replace('-','_') : lang.slice(0,2))[0]  //@TODO
 
 chrome.i18n._getMessage = chrome.i18n.getMessage
 
@@ -134,8 +133,14 @@ if(chrome.windows){
 
   chrome.windows.create = (createData,callback)=>{
     if(typeof createData === 'function') [createData,callback] = [null,createData]
+    console.log(2224,createData)
+    if(createData && createData.url && !createData.url.includes("://")){
+      createData.url = `chrome-extension://${chrome.runtime.id}/${createData.url.split("/").filter(x=>x).join("/")}`
+    }
     simpleIpcFunc('chrome-windows-create',_=>setTimeout(_=>chrome.windows.getCurrent({},callback),3000),createData)
   }
+
+  chrome.windows.remove = (windowId,callback)=> simpleIpcFunc('chrome-windows-remove',callback,windowId)
 
   const methods = ['onCreated','onRemoved','onFocusChanged']
 
@@ -171,6 +176,19 @@ if(chrome.windows){
 }
 
 if(chrome.tabs){
+  chrome.tabs._update = chrome.tabs.update
+  chrome.tabs.update = (tabId, updateProperties, callback)=>{
+    if(!isFinite(tabId)){
+      [tabId,updateProperties,callback] = [null,tabId,updateProperties]
+      simpleIpcFunc('chrome-tabs-current-tabId',tabId=>{
+        chrome.tabs._update(tabId, updateProperties, callback)
+      })
+    }
+    else{
+      chrome.tabs._update(tabId, updateProperties, callback)
+    }
+  }
+
   chrome.tabs.reload = (tabId, reloadProperties, callback)=>{
     if(!isFinite(tabId)){
       if(Object.prototype.toString.call(tabId)=="[object Object]"){
@@ -184,8 +202,14 @@ if(chrome.tabs){
       [reloadProperties,callback] = [null,reloadProperties]
     }
     simpleIpcFunc('chrome-tabs-reload',callback,tabId, reloadProperties)
-
   }
+
+  // chrome.tabs.move = (tabIds, moveProperties, callback)=>{
+  //   if(!isFinite(tabIds)){
+  //     tabIds = [tabIds]
+  //   }
+  //   simpleIpcFunc('chrome-tabs-move',callback,tabIds, moveProperties)
+  // }
 
   chrome.tabs.getAllInWindow = (windowId, callback)=>{
     if(typeof windowId === 'function') [windowId,callback] = [null,windowId]
@@ -500,4 +524,21 @@ if(chrome.browserAction){
 
 if(chrome.storage){
   chrome.storage.sync = chrome.storage.local
+}
+
+if(chrome.history){
+  chrome.history.search = (query,callback) => simpleIpcFunc('chrome-history-search',callback,query)
+  chrome.history.addUrl = (details,callback) => simpleIpcFunc('chrome-history-addUrl',callback,details)
+  chrome.history.getVisits = (details,callback) => simpleIpcFunc('chrome-history-getVisits',callback,details)
+  chrome.history.deleteUrl = (details,callback) => simpleIpcFunc('chrome-history-deleteUrl',callback,details)
+  chrome.history.deleteRange = (details,callback) => simpleIpcFunc('chrome-history-deleteRange',callback,details)
+  chrome.history.deleteAll = (callback) => simpleIpcFunc('chrome-history-deleteAll',callback)
+}
+
+if(chrome.downloads){
+  chrome.downloads.search = (query,callback)=>callback([])//@TODO
+}
+
+if(chrome.topSites){
+  chrome.topSites.get = callback => simpleIpcFunc('chrome-topSites-get',callback)
 }

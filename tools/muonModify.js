@@ -33,7 +33,7 @@ var getTabValue = function (tabId) {`)
   if(ret && (index = tabIndexMap[ret.id]) !== (void 0)) {
     ret.index = index
   }
-  if(!ret.status) ret.status ="loading"
+  if(ret && !ret.status) ret.status ="loading"
   return ret`)
   .replace('  if (!error && createProperties.partition) {',`  if(!createProperties.openerTabId){
     if(!win){

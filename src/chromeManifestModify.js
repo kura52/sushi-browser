@@ -40,15 +40,18 @@ function copyModifyFile(to,flagContent,flagBackground){
     const bgPath = path.join(to,backgroundScriptName)
     if(fs.existsSync(bgPath)) fs.unlinkSync(bgPath)
     fs.writeFileSync(bgPath,bg)
-
   }
- }
+}
 
+let cache = new Set()
 function htmlModify(verPath,fname){
   const dirName = path.dirname(fname)
   const backStr = dirName == '.' ? dirName : dirName.split(/[\/\\]/).map(x=>'..').join('/')
   console.log(verPath,fname,dirName,backStr)
   const fullPath = path.join(verPath,dirName,path.basename(fname).split("?")[0])
+  if(cache.has(fullPath) || !fs.existsSync(fullPath)) return
+  cache.add(fullPath)
+
   const str = fs.readFileSync(fullPath).toString()
   if(str.includes(backgroundScriptName)) return
 
@@ -64,6 +67,7 @@ function htmlModify(verPath,fname){
 }
 
 export default function modify(extensionId,verPath){
+  cache = new Set()
   if(!verPath){
     verPath = getPath2(extensionId) || getPath1(extensionId) //getPath1(extensionId)
   }
@@ -76,7 +80,7 @@ export default function modify(extensionId,verPath){
 
       if(infos.permissions && infos.permissions.includes('activeTab')
         && (!infos.permissions.includes('http://*/*') || !infos.permissions.includes('https://*/*'))){
-          infos.permissions = [...new Set([...infos.permissions,'http://*/*','https://*/*'])]
+        infos.permissions = [...new Set([...infos.permissions,'http://*/*','https://*/*'])]
       }
 
       let flagContent,flagBackground
@@ -116,6 +120,22 @@ export default function modify(extensionId,verPath){
       if(infos.browser_action && infos.browser_action.default_popup){
         htmlModify(verPath,infos.browser_action.default_popup)
         flagBackground = true
+      }
+
+      if(infos.web_accessible_resources){
+        for(let file of infos.web_accessible_resources){
+          if(file.match(/\.html?$/)){
+            htmlModify(verPath,file)
+            flagBackground = true
+          }
+        }
+      }
+
+      if(infos.chrome_url_overrides){
+        for(let file of Object.values(infos.chrome_url_overrides)){
+          htmlModify(verPath,file)
+          flagBackground = true
+        }
       }
 
 

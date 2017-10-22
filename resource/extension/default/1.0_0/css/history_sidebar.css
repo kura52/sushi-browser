@@ -10,3 +10,11 @@ span.margin-left{
     font-weight: bold;
     color: #004ecc;
 }
+
+.tree-divider{
+    border-bottom: 1px solid rgba(34,36,38,.1);
+}
+
+.node-inactive{
+    color: #999;
+}

@@ -273,6 +273,7 @@ export default class App extends React.Component {
             <Menu pointing secondary >
               <Menu.Item key="favorite" icon="star" active={true}/>
               <Menu.Item as='a' href={`${baseURL}/history_sidebar.html`} key="history" icon="history"/>
+              <Menu.Item as='a' href={`${baseURL}/tab_history_sidebar.html`} key="tags" icon="tags"/>
               <Menu.Item as='a' href={`${baseURL}/tabs_sidebar.html`} key="tabs" icon="align justify"/>
               <Menu.Item as='a' href={`${baseURL}/explorer_sidebar.html`} key="file-explorer" icon="folder"/>
             </Menu>
@@ -283,9 +284,9 @@ export default class App extends React.Component {
           <Sticky>
             <div>
               <Menu pointing secondary >
-                <Menu.Item as='a' href={`${baseURL}/top.html`} key="top" name="Top"/>
+                <Menu.Item as='a' href={`chrome://newtab/`} key="top" name="Top"/>
                 <Menu.Item key="favorite" name={l10n.translation('bookmarks')} active={true}/>
-                <Menu.Item as='a' href={`${baseURL}/history.html`} key="history" name={l10n.translation('history')}/>
+                <Menu.Item as='a' href={`chrome://history/`} key="history" name={l10n.translation('history')}/>
                 <Menu.Item as='a' href={`${baseURL}/download.html`} key="download" name={l10n.translation('downloads')}/>
                 <Menu.Item as='a' href={`${baseURL}/explorer.html`} key="file-explorer" name="File Explorer"/>
                 <Menu.Item as='a' href={`${baseURL}/terminal.html`} key="terminal" name="Terminal"/>
@@ -314,14 +315,19 @@ class Contents extends React.Component {
   async loadAllData(){
     const prevState = this.prevState || (await localForage.getItem("favorite-sidebar-open-node"))
     this.prevState = (void 0)
-    const tree = this.refs.iTree.tree
     getAllChildren('root').then(data=>{
       console.log(data)
       treeAllData = data
 
       localForage.setItem("favorite-sidebar-open-node",prevState)
       const openNodes = prevState ? prevState.split("\t",-1) : (void 0)
-      tree.loadData(data,false,openNodes)
+      const tree = this.refs.iTree.tree
+      if(tree){
+        tree.loadData(data,false,openNodes)
+      }
+      else{
+        setTimeout(_=>tree.loadData(data,false,openNodes),100)
+      }
     })
   }
 

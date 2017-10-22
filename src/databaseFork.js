@@ -48,11 +48,11 @@ function handler(table){
           return new Promise((resolve,reject)=>{
             sock.send({key,methods,args: regToStr(argumentsList)},msg=>{
               if(msg.key !== key) return
-              if((table == "history" || table == "favorite") && (prop == "insert" || prop == "update")){
+              if((table == "history" || table == "favorite" || table == "tabState") && (prop == "insert" || prop == "update")){
                 for(let cont of webContents.getAllWebContents()){
                   if(!cont.isDestroyed() && !cont.isBackgroundPage() && cont.isGuest()) {
                     const url = cont.getURL()
-                    if(url.endsWith(`${table}_sidebar.html`) ||url.endsWith(`${table}.html`) || (table == 'history' && url.endsWith(`historyFull.html`))){
+                    if(url.endsWith(`/${table}_sidebar.html`) ||url.endsWith(`/${table}.html`) || (table == "tabState" && url.endsWith(`/tab_history_sidebar.html`))){
                     if(prop == "update"){
                       db[table].findOne(argumentsList[0]).then(ret=>{
                         console.log(111,'update-datas', ret,cont.getURL())
@@ -81,6 +81,8 @@ const dummy = {insert:'',update:'',find_count:'',find:'',count:'',findOne:'',rem
 
 const db = new Proxy({
   get history(){return new Proxy(dummy, handler('history'))},
+  get visit(){return new Proxy(dummy, handler('visit'))},
+  get tabState(){return new Proxy(dummy, handler('tabState'))},
   get historyFull(){return new Proxy(dummy, handler('historyFull'))},
   get searchEngine(){return new Proxy(dummy, handler('searchEngine'))},
   get favorite(){return new Proxy(dummy, handler('favorite'))},
@@ -107,11 +109,11 @@ ipcMain.on('db-rend',(event,datas)=>{
     if(msg.key !== datas.key) return
     event.sender.send(`db-rend_${datas.key}`,msg.result)
     const {table,prop,argumentsList} = datas
-    if((table == "history" || table == "favorite") && (prop == "insert" || prop == "update")){
+    if((table == "history" || table == "favorite" || table == "tabState") && (prop == "insert" || prop == "update")){
       for(let cont of webContents.getAllWebContents()){
         if(!cont.isDestroyed() && !cont.isBackgroundPage() && cont.isGuest()) {
           const url = cont.getURL()
-          if(url.endsWith(`${table}_sidebar.html`) ||url.endsWith(`${table}.html`) || (table == 'history' && url.endsWith(`historyFull.html`))){
+          if(url.endsWith(`/${table}_sidebar.html`) ||url.endsWith(`/${table}.html`) || (table == "tabState" && url.endsWith(`/tab_history_sidebar.html`))){
             console.log(prop,msg)
             if(prop == "update"){
               console.log(argumentsList)

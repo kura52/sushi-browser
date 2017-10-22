@@ -15,7 +15,13 @@ const mainState = require('../lib/mainState')
 const {ipcMain} = require('electron')
 process.downloadParams = new Map()
 
-let mapFilterType = {
+const whitelistHosts = ['disqus.com', 'a.disquscdn.com']
+
+const transparent1pxGif = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
+/**
+ * Maps filtering request resourceTypes to ones that our adBlock library understands
+ */
+const mapFilterType = {
   mainFrame: FilterOptions.document,
   subFrame: FilterOptions.subdocument,
   stylesheet: FilterOptions.stylesheet,
@@ -87,6 +93,50 @@ const isThirdPartyHost = (baseContextHost, testHost) => {
 }
 
 
+const registeredSession = new Set()
+const beforeRequestFilteringFns = []
+function registerForBeforeRequest (session) {
+  if(registeredSession.has(session)) return
+  session.webRequest.onBeforeRequest((details, cb) => {
+    if (shouldIgnoreUrl(details)) {
+      cb({})
+      return
+    }
+
+    const firstPartyUrl = getMainFrameUrl(details)
+    // this can happen if the tab is closed and the webContents is no longer available
+    if (!firstPartyUrl) {
+      cb({ cancel: true })
+      return
+    }
+
+    for (let i = 0; i < beforeRequestFilteringFns.length; i++) {
+      let results = beforeRequestFilteringFns[i](details,firstPartyUrl)
+      if (results.cancel) {
+        if (details.resourceType === 'image') {
+          cb({ redirectURL: transparent1pxGif })
+          return
+        }
+        else {
+          cb({ cancel: true })
+          return
+        }
+        return
+      } else if (results.resourceName === 'siteHacks' && results.cancel === false) {
+        cb({})
+        return
+      }
+
+      if (results.redirectURL) {
+        cb({redirectURL: results.redirectURL})
+        return
+      }
+    }
+    cb({})
+  })
+}
+
+
 const tabs = new Map()
 mainState.adBlockEnable = true
 ipcMain.on('set-adblock-enable', async (event, datas) => {
@@ -100,77 +150,36 @@ ipcMain.on('set-adblock-enable', async (event, datas) => {
 
 
 const startAdBlocking = (adblock, resourceName, shouldCheckMainFrame,ses=session.defaultSession) => {
-  ses.webRequest.onBeforeRequest((details, callback) => {
+  beforeRequestFilteringFns.push((details,mainFrameUrl) => {
     if(details.method == 'POST' && details.resourceType == 'mainFrame' && details.uploadData){
       console.log(details)
       process.downloadParams.set(details.firstPartyUrl,[details.uploadData,Date.now()])
     }
     if(!mainState.adBlockEnable || (tabs.has(details.tabId) && !tabs.get(details.tabId))){
-      callback({})
-      return
+      return {}
     }
 
-    const mainFrameUrl = getMainFrameUrl(details)
-    // this can happen if the tab is closed and the webContents is no longer available
-    if (!mainFrameUrl || mainFrameUrl.startsWith('chrome')) {
-      // return {
-      //   resourceName: module.exports.resourceName
-      // }
-      callback({})
-      return
-    }
-
-
-    if (shouldIgnoreUrl(details)) {
-      callback({})
-      return
-    }
-
-    // if(details.resourceType !== 'mainFrame'){
-    //   if(details.firstPartyUrl === details.url) rlog(details)
-    // }
     const firstPartyUrl = urlParse(mainFrameUrl)
 
-
-
-    // this can happen if the tab is closed and the webContents is no longer available
-    if (!firstPartyUrl) {
-      callback({ cancel: true })
-      return
+    if(mainState.adBlockDisableSite[firstPartyUrl.host]){
+      return {}
     }
 
-
-    let firstPartyUrlHost = firstPartyUrl.hostname || ''
-    const urlHost = urlParse(details.url).hostname
-
-    if(mainState.adBlockDisableSite[firstPartyUrlHost]){
-      callback({})
-      return
-    }
-
-    const cancel = firstPartyUrl.protocol &&
-      (
-        shouldCheckMainFrame ||
-        (
-          (
-            details.resourceType !== 'mainFrame' &&
-            isThirdPartyHost(firstPartyUrlHost, urlHost)
-          ) ||
-          (
-            siteHacks[firstPartyUrl.hostname] &&
-            siteHacks[firstPartyUrl.hostname].allowFirstPartyAdblockChecks
-          )
-        )
-      ) &&
+    const url = urlParse(details.url)
+    const cancel =   firstPartyUrl.protocol &&
+      // By default first party hosts are allowed
+      (shouldCheckMainFrame || details.resourceType !== 'mainFrame') &&
+      // Only check http and https for now
       firstPartyUrl.protocol.startsWith('http') &&
+      // Only do adblock if the host isn't in the whitelist
+      !whitelistHosts.find((whitelistHost) => whitelistHost === url.hostname || url.hostname.endsWith('.' + whitelistHost)) &&
+      // Make sure there's a valid resource type before trying to use adblock
       mapFilterType[details.resourceType] !== undefined &&
       adblock.matches(details.url, mapFilterType[details.resourceType], firstPartyUrl.host)
 
-    callback({
-      cancel,
-      // resourceName
-    })
+    return { cancel }
   });
+  registerForBeforeRequest(ses)
 }
 
 let adblock
@@ -180,4 +189,8 @@ fs.readFile(path.join(__dirname, '../resource/ABPFilterParserData.dat'),  functi
   startAdBlocking(adblock,null,false)
 });
 
-module.exports = ses=>startAdBlocking(adblock,null,false,ses)
+module.exports = {
+  adBlock: ses=>startAdBlocking(adblock,null,false,ses),
+  registerForBeforeRequest,
+  beforeRequestFilteringFns
+}

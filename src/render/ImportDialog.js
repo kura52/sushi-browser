@@ -26,7 +26,10 @@ export default class ImportDialog extends Component{
       <p key='favorites'><Checkbox ref='favorites' toggle label='Bookmarks' onChange={_=>::this.changeCheck('valBook')}
                                    checked={checkBoxes.favorites && !checkBoxes.valBook} disabled={!checkBoxes.favorites} /></p>,
       <p key='cookies'><Checkbox ref='cookies' toggle label='Cookies' onChange={_=>::this.changeCheck('valCookie')}
-                                 checked={checkBoxes.cookies && !checkBoxes.valCookie}  defaultChecked={checkBoxes.cookies} disabled={!checkBoxes.cookies} /></p>
+                                 checked={checkBoxes.cookies && !checkBoxes.valCookie}  defaultChecked={checkBoxes.cookies} disabled={!checkBoxes.cookies} /></p>,
+      <p key='passwords'><Checkbox ref='passwords' toggle label='Passwords' onChange={_=>::this.changeCheck('valPasswords')}
+                                 checked={checkBoxes.passwords && !checkBoxes.valPasswords}  defaultChecked={checkBoxes.passwords} disabled={!checkBoxes.passwords} /></p>
+
     ]
   }
 
@@ -40,6 +43,7 @@ export default class ImportDialog extends Component{
     if(checkBoxes.history && !checkBoxes.valHist) map.history = enable = true
     if(checkBoxes.favorites && !checkBoxes.valBook) map.favorites = enable =  true
     if(checkBoxes.cookies && !checkBoxes.valCookie) map.cookies = enable = true
+    if(checkBoxes.passwords && !checkBoxes.valPasswords) map.passwords = enable = true
     console.log(map)
     return {map,disabled:!enable}
   }

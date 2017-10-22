@@ -638,17 +638,29 @@ div.item.favorite>ul>li>div>ul{
     border: 0px solid #FFF !important;
     min-width: 10px !important;
     user-select: none !important;
-    top: 14px !important;
+    top: 16px !important;
     animation-delay: 120ms !important;
     animation-timing-function: linear !important;
     animation-duration: 120ms !important;
     animation-fill-mode: forwards !important;
-    left: calc(50% - 1px) !important;
+    left: calc(50% + 1px) !important;
+    font: 7pt sans-serif !important;
     position: absolute !important;
     color: #FFF !important;
     border-radius: 2.5px !important;
     padding: 1px 2px !important;
     pointer-events: none !important;
-    font: 6pt "Arial Narrow" !important;
     animation-name: keyframe_cwjpzv !important;
+}
+
+.browserActionBadge.video{
+    background-color: rgb(72, 72, 72);
+}
+
+.tree-divider{
+    border-bottom: 1px solid rgba(34,36,38,.1);
+}
+
+.node-inactive{
+    color: #999;
 }

@@ -83,6 +83,8 @@ function getState(node) {
 
 }
 export default (tabId,navbar,e)=>{
+  if(e.target.closest('.menu.visible')) return
+
   const node = ReactDOM.findDOMNode(navbar).parentNode
   const current = getState(node)
   Menu.buildFromTemplate([{

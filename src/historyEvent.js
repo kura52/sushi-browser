@@ -1,7 +1,7 @@
 import { ipcMain } from 'electron'
-import {historyFull,history,image,favorite} from './databaseFork'
+import {tabState,history,image,favorite} from './databaseFork'
 
-ipcMain.on('fetch-history', async (event, range, full=false,limit) => {
+ipcMain.on('fetch-history', async (event, range, tab=false,limit) => {
   console.log(range)
   const cond =  !Object.keys(range).length ? range :
     { updated_at: (
@@ -11,12 +11,27 @@ ipcMain.on('fetch-history', async (event, range, full=false,limit) => {
     )}
   let data
   if(limit){
-    data = await (full ? historyFull : history).find_sort_limit([cond],[{ updated_at: -1 }],[limit])
+    data = await (tab ? tabState : history).find_sort_limit([cond],[{ updated_at: -1 }],[limit])
   }
   else{
-    data = await (full ? historyFull : history).find_sort([cond],[{ updated_at: -1 }])
+    data = await (tab ? tabState : history).find_sort([cond],[{ updated_at: -1 }])
   }
-
+  if(tab){
+    const set = new Set()
+    for(let h of data){
+      console.log(h.urls)
+      h.urls = h.urls.split("\t")
+      for(let url of h.urls){
+        set.add(url)
+      }
+    }
+    const his = await history.find({location:{$in : [...set]}})
+    const favicons = {}
+    for(let h of his){
+      favicons[h.location] = h.favicon
+    }
+    data = {tabs: data,favicons}
+  }
   event.sender.send('history-reply', data);
 })
 
@@ -73,20 +88,20 @@ ipcMain.on('search-history', async (event, cond, full=false,limit) => {
     const arr = []
     for (let e of cond) {
       e = new RegExp(e,'i')
-      arr.push({ $or: [{ title: e }, full ? { text: e } : { location: e }]})
+      arr.push({ $or: [{ title: e }, { location: e }]})
     }
     cond = cond.length == 1 ? arr[0] : { $and: arr}
   }
   else{
-    cond = { $or: [{ title: cond }, full ? { text: cond } : { location: cond }]}
+    cond = { $or: [{ title: cond }, { location: cond }]}
   }
 
   let data
   if(limit){
-    data = await (full ? historyFull : history).find_sort_limit([cond],[{ updated_at: -1 }],[limit])
+    data = await history.find_sort_limit([cond],[{ updated_at: -1 }],[limit])
   }
   else{
-    data = await (full ? historyFull : history).find_sort([cond],[{ updated_at: -1 }])
+    data = await history.find_sort([cond],[{ updated_at: -1 }])
   }
   event.sender.send('history-reply', data);
 })

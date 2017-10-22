@@ -20,7 +20,7 @@ const youtubedl = require('youtube-dl')
 const {getUrlFromCommandLine,getNewWindowURL} = require('./cmdLine')
 import {getFocusedWebContents, getCurrentWindow} from './util'
 const open = require('./open')
-let adblock,extensions,videoProcessList = []
+let adblock,httpsEverywhere,trackingProtection,extensions,videoProcessList = []
 
 // process.on('unhandledRejection', console.dir);
 
@@ -161,7 +161,6 @@ app.on('ready', async ()=>{
   console.log(process.versions)
 
 
-  adblock = require('../brave/adBlock')
 
   // console.log(app.getPath('userData'))
   new (require('./downloadEvent'))()
@@ -183,6 +182,9 @@ app.on('ready', async ()=>{
     console.log(332,process.argv,getUrlFromCommandLine(process.argv))
     await createWindow(true,isDarwin ? getNewWindowURL() : getUrlFromCommandLine(process.argv))
 
+    adblock = require('../brave/adBlock')
+    httpsEverywhere = require('../brave/httpsEverywhere')
+    trackingProtection = require('../brave/trackingProtection')
 
     require('./ipcUtils')
     require('./syncLoop')
@@ -529,6 +531,8 @@ ipcMain.on('init-private-mode',(e,partition)=>{
   ses.userPrefs.setBooleanPref('credentials_enable_service', true)
   ses.userPrefs.setBooleanPref('credentials_enable_autosignin', true)
   adblock(ses)
+  httpsEverywhere(ses)
+  trackingProtection(ses)
   extensions.loadAll(ses)
 })
 

@@ -1,31 +1,5 @@
 const ipc = chrome.ipcRenderer
 
-// function handleFileSelect(evt) {
-//   console.log(1111,evt)
-//   evt.stopPropagation()
-//   evt.preventDefault()
-//   const files = evt.dataTransfer.files
-//   if(files.length > 0){
-//     chrome.runtime.sendMessage({transitionPath: `file://${files[0].path}`})
-//   }
-//   else{
-//     chrome.runtime.sendMessage({transitionPath: evt.dataTransfer.getData("text")})
-//   }
-//
-// }
-
-// function handleDragStart(evt) {
-//   // evt.stopPropagation()
-//   // evt.preventDefault()
-//   console.log(evt)
-//   evt.dataTransfer.setData("text/plain", "http://www.mozilla.org");
-//   evt.dataTransfer.dropEffect = 'all' // Explicitly show this is a copy.
-// }
-//
-// // Setup the dnd listeners.
-// document.addEventListener('dragstart', handleDragStart, false)
-// document.addEventListener('drop', handleFileSelect, false)
-
 if(location.href.startsWith('http') && window == window.parent){
   document.addEventListener("DOMContentLoaded",_=>{
     const key = Math.random().toString()

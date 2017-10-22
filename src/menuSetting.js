@@ -27,7 +27,7 @@ const createFileSubmenu = () => {
       accelerator: mainState.keyNewTab,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('new-tab',cont.getId(),topURL)
+          cont && cont.hostWebContents.send('new-tab',cont.getId(),"chrome://newtab/")
         })
       }
     },
@@ -36,7 +36,7 @@ const createFileSubmenu = () => {
       accelerator: mainState.keyNewPrivateTab,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('new-tab',cont.getId(),topURL,true)
+          cont && cont.hostWebContents.send('new-tab',cont.getId(),"chrome://newtab/",true)
         })
       }
     },
@@ -45,7 +45,7 @@ const createFileSubmenu = () => {
       accelerator: mainState.keyNewSessionTab,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('new-tab',cont.getId(),topURL, `persist:${seq()}`)
+          cont && cont.hostWebContents.send('new-tab',cont.getId(),"chrome://newtab/", `persist:${seq()}`)
         })
       }
     },
@@ -294,7 +294,7 @@ const createHistorySubmenu = () => {
       accelerator: mainState.keyHome,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=> {
-          cont && cont.hostWebContents.send('menu-or-key-events', 'navigatePage', cont.getId(), topURL)
+          cont && cont.hostWebContents.send('menu-or-key-events', 'navigatePage', cont.getId(), "chrome://newtab/")
         })
       }
     },
@@ -303,7 +303,7 @@ const createHistorySubmenu = () => {
       accelerator: mainState.keyBack,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=> {
-          cont && cont.goBack()
+          cont && cont.hostWebContents.send('go-navigate', cont.getId(), 'back')
         })
       }
     },
@@ -312,7 +312,7 @@ const createHistorySubmenu = () => {
       accelerator: mainState.keyForward,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=> {
-          cont && cont.goForward()
+          cont && cont.hostWebContents.send('go-navigate', cont.getId(), 'forward')
         })
       }
     },
@@ -332,7 +332,7 @@ const createHistorySubmenu = () => {
       accelerator: mainState.keyShowAllHistory,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('new-tab',cont.getId(),'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html')
+          cont && cont.hostWebContents.send('new-tab',cont.getId(),'chrome://history/')
         })
       }
     }
@@ -358,7 +358,7 @@ const createBookmarksSubmenu = () => {
       accelerator: mainState.keyBookmarksManager,
       click: (item, focusedWindow) => {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('new-tab',cont.getId(),'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html')
+          cont && cont.hostWebContents.send('new-tab',cont.getId(),'chrome://bookmarks/')
         })
       }
     },

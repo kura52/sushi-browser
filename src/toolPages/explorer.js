@@ -462,6 +462,7 @@ class FileExplorer extends React.Component{
       menu = <Menu pointing secondary >
         <Menu.Item as='a' href={`${baseURL}/favorite_sidebar.html`} key="favorite" icon="star"/>
         <Menu.Item as='a' href={`${baseURL}/history_sidebar.html`} key="history" icon="history"/>
+        <Menu.Item as='a' href={`${baseURL}/tab_history_sidebar.html`} key="tags" icon="tags"/>
         <Menu.Item as='a' href={`${baseURL}/tabs_sidebar.html`} key="tabs" icon="align justify"/>
         <Menu.Item key="file-explorer" icon="folder" active={true}/>
         <Menu.Item key="open" icon="folder open" onClick={::this.selectFolder} />
@@ -471,9 +472,9 @@ class FileExplorer extends React.Component{
       menu =  <Menu pointing secondary >
         <Menu.Item key="open" name="Open Directory" active={true} onClick={::this.selectFolder}
                    style={{backgroundColor: 'rgb(228, 242, 255)', borderRadius: '4px 4px 0px 0px'}}/>
-        <Menu.Item as='a' href={`${baseURL}/top.html`} key="top" name="Top"/>
-        <Menu.Item as='a' href={`${baseURL}/favorite.html`} key="favorite" name={l10n.translation('bookmarks')}/>
-        <Menu.Item as='a' href={`${baseURL}/history.html`} key="history" name={l10n.translation('history')}/>
+        <Menu.Item as='a' href={<Menu.Item as='a' href={`chrome://newtab/`} key="top" name="Top"/>} key="top" name="Top"/>
+        <Menu.Item as='a' href={`chrome://bookmarks/`} key="favorite" name={l10n.translation('bookmarks')}/>
+        <Menu.Item as='a' href={`chrome://history/`} key="history" name={l10n.translation('history')}/>
         <Menu.Item as='a' href={`${baseURL}/download.html`} key="download" name={l10n.translation('downloads')}/>
         {/*<Menu.Item key="file-explorer" name="File Explorer" active={true}/>*/}
         <Menu.Item as='a' href={`${baseURL}/terminal.html`} key="terminal" name="Terminal"/>

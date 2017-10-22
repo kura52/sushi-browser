@@ -4,7 +4,7 @@ import fs from 'fs'
 import sh from 'shelljs'
 import PubSub from './render/pubsub'
 const seq = require('./sequence')
-const {state,favorite,historyFull} = require('./databaseFork')
+const {state,favorite,history,visit} = require('./databaseFork')
 const db = require('./databaseFork')
 const franc = require('franc')
 const chromeManifestModify = require('./chromeManifestModify')
@@ -31,6 +31,9 @@ function exec(command) {
   });
 }
 
+function escapeRegExp(string){
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+}
 
 function getBindPage(tabId){
   return webContents.getAllWebContents().filter(wc=>wc.getId() === tabId)
@@ -112,7 +115,7 @@ ipcMain.on('add-extension',(e,id)=>{
 
 ipcMain.on('delete-extension',(e,extensionId,orgId)=>{
   const basePath = getPath2(orgId) || getPath1(orgId)
-  extensions.disableExtension(orgId)
+  extensions.disableExtension(extensionId)
   if(basePath){
     const delPath = path.join(basePath,'..')
     if(delPath.includes(orgId)){
@@ -130,7 +133,7 @@ simpleIpcFunc('chrome-app-getDetails',id=>extInfos[id])
 //#i18n
 simpleIpcFunc('chrome-i18n-getAcceptLanguages',_=>{
   const lang = app.getLocale()
-  return lang == 'zh-CN' || lang == 'pt-BR' ? lang.replace('-','_') : lang.slice(0,2)
+  return [lang == 'zh-CN' || lang == 'pt-BR' ? lang.replace('-','_') : lang.slice(0,2)]
 })
 
 ipcMain.on('chrome-i18n-getMessage',(event)=>{
@@ -186,6 +189,9 @@ simpleIpcFunc('chrome-windows-getLastFocused',_=>{
   return win && win.id
 })
 
+
+simpleIpcFunc('chrome-windows-remove',windowId=> BrowserWindow.fromId(windowId).close())
+
 //#tabs
 process.on('chrome-tabs-created', (tabId) => {
   console.log('chrome-tabs-created',tabId)
@@ -197,7 +203,7 @@ process.on('chrome-tabs-updated', (tabId,changeInfo,tab) => {
   // if(changeInfo.status == "complete") return
   if(changeInfo.status == "complete" ||
     (changeInfo.active === (void 0) &&
-    changeInfo.pinned === (void 0))) return
+      changeInfo.pinned === (void 0))) return
   // console.log(tabId,tab)
   const cont = webContents.fromTabID(tabId)
   if(cont && !cont.isDestroyed() && !cont.isBackgroundPage() && cont.isGuest()) {
@@ -230,10 +236,29 @@ process.on('chrome-tabs-removed', (tabId) => {
   }
 })
 
+simpleIpcFuncCb('chrome-tabs-current-tabId',cb=>{
+  getFocusedWebContents().then(cont=>cb(cont.getId()))
+})
+
 simpleIpcFuncCb('chrome-tabs-reload',async (tabId, reloadProperties,cb)=> {
   const cont = tabId === null || tabId === (void 0) ? (await getFocusedWebContents()) : webContents.fromTabID(tabId)
   reloadProperties ? cont.reloadIgnoringCache() : cont.reload()
   cb()
+})
+
+simpleIpcFuncCb('chrome-tabs-move',(tabIds, moveProperties,cb)=> {
+  const wins = BrowserWindow.getAllWindows()
+  if(!wins) return
+
+  for(let win of wins.filter(w=>w.getTitle().includes('Sushi Browser'))){
+    try {
+      if(!win.webContents.isDestroyed()){
+        win.webContents.send('chrome-tabs-event-move', tabIds, moveProperties);
+      }
+    }catch(e){
+      // console.log(e)
+    }
+  }
 })
 
 simpleIpcFuncCb('chrome-tabs-detectLanguage',(tabId,cb)=> {
@@ -293,8 +318,26 @@ simpleIpcFuncCb('chrome-cookies-remove',(details,cb)=>{
 })
 
 //#management
-simpleIpcFunc('chrome-management-getAll',_=> Object.values(extInfos))
-simpleIpcFunc('chrome-management-get',id => extInfos[id])
+simpleIpcFunc('chrome-management-getAll',_=> Object.values(extInfos).filter(x=>x.id).map(x=>{
+    x.type = 'extension'
+    x = {...x,...x.manifest}
+    return x
+  })
+)
+
+simpleIpcFunc('chrome-management-get',id => {
+  let x = extInfos[id]
+  x.type = 'extension'
+  x = {...x,...x.manifest}
+  return x
+})
+
+ipcMain.on('chrome-management-get-sync',(e,id)=>{
+  let x = extInfos[id]
+  x.type = 'extension'
+  x = {...x,...x.manifest}
+  e.returnValue = x
+})
 
 //#webNavigation
 const webNavigationMethods = ['onBeforeNavigate','onCommitted','onDOMContentLoaded','onCompleted','onErrorOccurred','onCreatedNavigationTarget']
@@ -383,6 +426,106 @@ simpleIpcFuncCb('chrome-proxy-settings-set',(details,cb)=>{
   }
 
   session.defaultSession.setProxy(config,_=>cb())
+})
+
+//#history
+simpleIpcFuncCb('chrome-history-search',(query,cb)=>{
+  console.log(query)
+  const limit = query.maxResults || 100
+  const condText = {}
+  if(query.text){
+    const reg = escapeRegExp(query.text)
+    condText['$or'] = [{ title: reg }, { location: reg }]
+  }
+
+  const condTime = {}
+  if(query.startTime || query.endTime){
+    const range = {}
+    if(query.startTime) range['$gte'] = query.startTime
+    if(query.endTime) range['$lte'] = query.endTime
+    condTime.updated_at = range
+  }
+
+  let cond = {}
+  if(Object.keys(condText).length && Object.keys(condTime).length){
+    cond['$and'] = [condText,condTime]
+  }
+  else if(Object.keys(condText).length){
+    cond = condText
+  }
+  else if(Object.keys(condTime).length){
+    cond = condTime
+  }
+
+  console.log("cond",cond)
+  history.find_sort_limit([cond],[{updated_at: -1}],[limit]).then(records=>{
+    console.log(records[0])
+    cb(records.map(rec=>{
+      return {id:rec._id,url:rec.location,title:rec.title,lastVisitTime:rec.updated_at,visitCount:rec.count,typedCount:0}
+    }))
+  })
+  // session.defaultSession.cookies.remove(details.url, details.name, _=>cb(details))
+})
+
+simpleIpcFuncCb('chrome-history-addUrl',(details,cb)=>{
+  history.findOne({location: details.url}).then(ret=>{
+    if(!ret){
+      history.insert({
+        location: details.url,
+        created_at: Date.now(),
+        updated_at: Date.now(),
+        count: 0
+      }).then(_=>cb())
+    }
+    else{
+      cb()
+    }
+  })
+})
+
+simpleIpcFuncCb('chrome-history-getVisits',async (details,cb)=>{
+  if(!details.url) return cb([])
+  const hist = await history.findOne({location:details.url})
+  visit.find({url: details.url}).then(records=>{
+    const ret = records.map(r=>{
+      return {id:hist ? hist._id : r._id,visitId:r._id,visitTime:r.created_at,referringVisitId:'',transition:'link'}
+    })
+    cb(ret)
+  })
+})
+
+simpleIpcFuncCb('chrome-history-deleteUrl',(details,cb)=>{
+  if(!details.url) return cb()
+  history.remove({location: details.url}, { multi: true }).then(_=>cb())
+})
+
+simpleIpcFuncCb('chrome-history-deleteRange',(details,cb)=>{
+  if(!details.startTime || !details.endTime) return cb()
+  history.remove({updated_at: { $gte: details.startTime ,$lte: details.endTime }}, { multi: true }).then(_=>cb())
+})
+
+simpleIpcFuncCb('chrome-history-deleteAll',(cb)=>{
+  history.remove({}, { multi: true }).then(_=>cb())
+})
+
+
+//#topSites
+simpleIpcFuncCb('chrome-topSites-get',(cb)=>{
+  history.find_sort_limit([{}],[{ count: -1 }],[50]).then(records=>{
+    const ret = {}
+    let i = 0
+    for(let r of records){
+      if(!ret[r.location]){
+        ret[r.location] = r.title
+        if(++i==20) break
+      }
+    }
+    const arr = []
+    for(let [url,title] of Object.entries(ret)){
+      arr.push({url,title})
+    }
+    cb(arr)
+  })
 })
 
 //#contextMenu

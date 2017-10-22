@@ -194,9 +194,9 @@ export default {
       }
 
       mainState.vpn = false
-      for(let extensionId of mainState.disableExtensions){
-        session.defaultSession.extensions.disable(extensionId)
-      }
+      // for(let extensionId of mainState.disableExtensions){
+      //   session.defaultSession.extensions.disable(extensionId)
+      // }
 
       if(mainState.language == 'default'){
         mainState.language = locale.defaultLocale()

@@ -109,6 +109,9 @@ class BrowserPage extends Component {
     webview.addEventListener('ipc-message',this.wvEvents['ipc-message'])
 
     this.wvEvents['found-in-page'] = (e) => {
+      this.clear = e.result.activeMatchOrdinal == e.result.matches
+      this.first = e.result.activeMatchOrdinal == 1
+      console.log(this.clear,e.result.activeMatchOrdinal, e.result.matches)
       if (e.result.activeMatchOrdinal) {
         this.setState({result_string: `${e.result.activeMatchOrdinal}/${e.result.matches}`})
       }
@@ -188,25 +191,29 @@ class BrowserPage extends Component {
   // }
 
   onPageSearch(query,next=true) {
+    const webview = ReactDOM.findDOMNode(this.refs.webview)
     const cont = this.getWebContents(this.props.tab)
     if(!cont) return
+    const clear = (this.clear && next) || (this.first && !next) //@TODO framework bug
+    if(clear){
+      webview.stopFindInPage('clearSelection')
+    }
+    console.log(this.previous_text === query)
     if(query === ""){
-      global.searching = true
-      cont.stopFindInPage('clearSelection')
-      global.searching = false
+      webview.stopFindInPage('clearSelection')
       this.previous_text = ""
       this.setState({result_string: ""})
     }
-    else if (this.previous_text === query) {
-      global.searching = true
-      cont.findInPage(query, {findNext: true,forward: next});
-      global.searching = false
+    else if (this.previous_text === query && !clear) {
+      webview.findInPage(query, {
+        matchCase:false,
+        forward: next,
+        findNext: true
+      })
     }
     else {
       this.previous_text = query;
-      global.searching = true
-      cont.findInPage(query);
-      global.searching = false
+      webview.findInPage(query,{forward: next})
     }
   }
 
