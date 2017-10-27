@@ -420,7 +420,15 @@ export default class SplitWindows extends Component{
       }
       return tabId;
     }
-    this.getFocusedWebContent = (e,key,needPrivate,needSelectedText)=>{
+    this.getFocusedWebContent = (e,key,needPrivate,needSelectedText,queueGet)=>{
+      if(queueGet){
+        const tabId = global.openerQueue.shift()
+        if(tabId){
+          console.log((`get-focused-webContent-reply_${key}`,tabId))
+          ipc.send(`get-focused-webContent-reply_${key}`,tabId)
+          return
+        }
+      }
       const act = document.activeElement
       if(needSelectedText && act.tagName == 'INPUT' && act.type == 'text'){
         ipc.send(`get-focused-webContent-reply_${key}`,-1)
@@ -458,6 +466,115 @@ export default class SplitWindows extends Component{
     }
     ipc.on('enter-full-screen',this.fullScreenState)
     ipc.on('leave-full-screen',this.fullScreenState)
+
+
+    this.eventChromeTabsMoveInner = (e,tabIds,index)=>{
+      const keys = []
+      this.allKeys(this.state.root,keys)
+      const map = {}
+      let order = 0,indexKey,realIndex
+      for(let key of keys){
+        let i = 0
+        for(let tab of this.refs2[key].state.tabs){
+          if(tabIds.includes(tab.wvId)){
+            if(map[key]){
+              map[key].push([tab,i,order])
+            }
+            else{
+              map[key] = [[tab,i,order]]
+            }
+          }
+          i++
+          if(index == order){
+            if(!map[key]){
+              map[key] = []
+            }
+            indexKey = key
+            realIndex = i
+          }
+          order++
+        }
+      }
+
+      const keyArr = Object.keys(map)
+      if(keyArr.length == 1){
+        const key = keyArr[0]
+        const tabs = this.refs2[key].state.tabs
+        if(index == -1) index = tabs.length
+
+        const befores = [],afters = []
+        for(let ele of map[key]){
+          if(ele[1] < index){
+            befores.push(ele)
+          }
+          else{
+            afters.push(ele)
+          }
+        }
+
+        const range = afters.length
+        const moveTabs = [...befores.map(x=>x[0]),...afters.map(x=>x[0])]
+        tabs.splice(index,0,...moveTabs)
+        for(let ele of befores.reverse()){
+          tabs.splice(ele[1],1)
+        }
+        for(let ele of afters.reverse()){
+          tabs.splice(ele[1]+range,1)
+        }
+        this.refs2[key].setState({selectedTab: moveTabs[moveTabs.length-1].key})
+      }
+      else{
+        if(index == -1){
+          indexKey = keyArr[keyArr.length - 1]
+          realIndex = this.refs2[indexKey].state.tabs.length
+        }
+        const befores = [],afters = [],beforeOthers = [],afterOthers = []
+
+        let isBefore = true
+        for(let key of keyArr){
+          if(key == indexKey){
+            isBefore = false
+            continue
+          }
+          const tabs = this.refs2[key].state.tabs
+          const others = isBefore ? beforeOthers : afterOthers
+          for(let ele of map[key]){
+            others.push(ele)
+          }
+          for(let ele of others.reverse()){
+            this.refs2[key].state.selectedTab = this.refs2[key].getNextSelectedTab(...ele)
+            tabs.splice(ele[1],1)
+          }
+        }
+
+
+        const tabs = this.refs2[indexKey].state.tabs
+        for(let ele of map[indexKey]){
+          if(ele[1] < realIndex){
+            befores.push(ele)
+          }
+          else{
+            afters.push(ele)
+          }
+        }
+
+        const range = beforeOthers.length + afterOthers.length + afters.length
+        const moveTabs = [...beforeOthers.map(x=>x[0]),...befores.map(x=>x[0]),...afters.map(x=>x[0]),...afterOthers.map(x=>x[0])]
+        tabs.splice(index,0,...moveTabs)
+        for(let ele of befores.reverse()){
+          tabs.splice(ele[1],1)
+        }
+        for(let ele of afters.reverse()){
+          tabs.splice(ele[1]+range,1)
+        }
+        this.refs2[indexKey].state.selectedTab = moveTabs[moveTabs.length-1].key
+        this.setState({})
+        for(let key of keyArr) {
+          this.refs2[key].setState({})
+        }
+      }
+    }
+    ipc.on('chorme-tabs-move-inner',this.eventChromeTabsMoveInner)
 
 
     this.tokenAlign = PubSub.subscribe("align",(_,e)=>{
@@ -555,6 +672,7 @@ export default class SplitWindows extends Component{
     ipc.removeListener("leave-full-screen",this.fullScreenState)
     ipc.removeListener("page-title-updated",this.pageUpdate)
     ipc.removeListener("did-get-response-details",this.getResponseDetails)
+    ipc.removeListener('chorme-tabs-move-inner',this.eventChromeTabsMoveInner)
 
     PubSub.unsubscribe(this.tokenAlign)
     PubSub.unsubscribe(this.tokenAllDetach)

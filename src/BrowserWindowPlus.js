@@ -213,7 +213,7 @@ export default {
         mainState.searchProviders[ele.name] = ele
       }
       console.log(90756,url)
-      if(url) {
+      if(url && setting.winState) {
         mainState.winState = JSON.stringify({
           dirc: "v",
           key: "9b069c3c-bb0d-4267-b0ac-28c6ecb1f1b4",

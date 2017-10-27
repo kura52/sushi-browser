@@ -357,8 +357,17 @@ ipcMain.on('video-infos',(event,{url})=>{
     }
     else{
       const title = info.title
-      videoUrlsCache.set(url,{title,formats:info.formats.slice(0.12)})
-      event.sender.send('video-infos-reply',{title,formats:info.formats.slice(0.12)})
+      if(Array.isArray(info)){
+        for(let i of info){
+          const title = i.title
+          videoUrlsCache.set(url, { title, formats: i.formats.slice(0.12) });
+          event.sender.send('video-infos-reply', { title, formats: i.formats.slice(0.12) });
+        }
+      }
+      else{
+        videoUrlsCache.set(url, { title, formats: info.formats.slice(0.12) });
+        event.sender.send('video-infos-reply', { title, formats: info.formats.slice(0.12) });
+      }
     }
   });
 })
@@ -931,6 +940,7 @@ ipcMain.on('get-did-start-loading',(e,tabId)=>{
 //     e.sender.send(msg, ret)
 //   })
 // })
+
 
 PubSub.subscribe("web-contents-created",(msg,[tabId,sender])=>{
   console.log("web-contents-created",tabId)

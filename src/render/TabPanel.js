@@ -376,10 +376,11 @@ export default class TabPanel extends Component {
     this.handleKeyDown = ::this.handleKeyDown
     this.createNewTabFromOtherWindow = ::this.createNewTabFromOtherWindow
     this.resetSelection = ::this.resetSelection
+    this.getNextSelectedTab = ::this.getNextSelectedTab
   }
 
   initIpcEvents(){
-    const eventNotification = (msg,data)=>{
+    const eventNotification = (e,data)=>{
       if(!this.mounted) return
       if(data.id){
         const ret = this.state.tabs.find(tab=>{
@@ -395,7 +396,7 @@ export default class TabPanel extends Component {
     }
     ipc.on("show-notification",eventNotification)
 
-    const closeTabFromOtherWindow = (msg,data)=>{
+    const closeTabFromOtherWindow = (e,data)=>{
       if(!this.mounted) return
       const _tabs = this.state.tabs
       let i = 0
@@ -427,7 +428,7 @@ export default class TabPanel extends Component {
     }
     ipc.on(`close-tab-from-other-window`,closeTabFromOtherWindow)
 
-    const eventCloseSyncTab = (msg,port)=>{
+    const eventCloseSyncTab = (e,port)=>{
       if(!this.mounted) return
       for(let tab of this.state.tabs){
         if(tab.page.location == `http://localhost:${port}/sync.html`){
@@ -1365,6 +1366,7 @@ export default class TabPanel extends Component {
     tab.events['new-tab'] = (e, id, url, privateMode,k)=> {
       if (!this.mounted) return
       if ((tab.wvId && id == tab.wvId) || (k == this.props.k && tab.key == this.state.selectedTab)) {
+        global.openerQueue.push(id || this.state.tabs.find(t=>t.key == this.state.selectedTab).wvId)
         console.log(this)
         const t = tabAdd(this, url, true, privateMode || tab.privateMode,(void 0),tab.mobile,tab.adBlockThis);
         if(tab.sync){
@@ -1395,6 +1397,7 @@ export default class TabPanel extends Component {
     tab.events['new-tab-opposite'] = (e, id, url,lastMouseDown, privateMode)=> {
       if (!this.mounted) return
       if (tab.wvId && id == tab.wvId) {
+        global.openerQueue.push(id)
         const oppositeKey = lastMouseDown ? (this.props.getPrevFocusPanel(this.props.k) || this.props.getOpposite(this.props.k)) : this.props.getOpposite(this.props.k)
         if (oppositeKey && !isFixedPanel(oppositeKey))
           PubSub.publish(`new-tab-from-key_${oppositeKey}`, {url,mobile:tab.mobile, adBlockThis: tab.adBlockThis, privateMode:privateMode || tab.privateMode})
@@ -2423,6 +2426,10 @@ export default class TabPanel extends Component {
     }
   }
 
+  getNextSelectedTab(tab,i){
+    return this.state.tabs.find(t=>t.key == this.state.selectedTab) ? this.state.selectedTab : this.getPrevSelectedTab(tab.key,this.state.tabs,i)
+  }
+
   handleTabClose(e, key,isUpdateState=true) {
     if (!this.mounted) return
     const i = this.state.tabs.findIndex((x)=> x.key == key)
@@ -2559,6 +2566,7 @@ export default class TabPanel extends Component {
     const t = this.createTab()
     const key = t.key;
     // this.state.tabs.splice(i+1, 0,t )
+    global.openerQueue.push(this.state.tabs.find(t=>t.key == this.state.selectedTab).wvId)
     this.state.tabs.push(t)
     console.log("selected11",key)
     this.setState({selectedTab: key})
@@ -3253,6 +3261,7 @@ export default class TabPanel extends Component {
   searchSameWindow(tab, urls, checkOpposite, type, forceNewTab){
     let i = 0
     for(let url of urls) {
+      global.openerQueue.push(tab.wvId)
       const isFirst = i === 0 || (i === 1 && type == 'two')
       const condBasic = type == 'basic' && checkOpposite && !isFloatPanel(this.props.k) && tab.oppositeMode
       const condTwo = type == 'two' && i % 2 == 1

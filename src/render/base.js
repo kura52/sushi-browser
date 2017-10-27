@@ -18,6 +18,7 @@ const [longPressMiddle,alwaysOnTop,doubleShift] = ipc.sendSync('get-sync-main-st
 require('inferno').options.recyclingEnabled = true; // Advanced optimisation
 global.lastMouseDown = []
 global.lastMouseDownSet = new Set()
+global.openerQueue = []
 
 global.zoomMapping = new Map([
   [25,-6],[33,-5],[50,-4],[67,-3],[75,-2],[90,-1],[100,0],

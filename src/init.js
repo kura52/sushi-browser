@@ -323,11 +323,22 @@ app.on('web-contents-created', (e, tab) => {
   }
   let tabId = tab.getId()
 
+  let win
   for(let w of BrowserWindow.getAllWindows()){
     if(w.getTitle().includes('Sushi Browser')){
+      if(!win) win = w
       PubSub.publish("web-contents-created",[tabId,w.webContents])
     }
   }
+
+
+  const focus = BrowserWindow.getFocusedWindow()
+  if(focus && focus.getTitle().includes('Sushi Browser')){
+    win = focus
+  }
+
+  const cont = win.webContents
+  const key = Math.random().toString()
 
   tab.on('save-password', (e, username, origin) => {
     console.log('save-password', username, origin)
@@ -405,7 +416,7 @@ let addContents
 ipcMain.on("set-recent-url",(e,url)=>recentUrl.push(url))
 
 process.on("should-create-web-contents",(e,source, windowContainerType, frameName, targetUrl, partitionId)=>{
-  console.log("should-create-web-contents",e,source, windowContainerType, frameName, targetUrl, partitionId)
+  console.log("should-create-web-contents", windowContainerType, frameName, targetUrl, partitionId)
   recentUrl.push(targetUrl)
 })
 
@@ -462,12 +473,15 @@ process.on('add-new-contents', async (e, source, newTab, disposition, size, user
       if(!source){
         setTimeout(async _=>{
           source = await getFocusedWebContents()
+          ipcMain.emit('set-tab-opener',null,newTab.getId(),source.getId())
           (host || source.hostWebContents).send('create-web-contents', { id: source.getId(), targetUrl, disposition, guestInstanceId: newTab.guestInstanceId })
         },3000)
         return
       }
       cont = host || source.hostWebContents
     }
+    console.log('set-tab-opener',null,newTab.getId(),source.getId())
+    ipcMain.emit('set-tab-opener',null,newTab.getId(),source.getId())
 
     if(source.getURL().startsWith('chrome-extension')){
       getFocusedWebContents(false,true).then(source=>{
@@ -530,7 +544,7 @@ ipcMain.on('init-private-mode',(e,partition)=>{
   ses.userPrefs.setBooleanPref('profile.password_manager_enabled', true)
   ses.userPrefs.setBooleanPref('credentials_enable_service', true)
   ses.userPrefs.setBooleanPref('credentials_enable_autosignin', true)
-  adblock(ses)
+  adblock.adBlock(ses)
   httpsEverywhere(ses)
   trackingProtection(ses)
   extensions.loadAll(ses)

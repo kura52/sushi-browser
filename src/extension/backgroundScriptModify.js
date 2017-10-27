@@ -204,12 +204,12 @@ if(chrome.tabs){
     simpleIpcFunc('chrome-tabs-reload',callback,tabId, reloadProperties)
   }
 
-  // chrome.tabs.move = (tabIds, moveProperties, callback)=>{
-  //   if(!isFinite(tabIds)){
-  //     tabIds = [tabIds]
-  //   }
-  //   simpleIpcFunc('chrome-tabs-move',callback,tabIds, moveProperties)
-  // }
+  chrome.tabs.move = (tabIds, moveProperties, callback)=>{
+    if(isFinite(tabIds)){
+      tabIds = [tabIds]
+    }
+    simpleIpcFunc('chrome-tabs-move',callback,tabIds, moveProperties)
+  }
 
   chrome.tabs.getAllInWindow = (windowId, callback)=>{
     if(typeof windowId === 'function') [windowId,callback] = [null,windowId]

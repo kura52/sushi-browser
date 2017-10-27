@@ -247,18 +247,17 @@ simpleIpcFuncCb('chrome-tabs-reload',async (tabId, reloadProperties,cb)=> {
 })
 
 simpleIpcFuncCb('chrome-tabs-move',(tabIds, moveProperties,cb)=> {
-  const wins = BrowserWindow.getAllWindows()
-  if(!wins) return
+  console.log('chrome-tabs-move',tabIds, moveProperties)
+  if(!tabIds || !tabIds.length) return cb()
 
-  for(let win of wins.filter(w=>w.getTitle().includes('Sushi Browser'))){
-    try {
-      if(!win.webContents.isDestroyed()){
-        win.webContents.send('chrome-tabs-event-move', tabIds, moveProperties);
-      }
-    }catch(e){
-      // console.log(e)
-    }
+  const fromWin = BrowserWindow.fromWebContents(webContents.fromTabID(tabIds[0]).hostWebContents)
+  if(moveProperties.windowId && fromWin.id !== moveProperties.windowId){
+    const toWin = BrowserWindow.fromId(moveProperties.windowId)
   }
+  else{
+    fromWin.webContents.send('chorme-tabs-move-inner',tabIds,moveProperties.index)
+  }
+
 })
 
 simpleIpcFuncCb('chrome-tabs-detectLanguage',(tabId,cb)=> {
