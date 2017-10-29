@@ -41,7 +41,10 @@ const settingDefault =  {
     backSide: ['download','folder','terminal'],
   },
   multistageTabs: false,
+  verticalTab: false,
+  verticalTabWidth: 200,
   tabMinWidth: 150,
+  tabBarHide: false,
 
   //keyboard shortcut default
   keyQuit: 'CmdOrCtrl+Q',

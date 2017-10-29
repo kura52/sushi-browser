@@ -79,7 +79,7 @@ function BrowserNavbarBtn(props){
   return <a href="javascript:void(0)" onContextMenu={props.onContextMenu} style={props.style} className={`${props.className||''} draggable-source ${props.disabled?'disabled':''} ${props.sync ? 'sync' : ''}`} title={props.title} onClick={props.onClick}><i style={props.styleFont} className={`fa fa-${props.icon}`}/>{props.children}</a>
 }
 
-let [alwaysOnTop,multistageTabs,{left,right,backSide}] = ipc.sendSync('get-sync-main-states',['alwaysOnTop','multistageTabs','navbarItems'])
+let [alwaysOnTop,multistageTabs,verticalTab,{left,right,backSide}] = ipc.sendSync('get-sync-main-states',['alwaysOnTop','multistageTabs','verticalTab','navbarItems'])
 let staticDisableExtensions = []
 class BrowserNavbar extends Component{
   constructor(props) {
@@ -282,6 +282,7 @@ class BrowserNavbar extends Component{
     ipc.once(`get-cont-history-reply_${this.props.tab.wvId}`,(e,currentIndex,historyList,rSession,disableExtensions,adBlockGlobal,pdfMode,navbarItems)=>{
       if(currentIndex === (void 0)) return
       staticDisableExtensions = disableExtensions
+      console.log(rSession,this.props.tab)
       console.log(9997,this.props.tab.rSession)
       if(rSession){
         console.log(9998,this.props.tab.rSession)
@@ -845,7 +846,7 @@ class BrowserNavbar extends Component{
       {this.mainMenu(cont, this.props.tab, backSideMenus)}
       {this.state.vpnList ? <VpnList onClick={_=>this.setState({vpnList:false})}/> : null}
       {isFixed && !isFloat ? <BrowserNavbarBtn style={{fontSize:18}} title="Hide Sidebar" icon={`angle-double-${isFixed == 'bottom' ? 'down' : isFixed}`} onClick={()=>this.props.fixedPanelOpen({dirc:isFixed})}/> : null}
-      {!isDarwin && this.props.isTopRight && this.props.toggleNav == 1 ? <RightTopBottonSet style={{lineHeight: 0.9, transform: 'translateX(6px)',paddingTop: 1}}/> : null }
+      {!isDarwin && this.props.isTopRight && (this.props.toggleNav == 1 || verticalTab) ? <RightTopBottonSet style={{lineHeight: 0.9, transform: 'translateX(6px)',paddingTop: 1}}/> : null }
 
       {isFloat ? <div className="title-button-set" style={{lineHeight: 0.9, transform: 'translateX(6px)'}}>
         <span className="typcn typcn-media-stop-outline" onClick={()=>PubSub.publish(`maximize-float-panel_${this.props.k}`)}></span>

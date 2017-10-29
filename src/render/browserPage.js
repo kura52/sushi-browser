@@ -65,7 +65,9 @@ class BrowserPage extends Component {
     // webview.userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.109 Safari/537.366'
 
     if(this.props.tab.guestInstanceId){
-      webview.attachGuest(this.props.tab.guestInstanceId)
+      if(webview.attachGuest(this.props.tab.guestInstanceId)){
+        this.props.tab.readyAttach = true
+      }
       console.log("webview.attachGuest(this.props.tab.guestInstanceId)",this.props.tab.guestInstanceId)
     }
 

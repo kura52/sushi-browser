@@ -174,11 +174,44 @@ webview::shadow object{
     height: 100%;
 }
 
+
+div.window,
+#content,
+div.wrap-split-window,
 div.split-window{
     width: 100%;
     height: 100%;
 }
 
+div.wrap-split-window{
+    display: flex;
+}
+
+div.vertical-tab{
+}
+
+.vertical-resizer {
+    background: #000;
+    opacity: .2;
+    z-index: 3;
+    box-sizing: border-box;
+    background-clip: padding-box;
+
+    width: 11px;
+    margin: 0 -5px;
+    border-left: 5px solid rgba(255, 255, 255, 0);
+    border-right: 5px solid rgba(255, 255, 255, 0);
+    cursor: col-resize;
+
+    height: 100%;
+    top: 0px;
+    webkit-app-region: no-drag;
+}
+.vertical-resizer:hover {
+    border-left: 5px solid rgba(0, 0, 0, 0.5);
+    border-right: 5px solid rgba(0, 0, 0, 0.5);
+    transition: all 2s ease;
+}
 
 img.favi{
     width: 16px;
@@ -281,7 +314,7 @@ a.search-button:hover {
 }
 
 .rdTabAddButton {
-    transform: skewX(30deg)
+    transform: skewX(30deg);
 }
 
 .rdTabAddButton:hover {
@@ -380,7 +413,7 @@ body::before {
     bottom: 5px;
     max-width: calc(100% - 100px);
     height: 45px;
-    z-index: 2;
+    z-index: 4;
     margin: auto;
     left: 40px;
 }

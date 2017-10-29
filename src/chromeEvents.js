@@ -3,6 +3,7 @@ const BrowserWindowPlus = require('./BrowserWindowPlus')
 import fs from 'fs'
 import sh from 'shelljs'
 import PubSub from './render/pubsub'
+import uuid from 'node-uuid'
 const seq = require('./sequence')
 const {state,favorite,history,visit} = require('./databaseFork')
 const db = require('./databaseFork')
@@ -161,7 +162,25 @@ simpleIpcFunc('chrome-i18n-detectLanguage',inputText=> transLang[franc(inputText
 
 //#windows
 simpleIpcFunc('chrome-windows-create',createData=>{
-  BrowserWindowPlus.load({id:getCurrentWindow().id,x:createData.left,y:createData.top,height:createData.height,width:createData.width,tabParam:JSON.stringify({urls:[{url:createData.url,privateMode:false}],type:'new-win'})})
+  if(createData.tabId){
+    const wins = BrowserWindow.getAllWindows()
+    if(!wins) return
+
+    for(let win of wins.filter(w=>w.getTitle().includes('Sushi Browser'))){
+      try {
+        if(!win.webContents.isDestroyed()){
+          win.webContents.send('chrome-windows-create-from-tabId',createData);
+        }pc
+      }catch(e){
+        // console.log(e)
+      }
+    }
+  }
+  else{
+    BrowserWindowPlus.load({id:getCurrentWindow().id,x:createData.left,y:createData.top,
+      height:createData.height,width:createData.width,
+      tabParam:JSON.stringify({urls:[{url:createData.url,privateMode:false}],type:'new-win'})})
+  }
 })
 
 
@@ -191,6 +210,16 @@ simpleIpcFunc('chrome-windows-getLastFocused',_=>{
 
 
 simpleIpcFunc('chrome-windows-remove',windowId=> BrowserWindow.fromId(windowId).close())
+
+simpleIpcFunc('chrome-windows-get-attributes',windowIds=>{
+  return windowIds.map(windowId=>{
+    const win = BrowserWindow.fromId(windowId)
+    if(!win) return {}
+    const state =  win.isDestroyed() ? 'normal' : win.isMinimized() ? 'minimized' : win.isMaximized() ? 'maximized' : win.isFullScreen() ? 'fullscreen' : 'normal'
+    return {state,type:'normal'}
+  })
+})
+
 
 //#tabs
 process.on('chrome-tabs-created', (tabId) => {
@@ -250,12 +279,19 @@ simpleIpcFuncCb('chrome-tabs-move',(tabIds, moveProperties,cb)=> {
   console.log('chrome-tabs-move',tabIds, moveProperties)
   if(!tabIds || !tabIds.length) return cb()
 
+  const key = uuid.v4()
   const fromWin = BrowserWindow.fromWebContents(webContents.fromTabID(tabIds[0]).hostWebContents)
   if(moveProperties.windowId && fromWin.id !== moveProperties.windowId){
     const toWin = BrowserWindow.fromId(moveProperties.windowId)
+    fromWin.webContents.send('chrome-tabs-move-detach',key,tabIds)
+    ipcMain.once(`chrome-tabs-move-detach-reply_${key}`,(e,datas)=>{
+      toWin.send('chrome-tabs-move-attach',moveProperties.index,datas)
+    })
+    ipcMain.once(`chrome-tabs-move-finished_${key}`,_=>cb([fromWin.id,toWin.id]))
   }
   else{
-    fromWin.webContents.send('chorme-tabs-move-inner',tabIds,moveProperties.index)
+    fromWin.webContents.send('chrome-tabs-move-inner',key,tabIds,moveProperties.index)
+    ipcMain.once(`chrome-tabs-move-finished_${key}`,_=>cb([fromWin.id]))
   }
 
 })
@@ -310,6 +346,30 @@ simpleIpcFuncCb('chrome-tabs-captureVisibleTab',(tabId,options,cb)=>{
     })
   }
 })
+
+
+const tabsEventMethods = ['onMoved','onDetached','onAttached']
+
+for(let method of tabsEventMethods){
+  const registBackgroundPages = new Set()
+  const name = `chrome-tabs-${method}`
+  ipcMain.on(`regist-${name}`,(e)=> registBackgroundPages.add(e.sender))
+  ipcMain.on(`unregist-${name}`,(e)=> registBackgroundPages.delete(e.sender))
+  ipcMain.on(`${name}-to-main`,(e,tabId,info)=>{
+    for(let cont of registBackgroundPages) {
+      if (!cont.isDestroyed()) {
+        if(method == 'onMoved') info.windowId = BrowserWindow.fromWebContents(e.sender).id
+        else if(method == 'onDetached') info.oldWindowId = BrowserWindow.fromWebContents(e.sender).id
+        else if(method == 'onAttached') info.newWindowId = BrowserWindow.fromWebContents(e.sender).id
+        cont.send(name, tabId, info)
+      }
+      else{
+        registBackgroundPages.delete(cont)
+      }
+    }
+  })
+}
+
 
 //#cookies
 simpleIpcFuncCb('chrome-cookies-remove',(details,cb)=>{

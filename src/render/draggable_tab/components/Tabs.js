@@ -18,6 +18,8 @@ import reactMixin  from 'react-mixin'
 import RightTopBottonSet from '../../RightTopBottonSet'
 import PubSub from '../../pubsub'
 
+import VerticalTabResizer from '../../VerticalTabResizer'
+
 const {remote} = require('electron')
 const BrowserWindowPlus = remote.require('./BrowserWindowPlus')
 const mainState = remote.require('./mainState')
@@ -26,7 +28,7 @@ const {alwaysOnTop} = require('../../browserNavbar')
 
 const isDarwin = navigator.userAgent.includes('Mac OS X')
 const bgSvg = `<svg version="1.1" xmlns="http://www.w3.org/2000/svg"><defs><symbol id="topleft" viewBox="0 0 214 29"><path d="M14.3 0.1L214 0.1 214 29 0 29C0 29 12.2 2.6 13.2 1.1 14.3-0.4 14.3 0.1 14.3 0.1Z"></path></symbol><symbol id="topright" viewBox="0 0 214 29"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topleft"></use></symbol><clipPath id="crop"><rect class="mask" width="100%" height="100%" x="0"></rect></clipPath></defs><svg width="50%" height="100%" transfrom="scale(-1, 1)"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topleft" width="214" height="29" class="chrome-tab-background"></use><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topleft" width="214" height="29" class="chrome-tab-shadow"></use></svg><g transform="scale(-1, 1)"><svg width="50%" height="100%" x="-100%" y="0"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topright" width="214" height="29" class="chrome-tab-background"></use><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topright" width="214" height="29" class="chrome-tab-shadow"></use></svg></g></svg>`
-let [scrollTab,multistageTabs,tabMinWidth] = ipc.sendSync('get-sync-main-states',['scrollTab','multistageTabs','tabMinWidth'])
+let [scrollTab,multistageTabs,verticalTab,verticalTabWidth,tabBarHide,tabMinWidth] = ipc.sendSync('get-sync-main-states',['scrollTab','multistageTabs','verticalTab','verticalTabWidth','tabBarHide','tabMinWidth'])
 
 function isFixedPanel(key){
   return key.startsWith('fixed-')
@@ -106,6 +108,7 @@ class Tabs extends React.Component {
       selectedTab,
       // hoveredTab,
       closedTabs,
+      verticalTabWidth: verticalTabWidth
     };
 
     this.state = defaultState;
@@ -205,6 +208,11 @@ class Tabs extends React.Component {
       this.setState({})
     })
 
+    this.tokenHideTabBar = PubSub.subscribe('hide-tabbar',(msg,val)=>{
+      tabBarHide = val
+      this.setState({})
+    })
+
     this.bindShortcuts();
 
     if(scrollTab) this.refs.ttab.addEventListener('wheel',this.handleWheel,{passive: true})
@@ -231,6 +239,7 @@ class Tabs extends React.Component {
       }
       thisDom.querySelector('.rdTabAddButton').style.left = `${i * -13}px`
     })
+    // PubSub.publish('update-tabs',this.props.k)
   }
 
   componentWillUnmount() {
@@ -238,6 +247,7 @@ class Tabs extends React.Component {
     PubSub.unsubscribe(this.tokenResizeWindow)
     PubSub.unsubscribe(this.tokenResize)
     PubSub.unsubscribe(this.tokenMultistageTabs)
+    PubSub.unsubscribe(this.tokenHideTabBar)
     PubSub.unsubscribe(this.tokenTabMove)
 
     this.refs.ttab.removeEventListener('wheel',this.handleWheel,{passive: true})
@@ -258,6 +268,8 @@ class Tabs extends React.Component {
     // override inline tabs styles
     const tabInlineStyles = {};
     tabInlineStyles.tabWrapper = TabStyles.tabWrapper //StyleOverride.merge(TabStyles.tabWrapper, this.props.tabsStyles.tabWrapper);
+    if(this.props.verticalTabPanel) tabInlineStyles.tabWrapper = StyleOverride.merge(TabStyles.tabWrapper,{height: 'initial'})
+
     tabInlineStyles.tabBar = StyleOverride.merge(TabStyles.tabBar, this.props.tabsStyles.tabBar);
     if(this.isMultistageTabsMode()){
       tabInlineStyles.tabBar.display = "flex"
@@ -283,13 +295,28 @@ class Tabs extends React.Component {
       //     titleElements[i].style.display = "flex"
       //   }
     }
+    if(verticalTab){
+      tabInlineStyles.tabWrapper.display = 'flex'
+      delete tabInlineStyles.tabBar.display
+    }
+    else{
+      delete tabInlineStyles.tabWrapper.display
+      tabInlineStyles.tabBar.display = 'flex'
+    }
+
     tabInlineStyles.tab = TabStyles.tab //StyleOverride.merge(TabStyles.tab, this.props.tabsStyles.tab);
-    if(this.isMultistageTabsMode()){
+    if(verticalTab){
+      TabStyles.tab.minWidth = `10px`
+      delete TabStyles.tab.maxWidth
+    }
+    else if(this.isMultistageTabsMode()){
       TabStyles.tab.minWidth = `${tabMinWidth}px`
+      TabStyles.tab.maxWidth = '200px'
       TabStyles.tab.height = '27px'
     }
     else{
       TabStyles.tab.minWidth = '0px'
+      TabStyles.tab.maxWidth = '200px'
       TabStyles.tab.height = void 0
     }
     tabInlineStyles.tabTitle = TabStyles.tabTitle //StyleOverride.merge(TabStyles.tabTitle, this.props.tabsStyles.tabTitle);
@@ -342,7 +369,10 @@ class Tabs extends React.Component {
       // tabStyles = tabStyles || {}
       tabClassNames = tabClassNames || {}
       // containerStyle.height = `calc(100% - ${this.props.toggleNav == 0 ? 27 : this.props.toggleNav == 1 ? 1 : 0}px)`
-      if(this.props.toggleNav == 0 && multistageTabs){
+      if(verticalTab){
+        containerStyle.height = '100%'
+      }
+      else if(this.props.toggleNav == 0 && multistageTabs){
         const ele = document.querySelector(`.s${this.props.k} .tab-base`)
         containerStyle.height = `calc(100% - ${ele ? ele.offsetHeight : 30}px)`
       }
@@ -451,7 +481,11 @@ class Tabs extends React.Component {
     const modifyLeft = this.isMultistageTabsMode() ? 10 :13 * this.state.tabs.length
     TabStyles.tabAddButton.transform = this.isMultistageTabsMode() ? 'initial' : 'skewX(27deg)'
     TabStyles.tabAddButton.left = modifyLeft * -1
-    if(this.props.toggleNav == 1){
+
+    if(verticalTab){
+      tabInlineStyles.tabBar.width = this.state.verticalTabWidth
+    }
+    else if(this.props.toggleNav == 1){
       const thisNode = ReactDOM.findDOMNode(this)
       let prefix
       if(thisNode){
@@ -475,10 +509,39 @@ class Tabs extends React.Component {
     else{
       TabStyles.tabAddButton.marginTop = 0
     }
+
+    if(this.props.verticalTabPanel){
+      TabStyles.tabAddButton.top = 2
+      TabStyles.tabAddButton.display = 'flex'
+      TabStyles.tabAddButton.width = '80%'
+      TabStyles.tabAddButton.height = 17
+      delete TabStyles.tabAddButton.left
+      TabStyles.tabAddButton.marginLeft = 'auto'
+    }
+    else if(verticalTab){
+      TabStyles.tabBar.overflowY = 'overlay'
+      TabStyles.tabAddButton.top = 2
+      TabStyles.tabAddButton.display = 'flex'
+      TabStyles.tabAddButton.width = '80%'
+      TabStyles.tabAddButton.height = 17
+      delete TabStyles.tabAddButton.left
+      TabStyles.tabAddButton.marginLeft = 'auto'
+    }
+    else{
+      delete TabStyles.tabBar.overflowY
+      TabStyles.tabAddButton.top = 7
+      TabStyles.tabAddButton.height = 16
+      delete TabStyles.tabAddButton.display
+      TabStyles.tabAddButton.width = 25
+      TabStyles.tabAddButton.marginLeft = 14
+    }
+
+
     return {_tabClassNames,tabInlineStyles,tabs,content}
   }
 
   componentDidUpdate() {
+    // PubSub.publish('update-tabs',this.props.k)
     // this.addDropEvent()
     // this.setState({renders: this.buildRenderComponent()})
   }
@@ -521,11 +584,11 @@ class Tabs extends React.Component {
 
   handleRemove(e) {
     console.log("handleRemove")
-    const _tabs = this.state.tabs
-    console.log(this.state.tabs,e)
-    this.props.onClose(e,this.state.tabs)
-
-    const i = e.oldIndex
+    // const _tabs = this.state.tabs
+    // console.log(this.state.tabs,e)
+    // this.props.onClose(e,this.state.tabs)
+    //
+    // const i = e.oldIndex
     // const key = _tabs.length > i ? _tabs[i].key : _tabs.length > 0 ? _tabs[i-1].key : null
     // this.props.onTabPositionChange(e, key, _tabs);
   }
@@ -535,16 +598,19 @@ class Tabs extends React.Component {
     this.props.onTabPositionChange(e, key, this.state.tabs);
     this.setState({selectedTab:key});
     console.log("handleUpdate",e,this)
+    ipc.send('chrome-tabs-onMoved-to-main',this.state.tabs[e.newIndex].props.orgTab.wvId,{fromIndex:e.oldIndex,toIndex:e.newIndex})
   }
 
   handleAdd(e) {
     console.log("handleAdd")
     const key = this.state.tabs[e.newIndex].key
-    this.props.onTabAddOtherContainer(e, key, this.state.tabs);
-    this.props.onTabPositionChange(e, key, this.state.tabs);
-
-    this.setState({selectedTab:key});
-
+    const fromTab = this.state.tabs[e.newIndex].props.orgTab.wvId
+    if(e.newIndex == 0){
+      ipc.emit('chrome-tabs-move-inner',null,null,[fromTab],this.state.tabs[1].key,false,key)
+    }
+    else{
+      ipc.emit('chrome-tabs-move-inner',null,null,[fromTab],this.state.tabs[e.newIndex-1].key,true,key)
+    }
   }
 
   handleEnd(e) {
@@ -660,7 +726,6 @@ class Tabs extends React.Component {
       ele.classList.remove("front")
     }
 
-
     const contentEle = document.getElementById("content")
     for(let ele of contentEle.querySelectorAll(this.props.toggleNav == 1 ? ".navbar-main" : ".rdTabBar")){
       const rect = ele.getBoundingClientRect()
@@ -669,6 +734,9 @@ class Tabs extends React.Component {
     }
 
     if(isMove) return
+
+    evt.stopPropagation()
+    evt.preventDefault()
 
     const selectionTabs = this.state.tabs.filter(t=>t.props.selection)
     if(selectionTabs.length > 0) tabs = null
@@ -710,6 +778,7 @@ class Tabs extends React.Component {
         if(tabs.length == 1){
           const tab = tabs[0]
           getWebContents(tab).detach(_=>{
+            ipc.send('chrome-tabs-onDetached-to-main',tab.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==tab.key)})
             BrowserWindowPlus.load({id:remote.getCurrentWindow().id,dropX:evt.screenX,dropY:evt.screenY,alwaysOnTop: alwaysOnTop[0],
               tabParam:JSON.stringify([{wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,
                 rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || getWebContents(tab).guestInstanceId}])})
@@ -732,6 +801,9 @@ class Tabs extends React.Component {
             })
           })
           Promise.all(promises).then(vals=>{
+            for(let d of vals){
+              ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
+            }
             BrowserWindowPlus.load({id:remote.getCurrentWindow().id,x:evt.screenX,y:evt.screenY,tabParam:JSON.stringify(vals)})
             console.log(5435,vals)
             for(let val of vals) PubSub.publish(`close_tab_${this.props.k}`, {key: val.c_key})
@@ -764,15 +836,10 @@ class Tabs extends React.Component {
       else if((data.addButton && trans[0].k != this.props.k) || data.selection){
         console.log(transfer[trans[0].k],trans[0].k)
         if(transfer[trans[0].k]){
-          this.props.handleTabAddOtherPanel(tab.key,transfer[trans[0].k])
-          if(data.addButton){
-            PubSub.publish(`close-panel_${trans[0].k}`,1000)
-          }
-          else{
-            for(let t of transfer[trans[0].k]){
-              PubSub.publish(`close_tab_${trans[0].k}`, {key: t.key,time:1000})
-            }
-          }
+          const fromTabs = transfer[trans[0].k].map(t=>t.wvId)
+          if(!fromTabs.includes(tab.wvId))
+            ipc.emit('chrome-tabs-move-inner',null,null,fromTabs,tab.key,true)
+
           delete transfer[trans[0].k]
         }
         else{
@@ -793,7 +860,7 @@ class Tabs extends React.Component {
     if(!dragData) return
     console.log(134,dragData.windowId == this.props.windowId,this.props.k == dragData.k,dragData.tabs,dragData)
     if(dragData.windowId == this.props.windowId){
-      if(this.props.k == dragData.k || dragData.tabs) return
+      if(dragData.tabs) return
     }
     console.log(evt,evt.target)
     const classList = evt.target.classList
@@ -871,31 +938,53 @@ class Tabs extends React.Component {
 
   render() {
     const {_tabClassNames,tabInlineStyles,tabs,content} = this.buildRenderComponent()
+    const tabBaseStyle = this.props.toggleNav == 2 ? {display: 'none'} :
+      this.props.toggleNav == 3 ? {
+          height: 27,
+          background: 'rgb(221, 221, 221)',
+          borderBottom: '1px solid #aaa',
+          zIndex: 2,
+          position: 'absolute',
+          width: '100%'
+        }:
+        this.isMultistageTabsMode() ?
+          {
+            height : void 0,
+            background: 'rgb(221, 221, 221)',
+            borderBottom: '1px solid #aaa',
+          } :
+          this.props.toggleNav == 1 ? {} :
+            {
+              height: 27,
+              background: 'rgb(221, 221, 221)',
+              borderBottom: '1px solid #aaa',
+            }
+
+    if(verticalTab){
+      tabBaseStyle.flex = '1'
+      tabBaseStyle.width = this.state.verticalTabWidth
+    }
+    else{
+      delete tabBaseStyle.flex
+      delete tabBaseStyle.width
+    }
+
+    if(this.props.verticalTabPanel){
+      tabBaseStyle.paddingTop = 5
+      tabBaseStyle.paddingBottom = 5
+    }
+    if(tabBarHide && !this.props.verticalTabPanel){
+      tabBaseStyle.display = 'none'
+    }
+    else{
+      tabBaseStyle.display = 'inherit'
+    }
+
     return (
       <div style={tabInlineStyles.tabWrapper} className={_tabClassNames.tabWrapper} ref="div"
            onDragOver={(e)=>{e.preventDefault();return false}} onDrop={(e)=>{e.preventDefault();return false}}
            onKeyDown={this.props.onKeyDown}>
-        <div className={`tab-base${this.props.toggleNav == 3 ? ' full-screen' : ''}`} style={this.props.toggleNav == 2 ? {display: 'none'} :
-          this.props.toggleNav == 3 ? {
-              height: 27,
-              background: 'rgb(221, 221, 221)',
-              borderBottom: '1px solid #aaa',
-              zIndex: 2,
-              position: 'absolute',
-              width: '100%'
-            }:
-            this.isMultistageTabsMode() ?
-              {
-                height : void 0,
-                background: 'rgb(221, 221, 221)',
-                borderBottom: '1px solid #aaa',
-              } :
-              this.props.toggleNav == 1 ? {} :
-                {
-                  height: 27,
-                  background: 'rgb(221, 221, 221)',
-                  borderBottom: '1px solid #aaa',
-                }}>
+        <div className={`tab-base${this.props.toggleNav == 3 ? ' full-screen' : ''}`} style={tabBaseStyle}>
           <ul tabIndex="-1" style={tabInlineStyles.tabBar} className={_tabClassNames.tabBar} ref="ttab"
               onDoubleClick={isDarwin ? _=>{
                 const win = remote.getCurrentWindow()
@@ -912,11 +1001,18 @@ class Tabs extends React.Component {
             <span ref="addButton" draggable="true" className="rdTabAddButton"
                   style={Object.assign({},TabStyles.tabAddButton)} onClick={this.handleAddButtonClick.bind(this)}
                   onDragStart={this.handleDragStart.bind(this, null)} onDragEnd={this.handleDragEnd.bind(this, null)}>
+              {verticalTab || this.props.verticalTabPanel ? <i className="fa fa-plus" aria-hidden="true"  style={{marginLeft: 'auto', marginRight: 'auto', fontSize: 13, padding: 2}}/> : null}
               {this.props.tabAddButton}
             </span>
-            {!isDarwin && this.props.isTopRight && this.props.toggleNav != 1 ? <RightTopBottonSet style={{transform: `translateX(${this.isMultistageTabsMode() ? 1 : - this.state.tabs.length * 13 + 6}px)`}}/>: ""}
+            {!verticalTab && !isDarwin && this.props.isTopRight && this.props.toggleNav != 1 ? <RightTopBottonSet style={{transform: `translateX(${this.isMultistageTabsMode() ? 1 : - this.state.tabs.length * 13 + 6}px)`}}/>: ""}
           </ul>
         </div>
+        {verticalTab ? <VerticalTabResizer width={tabBaseStyle.width} setWidth={(w, decision)=>{
+          this.setState({verticalTabWidth:w})
+          this.props.parent.webViewCreate()
+          verticalTabWidth = w
+          if(decision) mainState.set('verticalTabWidth',w)
+        }}/> : null}
         {content}
       </div>
     );

@@ -92,7 +92,9 @@ if(chrome.windows){
   chrome.windows.getAll = (getInfo, callback)=>{
     if(typeof getInfo === 'function') [getInfo,callback] = [null,getInfo]
     getInfo = getInfo || {}
-    chrome.windows._getAll(getInfo, callback)
+    chrome.windows._getAll(getInfo, windows=>{
+      simpleIpcFunc('chrome-windows-get-attributes',rets=>callback(windows.map((w,i)=>Object.assign(w,rets[i]))),windows.map(w=>w.id))
+    })
   }
 
 
@@ -105,7 +107,7 @@ if(chrome.windows){
         chrome.windows.getLastFocused(getInfo,callback)
       }
       else{
-        callback(window)
+        simpleIpcFunc('chrome-windows-get-attributes',ret=>callback({...window,...ret[0]}),[window.id])
       }
     })
   }
@@ -142,24 +144,16 @@ if(chrome.windows){
 
   chrome.windows.remove = (windowId,callback)=> simpleIpcFunc('chrome-windows-remove',callback,windowId)
 
-  const methods = ['onCreated','onRemoved','onFocusChanged']
 
-  for(let method of methods){
+  for(let method of ['onCreated','onRemoved','onFocusChanged']){
     const name = `chrome-windows-${method}`
     const ipcEvents = {}
     chrome.windows[method] = {
       addListener(cb) {
         console.log(method)
-        ipcEvents[cb] = (e, details) => cb(details)
         ipc.send(`regist-${name}`)
-        if(name == 'onCreated'){
-          ipc.on(name, windowId=>{
-            chrome.windows.get(windowId, {}, ipcEvents[cb])
-          })
-        }
-        else{
-          ipc.on(name,ipcEvents[cb])
-        }
+        ipcEvents[cb] = method == 'onCreated' ? (e,windowId)=>{ chrome.windows.get(windowId, {}, cb) } : (e, details) => cb(details)
+        ipc.on(name,ipcEvents[cb])
       },
       removeListener(cb){
         ipc.send(`unregist-${name}`)
@@ -208,7 +202,18 @@ if(chrome.tabs){
     if(isFinite(tabIds)){
       tabIds = [tabIds]
     }
-    simpleIpcFunc('chrome-tabs-move',callback,tabIds, moveProperties)
+    simpleIpcFunc('chrome-tabs-move',winIds=>{
+      chrome.windows.getAll({populate:true},windows=>{
+        const tabs = []
+        for(let win of windows){
+          if(!winIds.includes(win.id)) continue
+          for(let tab of win.tabs){
+            if(tabIds.includes(tab.id)) tabs.push(tab)
+          }
+        }
+        callback(tabs)
+      })
+    },tabIds, moveProperties)
   }
 
   chrome.tabs.getAllInWindow = (windowId, callback)=>{
@@ -261,117 +266,53 @@ if(chrome.tabs){
   const ipc = chrome.ipcRenderer
   const extensionId = chrome.runtime.id
 
-  const onUpdated = {}, onCreated = {}, onRemoved = {}, onActivated = {},
-    onSelectionChanged = {}, onActiveChanged = {}
+  for(let event_name of ['updated', 'created', 'removed', 'activated','activeChanged','selectionChanged']){
+    const ipcEvent = {},name = `chrome-tabs-${event_name}`
+    chrome.tabs[`on${event_name.charAt(0).toUpperCase()}${event_name.slice(1)}`] = {
+      addListener: function (cb) {
+        ipcEvent[cb] = function(evt, tabId, changeInfo, tab) {
+          if(tab && tab.url && tab.url.startsWith('chrome://brave/')) return
+          cb(tabId, changeInfo, tab);
+        }
+        ipc.send(`register-chrome-tabs-${event_name}`, extensionId);
+        ipc.on(name, ipcEvent[cb])
+      },
+      removeListener: function(cb){
+        ipc.removeListener(name, ipcEvent[cb])
+      },
+      hasListener(cb){
+        return !!ipcEvent[cb]
+      },
+      hasListeners(){
+        return !!Object.keys(ipcEvent).length
+      }
+    }
+  }
 
-  chrome.tabs.onUpdated = {
-    addListener: function (cb) {
-      onUpdated[cb] = function(evt, tabId, changeInfo, tab) {
-        cb(tabId, changeInfo, tab);
+
+  for(let method of ['onMoved','onDetached','onAttached']){
+    const name = `chrome-tabs-${method}`
+    const ipcEvents = {}
+    chrome.tabs[method] = {
+      addListener(cb) {
+        console.log(method)
+        ipcEvents[cb] = (e, tabId, info) => cb(tabId, info)
+        ipc.send(`regist-${name}`)
+        ipc.on(name, ipcEvents[cb])
+      },
+      removeListener(cb){
+        ipc.send(`unregist-${name}`)
+        ipc.removeListener(name, ipcEvents[cb])
+      },
+      hasListener(cb){
+        return !!ipcEvents[cb]
+      },
+      hasListeners(){
+        return !!Object.keys(ipcEvents).length
       }
-      ipc.send('register-chrome-tabs-updated', extensionId);
-      ipc.on('chrome-tabs-updated', onUpdated[cb])
-    },
-    removeListener: function(cb){
-      ipc.removeListener('chrome-tabs-updated', onUpdated[cb])
-    },
-    hasListener(cb){
-      return !!onUpdated[cb]
-    },
-    hasListeners(){
-      return !!Object.keys(onUpdated).length
     }
   }
-  chrome.tabs.onCreated = {
-    addListener: function (cb) {
-      onCreated[cb] = function(evt, tab) {
-        cb(tab)
-      }
-      ipc.send('register-chrome-tabs-created', extensionId);
-      ipc.on('chrome-tabs-created', onCreated[cb])
-    },
-    removeListener: function(cb){
-      ipc.removeListener('chrome-tabs-created', onCreated[cb])
-    },
-    hasListener(cb){
-      return !!onCreated[cb]
-    },
-    hasListeners(){
-      return !!Object.keys(onCreated).length
-    }
-  }
-  chrome.tabs.onRemoved = {
-    addListener: function (cb) {
-      onRemoved[cb] = function (evt, tabId, removeInfo) {
-        cb(tabId, removeInfo)
-      }
-      ipc.send('register-chrome-tabs-removed', extensionId);
-      ipc.on('chrome-tabs-removed', onRemoved[cb])
-    },
-    removeListener: function(cb){
-      ipc.removeListener('chrome-tabs-removed', onRemoved[cb])
-    },
-    hasListener(cb){
-      return !!onRemoved[cb]
-    },
-    hasListeners(){
-      return !!Object.keys(onRemoved).length
-    }
-  }
-  chrome.tabs.onActivated = {
-    addListener: function (cb) {
-      onActivated[cb] = function (evt, tabId, activeInfo) {
-        cb(activeInfo)
-      }
-      ipc.send('register-chrome-tabs-activated', extensionId)
-      ipc.on('chrome-tabs-activated', onActivated[cb])
-    },
-    removeListener: function(cb){
-      ipc.removeListener('chrome-tabs-activated', onActivated[cb])
-    },
-    hasListener(cb){
-      return !!onActivated[cb]
-    },
-    hasListeners(){
-      return !!Object.keys(onActivated).length
-    }
-  }
-  chrome.tabs.onSelectionChanged = {
-    addListener: function (cb) {
-      onSelectionChanged[cb] = function (evt, tabId, selectInfo) {
-        cb(tabId, selectInfo)
-      }
-      ipc.send('register-chrome-tabs-activated', extensionId)
-      ipc.on('chrome-tabs-activated', onSelectionChanged[cb])
-    },
-    removeListener: function(cb){
-      ipc.removeListener('chrome-tabs-activated', onSelectionChanged[cb])
-    },
-    hasListener(cb){
-      return !!onSelectionChanged[cb]
-    },
-    hasListeners(){
-      return !!Object.keys(onSelectionChanged).length
-    }
-  }
-  chrome.tabs.onActiveChanged = {
-    addListener: function (cb) {
-      onActiveChanged[cb] = function (evt, tabId, selectInfo) {
-        cb(tabId, selectInfo)
-      }
-      ipc.send('register-chrome-tabs-activated', extensionId)
-      ipc.on('chrome-tabs-activated', onActiveChanged[cb])
-    },
-    removeListener: function(cb){
-      ipc.removeListener('chrome-tabs-activated', onActiveChanged[cb])
-    },
-    hasListener(cb){
-      return !!onActiveChanged[cb]
-    },
-    hasListeners(){
-      return !!Object.keys(onActiveChanged).length
-    }
-  }
+
 }
 
 
@@ -424,9 +365,8 @@ if(chrome.privacy){
 
 if(chrome.webNavigation){
   const ipc = chrome.ipcRenderer
-  const methods = ['onBeforeNavigate','onCommitted','onDOMContentLoaded','onCompleted','onErrorOccurred','onCreatedNavigationTarget']
 
-  for(let method of methods){
+  for(let method of ['onBeforeNavigate','onCommitted','onDOMContentLoaded','onCompleted','onErrorOccurred','onCreatedNavigationTarget']){
     const name = `chrome-webNavigation-${method}`
     const ipcEvents = {}
     chrome.webNavigation[method] = {

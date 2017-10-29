@@ -12,6 +12,7 @@ const {BrowserWindow} = remote
 const mainState = remote.require('./mainState')
 import MenuOperation from './MenuOperation'
 import url from 'url'
+import VerticalTabPanel from './VerticalTabPanel'
 const FloatPanel = require('./FloatPanel')
 const {token} = require('./databaseRender')
 const PanelOverlay = require('./PanelOverlay')
@@ -50,8 +51,9 @@ function getPanelId(key) {
   return parseInt(keySplit[keySplit.length - 1]);
 }
 
-function getWindowId(winId, key) {
-  return winId * 100000 + getPanelId(key);
+function getWebContents(tab){
+  if(!tab.wv || !tab.wvId) return
+  return global.currentWebContents[tab.wvId]
 }
 
 function getParam() {
@@ -83,6 +85,21 @@ function equallyDivide(x,n){
   return [...new Array(n)].map((v,i) => Math.floor((x+i)/n))
 }
 
+function removeEvents(ipc,events){
+  for (var key in events) {
+    if (events.hasOwnProperty(key)) {
+      const value = events[key]
+      if(key == 'ipc-message'){
+        value[0].removeEventListener('ipc-message',value[1] )
+      }
+      else{
+        ipc.removeListener(key,value)
+      }
+    }
+  }
+}
+
+
 export default class SplitWindows extends Component{
   initBind(){
     this.split = ::this.split
@@ -99,6 +116,9 @@ export default class SplitWindows extends Component{
     this.hidePanel = ::this.hidePanel
     this.deleteAttach = ::this.deleteAttach
     this.orderingIndexes = ::this.orderingIndexes
+    this.closeFloat = ::this.closeFloat
+    this.allKeys = ::this.allKeys
+
   }
 
   constructor(props) {
@@ -468,8 +488,10 @@ export default class SplitWindows extends Component{
     ipc.on('leave-full-screen',this.fullScreenState)
 
 
-    this.eventChromeTabsMoveInner = (e,tabIds,index)=>{
+    this.eventChromeTabsMoveInner = (e,sendKey,tabIds,indexOrKey,isBack,selectedTab)=>{
+      const isIndex = isFinite(indexOrKey)
       const keys = []
+      const oldIndexes = {}
       this.allKeys(this.state.root,keys)
       const map = {}
       let order = 0,indexKey,realIndex
@@ -483,98 +505,218 @@ export default class SplitWindows extends Component{
             else{
               map[key] = [[tab,i,order]]
             }
+            oldIndexes[tab.wvId] = order
           }
-          i++
-          if(index == order){
+          if(isIndex ? indexOrKey == order : indexOrKey == tab.key){
             if(!map[key]){
               map[key] = []
             }
             indexKey = key
             realIndex = i
           }
+          i++
           order++
         }
       }
 
       const keyArr = Object.keys(map)
-      if(keyArr.length == 1){
-        const key = keyArr[0]
-        const tabs = this.refs2[key].state.tabs
-        if(index == -1) index = tabs.length
-
-        const befores = [],afters = []
-        for(let ele of map[key]){
-          if(ele[1] < index){
-            befores.push(ele)
-          }
-          else{
-            afters.push(ele)
-          }
-        }
-
-        const range = afters.length
-        const moveTabs = [...befores.map(x=>x[0]),...afters.map(x=>x[0])]
-        tabs.splice(index,0,...moveTabs)
-        for(let ele of befores.reverse()){
-          tabs.splice(ele[1],1)
-        }
-        for(let ele of afters.reverse()){
-          tabs.splice(ele[1]+range,1)
-        }
-        this.refs2[key].setState({selectedTab: moveTabs[moveTabs.length-1].key})
+      if(!indexKey){
+        indexKey = keyArr[keyArr.length - 1]
+        realIndex = this.refs2[indexKey].state.tabs.length
       }
-      else{
-        if(index == -1){
-          indexKey = keyArr[keyArr.length - 1]
-          realIndex = this.refs2[indexKey].state.tabs.length
-        }
-        const befores = [],afters = [],beforeOthers = [],afterOthers = []
+      const befores = [],afters = [],beforeOthers = [],afterOthers = []
 
-        let isBefore = true
-        for(let key of keyArr){
-          if(key == indexKey){
-            isBefore = false
-            continue
-          }
-          const tabs = this.refs2[key].state.tabs
-          const others = isBefore ? beforeOthers : afterOthers
-          for(let ele of map[key]){
-            others.push(ele)
-          }
+      let isBefore = true
+      const funcs = {}
+      for(let key of keyArr){
+        if(key == indexKey){
+          isBefore = false
+          continue
+        }
+        const tabs = this.refs2[key].state.tabs
+        const others = isBefore ? beforeOthers : afterOthers
+        for(let ele of map[key]){
+          const tab = ele[0]
+          const n_tab = this.refs2[indexKey].createTab({c_page:tab.page,c_wv:tab.wv,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,guestInstanceId: tab.guestInstanceId,
+            rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis}})
+          others.push([n_tab,ele[1],ele[0]])
+        }
+        funcs[key] =_=>{
           for(let ele of others.reverse()){
-            this.refs2[key].state.selectedTab = this.refs2[key].getNextSelectedTab(...ele)
+            if(ele[2].events) removeEvents(ipc,ele[2].events)
             tabs.splice(ele[1],1)
+            this.refs2[key].state.selectedTab = this.refs2[key].getNextSelectedTab(...ele)
           }
         }
+      }
 
 
-        const tabs = this.refs2[indexKey].state.tabs
-        for(let ele of map[indexKey]){
-          if(ele[1] < realIndex){
-            befores.push(ele)
-          }
-          else{
-            afters.push(ele)
-          }
+      const tabs = this.refs2[indexKey].state.tabs
+      for(let ele of map[indexKey]){
+        if(ele[1] < realIndex){
+          befores.push(ele)
         }
+        else{
+          afters.push(ele)
+        }
+      }
 
-        const range = beforeOthers.length + afterOthers.length + afters.length
-        const moveTabs = [...beforeOthers.map(x=>x[0]),...befores.map(x=>x[0]),...afters.map(x=>x[0]),...afterOthers.map(x=>x[0])]
-        tabs.splice(index,0,...moveTabs)
-        for(let ele of befores.reverse()){
-          tabs.splice(ele[1],1)
-        }
-        for(let ele of afters.reverse()){
-          tabs.splice(ele[1]+range,1)
-        }
-        this.refs2[indexKey].state.selectedTab = moveTabs[moveTabs.length-1].key
-        this.setState({})
+      const range = beforeOthers.length + afterOthers.length + afters.length
+      tabs.splice(isBack ? realIndex+1 : realIndex,0,...beforeOthers.map(x=>x[0]),...befores.map(x=>x[0]),...afters.map(x=>x[0]),...afterOthers.map(x=>x[0]))
+      for(let ele of befores.reverse()){
+        tabs.splice(ele[1],1)
+      }
+      for(let ele of afters.reverse()){
+        tabs.splice(ele[1]+range,1)
+      }
+      this.refs2[indexKey].setState(selectedTab ? {selectedTab} : {},_=>{
         for(let key of keyArr) {
-          this.refs2[key].setState({})
+          if(key == indexKey) continue
+          const panel = this.refs2[key]
+          funcs[key]()
+          panel.setState({})
+          if(!panel.state.tabs.length) PubSub.publish(`close-panel_${panel.props.k}`,100)
         }
+        if(sendKey) ipc.send(`chrome-tabs-move-finished_${sendKey}`)
+      })
+
+      const newIndexes = {}
+      order = 0
+      for(let key of keys){
+        let i = 0
+        for(let tab of this.refs2[key].state.tabs){
+          if(tabIds.includes(tab.wvId)){
+            newIndexes[tab.wvId] = order
+          }
+          order++
+        }
+      }
+
+      for(let [tabId,toIndex] of Object.entries(newIndexes)){
+        ipc.send('chrome-tabs-onMoved-to-main',tabId,{fromIndex:oldIndexes[tabId],toIndex})
+      }
+      // }
+    }
+    ipc.on('chrome-tabs-move-inner',this.eventChromeTabsMoveInner)
+
+
+
+    this.eventChromeTabsMoveDetach = (e,sendKey,tabIds)=>{
+      const keys = []
+      const oldIndexes = {}
+      this.allKeys(this.state.root,keys)
+      const map = {}
+      let order = 0
+      for(let key of keys){
+        let i = 0
+        for(let tab of this.refs2[key].state.tabs){
+          if(tabIds.includes(tab.wvId)){
+            if(map[key]){
+              map[key].push([tab,i,order])
+            }
+            else{
+              map[key] = [[tab,i,order]]
+            }
+            oldIndexes[tab.wvId] = order
+          }
+          i++
+          order++
+        }
+      }
+
+      const keyArr = Object.keys(map)
+      const detaches = [],promises = []
+
+      for(let key of keyArr){
+        const tabs = this.refs2[key].state.tabs
+        for(let ele of map[key]){
+          const tab = ele[0]
+          const panel = this.refs2[key]
+          const promise = new Promise((resolve,reject)=>{
+            getWebContents(tab).detach(_=>{
+              resolve({wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,
+                rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || getWebContents(tab).guestInstanceId})
+            })
+          })
+          promises.push(promise)
+          detaches.push(ele)
+        }
+        Promise.all(promises).then(datas=>{
+          console.log(434234,datas)
+          for(let d of datas){
+            ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: oldIndexes[d.wvId]})
+          }
+          ipc.send(`chrome-tabs-move-detach-reply_${sendKey}`,datas)
+          setTimeout(_=>{
+            for(let ele of detaches.reverse()){
+              if(ele[0].events) removeEvents(ipc,ele[0].events)
+              tabs.splice(ele[1],1)
+              this.refs2[key].state.selectedTab = this.refs2[key].getNextSelectedTab(...ele)
+            }
+            for(let key of keyArr) {
+              const panel = this.refs2[key]
+              panel.setState({})
+              if(!panel.state.tabs.length) panel.props.close(panel.props.k)
+            }
+            ipc.send(`chrome-tabs-move-finished_${sendKey}`)
+          },100)
+        })
       }
     }
-    ipc.on('chorme-tabs-move-inner',this.eventChromeTabsMoveInner)
+    ipc.on('chrome-tabs-move-detach',this.eventChromeTabsMoveDetach)
+
+
+    this.eventChromeTabsMoveAttach = (e,index,datas)=>{
+      const keys = []
+      this.allKeys(this.state.root,keys)
+      const map = {}
+      let order = 0,indexKey,realIndex
+      for(let key of keys){
+        let i = 0
+        for(let tab of this.refs2[key].state.tabs){
+          if(index == order){
+            indexKey = key
+            realIndex = i
+            break
+          }
+          i++
+          order++
+        }
+      }
+
+      console.log(index,datas,indexKey,realIndex,map)
+      const keyArr = keys
+      if(!indexKey){
+        indexKey = keyArr[keyArr.length - 1]
+        realIndex = this.refs2[indexKey].state.tabs.length
+      }
+      console.log(index,datas,indexKey,realIndex)
+      const panel = this.refs2[indexKey]
+      const tabs = panel.state.tabs
+
+      const tabIds = new Set()
+      for(let data of datas){
+        tabIds.add(data.wvId)
+        remote.getWebContents(data.wvId,cont=>{
+          this.currentWebContents[data.wvId] = cont
+        })
+        const n_tab = panel.createTab({c_page:data.c_page,c_key:data.c_key,privateMode:data.privateMode,pin:data.pin,guestInstanceId:data.guestInstanceId,rest:data.rest})
+        tabs.splice(realIndex++, 0, n_tab)
+      }
+      this.refs2[indexKey].setState({})
+
+      // order = 0
+      // for(let key of keys){
+      //   let i = 0
+      //   for(let tab of this.refs2[key].state.tabs){
+      //     if(tabIds.has(tab.wvId)){
+      //       ipc.send('chrome-tabs-onAttached-to-main',tab.wvId,{newPosition: order})
+      //     }
+      //     order++
+      //   }
+      // }
+    }
+    ipc.on('chrome-tabs-move-attach',this.eventChromeTabsMoveAttach)
 
 
     this.tokenAlign = PubSub.subscribe("align",(_,e)=>{
@@ -588,7 +730,7 @@ export default class SplitWindows extends Component{
       console.log("wMod",wMod)
       console.log("hmod",hMod)
 
-      const w = window.innerWidth - wMod
+      const w = window.innerWidth - wMod - document.querySelector('.vertical-tab').offsetWidth
       const h = window.innerHeight - hMod
       const event = {dirc: e!="v" ? "vertical" : "horizontal",size: e!="v" ? w/mapDepth.get("max")[0]: h/mapDepth.get("max")[1],map:mapDepth}
       PubSub.publish("align-panel",event)
@@ -673,6 +815,8 @@ export default class SplitWindows extends Component{
     ipc.removeListener("page-title-updated",this.pageUpdate)
     ipc.removeListener("did-get-response-details",this.getResponseDetails)
     ipc.removeListener('chorme-tabs-move-inner',this.eventChromeTabsMoveInner)
+    ipc.removeListener('chorme-tabs-move-detach',this.eventChromeTabsMoveDetach)
+    ipc.removeListener('chorme-tabs-move-attach',this.eventChromeTabsMoveAttach)
 
     PubSub.unsubscribe(this.tokenAlign)
     PubSub.unsubscribe(this.tokenAllDetach)
@@ -747,7 +891,7 @@ export default class SplitWindows extends Component{
     return arr
   }
 
-  allKeys(node,arr){
+  allKeys(node=this.state.root,arr){
     if (!Array.isArray(node.l) && node.l instanceof Object) {
       this.allKeys(node.l,arr)
     }
@@ -1446,7 +1590,8 @@ export default class SplitWindows extends Component{
     for (var [key, value] of this.state.floatPanels.entries()) {
       arr.push(this.renderFloatPanel(value))
     }
-    return <div>
+    return <div className="wrap-split-window">
+      <VerticalTabPanel parent={this} />
       {this.recur(this.state.root,0,true,{val:false})}
       <div>{arr}</div>
       {this.state.overlay ? <PanelOverlay/> : null}

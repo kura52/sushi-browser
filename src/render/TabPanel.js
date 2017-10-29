@@ -84,7 +84,7 @@ function convertURL(url){
   return url == 'chrome://newtab/' ? topURL :
     url == 'chrome://bookmarks/' ? bookmarksURL :
       url == 'chrome://history/' ? historyURL :
-    convertUrlMap.has(url) ? convertUrlMap.get(url) : url
+        convertUrlMap.has(url) ? convertUrlMap.get(url) : url
 }
 
 function multiByteSlice(str,end) {
@@ -214,6 +214,7 @@ let historyMap = new Map([
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html',['History','resource/file.png']],
 ])
 
+const withWindowCreateTabs = new Set()
 export default class TabPanel extends Component {
   constructor(props) {
     super(props);
@@ -226,7 +227,7 @@ export default class TabPanel extends Component {
     if(this.mounted === false){
     }
     else if(this.props.attach){
-      console.log(this.props.attach)
+      console.log('TabAttach',this.props.attach)
       const attachTabs = this.props.attach.data
       this.props.attach.delete()
       let tabs
@@ -285,6 +286,8 @@ export default class TabPanel extends Component {
       console.log('TabCreate')
       const tab = this.createTab(params && {default_url:params.url,privateMode: params.privateMode,guestInstanceId: params.guestInstanceId,
         rest:{bind:params.bind,mobile:params.mobile,adBlockThis:params.adBlockThis}})
+      withWindowCreateTabs.add(tab.key)
+
       this.state = {tokens,
         oppositeGlobal: ipc.sendSync('get-sync-main-state','oppositeGlobal'),
         tabs:[tab],
@@ -331,14 +334,21 @@ export default class TabPanel extends Component {
         console.log(544,tab)
         if(!keepTabs && !tab.forceKeep && !tab.pin) continue
         forceKeep = tab.forceKeep
-        const rSession = rSessions[i++]
+        const rSession = rSessions[i]
         if(rSession){
           rSession.urls = rSession.urls.split("\t")
           rSession.titles = rSession.titles.split("\t")
         }
-        tabs.push(this.createTab({default_url:tab.url,privateMode:tab.privateMode,pin:tab.pin,guestInstanceId: tab.guestInstanceId,rest:{rSession}}))
+        const n_tab = this.createTab({default_url:tab.url,privateMode:tab.privateMode,pin:tab.pin,guestInstanceId: tab.guestInstanceId,rest:{rSession}})
+        tabs.push(n_tab)
+        withWindowCreateTabs.add(n_tab.key)
+        i++
       }
-      if(tabs.length == 0) tabs.push(this.createTab())
+      if(tabs.length == 0){
+        const n_tab = this.createTab()
+        tabs.push(n_tab)
+        withWindowCreateTabs.add(n_tab.key)
+      }
 
       this.state = {tokens,
         tabs,
@@ -367,16 +377,18 @@ export default class TabPanel extends Component {
     this.handleTabSelect = ::this.handleTabSelect
     this.handleCloseRemoveOtherContainer = ::this.handleCloseRemoveOtherContainer
     this.handleTabClose = ::this.handleTabClose
-    this.handleTabAddOtherContainer = ::this.handleTabAddOtherContainer
+    // this.handleTabAddOtherContainer = ::this.handleTabAddOtherContainer
     this.handleTabAddButtonClick = ::this.handleTabAddButtonClick
     this.handleTabPositionChange = ::this.handleTabPositionChange
     this.handleContextMenu = ::this.handleContextMenu
-    this.handleTabAddOtherPanel = ::this.handleTabAddOtherPanel
+    // this.handleTabAddOtherPanel = ::this.handleTabAddOtherPanel
     this.multiSelectionClick = ::this.multiSelectionClick
     this.handleKeyDown = ::this.handleKeyDown
     this.createNewTabFromOtherWindow = ::this.createNewTabFromOtherWindow
     this.resetSelection = ::this.resetSelection
     this.getNextSelectedTab = ::this.getNextSelectedTab
+    this.createTab = ::this.createTab
+    this.webViewCreate = ::this.webViewCreate
   }
 
   initIpcEvents(){
@@ -406,6 +418,7 @@ export default class TabPanel extends Component {
         if(data.keySet.includes(tab.key)){
           const p = new Promise((resolve,reject)=>{
             this.getWebContents(tab).detach(_=>{
+              ipc.send('chrome-tabs-onDetached-to-main',tab.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==tab.key)})
               resolve({wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,
                 rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || this.getWebContents(tab).guestInstanceId})
             })
@@ -439,10 +452,28 @@ export default class TabPanel extends Component {
     ipc.on("close-sync-tab",eventCloseSyncTab)
 
 
+    const eventChromeWindowsCreateFromTabId = (e,createData)=>{
+      if(!this.mounted) return
+      const tab = this.state.tabs.find(t=>t.wvId == createData.tabId)
+      if(!tab) return
+
+      this.getWebContents(tab).detach(_=>{
+        const d = {wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,
+          rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || getWebContents(tab).guestInstanceId}
+        ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
+
+        BrowserWindowPlus.load({id:remote.getCurrentWindow().id,x:createData.left,y:createData.top,
+          height:createData.height,width:createData.width,tabParam:JSON.stringify([d])})
+        PubSub.publish(`close_tab_${this.props.k}`, {key: d.c_key})
+      })
+    }
+    ipc.on('chrome-windows-create-from-tabId',eventChromeWindowsCreateFromTabId)
+
     return [
       {'show-notification': eventNotification},
       {'close-tab-from-other-window': closeTabFromOtherWindow},
-      {'close-sync-tab': eventCloseSyncTab}
+      {'close-sync-tab': eventCloseSyncTab},
+      {'chrome-windows-create-from-tabId': eventChromeWindowsCreateFromTabId},
     ]
   }
 
@@ -913,6 +944,16 @@ export default class TabPanel extends Component {
         tab.wvId = e.tabId
         tab._guestInstanceId = e.guestInstanceId
 
+        if(withWindowCreateTabs.has(tab.key)){
+          ipc.send(`new-window-tabs-created_${tab.wvId}`,self.state.tabs.findIndex(t=>t.key==tab.key))
+          withWindowCreateTabs.delete(tab.key)
+        }
+
+        if(tab.readyAttach){
+          delete tab.readyAttach
+          ipc.send('chrome-tabs-onAttached-to-main',tab.wvId,{newPosition: self.state.tabs.findIndex(t=>t.key==tab.key)})
+        }
+
         self.startProcess(self, page, navigateTo, tab)
 
         console.log('onGuestReady', e.tabId,page)
@@ -985,7 +1026,7 @@ export default class TabPanel extends Component {
 
         ipc.send('get-did-finish-load',tab.wvId,tab.key,tab.rSession)
         ipc.on(`get-did-finish-load-reply_${tab.wvId}`,(e,c)=> {
-        console.log(`get-did-finish-load-reply_${tab.wvId}`,c)
+          console.log(`get-did-finish-load-reply_${tab.wvId}`,c)
           if(!c || !self.mounted) return
           const loc = c.url
           const entryIndex = c.currentEntryIndex
@@ -2271,6 +2312,7 @@ export default class TabPanel extends Component {
     ipc.on('open-link',this.eventOpenLink)
     // console.log(this.state)
     this.setState({})
+    PubSub.publish('update-tabs',this.props.k)
   }
 
   componentWillUnmount() {
@@ -2294,6 +2336,7 @@ export default class TabPanel extends Component {
   }
 
   componentDidUpdate(prevProps, prevState,retry=0){
+    PubSub.publish('update-tabs',this.props.k)
     if(!isFinite(retry)) retry = 0
     if(this.didUpdateTimer) clearTimeout(this.didUpdateTimer)
     this.didUpdateTimer = setTimeout(()=>{
@@ -2538,28 +2581,28 @@ export default class TabPanel extends Component {
     this.setState({tabs: currentTabs.map((x)=>this.state.tabs.find((t)=>t.key === x.key)),selectedTab: key});
   }
 
-  handleTabAddOtherContainer(e, key, currentTabs) {
-    // console.log(98)
-    this.state.tabs = currentTabs.map(tab=>{
-      const orgTab = tab.props.orgTab
-      return tab.key == key ? this.createTab({c_page:orgTab.page,c_wv:orgTab.wv,c_key:orgTab.key,rest:{wvId:orgTab.wvId,bind:orgTab.bind,mobile:orgTab.mobile,adBlockThis:orgTab.adBlockThis,oppositeMode:orgTab.oppositeMode}}) : orgTab
-    })
-    console.log("selected09",key)
-    this.setState({selectedTab: key})
-  }
-
-  handleTabAddOtherPanel(key,tabs){
-    let i = this.state.tabs.findIndex((x)=>x.key===key)
-    let n_tab
-
-    for(let orgTab of tabs){
-      n_tab = this.createTab({c_page:orgTab.page,c_wv:orgTab.wv,c_key:orgTab.key,rest:{wvId:orgTab.wvId,bind:orgTab.bind,mobile:orgTab.mobile,adBlockThis:orgTab.adBlockThis,oppositeMode:orgTab.oppositeMode}})
-      this.state.tabs.splice(++i, 0, n_tab)
-    }
-    console.log("selected10",n_tab.key)
-    this.setState({selectedTab: n_tab.key})
-    this.focus_webview(n_tab)
-  }
+  // handleTabAddOtherContainer(e, key, currentTabs) {
+  //   // console.log(98)
+  //   this.state.tabs = currentTabs.map(tab=>{
+  //     const orgTab = tab.props.orgTab
+  //     return tab.key == key ? this.createTab({c_page:orgTab.page,c_wv:orgTab.wv,c_key:orgTab.key,rest:{wvId:orgTab.wvId,bind:orgTab.bind,mobile:orgTab.mobile,adBlockThis:orgTab.adBlockThis,oppositeMode:orgTab.oppositeMode}}) : orgTab
+  //   })
+  //   console.log("selected09",key)
+  //   this.setState({selectedTab: key})
+  // }
+  //
+  // handleTabAddOtherPanel(key,tabs){
+  //   let i = this.state.tabs.findIndex((x)=>x.key===key)
+  //   let n_tab
+  //
+  //   for(let orgTab of tabs){
+  //     n_tab = this.createTab({c_page:orgTab.page,c_wv:orgTab.wv,c_key:orgTab.key,rest:{wvId:orgTab.wvId,bind:orgTab.bind,mobile:orgTab.mobile,adBlockThis:orgTab.adBlockThis,oppositeMode:orgTab.oppositeMode}})
+  //     this.state.tabs.splice(++i, 0, n_tab)
+  //   }
+  //   console.log("selected10",n_tab.key)
+  //   this.setState({selectedTab: n_tab.key})
+  //   this.focus_webview(n_tab)
+  // }
 
   handleTabAddButtonClick(e, currentTabs) {
     // key must be unique
@@ -3094,7 +3137,7 @@ export default class TabPanel extends Component {
       const active = document.activeElement
       if((flag || active.className != 'prompt')|| active.tagName == 'BODY')
         console.log(3313,active)
-        t.focus()
+      t.focus()
     }, 100)
   }
 
@@ -3197,6 +3240,9 @@ export default class TabPanel extends Component {
       })
     })
     Promise.all(promises).then(vals=>{
+      for(let d of vals){
+        ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
+      }
       BrowserWindowPlus.load({id:remote.getCurrentWindow().id,...bounds,tabParam:JSON.stringify(vals)})
       PubSub.publish(`close-panel_${this.props.k}`)
     })
@@ -3327,6 +3373,7 @@ export default class TabPanel extends Component {
     }
   }
 
+
   render() {
     let toggle = this.state.tabBar !== (void 0) ? this.state.tabBar : this.props.toggleNav
     if(toggle == 1 && this.props.k.match(/fixed\-[lr]/)) toggle = 0
@@ -3338,11 +3385,11 @@ export default class TabPanel extends Component {
         onTabSelect={this.handleTabSelect}
         onClose={this.handleCloseRemoveOtherContainer}
         onTabClose={this.handleTabClose}
-        onTabAddOtherContainer={this.handleTabAddOtherContainer}
+        // onTabAddOtherContainer={this.handleTabAddOtherContainer}
         onTabAddButtonClick={this.handleTabAddButtonClick}
         onTabPositionChange={this.handleTabPositionChange}
         onTabContextMenu={this.handleContextMenu}
-        handleTabAddOtherPanel={this.handleTabAddOtherPanel}
+        // handleTabAddOtherPanel={this.handleTabAddOtherPanel}
         multiSelectionClick={this.multiSelectionClick}
         onKeyDown={this.handleKeyDown}
         createNewTabFromOtherWindow={this.createNewTabFromOtherWindow}

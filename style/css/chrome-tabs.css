@@ -28,8 +28,9 @@
 .chrome-tabs .chrome-tab {
   position: absolute;
   left: 0;
-  height: 2.8em;
-  width: 18em;
+  height: 27px;
+  width: 100%;
+  /*width: 18em;*/
   border: 0;
   margin: 0;
   z-index: 1;
@@ -98,7 +99,7 @@
 }
 
 .chrome-tabs .chrome-tab-drag.multi-row .chrome-tab-background,
-.chrome-tab-selection.multi-row{
+.chrome-tab-selection.multi-row .chrome-tab-background{
   border: 2px dashed white !important;
 }
 

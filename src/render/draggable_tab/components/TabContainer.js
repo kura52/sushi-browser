@@ -29,6 +29,7 @@ TabContainer.defaultProps = {
   style: {},
   hiddenStyle: {
     height: '0px',
+    width: '0px',
     overflow: 'hidden',
   },
 };

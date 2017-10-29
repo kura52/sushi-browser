@@ -864,15 +864,17 @@
     },
 
     _offUpEvents: function () {
-      var ownerDocument = this.el.ownerDocument;
 
       _off(document, 'touchmove', this._onTouchMove);
       _off(document, 'pointermove', this._onTouchMove);
-      _off(ownerDocument, 'mouseup', this._onDrop);
-      _off(ownerDocument, 'touchend', this._onDrop);
-      _off(ownerDocument, 'pointerup', this._onDrop);
-      _off(ownerDocument, 'touchcancel', this._onDrop);
-      _off(ownerDocument, 'selectstart', this);
+      if(this.el){
+        var ownerDocument = this.el.ownerDocument;
+        _off(ownerDocument, 'mouseup', this._onDrop);
+        _off(ownerDocument, 'touchend', this._onDrop);
+        _off(ownerDocument, 'pointerup', this._onDrop);
+        _off(ownerDocument, 'touchcancel', this._onDrop);
+        _off(ownerDocument, 'selectstart', this);
+      }
     },
 
     _onDrop: function (/**Event*/evt) {
