@@ -49,6 +49,18 @@ export default class Download {
 
     const ses = win.webContents.session
     ses.on('will-download', (event, item, webContents) => {
+      if (webContents.isDestroyed()) {
+        event.preventDefault()
+        return
+      }
+
+      const controller = webContents.controller()
+      if (controller && controller.isValid() && controller.isInitialNavigation()) {
+        webContents.forceClose()
+      }
+
+      item.setPrompt(false)
+
       let savePath = this.savePath
       this.savePath = void 0
       let audioExtract

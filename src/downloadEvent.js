@@ -1,4 +1,4 @@
-const {ipcMain,shell} = require('electron')
+ const {ipcMain,shell} = require('electron')
 const path = require('path')
 import {download} from './databaseFork'
 import {getCurrentWindow} from './util'
