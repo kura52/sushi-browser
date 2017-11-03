@@ -36,8 +36,22 @@ var getTabValue = function (tabId) {`)
     val.url = 'chrome://newtab/'
   }
   const opener = tabOpenerMap[tabId]
-  if(val.windowId == -1 && opener){
-    val.windowId = BrowserWindow.fromWebContents(webContents.fromTabID(opener).hostWebContents).id
+  if(val.windowId == -1){
+    if(opener){
+      val.windowId = BrowserWindow.fromWebContents(webContents.fromTabID(opener).hostWebContents).id
+    }
+    else{
+      ipcMain.once(\`new-window-tabs-created_\${tabId}\`,(e,index)=>{
+        tabIndexMap[tabId] = index
+        tabOpenerMap[tabId] = null
+        delete val.openerTabId
+        val.index = index
+        val.windowId = BrowserWindow.fromWebContents(e.sender.hostWebContents).id
+        sendToBackgroundPages('all', getSessionForTab(tabId), 'chrome-tabs-created', val)
+        sendToBackgroundPages('all', getSessionForTab(tabId), 'chrome-tabs-updated', tabId, {status:'loading'}, val)
+      })
+      return tabId
+    }
   }
 
   if(opener){
@@ -74,7 +88,12 @@ var getTabValue = function (tabId) {`)
   if(ret) {
     if((index = tabIndexMap[ret.id]) !== (void 0)) ret.index = index
     if(!ret.status) ret.status ="loading"
-    if(ret.openerTabId == -1 && (opener = tabOpenerMap[ret.id]))  ret.openerTabId = opener
+    if(ret.openerTabId == -1 && (opener = tabOpenerMap[ret.id])){
+      ret.openerTabId = opener
+    }
+    else{
+      delete ret.openerTabId
+    }
   }
   return ret`)
 
@@ -135,6 +154,65 @@ var getTabValue = function (tabId) {`)
 
   if (!error && createProperties.partition) {`)
   .replace("tabValues[tabId].url.startsWith('chrome://brave')","tabValues[tabId].url && tabValues[tabId].url.startsWith('chrome://brave')")
+
+  .replace(`evt.sender.send('chrome-tabs-update-response-' + responseId, response)`,"evt.sender.send('chrome-tabs-update-response-' + responseId, getTabValue(tabId))")
+
+  .replace(`tabs[tabId].tabValue = tabValue
+  let changeInfo = {}
+
+  for (var key in tabValue) {
+    if (!deepEqual(tabValue[key], oldTabInfo[key])) {
+      changeInfo[key] = tabValue[key]
+    }
+  }
+
+  if (Object.keys(changeInfo).length > 0) {
+    if (changeInfo.active) {
+      sendToBackgroundPages('all', getSessionForTab(tabId), 'chrome-tabs-activated', tabId, {tabId: tabId, windowId: tabValue.windowId})
+      process.emit('chrome-tabs-activated', tabId, {tabId: tabId, windowId: tabValue.windowId})
+    }
+    sendToBackgroundPages('all', getSessionForTab(tabId), 'chrome-tabs-updated', tabId, changeInfo, tabValue)
+    process.emit('chrome-tabs-updated', tabId, changeInfo, tabValue)
+  }
+}
+`,`const func = ()=>{
+    let changeInfo = {}
+
+    for (var key in tabValue) {
+      if (!deepEqual(tabValue[key], oldTabInfo[key])) {
+        changeInfo[key] = tabValue[key]
+      }
+    }
+    if (Object.keys(changeInfo).length > 0) {
+      if (changeInfo.active) {
+        sendToBackgroundPages('all', getSessionForTab(tabId), 'chrome-tabs-activated', tabId, {tabId: tabId, windowId: tabValue.windowId})
+        process.emit('chrome-tabs-activated', tabId, {tabId: tabId, windowId: tabValue.windowId})
+      }
+      sendToBackgroundPages('all', getSessionForTab(tabId), 'chrome-tabs-updated', tabId, changeInfo, tabValue)
+      process.emit('chrome-tabs-updated', tabId, changeInfo, tabValue)
+    }
+    tabs[tabId].tabValue = tabValue
+  }
+
+  if(tabValue.windowId == -1 || tabOpenerMap[tabId]  === void 0 || tabIndexMap[tabId] === void 0){
+    if(tabValue.url.startsWith('chrome://brave/')) return
+    let retry = 0
+    const id = setInterval(_=>{
+      tabValue = getTabValue(tabId)
+      if(!tabValue || retry++ > 40){
+        clearInterval(id)
+        return
+      }
+      if(tabValue.windowId == -1 || tabOpenerMap[tabId]  === void 0 || tabIndexMap[tabId] === void 0) return
+
+      func()
+      clearInterval(id)
+    },50)
+  }
+  else{
+    func()
+  }
+}`)
 
 fs.writeFileSync(file,result)
 
