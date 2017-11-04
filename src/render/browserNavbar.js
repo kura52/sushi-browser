@@ -137,6 +137,7 @@ class BrowserNavbar extends Component{
         return
       }
       for (const entry of entries) {
+        if(entry.target.parentNode.parentNode.parentNode.style.width == "0px") return
         const {_left, top, width, height} = entry.contentRect;
         const left =  entry.target.offsetLeft
         if (!rdTabBar) {
@@ -738,6 +739,9 @@ class BrowserNavbar extends Component{
         <NavbarMenuItem key="Left" text="Left" icon="caret left" onClick={()=>this.props.fixedPanelOpen({dirc:"left"})}/>
         <NavbarMenuItem key="Right" text="Right" icon="caret right" onClick={()=>this.props.fixedPanelOpen({dirc:"right"})}/>
         <NavbarMenuItem key="Bottom" text="Bottom" icon="caret down" onClick={()=>this.props.fixedPanelOpen({dirc:"bottom"})}/>
+        <div className="divider" />
+        <NavbarMenuItem key="verticalLeft" text="Vertical Tabs Left" icon="caret left" onClick={()=>PubSub.publish('set-vertical-tab-state',"left")}/>
+        <NavbarMenuItem key="verticalRight" text="Vertical Tabs Right" icon="caret right" onClick={()=>PubSub.publish('set-vertical-tab-state',"right")}/>
       </NavbarMenu>,
 
       mobile: <BrowserNavbarBtn className="sort-mobile" title="Change to Mobile UserAgent" icon="mobile" styleFont={{fontSize: 20}} sync={this.state.mobile} onContextMenu={onContextMenu}

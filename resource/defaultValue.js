@@ -45,6 +45,8 @@ const settingDefault =  {
   verticalTabWidth: 200,
   tabMinWidth: 150,
   tabBarHide: false,
+  verticalTabPosition: 'none',
+  verticalTabTree: true,
 
   //keyboard shortcut default
   keyQuit: 'CmdOrCtrl+Q',

@@ -331,7 +331,7 @@ ipcMain.on('video-infos',(event,{url})=>{
   }
   youtubedl.getInfo(url, function(err, info) {
     if (err){
-      videoUrlsCache.set(url,{error:error})
+      videoUrlsCache.set(url,{error:err})
       event.sender.send('video-infos-reply',{error:'error'})
     }
     console.log(info)
@@ -339,7 +339,7 @@ ipcMain.on('video-infos',(event,{url})=>{
       if(url.includes("youtube")){
         ytdl.getInfo(url, (err, info)=> {
           if (err){
-            videoUrlsCache.set(url,{error:error})
+            videoUrlsCache.set(url,{error:err})
             event.sender.send('video-infos-reply',{error:'error'})
           }
           else{

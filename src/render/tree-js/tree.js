@@ -44,7 +44,7 @@ function setParent(tree, parent) {
  * @param  {object} data The raw tree as litteral object
  * @return {object}      A tree
  */
-function tree (data) {
+export default function tree (data) {
 
   var config = {
     // The raw data can be updated by calling `data(object d)` on the tree`.
@@ -323,29 +323,6 @@ function tree (data) {
     },
 
     /**
-     * Will return a visitor to execute a callback on each node
-     * @return {Function} The visitor
-     */
-    visitor() {
-      return function (cb) {
-        var search = function (rootTree) {
-          if (rootTree.children) {
-            for (var child in rootTree.children) {
-              if (rootTree.children.hasOwnProperty(child) &&
-                search(rootTree.children[child]);
-                rootTree.children[child]) {
-              }
-            }
-          }
-
-          cb(tree(rootTree));
-        };
-
-        search(config.data);
-      };
-    },
-
-    /**
      * Will serialize the tree by using JSON.stringify with custom replacer
      * @return {string} The serialized tree
      */
@@ -363,28 +340,4 @@ function tree (data) {
   configurable(model, config);
 
   return model;
-};
-
-myTree = tree({
-  children: [
-    {
-      name: 'dupuis',
-      children: [
-        {
-          name: 'prunelle',
-          children: [
-            {
-              name: 'lebrac',
-              job: 'designer'
-            },
-            {
-              name: 'lagaffe',
-              firstname: 'gaston',
-              job: 'sleeper'
-            },
-          ]
-        }
-      ]
-    }
-  ]
-});
+}

@@ -644,6 +644,7 @@
 		},
 
 		_onDragStart: function (/**Event*/evt, /**boolean*/useFallback) {
+			console.log(evt,useFallback,rootEl,cloneEl,dragEl)
 			var _this = this;
 			var dataTransfer = evt.dataTransfer;
 			var options = _this.options;
@@ -699,6 +700,15 @@
 
 				_this._dragStartId = _nextTick(_this._dragStarted);
 			}
+		},
+
+		checkElement: function(ele,num=0){
+			if(!ele) return ele
+			if(ele.tagName == "LI"){
+				return ele
+			}
+			if(num > 1) return
+			return this.checkElement(ele.parentNode,num+1)
 		},
 
 		_onDragOver: function (/**Event*/evt) {
@@ -767,6 +777,22 @@
 					return;
 				}
 
+				let tbElement,direction
+				if(evt.target.closest('.vertical-tab')){
+          [tbElement,direction] = [this.checkElement(document.elementFromPoint(evt.clientX,evt.clientY+13)),'bottom']
+          if(!tbElement || tbElement.classList.contains('sortable-ghost')){
+            [tbElement,direction] = [this.checkElement(document.elementFromPoint(evt.clientX,evt.clientY-13)),'top']
+          }
+          if(tbElement && !tbElement.classList.contains('sortable-ghost')){
+            const pos = tbElement.getBoundingClientRect()
+            if((direction == 'bottom' && evt.clientY + 13 > pos.top + 5) || (direction == 'top' && evt.clientY -13 < pos.bottom - 5)){
+              tbElement.classList.add('vertical-selection')
+            }
+            else{
+              tbElement.classList.remove('vertical-selection')
+            }
+          }
+				}
 
 				if ((el.children.length === 0) || (el.children[0] === ghostEl) ||
 					(el === evt.target) && (_ghostIsLast(el, evt))
@@ -833,6 +859,7 @@
 					}
 
 					var moveVector = _onMove(rootEl, el, dragEl, dragRect, target, targetRect, evt, after);
+          if(tbElement) tbElement.classList.remove('vertical-selection')
 
 					if (moveVector !== false) {
 						if (moveVector === 1 || moveVector === -1) {
@@ -996,7 +1023,6 @@
 				}
 
 			}
-
 			this._nulling();
 		},
 

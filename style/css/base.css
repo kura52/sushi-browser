@@ -218,6 +218,12 @@ img.favi{
     height: 16px;
 }
 
+img.favi-tab{
+    width: 16px;
+    height: 16px;
+    margin-top: 0.45em;
+}
+
 .sortable-ghost {
     opacity: .4;
 }
@@ -696,4 +702,12 @@ div.item.favorite>ul>li>div>ul{
 
 .node-inactive{
     color: #999;
+}
+
+.tab-number{
+    font-size: 1.2em;
+    vertical-align: 4px;
+    margin-left: -2px;
+    margin-right: 2px;
+    color: rgb(170, 170, 170);
 }

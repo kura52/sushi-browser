@@ -54,7 +54,12 @@ export default class FloatSyncScrollButton extends Component{
 
     const move = event.pageX - x
     x = event.pageX
-    this.props.setWidth(this.props.width + move)
+    if(this.props.direction == "left"){
+      this.props.setWidth(this.props.width + move)
+    }
+    else{
+      this.props.setWidth(this.props.width - move)
+    }
   }
 
   mup(e) {

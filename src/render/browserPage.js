@@ -111,14 +111,16 @@ class BrowserPage extends Component {
     webview.addEventListener('ipc-message',this.wvEvents['ipc-message'])
 
     this.wvEvents['found-in-page'] = (e) => {
-      this.clear = e.result.activeMatchOrdinal == e.result.matches
-      this.first = e.result.activeMatchOrdinal == 1
+      this.clear = e.result.activeMatchOrdinal == e.result.matches   //@TODO framework bug
+      this.first = e.result.activeMatchOrdinal == 1   //@TODO framework bug
       console.log(this.clear,e.result.activeMatchOrdinal, e.result.matches)
       if (e.result.activeMatchOrdinal) {
         this.setState({result_string: `${e.result.activeMatchOrdinal}/${e.result.matches}`})
       }
       else{
+        webview.stopFindInPage('clearSelection')  //@TODO framework bug
         this.setState({result_string: "0/0"})
+        webview.findInPage(this.previous_text) //@TODO framework bug
       }
     }
     webview.addEventListener('found-in-page',this.wvEvents['found-in-page'] )
@@ -193,7 +195,7 @@ class BrowserPage extends Component {
   // }
 
   onPageSearch(query,next=true) {
-    const webview = ReactDOM.findDOMNode(this.refs.webview)
+    const webview = this.refs.webview
     const cont = this.getWebContents(this.props.tab)
     if(!cont) return
     const clear = (this.clear && next) || (this.first && !next) //@TODO framework bug

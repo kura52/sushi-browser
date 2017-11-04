@@ -99,8 +99,9 @@
 }
 
 .chrome-tabs .chrome-tab-drag.multi-row .chrome-tab-background,
-.chrome-tab-selection.multi-row .chrome-tab-background{
-  border: 2px dashed white !important;
+.chrome-tab-selection.multi-row .chrome-tab-background,
+.vertical-selection{
+  border: 1px dashed white !important;
 }
 
 .chrome-tabs .chrome-tab.chrome-tab-just-added {
@@ -135,9 +136,8 @@
   position: relative;
   margin-left: 1.5em;
   height: 1.6em;
-  width: 1.6em;
+  /*width: 1.6em;*/
   background-size: 1.6em;
-  margin-top: 0.45em;
   z-index: 3;
   display: inline-block;
   vertical-align: top;

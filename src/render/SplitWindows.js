@@ -17,7 +17,7 @@ const FloatPanel = require('./FloatPanel')
 const {token} = require('./databaseRender')
 const PanelOverlay = require('./PanelOverlay')
 import firebase,{storage,auth,database} from 'firebase'
-let MARGIN = ipc.sendSync('get-sync-main-state','syncScrollMargin')
+let [MARGIN,verticalTabPosition] = ipc.sendSync('get-sync-main-states',['syncScrollMargin','verticalTabPosition'])
 let count = 0
 // ipc.setMaxListeners(0)
 const isDarwin = navigator.userAgent.includes('Mac OS X')
@@ -124,6 +124,7 @@ export default class SplitWindows extends Component{
   constructor(props) {
     super(props)
     this.currentWebContents = {}
+    this.tabValues = {}
     global.currentWebContents = this.currentWebContents
     global.adBlockDisableSite = {...ipc.sendSync('get-sync-main-state','adBlockDisableSite')}
     this.initBind()
@@ -278,7 +279,7 @@ export default class SplitWindows extends Component{
     // const root = {dirc: "v",size: 50,l: [getUuid(),[]],r: [getUuid(),[]],p: null,key:uuid.v4(),toggleNav: 0}
     const root = winState || {dirc: "v",size: '100%',l: [getUuid(),[]],r: null,p: null,key:uuid.v4(),toggleNav: ipc.sendSync('get-sync-main-state','toggleNav') || 0}
     // root.l = {dirc: "h",size: 50,l: [getUuid(),[]],r: [getUuid(),[]],p: root, pd: "l",key:uuid.v4()}
-    this.state = {root,floatPanels: new Map()}
+    this.state = {root,floatPanels: new Map(),verticalTabPosition}
     this.refs2 = {}
     this.prevGetScrollState = JSON.stringify({})
     this.prevGetScrollDate = 0
@@ -582,18 +583,21 @@ export default class SplitWindows extends Component{
 
       const newIndexes = {}
       order = 0
+      let before
       for(let key of keys){
         let i = 0
         for(let tab of this.refs2[key].state.tabs){
           if(tabIds.includes(tab.wvId)){
-            newIndexes[tab.wvId] = order
+            newIndexes[tab.wvId] = [order,before]
           }
+          before = tab
           order++
         }
       }
 
-      for(let [tabId,toIndex] of Object.entries(newIndexes)){
-        ipc.send('chrome-tabs-onMoved-to-main',tabId,{fromIndex:oldIndexes[tabId],toIndex})
+      for(let [tabId,toIndexes] of Object.entries(newIndexes)){
+        ipc.send('chrome-tabs-onMoved-to-main',tabId,{fromIndex:oldIndexes[tabId],toIndex: toIndexes[0]})
+        PubSub.publish('tab-moved',{tabId,fromIndex:oldIndexes[tabId],toIndex: toIndexes[0],before: toIndexes[1]})
       }
       // }
     }
@@ -718,6 +722,10 @@ export default class SplitWindows extends Component{
     }
     ipc.on('chrome-tabs-move-attach',this.eventChromeTabsMoveAttach)
 
+    this.eventTabCreate = (e,tabValue)=>{
+      this.tabValues[tabValue.id] = tabValue.url == 'chrome://newtab/' ? void 0 : tabValue.openerTabId
+    }
+    ipc.on('tab-create',this.eventTabCreate)
 
     this.tokenAlign = PubSub.subscribe("align",(_,e)=>{
 
@@ -771,10 +779,12 @@ export default class SplitWindows extends Component{
       }
     })
 
-    this.tokenOverlay = PubSub.subscribe('drag-overlay',(msg,val)=>{
-      if(val != this.state.overlay) this.setState({overlay: val})
-    })
 
+    this.tokenSetVerticalTabState = PubSub.subscribe('set-vertical-tab-state',(msg,val)=>{
+      const updVal = val==this.state.verticalTabPosition ? "none" : val
+      this.setState({verticalTabPosition: updVal})
+      mainState.set('verticalTabPosition',updVal)
+    })
     // const self = this
     //
     // this.search = (e)=>{
@@ -817,10 +827,11 @@ export default class SplitWindows extends Component{
     ipc.removeListener('chorme-tabs-move-inner',this.eventChromeTabsMoveInner)
     ipc.removeListener('chorme-tabs-move-detach',this.eventChromeTabsMoveDetach)
     ipc.removeListener('chorme-tabs-move-attach',this.eventChromeTabsMoveAttach)
+    ipc.removeListener('tab-create',this.eventTabCreate)
 
     PubSub.unsubscribe(this.tokenAlign)
     PubSub.unsubscribe(this.tokenAllDetach)
-    PubSub.unsubscribe(this.tokenOverlay)
+    PubSub.unsubscribe(this.tokenSetVerticalTabState)
 
   }
 
@@ -1590,11 +1601,14 @@ export default class SplitWindows extends Component{
     for (var [key, value] of this.state.floatPanels.entries()) {
       arr.push(this.renderFloatPanel(value))
     }
+
     return <div className="wrap-split-window">
-      <VerticalTabPanel parent={this} />
+      {/*<VerticalTabPanel key="vd" parent={this} tabValues={this.tabValues} direction={this.state.verticalTabPosition}/>*/}
+      {this.state.verticalTabPosition == "left" ? <VerticalTabPanel key="vd" parent={this} tabValues={this.tabValues} toggleNav={this.state.root.toggleNav} direction={this.state.verticalTabPosition}/> : null}
       {this.recur(this.state.root,0,true,{val:false})}
+      {this.state.verticalTabPosition == "right" ? <VerticalTabPanel key="vd" parent={this} tabValues={this.tabValues} toggleNav={this.state.root.toggleNav} direction={this.state.verticalTabPosition}/> : null}
       <div>{arr}</div>
-      {this.state.overlay ? <PanelOverlay/> : null}
+      <PanelOverlay/>
     </div>
   }
 }

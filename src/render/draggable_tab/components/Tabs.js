@@ -5,7 +5,7 @@ import invariant from 'invariant';
 import classNames from 'classnames';
 import Mousetrap from 'mousetrap';
 
-import TabStyles from './TabStyles';
+import TabStylesCreate from './TabStyles';
 import TabContainer from './TabContainer';
 import CloseIcon from './CloseIcon';
 
@@ -28,7 +28,8 @@ const {alwaysOnTop} = require('../../browserNavbar')
 
 const isDarwin = navigator.userAgent.includes('Mac OS X')
 const bgSvg = `<svg version="1.1" xmlns="http://www.w3.org/2000/svg"><defs><symbol id="topleft" viewBox="0 0 214 29"><path d="M14.3 0.1L214 0.1 214 29 0 29C0 29 12.2 2.6 13.2 1.1 14.3-0.4 14.3 0.1 14.3 0.1Z"></path></symbol><symbol id="topright" viewBox="0 0 214 29"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topleft"></use></symbol><clipPath id="crop"><rect class="mask" width="100%" height="100%" x="0"></rect></clipPath></defs><svg width="50%" height="100%" transfrom="scale(-1, 1)"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topleft" width="214" height="29" class="chrome-tab-background"></use><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topleft" width="214" height="29" class="chrome-tab-shadow"></use></svg><g transform="scale(-1, 1)"><svg width="50%" height="100%" x="-100%" y="0"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topright" width="214" height="29" class="chrome-tab-background"></use><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topright" width="214" height="29" class="chrome-tab-shadow"></use></svg></g></svg>`
-let [scrollTab,multistageTabs,verticalTab,verticalTabWidth,tabBarHide,tabMinWidth] = ipc.sendSync('get-sync-main-states',['scrollTab','multistageTabs','verticalTab','verticalTabWidth','tabBarHide','tabMinWidth'])
+let [scrollTab,multistageTabs,verticalTabWidth,tabBarHide,tabMinWidth] = ipc.sendSync('get-sync-main-states',['scrollTab','multistageTabs','verticalTabWidth','tabBarHide','tabMinWidth'])
+let noUpdate
 
 function isFixedPanel(key){
   return key.startsWith('fixed-')
@@ -41,9 +42,10 @@ function getWebContents(tab){
 
 class Title extends React.Component {
   componentDidMount() {
+    this.beforeTitle = this.props.datas.beforeTitle
     this.tokenTabComponentUpdate = PubSub.subscribe(`tab-component-update_${this.props.datas.key}`,(msg,datas)=>{
       this.title = datas.title
-      this.beforeTitle = datas.beforeTitle
+      this.beforeTitle[this.beforeTitle.length - 1] = datas.beforeTitle
       this.setState({})
     })
 
@@ -60,15 +62,17 @@ class Title extends React.Component {
 
 
   render(){
-    const {key,TabStyles,tabBeforeTitleClasses,beforeTitle,tabTiteleStyle,tabTitleClasses,extraAttribute,privateMode,pin,title} = this.props.datas
+    const {key,TabStyles,tabBeforeTitleClasses,beforeTitle,tabTiteleStyle,tabTitleClasses,extraAttribute,privateMode,pin,title,verticalTabPanel,toggleNav} = this.props.datas
 
     let m
     if(privateMode && (m = privateMode.match(/^persist:(\d+)$/))){
       m = m[1]
     }
 
-    return <div style={{display:'unset',boxSizing: multistageTabs && this.props.datas.toggleNav == 0 ? 'content-box' : (void 0)}}>
-      <span style={TabStyles.beforeTitle} className={tabBeforeTitleClasses}>{this.beforeTitle || beforeTitle}</span>
+    return <div style={{display:'unset',boxSizing: !verticalTabPanel && multistageTabs && toggleNav == 0 ? 'content-box' : (void 0)}}>
+       <span style={TabStyles.beforeTitle} className={tabBeforeTitleClasses}>
+        {this.beforeTitle || beforeTitle}
+       </span>
       <p style={tabTiteleStyle}
          className={tabTitleClasses}
          {...extraAttribute} >
@@ -113,27 +117,23 @@ class Tabs extends React.Component {
 
     this.state = defaultState;
     this.tabs = []
+    this.TabStyles = TabStylesCreate()
 
     this.handlePanelDragOver = ::this.handlePanelDragOver
     this.handleWheel = ::this.handleWheel
   }
 
   isMultistageTabsMode(){
-    return multistageTabs && this.props.toggleNav == 0
+    return (multistageTabs && this.props.toggleNav == 0) || this.props.verticalTabPanel
   }
 
+
   _tabStateFromProps(props) {
-    const tabs = [];
-    let idx = 0;
-    props.tabs.forEach((tab) => {
+    console.log(22111142,props)
+    const tabs = []
+    for(let tab of props.tabs){tabs.push(tab)}
 
-      tabs[idx] = tab;
-      idx++;
-    });
-
-    return {
-      tabs,
-    };
+    return { tabs }
   }
 
   _isClosed(key) {
@@ -213,7 +213,6 @@ class Tabs extends React.Component {
       this.setState({})
     })
 
-    this.bindShortcuts();
 
     if(scrollTab) this.refs.ttab.addEventListener('wheel',this.handleWheel,{passive: true})
     // this.addDropEvent();
@@ -243,7 +242,6 @@ class Tabs extends React.Component {
   }
 
   componentWillUnmount() {
-    this.unbindShortcuts();
     PubSub.unsubscribe(this.tokenResizeWindow)
     PubSub.unsubscribe(this.tokenResize)
     PubSub.unsubscribe(this.tokenMultistageTabs)
@@ -267,10 +265,10 @@ class Tabs extends React.Component {
   buildRenderComponent(){
     // override inline tabs styles
     const tabInlineStyles = {};
-    tabInlineStyles.tabWrapper = TabStyles.tabWrapper //StyleOverride.merge(TabStyles.tabWrapper, this.props.tabsStyles.tabWrapper);
-    if(this.props.verticalTabPanel) tabInlineStyles.tabWrapper = StyleOverride.merge(TabStyles.tabWrapper,{height: 'initial'})
+    tabInlineStyles.tabWrapper = this.TabStyles.tabWrapper //StyleOverride.merge(this.TabStyles.tabWrapper, this.props.tabsStyles.tabWrapper);
+    if(this.props.verticalTabPanel) tabInlineStyles.tabWrapper = StyleOverride.merge(this.TabStyles.tabWrapper,{height: 'initial'})
 
-    tabInlineStyles.tabBar = StyleOverride.merge(TabStyles.tabBar, this.props.tabsStyles.tabBar);
+    tabInlineStyles.tabBar = StyleOverride.merge(this.TabStyles.tabBar, this.props.tabsStyles.tabBar);
     if(this.isMultistageTabsMode()){
       tabInlineStyles.tabBar.display = "flex"
       tabInlineStyles.tabBar.height = void 0
@@ -295,40 +293,32 @@ class Tabs extends React.Component {
       //     titleElements[i].style.display = "flex"
       //   }
     }
-    if(verticalTab){
-      tabInlineStyles.tabWrapper.display = 'flex'
-      delete tabInlineStyles.tabBar.display
-    }
-    else{
-      delete tabInlineStyles.tabWrapper.display
-      tabInlineStyles.tabBar.display = 'flex'
-    }
 
-    tabInlineStyles.tab = TabStyles.tab //StyleOverride.merge(TabStyles.tab, this.props.tabsStyles.tab);
-    if(verticalTab){
-      TabStyles.tab.minWidth = `10px`
-      delete TabStyles.tab.maxWidth
+    tabInlineStyles.tab = this.TabStyles.tab //StyleOverride.merge(this.TabStyles.tab, this.props.tabsStyles.tab);
+    if(this.props.verticalTabPanel){
+      delete this.TabStyles.tab.minWidth
+      delete this.TabStyles.tab.maxWidth
     }
     else if(this.isMultistageTabsMode()){
-      TabStyles.tab.minWidth = `${tabMinWidth}px`
-      TabStyles.tab.maxWidth = '200px'
-      TabStyles.tab.height = '27px'
+      this.TabStyles.tab.minWidth = `${tabMinWidth}px`
+      this.TabStyles.tab.maxWidth = '200px'
+      this.TabStyles.tab.height = '27px'
     }
     else{
-      TabStyles.tab.minWidth = '0px'
-      TabStyles.tab.maxWidth = '200px'
-      TabStyles.tab.height = void 0
+      this.TabStyles.tab.minWidth = '0px'
+      this.TabStyles.tab.maxWidth = '200px'
+      this.TabStyles.tab.height = void 0
     }
-    tabInlineStyles.tabTitle = TabStyles.tabTitle //StyleOverride.merge(TabStyles.tabTitle, this.props.tabsStyles.tabTitle);
-    tabInlineStyles.tabCloseIcon = TabStyles.tabCloseIcon //StyleOverride.merge(TabStyles.tabCloseIcon, this.props.tabsStyles.tabCloseIcon);
-    tabInlineStyles.tabCloseIconOnHover = TabStyles.tabCloseIconOnHover //StyleOverride.merge(TabStyles.tabCloseIconOnHover, this.props.tabsStyles.tabCloseIconOnHover);
+    tabInlineStyles.tabTitle = this.TabStyles.tabTitle //StyleOverride.merge(this.TabStyles.tabTitle, this.props.tabsStyles.tabTitle);
+    tabInlineStyles.tabCloseIcon = this.TabStyles.tabCloseIcon //StyleOverride.merge(this.TabStyles.tabCloseIcon, this.props.tabsStyles.tabCloseIcon);
+    tabInlineStyles.tabCloseIconOnHover = this.TabStyles.tabCloseIconOnHover //StyleOverride.merge(this.TabStyles.tabCloseIconOnHover, this.props.tabsStyles.tabCloseIconOnHover);
 
-    tabInlineStyles.tabActive = TabStyles.tabActive //StyleOverride.merge(TabStyles.tabActive, this.props.tabsStyles.tabActive);
-    tabInlineStyles.tabTitleActive = TabStyles.tabTitleActive //StyleOverride.merge(TabStyles.tabTitleActive, this.props.tabsStyles.tabTitleActive);
-    tabInlineStyles.tabBeforeActive = TabStyles.tabBeforeActive //StyleOverride.merge(TabStyles.tabBeforeActive, this.props.tabsStyles.tabBeforeActive);
+    tabInlineStyles.tabActive = this.TabStyles.tabActive //StyleOverride.merge(this.TabStyles.tabActive, this.props.tabsStyles.tabActive);
+    tabInlineStyles.tabTitleActive = this.TabStyles.tabTitleActive //StyleOverride.merge(this.TabStyles.tabTitleActive, this.props.tabsStyles.tabTitleActive);
+    tabInlineStyles.tabBeforeActive = this.TabStyles.tabBeforeActive //StyleOverride.merge(this.TabStyles.tabBeforeActive, this.props.tabsStyles.tabBeforeActive);
 
-    tabInlineStyles.tabOnHover = TabStyles.tabOnHover //StyleOverride.merge(TabStyles.tabOnHover, this.props.tabsStyles.tabOnHover);
-    tabInlineStyles.tabTitleOnHover = TabStyles.tabTitleOnHover //StyleOverride.merge(TabStyles.tabTitleOnHover, this.props.tabsStyles.tabTitleOnHover);
+    tabInlineStyles.tabOnHover = this.TabStyles.tabOnHover //StyleOverride.merge(this.TabStyles.tabOnHover, this.props.tabsStyles.tabOnHover);
+    tabInlineStyles.tabTitleOnHover = this.TabStyles.tabTitleOnHover //StyleOverride.merge(this.TabStyles.tabTitleOnHover, this.props.tabsStyles.tabTitleOnHover);
 
     // append tabs classNames
     const _tabClassNames = {};
@@ -362,17 +352,21 @@ class Tabs extends React.Component {
         ...others
       } = tab.props;
 
-      const beforeTitle = <img className='favi' src={page.title && page.favicon !== 'loading' ? page.favicon : 'resource/l.svg'} onError={(e)=>{e.target.src = 'resource/file.png'}}/>
+      const selected = this.state.selectedTab === tab.key
+      const beforeTitle = []
+      if(this.props.verticalTabTree && (tab.props.seq || tab.props.referred)){
+        const tabNumber = tab.props.seq && tab.props.referred ? `[${tab.props.referred}'][${tab.props.seq}]` : tab.props.seq ? `[${tab.props.seq}]` : `[${tab.props.referred}']`
+        beforeTitle.push(<span className="tab-number" style={{color:selected ? 'white' : void 0}}>{tabNumber}</span>)
+      }
+      beforeTitle.push(<img className='favi-tab' src={page.title && page.favicon !== 'loading' ? page.favicon : 'resource/l.svg'} onError={(e)=>{e.target.src = 'resource/file.png'}}/>)
+
       const title = page.favicon !== 'loading' || page.titleSet  || page.location == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? page.title : page.location
 
       // containerStyle = containerStyle || {}
       // tabStyles = tabStyles || {}
       tabClassNames = tabClassNames || {}
       // containerStyle.height = `calc(100% - ${this.props.toggleNav == 0 ? 27 : this.props.toggleNav == 1 ? 1 : 0}px)`
-      if(verticalTab){
-        containerStyle.height = '100%'
-      }
-      else if(this.props.toggleNav == 0 && multistageTabs){
+      if(this.props.toggleNav == 0 && multistageTabs){
         const ele = document.querySelector(`.s${this.props.k} .tab-base`)
         containerStyle.height = `calc(100% - ${ele ? ele.offsetHeight : 30}px)`
       }
@@ -381,9 +375,9 @@ class Tabs extends React.Component {
       }
 
       // override inline each tab styles
-      let tabStyle = tabInlineStyles.tab //StyleOverride.merge(tabInlineStyles.tab, tabStyles.tab);
-      let tabTiteleStyle = tabInlineStyles.tabTitle //StyleOverride.merge(tabInlineStyles.tabTitle, tabStyles.tabTitle);
-      const tabCloseIconStyle = tabInlineStyles.tabCloseIcon //StyleOverride.merge(tabInlineStyles.tabCloseIcon, tabStyles.tabCloseIcon);
+      let tabStyle = StyleOverride.merge(tabInlineStyles.tab, {});
+      let tabTiteleStyle = tabInlineStyles.tabTitle //StyleOverride.merge(tabInlineStyles.tabTitle, this.TabStyles.tabTitle);
+      const tabCloseIconStyle = tabInlineStyles.tabCloseIcon //StyleOverride.merge(tabInlineStyles.tabCloseIcon, this.TabStyles.tabCloseIcon);
       if(this.props.toggleNav == 0 && multistageTabs) tabCloseIconStyle.right = '10px'
 
       let tabClasses = `${_tabClassNames.tab} ${tabClassNames.tab} ${this.props.toggleNav == 0 && multistageTabs ? 'multi-row' : ''}`
@@ -391,60 +385,66 @@ class Tabs extends React.Component {
       let tabBeforeTitleClasses = `${_tabClassNames.tabBeforeTitle} ${tabClassNames.tabBeforeTitle}`
       const tabCloseIconClasses = `${_tabClassNames.tabCloseIcon} ${tabClassNames.tabCloseIcon}`
 
-      if (this.state.selectedTab === tab.key) {
-        tabStyle = StyleOverride.merge(tabInlineStyles.tab, tabInlineStyles.tabActive) //StyleOverride.merge(StyleOverride.merge(tabInlineStyles.tab, tabInlineStyles.tabActive), tabStyles.tabActive);
-        tabTiteleStyle = StyleOverride.merge(tabInlineStyles.tabTitle, tabInlineStyles.tabTitleActive) //StyleOverride.merge(StyleOverride.merge(tabInlineStyles.tabTitle, tabInlineStyles.tabTitleActive), tabStyles.tabTitleActive);
+      if (selected) {
+        tabStyle = StyleOverride.merge(tabInlineStyles.tab, tabInlineStyles.tabActive) //StyleOverride.merge(StyleOverride.merge(tabInlineStyles.tab, tabInlineStyles.tabActive), this.TabStyles.tabActive);
+        tabTiteleStyle = StyleOverride.merge(tabInlineStyles.tabTitle, tabInlineStyles.tabTitleActive) //StyleOverride.merge(StyleOverride.merge(tabInlineStyles.tabTitle, tabInlineStyles.tabTitleActive), this.TabStyles.tabTitleActive);
         tabClasses = classNames(tabClasses, 'rdTabActive', this.props.tabsClassNames.tabActive, tabClassNames.tabActive);
         content.push(<TabContainer key={`tabContainer#${tab.key}`} selected={true} style={containerStyle}>{tab}</TabContainer>);
       } else {
         // if (this.state.hoveredTab === tab.key) {
-        //   tabStyle = StyleOverride.merge(StyleOverride.merge(tabStyle, tabInlineStyles.tabOnHover), tabStyles.tabOnHover);
-        //   tabTiteleStyle = StyleOverride.merge(StyleOverride.merge(tabTiteleStyle, tabInlineStyles.tabTitleOnHover), tabStyles.tabTitleOnHover);
+        //   tabStyle = StyleOverride.merge(StyleOverride.merge(tabStyle, tabInlineStyles.tabOnHover), this.TabStyles.tabOnHover);
+        //   tabTiteleStyle = StyleOverride.merge(StyleOverride.merge(tabTiteleStyle, tabInlineStyles.tabTitleOnHover), this.TabStyles.tabTitleOnHover);
         //   tabClasses = classNames(tabClasses, 'rdTabHover', this.props.tabsClassNames.tabHover, tabClassNames.tabHover);
         // }
         content.push(
           <TabContainer key={`tabContainer#${tab.key}`} selected={false} style={containerStyle} hiddenStyle={hiddenContainerStyle}>{tab}</TabContainer>);
       }
 
-      tabStyle = StyleOverride.merge(tabStyle, tabNum === 0 ? { marginLeft: this.props.toggleNav == 1 || multistageTabs ? 0 : 10} : {left: this.isMultistageTabsMode() ? 0 : -13 * tabNum});
-      if(this.refs && this.refs[tab.key]){
-        const li = ReactDOM.findDOMNode(this.refs[tab.key])
-        if(tabNum === 0){
-          li.style.marginLeft = `${this.isMultistageTabsMode() ? 0 : tabStyle.marginLeft}px`
-          li.style.left = '0px'
-        }
-        else{
-          li.style.left = `${this.isMultistageTabsMode() ? 0 : tabStyle.left}px`
-          li.style['margin-left'] = null
+      if(!this.props.verticalTabPanel){
+        tabStyle = StyleOverride.merge(tabStyle, tabNum === 0 ? { marginLeft: this.props.toggleNav == 1 || multistageTabs ? 0 : 10} : {left: this.isMultistageTabsMode() ? 0 : -13 * tabNum});
+        if(this.refs && this.refs[tab.key]){
+          const li = ReactDOM.findDOMNode(this.refs[tab.key])
+          if(tabNum === 0){
+            li.style.marginLeft = `${this.isMultistageTabsMode() ? 0 : tabStyle.marginLeft}px`
+            li.style.left = '0px'
+          }
+          else{
+            li.style.left = `${this.isMultistageTabsMode() ? 0 : tabStyle.left}px`
+            li.style['margin-left'] = null
+          }
         }
       }
       if(tab.props.selection){
         tabClasses = `${tabClasses} chrome-tab-selection`
       }
-      // if(this.props.toggleNav == 1){
-      //   tabStyle.marginTop = 3
-      // }
-      // title will be shorten with inline style
-      //  {
-      //    overflow: 'hidden',
-      //    whiteSpace: 'nowrap',
-      //    textOverflow: 'ellipsis'
-      //  }
+
+      if(this.props.verticalTabPanel){
+        tabStyle.backgroundColor = this.state.selectedTab === tab.key ? '#343434' : 'rgb(79, 79, 79)'
+        tabStyle.borderRight = '1px solid rgb(221, 221, 221)'
+        tabStyle.borderBottom = '1px solid rgb(221, 221, 221)'
+        if(tab.props.depth){
+          const margin = tab.props.depth * 10
+          tabStyle.marginLeft = margin
+          tabStyle.width = `calc(100% - ${margin}px)`
+        }
+        else{
+          tabStyle.marginLeft = 0
+        }
+      }
+
       const extraAttribute = {};
       if (typeof title === 'string') {
         extraAttribute.title = title;
       }
       let closeButton = this.getCloseButton(tab, tabCloseIconStyle, tabCloseIconClasses, tabInlineStyles.tabCloseIconOnHover);
 
-      // if(this.refs && this.refs[tab.key]){
-      //   const width = this.refs[tab.key].offsetWidth
-      //   tabTiteleStyle.width = width > 93 ? "100%" : width > 60 ? "120%" : "140%"
-      // }
 
       const t = tab.props.orgTab
       return (
         <li style={tabStyle} className={tabClasses} draggable
             key={`draggable_tabs_${tab.key}`}
+            data-id={t.wvId}
+            data-key={tab.key}
             onDragStart={this.handleDragStart.bind(this, [t])}
             onDragEnter={::this.handleDragEnter}
             onDragLeave={this.handleDragLeave}
@@ -455,37 +455,28 @@ class Tabs extends React.Component {
               PubSub.publish('drag-overlay',false)
               if(this.enableMulti) this.props.multiSelectionClick(...this.enableMulti)
             },100)}
-          // onContextMenu={this.handleContextMenu.bind(this, tab.key)}
-          //   onMouseOver={()=>{
-          //     if(this.state.hoveredTab != tab.key){
-          //       this.setState({hoveredTab:tab.key})
-          //     }
-          //   }}
-          //   onMouseOut={()=>this.setState({hoveredTab:undefined})}
             ref={tab.key}
             {...others}>
-          {this.isMultistageTabsMode() ?
-            <div className="chrome-tab-background">
-            </div>
-            :
-            <div className="chrome-tab-background">
-              <svg dangerouslySetInnerHTML={{__html: bgSvg }} />
-            </div>
+          { this.props.verticalTabPanel ?
+            null :
+            this.isMultistageTabsMode() ?
+              <div className="chrome-tab-background">
+              </div> :
+              <div className="chrome-tab-background">
+                <svg dangerouslySetInnerHTML={{__html: bgSvg }} />
+              </div>
           }
-          <Title datas={{key:tab.key,toggleNav:this.props.toggleNav,TabStyles,tabBeforeTitleClasses,beforeTitle,tabTiteleStyle,tabTitleClasses,extraAttribute,privateMode,pin,title}}/>
+          <Title datas={{key:tab.key,toggleNav:this.props.toggleNav,verticalTabPanel:this.props.verticalTabPanel,TabStyles:this.TabStyles,tabBeforeTitleClasses,beforeTitle,tabTiteleStyle,tabTitleClasses,extraAttribute,privateMode,pin,title}}/>
           {closeButton}
         </li>
       );
     });
 
     const modifyLeft = this.isMultistageTabsMode() ? 10 :13 * this.state.tabs.length
-    TabStyles.tabAddButton.transform = this.isMultistageTabsMode() ? 'initial' : 'skewX(27deg)'
-    TabStyles.tabAddButton.left = modifyLeft * -1
+    this.TabStyles.tabAddButton.transform = this.isMultistageTabsMode() ? 'initial' : 'skewX(27deg)'
+    this.TabStyles.tabAddButton.left = modifyLeft * -1
 
-    if(verticalTab){
-      tabInlineStyles.tabBar.width = this.state.verticalTabWidth
-    }
-    else if(this.props.toggleNav == 1){
+    if(this.props.toggleNav == 1){
       const thisNode = ReactDOM.findDOMNode(this)
       let prefix
       if(thisNode){
@@ -493,9 +484,7 @@ class Tabs extends React.Component {
         prefix = rdTabBar.getAttribute("nav-width")
         rdTabBar.setAttribute("bar-margin",`${modifyLeft}px`)
       }
-      // console.log(33,`${prefix || (this.props.toggleNav == 1 && this.props.isTopRight ? "calc(45%" : "calc(50%")} + ${modifyLeft}px)`)
-      // console.log(78,prefix)
-      tabInlineStyles.tabBar.width = `calc(${prefix || (this.props.toggleNav == 1 && this.props.isTopRight ? "45%" : "50%")} + ${this.isMultistageTabsMode() ? 0 : modifyLeft}px)`
+      tabInlineStyles.tabBar.width = `calc(${prefix || (this.props.isTopRight ? "45%" : "50%")} + ${this.isMultistageTabsMode() ? 0 : modifyLeft}px)`
     }
     else{
       tabInlineStyles.tabBar.width = `calc(100% + ${this.isMultistageTabsMode() ? 0 : modifyLeft - 8}px)`
@@ -504,36 +493,28 @@ class Tabs extends React.Component {
     if(this.props.toggleNav == 1){
       tabInlineStyles.tabBar.marginRight = modifyLeft
       // tabInlineStyles.tabBar.background = isFixedPanel(this.props.k) ? "#fafafa" : 'linear-gradient(to bottom, #eee, #ddd)'
-      TabStyles.tabAddButton.marginTop = 3
+      this.TabStyles.tabAddButton.marginTop = 3
     }
     else{
-      TabStyles.tabAddButton.marginTop = 0
+      this.TabStyles.tabAddButton.marginTop = 0
     }
 
     if(this.props.verticalTabPanel){
-      TabStyles.tabAddButton.top = 2
-      TabStyles.tabAddButton.display = 'flex'
-      TabStyles.tabAddButton.width = '80%'
-      TabStyles.tabAddButton.height = 17
-      delete TabStyles.tabAddButton.left
-      TabStyles.tabAddButton.marginLeft = 'auto'
-    }
-    else if(verticalTab){
-      TabStyles.tabBar.overflowY = 'overlay'
-      TabStyles.tabAddButton.top = 2
-      TabStyles.tabAddButton.display = 'flex'
-      TabStyles.tabAddButton.width = '80%'
-      TabStyles.tabAddButton.height = 17
-      delete TabStyles.tabAddButton.left
-      TabStyles.tabAddButton.marginLeft = 'auto'
+      this.TabStyles.tabBar.flexDirection = 'column'
+      this.TabStyles.tabAddButton.top = 2
+      this.TabStyles.tabAddButton.display = 'flex'
+      this.TabStyles.tabAddButton.width = '80%'
+      this.TabStyles.tabAddButton.height = 17
+      delete this.TabStyles.tabAddButton.left
+      this.TabStyles.tabAddButton.marginLeft = 'auto'
     }
     else{
-      delete TabStyles.tabBar.overflowY
-      TabStyles.tabAddButton.top = 7
-      TabStyles.tabAddButton.height = 16
-      delete TabStyles.tabAddButton.display
-      TabStyles.tabAddButton.width = 25
-      TabStyles.tabAddButton.marginLeft = 14
+      delete this.TabStyles.tabBar.overflowY
+      this.TabStyles.tabAddButton.top = 7
+      this.TabStyles.tabAddButton.height = 16
+      delete this.TabStyles.tabAddButton.display
+      this.TabStyles.tabAddButton.width = 25
+      this.TabStyles.tabAddButton.marginLeft = 14
     }
 
 
@@ -547,41 +528,6 @@ class Tabs extends React.Component {
   }
 
 
-  bindShortcuts() {
-    if (this.props.shortCutKeys) {
-      if (this.props.shortCutKeys.close) {
-        Mousetrap.bind(this.props.shortCutKeys.close, (e) => {
-          const ev = this._cancelEventSafety(e);
-          if (this.state.selectedTab) {
-            this.handleCloseButtonClick(this.state.selectedTab, ev);
-          }
-        });
-      }
-      if (this.props.shortCutKeys.create) {
-        Mousetrap.bind(this.props.shortCutKeys.create, (e) => {
-          const ev = this._cancelEventSafety(e);
-          this.handleAddButtonClick(ev);
-        });
-      }
-      if (this.props.shortCutKeys.moveRight) {
-        Mousetrap.bind(this.props.shortCutKeys.moveRight, (e) => {
-          const ev = this._cancelEventSafety(e);
-          this.moveRight(ev);
-        });
-      }
-      if (this.props.shortCutKeys.moveLeft) {
-        Mousetrap.bind(this.props.shortCutKeys.moveLeft, (e) => {
-          const ev = this._cancelEventSafety(e);
-          this.moveLeft(ev);
-        });
-      }
-    }
-  }
-
-  unbindShortcuts() {
-    Mousetrap.reset();
-  }
-
   handleRemove(e) {
     console.log("handleRemove")
     // const _tabs = this.state.tabs
@@ -594,14 +540,23 @@ class Tabs extends React.Component {
   }
 
   handleUpdate(e) {
+    if(noUpdate){
+      return
+    }
     const key = this.state.tabs[e.newIndex].key
     this.props.onTabPositionChange(e, key, this.state.tabs);
     this.setState({selectedTab:key});
     console.log("handleUpdate",e,this)
     ipc.send('chrome-tabs-onMoved-to-main',this.state.tabs[e.newIndex].props.orgTab.wvId,{fromIndex:e.oldIndex,toIndex:e.newIndex})
+
+    const before = this.state.tabs[e.newIndex -1] ? this.state.tabs[e.newIndex -1].props.orgTab : void 0
+    PubSub.publish('tab-moved',{tabId:this.state.tabs[e.newIndex].props.orgTab.wvId,fromIndex:e.oldIndex,toIndex:e.newIndex,before})
   }
 
   handleAdd(e) {
+    if(noUpdate){
+      return
+    }
     console.log("handleAdd")
     const key = this.state.tabs[e.newIndex].key
     const fromTab = this.state.tabs[e.newIndex].props.orgTab.wvId
@@ -614,6 +569,28 @@ class Tabs extends React.Component {
   }
 
   handleEnd(e) {
+    console.log('handleEnd',e)
+    noUpdate = false
+    if(this.props.verticalTabTree){
+      const ele = e.to.querySelector("li.vertical-selection")
+      if(ele){
+        noUpdate = true
+        const current = e.item
+        const tabId = parseInt(e.item.dataset.id)
+        const parentTabId = parseInt(ele.dataset.id)
+        const currentKey = e.item.dataset.key
+        const toKey = ele.dataset.key
+
+        ipc.emit('chrome-tabs-move-inner',null,null,[tabId],toKey,true,currentKey)
+        PubSub.publish('tab-moved-child',{tabId, parentTabId})
+      }
+      for(let ele of e.to.querySelectorAll("li.vertical-selection")){
+        ele.classList.remove("vertical-selection")
+      }
+      for(let ele of e.from.querySelectorAll("li.vertical-selection")){
+        ele.classList.remove("vertical-selection")
+      }
+    }
     setTimeout(_=>PubSub.publish('drag-overlay',false),100)
   }
 
@@ -724,6 +701,13 @@ class Tabs extends React.Component {
 
     for(let ele of document.querySelectorAll(".div-back.front")){
       ele.classList.remove("front")
+    }
+
+    this.props.resetSelection()
+    for(let ele of document.querySelectorAll(".chrome-tab-selection,.chrome-tab-drag,.vertical-selection")){
+      ele.classList.remove("chrome-tab-selection")
+      ele.classList.remove("chrome-tab-drag")
+      ele.classList.remove("vertical-selection")
     }
 
     const contentEle = document.getElementById("content")
@@ -850,10 +834,16 @@ class Tabs extends React.Component {
   }
 
   handleDragLeave(evt){
-    const classList = evt.target.classList
-    if (classList.contains('chrome-tab-drag') ) {
-      classList.remove("chrome-tab-drag")
+    const mouseEle = document.elementFromPoint(evt.clientX,evt.clientY)
+    const closest = evt.target.closest('.chrome-tab-drag')
+    if(mouseEle.closest('.chrome-tab-drag') == closest) return
+    if(closest){
+      const classList = closest.classList
+      if (classList.contains('chrome-tab-drag') ) {
+        classList.remove("chrome-tab-drag")
+      }
     }
+    evt.stopPropagation()
   }
   handleDragEnter(evt){
     const dragData = ipc.sendSync('get-sync-main-state','dragData')
@@ -864,7 +854,7 @@ class Tabs extends React.Component {
     }
     console.log(evt,evt.target)
     const classList = evt.target.classList
-    if ( classList.contains('chrome-tab') && !classList.contains('chrome-tab-drag') ) {
+    if (classList.contains('chrome-tab') && !classList.contains('chrome-tab-drag') ) {
       classList.add("chrome-tab-drag")
     }
     evt.preventDefault();
@@ -960,23 +950,14 @@ class Tabs extends React.Component {
               borderBottom: '1px solid #aaa',
             }
 
-    if(verticalTab){
-      tabBaseStyle.flex = '1'
-      tabBaseStyle.width = this.state.verticalTabWidth
-    }
-    else{
-      delete tabBaseStyle.flex
-      delete tabBaseStyle.width
-    }
-
     if(this.props.verticalTabPanel){
       tabBaseStyle.paddingTop = 5
       tabBaseStyle.paddingBottom = 5
     }
-    if(tabBarHide && !this.props.verticalTabPanel){
+    if( this.props.toggleNav != 3 && tabBarHide && !this.props.verticalTabPanel){
       tabBaseStyle.display = 'none'
     }
-    else{
+    else if(this.props.toggleNav != 2){
       tabBaseStyle.display = 'inherit'
     }
 
@@ -999,20 +980,14 @@ class Tabs extends React.Component {
             {isDarwin && this.props.isTopRight && this.props.toggleNav != 1 ? <div style={{width: this.props.fullscreen ? 0 : 62}}/>  : ""}
             {tabs}
             <span ref="addButton" draggable="true" className="rdTabAddButton"
-                  style={Object.assign({},TabStyles.tabAddButton)} onClick={this.handleAddButtonClick.bind(this)}
+                  style={Object.assign({},this.TabStyles.tabAddButton)} onClick={this.handleAddButtonClick.bind(this)}
                   onDragStart={this.handleDragStart.bind(this, null)} onDragEnd={this.handleDragEnd.bind(this, null)}>
-              {verticalTab || this.props.verticalTabPanel ? <i className="fa fa-plus" aria-hidden="true"  style={{marginLeft: 'auto', marginRight: 'auto', fontSize: 13, padding: 2}}/> : null}
+              {this.props.verticalTabPanel ? <i className="fa fa-plus" aria-hidden="true"  style={{marginLeft: 'auto', marginRight: 'auto', fontSize: 13, padding: 2}}/> : null}
               {this.props.tabAddButton}
             </span>
-            {!verticalTab && !isDarwin && this.props.isTopRight && this.props.toggleNav != 1 ? <RightTopBottonSet style={{transform: `translateX(${this.isMultistageTabsMode() ? 1 : - this.state.tabs.length * 13 + 6}px)`}}/>: ""}
+            {!isDarwin && this.props.isTopRight && this.props.toggleNav != 1 ? <RightTopBottonSet style={{transform: `translateX(${this.isMultistageTabsMode() ? 1 : - this.state.tabs.length * 13 + 6}px)`}}/>: ""}
           </ul>
         </div>
-        {verticalTab ? <VerticalTabResizer width={tabBaseStyle.width} setWidth={(w, decision)=>{
-          this.setState({verticalTabWidth:w})
-          this.props.parent.webViewCreate()
-          verticalTabWidth = w
-          if(decision) mainState.set('verticalTabWidth',w)
-        }}/> : null}
         {content}
       </div>
     );
@@ -1046,58 +1021,5 @@ Tabs.defaultProps = {
   disableDrag: false,
   width: "100%",
 };
-
-// Tabs.propTypes = {
-//   tabs: React.PropTypes.arrayOf(React.PropTypes.element),
-//
-//   selectedTab: React.PropTypes.string,
-//   tabsClassNames: React.PropTypes.shape({
-//     tabWrapper: React.PropTypes.string,
-//     tabBar: React.PropTypes.string,
-//     tab: React.PropTypes.string,
-//     tabBeforeTitle: React.PropTypes.string,
-//     tabTitle: React.PropTypes.string,
-//     tabCloseIcon: React.PropTypes.string,
-//     tabActive: React.PropTypes.string,
-//     tabHover: React.PropTypes.string,
-//   }),
-//   tabsStyles: React.PropTypes.shape({
-//     tabWrapper: React.PropTypes.object,
-//     tabBar: React.PropTypes.object,
-//     tab: React.PropTypes.object,
-//     tabTitle: React.PropTypes.object,
-//     tabActive: React.PropTypes.object,
-//     tabTitleActive: React.PropTypes.object,
-//     tabOnHover: React.PropTypes.object,
-//     tabTitleOnHover: React.PropTypes.object,
-//     tabBeforeOnHover: React.PropTypes.object,
-//     tabCloseIcon: React.PropTypes.object,
-//     tabCloseIconOnHover: React.PropTypes.object,
-//   }),
-//   shortCutKeys: React.PropTypes.shape({
-//     close: React.PropTypes.oneOfType(
-//       [React.PropTypes.string, React.PropTypes.arrayOf(React.PropTypes.string)]),
-//     create: React.PropTypes.oneOfType(
-//       [React.PropTypes.string, React.PropTypes.arrayOf(React.PropTypes.string)]),
-//     moveRight: React.PropTypes.oneOfType(
-//       [React.PropTypes.string, React.PropTypes.arrayOf(React.PropTypes.string)]),
-//     moveLeft: React.PropTypes.oneOfType(
-//       [React.PropTypes.string, React.PropTypes.arrayOf(React.PropTypes.string)]),
-//   }),
-//   tabAddButton: React.PropTypes.element,
-//   onTabSelect: React.PropTypes.func,
-//   onClose: React.PropTypes.func,
-//   onTabClose: React.PropTypes.func,
-//   onTabContextMenu: React.PropTypes.func,
-//   onTabAddButtonClick: React.PropTypes.func,
-//   onTabPositionChange: React.PropTypes.func,
-//   onKeyDown: React.PropTypes.func,
-//   createNewTabFromOtherWindow: React.PropTypes.func,
-//   shouldTabClose: React.PropTypes.func,
-//   keepSelectedTab: React.PropTypes.bool,
-//   disableDrag: React.PropTypes.bool,
-//   width: React.PropTypes.string,
-//   isTopRight: React.PropTypes.bool,
-// };
 
 export default Tabs;

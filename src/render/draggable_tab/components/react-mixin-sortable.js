@@ -142,9 +142,14 @@
             (this !== _activeComponent) && _activeComponent.setState(remoteState);
           }
 
-          setTimeout(function () {
+          if(name == 'onEnd'){
             emitEvent(name, evt);
-          }, 0);
+          }
+          else{
+            setTimeout(function () {
+              emitEvent(name, evt);
+            }, 0);
+          }
         }.bind(this);
       }, this);
 
@@ -167,6 +172,7 @@
     },
 
     componentWillUnmount: function () {
+      console.log("unmountTabs",this)
       this._sortableInstance.destroy();
       this._sortableInstance = null;
     },

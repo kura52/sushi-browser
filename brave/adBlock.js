@@ -13,7 +13,7 @@ const fs = require('fs')
 const path = require('path')
 const mainState = require('../lib/mainState')
 const {ipcMain} = require('electron')
-process.downloadParams = new Map()
+// process.downloadParams = new Map()
 
 const whitelistHosts = ['disqus.com', 'a.disquscdn.com']
 
@@ -151,10 +151,10 @@ ipcMain.on('set-adblock-enable', async (event, datas) => {
 
 const startAdBlocking = (adblock, resourceName, shouldCheckMainFrame,ses=session.defaultSession) => {
   beforeRequestFilteringFns.push((details,mainFrameUrl) => {
-    if(details.method == 'POST' && details.resourceType == 'mainFrame' && details.uploadData){
-      console.log(details)
-      process.downloadParams.set(details.firstPartyUrl,[details.uploadData,Date.now()])
-    }
+    // if(details.method == 'POST' && details.resourceType == 'mainFrame' && details.uploadData){
+    //   console.log(details)
+    //   process.downloadParams.set(details.firstPartyUrl,[details.uploadData,Date.now()])
+    // }
     if(!mainState.adBlockEnable || (tabs.has(details.tabId) && !tabs.get(details.tabId))){
       return {}
     }

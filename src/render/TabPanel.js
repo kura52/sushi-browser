@@ -381,6 +381,7 @@ export default class TabPanel extends Component {
     this.handleTabAddButtonClick = ::this.handleTabAddButtonClick
     this.handleTabPositionChange = ::this.handleTabPositionChange
     this.handleContextMenu = ::this.handleContextMenu
+    this.handleContextMenuTree = ::this.handleContextMenuTree
     // this.handleTabAddOtherPanel = ::this.handleTabAddOtherPanel
     this.multiSelectionClick = ::this.multiSelectionClick
     this.handleKeyDown = ::this.handleKeyDown
@@ -1304,7 +1305,7 @@ export default class TabPanel extends Component {
     if (t){
       const p = t.querySelector('p')
       const title = `${page.favicon !== 'loading' || page.titleSet || page.location == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? page.title : page.location} `
-      const beforeTitle = <img className='favi' src={page.title && page.favicon !== 'loading' ? page.favicon : 'resource/l.svg'} onError={(e)=>{e.target.src = 'resource/file.png'}}/>
+      const beforeTitle = <img className='favi-tab' src={page.title && page.favicon !== 'loading' ? page.favicon : 'resource/l.svg'} onError={(e)=>{e.target.src = 'resource/file.png'}}/>
       PubSub.publish(`tab-component-update_${tab.key}`,{title,beforeTitle})
     }
     const n = this.refs[`navbar-${tab.key}`]
@@ -2727,6 +2728,14 @@ export default class TabPanel extends Component {
   }
 
   handleContextMenu(e,key,currentTabs,tabs){
+    this._handleContextMenu(e,key,currentTabs,tabs)
+  }
+
+  handleContextMenuTree(e,key,currentTabs,tabs){
+    this._handleContextMenu(e,key,currentTabs,tabs,true)
+  }
+
+  _handleContextMenu(e,key,currentTabs,tabs,tree){
     const _tabs = this.state.tabs
     const i = _tabs.findIndex((x)=>x.key===key)
     const t = _tabs[i]
@@ -2734,6 +2743,11 @@ export default class TabPanel extends Component {
     const enableSelection = selections[0].length > 0
 
     var menuItems = []
+
+    if(tree){
+      menuItems.push(({ label: 'Close This Tree', click: ()=>PubSub.publish('close-tree',{key:this.props.k,tabId:t.wvId,tabKey:t.key})}))
+      menuItems.push(({ type: 'separator' }))
+    }
     // menuItems.push(({ label: 'New Tab', click: ()=>document.querySelector(".rdTabAddButton").click()}))
     menuItems.push(({ label: locale.translation('newTab'), click: ()=>this.createNewTab(_tabs, i)}))
     menuItems.push(({ label: locale.translation('newPrivateTab'), click: ()=>this.createNewTab(_tabs, i,{default_url:"",privateMode:Math.random().toString()})}))

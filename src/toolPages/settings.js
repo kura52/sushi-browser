@@ -323,10 +323,6 @@ class GeneralSetting extends React.Component {
           <span className="toggle-label">Enable Multi Row Tabs ({l10n.translation('requiresRestart').replace('* ','')})</span>
           <br/>
 
-          <Checkbox defaultChecked={this.state.verticalTab} toggle onChange={this.onChange.bind(this,'verticalTab')}/>
-          <span className="toggle-label">Enable Vertical Tab Mode ({l10n.translation('requiresRestart').replace('* ','')})</span>
-          <br/>
-
           <label>Tab Min Width</label>
           <Input onChange={this.onChange.bind(this,'tabMinWidth')} defaultValue={this.state.tabMinWidth}/>
         </div>
@@ -822,7 +818,7 @@ const App = () => (
 )
 
 
-ipc.send("get-main-state",['startsWith','newTabMode','myHomepage','searchProviders','searchEngine','language','enableFlash','downloadNum','sideBarDirection','scrollTab','doubleShift','tripleClick','syncScrollMargin','contextMenuSearchEngines','ALL_KEYS','bindMarginFrame','bindMarginTitle','historyFull','longPressMiddle','checkDefaultBrowser','sendToVideo','multistageTabs','tabMinWidth','httpsEverywhereEnable','trackingProtectionEnable','verticalTab'])
+ipc.send("get-main-state",['startsWith','newTabMode','myHomepage','searchProviders','searchEngine','language','enableFlash','downloadNum','sideBarDirection','scrollTab','doubleShift','tripleClick','syncScrollMargin','contextMenuSearchEngines','ALL_KEYS','bindMarginFrame','bindMarginTitle','historyFull','longPressMiddle','checkDefaultBrowser','sendToVideo','multistageTabs','tabMinWidth','httpsEverywhereEnable','trackingProtectionEnable'])
 ipc.once("get-main-state-reply",(e,data)=>{
   generalDefault = data
   keyboardDefault = data

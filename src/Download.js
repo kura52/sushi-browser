@@ -59,7 +59,11 @@ export default class Download {
         webContents.forceClose()
       }
 
-      item.setPrompt(false)
+      let active = true, url = item.getURL()
+      if(!retry.has(url)){
+        item.cancel()
+        active = false
+      }
 
       let savePath = this.savePath
       this.savePath = void 0
@@ -71,9 +75,8 @@ export default class Download {
       }
 
 
-      let url = item.getURL()
       if(url.startsWith("file://")){
-        event.preventDefault()
+        if(active) item.cancel()
         return
       }
 
@@ -81,47 +84,44 @@ export default class Download {
       if(bw !== win) return
 
       win.webContents.send(`download-start-tab_${webContents.getId()}`)
+
       if(this.needSavePath){
         this.needSavePath = false
         const filepath = dialog.showSaveDialog(win,{defaultPath: path.join(app.getPath('downloads'), item.getFilename() || path.basename(url)) })
         if(!filepath){
-          event.preventDefault()
+          if(active) item.cancel()
           return
         }
-        item.setSavePath(filepath)
+        savePath = filepath
       }
       else if(!savePath){
         if(url.endsWith(".pdf") || url.endsWith(".PDF") ){
-          event.preventDefault()
+          if(active) item.cancel()
           return
         }
-        item.setSavePath(this.getUniqFileName(path.join(app.getPath('downloads'), item.getFilename() || path.basename(url))))
+        savePath = this.getUniqFileName(path.join(app.getPath('downloads'), item.getFilename() || path.basename(url)))
       }
       else {
         const validSavePath = this.getUniqFileName(savePath)
-        item.setSavePath(validSavePath)
+        savePath = validSavePath
       }
 
-      savePath = item.getSavePath()
       timeMap.set(savePath, Date.now())
       if (retry.has(url)) {
         retry.delete(url)
+        item.setSavePath(savePath)
+        item.setPrompt(false)
         this.downloadReady(item, url, webContents,win)
       }
       else {
         // console.log(JSON.stringify({a: mainState.downloadNum}))
-        const postData = process.downloadParams.get(url)
-        // console.log(postData,url)
-        if(postData && (Date.now() - postData[1] < 100 * 1000)){
-          process.downloadParams.delete(url)
-          this.downloadReady(item, url, webContents,win)
-          return
-        }
-        // else if(mainState.downloadNum == 1){
+        // const postData = process.downloadParams.get(url)
+        // // console.log(postData,url)
+        // if(postData && (Date.now() - postData[1] < 100 * 1000)){
+        //   process.downloadParams.delete(url)
         //   this.downloadReady(item, url, webContents,win)
         //   return
         // }
-        event.preventDefault()
         let id, updated, ended, isError
 
         const dl = new Aria2cWrapper({url, savePath,downloadNum: mainState.downloadNum})

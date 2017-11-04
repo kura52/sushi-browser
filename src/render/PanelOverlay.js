@@ -11,14 +11,14 @@ const zIndexes = {}
 export default class PanelOverlay extends Component{
   constructor(props) {
     super(props)
-    this.state = {dragOverElements:[],overlay: {}}
+    this.state = {dragOverElements:[],overlay: {},visible:false}
     this.handleMouseMove = ::this.handleMouseMove
     PubSub.subscribe('drag-over-overlay',(msg,{x,y})=>{
       this.handleMouseMove({clientX:x,clientX})
     })
   }
 
-  componentWillMount(){
+  onVisible(){
     const dragOverElements = []
     for(let ele of document.querySelectorAll('.browser-page-wrapper.visible')){
       const r =  ele.getBoundingClientRect()
@@ -39,10 +39,22 @@ export default class PanelOverlay extends Component{
 
   componentDidMount(){
     console.log(this.state)
+    this.tokenOverlay = PubSub.subscribe('drag-overlay',(msg,val)=>{
+      if(val != this.state.visible){
+        this.setState({visible: val})
+        if(this.state.visible){
+          this.onVisible()
+        }
+        else{
+          this.onInvisible()
+        }
+      }
+    })
   }
 
-  componentWillReceiveProps(nextProps) {
-    this.componentWillMount()
+  componentWillUnmount() {
+    PubSub.unsubscribe(this.tokenOverlay)
+
   }
   // shouldComponentUpdate(nextProps, nextState) {
     // const fUpdate = this.fUpdate
@@ -50,7 +62,7 @@ export default class PanelOverlay extends Component{
     // return fUpdate || JSON.stringify(this.state.overlay) !== JSON.stringify(nextState.overlay)
   // }
 
-  componentWillUnmount(){
+  onInvisible(){
     for(let ele of document.querySelectorAll('.rdTabBar.chrome-tabs-content,.tab-base')){
       if(ele.classList.contains("full-screen")){
         ele.style.zIndex = ele.classList.contains("full-screen") ? 2 : ""
