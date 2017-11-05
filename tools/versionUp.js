@@ -3,69 +3,35 @@ const path = require('path')
 const fs = require('fs')
 const glob = require("glob")
 
-const BEFORE_CODE_NAME = 'Tobiuo(Flying Fish)'
-const CODE_NAME = 'Negitoro'
+const BEFORE_CODE_NAME = 'Negitoro'
+const CODE_NAME = 'Hotate(Scallop)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.7.0"
+const NEXT_APP_VERSION = "0.8.0"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Implemented partical chrome extensions API (Experimental)
-Added function that can install Chrome extension from Chrome web store
-Implemented multi-row tabs
-By right clicking the icon on the menu bar, we made it possible to sort
-Performance Improvement
-Fixed a lot of bugs
+const CHANGE_ENGLISH = `Add Vertical Tabs and Tree Style Tabs
+Improvement of Tab type Extension（move,onMoved,onDetached,onAttached)
+Add automatic / user session save function
+Add tab history
+Added import passwords from Chrome.
+Added import passwords from Firefox.
+Add HTTPS Everywhere, Protection Tracking
+Improvements Video download(e.g. display number of media)
+Update youtube-dl
+Chrome Extension improvements (chrome.history, chrome.topSites, chrome_url_overrides)
+Fixed a lot of bugs and Chrome Extension API issue
+Updated to Muon 4.5.14`
 
-Extensions Path (If browser becomes unstable please delete folders)
-Windows: C:\\Users\\[Name]\\AppData\\Roaming\\sushiBrowser\\resource\\extension
-MacOS: /Users/[Name]/Library/Application Support/sushiBrowser/resource/extension
-Linux: ~/.config/sushiBrowser/resource/extension/
-
-Partical or All implmented APIs
-chrome.browserAction
-chrome.contextMenus
-chrome.cookies
-chrome.extension
-chrome.i18
-chrome.idle
-chrome.pageAction
-chrome.proxy
-chrome.runtime
-chrome.sessions
-chrome.storage
-chrome.tabs
-chrome.webNavigation
-chrome.webRequest
-chrome.windows`
-
-const CHANGE_JAPANESE = `Chrome拡張APIを一部実装
-Chrome web storeからChrome拡張をインストールする機能を追加
-多段タブの実装
-メニューバー上のアイコンを右クリックすることで、並び替え可能にしました
-性能向上
-多数のバグ修正
-
-Chrome拡張インストールパス（もしブラウザの動作が不安定になった場合は、フォルダを削除ください）
-Windows: C:\\Users\\[Name]\\AppData\\Roaming\\sushiBrowser\\resource\\extension
-MacOS: /Users/[Name]/Library/Application Support/sushiBrowser/resource/extension
-Linux: ~/.config/sushiBrowser/resource/extension/
-
-一部分または全て実装済みのAPI一覧
-chrome.browserAction
-chrome.contextMenus
-chrome.cookies
-chrome.extension
-chrome.i18
-chrome.idle
-chrome.pageAction
-chrome.proxy
-chrome.runtime
-chrome.sessions
-chrome.storage
-chrome.tabs
-chrome.webNavigation
-chrome.webRequest
-chrome.windows`
+const CHANGE_JAPANESE = `縦タブ、ツリー型タブの機能の追加
+Tab系のExtensionの改善（move,onMoved,onDetached,onAttached)
+自動/ユーザセッション保存機能の追加
+タブ履歴保存機能の追加
+パスワードインポート機能の追加
+HTTPS Everywhere,Protection Tracking機能の追加
+Videoダウンロード機能に件数を表示するよう変更するなどの機能向上
+youtube-dlの最新化
+Chrome Extensionの改善(chrome.history, chrome.topSites, chrome_url_overridesの追加)
+多数のバグ修正`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'
