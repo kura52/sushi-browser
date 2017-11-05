@@ -54,10 +54,11 @@ export default class Download {
         return
       }
 
-      const controller = webContents.controller()
-      if (controller && controller.isValid() && controller.isInitialNavigation()) {
-        webContents.forceClose()
-      }
+      // const controller = webContents.controller()
+      // if (controller && controller.isValid() && controller.isInitialNavigation()) {
+      //   console.log('webContents.forceClose()',webContents.getURL())
+      //   webContents.forceClose()
+      // }
 
       let active = true, url = item.getURL()
       if(!retry.has(url)){
@@ -80,7 +81,7 @@ export default class Download {
         return
       }
 
-      const bw = BrowserWindow.fromWebContents(webContents) || BrowserWindow.getFocusedWindow()
+      const bw = (!webContents.isDestroyed() && BrowserWindow.fromWebContents(webContents)) || BrowserWindow.getFocusedWindow()
       if(bw !== win) return
 
       win.webContents.send(`download-start-tab_${webContents.getId()}`)

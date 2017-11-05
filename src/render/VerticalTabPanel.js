@@ -122,7 +122,8 @@ export default class VerticalTabPanel extends Component{
       for (let tab of panel) {
         if (!closes.has(tab.wvId) && tab.opener == tabId) {
           closes.add(tab.wvId)
-          PubSub.publishSync(`close_tab_${key}`,{key:tab.key,isUpdateState:false})
+          console.log(`close_tab_${key}`,{key:tab.key,isUpdateState:false})
+          PubSub.publish(`close_tab_${key}`,{key:tab.key})
           this.treeClose(tab.wvId,closes)
         }
       }

@@ -37,7 +37,7 @@ const settingDefault =  {
   vpnNames: [],
   navbarItems: {
     left: ['back','forward','reload'],
-    right: ['syncReplace','sync','opposite','sidebar','mobile','favorite','history','tabHistory','video'],
+    right: ['syncReplace','sync','opposite','sidebar','mobile','favorite','history','tabHistory','savedState','video'],
     backSide: ['download','folder','terminal'],
   },
   multistageTabs: false,
@@ -47,6 +47,7 @@ const settingDefault =  {
   tabBarHide: false,
   verticalTabPosition: 'none',
   verticalTabTree: true,
+  autoSaveInterval: 60,
 
   //keyboard shortcut default
   keyQuit: 'CmdOrCtrl+Q',

@@ -276,8 +276,7 @@ function onBeforeRedirect (details, isPrivate) {
       if (recent307Counter[canonicalUrl] > 5) {
         // If this URL has been internally-redirected more than 5 times in 200
         // ms, it's probably an HTTPS-Everywhere redirect loop.
-        console.log('blacklisting url from HTTPS Everywhere for too many 307s',
-          canonicalUrl)
+        console.log('blacklisting url from HTTPS Everywhere for too many 307s',canonicalUrl)
         redirectBlacklist.push(canonicalUrl)
       }
     } else {

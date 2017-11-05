@@ -17,6 +17,7 @@ import reactMixin  from 'react-mixin'
 
 import RightTopBottonSet from '../../RightTopBottonSet'
 import PubSub from '../../pubsub'
+import ResizeObserver from 'resize-observer-polyfill'
 
 import VerticalTabResizer from '../../VerticalTabResizer'
 
@@ -197,6 +198,19 @@ class Tabs extends React.Component {
 
 
   componentDidMount() {
+    let prevHeight = 0
+    this.ro = new ResizeObserver((entries, observer) => {
+      if(!multistageTabs || this.props.verticalTabPanel) return
+      for (const entry of entries) {
+        console.log(88974,entry,entry.contentRect.height)
+        if(prevHeight != entry.contentRect.height){
+          this.props.parent.setState({})
+          prevHeight = entry.contentRect.height
+        }
+      }
+    });
+    this.ro.observe(ReactDOM.findDOMNode(this.refs.ttab))
+
     const update = (_,e)=>{
       setTimeout(_=>this.setState({}),500)
     }
@@ -218,7 +232,7 @@ class Tabs extends React.Component {
     // this.addDropEvent();
 
     this.tokenTabMove = PubSub.subscribe('tab-move',(msg,k)=>{
-      if(this.isMultistageTabsMode()) return
+      if(this.isMultistageTabsMode() || this.props.verticalTabPanel) return
       let i = 0
       const thisDom = ReactDOM.findDOMNode(this)
       console.log(thisDom.querySelectorAll("li"))
@@ -250,6 +264,7 @@ class Tabs extends React.Component {
 
     this.refs.ttab.removeEventListener('wheel',this.handleWheel,{passive: true})
     delete transfer[this.props.k]
+    this.ro.unobserve(ReactDOM.findDOMNode(this.refs.ttab))
   }
 
   componentWillReceiveProps(nextProps) {

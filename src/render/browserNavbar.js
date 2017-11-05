@@ -30,6 +30,7 @@ const Clipboard = require('clipboard')
 const FavoriteExplorer = require('../toolPages/favoriteBase')
 const HistoryExplorer = require('../toolPages/historyBase')
 const TabHistoryExplorer = require('../toolPages/tabHistoryBase')
+const SavedStateExplorer = require('../toolPages/savedStateBase')
 const {messages,locale} = require('./localAndMessage')
 const urlParse = require('../../brave/urlParse')
 import ResizeObserver from 'resize-observer-polyfill'
@@ -550,6 +551,7 @@ class BrowserNavbar extends Component{
         {menuActions}
       </NavbarMenuBarItem>
       <NavbarMenuItem text={locale.translation("newWindow")} icon='clone' onClick={()=>BrowserWindowPlus.load({id:remote.getCurrentWindow().id,sameSize:true})}/>
+      <div className="divider" />
       <NavbarMenuItem text={this.props.toggleNav == 0 ? 'OneLine Menu(ALL)' : 'Normal Menu(ALL)'} icon='ellipsis horizontal'
                       onClick={()=>{cont.hostWebContents.send('toggle-nav',this.props.toggleNav == 0 ? 1 : 0);this.setState({})}}/>
       <NavbarMenuItem text={this.props.toggleNav == 0 ? 'OneLine Menu' : 'Normal Menu'} icon='ellipsis horizontal' onClick={()=>{this.props.parent.toggleNavPanel(this.props.toggleNav == 0 ? 1 : 0);this.setState({})}}/>
@@ -560,6 +562,7 @@ class BrowserNavbar extends Component{
                          PubSub.publish("resizeWindow",{})
                        }}/> : null
       }
+      <div className="divider" />
       {isDarwin ? null :<NavbarMenuItem text={this.props.toggleNav == 3 ? 'Normal Screen Mode' : 'Full Screen Mode'} icon={this.props.toggleNav == 3 ? 'compress' : 'expand'}
                                         onClick={()=>ipc.send('toggle-fullscreen')}/>}
       <NavbarMenuItem text='Detach This Panel' icon='space shuttle' onClick={this.props.parent.detachPanel}/>
@@ -578,6 +581,16 @@ class BrowserNavbar extends Component{
       {this.state.adBlockGlobal ? <NavbarMenuItem text={`AdBlock ${global.adBlockDisableSite[hostname] ? 'ON' : 'OFF'}(Domain)`} icon='hand paper' onClick={_=>this.handleAdBlockDomain(hostname)}/> : null}
       <div className="divider" />
 
+      <NavbarMenuItem text={`${alwaysOnTop ? 'Disable' : 'Enable'} Always On Top`} icon='level up' onClick={()=>{
+        alwaysOnTop = !alwaysOnTop
+        mainState.set('alwaysOnTop',alwaysOnTop)
+        remote.getCurrentWindow().setAlwaysOnTop(alwaysOnTop)
+        this.forceUpdates = true
+        this.setState({})
+      }}/>
+
+      <div className="divider" />
+
       {isWin  ? <NavbarMenuItem text={`Change VPN Mode`} icon='plug' onClick={_=>{
         this.setState({vpnList:!this.state.vpnList})
       }
@@ -588,15 +601,6 @@ class BrowserNavbar extends Component{
      {/*<NavbarMenuItem text='Developer Tool' icon='music' onClick={_=>cont.hostWebContents.openDevTools()}/>*/}
       <div className="divider" />
 
-      <NavbarMenuItem text={`${alwaysOnTop ? 'Disable' : 'Enable'} Always On Top`} icon='level up' onClick={()=>{
-        alwaysOnTop = !alwaysOnTop
-        mainState.set('alwaysOnTop',alwaysOnTop)
-        remote.getCurrentWindow().setAlwaysOnTop(alwaysOnTop)
-        this.forceUpdates = true
-        this.setState({})
-      }}/>
-
-      <div className="divider" />
 
       <NavbarMenuItem text={locale.translation("settings").replace('…','')} icon='settings' onClick={()=>this.onCommon("settings")}/>
       <NavbarMenuItem text={locale.translation("print").replace('…','')} icon='print' onClick={()=>this.getWebContents(this.props.tab).print()}/>
@@ -687,6 +691,17 @@ class BrowserNavbar extends Component{
     </NavbarMenu>
   }
 
+  savedStateMenu(cont,onContextMenu){
+    const menuItems = []
+    return <NavbarMenu className="sort-savedState" k={this.props.k} isFloat={isFloatPanel(this.props.k)} ref="savedStateMenu" title="Super Session Manager" icon="database" onClick={_=>_} onContextMenu={onContextMenu} timeOut={50}>
+      <NavbarMenuItem bold={true} text='Save Current Session' onClick={_=>ipc.send('save-all-windows-state')} />
+      <div className="divider" />
+      <div role="option" className="item favorite infinite-classic">
+        <SavedStateExplorer cont={cont} onClick={_=> this.refs.savedStateMenu.setState({visible:false})}/>
+      </div>
+    </NavbarMenu>
+  }
+
   getTitle(x,historyMap){
     console.log(997,historyMap.get(x[0]))
     const datas = historyMap.get(x[0])
@@ -750,6 +765,7 @@ class BrowserNavbar extends Component{
       favorite: isFixed && !isFloat ? null : this.favoriteMenu(cont,onContextMenu),
       history: isFixed && !isFloat ? null : this.historyMenu(cont,onContextMenu),
       tabHistory: isFixed && !isFloat ? null : this.tabHistoryMenu(cont,onContextMenu),
+      savedState: isFixed && !isFloat ? null : this.savedStateMenu(cont,onContextMenu),
 
       download: <BrowserNavbarBtn className="sort-download" title={locale.translation("downloads")} icon="download" onClick={this.onCommon.bind(this,"download")}/>,
       folder: <BrowserNavbarBtn className="sort-folder" title="File Explorer" icon="folder" onClick={this.onCommon.bind(this,"explorer")}/>,

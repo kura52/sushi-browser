@@ -65,6 +65,7 @@ db.image = new Datastore({filename: path.join(resourcePath,'image.db'), autoload
 db.favicon = new Datastore({filename: path.join(resourcePath,'favicon.db'), autoload: true})
 db.token = new Datastore({filename: path.join(resourcePath,'token.db'), autoload: true})
 db.extension = new Datastore({filename: path.join(resourcePath,'extension.db'), autoload: true})
+db.savedState = new Datastore({filename: path.join(resourcePath,'savedState.db'), autoload: true})
 
 
 ;(async ()=>{
@@ -80,6 +81,7 @@ db.extension = new Datastore({filename: path.join(resourcePath,'extension.db'), 
   await db.favicon.ensureIndex({ fieldName: 'url' })
   await db.image.ensureIndex({ fieldName: 'url' })
   await db.extension.ensureIndex({ fieldName: 'id' })
+  await db.savedState.ensureIndex({ fieldName: 'created_at' })
 
   // await db.searchHistory.ensureIndex({ fieldName: 'text' }).exec()
   // await db.searchHistory.ensureIndex({ fieldName: 'created_at' }).exec()

@@ -121,6 +121,32 @@ export default class SplitWindows extends Component{
 
   }
 
+  restoreState(param){
+    if(!param || !param.tabparam.includes('"winState":')) return
+
+    const setting = JSON.parse(param.tabparam)
+    let winState = {}
+    const _winState = setting.winState
+    if(_winState.l){
+      winState = this.parseRestoreDate(_winState,{},true)
+      const maxState = {width: setting.width, height: setting.height, maximize: setting.maximize,
+        maxWidth: setting.maximize && setting.maxBounds.width,maxHeight: setting.maximize && setting.maxBounds.height}
+
+      console.log(maxState,this.getKeyPosition(this.getFixedPanelKey('right'),winState,true))
+      if(maxState.maximize){
+        let pos
+        if(pos = this.getKeyPosition(this.getFixedPanelKey('right'),winState,true)){
+          pos.node.size = maxState.width - (maxState.maxWidth - pos.node.size)
+        }
+        if(pos = this.getKeyPosition(this.getFixedPanelKey('bottom'),winState,true)){
+          pos.node.size = maxState.height - (maxState.maxHeight - pos.node.size)
+        }
+      }
+    }
+    if(winState.toggleNav == 2 || winState.toggleNav == 3) winState.toggleNav = 0
+    return winState
+  }
+
   constructor(props) {
     super(props)
     this.currentWebContents = {}
@@ -129,148 +155,152 @@ export default class SplitWindows extends Component{
     global.adBlockDisableSite = {...ipc.sendSync('get-sync-main-state','adBlockDisableSite')}
     this.initBind()
 
-    let winState
-    const mState = ipc.sendSync('get-sync-main-state','winState')
-    if(mState){
-      const _winState = JSON.parse(mState)
-      if(_winState.l){
-        winState = this.parseRestoreDate(_winState,{})
-        const maxState = JSON.parse(ipc.sendSync('get-sync-main-state','maxState'))
-        console.log(maxState,this.getKeyPosition(this.getFixedPanelKey('right'),winState,true))
-        if(maxState.maximize){
-          let pos
-          if(pos = this.getKeyPosition(this.getFixedPanelKey('right'),winState,true)){
-            pos.node.size = maxState.width - (maxState.maxWidth - pos.node.size)
-          }
-          if(pos = this.getKeyPosition(this.getFixedPanelKey('bottom'),winState,true)){
-            pos.node.size = maxState.height - (maxState.maxHeight - pos.node.size)
-          }
-        }
-      }
-      if(winState.toggleNav == 2 || winState.toggleNav == 3) winState.toggleNav = 0
-    }
-
     const param = getParam()
     console.log(67,param)
-    if(param){
-      console.log(param.tabparam)
-      const attach = JSON.parse(param.tabparam)
-      if(Array.isArray(attach)){
-        winState = {dirc: "v",size: '100%',l: [getUuid(),[]],r: null,p: null,key:uuid.v4(),toggleNav: ipc.sendSync('get-sync-main-state','toggleNav') || 0,attach}
-        for(let at of winState.attach){
-          remote.getWebContents(at.wvId,cont=>{
-            this.currentWebContents[at.wvId] = cont
-          })
+
+    let winState = this.restoreState(param)
+    if(!winState){
+      const mState = ipc.sendSync('get-sync-main-state','winState')
+      if(mState){
+        const _winState = JSON.parse(mState)
+        if(_winState.l){
+          winState = this.parseRestoreDate(_winState,{})
+          const maxState = JSON.parse(ipc.sendSync('get-sync-main-state','maxState'))
+          console.log(maxState,this.getKeyPosition(this.getFixedPanelKey('right'),winState,true))
+          if(maxState.maximize){
+            let pos
+            if(pos = this.getKeyPosition(this.getFixedPanelKey('right'),winState,true)){
+              pos.node.size = maxState.width - (maxState.maxWidth - pos.node.size)
+            }
+            if(pos = this.getKeyPosition(this.getFixedPanelKey('bottom'),winState,true)){
+              pos.node.size = maxState.height - (maxState.maxHeight - pos.node.size)
+            }
+          }
         }
+        if(winState.toggleNav == 2 || winState.toggleNav == 3) winState.toggleNav = 0
       }
-      else{
-        if(attach.type == 'new-win'){
-          console.log(3333,{key: getUuid(),tabs: attach.urls.map(({url,privateMode})=>{return {pin:false,tabKey:uuid.v4(),url,privateMode}})})
-          winState = this.parseRestoreDate({dirc: "v",size: '100%',l: {key: getUuid(),tabs: attach.urls.map(({url,privateMode})=>{return {forceKeep:true,pin:false,tabKey:uuid.v4(),url,privateMode}})},
-            r: null,key:uuid.v4(),toggleNav: ipc.sendSync('get-sync-main-state','toggleNav') || 0},{})
+
+      if(param){
+        console.log(param.tabparam)
+        const attach = JSON.parse(param.tabparam)
+        if(Array.isArray(attach)){
+          winState = {dirc: "v",size: '100%',l: [getUuid(),[]],r: null,p: null,key:uuid.v4(),toggleNav: ipc.sendSync('get-sync-main-state','toggleNav') || 0,attach}
+          for(let at of winState.attach){
+            remote.getWebContents(at.wvId,cont=>{
+              this.currentWebContents[at.wvId] = cont
+            })
+          }
         }
         else{
-          console.log(33321,attach)
-          const recurDivide = (urls,percentages,obj,rest)=>{
-            if(urls.length == 0) return
-
-            const url = urls.pop()
-            const percent = percentages.pop()
-            if(urls.length == 0){
-              obj.r = {key: getUuid(),tabs: [{forceKeep:true,pin:false,tabKey:uuid.v4(),url}]}
-            }
-            else{
-              obj.r = {dirc: "v", size: `${percent / rest * 100}%`, l:{key: getUuid(),tabs: [{forceKeep:true,pin:false,tabKey:uuid.v4(),url}]}, r:null , pd: "r",key:uuid.v4()}
-            }
-            rest = rest - percent
-            if(urls.length > 0){
-              recurDivide(urls,percentages,obj.r,rest)
-            }
-          }
-
-          const divide = attach.type == "one-row" ? 1 : attach.type == "two-row" ? 2 : 3
-          attach.urls = attach.urls.map(x=>x.url)
-          if(attach.urls.length < divide){
-            attach.urls = attach.urls.concat(attach.urls).concat(attach.urls).slice(0,divide)
-          }
-
-          const divides = equallyDivide(attach.urls.length,divide).reverse()
-          let sum = 0
-          let arrays = []
-          for(let d of divides){
-            arrays.push(attach.urls.slice(sum,sum+d))
-            sum+=d
-          }
-
-
-          let datas
-          if(divide == 1){
-            const percentages = equallyDivide(100,arrays[0].length)
-            const url = arrays[0][0]
-            const percent = percentages.pop()
-            datas = {dirc: "v",key:uuid.v4(),size: `${percent}%`,l: {key: getUuid(),tabs: [{forceKeep:true,pin:false,tabKey:uuid.v4(),url}]}, r: null}
-            recurDivide(arrays[0].slice(1).reverse(),percentages,datas,100 - percent)
-          }
-          else if(divide == 2){
-            const percentages = equallyDivide(100,arrays[0].length)
-            const url = arrays[0][0]
-            const percent = percentages.pop()
-
-            const percentages2 = equallyDivide(100,arrays[1].length)
-            const url2 = arrays[1][0]
-            const percent2 = percentages2.pop()
-
-            datas = {dirc: "h",key:uuid.v4(),size: '50%',l: {dirc: "v",key:uuid.v4(),size: `${percent}%`,pd:"l",l: {key: getUuid(),tabs: [{forceKeep:true,pin:false,tabKey:uuid.v4(),url}]}, r: null},
-              r: {dirc: "v",key:uuid.v4(),size: `${percent2}%`,pd:"r",l: {key: getUuid(),tabs: [{forceKeep:true,pin:false,tabKey:uuid.v4(),url:url2}]}, r: null}}
-
-            recurDivide(arrays[0].slice(1).reverse(),percentages,datas.l,100 - percent)
-            recurDivide(arrays[1].slice(1).reverse(),percentages2,datas.r,100 - percent2)
-            if(datas.l.r===null){
-              datas.l = datas.l.l
-              datas.l.pd = "l"
-            }
-            if(datas.r.r===null){
-              datas.r = datas.r.l
-              datas.r.pd = "r"
-            }
+          if(attach.type == 'new-win'){
+            // console.log(3333,{key: getUuid(),tabs: attach.urls.map(({url,privateMode})=>{return {pin:false,tabKey:uuid.v4(),url,privateMode}})})
+            winState = this.parseRestoreDate({dirc: "v",size: '100%',l: {key: getUuid(),tabs: attach.urls.map(({url,tabKey,privateMode})=>{return {forceKeep:true,pin:false,tabKey:tabKey || uuid.v4(),url,privateMode}})},
+              r: null,key:uuid.v4(),toggleNav: ipc.sendSync('get-sync-main-state','toggleNav') || 0},{})
+            console.log(88888,winState)
           }
           else{
-            const percentages = equallyDivide(100,arrays[0].length)
-            const url = arrays[0][0]
-            const percent = percentages.pop()
+            console.log(33321,attach)
+            const recurDivide = (urls,percentages,obj,rest)=>{
+              if(urls.length == 0) return
 
-            const percentages2 = equallyDivide(100,arrays[1].length)
-            const url2 = arrays[1][0]
-            const percent2 = percentages2.pop()
+              const url = urls.pop()
+              const percent = percentages.pop()
+              if(urls.length == 0){
+                obj.r = {key: getUuid(),tabs: [{forceKeep:true,pin:false,tabKey:uuid.v4(),url}]}
+              }
+              else{
+                obj.r = {dirc: "v", size: `${percent / rest * 100}%`, l:{key: getUuid(),tabs: [{forceKeep:true,pin:false,tabKey:uuid.v4(),url}]}, r:null , pd: "r",key:uuid.v4()}
+              }
+              rest = rest - percent
+              if(urls.length > 0){
+                recurDivide(urls,percentages,obj.r,rest)
+              }
+            }
 
-            const percentages3 = equallyDivide(100,arrays[2].length)
-            const url3 = arrays[2][0]
-            const percent3 = percentages3.pop()
+            const divide = attach.type == "one-row" ? 1 : attach.type == "two-row" ? 2 : 3
+            attach.urls = attach.urls.map(x=>x.url)
+            if(attach.urls.length < divide){
+              attach.urls = attach.urls.concat(attach.urls).concat(attach.urls).slice(0,divide)
+            }
 
-            datas = {dirc: "h",key:uuid.v4(),size: '33%',
-              l: {dirc: "v",key:uuid.v4(),size: `${percent}%`,pd:"l",l: {key: getUuid(),tabs: [{forceKeep:true,pin:false,tabKey:uuid.v4(),url}]}, r: null},
-              r: {dirc: "h",key:uuid.v4(),size: '49%',pd:"r",
-                l: {dirc: "v",key:uuid.v4(),size: `${percent2}%`,pd:"l",l: {key: getUuid(),tabs: [{forceKeep:true,pin:false,tabKey:uuid.v4(),url:url2}]}, r: null},
-                r: {dirc: "v",key:uuid.v4(),size: `${percent3}%`,pd:"r",l: {key: getUuid(),tabs: [{forceKeep:true,pin:false,tabKey:uuid.v4(),url:url3}]}, r: null}}}
-            recurDivide(arrays[0].slice(1).reverse(),percentages,datas.l,100 - percent)
-            recurDivide(arrays[1].slice(1).reverse(),percentages2,datas.r.l,100 - percent2)
-            recurDivide(arrays[2].slice(1).reverse(),percentages3,datas.r.r,100 - percent3)
-            if(datas.l.r===null){
-              datas.l = datas.l.l
-              datas.l.pd = "l"
+            const divides = equallyDivide(attach.urls.length,divide).reverse()
+            let sum = 0
+            let arrays = []
+            for(let d of divides){
+              arrays.push(attach.urls.slice(sum,sum+d))
+              sum+=d
             }
-            if(datas.r.l.r===null){
-              datas.r.l = datas.r.l.l
-              datas.r.l.pd = "l"
+
+
+            let datas
+            if(divide == 1){
+              const percentages = equallyDivide(100,arrays[0].length)
+              const url = arrays[0][0]
+              const percent = percentages.pop()
+              datas = {dirc: "v",key:uuid.v4(),size: `${percent}%`,l: {key: getUuid(),tabs: [{forceKeep:true,pin:false,tabKey:uuid.v4(),url}]}, r: null}
+              recurDivide(arrays[0].slice(1).reverse(),percentages,datas,100 - percent)
             }
-            if(datas.r.r.r===null){
-              datas.r.r = datas.r.r.l
-              datas.r.r.pd = "r"
+            else if(divide == 2){
+              const percentages = equallyDivide(100,arrays[0].length)
+              const url = arrays[0][0]
+              const percent = percentages.pop()
+
+              const percentages2 = equallyDivide(100,arrays[1].length)
+              const url2 = arrays[1][0]
+              const percent2 = percentages2.pop()
+
+              datas = {dirc: "h",key:uuid.v4(),size: '50%',l: {dirc: "v",key:uuid.v4(),size: `${percent}%`,pd:"l",l: {key: getUuid(),tabs: [{forceKeep:true,pin:false,tabKey:uuid.v4(),url}]}, r: null},
+                r: {dirc: "v",key:uuid.v4(),size: `${percent2}%`,pd:"r",l: {key: getUuid(),tabs: [{forceKeep:true,pin:false,tabKey:uuid.v4(),url:url2}]}, r: null}}
+
+              recurDivide(arrays[0].slice(1).reverse(),percentages,datas.l,100 - percent)
+              recurDivide(arrays[1].slice(1).reverse(),percentages2,datas.r,100 - percent2)
+              if(datas.l.r===null){
+                datas.l = datas.l.l
+                datas.l.pd = "l"
+              }
+              if(datas.r.r===null){
+                datas.r = datas.r.l
+                datas.r.pd = "r"
+              }
             }
+            else{
+              const percentages = equallyDivide(100,arrays[0].length)
+              const url = arrays[0][0]
+              const percent = percentages.pop()
+
+              const percentages2 = equallyDivide(100,arrays[1].length)
+              const url2 = arrays[1][0]
+              const percent2 = percentages2.pop()
+
+              const percentages3 = equallyDivide(100,arrays[2].length)
+              const url3 = arrays[2][0]
+              const percent3 = percentages3.pop()
+
+              datas = {dirc: "h",key:uuid.v4(),size: '33%',
+                l: {dirc: "v",key:uuid.v4(),size: `${percent}%`,pd:"l",l: {key: getUuid(),tabs: [{forceKeep:true,pin:false,tabKey:uuid.v4(),url}]}, r: null},
+                r: {dirc: "h",key:uuid.v4(),size: '49%',pd:"r",
+                  l: {dirc: "v",key:uuid.v4(),size: `${percent2}%`,pd:"l",l: {key: getUuid(),tabs: [{forceKeep:true,pin:false,tabKey:uuid.v4(),url:url2}]}, r: null},
+                  r: {dirc: "v",key:uuid.v4(),size: `${percent3}%`,pd:"r",l: {key: getUuid(),tabs: [{forceKeep:true,pin:false,tabKey:uuid.v4(),url:url3}]}, r: null}}}
+              recurDivide(arrays[0].slice(1).reverse(),percentages,datas.l,100 - percent)
+              recurDivide(arrays[1].slice(1).reverse(),percentages2,datas.r.l,100 - percent2)
+              recurDivide(arrays[2].slice(1).reverse(),percentages3,datas.r.r,100 - percent3)
+              if(datas.l.r===null){
+                datas.l = datas.l.l
+                datas.l.pd = "l"
+              }
+              if(datas.r.l.r===null){
+                datas.r.l = datas.r.l.l
+                datas.r.l.pd = "l"
+              }
+              if(datas.r.r.r===null){
+                datas.r.r = datas.r.r.l
+                datas.r.r.pd = "r"
+              }
+            }
+            console.log(3443333,datas)
+            winState = this.parseRestoreDate({...datas,toggleNav: ipc.sendSync('get-sync-main-state','toggleNav') || 0},{})
+
           }
-          console.log(3443333,datas)
-          winState = this.parseRestoreDate({...datas,toggleNav: ipc.sendSync('get-sync-main-state','toggleNav') || 0},{})
-
         }
       }
     }
@@ -424,6 +454,12 @@ export default class SplitWindows extends Component{
       }
     }
     ipc.on('get-window-state',this.getWinStateEvent)
+
+
+    this.getWinStateEvent2 = (e,key)=>{
+      ipc.send(`get-window-state2-reply_${key}`,this.jsonfyiable2(this.state.root,{},true))
+    }
+    ipc.on('get-window-state2',this.getWinStateEvent2)
 
     const self = this
     this.getTabId = (activeElement)=>{
@@ -839,21 +875,21 @@ export default class SplitWindows extends Component{
     this.nc = date
   }
 
-  parseRestoreDate(node,obj){
+  parseRestoreDate(node,obj,force=false){
     if(node.l.tabs) {
-      obj.l = [node.l.key,node.l.tabs]
+      obj.l = [node.l.key,force ? node.l.tabs.map(t=>{t.forceKeep = true; return t}) : node.l.tabs]
     }
     else{
       obj.l = {}
-      this.parseRestoreDate(node.l,obj.l)
+      this.parseRestoreDate(node.l,obj.l,force)
     }
     if(!node.r){}
     else if (node.r.tabs) {
-      obj.r = [node.r.key,node.r.tabs]
+      obj.r = [node.r.key,force ? node.r.tabs.map(t=>{t.forceKeep = true; return t}) : node.r.tabs]
     }
     else{
       obj.r = {}
-      this.parseRestoreDate(node.r,obj.r)
+      this.parseRestoreDate(node.r,obj.r,force)
     }
 
     obj.dirc = node.dirc
@@ -975,6 +1011,49 @@ export default class SplitWindows extends Component{
       if(typeof obj.r === "string"){
         // obj.r = [obj.r,[]]
         obj.r = {key:obj.r, tabs:this.refs2[obj.r].state.tabs.map(tab=>{return {tabKey:tab.key, url:tab.page.navUrl, pin:!!tab.pin}}).filter(x=> x.tabKey !== undefined)}
+      }
+    }
+
+    return obj
+  }
+
+
+  jsonfyiable2(node,obj,saved=false){
+    if (!Array.isArray(node.l) && node.l instanceof Object) {
+      obj.l = {}
+      this.jsonfyiable(node.l,obj.l,saved)
+    }
+    else{
+      obj.l = node.l ? node.l[0] : node.l
+    }
+    if (!Array.isArray(node.r) && node.r instanceof Object) {
+      obj.r = {}
+      this.jsonfyiable(node.r,obj.r,saved)
+    }
+    else{
+      obj.r = node.r ? node.r[0] : node.r
+    }
+
+    obj.dirc = node.dirc
+    obj.size = node.size
+    obj.pd = node.pd
+    obj.key = node.key
+    obj.toggleNav = node.toggleNav
+
+    if(saved){
+      const refKey = `pane_${obj.key}`
+      if(this.refs[refKey]){
+        obj.size = this.refs[refKey].state.size || obj.size
+      }
+
+      if(typeof obj.l === "string"){
+        // obj.l = [obj.l,[]]
+        obj.l = {key:obj.l, tabs:this.refs2[obj.l].state.tabs.map(tab=>{return {tabKey:tab.key, title:tab.page.title, url:tab.page.navUrl, pin:!!tab.pin}}).filter(x=> x.tabKey !== undefined)}
+      }
+
+      if(typeof obj.r === "string"){
+        // obj.r = [obj.r,[]]
+        obj.r = {key:obj.r, tabs:this.refs2[obj.r].state.tabs.map(tab=>{return {tabKey:tab.key, title:tab.page.title, url:tab.page.navUrl, pin:!!tab.pin}}).filter(x=> x.tabKey !== undefined)}
       }
     }
 

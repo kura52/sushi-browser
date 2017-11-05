@@ -301,6 +301,14 @@ a.search-button:hover {
     top: 90% !important;
 }
 
+.ui.dropdown.main-menu .menu>.item {
+    padding: .32rem 0.94285714rem!important;
+}
+
+.ui.dropdown.main-menu .menu.nav-menu {
+    padding-top: 3px;
+}
+
 .ui.dropdown .menu>.item {
     padding: .43571429rem 0.94285714rem!important;
 }

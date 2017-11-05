@@ -463,7 +463,6 @@ class FileExplorer extends React.Component{
         <Menu.Item as='a' href={`${baseURL}/favorite_sidebar.html`} key="favorite" icon="star"/>
         <Menu.Item as='a' href={`${baseURL}/history_sidebar.html`} key="history" icon="history"/>
         <Menu.Item as='a' href={`${baseURL}/tab_history_sidebar.html`} key="tags" icon="tags"/>
-        <Menu.Item as='a' href={`${baseURL}/tabs_sidebar.html`} key="tabs" icon="align justify"/>
         <Menu.Item key="file-explorer" icon="folder" active={true}/>
         <Menu.Item key="open" icon="folder open" onClick={::this.selectFolder} />
       </Menu>

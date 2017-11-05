@@ -4,7 +4,7 @@ const url = require('url')
 const path = require('path')
 const fs = require('fs')
 const InitSetting = require('./InitSetting')
-import { state,searchEngine } from './databaseFork'
+import { state,searchEngine,savedState } from './databaseFork'
 import mainState from './mainState'
 import {settingDefault} from '../resource/defaultValue'
 import PubSub from './render/pubsub'
@@ -17,8 +17,56 @@ const localShortcuts = require('../brave/app/localShortcuts')
 const normalSize = {}
 let saved = false
 
+let autoSaveStarted
+function startAutoSaveAllWindowsState(){
+  if(autoSaveStarted) return
+
+  let prevStates = ""
+  setInterval(async _=>{
+    const states = await saveAllWindowsState()
+    if(!states.wins.length) return
+
+    const statesStr = JSON.stringify(states.wins.map(state=>state.winState))
+    if(prevStates == statesStr) return
+    states.created_at = Date.now()
+    savedState.insert(states)
+    prevStates = statesStr
+  },(parseInt(mainState.autoSaveInterval)||60) * 1000)
+
+  autoSaveStarted = true
+}
+
+async function saveAllWindowsState(){
+  const wins = []
+  for(let bw of BrowserWindow.getAllWindows()){
+    if(!bw.getTitle().includes('Sushi Browser')) continue
+    const key = Math.random().toString()
+    bw.webContents.send('get-window-state2',key)
+
+    const win = await new Promise(resolve=>{
+      const maximize = bw.isMaximized()
+      const bounds = maximize ? normalSize[bw.id] : bw.getBounds()
+      const maxBounds = bw.getBounds()
+      ipcMain.once(`get-window-state2-reply_${key}`,(e,ret)=>{
+        resolve({...bounds, maximize,maxBounds, toggleNav:mainState.toggleNav==2 || mainState.toggleNav==3 ? 0 :mainState.toggleNav,winState:ret})
+      })
+    })
+    wins.push(win)
+  }
+  return {wins}
+}
+
+ipcMain.on('save-all-windows-state',async (e,key)=>{
+  const states = await saveAllWindowsState()
+  states.created_at = Date.now()
+  states.user = true
+  savedState.insert(states)
+})
+
+
 function create(args){
   // console.log(44421,args)
+  startAutoSaveAllWindowsState()
   let bw = new BrowserWindow(args)
   if(args.maximize){
     normalSize[bw.id] = {x: args.x, y: args.y, width: args.width, height: args.height}
@@ -166,7 +214,7 @@ function getNewPopBounds(bw){
 
 function getSize(opt){
   if(opt.x !== (void 0)){
-    return {x:opt.x,y:opt.y,width:opt.width,height:opt.height, maximize: false}
+    return {x:opt.x,y:opt.y,width:opt.width,height:opt.height, maximize: opt.maximize || false}
   }
   else{
     const bw = BrowserWindow.fromId(opt.id)

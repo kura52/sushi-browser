@@ -57,7 +57,8 @@ const db = new Proxy({
   get image(){return new Proxy(dummy, handler('image'))},
   get favicon(){return new Proxy(dummy, handler('favicon'))},
   get token(){return new Proxy(dummy, handler('token'))},
-  get extension(){return new Proxy(dummy, handler('extension'))}
+  get extension(){return new Proxy(dummy, handler('extension'))},
+  get savedState(){return new Proxy(dummy, handler('savedState'))}
 },handler())
 
 export default db

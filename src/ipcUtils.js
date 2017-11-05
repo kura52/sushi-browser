@@ -5,7 +5,7 @@ import sh from 'shelljs'
 import uuid from 'node-uuid'
 import PubSub from './render/pubsub'
 const seq = require('./sequence')
-const {state,favorite,historyFull,tabState,visit} = require('./databaseFork')
+const {state,favorite,historyFull,tabState,visit,savedState} = require('./databaseFork')
 const db = require('./databaseFork')
 const FfmpegWrapper = require('./FfmpegWrapper')
 
@@ -107,7 +107,10 @@ ipcMain.on('show-dialog-exploler',(event,key,info,tabId)=>{
   console.log(tabId,cont)
   if(info.inputable){
     const key2 = uuid.v4();
-    (cont ? event.sender : event.sender.hostWebContents).send('show-notification',{id:(cont || event.sender).getId(),key:key2,title:info.title,text:info.text,initValue:info.initValue,needInput:info.needInput || [""]})
+    (cont ? event.sender : event.sender.hostWebContents).send('show-notification',
+      {id:(cont || event.sender).getId(),key:key2,title:info.title,text:info.text,
+        initValue:info.initValue,needInput:info.needInput || [""]})
+
     ipcMain.once(`reply-notification-${key2}`,(e,ret)=>{
       if(ret.pressIndex !== 0){
         event.sender.send(`show-dialog-exploler-reply_${key}`)
@@ -194,6 +197,11 @@ ipcMain.on('get-all-favorites',async(event,key,dbKeys)=>{
   event.sender.send(`get-all-favorites-reply_${key}`,ret)
 })
 
+ipcMain.on('get-all-states',async(event,key)=>{
+  const ret = await savedState.find_sort([{}],[{ created_at: -1 }])
+  event.sender.send(`get-all-states-reply_${key}`,ret)
+})
+
 
 
 async function recurFind(keys,list){
@@ -244,8 +252,48 @@ ipcMain.on('open-favorite',async (event,key,dbKeys,tabId,type)=>{
 
   console.log(list)
   event.sender.send(`open-favorite-reply_${key}`,key)
-
 })
+
+
+ipcMain.on('open-savedState',async (event,key,tabId,datas)=>{
+  let list = []
+  const cont = tabId !== 0 && webContents.fromTabID(tabId)
+  const host = cont ? event.sender : event.sender.hostWebContents
+
+  const win = BrowserWindow.fromWebContents(host)
+  ipcMain.once('get-private-reply',(e,privateMode)=>{
+    if(typeof datas == "string"){
+      BrowserWindowPlus.load({id:win.id,sameSize:true,tabParam:JSON.stringify({urls:[{tabKey:datas}],type: 'new-win'})})
+    }
+    else{
+      if(!Array.isArray(datas)) datas = [datas]
+      for(let newWin of datas){
+        BrowserWindowPlus.load({id:win.id, x:newWin.x, y:newWin.y, width:newWin.width, height:newWin.height,
+          maximize: newWin.maximize, tabParam:JSON.stringify(newWin)})
+      }
+    }
+  })
+  win.webContents.send('get-private', (cont || event.sender).getId())
+
+
+  console.log(list)
+  event.sender.send(`open-savedState-reply_${key}`,key)
+})
+
+ipcMain.on('delete-savedState',(event,key,dbKey)=>{
+  savedState.remove({_id: dbKey}).then(ret=>{
+    event.sender.send(`delete-savedState-reply_${key}`,key)
+  })
+})
+
+
+ipcMain.on('rename-savedState',(event,key,dbKey,newName)=>{
+  console.log(99,dbKey,newName)
+  savedState.update({_id: dbKey }, { $set: {...newName,updated_at: Date.now()}}).then(ret2=>{
+    event.sender.send(`rename-savedState-reply_${key}`,key)
+  })
+})
+
 
 async function recurDelete(keys,list){
   const ret = await favorite.find({key:{$in: keys}})

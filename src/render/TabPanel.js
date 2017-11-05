@@ -61,7 +61,6 @@ const convertUrlMap = new Map([
   ['chrome://history-sidebar/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history_sidebar.html'],
   ['chrome://explorer/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html'],
   ['chrome://explorer-sidebar/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer_sidebar.html'],
-  ['chrome://tabs-sidebar/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tabs_sidebar.html'],
   ['chrome://download/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html'],
   ['chrome://terminal/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html'],
   ['chrome://settings/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html'],
@@ -339,7 +338,7 @@ export default class TabPanel extends Component {
           rSession.urls = rSession.urls.split("\t")
           rSession.titles = rSession.titles.split("\t")
         }
-        const n_tab = this.createTab({default_url:tab.url,privateMode:tab.privateMode,pin:tab.pin,guestInstanceId: tab.guestInstanceId,rest:{rSession}})
+        const n_tab = this.createTab({default_url:tab.url || (rSession && rSession.urls[rSession.currentIndex]),privateMode:tab.privateMode,pin:tab.pin,guestInstanceId: tab.guestInstanceId,rest:{rSession}})
         tabs.push(n_tab)
         withWindowCreateTabs.add(n_tab.key)
         i++
@@ -1089,12 +1088,13 @@ export default class TabPanel extends Component {
         if(e.url.match(REG_VIDEO)){
           ipc.send('video-infos',{url:e.url})
           ipc.once('video-infos-reply',(e,{title,formats,error})=>{
+            console.log('video-infos-reply',e,{title,formats,error})
             if(error) return
             for(let f of formats){
               // if(f.protocol.includes('m3u8')) continue
               const fname = `${title}_${f.format.replace(/ /g,'')}.${f.ext}`
               tab.page.richContents.push({url:f.url,type:'video',fname})
-              this.refs[`navbar-${tab.key}`].setState({})
+              self.refs[`navbar-${tab.key}`].setState({})
             }
           })
         }
@@ -1479,7 +1479,7 @@ export default class TabPanel extends Component {
           const titles = rSession.titles
           rSession.urls = urls.split("\t")
           rSession.titles = titles.split("\t")
-          rSession.currentIndex = restoreIndex
+          if(restoreIndex !== null) rSession.currentIndex = restoreIndex
           const n_tab = this.createTab({default_url:rSession.urls[rSession.currentIndex],rest:{rSession}})
           tabState.insert({tabKey:n_tab.key,titles,urls,currentIndex:rSession.currentIndex, updated_at: Date.now()})
           const i = this.state.tabs.findIndex(x=>x.key == tab.key)

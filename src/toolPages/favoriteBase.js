@@ -274,7 +274,6 @@ export default class App extends React.Component {
               <Menu.Item key="favorite" icon="star" active={true}/>
               <Menu.Item as='a' href={`${baseURL}/history_sidebar.html`} key="history" icon="history"/>
               <Menu.Item as='a' href={`${baseURL}/tab_history_sidebar.html`} key="tags" icon="tags"/>
-              <Menu.Item as='a' href={`${baseURL}/tabs_sidebar.html`} key="tabs" icon="align justify"/>
               <Menu.Item as='a' href={`${baseURL}/explorer_sidebar.html`} key="file-explorer" icon="folder"/>
             </Menu>
             <Input ref='input' icon='search' placeholder='Search...' size="small" onChange={::this.onChange}/>

@@ -95,6 +95,7 @@ const db = new Proxy({
   get favicon(){return new Proxy(dummy, handler('favicon'))},
   get token(){return new Proxy(dummy, handler('token'))},
   get extension(){return new Proxy(dummy, handler('extension'))},
+  get savedState(){return new Proxy(dummy, handler('savedState'))},
   _kill(){child.kill('SIGINT')}
 },handler())
 

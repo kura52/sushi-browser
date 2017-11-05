@@ -301,6 +301,12 @@ class GeneralSetting extends React.Component {
         </div>
         <br/>
 
+
+        <div className="field">
+          <label>Session Autosave Interval</label>
+          <Input onChange={this.onChange.bind(this,'autoSaveInterval')} defaultValue={this.state.autoSaveInterval}/>
+        </div>
+
         <div className="field">
           <label>Protection</label>
           <Checkbox defaultChecked={this.state.httpsEverywhereEnable} toggle onChange={this.onChange.bind(this,'httpsEverywhereEnable')}/>
@@ -818,7 +824,7 @@ const App = () => (
 )
 
 
-ipc.send("get-main-state",['startsWith','newTabMode','myHomepage','searchProviders','searchEngine','language','enableFlash','downloadNum','sideBarDirection','scrollTab','doubleShift','tripleClick','syncScrollMargin','contextMenuSearchEngines','ALL_KEYS','bindMarginFrame','bindMarginTitle','historyFull','longPressMiddle','checkDefaultBrowser','sendToVideo','multistageTabs','tabMinWidth','httpsEverywhereEnable','trackingProtectionEnable'])
+ipc.send("get-main-state",['startsWith','newTabMode','myHomepage','searchProviders','searchEngine','language','enableFlash','downloadNum','sideBarDirection','scrollTab','doubleShift','tripleClick','syncScrollMargin','contextMenuSearchEngines','ALL_KEYS','bindMarginFrame','bindMarginTitle','historyFull','longPressMiddle','checkDefaultBrowser','sendToVideo','multistageTabs','tabMinWidth','httpsEverywhereEnable','trackingProtectionEnable','autoSaveInterval'])
 ipc.once("get-main-state-reply",(e,data)=>{
   generalDefault = data
   keyboardDefault = data

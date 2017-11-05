@@ -212,7 +212,16 @@ var getTabValue = function (tabId) {`)
   else{
     func()
   }
-}`)
+}`
+    .replace('var sendToBackgroundPages = function (extensionId, session, event) {',`var sendToBackgroundPages = function (extensionId, session, event, arg1) {
+  if(event == 'chrome-tabs-created'){
+    BrowserWindow.getAllWindows().forEach(win=>{
+      if(win.getTitle().includes('Sushi Browser')){
+        win.webContents.send('tab-create',arg1)
+      }
+    })
+  }`)
+  )
 
 fs.writeFileSync(file,result)
 

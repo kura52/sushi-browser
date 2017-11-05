@@ -550,14 +550,19 @@ ipcMain.on('init-private-mode',(e,partition)=>{
   extensions.loadAll(ses)
 })
 
-let explorerMenu,favoriteMenu
+let explorerMenu,favoriteMenu,savedStateMenu
+ipcMain.on("explorer-menu",(e,path)=>{
+  explorerMenu = {sender:e.sender,path}
+  setTimeout(_=>explorerMenu=(void 0),1000)
+})
+
 ipcMain.on("favorite-menu",(e,path)=>{
   favoriteMenu = {sender:e.sender,path}
   setTimeout(_=>favoriteMenu=(void 0),1000)
 })
-ipcMain.on("explorer-menu",(e,path)=>{
-  explorerMenu = {sender:e.sender,path}
-  setTimeout(_=>explorerMenu=(void 0),1000)
+ipcMain.on("savedState-menu",(e,canDelete)=>{
+  savedStateMenu = {sender:e.sender,canDelete}
+  setTimeout(_=>savedStateMenu=(void 0),1000)
 })
 
 const webContents2 = webContents
@@ -581,7 +586,7 @@ function contextMenu(webContents) {
     const isIndex = props.pageURL.match(/^chrome:\/\/brave.+?\/index.html/)
     console.log(props.pageURL)
     // const sidebar = props.pageURL.match(/^chrome\-extension:\/\/.+?_sidebar.html/)
-    if (isIndex && !favoriteMenu) return
+    if (isIndex && !favoriteMenu && !savedStateMenu) return
 
     if(favoriteMenu){
       const favMenu = favoriteMenu
@@ -614,9 +619,18 @@ function contextMenu(webContents) {
       menu.popup(targetWindow)
       return
     }
-    // }
-
-    if(explorerMenu){
+    else if(savedStateMenu){
+      const saveMenu = savedStateMenu
+      menuItems.push({label: locale.translation('openInNewWindow'),click: (item,win)=>{saveMenu.sender.send(`savedState-menu-reply`,'openInNewWindow')}})
+      if(saveMenu.canDelete){
+        menuItems.push({label: locale.translation('9065203028668620118'),click: (item,win)=>{saveMenu.sender.send(`savedState-menu-reply`,'edit')}})
+        menuItems.push({label: locale.translation('delete'),click: (item,win)=>{saveMenu.sender.send(`savedState-menu-reply`,'delete')}})
+      }
+      var menu = Menu.buildFromTemplate(menuItems)
+      menu.popup(targetWindow)
+      return
+    }
+    else if(explorerMenu){
       const expMenu = explorerMenu
       menuItems.push({label: 'Copy Path',click: (item,win)=>{clipboard.writeText(expMenu.path.join(os.EOL))}})
       menuItems.push({label: 'Create New File',click: (item,win)=>{expMenu.sender.send(`explorer-menu-reply`,'create-file')}})
