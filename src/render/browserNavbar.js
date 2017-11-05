@@ -860,7 +860,7 @@ class BrowserNavbar extends Component{
                 onDrop={(e)=>{e.preventDefault();return false}} style={navbarStyle}>
       {/*<BrowserNavbarBtn title="Rewind" icon="home fa-lg" onClick={this.props.onClickHome} disabled={!this.props.page.canGoBack} />*/}
 
-      {isDarwin && this.props.isTopRight && this.props.toggleNav == 1 ? <div style={{width: this.props.fullscreen ? 0 : 62}}/>  : null }
+      {isDarwin && this.props.isTopRight && this.props.toggleNav == 1 && !document.querySelector('.vertical-tab.left') ? <div style={{width: this.props.fullscreen ? 0 : 62}}/>  : null }
 
       {navBarMenus}
       {this.mainMenu(cont, this.props.tab, backSideMenus)}

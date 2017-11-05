@@ -365,19 +365,29 @@ export default class VerticalTabPanel extends Component{
 
   render() {
     const width = this.state.width
+    const styleText = {
+      paddingTop: '0.47em',
+      paddingBottom: '0.43em',
+      paddingLeft: '1em',
+      paddingRight: '1em'
+    }
+    const styleButton = {
+      padding: '0.4em'
+    }
 
     return <div style={{display: this.props.toggleNav > 1 ? 'none' : 'flex'}}>
       {this.props.direction == "right" ? <VerticalTabResizer width={width} setWidth={this.setWidth} direction={this.props.direction}/> : null}
-      <div className="vertical-tab" style={{width}}>
+      <div className={`vertical-tab ${this.props.direction}`} style={{width,background: 'rgb(247, 247, 247)'}}>
+        <div className="vertical-header"/>
         <div style={{textAlign: 'center',paddingTop: 2,paddingBottom: 2}}>
-          <Button size="small" onClick={_=>{
+          <Button style={styleText} size="small" onClick={_=>{
             const val = !mainState.tabBarHide
             PubSub.publish('hide-tabbar',val)
             mainState.set('tabBarHide',val)
             PubSub.publish("resizeWindow",{})
           }}>Hide Tabs</Button>
-          <Button icon='tree' onClick={this.toggleTree}/>
-          <Button icon='remove' onClick={_=>{
+          <Button style={styleButton} icon='tree' onClick={this.toggleTree}/>
+          <Button style={styleButton} icon='remove' onClick={_=>{
             PubSub.publish('set-vertical-tab-state',"none")
             PubSub.publish('hide-tabbar',false)
             mainState.set('tabBarHide',false)

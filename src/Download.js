@@ -60,7 +60,14 @@ export default class Download {
       //   webContents.forceClose()
       // }
 
-      let active = true, url = item.getURL()
+      let active = true, url
+      try{
+        url = item.getURL()
+      }catch(e){
+        console.log(e)
+        return
+      }
+
       if(!retry.has(url)){
         item.cancel()
         active = false

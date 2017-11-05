@@ -992,7 +992,7 @@ class Tabs extends React.Component {
                   win.maximize()
                 }
               }: null}>
-            {isDarwin && this.props.isTopRight && this.props.toggleNav != 1 ? <div style={{width: this.props.fullscreen ? 0 : 62}}/>  : ""}
+            {isDarwin && this.props.isTopRight && this.props.toggleNav != 1 && !document.querySelector('.vertical-tab.left') ? <div style={{width: this.props.fullscreen ? 0 : 62}}/>  : ""}
             {tabs}
             <span ref="addButton" draggable="true" className="rdTabAddButton"
                   style={Object.assign({},this.TabStyles.tabAddButton)} onClick={this.handleAddButtonClick.bind(this)}
