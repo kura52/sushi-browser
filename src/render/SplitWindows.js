@@ -184,7 +184,7 @@ export default class SplitWindows extends Component{
         console.log(param.tabparam)
         const attach = JSON.parse(param.tabparam)
         if(Array.isArray(attach)){
-          winState = {dirc: "v",size: '100%',l: [getUuid(),[]],r: null,p: null,key:uuid.v4(),toggleNav: ipc.sendSync('get-sync-main-state','toggleNav') || 0,attach}
+          winState = {dirc: "v",size: '100%',l: [getUuid(),[]],r: null,p: null,key:uuid.v4(),toggleNav: param.toggle !== (void 0) ? parseInt(param.toggle) : ipc.sendSync('get-sync-main-state','toggleNav') || 0,attach}
           for(let at of winState.attach){
             remote.getWebContents(at.wvId,cont=>{
               this.currentWebContents[at.wvId] = cont
@@ -901,7 +901,7 @@ export default class SplitWindows extends Component{
     return obj
   }
 
-  allKeysAndTabs(node=this.state.root,arr,order){
+  allKeysAndTabs(node=this.state.root,arr,order){ // probably nouse
     this._allKeysAndTabs(node,arr,order)
     for (var [key, value] of this.state.floatPanels.entries()) {
       order[0] = order[0]+1
@@ -938,21 +938,30 @@ export default class SplitWindows extends Component{
     return arr
   }
 
+
   allKeys(node=this.state.root,arr){
+    this._allKeys(node=this.state.root,arr)
+    arr.push(...this.state.floatPanels.keys())
+
+    return arr
+  }
+
+  _allKeys(node=this.state.root,arr){
     if (!Array.isArray(node.l) && node.l instanceof Object) {
-      this.allKeys(node.l,arr)
+      this._allKeys(node.l,arr)
     }
     else{
       if(node.l) arr.push(node.l[0])
     }
     if (!Array.isArray(node.r) && node.r instanceof Object) {
-      this.allKeys(node.r,arr)
+      this._allKeys(node.r,arr)
     }
     else{
       if(node.r) arr.push(node.r[0])
     }
     return arr
   }
+
 
   orderingIndexes(){
     const keys = []
@@ -1615,8 +1624,8 @@ export default class SplitWindows extends Component{
     this.setState({})
   }
 
-  addFloatPanel(tabs,index){
-    const key = this.getFixedPanelKey('float') + `-${Math.random().toString().replace(".","")}_${count++}`
+  addFloatPanel(tabs,index,oneLine){
+    const key = `${this.getFixedPanelKey('float')}${oneLine ? '-one' : ''}-${Math.random().toString().replace(".","")}_${count++}`
     this.state.floatPanels.set(key,[key, [], tabs, [index],(void 0)])
     this.setState({})
   }
@@ -1665,7 +1674,7 @@ export default class SplitWindows extends Component{
                 isTopLeft={false} k={x[0]} ref={x[0]}
                 key={x[0]} node={x} split={this.split} close={this.closeFloat}
                 getScrollPriorities={this.getScrollPriorities} child={x[1]}
-                toggleNav={this.state.root.toggleNav} parent={this} addFloatPanel={this.addFloatPanel}
+                toggleNav={x[0].startsWith('fixed-float-one') ? 1 : this.state.root.toggleNav} parent={this} addFloatPanel={this.addFloatPanel}
                 getAllKey={this.getAllKey} float={true}
                 currentWebContents={this.currentWebContents} htmlContentSet={this.htmlContentSet} getKeyPosition={this.getKeyPosition}
                 fixedPanelOpen={this.fixedPanelOpen} hidePanel={this.hidePanel} windowId={this.windowId}

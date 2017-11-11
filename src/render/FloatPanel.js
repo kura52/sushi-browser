@@ -117,6 +117,7 @@ export default class FloatPanel extends Component{
       return;
     }
 
+
     this.clicked = true;
     setTimeout( ()=> {
       this.clicked = false;
@@ -135,8 +136,8 @@ export default class FloatPanel extends Component{
     this.x = event.pageX - ele.offsetLeft
     this.y = event.pageY - ele.offsetTop
 
-    document.body.addEventListener("mousemove", this.mmove, false)
-    document.body.addEventListener("touchmove", this.mmove, false)
+    document.addEventListener("mousemove", this.mmove, false)
+    document.addEventListener("touchmove", this.mmove, false)
   }
 
 
@@ -159,8 +160,8 @@ export default class FloatPanel extends Component{
     PubSub.publish(`move-window_${this.props.k}`)
 
     if(this.first){
-      document.body.addEventListener("mouseleave", this.mup, false)
-      document.body.addEventListener("touchleave", this.mup, false)
+      document.addEventListener("mouseleave", this.mup, false)
+      document.addEventListener("touchleave", this.mup, false)
       this.first = false
     }
   }
@@ -168,10 +169,10 @@ export default class FloatPanel extends Component{
   mup(e) {
     if(!this.drag) return
     this.drag = false
-    document.body.removeEventListener("mouseleave", this.mup, false)
-    document.body.removeEventListener("touchleave", this.mup, false)
-    document.body.removeEventListener("mousemove", this.mmove, false)
-    document.body.removeEventListener("touchmove", this.mmove, false)
+    document.removeEventListener("mouseleave", this.mup, false)
+    document.removeEventListener("touchleave", this.mup, false)
+    document.removeEventListener("mousemove", this.mmove, false)
+    document.removeEventListener("touchmove", this.mmove, false)
     this.setState({})
   }
 
@@ -195,12 +196,12 @@ export default class FloatPanel extends Component{
     this.x = e.clientX
     this.y = e.clientY
 
-    document.body.addEventListener("mousemove", this.resizerMove, false)
-    document.body.addEventListener("touchmove", this.resizerMove, false)
-    document.body.addEventListener("mouseup", this.resizerUp, false)
-    document.body.addEventListener("touchend", this.resizerUp, false)
-    document.body.addEventListener("mouseleave", this.resizerUp, false)
-    document.body.addEventListener("touchleave", this.resizerUp, false)
+    document.addEventListener("mousemove", this.resizerMove, false)
+    document.addEventListener("touchmove", this.resizerMove, false)
+    document.addEventListener("mouseup", this.resizerUp, false)
+    document.addEventListener("touchend", this.resizerUp, false)
+    document.addEventListener("mouseleave", this.resizerUp, false)
+    document.addEventListener("touchleave", this.resizerUp, false)
 
   }
 
@@ -240,12 +241,12 @@ export default class FloatPanel extends Component{
   resizerUp(e) {
     if(!this.dragResizer) return
     this.dragResizer = false
-    document.body.removeEventListener("mouseleave", this.resizerUp, false)
-    document.body.removeEventListener("touchleave", this.resizerUp, false)
-    document.body.removeEventListener("mouseup", this.resizerUp, false)
-    document.body.removeEventListener("touchend", this.resizerUp, false)
-    document.body.removeEventListener("mousemove", this.resizerMove, false)
-    document.body.removeEventListener("touchmove", this.resizerMove, false)
+    document.removeEventListener("mouseleave", this.resizerUp, false)
+    document.removeEventListener("touchleave", this.resizerUp, false)
+    document.removeEventListener("mouseup", this.resizerUp, false)
+    document.removeEventListener("touchend", this.resizerUp, false)
+    document.removeEventListener("mousemove", this.resizerMove, false)
+    document.removeEventListener("touchmove", this.resizerMove, false)
     this.setState({})
   }
 

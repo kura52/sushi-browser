@@ -284,7 +284,7 @@ export default class TabPanel extends Component {
       }
       console.log('TabCreate')
       const tab = this.createTab(params && {default_url:params.url,privateMode: params.privateMode,guestInstanceId: params.guestInstanceId,
-        rest:{bind:params.bind,mobile:params.mobile,adBlockThis:params.adBlockThis}})
+          rest:{bind:params.bind,mobile:params.mobile,adBlockThis:params.adBlockThis}})
       withWindowCreateTabs.add(tab.key)
 
       this.state = {tokens,
@@ -517,9 +517,9 @@ export default class TabPanel extends Component {
           console.log(43242342,{title,formats,error,cache})
           for(let f of formats){
             // if(f.protocol.includes('m3u8')) continue
-            const fname = `${title}_${f.format.replace(/ /g,'')}.${f.ext}`
+            const fname = `${title}_${f.format.replace(/ /g,'')}.${f.protocol.includes('m3u8') ? 'm3u8' : f.ext}`
             if(!cache || !tab.page.richContents.find(x=>x.url == f.url)){
-              tab.page.richContents.push({url:f.url,type:'video',fname})
+              tab.page.richContents.push({url:f.url,type:'video',fname,size: f.filesize})
               this.refs[`navbar-${tab.key}`].setState({})
             }
           }
@@ -1092,8 +1092,8 @@ export default class TabPanel extends Component {
             if(error) return
             for(let f of formats){
               // if(f.protocol.includes('m3u8')) continue
-              const fname = `${title}_${f.format.replace(/ /g,'')}.${f.ext}`
-              tab.page.richContents.push({url:f.url,type:'video',fname})
+              const fname = `${title}_${f.format.replace(/ /g,'')}.${f.protocol.includes('m3u8') ? 'm3u8' : f.ext}`
+              tab.page.richContents.push({url:f.url,type:'video',fname,size: f.filesize})
               self.refs[`navbar-${tab.key}`].setState({})
             }
           })
@@ -1711,6 +1711,87 @@ export default class TabPanel extends Component {
       }
     }
     ipc.on('go-navigate', tab.events['go-navigate'])
+
+    tab.events['pin-video'] = (e, id, popup)=> {
+      if (!this.mounted || id != tab.wvId) return
+
+      tab.wv.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',`
+      if(location.href.startsWith('https://www.youtube.com')){
+        var newStyle = document.createElement('style')
+        newStyle.type = "text/css"
+        document.head.appendChild(newStyle)
+        css = document.styleSheets[0]
+        
+        var idx = document.styleSheets[0].cssRules.length;
+        css.insertRule(".ytp-popup.ytp-generic-popup { display: none; }", idx)
+      }
+      var __video_ = document.querySelector('video')
+      var __return_val = false
+      if(__video_ && __video_.offsetWidth == window.innerWidth || __video_.offsetHeight == window.innerHeight || __video_.webkitDisplayingFullscreen){}
+      else if(__video_){
+        const fullscreenButton = document.querySelector('.ytp-fullscreen-button,.fullscreenButton,.button-bvuiFullScreenOn,.fullscreen-icon,.full-screen-button,.np_ButtonFullscreen,.vjs-fullscreen-control,.qa-fullscreen-button,[data-testid="fullscreen_control"],.vjs-fullscreen-control,.EnableFullScreenButton,.DisableFullScreenButton,.mhp1138_fullscreen,button.fullscreenh,.screenFullBtn,.player-fullscreenbutton')
+        if(fullscreenButton){
+          const callback = e => {
+            e.stopPropagation()
+            e.preventDefault()
+            document.removeEventListener('mousedown',callback ,true)
+            fullscreenButton.click()
+          }
+          document.addEventListener('mousedown',callback ,true);
+          __return_val = true
+        }
+        else{
+          const callback = e => {
+            e.stopPropagation()
+            e.preventDefault()
+            document.removeEventListener('mousedown',callback ,true)
+            __video_.webkitRequestFullscreen()
+          }
+          document.addEventListener('mousedown',callback ,true);
+          __return_val = true
+        }
+      } 
+      else{
+        const iframe = document.querySelector('iframe')
+        if(iframe){
+          const callback = e => {
+          e.stopPropagation()
+          e.preventDefault()
+          document.removeEventListener('mousedown',callback ,true)
+            iframe.webkitRequestFullscreen()
+          }
+          document.addEventListener('mousedown',callback ,true);
+          __return_val = true
+        }
+      }
+      __return_val
+    `,{}, (err, url, result) => {
+        if(!result[0]) return
+        const rect = tab.wv.getBoundingClientRect()
+        ipc.send('force-click',{x: Math.round(rect.x+1),y:Math.round(rect.y+1) })
+        console.log(11111111,result[0])
+        if(popup){
+          this.detachTab(tab,{width:720,height:480})
+          return
+        }
+
+        const _tabs = this.state.tabs
+        if(_tabs.length > 1) {
+          const i = _tabs.findIndex((x)=>x.key === tab.key)
+          this.props.addFloatPanel(_tabs,i,true)
+          PubSub.publish(`close_tab_${this.props.k}`,{key:tab.key})
+        }
+        else{
+          const t = this.handleTabAddButtonClick()
+          setTimeout(_=> {
+            const i = _tabs.findIndex((x)=>x.key === tab.key)
+            this.props.addFloatPanel(_tabs, i,true)
+            PubSub.publish(`close_tab_${this.props.k}`, {key:tab.key})
+          },100)
+        }
+      })
+    }
+    ipc.on('pin-video', tab.events['pin-video'])
   }
 
   updateHistory(cont,tab){
@@ -3260,6 +3341,34 @@ export default class TabPanel extends Component {
       BrowserWindowPlus.load({id:remote.getCurrentWindow().id,...bounds,tabParam:JSON.stringify(vals)})
       PubSub.publish(`close-panel_${this.props.k}`)
     })
+  }
+
+  detachTab(tab,bounds={}) {
+    const _tabs = this.state.tabs
+    if(_tabs.length > 1) {
+      const i = _tabs.findIndex((x)=>x.key === tab.key)
+      this.getWebContents(tab).detach(_=>{
+        const d = {wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,
+          rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || this.getWebContents(tab).guestInstanceId}
+        ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
+        BrowserWindowPlus.load({id:remote.getCurrentWindow().id,...bounds,_alwaysOnTop:true,toggle:1,tabParam:JSON.stringify([d])})
+        PubSub.publish(`close_tab_${this.props.k}`,{key:tab.key})
+      })
+    }
+    else{
+      const t = this.handleTabAddButtonClick()
+      setTimeout(_=> {
+        const i = _tabs.findIndex((x)=>x.key === tab.key)
+        this.getWebContents(tab).detach(_=>{
+          const d = {wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,
+            rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || this.getWebContents(tab).guestInstanceId}
+          ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
+          BrowserWindowPlus.load({id:remote.getCurrentWindow().id,...bounds,_alwaysOnTop:true,toggle:1,tabParam:JSON.stringify([d])})
+          PubSub.publish(`close_tab_${this.props.k}`,{key:tab.key})
+        })
+      },100)
+    }
+
   }
 
   getFocusedTabId(activeElement){

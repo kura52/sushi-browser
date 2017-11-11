@@ -17,6 +17,9 @@ let concatCSP = (cspDirectives) => {
   return csp.trim()
 }
 
+function removeBom(x){
+  return x.charCodeAt(0) === 0xFEFF ? x.slice(1) : x
+}
 
 
 module.exports.init = (verChange) => {
@@ -118,7 +121,8 @@ module.exports.init = (verChange) => {
         }
       }
     }
-    const messages = JSON.parse(fs.readFileSync(localePath).toString())
+    console.log(localePath)
+    const messages = JSON.parse(removeBom(fs.readFileSync(localePath).toString()))
     search(installInfo,messages)
   }
 

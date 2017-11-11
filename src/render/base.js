@@ -37,7 +37,7 @@ if(location.href.endsWith("index.html#")){
 
 
 function isFloatPanel(key){
-  return key.startsWith('wfixed-float')
+  return key.startsWith('fixed-float')
 }
 
 export default class MainContent extends Component{

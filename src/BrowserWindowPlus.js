@@ -218,8 +218,13 @@ function getSize(opt){
   }
   else{
     const bw = BrowserWindow.fromId(opt.id)
-    const maximize = opt.sameSize ? bw.isMaximized() : false
+    let maximize = opt.sameSize ? bw.isMaximized() : false
     const bounds = opt.sameSize ? maximize ? normalSize[bw.id] : getNewPopBounds(bw) : normalSize[bw.id]
+    if(opt.width){
+      bounds.width = opt.width
+      bounds.height = opt.height
+      maximize = false
+    }
     return {...bounds,maximize}
   }
 }
@@ -299,6 +304,7 @@ export default {
       }
     } : {}
 
+    if(opt && opt._alwaysOnTop) winSetting.alwaysOnTop = true
     const winArg = {...opt,
       ...winSetting,
       title: 'Sushi Browser',
@@ -334,7 +340,7 @@ export default {
       getParam="#"
     }
     else if(opt && opt.tabParam){
-      getParam = `?tabparam=${encodeURIComponent(opt.tabParam)}`
+      getParam = `?tabparam=${encodeURIComponent(opt.tabParam)}${opt.toggle ? `&toggle=${opt.toggle}` : ''}`
       if(opt.dropX){
         winArg.x = opt.dropX - (mainState.toggleNav == 1 && winArg.width ? Math.round(winArg.width / 3) : 0)
         winArg.y = opt.dropY

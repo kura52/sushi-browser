@@ -36,6 +36,10 @@ function isFixedPanel(key){
   return key.startsWith('fixed-')
 }
 
+function isFloatPanel(key){
+  return key.startsWith('fixed-float')
+}
+
 function getWebContents(tab){
   if(!tab.wv || !tab.wvId) return
   return global.currentWebContents[tab.wvId]
@@ -1000,6 +1004,10 @@ class Tabs extends React.Component {
               {this.props.verticalTabPanel ? <i className="fa fa-plus" aria-hidden="true"  style={{marginLeft: 'auto', marginRight: 'auto', fontSize: 13, padding: 2}}/> : null}
               {this.props.tabAddButton}
             </span>
+            {isFloatPanel(this.props.k)  && this.props.toggleNav != 1 ? <div className="title-button-set" style={{lineHeight: 0.9, transform: `translateX(${this.isMultistageTabsMode() ? 1 : - this.state.tabs.length * 13 + 6}px)`}}>
+              <span className="typcn typcn-media-stop-outline" onClick={()=>PubSub.publish(`maximize-float-panel_${this.props.k}`)}></span>
+              <span className="typcn typcn-times" onClick={()=>PubSub.publish(`close-panel_${this.props.k}`)}></span>
+            </div> : null}
             {!isDarwin && this.props.isTopRight && this.props.toggleNav != 1 ? <RightTopBottonSet style={{transform: `translateX(${this.isMultistageTabsMode() ? 1 : - this.state.tabs.length * 13 + 6}px)`}}/>: ""}
           </ul>
         </div>

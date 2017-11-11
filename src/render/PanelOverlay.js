@@ -27,7 +27,7 @@ export default class PanelOverlay extends Component{
     }
     this.fUpdate = true
     const max = {left: 9999999,top:9999999,width:window.innerWidth,height: window.innerHeight}
-    for(let ele of document.querySelectorAll('.rdTabBar.chrome-tabs-content,.tab-base')){
+    for(let ele of document.querySelectorAll('.rdTabBar.chrome-tabs-content,.tab-base,.drag-and-drop')){
       // if(ele.style.zIndex != 11) zIndexes[ele] = ele.style.zIndex
       ele.style.zIndex = 11
     }
@@ -63,10 +63,10 @@ export default class PanelOverlay extends Component{
   // }
 
   onInvisible(){
-    for(let ele of document.querySelectorAll('.rdTabBar.chrome-tabs-content,.tab-base')){
-      if(ele.classList.contains("full-screen")){
-        ele.style.zIndex = ele.classList.contains("full-screen") ? 2 : ""
-      }
+    for(let ele of document.querySelectorAll('.rdTabBar.chrome-tabs-content,.tab-base,.drag-and-drop')){
+      // if(ele.classList.contains("full-screen")){
+        ele.style.zIndex = ele.classList.contains("drag-and-drop") ? 6 : ele.classList.contains("full-screen") ? 2 : ""
+      // }
     }
     const ele = document.querySelector(".dl-list")
     if(ele) ele.style.zIndex = 2

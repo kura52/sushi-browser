@@ -1,7 +1,7 @@
 const React = require('react')
 const ReactDOM = require('react-dom');
 const {Component} = React
-import { Dropdown,Modal } from 'semantic-ui-react';
+import { Dropdown,Modal,Divider } from 'semantic-ui-react';
 import localForage from "../LocalForage";
 import path from 'path'
 const PubSub = require('./pubsub')
@@ -774,6 +774,10 @@ class BrowserNavbar extends Component{
                        trigger={<BrowserNavbarBtn title="Rich Media List" icon="film">{rich && rich.length ? <div className="browserActionBadge video" >{rich.length}</div> : null}</BrowserNavbarBtn>}
                        pointing='top right' icon={null} disabled={!rich || !rich.length}>
         <Dropdown.Menu className="nav-menu">
+          <Dropdown.Item onClick={_=>this.props.tab.events['pin-video'](null,this.props.tab.wvId,true)}>Play Video in Popup Window</Dropdown.Item>
+          <Divider/>
+          <Dropdown.Item onClick={_=>this.props.tab.events['pin-video'](null,this.props.tab.wvId)}>Play Video in Floating Panel</Dropdown.Item>
+          <Divider/>
           {(!rich||!rich.length) ? null : rich.map((e,i)=>{
             const url = e.url
             const m3u8 = e.fname.endsWith('.m3u8')
@@ -868,7 +872,7 @@ class BrowserNavbar extends Component{
       {isFixed && !isFloat ? <BrowserNavbarBtn style={{fontSize:18}} title="Hide Sidebar" icon={`angle-double-${isFixed == 'bottom' ? 'down' : isFixed}`} onClick={()=>this.props.fixedPanelOpen({dirc:isFixed})}/> : null}
       {!isDarwin && this.props.isTopRight && (this.props.toggleNav == 1 || verticalTab) ? <RightTopBottonSet style={{lineHeight: 0.9, transform: 'translateX(6px)',paddingTop: 1}}/> : null }
 
-      {isFloat ? <div className="title-button-set" style={{lineHeight: 0.9, transform: 'translateX(6px)'}}>
+      {isFloat  && this.props.toggleNav == 1 ? <div className="title-button-set" style={{lineHeight: 0.9, transform: 'translateX(6px)'}}>
         <span className="typcn typcn-media-stop-outline" onClick={()=>PubSub.publish(`maximize-float-panel_${this.props.k}`)}></span>
         <span className="typcn typcn-times" onClick={()=>PubSub.publish(`close-panel_${this.props.k}`)}></span>
       </div> : null}

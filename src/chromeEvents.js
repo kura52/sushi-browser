@@ -36,6 +36,11 @@ function escapeRegExp(string){
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
 
+
+function removeBom(x){
+  return x.charCodeAt(0) === 0xFEFF ? x.slice(1) : x
+}
+
 function getBindPage(tabId){
   return webContents.getAllWebContents().filter(wc=>wc.getId() === tabId)
 }
@@ -151,7 +156,7 @@ ipcMain.on('chrome-i18n-getMessage',(event)=>{
         return
       }
     }
-    event.returnValue = JSON.parse(fs.readFileSync(localePath))
+    event.returnValue = JSON.parse(removeBom(fs.readFileSync(localePath)))
   }catch(e){
     event.returnValue = false
   }

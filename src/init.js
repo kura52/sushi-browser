@@ -376,6 +376,8 @@ app.on('web-contents-created', (e, tab) => {
     }
 
     if(record){
+
+
       let cont
       for(let w of BrowserWindow.getAllWindows()){
         if(w.getTitle().includes('Sushi Browser')){
@@ -793,6 +795,11 @@ function contextMenu(webContents) {
 
     // videos
     if (isVideo) {
+      menuItems.push({
+        label:  'Play Video in Floating Panel',
+        click: (item, win) => win.webContents.send('pin-video', webContents.getId())
+      })
+      menuItems.push({type: 'separator'})
       menuItems.push({
         label:  locale.translation('4643612240819915418'), //'Open Video in New Tab',
         click: (item, win) => win.webContents.send('new-tab', webContents.getId(), props.srcURL)
