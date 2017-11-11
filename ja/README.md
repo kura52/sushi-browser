@@ -137,14 +137,14 @@ Sync Data機能をOnにすると複数端末間で履歴とお気に入りの同
 
 各プラットフォームに対し、インストーラとポータブル版の両方がダウンロードできます。
 
-- [Windows Installer v0.7.0](https://sushib.me/dl/sushi-browser-0.7.0-setup-x64.exe)
-- [Windows Portable v0.7.0(自己解凍)](https://sushib.me/dl/sushi-browser-0.7.0-win-x64.exe)
-- [Windows Portable v0.7.0](https://sushib.me/dl/sushi-browser-0.7.0-win-x64.zip)
-- [MacOS dmg v0.7.0](https://sushib.me/dl/SushiBrowser-0.7.0.dmg)
-- [MacOS Portable v0.7.0](https://sushib.me/dl/sushi-browser-0.7.0-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.7.0](https://sushib.me/dl/sushi-browser-0.7.0.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.7.0](https://sushib.me/dl/sushi-browser_0.7.0_amd64.deb)
-- [Linux Portable v0.7.0](https://sushib.me/dl/sushi-browser-0.7.0.tar.bz2)
+- [Windows Installer v0.8.0](https://sushib.me/dl/sushi-browser-0.8.0-setup-x64.exe)
+- [Windows Portable v0.8.0(自己解凍)](https://sushib.me/dl/sushi-browser-0.8.0-win-x64.exe)
+- [Windows Portable v0.8.0](https://sushib.me/dl/sushi-browser-0.8.0-win-x64.zip)
+- [MacOS dmg v0.8.0](https://sushib.me/dl/SushiBrowser-0.8.0.dmg)
+- [MacOS Portable v0.8.0](https://sushib.me/dl/sushi-browser-0.8.0-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.8.0](https://sushib.me/dl/sushi-browser-0.8.0.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.8.0](https://sushib.me/dl/sushi-browser_0.8.0_amd64.deb)
+- [Linux Portable v0.8.0](https://sushib.me/dl/sushi-browser-0.8.0.tar.bz2)
 
 ポータブル版の利用は、解凍後にWindowsはsushi.exeを、Mac/Linuxはsushi-browserを実行ください。
 
@@ -159,7 +159,19 @@ Flashが動かない場合、以下のサイトでFlashをインストールし�
 sushi-browser --no-sandbox
 ```
 
-# 新機能 
+# 新機能
+
+#### 新機能(v0.80)
+- 縦タブ、ツリー型タブの機能の追加
+- Tab系のExtensionの改善（move,onMoved,onDetached,onAttached)
+- 自動/ユーザセッション保存機能の追加
+- タブ履歴保存機能の追加
+- パスワードインポート機能の追加
+- HTTPS Everywhere,Protection Tracking機能の追加
+- Videoダウンロード機能に件数を表示するよう変更するなどの機能向上
+- youtube-dlの最新化
+- Chrome Extensionの改善(chrome.history, chrome.topSites, chrome_url_overridesの追加)
+- 多数のバグ修正
 
 #### 新機能(v0.70)
 - Chrome拡張APIを一部実装
