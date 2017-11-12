@@ -521,12 +521,13 @@ export default class TabPanel extends Component {
           console.log(43242342,{title,formats,error,cache})
           for(let f of formats){
             // if(f.protocol.includes('m3u8')) continue
-            const fname = `${title}_${f.format.replace(/ /g,'')}.${f.protocol.includes('m3u8') ? 'm3u8' : f.ext}`
+            const format = f.format ? f.format.replace(/ /g,'') : `${f.resolution ? `${f.resolution}${f.quality ? `_${f.quality}` : ''}_${f.profile}_${f.audioEncoding || 'nonaudio'}`: 'audioonly'}`
+            const fname = `${title}_${format}.${f.protocol && f.protocol.includes('m3u8') ? 'm3u8' : (f.ext||f.container)}`
             if(!cache || !tab.page.richContents.find(x=>x.url == f.url)){
               tab.page.richContents.push({url:f.url,type:'video',fname,size: f.filesize})
-              this.refs[`navbar-${tab.key}`].setState({})
             }
           }
+          this.refs[`navbar-${tab.key}`].setState({})
         })
         return
       }
@@ -1097,10 +1098,12 @@ export default class TabPanel extends Component {
             if(error) return
             for(let f of formats){
               // if(f.protocol.includes('m3u8')) continue
-              const fname = `${title}_${f.format.replace(/ /g,'')}.${f.protocol.includes('m3u8') ? 'm3u8' : f.ext}`
+              const format = f.format ? f.format.replace(/ /g,'') : `${f.resolution ? `${f.resolution}${f.quality ? `_${f.quality}` : ''}_${f.profile}_${f.audioEncoding || 'nonaudio'}`: 'audioonly'}`
+              const fname = `${title}_${format}.${f.protocol && f.protocol.includes('m3u8') ? 'm3u8' : (f.ext||f.container)}`
               tab.page.richContents.push({url:f.url,type:'video',fname,size: f.filesize})
-              self.refs[`navbar-${tab.key}`].setState({})
             }
+            console.log(99875556,tab.page)
+            self.refs[`navbar-${tab.key}`].setState({})
           })
         }
 
@@ -1744,7 +1747,7 @@ export default class TabPanel extends Component {
             if(location.href.startsWith('https://www.youtube.com')){
               let retry = 0
               const id = setInterval(_=>{
-                if(retry++>200) clearInterval(id)
+                if(retry++>300) clearInterval(id)
                 const e = document.querySelector('.html5-video-player').classList
                 if(!e.contains('ytp-autohide')){
                   e.add('ytp-autohide')

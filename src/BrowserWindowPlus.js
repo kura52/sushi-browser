@@ -219,8 +219,9 @@ function getSize(opt){
   else{
     const bw = BrowserWindow.fromId(opt.id)
     let maximize = opt.sameSize ? bw.isMaximized() : false
-    const bounds = opt.sameSize ? maximize ? normalSize[bw.id] : getNewPopBounds(bw) : normalSize[bw.id]
+    let bounds = opt.sameSize ? maximize ? normalSize[bw.id] : getNewPopBounds(bw) : normalSize[bw.id]
     if(opt.width){
+      if(!bounds) bounds = {}
       bounds.width = opt.width
       bounds.height = opt.height
       maximize = false

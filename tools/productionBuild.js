@@ -619,7 +619,8 @@ Promise.all(promises).then(_=>{
   compiledJsFiles.forEach(f=>fixForInferno(`${pwd}/${f}`))
 
   const promises = []
-  for(let f of compiledJsFiles.slice(0,-1)){
+  const uglifyFiles = compiledJsFiles.slice(0,-1)
+  for(let f of uglifyFiles){
     const promise = new Promise((resolve,reject)=>{
       sh.exec(`uglifyjs --compress --mangle -o ${f} -- ${f}`, {async:true}, (code, stdout, stderr) => {
         resolve()

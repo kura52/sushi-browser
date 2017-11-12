@@ -400,10 +400,12 @@ ipcMain.on('video-infos',(event,{url})=>{
     event.sender.send('video-infos-reply',{cache:true,...cache})
     return
   }
-  youtubedl.getInfo(url, function(err, info) {
+  youtubedl.getInfo(url,void 0,{maxBuffer: 7000 * 1024}, function(err, info) {
     if (err){
+      console.log(err)
       videoUrlsCache.set(url,{error:err})
-      event.sender.send('video-infos-reply',{error:'error'})
+      event.sender.send('video-infos-reply',{error:err})
+      return
     }
     console.log(info)
     if(!info){
@@ -411,19 +413,19 @@ ipcMain.on('video-infos',(event,{url})=>{
         ytdl.getInfo(url, (err, info)=> {
           if (err){
             videoUrlsCache.set(url,{error:err})
-            event.sender.send('video-infos-reply',{error:'error'})
+            event.sender.send('video-infos-reply',{error:'error2'})
           }
           else{
             const title = info.title
             const formats = info.formats
-            videoUrlsCache.set(url,{title,formats:formats.slice(0.12)})
-            event.sender.send('video-infos-reply',{title,formats:formats.slice(0.12)})
+            videoUrlsCache.set(url,{title,formats})
+            event.sender.send('video-infos-reply',{title,formats})
           }
         })
       }
       else{
         videoUrlsCache.set(url,{error:'error'})
-        event.sender.send('video-infos-reply',{error:'error'})
+        event.sender.send('video-infos-reply',{error:'error3'})
       }
     }
     else{
@@ -431,13 +433,13 @@ ipcMain.on('video-infos',(event,{url})=>{
       if(Array.isArray(info)){
         for(let i of info){
           const title = i.title
-          videoUrlsCache.set(url, { title, formats: i.formats.slice(0.12) });
-          event.sender.send('video-infos-reply', { title, formats: i.formats.slice(0.12) });
+          videoUrlsCache.set(url, { title, formats: i.formats });
+          event.sender.send('video-infos-reply', { title, formats: i.formats });
         }
       }
       else{
-        videoUrlsCache.set(url, { title, formats: info.formats.slice(0.12) });
-        event.sender.send('video-infos-reply', { title, formats: info.formats.slice(0.12) });
+        videoUrlsCache.set(url, { title, formats: info.formats});
+        event.sender.send('video-infos-reply', { title, formats: info.formats });
       }
     }
   });
@@ -811,7 +813,7 @@ ipcMain.on('download-m3u8',(e,url,fname,needInput)=>{
 
   console.log(`${shellEscape(youtubeDl)} --hls-prefer-native --ffmpeg-location=${shellEscape(ffmpeg)} -o ${shellEscape(downloadPath)} ${shellEscape(url)}`)
   ipcMain.once('start-pty-reply',(e,key)=>{
-    ipcMain.emit(`send-pty_${key}`,null,`${shellEscape(youtubeDl)} --hls-prefer-native --ffmpeg-location=${shellEscape(ffmpeg)} -o ${shellEscape(downloadPath)} ${shellEscape(url)}\n`)
+    ipcMain.emit(`send-pty_${key}`,null,`${isWin ? '& ' : ''}${shellEscape(youtubeDl)} --hls-prefer-native --ffmpeg-location=${shellEscape(ffmpeg)} -o ${shellEscape(downloadPath)} ${shellEscape(url)}\n`)
   })
   getFocusedWebContents().then(cont=>{
     cont && cont.hostWebContents.send('new-tab',cont.getId(),'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html')
