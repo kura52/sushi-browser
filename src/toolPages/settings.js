@@ -887,7 +887,6 @@ class VideoSetting extends React.Component {
         {this.renderRows()}
       </Grid>
       <br/>
-      <br/>
 
 
       <h4>Black List Sites (Forward match)</h4>

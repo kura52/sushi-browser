@@ -3,35 +3,24 @@ const path = require('path')
 const fs = require('fs')
 const glob = require("glob")
 
-const BEFORE_CODE_NAME = 'Negitoro'
-const CODE_NAME = 'Hotate(Scallop)'
+const BEFORE_CODE_NAME = 'Hotate(Scallop)'
+const CODE_NAME = 'Sazae(Turban Shell)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.8.0"
+const NEXT_APP_VERSION = "0.9.0"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Add Vertical Tabs and Tree Style Tabs
-Improvement of Tab type Extension（move,onMoved,onDetached,onAttached)
-Add automatic / user session save function
-Add tab history
-Added import passwords from Chrome.
-Added import passwords from Firefox.
-Add HTTPS Everywhere, Protection Tracking
-Improvements Video download(e.g. display number of media)
-Update youtube-dl
-Chrome Extension improvements (chrome.history, chrome.topSites, chrome_url_overrides)
-Fixed a lot of bugs and Chrome Extension API issue
-Updated to Muon 4.5.14`
+const CHANGE_ENGLISH = `Enhanced video download function
+Added function to download streaming video (HLS (.m3u8)) using youtube-dl
+Added function to manipulate video with mouse and keyboard
+Added function that play video in popup window
+Added function that play video in floating panel
+Updated to Muon 4.5.15`
 
-const CHANGE_JAPANESE = `縦タブ、ツリー型タブの機能の追加
-Tab系のExtensionの改善（move,onMoved,onDetached,onAttached)
-自動/ユーザセッション保存機能の追加
-タブ履歴保存機能の追加
-パスワードインポート機能の追加
-HTTPS Everywhere,Protection Tracking機能の追加
-Videoダウンロード機能に件数を表示するよう変更するなどの機能向上
-youtube-dlの最新化
-Chrome Extensionの改善(chrome.history, chrome.topSites, chrome_url_overridesの追加)
-多数のバグ修正`
+const CHANGE_JAPANESE = `ビデオダウンロード機能の向上
+youtube-dlを利用したストリーミングビデオ(HLS(.m3u8))のダウンロード機能の追加
+マウス及びキーボードショートカットでのビデオ操作機能の追加
+ポップアップウインドウでのビデオ再生機能を追加
+フローティングパネルでのビデオ再生機能を追加`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'
