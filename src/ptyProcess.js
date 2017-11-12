@@ -118,6 +118,7 @@ class PtyProcess{
 ipcMain.on('start-pty',(event, key) => {
   const process = new PtyProcess(key,event.sender)
   processes.add(process)
+  ipcMain.emit('start-pty-reply',null,key)
 })
 
 export default processes

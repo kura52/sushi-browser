@@ -4,6 +4,7 @@ import fs from 'fs'
 import sh from 'shelljs'
 import uuid from 'node-uuid'
 import PubSub from './render/pubsub'
+import {toKeyEvent} from 'keyboardevent-from-electron-accelerator'
 const seq = require('./sequence')
 const {state,favorite,historyFull,tabState,visit,savedState} = require('./databaseFork')
 const db = require('./databaseFork')
@@ -44,6 +45,10 @@ function scaling(num){
 
 function diffArray(arr1, arr2) {
   return arr1.filter(e=>!arr2.includes(e))
+}
+
+function shellEscape(s){
+  return '"'+s.replace(/(["\s'$`\\])/g,'\\$1')+'"'
 }
 
 ipcMain.on('file-system',(event,key,method,arg)=>{
@@ -358,7 +363,7 @@ ipcMain.on('force-click',(event,{x,y})=> {
 })
 
 ipcMain.on('toggle-fullscreen',(event)=> {
-  const win = BrowserWindow.fromWebContents(event.sender)
+  const win = BrowserWindow.fromWebContents(event.sender.hostWebContents || event.sender)
   const isFullScreen = win.isFullScreen()
   win.webContents.send('switch-fullscreen',!isFullScreen)
   win.setFullScreenable(true)
@@ -366,6 +371,24 @@ ipcMain.on('toggle-fullscreen',(event)=> {
   win.setFullScreen(!isFullScreen)
   win.setMenuBarVisibility(menubar)
   win.setFullScreenable(false)
+})
+
+
+ipcMain.on('toggle-fullscreen-sync',(event,val)=> {
+  const win = BrowserWindow.fromWebContents(event.sender.hostWebContents || event.sender)
+  const isFullScreen = win.isFullScreen()
+  if(val === 1 && !isFullScreen){
+    event.returnValue = isFullScreen
+    return
+  }
+
+  win.webContents.send('switch-fullscreen',!isFullScreen)
+  win.setFullScreenable(true)
+  const menubar = win.isMenuBarVisible()
+  win.setFullScreen(!isFullScreen)
+  win.setMenuBarVisibility(menubar)
+  win.setFullScreenable(false)
+  event.returnValue = !isFullScreen
 })
 
 const LRUCache = require('lru-cache')
@@ -399,7 +422,7 @@ ipcMain.on('video-infos',(event,{url})=>{
         })
       }
       else{
-        videoUrlsCache.set(url,{error:error})
+        videoUrlsCache.set(url,{error:'error'})
         event.sender.send('video-infos-reply',{error:'error'})
       }
     }
@@ -464,7 +487,7 @@ ipcMain.on('get-main-state',(e,names)=>{
   names.forEach(name=>{
     if(name == "ALL_KEYS"){
       for(let [key,val] of Object.entries(mainState)){
-        if(key.startsWith("key")){
+        if(key.startsWith("key") || key.endsWith("Video")){
           ret[key] = val
         }
       }
@@ -776,6 +799,26 @@ ipcMain.on('need-get-inner-text',(e,key)=>{
 
 ipcMain.on('play-external',(e,url)=> open(url,mainState.sendToVideo))
 
+ipcMain.on('download-m3u8',(e,url,fname,needInput)=>{
+  const youtubeDl = path.join(__dirname,'../node_modules/youtube-dl/bin/youtube-dl').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
+  const ffmpeg = path.join(__dirname, `../resource/bin/ffmpeg/${process.platform === 'win32' ? 'win' : process.platform === 'darwin' ? 'mac' : 'linux'}/ffmpeg`).replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
+  let downloadPath = path.join(app.getPath('downloads'),`${fname.split(".").slice(0,-1).join(".")}.%(ext)s`)
+
+  if(needInput){
+    downloadPath = dialog.showSaveDialog(BrowserWindow.fromWebContents(e.sender),{defaultPath: downloadPath })
+    if(!downloadPath) return
+  }
+
+  console.log(`${shellEscape(youtubeDl)} --hls-prefer-native --ffmpeg-location=${shellEscape(ffmpeg)} -o ${shellEscape(downloadPath)} ${shellEscape(url)}`)
+  ipcMain.once('start-pty-reply',(e,key)=>{
+    ipcMain.emit(`send-pty_${key}`,null,`${shellEscape(youtubeDl)} --hls-prefer-native --ffmpeg-location=${shellEscape(ffmpeg)} -o ${shellEscape(downloadPath)} ${shellEscape(url)}\n`)
+  })
+  getFocusedWebContents().then(cont=>{
+    cont && cont.hostWebContents.send('new-tab',cont.getId(),'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html')
+
+  })
+})
+
 let numVpn = 1
 ipcMain.on('vpn-event',async (e,key,address)=>{
   if(mainState.vpn || !address){
@@ -1076,7 +1119,33 @@ ipcMain.on('get-extension-info',(e,key)=>{
 })
 
 ipcMain.on('get-sync-main-states',(e,keys)=>{
-  e.returnValue = keys.map(key=>mainState[key])
+  e.returnValue = keys.map(key=>{
+    if(key == 'inputsVideo'){
+      const ret = {}
+      for(let [key,val] of Object.entries(mainState)){
+        if(key.startsWith('keyVideo')){
+          for(let v of val){
+            if(!v) continue
+            const e = toKeyEvent(v)
+            const val2 = e.key ? {key: e.key} : {code: e.code}
+            if(e.ctrlKey) val2.ctrlKey = true
+            if(e.metaKey) val2.metaKey = true
+            if(e.shiftKey) val2.shiftKey = true
+            if(e.altKey) val2.altKey = true
+            let key2 = key.slice(8)
+            ret[JSON.stringify(val2)] = `${key2.charAt(0).toLowerCase()}${key2.slice(1)}`
+          }
+        }
+        else if(key.endsWith('Video')){
+          ret[key.slice(0,-5)] = val
+        }
+      }
+      return ret
+    }
+    else{
+      return mainState[key]
+    }
+  })
 })
 
 ipcMain.on('get-sync-main-state',(e,key)=>{

@@ -151,7 +151,7 @@ class BrowserNavbar extends Component{
           rdTabBar.setAttribute("nav-width",`${width}px`)
         }
         // console.log(66,`calc(${width}px ${sp.join(" ")}`)
-        if(left != 0) rdTabBar.style.left = `${left}px`
+        if(left != 0 && this.props.toggleNav !== 3) rdTabBar.style.left = `${left}px`
       }
     });
     ro.observe(marginEle)
@@ -344,9 +344,10 @@ class BrowserNavbar extends Component{
     })()
   }
 
-  onMediaDownload(url,fname,audio){
+  onMediaDownload(url,fname,audio,needInput){
     if(fname) ipc.send('set-save-path',fname)
     if(audio) ipc.send('set-audio-extract')
+    if(needInput) ipc.send('need-set-save-filename')
     const cont = this.getWebContents(this.props.tab)
     cont.hostWebContents.downloadURL(url,true)
   }
@@ -782,7 +783,14 @@ class BrowserNavbar extends Component{
             const url = e.url
             const m3u8 = e.fname.endsWith('.m3u8')
             return <Dropdown.Item key={i} icon={e.type == "audio" ? "music" : e.type }
-                                  onClick={()=>this.onMediaDownload(url,e.fname)}>
+                                  onClick={()=>{
+                                    if(m3u8){
+                                      ipc.send('download-m3u8',url,e.fname)
+                                    }
+                                    else{
+                                      this.onMediaDownload(url,e.fname)
+                                    }
+                                  }}>
               {`${e.fname}  ${e.size ? this.getAppropriateByteUnit(e.size).join("") : ""}`}
               {m3u8 ? null : <button className="play-btn"  onClick={e=>{
                 e.stopPropagation()
@@ -798,9 +806,21 @@ class BrowserNavbar extends Component{
               }}>
                 <i className="fa fa-play-circle-o" aria-hidden="true"></i>
               </button>
-                {m3u8 ? null : <button className="play-btn"  onClick={e=>{
-                e.stopPropagation()
-                const p = e.target.parentNode.parentNode;(e.target.tagName == "I" ? p.parentNode : p).classList.remove("visible")
+              <button className="play-btn"  onClick={e2=>{
+                e2.stopPropagation()
+                const p = e2.target.parentNode.parentNode;(e2.target.tagName == "I" ? p.parentNode : p).classList.remove("visible")
+                if(m3u8){
+                  ipc.send('download-m3u8',url,e.fname,true)
+                }
+                else{
+                  this.onMediaDownload(url,false,false,true)
+                }
+              }}>
+                <i className="fa fa-download" aria-hidden="true"></i>
+              </button>
+                {m3u8 ? null : <button className="play-btn"  onClick={e2=>{
+                e2.stopPropagation()
+                const p = e2.target.parentNode.parentNode;(e2.target.tagName == "I" ? p.parentNode : p).classList.remove("visible")
                 this.onMediaDownload(url,e.fname,true)
               }}>
                 <i className="fa fa-music" aria-hidden="true"></i>

@@ -149,6 +149,42 @@ const settingDefault =  {
   keyTab7: 'CmdOrCtrl+7',
   keyTab8: 'CmdOrCtrl+8',
 
+  enableKeyDownVideo: false,
+  reverseWheelVideo: false,
+  blackListVideo: [],
+
+  mediaSeek1Video: 5,
+  mediaSeek2Video: 10,
+  mediaSeek3Video: 60,
+
+  clickVideo: '',
+  dbClickVideo: 'fullscreen',
+
+  wheelMinusVideo: 'rewind1',
+  shiftWheelMinusVideo:'decSpeed',
+  ctrlWheelMinusVideo: 'decreaseVolume',
+  shiftCtrlWheelMinusVideo: 'frameBackStep',
+
+  keyVideoPlayOrPause: ['MediaPlayPause','Space','k'],
+  keyVideoFrameStep: ['.'],
+  keyVideoFrameBackStep: [','],
+  keyVideoRewind1: ['Left', 'Ctrl+Shift+B'],
+  keyVideoRewind2: ['j'],
+  keyVideoRewind3: ['PageDown'],
+  keyVideoForward1: ['Right', 'Ctrl+Shift+F'],
+  keyVideoForward2: ['l'],
+  keyVideoForward3: ['PageUp'],
+  keyVideoNormalSpeed: ['Backspace'],
+  keyVideoHalveSpeed: ['{'],
+  keyVideoDoubleSpeed: ['}'],
+  keyVideoDecSpeed: ['['],
+  keyVideoIncSpeed: [']'],
+  keyVideoFullscreen: ['F', 'Ctrl+T'],
+  keyVideoExitFullscreen: ['Esc'],
+  keyVideoMute: ['M', 'VolumeMute'],
+  keyVideoDecreaseVolume: ['/', 'VolumeDown'],
+  keyVideoIncreaseVolume: ['*', 'VolumeUp'],
+  keyVideoPlRepeat: ['R'],
 }
 
 

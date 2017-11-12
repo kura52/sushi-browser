@@ -303,6 +303,7 @@ var rendererIdentifiers = function () {
     'notNow',
     'makeBraveDefault',
     'saveToPocketDesc',
+    'minimumPageTimeLow',
 
     //chrome
     '994289308992179865',
@@ -343,7 +344,40 @@ var rendererIdentifiers = function () {
     '5453029940327926427',
     '4989966318180235467',
     '6326175484149238433',
-    '9147392381910171771'
+    '9147392381910171771',
+    '8260864402787962391',
+    '8477384620836102176',
+    '7701040980221191251',
+    '6146563240635539929',
+
+    'playOrPause',
+    'frameStep',
+    'frameBackStep',
+    'rewind1',
+    'rewind2',
+    'forward1',
+    'forward2',
+    'rewind3',
+    'forward3',
+    'normalSpeed',
+    'halveSpeed',
+    'doubleSpeed',
+    'decSpeed',
+    'incSpeed',
+    'fullscreen',
+    'exitFullscreen',
+    'mute',
+    'decreaseVolume',
+    'increaseVolume',
+    'incZoom',
+    'decZoom',
+    'resetZoom',
+    'plRepeat',
+    'mediaSeeking',
+    'volumeControl',
+    'changeSpeed',
+    'mouseWheelFunctions',
+    'reverseWheelMediaSeeking'
   ]
 }
 
@@ -482,7 +516,8 @@ exports.init = function (language) {
       path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'common.properties').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'),
       path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'newtab.properties').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'),
       path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'preferences.properties').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'),
-      path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'chrome.properties').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'))
+      path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'chrome.properties').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'),
+      path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'video.properties').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'))
   }
 
   appendLangProperties(lang)

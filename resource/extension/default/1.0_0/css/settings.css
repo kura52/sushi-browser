@@ -62,3 +62,13 @@ td>.ui.dropdown.type>.text {
 .ui.grid>.row {
     padding: 0.3rem 0;
 }
+
+.ui.selection.dropdown {
+    min-height: 0px;
+}
+
+
+.ui.column.grid>[class*="four wide"].column, .ui.grid>.column.row>[class*="four wide"].column, .ui.grid>.row>[class*="four wide"].column, .ui.grid>[class*="four wide"].column {
+    margin-top: auto;
+    margin-bottom: auto;
+}

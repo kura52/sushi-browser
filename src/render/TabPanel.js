@@ -38,7 +38,7 @@ let topURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html',
 const sidebarURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html'
 const blankURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html'
 const REG_VIDEO = /^https:\/\/www\.(youtube)\.com\/watch\?v=(.+)&?|^http:\/\/www\.(dailymotion)\.com\/video\/(.+)$|^https:\/\/(vimeo)\.com\/(\d+)$/
-let newTabMode = ipc.sendSync('get-sync-main-state','newTabMode')
+let [newTabMode,inputsVideo] = ipc.sendSync('get-sync-main-states',['newTabMode','inputsVideo'])
 
 function getNewTabPage(){
   const arr = ipc.sendSync('get-sync-main-states',[newTabMode == 'myHomepage' ? 'myHomepage' : 'topPage' ,'bookmarksPage','historyPage'])
@@ -284,7 +284,7 @@ export default class TabPanel extends Component {
       }
       console.log('TabCreate')
       const tab = this.createTab(params && {default_url:params.url,privateMode: params.privateMode,guestInstanceId: params.guestInstanceId,
-          rest:{bind:params.bind,mobile:params.mobile,adBlockThis:params.adBlockThis}})
+        rest:{bind:params.bind,mobile:params.mobile,adBlockThis:params.adBlockThis}})
       withWindowCreateTabs.add(tab.key)
 
       this.state = {tokens,
@@ -507,6 +507,10 @@ export default class TabPanel extends Component {
       console.log('rich',record)
       const tab = this.state.tabs.find(t =>t.wvId == record.tabId)
       if(!tab) return
+      if(!tab.videoEvent){
+        tab.wv.send('on-video-event',inputsVideo)
+        tab.videoEvent = true
+      }
       if(tab.page.navUrl.match(REG_VIDEO)){
         return
       }
@@ -968,6 +972,7 @@ export default class TabPanel extends Component {
             ipc.removeListener(`get-did-start-loading-reply_${tab.wvId}`,didStart)
             return
           }
+          tab.videoEvent = false
           PubSub.publish(`did-start-loading_${tab.key}`)
         }
         ipc.on(`get-did-start-loading-reply_${tab.wvId}`,didStart)
@@ -1720,7 +1725,7 @@ export default class TabPanel extends Component {
         var newStyle = document.createElement('style')
         newStyle.type = "text/css"
         document.head.appendChild(newStyle)
-        css = document.styleSheets[0]
+        var css = document.styleSheets[0]
         
         var idx = document.styleSheets[0].cssRules.length;
         css.insertRule(".ytp-popup.ytp-generic-popup { display: none; }", idx)
@@ -1736,6 +1741,17 @@ export default class TabPanel extends Component {
             e.preventDefault()
             document.removeEventListener('mousedown',callback ,true)
             fullscreenButton.click()
+            if(location.href.startsWith('https://www.youtube.com')){
+              let retry = 0
+              const id = setInterval(_=>{
+                if(retry++>200) clearInterval(id)
+                const e = document.querySelector('.html5-video-player').classList
+                if(!e.contains('ytp-autohide')){
+                  e.add('ytp-autohide')
+                  __video_.click()
+                }
+              },10)
+            }
           }
           document.addEventListener('mousedown',callback ,true);
           __return_val = true
@@ -1766,9 +1782,10 @@ export default class TabPanel extends Component {
       }
       __return_val
     `,{}, (err, url, result) => {
-        if(!result[0]) return
         const rect = tab.wv.getBoundingClientRect()
-        ipc.send('force-click',{x: Math.round(rect.x+1),y:Math.round(rect.y+1) })
+        if(result[0]){
+          ipc.send('force-click',{x: Math.round(rect.x+1),y:Math.round(rect.y+1) })
+        }
         console.log(11111111,result[0])
         if(popup){
           this.detachTab(tab,{width:720,height:480})

@@ -44,6 +44,9 @@ export default class Download {
       this.audioExtract = true
     })
 
+    ipcMain.on('need-set-save-filename',(e)=>{
+      this.needSavePath = true
+    })
     // ipcMain.on('need-set-save-filename',eventSetSaveFilename)
     PubSub.subscribe('need-set-save-filename',eventNeedSetSaveFilename)
 
@@ -54,11 +57,12 @@ export default class Download {
         return
       }
 
-      // const controller = webContents.controller()
-      // if (controller && controller.isValid() && controller.isInitialNavigation()) {
-      //   console.log('webContents.forceClose()',webContents.getURL())
-      //   webContents.forceClose()
-      // }
+      const controller = webContents.controller()
+      if (controller && controller.isValid() && controller.isInitialNavigation()) {
+        console.log('webContents.forceClose()',webContents.getURL())
+        webContents.forceClose()
+        return
+      }
 
       let active = true, url
       try{

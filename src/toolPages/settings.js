@@ -5,7 +5,7 @@ const path = require('path')
 const React = require('react')
 const ReactDOM = require('react-dom')
 const isAccelerator = require("electron-is-accelerator")
-const { Grid, Sidebar, Segment, Container, Menu, Input,Divider, Button, Checkbox, Icon, Table, Dropdown } = require('semantic-ui-react');
+const {  Form, TextArea, Grid, Sidebar, Segment, Container, Menu, Input,Divider, Button, Checkbox, Icon, Table, Dropdown } = require('semantic-ui-react');
 const { StickyContainer, Sticky } = require('react-sticky');
 const l10n = require('../../brave/js/l10n')
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
@@ -85,6 +85,28 @@ const keyMapping = {
   keyQuit: l10n.translation('quitApp').replace('Brave','Sushi Browser')
 }
 
+const videoKeyMapping = {
+  keyVideoPlayOrPause: l10n.translation('playOrPause').replace(/\(.\)/,''),
+  keyVideoFrameStep: l10n.translation('frameStep').replace(/\(.\)/,''),
+  keyVideoFrameBackStep: l10n.translation('frameBackStep').replace(/\(.\)/,''),
+  keyVideoRewind1: l10n.translation('rewind1').replace(/\(.\)/,'') + '1',
+  keyVideoRewind2: l10n.translation('rewind1').replace(/\(.\)/,'') + '2',
+  keyVideoRewind3: l10n.translation('rewind1').replace(/\(.\)/,'') + '3',
+  keyVideoForward1: l10n.translation('forward1').replace(/\(.\)/,'') + '1',
+  keyVideoForward2: l10n.translation('forward1').replace(/\(.\)/,'') + '2',
+  keyVideoForward3: l10n.translation('forward1').replace(/\(.\)/,'') + '3',
+  keyVideoNormalSpeed: l10n.translation('normalSpeed').replace(/\(.\)/,''),
+  keyVideoHalveSpeed: l10n.translation('halveSpeed').replace(/\(.\)/,''),
+  keyVideoDoubleSpeed: l10n.translation('doubleSpeed').replace(/\(.\)/,''),
+  keyVideoDecSpeed: l10n.translation('decSpeed').replace(/\(.\)/,''),
+  keyVideoIncSpeed: l10n.translation('incSpeed').replace(/\(.\)/,''),
+  keyVideoFullscreen: l10n.translation('fullscreen').replace(/\(.\)/,''),
+  keyVideoExitFullscreen: l10n.translation('exitFullscreen').replace(/\(.\)/,''),
+  keyVideoMute: l10n.translation('mute').replace(/\(.\)/,''),
+  keyVideoDecreaseVolume: l10n.translation('decreaseVolume').replace(/\(.\)/,''),
+  keyVideoIncreaseVolume: l10n.translation('increaseVolume').replace(/\(.\)/,''),
+  keyVideoPlRepeat: l10n.translation('plRepeat').replace(/\(.\)/,''),
+}
 
 class TopMenu extends React.Component {
   constructor(props) {
@@ -197,6 +219,58 @@ const sendToVideoOptionsAll = [
 ]
 
 const sendToVideoOptions = sendToVideoOptionsAll.filter(x=>isWin ? x.os.includes('win') : isDarwin ? x.os.includes('mac') : x.os.includes('linux'))
+
+const videoClickOptions = [
+  {
+    key: 'nothing',
+    value: '',
+    text: l10n.translation('7701040980221191251'),
+  },
+  {
+    key: 'playOrPause',
+    value: 'playOrPause',
+    text: l10n.translation('playOrPause'),
+  },
+  {
+    key: 'fullscreen',
+    value: 'fullscreen',
+    text: l10n.translation('fullscreen').replace(/\(.\)/,''),
+  },
+  {
+    key: 'mute',
+    value: 'mute',
+    text: l10n.translation('mute').replace(/\(.\)/,''),
+  }
+]
+
+
+const videoWheelOptions = [
+  {
+    key: 'nothing',
+    value: '',
+    text: l10n.translation('7701040980221191251'),
+  },
+  {
+    key: 'rewind1',
+    value: 'rewind1',
+    text: l10n.translation('mediaSeeking').replace(/\(.\)/,'') + '1',
+  },
+  {
+    key: 'decreaseVolume',
+    value: 'decreaseVolume',
+    text: l10n.translation('volumeControl'),
+  },
+  {
+    key: 'decSpeed',
+    value: 'decSpeed',
+    text: l10n.translation('changeSpeed'),
+  },
+  {
+    key: 'frameBackStep',
+    value: 'frameBackStep',
+    text: `${l10n.translation('frameStep').replace(/\(.\)/,'')} / ${l10n.translation('frameBackStep').replace(/\(.\)/,'')}`,
+  }
+]
 
 const sideBarDirectionOptions = [
   {
@@ -629,7 +703,7 @@ class KeyboardSetting extends React.Component {
   eachRender(key,val){
     return this.state[key] == (void 0) ? null : <Grid.Row>
       <Grid.Column width={4}>
-        <label style={{verticalAlign: -9}}>{val}</label>
+        <label>{val}</label>
       </Grid.Column>
       <Grid.Column width={7}>
         <Input fluid error={!!this.state.errors[key]} onChange={this.onChange.bind(this,key)} defaultValue={this.state[key]}/>
@@ -668,6 +742,164 @@ class KeyboardSetting extends React.Component {
   }
 }
 
+let videoDefault
+class VideoSetting extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {...videoDefault,errors:{}}
+  }
+
+  onChange(name,e,data){
+    if(name == 'blackListVideo') data = {value: data.value.split("\n")}
+    ipc.send('save-state',{tableName:'state',key:name,val:data.checked === void 0 ? data.value : data.checked})
+    this.setState({})
+  }
+
+  onChange2(name,num,e,data){
+    if(data.value == "" || isAccelerator(data.value)){
+      const datas = this.state[name]
+      datas[num] = data.value
+      ipc.send('save-state',{tableName:'state',key:name,val:datas })
+      this.state.errors[name+num] = false
+    }
+    else{
+      this.state.errors[name+num] = true
+    }
+    this.setState({})
+  }
+
+  eachRender(key,val){
+    if(!this.state[key]) return null
+
+    let arr = [this.state[key][0],this.state[key][1],this.state[key][2]]
+    return  <Grid.Row>
+      <Grid.Column width={3}>
+        <label style={{verticalAlign: -9}}>{val}</label>
+      </Grid.Column>
+      {arr.map((x,i)=>{
+        return <Grid.Column width={3}>
+          <Input fluid error={!!this.state.errors[key+i]} onChange={this.onChange2.bind(this,key,i)} defaultValue={x}/>
+        </Grid.Column>
+      })}
+    </Grid.Row>
+  }
+
+  renderRows(){
+    const ret = []
+    for(let [key,val] of Object.entries(videoKeyMapping)){
+      val = val.replace('…','')
+      let row = this.eachRender(key,val)
+      if(row) ret.push(row)
+
+    }
+
+    return ret
+  }
+
+  render() {
+    return <div>
+      <h3>{l10n.translation('6146563240635539929')}</h3>
+      <Divider/>
+
+      <h4>{l10n.translation('8260864402787962391')}</h4>
+      <Divider/>
+      <Grid>
+        <Grid.Row>
+          <Grid.Column width={4}><label>Mouse Click</label></Grid.Column>
+          <Grid.Column width={7}><Dropdown onChange={this.onChange.bind(this,'clickVideo')} selection options={videoClickOptions} defaultValue={this.state.clickVideo}/></Grid.Column>
+        </Grid.Row>
+        <Grid.Row>
+          <Grid.Column width={4}><label>Mouse Double Click</label></Grid.Column>
+          <Grid.Column width={7}><Dropdown onChange={this.onChange.bind(this,'dbClickVideo')} selection options={videoClickOptions} defaultValue={this.state.dbClickVideo}/></Grid.Column>
+        </Grid.Row>
+      </Grid>
+      <br/>
+
+      <h4>{l10n.translation('mouseWheelFunctions')}</h4>
+      <Divider/>
+      <Grid>
+        <Grid.Row>
+          <Grid.Column width={4}><label>Mouse Wheel</label></Grid.Column>
+          <Grid.Column width={7}><Dropdown onChange={this.onChange.bind(this,'wheelMinusVideo')} selection options={videoWheelOptions} defaultValue={this.state.wheelMinusVideo}/></Grid.Column>
+        </Grid.Row>
+      </Grid>
+      <Grid>
+        <Grid.Row>
+          <Grid.Column width={4}><label>Shift+Mouse Wheel</label></Grid.Column>
+          <Grid.Column width={7}><Dropdown onChange={this.onChange.bind(this,'shiftWheelMinusVideo')} selection options={videoWheelOptions} defaultValue={this.state.shiftWheelMinusVideo}/></Grid.Column>
+        </Grid.Row>
+      </Grid>
+      <Grid>
+        <Grid.Row>
+          <Grid.Column width={4}><label>Ctrl+Mouse Wheel</label></Grid.Column>
+          <Grid.Column width={7}><Dropdown onChange={this.onChange.bind(this,'ctrlWheelMinusVideo')} selection options={videoWheelOptions} defaultValue={this.state.ctrlWheelMinusVideo}/></Grid.Column>
+        </Grid.Row>
+      </Grid>
+      <Grid>
+        <Grid.Row>
+          <Grid.Column width={4}><label>Shift+Ctrl+Mouse Wheel</label></Grid.Column>
+          <Grid.Column width={7}><Dropdown onChange={this.onChange.bind(this,'shiftCtrlWheelMinusVideo')} selection options={videoWheelOptions} defaultValue={this.state.shiftCtrlWheelMinusVideo}/></Grid.Column>
+        </Grid.Row>
+      </Grid>
+      <br/>
+      <br/>
+
+      <div className="field">
+        <Checkbox defaultChecked={this.state.reverseWheelVideo} toggle onChange={this.onChange.bind(this,'reverseWheelVideo')}/>
+        <span className="toggle-label">{l10n.translation('reverseWheelMediaSeeking').replace(/\(.\)/,'')}</span>
+      </div>
+      <br/>
+
+
+      <h4>{l10n.translation('mediaSeeking').replace(/\(.\)/,'')}</h4>
+      <Divider/>
+
+      <Grid>
+        <Grid.Row>
+          <Grid.Column width={4}><label>{l10n.translation('mediaSeeking').replace(/\(.\)/,'')+'1'}</label></Grid.Column>
+          <Grid.Column width={7}><Input onChange={this.onChange.bind(this,'mediaSeek1Video')} defaultValue={this.state.mediaSeek1Video}/>{' '+l10n.translation('minimumPageTimeLow').replace(/5 */,'')}</Grid.Column>
+        </Grid.Row>
+        <Grid.Row>
+          <Grid.Column width={4}><label>{l10n.translation('mediaSeeking').replace(/\(.\)/,'')+'2'}</label></Grid.Column>
+          <Grid.Column width={7}><Input onChange={this.onChange.bind(this,'mediaSeek2Video')} defaultValue={this.state.mediaSeek2Video}/>{' '+l10n.translation('minimumPageTimeLow').replace(/5 */,'')}</Grid.Column>
+        </Grid.Row>
+        <Grid.Row>
+          <Grid.Column width={4}><label>{l10n.translation('mediaSeeking').replace(/\(.\)/,'')+'3'}</label></Grid.Column>
+          <Grid.Column width={7}><Input onChange={this.onChange.bind(this,'mediaSeek3Video')} defaultValue={this.state.mediaSeek3Video}/>{' '+l10n.translation('minimumPageTimeLow').replace(/5 */,'')}</Grid.Column>
+        </Grid.Row>
+      </Grid>
+      <br/>
+      <br/>
+
+      <h4>{l10n.translation('1524430321211440688')}</h4>
+      <Divider/>
+
+      <div className="field">
+        <Checkbox defaultChecked={this.state.enableKeyDownVideo} toggle onChange={this.onChange.bind(this,'enableKeyDownVideo')}/>
+        <span className="toggle-label">Enable Keyboard Shortcut</span>
+      </div>
+      <br/>
+
+      <p>Please refer <a target="_blank" href="https://github.com/electron/electron/blob/master/docs/api/accelerator.md">here</a> for input method of shortcut</p>
+      <br/>
+
+      <Grid >
+        {this.renderRows()}
+      </Grid>
+      <br/>
+      <br/>
+
+
+      <h4>Black List Sites (Forward match)</h4>
+      <Divider/>
+      <Form>
+        <TextArea autoHeight placeholder='input URLs' onChange={this.onChange.bind(this,'blackListVideo')} defaultValue={this.state.blackListVideo.join("\n")}/>
+      </Form>
+      <Divider/>
+
+    </div>
+  }
+}
 
 let extensionDefault
 class ExtensionSetting extends React.Component {
@@ -770,6 +1002,7 @@ const routings = {
   'search' : <SearchSetting/>,
   'tabs' : <TabsSetting/>,
   'keyboard' : <KeyboardSetting/>,
+  'video' : <VideoSetting/>,
   'extensions' : <ExtensionSetting/>,
 }
 
@@ -789,7 +1022,7 @@ class TopList extends React.Component {
                       onClick={_=>this.setState({page:name})}
     >
       <Icon name={icon}/>
-      {l10n.translation(name == "keyboard" ? '1524430321211440688' : name)}
+      {l10n.translation(name == "keyboard" ? '1524430321211440688' : name == 'video' ? '6146563240635539929' : name)}
     </Menu.Item>
   }
 
@@ -805,6 +1038,7 @@ class TopList extends React.Component {
         {this.getMenu('search','search')}
         {/*{this.getMenu('tabs','table')}*/}
         {this.getMenu('keyboard','keyboard')}
+        {this.getMenu('video','video')}
         {this.getMenu('extensions','industry')}
       </Sidebar>
       <Sidebar.Pusher>
@@ -828,6 +1062,7 @@ ipc.send("get-main-state",['startsWith','newTabMode','myHomepage','searchProvide
 ipc.once("get-main-state-reply",(e,data)=>{
   generalDefault = data
   keyboardDefault = data
+  videoDefault = data
   extensionDefault = data
 
   const {searchProviders, searchEngine, contextMenuSearchEngines} = data

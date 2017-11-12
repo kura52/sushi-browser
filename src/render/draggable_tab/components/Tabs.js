@@ -301,9 +301,9 @@ class Tabs extends React.Component {
       tabInlineStyles.tabBar.paddingRight = void 0
       tabInlineStyles.tabBar.marginBottom = void 0
     }
-    // else if(this.props.toggleNav == 3){
-    //   tabInlineStyles.tabBar = StyleOverride.merge(tabInlineStyles.tabBar, {display: 'flex',position:'absolute',zIndex: 2});
-    // }
+    else if(this.props.toggleNav == 3){
+      tabInlineStyles.tabBar.left = '0px'
+    }
     else {
       tabInlineStyles.tabBar.display = "flex"
       tabInlineStyles.tabBar.paddingRight = void 0

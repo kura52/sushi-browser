@@ -796,6 +796,10 @@ function contextMenu(webContents) {
     // videos
     if (isVideo) {
       menuItems.push({
+        label:  'Play Video in Popup Window',
+        click: (item, win) => win.webContents.send('pin-video', webContents.getId(), true)
+      })
+      menuItems.push({
         label:  'Play Video in Floating Panel',
         click: (item, win) => win.webContents.send('pin-video', webContents.getId())
       })

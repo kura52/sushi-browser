@@ -107,3 +107,240 @@ else{
     }
   })
 }
+
+ipc.once('on-video-event',(e,inputs)=>{
+  for(let url of inputs.blackList){
+    if(url && location.href.startsWith(url)) return
+  }
+  const popUp = (v,text)=>{
+    const rect = v.getBoundingClientRect()
+    const rStyle = `left:${Math.round(rect.left)+20}px;top:${Math.round(rect.top)+20}px`
+
+    const span = document.createElement("span")
+    span.innerHTML = text
+    span.style.cssText = `${rStyle};padding: 5px 9px;max-width: 144px;z-index: 99999999;position: absolute;overflow: hidden;border-radius: 2px;background: rgba(28,28,28,0.9);text-shadow: 0 0 2px rgba(0,0,0,.5);transition: opacity .1s cubic-bezier(0.0,0.0,0.2,1);margin: 0;border: 0;font-size: 20px;color: white;padding: 10px 15px;`;
+    span.setAttribute("id", "popup-org-video")
+    const existElement = document.querySelector("#popup-org-video")
+    if(existElement){
+      document.body.removeChild(existElement)
+    }
+    document.body.appendChild(span)
+    setTimeout(_=>document.body.removeChild(span),2000)
+  }
+
+  let nothing
+  const eventHandler = (e,name,target)=>{
+    const v = target || e.target
+    if(name == 'playOrPause'){
+      v.paused ? v.play() : v.pause()
+    }
+    else if(name == 'fullscreen'){
+      console.log(222,v.offsetWidth == window.innerWidth,v.offsetHeight == window.innerHeight)
+      if(location.href.startsWith('https://www.youtube.com')){
+        const newStyle = document.createElement('style')
+        newStyle.type = "text/css"
+        document.head.appendChild(newStyle)
+        const css = document.styleSheets[0]
+
+        const idx = document.styleSheets[0].cssRules.length;
+        css.insertRule(".ytp-popup.ytp-generic-popup { display: none; }", idx)
+      }
+      const isFull = ipc.sendSync('toggle-fullscreen-sync')
+      const isFullscreen = v.offsetWidth == window.innerWidth || v.offsetHeight == window.innerHeight
+      console.log(isFullscreen,isFull)
+      if(isFullscreen == isFull) return
+      const fullscreenButton = document.querySelector('.ytp-fullscreen-button,.fullscreenButton,.button-bvuiFullScreenOn,.fullscreen-icon,.full-screen-button,.np_ButtonFullscreen,.vjs-fullscreen-control,.qa-fullscreen-button,[data-testid="fullscreen_control"],.vjs-fullscreen-control,.EnableFullScreenButton,.DisableFullScreenButton,.mhp1138_fullscreen,button.fullscreenh,.screenFullBtn,.player-fullscreenbutton')
+      console.log(fullscreenButton)
+      if(fullscreenButton){
+        fullscreenButton.click()
+      }
+      else{
+        if(v.webkitDisplayingFullscreen){
+          v.webkitExitFullscreen()
+        }
+        else{
+          v.webkitRequestFullscreen()
+        }
+      }
+    }
+    else if(name == 'exitFullscreen'){
+      const isFull = ipc.send('toggle-fullscreen-sync',1)
+      const isFullscreen = v.offsetWidth == window.innerWidth || v.offsetHeight == window.innerHeight
+      if(isFullscreen == isFull) return
+      const fullscreenButton = document.querySelector('.ytp-fullscreen-button,.fullscreenButton,.button-bvuiFullScreenOn,.fullscreen-icon,.full-screen-button,.np_ButtonFullscreen,.vjs-fullscreen-control,.qa-fullscreen-button,[data-testid="fullscreen_control"],.vjs-fullscreen-control,.EnableFullScreenButton,.DisableFullScreenButton,.mhp1138_fullscreen,button.fullscreenh,.screenFullBtn,.player-fullscreenbutton')
+      if(fullscreenButton){
+        fullscreenButton.click()
+      }
+      else{
+        if(v.webkitDisplayingFullscreen){
+          v.webkitExitFullscreen()
+        }
+        else{
+          v.webkitRequestFullscreen()
+        }
+      }
+    }
+    else if(name == 'mute'){
+      v.muted = !v.muted
+      popUp(v,`Mute: ${v.muted ? "ON" : "OFF"}`)
+    }
+    else if(name == 'rewind1'){
+      v.currentTime -= parseInt(inputs.mediaSeek1)
+    }
+    else if(name == 'rewind2'){
+      v.currentTime -= parseInt(inputs.mediaSeek2)
+    }
+    else if(name == 'rewind3'){
+      v.currentTime -= parseInt(inputs.mediaSeek3)
+    }
+    else if(name == 'forward1'){
+      v.currentTime += parseInt(inputs.mediaSeek1)
+    }
+    else if(name == 'forward2'){
+      v.currentTime += parseInt(inputs.mediaSeek2)
+    }
+    else if(name == 'forward3'){
+      v.currentTime += parseInt(inputs.mediaSeek3)
+    }
+    else if(name == 'frameStep'){
+      v.currentTime += 1 / 30
+    }
+    else if(name == 'frameBackStep'){
+      v.currentTime -= 1 / 30
+    }
+    else if(name == 'decSpeed'){
+      v.playbackRate -= 0.1
+      popUp(v,`Speed: ${Math.round(v.playbackRate * 100)}%`)
+    }
+    else if(name == 'incSpeed'){
+      v.playbackRate += 0.1
+      popUp(v,`Speed: ${Math.round(v.playbackRate * 100)}%`)
+    }
+    else if(name == 'normalSpeed'){
+      v.playbackRate = 1
+      popUp(v,`Speed: ${Math.round(v.playbackRate * 100)}%`)
+    }
+    else if(name == 'halveSpeed'){
+      v.playbackRate *= 0.5
+      popUp(v,`Speed: ${Math.round(v.playbackRate * 100)}%`)
+    }
+    else if(name == 'doubleSpeed'){
+      v.playbackRate *= 2
+      popUp(v,`Speed: ${Math.round(v.playbackRate * 100)}%`)
+    }
+    else if(name == 'decreaseVolume'){
+      v.volume -= 0.1
+      popUp(v,`Volume: ${Math.round(v.volume * 100)}%`)
+    }
+    else if(name == 'increaseVolume'){
+      v.volume += 0.1
+      popUp(v,`Volume: ${Math.round(v.volume * 100)}%`)
+    }
+    else if(name == 'plRepeat'){
+      v.loop = !v.loop
+      popUp(v,`Loop: ${v.loop ? "ON" : "OFF"}`)
+    }
+    else{
+      nothing = true
+    }
+    if(!nothing){
+      e.preventDefault()
+      e.stopPropagation()
+    }
+  }
+
+  if(inputs.click) {
+    document.addEventListener('click', e => {
+      let target = e.target
+      if(e.target.tagName !== 'VIDEO'){
+        const children = [...e.target.children]
+        target = children.find(x=>x.tagName == "VIDEO")
+        if(!target){
+          for(let c of children){
+            target = c.children && [...c.children].find(x=>x.tagName == "VIDEO")
+            if(target) break
+          }
+          if(!target) return
+        }
+      }
+      if (e.which == 1) {
+        eventHandler(e, inputs.click,target)
+      }
+    }, true)
+  }
+
+  if(inputs.dbClick){
+    document.addEventListener('dblclick',e=>{
+      let target = e.target
+      if(e.target.tagName !== 'VIDEO'){
+        const children = [...e.target.children]
+        target = children.find(x=>x.tagName == "VIDEO")
+        if(!target){
+          for(let c of children){
+            target = c.children && [...c.children].find(x=>x.tagName == "VIDEO")
+            if(target) break
+          }
+          if(!target) return
+        }
+      }
+      eventHandler(e,inputs.dbClick,target)
+    },true)
+  }
+
+  if(inputs.wheelMinus || inputs.shiftWheelMinus || inputs.ctrlWheelMinus|| inputs.shiftCtrlWheelMinus){
+    const minusToPlus = {rewind1: 'forward1', decSpeed: 'incSpeed', decreaseVolume: 'increaseVolume',frameBackStep: 'frameStep'}
+    const modify = inputs.reverseWheel ? -1 : 1
+    document.addEventListener('wheel',e=>{
+      let target = e.target
+      if(e.target.tagName !== 'VIDEO'){
+        const children = [...e.target.children]
+        target = children.find(x=>x.tagName == "VIDEO")
+        if(!target){
+          for(let c of children){
+            target = c.children && [...c.children].find(x=>x.tagName == "VIDEO")
+            if(target) break
+          }
+          if(!target) return
+        }
+      }
+      if(e.ctrlKey || e.metaKey){
+        if(e.shiftKey){
+          eventHandler(e,e.deltaY * modify > 0 ? minusToPlus[inputs.shiftCtrlWheelMinus] : inputs.shiftCtrlWheelMinus,target)
+        }
+        else{
+          eventHandler(e,e.deltaY * modify > 0 ? minusToPlus[inputs.ctrlWheelMinus] : inputs.ctrlWheelMinus,target)
+        }
+      }
+      else if(e.shiftKey){
+        eventHandler(e,e.deltaY * modify > 0 ? minusToPlus[inputs.shiftWheelMinus] : inputs.shiftWheelMinus,target)
+      }
+      else{
+        eventHandler(e,e.deltaY * modify > 0 ? minusToPlus[inputs.wheelMinus] : inputs.wheelMinus,target)
+      }
+    },true)
+  }
+
+  if(inputs.enableKeyDown){
+    document.addEventListener('keydown',e=>{
+      let target
+      if(e.target.tagName !== 'VIDEO'){
+        const children = [...e.target.children]
+        target = children.find(x=>x.tagName == "VIDEO")
+        if(!target){
+          for(let c of children){
+            target = c.children && [...c.children].find(x=>x.tagName == "VIDEO")
+            if(target) break
+          }
+          if(!target) return
+        }
+      }
+      const addInput = {}
+      if(e.ctrlKey) addInput.ctrlKey = true
+      if(e.metaKey) addInput.metaKey = true
+      if(e.shiftKey) addInput.shiftKey = true
+      if(e.altKey) addInput.altKey = true
+
+      eventHandler(e,inputs[JSON.stringify({code: e.code.toLowerCase().replace('arrow','').replace('escape','esc'),...addInput})] || inputs[JSON.stringify({key: e.key.toLowerCase().replace('arrow','').replace('escape','esc'),...addInput})],target)
+    },true)
+  }
+})

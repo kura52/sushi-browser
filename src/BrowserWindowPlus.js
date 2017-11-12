@@ -304,7 +304,12 @@ export default {
       }
     } : {}
 
-    if(opt && opt._alwaysOnTop) winSetting.alwaysOnTop = true
+    if(opt && opt._alwaysOnTop){
+      winSetting.alwaysOnTop = true
+    }
+    else{
+      winSetting.alwaysOnTop = mainState.alwaysOnTop
+    }
     const winArg = {...opt,
       ...winSetting,
       title: 'Sushi Browser',
@@ -325,6 +330,8 @@ export default {
         ...fontOpt
       }
     }
+    console.log(444,winArg)
+
     let [maxWidth,maxHeight] = [0,0]
     for(let display of electron.screen.getAllDisplays()){
       let {x,y,width,height }= display.bounds
@@ -372,6 +379,7 @@ export default {
           normalSize[initWindow.id] = initWindow.getBounds()
         }
         if(winArg.maximize) initWindow.maximize()
+        initWindow.setAlwaysOnTop(!!winArg.alwaysOnTop)
       })
 
       new (require('./Download'))(initWindow)
@@ -388,6 +396,7 @@ export default {
       win.webContents.once('did-finish-load', () => {
         win.show()
         if(winArg.maximize) win.maximize()
+        win.setAlwaysOnTop(!!winArg.alwaysOnTop)
       })
     }
     // initWindow.webContents.openDevTools()

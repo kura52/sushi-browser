@@ -13,7 +13,7 @@ const PubSub = require('./pubsub')
 const {remote} = require('electron')
 const ipc = require('electron').ipcRenderer
 const isDarwin = navigator.userAgent.includes('Mac OS X')
-const [longPressMiddle,alwaysOnTop,doubleShift] = ipc.sendSync('get-sync-main-states',['longPressMiddle','alwaysOnTop','doubleShift'])
+const [longPressMiddle,doubleShift] = ipc.sendSync('get-sync-main-states',['longPressMiddle','doubleShift'])
 
 require('inferno').options.recyclingEnabled = true; // Advanced optimisation
 global.lastMouseDown = []
@@ -51,11 +51,11 @@ export default class MainContent extends Component{
     this.h = h
   }
 
+
+
+
   componentDidMount() {
     window.addEventListener('resize', ::this.handleResize,{ passive: true });
-    if(alwaysOnTop){
-      setTimeout(_=>remote.getCurrentWindow().setAlwaysOnTop(alwaysOnTop),500)
-    }
     document.addEventListener('mousedown',e=>{
       let ele,key
       global.middleButtonLongPressing = (void 0)
