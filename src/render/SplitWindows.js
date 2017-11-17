@@ -16,6 +16,7 @@ import VerticalTabPanel from './VerticalTabPanel'
 const FloatPanel = require('./FloatPanel')
 const {token} = require('./databaseRender')
 const PanelOverlay = require('./PanelOverlay')
+const SlimTable = require('./SlimTable')
 import firebase,{storage,auth,database} from 'firebase'
 let [MARGIN,verticalTabPosition] = ipc.sendSync('get-sync-main-states',['syncScrollMargin','verticalTabPosition'])
 let count = 0
@@ -1691,6 +1692,7 @@ export default class SplitWindows extends Component{
     }
 
     return <div className="wrap-split-window">
+      <SlimTable/>
       {/*<VerticalTabPanel key="vd" parent={this} tabValues={this.tabValues} direction={this.state.verticalTabPosition}/>*/}
       {this.state.verticalTabPosition == "left" ? <VerticalTabPanel key="vd" parent={this} tabValues={this.tabValues} toggleNav={this.state.root.toggleNav} direction={this.state.verticalTabPosition}/> : null}
       {this.recur(this.state.root,0,true,{val:false})}
