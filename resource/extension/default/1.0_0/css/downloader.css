@@ -1,0 +1,147 @@
+body {
+    font-size: 13px;
+    overflow-y: hidden;
+}
+.react-grid-HeaderCell {
+    background: #f9f9f9;
+    padding: 2px 8px 0px 8px !important;
+}
+
+.react-grid-checkbox:checked+.react-grid-checkbox-label:before {
+    box-shadow: inset 0 0 0 0 #fff !important;
+}
+
+.radio-custom+.radio-custom-label:before, .react-grid-checkbox+.react-grid-checkbox-label:before {
+    width: 15px !important;
+    height: 15px !important;
+}
+
+.react-grid-HeaderCell>.react-grid-checkbox-container>.react-grid-checkbox-label {
+    top: 30% !important;
+}
+
+.react-selection-rectangle{
+    position: absolute;
+    background-color: rgba(204,204,204,.2);
+    border: 1px solid #ccc;
+}
+
+.slideUp{
+    animation-name: slideUp;
+    -webkit-animation-name: slideUp;
+
+    animation-duration: 1s;
+    -webkit-animation-duration: 1s;
+
+    animation-timing-function: ease;
+    -webkit-animation-timing-function: ease;
+
+    visibility: visible !important;
+}
+
+@keyframes slideUp {
+    0% {
+        transform: translateY(100%);
+    }
+    50%{
+        transform: translateY(-8%);
+    }
+    65%{
+        transform: translateY(4%);
+    }
+    80%{
+        transform: translateY(-4%);
+    }
+    95%{
+        transform: translateY(2%);
+    }
+    100% {
+        transform: translateY(0%);
+    }
+}
+
+
+@-webkit-keyframes slideUp {
+    0% {
+        -webkit-transform: translateY(100%);
+    }
+    50%{
+        -webkit-transform: translateY(-8%);
+    }
+    65%{
+        -webkit-transform: translateY(4%);
+    }
+    80%{
+        -webkit-transform: translateY(-4%);
+    }
+    95%{
+        -webkit-transform: translateY(2%);
+    }
+    100% {
+        -webkit-transform: translateY(0%);
+    }
+}
+.react-grid-Row.row-selected2{
+    /*background-color: #cddf4d;*/
+    background-color: #dbecfa;
+}
+
+.react-grid-Row.row-selected.row-selected2 {
+    /*background-color: #f1b0b7;*/
+    background-color: #fff;
+}
+
+.react-grid-Row.row-selected2 .react-grid-Cell {
+    /*background-color: #cddf4d;*/
+    background-color: #dbecfa;
+}
+
+.react-grid-Row.row-selected.row-selected2 .react-grid-Cell {
+    /*background-color: #f1b0b7;*/
+    background-color: #fff;
+}
+
+.react-grid-Row.row-selected.row-selected2:hover .react-grid-Cell {
+    background-color: #f9f9f9;
+}
+.react-grid-Row.row-selected2:hover .react-grid-Cell {
+    /*background-color: #f1b0b7;*/
+    background-color: #dbecfa;
+}
+
+.react-grid-Row:hover .rdg-drag-row-handle {
+    height: 20px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+.btn:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.btn-group-sm>.btn, .btn-sm {
+    font-size: 0.9rem;
+    line-height: 1.3;
+    margin-right: 10px;
+}
+
+.btn-group-sm>.btn, .btn-sm>i {
+    font-size: 1rem;
+    padding-right: 3px;
+}
+
+.btn-group-sm>.btn, .btn-sm>i.fa-file-o, .btn-sm>i.fa-folder-o {
+    font-size: 0.9rem;
+}
+.react-grid-Main {
+    outline: none !important;
+}
+
+i.menu-item{
+    padding-right: 4px;
+    font-size: 15px;
+}
+i.menu-item:hover{
+    color: #3498db;
+}

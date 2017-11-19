@@ -1,1 +1,349 @@
-var _extends=Object.assign||function(a){for(var d,b=1;b<arguments.length;b++)for(var f in d=arguments[b],d)Object.prototype.hasOwnProperty.call(d,f)&&(a[f]=d[f]);return a};const ipc=chrome.ipcRenderer;location.href.startsWith('http')&&window==window.parent&&document.addEventListener('DOMContentLoaded',()=>{const b=Math.random().toString();ipc.send('need-get-inner-text',b),ipc.once(`need-get-inner-text-reply_${b}`,(d,f)=>{f&&ipc.send('get-inner-text',location.href,document.title,document.documentElement.innerText)}),location.href.startsWith('https://chrome.google.com/webstore')&&setInterval(()=>{const f=document.querySelector('.h-e-f-Ra-c.e-f-oh-Md-zb-k');f&&!f.innerHTML&&(f.innerHTML=`<div role="button" class="dd-Va g-c-wb g-eg-ua-Uc-c-za g-c-Oc-td-jb-oa g-c g-c-Sc-ci" aria-label="add to chrome" tabindex="0" style="user-select: none;"><div class="g-c-Hf"><div class="g-c-x"><div class="g-c-s g-c-Zi-s g-c-s-L-Si"></div><div class="g-c-R webstore-test-button-label">add to chrome</div></div></div></div>`,f.querySelector('.dd-Va.g-c-wb.g-eg-ua-Uc-c-za.g-c-Oc-td-jb-oa.g-c.g-c-Sc-ci').addEventListener('click',()=>ipc.send('add-extension',location.href.split('/').slice(-1)[0].split('?')[0])));let g=document.querySelectorAll('.dd-Va.g-c-wb.g-eg-ua-Kb-c-za.g-c-Oc-td-jb-oa.g-c');if(g&&g.length)for(let h of g){const j=h.parentNode.parentNode.parentNode.parentNode.href.split('/').slice(-1)[0].split('?')[0],k=h.parentNode;k.innerHTML=`<div role="button" class="dd-Va g-c-wb g-eg-ua-Kb-c-za g-c-Oc-td-jb-oa g-c" aria-label="add to chrome" tabindex="0" style="user-select: none;"><div class="g-c-Hf"><div class="g-c-x"><div class="g-c-s g-c-Zi-s g-c-s-L-Si"></div><div class="g-c-R webstore-test-button-label">add to chrome</div></div></div></div>`,k.querySelector('.dd-Va.g-c-wb.g-eg-ua-Kb-c-za.g-c-Oc-td-jb-oa.g-c').addEventListener('click',l=>{l.stopPropagation(),l.preventDefault(),ipc.send('add-extension',j)},!0)}},1e3)});function handleDragEnd(a){const b=a.target;if(b){let d;if(b.href)d=b.href;else if('#text'==b.nodeName)ipc.sendToHost('link-drop',{screenX:a.screenX,screenY:a.screenY,text:window.getSelection().toString()||b.data});else{const f=b.closest('a');d=f?f.href:b.src}!d,ipc.sendToHost('link-drop',{screenX:a.screenX,screenY:a.screenY,url:d})}}document.addEventListener('dragend',handleDragEnd,!1);let timer;window.addEventListener('scroll',a=>{0!==window.__scrollSync__||void 0===window.__scrollSync__||ipc.sendToHost('webview-scroll',{top:a.target.scrollingElement?a.target.scrollingElement.scrollTop:void 0,left:a.target.scrollingElement?a.target.scrollingElement.scrollLeft:0,scrollbar:window.innerHeight-document.documentElement.clientHeight})},{passive:!0}),ipc.send('get-main-state',['tripleClick']),ipc.once('get-main-state-reply',(a,b)=>{b.tripleClick&&window.addEventListener('click',d=>{3===d.detail&&window.scrollTo(d.pageX,window.scrollY)},{passive:!0})});let styleVal;null===(styleVal=localStorage.getItem('meiryo'))?(ipc.send('need-meiryo'),ipc.once('need-meiryo-reply',(a,b)=>{if(localStorage.setItem('meiryo',b),b){const d=document.createElement('style'),f=document.createTextNode('html{ font-family: Arial, "\u30E1\u30A4\u30EA\u30AA", sans-serif}');d.appendChild(f),document.getElementsByTagName('head')[0].appendChild(d)}})):'true'===styleVal&&setTimeout(()=>{const b=document.createElement('style'),d=document.createTextNode('html{ font-family: Arial, "\u30E1\u30A4\u30EA\u30AA", sans-serif}');b.appendChild(d),document.getElementsByTagName('head')[0].appendChild(b)},0),ipc.once('on-video-event',(a,b)=>{for(let h of b.blackList)if(h&&location.href.startsWith(h))return;const d=(h,j)=>{const k=h.getBoundingClientRect(),l=`left:${Math.round(k.left)+20}px;top:${Math.round(k.top)+20}px`,m=document.createElement('span');m.innerHTML=j,m.style.cssText=`${l};padding: 5px 9px;z-index: 99999999;position: absolute;overflow: hidden;border-radius: 2px;background: rgba(28,28,28,0.9);text-shadow: 0 0 2px rgba(0,0,0,.5);transition: opacity .1s cubic-bezier(0.0,0.0,0.2,1);margin: 0;border: 0;font-size: 20px;color: white;padding: 10px 15px;`,m.setAttribute('id','popup-org-video');const n=document.querySelector('#popup-org-video');n&&document.body.removeChild(n),document.body.appendChild(m),setTimeout(()=>document.body.removeChild(m),2e3)};let f;const g=(h,j,k)=>{const l=k||h.target;if('playOrPause'==j)l.paused?l.play():l.pause();else if('fullscreen'==j){if(location.href.startsWith('https://www.youtube.com')){const p=document.createElement('style');p.type='text/css',document.head.appendChild(p);const q=document.styleSheets[0],r=document.styleSheets[0].cssRules.length;q.insertRule('.ytp-popup.ytp-generic-popup { display: none; }',r)}const m=ipc.sendSync('toggle-fullscreen-sync'),n=l.offsetWidth==window.innerWidth||l.offsetHeight==window.innerHeight;if(n==m)return;const o=document.querySelector('.ytp-fullscreen-button,.fullscreenButton,.button-bvuiFullScreenOn,.fullscreen-icon,.full-screen-button,.np_ButtonFullscreen,.vjs-fullscreen-control,.qa-fullscreen-button,[data-testid="fullscreen_control"],.vjs-fullscreen-control,.EnableFullScreenButton,.DisableFullScreenButton,.mhp1138_fullscreen,button.fullscreenh,.screenFullBtn,.player-fullscreenbutton');o?o.click():l.webkitDisplayingFullscreen?l.webkitExitFullscreen():l.webkitRequestFullscreen()}else if('exitFullscreen'==j){const m=ipc.send('toggle-fullscreen-sync',1),n=l.offsetWidth==window.innerWidth||l.offsetHeight==window.innerHeight;if(n==m)return;const o=document.querySelector('.ytp-fullscreen-button,.fullscreenButton,.button-bvuiFullScreenOn,.fullscreen-icon,.full-screen-button,.np_ButtonFullscreen,.vjs-fullscreen-control,.qa-fullscreen-button,[data-testid="fullscreen_control"],.vjs-fullscreen-control,.EnableFullScreenButton,.DisableFullScreenButton,.mhp1138_fullscreen,button.fullscreenh,.screenFullBtn,.player-fullscreenbutton');o?o.click():l.webkitDisplayingFullscreen?l.webkitExitFullscreen():l.webkitRequestFullscreen()}else'mute'==j?(l.muted=!l.muted,d(l,`Mute: ${l.muted?'ON':'OFF'}`)):'rewind1'==j?l.currentTime-=parseInt(b.mediaSeek1):'rewind2'==j?l.currentTime-=parseInt(b.mediaSeek2):'rewind3'==j?l.currentTime-=parseInt(b.mediaSeek3):'forward1'==j?l.currentTime+=parseInt(b.mediaSeek1):'forward2'==j?l.currentTime+=parseInt(b.mediaSeek2):'forward3'==j?l.currentTime+=parseInt(b.mediaSeek3):'frameStep'==j?l.currentTime+=1/30:'frameBackStep'==j?l.currentTime-=1/30:'decSpeed'==j?(l.playbackRate-=0.1,d(l,`Speed: ${Math.round(100*l.playbackRate)}%`)):'incSpeed'==j?(l.playbackRate+=0.1,d(l,`Speed: ${Math.round(100*l.playbackRate)}%`)):'normalSpeed'==j?(l.playbackRate=1,d(l,`Speed: ${Math.round(100*l.playbackRate)}%`)):'halveSpeed'==j?(l.playbackRate*=0.5,d(l,`Speed: ${Math.round(100*l.playbackRate)}%`)):'doubleSpeed'==j?(l.playbackRate*=2,d(l,`Speed: ${Math.round(100*l.playbackRate)}%`)):'decreaseVolume'==j?(l.volume-=0.1,d(l,`Volume: ${Math.round(100*l.volume)}%`)):'increaseVolume'==j?(l.volume+=0.1,d(l,`Volume: ${Math.round(100*l.volume)}%`)):'plRepeat'==j?(l.loop=!l.loop,d(l,`Loop: ${l.loop?'ON':'OFF'}`)):f=!0;f||(h.preventDefault(),h.stopPropagation())};if(b.click&&document.addEventListener('click',h=>{let j=h.target;if('VIDEO'!==h.target.tagName){const k=[...h.target.children];if(j=k.find(l=>'VIDEO'==l.tagName),!j){for(let l of k)if(j=l.children&&[...l.children].find(m=>'VIDEO'==m.tagName),j)break;if(!j)return}}1==h.which&&g(h,b.click,j)},!0),b.dbClick&&document.addEventListener('dblclick',h=>{let j=h.target;if('VIDEO'!==h.target.tagName){const k=[...h.target.children];if(j=k.find(l=>'VIDEO'==l.tagName),!j){for(let l of k)if(j=l.children&&[...l.children].find(m=>'VIDEO'==m.tagName),j)break;if(!j)return}}g(h,b.dbClick,j)},!0),b.wheelMinus||b.shiftWheelMinus||b.ctrlWheelMinus||b.shiftCtrlWheelMinus){const h={rewind1:'forward1',decSpeed:'incSpeed',decreaseVolume:'increaseVolume',frameBackStep:'frameStep'},j=b.reverseWheel?-1:1;document.addEventListener('wheel',k=>{let l=k.target;if('VIDEO'!==k.target.tagName){const m=[...k.target.children];if(l=m.find(n=>'VIDEO'==n.tagName),!l){for(let n of m)if(l=n.children&&[...n.children].find(o=>'VIDEO'==o.tagName),l)break;if(!l)return}}k.ctrlKey||k.metaKey?k.shiftKey?g(k,0<k.deltaY*j?h[b.shiftCtrlWheelMinus]:b.shiftCtrlWheelMinus,l):g(k,0<k.deltaY*j?h[b.ctrlWheelMinus]:b.ctrlWheelMinus,l):k.shiftKey?g(k,0<k.deltaY*j?h[b.shiftWheelMinus]:b.shiftWheelMinus,l):g(k,0<k.deltaY*j?h[b.wheelMinus]:b.wheelMinus,l)},!0)}b.enableKeyDown&&document.addEventListener('keydown',h=>{let j;if('VIDEO'!==h.target.tagName){const l=[...h.target.children];if(j=l.find(m=>'VIDEO'==m.tagName),!j){for(let m of l)if(j=m.children&&[...m.children].find(n=>'VIDEO'==n.tagName),j)break;if(!j)return}}const k={};h.ctrlKey&&(k.ctrlKey=!0),h.metaKey&&(k.metaKey=!0),h.shiftKey&&(k.shiftKey=!0),h.altKey&&(k.altKey=!0),g(h,b[JSON.stringify(_extends({code:h.code.toLowerCase().replace('arrow','').replace('escape','esc')},k))]||b[JSON.stringify(_extends({key:h.key.toLowerCase().replace('arrow','').replace('escape','esc')},k))],j)},!0)});
+const ipc = chrome.ipcRenderer
+
+if(location.href.startsWith('http') && window == window.parent){
+  document.addEventListener("DOMContentLoaded",_=>{
+    const key = Math.random().toString()
+    ipc.send('need-get-inner-text',key)
+    ipc.once(`need-get-inner-text-reply_${key}`,(e,result)=>{
+      if(result) ipc.send('get-inner-text',location.href,document.title,document.documentElement.innerText)
+    })
+    if(location.href.startsWith('https://chrome.google.com/webstore')){
+      setInterval(_=>{
+        const ele = document.querySelector(".h-e-f-Ra-c.e-f-oh-Md-zb-k")
+        if(ele && !ele.innerHTML){
+          ele.innerHTML = `<div role="button" class="dd-Va g-c-wb g-eg-ua-Uc-c-za g-c-Oc-td-jb-oa g-c g-c-Sc-ci" aria-label="add to chrome" tabindex="0" style="user-select: none;"><div class="g-c-Hf"><div class="g-c-x"><div class="g-c-s g-c-Zi-s g-c-s-L-Si"></div><div class="g-c-R webstore-test-button-label">add to chrome</div></div></div></div>`
+          ele.querySelector(".dd-Va.g-c-wb.g-eg-ua-Uc-c-za.g-c-Oc-td-jb-oa.g-c.g-c-Sc-ci").addEventListener('click',_=>ipc.send('add-extension',location.href.split("/").slice(-1)[0].split("?")[0]))
+        }
+        let buttons = document.querySelectorAll(".dd-Va.g-c-wb.g-eg-ua-Kb-c-za.g-c-Oc-td-jb-oa.g-c")
+        if(buttons && buttons.length){
+          for(let button of buttons){
+            const loc = button.parentNode.parentNode.parentNode.parentNode.href.split("/").slice(-1)[0].split("?")[0]
+            const parent = button.parentNode
+            parent.innerHTML = `<div role="button" class="dd-Va g-c-wb g-eg-ua-Kb-c-za g-c-Oc-td-jb-oa g-c" aria-label="add to chrome" tabindex="0" style="user-select: none;"><div class="g-c-Hf"><div class="g-c-x"><div class="g-c-s g-c-Zi-s g-c-s-L-Si"></div><div class="g-c-R webstore-test-button-label">add to chrome</div></div></div></div>`
+            parent.querySelector(".dd-Va.g-c-wb.g-eg-ua-Kb-c-za.g-c-Oc-td-jb-oa.g-c").addEventListener('click',e=>{
+              e.stopPropagation()
+              e.preventDefault()
+              ipc.send('add-extension',loc)},true)
+          }
+        }
+      },1000)
+
+    }
+  })
+}
+
+function handleDragEnd(evt) {
+  const target = evt.target
+  if(!target) return
+
+  let url
+  if(target.href){
+    url = target.href
+  }
+  else if(target.nodeName == "#text"){
+    ipc.sendToHost("link-drop",{screenX: evt.screenX, screenY: evt.screenY, text:window.getSelection().toString() || target.data})
+  }
+  else{
+    const parent = target.closest("a")
+    if(parent){
+      url = parent.href
+    }
+    else{
+      url = target.src
+    }
+  }
+  if(!url){
+  }
+
+  ipc.sendToHost("link-drop",{screenX: evt.screenX, screenY: evt.screenY, url})
+}
+
+document.addEventListener('dragend', handleDragEnd, false)
+
+
+let timer
+window.addEventListener('scroll', (e)=>{
+  if(window.__scrollSync__ !== 0 || window.__scrollSync__ === (void 0)) return
+  ipc.sendToHost("webview-scroll",{
+    top: e.target.scrollingElement ? e.target.scrollingElement.scrollTop : undefined,
+    left: e.target.scrollingElement ? e.target.scrollingElement.scrollLeft : 0,
+    scrollbar: window.innerHeight - document.documentElement.clientHeight
+  })
+},{passive:true})
+
+ipc.send("get-main-state",['tripleClick'])
+ipc.once("get-main-state-reply",(e,data)=>{
+  if(data.tripleClick){
+    window.addEventListener('click', e=>{
+      if (e.detail === 3) {
+        window.scrollTo(e.pageX,window.scrollY);
+      }
+    },{passive:true})
+  }
+})
+
+
+//style setting
+let styleVal
+if((styleVal = localStorage.getItem('meiryo')) !== null){
+  if(styleVal === "true"){
+    setTimeout(_=>{
+      const css = document.createElement('style')
+      const rule = document.createTextNode('html{ font-family: Arial, "メイリオ", sans-serif}')
+      css.appendChild(rule)
+      document.getElementsByTagName('head')[0].appendChild(css)
+    },0)
+  }
+}
+else{
+  ipc.send('need-meiryo')
+  ipc.once('need-meiryo-reply',(e,styleVal)=>{
+    localStorage.setItem('meiryo',styleVal)
+    if(styleVal){
+      const css = document.createElement('style')
+      const rule = document.createTextNode('html{ font-family: Arial, "メイリオ", sans-serif}')
+      css.appendChild(rule)
+      document.getElementsByTagName('head')[0].appendChild(css)
+    }
+  })
+}
+
+ipc.once('on-video-event',(e,inputs)=>{
+  for(let url of inputs.blackList){
+    if(url && location.href.startsWith(url)) return
+  }
+  const popUp = (v,text)=>{
+    const rect = v.getBoundingClientRect()
+    const rStyle = `left:${Math.round(rect.left)+20}px;top:${Math.round(rect.top)+20}px`
+
+    const span = document.createElement("span")
+    span.innerHTML = text
+    span.style.cssText = `${rStyle};padding: 5px 9px;z-index: 99999999;position: absolute;overflow: hidden;border-radius: 2px;background: rgba(28,28,28,0.9);text-shadow: 0 0 2px rgba(0,0,0,.5);transition: opacity .1s cubic-bezier(0.0,0.0,0.2,1);margin: 0;border: 0;font-size: 20px;color: white;padding: 10px 15px;`;
+    span.setAttribute("id", "popup-org-video")
+    const existElement = document.querySelector("#popup-org-video")
+    if(existElement){
+      document.body.removeChild(existElement)
+    }
+    document.body.appendChild(span)
+    setTimeout(_=>document.body.removeChild(span),2000)
+  }
+
+  let nothing
+  const eventHandler = (e,name,target)=>{
+    const v = target || e.target
+    if(name == 'playOrPause'){
+      v.paused ? v.play() : v.pause()
+    }
+    else if(name == 'fullscreen'){
+      if(location.href.startsWith('https://www.youtube.com')){
+        const newStyle = document.createElement('style')
+        newStyle.type = "text/css"
+        document.head.appendChild(newStyle)
+        const css = document.styleSheets[0]
+
+        const idx = document.styleSheets[0].cssRules.length;
+        css.insertRule(".ytp-popup.ytp-generic-popup { display: none; }", idx)
+      }
+      const isFullscreen = v.scrollWidth == window.innerWidth || v.scrollHeight == window.innerHeight
+      const isFull = ipc.sendSync('toggle-fullscreen-sync')
+      console.log(isFullscreen,isFull,v.offsetWidth, window.innerWidth,v.offsetHeight, window.innerHeight)
+      if(isFullscreen == isFull){
+        e.preventDefault()
+        e.stopPropagation()
+        return
+      }
+      const fullscreenButton = document.querySelector('.ytp-fullscreen-button,.fullscreenButton,.button-bvuiFullScreenOn,.fullscreen-icon,.full-screen-button,.np_ButtonFullscreen,.vjs-fullscreen-control,.qa-fullscreen-button,[data-testid="fullscreen_control"],.vjs-fullscreen-control,.EnableFullScreenButton,.DisableFullScreenButton,.mhp1138_fullscreen,button.fullscreenh,.screenFullBtn,.player-fullscreenbutton')
+      console.log(fullscreenButton,v.webkitDisplayingFullscreen)
+      if(fullscreenButton){
+        fullscreenButton.click()
+      }
+      else{
+        if(v.webkitDisplayingFullscreen){
+          v.webkitExitFullscreen()
+        }
+        else{
+          v.webkitRequestFullscreen()
+        }
+      }
+    }
+    else if(name == 'exitFullscreen'){
+      const isFull = ipc.send('toggle-fullscreen-sync',1)
+      const isFullscreen = v.offsetWidth == window.innerWidth || v.offsetHeight == window.innerHeight
+      if(isFullscreen == isFull) return
+      const fullscreenButton = document.querySelector('.ytp-fullscreen-button,.fullscreenButton,.button-bvuiFullScreenOn,.fullscreen-icon,.full-screen-button,.np_ButtonFullscreen,.vjs-fullscreen-control,.qa-fullscreen-button,[data-testid="fullscreen_control"],.vjs-fullscreen-control,.EnableFullScreenButton,.DisableFullScreenButton,.mhp1138_fullscreen,button.fullscreenh,.screenFullBtn,.player-fullscreenbutton')
+      if(fullscreenButton){
+        fullscreenButton.click()
+      }
+      else{
+        if(v.webkitDisplayingFullscreen){
+          v.webkitExitFullscreen()
+        }
+        else{
+          v.webkitRequestFullscreen()
+        }
+      }
+    }
+    else if(name == 'mute'){
+      v.muted = !v.muted
+      popUp(v,`Mute: ${v.muted ? "ON" : "OFF"}`)
+    }
+    else if(name == 'rewind1'){
+      v.currentTime -= parseInt(inputs.mediaSeek1)
+    }
+    else if(name == 'rewind2'){
+      v.currentTime -= parseInt(inputs.mediaSeek2)
+    }
+    else if(name == 'rewind3'){
+      v.currentTime -= parseInt(inputs.mediaSeek3)
+    }
+    else if(name == 'forward1'){
+      v.currentTime += parseInt(inputs.mediaSeek1)
+    }
+    else if(name == 'forward2'){
+      v.currentTime += parseInt(inputs.mediaSeek2)
+    }
+    else if(name == 'forward3'){
+      v.currentTime += parseInt(inputs.mediaSeek3)
+    }
+    else if(name == 'frameStep'){
+      v.currentTime += 1 / 30
+    }
+    else if(name == 'frameBackStep'){
+      v.currentTime -= 1 / 30
+    }
+    else if(name == 'decSpeed'){
+      v.playbackRate -= 0.1
+      popUp(v,`Speed: ${Math.round(v.playbackRate * 100)}%`)
+    }
+    else if(name == 'incSpeed'){
+      v.playbackRate += 0.1
+      popUp(v,`Speed: ${Math.round(v.playbackRate * 100)}%`)
+    }
+    else if(name == 'normalSpeed'){
+      v.playbackRate = 1
+      popUp(v,`Speed: ${Math.round(v.playbackRate * 100)}%`)
+    }
+    else if(name == 'halveSpeed'){
+      v.playbackRate *= 0.5
+      popUp(v,`Speed: ${Math.round(v.playbackRate * 100)}%`)
+    }
+    else if(name == 'doubleSpeed'){
+      v.playbackRate *= 2
+      popUp(v,`Speed: ${Math.round(v.playbackRate * 100)}%`)
+    }
+    else if(name == 'decreaseVolume'){
+      v.volume -= 0.1
+      popUp(v,`Volume: ${Math.round(v.volume * 100)}%`)
+    }
+    else if(name == 'increaseVolume'){
+      v.volume += 0.1
+      popUp(v,`Volume: ${Math.round(v.volume * 100)}%`)
+    }
+    else if(name == 'plRepeat'){
+      v.loop = !v.loop
+      popUp(v,`Loop: ${v.loop ? "ON" : "OFF"}`)
+    }
+    else{
+      nothing = true
+    }
+    if(!nothing){
+      e.preventDefault()
+      e.stopPropagation()
+    }
+  }
+
+  if(inputs.click) {
+    document.addEventListener('click', e => {
+      let target = e.target
+      if(e.target.tagName !== 'VIDEO'){
+        const children = [...e.target.children]
+        target = children.find(x=>x.tagName == "VIDEO")
+        if(!target){
+          for(let c of children){
+            target = c.children && [...c.children].find(x=>x.tagName == "VIDEO")
+            if(target) break
+          }
+          if(!target) return
+        }
+      }
+      if (e.which == 1) {
+        eventHandler(e, inputs.click,target)
+      }
+    }, true)
+  }
+
+  if(inputs.dbClick){
+    document.addEventListener('dblclick',e=>{
+      let target = e.target
+      if(e.target.tagName !== 'VIDEO'){
+        const children = [...e.target.children]
+        target = children.find(x=>x.tagName == "VIDEO")
+        if(!target){
+          for(let c of children){
+            target = c.children && [...c.children].find(x=>x.tagName == "VIDEO")
+            if(target) break
+          }
+          if(!target) return
+        }
+      }
+      eventHandler(e,inputs.dbClick,target)
+    },true)
+  }
+
+  if(inputs.wheelMinus || inputs.shiftWheelMinus || inputs.ctrlWheelMinus|| inputs.shiftCtrlWheelMinus){
+    const minusToPlus = {rewind1: 'forward1', decSpeed: 'incSpeed', decreaseVolume: 'increaseVolume',frameBackStep: 'frameStep'}
+    const modify = inputs.reverseWheel ? -1 : 1
+    document.addEventListener('wheel',e=>{
+      let target = e.target
+      if(e.target.tagName !== 'VIDEO'){
+        const children = [...e.target.children]
+        target = children.find(x=>x.tagName == "VIDEO")
+        if(!target){
+          for(let c of children){
+            target = c.children && [...c.children].find(x=>x.tagName == "VIDEO")
+            if(target) break
+          }
+          if(!target) return
+        }
+      }
+      if(e.ctrlKey || e.metaKey){
+        if(e.shiftKey){
+          eventHandler(e,e.deltaY * modify > 0 ? minusToPlus[inputs.shiftCtrlWheelMinus] : inputs.shiftCtrlWheelMinus,target)
+        }
+        else{
+          eventHandler(e,e.deltaY * modify > 0 ? minusToPlus[inputs.ctrlWheelMinus] : inputs.ctrlWheelMinus,target)
+        }
+      }
+      else if(e.shiftKey){
+        eventHandler(e,e.deltaY * modify > 0 ? minusToPlus[inputs.shiftWheelMinus] : inputs.shiftWheelMinus,target)
+      }
+      else{
+        eventHandler(e,e.deltaY * modify > 0 ? minusToPlus[inputs.wheelMinus] : inputs.wheelMinus,target)
+      }
+    },true)
+  }
+
+  if(inputs.enableKeyDown){
+    document.addEventListener('keydown',e=>{
+      let target
+      if(e.target.tagName !== 'VIDEO'){
+        const children = [...e.target.children]
+        target = children.find(x=>x.tagName == "VIDEO")
+        if(!target){
+          for(let c of children){
+            target = c.children && [...c.children].find(x=>x.tagName == "VIDEO")
+            if(target) break
+          }
+          if(!target) return
+        }
+      }
+      const addInput = {}
+      if(e.ctrlKey) addInput.ctrlKey = true
+      if(e.metaKey) addInput.metaKey = true
+      if(e.shiftKey) addInput.shiftKey = true
+      if(e.altKey) addInput.altKey = true
+
+      eventHandler(e,inputs[JSON.stringify({code: e.code.toLowerCase().replace('arrow','').replace('escape','esc'),...addInput})] || inputs[JSON.stringify({key: e.key.toLowerCase().replace('arrow','').replace('escape','esc'),...addInput})],target)
+    },true)
+  }
+})

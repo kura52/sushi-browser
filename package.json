@@ -111,6 +111,8 @@
     "python-struct": "^1.0.4",
     "rc-animate": "^2.3.3",
     "react": "^16.0.0",
+    "react-data-grid": "^2.0.76",
+    "react-data-grid-addons": "^2.0.76",
     "react-dom": "^16.0.0",
     "react-mixin": "^4.0.0",
     "react-sticky": "^5.0.8",

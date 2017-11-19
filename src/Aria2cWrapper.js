@@ -149,6 +149,7 @@ export default class Aria2cWrapper{
     this.status = 'PAUSE'
     this.aria2c.stdin.pause()
     this.aria2c.kill()
+    this.stdoutCallback()
   }
   cancel(){
     this.status = 'CANCEL'

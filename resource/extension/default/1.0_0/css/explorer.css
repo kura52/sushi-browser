@@ -296,7 +296,7 @@ canvas.drag-image{
     pointer-events:none;
     transition: opacity .4s;
     position: absolute;
-    background-color: rgba(204,204,204 .2);
+    background-color: rgba(204,204,204,.2);
     border: 1px solid #ccc;
     opacity: 0;
 }

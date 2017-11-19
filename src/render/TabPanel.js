@@ -1096,12 +1096,14 @@ export default class TabPanel extends Component {
           ipc.once('video-infos-reply',(e,{title,formats,error})=>{
             console.log('video-infos-reply',e,{title,formats,error})
             if(error) return
+            const arr = []
             for(let f of formats){
               // if(f.protocol.includes('m3u8')) continue
               const format = f.format ? f.format.replace(/ /g,'') : `${f.resolution ? `${f.resolution}${f.quality ? `_${f.quality}` : ''}_${f.profile}_${f.audioEncoding || 'nonaudio'}`: 'audioonly'}`
               const fname = `${title}_${format}.${f.protocol && f.protocol.includes('m3u8') ? 'm3u8' : (f.ext||f.container)}`
-              tab.page.richContents.push({url:f.url,type:'video',fname,size: f.filesize})
+              arr.push({url:f.url,type:'video',fname,size: f.filesize})
             }
+            tab.page.richContents.push(...arr.reverse())
             console.log(99875556,tab.page)
             self.refs[`navbar-${tab.key}`].setState({})
           })
@@ -1729,44 +1731,46 @@ export default class TabPanel extends Component {
         newStyle.type = "text/css"
         document.head.appendChild(newStyle)
         var css = document.styleSheets[0]
-        
+
         var idx = document.styleSheets[0].cssRules.length;
         css.insertRule(".ytp-popup.ytp-generic-popup { display: none; }", idx)
       }
       var __video_ = document.querySelector('video')
       var __return_val = false
-      if(__video_ && __video_.offsetWidth == window.innerWidth || __video_.offsetHeight == window.innerHeight || __video_.webkitDisplayingFullscreen){}
+      if(__video_ && (__video_.scrollWidth == window.innerWidth || __video_.scrollHeight == window.innerHeight || __video_.webkitDisplayingFullscreen)){}
       else if(__video_){
         const fullscreenButton = document.querySelector('.ytp-fullscreen-button,.fullscreenButton,.button-bvuiFullScreenOn,.fullscreen-icon,.full-screen-button,.np_ButtonFullscreen,.vjs-fullscreen-control,.qa-fullscreen-button,[data-testid="fullscreen_control"],.vjs-fullscreen-control,.EnableFullScreenButton,.DisableFullScreenButton,.mhp1138_fullscreen,button.fullscreenh,.screenFullBtn,.player-fullscreenbutton')
         if(fullscreenButton){
           const callback = e => {
             e.stopPropagation()
             e.preventDefault()
-            document.removeEventListener('mousedown',callback ,true)
+            document.removeEventListener('mouseup',callback ,true)
             fullscreenButton.click()
             if(location.href.startsWith('https://www.youtube.com')){
               let retry = 0
               const id = setInterval(_=>{
-                if(retry++>300) clearInterval(id)
+                if(retry++>500) clearInterval(id)
                 const e = document.querySelector('.html5-video-player').classList
                 if(!e.contains('ytp-autohide')){
                   e.add('ytp-autohide')
-                  __video_.click()
+                    if(document.querySelector('.ytp-fullscreen-button.ytp-button').getAttribute('aria-expanded') == 'true'){
+                      __video_.click()
+                    }
                 }
               },10)
             }
           }
-          document.addEventListener('mousedown',callback ,true);
+          document.addEventListener('mouseup',callback ,true);
           __return_val = true
         }
         else{
           const callback = e => {
             e.stopPropagation()
             e.preventDefault()
-            document.removeEventListener('mousedown',callback ,true)
+            document.removeEventListener('mouseup',callback ,true)
             __video_.webkitRequestFullscreen()
           }
-          document.addEventListener('mousedown',callback ,true);
+          document.addEventListener('mouseup',callback ,true);
           __return_val = true
         }
       } 
@@ -1776,19 +1780,21 @@ export default class TabPanel extends Component {
           const callback = e => {
           e.stopPropagation()
           e.preventDefault()
-          document.removeEventListener('mousedown',callback ,true)
+          document.removeEventListener('mouseup',callback ,true)
             iframe.webkitRequestFullscreen()
           }
-          document.addEventListener('mousedown',callback ,true);
+          document.addEventListener('mouseup',callback ,true);
           __return_val = true
         }
       }
       __return_val
     `,{}, (err, url, result) => {
-        const rect = tab.wv.getBoundingClientRect()
         if(result[0]){
-          ipc.send('force-click',{x: Math.round(rect.x+1),y:Math.round(rect.y+1) })
+          const rect = tab.wv.getBoundingClientRect()
+          ipc.send('force-mouse-up',{x: Math.round(rect.x+10),y:Math.round(rect.y+10)})
         }
+
+        setTimeout(_=>{
         console.log(11111111,result[0])
         if(popup){
           this.detachTab(tab,{width:720,height:480})
@@ -1809,6 +1815,7 @@ export default class TabPanel extends Component {
             PubSub.publish(`close_tab_${this.props.k}`, {key:tab.key})
           },100)
         }
+        },10)
       })
     }
     ipc.on('pin-video', tab.events['pin-video'])

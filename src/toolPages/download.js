@@ -142,7 +142,7 @@ class DownloadList extends React.Component {
     const digit = Math.pow(10, precision)
     return Math.round(val * digit) / digit
   }
-  openFolder
+
   getAppropriateByteUnit(byte){
     if(byte / 1024 < 1){
       return [byte,"B"]
@@ -159,15 +159,15 @@ class DownloadList extends React.Component {
 
   getAppropriateTimeUnit(time){
     if(time / 60 < 1){
-      return [time,"sec"]
+      return [Math.round(time),"sec"]
     }
     else if(time / 60 / 60 < 1){
       return [Math.round(time /60),"min",Math.round(time % 60),"sec"]
     }
     else if(time / 60 / 60 / 24 < 1){
-      return [Math.round(time / 60 / 60),"hour",Math.round(time % (60*60)),"min"]
+      return [Math.round(time / 60 / 60),"hour",Math.round((time / 60) % 60),"min"]
     }
-    return [Math.round(time / 60 / 60 / 24),"day",Math.round(time % (60 * 60 * 24)),"hour"]
+    return [Math.round(time / 60 / 60 / 24),"day",Math.round((time/60/60) % 24),"hour"]
   }
 
   calcSpeed(item){
@@ -191,7 +191,7 @@ class DownloadList extends React.Component {
         }}>{moment(item.now).format("MM/DD HH:mm:ss")}</a>
         <List.Header as='a' target="_blank" href={item.url}>{item.filename.length > 55 ? `${item.filename.substr(0, 55)}...` : item.filename}</List.Header>
         <List.Description>{item.url.length > 125 ? `${item.url.substr(0, 125)}...` : item.url}</List.Description>
-        {item.state == "progressing" && !item.isPaused ? <List.Description>{`${this.getAppropriateByteUnit(rest.speed).join(" ")}/sec - ${this.getAppropriateByteUnit(item.receivedBytes).join(" ")} of ${this.getAppropriateByteUnit(item.totalBytes).join(" ")}（${this.getAppropriateTimeUnit(rest.restTime).join(" ")} left）`}</List.Description> : ""}
+        {item.state == "progressing" && !item.isPaused ? <List.Description>{`${item.speed ||this.getAppropriateByteUnit(rest.speed).join(" ")}/sec - ${this.getAppropriateByteUnit(item.receivedBytes).join(" ")} of ${this.getAppropriateByteUnit(item.totalBytes).join(" ")}（${this.getAppropriateTimeUnit(rest.restTime).join(" ")} left）`}</List.Description> : ""}
         {item.receivedBytes ? <Progress percent={rest.percent}  size='small' color='blue' label {...(item.state == "progressing" ? {active: true} : item.state == "completed" ? {success : true} : {})} /> : ""}
         <div style={{display: "flex"}}>
           {item.sender && item.state == "progressing" ? item.isPaused ?

@@ -9,6 +9,7 @@ import PubSub from './render/pubsub'
 import fs from 'fs'
 const URL = require('url')
 const downloadPath = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html'
+const downloadPath2 = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/downloader.html'
 const timeMap = new Map()
 global.downloadItems = []
 const retry = new Set()
@@ -254,11 +255,11 @@ export default class Download {
     const eventCancel = (event, data) => {
       if (data.savePath !== item.getSavePath())
         return
-      timeMap.delete(item.getSavePath())
       item.cancel()
       ipcMain.removeListener('download-pause', eventPause)
       ipcMain.removeListener('download-cancel', eventCancel)
       global.downloadItems = global.downloadItems.filter(i => i !== item)
+      // timeMap.delete(item.getSavePath())
     }
     ipcMain.on('download-cancel', eventCancel)
 
@@ -325,6 +326,7 @@ export default class Download {
       receivedBytes: item.getReceivedBytes(),
       totalBytes: item.getTotalBytes(),
       state: item.getState(),
+      speed: item.speed ? item.speed.replace('i','') : void 0,
       savePath: item.getSavePath(),
       startTime: timeMap.get(item.getSavePath()),
       now: Date.now()
@@ -332,6 +334,9 @@ export default class Download {
   }
 
   getDownloadPage(){
-    return webContents.getAllWebContents().filter(wc=>wc.getURL().replace(":///","://") === downloadPath.replace(/\\/g,'/').replace(":///","://"))
+    return webContents.getAllWebContents().filter(wc=>{
+      const a = wc.getURL().replace(":///","://")
+      return a === downloadPath.replace(/\\/g,'/').replace(":///","://") || a === downloadPath2.replace(/\\/g,'/').replace(":///","://")
+    })
   }
 }

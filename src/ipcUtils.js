@@ -362,6 +362,11 @@ ipcMain.on('force-click',(event,{x,y})=> {
   event.sender.sendInputEvent({ type: 'mouseUp', x, y, button: 'left',clickCount: 1});
 })
 
+ipcMain.on('force-mouse-up',(event,{x,y})=> {
+  event.sender.sendInputEvent({ type: 'mouseUp', x, y, button: 'left',clickCount: 1});
+
+})
+
 ipcMain.on('toggle-fullscreen',(event)=> {
   const win = BrowserWindow.fromWebContents(event.sender.hostWebContents || event.sender)
   const isFullScreen = win.isFullScreen()

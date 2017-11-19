@@ -352,6 +352,7 @@ app.on('web-contents-created', (e, tab) => {
 
   tab.on('did-get-response-details', (e, status, newURL, originalURL, httpResponseCode, requestMethod, referrer, headers, resourceType) => {
     const contType = headers['content-type']
+    console.log(6755,contType && contType[0],newURL)
     if(contType && contType[0].match(RegNormalResource)) return
 
     let record,ret,parseUrl

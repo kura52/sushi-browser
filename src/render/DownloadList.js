@@ -77,15 +77,15 @@ export default class DownloadList extends Component{
 
   getAppropriateTimeUnit(time){
     if(time / 60 < 1){
-      return [time,"sec"]
+      return [Math.round(time),"sec"]
     }
     else if(time / 60 / 60 < 1){
       return [Math.round(time /60),"min",Math.round(time % 60),"sec"]
     }
     else if(time / 60 / 60 / 24 < 1){
-      return [Math.round(time / 60 / 60),"hour",Math.round(time % (60*60)),"min"]
+      return [Math.round(time / 60 / 60),"hour",Math.round((time / 60) % 60),"min"]
     }
-    return [Math.round(time / 60 / 60 / 24),"day",Math.round(time % (60 * 60 * 24)),"hour"]
+    return [Math.round(time / 60 / 60 / 24),"day",Math.round((time/60/60) % 24),"hour"]
   }
 
   calcSpeed(item){
@@ -99,7 +99,7 @@ export default class DownloadList extends Component{
 
   buildItem(item) {
     const rest = this.calcSpeed(item)
-    const progress = item.state == "progressing" ? `${this.getAppropriateByteUnit(rest.speed).join(" ")}/s ${this.getAppropriateByteUnit(item.receivedBytes).join(" ")} of ${this.getAppropriateByteUnit(item.totalBytes).join(" ")}（${this.getAppropriateTimeUnit(rest.restTime).join(" ")} left）`.replace(/NaN/g,'-') :
+    const progress = item.state == "progressing" ? `${item.speed || this.getAppropriateByteUnit(rest.speed).join(" ")}/s ${this.getAppropriateByteUnit(item.receivedBytes).join(" ")} of ${this.getAppropriateByteUnit(item.totalBytes).join(" ")}（${this.getAppropriateTimeUnit(rest.restTime).join(" ")} left）`.replace(/NaN/g,'-') :
       item.state == "completed" ? "Completed" : "Canceled"
     const fname = multiByteSlice(item.filename, 23)
 

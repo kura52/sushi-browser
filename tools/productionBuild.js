@@ -569,6 +569,7 @@ filesContentsReplace(`${pwd}/node_modules/youtube-dl/lib/youtube-dl.js`,"(detail
 // Build Files
 const compiledJsFiles = ['resource/extension/default/1.0_0/js/top.js',
   'resource/extension/default/1.0_0/js/download.js',
+  'resource/extension/default/1.0_0/js/downloader.js',
   'resource/extension/default/1.0_0/js/history.js',
   'resource/extension/default/1.0_0/js/tabHistorySidebar.js',
   'resource/extension/default/1.0_0/js/historySidebar.js',
