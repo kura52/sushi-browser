@@ -6,12 +6,9 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import uuid from 'node-uuid';
 import Selection from '../render/react-selection/indexTable'
+import path from 'path';
 
-const ReactDataGrid = require('react-data-grid');
-const {
-  Draggable: { Container: DraggableContainer,RowActionsCell, DropTargetRowContainer },
-  Data: { Selectors }
-} = require('react-data-grid-addons');
+import ReactTable from 'react-table'
 
 
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
@@ -121,29 +118,29 @@ function PercentCompleteFormatter(props){
   </div>
 }
 
-const columns = [
-  { key: 'menu', name: 'Menu', resizable: true,  width: 85 },
-  { key: 'name', name: 'Name', resizable: true, sortable: true, width: 250 },
-  { key: 'progress', name: 'Progress', resizable: true, sortable: true, formatter: PercentCompleteFormatter, width: 150 },
-  { key: 'size', name: 'Size', resizable: true, sortable: true, width: 80 },
-  { key: 'est', name: 'Est. Time', resizable: true, sortable: true, width: 90 },
-  { key: 'speed', name: 'Speed', resizable: true, sortable: true, width: 80 },
-  { key: 'starttime', name: 'Start Time',resizable: true, sortable: true, width:150 },
-  { key: 'url', name: 'URL', resizable: true, sortable: true },
-]
-const RowRenderer = DropTargetRowContainer(ReactDataGrid.Row);
-
-
 class Downloader extends React.Component {
   static defaultProps = { rowKey: 'id' };
 
   constructor(props,context) {
     super(props,context);
-    this.state = {downloads: new Map(), rows: [], selectedIds: [],columns };
+    this.columns = [
+      { accessor: 'menu', Header: 'Menu', Cell: this.getMenuIcons, resizable: true, minWidth: 20, maxWidth: 85 },
+      { accessor: 'name', Header: 'Name', resizable: true, sortable: true,filterable:true, minWidth: 20, maxWidth: 250 },
+      { accessor: 'progress', Header: 'Progress', Cell: PercentCompleteFormatter, minWidth: 10, maxWidth:150  },
+      { accessor: 'size', Header: 'Size', resizable: true, sortable: true,filterable:true, minWidth: 10, maxWidth:80  },
+      { accessor: 'est', Header: 'Est. Time', resizable: true, sortable: true,filterable:true, minWidth: 10, maxWidth:90  },
+      { accessor: 'speed', Header: 'Speed', resizable: true, sortable: true,filterable:true, minWidth: 10, maxWidth:80  },
+      { accessor: 'starttime', Header: 'Start Time',resizable: true, sortable: true,filterable:true, minWidth:10, maxWidth:150  },
+      { accessor: 'url', Header: 'URL', resizable: true, sortable: true,filterable:true,minWidth:10 },
+    ]
+    this.state = {downloads: new Map(), rows: [], selectedIds: []};
   }
 
   componentDidMount(){
-    window.addEventListener('resize',_=>this.setState());
+    document.querySelector('.rt-tbody').style.height = `calc(100vh - 106px - ${document.querySelector('.navbar').offsetHeight}px)`
+    window.addEventListener('resize',_=>{
+      document.querySelector('.rt-tbody').style.height = `calc(100vh - 106px - ${document.querySelector('.navbar').offsetHeight}px)`
+    });
     this.event = (e,name)=>{
       if(name == 'Start'){
         this.handleStart()
@@ -198,67 +195,42 @@ class Downloader extends React.Component {
           num++
         }
       }
-      this.setState({})
+      this.setState({data: this.state.rows.slice(0)})
     })
     fetchDownload({})
+
+    document.addEventListener('keydown',e=>{
+      if(e.ctrlKey && e.key == 'a'){
+        const ids = []
+        for(let ele of document.querySelectorAll('virtual')){
+          const key = parseInt(ele.dataset.key)
+          ids.push(key)
+          ele.parentNode.parentNode.classList.add('row-selected')
+        }
+        this.state.selectedIds = ids
+      }
+      this.setState({})
+    })
+
   }
 
   componentWillUnmount() {
     ipc.removeListener("download-menu-reply",this.event)
   }
 
-  rowGetter = (i) => {
-    return this.state.rows[i];
-  }
-
-  isDraggedRowSelected = (selectedRows, rowDragSource) => {
-    if (selectedRows && selectedRows.length > 0) {
-      let key = this.props.rowKey;
-      return selectedRows.filter(r => r[key] === rowDragSource.data[key]).length > 0;
-    }
-    return false;
-  }
-
-  handleGridSort = (sortColumn, sortDirection) => {
-    const comparer = sortDirection === 'ASC' ?
-      (a, b) => a[sortColumn] > b[sortColumn] ? 1 : -1 :
-      (a, b) => a[sortColumn] < b[sortColumn] ? 1 : -1
-
-    const rows = sortDirection === 'NONE' ? this.state.originalRows.slice(0) : this.state.rows.sort(comparer);
-    this.setState({rows});
-  }
-
-  reorderRows = (e) => {
-    let selectedRows = Selectors.getSelectedRowsByKey({rowKey: this.props.rowKey, selectedKeys: this.state.selectedIds, rows: this.state.rows});
-    let draggedRows = this.isDraggedRowSelected(selectedRows, e.rowSource) ? selectedRows : [e.rowSource.data];
-    let undraggedRows = this.state.rows.filter(r=>draggedRows.indexOf(r) === -1);
-    let args = [e.rowTarget.idx, 0].concat(draggedRows);
-    Array.prototype.splice.apply(undraggedRows, args);
-    this.setState({rows: undraggedRows});
-  }
-
-  // onHeaderDrop = (source, target) => {
-  //   const stateCopy = Object.assign({}, this.state);
-  //   const columnSourceIndex = this.state.columns.findIndex(i => i.key === source);
-  //   const columnTargetIndex = this.state.columns.findIndex(i => i.key === target);
-  //
-  //   stateCopy.columns.splice(columnTargetIndex,0,stateCopy.columns.splice(columnSourceIndex, 1)[0]);
-  //
-  //   const emptyColumns = Object.assign({},this.state, { columns: [] });
-  //   this.setState(emptyColumns)
-  //
-  //   const reorderedColumns = Object.assign({},this.state, { columns: stateCopy.columns });
-  //   this.setState(reorderedColumns)
-  // }
-
-  onRowClickWrapper = (key,e)=>{
+  onClick = (key,e,tr)=>{
     const rowIdx = this.state.rows.findIndex(x=>x.id === key)
-    this.onRowClick(rowIdx,this.state.rows[rowIdx],void 0,e)
+    console.log(key,rowIdx,this.state.rows[rowIdx],e,tr)
+    this.onRowClick(rowIdx,this.state.rows[rowIdx],e,tr)
   }
 
-  onRowClick = (rowIdx, row,_, e)=>{
-    console.log(rowIdx, row,_, e)
-    if(!e || (!e.ctrlKey && !e.shiftKey)) this.clearSelect()
+  onRowClick = (rowIdx, row, e, tr)=>{
+    if(!e){
+      return
+    }
+    if(!e.ctrlKey && !e.shiftKey){
+      this.clearSelect(1)
+    }
 
     if(e.shiftKey && this.state.selectedIds.length){
       const prevId = this.state.selectedIds[this.state.selectedIds.length - 1]
@@ -267,38 +239,32 @@ class Downloader extends React.Component {
       const max = rowIdx == prevInd ? rowIdx : prevInd < rowIdx ? rowIdx : prevInd - 1
       for(let i = min;i<=max;i++){
         const row = this.state.rows[i]
-        let ind = this.state.selectedIds.findIndex(r => r == row[this.props.rowKey]);
+        let ind = this.state.selectedIds.findIndex(r => r == row.id);
         if(ind == -1){
-          this.state.selectedIds.push(row[this.props.rowKey])
+          this.state.selectedIds.push(row.id)
+          tr.classList.add('row-selected')
         }
         else{
           this.state.selectedIds.splice(ind,1)
+          tr.classList.remove('row-selected')
         }
       }
     }
     else{
-      let ind = this.state.selectedIds.findIndex(r => r == row[this.props.rowKey]);
+      let ind = this.state.selectedIds.findIndex(r => r == row.id);
       if(ind == -1){
-        this.state.selectedIds.push(row[this.props.rowKey])
+        this.state.selectedIds.push(row.id)
+        tr.classList.add('row-selected')
       }
       else{
         this.state.selectedIds.splice(ind,1)
+        tr.classList.remove('row-selected')
       }
     }
-
-
+    console.log(this)
     this.setState({})
   }
 
-  onRowsSelected = (rows) => {
-    this.state.selectedIds.push(...rows.map(r => r.row[this.props.rowKey]))
-    this.setState({selectedIds: this.state.selectedIds});
-  }
-
-  onRowsDeselected = (rows) => {
-    let rowIds = rows.map(r =>  r.row[this.props.rowKey]);
-    this.setState({selectedIds: this.state.selectedIds.filter(i => rowIds.indexOf(i) === -1 )});
-  }
 
   play(item){
     if(item.state == "cancelled"){
@@ -309,8 +275,9 @@ class Downloader extends React.Component {
     }
   }
 
-  getMenuIcons(item){
-    const arr = []
+  getMenuIcons = (props)=>{
+    const item = props.value
+    const arr = [<virtual data-key={props.original.id}></virtual>]
     if(!(item.state == "completed" || (item.state == "progressing" && !item.isPaused))){
       arr.push(<i onClick={_=>this.play(item)} className="fa fa-play-circle-o menu-item" aria-hidden="true"></i>)
     }
@@ -333,13 +300,13 @@ class Downloader extends React.Component {
 
     return {
       id: item.created_at,
-      menu: this.getMenuIcons(item),
+      menu: item,
       name: item.filename,
       size: item.totalBytes ? `${getAppropriateByteUnit(item.totalBytes).join(" ")}` : '-',
       progress: isProgress ? rest.percent : item.state == "completed" ? 100 : 0,
       est: isProgress ? `${getAppropriateTimeUnit(rest.restTime).join(" ")}` : '-',
       speed: isProgress ? `${item.speed ||getAppropriateByteUnit(rest.speed).join(" ")}/s` : '-',
-      starttime: formatDate(item.created_at),
+      starttime: item.created_at ? formatDate(item.created_at) : '-',
       url: item.url
     }
   }
@@ -350,22 +317,30 @@ class Downloader extends React.Component {
 
     for(let ele of selectedTargets){
       const cl = ele.classList
-      cl.contains('row-selected')
       cl.remove('row-selected2')
-      const key = parseInt(ele.parentNode.className.slice(1))
-      const ind = this.state.selectedIds.findIndex(x=>x == key)
-      if(ind == -1){
-        this.state.selectedIds.push(key)
-      }
-      else{
-        this.state.selectedIds.splice(ind,1)
+      const v = ele.querySelector('virtual')
+      if(v) {
+        const key = parseInt(v.dataset.key)
+        const ind = this.state.selectedIds.findIndex(x => x == key)
+        if (ind == -1) {
+          cl.add('row-selected')
+          this.state.selectedIds.push(key)
+        }
+        else {
+          cl.remove('row-selected')
+          this.state.selectedIds.splice(ind, 1)
+        }
       }
     }
     this.setState({selectedIds: this.state.selectedIds})
   }
 
-  clearSelect = () =>{
+  clearSelect = (noUpdate) =>{
+    for(let ele of document.querySelectorAll('.row-selected')){
+      ele.classList.remove('row-selected')
+    }
     console.log('clearSelect')
+    if(noUpdate !==  1)
     this.setState({selectedIds:[]})
   }
 
@@ -376,6 +351,34 @@ class Downloader extends React.Component {
       map[item.savePath] = item
     }
     return map
+  }
+
+  handleNewDownload = ()=>{
+    showDialog({
+      inputable: true, title: 'New Download',
+      text: `Please enter URLs and save directory`,
+      initValue: ["",""],
+      option: ['textArea','dialog'],
+      needInput: ["URLs","Save Directory","FileName(Optional)"]
+    }).then(value => {
+      console.log(7778,value)
+      if (!value) return
+      const urls = value[0].split(/\r?\n/)
+      const directroy = value[1]
+      const fname = value[2]
+
+      let i = 0
+      for(let url of urls){
+        if(fname){
+          ipc.send('set-save-path',path.join(directroy,fname),true)
+        }
+        else{
+          ipc.send('set-save-directory',directroy)
+        }
+        setTimeout(_=>ipc.send('download-start',url),50*i++)
+      }
+
+    })
   }
 
   handleStart = ()=>{
@@ -428,12 +431,12 @@ class Downloader extends React.Component {
 
   render() {
     return  (
-      <Selection ref="select" target=".react-grid-Row" selectedClass="row-selected2"
-                 onRowClickWrapper={this.onRowClickWrapper} downloads={this.state.downloads} afterSelect={this.afterSelect} clearSelect={this.clearSelect}>
+      <Selection ref="select" target=".rt-tr" selectedClass="row-selected2"
+                 onClick={this.onClick} downloads={this.state.downloads} afterSelect={this.afterSelect} clearSelect={this.clearSelect}>
         <nav className="navbar navbar-light bg-faded">
           <form className="form-inline">
-            <button onClick={_=>this.handleStart()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
-              <i className="fa fa-plus-circle" aria-hidden="true"></i>New Download
+            <button onClick={_=>this.handleNewDownload()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
+              <i className="fa fa-plus-circle" aria-hidden="true"></i>New DL
             </button>
             <button onClick={_=>this.handleStart()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
               <i className="fa fa-play-circle-o" aria-hidden="true"></i>Start
@@ -442,10 +445,10 @@ class Downloader extends React.Component {
               <i className="fa fa-pause-circle-o" aria-hidden="true"></i>Pause
             </button>
             <button onClick={_=>this.handleCancel()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
-              <i className="fa fa-trash-o" aria-hidden="true"></i>Cancel Download
+              <i className="fa fa-trash-o" aria-hidden="true"></i>Cancel DL
             </button>
             <button className="btn btn-sm align-middle btn-outline-secondary" type="button">
-              <i className="fa fa-window-close" aria-hidden="true"></i>Remove All Finished
+              <i className="fa fa-window-close" aria-hidden="true"></i>Remove Finished
             </button>
             <button onClick={_=>this.handleOpenFolder()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
               <i className="fa fa-folder-o" aria-hidden="true"></i>Show Folder
@@ -454,35 +457,28 @@ class Downloader extends React.Component {
               <i className="fa fa-file-o" aria-hidden="true"></i>Open File
             </button>
             <button onClick={_=>this.handleCopyPath()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
-              <i className="fa fa-clipboard" aria-hidden="true"></i>Copy File Path
+              <i className="fa fa-clipboard" aria-hidden="true"></i>Copy Path
             </button>
             <button onClick={_=>this.handleCopyUrl()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
               <i className="fa fa-clipboard" aria-hidden="true"></i>Copy URL
             </button>
+            Concurrent downloads:
+            <select className="form-control form-control-sm">
+              {['-',1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20].map(x=><option>{x}</option>)}
+            </select>
+            Downloads per server:
+            <select className="form-control form-control-sm">
+              {[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16].map(x=><option>{x}</option>)}
+            </select>
           </form>
         </nav>
-        <DraggableContainer>
-          {/*onHeaderDrop={this.onHeaderDrop}>*/}
-          <ReactDataGrid
-            onGridSort={this.handleGridSort}
-            // enableCellSelection={true}
-            rowActionsCell={RowActionsCell}
-            columns={this.state.columns}
-            rowGetter={this.rowGetter}
-            rowsCount={this.state.rows.length}
-            minHeight={window.innerHeight - 44}
-            rowHeight={24}
-            rowRenderer={<RowRenderer onRowDrop={this.reorderRows}/>}
-            onRowClick={this.onRowClick}
-            rowSelection={{
-              showCheckbox: false,
-              onRowsSelected: this.onRowsSelected,
-              onRowsDeselected: this.onRowsDeselected,
-              selectBy: {
-                keys: {rowKey: this.props.rowKey, values: this.state.selectedIds}
-              }
-            }}/>
-        </DraggableContainer>
+        <ReactTable
+          pageSizeOptions={[30,100,250,500,1000]}
+          defaultPageSize={100}
+          data={this.state.rows.slice(0)}
+          // onFetchData={this.fetchData}
+          columns={this.columns}
+        />
       </Selection>);
   }
 }

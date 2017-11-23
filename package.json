@@ -117,6 +117,7 @@
     "react-mixin": "^4.0.0",
     "react-sticky": "^5.0.8",
     "react-style-proptype": "^3.0.0",
+    "react-table": "^6.7.4",
     "resize-observer-polyfill": "^1.4.2",
     "semantic-ui-react": "^0.74.2",
     "sortablejs": "^1.5.1",

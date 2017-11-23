@@ -1821,16 +1821,17 @@ export default class TabPanel extends Component {
     ipc.on('pin-video', tab.events['pin-video'])
   }
 
-  updateHistory(cont,tab){
-    const url = tab.rSession.urls[tab.rSession.currentIndex]
+  updateHistory(cont,tab,newIndex){
+    const url = tab.rSession.urls[newIndex]
+    if(!url) return
+    tab.rSession.currentIndex = newIndex
     tab.wv.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',`location.replace("${url}")`,{},()=>{})
     this.refs[`navbar-${tab.key}`].setState({})
   }
 
   historyBack(cont,tab){
     if(tab.rSession){
-      tab.rSession.currentIndex -= 1
-      this.updateHistory(cont,tab)
+      this.updateHistory(cont,tab,tab.rSession.currentIndex - 1)
     }
     else{
       cont.goBack()
@@ -1839,8 +1840,7 @@ export default class TabPanel extends Component {
 
   historyForward(cont,tab){
     if(tab.rSession){
-      tab.rSession.currentIndex += 1
-      this.updateHistory(cont,tab)
+      this.updateHistory(cont,tab,tab.rSession.currentIndex + 1)
     }
     else {
       cont.goForward()
@@ -1849,8 +1849,7 @@ export default class TabPanel extends Component {
 
   historyGo(cont,tab,ind){
     if(tab.rSession){
-      tab.rSession.currentIndex = tab.rSession.currentIndex + ind
-      this.updateHistory(cont,tab)
+      this.updateHistory(cont,tab, tab.rSession.currentIndex + ind)
     }
     else {
       cont.goToOffset(ind)
@@ -1859,8 +1858,7 @@ export default class TabPanel extends Component {
 
   historyGoIndex(cont,tab,ind){
     if(tab.rSession){
-      tab.rSession.currentIndex = ind
-      this.updateHistory(cont,tab)
+      this.updateHistory(cont,tab,ind)
     }
     else {
       cont.goToIndex(ind)

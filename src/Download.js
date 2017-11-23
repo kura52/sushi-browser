@@ -41,6 +41,10 @@ export default class Download {
       this.savePath = absolute ? fname : path.join(app.getPath('downloads'), fname)
     })
 
+    ipcMain.on('set-save-directory',(e,directory)=>{
+      this.saveDirectory = directory
+    })
+
     ipcMain.on('set-audio-extract',(e,fname)=>{
       this.audioExtract = true
     })
@@ -53,7 +57,7 @@ export default class Download {
 
     const ses = win.webContents.session
     ses.on('will-download', (event, item, webContents) => {
-      if (webContents.isDestroyed()) {
+      if (!webContents || webContents.isDestroyed()) {
         event.preventDefault()
         return
       }
@@ -112,7 +116,8 @@ export default class Download {
           if(active) item.cancel()
           return
         }
-        savePath = this.getUniqFileName(path.join(app.getPath('downloads'), item.getFilename() || path.basename(url)))
+        savePath = this.getUniqFileName(path.join(this.saveDirectory || app.getPath('downloads'), item.getFilename() || path.basename(url)))
+        this.saveDirectory = false
       }
       else {
         const validSavePath = this.getUniqFileName(savePath)

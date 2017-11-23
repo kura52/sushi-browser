@@ -81,38 +81,23 @@ body {
         -webkit-transform: translateY(0%);
     }
 }
-.react-grid-Row.row-selected2{
+.rt-tr-group>.row-selected2{
     /*background-color: #cddf4d;*/
     background-color: #dbecfa;
 }
 
-.react-grid-Row.row-selected.row-selected2 {
+.rt-tr-group>.row-selected.row-selected2 {
     /*background-color: #f1b0b7;*/
     background-color: #fff;
 }
 
-.react-grid-Row.row-selected2 .react-grid-Cell {
+.rt-tr-group>.row-selected2 {
     /*background-color: #cddf4d;*/
     background-color: #dbecfa;
 }
 
-.react-grid-Row.row-selected.row-selected2 .react-grid-Cell {
-    /*background-color: #f1b0b7;*/
-    background-color: #fff;
-}
-
-.react-grid-Row.row-selected.row-selected2:hover .react-grid-Cell {
-    background-color: #f9f9f9;
-}
-.react-grid-Row.row-selected2:hover .react-grid-Cell {
-    /*background-color: #f1b0b7;*/
+.rt-tr-group>.row-selected{
     background-color: #dbecfa;
-}
-
-.react-grid-Row:hover .rdg-drag-row-handle {
-    height: 20px !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
 }
 
 .btn:focus {
@@ -134,18 +119,34 @@ body {
 .btn-group-sm>.btn, .btn-sm>i.fa-file-o, .btn-sm>i.fa-folder-o {
     font-size: 0.9rem;
 }
-.react-grid-Main {
-    outline: none !important;
-}
 
 i.menu-item{
     padding-right: 4px;
     font-size: 15px;
 }
+
 i.menu-item:hover{
     color: #3498db;
 }
 
 .progress {
     background-color: #d8dbdd !important;
+}
+
+.ReactTable .rt-tbody {
+    overflow-x: hidden;
+}
+.ReactTable .rt-th, .ReactTable .rt-td {
+    padding: 2px 5px;
+}
+.ReactTable .rt-thead.-filters input, .ReactTable .rt-thead.-filters select {
+    padding: 1px 7px;
+}
+
+.ReactTable .rt-thead.-header {
+    box-shadow: 0 2px 5px 0 rgba(0,0,0,0.15);
+}
+select.form-control-sm:not([size]):not([multiple]) {
+    margin-left: 4px;
+    margin-right: 8px;
 }

@@ -117,7 +117,8 @@ ipcMain.on('show-dialog-exploler',(event,key,info,tabId)=>{
     (cont ? event.sender : event.sender.hostWebContents).send('show-notification',
       {id:(cont || event.sender).getId(),key:key2,title:info.title,text:info.text,
         initValue:info.normal ? void 0 : info.initValue,
-        needInput:info.normal ? void 0 : info.needInput || [""]
+        needInput:info.normal ? void 0 : info.needInput || [""],
+        option:info.normal ? void 0 : info.option || [""],
         buttons : info.normal ? info.buttons : void 0})
 
     ipcMain.once(`reply-notification-${key2}`,(e,ret)=>{
@@ -1171,6 +1172,11 @@ ipcMain.on('get-sync-rSession',(e,keys)=>{
 
 ipcMain.on('set-clipboard',(e,data)=>{
   clipboard.writeText(data.join(os.EOL))
+})
+
+
+ipcMain.on('download-start',(e,url)=>{
+  e.sender.hostWebContents.downloadURL(url,true)
 })
 
 // ipcMain.on('send-keys',(e,keys)=>{

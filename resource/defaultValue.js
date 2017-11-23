@@ -10,6 +10,7 @@ const settingDefault =  {
   oppositeGlobal: true,
   alwaysOnTop: false,
   downloadNum: 1,
+  concurrentDownload: 0,
   searchEngine: 'Google',
   myHomepage: 'https://sushib.me/',
   startsWith: 'newTab',

@@ -35,39 +35,58 @@ class Selection extends React.Component {
       opacity: 0,
     }
   }
-  
+
   componentDidMount() {
     this._box = findDOMNode(this)
   }
 
+  onClick = (ev)=> {
+    const tr = ev.target.closest('.rt-tr')
+    if(tr){
+      const v = tr.querySelector('virtual')
+      if(v){
+        const key = parseInt(v.dataset.key)
+        console.log(333,key,ev,tr)
+        this.props.onClick(key,ev,tr)
+
+      }
+    }
+  }
   mousedown = (ev)=> {
-    if(ev.which == 3){
-      const ele = ev.srcElement.closest('.react-grid-Row')
-      if(!ele) return
-      const key = parseInt(ele.parentNode.className.slice(1))
-      this.props.onRowClickWrapper(key,ev)
-      ipc.send("download-menu",this.props.downloads.get(key))
-      return
+    if(ev.which == 3) {
+    const tr = ev.target.closest('.rt-tr')
+    if(tr){
+      const v = tr.querySelector('virtual')
+      if(v){
+        const key = parseInt(v.dataset.key)
+        console.log(key,ev,tr)
+        this.props.onClick(key,ev,tr)
+
+          ipc.send("download-menu", this.props.downloads.get(key))
+          return
+        }
+      }
     }
 
     if(ev.which !== 1) return
-    if(ev.srcElement.closest('.react-grid-HeaderCell')) return
+
     console.log(ev.srcElement.tagName,ev)
-    const src = ev.srcElement.closest('.react-grid-Cell')
+    const src = ev.srcElement.closest('.rt-td')
     if(!src || !src.parentNode || !src.parentNode.children) return
-
-    const pNodeChildren = src.parentNode.children
-    if(src=== pNodeChildren[0] || src=== pNodeChildren[1] || src === pNodeChildren[pNodeChildren.length -1] || src === pNodeChildren[pNodeChildren.length -2]) return
-
-    const targetSelect = this.props.target
-    this.targets = Array.from(this._box.querySelectorAll(targetSelect))
-    this.ctrlKey = (ev.ctrlKey || ev.metaKey)
 
     if (this.ctrlKey || ev.shiftKey) {
       window.addEventListener('keyup', this.keyup, false)
     } else {
       this.props.clearSelect()
     }
+
+    const pNodeChildren = src.parentNode.children
+    if(src=== pNodeChildren[0] || src=== pNodeChildren[1] || src === pNodeChildren[pNodeChildren.length -1]) return
+
+    const targetSelect = this.props.target
+    this.targets = Array.from(this._box.querySelectorAll(targetSelect))
+    this.ctrlKey = (ev.ctrlKey || ev.metaKey)
+
 
     this.clickY = ev.pageY - ev.currentTarget.offsetTop
     this.clickX = ev.pageX - ev.currentTarget.offsetLeft
@@ -202,9 +221,8 @@ class Selection extends React.Component {
 
     let modify
     this.targets.forEach((target)=> {
-      if(!target.classList.contains('react-grid-Row')) return
       if(modify === void 0){
-        modify = target.parentNode.parentNode.parentNode.scrollTop - 24 - this.navHeight
+        modify = document.querySelector('.rt-tbody').scrollTop - 3 - this.navHeight
       }
       const {selectedClass} = this.props
       const tar = {
@@ -242,7 +260,7 @@ class Selection extends React.Component {
   render() {
     const {children, target, ...props} = this.props
     return (
-      <div {...props} className="react-selection" onMouseDown={this.mousedown}>
+      <div {...props} className="react-selection" onMouseDown={this.mousedown} onClick={this.onClick}>
         {children}
         <div ref="rect" className="react-selection-rectangle"/>
       </div>

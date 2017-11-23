@@ -76,5 +76,5 @@ module.exports = [
   // merge({fileName:"favoriteSidebar.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
   // merge({fileName:"terminal.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
   // merge({fileName:"sync.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
-  // merge({fileName:"settings.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
+  merge({fileName:"settings.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
 ]

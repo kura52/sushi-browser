@@ -194,6 +194,10 @@ const downloadNumOptions = Array.from(new Array(16)).map((v,n)=>{
   return {value: n+1 ,text: n+1}
 })
 
+const concurrentDownloadOptions = Array.from(new Array(21)).map((v,n)=>{
+  return {value: n ,text: n}
+})
+
 const sendToVideoOptionsAll = [
   { value: 'vlc', text: 'VLC Media Player',os:['win','mac','linux']},
   { value: 'PotPlayerMini64', text: 'PotPlayer',os:['win']},
@@ -429,6 +433,12 @@ class GeneralSetting extends React.Component {
         <div className="field">
           <label>Send URL to external media player</label>
           <Dropdown onChange={this.onChange.bind(this,'sendToVideo')} selection options={sendToVideoOptions} defaultValue={this.state.sendToVideo}/>
+        </div>
+        <br/>
+
+        <div className="field">
+          <label>Concurrent Download(0 means no limit)</label>
+          <Dropdown onChange={this.onChange.bind(this,'concurrentDownload')} selection options={concurrentDownloadOptions} defaultValue={this.state.concurrentDownload}/>
         </div>
         <br/>
 
@@ -1057,7 +1067,7 @@ const App = () => (
 )
 
 
-ipc.send("get-main-state",['startsWith','newTabMode','myHomepage','searchProviders','searchEngine','language','enableFlash','downloadNum','sideBarDirection','scrollTab','doubleShift','tripleClick','syncScrollMargin','contextMenuSearchEngines','ALL_KEYS','bindMarginFrame','bindMarginTitle','historyFull','longPressMiddle','checkDefaultBrowser','sendToVideo','multistageTabs','tabMinWidth','httpsEverywhereEnable','trackingProtectionEnable','autoSaveInterval'])
+ipc.send("get-main-state",['startsWith','newTabMode','myHomepage','searchProviders','searchEngine','language','enableFlash','concurrentDownload','downloadNum','sideBarDirection','scrollTab','doubleShift','tripleClick','syncScrollMargin','contextMenuSearchEngines','ALL_KEYS','bindMarginFrame','bindMarginTitle','historyFull','longPressMiddle','checkDefaultBrowser','sendToVideo','multistageTabs','tabMinWidth','httpsEverywhereEnable','trackingProtectionEnable','autoSaveInterval'])
 ipc.once("get-main-state-reply",(e,data)=>{
   generalDefault = data
   keyboardDefault = data

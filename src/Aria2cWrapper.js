@@ -3,6 +3,7 @@ const {spawn} = require('child_process')
 const moment = require('moment')
 const fs = require('fs')
 const path = require('path')
+import mainState from './mainState'
 
 const binaryPath = path.join(__dirname, '../resource/bin/aria2',
   process.platform == 'win32' ? 'win/aria2c.exe' :
@@ -49,6 +50,7 @@ function getByte(str){
   }
 }
 
+const downloadItems = new Set()
 export default class Aria2cWrapper{
   constructor({url,savePath,downloadNum=1}){
     this.url = url
@@ -68,6 +70,7 @@ export default class Aria2cWrapper{
   }
 
   closeCallback(){
+    downloadItems.delete(this)
     for(let c of this.closeCallbacks){
       setTimeout(c,100)
     }
@@ -81,6 +84,12 @@ export default class Aria2cWrapper{
   }
 
   async download(){
+    console.log(444000,downloadItems.size,mainState.concurrentDownload)
+    if(mainState.concurrentDownload && downloadItems.size >= parseInt(mainState.concurrentDownload)){
+      setTimeout(_=>this.download,500)
+      return
+    }
+    downloadItems.add(this)
     const cookie = await getCookieStr(this.url)
 
     let params = cookie ? [`--header=Cookie:${cookie}`] : []
@@ -143,18 +152,24 @@ export default class Aria2cWrapper{
     return this.status == 'PAUSE'
   }
   resume(){
+    downloadItems.add(this)
     this.download()
   }
   pause(){
+    downloadItems.delete(this)
     this.status = 'PAUSE'
-    this.aria2c.stdin.pause()
-    this.aria2c.kill()
+    if(this.aria2c){
+      this.aria2c.stdin.pause()
+      this.aria2c.kill()
+    }
     this.stdoutCallback()
   }
   cancel(){
     this.status = 'CANCEL'
-    this.aria2c.stdin.pause()
-    this.aria2c.kill()
+    if(this.aria2c){
+     this.aria2c.stdin.pause()
+     this.aria2c.kill()
+    }
     console.log(this.savePath)
     fs.unlink(this.savePath,e=> {
       setTimeout(
