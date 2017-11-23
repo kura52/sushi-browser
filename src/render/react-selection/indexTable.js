@@ -2,6 +2,7 @@ import React, {PropTypes} from 'react'
 import {findDOMNode} from 'react-dom'
 import toggleClass from './toggle-class'
 import LimitRange from './limit-range'
+import {ipcRenderer as ipc} from 'electron';
 
 const topLeftLimitRange = new LimitRange('top-left')
 const topRightLimitRange = new LimitRange('top-right')
@@ -40,6 +41,15 @@ class Selection extends React.Component {
   }
 
   mousedown = (ev)=> {
+    if(ev.which == 3){
+      const ele = ev.srcElement.closest('.react-grid-Row')
+      if(!ele) return
+      const key = parseInt(ele.parentNode.className.slice(1))
+      this.props.onRowClickWrapper(key,ev)
+      ipc.send("download-menu",this.props.downloads.get(key))
+      return
+    }
+
     if(ev.which !== 1) return
     if(ev.srcElement.closest('.react-grid-HeaderCell')) return
     console.log(ev.srcElement.tagName,ev)
@@ -61,6 +71,8 @@ class Selection extends React.Component {
 
     this.clickY = ev.pageY - ev.currentTarget.offsetTop
     this.clickX = ev.pageX - ev.currentTarget.offsetLeft
+
+    this.navHeight = document.querySelector('.navbar').offsetHeight
 
     document.addEventListener('mousemove', this.mousemove, false)
     document.addEventListener('mouseup', this.mouseup, false)
@@ -192,7 +204,7 @@ class Selection extends React.Component {
     this.targets.forEach((target)=> {
       if(!target.classList.contains('react-grid-Row')) return
       if(modify === void 0){
-        modify = target.parentNode.parentNode.parentNode.scrollTop - 24 - 44
+        modify = target.parentNode.parentNode.parentNode.scrollTop - 24 - this.navHeight
       }
       const {selectedClass} = this.props
       const tar = {

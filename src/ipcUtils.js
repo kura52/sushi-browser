@@ -1,10 +1,12 @@
-import {ipcMain,app,dialog,BrowserWindow,shell,webContents,session} from 'electron'
+import {ipcMain,app,dialog,BrowserWindow,shell,webContents,session,clipboard} from 'electron'
 const BrowserWindowPlus = require('./BrowserWindowPlus')
 import fs from 'fs'
 import sh from 'shelljs'
 import uuid from 'node-uuid'
 import PubSub from './render/pubsub'
 import {toKeyEvent} from 'keyboardevent-from-electron-accelerator'
+
+const os = require('os')
 const seq = require('./sequence')
 const {state,favorite,historyFull,tabState,visit,savedState} = require('./databaseFork')
 const db = require('./databaseFork')
@@ -110,11 +112,13 @@ ipcMain.on('create-file',(event,key,path,isFile)=>{
 ipcMain.on('show-dialog-exploler',(event,key,info,tabId)=>{
   const cont = tabId !== 0 && webContents.fromTabID(tabId)
   console.log(tabId,cont)
-  if(info.inputable){
+  if(info.inputable || info.normal){
     const key2 = uuid.v4();
     (cont ? event.sender : event.sender.hostWebContents).send('show-notification',
       {id:(cont || event.sender).getId(),key:key2,title:info.title,text:info.text,
-        initValue:info.initValue,needInput:info.needInput || [""]})
+        initValue:info.normal ? void 0 : info.initValue,
+        needInput:info.normal ? void 0 : info.needInput || [""]
+        buttons : info.normal ? info.buttons : void 0})
 
     ipcMain.once(`reply-notification-${key2}`,(e,ret)=>{
       if(ret.pressIndex !== 0){
@@ -1163,6 +1167,10 @@ ipcMain.on('get-sync-rSession',(e,keys)=>{
   tabState.find({tabKey:{$in:keys}}).then(rec=>{
     e.returnValue = rec
   })
+})
+
+ipcMain.on('set-clipboard',(e,data)=>{
+  clipboard.writeText(data.join(os.EOL))
 })
 
 // ipcMain.on('send-keys',(e,keys)=>{

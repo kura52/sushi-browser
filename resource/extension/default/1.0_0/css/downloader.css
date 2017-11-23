@@ -145,3 +145,7 @@ i.menu-item{
 i.menu-item:hover{
     color: #3498db;
 }
+
+.progress {
+    background-color: #d8dbdd !important;
+}

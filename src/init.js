@@ -553,7 +553,7 @@ ipcMain.on('init-private-mode',(e,partition)=>{
   extensions.loadAll(ses)
 })
 
-let explorerMenu,favoriteMenu,savedStateMenu
+let explorerMenu,favoriteMenu,savedStateMenu,downloadMenu
 ipcMain.on("explorer-menu",(e,path)=>{
   explorerMenu = {sender:e.sender,path}
   setTimeout(_=>explorerMenu=(void 0),1000)
@@ -563,6 +563,12 @@ ipcMain.on("favorite-menu",(e,path)=>{
   favoriteMenu = {sender:e.sender,path}
   setTimeout(_=>favoriteMenu=(void 0),1000)
 })
+
+ipcMain.on("download-menu",(e,item)=>{
+  downloadMenu = {sender:e.sender,item}
+  setTimeout(_=>downloadMenu=(void 0),1000)
+})
+
 ipcMain.on("savedState-menu",(e,canDelete)=>{
   savedStateMenu = {sender:e.sender,canDelete}
   setTimeout(_=>savedStateMenu=(void 0),1000)
@@ -618,6 +624,20 @@ function contextMenu(webContents) {
 
       menuItems.push({label: locale.translation('addBookmark'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'addBookmark')}})
       menuItems.push({label: locale.translation('addFolder'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'addFolder')}})
+      var menu = Menu.buildFromTemplate(menuItems)
+      menu.popup(targetWindow)
+      return
+    }
+    else if(downloadMenu){
+      const downMenu = downloadMenu
+      const {item} = downloadMenu
+      for(let name of ['Start','Pause','Cancel Download','Show Folder','Open File','Copy File Path','Copy URL']){
+        if(name == 'Start' && (item.state == "completed" || (item.state == "progressing" && !item.isPaused))) continue
+        if(name == 'Pause' && !(item.state == "progressing" && !item.isPaused)) continue
+        if(name == 'Cancel Download' && !(item.state != "completed" && item.state != "cancelled")) continue
+        if(name == 'Open File' && item.state == "cancelled") continue
+        menuItems.push({label: name,click: (item,win)=>{downMenu.sender.send('download-menu-reply',name)}})
+      }
       var menu = Menu.buildFromTemplate(menuItems)
       menu.popup(targetWindow)
       return

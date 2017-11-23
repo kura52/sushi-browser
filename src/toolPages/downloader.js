@@ -4,6 +4,7 @@ import process from './process'
 import {ipcRenderer as ipc} from 'electron';
 import React from 'react';
 import ReactDOM from 'react-dom';
+import uuid from 'node-uuid';
 import Selection from '../render/react-selection/indexTable'
 
 const ReactDataGrid = require('react-data-grid');
@@ -14,6 +15,28 @@ const {
 
 
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
+
+function showDialog(input,id){
+  return new Promise((resolve,reject)=>{
+    const key = uuid.v4()
+    ipc.send('show-dialog-exploler',key,input,id)
+    ipc.once(`show-dialog-exploler-reply_${key}`,(event,ret)=>{
+      resolve(ret)
+    })
+  })
+}
+
+function cancelItem(item){
+  showDialog({
+    normal: true,
+    title: 'Confirm',
+    text: 'Are you sure you want to delete the following files?',
+    buttons:['Yes','No']
+  }).then(value => {
+    console.log(value)
+    // ipc.send("download-cancel", item)
+  })
+}
 
 function downloadingItemReply(callback){
   ipc.on('download-progress', (event, item) => {
@@ -99,7 +122,7 @@ function PercentCompleteFormatter(props){
 }
 
 const columns = [
-  { key: 'menu', name: 'Menu', resizable: true,  width: 80 },
+  { key: 'menu', name: 'Menu', resizable: true,  width: 85 },
   { key: 'name', name: 'Name', resizable: true, sortable: true, width: 250 },
   { key: 'progress', name: 'Progress', resizable: true, sortable: true, formatter: PercentCompleteFormatter, width: 150 },
   { key: 'size', name: 'Size', resizable: true, sortable: true, width: 80 },
@@ -111,38 +134,6 @@ const columns = [
 const RowRenderer = DropTargetRowContainer(ReactDataGrid.Row);
 
 
-class ContextMenu extends React.Component {
-  onRowDelete = (e, data) => {
-    if (typeof(this.props.onRowDelete) === 'function') {
-      this.props.onRowDelete(e, data);
-    }
-  };
-
-  onRowInsertAbove = (e, data) => {
-    if (typeof(this.props.onRowInsertAbove) === 'function') {
-      this.props.onRowInsertAbove(e, data);
-    }
-  };
-
-  onRowInsertBelow = (e, data) => {
-    if (typeof(this.props.onRowInsertBelow) === 'function') {
-      this.props.onRowInsertBelow(e, data);
-    }
-  };
-
-  render() {
-    return (
-      <ContextMenu>
-        <MenuItem data={{rowIdx: this.props.rowIdx, idx: this.props.idx}} onClick={this.onRowDelete}>Delete Row</MenuItem>
-        <SubMenu title="Insert Row">
-          <MenuItem data={{rowIdx: this.props.rowIdx, idx: this.props.idx}} onClick={this.onRowInsertAbove}>Above</MenuItem>
-          <MenuItem data={{rowIdx: this.props.rowIdx, idx: this.props.idx}} onClick={this.onRowInsertBelow}>Below</MenuItem>
-        </SubMenu>
-      </ContextMenu>
-    );
-  }
-}
-
 class Downloader extends React.Component {
   static defaultProps = { rowKey: 'id' };
 
@@ -153,6 +144,30 @@ class Downloader extends React.Component {
 
   componentDidMount(){
     window.addEventListener('resize',_=>this.setState());
+    this.event = (e,name)=>{
+      if(name == 'Start'){
+        this.handleStart()
+      }
+      else if(name == 'Pause'){
+        this.handlePause()
+      }
+      else if(name == 'Cancel Download'){
+        this.handleCancel()
+      }
+      else if(name == 'Show Folder'){
+        this.handleOpenFolder()
+      }
+      else if(name == 'Open File'){
+        this.handleOpenFile()
+      }
+      else if(name == 'Copy File Path'){
+        this.handleCopyPath()
+      }
+      else if(name == 'Copy URL'){
+        this.handleCopyUrl()
+      }
+    }
+    ipc.on('download-menu-reply', this.event)
 
     downloadingItemReply((item,sender)=>{
       item.sender = sender
@@ -186,6 +201,10 @@ class Downloader extends React.Component {
       this.setState({})
     })
     fetchDownload({})
+  }
+
+  componentWillUnmount() {
+    ipc.removeListener("download-menu-reply",this.event)
   }
 
   rowGetter = (i) => {
@@ -231,6 +250,11 @@ class Downloader extends React.Component {
   //   const reorderedColumns = Object.assign({},this.state, { columns: stateCopy.columns });
   //   this.setState(reorderedColumns)
   // }
+
+  onRowClickWrapper = (key,e)=>{
+    const rowIdx = this.state.rows.findIndex(x=>x.id === key)
+    this.onRowClick(rowIdx,this.state.rows[rowIdx],void 0,e)
+  }
 
   onRowClick = (rowIdx, row,_, e)=>{
     console.log(rowIdx, row,_, e)
@@ -293,12 +317,12 @@ class Downloader extends React.Component {
     if(item.state == "progressing" && !item.isPaused){
       arr.push(<i onClick={_=>ipc.send("download-pause",item)} className="fa fa-pause-circle-o menu-item" aria-hidden="true"></i>)
     }
-    if(item.state != "completed" && item.state != "cancelled"){
-      arr.push(<i onClick={_=>ipc.send("download-cancel", item)} className="fa fa-trash-o menu-item" aria-hidden="true"></i>)
-    }
     arr.push(<i onClick={_=>ipc.send("download-open-folder", item.savePath)} className="fa fa-folder-o menu-item" aria-hidden="true"></i>)
     if(item.state != "cancelled"){
       arr.push(<i onClick={_=>ipc.send("download-open",item)} className="fa fa-file-o menu-item" aria-hidden="true"></i>)
+    }
+    if(item.state != "completed" && item.state != "cancelled"){
+      arr.push(<i onClick={_=>cancelItem(item)} className="fa fa-trash-o menu-item" aria-hidden="true"></i>)
     }
     return arr
   }
@@ -377,7 +401,7 @@ class Downloader extends React.Component {
   handleCancel = ()=>{
     for(let item of Object.values(this.getSelectedMap())){
       if(item.state != "completed" && item.state != "cancelled"){
-        ipc.send("download-cancel", item)
+        cancelItem(item)
       }
     }
   }
@@ -394,13 +418,23 @@ class Downloader extends React.Component {
     }
   }
 
+  handleCopyPath = ()=>{
+    ipc.send("set-clipboard",Object.values(this.getSelectedMap()).map(item=> item.savePath))
+  }
+
+  handleCopyUrl = ()=>{
+    ipc.send("set-clipboard",Object.values(this.getSelectedMap()).map(item=> item.url))
+  }
 
   render() {
     return  (
       <Selection ref="select" target=".react-grid-Row" selectedClass="row-selected2"
-                 afterSelect={this.afterSelect} clearSelect={this.clearSelect}>
+                 onRowClickWrapper={this.onRowClickWrapper} downloads={this.state.downloads} afterSelect={this.afterSelect} clearSelect={this.clearSelect}>
         <nav className="navbar navbar-light bg-faded">
           <form className="form-inline">
+            <button onClick={_=>this.handleStart()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
+              <i className="fa fa-plus-circle" aria-hidden="true"></i>New Download
+            </button>
             <button onClick={_=>this.handleStart()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
               <i className="fa fa-play-circle-o" aria-hidden="true"></i>Start
             </button>
@@ -408,7 +442,7 @@ class Downloader extends React.Component {
               <i className="fa fa-pause-circle-o" aria-hidden="true"></i>Pause
             </button>
             <button onClick={_=>this.handleCancel()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
-              <i className="fa fa-trash-o" aria-hidden="true"></i>Remove Selected
+              <i className="fa fa-trash-o" aria-hidden="true"></i>Cancel Download
             </button>
             <button className="btn btn-sm align-middle btn-outline-secondary" type="button">
               <i className="fa fa-window-close" aria-hidden="true"></i>Remove All Finished
@@ -418,6 +452,12 @@ class Downloader extends React.Component {
             </button>
             <button onClick={_=>this.handleOpenFile()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
               <i className="fa fa-file-o" aria-hidden="true"></i>Open File
+            </button>
+            <button onClick={_=>this.handleCopyPath()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
+              <i className="fa fa-clipboard" aria-hidden="true"></i>Copy File Path
+            </button>
+            <button onClick={_=>this.handleCopyUrl()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
+              <i className="fa fa-clipboard" aria-hidden="true"></i>Copy URL
             </button>
           </form>
         </nav>
