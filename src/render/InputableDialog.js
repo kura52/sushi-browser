@@ -1,6 +1,6 @@
 import React,{Component} from 'react'
 import ReactDOM from 'react-dom'
-import { Icon,Form, TextArea, Input, Button, Header, Modal } from 'semantic-ui-react';
+import { Icon,Form, TextArea, Input, Button, Header, Modal,Checkbox } from 'semantic-ui-react';
 const ipc = require('electron').ipcRenderer
 const {app} = require('electron').remote.require('electron')
 export default class InputableDialog extends Component{
@@ -38,6 +38,12 @@ export default class InputableDialog extends Component{
             })
           }}/>
           </div>
+        </p>
+      }
+      else if(this.props.data.option && this.props.data.option[i] == "toggle"){
+        return <p key={i}>
+          <Checkbox toggle ref={`input${i}`} className="inputable-dialog"/>
+          <span className="toggle-label">{x}</span>
         </p>
       }
       else{

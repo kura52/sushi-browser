@@ -345,9 +345,9 @@ class BrowserNavbar extends Component{
   }
 
   onMediaDownload(url,fname,audio,needInput){
-    if(fname) ipc.send('set-save-path',fname)
-    if(audio) ipc.send('set-audio-extract')
-    if(needInput) ipc.send('need-set-save-filename')
+    if(fname) ipc.send('set-save-path',url,fname)
+    if(audio) ipc.send('set-audio-extract',url)
+    if(needInput) ipc.send('need-set-save-filename',url)
     const cont = this.getWebContents(this.props.tab)
     cont.hostWebContents.downloadURL(url,true)
   }

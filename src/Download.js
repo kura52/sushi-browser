@@ -31,26 +31,51 @@ function shellEscape(s){
   return '"'+s.replace(/(["\s'$`\\])/g,'\\$1')+'"'
 }
 
+function set(map,url,value){
+  if(map[url] === void 0){
+    map[url] = [value]
+  }
+  else{
+    map[url].push[value]
+  }
+}
+
+function get(map,url){
+  if(map[url] === void 0){
+    return
+  }
+  else{
+    const shifted = map[url].shift()
+    if(!map[url].length) delete map[url]
+    return shifted
+  }
+}
+
 export default class Download {
   constructor(win){
-    const eventNeedSetSaveFilename = (event)=>{
-      this.needSavePath = true
+    this.needSavePath = {}
+    this.savePath = {}
+    this.saveDirectory = {}
+    this.audioExtract = {}
+
+    const eventNeedSetSaveFilename = (event,url)=>{
+      set(this.needSavePath,url,true)
     }
 
-    ipcMain.on('set-save-path',(e,fname,absolute)=>{
-      this.savePath = absolute ? fname : path.join(app.getPath('downloads'), fname)
+    ipcMain.on('set-save-path',(e,url,fname,absolute)=>{
+      set(this.savePath,url,true,absolute ? fname : path.join(app.getPath('downloads'), fname))
     })
 
-    ipcMain.on('set-save-directory',(e,directory)=>{
-      this.saveDirectory = directory
+    ipcMain.on('set-save-directory',(e,url,directory)=>{
+      set(this.saveDirectory,url,directory)
     })
 
-    ipcMain.on('set-audio-extract',(e,fname)=>{
-      this.audioExtract = true
+    ipcMain.on('set-audio-extract',(e,url)=>{
+      set(this.audioExtract,url,true)
     })
 
-    ipcMain.on('need-set-save-filename',(e)=>{
-      this.needSavePath = true
+    ipcMain.on('need-set-save-filename',(e,url)=>{
+      set(this.needSavePath,url,true)
     })
     // ipcMain.on('need-set-save-filename',eventSetSaveFilename)
     PubSub.subscribe('need-set-save-filename',eventNeedSetSaveFilename)
@@ -82,15 +107,8 @@ export default class Download {
         active = false
       }
 
-      let savePath = this.savePath
-      this.savePath = void 0
-      let audioExtract
-
-      if(this.audioExtract){
-        audioExtract = this.audioExtract
-        this.audioExtract = void 0
-      }
-
+      let savePath = get(this.savePath,url)
+      let audioExtract = get(this.audioExtract,url)
 
       if(url.startsWith("file://")){
         if(active) item.cancel()
@@ -102,8 +120,9 @@ export default class Download {
 
       win.webContents.send(`download-start-tab_${webContents.getId()}`)
 
-      if(this.needSavePath){
-        this.needSavePath = false
+      const needSavePath = get(this.needSavePath,url)
+
+      if(needSavePath){
         const filepath = dialog.showSaveDialog(win,{defaultPath: path.join(app.getPath('downloads'), item.getFilename() || path.basename(url)) })
         if(!filepath){
           if(active) item.cancel()
@@ -116,8 +135,8 @@ export default class Download {
           if(active) item.cancel()
           return
         }
-        savePath = this.getUniqFileName(path.join(this.saveDirectory || app.getPath('downloads'), item.getFilename() || path.basename(url)))
-        this.saveDirectory = false
+        const saveDirectory = get(this.saveDirectory,url)
+        savePath = this.getUniqFileName(path.join(saveDirectory || app.getPath('downloads'), item.getFilename() || path.basename(url)))
       }
       else {
         const validSavePath = this.getUniqFileName(savePath)
@@ -152,7 +171,7 @@ export default class Download {
               isError = true
               retry.add(url)
               global.downloadItems = global.downloadItems.filter(i => i !== item)
-              this.savePath = savePath
+              set(this.savePath,url,savePath)
               webContents.downloadURL(url, true)
             }
           })

@@ -91,7 +91,7 @@ const createFileSubmenu = () => {
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
           if(cont){
-            PubSub.publishSync('need-set-save-filename')
+            PubSub.publishSync('need-set-save-filename',cont.getURL())
             cont.downloadURL(cont.getURL(), true)
           }
         })

@@ -105,7 +105,13 @@ function calcSpeed(item){
 function formatDate(longDate) {
   const date = new Date(longDate)
   return `${date.getFullYear()}/${('0' + (date.getMonth() + 1)).slice(-2)}/${('0' + date.getDate()).slice(-2)} ${('0' + date.getHours()).slice(-2)}:${('0' + date.getMinutes()).slice(-2)}:${('0' + date.getSeconds()).slice(-2)}`
-};
+}
+
+function chunkArray(a,size){
+  const arrays = []
+  while(a.length > 0) arrays.push(a.splice(0, size))
+  return arrays
+}
 
 // Custom Formatter component
 function PercentCompleteFormatter(props){
@@ -353,31 +359,46 @@ class Downloader extends React.Component {
     return map
   }
 
+  async getVideoUrls(urls,callback){
+    const arrays = chunkArray(urls,5)
+    for(let chunkUrls of arrays){
+
+    }
+  }
+
   handleNewDownload = ()=>{
     showDialog({
       inputable: true, title: 'New Download',
       text: `Please enter URLs and save directory`,
       initValue: ["",""],
-      option: ['textArea','dialog'],
-      needInput: ["URLs","Save Directory","FileName(Optional)"]
+      option: ['textArea','dialog',void 0,'toggle'],
+      needInput: ["URLs","Save Directory","FileName(Optional)",'Attempt to download video']
     }).then(value => {
       console.log(7778,value)
       if (!value) return
       const urls = value[0].split(/\r?\n/)
       const directroy = value[1]
       const fname = value[2]
+      const tryVideo = value[3]
 
-      let i = 0
-      for(let url of urls){
-        if(fname){
-          ipc.send('set-save-path',path.join(directroy,fname),true)
+      const func = urls=>{
+        let i = 0
+        for(let url of urls){
+          if(fname){
+            ipc.send('set-save-path',url,path.join(directroy,fname),true)
+          }
+          else{
+            ipc.send('set-save-directory',url,directroy)
+          }
+          setTimeout(_=>ipc.send('download-start',url),50*i++)
         }
-        else{
-          ipc.send('set-save-directory',directroy)
-        }
-        setTimeout(_=>ipc.send('download-start',url),50*i++)
       }
-
+      if(tryVideo){
+        this.getVideoUrls(urls,func)
+      }
+      else{
+        func(urls)
+      }
     })
   }
 

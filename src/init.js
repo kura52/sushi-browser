@@ -16,7 +16,6 @@ const os = require('os')
 const isDarwin = process.platform == 'darwin'
 const mime = require('mime')
 import url from 'url'
-const youtubedl = require('youtube-dl')
 const {getUrlFromCommandLine,getNewWindowURL} = require('./cmdLine')
 import {getFocusedWebContents, getCurrentWindow} from './util'
 const open = require('./open')
@@ -585,7 +584,7 @@ function contextMenu(webContents) {
     const can = type => editFlags[`can${type}`] && hasText
 
     const downloadPrompt = (item, win) => {
-      PubSub.publishSync('need-set-save-filename')
+      PubSub.publishSync('need-set-save-filename',props.srcURL)
       win.webContents.downloadURL(props.srcURL,true)
     }
 
@@ -724,7 +723,7 @@ function contextMenu(webContents) {
     if (props.linkURL) {
       menuItems.push({
         label: locale.translation('saveLinkAs'), click: (item, win) => {
-          PubSub.publishSync('need-set-save-filename')
+          PubSub.publishSync('need-set-save-filename',props.linkURL)
           console.log("Save Link",win)
           win.webContents.downloadURL(props.linkURL,true)
         }
@@ -902,7 +901,7 @@ function contextMenu(webContents) {
     if(isNoAction) {
       menuItems.push({
         label: locale.translation('savePageAs'), click: (item, win) => {
-          PubSub.publishSync('need-set-save-filename')
+          PubSub.publishSync('need-set-save-filename',webContents.getURL())
           win.webContents.downloadURL(webContents.getURL(), true)
         }
       })

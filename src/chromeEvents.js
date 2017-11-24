@@ -83,7 +83,7 @@ ipcMain.on('add-extension',(e,id)=>{
   const chromeVer = process.versions.chrome
   const url = `https://clients2.google.com/service/update2/crx?response=redirect&prodversion=${chromeVer}&x=id%3D${id}%26uc`
 
-  ipcMain.emit('set-save-path', null, `${extRootPath}.crx`,true)
+  ipcMain.emit('set-save-path', null,url, `${extRootPath}.crx`,true)
   getCurrentWindow().webContents.downloadURL(url, true)
 
   let exePath = require("glob").sync(path.join(__dirname,'../../7zip/*/{7za,7za.exe}'))
