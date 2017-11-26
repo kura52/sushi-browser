@@ -1,6 +1,6 @@
 {
   "name": "sushi-browser",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "Sushi Browser",
   "main": "./lib/main.js",
   "author": "kura52",
@@ -111,7 +111,7 @@
     "python-struct": "^1.0.4",
     "rc-animate": "^2.3.3",
     "react": "^16.0.0",
-    "react-dom": "^16.0.0",
+    "kom": "^16.0.0",
     "react-mixin": "^4.0.0",
     "react-sticky": "^5.0.8",
     "react-style-proptype": "^3.0.0",
