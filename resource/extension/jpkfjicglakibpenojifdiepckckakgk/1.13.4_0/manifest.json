@@ -24,7 +24,8 @@
       "exclude_globs": [
         "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/*_sidebar.html",
         "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html",
-        "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html"
+        "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html",
+        "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html"
       ],
       "run_at": "document_start"
     },
@@ -49,6 +50,7 @@
         "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/*_sidebar.html",
         "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html",
         "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html",
+        "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html",
         "chrome://brave/*"
       ],
       "run_at": "document_end"

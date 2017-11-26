@@ -71,7 +71,9 @@ export default class InputableDialog extends Component{
         </Modal.Description>
       </Modal.Content>
       <Modal.Actions>
-        <Button positive content="OK" onClick={_=>this.props.delete(0,[...document.querySelectorAll('.inputable-dialog > input,textArea.inputable-dialog')].map(x=>x.value))} />
+        <Button positive content="OK" onClick={_=>this.props.delete(0,[...document.querySelectorAll('.inputable-dialog > input:not(.hidden),textArea.inputable-dialog,.checkbox.inputable-dialog')].map(x=>{
+          return x.className.includes('checkbox') ? x.classList.contains('checked') : x.value
+        }))} />
         <Button color='black' content="Cancel" onClick={_=>{this.props.delete(1)}}/>
       </Modal.Actions>
     </Modal>

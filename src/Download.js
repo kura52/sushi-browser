@@ -2,6 +2,7 @@ const {BrowserWindow, webContents,dialog,ipcMain,app,shell} = require('electron'
 import mainState from './mainState'
 const Aria2cWrapper = require('./Aria2cWrapper')
 const FfmpegWrapper = require('./FfmpegWrapper')
+const {redirectUrlsCache} = require('../brave/adBlock')
 
 const path = require('path')
 import {download} from './databaseFork'
@@ -36,13 +37,16 @@ function set(map,url,value){
     map[url] = [value]
   }
   else{
-    map[url].push[value]
+    map[url].push(value)
   }
 }
 
 function get(map,url){
   if(map[url] === void 0){
-    return
+    const rUrl = redirectUrlsCache.get(url)
+    if(rUrl){
+      return get(map,rUrl)
+    }
   }
   else{
     const shifted = map[url].shift()
@@ -55,15 +59,21 @@ export default class Download {
   constructor(win){
     this.needSavePath = {}
     this.savePath = {}
+    this.dlKey = {}
     this.saveDirectory = {}
     this.audioExtract = {}
+    this.overwrite = {}
 
     const eventNeedSetSaveFilename = (event,url)=>{
       set(this.needSavePath,url,true)
     }
 
     ipcMain.on('set-save-path',(e,url,fname,absolute)=>{
-      set(this.savePath,url,true,absolute ? fname : path.join(app.getPath('downloads'), fname))
+      set(this.savePath,url,absolute ? fname : path.join(app.getPath('downloads'), fname))
+    })
+
+    ipcMain.on('set-download-key',(e,url,key)=>{
+      set(this.dlKey,url,key)
     })
 
     ipcMain.on('set-save-directory',(e,url,directory)=>{
@@ -87,31 +97,45 @@ export default class Download {
         return
       }
 
-      const controller = webContents.controller()
-      if (controller && controller.isValid() && controller.isInitialNavigation()) {
-        console.log('webContents.forceClose()',webContents.getURL())
-        webContents.forceClose()
-        return
-      }
+      // let initialNav = false
+      // const controller = webContents.controller()
+      // if (controller && controller.isValid() && controller.isInitialNavigation()) {
+      //   console.log('webContents.forceClose()',webContents.getURL())
+      //   webContents.forceClose()
+      //   initialNav = true
+      // }
 
-      let active = true, url
+      console.log(item)
+
+      // item.setSavePath(path.join(app.getPath('temp'),Math.random().toString()))
+      // item.pause()
+      // item.setPrompt(false)
+
+      let active = true, url,fname
       try{
         url = item.getURL()
+        fname = item.getFilename()
       }catch(e){
         console.log(e)
         return
       }
 
       if(!retry.has(url)){
-        item.cancel()
+        console.log('cancel')
+        item.destroy()
+        // const _item = item
+        // setTimeout(_=>{if(!_item.isDestroyed())_item.cancel(),1000})
         active = false
       }
 
-      let savePath = get(this.savePath,url)
-      let audioExtract = get(this.audioExtract,url)
+      let savePath = get(this.savePath,url),
+      audioExtract = get(this.audioExtract,url),
+      overwrite = false
 
       if(url.startsWith("file://")){
-        if(active) item.cancel()
+        if(active){
+          item.destroy()
+        }
         return
       }
 
@@ -123,31 +147,38 @@ export default class Download {
       const needSavePath = get(this.needSavePath,url)
 
       if(needSavePath){
-        const filepath = dialog.showSaveDialog(win,{defaultPath: path.join(app.getPath('downloads'), item.getFilename() || path.basename(url)) })
+        console.log("needSavePath")
+        const filepath = dialog.showSaveDialog(win,{defaultPath: path.join(app.getPath('downloads'), fname || path.basename(url)) })
         if(!filepath){
-          if(active) item.cancel()
+          if(active){
+            item.destroy()
+          }
           return
         }
         savePath = filepath
+        overwrite = true
       }
       else if(!savePath){
         if(url.endsWith(".pdf") || url.endsWith(".PDF") ){
-          if(active) item.cancel()
+          if(active){
+            item.destroy()
+          }
           return
         }
         const saveDirectory = get(this.saveDirectory,url)
-        savePath = this.getUniqFileName(path.join(saveDirectory || app.getPath('downloads'), item.getFilename() || path.basename(url)))
-      }
-      else {
-        const validSavePath = this.getUniqFileName(savePath)
-        savePath = validSavePath
+        // console.log(3333000,saveDirectory)
+        savePath = path.join(saveDirectory || app.getPath('downloads'), fname || path.basename(url))
       }
 
-      timeMap.set(savePath, Date.now())
       if (retry.has(url)) {
+        console.log('retry')
         retry.delete(url)
-        item.setSavePath(savePath)
+        if(get(overwrite,url)){
+          savePath = this.getUniqFileName(savePath)
+        }
         item.setPrompt(false)
+        item.setSavePath(savePath)
+        timeMap.set(savePath, Date.now())
         this.downloadReady(item, url, webContents,win)
       }
       else {
@@ -161,105 +192,26 @@ export default class Download {
         // }
         let id, updated, ended, isError
 
-        const dl = new Aria2cWrapper({url, savePath,downloadNum: mainState.downloadNum})
+        const aria2cKey = get(this.dlKey,url)
+        const dl = new Aria2cWrapper({url, savePath,downloadNum: mainState.downloadNum,overwrite,timeMap,aria2cKey})
 
         dl.download().then(_=>{
-          dl.once('error', (dl) => {
+          dl.once('error', (_) => {
             console.log('error')
-            // win.webContents.send('download-progress', this.buildItem(dl));
+            win.webContents.send('download-progress', this.buildItem(dl));
             if(!isError){
               isError = true
               retry.add(url)
-              global.downloadItems = global.downloadItems.filter(i => i !== item)
+              global.downloadItems = global.downloadItems.filter(i => i !== dl)
               set(this.savePath,url,savePath)
+              set(this.audioExtract,url,audioExtract)
+              if(overwrite) set(this.overwrite,url,true)
               webContents.downloadURL(url, true)
             }
           })
           this.downloadReady(dl, url, webContents,win,audioExtract)
         })
 
-        // item = {
-        //   getURL(){
-        //     return dl.url
-        //   },
-        //   getSavePath(){
-        //     return dl.filePath
-        //   },
-        //   isPaused(){
-        //     return dl.status == -2
-        //   },
-        //   resume(){
-        //     dl.resume()
-        //   },
-        //   pause(){
-        //     dl.stop()
-        //   },
-        //   cancel(){
-        //     dl.destroy()
-        //     ended()
-        //     fs.unlink(`${dl.filePath}.mtd`,e=> {
-        //       console.log(e)
-        //     })
-        //     clearInterval(id)
-        //   },
-        //   canResume(){
-        //     // return true
-        //   },
-        //   getState(){
-        //     if (dl.status == -3 || dl.status == -1) {
-        //       clearInterval(id)
-        //       if(dl.status == -1 && !isError){
-        //         isError = true
-        //         retry.add(url)
-        //         global.downloadItems = global.downloadItems.filter(i => i !== item)
-        //         this.savePath = savePath
-        //         webContents.downloadURL(url, true)
-        //       }
-        //       fs.unlink(`${dl.filePath}.mtd`,e=> {
-        //         console.log(e)
-        //       })
-        //       if (isError) {
-        //         return "progressing"
-        //       }
-        //       return "cancelled"
-        //     }
-        //     // else if(dl.status == -2){
-        //     //   return "interrupted"
-        //     // }
-        //     else if (dl.status == 3) {
-        //       return "completed"
-        //       fs.unlink(`${dl.filePath}.mtd`,e=> {
-        //         console.log(e)
-        //       })
-        //     }
-        //     else {
-        //       return "progressing"
-        //     }
-        //   },
-        //   getReceivedBytes(){
-        //     console.log(dl.status, dl.getStats())
-        //     return dl.getStats().total.downloaded
-        //   },
-        //   getTotalBytes(){
-        //     return dl.getStats().total.size
-        //   },
-        //   on(name, callback){
-        //     if (name == 'updated') {
-        //       updated = (dl) => callback()
-        //       id = setInterval(updated, 1000)
-        //     }
-        //   },
-        //   once(name, callback){
-        //     if (name == 'done') {
-        //       ended = (dl) => {
-        //         callback()
-        //         clearInterval(id)
-        //       }
-        //       dl.once('end', ended)
-        //     }
-        //   },
-        //   dl
-        // }
       }
     })
   }
@@ -268,6 +220,7 @@ export default class Download {
     global.downloadItems.push(item)
 
     const eventPause = (event, data) => {
+      console.log('resume',data,item)
       if (data.savePath !== item.getSavePath()) return
       if (item.isPaused())
         item.resume()
@@ -277,8 +230,7 @@ export default class Download {
     ipcMain.on('download-pause', eventPause)
 
     const eventCancel = (event, data) => {
-      if (data.savePath !== item.getSavePath())
-        return
+      if (data.savePath !== item.getSavePath()) return
       item.cancel()
       ipcMain.removeListener('download-pause', eventPause)
       ipcMain.removeListener('download-cancel', eventCancel)
@@ -309,6 +261,7 @@ export default class Download {
         savePath: item.getSavePath(),
         filename: path.basename(item.getSavePath()),
         url: url,
+        totalBytes: item.getTotalBytes(),
         now: Date.now(),
         created_at: Date.now(),
         updated_at: Date.now()
@@ -343,6 +296,7 @@ export default class Download {
 
   buildItem(item) {
     return {
+      key: item.key,
       isPaused: item.isPaused(),
       canResume: item.canResume(),
       url: item.getURL(),

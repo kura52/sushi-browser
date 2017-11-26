@@ -31,7 +31,7 @@ function cancelItem(item){
     buttons:['Yes','No']
   }).then(value => {
     console.log(value)
-    // ipc.send("download-cancel", item)
+    ipc.send("download-cancel", item)
   })
 }
 
@@ -43,15 +43,12 @@ function downloadingItemReply(callback){
 
 function fetchDownload(range){
   console.log("fetchDownload",range)
-  ipc.send('fetch-download',range)
+  ipc.send('fetch-downloader-data',range)
 }
 
-function searchDownload(cond){
-  ipc.send('search-download',cond)
-}
 
 function downloadReply(callback){
-  ipc.on('download-reply', (event, data) => {
+  ipc.on('downloader-data-reply', (event, data) => {
     callback(data)
   })
 }
@@ -107,12 +104,6 @@ function formatDate(longDate) {
   return `${date.getFullYear()}/${('0' + (date.getMonth() + 1)).slice(-2)}/${('0' + date.getDate()).slice(-2)} ${('0' + date.getHours()).slice(-2)}:${('0' + date.getMinutes()).slice(-2)}:${('0' + date.getSeconds()).slice(-2)}`
 }
 
-function chunkArray(a,size){
-  const arrays = []
-  while(a.length > 0) arrays.push(a.splice(0, size))
-  return arrays
-}
-
 // Custom Formatter component
 function PercentCompleteFormatter(props){
   const percentComplete = `${props.value}%`
@@ -124,13 +115,15 @@ function PercentCompleteFormatter(props){
   </div>
 }
 
+let debounceInterval = 40, debounceTimer
+let [concurrentDownload,downloadNum] = ipc.sendSync('get-sync-main-states',['concurrentDownload','downloadNum'])
 class Downloader extends React.Component {
   static defaultProps = { rowKey: 'id' };
 
   constructor(props,context) {
     super(props,context);
     this.columns = [
-      { accessor: 'menu', Header: 'Menu', Cell: this.getMenuIcons, resizable: true, minWidth: 20, maxWidth: 85 },
+      { accessor: 'menu', Header: 'Menu', Cell: this.getMenuIcons, resizable: true, minWidth: 20, maxWidth: 95 },
       { accessor: 'name', Header: 'Name', resizable: true, sortable: true,filterable:true, minWidth: 20, maxWidth: 250 },
       { accessor: 'progress', Header: 'Progress', Cell: PercentCompleteFormatter, minWidth: 10, maxWidth:150  },
       { accessor: 'size', Header: 'Size', resizable: true, sortable: true,filterable:true, minWidth: 10, maxWidth:80  },
@@ -140,6 +133,11 @@ class Downloader extends React.Component {
       { accessor: 'url', Header: 'URL', resizable: true, sortable: true,filterable:true,minWidth:10 },
     ]
     this.state = {downloads: new Map(), rows: [], selectedIds: []};
+  }
+
+  debounceSetState = (newState) => {
+    clearTimeout(debounceTimer)
+    debounceTimer = setTimeout(()=>this.setState(newState),debounceInterval)
   }
 
   componentDidMount(){
@@ -156,6 +154,9 @@ class Downloader extends React.Component {
       }
       else if(name == 'Cancel Download'){
         this.handleCancel()
+      }
+      else if(name == 'Remove Row'){
+        this.handleRemove()
       }
       else if(name == 'Show Folder'){
         this.handleOpenFolder()
@@ -175,33 +176,30 @@ class Downloader extends React.Component {
     downloadingItemReply((item,sender)=>{
       item.sender = sender
       item.created_at = item.startTime
-      console.log(item,item.startTime,this.state.rows.findIndex(x=>x.id === item.created_at))
-      if(this.state.downloads.has(item.created_at)){
-        this.state.rows[this.state.rows.findIndex(x=>x.id === item.created_at)] = this.buildItem(item)
+      console.log(item.key || item.created_at.toString(),item)
+      if(this.state.downloads.has(item.key || item.created_at.toString())){
+        this.state.rows[this.state.rows.findIndex(x=>x.id === (item.key || item.created_at.toString()))] = this.buildItem(item)
       }
       else{
         this.state.rows.unshift(this.buildItem(item))
       }
-      this.state.downloads.set(item.created_at,item)
-      this.setState({})
+      this.state.downloads.set(item.key || item.created_at.toString(),item)
+      this.debounceSetState({data: this.state.rows.slice(0)})
     })
 
     downloadReply((data,flag)=>{
-      let num = 0
       for(let item of data){
-        const has = this.state.downloads.has(item.created_at)
-        if(!has || num<1000){
-          this.state.downloads.set(item.created_at,item)
-          if(has){
-            this.state.rows[this.state.rows.findIndex(x=>x.id === item.created_at)] = this.buildItem(item)
-          }
-          else{
-            this.state.rows.push(this.buildItem(item))
-          }
-          num++
+        item.fromDB = true
+        const has = this.state.downloads.has(item.key)
+        this.state.downloads.set(item.key ,item)
+        if(has){
+          this.state.rows[this.state.rows.findIndex(x=>x.id === item.key)] = this.buildItem(item)
+        }
+        else{
+          this.state.rows.push(this.buildItem(item))
         }
       }
-      this.setState({data: this.state.rows.slice(0)})
+      this.debounceSetState({data: this.state.rows.slice(0)})
     })
     fetchDownload({})
 
@@ -209,13 +207,13 @@ class Downloader extends React.Component {
       if(e.ctrlKey && e.key == 'a'){
         const ids = []
         for(let ele of document.querySelectorAll('virtual')){
-          const key = parseInt(ele.dataset.key)
+          const key = ele.dataset.key
           ids.push(key)
           ele.parentNode.parentNode.classList.add('row-selected')
         }
         this.state.selectedIds = ids
+        this.setState({})
       }
-      this.setState({})
     })
 
   }
@@ -245,6 +243,7 @@ class Downloader extends React.Component {
       const max = rowIdx == prevInd ? rowIdx : prevInd < rowIdx ? rowIdx : prevInd - 1
       for(let i = min;i<=max;i++){
         const row = this.state.rows[i]
+        tr = document.querySelector(`[data-key='${row.id}']`).parentNode.parentNode
         let ind = this.state.selectedIds.findIndex(r => r == row.id);
         if(ind == -1){
           this.state.selectedIds.push(row.id)
@@ -273,8 +272,8 @@ class Downloader extends React.Component {
 
 
   play(item){
-    if(item.state == "cancelled"){
-      ipc.send("download-retry", item.url, item.savePath) //元アイテムを消す
+    if(item.state == "cancelled" || item.fromDB){
+      ipc.send("download-retry", item.url, item.savePath, item.key) //元アイテムを消す
     }
     else{
       ipc.send("download-pause", item)
@@ -297,6 +296,7 @@ class Downloader extends React.Component {
     if(item.state != "completed" && item.state != "cancelled"){
       arr.push(<i onClick={_=>cancelItem(item)} className="fa fa-trash-o menu-item" aria-hidden="true"></i>)
     }
+    arr.push(<i onClick={_=>this.downloaderRemove([item.key])} className="fa fa-times menu-item" aria-hidden="true"></i>)
     return arr
   }
 
@@ -305,7 +305,8 @@ class Downloader extends React.Component {
     const isProgress = item.state == "progressing" && !!rest.restTime
 
     return {
-      id: item.created_at,
+      id: item.key || item.created_at.toString(),
+      created_at: item.created_at,
       menu: item,
       name: item.filename,
       size: item.totalBytes ? `${getAppropriateByteUnit(item.totalBytes).join(" ")}` : '-',
@@ -326,7 +327,7 @@ class Downloader extends React.Component {
       cl.remove('row-selected2')
       const v = ele.querySelector('virtual')
       if(v) {
-        const key = parseInt(v.dataset.key)
+        const key = v.dataset.key
         const ind = this.state.selectedIds.findIndex(x => x == key)
         if (ind == -1) {
           cl.add('row-selected')
@@ -347,7 +348,7 @@ class Downloader extends React.Component {
     }
     console.log('clearSelect')
     if(noUpdate !==  1)
-    this.setState({selectedIds:[]})
+      this.setState({selectedIds:[]})
   }
 
   getSelectedMap = ()=>{
@@ -360,9 +361,15 @@ class Downloader extends React.Component {
   }
 
   async getVideoUrls(urls,callback){
-    const arrays = chunkArray(urls,5)
-    for(let chunkUrls of arrays){
-
+    for(let url of urls){
+      const key = Math.random().toString()
+      new Promise((resolve,reject)=>{
+        ipc.send('get-video-urls',key,url)
+        ipc.once(`get-video-urls-reply_${key}`,(e,info)=>{
+          if(!info) resolve()
+          callback(info.url,info.filename)
+        })
+      })
     }
   }
 
@@ -372,32 +379,30 @@ class Downloader extends React.Component {
       text: `Please enter URLs and save directory`,
       initValue: ["",""],
       option: ['textArea','dialog',void 0,'toggle'],
-      needInput: ["URLs","Save Directory","FileName(Optional)",'Attempt to download video']
+      needInput: ["URLs","Save Directory","FileName(Optional)",'Attempt to find and download video']
     }).then(value => {
       console.log(7778,value)
       if (!value) return
       const urls = value[0].split(/\r?\n/)
-      const directroy = value[1]
+      const directory = value[1]
       const fname = value[2]
       const tryVideo = value[3]
 
-      const func = urls=>{
-        let i = 0
-        for(let url of urls){
-          if(fname){
-            ipc.send('set-save-path',url,path.join(directroy,fname),true)
-          }
-          else{
-            ipc.send('set-save-directory',url,directroy)
-          }
-          setTimeout(_=>ipc.send('download-start',url),50*i++)
+      const func = (url,fname)=>{
+        if(fname){
+          ipc.send('set-save-path',url,path.join(directory,fname),true)
         }
+        else{
+          ipc.send('set-save-directory',url,directory)
+        }
+        setTimeout(_=>ipc.send('download-start',url),0)
       }
+
       if(tryVideo){
         this.getVideoUrls(urls,func)
       }
       else{
-        func(urls)
+        for(let url of urls) func(url,fname)
       }
     })
   }
@@ -405,8 +410,8 @@ class Downloader extends React.Component {
   handleStart = ()=>{
     for(let item of Object.values(this.getSelectedMap())){
       if(item.state == "completed" || (item.state == "progressing" && !item.isPaused)) continue
-      if(item.state == "cancelled"){
-        ipc.send("download-retry", item.url, item.savePath) //元アイテムを消す
+      if(item.state == "cancelled" || item.fromDB){
+        ipc.send("download-retry", item.url, item.savePath, item.key) //元アイテムを消す
       }
       else{
         ipc.send("download-pause", item)
@@ -430,6 +435,34 @@ class Downloader extends React.Component {
     }
   }
 
+  downloaderRemove = (keys)=>{
+    for(let key of keys){
+      this.state.downloads.delete(key)
+      const ind = this.state.rows.findIndex(x=>x.id === key)
+      this.state.rows.splice(ind,1)
+    }
+    ipc.send('remove-downloader',keys)
+    this.setState({})
+  }
+
+  handleRemove = ()=>{
+    const keys = []
+    for(let item of Object.values(this.getSelectedMap())){
+      keys.push(item.key)
+    }
+    this.downloaderRemove(keys)
+  }
+
+  handleRemoveAll = ()=>{
+    const keys = []
+    for(let [key,item] of this.state.downloads){
+      if(item.state == "completed" || item.state == "cancelled"){
+        keys.push(key)
+      }
+    }
+    this.downloaderRemove(keys)
+  }
+
   handleOpenFolder = ()=>{
     for(let path of Object.keys(this.getSelectedMap())){
       ipc.send("download-open-folder", path)
@@ -450,6 +483,10 @@ class Downloader extends React.Component {
     ipc.send("set-clipboard",Object.values(this.getSelectedMap()).map(item=> item.url))
   }
 
+  onChange(type,e){
+    ipc.send('save-state',{tableName:'state',key:type,val:e.target.value})
+  }
+
   render() {
     return  (
       <Selection ref="select" target=".rt-tr" selectedClass="row-selected2"
@@ -468,7 +505,10 @@ class Downloader extends React.Component {
             <button onClick={_=>this.handleCancel()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
               <i className="fa fa-trash-o" aria-hidden="true"></i>Cancel DL
             </button>
-            <button className="btn btn-sm align-middle btn-outline-secondary" type="button">
+            <button onClick={_=>this.handleRemove()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
+              <i className="fa fa-times" aria-hidden="true"></i>Remove Row
+            </button>
+            <button onClick={_=>this.handleRemoveAll(true)} className="btn btn-sm align-middle btn-outline-secondary" type="button">
               <i className="fa fa-window-close" aria-hidden="true"></i>Remove Finished
             </button>
             <button onClick={_=>this.handleOpenFolder()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
@@ -484,12 +524,12 @@ class Downloader extends React.Component {
               <i className="fa fa-clipboard" aria-hidden="true"></i>Copy URL
             </button>
             Concurrent downloads:
-            <select className="form-control form-control-sm">
-              {['-',1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20].map(x=><option>{x}</option>)}
+            <select className="form-control form-control-sm" onChange={this.onChange.bind(this,'concurrentDownload')}>
+              {[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20].map(x=><option selected={concurrentDownload == x}value={x}>{x}</option>)}
             </select>
             Downloads per server:
-            <select className="form-control form-control-sm">
-              {[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16].map(x=><option>{x}</option>)}
+            <select className="form-control form-control-sm" onChange={this.onChange.bind(this,'downloadNum')}>
+              {[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16].map(x=><option selected={downloadNum == x} value={x}>{x}</option>)}
             </select>
           </form>
         </nav>
@@ -499,6 +539,8 @@ class Downloader extends React.Component {
           data={this.state.rows.slice(0)}
           // onFetchData={this.fetchData}
           columns={this.columns}
+          onPageChange={(pageIndex)=>this.clearSelect()}
+          onFilteredChange={(column, value) => {this.clearSelect()}}
         />
       </Selection>);
   }

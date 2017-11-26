@@ -170,6 +170,15 @@ if(chrome.windows){
 }
 
 if(chrome.tabs){
+  chrome.tabs._create = chrome.tabs.create
+  chrome.tabs.create = (createProperties, callback)=>{
+    if(createProperties && createProperties.url && !createProperties.url.includes("://")){
+      createProperties.url = `chrome-extension://${chrome.runtime.id}/${createProperties.url.split("/").filter(x=>x).join("/")}`
+    }
+    chrome.tabs._create(createProperties, callback)
+  }
+
+
   chrome.tabs._update = chrome.tabs.update
   chrome.tabs.update = (tabId, updateProperties, callback)=>{
     if(!isFinite(tabId)){
@@ -481,4 +490,9 @@ if(chrome.downloads){
 
 if(chrome.topSites){
   chrome.topSites.get = callback => simpleIpcFunc('chrome-topSites-get',callback)
+}
+
+
+if(chrome.commands) {
+  chrome.commands.getAll = callback => []
 }

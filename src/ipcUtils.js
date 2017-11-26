@@ -53,6 +53,11 @@ function shellEscape(s){
   return '"'+s.replace(/(["\s'$`\\])/g,'\\$1')+'"'
 }
 
+
+function formatDate(date) {
+  return `${date.getFullYear()}-${('0' + (date.getMonth() + 1)).slice(-2)}-${('0' + date.getDate()).slice(-2)} ${('0' + date.getHours()).slice(-2)}-${('0' + date.getMinutes()).slice(-2)}-${('0' + date.getSeconds()).slice(-2)}`;
+}
+
 ipcMain.on('file-system',(event,key,method,arg)=>{
   if(!['stat','readdir','rename'].includes(method)) return
   fs[method](...arg,(err,rets)=>{
@@ -453,6 +458,18 @@ ipcMain.on('video-infos',(event,{url})=>{
       }
     }
   });
+})
+
+
+ipcMain.on('get-video-urls',(event,key,url)=>{
+  youtubedl.getInfo(url,void 0,{maxBuffer: 7000 * 1024}, function(err, info) {
+    console.log(err, info)
+    if (err){
+      event.sender.send(`get-video-urls-reply_${key}`,null)
+      return
+    }
+    event.sender.send(`get-video-urls-reply_${key}`,{url: info.url, filename: info.filename})
+  })
 })
 
 ipcMain.on('open-page',async (event,url)=>{
@@ -1177,6 +1194,37 @@ ipcMain.on('set-clipboard',(e,data)=>{
 
 ipcMain.on('download-start',(e,url)=>{
   e.sender.hostWebContents.downloadURL(url,true)
+})
+
+ipcMain.on('screen-shot',(e,{full,type,rect,tabId})=>{
+  const capture = image=>{
+    if(type == 'clipboard'){
+      clipboard.writeImage(image)
+    }
+    else{
+      const isJpeg = type == 'JPEG'
+      const writePath = path.join(app.getPath('pictures'),`screenshot-${formatDate(new Date())}.${isJpeg ? 'jpg' : 'png'}`)
+      fs.writeFileSync(writePath,isJpeg ? image.toJPEG(92) : image.toPNG())
+      shell.showItemInFolder(writePath)
+    }
+  }
+
+  if(full){
+    const cont = webContents.fromTabID(tabId)
+    cont.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',
+      `(function(){
+          const d = document.body,dd = document.documentElement,
+          width = Math.max(d.scrollWidth, d.offsetWidth, dd.clientWidth, dd.scrollWidth, dd.offsetWidth),
+          height = Math.max(d.scrollHeight, d.offsetHeight, dd.clientHeight, dd.scrollHeight, dd.offsetHeight);
+          return {width,height}
+        })()`, {},(err, url, result)=>{
+      console.log(result[0])
+        cont.capturePage({x:0,y:0,width:result[0].width,height:result[0].height},capture)
+      })
+  }
+  else{
+    e.sender.capturePage(rect, capture)
+  }
 })
 
 // ipcMain.on('send-keys',(e,keys)=>{

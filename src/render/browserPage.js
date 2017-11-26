@@ -120,7 +120,7 @@ class BrowserPage extends Component {
       else{
         webview.stopFindInPage('clearSelection')  //@TODO framework bug
         this.setState({result_string: "0/0"})
-        webview.findInPage(this.previous_text) //@TODO framework bug
+        if(this.previous_text) webview.findInPage(this.previous_text) //@TODO framework bug
       }
     }
     webview.addEventListener('found-in-page',this.wvEvents['found-in-page'] )
@@ -170,7 +170,7 @@ class BrowserPage extends Component {
     for (var k in webviewEvents)
       this.refs.webview.removeEventListener(k, webviewHandler(this, webviewEvents[k]))
 
-    for(var [k,v] in this.wvEvents){
+    for(var [k,v] in Object.entries(this.wvEvents)){
       this.refs.webview.removeEventListener(k, v)
     }
 
@@ -209,7 +209,7 @@ class BrowserPage extends Component {
       this.setState({result_string: ""})
     }
     else if (this.previous_text === query && !clear) {
-      webview.findInPage(query, {
+      if(query) webview.findInPage(query, {
         matchCase:false,
         forward: next,
         findNext: true
@@ -217,7 +217,7 @@ class BrowserPage extends Component {
     }
     else {
       this.previous_text = query;
-      webview.findInPage(query,{forward: next})
+      if(query) webview.findInPage(query,{forward: next})
     }
   }
 

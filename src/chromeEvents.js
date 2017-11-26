@@ -343,10 +343,10 @@ simpleIpcFuncCb('chrome-tabs-captureVisibleTab',(tabId,options,cb)=>{
   if(cont){
     cont.capturePage(image=>{
       if(options.format == 'png'){
-        cb(`data:png;base64,${image.toPNG().toString('base64')}`)
+        cb(`data:image/png;base64,${image.toPNG().toString('base64')}`)
       }
       else{
-        cb(`data:jpg;base64,${image.toJPEG(options.quality || 92).toString("base64")}`)
+        cb(`data:image/jpeg;base64,${image.toJPEG(options.quality || 92).toString("base64")}`)
       }
     })
   }

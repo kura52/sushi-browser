@@ -833,6 +833,17 @@ class BrowserNavbar extends Component{
           })}
         </Dropdown.Menu>
       </Dropdown>,
+      screenshot: <NavbarMenu className="sort-screenshot" k={this.props.k} mouseOver={true} isFloat={isFloatPanel(this.props.k)}
+                              title="ScreenShot" icon="camera" onContextMenu={onContextMenu} onClick={_=>_}>
+        <NavbarMenuItem key="full-clip" text="Full Page | Clipboard" onClick={()=>this.props.screenShot(true,'clipboard',this.props.tab)}/>
+        <NavbarMenuItem key="full-jpeg" text="Full Page | Jpeg"  onClick={()=>this.props.screenShot(true,'JPEG',this.props.tab)}/>
+        <NavbarMenuItem key="full-png" text="Full Page | PNG"  onClick={()=>this.props.screenShot(true,'PNG',this.props.tab)}/>
+        <div className="divider" />
+        <NavbarMenuItem key="sel-clip" text="Selection | Clipboard" onClick={()=>this.props.screenShot(false,'clipboard',this.props.tab)}/>
+        <NavbarMenuItem key="sel-jpeg" text="Selection | Jpeg"  onClick={()=>this.props.screenShot(false,'JPEG',this.props.tab)}/>
+        <NavbarMenuItem key="sel-png" text="Selection | PNG"  onClick={()=>this.props.screenShot(false,'PNG',this.props.tab)}/>
+        <div className="divider" />
+      </NavbarMenu>,
       ...this.browserAction(cont, this.props.tab)
     }
     return items

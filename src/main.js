@@ -16,7 +16,7 @@ if(databaseForked){
     fs.mkdirSync(appPath)
   }
 
-  console.log(111,app.getPath('userData'))
+  console.log(111,app.getPath('userData'),app.getPath('temp'))
   databaseForked()
 }
 else{

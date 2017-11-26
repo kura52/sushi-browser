@@ -389,6 +389,7 @@ export default class TabPanel extends Component {
     this.getNextSelectedTab = ::this.getNextSelectedTab
     this.createTab = ::this.createTab
     this.webViewCreate = ::this.webViewCreate
+    this.screenShot = ::this.screenShot
   }
 
   initIpcEvents(){
@@ -1242,7 +1243,7 @@ export default class TabPanel extends Component {
         page.favicon = page.navUrl == '' || page.navUrl.match(/^(file:\/\/|chrome|about)/) ? 'resource/file.png' : 'loading'
       }
 
-      const eventDownloadStartTab = (event, data) => {
+      const eventDownloadStartTab = (event) => {
         const pre = {
           hid: page.hid,
           titleSet: page.titleSet,
@@ -3429,6 +3430,46 @@ export default class TabPanel extends Component {
     })
   }
 
+  screenShot(full,type,tab){
+    if(!full){
+      let canvas,ctx,rect = {},drag
+      const mdown = e=>{
+        document.addEventListener('mousemove',mmove,false)
+        document.removeEventListener('mousedown',mdown,false)
+        document.addEventListener('mouseup',mup,false)
+
+        canvas = document.createElement('canvas')
+        ctx = canvas.getContext('2d')
+        document.body.appendChild(canvas)
+
+        rect.startX = e.pageX - this.offsetLeft
+        rect.startY = e.pageY - this.offsetTop
+        drag = true
+
+      }
+      const mmove = e=>{
+        if (drag) {
+          rect.w = (e.pageX - this.offsetLeft) - rect.startX
+          rect.h = (e.pageY - this.offsetTop) - rect.startY
+          ctx.clearRect(0,0,canvas.width,canvas.height)
+          draw()
+        }
+      }
+      const mup = e=>{
+        drag = false
+        console.log(4324,rect)
+        ctx.clearRect(0,0,canvas.width,canvas.height)
+        document.body.removeChild(canvas)
+        document.removeEventListener('mousemove',mmove,false)
+        document.removeEventListener('mouseup',mup,false)
+      }
+      document.addEventListener('mousedown',mdown,false)
+    }
+    else{
+      ipc.send('screen-shot',{full,type,tabId:tab.wvId})
+    }
+  }
+
   search(tab, text, checkOpposite, forceNewTab){
     const splitText = text.match(/^(.+?)([\t ]+)(.+)$/)
     let engine = ipc.sendSync('get-sync-main-state','searchEngine')
@@ -3560,7 +3601,7 @@ export default class TabPanel extends Component {
                              historyMap={historyMap} currentWebContents={this.props.currentWebContents}
                              isTopRight={this.props.isTopRight} isTopLeft={this.props.isTopLeft} fixedPanelOpen={this.props.fixedPanelOpen}
                              tabBar={!this.state.tabBar} hidePanel={this.props.hidePanel}
-                             fullscreen={this.props.fullscreen} bind={tab.bind}/>
+                             fullscreen={this.props.fullscreen} bind={tab.bind} screenShot={this.screenShot}/>
               {num == 0 ? this.state.notifications.map((data,i)=>{
                 if(data.needInput){
                   console.log(225,data)

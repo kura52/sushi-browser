@@ -97,29 +97,38 @@ class TopMenu extends React.Component {
   }
 }
 
+let debounceInterval = 40, debounceTimer
 class DownloadList extends React.Component {
   constructor(props) {
     super(props)
     this.state = {downloads: new Map()}
   }
 
+  debounceSetState = (newState) => {
+    for(let [k,v] of Object.entries(newState)){
+      this.state[k] = v
+    }
+    clearTimeout(debounceTimer)
+    debounceTimer = setTimeout(()=>this.setState({}),debounceInterval)
+  }
+
   componentDidMount() {
     downloadingItemReply((item,sender)=>{
       item.sender = sender
       item.created_at = item.startTime
-      this.state.downloads.set(item.created_at,item)
-      this.setState({})
+      this.state.downloads.set(item.key || item.created_at,item)
+      this.debounceSetState({})
     })
 
     downloadReply((data,flag)=>{
       let num = 0
       for(let e of data){
-        if(!this.state.downloads.has(e.created_at) || num<1000){
-          this.state.downloads.set(e.created_at,e)
+        if(!this.state.downloads.has(item.key || e.created_at) || num<1000){
+          this.state.downloads.set(item.key || e.created_at,e)
           num++
         }
       }
-      this.setState({})
+      this.debounceSetState({})
     })
     this.props.setToken(intervalRun(()=>fetchDownload({})))
   }
@@ -201,7 +210,7 @@ class DownloadList extends React.Component {
           {item.state == "completed" ?
             <Button size='mini' onClick={()=>openFolder(item.savePath)}><Icon name="folder"></Icon>Open Folder</Button> :
             !item.sender ? null : item.state == "cancelled" ?
-              <Button size='mini' onClick={()=>item.sender.send("download-retry", item.url, item.savePath)}><Icon name="video play"></Icon>Retry</Button> :
+              <Button size='mini' onClick={()=>item.sender.send("download-retry", item.url, item.savePath, item.key)}><Icon name="video play"></Icon>Retry</Button> :
               <Button size='mini' onClick={()=>item.sender.send("download-cancel", item)}><Icon name="stop"></Icon>Cancel</Button>
           }
         </div>

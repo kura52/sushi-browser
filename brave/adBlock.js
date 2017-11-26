@@ -9,6 +9,9 @@ const {siteHacks} = require('./siteHacks')
 const getBaseDomain = require('./js/lib/baseDomain').getBaseDomain
 // const DataFile = require('./dataFile')
 const urlParse = require('./urlParse')
+const LRUCache = require('lru-cache')
+const redirectUrlsCache = new LRUCache(5000)
+
 const fs = require('fs')
 const path = require('path')
 const mainState = require('../lib/mainState')
@@ -180,6 +183,10 @@ const startAdBlocking = (adblock, resourceName, shouldCheckMainFrame,ses=session
     return { cancel }
   });
   registerForBeforeRequest(ses)
+
+  ses.webRequest.onBeforeRedirect((details) => {
+    redirectUrlsCache.set(details.redirectURL,details.url)
+  })
 }
 
 let adblock
@@ -192,5 +199,6 @@ fs.readFile(path.join(__dirname, '../resource/ABPFilterParserData.dat'),  functi
 module.exports = {
   adBlock: ses=>startAdBlocking(adblock,null,false,ses),
   registerForBeforeRequest,
-  beforeRequestFilteringFns
+  beforeRequestFilteringFns,
+  redirectUrlsCache
 }

@@ -1,18 +1,35 @@
  const {ipcMain,shell} = require('electron')
 const path = require('path')
-import {download} from './databaseFork'
+import {download,downloader} from './databaseFork'
 import {getCurrentWindow} from './util'
 import fs from 'fs'
 
 export default class DownloadEvent {
   constructor(){
-    ipcMain.on('download-retry',(event,url,savePath)=>{
-      ipcMain.emit('set-save-path', null,url, path.basename(savePath))
+    ipcMain.on('download-retry',(event,url,savePath,key)=>{
+      ipcMain.emit('set-save-path', null, url, path.basename(savePath))
+      ipcMain.emit('set-download-key', null, url, key)
       getCurrentWindow().webContents.downloadURL(url,true)
     })
 
     ipcMain.on('download-open-folder',(event,path)=>{
       shell.showItemInFolder(path)
+    })
+
+    ipcMain.on('fetch-downloader-data', async (event, range) => {
+      const cond =  !Object.keys(range).length ? range :
+        { created_at: (
+          range.start === void 0 ? { $lte: range.end } :
+            range.end === void 0 ? { $gte: range.start } :
+              { $gte: range.start ,$lte: range.end }
+        )}
+
+      const data = await downloader.find_sort([cond],[{ created_at: -1 }])
+      event.sender.send('downloader-data-reply', data)
+    })
+
+    ipcMain.on('remove-downloader', async (event, keys) => {
+      downloader.remove({key: {$in : keys}}, { multi: true }).then(_=>_)
     })
 
     ipcMain.on('fetch-download', async (event, range) => {

@@ -10,7 +10,7 @@ const settingDefault =  {
   oppositeGlobal: true,
   alwaysOnTop: false,
   downloadNum: 1,
-  concurrentDownload: 0,
+  concurrentDownload: 20,
   searchEngine: 'Google',
   myHomepage: 'https://sushib.me/',
   startsWith: 'newTab',
@@ -39,7 +39,7 @@ const settingDefault =  {
   navbarItems: {
     left: ['back','forward','reload'],
     right: ['syncReplace','sync','opposite','sidebar','mobile','favorite','history','tabHistory','savedState','video'],
-    backSide: ['download','folder','terminal'],
+    backSide: ['download','folder','terminal','screenshot'],
   },
   multistageTabs: false,
   verticalTab: false,

@@ -3,7 +3,9 @@ const {spawn} = require('child_process')
 const moment = require('moment')
 const fs = require('fs')
 const path = require('path')
+import uuid from 'node-uuid'
 import mainState from './mainState'
+import {downloader} from './databaseFork'
 
 const binaryPath = path.join(__dirname, '../resource/bin/aria2',
   process.platform == 'win32' ? 'win/aria2c.exe' :
@@ -52,9 +54,13 @@ function getByte(str){
 
 const downloadItems = new Set()
 export default class Aria2cWrapper{
-  constructor({url,savePath,downloadNum=1}){
+  constructor({url,savePath,downloadNum=1,overwrite,timeMap,aria2cKey}){
+    this.key = aria2cKey || uuid.v4()
+    this.resume = !!aria2cKey
     this.url = url
     this.savePath = savePath
+    this.overwrite = overwrite
+    this.timeMap = timeMap
     this.downloadNum = downloadNum
     this.status = 'NOT_START'
     this.stdoutCallbacks = []
@@ -70,6 +76,7 @@ export default class Aria2cWrapper{
   }
 
   closeCallback(){
+    this.updateDownloader()
     downloadItems.delete(this)
     for(let c of this.closeCallbacks){
       setTimeout(c,100)
@@ -77,25 +84,56 @@ export default class Aria2cWrapper{
     this.closeCallbacks = []
   }
 
+  updateDownloader(){
+    const item = this
+    downloader.update({key:item.key},{
+      key: item.key,
+      isPaused: item.isPaused(),
+      url: item.getURL(),
+      filename: path.basename(item.getSavePath()),
+      receivedBytes: item.getReceivedBytes(),
+      totalBytes: item.getTotalBytes(),
+      state: item.getState(),
+      speed: item.speed ? item.speed.replace('i','') : void 0,
+      savePath: item.getSavePath(),
+      created_at: this.timeMap.get(item.getSavePath()),
+      now: Date.now()
+    },{ upsert: true })
+  }
+
   stdoutCallback(){
+    this.updateDownloader()
     for(let c of this.stdoutCallbacks){
       c()
     }
   }
 
-  async download(){
-    console.log(444000,downloadItems.size,mainState.concurrentDownload)
+  async download({retry,resume} = {}){
+    if(!retry){
+      setTimeout(_=>this.stdoutCallback(),100)
+    }
     if(mainState.concurrentDownload && downloadItems.size >= parseInt(mainState.concurrentDownload)){
-      setTimeout(_=>this.download,500)
+      setTimeout(_=>this.download({retry:true,resume}),50)
       return
     }
     downloadItems.add(this)
     const cookie = await getCookieStr(this.url)
 
+    if(this.resume){
+      resume = this.resume
+      this.resume = false
+    }
+    if(!resume && !this.overwrite) this.savePath = this.getUniqFileName(this.savePath)
+
     let params = cookie ? [`--header=Cookie:${cookie}`] : []
-    params = [...params,'-c',`-x${this.downloadNum}`,'--auto-file-renaming=false','--allow-overwrite=true',
-      '--check-certificate=false','--summary-interval=1','--file-allocation=none','--bt-metadata-only=true',
+    params = [...params,'-c',`-x${this.downloadNum}`,'--check-certificate=false','--summary-interval=1','--file-allocation=none','--bt-metadata-only=true',
       `--user-agent=${process.userAgent}`,`--dir=${path.dirname(this.savePath)}`,`--out=${path.basename(this.savePath)}`,`${this.url}`]
+
+    if(!resume && this.overwrite){
+      params.push('--auto-file-renaming=false','--allow-overwrite=true')
+    }
+
+    this.timeMap.set(this.savePath, Date.now())
 
     this.aria2c = spawn(binaryPath,params)
 
@@ -152,8 +190,8 @@ export default class Aria2cWrapper{
     return this.status == 'PAUSE'
   }
   resume(){
-    downloadItems.add(this)
-    this.download()
+    console.log('resume')
+    this.download({resume:true})
   }
   pause(){
     downloadItems.delete(this)
@@ -206,6 +244,7 @@ export default class Aria2cWrapper{
   getTotalBytes(){
     return getByte(this.total)
   }
+
   on(name, callback){
     if(this.status == 'COMPLETE' || this.status == 'ERROR'){
       setTimeout(callback,300)
@@ -232,7 +271,25 @@ export default class Aria2cWrapper{
       }
     }
   }
-  aria2c(){
+
+  makePath(basePath,index){
+    if(index === 0) return basePath
+    const base = path.basename(basePath)
+    const val = base.lastIndexOf('.')
+    if(val == -1){
+      return `${basePath} (${index})`
+    }
+    else{
+      return path.join(path.dirname(basePath),`${base.slice(0,val)} (${index})${base.slice(val)}`)
+    }
+  }
+
+  getUniqFileName(basePath,index=0){
+    const savePath = this.makePath(basePath,index)
+    return fs.existsSync(savePath) ? this.getUniqFileName(basePath,index+1) : savePath
+  }
+
+  isAria2c(){
     true
   }
 }

@@ -87,6 +87,7 @@ const db = new Proxy({
   get searchEngine(){return new Proxy(dummy, handler('searchEngine'))},
   get favorite(){return new Proxy(dummy, handler('favorite'))},
   get download(){return new Proxy(dummy, handler('download'))},
+  get downloader(){return new Proxy(dummy, handler('downloader'))},
   get state(){return new Proxy(dummy, handler('state'))},
   get syncReplace(){return new Proxy(dummy, handler('syncReplace'))},
   get media(){return new Proxy(dummy, handler('media'))},

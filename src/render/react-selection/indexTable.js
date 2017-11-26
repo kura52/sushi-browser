@@ -41,11 +41,11 @@ class Selection extends React.Component {
   }
 
   onClick = (ev)=> {
-    const tr = ev.target.closest('.rt-tr')
+    const tr = ev.target.className == 'rt-tr-group' ? ev.target.children[0] : ev.target.closest('.rt-tr')
     if(tr){
       const v = tr.querySelector('virtual')
       if(v){
-        const key = parseInt(v.dataset.key)
+        const key = v.dataset.key
         console.log(333,key,ev,tr)
         this.props.onClick(key,ev,tr)
 
@@ -54,13 +54,13 @@ class Selection extends React.Component {
   }
   mousedown = (ev)=> {
     if(ev.which == 3) {
-    const tr = ev.target.closest('.rt-tr')
-    if(tr){
-      const v = tr.querySelector('virtual')
-      if(v){
-        const key = parseInt(v.dataset.key)
-        console.log(key,ev,tr)
-        this.props.onClick(key,ev,tr)
+      const tr = ev.target.className == 'rt-tr-group' ? ev.target.children[0] : ev.target.closest('.rt-tr')
+      if(tr){
+        const v = tr.querySelector('virtual')
+        if(v){
+          const key = v.dataset.key
+          console.log(key,ev,tr)
+          if(!tr.classList.contains('row-selected')) this.props.onClick(key,ev,tr)
 
           ipc.send("download-menu", this.props.downloads.get(key))
           return
@@ -71,8 +71,9 @@ class Selection extends React.Component {
     if(ev.which !== 1) return
 
     console.log(ev.srcElement.tagName,ev)
-    const src = ev.srcElement.closest('.rt-td')
-    if(!src || !src.parentNode || !src.parentNode.children) return
+    const src = ev.srcElement.closest('.rt-tr-group')
+    if(!src) return
+    // if(!src || !src.parentNode || !src.parentNode.children) return
 
     if (this.ctrlKey || ev.shiftKey) {
       window.addEventListener('keyup', this.keyup, false)
@@ -80,8 +81,8 @@ class Selection extends React.Component {
       this.props.clearSelect()
     }
 
-    const pNodeChildren = src.parentNode.children
-    if(src=== pNodeChildren[0] || src=== pNodeChildren[1] || src === pNodeChildren[pNodeChildren.length -1]) return
+    // const pNodeChildren = src.parentNode.children
+    // if(src=== pNodeChildren[0] || src=== pNodeChildren[1] || src === pNodeChildren[pNodeChildren.length -1]) return
 
     const targetSelect = this.props.target
     this.targets = Array.from(this._box.querySelectorAll(targetSelect))

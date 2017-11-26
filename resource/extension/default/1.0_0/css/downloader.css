@@ -137,7 +137,7 @@ i.menu-item:hover{
     overflow-x: hidden;
 }
 .ReactTable .rt-th, .ReactTable .rt-td {
-    padding: 2px 5px;
+    padding: 1px 5px;
 }
 .ReactTable .rt-thead.-filters input, .ReactTable .rt-thead.-filters select {
     padding: 1px 7px;

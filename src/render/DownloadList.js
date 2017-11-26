@@ -23,6 +23,7 @@ function multiByteSlice(str,end) {
   return `${unescape(str.slice(0,i))}${i == str.length ? "" :"..."}`;
 }
 
+let debounceInterval = 40, debounceTimer
 export default class DownloadList extends Component{
   constructor(props) {
     super(props)
@@ -31,21 +32,28 @@ export default class DownloadList extends Component{
     this.events = {}
   }
 
+  debounceSetState = (newState) => {
+    for(let [k,v] of Object.entries(newState)){
+      this.state[k] = v
+    }
+    clearTimeout(debounceTimer)
+    debounceTimer = setTimeout(()=>this.setState({}),debounceInterval)
+  }
 
   componentDidMount() {
     this.events['download-progress'] = (event, item) => {
-      if(!this.downloadSet.has(item.savePath)){
-        this.downloadSet.add(item.savePath)
-        this.setState({visible: true})
+      if(!this.downloadSet.has(item.key || item.savePath)){
+        this.downloadSet.add(item.key || item.savePath)
+        this.debounceSetState({visible: true})
       }
-      this.state.downloads.set(item.savePath,item)
+      this.state.downloads.set(item.key || item.savePath,item)
       console.log(item)
-      this.setState({})
+      this.debounceSetState({})
     }
     ipc.on('download-progress',this.events['download-progress'] )
 
     this.events['download-start'] = (event) => {
-      this.setState({visible: true})
+      this.debounceSetState({visible: true})
     }
     ipc.on('download-start', this.events['download-start'])
   }
@@ -111,7 +119,7 @@ export default class DownloadList extends Component{
       {item.state == "completed" ?
         <i className="folder icon download-list-above" onClick={()=>ipc.send("download-open-folder", item.savePath)}></i> :
         item.state == "cancelled" ?
-          <i className="video play icon download-list-above"  onClick={()=>ipc.send("download-retry", item.url, item.savePath)}></i> :
+          <i className="video play icon download-list-above"  onClick={()=>ipc.send("download-retry", item.url, item.savePath, item.key)}></i> :
           <i className="stop icon download-list-bottom" onClick={()=>ipc.send("download-cancel", item)}></i>
       }
       {/*{item.state == "completed" ? <div><a href="#" onClick={()=>ipc.send("download-open",item)}>{fname}</a></div> : <div>{fname}</div>}*/}
@@ -126,7 +134,7 @@ export default class DownloadList extends Component{
     arr.sort((a,b)=> b.startTime - a.startTime)
 
     const downloadList = []
-    for (let item of arr) {
+    for (let item of arr.slice(0,10)) {
       // console.log(item)
       downloadList.push(this.buildItem(item))
     }
