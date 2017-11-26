@@ -3,24 +3,26 @@ const path = require('path')
 const fs = require('fs')
 const glob = require("glob")
 
-const BEFORE_CODE_NAME = 'Hotate(Scallop)'
-const CODE_NAME = 'Sazae(Turban Shell)'
+const BEFORE_CODE_NAME = 'Sazae(Turban Shell)'
+const CODE_NAME = 'Tai(Sea Bream)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
 const NEXT_APP_VERSION = "0.10.0"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Enhanced video download function
-Added function to download streaming video (HLS (.m3u8)) using youtube-dl
-Added function to manipulate video with mouse and keyboard
-Added function that play video in popup window
-Added function that play video in floating panel
-Updated to Muon 4.5.15`
+const CHANGE_ENGLISH = `Add downloader function
+Add batch download function like DownThemAll!
+Add for video download function
+Add Full Page and Selection's Screenshot function (like Vivaldi Browser)
+Movie function bug fixes
+Many other bug fixes
+Updated to Muon 4.5.18(chromium 63.0.3239.40)`
 
-const CHANGE_JAPANESE = `ビデオダウンロード機能の向上
-youtube-dlを利用したストリーミングビデオ(HLS(.m3u8))のダウンロード機能の追加
-マウス及びキーボードショートカットでのビデオ操作機能の追加
-ポップアップウインドウでのビデオ再生機能を追加
-フローティングパネルでのビデオ再生機能を追加`
+const CHANGE_JAPANESE = `ダウンローダ機能の追加
+DownThemAll!のような一括ダウンロード機能を追加
+動画の一括ダウンロード機能の追加
+Full PageおよびSelectionのScreen Shot機能の追加（Vivaldi Browserのような）
+動画補助機能のバグ修正
+その他多数のバグ修正`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'
