@@ -421,9 +421,6 @@ class GeneralSetting extends React.Component {
           <Checkbox defaultChecked={this.state.doubleShift} toggle onChange={this.onChange.bind(this,'doubleShift')}/>
           <span className="toggle-label">Enable anything search (When you double pressing the shift key)  ({l10n.translation('requiresRestart').replace('* ','')})</span>
           <br/>
-          <Checkbox defaultChecked={this.state.historyFull} toggle onChange={this.onChange.bind(this,'historyFull')}/>
-          <span className="toggle-label">Enable fulltext history search</span>
-          <br/>
           <Checkbox defaultChecked={this.state.longPressMiddle} toggle onChange={this.onChange.bind(this,'longPressMiddle')}/>
           <span className="toggle-label">Enable behavior change when long press of middle mouse button ({l10n.translation('requiresRestart').replace('* ','')})</span>
 

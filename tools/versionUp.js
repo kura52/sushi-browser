@@ -6,7 +6,7 @@ const glob = require("glob")
 const BEFORE_CODE_NAME = 'Hotate(Scallop)'
 const CODE_NAME = 'Sazae(Turban Shell)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.9.0"
+const NEXT_APP_VERSION = "0.10.0"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
 const CHANGE_ENGLISH = `Enhanced video download function
