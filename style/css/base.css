@@ -733,3 +733,6 @@ div.item.favorite>ul>li>div>ul{
     vertical-align: 6px;
     padding-left: 12px;
 }
+.sort-screenshot{
+    vertical-align: -2px;
+}

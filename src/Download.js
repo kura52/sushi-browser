@@ -10,7 +10,7 @@ import PubSub from './render/pubsub'
 import fs from 'fs'
 const URL = require('url')
 const downloadPath = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html'
-const downloadPath2 = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/downloader.html'
+const downloadPath2 = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download_all.html'
 const timeMap = new Map()
 global.downloadItems = []
 const retry = new Set()
@@ -219,10 +219,16 @@ export default class Download {
   downloadReady(item, url, webContents,win,audioExtract) {
     global.downloadItems.push(item)
 
-    const eventPause = (event, data) => {
+    const eventPause = (event, data, type) => {
       console.log('resume',data,item)
-      if (data.savePath !== item.getSavePath()) return
-      if (item.isPaused())
+      if (data.key ? data.key !== item.key : data.savePath !== item.getSavePath()) return
+      if(type == 'resume'){
+        item.resume()
+      }
+      else if(type == 'pause'){
+        item.pause()
+      }
+      else if (item.isPaused())
         item.resume()
       else
         item.pause()
@@ -230,7 +236,7 @@ export default class Download {
     ipcMain.on('download-pause', eventPause)
 
     const eventCancel = (event, data) => {
-      if (data.savePath !== item.getSavePath()) return
+      if (data.key ? data.key !== item.key : data.savePath !== item.getSavePath()) return
       item.cancel()
       ipcMain.removeListener('download-pause', eventPause)
       ipcMain.removeListener('download-cancel', eventCancel)

@@ -6,9 +6,8 @@ const {app} = require('electron').remote.require('electron')
 export default class InputableDialog extends Component{
 
   componentDidMount(){
-    const input = document.querySelector('.inputable-dialog > input')
+    const input = document.querySelector('.inputable-dialog > input:not(.hidden),textArea.inputable-dialog,.checkbox.inputable-dialog')
     input.focus()
-    input.select()
   }
 
   renderInputs(){
@@ -16,7 +15,8 @@ export default class InputableDialog extends Component{
     return this.props.data.needInput.map((x,i)=>{
       if(this.props.data.option && this.props.data.option[i] == "textArea"){
         return <p key={i}>{x}
-          <Form><TextArea ref={`input${i}`} className="inputable-dialog" placeholder='Enter URLs' rows={5} /></Form>
+          <Form><TextArea ref={`input${i}`} className="inputable-dialog"
+                          defaultValue={this.props.data.initValue ? this.props.data.initValue[i] : ""} placeholder='Enter URLs' rows={10} /></Form>
         </p>
       }
       else if(this.props.data.option &&this.props.data.option[i] == "dialog"){

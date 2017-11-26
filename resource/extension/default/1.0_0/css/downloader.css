@@ -150,3 +150,15 @@ select.form-control-sm:not([size]):not([multiple]) {
     margin-left: 4px;
     margin-right: 8px;
 }
+.ReactTable .rt-thead {
+    padding-right: 15px;
+}
+
+.btn-outline-secondary:not([disabled]):not(.disabled).active, .btn-outline-secondary:not([disabled]):not(.disabled):active, .show>.btn-outline-secondary.dropdown-toggle {
+    box-shadow: none;
+}
+.divider-vertical {
+    height: 28px;
+    margin-right: 10px;
+    border-left: 1px solid #f2f2f2;
+}

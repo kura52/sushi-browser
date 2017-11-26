@@ -56,13 +56,13 @@ const downloadItems = new Set()
 export default class Aria2cWrapper{
   constructor({url,savePath,downloadNum=1,overwrite,timeMap,aria2cKey}){
     this.key = aria2cKey || uuid.v4()
-    this.resume = !!aria2cKey
+    this.resumeFlg = !!aria2cKey
     this.url = url
     this.savePath = savePath
     this.overwrite = overwrite
     this.timeMap = timeMap
     this.downloadNum = downloadNum
-    this.status = 'NOT_START'
+    this.status = 'PROCESSING'
     this.stdoutCallbacks = []
     this.closeCallbacks = []
     this.errorCallbacks = []
@@ -109,19 +109,28 @@ export default class Aria2cWrapper{
   }
 
   async download({retry,resume} = {}){
+    if(this.status == 'CANCEL') return
+    if(this.status == 'PAUSE'){
+      this.retry = true
+      setTimeout(_=>this.download({retry:true,resume}),500)
+      return
+    }
+
     if(!retry){
       setTimeout(_=>this.stdoutCallback(),100)
     }
     if(mainState.concurrentDownload && downloadItems.size >= parseInt(mainState.concurrentDownload)){
+      this.retry = true
       setTimeout(_=>this.download({retry:true,resume}),50)
       return
     }
+    this.retry = false
     downloadItems.add(this)
     const cookie = await getCookieStr(this.url)
 
-    if(this.resume){
-      resume = this.resume
-      this.resume = false
+    if(this.resumeFlg){
+      resume = this.resumeFlg
+      this.resumeFlg = false
     }
     if(!resume && !this.overwrite) this.savePath = this.getUniqFileName(this.savePath)
 
@@ -190,10 +199,15 @@ export default class Aria2cWrapper{
     return this.status == 'PAUSE'
   }
   resume(){
+    if(this.status == 'COMPLETE' || this.status == 'PROCESSING') return
     console.log('resume')
-    this.download({resume:true})
+    this.status = 'PROCESSING'
+    this.download({retry:this.retry,resume:!this.aria2c ? this.resumeFlg : true})
+    this.stdoutCallback()
   }
   pause(){
+    if(this.status != 'PROCESSING') return
+
     downloadItems.delete(this)
     this.status = 'PAUSE'
     if(this.aria2c){
@@ -232,6 +246,9 @@ export default class Aria2cWrapper{
     }
     else if(this.status == 'COMPLETE'){
       return 'completed'
+    }
+    else if(this.status == 'ERROR'){
+      return 'cancelled'
     }
     else{
       return 'progressing'

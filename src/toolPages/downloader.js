@@ -243,7 +243,9 @@ class Downloader extends React.Component {
       const max = rowIdx == prevInd ? rowIdx : prevInd < rowIdx ? rowIdx : prevInd - 1
       for(let i = min;i<=max;i++){
         const row = this.state.rows[i]
-        tr = document.querySelector(`[data-key='${row.id}']`).parentNode.parentNode
+        const node = document.querySelector(`[data-key='${row.id}']`)
+        if(!node) continue
+        tr = node.parentNode.parentNode
         let ind = this.state.selectedIds.findIndex(r => r == row.id);
         if(ind == -1){
           this.state.selectedIds.push(row.id)
@@ -355,7 +357,7 @@ class Downloader extends React.Component {
     const map = {}
     for(let x of this.state.selectedIds){
       const item = this.state.downloads.get(x)
-      map[item.savePath] = item
+      map[x] = item
     }
     return map
   }
@@ -414,7 +416,7 @@ class Downloader extends React.Component {
         ipc.send("download-retry", item.url, item.savePath, item.key) //元アイテムを消す
       }
       else{
-        ipc.send("download-pause", item)
+        ipc.send("download-pause", item,'resume')
       }
     }
   }
@@ -422,7 +424,7 @@ class Downloader extends React.Component {
   handlePause = ()=>{
     for(let item of Object.values(this.getSelectedMap())){
       if(item.state == "progressing" && !item.isPaused){
-        ipc.send("download-pause",item)
+        ipc.send("download-pause",item,'pause')
       }
     }
   }
@@ -464,8 +466,8 @@ class Downloader extends React.Component {
   }
 
   handleOpenFolder = ()=>{
-    for(let path of Object.keys(this.getSelectedMap())){
-      ipc.send("download-open-folder", path)
+    for(let item of Object.values(this.getSelectedMap())){
+      ipc.send("download-open-folder", item.savePath)
     }
   }
 
@@ -537,6 +539,10 @@ class Downloader extends React.Component {
           pageSizeOptions={[30,100,250,500,1000]}
           defaultPageSize={100}
           data={this.state.rows.slice(0)}
+          defaultFilterMethod={(filter, row, column) => {
+            const id = filter.pivotId || filter.id
+            return row[id] !== undefined ? String(row[id]).includes(filter.value) : true
+          }}
           // onFetchData={this.fetchData}
           columns={this.columns}
           onPageChange={(pageIndex)=>this.clearSelect()}

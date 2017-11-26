@@ -1196,16 +1196,18 @@ ipcMain.on('download-start',(e,url)=>{
   e.sender.hostWebContents.downloadURL(url,true)
 })
 
-ipcMain.on('screen-shot',(e,{full,type,rect,tabId})=>{
-  const capture = image=>{
+ipcMain.on('screen-shot',(e,{full,type,rect,tabId,tabKey})=>{
+  const capture = (cb,image)=>{
+    if(cb) cb()
     if(type == 'clipboard'){
       clipboard.writeImage(image)
     }
     else{
       const isJpeg = type == 'JPEG'
       const writePath = path.join(app.getPath('pictures'),`screenshot-${formatDate(new Date())}.${isJpeg ? 'jpg' : 'png'}`)
-      fs.writeFileSync(writePath,isJpeg ? image.toJPEG(92) : image.toPNG())
-      shell.showItemInFolder(writePath)
+      fs.writeFile(writePath,isJpeg ? image.toJPEG(92) : image.toPNG(),_=>{
+        shell.showItemInFolder(writePath)
+      })
     }
   }
 
@@ -1218,12 +1220,16 @@ ipcMain.on('screen-shot',(e,{full,type,rect,tabId})=>{
           height = Math.max(d.scrollHeight, d.offsetHeight, dd.clientHeight, dd.scrollHeight, dd.offsetHeight);
           return {width,height}
         })()`, {},(err, url, result)=>{
-      console.log(result[0])
-        cont.capturePage({x:0,y:0,width:result[0].width,height:result[0].height},capture)
+        console.log(result[0],`webview-size-change_${tabKey}`)
+        const key = Math.random().toString()
+        e.sender.send(`webview-size-change_${tabKey}`,key,`${result[0].width}px`,`${result[0].height}px`,true)
+        ipcMain.once(`webview-size-change_${tabKey}-reply_${key}`,(e)=>{
+          cont.capturePage({x:0,y:0,width:result[0].width,height:result[0].height},capture.bind(this,_=>e.sender.send(`webview-size-change_${tabKey}`,key,'100%','100%')))
+        })
       })
   }
   else{
-    e.sender.capturePage(rect, capture)
+    e.sender.capturePage(rect, capture.bind(this,null))
   }
 })
 

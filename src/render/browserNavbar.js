@@ -842,7 +842,6 @@ class BrowserNavbar extends Component{
         <NavbarMenuItem key="sel-clip" text="Selection | Clipboard" onClick={()=>this.props.screenShot(false,'clipboard',this.props.tab)}/>
         <NavbarMenuItem key="sel-jpeg" text="Selection | Jpeg"  onClick={()=>this.props.screenShot(false,'JPEG',this.props.tab)}/>
         <NavbarMenuItem key="sel-png" text="Selection | PNG"  onClick={()=>this.props.screenShot(false,'PNG',this.props.tab)}/>
-        <div className="divider" />
       </NavbarMenu>,
       ...this.browserAction(cont, this.props.tab)
     }

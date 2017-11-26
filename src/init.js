@@ -358,7 +358,7 @@ app.on('web-contents-created', (e, tab) => {
 
     const matchNormal = contType && contType[0].match(RegNormal)
     if(!matchNormal && ((contType && contType[0].match(RegForDL)) || newURL.match(RegForDLExt))){
-      console.log(6755,contType && contType[0],newURL,tab.getURL())
+      // console.log(6755,contType && contType[0],newURL,tab.getURL())
       const url = tab.getURL()
       const map = cache.get(url)
       if(map){

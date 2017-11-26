@@ -3432,41 +3432,53 @@ export default class TabPanel extends Component {
 
   screenShot(full,type,tab){
     if(!full){
-      let canvas,ctx,rect = {},drag
+      const canvas = document.createElement('canvas')
+      canvas.width = window.innerWidth
+      canvas.height = window.innerHeight
+      canvas.style.position = 'fixed'
+      canvas.style['z-index'] = 9999999
+      canvas.style['background'] = 'rgba(204,204,204,.5)'
+      canvas.style.cursor = 'crosshair'
+      document.body.appendChild(canvas)
+
+      let ctx = canvas.getContext('2d'),
+      rect = {},drag
+
+      const draw = ()=>{
+        ctx.setLineDash([6]);
+        ctx.strokeRect(rect.left, rect.top, rect.w, rect.h)
+      }
       const mdown = e=>{
-        document.addEventListener('mousemove',mmove,false)
         document.removeEventListener('mousedown',mdown,false)
         document.addEventListener('mouseup',mup,false)
+        document.addEventListener('mousemove',mmove,false)
 
-        canvas = document.createElement('canvas')
-        ctx = canvas.getContext('2d')
-        document.body.appendChild(canvas)
-
-        rect.startX = e.pageX - this.offsetLeft
-        rect.startY = e.pageY - this.offsetTop
+        rect.startX = e.pageX
+        rect.startY = e.pageY
         drag = true
-
       }
       const mmove = e=>{
         if (drag) {
-          rect.w = (e.pageX - this.offsetLeft) - rect.startX
-          rect.h = (e.pageY - this.offsetTop) - rect.startY
+          rect.w = Math.abs(e.pageX - rect.startX)
+          rect.h = Math.abs(e.pageY - rect.startY)
+          rect.left = Math.min(e.pageX, rect.startX)
+          rect.top = Math.min(e.pageY, rect.startY)
+
           ctx.clearRect(0,0,canvas.width,canvas.height)
           draw()
         }
       }
       const mup = e=>{
         drag = false
-        console.log(4324,rect)
-        ctx.clearRect(0,0,canvas.width,canvas.height)
         document.body.removeChild(canvas)
         document.removeEventListener('mousemove',mmove,false)
         document.removeEventListener('mouseup',mup,false)
+        setTimeout(_=>ipc.send('screen-shot',{full,type,rect:{x:rect.left,y:rect.top,width:rect.w,height:rect.h}}),100)
       }
       document.addEventListener('mousedown',mdown,false)
     }
     else{
-      ipc.send('screen-shot',{full,type,tabId:tab.wvId})
+      ipc.send('screen-shot',{full,type,tabId:tab.wvId,tabKey:tab.key})
     }
   }
 
