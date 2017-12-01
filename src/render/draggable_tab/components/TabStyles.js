@@ -168,7 +168,7 @@ export default function (){
       cursor: 'pointer',
       font: '16px arial, sans-serif',
       right: '14px',
-      marginTop: '7px',
+      marginTop: '6px',
       textDecoration: 'none',
       textShadow: '0 1px 0 #fff',
       lineHeight: '1em',

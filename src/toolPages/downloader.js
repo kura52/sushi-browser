@@ -23,7 +23,7 @@ function showDialog(input,id){
   })
 }
 
-function cancelItem(item){
+function cancelItems(items){
   showDialog({
     normal: true,
     title: 'Confirm',
@@ -31,7 +31,9 @@ function cancelItem(item){
     buttons:['Yes','No']
   }).then(value => {
     console.log(value)
-    ipc.send("download-cancel", item)
+    for(let item of items){
+      ipc.send("download-cancel", item)
+    }
   })
 }
 
@@ -296,7 +298,7 @@ class Downloader extends React.Component {
       arr.push(<i onClick={_=>ipc.send("download-open",item)} className="fa fa-file-o menu-item" aria-hidden="true"></i>)
     }
     if(item.state != "completed" && item.state != "cancelled"){
-      arr.push(<i onClick={_=>cancelItem(item)} className="fa fa-trash-o menu-item" aria-hidden="true"></i>)
+      arr.push(<i onClick={_=>cancelItems([item])} className="fa fa-trash-o menu-item" aria-hidden="true"></i>)
     }
     arr.push(<i onClick={_=>this.downloaderRemove([item.key])} className="fa fa-times menu-item" aria-hidden="true"></i>)
     return arr
@@ -430,11 +432,13 @@ class Downloader extends React.Component {
   }
 
   handleCancel = ()=>{
+    const items = []
     for(let item of Object.values(this.getSelectedMap())){
       if(item.state != "completed" && item.state != "cancelled"){
-        cancelItem(item)
+        items.push(item)
       }
     }
+    if(items.length)cancelItems(items)
   }
 
   downloaderRemove = (keys)=>{

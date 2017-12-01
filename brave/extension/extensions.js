@@ -2,11 +2,13 @@
 // const contextMenus = require('./extensions/contextMenus')
 const fs = require('fs-extra')
 const path = require('path')
+const os = require('os')
 const chromeExtensionPath = require('../../lib/extension/chromeExtensionPath')
 const chromeManifestModify = require('../../lib/chromeManifestModify')
 const {BrowserWindow,componentUpdater,app} = require('electron')
 const extInfos = require('../../lib/extensionInfos')
 const mainState = require('../../lib/mainState')
+const PubSub = require('../../lib/render/pubsub')
 // Takes Content Security Policy flags, for example { 'default-src': '*' }
 // Returns a CSP string, for example 'default-src: *;'
 let concatCSP = (cspDirectives) => {
@@ -127,6 +129,7 @@ module.exports.init = (verChange) => {
   }
 
   process.on('extension-ready', (installInfo) => {
+    console.log('extension-ready',installInfo.id)
     // console.log(434343,installInfo)
     extInfos.setInfo(installInfo)
     transInfos(installInfo)
@@ -144,6 +147,17 @@ module.exports.init = (verChange) => {
         if(key=='bookmark') mainState.bookmarksPage = `${installInfo.url}${val}`
         if(key=='history') mainState.historyPage = `${installInfo.url}${val}`
       }
+    }
+
+    const commands = installInfo.manifest.commands
+    if(commands){
+      const plat = os.platform() == 'win32' ? 'windows' : os.platform() == 'darwin' ? mac : 'linux'
+      for(let [command,val] of Object.entries(commands)){
+        if(val.suggested_key){
+          PubSub.publish('add-shortcut',{id:installInfo.id,key:val.suggested_key[plat] || val.suggested_key.default,command})
+        }
+      }
+
     }
 
     const wins = BrowserWindow.getAllWindows()
@@ -167,6 +181,7 @@ module.exports.init = (verChange) => {
     if(!extensionPath) return
     extensionPath = extensionPath.replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
     const manifestPath = path.join(extensionPath, 'manifest.json')
+    console.log(manifestPath)
     fs.exists(manifestPath, (exists) => {
       if (exists) {
         // if(extInfos[extensionId]) return
@@ -180,6 +195,7 @@ module.exports.init = (verChange) => {
         // }catch(e){
         //   console.log(e)
         // }
+        console.log('load',extensionPath)
         ses.extensions.load(extensionPath, manifest, manifestLocation)
       } else {
         // This is an error condition, but we can recover.
@@ -248,10 +264,11 @@ module.exports.init = (verChange) => {
     for(let fullPath of require("glob").sync(path.join(extensionPath,'*'))) {
       const appId = fullPath.split(/[\/]/).slice(-1)[0]
       console.log(555,appId,mainState.disableExtensions)
-      if(appId.match(/^[a-z]+$/) && !rejectExtensions.includes(appId)){
+      if(!appId.match(/crx$/) && !rejectExtensions.includes(appId)){
         // if(!first && appId == 'niloccemoadcdkdjlinkgdfekeahmflj') continue
         let ext = [appId,getPath2(appId)]
         if(verChange) chromeManifestModify(...ext)
+        console.log('modi',appId)
         loadExtension(ses,...ext)
       }
     }

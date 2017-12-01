@@ -718,11 +718,17 @@ function contextMenu(webContents) {
     else if(downloadMenu){
       const downMenu = downloadMenu
       const {item} = downloadMenu
-      for(let name of ['Start','Pause','Cancel Download','Remove Row','Show Folder','Open File','Copy File Path','Copy URL']){
-        if(name == 'Start' && (item.state == "completed" || (item.state == "progressing" && !item.isPaused))) continue
-        if(name == 'Pause' && !(item.state == "progressing" && !item.isPaused)) continue
-        if(name == 'Cancel Download' && !(item.state != "completed" && item.state != "cancelled")) continue
-        if(name == 'Open File' && item.state == "cancelled") continue
+      if(item.description === void 0){
+        for(let name of ['Start','Pause','Cancel Download','Remove Row','Show Folder','Open File','Copy File Path','Copy URL']){
+          if(name == 'Start' && (item.state == "completed" || (item.state == "progressing" && !item.isPaused))) continue
+          if(name == 'Pause' && !(item.state == "progressing" && !item.isPaused)) continue
+          if(name == 'Cancel Download' && !(item.state != "completed" && item.state != "cancelled")) continue
+          if(name == 'Open File' && item.state == "cancelled") continue
+          menuItems.push({label: name,click: (item,win)=>{downMenu.sender.send('download-menu-reply',name)}})
+        }
+      }
+      else{
+        const name = 'Copy URL'
         menuItems.push({label: name,click: (item,win)=>{downMenu.sender.send('download-menu-reply',name)}})
       }
       var menu = Menu.buildFromTemplate(menuItems)

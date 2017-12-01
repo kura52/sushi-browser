@@ -69,7 +69,9 @@
   "key": "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC/yToelGnDw8C01FIV0IlS9PD/1+RC/4YfH6fI3lCPYnj9fB+vQg8/CJA61ReWF8jXCWJjLbeMIf0UaW9O2SPMAhSglzBV+3vbiU2+6juqkbHxLdHDUPqXDNZGGa4mP/SIk1XmAmhWhWqiRa7Zm78f8EOg5SMqSfFr4rnyIUOGPQIDAQAB",
   "manifest_version": 2,
   "name": "Gestures for Google Chrome™",
-  "options_page": "options_page.html",
+  "options_ui": {
+    "page": "options_page.html"
+  },
   "permissions": [
     "tabs",
     "http://*/",

@@ -76,13 +76,19 @@ function simpleIpcFuncCb(name,callback){
 
 const {getPath1,getPath2,extensionPath} = require('./chromeExtensionUtil')
 
-ipcMain.on('add-extension',(e,id)=>{
-  console.log(id)
-  if(!id.match(/^[a-z]+$/)) return
-  const extRootPath = path.join(extensionPath,id) // path.join(__dirname,'../resource/extension',id).replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
-  const chromeVer = process.versions.chrome
-  const url = `https://clients2.google.com/service/update2/crx?response=redirect&prodversion=${chromeVer}&x=id%3D${id}%26uc`
-
+ipcMain.on('add-extension',(e,{id,url})=>{
+  let extRootPath
+  if(id){
+    if(!id.match(/^[a-z]+$/)) return
+     extRootPath = path.join(extensionPath,id) // path.join(__dirname,'../resource/extension',id).replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
+    const chromeVer = process.versions.chrome
+     url = `https://clients2.google.com/service/update2/crx?response=redirect&prodversion=${chromeVer}&x=id%3D${id}%26uc`
+  }
+  else if(url){
+    id = require('url').parse(url).pathname.split("/").slice(-1)[0].slice(0,-4)
+    extRootPath = path.join(extensionPath,id)
+  }
+  console.log(url,`${extRootPath}.crx`)
   ipcMain.emit('set-save-path', null,url, `${extRootPath}.crx`,true)
   getCurrentWindow().webContents.downloadURL(url, true)
 
@@ -134,6 +140,14 @@ ipcMain.on('delete-extension',(e,extensionId,orgId)=>{
 //#app
 const extInfos = require('./extensionInfos')
 simpleIpcFunc('chrome-app-getDetails',id=>extInfos[id])
+
+//#runtime
+simpleIpcFunc('chrome-runtime-openOptionsPage',id=>{
+  if(extInfos[id].manifest.options_ui && extInfos[id].manifest.options_ui.page){
+    getFocusedWebContents().then(cont=>cont.hostWebContents.send('new-tab', cont.getId(), `chrome-extension://${id}/${extInfos[id].manifest.options_ui.page.split("/").filter(x=>x).join("/")}`))
+  }
+})
+
 
 
 //#i18n
@@ -572,6 +586,30 @@ simpleIpcFuncCb('chrome-history-deleteAll',(cb)=>{
   history.remove({}, { multi: true }).then(_=>cb())
 })
 
+for(let method of ['onCommand']){
+  const registBackgroundPages = new Map()
+  const name = `chrome-commands-${method}`
+  ipcMain.on(`regist-${name}`,(e,id)=> registBackgroundPages.set(e.sender,id))
+  ipcMain.on(`unregist-${name}`,(e)=> registBackgroundPages.delete(e.sender))
+  PubSub.subscribe('chrome-commands-exec',(msg,{id,command})=>{
+    for(let [cont,id2] of registBackgroundPages) {
+      if(id != id2) continue
+      if (!cont.isDestroyed()) {
+        if(command == '_execute_browser_action' || command == '_execute_page_action'){
+          getFocusedWebContents().then(cont=>{
+            ipc.send('chrome-browser-action-clicked', id, cont.getId())
+          })
+        }
+        else{
+          cont.send(name, command)
+        }
+      }
+      else{
+        registBackgroundPages.delete(cont)
+      }
+    }
+  })
+}
 
 //#topSites
 simpleIpcFuncCb('chrome-topSites-get',(cb)=>{

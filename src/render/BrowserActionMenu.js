@@ -130,15 +130,16 @@ export default class BrowserActionMenu extends Component{
     const tabId = cont.getId()
 
     if(e.which != 3) {
+
+      let props = {
+        x: e.x,
+        y: e.y,
+        screenX: e.screenX,
+        screenY: e.screenY,
+        offsetX: e.offsetX,
+        offsetY: e.offsetY
+      }
       if(values.default_icon){
-        let props = {
-          x: e.x,
-          y: e.y,
-          screenX: e.screenX,
-          screenY: e.screenY,
-          offsetX: e.offsetX,
-          offsetY: e.offsetY
-        }
 
         console.log('chrome-browser-action-clicked', extensionId, tabId.toString(), "", props)
         ipc.send('chrome-browser-action-clicked', extensionId, tabId.toString(), "", props);

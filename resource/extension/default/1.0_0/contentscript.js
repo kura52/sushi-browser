@@ -23,11 +23,23 @@ if(location.href.startsWith('http') && window == window.parent){
             parent.querySelector(".dd-Va.g-c-wb.g-eg-ua-Kb-c-za.g-c-Oc-td-jb-oa.g-c").addEventListener('click',e=>{
               e.stopPropagation()
               e.preventDefault()
-              ipc.send('add-extension',loc)},true)
+              ipc.send('add-extension',{id:loc})},true)
           }
         }
       },1000)
+    }
+    else if(location.href.match(/https:\/\/addons\.mozilla\.org\/.+?\/firefox\/addon\//) && !document.querySelector('.Badge.Badge-not-compatible')){
+      let url
+      setInterval(_=>{
+        const b = document.querySelector('.InstallButton-button--disabled')
 
+        b.classList.remove('disabled')
+        b.classList.remove('InstallButton-button--disabled')
+
+        if(b.href != 'javascript:void(0)') url = b.href
+        b.addEventListener('click',_=>ipc.send('add-extension',{url}))
+        b.href = 'javascript:void(0)'
+      },1000)
     }
   })
 }

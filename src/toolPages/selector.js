@@ -142,28 +142,7 @@ class Selector extends React.Component {
       document.querySelector('.rt-tbody').style.height = `calc(100vh - 106px - ${document.querySelector('.navbar').offsetHeight}px)`
     });
     this.event = (e,name)=>{
-      if(name == 'Start'){
-        this.handleStart()
-      }
-      else if(name == 'Pause'){
-        this.handlePause()
-      }
-      else if(name == 'Cancel Download'){
-        this.handleCancel()
-      }
-      else if(name == 'Remove Row'){
-        this.handleRemove()
-      }
-      else if(name == 'Show Folder'){
-        this.handleOpenFolder()
-      }
-      else if(name == 'Open File'){
-        this.handleOpenFile()
-      }
-      else if(name == 'Copy File Path'){
-        this.handleCopyPath()
-      }
-      else if(name == 'Copy URL'){
+      if(name == 'Copy URL'){
         this.handleCopyUrl()
       }
     }
@@ -328,6 +307,10 @@ class Selector extends React.Component {
       }
       ipc.sendToHost("open-tab",'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html',true)
     })
+  }
+
+  handleCopyUrl = ()=>{
+    ipc.send("set-clipboard",Object.values(this.getSelectedMap()).map(item=> item.url))
   }
 
   handleStart = (type)=>{

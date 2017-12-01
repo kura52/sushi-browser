@@ -8,6 +8,7 @@ const isDarwin = process.platform === 'darwin'
 const {getFocusedWebContents, getCurrentWindow} = require('../../lib/util')
 const mainState = require('../../lib/mainState')
 const isAccelerator = require("electron-is-accelerator")
+const PubSub = require('../../lib/render/pubsub')
 
 module.exports.register = (win) => {
   // Most of these events will simply be listened to by the app store and acted
@@ -92,13 +93,14 @@ module.exports.register = (win) => {
 })
 
   electronLocalshortcut.register(win, 'Shift+F8', () => {
-    console.log("Shift-F8")
-    let win = getCurrentWindow()
+    win.toggleDevTools()
     console.log(win)
-    if (win) {
-      win.toggleDevTools()
-      console.log(win)
-    }
+  })
+
+  PubSub.subscribe('add-shortcut',(msg,{id,key,command}) => {
+    electronLocalshortcut.register(win, key.replace('Period','.').replace('Comma',','), () => {
+      PubSub.publish('chrome-commands-exec',{id,command})
+    })
   })
 
 }
