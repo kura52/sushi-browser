@@ -20,6 +20,7 @@ import url from 'url'
 const {getUrlFromCommandLine,getNewWindowURL} = require('./cmdLine')
 import {getFocusedWebContents, getCurrentWindow} from './util'
 const open = require('./open')
+const defaultConf = require('./defaultConf')
 let adblock,httpsEverywhere,trackingProtection,extensions,videoProcessList = []
 
 // process.on('unhandledRejection', console.dir);
@@ -45,34 +46,6 @@ function exec(command) {
 const isWin = os.platform() == 'win32'
 
 process.userAgent = `Mozilla/5.0 (${isWin ? 'Windows NT 10.0; Win64; x64': isDarwin ? 'Macintosh; Intel Mac OS X 10_12_2' : 'X11; Linux x86_64'}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${process.versions.chrome} Safari/537.36`
-
-const defaultConf = {
-  autoplay:
-    [
-      { setting: 'allow', primaryPattern: '*' }
-      // { setting: 'block', primaryPattern: '*' },
-      // { setting: 'allow', primaryPattern: '[*.]www.youtube.com', secondaryPattern: '*', resourceId: undefined },
-      // { setting: 'allow', primaryPattern: '[*.]vimeo.com', secondaryPattern: '*', resourceId: undefined },
-      // { setting: 'allow', primaryPattern: '[*.]www.dailymotion.com', secondaryPattern: '*', resourceId: undefined },
-      // { setting: 'allow', primaryPattern: '[*.]soundcloud.com', secondaryPattern: '*', resourceId: undefined },
-      // { setting: 'allow', primaryPattern: '[*.]www.twitch.tv', secondaryPattern: '*', resourceId: undefined },
-      // { setting: 'allow', primaryPattern: '[*.]twitter.com', secondaryPattern: '*', resourceId: undefined }
-    ],
-  doNotTrack: [ { setting: 'block', primaryPattern: '*' } ],
-  popups: [ { setting: 'block', primaryPattern: '*' } ],
-  adInsertion: [ { setting: 'block', primaryPattern: '*' } ],
-  referer: [ { setting: 'allow', primaryPattern: '*' } ],
-  javascript:
-    [ { setting: 'allow', primaryPattern: '*' },
-      { setting: 'allow', secondaryPattern: '*', primaryPattern: 'chrome-extension://*' } ],
-  cookies: [ { setting: 'allow', primaryPattern: '*', secondaryPattern: '*' } ],
-  ads: [ { setting: 'block', primaryPattern: '*' } ],
-  flashEnabled: [ { setting: 'allow', primaryPattern: '*' } ],
-  passwordManager: [ { setting: 'allow', primaryPattern: '*' } ],
-  runInsecureContent: [ { setting: 'block', primaryPattern: '*' } ],
-  canvasFingerprinting: [ { setting: 'allow', primaryPattern: '*' } ],
-  flashAllowed: [ { setting: 'allow', primaryPattern: '*' } ]
-}
 
 const players = [
   { value: 'vlc', text: 'VLC Media Player',os:['win','mac','linux']},
@@ -104,8 +77,10 @@ InitSetting.val.then(setting=>{
   }
   else{
     defaultConf.flashEnabled = [ { setting: 'deny', primaryPattern: '*' } ]
-    session.defaultSession.userPrefs.setDictionaryPref('content_settings', defaultConf)
   }
+  defaultConf.javascript[0].setting = setting.noScript ? 'block' : 'allow'
+  defaultConf.canvasFingerprinting[0].setting = setting.blockCanvasFingerprinting ? 'block' : 'allow'
+  session.defaultSession.userPrefs.setDictionaryPref('content_settings', defaultConf)
 })
 app.setName('Sushi Browser')
 app.commandLine.appendSwitch('touch-events', 'enabled');
@@ -172,6 +147,7 @@ app.on('ready', async ()=>{
   require('./tabMoveEvent')
   require('./saveEvent')
   require('./userAgentChangeEvent')
+  require('./clearEvent')
 
 
   ptyProcessSet = require('./ptyProcess')
@@ -187,6 +163,7 @@ app.on('ready', async ()=>{
     adblock = require('../brave/adBlock')
     httpsEverywhere = require('../brave/httpsEverywhere')
     trackingProtection = require('../brave/trackingProtection')
+
 
     require('./ipcUtils')
     require('./syncLoop')

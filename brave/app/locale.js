@@ -349,6 +349,8 @@ var rendererIdentifiers = function () {
     '8477384620836102176',
     '7701040980221191251',
     '6146563240635539929',
+    '8026334261755873520',
+    '1375321115329958930',
 
     'playOrPause',
     'frameStep',
@@ -377,7 +379,16 @@ var rendererIdentifiers = function () {
     'volumeControl',
     'changeSpeed',
     'mouseWheelFunctions',
-    'reverseWheelMediaSeeking'
+    'reverseWheelMediaSeeking',
+    'noScriptPref',
+    'blockCanvasFingerprinting',
+    'browsingHistory',
+    'downloadHistory',
+    'cachedImagesAndFiles',
+    'allSiteCookies',
+    'autocompleteData',
+    'autofillData',
+    'clearBrowsingDataNow'
   ]
 }
 
@@ -517,7 +528,8 @@ exports.init = function (language) {
       path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'newtab.properties').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'),
       path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'preferences.properties').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'),
       path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'chrome.properties').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'),
-      path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'video.properties').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'))
+      path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'video.properties').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'),
+    path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'bravery.properties').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'))
   }
 
   appendLangProperties(lang)

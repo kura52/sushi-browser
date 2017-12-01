@@ -111,13 +111,14 @@ export default class SearchAnything extends Component{
   }
 
   handleResultSelect(e, result) {
+    if(!result.title) result = result.result
     this.openPage(this.state.results.find(x=> x.title === result.title).url)
     this.resetComponent()
   }
 
 
   handleSearchChange(e, value){
-    this.setState({value})
+    this.setState({value:value.value})
     if (this.state.value.length < 1) return this.resetComponent()
 
     const key = uuid.v4()

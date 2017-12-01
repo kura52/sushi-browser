@@ -11,6 +11,7 @@ const seq = require('./sequence')
 const {state,favorite,historyFull,tabState,visit,savedState} = require('./databaseFork')
 const db = require('./databaseFork')
 const FfmpegWrapper = require('./FfmpegWrapper')
+const defaultConf = require('./defaultConf')
 
 import path from 'path'
 const ytdl = require('ytdl-core')
@@ -556,7 +557,15 @@ ipcMain.on('save-state',async (e,{tableName,key,val})=>{
       require('../brave/httpsEverywhere')()
     }
     else if(key == 'trackingProtectionEnable'){
-      require('../brave/httpsEverywhere')()
+      require('../brave/trackingProtection')()
+    }
+    else if(key == 'noScript'){
+      defaultConf.javascript[0].setting = val ? 'block' : 'allow'
+      session.defaultSession.userPrefs.setDictionaryPref('content_settings', defaultConf)
+    }
+    else if(key == 'blockCanvasFingerprinting'){
+      defaultConf.canvasFingerprinting[0].setting = val ? 'block' : 'allow'
+      session.defaultSession.userPrefs.setDictionaryPref('content_settings', defaultConf)
     }
     mainState[key] = val
     state.update({ key: 1 }, { $set: {[key]: mainState[key]} }).then(_=>_)

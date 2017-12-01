@@ -6,6 +6,8 @@ const settingDefault =  {
   adBlockEnable: true,
   httpsEverywhereEnable: false,
   trackingProtectionEnable: false,
+  noScript: false,
+  blockCanvasFingerprinting: false,
   pdfMode: 'normal',
   oppositeGlobal: true,
   alwaysOnTop: false,

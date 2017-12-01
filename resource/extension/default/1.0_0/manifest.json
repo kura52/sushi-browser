@@ -13,7 +13,27 @@
          "chrome-extension://jdbefljfgobbmcidnmpjamcbhnbphjnb/*"
          ],
       "run_at": "document_start"
-   }
+   },
+      {
+         "all_frames": true,
+         "exclude_globs": [
+            "chrome://brave/*"
+         ],
+         "include_globs": [
+            "http://*/*",
+            "https://*/*",
+            "file://*",
+            "data:*"
+         ],
+         "js": [
+            "scripts/blockCanvasFingerprinting.js"
+         ],
+         "match_about_blank": true,
+         "matches": [
+            "<all_urls>"
+         ],
+         "run_at": "document_start"
+      }
    ],
    "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
    "description": "myExt",

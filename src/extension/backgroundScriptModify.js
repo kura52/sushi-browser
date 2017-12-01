@@ -496,6 +496,7 @@ if(chrome.topSites){
 
 
 if(chrome.commands) {
+  const ipc = chrome.ipcRenderer
   const method = 'onCommand'
   const name = `chrome-commands-${method}`
   const ipcEvents = {}

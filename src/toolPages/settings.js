@@ -333,10 +333,21 @@ class GeneralSetting extends React.Component {
   constructor(props) {
     super(props)
     this.state = generalDefault
+    this.clear = []
   }
 
   onChange(name,e,data){
     ipc.send('save-state',{tableName:'state',key:name,val:data.value || data.checked})
+  }
+
+  onChange2(name,e,data){
+    if(data.checked){
+      this.clear.push(name)
+    }
+    else{
+      this.clear = this.clear.filter(x=> x !== name)
+    }
+    this.setState({})
   }
 
   render() {
@@ -384,6 +395,7 @@ class GeneralSetting extends React.Component {
           <label>Session Autosave Interval</label>
           <Input onChange={this.onChange.bind(this,'autoSaveInterval')} defaultValue={this.state.autoSaveInterval}/>
         </div>
+        <br/>
 
         <div className="field">
           <label>Protection</label>
@@ -393,6 +405,14 @@ class GeneralSetting extends React.Component {
 
           <Checkbox defaultChecked={this.state.trackingProtectionEnable} toggle onChange={this.onChange.bind(this,'trackingProtectionEnable')}/>
           <span className="toggle-label">Enable Tracing Protection (e.g. Google Analytics)</span>
+          <br/>
+
+          <Checkbox defaultChecked={this.state.noScript} toggle onChange={this.onChange.bind(this,'noScript')}/>
+          <span className="toggle-label">{l10n.translation('noScriptPref')}</span>
+          <br/>
+
+          <Checkbox defaultChecked={this.state.blockCanvasFingerprinting} toggle onChange={this.onChange.bind(this,'blockCanvasFingerprinting')}/>
+          <span className="toggle-label">{l10n.translation('blockCanvasFingerprinting')}</span>
           <br/>
         </div>
         <br/>
@@ -456,6 +476,42 @@ class GeneralSetting extends React.Component {
           <Input onChange={this.onChange.bind(this,'bindMarginFrame')} defaultValue={this.state.bindMarginFrame}/>
           <label>Bind Window Title Margin</label>
           <Input onChange={this.onChange.bind(this,'bindMarginTitle')} defaultValue={this.state.bindMarginTitle}/>
+        </div>
+        <br/>
+
+
+        <div className="field">
+          <label>{l10n.translation('8026334261755873520')}</label>
+          <Checkbox toggle onChange={this.onChange2.bind(this,'clearHistory')}/>
+          <span className="toggle-label">{l10n.translation('browsingHistory')}</span>
+          <br/>
+          <Checkbox toggle onChange={this.onChange2.bind(this,'clearDownload')}/>
+          <span className="toggle-label">{l10n.translation('downloadHistory')}</span>
+          <br/>
+          <Checkbox toggle onChange={this.onChange2.bind(this,'clearCache')}/>
+          <span className="toggle-label">{l10n.translation('cachedImagesAndFiles')}</span>
+          <br/>
+          <Checkbox toggle onChange={this.onChange2.bind(this,'clearStorageData')}/>
+          <span className="toggle-label">{l10n.translation('allSiteCookies')}</span>
+          <br/>
+          <Checkbox toggle onChange={this.onChange2.bind(this,'clearAutocompleteData')}/>
+          <span className="toggle-label">{l10n.translation('autocompleteData')}</span>
+          <br/>
+          <Checkbox toggle onChange={this.onChange2.bind(this,'clearAutofillData')}/>
+          <span className="toggle-label">{l10n.translation('autofillData')}</span>
+          <br/>
+          <Checkbox toggle onChange={this.onChange2.bind(this,'clearPassword')}/>
+          <span className="toggle-label">{l10n.translation('1375321115329958930')}</span>
+          <br/>
+          <Checkbox toggle onChange={this.onChange2.bind(this,'clearGeneralSettings')}/>
+          <span className="toggle-label">{l10n.translation('generalSettings')}</span>
+          <br/>
+          <Checkbox toggle onChange={this.onChange2.bind(this,'clearFavorite')}/>
+          <span className="toggle-label">{l10n.translation('bookmarks')}</span>
+          <br/>
+
+          <Button disabled={!this.clear.length} primary content={l10n.translation('clearBrowsingDataNow')} onClick={_=>ipc.send("clear-browsing-data",this.clear)}/>
+
         </div>
         <br/>
 
@@ -1064,7 +1120,9 @@ const App = () => (
 )
 
 
-ipc.send("get-main-state",['startsWith','newTabMode','myHomepage','searchProviders','searchEngine','language','enableFlash','concurrentDownload','downloadNum','sideBarDirection','scrollTab','doubleShift','tripleClick','syncScrollMargin','contextMenuSearchEngines','ALL_KEYS','bindMarginFrame','bindMarginTitle','historyFull','longPressMiddle','checkDefaultBrowser','sendToVideo','multistageTabs','tabMinWidth','httpsEverywhereEnable','trackingProtectionEnable','autoSaveInterval'])
+ipc.send("get-main-state",['startsWith','newTabMode','myHomepage','searchProviders','searchEngine','language','enableFlash','concurrentDownload','downloadNum','sideBarDirection','scrollTab',
+  'doubleShift','tripleClick','syncScrollMargin','contextMenuSearchEngines','ALL_KEYS','bindMarginFrame','bindMarginTitle','historyFull','longPressMiddle','checkDefaultBrowser','sendToVideo',
+  'multistageTabs','tabMinWidth','httpsEverywhereEnable','trackingProtectionEnable','autoSaveInterval','noScript','blockCanvasFingerprinting','browsingHistory', 'downloadHistory'])
 ipc.once("get-main-state-reply",(e,data)=>{
   generalDefault = data
   keyboardDefault = data

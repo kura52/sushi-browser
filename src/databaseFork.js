@@ -90,7 +90,6 @@ const db = new Proxy({
   get downloader(){return new Proxy(dummy, handler('downloader'))},
   get state(){return new Proxy(dummy, handler('state'))},
   get syncReplace(){return new Proxy(dummy, handler('syncReplace'))},
-  get media(){return new Proxy(dummy, handler('media'))},
   // get crypto(){return new Proxy(dummy, handler('crypto'))},
   get image(){return new Proxy(dummy, handler('image'))},
   get favicon(){return new Proxy(dummy, handler('favicon'))},
