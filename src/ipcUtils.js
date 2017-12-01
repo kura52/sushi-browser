@@ -490,7 +490,7 @@ if(isWin){
 }
 
 ipcMain.on("change-title",(e,title)=>{
-  const bw = BrowserWindow.fromWebContents(e.sender)
+  const bw = BrowserWindow.fromWebContents(e.sender.webContents)
   if(title){
     bw.setTitle(`${title} - Sushi Browser`)
   }

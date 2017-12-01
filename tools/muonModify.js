@@ -226,6 +226,11 @@ var getTabValue = function (tabId) {`)
 fs.writeFileSync(file,result)
 
 
+// const file2 = path.join(sh.pwd().toString(),sh.ls('electron/browser/api/browser-window.js')[0])
+// const contents2 = fs.readFileSync(file2).toString()
+// const result2 = contents2.replace(`if (window.webContents.equal(webContents)) return window`,`if (window.webContents.getId() === webContents.getId()) return window`)
+// fs.writeFileSync(file2,result2)
+
 
 if(sh.exec('asar pack electron electron.asar').code !== 0) {
   console.log("ERROR")

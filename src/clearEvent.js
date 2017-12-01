@@ -62,9 +62,7 @@ const m = {
 ipcMain.on('clear-browsing-data', (event, targets) => {
   console.log(targets)
   for(let target of targets){
-    for(let ses of [session.defaultSession]){
-      m[target](ses)
-    }
+    m[target](session.defaultSession)
   }
 })
 

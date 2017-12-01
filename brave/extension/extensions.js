@@ -151,7 +151,7 @@ module.exports.init = (verChange) => {
 
     const commands = installInfo.manifest.commands
     if(commands){
-      const plat = os.platform() == 'win32' ? 'windows' : os.platform() == 'darwin' ? mac : 'linux'
+      const plat = os.platform() == 'win32' ? 'windows' : os.platform() == 'darwin' ? 'mac' : 'linux'
       for(let [command,val] of Object.entries(commands)){
         if(val.suggested_key){
           PubSub.publish('add-shortcut',{id:installInfo.id,key:val.suggested_key[plat] || val.suggested_key.default,command})
