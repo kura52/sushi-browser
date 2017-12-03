@@ -28,8 +28,9 @@ const m = {
     }
   },
 
-  clearStorageData(ses){
-    ses.clearStorageData(() => {})
+  clearStorageData(ses,opt){
+    const args = opt ? [opt,()=>{}] : [()=>{}]
+    ses.clearStorageData(...args)
   },
 
   clearCache(ses){
@@ -59,10 +60,10 @@ const m = {
   }
 }
 
-ipcMain.on('clear-browsing-data', (event, targets) => {
+ipcMain.on('clear-browsing-data', (event, targets,opt) => {
   console.log(targets)
   for(let target of targets){
-    m[target](session.defaultSession)
+    m[target](session.defaultSession,opt)
   }
 })
 

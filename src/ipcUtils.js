@@ -546,11 +546,11 @@ ipcMain.on('save-state',async (e,{tableName,key,val})=>{
       for(let orgId of diffArray(val,mainState[key])){
         console.log(orgId,Object.values(extInfos))
         const ext = Object.values(extInfos).find(x=>x.base_path && x.base_path.includes(orgId))
-        session.defaultSession.extensions.disable(ext.id)
+        if(ext) session.defaultSession.extensions.disable(ext.id)
       }
       for(let orgId of diffArray(mainState[key],val)){
         const ext = Object.values(extInfos).find(x=>x.base_path && x.base_path.includes(orgId))
-        session.defaultSession.extensions.enable(ext.id)
+        if(ext) session.defaultSession.extensions.enable(ext.id)
       }
     }
     else if(key == 'httpsEverywhereEnable'){
@@ -936,6 +936,7 @@ ipcMain.on('get-on-dom-ready',(e,tabId,tabKey,rSession)=>{
     e.sender.send(`get-on-dom-ready-reply_${tabId}`,null)
     return
   }
+  saveTabState(cont, rSession, tabKey)
   if(mainState.flash) cont.authorizePlugin(mainState.flash)
 
   let currentEntryIndex,entryCount = cont.getEntryCount()
@@ -962,6 +963,7 @@ ipcMain.on('get-update-title',(e,tabId,tabKey,rSession)=>{
     e.sender.send(`get-update-title-reply_${tabId}`,null)
     return
   }
+  saveTabState(cont, rSession, tabKey)
 
   let currentEntryIndex,entryCount = cont.getEntryCount()
   if(rSession){
@@ -1088,53 +1090,53 @@ ipcMain.on('get-navbar-menu-order',e=>{
   e.returnValue = mainState.navbarItems
 })
 
+function saveTabState(cont, rSession, tabKey, noUpdate) {
+  let histNum = cont.getEntryCount(),
+    currentIndex = cont.getCurrentEntryIndex(),
+    historyList = []
+  const urls = [], titles = []
+  if (!rSession) {
+    for (let i = 0; i < histNum; i++) {
+      const url = cont.getURLAtIndex(i)
+      const title = cont.getTitleAtIndex(i)
+      urls.push(url)
+      titles.push(title)
+      historyList.push([url, title])
+    }
+    if (currentIndex > -1 && !noUpdate) {
+      tabState.update({tabKey}, { tabKey,titles: titles.join("\t"),urls: urls.join("\t"),currentIndex,updated_at: Date.now() }, {upsert: true})
+    }
+  }
+  else {
+    if (histNum > (prevCount[tabKey] || 1) && currentIndex == histNum - 1) {
+      const url = cont.getURLAtIndex(currentIndex)
+      const title = cont.getTitleAtIndex(currentIndex)
+      rSession.urls = rSession.urls.slice(0, rSession.currentIndex + 1)
+      rSession.urls.push(url)
+      rSession.titles = rSession.titles.slice(0, rSession.currentIndex + 1)
+      rSession.titles.push(title)
+      rSession.currentIndex = rSession.urls.length - 1
+      if (currentIndex > -1 && !noUpdate) {
+        tabState.update({tabKey}, {$set: { titles: rSession.titles.join("\t"),urls: rSession.urls.join("\t"),currentIndex: rSession.currentIndex,updated_at: Date.now() } })
+      }
+    }
+    if (currentIndex > -1 && !noUpdate) {
+      tabState.update({tabKey}, {$set: {currentIndex: rSession.currentIndex, updated_at: Date.now()}})
+    }
+    historyList = rSession.urls.map((x, i) => [x, rSession.titles[i]])
+    currentIndex = rSession.currentIndex
+  }
+  if(!noUpdate) prevCount[tabKey] = histNum
+  return {currentIndex, historyList}
+}
+
 ipcMain.on('get-cont-history',(e,tabId,tabKey,rSession)=>{
   const cont = webContents.fromTabID(tabId)
   if(!cont){
     e.sender.send(`get-cont-history-reply_${tabId}`)
     return
   }
-  let histNum = cont.getEntryCount(),
-    currentIndex = cont.getCurrentEntryIndex(),
-    historyList = []
-  const urls = [],titles = []
-  if(!rSession){
-    for(let i=0;i<histNum;i++){
-      const url = cont.getURLAtIndex(i)
-      const title = cont.getTitleAtIndex(i)
-      urls.push(url)
-      titles.push(title)
-      historyList.push([url,title])
-    }
-    if(currentIndex > -1){
-      tabState.update({tabKey},{tabKey,titles:titles.join("\t"),urls:urls.join("\t"),currentIndex, updated_at: Date.now()},{ upsert: true })
-    }
-  }
-  else{
-    if(histNum > (prevCount[tabKey] || 1) && currentIndex == histNum - 1){
-      const url = cont.getURLAtIndex(currentIndex)
-      const title = cont.getTitleAtIndex(currentIndex)
-      rSession.urls = rSession.urls.slice(0,rSession.currentIndex+1)
-      rSession.urls.push(url)
-      rSession.titles = rSession.titles.slice(0,rSession.currentIndex+1)
-      rSession.titles.push(title)
-      rSession.currentIndex = rSession.urls.length - 1
-      if(currentIndex > -1) {
-        tabState.update({tabKey}, {$set:{
-          titles: rSession.titles.join("\t"),
-          urls: rSession.urls.join("\t"),
-          currentIndex: rSession.currentIndex,
-          updated_at: Date.now()
-        }})
-      }
-    }
-    if(currentIndex > -1) {
-      tabState.update({tabKey}, {$set:{currentIndex: rSession.currentIndex, updated_at: Date.now()}})
-    }
-    historyList = rSession.urls.map((x,i)=>[x,rSession.titles[i]])
-    currentIndex = rSession.currentIndex
-  }
-  prevCount[tabKey] = histNum
+  let {currentIndex, historyList} = saveTabState(cont, rSession, tabKey, true);
   e.sender.send(`get-cont-history-reply_${tabId}`,currentIndex,historyList,rSession,mainState.disableExtensions,mainState.adBlockEnable,mainState.pdfMode,mainState.navbarItems)
 })
 ipcMain.on('get-session-sequence',e=> {

@@ -1,310 +1,391 @@
-commit 823bcc4ab0d2ca3b9f3da282f0e6bd7b342b7d94
+commit 450b4f467f9551a81ad6685129f27bb2c9899b58
 Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-AuthorDate: 2017-05-17
+AuthorDate: 2017-10-17
 Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-CommitDate: 2017-05-17
+CommitDate: 2017-10-17
 
-    Bump up version number to 1.32.0
+    Fix sphinx warnings
 
-commit d56ec91cd4cf55b373e4fb6ba28712913d57d03b
+commit 9a38c735831c4eccffef01e7623e9dfefd6504c3
 Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-AuthorDate: 2017-05-17
+AuthorDate: 2017-10-17
 Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-CommitDate: 2017-05-17
+CommitDate: 2017-10-17
 
     Update NEWS
 
-commit 315218a3b21c3721479e0e5fd057067d5da71404
+commit 2a8a63dd3d0ab98bca93f21ed9baeb1a8eec2185
 Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-AuthorDate: 2017-05-17
+AuthorDate: 2017-10-17
 Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-CommitDate: 2017-05-17
+CommitDate: 2017-10-17
 
-    Update third-party libraries for binary releases
+    Update bash_completion
 
-commit 442b2bcbdc59dcff4b8e4b87438ec39f71fae06a
+commit 657875e1fde44b22c45ab7b2def846ba4118e594
 Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-AuthorDate: 2017-05-17
+AuthorDate: 2017-10-17
 Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-CommitDate: 2017-05-17
+CommitDate: 2017-10-17
+
+    Bump up version number to 1.33.0
+
+commit 1d10b5796d379127cecac115f526cac6acf82891
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-10-17
+Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+CommitDate: 2017-10-17
 
     Update AUTHORS
 
-commit c90ff13d82c7712bb9620e67ea3f9539afd93628
-Merge: e665ef8f a52a2d84
+commit 5a2a032bd089e93704f168cf080fada20d2b50cf
 Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-AuthorDate: 2017-05-10
-Commit:     GitHub <noreply@github.com>
-CommitDate: 2017-05-10
+AuthorDate: 2017-10-17
+Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+CommitDate: 2017-10-17
 
-    Merge pull request #910 from ITriskTI/master
+    Include arm in a filename of android zip
+
+commit 42206456a996dbf0370f686acd75f9acaa3ee9e5
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-10-17
+Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+CommitDate: 2017-10-17
+
+    android: Update third-party libraries
+
+commit a4f9a1800de90f393ae2a0f17b299e3ceb700a96
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-10-17
+Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+CommitDate: 2017-10-17
+
+    mingw: Update third-party libraries
+
+commit b0630b1061c41da40378643df670895af944b0df
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-10-12
+Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+CommitDate: 2017-10-12
+
+    Upgrade base image of Dockerfile.mingw to ubuntu:16.04
+
+commit db639dcc9896a2f5db6c9db0973ae7df94af007d
+Merge: 64fe98a1 8b32b268
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-10-07
+Commit:     GitHub <noreply@github.com>
+CommitDate: 2017-10-07
+
+    Merge pull request #1021 from aria2/fix-win-tls-read
+    
+    wintls: Potential fix for undecrypted read
+
+commit 8b32b2682807cd453d0fa99d5af6c0fadf7fadba
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-10-07
+Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+CommitDate: 2017-10-07
+
+    wintls: Potential fix for undecrypted read
+
+commit 64fe98a1ea7f0cfe19eb30e2396f3e0cbe262927
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-10-07
+Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+CommitDate: 2017-10-07
+
+    clang-format
+
+commit 31a2f5cd1b1293c0d08efb38a0b9cfff0df38976
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-09-21
+Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+CommitDate: 2017-09-21
+
+    doc: Remove outdated text
+
+commit fce8909506ef2e07632f9000585a4d788b7c2681
+Merge: 1fe6cc73 0c62ae61
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-08-30
+Commit:     GitHub <noreply@github.com>
+CommitDate: 2017-08-30
+
+    Merge pull request #999 from aria2/fix-libaria2-getErrorCode
+    
+    libaria2: Return last error code from DownloadHandle::getErrorCode
+
+commit 0c62ae615d21ec6739f9a2f63fe5965b13962a7f
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-08-30
+Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+CommitDate: 2017-08-30
+
+    libaria2: Return last error code from DownloadHandle::getErrorCode
+
+commit 1fe6cc73563c3804a0c70947aa76fd50650f1abb
+Author:     Nils Maier <maierman@web.de>
+AuthorDate: 2017-07-31
+Commit:     Nils Maier <maierman@web.de>
+CommitDate: 2017-08-28
+
+    Windows: pass writefds also as exceptfds to select()
+    
+    winsock notifies connect() failures on exceptfds instead of writefds.
+    Fixes GH-969
+    Fixes GH-975
+
+commit 527093acc72945a34fb01de970bae8d203b7928e
+Merge: 2cfe1920 63c4ab14
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-08-05
+Commit:     GitHub <noreply@github.com>
+CommitDate: 2017-08-05
+
+    Merge pull request #970 from qweaszxcdf/patch-1
+    
+    Update Dockerfile.mingw
+
+commit 2cfe19205b04cc233f94f355f8e6c944405a8c6a
+Author:     Nils Maier <maierman@web.de>
+AuthorDate: 2017-07-26
+Commit:     Nils Maier <maierman@web.de>
+CommitDate: 2017-07-31
+
+    libuv: use pkg-config
+
+commit 086500cc21aaac6b8db6a1c35efa5fd070271cf7
+Author:     Nils Maier <maierman@web.de>
+AuthorDate: 2017-07-26
+Commit:     Nils Maier <maierman@web.de>
+CommitDate: 2017-07-31
+
+    FeatureConfig: align text
+
+commit 63c4ab14f7d3858a189e8fa68075c763e1616bfa
+Author:     qweaszxcdf <qweaszxcdf@users.noreply.github.com>
+AuthorDate: 2017-07-26
+Commit:     GitHub <noreply@github.com>
+CommitDate: 2017-07-26
+
+    Update Dockerfile.mingw
+    
+    avoid docker cache when using git
+
+commit 94a47ec42802c1adc06b57fee92992a79baf6b1b
+Merge: 1f187d1d 04ba8107
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-07-13
+Commit:     GitHub <noreply@github.com>
+CommitDate: 2017-07-13
+
+    Merge pull request #960 from ITriskTI/patch-1
     
     Update aria2c.rst
 
-commit a52a2d84375f78abf021f3a24d0dc1c232e6fb77
-Author:     it-0x21-rr <it-0x21-rr@ns-5-04.usr>
-AuthorDate: 2017-05-10
-Commit:     it-0x21-rr <it-0x21-rr@ns-5-04.usr>
-CommitDate: 2017-05-10
+commit 04ba8107fc6bb162df76eb2e3f1de68c2a654704
+Author:     ITriskTI <ITriskTI@gmail.com>
+AuthorDate: 2017-07-12
+Commit:     ITriskTI <ITriskTI@gmail.com>
+CommitDate: 2017-07-12
 
     Update aria2c.rst
 
-commit e665ef8f3eb4153dcb5766160fa11276d4829478
-Merge: 5eb1f2c5 9ac47a62
+commit 1f187d1dec49011e1e711c58184d743c81a88905
+Merge: 88ab6ba2 b9c685bb
 Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-AuthorDate: 2017-05-09
+AuthorDate: 2017-07-12
 Commit:     GitHub <noreply@github.com>
-CommitDate: 2017-05-09
+CommitDate: 2017-07-12
 
-    Merge pull request #907 from aria2/clarify-max-concurrent-downloads
+    Merge pull request #947 from kkartaltepe/bt-ext-hs
     
-    Clarify --max-concurrent-downloads option
+    [WIP] Add option for bt extended handshake version/user agent string
 
-commit 5eb1f2c574351e95abc6aa0066771b72f791a853
-Merge: 63ad6e00 fe2226b9
+commit b9c685bbbc9e40e1c8e8a9305b2bca2c805d2b13
+Author:     Kurt Kartaltepe <kkartaltepe@gmail.com>
+AuthorDate: 2017-07-11
+Commit:     Kurt Kartaltepe <kkartaltepe@gmail.com>
+CommitDate: 2017-07-11
+
+    Add documentation for --peer-agent
+
+commit a3bacc0ff183e22abed17d44ee7c524b7e4bae56
+Author:     Kurt Kartaltepe <kkartaltepe@gmail.com>
+AuthorDate: 2017-06-23
+Commit:     Kurt Kartaltepe <kkartaltepe@gmail.com>
+CommitDate: 2017-07-11
+
+    Add --peer-agent option
+    
+    Add --peer-agent for setting the version/user agent used in the extended
+    handshake protocol for bittorrent.
+
+commit 88ab6ba23c027bb6df7bfdeb5c244bb30344503b
+Merge: 97297390 4e656cc9
 Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-AuthorDate: 2017-05-08
+AuthorDate: 2017-07-09
 Commit:     GitHub <noreply@github.com>
-CommitDate: 2017-05-08
+CommitDate: 2017-07-09
 
-    Merge pull request #906 from aria2/fix-compile-error
+    Merge pull request #956 from tsekityam/patch-2
     
-    Fix compile error with toolchain which lacks IPV6_TCLASS
+    Update copyright year to 2017
 
-commit 9ac47a62b4952175b23697d7ca04b6f5a912c357
-Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-AuthorDate: 2017-05-08
-Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-CommitDate: 2017-05-08
-
-    Clarify --max-concurrent-downloads option
-
-commit fe2226b988c96c2380686b6a68665fd830445ddd
-Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-AuthorDate: 2017-05-08
-Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-CommitDate: 2017-05-08
-
-    Fix compile error with toolchain which lacks IPV6_TCLASS
-
-commit 63ad6e00725b40d48c784b9451fbc13716fa9ac8
-Merge: 3cbc83dc e07356a5
-Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-AuthorDate: 2017-05-08
-Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-CommitDate: 2017-05-08
-
-    Merge branch 'tsekityam-master'
-
-commit e07356a502fc7bad3cfefb27a0077625ea93a7bf
-Author:     Tse Kit Yam <me@kytse.com>
-AuthorDate: 2017-05-03
-Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-CommitDate: 2017-05-08
-
-    Fix typo
-    
-    Although I haven’t checked the code, I believe `unpauseAll` only works
-    on paused downloads.
-
-commit 3cbc83dc07ccb4b990d828c0c2d4252ce51a0683
-Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-AuthorDate: 2017-04-29
-Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-CommitDate: 2017-04-29
-
-    Update doc
-
-commit a28396065e3ab0ef6c1379f944088e6da48f5ce7
-Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-AuthorDate: 2017-04-16
-Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-CommitDate: 2017-04-16
-
-    Fix broken text formatting
-
-commit 79a20e046f3abb53643682dc2efb3096cf550799
-Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-AuthorDate: 2017-04-15
-Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-CommitDate: 2017-04-15
-
-    Fix typo
-
-commit e441cf05755ca783f245cf8012f419979bbd85d2
-Merge: 1d77985a c7a13f93
-Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-AuthorDate: 2017-04-13
-Commit:     GitHub <noreply@github.com>
-CommitDate: 2017-04-13
-
-    Merge pull request #885 from aria2/notice-log-level-redirection-uri
-    
-    Log directed URI in notice log level
-
-commit c7a13f934cf690a15cff4daece8eec6ead10a08d
-Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-AuthorDate: 2017-04-09
-Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-CommitDate: 2017-04-09
-
-    Log directed URI in notice log level
-
-commit 1d77985abd809ac18e875020854d1e4d1fd09630
-Merge: b51e5814 1e8cf515
-Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-AuthorDate: 2017-04-02
-Commit:     GitHub <noreply@github.com>
-CommitDate: 2017-04-02
-
-    Merge pull request #879 from tsekityam/patch-1
-    
-    Fix typo
-
-commit 1e8cf5151e59d04e7b13033e01da435c452daeeb
+commit 4e656cc9047fa1111d80968110018c6073d3b3e1
 Author:     Tse Kit Yam <tsekityam@users.noreply.github.com>
-AuthorDate: 2017-04-01
+AuthorDate: 2017-07-08
 Commit:     GitHub <noreply@github.com>
-CommitDate: 2017-04-01
+CommitDate: 2017-07-08
 
-    Fix typo
+    Update copyright year to 2017
 
-commit b51e5814f1786cb80a36a97d1f360020dcd71ff9
-Merge: f0adbde2 aa5567d7
+commit 97297390f6aed9e24d20e23a6a06b472f04698b3
+Author:     Nils Maier <maierman@web.de>
+AuthorDate: 2017-06-28
+Commit:     Nils Maier <maierman@web.de>
+CommitDate: 2017-06-28
+
+    OSX: Allow to specify a build
+
+commit 87509f2afa85ab29c6253891c4e37fe03b914f8d
+Author:     Nils Maier <maierman@web.de>
+AuthorDate: 2017-06-28
+Commit:     Nils Maier <maierman@web.de>
+CommitDate: 2017-06-28
+
+    OSX: update c-ares
+    
+    Fixes #950
+
+commit c74ffa28c29daded3c23c8787026077f3ee60ae4
+Merge: 54ccab8c 7f853c53
 Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-AuthorDate: 2017-03-21
+AuthorDate: 2017-06-18
 Commit:     GitHub <noreply@github.com>
-CommitDate: 2017-03-21
+CommitDate: 2017-06-18
 
-    Merge pull request #870 from ka7/feature/spelling
+    Merge pull request #941 from geetam/master
     
-    Feature/spelling
+    [Docs, libaria2] Fix type of obj pushed into options vector
 
-commit aa5567d774692e54cb0c6761a34f9d84faccc8f7
-Author:     klemens <ka7@github.com>
-AuthorDate: 2017-03-20
-Commit:     klemens <ka7@github.com>
-CommitDate: 2017-03-20
-
-    spelling fixes
-
-commit ec2ce4ffe5ca6af1a509dcd5a4d8bf0d5644401d
-Author:     klemens <ka7@github.com>
-AuthorDate: 2017-03-20
-Commit:     klemens <ka7@github.com>
-CommitDate: 2017-03-20
-
-    spelling fixes
-
-commit f0adbde2e6bd46eef13367dc564524c70c0c3916
-Merge: 7db393ec 68edbb35
-Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-AuthorDate: 2017-03-19
+commit 7f853c53dc8d2225ec9e1927c60f059c166039dd
+Author:     geetam <geetam.chawla@gmail.com>
+AuthorDate: 2017-06-17
 Commit:     GitHub <noreply@github.com>
-CommitDate: 2017-03-19
+CommitDate: 2017-06-17
 
-    Merge pull request #868 from fornwall/android-cleanup
+    [Docs, libaria2] Fix type of obj pushed into options vector
     
-    Remove unused Android parts
+    aria::KeyVals is a vector of pair of std strings, therefore the type of object being pushed should be std::pair<std::string, std::string>,
+    however in the docs, the type of the said object is KeyVals.
+    If one follows the docs, their code will fail to compile.
 
-commit 68edbb358c49d9a4aa7690b14dc904a0fc166844
-Author:     Fredrik Fornwall <fredrik@fornwall.net>
-AuthorDate: 2017-03-18
-Commit:     Fredrik Fornwall <fredrik@fornwall.net>
-CommitDate: 2017-03-18
+commit 54ccab8ccbcbf8eeeb6b05920d6cbd3db77d721a
+Author:     Nils Maier <maierman@web.de>
+AuthorDate: 2017-06-15
+Commit:     Nils Maier <maierman@web.de>
+CommitDate: 2017-06-15
 
-    Remove unused Android parts
-    
-    These parts where unused after merging https://github.com/aria2/aria2/pull/736
+    AppleTLS: Silence cipher suite selection
 
-commit 7db393ec3dca29c905e9fe257a8756879be692f6
-Merge: 9eff8100 bfc54d0b
+commit 5cd3802a4bae5c3c4c21d695b03f3979fa2896c7
+Author:     Nils Maier <maierman@web.de>
+AuthorDate: 2017-06-15
+Commit:     Nils Maier <maierman@web.de>
+CommitDate: 2017-06-15
+
+    Unbreak build OSX build
+
+commit 3468d416b72667ab3d98078b0d1ee44ad2f94a66
+Author:     Nils Maier <maierman@web.de>
+AuthorDate: 2017-06-15
+Commit:     Nils Maier <maierman@web.de>
+CommitDate: 2017-06-15
+
+    Update macOS versions
+
+commit 4272f3ff0a69a205dce31128973bf11f01131694
+Merge: e3b6460d bafd26ed
 Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-AuthorDate: 2017-03-05
-Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-CommitDate: 2017-03-05
-
-    Merge branch 'save-control-file-early'
-
-commit bfc54d0b9a694e5d87efd8ed11b5393bc4b66f93
-Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-AuthorDate: 2017-03-02
-Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-CommitDate: 2017-03-02
-
-    Save control file early
-
-commit 9eff8100ef28ccda14161a35628c51063cf66f66
-Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-AuthorDate: 2017-03-02
-Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-CommitDate: 2017-03-02
-
-    Refactor
-
-commit 924e115e3e1c49ac7d9eab4389dc627da0bbf9b7
-Merge: 6289aafa 0cee6f5a
-Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-AuthorDate: 2017-03-02
+AuthorDate: 2017-05-24
 Commit:     GitHub <noreply@github.com>
-CommitDate: 2017-03-02
+CommitDate: 2017-05-24
 
-    Merge pull request #860 from mlesniew/update_raspberry_pi_dockerfile
+    Merge pull request #921 from ITriskTI/patch-1
     
-    Update links in Dockerfile.raspberrypi
+    Update aria2c.rst
 
-commit 6289aafaf850e854e5b03710726db984df7cf82b
+commit bafd26ed57e4b30536abaa9afd845f8ab0693036
+Author:     ITriskTI <ITriskTI@gmail.com>
+AuthorDate: 2017-05-22
+Commit:     ITriskTI <ITriskTI@gmail.com>
+CommitDate: 2017-05-22
+
+    Update aria2c.rst
+
+commit e3b6460d073e02a5040e151f08bf7c85c66c75c3
+Merge: 9f50d735 2b81eb09
 Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-AuthorDate: 2017-03-02
+AuthorDate: 2017-05-22
 Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-CommitDate: 2017-03-02
+CommitDate: 2017-05-22
 
-    Increase backlog to 1024
+    Merge branch 'bt-load-saved-metadata'
 
-commit 0cee6f5a34f0fe9089fb06bca62bbcea6d1a654f
-Author:     Michał Leśniewski <mlesniew@gmail.com>
-AuthorDate: 2017-03-01
-Commit:     Michał Leśniewski <mlesniew@gmail.com>
-CommitDate: 2017-03-02
+commit 2b81eb09d47a39f9c0476d77c09526cbbb136451
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-05-20
+Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+CommitDate: 2017-05-22
 
-    Update links in Dockerfile.raspberrypi
+    Document --bt-load-saved-metadata
+
+commit 9deb4210b2c94446126e66c7994d745643cd39c9
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-05-20
+Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+CommitDate: 2017-05-22
+
+    Add --bt-load-saved-metadata option
     
-    Some links used in Dockerfile.raspberrypi are not accessible anymore,
-    because they were pointing to old versions of some source packages and
-    new versions were released.  This commit fixes this by changing the
-    links to point to the newest versions.
+    Before getting torrent metadata from DHT when downloading with magnet
+    link, first try to read file saved by --bt-save-metadata option. If it
+    is successful, then skip downloading metadata from DHT.  By default,
+    this feature is turned off.
 
-commit 147c68f4bc3b7b4285cf0007632830d5f5b63f7d
-Merge: 857d6a2a 8fc0c851
+commit 9f50d7353caa375cb49c16c107799d4741934787
+Merge: 8785342f 3cfea3c7
 Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-AuthorDate: 2017-02-26
-Commit:     GitHub <noreply@github.com>
-CommitDate: 2017-02-26
+AuthorDate: 2017-05-21
+Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+CommitDate: 2017-05-21
 
-    Merge pull request #857 from aria2/fix-disk-full-error
+    Merge branch 'dont-save-control-file'
+
+commit 3cfea3c724f917869730b19f09f7161251aa3155
+Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+AuthorDate: 2017-05-20
+Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+CommitDate: 2017-05-20
+
+    Fix regression in bfc54d0b9a694e5d87efd8ed11b5393bc4b66f93
     
-    Propagate disk full error on pre-allocation to last error code
+    Don't save control file if --auto-save-interval is 0.
 
-commit 8fc0c85125fc4d30decdedd4c1f454999397406a
+commit 8785342f8555992327f1ab0f7060c7e69dde5fd2
 Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-AuthorDate: 2017-02-23
+AuthorDate: 2017-05-20
 Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-CommitDate: 2017-02-23
+CommitDate: 2017-05-20
 
-    Propagate disk full error on pre-allocation to last error code
+    Fix infinite loop bug when file is not found
 
-commit 857d6a2a8e924618d37e75e6eda5e008a431cc48
+commit 967758633690a7ffb8b9e12e282a89d0399994af
 Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-AuthorDate: 2017-01-23
+AuthorDate: 2017-05-19
 Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-CommitDate: 2017-01-23
+CommitDate: 2017-05-19
 
-    Fix compiler warning with Android NDK clang
-
-commit 13b2c4a0f93bc8345e80fcc7030f90e0530d6734
-Author:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-AuthorDate: 2017-01-23
-Commit:     Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
-CommitDate: 2017-01-23
-
-    Compile using Android NDK clang
+    clang-format-4.0

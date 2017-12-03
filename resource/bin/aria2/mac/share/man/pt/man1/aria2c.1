@@ -1,6 +1,6 @@
 .\" Man page generated from reStructuredText.
 .
-.TH "ARIA2C" "1" "jun 28, 2017" "1.32.0" "aria2"
+.TH "ARIA2C" "1" "nov 01, 2017" "1.33.0" "aria2"
 .SH NAME
 aria2c \- Utilitário para download super ultra rápido
 .
@@ -32,7 +32,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 ..
 .SH SINOPSE
 .sp
-\fBaria2c\fP [<OPÇÕES>] [<URI>|<MAGNET>|<ARQUIVO_TORRENT>|<ARQUIVO_METALINK>] ...
+\fBaria2c\fP [<OPÇÕES>] [<URI>|<MAGNET>|<ARQUIVO_TORRENT>|<ARQUIVO_METALINK>] …
 .SH DESCRIÇÃO
 .sp
 \fBAVISO:\fP
@@ -73,13 +73,13 @@ Adicionalmente, diversas opções podem ser especificadas após cada linha de UR
 Esta(s) linha(s) opcional(is) deve(m) começar(em) com um ou mais espaços em
 branco e possuir(em) apenas uma opção por linha.
 Ver subseção \fI\%Arquivo de Entrada\fP para mais detalhes.
-Ver também opção \fB\-\-deferred\-input\fP\&.
+Ver também opção \fI\%\-\-deferred\-input\fP\&.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-l, \-\-log=<LOG>
 O nome do arquivo de log. Se \fB\-\fP for especificado (entrada padrão), log é
-gravado em stdout (saída padrão). Se uma string vazia("") é especificada, log
+gravado em stdout (saída padrão). Se uma string vazia(“”) é especificada, log
 não será gravado em arquivo.
 .UNINDENT
 .INDENT 0.0
@@ -91,7 +91,7 @@ Padrão: \fB5\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-V, \-\-check\-integrity[=true|false]
+.B \-V, \-\-check\-integrity [true|false]
 Verifica a integridade do arquivo validando pedaços hashes ou um hash do
 arquivo inteiro.  Essa opção tem efeito só em downloads BitTorrent, Metalink
 com checksums ou HTTP, HTTPS e FTP com a opção \fI\%\-\-checksum\fP\&. Se pedaços
@@ -106,7 +106,7 @@ Padrão:
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-c, \-\-continue[=true|false]
+.B \-c, \-\-continue [true|false]
 Continua o download a partir de um download parcial, anteriormente
 interrompido.  Use esta opção para retormar um download iniciado a partir
 de um browser (navegador) ou outro programa que faz baixa de arquivos
@@ -131,7 +131,7 @@ Padrão: \fB#basic\fP
 .TP
 .B \-\-all\-proxy=<PROXY>
 Usar este servidor proxy para todos protocolos.  Para limpar proxy
-previamente definido, use "".  Esta configuração pode ser sobreposta através
+previamente definido, use “”.  Esta configuração pode ser sobreposta através
 da especificação de um servidor proxy para um determinado protocolo usando
 opções \fI\%\-\-http\-proxy\fP, \fI\%\-\-https\-proxy\fP e \fI\%\-\-ftp\-proxy\fP\&.
 Isto afeta todas as URIs.
@@ -143,7 +143,7 @@ Ver também seção \fI\%VARIÁVEIS DE AMBIENTE\fP  section.
 .INDENT 3.5
 Se usuário e senha são embutidos na URI do proxy eles também podem ser
 especificados através das opções
-\fI\-\-{http,https,ftp,all}\-proxy\-{usuário,senha}\fP,
+\fI–{http,https,ftp,all}\-proxy\-{usuário,senha}\fP,
 aqueles que aparecerem por último assumem a precedência.
 Por exemplo, quando temos:
 \fBhttp\-proxy\-user=meunome\fP, \fBhttp\-proxy\-passwd=minhasenha\fP
@@ -194,7 +194,7 @@ Padrão: \fB60\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-dry\-run[=true|false]
+.B \-\-dry\-run [true|false]
 Se \fBtrue\fP é informado, aria2 apenas verifica se o arquivo remoto está
 disponível para download dos dados. Esta opção tem efeito em downloads de
 servidores HTTP, HTTPS e FTP.  Downloads de BitTorrent serão cancelados se for
@@ -220,7 +220,7 @@ Padrão: \fB1\fP
 .INDENT 0.0
 .TP
 .B \-\-max\-file\-not\-found=<NÚMERO>
-Se aria2 recebe çódigo de retorno "arquivo não encontrado" de um servidor
+Se aria2 recebe çódigo de retorno “arquivo não encontrado” de um servidor
 remoto de HTTP / FTP um NÚMERO de vezes sem obter nenhum byte, então o
 download é forçado a falhar.
 Especificar \fB0\fP para desabilitar esta opção. Esta opção só é válida
@@ -249,7 +249,7 @@ Padrão: \fB20M\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-n, \-\-no\-netrc[=true|false]
+.B \-n, \-\-no\-netrc [true|false]
 Desabilita suporte netrc.
 Padrão: Suporte a netrc é habilitado por padrão.
 .sp
@@ -261,7 +261,7 @@ arquivo netrc é lido somente no início se a opção \fI\%\-\-no\-netrc\fP é
 Portanto se a opção \fI\%\-\-no\-netrc\fP é \fBtrue\fP no início, não haverá
 netrc disponível durante toda a sessão, mesmo que seja utilizada a opção
 \fI\%aria2.changeGlobalOption()\fP para executar a opção :option:
-\fI\-\-no\-netrc=false <\-n>\fP\&.
+\fI–no\-netrc=false <\-n>\fP\&.
 .
 .UNINDENT
 .UNINDENT
@@ -319,14 +319,14 @@ Padrão: \fBget\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-R, \-\-remote\-time[=true|false]
+.B \-R, \-\-remote\-time [true|false]
 Recuperar timestamp do arquivo remoto a partir do servidor remoto HTTP / FTP
 e se disponível, aplicá\-lo ao arquivo local.
 Padrão: \fBfalse\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-reuse\-uri[=true|false]
+.B \-\-reuse\-uri [true|false]
 Reutilizar uma URI já utilizada. Se não habilitada as URIs já utilizadas serão
 abandonadas.
 Padrão: \fBtrue\fP
@@ -396,7 +396,7 @@ reasonable default behaviour because establishing connection is an
 expensive operation.  If \fBinorder\fP is given, aria2 selects piece
 which has minimum index. Index=0 means first of the file. This will
 be useful to view movie while downloading it.
-\fB\-\-enable\-http\-pipelining\fP option may
+\fI\%\-\-enable\-http\-pipelining\fP option may
 be useful to reduce reconnection overhead.  Please note that aria2
 honors
 \fI\%\-\-min\-split\-size\fP option,
@@ -430,7 +430,7 @@ profile of servers mentioned in \fI\%\-\-server\-stat\-of\fP and
 the best mirrors for the first and reserved connections.  For
 supplementary ones, it returns mirrors which has not been tested
 yet, and if each of them has already been tested, returns mirrors
-which has to be tested again. Otherwise, it doesn\(aqt select anymore
+which has to be tested again. Otherwise, it doesn’t select anymore
 mirrors. Like \fBfeedback\fP, it uses a performance profile of servers.
 Padrão: \fBfeedback\fP
 .UNINDENT
@@ -442,7 +442,7 @@ Utilizar o certificado do ARQUIVO FILE para verificar os Servidores.
 O certificado precisa estar no formato PEM e pode conter múltiplos
 certificados CA.
 .sp
-Utilizar a opção \fB\-\-check\-certificate\fP para habilitar a verificação.
+Utilizar a opção \fI\%\-\-check\-certificate\fP para habilitar a verificação.
 .sp
 \fBNOTA:\fP
 .INDENT 7.0
@@ -464,14 +464,14 @@ particular.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-check\-certificate[=true|false]
+.B \-\-check\-certificate [true|false]
 Verifica se o peer esta usando o certificado especificado na opção
 \fI\%\-\-ca\-certificate\fP\&.
 Padrão: \fBtrue\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-http\-accept\-gzip[=true|false]
+.B \-\-http\-accept\-gzip [true|false]
 Envia cabeçalho requisição \fBAccept: deflate, gzip\fP e faz (inflate) se
 o servidor remoto responder com  \fBContent\-Encoding: gzip\fP ou
 \fBContent\-Encoding: deflate\fP\&.  Padrão: \fBfalse\fP
@@ -486,7 +486,7 @@ que são gzip. aria2 faz inflate destes por causa do cabeçalho de resposta.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-http\-auth\-challenge[=true|false]
+.B \-\-http\-auth\-challenge [true|false]
 Envia cabeçalho de autorização HTTP só quando requisitado pelo servidor.
 Se \fBfalse\fP é habilitado, então o cabeçalho de autorização sempre será
 enviado ao servidor.  Há uma exceção: se o nome do usuário de senha são
@@ -495,7 +495,7 @@ independente desta opção.  Padrão: \fBfalse\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-http\-no\-cache[=true|false]
+.B \-\-http\-no\-cache [true|false]
 Envia Cache\-Control: no\-cache e Pragma: cabeçalho no\-cache para evitar
 conteúdo do cache.  Se \fBfalse\fP é fornecido, esses cabeçalhos não serão
 enviados e poderá ser adicionado o cabeçalho de Cache\-Control com a diretiva
@@ -515,7 +515,7 @@ Define senha HTTP. Isto afeta todas as URIs.
 .TP
 .B \-\-http\-proxy=<PROXY>
 Usar este servidor proxy para HTTP.  Para limpar o proxy anteriormente
-definido use "".  Ver também opção \fI\%\-\-all\-proxy\fP\&.  Isto afeta todas
+definido use “”.  Ver também opção \fI\%\-\-all\-proxy\fP\&.  Isto afeta todas
 URIs.  O formato de PROXY é \fB[http://][USUÁRIO:SENHA@]SERVIDOR[:PORTA]\fP
 .UNINDENT
 .INDENT 0.0
@@ -532,7 +532,7 @@ Define o usuário para a opção \fI\%\-\-http\-proxy\fP\&.
 .TP
 .B \-\-https\-proxy=<PROXY>
 Usar este servidor proxy para HTTPS. Para limpar o proxy anteriormente,
-use "".  Ver também opção \fI\%\-\-all\-proxy\fP\&.  Isto afeta todas URIs.  O
+use “”.  Ver também opção \fI\%\-\-all\-proxy\fP\&.  Isto afeta todas URIs.  O
 formato de PROXY é \fB[https://][USUÁRIO:SENHA@]SERVIDOR[:PORTA]\fP
 .UNINDENT
 .INDENT 0.0
@@ -558,17 +558,17 @@ Ver também a opção \fI\%\-\-certificate\fP\&.
 .B \-\-referer=<REFERER>
 Define a referência. Afeta todas URIs. Se \fB*\fP é usado, cada URI requisitada é usada
 como referência (referer). Pode ser útil quando usado em conjunto com a opção
-\fB\-\-parameterized\-uri\fP\&.
+\fI\%\-\-parameterized\-uri\fP\&.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-enable\-http\-keep\-alive[=true|false]
+.B \-\-enable\-http\-keep\-alive [true|false]
 Enable HTTP/1.1 persistent connection.
 Padrão: \fBtrue\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-enable\-http\-pipelining[=true|false]
+.B \-\-enable\-http\-pipelining [true|false]
 Habilita pipelining para HTTP/1.1.
 Padrão: \fBfalse\fP
 .sp
@@ -620,7 +620,7 @@ Valores Possíveis: \fB/caminho/do/arquivo\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-use\-head[=true|false]
+.B \-\-use\-head [true|false]
 Usar método HEAD para a primeira requisição ao servidor HTTP.
 Padrão: \fBfalse\fP
 .UNINDENT
@@ -648,7 +648,7 @@ Padrão: \fBARIA2USER@\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-p, \-\-ftp\-pasv[=true|false]
+.B \-p, \-\-ftp\-pasv [true|false]
 Usar modo passivo no FTP.
 Se \fBfalse\fP é informado, o modo ativo será usado.
 Padrão: \fBtrue\fP
@@ -657,7 +657,7 @@ Padrão: \fBtrue\fP
 .TP
 .B \-\-ftp\-proxy=<PROXY>
 Usar este servidor proxy para FTP.  Para limpar definição proxy previamente
-definido, use "".  Ver também opção \fI\%\-\-all\-proxy\fP\&.
+definido, use “”.  Ver também opção \fI\%\-\-all\-proxy\fP\&.
 Isto afeta todas URIs.  O formato do PROXY é
 \fB[http://][USUÁRIO:SENHA@]SERVIDOR[:PORTA]\fP
 .UNINDENT
@@ -679,7 +679,7 @@ Padrão: \fBbinary\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-ftp\-reuse\-connection[=true|false]
+.B \-\-ftp\-reuse\-connection [true|false]
 Reutilizar conexão FTP.
 Padrão: \fBtrue\fP
 .UNINDENT
@@ -693,7 +693,7 @@ Múltiplos indíces podem ser especificados usando\-se \fB,\fP, por exemplo:
 \fB3,6\fP\&.  Também pode ser usado \fB\-\fP para especificar intervalos:
 \fB1\-5\fP\&.  Ambos podem ser usados juntos \fB,\fP e \fB\-\fP exemplo:
 \fB1\-5,8,9\fP\&.  Quando usados com a opção \-M, o índice pode variar dependendo
-das opções da query. Ver opções (\fI\-\-metalink\-*\fP).
+das opções da query. Ver opções (\fI–metalink\-*\fP).
 .sp
 \fBNOTA:\fP
 .INDENT 7.0
@@ -708,15 +708,15 @@ apropriado(s).
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-S, \-\-show\-files[=true|false]
-Imprimir a lista de arquivos do ".torrent", ".meta4" e ".metalink" e termina.
-No caso de arquivo ".torrent", informações adicionais são impressas.
+.B \-S, \-\-show\-files [true|false]
+Imprimir a lista de arquivos do “.torrent”, “.meta4” e “.metalink” e termina.
+No caso de arquivo “.torrent”, informações adicionais são impressas.
 (infohash, tamanho pedaço, etc).
 .UNINDENT
 .SS Opções Específicas de BitTorrent
 .INDENT 0.0
 .TP
-.B \-\-bt\-enable\-lpd[=true|false]
+.B \-\-bt\-enable\-lpd [true|false]
 Habilita Descobrir Peer Local.  Se indicador particular é configurado
 no torrent, aria2 não usa esta funcionalidade mesmo que \fBtrue\fP foi
 informato.
@@ -727,10 +727,10 @@ Padrão: \fBfalse\fP
 .B \-\-bt\-exclude\-tracker=<URI>[,...]
 Lista separada por vírgulas, de trackers de URI BitTorrent que devem ser
 removidas.  Pode ser usado o valor especial \fB*\fP para especificar todas
-URIs; isso irá excluir todas URIs de "announce".  Quando especificar \fB*\fP
+URIs; isso irá excluir todas URIs de “announce”.  Quando especificar \fB*\fP
 em uma linha de comando do shell, lembre\-se de forçar o escape or delimite
 com aspas, apóstrofo ou em linux com crase caracter \fI\&.
-Ver também opção :option: \(ga\-\-bt\-tracker\fP\&.
+Ver também opção :option: \(ga–bt\-tracker\fP\&.
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -741,9 +741,9 @@ IP.  ENDEREÇO\-IP deve ser um endereço IP numérico.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-bt\-hash\-check\-seed[=true|false]
+.B \-\-bt\-hash\-check\-seed [true|false]
 Se \fBtrue\fP é informado, após o check do hash usando a opção :option:
-\fI\-\-check\-integrity <\-V>\fP e o arquivo esta completo, continue o arquivo seed.
+\fI–check\-integrity <\-V>\fP e o arquivo esta completo, continue o arquivo seed.
 Se desejar verificar o arquivo e efetuar o download somente quando ele estiver
 imcompleto ou danificado, defina esta opção para \fBfalse\fP\&.  Esta opção
 só tem efeito para download de BitTorrent.
@@ -768,15 +768,15 @@ Padrão: \fB100\fP
 .TP
 .B \-\-bt\-max\-peers=<NÚMERO>
 Especificar o número máximo de peers para cada torrent.  \fB0\fP significa
-ilimitado.  Ver também a opção :option: \fI\-\-bt\-request\-peer\-speed\-limit\fP\&.
+ilimitado.  Ver também a opção :option: \fI–bt\-request\-peer\-speed\-limit\fP\&.
 Padrão: \fB55\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-bt\-metadata\-only[=true|false]
+.B \-\-bt\-metadata\-only [true|false]
 Download somente os metadados. O(s) arquivo(s) descrito(s) no(s) metadado(s)
 não será(ão) baixado(s). Esta opção só tem efeito para URI BitTorrent Magnet.
-Ver também a opção :option: \fI\-\-bt\-save\-metadata\fP\&.
+Ver também a opção :option: \fI–bt\-save\-metadata\fP\&.
 Padrão: \fBfalse\fP
 .UNINDENT
 .INDENT 0.0
@@ -803,7 +803,7 @@ TAMNHA de 1M será usado.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-bt\-remove\-unselected\-file[=true|false]
+.B \-\-bt\-remove\-unselected\-file [true|false]
 Remove os arquivos não selecionados quando o download do BitTorrent estiver
 completo. Para selecionar arquivo(s) use a opção \fI\%\-\-select\-file\fP\&.
 Se não for usada esta opção, é assumido que todos os arquivos serão
@@ -813,7 +813,7 @@ Padrão: \fBfalse\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-bt\-require\-crypto[=true|false]
+.B \-\-bt\-require\-crypto [true|false]
 Se true é informado, aria2 não aceita nem estabelece conexão com handshake de
 BitTorrent (protocolo 19BitTorrent). Em vez disso aria2 usa
 (Obfuscation handshake.
@@ -831,18 +831,18 @@ Padrão: \fB50K\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-bt\-save\-metadata[=true|false]
-Salvar metadados como arquivo ".torrent" file. Esta opção tem efeito somente
+.B \-\-bt\-save\-metadata [true|false]
+Salvar metadados como arquivo “.torrent” file. Esta opção tem efeito somente
 se URI usada é de BitTorrent Magnet.  O nome do arquivo é codificado em hash
-em hexadecimal com sufixo de ".torrent". O diretório onde será salvo o
+em hexadecimal com sufixo de “.torrent”. O diretório onde será salvo o
 o metadado, é o mesmo onde aponta o download do arquivo. Se o arquivo já
 existe, o metadado não será salvo. Ver tambémn a opção :option:
-\fI\-\-bt\-metadata\-only\fP\&.
+\fI–bt\-metadata\-only\fP\&.
 Padrão: \fBfalse\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-bt\-seed\-unverified[=true|false]
+.B \-\-bt\-seed\-unverified [true|false]
 Faz Seed do arquivo previamente baixado sem verificar os hashes dos pedaços.
 Padrão: \fBfalse\fP
 .UNINDENT
@@ -940,7 +940,7 @@ Padrão: \fB10\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-enable\-dht[=true|false]
+.B \-\-enable\-dht [true|false]
 Habilita funcionalidade DHT IPv4. Tambem habilita suporte a rastreador UDP.
 Se um identificador particular é usado em um torrente, aria2 não usa DHT
 para aquele download, mesmo que \fBtrue\fP foi informado.
@@ -948,17 +948,17 @@ Padrão: \fBtrue\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-enable\-dht6[=true|false]
+.B \-\-enable\-dht6 [true|false]
 Habilita funcionalidade DHT IPv6. Se identificador particular é usado em um
 torrent, aria2 não usa DHT para aquele download mesmo que \fBtrue\fP foi
 informado. Usar opção \fI\%\-\-dht\-listen\-port\fP para especificar número(s)
 de porta(s) para ser(em) ouvida(s). Ver também opção :option:\(ga
-\-\-dht\-listen\-addr6\(ga
+–dht\-listen\-addr6\(ga
 Padrão: \fBtrue\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-enable\-peer\-exchange[=true|false]
+.B \-\-enable\-peer\-exchange [true|false]
 Habilita extensão Peer Exchange.  Se um indicador particular é usado nesse
 torrent, essa funcionalidade será desabilitada para o download, mesmo que
 \fBtrue\fP foi informado.
@@ -1056,8 +1056,8 @@ após o download ter sido completado.
 .INDENT 0.0
 .TP
 .B \-T, \-\-torrent\-file=<TORRENT_FILE>
-O caminho para o arquivo ".torrent".  Não é obrigatório usar esta opção pois
-pode ser especificado arquivo ".torrent" sem a opção
+O caminho para o arquivo “.torrent”.  Não é obrigatório usar esta opção pois
+pode ser especificado arquivo “.torrent” sem a opção
 \fI\%\-\-torrent\-file\fP\&.
 .UNINDENT
 .SS Opções Específicas de Metalink
@@ -1083,9 +1083,9 @@ URI points to a directory, URI must end with \fB/\fP\&.
 .INDENT 0.0
 .TP
 .B \-M, \-\-metalink\-file=<METALINK_FILE>
-The file path to ".meta4" and ".metalink" file. Reads input from stdin when
+The file path to “.meta4” and “.metalink” file. Reads input from stdin when
 \fB\-\fP is specified.  You are not required to use this option because you can
-specify ".metalink" files without \fI\%\-\-metalink\-file\fP\&.
+specify “.metalink” files without \fI\%\-\-metalink\-file\fP\&.
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -1118,7 +1118,7 @@ Padrão: \fBnone\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-metalink\-enable\-unique\-protocol[=true|false]
+.B \-\-metalink\-enable\-unique\-protocol [true|false]
 If \fBtrue\fP is given and several protocols are available for a mirror in a
 metalink file, aria2 uses one of them.
 Use \fI\%\-\-metalink\-preferred\-protocol\fP option to specify
@@ -1128,21 +1128,21 @@ Padrão: \fBtrue\fP
 .SS Opções específicas de RPC
 .INDENT 0.0
 .TP
-.B \-\-enable\-rpc[=true|false]
+.B \-\-enable\-rpc [true|false]
 Enable JSON\-RPC/XML\-RPC server.  It is strongly recommended to set username
 and password using \fI\%\-\-rpc\-user\fP and \fI\%\-\-rpc\-passwd\fP
 option. See also \fI\%\-\-rpc\-listen\-port\fP option.  Padrão: \fBfalse\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-pause[=true|false]
+.B \-\-pause [true|false]
 Pause o download após adicionado.  Está opção só é efetiva quando
-a opção \fB\-\-enable\-rpc=true\fP é informada.
+a opção \fI\%\-\-enable\-rpc=true\fP é informada.
 Padrão: \fBfalse\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-rpc\-allow\-origin\-all[=true|false]
+.B \-\-rpc\-allow\-origin\-all [true|false]
 Adiciona o campo de cabeçalho,  \fBAccess\-Control\-Allow\-Origin\fP,
 com o valor \fB*\fP á resposta RPC.
 Padrão: \fBfalse\fP
@@ -1153,18 +1153,18 @@ Padrão: \fBfalse\fP
 Usar o certificado no ARQUIVO para servidor RPC. O certificado
 deve estar no formato PEM.  Usar opção \fI\%\-\-rpc\-private\-key\fP
 para especificar chave particular. Usar a opção
-\fB\-\-rpc\-secure\fP para habilitar criptografia.
+\fI\%\-\-rpc\-secure\fP para habilitar criptografia.
 Usuários de \fIAppleTLS\fP precisam antes gerar o certificado próprio
 auto\-assinado através do utilitário \fBKeychain Access\fP, por ex:
 usando o assistente e tomando nota da identificação SHA\-1 do
 certificado gerado.
-Para executar o aria2c com a opção \fB\-\-rpc\-secure\fP usar
-\fI\-\-rpc\-certificate=<SHA\-1>\fP e apenas omitir a opção
+Para executar o aria2c com a opção \fI\%\-\-rpc\-secure\fP usar
+\fI–rpc\-certificate=<SHA\-1>\fP e apenas omitir a opção
 \fI\%\-\-rpc\-private\-key\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-rpc\-listen\-all[=true|false]
+.B \-\-rpc\-listen\-all [true|false]
 Listen incoming JSON\-RPC/XML\-RPC requests on all network interfaces. If false
 is given, listen only on local loopback interface.  Padrão: \fBfalse\fP
 .UNINDENT
@@ -1189,23 +1189,23 @@ Set JSON\-RPC/XML\-RPC password.
 .TP
 .B \-\-rpc\-private\-key=<FILE>
 Use the private key in FILE for RPC server.  The private key must be
-decrypted and in PEM format. Use \fB\-\-rpc\-secure\fP option to
+decrypted and in PEM format. Use \fI\%\-\-rpc\-secure\fP option to
 enable encryption. See also \fI\%\-\-rpc\-certificate\fP option.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-rpc\-save\-upload\-metadata[=true|false]
+.B \-\-rpc\-save\-upload\-metadata [true|false]
 Save the uploaded torrent or metalink metadata in the directory
 specified by \fI\%\-\-dir\fP option. The filename consists of SHA\-1
 hash hex string of metadata plus extension. For torrent, the
-extension is \(aq.torrent\(aq. For metalink, it is \(aq.meta4\(aq.  If false is
+extension is ‘.torrent’. For metalink, it is ‘.meta4’.  If false is
 given to this option, the downloads added by
 \fI\%aria2.addTorrent()\fP or \fI\%aria2.addMetalink()\fP will not be
 saved by \fI\%\-\-save\-session\fP option. Default: \fBfalse\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-rpc\-secure[=true|false]
+.B \-\-rpc\-secure [true|false]
 RPC transport will be encrypted by SSL/TLS.  The RPC clients must
 use https scheme to access the server. For WebSocket client, use wss
 scheme. Use \fI\%\-\-rpc\-certificate\fP and
@@ -1220,14 +1220,14 @@ Set JSON\-RPC/XML\-RPC user.
 .SS Opções Avançadas
 .INDENT 0.0
 .TP
-.B \-\-allow\-overwrite[=true|false]
+.B \-\-allow\-overwrite [true|false]
 Reiniciar o download desde o início se o correspondente arquivo de controle
-não existir.  Ver também a opção \fB\-\-auto\-file\-renaming\fP\&.
+não existir.  Ver também a opção \fI\%\-\-auto\-file\-renaming\fP\&.
 Padrão: \fBfalse\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-allow\-piece\-length\-change[=true|false]
+.B \-\-allow\-piece\-length\-change [true|false]
 Se \fBfalse\fP é informado, aria2 interrompe o download quando o tamanho de um
 pedaço for diferente do especificado no arquivo controle. Se \fBtrue\fP
 é informado, o download prossegue mas o progresso será perdido.
@@ -1235,7 +1235,7 @@ Padrão: \fBfalse\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-always\-resume[=true|false]
+.B \-\-always\-resume [true|false]
 Sempre continuar. Se If \fBtrue\fP é informado, aria2 sempre tentará
 retomar o download do ponto interrompido e se não for possivel o download
 será interrompido.  Se \fBfalse\fP é informado, quando todas URIs fornecidas
@@ -1247,7 +1247,7 @@ Padrão: \fBtrue\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-async\-dns[=true|false]
+.B \-\-async\-dns [true|false]
 Habilita DNS assíncrono.
 Padrão: \fBtrue\fP
 .UNINDENT
@@ -1265,7 +1265,7 @@ permissão para criá\-lo.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-auto\-file\-renaming[=true|false]
+.B \-\-auto\-file\-renaming [true|false]
 Renomear o arquivo se o mesmo já existir.
 Essa opção só funciona em download HTTP, HTTPS e FTP.
 O novo nome do arquivo terá um ponto e uma sequência (1..9999) como sufixo.
@@ -1282,7 +1282,7 @@ Padrão: \fB60\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-conditional\-get[=true|false]
+.B \-\-conditional\-get [true|false]
 Download file only when the local file is older than remote
 file. This function only works with HTTP, HTTPS,  downloads only.  It does
 not work if file size is specified in Metalink. It also ignores
@@ -1291,7 +1291,7 @@ will be ignored.  This function uses If\-Modified\-Since header to get
 only newer file conditionally. When getting modification time of
 local file, it uses user supplied filename(see \fI\%\-\-out\fP option) or
 filename part in URI if \fI\%\-\-out\fP is not specified.
-To overwrite existing file, \fB\-\-allow\-overwrite\fP is required.
+To overwrite existing file, \fI\%\-\-allow\-overwrite\fP is required.
 Padrão: \fBfalse\fP
 .UNINDENT
 .INDENT 0.0
@@ -1308,14 +1308,14 @@ Set log level to output to console.  LEVEL is either \fBdebug\fP,
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-D, \-\-daemon[=true|false]
+.B \-D, \-\-daemon [true|false]
 Run as daemon. The current working directory will be changed to \fB/\fP
 and standard input, standard output and standard error will be
 redirected to \fB/dev/null\fP\&. Padrão: \fBfalse\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-deferred\-input[=true|false]
+.B \-\-deferred\-input [true|false]
 If \fBtrue\fP is given, aria2 does not read all URIs and options from file
 specified by \fI\%\-\-input\-file\fP option at startup,
 but it reads one by one when it
@@ -1326,7 +1326,7 @@ Padrão: \fBfalse\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-disable\-ipv6[=true|false]
+.B \-\-disable\-ipv6 [true|false]
 Disable IPv6. This is useful if you have to use broken DNS and want
 to avoid terribly slow AAAA record lookup. Padrão: \fBfalse\fP
 .UNINDENT
@@ -1339,7 +1339,7 @@ grows to at most SIZE bytes. The cache storage is created for aria2
 instance and shared by all downloads. The one advantage of the disk
 cache is reduce the disk I/O because the data are written in larger
 unit and it is reordered by the offset of the file.  If hash
-checking is involved and the data are cached in memory, we don\(aqt
+checking is involved and the data are cached in memory, we don’t
 need to read them from the disk.  SIZE can include \fBK\fP or \fBM\fP
 (1K = 1024, 1M = 1024K). Default: \fB16M\fP
 .UNINDENT
@@ -1357,14 +1357,14 @@ Padrão: \fBdefault\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-enable\-async\-dns6[=true|false]
+.B \-\-enable\-async\-dns6 [true|false]
 Enable IPv6 name resolution in asynchronous DNS resolver. This
-option will be ignored when \fB\-\-async\-dns=false.\fP
+option will be ignored when \fI\%\-\-async\-dns=false.\fP
 Padrão: \fBfalse\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-enable\-mmap[=true|false]
+.B \-\-enable\-mmap [true|false]
 Map files into memory. This option may not work if the file space
 is not pre\-allocated. See \fI\%\-\-file\-allocation\fP\&.
 .sp
@@ -1384,17 +1384,17 @@ Solaris. The default value may vary depending on the system you use.
 .TP
 .B \-\-file\-allocation=<METHOD>
 Specify file allocation method.
-\fBnone\fP doesn\(aqt pre\-allocate file space. \fBprealloc\fP pre\-allocates file space
+\fBnone\fP doesn’t pre\-allocate file space. \fBprealloc\fP pre\-allocates file space
 before download begins. This may take some time depending on the size of the
 file.
 If you are using newer file systems such as ext4
 (with extents support), btrfs, xfs or NTFS(MinGW build only), \fBfalloc\fP is
 your best choice. It allocates large(few GiB)
-files almost instantly. Don\(aqt use \fBfalloc\fP with
+files almost instantly. Don’t use \fBfalloc\fP with
 legacy file systems such as ext3 and FAT32 because it takes
 almost same time as \fBprealloc\fP and it blocks aria2
 entirely until allocation finishes. \fBfalloc\fP may
-not be available if your system doesn\(aqt have
+not be available if your system doesn’t have
 \fBposix_fallocate(3)\fP function.
 \fBtrunc\fP uses \fBftruncate(2)\fP system call or
 platform\-specific counterpart to truncate a file to a specified
@@ -1405,7 +1405,7 @@ Padrão: \fBprealloc\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-force\-save[=true|false]
+.B \-\-force\-save [true|false]
 Save download with \fI\%\-\-save\-session\fP option
 even if the download is completed or removed. This may be useful to
 save BitTorrent seeding which is recognized as completed state.
@@ -1425,7 +1425,7 @@ not used, new GID is generated by aria2.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-hash\-check\-only[=true|false]
+.B \-\-hash\-check\-only [true|false]
 If \fBtrue\fP is given, after hash check using
 \fI\%\-\-check\-integrity\fP option,
 abort download whether or not download is complete.
@@ -1433,7 +1433,7 @@ Padrão: \fBfalse\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-human\-readable[=true|false]
+.B \-\-human\-readable [true|false]
 Print sizes and speed in human readable format (e.g., 1.2Ki, 3.4Mi)
 in the console readout. Padrão: \fBtrue\fP
 .UNINDENT
@@ -1448,8 +1448,8 @@ Possible Values: interface, IP address, hostname
 .INDENT 7.0
 .INDENT 3.5
 If an interface has multiple addresses, it is highly recommended to
-specify IP address explicitly. See also \fB\-\-disable\-ipv6\fP\&.  If your
-system doesn\(aqt have \fBgetifaddrs(3)\fP, this option doesn\(aqt accept interface
+specify IP address explicitly. See also \fI\%\-\-disable\-ipv6\fP\&.  If your
+system doesn’t have \fBgetifaddrs(3)\fP, this option doesn’t accept interface
 name.
 .UNINDENT
 .UNINDENT
@@ -1470,10 +1470,10 @@ downloads. Specifying 0 means no download result is kept. Padrão:
 .INDENT 0.0
 .TP
 .B \-\-max\-resume\-failure\-tries=<N>
-When used with \fB\-\-always\-resume=false,\fP aria2 downloads file from
+When used with \fI\%\-\-always\-resume=false,\fP aria2 downloads file from
 scratch when aria2 detects N number of URIs that does not support
 resume. If N is \fB0\fP, aria2 downloads file from scratch when all
-given URIs do not support resume.  See \fB\-\-always\-resume\fP option.
+given URIs do not support resume.  See \fI\%\-\-always\-resume\fP option.
 Padrão: \fB0\fP
 .UNINDENT
 .INDENT 0.0
@@ -1548,13 +1548,13 @@ Padrão: \fB1M\fP
 The possible usecase of \fI\%\-\-piece\-length\fP
 option is change the request range in one HTTP pipelined request.
 To enable HTTP pipelining use
-\fB\-\-enable\-http\-pipelining\fP\&.
+\fI\%\-\-enable\-http\-pipelining\fP\&.
 .UNINDENT
 .UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-show\-console\-readout[=true|false]
+.B \-\-show\-console\-readout [true|false]
 Show console readout. Padrão: \fBtrue\fP
 .UNINDENT
 .INDENT 0.0
@@ -1574,7 +1574,7 @@ are also allocated if they share the same piece.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-Z, \-\-force\-sequential[=true|false]
+.B \-Z, \-\-force\-sequential [true|false]
 Fetch URIs in the command\-line sequentially and download each URI in a
 separate session, like the usual command\-line download utilities.
 Padrão: \fBfalse\fP
@@ -1597,7 +1597,7 @@ option.  Padrão: \fB0\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-no\-conf[=true|false]
+.B \-\-no\-conf [true|false]
 Disable loading aria2.conf file.
 .UNINDENT
 .INDENT 0.0
@@ -1609,7 +1609,7 @@ Padrão: \fB5M\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-P, \-\-parameterized\-uri[=true|false]
+.B \-P, \-\-parameterized\-uri [true|false]
 Enable parameterized URI support.
 You can specify set of parts: \fBhttp://{sv1,sv2,sv3}/foo.iso\fP\&.
 Also you can specify numeric sequences with step counter:
@@ -1621,22 +1621,22 @@ Padrão: \fBfalse\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-q, \-\-quiet[=true|false]
+.B \-q, \-\-quiet [true|false]
 Make aria2 quiet (no console output).
 Padrão: \fBfalse\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-realtime\-chunk\-checksum[=true|false]
+.B \-\-realtime\-chunk\-checksum [true|false]
 Validate chunk of data by calculating checksum while downloading a file if
 chunk checksums are provided.
 Padrão: \fBtrue\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-remove\-control\-file[=true|false]
+.B \-\-remove\-control\-file [true|false]
 Remove control file before download. Using with
-\fB\-\-allow\-overwrite=true,\fP download always starts from
+\fI\%\-\-allow\-overwrite=true,\fP download always starts from
 scratch. This will be useful for users behind proxy server which
 disables resume.
 .UNINDENT
@@ -1678,7 +1678,7 @@ limbo.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-truncate\-console\-readout[=true|false]
+.B \-\-truncate\-console\-readout [true|false]
 Truncar a linha da console para ajustar\-se a uma linha.
 Padrão: \fBtrue\fP
 .UNINDENT
@@ -1806,7 +1806,7 @@ Tempo transcorrido (time out).
 Recurso não encontrado.
 .TP
 .B 4
-Se aria2 tentou um número especificado de vezes e obteve "recurso não encontrado".
+Se aria2 tentou um número especificado de vezes e obteve “recurso não encontrado”.
 Ver opção \fI\%\-\-max\-file\-not\-found\fP\&.
 .TP
 .B 5
@@ -1830,7 +1830,7 @@ Não há espaço em disco suficiente para os downloads.
 .TP
 .B 10
 Se o tamanho do pedaço (piece) foi diferente do arquivo de controle .aria2.
-Ver opção \fB\-\-allow\-piece\-length\-change\fP\&.
+Ver opção \fI\%\-\-allow\-piece\-length\-change\fP\&.
 .TP
 .B 11
 Se aria2 estava fazendo o download do mesmo arquivo no momento.
@@ -1839,10 +1839,10 @@ Se aria2 estava fazendo o download do mesmo arquivo no momento.
 If aria2 estava fazendo o download do mesmo, hash do torrent, no momento.
 .TP
 .B 13
-Se o arquivo já existe. Ver opção \fB\-\-allow\-overwrite\fP\&.
+Se o arquivo já existe. Ver opção \fI\%\-\-allow\-overwrite\fP\&.
 .TP
 .B 14
-Se renomer o arquivo falhou. Ver opção \fB\-\-auto\-file\-renaming\fP\&.
+Se renomer o arquivo falhou. Ver opção \fI\%\-\-auto\-file\-renaming\fP\&.
 .TP
 .B 15
 Se aria2 não pode abrir o arquivo existente.
@@ -1875,10 +1875,10 @@ Se muitos redirecionamentos ocorreram.
 Se autorização HTTP falhou.
 .TP
 .B 25
-Se aria2 não pode passar arquivo bencoded file (normalmente arq.  ".torrent").
+Se aria2 não pode passar arquivo bencoded file (normalmente arq.  “.torrent”).
 .TP
 .B 26
-Se arquivo ".torrent" estava corrompido ou inexistem informações que aria2
+Se arquivo “.torrent” estava corrompido ou inexistem informações que aria2
 necessita.
 .TP
 .B 27
@@ -1952,7 +1952,7 @@ A opção linha de comando \fI\%\-\-no\-proxy\fP sobrepõe este valor.
 Por padrão, aria2 utiliza \fB$HOME/.aria2/aria2.conf\fP como arquivo de
 configuração. Pode ser especificado o caminho do arquivo usando\-se a opção
 \fI\%\-\-conf\-path\fP\&.  Se não desejar usar a configuração de arquivo utilize
-a opção \fB\-\-no\-conf\fP\&.
+a opção \fI\%\-\-no\-conf\fP\&.
 .sp
 O arquivo de configuração é um arquivo texto e possui uma opção por linha.
 Em cada linha, deve haver um par (nome\-valor), no formato:
@@ -2023,8 +2023,8 @@ arquivo que está sendo baixado e possui o sufixo \fB\&.aria2\fP\&.
 Por exemplo,se está baixando arquivo.zip, então o arquivo de controle
 será arquivo.zip.aria2.  (Existe apenas uma exceção para essa convenção
 que é quando você está baixando um multi torrent, o arquivo de controle
-estará no "diretório topo" do torrent com o sufixo \fB\&.aria2\fP\&.  O nome do
-"diretório topo" é o valor da chave "name" no diretório "info" do arquivo
+estará no “diretório topo” do torrent com o sufixo \fB\&.aria2\fP\&.  O nome do
+“diretório topo” é o valor da chave “name” no diretório “info” do arquivo
 torrent).
 .sp
 Normalmente um arquivo controle é apagado quando o download se completa.  Se
@@ -2063,43 +2063,43 @@ URI. Estas linhas opcionais precisam iniciar com um ou mais espaços.
 .IP \(bu 2
 \fI\%all\-proxy\-user\fP
 .IP \(bu 2
-\fBallow\-overwrite\fP
+\fI\%allow\-overwrite\fP
 .IP \(bu 2
-\fBallow\-piece\-length\-change\fP
+\fI\%allow\-piece\-length\-change\fP
 .IP \(bu 2
-\fBalways\-resume\fP
+\fI\%always\-resume\fP
 .IP \(bu 2
-\fBasync\-dns\fP
+\fI\%async\-dns\fP
 .IP \(bu 2
-\fBauto\-file\-renaming\fP
+\fI\%auto\-file\-renaming\fP
 .IP \(bu 2
-\fBbt\-enable\-lpd\fP
+\fI\%bt\-enable\-lpd\fP
 .IP \(bu 2
 \fI\%bt\-exclude\-tracker\fP
 .IP \(bu 2
 \fI\%bt\-external\-ip\fP
 .IP \(bu 2
-\fBbt\-hash\-check\-seed\fP
+\fI\%bt\-hash\-check\-seed\fP
 .IP \(bu 2
 \fI\%bt\-max\-open\-files\fP
 .IP \(bu 2
 \fI\%bt\-max\-peers\fP
 .IP \(bu 2
-\fBbt\-metadata\-only\fP
+\fI\%bt\-metadata\-only\fP
 .IP \(bu 2
 \fI\%bt\-min\-crypto\-level\fP
 .IP \(bu 2
 \fI\%bt\-prioritize\-piece\fP
 .IP \(bu 2
-\fBbt\-remove\-unselected\-file\fP
+\fI\%bt\-remove\-unselected\-file\fP
 .IP \(bu 2
 \fI\%bt\-request\-peer\-speed\-limit\fP
 .IP \(bu 2
-\fBbt\-require\-crypto\fP
+\fI\%bt\-require\-crypto\fP
 .IP \(bu 2
-\fBbt\-save\-metadata\fP
+\fI\%bt\-save\-metadata\fP
 .IP \(bu 2
-\fBbt\-seed\-unverified\fP
+\fI\%bt\-seed\-unverified\fP
 .IP \(bu 2
 \fI\%bt\-stop\-timeout\fP
 .IP \(bu 2
@@ -2115,7 +2115,7 @@ URI. Estas linhas opcionais precisam iniciar com um ou mais espaços.
 .IP \(bu 2
 \fI\%checksum\fP
 .IP \(bu 2
-\fBconditional\-get\fP
+\fI\%conditional\-get\fP
 .IP \(bu 2
 \fI\%connect\-timeout\fP
 .IP \(bu 2
@@ -2123,19 +2123,19 @@ URI. Estas linhas opcionais precisam iniciar com um ou mais espaços.
 .IP \(bu 2
 \fI\%dir\fP
 .IP \(bu 2
-\fBdry\-run\fP
+\fI\%dry\-run\fP
 .IP \(bu 2
-\fBenable\-async\-dns6\fP
+\fI\%enable\-async\-dns6\fP
 .UNINDENT
 .INDENT 2.0
 .IP \(bu 2
-\fBenable\-http\-keep\-alive\fP
+\fI\%enable\-http\-keep\-alive\fP
 .IP \(bu 2
-\fBenable\-http\-pipelining\fP
+\fI\%enable\-http\-pipelining\fP
 .IP \(bu 2
-\fBenable\-mmap\fP
+\fI\%enable\-mmap\fP
 .IP \(bu 2
-\fBenable\-peer\-exchange\fP
+\fI\%enable\-peer\-exchange\fP
 .IP \(bu 2
 \fI\%file\-allocation\fP
 .IP \(bu 2
@@ -2143,7 +2143,7 @@ URI. Estas linhas opcionais precisam iniciar com um ou mais espaços.
 .IP \(bu 2
 \fI\%follow\-torrent\fP
 .IP \(bu 2
-\fBforce\-save\fP
+\fI\%force\-save\fP
 .IP \(bu 2
 \fI\%ftp\-passwd\fP
 .IP \(bu 2
@@ -2155,21 +2155,21 @@ URI. Estas linhas opcionais precisam iniciar com um ou mais espaços.
 .IP \(bu 2
 \fI\%ftp\-proxy\-user\fP
 .IP \(bu 2
-\fBftp\-reuse\-connection\fP
+\fI\%ftp\-reuse\-connection\fP
 .IP \(bu 2
 \fI\%ftp\-type\fP
 .IP \(bu 2
 \fI\%ftp\-user\fP
 .IP \(bu 2
-\fBhash\-check\-only\fP
+\fI\%hash\-check\-only\fP
 .IP \(bu 2
 \fI\%header\fP
 .IP \(bu 2
-\fBhttp\-accept\-gzip\fP
+\fI\%http\-accept\-gzip\fP
 .IP \(bu 2
-\fBhttp\-auth\-challenge\fP
+\fI\%http\-auth\-challenge\fP
 .IP \(bu 2
-\fBhttp\-no\-cache\fP
+\fI\%http\-no\-cache\fP
 .IP \(bu 2
 \fI\%http\-passwd\fP
 .IP \(bu 2
@@ -2207,7 +2207,7 @@ URI. Estas linhas opcionais precisam iniciar com um ou mais espaços.
 .IP \(bu 2
 \fI\%metalink\-base\-uri\fP
 .IP \(bu 2
-\fBmetalink\-enable\-unique\-protocol\fP
+\fI\%metalink\-enable\-unique\-protocol\fP
 .IP \(bu 2
 \fI\%metalink\-language\fP
 .IP \(bu 2
@@ -2231,25 +2231,25 @@ URI. Estas linhas opcionais precisam iniciar com um ou mais espaços.
 .IP \(bu 2
 \fI\%parameterized\-uri\fP
 .IP \(bu 2
-\fBpause\fP
+\fI\%pause\fP
 .IP \(bu 2
 \fI\%piece\-length\fP
 .IP \(bu 2
 \fI\%proxy\-method\fP
 .IP \(bu 2
-\fBrealtime\-chunk\-checksum\fP
+\fI\%realtime\-chunk\-checksum\fP
 .IP \(bu 2
 \fI\%referer\fP
 .IP \(bu 2
 \fI\%remote\-time\fP
 .IP \(bu 2
-\fBremove\-control\-file\fP
+\fI\%remove\-control\-file\fP
 .IP \(bu 2
 \fI\%retry\-wait\fP
 .IP \(bu 2
-\fBreuse\-uri\fP
+\fI\%reuse\-uri\fP
 .IP \(bu 2
-\fBrpc\-save\-upload\-metadata\fP
+\fI\%rpc\-save\-upload\-metadata\fP
 .IP \(bu 2
 \fI\%seed\-ratio\fP
 .IP \(bu 2
@@ -2265,7 +2265,7 @@ URI. Estas linhas opcionais precisam iniciar com um ou mais espaços.
 .IP \(bu 2
 \fI\%uri\-selector\fP
 .IP \(bu 2
-\fBuse\-head\fP
+\fI\%use\-head\fP
 .IP \(bu 2
 \fI\%user\-agent\fP
 .UNINDENT
@@ -2484,10 +2484,10 @@ waiting downloads:
 .INDENT 0.0
 .TP
 .B aria2.addTorrent(torrent[, uris[, options[, position]]])
-This method adds BitTorrent download by uploading ".torrent" file.
+This method adds BitTorrent download by uploading “.torrent” file.
 If you want to add BitTorrent Magnet URI, use \fI\%aria2.addUri()\fP
 method instead.  \fItorrent\fP is of type base64 which contains
-Base64\-encoded ".torrent" file.  \fIuris\fP is of type array and its
+Base64\-encoded “.torrent” file.  \fIuris\fP is of type array and its
 element is URI which is of type string. \fIuris\fP is used for
 Web\-seeding.  For single file torrents, URI can be a complete URI
 pointing to the resource or if URI ends with /, name in torrent file
@@ -2499,12 +2499,12 @@ as an integer starting from 0, the new download is inserted at
 \fIposition\fP in the waiting queue. If \fIposition\fP is not given or
 \fIposition\fP is larger than the size of the queue, it is appended at
 the end of the queue.  This method returns GID of registered
-download. If \fB\-\-rpc\-save\-upload\-metadata\fP is \fBtrue\fP, the
+download. If \fI\%\-\-rpc\-save\-upload\-metadata\fP is \fBtrue\fP, the
 uploaded data is saved as a file named hex string of SHA\-1 hash of
-data plus ".torrent" in the directory specified by \fI\%\-\-dir\fP option.  The example of filename is
+data plus “.torrent” in the directory specified by \fI\%\-\-dir\fP option.  The example of filename is
 \fB0a3893293e27ac0490424c06de4d09242215f0a6.torrent\fP\&.  If same file
 already exists, it is overwritten.  If the file cannot be saved
-successfully or \fB\-\-rpc\-save\-upload\-metadata\fP is \fBfalse\fP,
+successfully or \fI\%\-\-rpc\-save\-upload\-metadata\fP is \fBfalse\fP,
 the downloads added by this method are not saved by
 \fI\%\-\-save\-session\fP\&.
 .sp
@@ -2546,22 +2546,22 @@ The following examples add local file \fBfile.torrent\fP\&.
 .INDENT 0.0
 .TP
 .B aria2.addMetalink(metalink[, options[, position]])
-This method adds Metalink download by uploading ".metalink" file.
+This method adds Metalink download by uploading “.metalink” file.
 \fImetalink\fP is of type base64 which contains Base64\-encoded
-".metalink" file.  \fIoptions\fP is of type struct and its members are a
+“.metalink” file.  \fIoptions\fP is of type struct and its members are a
 pair of option name and value. See \fI\%Opções\fP below for more
 details.  If \fIposition\fP is given as an integer starting from 0, the
 new download is inserted at \fIposition\fP in the waiting queue. If
 \fIposition\fP is not given or \fIposition\fP is larger than the size of the
 queue, it is appended at the end of the queue.  This method returns
 array of GID of registered download.  If
-\fB\-\-rpc\-save\-upload\-metadata\fP is \fBtrue\fP, the uploaded data
+\fI\%\-\-rpc\-save\-upload\-metadata\fP is \fBtrue\fP, the uploaded data
 is saved as a file named hex string of SHA\-1 hash of data plus
-".metalink" in the directory specified by \fI\%\-\-dir\fP
+“.metalink” in the directory specified by \fI\%\-\-dir\fP
 option.  The example of filename is
 \fB0a3893293e27ac0490424c06de4d09242215f0a6.metalink\fP\&.  If same file
 already exists, it is overwritten.  If the file cannot be saved
-successfully or \fB\-\-rpc\-save\-upload\-metadata\fP is \fBfalse\fP,
+successfully or \fI\%\-\-rpc\-save\-upload\-metadata\fP is \fBfalse\fP,
 the downloads added by this method are not saved by
 \fI\%\-\-save\-session\fP\&.
 .sp
@@ -2705,7 +2705,7 @@ specified, the response contains only keys in \fIkeys\fP array. If \fIkeys\fP
 is empty or not specified, the response contains all keys.  This is
 useful when you just want specific keys and avoid unnecessary
 transfers. For example, \fBaria2.tellStatus("2089b05ecca3d829", ["gid", "status"])\fP
-returns \fIgid\fP and \(aqstatus\(aq key.  The response is of type struct and it
+returns \fIgid\fP and ‘status’ key.  The response is of type struct and it
 contains following keys. The value type is string.
 .INDENT 7.0
 .TP
@@ -2772,7 +2772,7 @@ be included in the response.
 .B \fBbelongsTo\fP
 GID of a parent download. Some downloads are a part of another
 download.  For example, if a file in Metalink has BitTorrent
-resource, the download of ".torrent" is a part of that file.  If this
+resource, the download of “.torrent” is a part of that file.  If this
 download has no parent, this key will not be included in the
 response.
 .TP
@@ -2790,7 +2790,7 @@ file. BitTorrent only. It contains following keys.
 .INDENT 7.0
 .TP
 .B \fBannounceList\fP
-List of lists of announce URI. If ".torrent" file contains announce
+List of lists of announce URI. If “.torrent” file contains announce
 and no announce\-list, announce is converted to announce\-list
 format.
 .TP
@@ -2946,7 +2946,7 @@ type struct and it contains following keys. The value type is string.
 URI
 .TP
 .B \fBstatus\fP
-\(aqused\(aq if the URI is already used. \(aqwaiting\(aq if the URI is waiting
+‘used’ if the URI is already used. ‘waiting’ if the URI is waiting
 in the queue.
 .UNINDENT
 .sp
@@ -3288,7 +3288,7 @@ download in the waiting queue and \fIoffset\fP == \-2 points the download
 before the last download, and so on. The downloads in the response are
 in reversed order.
 .sp
-For example, imagine that three downloads "A","B" and "C" are waiting
+For example, imagine that three downloads “A”,”B” and “C” are waiting
 in this order. \fBaria2.tellWaiting(0, 1)\fP returns
 \fB["A"]\fP\&. \fBaria2.tellWaiting(1, 2)\fP returns \fB["B", "C"]\fP\&.
 \fBaria2.tellWaiting(\-1, 2)\fP returns \fB["C", "B"]\fP\&.
@@ -3498,9 +3498,9 @@ The following options are available for active downloads:
 .IP \(bu 2
 \fI\%bt\-request\-peer\-speed\-limit\fP
 .IP \(bu 2
-\fBbt\-remove\-unselected\-file\fP
+\fI\%bt\-remove\-unselected\-file\fP
 .IP \(bu 2
-\fBforce\-save\fP
+\fI\%force\-save\fP
 .IP \(bu 2
 \fI\%max\-download\-limit\fP
 .IP \(bu 2
@@ -3510,12 +3510,12 @@ The following options are available for active downloads:
 For waiting or paused downloads, in addition to the above options,
 options listed in \fI\%Arquivo de Entrada\fP subsection are available,
 except for following options:
-\fBdry\-run\fP,
+\fI\%dry\-run\fP,
 \fI\%metalink\-base\-uri\fP,
 \fI\%parameterized\-uri\fP,
-\fBpause\fP,
+\fI\%pause\fP,
 \fI\%piece\-length\fP and
-\fBrpc\-save\-upload\-metadata\fP option.
+\fI\%rpc\-save\-upload\-metadata\fP option.
 This method returns \fBOK\fP for success.
 .sp
 The following examples set \fI\%max\-download\-limit\fP option to \fB20K\fP for the download
@@ -3601,11 +3601,11 @@ are available, except for following options:
 \fI\%checksum\fP,
 \fI\%index\-out\fP,
 \fI\%out\fP,
-\fBpause\fP and
+\fI\%pause\fP and
 \fI\%select\-file\fP\&.
 .sp
 Using \fI\%log\fP option, you can dynamically start logging or
-change log file. To stop logging, give empty string("") as a parameter
+change log file. To stop logging, give empty string(“”) as a parameter
 value. Note that log file is always opened in append mode. This method
 returns \fBOK\fP for success.
 .UNINDENT
@@ -4533,7 +4533,7 @@ $ aria2c \-\-max\-upload\-limit=40K arquivo.torrent
 \fBNOTA:\fP
 .INDENT 0.0
 .INDENT 3.5
-\-\-max\-upload\-limit especifica taxa máxima de transmissão (upload).
+–max\-upload\-limit especifica taxa máxima de transmissão (upload).
 .UNINDENT
 .UNINDENT
 .sp
@@ -4592,7 +4592,7 @@ $ aria2c \-T arqfile.torrent "http://serv1/arqfile" "ftp://svr2/arqfile"
 Download de arquivos múltiplos torrent com HTTP e FTP não é suportado.
 .UNINDENT
 .UNINDENT
-.SS Download arquivos selecionados usando index(chamado "download seletivo")
+.SS Download arquivos selecionados usando index(chamado “download seletivo”)
 .INDENT 0.0
 .INDENT 3.5
 .sp
@@ -4633,8 +4633,8 @@ idx|path/length
 .UNINDENT
 .UNINDENT
 .sp
-Para salvar \(aqdist/base\-2.6.18.iso\(aq em \(aq/tmp/meudir/base.iso\(aq e
-\(aqdist/driver\-2.6.18.iso\(aq em \(aq/tmp/dir/driver.iso\(aq, use o seguinte comando:
+Para salvar ‘dist/base\-2.6.18.iso’ em ‘/tmp/meudir/base.iso’ e
+‘dist/driver\-2.6.18.iso’ em ‘/tmp/dir/driver.iso’, use o seguinte comando:
 .INDENT 0.0
 .INDENT 3.5
 .sp
@@ -4728,7 +4728,7 @@ $ aria2c \-\-enable\-dht6 \-\-dht\-listen\-port=6881 \-\-dht\-listen\-addr6=YOUR
 \fBNOTA:\fP
 .INDENT 0.0
 .INDENT 3.5
-Se aria2c não foi compilado com c\-ares, a opção \fB\-\-enable\-async\-dns6\fP
+Se aria2c não foi compilado com c\-ares, a opção \fI\%\-\-enable\-async\-dns6\fP
 não é necessária. aria2 compartilha a mesma porta ente IPv4 e IPv6 DHT.
 .UNINDENT
 .UNINDENT

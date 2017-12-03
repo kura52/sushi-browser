@@ -81,6 +81,7 @@ InitSetting.val.then(setting=>{
   defaultConf.javascript[0].setting = setting.noScript ? 'block' : 'allow'
   defaultConf.canvasFingerprinting[0].setting = setting.blockCanvasFingerprinting ? 'block' : 'allow'
   session.defaultSession.userPrefs.setDictionaryPref('content_settings', defaultConf)
+  console.log(678,session.defaultSession.userPrefs.getDictionaryPref('content_settings'))
 })
 app.setName('Sushi Browser')
 app.commandLine.appendSwitch('touch-events', 'enabled');

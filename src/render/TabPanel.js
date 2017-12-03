@@ -1124,7 +1124,7 @@ export default class TabPanel extends Component {
 
         ipc.send('chrome-webNavigation-onDOMContentLoaded',{
           tabId:tab.wvId,
-          url:e.url,
+          url:page.navUrl,
           frameId: 0,
           timeStamp: Date.now()
         })
@@ -1166,7 +1166,7 @@ export default class TabPanel extends Component {
 
         ipc.send('chrome-webNavigation-onErrorOccurred',{
           tabId:tab.wvId,
-          url:e.url,
+          url:page.navUrl,
           frameId: 0,
           processId: -1,
           error: e.errorDescription,

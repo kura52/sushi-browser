@@ -68,12 +68,26 @@ function htmlModify(verPath,fname,isWebExt){
   if(!writeStr.includes(backgroundScriptName)){
     writeStr = str.replace(/< *(body)([^>]*)>/i,`<$1$2>\n  ${isWebExt ? `<script src="${backStr}/${polyfillName}"></script>\n` : ''}<script src="${backStr}/${backgroundScriptName}"></script>`)
   }
-  else if(!writeStr.includes(backgroundScriptName)){
+  if(!writeStr.includes(backgroundScriptName)){
     writeStr = str.replace(/html>/i,`html>\n  ${isWebExt ? `<script src="${backStr}/${polyfillName}"></script>\n` : ''}\n<script src="${backStr}/${backgroundScriptName}"></script>`)
+  }
+  if(!writeStr.includes(backgroundScriptName)){
+    writeStr = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Background</title>
+  ${isWebExt ? `<script src="${backStr}/${polyfillName}"></script>\n` : ''}
+  <script src="${backStr}/${backgroundScriptName}"></script>
+  ${writeStr}
+</head>
+<body>
+
+</body>
+</html>`
   }
   fs.writeFileSync(fullPath,writeStr)
 }
-
 export default function modify(extensionId,verPath){
   const isWebExt = !extensionId.match(/^[a-z]+$/)
   cache = new Set()
@@ -104,6 +118,7 @@ export default function modify(extensionId,verPath){
       }
 
       if(infos.background){
+        // if(infos.background.persistent === false) infos.background.persistent = true
         if(infos.background.page){
           htmlModify(verPath,infos.background.page,isWebExt)
         }
@@ -154,17 +169,24 @@ export default function modify(extensionId,verPath){
         }
       }
 
-      if(infos.page_action && !infos.browser_action){
-        infos.browser_action = infos.page_action
-        if(infos.browser_action.show){
-          infos.browser_action.enable  = infos.browser_action.show
-          delete infos.browser_action.show
-        }
-        if(infos.browser_action.hide){
-          infos.browser_action.disable = infos.browser_action.hide
-          delete infos.browser_action.hide
+      if(infos.page_action){
+        if(!infos.browser_action){
+          infos.browser_action = infos.page_action
+          if(infos.browser_action.show){
+            infos.browser_action.enable  = infos.browser_action.show
+            delete infos.browser_action.show
+          }
+          if(infos.browser_action.hide){
+            infos.browser_action.disable = infos.browser_action.hide
+            delete infos.browser_action.hide
+          }
         }
         delete infos.page_action
+      }
+
+      for(let file of require("glob").sync(`${verPath}/**/*.html`)){
+        console.log(222444,verPath,file.replace(`${verPath}/`,''),isWebExt)
+        htmlModify(verPath,file.replace(`${verPath}/`,''),isWebExt)
       }
 
       if(infos.commands){

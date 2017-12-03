@@ -172,6 +172,14 @@ if(chrome.windows){
 }
 
 if(chrome.tabs){
+  chrome.tabs._query = chrome.tabs.query
+  chrome.tabs.query = (...args)=>{
+    if(args[0] && args[0].lastFocusedWindow !== void 0){
+      delete args[0].lastFocusedWindow
+    }
+    chrome.tabs._query(...args)
+  }
+
   chrome.tabs._create = chrome.tabs.create
   chrome.tabs.create = (createProperties, callback)=>{
     if(createProperties && createProperties.url && !createProperties.url.includes("://")){
@@ -283,7 +291,13 @@ if(chrome.tabs){
       addListener: function (cb) {
         ipcEvent[cb] = function(evt, tabId, changeInfo, tab) {
           if(tab && tab.url && tab.url.startsWith('chrome://brave/')) return
-          cb(tabId, changeInfo, tab);
+          console.log(name, tabId, changeInfo, tab)
+          if(event_name == 'activated'){
+            cb(changeInfo, tab);
+          }
+          else{
+            cb(tabId, changeInfo, tab);
+          }
         }
         ipc.send(`register-chrome-tabs-${event_name}`, extensionId);
         ipc.on(name, ipcEvent[cb])
@@ -372,7 +386,30 @@ if(chrome.privacy){
   chrome.privacy.websites.protectedContentEnabled = settingObj
 }
 
+if(chrome.webRequest){
+  const rejects = new Set([ "xslt", "xbl", "object_subrequest", "ping", "beacon"])
+  const ipc = chrome.ipcRenderer
+  for(let method of ['onAuthRequired','onBeforeRedirect','onBeforeRequest','onBeforeSendHeaders','onCompleted','onErrorOccurred','onHeadersReceived','onResponseStarted','onSendHeaders']){
+    chrome.webRequest[method]._addListener = chrome.webRequest[method].addListener
 
+    chrome.webRequest[method].addListener = function(callback, filter, extraInfoSpec) {
+      if(filter && Array.isArray(filter.types)){
+        filter.types = [...new Set(filter.types.map(f=>rejects.has(f) ? 'other' : f))]
+      }
+      if(filter && Array.isArray(filter.urls)){
+        const urls = []
+        filter.urls.forEach(f=> f == '<all_urls>' ? urls.push('http://*/*', 'https://*/*', 'file://*/*', 'ftp://*/*') : urls.push(f))
+        filter.urls = [...new Set(urls)]
+      }
+      if(method == 'onErrorOccurred'){
+        chrome.webRequest[method]._addListener(callback, filter)
+      }
+      else{
+        chrome.webRequest[method]._addListener(callback, filter, extraInfoSpec)
+      }
+    }
+  }
+}
 
 if(chrome.webNavigation){
   const ipc = chrome.ipcRenderer
@@ -447,22 +484,28 @@ if(chrome.proxy){
 
 if(chrome.pageAction){
   chrome.pageAction = chrome.browserAction
-  chrome.browserAction.show = chrome.browserAction.enable
-  chrome.browserAction.hide = chrome.browserAction.disable
+  chrome.pageAction.show = chrome.browserAction.enable
+  chrome.pageAction.hide = chrome.browserAction.disable
 }
 
 if(chrome.browserAction){
   const ipc = chrome.ipcRenderer
-  const onClicked = {}
+  const method = 'onClicked'
+  const name = `chrome-browserAction-${method}`
+  const ipcEvents = {}
   chrome.browserAction.onClicked = {
     addListener: function (cb) {
-      onClicked[cb] = function(evt, id, tab) {
-        if(id == chrome.runtime.id) cb(tab)
+      ipcEvents[cb] = function(evt,id, tabId) {
+        if(chrome.runtime.id == id){
+          chrome.tabs.get(parseInt(tabId), cb)
+        }
       }
-      ipc.on('chrome-browser-action-clicked', onClicked[cb])
+      ipc.send(`regist-${name}`)
+      ipc.on('chrome-browserAction-onClicked', ipcEvents[cb])
     },
     removeListener: function(cb){
-      ipc.removeListener('chrome-browser-action-clicked', onClicked[cb])
+      ipc.send(`unregist-${name}`)
+      ipc.removeListener('chrome-browserAction-onClicked', ipcEvents[cb])
     },
     hasListener(cb){
       return !!onClicked[cb]
@@ -522,3 +565,124 @@ if(chrome.commands) {
 
   chrome.commands.getAll = callback => []
 }
+
+
+if(chrome.contentSettings) {
+  chrome._contentSettings = chrome.contentSettings
+  chrome.contentSettings = {}
+  for(let type of ['cookies','images','javascript','location','plugins','popups','notifications','fullscreen','mouselock','microphone','camera','unsandboxedPlugins','automaticDownloads']){
+    chrome.contentSettings[type] = {}
+    chrome.contentSettings[type].get  = (details,callback) => simpleIpcFunc('chrome-contentSettings-get',callback,details,chrome.runtime.id,type)
+    chrome.contentSettings[type].set  = (details,callback) => simpleIpcFunc('chrome-contentSettings-set',callback,details,chrome.runtime.id,type)
+    chrome.contentSettings[type].clear  = (details,callback) => simpleIpcFunc('chrome-contentSettings-clear',callback,details,chrome.runtime.id,type)
+
+  }
+}
+
+if(chrome.browsingData){
+  const types = {appcache : true, cache : true, cookies : true, downloads : true, fileSystems : true, formData : true, history : true, indexedDB : true, localStorage : true, serverBoundCertificates : false, passwords : true, pluginData : false, serviceWorkers : true, webSQL : true}
+  chrome.browsingData = {
+    settings(callback){
+      callback({options:{},dataToRemove:types,DataTypeSet:types})
+    }
+  }
+  chrome.browsingData.remove = (options,dataToRemove,callback) => simpleIpcFunc('chrome-browsingData-remove',callback,options,dataToRemove)
+  for(let key of Object.values(types)){
+    chrome.browsingData[`remove${keycharAt(0).toUpperCase()}${key.slice(1)}`] = (options,callback) => chrome.browsingData.remove(options,{[key]: true},callback)
+  }
+}
+
+if(chrome.notifications){
+  const onClosedEvents = new Set(),onClickedEvent = new Set() ,notifications = {}
+  chrome.notifications = {}
+  chrome.notifications.create = (notificationId, options, callback) => {
+    const params = {}
+    if(options.imageUrl) params.icon = options.imageUrl.includes(':') ? options.imageUrl : `chrome-extension://${chrome.runtime.id}/${options.imageUrl}`
+    if(options.iconUrl) params.icon = options.iconUrl.includes(':') ? options.iconUrl : `chrome-extension://${chrome.runtime.id}/${options.iconUrl}`
+    if(options.message) params.body = options.message
+    if(options.contextMessage){
+      if(params.body){
+        params.body += `\n${options.contextMessage}`
+      }
+      else{
+        params.body = options.contextMessage
+      }
+    }
+    const n = new Notification(options.title||"",params)
+    notifications[notificationId] = [n,options]
+
+    n.onclose = ()=>{
+      for(let method of onClosedEvents){
+        method(notificationId,true)
+      }
+    }
+    n.onclick = ()=>{
+      for(let method of onClickedEvent){
+        method(notificationId)
+      }
+    }
+    if(callback) callback(notificationId)
+  }
+
+  chrome.notifications.update = (notificationId, options, callback) => {
+    const [n,oldOptions] = notifications[notificationId]
+    n.close()
+
+    options = Object.merge(oldOptions,options)
+    chrome.notifications.create = (notificationId, options, callback && (_=>callback(true)))
+  }
+
+  chrome.notifications.clear = (notificationId, callback) => {
+    const [n,options] = notifications[notificationId]
+    delete notifications[notificationId]
+    n.close()
+  }
+
+  chrome.notifications.getAll = (callback) => {
+    const ret = []
+    for(let [id,val] of notifications){
+      ret.push({id,notificationId:id,...val})
+    }
+    callback(ret)
+  }
+
+  chrome.notifications.onClosed = {
+    addListener(cb) {
+      onClosedEvents.add(cb)
+    },
+    removeListener(cb){
+      onClosedEvents.delete(cb)
+    },
+    hasListener(cb){
+      return onClosedEvents.has(cb)
+    },
+    hasListeners(){
+      return !!onClosedEvents.length
+    }
+  }
+
+  chrome.notifications.onClicked = {
+    addListener(cb) {
+      onClickedEvent.add(cb)
+    },
+    removeListener(cb){
+      onClickedEvent.delete(cb)
+    },
+    hasListener(cb){
+      return onClickedEvent.has(cb)
+    },
+    hasListeners(){
+      return !!onClickedEvent.length
+    }
+  }
+
+}
+
+// if(chrome.tabs){
+//   chrome.tabs._sendMessage = chrome.tabs.sendMessage
+//
+//   chrome.tabs.sendMessage = function(...args){
+//     console.log(...args)
+//     return chrome.tabs._sendMessage(...args)
+//   }
+// }

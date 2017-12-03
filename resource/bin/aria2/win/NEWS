@@ -1,62 +1,110 @@
-aria2 1.32.0
+aria2 1.33.1
 ============
 
 Release Note
 ------------
 
-This release fixes several minor bugs, and spelling mistakes.
+This release fixes a bug that causes high CPU usage in mingw build.
 
 Changes
 -------
 
-* Clarify --max-concurrent-downloads option
+* mingw: Fix high CPU usage in BitTorrent downloads
 
-  GH-833
+  This commit fixes high CPU usage in BitTorrent downloads.  Only
+  mingw build is affected by this bug.
 
-* Fix compile error with toolchain which lacks IPV6_TCLASS
+  Thank you kwkam for identifying the cause of the issue, and helping
+  debugging this patch.
 
-  GH-895
+
 
-* Log directed URI in notice log level
+aria2 1.33.0
+============
 
-  GH-884
+Release Note
+------------
 
-* Fix typo
+This release fixes several bugs, and add new features.
 
-  Patch from Tse Kit Yam
+Changes
+-------
 
-  GH-879, GH-899
+* Include arm in a filename of android zip
 
-* Spelling fixes
+* Upgrade base image of Dockerfile.mingw to ubuntu:16.04
 
-  Patch from klemens
+* wintls: Potential fix for undecrypted read
 
-  GH-870
+  GH-1021
 
-* Remove unused Android parts
+* libaria2: Return last error code from DownloadHandle::getErrorCode
 
-  These parts where unused after merging
-  https://github.com/aria2/aria2/pull/736
+  GH-991
 
-  Patch from Fredrik Fornwall
+* Windows: pass writefds also as exceptfds to select()
 
-  GH-868
+  winsock notifies connect() failures on exceptfds instead of
+  writefds.
 
-* Save control file early
+  Fixes GH-969
+  Fixes GH-975
 
-  GH-859
+* libuv: use pkg-config
 
-* Update links in Dockerfile.raspberrypi
+* FeatureConfig: align text
 
-  Some links used in Dockerfile.raspberrypi are not accessible
-  anymore, because they were pointing to old versions of some source
-  packages and new versions were released.  This commit fixes this by
-  changing the links to point to the newest versions.
+* Update Dockerfile.mingw
 
-  Patch from Michał Leśniewski
+  avoid docker cache when using git
 
-  GH-860
+  Patch from qweaszxcdf
 
-* Propagate disk full error on pre-allocation to last error code
+  GH-970
 
-  GH-856
+* Add --peer-agent option
+
+  Add --peer-agent for setting the version/user agent used in the
+  extended handshake protocol for bittorrent.
+
+  Patch from Kurt Kartaltepe
+
+  GH-947
+
+* OSX: Allow to specify a build
+
+* OSX: update c-ares
+
+* [Docs, libaria2] Fix type of obj pushed into options vector
+
+  aria::KeyVals is a vector of pair of std strings, therefore the type
+  of object being pushed should be std::pair<std::string,
+  std::string>, however in the docs, the type of the said object is
+  KeyVals.  If one follows the docs, their code will fail to compile.
+
+  Patch from geetam
+
+  GH-941
+
+* AppleTLS: Silence cipher suite selection
+
+* Unbreak build OSX build
+
+* Update macOS versions
+
+* Add --bt-load-saved-metadata option
+
+  Before getting torrent metadata from DHT when downloading with
+  magnet link, first try to read file saved by --bt-save-metadata
+  option. If it is successful, then skip downloading metadata from
+  DHT.  By default, this feature is turned off.
+
+  GH-909
+
+* Fix regression in bfc54d0b9a694e5d87efd8ed11b5393bc4b66f93
+
+  Don't save control file if --auto-save-interval is 0.
+
+  GH-917
+
+* Fix infinite loop bug when file is not found

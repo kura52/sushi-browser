@@ -1,6 +1,6 @@
 import {ipcMain,app,dialog,BrowserWindow,shell,webContents,session} from 'electron'
 const BrowserWindowPlus = require('./BrowserWindowPlus')
-import fs from 'fs'
+import fs from 'fs-extra'
 import sh from 'shelljs'
 import PubSub from './render/pubsub'
 import uuid from 'node-uuid'
@@ -10,6 +10,9 @@ const db = require('./databaseFork')
 const franc = require('franc')
 const chromeManifestModify = require('./chromeManifestModify')
 const extensions = require('../brave/extension/extensions')
+const defaultConf = require('./defaultConf')
+const merge = require('deepmerge')
+import nm from 'nanomatch'
 
 const transLang = {eng:'en', dan:'da', dut:'nl', fin:'fi', fre:'fr', ger:'de', heb:'he', ita:'it', jpn:'ja', kor:'ko', nor:'nb', pol:'pl', por:'pt', rus:'ru', spa:'es', swe:'sv', chi:'zh', cze:'cs', gre:'el', ice:'is', lav:'lv', lit:'lt', rum:'ro', hun:'hu', est:'et', bul:'bg', scr:'hr', scc:'sr', gle:'ga', glg:'gl', tur:'tr', ukr:'uk', hin:'hi', mac:'mk', ben:'bn', ind:'id', lat:'la', may:'ms', mal:'ml', wel:'cy', nep:'ne', tel:'te', alb:'sq', tam:'ta', bel:'be', jav:'jw', oci:'oc', urd:'ur', bih:'bh', guj:'gu', tha:'th', ara:'ar', cat:'ca', epo:'eo', baq:'eu', ina:'ia', kan:'kn', pan:'pa', gla:'gd', swa:'sw', slv:'sl', mar:'mr', mlt:'mt', vie:'vi', fry:'fy', slo:'sk', fao:'fo', sun:'su', uzb:'uz', amh:'am', aze:'az', geo:'ka', tir:'ti', per:'fa', bos:'bs', sin:'si', nno:'nn', xho:'xh', zul:'zu', grn:'gn', sot:'st', tuk:'tk', kir:'ky', bre:'br', twi:'tw', yid:'yi', som:'so', uig:'ug', kur:'ku', mon:'mn', arm:'hy', lao:'lo', snd:'sd', roh:'rm', afr:'af', ltz:'lb', bur:'my', khm:'km', tib:'bo', div:'dv', ori:'or', asm:'as', cos:'co', ine:'ie', kaz:'kk', lin:'ln', mol:'mo', pus:'ps', que:'qu', sna:'sn', tgk:'tg', tat:'tt', tog:'to', yor:'yo', mao:'mi', wol:'wo', abk:'ab', aar:'aa', aym:'ay', bak:'ba', bis:'bi', dzo:'dz', fij:'fj', kal:'kl', hau:'ha', ipk:'ik', iku:'iu', kas:'ks', kin:'rw', mlg:'mg', nau:'na', orm:'om', run:'rn', smo:'sm', sag:'sg', san:'sa', ssw:'ss', tso:'ts', tsn:'tn', vol:'vo', zha:'za', lug:'lg', glv:'gv'}
 
@@ -80,9 +83,9 @@ ipcMain.on('add-extension',(e,{id,url})=>{
   let extRootPath
   if(id){
     if(!id.match(/^[a-z]+$/)) return
-     extRootPath = path.join(extensionPath,id) // path.join(__dirname,'../resource/extension',id).replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
+    extRootPath = path.join(extensionPath,id) // path.join(__dirname,'../resource/extension',id).replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
     const chromeVer = process.versions.chrome
-     url = `https://clients2.google.com/service/update2/crx?response=redirect&prodversion=${chromeVer}&x=id%3D${id}%26uc`
+    url = `https://clients2.google.com/service/update2/crx?response=redirect&prodversion=${chromeVer}&x=id%3D${id}%26uc`
   }
   else if(url){
     id = require('url').parse(url).pathname.split("/").slice(-1)[0].slice(0,-4)
@@ -111,9 +114,18 @@ ipcMain.on('add-extension',(e,{id,url})=>{
           clearInterval(intId)
           const ret = await exec(`${exePath[0]} x -o"${extRootPath}_crx" "${extRootPath}.crx"`)
           console.log(345,ret)
-          const verPath = path.join(extRootPath,JSON.parse(fs.readFileSync(path.join(`${extRootPath}_crx`,'manifest.json'))).version)
+          let manifestPath = path.join(`${extRootPath}_crx`,'manifest.json')
+          if (!fs.existsSync(manifestPath)) {
+            manifestPath = require("glob").sync(`${extRootPath}_crx/**/manifest.json`)[0]
+          }
+          const dir = path.dirname(manifestPath)
+
+          const verPath = path.join(extRootPath,JSON.parse(fs.readFileSync(manifestPath)).version)
           fs.mkdirSync(extRootPath)
-          fs.renameSync(`${extRootPath}_crx`, verPath)
+          fs.renameSync(dir, verPath)
+          if(fs.existsSync(`${extRootPath}_crx`)){
+            fs.removeSync(`${extRootPath}_crx`)
+          }
           fs.unlink(`${extRootPath}.crx`,_=>_)
           chromeManifestModify(id,verPath)
           extensions.loadExtension(session.defaultSession,id,verPath)
@@ -597,12 +609,97 @@ for(let method of ['onCommand']){
       if (!cont.isDestroyed()) {
         if(command == '_execute_browser_action' || command == '_execute_page_action'){
           getFocusedWebContents().then(cont=>{
-            ipc.send('chrome-browser-action-clicked', id, cont.getId())
+            ipc.send('chrome-browserAction-onClicked', id, cont.getId())
           })
         }
         else{
           cont.send(name, command)
         }
+      }
+      else{
+        registBackgroundPages.delete(cont)
+      }
+    }
+  })
+}
+
+
+//#contentSettings
+const contentSettingsMap = {}
+simpleIpcFuncCb('chrome-contentSettings-get',(details,extensionId,type,cb)=>{
+  if(!contentSettingsMap[extensionId] || !contentSettingsMap[extensionId][type]) return cb({})
+
+  for(let val of contentSettingsMap[extensionId][type]){
+    const resource = details.resourceIdentifier ? details.resourceIdentifier.id : void 0
+    const matchPrimary = nm.some(details.primaryUrl, [val.primaryPattern=='<all_urls>' ? "**" : val.primaryPattern.replace(/\*/,'**')])
+    const matchSecondary = !details.secondaryUrl || nm.some(details.secondaryUrl, [val.secondaryPattern=='<all_urls>' ? "**" : val.secondaryPattern.replace(/\*/,'**')])
+    const matchResource = !resource || resource == val.resourceId
+    if(matchPrimary && matchSecondary && matchResource){
+      return cb(val)
+    }
+  }
+})
+
+//#browsingData
+simpleIpcFuncCb('chrome-browsingData-remove',(options,dataToRemove,cb)=>{
+  if(options.since) return cb()
+
+  const arr = ['cookies','appcache','fileSystems','indexedDB','localStorage','serviceWorkers','webSQL']
+  const map = {cache: 'clearCache',downloads: 'clearDownload',formData: 'clearAutofillData', history: 'clearHistory',passwords: 'clearPassword'}
+
+  for(let [key,val] of Object.entries(dataToRemove)){
+    if(val) continue
+    let args
+    if(arr.includes(key)){
+      args = ['clearStorageData',{storages: [key]}]
+    }
+    else if(map[key]){
+      args = [map[key]]
+    }
+    if(args) ipcMain.emit('clear-browsing-data',null,...args)
+  }
+  cb()
+})
+
+
+simpleIpcFuncCb('chrome-contentSettings-set',(details,extensionId,type,cb)=>{
+  if(!contentSettingsMap[extensionId]){
+    contentSettingsMap[extensionId] = {}
+  }
+  if(!contentSettingsMap[extensionId][type]){
+    contentSettingsMap[extensionId][type] = []
+  }
+
+  contentSettingsMap[extensionId][type].push({primaryPattern: details.primaryPattern,setting: details.setting})
+  if(details.secondaryPattern) contentSettingsMap[extensionId][type].secondaryPattern = details.secondaryPattern
+  if(details.resourceIdentifier) contentSettingsMap[extensionId][type].resourceId = details.resourceIdentifier.id
+
+  let conf = defaultConf
+  for(let val of Object.values(contentSettingsMap)){
+    conf = merge(conf,val)
+  }
+  console.log(conf)
+  session.defaultSession.userPrefs.setDictionaryPref('content_settings', conf)
+  cb()
+})
+
+
+simpleIpcFuncCb('chrome-contentSettings-clear',(details,extensionId,type,cb)=>{
+  if(!contentSettingsMap[extensionId] || !contentSettingsMap[extensionId][type]) return cb()
+  delete contentSettingsMap[extensionId][type]
+  cb()
+})
+
+//#browserAction
+for(let method of ['onClicked']){
+  const registBackgroundPages = new Set()
+  const name = `chrome-browserAction-${method}`
+  ipcMain.on(`regist-${name}`,(e)=> registBackgroundPages.add(e.sender))
+  ipcMain.on(`unregist-${name}`,(e)=> registBackgroundPages.delete(e.sender))
+  ipcMain.on(name,(e,id,tab)=>{
+    for(let cont of registBackgroundPages) {
+      if (!cont.isDestroyed()) {
+        cont.send(name, id,tab)
       }
       else{
         registBackgroundPages.delete(cont)
