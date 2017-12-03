@@ -699,6 +699,7 @@ div.item.favorite>ul>li>div>ul{
     padding: 1px 2px !important;
     pointer-events: none !important;
     animation-name: keyframe_cwjpzv !important;
+    background-color: gray;
 }
 
 .browserActionBadge.video{
