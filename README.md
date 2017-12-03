@@ -135,14 +135,14 @@ This browser makes use of wonderful web technologies, starting with the followin
 Both the installer for every platform and the portable version can be downloaded.  
 To use the portable edition, please run sushi.exe for Windows and sushi-browser for Mac/Linux after decompressing.
 
-- [Windows Installer v0.11.0](https://sushib.me/dl/sushi-browser-0.11.0-setup-x64.exe)
-- [Windows Portable v0.11.0(self-extract)](https://sushib.me/dl/sushi-browser-0.11.0-win-x64.exe)
-- [Windows Portable v0.11.0](https://sushib.me/dl/sushi-browser-0.11.0-win-x64.zip)
-- [MacOS dmg v0.11.0](https://sushib.me/dl/SushiBrowser-0.11.0.dmg)
-- [MacOS Portable v0.11.0](https://sushib.me/dl/sushi-browser-0.11.0-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.11.0](https://sushib.me/dl/sushi-browser-0.11.0.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.11.0](https://sushib.me/dl/sushi-browser_0.11.0_amd64.deb)
-- [Linux Portable v0.11.0](https://sushib.me/dl/sushi-browser-0.11.0.tar.bz2)
+- [Windows Installer v0.11.1](https://sushib.me/dl/sushi-browser-0.11.1-setup-x64.exe)
+- [Windows Portable v0.11.1(self-extract)](https://sushib.me/dl/sushi-browser-0.11.1-win-x64.exe)
+- [Windows Portable v0.11.1](https://sushib.me/dl/sushi-browser-0.11.1-win-x64.zip)
+- [MacOS dmg v0.11.1](https://sushib.me/dl/SushiBrowser-0.11.1.dmg)
+- [MacOS Portable v0.11.1](https://sushib.me/dl/sushi-browser-0.11.1-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.11.1](https://sushib.me/dl/sushi-browser-0.11.1.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.11.1](https://sushib.me/dl/sushi-browser_0.11.1_amd64.deb)
+- [Linux Portable v0.11.1](https://sushib.me/dl/sushi-browser-0.11.1.tar.bz2)
 
 # Use of Flash 
 If Flash won't run, please install Flash from the following web sites.  
@@ -157,7 +157,15 @@ sushi-browser --no-sandbox
 
 # New Features
 
-#### New function(v0.110)
+#### New function(v0.11.1)
+- Updated to youtube-dl 2017.12.02
+- Updated to ffmpeg 3.4
+- Updated to aria2c 1.33
+- Chrome Extension improvements (chrome.contentSettings, chrome.browsingData, chrome.notifications)
+- Fix a lot of Chrome Extension's bugs
+- Fix a session manager bug
+
+#### New function(v0.11.0)
 - Add Fingerprint Protection and NoScript function
 - Add setting to delete browsing data
 - Add function that can install WebExtension from firefox add-ons site
@@ -165,7 +173,7 @@ sushi-browser --no-sandbox
 - Fixed download function bugs
 - Updated to Muon 4.5.21
 
-#### New function(v0.100)
+#### New function(v0.10.0)
 - Add downloader function
 - Add batch download function like DownThemAll!
 - Add for video download function
@@ -174,7 +182,7 @@ sushi-browser --no-sandbox
 - Many other bug fixes
 - Updated to Muon 4.5.18(chromium 63.0.3239.40)
 
-#### New function(v0.90)
+#### New function(v0.9.0)
 - Enhanced video download function
 - Added function to download streaming video (HLS (.m3u8)) using youtube-dl
 - Added function to manipulate video with mouse and keyboard
@@ -182,7 +190,7 @@ sushi-browser --no-sandbox
 - Added function that play video in floating panel
 - Updated to Muon 4.5.15
 
-#### New function(v0.80)
+#### New function(v0.8.0)
 - Add Vertical Tabs and Tree Style Tabs
 - Improvement of Tab type Extension（move,onMoved,onDetached,onAttached)
 - Add automatic / user session save function
@@ -196,7 +204,7 @@ sushi-browser --no-sandbox
 - Fixed a lot of bugs and Chrome Extension API issue
 - Updated to Muon 4.5.14
 
-#### New function(v0.70)
+#### New function(v0.7.0)
 - Implemented partical chrome extensions API (Experimental)
 - Added function that can install Chrome extension from Chrome web store
 - Implemented multi-row tabs
@@ -229,30 +237,30 @@ sushi-browser --no-sandbox
   - chrome.windows
 
 
-#### New function(v0.61)
+#### New function(v0.6.1)
 - Added session tab function
 - Fixed bug at load start and stop
 
-#### New function(v0.60)
+#### New function(v0.6.0)
 - Speed up by making main synchronization processing asynchronous
 - Speed up the process of creating new tabs
 - Speed up display processing of Top page
 - Update npm library
 
-#### New function(v0.50)
+#### New function(v0.5.0)
 - Added VPN function (Windows only). We are using the VPN Gate service and connect with MS-SSTP VPN. (It is a true VPN which is not a multiple proxy.)
 - Added function to extract audio from video (using ffmpeg)
 - Reduce download file size (initial launch after installation is slightly late)
 - Fixed Issue #9 on MacOS(Command-scroll wheel to zoom is making my page all sorts of crazy sizes)
 - Fixed Issue #10 on MacOS (Copy doesn't work on Mac OS)
 
-#### New function(v0.40)
+#### New function(v0.4.0)
 - The function to send and play URL to the external media player (such as VLC Media Player etc.) was added.
 - The function to select multiple tabs and to enable tab operation and drop and drag was added.
 - Fixed so that it works properly when the link is sent from the external application in the case that it is set up as a default browser.
 - Fixed so that multiple applications start in parallel.
 
-#### New function(v0.30-0.33)
+#### New function(v0.3.0-0.3.3)
 - Improved top page's customizability 
 - Fixed bug that does not start on Windows
 - Added control of AdBlock by domain
@@ -276,7 +284,7 @@ sushi-browser --no-sandbox
 - Deleting unnecessary data (Reducing some download size)
 
 
-#### New Function (v0.20-v0.21)
+#### New Function (v0.2.0-v0.2.1)
 - Search engines can be selected.
 - Multiple simultaneous search function, (For example, if you input "g4 word" in the address bar, you can search in multiple panels with different conditions simultaneously.)
 - Partial localize.
