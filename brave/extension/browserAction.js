@@ -23,6 +23,7 @@ for(let [eventName,name] of [
         if(cont && !cont.isDestroyed() && !cont.isBackgroundPage() && !cont.hostWebContents) {
           if(name == 'icon') cont.send('chrome-browser-action-set-icon-ipc-all',extensionId,details)
           else if(name == 'popup')cont.send('chrome-browser-action-set-popup-ipc-all',extensionId,details)
+          else if(name == 'background')cont.send('chrome-browser-action-set-background-ipc-all',extensionId,details)
         }
       }
     }

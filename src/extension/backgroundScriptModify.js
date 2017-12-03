@@ -12,7 +12,11 @@ chrome.runtime.openOptionsPage = _=> simpleIpcFunc('chrome-runtime-openOptionsPa
 chrome.runtime.getBrowserInfo = _=> new Promise(r=>r({name:'Firefox',vendor:'Mozilla',version:'57.0',buildID:'20171203000000'}))
 
 chrome.i18n.getAcceptLanguages = callback=> simpleIpcFunc('chrome-i18n-getAcceptLanguages',callback)
-chrome.i18n.getUILanguage = _=> navigator.languages.map(lang=>lang == 'zh-CN' || lang == 'pt-BR' ? lang.replace('-','_') : lang.slice(0,2))[0]  //@TODO
+chrome.i18n.getUILanguage = _=> {
+  let lang = navigator.languages.map(lang=>lang == 'zh-CN' || lang == 'pt-BR' ? lang.replace('-','_') : lang.slice(0,2))[0]
+  if(!lang) lang = navigator.language == 'zh-CN' || navigator.language == 'pt-BR' ? navigator.language.replace('-','_') : navigator.language.slice(0,2)
+  return lang
+}  //@TODO
 
 chrome.i18n._getMessage = chrome.i18n.getMessage
 

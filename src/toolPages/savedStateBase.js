@@ -134,6 +134,8 @@ async function treeBuild(datas){
           type: 'file'
         }
       })
+      if(!children.length) return null
+
       names.push(children[0].name)
       return {
         id: `${id}/${i}`,
@@ -142,15 +144,16 @@ async function treeBuild(datas){
         type: 'directory',
         children
       }
-    })
+    }).filter(x=>x)
+    if(!children.length) continue
     const data = {
-      id,
-      name: x.name || `[${x.user ? x.created_at : x.name2}] ${children.length > 1 ? `[[${children.length} Windows]] ${names.slice(0,2).join(", ")}...` : children[0].name}`,
-      user: x.user,
-      type: 'directory',
-      children: children.length > 1 ? children : children[0].children,
-      datas: children.length > 1 ? x.wins : children[0].datas
-  }
+        id,
+        name: x.name || `[${x.user ? x.created_at : x.name2}] ${children.length > 1 ? `[[${children.length} Windows]] ${names.slice(0,2).join(", ")}...` : children[0].name}`,
+        user: x.user,
+        type: 'directory',
+        children: children.length > 1 ? children : children[0].children,
+        datas: children.length > 1 ? x.wins : children[0].datas
+      }
     ;(data.user ? newChildren[0].children : newChildren).push(data)
   }
   return newChildren

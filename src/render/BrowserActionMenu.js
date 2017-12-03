@@ -6,7 +6,7 @@ import { Dropdown } from 'semantic-ui-react';
 const {remote} = require('electron')
 const {Menu} = remote
 const {messages,locale} = require('./localAndMessage')
-const defaultIcons = {},popups = {}
+const defaultIcons = {},popups = {},bgs = {}
 
 ipc.on('chrome-browser-action-set-icon-ipc-all',(e,extensionId,val) => {
   if(!val.path) return
@@ -16,9 +16,13 @@ ipc.on('chrome-browser-action-set-icon-ipc-all',(e,extensionId,val) => {
 })
 
 ipc.on('chrome-browser-action-set-popup-ipc-all',(e,extensionId,val) => {
-  console.log(77777799,e,extensionId,val)
   if(!val.popup) return
   popups[extensionId] = val.popup
+})
+
+ipc.on('chrome-browser-action-set-background-ipc-all',(e,extensionId,val) => {
+  if(!val.color) return
+  bgs[extensionId] = val.color
 })
 
 const defaults = {}
@@ -26,6 +30,7 @@ class BrowserActionWebView extends Component {
   constructor(props) {
     super(props)
     this.state = {style:{opacity: 0.01}}
+    this.first = true
   }
 
   componentDidMount() {
@@ -48,7 +53,7 @@ class BrowserActionWebView extends Component {
             const div = webview.parentNode
             const rect = div.parentNode.getBoundingClientRect()
             if(rect.x + width > window.innerWidth){
-              div.style.setProperty("left", `${32 - width}px`, "important")
+              div.style.setProperty("left", `${36 -width}px`, "important")
               console.log(999999,window.innerWidth,width,rect.x,window.innerWidth - width - rect.x + 18)
             }
             // div.style.setProperty("width", `${width+10}px`, "important")
@@ -56,6 +61,10 @@ class BrowserActionWebView extends Component {
             div.style.setProperty("top", '23px', "important")
             div.style.overflowY = 'hidden'
             div.style.setProperty("min-width", 'fit-content', "important")
+            if(this.first){
+              this.first = false
+                if(this.refs.webview) this.refs.webview.reload()
+            }
           },200)
         })
       })
@@ -68,10 +77,8 @@ class BrowserActionWebView extends Component {
   }
 
   reload = ()=>{
-    if(this.close){
-      this.close = false
-      this.setState({})
-    }
+    this.close = false
+    this.setState({})
   }
 
   render(){
@@ -195,14 +202,14 @@ export default class BrowserActionMenu extends Component{
     const id = this.props.id
     const values = this.props.values
     return <Dropdown onMouseDown={::this.handleClick} onOpen={_=>{if(this.refs && this.refs.popupView) this.refs.popupView.reload()}} onClose={_=>{if(this.refs && this.refs.popupView) this.refs.popupView.onClose()}}
-                     // onDragStart={e=>console.log(4342355,e)} onDragEnter={e=>{console.log(4342344,e)}}
+      // onDragStart={e=>console.log(4342355,e)} onDragEnter={e=>{console.log(4342344,e)}}
                      scrolling className={`draggable-source nav-button sort-${id}`} key={id} trigger={<a href="javascript:void(0)"  title={this.state.title || values.name}>
       <img style={{width:16,height:16,verticalAlign:'middle'}} src={`file://${this.state.icon}`} onError={(e)=>{
-                       console.log(99854,this.state.icon)
-                       if(retry++ > 10) return
-                       e.target.src =  `file://${values.basePath}/${values.default_icon ? (typeof values.default_icon === "object" ? Object.values(values.default_icon)[0] : values.default_icon) : Object.values(values.icons)[0]}`
-                     }} />
-      {this.state.text ? <div className="browserActionBadge" style={{backgroundColor: this.state.color}}>{this.state.text}</div> : null}
+        console.log(99854,this.state.icon)
+        if(retry++ > 10) return
+        e.target.src =  `file://${values.basePath}/${values.default_icon ? (typeof values.default_icon === "object" ? Object.values(values.default_icon)[0] : values.default_icon) : Object.values(values.icons)[0]}`
+      }} />
+      {this.state.text ? <div className="browserActionBadge" style={{backgroundColor: this.state.color || bgs[this.props.id]}}>{this.state.text}</div> : null}
     </a>} icon={null}>
       <Dropdown.Menu className={`browser-action nav-menu ${this.state.className}`} >
         {this.state.popup || popups[this.props.id] || values.default_popup ? <BrowserActionWebView ref="popupView" url={`chrome-extension://${id}/${this.state.popup || popups[this.props.id] || values.default_popup}`} setClassName={::this.setClassName}/>: ""}
