@@ -9,6 +9,7 @@ function simpleIpcFunc(name,callback,...args){
 chrome.app.getDetails = _=>chrome.ipcRenderer.sendSync('chrome-management-get-sync',chrome.runtime.id)
 
 chrome.runtime.openOptionsPage = _=> simpleIpcFunc('chrome-runtime-openOptionsPage',_=>_,chrome.runtime.id)
+chrome.runtime.getBrowserInfo = _=> new Promise(r=>r({name:'Firefox',vendor:'Mozilla',version:'57.0',buildID:'20171203000000'}))
 
 chrome.i18n.getAcceptLanguages = callback=> simpleIpcFunc('chrome-i18n-getAcceptLanguages',callback)
 chrome.i18n.getUILanguage = _=> navigator.languages.map(lang=>lang == 'zh-CN' || lang == 'pt-BR' ? lang.replace('-','_') : lang.slice(0,2))[0]  //@TODO

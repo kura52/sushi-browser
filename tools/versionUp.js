@@ -6,21 +6,22 @@ const glob = require("glob")
 const BEFORE_CODE_NAME = 'Tai(Sea Bream)'
 const CODE_NAME = 'Gari(Sushi Ginger)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.11.0"
+const NEXT_APP_VERSION = "0.11.1"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Add Fingerprint Protection and NoScript function
-Add setting to delete browsing data
-Add function that can install WebExtension from firefox add-ons site
-Chrome Extension improvements (chrome.commands, options_ui)
-Fixed download function bugs
-Updated to Muon 4.5.21`
+const CHANGE_ENGLISH = `Updated to youtube-dl 2017.12.02
+Updated to ffmpeg 3.4
+Updated to aria2c 1.33
+Chrome Extension improvements (chrome.contentSettings, chrome.browsingData, chrome.notifications)
+Fix a lot of Chrome Extension's bugs
+Fix a session manager bug`
 
-const CHANGE_JAPANESE = `Fingerprint ProtectionとNoScript機能の追加
-履歴等の閲覧データの削除機能の追加
-FirefoxアドオンサイトからWebExtensionをインストールする機能を追加
-Chrome Extensionの実装追加(chrome.commands, options_ui)
-ダウンロード機能のバグ修正`
+const CHANGE_JAPANESE = `youtube-dlを2017.12.02にバージョンアップ
+ffmpegを3.4にバージョンアップ
+aria2cを1.33にバージョンアップ
+Chrome拡張の実装改善(chrome.contentSettings, chrome.browsingData, chrome.notifications)
+Chrome拡張のバグ修正
+セッションマネージャのバグ修正`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'
