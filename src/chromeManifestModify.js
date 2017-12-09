@@ -1,5 +1,6 @@
 import fs from 'fs'
 import path from 'path'
+const electronImageResize = require('electron-image-resize')
 const {getPath1,getPath2} = require('./chromeExtensionUtil')
 
 const contentScriptName = '___contentScriptModify_.js'
@@ -106,6 +107,10 @@ export default function modify(extensionId,verPath){
         infos.permissions = [...new Set([...infos.permissions,'http://*/*','https://*/*'])]
       }
 
+      if(infos.permissions){
+        infos.permissions = infos.permissions.filter(x=>x!=='clipboardWrite')
+      }
+
       let flagContent,flagBackground
       if(infos.content_scripts){
         findJsTags(infos.content_scripts,js=>{
@@ -200,6 +205,15 @@ export default function modify(extensionId,verPath){
 
       fs.unlinkSync(manifestPath)
       fs.writeFileSync(manifestPath,JSON.stringify(infos, null, '  '))
+
+      // for(let svg of require("glob").sync(`${verPath}/**/*.svg`)){
+      //   const out = svg.replace(/\.svg$/,".png")
+      //   if(!fs.existsSync(out)){
+      //     electronImageResize({url: `file://${svg}`, width: 16, height: 16}).then(img => {
+      //       fs.writeFileSync(out, img.toPng());
+      //     })
+      //   }
+      // }
 
     }
   })

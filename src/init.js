@@ -1028,7 +1028,7 @@ function contextMenu(webContents) {
     if(Object.keys(extensionMenu).length){
       for(let [extensionId, propertiesList] of Object.entries(extensionMenu)){
         const menuList = []
-        // console.log(propertiesList)
+        console.log(propertiesList)
         for(let {properties, menuItemId, icon} of propertiesList){
           let contextsPassed = false
           const info = {}
@@ -1043,10 +1043,10 @@ function contextMenu(webContents) {
             } else if (isImage && (context === 'image' || context === 'all')) {
               info['mediaType'] = 'image';
               contextsPassed = true;
-            } else if (isInputField && (context === 'editable' || context === 'all')) {
+            } else if (isInputField && (context == 'tab' || context === 'editable' || context === 'all')) {
               info['editable'] = true;
               contextsPassed = true;
-            } else if (props.pageURL && (context === 'page' || context === 'all')) {
+            } else if (props.pageURL && (context == 'tab' || context === 'page' || context === 'all')) {
               info['pageUrl'] = props.pageURL;
               contextsPassed = true;
             } else if (isVideo && (context === 'video' || context === 'all')) {
@@ -1100,7 +1100,9 @@ function contextMenu(webContents) {
               }
             }
             else{
-              addItem.icon = `${extensionInfos[extensionId].base_path}/${icon}`
+              addItem.icon = path.join(extensionInfos[extensionId].base_path,icon)
+              if(properties.icons) console.log(`${extensionInfos[extensionId].base_path}/${Object.values(properties.icons)[0]}`)
+              if(properties.icons) addItem.icon2 = path.join(extensionInfos[extensionId].base_path,Object.values(properties.icons)[0].replace(/\.svg$/,'.png'))
               menuList.push(addItem)
             }
           }
@@ -1108,6 +1110,10 @@ function contextMenu(webContents) {
         if(menuList.length == 1 || menuList.length == 2){
           menuItems.push({type: 'separator'})
           for(let menu of menuList){
+            if(menu.icon2){
+              menu.icon = menu.icon2
+              delete menu.icon2
+            }
             menuItems.push(menu)
           }
         }
@@ -1118,7 +1124,13 @@ function contextMenu(webContents) {
             icon: menuList[0].icon,
             submenu: menuList
           })
-          menuList.forEach(menu=>{delete menu.icon})
+          menuList.forEach(menu=>{
+            delete menu.icon
+            if(menu.icon2){
+              menu.icon = menu.icon2
+              delete menu.icon2
+            }
+          })
         }
       }
     }

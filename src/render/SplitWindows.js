@@ -561,7 +561,7 @@ export default class SplitWindows extends Component{
         indexKey = keyArr[keyArr.length - 1]
         realIndex = this.refs2[indexKey].state.tabs.length
       }
-      const befores = [],afters = [],beforeOthers = [],afterOthers = []
+      let befores = [],afters = [],beforeOthers = [],afterOthers = []
 
       let isBefore = true
       const funcs = {}
@@ -598,8 +598,12 @@ export default class SplitWindows extends Component{
         }
       }
 
+      const befores2 = befores.slice(0).sort((a,b)=>tabIds.findIndex(t=>t==a[0].wvId) > tabIds.findIndex(t=>t==b[0].wvId))
+      const afters2 = afters.slice(0).sort((a,b)=>tabIds.findIndex(t=>t==a[0].wvId) > tabIds.findIndex(t=>t==b[0].wvId))
+
+
       const range = beforeOthers.length + afterOthers.length + afters.length
-      tabs.splice(isBack ? realIndex+1 : realIndex,0,...beforeOthers.map(x=>x[0]),...befores.map(x=>x[0]),...afters.map(x=>x[0]),...afterOthers.map(x=>x[0]))
+      tabs.splice(isBack ? realIndex+1 : realIndex,0,...beforeOthers.map(x=>x[0]),...befores2.map(x=>x[0]),...afters2.map(x=>x[0]),...afterOthers.map(x=>x[0]))
       for(let ele of befores.reverse()){
         tabs.splice(ele[1],1)
       }
@@ -618,16 +622,17 @@ export default class SplitWindows extends Component{
       })
 
       const newIndexes = {}
-      order = 0
+     // order = 0
       let before
       for(let key of keys){
         let i = 0
         for(let tab of this.refs2[key].state.tabs){
-          if(tabIds.includes(tab.wvId)){
+          const order = tabIds.findIndex(t=>t == tab.wvId)
+          if(order != -1){
             newIndexes[tab.wvId] = [order,before]
           }
           before = tab
-          order++
+          //order++
         }
       }
 

@@ -9,7 +9,7 @@ function simpleIpcFunc(name,callback,...args){
 chrome.app.getDetails = _=>chrome.ipcRenderer.sendSync('chrome-management-get-sync',chrome.runtime.id)
 
 chrome.runtime.openOptionsPage = _=> simpleIpcFunc('chrome-runtime-openOptionsPage',_=>_,chrome.runtime.id)
-chrome.runtime.getBrowserInfo = _=> new Promise(r=>r({name:'Firefox',vendor:'Mozilla',version:'57.0',buildID:'20171203000000'}))
+chrome.runtime.getBrowserInfo = callback=> callback({name:'Firefox',vendor:'Mozilla',version:'57.0',buildID:'20171203000000'})
 
 chrome.i18n.getAcceptLanguages = callback=> simpleIpcFunc('chrome-i18n-getAcceptLanguages',callback)
 chrome.i18n.getUILanguage = _=> {
@@ -235,7 +235,7 @@ if(chrome.tabs){
             if(tabIds.includes(tab.id)) tabs.push(tab)
           }
         }
-        callback(tabs)
+        if(callback) callback(tabs)
       })
     },tabIds, moveProperties)
   }
@@ -487,7 +487,7 @@ if(chrome.proxy){
   }
 }
 
-if(chrome.pageAction){
+if(chrome.browserAction){
   chrome.pageAction = chrome.browserAction
   chrome.pageAction.show = chrome.browserAction.enable
   chrome.pageAction.hide = chrome.browserAction.disable
