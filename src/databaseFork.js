@@ -83,7 +83,7 @@ const db = new Proxy({
   get history(){return new Proxy(dummy, handler('history'))},
   get visit(){return new Proxy(dummy, handler('visit'))},
   get tabState(){return new Proxy(dummy, handler('tabState'))},
-  get historyFull(){return new Proxy(dummy, handler('historyFull'))},
+  // get historyFull(){return new Proxy(dummy, handler('historyFull'))},
   get searchEngine(){return new Proxy(dummy, handler('searchEngine'))},
   get favorite(){return new Proxy(dummy, handler('favorite'))},
   get download(){return new Proxy(dummy, handler('download'))},

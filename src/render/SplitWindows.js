@@ -779,7 +779,8 @@ export default class SplitWindows extends Component{
       console.log("wMod",wMod)
       console.log("hmod",hMod)
 
-      const w = window.innerWidth - wMod - document.querySelector('.vertical-tab').offsetWidth
+      const vTab = document.querySelector('.vertical-tab')
+      const w = window.innerWidth - wMod - (vTab ? vTab.offsetWidth : 0)
       const h = window.innerHeight - hMod
       const event = {dirc: e!="v" ? "vertical" : "horizontal",size: e!="v" ? w/mapDepth.get("max")[0]: h/mapDepth.get("max")[1],map:mapDepth}
       PubSub.publish("align-panel",event)

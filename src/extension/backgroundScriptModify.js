@@ -151,6 +151,9 @@ if(chrome.windows){
 
   chrome.windows.remove = (windowId,callback)=> simpleIpcFunc('chrome-windows-remove',callback,windowId)
 
+  chrome.tabs.getZoom =(tabId, callback)=>simpleIpcFunc('chrome-tabs-getZoom',callback,tabId)
+
+  chrome.tabs.setZoom =(tabId, zoomFactor, callback)=>simpleIpcFunc('chrome-tabs-setZoom',callback,tabId,zoomFactor)
 
   for(let method of ['onCreated','onRemoved','onFocusChanged']){
     const name = `chrome-windows-${method}`
@@ -178,11 +181,14 @@ if(chrome.windows){
 
 if(chrome.tabs){
   chrome.tabs._query = chrome.tabs.query
-  chrome.tabs.query = (...args)=>{
-    if(args[0] && args[0].lastFocusedWindow !== void 0){
-      delete args[0].lastFocusedWindow
+  chrome.tabs.query = (queryInfo,callback)=>{
+    if(queryInfo.lastFocusedWindow !== void 0){
+      delete queryInfo.lastFocusedWindow
     }
-    chrome.tabs._query(...args)
+    if(queryInfo.currentWindow == false){
+      delete queryInfo.currentWindow
+    }
+    chrome.tabs._query(queryInfo,callback)
   }
 
   chrome.tabs._create = chrome.tabs.create
@@ -278,6 +284,19 @@ if(chrome.tabs){
     })
   }
 
+  chrome.tabs._executeScript = chrome.tabs.executeScript
+  chrome.tabs.executeScript = (tabId,details,callback) => {
+    if (!isFinite(tabId)) {
+      [tabId,details,callback] = [null,tabId,details]
+      simpleIpcFunc('chrome-tabs-current-tabId',tabId=>{
+        chrome.tabs._executeScript(tabId, details, callback)
+      })
+    }
+    else{
+      chrome.tabs._executeScript(tabId,details,callback)
+    }
+  }
+
   chrome.tabs.insertCSS = (tabId,details,callback) => {
     if(!isFinite(tabId)){
       if(Object.prototype.toString.call(tabId)=="[object Object]"){
@@ -285,6 +304,14 @@ if(chrome.tabs){
       }
     }
     simpleIpcFunc('chrome-tabs-insertCSS',callback,chrome.runtime.id,tabId,details)
+  }
+
+  chrome.tabs.duplicate = (tabId,callback) => {
+    simpleIpcFunc('chrome-tabs-duplicate',callback && (tabId=>chrome.tabs.get(parseInt(tabId), callback)),tabId)
+  }
+
+  chrome.tabs.saveAsPDF = (pageSettings,callback) => {
+    simpleIpcFunc('chrome-tabs-saveAsPDF',callback,pageSettings)
   }
 
   const ipc = chrome.ipcRenderer
@@ -601,6 +628,9 @@ if(chrome.notifications){
   const onClosedEvents = new Set(),onClickedEvent = new Set() ,notifications = {}
   chrome.notifications = {}
   chrome.notifications.create = (notificationId, options, callback) => {
+    if(typeof notificationId !== "string"){
+      [notificationId,options,callback] = [Math.random().toString(),notificationId,options]
+    }
     const params = {}
     if(options.imageUrl) params.icon = options.imageUrl.includes(':') ? options.imageUrl : `chrome-extension://${chrome.runtime.id}/${options.imageUrl}`
     if(options.iconUrl) params.icon = options.iconUrl.includes(':') ? options.iconUrl : `chrome-extension://${chrome.runtime.id}/${options.iconUrl}`
@@ -681,7 +711,32 @@ if(chrome.notifications){
     }
   }
 
+
+  chrome.notifications.onButtonClicked = {
+    addListener(cb) {
+    },
+    removeListener(cb){
+    },
+    hasListener(cb){
+    },
+    hasListeners(){
+    }
+  }
+
 }
+
+try{
+  if(browser){
+    if(!browser.clipboard) browser.clipboard = {}
+    browser.clipboard.setImageData = (imageData, imageType)=>{
+      return new Promise((resolve,reject)=>{
+        const base64String = btoa(new Uint8Array(imageData).reduce((data, byte) => data + String.fromCharCode(byte), ''))
+        simpleIpcFunc('chrome-clipboard-setImageData',(...args)=>resolve(...args),`${imageType == 'jpeg' ? 'data:image/jpeg;base64,' : 'data:image/png;base64,'}${base64String}`)
+      })
+    }
+  }
+
+}catch(e){}
 
 // if(chrome.tabs){
 //   chrome.tabs._sendMessage = chrome.tabs.sendMessage

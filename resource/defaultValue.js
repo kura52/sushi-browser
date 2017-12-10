@@ -35,6 +35,10 @@ const settingDefault =  {
   checkDefaultBrowser: true,
   disableExtensions: [],
   adBlockDisableSite: {},
+  disableContextMenus: [],
+  disableTabContextMenus: ['reload','cleanReload','Split left tabs to left','closeTabsToLeft','bookmarkPage'],
+  priorityContextMenus: {},
+  priorityTabContextMenus: {},
 
   sendToVideo: isLinux ? 'vlc' : isDarwin ? '"quicktime player"' : 'wmplayer',
   vpnNames: [],

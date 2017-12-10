@@ -1,4 +1,4 @@
-import {ipcMain,app,dialog,BrowserWindow,shell,webContents,session} from 'electron'
+import {ipcMain,app,dialog,BrowserWindow,shell,webContents,session,clipboard,nativeImage} from 'electron'
 const BrowserWindowPlus = require('./BrowserWindowPlus')
 import fs from 'fs-extra'
 import sh from 'shelljs'
@@ -13,15 +13,18 @@ const extensions = require('../brave/extension/extensions')
 const defaultConf = require('./defaultConf')
 const merge = require('deepmerge')
 import nm from 'nanomatch'
-
-const transLang = {eng:'en', dan:'da', dut:'nl', fin:'fi', fre:'fr', ger:'de', heb:'he', ita:'it', jpn:'ja', kor:'ko', nor:'nb', pol:'pl', por:'pt', rus:'ru', spa:'es', swe:'sv', chi:'zh', cze:'cs', gre:'el', ice:'is', lav:'lv', lit:'lt', rum:'ro', hun:'hu', est:'et', bul:'bg', scr:'hr', scc:'sr', gle:'ga', glg:'gl', tur:'tr', ukr:'uk', hin:'hi', mac:'mk', ben:'bn', ind:'id', lat:'la', may:'ms', mal:'ml', wel:'cy', nep:'ne', tel:'te', alb:'sq', tam:'ta', bel:'be', jav:'jw', oci:'oc', urd:'ur', bih:'bh', guj:'gu', tha:'th', ara:'ar', cat:'ca', epo:'eo', baq:'eu', ina:'ia', kan:'kn', pan:'pa', gla:'gd', swa:'sw', slv:'sl', mar:'mr', mlt:'mt', vie:'vi', fry:'fy', slo:'sk', fao:'fo', sun:'su', uzb:'uz', amh:'am', aze:'az', geo:'ka', tir:'ti', per:'fa', bos:'bs', sin:'si', nno:'nn', xho:'xh', zul:'zu', grn:'gn', sot:'st', tuk:'tk', kir:'ky', bre:'br', twi:'tw', yid:'yi', som:'so', uig:'ug', kur:'ku', mon:'mn', arm:'hy', lao:'lo', snd:'sd', roh:'rm', afr:'af', ltz:'lb', bur:'my', khm:'km', tib:'bo', div:'dv', ori:'or', asm:'as', cos:'co', ine:'ie', kaz:'kk', lin:'ln', mol:'mo', pus:'ps', que:'qu', sna:'sn', tgk:'tg', tat:'tt', tog:'to', yor:'yo', mao:'mi', wol:'wo', abk:'ab', aar:'aa', aym:'ay', bak:'ba', bis:'bi', dzo:'dz', fij:'fj', kal:'kl', hau:'ha', ipk:'ik', iku:'iu', kas:'ks', kin:'rw', mlg:'mg', nau:'na', orm:'om', run:'rn', smo:'sm', sag:'sg', san:'sa', ssw:'ss', tso:'ts', tsn:'tn', vol:'vo', zha:'za', lug:'lg', glv:'gv'}
-
 import path from 'path'
 import {getCurrentWindow,getFocusedWebContents} from './util'
 const isWin = process.platform == 'win32'
 const isLinux = process.platform === 'linux'
 import mainState from './mainState'
+
 const bindPath = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/bind.html'
+const transLang = {eng:'en', dan:'da', dut:'nl', fin:'fi', fre:'fr', ger:'de', heb:'he', ita:'it', jpn:'ja', kor:'ko', nor:'nb', pol:'pl', por:'pt', rus:'ru', spa:'es', swe:'sv', chi:'zh', cze:'cs', gre:'el', ice:'is', lav:'lv', lit:'lt', rum:'ro', hun:'hu', est:'et', bul:'bg', scr:'hr', scc:'sr', gle:'ga', glg:'gl', tur:'tr', ukr:'uk', hin:'hi', mac:'mk', ben:'bn', ind:'id', lat:'la', may:'ms', mal:'ml', wel:'cy', nep:'ne', tel:'te', alb:'sq', tam:'ta', bel:'be', jav:'jw', oci:'oc', urd:'ur', bih:'bh', guj:'gu', tha:'th', ara:'ar', cat:'ca', epo:'eo', baq:'eu', ina:'ia', kan:'kn', pan:'pa', gla:'gd', swa:'sw', slv:'sl', mar:'mr', mlt:'mt', vie:'vi', fry:'fy', slo:'sk', fao:'fo', sun:'su', uzb:'uz', amh:'am', aze:'az', geo:'ka', tir:'ti', per:'fa', bos:'bs', sin:'si', nno:'nn', xho:'xh', zul:'zu', grn:'gn', sot:'st', tuk:'tk', kir:'ky', bre:'br', twi:'tw', yid:'yi', som:'so', uig:'ug', kur:'ku', mon:'mn', arm:'hy', lao:'lo', snd:'sd', roh:'rm', afr:'af', ltz:'lb', bur:'my', khm:'km', tib:'bo', div:'dv', ori:'or', asm:'as', cos:'co', ine:'ie', kaz:'kk', lin:'ln', mol:'mo', pus:'ps', que:'qu', sna:'sn', tgk:'tg', tat:'tt', tog:'to', yor:'yo', mao:'mi', wol:'wo', abk:'ab', aar:'aa', aym:'ay', bak:'ba', bis:'bi', dzo:'dz', fij:'fj', kal:'kl', hau:'ha', ipk:'ik', iku:'iu', kas:'ks', kin:'rw', mlg:'mg', nau:'na', orm:'om', run:'rn', smo:'sm', sag:'sg', san:'sa', ssw:'ss', tso:'ts', tsn:'tn', vol:'vo', zha:'za', lug:'lg', glv:'gv'}
+const zoomMapping = new Map([
+  [25,-6],[33,-5],[50,-4],[67,-3],[75,-2],[90,-1],[100,0],
+  [110,1],[125,2],[150,3],[175,4],[200,5],[250,6],[300,7],[400,8],[500,9]
+])
 
 function exec(command) {
   console.log(command)
@@ -107,7 +110,7 @@ ipcMain.on('add-extension',(e,{id,url})=>{
     const intId = setInterval(async _=>{
       console.log(234,global.downloadItems)
       if(retry++ > 100) clearInterval(intId)
-      if(!global.downloadItems.length){
+      if(!global.downloadItems.find(x=>x.savePath == `${extRootPath}.crx`)){
         try{
           console.log(`${extRootPath}.crx`,retry)
           if(!fs.existsSync(`${extRootPath}.crx`)) return
@@ -363,6 +366,40 @@ simpleIpcFuncCb('chrome-tabs-insertCSS',async (extensionId,tabId,details,cb)=>{
   }
 })
 
+
+simpleIpcFuncCb('chrome-tabs-duplicate',async (tabId,cb)=>{
+  const key = uuid.v4()
+  const fromWin = BrowserWindow.fromWebContents(webContents.fromTabID(tabId).hostWebContents)
+  fromWin.webContents.send('chrome-tabs-duplicate',key,tabId)
+  ipcMain.once(`chrome-tabs-duplicate-reply_${key}`,(e,tabId)=>{
+    cb(tabId)
+  })
+})
+
+
+simpleIpcFuncCb('chrome-tabs-saveAsPDF',async (pageSettings,cb)=>{
+  getFocusedWebContents().then(cont=>{
+    const filepath = dialog.showSaveDialog(BrowserWindow.fromWebContents(cont.hostWebContents),{defaultPath: path.join(app.getPath('downloads'), `${cont.getTitle()}.pdf`) })
+    if(!filepath){
+      cb('canceled')
+      return
+    }
+    cont.printToPDF({landscape:pageSettings.orientation === 1},(error, data) => {
+      if (error){
+        cb('not_saved')
+        return
+      }
+      fs.writeFile(filepath, data, (error) => {
+        if (error){
+          cb('not_saved')
+          return
+        }
+        cb('saved')
+      })
+    })
+  })
+})
+
 simpleIpcFuncCb('chrome-tabs-captureVisibleTab',(tabId,options,cb)=>{
   options = options || {}
   const cont = webContents.fromTabID(tabId)
@@ -378,6 +415,16 @@ simpleIpcFuncCb('chrome-tabs-captureVisibleTab',(tabId,options,cb)=>{
   }
 })
 
+simpleIpcFuncCb('chrome-tabs-getZoom',async (tabId,cb)=>{
+  const cont = tabId === null || tabId === (void 0) ? (await getFocusedWebContents()) : webContents.fromTabID(tabId)
+  cb(cont.getZoomPercent()/100)
+})
+
+simpleIpcFuncCb('chrome-tabs-setZoom',async (tabId,zoomFactor,cb)=>{
+  const cont = tabId === null || tabId === (void 0) ? (await getFocusedWebContents()) : webContents.fromTabID(tabId)
+  cont.setZoomLevel(zoomMapping.get(cont.getZoomPercent()))
+  cb()
+})
 
 const tabsEventMethods = ['onMoved','onDetached','onAttached']
 
@@ -725,6 +772,12 @@ simpleIpcFuncCb('chrome-topSites-get',(cb)=>{
     }
     cb(arr)
   })
+})
+
+//#clipboard
+simpleIpcFuncCb('chrome-clipboard-setImageData',(data,cb)=>{
+  clipboard.writeImage(nativeImage.createFromDataURL(data))
+  cb()
 })
 
 //#contextMenu

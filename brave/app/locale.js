@@ -351,6 +351,8 @@ var rendererIdentifiers = function () {
     '6146563240635539929',
     '8026334261755873520',
     '1375321115329958930',
+    '5513242761114685513',
+    '5582839680698949063',
 
     'playOrPause',
     'frameStep',
@@ -388,7 +390,8 @@ var rendererIdentifiers = function () {
     'allSiteCookies',
     'autocompleteData',
     'autofillData',
-    'clearBrowsingDataNow'
+    'clearBrowsingDataNow',
+    'tabSettings'
   ]
 }
 

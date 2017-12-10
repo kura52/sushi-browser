@@ -119,6 +119,7 @@ function PercentCompleteFormatter(props){
 
 let debounceInterval = 40, debounceTimer
 let [concurrentDownload,downloadNum] = ipc.sendSync('get-sync-main-states',['concurrentDownload','downloadNum'])
+global.multiSelection = false
 class Downloader extends React.Component {
   static defaultProps = { rowKey: 'id' };
 
@@ -234,7 +235,7 @@ class Downloader extends React.Component {
     if(!e){
       return
     }
-    if(!e.ctrlKey && !e.shiftKey){
+    if(!global.multiSelection && !e.ctrlKey && !e.shiftKey){
       this.clearSelect(1)
     }
 
@@ -276,7 +277,7 @@ class Downloader extends React.Component {
 
 
   play(item){
-    if(item.state == "cancelled" || item.fromDB){
+    if(item.fromDB){
       ipc.send("download-retry", item.url, item.savePath, item.key) //元アイテムを消す
     }
     else{
@@ -414,7 +415,7 @@ class Downloader extends React.Component {
   handleStart = ()=>{
     for(let item of Object.values(this.getSelectedMap())){
       if(item.state == "completed" || (item.state == "progressing" && !item.isPaused)) continue
-      if(item.state == "cancelled" || item.fromDB){
+      if(item.fromDB){
         ipc.send("download-retry", item.url, item.savePath, item.key) //元アイテムを消す
       }
       else{
@@ -490,7 +491,14 @@ class Downloader extends React.Component {
   }
 
   onChange(type,e){
+    if(type == 'concurrentDownload') concurrentDownload = e.target.value
+    else if(type == 'downloadNum') downloadNum = e.target.value
     ipc.send('save-state',{tableName:'state',key:type,val:e.target.value})
+  }
+
+  onChangeMultiSelection(e){
+    global.multiSelection = !global.multiSelection
+    this.setState({})
   }
 
   render() {
@@ -529,6 +537,15 @@ class Downloader extends React.Component {
             <button onClick={_=>this.handleCopyUrl()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
               <i className="fa fa-clipboard" aria-hidden="true"></i>Copy URL
             </button>
+
+            <div className="form-check form-check-inline">
+              <label className="form-check-label">
+                <input className="form-check-input" type="checkbox" checked={global.multiSelection} onChange={::this.onChangeMultiSelection}/>Multiple Selection
+              </label>
+            </div>
+
+          <div className="divider-vertical" />
+
             Concurrent downloads:
             <select className="form-control form-control-sm" onChange={this.onChange.bind(this,'concurrentDownload')}>
               {[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20].map(x=><option selected={concurrentDownload == x}value={x}>{x}</option>)}

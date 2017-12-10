@@ -108,37 +108,6 @@ const videoKeyMapping = {
   keyVideoPlRepeat: l10n.translation('plRepeat').replace(/\(.\)/,''),
 }
 
-class TopMenu extends React.Component {
-  constructor(props) {
-    super(props)
-  }
-
-  setToken(token){
-    this.token = token
-  }
-
-  render() {
-    return (
-      <StickyContainer>
-        <Sticky>
-          <div>
-            <Menu pointing secondary >
-              <Menu.Item as='a' href={`chrome://newtab/`} key="top" name="Top"/>
-              <Menu.Item as='a' href={`chrome://bookmarks/`} key="favorite" name={l10n.translation('bookmarks')}/>
-              <Menu.Item as='a' href={`chrome://history/`} key="history" name={l10n.translation('history')}/>
-              <Menu.Item as='a' href={`${baseURL}/download.html`} key="download" name={l10n.translation('downloads')}/>
-              <Menu.Item as='a' href={`${baseURL}/explorer.html`} key="file-explorer" name="File Explorer"/>
-              <Menu.Item as='a' href={`${baseURL}/terminal.html`} key="terminal" name="Terminal"/>
-              <Menu.Item key="settings" name={l10n.translation('settings')} active={true}/>
-            </Menu>
-          </div>
-        </Sticky>
-        <TopList setToken={::this.setToken}/>
-      </StickyContainer>
-    )
-  }
-}
-
 const startsWithOptions = [
   {
     key: 'startsWithOptionLastTime',
@@ -320,6 +289,132 @@ const availableLanguages = [
   'uk'
 ]
 
+const contextMenus = [
+  ['back', l10n.translation('back')],
+  ['forward', l10n.translation('forward')],
+  ['reload', l10n.translation('reload')],
+
+  ['divider', null],
+
+  ['openSearch', l10n.translation('openSearch').replace(/{{ *selectedVariable *}}/,'')],
+  ['Copy Links', 'Copy Links'],
+  ['Open Links', 'Open Links'],
+  ['Download Selection', 'Download Selection'],
+  ['savePageAs', l10n.translation('savePageAs')],
+  ['bookmarkPage', l10n.translation('bookmarkPage')],
+  ['print', l10n.translation('print')],
+  ['2473195200299095979', l10n.translation('2473195200299095979')],
+
+  ['divider', null],
+
+  ['Download All', 'Download All'],
+
+  ['divider', null],
+
+  ['Sync Scroll Left to Right', 'Sync Scroll Left to Right'],
+  ['Sync Scroll Right to Left', 'Sync Scroll Right to Left'],
+
+  ['divider', null],
+
+  ['viewPageSource', l10n.translation('viewPageSource')],
+  ['inspectElement', l10n.translation('inspectElement')],
+
+  ['divider', null],
+
+  ['openInNewTab', l10n.translation('openInNewTab')],
+  ['Open Link in Opposite Tab', 'Open Link in Opposite Tab'],
+  ['openInNewPrivateTab', l10n.translation('openInNewPrivateTab')],
+  ['openInNewSessionTab', l10n.translation('openInNewSessionTab')],
+  ['openInNewWindow', l10n.translation('openInNewWindow')],
+  ['saveLinkAs', l10n.translation('saveLinkAs')],
+  ['copyLinkAddress', l10n.translation('copyLinkAddress')],
+  ['1047431265488717055', l10n.translation('1047431265488717055')],
+  ['Send URL to Video Player', 'Send URL to Video Player'],
+
+  ['divider', null],
+
+  ['cut', l10n.translation('cut')],
+  ['copy', l10n.translation('copy')],
+  ['paste', l10n.translation('paste')],
+
+  ['divider', null],
+
+  ['openImageInNewTab', l10n.translation('openImageInNewTab')],
+  ['saveImage', l10n.translation('saveImage')],
+  ['copyImage', l10n.translation('copyImage')],
+  ['copyImageAddress', l10n.translation('copyImageAddress')],
+  ['994289308992179865', l10n.translation('994289308992179865')],
+  ['Muted', 'Muted'],
+  ['1725149567830788547', l10n.translation('1725149567830788547')],
+  ['Play Video in Popup Window', 'Play Video in Popup Window'],
+  ['Play Video in Floating Panel', 'Play Video in Floating Panel'],
+  ['4643612240819915418', l10n.translation('4643612240819915418')],
+  ['4256316378292851214', l10n.translation('4256316378292851214')],
+  ['782057141565633384', l10n.translation('782057141565633384')],
+  ['2019718679933488176', l10n.translation('2019718679933488176')],
+  ['5116628073786783676', l10n.translation('5116628073786783676')],
+  ['1465176863081977902', l10n.translation('1465176863081977902')]
+]
+
+const tabContextMenus = [
+  ['newTab', l10n.translation('newTab')],
+  ['newPrivateTab', l10n.translation('newPrivateTab')],
+  ['newSessionTab', l10n.translation('newSessionTab')],
+
+  ['divider', null],
+
+  ['Split Left','Split Left'],
+  ['Split Right','Split Right'],
+  ['Split Top','Split Top'],
+  ['Split Bottom','Split Bottom'],
+
+  ['divider', null],
+
+  ['Split left tabs to left','Split left tabs to left'],
+  ['Split right tabs to right','Split right tabs to right'],
+  ['Floating Panel','Floating Panel'],
+
+  ['divider', null],
+
+  ['Swap Position','Swap Position'],
+  ['Switch Direction','Switch Direction'],
+
+  ['divider', null],
+
+  ['Align Horizontal','Align Horizontal'],
+  ['Align Vertical','Align Vertical'],
+
+  ['divider', null],
+
+  ['reload', l10n.translation('reload')],
+  ['cleanReload', l10n.translation('cleanReload')],
+  ['3007771295016901659', l10n.translation('3007771295016901659')],
+  ['unpinTab', l10n.translation('unpinTab')],
+
+  ['divider', null],
+
+  ['closeOtherTabs', l10n.translation('closeOtherTabs')],
+  ['closeTabsToLeft', l10n.translation('closeTabsToLeft')],
+  ['closeTabsToRight', l10n.translation('closeTabsToRight')],
+  ['Close all Tabs','Close all Tabs'],
+
+  ['divider', null],
+
+  ['reopenLastClosedTab', l10n.translation('reopenLastClosedTab')],
+  ['bookmarkPage', l10n.translation('bookmarkPage')],
+  ['5078638979202084724', l10n.translation('5078638979202084724')],
+
+  ['divider', null],
+
+  ['reloads', l10n.translation('reload')],
+  ['cleanReloads', l10n.translation('cleanReload')],
+  ['5453029940327926427', l10n.translation('5453029940327926427')],
+
+  ['divider', null],
+
+  ['Close This Tree','Close This Tree']
+]
+
 const languageOptions = availableLanguages.map(x=>{
   return {
     key: x,
@@ -327,6 +422,37 @@ const languageOptions = availableLanguages.map(x=>{
     text: l10n.translation(x),
   }
 })
+
+class TopMenu extends React.Component {
+  constructor(props) {
+    super(props)
+  }
+
+  setToken(token){
+    this.token = token
+  }
+
+  render() {
+    return (
+      <StickyContainer>
+        <Sticky>
+          <div>
+            <Menu pointing secondary >
+              <Menu.Item as='a' href={`chrome://newtab/`} key="top" name="Top"/>
+              <Menu.Item as='a' href={`chrome://bookmarks/`} key="favorite" name={l10n.translation('bookmarks')}/>
+              <Menu.Item as='a' href={`chrome://history/`} key="history" name={l10n.translation('history')}/>
+              <Menu.Item as='a' href={`${baseURL}/download.html`} key="download" name={l10n.translation('downloads')}/>
+              <Menu.Item as='a' href={`${baseURL}/explorer.html`} key="file-explorer" name="File Explorer"/>
+              <Menu.Item as='a' href={`${baseURL}/terminal.html`} key="terminal" name="Terminal"/>
+              <Menu.Item key="settings" name={l10n.translation('settings')} active={true}/>
+            </Menu>
+          </div>
+        </Sticky>
+        <TopList setToken={::this.setToken}/>
+      </StickyContainer>
+    )
+  }
+}
 
 let generalDefault
 class GeneralSetting extends React.Component {
@@ -805,6 +931,110 @@ class KeyboardSetting extends React.Component {
   }
 }
 
+
+let contextMenuDefault
+class ContextMenuSetting extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {...contextMenuDefault,errors:{}}
+  }
+
+  onChange(isTab,name,e,data){
+    const disableMenu = isTab ? 'disableTabContextMenus' : 'disableContextMenus'
+    const val = data.checked
+    if(val){
+      this.state[disableMenu] = this.state[disableMenu].filter(x=>x!==name)
+    }
+    else{
+      this.state[disableMenu].push(name)
+    }
+    ipc.send('save-state',{tableName:'state',key:disableMenu,val:this.state[disableMenu]})
+
+    this.setState({})
+  }
+
+  emitChange(isTab,name,e){
+    const val = e.target.innerText
+    const priorityMenu = isTab ? 'priorityTabContextMenus' : 'priorityContextMenus'
+    if(val == "" || val === void 0){
+      delete this.state[priorityMenu]
+    }
+    else{
+      this.state[priorityMenu][name] = val
+    }
+    ipc.send('save-state',{tableName:'state',key:priorityMenu,val:this.state[priorityMenu]})
+  }
+
+  onBlur(isTab,name,e){
+    this.emitChange(isTab, name, e)
+    this.setState({})
+  }
+
+  renderRows(isTab){
+    const disableMenu = isTab ? 'disableTabContextMenus' : 'disableContextMenus'
+    const priorityMenu = isTab ? 'priorityTabContextMenus' : 'priorityContextMenus'
+    const ret = []
+    let i = 0
+    let divider
+    for(let [key,name] of (isTab ? tabContextMenus : contextMenus)){
+      if(key == 'divider'){
+        divider = true
+        continue
+      }
+      ret.push(
+        <tr key={`tr${i}`} style={divider ? {borderTop: '3px double rgba(34,36,38,.15)'} : {}}>
+          <td key={`default${i}`}>
+            <Checkbox defaultChecked={!this.state[disableMenu].find(x=>x==key)} toggle onChange={this.onChange.bind(this,isTab,key)}/>
+          </td>
+          <td key={`name${i}`} >{name}</td>
+          <td key={`shortcut${i}`} data-num={i} data-name='shortcut' onInput={this.emitChange.bind(this,isTab,key)} onBlur={this.onBlur.bind(this,isTab,key)} contentEditable>{this.state[priorityMenu][key]||"0"}</td>
+        </tr>)
+      divider = false
+    i++
+    }
+
+    return ret
+  }
+
+  render() {
+    return <div>
+      <h3>{l10n.translation('5513242761114685513')}</h3>
+      <Divider/>
+
+      <h4>{l10n.translation('5582839680698949063')}</h4>
+      <Divider/>
+      <table className="ui celled compact table" style={{borderCollapse: 'collapse'}}>
+        <thead>
+        <tr>
+          <th>{l10n.translation('default')}</th>
+          <th>{l10n.translation('name')}</th>
+          <th>Priority</th>
+        </tr>
+        </thead>
+        <tbody>
+        {this.renderRows()}
+        </tbody>
+      </table>
+
+      <h4>{l10n.translation('tabSettings')}({l10n.translation('requiresRestart').replace('* ','')})</h4>
+      <Divider/>
+      <table className="ui celled compact table" style={{borderCollapse: 'collapse'}}>
+        <thead>
+        <tr>
+          <th>{l10n.translation('default')}</th>
+          <th>{l10n.translation('name')}</th>
+          <th>Priority</th>
+        </tr>
+        </thead>
+        <tbody>
+        {this.renderRows('tab')}
+        </tbody>
+      </table>
+
+    </div>
+  }
+}
+
 let videoDefault
 class VideoSetting extends React.Component {
   constructor(props) {
@@ -1063,6 +1293,7 @@ const routings = {
   'general' : <GeneralSetting/>,
   'search' : <SearchSetting/>,
   'tabs' : <TabsSetting/>,
+  'contextMenu' : <ContextMenuSetting/>,
   'keyboard' : <KeyboardSetting/>,
   'video' : <VideoSetting/>,
   'extensions' : <ExtensionSetting/>,
@@ -1084,7 +1315,7 @@ class TopList extends React.Component {
                       onClick={_=>this.setState({page:name})}
     >
       <Icon name={icon}/>
-      {l10n.translation(name == "keyboard" ? '1524430321211440688' : name == 'video' ? '6146563240635539929' : name)}
+      {l10n.translation(name == "keyboard" ? '1524430321211440688' : name == 'video' ? '6146563240635539929' : name == 'contextMenu'? '5513242761114685513' : name)}
     </Menu.Item>
   }
 
@@ -1099,6 +1330,7 @@ class TopList extends React.Component {
         {this.getMenu('general','browser')}
         {this.getMenu('search','search')}
         {/*{this.getMenu('tabs','table')}*/}
+        {this.getMenu('contextMenu','square outline')}
         {this.getMenu('keyboard','keyboard')}
         {this.getMenu('video','video')}
         {this.getMenu('extensions','industry')}
@@ -1121,13 +1353,15 @@ const App = () => (
 
 
 ipc.send("get-main-state",['startsWith','newTabMode','myHomepage','searchProviders','searchEngine','language','enableFlash','concurrentDownload','downloadNum','sideBarDirection','scrollTab',
-  'doubleShift','tripleClick','syncScrollMargin','contextMenuSearchEngines','ALL_KEYS','bindMarginFrame','bindMarginTitle','historyFull','longPressMiddle','checkDefaultBrowser','sendToVideo',
-  'multistageTabs','tabMinWidth','httpsEverywhereEnable','trackingProtectionEnable','autoSaveInterval','noScript','blockCanvasFingerprinting','browsingHistory', 'downloadHistory'])
+  'doubleShift','tripleClick','syncScrollMargin','contextMenuSearchEngines','ALL_KEYS','bindMarginFrame','bindMarginTitle','longPressMiddle','checkDefaultBrowser','sendToVideo',
+  'multistageTabs','tabMinWidth','httpsEverywhereEnable','trackingProtectionEnable','autoSaveInterval','noScript','blockCanvasFingerprinting','browsingHistory', 'downloadHistory',
+  'disableContextMenus','disableTabContextMenus','priorityContextMenus','priorityTabContextMenus'])
 ipc.once("get-main-state-reply",(e,data)=>{
   generalDefault = data
   keyboardDefault = data
   videoDefault = data
   extensionDefault = data
+  contextMenuDefault = data
 
   const {searchProviders, searchEngine, contextMenuSearchEngines} = data
   let arr = []

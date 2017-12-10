@@ -38,7 +38,9 @@ let topURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html',
 const sidebarURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html'
 const blankURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html'
 const REG_VIDEO = /^https:\/\/www\.(youtube)\.com\/watch\?v=(.+)&?|^http:\/\/www\.(dailymotion)\.com\/video\/(.+)$|^https:\/\/(vimeo)\.com\/(\d+)$/
-let [newTabMode,inputsVideo] = ipc.sendSync('get-sync-main-states',['newTabMode','inputsVideo'])
+let [newTabMode,inputsVideo,disableTabContextMenus,priorityTabContextMenus] = ipc.sendSync('get-sync-main-states',['newTabMode','inputsVideo','disableTabContextMenus','priorityTabContextMenus'])
+
+disableTabContextMenus = new Set(disableTabContextMenus)
 
 function getNewTabPage(){
   const arr = ipc.sendSync('get-sync-main-states',[newTabMode == 'myHomepage' ? 'myHomepage' : 'topPage' ,'bookmarksPage','historyPage'])
@@ -1797,26 +1799,26 @@ export default class TabPanel extends Component {
         }
 
         setTimeout(_=>{
-        console.log(11111111,result[0])
-        if(popup){
-          this.detachTab(tab,{width:720,height:480})
-          return
-        }
+          console.log(11111111,result[0])
+          if(popup){
+            this.detachTab(tab,{width:720,height:480})
+            return
+          }
 
-        const _tabs = this.state.tabs
-        if(_tabs.length > 1) {
-          const i = _tabs.findIndex((x)=>x.key === tab.key)
-          this.props.addFloatPanel(_tabs,i,true)
-          PubSub.publish(`close_tab_${this.props.k}`,{key:tab.key})
-        }
-        else{
-          const t = this.handleTabAddButtonClick()
-          setTimeout(_=> {
+          const _tabs = this.state.tabs
+          if(_tabs.length > 1) {
             const i = _tabs.findIndex((x)=>x.key === tab.key)
-            this.props.addFloatPanel(_tabs, i,true)
-            PubSub.publish(`close_tab_${this.props.k}`, {key:tab.key})
-          },100)
-        }
+            this.props.addFloatPanel(_tabs,i,true)
+            PubSub.publish(`close_tab_${this.props.k}`,{key:tab.key})
+          }
+          else{
+            const t = this.handleTabAddButtonClick()
+            setTimeout(_=> {
+              const i = _tabs.findIndex((x)=>x.key === tab.key)
+              this.props.addFloatPanel(_tabs, i,true)
+              PubSub.publish(`close_tab_${this.props.k}`, {key:tab.key})
+            },100)
+          }
         },10)
       })
     }
@@ -1881,49 +1883,15 @@ export default class TabPanel extends Component {
     }
     ipc.on(`chrome-tabs-event`, tab.events[`chrome-tabs-event`])
 
-    // tab.events[`chrome-tabs-event-move`] = (e,tabIds, moveProperties)=> {
-    //   if (!this.mounted || !tabIds.includes(tab.wvId)) return
-    //
-    // }
-    // ipc.on(`chrome-tabs-event-move`, tab.events[`chrome-tabs-event-move`])
-
-    //   if (cond.contId && cond.contId != this.getWebContents(tab.wv).id) return
-    //
-    //   switch (type) {
-    //     case 'reload':
-    //       cond.bypassCache ? tab.wv.reload() : tab.wv.reloadIgnoringCache()
-    //       break;
-    //
-    //     case 'create':
-    //       console.log(cond)
-    //       const {url, index, selected} = cond
-    //       this.createNewTab(this.state.tabs, index === (void 0) ? 0 : index - 1, url, selected)
-    //       if (needCallback) ipc.send(`chrome-tab-event-reply:${resKey}`, this.getChromeTab(tab))
-    //       break;
-    //
-    //     case 'remove':
-    //       for (let tabId of cond.tabIds) {
-    //         this.handleTabClose({}, tabId.toString())
-    //       }
-    //       if (needCallback) ipc.send(`chrome-tab-event-reply:${resKey}`)
-    //       break;
-    //
-    //     case 'executeScript':
-    //       cond.tabId = cond.tabId || this.state.selectedTab
-    //       if (cond.code) {
-    //         const tab = this.state.tabs.find(t=>t.key == cont.tabId.toString())
-    //         tab.wv.executeJavaScript(cond.code, false,
-    //             needCallback ? (result)=> ipc.send(`chrome-tab-event-reply:${resKey}`, result) : (void 0)
-    //         )
-    //       }
-    //       else {
-    //         console.log('mock_executeScript')
-    //       }
-    //       break;
-    //   }
-    // }
-    // ipc.on(`chrome-tab-event`, tab.events[`chrome-tab-event`])
-
+    tab.events[`chrome-tabs-duplicate`] = (e,key,tabId)=> {
+      if(tab.wvId === tabId) {
+        ipc.send("set-recent-url", tab.page.navUrl)
+        this.getWebContents(tab).clone({}, (newTab) => {
+          ipc.send(`chrome-tabs-duplicate-reply_${key}`,newTab.getId())
+        })
+      }
+    }
+    ipc.on(`chrome-tabs-duplicate`, tab.events[`chrome-tabs-duplicate`])
   }
 
   navigateTo(newPage, l, tab, guestInstanceId) {
@@ -2634,6 +2602,15 @@ export default class TabPanel extends Component {
     arr.forEach((key,i)=> this.handleTabClose({}, key, i == arr.length - 1))
   }
 
+  closeLeftTabs(key){
+    let arr = []
+    for(let tab of this.state.tabs){
+      if(tab.key == key) break
+      arr.push(tab.key)
+    }
+    arr.forEach((t,i)=> this.handleTabClose({}, t, i == arr.length - 1))
+  }
+
   closeRightTabs(key){
     let arr = []
     let isAppear = false
@@ -2801,10 +2778,11 @@ export default class TabPanel extends Component {
     return enableMulti
   }
 
-  onAddFavorites(){
+  onAddFavorites(tabKey){
     const keys = []
+    const tabs = tabKey ? this.state.tabs.filter(x=>x.key == tabKey) : this.state.tabs
     let head
-    const datas = this.state.tabs.map((tab,i)=>{
+    const datas = tabs.map((tab,i)=>{
         const {page} = tab
         if(i==0){
           head = multiByteSlice(page.title,12)
@@ -2814,11 +2792,18 @@ export default class TabPanel extends Component {
         return {key, url:page.navUrl, title:page.title, favicon:page.favicon, is_file:true, created_at: Date.now(), updated_at: Date.now()}
       })
     ;(async ()=> {
-      const dirc = moment().format("YYYY/MM/DD HH:mm:ss")
-      const key = uuid.v4()
-      await favorite.insert(datas)
-      await favorite.insert({key, title:`${head} ${dirc}`, is_file:false, created_at: Date.now(), updated_at: Date.now(),children: keys})
-      await favorite.update({ key: 'root' }, { $push: { children: key }, $set:{updated_at: Date.now()} })
+      if(tabKey){
+        const key = datas[0].key
+        await favorite.insert(datas)
+        await favorite.update({ key: 'root' }, { $push: { children: key }, $set:{updated_at: Date.now()} })
+      }
+      else{
+        const dirc = moment().format("YYYY/MM/DD HH:mm:ss")
+        const key = uuid.v4()
+        await favorite.insert(datas)
+        await favorite.insert({key, title:`${head} ${dirc}`, is_file:false, created_at: Date.now(), updated_at: Date.now(),children: keys})
+        await favorite.update({ key: 'root' }, { $push: { children: key }, $set:{updated_at: Date.now()} })
+      }
     })()
   }
 
@@ -2835,6 +2820,19 @@ export default class TabPanel extends Component {
     return [sTabs,nTabs]
   }
 
+  contextMenuItemBuild(items){
+    for(let item of items){
+      if(item.submenu){
+        this.contextMenuItemBuild(item.submenu)
+      }
+      if(item.data){
+        item.click = ()=>{
+          ipc.send('tab-contextMenu-clicked',item.data)
+        }
+      }
+    }
+  }
+
   handleContextMenu(e,key,currentTabs,tabs){
     this._handleContextMenu(e,key,currentTabs,tabs)
   }
@@ -2844,6 +2842,7 @@ export default class TabPanel extends Component {
   }
 
   _handleContextMenu(e,key,currentTabs,tabs,tree){
+    console.log('context-time1',Date.now())
     const _tabs = this.state.tabs
     const i = _tabs.findIndex((x)=>x.key===key)
     const t = _tabs[i]
@@ -2857,12 +2856,10 @@ export default class TabPanel extends Component {
       menuItems.push(({ type: 'separator' }))
     }
     // menuItems.push(({ label: 'New Tab', click: ()=>document.querySelector(".rdTabAddButton").click()}))
-    menuItems.push(({ label: locale.translation('newTab'), click: ()=>this.createNewTab(_tabs, i)}))
-    menuItems.push(({ label: locale.translation('newPrivateTab'), click: ()=>this.createNewTab(_tabs, i,{default_url:"",privateMode:Math.random().toString()})}))
-    menuItems.push(({ label: locale.translation('newSessionTab'), click: ()=>this.createNewTab(_tabs, i,{privateMode:`persist:${ipc.sendSync('get-session-sequence')}`})}))
+    menuItems.push(({ t:'newTab',label: locale.translation('newTab'), click: ()=>this.createNewTab(_tabs, i)}))
+    menuItems.push(({ t:'newPrivateTab',label: locale.translation('newPrivateTab'), click: ()=>this.createNewTab(_tabs, i,{default_url:"",privateMode:Math.random().toString()})}))
+    menuItems.push(({ t:'newSessionTab',label: locale.translation('newSessionTab'), click: ()=>this.createNewTab(_tabs, i,{privateMode:`persist:${ipc.sendSync('get-session-sequence')}`})}))
     menuItems.push(({ type: 'separator' }))
-
-    // menuItems.push(({ label: locale.translation('reload'), click: ()=>this.getWebContents(t).reload()}))
 
     const splitFunc = (dirc,pos)=> {
       if(enableSelection){
@@ -2981,7 +2978,10 @@ export default class TabPanel extends Component {
       menuItems.push(({ label: 'Split Bottom', click: splitFunc.bind(this,'h',1) }))
       menuItems.push(({ type: 'separator' }))
       // menuItems.push(({ label: 'Split Left Tabs to Left', click: splitOtherTabsFunc.bind(this,'v',-1) }))
-      if(!enableSelection) menuItems.push(({ label: 'Split right tabs to right', click: splitOtherTabsFunc.bind(this,'v',1) }))
+      if(!enableSelection){
+        menuItems.push(({ label: 'Split left tabs to left', click: splitOtherTabsFunc.bind(this,'v',-1) }))
+        menuItems.push(({ label: 'Split right tabs to right', click: splitOtherTabsFunc.bind(this,'v',1) }))
+      }
 
       menuItems.push(({ label: 'Floating Panel', click: _=>detachToFloatPanel() }))
       menuItems.push(({ type: 'separator' }))
@@ -2998,8 +2998,9 @@ export default class TabPanel extends Component {
     //   click: ()=> this.handleTabClose({}, key)}))
 
     if(enableSelection){
-      menuItems.push(({ label: locale.translation('reload'), click: ()=> selections[0].forEach(t=>this.getWebContents(t).reload())}))
-      menuItems.push(({ label: locale.translation('3007771295016901659'), //'Duplicate',
+      menuItems.push(({ t:'reloads',label: locale.translation('reload'), click: ()=> selections[0].forEach(t=>this.getWebContents(t).reload())}))
+      menuItems.push(({ t:'cleanReloads',label: locale.translation('cleanReload'), click: ()=> selections[0].forEach(t=>this.getWebContents(t).reloadIgnoringCache())}))
+      menuItems.push(({ t:'3007771295016901659',label: locale.translation('3007771295016901659'), //'Duplicate',
         click: ()=> {
           for(let t of selections[0]){
             ipc.send("set-recent-url",t.page.navUrl)
@@ -3009,60 +3010,89 @@ export default class TabPanel extends Component {
         } }))
 
       const allPined = selections[0].every(t=>t.pin)
-      menuItems.push(({ label: allPined ? locale.translation('unpinTab') : locale.translation('pinTab'), click: ()=> {
-        selections[0].forEach(t=>t.pin = !allPined)
-        this.resetSelection()
-        this.setState({})
-      }}))
+      menuItems.push(({ t:'unpinTab',label: allPined ? locale.translation('unpinTab') : locale.translation('pinTab'), click: ()=> {
+          selections[0].forEach(t=>t.pin = !allPined)
+          this.resetSelection()
+          this.setState({})
+        }}))
 
       menuItems.push(({ type: 'separator' }))
-      menuItems.push(({ label: locale.translation('5453029940327926427'), click: ()=> this.closeTabs(selections[0].map(t=>t.key))}))
-      menuItems.push(({ label: locale.translation('closeOtherTabs'), click: ()=> this.closeTabs(selections[1].map(t=>t.key))}))
+      menuItems.push(({ t:'5453029940327926427',label: locale.translation('5453029940327926427'), click: ()=> this.closeTabs(selections[0].map(t=>t.key))}))
+      menuItems.push(({ t:'closeOtherTabs',label: locale.translation('closeOtherTabs'), click: ()=> this.closeTabs(selections[1].map(t=>t.key))}))
     }
     else{
-      menuItems.push(({ label: locale.translation('3007771295016901659'), //'Duplicate',
+      menuItems.push(({ t:'reload',label: locale.translation('reload'), click: ()=>this.getWebContents(t).reload()}))
+      menuItems.push(({ t:'cleanReload',label: locale.translation('cleanReload'), click: ()=>this.getWebContents(t).reloadIgnoringCache()}))
+      menuItems.push(({ t:'3007771295016901659',label: locale.translation('3007771295016901659'), //'Duplicate',
         click: ()=> {
           ipc.send("set-recent-url",t.page.navUrl)
           this.getWebContents(t).clone()
         } }))
 
-      menuItems.push(({ label: t.pin ? locale.translation('unpinTab') : locale.translation('pinTab'), click: ()=> {t.pin = !t.pin;this.setState({})}}))
+      menuItems.push(({ t:'unpinTab',label: t.pin ? locale.translation('unpinTab') : locale.translation('pinTab'), click: ()=> {t.pin = !t.pin;this.setState({})}}))
       menuItems.push(({ type: 'separator' }))
-      menuItems.push(({ label: locale.translation('closeOtherTabs'), click: ()=> this.closeOtherTabs(key)}))
-      menuItems.push(({ label: locale.translation('closeTabsToRight'), click: ()=> this.closeRightTabs(key)}))
+      menuItems.push(({ t:'closeOtherTabs',label: locale.translation('closeOtherTabs'), click: ()=> this.closeOtherTabs(key)}))
+      menuItems.push(({ t:'closeTabsToLeft',label: locale.translation('closeTabsToLeft'), click: ()=> this.closeLeftTabs(key)}))
+      menuItems.push(({ t:'closeTabsToRight',label: locale.translation('closeTabsToRight'), click: ()=> this.closeRightTabs(key)}))
     }
 
     menuItems.push(({ label: 'Close all Tabs', click: ()=> {
-      // console.log(this)
-      this.props.close(this.props.k)
-      this.TabPanelClose()
-    } }))
+        // console.log(this)
+        this.props.close(this.props.k)
+        this.TabPanelClose()
+      } }))
 
     menuItems.push(({ type: 'separator' }))
 
     if(this.state.history.length > 0){
-      menuItems.push(({ label: locale.translation('reopenLastClosedTab'), click: ()=> {
-        const tabKey = this.state.history.pop()
-        tabState.findOne({tabKey}).then(rSession=>{
-          const urls = rSession.urls
-          const titles = rSession.titles
-          rSession.urls = urls.split("\t")
-          rSession.titles = titles.split("\t")
-          const n_tab = this.createTab({default_url:rSession.urls[rSession.currentIndex],rest:{rSession}})
-          tabState.insert({tabKey:n_tab.key,titles,urls,currentIndex:rSession.currentIndex, updated_at: Date.now()})
-          _tabs.splice(i + 1, 0, n_tab )
-          console.log("selected12",n_tab.key)
-          this.setState({selectedTab: n_tab.key})
-          this.focus_webview(n_tab,n_tab.page.location != topURL)
-        })
-      }
+      menuItems.push(({ t:'reopenLastClosedTab',label: locale.translation('reopenLastClosedTab'), click: ()=> {
+          const tabKey = this.state.history.pop()
+          tabState.findOne({tabKey}).then(rSession=>{
+            const urls = rSession.urls
+            const titles = rSession.titles
+            rSession.urls = urls.split("\t")
+            rSession.titles = titles.split("\t")
+            const n_tab = this.createTab({default_url:rSession.urls[rSession.currentIndex],rest:{rSession}})
+            tabState.insert({tabKey:n_tab.key,titles,urls,currentIndex:rSession.currentIndex, updated_at: Date.now()})
+            _tabs.splice(i + 1, 0, n_tab )
+            console.log("selected12",n_tab.key)
+            this.setState({selectedTab: n_tab.key})
+            this.focus_webview(n_tab,n_tab.page.location != topURL)
+          })
+        }
       }))
     }
-    menuItems.push(({ label: locale.translation('5078638979202084724'),//'Add pages to Favorites',
-      click: ::this.onAddFavorites }))
-    let menu = Menu.buildFromTemplate(menuItems)
+    menuItems.push(({ t:'bookmarkPage',label: locale.translation('bookmarkPage'),click: this.onAddFavorites.bind(this,t.key) }))
+    menuItems.push(({ t:'5078638979202084724',label: locale.translation('5078638979202084724'),click: ::this.onAddFavorites }))
 
+    menuItems.forEach((x,i)=>x.num = -i + parseInt(priorityTabContextMenus[x.t || x.label] || 0) * 100)
+    menuItems = menuItems.sort((a,b)=> b.num - a.num)
+
+    menuItems = menuItems.filter(x=>!disableTabContextMenus.has(x.t || x.label))
+
+    const menuItems2 = []
+    menuItems.forEach((x,i)=>{
+      menuItems2.push(x)
+      if(menuItems[i+1] && parseInt(x.num / 100) != parseInt(menuItems[i+1].num / 100)){
+        menuItems2.push({ type: 'separator' })
+      }
+    })
+    menuItems = menuItems2
+
+    menuItems = menuItems.filter((x,i)=>{
+      if(i==0) return x.type != 'separator'
+      return !(menuItems[i-1].type == 'separator' && x.type == 'separator')
+    })
+
+    console.log('context-time2',Date.now())
+    const items = ipc.sendSync('get-tab-contextMenu',key,t.page.navUrl,t.wvId)
+    console.log('context-time3',Date.now())
+    this.contextMenuItemBuild(items)
+    menuItems.push(...items)
+    let menu = Menu.buildFromTemplate(menuItems)
+    console.log('context-time4',Date.now())
     menu.popup(remote.getCurrentWindow())
+
   }
 
   createNewTab(tabs, i = tabs.length -1,opt={}) {
@@ -3443,7 +3473,7 @@ export default class TabPanel extends Component {
       document.body.appendChild(canvas)
 
       let ctx = canvas.getContext('2d'),
-      rect = {},drag
+        rect = {},drag
 
       const draw = ()=>{
         ctx.setLineDash([6]);

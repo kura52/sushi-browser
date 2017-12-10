@@ -27,7 +27,7 @@
         "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html",
         "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html",
         "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html",
-        "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/selector.html",
+        "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/selector.html*",
         "chrome://brave/*"
       ],
       "run_at": "document_end"

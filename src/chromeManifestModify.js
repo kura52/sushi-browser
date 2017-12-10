@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-const electronImageResize = require('electron-image-resize')
+const electronImageResize = require('./electronImageResize')
 const {getPath1,getPath2} = require('./chromeExtensionUtil')
 
 const contentScriptName = '___contentScriptModify_.js'
@@ -8,6 +8,7 @@ const contentScriptName = '___contentScriptModify_.js'
 const backgroundScriptName = '___backgroundScriptModify_.js'
 
 const polyfillName = 'browser-polyfill.min.js'
+const webExtStyleName = 'webextension.css'
 
 const backgroundHtmlName = '___backgroundModify_.html'
 let backgroundHtmlStr = `<!DOCTYPE html>
@@ -45,10 +46,15 @@ function copyModifyFile(to,flagContent,flagBackground,isWebExt){
     fs.writeFileSync(bgPath,bg)
   }
   if(isWebExt){
-    const poli = fs.readFileSync(path.join(__dirname,'../resource/browser-polyfill.min.js')).toString()
+    const poli = fs.readFileSync(path.join(__dirname,`../resource/${polyfillName}`)).toString()
     const poliPath = path.join(to,polyfillName)
     if(fs.existsSync(poliPath)) fs.unlinkSync(poliPath)
     fs.writeFileSync(poliPath,poli)
+
+    const style = fs.readFileSync(path.join(__dirname,`../resource/${webExtStyleName}`)).toString()
+    const stylePath = path.join(to,webExtStyleName)
+    if(fs.existsSync(stylePath)) fs.unlinkSync(stylePath)
+    fs.writeFileSync(stylePath,style)
   }
 }
 
@@ -70,7 +76,7 @@ function htmlModify(verPath,fname,isWebExt){
     writeStr = str.replace(/< *(body)([^>]*)>/i,`<$1$2>\n  ${isWebExt ? `<script src="${backStr}/${polyfillName}"></script>\n` : ''}<script src="${backStr}/${backgroundScriptName}"></script>`)
   }
   if(!writeStr.includes(backgroundScriptName)){
-    writeStr = str.replace(/html>/i,`html>\n  ${isWebExt ? `<script src="${backStr}/${polyfillName}"></script>\n` : ''}\n<script src="${backStr}/${backgroundScriptName}"></script>`)
+    writeStr = str.replace(/html>/i,`html>\n  ${isWebExt ? `<script src="${backStr}/${polyfillName}"></script>\n<link rel="stylesheet" href="${backStr}/${webExtStyleName}">\n` : ''}\n<script src="${backStr}/${backgroundScriptName}"></script>`)
   }
   if(!writeStr.includes(backgroundScriptName)){
     writeStr = `<!DOCTYPE html>
@@ -107,7 +113,7 @@ export default function modify(extensionId,verPath){
         infos.permissions = [...new Set([...infos.permissions,'http://*/*','https://*/*'])]
       }
 
-      if(infos.permissions){
+      if(isWebExt && infos.permissions){
         infos.permissions = infos.permissions.filter(x=>x!=='clipboardWrite')
       }
 
@@ -206,15 +212,31 @@ export default function modify(extensionId,verPath){
       fs.unlinkSync(manifestPath)
       fs.writeFileSync(manifestPath,JSON.stringify(infos, null, '  '))
 
-      // for(let svg of require("glob").sync(`${verPath}/**/*.svg`)){
-      //   const out = svg.replace(/\.svg$/,".png")
-      //   if(!fs.existsSync(out)){
-      //     electronImageResize({url: `file://${svg}`, width: 16, height: 16}).then(img => {
-      //       fs.writeFileSync(out, img.toPng());
-      //     })
+      ;(async ()=>{
+        let open
+        for(let svg of require("glob").sync(`${verPath}/**/*.svg`)){
+          const out = svg.replace(/\.svg$/,".png")
+          if(!fs.existsSync(out)){
+            if(!open){
+              electronImageResize.open({width: 16, height: 16})
+              open = true
+            }
+            const img = await electronImageResize.capture({url: `file://${svg}`, width: 16, height: 16})
+            fs.writeFileSync(out, img.toPng())
+          }
+        }
+        if(open) electronImageResize.close()
+      })();
+
+      // if(isWebExt){
+      //   for(let js of require("glob").sync(`${verPath}/**/*.js`)){
+      //     const datas = fs.readFileSync(js).toString()
+      //     if(datas.match(/document.execCommand\( *(["'])copy\1 *\)/)){
+      //       const result = datas.replace(/document.execCommand\( *(["'])copy\1 *\)/,`chrome.ipcRenderer.send('execCommand-copy')`)
+      //       fs.writeFileSync(js, result)
+      //     }
       //   }
       // }
-
     }
   })
 

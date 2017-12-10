@@ -1,0 +1,1469 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+@namespace url(http://www.w3.org/1999/xhtml); /* set default namespace to HTML */
+@namespace xul url(http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul);
+
+/* bidi */
+
+:-moz-has-dir-attr {
+    unicode-bidi: isolate;
+}
+:-moz-dir-attr-rtl {
+    direction: rtl;
+}
+:-moz-dir-attr-ltr {
+    direction: ltr;
+}
+
+:-moz-dir-attr-like-auto:dir(ltr) { direction: ltr; }
+:-moz-dir-attr-like-auto:dir(rtl) { direction: rtl; }
+
+/* To ensure http://www.w3.org/TR/REC-html40/struct/dirlang.html#style-bidi:
+ *
+ * "When a block element that does not have a dir attribute is transformed to
+ * the style of an inline element by a style sheet, the resulting presentation
+ * should be equivalent, in terms of bidirectional formatting, to the
+ * formatting obtained by explicitly adding a dir attribute (assigned the
+ * inherited value) to the transformed element."
+ *
+ * and the rules in http://dev.w3.org/html5/spec/rendering.html#rendering
+ */
+
+address,
+article,
+aside,
+blockquote,
+body,
+caption,
+center,
+col,
+colgroup,
+dd,
+dir,
+div,
+dl,
+dt,
+fieldset,
+figcaption,
+figure,
+footer,
+form,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+header,
+hgroup,
+hr,
+html,
+legend,
+li,
+listing,
+main,
+marquee,
+menu,
+nav,
+noframes,
+ol,
+p,
+plaintext,
+pre,
+section,
+summary,
+table,
+tbody,
+td,
+tfoot,
+th,
+thead,
+tr,
+ul,
+xmp {
+    unicode-bidi: isolate;
+}
+
+bdi, output {
+    unicode-bidi: isolate;
+}
+/* We need the "bdo:-moz-has-dir-attr" bit because "bdo" has lower
+   specificity than the ":-moz-has-dir-attr" selector above. */
+bdo, bdo:-moz-has-dir-attr {
+    unicode-bidi: isolate-override;
+}
+textarea:-moz-dir-attr-like-auto,
+pre:-moz-dir-attr-like-auto {
+    unicode-bidi: plaintext;
+}
+
+/* blocks */
+
+article,
+aside,
+details,
+div,
+dt,
+figcaption,
+footer,
+form,
+header,
+hgroup,
+html,
+main,
+nav,
+section,
+summary {
+    display: block;
+}
+
+body {
+    display: block;
+    margin: 8px;
+}
+
+p, dl, multicol {
+    display: block;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+}
+
+dd {
+    display: block;
+    margin-inline-start: 40px;
+}
+
+blockquote, figure {
+    display: block;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    margin-inline-start: 40px;
+    margin-inline-end: 40px;
+}
+
+address {
+    display: block;
+    font-style: italic;
+}
+
+center {
+    display: block;
+    text-align: -moz-center;
+}
+
+blockquote[type=cite] {
+    display: block;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    margin-inline-start: 0;
+    margin-inline-end: 0;
+    padding-inline-start: 1em;
+    border-inline-start: solid;
+    border-color: blue;
+    border-width: thin;
+}
+
+span[_moz_quote=true] {
+    color: blue;
+}
+
+pre[_moz_quote=true] {
+    color: blue;
+}
+
+h1 {
+    display: block;
+    font-size: 2em;
+    font-weight: bold;
+    margin-block-start: .67em;
+    margin-block-end: .67em;
+}
+
+h2,
+:-moz-any(article, aside, nav, section)
+h1 {
+    display: block;
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-block-start: .83em;
+    margin-block-end: .83em;
+}
+
+h3,
+:-moz-any(article, aside, nav, section)
+:-moz-any(article, aside, nav, section)
+h1 {
+    display: block;
+    font-size: 1.17em;
+    font-weight: bold;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+}
+
+h4,
+:-moz-any(article, aside, nav, section)
+:-moz-any(article, aside, nav, section)
+:-moz-any(article, aside, nav, section)
+h1 {
+    display: block;
+    font-size: 1.00em;
+    font-weight: bold;
+    margin-block-start: 1.33em;
+    margin-block-end: 1.33em;
+}
+
+h5,
+:-moz-any(article, aside, nav, section)
+:-moz-any(article, aside, nav, section)
+:-moz-any(article, aside, nav, section)
+:-moz-any(article, aside, nav, section)
+h1 {
+    display: block;
+    font-size: 0.83em;
+    font-weight: bold;
+    margin-block-start: 1.67em;
+    margin-block-end: 1.67em;
+}
+
+h6,
+:-moz-any(article, aside, nav, section)
+:-moz-any(article, aside, nav, section)
+:-moz-any(article, aside, nav, section)
+:-moz-any(article, aside, nav, section)
+:-moz-any(article, aside, nav, section)
+h1 {
+    display: block;
+    font-size: 0.67em;
+    font-weight: bold;
+    margin-block-start: 2.33em;
+    margin-block-end: 2.33em;
+}
+
+listing {
+    display: block;
+    font-family: -moz-fixed;
+    font-size: medium;
+    white-space: pre;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+}
+
+xmp, pre, plaintext {
+    display: block;
+    font-family: -moz-fixed;
+    white-space: pre;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+}
+
+/* tables */
+
+table {
+    display: table;
+    border-spacing: 2px;
+    border-collapse: separate;
+    /* XXXldb do we want this if we're border-collapse:collapse ? */
+    box-sizing: border-box;
+    text-indent: 0;
+}
+
+table[align="left"] {
+    float: left;
+}
+
+table[align="right"] {
+    float: right;
+    text-align: start;
+}
+
+
+/* border collapse rules */
+
+/* Set hidden if we have 'frame' or 'rules' attribute.
+   Set it on all sides when we do so there's more consistency
+   in what authors should expect */
+
+/* Put this first so 'border' and 'frame' rules can override it. */
+table[rules] {
+    border-width: thin;
+    border-style: hidden;
+}
+
+/* 'border' before 'frame' so 'frame' overrides
+    A border with a given value should, of course, pass that value
+    as the border-width in pixels -> attr mapping */
+
+/* :-moz-table-border-nonzero is like [border]:not([border="0"]) except it
+   also checks for other zero-like values according to HTML attribute
+   parsing rules */
+table:-moz-table-border-nonzero {
+    border-width: thin;
+    border-style: outset;
+}
+
+table[frame] {
+    border: thin hidden;
+}
+
+/* specificity must beat table:-moz-table-border-nonzero rule above */
+table[frame="void"]   { border-style: hidden; }
+table[frame="above"]  { border-style: outset hidden hidden hidden; }
+table[frame="below"]  { border-style: hidden hidden outset hidden; }
+table[frame="lhs"]    { border-style: hidden hidden hidden outset; }
+table[frame="rhs"]    { border-style: hidden outset hidden hidden; }
+table[frame="hsides"] { border-style: outset hidden; }
+table[frame="vsides"] { border-style: hidden outset; }
+table[frame="box"],
+table[frame="border"] { border-style: outset; }
+
+
+/* Internal Table Borders */
+
+/* 'border' cell borders first */
+
+table:-moz-table-border-nonzero > * > tr > td,
+table:-moz-table-border-nonzero > * > tr > th,
+table:-moz-table-border-nonzero > * > td,
+table:-moz-table-border-nonzero > * > th,
+table:-moz-table-border-nonzero > td,
+table:-moz-table-border-nonzero > th
+{
+    border-width: thin;
+    border-style: inset;
+}
+
+/* collapse only if rules are really specified */
+table[rules]:not([rules="none"]):not([rules=""]) {
+    border-collapse: collapse;
+}
+
+/* only specified rules override 'border' settings
+  (increased specificity to achieve this) */
+table[rules]:not([rules=""])> tr > td,
+table[rules]:not([rules=""])> * > tr > td,
+table[rules]:not([rules=""])> tr > th,
+table[rules]:not([rules=""])> * > tr > th,
+table[rules]:not([rules=""])> td,
+table[rules]:not([rules=""])> th
+{
+    border-width: thin;
+    border-style: none;
+}
+
+
+table[rules][rules="none"]  > tr > td,
+table[rules][rules="none"] > * > tr > td,
+table[rules][rules="none"] > tr > th,
+table[rules][rules="none"] > * > tr > th,
+table[rules][rules="none"] > td,
+table[rules][rules="none"] > th
+{
+    border-width: thin;
+    border-style: none;
+}
+
+table[rules][rules="all"] > tr > td,
+table[rules][rules="all"] > * > tr > td,
+table[rules][rules="all"] > tr > th,
+table[rules][rules="all"] > * > tr > th,
+table[rules][rules="all"] > td,
+table[rules][rules="all"] > th
+{
+    border-width: thin;
+    border-style: solid;
+}
+
+table[rules][rules="rows"] > tr,
+table[rules][rules="rows"] > * > tr {
+    border-block-start-width: thin;
+    border-block-end-width: thin;
+    border-block-start-style: solid;
+    border-block-end-style: solid;
+}
+
+
+table[rules][rules="cols"] > tr > td,
+table[rules][rules="cols"] > * > tr > td,
+table[rules][rules="cols"] > tr > th,
+table[rules][rules="cols"] > * > tr > th {
+    border-inline-start-width: thin;
+    border-inline-end-width: thin;
+    border-inline-start-style: solid;
+    border-inline-end-style: solid;
+}
+
+table[rules][rules="groups"] > colgroup {
+    border-inline-start-width: thin;
+    border-inline-end-width: thin;
+    border-inline-start-style: solid;
+    border-inline-end-style: solid;
+}
+table[rules][rules="groups"] > tfoot,
+table[rules][rules="groups"] > thead,
+table[rules][rules="groups"] > tbody {
+    border-block-start-width: thin;
+    border-block-end-width: thin;
+    border-block-start-style: solid;
+    border-block-start-style: solid;
+}
+
+
+/* caption inherits from table not table-outer */
+caption {
+    display: table-caption;
+    text-align: center;
+}
+
+table[align="center"] > caption {
+    margin-inline-start: auto;
+    margin-inline-end: auto;
+}
+
+table[align="center"] > caption[align="left"]:dir(ltr) {
+    margin-inline-end: 0;
+}
+table[align="center"] > caption[align="left"]:dir(rtl) {
+    margin-inline-start: 0;
+}
+
+table[align="center"] > caption[align="right"]:dir(ltr) {
+    margin-inline-start: 0;
+}
+table[align="center"] > caption[align="right"]:dir(rtl) {
+    margin-inline-end: 0;
+}
+
+tr {
+    display: table-row;
+    vertical-align: inherit;
+}
+
+col {
+    display: table-column;
+}
+
+colgroup {
+    display: table-column-group;
+}
+
+tbody {
+    display: table-row-group;
+    vertical-align: middle;
+}
+
+thead {
+    display: table-header-group;
+    vertical-align: middle;
+}
+
+tfoot {
+    display: table-footer-group;
+    vertical-align: middle;
+}
+
+/* for XHTML tables without tbody */
+table > tr {
+    vertical-align: middle;
+}
+
+td {
+    display: table-cell;
+    vertical-align: inherit;
+    text-align: inherit;
+    padding: 1px;
+}
+
+th {
+    display: table-cell;
+    vertical-align: inherit;
+    font-weight: bold;
+    padding: 1px;
+}
+
+tr > form:-moz-is-html, tbody > form:-moz-is-html,
+thead > form:-moz-is-html, tfoot > form:-moz-is-html,
+table > form:-moz-is-html {
+    /* Important: don't show these forms in HTML */
+    display: none !important;
+}
+
+table[bordercolor] > tbody,
+table[bordercolor] > thead,
+table[bordercolor] > tfoot,
+table[bordercolor] > col,
+table[bordercolor] > colgroup,
+table[bordercolor] > tr,
+table[bordercolor] > * > tr,
+table[bordercolor]  > tr > td,
+table[bordercolor] > * > tr > td,
+table[bordercolor]  > tr > th,
+table[bordercolor] > * > tr > th {
+    border-color: inherit;
+}
+
+/* inlines */
+
+q:before {
+    content: open-quote;
+}
+
+q:after {
+    content: close-quote;
+}
+
+b, strong {
+    font-weight: bolder;
+}
+
+i, cite, em, var, dfn {
+    font-style: italic;
+}
+
+tt, code, kbd, samp {
+    font-family: -moz-fixed;
+}
+
+u, ins {
+    text-decoration: underline;
+}
+
+s, strike, del {
+    text-decoration: line-through;
+}
+
+big {
+    font-size: larger;
+}
+
+small {
+    font-size: smaller;
+}
+
+sub {
+    vertical-align: sub;
+    font-size: smaller;
+    line-height: normal;
+}
+
+sup {
+    vertical-align: super;
+    font-size: smaller;
+    line-height: normal;
+}
+
+nobr {
+    white-space: nowrap;
+}
+
+mark {
+    background: yellow;
+    color: black;
+}
+
+/* titles */
+abbr[title], acronym[title] {
+    text-decoration: dotted underline;
+}
+
+/* lists */
+
+ul, menu, dir {
+    display: block;
+    list-style-type: disc;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    padding-inline-start: 40px;
+}
+
+menu[type="context"] {
+    display: none !important;
+}
+
+ol {
+    display: block;
+    list-style-type: decimal;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    padding-inline-start: 40px;
+}
+
+li {
+    display: list-item;
+    text-align: match-parent;
+}
+
+/* nested lists have no top/bottom margins */
+:-moz-any(ul, ol, dir, menu, dl) ul,
+:-moz-any(ul, ol, dir, menu, dl) ol,
+:-moz-any(ul, ol, dir, menu, dl) dir,
+:-moz-any(ul, ol, dir, menu, dl) menu,
+:-moz-any(ul, ol, dir, menu, dl) dl {
+    margin-block-start: 0;
+    margin-block-end: 0;
+}
+
+/* 2 deep unordered lists use a circle */
+:-moz-any(ol, ul, menu, dir) ul,
+:-moz-any(ol, ul, menu, dir) menu,
+:-moz-any(ol, ul, menu, dir) dir {
+    list-style-type: circle;
+}
+
+/* 3 deep (or more) unordered lists use a square */
+:-moz-any(ol, ul, menu, dir) :-moz-any(ol, ul, menu, dir) ul,
+:-moz-any(ol, ul, menu, dir) :-moz-any(ol, ul, menu, dir) menu,
+:-moz-any(ol, ul, menu, dir) :-moz-any(ol, ul, menu, dir) dir {
+    list-style-type: square;
+}
+
+
+/* leafs */
+
+/* <hr> noshade and color attributes are handled completely by
+ * the nsHTMLHRElement attribute mapping code
+ */
+hr {
+    display: block;
+    border: 1px inset;
+    margin-block-start: 0.5em;
+    margin-block-end: 0.5em;
+    margin-inline-start: auto;
+    margin-inline-end: auto;
+    color: gray;
+    -moz-float-edge: margin-box;
+    box-sizing: content-box;
+}
+
+hr[size="1"] {
+    border-style: solid none none none;
+}
+
+img:-moz-broken::before, input:-moz-broken::before,
+img:-moz-user-disabled::before, input:-moz-user-disabled::before,
+img:-moz-loading::before, input:-moz-loading::before,
+applet:-moz-empty-except-children-with-localname(param):-moz-broken::before,
+applet:-moz-empty-except-children-with-localname(param):-moz-user-disabled::before {
+    content: -moz-alt-content !important;
+    unicode-bidi: isolate;
+}
+
+:-moz-any(object,applet):-moz-any(:-moz-broken,:-moz-user-disabled) > *|* {
+    /*
+      Inherit in the object's alignment so that if we aren't aligned explicitly
+      we'll end up in the right place vertically.  See bug 36997.  Note that this
+      is not !important because we _might_ be aligned explicitly.
+    */
+    vertical-align: inherit;
+}
+
+img:-moz-suppressed, input:-moz-suppressed, object:-moz-suppressed,
+embed:-moz-suppressed, applet:-moz-suppressed {
+    /*
+      Set visibility too in case the page changes display.  Note that we _may_
+      want to just set visibility and not display, in general, if we find that
+      display:none breaks too many layouts.  And if we decide we really do want
+      people to be able to right-click blocked images, etc, we need to set
+      neither one, and hack the painting code.... :(
+     */
+    display: none !important;
+    visibility: hidden !important;
+}
+
+img[usemap], object[usemap] {
+    color: blue;
+}
+
+frameset {
+    display: block ! important;
+    overflow: -moz-hidden-unscrollable;
+    position: static ! important;
+    float: none ! important;
+    border: none ! important;
+}
+
+link {
+    display: none;
+}
+
+frame {
+    border-radius: 0 ! important;
+}
+
+iframe {
+    border: 2px inset;
+}
+
+noframes {
+    display: none;
+}
+
+spacer {
+    position: static ! important;
+    float: none ! important;
+}
+
+canvas {
+    -moz-user-select: none;
+}
+
+/* focusable content: anything w/ tabindex >=0 is focusable, but we
+   skip drawing a focus outline on a few things that handle it
+   themselves. */
+:-moz-focusring:not(input):not(button):not(select):not(textarea):not(iframe):not(frame):not(body):not(html) {
+    /* Don't specify the outline-color, we should always use initial value. */
+    outline: 1px dotted;
+}
+
+/* hidden elements */
+base, basefont, datalist, head, meta, script, style, title,
+noembed, param, template {
+    display: none;
+}
+
+area {
+    /* Don't give it frames other than its imageframe */
+    display: none ! important;
+}
+
+iframe:fullscreen {
+    /* iframes in full-screen mode don't show a border. */
+    border: none !important;
+    padding: 0 !important;
+}
+
+/* media elements */
+video > xul|videocontrols, audio > xul|videocontrols {
+    display: -moz-box;
+    -moz-box-orient: vertical;
+    -moz-binding: url("chrome://global/content/bindings/videocontrols.xml#videoControls");
+}
+
+video:not([controls]) > xul|videocontrols,
+audio:not([controls]) > xul|videocontrols {
+    visibility: hidden;
+    -moz-binding: none;
+}
+
+video {
+    object-fit: contain;
+}
+
+video > img:-moz-native-anonymous {
+    /* Video poster images should render with the video element's "object-fit" &
+       "object-position" properties */
+    object-fit: inherit !important;
+    object-position: inherit !important;
+}
+
+audio:not([controls]) {
+    display: none;
+}
+
+audio[controls] {
+    /* This ensures that intrinsic sizing can reliably shrinkwrap our
+        controls (which are also always horizontal) and produce a
+        reasonable intrinsic size from them. */
+    writing-mode: horizontal-tb !important;
+}
+
+*|*::-moz-html-canvas-content {
+    display: block !important;
+    /* we want to be an absolute and fixed container */
+    transform: translate(0) !important;
+}
+
+video > .caption-box {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+/* ::cue default settings */
+::cue {
+    color: rgba(255, 255, 255, 1);
+    white-space: pre-line;
+    background-color: rgba(0, 0, 0, 0.8);
+    font: var(--cue-font-size) sans-serif;
+}
+
+/* datetime elements */
+
+input[type="time"] > xul|datetimebox {
+    display: flex;
+    -moz-binding: url("chrome://global/content/bindings/datetimebox.xml#time-input");
+}
+
+input[type="date"] > xul|datetimebox {
+    display: flex;
+    -moz-binding: url("chrome://global/content/bindings/datetimebox.xml#date-input");
+}
+
+/* details & summary */
+details > summary:first-of-type,
+details > summary:-moz-native-anonymous {
+    display: list-item;
+    list-style: disclosure-closed inside;
+}
+
+details[open] > summary:first-of-type,
+details[open] > summary:-moz-native-anonymous {
+    list-style-type: disclosure-open;
+}
+
+details > summary:first-of-type > *|* {
+    /* Cancel "list-style-position: inside" inherited from summary. */
+    list-style-position: initial;
+}
+
+/* <dialog> element styles */
+
+dialog {
+    position: absolute;
+    offset-inline-start: 0;
+    offset-inline-end: 0;
+    color: black;
+    margin: auto;
+    border-width: initial;
+    border-style: solid;
+    border-color: initial;
+    border-image: initial;
+    padding: 1em;
+    background: white;
+    width: -moz-fit-content;
+}
+
+dialog:not([open]) {
+    display: none;
+}
+
+/* emulation of non-standard HTML <marquee> tag */
+marquee {
+    inline-size: -moz-available;
+    display: inline-block;
+    vertical-align: text-bottom;
+    text-align: start;
+    -moz-binding: url('chrome://xbl-marquee/content/xbl-marquee.xml#marquee-horizontal');
+}
+
+marquee[direction="up"], marquee[direction="down"] {
+    -moz-binding: url('chrome://xbl-marquee/content/xbl-marquee.xml#marquee-vertical');
+    block-size: 200px;
+}
+
+/* PRINT ONLY rules follow */
+@media print {
+
+    marquee { -moz-binding: none; }
+
+}
+
+/* Ruby */
+
+ruby {
+    display: ruby;
+}
+rb {
+    display: ruby-base;
+    white-space: nowrap;
+}
+rp {
+    display: none;
+}
+rt {
+    display: ruby-text;
+}
+rtc {
+    display: ruby-text-container;
+}
+rtc, rt {
+    white-space: nowrap;
+    font-size: 50%;
+    -moz-min-font-size-ratio: 50%;
+    line-height: 1;
+    /* The widely-used Windows font Meiryo doesn't work fine with this
+     * setting, so disable this on Windows. We should re-enable it once
+     * Microsoft fixes this issue. See bug 1164279. */
+    font-variant-east-asian: ruby;
+}
+rtc, rt {
+    text-emphasis: none;
+}
+rtc:lang(zh), rt:lang(zh) {
+    ruby-align: center;
+}
+rtc:lang(zh-TW), rt:lang(zh-TW) {
+    font-size: 30%; /* bopomofo */
+    -moz-min-font-size-ratio: 30%;
+}
+rtc > rt {
+    font-size: inherit;
+}
+ruby, rb, rt, rtc {
+    unicode-bidi: isolate;
+}
+
+
+
+/* stylelint-disable property-no-vendor-prefix */
+/* stylelint-disable property-no-vendor-prefix */
+
+/* Global */
+html,
+body {
+    background: transparent;
+    box-sizing: border-box;
+    color: #222426;
+    cursor: default;
+    display: flex;
+    flex-direction: column;
+    font: caption;
+    margin: 0;
+    padding: 0;
+    -moz-user-select: none;
+}
+
+body * {
+    box-sizing: border-box;
+    text-align: start;
+}
+
+.browser-style {
+    -moz-appearance: none;
+    margin-bottom: 6px;
+    text-align: left;
+}
+
+/* stylelint-disable property-no-vendor-prefix */
+/* Buttons */
+button.browser-style,
+select.browser-style {
+    background-color: #fbfbfb;
+    border: 1px solid #b1b1b1;
+    box-shadow: 0 0 0 0 transparent;
+    font: caption;
+    height: 24px;
+    outline: 0 !important;
+    padding: 0 8px 0;
+    transition-duration: 250ms;
+    transition-property: box-shadow, border;
+}
+
+select.browser-style {
+    background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij4KICA8cGF0aCBkPSJNOCwxMkwzLDcsNCw2bDQsNCw0LTQsMSwxWiIgZmlsbD0iIzZBNkE2QSIgLz4KPC9zdmc+Cg==);
+    background-position: calc(100% - 4px) center;
+    background-repeat: no-repeat;
+    padding-inline-end: 24px;
+    text-overflow: ellipsis;
+}
+
+label.browser-style-label {
+    font: caption;
+}
+
+button.browser-style::-moz-focus-inner {
+    border: 0;
+    outline: 0;
+}
+
+/* Dropdowns */
+select.browser-style {
+    background-color: #fbfbfb;
+    border: 1px solid #b1b1b1;
+    box-shadow: 0 0 0 0 transparent;
+    font: caption;
+    height: 24px;
+    outline: 0 !important;
+    padding: 0 8px 0;
+    transition-duration: 250ms;
+    transition-property: box-shadow, border;
+}
+
+select.browser-style {
+    background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij4KICA8cGF0aCBkPSJNOCwxMkwzLDcsNCw2bDQsNCw0LTQsMSwxWiIgZmlsbD0iIzZBNkE2QSIgLz4KPC9zdmc+Cg==);
+    background-position: calc(100% - 4px) center;
+    background-repeat: no-repeat;
+    padding-inline-end: 24px;
+    text-overflow: ellipsis;
+}
+
+select.browser-style:-moz-focusring {
+    color: transparent;
+    text-shadow: 0 0 0 #000;
+}
+
+select.browser-style:-moz-focusring * {
+    color: #000;
+    text-shadow: none;
+}
+
+button.browser-style.hover,
+select.browser-style.hover {
+    background-color: #ebebeb;
+    border: 1px solid #b1b1b1;
+}
+
+button.browser-style.pressed,
+select.browser-style.pressed {
+    background-color: #d4d4d4;
+    border: 1px solid #858585;
+}
+
+button.browser-style.disabled,
+select.browser-style.disabled {
+    color: #999;
+    opacity: .5;
+}
+
+button.browser-style.focused,
+select.browser-style.focused {
+    border-color: #fff;
+    box-shadow: 0 0 0 2px rgba(97, 181, 255, 0.75);
+}
+
+button.browser-style.default {
+    background-color: #0996f8;
+    border-color: #0670cc;
+    color: #fff;
+}
+
+button.browser-style.default.hover {
+    background-color: #0670cc;
+    border-color: #005bab;
+}
+
+button.browser-style.default.pressed {
+    background-color: #005bab;
+    border-color: #004480;
+}
+
+button.browser-style.default.focused {
+    border-color: #fff;
+}
+
+/* Radio Buttons */
+.browser-style > input[type="radio"] {
+    display: none;
+}
+
+.browser-style > input[type="radio"] + label {
+    -moz-user-select: none;
+}
+
+.browser-style > input[type="radio"] + label::before {
+    background-color: #fff;
+    background-position: center;
+    border: 1px solid #b1b1b1;
+    border-radius: 50%;
+    content: "";
+    display: inline-block;
+    height: 16px;
+    margin-right: 6px;
+    vertical-align: text-top;
+    width: 16px;
+}
+
+.browser-style > input[type="radio"]:hover + label::before,
+.browser-style.hover > input[type="radio"]:not(active) + label::before {
+    background-color: #fbfbfb;
+    border-color: #b1b1b1;
+}
+
+.browser-style > input[type="radio"]:hover:active + label::before,
+.browser-style.pressed > input[type="radio"]:not(active) + label::before {
+    background-color: #ebebeb;
+    border-color: #858585;
+}
+
+.browser-style > input[type="radio"]:checked + label::before {
+    background-color: #0996f8;
+    background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij4KICA8Y2lyY2xlIGN4PSI4IiBjeT0iOCIgcj0iNCIgZmlsbD0iI2ZmZiIgLz4KPC9zdmc+Cg==);
+    border-color: #0670cc;
+}
+
+.browser-style > input[type="radio"]:checked:hover + label::before,
+.browser-style.hover > input[type="radio"]:checked:not(active) + label::before {
+    background-color: #0670cc;
+    border-color: #005bab;
+}
+
+.browser-style > input[type="radio"]:checked:hover:active + label::before,
+.browser-style.pressed > input[type="radio"]:checked:not(active) + label::before {
+    background-color: #005bab;
+    border-color: #004480;
+}
+
+.browser-style.disabled > input[type="radio"] + label,
+.browser-style.disabled > input[type="radio"]:hover + label,
+.browser-style.disabled > input[type="radio"]:hover:active + label {
+    color: #999;
+    opacity: .5;
+}
+
+.browser-style.focused > input[type="radio"] + label::before {
+    border-color: #0996f8;
+    box-shadow: 0 0 0 2px rgba(97, 181, 255, 0.75);
+}
+
+.browser-style.focused > input[type="radio"]:checked + label::before {
+    border-color: #fff;
+}
+
+/* Checkboxes */
+.browser-style > input[type="checkbox"] {
+    display: none;
+}
+
+.browser-style > input[type="checkbox"] + label {
+    -moz-user-select: none;
+}
+
+.browser-style > input[type="checkbox"] + label::before {
+    background-color: #fff;
+    background-position: center;
+    border: 1px solid #b1b1b1;
+    content: "";
+    display: inline-block;
+    height: 16px;
+    margin-right: 6px;
+    vertical-align: text-top;
+    width: 16px;
+}
+
+.browser-style > input[type="checkbox"]:hover + label::before,
+.browser-style.hover > input[type="checkbox"]:not(active) + label::before {
+    background-color: #fbfbfb;
+    border-color: #b1b1b1;
+}
+
+.browser-style > input[type="checkbox"]:hover:active + label::before,
+.browser-style.pressed > input[type="checkbox"]:not(active) + label::before {
+    background-color: #ebebeb;
+    border-color: #858585;
+}
+
+.browser-style > input[type="checkbox"]:checked + label::before {
+    background-color: #0996f8;
+    background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij4KICA8cGF0aCBkPSJNNy43LDEyLjkgQzcuNCwxMy4zIDYuOCwxMy40IDYuNCwxMyBMMy4yLDkuOCBDMi44LDkuNCAyLjgsOC42IDMuMiw4LjIgQzMuNiw3LjggNC40LDcuOCA0LjgsOC4yIEw2LjksMTAuMyBMMTEuMSw0LjQgQzExLjUsMy45IDEyLjIsMy44IDEyLjcsNC4xIEMxMy4yLDQuNSAxMy4zLDUuMiAxMyw1LjcgTDcuNywxMi45IEw3LjcsMTIuOSBaIiBmaWxsPSIjZmZmIiAvPgo8L3N2Zz4K);
+    border-color: #0670cc;
+}
+
+.browser-style > input[type="checkbox"]:checked:hover + label::before,
+.browser-style.hover > input[type="checkbox"]:checked:not(active) + label::before {
+    background-color: #0670cc;
+    border-color: #005bab;
+}
+
+.browser-style > input[type="checkbox"]:checked:hover:active + label::before,
+.browser-style.pressed > input[type="checkbox"]:checked:not(active) + label::before {
+    background-color: #005bab;
+    border-color: #004480;
+}
+
+.browser-style.disabled > input[type="checkbox"] + label,
+.browser-style.disabled > input[type="checkbox"]:hover + label,
+.browser-style.disabled > input[type="checkbox"]:hover:active + label {
+    color: #999;
+    opacity: .5;
+}
+
+.browser-style.focused > input[type="checkbox"] + label::before {
+    border-color: #0996f8;
+    box-shadow: 0 0 0 2px rgba(97, 181, 255, 0.75);
+}
+
+.browser-style.focused > input[type="checkbox"]:checked + label::before {
+    border-color: #fff;
+}
+
+/* Expander Button */
+button.browser-style.expander {
+    background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij4KICA8cGF0aCBkPSJNOCwxMkwzLDcsNCw2bDQsNCw0LTQsMSwxWiIgZmlsbD0iIzZBNkE2QSIgLz4KPC9zdmc+Cg==);
+    background-position: center;
+    background-repeat: no-repeat;
+    height: 24px;
+    padding: 0;
+    width: 24px;
+}
+
+/* Interactive States */
+button.browser-style:hover:not(.pressed):not(.disabled):not(.focused),
+select.browser-style:hover:not(.pressed):not(.disabled):not(.focused) {
+    background-color: #ebebeb;
+    border: 1px solid #b1b1b1;
+}
+
+button.browser-style:hover:active:not(.hover):not(.disabled):not(.focused),
+select.browser-style:hover:active:not(.hover):not(.disabled):not(.focused) {
+    background-color: #d4d4d4;
+    border: 1px solid #858585;
+}
+
+button.browser-style.default:hover:not(.pressed):not(.disabled):not(.focused) {
+    background-color: #0670cc;
+    border-color: #005bab;
+}
+
+button.browser-style.default:hover:active:not(.hover):not(.disabled):not(.focused) {
+    background-color: #005bab;
+    border-color: #004480;
+}
+
+button.browser-style:focus:not(.disabled) {
+    border-color: #fff !important;
+    box-shadow: 0 0 0 2px rgba(97, 181, 255, 0.75);
+}
+
+/* Fields */
+.browser-style > input[type="text"],
+textarea.browser-style {
+    background-color: #fff;
+    border: 1px solid #b1b1b1;
+    box-shadow: 0 0 0 0 rgba(97, 181, 255, 0);
+    font: caption;
+    padding: 0 6px 0;
+    transition-duration: 250ms;
+    transition-property: box-shadow;
+}
+
+.browser-style > input[type="text"] {
+    height: 24px;
+}
+
+.browser-style > input[type="text"].hover,
+textarea.browser-style.hover {
+    border: 1px solid #858585;
+}
+
+.browser-style > input[type="text"].disabled,
+textarea.browser-style.disabled {
+    color: #999;
+    opacity: .5;
+}
+
+.browser-style > input[type="text"].focused,
+textarea.browser-style.focused {
+    border-color: #0996f8;
+    box-shadow: 0 0 0 2px rgba(97, 181, 255, 0.75);
+}
+
+/* Interactive States */
+.browser-style > input[type="text"]:not(disabled):hover,
+textarea.browser-style:not(disabled):hover {
+    border: 1px solid #858585;
+}
+
+.browser-style > input[type="text"]:focus,
+.browser-style > input[type="text"]:focus:hover,
+textarea.browser-style:focus,
+textarea.browser-style:focus:hover {
+    border-color: #0996f8;
+    box-shadow: 0 0 0 2px rgba(97, 181, 255, 0.75);
+}
+
+/* stylelint-disable property-no-vendor-prefix */
+.panel-section {
+    display: flex;
+    flex-direction: row;
+}
+
+.panel-section-separator {
+    background-color: rgba(0, 0, 0, 0.15);
+    min-height: 1px;
+}
+
+/* Panel Section - Header */
+.panel-section-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+    padding: 16px;
+}
+
+.panel-section-header > .icon-section-header {
+    background-position: center center;
+    background-repeat: no-repeat;
+    height: 32px;
+    margin-right: 16px;
+    position: relative;
+    width: 32px;
+}
+
+.panel-section-header > .text-section-header {
+    align-self: center;
+    font-size: 1.385em;
+    font-weight: lighter;
+}
+
+/* Panel Section - List */
+.panel-section-list {
+    flex-direction: column;
+    padding: 4px 0;
+}
+
+.panel-list-item {
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+    height: 24px;
+    padding: 0 16px;
+}
+
+.panel-list-item:not(.disabled):hover {
+    background-color: rgba(0, 0, 0, 0.06);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.panel-list-item:not(.disabled):hover:active {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.panel-list-item.disabled {
+    color: #999;
+}
+
+.panel-list-item > .icon {
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+.panel-list-item > .text {
+    flex-grow: 10;
+}
+
+.panel-list-item > .text-shortcut {
+    color: #808080;
+    font-family: "Lucida Grande", caption;
+    font-size: .847em;
+    justify-content: flex-end;
+}
+
+.panel-section-list .panel-section-separator {
+    margin: 4px 0;
+}
+
+/* Panel Section - Form Elements */
+.panel-section-formElements {
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+}
+
+.panel-formElements-item {
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 12px;
+}
+
+.panel-formElements-item:last-child {
+    margin-bottom: 0;
+}
+
+.panel-formElements-item label {
+    flex-shrink: 0;
+    margin-right: 6px;
+    text-align: right;
+}
+
+.panel-formElements-item input[type="text"],
+.panel-formElements-item select.browser-style {
+    flex-grow: 1;
+}
+
+/* Panel Section - Footer */
+.panel-section-footer {
+    background-color: rgba(0, 0, 0, 0.06);
+    border-top: 1px solid rgba(0, 0, 0, 0.15);
+    color: #1a1a1a;
+    display: flex;
+    flex-direction: row;
+    height: 41px;
+    margin-top: -1px;
+    padding: 0;
+}
+
+.panel-section-footer-button {
+    flex: 1 1 auto;
+    height: 100%;
+    margin: 0 -1px;
+    padding: 12px;
+    text-align: center;
+}
+
+.panel-section-footer-button > .text-shortcut {
+    color: #808080;
+    font-family: "Lucida Grande", caption;
+    font-size: .847em;
+}
+
+.panel-section-footer-button:hover {
+    background-color: rgba(0, 0, 0, 0.06);
+}
+
+.panel-section-footer-button:hover:active {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.panel-section-footer-button.default {
+    background-color: #0996f8;
+    box-shadow: 0 1px 0 #0670cc inset;
+    color: #fff;
+}
+
+.panel-section-footer-button.default:hover {
+    background-color: #0670cc;
+    box-shadow: 0 1px 0 #005bab inset;
+}
+
+.panel-section-footer-button.default:hover:active {
+    background-color: #005bab;
+    box-shadow: 0 1px 0 #004480 inset;
+}
+
+.panel-section-footer-separator {
+    background-color: rgba(0, 0, 0, 0.1);
+    width: 1px;
+    z-index: 99;
+}
+
+/* Panel Section - Tabs */
+.panel-section-tabs {
+    color: #1a1a1a;
+    display: flex;
+    flex-direction: row;
+    height: 41px;
+    margin-bottom: -1px;
+    padding: 0;
+}
+
+.panel-section-tabs-button {
+    flex: 1 1 auto;
+    height: 100%;
+    margin: 0 -1px;
+    padding: 12px;
+    text-align: center;
+}
+
+.panel-section-tabs-button:hover {
+    background-color: rgba(0, 0, 0, 0.06);
+}
+
+.panel-section-tabs-button:hover:active {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.panel-section-tabs-button.select.browser-styleed {
+    box-shadow: 0 -1px 0 #0670cc inset, 0 -4px 0 #0996f8 inset;
+    color: #0996f8;
+}
+
+.panel-section-tabs-button.select.browser-styleed:hover {
+    color: #0670cc;
+}
+
+.panel-section-tabs-separator {
+    background-color: rgba(0, 0, 0, 0.1);
+    width: 1px;
+    z-index: 99;
+}

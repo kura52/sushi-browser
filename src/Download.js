@@ -5,7 +5,7 @@ const FfmpegWrapper = require('./FfmpegWrapper')
 const {redirectUrlsCache} = require('../brave/adBlock')
 
 const path = require('path')
-import {download} from './databaseFork'
+import {download,downloader} from './databaseFork'
 import PubSub from './render/pubsub'
 import fs from 'fs'
 const URL = require('url')
@@ -324,3 +324,9 @@ export default class Download {
     })
   }
 }
+
+downloader.find({isPaused:false,state:"progressing"}).then(records=>{
+  for(let item of records){
+    ipcMain.emit("download-retry", null, item.url, item.savePath, item.key) //元アイテムを消す
+  }
+})

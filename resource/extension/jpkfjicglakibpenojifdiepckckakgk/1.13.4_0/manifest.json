@@ -26,7 +26,7 @@
         "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html",
         "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html",
         "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html",
-        "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/selector.html"
+        "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/selector.html*"
       ],
       "run_at": "document_start"
     },
@@ -52,7 +52,7 @@
         "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html",
         "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html",
         "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html",
-        "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/selector.html",
+        "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/selector.html*",
         "chrome://brave/*"
       ],
       "run_at": "document_end"
@@ -74,7 +74,8 @@
   },
   "permissions": [
     "tabs",
-    "http://*/"
+    "http://*/",
+    "clipboardWrite"
   ],
   "update_url": "https://clients2.google.com/service/update2/crx",
   "version": "1.13.4",

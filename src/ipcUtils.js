@@ -8,7 +8,7 @@ import {toKeyEvent} from 'keyboardevent-from-electron-accelerator'
 
 const os = require('os')
 const seq = require('./sequence')
-const {state,favorite,historyFull,tabState,visit,savedState} = require('./databaseFork')
+const {state,favorite,tabState,visit,savedState} = require('./databaseFork')
 const db = require('./databaseFork')
 const FfmpegWrapper = require('./FfmpegWrapper')
 const defaultConf = require('./defaultConf')
@@ -826,14 +826,14 @@ ipcMain.on('change-tab-infos',(e,changeTabInfos)=> {
   }
 })
 
-ipcMain.on('need-get-inner-text',(e,key)=>{
-  if(mainState.historyFull){
-    ipcMain.once('get-inner-text',(e,location,title,text)=>{
-      historyFull.update({location},{location,title,text,updated_at: Date.now()}, { upsert: true }).then(_=>_)
-    })
-  }
-  e.sender.send(`need-get-inner-text-reply_${key}`,mainState.historyFull)
-})
+// ipcMain.on('need-get-inner-text',(e,key)=>{
+  // if(mainState.historyFull){
+  //   ipcMain.once('get-inner-text',(e,location,title,text)=>{
+  //     historyFull.update({location},{location,title,text,updated_at: Date.now()}, { upsert: true }).then(_=>_)
+  //   })
+  // }
+  // e.sender.send(`need-get-inner-text-reply_${key}`,mainState.historyFull)
+// })
 
 ipcMain.on('play-external',(e,url)=> open(url,mainState.sendToVideo))
 
@@ -1081,7 +1081,7 @@ PubSub.subscribe("web-contents-created",(msg,[tabId,sender])=>{
   sender.send('web-contents-created',tabId)
 
   cont.on('page-title-updated',e2=> {
-    sender.send('page-title-updated',tabId)
+    if(!sender.isDestroyed()) sender.send('page-title-updated',tabId)
   })
 
 })
@@ -1242,6 +1242,12 @@ ipcMain.on('screen-shot',(e,{full,type,rect,tabId,tabKey})=>{
   else{
     e.sender.capturePage(rect, capture.bind(this,null))
   }
+})
+
+ipcMain.on('execCommand-copy',e=>{
+  console.log(888948848)
+  e.sender.sendInputEvent({type: 'keyDown', keyCode: 'c', modifiers: ['control']});
+  e.sender.sendInputEvent({type: 'keyUp', keyCode: 'c', modifiers: ['control']});
 })
 
 // ipcMain.on('send-keys',(e,keys)=>{

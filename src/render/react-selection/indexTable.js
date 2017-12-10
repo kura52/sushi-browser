@@ -75,7 +75,7 @@ class Selection extends React.Component {
     if(!src) return
     // if(!src || !src.parentNode || !src.parentNode.children) return
 
-    if (this.ctrlKey || ev.shiftKey) {
+    if (global.multiSelection || ev.ctrlKey || ev.shiftKey) {
       window.addEventListener('keyup', this.keyup, false)
     } else {
       this.props.clearSelect()
@@ -104,7 +104,7 @@ class Selection extends React.Component {
   }
 
   keyup = (ev) =>{
-    if (!this.ctrlKey) return
+    if (!this.ctrlKey && !global.multiSelection) return
     this.afterSelect()
     window.removeEventListener('keyup', this.keyup)
   }
@@ -129,7 +129,7 @@ class Selection extends React.Component {
     document.removeEventListener('mousemove', this.mousemove)
     document.removeEventListener('mouseup', this.mouseup)
 
-    if (this.ctrlKey) {
+    if (this.ctrlKey || global.multiSelection) {
       this.targets.forEach((t)=> t.removeAttribute('data-is-double'))
     } else {
       this.afterSelect()
@@ -246,7 +246,7 @@ class Selection extends React.Component {
 
       const hasDataDouble = target.dataset.isDouble === 'true' ? true : false
 
-      if (this.ctrlKey) {
+      if (this.ctrlKey || global.multiSelection) {
         if (isDouble !== hasDataDouble) {
           toggleClass(target, selectedClass)
           target.dataset.isDouble = isDouble

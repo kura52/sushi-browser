@@ -72,6 +72,7 @@ function getUrlVars(){
 }
 
 
+global.multiSelection = true
 class Selector extends React.Component {
   static defaultProps = { rowKey: 'id' };
 
@@ -178,7 +179,7 @@ class Selector extends React.Component {
     if(!e){
       return
     }
-    if(!e.ctrlKey && !e.shiftKey){
+    if(!global.multiSelection && !e.ctrlKey && !e.shiftKey){
       this.clearSelect(1)
     }
 
@@ -373,6 +374,11 @@ class Selector extends React.Component {
     this.setState({rows:newRows})
   }
 
+  onChangeMultiSelection(e){
+    global.multiSelection = !global.multiSelection
+    this.setState({})
+  }
+
   buildCheckList(){
     const ret = []
     for(let [name,reg] of REG_LIST){
@@ -403,13 +409,21 @@ class Selector extends React.Component {
 
             <div className="divider-vertical" />
 
-            <div className="btn-group" role="group" aria-label="Basic example">
+            <div className="btn-group" role="group">
               <button style={{marginRight: 0}} onClick={_=>this.switchDisplay('link')} className={`btn btn-sm align-middle btn-outline-secondary${this.type == 'link' ? ' active' : ''}`} type="button">
                 <i className="fa fa-link" aria-hidden="true"></i>Links({this.links.length})
               </button>
               <button onClick={_=>this.switchDisplay('resource')} className={`btn btn-sm align-middle btn-outline-secondary${this.type == 'resource' ? ' active' : ''}`} type="button">
                 <i className="fa fa-file-image-o" aria-hidden="true"></i>Images and Medias({Object.keys(this.resources).length})
               </button>
+            </div>
+
+            <div>
+              <div className="form-check form-check-inline">
+                <label className="form-check-label">
+                  <input className="form-check-input" type="checkbox" checked={global.multiSelection} onChange={::this.onChangeMultiSelection}/>Multiple Selection
+                </label>
+              </div>
             </div>
 
             <div className="divider-vertical" />

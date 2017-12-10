@@ -623,7 +623,7 @@ class Tabs extends React.Component {
   handleTabClick(key, e) {
     if(!e.nativeEvent) e.nativeEvent = e
     if(e.nativeEvent.which == 3){
-      this.handleContextMenu(key)
+      this.handleContextMenu(key, e)
       return
     }
     if(e.nativeEvent.which == 2){
