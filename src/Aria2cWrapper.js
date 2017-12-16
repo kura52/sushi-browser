@@ -53,11 +53,14 @@ function getByte(str){
 }
 
 const downloadItems = new Set()
+let count = 0
 export default class Aria2cWrapper{
-  constructor({url,savePath,downloadNum=1,overwrite,timeMap,aria2cKey}){
+  constructor({url,orgUrl,mimeType,savePath,downloadNum=1,overwrite,timeMap,aria2cKey}){
     this.key = aria2cKey || uuid.v4()
     this.resumeFlg = !!aria2cKey
     this.url = url
+    this.orgUrl = orgUrl
+    this.mimeType = mimeType
     this.savePath = savePath
     this.overwrite = overwrite
     this.timeMap = timeMap
@@ -66,6 +69,8 @@ export default class Aria2cWrapper{
     this.stdoutCallbacks = []
     this.closeCallbacks = []
     this.errorCallbacks = []
+    this.created_at = this.timeMap.get(this.getSavePath())
+    this.idForExtension: (this.created_at - 1512054000000) * 100 + (count++ % 100)
   }
 
   errorCallback(){
@@ -88,15 +93,18 @@ export default class Aria2cWrapper{
     const item = this
     downloader.update({key:item.key},{
       key: item.key,
+      idForExtension: item.idForExtension,
       isPaused: item.isPaused(),
       url: item.getURL(),
+      orgUrl: item.orgUrl,
       filename: path.basename(item.getSavePath()),
       receivedBytes: item.getReceivedBytes(),
       totalBytes: item.getTotalBytes(),
       state: item.getState(),
       speed: item.speed ? item.speed.replace('i','') : void 0,
       savePath: item.getSavePath(),
-      created_at: this.timeMap.get(item.getSavePath()),
+      mimeType: item.mimeType,
+      created_at: item.created_at,
       now: Date.now()
     },{ upsert: true })
   }

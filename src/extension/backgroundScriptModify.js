@@ -562,7 +562,8 @@ if(chrome.history){
 }
 
 if(chrome.downloads){
-  chrome.downloads.search = (query,callback)=>callback([])//@TODO
+  chrome.downloads.search = (query,callback) => callback([])//@TODO
+  chorme.downloads.download = (options, callback) => simpleIpcFunc('chrome-downloads-download',callback,options)
 }
 
 if(chrome.topSites){

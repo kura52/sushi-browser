@@ -41,21 +41,23 @@ function set(map,url,value){
   }
 }
 
-function get(map,url){
-  if(map[url] === void 0){
-    const rUrl = redirectUrlsCache.get(url)
-    if(rUrl){
-      return get(map,rUrl)
-    }
-  }
-  else{
-    const shifted = map[url].shift()
-    if(!map[url].length) delete map[url]
-    return shifted
-  }
-}
 
 export default class Download {
+  getData(map,url){
+    if(map[url] === void 0){
+      const rUrl = redirectUrlsCache.get(url)
+      if(rUrl){
+        return this.getData(map,rUrl)
+      }
+    }
+    else{
+      const shifted = map[url].shift()
+      if(!map[url].length) delete map[url]
+      if(shifted !== void 0) this.orgUrl = url
+      return shifted
+    }
+  }
+
   constructor(win){
     this.needSavePath = {}
     this.savePath = {}
@@ -114,6 +116,7 @@ export default class Download {
       let active = true, url,fname
       try{
         url = item.getURL()
+        this.orgUrl = url
         fname = item.getFilename()
       }catch(e){
         console.log(e)
@@ -128,8 +131,8 @@ export default class Download {
         active = false
       }
 
-      let savePath = get(this.savePath,url),
-      audioExtract = get(this.audioExtract,url),
+      let savePath = this.getData(this.savePath,url),
+      audioExtract = this.getData(this.audioExtract,url),
       overwrite = false
 
       if(url.startsWith("file://")){
@@ -144,7 +147,7 @@ export default class Download {
 
       win.webContents.send(`download-start-tab_${webContents.getId()}`)
 
-      const needSavePath = get(this.needSavePath,url)
+      const needSavePath = this.getData(this.needSavePath,url)
 
       if(needSavePath){
         console.log("needSavePath")
@@ -165,7 +168,7 @@ export default class Download {
           }
           return
         }
-        const saveDirectory = get(this.saveDirectory,url)
+        const saveDirectory = this.getData(this.saveDirectory,url)
         // console.log(3333000,saveDirectory)
         savePath = path.join(saveDirectory || app.getPath('downloads'), fname || path.basename(url))
       }
@@ -173,7 +176,7 @@ export default class Download {
       if (retry.has(url)) {
         console.log('retry')
         retry.delete(url)
-        if(get(overwrite,url)){
+        if(this.getData(overwrite,url)){
           savePath = this.getUniqFileName(savePath)
         }
         item.setPrompt(false)
@@ -190,10 +193,11 @@ export default class Download {
         //   this.downloadReady(item, url, webContents,win)
         //   return
         // }
-        let id, updated, ended, isError
+        let id, updated, ended, isError,
+          mimeType = item.getMimeType()
 
-        const aria2cKey = get(this.dlKey,url)
-        const dl = new Aria2cWrapper({url, savePath,downloadNum: mainState.downloadNum,overwrite,timeMap,aria2cKey})
+        const aria2cKey = this.getData(this.dlKey,url)
+        const dl = new Aria2cWrapper({url,orgUrl:this.orgUrl,mimeType,savePath,downloadNum: mainState.downloadNum,overwrite,timeMap,aria2cKey})
 
         dl.download().then(_=>{
           dl.once('error', (_) => {

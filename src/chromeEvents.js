@@ -645,6 +645,14 @@ simpleIpcFuncCb('chrome-history-deleteAll',(cb)=>{
   history.remove({}, { multi: true }).then(_=>cb())
 })
 
+//#downloads
+simpleIpcFuncCb('chrome-downloads-download',(options,cb)=>{
+  if(!option.url) return cb()
+
+})
+
+
+//#commands
 for(let method of ['onCommand']){
   const registBackgroundPages = new Map()
   const name = `chrome-commands-${method}`
