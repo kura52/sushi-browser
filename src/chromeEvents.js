@@ -266,7 +266,7 @@ process.on('chrome-tabs-updated', (tabId,changeInfo,tab) => {
   // if(changeInfo.status == "complete") return
   if(changeInfo.status == "complete" ||
     (changeInfo.active === (void 0) &&
-      changeInfo.pinned === (void 0))) return
+    changeInfo.pinned === (void 0))) return
   // console.log(tabId,tab)
   const cont = webContents.fromTabID(tabId)
   if(cont && !cont.isDestroyed() && !cont.isBackgroundPage() && cont.isGuest()) {
@@ -647,10 +647,47 @@ simpleIpcFuncCb('chrome-history-deleteAll',(cb)=>{
 
 //#downloads
 simpleIpcFuncCb('chrome-downloads-download',(options,cb)=>{
-  if(!option.url) return cb()
+  if(!options.url) return cb()
+  if(options.filename) ipcMain.emit('set-save-path',null,options.url,options.filename)
+  if(options.conflictAction) ipcMain.emit('set-conflictAction',null,options.url,options.conflictAction)
+  if(options.saveAs) ipcMain.emit('need-set-save-filename',null,options.url,options.saveAs)
+  getCurrentWindow().webContents.downloadURL(options.url,true)
+  ipcMain.once('download-start',(e,url,id)=>{
+    if(url == options.url) cb(id)
+  })
+})
+
+simpleIpcFuncCb('chrome-downloads-pause',(downloadId,cb)=>{
+  ipcMain.emit('download-pause',null,{id:downloadId},'pause')
+})
+
+simpleIpcFuncCb('chrome-downloads-resume',(downloadId,cb)=>{
+  ipcMain.emit('download-pause',null,{id:downloadId},'resume')
+})
+
+simpleIpcFuncCb('chrome-downloads-cancel',(downloadId,cb)=>{
+  ipcMain.emit('download-cancel',null,{id:downloadId})
+})
+
+simpleIpcFuncCb('chrome-downloads-open',(downloadId,cb)=>{
 
 })
 
+simpleIpcFuncCb('chrome-downloads-show',(downloadId,cb)=>{
+
+})
+
+simpleIpcFuncCb('chrome-downloads-showDefaultFolder',(cb)=>{
+
+})
+
+simpleIpcFuncCb('chrome-downloads-search',(query,cb)=>{
+
+})
+
+simpleIpcFuncCb('chrome-downloads-erase',(query,cb)=>{
+
+})
 
 //#commands
 for(let method of ['onCommand']){

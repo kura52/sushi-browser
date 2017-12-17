@@ -518,9 +518,7 @@ if(chrome.browserAction){
   chrome.pageAction = chrome.browserAction
   chrome.pageAction.show = chrome.browserAction.enable
   chrome.pageAction.hide = chrome.browserAction.disable
-}
 
-if(chrome.browserAction){
   const ipc = chrome.ipcRenderer
   const method = 'onClicked'
   const name = `chrome-browserAction-${method}`
@@ -562,8 +560,19 @@ if(chrome.history){
 }
 
 if(chrome.downloads){
-  chrome.downloads.search = (query,callback) => callback([])//@TODO
-  chorme.downloads.download = (options, callback) => simpleIpcFunc('chrome-downloads-download',callback,options)
+  chrome.downloads.download = (options, callback) => simpleIpcFunc('chrome-downloads-download',callback,options)
+
+  chrome.downloads.pause = (downloadId, callback) => simpleIpcFunc('chrome-downloads-pause',callback,downloadId)
+  chrome.downloads.resume = (downloadId, callback) => simpleIpcFunc('chrome-downloads-resume',callback,downloadId)
+  chrome.downloads.cancel = (downloadId, callback) => simpleIpcFunc('chrome-downloads-cancel',callback,downloadId)
+
+  chrome.downloads.open = (downloadId) => simpleIpcFunc('chrome-downloads-open',_=>_,downloadId)
+  chrome.downloads.show = (downloadId) => simpleIpcFunc('chrome-downloads-show',_=>_,downloadId)
+  chrome.downloads.showDefaultFolder = () => simpleIpcFunc('chrome-downloads-showDefaultFolder',_=>_)
+
+  chrome.downloads.search = (downloadId, query) => simpleIpcFunc('chrome-downloads-search',callback,query)
+  chrome.downloads.erase = (downloadId, query) => simpleIpcFunc('chrome-downloads-erase',callback,query)
+
 }
 
 if(chrome.topSites){

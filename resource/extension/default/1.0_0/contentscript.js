@@ -103,7 +103,8 @@ if((styleVal = localStorage.getItem('meiryo')) !== null){
       const css = document.createElement('style')
       const rule = document.createTextNode('html{ font-family: Arial, "メイリオ", sans-serif}')
       css.appendChild(rule)
-      document.getElementsByTagName('head')[0].appendChild(css)
+      const head = document.getElementsByTagName('head')
+      if(head[0]) head[0].appendChild(css)
     },0)
   }
 }
@@ -115,7 +116,8 @@ else{
       const css = document.createElement('style')
       const rule = document.createTextNode('html{ font-family: Arial, "メイリオ", sans-serif}')
       css.appendChild(rule)
-      document.getElementsByTagName('head')[0].appendChild(css)
+      const head = document.getElementsByTagName('head')
+      if(head[0]) head[0].appendChild(css)
     }
   })
 }

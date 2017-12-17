@@ -1,5 +1,6 @@
 import fs from 'fs'
 import path from 'path'
+const sharp = require('sharp')
 const electronImageResize = require('./electronImageResize')
 const {getPath1,getPath2} = require('./chromeExtensionUtil')
 
@@ -222,7 +223,7 @@ export default function modify(extensionId,verPath){
               open = true
             }
             const img = await electronImageResize.capture({url: `file://${svg}`, width: 16, height: 16})
-            fs.writeFileSync(out, img.toPng())
+            sharp(img.toPng()).resize(16).toFile(out)
           }
         }
         if(open) electronImageResize.close()

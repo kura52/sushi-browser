@@ -1,4 +1,4 @@
- const {ipcMain,shell} = require('electron')
+const {ipcMain,shell} = require('electron')
 const path = require('path')
 import {download,downloader} from './databaseFork'
 import {getCurrentWindow} from './util'
@@ -35,11 +35,11 @@ export default class DownloadEvent {
     ipcMain.on('fetch-download', async (event, range) => {
       console.log('fetch-download', event, range)
       const cond =  !Object.keys(range).length ? range :
-      { created_at: (
-        range.start === void 0 ? { $lte: range.end } :
-          range.end === void 0 ? { $gte: range.start } :
-          { $gte: range.start ,$lte: range.end }
-      )}
+        { created_at: (
+          range.start === void 0 ? { $lte: range.end } :
+            range.end === void 0 ? { $gte: range.start } :
+              { $gte: range.start ,$lte: range.end }
+        )}
 
       console.log(432542,cond)
       const data = await download.find_sort([cond],[{ created_at: -1 }])
@@ -65,12 +65,7 @@ export default class DownloadEvent {
     })
 
     ipcMain.on('download-open',(event,data)=>{
-      if(fs.existsSync(`${data.savePath}.mtd`)){
-        shell.openItem(`${data.savePath}.mtd`)
-      }
-      else{
-        shell.openItem(data.savePath)
-      }
+      shell.openItem(data.savePath)
     })
   }
 

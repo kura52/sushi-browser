@@ -65,6 +65,7 @@ export default class Download {
     this.saveDirectory = {}
     this.audioExtract = {}
     this.overwrite = {}
+    this.prompt = {}
 
     const eventNeedSetSaveFilename = (event,url)=>{
       set(this.needSavePath,url,true)
@@ -89,6 +90,13 @@ export default class Download {
     ipcMain.on('need-set-save-filename',(e,url)=>{
       set(this.needSavePath,url,true)
     })
+
+
+    ipcMain.on('set-conflictAction',(e,url,type)=>{
+      if(type == "overwrite") set(this.overwrite,url,true)
+      else if(type == "prompt") set(this.prompt,url,true)
+    })
+
     // ipcMain.on('need-set-save-filename',eventSetSaveFilename)
     PubSub.subscribe('need-set-save-filename',eventNeedSetSaveFilename)
 
@@ -113,10 +121,12 @@ export default class Download {
       // item.pause()
       // item.setPrompt(false)
 
-      let active = true, url,fname
+      let active = true,
+        url,fname,mimeType
       try{
         url = item.getURL()
         this.orgUrl = url
+        mimeType = item.getMimeType()
         fname = item.getFilename()
       }catch(e){
         console.log(e)
@@ -149,34 +159,36 @@ export default class Download {
 
       const needSavePath = this.getData(this.needSavePath,url)
 
-      if(needSavePath){
+      const saveDirectory = this.getData(this.saveDirectory,url)
+      let autoSetSavePath
+      if(!savePath){
+        autoSetSavePath = true
+        savePath = path.join(saveDirectory || app.getPath('downloads'), fname || path.basename(url))
+      }
+
+      if(needSavePath || (this.getData(this.prompt,url) && fs.existsSync(savePath))){
         console.log("needSavePath")
-        const filepath = dialog.showSaveDialog(win,{defaultPath: path.join(app.getPath('downloads'), fname || path.basename(url)) })
+        const filepath = dialog.showSaveDialog(win,{defaultPath: savePath })
         if(!filepath){
-          if(active){
-            item.destroy()
-          }
+          if(active) item.destroy()
           return
         }
         savePath = filepath
         overwrite = true
       }
-      else if(!savePath){
+      else if(autoSetSavePath){
         if(url.endsWith(".pdf") || url.endsWith(".PDF") ){
           if(active){
             item.destroy()
           }
           return
         }
-        const saveDirectory = this.getData(this.saveDirectory,url)
-        // console.log(3333000,saveDirectory)
-        savePath = path.join(saveDirectory || app.getPath('downloads'), fname || path.basename(url))
       }
 
       if (retry.has(url)) {
         console.log('retry')
         retry.delete(url)
-        if(this.getData(overwrite,url)){
+        if(!this.getData(overwrite,url)){
           savePath = this.getUniqFileName(savePath)
         }
         item.setPrompt(false)
@@ -193,8 +205,7 @@ export default class Download {
         //   this.downloadReady(item, url, webContents,win)
         //   return
         // }
-        let id, updated, ended, isError,
-          mimeType = item.getMimeType()
+        let id, updated, ended, isError
 
         const aria2cKey = this.getData(this.dlKey,url)
         const dl = new Aria2cWrapper({url,orgUrl:this.orgUrl,mimeType,savePath,downloadNum: mainState.downloadNum,overwrite,timeMap,aria2cKey})
@@ -225,7 +236,7 @@ export default class Download {
 
     const eventPause = (event, data, type) => {
       console.log('resume',data,item)
-      if (data.key ? data.key !== item.key : data.savePath !== item.getSavePath()) return
+      if (data.id ? data.id !== item.idForExtension : data.key ? data.key !== item.key : data.savePath !== item.getSavePath()) return
       if(type == 'resume'){
         item.resume()
       }
@@ -240,7 +251,7 @@ export default class Download {
     ipcMain.on('download-pause', eventPause)
 
     const eventCancel = (event, data) => {
-      if (data.key ? data.key !== item.key : data.savePath !== item.getSavePath()) return
+      if (data.id ? data.id !== item.idForExtension : data.key ? data.key !== item.key : data.savePath !== item.getSavePath()) return
       item.cancel()
       ipcMain.removeListener('download-pause', eventPause)
       ipcMain.removeListener('download-cancel', eventCancel)

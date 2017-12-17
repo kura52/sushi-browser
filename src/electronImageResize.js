@@ -19,6 +19,8 @@ export default {
         nodeIntegration: false
       }
     });
+    setTimeout(_=>win.webContents.openDevTools(),2000)
+
   },
 
   close(){
@@ -84,12 +86,20 @@ export default {
       );
       win.webContents.once('did-finish-load', () => {
         if (isRejected) return;
-        setTimeout(() => {
-          win.capturePage(img => {
-            if (isRejected) return;
-            resolve(img);
-          });
-        }, opts.delay);
+        win.webContents.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',
+          `const s = document.querySelector('svg,img');
+    s.setAttribute('width', '100%');
+    s.setAttribute('height', '100%');
+    `,{},_=>{
+            setTimeout(() => {
+              win.capturePage(img => {
+                if (isRejected) return;
+                resolve(img);
+              });
+            }, opts.delay);
+          }
+        )
+
       });
     });
   }
