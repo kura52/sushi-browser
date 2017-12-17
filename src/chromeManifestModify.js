@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-const sharp = require('sharp')
+const sharp = require(path.join(__dirname,'../node_modules/sharp').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'))
 const electronImageResize = require('./electronImageResize')
 const {getPath1,getPath2} = require('./chromeExtensionUtil')
 

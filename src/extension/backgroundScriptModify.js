@@ -570,8 +570,9 @@ if(chrome.downloads){
   chrome.downloads.show = (downloadId) => simpleIpcFunc('chrome-downloads-show',_=>_,downloadId)
   chrome.downloads.showDefaultFolder = () => simpleIpcFunc('chrome-downloads-showDefaultFolder',_=>_)
 
-  chrome.downloads.search = (downloadId, query) => simpleIpcFunc('chrome-downloads-search',callback,query)
-  chrome.downloads.erase = (downloadId, query) => simpleIpcFunc('chrome-downloads-erase',callback,query)
+  chrome.downloads.search = (query,callback)=>callback([])//@TODO
+  // chrome.downloads.search = (downloadId, query) => simpleIpcFunc('chrome-downloads-search',callback,query)
+  // chrome.downloads.erase = (downloadId, query) => simpleIpcFunc('chrome-downloads-erase',callback,query)
 
 }
 

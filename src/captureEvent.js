@@ -5,7 +5,7 @@ import { history,favicon,image } from './databaseFork'
 import uuid from 'node-uuid'
 import {request} from './request'
 const underscore = require('underscore')
-const sharp = require('sharp')
+const sharp = require(path.join(__dirname,'../node_modules/sharp').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'))
 const ico = require('icojs');
 import {getFocusedWebContents} from './util'
 // require('locus')

@@ -70,7 +70,7 @@ export default class Aria2cWrapper{
     this.closeCallbacks = []
     this.errorCallbacks = []
     this.created_at = this.timeMap.get(this.getSavePath())
-    this.idForExtension: (this.created_at - 1512054000000) * 100 + (count++ % 100)
+    this.idForExtension = (this.created_at - 1512054000000) * 100 + (count++ % 100)
     ipcMain.emit('download-start',null,this.orgUrl,this.idForExtension)
   }
 

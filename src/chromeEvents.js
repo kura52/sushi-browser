@@ -5,7 +5,7 @@ import sh from 'shelljs'
 import PubSub from './render/pubsub'
 import uuid from 'node-uuid'
 const seq = require('./sequence')
-const {state,favorite,history,visit} = require('./databaseFork')
+const {state,favorite,history,visit,downloader} = require('./databaseFork')
 const db = require('./databaseFork')
 const franc = require('franc')
 const chromeManifestModify = require('./chromeManifestModify')
@@ -659,35 +659,44 @@ simpleIpcFuncCb('chrome-downloads-download',(options,cb)=>{
 
 simpleIpcFuncCb('chrome-downloads-pause',(downloadId,cb)=>{
   ipcMain.emit('download-pause',null,{id:downloadId},'pause')
+  cb()
 })
 
 simpleIpcFuncCb('chrome-downloads-resume',(downloadId,cb)=>{
   ipcMain.emit('download-pause',null,{id:downloadId},'resume')
+  cb()
 })
 
 simpleIpcFuncCb('chrome-downloads-cancel',(downloadId,cb)=>{
   ipcMain.emit('download-cancel',null,{id:downloadId})
+  cb()
 })
 
 simpleIpcFuncCb('chrome-downloads-open',(downloadId,cb)=>{
-
+  downloader.findOne({idForExtension: downloadId}).then(ret=>{
+    shell.openItem(ret.savePath)
+    cb()
+  })
 })
 
 simpleIpcFuncCb('chrome-downloads-show',(downloadId,cb)=>{
-
+  downloader.findOne({idForExtension: downloadId}).then(ret=>{
+    shell.showItemInFolder(ret.savePath)
+    cb()
+  })
 })
 
 simpleIpcFuncCb('chrome-downloads-showDefaultFolder',(cb)=>{
-
+  shell.showItemInFolder(app.getPath('downloads'))
 })
 
-simpleIpcFuncCb('chrome-downloads-search',(query,cb)=>{
-
-})
-
-simpleIpcFuncCb('chrome-downloads-erase',(query,cb)=>{
-
-})
+// simpleIpcFuncCb('chrome-downloads-search',(query,cb)=>{
+//
+// })
+//
+// simpleIpcFuncCb('chrome-downloads-erase',(query,cb)=>{
+//
+// })
 
 //#commands
 for(let method of ['onCommand']){
