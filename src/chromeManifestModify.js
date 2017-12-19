@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-const sharp = require(path.join(__dirname,'../node_modules/sharp').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'))
+const Jimp = require('jimp')
 const electronImageResize = require('./electronImageResize')
 const {getPath1,getPath2} = require('./chromeExtensionUtil')
 
@@ -223,7 +223,16 @@ export default function modify(extensionId,verPath){
               open = true
             }
             const img = await electronImageResize.capture({url: `file://${svg}`, width: 16, height: 16})
-            sharp(img.toPng()).resize(16).toFile(out)
+
+            Jimp.read(img.toPng(), function (err, image) {
+              if(image.bitmap.width > image.bitmap.height){
+                image = image.resize(16,Jimp.AUTO,Jimp.RESIZE_BICUBIC)
+              }
+              else{
+                image = image.resize(Jimp.AUTO,16,Jimp.RESIZE_BICUBIC)
+              }
+              image.write(out)
+            })
           }
         }
         if(open) electronImageResize.close()

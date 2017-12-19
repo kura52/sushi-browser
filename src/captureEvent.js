@@ -5,7 +5,7 @@ import { history,favicon,image } from './databaseFork'
 import uuid from 'node-uuid'
 import {request} from './request'
 const underscore = require('underscore')
-const sharp = require(path.join(__dirname,'../node_modules/sharp').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'))
+const Jimp = require('jimp')
 const ico = require('icojs');
 import {getFocusedWebContents} from './util'
 // require('locus')
@@ -94,11 +94,19 @@ async function captureCurrentPage(_id,pageUrl,loc){
 
     const id = uuid.v4()
     cont.capturePage((imageBuffer)=>{
-      sharp(imageBuffer.toJPEG(80)).resize(160).toFile(path.join(capturePath,`${id}.jpg`), (err, info) =>{
+      Jimp.read(imageBuffer.toJPEG(80), function (err, _image) {
         if (err) {
           console.log("ERROR Failed to save file", err);
+          return
+        }
+
+        if(_image.bitmap.width > _image.bitmap.height){
+          _image = _image.resize(160,Jimp.AUTO,Jimp.RESIZE_BICUBIC)
         }
         else{
+          _image = _image.resize(Jimp.AUTO,160,Jimp.RESIZE_BICUBIC)
+        }
+        _image.write(path.join(capturePath,`${id}.jpg`),_=>{
           if(doc){
             image.update({url:pageUrl}, {$set:{path:`${id}.jpg`, title: cont.getTitle(), updated_at: d}})
           }
@@ -106,8 +114,23 @@ async function captureCurrentPage(_id,pageUrl,loc){
             image.insert({url:pageUrl, path:`${id}.jpg`, title: cont.getTitle(), created_at: d, updated_at: d})
           }
           history.update({_id},{$set:{capture:`${id}.jpg`, updated_at: d}})
-        }
-      })
+        })
+      });
+
+      // sharp(imageBuffer.toJPEG(80)).resize(160).toFile(path.join(capturePath,`${id}.jpg`), (err, info) =>{
+      //   if (err) {
+      //     console.log("ERROR Failed to save file", err);
+      //   }
+      //   else{
+      //     if(doc){
+      //       image.update({url:pageUrl}, {$set:{path:`${id}.jpg`, title: cont.getTitle(), updated_at: d}})
+      //     }
+      //     else{
+      //       image.insert({url:pageUrl, path:`${id}.jpg`, title: cont.getTitle(), created_at: d, updated_at: d})
+      //     }
+      //     history.update({_id},{$set:{capture:`${id}.jpg`, updated_at: d}})
+      //   }
+      // })
     })
   }
 }
@@ -182,19 +205,31 @@ const fetchFavIcon = (url, redirects) => {
 
       if(img.type.match(/png|jpg|jpeg|gif|svg|webp/)){
         console.log(144)
-        const image = sharp(img)
-        image.metadata().then(metadata=>{
-          console.log(145)
-          if(Math.max(metadata.width,metadata.height) <= 20){
+        Jimp.read(img, function (err, image) {
+          if (err) {
+            console.log("ERROR Failed to save file", err);
+            return
+          }
+          if(Math.max(image.bitmap.width,image.bitmap.height) <= 20){
             console.log(146)
             resolve(blob)
           }
           else{
             console.log(147)
-            image.resize(20).toBuffer().then(data=>{
-              resolve(`data:image/png;base64,${data.toString('base64')}`)
+            if(image.bitmap.width > image.bitmap.height){
+              image = image.resize(20,Jimp.AUTO,Jimp.RESIZE_BICUBIC)
+            }
+            else{
+              image = image.resize(Jimp.AUTO,20,Jimp.RESIZE_BICUBIC)
+            }
+            image.getBase64(Jimp.AUTO, function (err, src) {
+              resolve(src)
             })
+            //   .toBuffer().then(data=>{
+            //   resolve(`data:image/png;base64,${data.toString('base64')}`)
+            // })
           }
+
         })
       }
       else if(img.type.endsWith('icon') && ico.isICO(img)){
@@ -203,17 +238,26 @@ const fetchFavIcon = (url, redirects) => {
           console.log(149)
           const icoImage = images[0]
           const imgBuffer = Buffer.from(icoImage.buffer)
-          const image = sharp(imgBuffer)
           console.log(151)
-          image.metadata().then(metadata=>{
-            if(Math.max(metadata.width,metadata.height) <= 20){
-              console.log(152)
+          Jimp.read(imgBuffer, function (err, image) {
+            if (err) {
+              console.log("ERROR Failed to save file", err);
+              return
+            }
+            if(Math.max(image.bitmap.width,image.bitmap.height) <= 20){
+              console.log(146)
               resolve(`data:image/png;base64,${imgBuffer.toString('base64')}`)
             }
             else{
-              image.resize(20).toBuffer().then(data=>{
-                console.log(153)
-                resolve(`data:image/png;base64,${data.toString('base64')}`)
+              console.log(147)
+              if(image.bitmap.width > image.bitmap.height){
+                image = image.resize(20,Jimp.AUTO,Jimp.RESIZE_BICUBIC)
+              }
+              else{
+                image = image.resize(Jimp.AUTO,20,Jimp.RESIZE_BICUBIC)
+              }
+              image.getBase64(Jimp.AUTO, function (err, src) {
+                resolve(src)
               })
             }
           })
