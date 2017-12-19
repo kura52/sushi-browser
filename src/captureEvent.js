@@ -203,12 +203,12 @@ const fetchFavIcon = (url, redirects) => {
       const img = dataUriToBuffer(blob)
       console.log(img.type)
 
-      if(img.type.match(/png|jpg|jpeg|gif|svg|webp/)){
+      if(img.type.match(/(png|jpg|jpeg)$/)){
         console.log(144)
         Jimp.read(img, function (err, image) {
-          if (err) {
+          if (err || !image) {
             console.log("ERROR Failed to save file", err);
-            return
+            resolve(blob)
           }
           if(Math.max(image.bitmap.width,image.bitmap.height) <= 20){
             console.log(146)
@@ -240,9 +240,9 @@ const fetchFavIcon = (url, redirects) => {
           const imgBuffer = Buffer.from(icoImage.buffer)
           console.log(151)
           Jimp.read(imgBuffer, function (err, image) {
-            if (err) {
+            if (err || !image) {
               console.log("ERROR Failed to save file", err);
-              return
+              resolve(blob)
             }
             if(Math.max(image.bitmap.width,image.bitmap.height) <= 20){
               console.log(146)

@@ -3063,7 +3063,7 @@ export default class TabPanel extends Component {
       }))
     }
     menuItems.push(({ t:'bookmarkPage',label: locale.translation('bookmarkPage'),click: this.onAddFavorites.bind(this,t.key) }))
-    menuItems.push(({ t:'5078638979202084724',label: locale.translation('5078638979202084724'),click: ::this.onAddFavorites }))
+    menuItems.push(({ t:'5078638979202084724',label: locale.translation('5078638979202084724'),click: _=>this.onAddFavorites() }))
 
     menuItems.forEach((x,i)=>x.num = -i + parseInt(priorityTabContextMenus[x.t || x.label] || 0) * 100)
     menuItems = menuItems.sort((a,b)=> b.num - a.num)

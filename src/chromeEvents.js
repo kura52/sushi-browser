@@ -652,7 +652,7 @@ simpleIpcFuncCb('chrome-downloads-download',(options,cb)=>{
   if(options.conflictAction) ipcMain.emit('set-conflictAction',null,options.url,options.conflictAction)
   if(options.saveAs) ipcMain.emit('need-set-save-filename',null,options.url,options.saveAs)
   getCurrentWindow().webContents.downloadURL(options.url,true)
-  ipcMain.once('download-start',(e,url,id)=>{
+  ipcMain.once('download-starting',(e,url,id)=>{
     if(url == options.url) cb(id)
   })
 })
