@@ -186,6 +186,9 @@ ipcMain.on('rename-favorite',(event,key,dbKey,newName)=>{
   })
 })
 
+async function getFavoriteParentId(key){
+  const ret = favorite
+}
 
 async function recurGet(keys){
   const ret = await favorite.find({key:{$in: keys}})

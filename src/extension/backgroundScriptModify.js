@@ -570,10 +570,29 @@ if(chrome.downloads){
   chrome.downloads.show = (downloadId) => simpleIpcFunc('chrome-downloads-show',_=>_,downloadId)
   chrome.downloads.showDefaultFolder = () => simpleIpcFunc('chrome-downloads-showDefaultFolder',_=>_)
 
-  chrome.downloads.search = (query,callback)=>callback([])//@TODO
-  // chrome.downloads.search = (downloadId, query) => simpleIpcFunc('chrome-downloads-search',callback,query)
-  // chrome.downloads.erase = (downloadId, query) => simpleIpcFunc('chrome-downloads-erase',callback,query)
+    chrome.downloads.search = (query, callback) => simpleIpcFunc('chrome-downloads-search',_=>{
+      console.log(query,_)
+      callback(_)
+    },query)
+  chrome.downloads.erase = (query, callback) => simpleIpcFunc('chrome-downloads-erase',callback,query)
 
+  //@TODO
+  chrome.downloads.getFileIcon = (downloadId, options, callback) => {callback('data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==')}
+
+}
+
+if(chrome.bookmarks){
+  chrome.bookmarks.get(idOrIdList, callback) = simpleIpcFunc('chrome-bookmarks-get', callback, idOrIdList)
+  chrome.bookmarks.getChildren(id, callback) = simpleIpcFunc('chrome-bookmarks-getChildren', callback, id)
+  chrome.bookmarks.getRecent(numberOfItems, callback) = simpleIpcFunc('chrome-bookmarks-getRecent', callback, numberOfItems)
+  chrome.bookmarks.getTree(callback) = simpleIpcFunc('chrome-bookmarks-getTree', callback)
+  chrome.bookmarks.getSubTree(id, callback) = simpleIpcFunc('chrome-bookmarks-getSubTree', callback, id)
+  chrome.bookmarks.search(query, callback) = simpleIpcFunc('chrome-bookmarks-search', callback, query)
+  chrome.bookmarks.create(bookmark, callback) = simpleIpcFunc('chrome-bookmarks-create', callback, bookmark)
+  chrome.bookmarks.move(id, destination, callback) = simpleIpcFunc('chrome-bookmarks-move', callback, id, destination)
+  chrome.bookmarks.update(id, changes, callback) = simpleIpcFunc('chrome-bookmarks-update', callback, id, changes)
+  chrome.bookmarks.remove(id, callback) = simpleIpcFunc('chrome-bookmarks-remove', callback, id)
+  chrome.bookmarks.removeTree(id, callback) = simpleIpcFunc('chrome-bookmarks-removeTree', callback, id)
 }
 
 if(chrome.topSites){

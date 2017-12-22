@@ -179,10 +179,33 @@ class DownloadList extends React.Component {
     return [Math.round(time / 60 / 60 / 24),"day",Math.round((time/60/60) % 24),"hour"]
   }
 
+  calcSpeedSec(item){
+    let speed = item.speed
+    if(!speed){
+      return 1
+    }
+    else if(speed.includes("TB")){
+      return parseFloat(speed) * 1024 * 1024 * 1024 * 1024
+    }
+    else if(speed.includes("GB")){
+      return parseFloat(speed) * 1024 * 1024 * 1024
+    }
+    else if(speed.includes("MB")){
+      return parseFloat(speed) * 1024 * 1024
+    }
+    else if(speed.includes("KB")){
+      return parseFloat(speed) * 1024
+    }
+    else{
+      const val = parseFloat(speed)
+      return isNaN(val) ? 1 : val
+    }
+  }
+
   calcSpeed(item){
     const diff =item.now - item.created_at
     const percent = this.round(item.receivedBytes / item.totalBytes * 100,2)
-    const speed = item.receivedBytes / diff * 1000
+    const speed = item.speed ? this.calcSpeedSec(item) : item.receivedBytes / diff * 1000
     const restTime = (item.totalBytes - item.receivedBytes) / speed
 
     return {diff,percent,speed,restTime}

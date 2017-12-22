@@ -690,13 +690,190 @@ simpleIpcFuncCb('chrome-downloads-showDefaultFolder',(cb)=>{
   shell.showItemInFolder(app.getPath('downloads'))
 })
 
-// simpleIpcFuncCb('chrome-downloads-search',(query,cb)=>{
-//
-// })
-//
-// simpleIpcFuncCb('chrome-downloads-erase',(query,cb)=>{
-//
-// })
+function makeDownloadItem(item){
+  return {
+    id: item.idForExtension,
+    url: item.orgUrl,
+    finalUrl: item.url,
+    referrer: null,
+    filename: item.savePath,
+    incognito: false,
+    danger: 'safe',
+    mime: item.mimeType,
+    startTime: new Date(item.created_at).toISOString(),
+    endTime: item.ended && new Date(item.ended).toISOString(),
+    estimatedEndTime: item.est_end && new Date(item.est_end).toISOString(),
+    state: item.state == 'completed' ? 'complete' : item.state == 'progressing' ? 'in_progress' : 'interrupted',
+    paused: item.isPaused,
+    canResume: true,
+    error: null,
+    bytesReceived: item.receivedBytes,
+    totalBytes: item.totalBytes,
+    fileSize: item.totalBytes,
+    exists: true,
+    byExtensionId: null,
+    byExtensionName: null
+  }
+}
+
+function parseOrderBy(orderBy,trans){
+  if(!orderBy) return {created_at: -1}
+
+  if(!Array.isArray(orderBy)) orderBy = [orderBy]
+
+  const ret = {}
+  orderBy.forEach(x=>{
+    if(!trans[x]) return
+    ret[trans[x]] = x[0]=='-' ? -1 : 1
+  })
+
+  return ret
+}
+
+function getDLState(state){
+  if(state == "complete") return 'completed'
+  else if(state == "in_progress") return 'progressing'
+  else if(state == "interrupted") return { $or: ['cancelled','cancelled'] }
+  else { return void 0}
+}
+
+
+const transDL = {
+  id: "idForExtension",
+  url: "orgUrl",
+  finalUrl: "url",
+  filename: "savePath",
+  startTime: "created_at",
+  endTime: "ended",
+  estimatedEndTime: "est_end",
+  mime: "mimeType",
+  state: "state",
+  paused: "isPaused",
+  bytesReceived: "receivedBytes",
+  totalBytes: "totalBytes",
+  fileSize: "totalBytes"
+}
+
+function makeDLCond(query){
+  let cond = []
+
+  if(query.query){
+    const reg = new RegExp(escapeRegExp(query.query))
+    cond.push({$or: [{filename: reg},{url: reg},{orgUrl: reg}]})
+  }
+
+  if(query.startedBefore) cond.push({created_at: { $lte: Date.parse(query.startedBefore)}})
+  if(query.startedAfter) cond.push({created_at: { $gte: Date.parse(query.startedAfter)}})
+  if(query.startTime) cond.push({created_at: Date.parse(query.startTime)})
+
+  if(query.endedBefore) cond.push({ended: { $lte: Date.parse(query.endedBefore)}})
+  if(query.endedAfter) cond.push({ended: { $gte: Date.parse(query.endedAfter)}})
+  if(query.endTime) cond.push({ended: Date.parse(query.endTime)})
+
+  if(query.totalBytesLess) cond.push({totalBytes: { $lte: Date.parse(query.totalBytesLess)}})
+  if(query.totalBytesGreater) cond.push({totalBytes: { $gte: Date.parse(query.totalBytesGreater)}})
+  if(query.totalBytes) cond.push({totalBytes: Date.parse(query.totalBytes)})
+  if(query.fileSize) cond.push({totalBytes: Date.parse(query.fileSize)})
+
+  if(query.filenameRegex) cond.push({savePath: new RegExp(query.filenameRegex)})
+  if(query.filename) cond.push({savePath: query.filename})
+
+  if(query.urlRegex) cond.push({orgUrl: new RegExp(query.urlRegex)})
+  if(query.url) cond.push({orgUrl: query.url})
+
+  if(query.finalUrlRegex) cond.push({url: new RegExp(query.finalUrlRegex)})
+  if(query.finalUrl) cond.push({url: query.finalUrl})
+
+  if(query.id) cond.push({idForExtension: query.id})
+  if(query.mime) cond.push({mimeType: query.mime})
+  if(query.state) cond.push({state: getDLState(query.state)})
+  if(query.paused) cond.push({isPaused: query.paused})
+  if(query.bytesReceived) cond.push({receivedBytes: query.bytesReceived})
+
+  cond = !cond.length ? {} : cond.length == 1 ? cond[0] : {$and : cond}
+  return cond
+}
+
+simpleIpcFuncCb('chrome-downloads-search',(query,cb)=>{
+  const cond = makeDLCond(query)
+  console.log(cond)
+  let promise
+  if(query.limit === 0){
+    promise = downloader.find_sort([cond],[parseOrderBy(query.orderBy,transDL)])
+  }
+  else{
+    const limit = query.limit || 1000
+    promise = downloader.find_sort_limit([cond],[parseOrderBy(query.orderBy,transDL)],[limit])
+  }
+  promise.then(rets=>{
+    cb(rets.map(makeDownloadItem))
+  })
+})
+
+simpleIpcFuncCb('chrome-downloads-erase',(query,cb)=>{
+  const cond = makeDLCond(query)
+  let promise
+  if(query.limit === 0){
+    promise = downloader.find_sort([cond],[parseOrderBy(query.orderBy,transDL)])
+  }
+  else{
+    const limit = query.limit || 1000
+    promise = downloader.find_sort_limit([cond],[parseOrderBy(query.orderBy,transDL)],[limit])
+  }
+  promise.then(rets=>{
+    const _ids = rets.map(item=>item._id)
+    const ids = rets.map(item=>item.idForExtension)
+    downloader.remove({_id: {$in : ids}}, { multi: true }).then(ret2=>{
+      cb(ids)
+    })
+  })
+
+})
+
+//#bookmarks
+simpleIpcFuncCb('chrome-bookmarks-get',(idOrIdList, cb)=>{
+
+}
+
+simpleIpcFuncCb('chrome-bookmarks-getChildren',(id, cb)=>{
+
+}
+
+simpleIpcFuncCb('chrome-bookmarks-getRecent',(numberOfItems, cb)=>{
+
+}
+
+simpleIpcFuncCb('chrome-bookmarks-getTree',(cb)=>{
+
+}
+
+simpleIpcFuncCb('chrome-bookmarks-getSubTree',(id, cb)=>{
+
+}
+
+simpleIpcFuncCb('chrome-bookmarks-search',(query, cb)=>{
+
+}
+
+simpleIpcFuncCb('chrome-bookmarks-create',(bookmark, cb)=>{
+
+}
+
+simpleIpcFuncCb('chrome-bookmarks-move',(id, destination, cb)=>{
+
+}
+
+simpleIpcFuncCb('chrome-bookmarks-update',(id, changes, cb)=>{
+
+}
+
+simpleIpcFuncCb('chrome-bookmarks-remove',(id, cb)=>{
+
+}
+
+simpleIpcFuncCb('chrome-bookmarks-removeTree',(id, cb)=>{
+
+}
 
 //#commands
 for(let method of ['onCommand']){

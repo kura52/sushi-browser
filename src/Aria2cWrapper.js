@@ -69,7 +69,6 @@ export default class Aria2cWrapper{
     this.stdoutCallbacks = []
     this.closeCallbacks = []
     this.errorCallbacks = []
-    this.created_at = this.timeMap.get(this.getSavePath())
     this.idForExtension = (this.created_at - 1512054000000) * 100 + (count++ % 100)
     ipcMain.emit('download-starting',null,this.orgUrl,this.idForExtension)
   }
@@ -90,8 +89,32 @@ export default class Aria2cWrapper{
     this.closeCallbacks = []
   }
 
+  calcSpeedSec(item){
+    let speed = item.speed
+    if(!speed){
+      return 1
+    }
+    else if(speed.includes("TB")){
+      return parseFloat(speed) * 1024 * 1024 * 1024 * 1024
+    }
+    else if(speed.includes("GB")){
+      return parseFloat(speed) * 1024 * 1024 * 1024
+    }
+    else if(speed.includes("MB")){
+      return parseFloat(speed) * 1024 * 1024
+    }
+    else if(speed.includes("KB")){
+      return parseFloat(speed) * 1024
+    }
+    else{
+      const val = parseFloat(speed)
+      return isNaN(val) ? 1 : val
+    }
+  }
+
   updateDownloader(){
     const item = this
+    const est_end = Date.now() + (item.totalBytes - item.receivedBytes) / this.calcSpeedSec(item)
     downloader.update({key:item.key},{
       key: item.key,
       idForExtension: item.idForExtension,
@@ -103,9 +126,11 @@ export default class Aria2cWrapper{
       totalBytes: item.getTotalBytes(),
       state: item.getState(),
       speed: item.speed ? item.speed.replace('i','') : void 0,
+      est_end,
       savePath: item.getSavePath(),
       mimeType: item.mimeType,
       created_at: item.created_at,
+      ended: item.getState() == 'completed' ? Date.now() : null,
       now: Date.now()
     },{ upsert: true })
   }
@@ -151,7 +176,8 @@ export default class Aria2cWrapper{
       params.push('--auto-file-renaming=false','--allow-overwrite=true')
     }
 
-    this.timeMap.set(this.savePath, Date.now())
+    this.created_at = Date.now()
+    this.timeMap.set(this.savePath, this.created_at)
 
     this.aria2c = spawn(binaryPath,params)
 
