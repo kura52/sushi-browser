@@ -36,7 +36,7 @@ const settingDefault =  {
   disableExtensions: [],
   adBlockDisableSite: {},
   disableContextMenus: [],
-  disableTabContextMenus: ['reload','cleanReload','Split left tabs to left','closeTabsToLeft','bookmarkPage'],
+  disableTabContextMenus: ['reload','cleanReload','Split left tabs to left','closeTabsToLeft','bookmarkPage','5317780077021120954'],
   priorityContextMenus: {},
   priorityTabContextMenus: {},
 

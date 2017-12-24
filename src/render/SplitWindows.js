@@ -768,6 +768,39 @@ export default class SplitWindows extends Component{
     }
     ipc.on('tab-create',this.eventTabCreate)
 
+    this.eventOpenFixedPanel = (e,url)=>{
+      const sideBarDirection = ipc.sendSync('get-sync-main-state','sideBarDirection')
+      const n = this.isExistsFixedPanel(sideBarDirection)
+      if(n){
+        const key = n.node[n.dirc][0]
+        const panel = this.refs2[key]
+        for(let tab of panel.state.tabs){
+          if(tab.page.navUrl == url) return
+        }
+        ipc.emit('new-tab',null,panel.state.tabs[panel.state.tabs.length - 1].wvId, url)
+      }
+      else{
+        this.addFixedPanel("v",sideBarDirection=="left" ? -1 : 1,void 0,url)
+      }
+    }
+
+    this.eventCloseFixedPanel = (e,url)=>{
+      const sideBarDirection = ipc.sendSync('get-sync-main-state','sideBarDirection')
+      const n = this.isExistsFixedPanel(sideBarDirection)
+      if(n){
+        const key = n.node[n.dirc][0]
+        const panel = this.refs2[key]
+        for(let tab of panel.state.tabs){
+          if(tab.page.navUrl == url){
+            panel.handleTabClose({},tab.key)
+            return
+          }
+        }
+      }
+    }
+    ipc.on('open-fixed-panel',this.eventOpenFixedPanel)
+    ipc.on('close-fixed-panel',this.eventCloseFixedPanel)
+
     this.tokenAlign = PubSub.subscribe("align",(_,e)=>{
 
       const mapDepth = this.getDepth()
@@ -870,6 +903,8 @@ export default class SplitWindows extends Component{
     ipc.removeListener('chorme-tabs-move-detach',this.eventChromeTabsMoveDetach)
     ipc.removeListener('chorme-tabs-move-attach',this.eventChromeTabsMoveAttach)
     ipc.removeListener('tab-create',this.eventTabCreate)
+    ipc.removeListener('open-fixed-panel',this.eventOpenFixedPanel)
+    ipc.removeListener('close-fixed-panel',this.eventCloseFixedPanel)
 
     PubSub.unsubscribe(this.tokenAlign)
     PubSub.unsubscribe(this.tokenAllDetach)
@@ -1089,7 +1124,7 @@ export default class SplitWindows extends Component{
             {dirc: direction, size: '50%', l:[getUuid(), [], tabs, indexes,params] , r: node.l, p: node, pd: "l",key:uuid.v4()}
         }
         else{
-          console.log("update right")
+          console.log("update right", tabs, indexes,params)
           Object.assign(node,pos == 1 ? {dirc: direction, size: '50%', l: node.l, r: [getUuid(), [], tabs, indexes,params], p: null} :
             {dirc: direction, size: '50%', l: [getUuid(), [], tabs, indexes,params], r:node.l , p: null})
           console.log(node)
@@ -1509,8 +1544,9 @@ export default class SplitWindows extends Component{
     return this.getKeyPosition(this.getFixedPanelKey(dirc),this.state.root,true)
   }
 
-  addFixedPanel(direction,pos,node=this.state.root){
+  addFixedPanel(direction,pos,node=this.state.root,url){
     const fixedKey = this.getFixedPanelKey(direction == "v" ? pos == 1 ? "right" :"left" : pos == 1 ? "bottom" : "top") + `-${Math.random().toString().replace(".","")}_${count++}`
+    const newData = url ? [fixedKey,[],undefined,[undefined],{url, mobile: undefined, adBlockThis: true, privateMode: false, guestInstanceId: undefined}] : [fixedKey,[]]
 
     const ref = this.refs[`pane_${node.key}`].state
     const refSize = this.refs[`pane_${node.key}`].getSize()
@@ -1527,7 +1563,7 @@ export default class SplitWindows extends Component{
         console.log(1,fpanels.left,newSize,fpanels.left > 0 ? refSize : refSize * newSize / wholeSize)
         // node.size = fpanels.left > 0 ? refSize : refSize * newSize / wholeSize
         console.log(57,node.size,newSize)
-        node = {dirc: direction, size:newSize , l:node ,r: [fixedKey,[]],p: null,key:uuid.v4(),toggleNav:node.toggleNav}
+        node = {dirc: direction, size:newSize , l:node ,r: newData,p: null,key:uuid.v4(),toggleNav:node.toggleNav}
         node.l.p = node
         node.l.pd = "l"
       }
@@ -1535,15 +1571,15 @@ export default class SplitWindows extends Component{
         console.log(2,fpanels.right)
         if(fpanels.right > 0) node.size = (wholeSize - 200) - (wholeSize - refSize)
         console.log(node.size)
-        node = {dirc: direction, size: 200, l: [fixedKey,[]],r: node,p: null,key:uuid.v4(),toggleNav:node.toggleNav}
+        node = {dirc: direction, size: 200, l: newData,r: node,p: null,key:uuid.v4(),toggleNav:node.toggleNav}
         node.r.p = node
         node.r.pd = "r"
       }
       this.state.root = node
     }
     else{
-      Object.assign(node,pos == 1 ? {dirc: direction, size: wholeSize - 201, l: node.l, r: [fixedKey, []], p: null} :
-        {dirc: direction, size: 200, l: [fixedKey, []], r:node.l , p: null})
+      Object.assign(node,pos == 1 ? {dirc: direction, size: wholeSize - 201, l: node.l, r: newData, p: null} :
+        {dirc: direction, size: 200, l: newData, r:node.l , p: null})
     }
     this.setState({})
     console.log(444,node.r,pos,wholeSize,ref.size)

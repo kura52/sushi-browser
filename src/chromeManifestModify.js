@@ -203,6 +203,14 @@ export default function modify(extensionId,verPath){
 
       if(infos.commands){
         for(let [k,v] of Object.entries(infos.commands)) {
+          if(v.suggested_key){
+            for(let [k2,v2] of Object.entries(v.suggested_key)){
+              if(v2.match(/^F\d+$/)){
+                delete infos.commands[k]
+                break
+              }
+            }
+          }
           if (k == '_execute_browser_action' || k == '_execute_page_action') continue
           if (!v.description) v.description = "description"
         }

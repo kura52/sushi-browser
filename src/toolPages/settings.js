@@ -326,6 +326,7 @@ const contextMenus = [
   ['openInNewPrivateTab', l10n.translation('openInNewPrivateTab')],
   ['openInNewSessionTab', l10n.translation('openInNewSessionTab')],
   ['openInNewWindow', l10n.translation('openInNewWindow')],
+  ['5317780077021120954', l10n.translation('5317780077021120954')],
   ['saveLinkAs', l10n.translation('saveLinkAs')],
   ['copyLinkAddress', l10n.translation('copyLinkAddress')],
   ['1047431265488717055', l10n.translation('1047431265488717055')],

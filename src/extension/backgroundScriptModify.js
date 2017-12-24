@@ -11,6 +11,9 @@ chrome.app.getDetails = _=>chrome.ipcRenderer.sendSync('chrome-management-get-sy
 chrome.runtime.openOptionsPage = _=> simpleIpcFunc('chrome-runtime-openOptionsPage',_=>_,chrome.runtime.id)
 chrome.runtime.getBrowserInfo = callback=> callback({name:'Firefox',vendor:'Mozilla',version:'57.0',buildID:'20171203000000'})
 
+
+
+
 chrome.i18n.getAcceptLanguages = callback=> simpleIpcFunc('chrome-i18n-getAcceptLanguages',callback)
 chrome.i18n.getUILanguage = _=> {
   let lang = navigator.languages.map(lang=>lang == 'zh-CN' || lang == 'pt-BR' ? lang.replace('-','_') : lang.slice(0,2))[0]
@@ -323,7 +326,7 @@ if(chrome.tabs){
       addListener: function (cb) {
         ipcEvent[cb] = function(evt, tabId, changeInfo, tab) {
           if(tab && tab.url && tab.url.startsWith('chrome://brave/')) return
-          console.log(name, tabId, changeInfo, tab)
+          // console.log(name, tabId, changeInfo, tab)
           if(event_name == 'activated'){
             cb(changeInfo, tab);
           }
@@ -570,10 +573,10 @@ if(chrome.downloads){
   chrome.downloads.show = (downloadId) => simpleIpcFunc('chrome-downloads-show',_=>_,downloadId)
   chrome.downloads.showDefaultFolder = () => simpleIpcFunc('chrome-downloads-showDefaultFolder',_=>_)
 
-    chrome.downloads.search = (query, callback) => simpleIpcFunc('chrome-downloads-search',_=>{
-      console.log(query,_)
-      callback(_)
-    },query)
+  chrome.downloads.search = (query, callback) => simpleIpcFunc('chrome-downloads-search',_=>{
+    console.log(query,_)
+    callback(_)
+  },query)
   chrome.downloads.erase = (query, callback) => simpleIpcFunc('chrome-downloads-erase',callback,query)
 
   //@TODO
@@ -582,17 +585,21 @@ if(chrome.downloads){
 }
 
 if(chrome.bookmarks){
-  chrome.bookmarks.get(idOrIdList, callback) = simpleIpcFunc('chrome-bookmarks-get', callback, idOrIdList)
-  chrome.bookmarks.getChildren(id, callback) = simpleIpcFunc('chrome-bookmarks-getChildren', callback, id)
-  chrome.bookmarks.getRecent(numberOfItems, callback) = simpleIpcFunc('chrome-bookmarks-getRecent', callback, numberOfItems)
-  chrome.bookmarks.getTree(callback) = simpleIpcFunc('chrome-bookmarks-getTree', callback)
-  chrome.bookmarks.getSubTree(id, callback) = simpleIpcFunc('chrome-bookmarks-getSubTree', callback, id)
-  chrome.bookmarks.search(query, callback) = simpleIpcFunc('chrome-bookmarks-search', callback, query)
-  chrome.bookmarks.create(bookmark, callback) = simpleIpcFunc('chrome-bookmarks-create', callback, bookmark)
-  chrome.bookmarks.move(id, destination, callback) = simpleIpcFunc('chrome-bookmarks-move', callback, id, destination)
-  chrome.bookmarks.update(id, changes, callback) = simpleIpcFunc('chrome-bookmarks-update', callback, id, changes)
-  chrome.bookmarks.remove(id, callback) = simpleIpcFunc('chrome-bookmarks-remove', callback, id)
-  chrome.bookmarks.removeTree(id, callback) = simpleIpcFunc('chrome-bookmarks-removeTree', callback, id)
+  chrome.bookmarks.get = (idOrIdList, callback) => simpleIpcFunc('chrome-bookmarks-get', _=>{console.log(_);callback(_)}, idOrIdList)
+  chrome.bookmarks.getChildren = (id, callback) => simpleIpcFunc('chrome-bookmarks-getChildren', _=>{console.log(_);callback(_)}, id)
+  chrome.bookmarks.getRecent = (numberOfItems, callback) => simpleIpcFunc('chrome-bookmarks-getRecent', _=>{console.log(_);callback(_)}, numberOfItems)
+  chrome.bookmarks.getTree = (callback) => simpleIpcFunc('chrome-bookmarks-getTree', _=>{console.log(_);callback(_)})
+  chrome.bookmarks.getSubTree = (id, callback) => simpleIpcFunc('chrome-bookmarks-getSubTree', _=>{console.log(id,_);callback(_)}, id)
+  chrome.bookmarks.search = (query, callback) => simpleIpcFunc('chrome-bookmarks-search', _=>{console.log(query,_);callback(_)}, query)
+  chrome.bookmarks.create = (bookmark, callback) => simpleIpcFunc('chrome-bookmarks-create', _=>{console.log(_);callback(_)}, bookmark)
+  chrome.bookmarks.move = (id, destination, callback) => simpleIpcFunc('chrome-bookmarks-move', _=>{console.log(_);callback(_)}, id, destination)
+  chrome.bookmarks.update = (id, changes, callback) => simpleIpcFunc('chrome-bookmarks-update', _=>{console.log(_);callback(_)}, id, changes)
+  chrome.bookmarks.remove = (id, callback) => simpleIpcFunc('chrome-bookmarks-remove', _=>{console.log(_);callback(_)}, id)
+  chrome.bookmarks.removeTree = (id, callback) => simpleIpcFunc('chrome-bookmarks-removeTree', _=>{console.log(_);callback(_)}, id)
+
+  const settingObj = {set(){},get(){return true},clear(){},addListener(){},removeListener(){},hasListener(){},hasListeners(){}}
+  chrome.bookmarkManagerPrivate = {}
+  chrome.bookmarkManagerPrivate.onMetaInfoChanged = settingObj
 }
 
 if(chrome.topSites){
@@ -652,6 +659,12 @@ if(chrome.browsingData){
   for(let key of Object.values(types)){
     chrome.browsingData[`remove${keycharAt(0).toUpperCase()}${key.slice(1)}`] = (options,callback) => chrome.browsingData.remove(options,{[key]: true},callback)
   }
+}
+
+if('browser' in this){
+  browser.sidebarAction = {}
+  browser.sidebarAction.open  = callback => simpleIpcFunc('chrome-sidebarAction-open',callback,chrome.runtime.id)
+  browser.sidebarAction.close  = callback => simpleIpcFunc('chrome-sidebarAction-close',callback,chrome.runtime.id)
 }
 
 if(chrome.notifications){

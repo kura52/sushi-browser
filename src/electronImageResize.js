@@ -19,7 +19,6 @@ export default {
         nodeIntegration: false
       }
     });
-    setTimeout(_=>win.webContents.openDevTools(),2000)
 
   },
 

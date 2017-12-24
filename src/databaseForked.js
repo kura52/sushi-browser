@@ -2,6 +2,8 @@ const sock = require('axon').socket('rep')
 const fs = require('fs')
 const path = require('path')
 import { app } from 'electron'
+const resizeFile = require('./resizeFile')
+const getFavicon = require('./captureFaviconEvent')
 
 let port
 let result = _=>{
@@ -24,6 +26,14 @@ let result = _=>{
 
   sock.connect(port,'127.0.0.1')
   sock.on('message', function(msg,reply) {
+    if(msg.path){
+      resizeFile(msg.path,reply)
+      return
+    }
+    else if(msg.favicon){
+      getFavicon(msg.favicon)
+      return
+    }
     msg.args = strToReg(msg.args)
     // console.log(msg)
     let me = db

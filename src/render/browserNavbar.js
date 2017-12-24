@@ -292,7 +292,13 @@ class BrowserNavbar extends Component{
         this.props.tab.rSession.titles = rSession.titles
         this.props.tab.rSession.currentIndex = currentIndex
       }
-      this.setState({currentIndex,historyList,disableExtensions,adBlockGlobal,pdfMode})
+      if(!(this.state.currentIndex === currentIndex ||
+          equalArray2(this.state.historyList,historyList) ||
+          equalArray(this.state.disableExtensions,disableExtensions) ||
+          this.state.adBlockGlobal == adBlockGlobal ||
+          this.state.pdfMode == pdfMode)){
+        this.setState({currentIndex,historyList,disableExtensions,adBlockGlobal,pdfMode})
+      }
     })
     ipc.send('get-cont-history',this.props.tab.wvId,this.props.tab.key,this.props.tab.rSession)
   }
@@ -557,11 +563,11 @@ class BrowserNavbar extends Component{
                       onClick={()=>{cont.hostWebContents.send('toggle-nav',this.props.toggleNav == 0 ? 1 : 0);this.setState({})}}/>
       <NavbarMenuItem text={this.props.toggleNav == 0 ? 'OneLine Menu' : 'Normal Menu'} icon='ellipsis horizontal' onClick={()=>{this.props.parent.toggleNavPanel(this.props.toggleNav == 0 ? 1 : 0);this.setState({})}}/>
       {this.props.toggleNav == 0 ? <NavbarMenuItem text={multistageTabs ? 'Disable Multi Row Tabs' : 'Enable Multi Row Tabs'} icon='table'
-                       onClick={()=>{
-                         ipc.send('save-state',{tableName:'state',key:'multistageTabs',val:!multistageTabs})
-                         PubSub.publish('change-multistage-tabs',!multistageTabs)
-                         PubSub.publish("resizeWindow",{})
-                       }}/> : null
+                                                   onClick={()=>{
+                                                     ipc.send('save-state',{tableName:'state',key:'multistageTabs',val:!multistageTabs})
+                                                     PubSub.publish('change-multistage-tabs',!multistageTabs)
+                                                     PubSub.publish("resizeWindow",{})
+                                                   }}/> : null
       }
       <div className="divider" />
       {isDarwin ? null :<NavbarMenuItem text={this.props.toggleNav == 3 ? 'Normal Screen Mode' : 'Full Screen Mode'} icon={this.props.toggleNav == 3 ? 'compress' : 'expand'}
@@ -599,7 +605,7 @@ class BrowserNavbar extends Component{
       <NavbarMenuItem text={`Open Opposite ${this.props.oppositeGlobal ? 'OFF' : 'ON'}(ALL)`} icon='columns' onClick={::this.handleOppositeGlobal}/>
       <NavbarMenuItem text='Extract Audio from Video' icon='music' onClick={_=>ipc.send('audio-extract')}/>
       <NavbarMenuItem text={`Change Pdf View to ${this.state.pdfMode == 'normal' ? 'Comic' : 'Normal'}`} icon='file pdf outline' onClick={::this.handlePdfMode}/>
-     {/*<NavbarMenuItem text='Developer Tool' icon='music' onClick={_=>cont.hostWebContents.openDevTools()}/>*/}
+      {/*<NavbarMenuItem text='Developer Tool' icon='music' onClick={_=>cont.hostWebContents.openDevTools()}/>*/}
       <div className="divider" />
 
 
@@ -818,7 +824,7 @@ class BrowserNavbar extends Component{
               }}>
                 <i className="fa fa-download" aria-hidden="true"></i>
               </button>
-                {m3u8 ? null : <button className="play-btn"  onClick={e2=>{
+              {m3u8 ? null : <button className="play-btn"  onClick={e2=>{
                 e2.stopPropagation()
                 const p = e2.target.parentNode.parentNode;(e2.target.tagName == "I" ? p.parentNode : p).classList.remove("visible")
                 this.onMediaDownload(url,e.fname,true)

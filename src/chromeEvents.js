@@ -266,7 +266,7 @@ process.on('chrome-tabs-updated', (tabId,changeInfo,tab) => {
   // if(changeInfo.status == "complete") return
   if(changeInfo.status == "complete" ||
     (changeInfo.active === (void 0) &&
-    changeInfo.pinned === (void 0))) return
+      changeInfo.pinned === (void 0))) return
   // console.log(tabId,tab)
   const cont = webContents.fromTabID(tabId)
   if(cont && !cont.isDestroyed() && !cont.isBackgroundPage() && cont.isGuest()) {
@@ -831,49 +831,210 @@ simpleIpcFuncCb('chrome-downloads-erase',(query,cb)=>{
 })
 
 //#bookmarks
-simpleIpcFuncCb('chrome-bookmarks-get',(idOrIdList, cb)=>{
-
+async function getFavoriteParentIdAndIndex(key){
+  // console.log(44422,key)
+  let rec = await favorite.findOne({children:{$elemMatch: key}})
+  if(!rec){
+    rec =  await favorite.findOne({key:'root'})
+    return [rec.key,rec.length]
+  }
+  const index = rec.children.findIndex(x=>x === key)
+  return [rec.key,index]
 }
+
+
+async function getBookmarks(idOrIdList, cb){
+  if(!Array.isArray(idOrIdList)) idOrIdList = [idOrIdList]
+  const ret = []
+  for(let id of idOrIdList){
+    if(!id || id === '0') id = 'root'
+    const [parentId,index] = await getFavoriteParentIdAndIndex(id)
+    const x = await favorite.findOne({key:id})
+    const data = {id:x.key == 'root' ? '0' : x.key, url:x.url,index,title:x.title,dateAdded:x.created_at}
+    if(parentId !== void 0) data.parentId = parentId == 'root' ? '0' : parentId
+    if(!x.is_file) data.dateGroupModified = x.updated_at
+    ret.push(data)
+  }
+  if(cb) cb(ret)
+  else{ return ret }
+}
+
+function modifyRoot(root){
+  const rootFiles = {id:'1',title:'Root',dateAdded:root.created_at,dateGroupModified: root.updated_at,parentId:'0',children: []}
+  const newChildren = []
+  let i = 0,j = 0
+  for(let child of root.children){
+    if(child.url){
+      child.parentId = '1'
+      child.index = i++
+      rootFiles.children.push(child)
+    }
+    else{
+      child.index = j++
+      newChildren.push(child)
+    }
+  }
+  rootFiles.index = j
+  newChildren.push(rootFiles)
+  root.children = newChildren
+}
+
+async function recurGet(parentId,keys,count=99999999){
+  keys = keys.map(x=>!x || x === '0' ? 'root' : x)
+  const ret = await favorite.find({key:{$in: keys}})
+  const datas = []
+  const promises = []
+  keys.forEach((key,i)=>{
+    const x = ret.find(x=>x.key == key)
+    if(!x) return
+    const index = i
+    const data = {id:x.key == 'root' ? '0' : x.key ,url:x.url,index,title:x.title,dateAdded:x.created_at}
+    if(parentId !== void 0) data.parentId = parentId == 'root' ? '0' : parentId
+    if(!x.is_file) data.dateGroupModified = x.updated_at
+
+    if(x.children && count > 0){
+      promises.push(recurGet(x.key,x.children,count--))
+    }
+    else{
+      promises.push(false)
+    }
+    datas.push(data)
+  })
+  const rets = await Promise.all(promises)
+  rets.map((ret,i)=>{
+    if(ret) datas[i].children = ret
+  })
+
+  // if(keys[0] == 'root'){
+  //   modifyRoot(datas[0])
+  // }
+  if(datas[0] && datas[0].children)console.log(6664,keys[0],datas[0].id,datas[0].children.length)
+  return datas
+}
+
+simpleIpcFuncCb('chrome-bookmarks-get',getBookmarks)
 
 simpleIpcFuncCb('chrome-bookmarks-getChildren',(id, cb)=>{
-
-}
+  recurGet(void 0, [id], 1).then(ret=>cb(ret[0].children))
+})
 
 simpleIpcFuncCb('chrome-bookmarks-getRecent',(numberOfItems, cb)=>{
-
-}
+  favorite.find_sort_limit([{}],[{ updated_at: -1 }],[numberOfItems]).then(ret=>getBookmarks(ret.map(x=>x.key)).then(val=>cb(val)))
+})
 
 simpleIpcFuncCb('chrome-bookmarks-getTree',(cb)=>{
-
-}
+  recurGet(void 0, ['root']).then(ret=>{cb(ret)})
+})
 
 simpleIpcFuncCb('chrome-bookmarks-getSubTree',(id, cb)=>{
-
-}
+  recurGet(void 0, [id]).then(ret=>cb(ret))
+})
 
 simpleIpcFuncCb('chrome-bookmarks-search',(query, cb)=>{
+  if(typeof query == "string") query = { query }
 
+  let cond = []
+  if(query.query){
+    const reg = new RegExp(escapeRegExp(query.query))
+    cond.push({$or: [{title: reg},{url: reg}]})
+  }
+
+  if(query.title) cond.push({title: query.title})
+  if(query.url) cond.push({url: query.url})
+
+  cond = !cond.length ? {} : cond.length == 1 ? cond[0] : {$and : cond}
+  favorite.find(cond).then(ret=>getBookmarks(ret.map(x=>x.key)).then(val=>cb(val)))
+})
+
+async function bookmarkInsert(bookmark, cb){
+  const buildItem = ({id,url,title,index,parentId,now})=>{
+    if(parentId == 'root') parentId = '0'
+    const data = {id,index,parentId,title,dateAdded: now, dateGroupModified: now}
+    if(url) data.url = url
+    return data
+  }
+
+  const key = uuid.v4(), now = Date.now()
+  if(!bookmark.parentId) bookmark.parentId = 'root'
+
+  const data = {key,title:bookmark.title,is_file:!!bookmark.url,created_at: now, updated_at: now}
+  if(bookmark.url) data.url = bookmark.url
+  else{ data.children = [] }
+
+  const ret = await favorite.findOne({ key: bookmark.parentId })
+  if(!ret) cb()
+
+  const ins = await favorite.insert(data)
+  if(bookmark.index === void 0){
+    ret.children.push(key)
+    bookmark.index = ret.children.length
+  }
+  else{
+    ret.children.splice(bookmark.index,0,key)
+  }
+  const upd = await favorite.update({ key: bookmark.parentId }, { $set:{children:ret.children, updated_at: now} })
+  cb(buildItem({...bookmark,now}))
 }
+simpleIpcFuncCb('chrome-bookmarks-create',bookmarkInsert)
 
-simpleIpcFuncCb('chrome-bookmarks-create',(bookmark, cb)=>{
+simpleIpcFuncCb('chrome-bookmarks-move',async (id, destination, cb)=>{
+  console.log('move',id,destination)
+  const [parentId,index] = await getFavoriteParentIdAndIndex(id)
 
-}
+  //insert
+  let now = Date.now
+  if(!destination.parentId) destination.parentId = 'root'
+  const ret = await favorite.findOne({ key: destination.parentId })
+  if(!ret) return
 
-simpleIpcFuncCb('chrome-bookmarks-move',(id, destination, cb)=>{
+  if(destination.index === void 0){
+    ret.children.push(id)
+    destination.index = ret.children.length
+  }
+  else{
+    ret.children.splice(destination.index,0,id)
+  }
+  const upd = await favorite.update({ key: destination.parentId }, { $set:{children:ret.children, updated_at: now} })
 
-}
+  if(upd > 0){
+    //remove
+    const upd = await favorite.update({ key: parentId }, { $pull: { children: id }, $set:{updated_at: Date.now()} })
+  }
+
+})
 
 simpleIpcFuncCb('chrome-bookmarks-update',(id, changes, cb)=>{
+  favorite.update({ key: id }, { $set: {...changes,updated_at: Date.now()}}).then(ret2=>{
+    getBookmarks(id).then(val=>cb(val[0]))
+  })
+})
 
-}
+simpleIpcFuncCb('chrome-bookmarks-remove', (id, cb)=>{
+  favorite.findOne({ key: id }).then(async ret=>{
+    if(ret.is_file || !ret.children.length){
+      const [parentId,index] = await getFavoriteParentIdAndIndex(id)
+      favorite.remove({key: id},).then(ret2=>{
+        favorite.update({ key: parentId }, { $pull: { children: id }, $set:{updated_at: Date.now()} }).then(_=>cb())
+      })
+    }
+  })
+})
 
-simpleIpcFuncCb('chrome-bookmarks-remove',(id, cb)=>{
+simpleIpcFuncCb('chrome-bookmarks-removeTree',async (id, cb)=>{
+  const [parentId,index] = await getFavoriteParentIdAndIndex(id)
+  ipcMain.emit('delete-favorite',null,"1",[id],[parentId])
+  cb()
+})
 
-}
+simpleIpcFuncCb('chrome-sidebarAction-open',async (id, cb)=>{
+  const url = `chrome-extension://${id}/${extInfos[id].manifest.sidebar_action.default_panel}`
+  getCurrentWindow().webContents.send('open-fixed-panel',url)
+})
 
-simpleIpcFuncCb('chrome-bookmarks-removeTree',(id, cb)=>{
-
-}
+simpleIpcFuncCb('chrome-sidebarAction-close',async (id, cb)=>{
+  const url = `chrome-extension://${id}/${extInfos[id].manifest.sidebar_action.default_panel}`
+  getCurrentWindow().webContents.send('close-fixed-panel',url)
+})
 
 //#commands
 for(let method of ['onCommand']){

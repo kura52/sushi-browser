@@ -577,7 +577,7 @@ function getSelectionLinks(webContents,props){
           }
           return [...set]
         })()`, {},(err, url, result)=>{
-          resolve(result[0])
+        resolve(result[0])
       })
   })
 }
@@ -789,6 +789,11 @@ function contextMenu(webContents) {
     }
 
     if (props.linkURL) {
+      menuItems.push({
+        t: '5317780077021120954', label: locale.translation('5317780077021120954'), click: (item, win) => {
+          win.webContents.downloadURL(props.linkURL,true)
+        }
+      })
       menuItems.push({
         t: 'saveLinkAs', label: locale.translation('saveLinkAs'), click: (item, win) => {
           PubSub.publishSync('need-set-save-filename',props.linkURL)

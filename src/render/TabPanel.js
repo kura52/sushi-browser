@@ -2129,7 +2129,8 @@ export default class TabPanel extends Component {
                   document.body.appendChild(ele)
                   window.__blankLast__ = true
                 }
-                if (!r && window.scrollY < Math.min(200,y) && y !== window.scrollY){
+                let min = 200 > y ? y : 200
+                if (!r && window.scrollY < min && y !== window.scrollY){
                   window.scrollTo(window.scrollX, y)
                   const evt = document.createEvent('HTMLEvents')
                   evt.initEvent('scroll', true, true)
