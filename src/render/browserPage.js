@@ -56,6 +56,9 @@ class BrowserPage extends Component {
 
   componentDidMount() {
     const webview = this.refs.webview
+    const shadow = webview.querySelector("::shadow object")
+    shadow.style.width = '100%'
+    shadow.style.height = '100%'
     // if(isWin) webview.webpreferences = `defaultFontFamily: {standard: 'Meiryo UI', serif: 'MS PMincho', sansSerif: 'Meiryo UI', monospace: 'MS Gothic'}`
 
     // webview.addEventListener('did-fail-provisional-load', (e) => {
