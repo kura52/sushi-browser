@@ -88,7 +88,8 @@ function build(){
 
   sh.mv('app/resource/css/semantic-ui/themes/default/assets','app/resource/css/semantic-ui/themes/default/assets2')
   sh.mv('app.asar.unpacked/resource/extension/default/1.0_0/css/semantic-ui/themes/default/assets',
-    'app.asar.unpacked/resource/extension/default/1.0_0/css/semantic-ui/themes/default/assets2')if(isDarwin){
+    'app.asar.unpacked/resource/extension/default/1.0_0/css/semantic-ui/themes/default/assets2')
+  if(isDarwin){
     sh.exec(`~/go/bin/node-prune ${pwd}/${buildDir}`)
   }
   else{
