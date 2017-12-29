@@ -79,9 +79,15 @@ function build(){
   sh.rm('-rf','app/node_modules/youtube-dl/bin')
   // sh.cp(`${pwd}/resource/extensions.txt`, `app.asar.unpacked/resource/.`)
 
+  sh.mv('app/resource/css/semantic-ui/themes/default/assets','app/resource/css/semantic-ui/themes/default/assets2')
+  sh.mv('app.asar.unpacked/resource/extension/default/1.0_0/css/semantic-ui/themes/default/assets',
+    'app.asar.unpacked/resource/extension/default/1.0_0/css/semantic-ui/themes/default/assets2')
   sh.mv(`${pwd}/${buildDir}/LICENSE`,`${pwd}/${buildDir}/_LICENSE`)
   sh.exec(`~/.go/bin/node-prune ${pwd}/${buildDir}`)
   sh.mv(`${pwd}/${buildDir}/_LICENSE`,`${pwd}/${buildDir}/LICENSE`)
+  sh.mv('app.asar.unpacked/resource/extension/default/1.0_0/css/semantic-ui/themes/default/assets2',
+    'app.asar.unpacked/resource/extension/default/1.0_0/css/semantic-ui/themes/default/assets')
+  sh.mv('app/resource/css/semantic-ui/themes/default/assets2','app/resource/css/semantic-ui/themes/default/assets')
   sh.rm(`${pwd}/${buildDir}/LICENSES.chromium.html`)
 
   if(sh.exec('asar pack app app.asar').code !== 0) {
