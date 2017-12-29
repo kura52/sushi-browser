@@ -3,27 +3,20 @@ const path = require('path')
 const fs = require('fs')
 const glob = require("glob")
 
-const BEFORE_CODE_NAME = 'Gari(Sushi Ginger)'
+const BEFORE_CODE_NAME = 'Kappa(Cucumber)'
 const CODE_NAME = 'Kappa(Cucumber)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.12.0"
+const NEXT_APP_VERSION = "0.12.1"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Added edit function of right click menu
-Reduction favicon and page capture image size
-Added multiple selection in download function
-Chrome Extension improvements(chrome.tabs,browser.contextMenu,browser.runtime,chrome.downloads,chrome.bookmarks)
-Added polyfill for scrollTopMax and scrollLeftMax
-Updated to youtube-dl 2017.12.23
-Updated to Muon 4.5.31 (chromium 63.0.3239.84)
-Fixed a lot of bugs`
+const CHANGE_ENGLISH = `Updated to Muon 4.5.32
+Fixed bug due to Chromium 63 specification change
+Reduce unnecessary files
+Fixed bugs caused by downloads, databases, etc.`
 
-const CHANGE_JAPANESE = `右クリックメニューの修正機能の追加
-ファビコンおよび画面キャプチャのサイズ削減
-ダウンローダにおける複数選択機能の追加
-クローム拡張機能の向上(chrome.tabs,browser.contextMenu,browser.runtime,chrome.downloads,chrome.bookmarks)
-scrollTopMax and scrollLeftMaxのポリフィル追加
-多数のバグ修正`
+const CHANGE_JAPANESE = `Chromium 63の仕様変更によるバグの修正
+不要なファイルを削減
+ダウンロードやデータベースなどを起因とした不具合を修正`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

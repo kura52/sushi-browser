@@ -1,6 +1,6 @@
 {
   "name": "sushi-browser",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "description": "Sushi Browser",
   "main": "./lib/main.js",
   "author": "kura52",
@@ -61,6 +61,7 @@
   "dependencies": {
     "JSONStream": "^1.3.1",
     "axon": "^2.0.3",
+    "babel-core": "^6.26.0",
     "binascii": "0.0.1",
     "body-parser": "^1.17.2",
     "classnames": "^2.2.5",

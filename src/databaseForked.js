@@ -3,11 +3,11 @@ const fs = require('fs')
 const path = require('path')
 import { app } from 'electron'
 const resizeFile = require('./resizeFile')
-const getFavicon = require('./captureFaviconEvent')
 
 let port
 let result = _=>{
   const db = require('./database')
+  const getFavicon = require('./captureFaviconEvent')
   function strToReg(obj){
     let match
     if(Array.isArray(obj)){

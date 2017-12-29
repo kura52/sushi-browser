@@ -85,6 +85,13 @@ function build(){
   sh.rm('-rf','app/node_modules/youtube-dl/bin')
   // sh.cp(`${pwd}/resource/extensions.txt`, `app.asar.unpacked/resource/.`)
 
+  if(isDarwin){
+    sh.exec(`~/go/bin/node-prune ${pwd}`)
+  }
+  else{
+    sh.exec(`C:/gopath/bin/node-prune ${pwd}`)
+  }
+
   if(sh.exec('asar pack app app.asar').code !== 0) {
     console.log("ERROR7")
     process.exit()

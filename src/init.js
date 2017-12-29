@@ -877,7 +877,8 @@ function contextMenu(webContents) {
         click: downloadPrompt})
       menuItems.push({t: '782057141565633384', label: locale.translation('782057141565633384'), //'Copy Video URL',
         click: () => clipboard.writeText(props.srcURL)})
-      menuItems.push({t: 'Send URL to Video Player', label: `Send URL to ${players.find(x=>x.value == mainState.sendToVideo).text}`, click: () => videoProcessList.push(open(props.srcURL,mainState.sendToVideo))})
+      const player = players.find(x=>x.value == mainState.sendToVideo)
+      if(player) menuItems.push({t: 'Send URL to Video Player', label: `Send URL to ${player.text}`, click: () => videoProcessList.push(open(props.srcURL,mainState.sendToVideo))})
       menuItems.push({type: 'separator'})
     }
 

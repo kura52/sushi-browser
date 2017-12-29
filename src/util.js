@@ -7,7 +7,7 @@ function getCurrentWindow(){
   return BrowserWindow.getAllWindows().find(w=>w.getTitle().includes('Sushi Browser'))
 }
 
-function getFocusedWebContents(needSelectedText,skipBuildInSearch){
+function getFocusedWebContents(needSelectedText,skipBuildInSearch,callback){
   let cont
   if(!skipBuildInSearch){
     const tmp = webContents.getFocusedWebContents()
@@ -26,30 +26,20 @@ function getFocusedWebContents(needSelectedText,skipBuildInSearch){
     if(!win){
       // const key = uuid.v4()
       return new Promise((resolve,reject)=>{
-        // let retry = 0
-        // const id = setInterval(()=> {
-        //   if((win = getCurrentWindow())){
-        //     clearInterval(id)
-        //     ipcMain.once(`get-focused-webContent-reply_${key}`,(e,tabId)=>{
-        //       resolve(webContents.fromTabID(tabId))
-        //     })
-        //     win.webContents.send('get-focused-webContent',key)
-        //   }
-        //   else if(retry++ > 100){
-        //     clearInterval(id)
-        //     resolve(null)
-        //   }
-        // }, 200)
-        resolve(null)
+        setTimeout(_=>getFocusedWebContents(needSelectedText,skipBuildInSearch,resolve),500)
       })
     }
-
     cont = win.webContents
   }
   const key = uuid.v4()
   return new Promise((resolve,reject)=>{
     ipcMain.once(`get-focused-webContent-reply_${key}`,(e,tabId)=>{
-      resolve(tabId === -1 ? cont : webContents.fromTabID(tabId))
+      if(tabId < 1){
+        setTimeout(_=>getFocusedWebContents(needSelectedText,skipBuildInSearch,resolve),500)
+      }
+      else{
+        resolve(webContents.fromTabID(tabId))
+      }
     })
     cont.send('get-focused-webContent',key,void 0,needSelectedText)
   })

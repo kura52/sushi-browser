@@ -28,7 +28,7 @@ if(location.href.startsWith('http') && window == window.parent){
         }
       },1000)
     }
-    else if(location.href.match(/https:\/\/addons\.mozilla\.org\/.+?\/firefox\/addon\//) && !document.querySelector('.Badge.Badge-not-compatible')){
+    else if(location.href.match(/^https:\/\/addons\.mozilla\.org\/.+?\/firefox/) && !document.querySelector('.Badge.Badge-not-compatible')){
       let url
       setInterval(_=>{
         const b = document.querySelector('.InstallButton-button--disabled')

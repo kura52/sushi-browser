@@ -837,7 +837,7 @@ ipcMain.on('change-tab-infos',(e,changeTabInfos)=> {
 
 ipcMain.on('play-external',(e,url)=> open(url,mainState.sendToVideo))
 
-ipcMain.on('download-m3u8',(e,url,fname,needInput)=>{
+ipcMain.on('download-m3u8',(e,url,fname,tabId,needInput)=>{
   const youtubeDl = path.join(__dirname,'../node_modules/youtube-dl/bin/youtube-dl').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
   const ffmpeg = path.join(__dirname, `../resource/bin/ffmpeg/${process.platform === 'win32' ? 'win' : process.platform === 'darwin' ? 'mac' : 'linux'}/ffmpeg`).replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
   let downloadPath = path.join(app.getPath('downloads'),`${fname.split(".").slice(0,-1).join(".")}.%(ext)s`)
@@ -851,10 +851,7 @@ ipcMain.on('download-m3u8',(e,url,fname,needInput)=>{
   ipcMain.once('start-pty-reply',(e,key)=>{
     ipcMain.emit(`send-pty_${key}`,null,`${isWin ? '& ' : ''}${shellEscape(youtubeDl)} --hls-prefer-native --ffmpeg-location=${shellEscape(ffmpeg)} -o ${shellEscape(downloadPath)} ${shellEscape(url)}\n`)
   })
-  getFocusedWebContents().then(cont=>{
-    cont && cont.hostWebContents.send('new-tab',cont.getId(),'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html')
-
-  })
+    e.sender.send('new-tab',tabId,'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html')
 })
 
 let numVpn = 1

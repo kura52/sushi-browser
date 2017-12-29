@@ -22,6 +22,8 @@ async function captureCurrentPage(_id,pageUrl,loc){
   if(cont){
     const url = cont.getURL()
     if(url != pageUrl && url != loc) return
+
+    const title = cont.getTitle()
     const doc = await image.findOne({url:pageUrl})
     const d = Date.now()
 
@@ -43,11 +45,11 @@ async function captureCurrentPage(_id,pageUrl,loc){
 
         sock.send({path: filePath},msg=>{
           if(doc){
-            image.update({url:pageUrl}, {$set:{path:`${id}.jpg`, title: cont.getTitle(), updated_at: d}})
+            image.update({url:pageUrl}, {$set:{path:`${id}.jpg`, title: title, updated_at: d}})
             console.log(4)
           }
           else{
-            image.insert({url:pageUrl, path:`${id}.jpg`, title: cont.getTitle(), created_at: d, updated_at: d})
+            image.insert({url:pageUrl, path:`${id}.jpg`, title: title, created_at: d, updated_at: d})
             console.log(5)
           }
           history.update({_id},{$set:{capture:`${id}.jpg`, updated_at: d}})

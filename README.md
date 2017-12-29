@@ -135,14 +135,14 @@ This browser makes use of wonderful web technologies, starting with the followin
 Both the installer for every platform and the portable version can be downloaded.  
 To use the portable edition, please run sushi.exe for Windows and sushi-browser for Mac/Linux after decompressing.
 
-- [Windows Installer v0.12.0](https://sushib.me/dl/sushi-browser-0.12.0-setup-x64.exe)
-- [Windows Portable v0.12.0(self-extract)](https://sushib.me/dl/sushi-browser-0.12.0-win-x64.exe)
-- [Windows Portable v0.12.0](https://sushib.me/dl/sushi-browser-0.12.0-win-x64.zip)
-- [MacOS dmg v0.12.0](https://sushib.me/dl/SushiBrowser-0.12.0.dmg)
-- [MacOS Portable v0.12.0](https://sushib.me/dl/sushi-browser-0.12.0-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.12.0](https://sushib.me/dl/sushi-browser-0.12.0.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.12.0](https://sushib.me/dl/sushi-browser_0.12.0_amd64.deb)
-- [Linux Portable v0.12.0](https://sushib.me/dl/sushi-browser-0.12.0.tar.bz2)
+- [Windows Installer v0.12.1](https://sushib.me/dl/sushi-browser-0.12.1-setup-x64.exe)
+- [Windows Portable v0.12.1(self-extract)](https://sushib.me/dl/sushi-browser-0.12.1-win-x64.exe)
+- [Windows Portable v0.12.1](https://sushib.me/dl/sushi-browser-0.12.1-win-x64.zip)
+- [MacOS dmg v0.12.1](https://sushib.me/dl/SushiBrowser-0.12.1.dmg)
+- [MacOS Portable v0.12.1](https://sushib.me/dl/sushi-browser-0.12.1-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.12.1](https://sushib.me/dl/sushi-browser-0.12.1.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.12.1](https://sushib.me/dl/sushi-browser_0.12.1_amd64.deb)
+- [Linux Portable v0.12.1](https://sushib.me/dl/sushi-browser-0.12.1.tar.bz2)
 
 # Use of Flash 
 If Flash won't run, please install Flash from the following web sites.  
@@ -157,6 +157,12 @@ sushi-browser --no-sandbox
 
 # New Features
 
+#### New function(v0.121)
+- Updated to Muon 4.5.32
+- Fixed bug due to Chromium 63 specification change
+- Reduce unnecessary files
+- Fixed bugs caused by downloads, databases, etc.
+
 #### New function(v0.120)
 - Added edit function of right click menu
 - Reduction favicon and page capture image size
@@ -167,7 +173,7 @@ sushi-browser --no-sandbox
 - Updated to Muon 4.5.31 (chromium 63.0.3239.84)
 - Fixed a lot of bugs
 
-#### New function(v0.12.0)
+#### New function(v0.12.1)
 - Updated to youtube-dl 2017.12.02
 - Updated to ffmpeg 3.4
 - Updated to aria2c 1.33

@@ -292,10 +292,10 @@ class BrowserNavbar extends Component{
         this.props.tab.rSession.titles = rSession.titles
         this.props.tab.rSession.currentIndex = currentIndex
       }
-      if(!(this.state.currentIndex === currentIndex ||
-          equalArray2(this.state.historyList,historyList) ||
-          equalArray(this.state.disableExtensions,disableExtensions) ||
-          this.state.adBlockGlobal == adBlockGlobal ||
+      if(!(this.state.currentIndex === currentIndex &&
+          equalArray2(this.state.historyList,historyList) &&
+          equalArray(this.state.disableExtensions,disableExtensions) &&
+          this.state.adBlockGlobal == adBlockGlobal &&
           this.state.pdfMode == pdfMode)){
         this.setState({currentIndex,historyList,disableExtensions,adBlockGlobal,pdfMode})
       }
@@ -791,7 +791,7 @@ class BrowserNavbar extends Component{
             return <Dropdown.Item key={i} icon={e.type == "audio" ? "music" : e.type }
                                   onClick={()=>{
                                     if(m3u8){
-                                      ipc.send('download-m3u8',url,e.fname)
+                                      ipc.send('download-m3u8',url,e.fname,this.props.tab.wvId)
                                     }
                                     else{
                                       this.onMediaDownload(url,e.fname)
@@ -816,7 +816,7 @@ class BrowserNavbar extends Component{
                 e2.stopPropagation()
                 const p = e2.target.parentNode.parentNode;(e2.target.tagName == "I" ? p.parentNode : p).classList.remove("visible")
                 if(m3u8){
-                  ipc.send('download-m3u8',url,e.fname,true)
+                  ipc.send('download-m3u8',url,e.fname,this.props.tab.wvId,true)
                 }
                 else{
                   this.onMediaDownload(url,false,false,true)

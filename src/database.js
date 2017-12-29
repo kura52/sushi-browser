@@ -5,6 +5,7 @@ import { app } from 'electron'
 // const {ipcMain} = require('electron')
 
 const resourcePath = path.join(app.getPath('userData'),'resource')
+console.log(77777,resourcePath)
 if (!fs.existsSync(resourcePath)) {
   fs.mkdirSync(resourcePath)
 }
