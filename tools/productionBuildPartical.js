@@ -86,10 +86,13 @@ function build(){
   // sh.cp(`${pwd}/resource/extensions.txt`, `app.asar.unpacked/resource/.`)
 
   if(isDarwin){
-    sh.exec(`~/go/bin/node-prune ${pwd}`)
+    sh.exec(`~/go/bin/node-prune ${pwd}/${buildDir}`)
   }
   else{
-    sh.exec(`C:/gopath/bin/node-prune ${pwd}`)
+    sh.mv(`${pwd}/${buildDir}/LICENSE`,`${pwd}/${buildDir}/_LICENSE`)
+    sh.exec(`C:/gopath/bin/node-prune ${pwd}/${buildDir}`)
+    sh.mv(`${pwd}/${buildDir}/_LICENSE`,`${pwd}/${buildDir}/LICENSE`)
+    sh.rm(`${pwd}/${buildDir}/LICENSES.chromium.html`)
   }
 
   if(sh.exec('asar pack app app.asar').code !== 0) {

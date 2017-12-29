@@ -79,7 +79,10 @@ function build(){
   sh.rm('-rf','app/node_modules/youtube-dl/bin')
   // sh.cp(`${pwd}/resource/extensions.txt`, `app.asar.unpacked/resource/.`)
 
-  sh.exec(`~/.go/bin/node-prune ${pwd}`)
+  sh.mv(`${pwd}/${buildDir}/LICENSE`,`${pwd}/${buildDir}/_LICENSE`)
+  sh.exec(`~/.go/bin/node-prune ${pwd}/${buildDir}`)
+  sh.mv(`${pwd}/${buildDir}/_LICENSE`,`${pwd}/${buildDir}/LICENSE`)
+  sh.rm(`${pwd}/${buildDir}/LICENSES.chromium.html`)
 
   if(sh.exec('asar pack app app.asar').code !== 0) {
     console.log("ERROR7")
