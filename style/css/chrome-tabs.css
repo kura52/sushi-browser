@@ -87,7 +87,8 @@
   background-color: #343434;
 }
 
-.chrome-tabs .multi-row .chrome-tab-favicon {
+.chrome-tabs .multi-row .chrome-tab-favicon,
+.vertical-tab .chrome-tabs .chrome-tab-favicon{
   margin-left: 1em;
 }
 .chrome-tabs .chrome-tab-drag .chrome-tab-background > svg .chrome-tab-background,

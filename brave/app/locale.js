@@ -442,7 +442,8 @@ var rendererIdentifiers = function () {
     'maxrowLabel',
     'newTabButtonLabel',
     'ssInterval',
-    'openTabNextLabel'
+    'openTabNextLabel',
+    'tabbarscrollingCaption'
   ]
 }
 

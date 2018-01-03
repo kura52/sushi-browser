@@ -95,7 +95,7 @@ const keyMapping = {
   // keyPageTranslate: l10n.translation('2473195200299095979'),
 
   //clipboard
-  keyClicktabCopyTabUrl: l10n.translation('clicktabCopyTabUrl'),
+  keyClicktabCopyTabUrl: l10n.translation('clicktabCopyTabUrl').replace('&apos;',"'"),
   keyClicktabCopyUrlFromClipboard: l10n.translation('clicktabCopyUrlFromClipboard'),
   keyPasteAndOpen: 'Paste and Open',
   keyCopyTabInfo: 'Copy Tab Info',
@@ -413,7 +413,7 @@ const tabContextMenus = [
 
   ['divider', null],
 
-  ['clicktabCopyTabUrl',l10n.translation('clicktabCopyTabUrl')],
+  ['clicktabCopyTabUrl',l10n.translation('clicktabCopyTabUrl').replace('&apos;',"'")],
   ['clicktabCopyUrlFromClipboard',l10n.translation('clicktabCopyUrlFromClipboard')],
   ['Paste and Open','Paste and Open'],
   ['Copy Tab Info','Copy Tab Info'],
@@ -1064,6 +1064,8 @@ class TabsSetting extends React.Component {
       </div>
 
       <Divider/>
+
+      <h4 style={{marginTop:0, marginBottom: 20}}>{l10n.translation('tabbarscrollingCaption')}</h4>
 
       <div className="field">
         <Checkbox defaultChecked={this.state.scrollTab} toggle onChange={this.onChange.bind(this,'scrollTab')}/>

@@ -214,7 +214,7 @@ const createEditSubmenu = () => {
     },
     { type: 'separator' },
     {
-      label: locale.translation('clicktabCopyTabUrl'),
+      label: locale.translation('clicktabCopyTabUrl').replace('&apos;',"'"),
       accelerator: mainState.keyClicktabCopyTabUrl,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{

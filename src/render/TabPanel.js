@@ -2843,12 +2843,12 @@ export default class TabPanel extends Component {
       }
       this.setState({})
     }
-    let label = `${sec}${locale.translation('secondsLabel')}`
+    let label = `${sec} ${locale.translation('secondsLabel')}`
     if(sec > 60){
       const min = Math.floor(sec / 60)
       const sec2 = sec % 60
-      const labelMin = `${min}${locale.translation(min == 1 ? 'minuteLabel' : 'minutesLabel')}`
-      const labelSec = `${sec2 == 0 ? '' : ` ${sec2}${locale.translation('secondsLabel')}`}`
+      const labelMin = `${min} ${locale.translation(min == 1 ? 'minuteLabel' : 'minutesLabel')}`
+      const labelSec = `${sec2 == 0 ? '' : ` ${sec2} ${locale.translation('secondsLabel')}`}`
       label = `${labelMin}${labelSec}`
     }
     return {label, type: 'checkbox', checked, click }
@@ -3218,7 +3218,7 @@ export default class TabPanel extends Component {
     //   click: ()=> this.handleTabClose({}, key)}))
 
     if(enableSelection){
-      menuItems.push(({ t:'clicktabCopyTabUrl',label: locale.translation('clicktabCopyTabUrl'), click: ()=>ipc.send("set-clipboard",selections[0].map(t.page.navUrl))}))
+      menuItems.push(({ t:'clicktabCopyTabUrl',label: locale.translation('clicktabCopyTabUrl').replace('&apos;',"'"), click: ()=>ipc.send("set-clipboard",selections[0].map(t.page.navUrl))}))
       menuItems.push(({ t:'clicktabCopyUrlFromClipboard',label: locale.translation('clicktabCopyUrlFromClipboard'), click: _=>selections[0].forEach(t=>this.openClipboardUrl(t))}))
       menuItems.push(({ t:'Copy Tab Info',label: 'Copy Tab Info', click: _=>ipc.send("set-clipboard",selections[0].map(t=>`${this.state.tabs.findIndex(tab=>t.key==tab.key)+1}\t${t.page.title}\t${t.page.navUrl}`))}))
       menuItems.push(({ t:'Copy All Tab Infos',label: 'Copy All Tab Infos', click: _=>ipc.send("set-clipboard",this.state.tabs.map((t,i)=>`${i+1}\t${t.page.title}\t${t.page.navUrl}`))}))
@@ -3256,7 +3256,7 @@ export default class TabPanel extends Component {
       menuItems.push(({ t:'closeOtherTabs',label: locale.translation('closeOtherTabs'), click: ()=> this.closeTabs(selections[1].map(t=>t.key))}))
     }
     else{
-      menuItems.push(({ t:'clicktabCopyTabUrl',label: locale.translation('clicktabCopyTabUrl'), click: ()=>ipc.send("set-clipboard",[t.page.navUrl])}))
+      menuItems.push(({ t:'clicktabCopyTabUrl',label: locale.translation('clicktabCopyTabUrl').replace('&apos;',"'"), click: ()=>ipc.send("set-clipboard",[t.page.navUrl])}))
       menuItems.push(({ t:'clicktabCopyUrlFromClipboard',label: locale.translation('clicktabCopyUrlFromClipboard'), click: _=>this.openClipboardUrl(t)}))
       menuItems.push(({ t:'Paste and Open',label: 'Paste and Open', click: _=>this.newTabClipboardUrl(t)}))
       menuItems.push(({ t:'Copy Tab Info',label: 'Copy Tab Info', click: _=>ipc.send("set-clipboard",[`${this.state.tabs.findIndex(tab=>t.key==tab.key)+1}\t${t.page.title}\t${t.page.navUrl}`])}))

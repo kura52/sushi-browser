@@ -189,7 +189,7 @@ export default class BrowserNavbarLocation extends Component {
 
     Promise.all(promises).then(values=>{
       if(this.props.autoCompleteInfos.orderOfAutoComplete == 'historyToSuggestion') values.reverse()
-      const results = [...values[0],...values[1]]
+      const results = [...values[0],...(values[1]||[])]
       if(this.isFloat){
         PubSub.publish(`menu-showed_${this.props.k}`,true)
       }

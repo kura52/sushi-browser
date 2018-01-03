@@ -458,7 +458,7 @@ class Tabs extends React.Component {
           <TabContainer key={`tabContainer#${tab.key}`} selected={false} style={containerStyle} hiddenStyle={hiddenContainerStyle}>{tab}</TabContainer>);
       }
 
-      if(this.props.toggleNav == 0 && multistageTabs){
+      if((this.props.toggleNav == 0 && multistageTabs) || this.props.verticalTabPanel){
         tabTiteleStyle.paddingRight = 8
       }
 
