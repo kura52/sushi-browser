@@ -354,6 +354,7 @@ var rendererIdentifiers = function () {
     '5513242761114685513',
     '5582839680698949063',
     '5317780077021120954',
+    '8986267729801483565',
 
     'playOrPause',
     'frameStep',

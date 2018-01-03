@@ -26,6 +26,7 @@ const settingDefault =  {
   longPressMiddle: true,
   syncScrollMargin: 30,
   contextMenuSearchEngines: ["Google","google past year and normal","google multi search"],
+  downloadPath: '',
 
   bindMarginFrame: isLinux ? 6 : 0,
   bindMarginTitle: isLinux ? 24  : 0,

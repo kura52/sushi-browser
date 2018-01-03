@@ -577,6 +577,14 @@ ipcMain.on('save-state',async (e,{tableName,key,val})=>{
       defaultConf.canvasFingerprinting[0].setting = val ? 'block' : 'allow'
       session.defaultSession.userPrefs.setDictionaryPref('content_settings', defaultConf)
     }
+    else if(key == 'downloadPath'){
+      if(fs.existsSync(val)) {
+        app.setPath('downloads',val)
+      }
+      else{
+        return
+      }
+    }
     mainState[key] = val
     state.update({ key: 1 }, { $set: {[key]: mainState[key]} }).then(_=>_)
   }

@@ -265,6 +265,8 @@ export default {
       for(let [key,dVal] of Object.entries(settingDefault)){
         setOptionVal(key,dVal,setting[key])
       }
+      mainState.defaultDownloadPath = app.getPath('downloads')
+      app.setPath('downloads',mainState.downloadPath && fs.existsSync(mainState.downloadPath) ? mainState.downloadPath : mainState.defaultDownloadPath)
 
       mainState.vpn = false
       // for(let extensionId of mainState.disableExtensions){

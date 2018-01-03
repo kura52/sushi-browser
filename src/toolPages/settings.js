@@ -534,12 +534,20 @@ class GeneralSetting extends React.Component {
           <label>{l10n.translation('newTabMode')}</label>
           <Dropdown onChange={this.onChange.bind(this,'newTabMode')} selection options={newTabModeOptions} defaultValue={this.state.newTabMode}/>
         </div>
+
         <div className="field">
-          <label>{l10n.translation('myHomepage')}</label>
-          <Input onChange={this.onChange.bind(this,'myHomepage')} defaultValue={this.state.myHomepage}/>
+          <label>{l10n.translation('8986267729801483565')}</label>
+          <Input ref="dl" style={{width: 400}} onChange={this.onChange.bind(this,'downloadPath')} defaultValue={this.state.downloadPath || this.state.defaultDownloadPath}/>
+          <Button icon='folder' onClick={_=>{
+            const key = Math.random().toString()
+            ipc.send('show-dialog-exploler',key,{defaultPath:this.state.downloadPath || this.state.defaultDownloadPath})
+            ipc.once(`show-dialog-exploler-reply_${key}`,(event,ret)=>{
+              this.refs.dl.inputRef.value = ret
+              this.onChange('downloadPath',{},{value:ret})
+            })
+          }}/>
         </div>
         <br/>
-
 
         <div className="field">
           <label>{`${l10n.translation('2663302507110284145')} (${l10n.translation('requiresRestart').replace('* ','')})`}</label>
@@ -1632,7 +1640,7 @@ ipc.send("get-main-state",['startsWith','newTabMode','myHomepage','searchProvide
   'multistageTabs','tabMinWidth','httpsEverywhereEnable','trackingProtectionEnable','autoSaveInterval','noScript','blockCanvasFingerprinting','browsingHistory', 'downloadHistory',
   'disableContextMenus','disableTabContextMenus','priorityContextMenus','priorityTabContextMenus','reloadIntervals','generalWindowOpenLabel','keepWindowLabel31',
   'closeTabBehavior','reverseScrollTab','tabMaxWidth','mouseHoverSelectLabelBegin','mouseHoverSelectLabelBeginDelay','tabFlipLabel','doubleClickTab','middleClickTab','altClickTab',
-  'maxrowLabel','orderOfAutoComplete','numOfSuggestion','numOfHistory','openTabNextLabel','rightClickTabAdd','middleClickTabAdd','altClickTabAdd','displayFullIcon'])
+  'maxrowLabel','orderOfAutoComplete','numOfSuggestion','numOfHistory','openTabNextLabel','rightClickTabAdd','middleClickTabAdd','altClickTabAdd','displayFullIcon','downloadPath','defaultDownloadPath'])
 ipc.once("get-main-state-reply",(e,data)=>{
   generalDefault = data
   keyboardDefault = data

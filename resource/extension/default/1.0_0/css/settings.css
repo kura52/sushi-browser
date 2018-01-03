@@ -83,3 +83,7 @@ td>.ui.dropdown.type>.text {
 .spacer3{
     height: 20px;
 }
+
+.ui.form .field .ui.input, .ui.form .fields .field .ui.input, .ui.form .wide.field .ui.input{
+    width: 264px;
+}

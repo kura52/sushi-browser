@@ -142,6 +142,9 @@ const UrlUtil = {
     if (case1Reg.test(str)) {
       return true
     }
+    if(str.startsWith("javascript:")){
+      return false
+    }
     if (case2Reg.test(str) || !case3Reg.test(str) ||
         (scheme === undefined && /\s/g.test(str))) {
       return true
