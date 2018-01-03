@@ -25,7 +25,7 @@ const urlutil = require('./urlutil')
 const {messages,locale} = require('./localAndMessage')
 const isWin = navigator.userAgent.includes('Windows')
 
-let searchProviders,spAliasMap
+let searchProviders,spAliasMap,autocompleteUrl
 updateSearchEngine();
 
 // const chromes =  require('electron').remote.getGlobal('chrome')
@@ -38,7 +38,7 @@ let topURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html',
 const sidebarURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html'
 const blankURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html'
 const REG_VIDEO = /^https:\/\/www\.(youtube)\.com\/watch\?v=(.+)&?|^http:\/\/www\.(dailymotion)\.com\/video\/(.+)$|^https:\/\/(vimeo)\.com\/(\d+)$/
-let [newTabMode,inputsVideo,disableTabContextMenus,priorityTabContextMenus] = ipc.sendSync('get-sync-main-states',['newTabMode','inputsVideo','disableTabContextMenus','priorityTabContextMenus'])
+let [newTabMode,inputsVideo,disableTabContextMenus,priorityTabContextMenus,reloadIntervals,closeTabBehavior,keepWindowLabel31,multistageTabs,maxrowLabel] = ipc.sendSync('get-sync-main-states',['newTabMode','inputsVideo','disableTabContextMenus','priorityTabContextMenus','reloadIntervals','closeTabBehavior','keepWindowLabel31','multistageTabs','maxrowLabel'])
 
 disableTabContextMenus = new Set(disableTabContextMenus)
 
@@ -75,7 +75,10 @@ const convertUrlMap = new Map([
 
 
 function updateSearchEngine(){
-  searchProviders = {...ipc.sendSync('get-sync-main-state','searchProviders')}
+  const vals = ipc.sendSync('get-sync-main-states',['searchProviders','searchEngine'])
+  searchProviders = {...vals[0]}
+  const searchEngine = vals[1]
+  autocompleteUrl = searchProviders[searchEngine].autocomplete || searchProviders['Google'].autocomplete
   spAliasMap = new Map(Object.values(searchProviders).map(sp=> [sp.shortcut,sp.name]))
 }
 
@@ -234,7 +237,7 @@ export default class TabPanel extends Component {
       let tabs
       tabs = attachTabs.map(tab=>{
         // console.log(37,{c_page:tab.c_page,c_key:tab.c_key,privateMode:tab.privateMode,pin:tab.pin,wvId:tab.wvId,guestInstanceId: tab.guestInstanceId,rest:tab.rest})
-        return this.createTab({c_page:tab.c_page,privateMode:tab.privateMode,pin:tab.pin,guestInstanceId: tab.guestInstanceId,rest:tab.rest})
+        return this.createTab({c_page:tab.c_page,privateMode:tab.privateMode,pin:tab.pin,mute:tab.mute,reloadInterval:tab.reloadInterval,guestInstanceId: tab.guestInstanceId,rest:tab.rest})
       })
 
       this.state = {tokens,
@@ -259,7 +262,7 @@ export default class TabPanel extends Component {
       const fromTabs = this.props.node.pop()
       const tabs = indexes.map(i=>{
         const tab = fromTabs[i]
-        return this.createTab({c_page:tab.page,c_wv:tab.wv,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,guestInstanceId: tab.guestInstanceId
+        return this.createTab({c_page:tab.page,c_wv:tab.wv,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,mute:tab.mute,reloadInterval:tab.reloadInterval,guestInstanceId: tab.guestInstanceId
           ,rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis}})
       })
       this.state = {tokens,
@@ -310,7 +313,7 @@ export default class TabPanel extends Component {
       state.tokens.ipc.forEach(x=>removeEvents(ipc,x))
       this.state = {tokens,
         oppositeGlobal: ipc.sendSync('get-sync-main-state','oppositeGlobal'),
-        tabs: state.tabs.map(tab=>this.createTab({c_page:tab.page,c_wv:tab.wv,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,guestInstanceId: tab.guestInstanceId,
+        tabs: state.tabs.map(tab=>this.createTab({c_page:tab.page,c_wv:tab.wv,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,mute:tab.mute,reloadInterval:tab.reloadInterval,guestInstanceId: tab.guestInstanceId,
           rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis}})),
         tabBar:state.tabBar,
         prevAddKeyCount: state.prevAddKeyCount.slice(0),
@@ -340,8 +343,9 @@ export default class TabPanel extends Component {
           rSession.urls = rSession.urls.split("\t")
           rSession.titles = rSession.titles.split("\t")
         }
-        const n_tab = this.createTab({default_url:tab.url || (rSession && rSession.urls[rSession.currentIndex]),privateMode:tab.privateMode,pin:tab.pin,guestInstanceId: tab.guestInstanceId,rest:{rSession}})
+        const n_tab = this.createTab({default_url:tab.url || (rSession && rSession.urls[rSession.currentIndex]),privateMode:tab.privateMode,pin:tab.pin,mute:tab.mute,reloadInterval:tab.reloadInterval,guestInstanceId: tab.guestInstanceId,rest:{rSession}})
         tabs.push(n_tab)
+        if(rSession) tabState.insert({tabKey:n_tab.key,titles:rSession.titles.join("\t"),urls:rSession.urls.join("\t"),currentIndex:rSession.currentIndex, updated_at: Date.now()})
         withWindowCreateTabs.add(n_tab.key)
         i++
       }
@@ -392,6 +396,13 @@ export default class TabPanel extends Component {
     this.createTab = ::this.createTab
     this.webViewCreate = ::this.webViewCreate
     this.screenShot = ::this.screenShot
+    if(multistageTabs && maxrowLabel != 0){
+      this.componentWillUpdate = (prevProps, prevState)=>{
+        if(this.state.tabKeys.length !== this.state.tabs.length){
+          this.refs.tabs.updateWidth()
+        }
+      }
+    }
   }
 
   initIpcEvents(){
@@ -422,7 +433,7 @@ export default class TabPanel extends Component {
           const p = new Promise((resolve,reject)=>{
             this.getWebContents(tab).detach(_=>{
               ipc.send('chrome-tabs-onDetached-to-main',tab.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==tab.key)})
-              resolve({wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,
+              resolve({wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,mute:tab.mute,reloadInterval:tab.reloadInterval,
                 rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || this.getWebContents(tab).guestInstanceId})
             })
           })
@@ -461,7 +472,7 @@ export default class TabPanel extends Component {
       if(!tab) return
 
       this.getWebContents(tab).detach(_=>{
-        const d = {wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,
+        const d = {wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,mute:tab.mute,reloadInterval:tab.reloadInterval,
           rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || getWebContents(tab).guestInstanceId}
         ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
 
@@ -472,11 +483,21 @@ export default class TabPanel extends Component {
     }
     ipc.on('chrome-windows-create-from-tabId',eventChromeWindowsCreateFromTabId)
 
+    const eventRestoreTabs = (e,tabKey,tabId)=>{
+      if(this.state.tabs.find(t=>t.wvId == tabId)){
+        this.restoreTabFromTabKey(tabKey,void 0,void 0,
+          tabId=>ipc.send(`restore-tabs-from-tabKey-reply_${tabKey}`,tabId))
+      }
+    }
+    ipc.on('restore-tabs-from-tabKey',eventRestoreTabs)
+
+
     return [
       {'show-notification': eventNotification},
       {'close-tab-from-other-window': closeTabFromOtherWindow},
       {'close-sync-tab': eventCloseSyncTab},
       {'chrome-windows-create-from-tabId': eventChromeWindowsCreateFromTabId},
+      {'restore-tabs-from-tabKey': eventRestoreTabs}
     ]
   }
 
@@ -511,7 +532,7 @@ export default class TabPanel extends Component {
       const tab = this.state.tabs.find(t =>t.wvId == record.tabId)
       if(!tab) return
       if(!tab.videoEvent){
-        tab.wv.send('on-video-event',inputsVideo)
+        setTimeout(_=>tab.wv.send('on-video-event',inputsVideo),200)
         tab.videoEvent = true
       }
       if(tab.page.navUrl.match(REG_VIDEO)){
@@ -583,7 +604,7 @@ export default class TabPanel extends Component {
 
       if(_tabs[i].events) removeEvents(ipc, _tabs[i].events)
       if(this.state.tabs.length==1){
-        this.state.tabs.splice(i, 1)
+        // this.state.tabs.splice(i, 1)
         mainState.set('keepOpen',1)
         this.props.close(this.props.k)
         if(time){
@@ -597,13 +618,13 @@ export default class TabPanel extends Component {
       }
       else{
         this.addCloseTabHistory({}, i)
-        this.state.tabs.splice(i, 1)
+        const closeTab = this.state.tabs.splice(i, 1)[0]
         if(isUpdateState){
-          console.log("selected02",selectedTab || this.getPrevSelectedTab(key,_tabs,i))
+          // console.log("selected02",selectedTab || this.getPrevSelectedTab(key,_tabs,i))
           this.setState({
             tabs: _tabs,
             // selectedTab: _tabs.length > i ? _tabs[i].key : _tabs.length > 0 ? _tabs[i - 1].key : null
-            selectedTab: selectedTab || this.getPrevSelectedTab(key,_tabs,i)
+            selectedTab: selectedTab || this.getPrevSelectedTab(key,_tabs,closeTab,i)
           });
         }
       }
@@ -787,7 +808,52 @@ export default class TabPanel extends Component {
     return false
   }
 
-  getPrevSelectedTab(key,tabs,i){
+  closeTabFunc(key,tabs,closeTab,i){
+    const leftTab = _=> i-1 >= 0 ? tabs[i-1].key : tabs.length > 0 ? tabs[0].key : null
+    const rightTab = _=> tabs.length > i ? tabs[i].key : tabs.length > 0 ? tabs[i - 1].key : null
+
+    if(closeTabBehavior == 'focusTabLeftTab'){
+      return leftTab()
+    }
+    else if(closeTabBehavior == 'focusTabRightTab'){
+      return rightTab()
+    }
+    else if(closeTabBehavior == 'focusTabLastSelectedTab'){
+      for(let key of this.state.selectedKeys.slice(0).reverse()){
+        if(tabs.find(t=>t.key == key)) return key
+      }
+      return rightTab()
+    }
+    else if(closeTabBehavior == 'focusTabOpenerTab'){
+      if(!closeTab) return rightTab()
+      const openerTabId = ipc.sendSync('get-tab-opener-sync',closeTab.wvId)
+      const key2 = (this.state.tabs.find(t=>t.wvId == openerTabId)||{}).key
+      return key2 || rightTab()
+    }
+    else if(closeTabBehavior == 'focusTabOpenerTabRtl'){
+      if(!closeTab) return leftTab()
+      const openerTabId = ipc.sendSync('get-tab-opener-sync',closeTab.wvId)
+      const key2 = (this.state.tabs.find(t=>t.wvId == openerTabId)||{}).key
+      return key2 || leftTab()
+    }
+    else if(closeTabBehavior == 'focusTabLastOpenedTab'){
+      let max = [-1,null]
+      for(let tab of tabs){
+        if(tab.wvId > max[0]){
+          max = [tab.wvId,tab.key]
+        }
+      }
+      return max[1]
+    }
+    else if(closeTabBehavior == 'focusTabFirstTab'){
+      return tabs[0].key
+    }
+    else if(closeTabBehavior == 'focusTabLastTab'){
+      return tabs[tabs.length-1].key
+    }
+  }
+
+  getPrevSelectedTab(key,tabs,closeTab,i){
     let ind,ret
     // console.log(key,this.state.prevAddKeyCount,this.state.selectedKeys)
     if((ind = this.state.prevAddKeyCount[1].findIndex(k=>k==key))!= -1){
@@ -812,9 +878,8 @@ export default class TabPanel extends Component {
     if(ret && !tabs.find(tab=>tab.key == ret)){
       ret = (void 0)
     }
-    // console.log(ret)
 
-    return ret || (tabs.length > i ? tabs[i].key : tabs.length > 0 ? tabs[i - 1].key : null)
+    return this.closeTabFunc(key,tabs,closeTab,i)
 
 
     // for(let i = this.state.selectedKeys.length - 1;i > -1 ;i--){
@@ -1107,9 +1172,9 @@ export default class TabPanel extends Component {
               const fname = `${title}_${format}.${f.protocol && f.protocol.includes('m3u8') ? 'm3u8' : (f.ext||f.container)}`
               arr.push({url:f.url,type:'video',fname,size: f.filesize})
             }
-            tab.page.richContents.push(...arr.reverse())
+            tab.page.richContents.push(...arr.slice(0).reverse())
             console.log(99875556,tab.page)
-            self.refs[`navbar-${tab.key}`].setState({})
+            if(self.refs[`navbar-${tab.key}`]) self.refs[`navbar-${tab.key}`].setState({})
           })
         }
 
@@ -1406,6 +1471,27 @@ export default class TabPanel extends Component {
     this.registChromeEvent(tab)
   }
 
+  restoreTabFromTabKey(tabKey,i,restoreIndex=null,callback){
+    tabState.findOne({tabKey}).then(rSession=>{
+      const urls = rSession.urls
+      const titles = rSession.titles
+      rSession.urls = urls.split("\t")
+      rSession.titles = titles.split("\t")
+      if(restoreIndex !== null) rSession.currentIndex = restoreIndex
+      const n_tab = this.createTab({default_url:rSession.urls[rSession.currentIndex],rest:{rSession}})
+      tabState.insert({tabKey:n_tab.key,titles,urls,currentIndex:rSession.currentIndex, updated_at: Date.now()})
+      if(i === void 0){
+        this.state.tabs.push(n_tab)
+      }
+      else{
+        this.state.tabs.splice(i + 1, 0, n_tab)
+      }
+      console.log("selected20", n_tab.key)
+      this.setState({selectedTab: n_tab.key})
+      this.focus_webview(n_tab,n_tab.page.location != topURL)
+      if(callback) setTimeout(_=>callback(n_tab.wvId),2000)
+    })
+  }
   registTabEvents(tab) {
     tab.events['add-favorite'] = (e, id)=> {
       if (!this.mounted) return
@@ -1419,12 +1505,12 @@ export default class TabPanel extends Component {
     }
     ipc.on('add-favorite', tab.events['add-favorite'])
 
-    tab.events['new-tab'] = (e, id, url, privateMode,k)=> {
+    tab.events['new-tab'] = (e, id, url, privateMode,k,last)=> {
       if (!this.mounted) return
       if ((tab.wvId && id == tab.wvId) || (k == this.props.k && tab.key == this.state.selectedTab)) {
         global.openerQueue.push(id || this.state.tabs.find(t=>t.key == this.state.selectedTab).wvId)
         console.log(this)
-        const t = tabAdd(this, url, true, privateMode || tab.privateMode,(void 0),tab.mobile,tab.adBlockThis);
+        const t = tabAdd(this, url, true, privateMode || tab.privateMode,(void 0),tab.mobile,tab.adBlockThis,last);
         if(tab.sync){
           t.sync = uuid.v4()
           t.dirc = tab.dirc
@@ -1488,20 +1574,8 @@ export default class TabPanel extends Component {
         for(let [url,favicon] of favicons){
           historyMap.set(url,["",favicon])
         }
-        tabState.findOne({tabKey}).then(rSession=>{
-          const urls = rSession.urls
-          const titles = rSession.titles
-          rSession.urls = urls.split("\t")
-          rSession.titles = titles.split("\t")
-          if(restoreIndex !== null) rSession.currentIndex = restoreIndex
-          const n_tab = this.createTab({default_url:rSession.urls[rSession.currentIndex],rest:{rSession}})
-          tabState.insert({tabKey:n_tab.key,titles,urls,currentIndex:rSession.currentIndex, updated_at: Date.now()})
-          const i = this.state.tabs.findIndex(x=>x.key == tab.key)
-          this.state.tabs.splice(i + 1, 0, n_tab)
-          console.log("selected20", n_tab.key)
-          this.setState({selectedTab: n_tab.key})
-          this.focus_webview(n_tab,n_tab.page.location != topURL)
-        })
+        const i = this.state.tabs.findIndex(x=>x.key == tab.key)
+        this.restoreTabFromTabKey(tabKey,i,restoreIndex)
       }
     }
     ipc.on('restore-tab', tab.events['restore-tab'])
@@ -1524,25 +1598,72 @@ export default class TabPanel extends Component {
       if(name == 'closeTab'){
         this.handleTabClose({},tab.key)
       }
+      else if(name == 'closePanel'){
+        PubSub.publish(`close-panel_${this.props.k}`)
+      }
+      else if(name == 'closeOtherTabs'){
+        this.closeOtherTabs(tab.key)
+      }
+      else if(name == 'closeTabsToLeft'){
+        this.closeLeftTabs(tab.key)
+      }
+      else if(name == 'closeTabsToRight'){
+        this.closeRightTabs(tab.key)
+      }
+      else if(name == 'clicktabReloadtabs'){
+        this.state.tabs.forEach(t=>this.getWebContents(t).reload())
+      }
+      else if(name == 'clicktabReloadothertabs'){
+        this.reloadOtherTabs(tab.key)
+      }
+      else if(name == 'clicktabReloadlefttabs'){
+        this.reloadLeftTabs(tab.key)
+      }
+      else if(name == 'clicktabReloadrighttabs'){
+        this.reloadRightTabs(tab.key)
+      }
       else if(name == 'navigatePage'){
         this.navigateTo(tab.page,args,tab)
       }
       else if(name == 'reopenLastClosedTab'){
-        if(this.state.history.length > 0) {
-          const tabKey = this.state.history.pop()
-          tabState.findOne({tabKey}).then(rSession=>{
-            const urls = rSession.urls
-            const titles = rSession.titles
-            rSession.urls = urls.split("\t")
-            rSession.titles = titles.split("\t")
-            const n_tab = this.createTab({default_url:rSession.urls[rSession.currentIndex],rest:{rSession}})
-            tabState.insert({tabKey:n_tab.key,titles,urls,currentIndex:rSession.currentIndex, updated_at: Date.now()})
-            this.state.tabs.push(n_tab)
-            console.log("selected20", n_tab.key)
-            this.setState({selectedTab: n_tab.key})
-            this.focus_webview(n_tab,n_tab.page.location != topURL)
-          })
+        this.reopenLastClosedTab()
+      }
+      else if(name == 'clicktabUcatab'){
+        this.reopenLastClosedTabAll()
+      }
+      else if(name == 'clicktabCopyTabUrl'){
+        ipc.send("set-clipboard",[tab.page.navUrl])
+      }
+      else if(name == 'clicktabCopyUrlFromClipboard'){
+        this.openClipboardUrl(tab)
+      }
+      else if(name == 'pasteAndOpen'){
+        this.newTabClipboardUrl(tab)
+      }
+      else if(name == 'copyTabInfo'){
+        ipc.send("set-clipboard",[`${this.state.tabs.findIndex(tab2=>tab.key==tab2.key)+1}\t${tab.page.title}\t${tab.page.navUrl}`])
+      }
+      else if(name == 'copyAllTabInfos'){
+        ipc.send("set-clipboard",this.state.tabs.map((t,i)=>`${i+1}\t${t.page.title}\t${t.page.navUrl}`))
+      }
+      else if(name == 'addBookmarkAll'){
+        this.onAddFavorites()
+      }
+      else if(name == 'unpinTab'){
+        tab.pin = !tab.pin
+        this.setState({})
+      }
+      else if(name == 'unmuteTab'){
+        tab.mute = !tab.mute
+        this.getWebContents(tab).setAudioMuted(tab.mute)
+        this.setState({})
+      }
+      else if(name == 'splitLeftTabs' || name == 'splitRightTabs' || name == 'duplicateTab'){
+        const trans = {splitLeftTabs:'Split left tabs to left',
+          splitRightTabs:'Split right tabs to right',
+          duplicateTab:'3007771295016901659'
         }
+        this._handleContextMenu(null,tab.key,null,this.state.tabs,false,true).find(i=>(i.t || i.label) == trans[name]).click()
       }
       else if(name == 'selectNextTab' || name == 'selectPreviousTab'){
         const selected = this.state.selectedTab
@@ -1620,9 +1741,6 @@ export default class TabPanel extends Component {
       else if(name == 'detachPanel'){
         this.detachPanel()
       }
-      else if(name == 'closePanel'){
-        PubSub.publish(`close-panel_${this.props.k}`)
-      }
 
     }
     ipc.on('menu-or-key-events', tab.events['menu-or-key-events'])
@@ -1682,10 +1800,10 @@ export default class TabPanel extends Component {
     }]
     tab.wv.addEventListener('ipc-message',tab.events['ipc-message'][1] )
 
-    tab.events['search-text'] = (e, id, text)=> {
+    tab.events['search-text'] = (e, id, text, opposite)=> {
       if (!this.mounted) return
       if (tab.wvId && id == tab.wvId) {
-        this.search(tab, text,true)
+        this.search(tab, text,opposite,true)
       }
     }
     ipc.on('search-text', tab.events['search-text'])
@@ -1976,7 +2094,7 @@ export default class TabPanel extends Component {
     }
   }
 
-  createTab({default_url,c_page=null,c_wv=null,c_key=null,hist=null,privateMode=false,pin=false,guestInstanceId,rest} = {}){
+  createTab({default_url,c_page=null,c_wv=null,c_key=null,hist=null,privateMode=false,pin=false,mute=false,reloadInterval=false,guestInstanceId,rest} = {}){
     default_url = default_url || (isFixedVerticalPanel(this.props.k) ? sidebarURL : topURL)
     if(default_url) default_url = convertURL(default_url)
     const tab = {events:{},ext:{}}
@@ -2166,6 +2284,8 @@ export default class TabPanel extends Component {
         // {key: c_key || Date.now().toString(),
         privateMode,
         pin,
+        mute,
+        reloadInterval,
         page: newPage,
         locationContextMenu,
         navHandlers: this.navHandlers(tab, navigateTo, newPage, locationContextMenu),
@@ -2204,7 +2324,7 @@ export default class TabPanel extends Component {
     PubSub.publish('close-sync-tabs',{k:this.props.k,sync:tab.sync})
   }
 
-  TabPanelClose(key,time){
+  TabPanelClose(key,time,keepWindow){
     console.log('TabPanelClose',this.state.tabs)
     for(let tab of this.state.tabs){
       this._closeBind(tab)
@@ -2215,12 +2335,18 @@ export default class TabPanel extends Component {
     // const tab = this.state.tabs.find(x => x.key == key)
     // if(tab) ipc.send('chrome-tab-removed',parseInt(tab.key))
 
-    this.mounted = false
-    if(time){
-      setTimeout(_=>PubSub.publish('tab-close', {key: this.props.k}),time)
+    if(keepWindow){
+      const t = this.handleTabAddButtonClick(null,null,true)
+      // setTimeout(_=>this.handleTabClose({}, key),0)
     }
     else{
-      PubSub.publish('tab-close', {key: this.props.k})
+      this.mounted = false
+      if(time){
+        setTimeout(_=>PubSub.publish('tab-close', {key: this.props.k}),time)
+      }
+      else{
+        PubSub.publish('tab-close', {key: this.props.k})
+      }
     }
   }
 
@@ -2415,7 +2541,7 @@ export default class TabPanel extends Component {
 
   componentDidUpdate(prevProps, prevState,retry=0){
     PubSub.publish('update-tabs',this.props.k)
-    if(!isFinite(retry)) retry = 0
+    if(!Number.isFinite(retry)) retry = 0
     if(this.didUpdateTimer) clearTimeout(this.didUpdateTimer)
     this.didUpdateTimer = setTimeout(()=>{
       // console.log('componentDidUpdate',{prevProps, prevState,this_selectedTab:this.selectedTab,state:this.state})
@@ -2540,15 +2666,15 @@ export default class TabPanel extends Component {
     }
     else{
       if(tab.events) removeEvents(ipc,tab.events)
-      this.state.tabs.splice(e.oldIndex,1)
-      console.log("selected05", this.getPrevSelectedTab(tab.key,this.state.tabs,e.oldIndex))
-      this.setState({selectedTab: this.getPrevSelectedTab(tab.key,this.state.tabs,e.oldIndex)})
+      const closeTab = this.state.tabs.splice(e.oldIndex,1)[0]
+      // console.log("selected05", this.getPrevSelectedTab(tab.key,this.state.tabs,e.oldIndex))
+      this.setState({selectedTab: this.getPrevSelectedTab(tab.key,this.state.tabs,closeTab,e.oldIndex)})
       // ipc.send('chrome-tab-removed',parseInt(tab.key))
     }
   }
 
-  getNextSelectedTab(tab,i){
-    return this.state.tabs.find(t=>t.key == this.state.selectedTab) ? this.state.selectedTab : this.getPrevSelectedTab(tab.key,this.state.tabs,i)
+  getNextSelectedTab(tab,closeTab,i){
+    return this.state.tabs.find(t=>t.key == this.state.selectedTab) ? this.state.selectedTab : this.getPrevSelectedTab(tab.key,this.state.tabs,closeTab,i)
   }
 
   handleTabClose(e, key,isUpdateState=true) {
@@ -2559,8 +2685,9 @@ export default class TabPanel extends Component {
     this._closeBind(this.state.tabs[i])
     if(this.state.tabs.length==1){
       if(!e.noSync) this.closeSyncTabs(key)
-      this.props.close(this.props.k)
-      this.TabPanelClose(key)
+      const keepWindow = keepWindowLabel31 && !this.props.parent.state.root.r
+      if(!keepWindow) this.props.close(this.props.k)
+      this.TabPanelClose(key,void 0,keepWindow)
     }
     else{
       if(!e.noSync) this.closeSyncTabs(key)
@@ -2572,16 +2699,16 @@ export default class TabPanel extends Component {
     this.addCloseTabHistory(e, i)
 
     if(this.state.tabs[i].events) removeEvents(ipc,this.state.tabs[i].events)
-    this.state.tabs.splice(i,1)
+    const closeTab = this.state.tabs.splice(i,1)[0]
     const _tabs = this.state.tabs
 
 
     if (!this.mounted) return
-    console.log("selected06",_tabs.find(t=>t.key == (this.state.selectedTab !== key ? this.state.selectedTab : this.getPrevSelectedTab(key,_tabs,i))),this.state.selectedTab !== key ? this.state.selectedTab : this.getPrevSelectedTab(key,_tabs,i))
+    // console.log("selected06",_tabs.find(t=>t.key == (this.state.selectedTab !== key ? this.state.selectedTab : this.getPrevSelectedTab(key,_tabs,i))),this.state.selectedTab !== key ? this.state.selectedTab : this.getPrevSelectedTab(key,_tabs,i))
 
     if(isUpdateState){
       this.setState({tabs:_tabs,
-        selectedTab: _tabs.find(t=>t.key == this.state.selectedTab) ? this.state.selectedTab : this.getPrevSelectedTab(key,_tabs,i)
+        selectedTab: _tabs.find(t=>t.key == this.state.selectedTab) ? this.state.selectedTab : this.getPrevSelectedTab(key,_tabs,closeTab,i)
         // selectedTab: _tabs.length > i ? _tabs[i].key : _tabs.length > 0 ? _tabs[i-1].key : null
       } )
     }
@@ -2626,25 +2753,112 @@ export default class TabPanel extends Component {
     arr.forEach((t,i)=> this.handleTabClose({}, t, i == arr.length - 1))
   }
 
+  reloadOtherTabs(key){
+    let arr = []
+    for(let tab of this.state.tabs){
+      if(tab.key != key) this.getWebContents(tab).reload()
+    }
+  }
+
+  reloadLeftTabs(key){
+    let arr = []
+    for(let tab of this.state.tabs){
+      if(tab.key == key) return
+      this.getWebContents(tab).reload()
+    }
+  }
+
+  reloadRightTabs(key){
+    let arr = []
+    let isAppear = false
+    for(let tab of this.state.tabs){
+      if(isAppear && tab.key != key){
+        this.getWebContents(tab).reload()
+      }
+      else if(tab.key == key){
+        isAppear = true
+      }
+    }
+  }
+
+  reopenLastClosedTab(){
+    if(this.state.history.length > 0) {
+      const [tabKey,ind] = this.state.history.pop()
+      const index = ind - 1 < this.state.tabs.length ? ind - 1 : this.state.tabs.length - 2
+      this.restoreTabFromTabKey(tabKey,index)
+    }
+  }
+
+  reopenLastClosedTabAll(){
+    for(let [tabKey,ind] of this.state.history.slice(0).reverse()){
+      const index = ind - 1 < this.state.tabs.length ? ind - 1 : this.state.tabs.length - 2
+      this.restoreTabFromTabKey(tabKey,index)
+    }
+    this.state.history = []
+  }
+
+  openClipboardUrl(t){
+    const location = clipboard.readText()
+    if(urlutil.isURL(location)){
+      const url = urlutil.getUrlFromInput(location)
+      this.navigateTo(t.page, url, t)
+    }
+    else{
+      this.search(t, location, false)
+    }
+  }
+
+  newTabClipboardUrl(t){
+    const locations = clipboard.readText()
+    for(let location of locations.split(/\r?\n/)){
+      if(urlutil.isURL(location)){
+        const url = urlutil.getUrlFromInput(location)
+        t.events['new-tab']({}, t.wvId,url,t.privateMode)
+      }
+      else{
+        this.search(t, location,false,true)
+      }
+    }
+  }
+
+  buildReloadInterval(t,sec){
+    const checked = !!t.reloadInterval && t.reloadInterval[0] == sec
+    const click = () =>{
+      if(checked){
+        clearInterval(t.reloadInterval[1])
+        t.reloadInterval = false
+      }
+      else{
+        if(t.reloadInterval) clearInterval(t.reloadInterval[1])
+        const intervalId = setInterval(_=>{
+          const cont = this.getWebContents(t)
+          if(!cont || cont.isDestroyed()){
+            clearInterval(intervalId)
+          }
+          else{
+            cont.reload()
+          }
+        },sec*1000)
+        t.reloadInterval = [sec,intervalId]
+      }
+      this.setState({})
+    }
+    let label = `${sec}${locale.translation('secondsLabel')}`
+    if(sec > 60){
+      const min = Math.floor(sec / 60)
+      const sec2 = sec % 60
+      const labelMin = `${min}${locale.translation(min == 1 ? 'minuteLabel' : 'minutesLabel')}`
+      const labelSec = `${sec2 == 0 ? '' : ` ${sec2}${locale.translation('secondsLabel')}`}`
+      label = `${labelMin}${labelSec}`
+    }
+    return {label, type: 'checkbox', checked, click }
+  }
+
   addCloseTabHistory(e, i) {
     if (!e.noHistory && (!this.state.tabs[i].privateMode || this.state.tabs[i].privateMode.startsWith('persist'))) {
-      // const cont = this.getWebContents(this.state.tabs[i])
-      // const list = []
-      // let histNum, currentIndex
-      // if (cont && !cont.isDestroyed()) {
-      //   // currentIndex = cont.getCurrentEntryIndex()
-      //   // for(let i=0;i<histNum;i++){
-      //   //   list.push(cont.getURLAtIndex(i))
-      //   // }
-      //   currentIndex = 0
-      //   list.push(this.state.tabs[i].page.navUrl)
-      // }
-      // else {
-      // currentIndex = 0
-      // list.push(this.state.tabs[i].page.navUrl)
-      // }
-      // const history = {list, currentIndex}
-      this.state.history.push(this.state.tabs[i].key)
+      const tabKey = this.state.tabs[i].key
+      this.state.history.push([tabKey,i])
+      tabState.update({tabKey},{$set:{close:1,updated_at: Date.now()}}).then(_=>_)
     }
   }
 
@@ -2654,7 +2868,7 @@ export default class TabPanel extends Component {
       console.log("selected07",tab.key)
       this.setState({selectedTab: tab.key}) //@TODO
     }
-    if(changeInfo.pinned != (void 0)){
+    if(changeInfo.pinned != (void 0)){ //@TODO mute?
       tab.pin = changeInfo.pinned
       this.setState({})
     }
@@ -2691,13 +2905,18 @@ export default class TabPanel extends Component {
   //   this.focus_webview(n_tab)
   // }
 
-  handleTabAddButtonClick(e, currentTabs) {
+  handleTabAddButtonClick(e, currentTabs,selected=false) {
     // key must be unique
     const t = this.createTab()
     const key = t.key;
     // this.state.tabs.splice(i+1, 0,t )
     global.openerQueue.push(this.state.tabs.find(t=>t.key == this.state.selectedTab).wvId)
-    this.state.tabs.push(t)
+    if(selected){
+      this.state.tabs.splice(this.state.tabs.findIndex(t=>t.key == this.state.selectedTab) + 1, 0, t)
+    }
+    else{
+      this.state.tabs.push(t)
+    }
     console.log("selected11",key)
     this.setState({selectedTab: key})
     this.focus_webview(t,t.page.location != topURL)
@@ -2842,7 +3061,7 @@ export default class TabPanel extends Component {
     this._handleContextMenu(e,key,currentTabs,tabs,true)
   }
 
-  _handleContextMenu(e,key,currentTabs,tabs,tree){
+  _handleContextMenu(e,key,currentTabs,tabs,tree,notPopup){
     console.log('context-time1',Date.now())
     const _tabs = this.state.tabs
     const i = _tabs.findIndex((x)=>x.key===key)
@@ -2999,8 +3218,15 @@ export default class TabPanel extends Component {
     //   click: ()=> this.handleTabClose({}, key)}))
 
     if(enableSelection){
+      menuItems.push(({ t:'clicktabCopyTabUrl',label: locale.translation('clicktabCopyTabUrl'), click: ()=>ipc.send("set-clipboard",selections[0].map(t.page.navUrl))}))
+      menuItems.push(({ t:'clicktabCopyUrlFromClipboard',label: locale.translation('clicktabCopyUrlFromClipboard'), click: _=>selections[0].forEach(t=>this.openClipboardUrl(t))}))
+      menuItems.push(({ t:'Copy Tab Info',label: 'Copy Tab Info', click: _=>ipc.send("set-clipboard",selections[0].map(t=>`${this.state.tabs.findIndex(tab=>t.key==tab.key)+1}\t${t.page.title}\t${t.page.navUrl}`))}))
+      menuItems.push(({ t:'Copy All Tab Infos',label: 'Copy All Tab Infos', click: _=>ipc.send("set-clipboard",this.state.tabs.map((t,i)=>`${i+1}\t${t.page.title}\t${t.page.navUrl}`))}))
+      menuItems.push(({ type: 'separator' }))
+
       menuItems.push(({ t:'reloads',label: locale.translation('reload'), click: ()=> selections[0].forEach(t=>this.getWebContents(t).reload())}))
       menuItems.push(({ t:'cleanReloads',label: locale.translation('cleanReload'), click: ()=> selections[0].forEach(t=>this.getWebContents(t).reloadIgnoringCache())}))
+      menuItems.push(({ t:'clicktabReloadtabs',label: locale.translation('clicktabReloadtabs'), click: ()=> this.state.tabs.forEach(t=>this.getWebContents(t).reload())}))
       menuItems.push(({ t:'3007771295016901659',label: locale.translation('3007771295016901659'), //'Duplicate',
         click: ()=> {
           for(let t of selections[0]){
@@ -3017,13 +3243,35 @@ export default class TabPanel extends Component {
           this.setState({})
         }}))
 
+
+      const allMuted = selections[0].every(t=>t.mute)
+      menuItems.push(({ t:'unmuteTab',label: allMuted ? locale.translation('unmuteTab') : locale.translation('muteTab'), click: ()=> {
+          selections[0].forEach(t=>{t.mute = !allMuted;this.getWebContents(t).setAudioMuted(t.mute)})
+          this.resetSelection()
+          this.setState({})
+        }}))
+
       menuItems.push(({ type: 'separator' }))
       menuItems.push(({ t:'5453029940327926427',label: locale.translation('5453029940327926427'), click: ()=> this.closeTabs(selections[0].map(t=>t.key))}))
       menuItems.push(({ t:'closeOtherTabs',label: locale.translation('closeOtherTabs'), click: ()=> this.closeTabs(selections[1].map(t=>t.key))}))
     }
     else{
+      menuItems.push(({ t:'clicktabCopyTabUrl',label: locale.translation('clicktabCopyTabUrl'), click: ()=>ipc.send("set-clipboard",[t.page.navUrl])}))
+      menuItems.push(({ t:'clicktabCopyUrlFromClipboard',label: locale.translation('clicktabCopyUrlFromClipboard'), click: _=>this.openClipboardUrl(t)}))
+      menuItems.push(({ t:'Paste and Open',label: 'Paste and Open', click: _=>this.newTabClipboardUrl(t)}))
+      menuItems.push(({ t:'Copy Tab Info',label: 'Copy Tab Info', click: _=>ipc.send("set-clipboard",[`${this.state.tabs.findIndex(tab=>t.key==tab.key)+1}\t${t.page.title}\t${t.page.navUrl}`])}))
+      menuItems.push(({ t:'Copy All Tab Infos',label: 'Copy All Tab Infos', click: _=>ipc.send("set-clipboard",this.state.tabs.map((t,i)=>`${i+1}\t${t.page.title}\t${t.page.navUrl}`))}))
+      menuItems.push(({ type: 'separator' }))
+
       menuItems.push(({ t:'reload',label: locale.translation('reload'), click: ()=>this.getWebContents(t).reload()}))
       menuItems.push(({ t:'cleanReload',label: locale.translation('cleanReload'), click: ()=>this.getWebContents(t).reloadIgnoringCache()}))
+      menuItems.push(({ t:'clicktabReloadtabs',label: locale.translation('clicktabReloadtabs'), click: ()=> this.state.tabs.forEach(t=>this.getWebContents(t).reload())}))
+      menuItems.push(({ t:'clicktabReloadothertabs',label: locale.translation('clicktabReloadothertabs'), click: ()=> this.reloadOtherTabs(key)}))
+      menuItems.push(({ t:'clicktabReloadlefttabs',label: locale.translation('clicktabReloadlefttabs'), click: ()=> this.reloadLeftTabs(key)}))
+      menuItems.push(({ t:'clicktabReloadrighttabs',label: locale.translation('clicktabReloadrighttabs'), click: ()=> this.reloadRightTabs(key)}))
+
+
+      menuItems.push(({ t:'autoReloadTabLabel',label: locale.translation('autoReloadTabLabel'), submenu: reloadIntervals.map(sec=>this.buildReloadInterval(t,sec))}))
       menuItems.push(({ t:'3007771295016901659',label: locale.translation('3007771295016901659'), //'Duplicate',
         click: ()=> {
           ipc.send("set-recent-url",t.page.navUrl)
@@ -3031,13 +3279,15 @@ export default class TabPanel extends Component {
         } }))
 
       menuItems.push(({ t:'unpinTab',label: t.pin ? locale.translation('unpinTab') : locale.translation('pinTab'), click: ()=> {t.pin = !t.pin;this.setState({})}}))
+      menuItems.push(({ t:'unmuteTab',label: t.mute ? locale.translation('unmuteTab') : locale.translation('muteTab'), click: ()=> {t.mute = !t.mute;this.getWebContents(t).setAudioMuted(t.mute);this.setState({})}}))
       menuItems.push(({ type: 'separator' }))
+      menuItems.push(({ t:'closeTab',label: locale.translation('closeTab'), click: ()=> this.handleTabClose({}, key)}))
       menuItems.push(({ t:'closeOtherTabs',label: locale.translation('closeOtherTabs'), click: ()=> this.closeOtherTabs(key)}))
       menuItems.push(({ t:'closeTabsToLeft',label: locale.translation('closeTabsToLeft'), click: ()=> this.closeLeftTabs(key)}))
       menuItems.push(({ t:'closeTabsToRight',label: locale.translation('closeTabsToRight'), click: ()=> this.closeRightTabs(key)}))
     }
 
-    menuItems.push(({ label: 'Close all Tabs', click: ()=> {
+    menuItems.push(({ label: locale.translation('closeAllTabsMenuLabel'), click: ()=> {
         // console.log(this)
         this.props.close(this.props.k)
         this.TabPanelClose()
@@ -3046,25 +3296,13 @@ export default class TabPanel extends Component {
     menuItems.push(({ type: 'separator' }))
 
     if(this.state.history.length > 0){
-      menuItems.push(({ t:'reopenLastClosedTab',label: locale.translation('reopenLastClosedTab'), click: ()=> {
-          const tabKey = this.state.history.pop()
-          tabState.findOne({tabKey}).then(rSession=>{
-            const urls = rSession.urls
-            const titles = rSession.titles
-            rSession.urls = urls.split("\t")
-            rSession.titles = titles.split("\t")
-            const n_tab = this.createTab({default_url:rSession.urls[rSession.currentIndex],rest:{rSession}})
-            tabState.insert({tabKey:n_tab.key,titles,urls,currentIndex:rSession.currentIndex, updated_at: Date.now()})
-            _tabs.splice(i + 1, 0, n_tab )
-            console.log("selected12",n_tab.key)
-            this.setState({selectedTab: n_tab.key})
-            this.focus_webview(n_tab,n_tab.page.location != topURL)
-          })
-        }
-      }))
+      menuItems.push(({ t:'reopenLastClosedTab',label: locale.translation('reopenLastClosedTab'), click: ()=> this.reopenLastClosedTab() }))
+      menuItems.push(({ t:'clicktabUcatab',label: locale.translation('clicktabUcatab'), click: ()=> this.reopenLastClosedTabAll() }))
     }
     menuItems.push(({ t:'bookmarkPage',label: locale.translation('bookmarkPage'),click: this.onAddFavorites.bind(this,t.key) }))
     menuItems.push(({ t:'5078638979202084724',label: locale.translation('5078638979202084724'),click: _=>this.onAddFavorites() }))
+
+    if(notPopup) return menuItems
 
     menuItems.forEach((x,i)=>x.num = -i + parseInt(priorityTabContextMenus[x.t || x.label] || 0) * 100)
     menuItems = menuItems.sort((a,b)=> b.num - a.num)
@@ -3121,7 +3359,7 @@ export default class TabPanel extends Component {
         remote.getWebContents(data.wvId,cont=>{
           this.props.currentWebContents[data.wvId] = cont
         })
-        n_tab = this.createTab({c_page:data.c_page,c_key:data.c_key,privateMode:data.privateMode,pin:data.pin,guestInstanceId:data.guestInstanceId,rest:data.rest})
+        n_tab = this.createTab({c_page:data.c_page,c_key:data.c_key,privateMode:data.privateMode,pin:data.pin,mute:data.mute,reloadInterval:data.reloadInterval,guestInstanceId:data.guestInstanceId,rest:data.rest})
         tabs.splice(++i, 0, n_tab)
       }
 
@@ -3387,7 +3625,7 @@ export default class TabPanel extends Component {
     const promises = this.state.tabs.map(tab=>{
       return new Promise((resolve,reject)=>{
         this.getWebContents(tab).detach(_=>{
-          resolve({wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,
+          resolve({wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,mute:tab.mute,reloadInterval:tab.reloadInterval,
             rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || this.getWebContents(tab).guestInstanceId})
         })
       })
@@ -3406,7 +3644,7 @@ export default class TabPanel extends Component {
     if(_tabs.length > 1) {
       const i = _tabs.findIndex((x)=>x.key === tab.key)
       this.getWebContents(tab).detach(_=>{
-        const d = {wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,
+        const d = {wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,mute:tab.mute,reloadInterval:tab.reloadInterval,
           rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || this.getWebContents(tab).guestInstanceId}
         ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
         BrowserWindowPlus.load({id:remote.getCurrentWindow().id,...bounds,_alwaysOnTop:true,toggle:1,tabParam:JSON.stringify([d])})
@@ -3418,7 +3656,7 @@ export default class TabPanel extends Component {
       setTimeout(_=> {
         const i = _tabs.findIndex((x)=>x.key === tab.key)
         this.getWebContents(tab).detach(_=>{
-          const d = {wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,
+          const d = {wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,mute:tab.mute,reloadInterval:tab.reloadInterval,
             rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || this.getWebContents(tab).guestInstanceId}
           ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
           BrowserWindowPlus.load({id:remote.getCurrentWindow().id,...bounds,_alwaysOnTop:true,toggle:1,tabParam:JSON.stringify([d])})
@@ -3542,7 +3780,7 @@ export default class TabPanel extends Component {
     for(let url of urls) {
       global.openerQueue.push(tab.wvId)
       const isFirst = i === 0 || (i === 1 && type == 'two')
-      const condBasic = type == 'basic' && checkOpposite && !isFloatPanel(this.props.k) && tab.oppositeMode
+      const condBasic = type == 'basic' && checkOpposite && !isFloatPanel(this.props.k) //&& tab.oppositeMode
       const condTwo = type == 'two' && i % 2 == 1
       if (condBasic || condTwo) {
         const oppositeKey = this.props.getOpposite(this.props.k)
@@ -3635,16 +3873,17 @@ export default class TabPanel extends Component {
         isOnlyPanel={!this.props.parent.state.root.r}
         windowId={this.props.windowId}
         k={this.props.k}
+        mouseClickHandles={key=>this._handleContextMenu(null,key,null,this.state.tabs,false,true)}
         ref='tabs'
         tabs={this.state.tabs.map((tab,num)=>{
-          return (<Tab key={tab.key} page={tab.page} orgTab={tab} pin={tab.pin} privateMode={tab.privateMode} selection={tab.selection}>
+          return (<Tab key={tab.key} page={tab.page} orgTab={tab} pin={tab.pin} mute={tab.mute} reloadInterval={tab.reloadInterval} privateMode={tab.privateMode} selection={tab.selection}>
             <div style={{height: '100%'}} className="div-back" ref={`div-${tab.key}`} >
               <BrowserNavbar ref={`navbar-${tab.key}`} tabkey={tab.key} k={this.props.k} navHandle={tab.navHandlers} parent={this}
                              privateMode={tab.privateMode} page={tab.page} tab={tab}
                              oppositeGlobal={this.state.oppositeGlobal} toggleNav={toggle}
                              historyMap={historyMap} currentWebContents={this.props.currentWebContents}
                              isTopRight={this.props.isTopRight} isTopLeft={this.props.isTopLeft} fixedPanelOpen={this.props.fixedPanelOpen}
-                             tabBar={!this.state.tabBar} hidePanel={this.props.hidePanel}
+                             tabBar={!this.state.tabBar} hidePanel={this.props.hidePanel} autocompleteUrl={autocompleteUrl}
                              fullscreen={this.props.fullscreen} bind={tab.bind} screenShot={this.screenShot}/>
               {num == 0 ? this.state.notifications.map((data,i)=>{
                 if(data.needInput){

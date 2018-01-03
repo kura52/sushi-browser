@@ -55,6 +55,18 @@ export default class MainContent extends Component{
 
 
   componentDidMount() {
+    ipc.once('unmount-components',_=>{
+      const key = this.refs.splitWindow.state.root.key
+      ipc.send('save-all-windows-state',key)
+      ipc.once(`save-all-windows-state-reply_${key}`,_=>{
+        unmountComponentAtNode(document.querySelector('#wvlist'))
+        unmountComponentAtNode(document.querySelector('#dllist'))
+        unmountComponentAtNode(document.querySelector('#content'))
+        unmountComponentAtNode(document.querySelector('#anything'))
+        ipc.send('unmount-components-reply')
+      })
+    })
+
     window.addEventListener('resize', ::this.handleResize,{ passive: true });
     document.addEventListener('mousedown',e=>{
       let ele,key
@@ -138,10 +150,3 @@ render(<MainContent />, document.querySelector('#content'))
 if(doubleShift){
   render(<SearchAnything />, document.querySelector('#anything'))
 }
-
-ipc.on('unmount-components',_=>{
-  unmountComponentAtNode(document.querySelector('#wvlist'))
-  unmountComponentAtNode(document.querySelector('#dllist'))
-  unmountComponentAtNode(document.querySelector('#content'))
-  unmountComponentAtNode(document.querySelector('#anything'))
-})

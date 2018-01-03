@@ -392,7 +392,57 @@ var rendererIdentifiers = function () {
     'autocompleteData',
     'autofillData',
     'clearBrowsingDataNow',
-    'tabSettings'
+    'tabSettings',
+
+    'closeAllTabsMenuLabel',
+    'openalllinksLabel',
+    'clicktabCopyTabUrl',
+    'clicktabCopyUrlFromClipboard',
+    'clicktabReloadtabs',
+    'clicktabReloadothertabs',
+    'clicktabReloadlefttabs',
+    'clicktabReloadrighttabs',
+    'autoReloadTabLabel',
+    'clicktabUcatab',
+    'secondsLabel',
+    'minuteLabel',
+    'minutesLabel',
+    'generalWindowOpenLabel',
+    'linkTargetTab',
+    'linkTargetWindow',
+    'openDuplicateNextLabel',
+    'keepWindowLabel31',
+    'currenttabCaptionLabel',
+    'focusTabLabelBegin',
+    'focusTabFirstTab',
+    'focusTabLeftTab',
+    'focusTabRightTab',
+    'focusTabLastTab',
+    'focusTabLastSelectedTab',
+    'focusTabOpenerTab',
+    'focusTabOpenerTabRtl',
+    'focusTabLastOpenedTab',
+    'tabbarscrollingInverseLabel',
+    'minWidthLabel',
+    'widthToLabel',
+    'widthPixelsLabel',
+    'mouseHoverSelectLabelBegin',
+    'tabFlipLabel',
+    'clicktabLabel',
+    'doubleLabel',
+    'middleLabel',
+    'altLabel',
+    'clicktabNothing',
+    'tabbarscrollingSelectTabLabel',
+    'tabScrollMultibar',
+    'millisecondsLabel',
+    'mouseClickLabel',
+    'tabFlipDelay',
+    'tabCloseLabel',
+    'maxrowLabel',
+    'newTabButtonLabel',
+    'ssInterval',
+    'openTabNextLabel'
   ]
 }
 
@@ -533,7 +583,8 @@ exports.init = function (language) {
       path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'preferences.properties').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'),
       path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'chrome.properties').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'),
       path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'video.properties').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'),
-    path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'bravery.properties').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'))
+    path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'bravery.properties').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'),
+      path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'tab.properties').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'))
   }
 
   appendLangProperties(lang)

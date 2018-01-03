@@ -7,9 +7,11 @@ import fs from 'fs'
 export default class DownloadEvent {
   constructor(){
     ipcMain.on('download-retry',(event,url,savePath,key)=>{
-      ipcMain.emit('set-save-path', null, url, path.basename(savePath))
-      ipcMain.emit('set-download-key', null, url, key)
-      getCurrentWindow().webContents.downloadURL(url,true)
+      downloader.remove({key}, { multi: true }).then(ret=>{
+        ipcMain.emit('set-save-path', null, url, path.basename(savePath))
+        ipcMain.emit('set-download-key', null, url, key)
+        getCurrentWindow().webContents.downloadURL(url,true)
+      })
     })
 
     ipcMain.on('download-open-folder',(event,path)=>{

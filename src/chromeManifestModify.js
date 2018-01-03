@@ -9,10 +9,13 @@ const contentScriptName = '___contentScriptModify_.js'
 const backgroundScriptName = '___backgroundScriptModify_.js'
 
 const polyfillName = 'browser-polyfill.min.js'
+const webExtModifyBg = 'webextensionModifyBg.js'
+const webExtModifyCs = 'webextensionModifyCs.js'
 const webExtStyleName = 'webextension.css'
 
 const backgroundHtmlName = '___backgroundModify_.html'
 let backgroundHtmlStr = `<!DOCTYPE html>
+<head><meta charset="UTF-8"></head>
 <body>
 <script src="${backgroundScriptName}"></script>
 __REPLACE__`
@@ -47,15 +50,12 @@ function copyModifyFile(to,flagContent,flagBackground,isWebExt){
     fs.writeFileSync(bgPath,bg)
   }
   if(isWebExt){
-    const poli = fs.readFileSync(path.join(__dirname,`../resource/${polyfillName}`)).toString()
-    const poliPath = path.join(to,polyfillName)
-    if(fs.existsSync(poliPath)) fs.unlinkSync(poliPath)
-    fs.writeFileSync(poliPath,poli)
-
-    const style = fs.readFileSync(path.join(__dirname,`../resource/${webExtStyleName}`)).toString()
-    const stylePath = path.join(to,webExtStyleName)
-    if(fs.existsSync(stylePath)) fs.unlinkSync(stylePath)
-    fs.writeFileSync(stylePath,style)
+    for(let file of [polyfillName,webExtModifyBg,webExtModifyCs,webExtStyleName]){
+      const poli = fs.readFileSync(path.join(__dirname,`../resource/${file}`)).toString()
+      const poliPath = path.join(to,file)
+      if(fs.existsSync(poliPath)) fs.unlinkSync(poliPath)
+      fs.writeFileSync(poliPath,poli)
+    }
   }
 }
 
@@ -72,12 +72,12 @@ function htmlModify(verPath,fname,isWebExt){
   if(str.includes(backgroundScriptName)) return
 
   fs.unlinkSync(fullPath)
-  let writeStr = str.replace(/< *(head)([^>]*)>/i,`<$1$2>\n  ${isWebExt ? `<script src="${backStr}/${polyfillName}"></script>\n` : ''}<script src="${backStr}/${backgroundScriptName}"></script>`)
+  let writeStr = str.replace(/< *(head)([^>]*)>/i,`<$1$2>\n  ${isWebExt ? `<script src="${backStr}/${polyfillName}"></script>\n<script src="${backStr}/${webExtModifyBg}"></script>\n` : ''}<script src="${backStr}/${backgroundScriptName}"></script>`)
   if(!writeStr.includes(backgroundScriptName)){
-    writeStr = str.replace(/< *(body)([^>]*)>/i,`<$1$2>\n  ${isWebExt ? `<script src="${backStr}/${polyfillName}"></script>\n` : ''}<script src="${backStr}/${backgroundScriptName}"></script>`)
+    writeStr = str.replace(/< *(body)([^>]*)>/i,`<$1$2>\n  ${isWebExt ? `<script src="${backStr}/${polyfillName}"></script>\n<script src="${backStr}/${webExtModifyBg}"></script>\n` : ''}<script src="${backStr}/${backgroundScriptName}"></script>`)
   }
   if(!writeStr.includes(backgroundScriptName)){
-    writeStr = str.replace(/html>/i,`html>\n  ${isWebExt ? `<script src="${backStr}/${polyfillName}"></script>\n<link rel="stylesheet" href="${backStr}/${webExtStyleName}">\n` : ''}\n<script src="${backStr}/${backgroundScriptName}"></script>`)
+    writeStr = str.replace(/html>/i,`html>\n  ${isWebExt ? `<script src="${backStr}/${polyfillName}"></script>\n<script src="${backStr}/${webExtModifyBg}"></script>\n<link rel="stylesheet" href="${backStr}/${webExtStyleName}">\n` : ''}\n<script src="${backStr}/${backgroundScriptName}"></script>`)
   }
   if(!writeStr.includes(backgroundScriptName)){
     writeStr = `<!DOCTYPE html>
@@ -85,7 +85,7 @@ function htmlModify(verPath,fname,isWebExt){
 <head>
   <meta charset="UTF-8">
   <title>Background</title>
-  ${isWebExt ? `<script src="${backStr}/${polyfillName}"></script>\n` : ''}
+  ${isWebExt ? `<script src="${backStr}/${polyfillName}"></script>\n<script src="${backStr}/${webExtModifyBg}"></script>\n` : ''}
   <script src="${backStr}/${backgroundScriptName}"></script>
   ${writeStr}
 </head>
@@ -96,6 +96,11 @@ function htmlModify(verPath,fname,isWebExt){
   }
   fs.writeFileSync(fullPath,writeStr)
 }
+
+function stripBOM(str){
+  return str.charCodeAt(0) === 0xFEFF ? str.slice(1) : str
+}
+
 export default function modify(extensionId,verPath){
   const isWebExt = !extensionId.match(/^[a-z]+$/)
   cache = new Set()
@@ -106,7 +111,7 @@ export default function modify(extensionId,verPath){
   const manifestPath = path.join(verPath, 'manifest.json')
   fs.exists(manifestPath, (exists) => {
     if (exists) {
-      const manifestStr = fs.readFileSync(manifestPath).toString().replace('\\u003Call_urls>','<all_urls>')
+      const manifestStr = stripBOM(fs.readFileSync(manifestPath).toString()).replace('\\u003Call_urls>','<all_urls>')
       const infos = JSON.parse(manifestStr)
 
       if(infos.permissions && infos.permissions.includes('activeTab')
@@ -114,15 +119,23 @@ export default function modify(extensionId,verPath){
         infos.permissions = [...new Set([...infos.permissions,'http://*/*','https://*/*'])]
       }
 
+      if(infos.optional_permissions){
+        infos.permissions = [...new Set([...(infos.permissions || []),...infos.optional_permissions])]
+
+      }
+
       if(isWebExt && infos.permissions){
-        infos.permissions = infos.permissions.filter(x=>x!=='clipboardWrite')
+        infos.permissions = infos.permissions.filter(x=>x!=='clipboardWrite' && x!=='clipboardRead')
       }
 
       let flagContent,flagBackground
       if(infos.content_scripts){
         findJsTags(infos.content_scripts,js=>{
           if(!Array.isArray(js)) js = [js]
-          if(isWebExt && !js.includes(polyfillName)) js.unshift(polyfillName)
+          if(isWebExt && !js.includes(polyfillName)){
+            js.unshift(webExtModifyCs)
+            js.unshift(polyfillName)
+          }
           if(!js.includes(contentScriptName)) js.unshift(contentScriptName)
           return js
         })
@@ -136,7 +149,7 @@ export default function modify(extensionId,verPath){
         }
         else if(infos.background.scripts){
           if(!Array.isArray(infos.background.scripts)) infos.background.scripts = [infos.background.scripts]
-          if(isWebExt) backgroundHtmlStr = backgroundHtmlStr.replace('<body>',`<body>\n<script src="${polyfillName}"></script>`)
+          if(isWebExt) backgroundHtmlStr = backgroundHtmlStr.replace('<body>',`<body>\n<script src="${polyfillName}"></script>\n<script src="${webExtModifyBg}"></script>`)
           const content = backgroundHtmlStr.replace('__REPLACE__',infos.background.scripts.map(src=>`<script src="${src}"></script>`).join("\n  "))
           fs.writeFileSync(path.join(verPath,backgroundHtmlName),content)
           infos.background.page = backgroundHtmlName
@@ -201,6 +214,21 @@ export default function modify(extensionId,verPath){
         htmlModify(verPath,file.replace(`${verPath}/`,''),isWebExt)
       }
 
+        for(let file of require("glob").sync(`${verPath}/**/*.js`)){
+          let datas = fs.readFileSync(file).toString(),needWrite = false
+          if (isWebExt && datas.includes('moz-extension')) {
+            // console.log(file)
+            datas = datas.replace(/moz\-extension/ig,'chrome-extension')
+            needWrite = true
+          }
+          if(datas.includes('about:blank')){
+            datas = datas.replace(/about:blank/ig,'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html')
+            needWrite = true
+          }
+          if(needWrite){
+            fs.writeFileSync(file, datas)
+          }
+        }
       if(infos.commands){
         for(let [k,v] of Object.entries(infos.commands)) {
           if(v.suggested_key){

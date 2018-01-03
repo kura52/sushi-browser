@@ -306,6 +306,7 @@ export default class SplitWindows extends Component{
     }
 
     console.log(22222222222222,winState)
+    if(winState) winState.key = uuid.v4()
     // const root = {dirc: "v",size: 50,l: [getUuid(),[]],r: [getUuid(),[]],p: null,key:uuid.v4(),toggleNav: 0}
     const root = winState || {dirc: "v",size: '100%',l: [getUuid(),[]],r: null,p: null,key:uuid.v4(),toggleNav: ipc.sendSync('get-sync-main-state','toggleNav') || 0}
     // root.l = {dirc: "h",size: 50,l: [getUuid(),[]],r: [getUuid(),[]],p: root, pd: "l",key:uuid.v4()}
@@ -457,7 +458,7 @@ export default class SplitWindows extends Component{
 
 
     this.getWinStateEvent2 = (e,key)=>{
-      ipc.send(`get-window-state2-reply_${key}`,this.jsonfyiable2(this.state.root,{},true))
+      ipc.send(`get-window-state2-reply_${key}`,this.jsonfyiable(this.state.root,{},true))
     }
     ipc.on('get-window-state2',this.getWinStateEvent2)
 
@@ -477,7 +478,7 @@ export default class SplitWindows extends Component{
       }
       return tabId;
     }
-    this.getFocusedWebContent = (e,key,needPrivate,needSelectedText,queueGet)=>{
+    this.getFocusedWebContent = (e,key,needPrivate,needSelectedText,queueGet,retry)=>{
       if(queueGet){
         const tabId = global.openerQueue.shift()
         if(tabId){
@@ -494,7 +495,7 @@ export default class SplitWindows extends Component{
       console.log(act,global.lastMouseDown)
       let tabId = this.getTabId(act) || (global.lastMouseDown[0] && this.getTabId(global.lastMouseDown[0]))
 
-      if(!tabId){
+      if(!tabId && retry > 9){
         tabId = this.refs2[this.isTopLeft].getSelectedTabId()
       }
       console.log(2323,tabId)
@@ -526,7 +527,7 @@ export default class SplitWindows extends Component{
 
 
     this.eventChromeTabsMoveInner = (e,sendKey,tabIds,indexOrKey,isBack,selectedTab)=>{
-      const isIndex = isFinite(indexOrKey)
+      const isIndex = Number.isFinite(indexOrKey)
       const keys = []
       const oldIndexes = {}
       this.allKeys(this.state.root,keys)
@@ -574,15 +575,15 @@ export default class SplitWindows extends Component{
         const others = isBefore ? beforeOthers : afterOthers
         for(let ele of map[key]){
           const tab = ele[0]
-          const n_tab = this.refs2[indexKey].createTab({c_page:tab.page,c_wv:tab.wv,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,guestInstanceId: tab.guestInstanceId,
+          const n_tab = this.refs2[indexKey].createTab({c_page:tab.page,c_wv:tab.wv,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,mute:tab.mute,reloadInterval:tab.reloadInterval,guestInstanceId: tab.guestInstanceId,
             rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis}})
           others.push([n_tab,ele[1],ele[0]])
         }
         funcs[key] =_=>{
-          for(let ele of others.reverse()){
+          for(let ele of others.slice(0).reverse()){
             if(ele[2].events) removeEvents(ipc,ele[2].events)
-            tabs.splice(ele[1],1)
-            this.refs2[key].state.selectedTab = this.refs2[key].getNextSelectedTab(...ele)
+            const closeTab = tabs.splice(ele[1],1)[0]
+            this.refs2[key].state.selectedTab = this.refs2[key].getNextSelectedTab(ele[0],closeTab,ele[1])
           }
         }
       }
@@ -637,6 +638,7 @@ export default class SplitWindows extends Component{
       }
 
       for(let [tabId,toIndexes] of Object.entries(newIndexes)){
+        tabId = parseInt(tabId)
         ipc.send('chrome-tabs-onMoved-to-main',tabId,{fromIndex:oldIndexes[tabId],toIndex: toIndexes[0]})
         PubSub.publish('tab-moved',{tabId,fromIndex:oldIndexes[tabId],toIndex: toIndexes[0],before: toIndexes[1]})
       }
@@ -679,7 +681,7 @@ export default class SplitWindows extends Component{
           const panel = this.refs2[key]
           const promise = new Promise((resolve,reject)=>{
             getWebContents(tab).detach(_=>{
-              resolve({wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,
+              resolve({wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,mute:tab.mute,reloadInterval:tab.reloadInterval,
                 rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || getWebContents(tab).guestInstanceId})
             })
           })
@@ -695,8 +697,8 @@ export default class SplitWindows extends Component{
           setTimeout(_=>{
             for(let ele of detaches.reverse()){
               if(ele[0].events) removeEvents(ipc,ele[0].events)
-              tabs.splice(ele[1],1)
-              this.refs2[key].state.selectedTab = this.refs2[key].getNextSelectedTab(...ele)
+              const closeTab = tabs.splice(ele[1],1)[0]
+              this.refs2[key].state.selectedTab = this.refs2[key].getNextSelectedTab(ele[0],closeTab,ele[1])
             }
             for(let key of keyArr) {
               const panel = this.refs2[key]
@@ -745,7 +747,7 @@ export default class SplitWindows extends Component{
         remote.getWebContents(data.wvId,cont=>{
           this.currentWebContents[data.wvId] = cont
         })
-        const n_tab = panel.createTab({c_page:data.c_page,c_key:data.c_key,privateMode:data.privateMode,pin:data.pin,guestInstanceId:data.guestInstanceId,rest:data.rest})
+        const n_tab = panel.createTab({c_page:data.c_page,c_key:data.c_key,privateMode:data.privateMode,pin:data.pin,mute:data.mute,reloadInterval:tab.reloadInterval,guestInstanceId:data.guestInstanceId,rest:data.rest})
         tabs.splice(realIndex++, 0, n_tab)
       }
       this.refs2[indexKey].setState({})
@@ -981,13 +983,13 @@ export default class SplitWindows extends Component{
 
 
   allKeys(node=this.state.root,arr){
-    this._allKeys(node=this.state.root,arr)
+    this._allKeys(node,arr)
     arr.push(...this.state.floatPanels.keys())
 
     return arr
   }
 
-  _allKeys(node=this.state.root,arr){
+  _allKeys(node,arr){
     if (!Array.isArray(node.l) && node.l instanceof Object) {
       this._allKeys(node.l,arr)
     }
@@ -1055,60 +1057,18 @@ export default class SplitWindows extends Component{
 
       if(typeof obj.l === "string"){
         // obj.l = [obj.l,[]]
-        obj.l = {key:obj.l, tabs:this.refs2[obj.l].state.tabs.map(tab=>{return {tabKey:tab.key, url:tab.page.navUrl, pin:!!tab.pin}}).filter(x=> x.tabKey !== undefined)}
+        obj.l = {key:obj.l, tabs:this.refs2[obj.l].state.tabs.map(tab=>{return {tabKey:tab.key, title:tab.page.title, url:tab.page.navUrl, pin:!!tab.pin, mute:!!tab.mute}}).filter(x=> x.tabKey !== undefined)}
       }
 
       if(typeof obj.r === "string"){
         // obj.r = [obj.r,[]]
-        obj.r = {key:obj.r, tabs:this.refs2[obj.r].state.tabs.map(tab=>{return {tabKey:tab.key, url:tab.page.navUrl, pin:!!tab.pin}}).filter(x=> x.tabKey !== undefined)}
+        obj.r = {key:obj.r, tabs:this.refs2[obj.r].state.tabs.map(tab=>{return {tabKey:tab.key, title:tab.page.title, url:tab.page.navUrl, pin:!!tab.pin, mute:!!tab.mute}}).filter(x=> x.tabKey !== undefined)}
       }
     }
 
     return obj
   }
 
-
-  jsonfyiable2(node,obj,saved=false){
-    if (!Array.isArray(node.l) && node.l instanceof Object) {
-      obj.l = {}
-      this.jsonfyiable(node.l,obj.l,saved)
-    }
-    else{
-      obj.l = node.l ? node.l[0] : node.l
-    }
-    if (!Array.isArray(node.r) && node.r instanceof Object) {
-      obj.r = {}
-      this.jsonfyiable(node.r,obj.r,saved)
-    }
-    else{
-      obj.r = node.r ? node.r[0] : node.r
-    }
-
-    obj.dirc = node.dirc
-    obj.size = node.size
-    obj.pd = node.pd
-    obj.key = node.key
-    obj.toggleNav = node.toggleNav
-
-    if(saved){
-      const refKey = `pane_${obj.key}`
-      if(this.refs[refKey]){
-        obj.size = this.refs[refKey].state.size || obj.size
-      }
-
-      if(typeof obj.l === "string"){
-        // obj.l = [obj.l,[]]
-        obj.l = {key:obj.l, tabs:this.refs2[obj.l].state.tabs.map(tab=>{return {tabKey:tab.key, title:tab.page.title, url:tab.page.navUrl, pin:!!tab.pin}}).filter(x=> x.tabKey !== undefined)}
-      }
-
-      if(typeof obj.r === "string"){
-        // obj.r = [obj.r,[]]
-        obj.r = {key:obj.r, tabs:this.refs2[obj.r].state.tabs.map(tab=>{return {tabKey:tab.key, title:tab.page.title, url:tab.page.navUrl, pin:!!tab.pin}}).filter(x=> x.tabKey !== undefined)}
-      }
-    }
-
-    return obj
-  }
 
   _split(node,key,direction,pos,tabs,indexes,params){
     let flag = false

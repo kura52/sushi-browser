@@ -11,33 +11,35 @@ chrome.app.getDetails = _=>chrome.ipcRenderer.sendSync('chrome-management-get-sy
 chrome.runtime.openOptionsPage = _=> simpleIpcFunc('chrome-runtime-openOptionsPage',_=>_,chrome.runtime.id)
 chrome.runtime.getBrowserInfo = callback=> callback({name:'Firefox',vendor:'Mozilla',version:'57.0',buildID:'20171203000000'})
 
+if(chrome.i18n){
+  chrome.i18n.getAcceptLanguages = callback=> simpleIpcFunc('chrome-i18n-getAcceptLanguages',callback)
+  chrome.i18n.getUILanguage = _=> {
+    let lang = navigator.languages.map(lang=>lang == 'zh-CN' || lang == 'pt-BR' ? lang.replace('-','_') : lang.slice(0,2))[0]
+    if(!lang) lang = navigator.language == 'zh-CN' || navigator.language == 'pt-BR' ? navigator.language.replace('-','_') : navigator.language.slice(0,2)
+    return lang
+  }  //@TODO
 
+  chrome.i18n._getMessage = chrome.i18n.getMessage
 
-
-chrome.i18n.getAcceptLanguages = callback=> simpleIpcFunc('chrome-i18n-getAcceptLanguages',callback)
-chrome.i18n.getUILanguage = _=> {
-  let lang = navigator.languages.map(lang=>lang == 'zh-CN' || lang == 'pt-BR' ? lang.replace('-','_') : lang.slice(0,2))[0]
-  if(!lang) lang = navigator.language == 'zh-CN' || navigator.language == 'pt-BR' ? navigator.language.replace('-','_') : navigator.language.slice(0,2)
-  return lang
-}  //@TODO
-
-chrome.i18n._getMessage = chrome.i18n.getMessage
-
-chrome.i18n.getMessage = (messageName) => {
-  if(chrome.i18n._messages_ === false){
-    return chrome.i18n._getMessage(messageName)
+  chrome.i18n.getMessage = (messageName) => {
+    if(chrome.i18n._messages_ === false){
+      return chrome.i18n._getMessage(messageName)
+    }
+    else if(!chrome.i18n._messages_){
+      chrome.i18n._messages_ = chrome.ipcRenderer.sendSync('chrome-i18n-getMessage')
+    }
+    const msg = chrome.i18n._messages_[messageName]
+    return msg ? msg.message : chrome.i18n._getMessage(messageName)
   }
-  else if(!chrome.i18n._messages_){
-    chrome.i18n._messages_ = chrome.ipcRenderer.sendSync('chrome-i18n-getMessage')
-  }
-  const msg = chrome.i18n._messages_[messageName]
-  return msg ? msg.message : chrome.i18n._getMessage(messageName)
+
+  chrome.i18n.detectLanguage = (inputText,callback) => simpleIpcFunc('chrome-i18n-detectLanguage',callback,inputText)
+
 }
 
-chrome.i18n.detectLanguage = (inputText,callback) => simpleIpcFunc('chrome-i18n-detectLanguage',callback,inputText)
-
-chrome.extension.isAllowedFileSchemeAccess = (callback)=> callback(true)
-chrome.extension.isAllowedIncognitoAccess = (callback)=> callback(true)
+if(chrome.extension){
+  chrome.extension.isAllowedFileSchemeAccess = (callback)=> callback(true)
+  chrome.extension.isAllowedIncognitoAccess = (callback)=> callback(true)
+}
 
 if(chrome.contextMenus) {
   chrome.contextMenus._create = chrome.contextMenus.create
@@ -102,8 +104,16 @@ if(chrome.windows){
   chrome.windows.getAll = (getInfo, callback)=>{
     if(typeof getInfo === 'function') [getInfo,callback] = [null,getInfo]
     getInfo = getInfo || {}
+    if(getInfo) delete getInfo.windowTypes
     chrome.windows._getAll(getInfo, windows=>{
-      simpleIpcFunc('chrome-windows-get-attributes',rets=>callback(windows.map((w,i)=>Object.assign(w,rets[i]))),windows.map(w=>w.id))
+      if(getInfo && getInfo.populate && !windows[0].tabs.length){
+        setTimeout(_=>chrome.windows._getAll(getInfo, windows=>{
+          simpleIpcFunc('chrome-windows-get-attributes',rets=>callback(windows.map((w,i)=>Object.assign(w,rets[i]))),windows.map(w=>w.id))
+        }),2000)
+      }
+      else{
+        simpleIpcFunc('chrome-windows-get-attributes',rets=>callback(windows.map((w,i)=>Object.assign(w,rets[i]))),windows.map(w=>w.id))
+      }
     })
   }
 
@@ -112,6 +122,7 @@ if(chrome.windows){
   chrome.windows.getCurrent = (getInfo, callback)=>{
     if(typeof getInfo === 'function') [getInfo,callback] = [null,getInfo]
     getInfo = getInfo || {}
+    if(getInfo) delete getInfo.windowTypes
     chrome.windows._getCurrent(getInfo, window=>{
       if(window.id === -1){
         chrome.windows.getLastFocused(getInfo,callback)
@@ -126,6 +137,7 @@ if(chrome.windows){
   chrome.windows.get = (windowId, getInfo, callback) =>{
     if(typeof getInfo === 'function') [getInfo,callback] = [null,getInfo]
 
+    if(getInfo) delete getInfo.windowTypes
     chrome.windows.getAll(getInfo, windows=>{
       if(!windows) callback(null)
       for(let window of windows){
@@ -153,10 +165,6 @@ if(chrome.windows){
   }
 
   chrome.windows.remove = (windowId,callback)=> simpleIpcFunc('chrome-windows-remove',callback,windowId)
-
-  chrome.tabs.getZoom =(tabId, callback)=>simpleIpcFunc('chrome-tabs-getZoom',callback,tabId)
-
-  chrome.tabs.setZoom =(tabId, zoomFactor, callback)=>simpleIpcFunc('chrome-tabs-setZoom',callback,tabId,zoomFactor)
 
   for(let method of ['onCreated','onRemoved','onFocusChanged']){
     const name = `chrome-windows-${method}`
@@ -188,6 +196,9 @@ if(chrome.tabs){
     if(queryInfo.lastFocusedWindow !== void 0){
       delete queryInfo.lastFocusedWindow
     }
+    if(queryInfo.windowType !== void 0){
+      delete queryInfo.windowType
+    }
     if(queryInfo.currentWindow == false){
       delete queryInfo.currentWindow
     }
@@ -205,7 +216,7 @@ if(chrome.tabs){
 
   chrome.tabs._update = chrome.tabs.update
   chrome.tabs.update = (tabId, updateProperties, callback)=>{
-    if(!isFinite(tabId)){
+    if(!Number.isFinite(tabId) && tabId !== null && tabId !== void 0){
       [tabId,updateProperties,callback] = [null,tabId,updateProperties]
       simpleIpcFunc('chrome-tabs-current-tabId',tabId=>{
         chrome.tabs._update(tabId, updateProperties, callback)
@@ -217,8 +228,8 @@ if(chrome.tabs){
   }
 
   chrome.tabs.reload = (tabId, reloadProperties, callback)=>{
-    if(!isFinite(tabId)){
-      if(Object.prototype.toString.call(tabId)=="[object Object]"){
+    if(!Number.isFinite(tabId)){
+      if(Object.prototype.toString.call(tabId)=="[object Object]" && tabId !== null && tabId !== void 0){
         [tabId,reloadProperties,callback] = [null,tabId,reloadProperties]
       }
       else if(typeof tabId === 'function'){
@@ -232,7 +243,8 @@ if(chrome.tabs){
   }
 
   chrome.tabs.move = (tabIds, moveProperties, callback)=>{
-    if(isFinite(tabIds)){
+    console.log(tabIds, moveProperties)
+    if(Number.isFinite(tabIds)){
       tabIds = [tabIds]
     }
     simpleIpcFunc('chrome-tabs-move',winIds=>{
@@ -264,7 +276,7 @@ if(chrome.tabs){
   }
 
   chrome.tabs.captureVisibleTab = (windowId,options,callback) => {
-    if(!isFinite(windowId)){
+    if(!Number.isFinite(windowId)){
       if(Object.prototype.toString.call(windowId)=="[object Object]"){
         [windowId,options,callback] = [null,windowId,options]
       }
@@ -286,10 +298,13 @@ if(chrome.tabs){
       }
     })
   }
+  chrome.tabs.getZoom =(tabId, callback)=>simpleIpcFunc('chrome-tabs-getZoom',callback,tabId)
+
+  chrome.tabs.setZoom =(tabId, zoomFactor, callback)=>simpleIpcFunc('chrome-tabs-setZoom',callback,tabId,zoomFactor)
 
   chrome.tabs._executeScript = chrome.tabs.executeScript
   chrome.tabs.executeScript = (tabId,details,callback) => {
-    if (!isFinite(tabId)) {
+    if (!Number.isFinite(tabId) && tabId !== null && tabId !== void 0) {
       [tabId,details,callback] = [null,tabId,details]
       simpleIpcFunc('chrome-tabs-current-tabId',tabId=>{
         chrome.tabs._executeScript(tabId, details, callback)
@@ -301,7 +316,7 @@ if(chrome.tabs){
   }
 
   chrome.tabs.insertCSS = (tabId,details,callback) => {
-    if(!isFinite(tabId)){
+    if(!Number.isFinite(tabId)){
       if(Object.prototype.toString.call(tabId)=="[object Object]"){
         [tabId,details,callback] = [null,tabId,details]
       }
@@ -471,6 +486,12 @@ if(chrome.webNavigation){
       }
     }
   }
+
+
+  chrome.webNavigation.getAllFrames = (details, callback)=>{
+    simpleIpcFunc('chrome-webNavigation-getAllFrames',callback,details)
+  }
+
 }
 
 if(chrome.proxy){
@@ -522,6 +543,7 @@ if(chrome.browserAction){
   chrome.pageAction.show = chrome.browserAction.enable
   chrome.pageAction.hide = chrome.browserAction.disable
 
+
   const ipc = chrome.ipcRenderer
   const method = 'onClicked'
   const name = `chrome-browserAction-${method}`
@@ -547,6 +569,21 @@ if(chrome.browserAction){
       return !!Object.keys(onClicked).length
     }
   }
+
+  // chrome.browserAction._setIcon = chrome.browserAction.setIcon
+  // chrome.browserAction.setIcon = (details,callback) => {
+  //   try{
+  //     throw new Error('get-stacktrace')
+  //   }catch(e){
+  //     const path = e.stack.split("\n")[2].split("(")[1].split("/").slice(3,-1)
+  //     if(details.path && path.length){
+  //       details = Object.assign({},details)
+  //       details.path = `${path}/${details.path}`
+  //     }
+  //   }finally{
+  //     chrome.browserAction._setIcon(details,callback)
+  //   }
+  // }
 }
 
 if(chrome.storage){
@@ -602,10 +639,81 @@ if(chrome.bookmarks){
   chrome.bookmarkManagerPrivate.onMetaInfoChanged = settingObj
 }
 
+if(chrome.sessions){
+  chrome.sessions.getRecentlyClosed = (filter, callback) => {
+    if(typeof filter === 'function') [filter,callback] = [null,filter]
+    simpleIpcFunc('chrome-sessions-getRecentlyClosed',callback,filter)
+  }
+  chrome.sessions.restore = (sessionId, callback) => {
+    if(typeof sessionId === 'function') [sessionId,callback] = [null,sessionId]
+    simpleIpcFunc('chrome-sessions-restore',(type,tabId)=>{
+      if(type == "tab"){
+        chrome.tabs.get(tabId,tab=>callback({lastModified:Date.now(),tab}))
+      }
+      else{
+        callback({lastModified:Date.now(),window:{}}) //@TODO
+      }
+    },sessionId)
+  }
+
+  if('browser' in this){
+    const tabMap = new Map(), winMap = new Map()
+    browser.sessions.setTabValue = (tabId, key, value) => {
+      const values = tabMap.get(tabId)
+      if(values){
+        values.set(key,value)
+      }
+      else{
+        tabMap.set(new Map([[key,value]]))
+      }
+      return new Promise(r=>r())
+    }
+    browser.sessions.getTabValue = (tabId, key) => {
+      const values = tabMap.get(tabId)
+      if(values){
+        return new Promise(r=>r(values.get(key)))
+      }
+      else{
+        return new Promise(r=>r())
+      }
+    }
+    browser.sessions.removeTabValue = (tabId, key) => {
+      const values = tabMap.get(tabId)
+      if(values) values.delete(key)
+      return new Promise(r=>r())
+    }
+
+    browser.sessions.setWindowValue = (windowId, key, value) => {
+      const values = winMap.get(windowId)
+      if(values){
+        values.set(key,value)
+      }
+      else{
+        winMap.set(new Map([[key,value]]))
+      }
+      return new Promise(r=>r())
+    }
+    browser.sessions.getWindowValue = (windowId, key) => {
+      const values = winMap.get(windowId)
+      if(values){
+        return new Promise(r=>r(values.get(key)))
+      }
+      else{
+        return new Promise(r=>r())
+      }
+    }
+    browser.sessions.removeWindowValue = (windowId, key)  => {
+      const values = winMap.get(windowId)
+      if(values) values.delete(key)
+      return new Promise(r=>r())
+    }
+
+  }
+}
+
 if(chrome.topSites){
   chrome.topSites.get = callback => simpleIpcFunc('chrome-topSites-get',callback)
 }
-
 
 if(chrome.commands) {
   const ipc = chrome.ipcRenderer
@@ -665,13 +773,61 @@ if('browser' in this){
   browser.sidebarAction = {}
   browser.sidebarAction.open  = callback => simpleIpcFunc('chrome-sidebarAction-open',callback,chrome.runtime.id)
   browser.sidebarAction.close  = callback => simpleIpcFunc('chrome-sidebarAction-close',callback,chrome.runtime.id)
+
+  Array.concat = (...args)=>Array.prototype.concat.call(...args)
+  Array.every = (...args)=>Array.prototype.every.call(...args)
+  Array.filter = (...args)=>Array.prototype.filter.call(...args)
+  Array.forEach = (...args)=>Array.prototype.forEach.call(...args)
+  Array.indexOf = (...args)=>Array.prototype.indexOf.call(...args)
+  Array.join = (...args)=>Array.prototype.join.call(...args)
+  Array.lastIndexOf = (...args)=>Array.prototype.lastIndexOf.call(...args)
+  Array.map = (...args)=>Array.prototype.map.call(...args)
+  Array.pop = (...args)=>Array.prototype.pop.call(...args)
+  Array.push = (...args)=>Array.prototype.push.call(...args)
+  Array.reduce = (...args)=>Array.prototype.reduce.call(...args)
+  Array.reduceRight = (...args)=>Array.prototype.reduceRight.call(...args)
+  Array.reverse = (...args)=>Array.prototype.reverse.call(...args)
+  Array.shift = (...args)=>Array.prototype.shift.call(...args)
+  Array.slice = (...args)=>Array.prototype.slice.call(...args)
+  Array.some = (...args)=>Array.prototype.some.call(...args)
+  Array.sort = (...args)=>Array.prototype.sort.call(...args)
+  Array.splice = (...args)=>Array.prototype.splice.call(...args)
+  Array.unshift = (...args)=>Array.prototype.unshift.call(...args)
+  String.charAt = (...args)=>String.prototype.charAt.call(...args)
+  String.charCodeAt = (...args)=>String.prototype.charCodeAt.call(...args)
+  String.concat = (...args)=>String.prototype.concat.call(...args)
+  String.endsWith = (...args)=>String.prototype.endsWith.call(...args)
+  String.includes = (...args)=>String.prototype.includes.call(...args)
+  String.indexOf = (...args)=>String.prototype.indexOf.call(...args)
+  String.lastIndexOf = (...args)=>String.prototype.lastIndexOf.call(...args)
+  String.localeCompare = (...args)=>String.prototype.localeCompare.call(...args)
+  String.match = (...args)=>String.prototype.match.call(...args)
+  String.normalize = (...args)=>String.prototype.normalize.call(...args)
+  String.replace = (...args)=>String.prototype.replace.call(...args)
+  String.search = (...args)=>String.prototype.search.call(...args)
+  String.slice = (...args)=>String.prototype.slice.call(...args)
+  String.split = (...args)=>String.prototype.split.call(...args)
+  String.startsWith = (...args)=>String.prototype.startsWith.call(...args)
+  String.substr = (...args)=>String.prototype.substr.call(...args)
+  String.substring = (...args)=>String.prototype.substring.call(...args)
+  String.toLocaleLowerCase = (...args)=>String.prototype.toLocaleLowerCase.call(...args)
+  String.toLocaleUpperCase = (...args)=>String.prototype.toLocaleUpperCase.call(...args)
+  String.toLowerCase = (...args)=>String.prototype.toLowerCase.call(...args)
+  String.toUpperCase = (...args)=>String.prototype.toUpperCase.call(...args)
+  String.trim = (...args)=>String.prototype.trim.call(...args)
+  String.trimLeft = (...args)=>String.prototype.trimLeft.call(...args)
+  String.trimRight = (...args)=>String.prototype.trimRight.call(...args)
+}
+
+if(('browser' in this) && browser.permissions){
+  browser.permissions.contains = (permissions) => new Promise(r=>r(true)) //@TODO
 }
 
 if(chrome.notifications){
   const onClosedEvents = new Set(),onClickedEvent = new Set() ,notifications = {}
   chrome.notifications = {}
   chrome.notifications.create = (notificationId, options, callback) => {
-    if(typeof notificationId !== "string"){
+    if(typeof notificationId !== "string" && notificationId !== null && notificationId !== void 0 ){
       [notificationId,options,callback] = [Math.random().toString(),notificationId,options]
     }
     const params = {}
@@ -711,9 +867,11 @@ if(chrome.notifications){
   }
 
   chrome.notifications.clear = (notificationId, callback) => {
-    const [n,options] = notifications[notificationId]
-    delete notifications[notificationId]
-    n.close()
+    if(notifications[notificationId]){
+      const [n,options] = notifications[notificationId]
+      delete notifications[notificationId]
+      n.close()
+    }
   }
 
   chrome.notifications.getAll = (callback) => {

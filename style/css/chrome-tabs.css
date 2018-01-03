@@ -100,6 +100,7 @@
 
 .chrome-tabs .chrome-tab-drag.multi-row .chrome-tab-background,
 .chrome-tab-selection.multi-row .chrome-tab-background,
+.vertical-tab .chrome-tab-drag,
 .vertical-selection{
   border: 1px dashed white !important;
 }

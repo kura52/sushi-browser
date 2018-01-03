@@ -181,6 +181,7 @@
       console.log("unmountMount")
       this.componentWillUnmount()
       this.componentDidMount()
+      for(let e of document.querySelectorAll("span.rdTabAddButton")){e.setAttribute('draggable', true)}
     }
   };
 

@@ -71,6 +71,13 @@ function getUrlVars(){
   return vars;
 }
 
+function eachSlice(arr,size){
+  const newArray = []
+  for (let i = 0, l = arr.length; i < l; i += size){
+    newArray.push(arr.slice(i, i + size))
+  }
+  return newArray
+}
 
 global.multiSelection = true
 class Selector extends React.Component {
@@ -263,15 +270,19 @@ class Selector extends React.Component {
   }
 
   async getVideoUrls(urls,callback){
-    for(let url of urls){
-      const key = Math.random().toString()
-      new Promise((resolve,reject)=>{
-        ipc.send('get-video-urls',key,url)
-        ipc.once(`get-video-urls-reply_${key}`,(e,info)=>{
-          if(!info) resolve()
-          callback(info.url,info.filename)
-        })
-      })
+    for(let urlList of eachSlice(urls,4)){
+      const promises = []
+      for(let url of urlList){
+        const key = Math.random().toString()
+        promises.push(new Promise((resolve,reject)=>{
+          ipc.send('get-video-urls',key,url)
+          ipc.once(`get-video-urls-reply_${key}`,(e,info)=>{
+            if(info) callback(info.url,info.filename)
+            resolve()
+          })
+        }))
+      }
+      await Promise.all(promises)
     }
   }
 

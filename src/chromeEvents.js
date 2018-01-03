@@ -5,8 +5,9 @@ import sh from 'shelljs'
 import PubSub from './render/pubsub'
 import uuid from 'node-uuid'
 const seq = require('./sequence')
-const {state,favorite,history,visit,downloader} = require('./databaseFork')
+const {state,favorite,history,visit,downloader,tabState,windowState,savedState} = require('./databaseFork')
 const db = require('./databaseFork')
+const {frameCache} = require('../brave/adBlock')
 const franc = require('franc')
 const chromeManifestModify = require('./chromeManifestModify')
 const extensions = require('../brave/extension/extensions')
@@ -80,6 +81,10 @@ function simpleIpcFuncCb(name,callback){
   })
 }
 
+function stripBOM(str){
+  return str.charCodeAt(0) === 0xFEFF ? str.slice(1) : str
+}
+
 const {getPath1,getPath2,extensionPath} = require('./chromeExtensionUtil')
 
 ipcMain.on('add-extension',(e,{id,url})=>{
@@ -123,7 +128,7 @@ ipcMain.on('add-extension',(e,{id,url})=>{
           }
           const dir = path.dirname(manifestPath)
 
-          const verPath = path.join(extRootPath,JSON.parse(fs.readFileSync(manifestPath)).version)
+          const verPath = path.join(extRootPath,JSON.parse(stripBOM(fs.readFileSync(manifestPath).toString())).version)
           fs.mkdirSync(extRootPath)
           fs.renameSync(dir, verPath)
           if(fs.existsSync(`${extRootPath}_crx`)){
@@ -163,7 +168,30 @@ simpleIpcFunc('chrome-runtime-openOptionsPage',id=>{
   }
 })
 
-
+// for(let method of ['onMessage']){
+//   const registBackgroundPages = new Map()
+//   const name = `browser-runtime-webext-${method}`
+//   ipcMain.on(`regist-${name}`,(e,id)=> registBackgroundPages.set(e.sender,id))
+//   ipcMain.on(`unregist-${name}`,(e)=> registBackgroundPages.delete(e.sender))
+//   ipcMain.on(`browser-message-webext`,(e,key,appId,message,sender)=>{
+//     for(let [cont,id] of registBackgroundPages) {
+//       // console.log(name, key, message, sender,id,appId)
+//       if (cont.isDestroyed()) {
+//         registBackgroundPages.delete(cont)
+//         continue
+//       }
+//       if(id != appId || (e.sender.getId() === cont.getId() && !sender.tab)) continue
+//       // console.log(name, key, message, sender)
+//       ipcMain.once(`browser-message-webext-reply-bg_${key}`,(e2,valid,val)=>{
+//         if(valid){
+//           e.sender.send(`browser-message-webext-reply_${key}`,val)
+//         }
+//       })
+//       if(sender.content) sender.tabId = e.sender.getId()
+//       cont.send(name, key, message, sender)
+//     }
+//   })
+// }
 
 //#i18n
 simpleIpcFunc('chrome-i18n-getAcceptLanguages',_=>{
@@ -204,7 +232,7 @@ simpleIpcFunc('chrome-windows-create',createData=>{
       try {
         if(!win.webContents.isDestroyed()){
           win.webContents.send('chrome-windows-create-from-tabId',createData);
-        }pc
+        }
       }catch(e){
         // console.log(e)
       }
@@ -499,6 +527,20 @@ for(let method of webNavigationMethods){
     }
   })
 }
+simpleIpcFunc('chrome-webNavigation-getAllFrames',details=>{
+  const tab = webContents.fromTabID(details.tabId)
+  const url = tab.getURL()
+  const ret = [{errorOccurred: false, frameId: 0, parentFrameId: -1, processId: 1, url}]
+  const arr = frameCache.get(url) || []
+  for(let x of arr){
+    if(x.tabId == details.tabId){
+      ret.push({errorOccurred: false, frameId: x.id, parentFrameId: 0, processId: 1, url: x.url})
+    }
+  }
+  return ret
+})
+
+
 
 //#proxy
 simpleIpcFuncCb('chrome-proxy-settings-set',(details,cb)=>{
@@ -1026,6 +1068,177 @@ simpleIpcFuncCb('chrome-bookmarks-removeTree',async (id, cb)=>{
   cb()
 })
 
+async function getTabStates(limit){
+  const recs = await tabState.find_sort_limit([{close:1}],[{updated_at: -1}],[limit])
+  const result = []
+  for(let rec of recs){
+    const ind = rec.currentIndex
+    const title = rec.titles.split("\t")[ind]
+    const url = rec.urls.split("\t")[ind]
+    result.push({
+      active:rec.active,
+      audible:false,
+      autoDiscardable:true,
+      discarded:false,
+      highlighted:rec.active,
+      id:rec.id,
+      incognito:false,
+      index:rec.index,
+      openerTabId:rec.openerTabId,
+      pinned:rec.pinned,
+      selected:rec.active,
+      title,
+      url,
+      windowId:rec.windowId,
+      sessionId:rec.tabKey,
+      lastAccessed:rec.updated_at
+    })
+  }
+  return result
+}
+function allKeys(node,arr){
+  if(node.l){
+    if (node.l.tabs) {
+      if(node.l) arr.push(...node.l.tabs.map(x=>x.tabKey))
+    }
+    else{
+      allKeys(node.l,arr)
+    }
+  }
+  if(node.r){
+    if (node.r.tabs) {
+      if(node.r) arr.push(...node.r.tabs.map(x=>x.tabKey))
+    }
+    else{
+      allKeys(node.r,arr)
+    }
+  }
+  return arr
+}
+
+async function getWindowStates(limit){
+  const winStates = await windowState.find_sort_limit([{close:1}],[{updated_at: -1}],[limit])
+  const keys = winStates.map(x=>x.id)
+  const states = await savedState.find({_id:{$in:keys}})
+
+  const result = []
+  for(let wState of winStates){
+    const state = states.find(x=>x._id == wState.id)
+    if(!state) continue
+    const win = state.wins.find(win=>win.winState.key == wState.key)
+    const keys2 = allKeys(win.winState,[])
+    console.log(win.winState,keys2)
+    const tabRecs = await tabState.find({tabKey:{$in:keys2}})
+    const tabs = []
+    for(let rec of tabRecs){
+      const ind = rec.currentIndex
+      const title = rec.titles.split("\t")[ind]
+      const url = rec.urls.split("\t")[ind]
+      tabs.push({
+        active:rec.active,
+        audible:false,
+        autoDiscardable:true,
+        discarded:false,
+        highlighted:rec.active,
+        id:rec.id,
+        incognito:false,
+        index:rec.index,
+        openerTabId:rec.openerTabId,
+        pinned:rec.pinned,
+        selected:rec.active,
+        title,
+        url,
+        windowId:rec.windowId,
+        sessionId:rec.tabKey,
+        lastAccessed:rec.updated_at
+      })
+    }
+
+    if(tabs.length > 1){
+      result.push({
+        alwaysOnTop:false,
+        focused:false,
+        incognito:false,
+        sessionId:wState.key,
+        state:"normal",
+        tabs,
+        type:"normal",
+        lastAccessed:winStates[0].updated_at
+      })
+    }
+    else if(tabs[0]){
+      result.push(tabs[0])
+    }
+  }
+
+  return result
+}
+
+//#sessions
+
+async function getRecentlyClosed(filter, cb){
+  const limit = (filter && filter.maxResults) || 25
+  const tabs = await getTabStates(limit)
+  const windows = await getWindowStates(limit)
+
+  tabs.push(...windows)
+  tabs.sort((a,b)=> b.lastAccessed - a.lastAccessed)
+
+  const set = new Set()
+  const result = []
+
+  for(let e of tabs){
+    if(set.has(e.sessionId)) continue
+
+    if(e.tabs){
+      result.push({lastModified: e.lastAccessed,window: e})
+      set.add(e.sessionId)
+    }
+    else{
+      result.push({lastModified: e.lastAccessed,tab: e})
+      set.add(e.sessionId)
+    }
+  }
+  cb(result.slice(0,limit))
+}
+
+simpleIpcFuncCb('chrome-sessions-getRecentlyClosed',getRecentlyClosed)
+
+simpleIpcFuncCb('chrome-sessions-restore', async (sessionId, cb)=>{
+  if(!sessionId){
+    const recent1 = await new Promise((resolve)=> getRecentlyClosed({maxResults:1},resolve))
+    sessionId = recent1[0] && ((recent1[0].tab || recent1[0].window).sessionId)
+  }
+  getFocusedWebContents().then(async cont=>{
+    if(sessionId.match(/^\d+_/)){
+      cont.hostWebContents.send('restore-tabs-from-tabKey',sessionId,cont.getId())
+      ipcMain.once(`restore-tabs-from-tabKey-reply_${sessionId}`,(e,tabId)=>{
+        cb('tab',tabId)
+      })
+    }
+    else{
+
+      const winStates = await windowState.findOne({key:sessionId})
+      const state = await savedState.findOne({_id:winStates.id})
+      const win = state.wins.find(win=>win.winState.key == sessionId)
+
+      const key = uuid.v4()
+      ipcMain.emit('open-savedState',{sender:cont.hostWebContents},key,cont.getId(),win)
+      ipcMain.once(`open-savedState-reply_${key}`,_=>{
+        cb('window') //@TODO
+      })
+    }
+  })
+})
+
+// simpleIpcFuncCb('browser-sessions-setTabValue', async (tabId, key, value, cb)=>{})
+// simpleIpcFuncCb('browser-sessions-getTabValue', async (tabId, key, cb)=>{})
+// simpleIpcFuncCb('browser-sessions-removeTabValue', async (tabId, key, cb)=>{})
+// simpleIpcFuncCb('browser-sessions-setWindowValue', async (windowId, key, value, cb)=>{})
+// simpleIpcFuncCb('browser-sessions-getWindowValue', async (windowId, key, cb)=>{})
+// simpleIpcFuncCb('browser-sessions-removeWindowValue', async (windowId, key, cb)=>{})
+
+//#sidebar
 simpleIpcFuncCb('chrome-sidebarAction-open',async (id, cb)=>{
   const url = `chrome-extension://${id}/${extInfos[id].manifest.sidebar_action.default_panel}`
   getCurrentWindow().webContents.send('open-fixed-panel',url)
@@ -1048,7 +1261,7 @@ for(let method of ['onCommand']){
       if (!cont.isDestroyed()) {
         if(command == '_execute_browser_action' || command == '_execute_page_action'){
           getFocusedWebContents().then(cont=>{
-            ipc.send('chrome-browserAction-onClicked', id, cont.getId())
+            cont.send('chrome-browserAction-onClicked', id, cont.getId())
           })
         }
         else{

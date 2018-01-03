@@ -27489,6 +27489,20 @@ function throwError(message) {
     }
     throw new Error(("Inferno Error: " + message));
 }
+function Lifecycle() {
+    this.listeners = [];
+}
+Lifecycle.prototype.addListener = function addListener(callback) {
+    this.listeners.push(callback);
+};
+Lifecycle.prototype.trigger = function trigger() {
+    var listeners = this.listeners;
+    var listener;
+    // We need to remove current listener from array when calling it, because more listeners might be added
+    while ((listener = listeners.shift())) {
+        listener();
+    }
+};
 
 /**
  * @module Inferno-Create-Class
@@ -27671,6 +27685,20 @@ function isUndefined$1(o) {
 function isObject$1(o) {
     return typeof o === "object";
 }
+function Lifecycle$1() {
+    this.listeners = [];
+}
+Lifecycle$1.prototype.addListener = function addListener(callback) {
+    this.listeners.push(callback);
+};
+Lifecycle$1.prototype.trigger = function trigger() {
+    var listeners = this.listeners;
+    var listener;
+    // We need to remove current listener from array when calling it, because more listeners might be added
+    while ((listener = listeners.shift())) {
+        listener();
+    }
+};
 
 /**
  * @module Inferno-Create-Element
@@ -27792,6 +27820,20 @@ function isUndefined$2(o) {
 function isObject$2(o) {
     return typeof o === "object";
 }
+function Lifecycle$2() {
+    this.listeners = [];
+}
+Lifecycle$2.prototype.addListener = function addListener(callback) {
+    this.listeners.push(callback);
+};
+Lifecycle$2.prototype.trigger = function trigger() {
+    var listeners = this.listeners;
+    var listener;
+    // We need to remove current listener from array when calling it, because more listeners might be added
+    while ((listener = listeners.shift())) {
+        listener();
+    }
+};
 
 /**
  * @module Inferno-Compat
@@ -28622,6 +28664,9 @@ function handleEvent(name, lastEvent, nextEvent, dom) {
 function dispatchEvents(event, target, items, count, isClick, eventData) {
     var dom = target;
     while (count > 0) {
+        if (isClick && dom.disabled) {
+            return;
+        }
         var eventsToTrigger = items.get(dom);
         if (eventsToTrigger) {
             count--;
@@ -28641,7 +28686,7 @@ function dispatchEvents(event, target, items, count, isClick, eventData) {
         // Html Nodes can be nested fe: span inside button in that scenario browser does not handle disabled attribute on parent,
         // because the event listener is on document.body
         // Don't process clicks on disabled elements
-        if (dom === null || (isClick && dom.disabled)) {
+        if (dom === null) {
             return;
         }
     }
@@ -28996,13 +29041,13 @@ function applyValue$2(nextPropsOrEmpty, dom, mounting) {
  * Currently user must choose either controlled or non-controlled and stick with that
  */
 function processElement(flags, vNode, dom, nextPropsOrEmpty, mounting, isControlled) {
-    if (flags & 512 /* InputElement */) {
+    if ((flags & 512 /* InputElement */) > 0) {
         processInput(vNode, dom, nextPropsOrEmpty, mounting, isControlled);
     }
-    if (flags & 2048 /* SelectElement */) {
+    else if ((flags & 2048 /* SelectElement */) > 0) {
         processSelect(vNode, dom, nextPropsOrEmpty, mounting, isControlled);
     }
-    if (flags & 1024 /* TextareaElement */) {
+    else if ((flags & 1024 /* TextareaElement */) > 0) {
         processTextarea(vNode, dom, nextPropsOrEmpty, mounting, isControlled);
     }
 }
@@ -30661,7 +30706,14 @@ function setTextContent(dom, text) {
     }
 }
 function updateTextContent(dom, text) {
-    dom.firstChild.nodeValue = text;
+    var textNode = dom.firstChild;
+    // Guard against external change on DOM node.
+    if (isNull(textNode)) {
+        setTextContent(dom, text);
+    }
+    else {
+        textNode.nodeValue = text;
+    }
 }
 function appendChild(parentDom, dom) {
     parentDom.appendChild(dom);
@@ -31168,7 +31220,7 @@ if (false) {
             "See http://infernojs.org for more details.");
     }
 }
-var version = "3.9.0";
+var version = "3.10.1";
 // we duplicate it so it plays nicely with different module loading systems
 var index = {
     EMPTY_OBJ: EMPTY_OBJ,
@@ -31276,6 +31328,20 @@ function combineFrom(first, second) {
     }
     return out;
 }
+function Lifecycle() {
+    this.listeners = [];
+}
+Lifecycle.prototype.addListener = function addListener(callback) {
+    this.listeners.push(callback);
+};
+Lifecycle.prototype.trigger = function trigger() {
+    var listeners = this.listeners;
+    var listener;
+    // We need to remove current listener from array when calling it, because more listeners might be added
+    while ((listener = listeners.shift())) {
+        listener();
+    }
+};
 
 /**
  * @module Inferno-Component
@@ -31287,17 +31353,6 @@ if (false) {
         "Inferno Error: Can only update a mounted or mounting component. This usually means you called setState() or forceUpdate() on an unmounted component. This is a no-op.";
 }
 var componentCallbackQueue = new Map();
-// when a components root VNode is also a component, we can run into issues
-// this will recursively look for vNode.parentNode if the VNode is a component
-function updateParentComponentVNodes(vNode, dom) {
-    if (vNode.flags & 28 /* Component */) {
-        var parentVNode = vNode.parentVNode;
-        if (parentVNode) {
-            parentVNode.dom = dom;
-            updateParentComponentVNodes(parentVNode, dom);
-        }
-    }
-}
 var resolvedPromise = Promise.resolve();
 function addToQueue(component, force, callback) {
     var queue = componentCallbackQueue.get(component);
@@ -31345,7 +31400,7 @@ function queueStateChanges(component, newState, callback) {
     }
     else {
         component._pendingSetState = true;
-        if (!isNullOrUndef(callback) && component._blockRender) {
+        if (isFunction(callback) && component._blockRender) {
             component._lifecycle.addListener(callback.bind(component));
         }
     }
@@ -31421,13 +31476,17 @@ function applyState(component, force, callback) {
         if (inferno.options.findDOMNodeEnabled) {
             inferno.internal_DOMNodeMap.set(component, nextInput.dom);
         }
-        updateParentComponentVNodes(vNode, dom);
+        while (!isNullOrUndef((vNode = vNode.parentVNode))) {
+            if ((vNode.flags & 28 /* Component */) > 0) {
+                vNode.dom = dom;
+            }
+        }
     }
     else {
         component.state = component._pendingState;
         component._pendingState = null;
     }
-    if (!isNullOrUndef(callback)) {
+    if (isFunction(callback)) {
         callback.call(component);
     }
 }

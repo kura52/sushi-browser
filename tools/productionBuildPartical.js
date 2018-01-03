@@ -101,7 +101,8 @@ function build(){
 
   sh.mv('app.asar.unpacked/resource/extension/default/1.0_0/css/semantic-ui/themes/default/assets2',
     'app.asar.unpacked/resource/extension/default/1.0_0/css/semantic-ui/themes/default/assets')
-  sh.mv('app/resource/css/semantic-ui/themes/default/assets2','app/resource/css/semantic-ui/themes/default/assets')  if(sh.exec('asar pack app app.asar').code !== 0) {
+  sh.mv('app/resource/css/semantic-ui/themes/default/assets2','app/resource/css/semantic-ui/themes/default/assets')
+  if(sh.exec('asar pack app app.asar').code !== 0) {
     console.log("ERROR7")
     process.exit()
   }
@@ -213,6 +214,12 @@ function muonModify(){
 ipcMain.on('set-tab-opener',(e,tabId,openerTabId)=>{
   if(openerTabId) tabOpenerMap[tabId] = openerTabId
 })
+ipcMain.on('get-tab-opener',(e,tabId)=>{
+  ipcMain.emit(\`get-tab-opener-reply_\${tabId}\`,null,tabOpenerMap[tabId])
+})
+ipcMain.on('get-tab-opener-sync',(e,tabId)=>{
+  e.returnValue = tabOpenerMap[tabId]
+})
 ipcMain.on('update-tab-index-org',(e,tabId,index)=>tabIndexMap[tabId] = index)
 var getTabValue = function (tabId) {`)
 
@@ -296,7 +303,7 @@ var getTabValue = function (tabId) {`)
     const key = Math.random().toString()
     ipcMain.once(\`get-focused-webContent-reply_\${key}\`,(e,tabId)=>{
       const opener = webContents.fromTabID(tabId)
-      ses = opener.session
+      ses = opener && opener.session
       if (!error && createProperties.partition) {
         // createProperties.partition always takes precendence
         ses = session.fromPartition(createProperties.partition, {

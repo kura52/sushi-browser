@@ -98,12 +98,23 @@ const isThirdPartyHost = (baseContextHost, testHost) => {
 
 const registeredSession = new Set()
 const beforeRequestFilteringFns = []
+const frameCache = new LRUCache(200)
 function registerForBeforeRequest (session) {
   if(registeredSession.has(session)) return
   session.webRequest.onBeforeRequest((details, cb) => {
     if (shouldIgnoreUrl(details)) {
       cb({})
       return
+    }
+
+    if(details.resourceType === 'subFrame' && details.firstPartyUrl){
+      const arr = frameCache.get(details.firstPartyUrl)
+      if(arr){
+        arr.push(details)
+      }
+      else{
+        frameCache.set(details.firstPartyUrl,[details])
+      }
     }
 
     const firstPartyUrl = getMainFrameUrl(details)
@@ -200,5 +211,6 @@ module.exports = {
   adBlock: ses=>startAdBlocking(adblock,null,false,ses),
   registerForBeforeRequest,
   beforeRequestFilteringFns,
-  redirectUrlsCache
+  redirectUrlsCache,
+  frameCache
 }

@@ -21,8 +21,12 @@ const keyMapping = {
   keyNewSessionTab: l10n.translation('newSessionTab'),
   keyNewWindow: l10n.translation('newWindow'),
   keyOpenLocation: l10n.translation('openLocation'),
-  keyCloseTab: l10n.translation('closeTab'),
+  keyCloseTab: l10n.translation('tabCloseLabel'),
   keyCloseWindow: l10n.translation('closeWindow'),
+  keyClosePanel: l10n.translation('closeAllTabsMenuLabel'),
+  keyCloseOtherTabs: l10n.translation('closeOtherTabs'),
+  keyCloseTabsToLeft: l10n.translation('closeTabsToLeft'),
+  keyCloseTabsToRight: l10n.translation('closeTabsToRight'),
   keySavePageAs: l10n.translation('savePageAs'),
   keyPrint: l10n.translation('print'),
   keyQuit: l10n.translation('quitApp').replace('Brave','Sushi Browser'),
@@ -42,14 +46,20 @@ const keyMapping = {
   keyStop: l10n.translation('stop'),
   keyReloadPage: l10n.translation('reloadPage'),
   keyCleanReload: l10n.translation('cleanReload'),
+  keyClicktabReloadtabs: l10n.translation('clicktabReloadtabs'),
+  keyClicktabReloadothertabs: l10n.translation('clicktabReloadothertabs'),
+  keyClicktabReloadlefttabs: l10n.translation('clicktabReloadlefttabs'),
+  keyClicktabReloadrighttabs: l10n.translation('clicktabReloadrighttabs'),
   keyToggleDeveloperTools: l10n.translation('toggleDeveloperTools'),
   keyToggleFullScreenView: l10n.translation('toggleFullScreenView'),
   keyHome: l10n.translation('home'),
   keyBack: l10n.translation('back'),
   keyForward: l10n.translation('forward'),
   keyReopenLastClosedTab: l10n.translation('reopenLastClosedTab'),
+  keyClicktabUcatab: l10n.translation('clicktabUcatab'),
   keyShowAllHistory: l10n.translation('showAllHistory'),
   keyBookmarkPage: l10n.translation('bookmarkPage'),
+  keyAddBookmarkAll: l10n.translation('5078638979202084724'),
   keyBookmarksManager: l10n.translation('bookmarksManager'),
   keyViewPageSource: l10n.translation('viewPageSource'),
   keyMinimize: l10n.translation('minimize'),
@@ -70,6 +80,8 @@ const keyMapping = {
   keySplitRight: 'Split Right',
   keySplitTop: 'Split Top',
   keySplitBottom: 'Split Bottom',
+  keySplitLeftTabs: 'Split left tabs to left',
+  keySplitRightTabs: 'Split right tabs to right',
   keySwapPosition: 'Swap Position',
   keySwitchDirection: 'Switch Direction',
   keyAlignHorizontal: 'Align Horizontal',
@@ -78,7 +90,21 @@ const keyMapping = {
   keyOpenSidebar: 'Open Sidebar',
   keyChangeMobileAgent: 'Change to Mobile Agent',
   keyDetachPanel: 'Detach Panel',
-  keyClosePanel: 'Close Panel',
+
+  // keyDownloadAll: 'Download All',
+  // keyPageTranslate: l10n.translation('2473195200299095979'),
+
+  //clipboard
+  keyClicktabCopyTabUrl: l10n.translation('clicktabCopyTabUrl'),
+  keyClicktabCopyUrlFromClipboard: l10n.translation('clicktabCopyUrlFromClipboard'),
+  keyPasteAndOpen: 'Paste and Open',
+  keyCopyTabInfo: 'Copy Tab Info',
+  keyCopyAllTabInfos: 'Copy All Tab Infos',
+
+  //util
+  keyDuplicateTab: l10n.translation('3007771295016901659'),
+  keyUnpinTab: l10n.translation('pinTab'),
+  keyUnmuteTab: l10n.translation('muteTab'),
   keyDownloadsManager: l10n.translation('downloadsManager'),
   keyHideBrave: l10n.translation('hideBrave').replace('Brave','Sushi Browser'),
   keyHideOthers: l10n.translation('hideOthers'),
@@ -298,7 +324,7 @@ const contextMenus = [
 
   ['openSearch', l10n.translation('openSearch').replace(/{{ *selectedVariable *}}/,'')],
   ['Copy Links', 'Copy Links'],
-  ['Open Links', 'Open Links'],
+  ['openalllinksLabel', l10n.translation('openalllinksLabel')],
   ['Download Selection', 'Download Selection'],
   ['savePageAs', l10n.translation('savePageAs')],
   ['bookmarkPage', l10n.translation('bookmarkPage')],
@@ -387,21 +413,37 @@ const tabContextMenus = [
 
   ['divider', null],
 
-  ['reload', l10n.translation('reload')],
-  ['cleanReload', l10n.translation('cleanReload')],
-  ['3007771295016901659', l10n.translation('3007771295016901659')],
-  ['unpinTab', l10n.translation('unpinTab')],
+  ['clicktabCopyTabUrl',l10n.translation('clicktabCopyTabUrl')],
+  ['clicktabCopyUrlFromClipboard',l10n.translation('clicktabCopyUrlFromClipboard')],
+  ['Paste and Open','Paste and Open'],
+  ['Copy Tab Info','Copy Tab Info'],
+  ['Copy All Tab Infos','Copy All Tab Infos'],
 
   ['divider', null],
 
+  ['reload', l10n.translation('reload')],
+  ['cleanReload', l10n.translation('cleanReload')],
+  ['clicktabReloadtabs', l10n.translation('clicktabReloadtabs')],
+  ['clicktabReloadothertabs', l10n.translation('clicktabReloadothertabs')],
+  ['clicktabReloadlefttabs', l10n.translation('clicktabReloadlefttabs')],
+  ['clicktabReloadrighttabs', l10n.translation('clicktabReloadrighttabs')],
+  ['autoReloadTabLabel', l10n.translation('autoReloadTabLabel')],
+  ['3007771295016901659', l10n.translation('3007771295016901659')],
+  ['unpinTab', l10n.translation('pinTab')],
+  ['unmuteTab', l10n.translation('muteTab')],
+
+  ['divider', null],
+
+  ['closeTab', l10n.translation('closeTab')],
   ['closeOtherTabs', l10n.translation('closeOtherTabs')],
   ['closeTabsToLeft', l10n.translation('closeTabsToLeft')],
   ['closeTabsToRight', l10n.translation('closeTabsToRight')],
-  ['Close all Tabs','Close all Tabs'],
+  ['closeAllTabsMenuLabel',l10n.translation('closeAllTabsMenuLabel')],
 
   ['divider', null],
 
   ['reopenLastClosedTab', l10n.translation('reopenLastClosedTab')],
+  ['clicktabUcatab', l10n.translation('clicktabUcatab')],
   ['bookmarkPage', l10n.translation('bookmarkPage')],
   ['5078638979202084724', l10n.translation('5078638979202084724')],
 
@@ -463,6 +505,7 @@ class GeneralSetting extends React.Component {
     this.clear = []
   }
 
+
   onChange(name,e,data){
     ipc.send('save-state',{tableName:'state',key:name,val:data.value || data.checked})
   }
@@ -519,10 +562,41 @@ class GeneralSetting extends React.Component {
 
 
         <div className="field">
-          <label>Session Autosave Interval</label>
+          <label>{l10n.translation('ssInterval')}&nbsp;({l10n.translation('secondsLabel')})</label>
           <Input onChange={this.onChange.bind(this,'autoSaveInterval')} defaultValue={this.state.autoSaveInterval}/>
         </div>
         <br/>
+
+        <div className="field">
+          <label>{l10n.translation('autocompleteData')} ({l10n.translation('requiresRestart').replace('* ','')})</label>
+        </div>
+
+        <Grid>
+          <Grid.Row>
+            <Grid.Column width={3}><label>Order of AutoComplete</label></Grid.Column>
+            <Grid.Column width={8}><Dropdown onChange={this.onChange.bind(this,'orderOfAutoComplete')} selection
+                                             options={[
+                                               {key:'suggestionToHistory',value:'suggestionToHistory',text:'Suggestion -> History'},
+                                               {key:'historyToSuggestion',value:'historyToSuggestion',text:'History -> Suggestion'},
+                                             ]}
+                                             defaultValue={this.state.orderOfAutoComplete}/></Grid.Column>
+          </Grid.Row>
+          <Grid.Row>
+            <Grid.Column width={3}><label>Number of Suggestions</label></Grid.Column>
+            <Grid.Column width={8}><Dropdown onChange={this.onChange.bind(this,'numOfSuggestion')} selection
+                                             options={concurrentDownloadOptions} defaultValue={this.state.numOfSuggestion}/></Grid.Column>
+          </Grid.Row>
+          <Grid.Row>
+            <Grid.Column width={3}><label>Number of Histories</label></Grid.Column>
+            <Grid.Column width={8}><Dropdown onChange={this.onChange.bind(this,'numOfHistory')} selection
+                                             options={concurrentDownloadOptions} defaultValue={this.state.numOfHistory}/></Grid.Column>
+          </Grid.Row>
+        </Grid>
+
+        <br/>
+        <br/>
+
+
 
         <div className="field">
           <label>Protection</label>
@@ -545,23 +619,10 @@ class GeneralSetting extends React.Component {
         <br/>
 
         <div className="field">
-          <label>Tabs</label>
-          <Checkbox defaultChecked={this.state.scrollTab} toggle onChange={this.onChange.bind(this,'scrollTab')}/>
-          <span className="toggle-label">Enable mouse wheel scroll tab selection ({l10n.translation('requiresRestart').replace('* ','')})</span>
-          <br/>
-
-          <Checkbox defaultChecked={this.state.multistageTabs} toggle onChange={this.onChange.bind(this,'multistageTabs')}/>
-          <span className="toggle-label">Enable Multi Row Tabs ({l10n.translation('requiresRestart').replace('* ','')})</span>
-          <br/>
-
-          <label>Tab Min Width</label>
-          <Input onChange={this.onChange.bind(this,'tabMinWidth')} defaultValue={this.state.tabMinWidth}/>
-        </div>
-        <br/>
-
-
-        <div className="field">
           <label>Special Behavior</label>
+          {isDarwin ? null : <Checkbox defaultChecked={this.state.displayFullIcon} toggle onChange={this.onChange.bind(this,'displayFullIcon')}/>}
+          {isDarwin ? null : <span className="toggle-label">Show Fullscreen Button({l10n.translation('requiresRestart').replace('* ','')})</span>}
+          {isDarwin ? null : <br/>}
           <Checkbox defaultChecked={this.state.tripleClick} toggle onChange={this.onChange.bind(this,'tripleClick')}/>
           <span className="toggle-label">Enable horizontal position moving (When you triple left clicking)</span>
           <br/>
@@ -570,7 +631,6 @@ class GeneralSetting extends React.Component {
           <br/>
           <Checkbox defaultChecked={this.state.longPressMiddle} toggle onChange={this.onChange.bind(this,'longPressMiddle')}/>
           <span className="toggle-label">Enable behavior change when long press of middle mouse button ({l10n.translation('requiresRestart').replace('* ','')})</span>
-
         </div>
         <br/>
 
@@ -859,15 +919,245 @@ class SearchSetting extends React.Component {
 }
 
 
+let TabDefault
 class TabsSetting extends React.Component {
   constructor(props) {
     super(props)
+    this.state = {...TabDefault,errors:{}}
+    this.mouseOptions = this.makeOptions(['clicktabNothing','newTab','newPrivateTab','newSessionTab','Split Left','Split Right','Split Top','Split Bottom','Split left tabs to left','Split right tabs to right','Floating Panel','Swap Position','Switch Direction','Align Horizontal','Align Vertical','clicktabCopyTabUrl','clicktabCopyUrlFromClipboard','Paste and Open','Copy Tab Info','Copy All Tab Infos','reload','cleanReload','clicktabReloadtabs','clicktabReloadothertabs','clicktabReloadlefttabs','clicktabReloadrighttabs','3007771295016901659','unpinTab','unmuteTab','closeTab','closeOtherTabs','closeTabsToLeft','closeTabsToRight','closeAllTabsMenuLabel','reopenLastClosedTab','clicktabUcatab','bookmarkPage','5078638979202084724'])
   }
 
+  onChange2(isTab,name,e,data){
+    const disableMenu = isTab ? 'disableTabContextMenus' : 'disableContextMenus'
+    const val = data.checked
+    if(val){
+      this.state[disableMenu] = this.state[disableMenu].filter(x=>x!==name)
+    }
+    else{
+      this.state[disableMenu].push(name)
+    }
+    ipc.send('save-state',{tableName:'state',key:disableMenu,val:this.state[disableMenu]})
+
+    this.setState({})
+  }
+
+  emitChange(isTab,name,e){
+    const val = e.target.innerText
+    const priorityMenu = isTab ? 'priorityTabContextMenus' : 'priorityContextMenus'
+    if(val == "" || val === void 0){
+      delete this.state[priorityMenu]
+    }
+    else{
+      this.state[priorityMenu][name] = val
+    }
+    ipc.send('save-state',{tableName:'state',key:priorityMenu,val:this.state[priorityMenu]})
+  }
+
+  onBlur(isTab,name,e){
+    this.emitChange(isTab, name, e)
+    this.setState({})
+  }
+
+  renderRows(isTab){
+    const disableMenu = isTab ? 'disableTabContextMenus' : 'disableContextMenus'
+    const priorityMenu = isTab ? 'priorityTabContextMenus' : 'priorityContextMenus'
+    const ret = []
+    let i = 0
+    let divider
+    for(let [key,name] of (isTab ? tabContextMenus : contextMenus)){
+      if(key == 'divider'){
+        divider = true
+        continue
+      }
+      ret.push(
+        <tr key={`tr${i}`} style={divider ? {borderTop: '3px double rgba(34,36,38,.15)'} : {}}>
+          <td key={`default${i}`}>
+            <Checkbox defaultChecked={!this.state[disableMenu].find(x=>x==key)} toggle onChange={this.onChange2.bind(this,isTab,key)}/>
+          </td>
+          <td key={`name${i}`} >{name}</td>
+          <td key={`shortcut${i}`} data-num={i} data-name='shortcut' onInput={this.emitChange.bind(this,isTab,key)} onBlur={this.onBlur.bind(this,isTab,key)} contentEditable>{this.state[priorityMenu][key]||"0"}</td>
+        </tr>)
+      divider = false
+      i++
+    }
+
+    return ret
+  }
+
+  onChange(name,e,data){
+    // if(name == 'blackListVideo') data = {value: data.value.split("\n")}
+    ipc.send('save-state',{tableName:'state',key:name,val:data.checked === void 0 ? data.value : data.checked})
+    this.setState({})
+  }
+
+  makeOption(key,trans=true){
+    return {
+      key: key,
+      value: key,
+      text: (trans && !key.includes(' ')) ? l10n.translation(key) : key
+    }
+  }
+
+  makeOptions(keys,trans=true){
+    return keys.map(key=>this.makeOption(key,trans))
+  }
   render() {
     return <div>
-      <h3>Tabs</h3>
+      <h3>{l10n.translation('tabs')} ({l10n.translation('requiresRestart').replace('* ','')})</h3>
       <Divider/>
+
+      <Grid>
+        <Grid.Row>
+          <Grid.Column width={6}><label>{l10n.translation('generalWindowOpenLabel')}</label></Grid.Column>
+          <Grid.Column width={5}><Dropdown onChange={this.onChange.bind(this,'generalWindowOpenLabel')} selection
+                                           options={this.makeOptions(['linkTargetTab','linkTargetWindow'])}
+                                           defaultValue={this.state.generalWindowOpenLabel}/></Grid.Column>
+        </Grid.Row>
+        <Grid.Row>
+          <Grid.Column width={6}><label>{l10n.translation('focusTabLabelBegin')}</label></Grid.Column>
+          <Grid.Column width={5}><Dropdown onChange={this.onChange.bind(this,'closeTabBehavior')} selection
+                                           options={this.makeOptions(['focusTabLeftTab','focusTabRightTab','focusTabLastSelectedTab','focusTabOpenerTab','focusTabOpenerTabRtl','focusTabLastOpenedTab','focusTabFirstTab','focusTabLastTab'])}
+                                           defaultValue={this.state.closeTabBehavior}/></Grid.Column>
+        </Grid.Row>
+      </Grid>
+
+      <div className='spacer'/>
+
+      <div className="field">
+        <Checkbox defaultChecked={this.state.openTabNextLabel} toggle onChange={this.onChange.bind(this,'openTabNextLabel')}/>
+        <span className="toggle-label">{l10n.translation('openTabNextLabel')}</span>
+      </div>
+
+      <div className='spacer2'/>
+
+      <div className="field">
+        <Checkbox defaultChecked={this.state.keepWindowLabel31} toggle onChange={this.onChange.bind(this,'keepWindowLabel31')}/>
+        <span className="toggle-label">{l10n.translation('keepWindowLabel31')}</span>
+      </div>
+
+      <Divider/>
+
+      <div className="field">
+        <Checkbox defaultChecked={this.state.multistageTabs} toggle onChange={this.onChange.bind(this,'multistageTabs')}/>
+        <span className="toggle-label">{l10n.translation('tabScrollMultibar')}</span>
+      </div>
+
+      <div className='spacer2'/>
+
+      <Grid>
+        <Grid.Row>
+          <Grid.Column width={3}><label>{l10n.translation('maxrowLabel')}</label></Grid.Column>
+          <Grid.Column width={8}><Dropdown onChange={this.onChange.bind(this,'maxrowLabel')} selection
+                                           options={concurrentDownloadOptions}
+                                           defaultValue={this.state.maxrowLabel}/></Grid.Column>
+        </Grid.Row>
+      </Grid>
+
+      <div className='spacer'/>
+
+      <div className="field">
+        <label>{l10n.translation('minWidthLabel')}&nbsp;</label>
+        <Input onChange={this.onChange.bind(this,'tabMinWidth')} defaultValue={this.state.tabMinWidth}/>
+        <label>&nbsp;{l10n.translation('widthToLabel')}&nbsp;</label>
+        <Input onChange={this.onChange.bind(this,'tabMaxWidth')} defaultValue={this.state.tabMaxWidth}/>
+        <label>&nbsp;{l10n.translation('widthPixelsLabel')}</label>
+      </div>
+
+      <Divider/>
+
+      <div className="field">
+        <Checkbox defaultChecked={this.state.scrollTab} toggle onChange={this.onChange.bind(this,'scrollTab')}/>
+        <span className="toggle-label">{l10n.translation('tabbarscrollingSelectTabLabel')}</span>
+      </div>
+
+      <div className='spacer2'/>
+
+      <div className="field">
+        <Checkbox defaultChecked={this.state.reverseScrollTab} toggle onChange={this.onChange.bind(this,'reverseScrollTab')}/>
+        <span className="toggle-label">{l10n.translation('tabbarscrollingInverseLabel')}</span>
+      </div>
+
+      <Divider/>
+
+      <div className="field">
+        <Checkbox style={{verticalAlign: 'middle'}} defaultChecked={this.state.mouseHoverSelectLabelBegin} toggle onChange={this.onChange.bind(this,'mouseHoverSelectLabelBegin')}/>
+        <span style={{verticalAlign: 'baseline'}} className="toggle-label">{l10n.translation('mouseHoverSelectLabelBegin')}&nbsp;</span>
+        <Input onChange={this.onChange.bind(this,'mouseHoverSelectLabelBeginDelay')} defaultValue={this.state.mouseHoverSelectLabelBeginDelay}/>
+        &nbsp;{l10n.translation('millisecondsLabel')}
+      </div>
+      <div className='spacer2'/>
+
+      <div className="field">
+        <Checkbox defaultChecked={this.state.tabFlipLabel} toggle onChange={this.onChange.bind(this,'tabFlipLabel')}/>
+        <span className="toggle-label">{l10n.translation('tabFlipLabel')}</span>
+      </div>
+
+      <Divider/>
+
+      <h4 style={{marginTop:0, marginBottom: 20}}>{l10n.translation('mouseClickLabel')}</h4>
+
+      <Grid>
+        <Grid.Row>
+          <Grid.Column width={3}><label>{l10n.translation('doubleLabel')}</label></Grid.Column>
+          <Grid.Column width={8}><Dropdown onChange={this.onChange.bind(this,'doubleClickTab')} selection
+                                           options={this.mouseOptions}
+                                           defaultValue={this.state.doubleClickTab}/></Grid.Column>
+        </Grid.Row>
+        <Grid.Row>
+          <Grid.Column width={3}><label>{l10n.translation('middleLabel')}</label></Grid.Column>
+          <Grid.Column width={8}><Dropdown onChange={this.onChange.bind(this,'middleClickTab')} selection
+                                           options={this.mouseOptions}
+                                           defaultValue={this.state.middleClickTab}/></Grid.Column>
+        </Grid.Row>
+        <Grid.Row>
+          <Grid.Column width={3}><label>{l10n.translation('altLabel')}</label></Grid.Column>
+          <Grid.Column width={8}><Dropdown onChange={this.onChange.bind(this,'altClickTab')} selection
+                                           options={this.mouseOptions}
+                                           defaultValue={this.state.altClickTab}/></Grid.Column>
+        </Grid.Row>
+      </Grid>
+
+      <div className='spacer'/>
+
+      <h4 style={{marginTop:0, marginBottom: 20}}>{l10n.translation('newTabButtonLabel').replace('を表示','')}</h4>
+
+      <Grid>
+        <Grid.Row>
+          <Grid.Column width={3}><label>Right Click</label></Grid.Column>
+          <Grid.Column width={8}><Dropdown onChange={this.onChange.bind(this,'rightClickTabAdd')} selection
+                                           options={this.mouseOptions}
+                                           defaultValue={this.state.rightClickTabAdd}/></Grid.Column>
+        </Grid.Row>
+        <Grid.Row>
+          <Grid.Column width={3}><label>{l10n.translation('middleLabel')}</label></Grid.Column>
+          <Grid.Column width={8}><Dropdown onChange={this.onChange.bind(this,'middleClickTabAdd')} selection
+                                           options={this.mouseOptions}
+                                           defaultValue={this.state.middleClickTabAdd}/></Grid.Column>
+        </Grid.Row>
+        <Grid.Row>
+          <Grid.Column width={3}><label>{l10n.translation('altLabel')}</label></Grid.Column>
+          <Grid.Column width={8}><Dropdown onChange={this.onChange.bind(this,'altClickTabAdd')} selection
+                                           options={this.mouseOptions}
+                                           defaultValue={this.state.altClickTabAdd}/></Grid.Column>
+        </Grid.Row>
+      </Grid>
+
+      <div className='spacer2'/>
+      <Divider/>
+
+      <h4>{l10n.translation('5513242761114685513')}</h4>
+      <table className="ui celled compact table" style={{borderCollapse: 'collapse'}}>
+        <thead>
+        <tr>
+          <th>{l10n.translation('default')}</th>
+          <th>{l10n.translation('name')}</th>
+          <th>Priority</th>
+        </tr>
+        </thead>
+        <tbody>
+        {this.renderRows('tab')}
+        </tbody>
+      </table>
     </div>
   }
 }
@@ -1002,8 +1292,6 @@ class ContextMenuSetting extends React.Component {
       <h3>{l10n.translation('5513242761114685513')}</h3>
       <Divider/>
 
-      <h4>{l10n.translation('5582839680698949063')}</h4>
-      <Divider/>
       <table className="ui celled compact table" style={{borderCollapse: 'collapse'}}>
         <thead>
         <tr>
@@ -1014,21 +1302,6 @@ class ContextMenuSetting extends React.Component {
         </thead>
         <tbody>
         {this.renderRows()}
-        </tbody>
-      </table>
-
-      <h4>{l10n.translation('tabSettings')}({l10n.translation('requiresRestart').replace('* ','')})</h4>
-      <Divider/>
-      <table className="ui celled compact table" style={{borderCollapse: 'collapse'}}>
-        <thead>
-        <tr>
-          <th>{l10n.translation('default')}</th>
-          <th>{l10n.translation('name')}</th>
-          <th>Priority</th>
-        </tr>
-        </thead>
-        <tbody>
-        {this.renderRows('tab')}
         </tbody>
       </table>
 
@@ -1303,7 +1576,6 @@ const routings = {
 class TopList extends React.Component {
   constructor(props) {
     super(props)
-    console.log
     this.state = {page: location.hash.startsWith("#") ? location.hash.slice(1) : 'general'}
   }
 
@@ -1330,7 +1602,7 @@ class TopList extends React.Component {
         <Menu.Item></Menu.Item>
         {this.getMenu('general','browser')}
         {this.getMenu('search','search')}
-        {/*{this.getMenu('tabs','table')}*/}
+        {this.getMenu('tabs','table')}
         {this.getMenu('contextMenu','square outline')}
         {this.getMenu('keyboard','keyboard')}
         {this.getMenu('video','video')}
@@ -1356,10 +1628,13 @@ const App = () => (
 ipc.send("get-main-state",['startsWith','newTabMode','myHomepage','searchProviders','searchEngine','language','enableFlash','concurrentDownload','downloadNum','sideBarDirection','scrollTab',
   'doubleShift','tripleClick','syncScrollMargin','contextMenuSearchEngines','ALL_KEYS','bindMarginFrame','bindMarginTitle','longPressMiddle','checkDefaultBrowser','sendToVideo',
   'multistageTabs','tabMinWidth','httpsEverywhereEnable','trackingProtectionEnable','autoSaveInterval','noScript','blockCanvasFingerprinting','browsingHistory', 'downloadHistory',
-  'disableContextMenus','disableTabContextMenus','priorityContextMenus','priorityTabContextMenus'])
+  'disableContextMenus','disableTabContextMenus','priorityContextMenus','priorityTabContextMenus','reloadIntervals','generalWindowOpenLabel','keepWindowLabel31',
+  'closeTabBehavior','reverseScrollTab','tabMaxWidth','mouseHoverSelectLabelBegin','mouseHoverSelectLabelBeginDelay','tabFlipLabel','doubleClickTab','middleClickTab','altClickTab',
+  'maxrowLabel','orderOfAutoComplete','numOfSuggestion','numOfHistory','openTabNextLabel','rightClickTabAdd','middleClickTabAdd','altClickTabAdd','displayFullIcon'])
 ipc.once("get-main-state-reply",(e,data)=>{
   generalDefault = data
   keyboardDefault = data
+  TabDefault = data
   videoDefault = data
   extensionDefault = data
   contextMenuDefault = data

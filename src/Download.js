@@ -29,7 +29,7 @@ function exec(command) {
 }
 
 function shellEscape(s){
-  return '"'+s.replace(/(["\s'$`\\])/g,'\\$1')+'"'
+  return '"'+s.replace(/(["\t\n\r\f'$`\\])/g,'\\$1')+'"'
 }
 
 function set(map,url,value){
@@ -41,6 +41,38 @@ function set(map,url,value){
   }
 }
 
+function replaceFileName(savePath,url,fname){
+  if(!savePath) return savePath
+
+  const urlParse = path.parse(url), fnameParse = path.parse(fname)
+  const date = new Date()
+  const name = fnameParse.name,
+    ext = fnameParse.ext.slice(1),
+    base = urlParse.name,
+    sub = urlParse.dir.split("/").slice(-1)[0],
+    host = urlParse.dir.split("/")[2],
+    y = date.getFullYear(),
+    m = ('0' + (date.getMonth() + 1)).slice(-2),
+    d = ('0' + date.getDate()).slice(-2),
+    hh = ('0' + date.getHours()).slice(-2),
+    mm = ('0' + date.getMinutes()).slice(-2),
+    ss = ('0' + date.getSeconds()).slice(-2)
+
+  return savePath.replace(/({.+?})/g,p=>{
+    if(p == '{name}') return name
+    else if(p == '{ext}') return ext
+    else if(p == '{base}') return base
+    else if(p == '{sub}') return host == sub ? "" : sub
+    else if(p == '{host}') return host
+    else if(p == '{y}') return y
+    else if(p == '{m}') return m
+    else if(p == '{d}') return d
+    else if(p == '{hh}') return hh
+    else if(p == '{mm}') return mm
+    else if(p == '{ss}') return ss
+    return p
+  })
+}
 
 export default class Download {
   getData(map,url){
@@ -107,6 +139,9 @@ export default class Download {
         return
       }
 
+      const bw = (!webContents.isDestroyed() && BrowserWindow.fromWebContents(webContents)) || BrowserWindow.getFocusedWindow()
+      if(bw !== win) return
+
       // let initialNav = false
       // const controller = webContents.controller()
       // if (controller && controller.isValid() && controller.isInitialNavigation()) {
@@ -145,25 +180,30 @@ export default class Download {
       audioExtract = this.getData(this.audioExtract,url),
       overwrite = false
 
+      console.log(1,savePath)
       if(url.startsWith("file://")){
         if(active){
           item.destroy()
         }
+        console.log(2)
         return
       }
 
-      const bw = (!webContents.isDestroyed() && BrowserWindow.fromWebContents(webContents)) || BrowserWindow.getFocusedWindow()
-      if(bw !== win) return
 
-      win.webContents.send(`download-start-tab_${webContents.getId()}`)
+      savePath = replaceFileName(savePath,url,fname)
+
+      console.log(3,savePath)
+      if(!win.webContents.isDestroyed()) win.webContents.send(`download-start-tab_${webContents.getId()}`)
 
       const needSavePath = this.getData(this.needSavePath,url)
 
       const saveDirectory = this.getData(this.saveDirectory,url)
       let autoSetSavePath
+      console.log(4)
       if(!savePath){
         autoSetSavePath = true
         savePath = path.join(saveDirectory || app.getPath('downloads'), fname || path.basename(url))
+        console.log(5)
       }
 
       if(needSavePath || (this.getData(this.prompt,url) && fs.existsSync(savePath))){
@@ -173,6 +213,7 @@ export default class Download {
           if(active) item.destroy()
           return
         }
+        console.log(6)
         savePath = filepath
         overwrite = true
       }
@@ -183,6 +224,7 @@ export default class Download {
           }
           return
         }
+        console.log(7)
       }
 
       if (retry.has(url)) {
@@ -197,6 +239,7 @@ export default class Download {
         this.downloadReady(item, url, webContents,win)
       }
       else {
+        console.log(8,savePath)
         // console.log(JSON.stringify({a: mainState.downloadNum}))
         // const postData = process.downloadParams.get(url)
         // // console.log(postData,url)
@@ -210,10 +253,12 @@ export default class Download {
         const aria2cKey = this.getData(this.dlKey,url)
         const dl = new Aria2cWrapper({url,orgUrl:this.orgUrl,mimeType,savePath,downloadNum: mainState.downloadNum,overwrite,timeMap,aria2cKey})
 
+        console.log(9)
         dl.download().then(_=>{
+          console.log(10)
           dl.once('error', (_) => {
             console.log('error')
-            win.webContents.send('download-progress', this.buildItem(dl));
+            if(!win.webContents.isDestroyed()) win.webContents.send('download-progress', this.buildItem(dl));
             if(!isError){
               isError = true
               retry.add(url)
@@ -234,6 +279,7 @@ export default class Download {
   downloadReady(item, url, webContents,win,audioExtract) {
     global.downloadItems.push(item)
 
+    console.log(11)
     const eventPause = (event, data, type) => {
       console.log('resume',data,item)
       if (data.id ? data.id !== item.idForExtension : data.key ? data.key !== item.key : data.savePath !== item.getSavePath()) return
@@ -264,7 +310,7 @@ export default class Download {
       for (let wc of this.getDownloadPage()) {
         wc.send('download-progress', this.buildItem(item))
       }
-      win.webContents.send('download-progress', this.buildItem(item))
+      if(!win.webContents.isDestroyed()) win.webContents.send('download-progress', this.buildItem(item))
     })
 
     item.once('done', async (event, state) => {
@@ -275,7 +321,7 @@ export default class Download {
       for (let wc of this.getDownloadPage()) {
         wc.send('download-progress', this.buildItem(item))
       }
-      win.webContents.send('download-progress', this.buildItem(item))
+      if(!win.webContents.isDestroyed()) win.webContents.send('download-progress', this.buildItem(item))
 
       download.insert({
         state: item.getState(),
@@ -294,7 +340,7 @@ export default class Download {
       timeMap.delete(item.getSavePath())
       // ipcMain.removeListener('set-save-filename',eventSetSaveFilename)
     })
-    win.webContents.send('download-start')
+    if(!win.webContents.isDestroyed()) win.webContents.send('download-start')
   }
 
 
@@ -342,6 +388,6 @@ export default class Download {
 
 downloader.find({isPaused:false,state:"progressing"}).then(records=>{
   for(let item of records){
-    ipcMain.emit("download-retry", null, item.url, item.savePath, item.key) //元アイテムを消す
+    ipcMain.emit("download-retry", null, item.url, item.savePath, item.key)
   }
 })

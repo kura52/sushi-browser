@@ -644,7 +644,7 @@ class Contents extends React.Component {
             console.log(11,parentNode.id)
             getAllChildren(parentNode.id).then(children => done(null, children))
           }}
-          rowRenderer={rowRenderer(18)}
+          rowRenderer={rowRenderer(!this.props.cont && !this.props.favoritePage ? 14 : 18)}
           selectable={true} // Defaults to true
           // droppable={{
           //   hoverClass: 'infinite-tree-drop-hover',

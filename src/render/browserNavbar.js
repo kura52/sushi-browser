@@ -80,7 +80,9 @@ function BrowserNavbarBtn(props){
   return <a href="javascript:void(0)" onContextMenu={props.onContextMenu} style={props.style} className={`${props.className||''} draggable-source ${props.disabled?'disabled':''} ${props.sync ? 'sync' : ''}`} title={props.title} onClick={props.onClick}><i style={props.styleFont} className={`fa fa-${props.icon}`}/>{props.children}</a>
 }
 
-let [alwaysOnTop,multistageTabs,verticalTab,{left,right,backSide}] = ipc.sendSync('get-sync-main-states',['alwaysOnTop','multistageTabs','verticalTab','navbarItems'])
+let [alwaysOnTop,multistageTabs,verticalTab,{left,right,backSide},orderOfAutoComplete,numOfSuggestion,numOfHistory,displayFullIcon] = ipc.sendSync('get-sync-main-states',['alwaysOnTop','multistageTabs','verticalTab','navbarItems','orderOfAutoComplete','numOfSuggestion','numOfHistory','displayFullIcon'])
+numOfSuggestion = parseInt(numOfSuggestion), numOfHistory = parseInt(numOfHistory)
+
 let staticDisableExtensions = []
 class BrowserNavbar extends Component{
   constructor(props) {
@@ -731,7 +733,8 @@ class BrowserNavbar extends Component{
       reload: <BrowserNavbarBtn className="sort-reload" title={locale.translation('reload')} icon="repeat" onContextMenu={onContextMenu} onClick={this.props.navHandle.onClickRefresh} disabled={!this.props.page.canRefresh} />,
 
       addressBar: <div className="input-group">
-        <BrowserNavbarLocation ref="loc" wv={this.props.tab.wv} navbar={this} onEnterLocation={this.props.navHandle.onEnterLocation} onChangeLocation={this.props.navHandle.onChangeLocation}
+        <BrowserNavbarLocation ref="loc" wv={this.props.tab.wv} navbar={this} onEnterLocation={this.props.navHandle.onEnterLocation}
+                               onChangeLocation={this.props.navHandle.onChangeLocation} autoCompleteInfos={{url:this.props.autocompleteUrl,orderOfAutoComplete,numOfSuggestion,numOfHistory}}
                                k ={this.props.k} onContextMenu={this.props.navHandle.onLocationContextMenu} tab={this.props.tab} page={this.props.page} privateMode={this.props.privateMode} search={this.props.parent.search}/>
       </div>,
 
@@ -906,7 +909,7 @@ class BrowserNavbar extends Component{
       {this.mainMenu(cont, this.props.tab, backSideMenus)}
       {this.state.vpnList ? <VpnList onClick={_=>this.setState({vpnList:false})}/> : null}
       {isFixed && !isFloat ? <BrowserNavbarBtn style={{fontSize:18}} title="Hide Sidebar" icon={`angle-double-${isFixed == 'bottom' ? 'down' : isFixed}`} onClick={()=>this.props.fixedPanelOpen({dirc:isFixed})}/> : null}
-      {!isDarwin && this.props.isTopRight && (this.props.toggleNav == 1 || verticalTab) ? <RightTopBottonSet style={{lineHeight: 0.9, transform: 'translateX(6px)',paddingTop: 1}}/> : null }
+      {!isDarwin && this.props.isTopRight && (this.props.toggleNav == 1 || verticalTab) ? <RightTopBottonSet displayFullIcon={displayFullIcon} style={{lineHeight: 0.9, transform: 'translateX(6px)',paddingTop: 1}}/> : null }
 
       {isFloat  && this.props.toggleNav == 1 ? <div className="title-button-set" style={{lineHeight: 0.9, transform: 'translateX(6px)'}}>
         <span className="typcn typcn-media-stop-outline" onClick={()=>PubSub.publish(`maximize-float-panel_${this.props.k}`)}></span>

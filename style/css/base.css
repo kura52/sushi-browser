@@ -420,7 +420,9 @@ body::before {
     line-height: 0.75;
 }
 .title-button-set{
-    display: flex
+    display: flex;
+    margin-right: 0;
+    margin-left: auto;
 }
 
 .ui.horizontal.segments {
@@ -480,7 +482,7 @@ body::before {
     opacity: 0;
 }
 
-i.private-mode,i.pin-mode {
+i.private-mode,i.pin-mode,i.mute-mode,i.reload-mode {
     float: left;
     font-size: 16px;
     line-height: 1.2em;
@@ -673,6 +675,10 @@ div.item.favorite>ul>li>div>ul{
      opacity: 0.1;
  }
 
+.tab-hidden{
+    display: none;
+}
+
 .opacity001{
     opacity: 0.01;
 }
@@ -714,12 +720,17 @@ div.item.favorite>ul>li>div>ul{
     color: #999;
 }
 
-.tab-number{
+.tab-number,.tab-expand{
     font-size: 1.2em;
     vertical-align: 4px;
     margin-left: -2px;
     margin-right: 2px;
     color: rgb(170, 170, 170);
+}
+.tab-expand{
+    margin-left: 5px;
+    vertical-align: -4px;
+    cursor: pointer !important;
 }
 
 .vertical-header{

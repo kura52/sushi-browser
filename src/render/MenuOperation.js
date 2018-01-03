@@ -12,8 +12,7 @@ export default {
     win.minimize()
   },
   windowIsMaximized(){
-    const win = remote.getCurrentWindow()
-    return win.isMaximized() || win.isFullScreen()
+    return ipc.sendSync('get-isMaximized')
   },
   windowMaximize(){
     const win = remote.getCurrentWindow()

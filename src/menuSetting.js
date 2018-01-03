@@ -27,7 +27,7 @@ const createFileSubmenu = () => {
       accelerator: mainState.keyNewTab,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('new-tab',cont.getId(),"chrome://newtab/")
+          cont && cont.hostWebContents.send('new-tab',cont.getId(),"chrome://newtab/",void 0,!mainState.openTabNextLabel)
         })
       }
     },
@@ -36,7 +36,7 @@ const createFileSubmenu = () => {
       accelerator: mainState.keyNewPrivateTab,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('new-tab',cont.getId(),"chrome://newtab/",true)
+          cont && cont.hostWebContents.send('new-tab',cont.getId(),"chrome://newtab/",true,!mainState.openTabNextLabel)
         })
       }
     },
@@ -45,7 +45,7 @@ const createFileSubmenu = () => {
       accelerator: mainState.keyNewSessionTab,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('new-tab',cont.getId(),"chrome://newtab/", `persist:${seq()}`)
+          cont && cont.hostWebContents.send('new-tab',cont.getId(),"chrome://newtab/", `persist:${seq()}`,!mainState.openTabNextLabel)
         })
       }
     },
@@ -82,6 +82,42 @@ const createFileSubmenu = () => {
       accelerator: mainState.keyCloseWindow,
       click(item, focusedWindow) {
         focusedWindow.close()
+      }
+    },
+    {
+      label: locale.translation('closeAllTabsMenuLabel'),
+      accelerator: mainState.keyClosePanel,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'closePanel', cont.getId())
+        })
+      }
+    },
+    {
+      label: locale.translation('closeOtherTabs'),
+      accelerator: mainState.keyCloseOtherTabs,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events','closeOtherTabs',cont.getId())
+        })
+      }
+    },
+    {
+      label: locale.translation('closeTabsToLeft'),
+      accelerator: mainState.keyCloseTabsToLeft,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events','closeTabsToLeft',cont.getId())
+        })
+      }
+    },
+    {
+      label: locale.translation('closeTabsToRight'),
+      accelerator: mainState.keyCloseTabsToRight,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events','closeTabsToRight',cont.getId())
+        })
       }
     },
     { type: 'separator' },
@@ -176,6 +212,52 @@ const createEditSubmenu = () => {
         })
       }
     },
+    { type: 'separator' },
+    {
+      label: locale.translation('clicktabCopyTabUrl'),
+      accelerator: mainState.keyClicktabCopyTabUrl,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'clicktabCopyTabUrl', cont.getId())
+        })
+      }
+    },
+    {
+      label: locale.translation('clicktabCopyUrlFromClipboard'),
+      accelerator: mainState.keyClicktabCopyUrlFromClipboard,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'clicktabCopyUrlFromClipboard', cont.getId())
+        })
+      }
+    },
+    {
+      label: 'Paste and Open',
+      accelerator: mainState.keyPasteAndOpen,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'pasteAndOpen', cont.getId())
+        })
+      }
+    },
+    {
+      label: 'Copy Tab Info',
+      accelerator: mainState.keyCopyTabInfo,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'copyTabInfo', cont.getId())
+        })
+      }
+    },
+    {
+      label: 'Copy All Tab Infos',
+      accelerator: mainState.keyCopyAllTabInfos,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'copyAllTabInfos', cont.getId())
+        })
+      }
+    },
     // { type: 'separator' }
     // NOTE: macOS inserts "start dictation" and "emoji and symbols" automatically
   ]
@@ -249,6 +331,70 @@ const createViewSubmenu = () => {
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
           cont && cont.reloadIgnoringCache()
+        })
+      }
+    },
+    {
+      label: locale.translation('clicktabReloadtabs'),
+      accelerator: mainState.keyClicktabReloadtabs,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'clicktabReloadtabs', cont.getId())
+        })
+      }
+    },
+    {
+      label: locale.translation('clicktabReloadothertabs'),
+      accelerator: mainState.keyClicktabReloadothertabs,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'clicktabReloadothertabs', cont.getId())
+        })
+      }
+    },
+    {
+      label: locale.translation('clicktabReloadlefttabs'),
+      accelerator: mainState.keyClicktabReloadlefttabs,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'clicktabReloadlefttabs', cont.getId())
+        })
+      }
+    },
+    {
+      label: locale.translation('clicktabReloadrighttabs'),
+      accelerator: mainState.keyClicktabReloadrighttabs,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'clicktabReloadrighttabs', cont.getId())
+        })
+      }
+    },
+    { type: 'separator' },
+    {
+      label: locale.translation('3007771295016901659'),
+      accelerator: mainState.keyDuplicateTab,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'duplicateTab', cont.getId())
+        })
+      }
+    },
+    {
+      label: locale.translation('pinTab'),
+      accelerator: mainState.keyUnpinTab,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'unpinTab', cont.getId())
+        })
+      }
+    },
+    {
+      label: locale.translation('muteTab'),
+      accelerator: mainState.keyUnmuteTab,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'unmuteTab', cont.getId())
         })
       }
     },
@@ -326,6 +472,15 @@ const createHistorySubmenu = () => {
         })
       }
     },
+    {
+      label: locale.translation('clicktabUcatab'),
+      accelerator: mainState.keyClicktabUcatab,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'clicktabUcatab', cont.getId())
+        })
+      }
+    },
     { type: 'separator' },
     {
       label: locale.translation('showAllHistory'),
@@ -349,6 +504,15 @@ const createBookmarksSubmenu = () => {
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
           cont && cont.hostWebContents.send('add-favorite',cont.getId())
+        })
+      }
+    },
+    {
+      label: locale.translation('5078638979202084724'),
+      accelerator: mainState.keyAddBookmarkAll,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'addBookmarkAll', cont.getId())
         })
       }
     },
@@ -463,6 +627,24 @@ const createWindowSubmenu = () => {
         })
       }
     },
+    {
+      label: 'Split left tabs to left',
+      accelerator: mainState.keySplitLeftTabs,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'splitLeftTabs', cont.getId())
+        })
+      }
+    },
+    {
+      label: 'Split right tabs to right',
+      accelerator: mainState.keySplitRightTabs,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'splitRightTabs', cont.getId())
+        })
+      }
+    },
     { type: 'separator' },
     {
       label: 'Swap Position',
@@ -538,15 +720,24 @@ const createWindowSubmenu = () => {
         })
       }
     },
-    {
-      label: 'Close Panel',
-      accelerator: mainState.keyClosePanel,
-      click(item, focusedWindow) {
-        getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'closePanel', cont.getId())
-        })
-      }
-    },
+    // {
+    //   label: 'Download All',
+    //   accelerator: mainState.keyDownloadAll,
+    //   click(item, focusedWindow) {
+    //     getFocusedWebContents().then(cont=>{
+    //       cont && cont.hostWebContents.send('menu-or-key-events', 'downloadAll', cont.getId())
+    //     })
+    //   }
+    // },
+    // {
+    //   label: locale.translation('2473195200299095979'),
+    //   accelerator: mainState.keyPageTranslate,
+    //   click(item, focusedWindow) {
+    //     getFocusedWebContents().then(cont=>{
+    //       cont && cont.hostWebContents.send('menu-or-key-events', 'pageTranslate', cont.getId())
+    //     })
+    //   }
+    // },
     { type: 'separator' },
     {
       label: locale.translation('downloadsManager'),

@@ -115,7 +115,7 @@ export default function (){
       // marginLeft: '15px',
       // float: 'left',
       textAlign: 'center',
-      postion: 'relative',
+      position: 'relative',
       // width: '120%',
       color: 'rgb(170, 170, 170)',
     },

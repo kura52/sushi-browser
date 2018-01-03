@@ -4,7 +4,7 @@ const url = require('url')
 const path = require('path')
 const fs = require('fs')
 const InitSetting = require('./InitSetting')
-import { state,searchEngine,savedState } from './databaseFork'
+import { state,searchEngine,savedState,windowState } from './databaseFork'
 import mainState from './mainState'
 import {settingDefault} from '../resource/defaultValue'
 import PubSub from './render/pubsub'
@@ -16,6 +16,18 @@ const localShortcuts = require('../brave/app/localShortcuts')
 
 const normalSize = {}
 let saved = false
+
+function savedStateUpdate(states,closeKey){
+  savedState.insert(states).then(doc=>{
+    const updated_at = Date.now()
+    for(let win of doc.wins){
+      const key = win.winState.key
+      const val = {key,id:doc._id, updated_at}
+      if(key == closeKey) val.close = 1
+      windowState.update({key}, val, { upsert: true }).then(_=>_)
+    }
+  })
+}
 
 let autoSaveStarted
 function startAutoSaveAllWindowsState(){
@@ -29,7 +41,7 @@ function startAutoSaveAllWindowsState(){
     const statesStr = JSON.stringify(states.wins.map(state=>state.winState))
     if(prevStates == statesStr) return
     states.created_at = Date.now()
-    savedState.insert(states)
+    savedStateUpdate(states)
     prevStates = statesStr
   },(parseInt(mainState.autoSaveInterval)||60) * 1000)
 
@@ -57,10 +69,14 @@ async function saveAllWindowsState(){
 }
 
 ipcMain.on('save-all-windows-state',async (e,key)=>{
+  console.log(575,key)
   const states = await saveAllWindowsState()
+  if(key){
+    e.sender.send(`save-all-windows-state-reply_${key}`)
+  }
   states.created_at = Date.now()
-  states.user = true
-  savedState.insert(states)
+  if(!key) states.user = true
+  savedStateUpdate(states,key)
 })
 
 
@@ -97,13 +113,15 @@ function create(args){
       console.log(wins.length)
       if(wins.length > 1){ //@TODO close event hang out other windows
         // bw.setSkipTaskbar(true)
-        bw.setTitle('Closed')
         bw.webContents.send('unmount-components',{})
-        // bw.loadURL(`file://${path.join(__dirname, '../blank.html').replace(/\\/g,"/")}`)
-        bw.hide()
+        ipcMain.once('unmount-components-reply',_=>{
+          bw.setTitle('Closed')
+          // bw.loadURL(`file://${path.join(__dirname, '../blank.html').replace(/\\/g,"/")}`)
+          bw.hide()
 
+          PubSub.publish('chrome-windows-onRemoved',bw.id)
+        })
         e.preventDefault()
-        PubSub.publish('chrome-windows-onRemoved',bw.id)
         return
       }
       else if(mainState.keepOpen){
@@ -120,6 +138,7 @@ function create(args){
       }
       else if(global.downloadItems && global.downloadItems.some(item=>{return (item.getState() == 'progressing' || item.getState() == 'interrupted')})){
         const key = uuid.v4()
+        console.log(global.downloadItems)
         bw.webContents.send('show-notification',{key,text:'Do you want to close the browser and cancel all downloads?', buttons:['Yes','No']})
 
         ipcMain.once(`reply-notification-${key}`,(e,ret)=>{
@@ -281,6 +300,7 @@ export default {
         })
       }
       else{
+        // if(first && mainState.startsWith !== 'startsWithOptionLastTime' && setting.winState) setting.winState.key = uuid.v4()
         mainState.winState = JSON.stringify(setting.winState)
       }
       console.log(7778,mainState.winState)

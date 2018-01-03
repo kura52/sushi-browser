@@ -35,6 +35,7 @@ export default class VerticalTabPanel extends Component{
     super(props)
     this.initBind()
     this.state = {width: verticalTabWidth,tree:verticalTabTree,tabs:{},keys:[]}
+    this.foldTabs = {}
   }
 
   initBind(){
@@ -103,6 +104,11 @@ export default class VerticalTabPanel extends Component{
       PubSub.publish(`close_tab_${key}`,{key:tabKey})
     })
 
+    this.tokenExpandTab = PubSub.subscribe('expand-tab',(msg,{key,val})=>{
+      this.foldTabs[key] = val
+      this.setState({})
+    })
+
     this.tokenUpdateTabs = PubSub.subscribe('update-tabs',(msg,key)=>{
       this.buildTabs(key)
     })
@@ -112,8 +118,9 @@ export default class VerticalTabPanel extends Component{
   componentWillUnmount() {
     PubSub.unsubscribe(this.tokenTabMovedChild)
     PubSub.unsubscribe(this.tokenTabMoved)
-    PubSub.unsubscribe(this.tokenUpdateTabs)
     PubSub.unsubscribe(this.tokenCloseTree)
+    PubSub.unsubscribe(this.tokenExpandTab)
+    PubSub.unsubscribe(this.tokenUpdateTabs)
   }
 
 
@@ -216,6 +223,9 @@ export default class VerticalTabPanel extends Component{
             delete tab.depth
             delete tab.seq
             delete tab.referred
+            delete tab.expand
+            delete tab.fold
+            delete tab.hidden
             delete tab.opener
             tabIdMap[tab.wvId] = ++seq
           }
@@ -274,10 +284,26 @@ export default class VerticalTabPanel extends Component{
           const tabTree = Tree(treeObj)
           const flattenTree = tabTree.flatten()
 
+          let pre = {depth: 99999}
+          let fold = false
           for(let x of flattenTree){
             if(!x[1]) continue
             const tab = x[0].tab
             tab.depth =  x[1] - 1
+            if(fold !== false){
+              if(fold < tab.depth){
+                tab.hidden = true
+              }
+              else{
+                fold = false
+              }
+            }
+            if(this.foldTabs[tab.key]){
+              fold = tab.depth
+              tab.fold = true
+            }
+            if(pre.depth < tab.depth) pre.expand = true
+            pre = tab
             if(tabSeqMap[tab.wvId]) tab.seq = tabSeqMap[tab.wvId]
             retTabs.push(tab)
           }
@@ -294,6 +320,7 @@ export default class VerticalTabPanel extends Component{
       }
     }
 
+    console.log(ret)
     return ret
   }
 
@@ -321,10 +348,11 @@ export default class VerticalTabPanel extends Component{
         isOnlyPanel={!tabPanel.props.parent.state.root.r}
         windowId={tabPanel.props.windowId}
         k={tabPanel.props.k}
+        mouseClickHandles={key=>tabPanel._handleContextMenu(null,key,null,tabPanel.state.tabs,false,true)}
         verticalTabPanel={true}
         verticalTabTree={this.state.tree}
         tabs={retTabs.map(tab=>{
-          return (<Tab key={tab.key} page={tab.page} orgTab={tab} pin={tab.pin} depth={tab.depth} seq={tab.seq} referred={tab.referred} privateMode={tab.privateMode} selection={tab.selection}/>)
+          return (<Tab key={tab.key} page={tab.page} orgTab={tab} pin={tab.pin} mute={tab.mute} reloadInterval={tab.reloadInterval} depth={tab.depth} seq={tab.seq} expand={tab.expand} fold={tab.fold} hidden={tab.hidden} referred={tab.referred} privateMode={tab.privateMode} selection={tab.selection}/>)
         })}
       />
     )
@@ -353,11 +381,12 @@ export default class VerticalTabPanel extends Component{
         parent={tabPanel}
         isOnlyPanel={!tabPanel.props.parent.state.root.r}
         windowId={tabPanel.props.windowId}
+        mouseClickHandles={key=>tabPanel._handleContextMenu(null,key,null,tabPanel.state.tabs,false,true)}
         k={tabPanel.props.k}
         verticalTabPanel={true}
         verticalTabTree={this.state.tree}
         tabs={tabPanel.state.tabs.map(tab=>{
-          return (<Tab key={tab.key} page={tab.page} orgTab={tab} pin={tab.pin} privateMode={tab.privateMode} selection={tab.selection}/>)
+          return (<Tab key={tab.key} page={tab.page} orgTab={tab} pin={tab.pin} mute={tab.mute} reloadInterval={tab.reloadInterval} privateMode={tab.privateMode} selection={tab.selection}/>)
         })}
       />
     )
@@ -375,9 +404,24 @@ export default class VerticalTabPanel extends Component{
       padding: '0.4em'
     }
 
+    const verticalTabStyle = {
+      width,
+      background: 'rgb(247, 247, 247)',
+      border: '1px solid rgb(148, 148, 148)',
+    }
+    if(!MenuOperation.windowIsMaximized()){
+      verticalTabStyle.border = '1px solid rgb(148, 148, 148)'
+      if(this.props.direction == "right"){
+        verticalTabStyle.borderLeft =  'none'
+      }
+      else{
+        verticalTabStyle.borderRight =  'none'
+      }
+    }
+
     return <div style={{display: this.props.toggleNav > 1 ? 'none' : 'flex'}}>
       {this.props.direction == "right" ? <VerticalTabResizer width={width} setWidth={this.setWidth} direction={this.props.direction}/> : null}
-      <div className={`vertical-tab ${this.props.direction}`} style={{width,background: 'rgb(247, 247, 247)'}}>
+      <div className={`vertical-tab ${this.props.direction}`} style={verticalTabStyle}>
         <div className="vertical-header"/>
         <div style={{textAlign: 'center',paddingTop: 2,paddingBottom: 2}}>
           <Button style={styleText} size="small" onClick={_=>{

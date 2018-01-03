@@ -68,7 +68,7 @@ function onContextMenu(pageURL, tabId) {
         menuItems.push({type: 'separator'})
         menuItems.push({
           label: extensionInfos[extensionId].name,
-          icon: menuList[0].icon,
+          icon: menuList[0].icon.replace(/\.svg$/,'.png'),
           submenu: menuList
         })
         menuList.forEach(menu => {

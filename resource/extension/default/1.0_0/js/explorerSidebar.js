@@ -32273,6 +32273,20 @@ function throwError(message) {
     }
     throw new Error(("Inferno Error: " + message));
 }
+function Lifecycle() {
+    this.listeners = [];
+}
+Lifecycle.prototype.addListener = function addListener(callback) {
+    this.listeners.push(callback);
+};
+Lifecycle.prototype.trigger = function trigger() {
+    var listeners = this.listeners;
+    var listener;
+    // We need to remove current listener from array when calling it, because more listeners might be added
+    while ((listener = listeners.shift())) {
+        listener();
+    }
+};
 
 /**
  * @module Inferno-Create-Class
@@ -32455,6 +32469,20 @@ function isUndefined$1(o) {
 function isObject$1(o) {
     return typeof o === "object";
 }
+function Lifecycle$1() {
+    this.listeners = [];
+}
+Lifecycle$1.prototype.addListener = function addListener(callback) {
+    this.listeners.push(callback);
+};
+Lifecycle$1.prototype.trigger = function trigger() {
+    var listeners = this.listeners;
+    var listener;
+    // We need to remove current listener from array when calling it, because more listeners might be added
+    while ((listener = listeners.shift())) {
+        listener();
+    }
+};
 
 /**
  * @module Inferno-Create-Element
@@ -32576,6 +32604,20 @@ function isUndefined$2(o) {
 function isObject$2(o) {
     return typeof o === "object";
 }
+function Lifecycle$2() {
+    this.listeners = [];
+}
+Lifecycle$2.prototype.addListener = function addListener(callback) {
+    this.listeners.push(callback);
+};
+Lifecycle$2.prototype.trigger = function trigger() {
+    var listeners = this.listeners;
+    var listener;
+    // We need to remove current listener from array when calling it, because more listeners might be added
+    while ((listener = listeners.shift())) {
+        listener();
+    }
+};
 
 /**
  * @module Inferno-Compat
@@ -33406,6 +33448,9 @@ function handleEvent(name, lastEvent, nextEvent, dom) {
 function dispatchEvents(event, target, items, count, isClick, eventData) {
     var dom = target;
     while (count > 0) {
+        if (isClick && dom.disabled) {
+            return;
+        }
         var eventsToTrigger = items.get(dom);
         if (eventsToTrigger) {
             count--;
@@ -33425,7 +33470,7 @@ function dispatchEvents(event, target, items, count, isClick, eventData) {
         // Html Nodes can be nested fe: span inside button in that scenario browser does not handle disabled attribute on parent,
         // because the event listener is on document.body
         // Don't process clicks on disabled elements
-        if (dom === null || (isClick && dom.disabled)) {
+        if (dom === null) {
             return;
         }
     }
@@ -33780,13 +33825,13 @@ function applyValue$2(nextPropsOrEmpty, dom, mounting) {
  * Currently user must choose either controlled or non-controlled and stick with that
  */
 function processElement(flags, vNode, dom, nextPropsOrEmpty, mounting, isControlled) {
-    if (flags & 512 /* InputElement */) {
+    if ((flags & 512 /* InputElement */) > 0) {
         processInput(vNode, dom, nextPropsOrEmpty, mounting, isControlled);
     }
-    if (flags & 2048 /* SelectElement */) {
+    else if ((flags & 2048 /* SelectElement */) > 0) {
         processSelect(vNode, dom, nextPropsOrEmpty, mounting, isControlled);
     }
-    if (flags & 1024 /* TextareaElement */) {
+    else if ((flags & 1024 /* TextareaElement */) > 0) {
         processTextarea(vNode, dom, nextPropsOrEmpty, mounting, isControlled);
     }
 }
@@ -35445,7 +35490,14 @@ function setTextContent(dom, text) {
     }
 }
 function updateTextContent(dom, text) {
-    dom.firstChild.nodeValue = text;
+    var textNode = dom.firstChild;
+    // Guard against external change on DOM node.
+    if (isNull(textNode)) {
+        setTextContent(dom, text);
+    }
+    else {
+        textNode.nodeValue = text;
+    }
 }
 function appendChild(parentDom, dom) {
     parentDom.appendChild(dom);
@@ -35952,7 +36004,7 @@ if (false) {
             "See http://infernojs.org for more details.");
     }
 }
-var version = "3.9.0";
+var version = "3.10.1";
 // we duplicate it so it plays nicely with different module loading systems
 var index = {
     EMPTY_OBJ: EMPTY_OBJ,
@@ -36060,6 +36112,20 @@ function combineFrom(first, second) {
     }
     return out;
 }
+function Lifecycle() {
+    this.listeners = [];
+}
+Lifecycle.prototype.addListener = function addListener(callback) {
+    this.listeners.push(callback);
+};
+Lifecycle.prototype.trigger = function trigger() {
+    var listeners = this.listeners;
+    var listener;
+    // We need to remove current listener from array when calling it, because more listeners might be added
+    while ((listener = listeners.shift())) {
+        listener();
+    }
+};
 
 /**
  * @module Inferno-Component
@@ -36071,17 +36137,6 @@ if (false) {
         "Inferno Error: Can only update a mounted or mounting component. This usually means you called setState() or forceUpdate() on an unmounted component. This is a no-op.";
 }
 var componentCallbackQueue = new Map();
-// when a components root VNode is also a component, we can run into issues
-// this will recursively look for vNode.parentNode if the VNode is a component
-function updateParentComponentVNodes(vNode, dom) {
-    if (vNode.flags & 28 /* Component */) {
-        var parentVNode = vNode.parentVNode;
-        if (parentVNode) {
-            parentVNode.dom = dom;
-            updateParentComponentVNodes(parentVNode, dom);
-        }
-    }
-}
 var resolvedPromise = Promise.resolve();
 function addToQueue(component, force, callback) {
     var queue = componentCallbackQueue.get(component);
@@ -36129,7 +36184,7 @@ function queueStateChanges(component, newState, callback) {
     }
     else {
         component._pendingSetState = true;
-        if (!isNullOrUndef(callback) && component._blockRender) {
+        if (isFunction(callback) && component._blockRender) {
             component._lifecycle.addListener(callback.bind(component));
         }
     }
@@ -36205,13 +36260,17 @@ function applyState(component, force, callback) {
         if (inferno.options.findDOMNodeEnabled) {
             inferno.internal_DOMNodeMap.set(component, nextInput.dom);
         }
-        updateParentComponentVNodes(vNode, dom);
+        while (!isNullOrUndef((vNode = vNode.parentVNode))) {
+            if ((vNode.flags & 28 /* Component */) > 0) {
+                vNode.dom = dom;
+            }
+        }
     }
     else {
         component.state = component._pendingState;
         component._pendingState = null;
     }
-    if (!isNullOrUndef(callback)) {
+    if (isFunction(callback)) {
         callback.call(component);
     }
 }
@@ -36827,7 +36886,6 @@ class FileExplorer extends _infernoCompat2.default.Component {
         _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/favorite_sidebar.html`, key: 'favorite', icon: 'star' }),
         _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/history_sidebar.html`, key: 'history', icon: 'history' }),
         _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/tab_history_sidebar.html`, key: 'tags', icon: 'tags' }),
-        _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/tabs_sidebar.html`, key: 'tabs', icon: 'align justify' }),
         _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { key: 'file-explorer', icon: 'folder', active: true }),
         _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { key: 'open', icon: 'folder open', onClick: this.selectFolder.bind(this) })
       );
@@ -60846,7 +60904,7 @@ var Dropdown = function (_Component) {
 
       e.stopPropagation();
       // prevent closeOnDocumentClick() if multiple or item is disabled
-      if (multiple || item.disabled) ((e.nativeEvent || e) || e).stopImmediatePropagation();
+      if (multiple || item.disabled) e.nativeEvent.stopImmediatePropagation();
       if (item.disabled) return;
 
       var isAdditionItem = item['data-additional'];
@@ -67050,7 +67108,7 @@ var Search = function (_Component) {
     }, _this.handleInputClick = function (e) {
 
       // prevent closeOnDocumentClick()
-      ((e.nativeEvent || e) || e).stopImmediatePropagation();
+      e.nativeEvent.stopImmediatePropagation();
 
       _this.tryOpen();
     }, _this.handleItemClick = function (e, _ref2) {
@@ -67059,7 +67117,7 @@ var Search = function (_Component) {
       var result = _this.getSelectedResult(id);
 
       // prevent closeOnDocumentClick()
-      ((e.nativeEvent || e) || e).stopImmediatePropagation();
+      e.nativeEvent.stopImmediatePropagation();
 
       // notify the onResultSelect prop that the user is trying to change value
       _this.setValue(result.title);
@@ -68895,10 +68953,10 @@ var rendererIdentifiers = function () {
   'windowCaptionButtonMinimize', 'windowCaptionButtonMaximize', 'windowCaptionButtonRestore', 'windowCaptionButtonClose', 'closeFirefoxWarning', 'importSuccess', 'licenseTextOk', 'closeFirefoxWarningOk', 'importSuccessOk', 'connectionError', 'unknownError', 'allowAutoplay',
 
   //Add
-  'default', 'name', 'searchEngine', 'searchEngines', 'engineGoKey', 'general', 'generalSettings', 'search', 'tabs', 'extensions', 'myHomepage', 'startsWith', 'startsWithOptionLastTime', 'newTabMode', 'newTabEmpty', 'import', 'bn-BD', 'bn-IN', 'zh-CN', 'cs', 'nl-NL', 'en-US', 'fr-FR', 'de-DE', 'hi-IN', 'id-ID', 'it-IT', 'ja-JP', 'ko-KR', 'ms-MY', 'pl-PL', 'pt-BR', 'ru', 'sl', 'es', 'ta', 'te', 'tr-TR', 'uk', 'requiresRestart', 'enableFlash', 'startsWithOptionHomePage', 'updateAvail', 'notNow', 'makeBraveDefault', 'saveToPocketDesc',
+  'default', 'name', 'searchEngine', 'searchEngines', 'engineGoKey', 'general', 'generalSettings', 'search', 'tabs', 'extensions', 'myHomepage', 'startsWith', 'startsWithOptionLastTime', 'newTabMode', 'newTabEmpty', 'import', 'bn-BD', 'bn-IN', 'zh-CN', 'cs', 'nl-NL', 'en-US', 'fr-FR', 'de-DE', 'hi-IN', 'id-ID', 'it-IT', 'ja-JP', 'ko-KR', 'ms-MY', 'pl-PL', 'pt-BR', 'ru', 'sl', 'es', 'ta', 'te', 'tr-TR', 'uk', 'requiresRestart', 'enableFlash', 'startsWithOptionHomePage', 'updateAvail', 'notNow', 'makeBraveDefault', 'saveToPocketDesc', 'minimumPageTimeLow',
 
   //chrome
-  '994289308992179865', '1725149567830788547', '4643612240819915418', '4256316378292851214', '2019718679933488176', '782057141565633384', '5116628073786783676', '1465176863081977902', '3007771295016901659', '5078638979202084724', '4589268276914962177', '3551320343578183772', '2448312741937722512', '1524430321211440688', '42126664696688958', '2663302507110284145', '3635030235490426869', '4888510611625056742', '5860209693144823476', '5846929185714966548', '7955383984025963790', '3128230619496333808', '3391716558283801616', '6606070663386660533', '9011178328451474963', '9065203028668620118', '2473195200299095979', '1047431265488717055', '9218430445555521422', '8926389886865778422', '2893168226686371498', '4289540628985791613', '3095995014811312755', '59174027418879706', '6550675742724504774', '5453029940327926427', '4989966318180235467', '6326175484149238433', '9147392381910171771'];
+  '994289308992179865', '1725149567830788547', '4643612240819915418', '4256316378292851214', '2019718679933488176', '782057141565633384', '5116628073786783676', '1465176863081977902', '3007771295016901659', '5078638979202084724', '4589268276914962177', '3551320343578183772', '2448312741937722512', '1524430321211440688', '42126664696688958', '2663302507110284145', '3635030235490426869', '4888510611625056742', '5860209693144823476', '5846929185714966548', '7955383984025963790', '3128230619496333808', '3391716558283801616', '6606070663386660533', '9011178328451474963', '9065203028668620118', '2473195200299095979', '1047431265488717055', '9218430445555521422', '8926389886865778422', '2893168226686371498', '4289540628985791613', '3095995014811312755', '59174027418879706', '6550675742724504774', '5453029940327926427', '4989966318180235467', '6326175484149238433', '9147392381910171771', '8260864402787962391', '8477384620836102176', '7701040980221191251', '6146563240635539929', '8026334261755873520', '1375321115329958930', '5513242761114685513', '5582839680698949063', '5317780077021120954', 'playOrPause', 'frameStep', 'frameBackStep', 'rewind1', 'rewind2', 'forward1', 'forward2', 'rewind3', 'forward3', 'normalSpeed', 'halveSpeed', 'doubleSpeed', 'decSpeed', 'incSpeed', 'fullscreen', 'exitFullscreen', 'mute', 'decreaseVolume', 'increaseVolume', 'incZoom', 'decZoom', 'resetZoom', 'plRepeat', 'mediaSeeking', 'volumeControl', 'changeSpeed', 'mouseWheelFunctions', 'reverseWheelMediaSeeking', 'noScriptPref', 'blockCanvasFingerprinting', 'browsingHistory', 'downloadHistory', 'cachedImagesAndFiles', 'allSiteCookies', 'autocompleteData', 'autofillData', 'clearBrowsingDataNow', 'tabSettings', 'closeAllTabsMenuLabel', 'openalllinksLabel', 'clicktabCopyTabUrl', 'clicktabCopyUrlFromClipboard', 'clicktabReloadtabs', 'clicktabReloadothertabs', 'clicktabReloadlefttabs', 'clicktabReloadrighttabs', 'autoReloadTabLabel', 'clicktabUcatab', 'secondsLabel', 'minuteLabel', 'minutesLabel', 'generalWindowOpenLabel', 'linkTargetTab', 'linkTargetWindow', 'openDuplicateNextLabel', 'keepWindowLabel31', 'currenttabCaptionLabel', 'focusTabLabelBegin', 'focusTabFirstTab', 'focusTabLeftTab', 'focusTabRightTab', 'focusTabLastTab', 'focusTabLastSelectedTab', 'focusTabOpenerTab', 'focusTabOpenerTabRtl', 'focusTabLastOpenedTab', 'tabbarscrollingInverseLabel', 'minWidthLabel', 'widthToLabel', 'widthPixelsLabel', 'mouseHoverSelectLabelBegin', 'tabFlipLabel', 'clicktabLabel', 'doubleLabel', 'middleLabel', 'altLabel', 'clicktabNothing', 'tabbarscrollingSelectTabLabel', 'tabScrollMultibar', 'millisecondsLabel', 'mouseClickLabel', 'tabFlipDelay', 'tabCloseLabel', 'maxrowLabel', 'newTabButtonLabel', 'ssInterval'];
 };
 
 var ctx = null;
@@ -69002,7 +69060,7 @@ exports.init = function (language) {
   const propertyFiles = [];
   const appendLangProperties = function (lang) {
     // Property files to parse (only ones containing menu specific identifiers)
-    propertyFiles.push(path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'extensions.properties').replace(/app.asar([\/\\])/, 'app.asar.unpacked$1'), path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'menu.properties').replace(/app.asar([\/\\])/, 'app.asar.unpacked$1'), path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'app.properties').replace(/app.asar([\/\\])/, 'app.asar.unpacked$1'), path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'error.properties').replace(/app.asar([\/\\])/, 'app.asar.unpacked$1'), path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'passwords.properties').replace(/app.asar([\/\\])/, 'app.asar.unpacked$1'), path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'common.properties').replace(/app.asar([\/\\])/, 'app.asar.unpacked$1'), path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'newtab.properties').replace(/app.asar([\/\\])/, 'app.asar.unpacked$1'), path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'preferences.properties').replace(/app.asar([\/\\])/, 'app.asar.unpacked$1'), path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'chrome.properties').replace(/app.asar([\/\\])/, 'app.asar.unpacked$1'));
+    propertyFiles.push(path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'extensions.properties').replace(/app.asar([\/\\])/, 'app.asar.unpacked$1'), path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'menu.properties').replace(/app.asar([\/\\])/, 'app.asar.unpacked$1'), path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'app.properties').replace(/app.asar([\/\\])/, 'app.asar.unpacked$1'), path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'error.properties').replace(/app.asar([\/\\])/, 'app.asar.unpacked$1'), path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'passwords.properties').replace(/app.asar([\/\\])/, 'app.asar.unpacked$1'), path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'common.properties').replace(/app.asar([\/\\])/, 'app.asar.unpacked$1'), path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'newtab.properties').replace(/app.asar([\/\\])/, 'app.asar.unpacked$1'), path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'preferences.properties').replace(/app.asar([\/\\])/, 'app.asar.unpacked$1'), path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'chrome.properties').replace(/app.asar([\/\\])/, 'app.asar.unpacked$1'), path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'video.properties').replace(/app.asar([\/\\])/, 'app.asar.unpacked$1'), path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'bravery.properties').replace(/app.asar([\/\\])/, 'app.asar.unpacked$1'), path.join(__dirname, '../../resource/extension/default/1.0_0/locales', lang, 'tab.properties').replace(/app.asar([\/\\])/, 'app.asar.unpacked$1'));
   };
 
   appendLangProperties(lang);

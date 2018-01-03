@@ -75,9 +75,11 @@ class BrowserPage extends Component {
     }
 
     if(this.props.tab.privateMode){
+      const key = this.props.tab.key
       webview.partition = this.props.tab.privateMode
-      webview.setAttribute('src', this.state.src)
-      ipc.send('init-private-mode',this.props.tab.privateMode)
+      ipc.send('init-private-mode',key,this.props.tab.privateMode)
+      ipc.once(`init-private-mode-reply_${key}`,_=>webview.setAttribute('src', this.state.src))
+
     }
     console.log(this.props.tab.privateMode)
 

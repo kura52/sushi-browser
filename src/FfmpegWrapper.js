@@ -18,7 +18,7 @@ function exec(command) {
 }
 
 function shellEscape(s){
-  return '"'+s.replace(/(["\s'$`\\])/g,'\\$1')+'"'
+  return '"'+s.replace(/(["\t\n\r\f'$`\\])/g,'\\$1')+'"'
 }
 
 const binaryPath = path.join(__dirname, `../resource/bin/ffmpeg/${process.platform === 'win32' ? 'win' : process.platform === 'darwin' ? 'mac' : 'linux'}/ffmpeg`).replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
@@ -33,7 +33,7 @@ export default class FfmpegWrapper{
     const ret = await exec(`${binaryPath} -i ${shellEscape(this.filePath)}`)
     const m = ret.stdout.match(/: Audio: ([a-zA-Z\d]+)/)
 
-    const ext = m[1] == 'aac' ? 'm4a' : m[1]
+    const ext = m[1] == 'aac' ? 'm4a' : m[1] == 'vorbis' ? 'ogg' : m[1]
 
     const dirName = path.dirname(this.filePath)
     const fnames = path.basename(this.filePath).split(".")
@@ -53,7 +53,7 @@ export default class FfmpegWrapper{
     this.ffmpeg.stdout.on('data', (data) => {
       console.log(`***${data}`)
       const msg = data.toString()
-      callBack()
+      // callBack()
     });
     this.ffmpeg.on('close', (code) => {
       console.log(`*r**${code}`)

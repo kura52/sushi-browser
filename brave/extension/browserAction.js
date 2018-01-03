@@ -1,5 +1,36 @@
 const {webContents,ipcMain} = require('electron')
 const {getFocusedWebContents, getCurrentWindow} = require('../../lib/util')
+const mainState = require('../../lib/mainState')
+
+mainState.browserActionDefaultIcons = {}
+mainState.browserActionPopups = {}
+mainState.browserActionBgs = {}
+mainState.browserActionTitles = {}
+mainState.browserActionTexts = {}
+
+function setMainState(extensionId,name,val){
+  if(val.path){
+    let _icon = typeof val.path === "object" ? Object.values(val.path)[0] : val.path
+    if(_icon.startsWith('chrome-extension://')) _icon = _icon.split("/").slice(3).join("/")
+    mainState.browserActionDefaultIcons[extensionId] = _icon
+  }
+  else if(val.popup){
+    mainState.browserActionPopups[extensionId] = val.popup
+  }
+  else if(val.color){
+    if(Array.isArray(val.color)){
+      val.color = `rgba(${val.color.join(',')})`
+    }
+    mainState.browserActionBgs[extensionId] = val.color
+  }
+  else if(val.text){
+    mainState.browserActionTexts[extensionId] = val.text
+  }
+  else if(val.title){
+    mainState.browserActionTitles[extensionId] = val.title
+  }
+}
+
 
 for(let [eventName,name] of [
   ['chrome-browser-action-set-title','title'],
@@ -21,9 +52,9 @@ for(let [eventName,name] of [
     else{
       for(let cont of webContents.getAllWebContents()){
         if(cont && !cont.isDestroyed() && !cont.isBackgroundPage() && !cont.hostWebContents) {
-          if(name == 'icon') cont.send('chrome-browser-action-set-icon-ipc-all',extensionId,details)
-          else if(name == 'popup')cont.send('chrome-browser-action-set-popup-ipc-all',extensionId,details)
-          else if(name == 'background')cont.send('chrome-browser-action-set-background-ipc-all',extensionId,details)
+          cont.send(`chrome-browser-action-set-${name}-ipc-${extensionId}`,null ,details)
+          cont.send(`chrome-browser-action-set-ipc-all`,extensionId,name,details)
+          setMainState(extensionId,name,details)
         }
       }
     }

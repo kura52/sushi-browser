@@ -16,7 +16,7 @@ const defaultConf = require('./defaultConf')
 import path from 'path'
 const ytdl = require('ytdl-core')
 const youtubedl = require('youtube-dl')
-import {getFocusedWebContents} from './util'
+import {getFocusedWebContents,getCurrentWindow} from './util'
 const isWin = process.platform == 'win32'
 const isLinux = process.platform === 'linux'
 const meiryo = isWin && Intl.NumberFormat().resolvedOptions().locale == 'ja'
@@ -51,12 +51,21 @@ function diffArray(arr1, arr2) {
 }
 
 function shellEscape(s){
-  return '"'+s.replace(/(["\s'$`\\])/g,'\\$1')+'"'
+  return '"'+s.replace(/(["\t\n\r\f'$`\\])/g,'\\$1')+'"'
 }
 
 
 function formatDate(date) {
   return `${date.getFullYear()}-${('0' + (date.getMonth() + 1)).slice(-2)}-${('0' + date.getDate()).slice(-2)} ${('0' + date.getHours()).slice(-2)}-${('0' + date.getMinutes()).slice(-2)}-${('0' + date.getSeconds()).slice(-2)}`;
+}
+
+
+function eachSlice(arr,size){
+  const newArray = []
+  for (let i = 0, l = arr.length; i < l; i += size){
+    newArray.push(arr.slice(i, i + size))
+  }
+  return newArray
 }
 
 ipcMain.on('file-system',(event,key,method,arg)=>{
@@ -277,6 +286,7 @@ ipcMain.on('open-savedState',async (event,key,tabId,datas)=>{
   const host = cont ? event.sender : event.sender.hostWebContents
 
   const win = BrowserWindow.fromWebContents(host)
+  console.log(52,datas,52)
   ipcMain.once('get-private-reply',(e,privateMode)=>{
     if(typeof datas == "string"){
       BrowserWindowPlus.load({id:win.id,sameSize:true,tabParam:JSON.stringify({urls:[{tabKey:datas}],type: 'new-win'})})
@@ -818,7 +828,7 @@ ipcMain.on('change-tab-infos',(e,changeTabInfos)=> {
         if(timer) clearTimeout(timer)
         timer = setTimeout(()=>{
           console.log('change-tab-infos',c)
-          cont.setActive(c.active)
+          if(!cont.isDestroyed()) cont.setActive(c.active)
           timer = void 0
         }, 10)
       }
@@ -890,18 +900,25 @@ ipcMain.on('vpn-event',async (e,key,address)=>{
 
 })
 
-ipcMain.on('audio-extract',e=>{
+ipcMain.on('audio-extract',async e=>{
   const focusedWindow = BrowserWindow.getFocusedWindow()
   const files = dialog.showOpenDialog(focusedWindow,{
-    properties: ['openFile'],
+    properties: ['openFile','multiSelections'],
     filters: [{
       name: 'Select Video Files',
       extensions: ['3gp','3gpp','3gpp2','asf','avi','dv','flv','m2t','m4v','mkv','mov','mp4','mpeg','mpg','mts','oggtheora','ogv','rm','ts','vob','webm','wmv']
     }]
   })
   if (files && files.length > 0) {
-    for(let file of files){
-      new FfmpegWrapper(file).exe(_=>_)
+    for(let fileList of eachSlice(files,6)){
+      const promises = []
+      for(let file of fileList){
+        const key = Math.random().toString()
+        promises.push(new Promise((resolve)=>{
+          new FfmpegWrapper(file).exe(resolve)
+        }))
+      }
+      await Promise.all(promises)
     }
   }
 })
@@ -1075,7 +1092,7 @@ PubSub.subscribe("web-contents-created",(msg,[tabId,sender])=>{
   const cont = webContents.fromTabID(tabId)
   if(!cont) return
 
-  sender.send('web-contents-created',tabId)
+  if(!sender.isDestroyed()) sender.send('web-contents-created',tabId)
 
   cont.on('page-title-updated',e2=> {
     if(!sender.isDestroyed()) sender.send('page-title-updated',tabId)
@@ -1086,6 +1103,15 @@ PubSub.subscribe("web-contents-created",(msg,[tabId,sender])=>{
 ipcMain.on('get-navbar-menu-order',e=>{
   e.returnValue = mainState.navbarItems
 })
+
+function setTabState(cont,cb){
+  const tabId = cont.getId()
+  ipcMain.once(`get-tab-opener-reply_${tabId}`,(e,openerTabId)=>{
+    const tabValue = cont.tabValue()
+    cb({id:tabId, openerTabId, index:tabValue.index, windowId:tabValue.windowId,active:tabValue.active,pinned:tabValue.pinned})
+  })
+  ipcMain.emit('get-tab-opener',null,tabId)
+}
 
 function saveTabState(cont, rSession, tabKey, noUpdate) {
   let histNum = cont.getEntryCount(),
@@ -1101,7 +1127,7 @@ function saveTabState(cont, rSession, tabKey, noUpdate) {
       historyList.push([url, title])
     }
     if (currentIndex > -1 && !noUpdate) {
-      tabState.update({tabKey}, { tabKey,titles: titles.join("\t"),urls: urls.join("\t"),currentIndex,updated_at: Date.now() }, {upsert: true})
+      setTabState(cont,vals => tabState.update({tabKey}, {...vals ,tabKey,titles: titles.join("\t"),urls: urls.join("\t"),currentIndex,updated_at: Date.now() }, {upsert: true}))
     }
   }
   else {
@@ -1114,11 +1140,11 @@ function saveTabState(cont, rSession, tabKey, noUpdate) {
       rSession.titles.push(title)
       rSession.currentIndex = rSession.urls.length - 1
       if (currentIndex > -1 && !noUpdate) {
-        tabState.update({tabKey}, {$set: { titles: rSession.titles.join("\t"),urls: rSession.urls.join("\t"),currentIndex: rSession.currentIndex,updated_at: Date.now() } })
+        setTabState(cont,vals => tabState.update({tabKey}, {$set: {...vals , titles: rSession.titles.join("\t"),urls: rSession.urls.join("\t"),currentIndex: rSession.currentIndex,updated_at: Date.now() } }))
       }
     }
     if (currentIndex > -1 && !noUpdate) {
-      tabState.update({tabKey}, {$set: {currentIndex: rSession.currentIndex, updated_at: Date.now()}})
+      setTabState(cont,vals => tabState.update({tabKey}, {$set: {...vals ,currentIndex: rSession.currentIndex, updated_at: Date.now()}}))
     }
     historyList = rSession.urls.map((x, i) => [x, rSession.titles[i]])
     currentIndex = rSession.currentIndex
@@ -1201,7 +1227,12 @@ ipcMain.on('set-clipboard',(e,data)=>{
 
 
 ipcMain.on('download-start',(e,url)=>{
-  e.sender.hostWebContents.downloadURL(url,true)
+  try{
+    (e.sender || getCurrentWindow()).hostWebContents.downloadURL(url,true)
+  }
+  catch(e){
+    getCurrentWindow().webContents.downloadURL(url,true)
+  }
 })
 
 ipcMain.on('screen-shot',(e,{full,type,rect,tabId,tabKey})=>{
@@ -1247,6 +1278,10 @@ ipcMain.on('execCommand-copy',e=>{
   e.sender.sendInputEvent({type: 'keyUp', keyCode: 'c', modifiers: ['control']});
 })
 
+ipcMain.on('get-isMaximized',e=>{
+  const win = BrowserWindow.fromWebContents(e.sender)
+  e.returnValue = win.isMaximized() || win.isFullScreen()
+})
 // ipcMain.on('send-keys',(e,keys)=>{
 //   e.sender.sendInputEvent(keys)
 // })

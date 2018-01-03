@@ -10,7 +10,7 @@ import path from 'path';
 
 import ReactTable from 'react-table'
 
-
+const expand = require('brace-expansion');
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
 
 function showDialog(input,id){
@@ -301,7 +301,7 @@ class Downloader extends React.Component {
 
   play(item){
     if(item.fromDB){
-      ipc.send("download-retry", item.url, item.savePath, item.key) //元アイテムを消す
+      ipc.send("download-retry", item.url, item.savePath, item.key)
     }
     else{
       ipc.send("download-pause", item)
@@ -407,11 +407,16 @@ class Downloader extends React.Component {
       text: `Please enter URLs and save directory`,
       initValue: ["",""],
       option: ['textArea','dialog',void 0,'toggle'],
-      needInput: ["URLs","Save Directory","FileName(Optional)",'Attempt to find and download video']
+      needInput: ["URLs  (You can expand URLs. Example: file{a,b,c}.jpg , file{00..10}.png, file{0..4..2}.gif)",
+        "Save Directory","FileName(Optional) (You can use tags (name/ext/base/sub/host/y/m/d/hh/mm/ss). Example: {name}_{y}.{ext})",
+        'Attempt to find and download video']
     }).then(value => {
       console.log(7778,value)
       if (!value) return
-      const urls = value[0].split(/\r?\n/)
+      let urls = []
+      const _urls = value[0].split(/\r?\n/)
+      _urls.forEach(x=>urls.push(...expand(x)))
+
       const directory = value[1]
       const fname = value[2]
       const tryVideo = value[3]
@@ -439,7 +444,7 @@ class Downloader extends React.Component {
     for(let item of Object.values(this.getSelectedMap())){
       if(item.state == "completed" || (item.state == "progressing" && !item.isPaused)) continue
       if(item.fromDB){
-        ipc.send("download-retry", item.url, item.savePath, item.key) //元アイテムを消す
+        ipc.send("download-retry", item.url, item.savePath, item.key)
       }
       else{
         ipc.send("download-pause", item,'resume')

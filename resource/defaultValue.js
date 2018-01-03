@@ -20,7 +20,6 @@ const settingDefault =  {
   language: 'default',
   enableFlash: true,
   sideBarDirection: 'left',
-  scrollTab: true,
   doubleShift: true,
   tripleClick: true,
   historyFull: true,
@@ -35,8 +34,8 @@ const settingDefault =  {
   checkDefaultBrowser: true,
   disableExtensions: [],
   adBlockDisableSite: {},
-  disableContextMenus: [],
-  disableTabContextMenus: ['reload','cleanReload','Split left tabs to left','closeTabsToLeft','bookmarkPage','5317780077021120954'],
+  disableContextMenus: ['5317780077021120954'],
+  disableTabContextMenus: ['closeTab','reload','Split Left','Split Top','cleanReload','Split right tabs to right','Split left tabs to left','Align Vertical','closeTabsToLeft','bookmarkPage','clicktabCopyTabUrl','clicktabCopyUrlFromClipboard','Copy Tab Info','clicktabReloadtabs','clicktabReloadothertabs','clicktabReloadlefttabs','clicktabReloadrighttabs','clicktabUcatab'],
   priorityContextMenus: {},
   priorityTabContextMenus: {},
 
@@ -47,14 +46,39 @@ const settingDefault =  {
     right: ['syncReplace','sync','opposite','sidebar','mobile','favorite','history','tabHistory','savedState','video'],
     backSide: ['download','folder','terminal','screenshot'],
   },
-  multistageTabs: false,
   verticalTab: false,
   verticalTabWidth: 200,
-  tabMinWidth: 150,
   tabBarHide: false,
   verticalTabPosition: 'none',
   verticalTabTree: true,
   autoSaveInterval: 60,
+  orderOfAutoComplete: 'suggestionToHistory',
+  numOfSuggestion: 0,
+  numOfHistory: 15,
+  displayFullIcon: true,
+
+
+  //tab
+  reloadIntervals: [60,120,300,900,1800],
+  openTabNextLabel: false,
+  generalWindowOpenLabel: 'linkTargetWindow',
+  keepWindowLabel31 : false,
+  closeTabBehavior: 'focusTabRightTab',
+  multistageTabs: false,
+  maxrowLabel: 0,
+  scrollTab: true,
+  reverseScrollTab: false,
+  tabMinWidth: 150,
+  tabMaxWidth: 200,
+  mouseHoverSelectLabelBegin: false,
+  mouseHoverSelectLabelBeginDelay: 250,
+  tabFlipLabel: false,
+  doubleClickTab: 'clicktabNothing',
+  middleClickTab: 'closeTab',
+  altClickTab: 'clicktabNothing',
+  rightClickTabAdd: 'Paste and Open',
+  middleClickTabAdd: 'newPrivateTab',
+  altClickTabAdd: 'clicktabNothing',
 
   //keyboard shortcut default
   keyQuit: 'CmdOrCtrl+Q',
@@ -65,6 +89,10 @@ const settingDefault =  {
   keyOpenLocation: 'CmdOrCtrl+L',
   keyCloseTab: 'CmdOrCtrl+W',
   keyCloseWindow: 'CmdOrCtrl+Shift+W',
+  keyClosePanel: 'CmdOrCtrl+Alt+C',
+  keyCloseOtherTabs: 'Shift+CmdOrCtrl+O',
+  keyCloseTabsToLeft: '',
+  keyCloseTabsToRight: '',
   keySavePageAs: 'CmdOrCtrl+S',
   keyPrint: 'CmdOrCtrl+P',
 
@@ -85,6 +113,12 @@ const settingDefault =  {
   keyStop: isDarwin ? 'Cmd+.' : 'Esc',
   keyReloadPage: 'CmdOrCtrl+R',
   keyCleanReload: 'CmdOrCtrl+Shift+R',
+
+  keyClicktabReloadtabs: 'CmdOrCtrl+Alt+R',
+  keyClicktabReloadothertabs: 'CmdOrCtrl+Alt+O',
+  keyClicktabReloadlefttabs: 'CmdOrCtrl+Alt+L',
+  keyClicktabReloadrighttabs: 'CmdOrCtrl+Alt+I',
+
   keyToggleDeveloperTools: isDarwin ? 'Cmd+Alt+I' : 'Ctrl+Shift+I',
   keyToggleFullScreenView: isDarwin ? 'Ctrl+Cmd+F' : 'F11',
 
@@ -92,9 +126,11 @@ const settingDefault =  {
   keyBack: 'CmdOrCtrl+[',
   keyForward: 'CmdOrCtrl+]',
   keyReopenLastClosedTab: 'Shift+CmdOrCtrl+T',
+  keyClicktabUcatab: 'Shift+CmdOrCtrl+A',
   keyShowAllHistory: 'CmdOrCtrl+Y',
 
   keyBookmarkPage: 'CmdOrCtrl+D',
+  keyAddBookmarkAll: 'Shift+CmdOrCtrl+B',
   keyBookmarksManager: isDarwin ? 'CmdOrCtrl+Alt+B' : 'Ctrl+Shift+O',
 
   keyMinimize: 'CmdOrCtrl+M',
@@ -113,6 +149,8 @@ const settingDefault =  {
   keySplitRight: 'CmdOrCtrl+Alt+Right',
   keySplitTop: 'CmdOrCtrl+Alt+Up',
   keySplitBottom: 'CmdOrCtrl+Alt+Down',
+  keySplitLeftTabs: '',
+  keySplitRightTabs: '',
 
   keySwapPosition: 'CmdOrCtrl+Alt+P',
   keySwitchDirection: 'CmdOrCtrl+Alt+D',
@@ -125,7 +163,21 @@ const settingDefault =  {
   keyChangeMobileAgent: 'CmdOrCtrl+Alt+M',
 
   keyDetachPanel: 'CmdOrCtrl+Alt+E',
-  keyClosePanel: 'CmdOrCtrl+Alt+C',
+
+  // keyDownloadAll: 'Shift+CmdOrCtrl+D',
+  // keyPageTranslate: 'CmdOrCtrl+Alt+A',
+
+  //clipboard
+  keyClicktabCopyTabUrl: '',
+  keyClicktabCopyUrlFromClipboard: 'CmdOrCtrl+Alt+U',
+  keyPasteAndOpen: 'CmdOrCtrl+Alt+N',
+  keyCopyTabInfo: '',
+  keyCopyAllTabInfos: '',
+
+  //util
+  keyDuplicateTab: '',
+  keyUnpinTab: '',
+  keyUnmuteTab: 'Shift+CmdOrCtrl+M',
 
   //localshortcut
   keyFindOnPage_1: 'F6',
@@ -155,6 +207,7 @@ const settingDefault =  {
   keyTab6: 'CmdOrCtrl+6',
   keyTab7: 'CmdOrCtrl+7',
   keyTab8: 'CmdOrCtrl+8',
+
 
   enableKeyDownVideo: false,
   reverseWheelVideo: false,

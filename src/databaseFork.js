@@ -96,6 +96,7 @@ const db = new Proxy({
   get token(){return new Proxy(dummy, handler('token'))},
   get extension(){return new Proxy(dummy, handler('extension'))},
   get savedState(){return new Proxy(dummy, handler('savedState'))},
+  get windowState(){return new Proxy(dummy, handler('windowState'))},
   get sock(){ return sock},
   _kill(){child.kill('SIGINT')}
 },handler())

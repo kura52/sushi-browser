@@ -109,6 +109,7 @@ export default class BrowserNavbarLocation extends Component {
       PubSub.publish(`menu-showed_${this.props.k}`,false)
     }
     if(!noBlur && this.input) this.input.blur()
+    this.prevValue = void 0
     this.setState({ results: []})
   }
 
@@ -127,7 +128,13 @@ export default class BrowserNavbarLocation extends Component {
   handleResultSelect(e, result) {
     if(!result.title) result = result.result
     this.canUpdate = true
-    this.props.onEnterLocation(this.state.results.find(x=> x.title === result.title).url)
+    const val = this.state.results.find(x=> x.title === result.title)
+    if(val.description){
+      this.props.onEnterLocation(val.url)
+    }
+    else{
+      this.props.search(this.props.tab, val.url, false)
+    }
     this.resetComponent()
   }
 
@@ -141,27 +148,53 @@ export default class BrowserNavbarLocation extends Component {
 
     const key = uuid.v4()
     const cLoc = this.props.page.location
-    ipc.once(`search-history-loc-reply_${key}`, (e, ret)=> {
-      if(cLoc != this.props.page.location) return
-      // console.log("end", Date.now())
-      let results = ret.history.map(x=> {
-        return {
-          title: x.title || (x.location.length > 75 ? `${x.location.substr(0, 75)}...` : x.location),
-          description: x.location.length > 100 ? `${x.location.substr(0, 100)}...` : convertURL(x.location),
-          url: x.location
-        }
-      })
 
+    const promises = []
+
+    if(this.prevValue == this.props.page.location){
+      this.setState({})
+      return
+    }
+    this.prevValue = this.props.page.location
+
+    if(this.props.autoCompleteInfos.numOfSuggestion > 0){
+      promises.push(fetch(this.props.autoCompleteInfos.url.replace("%s",encodeURIComponent(this.props.page.location))).then(res=>{
+        return res.json()
+      }).then(json=>{
+        try{
+          let results = json[1].map(x=>({ title: x, url: x }))
+          console.log(json[1])
+          return results.slice(0, this.props.autoCompleteInfos.numOfSuggestion)
+        }catch(e){
+          return []
+        }
+      }))
+    }
+
+    if(this.props.autoCompleteInfos.numOfHistory > 0) {
+      promises.push(new Promise(resolve => {
+        ipc.once(`search-history-loc-reply_${key}`, (e, ret) => {
+          if (cLoc != this.props.page.location) return
+          // console.log("end", Date.now())
+          let results = ret.history.map(x => ({
+            title: x.title || (x.location.length > 75 ? `${x.location.substr(0, 75)}...` : x.location),
+            description: x.location.length > 100 ? `${x.location.substr(0, 100)}...` : convertURL(x.location),
+            url: x.location
+          }))
+          resolve((results.filter(x=>x.title) | _.uniqBy(x=>x.title)).slice(0, this.props.autoCompleteInfos.numOfHistory))
+        })
+        ipc.send('search-history-loc', key, _.escapeRegExp(this.props.page.location), 100)
+      }))
+    }
+
+    Promise.all(promises).then(values=>{
+      if(this.props.autoCompleteInfos.orderOfAutoComplete == 'historyToSuggestion') values.reverse()
+      const results = [...values[0],...values[1]]
       if(this.isFloat){
         PubSub.publish(`menu-showed_${this.props.k}`,true)
       }
-      this.setState({
-        results: (results.filter(x=>x.title) | _.uniqBy(x=>x.title)).slice(0, 15)
-      })
-      // console.log("end2", Date.now())
+      this.setState({ results })
     })
-    ipc.send('search-history-loc', key,_.escapeRegExp(this.props.page.location), 100)
-    // }
   }
 
 
@@ -183,7 +216,7 @@ export default class BrowserNavbarLocation extends Component {
 
   onMouseDown(e){
     // if(this.isFloat){
-      e.target.click()
+    e.target.click()
     // }
   }
 

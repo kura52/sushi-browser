@@ -447,7 +447,8 @@ process.on('add-new-contents', async (e, source, newTab, disposition, size, user
     timeStamp: Date.now()
   })
 
-  if (disposition === 'new-window' || disposition === 'new-popup') {
+  console.log(disposition)
+  if ((disposition === 'new-window' || disposition === 'new-popup') && mainState.generalWindowOpenLabel == 'linkTargetWindow') {
     const currentWindow = getCurrentWindow()
     ipcMain.once('get-private-reply',(e,privateMode)=>{
       BrowserWindowPlus.load({id:currentWindow.id,x:size.x,y:size.y,width:size.width,height:size.height,disposition,
@@ -528,11 +529,12 @@ function setFlash(app){
 }
 
 function createWindow (first,url) {
-  const initWindow = BrowserWindowPlus.load((void 0),first,url)
+  const initWindow = BrowserWindowPlus.load
+  ((void 0),first,url)
   return initWindow
 }
 
-ipcMain.on('init-private-mode',(e,partition)=>{
+ipcMain.on('init-private-mode',(e,key,partition)=>{
   const ses = session.fromPartition(partition)
   ses.userPrefs.setDictionaryPref('content_settings', defaultConf)
   ses.userPrefs.setBooleanPref('autofill.enabled', true)
@@ -543,6 +545,7 @@ ipcMain.on('init-private-mode',(e,partition)=>{
   httpsEverywhere(ses)
   trackingProtection(ses)
   extensions.loadAll(ses)
+  e.sender.send(`init-private-mode-reply_${key}`,1)
 })
 
 let explorerMenu,favoriteMenu,savedStateMenu,downloadMenu
@@ -811,10 +814,13 @@ function contextMenu(webContents) {
       }
       menuItems.push({type: 'separator'})
       if(!hasText && props.mediaType === 'none'){
-        menuItems.push({
-          t: 'openSearch', label: locale.translation('openSearch').replace(/{{\s*selectedVariable\s*}}/, props.linkText.length > 20 ? `${props.linkText.substr(0, 20)}...` : props.linkText),
-          click: (item, win) =>  win.webContents.send('search-text', webContents.getId(), props.linkText)
-        })
+        const type = mainState.searchProviders[mainState.searchEngine].type
+        for(let suffix of type ? [''] : mainState.oppositeGlobal ? ['(o)','(c)'] : ['(c)','(o)']){
+          menuItems.push({
+            t: 'openSearch', label: locale.translation('openSearch').replace(/{{\s*selectedVariable\s*}}/, props.linkText.length > 20 ? `${props.linkText.substr(0, 20)}...` : props.linkText) + suffix,
+            click: (item, win) =>  win.webContents.send('search-text', webContents.getId(), props.linkText,suffix == '(o)')
+          })
+        }
       }
     }
 
@@ -919,10 +925,13 @@ function contextMenu(webContents) {
         menuItems.push({t: 'copy', label: locale.translation("copy"), role: 'copy', enabled: can('Copy')})
       }
       if(mainState.contextMenuSearchEngines.length == 0){
-        menuItems.push({
-          t: 'openSearch', label: locale.translation('openSearch').replace(/{{\s*selectedVariable\s*}}/, text.length > 20 ? `${text.substr(0, 20)}...` : text),
-          click: (item, win) => win.webContents.send('search-text', webContents.getId(), text)
-        })
+        const type = mainState.searchProviders[mainState.searchEngine].type
+        for(let suffix of type ? [''] : mainState.oppositeGlobal ? ['(o)','(c)'] : ['(c)','(o)']){
+          menuItems.push({
+            t: 'openSearch', label: locale.translation('openSearch').replace(/{{\s*selectedVariable\s*}}/, text.length > 20 ? `${text.substr(0, 20)}...` : text) + suffix,
+            click: (item, win) => win.webContents.send('search-text', webContents.getId(), text,suffix == '(o)')
+          })
+        }
       }
       else{
         for(let engine of mainState.contextMenuSearchEngines){
@@ -933,17 +942,20 @@ function contextMenu(webContents) {
             labelShortcut = `${shortcut}:`
             searchShortcut = `${shortcut} `
           }
-          menuItems.push({
-            t: 'openSearch', label: labelShortcut + locale.translation('openSearch').replace(/{{\s*selectedVariable\s*}}/, text.length > 20 ? `${text.substr(0, 20)}...` : text),
-            click: (item, win) =>  win.webContents.send('search-text', webContents.getId(), `${searchShortcut}${text}`)
-          })
+          const type = mainState.searchProviders[engine].type
+          for(let suffix of type ? [''] : mainState.oppositeGlobal ? ['(o)','(c)'] : ['(c)','(o)']){
+            menuItems.push({
+              t: 'openSearch', label: labelShortcut + locale.translation('openSearch').replace(/{{\s*selectedVariable\s*}}/, text.length > 20 ? `${text.substr(0, 20)}...` : text) + suffix,
+              click: (item, win) =>  win.webContents.send('search-text', webContents.getId(), `${searchShortcut}${text}`,suffix == '(o)')
+            })
+          }
         }
       }
       const links = await getSelectionLinks(webContents,props)
       if(links.length) {
         menuItems.push({type: 'separator'})
         menuItems.push({label: 'Copy Links', click: (item,win)=> clipboard.writeText(links.join(os.EOL))})
-        menuItems.push({label: 'Open Links', click: (item,win)=>{
+        menuItems.push({label: locale.translation('openalllinksLabel'), click: (item,win)=>{
             for(let link of links){
               setTimeout(_=>win.webContents.send('new-tab', webContents.getId(), link),0)
             }
@@ -1100,7 +1112,7 @@ function contextMenu(webContents) {
           menuItems.push({type: 'separator'})
           menuItems.push({
             label: extensionInfos[extensionId].name,
-            icon: menuList[0].icon,
+            icon: menuList[0].icon.replace(/\.svg$/,'.png'),
             submenu: menuList
           })
           menuList.forEach(menu=>{

@@ -6,23 +6,29 @@ import { Dropdown } from 'semantic-ui-react';
 const {remote} = require('electron')
 const {Menu} = remote
 const {messages,locale} = require('./localAndMessage')
-const defaultIcons = {},popups = {},bgs = {}
+let [defaultIcons,popups,bgs,titles,texts] = ipc.sendSync('get-sync-main-states',['browserActionDefaultIcons','browserActionPopups','browserActionBgs','browserActionTitles','browserActionTexts'])
 
-ipc.on('chrome-browser-action-set-icon-ipc-all',(e,extensionId,val) => {
-  if(!val.path) return
-  let _icon = typeof val.path === "object" ? Object.values(val.path)[0] : val.path
-  if(_icon.startsWith('chrome-extension://')) _icon = _icon.split("/").slice(3).join("/")
-  defaultIcons[extensionId] = _icon
-})
-
-ipc.on('chrome-browser-action-set-popup-ipc-all',(e,extensionId,val) => {
-  if(!val.popup) return
-  popups[extensionId] = val.popup
-})
-
-ipc.on('chrome-browser-action-set-background-ipc-all',(e,extensionId,val) => {
-  if(!val.color) return
-  bgs[extensionId] = val.color
+ipc.on('chrome-browser-action-set-ipc-all',(e,extensionId,name,val) => {
+  if(val.path){
+    let _icon = typeof val.path === "object" ? Object.values(val.path)[0] : val.path
+    if(_icon.startsWith('chrome-extension://')) _icon = _icon.split("/").slice(3).join("/")
+    defaultIcons[extensionId] = _icon
+  }
+  else if(val.popup){
+    popups[extensionId] = val.popup
+  }
+  else if(val.color){
+    if(Array.isArray(val.color)){
+      val.color = `rgba(${val.color.join(',')})`
+    }
+    bgs[extensionId] = val.color
+  }
+  else if(val.text){
+    texts[extensionId] = val.text
+  }
+  else if(val.title){
+    titles[extensionId] = val.title
+  }
 })
 
 const defaults = {}
@@ -98,7 +104,7 @@ export default class BrowserActionMenu extends Component{
     this.iconSet = (e,tabId,val) => {
       const {tab,values} = this.props
       // console.log("icon-get",e,tabId,val)
-      if(tab.wvId !== tabId || !val.path) return
+      if(tabId !== null && (tab.wvId !== tabId || !val.path)) return
       let path = val.path
       if(!path[0]){
         for (let name in path) {
@@ -116,19 +122,19 @@ export default class BrowserActionMenu extends Component{
     ipc.on(`chrome-browser-action-set-icon-ipc-${this.props.id}`,this.iconSet)
 
     this.titleSet = (e,tabId,val) => {
-      if(this.props.tab.wvId !== tabId) return
+      if(tabId !== null && this.props.tab.wvId !== tabId) return
       if(this.state.title !== val.title) this.setState({title: val.title})
     }
     ipc.on(`chrome-browser-action-set-title-ipc-${this.props.id}`,this.titleSet)
 
     this.badgeSet = (e,tabId,val) => {
-      if(this.props.tab.wvId !== tabId) return
+      if(tabId !== null && this.props.tab.wvId !== tabId) return
       if(this.state.text !== val.text) this.setState({text: val.text})
     }
     ipc.on(`chrome-browser-action-set-badge-ipc-${this.props.id}`,this.badgeSet)
 
     this.backgroundSet = (e,tabId,val) => {
-      if(this.props.tab.wvId !== tabId) return
+      if(tabId !== null && this.props.tab.wvId !== tabId) return
       if(Array.isArray(val.color)){
         val.color = `rgba(${val.color.join(',')})`
       }
@@ -137,7 +143,7 @@ export default class BrowserActionMenu extends Component{
     ipc.on(`chrome-browser-action-set-background-ipc-${this.props.id}`,this.backgroundSet)
 
     this.popupSet = (e,tabId,val) => {
-      if(this.props.tab.wvId !== tabId) return
+      if(tabId !== null && this.props.tab.wvId !== tabId) return
       if(this.state.popup !== val.popup) this.setState({popup: val.popup})
     }
     ipc.on(`chrome-browser-action-set-popup-ipc-${this.props.id}`,this.popupSet)
@@ -201,18 +207,21 @@ export default class BrowserActionMenu extends Component{
     let retry = 0
     const id = this.props.id
     const values = this.props.values
+    const popup = this.state.popup || popups[this.props.id] || values.default_popup
+    const text = this.state.text || texts[this.props.id]
+    const title = this.state.title || titles[this.props.id]
     return <Dropdown onMouseDown={::this.handleClick} onOpen={_=>{if(this.refs && this.refs.popupView) this.refs.popupView.reload()}} onClose={_=>{if(this.refs && this.refs.popupView) this.refs.popupView.onClose()}}
       // onDragStart={e=>console.log(4342355,e)} onDragEnter={e=>{console.log(4342344,e)}}
-                     scrolling className={`draggable-source nav-button sort-${id}`} key={id} trigger={<a href="javascript:void(0)"  title={this.state.title || values.name}>
+                     scrolling className={`draggable-source nav-button sort-${id}`} key={id} trigger={<a href="javascript:void(0)"  title={title|| values.name}>
       <img style={{width:16,height:16,verticalAlign:'middle'}} src={`file://${this.state.icon}`} onError={(e)=>{
         console.log(99854,this.state.icon)
         if(retry++ > 10) return
         e.target.src =  `file://${values.basePath}/${values.default_icon ? (typeof values.default_icon === "object" ? Object.values(values.default_icon)[0] : values.default_icon) : Object.values(values.icons)[0]}`
       }} />
-      {this.state.text ? <div className="browserActionBadge" style={{backgroundColor: this.state.color || bgs[this.props.id]}}>{this.state.text}</div> : null}
+      {text ? <div className="browserActionBadge" style={{backgroundColor: this.state.color || bgs[this.props.id]}}>{text}</div> : null}
     </a>} icon={null}>
       <Dropdown.Menu className={`browser-action nav-menu ${this.state.className}`} >
-        {this.state.popup || popups[this.props.id] || values.default_popup ? <BrowserActionWebView ref="popupView" url={`chrome-extension://${id}/${this.state.popup || popups[this.props.id] || values.default_popup}`} setClassName={::this.setClassName}/>: ""}
+        {popup ? <BrowserActionWebView ref="popupView" url={popup.startsWith('chrome-extension://') ? popup : `chrome-extension://${id}/${popup}`} setClassName={::this.setClassName}/>: ""}
       </Dropdown.Menu>
     </Dropdown>
   }
