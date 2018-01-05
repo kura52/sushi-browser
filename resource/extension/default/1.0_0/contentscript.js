@@ -83,14 +83,26 @@ window.addEventListener('scroll', (e)=>{
   })
 },{passive:true})
 
-ipc.send("get-main-state",['tripleClick'])
+ipc.send("get-main-states",['tripleClick','alwaysOpenLinkNewTab'])
 ipc.once("get-main-state-reply",(e,data)=>{
-  if(data.tripleClick){
+  if(data[0]){
     window.addEventListener('click', e=>{
       if (e.detail === 3) {
         window.scrollTo(e.pageX,window.scrollY);
       }
     },{passive:true})
+  }
+  if(data[1]){
+    const href = location.href
+    for (let link of document.getElementsByTagName("a")) {
+      if (link.href == ""){}
+      else if(data[1] == 'all'){
+        link.target = "_blank"
+      }
+      else if(link.origin != "null" && !href.startsWith(link.origin)){
+        link.target = "_blank"
+      }
+    }
   }
 })
 

@@ -80,6 +80,9 @@ const settingDefault =  {
   rightClickTabAdd: 'Paste and Open',
   middleClickTabAdd: 'newPrivateTab',
   altClickTabAdd: 'clicktabNothing',
+  colorOfNoSelect: '#ab7f00',
+  enableColorOfNoSelect: false,
+  alwaysOpenLinkNewTab: false,
 
   //keyboard shortcut default
   keyQuit: 'CmdOrCtrl+Q',

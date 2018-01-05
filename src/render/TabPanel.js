@@ -73,6 +73,7 @@ const convertUrlMap = new Map([
   ['chrome://settings#extension','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extension'],
 ])
 
+const allSelectedkeys = new Set()
 
 function updateSearchEngine(){
   const vals = ipc.sendSync('get-sync-main-states',['searchProviders','searchEngine'])
@@ -154,6 +155,7 @@ function tabAdd(self, url, isSelect=true,privateMode = false,guestInstanceId,mob
 
   if(isSelect){
     self.state.selectedKeys.push(key)
+    allSelectedkeys.add(key)
     console.log("selected01",key)
     self.setState({selectedTab: key})
     self.focus_webview(t,t.page.location != topURL)
@@ -251,6 +253,7 @@ export default class TabPanel extends Component {
       }
       this.state.selectedTab = this.state.tabs[0].key
       this.state.selectedKeys = [this.state.selectedTab]
+      allSelectedkeys.add(this.state.selectedTab)
 
       this.focus_webview(this.state.tabs[0],false)
       this.props.child[0] = this
@@ -276,6 +279,7 @@ export default class TabPanel extends Component {
       }
       this.state.selectedTab = this.state.tabs[0].key
       this.state.selectedKeys = [this.state.selectedTab]
+      allSelectedkeys.add(this.state.selectedTab)
 
       this.focus_webview(this.state.tabs[0],false)
       this.props.child[0] = this
@@ -302,6 +306,7 @@ export default class TabPanel extends Component {
         selectedKeys: [tab.key],
         history: [],
         tabKeys: []}
+      allSelectedkeys.add(tab.key)
       this.focus_webview(tab,false)
       this.props.child[0] = this
     }
@@ -362,10 +367,11 @@ export default class TabPanel extends Component {
         prevAddKeyCount: [null,[]],
         notifications:[],
         selectedTab: forceKeep ? tabs[0].key : tabs[tabs.length - 1].key,
-        selectedKeys: [forceKeep ? tabs[0].key : tabs[tabs.length - 1].key],
         history: [],
         tabKeys: []
       }
+      this.state.selectedKeys = [this.state.selectedTab]
+      allSelectedkeys.add(this.state.selectedTab)
       this.props.child[0] = this
     }
   }
@@ -594,10 +600,13 @@ export default class TabPanel extends Component {
       if (!this.mounted) return
       const _tabs = this.state.tabs
       const i = this.state.tabs.findIndex(x => x.key == key)
+      allSelectedkeys.delete(key)
+
       if(i === -1){//@TODO
         this.setState({})
         return
       }
+
 
       // ipc.send('chrome-tab-removed', parseInt(_tabs[i].key))
       this._closeBind(_tabs[i])
@@ -2561,8 +2570,8 @@ export default class TabPanel extends Component {
       if(isChangeSelected) {
         this.state.selectedKeys = this.state.selectedKeys.filter(key => key != this.state.selectedTab && this.state.tabs.some(tab => tab.key == key))
         this.state.selectedKeys.push(this.state.selectedTab)
+        allSelectedkeys.add(this.state.selectedTab)
       }
-
 
       this.state._tabKeys = []
       let i = -1
@@ -2681,6 +2690,7 @@ export default class TabPanel extends Component {
     if (!this.mounted) return
     const i = this.state.tabs.findIndex((x)=> x.key == key)
     console.log('tabClosed key:', key,this.state.tabs[i].page.navUrl,this.state.tabs.length);
+    allSelectedkeys.delete(key)
 
     this._closeBind(this.state.tabs[i])
     if(this.state.tabs.length==1){
@@ -3876,7 +3886,7 @@ export default class TabPanel extends Component {
         mouseClickHandles={key=>this._handleContextMenu(null,key,null,this.state.tabs,false,true)}
         ref='tabs'
         tabs={this.state.tabs.map((tab,num)=>{
-          return (<Tab key={tab.key} page={tab.page} orgTab={tab} pin={tab.pin} mute={tab.mute} reloadInterval={tab.reloadInterval} privateMode={tab.privateMode} selection={tab.selection}>
+          return (<Tab key={tab.key} page={tab.page} orgTab={tab} unread={this.state.selectedTab != tab.key && !allSelectedkeys.has(tab.key)} pin={tab.pin} mute={tab.mute} reloadInterval={tab.reloadInterval} privateMode={tab.privateMode} selection={tab.selection}>
             <div style={{height: '100%'}} className="div-back" ref={`div-${tab.key}`} >
               <BrowserNavbar ref={`navbar-${tab.key}`} tabkey={tab.key} k={this.props.k} navHandle={tab.navHandlers} parent={this}
                              privateMode={tab.privateMode} page={tab.page} tab={tab}

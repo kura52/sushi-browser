@@ -29,7 +29,7 @@ const {alwaysOnTop} = require('../../browserNavbar')
 
 const isDarwin = navigator.userAgent.includes('Mac OS X')
 const bgSvg = `<svg version="1.1" xmlns="http://www.w3.org/2000/svg"><defs><symbol id="topleft" viewBox="0 0 214 29"><path d="M14.3 0.1L214 0.1 214 29 0 29C0 29 12.2 2.6 13.2 1.1 14.3-0.4 14.3 0.1 14.3 0.1Z"></path></symbol><symbol id="topright" viewBox="0 0 214 29"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topleft"></use></symbol><clipPath id="crop"><rect class="mask" width="100%" height="100%" x="0"></rect></clipPath></defs><svg width="50%" height="100%" transfrom="scale(-1, 1)"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topleft" width="214" height="29" class="chrome-tab-background"></use><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topleft" width="214" height="29" class="chrome-tab-shadow"></use></svg><g transform="scale(-1, 1)"><svg width="50%" height="100%" x="-100%" y="0"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topright" width="214" height="29" class="chrome-tab-background"></use><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topright" width="214" height="29" class="chrome-tab-shadow"></use></svg></g></svg>`
-let [scrollTab,reverseScrollTab,multistageTabs,verticalTabWidth,tabBarHide,tabMinWidth,tabMaxWidth,tabFlipLabel,mouseHoverSelectLabelBeginDelay,mouseHoverSelectLabelBegin,doubleClickTab,middleClickTab,altClickTab,maxrowLabel,openTabNextLabel,rightClickTabAdd,middleClickTabAdd,altClickTabAdd,displayFullIcon] = ipc.sendSync('get-sync-main-states',['scrollTab','reverseScrollTab','multistageTabs','verticalTabWidth','tabBarHide','tabMinWidth','tabMaxWidth','tabFlipLabel','mouseHoverSelectLabelBeginDelay','mouseHoverSelectLabelBegin','doubleClickTab','middleClickTab','altClickTab','maxrowLabel','openTabNextLabel','rightClickTabAdd','middleClickTabAdd','altClickTabAdd','displayFullIcon'])
+let [scrollTab,reverseScrollTab,multistageTabs,verticalTabWidth,tabBarHide,tabMinWidth,tabMaxWidth,tabFlipLabel,mouseHoverSelectLabelBeginDelay,mouseHoverSelectLabelBegin,doubleClickTab,middleClickTab,altClickTab,maxrowLabel,openTabNextLabel,rightClickTabAdd,middleClickTabAdd,altClickTabAdd,displayFullIcon,colorOfNoSelect,enableColorOfNoSelect] = ipc.sendSync('get-sync-main-states',['scrollTab','reverseScrollTab','multistageTabs','verticalTabWidth','tabBarHide','tabMinWidth','tabMaxWidth','tabFlipLabel','mouseHoverSelectLabelBeginDelay','mouseHoverSelectLabelBegin','doubleClickTab','middleClickTab','altClickTab','maxrowLabel','openTabNextLabel','rightClickTabAdd','middleClickTabAdd','altClickTabAdd','displayFullIcon','colorOfNoSelect','enableColorOfNoSelect'])
 maxrowLabel = parseInt(maxrowLabel)
 let noUpdate
 
@@ -396,6 +396,7 @@ class Tabs extends React.Component {
         privateMode,
         pin,
         mute,
+        unread,
         reloadInterval,
         ...others
       } = tab.props;
@@ -532,6 +533,10 @@ class Tabs extends React.Component {
 
       if(this.props.verticalTabPanel){
         tabTiteleStyle.maxWidth =  `calc(100% - ${beforeTitleCount == 0 ? 54 : beforeTitleCount == 1 ? 66 : beforeTitleCount == 2 ? 80 : 98}px)`
+      }
+
+      if(enableColorOfNoSelect && unread){
+        tabTiteleStyle.color = colorOfNoSelect
       }
 
       return (
