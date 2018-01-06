@@ -304,6 +304,7 @@ var rendererIdentifiers = function () {
     'makeBraveDefault',
     'saveToPocketDesc',
     'minimumPageTimeLow',
+    'paintTabs',
 
     //chrome
     '994289308992179865',
@@ -355,6 +356,7 @@ var rendererIdentifiers = function () {
     '5582839680698949063',
     '5317780077021120954',
     '8986267729801483565',
+    '5431318178759467895',
 
     'playOrPause',
     'frameStep',
@@ -444,7 +446,18 @@ var rendererIdentifiers = function () {
     'newTabButtonLabel',
     'ssInterval',
     'openTabNextLabel',
-    'tabbarscrollingCaption'
+    'tabbarscrollingCaption',
+    'showOntabLabel',
+    'tabFocusLabel',
+    'unreadTabLabel',
+    'textcolorLabel',
+    'bgColorLabel',
+    'speLinkAllLinks',
+    'speLinkLabel',
+    'speLinkNone',
+    'speLinkExternal',
+    'currentTabLabel',
+    'otherTabsLabel'
   ]
 }
 

@@ -48,6 +48,10 @@
   height: 100%;
   overflow: hidden;
   pointer-events: none;
+  border-bottom: 1px solid #aaa;
+}
+.chrome-tabs .chrome-tab.chrome-tab-current .chrome-tab-background {
+  border-bottom: none;
 }
 .chrome-tabs .chrome-tab .chrome-tab-background > svg {
   width: 100%;
@@ -56,7 +60,7 @@
 .chrome-tabs .chrome-tab .chrome-tab-background > svg .chrome-tab-shadow {
   fill: none;
   stroke: rgba(0,0,0,0.27);
-  stroke-width: 0.5px;
+  stroke-width: 1px;
 }
 
 
@@ -76,11 +80,10 @@
   fill: #343434;
 }
 
-
 .chrome-tabs .chrome-tab.multi-row  .chrome-tab-background{
   background-color: rgb(79, 79, 79);
-  border-right: 1px solid rgb(221, 221, 221);
-  border-bottom: 1px solid rgb(221, 221, 221);
+  border-left: 0.5px solid #bbbbbb;
+  border-right: 0.5px solid #bbbbbb;
 }
 
 .chrome-tabs .chrome-tab.chrome-tab-current.multi-row  .chrome-tab-background {
@@ -94,8 +97,8 @@
 .chrome-tabs .chrome-tab-drag .chrome-tab-background > svg .chrome-tab-background,
 .chrome-tab-selection{
   stroke: white;
-  stroke-width: 3px;
-  stroke-dasharray: 10 10;
+  stroke-width: 2px;
+  stroke-dasharray: 5 5;
   stroke-dashoffset:80;
 }
 

@@ -151,7 +151,7 @@ class TopMenu extends React.Component {
 class TopSearch extends React.Component {
 
   componentDidMount() {
-    this.refs.input.focus()
+    ipc.sendToHost("navbar-search",{})
     console.log("mount")
   }
 

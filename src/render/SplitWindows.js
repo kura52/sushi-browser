@@ -35,6 +35,13 @@ const config = {
 
 firebase.initializeApp(config)
 
+function insertCss(colors){
+  const s = document.createElement('style');
+  s.setAttribute('type', 'text/css');
+  s.appendChild(document.createTextNode());
+    document.head.appendChild(s)
+}
+
 function isFixedPanel(key){
   return key.startsWith('fixed-')
 }

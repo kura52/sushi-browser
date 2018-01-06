@@ -132,7 +132,6 @@ class BrowserPage extends Component {
 
     const tokenDidStartLoading = PubSub.subscribe(`did-start-loading_${this.props.tab.key}`,_=>{
       this.setState({isSearching: false})
-
     })
     //
     // webview.addEventListener('will-detach',e=>console.log('will-detach',e))

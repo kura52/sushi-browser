@@ -147,6 +147,7 @@ export default class NavbarMenu extends Component {
                 tabIndex={1} style={{lineHeight: '1.9',minWidth:0}}>
       <a ref="button" href="javascript:void(0)" title={this.props.title} onClick={this.props.mouseOver ? e=>this.props.onClick(e) : ::this.handleClick}>
         <i className={`fa fa-${this.props.icon}`} />
+        {this.props.badget || null}
       </a>
       {!this.state.visible && !this.props.alwaysView ? null : <div ref="menu" className={`menu${this.state.visible || this.state.forceOpen ? " visible" : ""} transition ${this.props.mouseOver ? 'nav2-menu' : 'nav-menu'}`} style={this.props.style}>
         {(list || []).map((child) => {

@@ -64,8 +64,6 @@ function handleDragEnd(evt) {
       url = target.src
     }
   }
-  if(!url){
-  }
 
   ipc.sendToHost("link-drop",{screenX: evt.screenX, screenY: evt.screenY, url})
 }
@@ -83,26 +81,91 @@ window.addEventListener('scroll', (e)=>{
   })
 },{passive:true})
 
-ipc.send("get-main-states",['tripleClick','alwaysOpenLinkNewTab'])
-ipc.once("get-main-state-reply",(e,data)=>{
-  if(data[0]){
-    window.addEventListener('click', e=>{
+ipc.send("get-main-state",['tripleClick','alwaysOpenLinkNewTab','themeColorChange'])
+ipc.once("get-main-state-reply",(e,data)=> {
+  if (data.tripleClick) {
+    window.addEventListener('click', e => {
       if (e.detail === 3) {
-        window.scrollTo(e.pageX,window.scrollY);
+        window.scrollTo(e.pageX, window.scrollY);
       }
-    },{passive:true})
+    }, {passive: true})
   }
-  if(data[1]){
-    const href = location.href
-    for (let link of document.getElementsByTagName("a")) {
-      if (link.href == ""){}
-      else if(data[1] == 'all'){
-        link.target = "_blank"
+  if (data.alwaysOpenLinkNewTab != 'speLinkNone' || data.themeColorChange) {
+    document.addEventListener("DOMContentLoaded",_=>{
+      if(data.alwaysOpenLinkNewTab != 'speLinkNone'){
+        const href = location.href
+        const func = _=> {
+          for (let link of document.querySelectorAll('a:not([target="_blank"])')) {
+            if (link.href == "") {
+            }
+            else if (data.alwaysOpenLinkNewTab == 'speLinkAllLinks') {
+              link.target = "_blank"
+            }
+            else if (link.origin != "null" && !href.startsWith(link.origin)) {
+              link.target = "_blank"
+            }
+          }
+        }
+        func()
+        setInterval(func,500)
       }
-      else if(link.origin != "null" && !href.startsWith(link.origin)){
-        link.target = "_blank"
+      if(data.themeColorChange){
+        const rgbaFromStr = function (rgba) {
+          if (!rgba) {
+            return undefined
+          }
+          return rgba.split('(')[1].split(')')[0].split(',')
+        }
+        const distance = function (v1, v2) {
+          let d = 0
+          for (let i = 0; i < v2.length; i++) {
+            d += (v1[i] - v2[i]) * (v1[i] - v2[i])
+          }
+          return Math.sqrt(d)
+        }
+        const getElementColor = function (el) {
+          const currentColorRGBA = window.getComputedStyle(el).backgroundColor
+          const currentColor = rgbaFromStr(currentColorRGBA)
+          // Ensure that the selected color is not too similar to an inactive tab color
+          const threshold = 50
+          if (currentColor !== undefined &&
+            Number(currentColor[3]) !== 0 &&
+            distance(currentColor, [199, 199, 199]) > threshold) {
+            return currentColorRGBA
+          }
+          return undefined
+        }
+        // Determines a good tab color
+        const computeThemeColor = function () {
+          // Use y = 3 to avoid hitting a border which are often gray
+          const samplePoints = [[3, 3], [window.innerWidth / 2, 3], [window.innerWidth - 3, 3]]
+          const els = []
+          for (const point of samplePoints) {
+            const el = document.elementFromPoint(point[0], point[1])
+            if (el) {
+              els.push(el)
+              if (el.parentElement) {
+                els.push(el.parentElement)
+              }
+            }
+          }
+          els.push(document.body)
+          for (const el of els) {
+            if (el !== document.documentElement && el instanceof window.Element) {
+              const themeColor = getElementColor(el)
+              if (themeColor) {
+                return themeColor
+              }
+            }
+          }
+          return undefined
+        }
+
+        if(window.top == window.self) {
+          ipc.sendToHost('theme-color-computed', computeThemeColor())
+        }
       }
-    }
+    })
   }
 })
 

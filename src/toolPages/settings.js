@@ -634,11 +634,14 @@ class GeneralSetting extends React.Component {
           <Checkbox defaultChecked={this.state.tripleClick} toggle onChange={this.onChange.bind(this,'tripleClick')}/>
           <span className="toggle-label">Enable horizontal position moving (When you triple left clicking)</span>
           <br/>
+          <Checkbox defaultChecked={this.state.longPressMiddle} toggle onChange={this.onChange.bind(this,'longPressMiddle')}/>
+          <span className="toggle-label">Enable behavior change when long press of middle mouse button ({l10n.translation('requiresRestart').replace('* ','')})</span>
+          <br/>
           <Checkbox defaultChecked={this.state.doubleShift} toggle onChange={this.onChange.bind(this,'doubleShift')}/>
           <span className="toggle-label">Enable anything search (When you double pressing the shift key)  ({l10n.translation('requiresRestart').replace('* ','')})</span>
           <br/>
-          <Checkbox defaultChecked={this.state.longPressMiddle} toggle onChange={this.onChange.bind(this,'longPressMiddle')}/>
-          <span className="toggle-label">Enable behavior change when long press of middle mouse button ({l10n.translation('requiresRestart').replace('* ','')})</span>
+          <Checkbox defaultChecked={this.state.historyBadget} toggle onChange={this.onChange.bind(this,'historyBadget')}/>
+          <span className="toggle-label">Show Back/Forward Button's Badget ({l10n.translation('requiresRestart').replace('* ','')})</span>
         </div>
         <br/>
 
@@ -998,6 +1001,12 @@ class TabsSetting extends React.Component {
     this.setState({})
   }
 
+  onChange3(name,ind,e,data){
+    this.state[name][ind] = data.value
+    ipc.send('save-state',{tableName:'state',key:name,val:this.state[name]})
+    this.setState({})
+  }
+
   makeOption(key,trans=true){
     return {
       key: key,
@@ -1009,10 +1018,51 @@ class TabsSetting extends React.Component {
   makeOptions(keys,trans=true){
     return keys.map(key=>this.makeOption(key,trans))
   }
+
+  changeTheme(theme){
+    let style
+    if(theme == 'default'){
+      style = {
+        colorNormalText: '#222',
+        colorNormalBackground: '#d0d0d0',
+        colorActiveText: '#222',
+        colorActiveBackground: '#f2f2f2',
+        colorTabDot: '#777',
+        colorUnreadText: '#9f0000',
+        colorUnreadBackground: '#d0d0d0',
+        showBorderActiveTab: false,
+      }
+    }
+    else if(theme == 'dark'){
+      style = {
+        colorNormalText: '#aaa',
+        colorNormalBackground: '#4f4f4f',
+        colorActiveText: '#fff',
+        colorActiveBackground: '#343434',
+        colorTabDot: '#fff',
+        colorUnreadText: '#ab7f00',
+        colorUnreadBackground: '#4f4f4f',
+        showBorderActiveTab: true
+      }
+    }
+    for(let [key,val] of Object.entries(style)){
+      this.state[key] = val
+      if(key == 'showBorderActiveTab'){
+        this.refs[key].inputRef.checked = val
+      }
+      else{
+        this.refs[key].inputRef.value = val
+      }
+      ipc.send('save-state',{tableName:'state',key,val})
+    }
+  }
+
   render() {
     return <div>
       <h3>{l10n.translation('tabs')} ({l10n.translation('requiresRestart').replace('* ','')})</h3>
       <Divider/>
+
+      <h4 style={{marginTop:0, marginBottom: 20}}>{l10n.translation('generalSettings')}</h4>
 
       <Grid>
         <Grid.Row>
@@ -1032,6 +1082,26 @@ class TabsSetting extends React.Component {
       <div className='spacer'/>
 
       <div className="field">
+        <Checkbox defaultChecked={this.state.keepWindowLabel31} toggle onChange={this.onChange.bind(this,'keepWindowLabel31')}/>
+        <span className="toggle-label">{l10n.translation('keepWindowLabel31')}</span>
+      </div>
+
+      <div className='spacer2'/>
+
+      <div className="field">
+        <label>{l10n.translation('autoReloadTabLabel')}&nbsp;({l10n.translation('secondsLabel')}):&nbsp;</label>
+        <Input style={{width: 40,paddingRight:32}} onChange={this.onChange3.bind(this,'reloadIntervals',0)} defaultValue={this.state.reloadIntervals[0]}/>
+        <Input style={{width: 40,paddingRight:32}} onChange={this.onChange3.bind(this,'reloadIntervals',1)} defaultValue={this.state.reloadIntervals[1]}/>
+        <Input style={{width: 40,paddingRight:32}} onChange={this.onChange3.bind(this,'reloadIntervals',2)} defaultValue={this.state.reloadIntervals[2]}/>
+        <Input style={{width: 40,paddingRight:32}} onChange={this.onChange3.bind(this,'reloadIntervals',3)} defaultValue={this.state.reloadIntervals[3]}/>
+        <Input style={{width: 40,paddingRight:32}} onChange={this.onChange3.bind(this,'reloadIntervals',4)} defaultValue={this.state.reloadIntervals[4]}/>
+      </div>
+
+      <Divider/>
+
+      <h4 style={{marginTop:0, marginBottom: 20}}>{l10n.translation('newTab')}</h4>
+
+      <div className="field">
         <Checkbox defaultChecked={this.state.openTabNextLabel} toggle onChange={this.onChange.bind(this,'openTabNextLabel')}/>
         <span className="toggle-label">{l10n.translation('openTabNextLabel')}</span>
       </div>
@@ -1039,11 +1109,39 @@ class TabsSetting extends React.Component {
       <div className='spacer2'/>
 
       <div className="field">
-        <Checkbox defaultChecked={this.state.keepWindowLabel31} toggle onChange={this.onChange.bind(this,'keepWindowLabel31')}/>
-        <span className="toggle-label">{l10n.translation('keepWindowLabel31')}</span>
+        <Checkbox defaultChecked={this.state.addressBarNewTab} toggle onChange={this.onChange.bind(this,'addressBarNewTab')}/>
+        <span className="toggle-label">New Tab from Address Bar</span>
       </div>
 
+
+      <div className='spacer2'/>
+
+      <Grid>
+        <Grid.Row>
+          <Grid.Column width={6}><label style={{paddingLeft: 60}}>{l10n.translation('speLinkLabel')}</label></Grid.Column>
+          <Grid.Column width={5}><Dropdown onChange={this.onChange.bind(this,'alwaysOpenLinkNewTab')} selection
+                                           options={this.makeOptions(['speLinkNone','speLinkExternal','speLinkAllLinks'])}
+                                           defaultValue={this.state.alwaysOpenLinkNewTab}/></Grid.Column>
+        </Grid.Row>
+      </Grid>
+
+      <div className='spacer'/>
+
+      <div className="field">
+        <Checkbox defaultChecked={this.state.alwaysOpenLinkBackground} toggle onChange={this.onChange.bind(this,'alwaysOpenLinkBackground')}/>
+        <span className="toggle-label">Open New Tab in Background</span>
+      </div>
+
+      <div className='spacer'/>
+
+      <div className="field">
+        <Checkbox defaultChecked={this.state.oppositeGlobal} toggle onChange={this.onChange.bind(this,'oppositeGlobal')}/>
+        <span className="toggle-label">Opposite Mode (If a link is about to be opened in the new background, it opens in the oppopsite tab.)</span>
+      </div>
+
+
       <Divider/>
+      <h4 style={{marginTop:0, marginBottom: 20}}>{l10n.translation('showOntabLabel')}</h4>
 
       <div className="field">
         <Checkbox defaultChecked={this.state.multistageTabs} toggle onChange={this.onChange.bind(this,'multistageTabs')}/>
@@ -1072,6 +1170,65 @@ class TabsSetting extends React.Component {
       </div>
 
       <Divider/>
+      <h4 style={{marginTop:0, marginBottom: 20}}>{l10n.translation('5431318178759467895')}</h4>
+
+
+      <div className="field">
+        <Checkbox style={{verticalAlign: 'middle'}} defaultChecked={this.state.themeColorChange} toggle onChange={this.onChange.bind(this,'themeColorChange')}/>
+        <span style={{verticalAlign: 'baseline'}} className="toggle-label">{l10n.translation('paintTabs')}</span>
+      </div>
+
+      <div className='spacer2'/>
+
+      <div className="field">
+        <span style={{verticalAlign: 'baseline',paddingLeft:60}} className="toggle-label">{l10n.translation('currentTabLabel')}&nbsp;&nbsp;&nbsp;{l10n.translation('textcolorLabel')}:&nbsp;&nbsp;</span>
+        <Input ref='colorActiveText' onChange={this.onChange.bind(this,'colorActiveText')} defaultValue={this.state.colorActiveText}/>
+        <span style={{verticalAlign: 'baseline'}} className="toggle-label">&nbsp;{l10n.translation('bgColorLabel')}:&nbsp;&nbsp;</span>
+        <Input ref='colorActiveBackground' onChange={this.onChange.bind(this,'colorActiveBackground')} defaultValue={this.state.colorActiveBackground}/>
+      </div>
+
+      <div className='spacer2'/>
+
+      <div className="field">
+        <Checkbox style={{verticalAlign: 'middle'}} defaultChecked={this.state.enableColorOfNoSelect} toggle onChange={this.onChange.bind(this,'enableColorOfNoSelect')}/>
+        <span style={{verticalAlign: 'baseline'}} className="toggle-label">{l10n.translation('unreadTabLabel')}&nbsp;&nbsp;&nbsp;{l10n.translation('textcolorLabel')}:&nbsp;&nbsp;</span>
+        <Input ref='colorUnreadText' onChange={this.onChange.bind(this,'colorUnreadText')} defaultValue={this.state.colorUnreadText}/>
+        <span style={{verticalAlign: 'baseline'}} className="toggle-label">&nbsp;{l10n.translation('bgColorLabel')}:&nbsp;&nbsp;</span>
+        <Input ref='colorUnreadBackground' onChange={this.onChange.bind(this,'colorUnreadBackground')} defaultValue={this.state.colorUnreadText}/>
+      </div>
+
+      <div className='spacer2'/>
+
+      <div className="field">
+        <span style={{verticalAlign: 'baseline',paddingLeft:60}} className="toggle-label">{l10n.translation('otherTabsLabel')}&nbsp;&nbsp;&nbsp;{l10n.translation('textcolorLabel')}:&nbsp;&nbsp;</span>
+        <Input ref='colorNormalText' onChange={this.onChange.bind(this,'colorNormalText')} defaultValue={this.state.colorNormalText}/>
+        <span style={{verticalAlign: 'baseline'}} className="toggle-label">&nbsp;{l10n.translation('bgColorLabel')}:&nbsp;&nbsp;</span>
+        <Input ref='colorNormalBackground' onChange={this.onChange.bind(this,'colorNormalBackground')} defaultValue={this.state.colorNormalBackground}/>
+      </div>
+
+      <div className='spacer2'/>
+
+      <div className="field">
+        <span style={{verticalAlign: 'baseline',paddingLeft:60}} className="toggle-label">Dashed line when dragging:&nbsp;&nbsp;</span>
+        <Input ref='colorTabDot' onChange={this.onChange.bind(this,'colorTabDot')} defaultValue={this.state.colorTabDot}/>
+      </div>
+
+      <div className='spacer2'/>
+
+      <div className="field">
+        <Checkbox ref='showBorderActiveTab' style={{verticalAlign: 'middle'}} defaultChecked={this.state.showBorderActiveTab} toggle onChange={this.onChange.bind(this,'showBorderActiveTab')}/>
+        <span style={{verticalAlign: 'baseline'}} className="toggle-label">Show Bottom Border in Current Tab</span>
+      </div>
+
+
+      <div className='spacer2'/>
+
+      <div className="field">
+        <Button primary content='Default Theme' onClick={_=>this.changeTheme('default')}/>
+        <Button primary content='Dark Theme' onClick={_=>this.changeTheme('dark')}/>
+      </div>
+
+      <Divider/>
 
       <h4 style={{marginTop:0, marginBottom: 20}}>{l10n.translation('tabbarscrollingCaption')}</h4>
 
@@ -1088,6 +1245,8 @@ class TabsSetting extends React.Component {
       </div>
 
       <Divider/>
+
+      <h4 style={{marginTop:0, marginBottom: 20}}>{l10n.translation('tabFocusLabel')}</h4>
 
       <div className="field">
         <Checkbox style={{verticalAlign: 'middle'}} defaultChecked={this.state.mouseHoverSelectLabelBegin} toggle onChange={this.onChange.bind(this,'mouseHoverSelectLabelBegin')}/>
@@ -1291,7 +1450,7 @@ class ContextMenuSetting extends React.Component {
           <td key={`shortcut${i}`} data-num={i} data-name='shortcut' onInput={this.emitChange.bind(this,isTab,key)} onBlur={this.onBlur.bind(this,isTab,key)} contentEditable>{this.state[priorityMenu][key]||"0"}</td>
         </tr>)
       divider = false
-    i++
+      i++
     }
 
     return ret
@@ -1640,7 +1799,9 @@ ipc.send("get-main-state",['startsWith','newTabMode','myHomepage','searchProvide
   'multistageTabs','tabMinWidth','httpsEverywhereEnable','trackingProtectionEnable','autoSaveInterval','noScript','blockCanvasFingerprinting','browsingHistory', 'downloadHistory',
   'disableContextMenus','disableTabContextMenus','priorityContextMenus','priorityTabContextMenus','reloadIntervals','generalWindowOpenLabel','keepWindowLabel31',
   'closeTabBehavior','reverseScrollTab','tabMaxWidth','mouseHoverSelectLabelBegin','mouseHoverSelectLabelBeginDelay','tabFlipLabel','doubleClickTab','middleClickTab','altClickTab',
-  'maxrowLabel','orderOfAutoComplete','numOfSuggestion','numOfHistory','openTabNextLabel','rightClickTabAdd','middleClickTabAdd','altClickTabAdd','displayFullIcon','downloadPath','defaultDownloadPath'])
+  'maxrowLabel','orderOfAutoComplete','numOfSuggestion','numOfHistory','openTabNextLabel','rightClickTabAdd','middleClickTabAdd','altClickTabAdd','displayFullIcon','downloadPath',
+  'defaultDownloadPath','alwaysOpenLinkNewTab','alwaysOpenLinkBackground','addressBarNewTab','oppositeGlobal','colorNormalText','colorNormalBackground','colorActiveText',
+  'colorActiveBackground','colorTabDot','colorUnreadText','colorUnreadBackground','enableColorOfNoSelect','themeColorChange','showBorderActiveTab','historyBadget'])
 ipc.once("get-main-state-reply",(e,data)=>{
   generalDefault = data
   keyboardDefault = data

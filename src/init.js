@@ -402,6 +402,7 @@ app.on('web-contents-created', (e, tab) => {
 //     arguments[9](true)
 // });
 process.on('open-url-from-tab', (e, source, targetUrl, disposition) => {
+  if(mainState.alwaysOpenLinkBackground) disposition = 'background-tab'
   rlog('open-url-from-tab',e, source, targetUrl, disposition)
   source.hostWebContents && source.hostWebContents.send('create-web-contents',{id:source.getId(),targetUrl,disposition})
 })
@@ -416,6 +417,7 @@ process.on("should-create-web-contents",(e,source, windowContainerType, frameNam
 })
 
 process.on('add-new-contents', async (e, source, newTab, disposition, size, userGesture) => {
+  if(mainState.alwaysOpenLinkBackground) disposition = 'background-tab'
   console.log('add-new-contents', e, source.getURL(), newTab.guestInstanceId, newTab.getURL(), disposition, size, userGesture)
   if (newTab.isBackgroundPage()) {
     if (newTab.isDevToolsOpened()) {
@@ -952,7 +954,7 @@ function contextMenu(webContents) {
         }
       }
       const links = await getSelectionLinks(webContents,props)
-      if(links.length) {
+      if(links && links.length) {
         menuItems.push({type: 'separator'})
         menuItems.push({label: 'Copy Links', click: (item,win)=> clipboard.writeText(links.join(os.EOL))})
         menuItems.push({label: locale.translation('openalllinksLabel'), click: (item,win)=>{

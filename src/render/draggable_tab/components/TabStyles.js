@@ -2,6 +2,8 @@
   https://github.com/atom/tabs
   https://github.com/atom/atom-dark-ui
 */
+const sharedState = require('../../sharedState')
+
 export default function (){
   return {
     tabWrapper: {
@@ -117,7 +119,7 @@ export default function (){
       textAlign: 'center',
       position: 'relative',
       // width: '120%',
-      color: 'rgb(170, 170, 170)',
+      color: sharedState.colorNormalText,
     },
 
     tabActive: {
@@ -143,7 +145,7 @@ export default function (){
 
     tabTitleActive: {
       // lineHeight: '1.5em',
-      color: 'rgb(255, 255, 255)',
+      color: sharedState.colorActiveText,
       // marginTop: '3px',
     },
 
@@ -196,7 +198,7 @@ export default function (){
       height: '16px',
       position: 'relative',
       transform: 'skewX(27deg)',
-      backgroundColor: 'rgb(79, 79, 79)',
+      backgroundColor: sharedState.colorNormalBackground,
       top: '7px',
       zIndex: 3,
       marginLeft: "14px",

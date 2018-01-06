@@ -26,11 +26,32 @@ const BrowserWindowPlus = remote.require('./BrowserWindowPlus')
 const mainState = remote.require('./mainState')
 const ipc = require('electron').ipcRenderer
 const {alwaysOnTop} = require('../../browserNavbar')
+const sharedState = require('../../sharedState')
+const {getTextColorForBackground} = require('../../../../brave/app/color')
 
 const isDarwin = navigator.userAgent.includes('Mac OS X')
-const bgSvg = `<svg version="1.1" xmlns="http://www.w3.org/2000/svg"><defs><symbol id="topleft" viewBox="0 0 214 29"><path d="M14.3 0.1L214 0.1 214 29 0 29C0 29 12.2 2.6 13.2 1.1 14.3-0.4 14.3 0.1 14.3 0.1Z"></path></symbol><symbol id="topright" viewBox="0 0 214 29"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topleft"></use></symbol><clipPath id="crop"><rect class="mask" width="100%" height="100%" x="0"></rect></clipPath></defs><svg width="50%" height="100%" transfrom="scale(-1, 1)"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topleft" width="214" height="29" class="chrome-tab-background"></use><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topleft" width="214" height="29" class="chrome-tab-shadow"></use></svg><g transform="scale(-1, 1)"><svg width="50%" height="100%" x="-100%" y="0"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topright" width="214" height="29" class="chrome-tab-background"></use><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topright" width="214" height="29" class="chrome-tab-shadow"></use></svg></g></svg>`
-let [scrollTab,reverseScrollTab,multistageTabs,verticalTabWidth,tabBarHide,tabMinWidth,tabMaxWidth,tabFlipLabel,mouseHoverSelectLabelBeginDelay,mouseHoverSelectLabelBegin,doubleClickTab,middleClickTab,altClickTab,maxrowLabel,openTabNextLabel,rightClickTabAdd,middleClickTabAdd,altClickTabAdd,displayFullIcon,colorOfNoSelect,enableColorOfNoSelect] = ipc.sendSync('get-sync-main-states',['scrollTab','reverseScrollTab','multistageTabs','verticalTabWidth','tabBarHide','tabMinWidth','tabMaxWidth','tabFlipLabel','mouseHoverSelectLabelBeginDelay','mouseHoverSelectLabelBegin','doubleClickTab','middleClickTab','altClickTab','maxrowLabel','openTabNextLabel','rightClickTabAdd','middleClickTabAdd','altClickTabAdd','displayFullIcon','colorOfNoSelect','enableColorOfNoSelect'])
+let [scrollTab,reverseScrollTab,multistageTabs,verticalTabWidth,tabBarHide,tabMinWidth,tabMaxWidth,tabFlipLabel,mouseHoverSelectLabelBeginDelay,mouseHoverSelectLabelBegin,doubleClickTab,middleClickTab,altClickTab,maxrowLabel,openTabNextLabel,rightClickTabAdd,middleClickTabAdd,altClickTabAdd,displayFullIcon] = ipc.sendSync('get-sync-main-states',['scrollTab','reverseScrollTab','multistageTabs','verticalTabWidth','tabBarHide','tabMinWidth','tabMaxWidth','tabFlipLabel','mouseHoverSelectLabelBeginDelay','mouseHoverSelectLabelBegin','doubleClickTab','middleClickTab','altClickTab','maxrowLabel','openTabNextLabel','rightClickTabAdd','middleClickTabAdd','altClickTabAdd','displayFullIcon'])
 maxrowLabel = parseInt(maxrowLabel)
+
+;(function(){
+  const s = document.createElement('style');
+  s.setAttribute('type', 'text/css');
+  s.appendChild(document.createTextNode(`.chrome-tabs .chrome-tab-drag .chrome-tab-background > svg .chrome-tab-background,
+.chrome-tab-selection{
+  stroke: ${sharedState.colorTabDot};
+  stroke-width: 1.5px;
+  stroke-dasharray: 3;
+  stroke-dashoffset:0;
+}
+.chrome-tabs .chrome-tab-drag.multi-row .chrome-tab-background,
+.chrome-tab-selection.multi-row .chrome-tab-background,
+.vertical-tab .chrome-tab-drag, .vertical-selection{
+  border: 1px dashed ${sharedState.colorTabDot} !important;
+}
+${sharedState.showBorderActiveTab ? '.chrome-tabs .chrome-tab.chrome-tab-current .chrome-tab-background { border-bottom: 1px solid #aaa; }' : ''}`));
+    document.head.appendChild(s)
+}())
+
 let noUpdate
 
 function isFixedPanel(key){
@@ -402,6 +423,10 @@ class Tabs extends React.Component {
       } = tab.props;
 
       const selected = this.state.selectedTab === tab.key
+      const unreadTab = sharedState.enableColorOfNoSelect && unread
+      const themeColor = sharedState.themeColorChange && sharedState[`color-${tab.key}`]
+      const bgColor = selected ? (themeColor || sharedState.colorActiveBackground) : sharedState.colorNormalBackground
+      const titleColor = this.props.verticalTabTree ? selected ? themeColor ?  getTextColorForBackground(themeColor) : tabInlineStyles.tabTitleActive.color : unreadTab ? sharedState.colorUnreadText : tabInlineStyles.tabTitle.color : null
 
       let beforeTitleCount = 0
       const beforeTitle = []
@@ -415,7 +440,7 @@ class Tabs extends React.Component {
         else if(tab.props.seq){
           tabNumber = `[${tab.props.seq}]`
         }
-        beforeTitle.push(<span className="tab-number" style={{color:selected ? 'white' : void 0}}>{tabNumber}</span>)
+        beforeTitle.push(<span className="tab-number" style={{color:titleColor}}>{tabNumber}</span>)
       }
       beforeTitle.push(<img className='favi-tab' src={page.title && page.favicon !== 'loading' ? page.favicon : 'resource/l.svg'} onError={(e)=>{e.target.src = 'resource/file.png'}}/>)
 
@@ -447,6 +472,7 @@ class Tabs extends React.Component {
       if (selected) {
         tabStyle = StyleOverride.merge(tabInlineStyles.tab, tabInlineStyles.tabActive) //StyleOverride.merge(StyleOverride.merge(tabInlineStyles.tab, tabInlineStyles.tabActive), this.TabStyles.tabActive);
         tabTiteleStyle = StyleOverride.merge(tabInlineStyles.tabTitle, tabInlineStyles.tabTitleActive) //StyleOverride.merge(StyleOverride.merge(tabInlineStyles.tabTitle, tabInlineStyles.tabTitleActive), this.TabStyles.tabTitleActive);
+        if(themeColor) tabTiteleStyle.color = getTextColorForBackground(themeColor)
         tabClasses = classNames(tabClasses, 'rdTabActive', this.props.tabsClassNames.tabActive, tabClassNames.tabActive);
         content.push(<TabContainer key={`tabContainer#${tab.key}`} selected={true} style={containerStyle}>{tab}</TabContainer>);
       } else {
@@ -481,10 +507,14 @@ class Tabs extends React.Component {
         tabClasses = `${tabClasses} chrome-tab-selection`
       }
 
+      if(unreadTab) tabTiteleStyle.color = sharedState.colorUnreadText
+
       if(this.props.verticalTabPanel){
-        tabStyle.backgroundColor = this.state.selectedTab === tab.key ? '#343434' : 'rgb(79, 79, 79)'
-        tabStyle.borderRight = '1px solid rgb(221, 221, 221)'
-        tabStyle.borderBottom = '1px solid rgb(221, 221, 221)'
+        tabStyle.backgroundColor = bgColor
+        tabStyle.borderRight = '1px solid #bbbbbb'
+        tabStyle.borderLeft = '1px solid #bbbbbb'
+        if(tabNum == 0) tabStyle.borderTop = '1px solid #bbbbbb'
+        tabStyle.borderBottom = '1px solid #bbbbbb'
         if(tab.props.depth){
           const margin = tab.props.depth * 10
           tabStyle.marginLeft = margin
@@ -521,11 +551,11 @@ class Tabs extends React.Component {
       let prevTitle,beforeTitleStyle
       if(this.props.verticalTabTree && tab.props.expand){
         if(tab.props.fold){
-          prevTitle = <span onMouseDown={e =>{e.stopPropagation();PubSub.publish('expand-tab',{key:tab.key,val:false})}} className="tab-expand" style={{color:selected ? 'white' : void 0}}>▶</span>
+          prevTitle = <span onMouseDown={e =>{e.stopPropagation();PubSub.publish('expand-tab',{key:tab.key,val:false})}} className="tab-expand" style={{color:titleColor}}>▶</span>
           beforeTitleStyle = {marginLeft: 2}
         }
         else{
-          prevTitle = <span onMouseDown={e =>{e.stopPropagation();PubSub.publish('expand-tab',{key:tab.key,val:true})}} className="tab-expand" style={{color:selected ? 'white' : void 0,verticalAlign: -3}}>▼</span>
+          prevTitle = <span onMouseDown={e =>{e.stopPropagation();PubSub.publish('expand-tab',{key:tab.key,val:true})}} className="tab-expand" style={{color:titleColor,verticalAlign: -3}}>▼</span>
           beforeTitleStyle = {marginLeft: 4}
         }
         beforeTitleCount++
@@ -535,9 +565,7 @@ class Tabs extends React.Component {
         tabTiteleStyle.maxWidth =  `calc(100% - ${beforeTitleCount == 0 ? 54 : beforeTitleCount == 1 ? 66 : beforeTitleCount == 2 ? 80 : 98}px)`
       }
 
-      if(enableColorOfNoSelect && unread){
-        tabTiteleStyle.color = colorOfNoSelect
-      }
+      const bgSvg = `<svg version="1.1" xmlns="http://www.w3.org/2000/svg"><defs><symbol id="topleft" viewBox="0 0 214 29"><path d="M14.3 0.1L214 0.1 214 29 0 29C0 29 12.2 2.6 13.2 1.1 14.3-0.4 14.3 0.1 14.3 0.1Z"></path></symbol><symbol id="topright" viewBox="0 0 214 29"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topleft"></use></symbol><clipPath id="crop"><rect class="mask" width="100%" height="100%" x="0"></rect></clipPath></defs><svg width="50%" height="100%" transfrom="scale(-1, 1)"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topleft" width="214" height="29" class="chrome-tab-background" style="fill:${bgColor};"></use><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topleft" width="214" height="29" class="chrome-tab-shadow"></use></svg><g transform="scale(-1, 1)"><svg width="50%" height="100%" x="-100%" y="0"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topright" width="214" height="29" class="chrome-tab-background" style="fill:${bgColor};"></use><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topright" width="214" height="29" class="chrome-tab-shadow"></use></svg></g></svg>`
 
       return (
         <li style={tabStyle} className={tabClasses} draggable
@@ -557,7 +585,7 @@ class Tabs extends React.Component {
           { this.props.verticalTabPanel ?
             null :
             this.isMultistageTabsMode() ?
-              <div className="chrome-tab-background">
+              <div className="chrome-tab-background" style={{backgroundColor: selected ? sharedState.colorActiveBackground : unreadTab ? sharedState.colorUnreadBackground : sharedState.colorNormalBackground}}>
               </div> :
               <div className="chrome-tab-background">
                 <svg dangerouslySetInnerHTML={{__html: bgSvg }} />
@@ -963,7 +991,7 @@ class Tabs extends React.Component {
         }
 
 
-        if(this.state.tabs.length < 2 && this.props.isOnlyPanel) return
+        if(this.state.tabs.length == tabs.length && this.props.isOnlyPanel) return
         console.log(evt,tabs,this.state.tabs)
         if(evt.dataTransfer.dropEffect == "move") return
         if(tabs.length == 1){

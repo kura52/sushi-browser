@@ -130,10 +130,15 @@ export default class BrowserNavbarLocation extends Component {
     this.canUpdate = true
     const val = this.state.results.find(x=> x.title === result.title)
     if(val.description){
-      this.props.onEnterLocation(val.url)
+      if(this.props.addressBarNewTab){
+        this.props.tab.events['new-tab'](e, this.props.tab.wvId,val.url,this.props.tab.privateMode)
+      }
+      else{
+        this.props.onEnterLocation(val.url)
+      }
     }
     else{
-      this.props.search(this.props.tab, val.url, false)
+      this.props.search(this.props.tab, val.url, false, this.props.addressBarNewTab)
     }
     this.resetComponent()
   }
@@ -235,10 +240,11 @@ export default class BrowserNavbarLocation extends Component {
         return
       }
       const input = e.target.value
+      const newTab = e.altKey || this.props.addressBarNewTab
       if(urlutil.isURL(input)){
         const url = urlutil.getUrlFromInput(input)
         this.canUpdate = true
-        if(e.altKey){
+        if(newTab){
           this.props.tab.events['new-tab'](e, this.props.tab.wvId,url,this.props.tab.privateMode)
         }
         else{
@@ -248,7 +254,7 @@ export default class BrowserNavbarLocation extends Component {
         // ;(this.input || ReactDOM.findDOMNode(this.refs.input).querySelector("input")).value = url
       }
       else{
-        this.props.search(this.props.tab, input, false, e.altKey)
+        this.props.search(this.props.tab, input, false, newTab)
         this.canUpdate = true
         this.resetComponent()
       }

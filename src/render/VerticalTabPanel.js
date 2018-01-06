@@ -7,6 +7,7 @@ const ipc = require('electron').ipcRenderer
 const {remote} = require('electron')
 const {BrowserWindow} = remote
 const mainState = remote.require('./mainState')
+const sharedState = require('./sharedState')
 import MenuOperation from './MenuOperation'
 import { Button } from 'semantic-ui-react'
 import Tabs from './draggable_tab/components/Tabs'
@@ -18,6 +19,7 @@ const isDarwin = navigator.userAgent.includes('Mac OS X')
 
 let [verticalTabWidth,verticalTabTree] = ipc.sendSync('get-sync-main-states',['verticalTabWidth','verticalTabTree'])
 
+const allSelectedkeys = sharedState.allSelectedkeys
 
 const tabsClassNames = {
   tabWrapper: 'chrome-tabs',
@@ -352,7 +354,7 @@ export default class VerticalTabPanel extends Component{
         verticalTabPanel={true}
         verticalTabTree={this.state.tree}
         tabs={retTabs.map(tab=>{
-          return (<Tab key={tab.key} page={tab.page} orgTab={tab} pin={tab.pin} mute={tab.mute} reloadInterval={tab.reloadInterval} depth={tab.depth} seq={tab.seq} expand={tab.expand} fold={tab.fold} hidden={tab.hidden} referred={tab.referred} privateMode={tab.privateMode} selection={tab.selection}/>)
+          return (<Tab key={tab.key} page={tab.page} orgTab={tab} pin={tab.pin} mute={tab.mute} reloadInterval={tab.reloadInterval} unread={tabPanel.state.selectedTab != tab.key && !allSelectedkeys.has(tab.key)} depth={tab.depth} seq={tab.seq} expand={tab.expand} fold={tab.fold} hidden={tab.hidden} referred={tab.referred} privateMode={tab.privateMode} selection={tab.selection}/>)
         })}
       />
     )
@@ -386,7 +388,7 @@ export default class VerticalTabPanel extends Component{
         verticalTabPanel={true}
         verticalTabTree={this.state.tree}
         tabs={tabPanel.state.tabs.map(tab=>{
-          return (<Tab key={tab.key} page={tab.page} orgTab={tab} pin={tab.pin} mute={tab.mute} reloadInterval={tab.reloadInterval} privateMode={tab.privateMode} selection={tab.selection}/>)
+          return (<Tab key={tab.key} page={tab.page} orgTab={tab} pin={tab.pin} mute={tab.mute} reloadInterval={tab.reloadInterval} unread={tabPanel.state.selectedTab != tab.key && !allSelectedkeys.has(tab.key)} privateMode={tab.privateMode} selection={tab.selection}/>)
         })}
       />
     )

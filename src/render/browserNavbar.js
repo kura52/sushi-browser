@@ -33,6 +33,7 @@ const TabHistoryExplorer = require('../toolPages/tabHistoryBase')
 const SavedStateExplorer = require('../toolPages/savedStateBase')
 const {messages,locale} = require('./localAndMessage')
 const urlParse = require('../../brave/urlParse')
+const sharedState = require('./sharedState')
 import ResizeObserver from 'resize-observer-polyfill'
 import uuid from 'node-uuid'
 import menuSortContextMenu from './menuSortContextMenu'
@@ -80,7 +81,7 @@ function BrowserNavbarBtn(props){
   return <a href="javascript:void(0)" onContextMenu={props.onContextMenu} style={props.style} className={`${props.className||''} draggable-source ${props.disabled?'disabled':''} ${props.sync ? 'sync' : ''}`} title={props.title} onClick={props.onClick}><i style={props.styleFont} className={`fa fa-${props.icon}`}/>{props.children}</a>
 }
 
-let [alwaysOnTop,multistageTabs,verticalTab,{left,right,backSide},orderOfAutoComplete,numOfSuggestion,numOfHistory,displayFullIcon] = ipc.sendSync('get-sync-main-states',['alwaysOnTop','multistageTabs','verticalTab','navbarItems','orderOfAutoComplete','numOfSuggestion','numOfHistory','displayFullIcon'])
+let [alwaysOnTop,multistageTabs,verticalTab,{left,right,backSide},orderOfAutoComplete,numOfSuggestion,numOfHistory,displayFullIcon,addressBarNewTab,historyBadget] = ipc.sendSync('get-sync-main-states',['alwaysOnTop','multistageTabs','verticalTab','navbarItems','orderOfAutoComplete','numOfSuggestion','numOfHistory','displayFullIcon','addressBarNewTab','historyBadget'])
 numOfSuggestion = parseInt(numOfSuggestion), numOfHistory = parseInt(numOfHistory)
 
 let staticDisableExtensions = []
@@ -89,8 +90,6 @@ class BrowserNavbar extends Component{
     super(props)
     this.state = {userAgentBefore: MOBILE_USERAGENT,adBlockGlobal:true,
       pdfMode:'normal',adBlockThis:true,currentIndex:0,historyList:[],disableExtensions:staticDisableExtensions,left,right,backSide}
-    this.canGoBack = this.props.page.canGoBack
-    this.canGoForward = this.props.page.canGoForward
     this.canRefresh = this.props.page.canRefresh
     this.location = this.props.page.location
     this.richContents = this.props.richContents
@@ -181,6 +180,10 @@ class BrowserNavbar extends Component{
     }
   }
 
+  componentWillMount(){
+    this.props.refs2[`navbar-${this.props.tabkey}`] = this
+  }
+
   componentDidMount() {
     this.updateStates()
     this.initEvents()
@@ -196,6 +199,10 @@ class BrowserNavbar extends Component{
     PubSub.unsubscribe(this.tokenMenuSort)
     PubSub.unsubscribe(this.tokenMultistageTabs)
     tabs.add(this.props.tab.wvId)
+    if(this.props.refs2[`navbar-${this.props.tabkey}`] == this){
+      delete this.props.refs2[`navbar-${this.props.tabkey}`]
+      delete sharedState[`color-${this.props.tabkey}`]
+    }
   }
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -212,9 +219,7 @@ class BrowserNavbar extends Component{
     //   }
     //   currentIndex = cont.getCurrentEntryIndex();
     // }
-    const ret = !(this.canGoBack === nextProps.page.canGoBack &&
-      this.canGoForward === nextProps.page.canGoForward &&
-      this.canRefresh === nextProps.page.canRefresh &&
+    const ret = !(this.canRefresh === nextProps.page.canRefresh &&
       this.location === nextProps.page.location &&
       this.navUrl === nextProps.page.navUrl &&
       this.wv === nextProps.tab.wv &&
@@ -248,8 +253,6 @@ class BrowserNavbar extends Component{
       this.currentWebContents = nextProps.currentWebContents
       this.wv = nextProps.tab.wv
       this.wvId = nextProps.tab.wvId
-      this.canGoBack = nextProps.page.canGoBack
-      this.canGoForward = nextProps.page.canGoForward
       this.canRefresh = nextProps.page.canRefresh
       this.location = nextProps.page.location
       this.navUrl = nextProps.page.navUrl
@@ -719,14 +722,16 @@ class BrowserNavbar extends Component{
 
 
   buildItems(isFixed,isFloat,rich,cont,onContextMenu){
+    const backItems = this.state.historyList.slice(0,this.state.currentIndex)
+    const nextItems = this.state.historyList.slice(this.state.currentIndex+1)
     const items = {
-      back: <NavbarMenu k={this.props.k} onContextMenu={onContextMenu} mouseOver={true} isFloat={isFloatPanel(this.props.k)} className={`sort-back draggable-source back-next ${this.props.page.canGoBack ? "" : " disabled"}`} title={locale.translation('back')} icon="angle-left fa-lg" onClick={e=>{this.props.navHandle.onClickBack(e);this.forceUpdates=true}}>
-        {(cont ? this.state.historyList.slice(0,this.state.currentIndex).reverse().map(
+      back: <NavbarMenu k={this.props.k} onContextMenu={onContextMenu} mouseOver={true} isFloat={isFloatPanel(this.props.k)} className={`sort-back draggable-source back-next ${backItems.length ? "" : " disabled"}`} title={locale.translation('back')} icon="angle-left fa-lg" onClick={e=>{this.props.navHandle.onClickBack(e);this.forceUpdates=true}} badget={historyBadget && backItems.length ? <div className="browserActionBadge back" >{backItems.length}</div> : null}>
+        {(cont ? backItems.reverse().map(
           (x,i)=><NavbarMenuItem key={i} text={this.getTitle(x,this.props.historyMap)} onClick={()=>{this.props.navHandle.onClickIndex(this.state.currentIndex -i -1);this.forceUpdates=true}}/>) : "")}
       </NavbarMenu>,
 
-      forward: <NavbarMenu k={this.props.k} onContextMenu={onContextMenu} mouseOver={true} isFloat={isFloatPanel(this.props.k)} className={`sort-forward draggable-source back-next ${this.props.page.canGoForward ? "" : " disabled"}`} title={locale.translation('forward')} icon="angle-right fa-lg" onClick={e=>{this.props.navHandle.onClickForward(e);this.forceUpdates=true}} >
-        {(cont ? this.state.historyList.slice(this.state.currentIndex+1).map(
+      forward: <NavbarMenu k={this.props.k} onContextMenu={onContextMenu} mouseOver={true} isFloat={isFloatPanel(this.props.k)} className={`sort-forward draggable-source back-next ${nextItems.length ? "" : " disabled"}`} title={locale.translation('forward')} icon="angle-right fa-lg" onClick={e=>{this.props.navHandle.onClickForward(e);this.forceUpdates=true}} badget={historyBadget && nextItems.length ? <div className="browserActionBadge next" >{nextItems.length}</div> : null} >
+        {(cont ? nextItems.map(
           (x,i)=><NavbarMenuItem key={i} text={this.getTitle(x,this.props.historyMap)} onClick={()=>{this.props.navHandle.onClickIndex(this.state.currentIndex +i +1);this.forceUpdates=true}}/>) : "")}
       </NavbarMenu>,
 
@@ -734,7 +739,7 @@ class BrowserNavbar extends Component{
 
       addressBar: <div className="input-group">
         <BrowserNavbarLocation ref="loc" wv={this.props.tab.wv} navbar={this} onEnterLocation={this.props.navHandle.onEnterLocation}
-                               onChangeLocation={this.props.navHandle.onChangeLocation} autoCompleteInfos={{url:this.props.autocompleteUrl,orderOfAutoComplete,numOfSuggestion,numOfHistory}}
+                               onChangeLocation={this.props.navHandle.onChangeLocation} addressBarNewTab={addressBarNewTab} autoCompleteInfos={{url:this.props.autocompleteUrl,orderOfAutoComplete,numOfSuggestion,numOfHistory}}
                                k ={this.props.k} onContextMenu={this.props.navHandle.onLocationContextMenu} tab={this.props.tab} page={this.props.page} privateMode={this.props.privateMode} search={this.props.parent.search}/>
       </div>,
 

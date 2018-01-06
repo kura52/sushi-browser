@@ -329,10 +329,12 @@ a.search-button:hover {
 
 .rdTabAddButton {
     transform: skewX(30deg);
+    border: 1.2px solid rgba(0,0,0,0.27);
 }
 
 .rdTabAddButton:hover {
-    background-image: linear-gradient(rgb(66, 66, 66), rgb(49, 49, 49)) !important;
+    /*background-image: linear-gradient(rgb(66, 66, 66), rgb(49, 49, 49)) !important;*/
+    background-image: linear-gradient(rgba(255,255,255,0.1), rgba(255,255,255,0.1)) !important;
     transform: skewX(30deg)
 }
 
@@ -710,6 +712,11 @@ div.item.favorite>ul>li>div>ul{
 
 .browserActionBadge.video{
     background-color: rgb(72, 72, 72);
+}
+
+
+.browserActionBadge.back,.browserActionBadge.next{
+    left: calc(50% + 4px) !important;
 }
 
 .tree-divider{

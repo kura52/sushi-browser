@@ -4,16 +4,16 @@
    },
    "content_scripts": [
       {
-      "all_frames": true,
-      "js": [ "contentscript.js" ],
-      "matches": ["<all_urls>"],
-      "include_globs": [
+         "all_frames": true,
+         "js": [ "contentscript.js" ],
+         "matches": ["<all_urls>"],
+         "include_globs": [
             "http://*/*", "https://*/*", "file://*", "data:*", "about:srcdoc",
-         "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/*",
-         "chrome-extension://jdbefljfgobbmcidnmpjamcbhnbphjnb/*"
+            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/*",
+            "chrome-extension://jdbefljfgobbmcidnmpjamcbhnbphjnb/*"
          ],
-      "run_at": "document_start"
-   },
+         "run_at": "document_start"
+      },
       {
          "all_frames": true,
          "exclude_globs": [
@@ -48,5 +48,5 @@
       ]
    },
    "version": "0.0.1",
-  "web_accessible_resources": ["video.html","ace.html", "http:/*", "https:/*", "ftp:/*", "file:/*", "chrome-extension:/*", "filesystem:/*", "drive:*" ]
+   "web_accessible_resources": ["video.html","ace.html", "http:/*", "https:/*", "ftp:/*", "file:/*", "chrome-extension:/*", "filesystem:/*", "drive:*" ]
 }
