@@ -202,6 +202,14 @@ export default class BrowserNavbarLocation extends Component {
     })
   }
 
+  handleSelectionChange(e,value){
+    if(value.result.description){
+      e.target.value = value.result.description
+    }
+    else{
+      e.target.value = value.result.title
+    }
+  }
 
   onFocus(e){
     const input = this.input || ReactDOM.findDOMNode(this.refs.input).querySelector("input")
@@ -278,6 +286,7 @@ export default class BrowserNavbarLocation extends Component {
         loading={false}
         onResultSelect={::this.handleResultSelect}
         onSearchChange={::this.handleSearchChange}
+        onSelectionChange={::this.handleSelectionChange}
         onMouseDown={::this.onMouseDown}
         results={results.map(x=>{return {title:x.title,description: x.description}})}
         value={convertURL(this.props.page.location)}
