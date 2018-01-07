@@ -1143,9 +1143,11 @@ function saveTabState(cont, rSession, tabKey, noUpdate) {
       const url = cont.getURLAtIndex(currentIndex)
       const title = cont.getTitleAtIndex(currentIndex)
       rSession.urls = rSession.urls.slice(0, rSession.currentIndex + 1)
-      rSession.urls.push(url)
       rSession.titles = rSession.titles.slice(0, rSession.currentIndex + 1)
-      rSession.titles.push(title)
+      if(url[url.length-1] != url){
+        rSession.urls.push(url)
+        rSession.titles.push(title)
+      }
       rSession.currentIndex = rSession.urls.length - 1
       if (currentIndex > -1 && !noUpdate) {
         setTabState(cont,vals => tabState.update({tabKey}, {$set: {...vals , titles: rSession.titles.join("\t"),urls: rSession.urls.join("\t"),currentIndex: rSession.currentIndex,updated_at: Date.now() } }))

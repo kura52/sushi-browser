@@ -122,7 +122,10 @@ export default function modify(extensionId,verPath){
 
       if(infos.optional_permissions){
         infos.permissions = [...new Set([...(infos.permissions || []),...infos.optional_permissions])]
+      }
 
+      if(!infos.content_security_policy){
+        infos.content_security_policy = "script-src 'self' 'unsafe-eval'; object-src 'self'"
       }
 
       if(isWebExt && infos.permissions){
@@ -144,7 +147,9 @@ export default function modify(extensionId,verPath){
       }
 
       if(infos.background){
-        // if(infos.background.persistent === false) infos.background.persistent = true
+        if(infos.background.persistent === false && !['jpkfjicglakibpenojifdiepckckakgk','occjjkgifpmdgodlplnacmkejpdionan'].includes(extensionId)){
+          infos.background.persistent = true
+        }
         if(infos.background.page){
           htmlModify(verPath,infos.background.page,isWebExt)
         }

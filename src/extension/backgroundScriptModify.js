@@ -8,6 +8,7 @@ function simpleIpcFunc(name,callback,...args){
 
 chrome.app.getDetails = _=>chrome.ipcRenderer.sendSync('chrome-management-get-sync',chrome.runtime.id)
 
+chrome.csi = _=>({})
 chrome.runtime.openOptionsPage = _=> simpleIpcFunc('chrome-runtime-openOptionsPage',_=>_,chrome.runtime.id)
 chrome.runtime.getBrowserInfo = callback=> callback({name:'Firefox',vendor:'Mozilla',version:'57.0',buildID:'20171203000000'})
 
@@ -19,7 +20,7 @@ if(chrome.i18n){
     return lang
   }  //@TODO
 
-  chrome.i18n._getMessage = chrome.i18n.getMessage
+  if(!chrome.i18n._getMessage) chrome.i18n._getMessage = chrome.i18n.getMessage
 
   chrome.i18n.getMessage = (messageName) => {
     if(chrome.i18n._messages_ === false){
@@ -42,7 +43,7 @@ if(chrome.extension){
 }
 
 if(chrome.contextMenus) {
-  chrome.contextMenus._create = chrome.contextMenus.create
+  if(!chrome.contextMenus._create) chrome.contextMenus._create = chrome.contextMenus.create
   chrome.contextMenus.create = (...args) => {
     console.log({...args[0]})
     const ipcSendVal = {}
@@ -100,7 +101,7 @@ if(chrome.contextMenus) {
 if(chrome.windows){
   const ipc = chrome.ipcRenderer
 
-  chrome.windows._getAll = chrome.windows.getAll
+  if(!chrome.windows._getAll) chrome.windows._getAll = chrome.windows.getAll
   chrome.windows.getAll = (getInfo, callback)=>{
     if(typeof getInfo === 'function') [getInfo,callback] = [null,getInfo]
     getInfo = getInfo || {}
@@ -118,7 +119,7 @@ if(chrome.windows){
   }
 
 
-  chrome.windows._getCurrent = chrome.windows.getCurrent
+  if(!chrome.windows._getCurrent) chrome.windows._getCurrent = chrome.windows.getCurrent
   chrome.windows.getCurrent = (getInfo, callback)=>{
     if(typeof getInfo === 'function') [getInfo,callback] = [null,getInfo]
     getInfo = getInfo || {}
@@ -191,7 +192,7 @@ if(chrome.windows){
 }
 
 if(chrome.tabs){
-  chrome.tabs._query = chrome.tabs.query
+  if(!chrome.tabs._query) chrome.tabs._query = chrome.tabs.query
   chrome.tabs.query = (queryInfo,callback)=>{
     if(queryInfo.lastFocusedWindow !== void 0){
       delete queryInfo.lastFocusedWindow
@@ -205,7 +206,7 @@ if(chrome.tabs){
     chrome.tabs._query(queryInfo,callback)
   }
 
-  chrome.tabs._create = chrome.tabs.create
+  if(!chrome.tabs._create) chrome.tabs._create = chrome.tabs.create
   chrome.tabs.create = (createProperties, callback)=>{
     if(createProperties && createProperties.url && !createProperties.url.includes("://")){
       createProperties.url = `chrome-extension://${chrome.runtime.id}/${createProperties.url.split("/").filter(x=>x).join("/")}`
@@ -214,10 +215,15 @@ if(chrome.tabs){
   }
 
 
-  chrome.tabs._update = chrome.tabs.update
+  if(!chrome.tabs._update) chrome.tabs._update = chrome.tabs.update
   chrome.tabs.update = (tabId, updateProperties, callback)=>{
     if(!Number.isFinite(tabId) && tabId !== null && tabId !== void 0){
       [tabId,updateProperties,callback] = [null,tabId,updateProperties]
+      simpleIpcFunc('chrome-tabs-current-tabId',tabId=>{
+        chrome.tabs._update(tabId, updateProperties, callback)
+      })
+    }
+    else if(!tabId){
       simpleIpcFunc('chrome-tabs-current-tabId',tabId=>{
         chrome.tabs._update(tabId, updateProperties, callback)
       })
@@ -302,17 +308,31 @@ if(chrome.tabs){
 
   chrome.tabs.setZoom =(tabId, zoomFactor, callback)=>simpleIpcFunc('chrome-tabs-setZoom',callback,tabId,zoomFactor)
 
-  chrome.tabs._executeScript = chrome.tabs.executeScript
+  if(!chrome.tabs._executeScript) chrome.tabs._executeScript = chrome.tabs.executeScript
   chrome.tabs.executeScript = (tabId,details,callback) => {
+    console.log('executeScript',tabId,details)
     if (!Number.isFinite(tabId) && tabId !== null && tabId !== void 0) {
       [tabId,details,callback] = [null,tabId,details]
       simpleIpcFunc('chrome-tabs-current-tabId',tabId=>{
         chrome.tabs._executeScript(tabId, details, callback)
       })
     }
+    else if(!tabId){
+      simpleIpcFunc('chrome-tabs-current-tabId',tabId=>{
+        console.log(tabId)
+        chrome.tabs._executeScript(tabId, details, callback)
+      })
+    }
     else{
       chrome.tabs._executeScript(tabId,details,callback)
     }
+  }
+
+  chrome.tabs.getSelected = (windowId,callback)=>{
+    if (!Number.isFinite(windowId) && windowId !== null && windowId !== void 0) {
+      [windowId,callback] = [null,windowId]
+    }
+    chrome.tabs.query(windowId ? {active: true,windowId} : {active: true},tabs=>callback(tabs && tabs[0]))
   }
 
   chrome.tabs.insertCSS = (tabId,details,callback) => {
@@ -392,7 +412,7 @@ if(chrome.tabs){
 
 
 if(chrome.cookies){
-  chrome.cookies._set = chrome.cookies.set
+  if(!chrome.cookies._set) chrome.cookies._set = chrome.cookies.set
 
   chrome.cookies.set = (details, callback)=>{
     if(!callback) return chrome.cookies._set(details, callback)
@@ -588,6 +608,7 @@ if(chrome.browserAction){
 
 if(chrome.storage){
   chrome.storage.sync = chrome.storage.local
+  chrome.storage.managed = chrome.storage.local
 }
 
 if(chrome.history){
@@ -769,6 +790,14 @@ if(chrome.browsingData){
   }
 }
 
+
+if(chrome.permissions){
+  chrome.permissions.getAll = (permissions,callback)=> callback([]) //@TODO
+  chrome.permissions.contains = (permissions,callback)=> callback(true) //@TODO
+  chrome.permissions.request = (permissions,callback)=> callback(true) //@TODO
+  chrome.permissions.remove = (permissions,callback)=> callback(true) //@TODO
+}
+
 if('browser' in this){
   browser.sidebarAction = {}
   browser.sidebarAction.open  = callback => simpleIpcFunc('chrome-sidebarAction-open',callback,chrome.runtime.id)
@@ -822,6 +851,7 @@ if('browser' in this){
 if(('browser' in this) && browser.permissions){
   browser.permissions.contains = (permissions) => new Promise(r=>r(true)) //@TODO
 }
+
 
 if(chrome.notifications){
   const onClosedEvents = new Set(),onClickedEvent = new Set() ,notifications = {}

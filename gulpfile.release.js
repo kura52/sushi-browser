@@ -19,7 +19,7 @@ gulp.task('main-process2', function() {
 
 
 gulp.task('main-process3', function() {
-  return gulp.src(['./src/render/pubsub.js'])
+  return gulp.src(['./src/render/pubsub.js','./src/render/urlutil.js'])
     .pipe(babel({}))
     .pipe(gulp.dest('./lib/render'))
 });

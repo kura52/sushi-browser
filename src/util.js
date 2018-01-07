@@ -11,7 +11,7 @@ function getFocusedWebContents(needSelectedText,skipBuildInSearch,callback,retry
   let cont
   if(!skipBuildInSearch){
     const tmp = webContents.getFocusedWebContents()
-    if(tmp && !tmp.isDestroyed() && !tmp.isBackgroundPage()) {
+    if(tmp && !tmp.isDestroyed() && !tmp.isBackgroundPage() && !(tmp.tabValue().openerTabId == -1 && tmp.getURL().startsWith('chrome-extension'))) {
       if(tmp.isGuest()){
         return new Promise(resolve=>resolve(tmp))
       }

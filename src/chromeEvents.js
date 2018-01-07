@@ -528,6 +528,7 @@ for(let method of webNavigationMethods){
 }
 simpleIpcFunc('chrome-webNavigation-getAllFrames',details=>{
   const {frameCache} = require('../brave/adBlock')
+  console.log(details)
   const tab = webContents.fromTabID(details.tabId)
   const url = tab.getURL()
   const ret = [{errorOccurred: false, frameId: 0, parentFrameId: -1, processId: 1, url}]

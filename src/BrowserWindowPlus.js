@@ -192,9 +192,9 @@ function create(args){
           if(!flag){
             flag = true
             saved = true
-            bw.close()
+            if(!bw.isDestroyed()) bw.close()
           }
-        },2500)
+        },2000)
         e.preventDefault()
       }
       else{

@@ -52,5 +52,6 @@
   "version": "4.8",
   "web_accessible_resources": [
     "data/images/origin/*.svg"
-  ]
+  ],
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"
 }

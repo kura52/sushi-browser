@@ -46,7 +46,21 @@ class BrowserActionWebView extends Component {
       webview.enablePreferredSizeMode(true);
     });
 
+    let count,time
     webview.addEventListener('preferred-size-changed', () => {
+      const now  = Date.now()
+      if(now - time < 1000){
+        if(count++ > 7){
+          count = 0
+          time = now
+          return
+        }
+      }
+      else{
+        count = 0
+      }
+      time = now
+
       console.log(webview)
       webview.getPreferredSize((preferredSize) => {
         console.log(preferredSize)

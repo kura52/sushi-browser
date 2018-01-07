@@ -5,7 +5,6 @@ import path from 'path'
 
 function onContextMenu(pageURL, tabId) {
   const menuItems = []
-
   if (Object.keys(extensionMenu).length) {
     for (let [extensionId, propertiesList] of Object.entries(extensionMenu)) {
       const menuList = []
@@ -18,6 +17,7 @@ function onContextMenu(pageURL, tabId) {
             contextsPassed = true;
           }
         }
+        if(!contextsPassed) return []
 
         info['menuItemId'] = menuItemId
 
@@ -48,7 +48,7 @@ function onContextMenu(pageURL, tabId) {
             }
           }
           else {
-            addItem.icon = path.join(extensionInfos[extensionId].base_path, icon)
+            if(icon) addItem.icon = path.join(extensionInfos[extensionId].base_path, icon)
             if (properties.icons) addItem.icon2 = path.join(extensionInfos[extensionId].base_path, Object.values(properties.icons)[0].replace(/\.svg$/, '.png'))
             menuList.push(addItem)
           }

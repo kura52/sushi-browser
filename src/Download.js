@@ -168,7 +168,7 @@ export default class Download {
         return
       }
 
-      if(!retry.has(url)){
+      if(!(retry.has(url) || url.startsWith('data:'))){
         console.log('cancel')
         item.destroy()
         // const _item = item
@@ -227,7 +227,7 @@ export default class Download {
         console.log(7)
       }
 
-      if (retry.has(url)) {
+      if (retry.has(url) || url.startsWith('data:')) {
         console.log('retry')
         retry.delete(url)
         if(!this.getData(overwrite,url)){
