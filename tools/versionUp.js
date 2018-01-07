@@ -3,149 +3,20 @@ const path = require('path')
 const fs = require('fs')
 const glob = require("glob")
 
-const BEFORE_CODE_NAME = 'Kappa(Cucumber)'
+const BEFORE_CODE_NAME = 'Aji(Horse mackerel)'
 const CODE_NAME = 'Aji(Horse mackerel)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.13.0"
+const NEXT_APP_VERSION = "0.13.1"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `The convenience functions of the tab were implemented (Some functions of Tab Mix Plus were implemented.)
-  Open links that open in a new window in
-  When closing current tab, focus
-  Do not close window when closing last tab
-  Open New Tab next to current one
-  New Tab from Address Bar
-  Force to open in new tab: Nothing/Links to other sites/All links
-  Open New Tab in Background
-  Open New Tab next to current one
-  Max number of rows to display (Multi-row)
-  Tab minimum and maximum Width setting
-  Show tabs in page theme color
-  Background Color of Current/Unread/other Tabs
-  Text Color of Current/Unread/other Tabs
-  Color of Dashed line when dragging
-  Show Bottom Border in Current Tab
-  Add Button that can select default theme and dark theme
-  Inverse scroll direction
-  Select tab pointed
-  Switch to last selected tab when clicking current one
-  Mouse Clicking Function (Double Click, Middle Click, Alt Click)
-  New Tab Button Clicking Function (Right Click, Middle Click, Alt Click)
-  Copies the tab's URL to the clipboard
-  Load URL from clipboard
-  Paste and Open
-  Copy Tab Info
-  Copy All Tab Infos
-  Reloads all tabs
-  Reloads other tabs
-  Reloads left tabs
-  Reloads right tabs
-  Reload Tab Every
-  Mute Tab
-  Reopens all closed tabs
-
-Addition of the Auto Complete function
-  You can use the suggestion of the search engine now
-  The number of the indication and the order of the suggests and the histories were made controllable by the setting
-  Automatic completion is available when selecting auto complete item
-
-Improvement of the downloading function
-  Collective downloading function by the consecutive numbers (such as downthmeall) 
-  The URLs and the dates were made usable as the file names (such as downthmeall)
-  The setting of the default downloading path was added
-
-Function improvement of the vertical tab 
-  It was made possible to fold the hierarchies
-
-Improvement of showing two kinds panels, a current panel and opposite panel, by a right-click search 
-Addition of a full screen button（Display / Non-display is configurable）
-Addition of a number display function to a back / forward button 
-Addition of a keyboard shortcut
-The bookmarklet on the address bar was made possible to execute.
-
-Implementation of the following Chrome Extension
-  chrome.webNavigation.getAllFrames
-  chrome.sessions.getRecentlyClosed
-  chrome.sessions.restore
-  browser.sessions.setTabValue
-  browser.sessions.getTabValue
-  browser.sessions.removeTabValue
-  browser.sessions.setWindowValue
-  browser.sessions.getWindowValue
-  browser.sessions.removeWindowValue
-
-Updated to youtube-dl 2017.12.31
-Updated to Muon 4.5.36 (chromium 63.0.3239.132)
-Fixed a lot of bugs`
-
-const CHANGE_JAPANESE = `タブの便利機能を実装（Tab Mix Plusの一部機能などを実装）
-  Open links that open in a new window in
-  When closing current tab, focus
-  Do not close window when closing last tab
-  Open New Tab next to current one
-  New Tab from Address Bar
-  Force to open in new tab: Nothing/Links to other sites/All links
-  Open New Tab in Background
-  Open New Tab next to current one
-  Max number of rows to display (Multi-row)
-  Tab minimum and maximum Width setting
-
-  Show tabs in page theme color
-  Background Color of Current/Unread/other Tabs
-  Text Color of Current/Unread/other Tabs
-  Color of Dashed line when dragging
-  Show Bottom Border in Current Tab
-  Add Button that can select default theme and dark theme
-
-  Inverse scroll direction
-  Select tab pointed
-  Switch to last selected tab when clicking current one
-  Mouse Clicking Function (Double Click, Middle Click, Alt Click)
-  New Tab Button Clicking Function (Right Click, Middle Click, Alt Click)
-
-  Copies the tab's URL to the clipboard
-  Load URL from clipboard
-  Paste and Open
-  Copy Tab Info
-  Copy All Tab Infos
-  Reloads all tabs
-  Reloads other tabs
-  Reloads left tabs
-  Reloads right tabs
-  Reload Tab Every
-  Mute Tab
-  Reopens all closed tabs
-
-オートコンプリート機能の追加
-  検索エンジンのサジェストを利用可能とした
-  設定で表示数およびサジェストと履歴の順序を制御可能とした
-  オートコンプリートの項目を選択すると自動補完するようにした
-
-ダウンロード機能の向上
-  連番による一括ダウンロード機能(downthmeallのような)
-  ファイル名にURLや日付を利用可能とした(downthmeallのような)
-  デフォルトダウンロードパスの設定を追加
-
-縦タブの機能改善
-  階層を折りたたむことを可能とした
-
-フルスクリーンボタンの追加（表示/非表示は設定可能）
-戻る/進むボタンに件数表示機能を追加
-キーボード・ショートカットの追加
-アドレスバー上でブックマークレットを実行可能とした。
-右クリックによる検索で現在パネルと対向パネルの2種類を表示するように改善
-
-以下のChrome Extensionを実装
-  chrome.webNavigation.getAllFrames
-  chrome.sessions.getRecentlyClosed
-  chrome.sessions.restore
-  browser.sessions.setTabValue
-  browser.sessions.getTabValue
-  browser.sessions.removeTabValue
-  browser.sessions.setWindowValue
-  browser.sessions.getWindowValue
-  browser.sessions.removeWindowValue
+const CHANGE_ENGLISH = `Improve Chrome Extension Function
+Improve behavior when closing window
+Fix some bugs
 `
+
+const CHANGE_JAPANESE = `Chrome Extension機能を改善
+ウインドウを閉じる際の動作を改善
+いくつかの不具合を修正`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'
