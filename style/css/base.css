@@ -328,7 +328,7 @@ a.search-button:hover {
 }
 
 .rdTabAddButton {
-    transform: skewX(30deg);
+    /*transform: skewX(30deg);*/
     border: 1.2px solid rgba(0,0,0,0.27);
 }
 

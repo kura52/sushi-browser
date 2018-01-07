@@ -622,17 +622,17 @@ if(chrome.downloads){
 }
 
 if(chrome.bookmarks){
-  chrome.bookmarks.get = (idOrIdList, callback) => simpleIpcFunc('chrome-bookmarks-get', _=>{console.log(_);callback(_)}, idOrIdList)
-  chrome.bookmarks.getChildren = (id, callback) => simpleIpcFunc('chrome-bookmarks-getChildren', _=>{console.log(_);callback(_)}, id)
-  chrome.bookmarks.getRecent = (numberOfItems, callback) => simpleIpcFunc('chrome-bookmarks-getRecent', _=>{console.log(_);callback(_)}, numberOfItems)
-  chrome.bookmarks.getTree = (callback) => simpleIpcFunc('chrome-bookmarks-getTree', _=>{console.log(_);callback(_)})
-  chrome.bookmarks.getSubTree = (id, callback) => simpleIpcFunc('chrome-bookmarks-getSubTree', _=>{console.log(id,_);callback(_)}, id)
-  chrome.bookmarks.search = (query, callback) => simpleIpcFunc('chrome-bookmarks-search', _=>{console.log(query,_);callback(_)}, query)
-  chrome.bookmarks.create = (bookmark, callback) => simpleIpcFunc('chrome-bookmarks-create', _=>{console.log(_);callback(_)}, bookmark)
-  chrome.bookmarks.move = (id, destination, callback) => simpleIpcFunc('chrome-bookmarks-move', _=>{console.log(_);callback(_)}, id, destination)
-  chrome.bookmarks.update = (id, changes, callback) => simpleIpcFunc('chrome-bookmarks-update', _=>{console.log(_);callback(_)}, id, changes)
-  chrome.bookmarks.remove = (id, callback) => simpleIpcFunc('chrome-bookmarks-remove', _=>{console.log(_);callback(_)}, id)
-  chrome.bookmarks.removeTree = (id, callback) => simpleIpcFunc('chrome-bookmarks-removeTree', _=>{console.log(_);callback(_)}, id)
+  chrome.bookmarks.get = (idOrIdList, callback) => simpleIpcFunc('chrome-bookmarks-get', callback, idOrIdList)
+  chrome.bookmarks.getChildren = (id, callback) => simpleIpcFunc('chrome-bookmarks-getChildren', callback, id)
+  chrome.bookmarks.getRecent = (numberOfItems, callback) => simpleIpcFunc('chrome-bookmarks-getRecent', callback, numberOfItems)
+  chrome.bookmarks.getTree = (callback) => simpleIpcFunc('chrome-bookmarks-getTree', callback)
+  chrome.bookmarks.getSubTree = (id, callback) => simpleIpcFunc('chrome-bookmarks-getSubTree', callback, id)
+  chrome.bookmarks.search = (query, callback) => simpleIpcFunc('chrome-bookmarks-search', callback, query)
+  chrome.bookmarks.create = (bookmark, callback) => simpleIpcFunc('chrome-bookmarks-create', callback, bookmark)
+  chrome.bookmarks.move = (id, destination, callback) => simpleIpcFunc('chrome-bookmarks-move', callback, id, destination)
+  chrome.bookmarks.update = (id, changes, callback) => simpleIpcFunc('chrome-bookmarks-update', callback, id, changes)
+  chrome.bookmarks.remove = (id, callback) => simpleIpcFunc('chrome-bookmarks-remove', callback, id)
+  chrome.bookmarks.removeTree = (id, callback) => simpleIpcFunc('chrome-bookmarks-removeTree', callback, id)
 
   const settingObj = {set(){},get(){return true},clear(){},addListener(){},removeListener(){},hasListener(){},hasListeners(){}}
   chrome.bookmarkManagerPrivate = {}

@@ -7,7 +7,6 @@ import uuid from 'node-uuid'
 const seq = require('./sequence')
 const {state,favorite,history,visit,downloader,tabState,windowState,savedState} = require('./databaseFork')
 const db = require('./databaseFork')
-const {frameCache} = require('../brave/adBlock')
 const franc = require('franc')
 const chromeManifestModify = require('./chromeManifestModify')
 const extensions = require('../brave/extension/extensions')
@@ -528,6 +527,7 @@ for(let method of webNavigationMethods){
   })
 }
 simpleIpcFunc('chrome-webNavigation-getAllFrames',details=>{
+  const {frameCache} = require('../brave/adBlock')
   const tab = webContents.fromTabID(details.tabId)
   const url = tab.getURL()
   const ret = [{errorOccurred: false, frameId: 0, parentFrameId: -1, processId: 1, url}]
