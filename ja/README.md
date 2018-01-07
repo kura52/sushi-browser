@@ -137,14 +137,14 @@ Sync Data機能をOnにすると複数端末間で履歴とお気に入りの同
 
 各プラットフォームに対し、インストーラとポータブル版の両方がダウンロードできます。
 
-- [Windows Installer v0.12.1](https://sushib.me/dl/sushi-browser-0.12.1-setup-x64.exe)
-- [Windows Portable v0.12.1(自己解凍)](https://sushib.me/dl/sushi-browser-0.12.1-win-x64.exe)
-- [Windows Portable v0.12.1](https://sushib.me/dl/sushi-browser-0.12.1-win-x64.zip)
-- [MacOS dmg v0.12.1](https://sushib.me/dl/SushiBrowser-0.12.1.dmg)
-- [MacOS Portable v0.12.1](https://sushib.me/dl/sushi-browser-0.12.1-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.12.1](https://sushib.me/dl/sushi-browser-0.12.1.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.12.1](https://sushib.me/dl/sushi-browser_0.12.1_amd64.deb)
-- [Linux Portable v0.12.1](https://sushib.me/dl/sushi-browser-0.12.1.tar.bz2)
+- [Windows Installer v0.13.0](https://sushib.me/dl/sushi-browser-0.13.0-setup-x64.exe)
+- [Windows Portable v0.13.0(自己解凍)](https://sushib.me/dl/sushi-browser-0.13.0-win-x64.exe)
+- [Windows Portable v0.13.0](https://sushib.me/dl/sushi-browser-0.13.0-win-x64.zip)
+- [MacOS dmg v0.13.0](https://sushib.me/dl/SushiBrowser-0.13.0.dmg)
+- [MacOS Portable v0.13.0](https://sushib.me/dl/sushi-browser-0.13.0-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.13.0](https://sushib.me/dl/sushi-browser-0.13.0.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.13.0](https://sushib.me/dl/sushi-browser_0.13.0_amd64.deb)
+- [Linux Portable v0.13.0](https://sushib.me/dl/sushi-browser-0.13.0.tar.bz2)
 
 ポータブル版の利用は、解凍後にWindowsはsushi.exeを、Mac/Linuxはsushi-browserを実行ください。
 
@@ -159,9 +159,78 @@ Flashが動かない場合、以下のサイトでFlashをインストールし�
 sushi-browser --no-sandbox
 ```
 
-# 新機能
+# 新機能 
 
-#### 新機能(v0.80)
+#### 新機能(v0.13.0)
+- タブの便利機能を実装（Tab Mix Plusの一部機能などを実装）
+  - Open links that open in a new window in
+  - When closing current tab, focus
+  - Do not close window when closing last tab
+  - Open New Tab next to current one
+  - New Tab from Address Bar
+  - Force to open in new tab: Nothing/Links to other sites/All links
+  - Open New Tab in Background
+  - Open New Tab next to current one
+  - Max number of rows to display (Multi-row)
+  - Tab minimum and maximum Width setting
+
+  - Show tabs in page theme color
+  - Background Color of Current/Unread/other Tabs
+  - Text Color of Current/Unread/other Tabs
+  - Color of Dashed line when dragging
+  - Show Bottom Border in Current Tab
+  - Add Button that can select default theme and dark theme
+- 
+  - Inverse scroll direction
+  - Select tab pointed
+  - Switch to last selected tab when clicking current one
+  - Mouse Clicking Function (Double Click, Middle Click, Alt Click)
+  - New Tab Button Clicking Function (Right Click, Middle Click, Alt Click)
+- 
+  - Copies the tab's URL to the clipboard
+  - Load URL from clipboard
+  - Paste and Open
+  - Copy Tab Info
+  - Copy All Tab Infos
+  - Reloads all tabs
+  - Reloads other tabs
+  - Reloads left tabs
+  - Reloads right tabs
+  - Reload Tab Every
+  - Mute Tab
+  - Reopens all closed tabs
+
+- オートコンプリート機能の追加
+  - 検索エンジンのサジェストを利用可能とした
+  - 設定で表示数およびサジェストと履歴の順序を制御可能とした
+  - オートコンプリートの項目を選択すると自動補完するようにした
+
+- ダウンロード機能の向上
+  - 連番による一括ダウンロード機能(downthmeallのような)
+  - ファイル名にURLや日付を利用可能とした(downthmeallのような)
+  - デフォルトダウンロードパスの設定を追加
+
+- 縦タブの機能改善
+  - 階層を折りたたむことを可能とした
+
+- フルスクリーンボタンの追加（表示/非表示は設定可能）
+- 戻る/進むボタンに件数表示機能を追加
+- キーボード・ショートカットの追加
+- アドレスバー上でブックマークレットを実行可能とした。
+- 右クリックによる検索で現在パネルと対向パネルの2種類を表示するように改善
+
+- 以下のChrome Extensionを実装
+  - chrome.webNavigation.getAllFrames
+  - chrome.sessions.getRecentlyClosed
+  - chrome.sessions.restore
+  - browser.sessions.setTabValue
+  - browser.sessions.getTabValue
+  - browser.sessions.removeTabValue
+  - browser.sessions.setWindowValue
+  - browser.sessions.getWindowValue
+  - browser.sessions.removeWindowValue
+
+#### 新機能(v0.8.0)
 - 縦タブ、ツリー型タブの機能の追加
 - Tab系のExtensionの改善（move,onMoved,onDetached,onAttached)
 - 自動/ユーザセッション保存機能の追加
@@ -173,7 +242,7 @@ sushi-browser --no-sandbox
 - Chrome Extensionの改善(chrome.history, chrome.topSites, chrome_url_overridesの追加)
 - 多数のバグ修正
 
-#### 新機能(v0.70)
+#### 新機能(v0.7.0)
 - Chrome拡張APIを一部実装
 - Chrome web storeからChrome拡張をインストールする機能を追加
 - 多段タブの実装
@@ -205,30 +274,30 @@ sushi-browser --no-sandbox
   - chrome.webRequest
   - chrome.windows
 
-#### 新機能(v0.61)
+#### 新機能(v0.6.1)
 - セッションタブ機能の追加
 - ページ読み込み開始時、完了時の不具合を修正
 
-#### 新機能(v0.60)
+#### 新機能(v0.6.0)
 - 主要な同期処理を非同期化することで高速化
 - 新しいタブの作成処理を高速化
 - Topページの表示処理を高速化
 - npmライブラリを最新化
 
-#### 新機能(v0.50)
+#### 新機能(v0.5.0)
 - VPN機能を追加(Windowsのみ)。VPN Gateサービスを利用させて頂いており、MS-SSTP VPNで接続します。(多重proxyではない本当のVPNです。)
 - 動画から音声を抽出する機能を追加(ffmpegを利用)
 - ダウンロードファイルサイズを減少（インストール後の初回起動が若干遅くなっています）
 - Issue #9を修正(Command-scroll wheel to zoom is making my page all sorts of crazy sizes)
 - Issue #10を修正(Copy doesn't work on Mac OS)
 
-#### 新機能(v0.40)
+#### 新機能(v0.4.0)
 - 外部メディアプレイヤー(VLC Media Playerなど)にURLを送信し、再生する機能を追加
 - 複数のタブを選択し、タブ操作やドロップアンドドラッグを可能とする機能を追加
 - 標準ブラウザとした場合などで、外部アプリケーションからリンクを送信された場合に、正しく動作するように修正
 - アプリケーションが複数起動しないように修正
 
-#### 新機能(v0.30-v0.33)
+#### 新機能(v0.3.0-v0.3.3)
 - トップページのカスタマイズ性の向上
 - Windowsで起動しない不具合の修正
 - ドメインごとのAdBlockの制御の追加
@@ -252,7 +321,7 @@ sushi-browser --no-sandbox
 - 不要なデータの削除（若干のダウンロードサイズ減少）
 
 
-#### 新機能(v0.20-v0.21)
+#### 新機能(v0.2.0-v0.2.1)
 - 検索エンジンを選択可能とした
 - 複数同時検索機能（例えば、アドレスバーにg4 wordと入力すると、複数のパネルに異なる条件で同時に検索が可能）
 - 部分的なローカライズ

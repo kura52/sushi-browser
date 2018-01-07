@@ -18,7 +18,8 @@ let backgroundHtmlStr = `<!DOCTYPE html>
 <head><meta charset="UTF-8"></head>
 <body>
 <script src="${backgroundScriptName}"></script>
-__REPLACE__`
+__REPLACE__
+</body></html>`
 
 function findJsTags(obj,callback){
   if(obj.js){

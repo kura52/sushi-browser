@@ -135,14 +135,14 @@ This browser makes use of wonderful web technologies, starting with the followin
 Both the installer for every platform and the portable version can be downloaded.  
 To use the portable edition, please run sushi.exe for Windows and sushi-browser for Mac/Linux after decompressing.
 
-- [Windows Installer v0.12.1](https://sushib.me/dl/sushi-browser-0.12.1-setup-x64.exe)
-- [Windows Portable v0.12.1(self-extract)](https://sushib.me/dl/sushi-browser-0.12.1-win-x64.exe)
-- [Windows Portable v0.12.1](https://sushib.me/dl/sushi-browser-0.12.1-win-x64.zip)
-- [MacOS dmg v0.12.1](https://sushib.me/dl/SushiBrowser-0.12.1.dmg)
-- [MacOS Portable v0.12.1](https://sushib.me/dl/sushi-browser-0.12.1-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.12.1](https://sushib.me/dl/sushi-browser-0.12.1.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.12.1](https://sushib.me/dl/sushi-browser_0.12.1_amd64.deb)
-- [Linux Portable v0.12.1](https://sushib.me/dl/sushi-browser-0.12.1.tar.bz2)
+- [Windows Installer v0.13.0](https://sushib.me/dl/sushi-browser-0.13.0-setup-x64.exe)
+- [Windows Portable v0.13.0(self-extract)](https://sushib.me/dl/sushi-browser-0.13.0-win-x64.exe)
+- [Windows Portable v0.13.0](https://sushib.me/dl/sushi-browser-0.13.0-win-x64.zip)
+- [MacOS dmg v0.13.0](https://sushib.me/dl/SushiBrowser-0.13.0.dmg)
+- [MacOS Portable v0.13.0](https://sushib.me/dl/sushi-browser-0.13.0-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.13.0](https://sushib.me/dl/sushi-browser-0.13.0.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.13.0](https://sushib.me/dl/sushi-browser_0.13.0_amd64.deb)
+- [Linux Portable v0.13.0](https://sushib.me/dl/sushi-browser-0.13.0.tar.bz2)
 
 # Use of Flash 
 If Flash won't run, please install Flash from the following web sites.  
@@ -157,13 +157,83 @@ sushi-browser --no-sandbox
 
 # New Features
 
-#### New function(v0.121)
+#### New function(v0.13.0)
+- The convenience functions of the tab were implemented (Some functions of Tab Mix Plus were implemented.)
+  - Open links that open in a new window in
+  - When closing current tab, focus
+  - Do not close window when closing last tab
+  - Open New Tab next to current one
+  - New Tab from Address Bar
+  - Force to open in new tab: Nothing/Links to other sites/All links
+  - Open New Tab in Background
+  - Open New Tab next to current one
+  - Max number of rows to display (Multi-row)
+  - Tab minimum and maximum Width setting
+  - Show tabs in page theme color
+  - Background Color of Current/Unread/other Tabs
+  - Text Color of Current/Unread/other Tabs
+  - Color of Dashed line when dragging
+  - Show Bottom Border in Current Tab
+  - Add Button that can select default theme and dark theme
+  - Inverse scroll direction
+  - Select tab pointed
+  - Switch to last selected tab when clicking current one
+  - Mouse Clicking Function (Double Click, Middle Click, Alt Click)
+  - New Tab Button Clicking Function (Right Click, Middle Click, Alt Click)
+  - Copies the tab's URL to the clipboard
+  - Load URL from clipboard
+  - Paste and Open
+  - Copy Tab Info
+  - Copy All Tab Infos
+  - Reloads all tabs
+  - Reloads other tabs
+  - Reloads left tabs
+  - Reloads right tabs
+  - Reload Tab Every
+  - Mute Tab
+  - Reopens all closed tabs
+
+- Addition of the Auto Complete function
+  - You can use the suggestion of the search engine now
+  - The number of the indication and the order of the suggests and the histories were made controllable by the setting
+  - Automatic completion is available when selecting auto complete item
+- 
+- Improvement of the downloading function
+  - Collective downloading function by the consecutive numbers (such as downthmeall) 
+  - The URLs and the dates were made usable as the file names (such as downthmeall)
+  - The setting of the default downloading path was added
+
+- Function improvement of the vertical tab 
+  - It was made possible to fold the hierarchies
+
+- Improvement of showing two kinds panels, a current panel and opposite panel, by a right-click search 
+- Addition of a full screen button（Display / Non-display is configurable）
+- Addition of a number display function to a back / forward button 
+- Addition of a keyboard shortcut
+- The bookmarklet on the address bar was made possible to execute.
+
+- Implementation of the following Chrome Extension
+  - chrome.webNavigation.getAllFrames
+  - chrome.sessions.getRecentlyClosed
+  - chrome.sessions.restore
+  - browser.sessions.setTabValue
+  - browser.sessions.getTabValue
+  - browser.sessions.removeTabValue
+  - browser.sessions.setWindowValue
+  - browser.sessions.getWindowValue
+  - browser.sessions.removeWindowValue
+
+- Updated to youtube-dl 2017.12.31
+- Updated to Muon 4.5.36 (chromium 63.0.3239.132)
+- Fixed a lot of bugs
+
+#### New function(v0.12.1)
 - Updated to Muon 4.5.32
 - Fixed bug due to Chromium 63 specification change
 - Reduce unnecessary files
 - Fixed bugs caused by downloads, databases, etc.
 
-#### New function(v0.120)
+#### New function(v0.12.0)
 - Added edit function of right click menu
 - Reduction favicon and page capture image size
 - Added multiple selection in download function
@@ -172,14 +242,6 @@ sushi-browser --no-sandbox
 - Updated to youtube-dl 2017.12.23
 - Updated to Muon 4.5.31 (chromium 63.0.3239.84)
 - Fixed a lot of bugs
-
-#### New function(v0.12.1)
-- Updated to youtube-dl 2017.12.02
-- Updated to ffmpeg 3.4
-- Updated to aria2c 1.33
-- Chrome Extension improvements (chrome.contentSettings, chrome.browsingData, chrome.notifications)
-- Fix a lot of Chrome Extension's bugs
-- Fix a session manager bug
 
 #### New function(v0.11.0)
 - Add Fingerprint Protection and NoScript function

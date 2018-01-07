@@ -16,6 +16,7 @@ const localShortcuts = require('../brave/app/localShortcuts')
 
 const normalSize = {}
 let saved = false
+let unmouted
 
 function savedStateUpdate(states,closeKey){
   savedState.insert(states).then(doc=>{
@@ -110,17 +111,23 @@ function create(args){
     }
     else if(sendTitle.includes('Sushi Browser')){
       const wins = BrowserWindow.getAllWindows().filter(w=>w.getTitle().includes('Sushi Browser'))
-      console.log(wins.length)
+      console.log(wins.length,BrowserWindow.getAllWindows().filter(w=>w.getTitle().includes('Sushi Browser')))
       if(wins.length > 1){ //@TODO close event hang out other windows
         // bw.setSkipTaskbar(true)
         bw.webContents.send('unmount-components',{})
-        ipcMain.once('unmount-components-reply',_=>{
-          bw.setTitle('Closed')
-          // bw.loadURL(`file://${path.join(__dirname, '../blank.html').replace(/\\/g,"/")}`)
-          bw.hide()
-
-          PubSub.publish('chrome-windows-onRemoved',bw.id)
-        })
+        unmouted = true
+        let flag = false
+        const closeFunc = _=>{
+          if(!flag){
+            flag = true
+            unmouted = false
+            bw.setTitle('Closed')
+            bw.hide()
+            PubSub.publish('chrome-windows-onRemoved',bw.id)
+          }
+        }
+        ipcMain.once('unmount-components-reply',closeFunc)
+        setTimeout(closeFunc,1500)
         e.preventDefault()
         return
       }
@@ -138,7 +145,7 @@ function create(args){
       }
       else if(global.downloadItems && global.downloadItems.some(item=>{return (item.getState() == 'progressing' || item.getState() == 'interrupted')})){
         const key = uuid.v4()
-        console.log(global.downloadItems)
+        console.log(global.downloadItems, global.downloadItems.forEach(item=>console.log(item.getURL(),item.isAria2c())))
         bw.webContents.send('show-notification',{key,text:'Do you want to close the browser and cancel all downloads?', buttons:['Yes','No']})
 
         ipcMain.once(`reply-notification-${key}`,(e,ret)=>{
@@ -160,6 +167,8 @@ function create(args){
 
       if(!saved){
         bw.webContents.send('get-window-state',{})
+        let flag = false
+
         ipcMain.once('get-window-state-reply',(e,ret)=>{
           try{
             const saveState = {}
@@ -174,11 +183,18 @@ function create(args){
 
             saved = true
             console.log("getState")
-            bw.close()
+            if(!flag) bw.close()
           }catch(e){
             saved = true
           }
         })
+        setTimeout(_=>{
+          if(!flag){
+            flag = true
+            saved = true
+            bw.close()
+          }
+        },2500)
         e.preventDefault()
       }
       else{
