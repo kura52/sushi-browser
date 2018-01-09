@@ -287,17 +287,17 @@ export default class VerticalTabPanel extends Component{
           const flattenTree = tabTree.flatten()
 
           let pre = {depth: 99999}
-          let fold = false
+          let fold = -1
           for(let x of flattenTree){
             if(!x[1]) continue
             const tab = x[0].tab
             tab.depth =  x[1] - 1
-            if(fold !== false){
+            if(fold !== -1){
               if(fold < tab.depth){
                 tab.hidden = true
               }
               else{
-                fold = false
+                fold = -1
               }
             }
             if(this.foldTabs[tab.key]){

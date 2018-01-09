@@ -1267,13 +1267,21 @@ ipcMain.on('screen-shot',(e,{full,type,rect,tabId,tabKey})=>{
           const d = document.body,dd = document.documentElement,
           width = Math.max(d.scrollWidth, d.offsetWidth, dd.clientWidth, dd.scrollWidth, dd.offsetWidth),
           height = Math.max(d.scrollHeight, d.offsetHeight, dd.clientHeight, dd.scrollHeight, dd.offsetHeight);
+          if(d.style.overflow) d.dataset.overflow = d.style.overflow
+          d.style.overflow = 'hidden'
           return {width,height}
         })()`, {},(err, url, result)=>{
         console.log(result[0],`webview-size-change_${tabKey}`)
         const key = Math.random().toString()
         e.sender.send(`webview-size-change_${tabKey}`,key,`${result[0].width}px`,`${result[0].height}px`,true)
         ipcMain.once(`webview-size-change_${tabKey}-reply_${key}`,(e)=>{
-          cont.capturePage({x:0,y:0,width:result[0].width,height:result[0].height},capture.bind(this,_=>e.sender.send(`webview-size-change_${tabKey}`,key,'100%','100%')))
+          cont.capturePage({x:0,y:0,width:scaling(result[0].width),height:scaling(result[0].height) },capture.bind(this,_=>{
+            e.sender.send(`webview-size-change_${tabKey}`,key,'100%','100%')
+            cont.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',
+              `(function(){
+          document.body.style.overflow = document.body.dataset.overflow || null
+        })()`, {},(err, url, result)=>{})
+          }))
         })
       })
   }

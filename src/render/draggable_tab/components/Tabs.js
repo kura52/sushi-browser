@@ -1038,6 +1038,11 @@ class Tabs extends React.Component {
     mainState.set('stopDragEnd',true)
     evt.stopPropagation()
     evt.preventDefault()
+
+    for(let ele of document.querySelectorAll(".chrome-tab-drag")){
+      ele.classList.remove("chrome-tab-drag")
+    }
+
     const cont = getWebContents(tab)
     if(cont){
       const dropData = evt.dataTransfer.getData("text/html")

@@ -31,10 +31,10 @@ const getMainFrameUrl = (details) => {
     return details.url
   }
   const tab = webContents.fromTabID(details.tabId)
-  if (tab && !tab.isDestroyed()) {
+  try {
     return tab.getURL()
-  }
-  return null
+  } catch (ex) {}
+  return details.firstPartyUrl || null
 }
 
 

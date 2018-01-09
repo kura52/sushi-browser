@@ -3386,7 +3386,7 @@ export default class TabPanel extends Component {
 
       console.log("selected14",n_tab.key)
       this.setState({selectedTab: n_tab.key})
-      this.focus_webview(n_tab)
+      this.focus_webview(n_tab,true)
     })
   }
 
