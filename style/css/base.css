@@ -488,7 +488,7 @@ i.private-mode,i.pin-mode,i.mute-mode,i.reload-mode {
     float: left;
     font-size: 16px;
     line-height: 1.2em;
-    color: aquamarine;
+    color: #7fffd4;
     margin-left: -2px;
     margin-right: 2px;
 }
@@ -497,7 +497,7 @@ span.private-mode {
     float: left;
     font-size: 16px;
     line-height: 1.0em;
-    color: aquamarine;
+    color: #7fffd4;
     margin-left: -2px;
     margin-right: 1px;
     padding: 0;

@@ -6,17 +6,16 @@ const glob = require("glob")
 const BEFORE_CODE_NAME = 'Aji(Horse mackerel)'
 const CODE_NAME = 'Aji(Horse mackerel)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.13.1"
+const NEXT_APP_VERSION = "0.13.2"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Improve Chrome Extension Function
-Improve behavior when closing window
+const CHANGE_ENGLISH = `Fixed fatal bug when loading page
 Fix some bugs
-`
+The color of mute / pin / reload icon can be set`
 
-const CHANGE_JAPANESE = `Chrome Extension機能を改善
-ウインドウを閉じる際の動作を改善
-いくつかの不具合を修正`
+const CHANGE_JAPANESE = `ページロード時の致命的なバグを修正
+いくつかのバグ修正
+ミュート/ピン/リロードアイコンの色を設定可能にした`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

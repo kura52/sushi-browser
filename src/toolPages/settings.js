@@ -1031,7 +1031,7 @@ class TabsSetting extends React.Component {
         colorUnreadText: '#9f0000',
         colorUnreadBackground: '#d0d0d0',
         showBorderActiveTab: false,
-        colorTabMode: 'dimgray'
+        colorTabMode: '#696969'
       }
     }
     else if(theme == 'dark'){
@@ -1044,7 +1044,7 @@ class TabsSetting extends React.Component {
         colorUnreadText: '#ab7f00',
         colorUnreadBackground: '#4f4f4f',
         showBorderActiveTab: true,
-        colorTabMode: 'aquamarine'
+        colorTabMode: '#7fffd4'
       }
     }
     for(let [key,val] of Object.entries(style)){
@@ -1218,7 +1218,7 @@ class TabsSetting extends React.Component {
       <div className='spacer2'/>
 
       <div className="field">
-        <span style={{verticalAlign: 'baseline',paddingLeft:60}} className="toggle-label">Color of Mute/Pin/Reolad Icon:&nbsp;&nbsp;</span>
+        <span style={{verticalAlign: 'baseline',paddingLeft:60}} className="toggle-label">Color of Mute/Pin/Reload Icon:&nbsp;&nbsp;</span>
         <Input ref='colorTabMode' onChange={this.onChange.bind(this,'colorTabMode')} defaultValue={this.state.colorTabMode}/>
       </div>
 

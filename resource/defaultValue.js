@@ -88,7 +88,7 @@ const settingDefault =  {
   colorTabDot: '#777',
   colorUnreadText: '#9f0000',
   colorUnreadBackground: '#d0d0d0',
-  colorTabMode: 'dimgray',
+  colorTabMode: '#696969',
 
   showBorderActiveTab: false,
   enableColorOfNoSelect: false,

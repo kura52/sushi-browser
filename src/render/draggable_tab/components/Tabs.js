@@ -49,7 +49,7 @@ maxrowLabel = parseInt(maxrowLabel)
   border: 1px dashed ${sharedState.colorTabDot} !important;
 }
 ${sharedState.showBorderActiveTab ? '.chrome-tabs .chrome-tab.chrome-tab-current .chrome-tab-background { border-bottom: 1px solid #aaa; }' : ''}
-i.private-mode,i.pin-mode,i.mute-mode,i.reload-mode {color: ${sharedState.colorTabMode};}`));
+span.private-mode,i.private-mode,i.pin-mode,i.mute-mode,i.reload-mode {color: ${sharedState.colorTabMode};}`));
     document.head.appendChild(s)
 }())
 
