@@ -1458,6 +1458,7 @@ export default class TabPanel extends Component {
       }
       const cont = this.getWebContents(tab)
       if (!cont) return
+      cont.setAudioMuted(true)
       clearInterval(id)
       // cont.setTabValues({windowId: 11})
     }, 100)
@@ -3899,7 +3900,7 @@ export default class TabPanel extends Component {
           return (<Tab key={tab.key} page={tab.page} orgTab={tab} unread={this.state.selectedTab != tab.key && !allSelectedkeys.has(tab.key)} pin={tab.pin} mute={tab.mute} reloadInterval={tab.reloadInterval} privateMode={tab.privateMode} selection={tab.selection}>
             <div style={{height: '100%'}} className="div-back" ref={`div-${tab.key}`} >
               <BrowserNavbar ref={`navbar-${tab.key}`} tabkey={tab.key} k={this.props.k} navHandle={tab.navHandlers} parent={this}
-                             privateMode={tab.privateMode} page={tab.page} tab={tab} refs2={refs2}
+                             privateMode={tab.privateMode} page={tab.page} tab={tab} refs2={refs2} key={tab.key}
                              oppositeGlobal={this.state.oppositeGlobal} toggleNav={toggle}
                              historyMap={historyMap} currentWebContents={this.props.currentWebContents}
                              isTopRight={this.props.isTopRight} isTopLeft={this.props.isTopLeft} fixedPanelOpen={this.props.fixedPanelOpen}

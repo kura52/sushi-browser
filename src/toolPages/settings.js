@@ -1031,6 +1031,7 @@ class TabsSetting extends React.Component {
         colorUnreadText: '#9f0000',
         colorUnreadBackground: '#d0d0d0',
         showBorderActiveTab: false,
+        colorTabMode: 'dimgray'
       }
     }
     else if(theme == 'dark'){
@@ -1042,7 +1043,8 @@ class TabsSetting extends React.Component {
         colorTabDot: '#fff',
         colorUnreadText: '#ab7f00',
         colorUnreadBackground: '#4f4f4f',
-        showBorderActiveTab: true
+        showBorderActiveTab: true,
+        colorTabMode: 'aquamarine'
       }
     }
     for(let [key,val] of Object.entries(style)){
@@ -1211,6 +1213,13 @@ class TabsSetting extends React.Component {
       <div className="field">
         <span style={{verticalAlign: 'baseline',paddingLeft:60}} className="toggle-label">Dashed line when dragging:&nbsp;&nbsp;</span>
         <Input ref='colorTabDot' onChange={this.onChange.bind(this,'colorTabDot')} defaultValue={this.state.colorTabDot}/>
+      </div>
+
+      <div className='spacer2'/>
+
+      <div className="field">
+        <span style={{verticalAlign: 'baseline',paddingLeft:60}} className="toggle-label">Color of Mute/Pin/Reolad Icon:&nbsp;&nbsp;</span>
+        <Input ref='colorTabMode' onChange={this.onChange.bind(this,'colorTabMode')} defaultValue={this.state.colorTabMode}/>
       </div>
 
       <div className='spacer2'/>
@@ -1801,7 +1810,7 @@ ipc.send("get-main-state",['startsWith','newTabMode','myHomepage','searchProvide
   'closeTabBehavior','reverseScrollTab','tabMaxWidth','mouseHoverSelectLabelBegin','mouseHoverSelectLabelBeginDelay','tabFlipLabel','doubleClickTab','middleClickTab','altClickTab',
   'maxrowLabel','orderOfAutoComplete','numOfSuggestion','numOfHistory','openTabNextLabel','rightClickTabAdd','middleClickTabAdd','altClickTabAdd','displayFullIcon','downloadPath',
   'defaultDownloadPath','alwaysOpenLinkNewTab','alwaysOpenLinkBackground','addressBarNewTab','oppositeGlobal','colorNormalText','colorNormalBackground','colorActiveText',
-  'colorActiveBackground','colorTabDot','colorUnreadText','colorUnreadBackground','enableColorOfNoSelect','themeColorChange','showBorderActiveTab','historyBadget'])
+  'colorActiveBackground','colorTabDot','colorUnreadText','colorUnreadBackground','enableColorOfNoSelect','themeColorChange','showBorderActiveTab','historyBadget','colorTabMode'])
 ipc.once("get-main-state-reply",(e,data)=>{
   generalDefault = data
   keyboardDefault = data

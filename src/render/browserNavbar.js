@@ -248,7 +248,8 @@ class BrowserNavbar extends Component{
       this.state.adBlockGlobal == nextState.adBlockGlobal &&
       this.state.pdfMode == nextState.pdfMode &&
       this.props.oppositeGlobal == nextProps.oppositeGlobal &&
-      this.state.adBlockThis == nextState.adBlockThis)
+      this.state.adBlockThis == nextState.adBlockThis &&
+      this.props.tabKey == this.tabKey)
     if(ret){
       this.currentWebContents = nextProps.currentWebContents
       this.wv = nextProps.tab.wv
@@ -262,6 +263,7 @@ class BrowserNavbar extends Component{
       this.sync = nextProps.tab.sync
       this.syncReplace = nextProps.tab.syncReplace
       this.oppositeMode = nextProps.tab.oppositeMode
+      this.tabKey = nextProps.tabKey
     }
     return ret
   }
