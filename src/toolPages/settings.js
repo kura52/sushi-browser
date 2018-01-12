@@ -562,6 +562,14 @@ class GeneralSetting extends React.Component {
         </div>
         <br/>
 
+        {isDarwin || isWin ? <div className="field">
+          <label>Widevine</label>
+          <Checkbox defaultChecked={this.state.enableWidevine} toggle onChange={this.onChange.bind(this,'enableWidevine')}/>
+          <span className="toggle-label">{`${l10n.translation('enableFlash').replace('Adobe Flash','Widevine')} (${l10n.translation('requiresRestart').replace('* ','')})`}</span>
+        </div> : null}
+        {isDarwin || isWin ? <br/> : null}
+
+
         <div className="field">
           <label>Default Sidebar Position</label>
           <Dropdown onChange={this.onChange.bind(this,'sideBarDirection')} selection options={sideBarDirectionOptions} defaultValue={this.state.sideBarDirection}/>
@@ -1810,7 +1818,8 @@ ipc.send("get-main-state",['startsWith','newTabMode','myHomepage','searchProvide
   'closeTabBehavior','reverseScrollTab','tabMaxWidth','mouseHoverSelectLabelBegin','mouseHoverSelectLabelBeginDelay','tabFlipLabel','doubleClickTab','middleClickTab','altClickTab',
   'maxrowLabel','orderOfAutoComplete','numOfSuggestion','numOfHistory','openTabNextLabel','rightClickTabAdd','middleClickTabAdd','altClickTabAdd','displayFullIcon','downloadPath',
   'defaultDownloadPath','alwaysOpenLinkNewTab','alwaysOpenLinkBackground','addressBarNewTab','oppositeGlobal','colorNormalText','colorNormalBackground','colorActiveText',
-  'colorActiveBackground','colorTabDot','colorUnreadText','colorUnreadBackground','enableColorOfNoSelect','themeColorChange','showBorderActiveTab','historyBadget','colorTabMode'])
+  'colorActiveBackground','colorTabDot','colorUnreadText','colorUnreadBackground','enableColorOfNoSelect','themeColorChange','showBorderActiveTab','historyBadget','colorTabMode',
+  'enableWidevine'])
 ipc.once("get-main-state-reply",(e,data)=>{
   generalDefault = data
   keyboardDefault = data

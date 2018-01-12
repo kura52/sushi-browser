@@ -27,6 +27,7 @@ const settingDefault =  {
   syncScrollMargin: 30,
   contextMenuSearchEngines: ["Google","google past year and normal","google multi search"],
   downloadPath: '',
+  enableWidevine: true,
 
   bindMarginFrame: isLinux ? 6 : 0,
   bindMarginTitle: isLinux ? 24  : 0,

@@ -137,14 +137,14 @@ Sync Data機能をOnにすると複数端末間で履歴とお気に入りの同
 
 各プラットフォームに対し、インストーラとポータブル版の両方がダウンロードできます。
 
-- [Windows Installer v0.13.1](https://sushib.me/dl/sushi-browser-0.13.1-setup-x64.exe)
-- [Windows Portable v0.13.1(自己解凍)](https://sushib.me/dl/sushi-browser-0.13.1-win-x64.exe)
-- [Windows Portable v0.13.1](https://sushib.me/dl/sushi-browser-0.13.1-win-x64.zip)
-- [MacOS dmg v0.13.1](https://sushib.me/dl/SushiBrowser-0.13.1.dmg)
-- [MacOS Portable v0.13.1](https://sushib.me/dl/sushi-browser-0.13.1-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.13.1](https://sushib.me/dl/sushi-browser-0.13.1.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.13.1](https://sushib.me/dl/sushi-browser_0.13.1_amd64.deb)
-- [Linux Portable v0.13.1](https://sushib.me/dl/sushi-browser-0.13.1.tar.bz2)
+- [Windows Installer v0.13.2](https://sushib.me/dl/sushi-browser-0.13.2-setup-x64.exe)
+- [Windows Portable v0.13.2(自己解凍)](https://sushib.me/dl/sushi-browser-0.13.2-win-x64.exe)
+- [Windows Portable v0.13.2](https://sushib.me/dl/sushi-browser-0.13.2-win-x64.zip)
+- [MacOS dmg v0.13.2](https://sushib.me/dl/SushiBrowser-0.13.2.dmg)
+- [MacOS Portable v0.13.2](https://sushib.me/dl/sushi-browser-0.13.2-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.13.2](https://sushib.me/dl/sushi-browser-0.13.2.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.13.2](https://sushib.me/dl/sushi-browser_0.13.2_amd64.deb)
+- [Linux Portable v0.13.2](https://sushib.me/dl/sushi-browser-0.13.2.tar.bz2)
 
 ポータブル版の利用は、解凍後にWindowsはsushi.exeを、Mac/Linuxはsushi-browserを実行ください。
 
@@ -161,7 +161,7 @@ sushi-browser --no-sandbox
 
 # 新機能
 
-#### 新機能(v0.13.1)
+#### 新機能(v0.13.2)
 - Chrome Extension機能を改善
 - ウインドウを閉じる際の動作を改善
 - いくつかの不具合を修正

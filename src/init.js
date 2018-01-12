@@ -14,6 +14,7 @@ import nm from 'nanomatch'
 const fs = require('fs')
 const os = require('os')
 const isDarwin = process.platform == 'darwin'
+const isLinux = process.platform === 'linux'
 const mime = require('mime')
 const LRUCache = require('lru-cache')
 import url from 'url'
@@ -77,6 +78,22 @@ InitSetting.val.then(setting=>{
   }
   else{
     defaultConf.flashEnabled = [ { setting: 'deny', primaryPattern: '*' } ]
+  }
+  if(isLinux || !setting.enableWidevine){
+    defaultConf.plugins =  []
+  }
+  else{
+    try{
+      const widevinePath = path.join(app.getPath('userData'),'..','brave/Extensions/WidevineCdm')
+      if(require("glob").sync(path.join(widevinePath,"*")).length == 0){
+        const src = path.join(__dirname, '../resource/bin/widevine',
+          process.platform == 'win32' ? 'win/WidevineCdm' :
+            process.platform == 'darwin' ? 'mac/WidevineCdm' : '').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
+        require('fs-extra').copySync(src,widevinePath)
+      }
+    }catch(e){
+      console.log(e)
+    }
   }
   defaultConf.javascript[0].setting = setting.noScript ? 'block' : 'allow'
   defaultConf.canvasFingerprinting[0].setting = setting.blockCanvasFingerprinting ? 'block' : 'allow'

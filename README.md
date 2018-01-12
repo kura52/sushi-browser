@@ -135,14 +135,14 @@ This browser makes use of wonderful web technologies, starting with the followin
 Both the installer for every platform and the portable version can be downloaded.  
 To use the portable edition, please run sushi.exe for Windows and sushi-browser for Mac/Linux after decompressing.
 
-- [Windows Installer v0.13.1](https://sushib.me/dl/sushi-browser-0.13.1-setup-x64.exe)
-- [Windows Portable v0.13.1(self-extract)](https://sushib.me/dl/sushi-browser-0.13.1-win-x64.exe)
-- [Windows Portable v0.13.1](https://sushib.me/dl/sushi-browser-0.13.1-win-x64.zip)
-- [MacOS dmg v0.13.1](https://sushib.me/dl/SushiBrowser-0.13.1.dmg)
-- [MacOS Portable v0.13.1](https://sushib.me/dl/sushi-browser-0.13.1-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.13.1](https://sushib.me/dl/sushi-browser-0.13.1.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.13.1](https://sushib.me/dl/sushi-browser_0.13.1_amd64.deb)
-- [Linux Portable v0.13.1](https://sushib.me/dl/sushi-browser-0.13.1.tar.bz2)
+- [Windows Installer v0.13.2](https://sushib.me/dl/sushi-browser-0.13.2-setup-x64.exe)
+- [Windows Portable v0.13.2(self-extract)](https://sushib.me/dl/sushi-browser-0.13.2-win-x64.exe)
+- [Windows Portable v0.13.2](https://sushib.me/dl/sushi-browser-0.13.2-win-x64.zip)
+- [MacOS dmg v0.13.2](https://sushib.me/dl/SushiBrowser-0.13.2.dmg)
+- [MacOS Portable v0.13.2](https://sushib.me/dl/sushi-browser-0.13.2-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.13.2](https://sushib.me/dl/sushi-browser-0.13.2.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.13.2](https://sushib.me/dl/sushi-browser_0.13.2_amd64.deb)
+- [Linux Portable v0.13.2](https://sushib.me/dl/sushi-browser-0.13.2.tar.bz2)
 
 # Use of Flash 
 If Flash won't run, please install Flash from the following web sites.  
@@ -156,6 +156,11 @@ sushi-browser --no-sandbox
 ```
 
 # New Features
+
+#### New function(v0.13.2)
+- Fixed fatal bug when loading page
+- Fix some bugs
+- The color of mute / pin / reload icon can be set
 
 #### New function(v0.13.1)
 - Improve Chrome Extension Function
