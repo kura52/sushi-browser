@@ -6,16 +6,14 @@ const glob = require("glob")
 const BEFORE_CODE_NAME = 'Aji(Horse mackerel)'
 const CODE_NAME = 'Aji(Horse mackerel)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.13.2"
+const NEXT_APP_VERSION = "0.13.3"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Fixed fatal bug when loading page
-Fix some bugs
-The color of mute / pin / reload icon can be set`
+const CHANGE_ENGLISH = `Fixed a fatal bug regarding mute
+We made widevine usable`
 
-const CHANGE_JAPANESE = `ページロード時の致命的なバグを修正
-いくつかのバグ修正
-ミュート/ピン/リロードアイコンの色を設定可能にした`
+const CHANGE_JAPANESE = `ミュートに関する致命的なバグを修正
+Widevineを使用可能にした`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'
@@ -104,6 +102,7 @@ if(!fs.readFileSync(path.join(pwd,'README.md')).includes(`v${NEXT_APP_VERSION2}`
 - ${CHANGE_ENGLISH.split("\n").join("\n- ")}`)
 }
 
+// filesContentsReplace(path.join(pwd,'ja','README.md'),CURRENT_APP_VERSION,NEXT_APP_VERSION)
 
 if(!fs.readFileSync(path.join(pwd,'ja/README.md')).includes(`v${NEXT_APP_VERSION2}`)){
   fileContentsReplace(path.join(pwd,'ja/README.md'),'# 新機能 ',`# 新機能
@@ -149,12 +148,6 @@ const htmls = []
 glob.sync(`${pwd}/../web/**/index.html`).forEach(file=>{
   filesContentsReplace(file,CURRENT_APP_VERSION,NEXT_APP_VERSION)
   filesContentsReplace(file,BEFORE_CODE_NAME,CODE_NAME)
-  if(file.includes("/ja/")){
-
-  }
-  else{
-
-  }
   htmls.push(file)
 })
 glob.sync(`${pwd}/../web/**/download.html`).forEach(file=>{
@@ -211,4 +204,3 @@ sizeAdd(htmls,app,sizeMap[app])
 
 
 
-filesContentsReplace(path.join(pwd,'ja','README.md'),CURRENT_APP_VERSION,NEXT_APP_VERSION)
