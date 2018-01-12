@@ -59,13 +59,13 @@ class FirebaseSetting{
 
     let success
     for(let t of tokens){
-      const email = t.email
-      cryptoKey = email
+      this.email = t.email
+      cryptoKey = this.email
       const password = passCrypto.decrypt(t.password)
       try{
-        const result = await firebase.auth().signInWithEmailAndPassword(email, password)
-        this.name = result.displayName
-        this.email = result.email
+        const result = await firebase.auth().signInWithEmailAndPassword(this.email, password)
+        // this.name = result.displayName
+        // this.email = result.email
         this.uid = result.uid
         this.password = password
         success = true
@@ -122,8 +122,8 @@ class FirebaseSetting{
     }
     const cPassword = passCrypto.encrypt(password)
     this.database.ref(`users/${this.uid}`).set({
-      name: this.name,
-      email: this.email,
+      // name: this.name,
+      // email: this.email,
       password: cPassword
     });
     this.password = password

@@ -147,7 +147,6 @@ function registerForBeforeRequest (session) {
 
 
 const tabs = new Map()
-mainState.adBlockEnable = true
 ipcMain.on('set-adblock-enable', async (event, datas) => {
   if(datas.global){
     mainState.adBlockEnable = !mainState.adBlockEnable

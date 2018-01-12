@@ -84,12 +84,14 @@ function BrowserNavbarBtn(props){
 let [alwaysOnTop,multistageTabs,verticalTab,{left,right,backSide},orderOfAutoComplete,numOfSuggestion,numOfHistory,displayFullIcon,addressBarNewTab,historyBadget] = ipc.sendSync('get-sync-main-states',['alwaysOnTop','multistageTabs','verticalTab','navbarItems','orderOfAutoComplete','numOfSuggestion','numOfHistory','displayFullIcon','addressBarNewTab','historyBadget'])
 numOfSuggestion = parseInt(numOfSuggestion), numOfHistory = parseInt(numOfHistory)
 
+
+
 let staticDisableExtensions = []
 class BrowserNavbar extends Component{
   constructor(props) {
     super(props)
-    this.state = {userAgentBefore: MOBILE_USERAGENT,adBlockGlobal:true,
-      pdfMode:'normal',adBlockThis:true,currentIndex:0,historyList:[],disableExtensions:staticDisableExtensions,left,right,backSide}
+    this.state = {userAgentBefore: MOBILE_USERAGENT,
+      pdfMode:'normal',currentIndex:0,historyList:[],disableExtensions:staticDisableExtensions,left,right,backSide}
     this.canRefresh = this.props.page.canRefresh
     this.location = this.props.page.location
     this.richContents = this.props.richContents
@@ -104,7 +106,6 @@ class BrowserNavbar extends Component{
     this.tokenReplaceInfo = PubSub.subscribe(`update-replace-info_${this.props.tabkey}`,(msg,replaceInfo)=>{
       this.refs.syncReplace.setVals(replaceInfo)
     })
-    this.tokenAdblockGlobal = PubSub.subscribe('set-adblock-enable',(msg,enable)=>this.setState({adBlockGlobal:enable}))
     this.tokenPdfMode = PubSub.subscribe('set-pdfmode-enable',(msg,mode)=>this.setState({pdfMode:mode}))
 
     this.tokenBindWindow = PubSub.subscribe(`bind-window_${this.props.tab.key}`,::this._bindWindow)
@@ -168,16 +169,16 @@ class BrowserNavbar extends Component{
         }
       },500)
     }
-    if(this.props.tab.adBlockThis === false){
-      setTimeout(_=>{
-        const tabId = this.props.tab.wvId
-        this.setState({adBlockThis: this.props.tab.adBlockThis})
-        if(!tabs.has(tabId)){
-          // ipc.send('set-adblock-enable',{tabId:this.props.tab.wvId,global:false})
-          this.getWebContents(this.props.tab).reload()
-        }
-      },500)
-    }
+    // if(this.props.tab.adBlockThis === false){
+    //   setTimeout(_=>{
+    //     const tabId = this.props.tab.wvId
+    //     this.setState({adBlockThis: this.props.tab.adBlockThis})
+    //     if(!tabs.has(tabId)){
+    //       // ipc.send('set-adblock-enable',{tabId:this.props.tab.wvId,global:false})
+    //       this.getWebContents(this.props.tab).reload()
+    //     }
+    //   },500)
+    // }
   }
 
   componentWillMount(){
@@ -192,7 +193,7 @@ class BrowserNavbar extends Component{
   componentWillUnmount() {
     PubSub.unsubscribe(this.tokenZoom)
     PubSub.unsubscribe(this.tokenReplaceInfo)
-    PubSub.unsubscribe(this.tokenAdblockGlobal)
+    // PubSub.unsubscribe(this.tokenAdblockGlobal)
     PubSub.unsubscribe(this.tokenPdfMode)
     PubSub.unsubscribe(this.tokenBindWindow)
     PubSub.unsubscribe(this.tokenForceUpdate)
@@ -245,10 +246,10 @@ class BrowserNavbar extends Component{
       this.props.bind == nextProps.bind &&
       this.state.mobile == nextState.mobile &&
       this.state.bindWindow == nextState.bindWindow &&
-      this.state.adBlockGlobal == nextState.adBlockGlobal &&
+      this.props.adBlockEnable == nextProps.adBlockEnable &&
+      this.props.adBlockThis == nextProps.adBlockThis &&
       this.state.pdfMode == nextState.pdfMode &&
       this.props.oppositeGlobal == nextProps.oppositeGlobal &&
-      this.state.adBlockThis == nextState.adBlockThis &&
       this.props.tabKey == this.tabKey)
     if(ret){
       this.currentWebContents = nextProps.currentWebContents
@@ -282,7 +283,8 @@ class BrowserNavbar extends Component{
         this.props.tab.rSession.titles = rSession.titles
         this.props.tab.rSession.currentIndex = currentIndex
       }
-      this.setState({currentIndex,historyList,disableExtensions,adBlockGlobal,pdfMode,...navbarItems})
+      if(this.props.adBlockEnable != adBlockGlobal) PubSub.publish('set-adblock-enable',adBlockGlobal)
+      this.setState({currentIndex,historyList,disableExtensions,pdfMode,...navbarItems})
     })
     ipc.send('get-cont-history',this.props.tab.wvId,this.props.tab.key,this.props.tab.rSession)
   }
@@ -302,10 +304,11 @@ class BrowserNavbar extends Component{
       if(!(this.state.currentIndex === currentIndex &&
           equalArray2(this.state.historyList,historyList) &&
           equalArray(this.state.disableExtensions,disableExtensions) &&
-          this.state.adBlockGlobal == adBlockGlobal &&
           this.state.pdfMode == pdfMode)){
-        this.setState({currentIndex,historyList,disableExtensions,adBlockGlobal,pdfMode})
+        this.setState({currentIndex,historyList,disableExtensions,pdfMode})
       }
+      if(this.props.adBlockEnable != adBlockGlobal) PubSub.publish('set-adblock-enable',adBlockGlobal)
+
     })
     ipc.send('get-cont-history',this.props.tab.wvId,this.props.tab.key,this.props.tab.rSession)
   }
@@ -415,10 +418,9 @@ class BrowserNavbar extends Component{
   }
 
   handleAdBlockGlobal(){
-    // ipc.send('set-adblock-enable',{tabId:this.props.tab.wvId,global:true})
-    const val = !this.state.adBlockGlobal
-    PubSub.publish('set-adblock-enable',val)
+    const val = !this.props.adBlockEnable
     mainState.set('adBlockEnable',val)
+    PubSub.publish('set-adblock-enable',val)
   }
 
   handlePdfMode(){
@@ -436,8 +438,8 @@ class BrowserNavbar extends Component{
 
   handleAdBlockThis(){
     ipc.send('set-adblock-enable',{tabId:this.props.tab.wvId,global:false})
-    this.props.tab.adBlockThis = !this.state.adBlockThis
-    this.setState({adBlockThis: !this.state.adBlockThis})
+    this.props.parent.tab.adBlockThis = !this.props.adBlockThis
+    this.props.parent.setState({})
   }
 
   handleAdBlockDomain(hostname){
@@ -590,9 +592,9 @@ class BrowserNavbar extends Component{
       <NavbarMenuItem text={locale.translation("zoomIn")} icon='zoom in' onClick={::this.onZoomIn} keepVisible={true} />
       <div className="divider" />
 
-      <NavbarMenuItem text={`AdBlock ${this.state.adBlockGlobal ? 'OFF' : 'ON'}(ALL)`} icon='hand paper' onClick={::this.handleAdBlockGlobal}/>
-      {this.state.adBlockGlobal ? <NavbarMenuItem text={`AdBlock ${this.state.adBlockThis ? 'OFF' : 'ON'}(Panel)`} icon='hand paper' onClick={::this.handleAdBlockThis}/> : null}
-      {this.state.adBlockGlobal ? <NavbarMenuItem text={`AdBlock ${global.adBlockDisableSite[hostname] ? 'ON' : 'OFF'}(Domain)`} icon='hand paper' onClick={_=>this.handleAdBlockDomain(hostname)}/> : null}
+      <NavbarMenuItem text={`AdBlock ${this.props.adBlockEnable ? 'OFF' : 'ON'}(ALL)`} icon='hand paper' onClick={::this.handleAdBlockGlobal}/>
+      {this.props.adBlockEnable ? <NavbarMenuItem text={`AdBlock ${this.props.adBlockThis ? 'OFF' : 'ON'}(Panel)`} icon='hand paper' onClick={::this.handleAdBlockThis}/> : null}
+      {this.props.adBlockEnable ? <NavbarMenuItem text={`AdBlock ${global.adBlockDisableSite[hostname] ? 'ON' : 'OFF'}(Domain)`} icon='hand paper' onClick={_=>this.handleAdBlockDomain(hostname)}/> : null}
       <div className="divider" />
 
       <NavbarMenuItem text={`${alwaysOnTop ? 'Disable' : 'Enable'} Always On Top`} icon='level up' onClick={()=>{

@@ -30,6 +30,7 @@ const sharedState = require('../../sharedState')
 const {getTextColorForBackground} = require('../../../../brave/app/color')
 
 const isDarwin = navigator.userAgent.includes('Mac OS X')
+const isWin = navigator.userAgent.includes('Windows')
 let [scrollTab,reverseScrollTab,multistageTabs,verticalTabWidth,tabBarHide,tabMinWidth,tabMaxWidth,tabFlipLabel,mouseHoverSelectLabelBeginDelay,mouseHoverSelectLabelBegin,doubleClickTab,middleClickTab,altClickTab,maxrowLabel,openTabNextLabel,rightClickTabAdd,middleClickTabAdd,altClickTabAdd,displayFullIcon] = ipc.sendSync('get-sync-main-states',['scrollTab','reverseScrollTab','multistageTabs','verticalTabWidth','tabBarHide','tabMinWidth','tabMaxWidth','tabFlipLabel','mouseHoverSelectLabelBeginDelay','mouseHoverSelectLabelBegin','doubleClickTab','middleClickTab','altClickTab','maxrowLabel','openTabNextLabel','rightClickTabAdd','middleClickTabAdd','altClickTabAdd','displayFullIcon'])
 maxrowLabel = parseInt(maxrowLabel)
 
@@ -49,8 +50,9 @@ maxrowLabel = parseInt(maxrowLabel)
   border: 1px dashed ${sharedState.colorTabDot} !important;
 }
 ${sharedState.showBorderActiveTab ? '.chrome-tabs .chrome-tab.chrome-tab-current .chrome-tab-background { border-bottom: 1px solid #aaa; }' : ''}
-span.private-mode,i.private-mode,i.pin-mode,i.mute-mode,i.reload-mode {color: ${sharedState.colorTabMode};}`));
-    document.head.appendChild(s)
+span.private-mode,i.private-mode,i.pin-mode,i.mute-mode,i.reload-mode {color: ${sharedState.colorTabMode};}
+${isWin ? '.browserActionBadge {top: 14px !important;}' : ''}`));
+  document.head.appendChild(s)
 }())
 
 let noUpdate
@@ -1171,13 +1173,13 @@ class Tabs extends React.Component {
     const {_tabClassNames,tabInlineStyles,tabs,content} = this.buildRenderComponent()
     const tabBaseStyle = this.props.toggleNav == 2 ? {display: 'none'} :
       this.props.toggleNav == 3 ? {
-          height: 27,
-          background: 'rgb(221, 221, 221)',
-          borderBottom: '1px solid #aaa',
-          zIndex: 2,
-          position: 'absolute',
-          width: '100%'
-        }:
+        height: 27,
+        background: 'rgb(221, 221, 221)',
+        borderBottom: '1px solid #aaa',
+        zIndex: 2,
+        position: 'absolute',
+        width: '100%'
+      }:
         this.isMultistageTabsMode() ?
           {
             height : void 0,

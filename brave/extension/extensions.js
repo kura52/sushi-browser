@@ -42,7 +42,7 @@ module.exports.init = (verChange) => {
     // console.log('update-updated', extensionId, version)
   })
   componentUpdater.on('component-ready', (e, componentId, extensionPath) => {
-    // console.log('component-ready', componentId, extensionPath)
+    console.log('component-ready', componentId, extensionPath)
     // Re-setup the loadedExtensions info if it exists
     // loadExtension(componentId, extensionPath)
   })
@@ -244,6 +244,8 @@ module.exports.init = (verChange) => {
   const rejectExtensions = ['jpkfjicglakibpenojifdiepckckakgk','default','jdbefljfgobbmcidnmpjamcbhnbphjnb','occjjkgifpmdgodlplnacmkejpdionan','igiofjhpmpihnifddepnpngfjhkfenbp']
   module.exports.loadAll = function(ses){
     loadExtension(ses,'dckpbojndfoinamcdamhkjhnjnmjkfjd',getPath1('default'),(void 0),'component')
+    componentUpdater.registerComponent('oimompecagnajdejgnnjijobebaeigek', 'MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCmhe+02cLPPAViaevk/fzODKUnb/ysaAeD8lpE9pwirV6GYOm+naTo7xPOCh8ujcR6Ryi1nPTq2GTG0CyqdDyOsZ1aRLuMZ5QqX3dJ9jXklS0LqGfosoIpGexfwggbiLvQOo9Q+IWTrAO620KAzYU0U6MV272TJLSmZPUEFY6IGQIDAQAB')
+
     loadExtension(ses,'jdbefljfgobbmcidnmpjamcbhnbphjnb',getPath1('jdbefljfgobbmcidnmpjamcbhnbphjnb'),(void 0),'component')
     componentUpdater.registerComponent('jdbefljfgobbmcidnmpjamcbhnbphjnb', 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqmqh6Kxmj00IjKvjPsCtw6g2BHvKipjS3fBD0IInXZZ57u5oZfw6q42L7tgWDLrNDPvu3XDH0vpECr+IcgBjkM+w6+2VdTyPj5ubngTwvBqCIPItetpsZNJOJfrFw0OIgmyekZYsI+BsK7wiMtHczwfKSTi0JKgrwIRhHbEhpUnCxFhi+zI61p9jwMb2EBFwxru7MtpP21jG7pVznFeLV9W9BkNL1Th9QBvVs7GvZwtIIIniQkKtqT1wp4IY9/mDeM5SgggKakumCnT9D37ZxDnM2K13BKAXOkeH6JLGrZCl3aXmqDO9OhLwoch+LGb5IaXwOZyGnhdhm9MNA3hgEwIDAQAB')
 
