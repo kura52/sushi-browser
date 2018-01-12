@@ -491,6 +491,7 @@ const plat = isWindows ? 'win' : isDarwin ? 'mac' : 'linux'
 sh.cp('-Rf',`../bin/7zip/${plat}`,'resource/bin/7zip/.')
 sh.cp('-Rf',`../bin/aria2/${plat}`,'resource/bin/aria2/.')
 sh.cp('-Rf',`../bin/ffmpeg/${plat}`,'resource/bin/ffmpeg/.')
+sh.cp('-Rf',`../bin/widevine/${plat}`,'resource/bin/widevine/.')
 
 filesContentsReplace(`${pwd}/node_modules/youtube-dl/lib/youtube-dl.js`,"path.join(__dirname, '..', 'bin/details')","path.join(__dirname, '..', 'bin/details').replace(/app.asar([\\/\\\\])/,'app.asar.unpacked$1')")
 filesContentsReplace(`${pwd}/node_modules/youtube-dl/lib/youtube-dl.js`,"(details.path) ? details.path : path.resolve(__dirname, '..', 'bin', details.exec)","((details.path) ? details.path : path.resolve(__dirname, '..', 'bin', details.exec)).replace(/app.asar([\\/\\\\])/,'app.asar.unpacked$1')")

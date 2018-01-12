@@ -10,7 +10,9 @@ const NEXT_APP_VERSION = "0.13.3"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
 const CHANGE_ENGLISH = `Fixed a fatal bug regarding mute
-We made widevine usable`
+We made widevine usable
+Updated to youtube-dl 2017.01.07
+Updated to Muon 4.5.38`
 
 const CHANGE_JAPANESE = `ミュートに関する致命的なバグを修正
 Widevineを使用可能にした`

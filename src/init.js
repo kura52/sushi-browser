@@ -84,11 +84,10 @@ InitSetting.val.then(setting=>{
   }
   else{
     try{
-      const widevinePath = path.join(app.getPath('userData'),'..','brave/Extensions/WidevineCdm')
+      const widevinePath = path.join(app.getPath('userData'),'..',isWin ? 'brave' : 'sushi-browser','Extensions/WidevineCdm')
       if(require("glob").sync(path.join(widevinePath,"*")).length == 0){
         const src = path.join(__dirname, '../resource/bin/widevine',
-          process.platform == 'win32' ? 'win/WidevineCdm' :
-            process.platform == 'darwin' ? 'mac/WidevineCdm' : '').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
+          isWin ? 'win/WidevineCdm' : isDarwin ? 'mac/WidevineCdm' : '').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
         require('fs-extra').copySync(src,widevinePath)
       }
     }catch(e){
