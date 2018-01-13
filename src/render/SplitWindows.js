@@ -17,6 +17,7 @@ const FloatPanel = require('./FloatPanel')
 const {token} = require('./databaseRender')
 const PanelOverlay = require('./PanelOverlay')
 import firebase,{storage,auth,database} from 'firebase'
+global.sharedStateMain = require('electron').remote.require('./sharedStateMainRemote')
 let [MARGIN,verticalTabPosition] = ipc.sendSync('get-sync-main-states',['syncScrollMargin','verticalTabPosition'])
 let count = 0
 // ipc.setMaxListeners(0)
@@ -193,9 +194,7 @@ export default class SplitWindows extends Component{
         if(Array.isArray(attach)){
           winState = {dirc: "v",size: '100%',l: [getUuid(),[]],r: null,p: null,key:uuid.v4(),toggleNav: param.toggle !== (void 0) ? parseInt(param.toggle) : ipc.sendSync('get-sync-main-state','toggleNav') || 0,attach}
           for(let at of winState.attach){
-            remote.getWebContents(at.wvId,cont=>{
-              this.currentWebContents[at.wvId] = cont
-            })
+            this.currentWebContents[at.wvId] = global.sharedStateMain(at.wvId)
           }
         }
         else{
@@ -751,9 +750,7 @@ export default class SplitWindows extends Component{
       const tabIds = new Set()
       for(let data of datas){
         tabIds.add(data.wvId)
-        remote.getWebContents(data.wvId,cont=>{
-          this.currentWebContents[data.wvId] = cont
-        })
+        this.currentWebContents[data.wvId] = global.sharedStateMain(data.wvId)
         const n_tab = panel.createTab({c_page:data.c_page,c_key:data.c_key,privateMode:data.privateMode,pin:data.pin,mute:data.mute,reloadInterval:tab.reloadInterval,guestInstanceId:data.guestInstanceId,rest:data.rest})
         tabs.splice(realIndex++, 0, n_tab)
       }

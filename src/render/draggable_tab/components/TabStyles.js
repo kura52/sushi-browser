@@ -202,7 +202,8 @@ export default function (){
       top: '7px',
       zIndex: 3,
       marginLeft: "14px",
-      marginRight: "auto"
+      marginRight: "auto",
+      marginBottom: 11,
       // boxShadow: 'inset 1px 1px 0 rgb(83, 83, 83), -4px 0px 4px rgba(0, 0, 0, 0.1)',
     },
 

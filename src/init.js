@@ -21,6 +21,7 @@ import url from 'url'
 const {getUrlFromCommandLine,getNewWindowURL} = require('./cmdLine')
 import {getFocusedWebContents, getCurrentWindow} from './util'
 const open = require('./open')
+const sharedState = require('./sharedStateMain')
 const defaultConf = require('./defaultConf')
 let adblock,httpsEverywhere,trackingProtection,extensions,videoProcessList = []
 
@@ -319,6 +320,7 @@ app.on('web-contents-created', (e, tab) => {
     return
   }
   let tabId = tab.getId()
+  sharedState[tabId] = tab
 
   let win
   for(let w of BrowserWindow.getAllWindows()){
@@ -345,6 +347,11 @@ app.on('web-contents-created', (e, tab) => {
   tab.on('update-password', (e, username, origin) => {
     console.log('update-password', username, origin)
     passwordManager.updatePassword(tab, username, origin)
+  })
+
+  tab.on('close', () => {
+    delete sharedState[tabId]
+    tab.forceClose()
   })
 
   tab.on('did-get-response-details', (e, status, newURL, originalURL, httpResponseCode, requestMethod, referrer, headers, resourceType) => {

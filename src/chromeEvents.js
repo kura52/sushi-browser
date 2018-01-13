@@ -18,6 +18,7 @@ import {getCurrentWindow,getFocusedWebContents} from './util'
 const isWin = process.platform == 'win32'
 const isLinux = process.platform === 'linux'
 import mainState from './mainState'
+const sharedState = require('./sharedStateMain')
 
 const bindPath = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/bind.html'
 const transLang = {eng:'en', dan:'da', dut:'nl', fin:'fi', fre:'fr', ger:'de', heb:'he', ita:'it', jpn:'ja', kor:'ko', nor:'nb', pol:'pl', por:'pt', rus:'ru', spa:'es', swe:'sv', chi:'zh', cze:'cs', gre:'el', ice:'is', lav:'lv', lit:'lt', rum:'ro', hun:'hu', est:'et', bul:'bg', scr:'hr', scc:'sr', gle:'ga', glg:'gl', tur:'tr', ukr:'uk', hin:'hi', mac:'mk', ben:'bn', ind:'id', lat:'la', may:'ms', mal:'ml', wel:'cy', nep:'ne', tel:'te', alb:'sq', tam:'ta', bel:'be', jav:'jw', oci:'oc', urd:'ur', bih:'bh', guj:'gu', tha:'th', ara:'ar', cat:'ca', epo:'eo', baq:'eu', ina:'ia', kan:'kn', pan:'pa', gla:'gd', swa:'sw', slv:'sl', mar:'mr', mlt:'mt', vie:'vi', fry:'fy', slo:'sk', fao:'fo', sun:'su', uzb:'uz', amh:'am', aze:'az', geo:'ka', tir:'ti', per:'fa', bos:'bs', sin:'si', nno:'nn', xho:'xh', zul:'zu', grn:'gn', sot:'st', tuk:'tk', kir:'ky', bre:'br', twi:'tw', yid:'yi', som:'so', uig:'ug', kur:'ku', mon:'mn', arm:'hy', lao:'lo', snd:'sd', roh:'rm', afr:'af', ltz:'lb', bur:'my', khm:'km', tib:'bo', div:'dv', ori:'or', asm:'as', cos:'co', ine:'ie', kaz:'kk', lin:'ln', mol:'mo', pus:'ps', que:'qu', sna:'sn', tgk:'tg', tat:'tt', tog:'to', yor:'yo', mao:'mi', wol:'wo', abk:'ab', aar:'aa', aym:'ay', bak:'ba', bis:'bi', dzo:'dz', fij:'fj', kal:'kl', hau:'ha', ipk:'ik', iku:'iu', kas:'ks', kin:'rw', mlg:'mg', nau:'na', orm:'om', run:'rn', smo:'sm', sag:'sg', san:'sa', ssw:'ss', tso:'ts', tsn:'tn', vol:'vo', zha:'za', lug:'lg', glv:'gv'}
@@ -295,7 +296,7 @@ process.on('chrome-tabs-updated', (tabId,changeInfo,tab) => {
     (changeInfo.active === (void 0) &&
       changeInfo.pinned === (void 0))) return
   // console.log(tabId,tab)
-  const cont = webContents.fromTabID(tabId)
+  const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
   if(cont && !cont.isDestroyed() && !cont.isBackgroundPage() && cont.isGuest()) {
     if(cont.hostWebContents) cont.hostWebContents.send('chrome-tabs-event', {tabId,changeInfo}, 'updated')
   }
@@ -303,7 +304,7 @@ process.on('chrome-tabs-updated', (tabId,changeInfo,tab) => {
 
 process.on('chrome-tabs-updated-from-extension', (tabId) => {
   // console.log(tabId,tab)
-  const cont = webContents.fromTabID(tabId)
+  const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
   if(cont && !cont.isDestroyed() && !cont.isBackgroundPage() && cont.isGuest()) {
     if(cont.hostWebContents) cont.hostWebContents.send('chrome-tabs-event', {tabId,changeInfo:{active:true}}, 'updated')
   }
@@ -331,7 +332,7 @@ simpleIpcFuncCb('chrome-tabs-current-tabId',cb=>{
 })
 
 simpleIpcFuncCb('chrome-tabs-reload',async (tabId, reloadProperties,cb)=> {
-  const cont = tabId === null || tabId === (void 0) ? (await getFocusedWebContents()) : webContents.fromTabID(tabId)
+  const cont = tabId === null || tabId === (void 0) ? (await getFocusedWebContents()) : (sharedState[tabId] || webContents.fromTabID(tabId))
   reloadProperties ? cont.reloadIgnoringCache() : cont.reload()
   cb()
 })
@@ -341,7 +342,7 @@ simpleIpcFuncCb('chrome-tabs-move',(tabIds, moveProperties,cb)=> {
   if(!tabIds || !tabIds.length) return cb()
 
   const key = uuid.v4()
-  const fromWin = BrowserWindow.fromWebContents(webContents.fromTabID(tabIds[0]).hostWebContents)
+  const fromWin = BrowserWindow.fromWebContents((sharedState[tabIds[0]] || webContents.fromTabID(tabIds[0])).hostWebContents)
   if(moveProperties.windowId && fromWin.id !== moveProperties.windowId){
     const toWin = BrowserWindow.fromId(moveProperties.windowId)
     fromWin.webContents.send('chrome-tabs-move-detach',key,tabIds)
@@ -358,14 +359,14 @@ simpleIpcFuncCb('chrome-tabs-move',(tabIds, moveProperties,cb)=> {
 })
 
 simpleIpcFuncCb('chrome-tabs-detectLanguage',(tabId,cb)=> {
-  webContents.fromTabID(tabId).executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',
+  (sharedState[tabId] || webContents.fromTabID(tabId)).executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',
     `document.documentElement.innerText`,{},
     (err, url, result) => cb(transLang[franc(result[0])] || 'en')
   )
 })
 
 simpleIpcFuncCb('chrome-tabs-insertCSS',async (extensionId,tabId,details,cb)=>{
-  const cont = tabId === null || tabId === (void 0) ? (await getFocusedWebContents()) : webContents.fromTabID(tabId)
+  const cont = tabId === null || tabId === (void 0) ? (await getFocusedWebContents()) : (sharedState[tabId] || webContents.fromTabID(tabId))
   let cssText
   if(details.code){
     cssText = details.code
@@ -396,7 +397,7 @@ simpleIpcFuncCb('chrome-tabs-insertCSS',async (extensionId,tabId,details,cb)=>{
 
 simpleIpcFuncCb('chrome-tabs-duplicate',async (tabId,cb)=>{
   const key = uuid.v4()
-  const fromWin = BrowserWindow.fromWebContents(webContents.fromTabID(tabId).hostWebContents)
+  const fromWin = BrowserWindow.fromWebContents((sharedState[tabId] || webContents.fromTabID(tabId)).hostWebContents)
   fromWin.webContents.send('chrome-tabs-duplicate',key,tabId)
   ipcMain.once(`chrome-tabs-duplicate-reply_${key}`,(e,tabId)=>{
     cb(tabId)
@@ -429,7 +430,7 @@ simpleIpcFuncCb('chrome-tabs-saveAsPDF',async (pageSettings,cb)=>{
 
 simpleIpcFuncCb('chrome-tabs-captureVisibleTab',(tabId,options,cb)=>{
   options = options || {}
-  const cont = webContents.fromTabID(tabId)
+  const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
   if(cont){
     cont.capturePage(image=>{
       if(options.format == 'png'){
@@ -443,12 +444,12 @@ simpleIpcFuncCb('chrome-tabs-captureVisibleTab',(tabId,options,cb)=>{
 })
 
 simpleIpcFuncCb('chrome-tabs-getZoom',async (tabId,cb)=>{
-  const cont = tabId === null || tabId === (void 0) ? (await getFocusedWebContents()) : webContents.fromTabID(tabId)
+  const cont = tabId === null || tabId === (void 0) ? (await getFocusedWebContents()) : (sharedState[tabId] || webContents.fromTabID(tabId))
   cb(cont.getZoomPercent()/100)
 })
 
 simpleIpcFuncCb('chrome-tabs-setZoom',async (tabId,zoomFactor,cb)=>{
-  const cont = tabId === null || tabId === (void 0) ? (await getFocusedWebContents()) : webContents.fromTabID(tabId)
+  const cont = tabId === null || tabId === (void 0) ? (await getFocusedWebContents()) : (sharedState[tabId] || webContents.fromTabID(tabId))
   cont.setZoomLevel(zoomMapping.get(cont.getZoomPercent()))
   cb()
 })
@@ -529,7 +530,7 @@ for(let method of webNavigationMethods){
 simpleIpcFunc('chrome-webNavigation-getAllFrames',details=>{
   const {frameCache} = require('../brave/adBlock')
   console.log(details)
-  const tab = webContents.fromTabID(details.tabId)
+  const tab = webContents.fromTabID(sharedState[details.tabId] || details.tabId)
   const url = tab.getURL()
   const ret = [{errorOccurred: false, frameId: 0, parentFrameId: -1, processId: 1, url}]
   const arr = frameCache.get(url) || []

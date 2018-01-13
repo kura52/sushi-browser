@@ -3380,9 +3380,8 @@ export default class TabPanel extends Component {
       console.log(tab,datas)
 
       for(let data of datas){
-        remote.getWebContents(data.wvId,cont=>{
-          this.props.currentWebContents[data.wvId] = cont
-        })
+          this.props.currentWebContents[data.wvId] = global.sharedStateMain(data.wvId)
+
         n_tab = this.createTab({c_page:data.c_page,c_key:data.c_key,privateMode:data.privateMode,pin:data.pin,mute:data.mute,reloadInterval:data.reloadInterval,guestInstanceId:data.guestInstanceId,rest:data.rest})
         tabs.splice(++i, 0, n_tab)
       }

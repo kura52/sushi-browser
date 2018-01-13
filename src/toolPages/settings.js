@@ -1039,7 +1039,7 @@ class TabsSetting extends React.Component {
         colorUnreadText: '#9f0000',
         colorUnreadBackground: '#d0d0d0',
         showBorderActiveTab: false,
-        colorTabMode: '#696969'
+        colorTabMode: '#37a9fd'
       }
     }
     else if(theme == 'dark'){

@@ -1,5 +1,6 @@
 import { app, Menu, clipboard, BrowserWindow, ipcMain, session,webContents } from 'electron'
 const uuid = require("node-uuid")
+const sharedState = require('./sharedStateMain')
 
 function getCurrentWindow(){
   const focus = BrowserWindow.getFocusedWindow()
@@ -38,7 +39,7 @@ function getFocusedWebContents(needSelectedText,skipBuildInSearch,callback,retry
         setTimeout(_=>getFocusedWebContents(needSelectedText,skipBuildInSearch,resolve,retry++),300)
       }
       else{
-        resolve(webContents.fromTabID(tabId))
+        resolve((sharedState[tabId] || webContents.fromTabID(tabId)))
       }
     })
     cont.send('get-focused-webContent',key,void 0,needSelectedText,void 0,retry)

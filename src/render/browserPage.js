@@ -118,16 +118,28 @@ class BrowserPage extends Component {
     this.wvEvents['found-in-page'] = (e) => {
       this.clear = e.result.activeMatchOrdinal == e.result.matches   //@TODO framework bug
       this.first = e.result.activeMatchOrdinal == 1   //@TODO framework bug
-      console.log(this.clear,e.result.activeMatchOrdinal, e.result.matches)
       if (e.result.activeMatchOrdinal) {
         this.setState({result_string: `${e.result.activeMatchOrdinal}/${e.result.matches}`})
       }
       else{
-        webview.stopFindInPage('clearSelection')  //@TODO framework bug
         this.setState({result_string: "0/0"})
-        if(this.previous_text) webview.findInPage(this.previous_text) //@TODO framework bug
       }
     }
+
+    // this.wvEvents['found-in-page'] = (e) => {
+    //   this.clear = e.result.activeMatchOrdinal == e.result.matches   //@TODO framework bug
+    //   this.first = e.result.activeMatchOrdinal == 1   //@TODO framework bug
+    //   console.log(this.clear,e.result.activeMatchOrdinal, e.result.matches)
+    //   if (e.result.activeMatchOrdinal) {
+    //     this.setState({result_string: `${e.result.activeMatchOrdinal}/${e.result.matches}`})
+    //   }
+    //   else{
+    //     webview.stopFindInPage('clearSelection')  //@TODO framework bug
+    //     this.setState({result_string: "0/0"})
+    //     if(this.previous_text) webview.findInPage(this.previous_text) //@TODO framework bug
+    //   }
+    // }
+
     webview.addEventListener('found-in-page',this.wvEvents['found-in-page'] )
 
     const tokenDidStartLoading = PubSub.subscribe(`did-start-loading_${this.props.tab.key}`,_=>{
@@ -206,6 +218,7 @@ class BrowserPage extends Component {
   // }
 
   onPageSearch(query,next=true) {
+    console.log(555,query)
     const webview = this.refs.webview
     const cont = this.getWebContents(this.props.tab)
     if(!cont) return
@@ -215,11 +228,14 @@ class BrowserPage extends Component {
     }
     console.log(this.previous_text === query)
     if(query === ""){
+      console.log(789,query)
       webview.stopFindInPage('clearSelection')
       this.previous_text = ""
       this.setState({result_string: ""})
     }
     else if (this.previous_text === query && !clear) {
+      this.previous_text = query;
+      console.log(123,query)
       if(query) webview.findInPage(query, {
         matchCase:false,
         forward: next,
@@ -227,8 +243,12 @@ class BrowserPage extends Component {
       })
     }
     else {
+      console.log(456,query)
       this.previous_text = query;
-      if(query) webview.findInPage(query,{forward: next})
+      if(query){
+        webview.stopFindInPage('clearSelection')
+        webview.findInPage(query,{matchCase:false,forward: next,findNext: false})
+      }
     }
   }
 

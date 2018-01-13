@@ -23,6 +23,7 @@ const meiryo = isWin && Intl.NumberFormat().resolvedOptions().locale == 'ja'
 import mainState from './mainState'
 import extensionInfos from "./extensionInfos";
 const open = require('./open')
+const sharedState = require('./sharedStateMain')
 const bindPath = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/bind.html'
 
 function exec(command) {
@@ -125,7 +126,7 @@ ipcMain.on('create-file',(event,key,path,isFile)=>{
 })
 
 ipcMain.on('show-dialog-exploler',(event,key,info,tabId)=>{
-  const cont = tabId !== 0 && webContents.fromTabID(tabId)
+  const cont = tabId !== 0 && (sharedState[tabId] || webContents.fromTabID(tabId))
   console.log(tabId,cont)
   if(info.inputable || info.normal){
     const key2 = uuid.v4();
@@ -247,7 +248,7 @@ async function recurFind(keys,list){
 
 ipcMain.on('open-favorite',async (event,key,dbKeys,tabId,type)=>{
   let list = []
-  const cont = tabId !== 0 && webContents.fromTabID(tabId)
+  const cont = tabId !== 0 && (sharedState[tabId] || webContents.fromTabID(tabId))
   const ret = await recurFind(dbKeys,list)
   const host = cont ? event.sender : event.sender.hostWebContents
   if(type == "openInNewTab" || type=='openInNewPrivateTab' || type=='openInNewSessionTab'){
@@ -282,7 +283,7 @@ ipcMain.on('open-favorite',async (event,key,dbKeys,tabId,type)=>{
 
 ipcMain.on('open-savedState',async (event,key,tabId,datas)=>{
   let list = []
-  const cont = tabId !== 0 && webContents.fromTabID(tabId)
+  const cont = tabId !== 0 && (sharedState[tabId] || webContents.fromTabID(tabId))
   const host = cont ? event.sender : event.sender.hostWebContents
 
   const win = BrowserWindow.fromWebContents(host)
@@ -509,7 +510,7 @@ ipcMain.on("change-title",(e,title)=>{
     const key = uuid.v4()
     return new Promise((resolve,reject)=>{
       ipcMain.once(`get-focused-webContent-reply_${key}`,(e,tabId)=>{
-        const focusedCont = webContents.fromTabID(tabId)
+        const focusedCont = (sharedState[tabId] || webContents.fromTabID(tabId))
         if(focusedCont){
           bw.setTitle(`${focusedCont.getTitle()} - Sushi Browser`)
         }
@@ -821,7 +822,7 @@ ipcMain.on('set-pos-window',async (e,{id,hwnd,key,x,y,width,height,top,active,ta
 let timer,timers={}
 ipcMain.on('change-tab-infos',(e,changeTabInfos)=> {
   for(let c of changeTabInfos){
-    const cont = webContents.fromTabID(c.tabId)
+    const cont = sharedState[c.tabId] || webContents.fromTabID(c.tabId)
     if(cont){
       if(c.index !== (void 0)){
         // if(timers[c.tabId]) clearTimeout(timers[c.tabId])
@@ -953,7 +954,7 @@ ipcMain.on('get-country-names',e=>{
 
 let prevCount = {}
 ipcMain.on('get-on-dom-ready',(e,tabId,tabKey,rSession)=>{
-  const cont = webContents.fromTabID(tabId)
+  const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
   if(!cont){
     e.sender.send(`get-on-dom-ready-reply_${tabId}`,null)
     return
@@ -980,7 +981,7 @@ ipcMain.on('get-on-dom-ready',(e,tabId,tabKey,rSession)=>{
 })
 
 ipcMain.on('get-update-title',(e,tabId,tabKey,rSession)=>{
-  const cont = webContents.fromTabID(tabId)
+  const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
   if(!cont){
     e.sender.send(`get-update-title-reply_${tabId}`,null)
     return
@@ -1015,7 +1016,7 @@ ipcMain.on('get-update-title',(e,tabId,tabKey,rSession)=>{
 })
 
 ipcMain.on('get-did-finish-load',(e,tabId,tabKey,rSession)=>{
-  const cont = webContents.fromTabID(tabId)
+  const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
   if(!cont){
     e.sender.send(`get-did-finish-load-reply_${tabId}`,null)
     return
@@ -1064,7 +1065,7 @@ function addDestroyedFunc(cont,tabId,sender,msg){
 }
 
 ipcMain.on('get-did-start-loading',(e,tabId)=>{
-  const cont = webContents.fromTabID(tabId)
+  const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
   const msg = `get-did-start-loading-reply_${tabId}`
   if(!cont){
     e.sender.send(msg)
@@ -1077,7 +1078,7 @@ ipcMain.on('get-did-start-loading',(e,tabId)=>{
 })
 
 // ipcMain.on('get-did-stop-loading',(e,tabId)=>{
-//   const cont = webContents.fromTabID(tabId)
+//   const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
 //   const msg = `get-did-stop-loading-reply_${tabId}`
 //   if(!cont){
 //     e.sender.send(msg)
@@ -1097,7 +1098,7 @@ ipcMain.on('get-did-start-loading',(e,tabId)=>{
 
 PubSub.subscribe("web-contents-created",(msg,[tabId,sender])=>{
   console.log("web-contents-created",tabId)
-  const cont = webContents.fromTabID(tabId)
+  const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
   if(!cont) return
 
   if(!sender.isDestroyed()) sender.send('web-contents-created',tabId)
@@ -1144,7 +1145,7 @@ function saveTabState(cont, rSession, tabKey, noUpdate) {
       const title = cont.getTitleAtIndex(currentIndex)
       rSession.urls = rSession.urls.slice(0, rSession.currentIndex + 1)
       rSession.titles = rSession.titles.slice(0, rSession.currentIndex + 1)
-      if(url[url.length-1] != url){
+      if(rSession.urls[rSession.urls.length-1] != url){
         rSession.urls.push(url)
         rSession.titles.push(title)
       }
@@ -1164,7 +1165,7 @@ function saveTabState(cont, rSession, tabKey, noUpdate) {
 }
 
 ipcMain.on('get-cont-history',(e,tabId,tabKey,rSession)=>{
-  const cont = webContents.fromTabID(tabId)
+  const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
   if(!cont){
     e.sender.send(`get-cont-history-reply_${tabId}`)
     return
@@ -1261,7 +1262,7 @@ ipcMain.on('screen-shot',(e,{full,type,rect,tabId,tabKey})=>{
   }
 
   if(full){
-    const cont = webContents.fromTabID(tabId)
+    const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
     cont.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',
       `(function(){
           const d = document.body,dd = document.documentElement,

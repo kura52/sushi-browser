@@ -1,0 +1,1 @@
+export default function(id){return global.sharedState[id] }
