@@ -135,14 +135,14 @@ This browser makes use of wonderful web technologies, starting with the followin
 Both the installer for every platform and the portable version can be downloaded.  
 To use the portable edition, please run sushi.exe for Windows and sushi-browser for Mac/Linux after decompressing.
 
-- [Windows Installer v0.13.3](https://sushib.me/dl/sushi-browser-0.13.3-setup-x64.exe)
-- [Windows Portable v0.13.3(self-extract)](https://sushib.me/dl/sushi-browser-0.13.3-win-x64.exe)
-- [Windows Portable v0.13.3](https://sushib.me/dl/sushi-browser-0.13.3-win-x64.zip)
-- [MacOS dmg v0.13.3](https://sushib.me/dl/SushiBrowser-0.13.3.dmg)
-- [MacOS Portable v0.13.3](https://sushib.me/dl/sushi-browser-0.13.3-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.13.3](https://sushib.me/dl/sushi-browser-0.13.3.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.13.3](https://sushib.me/dl/sushi-browser_0.13.3_amd64.deb)
-- [Linux Portable v0.13.3](https://sushib.me/dl/sushi-browser-0.13.3.tar.bz2)
+- [Windows Installer v0.13.4](https://sushib.me/dl/sushi-browser-0.13.4-setup-x64.exe)
+- [Windows Portable v0.13.4(self-extract)](https://sushib.me/dl/sushi-browser-0.13.4-win-x64.exe)
+- [Windows Portable v0.13.4](https://sushib.me/dl/sushi-browser-0.13.4-win-x64.zip)
+- [MacOS dmg v0.13.4](https://sushib.me/dl/SushiBrowser-0.13.4.dmg)
+- [MacOS Portable v0.13.4](https://sushib.me/dl/sushi-browser-0.13.4-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.13.4](https://sushib.me/dl/sushi-browser-0.13.4.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.13.4](https://sushib.me/dl/sushi-browser_0.13.4_amd64.deb)
+- [Linux Portable v0.13.4](https://sushib.me/dl/sushi-browser-0.13.4.tar.bz2)
 
 # Use of Flash 
 If Flash won't run, please install Flash from the following web sites.  
@@ -156,6 +156,10 @@ sushi-browser --no-sandbox
 ```
 
 # New Features
+
+#### New function(v0.13.4)
+- Fixed error when dropping and dragging
+- Fixed a bug that ended abnormally when searching
 
 #### New function(v0.13.3)
 - Fixed a fatal bug regarding mute
