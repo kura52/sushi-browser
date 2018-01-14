@@ -6,14 +6,14 @@ const glob = require("glob")
 const BEFORE_CODE_NAME = 'Aji(Horse mackerel)'
 const CODE_NAME = 'Aji(Horse mackerel)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.13.4"
+const NEXT_APP_VERSION = "0.13.5"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Fixed error when dropping and dragging
-Fixed a bug that ended abnormally when searching`
+const CHANGE_ENGLISH = `Fixed session bug
+Fixed drag effect`
 
-const CHANGE_JAPANESE = `ドロップアンドドラッグ時のエラーを修正
-検索時に異常終了するバグを修正`
+const CHANGE_JAPANESE = `セッション管理の不具合を修正
+タブドラッグ時のエフェクトを修正`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'
