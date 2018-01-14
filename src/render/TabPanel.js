@@ -1220,6 +1220,7 @@ export default class TabPanel extends Component {
         ipc.send('get-on-dom-ready',tab.wvId,tab.key,tab.rSession)
         ipc.once(`get-on-dom-ready-reply_${tab.wvId}`,(e,c)=>{
           if(!c) return
+          if(c.rSession) tab.rSession = c.rSession
           const pre = {
             canGoBack: c.currentEntryIndex !== 0,
             canGoForward:  c.currentEntryIndex + 1 !== c.entryCount
@@ -2075,6 +2076,7 @@ export default class TabPanel extends Component {
           ipc.send('get-update-title',tab.wvId,tab.key,tab.rSession)
           ipc.once(`get-update-title-reply_${tab.wvId}`,(e,c)=> {
             if(!c) return
+            if(c.rSession) tab.rSession = c.rSession
             const title = c.title
             if(tab.key == this.state.selectedTab  && !this.isFixed && title != tab.page.title){
               ipc.send("change-title",title)
@@ -3561,6 +3563,7 @@ export default class TabPanel extends Component {
         ipc.once(`get-update-title-reply_${tab.wvId}`,(e,c)=> {
           if(!c) return
 
+          if(c.rSession) tab.rSession = c.rSession
           tab.page.canGoBack = c.currentEntryIndex !== 0
           tab.page.canGoForward = c.currentEntryIndex + 1 !== c.entryCount
           tab.page.canRefresh = true

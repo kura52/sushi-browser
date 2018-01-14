@@ -16,6 +16,17 @@
       },
       {
          "all_frames": true,
+         "js": [ "contentscript.js" ],
+         "matches": ["<all_urls>"],
+         "include_globs": [
+            "http://*/*", "https://*/*", "file://*", "data:*", "about:srcdoc",
+            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/*",
+            "chrome-extension://jdbefljfgobbmcidnmpjamcbhnbphjnb/*"
+         ],
+         "run_at": "document_end"
+      },
+      {
+         "all_frames": true,
          "exclude_globs": [
             "chrome://brave/*"
          ],

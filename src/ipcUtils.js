@@ -977,7 +977,7 @@ ipcMain.on('get-on-dom-ready',(e,tabId,tabKey,rSession)=>{
     currentEntryIndex = cont.getCurrentEntryIndex()
   }
 
-  e.sender.send(`get-on-dom-ready-reply_${tabId}`,{currentEntryIndex,entryCount,title: cont.getTitle()})
+  e.sender.send(`get-on-dom-ready-reply_${tabId}`,{currentEntryIndex,entryCount,title: cont.getTitle(),rSession})
 })
 
 ipcMain.on('get-update-title',(e,tabId,tabKey,rSession)=>{
@@ -1008,7 +1008,8 @@ ipcMain.on('get-update-title',(e,tabId,tabKey,rSession)=>{
     title: cont.getTitle(),
     currentEntryIndex,
     entryCount,
-    url
+    url,
+    rSession
   } : null
 
   e.sender.send(`get-update-title-reply_${tabId}`,ret)
@@ -1126,6 +1127,7 @@ function saveTabState(cont, rSession, tabKey, noUpdate) {
   let histNum = cont.getEntryCount(),
     currentIndex = cont.getCurrentEntryIndex(),
     historyList = []
+  console.log(9999,histNum,currentIndex,prevCount[tabKey])
   const urls = [], titles = []
   if (!rSession) {
     for (let i = 0; i < histNum; i++) {
@@ -1140,6 +1142,7 @@ function saveTabState(cont, rSession, tabKey, noUpdate) {
     }
   }
   else {
+    console.log(998,histNum > (prevCount[tabKey] || 1),currentIndex == histNum - 1,rSession.urls)
     if (histNum > (prevCount[tabKey] || 1) && currentIndex == histNum - 1) {
       const url = cont.getURLAtIndex(currentIndex)
       const title = cont.getTitleAtIndex(currentIndex)
@@ -1161,6 +1164,7 @@ function saveTabState(cont, rSession, tabKey, noUpdate) {
     currentIndex = rSession.currentIndex
   }
   if(!noUpdate) prevCount[tabKey] = histNum
+  console.log(99999,histNum,currentIndex,prevCount[tabKey],currentIndex, historyList)
   return {currentIndex, historyList}
 }
 
