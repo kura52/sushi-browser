@@ -726,7 +726,7 @@
 
 			if (evt.preventDefault !== void 0) {
 				!passiveMode && evt.preventDefault();
-				!options.dragoverBubble && evt.stopPropagation();
+		// 		!options.dragoverBubble && evt.stopPropagation();
 			}
 
 			if (dragEl.animated) {

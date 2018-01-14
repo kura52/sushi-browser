@@ -77,6 +77,8 @@ export default class PanelOverlay extends Component{
   handleMouseMove(e){
     const [x,y] = [e.clientX,e.clientY]
     let ret = {}
+    let flag = false
+
     this.state.dragOverElements.forEach((ele,i)=> {
       if(isFixedPanel(ele.key)) return
       if(x - ele.left > 0 && x - ele.left < THRESHOLD && ele.top <= y && y <= ele.top + ele.height){
@@ -87,6 +89,7 @@ export default class PanelOverlay extends Component{
         ret.key = ele.key
         ret.tabKey = ele.tabKey
         ret.dirc = 'left'
+        flag = true
       }
       else if(x - ele.left > ele.width - THRESHOLD && x - ele.left< ele.width && ele.top <= y && y <= ele.top + ele.height){
         ret.left = ele.left + ele.width - THRESHOLD
@@ -96,6 +99,7 @@ export default class PanelOverlay extends Component{
         ret.key = ele.key
         ret.tabKey = ele.tabKey
         ret.dirc = 'right'
+        flag = true
       }
       // else if(y - ele.top > 0 && y - ele.top < THRESHOLD && ele.left <=x && x <= ele.left + ele.width){
       //   ret.left = ele.left
@@ -114,9 +118,10 @@ export default class PanelOverlay extends Component{
         ret.key = ele.key
         ret.tabKey = ele.tabKey
         ret.dirc = 'bottom'
+        flag = true
       }
     })
-
+    if(flag) e.preventDefault();
     if(JSON.stringify(this.state.overlay) !== JSON.stringify(ret)){
       setTimeout(_=>this.setState({overlay:ret}),10)
     }
