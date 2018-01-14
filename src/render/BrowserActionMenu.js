@@ -48,7 +48,7 @@ class BrowserActionWebView extends Component {
     }
 
     let count,time
-    this.preferredSizeEvent = () => {
+    this.preferredSizeEvent = (e) => {
       const webview = this.refs.webview
       const now  = Date.now()
       if(now - time < 1000){
@@ -67,12 +67,13 @@ class BrowserActionWebView extends Component {
       webview.getPreferredSize((preferredSize) => {
         console.log(preferredSize)
         const width = preferredSize.width
-        const height = preferredSize.height + 15
+        const height = preferredSize.height
         this.setState({style:{width,height}},_=>{
           setTimeout(_=>{
             this.props.setClassName("")
 
             const div = webview.parentNode
+            if(!div) return
             const rect = div.parentNode.getBoundingClientRect()
             if(rect.x + width > window.innerWidth){
               div.style.setProperty("left", `${36 -width}px`, "important")
@@ -102,6 +103,10 @@ class BrowserActionWebView extends Component {
   componentDidMount() {
     const webview = this.refs.webview
     if(webview){
+      if(!this.close && this.noCloseFlg){
+        webview.reload()
+        this.noCloseFlg = false
+      }
       webview.addEventListener('ipc-message',this.ipcEvent)
       webview.addEventListener('did-attach',this.didAttachEvent );
       webview.addEventListener('preferred-size-changed',this.preferredSizeEvent)
@@ -109,8 +114,10 @@ class BrowserActionWebView extends Component {
   }
 
   onClose = ()=>{
-    this.close = true
+    this.close = this.noCloseFlg ? false: true
   }
+
+  noClose = ()=> this.noCloseFlg = true
 
   reload = ()=>{
     this.close = false
@@ -241,7 +248,8 @@ export default class BrowserActionMenu extends Component{
   }
 
   close(){
-    this.refs.dd.close()
+    this.refs.popupView.noClose()
+    setTimeout(_=>this.refs.dd.close(),10)
   }
 
   render(){
