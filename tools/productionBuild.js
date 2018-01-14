@@ -229,7 +229,6 @@ var getTabValue = function (tabId) {`)
     const cont = win.webContents
     const key = Math.random().toString()
     ipcMain.once(\`get-focused-webContent-reply_\${key}\`,(e,openerTabId)=>{
-      console.log('fffffffffff',tabId,openerTabId)
       tabOpenerMap[tabId] = openerTabId
       val.openerTabId = openerTabId
       sendToBackgroundPages('all', getSessionForTab(tabId), 'chrome-tabs-created', val)

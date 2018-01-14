@@ -120,7 +120,7 @@ ipcMain.on('add-extension',(e,{id,url})=>{
           console.log(`${extRootPath}.crx`,retry)
           if(!fs.existsSync(`${extRootPath}.crx`)) return
           clearInterval(intId)
-          const ret = await exec(`${exePath[0]} x -o"${extRootPath}_crx" "${extRootPath}.crx"`)
+          const ret = await exec(`"${exePath[0]}" x -o"${extRootPath}_crx" "${extRootPath}.crx"`)
           console.log(345,ret)
           let manifestPath = path.join(`${extRootPath}_crx`,'manifest.json')
           if (!fs.existsSync(manifestPath)) {
@@ -530,7 +530,7 @@ for(let method of webNavigationMethods){
 simpleIpcFunc('chrome-webNavigation-getAllFrames',details=>{
   const {frameCache} = require('../brave/adBlock')
   console.log(details)
-  const tab = webContents.fromTabID(sharedState[details.tabId] || details.tabId)
+  const tab = sharedState[details.tabId] || webContents.fromTabID(details.tabId)
   const url = tab.getURL()
   const ret = [{errorOccurred: false, frameId: 0, parentFrameId: -1, processId: 1, url}]
   const arr = frameCache.get(url) || []

@@ -1,5 +1,6 @@
-var ipc = ipc ? void 0 : chrome.ipcRenderer
-if(ipc){
+var started = started ? void 0 : 1
+var ipc = chrome.ipcRenderer
+if(started){
   if(location.href.startsWith('http') && window == window.parent){
     document.addEventListener("DOMContentLoaded",_=>{
       const key = Math.random().toString()

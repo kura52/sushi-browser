@@ -1117,7 +1117,7 @@ function contextMenu(webContents) {
               }
             }
             else{
-              addItem.icon = path.join(extensionInfos[extensionId].base_path,icon)
+              if(icon) addItem.icon = path.join(extensionInfos[extensionId].base_path,icon)
               if(properties.icons) addItem.icon2 = path.join(extensionInfos[extensionId].base_path,Object.values(properties.icons)[0].replace(/\.svg$/,'.png'))
               menuList.push(addItem)
             }
