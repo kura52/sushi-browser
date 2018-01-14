@@ -33,7 +33,7 @@ if(started){
         let url
         setInterval(_=>{
           const b = document.querySelector('.InstallButton-button--disabled')
-
+          if(!b) return
           b.classList.remove('disabled')
           b.classList.remove('InstallButton-button--disabled')
 
@@ -197,8 +197,7 @@ if(started){
       }
     })
   }
-
-  ipc.once('on-video-event',(e,inputs)=>{
+  const videoFunc = (e,inputs)=>{
     for(let url of inputs.blackList){
       if(url && location.href.startsWith(url)) return
     }
@@ -436,5 +435,12 @@ if(started){
         eventHandler(e,inputs[JSON.stringify({code: e.code.toLowerCase().replace('arrow','').replace('escape','esc'),...addInput})] || inputs[JSON.stringify({key: e.key.toLowerCase().replace('arrow','').replace('escape','esc'),...addInput})],target)
       },true)
     }
+  }
+  ipc.once('on-video-event',(e,inputs)=>{
+    chrome.runtime.sendMessage({ event: "video-event",inputs })
+  })
+  chrome.runtime.onMessage.addListener(inputs=>{
+    videoFunc({},inputs)
+    return false
   })
 }

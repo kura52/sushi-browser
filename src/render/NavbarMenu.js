@@ -68,7 +68,6 @@ export default class NavbarMenu extends Component {
     document.removeEventListener('mousedown',this.outerClick)
     if(this.props.mouseOver){
       document.removeEventListener('mouseover',this.mouseOver)
-
     }
   }
 

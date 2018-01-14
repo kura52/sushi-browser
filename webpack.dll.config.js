@@ -23,8 +23,6 @@ module.exports = {
       'pubsub-js',
       'punycode',
       'python-struct',
-      'react',
-      'react-dom',
       'react-mixin',
       'react-sticky',
       'react-style-proptype',

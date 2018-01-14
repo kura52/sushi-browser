@@ -1,6 +1,6 @@
 {
   "name": "sushi-browser",
-  "version": "0.13.5",
+  "version": "0.13.6",
   "description": "Sushi Browser",
   "main": "./lib/main.js",
   "author": "kura52",
@@ -122,7 +122,7 @@
     "react-style-proptype": "^3.0.0",
     "react-table": "^6.7.4",
     "resize-observer-polyfill": "^1.4.2",
-    "semantic-ui-react": "^0.74.2",
+    "semantic-ui-react": "^0.77.2",
     "sortablejs": "^1.5.1",
     "sprintf-js": "^1.0.3",
     "string.prototype.endswith": "^0.2.0",

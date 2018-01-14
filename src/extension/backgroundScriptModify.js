@@ -6,6 +6,8 @@ function simpleIpcFunc(name,callback,...args){
   chrome.ipcRenderer.send(name,key,...args)
 }
 
+window.close = _=> chrome.ipcRenderer.sendToHost('window-close',{})
+
 chrome.app.getDetails = _=>chrome.ipcRenderer.sendSync('chrome-management-get-sync',chrome.runtime.id)
 
 chrome.csi = _=>({})

@@ -1243,7 +1243,7 @@ ipcMain.on('set-clipboard',(e,data)=>{
 
 ipcMain.on('download-start',(e,url)=>{
   try{
-    (e.sender || getCurrentWindow()).hostWebContents.downloadURL(url,true)
+    e.sender.hostWebContents.downloadURL(url,true)
   }
   catch(e){
     getCurrentWindow().webContents.downloadURL(url,true)

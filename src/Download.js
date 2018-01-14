@@ -134,12 +134,14 @@ export default class Download {
 
     const ses = win.webContents.session
     ses.on('will-download', (event, item, webContents) => {
+      console.log("will-download0",webContents.isDestroyed())
       if (!webContents || webContents.isDestroyed()) {
         event.preventDefault()
         return
       }
 
       const bw = (!webContents.isDestroyed() && BrowserWindow.fromWebContents(webContents)) || BrowserWindow.getFocusedWindow()
+      console.log("will-download",bw === win)
       if(bw !== win) return
 
       // let initialNav = false

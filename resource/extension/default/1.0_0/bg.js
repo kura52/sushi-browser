@@ -5,3 +5,9 @@ chrome.idle.onStateChanged.addListener((idleState) => {
     chrome.ipcRenderer.send('get-favicon', {})
   }
 })
+
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+  if(request.event == "video-event"){
+    chrome.tabs.sendMessage(sender.tab.id, request.inputs);
+  }
+});
