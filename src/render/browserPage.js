@@ -115,30 +115,30 @@ class BrowserPage extends Component {
     }
     webview.addEventListener('ipc-message',this.wvEvents['ipc-message'])
 
-    this.wvEvents['found-in-page'] = (e) => {
-      this.clear = e.result.activeMatchOrdinal == e.result.matches   //@TODO framework bug
-      this.first = e.result.activeMatchOrdinal == 1   //@TODO framework bug
-      if (e.result.activeMatchOrdinal) {
-        this.setState({result_string: `${e.result.activeMatchOrdinal}/${e.result.matches}`})
-      }
-      else{
-        this.setState({result_string: "0/0"})
-      }
-    }
-
     // this.wvEvents['found-in-page'] = (e) => {
     //   this.clear = e.result.activeMatchOrdinal == e.result.matches   //@TODO framework bug
     //   this.first = e.result.activeMatchOrdinal == 1   //@TODO framework bug
-    //   console.log(this.clear,e.result.activeMatchOrdinal, e.result.matches)
     //   if (e.result.activeMatchOrdinal) {
     //     this.setState({result_string: `${e.result.activeMatchOrdinal}/${e.result.matches}`})
     //   }
     //   else{
-    //     webview.stopFindInPage('clearSelection')  //@TODO framework bug
     //     this.setState({result_string: "0/0"})
-    //     if(this.previous_text) webview.findInPage(this.previous_text) //@TODO framework bug
     //   }
     // }
+
+    this.wvEvents['found-in-page'] = (e) => {
+      this.clear = e.result.activeMatchOrdinal == e.result.matches   //@TODO framework bug
+      this.first = e.result.activeMatchOrdinal == 1   //@TODO framework bug
+      console.log(this.clear,e.result.activeMatchOrdinal, e.result.matches)
+      if (e.result.activeMatchOrdinal) {
+        this.setState({result_string: `${e.result.activeMatchOrdinal}/${e.result.matches}`})
+      }
+      else{
+        webview.stopFindInPage('clearSelection')  //@TODO framework bug
+        this.setState({result_string: "0/0"})
+        if(this.previous_text) webview.findInPage(this.previous_text) //@TODO framework bug
+      }
+    }
 
     webview.addEventListener('found-in-page',this.wvEvents['found-in-page'] )
 
