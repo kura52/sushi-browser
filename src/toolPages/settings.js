@@ -356,6 +356,7 @@ const contextMenus = [
   ['saveLinkAs', l10n.translation('saveLinkAs')],
   ['copyLinkAddress', l10n.translation('copyLinkAddress')],
   ['1047431265488717055', l10n.translation('1047431265488717055')],
+  ['Save and Play Video', 'Save and Play Video'],
   ['Send URL to Video Player', 'Send URL to Video Player'],
 
   ['divider', null],

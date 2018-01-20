@@ -1295,6 +1295,23 @@ ipcMain.on('screen-shot',(e,{full,type,rect,tabId,tabKey})=>{
   }
 })
 
+ipcMain.on('save-and-play-video',(e,url,win)=>{
+  win = win || BrowserWindow.fromWebContents(e.sender)
+  win.webContents.downloadURL(url,true)
+  let retry = 0
+  const id = setInterval(_=>{
+    if(retry++ > 1000){
+      clearInterval(id)
+      return
+    }
+    const item = global.downloadItems.find(x=>x.orgUrl == url)
+    if(item && (item.percent > 0 || (item.aria2c && item.aria2c.processed / item.aria2c.total > 0.005))){
+      clearInterval(id)
+      shell.openItem(item.savePath)
+    }
+  },100)
+})
+
 ipcMain.on('execCommand-copy',e=>{
   console.log(888948848)
   e.sender.sendInputEvent({type: 'keyDown', keyCode: 'c', modifiers: ['control']});

@@ -85,6 +85,9 @@ export default class BrowserNavbarLocation extends Component {
       this.input = ReactDOM.findDOMNode(this.refs.input).querySelector("input")
       this.addEvent(this.props)
     }
+    // const input = (this.input || ReactDOM.findDOMNode(this.refs.input).querySelector("input"))
+    // input.addEventListener('focus',::this.onFocus)
+    // input.addEventListener('blur',::this.onBlur)
   }
 
   componentWillUnmount() {

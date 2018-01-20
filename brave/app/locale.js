@@ -256,6 +256,11 @@ var rendererIdentifiers = function () {
     'unknownError',
     'allowAutoplay',
 
+    'basicAuthRequired',
+    'basicAuthMessage',
+    'basicAuthUsernameLabel',
+    'basicAuthPasswordLabel',
+
     //Add
     'default',
     'name',

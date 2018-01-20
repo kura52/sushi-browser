@@ -6,8 +6,15 @@ const {app} = require('electron').remote.require('electron')
 export default class InputableDialog extends Component{
 
   componentDidMount(){
-    const input = document.querySelector('.inputable-dialog > input:not(.hidden),textArea.inputable-dialog,.checkbox.inputable-dialog')
-    input.focus()
+    this.handleOk = ::this.handleOk
+    const input = this.refs.input0
+    if(input) input.focus()
+    if(this.props.data.needInput){
+      const inputLast = this.refs[`input${ this.props.data.needInput.length - 1}`]
+      if(inputLast){
+        inputLast.inputRef.addEventListener('keydown',e=>{if(e.keyCode == 13) this.handleOk()})
+      }
+    }
   }
 
   renderInputs(){
@@ -22,21 +29,21 @@ export default class InputableDialog extends Component{
       else if(this.props.data.option &&this.props.data.option[i] == "dialog"){
         return <p key={i}>{x}
           <div style={{display:'flex'}}>
-          <Input focus={false} ref={`input${i}`} className="inputable-dialog"
-                 defaultValue={app.getPath('downloads')}
-                 onKeyDown={e=>{
-                   if(len == 1 && x == "" && e.keyCode==13){
-                     this.props.delete(0,[e.target.value])
-                   }
-                 }}/>
-          <Button icon='folder' onClick={_=>{
-            const key = Math.random().toString()
-            ipc.send('show-dialog-exploler',key,{})
-            ipc.once(`show-dialog-exploler-reply_${key}`,(e,val)=>{
-              if(!val) return
-              ReactDOM.findDOMNode(this.refs[`input${i}`]).querySelector('input').value = val
-            })
-          }}/>
+            <Input focus={false} ref={`input${i}`} className="inputable-dialog"
+                   defaultValue={app.getPath('downloads')}
+                   onKeyDown={e=>{
+                     if(len == 1 && x == "" && e.keyCode==13){
+                       this.props.delete(0,[e.target.value])
+                     }
+                   }}/>
+            <Button icon='folder' onClick={_=>{
+              const key = Math.random().toString()
+              ipc.send('show-dialog-exploler',key,{})
+              ipc.once(`show-dialog-exploler-reply_${key}`,(e,val)=>{
+                if(!val) return
+                ReactDOM.findDOMNode(this.refs[`input${i}`]).querySelector('input').value = val
+              })
+            }}/>
           </div>
         </p>
       }
@@ -60,6 +67,12 @@ export default class InputableDialog extends Component{
     })
   }
 
+  handleOk(){
+    this.props.delete(0,[...document.querySelectorAll('.inputable-dialog > input:not(.hidden),textArea.inputable-dialog,.checkbox.inputable-dialog')].map(x=>{
+      return x.className.includes('checkbox') ? x.classList.contains('checked') : x.value
+    }))
+  }
+
   render(){
     console.log(this.props.data)
     return <Modal dimmer={false} size="small" open={true}>
@@ -71,9 +84,7 @@ export default class InputableDialog extends Component{
         </Modal.Description>
       </Modal.Content>
       <Modal.Actions>
-        <Button positive content="OK" onClick={_=>this.props.delete(0,[...document.querySelectorAll('.inputable-dialog > input:not(.hidden),textArea.inputable-dialog,.checkbox.inputable-dialog')].map(x=>{
-          return x.className.includes('checkbox') ? x.classList.contains('checked') : x.value
-        }))} />
+        <Button positive refs="ok" content="OK" onClick={this.handleOk} />
         <Button color='black' content="Cancel" onClick={_=>{this.props.delete(1)}}/>
       </Modal.Actions>
     </Modal>

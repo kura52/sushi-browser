@@ -2034,7 +2034,9 @@ export default class TabPanel extends Component {
           this.handleTabUpdated(tab,changeInfo)
           break
         case 'removed':
-          this.handleTabClose({}, tab.key)
+          if(this.state.tabs.find((x)=> x.key == tab.key)){
+            this.handleTabClose({}, tab.key)
+          }
           break
       }
     }
@@ -2852,6 +2854,7 @@ export default class TabPanel extends Component {
   newTabClipboardUrl(t){
     const locations = clipboard.readText()
     for(let location of locations.split(/\r?\n/)){
+      if(!location){}
       if(urlutil.isURL(location)){
         const url = urlutil.getUrlFromInput(location)
         t.events['new-tab']({}, t.wvId,url,t.privateMode)

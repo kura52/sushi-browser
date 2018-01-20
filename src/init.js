@@ -1,4 +1,4 @@
-import { app, Menu, clipboard, BrowserWindow, ipcMain, session,webContents } from 'electron'
+import { app, Menu, clipboard, BrowserWindow, ipcMain, session,webContents,shell } from 'electron'
 // import ExtensionsMain from './extension/ExtensionsMain'
 import PubSub from './render/pubsub'
 import mainState from './mainState'
@@ -126,6 +126,8 @@ const RegForDLExt = /\.(?:z(?:ip|[0-9]{2})|r(?:ar|[0-9]{2})|jar|bz2|gz|tar|rpm|7
 global.rlog = (...args)=>{
   // setTimeout(_=>global.rlog(...args),3000)
 }
+
+require('./basicAuth')
 
 let ptyProcessSet,passwordManager,extensionInfos,syncReplaceName
 app.on('ready', async ()=>{
@@ -817,6 +819,8 @@ function contextMenu(webContents) {
     }
 
     if (props.linkURL) {
+      const isVideoURL = props.linkURL.split("?").slice(-2)[0].match(/\.(3gp|3gpp|3gpp2|asf|avi|dv|flv|m2t|m4v|mkv|mov|mp4|mpeg|mpg|mts|oggtheora|ogv|rm|ts|vob|webm|wmv|aac|m4a|mp3|oga|wav)$/)
+
       menuItems.push({
         t: '5317780077021120954', label: locale.translation('5317780077021120954'), click: (item, win) => {
           win.webContents.downloadURL(props.linkURL,true)
@@ -829,12 +833,14 @@ function contextMenu(webContents) {
           win.webContents.downloadURL(props.linkURL,true)
         }
       })
+
       menuItems.push({t: 'copyLinkAddress', label: locale.translation('copyLinkAddress'), click: () => clipboard.writeText(props.linkURL)})
       if(props.mediaType === 'none'){
         menuItems.push({t: '1047431265488717055', label: locale.translation('1047431265488717055'), click: () => clipboard.writeText(props.linkText)})
       }
 
-      if(props.linkURL.split("?").slice(-2)[0].match(/\.(3gp|3gpp|3gpp2|asf|avi|dv|flv|m2t|m4v|mkv|mov|mp4|mpeg|mpg|mts|oggtheora|ogv|rm|ts|vob|webm|wmv|aac|m4a|mp3|oga|wav)$/)){
+      if(isVideoURL){
+        menuItems.push({label: 'Save and Play Video', click: (item, win) => ipcMain.emit('save-and-play-video',null,props.linkURL,win)})
         if(!disableContextMenus.has('Send URL to Video Player')) menuItems.push({label: `Send URL to ${players.find(x=>x.value == mainState.sendToVideo).text}`, click: () => videoProcessList.push(open(props.linkURL,mainState.sendToVideo))})
       }
       menuItems.push({type: 'separator'})
@@ -908,6 +914,9 @@ function contextMenu(webContents) {
         click: downloadPrompt})
       menuItems.push({t: '782057141565633384', label: locale.translation('782057141565633384'), //'Copy Video URL',
         click: () => clipboard.writeText(props.srcURL)})
+
+      menuItems.push({label: 'Save and Play Video', click: (item, win) => ipcMain.emit('save-and-play-video',null,props.srcURL,win)})
+
       const player = players.find(x=>x.value == mainState.sendToVideo)
       if(player) menuItems.push({t: 'Send URL to Video Player', label: `Send URL to ${player.text}`, click: () => videoProcessList.push(open(props.srcURL,mainState.sendToVideo))})
       menuItems.push({type: 'separator'})

@@ -19,7 +19,7 @@ function a(file){
 }
 
 ['../resource/extension/default/1.0_0/js/top.js',
-  '../resource/extension/default/1.0_0/js/download.js',
+  '../resource/extension/default/1.0_0/js/downloader.js',
   '../resource/extension/default/1.0_0/js/history.js',
   '../resource/extension/default/1.0_0/js/historySidebar.js',
   '../resource/extension/default/1.0_0/js/explorer.js',
