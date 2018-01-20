@@ -77,7 +77,6 @@ class BrowserActionWebView extends Component {
             const rect = div.parentNode.getBoundingClientRect()
             if(rect.x + width > window.innerWidth){
               div.style.setProperty("left", `${36 -width}px`, "important")
-              console.log(999999,window.innerWidth,width,rect.x,window.innerWidth - width - rect.x + 18)
             }
             // div.style.setProperty("width", `${width+10}px`, "important")
             // div.style.height = `${height+10}px`

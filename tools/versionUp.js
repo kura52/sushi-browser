@@ -6,14 +6,20 @@ const glob = require("glob")
 const BEFORE_CODE_NAME = 'Aji(Horse mackerel)'
 const CODE_NAME = 'Aji(Horse mackerel)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.13.6"
+const NEXT_APP_VERSION = "0.13.7"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Fixed control of video in iframe
-Improve chrome extension's popup behavior`
+const CHANGE_ENGLISH = `Fixed tab's drop and drag bug
+Fixed loading status
+Implemented basic auth handler(Issue #12)
+Fixed addressBar focus and Blur bug
+Added 'Download and Play Video' in Context Menu`
 
-const CHANGE_JAPANESE = `iframe内のビデオ操作を可能とした
-chrome拡張ポップアップウインドウの動作を改善`
+const CHANGE_JAPANESE = `タブをドロップアンドドラッグしたときの動作を修正
+ステータスバーの動作を修正
+ベーシック認証の処理を実装
+アドレスバーのフォーカス、非フォーカス時の動作を修正
+右クリックメニューに'Download and Play Video'を追加`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

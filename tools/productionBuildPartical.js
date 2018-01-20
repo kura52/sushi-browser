@@ -94,7 +94,7 @@ function build(){
   }
   else{
     sh.mv(`${pwd}/${buildDir}/LICENSE`,`${pwd}/${buildDir}/_LICENSE`)
-    sh.exec(`C:/gopath/bin/node-prune ${pwd}/${buildDir}`)
+    sh.exec(`C:/Users/kura5/go/bin/node-prune ${pwd}/${buildDir}`)
     sh.mv(`${pwd}/${buildDir}/_LICENSE`,`${pwd}/${buildDir}/LICENSE`)
     sh.rm(`${pwd}/${buildDir}/LICENSES.chromium.html`)
   }

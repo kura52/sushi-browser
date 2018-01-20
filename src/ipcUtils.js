@@ -1127,7 +1127,6 @@ function saveTabState(cont, rSession, tabKey, noUpdate) {
   let histNum = cont.getEntryCount(),
     currentIndex = cont.getCurrentEntryIndex(),
     historyList = []
-  console.log(9999,histNum,currentIndex,prevCount[tabKey])
   const urls = [], titles = []
   if (!rSession) {
     for (let i = 0; i < histNum; i++) {
@@ -1164,7 +1163,6 @@ function saveTabState(cont, rSession, tabKey, noUpdate) {
     currentIndex = rSession.currentIndex
   }
   if(!noUpdate) prevCount[tabKey] = histNum
-  console.log(99999,histNum,currentIndex,prevCount[tabKey],currentIndex, historyList)
   return {currentIndex, historyList}
 }
 
