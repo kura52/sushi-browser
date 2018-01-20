@@ -9,7 +9,6 @@ const {remote} = require('electron');
 const {Menu} = remote
 const fs = remote.require('fs')
 const BrowserPageSearch = require('./BrowserPageSearch')
-const BrowserPageStatus = require('./BrowserPageStatus')
 const AutofillPopup = require('./AutofillPopup')
 const isDarwin = navigator.userAgent.includes('Mac OS X')
 // const isWin = navigator.userAgent.includes('Windows')
@@ -295,7 +294,6 @@ class BrowserPage extends Component {
     return <div className="browser-page" ref="browserPage"  onKeyDown={::this.onHandleKeyDown}>
       <BrowserPageSearch isActive={this.state.isSearching} onPageSearch={::this.onPageSearch} progress={this.state.result_string} onClose={::this.onClose}/>
       <webview ref="webview" className={`w${this.props.k2}`} data-key={this.props.k} src={this.props.tab.privateMode ? (void 0) : this.state.src}/>
-      <BrowserPageStatus tab={this.props.tab}/>
       <AutofillPopup k={this.props.k} pos={this.props.pos}/>
     </div>
   }

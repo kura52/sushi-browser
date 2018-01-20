@@ -37,11 +37,11 @@ export default class SyncReplace extends Component {
             if(item){
               let vals = item.val.split("\t",-1)
               if(vals.length == 2) vals = ["",...vals]
-              vals.unshift(false)
+              vals.unshift(this.state[this.getInd(i)] ? this.state[this.getInd(i)][0] : false)
               this.state[this.getInd(i)] = vals
             }
             else{
-              this.state[this.getInd(i)] = [false,"","",""]
+              this.state[this.getInd(i)] = [this.state[this.getInd(i)] ? this.state[this.getInd(i)][0] : false,"","",""]
             }
           }
           document.addEventListener('mousedown',this.outerClick)
@@ -63,11 +63,11 @@ export default class SyncReplace extends Component {
         if(item){
           let vals = item.val.split("\t",-1)
           if(vals.length == 2) vals = ["",...vals]
-          vals.unshift(false)
+          vals.unshift(this.state[this.getInd(i)] ? this.state[this.getInd(i)][0] : false)
           this.state[this.getInd(i)] = vals
         }
         else{
-          this.state[this.getInd(i)] = [false,"","",""]
+          this.state[this.getInd(i)] = [this.state[this.getInd(i)] ? this.state[this.getInd(i)][0] : false,"","",""]
         }
       }
     }
@@ -124,6 +124,7 @@ export default class SyncReplace extends Component {
   }
 
   buildSyncMenu() {
+    console.log(this.state)
     const ret = []
     for(let i=0;i<SYNC_REPLACE_NUM;i++){
       const vals = this.state[this.getInd(i)]

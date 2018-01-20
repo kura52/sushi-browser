@@ -926,6 +926,7 @@ class Tabs extends React.Component {
   }
 
   handleDragEnd(tabs,evt) {
+    ReactDOM.findDOMNode(this.refs.ttab).style['-webkit-app-region'] = 'drag'
     console.log("handleDragEnd",Date.now())
     mainState.set('dragData',null)
 
@@ -1077,6 +1078,7 @@ class Tabs extends React.Component {
   }
 
   handleDragLeave(evt){
+    evt.preventDefault();
     const mouseEle = document.elementFromPoint(evt.clientX,evt.clientY)
     const closest = evt.target.closest('.chrome-tab-drag')
     if(mouseEle.closest('.chrome-tab-drag') == closest) return
@@ -1086,9 +1088,11 @@ class Tabs extends React.Component {
         classList.remove("chrome-tab-drag")
       }
     }
-    evt.stopPropagation()
+    // evt.stopPropagation()
   }
   handleDragEnter(evt){
+    evt.preventDefault()
+    ReactDOM.findDOMNode(this.refs.ttab).style['-webkit-app-region'] = 'no-drag'
     const dragData = ipc.sendSync('get-sync-main-state','dragData')
     if(!dragData) return
     console.log(134,dragData.windowId == this.props.windowId,this.props.k == dragData.k,dragData.tabs,dragData)
@@ -1100,8 +1104,7 @@ class Tabs extends React.Component {
     if (classList.contains('chrome-tab') && !classList.contains('chrome-tab-drag') ) {
       classList.add("chrome-tab-drag")
     }
-    evt.preventDefault();
-    evt.stopPropagation();
+    // evt.stopPropagation();
     // evt.preventDefault()
   }
 

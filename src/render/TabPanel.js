@@ -25,6 +25,7 @@ const urlutil = require('./urlutil')
 const {messages,locale} = require('./localAndMessage')
 const isWin = navigator.userAgent.includes('Windows')
 const sharedState = require('./sharedState')
+const BrowserPageStatus = require('./BrowserPageStatus')
 
 let searchProviders,spAliasMap,autocompleteUrl
 updateSearchEngine();
@@ -1130,7 +1131,10 @@ export default class TabPanel extends Component {
             page.title = page.location
             if (tab.key == self.state.selectedTab && !this.isFixed) ipc.send("change-title", page.title)
           }
-          page.isLoading = false
+          if(page.isLoading){
+            page.isLoading = false
+            PubSub.publish(`change-status-${tab.key}`)
+          }
           if (page.eventDownloadStartTab) ipc.removeListener(`download-start-tab_${tab.wvId}`, page.eventDownloadStartTab)
           clearTimeout(page.downloadTimer)
           // console.log(self.refs)
@@ -1244,6 +1248,10 @@ export default class TabPanel extends Component {
 
       },
       onDidFailLoad(e, page, pageIndex) {
+        if(page.isLoading){
+          page.isLoading = false
+          PubSub.publish(`change-status-${tab.key}`)
+        }
         console.log('fail',e)
         // if (page.location !== e.validatedURL || e.errorDescription == 'ERR_ABORTED' || e.errorCode == -3 || e.errorCode == 0) return
         if(["chrome://newtab/","chrome://bookmarks/","chrome://history/"].includes(e.validatedURL)){
@@ -1319,14 +1327,18 @@ export default class TabPanel extends Component {
       if(needFavicon){
         page.hid = null
         page.titleSet = false
-        page.isLoading = true
+        if(!page.isLoading){
+          page.isLoading = true
+          PubSub.publish(`change-status-${tab.key}`)
+        }
         const navUrl = page.navUrl
         setTimeout(_=>{
           if(page.isLoading && refs2[`navbar-${tab.key}`] && navUrl == page.navUrl){
             page.isLoading = false
+            PubSub.publish(`change-status-${tab.key}`)
             refs2[`navbar-${tab.key}`].setState({})
           }
-        },15000)
+        },6000)
         page.favicon = page.navUrl == '' || page.navUrl.match(/^(file:\/\/|chrome|about)/) ? 'resource/file.png' : 'loading'
       }
 
@@ -1344,7 +1356,10 @@ export default class TabPanel extends Component {
         page.hid = pre.hid
         page.titleSet = pre.titleSet
         page.favicon = pre.favicon
-        page.isLoading = false
+        if(page.isLoading){
+          page.isLoading = false
+          PubSub.publish(`change-status-${tab.key}`)
+        }
         self.setState({})
       }
 
@@ -3922,6 +3937,7 @@ export default class TabPanel extends Component {
                   return <Notification data={data} key={i} k={this.props.k} delete={this.deleteNotification.bind(this,i)} />
                 }
               }) : null}
+              <BrowserPageStatus tab={tab}/>
             </div>
           </Tab>)
         })}
