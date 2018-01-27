@@ -2,3 +2,123 @@
     min-width: 120px !important;
     min-height: 15px !important;
 }
+
+.sticky {
+    background-color: white;
+}
+
+.ui.labeled.icon.menu .item {
+    text-transform: capitalize;
+}
+
+.ui.icon.menu .item {
+    text-align: left;
+    padding-left: 20px;
+}
+
+.ui.labeled.icon.menu .item>.icon:not(.dropdown) {
+    display: inline-block;
+    font-size: 1.2em!important;
+    padding-right: 4px;
+}
+
+.ui.menu .item {
+    padding: .72857143em 1.14285714em;
+}
+
+.ui.visible.thin.left.sidebar~.pusher {
+    width: calc(100% - 150px);
+}
+
+.ui.table {
+    word-break: break-all;
+}
+
+.ui.multiple.dropdown {
+    padding: .22620476em 0 0 .35714286em;
+}
+
+td>.ui.selection.dropdown {
+    padding: 0;
+}
+
+td>.ui.dropdown.type>.text {
+    padding: 6px 0 0 8px;
+}
+
+.field .ui.selection.dropdown {
+    min-height: inherit;
+}
+
+.ui.form .field>.selection.dropdown {
+    width: inherit;
+    min-width: 220px;
+}
+
+.ui.visible.thin.left.sidebar~.pusher {
+    min-height: calc(100vh - 70px);
+}
+
+.toggle-label{
+    vertical-align: 8px;
+    padding-left: 12px;
+}
+
+.ui.grid>.row {
+    padding: 0.3rem 0;
+}
+
+.ui.selection.dropdown {
+    min-height: 0px;
+}
+
+.ui.column.grid>[class*="three wide"].column, .ui.grid>.column.row>[class*="three wide"].column, .ui.grid>.row>[class*="three wide"].column, .ui.grid>[class*="three wide"].column,
+.ui.column.grid>[class*="four wide"].column, .ui.grid>.column.row>[class*="four wide"].column, .ui.grid>.row>[class*="four wide"].column, .ui.grid>[class*="four wide"].column,
+.ui.column.grid>[class*="six wide"].column, .ui.grid>.column.row>[class*="six wide"].column, .ui.grid>.row>[class*="six wide"].column, .ui.grid>[class*="six wide"].column {
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+.spacer{
+    height: 25px;
+}
+.spacer2{
+    height: 15px;
+}
+.spacer3{
+    height: 20px;
+}
+
+.ui.form .field .ui.input, .ui.form .fields .field .ui.input, .ui.form .wide.field .ui.input{
+    width: 264px;
+}
+
+.main{
+    display: flex;
+    flex-flow: row;
+}
+
+.side1 {
+    flex: 0 0 200px;
+}
+.cont {
+    flex: 1 1;
+}
+
+.ReactTable .rt-table {
+    height: 140px;
+}
+
+.ReactTable .-pagination {
+    height: 30px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+}
+
+.ReactTable .-pagination .-btn {
+    padding: 0px;
+}
+
+.ReactTable .-pagination input, .ReactTable .-pagination select {
+    padding: 1px 7px;
+ }

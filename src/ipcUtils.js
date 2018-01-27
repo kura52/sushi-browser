@@ -11,6 +11,7 @@ const seq = require('./sequence')
 const {state,favorite,tabState,visit,savedState} = require('./databaseFork')
 const db = require('./databaseFork')
 const FfmpegWrapper = require('./FfmpegWrapper')
+const HandbrakeWrapper = require('./HandbrakeWrapper')
 const defaultConf = require('./defaultConf')
 
 import path from 'path'
@@ -148,10 +149,17 @@ ipcMain.on('show-dialog-exploler',(event,key,info,tabId)=>{
     })
   }
   else{
-    dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), {
-      defaultPath:info.defaultPath,properties: ['openDirectory']}, (selected) => {
+    let option = { defaultPath:info.defaultPath, properties: ['openDirectory'] }
+    if(info.needVideo){
+      option.properties = ['openFile','multiSelections']
+      option.filters =  [{
+        name: 'Select Video Files',
+        extensions: ['3gp','3gpp','3gpp2','asf','avi','dv','flv','m2t','m4v','mkv','mov','mp4','mpeg','mpg','mts','oggtheora','ogv','rm','ts','vob','webm','wmv']
+      }]
+    }
+    dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), option, (selected) => {
       if (Array.isArray(selected)) {
-        event.sender.send(`show-dialog-exploler-reply_${key}`,selected[0])
+        event.sender.send(`show-dialog-exploler-reply_${key}`,info.needVideo ? selected : selected[0])
       }
       else{
         event.sender.send(`show-dialog-exploler-reply_${key}`)
@@ -1320,6 +1328,17 @@ ipcMain.on('get-isMaximized',e=>{
   const win = BrowserWindow.fromWebContents(e.sender)
   e.returnValue = win.isMaximized() || win.isFullScreen()
 })
+
+ipcMain.on('handbrake-scan',async (e,key,files)=>{
+  const hand = new HandbrakeWrapper()
+  const arr = []
+  for(let file of files){
+    const result = await hand.exec(`-i ${shellEscape(file)} --scan`)
+    arr.push(result.stderr)
+  }
+  e.sender.send(`handbrake-scan-reply_${key}`,arr)
+})
+
 // ipcMain.on('send-keys',(e,keys)=>{
 //   e.sender.sendInputEvent(keys)
 // })
