@@ -380,6 +380,8 @@ export default class TabPanel extends Component {
   }
 
   initFunction(){
+    this.historyKeys = {}
+
     this.syncZoom = ::this.syncZoom
     this.toggleNavPanel = ::this.toggleNavPanel
     this.detachPanel = ::this.detachPanel
@@ -1821,6 +1823,8 @@ export default class TabPanel extends Component {
       }
       else if(e.channel == 'history'){
         console.log(222222222,e.args)
+        if(this.historyKeys[e.args[1]]) return
+        this.historyKeys[e.args[1]] = 1
         switch(e.args[0]){
           case 'back':
             this.historyBack(this.getWebContents(tab),tab)
@@ -1829,7 +1833,7 @@ export default class TabPanel extends Component {
             this.historyForward(this.getWebContents(tab),tab)
             break
           case 'go':
-            this.historyGo(this.getWebContents(tab),tab,e.args[1])
+            this.historyGo(this.getWebContents(tab),tab,e.args[2])
         }
       }
       else if(e.channel == 'theme-color-computed'){

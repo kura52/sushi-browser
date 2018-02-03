@@ -10,9 +10,10 @@ chrome.i18n.getUILanguage = _=>{
   return lang == 'zh-CN' || lang == 'pt-BR' ? lang.replace('-','_') : lang.slice(0,2)
 }
 
-history.back = function(){chrome.ipcRenderer.sendToHost('history','back')}
-history.forward = function(){chrome.ipcRenderer.sendToHost('history','forward')}
-history.go = function(ind){chrome.ipcRenderer.sendToHost('history','go',ind)}
+
+history.back = function(){chrome.ipcRenderer.sendToHost('history','back',Date.now())}
+history.forward = function(){chrome.ipcRenderer.sendToHost('history','forward',Date.now())}
+history.go = function(ind){chrome.ipcRenderer.sendToHost('history','go',Date.now(),ind)}
 
 if(chrome.storage){
   chrome.storage.sync = chrome.storage.local

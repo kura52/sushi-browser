@@ -624,6 +624,10 @@ ipcMain.on('save-state',async (e,{tableName,key,val})=>{
 
 ipcMain.on('menu-or-key-events',(e,name)=>{
   getFocusedWebContents().then(cont=>{
+    if(name == 'toggleDeveloperTools'){
+      cont && cont.openDevTools()
+      return
+    }
     cont && cont.hostWebContents.send('menu-or-key-events',name,cont.getId())
   })
 })

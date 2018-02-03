@@ -96,6 +96,7 @@ td>.ui.dropdown.type>.text {
 .main{
     display: flex;
     flex-flow: row;
+    padding-left: 10px;
 }
 
 .side1 {
@@ -122,3 +123,15 @@ td>.ui.dropdown.type>.text {
 .ReactTable .-pagination input, .ReactTable .-pagination select {
     padding: 1px 7px;
  }
+
+.ui.input input {
+    padding: .2em 1em;
+}
+
+label.bold{
+    font-weight: bold;
+}
+
+label.right-pad{
+    padding-right: 10px;
+}

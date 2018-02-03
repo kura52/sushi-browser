@@ -5,10 +5,14 @@ const ipc = require('electron').ipcRenderer
 const {app} = require('electron').remote.require('electron')
 export default class InputableDialog extends Component{
 
-  componentDidMount(){
+  constructor(props) {
+    super(props)
     this.handleOk = ::this.handleOk
+  }
+
+  componentDidMount(){
     const input = this.refs.input0
-    if(input) input.focus()
+    if(input && input.focus) input.focus()
     if(this.props.data.needInput){
       const inputLast = this.refs[`input${ this.props.data.needInput.length - 1}`]
       if(inputLast){

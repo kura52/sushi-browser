@@ -25,7 +25,6 @@ module.exports.register = (win) => {
     [mainState.keyFindNext, 'findNext'],
     [mainState.keyFindPrevious, 'findPrevious'],
     [mainState.keyToggleDeveloperTools_1, 'toggleDeveloperTools_1'],
-    [mainState.keyToggleDeveloperTools_2, 'toggleDeveloperTools_2'],
     [mainState.keyZoomIn_1, 'zoomIn_1'],
     [mainState.keyZoomOut_1, 'zoomOut_1'],
     [mainState.keyTab1, 'tab1'],
@@ -53,8 +52,10 @@ module.exports.register = (win) => {
   simpleWebContentEvents.forEach((shortcutEventName) =>{
     if(!isAccelerator(shortcutEventName[0])) return
 
+    console.log(44,shortcutEventName)
     electronLocalshortcut.register(win, shortcutEventName[0], () => {
       const name = shortcutEventName[1].split('_')[0]
+      console.log(44,name,shortcutEventName)
       getFocusedWebContents().then(cont=>{
         if(!cont) return
 
@@ -98,6 +99,7 @@ module.exports.register = (win) => {
   })
 
   PubSub.subscribe('add-shortcut',(msg,{id,key,command}) => {
+    console.log(333,key,command)
     electronLocalshortcut.register(win, key.replace('Period','.').replace('Comma',',').replace(/ /g,""), () => {
       PubSub.publish('chrome-commands-exec',{id,command})
     })

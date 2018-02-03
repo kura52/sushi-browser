@@ -13,6 +13,7 @@ const PubSub = require('./pubsub')
 const {remote} = require('electron')
 const ipc = require('electron').ipcRenderer
 const isDarwin = navigator.userAgent.includes('Mac OS X')
+const isWin = navigator.userAgent.includes('Windows')
 const [longPressMiddle,doubleShift] = ipc.sendSync('get-sync-main-states',['longPressMiddle','doubleShift'])
 
 require('inferno').options.recyclingEnabled = true; // Advanced optimisation
@@ -108,14 +109,23 @@ export default class MainContent extends Component{
         (e.ctrlKey && !isDarwin) ||
         (e.metaKey && isDarwin) ||
         e.button === 1
-
+      if (e.key === 'F4' && e.altKey && isWin) {
+        ipc.send('menu-or-key-events','zoomOut')
+        return
+      }
       switch (e.which) {
-        case 107:
+        case 27: //ESC
+          if(remote.getCurrentWindow().isFullScreen()) ipc.send('toggle-fullscreen')
+          break
+        case 123: //F12
+          ipc.send('menu-or-key-events','toggleDeveloperTools')
+          break
+        case 107: //NUMPAD_PLUS
           if (isForSecondaryAction(e)) {
             ipc.send('menu-or-key-events','zoomIn')
           }
           break
-        case 109:
+        case 109: //NUMPAD_MINUS
           if (isForSecondaryAction(e)) {
             ipc.send('menu-or-key-events','zoomOut')
           }

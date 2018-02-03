@@ -208,7 +208,6 @@ const settingDefault =  {
   keyFindNext: 'CmdOrCtrl+G',
   keyFindPrevious: 'CmdOrCtrl+Shift+G',
   keyToggleDeveloperTools_1: 'CmdOrCtrl+Alt+J',
-  keyToggleDeveloperTools_2: 'F12',
   keyZoomIn_1: 'CmdOrCtrl+Shift+=',
   keyZoomOut_1: 'CmdOrCtrl+Shift+-',
   keyReloadPage_1: 'F5',

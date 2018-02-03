@@ -821,6 +821,7 @@ class Tabs extends React.Component {
 
   handleTabMouseUp(e){
     setTimeout(_=>{
+      ReactDOM.findDOMNode(this.refs.ttab).style['-webkit-app-region'] = 'drag'
       PubSub.publish('drag-overlay',false)
       if(this.enableMulti) this.props.multiSelectionClick(...this.enableMulti)
       if(this.mouseUpSelect){
@@ -1039,6 +1040,7 @@ class Tabs extends React.Component {
 
   handleDrop(tab,evt) {
     console.log("handleDrop",Date.now())
+    ReactDOM.findDOMNode(this.refs.ttab).style['-webkit-app-region'] = 'drag'
     mainState.set('stopDragEnd',true)
     evt.stopPropagation()
     evt.preventDefault()

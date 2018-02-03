@@ -360,7 +360,7 @@ class Converter extends React.Component {
       <Divider/>
 
       <div className="field">
-        <label>Cut:&nbsp;</label>
+        <label className="bold right-pad">Time</label>
         <div className="ui input">
           <input type="time" min="00:00:00" max={state.video.duration} value="00:00:00" step="1"/>
         </div>
@@ -369,6 +369,17 @@ class Converter extends React.Component {
           <input type="time" min="00:00:00" max={state.video.duration} value={state.video.duration} step="1"/>
         </div>
       </div>
+
+      <div className="field">
+        <label className="bold">Output Settings</label>
+        <br/>
+        <label style={{verticalAlign: 'baseline'}} className="right-pad">Container</label>
+        <Dropdown selection options={[{text:'MP4', value:'MP4' },{text:'MKV', value:'MKV' }]} defaultValue={'MP4'}/>
+        <Checkbox style={{verticalAlign: 'middle'}} toggle /><span style={{verticalAlign: 'baseline'}} className="toggle-label">Web Optimized</span>
+        <Checkbox style={{verticalAlign: 'middle'}} toggle /><span style={{verticalAlign: 'baseline'}} className="toggle-label">iPod 5G Support</span>
+      </div>
+
+
 
 
     </div>
