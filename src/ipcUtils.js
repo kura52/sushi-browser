@@ -11,7 +11,7 @@ const seq = require('./sequence')
 const {state,favorite,tabState,visit,savedState} = require('./databaseFork')
 const db = require('./databaseFork')
 const FfmpegWrapper = require('./FfmpegWrapper')
-const HandbrakeWrapper = require('./HandbrakeWrapper')
+const VideoConverter = require('./VideoConverter')
 const defaultConf = require('./defaultConf')
 
 import path from 'path'
@@ -967,7 +967,7 @@ ipcMain.on('get-country-names',e=>{
 let prevCount = {}
 ipcMain.on('get-on-dom-ready',(e,tabId,tabKey,rSession)=>{
   const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
-  if(!cont){
+  if(!cont || cont.isDestroyed()){
     e.sender.send(`get-on-dom-ready-reply_${tabId}`,null)
     return
   }
@@ -994,7 +994,7 @@ ipcMain.on('get-on-dom-ready',(e,tabId,tabKey,rSession)=>{
 
 ipcMain.on('get-update-title',(e,tabId,tabKey,rSession)=>{
   const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
-  if(!cont){
+  if(!cont || cont.isDestroyed()){
     e.sender.send(`get-update-title-reply_${tabId}`,null)
     return
   }
@@ -1030,7 +1030,7 @@ ipcMain.on('get-update-title',(e,tabId,tabKey,rSession)=>{
 
 ipcMain.on('get-did-finish-load',(e,tabId,tabKey,rSession)=>{
   const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
-  if(!cont){
+  if(!cont || cont.isDestroyed()){
     e.sender.send(`get-did-finish-load-reply_${tabId}`,null)
     return
   }
@@ -1080,7 +1080,7 @@ function addDestroyedFunc(cont,tabId,sender,msg){
 ipcMain.on('get-did-start-loading',(e,tabId)=>{
   const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
   const msg = `get-did-start-loading-reply_${tabId}`
-  if(!cont){
+  if(!cont || cont.isDestroyed()){
     e.sender.send(msg)
     return
   }
@@ -1180,7 +1180,7 @@ function saveTabState(cont, rSession, tabKey, noUpdate) {
 
 ipcMain.on('get-cont-history',(e,tabId,tabKey,rSession)=>{
   const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
-  if(!cont){
+  if(!cont || cont.isDestroyed()){
     e.sender.send(`get-cont-history-reply_${tabId}`)
     return
   }
@@ -1333,14 +1333,14 @@ ipcMain.on('get-isMaximized',e=>{
   e.returnValue = win.isMaximized() || win.isFullScreen()
 })
 
-ipcMain.on('handbrake-scan',async (e,key,files)=>{
-  const hand = new HandbrakeWrapper()
+ipcMain.on('ffmpeg-scan',async (e,key,files)=>{
+  const vc = new VideoConverter()
   const arr = []
   for(let file of files){
-    const result = await hand.exec(`-i ${shellEscape(file)} --scan`)
+    const result = await vc.ffmpegExe(`-i ${shellEscape(file)}`)
     arr.push(result.stderr)
   }
-  e.sender.send(`handbrake-scan-reply_${key}`,arr)
+  e.sender.send(`ffmpeg-scan-reply_${key}`,arr)
 })
 
 // ipcMain.on('send-keys',(e,keys)=>{

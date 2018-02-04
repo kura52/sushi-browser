@@ -99,6 +99,9 @@ const settingDefault =  {
   alwaysOpenLinkBackground: false,
   addressBarNewTab: false,
 
+  //video convert
+  defaultVideoPreset: 'Fast 1080p30',
+
   //keyboard shortcut default
   keyQuit: 'CmdOrCtrl+Q',
   keyNewTab: 'CmdOrCtrl+T',

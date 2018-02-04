@@ -438,7 +438,7 @@ class BrowserNavbar extends Component{
 
   handleAdBlockThis(){
     ipc.send('set-adblock-enable',{tabId:this.props.tab.wvId,global:false})
-    this.props.parent.tab.adBlockThis = !this.props.adBlockThis
+    this.props.tab.adBlockThis = !this.props.adBlockThis
     this.props.parent.setState({})
   }
 

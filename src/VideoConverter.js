@@ -4,7 +4,9 @@ const fs = require('fs')
 const path = require('path')
 import uuid from 'node-uuid'
 
-const binaryPath = path.join(__dirname, '../resource/bin/handbrake',
+const ffMpegBinaryPath = path.join(__dirname, `../resource/bin/ffmpeg/${process.platform === 'win32' ? 'win' : process.platform === 'darwin' ? 'mac' : 'linux'}/ffmpeg`).replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
+
+const handbrakeBinaryPath = path.join(__dirname, '../resource/bin/handbrake',
   process.platform == 'win32' ? 'win/handbrake.exe' :
     process.platform == 'darwin' ? 'mac/bin/handbrake' : 'linux/HandBrakeCLI').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
 
@@ -15,19 +17,19 @@ export default class handbrakeWrapper{
     this.key = uuid.v4()
   }
 
-  exec(command) {
+  ffmpegExe(command) {
     return new Promise(function(resolve, reject) {
-      exec(`${binaryPath} ${command}`, function(error, stdout, stderr) {
+      exec(`${ffMpegBinaryPath} ${command}`, function(error, stdout, stderr) {
         if (error) {
-          return reject(error);
+          resolve({stdout, stderr, error});
         }
         resolve({stdout, stderr});
       });
     });
   }
 
-  async spawn(){
-    this.handbrake = spawn(binaryPath,params)
+  async handbrakeSpawn(){
+    this.handbrake = spawn(handbrakeBinaryPath,params)
 
     this.handbrake.stdout.on('data', (data) => {
       console.log(`stdout: ${data}`);
