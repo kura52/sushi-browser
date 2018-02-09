@@ -4,7 +4,8 @@ const fs = require('fs')
 const path = require('path')
 import uuid from 'node-uuid'
 
-const ffMpegBinaryPath = path.join(__dirname, `../resource/bin/ffmpeg/${process.platform === 'win32' ? 'win' : process.platform === 'darwin' ? 'mac' : 'linux'}/ffmpeg`).replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
+const ffMpegBinaryPath = path.join(__dirname, `../resource/bin/ffmpeg/${process.platform === 'win32' ? 'win' : process.platform === 'darwin' ? 'mac' : 'linux'}/ffmpeg`)
+  .replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
 
 const handbrakeBinaryPath = path.join(__dirname, '../resource/bin/handbrake',
   process.platform == 'win32' ? 'win/handbrake.exe' :
@@ -19,7 +20,7 @@ export default class handbrakeWrapper{
 
   ffmpegExe(command) {
     return new Promise(function(resolve, reject) {
-      exec(`${ffMpegBinaryPath} ${command}`, function(error, stdout, stderr) {
+      exec(`${ffMpegBinaryPath} ${command}`,(error, stdout, stderr)=>{
         if (error) {
           resolve({stdout, stderr, error});
         }
@@ -28,14 +29,36 @@ export default class handbrakeWrapper{
     });
   }
 
-  async handbrakeSpawn(){
-    this.handbrake = spawn(handbrakeBinaryPath,params)
+  async handbrakeSpawn(videos){
+    for(let info of videos){
 
-    this.handbrake.stdout.on('data', (data) => {
-      console.log(`stdout: ${data}`);
-    });
-    this.handbrake.on('close', (code) => {
-    });
+      const {startAt,endAt,fileName,...preset} = info.out
+      delete preset.startAt
+      delete preset.endAt
+      delete preset.endAt
+
+      fs.writeFileSync(presetFilePath, JSON.stringify(videos.out))
+
+      await new Promise(resolve=>{
+        this.addPreset = exec(`${handbrakeBinaryPath} --preset-import-file ${presetFilePath}`,(error, stdout, stderr)=>{
+          console.log(stdout)
+        })
+      })
+
+      this.handbrake = spawn(handbrakeBinaryPath,['-z',info.presetName,'-o',info.out.fileName])
+
+
+      this.handbrake.stdout.on('data', (data) => {
+        console.log(`stdout: ${data}`);
+      });
+
+      await new Promise(resolve=>{
+        this.handbrake.on('close', (code) => {
+          resolve()
+        })
+      })
+    }
+
 
   }
 
@@ -45,5 +68,4 @@ export default class handbrakeWrapper{
       this.handbrake.kill()
     }
   }
-  
 }

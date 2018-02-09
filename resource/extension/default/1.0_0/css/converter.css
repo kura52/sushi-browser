@@ -244,3 +244,7 @@ label.bold{
 .ui.radio.checkbox.input input:checked~label:after {
     top: 3px;
 }
+
+.progress {
+    margin-top: 2px;
+}

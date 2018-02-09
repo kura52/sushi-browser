@@ -58,6 +58,15 @@ function eachSlice(arr,size){
   return newArray
 }
 
+function equalArray(a,b){
+  const len = a.length
+  if(len != b.length) return false
+  for(let i=0;i<len;i++){
+    if(a[i] !== b[i]) return false
+  }
+  return true
+}
+
 // Custom Formatter component
 function PercentCompleteFormatter(props){
   const percentComplete = `${props.value}%`
@@ -69,15 +78,15 @@ function PercentCompleteFormatter(props){
   </div>
 }
 
-global.multiSelection = true
+global.multiSelection = false
 class Selector extends React.Component {
   static defaultProps = { rowKey: 'id' };
 
   constructor(props,context) {
     super(props,context);
     this.columns = [
-      { accessor: 'no', Header: 'No', resizable: true, minWidth: 5,maxWidth: 40},
-      { accessor: 'file', Header: 'File', resizable: true, sortable: true,filterable:true, minWidth: 20, maxWidth: 250 },
+      { accessor: 'menu', Header: 'Menu', Cell: this.getMenuIcons, resizable: true, minWidth: 20, maxWidth: 95 },
+      { accessor: 'file', Header: 'File', resizable: true, sortable: true, minWidth: 40, maxWidth: 800 },
       { accessor: 'progress', Header: 'Progress', Cell: PercentCompleteFormatter, minWidth: 10, maxWidth:150  },
     ]
 
@@ -89,24 +98,32 @@ class Selector extends React.Component {
 
     this.state = {selectedIds: []}
     this.state.rows = []
+    this.selectedIds = []
   }
 
-  buildItem(item) {
-    const rest = calcSpeed(item)
-    const isProgress = item.state == "progressing" && !!rest.restTime
+  getMenuIcons = (props)=>{
+    const file = props.value
+    const arr = [<virtual data-key={props.original.id}></virtual>]
 
-    return {
-      id: item.key || item.created_at.toString(),
-      created_at: item.created_at,
-      menu: item,
-      name: item.filename,
-      size: item.totalBytes ? `${getAppropriateByteUnit(item.totalBytes).join(" ")}` : '-',
-      progress: isProgress ? rest.percent : item.state == "completed" ? 100 : 0,
-      est: isProgress ? `${getAppropriateTimeUnit(rest.restTime).join(" ")}` : '-',
-      speed: isProgress ? `${item.speed ||getAppropriateByteUnit(rest.speed).join(" ")}/s` : '-',
-      starttime: item.created_at ? formatDate(item.created_at) : '-',
-      url: item.url
-    }
+
+    arr.push(<i onClick={_=>this.refs.parent.handleStart([file])} className="fa fa-play-circle-o menu-item" aria-hidden="true"></i>)
+    arr.push(<i onClick={_=>this.refs.parent.handleStop([file])} className="fa fa-pause-circle-o menu-item" aria-hidden="true"></i>)
+
+    // if(!(item.state == "completed" || (item.state == "progressing" && !item.isPaused))){
+    //   arr.push(<i onClick={_=>this.play(item)} className="fa fa-play-circle-o menu-item" aria-hidden="true"></i>)
+    // }
+    // if(item.state == "progressing" && !item.isPaused){
+    //   arr.push(<i onClick={_=>ipc.send("download-pause",item)} className="fa fa-pause-circle-o menu-item" aria-hidden="true"></i>)
+    // }
+    // arr.push(<i onClick={_=>ipc.send("download-open-folder", item.savePath)} className="fa fa-folder-o menu-item" aria-hidden="true"></i>)
+    // if(item.state != "cancelled"){
+    //   arr.push(<i onClick={_=>ipc.send("download-open",item)} className="fa fa-file-o menu-item" aria-hidden="true"></i>)
+    // }
+    // if(item.state != "completed" && item.state != "cancelled"){
+    //   arr.push(<i onClick={_=>cancelItems([item])} className="fa fa-trash-o menu-item" aria-hidden="true"></i>)
+    // }
+    // arr.push(<i onClick={_=>this.downloaderRemove([item.key])} className="fa fa-times menu-item" aria-hidden="true"></i>)
+    return arr
   }
 
   componentDidMount(){
@@ -114,12 +131,6 @@ class Selector extends React.Component {
     window.addEventListener('resize',_=>{
       document.querySelector('.rt-tbody').style.height = `calc(100vh - 106px - ${document.querySelector('.navbar').offsetHeight}px)`
     });
-    this.event = (e,name)=>{
-      if(name == 'Copy URL'){
-        this.handleCopyUrl()
-      }
-    }
-    ipc.on('download-menu-reply', this.event)
 
 
     document.addEventListener('keydown',e=>{
@@ -134,15 +145,18 @@ class Selector extends React.Component {
         this.setState({})
       }
     })
-
   }
 
-  componentWillUnmount() {
-    ipc.removeListener("download-menu-reply",this.event)
+  componentDidUpdate(prevProps, prevState){
+    if(this.state.selectedIds.length && !equalArray(this.selectedIds,this.state.selectedIds)){
+      this.props.parent.setState({actives: this.state.selectedIds.map(id=> this.state.rows.find(x=>x.id === id).file)})
+      this.selectedIds = this.state.selectedIds.slice(0)
+    }
   }
 
   onClick = (key,e,tr)=>{
     const rowIdx = this.state.rows.findIndex(x=>x.id === key)
+    console.log(rowIdx,key,e,tr)
     console.log(key,rowIdx,this.state.rows[rowIdx],e,tr)
     this.onRowClick(rowIdx,this.state.rows[rowIdx],e,tr)
   }
@@ -225,15 +239,15 @@ class Selector extends React.Component {
       this.setState({selectedIds:[]})
   }
 
-  getSelectedMap = ()=>{
-    const map = {}
-    for(let x of this.state.selectedIds){
-      const item = this.state.downloads.get(x)
-      map[item.id] = item
-    }
-    return map
-  }
-
+  // getSelectedMap = ()=>{
+  //   const map = {}
+  //   for(let x of this.state.selectedIds){
+  //     const item = this.state.downloads.get(x)
+  //     map[item.id] = item
+  //   }
+  //   return map
+  // }
+  //
   handleOpen = _=>{
     const key = Math.random().toString()
     ipc.send('show-dialog-exploler',key,{defaultPath:defaultData.defaultDownloadPath,needVideo:true})
@@ -243,61 +257,33 @@ class Selector extends React.Component {
       const key = uuid.v4()
       ipc.send('ffmpeg-scan',key,ret)
       ipc.once(`ffmpeg-scan-reply_${key}`,(e,results)=>{
-        PubSub.publish('add-files',{files:ret,results})
-      })
+        const firstId = Math.max(0,...this.state.rows.map(x=>parseInt(x.id))) + 1
+        let i = firstId
+        for(let file of ret){
+          if(this.state.rows.find(r=>r.file == file)) continue
+          this.state.rows.push({id:(i++).toString(),menu:file,file,progress: 0})
+        }
+        this.props.addFiles(ret, results)
 
+        this.clearSelect()
+        const ele = document.querySelector(`[data-key='${firstId}']`)
+        const key = ele.dataset.key
+        ele.parentNode.parentNode.classList.add('row-selected')
+        this.setState({selectedIds: [firstId.toString()]})
+      })
     })
   }
-  handleCopyUrl = ()=>{
-    ipc.send("set-clipboard",Object.values(this.getSelectedMap()).map(item=> item.url))
-  }
-
-
-  onChange(name,reg){
-    if(this.checkLists.has(name)){
-      this.checkLists.delete(name)
-    }
-    else{
-      this.checkLists.set(name,reg)
-    }
-
-    const newRows = []
-    if(!this.checkLists.size){
-      for(let row of this.state.downloads.values()){
-        newRows.push(row)
-      }
-      this.setState({rows:newRows})
-      return
-    }
-    for(let row of this.state.downloads.values()){
-      for(let v of this.checkLists.values()){
-        if(row.url.match(v)){
-          newRows.push(row)
-          break
-        }
-      }
-    }
-    this.setState({rows:newRows})
-  }
+  // handleCopyUrl = ()=>{
+  //   ipc.send("set-clipboard",Object.values(this.getSelectedMap()).map(item=> item.url))
+  // }
 
   onChangeMultiSelection(e){
     global.multiSelection = !global.multiSelection
     this.setState({})
   }
 
-  buildCheckList(){
-    const ret = []
-    // for(let [name,reg] of REG_LIST){
-    //   const ele = <div>
-    //     <div className="form-check form-check-inline">
-    //       <label className="form-check-label">
-    //         <input className="form-check-input" type="checkbox" onChange={this.onChange.bind(this,name,reg)}/>{name}
-    //       </label>
-    //     </div>
-    //   </div>
-    //   ret.push(ele)
-    // }
-    return ret
+  getFiles(){
+    return this.props.parent.state.actives
   }
 
   render() {
@@ -310,6 +296,14 @@ class Selector extends React.Component {
               <i aria-hidden="true" className="folder open icon"></i>Open
             </button>
 
+            <button onClick={_=>this.refs.parent.handleStart(this.getFiles())} className="btn btn-sm align-middle btn-outline-secondary" type="button">
+              <i className="fa fa-play-circle-o" aria-hidden="true"></i>Start
+            </button>
+
+            <button onClick={_=>this.refs.parent.handleStop(this.getFiles())} className="btn btn-sm align-middle btn-outline-secondary" type="button">
+              <i className="fa fa-stop-circle-o" aria-hidden="true"></i>Stop
+            </button>
+
             <div className="divider-vertical" />
 
             <div>
@@ -319,8 +313,6 @@ class Selector extends React.Component {
                 </label>
               </div>
             </div>
-
-            {this.buildCheckList()}
           </form>
         </nav>
         <ReactTable
@@ -343,10 +335,13 @@ function findPreset(preset){
   }
 }
 
+
+
 let defaultData
 class Converter extends React.Component {
   constructor(props) {
     super(props)
+
     this.tabs = {
       Picture: ::this.renderPicture,
       Filters: ::this.renderFilters,
@@ -357,16 +352,16 @@ class Converter extends React.Component {
     this.state = defaultData
     this.state.activeTab = 'Picture'
     this.state.videos = {}
+    this.state.actives = []
 
     this.selectChange = ::this.selectChange
-
-    PubSub.subscribe('add-files',(e,{files,results})=>{
-      files.forEach((file,i)=>{
-        this.handleFile(file,results[i],i==0)
-      })
-    })
   }
 
+  addFiles(files,results){
+    files.forEach((file,i)=>{
+      this.handleFile(file,results[i],i==0)
+    })
+  }
 
   handleFile(file,result,setState){
     console.log(file,result)
@@ -398,12 +393,27 @@ class Converter extends React.Component {
     const preset = findPreset(defaultData.defaultVideoPreset)
     preset.keepAspectRatio = true
 
-    const video = {video:{duration,encode,width,height,fps,bitrate},audios,out:preset}
+
+    const video = {video:{duration,encode,width,height,fps,bitrate},audios,out:preset,state:{progress:0,status:'not-start'}} //playing,finished
     this.state.videos[file] = video
     if(setState){
-      this.setState({active:file})
+      this.setState({actives:[file]})
     }
     console.log(video)
+  }
+
+  handleStart(files){
+    const videos = this.getVideos(videos)
+
+    const key = uuid.v4()
+    ipc.send('handbrake-start',key,videos)
+    ipc.on(`handbrake-progress_${key}`,(e,results)=>{
+
+    })
+  }
+
+  handleStop(files){
+
   }
 
   makeValues(...items){
@@ -426,99 +436,126 @@ class Converter extends React.Component {
     return this.state.activeTab == item ? 'active item' : 'item'
   }
 
+
+  getVideos(files){
+    return files.map(file=>(this.state.videos[file] || {video:{},audios:[],out:{}}))
+  }
+
+  getActiveVideos(){
+    return this.state.actives.map(active=>(this.state.videos[active] || {video:{},audios:[],out:{}}))
+  }
+
   getActiveVideo(){
-    return this.state.videos[this.state.active] || {video:{},audios:[],out:{}}
+    return this.state.videos[this.state.actives[0]] || {video:{},audios:[],out:{}}
   }
 
   handleChange(e,key){
-    const {video,audios,out} = this.getActiveVideo()
-    out[key] = e.target.value === void 0 ? e.target.checked : e.target.value
+    for(let activeVideo of this.getActiveVideos()){
+      const {video,audios,out} = activeVideo
+      out[key] = e.target.value === void 0 ? e.target.checked : e.target.value
+    }
     this.setState({})
   }
 
   handleChange2(e,key,data){
-    const {video,audios,out} = this.getActiveVideo()
-    out[key] = data.checked === void 0 ? data.value : data.checked
+    for(let activeVideo of this.getActiveVideos()){
+      const {video,audios,out} = activeVideo
+      out[key] = data.checked === void 0 ? data.value : data.checked
+    }
     this.setState({})
   }
 
   handleAudioChange2(e,key,data){
-    const {video,audios,out} = this.getActiveVideo()
-    out.AudioList[0][key] = data.checked === void 0 ? data.value : data.checked
+    for(let activeVideo of this.getActiveVideos()) {
+      const {video, audios, out} = activeVideo
+      out.AudioList[0][key] = data.checked === void 0 ? data.value : data.checked
+    }
     this.setState({})
   }
 
   handleChangeRadio(e,key,value){
-    const {video,audios,out} = this.getActiveVideo()
-    out[key] = value
+    for(let activeVideo of this.getActiveVideos()) {
+      const {video, audios, out} = activeVideo
+      out[key] = value
+    }
     this.setState({})
   }
 
   handleAudioChangeRadio(e,key,value){
-    const {video,audios,out} = this.getActiveVideo()
-    out.AudioList[0][key] = value
+    for(let activeVideo of this.getActiveVideos()) {
+      const {video, audios, out} = activeVideo
+      out.AudioList[0][key] = value
+    }
     this.setState({})
   }
 
 
   handleChangeDeblock(e,key){
-    const {video,audios,out} = this.getActiveVideo()
-    const val = parseInt(e.target.value)
-    out[key] = val == 0 ? 0 : val + 4
+    for(let activeVideo of this.getActiveVideos()) {
+      const {video, audios, out} = activeVideo
+      const val = parseInt(e.target.value)
+      out[key] = val == 0 ? 0 : val + 4
+    }
     this.setState({})
   }
 
   handleRotateChange(e,key,data,num){
-    const {video,audios,out} = this.getActiveVideo()
-    const org = out[key].split(':')
-    org[num] = `${org[num].split("=")[0]}=${data}`
-    out[key] = org.join(":")
+    for(let activeVideo of this.getActiveVideos()) {
+      const {video, audios, out} = activeVideo
+      const org = out[key].split(':')
+      org[num] = `${org[num].split("=")[0]}=${data}`
+      out[key] = org.join(":")
+    }
     this.setState({})
   }
 
   handleTuneChange(e,key,val){
-    const {video,audios,out} = this.getActiveVideo()
-    let org = out[key].split(/, */)
-    if(val == 'fastdecode-add'){
-      org.push('fastdecode')
-      org = [...new Set(org)]
-    }
-    else if(val == 'fastdecode-remove'){
-      org = org.filter(x=>x!='fastdecode')
-    }
-    else if(val == ''){
-      org = org.filter(x=>x=='fastdecode')
-    }
-    else{
-      org = org.filter(x=>x=='fastdecode')
-      org.push(val)
-      org = [...new Set(org)]
-    }
+    for(let activeVideo of this.getActiveVideos()) {
+      const {video, audios, out} = activeVideo
+      let org = out[key].split(/, */)
+      if(val == 'fastdecode-add') {
+        org.push('fastdecode')
+        org = [...new Set(org)]
+      }
+      else if(val == 'fastdecode-remove') {
+        org = org.filter(x => x != 'fastdecode')
+      }
+      else if(val == '') {
+        org = org.filter(x => x == 'fastdecode')
+      }
+      else{
+        org = org.filter(x => x == 'fastdecode')
+        org.push(val)
+        org = [...new Set(org)]
+      }
 
-    out[key] = org.join(", ")
+      out[key] = org.join(", ")
+    }
     this.setState({})
   }
 
   handleSurround(val){
-    const {video,audios,out} = this.getActiveVideo()
-    if(val){
-      const surround = {
-        "AudioBitrate": 640,
-        "AudioCompressionLevel": -1.0,
-        "AudioDitherMethod": "auto",
-        "AudioEncoder": "copy:ac3",
-        "AudioMixdown": "none",
-        "AudioNormalizeMixLevel": false,
-        "AudioSamplerate": "auto",
-        "AudioTrackQualityEnable": false,
-        "AudioTrackQuality": -1.0,
-        "AudioTrackGainSlider": 0.0,
-        "AudioTrackDRCSlider": 0.0
+    for(let activeVideo of this.getActiveVideos()) {
+      const {video, audios, out} = activeVideo
+      if (val) {
+        const surround = {
+          "AudioBitrate": 640,
+          "AudioCompressionLevel": -1.0,
+          "AudioDitherMethod": "auto",
+          "AudioEncoder": "copy:ac3",
+          "AudioMixdown": "none",
+          "AudioNormalizeMixLevel": false,
+          "AudioSamplerate": "auto",
+          "AudioTrackQualityEnable": false,
+          "AudioTrackQuality": -1.0,
+          "AudioTrackGainSlider": 0.0,
+          "AudioTrackDRCSlider": 0.0
+        }
+        out.AudioList.push(surround)
       }
-      out.AudioList.push(surround)
-    }
-    else{
-      out.AudioList = out.AudioList.slice(0,1)
+      else {
+        out.AudioList = out.AudioList.slice(0, 1)
+      }
     }
     this.setState({})
   }
@@ -887,7 +924,7 @@ class Converter extends React.Component {
       {!state.video.width ? "" :
         <div className="field">
           <label className="bold right-pad">Source</label>
-          <label>{this.state.active || ""}</label>
+          <label>{this.state.actives[0] || ""}</label>
           <br/>
           <label>[Video]&nbsp;Codec:&nbsp;</label>
           <label className="right-pad2">{state.video.encode},</label>
@@ -981,7 +1018,7 @@ class Converter extends React.Component {
     const state = this.getActiveVideo()
     return <div className="main">
       <div className="cont">
-        <Selector/>
+        <Selector ref="selector" parent={this} addFiles={::this.addFiles}/>
         {this.renderConverter()}
       </div>
       <div className="side1">

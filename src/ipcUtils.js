@@ -1343,6 +1343,16 @@ ipcMain.on('ffmpeg-scan',async (e,key,files)=>{
   e.sender.send(`ffmpeg-scan-reply_${key}`,arr)
 })
 
+ipcMain.on('handbrake-start',async (e,key,videos)=>{
+  const vc = new VideoConverter()
+  const arr = []
+  for(let file of files){
+    const result = await vc.handbrakeSpawn(`-i ${shellEscape(file)}`)
+    arr.push(result.stderr)
+  }
+  e.sender.send(`handbrake-progress_${key}`,arr)
+})
+
 // ipcMain.on('send-keys',(e,keys)=>{
 //   e.sender.sendInputEvent(keys)
 // })

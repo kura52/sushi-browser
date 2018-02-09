@@ -65,6 +65,7 @@ function equalArray(a,b){
   }
   return true
 }
+
 function equalArray2(a,b){
   const len = a.length
   if(len != b.length) return false
