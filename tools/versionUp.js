@@ -4,22 +4,24 @@ const fs = require('fs')
 const glob = require("glob")
 
 const BEFORE_CODE_NAME = 'Aji(Horse mackerel)'
-const CODE_NAME = 'Aji(Horse mackerel)'
+const CODE_NAME = 'Kani(Crab)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.13.7"
+const NEXT_APP_VERSION = "0.14.0"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Fixed tab's drop and drag bug
-Fixed loading status
-Implemented basic auth handler(Issue #12)
-Fixed addressBar focus and Blur bug
-Added 'Download and Play Video' in Context Menu`
+const CHANGE_ENGLISH = `Added video conversion function using handbrake
+Added audio extraction and conversion function using ffmpeg
+Added function to convert video after downloading video
+Added 32 bit version of Windows
+Updated to youtube-dl 2018.02.11
+Updated to Muon 4.7.10 (chromium 64.0.3282.140)
+Fixed a lot of bugs`
 
-const CHANGE_JAPANESE = `タブをドロップアンドドラッグしたときの動作を修正
-ステータスバーの動作を修正
-ベーシック認証の処理を実装
-アドレスバーのフォーカス、非フォーカス時の動作を修正
-右クリックメニューに'Download and Play Video'を追加`
+const CHANGE_JAPANESE = `handbrakeを使用した動画変換機能の追加
+ffmpegを利用した音声抽出・変換機能の追加
+動画のダウンロードと連携して動画変換を行う機能を追加
+Windows 32bitビルド版を追加
+多数のバグ修正`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'
@@ -186,6 +188,14 @@ sizeAdd(htmls,app,sizeMap[app])
 
 app = `sushi-browser-${NEXT_APP_VERSION}-win-x64.zip`
 console.log(`- [Windows Portable v${NEXT_APP_VERSION} (${sizeMap[app]})](https://sushib.me/dl/${app})`)
+sizeAdd(htmls,app,sizeMap[app])
+
+app = `sushi-browser-${NEXT_APP_VERSION}-setup-ia32.exe`
+console.log(`- [Windows Installer 32bit v${NEXT_APP_VERSION} (${sizeMap[app]})](https://sushib.me/dl/${app})`)
+sizeAdd(htmls,app,sizeMap[app])
+
+app = `sushi-browser-${NEXT_APP_VERSION}-win-ia32.zip`
+console.log(`- [Windows Portable 32bit v${NEXT_APP_VERSION} (${sizeMap[app]})](https://sushib.me/dl/${app})`)
 sizeAdd(htmls,app,sizeMap[app])
 
 app = `SushiBrowser-${NEXT_APP_VERSION}.dmg`

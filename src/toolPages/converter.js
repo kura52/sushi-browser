@@ -8,6 +8,7 @@ import Selection from '../render/react-selection/indexTable';
 import ReactTable from 'react-table';
 import presets from './videoPreset';
 import path from 'path';
+const isWin = navigator.userAgent.includes('Windows')
 
 
 const PubSub = require('pubsub-js')
@@ -111,7 +112,7 @@ class Selector extends React.Component {
     const state = this.getFiles()
 
     if(row.status == 'converting'){
-      arr.push(<i onClick={_=>this.props.parent.handlePause([row.file])} className="pause icon menu-item" aria-hidden="true"></i>)
+      if(!isWin) arr.push(<i onClick={_=>this.props.parent.handlePause([row.file])} className="pause icon menu-item" aria-hidden="true"></i>)
       arr.push(<i onClick={_=>this.props.parent.handleStop([row.file])} className="stop icon menu-item" aria-hidden="true"></i>)
     }
     else if(row.status == 'paused'){
@@ -340,9 +341,9 @@ class Selector extends React.Component {
               <i className="play icon" aria-hidden="true"></i>Start
             </button>
 
-            <button onClick={_=>this.props.parent.handlePause(this.getFiles())} className="btn btn-sm align-middle btn-outline-secondary" type="button">
+            {isWin ? null : <button onClick={_=>this.props.parent.handlePause(this.getFiles())} className="btn btn-sm align-middle btn-outline-secondary" type="button">
               <i className="pause icon" aria-hidden="true"></i>Pause
-            </button>
+            </button>}
 
             <button onClick={_=>this.props.parent.handleStop(this.getFiles())} className="btn btn-sm align-middle btn-outline-secondary" type="button">
               <i className="stop icon" aria-hidden="true"></i>Stop
