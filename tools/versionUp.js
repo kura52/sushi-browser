@@ -12,7 +12,7 @@ const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}$
 const CHANGE_ENGLISH = `Added video conversion function using handbrake
 Added audio extraction and conversion function using ffmpeg
 Added function to convert video after downloading video
-Added 32 bit version of Windows
+Added 32 bit version of Windows (Experimental)
 Updated to youtube-dl 2018.02.11
 Updated to Muon 4.7.10 (chromium 64.0.3282.140)
 Fixed a lot of bugs`
