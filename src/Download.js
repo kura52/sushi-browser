@@ -1,8 +1,11 @@
+import {getFocusedWebContents} from "./util";
+
 const {BrowserWindow, webContents,dialog,ipcMain,app,shell} = require('electron')
 import mainState from './mainState'
 const Aria2cWrapper = require('./Aria2cWrapper')
 const FfmpegWrapper = require('./FfmpegWrapper')
 const {redirectUrlsCache} = require('../brave/adBlock')
+const sanitizeFilename = require('./sanitizeFilename')
 
 const path = require('path')
 import {download,downloader} from './databaseFork'
@@ -96,6 +99,7 @@ export default class Download {
     this.dlKey = {}
     this.saveDirectory = {}
     this.audioExtract = {}
+    this.videoConvert = {}
     this.overwrite = {}
     this.prompt = {}
 
@@ -104,7 +108,7 @@ export default class Download {
     }
 
     ipcMain.on('set-save-path',(e,url,fname,absolute)=>{
-      set(this.savePath,url,absolute ? fname : path.join(app.getPath('downloads'), fname))
+      set(this.savePath,url,absolute ? fname : path.join(app.getPath('downloads'), sanitizeFilename(fname,{replacement:'_'})))
     })
 
     ipcMain.on('set-download-key',(e,url,key)=>{
@@ -117,6 +121,10 @@ export default class Download {
 
     ipcMain.on('set-audio-extract',(e,url)=>{
       set(this.audioExtract,url,true)
+    })
+
+    ipcMain.on('set-video-convert',(e,url,operation)=>{
+      set(this.videoConvert,url,operation)
     })
 
     ipcMain.on('need-set-save-filename',(e,url)=>{
@@ -179,7 +187,8 @@ export default class Download {
       }
 
       let savePath = this.getData(this.savePath,url),
-      audioExtract = this.getData(this.audioExtract,url),
+        audioExtract = this.getData(this.audioExtract,url),
+        videoConvert = this.getData(this.videoConvert,url),
       overwrite = false
 
       console.log(1,savePath)
@@ -267,18 +276,19 @@ export default class Download {
               global.downloadItems = global.downloadItems.filter(i => i !== dl)
               set(this.savePath,url,savePath)
               set(this.audioExtract,url,audioExtract)
+              set(this.videoConvert,url,videoConvert)
               if(overwrite) set(this.overwrite,url,true)
               webContents.downloadURL(url, true)
             }
           })
-          this.downloadReady(dl, url, webContents,win,audioExtract)
+          this.downloadReady(dl, url, webContents,win,audioExtract,videoConvert)
         })
 
       }
     })
   }
 
-  downloadReady(item, url, webContents,win,audioExtract) {
+  downloadReady(item, url, webContents,win,audioExtract,videoConvert) {
     global.downloadItems.push(item)
 
     console.log(11)
@@ -316,9 +326,17 @@ export default class Download {
     })
 
     item.once('done', async (event, state) => {
-      console.log(111,audioExtract)
+      console.log(111,audioExtract,videoConvert)
       if(audioExtract){
         new FfmpegWrapper(item.getSavePath()).exe(_=>_)
+      }
+      if(videoConvert){
+        getFocusedWebContents().then(cont=>{
+          console.log(cont.getId(),cont.getURL())
+          cont.hostWebContents.send('new-tab',cont.getId(),
+            `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html?data=${encodeURIComponent(JSON.stringify({path:item.getSavePath(),info:videoConvert}))}`,
+            void 0, void 0, void 0, true)
+        })
       }
       for (let wc of this.getDownloadPage()) {
         wc.send('download-progress', this.buildItem(item))

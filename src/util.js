@@ -26,25 +26,44 @@ function getFocusedWebContents(needSelectedText,skipBuildInSearch,callback,retry
     let win = getCurrentWindow()
     if(!win){
       // const key = uuid.v4()
-      return new Promise((resolve,reject)=>{
-        setTimeout(_=>getFocusedWebContents(needSelectedText,skipBuildInSearch,resolve,retry++),300)
-      })
+      if(callback){
+        setTimeout(_=>getFocusedWebContents(needSelectedText,skipBuildInSearch,callback,++retry),300)
+      }
+      else{
+        return new Promise((resolve,reject)=>{
+          setTimeout(_=>getFocusedWebContents(needSelectedText,skipBuildInSearch,resolve,++retry),300)
+        })
+      }
     }
     cont = win.webContents
   }
   const key = uuid.v4()
-  return new Promise((resolve,reject)=>{
+
+  if(callback){
     ipcMain.once(`get-focused-webContent-reply_${key}`,(e,tabId)=>{
       if(tabId < 1){
-        setTimeout(_=>getFocusedWebContents(needSelectedText,skipBuildInSearch,resolve,retry++),300)
+        setTimeout(_=>getFocusedWebContents(needSelectedText,skipBuildInSearch,callback,++retry),300)
       }
       else{
-        resolve((sharedState[tabId] || webContents.fromTabID(tabId)))
+        callback((sharedState[tabId] || webContents.fromTabID(tabId)))
       }
     })
     cont.send('get-focused-webContent',key,void 0,needSelectedText,void 0,retry)
-  })
-
+  }
+  else{
+    return new Promise((resolve,reject)=>{
+      ipcMain.once(`get-focused-webContent-reply_${key}`,(e,tabId)=>{
+        if(tabId < 1){
+          console.log('tabId',tabId,retry)
+          setTimeout(_=>getFocusedWebContents(needSelectedText,skipBuildInSearch,resolve,++retry),300)
+        }
+        else{
+          resolve((sharedState[tabId] || webContents.fromTabID(tabId)))
+        }
+      })
+      cont.send('get-focused-webContent',key,void 0,needSelectedText,void 0,retry)
+    })
+  }
 }
 
 export default {

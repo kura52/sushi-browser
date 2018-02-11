@@ -70,6 +70,7 @@ export default class MainContent extends Component{
 
     window.addEventListener('resize', ::this.handleResize,{ passive: true });
     document.addEventListener('mousedown',e=>{
+      if(e.target.closest('.ui.modal')) return
       let ele,key
       global.middleButtonLongPressing = (void 0)
       global.lastMouseDownSet.delete(e.target)

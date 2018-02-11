@@ -146,7 +146,7 @@ export default class DownloadList extends Component{
           <i className="stop icon download-list-bottom" onClick={()=>ipc.send("download-cancel", item)}></i>
       }
       {/*{item.state == "completed" ? <div><a href="#" onClick={()=>ipc.send("download-open",item)}>{fname}</a></div> : <div>{fname}</div>}*/}
-      <div><a href="javascript:void(0)" onClick={()=>ipc.send("download-open",item)}>{fname}</a></div>
+      <div><a style={{whiteSpace: 'nowrap'}} href="javascript:void(0)" onClick={()=>ipc.send("download-open",item)}>{fname}</a></div>
       <div style={item.state == "progressing" ? {fontSize: '12px'} : {}}>{progress.length > 28 ? `${progress.substr(0, 28)}...` :progress}</div>
     </div>
 

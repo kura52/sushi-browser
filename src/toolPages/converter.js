@@ -4,9 +4,11 @@ import {ipcRenderer as ipc} from 'electron';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import uuid from 'node-uuid';
-import Selection from '../render/react-selection/indexTable'
-import ReactTable from 'react-table'
-import presets from './videoPreset'
+import Selection from '../render/react-selection/indexTable';
+import ReactTable from 'react-table';
+import presets from './videoPreset';
+import path from 'path';
+
 
 const PubSub = require('pubsub-js')
 
@@ -20,7 +22,6 @@ function aspect(width, height) {
   if(!width || !height) return [1,1]
 
   let r,m = width,n = height
-
   if(m < n) {
     r = m
     m = n
@@ -85,9 +86,11 @@ class Selector extends React.Component {
   constructor(props,context) {
     super(props,context);
     this.columns = [
-      { accessor: 'menu', Header: 'Menu', Cell: this.getMenuIcons, resizable: true, minWidth: 20, maxWidth: 95 },
+      { accessor: 'id', Header: 'No', resizable: true, minWidth: 10, maxWidth: 40 },
+      { accessor: 'menu', Header: 'Menu', Cell: this.getMenuIcons, resizable: true, minWidth: 10, maxWidth: 52 },
       { accessor: 'file', Header: 'File', resizable: true, sortable: true, minWidth: 40, maxWidth: 800 },
-      { accessor: 'progress', Header: 'Progress', Cell: PercentCompleteFormatter, minWidth: 10, maxWidth:150  },
+      { accessor: 'progress', Header: 'Progress', Cell: PercentCompleteFormatter, minWidth: 10, maxWidth:150 },
+      { accessor: 'msg', Header: 'Info', minWidth: 10, maxWidth:300 },
     ]
 
     const data = {links:[],resources:[]} //JSON.parse(getUrlVars().data)
@@ -102,12 +105,23 @@ class Selector extends React.Component {
   }
 
   getMenuIcons = (props)=>{
-    const file = props.value
+    const row = props.value
     const arr = [<virtual data-key={props.original.id}></virtual>]
 
+    const state = this.getFiles()
 
-    arr.push(<i onClick={_=>this.refs.parent.handleStart([file])} className="fa fa-play-circle-o menu-item" aria-hidden="true"></i>)
-    arr.push(<i onClick={_=>this.refs.parent.handleStop([file])} className="fa fa-pause-circle-o menu-item" aria-hidden="true"></i>)
+    if(row.status == 'converting'){
+      arr.push(<i onClick={_=>this.props.parent.handlePause([row.file])} className="pause icon menu-item" aria-hidden="true"></i>)
+      arr.push(<i onClick={_=>this.props.parent.handleStop([row.file])} className="stop icon menu-item" aria-hidden="true"></i>)
+    }
+    else if(row.status == 'paused'){
+      arr.push(<i onClick={_=>this.props.parent.handleStart([row.file])} className="play icon menu-item" aria-hidden="true"></i>)
+      arr.push(<i onClick={_=>this.props.parent.handleStop([row.file])} className="stop icon menu-item" aria-hidden="true"></i>)
+    }
+    else{
+      arr.push(<i onClick={_=>this.props.parent.handleStart([row.file])} className="play icon menu-item" aria-hidden="true"></i>)
+      arr.push(<i onClick={_=>this.props.parent.handleRemove([row.file])} className="remove icon menu-item" aria-hidden="true"></i>)
+    }
 
     // if(!(item.state == "completed" || (item.state == "progressing" && !item.isPaused))){
     //   arr.push(<i onClick={_=>this.play(item)} className="fa fa-play-circle-o menu-item" aria-hidden="true"></i>)
@@ -145,6 +159,24 @@ class Selector extends React.Component {
         this.setState({})
       }
     })
+
+    const params = getUrlVars()
+    if(params.data){
+      const {path,info} = JSON.parse(params.data)
+      this.handleSelectedFile({},[path]).then(_=>{
+        if(Array.isArray(info)){
+          this.props.parent.state.activeTab = 'Audio'
+          this.props.parent.handleChangeRadio({},'audioExtract',true)
+          this.props.parent.handleAudioChange2({},'AudioEncoder',{value:info[0]})
+          this.props.parent.handleAudioChange2({},'AudioBitrate',{value:info[1]})
+          this.props.parent.handleStart([path])
+        }
+        else{
+          this.props.parent.changePreset(info)
+          this.props.parent.handleStart([path])
+        }
+      })
+    }
   }
 
   componentDidUpdate(prevProps, prevState){
@@ -179,7 +211,7 @@ class Selector extends React.Component {
         const node = document.querySelector(`[data-key='${row.id}']`)
         if(!node) continue
         tr = node.parentNode.parentNode
-        let ind = this.state.selectedIds.findIndex(r => r == row.id);
+        let ind = this.state.selectedIds.findIndex(r => r == row.id)
         if(ind == -1){
           this.state.selectedIds.push(row.id)
           tr.classList.add('row-selected')
@@ -191,7 +223,7 @@ class Selector extends React.Component {
       }
     }
     else{
-      let ind = this.state.selectedIds.findIndex(r => r == row.id);
+      let ind = this.state.selectedIds.findIndex(r => r == row.id)
       if(ind == -1){
         this.state.selectedIds.push(row.id)
         tr.classList.add('row-selected')
@@ -248,20 +280,21 @@ class Selector extends React.Component {
   //   return map
   // }
   //
-  handleOpen = _=>{
-    const key = Math.random().toString()
-    ipc.send('show-dialog-exploler',key,{defaultPath:defaultData.defaultDownloadPath,needVideo:true})
-    ipc.once(`show-dialog-exploler-reply_${key}`,(event,ret)=>{
-      this.setState({filePath:ret})
 
-      const key = uuid.v4()
-      ipc.send('ffmpeg-scan',key,ret)
+  handleSelectedFile = (event,ret)=>{
+    this.setState({filePath:ret})
+
+    const key = uuid.v4()
+    ipc.send('ffmpeg-scan',key,ret)
+    return new Promise(resolve=>{
       ipc.once(`ffmpeg-scan-reply_${key}`,(e,results)=>{
         const firstId = Math.max(0,...this.state.rows.map(x=>parseInt(x.id))) + 1
         let i = firstId
         for(let file of ret){
           if(this.state.rows.find(r=>r.file == file)) continue
-          this.state.rows.push({id:(i++).toString(),menu:file,file,progress: 0})
+          const row = {id:(i++).toString(),file,progress:0,status:'not-start'}
+          row.menu = row
+          this.state.rows.push(row)
         }
         this.props.addFiles(ret, results)
 
@@ -270,8 +303,15 @@ class Selector extends React.Component {
         const key = ele.dataset.key
         ele.parentNode.parentNode.classList.add('row-selected')
         this.setState({selectedIds: [firstId.toString()]})
+        resolve()
       })
     })
+  }
+
+  handleOpen = _=>{
+    const key = Math.random().toString()
+    ipc.send('show-dialog-exploler',key,{defaultPath:defaultData.defaultDownloadPath,needVideo:true})
+    ipc.once(`show-dialog-exploler-reply_${key}`,this.handleSelectedFile)
   }
   // handleCopyUrl = ()=>{
   //   ipc.send("set-clipboard",Object.values(this.getSelectedMap()).map(item=> item.url))
@@ -296,12 +336,25 @@ class Selector extends React.Component {
               <i aria-hidden="true" className="folder open icon"></i>Open
             </button>
 
-            <button onClick={_=>this.refs.parent.handleStart(this.getFiles())} className="btn btn-sm align-middle btn-outline-secondary" type="button">
-              <i className="fa fa-play-circle-o" aria-hidden="true"></i>Start
+            <button onClick={_=>this.props.parent.handleStart(this.getFiles())} className="btn btn-sm align-middle btn-outline-secondary" type="button">
+              <i className="play icon" aria-hidden="true"></i>Start
             </button>
 
-            <button onClick={_=>this.refs.parent.handleStop(this.getFiles())} className="btn btn-sm align-middle btn-outline-secondary" type="button">
-              <i className="fa fa-stop-circle-o" aria-hidden="true"></i>Stop
+            <button onClick={_=>this.props.parent.handlePause(this.getFiles())} className="btn btn-sm align-middle btn-outline-secondary" type="button">
+              <i className="pause icon" aria-hidden="true"></i>Pause
+            </button>
+
+            <button onClick={_=>this.props.parent.handleStop(this.getFiles())} className="btn btn-sm align-middle btn-outline-secondary" type="button">
+              <i className="stop icon" aria-hidden="true"></i>Stop
+            </button>
+
+
+            <button onClick={_=>this.props.parent.handleRemove(this.getFiles())} className="btn btn-sm align-middle btn-outline-secondary" type="button">
+              <i className="remove icon" aria-hidden="true"></i>Remove Row
+            </button>
+
+            <button onClick={_=>this.props.parent.handleRemoveAll()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
+              <i className="remove circle icon" aria-hidden="true"></i>Remove Finished
             </button>
 
             <div className="divider-vertical" />
@@ -353,8 +406,29 @@ class Converter extends React.Component {
     this.state.activeTab = 'Picture'
     this.state.videos = {}
     this.state.actives = []
+    this.key = uuid.v4()
 
     this.selectChange = ::this.selectChange
+
+
+    const handbrakeProgress = (e,val)=>{
+      console.log(val)
+      const state = this.refs.selector.state.rows.find(r=>r.file == val.file)
+      if(val.pause){
+        state.status = 'paused'
+        this.refs.selector.setState({})
+        return
+      }
+
+      state.progress = val.progress
+      state.msg = val.msg
+      state.status = 'converting'
+      if(parseInt(state.progress) == 100){
+        state.status = 'finished'
+      }
+      this.refs.selector.setState({})
+    }
+    ipc.on(`handbrake-progress_${this.key}`,handbrakeProgress)
   }
 
   addFiles(files,results){
@@ -391,10 +465,17 @@ class Converter extends React.Component {
     }
 
     const preset = findPreset(defaultData.defaultVideoPreset)
-    preset.keepAspectRatio = true
+    preset.PictureKeepRatio = true
 
+    if(preset.PictureKeepRatio){
+      const ar = aspect(width,height)
+      preset.PictureWidth =  Math.round(preset.PictureHeight / ar[1] * ar[0])
+    }
 
-    const video = {video:{duration,encode,width,height,fps,bitrate},audios,out:preset,state:{progress:0,status:'not-start'}} //playing,finished
+    preset.destination = path.dirname(file)
+    preset.fileName = `{name}_convert.{ext}`
+
+    const video = {video:{file,duration,encode,width,height,fps,bitrate},audios,out:preset} //playing,finished
     this.state.videos[file] = video
     if(setState){
       this.setState({actives:[file]})
@@ -403,17 +484,37 @@ class Converter extends React.Component {
   }
 
   handleStart(files){
-    const videos = this.getVideos(videos)
+    const videos = this.getVideos(files)
 
+    ipc.send('handbrake-start',this.key,videos)
+  }
+
+  handlePause(files){
     const key = uuid.v4()
-    ipc.send('handbrake-start',key,videos)
-    ipc.on(`handbrake-progress_${key}`,(e,results)=>{
-
-    })
+    const videos = this.getVideos(files)
+    ipc.send('handbrake-pause',key,videos)
   }
 
   handleStop(files){
+    const key = uuid.v4()
+    const videos = this.getVideos(files)
+    ipc.send('handbrake-stop',key,videos)
+  }
 
+  handleRemove(files){
+    const key = uuid.v4()
+    const set = new Set()
+    for(let file of files){
+      delete this.state.videos[file]
+      set.add(file)
+    }
+    this.refs.selector.state.rows = this.refs.selector.state.rows.filter(r=>!set.has(r.file) || r.status == 'converting' || r.status == 'paused')
+    this.refs.selector.setState({})
+  }
+
+  handleRemoveAll(){
+    const files = this.refs.selector.state.rows.filter(r=>r.status == 'finished').map(r=>r.file)
+    this.handleRemove(files)
   }
 
   makeValues(...items){
@@ -453,6 +554,14 @@ class Converter extends React.Component {
     for(let activeVideo of this.getActiveVideos()){
       const {video,audios,out} = activeVideo
       out[key] = e.target.value === void 0 ? e.target.checked : e.target.value
+    }
+    this.setState({})
+  }
+
+  handleAudioChange(e,key){
+    for(let activeVideo of this.getActiveVideos()){
+      const {video,audios,out} = activeVideo
+      out.AudioList[0][key] = e.target.value === void 0 ? e.target.checked : e.target.value
     }
     this.setState({})
   }
@@ -584,19 +693,19 @@ class Converter extends React.Component {
 
             <label className="right-pad2">Width:</label>
             <div className="ui input right-pad2">
-              <input className="input-number" type="number" min="0" max={state.video.width} value={width} onChange={e=>{
-                if(state.out.keepAspectRatio) state.out.PictureHeight =  Math.round(e.target.value / ar[0] * ar[1])
-                this.handleChange(e,'PictureWidth')
-              }} />
+              <input className="input-number" type="number" min="0" max={state.video.width} value={width} onChange={e=>this.handleChange(e,'PictureWidth')} disabled={state.out.PictureKeepRatio}/>
             </div>
 
             <label className="right-pad2">Height:</label>
             <div className="ui input">
-              <input className="input-number" type="number" min="0" max={state.video.height} value={height} onChange={e=>this.handleChange(e,'PictureHeight')} disabled={state.out.keepAspectRatio}/>
+              <input className="input-number" type="number" min="0" max={state.video.height} value={height} onChange={e=>{
+                if(state.out.PictureKeepRatio) state.out.PictureWidth =  Math.round(e.target.value / ar[1] * ar[0])
+                this.handleChange(e,'PictureHeight')
+              }} />
             </div>
 
             <div className='spacer5'/>
-            <Checkbox style={{verticalAlign: 'middle'}} toggle checked={state.out.keepAspectRatio} onChange={(e,data)=>this.handleChange2(e,'keepAspectRatio',data)}/>
+            <Checkbox style={{verticalAlign: 'middle'}} toggle checked={state.out.PictureKeepRatio} onChange={(e,data)=>this.handleChange2(e,'PictureKeepRatio',data)}/>
             <span style={{verticalAlign: 'text-bottom'}} className="toggle-label">Keep Aspect Ratio</span>
           </div>
 
@@ -697,7 +806,7 @@ class Converter extends React.Component {
           <div className='spacer5'/>
 
           <label style={{verticalAlign: 'bottom', paddingRight: 30}}>Deblock:</label>
-          <div class="ui input">
+          <div className="ui input">
             <input type="range" min="0" max="11" name="duration" step="1" value={state.out.PictureDeblock == 0 ? 0 : state.out.PictureDeblock - 4} onChange={e=>this.handleChangeDeblock(e,'PictureDeblock')}/>
           </div>
           <div className='spacer5'/>
@@ -748,11 +857,90 @@ class Converter extends React.Component {
     </div>
   }
 
-  renderVideo(){
-    const state = this.getActiveVideo()
+  videoQuality(state){
+    const ve = state.out.VideoEncoder
+    const max = ve.includes('mpeg') ? 31 : ve.includes('26') ? 51 : 63
+    const jsx =
+      <span>
+          <div className="ui radio checkbox" onClick={e=>this.handleChangeRadio(e,'VideoQualityType',2)}>
+            <input type="radio" className="hidden" value="2" name="quality" checked={state.out.VideoQualityType == 2}/>
+            <label>Constant Quality: {state.out.VideoQualitySlider} {ve.includes('x2') ? 'QP' : ' RF'} {ve == 'x264' && parseInt(state.out.VideoQualitySlider) == 0 ? '(RF 0 is Lossless)' : ''}</label>
+          </div>
+
+          <br/>
+          <div className="ui input" style={{marginTop: -4, paddingLeft: 20, width: 320}}>
+            <input type="range" min="0" max={max.toString()} name="duration" disabled={state.out.VideoQualityType == 1}
+                   value={ve == 'theora' ? parseInt(state.out.VideoQualitySlider) : max - parseInt(state.out.VideoQualitySlider)}
+                   onChange={e=>{e.target.value = ve == 'theora' ? parseInt(e.target.value) : max - parseInt(e.target.value);this.handleChange(e,'VideoQualitySlider')}}/>
+          </div>
+          <div style={{marginTop: -5, paddingLeft: 20, width: 320}}>
+            <label>| Lower Quality</label><label style={{float:'right'}}>Higher Quality |</label>
+          </div>
+        </span>
+
+    return jsx
+  }
+
+  optimiseVideo(state){
+    const ve = state.out.VideoEncoder
+
+    const presets = ve.includes('x2') ? ['ultrafast','superfast','veryfast','faster','fast','medium','slow','slower','veryslow','placebo'] :
+      ve.includes('26') ? ['speed', 'balanced', 'quality'] : ['veryfast','faster','fast','medium','slow','slower','veryslow']
 
     const presetMap = {},presetRMap = {}
-    ;['ultrafast','superfast','veryfast','faster','fast','medium','slow','slower','veryslow','placebo'].forEach((x,i)=>{presetMap[x] = (i+1).toString();presetRMap[(i+1).toString()] = x})
+    ;presets.forEach((x,i)=>{presetMap[x] = (i+1).toString();presetRMap[(i+1).toString()] = x})
+
+    const tunes = ve == 'x265' ? [['None',''],'PSNR','SSIM','Grain','Zero Latency'] : [['None',''],'Film','Animation','Grain','Still Image','PSNR','SSIM','Zero Latency']
+    const levels = ve == 'qsv_h265' ? ['Auto','1.0','2.0','2.1','3.0','3.1','4.0','4.1','5.0','5.1','5.2','6.0','56.1','6.2'] :
+      ['Auto','1.0','1b','1.1','1.2','1.3','2.0','2.1','2.2','3.0','3.1','3.2','4.0','4.1','4.2','5.0','5.1','5.2']
+
+
+    const jsx =
+      <span>
+        {ve.match(/26|VP/) ? <span>
+          <label style={{verticalAlign: 'bottom', paddingRight: 12}}>Encoder Preset:</label>
+          <div className="ui input">
+            <input type="range" min="1" max="10" value={presetMap[state.out.VideoPreset]} onChange={e=>{e = {target: {value: presetRMap[e.target.value]}};this.handleChange(e,'VideoPreset')}}/>
+            <label style={{paddingLeft: 5, paddingTop: 4}}>{state.out.VideoPreset && `${state.out.VideoPreset[0].toUpperCase()}${state.out.VideoPreset.slice(1)}`}</label>
+          </div>
+          <div className='spacer5'/>
+        </span> : '' }
+
+        {ve.includes('26') ? <span>
+          <label style={{verticalAlign: 'baseline', paddingRight: 19}} className="right-pad">Encoder Tune:</label>
+          <Dropdown className="video-tune" selection options={this.makeValues3(...tunes)}
+                    value={state.out.VideoTune.split(/, */).filter(x=>x != 'fastdecode')[0]} onChange={(e,data)=>this.handleTuneChange(e,'VideoTune',data.value)}/>
+
+          <Checkbox style={{verticalAlign: 'middle'}} toggle checked={state.out.VideoTune.includes('fastdecode')}
+                    onChange={(e,data)=>{this.handleTuneChange(e,'VideoTune',data.checked ? 'fastdecode-add' : 'fastdecode-remove')}}/>
+
+          <span style={{verticalAlign: 'text-bottom'}} className="toggle-label">Fast Decode</span>
+          <div className='spacer5'/>
+
+          <label style={{verticalAlign: 'baseline'}} className="right-pad">Encoder Profile:</label>
+          <Dropdown className="video-profile" selection options={this.makeValues3(...(ve.includes('5') ? ['Auto','Main','Main Still Picture'] : ['Auto','High','Main','Baseline']))}
+                    value={state.out.VideoProfile} onChange={(e,data)=>this.handleChange2(e,'VideoProfile',data)}/>
+        </span> : '' }
+
+        {ve.includes('26') && ve != 'x265' ? <span>
+          <label style={{verticalAlign: 'baseline'}} className="right-pad">Encoder Level:</label>
+          <Dropdown selection options={this.makeValues(...levels)}
+                    value={state.out.VideoLevel} onChange={(e,data)=>this.handleChange2(e,'VideoLevel',data)}/>
+          <div className='spacer5'/>
+        </span> : ''}
+      </span>
+
+    return jsx
+  }
+
+  renderVideo(){
+    const state = this.getActiveVideo()
+    const ve = state.out.VideoEncoder
+
+    let codecs = [['H.264 (x264)','x264'],['H.264 (Intel QSV)','qsv_h264'],['H.265 (x265)','x265'],['H.265 (Intel QSV)','qsv_h265'],['VP9','VP9'],['MPEG-4','mpeg4'],['MPEG-2','mpeg2'],['Theora','theora'],['VP8','VP8']]
+    if(state.out.FileFormat == 'mp4'){
+      codecs = codecs.filter(c=>c[1].match(/26|mpeg/))
+    }
 
     return  <div className="ui bottom attached segment active tab">
       <div className="panel-flex" >
@@ -762,7 +950,7 @@ class Converter extends React.Component {
           </div>
 
           <label style={{verticalAlign: 'baseline', paddingRight: 28}} className="right-pad">Video Codec:</label>
-          <Dropdown className="video-codec" selection options={this.makeValues2(['H.264 (x264)','x264'],['H.264 (Intel QSV)','qsv_h264'],['H.265 (x265)','x265'],['H.265 (Intel QSV)','qsv_h265'],['VP9','VP9'],['MPEG-4','mpeg4'],['MPEG-2','mpeg2'],['Theora','theora'],['VP8','VP8'])}
+          <Dropdown className="video-codec" selection options={this.makeValues2(...codecs)}
                     value={state.out.VideoEncoder} onChange={(e,data)=>this.handleChange2(e,'VideoEncoder',data)}/>
           <div className='spacer5'/>
 
@@ -791,18 +979,7 @@ class Converter extends React.Component {
             <label className="bold">Quality</label>
           </div>
 
-          <div className="ui radio checkbox" onClick={e=>this.handleChangeRadio(e,'VideoQualityType',2)}>
-            <input type="radio" className="hidden" value="2" name="quality" checked={state.out.VideoQualityType == 2}/>
-            <label>Constant Quality: {state.out.VideoQualitySlider} RF {parseInt(state.out.VideoQualitySlider) == 0 ? '(RF 0 is Lossless)' : ''}</label>
-          </div>
-          <br/>
-          <div class="ui input" style={{marginTop: -4, paddingLeft: 20, width: 320}}>
-            <input type="range" min="0" max="51" name="duration" disabled={state.out.VideoQualityType == 1}
-                   value={51 - parseInt(state.out.VideoQualitySlider)} onChange={e=>{e.target.value = 51 - parseInt(e.target.value);this.handleChange(e,'VideoQualitySlider')}}/>
-          </div>
-          <div style={{marginTop: -5, paddingLeft: 20, width: 320}}>
-            <label>| Lower Quality</label><label style={{float:'right'}}>Placebo Quality |</label>
-          </div>
+          {this.videoQuality(state)}
           <div className='spacer4'/>
 
           <div className="ui radio checkbox input" onClick={e=>this.handleChangeRadio(e,'VideoQualityType',1)}>
@@ -814,12 +991,16 @@ class Converter extends React.Component {
           <div className='spacer4'/>
 
           <div style={{paddingLeft: 24}}>
-            <Checkbox style={{verticalAlign: 'middle'}} toggle disabled={state.out.VideoQualityType == 2} checked={state.out.VideoTwoPass} onChange={(e,data)=>this.handleChange2(e,'VideoTwoPass',data)}/>
-            <span style={{verticalAlign: 'text-bottom'}} className="toggle-label">2-Pass Encoding</span>
-            <br/>
 
-            <Checkbox style={{verticalAlign: 'middle'}} toggle disabled={state.out.VideoQualityType == 2} checked={state.out.VideoTurboTwoPass} onChange={(e,data)=>this.handleChange2(e,'VideoTurboTwoPass',data)}/>
-            <span style={{verticalAlign: 'text-bottom'}} className="toggle-label">Turbo first pass</span>
+            {ve.includes('qsv') ? '' : [
+              <Checkbox style={{verticalAlign: 'middle'}} toggle disabled={state.out.VideoQualityType == 2} checked={state.out.VideoTwoPass} onChange={(e,data)=>this.handleChange2(e,'VideoTwoPass',data)}/>,
+              <span style={{verticalAlign: 'text-bottom'}} className="toggle-label">2-Pass Encoding</span>]}
+
+
+            {ve.includes('x2') ? [<br/>,
+              <Checkbox style={{verticalAlign: 'middle'}} toggle disabled={state.out.VideoQualityType == 2} checked={state.out.VideoTurboTwoPass} onChange={(e,data)=>this.handleChange2(e,'VideoTurboTwoPass',data)}/>,
+              <span style={{verticalAlign: 'text-bottom'}} className="toggle-label">Turbo first pass</span>]: ''}
+
           </div>
         </div>
 
@@ -829,31 +1010,7 @@ class Converter extends React.Component {
         <label className="bold">Optimise Video</label>
       </div>
 
-      <label style={{verticalAlign: 'bottom', paddingRight: 12}}>Encoder Preset:</label>
-      <div class="ui input">
-        <input type="range" min="1" max="10" value={presetMap[state.out.VideoPreset]} onChange={e=>{e = {target: {value: presetRMap[e.target.value]}};this.handleChange(e,'VideoPreset')}}/>
-        <label style={{paddingLeft: 5, paddingTop: 4}}>{state.out.VideoPreset && `${state.out.VideoPreset[0].toUpperCase()}${state.out.VideoPreset.slice(1)}`}</label>
-      </div>
-      <div className='spacer5'/>
-
-      <label style={{verticalAlign: 'baseline', paddingRight: 19}} className="right-pad">Encoder Tune:</label>
-      <Dropdown className="video-tune" selection options={this.makeValues3(['None',''],'Film','Animation','Grain','Still Image','PSNR','SSIM','Fast Decode','Zero Latency')}
-                value={state.out.VideoTune.split(/, */).filter(x=>x != 'fastdecode')[0]} onChange={(e,data)=>this.handleTuneChange(e,'VideoTune',data.value)}/>
-
-      <Checkbox style={{verticalAlign: 'middle'}} toggle checked={state.out.VideoTune.includes('fastdecode')}
-                onChange={(e,data)=>{this.handleTuneChange(e,'VideoTune',data.checked ? 'fastdecode-add' : 'fastdecode-remove')}}/>
-
-      <span style={{verticalAlign: 'text-bottom'}} className="toggle-label">Fast Decode</span>
-      <div className='spacer5'/>
-
-      <label style={{verticalAlign: 'baseline'}} className="right-pad">Encoder Profile:</label>
-      <Dropdown className="video-profile" selection options={this.makeValues3('Auto','High','Main','Baseline')}
-                value={state.out.VideoProfile} onChange={(e,data)=>this.handleChange2(e,'VideoProfile',data)}/>
-
-      <label style={{verticalAlign: 'baseline'}} className="right-pad">Encoder Level:</label>
-      <Dropdown selection options={this.makeValues('Auto','1.0','1b','1.1','1.2','1.3','2.0','2.1','2.2','3.0','3.1','3.2','4.0','4.1','4.2','5.0','5.1','5.2')}
-                value={state.out.VideoLevel} onChange={(e,data)=>this.handleChange2(e,'VideoLevel',data)}/>
-      <div className='spacer5'/>
+      {this.optimiseVideo(state)}
 
       <div className="ui form">
         <label style={{verticalAlign: '30px', paddingRight: 20}} className="right-pad">Extra Options:</label>
@@ -865,6 +1022,22 @@ class Converter extends React.Component {
 
   renderAudio(){
     const state = this.getActiveVideo()
+    const isAudioExtract = state.out.audioExtract
+
+    const ac = state.out.AudioList[0].AudioEncoder
+    let codecs = [['None','none'],['AAC (avcodec)','aac'],['MP3','mp3'],['AC3','ac3'],['Auto Passthru','copy'],['AAC Passthru','copy:aac'],['MP3 Passthru','copy:mp3'],
+      ['AC3 Passthru','copy:ac3'],['E-AC3 Passthru','copy:eac3'],['DTS Passthru','copy:dts'],['DTS-HD Passthru','copy:dtshd'],['TrueHD Passthru','copy:truehd']]
+    if(state.out.FileFormat == 'mkv'){
+      codecs.push(['Vorbis','vorbis'],['FLAC 16-bit','flac16'],['FLAC 24-bit','flac24'],['FLAC Passthru','copy:flac'],['Opus (libopus)','opus'])
+    }
+    if(isAudioExtract){
+      codecs = [['Auto Passthru','copy'],['AAC (avcodec)','aac'],['MP3','mp3'],['AC3','ac3'],['Vorbis','vorbis'],['Opus (libopus)','opus'],['FLAC 16-bit','flac16'],['FLAC 24-bit','flac24']]
+    }
+    const bitrates = ac == 'aac' ? ['64','80','96','112','128','160','192','224','256','320','384','448','512'] :
+      ac == 'mp3' ? ['32','40','48','56','64','80','96','112','128','160','192','224','256','320'] :
+        ac == 'ac3' ? ['112','128','160','192','224','256','320','384','448','512','576','640'] :
+          ac == 'vorbis' ? ['56','64','80','96','112','128','160','192','224','256','320','384','448'] :
+            ['32','40','48','56','64','80','96','112','128','160','192','224','256','320','384','448','512']
 
     return  <div className="ui bottom attached segment active tab">
       <div className="field">
@@ -872,51 +1045,75 @@ class Converter extends React.Component {
       </div>
 
       <label style={{verticalAlign: 'baseline'}} className="right-pad">Audio Codec:</label>
-      <Dropdown className="video-codec" selection options={this.makeValues2(['None','none'],['AAC (avcodec)','aac'],['MP3','mp3'],['Auto Passthru','copy'],['AAC Passthru','copy:aac'],['MP3 Passthru','copy:mp3'],
-        ['AC3 Passthru','copy:ac3'],['E-AC3 Passthru','copy:eac3'],['DTS Passthru','copy:dts'],['DTS-HD Passthru','copy:dtshd'],['TrueHD Passthru','copy:truehd'])}
-                value={state.out.AudioList[0].AudioEncoder} onChange={(e,data)=>this.handleChange2(e,'AudioEncoder',data)}/>
+      <Dropdown className="video-codec" selection options={this.makeValues2(...codecs)}
+                value={state.out.AudioList[0].AudioEncoder} onChange={(e,data)=>this.handleAudioChange2(e,'AudioEncoder',data)}/>
 
       <div className='spacer5'/>
 
+      {ac.includes('copy') ? '' : <span>
       <label style={{verticalAlign: 'baseline', paddingRight: 33}} className="right-pad">Mixdown:</label>
-      <Dropdown className="video-codec" selection options={this.makeValues2(['Mono','mono'],['Mono (Left Only)','left_only'],['Mono (Right Only)','right_only'],['Stereo','dpl2'])}
-                value={state.out.AudioList[0].AudioMixdown} onChange={(e,data)=>this.handleChange2(e,'AudioMixdown',data)}/>
-      <div className='spacer5'/>
+        <Dropdown className="video-codec" selection options={this.makeValues2(...(isAudioExtract ? [['Mono','mono'],['Stereo','dpl2']] : [['Mono','mono'],['Mono (Left Only)','left_only'],['Mono (Right Only)','right_only'],['Stereo','dpl2']]))}
+                  value={state.out.AudioList[0].AudioMixdown} onChange={(e,data)=>this.handleAudioChange2(e,'AudioMixdown',data)}/>
+        <div className='spacer5'/>
+      </span>}
 
       {/*<Checkbox style={{verticalAlign: 'middle'}} toggle /><span style={{verticalAlign: 'text-bottom'}} className="toggle-label">Include All Tracks</span>*/}
       {/*<br/>*/}
-      <Checkbox style={{verticalAlign: 'middle'}} toggle checked={state.out.AudioList.length > 1}
-                onChange={(e,data)=>{this.handleSurround(data.checked)}}/>
-      <span style={{verticalAlign: 'text-bottom'}} className="toggle-label">Surround</span>
 
+      {ac.match(/copy|flac/) ? '' : <span>
+        {isAudioExtract ? '' : <span>
+        <Checkbox style={{verticalAlign: 'middle'}} toggle checked={state.out.AudioList.length > 1}
+                  onChange={(e,data)=>{this.handleSurround(data.checked)}}/>
+         <span style={{verticalAlign: 'text-bottom'}} className="toggle-label">Surround</span>
+      </span>}
 
-      <div className="field">
+        <div className="field">
         <label className="bold">Quality</label>
       </div>
 
-
-
-      <div className="ui radio checkbox input" onClick={e=>this.handleAudioChangeRadio(e,'AudioTrackQualityEnable',false)}>
-        <input type="radio" className="hidden" value="bitrate" name="audioQuality" checked={!state.out.AudioList[0].AudioTrackQualityEnable}/>
+        {/*<div className="ui radio checkbox input" onClick={e=>this.handleAudioChangeRadio(e,'AudioTrackQualityEnable',false)}>*/}
+        {/*<input type="radio" className="hidden" value="bitrate" name="audioQuality" checked={!state.out.AudioList[0].AudioTrackQualityEnable}/>*/}
         <label className="avg" style={{display: 'inline', paddingRight: 4}}>Bitrate: </label>
-        <Dropdown className="bitrate" selection options={this.makeValues2(...['32','40','48','56','64','80','96','112','128','160','192','224','256','320','384','448','512','576','640'].map(x=>[x,parseInt(x)]))}
+        <Dropdown className="bitrate" selection options={this.makeValues2(...bitrates.map(x=>[x,parseInt(x)]))}
                   disabled={state.out.AudioList[0].AudioTrackQualityEnable} value={parseInt(state.out.AudioList[0].AudioBitrate)} onChange={(e,data)=>this.handleAudioChange2(e,'AudioBitrate',data)}/> kbps
-      </div>
-      <div className='spacer4'/>
+        {/*</div>*/}
+        <div className='spacer4'/>
 
-      <div className="ui radio checkbox input" onClick={e=>this.handleAudioChangeRadio(e,'AudioTrackQualityEnable',true)}>
-        <input type="radio" className="hidden" value="quality" name="audioQuality" checked={state.out.AudioList[0].AudioTrackQualityEnable}/>
-        <label className="avg" style={{display: 'inline'}}>Quality: </label>
-        <Dropdown selection options={this.makeValues2(...['1','2','3','4','5','6','7','8','9','10'].map(x=>[x,parseInt(x)]))}
-                  disabled={!state.out.AudioList[0].AudioTrackQualityEnable} value={parseInt(state.out.AudioList[0].AudioTrackQuality)} onChange={(e,data)=>this.handleAudioChange2(e,'AudioTrackQuality',data)}/>
+        {/*<div className="ui radio checkbox input" onClick={e=>this.handleAudioChangeRadio(e,'AudioTrackQualityEnable',true)}>*/}
+        {/*<input type="radio" className="hidden" value="quality" name="audioQuality" checked={state.out.AudioList[0].AudioTrackQualityEnable}/>*/}
+        {/*<label className="avg" style={{display: 'inline'}}>Quality: </label>*/}
+        {/*<Dropdown selection options={this.makeValues2(...['1','2','3','4','5','6','7','8','9','10'].map(x=>[x,parseInt(x)]))}*/}
+        {/*disabled={!state.out.AudioList[0].AudioTrackQualityEnable} value={parseInt(state.out.AudioList[0].AudioTrackQuality)} onChange={(e,data)=>this.handleAudioChange2(e,'AudioTrackQuality',data)}/>*/}
+        {/*</div>*/}
+      </span>
+      }
+
+
+      <div className="field">
+        <label className="bold">Other</label>
       </div>
-      <div className='spacer4'/>
+
+      <label style={{verticalAlign: 'baseline'}} className="right-pad">Gain:</label>
+      <div className="ui input right-pad" style={{verticalAlign: 'middle'}}>
+        <input type="range" min="-20" max="20" name="gain" step="1" value={state.out.AudioList[0].AudioTrackGainSlider} onChange={e=>this.handleAudioChange(e,'AudioTrackGainSlider')}/>
+      </div>
+      <label style={{verticalAlign: 'bottom'}}>{state.out.AudioList[0].AudioTrackGainSlider}dB</label>
+
+      <div className='spacer5'/>
+
+      <label style={{verticalAlign: 'baseline'}} className="right-pad">SampleRate:</label>
+      <Dropdown className="video-codec" selection options={this.makeValues3('Auto',['8kHz',8000],['11.025kHz',11025],['12kHz',12000],['16kHz',16000],['22.05kHz',22050],['24kHz',24000],['32kHz',32000],['44.1kHz',44100],['48kHz',48000])}
+                value={state.out.AudioList[0].AudioSamplerate} onChange={(e,data)=>this.handleAudioChange2(e,'AudioSamplerate',data)}/>
+
+      <div className='spacer5'/>
 
     </div>
+
   }
 
   renderConverter() {
     const state = this.getActiveVideo()
+    const isAudioExtract = state.out && state.out.audioExtract
     console.log(state)
     return <div>
       <Divider/>
@@ -949,11 +1146,11 @@ class Converter extends React.Component {
       <div className="field">
         <label className="bold right-pad">Time</label>
         <div className="ui input">
-          <input type="time" min="00:00:00" max={state.out.endAt || state.video.duration} value={state.out.startAt || "00:00:00"} step="1" onChange={e=>this.handleChange(e,'startAt')} />
+          <input type="time" min="00:00:00" max={state.out.stopAt || state.video.duration} value={state.out.startAt || "00:00:00"} step="1" onChange={e=>this.handleChange(e,'startAt')} />
         </div>
         &nbsp;〜&nbsp;
         <div className="ui input">
-          <input type="time" min="00:00:00" max={state.video.duration} value={state.out.endAt || state.video.duration} step="1" onChange={e=>this.handleChange(e,'endAt')}/>
+          <input type="time" min="00:00:00" max={state.video.duration} value={state.out.stopAt || state.video.duration} step="1" onChange={e=>this.handleChange(e,'stopAt')}/>
         </div>
       </div>
 
@@ -962,27 +1159,63 @@ class Converter extends React.Component {
       <div className="field">
         <label className="bold">Output Settings</label>
         <br/>
-        <label style={{verticalAlign: 'baseline'}} className="right-pad">Container</label>
-        <Dropdown selection options={this.makeValues2(['MP4','mp4'],['MKV','mkv'])} value={state.out.FileFormat} onChange={(e,data)=>this.handleChange2(e,'FileFormat',data)}/>
 
-        <Checkbox style={{verticalAlign: 'middle'}} toggle checked={state.out.Mp4HttpOptimize} onChange={(e,data)=>this.handleChange2(e,'Mp4HttpOptimize',data)}/>
+        <label style={{verticalAlign: 'baseline'}} className="right-pad">Operation</label>
+        <div className="field" style={{display: 'inline',paddingLeft: 7}}>
+          <div className="ui radio checkbox" style={{paddingRight: 22}} onClick={e=>{ this.state.activeTab = 'Picture';this.handleChangeRadio(e,'audioExtract',false)}}>
+            <input type="radio" className="hidden" readOnly tabIndex={0} value="0" checked={!state.out.audioExtract}/>
+            <label>Convert Video</label>
+          </div>
+
+          <div className="ui radio checkbox" onClick={e=>{ this.state.activeTab = 'Audio';this.handleChangeRadio(e,'audioExtract',true)}}>
+            <input type="radio" className="hidden" readOnly tabIndex={0} value="1" checked={state.out.audioExtract}/>
+            <label>Extract/Convert Audio</label>
+          </div>
+        </div>
+        <div className='spacer5'/>
+
+        <label style={{verticalAlign: 'baseline'}} className="right-pad">Destination</label>
+        <div className="ui input" >
+          <input type="text" style={{width: 300,padding: '.3em 1em'}} value={state.out.destination} onChange={e=>this.handleChange(e,'destination')}/>
+        </div>
+        <Button icon='folder' onClick={_=>{
+          const key = Math.random().toString()
+          ipc.send('show-dialog-exploler',key,{defaultPath:state.out.destination || defaultData.defaultDownloadPath})
+          ipc.once(`show-dialog-exploler-reply_${key}`,(event,ret)=>{
+            console.log(ret)
+            state.out.destination = ret
+            this.setState({})
+          })
+        }}/>
+
+        <label style={{verticalAlign: 'baseline', paddingLeft: 10, paddingRight: 10}} className="right-pad">FileName</label>
+        <div className="ui input">
+          <input type="text" style={{width: 300, padding: '.3em 1em'}} value={state.out.fileName} onChange={e=>this.handleChange(e,'fileName')}/>
+        </div>
+
+        <div className='spacer5'/>
+
+        <label style={{verticalAlign: 'baseline', paddingRight: 19}} >Container</label>
+        <Dropdown selection disabled={isAudioExtract} options={this.makeValues2(['MP4','mp4'],['MKV','mkv'])} value={state.out.FileFormat} onChange={(e,data)=>this.handleChange2(e,'FileFormat',data)}/>
+
+        <Checkbox style={{verticalAlign: 'middle'}} toggle disabled={isAudioExtract} checked={state.out.Mp4HttpOptimize} onChange={(e,data)=>this.handleChange2(e,'Mp4HttpOptimize',data)}/>
         <span style={{verticalAlign: 'text-bottom'}} className="toggle-label">Web Optimized</span>
 
-        <Checkbox style={{verticalAlign: 'middle'}} toggle checked={state.out.Mp4iPodCompatible}  onChange={(e,data)=>this.handleChange2(e,'Mp4iPodCompatible',data)}/>
+        <Checkbox style={{verticalAlign: 'middle'}} toggle disabled={isAudioExtract} checked={state.out.Mp4iPodCompatible}  onChange={(e,data)=>this.handleChange2(e,'Mp4iPodCompatible',data)}/>
         <span style={{verticalAlign: 'text-bottom'}} className="toggle-label">iPod 5G Support</span>
       </div>
 
       <div className='spacer2'/>
 
-      <div>
+      {state.out.PresetName ? <div>
         <div onClick={this.selectChange} aligned="left" className="ui attached tabular menu">
-          <a className={this.tabClass('Picture')}>Picture</a>
-          <a className={this.tabClass('Filters')}>Filters</a>
-          <a className={this.tabClass('Video')}>Video</a>
+          {isAudioExtract ? [] : [<a className={this.tabClass('Picture')}>Picture</a>,
+            <a className={this.tabClass('Filters')}>Filters</a>,
+            <a className={this.tabClass('Video')}>Video</a>]}
           <a className={this.tabClass('Audio')}>Audio</a>
         </div>
         {this.tabs[this.state.activeTab]()}
-      </div>
+      </div> : null}
 
     </div>
   }
@@ -992,10 +1225,21 @@ class Converter extends React.Component {
     if((state.out.PresetName) == preset) return
 
     const newPreset = findPreset(preset)
-    newPreset.keepAspectRatio = true
+
+    newPreset.PictureKeepRatio = state.out.PictureKeepRatio
+    newPreset.destination = state.out.destination
+    newPreset.fileName = state.out.fileName
+    newPreset.startAt = state.out.startAt
+    newPreset.stopAt = state.out.stopAt
+
+    if(newPreset.PictureKeepRatio){
+      const ar = aspect(state.video.width,state.video.height)
+      newPreset.PictureWidth =  Math.round(newPreset.PictureHeight / ar[1] * ar[0])
+    }
 
     defaultData.defaultVideoPreset = preset
     state.out = newPreset
+    ipc.send('save-state',{tableName:'state',key:'defaultVideoPreset',val: preset})
     this.setState({})
   }
 

@@ -755,3 +755,17 @@ div.item.favorite>ul>li>div>ul{
 .sort-screenshot{
     vertical-align: -2px;
 }
+
+.ui.radio.checkbox input:checked~label:after {
+    margin-left: 1px;
+    margin-top: 1px;
+}
+
+li.preset{
+    flex: 1 1 0%;
+    display: initial;
+}
+
+li.preset.val:hover{
+    background-color: #f8f9fa;
+}

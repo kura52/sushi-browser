@@ -5,10 +5,10 @@ import {ipcRenderer as ipc} from 'electron';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import uuid from 'node-uuid';
-import Selection from '../render/react-selection/indexTable'
+import Selection from '../render/react-selection/indexTable';
 import path from 'path';
 
-import ReactTable from 'react-table'
+import ReactTable from 'react-table';
 
 const expand = require('brace-expansion');
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'

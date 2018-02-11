@@ -33,7 +33,7 @@ export default class FfmpegWrapper{
     const ret = await exec(`${binaryPath} -i ${shellEscape(this.filePath)}`)
     const m = ret.stdout.match(/: Audio: ([a-zA-Z\d]+)/)
 
-    const ext = m[1] == 'aac' ? 'm4a' : m[1] == 'vorbis' ? 'ogg' : m[1]
+    const ext = m[1] == 'aac' || m[1] == 'ac3' || m[1] == 'alac' ? 'm4a' : m[1] == 'vorbis' || m[1] == 'opus' ? 'ogg' : m[1]
 
     const dirName = path.dirname(this.filePath)
     const fnames = path.basename(this.filePath).split(".")
@@ -46,7 +46,7 @@ export default class FfmpegWrapper{
       fname = path.join(dirName,`${this.filePath}.${ext}`)
     }
 
-    let params = ['-i',this.filePath,'-vn','-acodec', 'copy', fname]
+    let params = ['-y','-i',this.filePath,'-vn','-acodec', 'copy', fname, '-threads', '0']
     console.log(binaryPath,params)
     this.ffmpeg = spawn(binaryPath,params)
 

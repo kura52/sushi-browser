@@ -290,6 +290,7 @@ export default class App extends React.Component {
                 <Menu.Item as='a' href={`${baseURL}/explorer.html`} key="file-explorer" name="File Explorer"/>
                 <Menu.Item as='a' href={`${baseURL}/terminal.html`} key="terminal" name="Terminal"/>
                 <Menu.Item as='a' href={`${baseURL}/settings.html`} key="settings" name={l10n.translation('settings')}/>
+                <Menu.Item as='a' href={`${baseURL}/converter.html`} key="converter" name="Video Converter"/>
               </Menu>
               <Input ref='input' icon='search' placeholder='Search...' size="small" onChange={::this.onChange}/>
             </div>

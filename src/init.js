@@ -185,6 +185,7 @@ app.on('ready', async ()=>{
 
 
     require('./ipcUtils')
+    require('./VideoConverter')
     require('./tabContextMenu')
     require('./syncLoop')
 
@@ -250,6 +251,7 @@ app.on('window-all-closed', function () {
         process.kill()
       }catch(e){}
     }
+    ipcMain.emit('handbrake-stop',null)
     global.__CHILD__.kill()
     app.quit()
   }
@@ -276,6 +278,7 @@ app.on('will-quit', (e) => {
         process.kill()
       }catch(e){}
     }
+    ipcMain.emit('handbrake-stop',null)
     global.__CHILD__.kill()
   }
   console.log(22222)

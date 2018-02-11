@@ -101,6 +101,7 @@ const settingDefault =  {
 
   //video convert
   defaultVideoPreset: 'Fast 1080p30',
+  defaultPopupSelect: 'video',
 
   //keyboard shortcut default
   keyQuit: 'CmdOrCtrl+Q',

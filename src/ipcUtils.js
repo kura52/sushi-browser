@@ -11,7 +11,6 @@ const seq = require('./sequence')
 const {state,favorite,tabState,visit,savedState} = require('./databaseFork')
 const db = require('./databaseFork')
 const FfmpegWrapper = require('./FfmpegWrapper')
-const VideoConverter = require('./VideoConverter')
 const defaultConf = require('./defaultConf')
 
 import path from 'path'
@@ -129,13 +128,15 @@ ipcMain.on('create-file',(event,key,path,isFile)=>{
 ipcMain.on('show-dialog-exploler',(event,key,info,tabId)=>{
   const cont = tabId !== 0 && (sharedState[tabId] || webContents.fromTabID(tabId))
   console.log(tabId,cont)
-  if(info.inputable || info.normal){
+  if(info.inputable || info.normal || info.convert){
     const key2 = uuid.v4();
     (cont ? event.sender : event.sender.hostWebContents).send('show-notification',
-      {id:(cont || event.sender).getId(),key:key2,title:info.title,text:info.text,
-        initValue:info.normal ? void 0 : info.initValue,
-        needInput:info.normal ? void 0 : info.needInput || [""],
-        option:info.normal ? void 0 : info.option || [""],
+      {id:(cont || event.sender).getId(),
+        key: key2, title: info.title, text: info.text,
+        initValue: info.normal ? void 0 : info.initValue,
+        needInput: info.normal || info.convert ? void 0 : info.needInput || [""],
+        convert: info.convert,
+        option: info.normal ? void 0 : info.option || [""],
         buttons : info.normal ? info.buttons : void 0})
 
     ipcMain.once(`reply-notification-${key2}`,(e,ret)=>{
@@ -279,7 +280,7 @@ ipcMain.on('open-favorite',async (event,key,dbKeys,tabId,type)=>{
     ipcMain.once('get-private-reply',(e,privateMode)=>{
       console.log(67866,JSON.stringify({urls:list.map(url=>{return {url}}), type: type == 'openInNewWindow' ? 'new-win' : type == 'openInNewWindowWithOneRow' ? 'one-row' : 'two-row'}))
       BrowserWindowPlus.load({id:win.id,sameSize:true,tabParam:JSON.stringify({urls:list.map(url=>{return {url}}),
-        type: type == 'openInNewWindow' ? 'new-win' : type == 'openInNewWindowWithOneRow' ? 'one-row' : 'two-row'})})
+          type: type == 'openInNewWindow' ? 'new-win' : type == 'openInNewWindowWithOneRow' ? 'one-row' : 'two-row'})})
     })
     win.webContents.send('get-private', (cont || event.sender).getId())
   }
@@ -858,12 +859,12 @@ ipcMain.on('change-tab-infos',(e,changeTabInfos)=> {
 })
 
 // ipcMain.on('need-get-inner-text',(e,key)=>{
-  // if(mainState.historyFull){
-  //   ipcMain.once('get-inner-text',(e,location,title,text)=>{
-  //     historyFull.update({location},{location,title,text,updated_at: Date.now()}, { upsert: true }).then(_=>_)
-  //   })
-  // }
-  // e.sender.send(`need-get-inner-text-reply_${key}`,mainState.historyFull)
+// if(mainState.historyFull){
+//   ipcMain.once('get-inner-text',(e,location,title,text)=>{
+//     historyFull.update({location},{location,title,text,updated_at: Date.now()}, { upsert: true }).then(_=>_)
+//   })
+// }
+// e.sender.send(`need-get-inner-text-reply_${key}`,mainState.historyFull)
 // })
 
 ipcMain.on('play-external',(e,url)=> open(url,mainState.sendToVideo))
@@ -882,7 +883,7 @@ ipcMain.on('download-m3u8',(e,url,fname,tabId,needInput)=>{
   ipcMain.once('start-pty-reply',(e,key)=>{
     ipcMain.emit(`send-pty_${key}`,null,`${isWin ? '& ' : ''}${shellEscape(youtubeDl)} --hls-prefer-native --ffmpeg-location=${shellEscape(ffmpeg)} -o ${shellEscape(downloadPath)} ${shellEscape(url)}\n`)
   })
-    e.sender.send('new-tab',tabId,'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html')
+  e.sender.send('new-tab',tabId,'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html')
 })
 
 let numVpn = 1
@@ -1331,26 +1332,6 @@ ipcMain.on('execCommand-copy',e=>{
 ipcMain.on('get-isMaximized',e=>{
   const win = BrowserWindow.fromWebContents(e.sender)
   e.returnValue = win.isMaximized() || win.isFullScreen()
-})
-
-ipcMain.on('ffmpeg-scan',async (e,key,files)=>{
-  const vc = new VideoConverter()
-  const arr = []
-  for(let file of files){
-    const result = await vc.ffmpegExe(`-i ${shellEscape(file)}`)
-    arr.push(result.stderr)
-  }
-  e.sender.send(`ffmpeg-scan-reply_${key}`,arr)
-})
-
-ipcMain.on('handbrake-start',async (e,key,videos)=>{
-  const vc = new VideoConverter()
-  const arr = []
-  for(let file of files){
-    const result = await vc.handbrakeSpawn(`-i ${shellEscape(file)}`)
-    arr.push(result.stderr)
-  }
-  e.sender.send(`handbrake-progress_${key}`,arr)
 })
 
 // ipcMain.on('send-keys',(e,keys)=>{

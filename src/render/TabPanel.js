@@ -18,6 +18,7 @@ const db = require('./databaseRender')
 const Notification = require('./Notification')
 const InputableDialog = require('./InputableDialog')
 const ImportDialog = require('./ImportDialog')
+const ConverterDialog = require('./ConverterDialog')
 import url from 'url'
 const BrowserWindowPlus = remote.require('./BrowserWindowPlus')
 const moment = require('moment')
@@ -67,6 +68,7 @@ const convertUrlMap = new Map([
   ['chrome://explorer-sidebar/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer_sidebar.html'],
   ['chrome://download/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html'],
   ['chrome://terminal/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html'],
+  ['chrome://converter/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html'],
   ['chrome://settings/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html'],
   ['chrome://settings#general','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general'],
   ['chrome://settings#search','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search'],
@@ -219,6 +221,7 @@ let historyMap = new Map([
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_history.html',['TabHistory','resource/file.png']],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html',['Explorer','resource/file.png']],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html',['Download','resource/file.png']],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html',['Video Converter','resource/file.png']],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html',['Terminal','resource/file.png']],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html',['History','resource/file.png']],
 ])
@@ -1542,12 +1545,12 @@ export default class TabPanel extends Component {
     }
     ipc.on('add-favorite', tab.events['add-favorite'])
 
-    tab.events['new-tab'] = (e, id, url, privateMode,k,last)=> {
+    tab.events['new-tab'] = (e, id, url, privateMode,k,last,openBackground)=> {
       if (!this.mounted) return
       if ((tab.wvId && id == tab.wvId) || (k == this.props.k && tab.key == this.state.selectedTab)) {
         global.openerQueue.push(id || this.state.tabs.find(t=>t.key == this.state.selectedTab).wvId)
         console.log(this)
-        const t = tabAdd(this, url, !alwaysOpenLinkBackground, privateMode || tab.privateMode,(void 0),tab.mobile,tab.adBlockThis,last);
+        const t = tabAdd(this, url, !alwaysOpenLinkBackground && !openBackground, privateMode || tab.privateMode,(void 0),tab.mobile,tab.adBlockThis,last);
         if(tab.sync){
           t.sync = uuid.v4()
           t.dirc = tab.dirc
@@ -3934,11 +3937,13 @@ export default class TabPanel extends Component {
                              fullscreen={this.props.fullscreen} bind={tab.bind} screenShot={this.screenShot}/>
               {num == 0 ? this.state.notifications.map((data,i)=>{
                 if(data.needInput){
-                  console.log(225,data)
                   return <InputableDialog data={data} key={i} k={this.props.k} delete={this.deleteNotification.bind(this,i)} />
                 }
                 else if(data.import){
                   return <ImportDialog data={data} key={i} k={this.props.k} delete={this.deleteNotification.bind(this,i)} />
+                }
+                else if(data.convert){
+                  return <ConverterDialog data={data} key={i} k={this.props.k} delete={this.deleteNotification.bind(this,i)} />
                 }
                 else{
                   return <Notification data={data} key={i} k={this.props.k} delete={this.deleteNotification.bind(this,i)} />

@@ -75,6 +75,15 @@ function equalArray2(a,b){
   return true
 }
 
+function showConvertDialog(url,fname,tabId,callback){
+  return new Promise((resolve,reject)=>{
+    const key = uuid.v4()
+    ipc.send('show-dialog-exploler',key,{convert: true, initValue:[url, fname]},tabId)
+    ipc.once(`show-dialog-exploler-reply_${key}`,(event,ret)=>{
+      callback(ret)
+    })
+  })
+}
 
 const tabs = new Set()
 
@@ -361,13 +370,15 @@ class BrowserNavbar extends Component{
     })()
   }
 
-  onMediaDownload(url,fname,audio,needInput){
+  onMediaDownload(url,fname,audio,needInput,convert){
     if(fname) ipc.send('set-save-path',url,fname)
     if(audio) ipc.send('set-audio-extract',url)
     if(needInput) ipc.send('need-set-save-filename',url)
+    if(convert) ipc.send('set-video-convert',url,convert)
     const cont = this.getWebContents(this.props.tab)
     cont.hostWebContents.downloadURL(url,true)
   }
+
 
   round(val, precision) {
     const digit = Math.pow(10, precision)
@@ -847,6 +858,14 @@ class BrowserNavbar extends Component{
               }}>
                 <i className="fa fa-download" aria-hidden="true"></i>
               </button>
+
+              {m3u8 ? null : <button className="play-btn" title="Download and Convert Video" onClick={e2=>{
+                e2.stopPropagation()
+                const p = e2.target.parentNode.parentNode;(e2.target.tagName == "I" ? p.parentNode : p).classList.remove("visible")
+                showConvertDialog(url, e.fname, this.props.tab.wvId, this.onMediaDownload.bind(this,url,e.fname,false,false))
+              }}>
+                <i className="fa fa-industry" aria-hidden="true"></i>
+              </button>}
 
               {m3u8 ? null : <button className="play-btn" title="Download Video and Extract Audio" onClick={e2=>{
                 e2.stopPropagation()
