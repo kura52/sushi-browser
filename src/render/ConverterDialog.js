@@ -78,7 +78,7 @@ export default class ConverterDialog extends Component{
         arr.push(<li key={i++} onClick={e=>this.setState({preset: e.target.textContent})} className="preset val" style={{paddingLeft: 8, ...this.activeStyle(x==this.state.preset)}}>{x}</li>)
       }
     }
-    return <ul style={{display: 'flex', flexWrap: 'wrap', flexDirection: 'column', maxHeight: 650,
+    return <ul style={{display: 'flex', flexWrap: 'wrap', flexDirection: 'column', maxHeight: 500,
       border: '1px solid #D4D4D5',borderRadius: 3, padding: '10px 20px 10px 20px'}}>{arr}</ul>
   }
   
@@ -106,7 +106,7 @@ export default class ConverterDialog extends Component{
 
   render(){
     console.log(this.props.data)
-    return <Modal dimmer={false} size="small" open={true}>
+    return <Modal dimmer={false} size="small" open={true} style={{width: 950, marginLeft: 'auto', marginRight: 'auto', left: 0, right: 0}}>
       <Modal.Header>Video Converter</Modal.Header>
       <Modal.Content>
         <Modal.Description>

@@ -8,8 +8,8 @@ const ffMpegBinaryPath = path.join(__dirname, `../resource/bin/ffmpeg/${process.
   .replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
 
 const handbrakeBinaryPath = path.join(__dirname, '../resource/bin/handbrake',
-  process.platform == 'win32' ? 'win/handbrake.exe' :
-    process.platform == 'darwin' ? 'mac/bin/handbrake' : 'linux/HandBrakeCLI').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
+  process.platform == 'win32' ? 'win/HandBrakeCLI.exe' :
+    process.platform == 'darwin' ? 'mac/HandBrakeCLI' : 'linux/HandBrakeCLI').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
 
 
 function execAsync(command) {

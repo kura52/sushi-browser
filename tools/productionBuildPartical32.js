@@ -10,7 +10,7 @@ const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'
 const isLinux = process.platform === 'linux'
 const outDir = 'release-packed'
-const arch = 'x64'
+const arch = 'ia32'
 const buildDir = `sushi-browser-${process.platform}-${arch}`
 console.log(buildDir)
 
@@ -22,6 +22,7 @@ if (isWindows) {
 } else {
   appIcon = 'res/app.png'
 }
+
 
 function escapeRegExp(string){
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
@@ -51,15 +52,20 @@ function filesContentsReplace(files,reg,after){
   }
 }
 
-function fixForInferno(file){
-  const contents2 = fs.readFileSync(file).toString()
-  let result2 = contents2.replace(/e\.nativeEvent/g,'(e.nativeEvent || e)').replace(/\(e.nativeEvent \|\| e\) =/g,'e.nativeEvent =')
-  fs.writeFileSync(file,result2)
-}
 
 function build(){
-  const platform = isLinux ? 'linux' : isWindows ? 'win32' : isDarwin ? 'darwin' : 'mas'
+  const platform = isLinux ? 'darwin,linux' : isWindows ? 'win32' : isDarwin ? 'darwin' : 'mas'
   const ret = sh.exec(`node ./node_modules/electron-packager/cli.js . ${isWindows ? 'brave' : 'sushi-browser'} --platform=${platform} --arch=x64 --overwrite --icon=${appIcon} --version=${MUON_VERSION}  --asar=true --app-version=${APP_VERSION} --build-version=${MUON_VERSION} --protocol="http" --protocol-name="HTTP Handler" --protocol="https" --protocol-name="HTTPS Handler" --version-string.ProductName="Sushi Browser" --version-string.Copyright="Copyright 2017, Sushi Browser" --version-string.FileDescription="Sushi" --asar-unpack-dir="{node_modules/{node-pty,youtube-dl/bin},node_modules/node-pty/**/*,resource/{bin,extension}/**/*}" --ignore="\\.(cache|babelrc|gitattributes|githug|gitignore|gitattributes|gitignore|gitkeep|gitmodules)|node_modules/(electron-installer-squirrel-windows|electron-installer-debian|node-gyp|npm|electron-download|electron-rebuild|electron-packager|electron-builder|electron-prebuilt|electron-rebuild|electron-winstaller-fixed|muon-winstaller|electron-installer-redhat|react-addons-perf|babel-polyfill|infinite-tree|babel-register|jsx-to-string|happypack|es5-ext|browser-sync-ui|gulp-uglify|devtron|electron$|deasync|webpack|babel-runtime|uglify-es|babel-plugin|7zip-bin|webdriverio|semantic-ui-react/(node_modules|src)|semantic-ui-react/dist/(commonjs|umd)|babili|babel-helper|react-dom|react|@types|@gulp-sourcemaps|js-beautify)|tools|sushi-browser-|release-packed|cppunitlite|happypack|es3ify"`)
+
+  if(ret.code !== 0) {
+    console.log("ERROR2")
+    process.exit()
+  }
+
+  if (isWindows) {
+    sh.mv(`brave-${process.platform}-${arch}`, buildDir)
+    sh.mv(`${buildDir}/brave.exe`, `${buildDir}/sushi.exe`)
+  }
 
   const pwd = sh.pwd().toString()
   if(isDarwin){
@@ -79,17 +85,23 @@ function build(){
   sh.rm('-rf','app/node_modules/youtube-dl/bin')
   // sh.cp(`${pwd}/resource/extensions.txt`, `app.asar.unpacked/resource/.`)
 
+
   sh.mv('app/resource/css/semantic-ui/themes/default/assets','app/resource/css/semantic-ui/themes/default/assets2')
   sh.mv('app.asar.unpacked/resource/extension/default/1.0_0/css/semantic-ui/themes/default/assets',
     'app.asar.unpacked/resource/extension/default/1.0_0/css/semantic-ui/themes/default/assets2')
-  sh.mv(`${pwd}/${buildDir}/LICENSE`,`${pwd}/${buildDir}/_LICENSE`)
-  sh.exec(`~/.go/bin/node-prune ${pwd}/${buildDir}`)
-  sh.mv(`${pwd}/${buildDir}/_LICENSE`,`${pwd}/${buildDir}/LICENSE`)
+  if(isDarwin){
+    sh.exec(`~/go/bin/node-prune ${pwd}/${buildDir}`)
+  }
+  else{
+    sh.mv(`${pwd}/${buildDir}/LICENSE`,`${pwd}/${buildDir}/_LICENSE`)
+    sh.exec(`C:/Users/kura5/go/bin/node-prune ${pwd}/${buildDir}`)
+    sh.mv(`${pwd}/${buildDir}/_LICENSE`,`${pwd}/${buildDir}/LICENSE`)
+    sh.rm(`${pwd}/${buildDir}/LICENSES.chromium.html`)
+  }
+
   sh.mv('app.asar.unpacked/resource/extension/default/1.0_0/css/semantic-ui/themes/default/assets2',
     'app.asar.unpacked/resource/extension/default/1.0_0/css/semantic-ui/themes/default/assets')
   sh.mv('app/resource/css/semantic-ui/themes/default/assets2','app/resource/css/semantic-ui/themes/default/assets')
-  sh.rm(`${pwd}/${buildDir}/LICENSES.chromium.html`)
-
   if(sh.exec('asar pack app app.asar').code !== 0) {
     console.log("ERROR7")
     process.exit()
@@ -99,58 +111,35 @@ function build(){
 
   muonModify()
 
-  if(ret.code !== 0) {
-    console.log("ERROR2")
-    process.exit()
-  }
-
-
   if (isWindows) {
-    sh.mv(`brave-${process.platform}-${arch}`,buildDir)
-    sh.mv(`${buildDir}/brave.exe`,`${buildDir}/sushi.exe`)
     const muonInstaller = require('muon-winstaller')
     const resultPromise = muonInstaller.createWindowsInstaller({
       appDirectory: buildDir,
       outputDirectory: outDir,
       title: 'Sushi Browser',
       authors: 'kura52',
+      loadingGif: 'res/install.gif',
       // loadingGif: 'res/brave_splash_installing.gif',
       setupIcon: 'res/app.ico',
-      // iconUrl: 'https://brave.com/favicon.ico',
+      iconUrl: 'https://sushib.me/favicon.ico',
       // signWithParams: format('-a -fd sha256 -f "%s" -p "%s" -t http://timestamp.verisign.com/scripts/timstamp.dll', path.resolve(cert), certPassword),
       noMsi: true,
       exe: 'sushi.exe'
     })
     resultPromise.then(() => {
-      sh.mv(`${outDir}/Setup.exe`,`${outDir}/sushi-browser-setup-${arch}.exe`)
+      // sh.mv(`${outDir}/Setup.exe`,`${outDir}/sushi-browser-setup-${arch}.exe`)
     }, (e) => console.log(`No dice: ${e.message}`))
   }
-  else if (isDarwin) {
 
-  }
-  else if(isLinux){
-    [`./node_modules/.bin/electron-installer-debian --src ${buildDir}/ --dest ${outDir}/ --arch amd64 --config res/linuxPackaging.json`,
-      `./node_modules/.bin/electron-installer-redhat --src ${buildDir}/ --dest ${outDir}/ --arch x86_64 --config res/linuxPackaging.json`,
-      `tar -jcvf ${outDir}/sushi-browser-${APP_VERSION}.tar.bz2 ./${buildDir}`].forEach(cmd=>{
-      sh.exec(cmd, {async:true}, (code, stdout, stderr) => {
-
-      })
-    })
-  }
 }
 
 function muonModify(){
   const dircs = []
   const pwd = sh.pwd().toString()
-  if (isWindows) {
-    dircs.push(buildDir)
-  }
-  else if(isLinux){
-    dircs.push(buildDir)
-    dircs.push(`sushi-browser-darwin-${arch}`)
-  }
+  dircs.push(buildDir)
   for(let dirc of dircs){
     const paths = glob.sync(`${pwd}/${dirc}/**/electron.asar`)
+    console.log(paths)
     if(paths.length == 1){
       const base = paths[0].split("/").slice(0,-1).join("/")
       sh.cd(`${base}`)
@@ -377,41 +366,41 @@ var getTabValue = function (tabId) {`)
   }`)
       fs.writeFileSync(file,result)
 
-//       const initFile = path.join(sh.pwd().toString(),sh.ls('electron/browser/init.js')[0])
-//       const contents2 = fs.readFileSync(initFile).toString()
-//       const result2 = contents2
-//         .replace('let packagePath = null',`let packagePath
-// const basePath = path.join(__dirname,'../..')
-// if(!fs.existsSync(path.join(basePath,'app.asar'))){
-//   const binPath = path.join(basePath,\`7zip/\${process.platform === 'win32' ? 'win' : process.platform === 'darwin' ? 'mac' : 'linux'}/7za\`)
-//   const execSync = require('child_process').execSync
-//   const dataPath = path.join(basePath,'app.asar.unpacked.7z')
-//   const result =  execSync(\`\${binPath} x -o\${basePath} \${dataPath}\`)
-//   fs.unlinkSync(dataPath)
-//
-//   const dataPath2 = path.join(basePath,'app.asar.7z')
-//   const result2 =  execSync(\`\${binPath} x -o\${basePath} \${dataPath2}\`)
-//   fs.unlinkSync(dataPath2)
-//
-//   fs.renameSync(path.join(basePath,'app'),path.join(basePath,'_app'))
-// }`)
-//       fs.writeFileSync(initFile,result2)
-//       sh.mv('app.asar.unpacked/resource/bin/7zip','.')
-//
-//       if(sh.exec('7z a -t7z -mx=9 app.asar.unpacked.7z app.asar.unpacked').code !== 0) {
-//         console.log("ERROR1")
-//         process.exit()
-//       }
-//       sh.rm('-rf','app.asar.unpacked')
-//
-//       if(sh.exec('7z a -t7z -mx=9 app.asar.7z app.asar').code !== 0) {
-//         console.log("ERROR2")
-//         process.exit()
-//       }
-//       sh.rm('-rf','app.asar')
-//
-//       sh.mkdir('app')
-//       sh.cp('../../package.json','app/.')
+      const initFile = path.join(sh.pwd().toString(),sh.ls('electron/browser/init.js')[0])
+      const contents2 = fs.readFileSync(initFile).toString()
+      const result2 = contents2
+        .replace('let packagePath = null',`let packagePath
+const basePath = path.join(__dirname,'../..')
+if(!fs.existsSync(path.join(basePath,'app.asar'))){
+  const binPath = path.join(basePath,\`7zip/\${process.platform === 'win32' ? 'win' : process.platform === 'darwin' ? 'mac' : 'linux'}/7za\`)
+  const execSync = require('child_process').execSync
+  const dataPath = path.join(basePath,'app.asar.unpacked.7z')
+  const result =  execSync(\`\${binPath} x -o"\${basePath}" "\${dataPath}"\`)
+  fs.unlinkSync(dataPath)
+  
+  const dataPath2 = path.join(basePath,'app.asar.7z')
+  const result2 =  execSync(\`\${binPath} x -o"\${basePath}" "\${dataPath2}"\`)
+  fs.unlinkSync(dataPath2)
+  
+  fs.renameSync(path.join(basePath,'app'),path.join(basePath,'_app'))
+}`)
+      fs.writeFileSync(initFile,result2)
+      sh.mv('app.asar.unpacked/resource/bin/7zip','.')
+
+      if(sh.exec(`${isWindows ? '"C:/Program Files/7-Zip/7z.exe"' : '7z'} a -t7z -mx=9 app.asar.unpacked.7z app.asar.unpacked`).code !== 0) {
+        console.log("ERROR1")
+        process.exit()
+      }
+      sh.rm('-rf','app.asar.unpacked')
+
+      if(sh.exec(`${isWindows ? '"C:/Program Files/7-Zip/7z.exe"' : '7z'} a -t7z -mx=9 app.asar.7z app.asar`).code !== 0) {
+        console.log("ERROR2")
+        process.exit()
+      }
+      sh.rm('-rf','app.asar')
+
+      sh.mkdir('app')
+      sh.cp('../../package.json','app/.')
 
       const file3 = path.join(sh.pwd().toString(),sh.ls('electron/browser/rpc-server.js')[0])
 
@@ -432,240 +421,39 @@ var getTabValue = function (tabId) {`)
   sh.cd(pwd)
 }
 
-const RELEASE_DIRECTORY = 'sushi-browser-release'
+const RELEASE_DIRECTORY = 'sushi-browser-release32'
 const start = Date.now()
 sh.cd('../../')
-
-// Create release directory
-sh.rm('-rf', RELEASE_DIRECTORY);
-sh.cp('-R', 'sushi-browser', RELEASE_DIRECTORY)
-
 
 // Move base directory
 sh.cd(RELEASE_DIRECTORY)
 const pwd = sh.pwd().toString()
 console.log(pwd)
 
-// sh.rm('-rf','sushi-browser-*')
-// build()
-
-
-
-// Remove No Develop Directory
-sh.rm('-rf', 'release-packed')
-sh.mkdir('release-packed')
-sh.rm('-rf', 'lib')
-sh.rm('-rf', 'dist')
-sh.rm('-rf', '.git')
-sh.rm('-rf', '.idea')
-sh.rm('-rf', 'ja')
-sh.rm('-rf', 'README.md')
-sh.rm('resource/extension/default/1.0_0/js/vendor.dll.js')
-
-sh.rm('-rf','resource/bin/aria2/mac')
-sh.rm('-rf','resource/bin/aria2/win')
-sh.rm('-rf','resource/bin/aria2/win32')
-
-sh.rm('-rf','resource/bin/ffmpeg/mac')
-sh.rm('-rf','resource/bin/ffmpeg/win')
-sh.rm('-rf','resource/bin/ffmpeg/win32')
-
-sh.rm('-rf','resource/bin/handbrake/mac')
-sh.rm('-rf','resource/bin/handbrake/win')
-sh.rm('-rf','resource/bin/handbrake/win32')
-
-sh.rm('-rf','resource/bin/7zip/mac')
-sh.rm('-rf','resource/bin/7zip/win')
-sh.rm('-rf','resource/bin/7zip/win32')
-
 glob.sync(`${pwd}/**/*.js.map`).forEach(file=>{
   fs.unlinkSync(file)
 })
 
-const chrome_valid = new RegExp(`^(${['994289308992179865',
-  '1725149567830788547',
-  '4643612240819915418',
-  '4256316378292851214',
-  '2019718679933488176',
-  '782057141565633384',
-  '5116628073786783676',
-  '1465176863081977902',
-  '3007771295016901659',
-  '5078638979202084724',
-  '4589268276914962177',
-  '3551320343578183772',
-  '2448312741937722512',
-  '1524430321211440688',
-  '42126664696688958',
-  '2663302507110284145',
-  '3635030235490426869',
-  '4888510611625056742',
-  '5860209693144823476',
-  '5846929185714966548',
-  '7955383984025963790',
-  '3128230619496333808',
-  '3391716558283801616',
-  '6606070663386660533',
-  '9011178328451474963',
-  '9065203028668620118',
-  '2473195200299095979',
-  '1047431265488717055',
-  '9218430445555521422',
-  '8926389886865778422',
-  '2893168226686371498',
-  '4289540628985791613',
-  '3095995014811312755',
-  '59174027418879706',
-  '6550675742724504774',
-  '5453029940327926427',
-  '4989966318180235467',
-  '6326175484149238433',
-  '9147392381910171771',
-  '8260864402787962391',
-  '8477384620836102176',
-  '7701040980221191251',
-  '6146563240635539929',
-  '8026334261755873520',
-  '1375321115329958930',
-  '5513242761114685513',
-  '5582839680698949063',
-  '5317780077021120954',
-  '8986267729801483565',
-  '8888432776533519951',
-  '5431318178759467895'].join("|")})`)
+sh.rm('-rf','resource/bin/7zip/linux')
+sh.rm('-rf','resource/bin/aria2/linux')
+sh.rm('-rf','resource/bin/ffmpeg/linux')
+sh.rm('-rf','resource/bin/handbrake/linux')
 
-
-
-glob.sync(`${pwd}/resource/extension/default/1.0_0/locales/**/chrome.properties`).forEach(file=>{
-  const datas = fs.readFileSync(file).toString()
-  const ret = []
-  for(let line of datas.split("\n")){
-    if(line.match(chrome_valid)) ret.push(line)
-  }
-  fs.writeFileSync(file, ret.join("\n"))
-})
-
-
-// Remove vender-all
-const htmls = glob.sync(`${pwd}/resource/extension/default/**/*.html`).concat(glob.sync(`${pwd}/*.html`))
-for(let html of htmls){
-  filesContentsReplace(html,/<script src="js\/vendor\.dll\.js"><\/script>/,'<!--<script src="js/vendor.dll.js"></script>-->')
-  filesContentsReplace(html,/<script src="dist\/vendor\.dll\.js"><\/script>/,'<!--<script src="dist/vendor.dll.js"></script>-->')
-  filesContentsReplace(html,/<!--<!--<script src="js\/vendor\.dll\.js"><\/script>-->-->/,'<!--<script src="js/vendor.dll.js"></script>-->')
-  filesContentsReplace(html,/<!--<!--<script src="dist\/vendor\.dll\.js"><\/script>-->-->/,'<!--<script src="dist/vendor.dll.js"></script>-->')
-}
-
-filesContentsReplace(`${pwd}/brave/extension/extensions.js`,/true \|\| !fs.existsSync\(appPath\)/,'!fs.existsSync(appPath)')
-
-// development to production
-filesContentsReplace([`${pwd}/index.html`,`${pwd}/resource/extension/default/1.0_0/js/process.js`],
-  /env : {NODE_ENV: 'development'},/,"env : {NODE_ENV: 'production'},")
-
-const webpackFile = `${pwd}/webpack.config.js`
-filesContentsReplace(webpackFile,/\/\/ +?merge\(/,'merge(')
-filesContentsReplace(webpackFile,/\/\/ +?baseConfig2.plugins.shift()/,'baseConfig2.plugins.shift()')
-filesContentsReplace(webpackFile,/\/\/ +?new webpack\.DefinePlugin\({'process.env':/,"new webpack.DefinePlugin({'process.env':")
-filesContentsReplace(webpackFile,/new webpack\.DllReferencePlugin/,'// new webpack.DllReferencePlugin')
-filesContentsReplace(webpackFile,/devtool:/,'// devtool:')
-
-
-// Remove hidden file
-glob.sync(`${pwd}/**/.directory`).forEach(file=>{
-  if(file.includes(RELEASE_DIRECTORY)){
-    sh.rm(file)
-  }
-})
-
-// Replace console.log
-const jsFiles = glob.sync(`${pwd}/src/**/*.js`)
-filesContentsReplace(jsFiles,/console\.log\(/,'//debug(')
-filesContentsReplace(jsFiles,/window.debug = require\('debug'\)\('info'\)/,"// window.debug = require('debug')('info')")
-filesContentsReplace(jsFiles,/global.debug = require\('debug'\)\('info'\)/,"// global.debug = require('debug')('info')")
-filesContentsReplace(jsFiles,/extensions.init\(true\)/,"extensions.init(setting.ver !== fs.readFileSync(path.join(__dirname, '../VERSION.txt')).toString())")
-
-const jsFiles2 = glob.sync(`${pwd}/brave/**/*.js`)
-filesContentsReplace(jsFiles2,/console\.log\(/,'//debug(')
-
-// Babel Use babili
-filesContentsReplace(`${pwd}/.babelrc`,/"babel\-preset\-stage\-2"\]/,'"babel-preset-stage-2","babili"]')
-filesContentsReplace(`${pwd}/.babelrc`,'] // ,["lodash", { "id": ["lodash", "semantic-ui-react"] }]]',',["lodash", { "id": ["lodash", "semantic-ui-react"] }]]')
-
-console.log((Date.now() - start)/1000)
-
+const plat = isWindows ? 'win32' : isDarwin ? 'mac' : 'linux'
+sh.cp('-Rf',`../bin/7zip/${plat}`,'resource/bin/7zip/.')
+sh.cp('-Rf',`../bin/aria2/${plat}`,'resource/bin/aria2/.')
+sh.cp('-Rf',`../bin/ffmpeg/${plat}`,'resource/bin/ffmpeg/.')
+sh.cp('-Rf',`../bin/handbrake/${plat}`,'resource/bin/handbrake/.')
+sh.mkdir('-p', 'resource/bin/widevine');
+sh.cp('-Rf',`../bin/widevine/${plat}`,'resource/bin/widevine/.')
 
 filesContentsReplace(`${pwd}/node_modules/youtube-dl/lib/youtube-dl.js`,"path.join(__dirname, '..', 'bin/details')","path.join(__dirname, '..', 'bin/details').replace(/app.asar([\\/\\\\])/,'app.asar.unpacked$1')")
 filesContentsReplace(`${pwd}/node_modules/youtube-dl/lib/youtube-dl.js`,"(details.path) ? details.path : path.resolve(__dirname, '..', 'bin', details.exec)","((details.path) ? details.path : path.resolve(__dirname, '..', 'bin', details.exec)).replace(/app.asar([\\/\\\\])/,'app.asar.unpacked$1')")
 
 
-// Build Files
-const compiledJsFiles = ['resource/extension/default/1.0_0/js/top.js',
-  // 'resource/extension/default/1.0_0/js/download.js',
-  'resource/extension/default/1.0_0/js/downloader.js',
-  'resource/extension/default/1.0_0/js/selector.js',
-  'resource/extension/default/1.0_0/js/history.js',
-  'resource/extension/default/1.0_0/js/tabHistorySidebar.js',
-  'resource/extension/default/1.0_0/js/historySidebar.js',
-  'resource/extension/default/1.0_0/js/explorerMenu.js',
-  'resource/extension/default/1.0_0/js/explorerSidebar.js',
-  'resource/extension/default/1.0_0/js/favoriteInit.js',
-  'resource/extension/default/1.0_0/js/favoriteSidebar.js',
-  'resource/extension/default/1.0_0/js/terminal.js',
-  'resource/extension/default/1.0_0/js/sync.js',
-  'resource/extension/default/1.0_0/js/settings.js',
-  'lib/render/base.js']
+build()
 
-filesContentsReplace(webpackFile,/merge\({fileName:"([^b])/,'// merge({fileName:"$1')
-
-
-sh.exec('node ./node_modules/gulp/bin/gulp.js --color --gulpfile gulpfile.release.js default', {async:true}, (code, stdout, stderr) => {
-})
-
-if(sh.exec('webpack').code !== 0) {
-  console.log("ERROR1")
-  process.exit()
+if(isWindows){
+  sh.mv(`${outDir}/sushi-browser-setup-ia32.exe`,`${outDir}/sushi-browser-${APP_VERSION}-setup-ia32.exe`)
+  sh.exec(`"C:/Program Files/7-Zip/7z.exe" a sushi-browser-${APP_VERSION}-win-ia32.zip sushi-browser-win32-ia32`)
 }
-
-filesContentsReplace(`${pwd}/.babelrc`,/"babel\-preset\-stage\-2","babili"\]/,'"babel-preset-stage-2"]')
-
-const promises = []
-
-for(let f of compiledJsFiles.slice(0,-1)){
-  filesContentsReplace(webpackFile,/\/\/ +?merge\(/,'merge(')
-  filesContentsReplace(webpackFile,/merge\({/,'// merge({')
-  const fsplit = f.split("/")
-  const fname = fsplit[fsplit.length - 1]
-  const webpackName = `webpack.${fname}.config.js`
-  sh.cp('webpack.config.js',webpackName)
-  filesContentsReplace(`${pwd}/${webpackName}`,new RegExp(`// merge\\({fileName:"(${fname})`),'merge({fileName:"$1')
-
-  const promise = new Promise((resolve,reject)=>{
-    console.log(`webpack --config ${webpackName}`)
-    sh.exec(`webpack --config ${webpackName}`, {async:true}, (code, stdout, stderr) => {
-      resolve()
-    })
-  })
-  promises.push(promise)
-}
-
-//Uglify build files
-Promise.all(promises).then(_=>{
-  compiledJsFiles.forEach(f=>fixForInferno(`${pwd}/${f}`))
-
-  const promises = []
-  const uglifyFiles = compiledJsFiles.slice(0,-1)
-  for(let f of uglifyFiles){
-    const promise = new Promise((resolve,reject)=>{
-      sh.exec(`uglifyjs --compress --mangle -o ${f} -- ${f}`, {async:true}, (code, stdout, stderr) => {
-        resolve()
-      })
-    })
-    promises.push(promise)
-  }
-
-  Promise.all(promises).then(_ => {
-    sh.rm('-rf','sushi-browser-*')
-    build()
-
-  })
-})
-
