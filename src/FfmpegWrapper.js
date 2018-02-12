@@ -30,7 +30,7 @@ export default class FfmpegWrapper{
 
   async exe(callBack){
     console.log(111,this.filePath,`${binaryPath} -i ${shellEscape(this.filePath)}`)
-    const ret = await exec(`${binaryPath} -i ${shellEscape(this.filePath)}`)
+    const ret = await exec(`"${binaryPath}" -i ${shellEscape(this.filePath)}`)
     const m = ret.stdout.match(/: Audio: ([a-zA-Z\d]+)/)
 
     const ext = m[1] == 'aac' || m[1] == 'ac3' || m[1] == 'alac' ? 'm4a' : m[1] == 'vorbis' || m[1] == 'opus' ? 'ogg' : m[1]

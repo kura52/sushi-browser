@@ -95,7 +95,7 @@ ipcMain.on('ffmpeg-scan',async (e,key,files)=>{
 class FFmpegScan{
   exe(command) {
     return new Promise(function(resolve, reject) {
-      exec(`${ffMpegBinaryPath} ${command}`,(error, stdout, stderr)=>{
+      exec(`"${ffMpegBinaryPath}" ${command}`,(error, stdout, stderr)=>{
         if (error) {
           resolve({stdout, stderr, error});
         }
