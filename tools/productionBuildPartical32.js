@@ -375,11 +375,11 @@ if(!fs.existsSync(path.join(basePath,'app.asar'))){
   const binPath = path.join(basePath,\`7zip/\${process.platform === 'win32' ? 'win' : process.platform === 'darwin' ? 'mac' : 'linux'}/7za\`)
   const execSync = require('child_process').execSync
   const dataPath = path.join(basePath,'app.asar.unpacked.7z')
-  const result =  execSync(\`\${binPath} x -o"\${basePath}" "\${dataPath}"\`)
+  const result =  execSync(\`"\${binPath}" x -o"\${basePath}" "\${dataPath}"\`)
   fs.unlinkSync(dataPath)
   
   const dataPath2 = path.join(basePath,'app.asar.7z')
-  const result2 =  execSync(\`\${binPath} x -o"\${basePath}" "\${dataPath2}"\`)
+  const result2 =  execSync(\`"\${binPath}" x -o"\${basePath}" "\${dataPath2}"\`)
   fs.unlinkSync(dataPath2)
   
   fs.renameSync(path.join(basePath,'app'),path.join(basePath,'_app'))

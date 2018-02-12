@@ -56,7 +56,9 @@ const m = {
   },
 
   clearFavorite(){
-    favorite.remove({}, { multi: true }).then(_=>_)
+    favorite.remove({}, { multi: true }).then(_=>{
+      favorite.insert({"is_file":false,"title":"root","updated_at":1497713000000,"children":[],"key":"root","_id":"zplOMCoNb1BzCt15"})
+    })
   }
 }
 

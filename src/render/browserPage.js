@@ -294,7 +294,7 @@ class BrowserPage extends Component {
     return <div className="browser-page" ref="browserPage"  onKeyDown={::this.onHandleKeyDown}>
       <BrowserPageSearch isActive={this.state.isSearching} onPageSearch={::this.onPageSearch} progress={this.state.result_string} onClose={::this.onClose}/>
       <webview ref="webview" className={`w${this.props.k2}`} data-key={this.props.k} src={this.props.tab.privateMode ? (void 0) : this.state.src}/>
-      <AutofillPopup k={this.props.k} pos={this.props.pos}/>
+      <AutofillPopup k={this.props.k}/>
     </div>
   }
 }

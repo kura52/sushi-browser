@@ -109,9 +109,9 @@ export default class AutofillPopup extends Component {
   }
 
   render(){
-    const style = this.state.datas.rect ? {position:'fixed',
-      top:this.state.datas.rect.y + this.state.datas.rect.height + this.props.pos.top - 4,
-      left:this.state.datas.rect.x +  + this.props.pos.left} : {}
+     const style = this.state.datas.rect ? {position:'fixed',
+      top:this.state.datas.rect.y + this.state.datas.rect.height,
+      left:this.state.datas.rect.x } : {}
     return <div className="search ui" style={style}>
       <div ref="autofill" className={`results transition ${this.state.datas.suggestions ? 'visible' : 'hidden'}`} style={{width: "auto",borderRadius: 0}}>
         {this.state.datas.suggestions ? this.state.datas.suggestions.map((data,i)=>{

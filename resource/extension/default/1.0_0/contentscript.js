@@ -198,7 +198,7 @@ if(started){
     })
   }
   const videoFunc = (e,inputs)=>{
-    for(let url of inputs.blackList){
+    for(let url of (inputs.blackList || [])){
       if(url && location.href.startsWith(url)) return
     }
     const popUp = (v,text)=>{

@@ -1147,11 +1147,11 @@ class Converter extends React.Component {
       <div className="field">
         <label className="bold right-pad">Time</label>
         <div className="ui input">
-          <input type="time" min="00:00:00" max={state.out.stopAt || state.video.duration} value={state.out.startAt || "00:00:00"} step="1" onChange={e=>this.handleChange(e,'startAt')} />
+          <input type="text" min="00:00:00" max={state.out.stopAt || state.video.duration} value={state.out.startAt || "00:00:00"} step="1" onChange={e=>this.handleChange(e,'startAt')} />
         </div>
         &nbsp;〜&nbsp;
         <div className="ui input">
-          <input type="time" min="00:00:00" max={state.video.duration} value={state.out.stopAt || state.video.duration} step="1" onChange={e=>this.handleChange(e,'stopAt')}/>
+          <input type="text" min="00:00:00" max={state.video.duration} value={state.out.stopAt || state.video.duration} step="1" onChange={e=>this.handleChange(e,'stopAt')}/>
         </div>
       </div>
 

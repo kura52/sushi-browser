@@ -32,7 +32,6 @@ let adblock,httpsEverywhere,trackingProtection,extensions,videoProcessList = []
 //   console.log('unhandledRejection', error);
 // });
 
-
 function exec(command) {
   console.log(command)
   return new Promise(function(resolve, reject) {
