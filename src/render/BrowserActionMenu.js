@@ -7,6 +7,7 @@ const {remote} = require('electron')
 const {Menu} = remote
 const {messages,locale} = require('./localAndMessage')
 let [defaultIcons,popups,bgs,titles,texts] = ipc.sendSync('get-sync-main-states',['browserActionDefaultIcons','browserActionPopups','browserActionBgs','browserActionTitles','browserActionTexts'])
+const LRUCache = require('lru-cache')
 
 ipc.on('chrome-browser-action-set-ipc-all',(e,extensionId,name,val) => {
   if(val.path){
@@ -15,7 +16,12 @@ ipc.on('chrome-browser-action-set-ipc-all',(e,extensionId,name,val) => {
     defaultIcons[extensionId] = _icon
   }
   else if(val.popup){
-    popups[extensionId] = val.popup
+    if(val.popup === ""){
+      delete popups[extensionId]
+    }
+    else{
+      popups[extensionId] = val.popup
+    }
   }
   else if(val.color){
     if(Array.isArray(val.color)){
@@ -135,6 +141,12 @@ export default class BrowserActionMenu extends Component{
     const icon = `${values.basePath}/${defaultIcons[props.id] ? defaultIcons[props.id] : values.default_icon ? (typeof values.default_icon === "object" ? Object.values(values.default_icon)[0] : values.default_icon) : values.icons ? Object.values(values.icons)[0] : ""}`;
     this.state = {icon,className: 'opacity001'}
     this.close = ::this.close
+    this.updateDates = {}
+    this.cache = new LRUCache(100)
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    return nextProps.selected
   }
 
   componentDidMount(){
@@ -159,18 +171,24 @@ export default class BrowserActionMenu extends Component{
       let _icon = path
       if(_icon.startsWith('chrome-extension://')) _icon = _icon.split("/").slice(3).join("/")
       const icon = `${values.basePath}/${_icon}`
+      console.log(`on-icon${val.icon}`)
+      this.updateDates.icon = Date.now()
       if(this.state.icon !== icon)  this.setState({icon})
     }
     ipc.on(`chrome-browser-action-set-icon-ipc-${this.props.id}`,this.iconSet)
 
     this.titleSet = (e,tabId,val) => {
       if(tabId !== null && this.props.tab.wvId !== tabId) return
+      console.log(`on-title${val.title}`)
+      this.updateDates.title = Date.now()
       if(this.state.title !== val.title) this.setState({title: val.title})
     }
     ipc.on(`chrome-browser-action-set-title-ipc-${this.props.id}`,this.titleSet)
 
     this.badgeSet = (e,tabId,val) => {
       if(tabId !== null && this.props.tab.wvId !== tabId) return
+      console.log(`on-text${val.text}`)
+      this.updateDates.text = Date.now()
       if(this.state.text !== val.text) this.setState({text: val.text})
     }
     ipc.on(`chrome-browser-action-set-badge-ipc-${this.props.id}`,this.badgeSet)
@@ -180,15 +198,48 @@ export default class BrowserActionMenu extends Component{
       if(Array.isArray(val.color)){
         val.color = `rgba(${val.color.join(',')})`
       }
+      console.log(`on-color${val.color}`)
+      this.updateDates.color = Date.now()
       if(this.state.color !== val.color) this.setState({color: val.color})
     }
     ipc.on(`chrome-browser-action-set-background-ipc-${this.props.id}`,this.backgroundSet)
 
     this.popupSet = (e,tabId,val) => {
       if(tabId !== null && this.props.tab.wvId !== tabId) return
-      if(this.state.popup !== val.popup) this.setState({popup: val.popup})
+      this.updateDates.popup = Date.now()
+      if(this.state.popup !== val.popup){
+        this.setState({popup: val.popup === "" ? null : val.popup})
+      }
     }
     ipc.on(`chrome-browser-action-set-popup-ipc-${this.props.id}`,this.popupSet)
+
+    this.tokenStartLoading = PubSub.subscribe(`on-load-start_${this.props.tab.key}`,(msg,url)=>{
+      const newState = []
+      let needUpdate = false
+      for(let ele of ['icon','title','text','color','popup']){
+        if(this.state[ele]){
+          newState.push(ele)
+          needUpdate = true
+        }
+      }
+      console.log(`on-load-start_${this.props.tab.key}`)
+      if(needUpdate) this.cache.set(url,needUpdate ? {newState,time:Date.now()} : null)
+    })
+
+    this.tokenDidNavigate = PubSub.subscribe(`did-navigate_${this.props.tab.key}`,(msg,url)=>{
+      const recent = this.cache.get(url)
+      const newState = {}
+      let needUpdate = false
+      if(recent){
+        for(let val of recent.newState){
+          if(recent.time > this.updateDates[val]){
+            newState[val] = null
+            needUpdate = true
+          }
+        }
+        if(needUpdate) this.setState(newState)
+      }
+    })
   }
 
   componentWillUnmount(){
@@ -198,6 +249,8 @@ export default class BrowserActionMenu extends Component{
     ipc.removeListener(`chrome-browser-action-set-badge-ipc-${this.props.id}`,this.badgeSet)
     ipc.removeListener(`chrome-browser-action-set-background-ipc-${this.props.id}`,this.backgroundSet)
     ipc.removeListener(`chrome-browser-action-set-popup-ipc-${this.props.id}`,this.popupSet)
+    PubSub.unsubscribe(this.tokenStartLoading)
+    PubSub.unsubscribe(this.tokenDidNavigate)
   }
 
 
@@ -247,7 +300,7 @@ export default class BrowserActionMenu extends Component{
   }
 
   close(){
-    this.refs.popupView.noClose()
+    this.refs.popupView && this.refs.popupView.noClose()
     setTimeout(_=>this.refs.dd.close(),10)
   }
 

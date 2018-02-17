@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 const Jimp = require('jimp')
+const hjson = require('hjson')
 const electronImageResize = require('./electronImageResize')
 const {getPath1,getPath2} = require('./chromeExtensionUtil')
 
@@ -113,7 +114,7 @@ export default function modify(extensionId,verPath){
   fs.exists(manifestPath, (exists) => {
     if (exists) {
       const manifestStr = stripBOM(fs.readFileSync(manifestPath).toString()).replace('\\u003Call_urls>','<all_urls>')
-      const infos = JSON.parse(manifestStr)
+      const infos = hjson.parse(manifestStr)
 
       if(infos.permissions && infos.permissions.includes('activeTab')
         && (!infos.permissions.includes('http://*/*') || !infos.permissions.includes('https://*/*'))){

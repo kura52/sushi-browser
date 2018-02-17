@@ -39,7 +39,7 @@ const webviewEvents = {
   'page-favicon-updated': 'onFaviconUpdate',
   // 'new-window': "onNewWindow",
   // 'will-navigate' : "onWillNavigate",
-  // 'did-navigate' : "onDidNavigate",
+  'did-navigate' : "onDidNavigate",
   'load-start' : "onLoadStart",
   // 'did-navigate-in-page' : 'onDidNavigateInPage',
   'update-target-url' : 'onUpdateTargetUrl'
@@ -83,7 +83,7 @@ class BrowserPage extends Component {
     console.log(this.props.tab.privateMode)
 
     for (var k in webviewEvents)
-      webview.addEventListener(k, webviewHandler(this, webviewEvents[k]))
+      webview.addEventListener(k, webviewHandler(this, webviewEvents[k]),{passive:true})
 
     this.wvEvents['ipc-message'] = (e, page) =>{
       if(e.channel == 'webview-scroll'){
@@ -112,7 +112,7 @@ class BrowserPage extends Component {
         }
       }
     }
-    webview.addEventListener('ipc-message',this.wvEvents['ipc-message'])
+    webview.addEventListener('ipc-message',this.wvEvents['ipc-message'],{passive:true})
 
     // this.wvEvents['found-in-page'] = (e) => {
     //   this.clear = e.result.activeMatchOrdinal == e.result.matches   //@TODO framework bug
@@ -139,7 +139,7 @@ class BrowserPage extends Component {
       }
     }
 
-    webview.addEventListener('found-in-page',this.wvEvents['found-in-page'] )
+    webview.addEventListener('found-in-page',this.wvEvents['found-in-page'],{passive:true})
 
     const tokenDidStartLoading = PubSub.subscribe(`did-start-loading_${this.props.tab.key}`,_=>{
       this.setState({isSearching: false})
@@ -190,10 +190,10 @@ class BrowserPage extends Component {
 
   componentWillUnmount() {
     for (var k in webviewEvents)
-      this.refs.webview.removeEventListener(k, webviewHandler(this, webviewEvents[k]))
+      this.refs.webview.removeEventListener(k, webviewHandler(this, webviewEvents[k]),{passive:true})
 
     for(var [k,v] in Object.entries(this.wvEvents)){
-      this.refs.webview.removeEventListener(k, v)
+      this.refs.webview.removeEventListener(k, v,{passive:true})
     }
 
     PubSub.unsubscribe(this.tokenWebviewKeydown)

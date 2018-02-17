@@ -1,6 +1,6 @@
 const sh = require('shelljs')
 const path = require('path')
-const fs = require('fs')
+const fs = require('fs-extra')
 const glob = require("glob")
 
 const MUON_VERSION = fs.readFileSync('../MUON_VERSION.txt').toString()
@@ -163,6 +163,7 @@ function build(){
       process.exit()
     }
 
+    fs.writeFileSync(`${buildDir}/sushi-browser.app/Contents/Resources/app.asar.unpacked/resource/portable.txt`,'true')
 
     if(sh.exec(`ditto -c -k --sequesterRsrc --keepParent ${buildDir}/sushi-browser.app ${outDir}/sushi-browser-${APP_VERSION}.zip`).code !== 0) {
       console.log("ERROR6")
@@ -174,7 +175,7 @@ function build(){
   else if(isLinux){
     [`./node_modules/.bin/electron-installer-debian --src ${buildDir}/ --dest ${outDir}/ --arch amd64 --config res/linuxPackaging.json`,
       `./node_modules/.bin/electron-installer-redhat --src ${buildDir}/ --dest ${outDir}/ --arch x86_64 --config res/linuxPackaging.json`,
-      `tar -jcvf ${outDir}/sushi-browser.tar.bz2 ./${buildDir}`].forEach(cmd=>{
+      `cp -R ./${buildDir} ./${buildDir}-portable;echo true > ./${buildDir}-portable/resources/app.asar.unpacked/resource/portable.txt;tar -jcvf ${outDir}/sushi-browser.tar.bz2 ./${buildDir}-portable`].forEach(cmd=>{
       sh.exec(cmd, {async:true}, (code, stdout, stderr) => {
       })
     })
@@ -511,5 +512,7 @@ if(isDarwin){
 
 if(isWindows){
   sh.mv(`${outDir}/sushi-browser-setup-x64.exe`,`${outDir}/sushi-browser-${APP_VERSION}-setup-x64.exe`)
-  sh.exec(`"C:/Program Files/7-Zip/7z.exe" a sushi-browser-${APP_VERSION}-win-x64.zip sushi-browser-win32-x64`)
+  sh.cp('-Rf','./sushi-browser-win32-x64','./sushi-browser-win32-x64-portable')
+  fs.writeFileSync(`${pwd}/sushi-browser-win32-x64-portable/resources/app.asar.unpacked/resource/portable.txt`,'true')
+  sh.exec(`"C:/Program Files/7-Zip/7z.exe" a sushi-browser-${APP_VERSION}-win-x64.zip sushi-browser-win32-x64-portable`)
 }

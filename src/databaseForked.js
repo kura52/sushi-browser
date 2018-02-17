@@ -4,6 +4,11 @@ const path = require('path')
 import { app } from 'electron'
 const resizeFile = require('./resizeFile')
 
+function isPortable(){
+  const file = path.join(__dirname,'../resource/portable.txt').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
+  return fs.existsSync(file) && fs.readFileSync(file).toString().includes('true')
+}
+
 let port
 let result = _=>{
   const db = require('./database')
@@ -58,7 +63,9 @@ let result = _=>{
   });
 }
 
-const filePath = path.join(app.getPath('userData').replace('brave','sushiBrowser').replace('sushi-browser','sushiBrowser'),'resource/fork.txt').replace(/\\/g,"/")
+const sushiPath = isPortable() ? path.join(__dirname,'../resource/portable/sushiBrowser').replace(/app.asar([\/\\])/,'app.asar.unpacked$1') : app.getPath('userData').replace('brave','sushiBrowser').replace('sushi-browser','sushiBrowser')
+
+const filePath = path.join(sushiPath,'resource/fork.txt').replace(/\\/g,"/")
 if(fs.existsSync(filePath)){
   const content = fs.readFileSync(filePath).toString().split("\t")
   const date = parseInt(content[0])

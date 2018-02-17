@@ -27,7 +27,7 @@ function getFocusedWebContents(needSelectedText,skipBuildInSearch,callback,retry
     if(!win){
       // const key = uuid.v4()
       if(callback){
-        setTimeout(_=>getFocusedWebContents(needSelectedText,skipBuildInSearch,callback,++retry),300)
+        return setTimeout(_=>getFocusedWebContents(needSelectedText,skipBuildInSearch,callback,++retry),300)
       }
       else{
         return new Promise((resolve,reject)=>{

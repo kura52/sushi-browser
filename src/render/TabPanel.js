@@ -1027,16 +1027,17 @@ export default class TabPanel extends Component {
       },
       // onWillNavigate(e, page) {
       //   console.log('onWillNavigate')
-      //   page.navUrl = e.url
-      //   self.sendOpenLink(tab, page);
+      //   // page.navUrl = e.url
+      //   // self.sendOpenLink(tab, page);
       //   // ipc.send('chrome-webNavigation-onBeforeNavigate',self.createChromeWebNavDetails(tab))
       // },
-      // onDidNavigate(e, page) {
-      //   console.log('onDidNavigete',e,page)
-      //   page.navUrl = e.url
-      //   self.sendOpenLink(tab, page);
-      //   // ipc.send('chrome-webNavigation-onBeforeNavigate',self.createChromeWebNavDetails(tab))
-      // },
+      onDidNavigate(e, page) {
+        console.log('onDidNavigete',e,page)
+        PubSub.publish(`did-navigate_${tab.key}`,e.url)
+        // page.navUrl = e.url
+        // self.sendOpenLink(tab, page);
+        // ipc.send('chrome-webNavigation-onBeforeNavigate',self.createChromeWebNavDetails(tab))
+      },
       onGuestReady(e, page) {
         guestIds[tab.key] = e
         tab.wvId = e.tabId
@@ -1169,6 +1170,7 @@ export default class TabPanel extends Component {
         console.log('onLoadStart',e,Date.now() - ttime,Date.now())
         if (!self.mounted || !e.isMainFrame) return
 
+        PubSub.publishSync(`on-load-start_${tab.key}`,e.url)
         ipc.send('chrome-webNavigation-onBeforeNavigate',{
           tabId:tab.wvId,
           url:e.url,

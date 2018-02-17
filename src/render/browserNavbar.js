@@ -554,12 +554,12 @@ class BrowserNavbar extends Component{
     }
   }
 
-  browserAction(cont,tab){
+  browserAction(cont,tab,selected){
     const ret = {}
     const dis = ['dckpbojndfoinamcdamhkjhnjnmjkfjd','jdbefljfgobbmcidnmpjamcbhnbphjnb',...this.state.disableExtensions]
     for(let [id,values] of browserActionMap) {
       if(dis.includes(values.orgId) || dis.includes(id)) continue
-      ret[id] = <BrowserActionMenu key={id} id={id} values={values} tab={tab} cont={cont} parent={this}/>
+      ret[id] = <BrowserActionMenu key={id} id={id} values={values} tab={tab} cont={cont} parent={this} selected={selected}/>
     }
     return ret
   }
@@ -892,7 +892,7 @@ class BrowserNavbar extends Component{
         <NavbarMenuItem key="sel-jpeg" text="Selection | Jpeg"  onClick={()=>this.props.screenShot(false,'JPEG',this.props.tab)}/>
         <NavbarMenuItem key="sel-png" text="Selection | PNG"  onClick={()=>this.props.screenShot(false,'PNG',this.props.tab)}/>
       </NavbarMenu>,
-      ...this.browserAction(cont, this.props.tab)
+      ...this.browserAction(cont, this.props.tab, this.props.parent.state.selectedTab == this.props.tab.key)
     }
     return items
   }

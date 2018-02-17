@@ -9,6 +9,7 @@ const {BrowserWindow,componentUpdater,app} = require('electron')
 const extInfos = require('../../lib/extensionInfos')
 const mainState = require('../../lib/mainState')
 const PubSub = require('../../lib/render/pubsub')
+const hjson = require('hjson');
 // Takes Content Security Policy flags, for example { 'default-src': '*' }
 // Returns a CSP string, for example 'default-src: *;'
 let concatCSP = (cspDirectives) => {
@@ -124,7 +125,7 @@ module.exports.init = (verChange) => {
       }
     }
     console.log(localePath)
-    const messages = JSON.parse(removeBom(fs.readFileSync(localePath).toString()))
+    const messages = hjson.parse(removeBom(fs.readFileSync(localePath).toString()))
     search(installInfo,messages)
   }
 
@@ -258,9 +259,11 @@ module.exports.init = (verChange) => {
       if(verChange) chromeManifestModify(...ext)
       loadExtension(ses,...ext,(void 0),'component')
     }
-    ext = ['igiofjhpmpihnifddepnpngfjhkfenbp',getPath1('igiofjhpmpihnifddepnpngfjhkfenbp')]
-    if(verChange) chromeManifestModify(...ext)
-    loadExtension(ses,...ext)
+    for(let e of ['igiofjhpmpihnifddepnpngfjhkfenbp']){
+      ext = [e, getPath1(e)]
+      if(verChange) chromeManifestModify(...ext)
+      loadExtension(ses,...ext)
+    }
 
     //for(let fullPath of require("glob").sync(path.join(__dirname,'../../resource/extension/*').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'))) {
     for(let fullPath of require("glob").sync(path.join(extensionPath,'*'))) {

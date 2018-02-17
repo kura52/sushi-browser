@@ -572,6 +572,7 @@ if(chrome.browserAction){
   const ipcEvents = {}
   chrome.browserAction.onClicked = {
     addListener: function (cb) {
+      console.log("addevent")
       ipcEvents[cb] = function(evt,id, tabId) {
         if(chrome.runtime.id == id){
           chrome.tabs.get(parseInt(tabId), cb)

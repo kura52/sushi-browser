@@ -821,7 +821,11 @@ class Tabs extends React.Component {
 
   handleTabMouseUp(e){
     setTimeout(_=>{
-      ReactDOM.findDOMNode(this.refs.ttab).style['-webkit-app-region'] = 'drag'
+      const dom = ReactDOM.findDOMNode(this.refs.ttab)
+      if(dom){
+        dom.style['-webkit-app-region'] = 'drag'
+      }
+
       PubSub.publish('drag-overlay',false)
       if(this.enableMulti) this.props.multiSelectionClick(...this.enableMulti)
       if(this.mouseUpSelect){
@@ -1178,13 +1182,13 @@ class Tabs extends React.Component {
     const {_tabClassNames,tabInlineStyles,tabs,content} = this.buildRenderComponent()
     const tabBaseStyle = this.props.toggleNav == 2 ? {display: 'none'} :
       this.props.toggleNav == 3 ? {
-        height: 27,
-        background: 'rgb(221, 221, 221)',
-        borderBottom: '1px solid #aaa',
-        zIndex: 2,
-        position: 'absolute',
-        width: '100%'
-      }:
+          height: 27,
+          background: 'rgb(221, 221, 221)',
+          borderBottom: '1px solid #aaa',
+          zIndex: 2,
+          position: 'absolute',
+          width: '100%'
+        }:
         this.isMultistageTabsMode() ?
           {
             height : void 0,

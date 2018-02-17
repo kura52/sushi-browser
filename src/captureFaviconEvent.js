@@ -169,37 +169,42 @@ const fetchFavIcon = (url, redirects) => {
       }
       else if(img.type.endsWith('icon') && ico.isICO(img)){
         console.log(148,Date.now())
-        ico.parse(img).then(function (images) {
-          console.log(149,Date.now())
-          const icoImage = images[0]
-          const imgBuffer = Buffer.from(icoImage.buffer)
-          console.log(151,Date.now())
-          Jimp.read(imgBuffer, function (err, image) {
-            if (err || !image) {
-              console.log("ERROR Failed to save file", err);
-              resolve(blob)
-            }
-            if(Math.max(image.bitmap.width,image.bitmap.height) <= 20){
-              console.log(146,Date.now())
-              resolve(`data:image/png;base64,${imgBuffer.toString('base64')}`)
-            }
-            else{
-              console.log(147,Date.now())
-              if(image.bitmap.width > image.bitmap.height){
-                image = image.resize(20,Jimp.AUTO,Jimp.RESIZE_BICUBIC)
+        try{
+          ico.parse(img).then(function (images) {
+            console.log(149,Date.now())
+            const icoImage = images[0]
+            const imgBuffer = Buffer.from(icoImage.buffer)
+            console.log(151,Date.now())
+            Jimp.read(imgBuffer, function (err, image) {
+              if (err || !image) {
+                console.log("ERROR Failed to save file", err);
+                resolve(blob)
+              }
+              if(Math.max(image.bitmap.width,image.bitmap.height) <= 20){
+                console.log(146,Date.now())
+                resolve(`data:image/png;base64,${imgBuffer.toString('base64')}`)
               }
               else{
-                image = image.resize(Jimp.AUTO,20,Jimp.RESIZE_BICUBIC)
+                console.log(147,Date.now())
+                if(image.bitmap.width > image.bitmap.height){
+                  image = image.resize(20,Jimp.AUTO,Jimp.RESIZE_BICUBIC)
+                }
+                else{
+                  image = image.resize(Jimp.AUTO,20,Jimp.RESIZE_BICUBIC)
+                }
+                image.getBase64(Jimp.AUTO, function (err, src) {
+                  resolve(src)
+                })
               }
-              image.getBase64(Jimp.AUTO, function (err, src) {
-                resolve(src)
-              })
-            }
+            })
+          }).catch(e=>{
+            console.log(154,Date.now())
+            resolve(blob)
           })
-        }).catch(e=>{
-          console.log(154,Date.now())
+        }catch(e){
+          console.log(1544,Date.now())
           resolve(blob)
-        })
+        }
       }
       else{
         console.log(155,Date.now())

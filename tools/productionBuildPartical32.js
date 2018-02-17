@@ -461,5 +461,7 @@ build()
 
 if(isWindows){
   sh.mv(`${outDir}/sushi-browser-setup-ia32.exe`,`${outDir}/sushi-browser-${APP_VERSION}-setup-ia32.exe`)
-  sh.exec(`"C:/Program Files/7-Zip/7z.exe" a sushi-browser-${APP_VERSION}-win-ia32.zip sushi-browser-win32-ia32`)
+  sh.cp('-Rf','./sushi-browser-win32-ia32','./sushi-browser-win32-ia32-portable')
+  fs.writeFileSync(`${pwd}/sushi-browser-win32-ia32-portable/resources/app.asar.unpacked/resource/portable.txt`,'true')
+  sh.exec(`"C:/Program Files/7-Zip/7z.exe" a sushi-browser-${APP_VERSION}-win-ia32.zip sushi-browser-win32-ia32-portable`)
 }

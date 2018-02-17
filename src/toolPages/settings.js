@@ -669,7 +669,7 @@ class GeneralSetting extends React.Component {
 
         <div className="field">
           <label>Max number of connections per item (Parallel Download)</label>
-          <Dropdown onChange={this.onChange.bind(this,'downloadNum')} selection options={downloadNumOptions} defaultValue={this.state.downloadNum}/>
+          <Dropdown onChange={this.onChange.bind(this,'downloadNum')} selection options={downloadNumOptions} defaultValue={parseInt(this.state.downloadNum)}/>
         </div>
         <br/>
 
