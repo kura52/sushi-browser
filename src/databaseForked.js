@@ -64,7 +64,7 @@ let result = _=>{
   });
 }
 
-const sushiPath = isPortable() ? path.join(__dirname,`../../../${isDarwin ? '../' : ''}sushiBrowser`).replace(/app.asar([\/\\])/,'app.asar.unpacked$1') : app.getPath('userData').replace('brave','sushiBrowser').replace('sushi-browser','sushiBrowser')
+const sushiPath = isPortable() ? path.join(__dirname,`../../../${isDarwin ? '../../' : ''}data`).replace(/app.asar([\/\\])/,'app.asar.unpacked$1') : app.getPath('userData').replace('brave','sushiBrowser').replace('sushi-browser','sushiBrowser')
 
 const filePath = path.join(sushiPath,'resource/fork.txt').replace(/\\/g,"/")
 if(fs.existsSync(filePath)){

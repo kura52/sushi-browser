@@ -10,8 +10,7 @@ const NEXT_APP_VERSION = "0.14.2"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
 const CHANGE_ENGLISH = `Changing the save destination of the user file in the portable version to the same level as the executable folder. (Portable Edtion became really Portable.)
-Fixed a lot of bugs.
-Updated to Muon 4.8.2`
+Fixed a lot of bugs.`
 
 const CHANGE_JAPANESE = `ポータブル版におけるユーザファイルの保存先を実行ファイルと同じフォルダに変更。(ポータブル版は本当のポータブルになりました）
 多数のバグ修正`
@@ -95,7 +94,7 @@ filesContentsReplace([path.join(pwd,'../web/check.json'),path.join(pwd,'README.m
 
 fileContentsReplace(path.join(pwd,'../web/sitemap.xml'),/<lastmod>(.+?)<\/lastmod>/,`<lastmod>${formatDate(new Date())}</lastmod>`)
 
-
+ta
 if(!fs.readFileSync(path.join(pwd,'README.md')).includes(`v${NEXT_APP_VERSION2}`)){
   fileContentsReplace(path.join(pwd,'README.md'),'# New Features',`# New Features
 

@@ -161,7 +161,6 @@ sushi-browser --no-sandbox
 - Changing the save destination of the user file in the portable version to the same level as the executable folder. (Portable Edtion became really Portable.)
 - Files are saved ./resources/app.asar.unpacked/resource/portable .
 - Fixed a lot of bugs.
-- Updated to Muon 4.8.2
 
 #### New function(v0.141)
 - Fixed install bugs

@@ -14,7 +14,7 @@ function isPortable(){
 
 function changePortable(folder){
   if(isPortable()){
-    const portablePath = path.join(__dirname,`../../../${isDarwin ? '../' : ''}${folder}`)
+    const portablePath = path.join(__dirname,`../../../${isDarwin ? '../../' : ''}${folder}`)
     console.log(portablePath)
     if(!fs.existsSync(portablePath)){
       fs.ensureDirSync(portablePath)
@@ -33,7 +33,7 @@ if(databaseForked){
     app.dock.hide()
   }
   app.setPath('userData', app.getPath('userData').replace('brave','sushiBrowserDB').replace('sushi-browser','sushiBrowserDB'))
-  changePortable('sushiBrowserDB')
+  changePortable('db')
   const appPath = app.getPath('userData')
   if (!fs.existsSync(appPath)) {
     fs.mkdirSync(appPath)
@@ -48,7 +48,7 @@ else{
 
   global.originalUserDataPath = app.getPath('userData')
   app.setPath('userData', app.getPath('userData').replace('brave','sushiBrowser').replace('sushi-browser','sushiBrowser'))
-  changePortable('sushiBrowser')
+  changePortable('data')
   const appPath = app.getPath('userData')
   if (!fs.existsSync(appPath)) {
     fs.mkdirSync(appPath)

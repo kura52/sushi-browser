@@ -131,7 +131,7 @@ function build(){
   else if(isLinux){
     [`./node_modules/.bin/electron-installer-debian --src ${buildDir}/ --dest ${outDir}/ --arch amd64 --config res/linuxPackaging.json`,
       `./node_modules/.bin/electron-installer-redhat --src ${buildDir}/ --dest ${outDir}/ --arch x86_64 --config res/linuxPackaging.json`,
-      `cp -R ./${buildDir} ./sushi-browser-portable;echo true > ./sushi-browser-portable/resources/app.asar.unpacked/resource/portable.txt;tar -jcvf ${outDir}/sushi-browser.tar.bz2 ./${buildDir}-portable`].forEach(cmd=>{
+      `cp -R ./${buildDir} ./sushi-browser-portable;echo true > ./sushi-browser-portable/resources/app.asar.unpacked/resource/portable.txt;tar -jcvf ${outDir}/sushi-browser-${APP_VERSION}.tar.bz2 ./sushi-browser-portable`].forEach(cmd=>{
       sh.exec(cmd, {async:true}, (code, stdout, stderr) => {
       })
     })
