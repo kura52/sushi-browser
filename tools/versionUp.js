@@ -3,16 +3,20 @@ const path = require('path')
 const fs = require('fs')
 const glob = require("glob")
 
-const BEFORE_CODE_NAME = 'Aji(Horse mackerel)'
+const BEFORE_CODE_NAME = 'Kani(Crab)'
 const CODE_NAME = 'Kani(Crab)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.14.1"
+const NEXT_APP_VERSION = "0.14.2"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Fixed install bugs
-Fixed autofill bugs`
+const CHANGE_ENGLISH = `Changing the save destination of the user file in the portable version to the same level as the executable folder. (Portable Edtion became really Portable.)
+Files are saved ./resources/app.asar.unpacked/resource/portable .
+Fixed a lot of bugs.
+Updated to Muon 4.8.2`
 
-const CHANGE_JAPANESE = `オートフィル、インストール時のバグ修正`
+const CHANGE_JAPANESE = `ポータブル版におけるユーザファイルの保存先を実行ファイルと同じフォルダに変更。(ポータブル版は本当のポータブルになりました）
+./resources/app.asar.unpacked/resource/portableにファイルは保存されます。
+多数のバグ修正`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'
