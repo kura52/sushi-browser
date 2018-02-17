@@ -46,6 +46,7 @@ else{
   const fs = require('fs-extra')
   const path = require('path')
 
+  global.originalUserDataPath = app.getPath('userData')
   app.setPath('userData', app.getPath('userData').replace('brave','sushiBrowser').replace('sushi-browser','sushiBrowser'))
   changePortable('sushiBrowser')
   const appPath = app.getPath('userData')

@@ -84,7 +84,7 @@ InitSetting.val.then(setting=>{
   }
   else{
     try{
-      const widevinePath = path.join(app.getPath('userData'),'..',isWin ? 'brave' : 'sushi-browser','Extensions/WidevineCdm')
+      const widevinePath = path.join(global.originalUserDataPath,'Extensions/WidevineCdm')
       if(require("glob").sync(path.join(widevinePath,"*")).length == 0){
         const src = path.join(__dirname, '../resource/bin/widevine',
           isWin ? 'win/WidevineCdm' : isDarwin ? 'mac/WidevineCdm' : '').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
