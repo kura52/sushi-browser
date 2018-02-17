@@ -462,7 +462,7 @@ build()
 if(isWindows){
   sh.mv(`${outDir}/sushi-browser-setup-ia32.exe`,`${outDir}/sushi-browser-${APP_VERSION}-setup-ia32.exe`)
   sh.cp('-Rf',`./${buildDir}`,`./${buildDir}-portable`)
-  sh.mkdir('-p', '${buildDir}-portable/resources/app.asar.unpacked/resource');
+  sh.mkdir('-p', `${buildDir}-portable/resources/app.asar.unpacked/resource`);
   fs.writeFileSync(`${pwd}/${buildDir}-portable/resources/app.asar.unpacked/resource/portable.txt`,'true')
 
   sh.cd('${buildDir}-portable/resources')

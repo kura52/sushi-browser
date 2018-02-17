@@ -135,11 +135,11 @@ class BrowserPage extends Component {
       else{
         webview.stopFindInPage('clearSelection')  //@TODO framework bug
         this.setState({result_string: "0/0"})
-        if(this.previous_text) webview.findInPage(this.previous_text) //@TODO framework bug
+        // if(this.previous_text) webview.findInPage(this.previous_text) //@TODO framework bug
       }
     }
 
-    webview.addEventListener('found-in-page',this.wvEvents['found-in-page'],{passive:true})
+    webview.addEventListener('found-in-page',this.wvEvents['found-in-page'])
 
     const tokenDidStartLoading = PubSub.subscribe(`did-start-loading_${this.props.tab.key}`,_=>{
       this.setState({isSearching: false})
@@ -245,7 +245,8 @@ class BrowserPage extends Component {
       console.log(456,query)
       this.previous_text = query;
       if(query){
-        webview.stopFindInPage('clearSelection')
+        webview.stopFindInPage('keepSelection')
+        webview.findInPage(query,{matchCase:false,forward: next,findNext: true}) //@TODO framework bug
         webview.findInPage(query,{matchCase:false,forward: next,findNext: false})
       }
     }

@@ -100,7 +100,7 @@ module.exports.register = (win) => {
 
   PubSub.subscribe('add-shortcut',(msg,{id,key,command}) => {
     console.log(333,key,command)
-    electronLocalshortcut.register(win, key.replace('Period','.').replace('Comma',',').replace(/ /g,""), () => {
+    electronLocalshortcut.register(win, key.replace('Period','.').replace('Comma',',').replace(',nd','Command').replace(/ /g,""), () => {
       PubSub.publish('chrome-commands-exec',{id,command})
     })
   })

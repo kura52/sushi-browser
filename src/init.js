@@ -72,33 +72,6 @@ const players = [
   { value: 'wmplayer', text: 'Windows Media Player',os:['win']},
 ]
 
-InitSetting.val.then(setting=>{
-  if(setting.enableFlash){
-    setFlash(app)
-  }
-  else{
-    defaultConf.flashEnabled = [ { setting: 'deny', primaryPattern: '*' } ]
-  }
-  if(isLinux || !setting.enableWidevine){
-    defaultConf.plugins =  []
-  }
-  else{
-    try{
-      const widevinePath = path.join(global.originalUserDataPath,'Extensions/WidevineCdm')
-      if(require("glob").sync(path.join(widevinePath,"*")).length == 0){
-        const src = path.join(__dirname, '../resource/bin/widevine',
-          isWin ? 'win/WidevineCdm' : isDarwin ? 'mac/WidevineCdm' : '').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
-        require('fs-extra').copySync(src,widevinePath)
-      }
-    }catch(e){
-      console.log(e)
-    }
-  }
-  defaultConf.javascript[0].setting = setting.noScript ? 'block' : 'allow'
-  defaultConf.canvasFingerprinting[0].setting = setting.blockCanvasFingerprinting ? 'block' : 'allow'
-  session.defaultSession.userPrefs.setDictionaryPref('content_settings', defaultConf)
-  console.log(678,session.defaultSession.userPrefs.getDictionaryPref('content_settings'))
-})
 app.setName('Sushi Browser')
 app.commandLine.appendSwitch('touch-events', 'enabled');
 
@@ -130,6 +103,33 @@ require('./basicAuth')
 
 let ptyProcessSet,passwordManager,extensionInfos,syncReplaceName
 app.on('ready', async ()=>{
+  InitSetting.val.then(setting=>{
+    if(setting.enableFlash){
+      setFlash(app)
+    }
+    else{
+      defaultConf.flashEnabled = [ { setting: 'deny', primaryPattern: '*' } ]
+    }
+    if(isLinux || !setting.enableWidevine){
+      defaultConf.plugins =  []
+    }
+    else{
+      try{
+        const widevinePath = path.join(global.originalUserDataPath,'Extensions/WidevineCdm')
+        if(require("glob").sync(path.join(widevinePath,"*")).length == 0){
+          const src = path.join(__dirname, '../resource/bin/widevine',
+            isWin ? 'win/WidevineCdm' : isDarwin ? 'mac/WidevineCdm' : '').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
+          require('fs-extra').copySync(src,widevinePath)
+        }
+      }catch(e){
+        console.log(e)
+      }
+    }
+    defaultConf.javascript[0].setting = setting.noScript ? 'block' : 'allow'
+    defaultConf.canvasFingerprinting[0].setting = setting.blockCanvasFingerprinting ? 'block' : 'allow'
+    console.log(678,session.defaultSession.userPrefs.getDictionaryPref('content_settings'))
+  })
+
   console.log(1)
   require('./captureEvent')
 
