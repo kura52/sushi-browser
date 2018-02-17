@@ -162,10 +162,11 @@ function build(){
       console.log("ERROR4")
       process.exit()
     }
+    sh.cp('-Rf',`./${buildDir}','./${buildDir}-portable`)
 
-    sh.cd(`${buildDir}/sushi-browser.app/Contents/Resources`)
+    sh.cd(`${buildDir}-portable/sushi-browser.app/Contents/Resources`)
     sh.mkdir('-p', `app.asar.unpacked/resource`);
-    fs.writeFileSync(`${buildDir}/sushi-browser.app/Contents/Resources/app.asar.unpacked/resource/portable.txt`,'true')
+    fs.writeFileSync(`${buildDir}-portable/sushi-browser.app/Contents/Resources/app.asar.unpacked/resource/portable.txt`,'true')
 
     if(sh.exec(`${isWindows ? '"C:/Program Files/7-Zip/7z.exe"' : '7z'} a -t7z -mx=9 app.asar.unpacked.7z app.asar.unpacked`).code !== 0) {
       console.log("ERROR1")
@@ -521,16 +522,16 @@ if(isDarwin){
 
 if(isWindows){
   sh.mv(`${outDir}/sushi-browser-setup-x64.exe`,`${outDir}/sushi-browser-${APP_VERSION}-setup-x64.exe`)
-  sh.cp('-Rf','./sushi-browser-win32-x64','./sushi-browser-win32-x64-portable')
-  sh.mkdir('-p', 'sushi-browser-win32-x64-portable/resources/app.asar.unpacked/resource');
-  fs.writeFileSync(`${pwd}/sushi-browser-win32-x64-portable/resources/app.asar.unpacked/resource/portable.txt`,'true')
+  sh.cp('-Rf',`./${buildDir}`,`./${buildDir}-portable`)
+  sh.mkdir('-p', '${buildDir}-portable/resources/app.asar.unpacked/resource');
+  fs.writeFileSync(`${pwd}/${buildDir}-portable/resources/app.asar.unpacked/resource/portable.txt`,'true')
 
-  sh.cd('sushi-browser-win32-x64-portable/resources')
+  sh.cd('${buildDir}-portable/resources')
   if(sh.exec(`${isWindows ? '"C:/Program Files/7-Zip/7z.exe"' : '7z'} a -t7z -mx=9 app.asar.unpacked.7z app.asar.unpacked`).code !== 0) {
     console.log("ERROR1")
     process.exit()
   }
   sh.rm('-rf','app.asar.unpacked')
   sh.cd('../..')
-  sh.exec(`"C:/Program Files/7-Zip/7z.exe" a sushi-browser-${APP_VERSION}-win-x64.zip sushi-browser-win32-x64-portable`)
+  sh.exec(`"C:/Program Files/7-Zip/7z.exe" a sushi-browser-${APP_VERSION}-win-x64.zip ${buildDir}-portable`)
 }
