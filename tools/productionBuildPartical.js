@@ -184,7 +184,7 @@ function build(){
   else if(isLinux){
     [`./node_modules/.bin/electron-installer-debian --src ${buildDir}/ --dest ${outDir}/ --arch amd64 --config res/linuxPackaging.json`,
       `./node_modules/.bin/electron-installer-redhat --src ${buildDir}/ --dest ${outDir}/ --arch x86_64 --config res/linuxPackaging.json`,
-      `cp -R ./${buildDir} ./${buildDir}-portable;echo true > ./${buildDir}-portable/resources/app.asar.unpacked/resource/portable.txt;tar -jcvf ${outDir}/sushi-browser.tar.bz2 ./${buildDir}-portable`].forEach(cmd=>{
+      `cp -R ./${buildDir} ./sushi-browser-portable;echo true > ./sushi-browser-portable/resources/app.asar.unpacked/resource/portable.txt;tar -jcvf ${outDir}/sushi-browser.tar.bz2 ./sushi-browser-portable`].forEach(cmd=>{
       sh.exec(cmd, {async:true}, (code, stdout, stderr) => {
       })
     })
@@ -521,16 +521,16 @@ if(isDarwin){
 
 if(isWindows){
   sh.mv(`${outDir}/sushi-browser-setup-x64.exe`,`${outDir}/sushi-browser-${APP_VERSION}-setup-x64.exe`)
-  sh.cp('-Rf',`./${buildDir}`,`./${buildDir}-portable`)
-  sh.mkdir('-p', `${buildDir}-portable/resources/app.asar.unpacked/resource`);
-  fs.writeFileSync(`${pwd}/${buildDir}-portable/resources/app.asar.unpacked/resource/portable.txt`,'true')
+  sh.cp('-Rf',`./${buildDir}`,`./sushi-browser-portable`)
+  sh.mkdir('-p', `sushi-browser-portable/resources/app.asar.unpacked/resource`);
+  fs.writeFileSync(`${pwd}/sushi-browser-portable/resources/app.asar.unpacked/resource/portable.txt`,'true')
 
-  sh.cd('${buildDir}-portable/resources')
+  sh.cd(`sushi-browser-portable/resources`)
   if(sh.exec(`${isWindows ? '"C:/Program Files/7-Zip/7z.exe"' : '7z'} a -t7z -mx=9 app.asar.unpacked.7z app.asar.unpacked`).code !== 0) {
     console.log("ERROR1")
     process.exit()
   }
   sh.rm('-rf','app.asar.unpacked')
   sh.cd('../..')
-  sh.exec(`"C:/Program Files/7-Zip/7z.exe" a sushi-browser-${APP_VERSION}-win-x64.zip ${buildDir}-portable`)
+  sh.exec(`"C:/Program Files/7-Zip/7z.exe" a sushi-browser-${APP_VERSION}-win-x64.zip sushi-browser-portable`)
 }

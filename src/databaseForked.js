@@ -2,6 +2,7 @@ const sock = require('axon').socket('rep')
 const fs = require('fs')
 const path = require('path')
 import { app } from 'electron'
+const isDarwin = process.platform === 'darwin'
 const resizeFile = require('./resizeFile')
 
 function isPortable(){
@@ -63,7 +64,7 @@ let result = _=>{
   });
 }
 
-const sushiPath = isPortable() ? path.join(__dirname,'../resource/portable/sushiBrowser').replace(/app.asar([\/\\])/,'app.asar.unpacked$1') : app.getPath('userData').replace('brave','sushiBrowser').replace('sushi-browser','sushiBrowser')
+const sushiPath = isPortable() ? path.join(__dirname,`../../../${isDarwin ? '../' : ''}sushiBrowser`).replace(/app.asar([\/\\])/,'app.asar.unpacked$1') : app.getPath('userData').replace('brave','sushiBrowser').replace('sushi-browser','sushiBrowser')
 
 const filePath = path.join(sushiPath,'resource/fork.txt').replace(/\\/g,"/")
 if(fs.existsSync(filePath)){

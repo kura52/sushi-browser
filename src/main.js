@@ -14,7 +14,7 @@ function isPortable(){
 
 function changePortable(folder){
   if(isPortable()){
-    const portablePath = path.join(__dirname,`../resource/portable/${folder}`).replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
+    const portablePath = path.join(__dirname,`../../../${isDarwin ? '../' : ''}${folder}`)
     console.log(portablePath)
     if(!fs.existsSync(portablePath)){
       fs.ensureDirSync(portablePath)

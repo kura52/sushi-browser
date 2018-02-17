@@ -461,16 +461,16 @@ build()
 
 if(isWindows){
   sh.mv(`${outDir}/sushi-browser-setup-ia32.exe`,`${outDir}/sushi-browser-${APP_VERSION}-setup-ia32.exe`)
-  sh.cp('-Rf',`./${buildDir}`,`./${buildDir}-portable`)
-  sh.mkdir('-p', `${buildDir}-portable/resources/app.asar.unpacked/resource`);
-  fs.writeFileSync(`${pwd}/${buildDir}-portable/resources/app.asar.unpacked/resource/portable.txt`,'true')
+  sh.cp('-Rf',`./${buildDir}`,`./sushi-browser-portable`)
+  sh.mkdir('-p', `sushi-browser-portable/resources/app.asar.unpacked/resource`);
+  fs.writeFileSync(`${pwd}/sushi-browser-portable/resources/app.asar.unpacked/resource/portable.txt`,'true')
 
-  sh.cd('${buildDir}-portable/resources')
+  sh.cd(`sushi-browser-portable/resources`)
   if(sh.exec(`${isWindows ? '"C:/Program Files/7-Zip/7z.exe"' : '7z'} a -t7z -mx=9 app.asar.unpacked.7z app.asar.unpacked`).code !== 0) {
     console.log("ERROR1")
     process.exit()
   }
   sh.rm('-rf','app.asar.unpacked')
   sh.cd('../..')
-  sh.exec(`"C:/Program Files/7-Zip/7z.exe" a sushi-browser-${APP_VERSION}-win-ia32.zip ${buildDir}-portable`)
+  sh.exec(`"C:/Program Files/7-Zip/7z.exe" a sushi-browser-${APP_VERSION}-win-ia32.zip sushi-browser-portable`)
 }
