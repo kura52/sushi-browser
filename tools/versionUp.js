@@ -6,14 +6,14 @@ const glob = require("glob")
 const BEFORE_CODE_NAME = 'Kani(Crab)'
 const CODE_NAME = 'Kani(Crab)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.14.2"
+const NEXT_APP_VERSION = "0.14.3"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Changing the save destination of the user file in the portable version to the same level as the executable folder. (Portable Edtion became really Portable.)
-Fixed a lot of bugs.`
+const CHANGE_ENGLISH = `Updated to youtube-dl 2018.02.25
+Updated to Muon 5.0.6`
 
-const CHANGE_JAPANESE = `ポータブル版におけるユーザファイルの保存先を実行ファイルと同じフォルダに変更。(ポータブル版は本当のポータブルになりました）
-多数のバグ修正`
+const CHANGE_JAPANESE = `youtube-dlを2018.02.25に更新
+Muonを5.0.6に更新`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'
@@ -94,7 +94,7 @@ filesContentsReplace([path.join(pwd,'../web/check.json'),path.join(pwd,'README.m
 
 fileContentsReplace(path.join(pwd,'../web/sitemap.xml'),/<lastmod>(.+?)<\/lastmod>/,`<lastmod>${formatDate(new Date())}</lastmod>`)
 
-ta
+
 if(!fs.readFileSync(path.join(pwd,'README.md')).includes(`v${NEXT_APP_VERSION2}`)){
   fileContentsReplace(path.join(pwd,'README.md'),'# New Features',`# New Features
 
