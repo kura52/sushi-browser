@@ -196,6 +196,7 @@ app.on('ready', async ()=>{
     extensions.init(true)
 
     require('./checkUpdate')
+    require('./portablePathSelector')
     // require('./checkDefault')
     const {syncReplace} = require('./databaseFork')
     let rec
@@ -430,7 +431,7 @@ app.on('web-contents-created', (e, tab) => {
 // });
 process.on('open-url-from-tab', (e, source, targetUrl, disposition) => {
   if(mainState.alwaysOpenLinkBackground) disposition = 'background-tab'
-  rlog('open-url-from-tab',e, source, targetUrl, disposition)
+  console.log('open-url-from-tab',{...e}, source.getId(), targetUrl, disposition)
   source.hostWebContents && source.hostWebContents.send('create-web-contents',{id:source.getId(),targetUrl,disposition})
 })
 

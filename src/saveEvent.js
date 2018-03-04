@@ -1,4 +1,5 @@
 import {app, dialog,ipcMain } from 'electron'
+import {getCurrentWindow} from './util'
 import fs from 'fs'
 import path from 'path'
 
@@ -10,10 +11,10 @@ function saveFile(event,savePath,content){
 
 ipcMain.on('save-file', (event, {savePath,content,fname}) => {
   if(!savePath){
-    dialog.showSaveDialog(null,
-      {title: 'Save File', defaultPath: path.join(app.getPath('home'),fname)},
-      (savePath) => {
-        if(savePath) saveFile(event,savePath,content)
+    dialog.showDialog(getCurrentWindow(),
+      {defaultPath: path.join(app.getPath('home'),fname),type: 'select-saveas-file',includeAllFiles:true},
+      (savePaths) => {
+        if(savePaths && savePaths.length == 1) saveFile(event,savePaths[0],content)
     })
   }
   else{

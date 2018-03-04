@@ -3,6 +3,7 @@
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 import {ipcMain,dialog,BrowserWindow,importer,session, app} from 'electron'
+import {getCurrentWindow} from './util'
 const uuid = require('node-uuid')
 import {favorite,history,favicon} from './databaseFork'
 
@@ -22,17 +23,15 @@ const importData = (selected) => {
 }
 
 const importHTML = (selected) => {
-  const files = dialog.showOpenDialog({
-    properties: ['openFile'],
-    filters: [{
-      name: 'HTML',
-      extensions: ['html', 'htm']
-    }]
+  const files = dialog.showDialog(getCurrentWindow(),{
+    type: 'select-open-file',
+    extensions: [['html', 'htm']]
+  },files=>{
+    if (files && files.length > 0) {
+      const file = files[0]
+      importer.importHTML(file)
+    }
   })
-  if (files && files.length > 0) {
-    const file = files[0]
-    importer.importHTML(file)
-  }
 }
 
 importer.on('update-supported-browsers', (e, detail) => {

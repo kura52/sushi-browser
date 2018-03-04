@@ -296,7 +296,6 @@ export default {
       app.setLocale(lang)
       mainState.lang = lang == 'zh-CN' ? lang : lang.slice(0,2)
 
-
       mainState.dragData = null
 
       mainState.searchProviders = {}

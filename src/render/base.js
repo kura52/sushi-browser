@@ -16,7 +16,7 @@ const isDarwin = navigator.userAgent.includes('Mac OS X')
 const isWin = navigator.userAgent.includes('Windows')
 const [longPressMiddle,doubleShift] = ipc.sendSync('get-sync-main-states',['longPressMiddle','doubleShift'])
 
-require('inferno').options.recyclingEnabled = true; // Advanced optimisation
+// require('inferno').options.recyclingEnabled = true; // Advanced optimisation
 global.lastMouseDown = []
 global.lastMouseDownSet = new Set()
 global.openerQueue = []
@@ -51,9 +51,6 @@ export default class MainContent extends Component{
     this.w = w
     this.h = h
   }
-
-
-
 
   componentDidMount() {
     ipc.once('unmount-components',_=>{

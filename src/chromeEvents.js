@@ -407,25 +407,31 @@ simpleIpcFuncCb('chrome-tabs-duplicate',async (tabId,cb)=>{
 
 
 simpleIpcFuncCb('chrome-tabs-saveAsPDF',async (pageSettings,cb)=>{
-  getFocusedWebContents().then(cont=>{
-    const filepath = dialog.showSaveDialog(BrowserWindow.fromWebContents(cont.hostWebContents),{defaultPath: path.join(app.getPath('downloads'), `${cont.getTitle()}.pdf`) })
-    if(!filepath){
-      cb('canceled')
-      return
-    }
-    cont.printToPDF({landscape:pageSettings.orientation === 1},(error, data) => {
-      if (error){
-        cb('not_saved')
-        return
-      }
-      fs.writeFile(filepath, data, (error) => {
-        if (error){
-          cb('not_saved')
+  getFocusedWebContents().then(cont=> {
+    const filepath = dialog.showDialog(BrowserWindow.fromWebContents(cont.hostWebContents),
+      {
+        defaultPath: path.join(app.getPath('downloads'), `${cont.getTitle()}.pdf`),
+        type: 'select-saveas-file',
+        extensions: [['pdf']]
+      },filepaths=>{
+        if (!filepaths || filepaths.length > 1) {
+          cb('canceled')
           return
         }
-        cb('saved')
+        cont.printToPDF({landscape: pageSettings.orientation === 1}, (error, data) => {
+          if (error) {
+            cb('not_saved')
+            return
+          }
+          fs.writeFile(filepaths[0], data, (error) => {
+            if (error) {
+              cb('not_saved')
+              return
+            }
+            cb('saved')
+          })
+        })
       })
-    })
   })
 })
 

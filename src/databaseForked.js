@@ -5,12 +5,12 @@ import { app } from 'electron'
 const isDarwin = process.platform === 'darwin'
 const resizeFile = require('./resizeFile')
 
-function isPortable(){
+function getPortable(){
   const file = path.join(__dirname,'../resource/portable.txt').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
-  return fs.existsSync(file) && fs.readFileSync(file).toString().includes('true')
+  return fs.existsSync(file) && fs.readFileSync(file).toString().replace(/[ \r\n]/g,'')
 }
 
-let port
+let port,pingTime
 let result = _=>{
   const db = require('./database')
   const getFavicon = require('./captureFaviconEvent')
@@ -32,7 +32,11 @@ let result = _=>{
 
   sock.connect(port,'127.0.0.1')
   sock.on('message', function(msg,reply) {
-    if(msg.path){
+    if(msg.ping){
+      pingTime = Date.now()
+      return
+    }
+    else if(msg.path){
       resizeFile(msg.path,reply)
       return
     }
@@ -64,7 +68,8 @@ let result = _=>{
   });
 }
 
-const sushiPath = isPortable() ? path.join(__dirname,`../../../${isDarwin ? '../../' : ''}data`).replace(/app.asar([\/\\])/,'app.asar.unpacked$1') : app.getPath('userData').replace('brave','sushiBrowser').replace('sushi-browser','sushiBrowser')
+const portableData = getPortable()
+const sushiPath = (portableData == 'true' || portableData == 'portable') ? path.join(__dirname,`../../../${isDarwin ? '../../' : ''}data`).replace(/app.asar([\/\\])/,'app.asar.unpacked$1') : app.getPath('userData').replace('brave','sushiBrowser').replace('sushi-browser','sushiBrowser')
 
 const filePath = path.join(sushiPath,'resource/fork.txt').replace(/\\/g,"/")
 if(fs.existsSync(filePath)){
@@ -81,6 +86,8 @@ if(fs.existsSync(filePath)){
 else{
   result = false
 }
+
+setInterval(_=> pingTime && Date.now() - pingTime > 6000 && app.quit(),500)
 
 export default result
 

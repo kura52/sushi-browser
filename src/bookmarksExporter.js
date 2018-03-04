@@ -29,16 +29,14 @@ ipcMain.on('export-bookmark',_=>{
   const fileName = moment().format('DD_MM_YYYY') + '.html'
   const defaultPath = path.join(app.getPath('downloads'), fileName)
 
-  dialog.showSaveDialog(focusedWindow, {
+  dialog.showDialog(focusedWindow, {
     defaultPath: defaultPath,
-    filters: [{
-      name: 'HTML',
-      extensions: ['html']
-    }]
-  }, (fileName) => {
-    if (fileName) {
+    type: 'select-saveas-file',
+    extensions: [['html']]
+  }, (fileNames) => {
+    if (fileNames && fileNames.length == 1) {
       getAllFavorites().then(ret=>{
-        fs.writeFileSync(fileName, createBookmarkHTML(ret))
+        fs.writeFileSync(fileNames[0], createBookmarkHTML(ret))
       })
     }
   })

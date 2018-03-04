@@ -28,7 +28,7 @@ const webviewEvents = {
   'did-finish-load': 'onDidFinishLoading',
   'did-fail-load': 'onDidFailLoad',
   'did-fail-provisional-load':'onDidFailLoad',
-  'did-frame-finish-load': 'onDidFrameFinishLoad',
+  // 'did-frame-finish-load': 'onDidFrameFinishLoad',
   'did-get-redirect-request': 'onDidGetRedirectRequest',
   'dom-ready': 'onDomReady',
   // 'page-title-updated': 'onPageTitleSet',
@@ -139,7 +139,7 @@ class BrowserPage extends Component {
       }
     }
 
-    webview.addEventListener('found-in-page',this.wvEvents['found-in-page'])
+    webview.addEventListener('found-in-page',this.wvEvents['found-in-page'],{passive:true})
 
     const tokenDidStartLoading = PubSub.subscribe(`did-start-loading_${this.props.tab.key}`,_=>{
       this.setState({isSearching: false})
@@ -195,6 +195,7 @@ class BrowserPage extends Component {
     for(var [k,v] in Object.entries(this.wvEvents)){
       this.refs.webview.removeEventListener(k, v,{passive:true})
     }
+    this.refs.webview = null
 
     PubSub.unsubscribe(this.tokenWebviewKeydown)
 

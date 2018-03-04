@@ -73,7 +73,7 @@ async function getFavicon(){
 
 function faviconUpdate(url) {
   if (url == 'loading') return
-  sock.send({favicon: url},msg=>{})
+  sock.send({favicon: url})
 }
 
 const captures = {}

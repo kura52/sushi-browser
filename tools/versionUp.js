@@ -6,14 +6,18 @@ const glob = require("glob")
 const BEFORE_CODE_NAME = 'Kani(Crab)'
 const CODE_NAME = 'Kani(Crab)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.14.3"
+const NEXT_APP_VERSION = "0.14.4"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Updated to youtube-dl 2018.02.25
-Updated to Muon 5.0.6`
+const CHANGE_ENGLISH = `Improve tab open performance.
+Changed the selection method of user data folder in portable version.
+Fix Dialog bug.
+Updated to Muon 5.0.7`
 
-const CHANGE_JAPANESE = `youtube-dlを2018.02.25に更新
-Muonを5.0.6に更新`
+const CHANGE_JAPANESE = `タブを開く速度を改善
+ポータブル版のユーザデータの保存フォルダの選択方法変更
+ダイアログの不具合修正
+Muonを5.0.7に更新`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

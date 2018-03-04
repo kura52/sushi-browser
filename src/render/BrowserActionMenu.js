@@ -43,6 +43,7 @@ class BrowserActionWebView extends Component {
     super(props)
     this.state = {style:{opacity: 0.01}}
     this.first = true
+    this.close = true
 
     this.ipcEvent = e=> {
       if (e.channel == 'window-close') {
@@ -106,7 +107,7 @@ class BrowserActionWebView extends Component {
   }
 
   componentDidMount() {
-    const webview = this.refs.webview
+    const webview = this.refs && this.refs.webview
     if(webview){
       if(!this.close && this.noCloseFlg){
         webview.reload()

@@ -7,22 +7,32 @@ const isDarwin = process.platform === 'darwin'
 
 process.on('unhandledRejection', r => console.error(r));
 
-function isPortable(){
-  const file = path.join(__dirname,'../resource/portable.txt').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
-  return fs.existsSync(file) && fs.readFileSync(file).toString().includes('true')
+function getPortable(){
+  if(!global.portable){
+    const file = path.join(__dirname,'../resource/portable.txt').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
+    global.portable = {
+      state: fs.existsSync(file) && fs.readFileSync(file).toString().replace(/[ \r\n]/g,''),
+      default: path.dirname(app.getPath('userData')),
+      portable: path.join(__dirname,`../../../${isDarwin ? '../../' : ''}`),
+      file
+    }
+    console.log(5545435,global.portable)
+  }
+  return global.portable
 }
 
 function changePortable(folder){
-  if(isPortable()){
+  const portableData = getPortable().state
+  if(portableData == 'true' || portableData == 'portable'){
     const portablePath = path.join(__dirname,`../../../${isDarwin ? '../../' : ''}${folder}`)
     console.log(portablePath)
-    if(!fs.existsSync(portablePath)){
-      fs.ensureDirSync(portablePath)
-      const noPortablePath = app.getPath('userData')
-      if(fs.existsSync(noPortablePath)){
-        fs.copySync(noPortablePath,portablePath)
-      }
-    }
+    // if(!fs.existsSync(portablePath)){
+    //   fs.ensureDirSync(portablePath)
+    //   const noPortablePath = app.getPath('userData')
+    //   if(fs.existsSync(noPortablePath)){
+    //     fs.copySync(noPortablePath,portablePath)
+    //   }
+    // }
     app.setPath('userData', portablePath)
   }
 }

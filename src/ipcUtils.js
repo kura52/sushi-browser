@@ -150,16 +150,13 @@ ipcMain.on('show-dialog-exploler',(event,key,info,tabId)=>{
     })
   }
   else{
-    let option = { defaultPath:info.defaultPath, properties: ['openDirectory'] }
+    let option = { defaultPath:info.defaultPath, type: 'select-folder' }
     if(info.needVideo){
-      option.properties = ['openFile','multiSelections']
-      option.filters =  [{
-        name: 'Select Video Files',
-        extensions: ['3gp','3gpp','3gpp2','asf','avi','dv','flv','m2t','m4v','mkv','mov','mp4','mpeg','mpg','mts','oggtheora','ogv','rm','ts','vob','webm','wmv']
-      }]
+      option.type = 'select-open-multi-file'
+      option.extensions =  ['3gp','3gpp','3gpp2','asf','avi','dv','flv','m2t','m4v','mkv','mov','mp4','mpeg','mpg','mts','oggtheora','ogv','rm','ts','vob','webm','wmv']
     }
-    dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), option, (selected) => {
-      if (Array.isArray(selected)) {
+    dialog.showDialog(BrowserWindow.getFocusedWindow(), option, (selected) => {
+      if (selected && selected.length > 0) {
         event.sender.send(`show-dialog-exploler-reply_${key}`,info.needVideo ? selected : selected[0])
       }
       else{
@@ -874,16 +871,24 @@ ipcMain.on('download-m3u8',(e,url,fname,tabId,needInput)=>{
   const ffmpeg = path.join(__dirname, `../resource/bin/ffmpeg/${process.platform === 'win32' ? 'win' : process.platform === 'darwin' ? 'mac' : 'linux'}/ffmpeg`).replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
   let downloadPath = path.join(app.getPath('downloads'),`${fname.split(".").slice(0,-1).join(".")}.%(ext)s`)
 
-  if(needInput){
-    downloadPath = dialog.showSaveDialog(BrowserWindow.fromWebContents(e.sender),{defaultPath: downloadPath })
-    if(!downloadPath) return
+  const dl = function () {
+    console.log(`${shellEscape(youtubeDl)} --hls-prefer-native --ffmpeg-location=${shellEscape(ffmpeg)} -o ${shellEscape(downloadPath)} ${shellEscape(url)}`)
+    ipcMain.once('start-pty-reply', (e, key) => {
+      ipcMain.emit(`send-pty_${key}`, null, `${isWin ? '& ' : ''}${shellEscape(youtubeDl)} --hls-prefer-native --ffmpeg-location=${shellEscape(ffmpeg)} -o ${shellEscape(downloadPath)} ${shellEscape(url)}\n`)
+    })
+    e.sender.send('new-tab', tabId, 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html')
   }
 
-  console.log(`${shellEscape(youtubeDl)} --hls-prefer-native --ffmpeg-location=${shellEscape(ffmpeg)} -o ${shellEscape(downloadPath)} ${shellEscape(url)}`)
-  ipcMain.once('start-pty-reply',(e,key)=>{
-    ipcMain.emit(`send-pty_${key}`,null,`${isWin ? '& ' : ''}${shellEscape(youtubeDl)} --hls-prefer-native --ffmpeg-location=${shellEscape(ffmpeg)} -o ${shellEscape(downloadPath)} ${shellEscape(url)}\n`)
-  })
-  e.sender.send('new-tab',tabId,'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html')
+  if(needInput){
+    dialog.showDialog(BrowserWindow.fromWebContents(e.sender),{defaultPath: downloadPath,type: 'select-saveas-file',includeAllFiles:true },filepaths=>{
+      if (!filepaths || filepaths.length > 1) return
+      downloadPath = filepaths[0]
+      dl()
+    })
+  }
+  else{
+    dl()
+  }
 })
 
 let numVpn = 1
@@ -1114,6 +1119,7 @@ PubSub.subscribe("web-contents-created",(msg,[tabId,sender])=>{
   console.log("web-contents-created",tabId)
   const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
   if(!cont) return
+  console.log("web-contents-created",tabId,cont.getURL())
 
   if(!sender.isDestroyed()) sender.send('web-contents-created',tabId)
 
@@ -1332,6 +1338,13 @@ ipcMain.on('execCommand-copy',e=>{
 ipcMain.on('get-isMaximized',e=>{
   const win = BrowserWindow.fromWebContents(e.sender)
   e.returnValue = win.isMaximized() || win.isFullScreen()
+})
+
+ipcMain.on('set-audio-muted',(e,tabId,val)=>{
+  const cont = webContents.fromTabID(tabId)
+  if(cont){
+    cont.setAudioMuted(val)
+  }
 })
 
 // ipcMain.on('send-keys',(e,keys)=>{

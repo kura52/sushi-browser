@@ -219,14 +219,17 @@ export default class Download {
 
       if(needSavePath || (this.getData(this.prompt,url) && fs.existsSync(savePath))){
         console.log("needSavePath")
-        const filepath = dialog.showSaveDialog(win,{defaultPath: savePath })
-        if(!filepath){
-          if(active) item.destroy()
-          return
-        }
-        console.log(6)
-        savePath = filepath
-        overwrite = true
+        dialog.showDialog(win,{defaultPath: savePath,type: 'select-saveas-file',includeAllFiles:true },filepaths=>{
+          if(!filepaths || filepaths.length > 1){
+            if(active) item.destroy()
+            return
+          }
+          console.log(6)
+          savePath = filepaths[0]
+          overwrite = true
+          this.process(url, overwrite, savePath, item, webContents, win, mimeType, audioExtract, videoConvert);
+        })
+        return
       }
       else if(autoSetSavePath){
         if(url.endsWith(".pdf") || url.endsWith(".PDF") ){
@@ -238,54 +241,68 @@ export default class Download {
         console.log(7)
       }
 
-      if (retry.has(url) || url.startsWith('data:')) {
-        console.log('retry')
-        retry.delete(url)
-        if(!this.getData(overwrite,url)){
-          savePath = this.getUniqFileName(savePath)
-        }
-        item.setPrompt(false)
-        item.setSavePath(savePath)
-        timeMap.set(savePath, Date.now())
-        this.downloadReady(item, url, webContents,win)
-      }
-      else {
-        console.log(8,savePath)
-        // console.log(JSON.stringify({a: mainState.downloadNum}))
-        // const postData = process.downloadParams.get(url)
-        // // console.log(postData,url)
-        // if(postData && (Date.now() - postData[1] < 100 * 1000)){
-        //   process.downloadParams.delete(url)
-        //   this.downloadReady(item, url, webContents,win)
-        //   return
-        // }
-        let id, updated, ended, isError
-
-        const aria2cKey = this.getData(this.dlKey,url)
-        const dl = new Aria2cWrapper({url,orgUrl:this.orgUrl,mimeType,savePath,downloadNum: mainState.downloadNum,overwrite,timeMap,aria2cKey})
-
-        console.log(9)
-        dl.download().then(_=>{
-          console.log(10)
-          dl.once('error', (_) => {
-            console.log('error')
-            if(!win.webContents.isDestroyed()) win.webContents.send('download-progress', this.buildItem(dl));
-            if(!isError){
-              isError = true
-              retry.add(url)
-              global.downloadItems = global.downloadItems.filter(i => i !== dl)
-              set(this.savePath,url,savePath)
-              set(this.audioExtract,url,audioExtract)
-              set(this.videoConvert,url,videoConvert)
-              if(overwrite) set(this.overwrite,url,true)
-              webContents.downloadURL(url, true)
-            }
-          })
-          this.downloadReady(dl, url, webContents,win,audioExtract,videoConvert)
-        })
-
-      }
+      this.process(url, overwrite, savePath, item, webContents, win, mimeType, audioExtract, videoConvert);
     })
+  }
+
+  process(url, overwrite, savePath, item, webContents, win, mimeType, audioExtract, videoConvert) {
+    if (retry.has(url) || url.startsWith('data:')) {
+      console.log('retry')
+      retry.delete(url)
+      if (!this.getData(overwrite, url)) {
+        savePath = this.getUniqFileName(savePath)
+      }
+      item.setPrompt(false)
+      item.setSavePath(savePath)
+      timeMap.set(savePath, Date.now())
+      this.downloadReady(item, url, webContents, win)
+    }
+    else {
+      console.log(8, savePath)
+      // console.log(JSON.stringify({a: mainState.downloadNum}))
+      // const postData = process.downloadParams.get(url)
+      // // console.log(postData,url)
+      // if(postData && (Date.now() - postData[1] < 100 * 1000)){
+      //   process.downloadParams.delete(url)
+      //   this.downloadReady(item, url, webContents,win)
+      //   return
+      // }
+      let id, updated, ended, isError
+
+      const aria2cKey = this.getData(this.dlKey, url)
+      const dl = new Aria2cWrapper({
+        url,
+        orgUrl: this.orgUrl,
+        mimeType,
+        savePath,
+        downloadNum: mainState.downloadNum,
+        overwrite,
+        timeMap,
+        aria2cKey
+      })
+
+      console.log(9)
+      dl.download().then(_ => {
+        console.log(10)
+        dl.once('error', (_) => {
+          console.log('error')
+          if (!win.webContents.isDestroyed()) win.webContents.send('download-progress', this.buildItem(dl));
+          if (!isError) {
+            isError = true
+            retry.add(url)
+            global.downloadItems = global.downloadItems.filter(i => i !== dl)
+            set(this.savePath, url, savePath)
+            set(this.audioExtract, url, audioExtract)
+            set(this.videoConvert, url, videoConvert)
+            if (overwrite) set(this.overwrite, url, true)
+            webContents.downloadURL(url, true)
+          }
+        })
+        this.downloadReady(dl, url, webContents, win, audioExtract, videoConvert)
+      })
+
+    }
+    return savePath;
   }
 
   downloadReady(item, url, webContents,win,audioExtract,videoConvert) {

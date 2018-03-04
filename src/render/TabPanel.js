@@ -1483,7 +1483,7 @@ export default class TabPanel extends Component {
       }
       const cont = this.getWebContents(tab)
       if (!cont) return
-      cont.setAudioMuted(!!tab.mute)
+      ipc.send('set-audio-muted',tab.wvId,!!tab.mute)
       clearInterval(id)
       // cont.setTabValues({windowId: 11})
     }, 100)
@@ -1845,7 +1845,7 @@ export default class TabPanel extends Component {
         sharedState[`color-${tab.key}`] = e.args[0]
         this.refs.tabs.setState({})
       }
-    }]
+    }];
     tab.wv.addEventListener('ipc-message',tab.events['ipc-message'][1] )
 
     tab.events['search-text'] = (e, id, text, opposite)=> {
@@ -2735,6 +2735,7 @@ export default class TabPanel extends Component {
     sharedState.allSelectedkeys.delete(key)
 
     this._closeBind(this.state.tabs[i])
+
     if(this.state.tabs.length==1){
       if(!e.noSync) this.closeSyncTabs(key)
       const keepWindow = keepWindowLabel31 && !this.props.parent.state.root.r
