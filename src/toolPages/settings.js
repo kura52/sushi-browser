@@ -544,6 +544,7 @@ class GeneralSetting extends React.Component {
             const key = Math.random().toString()
             ipc.send('show-dialog-exploler',key,{defaultPath:this.state.downloadPath || this.state.defaultDownloadPath})
             ipc.once(`show-dialog-exploler-reply_${key}`,(event,ret)=>{
+              if(!ret) return
               this.refs.dl.inputRef.value = ret
               this.onChange('downloadPath',{},{value:ret})
             })

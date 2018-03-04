@@ -135,14 +135,14 @@ This browser makes use of wonderful web technologies, starting with the followin
 Both the installer for every platform and the portable version can be downloaded.  
 To use the portable edition, please run sushi.exe for Windows and sushi-browser for Mac/Linux after decompressing.
 
-- [Windows Installer v0.14.2](https://sushib.me/dl/sushi-browser-0.14.2-setup-x64.exe)
-- [Windows Portable v0.14.2(self-extract)](https://sushib.me/dl/sushi-browser-0.14.2-win-x64.exe)
-- [Windows Portable v0.14.2](https://sushib.me/dl/sushi-browser-0.14.2-win-x64.zip)
-- [MacOS dmg v0.14.2](https://sushib.me/dl/SushiBrowser-0.14.2.dmg)
-- [MacOS Portable v0.14.2](https://sushib.me/dl/sushi-browser-0.14.2-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.14.2](https://sushib.me/dl/sushi-browser-0.14.2.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.14.2](https://sushib.me/dl/sushi-browser_0.14.2_amd64.deb)
-- [Linux Portable v0.14.2](https://sushib.me/dl/sushi-browser-0.14.2.tar.bz2)
+- [Windows Installer v0.14.4](https://sushib.me/dl/sushi-browser-0.14.4-setup-x64.exe)
+- [Windows Portable v0.14.4(self-extract)](https://sushib.me/dl/sushi-browser-0.14.4-win-x64.exe)
+- [Windows Portable v0.14.4](https://sushib.me/dl/sushi-browser-0.14.4-win-x64.zip)
+- [MacOS dmg v0.14.4](https://sushib.me/dl/SushiBrowser-0.14.4.dmg)
+- [MacOS Portable v0.14.4](https://sushib.me/dl/sushi-browser-0.14.4-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.14.4](https://sushib.me/dl/sushi-browser-0.14.4.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.14.4](https://sushib.me/dl/sushi-browser_0.14.4_amd64.deb)
+- [Linux Portable v0.14.4](https://sushib.me/dl/sushi-browser-0.14.4.tar.bz2)
 
 # Use of Flash 
 If Flash won't run, please install Flash from the following web sites.  
@@ -156,6 +156,16 @@ sushi-browser --no-sandbox
 ```
 
 # New Features
+
+#### New function(v0.144)
+- Improve tab open performance.
+- Changed the selection method of user data folder in portable version.
+- Fix Dialog bug.
+- Updated to Muon 5.0.7
+
+#### New function(v0.143)
+- Updated to youtube-dl 2018.02.25
+- Updated to Muon 5.0.6
 
 #### New function(v0.142)
 - Changing the save destination of the user file in the portable version to the same level as the executable folder. (Portable Edtion became really Portable.)
@@ -190,7 +200,7 @@ sushi-browser --no-sandbox
 - Fixed session bug
 - Fixed drag effect
 
-#### New function(v0.14.2)
+#### New function(v0.14.4)
 - Fixed error when dropping and dragging
 - Fixed a bug that ended abnormally when searching
 

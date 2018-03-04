@@ -111,3 +111,26 @@ function on(eventName) {
     //jsをinjectionする
   }, {capture: true,passive: true});
 }
+
+// dragstart
+// dragenter
+// dragover
+// dragleave
+// drag
+// drop
+// dragend
+// mousedown
+// mouseup
+// mouseover
+// mouseout
+// select
+// focusin
+// focusout
+// click
+// keydown
+// keypress
+// keyup
+// input
+// change
+// submit
+// scroll

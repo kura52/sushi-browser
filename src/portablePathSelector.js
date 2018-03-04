@@ -17,6 +17,7 @@ function portableResourcePathSelector(){
       BrowserWindow.getAllWindows().forEach(win=>{
         win.close()
       })
+      app.quit()
     }
   })
 }
