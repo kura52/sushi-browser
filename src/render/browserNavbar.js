@@ -564,6 +564,15 @@ class BrowserNavbar extends Component{
     return ret
   }
 
+  loadTabSetting(){
+    sharedState.notLoadTabUntilSelected = !sharedState.notLoadTabUntilSelected
+    mainState.set('notLoadTabUntilSelected',sharedState.notLoadTabUntilSelected)
+    sharedState.enableColorOfNoSelect = sharedState.notLoadTabUntilSelected
+    mainState.set('enableColorOfNoSelect',sharedState.notLoadTabUntilSelected)
+    this.forceUpdates = true
+    this.props.parent.setState({})
+  }
+
   mainMenu(cont,tab,menuActions){
     const hostname = this.props.page.navUrl ? urlParse(this.props.page.navUrl).hostname : ""
     return <NavbarMenu ref="main-menu" className="main-menu" alwaysView={true} k={this.props.k} isFloat={isFloatPanel(this.props.k)} style={{overflowX: 'visible'}}
@@ -613,17 +622,18 @@ class BrowserNavbar extends Component{
       <div className="divider" />
 
       <NavbarMenuSubMenu icon="browser" text="Window SubMenu">
-        {isDarwin ? null :<NavbarMenuItem text={this.props.toggleNav == 3 ? 'Normal Screen Mode' : 'Full Screen Mode'} icon={this.props.toggleNav == 3 ? 'compress' : 'expand'}
-                                          onClick={()=>{ipc.send('toggle-fullscreen');this.refs['main-menu'].menuClose()}}/>}
         <NavbarMenuItem text='Detach This Panel' icon='space shuttle' onClick={_=>{this.props.parent.detachPanel();this.refs['main-menu'].menuClose()}}/>
         <NavbarMenuItem text='Panels to Windows' icon='cubes' onClick={_=>{PubSub.publish('all-detach');this.refs['main-menu'].menuClose()}}/>
+        {isDarwin ? null :<NavbarMenuItem text={this.props.toggleNav == 3 ? 'Normal Screen Mode' : 'Full Screen Mode'} icon={this.props.toggleNav == 3 ? 'compress' : 'expand'}
+                                          onClick={()=>{ipc.send('toggle-fullscreen');this.refs['main-menu'].menuClose()}}/>}
       </NavbarMenuSubMenu>
       <NavbarMenuSubMenu icon="hashtag" text={locale.translation('7853747251428735')}>
         {isWin  ? <NavbarMenuItem text={`Change VPN Mode`} icon='plug' onClick={_=>{
           this.setState({vpnList:!this.state.vpnList})
         }
         }/> : null}
-        <NavbarMenuItem text={`Open Opposite ${this.props.oppositeGlobal ? 'OFF' : 'ON'}(ALL)`} icon='columns' onClick={_=>{this.handleOppositeGlobal();this.refs['main-menu'].menuClose()}}/>
+        <NavbarMenuItem text={`Open Opposite ${this.props.oppositeGlobal ? 'OFF' : 'ON'}`} icon='columns' onClick={_=>{this.handleOppositeGlobal();this.refs['main-menu'].menuClose()}}/>
+        <NavbarMenuItem text={ sharedState.notLoadTabUntilSelected ? "Always load tabs": "Don't load tabs untill selected"} onClick={_=>{this.loadTabSetting();this.refs['main-menu'].menuClose()}}/>
         <NavbarMenuItem text='Extract Audio from Video' icon='music' onClick={_=>{ipc.send('audio-extract');this.refs['main-menu'].menuClose()}}/>
         <NavbarMenuItem text={`Change Pdf View to ${this.state.pdfMode == 'normal' ? 'Comic' : 'Normal'}`} icon='file pdf outline' onClick={_=>{this.handlePdfMode();this.refs['main-menu'].menuClose()}}/>
         <NavbarMenuItem text='Sync Datas' icon='exchange' onClick={()=>{ipc.send("start-sync",this.props.k);this.refs['main-menu'].menuClose()}}/>

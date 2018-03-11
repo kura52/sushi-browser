@@ -160,7 +160,7 @@ function tabAdd(self, url, isSelect=true,privateMode = false,guestInstanceId,mob
 
   if(isSelect){
     self.state.selectedKeys.push(key)
-    sharedState.allSelectedkeys.add(key)
+    // sharedState.allSelectedkeys.add(key)
     console.log("selected01",key)
     self.setState({selectedTab: key})
     self.focus_webview(t,t.page.location != topURL)

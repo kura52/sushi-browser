@@ -94,7 +94,7 @@ export default class BrowserNavbarLocation extends Component {
   componentWillUnmount() {
     PubSub.unsubscribe(this.token)
     ipc.removeListener('focus-location-bar',this.keyEvent2)
-    this.props.wv.removeEventListener('ipc-message',this.keyEvent)
+    if(this.props.wv) this.props.wv.removeEventListener('ipc-message',this.keyEvent)
   }
 
   addEvent(props) {

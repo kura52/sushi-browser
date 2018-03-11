@@ -1207,7 +1207,7 @@ class TabsSetting extends React.Component {
         <span style={{verticalAlign: 'baseline'}} className="toggle-label">{l10n.translation('unreadTabLabel')}&nbsp;&nbsp;&nbsp;{l10n.translation('textcolorLabel')}:&nbsp;&nbsp;</span>
         <Input ref='colorUnreadText' onChange={this.onChange.bind(this,'colorUnreadText')} defaultValue={this.state.colorUnreadText}/>
         <span style={{verticalAlign: 'baseline'}} className="toggle-label">&nbsp;{l10n.translation('bgColorLabel')}:&nbsp;&nbsp;</span>
-        <Input ref='colorUnreadBackground' onChange={this.onChange.bind(this,'colorUnreadBackground')} defaultValue={this.state.colorUnreadText}/>
+        <Input ref='colorUnreadBackground' onChange={this.onChange.bind(this,'colorUnreadBackground')} defaultValue={this.state.colorUnreadBackground}/>
       </div>
 
       <div className='spacer2'/>

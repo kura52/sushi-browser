@@ -401,6 +401,7 @@ class Tabs extends React.Component {
 
 
     let content = [];
+    const {notLoadTabUntilSelected,allSelectedkeys} = sharedState
     let tabs = this.state.tabs.map((tab,tabNum) => {
       if (this.state.closedTabs.has(tab.key)) {
         return '';
@@ -445,7 +446,7 @@ class Tabs extends React.Component {
         }
         beforeTitle.push(<span className="tab-number" style={{color:titleColor}}>{tabNumber}</span>)
       }
-      beforeTitle.push(<img className='favi-tab' src={page.title && page.favicon !== 'loading' ? page.favicon : 'resource/l.svg'} onError={(e)=>{e.target.src = 'resource/file.png'}}/>)
+      beforeTitle.push(<img className='favi-tab' src={notLoadTabUntilSelected && !allSelectedkeys.has(tab.key) ? 'resource/file.png' : page.title && page.favicon !== 'loading' ? page.favicon : 'resource/l.svg'} onError={(e)=>{e.target.src = 'resource/file.png'}}/>)
 
       const title = page.favicon !== 'loading' || page.titleSet  || page.location == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? page.title : page.location
 

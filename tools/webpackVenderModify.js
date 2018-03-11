@@ -26,7 +26,8 @@ function a(file){
   '../resource/extension/default/1.0_0/js/explorerMenu.js',
   '../resource/extension/default/1.0_0/js/explorerSidebar.js',
   '../resource/extension/default/1.0_0/js/favoriteInit.js',
-  '../resource/extension/default/1.0_0/js/favoriteSidebar.js',
+  '../resource/extension/default/1.0_0/js/favoriteSidebar.js'
+  '../resource/extension/default/1.0_0/js/converter.js',
   '../resource/extension/default/1.0_0/js/sync.js',
   '../resource/extension/default/1.0_0/js/settings.js',
   '../lib/render/base.js'].forEach(f=>a(f))

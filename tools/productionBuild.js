@@ -613,6 +613,7 @@ const compiledJsFiles = ['resource/extension/default/1.0_0/js/top.js',
   'resource/extension/default/1.0_0/js/sync.js',
   'resource/extension/default/1.0_0/js/settings.js',
   'resource/extension/default/1.0_0/js/macro.js',
+  'resource/extension/default/1.0_0/js/converter.js',
   'resource/extension/default/1.0_0/js/contentscript.js',
   'lib/render/base.js']
 

@@ -4,6 +4,8 @@ const PubSub = require('./pubsub')
 const {BrowserPage} = require("./browserPage")
 const ReactDOM = require('react-dom')
 const _ = require("lodash")
+const sharedState = require('./sharedState')
+const {tabState} = require('./databaseRender')
 
 
 export default class WebPageList extends Component{
@@ -73,6 +75,7 @@ export default class WebPageList extends Component{
 
 
   render() {
+    const {notLoadTabUntilSelected,allSelectedkeys} = sharedState
     let arr = []
     const list = this.state.l
     // console.log(list)
@@ -118,11 +121,21 @@ export default class WebPageList extends Component{
                 height: pos.height - modify,
               }
             }
+            const notLoadPage = notLoadTabUntilSelected && !allSelectedkeys.has(tab.key) && !tab.wvId
             arr.push([tab.key,
               <div className={`browser-page-wrapper ${datas.isActive ? "visible" : "visible"}`} style={style} key={tab.key}>
-                <BrowserPage ref={`page-${tab.key}`} k={tab.key} k2={key} {...tab.pageHandlers}
-                             tab={tab} pageIndex={0} isActive={datas.isActive} pos={style}/>
+                {notLoadPage ? null :<BrowserPage ref={`page-${tab.key}`} k={tab.key} k2={key} {...tab.pageHandlers}
+                                                  tab={tab} pageIndex={0} isActive={datas.isActive} pos={style}/>}
               </div>])
+            if(notLoadPage && !tab.recorded){
+              tabState.findOne({tabKey:tab.key}).then(rec=>{
+                if(!rec){
+                  tab.recorded = true
+                  const location = tab.page.location
+                  tabState.insert({tabKey:tab.key,titles:location,urls:location,currentIndex:0,close:1,updated_at: Date.now()}).then(_=>_)
+                }
+              })
+            }
           }
         }
       }

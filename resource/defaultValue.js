@@ -58,7 +58,7 @@ const settingDefault =  {
   numOfSuggestion: 0,
   numOfHistory: 15,
   displayFullIcon: true,
-
+  notLoadTabUntilSelected: false,
 
   //tab
   reloadIntervals: [60,120,300,900,1800],
