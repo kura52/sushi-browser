@@ -137,6 +137,11 @@ export default class NavbarMenu extends Component {
     this.setState({forceOpen:false})
   }
 
+  menuClose(){
+    this.setState({visible: false})
+    this.closeBind()
+  }
+
   render(){
     const self = this
     const list = this.state.dataList ? this.props.children.concat(this.state.dataList) : this.props.children
@@ -148,15 +153,13 @@ export default class NavbarMenu extends Component {
         <i className={`fa fa-${this.props.icon}`} />
         {this.props.badget || null}
       </a>
-      {!this.state.visible && !this.props.alwaysView ? null : <div ref="menu" className={`menu${this.state.visible || this.state.forceOpen ? " visible" : ""} transition ${this.props.mouseOver ? 'nav2-menu' : 'nav-menu'}`} style={this.props.style}>
+      {!this.state.visible && !this.props.alwaysView ? null : <div ref="menu" className={`menu${this.state.visible || this.state.forceOpen ? " visible" : ""} transition left ${this.props.mouseOver ? 'nav2-menu' : 'nav-menu'}`} style={this.props.style}>
         {(list || []).map((child) => {
-            if(child && (child.type == NavbarMenuBarItem || (child.type == NavbarMenuItem))){
+            if(child && (child.type == NavbarMenuBarItem || child.type == NavbarMenuItem)){
+              console.log(child.type)
               return React.cloneElement(child, {
                 onClick(e){
-                  if(!child.props.keepVisible){
-                    self.setState({visible: false})
-                    self.closeBind()
-                  }
+                  if(!child.props.keepVisible) self.menuClose()
                   child.props.onClick(e)
                 }
               })

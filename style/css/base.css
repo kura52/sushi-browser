@@ -769,3 +769,30 @@ li.preset{
 li.preset.val:hover{
     background-color: #f8f9fa;
 }
+
+.ui.dropdown .menu .menu.submenu {
+    left: auto !important;
+    right: 100% !important;
+    top: auto !important;
+    margin-top: -20px !important;
+}
+
+.ui.dropdown.main-menu .menu>.item.zoom-setting {
+    margin-left: 50px;
+    margin-right: 50px;
+    text-align: center;
+}
+
+.ui.dropdown.main-menu .menu>.item.zoom-in {
+    float: right;
+    margin-left: auto;
+    margin-right: 7px;
+    padding-right: 0px !important;
+    padding-left: 15px !important;
+}
+.ui.dropdown.main-menu .menu>.item.zoom-out {
+    position: absolute;
+    padding-right: 7px !important;
+    margin-left: 2px;
+    display: flex;
+}

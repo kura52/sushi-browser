@@ -1,6 +1,6 @@
-var started = started ? void 0 : 1
+window.__started_ = window.__started_ ? void 0 : 1
 var ipc = chrome.ipcRenderer
-if(started){
+if(window.__started_){
   if(location.href.startsWith('http') && window == window.parent){
     document.addEventListener("DOMContentLoaded",_=>{
       const key = Math.random().toString()
@@ -82,8 +82,9 @@ if(started){
     })
   },{passive:true})
 
-  ipc.send("get-main-state",['tripleClick','alwaysOpenLinkNewTab','themeColorChange'])
-  ipc.once("get-main-state-reply",(e,data)=> {
+  const key = Math.random().toString()
+  ipc.send("get-main-state",key,['tripleClick','alwaysOpenLinkNewTab','themeColorChange'])
+  ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
     if (data.tripleClick) {
       window.addEventListener('click', e => {
         if (e.detail === 3) {

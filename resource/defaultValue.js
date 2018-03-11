@@ -45,8 +45,8 @@ const settingDefault =  {
   vpnNames: [],
   navbarItems: {
     left: ['back','forward','reload'],
-    right: ['sync','opposite','sidebar','mobile','screenshot','favorite','history','tabHistory','savedState','video'],
-    backSide: ['syncReplace','download','folder','terminal'],
+    right: ['sync','sidebar','mobile','screenshot','favorite','history','savedState','video'],
+    backSide: ['syncReplace','tabHistory','opposite','download','folder','terminal'],
   },
   verticalTab: false,
   verticalTabWidth: 200,

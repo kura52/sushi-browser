@@ -1276,8 +1276,9 @@ class Converter extends React.Component {
   }
 }
 
-ipc.send("get-main-state",['defaultDownloadPath','defaultVideoPreset'])
-ipc.once("get-main-state-reply",(e,data)=>{
+const key = Math.random().toString()
+ipc.send("get-main-state",key,['defaultDownloadPath','defaultVideoPreset'])
+ipc.once(`get-main-state-reply_${key}`,(e,data)=>{
   defaultData = data
   ReactDOM.render(<Converter />,  document.getElementById('app'))
 })

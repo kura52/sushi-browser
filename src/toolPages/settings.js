@@ -1813,8 +1813,8 @@ const App = () => (
   </Container>
 )
 
-
-ipc.send("get-main-state",['startsWith','newTabMode','myHomepage','searchProviders','searchEngine','language','enableFlash','concurrentDownload','downloadNum','sideBarDirection','scrollTab',
+const key = Math.random().toString()
+ipc.send("get-main-state",key,['startsWith','newTabMode','myHomepage','searchProviders','searchEngine','language','enableFlash','concurrentDownload','downloadNum','sideBarDirection','scrollTab',
   'doubleShift','tripleClick','syncScrollMargin','contextMenuSearchEngines','ALL_KEYS','bindMarginFrame','bindMarginTitle','longPressMiddle','checkDefaultBrowser','sendToVideo',
   'multistageTabs','tabMinWidth','httpsEverywhereEnable','trackingProtectionEnable','autoSaveInterval','noScript','blockCanvasFingerprinting','browsingHistory', 'downloadHistory',
   'disableContextMenus','disableTabContextMenus','priorityContextMenus','priorityTabContextMenus','reloadIntervals','generalWindowOpenLabel','keepWindowLabel31',
@@ -1823,7 +1823,7 @@ ipc.send("get-main-state",['startsWith','newTabMode','myHomepage','searchProvide
   'defaultDownloadPath','alwaysOpenLinkNewTab','alwaysOpenLinkBackground','addressBarNewTab','oppositeGlobal','colorNormalText','colorNormalBackground','colorActiveText',
   'colorActiveBackground','colorTabDot','colorUnreadText','colorUnreadBackground','enableColorOfNoSelect','themeColorChange','showBorderActiveTab','historyBadget','colorTabMode',
   'enableWidevine'])
-ipc.once("get-main-state-reply",(e,data)=>{
+ipc.once(`get-main-state-reply_${key}`,(e,data)=>{
   generalDefault = data
   keyboardDefault = data
   TabDefault = data

@@ -249,6 +249,7 @@ class BrowserPage extends Component {
         webview.stopFindInPage('keepSelection')
         webview.findInPage(query,{matchCase:false,forward: next,findNext: true}) //@TODO framework bug
         webview.findInPage(query,{matchCase:false,forward: next,findNext: false})
+        webview.findInPage(query,{matchCase:false,forward: !next,findNext: false})
       }
     }
   }

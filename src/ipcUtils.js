@@ -529,7 +529,7 @@ ipcMain.on("change-title",(e,title)=>{
 
 
 const extInfos = require('./extensionInfos')
-ipcMain.on('get-main-state',(e,names)=>{
+ipcMain.on('get-main-state',(e,key,names)=>{
   const ret = {}
   names.forEach(name=>{
     if(name == "ALL_KEYS"){
@@ -552,7 +552,7 @@ ipcMain.on('get-main-state',(e,names)=>{
     extensions[k] = {name:v.name,url:v.url,basePath:v.base_path,optionPage: v.manifest.options_page,background: v.manifest.background && v.manifest.background.page,icons:v.manifest.icons, version: v.manifest.version, description: v.manifest.description,enabled: !disableExtensions.includes(orgId) }
   }
   ret.extensions = extensions
-  e.sender.send('get-main-state-reply',ret)
+  e.sender.send(`get-main-state-reply_${key}`,ret)
 })
 
 

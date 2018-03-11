@@ -12,15 +12,16 @@ export default class AutofillPopup extends Component {
   componentDidMount() {
     const showAutoFill = (e) => {
       console.log('autofill',e)
+      if(e.rect.height + e.rect.width == 0) return
       this.setState({datas:e})
 
       this.keyDown = (evt)=>{
         if(evt.keyCode === 13 && this.state.active != -1) { //enter
           if(e.callback){
-            e.callback(e.suggestions[this.state.active].value)
+            e.callback(this.state.datas.suggestions[this.state.active].value)
           }
           else{
-            ipc.send('autofill-selection-clicked', this.state.tab.wvId, e.suggestions[this.state.active].value, e.suggestions[this.state.active].frontend_id, this.state.active)
+            ipc.send('autofill-selection-clicked', this.state.tab.wvId, this.state.datas.suggestions[this.state.active].value, 0, this.state.active)
           }
           evt.stopPropagation()
         }
@@ -120,7 +121,9 @@ export default class AutofillPopup extends Component {
               this.state.datas.callback(data.value)
             }
             else{
+              const active = document.activeElement
               ipc.send('autofill-selection-clicked', this.state.tab.wvId, data.value, 0, i)
+              setTimeout(_=>active.focus(),100)
             }
           }}>
             <div className="content">

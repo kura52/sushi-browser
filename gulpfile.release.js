@@ -5,7 +5,7 @@ var path = require('path')
 var env = 'production'
 
 gulp.task('main-process', function() {
-  return gulp.src(['./src/**/*.js','!./src/toolPages/**','!./src/render/**','!./src/extension/**','!./src/chromagnon/**'])
+  return gulp.src(['./src/**/*.js','!./src/defaultExtension/**','!./src/toolPages/**','!./src/render/**','!./src/extension/**','!./src/chromagnon/**'])
     .pipe(babel({}))
       .pipe(gulp.dest('./lib'))
 });

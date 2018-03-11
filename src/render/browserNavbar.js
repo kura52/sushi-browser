@@ -22,7 +22,7 @@ const BrowserNavbarLocation = require('./BrowserNavbarLocation')
 const SyncReplace = require('./SyncReplace')
 import RightTopBottonSet from './RightTopBottonSet'
 const NavbarMenu = require('./NavbarMenu')
-const {NavbarMenuItem,NavbarMenuBarItem} = require('./NavbarMenuItem')
+const {NavbarMenuItem,NavbarMenuBarItem,NavbarMenuSubMenu} = require('./NavbarMenuItem')
 const FloatSyncScrollButton = require('./FloatSyncScrollButton')
 const mainState = remote.require('./mainState')
 const moment = require('moment')
@@ -591,17 +591,20 @@ class BrowserNavbar extends Component{
                                                    }}/> : null
       }
       <div className="divider" />
-      {isDarwin ? null :<NavbarMenuItem text={this.props.toggleNav == 3 ? 'Normal Screen Mode' : 'Full Screen Mode'} icon={this.props.toggleNav == 3 ? 'compress' : 'expand'}
-                                        onClick={()=>ipc.send('toggle-fullscreen')}/>}
-      <NavbarMenuItem text='Detach This Panel' icon='space shuttle' onClick={this.props.parent.detachPanel}/>
-      <NavbarMenuItem text='Panels to Windows' icon='cubes' onClick={_=>PubSub.publish('all-detach')}/>
-      {isDarwin ? null :<NavbarMenuItem text='Bind selected Window' icon='crosshairs' onClick={_=>this.bindWindow()}/>}
 
+      <NavbarMenuItem text={locale.translation(alwaysOnTop ? 'neverOnTop' : 'alwaysOnTop')} icon='level up' onClick={()=>{
+        alwaysOnTop = !alwaysOnTop
+        mainState.set('alwaysOnTop',alwaysOnTop)
+        remote.getCurrentWindow().setAlwaysOnTop(alwaysOnTop)
+        this.forceUpdates = true
+        this.setState({})
+      }}/>
+      {isDarwin ? null :<NavbarMenuItem text='Bind Selected Window' icon='crosshairs' onClick={_=>this.bindWindow()}/>}
       <div className="divider" />
 
-      <NavbarMenuItem text={locale.translation("zoomOut")} icon='zoom out' onClick={::this.onZoomOut} keepVisible={true} />
-      <NavbarMenuItem text={`${parseInt(this.state.zoom)}% → 100%`} icon='radio' onClick={::this.noZoom} keepVisible={true} />
-      <NavbarMenuItem text={locale.translation("zoomIn")} icon='zoom in' onClick={::this.onZoomIn} keepVisible={true} />
+      <NavbarMenuItem icon='zoom out' className='zoom-out' onClick={::this.onZoomOut} keepVisible={true} />
+      <NavbarMenuItem icon='zoom in' className='zoom-in' onClick={::this.onZoomIn} keepVisible={true} />
+      <NavbarMenuItem text={`${parseInt(this.state.zoom)}%`} className='zoom-setting' onClick={::this.noZoom} keepVisible={true} />
       <div className="divider" />
 
       <NavbarMenuItem text={`AdBlock ${this.props.adBlockEnable ? 'OFF' : 'ON'}(ALL)`} icon='hand paper' onClick={::this.handleAdBlockGlobal}/>
@@ -609,33 +612,28 @@ class BrowserNavbar extends Component{
       {this.props.adBlockEnable ? <NavbarMenuItem text={`AdBlock ${global.adBlockDisableSite[hostname] ? 'ON' : 'OFF'}(Domain)`} icon='hand paper' onClick={_=>this.handleAdBlockDomain(hostname)}/> : null}
       <div className="divider" />
 
-      <NavbarMenuItem text={`${alwaysOnTop ? 'Disable' : 'Enable'} Always On Top`} icon='level up' onClick={()=>{
-        alwaysOnTop = !alwaysOnTop
-        mainState.set('alwaysOnTop',alwaysOnTop)
-        remote.getCurrentWindow().setAlwaysOnTop(alwaysOnTop)
-        this.forceUpdates = true
-        this.setState({})
-      }}/>
-
-      <div className="divider" />
-
-      {isWin  ? <NavbarMenuItem text={`Change VPN Mode`} icon='plug' onClick={_=>{
-        this.setState({vpnList:!this.state.vpnList})
-      }
-      }/> : null}
-      <NavbarMenuItem text={`Open Opposite ${this.props.oppositeGlobal ? 'OFF' : 'ON'}(ALL)`} icon='columns' onClick={::this.handleOppositeGlobal}/>
-      <NavbarMenuItem text='Extract Audio from Video' icon='music' onClick={_=>ipc.send('audio-extract')}/>
-      <NavbarMenuItem text={`Change Pdf View to ${this.state.pdfMode == 'normal' ? 'Comic' : 'Normal'}`} icon='file pdf outline' onClick={::this.handlePdfMode}/>
-      {/*<NavbarMenuItem text='Developer Tool' icon='music' onClick={_=>cont.hostWebContents.openDevTools()}/>*/}
+      <NavbarMenuSubMenu icon="browser" text="Window SubMenu">
+        {isDarwin ? null :<NavbarMenuItem text={this.props.toggleNav == 3 ? 'Normal Screen Mode' : 'Full Screen Mode'} icon={this.props.toggleNav == 3 ? 'compress' : 'expand'}
+                                          onClick={()=>{ipc.send('toggle-fullscreen');this.refs['main-menu'].menuClose()}}/>}
+        <NavbarMenuItem text='Detach This Panel' icon='space shuttle' onClick={_=>{this.props.parent.detachPanel();this.refs['main-menu'].menuClose()}}/>
+        <NavbarMenuItem text='Panels to Windows' icon='cubes' onClick={_=>{PubSub.publish('all-detach');this.refs['main-menu'].menuClose()}}/>
+      </NavbarMenuSubMenu>
+      <NavbarMenuSubMenu icon="hashtag" text={locale.translation('7853747251428735')}>
+        {isWin  ? <NavbarMenuItem text={`Change VPN Mode`} icon='plug' onClick={_=>{
+          this.setState({vpnList:!this.state.vpnList})
+        }
+        }/> : null}
+        <NavbarMenuItem text={`Open Opposite ${this.props.oppositeGlobal ? 'OFF' : 'ON'}(ALL)`} icon='columns' onClick={_=>{this.handleOppositeGlobal();this.refs['main-menu'].menuClose()}}/>
+        <NavbarMenuItem text='Extract Audio from Video' icon='music' onClick={_=>{ipc.send('audio-extract');this.refs['main-menu'].menuClose()}}/>
+        <NavbarMenuItem text={`Change Pdf View to ${this.state.pdfMode == 'normal' ? 'Comic' : 'Normal'}`} icon='file pdf outline' onClick={_=>{this.handlePdfMode();this.refs['main-menu'].menuClose()}}/>
+        <NavbarMenuItem text='Sync Datas' icon='exchange' onClick={()=>{ipc.send("start-sync",this.props.k);this.refs['main-menu'].menuClose()}}/>
+      </NavbarMenuSubMenu>
       <div className="divider" />
 
 
       <NavbarMenuItem text={locale.translation("settings").replace('…','')} icon='settings' onClick={()=>this.onCommon("settings")}/>
       <NavbarMenuItem text={locale.translation("print").replace('…','')} icon='print' onClick={()=>this.getWebContents(this.props.tab).print()}/>
       <NavbarMenuItem text={locale.translation("toggleDeveloperTools")} icon='bug' onClick={()=>this.getWebContents(this.props.tab).openDevTools()}/>
-      <div className="divider" />
-
-      <NavbarMenuItem text='Sync Datas' icon='exchange' onClick={()=>ipc.send("start-sync",this.props.k)}/>
       <div className="divider" />
 
       <NavbarMenuItem text='Close This Panel' icon='close' onClick={()=>PubSub.publish(`close-panel_${this.props.k}`)}/>

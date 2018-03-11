@@ -1,3 +1,84 @@
+import css2xpath from './css2xpath'
+import { select } from './optimal-select'
+
+
+const cssSelector = element=>select(element, {
+  root: document,
+  priority: ['id', 'class','tag', 'value'],
+  ignore: {
+    attribute (name, value, defaultPredicate) {
+      return !(/^(title|value|alt|label|name|class|id)$/).test(name)
+    }
+  }
+})
+
+function createXPathFromElement(element) {
+  var allNodes = document.getElementsByTagName('*');
+  for (var segs = []; element && element.nodeType == 1; element = element.parentNode) {
+    if ((element.getAttribute('id') != null) && (element.getAttribute('id') !== '')) {
+      var uniqueIdCount = 0;
+      for (var n = 0; n < allNodes.length; n++) {
+        if (((allNodes[n].getAttribute('id') != null) || (allNodes[n].getAttribute('id') !== ''))
+          && allNodes[n].id == element.id)
+          uniqueIdCount++;
+        if (uniqueIdCount > 1)
+          break;
+      }
+
+      if (uniqueIdCount == 1) {
+        segs.unshift('id("' + element.getAttribute('id') + '")');
+        return segs.join('/');
+      }
+      if (element.nodeName) {
+        segs.unshift(element.nodeName.toLowerCase() + '[@id="' + element.id + '"]');
+      }
+    // } else if ((element.className != null) && (element.className !== '')) {
+    //   segs.unshift(element.nodeName.toLowerCase() + '[@class="' + element.className.trim() + '"]');
+    } else {
+      for (var i = 1, sib = element.previousSibling; sib; sib = sib.previousSibling) {
+        if (sib.nodeName == element.nodeName)
+          i++;
+      }
+      segs.unshift(element.nodeName.toLowerCase() + (i == 1 ? '' : '[' + i + ']'));
+    }
+
+  }
+
+  return segs.length ? '/' + segs.join('/') : null;
+}
+
+
+function getCSSPath(el, ignoreIds) {
+  if (!(el instanceof Element))
+    return;
+  var path = [];
+  while (el.nodeType === Node.ELEMENT_NODE) {
+    var selector = el.nodeName.toLowerCase();
+    if (el.id && !ignoreIds) {
+      selector = '#' + el.id.replace( /(:|\.|\[|\]|,)/g, "\\$1" ); // extra regex for css chars in id
+      path.unshift(selector);
+      break;
+    }
+    // else if (el.className) {
+    //   selector += '.' + el.className.replace( /(:|\.|\[|\]|,)/g, "\\$1" ).replace(/ /g,'.'); // extra regex for css chars in id
+    // }
+    else {
+      var sib = el, nth = 1;
+      while (sib = sib.previousElementSibling) {
+        if (sib.nodeName.toLowerCase() == selector)
+          nth++;
+      }
+      if (nth != 1)
+        selector += ":nth-of-type("+nth+")";
+    }
+    path.unshift(selector);
+    el = el.parentNode;
+    if (el == null)
+      return;
+  }
+  return path.join(" > ");
+}
+
 function getFrameIndex() {
   if (window.top === window.self)
     return 0;
@@ -70,10 +151,11 @@ function onScroll(){
 function on(eventName) {
   window.addEventListener(eventName, function (e) {
     const target = e.target
+    const csspath = cssSelector(e.target)
     const evt_data = {
-      path: processPath(e.path),
-      csspath: getCSSPath(e.target, false),
-      csspathfull: getCSSPath(e.target, true),
+      optSelector: csspath,
+      selector: getCSSPath(e.target),
+      xpath: createXPathFromElement(e.target),
       clientX: e.clientX,
       clientY: e.clientY,
       altKey: e.altKey,
@@ -84,6 +166,7 @@ function on(eventName) {
       bubbles: e.bubbles,
       cancelable: e.cancelable,
       innerText: e.target.innerText || '',
+      timeStamp: e.timeStamp,
       inFrame: getFrameIndex(),
       url: window.location.href,
       isTrusted: e.isTrusted
@@ -101,36 +184,20 @@ function on(eventName) {
           evt_data['value'] = target.value
       }
       else if(target.tagName == 'select'){
-        evt_data['value'] = target.checked
+        evt_data['value'] = target.selectedOptions
       }
       else
         evt_data['value'] = target.innerText;
     }
 
+    console.log(evt_data)
     //selectonを取る,eventをtimestampでまとめる
     //jsをinjectionする
+    //frameはipc系であなんとかする
+    //座標特定
   }, {capture: true,passive: true});
 }
 
-// dragstart
-// dragenter
-// dragover
-// dragleave
-// drag
-// drop
-// dragend
-// mousedown
-// mouseup
-// mouseover
-// mouseout
-// select
-// focusin
-// focusout
-// click
-// keydown
-// keypress
-// keyup
-// input
-// change
-// submit
-// scroll
+for(let eventName of ['mousedown','mouseup','mouseover','mouseout','select','focusin','focusout','click','keydown','keypress','keyup','input','change','submit']){
+  on(eventName)
+}

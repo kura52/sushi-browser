@@ -531,7 +531,8 @@ const chrome_valid = new RegExp(`^(${['994289308992179865',
   '5317780077021120954',
   '8986267729801483565',
   '8888432776533519951',
-  '5431318178759467895'].join("|")})`)
+  '5431318178759467895',
+  '7853747251428735'].join("|")})`)
 
 
 
@@ -611,6 +612,8 @@ const compiledJsFiles = ['resource/extension/default/1.0_0/js/top.js',
   'resource/extension/default/1.0_0/js/terminal.js',
   'resource/extension/default/1.0_0/js/sync.js',
   'resource/extension/default/1.0_0/js/settings.js',
+  'resource/extension/default/1.0_0/js/macro.js',
+  'resource/extension/default/1.0_0/js/contentscript.js',
   'lib/render/base.js']
 
 filesContentsReplace(webpackFile,/merge\({fileName:"([^b])/,'// merge({fileName:"$1')

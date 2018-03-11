@@ -31,7 +31,7 @@ gulp.task('render-process', function() {
 });
 
 gulp.task('main-process', function() {
-  return gulp.src(['./src/**/*.js','!./src/toolPages/**','!./src/render/**','!./src/extension/**','!./src/chromagnon/**'])
+  return gulp.src(['./src/**/*.js','!./src/defaultExtension/**','!./src/toolPages/**','!./src/render/**','!./src/extension/**','!./src/chromagnon/**'])
       .pipe(cache('mainCache'))
       .pipe(plumber())
       .pipe(sourcemaps.init())
@@ -66,7 +66,7 @@ gulp.task('main-process3', function() {
 
 gulp.task('watch', function() {
     gulp.watch('src/**/*.js',['main-process','main-process2','main-process3'])
-    gulp.watch(['src/render/**/*.js','src/toolPages/**/*.js'],['render-process'])
+    gulp.watch(['src/render/**/*.js','src/toolPages/**/*.js','src/defaultExtension/**/*.js'],['render-process'])
     // gulp.watch(['./src/*.js','./src/*.tag'], [/*'babel-for-flow','flow-typecheck','babel',*/'webpack'])
     // gulp.watch(['./dist/*.js','../index.html'], reload)
 });
