@@ -218,7 +218,7 @@ export default function modify(extensionId,verPath){
 
       for(let file of require("glob").sync(`${verPath}/**/*.html`)){
         console.log(222444,verPath,file.replace(`${verPath}/`,''),isWebExt)
-        htmlModify(verPath,file.replace(`${verPath}/`,''),isWebExt)
+        htmlModify(verPath,file.replace(`${verPath.replace(/\\/g,'/')}/`,''),isWebExt)
       }
 
         for(let file of require("glob").sync(`${verPath}/**/*.js`)){
@@ -228,7 +228,7 @@ export default function modify(extensionId,verPath){
             datas = datas.replace(/moz\-extension/ig,'chrome-extension')
             needWrite = true
           }
-          if(datas.includes('about:blank')){
+          if(extensionId == 'mlomiejdfkolichcflejclcbmpeaniij' && datas.includes('about:blank')){
             datas = datas.replace(/about:blank/ig,'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html')
             needWrite = true
           }

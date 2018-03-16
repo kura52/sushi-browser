@@ -5,7 +5,7 @@
    "content_scripts": [
       {
          "all_frames": true,
-         "js": [ "js/contentscript.js" ],
+         "js": [ "js/contentscript.js","js/macro.js" ],
          "matches": ["<all_urls>"],
          "include_globs": [
             "http://*/*", "https://*/*", "file://*", "data:*", "about:srcdoc",

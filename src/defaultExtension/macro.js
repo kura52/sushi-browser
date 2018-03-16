@@ -78,6 +78,11 @@ function getCSSPath(el, ignoreIds) {
   }
   return path.join(" > ");
 }
+function uuidv4() {
+  return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+    (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+  )
+}
 
 function getFrameIndex() {
   if (window.top === window.self)
@@ -99,7 +104,7 @@ function finishScrollEvent() {
   chrome.runtime.sendMessage({
     action: "addEvent",
     evt: "scroll",
-    evt_data: {
+    data: {
       bubbles: false, // TODO: Investigate
       cancelable: false, // TODO: Investigate
       scrollTopStart: scrollStartTop,
@@ -152,7 +157,9 @@ function on(eventName) {
   window.addEventListener(eventName, function (e) {
     const target = e.target
     const csspath = cssSelector(e.target)
-    const evt_data = {
+    const data = {
+      id: uuidv4(),
+      event: 'record-op',
       optSelector: csspath,
       selector: getCSSPath(e.target),
       xpath: createXPathFromElement(e.target),
@@ -171,30 +178,36 @@ function on(eventName) {
       url: window.location.href,
       isTrusted: e.isTrusted
     }
-    if (eventName == 'select') evt_data['selectValue'] = target.value
+    if (eventName == 'select') data.selectValue = target.value
     else if (eventName == 'keyup' || eventName == 'keydown' || eventName == 'keypress'){
-      evt_data['keyCode'] = e.keyCode
+      data.keyCode = e.keyCode
     }
     else if (eventName == 'input' || eventName == 'change') {
-      evt_data['type'] = target.tagName.toLowerCase();
+      data.type = target.tagName.toLowerCase();
       if (target.tagName=='input' || target.tagName=='textarea'){
         if(target.type == 'checkbox' || target.type == 'radio')
-          evt_data['value'] = target.checked
+          data.value = target.checked
         else
-          evt_data['value'] = target.value
+          data.value = target.value
       }
       else if(target.tagName == 'select'){
-        evt_data['value'] = target.selectedOptions
+        data.value = target.selectedOptions
       }
       else
-        evt_data['value'] = target.innerText;
+        data.value = target.innerText;
+    }
+    else if(eventName == 'mouseup'){
+      data.selection = window.getSelection().toString()
     }
 
-    console.log(evt_data)
+    console.log(data)
+
+    chrome.runtime.sendMessage(data)
     //selectonを取る,eventをtimestampでまとめる
     //jsをinjectionする
-    //frameはipc系であなんとかする
+    //frameはipc+getframeindex
     //座標特定
+
   }, {capture: true,passive: true});
 }
 
