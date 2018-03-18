@@ -1,83 +1,96 @@
-import css2xpath from './css2xpath'
 import { select } from './optimal-select'
 
+const EA_keys = {8:"Backspace",9:"Tab",12:"Clear",13:"Enter",16:"Shift",17:"Ctrl",18:"Alt",19:"Pause",20:"Caps Lock",27:"Esc",32:"Space",33:"Page Up",34:"Page Down",35:"End",36:"Home",37:"Left",38:"Up",39:"Right",40:"Down",44:"Impr ecran",45:"Insert",46:"Delete",91:"Windows / Command",92:"Menu Demarrer Windows",93:"Menu contextuel Windows",112:"F1",113:"F2",114:"F3",115:"F4",116:"F5",117:"F6",118:"F7",119:"F8",120:"F9",121:"F10",122:"F11",123:"F12",136:"Num Lock",137:"Scroll Lock",144:"Verr Num",145:"Arret defil",229:'IME'};
 
-const cssSelector = element=>select(element, {
+function getKey(keyCode){
+  return EA_keys[keyCode] || String.fromCharCode(keyCode)
+}
+
+function stringToUnicode(str){
+  let result = ""
+  for(let i=0,len=str.length;i<len;i++){
+    result += `\\u${str.charCodeAt(i).toString(16)}`
+  }
+  return result
+}
+
+const optCssSelector = element=>select(element, {
   root: document,
   priority: ['id', 'class','tag', 'value'],
   ignore: {
     attribute (name, value, defaultPredicate) {
-      return !(/^(title|value|alt|label|name|class|id)$/).test(name)
+      return !(/^(title|value|alt|label|name|class|id)$/).test(name) || (name == 'class' && /^\s*$/.test(value)) || (name == 'value' && (element.tagName == 'INPUT' && !/^checkbox|radio|file|submit|image|reset|button$/i.test(element.type)) || element.tagName == 'TEXTAREA')
+    }
+  }
+})
+const simpleCssSelector = element=>select(element, {
+  root: document,
+  priority: ['id','tag'],
+  ignore: {
+    attribute (name, value, defaultPredicate) {
+      return name != 'id'
     }
   }
 })
 
-function createXPathFromElement(element) {
-  var allNodes = document.getElementsByTagName('*');
-  for (var segs = []; element && element.nodeType == 1; element = element.parentNode) {
-    if ((element.getAttribute('id') != null) && (element.getAttribute('id') !== '')) {
-      var uniqueIdCount = 0;
-      for (var n = 0; n < allNodes.length; n++) {
-        if (((allNodes[n].getAttribute('id') != null) || (allNodes[n].getAttribute('id') !== ''))
-          && allNodes[n].id == element.id)
-          uniqueIdCount++;
-        if (uniqueIdCount > 1)
-          break;
-      }
+function createXPathAndSelector(element) {
+  for (var segs = [],sels = []; element && element.nodeType == 1; element = element.parentNode) {
+    if(element.id) {
+      const uniqueIdCount = document.querySelectorAll("#" + element.id).length
 
       if (uniqueIdCount == 1) {
-        segs.unshift('id("' + element.getAttribute('id') + '")');
-        return segs.join('/');
+        segs.unshift(`//*[@id="${element.id}"]`)
+        sels.unshift(`#${element.id}`)
+        return {xpath:segs.join('/'),selector:sels.join(' > ')};
       }
       if (element.nodeName) {
-        segs.unshift(element.nodeName.toLowerCase() + '[@id="' + element.id + '"]');
+        segs.unshift(`${element.nodeName.toLowerCase()}[@id="${element.id}"]`);
+        sels.unshift(`${element.nodeName.toLowerCase()}#${element.id}`);
       }
-    // } else if ((element.className != null) && (element.className !== '')) {
-    //   segs.unshift(element.nodeName.toLowerCase() + '[@class="' + element.className.trim() + '"]');
-    } else {
-      for (var i = 1, sib = element.previousSibling; sib; sib = sib.previousSibling) {
-        if (sib.nodeName == element.nodeName)
-          i++;
-      }
-      segs.unshift(element.nodeName.toLowerCase() + (i == 1 ? '' : '[' + i + ']'));
     }
-
-  }
-
-  return segs.length ? '/' + segs.join('/') : null;
-}
-
-
-function getCSSPath(el, ignoreIds) {
-  if (!(el instanceof Element))
-    return;
-  var path = [];
-  while (el.nodeType === Node.ELEMENT_NODE) {
-    var selector = el.nodeName.toLowerCase();
-    if (el.id && !ignoreIds) {
-      selector = '#' + el.id.replace( /(:|\.|\[|\]|,)/g, "\\$1" ); // extra regex for css chars in id
-      path.unshift(selector);
-      break;
-    }
-    // else if (el.className) {
-    //   selector += '.' + el.className.replace( /(:|\.|\[|\]|,)/g, "\\$1" ).replace(/ /g,'.'); // extra regex for css chars in id
+    // else if(element.className) {
+    //   segs.unshift(`${element.nodeName.toLowerCase()}[@class="${element.className.trim()}"]`)
+    //   sels.unshift(`${element.nodeName.toLowerCase()}.${element.className.trim().replace(/[ \t]+/g,".")}`)
     // }
     else {
-      var sib = el, nth = 1;
-      while (sib = sib.previousElementSibling) {
-        if (sib.nodeName.toLowerCase() == selector)
-          nth++;
+      for (var i = 1, i2 = 1,sib = element.previousSibling; sib; sib = sib.previousSibling) {
+        if (sib.nodeName == element.nodeName) i++
       }
-      if (nth != 1)
-        selector += ":nth-of-type("+nth+")";
+      let onlyElement = i == 1
+      if(onlyElement){
+        for(sib = element.nextSibling;sib;sib = sib.nextSibling){
+          if(sib.nodeName == element.nodeName){
+            onlyElement = false
+            break
+          }
+        }
+      }
+      let className = element.className
+      if(!onlyElement && element.className){
+        for(sib = element.previousSibling;sib;sib = sib.previousSibling){
+          if(sib.nodeName == element.nodeName && sib.className.trim().replace(/[ \t]+/g, ".") == element.className.trim().replace(/[ \t]+/g, ".")){
+            className = null
+            break
+          }
+        }
+        if(className){
+          for(sib = element.nextSibling;sib;sib = sib.nextSibling){
+            if(sib.nodeName == element.nodeName && sib.className.trim().replace(/[ \t]+/g, ".") == element.className.trim().replace(/[ \t]+/g, ".")){
+              className = null
+              break
+            }
+          }
+        }
+      }
+      segs.unshift(element.nodeName.toLowerCase() + (onlyElement ? '' : `[${i}]`))
+      sels.unshift(element.nodeName.toLowerCase() + (onlyElement ? '' : className ? `.${className.trim().replace(/[ \t]+/g, ".")}` : `:nth-of-type(${i})`))
     }
-    path.unshift(selector);
-    el = el.parentNode;
-    if (el == null)
-      return;
+
   }
-  return path.join(" > ");
+
+  return {xpath:segs.length ? '/' + segs.join('/') : null,selector: sels.length ? sels.join(' > ') : null}
 }
+
 function uuidv4() {
   return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
     (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
@@ -96,73 +109,77 @@ function getFrameIndex() {
   return -1;
 }
 
+let index = 0,loadTime = Date.now()
 /* Start Scroll */
 let scrollTimer,scrollObject,scrollStartTime,scrollStartTop,scrollStartLeft
-function finishScrollEvent() {
-  scrollObject = document.body; // temp fix
-
-  chrome.runtime.sendMessage({
-    action: "addEvent",
-    evt: "scroll",
-    data: {
-      bubbles: false, // TODO: Investigate
-      cancelable: false, // TODO: Investigate
-      scrollTopStart: scrollStartTop,
-      scrollTopEnd: scrollObject.scrollTop,
-      scrollLeftStart: scrollStartLeft,
-      scrollLeftEnd: scrollObject.scrollLeft,
-      inFrame: getFrameIndex(),
-      url: window.location.href,
-      scrollTime: Date.now()-scrollStartTime,
-      endtime: Date.now()
-    },
+function finishScrollEvent(e) {
+  const target = e.target == document ? document.scrollingElement : e.target
+  const {xpath,selector} = createXPathAndSelector(e.target)
+  const data = {
+    index: index++,
+    id: uuidv4(),
+    name: 'scroll',
+    event: 'add-op',
+    optSelector: e.target == document ? 'html' : optCssSelector(e.target),
+    selector : selector || 'html',
+    xpath: xpath || '/',
+    clientX: e.clientX,
+    clientY: e.clientY,
+    bubbles: e.bubbles,
+    cancelable: e.cancelable,
+    scrollTopStart: scrollStartTop,
+    scrollLeftStart: scrollStartLeft,
+    timeStamp: loadTime +e.timeStamp,
+    now: Date.now(),
+    inFrame: getFrameIndex(),
+    url: window.location.href,
     time: scrollStartTime
-  });
+  }
+  console.log(data)
+  chrome.runtime.sendMessage(data)
 
-  scrollObject = null;
-  scrollStartTop = null; // not necessary
-  scrollStartLeft = null; // not necessary
+  scrollObject = null
 }
 
 function updateScrollEvent(e) {
-  // Designed to support multiple element scrolling event listeners
-
-  var scrollTimeMillis = 100;
-
+  var scrollTimeMillis = 100
   if (scrollObject == null) {
-    scrollStartTime = Date.now();
-    scrollObject = document.body; // e.target; temp removed
-    scrollStartTop = scrollObject.scrollTop;
-    scrollStartLeft = scrollObject.scrollLeft;
-    scrollTimer = setTimeout(finishScrollEvent, scrollTimeMillis);
-  } else {//} if (scrollObject == e.target) {
-    clearTimeout(scrollTimer);
-    scrollTimer = setTimeout(finishScrollEvent, scrollTimeMillis);
-  } // in theory, 2x concurrent scrolling, should be impossible but isn't
+    scrollObject = e.target == document ? document.scrollingElement : e.target
+  }
+  else {
+    clearTimeout(scrollTimer)
+  }
+  scrollStartTime = Date.now()
+  scrollStartTop = scrollObject.scrollTop
+  scrollStartLeft = scrollObject.scrollLeft
+  scrollTimer = setTimeout(_=>finishScrollEvent(e), scrollTimeMillis)
 }
 
 function onScroll(){
-  window.addEventListener("scroll", function (e) {
-    setTimeout(function () {
-      chrome.storage.local.get('recording', function (isRecording) {
-        if (isRecording.recording) {
-          updateScrollEvent(e);
-        }
-      });
-    }, 1);
-  }, false)
+  window.addEventListener("scroll", e=>{
+    if(!e.isTrusted) return
+
+    setTimeout(()=>updateScrollEvent(e), 1);
+  }, {capture: true,passive: true})
 }
 
+let preEventTime = Date.now()
 function on(eventName) {
-  window.addEventListener(eventName, function (e) {
+  window.addEventListener(eventName, e=>{
+    if(!e.isTrusted) return
+
     const target = e.target
-    const csspath = cssSelector(e.target)
+    const {xpath,selector} = createXPathAndSelector(e.target)
     const data = {
+      index: index++,
       id: uuidv4(),
-      event: 'record-op',
-      optSelector: csspath,
-      selector: getCSSPath(e.target),
-      xpath: createXPathFromElement(e.target),
+      name: eventName,
+      event: 'add-op',
+      optSelector: e.target == document ? 'html' : optCssSelector(e.target),
+      selector : selector || 'html',
+      xpath: xpath || '/',
+      tag: target.tagName && target.tagName.toLowerCase(),
+      type: target.type && target.type.toLowerCase(),
       clientX: e.clientX,
       clientY: e.clientY,
       altKey: e.altKey,
@@ -172,45 +189,61 @@ function on(eventName) {
       button: e.button,
       bubbles: e.bubbles,
       cancelable: e.cancelable,
+      contentEditable: target.isContentEditable,
       innerText: e.target.innerText || '',
-      timeStamp: e.timeStamp,
+      timeStamp: loadTime + e.timeStamp,
+      now: Date.now(),
       inFrame: getFrameIndex(),
-      url: window.location.href,
-      isTrusted: e.isTrusted
+      url: window.location.href
     }
     if (eventName == 'select') data.selectValue = target.value
-    else if (eventName == 'keyup' || eventName == 'keydown' || eventName == 'keypress'){
+    else if (eventName == 'keyup' || eventName == 'keydown'){
       data.keyCode = e.keyCode
+      data.key = e.key
+      data.keyChar = getKey(e.keyCode)
+      data.value = target.value
     }
     else if (eventName == 'input' || eventName == 'change') {
-      data.type = target.tagName.toLowerCase();
-      if (target.tagName=='input' || target.tagName=='textarea'){
-        if(target.type == 'checkbox' || target.type == 'radio')
+      if (data.tag=='input' || data.tag=='textarea'){
+        if(data.type == 'checkbox' || data.type == 'radio')
           data.value = target.checked
         else
           data.value = target.value
       }
-      else if(target.tagName == 'select'){
-        data.value = target.selectedOptions
+      else if(data.tag == 'select'){
+        data.value = [...target.selectedOptions].map(x=>({index:x.index,value:x.value,text:x.text}))
       }
       else
         data.value = target.innerText;
     }
-    else if(eventName == 'mouseup'){
+    else if(eventName == 'mouseup' || eventName == 'copy' || eventName == 'cut' || eventName == 'paste' || eventName == 'keydown'){
       data.selection = window.getSelection().toString()
     }
+    else if(eventName == 'mousemove'){
+      setTimeout(_=>{
+        if(data.now == preEventTime){
+          console.log(data)
+          chrome.runtime.sendMessage(data)
+        }
+      },3000)
+      preEventTime = data.now
+      return
+    }
 
+    preEventTime = data.now
     console.log(data)
-
     chrome.runtime.sendMessage(data)
     //selectonを取る,eventをtimestampでまとめる
     //jsをinjectionする
     //frameはipc+getframeindex
     //座標特定
+    //https://github.com/GoogleChrome/puppeteer/blob/master/lib/USKeyboardLayout.js
 
-  }, {capture: true,passive: true});
+  }, {capture: true,passive: true})
 }
-
-for(let eventName of ['mousedown','mouseup','mouseover','mouseout','select','focusin','focusout','click','keydown','keypress','keyup','input','change','submit']){
+//,'mouseout','keyup',
+for(let eventName of ['mousedown','mouseup','mousemove','select','focusin','focusout',
+  'click','dblclick','keydown','input','change','submit','copy','cut','paste']){
   on(eventName)
 }
+onScroll()

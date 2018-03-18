@@ -239,10 +239,25 @@ app.on('before-quit', (e) => {
   }
 })
 
+function clearDatas(){
+  const targets = []
+  if(mainState.clearHistoryOnClose) targets.push('clearHistory')
+  if(mainState.clearDownloadOnClose) targets.push('clearDownload')
+  if(mainState.clearCacheOnClose) targets.push('clearCache')
+  if(mainState.clearStorageDataOnClose) targets.push('clearStorageData')
+  if(mainState.clearAutocompleteDataOnClose) targets.push('clearAutocompleteData')
+  if(mainState.clearAutofillDataOnClose) targets.push('clearAutofillData')
+  if(mainState.clearPasswordOnClose) targets.push('clearPassword')
+  if(mainState.clearGeneralSettingsOnClose) targets.push('clearGeneralSettings')
+  if(mainState.clearFavoriteOnClose) targets.push('clearFavorite')
+  if(targets.length) ipcMain.emit('clear-browsing-data',null,targets)
+}
+
 app.on('window-all-closed', function () {
   console.log('window-all-closed',2221)
   // require('./databaseFork')._kill()
   if (!isDarwin || beforeQuit) {
+    clearDatas()
     for (let ptyProcess of ptyProcessSet){
       ptyProcess.destroy()
     }
@@ -270,6 +285,7 @@ app.on('will-quit', (e) => {
     exec(`rasdial /disconnect`).then(ret=>{})
   }
   if(isDarwin){
+    clearDatas()
     for (let ptyProcess of ptyProcessSet){
       ptyProcess.destroy()
     }

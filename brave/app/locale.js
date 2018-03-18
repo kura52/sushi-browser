@@ -404,6 +404,8 @@ var rendererIdentifiers = function () {
     'tabSettings',
     'alwaysOnTop',
     'neverOnTop',
+    'privateData',
+    'privateDataMessage',
 
     'closeAllTabsMenuLabel',
     'openalllinksLabel',

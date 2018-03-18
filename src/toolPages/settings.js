@@ -573,6 +573,92 @@ class GeneralSetting extends React.Component {
         {isDarwin || isWin ? <br/> : null}
 
 
+        <Grid>
+          <Grid.Row>
+            <Grid.Column width={6}>
+              <div className="field">
+                <label>{l10n.translation('8026334261755873520')}</label>
+
+                <Checkbox toggle onChange={this.onChange2.bind(this,'clearHistory')}/>
+                <span className="toggle-label">{l10n.translation('browsingHistory')}</span>
+                <br/>
+                <Checkbox toggle onChange={this.onChange2.bind(this,'clearDownload')}/>
+                <span className="toggle-label">{l10n.translation('downloadHistory')}</span>
+                <br/>
+                <Checkbox toggle onChange={this.onChange2.bind(this,'clearCache')}/>
+                <span className="toggle-label">{l10n.translation('cachedImagesAndFiles')}</span>
+                <br/>
+                <Checkbox toggle onChange={this.onChange2.bind(this,'clearStorageData')}/>
+                <span className="toggle-label">{l10n.translation('allSiteCookies')}</span>
+                <br/>
+                <Checkbox toggle onChange={this.onChange2.bind(this,'clearAutocompleteData')}/>
+                <span className="toggle-label">{l10n.translation('autocompleteData')}</span>
+                <br/>
+                <Checkbox toggle onChange={this.onChange2.bind(this,'clearAutofillData')}/>
+                <span className="toggle-label">{l10n.translation('autofillData')}</span>
+                <br/>
+                <Checkbox toggle onChange={this.onChange2.bind(this,'clearPassword')}/>
+                <span className="toggle-label">{l10n.translation('1375321115329958930')}</span>
+                <br/>
+                <Checkbox toggle onChange={this.onChange2.bind(this,'clearGeneralSettings')}/>
+                <span className="toggle-label">{l10n.translation('generalSettings')}</span>
+                <br/>
+                <Checkbox toggle onChange={this.onChange2.bind(this,'clearFavorite')}/>
+                <span className="toggle-label">{l10n.translation('bookmarks')}</span>
+                <br/>
+                <Button disabled={!this.clear.length} primary content={l10n.translation('clearBrowsingDataNow')} onClick={_=>ipc.send("clear-browsing-data",this.clear)}/>
+              </div>
+            </Grid.Column>
+            <Grid.Column width={6} style={{marginTop: 0}}>
+              <div className="field">
+                <label>{l10n.translation('privateDataMessage').replace("Brave","Sushi Browser")}</label>
+
+                <Checkbox toggle onChange={this.onChange.bind(this,'clearHistoryOnClose')} defaultValue={this.state.clearHistoryOnClose}/>
+                <span className="toggle-label">{l10n.translation('browsingHistory')}</span>
+                <br/>
+                <Checkbox toggle onChange={this.onChange.bind(this,'clearDownloadOnClose')} defaultValue={this.state.clearDownloadOnClose}/>
+                <span className="toggle-label">{l10n.translation('downloadHistory')}</span>
+                <br/>
+                <Checkbox toggle onChange={this.onChange.bind(this,'clearCacheOnClose')} defaultValue={this.state.clearCacheOnClose}/>
+                <span className="toggle-label">{l10n.translation('cachedImagesAndFiles')}</span>
+                <br/>
+                <Checkbox toggle onChange={this.onChange.bind(this,'clearStorageDataOnClose')} defaultValue={this.state.clearStorageDataOnClose}/>
+                <span className="toggle-label">{l10n.translation('allSiteCookies')}</span>
+                <br/>
+                <Checkbox toggle onChange={this.onChange.bind(this,'clearAutocompleteDataOnClose')} defaultValue={this.state.clearAutocompleteDataOnClose}/>
+                <span className="toggle-label">{l10n.translation('autocompleteData')}</span>
+                <br/>
+                <Checkbox toggle onChange={this.onChange.bind(this,'clearAutofillDataOnClose')} defaultValue={this.state.clearAutofillDataOnClose}/>
+                <span className="toggle-label">{l10n.translation('autofillData')}</span>
+                <br/>
+                <Checkbox toggle onChange={this.onChange.bind(this,'clearPasswordOnClose')} defaultValue={this.state.clearPasswordOnClose}/>
+                <span className="toggle-label">{l10n.translation('1375321115329958930')}</span>
+                <br/>
+                <Checkbox toggle onChange={this.onChange.bind(this,'clearGeneralSettingsOnClose')} defaultValue={this.state.clearGeneralSettingsOnClose}/>
+                <span className="toggle-label">{l10n.translation('generalSettings')}</span>
+                <br/>
+                <Checkbox toggle onChange={this.onChange.bind(this,'clearFavoriteOnClose')} defaultValue={this.state.clearFavoriteOnClose}/>
+                <span className="toggle-label">{l10n.translation('bookmarks')}</span>
+                <br/>
+              </div>
+            </Grid.Column>
+          </Grid.Row>
+        </Grid>
+        <br/>
+        <br/>
+
+        <div className="field">
+          <label>{l10n.translation('importBrowserData').replace('…','')}</label>
+          <Button primary content={l10n.translation('import')} onClick={_=>ipc.send("import-browser-data",{})}/>
+        </div>
+
+        <div className="field">
+          <label>{l10n.translation('exportBookmarks').replace('…','')}</label>
+          <Button primary content={l10n.translation('42126664696688958')} onClick={_=>ipc.send("export-bookmark",{})}/>
+        </div>
+        <br/>
+
+
         <div className="field">
           <label>Default Sidebar Position</label>
           <Dropdown onChange={this.onChange.bind(this,'sideBarDirection')} selection options={sideBarDirectionOptions} defaultValue={this.state.sideBarDirection}/>
@@ -685,53 +771,6 @@ class GeneralSetting extends React.Component {
           <Input onChange={this.onChange.bind(this,'bindMarginFrame')} defaultValue={this.state.bindMarginFrame}/>
           <label>Bind Window Title Margin</label>
           <Input onChange={this.onChange.bind(this,'bindMarginTitle')} defaultValue={this.state.bindMarginTitle}/>
-        </div>
-        <br/>
-
-
-        <div className="field">
-          <label>{l10n.translation('8026334261755873520')}</label>
-          <Checkbox toggle onChange={this.onChange2.bind(this,'clearHistory')}/>
-          <span className="toggle-label">{l10n.translation('browsingHistory')}</span>
-          <br/>
-          <Checkbox toggle onChange={this.onChange2.bind(this,'clearDownload')}/>
-          <span className="toggle-label">{l10n.translation('downloadHistory')}</span>
-          <br/>
-          <Checkbox toggle onChange={this.onChange2.bind(this,'clearCache')}/>
-          <span className="toggle-label">{l10n.translation('cachedImagesAndFiles')}</span>
-          <br/>
-          <Checkbox toggle onChange={this.onChange2.bind(this,'clearStorageData')}/>
-          <span className="toggle-label">{l10n.translation('allSiteCookies')}</span>
-          <br/>
-          <Checkbox toggle onChange={this.onChange2.bind(this,'clearAutocompleteData')}/>
-          <span className="toggle-label">{l10n.translation('autocompleteData')}</span>
-          <br/>
-          <Checkbox toggle onChange={this.onChange2.bind(this,'clearAutofillData')}/>
-          <span className="toggle-label">{l10n.translation('autofillData')}</span>
-          <br/>
-          <Checkbox toggle onChange={this.onChange2.bind(this,'clearPassword')}/>
-          <span className="toggle-label">{l10n.translation('1375321115329958930')}</span>
-          <br/>
-          <Checkbox toggle onChange={this.onChange2.bind(this,'clearGeneralSettings')}/>
-          <span className="toggle-label">{l10n.translation('generalSettings')}</span>
-          <br/>
-          <Checkbox toggle onChange={this.onChange2.bind(this,'clearFavorite')}/>
-          <span className="toggle-label">{l10n.translation('bookmarks')}</span>
-          <br/>
-
-          <Button disabled={!this.clear.length} primary content={l10n.translation('clearBrowsingDataNow')} onClick={_=>ipc.send("clear-browsing-data",this.clear)}/>
-
-        </div>
-        <br/>
-
-        <div className="field">
-          <label>{l10n.translation('importBrowserData').replace('…','')}</label>
-          <Button primary content={l10n.translation('import')} onClick={_=>ipc.send("import-browser-data",{})}/>
-        </div>
-
-        <div className="field">
-          <label>{l10n.translation('exportBookmarks').replace('…','')}</label>
-          <Button primary content={l10n.translation('42126664696688958')} onClick={_=>ipc.send("export-bookmark",{})}/>
         </div>
 
         {/*<div className="field">*/}
@@ -1822,6 +1861,7 @@ ipc.send("get-main-state",key,['startsWith','newTabMode','myHomepage','searchPro
   'maxrowLabel','orderOfAutoComplete','numOfSuggestion','numOfHistory','openTabNextLabel','rightClickTabAdd','middleClickTabAdd','altClickTabAdd','displayFullIcon','downloadPath',
   'defaultDownloadPath','alwaysOpenLinkNewTab','alwaysOpenLinkBackground','addressBarNewTab','oppositeGlobal','colorNormalText','colorNormalBackground','colorActiveText',
   'colorActiveBackground','colorTabDot','colorUnreadText','colorUnreadBackground','enableColorOfNoSelect','themeColorChange','showBorderActiveTab','historyBadget','colorTabMode',
+  'clearHistoryOnClose','clearDownloadOnClose','clearCacheOnClose','clearStorageDataOnClose','clearAutocompleteDataOnClose','clearAutofillDataOnClose','clearPasswordOnClose','clearGeneralSettingsOnClose','clearFavoriteOnClose',
   'enableWidevine'])
 ipc.once(`get-main-state-reply_${key}`,(e,data)=>{
   generalDefault = data

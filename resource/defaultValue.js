@@ -60,6 +60,17 @@ const settingDefault =  {
   displayFullIcon: true,
   notLoadTabUntilSelected: false,
 
+  //privacy
+  clearHistoryOnClose: false,
+  clearDownloadOnClose: false,
+  clearCacheOnClose: false,
+  clearStorageDataOnClose: false,
+  clearAutocompleteDataOnClose: false,
+  clearAutofillDataOnClose: false,
+  clearPasswordOnClose: false,
+  clearGeneralSettingsOnClose: false,
+  clearFavoriteOnClose: false,
+
   //tab
   reloadIntervals: [60,120,300,900,1800],
   openTabNextLabel: false,
