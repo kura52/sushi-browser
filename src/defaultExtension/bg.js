@@ -10,7 +10,7 @@ chrome.idle.onStateChanged.addListener((idleState) => {
   }
 })
 
-let isStart,opMap = {}
+let isStart,opMap = {},opMap2={},opMap3={}
 
 function flatten(array){
   for(let i = 0; i < array.length; ) {
@@ -110,8 +110,9 @@ function mergeSeveralOperation(opList,childToParent){
       for(let j = i-1; j >=0;j--){
         const y = opList[j]
         if(x.timeStamp - y.timeStamp > 2000) break
-        if((y.name == 'keydown' || left('click',y) || y.name == 'cut' || y.name == 'paste') &&
-          x.xpath == y.xpath && isSameFrame(x,y)){
+        if((y.name == 'keydown' || left('click',y)) &&
+          (x.xpath == y.xpath || x.name == 'change') &&
+          isSameFrame(x,y)){
           childToParent[x.id] = y.id
           break
         }
@@ -203,7 +204,18 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     chrome.tabs.sendMessage(sender.tab.id, request.inputs);
   }
   else if(request.event == 'start-op'){
+    chrome.ipcRenderer.send('record-op',true)
 
+    chrome.tabs.onCreated.addEventListener(tab=>{console.log('chrome.tabs.onCreated',tab)})
+    chrome.tabs.onActivated.addEventListener(activeInfo=>{console.log('chrome.tabs.onActivated',activeInfo)})
+    chrome.tabs.onRemoved.addEventListener((tabId,removeInfo)=>{console.log('chrome.tabs.onRemoved',tabId,removeInfo)})
+    chrome.tabs.onMoved.addEventListener((tabId,{windowId,fromIndex,toIndex})=>{console.log('chrome.tabs.onMoved',tabId,{windowId,fromIndex,toIndex})})
+    chrome.tabs.onAttached.addEventListener((tabId,{newWindowId,newPosition})=>{console.log('chrome.tabs.onAttached',tabId,{newWindowId,newPosition})})
+    chrome.tabs.onDetached.addEventListener((tabId,{oldWindowId,oldPosition})=>{console.log('chrome.tabs.onDetached',tabId,{oldWindowId,oldPosition})})
+
+    chrome.windows.onCreated.addEventListener(window=>{console.log('chrome.windows.onCreated',window)})
+    chrome.windows.onRemoved.addEventListener(windowId=>console.log('chrome.windows.onRemoved',windowId))
+    chrome.windows.onFocusChanged.addEventListener(windowId=>console.log('chrome.windows.onFocusChanged',windowId))
   }
   else if(request.event == 'end-op'){
     let opList = []
@@ -233,6 +245,10 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   }
 
 });
+
+chrome.ipcRenderer.on('add-op',(e,op)=>{
+  opMap2[op.id] = op
+})
 
 //chrome.tabs,move,create,focus,close,detach,attach,widows系,back,forward,reload,go,domreadyとか
 

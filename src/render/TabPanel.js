@@ -59,6 +59,9 @@ ipc.on('update-mainstate',(e,key,val)=>{
 })
 getNewTabPage()
 
+let isRecording
+ipc.on('record-op',(e,val)=> isRecording = val ? e.sender : void 0)
+
 const convertUrlMap = new Map([
   ['about:blank','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html'],
   ['chrome://bookmarks-sidebar/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html'],
@@ -1999,6 +2002,10 @@ export default class TabPanel extends Component {
     refs2[`navbar-${tab.key}`].setState({})
   }
 
+  addOp(name,tab){
+    if(isRecording) isRecording.send('add-op',{id:uuid.v4(),tabId:tab.wvId,name,now:Date.now()})
+  }
+
   historyBack(cont,tab){
     if(tab.rSession){
       this.updateHistory(cont,tab,tab.rSession.currentIndex - 1)
@@ -2006,6 +2013,7 @@ export default class TabPanel extends Component {
     else{
       cont.goBack()
     }
+    this.addOp('back',tab)
   }
 
   historyForward(cont,tab){
@@ -2015,6 +2023,7 @@ export default class TabPanel extends Component {
     else {
       cont.goForward()
     }
+    this.addOp('forward',tab)
   }
 
   historyGo(cont,tab,ind){
@@ -2024,6 +2033,7 @@ export default class TabPanel extends Component {
     else {
       cont.goToOffset(ind)
     }
+    this.addOp('go',tab)
   }
 
   historyGoIndex(cont,tab,ind){
@@ -2033,6 +2043,7 @@ export default class TabPanel extends Component {
     else {
       cont.goToIndex(ind)
     }
+    this.addOp('goIndex',tab)
   }
 
   registChromeEvent(tab) {

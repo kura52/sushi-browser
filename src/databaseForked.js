@@ -32,11 +32,11 @@ let result = _=>{
 
   sock.connect(port,'127.0.0.1')
   sock.on('message', function(msg,reply) {
-    if(msg.ping){
-      pingTime = Date.now()
-      return
-    }
-    else if(msg.path){
+    // if(msg.ping){
+    //   pingTime = Date.now()
+    //   return
+    // }
+    if(msg.path){
       resizeFile(msg.path,reply)
       return
     }
@@ -87,7 +87,7 @@ else{
   result = false
 }
 
-setInterval(_=> pingTime && Date.now() - pingTime > 6000 && app.quit(),500)
+// setInterval(_=> pingTime && Date.now() - pingTime > 6000 && app.quit(),500)
 
 export default result
 

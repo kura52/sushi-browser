@@ -135,6 +135,6 @@ ipcMain.on('db-rend',(event,datas)=>{
   })
 })
 
-setInterval(_=>sock.send({ping:1}),500)
+// setInterval(_=>sock.send({ping:1}),500)
 
 export default db
