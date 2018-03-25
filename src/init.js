@@ -239,7 +239,7 @@ app.on('before-quit', (e) => {
   }
 })
 
-function clearDatas(){
+async function clearDatas(){
   const targets = []
   if(mainState.clearHistoryOnClose) targets.push('clearHistory')
   if(mainState.clearDownloadOnClose) targets.push('clearDownload')
@@ -250,14 +250,17 @@ function clearDatas(){
   if(mainState.clearPasswordOnClose) targets.push('clearPassword')
   if(mainState.clearGeneralSettingsOnClose) targets.push('clearGeneralSettings')
   if(mainState.clearFavoriteOnClose) targets.push('clearFavorite')
-  if(targets.length) ipcMain.emit('clear-browsing-data',null,targets)
+  if(targets.length){
+    const clearEvent = require('./clearEvent')
+    await clearEvent(null,targets)
+  }
 }
 
-app.on('window-all-closed', function () {
+app.on('window-all-closed', async function () {
   console.log('window-all-closed',2221)
   // require('./databaseFork')._kill()
   if (!isDarwin || beforeQuit) {
-    clearDatas()
+    await clearDatas()
     for (let ptyProcess of ptyProcessSet){
       ptyProcess.destroy()
     }
@@ -276,7 +279,7 @@ app.on('window-all-closed', function () {
 })
 
 
-app.on('will-quit', (e) => {
+app.on('will-quit', async (e) => {
   console.log('will-quit')
   for(let cont of webContents.getAllWebContents()){
     cont.removeAllListeners('destroyed')
@@ -285,7 +288,7 @@ app.on('will-quit', (e) => {
     exec(`rasdial /disconnect`).then(ret=>{})
   }
   if(isDarwin){
-    clearDatas()
+    await clearDatas()
     for (let ptyProcess of ptyProcessSet){
       ptyProcess.destroy()
     }

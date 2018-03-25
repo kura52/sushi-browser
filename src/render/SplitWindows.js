@@ -160,7 +160,7 @@ export default class SplitWindows extends Component{
     this.currentWebContents = {}
     this.tabValues = {}
     global.currentWebContents = this.currentWebContents
-    global.adBlockDisableSite = {...ipc.sendSync('get-sync-main-state','adBlockDisableSite')}
+    global.adBlockDisableSite = ipc.sendSync('get-sync-main-state','adBlockDisableSite')
     this.initBind()
 
     const param = getParam()

@@ -2002,8 +2002,8 @@ export default class TabPanel extends Component {
     refs2[`navbar-${tab.key}`].setState({})
   }
 
-  addOp(name,tab){
-    if(isRecording) isRecording.send('add-op',{id:uuid.v4(),tabId:tab.wvId,name,now:Date.now()})
+  addOp(name,tab,value){
+    if(isRecording) isRecording.send('add-op',{key:uuid.v4(),tabId:tab.wvId,name,value,now:Date.now()})
   }
 
   historyBack(cont,tab){
@@ -2075,6 +2075,7 @@ export default class TabPanel extends Component {
 
   navigateTo(newPage, l, tab, guestInstanceId) {
     if (this.mounted){
+      this.addOp('navigate',tab,l)
       console.log(l)
       if(tab.bind){
         this._closeBind(tab)

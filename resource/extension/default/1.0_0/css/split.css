@@ -1,0 +1,105 @@
+.Resizer {
+    background: #000;
+    opacity: .2;
+    z-index: 3;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    -moz-background-clip: padding;
+    -webkit-background-clip: padding;
+    background-clip: padding-box;
+}
+
+.Resizer:hover {
+    -webkit-transition: all 2s ease;
+    transition: all 2s ease;
+}
+
+.Resizer.horizontal {
+    height: 11px;
+    margin: -5px 0;
+    border-top: 5px solid rgba(255, 255, 255, 0);
+    border-bottom: 5px solid rgba(255, 255, 255, 0);
+    cursor: row-resize;
+    width: 100%;
+}
+
+.Resizer.horizontal:hover {
+    border-top: 5px solid rgba(0, 0, 0, 0.5);
+    border-bottom: 5px solid rgba(0, 0, 0, 0.5);
+}
+
+.Resizer.vertical {
+    width: 11px;
+    margin: 0 -5px;
+    border-left: 5px solid rgba(255, 255, 255, 0);
+    border-right: 5px solid rgba(255, 255, 255, 0);
+    cursor: col-resize;
+}
+
+.Resizer.vertical:hover {
+    border-left: 5px solid rgba(0, 0, 0, 0.5);
+    border-right: 5px solid rgba(0, 0, 0, 0.5);
+}
+Resizer.disabled {
+    cursor: not-allowed;
+}
+Resizer.disabled:hover {
+    border-color: transparent;
+}
+
+.Resizer.hide{
+    display:none;
+}
+
+.main,#app,.split-window{
+    height: 100%;
+}
+
+.ReactTable {
+    border: none;
+}
+
+.main{
+    display: inherit;
+    padding-left: 0;
+}
+
+.navbar {
+    border-bottom: 1px solid #ccc;
+}
+
+.ReactTable .rt-tr-group {
+    flex-direction: unset;
+}
+
+.ReactTable .rt-tbody .rt-tr-group:last-child {
+    border-bottom: solid 1px rgba(0,0,0,0.05);
+}
+
+.infinite-tree-content .infinite-tree-item {
+    line-height: inherit;
+    border: none;
+}
+
+.infinite-tree-item.top-overlap:not(.middle) > div,
+.infinite-tree-item.top-overlap.middle:not(.folder-item) > div,
+.infinite-tree-item.top-next-sibling-overlap > div{
+    border-top-color: blue;
+}
+
+
+.infinite-tree-item.bottom-overlap.middle:not(.folder-item) > div,
+.infinite-tree-item.bottom-overlap:not(.middle) > div,
+.infinite-tree-item.bottom-previous-sibling-overlap > div{
+    border-bottom-color: blue;
+}
+
+.ReactTable{
+    height: calc(100% - 135px);
+}
+
+.ui.divider:not(.vertical):not(.horizontal){
+    margin-top: 0;
+    border-top: 0;
+}

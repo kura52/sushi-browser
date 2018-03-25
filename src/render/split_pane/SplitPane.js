@@ -6,7 +6,6 @@ import stylePropType from 'react-style-proptype';
 import Pane from './Pane';
 import Resizer from './Resizer';
 import PubSub from '../pubsub';
-import {windowIsMaximized} from '../MenuOperation'
 const ipc = require('electron').ipcRenderer
 
 
@@ -35,6 +34,8 @@ class SplitPane extends Component {
     this.onResize = this.onResize.bind(this);
     this.onAlign = this.onAlign.bind(this);
     this.handleWheel = this.handleWheel.bind(this);
+
+    this.windowIsMaximized = this.props.order == -1 ? _=>true : require('../MenuOperation').windowIsMaximized
 
     this.state = {
       active: false,
@@ -237,6 +238,7 @@ class SplitPane extends Component {
             this.state.width = wh.width
             this.state.height = wh.height
           }
+
           const fixedObj = this.props.existsAllFixedPanel()
           const wMod = fixedObj.left + fixedObj.right
           const hMod = fixedObj.top + fixedObj.bottom
@@ -361,8 +363,8 @@ class SplitPane extends Component {
     } else {
       Object.assign(style, {
         flexDirection: 'column',
-        height: '100%',
-        minHeight: '100%',
+        height: this.props.heightModify ? `calc(100% - ${this.props.heightModify}px)` : '100%',
+        minHeight: this.props.heightModify ? `calc(100% - ${this.props.heightModify}px)` : '100%',
         // position: 'absolute',
         top: 0,
         bottom: 0,
@@ -370,7 +372,7 @@ class SplitPane extends Component {
       });
     }
 
-    if(this.props.order===0 && !windowIsMaximized()){
+    if(this.props.order===0 && !this.windowIsMaximized()){
       Object.assign(style, {border: "1px solid rgb(148, 148, 148)"})
     }
 

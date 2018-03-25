@@ -98,6 +98,7 @@ export default class MainContent extends Component{
 
     document.addEventListener('mouseup',e=>{
       global.middleButtonLongPressing = (void 0)
+      console.log(9983,longPressMiddle,Date.now() - global.middleButtonPressing,global.middleButtonPressing)
       if(global.middleButtonPressing) global.middleButtonLongPressing = longPressMiddle && (Date.now() - global.middleButtonPressing > 320)
     },{passive:true})
 

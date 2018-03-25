@@ -174,7 +174,12 @@ function create(args){
             const saveState = {}
             for(let key of Object.keys(settingDefault)){
               if(key == "toggleNav") continue
-              saveState[key] = mainState[key]
+              if(key == "adBlockDisableSite"){
+                saveState[key] = JSON.stringify(mainState[key])
+              }
+              else{
+                saveState[key] = mainState[key]
+              }
             }
             state.update({ key: 1 }, { $set: {key: 1, ver:fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString(), ...bounds, maximize,maxBounds,
               toggleNav:mainState.toggleNav==2 || mainState.toggleNav==3 ? 0 :mainState.toggleNav,...saveState,winState:ret} }, { upsert: true }).then(_=>{
@@ -452,7 +457,12 @@ export default {
         const saveState = {}
         for(let key of Object.keys(settingDefault)){
           if(key == "toggleNav") continue
-          saveState[key] = mainState[key]
+          if(key == "adBlockDisableSite"){
+            saveState[key] = JSON.stringify(mainState[key])
+          }
+          else{
+            saveState[key] = mainState[key]
+          }
         }
         state.update({ key: 1 }, { $set: {key: 1, ver:fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString(), ...bounds, maximize,maxBounds,
           toggleNav:mainState.toggleNav==2 || mainState.toggleNav==3 ? 0 :mainState.toggleNav,...saveState,winState:ret} }, { upsert: true }).then(_=>_)

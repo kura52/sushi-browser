@@ -14,7 +14,6 @@ const isWin = navigator.userAgent.includes('Windows')
 const PubSub = require('pubsub-js')
 
 const { Form, TextArea, Grid, Sidebar, Segment, Container, Menu, Input, Divider, Button, Checkbox, Icon, Table, Dropdown } = require('semantic-ui-react');
-const { StickyContainer, Sticky } = require('react-sticky');
 const l10n = require('../../brave/js/l10n')
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
 l10n.init()

@@ -1,3 +1,4 @@
+const loadTime = Date.now()
 import { select } from './optimal-select'
 
 const EA_keys = {8:"Backspace",9:"Tab",12:"Clear",13:"Enter",16:"Shift",17:"Ctrl",18:"Alt",19:"Pause",20:"Caps Lock",27:"Esc",32:"Space",33:"Page Up",34:"Page Down",35:"End",36:"Home",37:"Left",38:"Up",39:"Right",40:"Down",44:"Impr ecran",45:"Insert",46:"Delete",91:"Windows / Command",92:"Menu Demarrer Windows",93:"Menu contextuel Windows",112:"F1",113:"F2",114:"F3",115:"F4",116:"F5",117:"F6",118:"F7",119:"F8",120:"F9",121:"F10",122:"F11",123:"F12",136:"Num Lock",137:"Scroll Lock",144:"Verr Num",145:"Arret defil",229:'IME'};
@@ -109,7 +110,7 @@ function getFrameIndex() {
   return -1;
 }
 
-let index = 0,loadTime = Date.now()
+let index = 0
 /* Start Scroll */
 let scrollTimer,scrollObject,scrollStartTime,scrollStartTop,scrollStartLeft
 function finishScrollEvent(e) {
@@ -117,7 +118,7 @@ function finishScrollEvent(e) {
   const {xpath,selector} = createXPathAndSelector(e.target)
   const data = {
     index: index++,
-    id: uuidv4(),
+    key: uuidv4(),
     name: 'scroll',
     event: 'add-op',
     optSelector: e.target == document ? 'html' : optCssSelector(e.target),
@@ -131,9 +132,10 @@ function finishScrollEvent(e) {
     scrollLeftStart: scrollStartLeft,
     timeStamp: loadTime +e.timeStamp,
     now: Date.now(),
-    inFrame: getFrameIndex(),
+    frame: getFrameIndex(),
     url: window.location.href,
-    time: scrollStartTime
+    time: scrollStartTime,
+    value: `${scrollStartTop}, ${scrollStartLeft}`
   }
   console.log(data)
   chrome.runtime.sendMessage(data)
@@ -159,6 +161,7 @@ function onScroll(){
   window.addEventListener("scroll", e=>{
     if(!e.isTrusted) return
 
+    preEventTime = Date.now()
     setTimeout(()=>updateScrollEvent(e), 1);
   }, {capture: true,passive: true})
 }
@@ -172,7 +175,7 @@ function on(eventName) {
     const {xpath,selector} = createXPathAndSelector(e.target)
     const data = {
       index: index++,
-      id: uuidv4(),
+      key: uuidv4(),
       name: eventName,
       event: 'add-op',
       optSelector: e.target == document ? 'html' : optCssSelector(e.target),
@@ -190,10 +193,10 @@ function on(eventName) {
       bubbles: e.bubbles,
       cancelable: e.cancelable,
       contentEditable: target.isContentEditable,
-      innerText: e.target.innerText || '',
+      text: e.target.innerText || '',
       timeStamp: loadTime + e.timeStamp,
       now: Date.now(),
-      inFrame: getFrameIndex(),
+      frame: getFrameIndex(),
       url: window.location.href
     }
     if (eventName == 'select') data.selectValue = target.value
@@ -214,7 +217,7 @@ function on(eventName) {
         data.value = [...target.selectedOptions].map(x=>({index:x.index,value:x.value,text:x.text}))
       }
       else
-        data.value = target.innerText;
+        data.value = data.text
     }
     else if(eventName == 'mouseup' || eventName == 'copy' || eventName == 'cut' || eventName == 'paste' || eventName == 'keydown'){
       data.selection = window.getSelection().toString()
@@ -241,9 +244,12 @@ function on(eventName) {
 
   }, {capture: true,passive: true})
 }
+
+if(location.href != 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html'){
 //,'mouseout','keyup',
-for(let eventName of ['mousedown','mouseup','mousemove','select','focusin','focusout',
-  'click','dblclick','keydown','input','change','submit','copy','cut','paste']){
-  on(eventName)
+  for(let eventName of ['mousedown','mouseup','mousemove','select','focusin','focusout',
+    'click','dblclick','keydown','input','change','submit','copy','cut','paste']){
+    on(eventName)
+  }
+  onScroll()
 }
-onScroll()

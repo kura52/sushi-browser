@@ -10,8 +10,6 @@ chrome.idle.onStateChanged.addListener((idleState) => {
   }
 })
 
-let isStart,opMap = {},opMap2={},opMap3={}
-
 function flatten(array){
   for(let i = 0; i < array.length; ) {
     const value = array[i]
@@ -33,7 +31,7 @@ function flatten(array){
 }
 
 function isSameFrame(x,y){
-  return x.tabId == y.tabId && x.url == y.url && x.inFrame == y.inFrame
+  return x.tabId == y.tabId && x.url == y.url && x.frame == y.frame
 }
 
 function isSamePos(x,y){
@@ -50,17 +48,27 @@ function mergeKeyDownAndClickAndMouseUp(opList){
   for(let y of opList.slice(1)){
     if( isSameFrame(x,y)){
       if(x.name == 'keydown' && left('click',y) && y.clientX == 0 && y.clientY == 0){
-        childToParent[y.id] = x.id
+        childToParent[y.key] = x.key
       }
       else if(left('click',x) && x.clientX == 0 && x.clientY == 0 && y.name == 'keydown'){
-        childToParent[x.id] = y.id
+        childToParent[x.key] = y.key
       }
       else if(x.timeStamp == y.timeStamp){
         if(left('click',x) && left('mouseup',y)){
-          childToParent[y.id] = x.id
+          if(isSamePos(x,y) && x.xpath == y.xpath){
+            childToParent[y.key] = x.key
+          }
+          else{
+            childToParent[x.key] = y.key
+          }
         }
         else if(left('mouseup',x) && left('click',y)){
-          childToParent[x.id] = y.id
+          if(isSamePos(x,y) && x.xpath == y.xpath){
+            childToParent[x.key] = y.key
+          }
+          else{
+            childToParent[y.key] = x.key
+          }
         }
       }
     }
@@ -77,18 +85,18 @@ function mergeSeveralOperation(opList,childToParent){
       for(let j = i-1; j >=0;j--){
         const y = opList[j]
         if(x.timeStamp - y.timeStamp > 2000) break
-        if(!childToParent[y.id] && left('click',y) && x.xpath == y.xpath && isSameFrame(x,y)){
-          childToParent[y.id] = x.id
+        if(!childToParent[y.key] && left('click',y) && x.xpath == y.xpath && isSameFrame(x,y)){
+          childToParent[y.key] = x.key
           if(++count == 2) break
         }
       }
     }
-    else if(left('click',x) && !childToParent[x.id]){
+    else if(left('click',x) && !childToParent[x.key]){
       for(let j = i-1; j >=0;j--){
         const y = opList[j]
         if(i - j > OP_THRESHOLD) break
-        if(!childToParent[y.id] && left('mousedown',y) && x.xpath == y.xpath && isSameFrame(x,y)){
-          childToParent[y.id] = x.id
+        if(!childToParent[y.key] && left('mousedown',y) && x.xpath == y.xpath && isSameFrame(x,y)){
+          childToParent[y.key] = x.key
           break
         }
       }
@@ -101,7 +109,7 @@ function mergeSeveralOperation(opList,childToParent){
             (x.name == 'cut' && y.ctrlKey && y.keyChar == 'X') ||
             (x.name == 'paste' && y.ctrlKey && y.keyChar == 'V')) &&
           x.xpath == y.xpath && isSameFrame(x,y)){
-          childToParent[x.id] = y.id
+          childToParent[x.key] = y.key
           break
         }
       }
@@ -113,7 +121,7 @@ function mergeSeveralOperation(opList,childToParent){
         if((y.name == 'keydown' || left('click',y)) &&
           (x.xpath == y.xpath || x.name == 'change') &&
           isSameFrame(x,y)){
-          childToParent[x.id] = y.id
+          childToParent[x.key] = y.key
           break
         }
       }
@@ -123,7 +131,7 @@ function mergeSeveralOperation(opList,childToParent){
         const y = opList[j]
         if(x.timeStamp - y.timeStamp > 2000) break
         if((y.name == 'keydown' || left('mouseup',y)) && x.xpath == y.xpath && isSameFrame(x,y)){
-          childToParent[x.id] = y.id
+          childToParent[x.key] = y.key
           break
         }
       }
@@ -133,7 +141,7 @@ function mergeSeveralOperation(opList,childToParent){
         const y = opList[j]
         if(x.timeStamp - y.timeStamp > 2000) break
         if((y.name == 'keydown' || left('mousedown',y)) && isSameFrame(x,y)){
-          childToParent[x.id] = y.id
+          childToParent[x.key] = y.key
           break
         }
       }
@@ -154,27 +162,39 @@ function isSpecialKey(op){
     (op.tag == 'input' && op.keyChar == 'Enter')
 }
 
-function mergeKeyDownsInInputField(opList,childToParent){
+function mergeScrollAndKeyDownsInInputField(opList,childToParent){
   opList = opList.slice(0).reverse()
   for(let i =0,len = opList.length;i<len;i++){
     const x = opList[i]
-    if(x.name == 'keydown' && !childToParent[x.id] && isInputable(x) && !isSpecialKey(x)){
+    if(x.name == 'keydown' && !childToParent[x.key] && isInputable(x) && !isSpecialKey(x)){
       for(let j =i+1,len = opList.length;j<len;j++){
         const y = opList[j]
         if(y.name == 'focusin' || y.name == 'copy' || y.name == 'cut' || y.name == 'paste' || y.name == 'select') break
-        if(!childToParent[y.id] && y.name == 'keydown' && !isSpecialKey(y) && x.xpath == y.xpath && isSameFrame(x,y)){
-          childToParent[y.id] = x.id
+        if(!childToParent[y.key] && y.name == 'keydown' && !isSpecialKey(y) && x.xpath == y.xpath && isSameFrame(x,y)){
+          childToParent[y.key] = x.key
         }
+      }
+    }
+    else if(x.name == 'scroll' && !childToParent[x.key]){
+      for(let j =i+1,len = opList.length;j<len;j++){
+        const y = opList[j]
+        if(!(y.name == 'scroll' && x.path == y.path)) break
+        childToParent[y.key] = x.key
       }
     }
   }
   return childToParent
 }
 
+function formatOp(ops){
+  ops[0].relate = ops.slice(1).map(x=>x.name).filter(x=>x!=ops[0].name).join(', ')
+  return ops[0]
+}
+
 function getMergedOpList(opList,childToParent){
   const map = new Map()
   for(let op of opList){
-    map.set(op.id,[op])
+    map.set(op.key,[op])
   }
 
   let resultList = []
@@ -184,12 +204,16 @@ function getMergedOpList(opList,childToParent){
   }
 
   const results = []
+  let i=0
   for(let [id,op] of map.entries()){
     if(!childToParent[id]){
       const list = flatten(op)
-      results.push(list.length == 1 ? list[0] : list)
+      results.push(formatOp(list))
     }
   }
+  results.sort((a,b)=> a.timeStamp - b.timeStamp || a.index - b.index || a.tabId - b.tabId || a.frame - b.frame )
+  results.forEach((op,i)=>op.no = i+1)
+
   return results
 }
 
@@ -199,56 +223,66 @@ function rejectOp(op){
     (!ENABLE_META_KEYS && (op.keyCode == 16 || op.keyCode == 17 || op.keyCode == 18 || op.keyCode == 20 || op.keyCode == 136 || op.keyCode == 137 ))
 }
 
+function sendOps(){
+  if(sendTime >= addTime) return
+  sendTime = Date.now()
+
+  let opList = []
+  for(let [k,v] of Object.entries(opMap)){
+    if(rejectOp(v)) continue
+    opList.push(v)
+  }
+  opList.sort((a,b)=> a.tabId - b.tabId || a.frame - b.frame || a.timeStamp - b.timeStamp || a.index - b.index)
+
+  const childToParent = mergeKeyDownAndClickAndMouseUp(opList)
+  mergeSeveralOperation(opList,childToParent)
+  mergeScrollAndKeyDownsInInputField(opList,childToParent)
+
+  const mergedOpList = getMergedOpList(opList,childToParent)
+  chrome.tabs.sendMessage(senderId,{event:'send-op', opList: JSON.stringify(mergedOpList)})
+}
+
+let isStart,senderId,opMap = {},opMap2={},opMap3={},addTime = 0,sendTime = -1
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   if(request.event == "video-event"){
     chrome.tabs.sendMessage(sender.tab.id, request.inputs);
   }
   else if(request.event == 'start-op'){
+    senderId = sender.tab.id
     chrome.ipcRenderer.send('record-op',true)
 
-    chrome.tabs.onCreated.addEventListener(tab=>{console.log('chrome.tabs.onCreated',tab)})
-    chrome.tabs.onActivated.addEventListener(activeInfo=>{console.log('chrome.tabs.onActivated',activeInfo)})
-    chrome.tabs.onRemoved.addEventListener((tabId,removeInfo)=>{console.log('chrome.tabs.onRemoved',tabId,removeInfo)})
-    chrome.tabs.onMoved.addEventListener((tabId,{windowId,fromIndex,toIndex})=>{console.log('chrome.tabs.onMoved',tabId,{windowId,fromIndex,toIndex})})
-    chrome.tabs.onAttached.addEventListener((tabId,{newWindowId,newPosition})=>{console.log('chrome.tabs.onAttached',tabId,{newWindowId,newPosition})})
-    chrome.tabs.onDetached.addEventListener((tabId,{oldWindowId,oldPosition})=>{console.log('chrome.tabs.onDetached',tabId,{oldWindowId,oldPosition})})
+    chrome.tabs.onCreated.addListener(tab=>{console.log('chrome.tabs.onCreated',tab)})
+    chrome.tabs.onActivated.addListener(activeInfo=>{console.log('chrome.tabs.onActivated',activeInfo)})
+    chrome.tabs.onRemoved.addListener((tabId,removeInfo)=>{console.log('chrome.tabs.onRemoved',tabId,removeInfo)})
+    // chrome.tabs.onMoved.addListener((tabId,{windowId,fromIndex,toIndex})=>{console.log('chrome.tabs.onMoved',tabId,{windowId,fromIndex,toIndex})})
+    // chrome.tabs.onAttached.addListener((tabId,{newWindowId,newPosition})=>{console.log('chrome.tabs.onAttached',tabId,{newWindowId,newPosition})})
+    // chrome.tabs.onDetached.addListener((tabId,{oldWindowId,oldPosition})=>{console.log('chrome.tabs.onDetached',tabId,{oldWindowId,oldPosition})})
 
-    chrome.windows.onCreated.addEventListener(window=>{console.log('chrome.windows.onCreated',window)})
-    chrome.windows.onRemoved.addEventListener(windowId=>console.log('chrome.windows.onRemoved',windowId))
-    chrome.windows.onFocusChanged.addEventListener(windowId=>console.log('chrome.windows.onFocusChanged',windowId))
+    // chrome.windows.onCreated.addListener(window=>{console.log('chrome.windows.onCreated',window)})
+    // chrome.windows.onRemoved.addListener(windowId=>console.log('chrome.windows.onRemoved',windowId))
+    chrome.windows.onFocusChanged.addListener(windowId=>console.log('chrome.windows.onFocusChanged',windowId))
   }
   else if(request.event == 'end-op'){
-    let opList = []
-    for(let [k,v] of Object.entries(opMap)){
-      if(rejectOp(v)) continue
-      opList.push(v)
-    }
-    opList.sort((a,b)=> a.tabId - b.tabId || a.inFrame - b.inFrame || a.timeStamp - b.timeStamp || a.index - b.index)
-
-    const childToParent = mergeKeyDownAndClickAndMouseUp(opList)
-    mergeSeveralOperation(opList,childToParent)
-    mergeKeyDownsInInputField(opList,childToParent)
-
-    const mergedOpList = getMergedOpList(opList,childToParent)
-
-    for(let op of mergedOpList){
-      console.log(op)
-    }
-
+    chrome.ipcRenderer.send('record-op',false)
+    sendOps()
   }
   else if(request.event == 'add-op'){
     request.tabId = sender.tab.id
-    opMap[request.id] = request
+    opMap[request.key] = request
+    addTime = Date.now()
   }
   else if(request.event == 'remove-op'){
-    delete opMap[request.id]
+    delete opMap[request.key]
   }
 
 });
 
 chrome.ipcRenderer.on('add-op',(e,op)=>{
-  opMap2[op.id] = op
+  opMap2[op.key] = op
+  addTime = Date.now()
 })
+
+setInterval(sendOps,300)
 
 //chrome.tabs,move,create,focus,close,detach,attach,widows系,back,forward,reload,go,domreadyとか
 

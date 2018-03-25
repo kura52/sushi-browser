@@ -5,9 +5,9 @@ import path from 'path'
 import fs from 'fs'
 
 const m = {
-  clearHistory(ses){
+  async clearHistory(ses){
     for(let table of [image,favicon,tabState,history,visit,savedState]){
-      table.remove({}, { multi: true }).then(_=>_)
+      await table.remove({}, { multi: true })
     }
     ses.clearHistory()
 
@@ -22,9 +22,9 @@ const m = {
     }
   },
 
-  clearDownload(){
+  async clearDownload(){
     for(let table of [download,downloader]){
-      table.remove({}, { multi: true }).then(_=>_)
+      await table.remove({}, { multi: true })
     }
   },
 
@@ -49,23 +49,25 @@ const m = {
     ses.autofill.clearLogins()
   },
 
-  clearGeneralSettings(){
+  async clearGeneralSettings(){
     for(let table of [state,syncReplace]){
-      table.remove({}, { multi: true }).then(_=>_)
+      await table.remove({}, { multi: true })
     }
   },
 
-  clearFavorite(){
-    favorite.remove({}, { multi: true }).then(_=>{
-      favorite.insert({"is_file":false,"title":"root","updated_at":1497713000000,"children":[],"key":"root","_id":"zplOMCoNb1BzCt15"})
-    })
+  async clearFavorite(){
+    await favorite.remove({}, { multi: true })
+    await favorite.insert({"is_file":false,"title":"root","updated_at":1497713000000,"children":[],"key":"root","_id":"zplOMCoNb1BzCt15"})
   }
 }
 
-ipcMain.on('clear-browsing-data', (event, targets,opt) => {
+async function clearEvent(event, targets,opt){
   console.log(targets)
   for(let target of targets){
-    m[target](session.defaultSession,opt)
+    await m[target](session.defaultSession,opt)
   }
-})
+}
 
+ipcMain.on('clear-browsing-data', clearEvent)
+
+export default clearEvent

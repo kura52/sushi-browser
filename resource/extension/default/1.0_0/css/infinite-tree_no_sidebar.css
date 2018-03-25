@@ -195,16 +195,16 @@ html, body { height:100%; margin:0; }
 }
 
 
-#classic .infinite-tree-item.top-overlap:not(.middle),
-#classic .infinite-tree-item.top-overlap.middle:not(.folder-item),
-#classic .infinite-tree-item.top-next-sibling-overlap{
+.infinite-tree-item.top-overlap:not(.middle),
+.infinite-tree-item.top-overlap.middle:not(.folder-item),
+.infinite-tree-item.top-next-sibling-overlap{
   border-top-color: blue;
 }
 
 
-#classic .infinite-tree-item.bottom-overlap.middle:not(.folder-item),
-#classic .infinite-tree-item.bottom-overlap:not(.middle),
-#classic .infinite-tree-item.bottom-previous-sibling-overlap{
+.infinite-tree-item.bottom-overlap.middle:not(.folder-item),
+.infinite-tree-item.bottom-overlap:not(.middle),
+.infinite-tree-item.bottom-previous-sibling-overlap{
   border-bottom-color: blue;
 }
 
