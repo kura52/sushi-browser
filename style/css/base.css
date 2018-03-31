@@ -796,3 +796,17 @@ li.preset.val:hover{
     margin-left: 2px;
     display: flex;
 }
+
+div.org-menu>div.item{
+    padding: .43571429rem 0.94285714rem!important;
+    border-top: none;
+    padding-right: calc(1.14285714rem + 17px)!important;
+    line-height: 1em;
+    font-size: 1rem;
+    font-weight: 400;
+}
+
+
+div.org-menu>div.item:hover{
+    background: rgba(0,0,0,.05);
+}

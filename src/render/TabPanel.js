@@ -60,7 +60,9 @@ ipc.on('update-mainstate',(e,key,val)=>{
 getNewTabPage()
 
 let isRecording
-ipc.on('record-op',(e,val)=> isRecording = val ? e.sender : void 0)
+ipc.on('record-op',(e,val)=>{
+  isRecording = val
+})
 
 const convertUrlMap = new Map([
   ['about:blank','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html'],
@@ -2003,7 +2005,7 @@ export default class TabPanel extends Component {
   }
 
   addOp(name,tab,value){
-    if(isRecording) isRecording.send('add-op',{key:uuid.v4(),tabId:tab.wvId,name,value,now:Date.now()})
+    if(isRecording) ipc.send('add-op',{key:uuid.v4(),tabId:tab.wvId,name,value,now:Date.now()})
   }
 
   historyBack(cont,tab){
@@ -2033,7 +2035,7 @@ export default class TabPanel extends Component {
     else {
       cont.goToOffset(ind)
     }
-    this.addOp('go',tab)
+    this.addOp('go',tab,ind)
   }
 
   historyGoIndex(cont,tab,ind){
@@ -2043,7 +2045,7 @@ export default class TabPanel extends Component {
     else {
       cont.goToIndex(ind)
     }
-    this.addOp('goIndex',tab)
+    this.addOp('goIndex',tab,ind)
   }
 
   registChromeEvent(tab) {

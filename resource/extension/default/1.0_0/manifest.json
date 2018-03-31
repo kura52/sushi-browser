@@ -5,7 +5,7 @@
    "content_scripts": [
       {
          "all_frames": true,
-         "js": [ "js/contentscript.js","js/macro.js" ],
+         "js": [ "js/contentscript.js"],
          "matches": ["<all_urls>"],
          "include_globs": [
             "http://*/*", "https://*/*", "file://*", "data:*", "about:srcdoc",
@@ -52,7 +52,7 @@
    "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmCzHckqlPMeMMtljAWwqLRFNlvPlWwUqkX5yrLb82o3sgDxq+EKqdvey27+3QpNJYMoXOl69RXRjuO6FqmqAT+uz0t59WHXGpJq0lKOJCRq1vfv/6x9dH/qcjFBRfC2NnUE7+T43TVSAv27zGBmm06wRrEUKtRqZ7PW/FFAxEUf/TWNYYcKwFoGienJ3+TI4oN2lyX5nXUZ0c0R9kFTtYL1UU6yaq0Z9H2VfK+4wjDJTtdM3jYAfotRVne47UKS6nyNb5TeHNr/5+xaVzucmI8IKo4UoZ9mwDW51iOl7ncLeIXotFE3ExiyaDgOtqnLQ/jj4GWvi6guwacJg/vMCkwIDAQAB",
    "manifest_version": 2,
    "name": "my Ext",
-   "permissions": ["idle", "externally_connectable.all_urls", "contentSettings", "webRequest", "webRequestBlocking", "\u003Call_urls>", "tabs", "windows", "webNavigation", "storage" ],
+   "permissions": ["idle", "externally_connectable.all_urls", "contentSettings", "webRequest", "webRequestBlocking", "\u003Call_urls>", "tabs", "windows", "sessions", "webNavigation", "storage" ],
    "externally_connectable": {
       "matches": [
          "<all_urls>"

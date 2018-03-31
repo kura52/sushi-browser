@@ -10,6 +10,12 @@ chrome.idle.onStateChanged.addListener((idleState) => {
   }
 })
 
+function uuidv4() {
+  return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+    (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+  )
+}
+
 function flatten(array){
   for(let i = 0; i < array.length; ) {
     const value = array[i]
@@ -211,7 +217,7 @@ function getMergedOpList(opList,childToParent){
       results.push(formatOp(list))
     }
   }
-  results.sort((a,b)=> a.timeStamp - b.timeStamp || a.index - b.index || a.tabId - b.tabId || a.frame - b.frame )
+  results.sort((a,b)=> a.now - b.now || a.index - b.index || a.tabId - b.tabId || a.frame - b.frame )
   results.forEach((op,i)=>op.no = i+1)
 
   return results
@@ -232,39 +238,89 @@ function sendOps(){
     if(rejectOp(v)) continue
     opList.push(v)
   }
-  opList.sort((a,b)=> a.tabId - b.tabId || a.frame - b.frame || a.timeStamp - b.timeStamp || a.index - b.index)
+
+  let ind = 0
+  for(let [k,v] of Object.entries(opMap2)){
+    opList.push({...v,key:v,index:++ind,frame:0})
+  }
+
+  opList.sort((a,b)=> a.tabId - b.tabId || a.frame - b.frame || a.now - b.now || a.index - b.index)
 
   const childToParent = mergeKeyDownAndClickAndMouseUp(opList)
   mergeSeveralOperation(opList,childToParent)
   mergeScrollAndKeyDownsInInputField(opList,childToParent)
 
+
   const mergedOpList = getMergedOpList(opList,childToParent)
   chrome.tabs.sendMessage(senderId,{event:'send-op', opList: JSON.stringify(mergedOpList)})
 }
 
-let isStart,senderId,opMap = {},opMap2={},opMap3={},addTime = 0,sendTime = -1
+function addTabOp(name,tab,now){
+  opMap2[uuidv4()] = {name,value:tab.url,url:tab.url,tabId:tab.id,now}
+  console.log(opMap2)
+  addTime = Date.now()
+}
+
+const handleTabCreated = tab => {
+  const now = Date.now()
+  addTabOp('tabCreate',tab,now)
+}
+
+const handleTabActived = activeInfo => {
+  const now = Date.now()
+  chrome.tabs.get(activeInfo.tabId, tab => {
+    addTabOp('tabSelected',tab,now)
+  })
+}
+
+const handleTabRemoved = (tabId, removeInfo) => {
+  const now = Date.now()
+  chrome.sessions.getRecentlyClosed(sessions => {
+    const tab = sessions.find(x=>x.tab && x.tab.id == tabId).tab
+    addTabOp('tabRemoved',tab,now)
+  })
+}
+
+const handleWindowFocusChanged = windowId => {
+  const now = Date.now()
+  chrome.tabs.query({active: true, windowId}, tabs => {
+    const tab = tabs[0]
+    addTabOp('tabSelected',tab,now)
+  })
+}
+function addTabEvents(){
+  chrome.tabs.onCreated.addListener(handleTabCreated)
+  chrome.tabs.onActivated.addListener(handleTabActived)
+  chrome.tabs.onRemoved.addListener(handleTabRemoved)
+  chrome.windows.onFocusChanged.addListener(handleWindowFocusChanged)
+  // chrome.tabs.onMoved.addListener((tabId,{windowId,fromIndex,toIndex})=>{console.log('chrome.tabs.onMoved',tabId,{windowId,fromIndex,toIndex})})
+  // chrome.tabs.onAttached.addListener((tabId,{newWindowId,newPosition})=>{console.log('chrome.tabs.onAttached',tabId,{newWindowId,newPosition})})
+  // chrome.tabs.onDetached.addListener((tabId,{oldWindowId,oldPosition})=>{console.log('chrome.tabs.onDetached',tabId,{oldWindowId,oldPosition})})
+  // chrome.windows.onCreated.addListener(window=>{console.log('chrome.windows.onCreated',window)})
+  // chrome.windows.onRemoved.addListener(windowId=>console.log('chrome.windows.onRemoved',windowId))
+}
+
+function removeTabEvents() {
+  chrome.tabs.onCreated.removeListener(handleTabCreated)
+  chrome.tabs.onActivated.removeListener(handleTabActived)
+  chrome.tabs.onRemoved.removeListener(handleTabRemoved)
+  chrome.windows.onFocusChanged.removeListener(handleWindowFocusChanged)
+}
+
+let isStart,senderId,opMap = {},opMap2={},addTime = 0,sendTime = -1
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   if(request.event == "video-event"){
     chrome.tabs.sendMessage(sender.tab.id, request.inputs);
   }
-  else if(request.event == 'start-op'){
+  else if(request.event == 'start-op') {
     senderId = sender.tab.id
-    chrome.ipcRenderer.send('record-op',true)
-
-    chrome.tabs.onCreated.addListener(tab=>{console.log('chrome.tabs.onCreated',tab)})
-    chrome.tabs.onActivated.addListener(activeInfo=>{console.log('chrome.tabs.onActivated',activeInfo)})
-    chrome.tabs.onRemoved.addListener((tabId,removeInfo)=>{console.log('chrome.tabs.onRemoved',tabId,removeInfo)})
-    // chrome.tabs.onMoved.addListener((tabId,{windowId,fromIndex,toIndex})=>{console.log('chrome.tabs.onMoved',tabId,{windowId,fromIndex,toIndex})})
-    // chrome.tabs.onAttached.addListener((tabId,{newWindowId,newPosition})=>{console.log('chrome.tabs.onAttached',tabId,{newWindowId,newPosition})})
-    // chrome.tabs.onDetached.addListener((tabId,{oldWindowId,oldPosition})=>{console.log('chrome.tabs.onDetached',tabId,{oldWindowId,oldPosition})})
-
-    // chrome.windows.onCreated.addListener(window=>{console.log('chrome.windows.onCreated',window)})
-    // chrome.windows.onRemoved.addListener(windowId=>console.log('chrome.windows.onRemoved',windowId))
-    chrome.windows.onFocusChanged.addListener(windowId=>console.log('chrome.windows.onFocusChanged',windowId))
+    chrome.ipcRenderer.send('record-op', true)
+    addTabEvents()
   }
   else if(request.event == 'end-op'){
     chrome.ipcRenderer.send('record-op',false)
     sendOps()
+    removeTabEvents()
   }
   else if(request.event == 'add-op'){
     request.tabId = sender.tab.id

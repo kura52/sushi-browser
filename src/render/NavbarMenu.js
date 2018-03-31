@@ -156,7 +156,6 @@ export default class NavbarMenu extends Component {
       {!this.state.visible && !this.props.alwaysView ? null : <div ref="menu" className={`menu${this.state.visible || this.state.forceOpen ? " visible" : ""} transition left ${this.props.mouseOver ? 'nav2-menu' : 'nav-menu'}`} style={this.props.style}>
         {(list || []).map((child) => {
             if(child && (child.type == NavbarMenuBarItem || child.type == NavbarMenuItem)){
-              console.log(child.type)
               return React.cloneElement(child, {
                 onClick(e){
                   if(!child.props.keepVisible) self.menuClose()

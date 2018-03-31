@@ -3,11 +3,11 @@ var ipc = chrome.ipcRenderer
 if(window.__started_){
   if(location.href.startsWith('http') && window == window.parent){
     document.addEventListener("DOMContentLoaded",_=>{
-      const key = Math.random().toString()
-      ipc.send('need-get-inner-text',key)
-      ipc.once(`need-get-inner-text-reply_${key}`,(e,result)=>{
-        if(result) ipc.send('get-inner-text',location.href,document.title,document.documentElement.innerText)
-      })
+      // const key = Math.random().toString()
+      // ipc.send('need-get-inner-text',key)
+      // ipc.once(`need-get-inner-text-reply_${key}`,(e,result)=>{
+      //   if(result) ipc.send('get-inner-text',location.href,document.title,document.documentElement.innerText)
+      // })
       if(location.href.startsWith('https://chrome.google.com/webstore')){
         setInterval(_=>{
           const ele = document.querySelector(".h-e-f-Ra-c.e-f-oh-Md-zb-k")
@@ -83,7 +83,7 @@ if(window.__started_){
   },{passive:true})
 
   const key = Math.random().toString()
-  ipc.send("get-main-state",key,['tripleClick','alwaysOpenLinkNewTab','themeColorChange'])
+  ipc.send("get-main-state",key,['tripleClick','alwaysOpenLinkNewTab','themeColorChange','isRecording'])
   ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
     if (data.tripleClick) {
       window.addEventListener('click', e => {
@@ -168,6 +168,9 @@ if(window.__started_){
           }
         }
       })
+    }
+    if (data.isRecording) {
+      Function(data.isRecording)()
     }
   })
 

@@ -168,8 +168,8 @@ app.on('ready', async ()=>{
   require('./clearEvent')
 
 
-  ptyProcessSet = require('./ptyProcess')
-  // ptyProcessSet = new Set()
+  // ptyProcessSet = require('./ptyProcess')
+  ptyProcessSet = new Set()
   passwordManager = require('./passwordManagerMain')
   require('./importer')
   require('./bookmarksExporter')

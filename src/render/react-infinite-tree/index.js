@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import ReactDOMServer from 'react-dom/server';
+const ReactDOMServer = require('react-dom/server');
 import InfiniteTree from '../infinite-tree';
 
 const lcfirst = (str) => {

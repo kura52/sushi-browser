@@ -23,6 +23,7 @@ const meiryo = isWin && Intl.NumberFormat().resolvedOptions().locale == 'ja'
 import mainState from './mainState'
 import extensionInfos from "./extensionInfos";
 const open = require('./open')
+const {readMacro,readMacroOff} = require('./readMacro')
 const sharedState = require('./sharedStateMain')
 const bindPath = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/bind.html'
 
@@ -527,6 +528,35 @@ ipcMain.on("change-title",(e,title)=>{
   }
 })
 
+let handleAddOp,isRecording
+ipcMain.on('record-op',(e,val)=>{
+  isRecording = val
+  if(val){
+    handleAddOp = (e2,op)=>{
+      e.sender.send('add-op',op)
+    }
+    ipcMain.on('add-op',handleAddOp)
+  }
+  else{
+    ipcMain.removeListener('add-op',handleAddOp)
+  }
+
+  const set = new Set()
+  for(let win of BrowserWindow.getAllWindows()) {
+    if(win.getTitle().includes('Sushi Browser')){
+      set.add(win.webContents)
+      win.webContents.send('record-op',val)
+    }
+  }
+
+  const macro = val ? readMacro() : readMacroOff()
+  for(let cont of webContents.getAllWebContents()){
+    if(!cont.isDestroyed() && !cont.isBackgroundPage() && set.has(cont.hostWebContents)){
+      cont.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',macro, {},()=>{})
+    }
+  }
+
+})
 
 const extInfos = require('./extensionInfos')
 ipcMain.on('get-main-state',(e,key,names)=>{
@@ -538,6 +568,9 @@ ipcMain.on('get-main-state',(e,key,names)=>{
           ret[key] = val
         }
       }
+    }
+    else if(name == "isRecording"){
+      ret[name] = isRecording ? readMacro() : void 0
     }
     else{
       ret[name] = mainState[name]
@@ -1346,6 +1379,8 @@ ipcMain.on('set-audio-muted',(e,tabId,val)=>{
     cont.setAudioMuted(val)
   }
 })
+
+
 
 // ipcMain.on('send-keys',(e,keys)=>{
 //   e.sender.sendInputEvent(keys)

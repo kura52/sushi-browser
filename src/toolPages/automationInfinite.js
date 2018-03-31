@@ -12,7 +12,7 @@ const PubSub = require('pubsub-js')
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
 
 import InfiniteTree from '../render/react-infinite-tree';
-import rowRenderer from '../render/react-infinite-tree/renderTable';
+import rowRenderer from '../render/react-infinite-tree/automationCommandRenderer.js';
 
 async function faviconGet(x){
   return x.favicon == "resource/file.png" ? (void 0) : x.favicon && (await localForage.getItem(x.favicon))
