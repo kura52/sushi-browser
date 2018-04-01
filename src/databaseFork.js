@@ -97,6 +97,8 @@ const db = new Proxy({
   get extension(){return new Proxy(dummy, handler('extension'))},
   get savedState(){return new Proxy(dummy, handler('savedState'))},
   get windowState(){return new Proxy(dummy, handler('windowState'))},
+  get automation(){return new Proxy(dummy, handler('automation'))},
+  get automationOrder(){return new Proxy(dummy, handler('automationOrder'))},
   get sock(){ return sock},
   _kill(){child.kill('SIGINT')}
 },handler())

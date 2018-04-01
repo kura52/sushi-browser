@@ -175,6 +175,11 @@ if(!window.__isRecording__){
     window.__isRecording__[eventName] = e=>{
       if(!e.isTrusted) return
 
+      if(eventName == 'mouseout'){
+        preEventTime = Date.now()
+        return
+      }
+
       const target = e.target
       const {xpath,selector} = createXPathAndSelector(e.target)
       const data = {
@@ -206,9 +211,14 @@ if(!window.__isRecording__){
       if (eventName == 'select') data.selectValue = target.value
       else if (eventName == 'keyup' || eventName == 'keydown'){
         data.keyCode = e.keyCode
-        data.key = e.key
+        data.keyData = e.key
         data.keyChar = getKey(e.keyCode)
-        data.value = target.value
+
+        setTimeout(_=>{
+          data.value = target.value
+          preEventTime = data.now
+          chrome.runtime.sendMessage(data)
+        },0)
       }
       else if (eventName == 'input' || eventName == 'change') {
         if (data.tag=='input' || data.tag=='textarea'){
@@ -218,7 +228,7 @@ if(!window.__isRecording__){
             data.value = target.value
         }
         else if(data.tag == 'select'){
-          data.value = [...target.selectedOptions].map(x=>({index:x.index,value:x.value,text:x.text}))
+          data.value = JSON.stringify([...target.selectedOptions].map(x=>({index:x.index,value:x.value,text:x.text})))
         }
         else
           data.value = data.text
@@ -238,7 +248,6 @@ if(!window.__isRecording__){
       }
 
       preEventTime = data.now
-      console.log(data)
       chrome.runtime.sendMessage(data)
       //selectonを取る,eventをtimestampでまとめる
       //jsをinjectionする
@@ -253,9 +262,30 @@ if(!window.__isRecording__){
   if(location.href != 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html'){
 //,'mouseout','keyup',
     for(let eventName of ['mousedown','mouseup','mousemove','select','focusin','focusout',
-      'click','dblclick','keydown','input','change','submit','copy','cut','paste']){
+      'click','dblclick','keydown','input','change','submit','copy','cut','paste','mouseout']){
       on(eventName)
     }
     onScroll()
   }
 }
+
+// scroll
+// tabSelected
+// click
+// mouseup
+// input
+// mousemove
+// navigate
+// keydown
+// submit
+// paste
+// cut
+// focusin
+// focusout
+// back
+// forward
+// goIndex
+// tabCreate
+// tabRemoved
+// dblclick
+// mousedown

@@ -3,7 +3,7 @@
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 'use strict'
-const {session,webContents} = require('electron')
+const {session,webContents,BrowserWindow} = require('electron')
 const {AdBlockClient, FilterOptions} = require('ad-block')
 const {siteHacks} = require('./siteHacks')
 const getBaseDomain = require('./js/lib/baseDomain').getBaseDomain
@@ -14,6 +14,8 @@ const redirectUrlsCache = new LRUCache(5000)
 
 const fs = require('fs')
 const path = require('path')
+const url = require('url')
+const mime = require('mime')
 const mainState = require('../lib/mainState')
 const {ipcMain} = require('electron')
 // process.downloadParams = new Map()
@@ -36,6 +38,14 @@ const mapFilterType = {
 }
 
 const filterableProtocols = ['http:', 'https:', 'ws:', 'wss:', 'magnet:', 'file:']
+
+const cache = new LRUCache(1000)
+
+const RegNormal = /^(application\/(font|javascript|json|x-javascript|xml)|text\/(css|html|javascript|plain))/
+const RegRichMedia = /^(video|audio|application\/x\-mpegurl|application\/vnd\.apple\.mpegurl)/
+const RegForDL = /^(application\/(pdf|zip|x\-zip\-compressed|x\-lzh)|image|video|audio)/
+const RegForDLExt = /\.(?:z(?:ip|[0-9]{2})|r(?:ar|[0-9]{2})|jar|bz2|gz|tar|rpm|7z(?:ip)?|lzma|xz|mp3|wav|og(?:g|a)|flac|midi?|rm|aac|wma|mka|ape|exe|msi|dmg|bin|xpi|iso|pdf|xlsx?|docx?|odf|odt|rtf|jp(?:e?g|e|2)|gif|png|tiff?|bmp|ico|jp(e?g|e|2)|png|mpeg|ra?m|avi|mp(?:g|e|4)|mov|divx|asf|qt|wmv|m\dv|rv|vob|asx|ogm|ogv|webm|flv|mkv)$/i
+
 
 function shouldIgnoreUrl (details) {
   // data:, is a special origin from SecurityOrigin::urlWithUniqueSecurityOrigin
@@ -143,6 +153,64 @@ function registerForBeforeRequest (session) {
     }
     cb({})
   })
+
+
+  session.webRequest.onHeadersReceived((details, cb) => {
+    setTimeout(_=>{
+      const headers = details.responseHeaders, newURL = details.url
+      const contType = headers['Content-Type']
+      if(!contType) return
+
+      console.log(contType[0])
+
+      const matchNormal = contType && contType[0].match(RegNormal)
+      if(!matchNormal && ((contType && contType[0].match(RegForDL)) || newURL.match(RegForDLExt))){
+        // console.log(6755,contType && contType[0],newURL,tab.getURL())
+        const url = details.firstPartyUrl
+        const map = cache.get(url)
+        if(map){
+          map[newURL] = contType && contType[0]
+        }
+        else{
+          cache.set(url,{[newURL]:contType && contType[0]})
+        }
+      }
+
+      if(!contType || matchNormal || contType[0].startsWith('image')) return
+
+      let record,ret,parseUrl
+      if(ret = (contType[0].match(RegRichMedia))){
+        let len = headers['Content-Length']
+        len = len ? len[0] : null
+        parseUrl = url.parse(newURL)
+        const pathname = parseUrl.pathname
+        const ind = pathname.lastIndexOf('/')
+        record = {tabId:details.tabId,type:ret[0],contType,size:len,url:newURL,fname: pathname.slice(ind+1)}
+      }
+      else{
+        let len = headers['Content-Length']
+        len = len ? len[0] : null
+        parseUrl = url.parse(newURL)
+        const pathname = parseUrl.pathname
+        let type
+        if(ret = (pathname && (type = mime.getType(pathname)) && type.match(RegRichMedia))){
+          const ind = pathname.lastIndexOf('/')
+          record = {tabId,type:ret[0],contType,size:len,url:newURL,fname: pathname.slice(ind+1)}
+        }
+      }
+
+      if(record){
+        let cont
+        for(let w of BrowserWindow.getAllWindows()){
+          if(w.getTitle().includes('Sushi Browser')){
+            cont = w.webContents
+            cont.send("did-get-response-details",record)
+          }
+        }
+      }
+    },0)
+    return cb({})
+  })
 }
 
 
@@ -206,5 +274,6 @@ module.exports = {
   registerForBeforeRequest,
   beforeRequestFilteringFns,
   redirectUrlsCache,
-  frameCache
+  frameCache,
+  cache
 }

@@ -3,14 +3,16 @@ import classNames from 'classnames';
 const PubSub = require('pubsub-js')
 
 let headers = [
-  {name:'#',width:10,maxWidth:40},
+  {name:'#',width:10,maxWidth:48},
   {name:'Command',width:20,maxWidth:200},
   {name:'Target',width:30,maxWidth:300},
-  {name:'Value',width:20,maxWidth:200},
-  {name:'URL',width:20,maxWidth:200}
+  {name:'Value',width:20,maxWidth:500},
+  {name:'Info',width:20,maxWidth:700}
 ]
-PubSub.subscribe('row-size',(msg,_headers)=>{
-  headers = _headers
+PubSub.subscribe('row-size',(msg,{name,maxWidth})=>{
+  const header = headers.find(x=>x.name==name)
+  header.maxWidth = maxWidth
+  // header.width = maxWidth
 })
 
 export default function(){
@@ -43,13 +45,16 @@ export default function(){
           let value
           switch (col.name) {
             case '#':
-              value = node.no
+              value = <span><i className="fa fa-times menu-item" aria-hidden="true"></i>{node.no}</span>
               break
             case 'Command':
               value = node.name
               break
             case 'Target':
               value = node.optSelector
+              break
+            case 'Info':
+              value = node.name == 'keydown' ? `${node.ctrlKey ? 'Ctrl+' : ''}${node.keyChar}` : node.url
               break
             default:
               value = node[col.name.toLowerCase()]

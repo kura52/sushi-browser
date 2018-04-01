@@ -16,6 +16,13 @@ if (!fs.existsSync(favoritePath)) {
     `{"is_file":false,"title":"root","updated_at":1497713000000,"children":[],"key":"root","_id":"zplOMCoNb1BzCt15"}`)
 }
 
+// const automationPath = path.join(resourcePath,'automation.db')
+// if (!fs.existsSync(favoritePath)) {
+//   fs.writeFileSync(favoritePath,
+//     `{"is_file":false,"title":"root","updated_at":1497713000000,"children":[],"key":"root","_id":"zplOMCoNb1BzCt15"}`)
+// }
+
+
 const searchEnginePath = path.join(resourcePath,'searchEngine.db')
 if (!fs.existsSync(searchEnginePath)) {
   fs.writeFileSync(searchEnginePath,
@@ -69,6 +76,8 @@ db.token = new Datastore({filename: path.join(resourcePath,'token.db'), autoload
 db.extension = new Datastore({filename: path.join(resourcePath,'extension.db'), autoload: true})
 db.savedState = new Datastore({filename: path.join(resourcePath,'savedState.db'), autoload: true})
 db.windowState = new Datastore({filename: path.join(resourcePath,'windowState.db'), autoload: true})
+db.automation = new Datastore({filename: path.join(resourcePath,'automation.db'), autoload: true})
+db.automationOrder = new Datastore({filename: path.join(resourcePath,'automationOrder.db'), autoload: true})
 
 
 ;(async ()=>{
@@ -87,6 +96,7 @@ db.windowState = new Datastore({filename: path.join(resourcePath,'windowState.db
   await db.extension.ensureIndex({ fieldName: 'id' })
   await db.savedState.ensureIndex({ fieldName: 'created_at' })
   await db.windowState.ensureIndex({ fieldName: 'key' })
+  await db.automation.ensureIndex({ fieldName: 'key' })
 
   // await db.searchHistory.ensureIndex({ fieldName: 'text' }).exec()
   // await db.searchHistory.ensureIndex({ fieldName: 'created_at' }).exec()

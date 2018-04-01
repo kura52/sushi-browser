@@ -4,6 +4,7 @@ const fs = require('fs')
 
 const contents = fs.readFileSync('../dist/vendor.dll.js').toString()
 let result = contents.replace(/e\.nativeEvent/g,'(e.nativeEvent || e)')
+  .replace(/defaultProps\.as/g,"(defaultProps && defaultProps.as)")
 fs.writeFileSync('../dist/vendor.dll.js',result)
 result = result.replace(/\/\/# sourceMappingURL=.+/g,'')
 fs.writeFileSync('../resource/extension/default/1.0_0/js/vendor.dll.js',result)
@@ -15,6 +16,7 @@ fs.writeFileSync('../resource/extension/default/1.0_0/js/vendor.dll.js',result)
 function a(file){
   const contents2 = fs.readFileSync(file).toString()
   let result2 = contents2.replace(/e\.nativeEvent/g,'(e.nativeEvent || e)').replace(/\(e.nativeEvent \|\| e\) =/g,'e.nativeEvent =')
+    .replace(/defaultProps\.as/g,"(defaultProps && defaultProps.as)")
   fs.writeFileSync(file,result2)
 }
 

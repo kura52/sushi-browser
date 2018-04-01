@@ -6,20 +6,24 @@ const glob = require("glob")
 const BEFORE_CODE_NAME = 'Kani(Crab)'
 const CODE_NAME = 'Kani(Crab)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.14.5"
+const NEXT_APP_VERSION = "0.14.6"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Improve display of main menu.
-Fixed bug that 'Bind Selected Window' does not work on Windows.
-Fixed autofill bug.
-Fixed findInPage bug.
-Updated to youtube-dl 2018.03.10`
+const CHANGE_ENGLISH = `Added setting that Clear the history data types when I close Browser
+Fixed Adblock bug.
+Fixed a lot of bugs.
+Updated to Muon 5.1.2
+Updated to youtube-dl 2018.03.26.1
+Updated to infernojs 5.0.1
+Updated to node-pty 0.7.4`
 
-const CHANGE_JAPANESE = `メインメニューの表示を改善
-「Bind Selected Window」がWindowsで動作しない不具合を修正
-オートフィルのバグ修正
-ページ内検索のバグ修正
-youtube-dlを2018.03.10に更新`
+const CHANGE_JAPANESE = `ブラウザをクローズした際に履歴などを自動で削除する設定を追加
+AdBlockのバグ修正
+多数のバグ修正
+Muonを5.1.2に更新
+youtube-dlを2018.03.26.1に更新
+infernojsを5.0.1に更新
+node-ptyを0.7.4に更新`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

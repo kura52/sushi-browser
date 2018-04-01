@@ -12,11 +12,19 @@ const { StickyContainer, Sticky } = require('react-sticky');
 const l10n = require('../../brave/js/l10n')
 const SplitPane = require('../render/split_pane/SplitPane')
 const Commands = require('./automationInfinite')
+const MenuList = require('./automationMenuList')
 
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
 const isWin = navigator.userAgent.includes('Windows')
 l10n.init()
 
+const opColumns = [
+  {name:'#',width:10,maxWidth:48},
+  {name:'Command',width:20,maxWidth:200},
+  {name:'Target',width:30,maxWidth:300},
+  {name:'Value',width:20,maxWidth:500},
+  {name:'Info',width:20,maxWidth:700}
+]
 
 function escapeRegExp(string){
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
@@ -55,15 +63,71 @@ function equalArray(a,b){
 class ReactTable extends React.Component {
   constructor(props){
     super(props)
-    this.state = {columns : props.columns, datas: props.datas}
+    this.state = {}
+    this.mmove = ::this.mmove
+    this.mup = ::this.mup
+  }
+
+  mdown(name,maxWidth,e) {
+    this.drag = true
+    this.name = name
+
+    if(e.type === "mousedown") {
+      var event = e;
+    } else {
+      var event = e.changedTouches[0];
+    }
+
+    this.x = event.pageX
+
+    document.body.addEventListener("mousemove", this.mmove, false);
+    document.body.addEventListener("touchmove", this.mmove, false);
+    document.body.addEventListener("mouseleave", this.mup, false);
+    document.body.addEventListener("touchleave", this.mup, false);
+    document.body.addEventListener("mouseup", this.mup, false);
+  }
+
+  mmove(e) {
+    console.log('mmove')
+    if(!this.drag) return
+
+    if(e.type === "mousemove") {
+      var event = e;
+    } else {
+      var event = e.changedTouches[0];
+    }
+
+    e.preventDefault();
+
+    const move = event.pageX - this.x
+    this.x = event.pageX
+    const dom = ReactDOM.findDOMNode(this.refs[this.name])
+    const size = parseInt(dom.style.maxWidth) + move
+    dom.style.maxWidth = `${size}px`
+    // dom.style.width = `${size}px`
+    dom.style.flex = `${size} 0 auto`
+    PubSub.publishSync('row-size',{name:this.name, maxWidth:size})
+    PubSub.publish('update-datas')
+  }
+
+  mup(e) {
+    console.log('mup')
+    this.drag = false
+    document.body.removeEventListener("mouseup", this.mup, false);
+    document.body.removeEventListener("mouseleave", this.mup, false);
+    document.body.removeEventListener("touchleave", this.mup, false);
+    document.body.removeEventListener("mousemove", this.mmove, false);
+    document.body.removeEventListener("touchmove", this.mmove, false);
+    PubSub.publishSync('row-size',{name:this.name, maxWidth:parseInt(ReactDOM.findDOMNode(this.refs[this.name]).style.maxWidth)})
+    PubSub.publish('update-datas')
   }
 
   renderHeader(){
-    const headers = this.state.columns.map((col,i)=>{
-      return <div className="rt-resizable-header -cursor-pointer rt-th" key={i}
+    const headers = opColumns.map((col,i)=>{
+      return <div ref={col.name} className="rt-resizable-header -cursor-pointer rt-th" key={i}
                   style={{flex: `${col.width} 0 auto`,width:col.width,maxWidth:col.maxWidth}}>
         <div>{col.name}</div>
-        <div className="rt-resizer"></div>
+        <div onMouseDown={this.mdown.bind(this,col.name,col.maxWidth)} className="rt-resizer"></div>
       </div>
     })
     return <div className="rt-thead -header" style={{minWidth: 80,position: 'sticky',top: 0,backgroundColor: '#f9fafb'}}>
@@ -76,7 +140,7 @@ class ReactTable extends React.Component {
       <div className="rt-table">
         {this.renderHeader()}
         <div className="rt-tbody" style={{minWidth: 80}}>
-          <Commands datas={this.props.datas}/>
+          <Commands datas={this.props.datas} selectedMenu={this.props.selectedMenu} ref="command"/>
         </div>
       </div>
     </div>
@@ -89,23 +153,37 @@ const key = Math.random().toString()
 class Automation extends React.Component {
   constructor(props) {
     super(props)
-    this.state = defaultData
-    this.opColumns = [
-      {name:'#',width:10,maxWidth:40},
-      {name:'Command',width:20,maxWidth:200},
-      {name:'Target',width:30,maxWidth:300},
-      {name:'Value',width:20,maxWidth:200},
-      {name:'URL',width:20,maxWidth:200}
-    ]
+    this.state = {}
+    this.state.menuItems = ipc.sendSync('get-automation-order')
+    this.state.values = {key:'', command:'', target:'', value:''}
+    this.state.selectedMenu = false
+    this.handleSelectorReply = ::this.handleSelectorReply
 
     window.addEventListener('resize', ::this.handleResize,{ passive: true });
+    window.addEventListener('beforeunload',_=>{
+      if(this.state.isRecording) chrome.runtime.sendMessage({event:'end-op'})
+    })
   }
 
   componentDidMount(){
+    if(this.state.menuItems.length) this.selectItem(this.state.menuItems[0].key)
+
     chrome.runtime.onMessage.addListener((request, sender, sendResponse)=>{
-      if(request.event == "send-op"){
+      if(request.event == "send-op" && this.state.selectedMenu == request.menuKey){
         const datas = [{key:'root', title:'root', is_file:false, children2: JSON.parse(request.opList)}]
         PubSub.publish('update-datas',datas)
+
+        let values = {command:'', target:'', value:''}
+        const selectedOps = this.refs.table.refs.command.getSelectedOps()
+        if(selectedOps.length){
+          for(let selectedOp of selectedOps.slice(0).reverse()){
+            const op = datas[0].children2.find(x=>x.key == selectedOp)
+            if(!op) continue
+            values = {key:op.key, command:op.name, target:op.optSelector, value:op.value}
+            break
+          }
+        }
+        this.setState({values})
       }
     })
   }
@@ -121,7 +199,13 @@ class Automation extends React.Component {
   }
 
   handleRecord(){
-    chrome.runtime.sendMessage({event:this.state.isRecording ? 'end-op' : 'start-op'})
+    if(!this.state.isRecording && !this.state.selectedMenu) return
+    if(this.state.isRecording){
+      chrome.runtime.sendMessage({event:'end-op'})
+    }
+    else{
+      chrome.runtime.sendMessage({event:'start-op',key: this.state.selectedMenu,opKeys:this.refs.table.refs.command.getSelectedOps()})
+    }
     this.setState({isRecording: !this.state.isRecording})
   }
 
@@ -138,13 +222,65 @@ class Automation extends React.Component {
     return obj
   }
 
+  updateAutomationOrder(){
+    ipc.send('update-automation-order',this.state.menuItems)
+  }
+
+  getItemInfo() {
+    if(this.state.selectedMenu) chrome.runtime.sendMessage({event: 'get-op', menuKey: this.state.selectedMenu})
+  }
+
+  addItem(){
+    const key = uuid.v4()
+    this.state.menuItems.push({key,name:'New Operations'})
+    this.state.selectedMenu = key
+    this.setState({})
+    this.getItemInfo()
+    this.updateAutomationOrder()
+  }
+
+  removeItem(key){
+    const index = this.state.menuItems.findIndex(x=>x.key == key)
+    if(this.state.menuItems[index - 1]) {
+      this.state.selectedMenu = this.state.menuItems[index - 1].key
+    }
+    else if(this.state.menuItems[index + 1]){
+      this.state.selectedMenu = this.state.menuItems[index + 1].key
+    }
+    else {
+      this.state.selectedMenu = null
+    }
+    this.state.menuItems.splice(index,1)
+    this.setState({})
+    this.getItemInfo()
+    ipc.send('delete-automation',key)
+  }
+
+  selectItem(key){
+    this.state.selectedMenu = key
+    this.setState({})
+    this.getItemInfo()
+  }
+
+  updateItems(items){
+    this.state.menuItems = items
+    this.setState({})
+    this.updateAutomationOrder()
+  }
+
+  updateOp(name,value){
+    chrome.runtime.sendMessage({event:'update-op',menuKey: this.state.selectedMenu,opKey:this.state.values.key,name,value})
+  }
+
+  handleSelectorReply(e,selector){
+    this.updateOp('optSelector',selector)
+    this.isTargetSelector = false
+  }
+
   render(){
     return <div className="main">
       <nav className="navbar navbar-light bg-faded">
         <form className="form-inline">
-          <button onClick={_=>this.handleNewDownload()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
-            <i className="fa fa-plus-circle" aria-hidden="true"></i>New
-          </button>
           <button onClick={_=>this.handleRecord()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
             <i className="fa fa-video-camera" aria-hidden="true"></i>Record{this.state.isRecording ? ' Stop' : ''}
           </button>
@@ -164,30 +300,61 @@ class Automation extends React.Component {
         </form>
       </nav>
       <SplitPane order={-1} split="horizontal" ref={'pane_bottom'} heightModify={45}
-                 size={window.innerHeight - 245} onChange={()=>{}} onDragStarted={()=>{} } node={{}}
+                 size={window.innerHeight - 235} onChange={()=>{}} onDragStarted={()=>{} } node={{}}
                  onDragFinished={()=>{}} notifyChange={()=>{}} existsAllFixedPanel={::this.existsAllFixedPanel}>
-        <SplitPane order={-1} split="vertical"  ref={'pane_left'}
+        <SplitPane order={-1} split="vertical" ref={'pane_left'} key="pane"
                    size={200} onChange={()=>{}} onDragStarted={()=>{} } node={{}}
                    onDragFinished={()=>{}} notifyChange={()=>{}} existsAllFixedPanel={::this.existsAllFixedPanel}>
-          <div className="split-window" key='fixed-left'></div>
-          <div className="split-window">
-            <ReactTable columns={this.opColumns}/>
+          <div className="split-window" key='fixed-left'>
+            <div className="split-window" key='menu'>
+              <div className="ReactTable">
+                <div className="rt-table">
+                  <div className="rt-thead -header" style={{width: 'inherit',top: 0,backgroundColor: '#f9fafb',position:'sticky'}}>
+                    <div className="rt-tr">
+                      <div className="rt-resizable-header -cursor-pointer rt-th">
+                        <div>Project</div>
+                      </div>
+                    </div>
+                  </div>
+                  <MenuList items={this.state.menuItems} selected={this.state.selectedMenu} updateItems={::this.updateItems}
+                            addItem={::this.addItem} removeItem={::this.removeItem} selectItem={::this.selectItem}/>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="split-window" key='commands'>
+            <ReactTable ref="table" selectedMenu={this.state.selectedMenu}/>
 
             <Divider/>
             <div className="field">
               <label style={{verticalAlign: 'baseline', paddingLeft: 10, paddingRight: 10}} className="right-pad">Command</label>
-              <div className="ui input">
-                <input type="text" style={{width: 300, padding: '.3em 1em'}} value={null} onChange={null}/>
+              <div className="ui input" style={{width: 'calc(100% - 150px)'}}>
+                <input type="text" style={{width: 300, padding: '.3em 1em'}} value={this.state.values.command}
+                       onChange={e=>{this.state.values.command = e.target.value;this.setState({})}} onBlur={e=>this.updateOp('name',e.target.value)}/>
               </div>
-              <div className='spacer4'/>
+              <div className='spacer5'/>
               <label style={{verticalAlign: 'baseline', paddingLeft: 10, paddingRight: 35}} className="right-pad">Target</label>
-              <div className="ui input">
-                <input type="text" style={{width: 300, padding: '.3em 1em'}} value={null} onChange={null}/>
+              <div className="ui input" style={{width: 'calc(100% - 150px)'}}>
+                <input type="text" style={{width: 300, padding: '.3em 1em'}} value={this.state.values.target}
+                       onChange={e=>{this.state.values.target = e.target.value;this.setState({})}} onBlur={e=>this.updateOp('optSelector',e.target.value)}/>
+                <Button style={this.isTargetSelector ? {backgroundColor: '#cacbcd'} : {}} icon='target' onClick={_=>{
+                  if(this.isTargetSelector){
+                    ipc.send('select-target',false)
+                    ipc.removeListener('select-target-reply',this.handleSelectorReply)
+                    this.isTargetSelector = false
+                  }
+                  else{
+                    ipc.send('select-target',true)
+                    ipc.once('select-target-reply',this.handleSelectorReply)
+                    this.isTargetSelector = true
+                  }
+                }}/>
               </div>
-              <div className='spacer4'/>
+              <div className='spacer5'/>
               <label style={{verticalAlign: 'baseline', paddingLeft: 10, paddingRight: 39}} className="right-pad">Value</label>
-              <div className="ui input">
-                <input type="text" style={{width: 300, padding: '.3em 1em'}} value={null} onChange={null}/>
+              <div className="ui input" style={{width: 'calc(100% - 150px)'}}>
+                <input type="text" style={{width: 300, padding: '.3em 1em'}} value={this.state.values.value}
+                       onChange={e=>{this.state.values.value = e.target.value;this.setState({})}} onBlur={e=>this.updateOp('value',e.target.value)}/>
               </div>
             </div>
           </div>
@@ -195,9 +362,10 @@ class Automation extends React.Component {
         <div className="split-window" key='fixed-bottom'>
           <div className="ReactTable">
             <div className="rt-table">
-              <div className="rt-thead -header" style={{width: '100vw',top: 0,backgroundColor: '#f9fafb',position:'absolute'}}>
+              <div className="rt-thead -header" style={{width: '100vw',top: 0,backgroundColor: '#f9fafb',position:'sticky'}}>
                 <div className="rt-tr">
-                  <div className="rt-resizable-header -cursor-pointer rt-th" style={{}}>
+                  <div className="rt-resizable-header -cursor-pointer rt-th"
+                       style={{textAlign: 'initial', marginLeft: 5}}>
                     <div>Log</div>
                   </div>
                 </div>
@@ -209,8 +377,5 @@ class Automation extends React.Component {
     </div>
   }
 }
-ipc.send("get-main-state",key,['defaultDownloadPath'])
-ipc.once(`get-main-state-reply_${key}`,(e,data)=>{
-  defaultData = data
-  ReactDOM.render(<Automation />,  document.getElementById('app'))
-})
+
+ReactDOM.render(<Automation />,  document.getElementById('app'))

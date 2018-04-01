@@ -85,10 +85,12 @@ function moveFavorite(args){
 
 async function treeBuild(datas,nodePath){
   const newChildren = []
+  let ind = 0
   for(let x of datas){
     const id = `${nodePath}/${x.key}`
     const data = {
       id,
+      no: ++ind,
       type: 'file',
       ...x
     }
@@ -101,7 +103,6 @@ async function treeBuild(datas,nodePath){
 }
 
 let selectedNodes = [];
-let treeAllData
 export default class Commands extends React.Component {
   constructor(props) {
     super(props)
@@ -118,48 +119,52 @@ export default class Commands extends React.Component {
     setHeight()
   }
 
-  afterSelect(selectedTargets){
-    if(selectedTargets.length == 0) return
-
-    const tree = this.refs.content.refs.iTree.tree
-
-    const targetNodes = selectedTargets.map(ele=>{
-      const nodeId = ele.dataset.id
-      return tree.getNodeById(nodeId)
-    })
-
-    for(let currentNode of targetNodes){
-      const index = selectedNodes.indexOf(currentNode);
-
-      // Remove current node if the array length of selected nodes is greater than 1
-      if (index >= 0 && selectedNodes.length > 1) {
-        currentNode.state.selected = false;
-        selectedNodes.splice(index, 1);
-        tree.updateNode(currentNode, {}, { shallowRendering: true },true);
-      }
-
-      // Add current node to the selected nodes
-      if (index < 0) {
-        currentNode.state.selected = true;
-        selectedNodes.push(currentNode);
-        tree.updateNode(currentNode, {}, { shallowRendering: true },true);
-      }
-    }
-
-    tree.update()
+  getSelectedOps(){
+    return selectedNodes.map(x=>x.id.split("/").slice(-1)[0])
   }
 
-  clearSelect(){
-    const tree = this.refs.content.refs.iTree.tree
-    // Empty an array of selected nodes
-    selectedNodes.forEach(selectedNode => {
-      selectedNode.state.selected = false;
-      tree.updateNode(selectedNode, {}, { shallowRendering: true },true)
-    });
-    selectedNodes = [];
-
-    tree.update()
-  }
+  // afterSelect(selectedTargets){
+  //   if(selectedTargets.length == 0) return
+  //
+  //   const tree = this.refs.content.refs.iTree.tree
+  //
+  //   const targetNodes = selectedTargets.map(ele=>{
+  //     const nodeId = ele.dataset.id
+  //     return tree.getNodeById(nodeId)
+  //   })
+  //
+  //   for(let currentNode of targetNodes){
+  //     const index = selectedNodes.indexOf(currentNode);
+  //
+  //     // Remove current node if the array length of selected nodes is greater than 1
+  //     if (index >= 0 && selectedNodes.length > 1) {
+  //       currentNode.state.selected = false;
+  //       selectedNodes.splice(index, 1);
+  //       tree.updateNode(currentNode, {}, { shallowRendering: true },true);
+  //     }
+  //
+  //     // Add current node to the selected nodes
+  //     if (index < 0) {
+  //       currentNode.state.selected = true;
+  //       selectedNodes.push(currentNode);
+  //       tree.updateNode(currentNode, {}, { shallowRendering: true },true);
+  //     }
+  //   }
+  //
+  //   tree.update()
+  // }
+  //
+  // clearSelect(){
+  //   const tree = this.refs.content.refs.iTree.tree
+  //   // Empty an array of selected nodes
+  //   selectedNodes.forEach(selectedNode => {
+  //     selectedNode.state.selected = false;
+  //     tree.updateNode(selectedNode, {}, { shallowRendering: true },true)
+  //   });
+  //   selectedNodes = [];
+  //
+  //   tree.update()
+  // }
 
   recurNewTreeData(datas,reg){
     const newDatas = []
@@ -187,7 +192,7 @@ export default class Commands extends React.Component {
   }
 
   render(){
-    return <Contents ref="content"/>
+    return <Contents ref="content" selectedMenu={this.props.selectedMenu}/>
     // return <StickyContainer ref="stickey">
     //   <Selection ref="select" target=".infinite-tree-item" selectedClass="selection-selected"
     //              afterSelect={::this.afterSelect} clearSelect={::this.clearSelect}>
@@ -218,33 +223,47 @@ class Contents extends React.Component {
   }
 
   async loadAllData(datas){
-    const prevState = this.prevState || (await localForage.getItem("automation-open-node"))
-    this.prevState = (void 0)
+    if(!datas) datas = this.currentDatas
+    this.currentDatas = datas
+    // const prevState = this.prevState || (await localForage.getItem("automation-open-node"))
+    // this.prevState = (void 0)
 
     const ret = datas
     const data = (await treeBuild(ret,''))[0].children
 
     // console.log(data)
-    treeAllData = data
+    // treeAllData = data
 
-    localForage.setItem("automation-open-node",prevState)
-    const openNodes = prevState ? prevState.split("\t",-1) : (void 0)
+    // localForage.setItem("automation-open-node",prevState)
+    // const openNodes = prevState ? prevState.split("\t",-1) : (void 0)
+    const openNodes = void 0
     const tree = this.refs.iTree.tree
     if(tree){
       tree.loadData(data,false,openNodes)
+
+      const newNodes = []
+      selectedNodes.forEach((node,i)=>{
+        const currentNode = tree.getNodeById(node.id)
+        if(!currentNode) return
+        currentNode.state.selected = true;
+        newNodes.push(currentNode)
+        tree.updateNode(currentNode, {}, { shallowRendering: true },i!=selectedNodes.length-1);
+      })
+      selectedNodes = newNodes
     }
     else{
       setTimeout(_=>tree.loadData(data,false,openNodes),100)
     }
   }
 
+  async eventUpdateDatas(e,datas){
+    const doScroll = this.isScrollBottom()
+    await this.loadAllData(datas)
+    if(doScroll) this.scrollToBottom()
+  }
+
   componentDidMount() {
     this.loadAllData([{key:'root', title:'root', is_file:false, children2: []}])
-    this.eventUpdateDatas = async (e,datas)=>{
-      const doScroll = this.isScrollBottom()
-      await this.loadAllData(datas)
-      if(doScroll) this.scrollToBottom()
-    }
     PubSub.subscribe('update-datas',::this.eventUpdateDatas)
 
     const tree = this.refs.iTree.tree
@@ -427,10 +446,8 @@ class Contents extends React.Component {
         }
         console.log('renameArgs',renameArgs)
         if(renameArgs.length > 0){
-          this.prevState = await localForage.getItem("automation-open-node")
-          moveFavorite(renameArgs).then(_ =>{
-            this.eventUpdateDatas()
-          })
+          // this.prevState = await localForage.getItem("automation-open-node")
+          chrome.runtime.sendMessage({event:'move-op',menuKey: this.props.selectedMenu,opKey:renameArgs[0][0],args:renameArgs})
         }
 
         currentElement.className = `infinite-tree-item${currentElement.classList.contains('infinite-tree-selected') ? ' infinite-tree-selected' : ''}`
@@ -548,6 +565,11 @@ class Contents extends React.Component {
             return true;
           }}
           onClick={(event) => {
+            if(event.target.className == "fa fa-times menu-item"){
+              chrome.runtime.sendMessage({event:'remove-op', menuKey: this.props.selectedMenu, opKey:event.target.closest('.infinite-tree-item').dataset.id.split("/").slice(-1)[0]})
+              return
+            }
+            console.log(666456,event)
             const tree = this.refs.iTree.tree
             const currentNode = tree.getNodeFromPoint(event.x, event.y);
             if (!currentNode) {
@@ -567,7 +589,7 @@ class Contents extends React.Component {
                   selectedNode.state.selected = false;
                   tree.updateNode(selectedNode, {}, { shallowRendering: true });
                 });
-                selectedNodes = [];
+                selectedNodes.splice(0, selectedNodes.length);
 
                 // Select current node
                 tree.state.selectedNode = currentNode;
@@ -576,29 +598,29 @@ class Contents extends React.Component {
 
               }
 
-              if(currentNode.type == 'file'){
-                if(this.props.favoritePage){
-                  selectedNodes.forEach(selectedNode => {
-                    selectedNode.state.selected = false
-                    tree.updateNode(selectedNode, {}, { shallowRendering: true },true)
-                  });
-                  selectedNodes = [];
-                }
-                else{
-                  if(this.props.cont){
-                    this.props.cont.hostWebContents.send('new-tab',this.props.cont.getId(),currentNode.url)
-                    if(this.props.onClick) this.props.onClick()
-                  }
-                  else{
-                    ipc.sendToHost("open-tab-opposite",currentNode.url,true)
-                  }
-                  return;
-                }
-              }
-              else{
-                tree.toggleNode(currentNode);
-                return;
-              }
+              // if(currentNode.type == 'file'){
+              //   if(this.props.favoritePage){
+              //     selectedNodes.forEach(selectedNode => {
+              //       selectedNode.state.selected = false
+              //       tree.updateNode(selectedNode, {}, { shallowRendering: true },true)
+              //     });
+              //     selectedNodes = [];
+              //   }
+              //   else{
+              //     if(this.props.cont){
+              //       this.props.cont.hostWebContents.send('new-tab',this.props.cont.getId(),currentNode.url)
+              //       if(this.props.onClick) this.props.onClick()
+              //     }
+              //     else{
+              //       ipc.sendToHost("open-tab-opposite",currentNode.url,true)
+              //     }
+              //     return;
+              //   }
+              // }
+              // else{
+              //   tree.toggleNode(currentNode);
+              //   return;
+              // }
             }
 
             // Call event.stopPropagation() to stop event bubbling
@@ -625,16 +647,17 @@ class Contents extends React.Component {
               selectedNodes.push(currentNode);
               tree.updateNode(currentNode, {}, { shallowRendering: true });
             }
+            if(this.props.selectedMenu) chrome.runtime.sendMessage({event: 'get-op', menuKey: this.props.selectedMenu})
           }}
           onDoubleClick={(event) => {
-            if(this.props.favoritePage) {
-              const tree = this.refs.iTree.tree
-              const currentNode = tree.getNodeFromPoint(event.x, event.y);
-              if (!currentNode) {
-                return;
-              }
-              ipc.sendToHost("open-tab", currentNode.url, true)
-            }
+            // if(this.props.favoritePage) {
+            //   const tree = this.refs.iTree.tree
+            //   const currentNode = tree.getNodeFromPoint(event.x, event.y);
+            //   if (!currentNode) {
+            //     return;
+            //   }
+            //   ipc.sendToHost("open-tab", currentNode.url, true)
+            // }
           }}
           onKeyDown={(event) => {
             const tree = this.refs.iTree.tree
@@ -658,10 +681,10 @@ class Contents extends React.Component {
             }
           }}
           onOpenNode={(node) => {
-            localForage.setItem("automation-open-node",this.refs.iTree.tree.getOpenNodes().map(node=>node.id).join("\t"))
+            // localForage.setItem("automation-open-node",this.refs.iTree.tree.getOpenNodes().map(node=>node.id).join("\t"))
           }}
           onCloseNode={(node) => {
-            localForage.setItem("automation-open-node",this.refs.iTree.tree.getOpenNodes().map(node=>node.id).join("\t"))
+            // localForage.setItem("automation-open-node",this.refs.iTree.tree.getOpenNodes().map(node=>node.id).join("\t"))
           }}
         />
     );

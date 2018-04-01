@@ -1,4 +1,6 @@
+const ipc = chrome.ipcRenderer
 const OP_THRESHOLD = 300
+const automationURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html'
 let ENABLE_RIGHT_MOUSE = false
 let ENABLE_MIDDLE_MOUSE = false
 let ENABLE_META_KEYS = false
@@ -6,7 +8,7 @@ let ENABLE_META_KEYS = false
 chrome.idle.setDetectionInterval(15)
 chrome.idle.onStateChanged.addListener((idleState) => {
   if(idleState == "idle"){
-    chrome.ipcRenderer.send('get-favicon', {})
+    ipc.send('get-favicon', {})
   }
 })
 
@@ -188,6 +190,13 @@ function mergeScrollAndKeyDownsInInputField(opList,childToParent){
         childToParent[y.key] = x.key
       }
     }
+    else if(x.name == 'tabSelected' && !childToParent[x.key]){
+      for(let j =i+1,len = opList.length;j<len;j++){
+        const y = opList[j]
+        if(!(y.name == 'tabSelected' && x.url == y.url)) break
+        childToParent[y.key] = x.key
+      }
+    }
   }
   return childToParent
 }
@@ -218,7 +227,6 @@ function getMergedOpList(opList,childToParent){
     }
   }
   results.sort((a,b)=> a.now - b.now || a.index - b.index || a.tabId - b.tabId || a.frame - b.frame )
-  results.forEach((op,i)=>op.no = i+1)
 
   return results
 }
@@ -229,10 +237,7 @@ function rejectOp(op){
     (!ENABLE_META_KEYS && (op.keyCode == 16 || op.keyCode == 17 || op.keyCode == 18 || op.keyCode == 20 || op.keyCode == 136 || op.keyCode == 137 ))
 }
 
-function sendOps(){
-  if(sendTime >= addTime) return
-  sendTime = Date.now()
-
+function buildMergedList(){
   let opList = []
   for(let [k,v] of Object.entries(opMap)){
     if(rejectOp(v)) continue
@@ -241,7 +246,7 @@ function sendOps(){
 
   let ind = 0
   for(let [k,v] of Object.entries(opMap2)){
-    opList.push({...v,key:v,index:++ind,frame:0})
+    opList.push({...v,key:k,index:++ind,frame:0})
   }
 
   opList.sort((a,b)=> a.tabId - b.tabId || a.frame - b.frame || a.now - b.now || a.index - b.index)
@@ -250,30 +255,57 @@ function sendOps(){
   mergeSeveralOperation(opList,childToParent)
   mergeScrollAndKeyDownsInInputField(opList,childToParent)
 
+  return getMergedOpList(opList,childToParent)
+}
 
-  const mergedOpList = getMergedOpList(opList,childToParent)
-  chrome.tabs.sendMessage(senderId,{event:'send-op', opList: JSON.stringify(mergedOpList)})
+function sendOps(){
+  if(sendTime >= changeTime) return
+  sendTime = Date.now()
+  const mergedOpList = buildMergedList()
+
+  let opList
+  if(insertPos === void 0){
+    opList = [...fixedOpList,...mergedOpList]
+  }
+  else{
+    opList = [...fixedOpList.slice(0,insertPos),...mergedOpList,...fixedOpList.slice(insertPos+1)]
+  }
+
+  chrome.tabs.sendMessage(senderId,{event:'send-op', menuKey:currentKey, opList: JSON.stringify(opList)})
 }
 
 function addTabOp(name,tab,now){
   opMap2[uuidv4()] = {name,value:tab.url,url:tab.url,tabId:tab.id,now}
   console.log(opMap2)
-  addTime = Date.now()
+  changeTime = Date.now()
 }
 
-const handleTabCreated = tab => {
+function handleTabCreated(tab){
   const now = Date.now()
   addTabOp('tabCreate',tab,now)
 }
 
-const handleTabActived = activeInfo => {
+function handleTabActived(activeInfo){
   const now = Date.now()
   chrome.tabs.get(activeInfo.tabId, tab => {
+    if(tab.url == automationURL) return
     addTabOp('tabSelected',tab,now)
   })
 }
 
-const handleTabRemoved = (tabId, removeInfo) => {
+function fixedOperations(){
+  const mergedOpList = buildMergedList()
+  opMap = {}
+  opMap2 = {}
+  if(insertPos === void 0){
+    fixedOpList = [...fixedOpList,...mergedOpList]
+  }
+  else{
+    fixedOpList = [...fixedOpList.slice(0,insertPos),...mergedOpList,...fixedOpList.slice(insertPos+1)]
+  }
+}
+
+function handleTabRemoved(tabId, removeInfo){
   const now = Date.now()
   chrome.sessions.getRecentlyClosed(sessions => {
     const tab = sessions.find(x=>x.tab && x.tab.id == tabId).tab
@@ -281,13 +313,15 @@ const handleTabRemoved = (tabId, removeInfo) => {
   })
 }
 
-const handleWindowFocusChanged = windowId => {
+function handleWindowFocusChanged(windowId){
   const now = Date.now()
   chrome.tabs.query({active: true, windowId}, tabs => {
     const tab = tabs[0]
+    if(tab.url == automationURL) return
     addTabOp('tabSelected',tab,now)
   })
 }
+
 function addTabEvents(){
   chrome.tabs.onCreated.addListener(handleTabCreated)
   chrome.tabs.onActivated.addListener(handleTabActived)
@@ -307,38 +341,122 @@ function removeTabEvents() {
   chrome.windows.onFocusChanged.removeListener(handleWindowFocusChanged)
 }
 
-let isStart,senderId,opMap = {},opMap2={},addTime = 0,sendTime = -1
+function endOp(){
+  if(!currentKey) return
+
+  clearInterval(intervalId)
+  ipc.send('record-op',false)
+  fixedOperations()
+  allMap[currentKey] = fixedOpList
+  saveOperations(currentKey)
+  sendOps()
+  removeTabEvents()
+  currentKey = void 0
+  opMap = {}
+  opMap2 = {}
+  insertPos = void 0
+}
+
+function saveOperations(menuKey){
+  ipc.send('update-automation',menuKey,allMap[menuKey])
+}
+
+function getList(request) {
+  let list
+  if (currentKey == request.menuKey) {
+    fixedOperations()
+    list = fixedOpList
+  }
+  else {
+    list = allMap[request.menuKey] || []
+  }
+  return list;
+}
+
+let isStart,senderId,allMap = {},
+  opMap, opMap2, fixedOpList, currentKey, insertPos,intervalId,
+  changeTime = 0,sendTime = -1
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   if(request.event == "video-event"){
     chrome.tabs.sendMessage(sender.tab.id, request.inputs);
   }
   else if(request.event == 'start-op') {
+    currentKey = request.key //MenuKey
+    opMap = {}
+    opMap2 = {}
+    fixedOpList = allMap[currentKey] || []
+    insertPos = void 0
+
+    if(request.opKeys.length){
+      const opKeys = new Set(request.opKeys)
+      for(let i=fixedOpList.length-1;i>=0;i--){
+        if(opKeys.has(fixedOpList[i].key)){
+          insertPos = i
+          break
+        }
+      }
+    }
+
     senderId = sender.tab.id
-    chrome.ipcRenderer.send('record-op', true)
+    ipc.send('record-op', true)
     addTabEvents()
+    intervalId = setInterval(sendOps,300)
+  }
+  else if(request.event == 'get-op') {
+    const fixedOpList = getList(request)
+    chrome.tabs.sendMessage(sender.tab.id,{event:'send-op', menuKey:request.menuKey, opList: JSON.stringify(fixedOpList)})
+  }
+  else if(request.event == 'update-op'){
+    const fixedOpList = getList(request)
+    const op = fixedOpList.find(op=>op.key == request.opKey)
+    op[request.name] = request.value
+
+    chrome.tabs.sendMessage(sender.tab.id,{event:'send-op', menuKey:request.menuKey, opList: JSON.stringify(fixedOpList)})
+    saveOperations(request.menuKey)
   }
   else if(request.event == 'end-op'){
-    chrome.ipcRenderer.send('record-op',false)
-    sendOps()
-    removeTabEvents()
+    endOp()
   }
   else if(request.event == 'add-op'){
     request.tabId = sender.tab.id
-    opMap[request.key] = request
-    addTime = Date.now()
+    opMap[request.key] = request //opKey
+    changeTime = Date.now()
   }
   else if(request.event == 'remove-op'){
-    delete opMap[request.key]
-  }
+    const fixedOpList = getList(request)
+    const index = fixedOpList.findIndex(op=>op.key == request.opKey)
+    fixedOpList.splice(index,1)
 
+    chrome.tabs.sendMessage(sender.tab.id,{event:'send-op', menuKey:request.menuKey, opList: JSON.stringify(fixedOpList)})
+    saveOperations(request.menuKey)
+  }
+  else if(request.event == 'move-op'){
+    const fixedOpList = getList(request)
+    const dragKey = request.args[0][0]
+    const dragIndex = fixedOpList.findIndex(op=>op.key == dragKey)
+    const dragOp = fixedOpList.splice(dragIndex,1)[0]
+
+    const dropKey = request.args[0][3]
+    const dropIndex = fixedOpList.findIndex(op=>op.key == dropKey)
+    fixedOpList.splice(dropIndex+1,0,dragOp)
+
+    chrome.tabs.sendMessage(sender.tab.id,{event:'send-op', menuKey:request.menuKey, opList: JSON.stringify(fixedOpList)})
+    saveOperations(request.menuKey)
+  }
 });
 
-chrome.ipcRenderer.on('add-op',(e,op)=>{
+ipc.on('add-op',(e,op)=>{
   opMap2[op.key] = op
-  addTime = Date.now()
+  changeTime = Date.now()
 })
 
-setInterval(sendOps,300)
+ipc.send('get-automation')
+ipc.once('get-automation-reply',(e,datas)=>{
+  for(let data of datas){
+    allMap[data.key] = data.ops
+  }
+})
+
 
 //chrome.tabs,move,create,focus,close,detach,attach,widows系,back,forward,reload,go,domreadyとか
 

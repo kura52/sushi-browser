@@ -8,7 +8,7 @@ import {toKeyEvent} from 'keyboardevent-from-electron-accelerator'
 
 const os = require('os')
 const seq = require('./sequence')
-const {state,favorite,tabState,visit,savedState} = require('./databaseFork')
+const {state,favorite,tabState,visit,savedState,automation,automationOrder} = require('./databaseFork')
 const db = require('./databaseFork')
 const FfmpegWrapper = require('./FfmpegWrapper')
 const defaultConf = require('./defaultConf')
@@ -22,8 +22,9 @@ const isLinux = process.platform === 'linux'
 const meiryo = isWin && Intl.NumberFormat().resolvedOptions().locale == 'ja'
 import mainState from './mainState'
 import extensionInfos from "./extensionInfos";
+import {token} from "./databaseFork";
 const open = require('./open')
-const {readMacro,readMacroOff} = require('./readMacro')
+const {readMacro,readMacroOff,readTargetSelector,readTargetSelectorOff} = require('./readMacro')
 const sharedState = require('./sharedStateMain')
 const bindPath = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/bind.html'
 
@@ -525,6 +526,29 @@ ipcMain.on("change-title",(e,title)=>{
       cont.send('get-focused-webContent',key)
     })
     bw.setTitle(`${title} - Sushi Browser`)
+  }
+})
+
+let startSender
+ipcMain.on('select-target',(e,val,selector)=>{
+  const set = new Set()
+  for(let win of BrowserWindow.getAllWindows()) {
+    if(win.getTitle().includes('Sushi Browser')){
+      set.add(win.webContents)
+    }
+  }
+
+  const macro = val ? readTargetSelector() : readTargetSelectorOff()
+  for(let cont of webContents.getAllWebContents()){
+    if(!cont.isDestroyed() && !cont.isBackgroundPage() && set.has(cont.hostWebContents)){
+      cont.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',macro, {},()=>{})
+    }
+  }
+  if(val){
+    startSender = e.sender
+  }
+  else{
+    startSender.send('select-target-reply',selector)
   }
 })
 
@@ -1380,8 +1404,30 @@ ipcMain.on('set-audio-muted',(e,tabId,val)=>{
   }
 })
 
+ipcMain.on('get-automation',async e=>{
+  const datas = await automation.find({})
+  e.sender.send('get-automation-reply',datas)
+})
 
+ipcMain.on('update-automation',(e,key,ops)=>{
+  automation.update({key},{key, ops, updated_at: Date.now()}, { upsert: true }).then(_=>_)
+})
 
+ipcMain.on('update-automation-order',async (e,datas)=>{
+  await automationOrder.remove({})
+  const key = '1'
+  automationOrder.update({key},{key, datas, updated_at: Date.now()}, { upsert: true }).then(_=>_)
+})
+
+ipcMain.on('get-automation-order',async (e,datas)=>{
+  const rec = await automationOrder.findOne({})
+  e.returnValue = rec ? rec.datas : []
+})
+
+ipcMain.on('delete-automation',async (e,key)=>{
+  await automation.remove({key})
+  await automationOrder.remove({key})
+})
 // ipcMain.on('send-keys',(e,keys)=>{
 //   e.sender.sendInputEvent(keys)
 // })

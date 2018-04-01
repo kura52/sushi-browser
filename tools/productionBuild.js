@@ -54,6 +54,7 @@ function filesContentsReplace(files,reg,after){
 function fixForInferno(file){
   const contents2 = fs.readFileSync(file).toString()
   let result2 = contents2.replace(/e\.nativeEvent/g,'(e.nativeEvent || e)').replace(/\(e.nativeEvent \|\| e\) =/g,'e.nativeEvent =')
+    .replace(/defaultProps\.as/g,"(defaultProps && defaultProps.as)")
   fs.writeFileSync(file,result2)
 }
 

@@ -98,7 +98,7 @@ class BrowserPage extends Component {
         const wx = rect.x
         const wy = rect.y
 
-        const ele = document.elementFromPoint(screenX + wx, screenY + wy)
+        const ele = document.elementFromPoint(screenX - window.screenX + wx, screenY - window.screenY + wy)
         if(ele.tagName == "WEBVIEW"){
           const dropped = ele.dataset.key
           const src = e.target.dataset.key

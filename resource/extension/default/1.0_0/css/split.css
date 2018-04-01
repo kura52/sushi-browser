@@ -82,17 +82,15 @@ Resizer.disabled:hover {
     border: none;
 }
 
-.infinite-tree-item.top-overlap:not(.middle) > div,
-.infinite-tree-item.top-overlap.middle:not(.folder-item) > div,
+.infinite-tree-item.top-overlap > div,
 .infinite-tree-item.top-next-sibling-overlap > div{
-    border-top-color: blue;
+    border-top-color: blue !important;
 }
 
 
-.infinite-tree-item.bottom-overlap.middle:not(.folder-item) > div,
-.infinite-tree-item.bottom-overlap:not(.middle) > div,
+.infinite-tree-item.bottom-overlap > div,
 .infinite-tree-item.bottom-previous-sibling-overlap > div{
-    border-bottom-color: blue;
+    border-bottom-color: blue !important;
 }
 
 .ReactTable{
@@ -102,4 +100,61 @@ Resizer.disabled:hover {
 .ui.divider:not(.vertical):not(.horizontal){
     margin-top: 0;
     border-top: 0;
+}
+
+.fa.fa-times.menu-item:hover{
+    color: firebrick;
+}
+
+.ReactTable .rt-tbody .rt-tr-group.menu {
+    flex: initial;
+    font-size: 16px;
+    padding: 4px 0;
+    padding-left: 5px;
+}
+
+.drag-handle{
+    position: relative;
+    top: 1px;
+    display: inline-block;
+    width: 12px;
+    height: 11px;
+    opacity: .25;
+    margin-right: 10px;
+    cursor: row-resize;
+    /* background: -webkit-linear-gradient(top,#000,#000 20%,#fff 0,#fff 40%,#000 0,#000 60%,#fff 0,#fff 80%,#000 0,#000); */
+    background: linear-gradient(180deg,#000,#000 20%,#fff 0,#fff 40%,#000 0,#000 60%,#fff 0,#fff 80%,#000 0,#000);
+}
+
+.ReactTable .rt-tbody .rt-tr-group.menu:hover {
+    background: #f2fdff;
+}
+
+
+.ReactTable .rt-tbody .rt-tr-group.menu.selected {
+    background: #deecfd;
+}
+
+.ReactTable .rt-tbody .rt-tr-group.menu.add-button {
+    background-color: rgb(249, 250, 251);
+    margin-left: 20px;
+    margin-right: 20px;
+    border-radius: 5px;
+    border: solid 1px rgba(0,0,0,0.05);
+    margin-top: 5px;
+    padding: 0;
+    text-align: center;
+}
+
+
+.ReactTable .rt-tbody .rt-tr-group.menu.add-button:hover {
+    background-color: rgb(238, 238, 238);
+}
+
+.ReactTable .rt-tbody .rt-tr-group.menu.add-button > div {
+    padding: 0;
+}
+
+.infinite-tree-scroll {
+    overflow-y: scroll;
 }
