@@ -520,7 +520,7 @@ ipcMain.on("change-title",(e,title)=>{
       ipcMain.once(`get-focused-webContent-reply_${key}`,(e,tabId)=>{
         const focusedCont = (sharedState[tabId] || webContents.fromTabID(tabId))
         if(focusedCont){
-          bw.setTitle(`${focusedCont.getTitle()} - Sushi Browser`)
+          if(!bw.isDestroyed()) bw.setTitle(`${focusedCont.getTitle()} - Sushi Browser`)
         }
       })
       cont.send('get-focused-webContent',key)
