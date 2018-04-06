@@ -89,6 +89,12 @@
         div.setAttribute("style", "display: none;");
         doc.body.insertBefore(div, doc.body.firstChild);
         this.div = div;
+
+        var span = doc.createElement("span");
+        div.setAttribute("style", "display: none;");
+        div.appendChild(span)
+        this.span = span;
+
         this.e = null;
         this.r = null;
         doc.addEventListener("mousemove", this, true);
@@ -102,6 +108,7 @@
               this.div.parentNode.removeChild(this.div);
             }
             this.div = null;
+            this.span = null;
           }
           if (this.win) {
             var doc = this.win.document;
@@ -160,8 +167,13 @@
           var style = "pointer-events: none; position: absolute; box-shadow: 0 0 0 1px black; outline: 1px dashed white; outline-offset: -1px; background-color: rgba(250,250,128,0.4); z-index: 100;";
           var pos = "top:" + (r.top + this.win.scrollY) + "px; left:" + (r.left + this.win.scrollX) + "px; width:" + r.width + "px; height:" + r.height + "px;";
           this.div.setAttribute("style", style + pos);
+          this.span.setAttribute("style", "line-height: 1.4285em;font-family: Lato,'Helvetica Neue',Arial,Helvetica,sans-serif;width:max-content;font-size:14px;position: absolute;margin:0;margin-top: -23px;background-color: #f6f8fa;border: 1px solid #e1e4e8;padding: 1px 3px;border-top-left-radius: 4px;border-top-right-radius: 4px;")
+
+          var name = `${element.tagName.toLowerCase()}${element.id ? `#${element.id.toLowerCase()}` : ''}${element.className ? `.${element.className.replace(/ +/g,'.').toLowerCase()}` : ''}`
+          this.span.innerHTML = `<b>${name}</b>  ${Math.round(r.width*100)/100}x${Math.round(r.height*100)/100}`
         } else if (or) {
           this.div.setAttribute("style", "display: none;");
+          this.span.setAttribute("style", "display: none;");
         }
       };
 
