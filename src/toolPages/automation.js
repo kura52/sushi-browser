@@ -7,7 +7,7 @@ import uuid from 'node-uuid';
 import Selection from '../render/react-selection/indexTable';
 import path from 'path';
 const PubSub = require('pubsub-js')
-const { Form, TextArea, Grid, Sidebar, Segment, Container, Menu, Input, Divider, Button, Checkbox, Icon, Table, Dropdown } = require('semantic-ui-react');
+const { Form, TextArea, Grid, Sidebar, Segment, Container, Menu, Input, Divider, Button, Checkbox, Icon, Table, Dropdown,Popup } = require('semantic-ui-react');
 const { StickyContainer, Sticky } = require('react-sticky');
 const l10n = require('../../brave/js/l10n')
 const SplitPane = require('../render/split_pane/SplitPane')
@@ -153,8 +153,10 @@ const key = Math.random().toString()
 class Automation extends React.Component {
   constructor(props) {
     super(props)
-    this.state = {}
+    this.state = defaultData
     this.state.menuItems = ipc.sendSync('get-automation-order')
+    if(!this.state.menuItems.length) this.addItem()
+
     this.state.values = {key:'', command:'', target:'', value:''}
     this.state.selectedMenu = false
     this.handleSelectorReply = ::this.handleSelectorReply
@@ -169,7 +171,7 @@ class Automation extends React.Component {
     if(this.state.menuItems.length) this.selectItem(this.state.menuItems[0].key)
 
     chrome.runtime.onMessage.addListener((request, sender, sendResponse)=>{
-      if(request.event == "send-op" && this.state.selectedMenu == request.menuKey){
+      if(request.event == "send-op" && (this.state.selectedMenu == request.menuKey || !this.state.selectedMenu)){
         const datas = [{key:'root', title:'root', is_file:false, children2: JSON.parse(request.opList)}]
         PubSub.publish('update-datas',datas)
 
@@ -186,6 +188,18 @@ class Automation extends React.Component {
         this.setState({values})
       }
     })
+  }
+
+  onChange(name,e,data){
+    const val = data.checked === void 0 ? data.value : data.checked
+    ipc.send('save-state',{tableName:'state',key:name,val})
+    this.setState({})
+  }
+
+  onChangeText(name,e){
+    const val = e.target.value
+    ipc.send('save-state',{tableName:'state',key:name,val})
+    this.setState({[name]:val})
   }
 
   handleResize(e) {
@@ -227,7 +241,7 @@ class Automation extends React.Component {
   }
 
   getItemInfo() {
-    if(this.state.selectedMenu) chrome.runtime.sendMessage({event: 'get-op', menuKey: this.state.selectedMenu})
+    chrome.runtime.sendMessage({event: 'get-op', menuKey: this.state.selectedMenu})
   }
 
   addItem(){
@@ -277,6 +291,15 @@ class Automation extends React.Component {
     this.isTargetSelector = false
   }
 
+  handleChangePlaySpeed(e){
+    if(isNaN(e.target.value)) return
+    const key = 'autoPlaySpeed'
+    const val = parseInt(e.target.value)
+    ipc.send('save-state',{tableName:'state',key,val})
+    this.state[key] = val
+    this.setState({})
+  }
+
   render(){
     return <div className="main">
       <nav className="navbar navbar-light bg-faded">
@@ -296,7 +319,140 @@ class Automation extends React.Component {
           <button onClick={_=>this.handlePause()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
             <i className="fa fa-external-link-square" aria-hidden="true"></i>Export
           </button>
+          <Popup
+            trigger={<button  className="btn btn-sm align-middle btn-outline-secondary" type="button">
+              <i className="fa fa-cog" aria-hidden="true"></i>Settings
+            </button>}
+            flowing
+            on='click'
+          >
+            <h5>Playback Speed</h5>
 
+            <label style={{verticalAlign: 'super',paddingRight: 5}} className="right-pad">Fast</label>
+            <div className="ui input">
+              <input style={{width:250}} type="range" min="0" max="100" name="playSpeed" step="1" value={this.state.autoPlaySpeed} onInput={::this.handleChangePlaySpeed}/>
+            </div>
+            <label style={{verticalAlign: 'super',paddingLeft: 5}}>Slow</label>
+            <div className='spacer4'/>
+
+            <h5>Inspect</h5>
+            <div className='spacer4'/>
+            <div className="field">
+              <Checkbox defaultChecked={this.state.autoHighlight} toggle onChange={this.onChange.bind(this,'autoHighlight')}/>
+              <span className="toggle-label">Highlight Elements</span>
+            </div>
+            <div className='spacer2'/>
+
+            <h5>Events Recorded</h5>
+            <div className='spacer2'/>
+            <Grid>
+              <Grid.Row>
+                <Grid.Column width={8}>
+                  <div className="field">
+                    <Checkbox defaultChecked={this.state.autoMousedown} toggle onChange={this.onChange.bind(this,'autoMousedown')}/>
+                    <span className="toggle-label">Mousedown</span>
+                  </div>
+                  <div className="field">
+                    <Checkbox defaultChecked={this.state.autoMouseup} toggle onChange={this.onChange.bind(this,'autoMouseup')}/>
+                    <span className="toggle-label">Mouseup</span>
+                  </div>
+                  <div className="field">
+                    <Checkbox defaultChecked={this.state.autoClick} toggle onChange={this.onChange.bind(this,'autoClick')}/>
+                    <span className="toggle-label">Click</span>
+                  </div>
+                  <div className="field">
+                    <Checkbox defaultChecked={this.state.autoDblclick} toggle onChange={this.onChange.bind(this,'autoDblclick')}/>
+                    <span className="toggle-label">Dblclick</span>
+                  </div>
+                  <div className="field">
+                    <Checkbox defaultChecked={this.state.autoKeydown} toggle onChange={this.onChange.bind(this,'autoKeydown')}/>
+                    <span className="toggle-label">Keydown</span>
+                  </div>
+                  <div className="field">
+                    <Checkbox defaultChecked={this.state.autoInput} toggle onChange={this.onChange.bind(this,'autoInput')}/>
+                    <span className="toggle-label">Input</span>
+                  </div>
+                  <div className="field">
+                    <Checkbox defaultChecked={this.state.autoChange} toggle onChange={this.onChange.bind(this,'autoChange')}/>
+                    <span className="toggle-label">Change</span>
+                  </div>
+                  <div className="field">
+                    <Checkbox defaultChecked={this.state.autoSelect} toggle onChange={this.onChange.bind(this,'autoSelect')}/>
+                    <span className="toggle-label">Select</span>
+                  </div>
+                  <div className="field">
+                    <Checkbox defaultChecked={this.state.autoSubmit} toggle onChange={this.onChange.bind(this,'autoSubmit')}/>
+                    <span className="toggle-label">Submit</span>
+                  </div>
+                  <div className="field">
+                    <Checkbox defaultChecked={this.state.autoScroll} toggle onChange={this.onChange.bind(this,'autoScroll')}/>
+                    <span className="toggle-label">Scroll</span>
+                  </div>
+                  <div className="field">
+                    <Checkbox defaultChecked={this.state.autoMousemove} toggle onChange={this.onChange.bind(this,'autoMousemove')}/>
+                    <span className="toggle-label">Mousemove</span>
+                  </div>
+                </Grid.Column>
+                <Grid.Column width={8}>
+                  <div className="field">
+                    <Checkbox defaultChecked={this.state.autoFocusin} toggle onChange={this.onChange.bind(this,'autoFocusin')}/>
+                    <span className="toggle-label">Focusin</span>
+                  </div>
+                  <div className="field">
+                    <Checkbox defaultChecked={this.state.autoFocusout} toggle onChange={this.onChange.bind(this,'autoFocusout')}/>
+                    <span className="toggle-label">Focusout</span>
+                  </div>
+                  <div className="field">
+                    <Checkbox defaultChecked={this.state.autoCut} toggle onChange={this.onChange.bind(this,'autoCut')}/>
+                    <span className="toggle-label">Cut</span>
+                  </div>
+                  <div className="field">
+                    <Checkbox defaultChecked={this.state.autoCopy} toggle onChange={this.onChange.bind(this,'autoCopy')}/>
+                    <span className="toggle-label">Copy</span>
+                  </div>
+                  <div className="field">
+                    <Checkbox defaultChecked={this.state.autoPaste} toggle onChange={this.onChange.bind(this,'autoPaste')}/>
+                    <span className="toggle-label">Paste</span>
+                  </div>
+                  <div className="field">
+                    <Checkbox defaultChecked={this.state.autoBack} toggle onChange={this.onChange.bind(this,'autoBack')}/>
+                    <span className="toggle-label">Back</span>
+                  </div>
+                  <div className="field">
+                    <Checkbox defaultChecked={this.state.autoForward} toggle onChange={this.onChange.bind(this,'autoForward')}/>
+                    <span className="toggle-label">Forward</span>
+                  </div>
+                  <div className="field">
+                    <Checkbox defaultChecked={this.state.autoGoIndex} toggle onChange={this.onChange.bind(this,'autoGoIndex')}/>
+                    <span className="toggle-label">GoIndex</span>
+                  </div>
+                  <div className="field">
+                    <Checkbox defaultChecked={this.state.autoNavigate} toggle onChange={this.onChange.bind(this,'autoNavigate')}/>
+                    <span className="toggle-label">Navigate</span>
+                  </div>
+                  <div className="field">
+                    <Checkbox defaultChecked={this.state.autoTabCreate} toggle onChange={this.onChange.bind(this,'autoTabCreate')}/>
+                    <span className="toggle-label">TabCreate</span>
+                  </div>
+                  <div className="field">
+                    <Checkbox defaultChecked={this.state.autoTabRemoved} toggle onChange={this.onChange.bind(this,'autoTabRemoved')}/>
+                    <span className="toggle-label">TabRemoved</span>
+                  </div>
+                  <div className="field">
+                    <Checkbox defaultChecked={this.state.autoTabSelected} toggle onChange={this.onChange.bind(this,'autoTabSelected')}/>
+                    <span className="toggle-label">TabSelected</span>
+                  </div>
+                </Grid.Column>
+              </Grid.Row>
+            </Grid>
+
+            <h5>Hover Behavior</h5>
+            <label style={{verticalAlign: 'baseline'}} className="right-pad">Wait time until Hover (Mousemove) is recorded</label>
+            <div className="ui input">
+              <input type="text" style={{width: 70, padding: '.3em 1em'}} value={this.state.autoMousemoveTime} onChange={this.onChangeText.bind(this,'autoMousemoveTime')}/>
+            </div>
+            <label style={{verticalAlign: 'baseline'}}>sec</label>
+          </Popup>
         </form>
       </nav>
       <SplitPane order={-1} split="horizontal" ref={'pane_bottom'} heightModify={45}
@@ -378,4 +534,8 @@ class Automation extends React.Component {
   }
 }
 
-ReactDOM.render(<Automation />,  document.getElementById('app'))
+ipc.send("get-main-state",key,['autoMousedown','autoMouseup','autoClick','autoDblclick','autoKeydown','autoInput','autoChange','autoSelect','autoSubmit','autoScroll','autoMousemove','autoFocusin','autoFocusout','autoCut','autoCopy','autoPaste','autoBack','autoForward','autoGoIndex','autoNavigate','autoTabCreate','autoTabRemoved','autoTabSelected','autoMousemoveTime','autoHighlight','autoPlaySpeed'])
+ipc.once(`get-main-state-reply_${key}`,(e,data)=>{
+  defaultData = data
+  ReactDOM.render(<Automation />,  document.getElementById('app'))
+})

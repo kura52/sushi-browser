@@ -158,3 +158,19 @@ Resizer.disabled:hover {
 .infinite-tree-scroll {
     overflow-y: scroll;
 }
+
+
+.toggle-label {
+    vertical-align: 13px;
+    padding-left: .4em;
+    padding-right: 1.5em;
+}
+
+.ui.grid>.row {
+    padding: 0.3rem 0;
+    margin: 0;
+}
+
+.ui.popup {
+    min-width: 380px;
+}

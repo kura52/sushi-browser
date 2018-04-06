@@ -6,6 +6,11 @@ if(!window.__isRecording__){
 
   const EA_keys = {8:"Backspace",9:"Tab",12:"Clear",13:"Enter",16:"Shift",17:"Ctrl",18:"Alt",19:"Pause",20:"Caps Lock",27:"Esc",32:"Space",33:"Page Up",34:"Page Down",35:"End",36:"Home",37:"Left",38:"Up",39:"Right",40:"Down",44:"Impr ecran",45:"Insert",46:"Delete",91:"Windows / Command",92:"Menu Demarrer Windows",93:"Menu contextuel Windows",112:"F1",113:"F2",114:"F3",115:"F4",116:"F5",117:"F6",118:"F7",119:"F8",120:"F9",121:"F10",122:"F11",123:"F12",136:"Num Lock",137:"Scroll Lock",144:"Verr Num",145:"Arret defil",229:'IME'};
 
+
+  function escapeValue(value) {
+    return value && value.replace(/['"`\\/:\?&!#$%^()[\]{|}*+;,.<=>@~]/g, '\\$&').replace(/\n/g, '\A');
+  }
+
   function getKey(keyCode){
     return EA_keys[keyCode] || String.fromCharCode(keyCode)
   }
@@ -40,16 +45,27 @@ if(!window.__isRecording__){
   function createXPathAndSelector(element) {
     for (var segs = [],sels = []; element && element.nodeType == 1; element = element.parentNode) {
       if(element.id) {
-        const uniqueIdCount = document.querySelectorAll("#" + element.id).length
+        const escapedId = escapeValue(element.id)
+        const uniqueIdCount = document.querySelectorAll(`[id="${escapedId}"]`).length
 
         if (uniqueIdCount == 1) {
           segs.unshift(`//*[@id="${element.id}"]`)
-          sels.unshift(`#${element.id}`)
+          if(/^\d|[\s]\d/.test(escapedId) === false){
+            sels.unshift(`#${escapedId}`)
+          }
+          else{
+            sels.unshift(`[id="${escapedId}"]`)
+          }
           return {xpath:segs.join('/'),selector:sels.join(' > ')};
         }
         if (element.nodeName) {
           segs.unshift(`${element.nodeName.toLowerCase()}[@id="${element.id}"]`);
-          sels.unshift(`${element.nodeName.toLowerCase()}#${element.id}`);
+          if(/^\d|[\s]\d/.test(id) === false){
+            sels.unshift(`${escapeValue(element.nodeName.toLowerCase())}#${escapedId}`);
+          }
+          else{
+            sels.unshift(`${escapeValue(element.nodeName.toLowerCase())}[id="${escapedId}"]`);
+          }
         }
       }
       // else if(element.className) {
@@ -172,6 +188,7 @@ if(!window.__isRecording__){
 
   let preEventTime = Date.now()
   function on(eventName) {
+    if(eventName.startsWith('_')) return
     window.__isRecording__[eventName] = e=>{
       if(!e.isTrusted) return
 
@@ -261,31 +278,9 @@ if(!window.__isRecording__){
 
   if(location.href != 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html'){
 //,'mouseout','keyup',
-    for(let eventName of ['mousedown','mouseup','mousemove','select','focusin','focusout',
-      'click','dblclick','keydown','input','change','submit','copy','cut','paste','mouseout']){
+    for(let eventName of ["mousedown","mouseup","mousemove","select","focusin","focusout","click","dblclick","keydown","input","change","submit","copy","cut","paste","mouseout"]){
       on(eventName)
     }
     onScroll()
   }
 }
-
-// scroll
-// tabSelected
-// click
-// mouseup
-// input
-// mousemove
-// navigate
-// keydown
-// submit
-// paste
-// cut
-// focusin
-// focusout
-// back
-// forward
-// goIndex
-// tabCreate
-// tabRemoved
-// dblclick
-// mousedown

@@ -871,7 +871,7 @@ class Converter extends React.Component {
           <div className="ui input" style={{marginTop: -4, paddingLeft: 20, width: 320}}>
             <input type="range" min="0" max={max.toString()} name="duration" disabled={state.out.VideoQualityType == 1}
                    value={ve == 'theora' ? parseInt(state.out.VideoQualitySlider) : max - parseInt(state.out.VideoQualitySlider)}
-                   onChange={e=>{e.target.value = ve == 'theora' ? parseInt(e.target.value) : max - parseInt(e.target.value);this.handleChange(e,'VideoQualitySlider')}}/>
+                   onInput={e=>{e.target.value = ve == 'theora' ? parseInt(e.target.value) : max - parseInt(e.target.value);this.handleChange(e,'VideoQualitySlider')}}/>
           </div>
           <div style={{marginTop: -5, paddingLeft: 20, width: 320}}>
             <label>| Lower Quality</label><label style={{float:'right'}}>Higher Quality |</label>
@@ -900,7 +900,7 @@ class Converter extends React.Component {
         {ve.match(/26|VP/) ? <span>
           <label style={{verticalAlign: 'bottom', paddingRight: 12}}>Encoder Preset:</label>
           <div className="ui input">
-            <input type="range" min="1" max="10" value={presetMap[state.out.VideoPreset]} onChange={e=>{e = {target: {value: presetRMap[e.target.value]}};this.handleChange(e,'VideoPreset')}}/>
+            <input type="range" min="1" max="10" value={presetMap[state.out.VideoPreset]} onInput={e=>{e = {target: {value: presetRMap[e.target.value]}};this.handleChange(e,'VideoPreset')}}/>
             <label style={{paddingLeft: 5, paddingTop: 4}}>{state.out.VideoPreset && `${state.out.VideoPreset[0].toUpperCase()}${state.out.VideoPreset.slice(1)}`}</label>
           </div>
           <div className='spacer5'/>
@@ -1095,7 +1095,7 @@ class Converter extends React.Component {
 
       <label style={{verticalAlign: 'baseline'}} className="right-pad">Gain:</label>
       <div className="ui input right-pad" style={{verticalAlign: 'middle'}}>
-        <input type="range" min="-20" max="20" name="gain" step="1" value={state.out.AudioList[0].AudioTrackGainSlider} onChange={e=>this.handleAudioChange(e,'AudioTrackGainSlider')}/>
+        <input type="range" min="-20" max="20" name="gain" step="1" value={state.out.AudioList[0].AudioTrackGainSlider} onInput={e=>this.handleAudioChange(e,'AudioTrackGainSlider')}/>
       </div>
       <label style={{verticalAlign: 'bottom'}}>{state.out.AudioList[0].AudioTrackGainSlider}dB</label>
 

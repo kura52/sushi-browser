@@ -54,7 +54,7 @@ function mergeKeyDownAndClickAndMouseUp(opList){
   const childToParent = {}
   let x = opList[0]
   for(let y of opList.slice(1)){
-    if( isSameFrame(x,y)){
+    if(isSameFrame(x,y)){
       if(x.name == 'keydown' && left('click',y) && y.clientX == 0 && y.clientY == 0){
         childToParent[y.key] = x.key
       }
@@ -194,6 +194,13 @@ function mergeScrollAndKeyDownsInInputField(opList,childToParent){
       for(let j =i+1,len = opList.length;j<len;j++){
         const y = opList[j]
         if(!(y.name == 'tabSelected' && x.url == y.url)) break
+        childToParent[y.key] = x.key
+      }
+    }
+    else if(x.name == 'mousemove' && !childToParent[x.key]){
+      for(let j =i+1,len = opList.length;j<len;j++){
+        const y = opList[j]
+        if(!(y.name == 'mousemove' && isSameFrame(x,y) && x.xpath == y.xpath)) break
         childToParent[y.key] = x.key
       }
     }
@@ -363,7 +370,7 @@ function saveOperations(menuKey){
 
 function getList(request) {
   let list
-  if (currentKey == request.menuKey) {
+  if (currentKey && currentKey == request.menuKey) {
     fixedOperations()
     list = fixedOpList
   }
