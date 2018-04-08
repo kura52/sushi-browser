@@ -14,6 +14,9 @@ const SplitPane = require('../render/split_pane/SplitPane')
 const Commands = require('./automationInfinite')
 const MenuList = require('./automationMenuList')
 
+const puppeteer = require('./puppeteer/Puppeteer')
+const helper = require('./puppeteer/helper')
+
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
 const isWin = navigator.userAgent.includes('Windows')
 l10n.init()
@@ -177,6 +180,7 @@ class Automation extends React.Component {
 
         let values = {command:'', target:'', value:''}
         const selectedOps = this.refs.table.refs.command.getSelectedOps()
+
         if(selectedOps.length){
           for(let selectedOp of selectedOps.slice(0).reverse()){
             const op = datas[0].children2.find(x=>x.key == selectedOp)
@@ -221,6 +225,113 @@ class Automation extends React.Component {
       chrome.runtime.sendMessage({event:'start-op',key: this.state.selectedMenu,opKeys:this.refs.table.refs.command.getSelectedOps()})
     }
     this.setState({isRecording: !this.state.isRecording})
+  }
+
+  handlePlay(){
+    const datas = this.refs.table.refs.command.refs.content.currentDatas[0].children2
+    console.log(datas)
+
+    const codes = ['const browser = await puppeteer.launch()',
+      'let page = await browser.newPage()']
+
+    for(let op of datas){
+      let str
+      if(op.name == 'mousedown'){
+        str = `await page.hover('${helper.stringEscape(op.optSelector)}')\n`
+        str += `page.mouse().down()`
+      }
+      else if(op.name == 'mouseup'){
+        str = `await page.hover('${helper.stringEscape(op.optSelector)}')\n`
+        str += `await page.mouse().up()`
+      }
+      else if(op.name == 'click'){
+        str = `await page.click('${helper.stringEscape(op.optSelector)}')`
+      }
+      else if(op.name == 'dblclick'){
+        str = `await page.click('${helper.stringEscape(op.optSelector)}', {clickCount: 2})`
+      }
+      else if(op.name == 'keydown'){
+        str = `await page.type('${helper.stringEscape(op.optSelector)}', '${helper.stringEscape(op.value)}')`
+      }
+      else if(op.name == 'input'){
+        // str = `await page.input('${helper.stringEscape(op.optSelector)}')`
+      }
+      else if(op.name == 'change'){
+        // str = `await page.change('${helper.stringEscape(op.optSelector)}')`
+      }
+      else if(op.name == 'select'){
+        // str = `await page.select('${helper.stringEscape(op.optSelector)}')`
+      }
+      else if(op.name == 'submit'){
+        // str = `await page.submit('${helper.stringEscape(op.optSelector)}')`
+      }
+      else if(op.name == 'scroll'){
+        // str = `await page.scroll('${helper.stringEscape(op.optSelector)}')`
+      }
+      else if(op.name == 'mousemove'){
+        str = `await page.hover('${helper.stringEscape(op.optSelector)}')`
+      }
+      else if(op.name == 'focusin'){
+        // str = `await page.focusin('${helper.stringEscape(op.optSelector)}')`
+      }
+      else if(op.name == 'focusout'){
+        // str = `await page.focusout('${helper.stringEscape(op.optSelector)}')`
+      }
+      else if(op.name == 'cut'){
+        // str = `await page.cut('${helper.stringEscape(op.optSelector)}')`
+      }
+      else if(op.name == 'copy'){
+        // str = `await page.copy('${helper.stringEscape(op.optSelector)}')`
+      }
+      else if(op.name == 'paste'){
+        // str = `await page.paste('${helper.stringEscape(op.optSelector)}')`
+      }
+      else if(op.name == 'back'){
+        str = `await page.goBack()`
+      }
+      else if(op.name == 'forward'){
+        str = `await page.goForward()`
+      }
+      else if(op.name == 'goIndex'){
+        // str = `await page.goIndex('${helper.stringEscape(op.optSelector)}')`
+      }
+      else if(op.name == 'navigate'){
+        str = `await page.goto('${helper.stringEscape(op.url)}')`
+      }
+      else if(op.name == 'tabCreate'){
+        str = `page = await browser.newPage()\n`
+        str += `await page.goto('${helper.stringEscape(op.url)}')`
+      }
+      else if(op.name == 'tabRemoved'){
+        str = `await page.close()`
+      }
+      else if(op.name == 'tabSelected'){
+        // str = `await page.tabSelected('${helper.stringEscape(op.optSelector)}')`
+      }
+      codes.push(str)
+    }
+    console.log(codes.join("\n"))
+    // (async () => {
+    //   const browser = await puppeteer.launch();
+    //   const page = await browser.newPage();
+    //
+    //   await page.goto('http://www.tohoho-web.com/html/iframe.htm')
+    //   const frames = await page.frames()
+    //   console.log(frames[1])
+    //   console.log(await frames[1].title())
+    //   await frames[1].click('a')
+    //
+    //   // await page.goto('https://www.google.co.jp/search?q=fsdf&gws_rd=cr&dcr=0&ei=MpLJWpaHL8Wk8AXM776ABA')
+    //   // console.log(await page.title())
+    //   // console.log(await page.$$eval('div', divs => divs.length))
+    //   // await page.type('#lst-ib', 'あ𩸽いうえおvv下記');
+    //   // await page.click('#rso .bkWMgd:nth-of-type(1) .g:nth-of-type(1) .r a')
+    //   // await page.screenshot({path:'a.png', fullPage:true})
+    //   // console.log(await page.goBack())
+    //
+    //
+    //   // await page.click('.main_loop .cf:nth-child(16) .attachment-post-thumbnail')
+    // })();
   }
 
   existsAllFixedPanel(){
@@ -307,7 +418,7 @@ class Automation extends React.Component {
           <button onClick={_=>this.handleRecord()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
             <i className="fa fa-video-camera" aria-hidden="true"></i>Record{this.state.isRecording ? ' Stop' : ''}
           </button>
-          <button onClick={_=>this.handleStart()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
+          <button onClick={_=>this.handlePlay()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
             <i className="fa fa-play-circle-o" aria-hidden="true"></i>Play
           </button>
           <button onClick={_=>this.handlePause()} className="btn btn-sm align-middle btn-outline-secondary" type="button">

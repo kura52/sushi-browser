@@ -15,14 +15,6 @@ if(!window.__isRecording__){
     return EA_keys[keyCode] || String.fromCharCode(keyCode)
   }
 
-  function stringToUnicode(str){
-    let result = ""
-    for(let i=0,len=str.length;i<len;i++){
-      result += `\\u${str.charCodeAt(i).toString(16)}`
-    }
-    return result
-  }
-
   const optCssSelector = element=>select(element, {
     root: document,
     priority: ['id', 'class','tag', 'value'],
@@ -125,7 +117,6 @@ if(!window.__isRecording__){
         return i+1;
       }
     }
-
     return -1;
   }
 

@@ -161,7 +161,7 @@ function registerForBeforeRequest (session) {
       const contType = headers['Content-Type']
       if(!contType) return
 
-      console.log(contType[0])
+      // console.log(contType[0])
 
       const matchNormal = contType && contType[0].match(RegNormal)
       if(!matchNormal && ((contType && contType[0].match(RegForDL)) || newURL.match(RegForDLExt))){
@@ -195,7 +195,7 @@ function registerForBeforeRequest (session) {
         let type
         if(ret = (pathname && (type = mime.getType(pathname)) && type.match(RegRichMedia))){
           const ind = pathname.lastIndexOf('/')
-          record = {tabId,type:ret[0],contType,size:len,url:newURL,fname: pathname.slice(ind+1)}
+          record = {tabId:details.tabId,type:ret[0],contType,size:len,url:newURL,fname: pathname.slice(ind+1)}
         }
       }
 

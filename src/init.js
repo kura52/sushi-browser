@@ -179,6 +179,7 @@ app.on('ready', async ()=>{
 
 
     require('./ipcUtils')
+    require('./ipcAutoOperations')
     require('./VideoConverter')
     require('./tabContextMenu')
     require('./syncLoop')

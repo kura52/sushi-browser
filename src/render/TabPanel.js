@@ -45,6 +45,8 @@ let [newTabMode,inputsVideo,disableTabContextMenus,priorityTabContextMenus,reloa
 
 disableTabContextMenus = new Set(disableTabContextMenus)
 
+
+
 function getNewTabPage(){
   const arr = ipc.sendSync('get-sync-main-states',[newTabMode == 'myHomepage' ? 'myHomepage' : 'topPage' ,'bookmarksPage','historyPage'])
   topURL = arr[0] || topURL

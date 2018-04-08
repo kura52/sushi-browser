@@ -141,7 +141,7 @@ export default class WebPageList extends Component{
       }
     }
     // console.log(arr.map(x=>x[0]).join("\t"));
-    arr = arr.filter((x)=>x[0]!== undefined) | _.sortBy(x=>x[0]) | _.sortedUniqBy(x=>x[0])
+    arr = _.sortedUniqBy(_.sortBy(arr.filter(x => x[0] !== undefined), x => x[0]), x => x[0]);
     // console.log(arr.map(x=>x[0]).join("\t"));
     // arr.forEach(x=>console.log(x))
     return <div>{arr.map(x=>x[1])}</div>

@@ -35,7 +35,7 @@ const settingDefault =  {
   checkedVersion: '0.00',
   checkDefaultBrowser: true,
   disableExtensions: [],
-  adBlockDisableSite: '{}',
+  adBlockDisableSite: {},
   disableContextMenus: [],
   disableTabContextMenus: ['closeTab','reload','Split Left','Split Top','cleanReload','Split right tabs to right','Split left tabs to left','Align Vertical','closeTabsToLeft','bookmarkPage','clicktabCopyTabUrl','clicktabCopyUrlFromClipboard','Copy Tab Info','clicktabReloadtabs','clicktabReloadothertabs','clicktabReloadlefttabs','clicktabReloadrighttabs','clicktabUcatab'],
   priorityContextMenus: {},

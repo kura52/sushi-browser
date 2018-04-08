@@ -1,6 +1,6 @@
 {
   "presets": ["react","babel-preset-stage-2"],
-  "plugins": ["transform-class-properties","transform-do-expressions","add-module-exports","pipe-operator","transform-es2015-modules-commonjs","transform-function-bind",["module-resolver", {
+  "plugins": ["add-module-exports","transform-es2015-modules-commonjs","transform-function-bind",["module-resolver", {
     "root": ["."]
   ,"alias": {
       "react": "inferno-compat",

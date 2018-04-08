@@ -166,7 +166,7 @@ function create(args){
       const maxBounds = bw.getBounds()
 
       if(!saved){
-        bw.webContents.send('get-window-state',{})
+        bw.webContents.send('get-window-state')
         let flag = false
 
         ipcMain.once('get-window-state-reply',(e,ret)=>{
@@ -451,7 +451,7 @@ export default {
     const maximize = bw.isMaximized()
     const bounds = maximize ? normalSize[bw.id] : bw.getBounds()
     const maxBounds = bw.getBounds()
-    bw.webContents.send('get-window-state',{})
+    bw.webContents.send('get-window-state')
     ipcMain.once('get-window-state-reply',(e,ret)=>{
       try{
         const saveState = {}

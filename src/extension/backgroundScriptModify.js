@@ -213,7 +213,15 @@ if(chrome.tabs){
     if(createProperties && createProperties.url && !createProperties.url.includes("://")){
       createProperties.url = `chrome-extension://${chrome.runtime.id}/${createProperties.url.split("/").filter(x=>x).join("/")}`
     }
-    chrome.tabs._create(createProperties, callback)
+    chrome.tabs._create(createProperties, (_tab)=>{
+      let retry = 0
+      const id = setInterval(_=>chrome.tabs.get(_tab.id,tab=>{
+        if(++retry > 200 || (tab && tab.url)){
+          clearInterval(id)
+          callback(tab)
+        }
+      }),10)
+    })
   }
 
 

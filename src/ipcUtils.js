@@ -1324,7 +1324,7 @@ ipcMain.on('download-start',(e,url)=>{
   }
 })
 
-ipcMain.on('screen-shot',(e,{full,type,rect,tabId,tabKey})=>{
+ipcMain.on('screen-shot',(e,{full,type,rect,tabId,tabKey,quality=92,savePath,autoPlay})=>{
   const capture = (cb,image)=>{
     if(cb) cb()
     if(type == 'clipboard'){
@@ -1332,9 +1332,25 @@ ipcMain.on('screen-shot',(e,{full,type,rect,tabId,tabKey})=>{
     }
     else{
       const isJpeg = type == 'JPEG'
-      const writePath = path.join(app.getPath('pictures'),`screenshot-${formatDate(new Date())}.${isJpeg ? 'jpg' : 'png'}`)
-      fs.writeFile(writePath,isJpeg ? image.toJPEG(92) : image.toPNG(),_=>{
-        shell.showItemInFolder(writePath)
+      let writePath
+      if(savePath){
+        if(path.isAbsolute(savePath)){
+          writePath = savePath
+        }
+        else{
+          writePath = path.join(app.getPath('pictures'),savePath)
+        }
+      }
+      else{
+        writePath = path.join(app.getPath('pictures'),`screenshot-${formatDate(new Date())}.${isJpeg ? 'jpg' : 'png'}`)
+      }
+      fs.writeFile(writePath,isJpeg ? image.toJPEG(quality) : image.toPNG(),_=>{
+        if(autoPlay){
+          e.sender.send(`screen-shot-reply_${tabId}`)
+        }
+        else{
+          shell.showItemInFolder(writePath)
+        }
       })
     }
   }
@@ -1350,12 +1366,11 @@ ipcMain.on('screen-shot',(e,{full,type,rect,tabId,tabKey})=>{
           d.style.overflow = 'hidden'
           return {width,height}
         })()`, {},(err, url, result)=>{
-        console.log(result[0],`webview-size-change_${tabKey}`)
         const key = Math.random().toString()
-        e.sender.send(`webview-size-change_${tabKey}`,key,`${result[0].width}px`,`${result[0].height}px`,true)
-        ipcMain.once(`webview-size-change_${tabKey}-reply_${key}`,(e)=>{
+        cont.hostWebContents.send('webview-size-change',tabKey,key,`${result[0].width}px`,`${result[0].height}px`,true)
+        ipcMain.once(`webview-size-change-reply_${key}`,(e)=>{
           cont.capturePage({x:0,y:0,width:scaling(result[0].width),height:scaling(result[0].height) },capture.bind(this,_=>{
-            e.sender.send(`webview-size-change_${tabKey}`,key,'100%','100%')
+            cont.hostWebContents.send('webview-size-change',tabKey,key,'100%','100%')
             cont.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',
               `(function(){
           document.body.style.overflow = document.body.dataset.overflow || null
@@ -1365,7 +1380,9 @@ ipcMain.on('screen-shot',(e,{full,type,rect,tabId,tabKey})=>{
       })
   }
   else{
-    e.sender.capturePage(rect, capture.bind(this,null))
+    const args = [capture.bind(this,null)]
+    if(rect) args.unshift(rect)
+    e.sender.capturePage(...args)
   }
 })
 
@@ -1428,6 +1445,7 @@ ipcMain.on('delete-automation',async (e,key)=>{
   await automation.remove({key})
   await automationOrder.remove({key})
 })
+
 // ipcMain.on('send-keys',(e,keys)=>{
 //   e.sender.sendInputEvent(keys)
 // })

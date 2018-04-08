@@ -543,7 +543,8 @@ simpleIpcFunc('chrome-webNavigation-getAllFrames',details=>{
   const arr = frameCache.get(url) || []
   for(let x of arr){
     if(x.tabId == details.tabId){
-      ret.push({errorOccurred: false, frameId: x.id, parentFrameId: 0, processId: 1, url: x.url})
+      console.log(x)
+      ret.push({errorOccurred: false, frameId: x.frameId, parentFrameId: 0, processId: 1, url: x.url})
     }
   }
   return ret

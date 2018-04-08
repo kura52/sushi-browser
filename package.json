@@ -54,7 +54,6 @@
     "muon-winstaller": "^2.5.4",
     "react-addons-perf": "^15.4.1",
     "shelljs": "^0.7.7",
-    "uglify-es": "^3.0.9",
     "webdriverio": "^4.3.0",
     "webpack": "^3.6.0"
   },
@@ -133,6 +132,7 @@
     "sprintf-js": "^1.0.3",
     "string.prototype.endswith": "^0.2.0",
     "string.prototype.startswith": "^0.2.0",
+    "uglify-es": "^3.3.9",
     "underscore": "^1.8.3",
     "warning": "^3.0.0",
     "xterm": "git+https://github.com/Tyriar/xterm.js.git",

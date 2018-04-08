@@ -1,7 +1,7 @@
 import {ipcMain,dialog,BrowserWindow } from 'electron'
 import {getCurrentWindow } from './util'
 import uuid from 'node-uuid'
-
+const contextAlert = new Set()
 
 // function messageBox(webContents, message, cb, buttons) {
 //   const tabId = webContents.getId()
@@ -25,9 +25,19 @@ function messageBox(webContents, message, cb, buttons) {
   },ret=>cb(ret === 0, '', false));
 }
 
+ipcMain.on('add-context-alert',(e,key)=> contextAlert.add(key))
+
 process.on('window-alert', (webContents, extraData, title, message, defaultPromptText,
                             shouldDisplaySuppressCheckbox, isBeforeUnloadDialog, isReload, cb) => {
-  messageBox(webContents, message, cb, ['ok']);
+  const key = message && message.slice(0,36)
+  if(contextAlert.has(key)){
+    cb(true, '', false)
+    ipcMain.emit(`add-context-alert-reply_${key}`,null,JSON.parse(message.slice(36)))
+    contextAlert.delete()
+  }
+  else{
+    messageBox(webContents, message, cb, ['ok']);
+  }
 })
 
 process.on('window-confirm', (webContents, extraData, title, message, defaultPromptText,

@@ -191,7 +191,7 @@ export default class BrowserNavbarLocation extends Component {
             description: x.location.length > 100 ? `${x.location.substr(0, 100)}...` : convertURL(x.location),
             url: x.location
           }))
-          resolve((results.filter(x=>x.title) | _.uniqBy(x=>x.title)).slice(0, this.props.autoCompleteInfos.numOfHistory))
+          resolve(_.uniqBy(results.filter(x => x.title), x => x.title).slice(0, this.props.autoCompleteInfos.numOfHistory));
         })
         ipc.send('search-history-loc', key, _.escapeRegExp(this.props.page.location), 100)
       }))

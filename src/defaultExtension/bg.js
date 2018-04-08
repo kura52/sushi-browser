@@ -50,8 +50,20 @@ function left(name,x){
   return x.name == name && x.button == 0
 }
 
-function mergeKeyDownAndClickAndMouseUp(opList){
+
+function mergeClickAndTabCreate(opList){
   const childToParent = {}
+  let x = opList[0]
+  for(let y of opList.slice(1)){
+    if(left('click',x) && y.name == 'tabCreate' && y.now - x.now < 150){
+      childToParent[y.key] = x.key
+    }
+    x = y
+  }
+  return childToParent
+}
+
+function mergeKeyDownAndClickAndMouseUp(opList,childToParent){
   let x = opList[0]
   for(let y of opList.slice(1)){
     if(isSameFrame(x,y)){
@@ -256,9 +268,12 @@ function buildMergedList(){
     opList.push({...v,key:k,index:++ind,frame:0})
   }
 
+  opList.sort((a,b)=> a.now - b.now || a.index - b.index || a.tabId - b.tabId || a.frame - b.frame)
+  const childToParent = mergeClickAndTabCreate(opList)
+
   opList.sort((a,b)=> a.tabId - b.tabId || a.frame - b.frame || a.now - b.now || a.index - b.index)
 
-  const childToParent = mergeKeyDownAndClickAndMouseUp(opList)
+  mergeKeyDownAndClickAndMouseUp(opList,childToParent)
   mergeSeveralOperation(opList,childToParent)
   mergeScrollAndKeyDownsInInputField(opList,childToParent)
 

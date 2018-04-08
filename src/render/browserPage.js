@@ -179,12 +179,13 @@ class BrowserPage extends Component {
     }
     ipc.on('menu-or-key-events', this.searchEvent)
 
-    this.changeSizeEvent = (e,key,width,height,reply)=>{
+    this.changeSizeEvent = (e,tabKeyOrTabId,key,width,height,reply)=>{
+      if(this.props.tab.key !== tabKeyOrTabId && this.props.tab.wvId !== tabKeyOrTabId) return
       webview.style.width = width
       webview.style.height = height
-      if(reply) setTimeout(_=>ipc.send(`webview-size-change_${this.props.tab.key}-reply_${key}`),1200)
+      if(reply) setTimeout(_=>ipc.send(`webview-size-change-reply_${key}`),1200)
     }
-    ipc.on(`webview-size-change_${this.props.tab.key}`, this.changeSizeEvent)
+    ipc.on('webview-size-change', this.changeSizeEvent)
 
     console.log("BrowserPage componentDidMount(",webview,this.props)
   }
@@ -201,7 +202,7 @@ class BrowserPage extends Component {
     PubSub.unsubscribe(this.tokenWebviewKeydown)
 
     if(this.searchEvent) ipc.removeListener('menu-or-key-events', this.searchEvent)
-    if(this.changeSizeEvent) ipc.removeListener(`webview-size-change_${this.props.tab.wvId}`, this.changeSizeEvent)
+    if(this.changeSizeEvent) ipc.removeListener('webview-size-change', this.changeSizeEvent)
   }
 
 
