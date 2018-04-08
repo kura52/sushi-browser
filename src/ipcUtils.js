@@ -888,26 +888,40 @@ ipcMain.on('set-pos-window',async (e,{id,hwnd,key,x,y,width,height,top,active,ta
 
 let timer,timers={}
 ipcMain.on('change-tab-infos',(e,changeTabInfos)=> {
-  for(let c of changeTabInfos){
-    const cont = sharedState[c.tabId] || webContents.fromTabID(c.tabId)
-    if(cont){
-      if(c.index !== (void 0)){
+  const f = function (cont,c) {
+      if (c.index !== (void 0)) {
         // if(timers[c.tabId]) clearTimeout(timers[c.tabId])
         // timers[c.tabId] = setTimeout(()=>{
-        console.log('change-tab-infos',c)
+        console.log('change-tab-infos', c)
         // cont.setTabIndex(c.index)
-        ipcMain.emit('update-tab-index-org', null, c.tabId ,c.index)
+        ipcMain.emit('update-tab-index-org', null, c.tabId, c.index)
         // delete timers[c.tabId]
         // }, 10)
       }
-      if(c.active){
-        if(timer) clearTimeout(timer)
-        timer = setTimeout(()=>{
-          console.log('change-tab-infos',c)
-          if(!cont.isDestroyed()) cont.setActive(c.active)
+      if (c.active) {
+        if (timer) clearTimeout(timer)
+        timer = setTimeout(() => {
+          console.log('change-tab-infos', c)
+          if (!cont.isDestroyed()) cont.setActive(c.active)
           timer = void 0
         }, 10)
       }
+  };
+  for(let c of changeTabInfos){
+    let cont = sharedState[c.tabId] || webContents.fromTabID(c.tabId)
+    if(cont) {
+      f(cont,c)
+    }
+    else{
+      let retry = 0
+      const id = setInterval(_=>{
+        if(retry++ > 100){
+          clearInterval(id)
+          return
+        }
+        cont = sharedState[c.tabId] || webContents.fromTabID(c.tabId)
+        if(cont) f(cont,c)
+      },10)
     }
   }
 })

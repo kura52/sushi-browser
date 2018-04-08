@@ -21,7 +21,6 @@ export default {
     if(mainState.autoHighlight){
       data += `;\n${fs.readFileSync("../resource/extension/default/1.0_0/js/TargetSelector2.js").toString()}`
     }
-    console.log(data)
     return data
   },
   readMacroOff() {

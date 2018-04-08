@@ -305,6 +305,7 @@ function addTabOp(name,tab,now){
 function handleTabCreated(tab){
   const now = Date.now()
   addTabOp('tabCreate',tab,now)
+  if(tab.active) addTabOp('tabSelected',tab,now)
 }
 
 function handleTabActived(activeInfo){

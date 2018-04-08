@@ -2634,6 +2634,16 @@ export default class TabPanel extends Component {
       this.state._tabKeys = []
       let i = -1
       const changeTabInfos = []
+      const func = ()=>{
+        if(changeTabInfos.length){
+          console.log('change-tab-infos',changeTabInfos)
+          ipc.send('change-tab-infos',changeTabInfos)
+        }
+        if(!allKeySame){
+          this.props.parent.orderingIndexes()
+        }
+      }
+
       for(let tab of this.state.tabs){
         ++i
         console.log(tab.wvId,i)
@@ -2641,6 +2651,7 @@ export default class TabPanel extends Component {
           if(retry < 50){
             setTimeout(_=>this.componentDidUpdate(prevProps, prevState,retry++),100)
           }
+          func()
           return
         }
         this.state._tabKeys.push(tab.key)
@@ -2664,12 +2675,7 @@ export default class TabPanel extends Component {
       }
       this.state.tabKeys = this.state._tabKeys
 
-      if(changeTabInfos.length){
-        ipc.send('change-tab-infos',changeTabInfos)
-      }
-      if(!allKeySame){
-        this.props.parent.orderingIndexes()
-      }
+      func()
       this.didUpdateTimer = void 0
     }, 10)
   }
