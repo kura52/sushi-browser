@@ -59,7 +59,9 @@ export default function(){
             default:
               value = node[col.name.toLowerCase()]
           }
-          return <div className="rt-td" style={{flex: `${col.width} 0 auto`,width:col.width,maxWidth:col.maxWidth}}>
+          const style = {flex: `${col.width} 0 auto`,width:col.width,maxWidth:col.maxWidth}
+
+          return <div className="rt-td" style={style}>
             <span>{value}</span>
           </div>
         })}

@@ -230,8 +230,10 @@ if(!window.__isRecording__){
       }
       else if (eventName == 'input' || eventName == 'change') {
         if (data.tag=='input' || data.tag=='textarea'){
-          if(data.type == 'checkbox' || data.type == 'radio')
+          if(data.type == 'checkbox' || data.type == 'radio'){
             data.value = target.checked
+            data.checked = target.checked
+          }
           else
             data.value = target.value
         }

@@ -13,13 +13,16 @@ const l10n = require('../../brave/js/l10n')
 const SplitPane = require('../render/split_pane/SplitPane')
 const Commands = require('./automationInfinite')
 const MenuList = require('./automationMenuList')
+const AutomationExportDialog = require('./automationExportDialog')
 
 const puppeteer = require('./puppeteer/Puppeteer')
 const helper = require('./puppeteer/helper')
+const util = Function(require('./puppeteer/orgUtils'))()
 
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
 const isWin = navigator.userAgent.includes('Windows')
 l10n.init()
+
 
 const opColumns = [
   {name:'#',width:10,maxWidth:48},
@@ -28,6 +31,18 @@ const opColumns = [
   {name:'Value',width:20,maxWidth:500},
   {name:'Info',width:20,maxWidth:700}
 ]
+
+
+function dateFormat(d) {
+  const m = d.getMonth() + 1
+  const da = d.getDate()
+  const w = d.getDay()
+  const h = d.getHours()
+  const mi = d.getMinutes()
+  const s = d.getSeconds()
+
+  return `${d.getFullYear()}/${m < 10 ? '0'+ m : m}/${da < 10 ? '0'+ da : da} ${h < 10 ? '0'+ h : h}:${mi < 10 ? '0'+ mi : mi}:${s < 10 ? '0'+ s : s}`
+}
 
 function escapeRegExp(string){
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
@@ -61,6 +76,20 @@ function equalArray(a,b){
     if(a[i] !== b[i]) return false
   }
   return true
+}
+
+
+function isInputable(op){
+  return (op.tag == 'input' && !(/^checkbox|radio|file|submit|image|reset|button|range|color$/).test(op.type || "")) ||
+    op.tag == 'textarea' || op.contentEditable
+}
+
+
+function isSpecialKey(op){
+  return op.keyChar == 'Tab' || op.keyChar == 'F5' || op.keyChar == 'Backspace' || op.keyChar == 'Delete' ||
+    op.keyChar == 'Left' || op.keyChar == 'Up' || op.keyChar == 'Right' || op.keyChar == 'Down' ||
+    (op.ctrlKey && (op.keyChar == 'A' || op.keyChar == 'X' || op.keyChar == 'C' || op.keyChar == 'V')) ||
+    (op.tag == 'input' && op.keyChar == 'Enter')
 }
 
 class ReactTable extends React.Component {
@@ -157,11 +186,14 @@ class Automation extends React.Component {
   constructor(props) {
     super(props)
     this.state = defaultData
-    this.state.menuItems = ipc.sendSync('get-automation-order')
+    const initData = ipc.sendSync('get-automation-order')
+    this.state.menuItems = initData.datas
+    this.state.selectedMenu = initData.menuKey
+
     if(!this.state.menuItems.length) this.addItem()
 
     this.state.values = {key:'', command:'', target:'', value:''}
-    this.state.selectedMenu = false
+    this.state.log = ''
     this.handleSelectorReply = ::this.handleSelectorReply
 
     window.addEventListener('resize', ::this.handleResize,{ passive: true });
@@ -171,7 +203,9 @@ class Automation extends React.Component {
   }
 
   componentDidMount(){
-    if(this.state.menuItems.length) this.selectItem(this.state.menuItems[0].key)
+    if(this.state.menuItems.length && this.state.selectedMenu){
+      this.selectItem(this.state.selectedMenu)
+    }
 
     chrome.runtime.onMessage.addListener((request, sender, sendResponse)=>{
       if(request.event == "send-op" && (this.state.selectedMenu == request.menuKey || !this.state.selectedMenu)){
@@ -227,111 +261,233 @@ class Automation extends React.Component {
     this.setState({isRecording: !this.state.isRecording})
   }
 
-  handlePlay(){
-    const datas = this.refs.table.refs.command.refs.content.currentDatas[0].children2
+  isScrollBottom(){
+    if(!this.scroll){
+      this.scroll = ReactDOM.findDOMNode(this.refs.textArea)
+    }
+    return this.scroll.scrollTop + this.scroll.clientHeight == this.scroll.scrollHeight
+  }
+
+  scrollToBottom(){
+    // if(this.isScrollBottom())
+    if(!this.scroll){
+      this.scroll = ReactDOM.findDOMNode(this.refs.textArea)
+    }
+      this.scroll.scrollTop = this.scroll.scrollHeight
+  }
+
+  updateLog(str){
+    this.setState({log: `${this.state.log ? `${this.state.log}\n` : ''}[${dateFormat(new Date())}] ${str}`})
+    this.scrollToBottom()
+  }
+
+  getCodes(mode){
+    const refContent = this.refs.table.refs.command.refs.content
+    const datas = refContent.currentDatas[0].children2
     console.log(datas)
 
-    const codes = ['const browser = await puppeteer.launch()',
-      'let page = await browser.newPage()']
+    const codes = mode == 'play' ? [
+      ['const browser = await puppeteer.launch()',''],
+      ['let page = await browser.newPage({active: false})','']
+    ] :
+      ['const browser = await puppeteer.launch({headless: false})',
+        'let page = await browser.newPage()']
+
+    const events = new Set(['wait'])
 
     for(let op of datas){
       let str
       if(op.name == 'mousedown'){
-        str = `await page.hover('${helper.stringEscape(op.optSelector)}')\n`
-        str += `page.mouse().down()`
+        str = `await mouseDown(page, '${helper.stringEscape(op.optSelector)}')`
+        events.add('mouseDown')
       }
       else if(op.name == 'mouseup'){
-        str = `await page.hover('${helper.stringEscape(op.optSelector)}')\n`
-        str += `await page.mouse().up()`
+        str = `await mouseUp(page, '${helper.stringEscape(op.optSelector)}')`
+        events.add('mouseUp')
       }
       else if(op.name == 'click'){
-        str = `await page.click('${helper.stringEscape(op.optSelector)}')`
+        str = `await click(page, '${helper.stringEscape(op.optSelector)}')`
+        events.add('click')
       }
       else if(op.name == 'dblclick'){
-        str = `await page.click('${helper.stringEscape(op.optSelector)}', {clickCount: 2})`
+        str = `await dblclick(page, '${helper.stringEscape(op.optSelector)}', {clickCount: 2})`
+        events.add('dblclick')
       }
       else if(op.name == 'keydown'){
-        str = `await page.type('${helper.stringEscape(op.optSelector)}', '${helper.stringEscape(op.value)}')`
+        if(isSpecialKey(op) || !isInputable(op)){
+          if(op.ctrlKey){
+            if(op.keyChar == 'A'){
+              str = 'await selectAll(page)'
+              events.add('selectAll')
+            }
+            else if(op.keyChar == 'X'){
+              str = 'await cut(page)'
+              events.add('cut')
+            }
+            else if(op.keyChar == 'C'){
+              str = 'await copy(page)'
+              events.add('copy')
+            }
+            else if(op.keyChar == 'V'){
+              str = 'await paste(page)'
+              events.add('paste')
+            }
+          }
+          else{
+            str = `await press(page, '${helper.stringEscape(op.optSelector)}', '${helper.stringEscape(op.keyChar)}')`
+            events.add('press')
+          }
+        }
+        else{
+          str = `await clearAndType(page, '${helper.stringEscape(op.optSelector)}', '${helper.stringEscape(op.value)}')`
+          events.add('clearAndType')
+        }
       }
-      else if(op.name == 'input'){
-        // str = `await page.input('${helper.stringEscape(op.optSelector)}')`
-      }
-      else if(op.name == 'change'){
-        // str = `await page.change('${helper.stringEscape(op.optSelector)}')`
+      else if(op.name == 'input' || op.name == 'change'){
+        if(op.checked === void 0){
+          str = `await input(page, '${helper.stringEscape(op.optSelector)}', '${helper.stringEscape(op.value)}')`
+          events.add('input')
+        }
+        else{
+          str = `await check(page, '${helper.stringEscape(op.optSelector)}', ${helper.stringEscape(op.checked)})`
+          events.add('check')
+        }
       }
       else if(op.name == 'select'){
-        // str = `await page.select('${helper.stringEscape(op.optSelector)}')`
+        const value = JSON.parse(op.data).map(x=>`'${helper.stringEscape(x.value)}'`).join(', ')
+        str = `await select(page, '${helper.stringEscape(op.optSelector)}', ${value})`
+        events.add('select')
       }
       else if(op.name == 'submit'){
-        // str = `await page.submit('${helper.stringEscape(op.optSelector)}')`
+        str = `await submit(page, '${helper.stringEscape(op.optSelector)}')`
+        events.add('submit')
       }
       else if(op.name == 'scroll'){
-        // str = `await page.scroll('${helper.stringEscape(op.optSelector)}')`
+        str = `await scroll(page, '${helper.stringEscape(op.optSelector)}', ${op.value})`
+        events.add('scroll')
       }
       else if(op.name == 'mousemove'){
-        str = `await page.hover('${helper.stringEscape(op.optSelector)}')`
+        str = `await hover(page, '${helper.stringEscape(op.optSelector)}')`
+        events.add('hover')
       }
       else if(op.name == 'focusin'){
-        // str = `await page.focusin('${helper.stringEscape(op.optSelector)}')`
+        str = `await focus(page, '${helper.stringEscape(op.optSelector)}')`
+        events.add('focus')
       }
       else if(op.name == 'focusout'){
-        // str = `await page.focusout('${helper.stringEscape(op.optSelector)}')`
+        str = `await blur(page, '${helper.stringEscape(op.optSelector)}')`
+        events.add('blur')
       }
       else if(op.name == 'cut'){
-        // str = `await page.cut('${helper.stringEscape(op.optSelector)}')`
+        str = 'await cut(page)'
+        events.add('cut')
       }
       else if(op.name == 'copy'){
-        // str = `await page.copy('${helper.stringEscape(op.optSelector)}')`
+        str = 'await copy(page)'
+        events.add('copy')
       }
       else if(op.name == 'paste'){
-        // str = `await page.paste('${helper.stringEscape(op.optSelector)}')`
+        str = 'await paste(page)'
+        events.add('paste')
       }
       else if(op.name == 'back'){
-        str = `await page.goBack()`
+        str = 'await page.goBack()'
       }
       else if(op.name == 'forward'){
-        str = `await page.goForward()`
+        str = 'await page.goForward()'
       }
-      else if(op.name == 'goIndex'){
-        // str = `await page.goIndex('${helper.stringEscape(op.optSelector)}')`
-      }
+      // else if(op.name == 'goIndex'){
+      //   str = `await page.goIndex('${helper.stringEscape(op.optSelector)}')`
+      // }
       else if(op.name == 'navigate'){
-        str = `await page.goto('${helper.stringEscape(op.url)}')`
+        str = `await page.goto('${helper.stringEscape(op.value)}')`
       }
       else if(op.name == 'tabCreate'){
-        str = `page = await browser.newPage()\n`
-        str += `await page.goto('${helper.stringEscape(op.url)}')`
+        str = `await newPage(browser, '${helper.stringEscape(op.url)}')`
+        events.add('newPage')
       }
       else if(op.name == 'tabRemoved'){
-        str = `await page.close()`
+        str = 'await page.close()'
       }
       else if(op.name == 'tabSelected'){
-        // str = `await page.tabSelected('${helper.stringEscape(op.optSelector)}')`
+        str = `page = await selectPage(browser, '${helper.stringEscape(op.url)}')`
+        events.add('selectPage')
       }
-      codes.push(str)
+      else if(op.name == 'tabLoaded'){
+        str = 'await page.waitForNavigation()'
+      }
+      const updateExecuting = `for(let e of document.querySelectorAll('[data-id]')){
+        e.style.backgroundColor = e.dataset.id == '/root/${op.key}' ? '#ffffe6' : null
+      }`
+      if(mode == 'play'){
+        codes.push([str,updateExecuting])
+      }
+      else if(mode == 'export'){
+        codes.push(str)
+      }
     }
+
+    const funcs = []
+    for(let event of events){
+      const func = util[event].toString()
+      if(func.startsWith('async')){
+        funcs.push(func.replace('async','async function'))
+      }
+      else{
+        funcs.push(`function ${func}`)
+      }
+    }
+
+    console.log(funcs.join("\n"))
     console.log(codes.join("\n"))
-    // (async () => {
-    //   const browser = await puppeteer.launch();
-    //   const page = await browser.newPage();
-    //
-    //   await page.goto('http://www.tohoho-web.com/html/iframe.htm')
-    //   const frames = await page.frames()
-    //   console.log(frames[1])
-    //   console.log(await frames[1].title())
-    //   await frames[1].click('a')
-    //
-    //   // await page.goto('https://www.google.co.jp/search?q=fsdf&gws_rd=cr&dcr=0&ei=MpLJWpaHL8Wk8AXM776ABA')
-    //   // console.log(await page.title())
-    //   // console.log(await page.$$eval('div', divs => divs.length))
-    //   // await page.type('#lst-ib', 'あ𩸽いうえおvv下記');
-    //   // await page.click('#rso .bkWMgd:nth-of-type(1) .g:nth-of-type(1) .r a')
-    //   // await page.screenshot({path:'a.png', fullPage:true})
-    //   // console.log(await page.goBack())
-    //
-    //
-    //   // await page.click('.main_loop .cf:nth-child(16) .attachment-post-thumbnail')
-    // })();
+    return {funcs,codes}
+  }
+
+  eval(code){
+    eval(code)
+  }
+
+  handlePlay(){
+    const refContent = this.refs.table.refs.command.refs.content
+    this.state.pause = false
+    this.setState({playing: !this.state.playing})
+
+    const {funcs,codes} = this.getCodes('play')
+
+    eval(`${funcs.join("\n")}
+    ;(async () => {
+      ${codes.map((x,i)=> `this.updateLog(\`${x[0]}\`);
+      if(!this.state.playing){
+        for(let e of document.querySelectorAll('[data-id]')){
+          e.style.backgroundColor = null
+        }
+        return
+      }
+      else if(this.state.pause){
+        while(true){
+          await wait(100)
+          if(!this.state.pause) break
+        }
+      }
+      ${x[1]}
+      refContent.setState({})
+      ${x[0]}
+      ${codes[i+1] && codes[i+1][0].includes("page.waitForNavigation") ? "" : `await wait(${this.state.autoPlaySpeed * 20} + 200)` }
+      `).join("\n")}
+      await browser.close()
+      for(let e of document.querySelectorAll('[data-id]')){
+        e.style.backgroundColor = null
+      }
+      this.setState({playing: false})
+    })()`)
+  }
+
+  handlePause(){
+    this.setState({pause: !this.state.pause})
+  }
+
+  handleExport(){
+    this.setState({dialog: true})
   }
 
   existsAllFixedPanel(){
@@ -348,7 +504,7 @@ class Automation extends React.Component {
   }
 
   updateAutomationOrder(){
-    ipc.send('update-automation-order',this.state.menuItems)
+    ipc.send('update-automation-order',this.state.menuItems,this.state.selectedMenu)
   }
 
   getItemInfo() {
@@ -357,7 +513,7 @@ class Automation extends React.Component {
 
   addItem(){
     const key = uuid.v4()
-    this.state.menuItems.push({key,name:'New Operations'})
+    this.state.menuItems.push({key,name:`New Operations ${('0'+(this.state.menuItems.length+1)).slice(-2)}`})
     this.state.selectedMenu = key
     this.setState({})
     this.getItemInfo()
@@ -379,12 +535,19 @@ class Automation extends React.Component {
     this.setState({})
     this.getItemInfo()
     ipc.send('delete-automation',key)
+    if(!this.state.menuItems.length){
+      this.addItem()
+    }
+    else{
+      this.updateAutomationOrder()
+    }
   }
 
   selectItem(key){
     this.state.selectedMenu = key
     this.setState({})
     this.getItemInfo()
+    this.updateAutomationOrder()
   }
 
   updateItems(items){
@@ -419,15 +582,15 @@ class Automation extends React.Component {
             <i className="fa fa-video-camera" aria-hidden="true"></i>Record{this.state.isRecording ? ' Stop' : ''}
           </button>
           <button onClick={_=>this.handlePlay()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
-            <i className="fa fa-play-circle-o" aria-hidden="true"></i>Play
+            <i className={this.state.playing ? "fa fa-stop-circle-o" : "fa fa-play-circle-o"} aria-hidden="true"></i>{this.state.playing ? 'Stop' : 'Play'}
           </button>
           <button onClick={_=>this.handlePause()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
-            <i className="fa fa-pause-circle-o" aria-hidden="true"></i>Pause
+            <i className={this.state.pause ? "fa fa-play-circle" : "fa fa-pause-circle-o"} aria-hidden="true"></i>{this.state.pause ? 'Resume' : 'Pause'}
           </button>
-          <button onClick={_=>this.handleStart()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
-            <i className="fa fa-fighter-jet" aria-hidden="true"></i>Play All
-          </button>
-          <button onClick={_=>this.handlePause()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
+          {/*<button onClick={_=>this.handleStart()} className="btn btn-sm align-middle btn-outline-secondary" type="button">*/}
+            {/*<i className="fa fa-fighter-jet" aria-hidden="true"></i>Play All*/}
+          {/*</button>*/}
+          <button onClick={_=>this.handleExport()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
             <i className="fa fa-external-link-square" aria-hidden="true"></i>Export
           </button>
           <Popup
@@ -533,10 +696,10 @@ class Automation extends React.Component {
                     <Checkbox defaultChecked={this.state.autoForward} toggle onChange={this.onChange.bind(this,'autoForward')}/>
                     <span className="toggle-label">Forward</span>
                   </div>
-                  <div className="field">
-                    <Checkbox defaultChecked={this.state.autoGoIndex} toggle onChange={this.onChange.bind(this,'autoGoIndex')}/>
-                    <span className="toggle-label">GoIndex</span>
-                  </div>
+                  {/*<div className="field">*/}
+                    {/*<Checkbox defaultChecked={this.state.autoGoIndex} toggle onChange={this.onChange.bind(this,'autoGoIndex')}/>*/}
+                    {/*<span className="toggle-label">GoIndex</span>*/}
+                  {/*</div>*/}
                   <div className="field">
                     <Checkbox defaultChecked={this.state.autoNavigate} toggle onChange={this.onChange.bind(this,'autoNavigate')}/>
                     <span className="toggle-label">Navigate</span>
@@ -627,9 +790,9 @@ class Automation extends React.Component {
           </div>
         </SplitPane>
         <div className="split-window" key='fixed-bottom'>
-          <div className="ReactTable">
+          <div className="ReactTable" style={{height: '100%'}}>
             <div className="rt-table">
-              <div className="rt-thead -header" style={{width: '100vw',top: 0,backgroundColor: '#f9fafb',position:'sticky'}}>
+              <div className="rt-thead -header" style={{width: '100vw',top: 0,backgroundColor: '#f9fafb',position:'sticky',flex: 'none'}}>
                 <div className="rt-tr">
                   <div className="rt-resizable-header -cursor-pointer rt-th"
                        style={{textAlign: 'initial', marginLeft: 5}}>
@@ -637,10 +800,12 @@ class Automation extends React.Component {
                   </div>
                 </div>
               </div>
+              <TextArea ref="textArea" style={{height: '100%', outline: 'none', resize: 'none', border: 'none'}} value={this.state.log}/>
             </div>
           </div>
         </div>
       </SplitPane>
+      {this.state.dialog ? <AutomationExportDialog fname={this.state.menuItems.find(x=>x.key == this.state.selectedMenu).name.replace(/ /g,'_').toLowerCase() + '.js'} code={this.getCodes('export')} onClose={_=>this.setState({dialog:false})} eval={::this.eval}/> : null}
     </div>
   }
 }

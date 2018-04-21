@@ -1,4 +1,5 @@
 import Page from './Page'
+import helper from './helper'
 const pagesMap = {}
 
 class Browser{
@@ -12,8 +13,8 @@ class Browser{
   /**
    * @return {!Promise<!Puppeteer.Page>}
    */
-  newPage(url) {
-    return new Page({url})
+  newPage({url, active}={}) {
+    return new Page({url,active})
   }
 
   /**
@@ -58,8 +59,7 @@ class Browser{
   }
 
   async close() {
-    await this._closeCallback.call(null);
-    this.disconnect();
+    helper._stopObserveLoadEvent()
   }
 
   disconnect() {

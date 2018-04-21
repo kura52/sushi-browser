@@ -32,7 +32,7 @@ process.on('window-alert', (webContents, extraData, title, message, defaultPromp
   const key = message && message.slice(0,36)
   if(contextAlert.has(key)){
     cb(true, '', false)
-    ipcMain.emit(`add-context-alert-reply_${key}`,null,JSON.parse(message.slice(36)))
+    ipcMain.emit(`add-context-alert-reply_${key}`,null,JSON.parse(message.slice(36)).a)
     contextAlert.delete()
   }
   else{

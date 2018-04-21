@@ -1,8 +1,29 @@
 import uuid from 'node-uuid'
+import PubSub from '../../render/pubsub'
 const ipc = chrome.ipcRenderer
 const NOT_MATCH_VALUE = -5928295
 
 class Helper {
+
+  static wait(time){
+    return new Promise(r=>setTimeout(r,time))
+  }
+
+  static _handleNavigateEvent(details){
+    if(details.frameId == 0) PubSub.publish('domContentLoaded',details.tabId)
+  }
+
+  static _startObserveLoadEvent(){
+    if(!Helper.observeDOMContentLoaded){
+      Helper.observeDOMContentLoaded = true
+      chrome.webNavigation.onDOMContentLoaded.addListener(Helper._handleNavigateEvent)
+    }
+  }
+  static _stopObserveLoadEvent(){
+    Helper.observeDOMContentLoaded = false
+    chrome.webNavigation.onDOMContentLoaded.removeListener(Helper._handleNavigateEvent)
+
+  }
 
   static _serializeArgument(arg) {
     if (Object.is(arg, undefined))
@@ -33,24 +54,25 @@ class Helper {
 
     const modArgs = handle ? [handle,...args.map(Helper._serializeArgument)] : args.map(Helper._serializeArgument)
     const isSubFrame = frameId !== void 0
-    return new Promise((resolve,reject)=>{
-      const code = isSubFrame ? `(function(){${Helper._getFramesCode(frameId)};return (${fun})(${modArgs.join(',')})}())` :
+    return new Promise(async (resolve,reject)=>{
+      let code = isSubFrame ? `(function(){${Helper._getFramesCode(frameId)};return (${fun})(${modArgs.join(',')})}())` :
         `(${fun})(${modArgs.join(',')})`
-      chrome.tabs.executeScript(tabId,{code,allFrames:isSubFrame},result=>{
-        if(result && result.length){
-          if(isSubFrame){
-            for(let ret of result){
-              if(ret != NOT_MATCH_VALUE){ resolve(ret);break }
-            }
-          }
-          else{
-            resolve(result[0])
+      // console.log(code)
+      const result = await chrome.tabs.executeAsyncFunction(tabId,{code,allFrames:isSubFrame})
+      console.log(result)
+      if(result && result.length){
+        if(isSubFrame){
+          for(let ret of result){
+            if(ret != NOT_MATCH_VALUE){ resolve(ret);break }
           }
         }
         else{
-          reject('error')
+          resolve(result[0])
         }
-      })
+      }
+      else{
+        reject('error')
+      }
     })
   }
 

@@ -211,7 +211,8 @@ class Contents extends React.Component {
     if(!this.scroll){
       this.scroll = ReactDOM.findDOMNode(this.refs.iTree).querySelector('.infinite-tree-scroll')
     }
-    return this.scroll.scrollTop + this.scroll.clientHeight == this.scroll.scrollHeight
+    console.log(114,this.scroll.scrollTop, this.scroll.clientHeight)
+    return this.currentDatas[0].children2.length && this.scroll.scrollTop + this.scroll.clientHeight == this.scroll.scrollHeight
   }
 
   scrollToBottom(){

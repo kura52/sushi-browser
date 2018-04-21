@@ -1,4 +1,5 @@
 import Browser from './Browser'
+import helper from "./helper";
 
 module.exports = class {
   /**
@@ -6,6 +7,7 @@ module.exports = class {
    * @return {!Promise<!Puppeteer.Browser>}
    */
   static launch(options) {
+    helper._startObserveLoadEvent()
     return new Promise((resolve,reject)=>{
       resolve(new Browser())
     })

@@ -2,52 +2,60 @@ import helper from "./helper";
 import defaultOptions from './defaultOptions'
 const keyDefinitions = require('./USKeyboardLayout');
 
-/**
- * @typedef {Object} KeyDescription
- * @property {number} keyCode
- * @property {string} key
- * @property {string} text
- * @property {string} code
- * @property {number} location
- */
+const puppeteerKeyToElectron = {
+  ArrowUp : 'Up',
+  ArrowRight : 'Right',
+  ArrowLeft : 'Left',
+  ArrowDown : 'Down',
+  AudioVolumeMute : 'VolumeMute',
+  AudioVolumeDown : 'VolumeDown',
+  AudioVolumeUp : 'VolumeUp',
+  Meta : 'Command',
+  ShiftLeft : 'Shift',
+  MetaLeft : 'Meta',
+  ControlLeft : 'Control',
+  AltLeft : 'Alt'
+}
 
 class Keyboard {
-  /**
-   * @param {!Puppeteer.CDPSession} client
-   */
+
   constructor(tabId) {
     this.tabId = tabId
+    this._pressedKeys = new Set()
+    this._modifiers = new Set()
   }
 
-  common(mode,text,options){
-    if(options.delay === void 0) options.delay = defaultOptions.typeInterval
+  common(mode,key,text,options={}){
+    if(!helper.isNumber(options.delay)) options.delay = defaultOptions.typeInterval
+    if(mode != 'type' && this._modifiers.size) options.modifiers = [...this._modifiers]
+
     return new Promise(resolve=>helper.simpleIpcFunc('auto-play-keyboard',
-      _=>resolve(void 0),mode,this.tabId,text,options))
+      _=>resolve(void 0),mode,this.tabId,key,text,options))
   }
 
   /**
    * @param {string} key
    * @param {{text: string}=} options
    */
-  async down(key, options = { text: undefined }) {
-    //@TODO text?
-    this.common('down',keyDefinitions[key].key,options)
+  down(key, options = { text: undefined }) {
+    const description = this._keyDescriptionForString(key)
+    this._pressedKeys.add(description.code)
+    this._modifierAdd(description.key)
+
+    const text = options.text === undefined ? description.text : options.text
+
+    return this.common('down',description.key,text)
   }
 
-  /**
-   * @param {string} key
-   * @return {number}
-   */
-  _modifierBit(key) {
-    if (key === 'Alt')
-      return 1;
-    if (key === 'Control')
-      return 2;
-    if (key === 'Meta')
-      return 4;
-    if (key === 'Shift')
-      return 8;
-    return 0;
+
+  _modifierAdd(key) {
+    if (key === 'Alt' || key === 'Control' || key === 'Meta' || key === 'Shift')
+      this._modifiers.add(key)
+  }
+
+  _modifierRemove(key) {
+    if (key === 'Alt' || key === 'Control' || key === 'Meta' || key === 'Shift')
+      this._modifiers.remove(key)
   }
 
   /**
@@ -55,13 +63,10 @@ class Keyboard {
    * @return {KeyDescription}
    */
   _keyDescriptionForString(keyString) {
-    const shift = this._modifiers & 8;
+    const shift = this._modifiers.has('Shift')
     const description = {
       key: '',
-      keyCode: 0,
-      code: '',
-      text: '',
-      location: 0
+      text: ''
     };
 
     const definition = keyDefinitions[keyString];
@@ -72,19 +77,11 @@ class Keyboard {
     if (shift && definition.shiftKey)
       description.key = definition.shiftKey;
 
-    if (definition.keyCode)
-      description.keyCode = definition.keyCode;
-    if (shift && definition.shiftKeyCode)
-      description.keyCode = definition.shiftKeyCode;
-
-    if (definition.code)
-      description.code = definition.code;
-
-    if (definition.location)
-      description.location = definition.location;
+    description.key = puppeteerKeyToElectron[description.key] || description.key
 
     if (description.key.length === 1)
       description.text = description.key;
+
 
     if (definition.text)
       description.text = definition.text;
@@ -92,8 +89,8 @@ class Keyboard {
       description.text = definition.shiftText;
 
     // if any modifiers besides shift are pressed, no text should be sent
-    if (this._modifiers & ~8)
-      description.text = '';
+    if (this._modifiers.length > 2 || (!shift && this._modifiers.length == 1))
+      description.text = ''
 
     return description;
   }
@@ -101,30 +98,54 @@ class Keyboard {
   /**
    * @param {string} key
    */
-  async up(key) {
-    this.common('up',keyDefinitions[key].key,{})
+  up(key) {
+    const description = this._keyDescriptionForString(key)
+    this._pressedKeys.add(description.code)
+    this._modifierRemove(description.key)
+
+    return this.common('up',description.key)
+  }
+
+  /**
+   * @param {string} char
+   */
+  sendCharacter(char) {
+    const description = this._keyDescriptionForString(key)
+
+    return this.common('press',description.key)
   }
 
   /**
    * @param {string} text
    * @param {{delay: (number|undefined)}=} options
    */
-  async type(text, options = {}) {
-    this.common('type',text,options)
+  type(text, options = {}) {
+    return this.common('type',void 0,text,options)
   }
 
   /**
    * @param {string} key
    * @param {!Object=} options
    */
-  async press(key, options) {
-    this.common('press',keyDefinitions[key].key,options)
+  press(key, options = {}) {
+    const description = this._keyDescriptionForString(key)
+    this._pressedKeys.add(description.code)
+    this._modifierAdd(description.key)
+
+    const text = options.text === undefined ? description.text : options.text
+
+    return this.common('click',description.key,text)
   }
 }
 
 class Mouse {
-  constructor(tabId) {
+  constructor(tabId, keyboard) {
     this.tabId = tabId
+    this._keyboard = keyboard
+  }
+
+  _addModifierOption(options){
+    if(this._keyboard._modifiers.size) options.modifiers = [...this._keyboard._modifiers]
   }
 
   /**
@@ -134,6 +155,7 @@ class Mouse {
    * @return {!Promise}
    */
   async move(x, y, options = {}) {
+    this._addModifierOption(options)
     this._x = x, this._y = y
     return new Promise(resolve=>helper.simpleIpcFunc('auto-play-mouse',_=>resolve(void 0),'move',this.tabId,x,y,options))
   }
@@ -144,6 +166,7 @@ class Mouse {
    * @param {!Object=} options
    */
   async click(x, y, options = {}) {
+    this._addModifierOption(options)
     this._x = x, this._y = y
     return new Promise(resolve=>helper.simpleIpcFunc('auto-play-mouse',_=>resolve(void 0),'click',this.tabId,x,y,options))
   }
@@ -152,6 +175,7 @@ class Mouse {
    * @param {!Object=} options
    */
   async down(options = {}) {
+    this._addModifierOption(options)
     return new Promise(resolve=>helper.simpleIpcFunc('auto-play-mouse',_=>resolve(void 0),'down',this.tabId,this._x,this._y,options))
   }
 
@@ -159,6 +183,7 @@ class Mouse {
    * @param {!Object=} options
    */
   async up(options = {}) {
+    this._addModifierOption(options)
     return new Promise(resolve=>helper.simpleIpcFunc('auto-play-mouse',_=>resolve(void 0),'down',this.tabId,this._x,this._y,options))
   }
 }

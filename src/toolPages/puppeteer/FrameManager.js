@@ -1,5 +1,6 @@
 import helper from './helper'
 import defaultOptions from './defaultOptions'
+import PubSub from '../../render/pubsub'
 import uuid from 'node-uuid'
 const ipc = chrome.ipcRenderer
 
@@ -39,16 +40,15 @@ class FrameManager {
    * @return {!Array<!Frame>}
    */
   frames() {
-    return new Promise(resolve=>{
-      chrome.tabs.executeScript(this.tabId,{allFrames:true,code:getFramesCode},results=>{
-        const frames = []
-        for(let result of results){
-          if(result.index < 0) continue
-          const fr = result.index === 0 ? this._mainFrame : new Frame(this.tabId,this._page,result.index,result.url,this._mainFrame)
-          frames.push(fr)
-        }
-        resolve(frames)
-      })
+    return new Promise(async resolve=>{
+      const results = await chrome.tabs.executeAsyncFunction(this.tabId,{allFrames:true,code:getFramesCode})
+      const frames = []
+      for(let result of results){
+        if(result.index < 0) continue
+        const fr = result.index === 0 ? this._mainFrame : new Frame(this.tabId,this._page,result.index,result.url,this._mainFrame)
+        frames.push(fr)
+      }
+      resolve(frames)
     })
   }
 
@@ -65,6 +65,7 @@ class Frame {
     this.isMain = !this.frameId
     this._url = url
     this._parentFrame = parentFrame
+    this._waitTasks = new Set()
   }
 
   /**
@@ -367,6 +368,7 @@ class Frame {
       const startDate = Date.now()
       const id = setInterval(async _=>{
         const ret = await this.evaluateExtContext(x=>{
+          console.log(document.querySelector(x),x)
           return !!document.querySelector(x)
         },selector)
 
@@ -418,16 +420,20 @@ class Frame {
       parentPos = await this.parentFrame().mouseCommmon(`iframe:nth-of-type(${num})`)
     }
 
-    await this._waitUntilElement(selector)
-    const {x, y, width, height, ww, wh} = await this._getElementPos(selector)
+    // await this._waitUntilElement(selector)
+    var {x, y, width, height, ww, wh} = await this._getElementPos(selector)
     console.log(x, y, width, height)
 
-    const absX = Math.round(x + width / 2)
-    const absY = Math.round(y + height / 2)
+    let absX = Math.round(x + width / 2)
+    let absY = Math.round(y + height / 2)
     const scrollX = Math.max(0, Math.round(absX - ww / 2))
     const scrollY = Math.max(0, Math.round(absY - wh / 2))
     console.log(absX, absY, scrollX, scrollY)
     const {currentX, currentY} = await this._scrollPos(scrollX, scrollY)
+    // await helper.wait(10)
+    var {x, y, width, height, ww, wh} = await this._getElementPos(selector)
+    absX = Math.round(x + width / 2)
+    absY = Math.round(y + height / 2)
 
     console.log(currentX, currentY, absX, absY)
     mouseX = absX - currentX
@@ -558,7 +564,7 @@ class Frame {
    * @return {!Promise}
    */
   waitForFunction(pageFunction, options = {}, ...args) {
-    const timeout = helper.isNumber(options.timeout) ? options.timeout : 30000;
+    const timeout = helper.isNumber(options.timeout) ? options.timeout : defaultOptions.timeout;
     const polling = options.polling || 'raf';
     return new WaitTask(this, pageFunction, 'function', polling, timeout, ...args).promise;
   }
@@ -580,7 +586,7 @@ class Frame {
     const waitForVisible = !!options.visible;
     const waitForHidden = !!options.hidden;
     const polling = waitForVisible || waitForHidden ? 'raf' : 'mutation';
-    const timeout = helper.isNumber(options.timeout) ? options.timeout : 30000;
+    const timeout = helper.isNumber(options.timeout) ? options.timeout : defaultOptions.timeout;
     return new WaitTask(this, predicate, `${isXPath ? 'XPath' : 'selector'} "${selectorOrXPath}"`, polling, timeout, selectorOrXPath, isXPath, waitForVisible, waitForHidden).promise;
 
     /**
@@ -694,20 +700,20 @@ class WaitTask {
     let success = null;
     let error = null;
     try {
-      success = await (await this._frame.executionContext()).evaluateHandle(waitForPredicatePageFunction, this._predicateBody, this._polling, this._timeout, ...this._args);
+      success = await this._frame.evaluateExtContext(waitForPredicatePageFunction, this._predicateBody, this._polling, this._timeout, ...this._args);
     } catch (e) {
       error = e;
     }
 
     if (this._terminated || runCount !== this._runCount) {
-      if (success)
-        await success.dispose();
+      // if (success)
+      //   await success.dispose();
       return;
     }
 
     // Ignore timeouts in pageScript - we track timeouts ourselves.
     if (!error && await this._frame.evaluate(s => !s, success)) {
-      await success.dispose();
+    //   await success.dispose();
       return;
     }
 

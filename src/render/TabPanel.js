@@ -76,6 +76,7 @@ const convertUrlMap = new Map([
   ['chrome://download/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html'],
   ['chrome://terminal/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html'],
   ['chrome://converter/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html'],
+  ['chrome://automation/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html'],
   ['chrome://settings/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html'],
   ['chrome://settings#general','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general'],
   ['chrome://settings#search','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search'],
@@ -229,6 +230,7 @@ let historyMap = new Map([
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html',['Explorer','resource/file.png']],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html',['Download','resource/file.png']],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html',['Video Converter','resource/file.png']],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html',['Automation Center','resource/file.png']],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html',['Terminal','resource/file.png']],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html',['History','resource/file.png']],
 ])
@@ -2037,7 +2039,7 @@ export default class TabPanel extends Component {
     else {
       cont.goToOffset(ind)
     }
-    this.addOp('go',tab,ind)
+    // this.addOp('go',tab,ind)
   }
 
   historyGoIndex(cont,tab,ind){
@@ -2047,7 +2049,7 @@ export default class TabPanel extends Component {
     else {
       cont.goToIndex(ind)
     }
-    this.addOp('goIndex',tab,ind)
+    // this.addOp('goIndex',tab,ind)
   }
 
   registChromeEvent(tab) {

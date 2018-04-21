@@ -2,6 +2,8 @@ import {FrameManager} from './FrameManager'
 const {Keyboard, Mouse} = require('./Input');
 import helper from './helper'
 import mime  from 'mime'
+import defaultOptions from './defaultOptions'
+import PubSub from '../../render/pubsub'
 const ipc = chrome.ipcRenderer
 
 class Page {
@@ -13,13 +15,13 @@ class Page {
    * @param {!Puppeteer.TaskQueue} screenshotTaskQueue
    */
   // constructor(client, target, frameTree, ignoreHTTPSErrors, screenshotTaskQueue) {
-  constructor({tabId,tab,url}){
+  constructor({tabId,tab,url,active = true}={}){
     return new Promise(r=>{
       const getTab = tab=>{
         this.tabId = tab.id
         this._frameManager = new FrameManager(this.tabId,this)
-        this._mouse = new Mouse(this.tabId)
         this._keyboard = new Keyboard(this.tabId);
+        this._mouse = new Mouse(this.tabId, this._keyboard)
         r(this)
       }
       if(tab){
@@ -29,7 +31,7 @@ class Page {
         chrome.tabs.get(tabId,getTab)
       }
       else{
-        chrome.tabs.create({url: url || 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html'},getTab)
+        chrome.tabs.create({url: url || 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html', active},getTab)
       }
     })
   }
@@ -324,7 +326,7 @@ class Page {
   async goto(url, options = {}) {
     return new Promise((resolve,reject)=>{
       const handleNavigateEvent = details=>{
-        if(details.tabId == this.tabId){
+        if(details.tabId == this.tabId && details.frameId == 0){
           resolve(this) //@TODO response
           chrome.webNavigation.onDOMContentLoaded.removeListener(handleNavigateEvent)
         }
@@ -349,18 +351,20 @@ class Page {
    * @param {!Object=} options
    * @return {!Promise<!Puppeteer.Response>}
    */
-  async waitForNavigation(options = {}) {
-    const mainFrame = this._frameManager.mainFrame();
-    const timeout = typeof options.timeout === 'number' ? options.timeout : this._defaultNavigationTimeout;
-    const watcher = new NavigatorWatcher(this._frameManager, mainFrame, timeout, options);
-
-    const responses = new Map();
-    const listener = helper.addEventListener(this._networkManager, NetworkManager.Events.Response, response => responses.set(response.url(), response));
-    const error = await watcher.navigationPromise();
-    helper.removeEventListeners([listener]);
-    if (error)
-      throw error;
-    return responses.get(this.mainFrame().url()) || null;
+  waitForNavigation(options = {}) {
+    return new Promise((resolve,reject)=>{
+      if(!helper.isNumber(options.timeout)) options.timeout = defaultOptions.timeout
+      const token = PubSub.subscribe('domContentLoaded',(msg,tabId)=>{
+        if(this.tabId == tabId){
+          resolve(true) //@TOOD
+          PubSub.unsubscribe(token)
+        }
+      })
+      setTimeout(_=>{
+        PubSub.unsubscribe(token)
+        reject('navigation-timeout')
+      },options.timeout)
+    })
   }
 
   /**

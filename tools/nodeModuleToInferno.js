@@ -14,13 +14,13 @@ for(let f of files){
 }
 
 function reactToInferno(file){
-  const datas = fs.readFileSync(file).toString()
+  let datas = fs.readFileSync(file).toString().replace(/defaultProps\.as/g,"(defaultProps && defaultProps.as)")
   if(datas.match(/require\(['"]react['"]\)|require\(['"]react\-dom['"]\)|from +?['"]react['"]|from +?['"]react\-dom['"]/)){
     console.log(file)
-    const result = datas.replace(/require\(['"]react['"]\)|require\(['"]react\-dom['"]\)/g,"require('inferno-compat')")
+    datas = datas.replace(/require\(['"]react['"]\)|require\(['"]react\-dom['"]\)/g,"require('inferno-compat')")
       .replace(/from +?['"]react['"]|from +?['"]react\-dom['"]/g,"from 'inferno-compat'")
-    fs.writeFileSync(file,result)
   }
+  fs.writeFileSync(file,datas)
 }
 
 function reactTable(file){

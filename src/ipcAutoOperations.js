@@ -74,40 +74,46 @@ simpleIpcFunc('auto-play-mouse',async (type,tabId,x,y,options)=>{
 })
 
 
-simpleIpcFuncCb('auto-play-keyboard',async (mode,tabId,value,options,cb)=>{
+simpleIpcFuncCb('auto-play-keyboard',async (mode,tabId,key,text,options,cb)=>{
   const cont = webContents.fromTabID(tabId)
 
   if(mode != 'type') {
     if (mode == 'down') {
-      cont.webContents.sendInputEvent({type: 'keyDown', keyCode: value})
+      cont.sendInputEvent({type: 'keyDown', keyCode: key, ...options})
+      cont.sendInputEvent({type: 'char', keyCode: text === void 0 ? key : text, ...options})
     }
     else if (mode == 'press') {
-      cont.webContents.sendInputEvent({type: 'char', keyCode: value})
+      cont.sendInputEvent({type: 'char', keyCode: key, ...options})
     }
     else if (mode == 'up') {
-      cont.webContents.sendInputEvent({type: 'keyUp', keyCode: value})
+      cont.sendInputEvent({type: 'keyUp', keyCode: key, ...options})
+    }
+    else if (mode == 'click') {
+      cont.sendInputEvent({type: 'keyDown', keyCode: key, ...options})
+      cont.sendInputEvent({type: 'char', keyCode: text === void 0 ? key : text, ...options})
+      await wait(options.delay)
+      cont.sendInputEvent({type: 'keyUp', keyCode: key, ...options})
     }
     return cb()
   }
 
-  const chars = stringToArray(value)
-  console.log(chars)
-
+  const chars = stringToArray(text)
   function type() {
     let ch = chars.shift()
     if (ch === void 0) return cb()
 
-    cont.webContents.sendInputEvent({type: 'keyDown', keyCode: ch})
-    cont.webContents.sendInputEvent({type: 'char', keyCode: ch})
-    cont.webContents.sendInputEvent({type: 'keyUp', keyCode: ch})
+    cont.webContents.sendInputEvent({type: 'keyDown', keyCode: ch, ...options})
+    cont.webContents.sendInputEvent({type: 'char', keyCode: ch, ...options})
+    cont.webContents.sendInputEvent({type: 'keyUp', keyCode: ch, ...options})
     setTimeout(type, options.delay)
   }
   type()
 })
 
 ipcMain.on('auto-play-evaluate',async (e,key,tabId,code)=>{
+  console.log(key,tabId,code)
   ipcMain.emit('add-context-alert',null,key)
-  const url = `javascript:(function(){const _extends=Object.assign||function(t){for(var e=1;e<arguments.length;e++){var n=arguments[e];for(var e in n)Object.prototype.hasOwnProperty.call(n,e)&&(t[e]=n[e])}return t};const ret=${UglifyJS.minify(code,UglifyOptions).code};alert('${key}' + JSON.stringify(ret))}())`
+  const url = `javascript:(function(){const _extends=Object.assign||function(t){for(var e=1;e<arguments.length;e++){var n=arguments[e];for(var e in n)Object.prototype.hasOwnProperty.call(n,e)&&(t[e]=n[e])}return t};let ret=${UglifyJS.minify(code,UglifyOptions).code};(async ()=>alert('${key}' + JSON.stringify({a:(await ret)})))()}())`
   console.log(url)
   webContents.fromTabID(tabId).loadURL(url)
   ipcMain.once(`add-context-alert-reply_${key}`,(e2,result)=>{
@@ -118,7 +124,7 @@ ipcMain.on('auto-play-evaluate',async (e,key,tabId,code)=>{
 ipcMain.on('auto-get-sync',(e,tabId,type)=>{
   const cont = webContents.fromTabID(tabId)
   let data
-  if(type == 'url'){
+  if(type == 'url' && cont){
     data = cont.getURL()
   }
   e.returnValue = data
@@ -126,6 +132,7 @@ ipcMain.on('auto-get-sync',(e,tabId,type)=>{
 
 simpleIpcFunc('auto-get-async',async (tabId,type)=>{
   const cont = webContents.fromTabID(tabId)
+  if(!cont){}
   if(type == 'back'){
     cont.goBack()
   }

@@ -89,7 +89,10 @@ ipcMain.on('file-system-list',(event,key,method,args)=>{
   Promise.all(args.map(arg=>{
     return new Promise((resolve,reject)=>{
       fs[method](...arg,(err,rets)=>{
-        if(err) reject(err)
+        if(err){
+          resolve(null)
+          return
+        }
         if(method == 'stat'){
           rets = {isDirectory:rets.isDirectory(),mtime:rets.mtime,size:rets.size}
         }
@@ -97,7 +100,7 @@ ipcMain.on('file-system-list',(event,key,method,args)=>{
       })
     })
   })).then(rets=>{
-    event.sender.send(`file-system-list-reply_${key}`,rets)
+    event.sender.send(`file-system-list-reply_${key}`,rets.filter(x=>x))
   })
 })
 
@@ -1444,21 +1447,29 @@ ipcMain.on('update-automation',(e,key,ops)=>{
   automation.update({key},{key, ops, updated_at: Date.now()}, { upsert: true }).then(_=>_)
 })
 
-ipcMain.on('update-automation-order',async (e,datas)=>{
+ipcMain.on('update-automation-order',async (e,datas,menuKey)=>{
   await automationOrder.remove({})
   const key = '1'
-  automationOrder.update({key},{key, datas, updated_at: Date.now()}, { upsert: true }).then(_=>_)
+  automationOrder.update({key},{key, datas, menuKey, updated_at: Date.now()}, { upsert: true }).then(_=>_)
 })
 
 ipcMain.on('get-automation-order',async (e,datas)=>{
   const rec = await automationOrder.findOne({})
-  e.returnValue = rec ? rec.datas : []
+  e.returnValue = rec ? {datas:rec.datas, menuKey:rec.menuKey} : {datas:[]}
 })
 
 ipcMain.on('delete-automation',async (e,key)=>{
   await automation.remove({key})
   await automationOrder.remove({key})
 })
+
+ipcMain.on('run-puppeteer',(e, dir, file)=> {
+  ipcMain.once('start-pty-reply', (e, key) => {
+    ipcMain.emit(`send-pty_${key}`, null, `cd ${dir}\nnode ${file}\n`)
+  })
+  e.sender.hostWebContents.send('new-tab', e.sender.getId(), 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html')
+})
+
 
 // ipcMain.on('send-keys',(e,keys)=>{
 //   e.sender.sendInputEvent(keys)

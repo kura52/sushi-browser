@@ -108,7 +108,7 @@ Resizer.disabled:hover {
 
 .ReactTable .rt-tbody .rt-tr-group.menu {
     flex: initial;
-    font-size: 16px;
+    font-size: 14px;
     padding: 4px 0;
     padding-left: 5px;
 }
@@ -173,4 +173,16 @@ Resizer.disabled:hover {
 
 .ui.popup {
     min-width: 380px;
+}
+
+.ui.modal>.content {
+    height: calc(100% - 122px);
+}
+
+.ui.modal>.content>.description {
+    height: 100%;
+}
+
+#editor {
+    height: 100%;
 }

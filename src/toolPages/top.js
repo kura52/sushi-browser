@@ -138,6 +138,7 @@ class TopMenu extends React.Component {
               <Menu.Item as='a' href={`${baseURL}/explorer.html`} key="file-explorer" name="File Explorer"/>
               <Menu.Item as='a' href={`${baseURL}/terminal.html`} key="terminal" name="Terminal"/>
               <Menu.Item as='a' href={`${baseURL}/settings.html`} key="settings" name={l10n.translation('settings')}/>
+              <Menu.Item as='a' href={`${baseURL}/automation.html`} key="automation" name="Automation"/>
               <Menu.Item as='a' href={`${baseURL}/converter.html`} key="converter" name="Video Converter"/>
             </Menu>
           </div>

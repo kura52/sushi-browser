@@ -209,6 +209,13 @@ function mergeScrollAndKeyDownsInInputField(opList,childToParent){
         childToParent[y.key] = x.key
       }
     }
+    else if(x.name == 'tabLoaded' && !childToParent[x.key]){
+      for(let j =i+1,len = opList.length;j<len;j++){
+        const y = opList[j]
+        if(!(y.name == 'tabLoaded' && x.url == y.url)) break
+        childToParent[y.key] = x.key
+      }
+    }
     else if(x.name == 'mousemove' && !childToParent[x.key]){
       for(let j =i+1,len = opList.length;j<len;j++){
         const y = opList[j]
@@ -340,8 +347,15 @@ function handleWindowFocusChanged(windowId){
   const now = Date.now()
   chrome.tabs.query({active: true, windowId}, tabs => {
     const tab = tabs[0]
-    if(tab.url == automationURL) return
-    addTabOp('tabSelected',tab,now)
+    if(tab.url != automationURL) addTabOp('tabSelected',tab,now)
+  })
+}
+
+function handleNavigateEvent(details){
+  const now = Date.now()
+  chrome.tabs.query({active: true}, tabs => {
+    const tab = tabs[0]
+    if(tab.url != automationURL && tab.id == details.tabId && details.frameId == 0) addTabOp('tabLoaded',tab,now)
   })
 }
 
@@ -350,6 +364,7 @@ function addTabEvents(){
   chrome.tabs.onActivated.addListener(handleTabActived)
   chrome.tabs.onRemoved.addListener(handleTabRemoved)
   chrome.windows.onFocusChanged.addListener(handleWindowFocusChanged)
+  chrome.webNavigation.onDOMContentLoaded.addListener(handleNavigateEvent)
   // chrome.tabs.onMoved.addListener((tabId,{windowId,fromIndex,toIndex})=>{console.log('chrome.tabs.onMoved',tabId,{windowId,fromIndex,toIndex})})
   // chrome.tabs.onAttached.addListener((tabId,{newWindowId,newPosition})=>{console.log('chrome.tabs.onAttached',tabId,{newWindowId,newPosition})})
   // chrome.tabs.onDetached.addListener((tabId,{oldWindowId,oldPosition})=>{console.log('chrome.tabs.onDetached',tabId,{oldWindowId,oldPosition})})
@@ -362,6 +377,7 @@ function removeTabEvents() {
   chrome.tabs.onActivated.removeListener(handleTabActived)
   chrome.tabs.onRemoved.removeListener(handleTabRemoved)
   chrome.windows.onFocusChanged.removeListener(handleWindowFocusChanged)
+  chrome.webNavigation.onDOMContentLoaded.removeListener(handleNavigateEvent)
 }
 
 function endOp(){
@@ -441,6 +457,10 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     endOp()
   }
   else if(request.event == 'add-op'){
+    if(!fixedOpList.length && !Object.keys(opMap).length && !Object.keys(opMap2).length){
+      const key = uuidv4()
+      opMap[key] =  {key, name: 'navigate', value:request.url, url:request.url, tabId:sender.tab.id, now: request.now - 1}
+    }
     request.tabId = sender.tab.id
     opMap[request.key] = request //opKey
     changeTime = Date.now()
@@ -469,6 +489,9 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 });
 
 ipc.on('add-op',(e,op)=>{
+  if(!fixedOpList.length && !Object.keys(opMap).length && !Object.keys(opMap2).length && op.name == 'tabSelected'){
+    return
+  }
   opMap2[op.key] = op
   changeTime = Date.now()
 })

@@ -1,12 +1,18 @@
 {
-  "presets": ["react","babel-preset-stage-2"],
-  "plugins": ["add-module-exports","transform-es2015-modules-commonjs","transform-function-bind",["module-resolver", {
-    "root": ["."]
-  ,"alias": {
-      "react": "inferno-compat",
-      "react-dom": "inferno-compat",
-      "react-dom/server": "inferno-server"
-    }
-  }]
+  "presets": ["react"],
+  "plugins": [
+    "transform-class-properties",
+    "transform-object-rest-spread",
+    "add-module-exports",
+    "transform-es2015-modules-commonjs",
+    "transform-function-bind",
+    ["module-resolver", {
+      "root": ["."]
+    ,"alias": {
+        "react": "inferno-compat",
+        "react-dom": "inferno-compat",
+        "react-dom/server": "inferno-server"
+      }
+    }]
   ] // ,["lodash", { "id": ["lodash", "semantic-ui-react"] }]]
 }
