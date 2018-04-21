@@ -555,7 +555,9 @@ ipcMain.on('select-target',(e,val,selector)=>{
   }
 })
 
-let handleAddOp,isRecording
+
+
+let handleAddOp,handleReplyDialog,isRecording
 ipcMain.on('record-op',(e,val)=>{
   isRecording = val
   if(val){
@@ -563,9 +565,16 @@ ipcMain.on('record-op',(e,val)=>{
       e.sender.send('add-op',op)
     }
     ipcMain.on('add-op',handleAddOp)
+
+    handleReplyDialog = (e2,{key,title,message,result,tabId,url,now})=>{
+      const op =  {key, name: 'dialog', value:result ? 'ok' : 'cancel', url, tabId, now}
+      e.sender.send('add-op',op)
+    }
+    ipcMain.on('reply-dialog',handleReplyDialog)
   }
   else{
     ipcMain.removeListener('add-op',handleAddOp)
+    ipcMain.removeListener('reply-dialog',handleReplyDialog)
   }
 
   const set = new Set()
@@ -1399,7 +1408,7 @@ ipcMain.on('screen-shot',(e,{full,type,rect,tabId,tabKey,quality=92,savePath,aut
   else{
     const args = [capture.bind(this,null)]
     if(rect) args.unshift(rect)
-    e.sender.capturePage(...args)
+    ;(e.sender.hostWebContents ? (sharedState[tabId] || webContents.fromTabID(tabId)) : e.sender).capturePage(...args)
   }
 })
 

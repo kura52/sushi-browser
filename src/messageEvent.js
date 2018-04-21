@@ -1,6 +1,8 @@
-import {ipcMain,dialog,BrowserWindow } from 'electron'
+import {ipcMain,dialog,BrowserWindow,webContents } from 'electron'
 import {getCurrentWindow } from './util'
 import uuid from 'node-uuid'
+import mainState from "./mainState";
+import db from "./databaseFork";
 const contextAlert = new Set()
 
 // function messageBox(webContents, message, cb, buttons) {
@@ -13,16 +15,24 @@ const contextAlert = new Set()
 //   })
 // }
 
-function messageBox(webContents, message, cb, buttons) {
-  let bw = BrowserWindow.fromWebContents(webContents.hostWebContents || webContents)
-  if(!bw) bw = getCurrentWindow()
-  console.log(55551,message,buttons,bw)
-  dialog.showMessageBox(bw, {
-    type: 'info',
-    buttons,
-    title: 'Dialog',
-    message: message
-  },ret=>cb(ret === 0, '', false));
+function messageBox(_webContents, title, message, cb, buttons, type) {
+  const key = uuid.v4()
+  const tabId = _webContents.getId()
+  const url = _webContents.getURL()
+  ;(_webContents.hostWebContents || _webContents).send('show-notification',{key,text:message, title, windowDialog: true, buttons,id:tabId})
+
+  ipcMain.once(`reply-notification-${key}`, (e, ret) => {
+    cb(ret.pressIndex === 0, '', false)
+    ipcMain.emit(`reply-dialog`,null,{key,title,message,result:ret.pressIndex === 0,tabId,url,now:Date.now()})
+  })
+
+  for(let cont of webContents.getAllWebContents()){
+    if(!cont.isDestroyed() && !cont.isBackgroundPage() && cont.isGuest()) {
+      if(cont.getURL().startsWith('chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html')){
+        cont.send(`start-dialog`,{key,title,message,buttons,tabId,url,type})
+      }
+    }
+  }
 }
 
 ipcMain.on('add-context-alert',(e,key)=> contextAlert.add(key))
@@ -36,13 +46,14 @@ process.on('window-alert', (webContents, extraData, title, message, defaultPromp
     contextAlert.delete()
   }
   else{
-    messageBox(webContents, message, cb, ['ok']);
+    messageBox(webContents, title, message, cb, ['ok'], 'alert');
   }
 })
 
+
 process.on('window-confirm', (webContents, extraData, title, message, defaultPromptText,
                               shouldDisplaySuppressCheckbox, isBeforeUnloadDialog, isReload, cb) => {
-  messageBox(webContents, message, cb, ['ok','cancel']);
+  messageBox(webContents, title, message, cb, ['ok','cancel'], 'confirm');
 })
 
 process.on('window-prompt', (webContents, extraData, title, message, defaultPromptText,

@@ -44,7 +44,8 @@ let result = _=>{
       getFavicon(msg.favicon)
       return
     }
-    msg.args = strToReg(msg.args)
+
+    if(msg.methods[1] != 'insert' && msg.methods[1] != 'delete' && msg.methods[1] != 'update') msg.args = strToReg(msg.args)
     // console.log(msg)
     let me = db
     const exeMethods = msg.methods[msg.methods.length - 1].split("_",-1)

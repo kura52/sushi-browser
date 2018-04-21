@@ -1,6 +1,5 @@
 import Page from './Page'
 import helper from './helper'
-const pagesMap = {}
 
 class Browser{
   /**
@@ -33,10 +32,10 @@ class Browser{
         const pages = []
         for(let win of windows){
           for(let tab of win.tabs){
-            if(!pagesMap[tab.id]){
-              pagesMap[tab.id] = new Page({tab})
+            if(!Page.PagesMap[tab.id]){
+              Page.PagesMap[tab.id] = new Page({tab})
             }
-            pages.push(pagesMap[tab.id])
+            pages.push(Page.PagesMap[tab.id])
           }
         }
         resolve(Promise.all(pages))

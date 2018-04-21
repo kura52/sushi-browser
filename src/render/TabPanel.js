@@ -431,15 +431,19 @@ export default class TabPanel extends Component {
   initIpcEvents(){
     const eventNotification = (e,data)=>{
       if(!this.mounted) return
+      let key
       if(data.id){
-        const ret = this.state.tabs.find(tab=>{
-          return data.id == tab.wvId
-        })
+        const ret = this.state.tabs.find(tab=>data.id == tab.wvId)
         if(!ret) return
+        key = ret.key
       }
       else if(!this.props.isTopLeft){
         return
       }
+      else{
+        key = this.state.selectedTab
+      }
+      data._key = key
       this.state.notifications.push(data)
       this.setState({})
     }
@@ -3953,6 +3957,7 @@ export default class TabPanel extends Component {
         mouseClickHandles={key=>this._handleContextMenu(null,key,null,this.state.tabs,false,true)}
         ref='tabs'
         tabs={this.state.tabs.map((tab,num)=>{
+          const notifications = this.state.notifications.filter(x=>x._key == tab.key)
           return (<Tab key={tab.key} page={tab.page} orgTab={tab} unread={this.state.selectedTab != tab.key && !allSelectedkeys.has(tab.key)} pin={tab.pin} mute={tab.mute} reloadInterval={tab.reloadInterval} privateMode={tab.privateMode} selection={tab.selection}>
             <div style={{height: '100%'}} className="div-back" ref={`div-${tab.key}`} >
               <BrowserNavbar ref={`navbar-${tab.key}`} tabkey={tab.key} k={this.props.k} navHandle={tab.navHandlers} parent={this}
@@ -3962,7 +3967,7 @@ export default class TabPanel extends Component {
                              isTopRight={this.props.isTopRight} isTopLeft={this.props.isTopLeft} fixedPanelOpen={this.props.fixedPanelOpen}
                              tabBar={!this.state.tabBar} hidePanel={this.props.hidePanel} autocompleteUrl={autocompleteUrl}
                              fullscreen={this.props.fullscreen} bind={tab.bind} screenShot={this.screenShot}/>
-              {num == 0 ? this.state.notifications.map((data,i)=>{
+              {notifications.length ? notifications.map((data,i)=>{
                 if(data.needInput){
                   return <InputableDialog data={data} key={i} k={this.props.k} delete={this.deleteNotification.bind(this,i)} />
                 }

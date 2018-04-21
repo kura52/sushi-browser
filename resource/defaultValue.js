@@ -306,6 +306,7 @@ const settingDefault =  {
   autoMousemoveTime: 3,
   autoHighlight: true,
   autoPlaySpeed: 0,
+  puppeteer: '',
 }
 
 

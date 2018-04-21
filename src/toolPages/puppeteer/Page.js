@@ -1,24 +1,36 @@
 import {FrameManager} from './FrameManager'
+import Dialog from './Dialog'
 const {Keyboard, Mouse} = require('./Input');
+const EventEmitter = require('events');
 import helper from './helper'
 import mime  from 'mime'
 import defaultOptions from './defaultOptions'
 import PubSub from '../../render/pubsub'
 const ipc = chrome.ipcRenderer
+const set = new Set()
+const pagesMap = {}
 
-class Page {
-  /**
-   * @param {!Puppeteer.CDPSession} client
-   * @param {!Puppeteer.Target} target
-   * @param {{frame: Object, childFrames: ?Array}} frameTree
-   * @param {boolean} ignoreHTTPSErrors
-   * @param {!Puppeteer.TaskQueue} screenshotTaskQueue
-   */
+ipc.on('start-dialog',(e,{key,title,message,buttons,tabId,url,type})=>{
+  for(let page of set){
+    if(page.tabId == tabId){
+      page.emit('dialog',new Dialog(type, message,'',tabId))
+      break
+    }
+  }
+})
+
+class Page extends EventEmitter {
+  static get PagesMap(){
+    return pagesMap
+  }
   // constructor(client, target, frameTree, ignoreHTTPSErrors, screenshotTaskQueue) {
   constructor({tabId,tab,url,active = true}={}){
+    super()
+    set.add(this)
     return new Promise(r=>{
       const getTab = tab=>{
         this.tabId = tab.id
+        Page.PagesMap[tab.id] = this
         this._frameManager = new FrameManager(this.tabId,this)
         this._keyboard = new Keyboard(this.tabId);
         this._mouse = new Mouse(this.tabId, this._keyboard)
@@ -174,9 +186,9 @@ class Page {
    * @return {!Promise<!Array<Network.Cookie>>}
    */
   async cookies(...urls) {
-    return (await this._client.send('Network.getCookies', {
-      urls: urls.length ? urls : [this.url()]
-    })).cookies;
+    urls =  urls.length ? urls : [this.url()]
+    const results =  await Promise.all(urls.map(url=>new Promise(resolve=>chrome.cookies.getAll(item,resolve))))
+    return Array.prototype.concat(...results)
   }
 
   /**
@@ -188,7 +200,7 @@ class Page {
       const item = Object.assign({}, cookie);
       if (!cookie.url && pageURL.startsWith('http'))
         item.url = pageURL;
-      await this._client.send('Network.deleteCookies', item);
+      await new Promise(resolve=>chrome.cookies.remove(item,resolve))
     }
   }
 
@@ -210,11 +222,24 @@ class Page {
         !String.prototype.startsWith.call(item.url || '', 'data:'),
         `Data URL page can not have cookie "${item.name}"`
       );
+      if(item.expires !== void 0){
+        item.expirationDate = item.expires
+        delete item.expires
+      }
+      for(let name of ['httpOnly','secure','session']){ // @TODO
+        delete item[name]
+      }
       return item;
     });
     await this.deleteCookie(...items);
-    if (items.length)
-      await this._client.send('Network.setCookies', { cookies: items });
+    // if (items.length){
+    //   const key = uuid.v4()
+    //   ipc.send('set-cookies',key,this.tabId,items)
+    //   await new Promise(resolve=>ipc.once(`set-cookies-reply_${key}`,resolve))
+    // }
+
+     if (items.length)
+       await Promise.all(items.map(item=>new Promise(resolve=>{chrome.cookies.set(item,resolve)})))
   }
 
   /**
@@ -328,10 +353,10 @@ class Page {
       const handleNavigateEvent = details=>{
         if(details.tabId == this.tabId && details.frameId == 0){
           resolve(this) //@TODO response
-          chrome.webNavigation.onDOMContentLoaded.removeListener(handleNavigateEvent)
+          chrome.webNavigation.onCompleted.removeListener(handleNavigateEvent)
         }
       }
-      chrome.webNavigation.onDOMContentLoaded.addListener(handleNavigateEvent)
+      chrome.webNavigation.onCompleted.addListener(handleNavigateEvent)
       this.send('loadURL',url)
     })
     //onDOMContentLoaded
@@ -417,10 +442,27 @@ class Page {
    * @param {!Page.Viewport} viewport
    */
   async setViewport(viewport) {
-    const needsReload = await this._emulationManager.emulateViewport(viewport);
-    this._viewport = viewport;
-    if (needsReload)
-      await this.reload();
+    const attrs = []
+    for(let [k,v] of Object.entries(viewport)){
+      if(k == 'width' || k == 'height') attrs.push(`${k}=${v}`)
+      else if(k == 'deviceScaleFactor') attrs.push(`initial-scale=${v}`)
+    }
+    const metalist = document.getElementsByTagName('meta');
+    let hasMeta = false;
+    for(let i = 0; i < metalist.length; i++) {
+      const name = metalist[i].getAttribute('name')
+      if(name && name.toLowerCase() === 'viewport') {
+        metalist[i].setAttribute('content', attrs.join(','))
+        hasMeta = true
+        break
+      }
+    }
+    if(!hasMeta) {
+      const meta = document.createElement('meta')
+      meta.setAttribute('name', 'viewport')
+      meta.setAttribute('content', attrs.join(','))
+      document.head.appendChild(meta)
+    }
   }
 
   /**

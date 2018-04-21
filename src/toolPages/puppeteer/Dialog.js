@@ -1,3 +1,5 @@
+const ipc = chrome.ipcRenderer
+
 class Dialog {
   /**
    * @param {!Puppeteer.CDPSession} client
@@ -5,12 +7,11 @@ class Dialog {
    * @param {string} message
    * @param {(string|undefined)} defaultValue
    */
-  constructor(client, type, message, defaultValue = '') {
-    this._client = client;
+  constructor(type, message, defaultValue = '',tabId) {
     this._type = type;
     this._message = message;
-    this._handled = false;
     this._defaultValue = defaultValue;
+    this._tabId = tabId;
   }
 
   /**
@@ -38,29 +39,19 @@ class Dialog {
    * @param {string=} promptText
    */
   async accept(promptText) {
-    console.assert(!this._handled, 'Cannot accept dialog which is already handled!');
-    this._handled = true;
-    await this._client.send('Page.handleJavaScriptDialog', {
-      accept: true,
-      promptText: promptText
-    });
+    ipc.send('auto-play-notification',this._tabId,0)
   }
 
   async dismiss() {
-    console.assert(!this._handled, 'Cannot dismiss dialog which is already handled!');
-    this._handled = true;
-    await this._client.send('Page.handleJavaScriptDialog', {
-      accept: false
-    });
+    ipc.send('auto-play-notification',this._tabId,this._type == 'alert' ? 0 : 1)
   }
 }
 
 Dialog.Type = {
   Alert: 'alert',
-  BeforeUnload: 'beforeunload',
+  // BeforeUnload: 'beforeunload',
   Confirm: 'confirm',
   Prompt: 'prompt'
 };
 
 module.exports = Dialog;
-helper.tracePublicAPI(Dialog);

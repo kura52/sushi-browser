@@ -59,11 +59,12 @@ ${codes.map(x=>`  ${x}`).join("\n")}
 
   handleRunSushi(){
     const editor = ace.edit("editor")
+    ipc.send("open-dev-tool")
     const datas = editor.getSession().getValue()
     const codes = []
     for(let data of datas.split("\n")){
       if(data.match(/require\(['"]puppeteer['"]\)|from +?['"]puppeteer['"]/)){
-        data = `// ${data}`
+        data = `// ${data}\n;`
       }
       codes.push(data)
     }
@@ -88,14 +89,14 @@ ${codes.map(x=>`  ${x}`).join("\n")}
         </Modal.Description>
       </Modal.Content>
       <Modal.Actions>
-        <label style={{verticalAlign: 'bottom', paddingRight: 12}}>Puppeeter Project Path</label>
+        <label style={{verticalAlign: 'bottom', paddingRight: 12}}>Puppeteer Project Path</label>
         <div className="ui input">
           <Input onChange={this.onChange.bind(this,'puppeteer')} defaultValue={this.state.puppeteer}/>
         </div>
         {/*<Button positive refs="clip" content="Copy to Clipboard" onClick={::this.handleClip} />*/}
-        <Button positive refs="clip" content="Save As File..." onClick={::this.handleSave} />
-        <Button positive refs="run" content="Run on Sushi" onClick={::this.handleRunSushi} />
-        <Button positive refs="puppeteer" content="Run on Puppeteer" onClick={::this.handleRunPupeeter} />
+        <Button positive refs="clip" content="Save File" onClick={::this.handleSave} />
+        <Button positive refs="run" content="Play Sushi" onClick={::this.handleRunSushi} />
+        <Button positive refs="puppeteer" content="Play Puppeteer" onClick={::this.handleRunPupeeter} />
         <Button positive refs="clip" content="Close" onClick={this.props.onClose} />
       </Modal.Actions>
     </Modal>

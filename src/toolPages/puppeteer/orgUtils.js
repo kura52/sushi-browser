@@ -97,5 +97,14 @@ export default `return {
     await page.keyboard.down('Control')
     await page.keyboard.press('V')
     return  page.keyboard.up('Control')
+  },
+  dialog(page,isOK){
+    return new Promise((resolve,reject) => {
+      console.log(page,434)
+      page.once('dialog', async (dialog) => {
+        console.log(7895947589,dialog)
+        resolve(await dialog[isOK ? 'accept' : 'dismiss']())
+      })
+    })
   }
 }`

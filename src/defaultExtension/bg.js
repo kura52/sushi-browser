@@ -364,7 +364,7 @@ function addTabEvents(){
   chrome.tabs.onActivated.addListener(handleTabActived)
   chrome.tabs.onRemoved.addListener(handleTabRemoved)
   chrome.windows.onFocusChanged.addListener(handleWindowFocusChanged)
-  chrome.webNavigation.onDOMContentLoaded.addListener(handleNavigateEvent)
+  chrome.webNavigation.onCompleted.addListener(handleNavigateEvent)
   // chrome.tabs.onMoved.addListener((tabId,{windowId,fromIndex,toIndex})=>{console.log('chrome.tabs.onMoved',tabId,{windowId,fromIndex,toIndex})})
   // chrome.tabs.onAttached.addListener((tabId,{newWindowId,newPosition})=>{console.log('chrome.tabs.onAttached',tabId,{newWindowId,newPosition})})
   // chrome.tabs.onDetached.addListener((tabId,{oldWindowId,oldPosition})=>{console.log('chrome.tabs.onDetached',tabId,{oldWindowId,oldPosition})})
@@ -377,7 +377,7 @@ function removeTabEvents() {
   chrome.tabs.onActivated.removeListener(handleTabActived)
   chrome.tabs.onRemoved.removeListener(handleTabRemoved)
   chrome.windows.onFocusChanged.removeListener(handleWindowFocusChanged)
-  chrome.webNavigation.onDOMContentLoaded.removeListener(handleNavigateEvent)
+  chrome.webNavigation.onCompleted.removeListener(handleNavigateEvent)
 }
 
 function endOp(){

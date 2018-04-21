@@ -146,6 +146,7 @@ class Mouse {
 
   _addModifierOption(options){
     if(this._keyboard._modifiers.size) options.modifiers = [...this._keyboard._modifiers]
+    options.button = 'left'
   }
 
   /**

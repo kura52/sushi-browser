@@ -288,10 +288,14 @@ class Automation extends React.Component {
 
     const codes = mode == 'play' ? [
       ['const browser = await puppeteer.launch()',''],
-      ['let page = await browser.newPage({active: false})','']
+      ['let page = await browser.newPage({active: false})',''],
+      ['let dialogPromise','']
     ] :
       ['const browser = await puppeteer.launch({headless: false})',
-        'let page = await browser.newPage()']
+        'let page = await browser.newPage()',
+        'let dialogPromise',
+        ''
+      ]
 
     const events = new Set(['wait'])
 
@@ -403,18 +407,35 @@ class Automation extends React.Component {
         str = `await page.goto('${helper.stringEscape(op.value)}')`
       }
       else if(op.name == 'tabCreate'){
-        str = `await newPage(browser, '${helper.stringEscape(op.url)}')`
+        str = `await newPage(browser, '${helper.stringEscape(op.value)}')`
         events.add('newPage')
       }
       else if(op.name == 'tabRemoved'){
         str = 'await page.close()'
       }
       else if(op.name == 'tabSelected'){
-        str = `page = await selectPage(browser, '${helper.stringEscape(op.url)}')`
+        str = `page = await selectPage(browser, '${helper.stringEscape(op.value)}')`
         events.add('selectPage')
       }
       else if(op.name == 'tabLoaded'){
         str = 'await page.waitForNavigation()'
+        if(mode == 'play'){
+          codes[codes.length - 1][0] = codes[codes.length - 1][0].replace('await ','')
+        }
+        else if(mode == 'export'){
+          codes[codes.length - 1] = codes[codes.length - 1].replace('await ','')
+        }
+      }
+      else if(op.name == 'dialog'){
+        str = `await dialogPromise`
+        const listen = `dialogPromise = dialog(page, ${op.value == 'ok' ? 'true' : 'false'})`
+        events.add('dialog')
+        if(mode == 'play'){
+          codes.push([listen,''], codes.pop())
+        }
+        else if(mode == 'export'){
+          codes.push(listen, codes.pop())
+        }
       }
       const updateExecuting = `for(let e of document.querySelectorAll('[data-id]')){
         e.style.backgroundColor = e.dataset.id == '/root/${op.key}' ? '#ffffe6' : null
@@ -591,7 +612,7 @@ class Automation extends React.Component {
             {/*<i className="fa fa-fighter-jet" aria-hidden="true"></i>Play All*/}
           {/*</button>*/}
           <button onClick={_=>this.handleExport()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
-            <i className="fa fa-external-link-square" aria-hidden="true"></i>Export
+            <i className="fa fa-external-link-square" aria-hidden="true"></i>Export/Edit
           </button>
           <Popup
             trigger={<button  className="btn btn-sm align-middle btn-outline-secondary" type="button">

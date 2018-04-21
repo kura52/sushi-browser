@@ -144,3 +144,20 @@ simpleIpcFunc('auto-get-async',async (tabId,type)=>{
   }
   return true
 })
+
+ipcMain.on('auto-play-notification',(e,tabId,value)=>{
+  const cont = webContents.fromTabID(tabId)
+  cont.hostWebContents.send('auto-play-notification',value)
+})
+
+ipcMain.on('open-dev-tool',(e)=>{
+  e.sender.openDevTools()
+})
+
+// ipcMain.on('set-cookies',async (e,key,tabId,items)=>{
+//   const cont = webContents.fromTabID(tabId)
+//   for(let item of items){
+//     await new Promise(resolve=>cont.session.cookies.set(item, err=>{console.log(err);resolve()}))
+//   }
+//   e.sender.send(`set-cookies-reply_${key}`)
+// })

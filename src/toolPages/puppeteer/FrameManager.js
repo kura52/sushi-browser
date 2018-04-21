@@ -435,16 +435,16 @@ class Frame {
     absX = Math.round(x + width / 2)
     absY = Math.round(y + height / 2)
 
-    console.log(currentX, currentY, absX, absY)
-    mouseX = absX - currentX
-    mouseY = absY - currentY
-    topX = x - currentX
-    topY = y - currentY
+    mouseX = absX //- currentX
+    mouseY = absY //- currentY
+    topX = x //- currentX
+    topY = y //- currentY
 
     if(!this.isMain){
       mouseX = Math.round(mouseX + parentPos.topX)
       mouseY = Math.round(mouseY + parentPos.topY)
     }
+    console.log({mouseX,mouseY, x, y, currentX, currentY, absX, absY})
     return {mouseX, mouseY, topX, topY}
   }
 
@@ -600,6 +600,7 @@ class Frame {
       const node = isXPath
         ? document.evaluate(selectorOrXPath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue
         : document.querySelector(selectorOrXPath);
+      console.log(333,node)
       if (!node)
         return waitForHidden;
       if (!waitForVisible && !waitForHidden)
@@ -700,7 +701,8 @@ class WaitTask {
     let success = null;
     let error = null;
     try {
-      success = await this._frame.evaluateExtContext(waitForPredicatePageFunction, this._predicateBody, this._polling, this._timeout, ...this._args);
+      console.log(43422)
+      success = await this._frame.evaluate(waitForPredicatePageFunction, this._predicateBody, this._polling, this._timeout, ...this._args);
     } catch (e) {
       error = e;
     }
@@ -749,13 +751,15 @@ class WaitTask {
  * @return {!Promise<*>}
  */
 async function waitForPredicatePageFunction(predicateBody, polling, timeout, ...args) {
+  console.log(434)
   const predicate = new Function('...args', predicateBody);
   let timedOut = false;
+  console.log(437)
   setTimeout(() => timedOut = true, timeout);
-  if (polling === 'raf')
+  if (polling === 'raf' || polling === 'mutation')
     return await pollRaf();
-  if (polling === 'mutation')
-    return await pollMutation();
+  // if (polling === 'mutation')
+  //   return await pollMutation();
   if (typeof polling === 'number')
     return await pollInterval(polling);
 
@@ -794,15 +798,18 @@ async function waitForPredicatePageFunction(predicateBody, polling, timeout, ...
   function pollRaf() {
     let fulfill;
     const result = new Promise(x => fulfill = x);
+    console.log(5435)
     onRaf();
     return result;
 
     function onRaf() {
+      console.log(333)
       if (timedOut) {
         fulfill();
         return;
       }
       const success = predicate.apply(null, args);
+      console.log(444,success)
       if (success)
         fulfill(success);
       else

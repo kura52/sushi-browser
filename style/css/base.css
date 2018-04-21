@@ -810,3 +810,113 @@ div.org-menu>div.item{
 div.org-menu>div.item:hover{
     background: rgba(0,0,0,.05);
 }
+
+
+.alertDialog {
+    -moz-box-sizing: border-box;
+    background: white;
+    box-shadow: 2px 2px 8px rgba(59, 59, 59, 1.0);
+    color: #000;
+    font-size: 13px;
+    padding: 18px 30px;
+    border-radius: 4px;
+    top: 30px;
+    box-sizing: border-box;
+    max-width: 600px;
+    max-height: -moz-calc(80vh - 60px);
+    max-height: -webkit-calc(80vh - 60px);
+    max-height: calc(80vh - 60px);
+    position: relative;
+    z-index: 2;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.alertDialogTitle {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    font-weight: bold;
+    font-size: 12pt;
+    user-select: text;
+}
+
+.alertDialogBody {
+    -ms-user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    max-height: -moz-calc(80vh - 220px);
+    max-height: -webkit-calc(80vh - 220px);
+    max-height: calc(80vh - 220px);
+    overflow-y: auto;
+    margin-bottom: 18px;
+    user-select: text;
+    white-space: pre-wrap;
+    margin-top: 18px;
+    min-width: 425px;
+    overflow-x: hidden;
+}
+
+.alertDialogButtonWrapper {
+    -webkit-justify-content: flex-end;
+    -ms-flex-pack: end;
+    -webkit-box-pack: end;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.alertDialogButton{
+    -ms-user-select: none;
+    -webkit-app-region: no-drag;
+    -webkit-transition: .12s opacity ease, .12s background ease, .12s color ease;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    display: inline-block;
+    border-radius: 2px;
+    text-align: center;
+    transition: .12s opacity ease, .12s background ease, .12s color ease;
+    user-select: none;
+    background-size: 16px;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-image: none;
+    background-color: transparent;
+    border: none;
+    font-size: 13px;
+    line-height: 1.25;
+    margin-top: 0px;
+    margin-right: 0px;
+    width: auto;
+    margin-left: 7.5px;
+    color: #fff;
+    height: 32px;
+    position: relative;
+    box-shadow: 0px 1px 5px -1px rgba(0, 0, 0, 0.5);
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-right: 16px;
+    padding-left: 16px;
+    min-width: -moz-calc(13px * 6);
+    min-width: -webkit-calc(13px * 6);
+    min-width: calc(13px * 6);
+    background: -moz-linear-gradient(#FF7A1D, #ff5000);
+    background: -webkit-linear-gradient(#FF7A1D, #ff5000);
+    background: linear-gradient(#FF7A1D, #ff5000);
+    border-left: 2px solid #FF7A1D;
+    border-right: 2px solid #ff5000;
+    border-top: 2px solid #FF7A1D;
+    border-bottom: 2px solid #ff5000;
+    font-weight: 500;
+    white-space: nowrap;
+    outline: none;
+    cursor: pointer;
+    margin-bottom: 0px;
+}
+
+.alertDialogButtonWrapper>.ui.basic.button{
+    margin-right: 8px;
+}

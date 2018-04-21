@@ -16,12 +16,12 @@ class Helper {
   static _startObserveLoadEvent(){
     if(!Helper.observeDOMContentLoaded){
       Helper.observeDOMContentLoaded = true
-      chrome.webNavigation.onDOMContentLoaded.addListener(Helper._handleNavigateEvent)
+      chrome.webNavigation.onCompleted.addListener(Helper._handleNavigateEvent)
     }
   }
   static _stopObserveLoadEvent(){
     Helper.observeDOMContentLoaded = false
-    chrome.webNavigation.onDOMContentLoaded.removeListener(Helper._handleNavigateEvent)
+    chrome.webNavigation.onCompleted.removeListener(Helper._handleNavigateEvent)
 
   }
 
