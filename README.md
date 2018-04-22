@@ -135,14 +135,14 @@ This browser makes use of wonderful web technologies, starting with the followin
 Both the installer for every platform and the portable version can be downloaded.  
 To use the portable edition, please run sushi.exe for Windows and sushi-browser for Mac/Linux after decompressing.
 
-- [Windows Installer v0.14.6](https://sushib.me/dl/sushi-browser-0.14.6-setup-x64.exe)
-- [Windows Portable v0.14.6(self-extract)](https://sushib.me/dl/sushi-browser-0.14.6-win-x64.exe)
-- [Windows Portable v0.14.6](https://sushib.me/dl/sushi-browser-0.14.6-win-x64.zip)
-- [MacOS dmg v0.14.6](https://sushib.me/dl/SushiBrowser-0.14.6.dmg)
-- [MacOS Portable v0.14.6](https://sushib.me/dl/sushi-browser-0.14.6-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.14.6](https://sushib.me/dl/sushi-browser-0.14.6.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.14.6](https://sushib.me/dl/sushi-browser_0.14.6_amd64.deb)
-- [Linux Portable v0.14.6](https://sushib.me/dl/sushi-browser-0.14.6.tar.bz2)
+- [Windows Installer v0.15.0](https://sushib.me/dl/sushi-browser-0.15.0-setup-x64.exe)
+- [Windows Portable v0.15.0(self-extract)](https://sushib.me/dl/sushi-browser-0.15.0-win-x64.exe)
+- [Windows Portable v0.15.0](https://sushib.me/dl/sushi-browser-0.15.0-win-x64.zip)
+- [MacOS dmg v0.15.0](https://sushib.me/dl/SushiBrowser-0.15.0.dmg)
+- [MacOS Portable v0.15.0](https://sushib.me/dl/sushi-browser-0.15.0-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.15.0](https://sushib.me/dl/sushi-browser-0.15.0.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.15.0](https://sushib.me/dl/sushi-browser_0.15.0_amd64.deb)
+- [Linux Portable v0.15.0](https://sushib.me/dl/sushi-browser-0.15.0.tar.bz2)
 
 # Use of Flash 
 If Flash won't run, please install Flash from the following web sites.  
@@ -165,7 +165,7 @@ sushi-browser --no-sandbox
 - Updated to youtube-dl 2018.04.16
 - Updated to infernojs 5.0.4
 
-#### New function(v0.14.6)
+#### New function(v0.15.0)
 - Added setting that Clear the history data types when I close Browser
 - Fixed Adblock bug.
 - Fixed a lot of bugs.
