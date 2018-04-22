@@ -1,9 +1,10 @@
 import fs from 'fs'
+import path from 'path'
 import mainState from './mainState'
 
 export default {
   readMacro() {
-    let data = fs.readFileSync("../resource/extension/default/1.0_0/js/macro.js").toString()
+    let data = fs.readFileSync(path.join(__dirname,"../resource/extension/default/1.0_0/js/macro.js").replace(/app.asar([\/\\])/,'app.asar.unpacked$1')).toString()
     ;['autoMousedown','autoMouseup','autoClick','autoDblclick','autoKeydown','autoInput','autoChange','autoSelect','autoSubmit','autoScroll','autoMousemove','autoFocusin','autoFocusout','autoCut','autoCopy','autoPaste','autoBack','autoForward','autoGoIndex','autoNavigate','autoTabCreate','autoTabRemoved','autoTabSelected'].forEach(x=>{
       if(!mainState[x]){
         const event = x.slice(4).toLowerCase()
@@ -19,21 +20,21 @@ export default {
       data = data.replace('3000',`parseFloat(${mainState.autoMousemoveTime}) * 1000`)
     }
     if(mainState.autoHighlight){
-      data += `;\n${fs.readFileSync("../resource/extension/default/1.0_0/js/TargetSelector2.js").toString()}`
+      data += `;\n${fs.readFileSync(path.join(__dirname,"../resource/extension/default/1.0_0/js/TargetSelector2.js").replace(/app.asar([\/\\])/,'app.asar.unpacked$1')).toString()}`
     }
     return data
   },
   readMacroOff() {
-    let data = fs.readFileSync("../resource/extension/default/1.0_0/js/macroOff.js").toString()
+    let data = fs.readFileSync(path.join(__dirname,"../resource/extension/default/1.0_0/js/macroOff.js").replace(/app.asar([\/\\])/,'app.asar.unpacked$1')).toString()
     if(mainState.autoHighlight){
-      data += `;\n${fs.readFileSync("../resource/extension/default/1.0_0/js/TargetSelectorOff2.js").toString()}`
+      data += `;\n${fs.readFileSync(path.join(__dirname,"../resource/extension/default/1.0_0/js/TargetSelectorOff2.js").replace(/app.asar([\/\\])/,'app.asar.unpacked$1')).toString()}`
     }
     return data
   },
   readTargetSelector(){
-    return fs.readFileSync("../resource/extension/default/1.0_0/js/TargetSelector.js").toString()
+    return fs.readFileSync(path.join(__dirname,"../resource/extension/default/1.0_0/js/TargetSelector.js").replace(/app.asar([\/\\])/,'app.asar.unpacked$1')).toString()
   },
   readTargetSelectorOff(){
-    return fs.readFileSync("../resource/extension/default/1.0_0/js/TargetSelectorOff.js").toString()
+    return fs.readFileSync(path.join(__dirname,"../resource/extension/default/1.0_0/js/TargetSelectorOff.js").replace(/app.asar([\/\\])/,'app.asar.unpacked$1')).toString()
   }
 }

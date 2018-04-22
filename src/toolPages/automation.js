@@ -302,7 +302,7 @@ class Automation extends React.Component {
     for(let op of datas){
       const pageOrFrame = op.frame && op.frame > 0 ? `(await page.frames()).find(f=>f.url()=='${helper.stringEscape(op.url)}')` : 'page'
 
-      let str
+      let str = ""
       if(op.name == 'mousedown'){
         str = `await mouseDown(${pageOrFrame}, '${helper.stringEscape(op.optSelector)}')`
         events.add('mouseDown')
