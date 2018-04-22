@@ -3,27 +3,25 @@ const path = require('path')
 const fs = require('fs')
 const glob = require("glob")
 
-const BEFORE_CODE_NAME = 'Kani(Crab)'
-const CODE_NAME = 'Kani(Crab)'
+const BEFORE_CODE_NAME = 'Unagi(Eel)'
+const CODE_NAME = 'Unagi(Eel)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.14.6"
+const NEXT_APP_VERSION = "0.15.0"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Added setting that Clear the history data types when I close Browser
-Fixed Adblock bug.
-Fixed a lot of bugs.
-Updated to Muon 5.1.2
-Updated to youtube-dl 2018.03.26.1
-Updated to infernojs 5.0.1
-Updated to node-pty 0.7.4`
+const CHANGE_ENGLISH = `Added browser auto-operation function.\n* This is an automatic operation solution like iMacros or Selenium IDE. It is realized by implementing an API compatible with <a href="https://github.com/GoogleChrome/puppeteer">Puppetter (Headless Chrome Automation)</a> API. Please refer <a href="https://github.com/kura52/sushi-browser/wiki/Implementation-status-of-Puppetter-APIs">here</a> for the implemented API
+Fixed Bookmark and Favicon Import bug.
+Fixed some bugs.
+Change display method of dialog(window.alert).
+Updated to youtube-dl 2018.04.16
+Updated to infernojs 5.0.4`
 
-const CHANGE_JAPANESE = `ブラウザをクローズした際に履歴などを自動で削除する設定を追加
-AdBlockのバグ修正
-多数のバグ修正
-Muonを5.1.2に更新
-youtube-dlを2018.03.26.1に更新
-infernojsを5.0.1に更新
-node-ptyを0.7.4に更新`
+const CHANGE_JAPANESE = `ブラウザ自動操作機能を追加。\n※ これは、iMacrosやSelenium IDEのような自動操作補助機能です。<a href="https://github.com/GoogleChrome/puppeteer">Puppetter(ヘッドレスChromeでの自動化)</a> APIと互換性のあるAPIを実装することで実現しています。実装済みのAPIは<a href="https://github.com/kura52/sushi-browser/wiki/Implementation-status-of-Puppetter-APIs">ここ</a>を参照ください。
+ブックマークおよびファビコンのインポート機能のバグを修正
+いくつかのバグ修正
+ダイアログ(window.alert)の表示方式を変更
+youtube-dlを2018.04.16に更新
+infernojsを5.0.4に更新`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

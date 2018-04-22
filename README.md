@@ -157,7 +157,15 @@ sushi-browser --no-sandbox
 
 # New Features
 
-#### New function(v0.146)
+#### New function(v0.150)
+- Added browser auto-operation function.<br/> * This is an automatic operation solution like iMacros or Selenium IDE.<br/> It is realized by implementing an API compatible with <a href="https://github.com/GoogleChrome/puppeteer">Puppetter (Headless Chrome Automation)</a> API.<br/> Please refer <a href="https://github.com/kura52/sushi-browser/wiki/Implementation-status-of-Puppetter-APIs">here</a> for the implemented API
+- Fixed Bookmark and Favicon Import bug.
+- Fixed some bugs.
+- Change display method of dialog(window.alert).
+- Updated to youtube-dl 2018.04.16
+- Updated to infernojs 5.0.4
+
+#### New function(v0.14.6)
 - Added setting that Clear the history data types when I close Browser
 - Fixed Adblock bug.
 - Fixed a lot of bugs.
@@ -166,33 +174,33 @@ sushi-browser --no-sandbox
 - Updated to infernojs 5.0.1
 - Updated to node-pty 0.7.4
 
-#### New function(v0.145)
+#### New function(v0.14.5)
 - Improve display of main menu.
 - Fixed bug that 'Bind Selected Window' does not work on Windows.
 - Fixed autofill bug.
 - Fixed findInPage bug.
 - Updated to youtube-dl 2018.03.10
 
-#### New function(v0.144)
+#### New function(v0.14.4)
 - Improve tab open performance.
 - Changed the selection method of user data folder in portable version.
 - Fix Dialog bug.
 - Updated to Muon 5.0.7
 
-#### New function(v0.143)
+#### New function(v0.14.3)
 - Updated to youtube-dl 2018.02.25
 - Updated to Muon 5.0.6
 
-#### New function(v0.142)
+#### New function(v0.14.2)
 - Changing the save destination of the user file in the portable version to the same level as the executable folder. (Portable Edtion became really Portable.)
 - Files are saved ./resources/app.asar.unpacked/resource/portable .
 - Fixed a lot of bugs.
 
-#### New function(v0.141)
+#### New function(v0.14.1)
 - Fixed install bugs
 - Fixed autofill bugs
 
-#### New function(v0.140)
+#### New function(v0.14.0)
 - Added video conversion function using handbrake
 - Added audio extraction and conversion function using ffmpeg
 - Added function to convert video after downloading video
@@ -201,22 +209,22 @@ sushi-browser --no-sandbox
 - Updated to Muon 4.7.10 (chromium 64.0.3282.140)
 - Fixed a lot of bugs
 
-#### New function(v0.137)
+#### New function(v0.13.7)
 - Fixed tab's drop and drag bug
 - Fixed loading status
 - Implemented basic auth handler(Issue #12)
 - Fixed addressBar focus and Blur bug
 - Added 'Download and Play Video' in Context Menu
 
-#### New function(v0.136)
+#### New function(v0.13.6)
 - Fixed control of video in iframe
 - Improve chrome extension's popup behavior
 
-#### New function(v0.135)
+#### New function(v0.13.5)
 - Fixed session bug
 - Fixed drag effect
 
-#### New function(v0.14.6)
+#### New function(v0.13.4)
 - Fixed error when dropping and dragging
 - Fixed a bug that ended abnormally when searching
 

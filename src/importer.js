@@ -57,7 +57,9 @@ importer.on('update-supported-browsers', (e, detail) => {
 importer.on('add-password-form', (e, detail) => {
 })
 
+let isImportingHistory
 importer.on('add-history-page', async (e, hist, visitSource) => {
+  isImportingHistory = true
   console.log("history-start")
   for (let i = 0; i < hist.length; ++i) {
     if(await history.findOne({location:hist[i].url})){}
@@ -72,14 +74,50 @@ importer.on('add-history-page', async (e, hist, visitSource) => {
     }
   }
   console.log("history-end")
+  isImportingHistory = false
 })
 
 importer.on('add-homepage', (e, detail) => {
 })
 
+async function recurAddFolder(b,map){
+  const key = uuid.v4()
+  const folder = {
+    key,
+    title:b.title,
+    is_file:false,
+    children: [],
+    created_at:b.creation_time * 1000,
+    updated_at:b.creation_time * 1000,
+  }
+  if(b.path.length == 0){
+    await favorite.update({key: 'root'}, { $push: { children: key }, $set:{updated_at: Date.now()}})
+  }
+  else{
+    let p_folder = map.get(b.path.join("/"))
+    if(!p_folder){
+      const path = b.path.slice(0,b.path.length - 1)
+      const parentB = {
+        key : uuid.v4(),
+        title:b.path[b.path.length - 1],
+        is_file:false,
+        path,
+        children: [],
+        created_at:b.creation_time * 1000,
+        updated_at:b.creation_time * 1000,
+      }
+      await recurAddFolder(parentB,map)
+      p_folder = map.get(b.path.join("/"))
+    }
+    p_folder.children.push(key)
+  }
+  map.set([...b.path,folder.title].join("/"),folder)
+}
+
+let isImportingBookmark
 importer.on('add-bookmarks', async (e, bookmarks, topLevelFolder) => {
+  isImportingBookmark = true
   console.log("favorite-start")
-  // console.log('bookmarks',e, bookmarks, topLevelFolder)
   if(type == 'html'){
     bookmarks.sort((a,b)=> a.path.join("/") < b.path.join("/") ? -1 : 1)
   }
@@ -104,23 +142,7 @@ importer.on('add-bookmarks', async (e, bookmarks, topLevelFolder) => {
     }
 
     if (bookmarks[i].is_folder) {
-      const key = uuid.v4()
-      const folder = {
-        key,
-        title:bookmarks[i].title,
-        is_file:false,
-        children: [],
-        created_at:bookmarks[i].creation_time * 1000,
-        updated_at:bookmarks[i].creation_time * 1000,
-      }
-      if(path.length == 0){
-        await favorite.update({key: 'root'}, { $push: { children: key }, $set:{updated_at: Date.now()}})
-      }
-      else{
-        const p_folder = map.get(path.join("/"))
-        p_folder.children.push(key)
-      }
-      map.set([...path,folder.title].join("/"),folder)
+      await recurAddFolder(bookmarks[i],map)
     }
     else {
       const key = uuid.v4()
@@ -147,7 +169,23 @@ importer.on('add-bookmarks', async (e, bookmarks, topLevelFolder) => {
             created_at:bookmarks[i].creation_time * 1000,
             updated_at:bookmarks[i].creation_time * 1000,
           }
-          map.get(path.slice(0,path.length - 1).join("/")).children.push(k)
+          let p_folder = map.get(path.slice(0,path.length - 1).join("/"))
+          if(!p_folder){
+            const b = bookmarks[i]
+            const path = b.path.slice(0,b.path.length - 1)
+            const parentB = {
+              key : uuid.v4(),
+              title:b.path[b.path.length - 1],
+              is_file:false,
+              path,
+              children: [],
+              created_at:b.creation_time * 1000,
+              updated_at:b.creation_time * 1000,
+            }
+            await recurAddFolder(parentB,map)
+            p_folder = map.get(path.slice(0,path.length - 1).join("/"))
+          }
+          p_folder.children.push(k)
           map.set(path.join("/"),f)
           folder = f
         }
@@ -158,37 +196,40 @@ importer.on('add-bookmarks', async (e, bookmarks, topLevelFolder) => {
   }
   await favorite.insert([...map.values()])
   console.log("favorite-end")
+  isImportingBookmark = false
   // console.log(sites,topLevelFolder)
 })
 
 importer.on('add-favicons', async (e, detail) => {
   console.log("favicons-start")
-  for(let entry of detail){
-    if (entry.favicon_url.includes('made-up-favicon')) {
-      // for (let url of entry.urls) {
-      //   faviconMap[url] = entry.png_data
-      // }
+  while(true){
+    if(isImportingHistory || isImportingBookmark){
+      await new Promise(r=>setTimeout(r,200))
     }
-    else {
-      for (let url of entry.urls) {
-        const furl = entry.favicon_url
-        if(furl.startsWith("data")) continue
-        let datas
-        if(datas = await history.find({location: url})){
-          for(let data of datas){
-            await history.update({_id: data._id},{ $set:{favicon: furl,updated_at: Date.now()}})
-          }
+    else{
+      break
+    }
+  }
+  for(let entry of detail){
+    const furl = entry.favicon_url.includes('made-up-favicon') ? uuid.v4() : entry.favicon_url
+    for (let url of entry.urls) {
+      if(!entry.png_data || furl.startsWith("data:")) continue
+      favicon.update({url:furl},  {url:furl, data: entry.png_data, updated_at: Date.now()}, { upsert: true }).then(_=>_)
+      let datas
+      if(datas = await history.find({location: url})){
+        for(let data of datas){
+          await history.update({_id: data._id},{ $set:{favicon: furl,updated_at: Date.now()}})
         }
+      }
 
-        if(datas = await favorite.find({url: url})){
-          for(let data of datas){
-            await favorite.update({_id: data._id},{ $set:{favicon: furl,updated_at: Date.now()}})
-          }
+      if(datas = await favorite.find({url: url})){
+        for(let data of datas){
+          await favorite.update({_id: data._id},{ $set:{favicon: furl,updated_at: Date.now()}})
         }
+      }
 
-        if(!(await favicon.findOne({url: furl}))){
-          await favicon.insert({url:furl , created_at: Date.now(),updated_at: Date.now()})
-        }
+      if(!(await favicon.findOne({url: furl}))){
+        await favicon.insert({url:furl , created_at: Date.now(),updated_at: Date.now()})
       }
     }
   }
@@ -234,7 +275,7 @@ const showImportSuccess = function () {
     type: 'info',
     buttons: ['OK'],
     title: 'Import Success',
-    message: 'Your data has been imported to Brave successfully.'
+    message: 'Your data is currently being imported. Once the import is complete, you will be able to see it on the bookmark or history screen.'
   });
 }
 
