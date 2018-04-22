@@ -287,7 +287,7 @@ const settingDefault =  {
   autoKeydown: true,
   autoInput: true,
   autoChange: true,
-  autoSelect: true,
+  autoSelect: false,
   autoSubmit: false,
   autoScroll: false,
   autoMousemove: true,
@@ -307,6 +307,7 @@ const settingDefault =  {
   autoHighlight: true,
   autoPlaySpeed: 0,
   puppeteer: '',
+  automationHistory: [],
 }
 
 

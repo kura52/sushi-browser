@@ -3,7 +3,7 @@ import fs from 'fs'
 import uuid from 'node-uuid'
 import PubSub from './render/pubsub'
 import mainState from './mainState'
-import UglifyJS from "uglify-es"
+import UglifyJS from "./uglify-es/start/node"
 
 const UglifyOptions = {mangle:false,compress:{ booleans: false, collapse_vars: false, comparisons: false, conditionals: false, dead_code: false, evaluate: false, hoist_props: false, if_return: false, inline: false, join_vars: false, loops: false, negate_iife: false, reduce_funcs: false, reduce_vars: false, sequences: false, side_effects: false, switches: false}}
 
@@ -50,13 +50,18 @@ function setMouseArgs(options){
   return delay
 }
 
-simpleIpcFunc('auto-play-operation',async (tabId,method,...args)=>{
-  return webContents.fromTabID(tabId)[method](...args)
+simpleIpcFunc('auto-play-operation',(tabId,method,...args)=>{
+  const cont = webContents.fromTabID(tabId)
+  if(cont.isDestroyed()) return
+
+  return cont[method](...args)
 })
 
-simpleIpcFunc('auto-play-mouse',async (type,tabId,x,y,options)=>{
+simpleIpcFuncCb('auto-play-mouse',async (type,tabId,x,y,options,cb)=>{
   const delay = setMouseArgs(options)
   const cont = webContents.fromTabID(tabId)
+  if(cont.isDestroyed()) return cb()
+
   if(type == 'click'){
     cont.sendInputEvent({ type: 'mouseDown',x,y, ...options})
     if(delay) await wait(delay)
@@ -71,11 +76,13 @@ simpleIpcFunc('auto-play-mouse',async (type,tabId,x,y,options)=>{
   else if(type == 'up'){
     cont.sendInputEvent({ type: 'mouseUp',x,y, ...options})
   }
+  cb()
 })
 
 
 simpleIpcFuncCb('auto-play-keyboard',async (mode,tabId,key,text,options,cb)=>{
   const cont = webContents.fromTabID(tabId)
+  if(cont.isDestroyed()) return cb()
 
   if(mode != 'type') {
     if (mode == 'down') {
@@ -115,7 +122,8 @@ ipcMain.on('auto-play-evaluate',async (e,key,tabId,code)=>{
   ipcMain.emit('add-context-alert',null,key)
   const url = `javascript:(function(){const _extends=Object.assign||function(t){for(var e=1;e<arguments.length;e++){var n=arguments[e];for(var e in n)Object.prototype.hasOwnProperty.call(n,e)&&(t[e]=n[e])}return t};let ret=${UglifyJS.minify(code,UglifyOptions).code};(async ()=>alert('${key}' + JSON.stringify({a:(await ret)})))()}())`
   console.log(url)
-  webContents.fromTabID(tabId).loadURL(url)
+  const cont = webContents.fromTabID(tabId)
+  if(!cont.isDestroyed()) cont.loadURL(url)
   ipcMain.once(`add-context-alert-reply_${key}`,(e2,result)=>{
     e.sender.send(`auto-play-evaluate-reply_${key}`,result)
   })
@@ -124,7 +132,7 @@ ipcMain.on('auto-play-evaluate',async (e,key,tabId,code)=>{
 ipcMain.on('auto-get-sync',(e,tabId,type)=>{
   const cont = webContents.fromTabID(tabId)
   let data
-  if(type == 'url' && cont){
+  if(type == 'url' && cont && !cont.isDestroyed()){
     data = cont.getURL()
   }
   e.returnValue = data
@@ -132,7 +140,7 @@ ipcMain.on('auto-get-sync',(e,tabId,type)=>{
 
 simpleIpcFunc('auto-get-async',async (tabId,type)=>{
   const cont = webContents.fromTabID(tabId)
-  if(!cont){}
+  if(!cont || cont.isDestroyed()){}
   if(type == 'back'){
     cont.goBack()
   }
@@ -147,11 +155,15 @@ simpleIpcFunc('auto-get-async',async (tabId,type)=>{
 
 ipcMain.on('auto-play-notification',(e,tabId,value)=>{
   const cont = webContents.fromTabID(tabId)
-  cont.hostWebContents.send('auto-play-notification',value)
+  if(!cont.isDestroyed()) cont.hostWebContents.send('auto-play-notification',value)
 })
 
 ipcMain.on('open-dev-tool',(e)=>{
   e.sender.openDevTools()
+})
+
+simpleIpcFunc('read-file',async (file)=>{
+  return fs.readFileSync(file).toString()
 })
 
 // ipcMain.on('set-cookies',async (e,key,tabId,items)=>{

@@ -2,7 +2,13 @@ import { state } from './databaseFork'
 
 async function getState(){
   const datas = await state.findOne({key: 1})
-  if(datas && datas.adBlockDisableSite.length) datas.adBlockDisableSite = JSON.parse(datas.adBlockDisableSite)
+  try{
+    if(datas && datas.adBlockDisableSite.length){
+      datas.adBlockDisableSite = JSON.parse(datas.adBlockDisableSite)
+    }
+  }catch(e){
+    datas.adBlockDisableSite = {}
+  }
   return datas
 }
 

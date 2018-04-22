@@ -47,7 +47,7 @@ if(chrome.extension){
 if(chrome.contextMenus) {
   if(!chrome.contextMenus._create) chrome.contextMenus._create = chrome.contextMenus.create
   chrome.contextMenus.create = (...args) => {
-    console.log({...args[0]})
+    // console.log({...args[0]})
     const ipcSendVal = {}
     if (args[0] && Object.prototype.toString.call(args[0]) == "[object Object]") {
       if(args[0].checked !== void 0){
@@ -72,12 +72,12 @@ if(chrome.contextMenus) {
   }
 
   chrome.contextMenus.update = (id, updateProperties, callback) => {
-    console.log('chrome.contextMenus.update',id, updateProperties)
+    // console.log('chrome.contextMenus.update',id, updateProperties)
     simpleIpcFunc('chrome-context-menus-update',callback,chrome.runtime.id,id,updateProperties)
   }
 
   chrome.contextMenus.remove = (menuItemId, callback) => {
-    console.log('chrome.contextMenus.remove',menuItemId)
+    // console.log('chrome.contextMenus.remove',menuItemId)
     simpleIpcFunc('chrome-context-menus-remove',callback,chrome.runtime.id,menuItemId)
   }
 
@@ -160,7 +160,7 @@ if(chrome.windows){
 
   chrome.windows.create = (createData,callback)=>{
     if(typeof createData === 'function') [createData,callback] = [null,createData]
-    console.log(2224,createData)
+    // console.log(2224,createData)
     if(createData && createData.url && !createData.url.includes("://")){
       createData.url = `chrome-extension://${chrome.runtime.id}/${createData.url.split("/").filter(x=>x).join("/")}`
     }
@@ -174,7 +174,7 @@ if(chrome.windows){
     const ipcEvents = {}
     chrome.windows[method] = {
       addListener(cb) {
-        console.log(method)
+        // console.log(method)
         ipc.send(`regist-${name}`)
         ipcEvents[cb] = method == 'onCreated' ? (e,windowId)=>{ chrome.windows.get(windowId, {}, cb) } : (e, details) => cb(details)
         ipc.on(name,ipcEvents[cb])
@@ -259,7 +259,7 @@ if(chrome.tabs){
   }
 
   chrome.tabs.move = (tabIds, moveProperties, callback)=>{
-    console.log(tabIds, moveProperties)
+    // console.log(tabIds, moveProperties)
     if(Number.isFinite(tabIds)){
       tabIds = [tabIds]
     }
@@ -285,7 +285,7 @@ if(chrome.tabs){
   chrome.tabs.detectLanguage = (tabId, callback)=>{
     if(typeof tabId === 'function') [tabId,callback] = [null,tabId]
 
-    console.log(tabId)
+    // console.log(tabId)
     chrome.tabs.get(tabId, tab=>{
       simpleIpcFunc('chrome-tabs-detectLanguage',callback,tabId)
     })
@@ -320,7 +320,7 @@ if(chrome.tabs){
 
   if(!chrome.tabs._executeScript) chrome.tabs._executeScript = chrome.tabs.executeScript
   chrome.tabs.executeScript = (tabId,details,callback) => {
-    console.log('executeScript',tabId,details)
+    // console.log('executeScript',tabId,details)
     if (!Number.isFinite(tabId) && tabId !== null && tabId !== void 0) {
       [tabId,details,callback] = [null,tabId,details]
       simpleIpcFunc('chrome-tabs-current-tabId',tabId=>{
@@ -329,7 +329,7 @@ if(chrome.tabs){
     }
     else if(!tabId){
       simpleIpcFunc('chrome-tabs-current-tabId',tabId=>{
-        console.log(tabId)
+        // console.log(tabId)
         chrome.tabs._executeScript(tabId, details, callback)
       })
     }
@@ -400,7 +400,7 @@ if(chrome.tabs){
     const ipcEvents = {}
     chrome.tabs[method] = {
       addListener(cb) {
-        console.log(method)
+        // console.log(method)
         ipcEvents[cb] = (e, tabId, info) => cb(tabId, info)
         ipc.send(`regist-${name}`)
         ipc.on(name, ipcEvents[cb])
@@ -499,7 +499,7 @@ if(chrome.webNavigation){
     const ipcEvents = {}
     chrome.webNavigation[method] = {
       addListener(cb) {
-        console.log(method)
+        // console.log(method)
         ipcEvents[cb] = (e, details) => cb(details)
         ipc.send(`regist-${name}`)
         ipc.on(name, ipcEvents[cb])
@@ -531,9 +531,9 @@ if(chrome.proxy){
 
   const ipcEvents = new Set()
   chrome.proxy.settings.set = (details,callback)=>{
-    console.log(details)
+    // console.log(details)
     datas = details
-    console.log('chrome-proxy-settings-set',details)
+    // console.log('chrome-proxy-settings-set',details)
     simpleIpcFunc('chrome-proxy-settings-set',(...args)=>{
       callback(...args)
       for(let cb of ipcEvents){
@@ -580,7 +580,7 @@ if(chrome.browserAction){
   const ipcEvents = {}
   chrome.browserAction.onClicked = {
     addListener: function (cb) {
-      console.log("addevent")
+      // console.log("addevent")
       ipcEvents[cb] = function(evt,id, tabId) {
         if(chrome.runtime.id == id){
           chrome.tabs.get(parseInt(tabId), cb)
@@ -643,7 +643,7 @@ if(chrome.downloads){
   chrome.downloads.showDefaultFolder = () => simpleIpcFunc('chrome-downloads-showDefaultFolder',_=>_)
 
   chrome.downloads.search = (query, callback) => simpleIpcFunc('chrome-downloads-search',_=>{
-    console.log(query,_)
+    // console.log(query,_)
     callback(_)
   },query)
   chrome.downloads.erase = (query, callback) => simpleIpcFunc('chrome-downloads-erase',callback,query)
@@ -754,7 +754,7 @@ if(chrome.commands) {
   const ipcEvents = {}
   chrome.commands[method] = {
     addListener(cb) {
-      console.log(method)
+      // console.log(method)
       ipcEvents[cb] = (e, command) => cb(command)
       ipc.send(`regist-${name}`,chrome.runtime.id)
       ipc.on(name, ipcEvents[cb])

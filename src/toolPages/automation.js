@@ -300,21 +300,23 @@ class Automation extends React.Component {
     const events = new Set(['wait'])
 
     for(let op of datas){
+      const pageOrFrame = op.frame && op.frame > 0 ? `(await page.frames()).find(f=>f.url()=='${helper.stringEscape(op.url)}')` : 'page'
+
       let str
       if(op.name == 'mousedown'){
-        str = `await mouseDown(page, '${helper.stringEscape(op.optSelector)}')`
+        str = `await mouseDown(${pageOrFrame}, '${helper.stringEscape(op.optSelector)}')`
         events.add('mouseDown')
       }
       else if(op.name == 'mouseup'){
-        str = `await mouseUp(page, '${helper.stringEscape(op.optSelector)}')`
+        str = `await mouseUp(${pageOrFrame}, '${helper.stringEscape(op.optSelector)}')`
         events.add('mouseUp')
       }
       else if(op.name == 'click'){
-        str = `await click(page, '${helper.stringEscape(op.optSelector)}')`
+        str = `await click(${pageOrFrame}, '${helper.stringEscape(op.optSelector)}')`
         events.add('click')
       }
       else if(op.name == 'dblclick'){
-        str = `await dblclick(page, '${helper.stringEscape(op.optSelector)}', {clickCount: 2})`
+        str = `await dblclick(${pageOrFrame}, '${helper.stringEscape(op.optSelector)}', {clickCount: 2})`
         events.add('dblclick')
       }
       else if(op.name == 'keydown'){
@@ -338,48 +340,50 @@ class Automation extends React.Component {
             }
           }
           else{
-            str = `await press(page, '${helper.stringEscape(op.optSelector)}', '${helper.stringEscape(op.keyChar)}')`
+            str = `await press(${pageOrFrame}, '${helper.stringEscape(op.optSelector)}', '${helper.stringEscape(op.keyChar)}')`
             events.add('press')
           }
         }
         else{
-          str = `await clearAndType(page, '${helper.stringEscape(op.optSelector)}', '${helper.stringEscape(op.value)}')`
+          str = `await clearAndType(${pageOrFrame}, '${helper.stringEscape(op.optSelector)}', '${helper.stringEscape(op.value)}')`
           events.add('clearAndType')
         }
       }
       else if(op.name == 'input' || op.name == 'change'){
-        if(op.checked === void 0){
-          str = `await input(page, '${helper.stringEscape(op.optSelector)}', '${helper.stringEscape(op.value)}')`
+        if(op.tag == 'select'){
+          const value = JSON.parse(op.value).map(x=>`'${helper.stringEscape(x.value)}'`).join(', ')
+          str = `await select(${pageOrFrame}, '${helper.stringEscape(op.optSelector)}', ${value})`
+          events.add('select')
+        }
+        else if(op.checked === void 0){
+          str = `await input(${pageOrFrame}, '${helper.stringEscape(op.optSelector)}', '${helper.stringEscape(op.value)}')`
           events.add('input')
         }
         else{
-          str = `await check(page, '${helper.stringEscape(op.optSelector)}', ${helper.stringEscape(op.checked)})`
+          str = `await check(${pageOrFrame}, '${helper.stringEscape(op.optSelector)}', ${helper.stringEscape(op.checked)})`
           events.add('check')
         }
       }
-      else if(op.name == 'select'){
-        const value = JSON.parse(op.data).map(x=>`'${helper.stringEscape(x.value)}'`).join(', ')
-        str = `await select(page, '${helper.stringEscape(op.optSelector)}', ${value})`
-        events.add('select')
-      }
+      // else if(op.name == 'select'){
+      // }
       else if(op.name == 'submit'){
-        str = `await submit(page, '${helper.stringEscape(op.optSelector)}')`
+        str = `await submit(${pageOrFrame}, '${helper.stringEscape(op.optSelector)}')`
         events.add('submit')
       }
       else if(op.name == 'scroll'){
-        str = `await scroll(page, '${helper.stringEscape(op.optSelector)}', ${op.value})`
+        str = `await scroll(${pageOrFrame}, '${helper.stringEscape(op.optSelector)}', ${op.value})`
         events.add('scroll')
       }
       else if(op.name == 'mousemove'){
-        str = `await hover(page, '${helper.stringEscape(op.optSelector)}')`
+        str = `await hover(${pageOrFrame}, '${helper.stringEscape(op.optSelector)}')`
         events.add('hover')
       }
       else if(op.name == 'focusin'){
-        str = `await focus(page, '${helper.stringEscape(op.optSelector)}')`
+        str = `await focus(${pageOrFrame}, '${helper.stringEscape(op.optSelector)}')`
         events.add('focus')
       }
       else if(op.name == 'focusout'){
-        str = `await blur(page, '${helper.stringEscape(op.optSelector)}')`
+        str = `await blur(${pageOrFrame}, '${helper.stringEscape(op.optSelector)}')`
         events.add('blur')
       }
       else if(op.name == 'cut'){
@@ -612,7 +616,7 @@ class Automation extends React.Component {
             {/*<i className="fa fa-fighter-jet" aria-hidden="true"></i>Play All*/}
           {/*</button>*/}
           <button onClick={_=>this.handleExport()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
-            <i className="fa fa-external-link-square" aria-hidden="true"></i>Export/Edit
+            <i className="fa fa-external-link-square" aria-hidden="true"></i>Export/Playground
           </button>
           <Popup
             trigger={<button  className="btn btn-sm align-middle btn-outline-secondary" type="button">

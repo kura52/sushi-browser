@@ -10,7 +10,7 @@ class Helper {
   }
 
   static _handleNavigateEvent(details){
-    if(details.frameId == 0) PubSub.publish('domContentLoaded',details.tabId)
+    if(details.frameId == 0) PubSub.publish('onCompleted',details.tabId)
   }
 
   static _startObserveLoadEvent(){
@@ -110,7 +110,6 @@ class Helper {
       // DoubleStringCharacters on
       // http://www.ecma-international.org/ecma-262/5.1/#sec-7.8.4
       switch (character) {
-        case '"':
         case "'":
         case '\\':
           return '\\' + character

@@ -1350,6 +1350,19 @@ ipcMain.on('download-start',(e,url)=>{
   }
 })
 
+ipcMain.on('print-to-pdf',(e,key,tabId,savePath,options)=>{
+  const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
+  if(!path.isAbsolute(savePath)){
+    savePath = path.join(app.getPath('desktop'),savePath)
+  }
+
+  if(!cont.isDestroyed()) cont.printToPDF(options, (error, data) => {
+    fs.writeFile(savePath, data, (error) => {
+      e.sender.send(`print-to-pdf-reply_${key}`)
+    })
+  })
+})
+
 ipcMain.on('screen-shot',(e,{full,type,rect,tabId,tabKey,quality=92,savePath,autoPlay})=>{
   const capture = (cb,image)=>{
     if(cb) cb()
@@ -1364,11 +1377,11 @@ ipcMain.on('screen-shot',(e,{full,type,rect,tabId,tabKey,quality=92,savePath,aut
           writePath = savePath
         }
         else{
-          writePath = path.join(app.getPath('pictures'),savePath)
+          writePath = path.join(app.getPath('desktop'),savePath)
         }
       }
       else{
-        writePath = path.join(app.getPath('pictures'),`screenshot-${formatDate(new Date())}.${isJpeg ? 'jpg' : 'png'}`)
+        writePath = path.join(app.getPath('desktop'),`screenshot-${formatDate(new Date())}.${isJpeg ? 'jpg' : 'png'}`)
       }
       fs.writeFile(writePath,isJpeg ? image.toJPEG(quality) : image.toPNG(),_=>{
         if(autoPlay){
@@ -1381,7 +1394,7 @@ ipcMain.on('screen-shot',(e,{full,type,rect,tabId,tabKey,quality=92,savePath,aut
     }
   }
 
-  if(full){
+  if(full || (e.sender.hostWebContents && rect)){
     const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
     cont.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',
       `(function(){
@@ -1395,7 +1408,7 @@ ipcMain.on('screen-shot',(e,{full,type,rect,tabId,tabKey,quality=92,savePath,aut
         const key = Math.random().toString()
         cont.hostWebContents.send('webview-size-change',tabKey,key,`${result[0].width}px`,`${result[0].height}px`,true)
         ipcMain.once(`webview-size-change-reply_${key}`,(e)=>{
-          cont.capturePage({x:0,y:0,width:scaling(result[0].width),height:scaling(result[0].height) },capture.bind(this,_=>{
+          cont.capturePage(rect || {x:0,y:0,width:scaling(result[0].width),height:scaling(result[0].height) },capture.bind(this,_=>{
             cont.hostWebContents.send('webview-size-change',tabKey,key,'100%','100%')
             cont.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',
               `(function(){

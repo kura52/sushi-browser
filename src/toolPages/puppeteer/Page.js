@@ -6,6 +6,7 @@ import helper from './helper'
 import mime  from 'mime'
 import defaultOptions from './defaultOptions'
 import PubSub from '../../render/pubsub'
+import uuid from 'node-uuid'
 const ipc = chrome.ipcRenderer
 const set = new Set()
 const pagesMap = {}
@@ -14,7 +15,25 @@ ipc.on('start-dialog',(e,{key,title,message,buttons,tabId,url,type})=>{
   for(let page of set){
     if(page.tabId == tabId){
       page.emit('dialog',new Dialog(type, message,'',tabId))
-      break
+      return
+    }
+  }
+})
+
+chrome.webNavigation.onCompleted.addListener(details=>{
+  for(let page of set){
+    if(page.tabId == details.tabId){
+      page.emit('load')
+      return
+    }
+  }
+})
+
+chrome.webNavigation.onBeforeNavigate.addListener(details=>{
+  for(let page of set){
+    if(page.tabId == details.tabId){
+      page.emit('domcontentloaded')
+      return
     }
   }
 })
@@ -238,8 +257,8 @@ class Page extends EventEmitter {
     //   await new Promise(resolve=>ipc.once(`set-cookies-reply_${key}`,resolve))
     // }
 
-     if (items.length)
-       await Promise.all(items.map(item=>new Promise(resolve=>{chrome.cookies.set(item,resolve)})))
+    if (items.length)
+      await Promise.all(items.map(item=>new Promise(resolve=>{chrome.cookies.set(item,resolve)})))
   }
 
   /**
@@ -300,14 +319,65 @@ class Page extends EventEmitter {
    * @param {!Object<string, string>} headers
    */
   async setExtraHTTPHeaders(headers) {
-    return this._networkManager.setExtraHTTPHeaders(headers);
+    this._httpHeaderMap = headers
+    if(this.httpHeaderListener) return
+
+    const replaceHeader = (details)=>{
+      if(details.tabId != this.tabId) return details.requestHeaders
+      const newHeaders = []
+      for(let [name,value] of Object.entries(this._httpHeaderMap)){
+        newHeaders.push({name,value})
+      }
+      for (let h of details.requestHeaders){
+        if(!this._httpHeaderMap.hasOwnProperty(h.name)) newHeaders.push(h)
+      }
+      return newHeaders
+    }
+
+    const listener = function(details) {
+      let header_map = { requestHeaders: details.requestHeaders }
+
+      if (details && details.url && details.requestHeaders && details.requestHeaders.length > 0){
+        header_map.requestHeaders = replaceHeader(details)
+      }
+      return header_map
+    }
+    chrome.webRequest.onBeforeSendHeaders.addListener(listener, {
+      "urls": ["http://*/*", "https://*/*"]
+    }, ["requestHeaders", "blocking"])
+
+    this.httpHeaderListener = listener
   }
 
   /**
    * @param {string} userAgent
    */
   async setUserAgent(userAgent) {
-    return this._networkManager.setUserAgent(userAgent);
+    this._userAgent = userAgent
+    if(this.userAgentListener) return
+
+    const replaceHeader = (details)=>{
+      if(details.tabId != this.tabId) return details.requestHeaders
+      const newHeaders = []
+      for (let h of details.requestHeaders){
+        newHeaders.push(h.name == "User-Agent" ? {name: "User-Agent", value: this._userAgent} : h)
+      }
+      return newHeaders
+    }
+
+    const listener = function(details) {
+      let header_map = { requestHeaders: details.requestHeaders }
+
+      if (details && details.url && details.requestHeaders && details.requestHeaders.length > 0){
+        header_map.requestHeaders = replaceHeader(details)
+      }
+      return header_map
+    }
+    chrome.webRequest.onBeforeSendHeaders.addListener(listener, {
+      "urls": ["http://*/*", "https://*/*"]
+    }, ["requestHeaders", "blocking"])
+
+    this.userAgentListener = listener
   }
 
   /**
@@ -379,7 +449,7 @@ class Page extends EventEmitter {
   waitForNavigation(options = {}) {
     return new Promise((resolve,reject)=>{
       if(!helper.isNumber(options.timeout)) options.timeout = defaultOptions.timeout
-      const token = PubSub.subscribe('domContentLoaded',(msg,tabId)=>{
+      const token = PubSub.subscribe('onCompleted',(msg,tabId)=>{
         if(this.tabId == tabId){
           resolve(true) //@TOOD
           PubSub.unsubscribe(token)
@@ -533,6 +603,9 @@ class Page extends EventEmitter {
       console.assert(typeof options.clip.y === 'number', 'Expected options.clip.y to be a number but found ' + (typeof options.clip.y));
       console.assert(typeof options.clip.width === 'number', 'Expected options.clip.width to be a number but found ' + (typeof options.clip.width));
       console.assert(typeof options.clip.height === 'number', 'Expected options.clip.height to be a number but found ' + (typeof options.clip.height));
+      for(let x of ['x','y','width','height']){
+        options.clip[x] = Math.round(options.clip[x])
+      }
     }
 
     ipc.send('screen-shot',{full: options.fullPage,type: options.type == 'jpeg' ? 'JPEG' : 'PNG',
@@ -547,52 +620,14 @@ class Page extends EventEmitter {
    * @param {!Object=} options
    * @return {!Promise<!Buffer>}
    */
-  async pdf(options = {}) {
-    const scale = options.scale || 1;
-    const displayHeaderFooter = !!options.displayHeaderFooter;
-    const headerTemplate = options.headerTemplate || '';
-    const footerTemplate = options.footerTemplate || '';
-    const printBackground = !!options.printBackground;
-    const landscape = !!options.landscape;
-    const pageRanges = options.pageRanges || '';
-
-    let paperWidth = 8.5;
-    let paperHeight = 11;
-    if (options.format) {
-      const format = Page.PaperFormats[options.format.toLowerCase()];
-      console.assert(format, 'Unknown paper format: ' + options.format);
-      paperWidth = format.width;
-      paperHeight = format.height;
-    } else {
-      paperWidth = convertPrintParameterToInches(options.width) || paperWidth;
-      paperHeight = convertPrintParameterToInches(options.height) || paperHeight;
-    }
-
-    const marginOptions = options.margin || {};
-    const marginTop = convertPrintParameterToInches(marginOptions.top) || 0;
-    const marginLeft = convertPrintParameterToInches(marginOptions.left) || 0;
-    const marginBottom = convertPrintParameterToInches(marginOptions.bottom) || 0;
-    const marginRight = convertPrintParameterToInches(marginOptions.right) || 0;
-
-    const result = await this._client.send('Page.printToPDF', {
-      landscape: landscape,
-      displayHeaderFooter: displayHeaderFooter,
-      headerTemplate: headerTemplate,
-      footerTemplate: footerTemplate,
-      printBackground: printBackground,
-      scale: scale,
-      paperWidth: paperWidth,
-      paperHeight: paperHeight,
-      marginTop: marginTop,
-      marginBottom: marginBottom,
-      marginLeft: marginLeft,
-      marginRight: marginRight,
-      pageRanges: pageRanges
-    });
-    const buffer = new Buffer(result.data, 'base64');
-    if (options.path)
-      await writeFileAsync(options.path, buffer);
-    return buffer;
+  pdf(options = {}) {
+    return new Promise(resolve=>{
+      const key = uuid.v4()
+      const savePath = options.path
+      options = {pageSize:options.format,printBackground:options.printBackground,landscape:options.landscape}
+      ipc.send('print-to-pdf',key,this.tabId,savePath,options)
+      ipc.once(`print-to-pdf-reply_${key}`,e=>resolve())
+    })
   }
 
   /**

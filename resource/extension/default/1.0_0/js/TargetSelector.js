@@ -675,7 +675,15 @@
                     return curr.length - next.length;
                   });
                   while (names.length) {
-                    var partial = current.replace(names.shift(), '').trim();
+                    const remove = names.shift().slice(1)
+                    var removed
+                    var partial = current.trim().split(".",-1).filter(x=>{
+                      if(!removed && x == remove){
+                        removed = true
+                        return false
+                      }
+                      return true
+                    }).join(".");
                     var pattern = ('' + prePart + partial + postPart).trim();
                     if (!pattern.length || pattern.charAt(0) === '>' || pattern.charAt(pattern.length - 1) === '>') {
                       break;
@@ -1553,7 +1561,7 @@
 
                   var pattern = '[' + attributeName + '="' + attributeValue + '"]';
 
-                  if (/^\d|[\s]\d/.test(attributeValue) === false) {
+                  if (/^([\-\d]|[\s][\-\d])/.test(attributeValue) === false) {
                     if (attributeName === 'id') {
                       pattern = '#' + attributeValue;
                     }

@@ -42,7 +42,7 @@ if(!window.__isRecording__){
 
         if (uniqueIdCount == 1) {
           segs.unshift(`//*[@id="${element.id}"]`)
-          if(/^\d|[\s]\d/.test(escapedId) === false){
+          if(/^([\-\d]|[\s][\-\d])/.test(escapedId) === false){
             sels.unshift(`#${escapedId}`)
           }
           else{
@@ -52,7 +52,7 @@ if(!window.__isRecording__){
         }
         if (element.nodeName) {
           segs.unshift(`${element.nodeName.toLowerCase()}[@id="${element.id}"]`);
-          if(/^\d|[\s]\d/.test(id) === false){
+          if(/^([\-\d]|[\s][\-\d])/.test(escapedId) === false){
             sels.unshift(`${escapeValue(element.nodeName.toLowerCase())}#${escapedId}`);
           }
           else{

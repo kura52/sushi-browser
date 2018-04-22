@@ -458,8 +458,10 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   }
   else if(request.event == 'add-op'){
     if(!fixedOpList.length && !Object.keys(opMap).length && !Object.keys(opMap2).length){
-      const key = uuidv4()
+      let key = uuidv4()
       opMap[key] =  {key, name: 'navigate', value:request.url, url:request.url, tabId:sender.tab.id, now: request.now - 1}
+      key = uuidv4()
+      opMap[key] =  {key, name: 'tabLoaded', value:request.url, url:request.url, tabId:sender.tab.id, now: request.now - 1}
     }
     request.tabId = sender.tab.id
     opMap[request.key] = request //opKey

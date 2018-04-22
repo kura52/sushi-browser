@@ -14,7 +14,17 @@
     // This should always call runtime.sendMessage, even if an error is thrown
     const wrapAsyncSendMessage = action =>
       `(async function () {
-    const result = { asyncFuncID: '${id}' };
+    const getFrameIndex = () =>{
+      if (window.top === window.self)
+        return 0;
+      for (var i=0; i<window.top.frames.length; i++) {
+        if (window.top.frames[i] === window.self) {
+          return i+1;
+        }
+      }
+      return -1;
+    }
+    const result = { asyncFuncID: '${id}',frame: getFrameIndex() };
     try {
         result.content = await ${action};
     }
@@ -70,6 +80,7 @@
           results.push(request)
           if(results.length == arr.length){
             chrome.runtime.onMessage.removeListener(listener);
+            results.sort((a,b) => a.frame - b.frame)
             resolve(results);
           }
         }
@@ -112,8 +123,7 @@
     for(let result of results){
       const { content, error } = result
       if (error){
-        throw new Error(`Error thrown in execution script: ${error.message}.
-Stack: ${error.stack}`)
+        throw new Error(`Error thrown in execution script: ${error.message}.\nStack: ${error.stack}`)
       }
       contents.push(content)
     }

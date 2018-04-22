@@ -186,3 +186,9 @@ Resizer.disabled:hover {
 #editor {
     height: 100%;
 }
+
+.auto-run-history {
+    font-size: 1rem;
+    padding-left: 30px;
+    font-weight: normal;
+}

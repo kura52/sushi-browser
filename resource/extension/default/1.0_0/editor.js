@@ -18,10 +18,10 @@ document.getElementById("statusBar").innerHTML = "mode: " + mode + "&nbsp;&nbsp;
 const StatusBar = ace.require("ace/ext/statusbar").StatusBar;
 const statusBar = new StatusBar(editor, document.getElementById("statusBar"));
 editor.$blockScrolling = Infinity
-editor.setOptions({
-  enableBasicAutocompletion: true,
-  enableSnippets: true
-})
+// editor.setOptions({
+//   enableBasicAutocompletion: true,
+//   enableSnippets: true
+// })
 editor.setTheme("ace/theme/chrome")
 editor.setFontSize(14);
 editor.getSession().setMode(mode)

@@ -1,10 +1,20 @@
+import ElementHandle from './ElementHandle'
 import helper from './helper'
 import defaultOptions from './defaultOptions'
 import PubSub from '../../render/pubsub'
 import uuid from 'node-uuid'
 const ipc = chrome.ipcRenderer
 
-const getFramesCode = `function getFrameIndex() {
+function simpleIpcFunc(name,callback,...args){
+  const key = Math.random().toString()
+  ipc.once(`${name}-reply_${key}`,(event,...results)=>{
+    if(callback) callback(...results)
+  })
+  ipc.send(name,key,...args)
+}
+
+const getFramesCode = `(_ => {
+  const getFrameIndex = ()=>{
     if (window.top === window.self)
       return 0;
     for (var i=0; i<window.top.frames.length; i++) {
@@ -14,8 +24,8 @@ const getFramesCode = `function getFrameIndex() {
     }
     return -1;
   };
-  (function(){return {index: getFrameIndex(),url:location.href} }())
-  `
+  return {index: getFrameIndex(),url:location.href}
+})();`
 
 class FrameManager {
   /**
@@ -26,7 +36,7 @@ class FrameManager {
   constructor(tabId,page) {
     this.tabId = tabId
     this._page = page
-    this._mainFrame = new Frame(tabId,page,0)
+    this._mainFrame = new Frame(tabId,page,this,0)
   }
 
   /**
@@ -45,7 +55,7 @@ class FrameManager {
       const frames = []
       for(let result of results){
         if(result.index < 0) continue
-        const fr = result.index === 0 ? this._mainFrame : new Frame(this.tabId,this._page,result.index,result.url,this._mainFrame)
+        const fr = result.index === 0 ? this._mainFrame : new Frame(this.tabId,this._page,this,result.index,result.url,this._mainFrame)
         frames.push(fr)
       }
       resolve(frames)
@@ -58,9 +68,10 @@ class FrameManager {
  * @unrestricted
  */
 class Frame {
-  constructor(tabId, page, frameId, url, parentFrame) {
+  constructor(tabId, page, frameManager, frameId, url, parentFrame) {
     this.tabId = tabId
     this._page = page
+    this._frameManager = frameManager
     this.frameId = frameId
     this.isMain = !this.frameId
     this._url = url
@@ -106,9 +117,7 @@ class Frame {
    * @return {!Promise<?ElementHandle>}
    */
   async $(selector) {
-    const document = await this._document();
-    const value = await document.$(selector);
-    return value;
+    return new ElementHandle(selector,this._page,this._frameManager)
   }
 
   /**
@@ -129,9 +138,7 @@ class Frame {
    * @return {!Promise<!Array<!ElementHandle>>}
    */
   async $x(expression) {
-    const document = await this._document();
-    const value = await document.$x(expression);
-    return value;
+    return new ElementHandle('html',this._page,this._frameManager).$x(expression)
   }
 
   /**
@@ -173,9 +180,7 @@ class Frame {
    * @return {!Promise<!Array<!ElementHandle>>}
    */
   async $$(selector) {
-    const document = await this._document();
-    const value = await document.$$(selector);
-    return value;
+    return new ElementHandle('html',this._page,this._frameManager).$$(selector)
   }
 
   /**
@@ -244,23 +249,26 @@ class Frame {
     if (typeof options.url === 'string') {
       const url = options.url;
       try {
-        const context = await this._contextPromise;
-        return (await context.evaluateHandle(addScriptUrl, url, options.type)).asElement();
+        // const context = await this._contextPromise;
+        // return (await context.evaluateHandle(addScriptUrl, url, options.type)).asElement();
+        return (await this.evaluate(addScriptUrl, url, options.type));
       } catch (error) {
         throw new Error(`Loading script from ${url} failed`);
       }
     }
 
     if (typeof options.path === 'string') {
-      let contents = await readFileAsync(options.path, 'utf8');
+      let contents = await new Promise(resolve=>simpleIpcFunc('read-file',resolve,options.path))
       contents += '//# sourceURL=' + options.path.replace(/\n/g, '');
-      const context = await this._contextPromise;
-      return (await context.evaluateHandle(addScriptContent, contents, options.type)).asElement();
+      // const context = await this._contextPromise;
+      // return (await context.evaluateHandle(addScriptContent, contents, options.type)).asElement();
+      return (await this.evaluate(addScriptContent, contents, options.type));
     }
 
     if (typeof options.content === 'string') {
-      const context = await this._contextPromise;
-      return (await context.evaluateHandle(addScriptContent, options.content, options.type)).asElement();
+      // const context = await this._contextPromise;
+      // return (await context.evaluateHandle(addScriptContent, options.content, options.type));
+      return (await this.evaluate(addScriptContent, options.content, options.type));
     }
 
     throw new Error('Provide an object with a `url`, `path` or `content` property');
@@ -305,23 +313,26 @@ class Frame {
     if (typeof options.url === 'string') {
       const url = options.url;
       try {
-        const context = await this._contextPromise;
-        return (await context.evaluateHandle(addStyleUrl, url)).asElement();
+        // const context = await this._contextPromise;
+        // return (await context.evaluateHandle(addStyleUrl, url)).asElement();
+        return (await this.evaluate(addStyleUrl, url));
       } catch (error) {
         throw new Error(`Loading style from ${url} failed`);
       }
     }
 
     if (typeof options.path === 'string') {
-      let contents = await readFileAsync(options.path, 'utf8');
+      let contents = await new Promise(resolve=>simpleIpcFunc('read-file',resolve,options.path))
       contents += '/*# sourceURL=' + options.path.replace(/\n/g, '') + '*/';
-      const context = await this._contextPromise;
-      return (await context.evaluateHandle(addStyleContent, contents)).asElement();
+      // const context = await this._contextPromise;
+      // return (await context.evaluateHandle(addStyleContent, contents)).asElement();
+      return (await this.evaluate(addStyleContent, contents));
     }
 
     if (typeof options.content === 'string') {
-      const context = await this._contextPromise;
-      return (await context.evaluateHandle(addStyleContent, options.content)).asElement();
+      // const context = await this._contextPromise;
+      // return (await context.evaluateHandle(addStyleContent, options.content)).asElement();
+      return (await this.evaluate(addStyleContent, options.content));
     }
 
     throw new Error('Provide an object with a `url`, `path` or `content` property');
@@ -391,11 +402,11 @@ class Frame {
     },selector)
   }
 
-  _scrollPos(x,y){
-    return this.evaluateExtContext((x,y)=>{
-      window.scrollTo(x,y)
+  _scrollPos(selector){
+    return this.$eval(selector,ele=>{
+      ele.scrollIntoView({block: 'center', inline: 'center', behavior: 'instant'});
       return {currentX:window.scrollX,currentY:window.scrollY}
-    },x,y)
+    })
   }
 
   async scrollTo(x,y){
@@ -421,19 +432,19 @@ class Frame {
     }
 
     // await this._waitUntilElement(selector)
-    var {x, y, width, height, ww, wh} = await this._getElementPos(selector)
-    console.log(x, y, width, height)
-
-    let absX = Math.round(x + width / 2)
-    let absY = Math.round(y + height / 2)
-    const scrollX = Math.max(0, Math.round(absX - ww / 2))
-    const scrollY = Math.max(0, Math.round(absY - wh / 2))
-    console.log(absX, absY, scrollX, scrollY)
-    const {currentX, currentY} = await this._scrollPos(scrollX, scrollY)
+    // var {x, y, width, height, ww, wh} = await this._getElementPos(selector)
+    // console.log(x, y, width, height)
+    //
+    // let absX = Math.round(x + width / 2)
+    // let absY = Math.round(y + height / 2)
+    // const scrollX = Math.max(0, Math.round(absX - ww / 2))
+    // const scrollY = Math.max(0, Math.round(absY - wh / 2))
+    // console.log(absX, absY, scrollX, scrollY)
+    const {currentX, currentY} = await this._scrollPos(selector)
     // await helper.wait(10)
     var {x, y, width, height, ww, wh} = await this._getElementPos(selector)
-    absX = Math.round(x + width / 2)
-    absY = Math.round(y + height / 2)
+    let absX = Math.round(x + width / 2)
+    let absY = Math.round(y + height / 2)
 
     mouseX = absX //- currentX
     mouseY = absY //- currentY
@@ -600,7 +611,6 @@ class Frame {
       const node = isXPath
         ? document.evaluate(selectorOrXPath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue
         : document.querySelector(selectorOrXPath);
-      console.log(333,node)
       if (!node)
         return waitForHidden;
       if (!waitForVisible && !waitForHidden)
@@ -695,14 +705,50 @@ class WaitTask {
     this._cleanup();
   }
 
+  runAndCheckNavigate(func){
+    let finished
+    let preURL = this._frame.url()
+    return new Promise(async resolve=>{
+      const listener = details=>{
+        if(details.tabId == this._frame.tabId){
+          func().then(result=>{
+            finished = true
+            chrome.webNavigation.onBeforeNavigate.removeListener(listener)
+            resolve(result)
+          })
+        }
+      }
+      func().then(result=>{
+        finished = true
+        chrome.webNavigation.onBeforeNavigate.removeListener(listener)
+        resolve(result)
+      })
+      chrome.webNavigation.onBeforeNavigate.addListener(listener)
+      setImmediate(async _=>{
+        while(!this._terminated && !this._cleanuped){
+          await helper.wait(100)
+          const URL = this._frame.url()
+          if(preURL != URL){
+            preURL = URL
+            func().then(result=>{
+              finished = true
+              chrome.webNavigation.onBeforeNavigate.removeListener(listener)
+              resolve(result)
+            })
+          }
+        }
+        chrome.webNavigation.onBeforeNavigate.removeListener(listener)
+      })
+    })
+  }
+
   async rerun() {
     const runCount = ++this._runCount;
     /** @type {?JSHandle} */
     let success = null;
     let error = null;
     try {
-      console.log(43422)
-      success = await this._frame.evaluate(waitForPredicatePageFunction, this._predicateBody, this._polling, this._timeout, ...this._args);
+      success = await this.runAndCheckNavigate(_=>this._frame.evaluateExtContext(waitForPredicatePageFunction, this._predicateBody, this._polling, this._timeout, ...this._args));
     } catch (e) {
       error = e;
     }
@@ -741,6 +787,7 @@ class WaitTask {
     clearTimeout(this._timeoutTimer);
     this._frame._waitTasks.delete(this);
     this._runningTask = null;
+    this._cleanuped = true
   }
 }
 
@@ -751,15 +798,13 @@ class WaitTask {
  * @return {!Promise<*>}
  */
 async function waitForPredicatePageFunction(predicateBody, polling, timeout, ...args) {
-  console.log(434)
   const predicate = new Function('...args', predicateBody);
   let timedOut = false;
-  console.log(437)
   setTimeout(() => timedOut = true, timeout);
-  if (polling === 'raf' || polling === 'mutation')
+  if (polling === 'raf')
     return await pollRaf();
-  // if (polling === 'mutation')
-  //   return await pollMutation();
+  if (polling === 'mutation')
+    return await pollMutation();
   if (typeof polling === 'number')
     return await pollInterval(polling);
 
@@ -798,18 +843,15 @@ async function waitForPredicatePageFunction(predicateBody, polling, timeout, ...
   function pollRaf() {
     let fulfill;
     const result = new Promise(x => fulfill = x);
-    console.log(5435)
     onRaf();
     return result;
 
     function onRaf() {
-      console.log(333)
       if (timedOut) {
         fulfill();
         return;
       }
       const success = predicate.apply(null, args);
-      console.log(444,success)
       if (success)
         fulfill(success);
       else
