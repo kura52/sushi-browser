@@ -157,7 +157,7 @@ sushi-browser --no-sandbox
 
 # New Features
 
-#### New function(v0.150)
+#### New function(v0.15.0)
 - Added browser auto-operation function.<br/> * This is an automatic operation solution like iMacros or Selenium IDE.<br/> It is realized by implementing an API compatible with <a href="https://github.com/GoogleChrome/puppeteer">Puppetter (Headless Chrome Automation)</a> API.<br/> Please refer <a href="https://github.com/kura52/sushi-browser/wiki/Implementation-status-of-Puppetter-APIs">here</a> for the implemented API
 - Fixed Bookmark and Favicon Import bug.
 - Fixed some bugs.
@@ -165,7 +165,7 @@ sushi-browser --no-sandbox
 - Updated to youtube-dl 2018.04.16
 - Updated to infernojs 5.0.4
 
-#### New function(v0.15.0)
+#### New function(v0.14.6)
 - Added setting that Clear the history data types when I close Browser
 - Fixed Adblock bug.
 - Fixed a lot of bugs.
