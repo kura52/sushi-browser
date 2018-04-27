@@ -1356,7 +1356,7 @@ ipcMain.on('print-to-pdf',(e,key,tabId,savePath,options)=>{
     savePath = path.join(app.getPath('desktop'),savePath)
   }
 
-  if(!cont.isDestroyed()) cont.printToPDF(options, (error, data) => {
+  if(cont && !cont.isDestroyed()) cont.printToPDF(options, (error, data) => {
     fs.writeFile(savePath, data, (error) => {
       e.sender.send(`print-to-pdf-reply_${key}`)
     })
@@ -1396,8 +1396,9 @@ ipcMain.on('screen-shot',(e,{full,type,rect,tabId,tabKey,quality=92,savePath,aut
 
   if(full || (e.sender.hostWebContents && rect)){
     const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
-    cont.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',
-      `(function(){
+    if(cont && !cont.isDestroyed()){
+      cont.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',
+        `(function(){
           const d = document.body,dd = document.documentElement,
           width = Math.max(d.scrollWidth, d.offsetWidth, dd.clientWidth, dd.scrollWidth, dd.offsetWidth),
           height = Math.max(d.scrollHeight, d.offsetHeight, dd.clientHeight, dd.scrollHeight, dd.offsetHeight);
@@ -1405,23 +1406,25 @@ ipcMain.on('screen-shot',(e,{full,type,rect,tabId,tabKey,quality=92,savePath,aut
           d.style.overflow = 'hidden'
           return {width,height}
         })()`, {},(err, url, result)=>{
-        const key = Math.random().toString()
-        cont.hostWebContents.send('webview-size-change',tabKey,key,`${result[0].width}px`,`${result[0].height}px`,true)
-        ipcMain.once(`webview-size-change-reply_${key}`,(e)=>{
-          cont.capturePage(rect || {x:0,y:0,width:scaling(result[0].width),height:scaling(result[0].height) },capture.bind(this,_=>{
-            cont.hostWebContents.send('webview-size-change',tabKey,key,'100%','100%')
-            cont.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',
-              `(function(){
+          const key = Math.random().toString()
+          cont.hostWebContents.send('webview-size-change',tabKey,key,`${result[0].width}px`,`${result[0].height}px`,true)
+          ipcMain.once(`webview-size-change-reply_${key}`,(e)=>{
+            cont.capturePage(rect || {x:0,y:0,width:scaling(result[0].width),height:scaling(result[0].height) },capture.bind(this,_=>{
+              cont.hostWebContents.send('webview-size-change',tabKey,key,'100%','100%')
+              cont.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',
+                `(function(){
           document.body.style.overflow = document.body.dataset.overflow || null
         })()`, {},(err, url, result)=>{})
-          }))
+            }))
+          })
         })
-      })
+    }
   }
   else{
     const args = [capture.bind(this,null)]
     if(rect) args.unshift(rect)
-    ;(e.sender.hostWebContents ? (sharedState[tabId] || webContents.fromTabID(tabId)) : e.sender).capturePage(...args)
+    const cont = (e.sender.hostWebContents ? (sharedState[tabId] || webContents.fromTabID(tabId)) : e.sender)
+    if(cont && !cont.isDestroyed()) cont.capturePage(...args)
   }
 })
 
@@ -1455,9 +1458,7 @@ ipcMain.on('get-isMaximized',e=>{
 
 ipcMain.on('set-audio-muted',(e,tabId,val)=>{
   const cont = webContents.fromTabID(tabId)
-  if(cont){
-    cont.setAudioMuted(val)
-  }
+  if(cont && !cont.isDestroyed()) cont.setAudioMuted(val)
 })
 
 ipcMain.on('get-automation',async e=>{
