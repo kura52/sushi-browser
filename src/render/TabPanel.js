@@ -366,9 +366,10 @@ export default class TabPanel extends Component {
           rSession.titles = rSession.titles.split("\t")
         }
         const n_tab = this.createTab({default_url:tab.url || (rSession && rSession.urls[rSession.currentIndex]),privateMode:tab.privateMode,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,guestInstanceId: tab.guestInstanceId,rest:{rSession}})
-        if(tab.protect){
+        if(tab.lock){
           const id = setInterval(_=>{
             if(n_tab.wvId){
+              mainState.add('lockTabs',n_tab.wvId,1)
               exeScript(n_tab.wv, void 0, ()=> {
                 for (let link of document.querySelectorAll('a:not([target="_blank"])')) {
                   if (link.href == "") {
@@ -967,9 +968,10 @@ export default class TabPanel extends Component {
     menuItems.push(({
       label: locale.translation("pasteAndGo"), click: function () {
         var location = clipboard.readText()
+        const newTab = addressBarNewTab || tab.lock
         if(urlutil.isURL(location)){
           const url = urlutil.getUrlFromInput(location)
-          if(addressBarNewTab){
+          if(newTab){
             tab.events['new-tab']({}, tab.wvId,url,tab.privateMode)
           }
           else{
@@ -978,7 +980,7 @@ export default class TabPanel extends Component {
           }
         }
         else{
-          self.search(tab, location,false, addressBarNewTab)
+          self.search(tab, location,false, newTab)
         }
       }
     }))
