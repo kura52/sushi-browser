@@ -63,7 +63,7 @@ importer.on('add-history-page', async (e, hist, visitSource) => {
   console.log("history-start")
   for (let i = 0; i < hist.length; ++i) {
     if(await history.findOne({location:hist[i].url})){}
-    else{
+    else{nit
       await history.insert({
         location: hist[i].url,
         title: hist[i].title,
@@ -242,7 +242,20 @@ importer.on('add-keywords', (e, templateUrls, uniqueOnHostAndPath) => {
 importer.on('add-autofill-form-data-entries', (e, detail) => {
 })
 
+const shouldSkipCookie = (cookie) => {
+  // Bypassing cookie mismatch error in
+  // https://github.com/brave/browser-laptop/issues/11401
+  const googleDomain = /^.*\.google.com(\..+)*$/
+  if (cookie.domain.match(googleDomain) &&
+    ['OSID', 'LSID', 'SIDCC'].includes(cookie.name)) {
+    return true
+  }
+  return false
+}
+module.exports.shouldSkipCookie = shouldSkipCookie
+
 importer.on('add-cookies', (e, cookies) => {
+  console.log("cookies-start")
   for (let i = 0; i < cookies.length; ++i) {
     const cookie = {
       url: cookies[i].url,
@@ -254,10 +267,14 @@ importer.on('add-cookies', (e, cookies) => {
       httpOnly: cookies[i].httponly,
       expirationDate: cookies[i].expiry_date
     }
+    if (shouldSkipCookie(cookie)) {
+      continue
+    }
     session.defaultSession.cookies.set(cookie, (error) => {
       if (error) console.error(error)
     })
   }
+  console.log("cookies-end")
 })
 
 

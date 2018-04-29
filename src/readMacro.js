@@ -36,5 +36,9 @@ export default {
   },
   readTargetSelectorOff(){
     return fs.readFileSync(path.join(__dirname,"../resource/extension/default/1.0_0/js/TargetSelectorOff.js").replace(/app.asar([\/\\])/,'app.asar.unpacked$1')).toString()
+  },
+  readComplexSearch(){
+    return fs.readFileSync(path.join(__dirname,"../resource/SearchFunction.js")).toString()
+
   }
 }

@@ -91,7 +91,7 @@ function BrowserNavbarBtn(props){
   return <a href="javascript:void(0)" onContextMenu={props.onContextMenu} style={props.style} className={`${props.className||''} draggable-source ${props.disabled?'disabled':''} ${props.sync ? 'sync' : ''}`} title={props.title} onClick={props.onClick}><i style={props.styleFont} className={`fa fa-${props.icon}`}/>{props.children}</a>
 }
 
-let [alwaysOnTop,multistageTabs,verticalTab,{left,right,backSide},orderOfAutoComplete,numOfSuggestion,numOfHistory,displayFullIcon,addressBarNewTab,historyBadget] = ipc.sendSync('get-sync-main-states',['alwaysOnTop','multistageTabs','verticalTab','navbarItems','orderOfAutoComplete','numOfSuggestion','numOfHistory','displayFullIcon','addressBarNewTab','historyBadget'])
+let [alwaysOnTop,multistageTabs,verticalTab,{left,right,backSide},orderOfAutoComplete,numOfSuggestion,numOfHistory,displayFullIcon,addressBarNewTab,historyBadget,versions] = ipc.sendSync('get-sync-main-states',['alwaysOnTop','multistageTabs','verticalTab','navbarItems','orderOfAutoComplete','numOfSuggestion','numOfHistory','displayFullIcon','addressBarNewTab','historyBadget','versions'])
 numOfSuggestion = parseInt(numOfSuggestion), numOfHistory = parseInt(numOfHistory)
 
 
@@ -312,9 +312,9 @@ class BrowserNavbar extends Component{
         this.props.tab.rSession.currentIndex = currentIndex
       }
       if(!(this.state.currentIndex === currentIndex &&
-          equalArray2(this.state.historyList,historyList) &&
-          equalArray(this.state.disableExtensions,disableExtensions) &&
-          this.state.pdfMode == pdfMode)){
+        equalArray2(this.state.historyList,historyList) &&
+        equalArray(this.state.disableExtensions,disableExtensions) &&
+        this.state.pdfMode == pdfMode)){
         this.setState({currentIndex,historyList,disableExtensions,pdfMode})
       }
       if(this.props.adBlockEnable != adBlockGlobal) PubSub.publish('set-adblock-enable',adBlockGlobal)
@@ -591,7 +591,6 @@ class BrowserNavbar extends Component{
       <div className="divider" />
       <NavbarMenuItem text={this.props.toggleNav == 0 ? 'OneLine Menu(ALL)' : 'Normal Menu(ALL)'} icon='ellipsis horizontal'
                       onClick={()=>{cont.hostWebContents.send('toggle-nav',this.props.toggleNav == 0 ? 1 : 0);this.setState({})}}/>
-      <NavbarMenuItem text={this.props.toggleNav == 0 ? 'OneLine Menu' : 'Normal Menu'} icon='ellipsis horizontal' onClick={()=>{this.props.parent.toggleNavPanel(this.props.toggleNav == 0 ? 1 : 0);this.setState({})}}/>
       {this.props.toggleNav == 0 ? <NavbarMenuItem text={multistageTabs ? 'Disable Multi Row Tabs' : 'Enable Multi Row Tabs'} icon='table'
                                                    onClick={()=>{
                                                      ipc.send('save-state',{tableName:'state',key:'multistageTabs',val:!multistageTabs})
@@ -609,7 +608,13 @@ class BrowserNavbar extends Component{
         this.setState({})
       }}/>
       {isDarwin ? null :<NavbarMenuItem text='Bind Selected Window' icon='crosshairs' onClick={_=>this.bindWindow()}/>}
-      <div className="divider" />
+      <NavbarMenuItem text={`Search Highlight ${sharedState.searchWordHighlight ? 'OFF' : 'ON'}`} icon='asterisk' onClick={_=>{
+        sharedState.searchWordHighlight = !sharedState.searchWordHighlight
+        ipc.send('search-word-highlight',sharedState.searchWordHighlight)
+        this.props.searchWordHighlight(this.props.tab)
+        this.refs['main-menu'].menuClose()
+      }}/>     <div className="divider" />
+
 
       <NavbarMenuItem icon='zoom out' className='zoom-out' onClick={::this.onZoomOut} keepVisible={true} />
       <NavbarMenuItem icon='zoom in' className='zoom-in' onClick={::this.onZoomIn} keepVisible={true} />
@@ -622,6 +627,7 @@ class BrowserNavbar extends Component{
       <div className="divider" />
 
       <NavbarMenuSubMenu icon="browser" text="Window SubMenu">
+        <NavbarMenuItem text={this.props.toggleNav == 0 ? 'OneLine Menu' : 'Normal Menu'} icon='ellipsis horizontal' onClick={()=>{this.props.parent.toggleNavPanel(this.props.toggleNav == 0 ? 1 : 0);this.setState({})}}/>
         <NavbarMenuItem text='Detach This Panel' icon='space shuttle' onClick={_=>{this.props.parent.detachPanel();this.refs['main-menu'].menuClose()}}/>
         <NavbarMenuItem text='Panels to Windows' icon='cubes' onClick={_=>{PubSub.publish('all-detach');this.refs['main-menu'].menuClose()}}/>
         {isDarwin ? null :<NavbarMenuItem text={this.props.toggleNav == 3 ? 'Normal Screen Mode' : 'Full Screen Mode'} icon={this.props.toggleNav == 3 ? 'compress' : 'expand'}
@@ -634,6 +640,7 @@ class BrowserNavbar extends Component{
         }/> : null}
         <NavbarMenuItem text={`Open Opposite ${this.props.oppositeGlobal ? 'OFF' : 'ON'}`} icon='columns' onClick={_=>{this.handleOppositeGlobal();this.refs['main-menu'].menuClose()}}/>
         <NavbarMenuItem text={ sharedState.notLoadTabUntilSelected ? "Always load tabs": "Don't load tabs untill selected"} onClick={_=>{this.loadTabSetting();this.refs['main-menu'].menuClose()}}/>
+        <div className="divider" />
         <NavbarMenuItem text='Extract Audio from Video' icon='music' onClick={_=>{ipc.send('audio-extract');this.refs['main-menu'].menuClose()}}/>
         <NavbarMenuItem text={`Change Pdf View to ${this.state.pdfMode == 'normal' ? 'Comic' : 'Normal'}`} icon='file pdf outline' onClick={_=>{this.handlePdfMode();this.refs['main-menu'].menuClose()}}/>
         <NavbarMenuItem text='Sync Datas' icon='exchange' onClick={()=>{ipc.send("start-sync",this.props.k);this.refs['main-menu'].menuClose()}}/>
@@ -641,13 +648,21 @@ class BrowserNavbar extends Component{
       <div className="divider" />
 
 
-      <NavbarMenuItem text={locale.translation("settings").replace('…','')} icon='settings' onClick={()=>this.onCommon("settings")}/>
       <NavbarMenuItem text={locale.translation("print").replace('…','')} icon='print' onClick={()=>this.getWebContents(this.props.tab).print()}/>
+      <NavbarMenuItem text={locale.translation("search")} icon='search' onClick={()=>ipc.emit('menu-or-key-events',null,'findOnPage',this.props.tab.wvId)}/>
+      <NavbarMenuItem text={locale.translation("settings").replace('…','')} icon='settings' onClick={()=>this.onCommon("settings")}/>
       <NavbarMenuItem text={locale.translation("toggleDeveloperTools")} icon='bug' onClick={()=>this.getWebContents(this.props.tab).openDevTools()}/>
       <div className="divider" />
 
       <NavbarMenuItem text='Close This Panel' icon='close' onClick={()=>PubSub.publish(`close-panel_${this.props.k}`)}/>
       <NavbarMenuItem text={locale.translation("closeWindow")} icon='remove circle' onClick={MenuOperation.windowClose}/>
+
+      <div className="divider" />
+      <NavbarMenuSubMenu text="About">
+        <NavbarMenuItem text={`Browser Version: ${versions.browser}`} onClick={_=>this.navigate('https://sushib.me/download.html')}/>
+        <NavbarMenuItem text={`Chromium Version: ${versions.chrome}`} onClick={_=>this.navigate('https://github.com/chromium/chromium/releases')}/>
+        <NavbarMenuItem text={`Muon Version: ${versions.Brave}`} onClick={_=>this.navigate('https://sushib.me/download.html')}/>
+      </NavbarMenuSubMenu>
     </NavbarMenu>
   }
 
@@ -822,14 +837,14 @@ class BrowserNavbar extends Component{
               const url = e.url
               const m3u8 = e.fname.endsWith('.m3u8')
               return <div role="option" className="item" key={i} value={i} icon={e.type == "audio" ? "music" : e.type }
-                                    onClick={()=>{
-                                      if(m3u8){
-                                        ipc.send('download-m3u8',url,e.fname,this.props.tab.wvId)
-                                      }
-                                      else{
-                                        this.onMediaDownload(url,e.fname)
-                                      }
-                                    }}>
+                          onClick={()=>{
+                            if(m3u8){
+                              ipc.send('download-m3u8',url,e.fname,this.props.tab.wvId)
+                            }
+                            else{
+                              this.onMediaDownload(url,e.fname)
+                            }
+                          }}>
                 {`${e.fname}  ${e.size ? this.getAppropriateByteUnit(e.size).join("") : ""}`}
                 {m3u8 ? null : <button className="play-btn" title="Play Video" onClick={e=>{
                   e.stopPropagation()

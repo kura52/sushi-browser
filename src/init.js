@@ -22,6 +22,7 @@ import {getFocusedWebContents, getCurrentWindow} from './util'
 const open = require('./open')
 const sharedState = require('./sharedStateMain')
 const defaultConf = require('./defaultConf')
+const urlutil = require('./render/urlutil')
 let adblock,httpsEverywhere,trackingProtection,extensions,videoProcessList = []
 
 // process.on('unhandledRejection', console.dir);
@@ -967,10 +968,14 @@ function contextMenu(webContents) {
       }
       if(mainState.contextMenuSearchEngines.length == 0){
         const type = mainState.searchProviders[mainState.searchEngine].type
+        const isURLGo = !type && urlutil.isURL(text)
         for(let suffix of type ? [''] : mainState.oppositeGlobal ? ['(o)','(c)'] : ['(c)','(o)']){
+          const label = isURLGo ? locale.translation('2948300991547862301').replace(/<ph name="PAGE_TITLE">/,text).replace(/<\/ph>/,'') :
+            locale.translation('openSearch').replace(/{{\s*selectedVariable\s*}}/, text.length > 20 ? `${text.substr(0, 20)}...` : text)
           menuItems.push({
-            t: 'openSearch', label: locale.translation('openSearch').replace(/{{\s*selectedVariable\s*}}/, text.length > 20 ? `${text.substr(0, 20)}...` : text) + suffix,
-            click: (item, win) => win.webContents.send('search-text', webContents.getId(), text,suffix == '(o)')
+            t: 'openSearch', label: label + suffix,
+            click: (item, win) =>  win.webContents.send(isURLGo ? suffix == '(o)' ? 'new-tab-opposite' : 'new-tab' : 'search-text',
+              webContents.getId(), isURLGo ? urlutil.getUrlFromInput(text) : text ,suffix == '(o)')
           })
         }
       }
@@ -984,10 +989,14 @@ function contextMenu(webContents) {
             searchShortcut = `${shortcut} `
           }
           const type = mainState.searchProviders[engine].type
+          const isURLGo = !type && urlutil.isURL(text)
           for(let suffix of type ? [''] : mainState.oppositeGlobal ? ['(o)','(c)'] : ['(c)','(o)']){
+            const label = isURLGo ? locale.translation('2948300991547862301').replace(/<ph name="PAGE_TITLE">/,text).replace(/<\/ph>/,'') :
+              locale.translation('openSearch').replace(/{{\s*selectedVariable\s*}}/, text.length > 20 ? `${text.substr(0, 20)}...` : text)
             menuItems.push({
-              t: 'openSearch', label: labelShortcut + locale.translation('openSearch').replace(/{{\s*selectedVariable\s*}}/, text.length > 20 ? `${text.substr(0, 20)}...` : text) + suffix,
-              click: (item, win) =>  win.webContents.send('search-text', webContents.getId(), `${searchShortcut}${text}`,suffix == '(o)')
+              t: 'openSearch', label: label + suffix,
+              click: (item, win) =>  win.webContents.send(isURLGo ? suffix == '(o)' ? 'new-tab-opposite' : 'new-tab' : 'search-text',
+                webContents.getId(), isURLGo ? urlutil.getUrlFromInput(text) : text ,suffix == '(o)')
             })
           }
         }

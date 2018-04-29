@@ -17035,7 +17035,7 @@ function cloneVNode(vNodeToClone, props) {
         newVNode = Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["g" /* createVNode */])(flags, vNodeToClone.type, className, null, 1 /* HasInvalidChildren */, combineFrom(vNodeToClone.props, props), key, ref);
     }
     else if (flags & 16 /* Text */) {
-        newVNode = Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["f" /* createTextVNode */])(vNodeToClone.children);
+        return Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["f" /* createTextVNode */])(props ? props.children : vNodeToClone.children);
     }
     return Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["m" /* normalizeProps */])(newVNode);
 }
@@ -34585,8 +34585,9 @@ function patchText(lastVNode, nextVNode, parentDom) {
 function patchNonKeyedChildren(lastChildren, nextChildren, dom, lifecycle, context, isSVG, lastChildrenLength, nextChildrenLength) {
     var commonLength = lastChildrenLength > nextChildrenLength ? nextChildrenLength : lastChildrenLength;
     var i = 0;
+    var nextChild;
     for (; i < commonLength; i++) {
-        var nextChild = nextChildren[i];
+        nextChild = nextChildren[i];
         if (nextChild.dom) {
             nextChild = nextChildren[i] = directClone(nextChild);
         }
@@ -34594,11 +34595,11 @@ function patchNonKeyedChildren(lastChildren, nextChildren, dom, lifecycle, conte
     }
     if (lastChildrenLength < nextChildrenLength) {
         for (i = commonLength; i < nextChildrenLength; i++) {
-            var nextChild$1 = nextChildren[i];
-            if (nextChild$1.dom) {
-                nextChild$1 = nextChildren[i] = directClone(nextChild$1);
+            nextChild = nextChildren[i];
+            if (nextChild.dom) {
+                nextChild = nextChildren[i] = directClone(nextChild);
             }
-            mount(nextChild$1, dom, lifecycle, context, isSVG);
+            mount(nextChild, dom, lifecycle, context, isSVG);
         }
     }
     else if (lastChildrenLength > nextChildrenLength) {
@@ -34674,9 +34675,9 @@ function patchKeyedChildren(a, b, dom, lifecycle, context, isSVG, aLength, bLeng
     else {
         var aLeft = aEnd - aStart + 1;
         var bLeft = bEnd - bStart + 1;
-        var sources = new Array(bLeft);
+        var sources = [];
         for (i = 0; i < bLeft; i++) {
-            sources[i] = -1;
+            sources.push(0);
         }
         // Keep track if its possible to remove whole DOM using textContent = '';
         var canRemoveWholeContent = aLeft === aLength;
@@ -34691,7 +34692,7 @@ function patchKeyedChildren(a, b, dom, lifecycle, context, isSVG, aLength, bLeng
                     for (j = bStart; j <= bEnd; j++) {
                         bNode = b[j];
                         if (aNode.key === bNode.key) {
-                            sources[j - bStart] = i;
+                            sources[j - bStart] = i + 1;
                             if (canRemoveWholeContent) {
                                 canRemoveWholeContent = false;
                                 while (i > aStart) {
@@ -34740,7 +34741,7 @@ function patchKeyedChildren(a, b, dom, lifecycle, context, isSVG, aLength, bLeng
                             }
                         }
                         bNode = b[j];
-                        sources[j - bStart] = i;
+                        sources[j - bStart] = i + 1;
                         if (pos > j) {
                             moved = true;
                         }
@@ -34772,7 +34773,7 @@ function patchKeyedChildren(a, b, dom, lifecycle, context, isSVG, aLength, bLeng
                 var seq = lis_algorithm(sources);
                 j = seq.length - 1;
                 for (i = bLeft - 1; i >= 0; i--) {
-                    if (sources[i] === -1) {
+                    if (sources[i] === 0) {
                         pos = i + bStart;
                         bNode = b[pos];
                         if (bNode.dom) {
@@ -34796,7 +34797,7 @@ function patchKeyedChildren(a, b, dom, lifecycle, context, isSVG, aLength, bLeng
                 // when patched count doesn't match b length we need to insert those new ones
                 // loop backwards so we can use insertBefore
                 for (i = bLeft - 1; i >= 0; i--) {
-                    if (sources[i] === -1) {
+                    if (sources[i] === 0) {
                         pos = i + bStart;
                         bNode = b[pos];
                         if (bNode.dom) {
@@ -34822,7 +34823,7 @@ function lis_algorithm(arr) {
     var len = arr.length;
     for (i = 0; i < len; i++) {
         var arrI = arr[i];
-        if (arrI !== -1) {
+        if (arrI !== 0) {
             j = result[result.length - 1];
             if (arr[j] < arrI) {
                 p[i] = j;
@@ -35071,7 +35072,7 @@ var JSX = /*#__PURE__*/Object.freeze({
 
 });
 
-var version = "5.0.1";
+var version = "5.0.4";
 
 
 
@@ -35086,55 +35087,6 @@ var version = "5.0.1";
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-
-let faviconGet = (() => {
-  var _ref = _asyncToGenerator(function* (x) {
-    return x.favicon == "resource/file.png" ? void 0 : x.favicon && (yield _LocalForage2.default.getItem(x.favicon));
-  });
-
-  return function faviconGet(_x) {
-    return _ref.apply(this, arguments);
-  };
-})();
-
-let treeBuild = (() => {
-  var _ref2 = _asyncToGenerator(function* (datas, nodePath) {
-    const newChildren = [];
-    for (let x of datas) {
-      const id = `${nodePath}/${x.key}`;
-      const data = {
-        id,
-        name: x.title,
-        url: x.url,
-        favicon: yield faviconGet(x),
-        // loadOnDemand: !x.is_file,
-        type: x.is_file ? 'file' : 'directory'
-      };
-      if (x.children2) {
-        data.children = yield treeBuild(x.children2, id);
-      }
-      newChildren.push(data);
-    }
-    return newChildren;
-  });
-
-  return function treeBuild(_x2, _x3) {
-    return _ref2.apply(this, arguments);
-  };
-})();
-
-let getAllChildren = (() => {
-  var _ref3 = _asyncToGenerator(function* (nodePath) {
-    const dbKey = _path2.default.basename(nodePath);
-    const ret = yield getAllFavorites([dbKey]);
-    // console.log(treeBuild(ret,nodePath))
-    return (yield treeBuild(ret, ''))[0].children;
-  });
-
-  return function getAllChildren(_x4) {
-    return _ref3.apply(this, arguments);
-  };
-})();
 
 var _process = __webpack_require__(228);
 
@@ -35188,8 +35140,6 @@ var _renderer2 = _interopRequireDefault(_renderer);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
-
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd';
 
 const isMain = location.href.startsWith("chrome://brave/");
@@ -35204,6 +35154,10 @@ if (!isMain) {
       }
     });
   });
+}
+
+async function faviconGet(x) {
+  return x.favicon == "resource/file.png" ? void 0 : x.favicon && (await _LocalForage2.default.getItem(x.favicon));
 }
 
 function escapeRegExp(string) {
@@ -35290,6 +35244,26 @@ function moveFavorite(args) {
   });
 }
 
+async function treeBuild(datas, nodePath) {
+  const newChildren = [];
+  for (let x of datas) {
+    const id = `${nodePath}/${x.key}`;
+    const data = {
+      id,
+      name: x.title,
+      url: x.url,
+      favicon: await faviconGet(x),
+      // loadOnDemand: !x.is_file,
+      type: x.is_file ? 'file' : 'directory'
+    };
+    if (x.children2) {
+      data.children = await treeBuild(x.children2, id);
+    }
+    newChildren.push(data);
+  }
+  return newChildren;
+}
+
 function searchOpenNodes(nodes, set, tree) {
   for (let node of nodes) {
     if (node.type == "directory" && set.has(node.id)) {
@@ -35299,6 +35273,13 @@ function searchOpenNodes(nodes, set, tree) {
       searchOpenNodes(node.children, set, tree);
     }
   }
+}
+
+async function getAllChildren(nodePath) {
+  const dbKey = _path2.default.basename(nodePath);
+  const ret = await getAllFavorites([dbKey]);
+  // console.log(treeBuild(ret,nodePath))
+  return (await treeBuild(ret, ''))[0].children;
 }
 
 let selectedNodes = [];
@@ -35386,27 +35367,21 @@ class App extends _infernoCompat2.default.Component {
     return newDatas;
   }
 
-  onChange(e, data) {
-    var _this = this;
+  async onChange(e, data) {
+    const prevState = await _LocalForage2.default.getItem("favorite-sidebar-open-node");
+    e.preventDefault();
+    if (!treeAllData) return;
+    const regList = [...new Set(escapeRegExp(data.value).split(/[ 　]+/, -1).filter(x => x))];
+    const reg = new RegExp(regList.length > 1 ? `(?=.*${regList.join(")(?=.*")})` : regList[0], "i");
 
-    return _asyncToGenerator(function* () {
-      const prevState = yield _LocalForage2.default.getItem("favorite-sidebar-open-node");
-      e.preventDefault();
-      if (!treeAllData) return;
-      const regList = [...new Set(escapeRegExp(data.value).split(/[ 　]+/, -1).filter(function (x) {
-        return x;
-      }))];
-      const reg = new RegExp(regList.length > 1 ? `(?=.*${regList.join(")(?=.*")})` : regList[0], "i");
+    console.log(reg);
 
-      console.log(reg);
+    const tree = this.refs.content.refs.iTree.tree;
 
-      const tree = _this.refs.content.refs.iTree.tree;
+    const openNodes = prevState ? prevState.split("\t", -1) : void 0;
+    tree.loadData(this.recurNewTreeData(treeAllData, reg), false, openNodes);
 
-      const openNodes = prevState ? prevState.split("\t", -1) : void 0;
-      tree.loadData(_this.recurNewTreeData(treeAllData, reg), false, openNodes);
-
-      _LocalForage2.default.setItem("favorite-sidebar-open-node", prevState);
-    })();
+    _LocalForage2.default.setItem("favorite-sidebar-open-node", prevState);
   }
 
   render() {
@@ -35445,6 +35420,7 @@ class App extends _infernoCompat2.default.Component {
             _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/explorer.html`, key: 'file-explorer', name: 'File Explorer' }),
             _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/terminal.html`, key: 'terminal', name: 'Terminal' }),
             _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/settings.html`, key: 'settings', name: l10n.translation('settings') }),
+            _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/automation.html`, key: 'automation', name: 'Automation' }),
             _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/converter.html`, key: 'converter', name: 'Video Converter' })
           ),
           _infernoCompat2.default.createElement(_semanticUiReact.Input, { ref: 'input', icon: 'search', placeholder: 'Search...', size: 'small', onChange: this.onChange.bind(this) })
@@ -35468,28 +35444,22 @@ class Contents extends _infernoCompat2.default.Component {
     console.log(node);
   }
 
-  loadAllData() {
-    var _this2 = this;
+  async loadAllData() {
+    const prevState = this.prevState || (await _LocalForage2.default.getItem("favorite-sidebar-open-node"));
+    this.prevState = void 0;
+    getAllChildren('root').then(data => {
+      console.log(data);
+      treeAllData = data;
 
-    return _asyncToGenerator(function* () {
-      const prevState = _this2.prevState || (yield _LocalForage2.default.getItem("favorite-sidebar-open-node"));
-      _this2.prevState = void 0;
-      getAllChildren('root').then(function (data) {
-        console.log(data);
-        treeAllData = data;
-
-        _LocalForage2.default.setItem("favorite-sidebar-open-node", prevState);
-        const openNodes = prevState ? prevState.split("\t", -1) : void 0;
-        const tree = _this2.refs.iTree.tree;
-        if (tree) {
-          tree.loadData(data, false, openNodes);
-        } else {
-          setTimeout(function (_) {
-            return tree.loadData(data, false, openNodes);
-          }, 100);
-        }
-      });
-    })();
+      _LocalForage2.default.setItem("favorite-sidebar-open-node", prevState);
+      const openNodes = prevState ? prevState.split("\t", -1) : void 0;
+      const tree = this.refs.iTree.tree;
+      if (tree) {
+        tree.loadData(data, false, openNodes);
+      } else {
+        setTimeout(_ => tree.loadData(data, false, openNodes), 100);
+      }
+    });
   }
 
   componentDidMount() {
@@ -35580,7 +35550,6 @@ class Contents extends _infernoCompat2.default.Component {
   }
 
   initDragEvents() {
-    var _this3 = this;
 
     const tree = this.refs.iTree.tree;
     let currentElement, dragImage;
@@ -35623,79 +35592,73 @@ class Contents extends _infernoCompat2.default.Component {
     };
     document.addEventListener('dragstart', this.onDragStart);
 
-    this.onDragEnd = (() => {
-      var _ref4 = _asyncToGenerator(function* (e) {
-        if (currentElement) {
-          console.log('dragend');
+    this.onDragEnd = async e => {
+      if (currentElement) {
+        console.log('dragend');
 
-          const tree = _this3.refs.iTree.tree;
-          const dropElement = currentElement;
-          let dropNode = tree.getNodeById(currentElement.dataset.id);
+        const tree = this.refs.iTree.tree;
+        const dropElement = currentElement;
+        let dropNode = tree.getNodeById(currentElement.dataset.id);
 
-          const dragNode = tree.getNodeById(e.target.dataset.id);
+        const dragNode = tree.getNodeById(e.target.dataset.id);
 
-          const dropClassList = dropElement.classList;
+        const dropClassList = dropElement.classList;
 
-          let newDirectory, next;
-          if (dropClassList.contains('folder-item')) {
-            newDirectory = _this3.getKey(dropNode);
-            dropNode = void 0;
-          } else if (dropClassList.contains('top-overlap')) {
-            newDirectory = _this3.getKey(dropNode, 2);
-            const treePrev = dropNode.getPreviousSibling();
-            if (treePrev) {
-              dropNode = treePrev;
-            } else {
-              const prev = dropElement.previousSibling;
-              if (prev) {
-                dropNode = tree.getNodeById(prev.dataset.id);
-              } else {
-                dropNode = tree.getRootNode();
-              }
-            }
-          } else if (!dropClassList.contains('middle') && dropElement.getElementsByClassName('folder-open').length !== 0 && dropNode.hasChildren()) {
-            newDirectory = _this3.getKey(dropNode);
-          } else if (next = dropElement.nextSibling) {
-            dropNode = tree.getNodeById(next.dataset.id);
-            newDirectory = _this3.getKey(dropNode, 2);
-            dropNode = dropNode.getPreviousSibling() || tree.getRootNode();
+        let newDirectory, next;
+        if (dropClassList.contains('folder-item')) {
+          newDirectory = this.getKey(dropNode);
+          dropNode = void 0;
+        } else if (dropClassList.contains('top-overlap')) {
+          newDirectory = this.getKey(dropNode, 2);
+          const treePrev = dropNode.getPreviousSibling();
+          if (treePrev) {
+            dropNode = treePrev;
           } else {
-            newDirectory = 'root';
-            dropNode = tree.getRootNode().getLastChild();
+            const prev = dropElement.previousSibling;
+            if (prev) {
+              dropNode = tree.getNodeById(prev.dataset.id);
+            } else {
+              dropNode = tree.getRootNode();
+            }
           }
-
-          const dropKey = dropNode && _this3.getKey(dropNode);
-          const nodesNotHaveParent = _this3.rejectKeysHaveParent([...new Set([dragNode, ...selectedNodes])]);
-
-          const renameArgs = [];
-          for (let node of nodesNotHaveParent) {
-            const [dragKey, oldDirectory] = node.id.split('/').slice(-2).reverse();
-            if (dragKey === dropKey) continue;
-            renameArgs.push([dragKey, oldDirectory, newDirectory, dropKey]);
-          }
-          console.log('renameArgs', renameArgs);
-          if (renameArgs.length > 0) {
-            _this3.prevState = yield _LocalForage2.default.getItem("favorite-sidebar-open-node");
-            moveFavorite(renameArgs).then(function (_) {
-              if (isMain) _this3.eventUpdateDatas();
-            });
-          }
-
-          currentElement.className = `infinite-tree-item${currentElement.classList.contains('infinite-tree-selected') ? ' infinite-tree-selected' : ''}`;
-          if (currentElement.previousSibling) currentElement.previousSibling.classList.remove('bottom-previous-sibling-overlap');
-          if (currentElement.nextSibling) currentElement.nextSibling.classList.remove('top-next-sibling-overlap');
-          currentElement = void 0;
+        } else if (!dropClassList.contains('middle') && dropElement.getElementsByClassName('folder-open').length !== 0 && dropNode.hasChildren()) {
+          newDirectory = this.getKey(dropNode);
+        } else if (next = dropElement.nextSibling) {
+          dropNode = tree.getNodeById(next.dataset.id);
+          newDirectory = this.getKey(dropNode, 2);
+          dropNode = dropNode.getPreviousSibling() || tree.getRootNode();
+        } else {
+          newDirectory = 'root';
+          dropNode = tree.getRootNode().getLastChild();
         }
-        if (dragImage) {
-          document.body.removeChild(dragImage);
-          dragImage = void 0;
-        }
-      });
 
-      return function (_x5) {
-        return _ref4.apply(this, arguments);
-      };
-    })();
+        const dropKey = dropNode && this.getKey(dropNode);
+        const nodesNotHaveParent = this.rejectKeysHaveParent([...new Set([dragNode, ...selectedNodes])]);
+
+        const renameArgs = [];
+        for (let node of nodesNotHaveParent) {
+          const [dragKey, oldDirectory] = node.id.split('/').slice(-2).reverse();
+          if (dragKey === dropKey) continue;
+          renameArgs.push([dragKey, oldDirectory, newDirectory, dropKey]);
+        }
+        console.log('renameArgs', renameArgs);
+        if (renameArgs.length > 0) {
+          this.prevState = await _LocalForage2.default.getItem("favorite-sidebar-open-node");
+          moveFavorite(renameArgs).then(_ => {
+            if (isMain) this.eventUpdateDatas();
+          });
+        }
+
+        currentElement.className = `infinite-tree-item${currentElement.classList.contains('infinite-tree-selected') ? ' infinite-tree-selected' : ''}`;
+        if (currentElement.previousSibling) currentElement.previousSibling.classList.remove('bottom-previous-sibling-overlap');
+        if (currentElement.nextSibling) currentElement.nextSibling.classList.remove('top-next-sibling-overlap');
+        currentElement = void 0;
+      }
+      if (dragImage) {
+        document.body.removeChild(dragImage);
+        dragImage = void 0;
+      }
+    };
     document.addEventListener('dragend', this.onDragEnd);
 
     this.onDragOver = e => {
@@ -57803,7 +57766,7 @@ function getElementType(Component, props, getDefault) {
   // ----------------------------------------
   // user defined "as" element type
 
-  if (props.as && props.as !== (defaultProps && (defaultProps && (defaultProps && (defaultProps && defaultProps.as))))) return props.as;
+  if (props.as && props.as !== (defaultProps && (defaultProps && defaultProps.as))) return props.as;
 
   // ----------------------------------------
   // computed default element type
@@ -57821,7 +57784,7 @@ function getElementType(Component, props, getDefault) {
   // ----------------------------------------
   // use defaultProp or 'div'
 
-  return (defaultProps && (defaultProps && (defaultProps && (defaultProps && defaultProps.as)))) || 'div';
+  return (defaultProps && (defaultProps && defaultProps.as)) || 'div';
 }
 
 /* harmony default export */ __webpack_exports__["a"] = (getElementType);
@@ -60684,7 +60647,7 @@ var Dropdown = function (_Component) {
 
       e.stopPropagation();
       // prevent closeOnDocumentClick() if multiple or item is disabled
-      if (multiple || item.disabled) ((((e.nativeEvent || e) || e) || e) || e).stopImmediatePropagation();
+      if (multiple || item.disabled) e.nativeEvent.stopImmediatePropagation();
       if (item.disabled) return;
 
       var isAdditionItem = item['data-additional'];
@@ -66867,7 +66830,7 @@ var Search = function (_Component) {
     }, _this.handleInputClick = function (e) {
 
       // prevent closeOnDocumentClick()
-      ((((e.nativeEvent || e) || e) || e) || e).stopImmediatePropagation();
+      e.nativeEvent.stopImmediatePropagation();
 
       _this.tryOpen();
     }, _this.handleItemClick = function (e, _ref2) {
@@ -66876,7 +66839,7 @@ var Search = function (_Component) {
       var result = _this.getSelectedResult(id);
 
       // prevent closeOnDocumentClick()
-      ((((e.nativeEvent || e) || e) || e) || e).stopImmediatePropagation();
+      e.nativeEvent.stopImmediatePropagation();
 
       // notify the onResultSelect prop that the user is trying to change value
       _this.setValue(result.title);
@@ -71446,19 +71409,19 @@ function escapeText(text) {
     var i;
     for (i = 0; i < text.length; i++) {
         switch (text.charCodeAt(i)) {
-            case 34:// "
+            case 34: // "
                 escape = '&quot;';
                 break;
-            case 39:// '
+            case 39: // '
                 escape = '&#039;';
                 break;
-            case 38:// &
+            case 38: // &
                 escape = '&amp;';
                 break;
-            case 60:// <
+            case 60: // <
                 escape = '&lt;';
                 break;
-            case 62:// >
+            case 62: // >
                 escape = '&gt;';
                 break;
             default:
@@ -72334,7 +72297,7 @@ var rendererIdentifiers = function () {
   'default', 'name', 'searchEngine', 'searchEngines', 'engineGoKey', 'general', 'generalSettings', 'search', 'tabs', 'extensions', 'myHomepage', 'startsWith', 'startsWithOptionLastTime', 'newTabMode', 'newTabEmpty', 'import', 'bn-BD', 'bn-IN', 'zh-CN', 'cs', 'nl-NL', 'en-US', 'fr-FR', 'de-DE', 'hi-IN', 'id-ID', 'it-IT', 'ja-JP', 'ko-KR', 'ms-MY', 'pl-PL', 'pt-BR', 'ru', 'sl', 'es', 'ta', 'te', 'tr-TR', 'uk', 'requiresRestart', 'enableFlash', 'startsWithOptionHomePage', 'updateAvail', 'notNow', 'makeBraveDefault', 'saveToPocketDesc', 'minimumPageTimeLow', 'paintTabs',
 
   //chrome
-  '994289308992179865', '1725149567830788547', '4643612240819915418', '4256316378292851214', '2019718679933488176', '782057141565633384', '5116628073786783676', '1465176863081977902', '3007771295016901659', '5078638979202084724', '4589268276914962177', '3551320343578183772', '2448312741937722512', '1524430321211440688', '42126664696688958', '2663302507110284145', '3635030235490426869', '4888510611625056742', '5860209693144823476', '5846929185714966548', '7955383984025963790', '3128230619496333808', '3391716558283801616', '6606070663386660533', '9011178328451474963', '9065203028668620118', '2473195200299095979', '1047431265488717055', '9218430445555521422', '8926389886865778422', '2893168226686371498', '4289540628985791613', '3095995014811312755', '59174027418879706', '6550675742724504774', '5453029940327926427', '4989966318180235467', '6326175484149238433', '9147392381910171771', '8260864402787962391', '8477384620836102176', '7701040980221191251', '6146563240635539929', '8026334261755873520', '1375321115329958930', '5513242761114685513', '5582839680698949063', '5317780077021120954', '8986267729801483565', '5431318178759467895', '7853747251428735', 'playOrPause', 'frameStep', 'frameBackStep', 'rewind1', 'rewind2', 'forward1', 'forward2', 'rewind3', 'forward3', 'normalSpeed', 'halveSpeed', 'doubleSpeed', 'decSpeed', 'incSpeed', 'fullscreen', 'exitFullscreen', 'mute', 'decreaseVolume', 'increaseVolume', 'incZoom', 'decZoom', 'resetZoom', 'plRepeat', 'mediaSeeking', 'volumeControl', 'changeSpeed', 'mouseWheelFunctions', 'reverseWheelMediaSeeking', 'noScriptPref', 'blockCanvasFingerprinting', 'browsingHistory', 'downloadHistory', 'cachedImagesAndFiles', 'allSiteCookies', 'autocompleteData', 'autofillData', 'clearBrowsingDataNow', 'tabSettings', 'alwaysOnTop', 'neverOnTop', 'privateData', 'privateDataMessage', 'closeAllTabsMenuLabel', 'openalllinksLabel', 'clicktabCopyTabUrl', 'clicktabCopyUrlFromClipboard', 'clicktabReloadtabs', 'clicktabReloadothertabs', 'clicktabReloadlefttabs', 'clicktabReloadrighttabs', 'autoReloadTabLabel', 'clicktabUcatab', 'secondsLabel', 'minuteLabel', 'minutesLabel', 'generalWindowOpenLabel', 'linkTargetTab', 'linkTargetWindow', 'openDuplicateNextLabel', 'keepWindowLabel31', 'currenttabCaptionLabel', 'focusTabLabelBegin', 'focusTabFirstTab', 'focusTabLeftTab', 'focusTabRightTab', 'focusTabLastTab', 'focusTabLastSelectedTab', 'focusTabOpenerTab', 'focusTabOpenerTabRtl', 'focusTabLastOpenedTab', 'tabbarscrollingInverseLabel', 'minWidthLabel', 'widthToLabel', 'widthPixelsLabel', 'mouseHoverSelectLabelBegin', 'tabFlipLabel', 'clicktabLabel', 'doubleLabel', 'middleLabel', 'altLabel', 'clicktabNothing', 'tabbarscrollingSelectTabLabel', 'tabScrollMultibar', 'millisecondsLabel', 'mouseClickLabel', 'tabFlipDelay', 'tabCloseLabel', 'maxrowLabel', 'newTabButtonLabel', 'ssInterval', 'openTabNextLabel', 'tabbarscrollingCaption', 'showOntabLabel', 'tabFocusLabel', 'unreadTabLabel', 'textcolorLabel', 'bgColorLabel', 'speLinkAllLinks', 'speLinkLabel', 'speLinkNone', 'speLinkExternal', 'currentTabLabel', 'otherTabsLabel'];
+  '994289308992179865', '1725149567830788547', '4643612240819915418', '4256316378292851214', '2019718679933488176', '782057141565633384', '5116628073786783676', '1465176863081977902', '3007771295016901659', '5078638979202084724', '4589268276914962177', '3551320343578183772', '2448312741937722512', '1524430321211440688', '42126664696688958', '2663302507110284145', '3635030235490426869', '4888510611625056742', '5860209693144823476', '5846929185714966548', '7955383984025963790', '3128230619496333808', '3391716558283801616', '6606070663386660533', '9011178328451474963', '9065203028668620118', '2473195200299095979', '1047431265488717055', '9218430445555521422', '8926389886865778422', '2893168226686371498', '4289540628985791613', '3095995014811312755', '59174027418879706', '6550675742724504774', '5453029940327926427', '4989966318180235467', '6326175484149238433', '9147392381910171771', '8260864402787962391', '8477384620836102176', '7701040980221191251', '6146563240635539929', '8026334261755873520', '1375321115329958930', '5513242761114685513', '5582839680698949063', '5317780077021120954', '8986267729801483565', '5431318178759467895', '7853747251428735', '2948300991547862301', 'playOrPause', 'frameStep', 'frameBackStep', 'rewind1', 'rewind2', 'forward1', 'forward2', 'rewind3', 'forward3', 'normalSpeed', 'halveSpeed', 'doubleSpeed', 'decSpeed', 'incSpeed', 'fullscreen', 'exitFullscreen', 'mute', 'decreaseVolume', 'increaseVolume', 'incZoom', 'decZoom', 'resetZoom', 'plRepeat', 'mediaSeeking', 'volumeControl', 'changeSpeed', 'mouseWheelFunctions', 'reverseWheelMediaSeeking', 'noScriptPref', 'blockCanvasFingerprinting', 'browsingHistory', 'downloadHistory', 'cachedImagesAndFiles', 'allSiteCookies', 'autocompleteData', 'autofillData', 'clearBrowsingDataNow', 'tabSettings', 'alwaysOnTop', 'neverOnTop', 'privateData', 'privateDataMessage', 'closeAllTabsMenuLabel', 'openalllinksLabel', 'clicktabCopyTabUrl', 'clicktabCopyUrlFromClipboard', 'clicktabReloadtabs', 'clicktabReloadothertabs', 'clicktabReloadlefttabs', 'clicktabReloadrighttabs', 'freezeTabMenuLabel', 'protectTabMenuLabel', 'lockTabMenuLabel', 'autoReloadTabLabel', 'clicktabUcatab', 'secondsLabel', 'minuteLabel', 'minutesLabel', 'generalWindowOpenLabel', 'linkTargetTab', 'linkTargetWindow', 'openDuplicateNextLabel', 'keepWindowLabel31', 'currenttabCaptionLabel', 'focusTabLabelBegin', 'focusTabFirstTab', 'focusTabLeftTab', 'focusTabRightTab', 'focusTabLastTab', 'focusTabLastSelectedTab', 'focusTabOpenerTab', 'focusTabOpenerTabRtl', 'focusTabLastOpenedTab', 'tabbarscrollingInverseLabel', 'minWidthLabel', 'widthToLabel', 'widthPixelsLabel', 'mouseHoverSelectLabelBegin', 'tabFlipLabel', 'clicktabLabel', 'doubleLabel', 'middleLabel', 'altLabel', 'clicktabNothing', 'tabbarscrollingSelectTabLabel', 'tabScrollMultibar', 'millisecondsLabel', 'mouseClickLabel', 'tabFlipDelay', 'tabCloseLabel', 'maxrowLabel', 'newTabButtonLabel', 'ssInterval', 'openTabNextLabel', 'tabbarscrollingCaption', 'showOntabLabel', 'tabFocusLabel', 'unreadTabLabel', 'textcolorLabel', 'bgColorLabel', 'speLinkAllLinks', 'speLinkLabel', 'speLinkNone', 'speLinkExternal', 'currentTabLabel', 'otherTabsLabel'];
 };
 
 var ctx = null;

@@ -92,7 +92,7 @@ class Title extends React.Component {
 
 
   render(){
-    const {key,TabStyles,tabBeforeTitleClasses,beforeTitle,tabTiteleStyle,tabTitleClasses,extraAttribute,privateMode,pin,mute,reloadInterval,title,verticalTabPanel,toggleNav,beforeTitleStyle} = this.props.datas
+    const {key,TabStyles,tabBeforeTitleClasses,beforeTitle,tabTiteleStyle,tabTitleClasses,extraAttribute,privateMode,lock,protect,mute,reloadInterval,title,verticalTabPanel,toggleNav,beforeTitleStyle} = this.props.datas
 
     let m
     if(privateMode && (m = privateMode.match(/^persist:(\d+)$/))){
@@ -102,12 +102,14 @@ class Title extends React.Component {
     return <div style={{display:'unset',boxSizing: !verticalTabPanel && multistageTabs && toggleNav == 0 ? 'content-box' : (void 0)}}>
        <span style={beforeTitleStyle} className={tabBeforeTitleClasses}>
         {this.beforeTitle || beforeTitle}
+         {protect ? <i className="fa fa-shield protect-mode" ></i> : ""}
+         {lock ? <i className="fa fa-ban lock-mode" ></i> : ""}
        </span>
       <p style={tabTiteleStyle}
          className={tabTitleClasses}
          {...extraAttribute} >
         {m ? <span className='private-mode'>[{m}]</span>: privateMode ? <i className="fa fa-eye-slash private-mode" ></i> : ""}
-        {pin ? <i className="fa fa-thumb-tack pin-mode" ></i> : ""}
+
         {mute ? <i className="fa fa-bell-slash mute-mode" ></i> : ""}
         {reloadInterval ? <i className="fa fa-repeat reload-mode" ></i> : ""}
         {this.title || title}
@@ -421,6 +423,9 @@ class Tabs extends React.Component {
         privateMode,
         pin,
         mute,
+        freeze,
+        protect,
+        lock,
         unread,
         reloadInterval,
         ...others
@@ -465,7 +470,7 @@ class Tabs extends React.Component {
       // override inline each tab styles
       let tabStyle = StyleOverride.merge(tabInlineStyles.tab, {});
       let tabTiteleStyle = {...tabInlineStyles.tabTitle} //StyleOverride.merge(tabInlineStyles.tabTitle, this.TabStyles.tabTitle);
-      const tabCloseIconStyle = tabInlineStyles.tabCloseIcon //StyleOverride.merge(tabInlineStyles.tabCloseIcon, this.TabStyles.tabCloseIcon);
+      const tabCloseIconStyle = {...tabInlineStyles.tabCloseIcon} //StyleOverride.merge(tabInlineStyles.tabCloseIcon, this.TabStyles.tabCloseIcon);
       if(this.props.toggleNav == 0 && multistageTabs) tabCloseIconStyle.right = '10px'
 
       let tabClasses = `${_tabClassNames.tab} ${tabClassNames.tab} ${this.props.toggleNav == 0 && multistageTabs ? 'multi-row' : ''}${this.props.verticalTabPanel && tab.props.hidden ? ' tab-hidden' : ''}`
@@ -512,6 +517,21 @@ class Tabs extends React.Component {
       }
 
       if(unreadTab) tabTiteleStyle.color = sharedState.colorUnreadText
+
+      if(protect) tabCloseIconStyle.display = 'none'
+
+      if(pin && !this.props.verticalTabPanel){
+        tabTiteleStyle.display = 'none'
+        tabCloseIconStyle.display = 'none'
+        if(this.isMultistageTabsMode()){
+          tabStyle.minWidth = '37px'
+          tabStyle.maxWidth =  '37px'
+        }
+        else{
+          tabStyle.minWidth = '48px'
+          tabStyle.maxWidth =  '48px'
+        }
+      }
 
       if(this.props.verticalTabPanel){
         tabStyle.backgroundColor = bgColor
@@ -596,7 +616,7 @@ class Tabs extends React.Component {
               </div>
           }
           {prevTitle}
-          <Title datas={{key:tab.key,toggleNav:this.props.toggleNav,verticalTabPanel:this.props.verticalTabPanel,TabStyles:this.TabStyles,tabBeforeTitleClasses,beforeTitle,tabTiteleStyle,tabTitleClasses,extraAttribute,privateMode,pin,mute,reloadInterval,title,beforeTitleStyle}}/>
+          <Title datas={{key:tab.key,toggleNav:this.props.toggleNav,verticalTabPanel:this.props.verticalTabPanel,TabStyles:this.TabStyles,tabBeforeTitleClasses,beforeTitle,tabTiteleStyle,tabTitleClasses,extraAttribute,privateMode,lock,protect,mute,reloadInterval,title,beforeTitleStyle}}/>
           {closeButton}
         </li>
       );
@@ -1009,7 +1029,7 @@ class Tabs extends React.Component {
           getWebContents(tab).detach(_=>{
             ipc.send('chrome-tabs-onDetached-to-main',tab.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==tab.key)})
             BrowserWindowPlus.load({id:remote.getCurrentWindow().id,dropX:evt.screenX,dropY:evt.screenY,alwaysOnTop,
-              tabParam:JSON.stringify([{wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,mute:tab.mute,reloadInterval:tab.reloadInterval,
+              tabParam:JSON.stringify([{wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
                 rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || getWebContents(tab).guestInstanceId}])})
             setTimeout(_=>{
               PubSub.publish('include-key',tab.key)
@@ -1024,7 +1044,7 @@ class Tabs extends React.Component {
           const promises = tabs.map(tab=>{
             return new Promise((resolve,reject)=>{
               getWebContents(tab).detach(_=>{
-                resolve({wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,mute:tab.mute,reloadInterval:tab.reloadInterval,
+                resolve({wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
                   rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || getWebContents(tab).guestInstanceId})
               })
             })

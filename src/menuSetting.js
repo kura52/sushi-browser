@@ -397,6 +397,31 @@ const createViewSubmenu = () => {
           cont && cont.hostWebContents.send('menu-or-key-events', 'unmuteTab', cont.getId())
         })
       }
+    },    {
+      label: locale.translation('freezeTabMenuLabel'),
+      accelerator: mainState.keyFreezeTabMenuLabel,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'freezeTabMenuLabel', cont.getId())
+        })
+      }
+    },
+    {
+      label: locale.translation('protectTabMenuLabel'),
+      accelerator: mainState.keyProtectTabMenuLabel,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'protectTabMenuLabel', cont.getId())
+        })
+      }
+    },    {
+      label: locale.translation('lockTabMenuLabel'),
+      accelerator: mainState.keyLockTabMenuLabel,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'lockTabMenuLabel', cont.getId())
+        })
+      }
     },
     { type: 'separator' },
     {

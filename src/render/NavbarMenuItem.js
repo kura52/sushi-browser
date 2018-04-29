@@ -3,7 +3,7 @@ import { Dropdown } from 'semantic-ui-react';
 
 
 function handleClick(props,e){
-  props.onClick(e)
+  props.onClick && props.onClick(e)
 }
 
 function NavbarMenuItem(props){
@@ -51,7 +51,7 @@ class NavbarMenuSubMenu extends React.Component {
   render(){
     return <div role="option" className="item" onMouseOver={this.onMouseOver} onMouseLeave={this.onMouseLeave}>
       <i aria-hidden="true" class="dropdown icon"/>
-      <i aria-hidden="true" className={`${this.props.icon} icon`} />
+      {this.props.icon ? <i aria-hidden="true" className={`${this.props.icon} icon`} /> : null}
       <span className="text">{this.props.text}</span>
       <div className={`menu transition submenu${this.state.visible ? ' visible' : ''}`}>
         {this.props.children}

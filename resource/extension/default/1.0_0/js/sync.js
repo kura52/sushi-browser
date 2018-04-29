@@ -15236,7 +15236,7 @@ function cloneVNode(vNodeToClone, props) {
         newVNode = Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["g" /* createVNode */])(flags, vNodeToClone.type, className, null, 1 /* HasInvalidChildren */, combineFrom(vNodeToClone.props, props), key, ref);
     }
     else if (flags & 16 /* Text */) {
-        newVNode = Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["f" /* createTextVNode */])(vNodeToClone.children);
+        return Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["f" /* createTextVNode */])(props ? props.children : vNodeToClone.children);
     }
     return Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["m" /* normalizeProps */])(newVNode);
 }
@@ -15573,8 +15573,6 @@ var _firebase2 = _interopRequireDefault(_firebase);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
-
 window.debug = __webpack_require__(159)('info');
 
 const ipc = __webpack_require__(162).ipcRenderer;
@@ -15602,42 +15600,40 @@ class Sync extends React.Component {
     this.auth().then(_ => _);
   }
 
-  auth() {
-    return _asyncToGenerator(function* () {
-      console.log(3);
-      try {
-        const result = yield _firebase2.default.auth().getRedirectResult();
-        if (!result.user) {
-          const provider = new _firebase2.default.auth.GoogleAuthProvider();
-          _firebase2.default.auth().signInWithRedirect(provider);
-        }
-        const credential = result.credential;
-        console.log(credential);
-
-        fetch("/sync", {
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          },
-          method: "POST",
-          body: JSON.stringify(credential)
-        }).then(function (res) {
-          console.log(res);
-        }).catch(function (res) {
-          console.log(res);
-        });
-
-        return result;
-      } catch (error) {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        // The email of the user's account used.
-        const email = error.email;
-        // The firebase.auth.AuthCredential type that was used.
-        const credential = error.credential;
-        console.log(error);
+  async auth() {
+    console.log(3);
+    try {
+      const result = await _firebase2.default.auth().getRedirectResult();
+      if (!result.user) {
+        const provider = new _firebase2.default.auth.GoogleAuthProvider();
+        _firebase2.default.auth().signInWithRedirect(provider);
       }
-    })();
+      const credential = result.credential;
+      console.log(credential);
+
+      fetch("/sync", {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        method: "POST",
+        body: JSON.stringify(credential)
+      }).then(function (res) {
+        console.log(res);
+      }).catch(function (res) {
+        console.log(res);
+      });
+
+      return result;
+    } catch (error) {
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      // The email of the user's account used.
+      const email = error.email;
+      // The firebase.auth.AuthCredential type that was used.
+      const credential = error.credential;
+      console.log(error);
+    }
   }
 
   render() {
@@ -30215,8 +30211,9 @@ function patchText(lastVNode, nextVNode, parentDom) {
 function patchNonKeyedChildren(lastChildren, nextChildren, dom, lifecycle, context, isSVG, lastChildrenLength, nextChildrenLength) {
     var commonLength = lastChildrenLength > nextChildrenLength ? nextChildrenLength : lastChildrenLength;
     var i = 0;
+    var nextChild;
     for (; i < commonLength; i++) {
-        var nextChild = nextChildren[i];
+        nextChild = nextChildren[i];
         if (nextChild.dom) {
             nextChild = nextChildren[i] = directClone(nextChild);
         }
@@ -30224,11 +30221,11 @@ function patchNonKeyedChildren(lastChildren, nextChildren, dom, lifecycle, conte
     }
     if (lastChildrenLength < nextChildrenLength) {
         for (i = commonLength; i < nextChildrenLength; i++) {
-            var nextChild$1 = nextChildren[i];
-            if (nextChild$1.dom) {
-                nextChild$1 = nextChildren[i] = directClone(nextChild$1);
+            nextChild = nextChildren[i];
+            if (nextChild.dom) {
+                nextChild = nextChildren[i] = directClone(nextChild);
             }
-            mount(nextChild$1, dom, lifecycle, context, isSVG);
+            mount(nextChild, dom, lifecycle, context, isSVG);
         }
     }
     else if (lastChildrenLength > nextChildrenLength) {
@@ -30304,9 +30301,9 @@ function patchKeyedChildren(a, b, dom, lifecycle, context, isSVG, aLength, bLeng
     else {
         var aLeft = aEnd - aStart + 1;
         var bLeft = bEnd - bStart + 1;
-        var sources = new Array(bLeft);
+        var sources = [];
         for (i = 0; i < bLeft; i++) {
-            sources[i] = -1;
+            sources.push(0);
         }
         // Keep track if its possible to remove whole DOM using textContent = '';
         var canRemoveWholeContent = aLeft === aLength;
@@ -30321,7 +30318,7 @@ function patchKeyedChildren(a, b, dom, lifecycle, context, isSVG, aLength, bLeng
                     for (j = bStart; j <= bEnd; j++) {
                         bNode = b[j];
                         if (aNode.key === bNode.key) {
-                            sources[j - bStart] = i;
+                            sources[j - bStart] = i + 1;
                             if (canRemoveWholeContent) {
                                 canRemoveWholeContent = false;
                                 while (i > aStart) {
@@ -30370,7 +30367,7 @@ function patchKeyedChildren(a, b, dom, lifecycle, context, isSVG, aLength, bLeng
                             }
                         }
                         bNode = b[j];
-                        sources[j - bStart] = i;
+                        sources[j - bStart] = i + 1;
                         if (pos > j) {
                             moved = true;
                         }
@@ -30402,7 +30399,7 @@ function patchKeyedChildren(a, b, dom, lifecycle, context, isSVG, aLength, bLeng
                 var seq = lis_algorithm(sources);
                 j = seq.length - 1;
                 for (i = bLeft - 1; i >= 0; i--) {
-                    if (sources[i] === -1) {
+                    if (sources[i] === 0) {
                         pos = i + bStart;
                         bNode = b[pos];
                         if (bNode.dom) {
@@ -30426,7 +30423,7 @@ function patchKeyedChildren(a, b, dom, lifecycle, context, isSVG, aLength, bLeng
                 // when patched count doesn't match b length we need to insert those new ones
                 // loop backwards so we can use insertBefore
                 for (i = bLeft - 1; i >= 0; i--) {
-                    if (sources[i] === -1) {
+                    if (sources[i] === 0) {
                         pos = i + bStart;
                         bNode = b[pos];
                         if (bNode.dom) {
@@ -30452,7 +30449,7 @@ function lis_algorithm(arr) {
     var len = arr.length;
     for (i = 0; i < len; i++) {
         var arrI = arr[i];
-        if (arrI !== -1) {
+        if (arrI !== 0) {
             j = result[result.length - 1];
             if (arr[j] < arrI) {
                 p[i] = j;
@@ -30701,7 +30698,7 @@ var JSX = /*#__PURE__*/Object.freeze({
 
 });
 
-var version = "5.0.1";
+var version = "5.0.4";
 
 
 

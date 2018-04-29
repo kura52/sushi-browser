@@ -24,7 +24,7 @@ import mainState from './mainState'
 import extensionInfos from "./extensionInfos";
 import {token} from "./databaseFork";
 const open = require('./open')
-const {readMacro,readMacroOff,readTargetSelector,readTargetSelectorOff} = require('./readMacro')
+const {readMacro,readMacroOff,readTargetSelector,readTargetSelectorOff,readComplexSearch} = require('./readMacro')
 const sharedState = require('./sharedStateMain')
 const bindPath = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/bind.html'
 
@@ -607,6 +607,9 @@ ipcMain.on('get-main-state',(e,key,names)=>{
     }
     else if(name == "isRecording"){
       ret[name] = isRecording ? readMacro() : void 0
+    }
+    else if(name == "alwaysOpenLinkNewTab"){
+      ret[name] = mainState.lockTabs[e.sender.getId()] ? 'speLinkAllLinks' : mainState[name]
     }
     else{
       ret[name] = mainState[name]
@@ -1493,7 +1496,19 @@ ipcMain.on('run-puppeteer',(e, dir, file)=> {
   e.sender.hostWebContents.send('new-tab', e.sender.getId(), 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html')
 })
 
+ipcMain.on('start-complex-search',(e,key,tabId,operation,noMacro)=>{
+  const macro = noMacro ? '' : readComplexSearch()
+  const cont = webContents.fromTabID(tabId)
+  if(cont && !cont.isDestroyed()){
+    cont.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',`${macro}\n${operation}`, {},(err, url, result)=>{
+      e.sender.send(`start-complex-search-reply_${key}`,result[0])
+    })
+  }
+})
 
+ipcMain.on('search-word-highlight',(e,val)=>{
+  mainState.searchWordHighlight = val
+})
 // ipcMain.on('send-keys',(e,keys)=>{
 //   e.sender.sendInputEvent(keys)
 // })

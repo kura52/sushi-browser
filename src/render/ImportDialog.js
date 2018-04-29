@@ -6,6 +6,7 @@ export default class ImportDialog extends Component{
   constructor(props){
     super(props)
     this.state = {checkBoxes: this.props.data.detail[0]}
+    this.state.checkBoxes.cookies = false
   }
 
   onChange(e,data){

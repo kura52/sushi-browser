@@ -8439,7 +8439,7 @@ function cloneVNode(vNodeToClone, props) {
         newVNode = Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["g" /* createVNode */])(flags, vNodeToClone.type, className, null, 1 /* HasInvalidChildren */, combineFrom(vNodeToClone.props, props), key, ref);
     }
     else if (flags & 16 /* Text */) {
-        newVNode = Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["f" /* createTextVNode */])(vNodeToClone.children);
+        return Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["f" /* createTextVNode */])(props ? props.children : vNodeToClone.children);
     }
     return Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["m" /* normalizeProps */])(newVNode);
 }
@@ -19937,16 +19937,6 @@ module.exports = mapValuesByKeys(messages);
 "use strict";
 
 
-let faviconGet = (() => {
-  var _ref = _asyncToGenerator(function* (h) {
-    return h.favicon ? (yield _LocalForage2.default.getItem(h.favicon)) || `file://${resourcePath}/file.png` : `file://${resourcePath}/file.png`;
-  });
-
-  return function faviconGet(_x) {
-    return _ref.apply(this, arguments);
-  };
-})();
-
 var _process = __webpack_require__(369);
 
 var _process2 = _interopRequireDefault(_process);
@@ -19983,8 +19973,6 @@ var _clusterize2 = _interopRequireDefault(_clusterize);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
-
 window.debug = __webpack_require__(714)('info');
 // require('debug').enable("info")
 
@@ -19993,7 +19981,7 @@ const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd';
 
 _l10n2.default.init();
 
-const convertUrlMap = new Map([['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html', ''], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html', 'about:blank'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html', 'chrome://bookmarks/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html', 'chrome://bookmarks-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html', 'chrome://history/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_history_sidebar.html', 'chrome://tab-history-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history_sidebar.html', 'chrome://history-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html', 'chrome://explorer/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer_sidebar.html', 'chrome://explorer-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html', 'chrome://download/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html', 'chrome://terminal/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html', 'chrome://converter/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html', 'chrome://settings/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general', 'chrome://settings#general'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search', 'chrome://settings#search'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs', 'chrome://settings#tabs'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#keyboard', 'chrome://settings#keyboard'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extension', 'chrome://settings#extension']]);
+const convertUrlMap = new Map([['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html', ''], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html', 'about:blank'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html', 'chrome://bookmarks/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html', 'chrome://bookmarks-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html', 'chrome://history/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_history_sidebar.html', 'chrome://tab-history-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history_sidebar.html', 'chrome://history-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html', 'chrome://explorer/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer_sidebar.html', 'chrome://explorer-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html', 'chrome://download/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html', 'chrome://terminal/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html', 'chrome://converter/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html', 'chrome://automation/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html', 'chrome://settings/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general', 'chrome://settings#general'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search', 'chrome://settings#search'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs', 'chrome://settings#tabs'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#keyboard', 'chrome://settings#keyboard'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extension', 'chrome://settings#extension']]);
 
 const convertUrlReg = /^chrome\-extension:\/\/dckpbojndfoinamcdamhkjhnjnmjkfjd\/(video|ace|bind)\.html\?url=([^&]+)/;
 const convertUrlPdfReg = /^chrome\-extension:\/\/jdbefljfgobbmcidnmpjamcbhnbphjnb\/content\/web\/viewer\.html\?file=(.+?)$/;
@@ -20025,6 +20013,10 @@ _LocalForage2.default.getItem('favicon-set').then(setTime => {
     }
   });
 });
+
+async function faviconGet(h) {
+  return h.favicon ? (await _LocalForage2.default.getItem(h.favicon)) || `file://${resourcePath}/file.png` : `file://${resourcePath}/file.png`;
+}
 
 _electron.ipcRenderer.send("get-resource-path", {});
 _electron.ipcRenderer.once("get-resource-path-reply", (e, data) => {
@@ -20071,27 +20063,19 @@ class TopMenu extends _infernoCompat2.default.Component {
   }
 
   componentDidMount() {
-    var _this = this;
-
     fetchHistory(this.cond);
-    historyReply((() => {
-      var _ref2 = _asyncToGenerator(function* (data) {
-        _this.list = yield new HistoryList().build(data);
-        if (_this.clusterize) {
-          _this.clusterize.update(_this.list);
-        } else {
-          _this.clusterize = new _clusterize2.default({
-            rows: _this.list,
-            scrollId: 'scrollArea',
-            contentId: 'contentArea'
-          });
-        }
-      });
-
-      return function (_x2) {
-        return _ref2.apply(this, arguments);
-      };
-    })());
+    historyReply(async data => {
+      this.list = await new HistoryList().build(data);
+      if (this.clusterize) {
+        this.clusterize.update(this.list);
+      } else {
+        this.clusterize = new _clusterize2.default({
+          rows: this.list,
+          scrollId: 'scrollArea',
+          contentId: 'contentArea'
+        });
+      }
+    });
     this.eventUpdateDatas = (e, data) => {
       this.updateDatas.push(data);
     };
@@ -20190,35 +20174,30 @@ class TopMenu extends _infernoCompat2.default.Component {
 }
 
 class HistoryList {
-  build(data) {
-    var _this2 = this;
-
-    return _asyncToGenerator(function* () {
-      const historyList = [];
-      let pre = { location: false };
-      for (let h of data) {
-        h.updated_at = (0, _moment2.default)(h.updated_at).format("YYYY/MM/DD HH:mm:ss");
-        h.yyyymmdd = h.updated_at.slice(0, 10);
-        if (pre.yyyymmdd != h.yyyymmdd) {
-          historyList.push(`<h4>${h.yyyymmdd}</h4>`);
-        }
-        if (h.location === pre.location) {
-          if (!pre.title) pre.title = h.title;
-          if (!pre.favicon) pre.favicon = h.favicon;
-          historyList[historyList.length - 1] = yield _this2.buildItem(pre);
-        } else {
-          historyList.push((yield _this2.buildItem(h)));
-          pre = h;
-        }
+  async build(data) {
+    const historyList = [];
+    let pre = { location: false };
+    for (let h of data) {
+      h.updated_at = (0, _moment2.default)(h.updated_at).format("YYYY/MM/DD HH:mm:ss");
+      h.yyyymmdd = h.updated_at.slice(0, 10);
+      if (pre.yyyymmdd != h.yyyymmdd) {
+        historyList.push(`<h4>${h.yyyymmdd}</h4>`);
       }
-      return historyList;
-    })();
+      if (h.location === pre.location) {
+        if (!pre.title) pre.title = h.title;
+        if (!pre.favicon) pre.favicon = h.favicon;
+        historyList[historyList.length - 1] = await this.buildItem(pre);
+      } else {
+        historyList.push((await this.buildItem(h)));
+        pre = h;
+      }
+    }
+    return historyList;
   }
 
-  buildItem(h) {
-    return _asyncToGenerator(function* () {
-      const favicon = yield faviconGet(h);
-      return `<div role="listitem" class="item">
+  async buildItem(h) {
+    const favicon = await faviconGet(h);
+    return `<div role="listitem" class="item">
       <img src="${favicon}" style="width: 20px; height: 20px; float: left; margin-right: 4px; margin-top: 6px;"/>
       <div class="content">
         <a class="description" style="float:right;margin-right:15px;font-size: 12px">${h.updated_at.slice(5)}</a>
@@ -20226,7 +20205,6 @@ class HistoryList {
         ${!h.location ? "" : `<a class="description" target="_blank" style="fontSize: 12px;" href=${h.location}>${h.location.length > 125 ? `${h.location.substr(0, 125)}...` : convertURL(h.location)}</a>`}
       </div>
     </div>`;
-    })();
   }
 
 }
@@ -24319,8 +24297,9 @@ function patchText(lastVNode, nextVNode, parentDom) {
 function patchNonKeyedChildren(lastChildren, nextChildren, dom, lifecycle, context, isSVG, lastChildrenLength, nextChildrenLength) {
     var commonLength = lastChildrenLength > nextChildrenLength ? nextChildrenLength : lastChildrenLength;
     var i = 0;
+    var nextChild;
     for (; i < commonLength; i++) {
-        var nextChild = nextChildren[i];
+        nextChild = nextChildren[i];
         if (nextChild.dom) {
             nextChild = nextChildren[i] = directClone(nextChild);
         }
@@ -24328,11 +24307,11 @@ function patchNonKeyedChildren(lastChildren, nextChildren, dom, lifecycle, conte
     }
     if (lastChildrenLength < nextChildrenLength) {
         for (i = commonLength; i < nextChildrenLength; i++) {
-            var nextChild$1 = nextChildren[i];
-            if (nextChild$1.dom) {
-                nextChild$1 = nextChildren[i] = directClone(nextChild$1);
+            nextChild = nextChildren[i];
+            if (nextChild.dom) {
+                nextChild = nextChildren[i] = directClone(nextChild);
             }
-            mount(nextChild$1, dom, lifecycle, context, isSVG);
+            mount(nextChild, dom, lifecycle, context, isSVG);
         }
     }
     else if (lastChildrenLength > nextChildrenLength) {
@@ -24408,9 +24387,9 @@ function patchKeyedChildren(a, b, dom, lifecycle, context, isSVG, aLength, bLeng
     else {
         var aLeft = aEnd - aStart + 1;
         var bLeft = bEnd - bStart + 1;
-        var sources = new Array(bLeft);
+        var sources = [];
         for (i = 0; i < bLeft; i++) {
-            sources[i] = -1;
+            sources.push(0);
         }
         // Keep track if its possible to remove whole DOM using textContent = '';
         var canRemoveWholeContent = aLeft === aLength;
@@ -24425,7 +24404,7 @@ function patchKeyedChildren(a, b, dom, lifecycle, context, isSVG, aLength, bLeng
                     for (j = bStart; j <= bEnd; j++) {
                         bNode = b[j];
                         if (aNode.key === bNode.key) {
-                            sources[j - bStart] = i;
+                            sources[j - bStart] = i + 1;
                             if (canRemoveWholeContent) {
                                 canRemoveWholeContent = false;
                                 while (i > aStart) {
@@ -24474,7 +24453,7 @@ function patchKeyedChildren(a, b, dom, lifecycle, context, isSVG, aLength, bLeng
                             }
                         }
                         bNode = b[j];
-                        sources[j - bStart] = i;
+                        sources[j - bStart] = i + 1;
                         if (pos > j) {
                             moved = true;
                         }
@@ -24506,7 +24485,7 @@ function patchKeyedChildren(a, b, dom, lifecycle, context, isSVG, aLength, bLeng
                 var seq = lis_algorithm(sources);
                 j = seq.length - 1;
                 for (i = bLeft - 1; i >= 0; i--) {
-                    if (sources[i] === -1) {
+                    if (sources[i] === 0) {
                         pos = i + bStart;
                         bNode = b[pos];
                         if (bNode.dom) {
@@ -24530,7 +24509,7 @@ function patchKeyedChildren(a, b, dom, lifecycle, context, isSVG, aLength, bLeng
                 // when patched count doesn't match b length we need to insert those new ones
                 // loop backwards so we can use insertBefore
                 for (i = bLeft - 1; i >= 0; i--) {
-                    if (sources[i] === -1) {
+                    if (sources[i] === 0) {
                         pos = i + bStart;
                         bNode = b[pos];
                         if (bNode.dom) {
@@ -24556,7 +24535,7 @@ function lis_algorithm(arr) {
     var len = arr.length;
     for (i = 0; i < len; i++) {
         var arrI = arr[i];
-        if (arrI !== -1) {
+        if (arrI !== 0) {
             j = result[result.length - 1];
             if (arr[j] < arrI) {
                 p[i] = j;
@@ -24805,7 +24784,7 @@ var JSX = /*#__PURE__*/Object.freeze({
 
 });
 
-var version = "5.0.1";
+var version = "5.0.4";
 
 
 
@@ -33762,7 +33741,7 @@ function getElementType(Component, props, getDefault) {
   // ----------------------------------------
   // user defined "as" element type
 
-  if (props.as && props.as !== (defaultProps && (defaultProps && (defaultProps && (defaultProps && defaultProps.as))))) return props.as;
+  if (props.as && props.as !== (defaultProps && (defaultProps && defaultProps.as))) return props.as;
 
   // ----------------------------------------
   // computed default element type
@@ -33780,7 +33759,7 @@ function getElementType(Component, props, getDefault) {
   // ----------------------------------------
   // use defaultProp or 'div'
 
-  return (defaultProps && (defaultProps && (defaultProps && (defaultProps && defaultProps.as)))) || 'div';
+  return (defaultProps && (defaultProps && defaultProps.as)) || 'div';
 }
 
 /* harmony default export */ __webpack_exports__["a"] = (getElementType);
@@ -36643,7 +36622,7 @@ var Dropdown = function (_Component) {
 
       e.stopPropagation();
       // prevent closeOnDocumentClick() if multiple or item is disabled
-      if (multiple || item.disabled) ((((e.nativeEvent || e) || e) || e) || e).stopImmediatePropagation();
+      if (multiple || item.disabled) e.nativeEvent.stopImmediatePropagation();
       if (item.disabled) return;
 
       var isAdditionItem = item['data-additional'];
@@ -42826,7 +42805,7 @@ var Search = function (_Component) {
     }, _this.handleInputClick = function (e) {
 
       // prevent closeOnDocumentClick()
-      ((((e.nativeEvent || e) || e) || e) || e).stopImmediatePropagation();
+      e.nativeEvent.stopImmediatePropagation();
 
       _this.tryOpen();
     }, _this.handleItemClick = function (e, _ref2) {
@@ -42835,7 +42814,7 @@ var Search = function (_Component) {
       var result = _this.getSelectedResult(id);
 
       // prevent closeOnDocumentClick()
-      ((((e.nativeEvent || e) || e) || e) || e).stopImmediatePropagation();
+      e.nativeEvent.stopImmediatePropagation();
 
       // notify the onResultSelect prop that the user is trying to change value
       _this.setValue(result.title);
@@ -49553,7 +49532,7 @@ var rendererIdentifiers = function () {
   'default', 'name', 'searchEngine', 'searchEngines', 'engineGoKey', 'general', 'generalSettings', 'search', 'tabs', 'extensions', 'myHomepage', 'startsWith', 'startsWithOptionLastTime', 'newTabMode', 'newTabEmpty', 'import', 'bn-BD', 'bn-IN', 'zh-CN', 'cs', 'nl-NL', 'en-US', 'fr-FR', 'de-DE', 'hi-IN', 'id-ID', 'it-IT', 'ja-JP', 'ko-KR', 'ms-MY', 'pl-PL', 'pt-BR', 'ru', 'sl', 'es', 'ta', 'te', 'tr-TR', 'uk', 'requiresRestart', 'enableFlash', 'startsWithOptionHomePage', 'updateAvail', 'notNow', 'makeBraveDefault', 'saveToPocketDesc', 'minimumPageTimeLow', 'paintTabs',
 
   //chrome
-  '994289308992179865', '1725149567830788547', '4643612240819915418', '4256316378292851214', '2019718679933488176', '782057141565633384', '5116628073786783676', '1465176863081977902', '3007771295016901659', '5078638979202084724', '4589268276914962177', '3551320343578183772', '2448312741937722512', '1524430321211440688', '42126664696688958', '2663302507110284145', '3635030235490426869', '4888510611625056742', '5860209693144823476', '5846929185714966548', '7955383984025963790', '3128230619496333808', '3391716558283801616', '6606070663386660533', '9011178328451474963', '9065203028668620118', '2473195200299095979', '1047431265488717055', '9218430445555521422', '8926389886865778422', '2893168226686371498', '4289540628985791613', '3095995014811312755', '59174027418879706', '6550675742724504774', '5453029940327926427', '4989966318180235467', '6326175484149238433', '9147392381910171771', '8260864402787962391', '8477384620836102176', '7701040980221191251', '6146563240635539929', '8026334261755873520', '1375321115329958930', '5513242761114685513', '5582839680698949063', '5317780077021120954', '8986267729801483565', '5431318178759467895', '7853747251428735', 'playOrPause', 'frameStep', 'frameBackStep', 'rewind1', 'rewind2', 'forward1', 'forward2', 'rewind3', 'forward3', 'normalSpeed', 'halveSpeed', 'doubleSpeed', 'decSpeed', 'incSpeed', 'fullscreen', 'exitFullscreen', 'mute', 'decreaseVolume', 'increaseVolume', 'incZoom', 'decZoom', 'resetZoom', 'plRepeat', 'mediaSeeking', 'volumeControl', 'changeSpeed', 'mouseWheelFunctions', 'reverseWheelMediaSeeking', 'noScriptPref', 'blockCanvasFingerprinting', 'browsingHistory', 'downloadHistory', 'cachedImagesAndFiles', 'allSiteCookies', 'autocompleteData', 'autofillData', 'clearBrowsingDataNow', 'tabSettings', 'alwaysOnTop', 'neverOnTop', 'privateData', 'privateDataMessage', 'closeAllTabsMenuLabel', 'openalllinksLabel', 'clicktabCopyTabUrl', 'clicktabCopyUrlFromClipboard', 'clicktabReloadtabs', 'clicktabReloadothertabs', 'clicktabReloadlefttabs', 'clicktabReloadrighttabs', 'autoReloadTabLabel', 'clicktabUcatab', 'secondsLabel', 'minuteLabel', 'minutesLabel', 'generalWindowOpenLabel', 'linkTargetTab', 'linkTargetWindow', 'openDuplicateNextLabel', 'keepWindowLabel31', 'currenttabCaptionLabel', 'focusTabLabelBegin', 'focusTabFirstTab', 'focusTabLeftTab', 'focusTabRightTab', 'focusTabLastTab', 'focusTabLastSelectedTab', 'focusTabOpenerTab', 'focusTabOpenerTabRtl', 'focusTabLastOpenedTab', 'tabbarscrollingInverseLabel', 'minWidthLabel', 'widthToLabel', 'widthPixelsLabel', 'mouseHoverSelectLabelBegin', 'tabFlipLabel', 'clicktabLabel', 'doubleLabel', 'middleLabel', 'altLabel', 'clicktabNothing', 'tabbarscrollingSelectTabLabel', 'tabScrollMultibar', 'millisecondsLabel', 'mouseClickLabel', 'tabFlipDelay', 'tabCloseLabel', 'maxrowLabel', 'newTabButtonLabel', 'ssInterval', 'openTabNextLabel', 'tabbarscrollingCaption', 'showOntabLabel', 'tabFocusLabel', 'unreadTabLabel', 'textcolorLabel', 'bgColorLabel', 'speLinkAllLinks', 'speLinkLabel', 'speLinkNone', 'speLinkExternal', 'currentTabLabel', 'otherTabsLabel'];
+  '994289308992179865', '1725149567830788547', '4643612240819915418', '4256316378292851214', '2019718679933488176', '782057141565633384', '5116628073786783676', '1465176863081977902', '3007771295016901659', '5078638979202084724', '4589268276914962177', '3551320343578183772', '2448312741937722512', '1524430321211440688', '42126664696688958', '2663302507110284145', '3635030235490426869', '4888510611625056742', '5860209693144823476', '5846929185714966548', '7955383984025963790', '3128230619496333808', '3391716558283801616', '6606070663386660533', '9011178328451474963', '9065203028668620118', '2473195200299095979', '1047431265488717055', '9218430445555521422', '8926389886865778422', '2893168226686371498', '4289540628985791613', '3095995014811312755', '59174027418879706', '6550675742724504774', '5453029940327926427', '4989966318180235467', '6326175484149238433', '9147392381910171771', '8260864402787962391', '8477384620836102176', '7701040980221191251', '6146563240635539929', '8026334261755873520', '1375321115329958930', '5513242761114685513', '5582839680698949063', '5317780077021120954', '8986267729801483565', '5431318178759467895', '7853747251428735', '2948300991547862301', 'playOrPause', 'frameStep', 'frameBackStep', 'rewind1', 'rewind2', 'forward1', 'forward2', 'rewind3', 'forward3', 'normalSpeed', 'halveSpeed', 'doubleSpeed', 'decSpeed', 'incSpeed', 'fullscreen', 'exitFullscreen', 'mute', 'decreaseVolume', 'increaseVolume', 'incZoom', 'decZoom', 'resetZoom', 'plRepeat', 'mediaSeeking', 'volumeControl', 'changeSpeed', 'mouseWheelFunctions', 'reverseWheelMediaSeeking', 'noScriptPref', 'blockCanvasFingerprinting', 'browsingHistory', 'downloadHistory', 'cachedImagesAndFiles', 'allSiteCookies', 'autocompleteData', 'autofillData', 'clearBrowsingDataNow', 'tabSettings', 'alwaysOnTop', 'neverOnTop', 'privateData', 'privateDataMessage', 'closeAllTabsMenuLabel', 'openalllinksLabel', 'clicktabCopyTabUrl', 'clicktabCopyUrlFromClipboard', 'clicktabReloadtabs', 'clicktabReloadothertabs', 'clicktabReloadlefttabs', 'clicktabReloadrighttabs', 'freezeTabMenuLabel', 'protectTabMenuLabel', 'lockTabMenuLabel', 'autoReloadTabLabel', 'clicktabUcatab', 'secondsLabel', 'minuteLabel', 'minutesLabel', 'generalWindowOpenLabel', 'linkTargetTab', 'linkTargetWindow', 'openDuplicateNextLabel', 'keepWindowLabel31', 'currenttabCaptionLabel', 'focusTabLabelBegin', 'focusTabFirstTab', 'focusTabLeftTab', 'focusTabRightTab', 'focusTabLastTab', 'focusTabLastSelectedTab', 'focusTabOpenerTab', 'focusTabOpenerTabRtl', 'focusTabLastOpenedTab', 'tabbarscrollingInverseLabel', 'minWidthLabel', 'widthToLabel', 'widthPixelsLabel', 'mouseHoverSelectLabelBegin', 'tabFlipLabel', 'clicktabLabel', 'doubleLabel', 'middleLabel', 'altLabel', 'clicktabNothing', 'tabbarscrollingSelectTabLabel', 'tabScrollMultibar', 'millisecondsLabel', 'mouseClickLabel', 'tabFlipDelay', 'tabCloseLabel', 'maxrowLabel', 'newTabButtonLabel', 'ssInterval', 'openTabNextLabel', 'tabbarscrollingCaption', 'showOntabLabel', 'tabFocusLabel', 'unreadTabLabel', 'textcolorLabel', 'bgColorLabel', 'speLinkAllLinks', 'speLinkLabel', 'speLinkNone', 'speLinkExternal', 'currentTabLabel', 'otherTabsLabel'];
 };
 
 var ctx = null;

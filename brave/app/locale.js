@@ -363,6 +363,7 @@ var rendererIdentifiers = function () {
     '8986267729801483565',
     '5431318178759467895',
     '7853747251428735',
+    '2948300991547862301',
 
     'playOrPause',
     'frameStep',
@@ -415,6 +416,9 @@ var rendererIdentifiers = function () {
     'clicktabReloadothertabs',
     'clicktabReloadlefttabs',
     'clicktabReloadrighttabs',
+    'freezeTabMenuLabel',
+    'protectTabMenuLabel',
+    'lockTabMenuLabel',
     'autoReloadTabLabel',
     'clicktabUcatab',
     'secondsLabel',

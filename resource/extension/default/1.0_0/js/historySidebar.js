@@ -16944,7 +16944,7 @@ function cloneVNode(vNodeToClone, props) {
         newVNode = Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["g" /* createVNode */])(flags, vNodeToClone.type, className, null, 1 /* HasInvalidChildren */, combineFrom(vNodeToClone.props, props), key, ref);
     }
     else if (flags & 16 /* Text */) {
-        newVNode = Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["f" /* createTextVNode */])(vNodeToClone.children);
+        return Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["f" /* createTextVNode */])(props ? props.children : vNodeToClone.children);
     }
     return Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["m" /* normalizeProps */])(newVNode);
 }
@@ -34123,8 +34123,9 @@ function patchText(lastVNode, nextVNode, parentDom) {
 function patchNonKeyedChildren(lastChildren, nextChildren, dom, lifecycle, context, isSVG, lastChildrenLength, nextChildrenLength) {
     var commonLength = lastChildrenLength > nextChildrenLength ? nextChildrenLength : lastChildrenLength;
     var i = 0;
+    var nextChild;
     for (; i < commonLength; i++) {
-        var nextChild = nextChildren[i];
+        nextChild = nextChildren[i];
         if (nextChild.dom) {
             nextChild = nextChildren[i] = directClone(nextChild);
         }
@@ -34132,11 +34133,11 @@ function patchNonKeyedChildren(lastChildren, nextChildren, dom, lifecycle, conte
     }
     if (lastChildrenLength < nextChildrenLength) {
         for (i = commonLength; i < nextChildrenLength; i++) {
-            var nextChild$1 = nextChildren[i];
-            if (nextChild$1.dom) {
-                nextChild$1 = nextChildren[i] = directClone(nextChild$1);
+            nextChild = nextChildren[i];
+            if (nextChild.dom) {
+                nextChild = nextChildren[i] = directClone(nextChild);
             }
-            mount(nextChild$1, dom, lifecycle, context, isSVG);
+            mount(nextChild, dom, lifecycle, context, isSVG);
         }
     }
     else if (lastChildrenLength > nextChildrenLength) {
@@ -34212,9 +34213,9 @@ function patchKeyedChildren(a, b, dom, lifecycle, context, isSVG, aLength, bLeng
     else {
         var aLeft = aEnd - aStart + 1;
         var bLeft = bEnd - bStart + 1;
-        var sources = new Array(bLeft);
+        var sources = [];
         for (i = 0; i < bLeft; i++) {
-            sources[i] = -1;
+            sources.push(0);
         }
         // Keep track if its possible to remove whole DOM using textContent = '';
         var canRemoveWholeContent = aLeft === aLength;
@@ -34229,7 +34230,7 @@ function patchKeyedChildren(a, b, dom, lifecycle, context, isSVG, aLength, bLeng
                     for (j = bStart; j <= bEnd; j++) {
                         bNode = b[j];
                         if (aNode.key === bNode.key) {
-                            sources[j - bStart] = i;
+                            sources[j - bStart] = i + 1;
                             if (canRemoveWholeContent) {
                                 canRemoveWholeContent = false;
                                 while (i > aStart) {
@@ -34278,7 +34279,7 @@ function patchKeyedChildren(a, b, dom, lifecycle, context, isSVG, aLength, bLeng
                             }
                         }
                         bNode = b[j];
-                        sources[j - bStart] = i;
+                        sources[j - bStart] = i + 1;
                         if (pos > j) {
                             moved = true;
                         }
@@ -34310,7 +34311,7 @@ function patchKeyedChildren(a, b, dom, lifecycle, context, isSVG, aLength, bLeng
                 var seq = lis_algorithm(sources);
                 j = seq.length - 1;
                 for (i = bLeft - 1; i >= 0; i--) {
-                    if (sources[i] === -1) {
+                    if (sources[i] === 0) {
                         pos = i + bStart;
                         bNode = b[pos];
                         if (bNode.dom) {
@@ -34334,7 +34335,7 @@ function patchKeyedChildren(a, b, dom, lifecycle, context, isSVG, aLength, bLeng
                 // when patched count doesn't match b length we need to insert those new ones
                 // loop backwards so we can use insertBefore
                 for (i = bLeft - 1; i >= 0; i--) {
-                    if (sources[i] === -1) {
+                    if (sources[i] === 0) {
                         pos = i + bStart;
                         bNode = b[pos];
                         if (bNode.dom) {
@@ -34360,7 +34361,7 @@ function lis_algorithm(arr) {
     var len = arr.length;
     for (i = 0; i < len; i++) {
         var arrI = arr[i];
-        if (arrI !== -1) {
+        if (arrI !== 0) {
             j = result[result.length - 1];
             if (arr[j] < arrI) {
                 p[i] = j;
@@ -34609,7 +34610,7 @@ var JSX = /*#__PURE__*/Object.freeze({
 
 });
 
-var version = "5.0.1";
+var version = "5.0.4";
 
 
 
@@ -34624,107 +34625,6 @@ var version = "5.0.1";
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-
-let faviconGet = (() => {
-  var _ref = _asyncToGenerator(function* (x) {
-    return x.favicon == "resource/file.png" ? void 0 : x.favicon && (yield _LocalForage2.default.getItem(x.favicon));
-  });
-
-  return function faviconGet(_x) {
-    return _ref.apply(this, arguments);
-  };
-})();
-
-let buildItem = (() => {
-  var _ref2 = _asyncToGenerator(function* (h, nodePath) {
-    const name = h.title || h.location;
-    return {
-      name: `[${h.updated_at.slice(11, 16)}] ${name && name.length > 55 ? `${name.substr(0, 55)}...` : name}`,
-      url: convertURL(h.location),
-      id: `${nodePath}/${h.location}`,
-      favicon: yield faviconGet(h),
-      type: 'file'
-    };
-  });
-
-  return function buildItem(_x2, _x3) {
-    return _ref2.apply(this, arguments);
-  };
-})();
-
-let getAllChildren = (() => {
-  var _ref3 = _asyncToGenerator(function* (nodePath, name) {
-    const later24h = Date.now() - 60 * 60 * 24 * 1000;
-    const later24hData = {
-      id: '24 Hours Ago',
-      name: '24 Hours Ago',
-      type: 'directory',
-      children: []
-    };
-    const later48h = Date.now() - 60 * 60 * 48 * 1000;
-    const later48hData = {
-      id: '24-48 Hours Ago',
-      name: '24-48 Hours Ago',
-      type: 'directory',
-      children: []
-    };
-    const later07d = Date.now() - 60 * 60 * 24 * 7 * 1000;
-    const later07dData = {
-      id: '7 Days Ago',
-      name: '7 Days Ago',
-      type: 'directory',
-      children: []
-    };
-    const later30d = Date.now() - 60 * 60 * 24 * 30 * 1000;
-    const later30dData = {
-      id: '30 Days Ago',
-      name: '30 Days Ago',
-      type: 'directory',
-      children: []
-    };
-    const lastData = {
-      id: 'Later than 30 Days',
-      name: 'Later than 30 Days',
-      type: 'directory',
-      children: []
-    };
-
-    window.start = Date.now();
-    const ret = name ? yield getHistory(name) : yield getAllHistory();
-    console.log((Date.now() - window.start) / 1000);
-    // console.log(treeBuild(ret,nodePath))
-    const newChildren = [];
-    let pre = { location: false };
-    for (let h of ret) {
-      const dirc = (h.updated_at > later24h ? later24hData : h.updated_at > later48h ? later48hData : h.updated_at > later07d ? later07dData : h.updated_at > later30d ? later30dData : lastData).children;
-
-      h.updated_at = dateFormat(new Date(h.updated_at));
-      h.yyyymmdd = h.updated_at.slice(0, 10);
-      if (pre.yyyymmdd != h.yyyymmdd) {
-        dirc.push({
-          id: `${nodePath}/${h.yyyymmdd}`,
-          name: `[${h.yyyymmdd}]`,
-          favicon: 'empty',
-          type: 'file'
-        });
-      }
-      if (h.location === pre.location) {
-        if (!pre.title) pre.title = h.title;
-        if (!pre.favicon) pre.favicon = h.favicon;
-        dirc[dirc.length - 1] = yield buildItem(pre, nodePath);
-      } else {
-        dirc.push((yield buildItem(h, nodePath)));
-        pre = h;
-      }
-    }
-    console.log((Date.now() - window.start) / 1000);
-    return [later24hData, later48hData, later07dData, later30dData, lastData];
-  });
-
-  return function getAllChildren(_x4, _x5) {
-    return _ref3.apply(this, arguments);
-  };
-})();
 
 var _process = __webpack_require__(226);
 
@@ -34766,8 +34666,6 @@ var _renderer2 = _interopRequireDefault(_renderer);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
-
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd';
 
 const isMain = location.href.startsWith("chrome://brave/");
@@ -34784,7 +34682,11 @@ if (!isMain) {
   });
 }
 
-const convertUrlMap = new Map([['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html', ''], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html', 'about:blank'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html', 'chrome://bookmarks/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html', 'chrome://bookmarks-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html', 'chrome://history/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_history_sidebar.html', 'chrome://tab-history-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history_sidebar.html', 'chrome://history-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html', 'chrome://explorer/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer_sidebar.html', 'chrome://explorer-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html', 'chrome://download/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html', 'chrome://terminal/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html', 'chrome://converter/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html', 'chrome://settings/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general', 'chrome://settings#general'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search', 'chrome://settings#search'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs', 'chrome://settings#tabs'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#keyboard', 'chrome://settings#keyboard'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extension', 'chrome://settings#extension']]);
+async function faviconGet(x) {
+  return x.favicon == "resource/file.png" ? void 0 : x.favicon && (await _LocalForage2.default.getItem(x.favicon));
+}
+
+const convertUrlMap = new Map([['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html', ''], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html', 'about:blank'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html', 'chrome://bookmarks/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html', 'chrome://bookmarks-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html', 'chrome://history/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_history_sidebar.html', 'chrome://tab-history-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history_sidebar.html', 'chrome://history-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html', 'chrome://explorer/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer_sidebar.html', 'chrome://explorer-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html', 'chrome://download/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html', 'chrome://terminal/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html', 'chrome://converter/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html', 'chrome://automation/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html', 'chrome://settings/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general', 'chrome://settings#general'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search', 'chrome://settings#search'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs', 'chrome://settings#tabs'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#keyboard', 'chrome://settings#keyboard'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extension', 'chrome://settings#extension']]);
 
 const convertUrlReg = /^chrome\-extension:\/\/dckpbojndfoinamcdamhkjhnjnmjkfjd\/(video|ace|bind)\.html\?url=([^&]+)/;
 const convertUrlPdfReg = /^chrome\-extension:\/\/jdbefljfgobbmcidnmpjamcbhnbphjnb\/content\/web\/viewer\.html\?file=(.+?)$/;
@@ -34844,6 +34746,17 @@ function getAllHistory() {
   });
 }
 
+async function buildItem(h, nodePath) {
+  const name = h.title || h.location;
+  return {
+    name: `[${h.updated_at.slice(11, 16)}] ${name && name.length > 55 ? `${name.substr(0, 55)}...` : name}`,
+    url: convertURL(h.location),
+    id: `${nodePath}/${h.location}`,
+    favicon: await faviconGet(h),
+    type: 'file'
+  };
+}
+
 function wrapBuildItem(h, nodePath) {
   h.updated_at = dateFormat(new Date(h.updated_at));
   h.yyyymmdd = h.updated_at.slice(0, 10);
@@ -34861,72 +34774,134 @@ function dateFormat(d) {
   return `${d.getFullYear()}/${m < 10 ? '0' + m : m}/${da < 10 ? '0' + da : da} ${h < 10 ? '0' + h : h}:${mi < 10 ? '0' + mi : mi}:${s < 10 ? '0' + s : s}`;
 }
 
+async function getAllChildren(nodePath, name) {
+  const later24h = Date.now() - 60 * 60 * 24 * 1000;
+  const later24hData = {
+    id: '24 Hours Ago',
+    name: '24 Hours Ago',
+    type: 'directory',
+    children: []
+  };
+  const later48h = Date.now() - 60 * 60 * 48 * 1000;
+  const later48hData = {
+    id: '24-48 Hours Ago',
+    name: '24-48 Hours Ago',
+    type: 'directory',
+    children: []
+  };
+  const later07d = Date.now() - 60 * 60 * 24 * 7 * 1000;
+  const later07dData = {
+    id: '7 Days Ago',
+    name: '7 Days Ago',
+    type: 'directory',
+    children: []
+  };
+  const later30d = Date.now() - 60 * 60 * 24 * 30 * 1000;
+  const later30dData = {
+    id: '30 Days Ago',
+    name: '30 Days Ago',
+    type: 'directory',
+    children: []
+  };
+  const lastData = {
+    id: 'Later than 30 Days',
+    name: 'Later than 30 Days',
+    type: 'directory',
+    children: []
+  };
+
+  window.start = Date.now();
+  const ret = name ? await getHistory(name) : await getAllHistory();
+  console.log((Date.now() - window.start) / 1000);
+  // console.log(treeBuild(ret,nodePath))
+  const newChildren = [];
+  let pre = { location: false };
+  for (let h of ret) {
+    const dirc = (h.updated_at > later24h ? later24hData : h.updated_at > later48h ? later48hData : h.updated_at > later07d ? later07dData : h.updated_at > later30d ? later30dData : lastData).children;
+
+    h.updated_at = dateFormat(new Date(h.updated_at));
+    h.yyyymmdd = h.updated_at.slice(0, 10);
+    if (pre.yyyymmdd != h.yyyymmdd) {
+      dirc.push({
+        id: `${nodePath}/${h.yyyymmdd}`,
+        name: `[${h.yyyymmdd}]`,
+        favicon: 'empty',
+        type: 'file'
+      });
+    }
+    if (h.location === pre.location) {
+      if (!pre.title) pre.title = h.title;
+      if (!pre.favicon) pre.favicon = h.favicon;
+      dirc[dirc.length - 1] = await buildItem(pre, nodePath);
+    } else {
+      dirc.push((await buildItem(h, nodePath)));
+      pre = h;
+    }
+  }
+  console.log((Date.now() - window.start) / 1000);
+  return [later24hData, later48hData, later07dData, later30dData, lastData];
+}
+
 let treeAllData, loading, gData;
 class App extends _infernoCompat2.default.Component {
   componentDidMount() {
     _infernoCompat2.default.findDOMNode(this.refs.stickey).style.height = "100%";
   }
 
-  onChange(e, data) {
-    var _this = this;
+  async onChange(e, data) {
+    const prevState = await _LocalForage2.default.getItem("history-sidebar-open-node");
+    e.preventDefault();
+    if (!treeAllData) return;
+    if (loading) {
+      gData = data;
+      return;
+    }
+    if (this.name) {
+      gData = data;
+      loading = true;
+      await this.refs.content.loadAllData(void 0, true);
+      loading = false;
+      data = gData;
+      gData = void 0;
+    }
+    clearTimeout(this.timer);
+    this.timer = setTimeout(() => {
+      const regList = [...new Set(escapeRegExp(data.value).split(/[ 　]+/, -1).filter(x => x))];
+      const reg = new RegExp(regList.length > 1 ? `(?=.*${regList.join(")(?=.*")})` : regList[0], "i");
+      console.log(reg);
 
-    return _asyncToGenerator(function* () {
-      const prevState = yield _LocalForage2.default.getItem("history-sidebar-open-node");
-      e.preventDefault();
-      if (!treeAllData) return;
-      if (loading) {
-        gData = data;
-        return;
-      }
-      if (_this.name) {
-        gData = data;
-        loading = true;
-        yield _this.refs.content.loadAllData(void 0, true);
-        loading = false;
-        data = gData;
-        gData = void 0;
-      }
-      clearTimeout(_this.timer);
-      _this.timer = setTimeout(function () {
-        const regList = [...new Set(escapeRegExp(data.value).split(/[ 　]+/, -1).filter(function (x) {
-          return x;
-        }))];
-        const reg = new RegExp(regList.length > 1 ? `(?=.*${regList.join(")(?=.*")})` : regList[0], "i");
-        console.log(reg);
+      const tree = this.refs.content.refs.iTree.tree;
+      const openNodes = prevState ? prevState.split("\t", -1) : void 0;
 
-        const tree = _this.refs.content.refs.iTree.tree;
-        const openNodes = prevState ? prevState.split("\t", -1) : void 0;
-
-        const newTreeData = [];
-        for (let dirc of treeAllData) {
-          const newDirc = [];
-          let count = -1;
-          for (let ele of dirc.children) {
-            if (ele.favicon == "empty") {
-              if (count == 0) newDirc.pop();
+      const newTreeData = [];
+      for (let dirc of treeAllData) {
+        const newDirc = [];
+        let count = -1;
+        for (let ele of dirc.children) {
+          if (ele.favicon == "empty") {
+            if (count == 0) newDirc.pop();
+            newDirc.push(ele);
+            count = 0;
+          } else {
+            if (reg.test(`${ele.name}\t${ele.url}`)) {
               newDirc.push(ele);
-              count = 0;
-            } else {
-              if (reg.test(`${ele.name}\t${ele.url}`)) {
-                newDirc.push(ele);
-                count++;
-              }
+              count++;
             }
           }
-          if (count == 0) newDirc.pop();
-          newTreeData.push({
-            id: dirc.id,
-            name: dirc.name,
-            type: dirc.type,
-            children: newDirc
-          });
         }
-        console.log(newTreeData);
-        tree.loadData(newTreeData, false, openNodes);
+        if (count == 0) newDirc.pop();
+        newTreeData.push({
+          id: dirc.id,
+          name: dirc.name,
+          type: dirc.type,
+          children: newDirc
+        });
+      }
+      console.log(newTreeData);
+      tree.loadData(newTreeData, false, openNodes);
 
-        _LocalForage2.default.setItem("history-sidebar-open-node", prevState);
-      }, 200);
-    })();
+      _LocalForage2.default.setItem("history-sidebar-open-node", prevState);
+    }, 200);
   }
 
   setName(name) {
@@ -34968,22 +34943,18 @@ class Contents extends _infernoCompat2.default.Component {
     console.log(node);
   }
 
-  updateData(data) {
-    var _this2 = this;
-
-    return _asyncToGenerator(function* () {
-      const tree = _this2.refs.iTree.tree;
-      const node = _this2.searchNodeByUrl(data.location);
-      if (node) {
-        tree.removeNode(node, void 0, true);
-      }
-      const parent = tree.getChildNodes()[0];
-      const beforeNode = parent.getFirstChild();
-      console.log(parent);
-      tree.insertNodeAfter((yield wrapBuildItem(data, 'root')), beforeNode);
-      const insertedNode = beforeNode.getNextSibling();
-      _this2.map[insertedNode.url] = insertedNode;
-    })();
+  async updateData(data) {
+    const tree = this.refs.iTree.tree;
+    const node = this.searchNodeByUrl(data.location);
+    if (node) {
+      tree.removeNode(node, void 0, true);
+    }
+    const parent = tree.getChildNodes()[0];
+    const beforeNode = parent.getFirstChild();
+    console.log(parent);
+    tree.insertNodeAfter((await wrapBuildItem(data, 'root')), beforeNode);
+    const insertedNode = beforeNode.getNextSibling();
+    this.map[insertedNode.url] = insertedNode;
   }
 
   searchNodeByUrl(url) {
@@ -34999,64 +34970,56 @@ class Contents extends _infernoCompat2.default.Component {
     return this.map[url];
   }
 
-  loadAllData(name, notUpdate) {
-    var _this3 = this;
-
-    return _asyncToGenerator(function* () {
-      _this3.props.setName(name);
-      if (!name) _this3.loaded = true;
-      const prevState = yield _LocalForage2.default.getItem("history-sidebar-open-node");
-      const start = Date.now();
-      const data = yield getAllChildren('root', name);
-      console.log(Date.now() - start);
-      treeAllData = data;
-      if (!notUpdate) {
-        if (_this3.refs.iTree) {
-          const tree = _this3.refs.iTree.tree;
+  async loadAllData(name, notUpdate) {
+    this.props.setName(name);
+    if (!name) this.loaded = true;
+    const prevState = await _LocalForage2.default.getItem("history-sidebar-open-node");
+    const start = Date.now();
+    const data = await getAllChildren('root', name);
+    console.log(Date.now() - start);
+    treeAllData = data;
+    if (!notUpdate) {
+      if (this.refs.iTree) {
+        const tree = this.refs.iTree.tree;
+        _LocalForage2.default.setItem("history-sidebar-open-node", prevState);
+        tree.loadData(data, false, prevState ? prevState.split("\t", -1) : ['24 Hours Ago']);
+        console.log(Date.now() - start);
+        console.log((Date.now() - window.start) / 1000);
+      } else {
+        setTimeout(_ => {
+          const tree = this.refs.iTree.tree;
           _LocalForage2.default.setItem("history-sidebar-open-node", prevState);
           tree.loadData(data, false, prevState ? prevState.split("\t", -1) : ['24 Hours Ago']);
-          console.log(Date.now() - start);
-          console.log((Date.now() - window.start) / 1000);
-        } else {
-          setTimeout(function (_) {
-            const tree = _this3.refs.iTree.tree;
-            _LocalForage2.default.setItem("history-sidebar-open-node", prevState);
-            tree.loadData(data, false, prevState ? prevState.split("\t", -1) : ['24 Hours Ago']);
-          }, 100);
-        }
+        }, 100);
       }
-      return treeAllData;
-    })();
+    }
+    return treeAllData;
   }
 
-  componentDidMount() {
-    var _this4 = this;
+  async componentDidMount() {
+    console.log(333000, this.props.onClick, this.props.cont);
+    if (isMain && !this.props.onClick) return;
+    if (isMain) {
+      this.loaded = false;
+      await _LocalForage2.default.setItem("history-sidebar-open-node", '24 Hours Ago');
+      this.loadAllData('24 Hours Ago');
+      const self = this;
+      this.scrollEvent = function (e) {
+        if (self.loaded) return;
+        const scroll = this.scrollTop;
+        const range = this.scrollHeight - this.offsetHeight;
 
-    return _asyncToGenerator(function* () {
-      console.log(333000, _this4.props.onClick, _this4.props.cont);
-      if (isMain && !_this4.props.onClick) return;
-      if (isMain) {
-        _this4.loaded = false;
-        yield _LocalForage2.default.setItem("history-sidebar-open-node", '24 Hours Ago');
-        _this4.loadAllData('24 Hours Ago');
-        const self = _this4;
-        _this4.scrollEvent = function (e) {
-          if (self.loaded) return;
-          const scroll = this.scrollTop;
-          const range = this.scrollHeight - this.offsetHeight;
-
-          if (range - scroll < 300) {
-            self.loadAllData();
-          }
-        };
-        document.querySelector('.infinite-tree.infinite-tree-scroll').addEventListener('scroll', _this4.scrollEvent, { passive: true });
-      } else {
-        _this4.loadAllData();
-      }
-      _electron.ipcRenderer.on("update-datas", function (e, data) {
-        _this4.updateData(data);
-      });
-    })();
+        if (range - scroll < 300) {
+          self.loadAllData();
+        }
+      };
+      document.querySelector('.infinite-tree.infinite-tree-scroll').addEventListener('scroll', this.scrollEvent, { passive: true });
+    } else {
+      this.loadAllData();
+    }
+    _electron.ipcRenderer.on("update-datas", (e, data) => {
+      this.updateData(data);
+    });
   }
 
   componentWillUnmount() {
@@ -61736,7 +61699,7 @@ function getElementType(Component, props, getDefault) {
   // ----------------------------------------
   // user defined "as" element type
 
-  if (props.as && props.as !== (defaultProps && (defaultProps && (defaultProps && (defaultProps && defaultProps.as))))) return props.as;
+  if (props.as && props.as !== (defaultProps && (defaultProps && defaultProps.as))) return props.as;
 
   // ----------------------------------------
   // computed default element type
@@ -61754,7 +61717,7 @@ function getElementType(Component, props, getDefault) {
   // ----------------------------------------
   // use defaultProp or 'div'
 
-  return (defaultProps && (defaultProps && (defaultProps && (defaultProps && defaultProps.as)))) || 'div';
+  return (defaultProps && (defaultProps && defaultProps.as)) || 'div';
 }
 
 /* harmony default export */ __webpack_exports__["a"] = (getElementType);
@@ -64617,7 +64580,7 @@ var Dropdown = function (_Component) {
 
       e.stopPropagation();
       // prevent closeOnDocumentClick() if multiple or item is disabled
-      if (multiple || item.disabled) ((((e.nativeEvent || e) || e) || e) || e).stopImmediatePropagation();
+      if (multiple || item.disabled) e.nativeEvent.stopImmediatePropagation();
       if (item.disabled) return;
 
       var isAdditionItem = item['data-additional'];
@@ -70800,7 +70763,7 @@ var Search = function (_Component) {
     }, _this.handleInputClick = function (e) {
 
       // prevent closeOnDocumentClick()
-      ((((e.nativeEvent || e) || e) || e) || e).stopImmediatePropagation();
+      e.nativeEvent.stopImmediatePropagation();
 
       _this.tryOpen();
     }, _this.handleItemClick = function (e, _ref2) {
@@ -70809,7 +70772,7 @@ var Search = function (_Component) {
       var result = _this.getSelectedResult(id);
 
       // prevent closeOnDocumentClick()
-      ((((e.nativeEvent || e) || e) || e) || e).stopImmediatePropagation();
+      e.nativeEvent.stopImmediatePropagation();
 
       // notify the onResultSelect prop that the user is trying to change value
       _this.setValue(result.title);
@@ -75070,19 +75033,19 @@ function escapeText(text) {
     var i;
     for (i = 0; i < text.length; i++) {
         switch (text.charCodeAt(i)) {
-            case 34:// "
+            case 34: // "
                 escape = '&quot;';
                 break;
-            case 39:// '
+            case 39: // '
                 escape = '&#039;';
                 break;
-            case 38:// &
+            case 38: // &
                 escape = '&amp;';
                 break;
-            case 60:// <
+            case 60: // <
                 escape = '&lt;';
                 break;
-            case 62:// >
+            case 62: // >
                 escape = '&gt;';
                 break;
             default:

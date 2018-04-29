@@ -4,24 +4,24 @@ const fs = require('fs')
 const glob = require("glob")
 
 const BEFORE_CODE_NAME = 'Unagi(Eel)'
-const CODE_NAME = 'Unagi(Eel)'
+const CODE_NAME = 'Shirauo(Icefish)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.15.0"
+const NEXT_APP_VERSION = "0.16.0"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Added browser auto-operation function.\n* This is an automatic operation solution like iMacros or Selenium IDE. It is realized by implementing an API compatible with <a href="https://github.com/GoogleChrome/puppeteer">Puppetter (Headless Chrome Automation)</a> API. Please refer <a href="https://github.com/kura52/sushi-browser/wiki/Implementation-status-of-Puppetter-APIs">here</a> for the implemented API
-Fixed Bookmark and Favicon Import bug.
-Fixed some bugs.
-Change display method of dialog(window.alert).
-Updated to youtube-dl 2018.04.16
-Updated to infernojs 5.0.4`
+const CHANGE_ENGLISH = `Tab freeze, tab protection, tab locking function added (It is close to Tab Mix Plus)
+Changed Pin Tab behavior to be like Chrome.
+Added Match Case, OR search, Regular expression to search function(Ctrl+F).（We referred to the source of https://github.com/intelfike/isear）
+Added search word highlight function. (such as word highlight extension)
+When right-click menu is displayed after selecting URL, right-click menu is modified so that move to URL instead of search is displayed
+Updated to Muon 5.2.7 (chromium 66.0.3359.117)`
 
-const CHANGE_JAPANESE = `ブラウザ自動操作機能を追加。\n※ これは、iMacrosやSelenium IDEのような自動操作補助機能です。<a href="https://github.com/GoogleChrome/puppeteer">Puppetter(ヘッドレスChromeでの自動化)</a> APIと互換性のあるAPIを実装することで実現しています。実装済みのAPIは<a href="https://github.com/kura52/sushi-browser/wiki/Implementation-status-of-Puppetter-APIs">ここ</a>を参照ください。
-ブックマークおよびファビコンのインポート機能のバグを修正
-いくつかのバグ修正
-ダイアログ(window.alert)の表示方式を変更
-youtube-dlを2018.04.16に更新
-infernojsを5.0.4に更新`
+const CHANGE_JAPANESE = `タブの凍結、保護、ロックの追加(Tab Mix Plusと近い動作とした）
+タブの固定の動作をchromeと同じとなるよう変更
+検索機能(Ctrl+F)に、大文字小文字の区別、OR検索、正規表現を追加（https://github.com/intelfike/isearのソースを改変）
+検索語のハイライト機能を追加。(word highlight拡張のような機能)
+URLを選択後に右クリックメニューを表示した場合、検索ではなくURLへの移動が表示されるように変更
+Muonを5.2.7に更新(chromium 66.0.3359.117)`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

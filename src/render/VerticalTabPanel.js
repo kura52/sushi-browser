@@ -354,7 +354,7 @@ export default class VerticalTabPanel extends Component{
         verticalTabPanel={true}
         verticalTabTree={this.state.tree}
         tabs={retTabs.map(tab=>{
-          return (<Tab key={tab.key} page={tab.page} orgTab={tab} pin={tab.pin} mute={tab.mute} reloadInterval={tab.reloadInterval} unread={tabPanel.state.selectedTab != tab.key && !allSelectedkeys.has(tab.key)} depth={tab.depth} seq={tab.seq} expand={tab.expand} fold={tab.fold} hidden={tab.hidden} referred={tab.referred} privateMode={tab.privateMode} selection={tab.selection}/>)
+          return (<Tab key={tab.key} page={tab.page} orgTab={tab} pin={tab.pin} protect={tab.protect} lock={tab.lock} mute={tab.mute} reloadInterval={tab.reloadInterval} unread={tabPanel.state.selectedTab != tab.key && !allSelectedkeys.has(tab.key)} depth={tab.depth} seq={tab.seq} expand={tab.expand} fold={tab.fold} hidden={tab.hidden} referred={tab.referred} privateMode={tab.privateMode} selection={tab.selection}/>)
         })}
       />
     )
@@ -388,7 +388,7 @@ export default class VerticalTabPanel extends Component{
         verticalTabPanel={true}
         verticalTabTree={this.state.tree}
         tabs={tabPanel.state.tabs.map(tab=>{
-          return (<Tab key={tab.key} page={tab.page} orgTab={tab} pin={tab.pin} mute={tab.mute} reloadInterval={tab.reloadInterval} unread={tabPanel.state.selectedTab != tab.key && !allSelectedkeys.has(tab.key)} privateMode={tab.privateMode} selection={tab.selection}/>)
+          return (<Tab key={tab.key} page={tab.page} orgTab={tab} pin={tab.pin} protect={tab.protect} lock={tab.lock} mute={tab.mute} reloadInterval={tab.reloadInterval} unread={tabPanel.state.selectedTab != tab.key && !allSelectedkeys.has(tab.key)} privateMode={tab.privateMode} selection={tab.selection}/>)
         })}
       />
     )

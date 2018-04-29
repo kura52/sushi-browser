@@ -37,7 +37,7 @@ const settingDefault =  {
   disableExtensions: [],
   adBlockDisableSite: {},
   disableContextMenus: [],
-  disableTabContextMenus: ['closeTab','reload','Split Left','Split Top','cleanReload','Split right tabs to right','Split left tabs to left','Align Vertical','closeTabsToLeft','bookmarkPage','clicktabCopyTabUrl','clicktabCopyUrlFromClipboard','Copy Tab Info','clicktabReloadtabs','clicktabReloadothertabs','clicktabReloadlefttabs','clicktabReloadrighttabs','clicktabUcatab'],
+  disableTabContextMenus: ['closeTab','reload','Split Left','Split Top','cleanReload','Split right tabs to right','Split left tabs to left','Align Vertical','closeTabsToLeft','bookmarkPage','clicktabCopyTabUrl','clicktabCopyUrlFromClipboard','Copy Tab Info','clicktabReloadtabs','clicktabReloadothertabs','clicktabReloadlefttabs','clicktabReloadrighttabs','clicktabUcatab','protectTabMenuLabel','lockTabMenuLabel'],
   priorityContextMenus: {},
   priorityTabContextMenus: {},
 
@@ -59,6 +59,7 @@ const settingDefault =  {
   numOfHistory: 15,
   displayFullIcon: true,
   notLoadTabUntilSelected: false,
+  searchWordHighlight: false,
 
   //privacy
   clearHistoryOnClose: false,
@@ -212,6 +213,9 @@ const settingDefault =  {
   keyDuplicateTab: '',
   keyUnpinTab: '',
   keyUnmuteTab: 'Shift+CmdOrCtrl+M',
+  keyFreezeTabMenuLabel: '',
+  keyProtectTabMenuLabel: '',
+  keyLockTabMenuLabel: '',
 
   //localshortcut
   keyFindOnPage_1: 'F6',

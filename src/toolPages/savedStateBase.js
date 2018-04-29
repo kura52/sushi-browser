@@ -132,6 +132,8 @@ async function treeBuild(datas){
           url: x.url,
           pin: x.pin,
           mute: x.mute,
+          lock: x.lock,
+          protect: x.protect,
           reloadInterval: x.reloadInterval,
           type: 'file'
         }

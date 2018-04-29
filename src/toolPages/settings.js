@@ -105,6 +105,9 @@ const keyMapping = {
   keyDuplicateTab: l10n.translation('3007771295016901659'),
   keyUnpinTab: l10n.translation('pinTab'),
   keyUnmuteTab: l10n.translation('muteTab'),
+  keyFreezeTabMenuLabel: l10n.translation('freezeTabMenuLabel'),
+  keyProtectTabMenuLabel: l10n.translation('protectTabMenuLabel'),
+  keyLockTabMenuLabel: l10n.translation('lockTabMenuLabel'),
   keyDownloadsManager: l10n.translation('downloadsManager'),
   keyHideBrave: l10n.translation('hideBrave').replace('Brave','Sushi Browser'),
   keyHideOthers: l10n.translation('hideOthers'),
@@ -432,6 +435,9 @@ const tabContextMenus = [
   ['3007771295016901659', l10n.translation('3007771295016901659')],
   ['unpinTab', l10n.translation('pinTab')],
   ['unmuteTab', l10n.translation('muteTab')],
+  ['freezeTabMenuLabel', l10n.translation('freezeTabMenuLabel')],
+  ['protectTabMenuLabel', l10n.translation('protectTabMenuLabel')],
+  ['lockTabMenuLabel', l10n.translation('lockTabMenuLabel')],
 
   ['divider', null],
 
@@ -986,7 +992,7 @@ class TabsSetting extends React.Component {
   constructor(props) {
     super(props)
     this.state = {...TabDefault,errors:{}}
-    this.mouseOptions = this.makeOptions(['clicktabNothing','newTab','newPrivateTab','newSessionTab','Split Left','Split Right','Split Top','Split Bottom','Split left tabs to left','Split right tabs to right','Floating Panel','Swap Position','Switch Direction','Align Horizontal','Align Vertical','clicktabCopyTabUrl','clicktabCopyUrlFromClipboard','Paste and Open','Copy Tab Info','Copy All Tab Infos','reload','cleanReload','clicktabReloadtabs','clicktabReloadothertabs','clicktabReloadlefttabs','clicktabReloadrighttabs','3007771295016901659','unpinTab','unmuteTab','closeTab','closeOtherTabs','closeTabsToLeft','closeTabsToRight','closeAllTabsMenuLabel','reopenLastClosedTab','clicktabUcatab','bookmarkPage','5078638979202084724'])
+    this.mouseOptions = this.makeOptions(['clicktabNothing','newTab','newPrivateTab','newSessionTab','Split Left','Split Right','Split Top','Split Bottom','Split left tabs to left','Split right tabs to right','Floating Panel','Swap Position','Switch Direction','Align Horizontal','Align Vertical','clicktabCopyTabUrl','clicktabCopyUrlFromClipboard','Paste and Open','Copy Tab Info','Copy All Tab Infos','reload','cleanReload','clicktabReloadtabs','clicktabReloadothertabs','clicktabReloadlefttabs','clicktabReloadrighttabs','3007771295016901659','unpinTab','unmuteTab','freezeTabMenuLabel','protectTabMenuLabel','lockTabMenuLabel','closeTab','closeOtherTabs','closeTabsToLeft','closeTabsToRight','closeAllTabsMenuLabel','reopenLastClosedTab','clicktabUcatab','bookmarkPage','5078638979202084724'])
   }
 
   onChange2(isTab,name,e,data){

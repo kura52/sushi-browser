@@ -302,6 +302,8 @@ export default {
       mainState.lang = lang == 'zh-CN' ? lang : lang.slice(0,2)
 
       mainState.dragData = null
+      mainState.lockTabs = {}
+      mainState.versions = {...process.versions,browser: fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString()}
 
       mainState.searchProviders = {}
       for(let ele of (await searchEngine.find({}))){

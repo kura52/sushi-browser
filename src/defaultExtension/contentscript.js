@@ -102,9 +102,11 @@ if(window.__started_){
               }
               else if (data.alwaysOpenLinkNewTab == 'speLinkAllLinks') {
                 link.target = "_blank"
+                link.dataset.lockTab = "1"
               }
               else if (link.origin != "null" && !href.startsWith(link.origin)) {
                 link.target = "_blank"
+                link.dataset.lockTab = "1"
               }
             }
           }

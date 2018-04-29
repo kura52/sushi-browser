@@ -230,7 +230,7 @@ img.favi-tab{
 
 .search-num{
     position: absolute;
-    right: 78px;
+    right: 215px;
     z-index: 1001;
     top: 0px;
     color: #909090;
@@ -919,4 +919,64 @@ div.org-menu>div.item:hover{
 
 .alertDialogButtonWrapper>.ui.basic.button{
     margin-right: 8px;
+}
+
+.lock-mode {
+    text-align: center !important;
+    border: 0px solid #FFF !important;
+    min-width: 10px !important;
+    user-select: none !important;
+    animation-delay: 120ms !important;
+    animation-timing-function: linear !important;
+    animation-duration: 120ms !important;
+    animation-fill-mode: forwards !important;
+    left: calc(50% - 12px) !important;
+    position: absolute !important;
+    color: indianred;
+    border-radius: 2.5px !important;
+    padding: 1px 2px !important;
+    pointer-events: none !important;
+    animation-name: keyframe_cwjpzv !important;
+}
+
+.protect-mode {
+    text-align: center !important;
+    border: 0px solid #FFF !important;
+    min-width: 10px !important;
+    user-select: none !important;
+    animation-delay: 120ms !important;
+    animation-timing-function: linear !important;
+    animation-duration: 120ms !important;
+    animation-fill-mode: forwards !important;
+    left: calc(50% - 1px) !important;
+    position: absolute !important;
+    color: goldenrod;
+    border-radius: 2.5px !important;
+    padding: 1px 2px !important;
+    pointer-events: none !important;
+    animation-name: keyframe_cwjpzv !important;
+    top: 15px;
+}
+
+.browser-page-search>.ui.checkbox {
+    border-top: 1px solid #aaa;
+    border-bottom: 1px solid #aaa;
+}
+.browser-page-search>.ui.checkbox>label{
+    top: 4px;
+    padding-left: 1.35714em;
+    padding-right: 6px;
+    font-size: 12px;
+}
+
+.browser-page-search>.ui.checkbox .box:before, .ui.checkbox label:before {
+    width: 12px;
+    height: 12px;
+    top: 2px;
+}
+
+.browser-page-search>.ui.checkbox .box:after, .ui.checkbox label:after {
+    font-size: 13px;
+    width: 12px;
+    height: 12px;
 }

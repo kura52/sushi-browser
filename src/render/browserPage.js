@@ -13,6 +13,28 @@ const AutofillPopup = require('./AutofillPopup')
 const isDarwin = navigator.userAgent.includes('Mac OS X')
 // const isWin = navigator.userAgent.includes('Windows')
 
+function stringEscape(string){
+  return ('' + string).replace(/['\\\n\r\u2028\u2029]/g, function (character) {
+    // Escape all characters not included in SingleStringCharacters and
+    // DoubleStringCharacters on
+    // http://www.ecma-international.org/ecma-262/5.1/#sec-7.8.4
+    switch (character) {
+      case "'":
+      case '\\':
+        return '\\' + character
+      // Four possible LineTerminator characters need to be escaped:
+      case '\n':
+        return '\\n'
+      case '\r':
+        return '\\r'
+      case '\u2028':
+        return '\\u2028'
+      case '\u2029':
+        return '\\u2029'
+    }
+  })
+}
+
 function webviewHandler (self, fnName) {
   return function (e) {
     if (self.props[fnName])
@@ -142,7 +164,7 @@ class BrowserPage extends Component {
 
     webview.addEventListener('found-in-page',this.wvEvents['found-in-page'],{passive:true})
 
-    const tokenDidStartLoading = PubSub.subscribe(`did-start-loading_${this.props.tab.key}`,_=>{
+    this.tokenDidNavigate = PubSub.subscribe(`did-navigate_${this.props.tab.key}`,_=>{
       this.setState({isSearching: false})
     })
     //
@@ -161,11 +183,23 @@ class BrowserPage extends Component {
 
     PubSub.publish(`regist-webview_${this.props.k}`,this.props.tab)
 
-    this.searchEvent = (e, name, id, args)=> {
+    this.searchEvent = async (e, name, id, word, type)=> {
       const tab = this.props.tab
       if (!tab.wvId || id !== tab.wvId) return
 
       if(name == 'findOnPage'){
+        if(word){
+          this.refs.bps.refs.input.value = word
+          if(type == 'OR') this.refs.bps.or = true
+        }
+        else{
+          await new Promise(r=>{
+            webview.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd','window.getSelection().toString()', {},(err, url, result)=>{
+              if(result[0]) this.refs.bps.refs.input.value = result[0]
+              r()
+            })
+          })
+        }
         this.setState({isSearching: true})
         this.refs.browserPage.querySelector('.browser-page-search input').focus()
       }
@@ -200,6 +234,7 @@ class BrowserPage extends Component {
     this.refs.webview = null
 
     PubSub.unsubscribe(this.tokenWebviewKeydown)
+    PubSub.unsubscribe(this.tokenDidNavigate)
 
     if(this.searchEvent) ipc.removeListener('menu-or-key-events', this.searchEvent)
     if(this.changeSizeEvent) ipc.removeListener('webview-size-change', this.changeSizeEvent)
@@ -219,11 +254,46 @@ class BrowserPage extends Component {
   //   return ret
   // }
 
-  onPageSearch(query,next=true) {
+  complexReset() {
+    ipc.send('start-complex-search','aa',this.props.tab.wvId,`window.__complex_search_define__ && window.__complex_search_define__.reset_all()`,true)
+  }
+
+  onPageSearch(query,next=true,matchCase,or,reg) {
     console.log(555,query)
     const webview = this.refs.webview
     const cont = this.getWebContents(this.props.tab)
     if(!cont) return
+
+    if(or || reg){
+      webview.stopFindInPage('clearSelection')
+      this.previous_text = "__complex_search__"
+
+      if(query === ""){
+        this.complexReset()
+        this.setState({result_string: ""})
+      }
+      else{
+        let operation
+        if(next){
+          operation =  `window.__complex_search_define__.itel_main('${reg ? '@RE:' : ''}${stringEscape(query)}',true,${!!matchCase})
+      window.__complex_search_define__.scrollFocusNext('itel-highlight', 'itel-selected')`
+        }
+        else{
+          operation =  `window.__complex_search_define__.scrollFocusPrev('itel-highlight', 'itel-selected')`
+        }
+        const key = uuid.v4()
+        ipc.send('start-complex-search',key,this.props.tab.wvId,operation,!next)
+        ipc.once(`start-complex-search-reply_${key}`, (e,result)=>{
+          console.log(54353,result)
+          this.setState({result_string: result})
+        })
+      }
+      return
+    }
+    else{
+      this.complexReset()
+    }
+
     const clear = (this.clear && next) || (this.first && !next) //@TODO framework bug
     if(clear){
       webview.stopFindInPage('clearSelection')
@@ -239,7 +309,7 @@ class BrowserPage extends Component {
       this.previous_text = query;
       console.log(123,query)
       if(query) webview.findInPage(query, {
-        matchCase:false,
+        matchCase,
         forward: next,
         findNext: true
       })
@@ -249,9 +319,9 @@ class BrowserPage extends Component {
       this.previous_text = query;
       if(query){
         webview.stopFindInPage('keepSelection')
-        webview.findInPage(query,{matchCase:false,forward: next,findNext: true}) //@TODO framework bug
-        webview.findInPage(query,{matchCase:false,forward: next,findNext: false})
-        webview.findInPage(query,{matchCase:false,forward: !next,findNext: false})
+        webview.findInPage(query,{matchCase,forward: next,findNext: true}) //@TODO framework bug
+        webview.findInPage(query,{matchCase,forward: next,findNext: false})
+        webview.findInPage(query,{matchCase,forward: !next,findNext: false})
       }
     }
   }
@@ -284,6 +354,7 @@ class BrowserPage extends Component {
 
   onClose(e){
     this.refs.webview.stopFindInPage('clearSelection')
+    this.complexReset()
     this.previous_text = ""
     this.setState({result_string: "", isSearching: false})
   }
@@ -297,7 +368,7 @@ class BrowserPage extends Component {
     // console.log("BrowserPage")
     // const preload = path.join(__dirname, './preload/mainPreload.js')
     return <div className="browser-page" ref="browserPage"  onKeyDown={::this.onHandleKeyDown}>
-      <BrowserPageSearch isActive={this.state.isSearching} onPageSearch={::this.onPageSearch} progress={this.state.result_string} onClose={::this.onClose}/>
+      <BrowserPageSearch ref="bps" isActive={this.state.isSearching} onPageSearch={::this.onPageSearch} progress={this.state.result_string} onClose={::this.onClose}/>
       <webview ref="webview" className={`w${this.props.k2}`} data-key={this.props.k} src={this.props.tab.privateMode ? (void 0) : this.state.src}/>
       <AutofillPopup k={this.props.k}/>
     </div>

@@ -254,7 +254,7 @@ export default class BrowserNavbarLocation extends Component {
         return
       }
       const input = e.target.value
-      const newTab = e.altKey || this.props.addressBarNewTab
+      const newTab = e.altKey || this.props.addressBarNewTab || this.props.tab.lock
       if(urlutil.isURL(input)){
         const url = urlutil.getUrlFromInput(input)
         this.canUpdate = true
