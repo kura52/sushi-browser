@@ -135,14 +135,14 @@ This browser makes use of wonderful web technologies, starting with the followin
 Both the installer for every platform and the portable version can be downloaded.  
 To use the portable edition, please run sushi.exe for Windows and sushi-browser for Mac/Linux after decompressing.
 
-- [Windows Installer v0.15.0](https://sushib.me/dl/sushi-browser-0.15.0-setup-x64.exe)
-- [Windows Portable v0.15.0(self-extract)](https://sushib.me/dl/sushi-browser-0.15.0-win-x64.exe)
-- [Windows Portable v0.15.0](https://sushib.me/dl/sushi-browser-0.15.0-win-x64.zip)
-- [MacOS dmg v0.15.0](https://sushib.me/dl/SushiBrowser-0.15.0.dmg)
-- [MacOS Portable v0.15.0](https://sushib.me/dl/sushi-browser-0.15.0-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.15.0](https://sushib.me/dl/sushi-browser-0.15.0.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.15.0](https://sushib.me/dl/sushi-browser_0.15.0_amd64.deb)
-- [Linux Portable v0.15.0](https://sushib.me/dl/sushi-browser-0.15.0.tar.bz2)
+- [Windows Installer v0.16.0](https://sushib.me/dl/sushi-browser-0.16.0-setup-x64.exe)
+- [Windows Portable v0.16.0(self-extract)](https://sushib.me/dl/sushi-browser-0.16.0-win-x64.exe)
+- [Windows Portable v0.16.0](https://sushib.me/dl/sushi-browser-0.16.0-win-x64.zip)
+- [MacOS dmg v0.16.0](https://sushib.me/dl/SushiBrowser-0.16.0.dmg)
+- [MacOS Portable v0.16.0](https://sushib.me/dl/sushi-browser-0.16.0-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.16.0](https://sushib.me/dl/sushi-browser-0.16.0.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.16.0](https://sushib.me/dl/sushi-browser_0.16.0_amd64.deb)
+- [Linux Portable v0.16.0](https://sushib.me/dl/sushi-browser-0.16.0.tar.bz2)
 
 # Use of Flash 
 If Flash won't run, please install Flash from the following web sites.  
@@ -157,8 +157,16 @@ sushi-browser --no-sandbox
 
 # New Features
 
+#### New function(v0.16.0)
+- Tab freeze, tab protection, tab locking function added (It is close to Tab Mix Plus)
+- Changed Pin Tab behavior to be like Chrome.
+- Added Match Case, OR search, Regular expression to search function(Ctrl+F).（We referred to the source of https://github.com/intelfike/isear）
+- Added search word highlight function. (such as word highlight extension)
+- When right-click menu is displayed after selecting URL, right-click menu is modified so that move to URL instead of search is displayed
+- Updated to Muon 5.2.7 (chromium 66.0.3359.117)
+
 #### New function(v0.15.0)
-- Added browser auto-operation function.<br/> * This is an automatic operation solution like iMacros or Selenium IDE.<br/> It is realized by implementing an API compatible with <a href="https://github.com/GoogleChrome/puppeteer">Puppetter (Headless Chrome Automation)</a> API.<br/> Please refer <a href="https://github.com/kura52/sushi-browser/wiki/Implementation-status-of-Puppetter-APIs">here</a> for the implemented API
+- Added browser auto-operation function.<br/> * This is an automatic operation solution like iMacros or Selenium IDE.<br/> It is realized by implementing an API compatible with <a href="https://github.com/GoogleChrome/puppeteer">Puppeteer (Headless Chrome Automation)</a> API.<br/> Please refer <a href="https://github.com/kura52/sushi-browser/wiki/Implementation-status-of-Puppetter-APIs">here</a> for the implemented API
 - Fixed Bookmark and Favicon Import bug.
 - Fixed some bugs.
 - Change display method of dialog(window.alert).

@@ -260,7 +260,8 @@ class BrowserNavbar extends Component{
       this.props.adBlockThis == nextProps.adBlockThis &&
       this.state.pdfMode == nextState.pdfMode &&
       this.props.oppositeGlobal == nextProps.oppositeGlobal &&
-      this.props.tabKey == this.tabKey)
+      this.props.tabKey == this.tabKey &&
+      this.searchWordHighlight == sharedState.searchWordHighlight)
     if(ret){
       this.currentWebContents = nextProps.currentWebContents
       this.wv = nextProps.tab.wv
@@ -275,6 +276,7 @@ class BrowserNavbar extends Component{
       this.syncReplace = nextProps.tab.syncReplace
       this.oppositeMode = nextProps.tab.oppositeMode
       this.tabKey = nextProps.tabKey
+      this.searchWordHighlight = sharedState.searchWordHighlight
     }
     return ret
   }
@@ -613,6 +615,7 @@ class BrowserNavbar extends Component{
         ipc.send('search-word-highlight',sharedState.searchWordHighlight)
         this.props.searchWordHighlight(this.props.tab)
         this.refs['main-menu'].menuClose()
+        this.setState({})
       }}/>     <div className="divider" />
 
 
