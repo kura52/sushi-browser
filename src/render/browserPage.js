@@ -126,7 +126,7 @@ class BrowserPage extends Component {
           const src = e.target.dataset.key
           if(src !== dropped){
             if(url){
-              ele.loadURL(url)
+              PubSub.publish(`drag-search_${ele.className.slice(1)}`,{key:ele.dataset.key, url,text})
             }
             else{
               PubSub.publish(`drag-search_${ele.className.slice(1)}`,{key:ele.dataset.key, text})

@@ -59,10 +59,10 @@ function showDialog(input,id){
 //   })
 // }
 
-function getAllFavorites(dbKey){
+function getAllFavorites(dbKey,num){
   return new Promise((resolve,reject)=>{
     const key = uuid.v4()
-    ipc.send('get-all-favorites',key,dbKey)
+    ipc.send('get-all-favorites',key,dbKey,num ? num() : void 0)
     ipc.once(`get-all-favorites-reply_${key}`,(event,ret)=>{
       resolve(ret)
     })
@@ -150,9 +150,9 @@ function searchOpenNodes(nodes,set,tree){
   }
 }
 
-async function getAllChildren(nodePath){
+async function getAllChildren(nodePath,num){
   const dbKey = path.basename(nodePath)
-  const ret = await getAllFavorites([dbKey])
+  const ret = await getAllFavorites([dbKey],num)
   // console.log(treeBuild(ret,nodePath))
   return (await treeBuild(ret,''))[0].children
 }
@@ -296,8 +296,10 @@ export default class App extends React.Component {
               <Input ref='input' icon='search' placeholder='Search...' size="small" onChange={::this.onChange}/>
             </div>
           </Sticky>
+          : this.props.searchNum || this.props.searchKey ? null
           : <Input ref='input' icon='search' placeholder='Search...' size="small" onChange={::this.onChange}/>}
-      {this.props.cont ?  <Contents ref="content" onClick={this.props.onClick} cont={this.props.cont}/>:
+      {this.props.cont ?  <Contents ref="content" onClick={this.props.onClick}
+                                    cont={(typeof this.props.cont) == 'function' ? this.props.cont() : this.props.cont} searchNum={this.props.searchNum} searchKey={this.props.searchKey}/>:
         <Selection ref="select" target=".infinite-tree-item" selectedClass="selection-selected"
                    afterSelect={::this.afterSelect} clearSelect={::this.clearSelect}>
           <Contents ref="content" favoritePage={this.props.favoritePage}/>
@@ -316,7 +318,7 @@ class Contents extends React.Component {
   async loadAllData(){
     const prevState = this.prevState || (await localForage.getItem("favorite-sidebar-open-node"))
     this.prevState = (void 0)
-    getAllChildren('root').then(data=>{
+    getAllChildren(this.props.searchKey || 'root',this.props.searchNum).then(data=>{
       console.log(data)
       treeAllData = data
 
@@ -340,6 +342,29 @@ class Contents extends React.Component {
       this.loadAllData()
     }
     ipc.on("update-datas",this.eventUpdateDatas)
+
+    this.eventDropLink = (e,url,text)=>{
+      let el = document.elementFromPoint(this.mousePoint.x, this.mousePoint.y);
+      if(!el) return
+
+      el = el.closest('.infinite-tree-node')
+      if(!el) return
+      el = el.parentNode
+
+      const tree = this.refs.iTree.tree
+      let dropNode = tree.getNodeById(el.dataset.id)
+      console.log(dropNode,el,this.mousePoint,url)
+
+      const newDirectory = dropNode.type == 'file' ? this.getKey(dropNode,2) : this.getKey(dropNode,1)
+      const dropKey = dropNode && this.getKey(dropNode)
+
+      const key = uuid.v4()
+      ipc.send('insert-favorite2',key,newDirectory,dropKey,{title:text || url, url, is_file:true})
+      // ipc.once(`insert-favorite2-reply_${key}`,e=>{
+      //
+      // })
+    }
+    ipc.on('add-favorite-by-drop',this.eventDropLink)
 
     const tree = this.refs.iTree.tree
     this.onMouseDown = (event)=>{
@@ -369,6 +394,7 @@ class Contents extends React.Component {
     tree.contentElement.removeEventListener('dragover',this.onDragOver);
     if(this.event) ipc.removeListener("favorite-menu-reply",this.event)
     if(this.eventUpdateDatas) ipc.removeListener("update-datas",this.eventUpdateDatas)
+    if(this.eventDropLink) ipc.removeListener('add-favorite-by-drop',this.eventDropLink)
   }
 
   initEvents() {
@@ -456,6 +482,7 @@ class Contents extends React.Component {
       return el.classList.contains('infinite-tree-selected') ? ' infinite-tree-selected' : ''
     }
 
+
     this.onDragStart = (e) => {
       draggingX = 0;
       draggingY = 0;
@@ -466,9 +493,19 @@ class Contents extends React.Component {
     }
     document.addEventListener('dragstart', this.onDragStart);
 
+    document.addEventListener("drop", e=>{
+      e.preventDefault()
+    }, false)
+
+    document.addEventListener('mousemove',e=>{
+      this.mousePoint = {x:e.clientX, y:e.clientY}
+    },{passive:true})
+
     this.onDragEnd = async (e) => {
+      console.log('dragend',e)
       if(currentElement){
         console.log('dragend')
+        console.log(e.target)
 
         const tree = this.refs.iTree.tree
         const dropElement = currentElement
@@ -710,7 +747,11 @@ class Contents extends React.Component {
                   selectedNodes = [];
                 }
                 else{
-                  if(this.props.cont){
+                  if(this.props.searchNum || this.props.searchKey){
+                    this.props.cont.hostWebContents.send('load-url',this.props.cont.getId(),currentNode.url)
+                    if(this.props.onClick) this.props.onClick()
+                  }
+                  else if(this.props.cont){
                     this.props.cont.hostWebContents.send('new-tab',this.props.cont.getId(),currentNode.url)
                     if(this.props.onClick) this.props.onClick()
                   }

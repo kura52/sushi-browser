@@ -19,6 +19,7 @@ const Notification = require('./Notification')
 const InputableDialog = require('./InputableDialog')
 const ImportDialog = require('./ImportDialog')
 const ConverterDialog = require('./ConverterDialog')
+import BookmarkBar from "./BookmarkBar";
 import url from 'url'
 const BrowserWindowPlus = remote.require('./BrowserWindowPlus')
 const moment = require('moment')
@@ -440,6 +441,7 @@ export default class TabPanel extends Component {
     this.webViewCreate = ::this.webViewCreate
     this.screenShot = ::this.screenShot
     this.searchWordHighlight = ::this.searchWordHighlight
+    this.navigateTo = ::this.navigateTo
 
     if(multistageTabs && maxrowLabel != 0){
       this.componentWillUpdate = (prevProps, prevState)=>{
@@ -817,9 +819,22 @@ export default class TabPanel extends Component {
       if(this.refs.tabs) this.refs.tabs.unmountMount()
     })
 
-    const tokenSearch = PubSub.subscribe(`drag-search_${this.props.k}`,(msg,{key,text})=>{
+    const tokenSearch = PubSub.subscribe(`drag-search_${this.props.k}`,(msg,{key,text,url})=>{
       const tab = this.state.tabs.find(x=>x.key == key)
-      if(tab) this.search(tab,text,false)
+      if(!tab) return
+      if(tab.page.navUrl.match(/^chrome-extension:\/\/dckpbojndfoinamcdamhkjhnjnmjkfjd\/(favorite|favorite_sidebar)\.html/)){
+        if(url){
+          this.getWebContents(tab).send('add-favorite-by-drop',url,text)
+        }
+      }
+      else{
+        if(url){
+          this.navigateTo(tab.page, url, tab)
+        }
+        else{
+          this.search(tab,text,false)
+        }
+      }
     })
 
     // return [tokenResize,tokenDrag,tokenSplit,tokenClose,tokenToggleDirction,tokenSync,tokenSync2,tokenBodyKeydown,tokenNewTabFromKey]
@@ -1056,7 +1071,6 @@ export default class TabPanel extends Component {
     })
   }
 
-
   pageHandlers(navigateTo, tab, self, newPage) {
     return {
       onUpdateTargetUrl(e, page) {
@@ -1071,6 +1085,7 @@ export default class TabPanel extends Component {
         // console.log('onCommitted',e,Date.now(),e.isMainFrame)
         if(e.isMainFrame){
           page.navUrl = e.url;
+
           self.filterFromContents(page, navigateTo, tab, self);
           self.sendOpenLink(tab, page);
           ipc.send('chrome-webNavigation-onCommitted',{
@@ -1090,6 +1105,7 @@ export default class TabPanel extends Component {
       onDidNavigate(e, page) {
         console.log('onDidNavigete',e,page)
         PubSub.publish(`did-navigate_${tab.key}`,e.url)
+        setTimeout(_=>refs2[`bookmarkbar-${tab.key}`].setState({}),100)
         // page.navUrl = e.url
         // self.sendOpenLink(tab, page);
         // ipc.send('chrome-webNavigation-onBeforeNavigate',self.createChromeWebNavDetails(tab))
@@ -1235,7 +1251,7 @@ export default class TabPanel extends Component {
           timeStamp: Date.now()
         })
 
-        page.navUrl = e.url
+        page.navUrl = e.url;
         let location = page.navUrl
         try{
           location = decodeURIComponent(location)
@@ -1604,6 +1620,14 @@ export default class TabPanel extends Component {
       }
     }
     ipc.on('add-favorite', tab.events['add-favorite'])
+
+    tab.events['load-url'] = (e, id, url)=>{
+      if (!this.mounted) return
+      if (tab.wvId && id == tab.wvId) {
+        this.navigateTo(tab.page, url, tab)
+      }
+    }
+    ipc.on('load-url', tab.events['load-url'])
 
     tab.events['new-tab'] = (e, id, url, privateMode,k,last,openBackground)=> {
       if (!this.mounted) return
@@ -2444,6 +2468,7 @@ export default class TabPanel extends Component {
           isActive: this.state.selectedTab == tab.key,
           ref: ref,
           navbar: navbar,
+          modify: sharedState.bookmarkBar || (sharedState.bookmarkBarTopPage && tab.page.navUrl == topURL) ? 28 : 0,
           float:this.props.float
           // chromeTab: this.getChromeTab(tab)
         }}
@@ -3565,7 +3590,7 @@ export default class TabPanel extends Component {
       console.log(tab,datas)
 
       for(let data of datas){
-          this.props.currentWebContents[data.wvId] = global.sharedStateMain(data.wvId)
+        this.props.currentWebContents[data.wvId] = global.sharedStateMain(data.wvId)
 
         n_tab = this.createTab({c_page:data.c_page,c_key:data.c_key,privateMode:data.privateMode,pin:data.pin,protect:data.protect,lock:data.lock,mute:data.mute,reloadInterval:data.reloadInterval,guestInstanceId:data.guestInstanceId,rest:data.rest})
         tabs.splice(++i, 0, n_tab)
@@ -4108,6 +4133,7 @@ export default class TabPanel extends Component {
                   return <Notification data={data} key={i} k={this.props.k} delete={this.deleteNotification.bind(this,i)} />
                 }
               }) : null}
+              <BookmarkBar webViewCreate={this.webViewCreate} tab={tab} refs2={refs2} topURL={topURL} navigateTo={this.navigateTo} k={this.props.k} currentWebContents={this.props.currentWebContents}/>
               <BrowserPageStatus tab={tab}/>
             </div>
           </Tab>)

@@ -181,7 +181,7 @@ class HistoryList{
     let pre = {location:false}
     let count = 0
     for(let h of data){
-      if(count > 9) break
+      if(count > 7) break
       if(h.location.startsWith('chrome-extension')) continue
       h.updated_at = moment(h.updated_at).format("YYYY/MM/DD HH:mm:ss")
       if(h.location !== pre.location){
@@ -208,15 +208,17 @@ class HistoryList{
 
 }
 
+let data
 class TopList extends React.Component {
   constructor(props) {
     super(props)
-    this.state = {rend:""}
+    this.state = {rend:"",removeMap:{}}
   }
 
   componentDidMount() {
-    historyReply((data)=>{
-      this._render(data)
+    historyReply((d)=>{
+      data = d
+      this._render(d)
     })
     fetchHistory({})
   }
@@ -248,7 +250,7 @@ class TopList extends React.Component {
     const topList = new Map()
     let pre = {location:false}
     for(let h of data.freq){
-      if(h.location.startsWith('chrome-extension')) continue
+      if(h.location.startsWith('chrome-extension') || this.state.removeMap[h._id]) continue
       if(h.fav){
         result.push(await this.buildItem(h))
         continue
@@ -281,6 +283,18 @@ class TopList extends React.Component {
         {result}
         <Button circular icon='plus' onClick={this.clickButton}/>
       </Card.Group>
+      <div className={`restore ${this.state.restoreVisible ? '' : 'hidden'}`} >
+        {l10n.translation('8251578425305135684')}&nbsp;&nbsp;
+        <a onClick={e=>{
+          for(let [id,count] of Object.entries(this.state.removeMap)){
+            const key = Math.random().toString()
+            ipc.send('history-count-reset',key,id,count)
+            delete this.state.removeMap[id]
+          }
+          this.state.restoreVisible = false
+          this._render(data)
+        }}>{l10n.translation('restoreAll')}</a>
+      </div>
       <div className="ui divider"/>
       <div role="list" className="ui divided relaxed list">
         {hlist}
@@ -295,6 +309,16 @@ class TopList extends React.Component {
   async buildItem(h) {
     const favicon = await faviconGet(h)
     return <Card color={h.fav ? 'grey' : (void 0)} key={h._id}>
+      <div className="close-button" onClick={e=>{
+        e.stopPropagation()
+        const key = Math.random().toString()
+        ipc.send('history-count-reset',key,h._id,-1)
+        ipc.once(`history-count-reset-reply_${key}`,(e,count)=>{
+          this.state.removeMap[h._id] = count
+          this.state.restoreVisible = true
+          this._render(data)
+        })
+      }}>×</div>
       <Card.Description>
         {!h.title ? "" : <Card.Header as='a' href={h.location}><img src={favicon} style={{width: 16, height: 16, verticalAlign: "text-top"}}/>{multiByteSlice(h.title,32)} {h.count ? `(${h.count}pv)` : ''}</Card.Header>}
       </Card.Description>

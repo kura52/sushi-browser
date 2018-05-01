@@ -980,3 +980,63 @@ div.org-menu>div.item:hover{
     width: 12px;
     height: 12px;
 }
+
+.bookmark-bar{
+    height: 28px;
+    padding: 0 5px;
+    background: #f6f6f6;
+    border-bottom: 1px solid #dfdfdf;
+}
+
+.bookmark-item{
+    margin: auto 0;
+    padding-left: 6px;
+    padding-right: 6px;
+    border-radius: 2px;
+    cursor: pointer;
+    display: inline-block;
+}
+
+.bookmark-bar a:hover{
+    color: inherit;
+}
+
+.bookmark-item:hover{
+    background-color: rgba(0,0,0,0.1);
+    color: inherit;
+}
+
+.bookmark-item>.infinite-tree-folder-icon {
+    width: 17px;
+}
+
+.bookmark-item>img.favi-favorite {
+    margin-left: 0px;
+}
+
+.bookmark-bar>.ui.dropdown{
+    line-height: 2.0 !important;
+}
+
+.bookmark-bar>.ui.top.right.pointing.dropdown>.menu{
+    left: 0;
+}
+
+.bookmark-bar .ui.dropdown .menu>.divider{
+    margin: 0;
+    border-top: none;
+}
+
+.bookmark-right-arrow{
+    font-size: 16px;
+    cursor: pointer;
+    padding-left: 6px;
+    padding-right: 6px;
+    border-radius: 2px;
+    vertical-align: top;
+    padding-top: 3px;
+}
+
+.bookmark-right-arrow:hover{
+    background-color: rgba(0,0,0,0.1);
+}

@@ -35426,7 +35426,7 @@ class App extends _infernoCompat2.default.Component {
           _infernoCompat2.default.createElement(_semanticUiReact.Input, { ref: 'input', icon: 'search', placeholder: 'Search...', size: 'small', onChange: this.onChange.bind(this) })
         )
       ) : _infernoCompat2.default.createElement(_semanticUiReact.Input, { ref: 'input', icon: 'search', placeholder: 'Search...', size: 'small', onChange: this.onChange.bind(this) }),
-      this.props.cont ? _infernoCompat2.default.createElement(Contents, { ref: 'content', onClick: this.props.onClick, cont: this.props.cont }) : _infernoCompat2.default.createElement(
+      this.props.cont ? _infernoCompat2.default.createElement(Contents, { ref: 'content', onClick: this.props.onClick, cont: this.props.cont, searchNum: this.props.searchNum, searchKey: this.props.searchKey }) : _infernoCompat2.default.createElement(
         _index2.default,
         { ref: 'select', target: '.infinite-tree-item', selectedClass: 'selection-selected',
           afterSelect: this.afterSelect.bind(this), clearSelect: this.clearSelect.bind(this) },
@@ -35447,7 +35447,7 @@ class Contents extends _infernoCompat2.default.Component {
   async loadAllData() {
     const prevState = this.prevState || (await _LocalForage2.default.getItem("favorite-sidebar-open-node"));
     this.prevState = void 0;
-    getAllChildren('root').then(data => {
+    getAllChildren(this.props.searchKey || 'root').then(data => {
       console.log(data);
       treeAllData = data;
 
@@ -35470,6 +35470,29 @@ class Contents extends _infernoCompat2.default.Component {
       this.loadAllData();
     };
     _electron.ipcRenderer.on("update-datas", this.eventUpdateDatas);
+
+    this.eventDropLink = (e, url, text) => {
+      let el = document.elementFromPoint(this.mousePoint.x, this.mousePoint.y);
+      if (!el) return;
+
+      el = el.closest('.infinite-tree-node');
+      if (!el) return;
+      el = el.parentNode;
+
+      const tree = this.refs.iTree.tree;
+      let dropNode = tree.getNodeById(el.dataset.id);
+      console.log(dropNode, el, this.mousePoint, url);
+
+      const newDirectory = dropNode.type == 'file' ? this.getKey(dropNode, 2) : this.getKey(dropNode, 1);
+      const dropKey = dropNode && this.getKey(dropNode);
+
+      const key = _nodeUuid2.default.v4();
+      _electron.ipcRenderer.send('insert-favorite2', key, newDirectory, dropKey, { title: text || url, url, is_file: true });
+      // ipc.once(`insert-favorite2-reply_${key}`,e=>{
+      //
+      // })
+    };
+    _electron.ipcRenderer.on('add-favorite-by-drop', this.eventDropLink);
 
     const tree = this.refs.iTree.tree;
     this.onMouseDown = event => {
@@ -35499,6 +35522,7 @@ class Contents extends _infernoCompat2.default.Component {
     tree.contentElement.removeEventListener('dragover', this.onDragOver);
     if (this.event) _electron.ipcRenderer.removeListener("favorite-menu-reply", this.event);
     if (this.eventUpdateDatas) _electron.ipcRenderer.removeListener("update-datas", this.eventUpdateDatas);
+    if (this.eventDropLink) _electron.ipcRenderer.removeListener('add-favorite-by-drop', this.eventDropLink);
   }
 
   initEvents() {
@@ -35592,9 +35616,19 @@ class Contents extends _infernoCompat2.default.Component {
     };
     document.addEventListener('dragstart', this.onDragStart);
 
+    document.addEventListener("drop", e => {
+      e.preventDefault();
+    }, false);
+
+    document.addEventListener('mousemove', e => {
+      this.mousePoint = { x: e.clientX, y: e.clientY };
+    }, { passive: true });
+
     this.onDragEnd = async e => {
+      console.log('dragend', e);
       if (currentElement) {
         console.log('dragend');
+        console.log(e.target);
 
         const tree = this.refs.iTree.tree;
         const dropElement = currentElement;
@@ -72193,7 +72227,7 @@ exports.default = function (margin) {
         }),
         _infernoCompat2.default.createElement(
           'span',
-          { className: `"infinite-tree-title${faviconEmpty ? " date-slice" : ""}${node.inactive ? " node-inactive" : ""}` },
+          { className: `infinite-tree-title${faviconEmpty ? " date-slice" : ""}${node.inactive ? " node-inactive" : ""}` },
           name
         ),
         _infernoCompat2.default.createElement('i', {
@@ -72294,10 +72328,10 @@ var rendererIdentifiers = function () {
   'windowCaptionButtonMinimize', 'windowCaptionButtonMaximize', 'windowCaptionButtonRestore', 'windowCaptionButtonClose', 'closeFirefoxWarning', 'importSuccess', 'licenseTextOk', 'closeFirefoxWarningOk', 'importSuccessOk', 'connectionError', 'unknownError', 'allowAutoplay', 'basicAuthRequired', 'basicAuthMessage', 'basicAuthUsernameLabel', 'basicAuthPasswordLabel',
 
   //Add
-  'default', 'name', 'searchEngine', 'searchEngines', 'engineGoKey', 'general', 'generalSettings', 'search', 'tabs', 'extensions', 'myHomepage', 'startsWith', 'startsWithOptionLastTime', 'newTabMode', 'newTabEmpty', 'import', 'bn-BD', 'bn-IN', 'zh-CN', 'cs', 'nl-NL', 'en-US', 'fr-FR', 'de-DE', 'hi-IN', 'id-ID', 'it-IT', 'ja-JP', 'ko-KR', 'ms-MY', 'pl-PL', 'pt-BR', 'ru', 'sl', 'es', 'ta', 'te', 'tr-TR', 'uk', 'requiresRestart', 'enableFlash', 'startsWithOptionHomePage', 'updateAvail', 'notNow', 'makeBraveDefault', 'saveToPocketDesc', 'minimumPageTimeLow', 'paintTabs',
+  'default', 'name', 'searchEngine', 'searchEngines', 'engineGoKey', 'general', 'generalSettings', 'search', 'tabs', 'extensions', 'myHomepage', 'startsWith', 'startsWithOptionLastTime', 'newTabMode', 'newTabEmpty', 'import', 'bn-BD', 'bn-IN', 'zh-CN', 'cs', 'nl-NL', 'en-US', 'fr-FR', 'de-DE', 'hi-IN', 'id-ID', 'it-IT', 'ja-JP', 'ko-KR', 'ms-MY', 'pl-PL', 'pt-BR', 'ru', 'sl', 'es', 'ta', 'te', 'tr-TR', 'uk', 'requiresRestart', 'enableFlash', 'startsWithOptionHomePage', 'updateAvail', 'notNow', 'makeBraveDefault', 'saveToPocketDesc', 'minimumPageTimeLow', 'paintTabs', 'restoreAll',
 
   //chrome
-  '994289308992179865', '1725149567830788547', '4643612240819915418', '4256316378292851214', '2019718679933488176', '782057141565633384', '5116628073786783676', '1465176863081977902', '3007771295016901659', '5078638979202084724', '4589268276914962177', '3551320343578183772', '2448312741937722512', '1524430321211440688', '42126664696688958', '2663302507110284145', '3635030235490426869', '4888510611625056742', '5860209693144823476', '5846929185714966548', '7955383984025963790', '3128230619496333808', '3391716558283801616', '6606070663386660533', '9011178328451474963', '9065203028668620118', '2473195200299095979', '1047431265488717055', '9218430445555521422', '8926389886865778422', '2893168226686371498', '4289540628985791613', '3095995014811312755', '59174027418879706', '6550675742724504774', '5453029940327926427', '4989966318180235467', '6326175484149238433', '9147392381910171771', '8260864402787962391', '8477384620836102176', '7701040980221191251', '6146563240635539929', '8026334261755873520', '1375321115329958930', '5513242761114685513', '5582839680698949063', '5317780077021120954', '8986267729801483565', '5431318178759467895', '7853747251428735', '2948300991547862301', 'playOrPause', 'frameStep', 'frameBackStep', 'rewind1', 'rewind2', 'forward1', 'forward2', 'rewind3', 'forward3', 'normalSpeed', 'halveSpeed', 'doubleSpeed', 'decSpeed', 'incSpeed', 'fullscreen', 'exitFullscreen', 'mute', 'decreaseVolume', 'increaseVolume', 'incZoom', 'decZoom', 'resetZoom', 'plRepeat', 'mediaSeeking', 'volumeControl', 'changeSpeed', 'mouseWheelFunctions', 'reverseWheelMediaSeeking', 'noScriptPref', 'blockCanvasFingerprinting', 'browsingHistory', 'downloadHistory', 'cachedImagesAndFiles', 'allSiteCookies', 'autocompleteData', 'autofillData', 'clearBrowsingDataNow', 'tabSettings', 'alwaysOnTop', 'neverOnTop', 'privateData', 'privateDataMessage', 'closeAllTabsMenuLabel', 'openalllinksLabel', 'clicktabCopyTabUrl', 'clicktabCopyUrlFromClipboard', 'clicktabReloadtabs', 'clicktabReloadothertabs', 'clicktabReloadlefttabs', 'clicktabReloadrighttabs', 'freezeTabMenuLabel', 'protectTabMenuLabel', 'lockTabMenuLabel', 'autoReloadTabLabel', 'clicktabUcatab', 'secondsLabel', 'minuteLabel', 'minutesLabel', 'generalWindowOpenLabel', 'linkTargetTab', 'linkTargetWindow', 'openDuplicateNextLabel', 'keepWindowLabel31', 'currenttabCaptionLabel', 'focusTabLabelBegin', 'focusTabFirstTab', 'focusTabLeftTab', 'focusTabRightTab', 'focusTabLastTab', 'focusTabLastSelectedTab', 'focusTabOpenerTab', 'focusTabOpenerTabRtl', 'focusTabLastOpenedTab', 'tabbarscrollingInverseLabel', 'minWidthLabel', 'widthToLabel', 'widthPixelsLabel', 'mouseHoverSelectLabelBegin', 'tabFlipLabel', 'clicktabLabel', 'doubleLabel', 'middleLabel', 'altLabel', 'clicktabNothing', 'tabbarscrollingSelectTabLabel', 'tabScrollMultibar', 'millisecondsLabel', 'mouseClickLabel', 'tabFlipDelay', 'tabCloseLabel', 'maxrowLabel', 'newTabButtonLabel', 'ssInterval', 'openTabNextLabel', 'tabbarscrollingCaption', 'showOntabLabel', 'tabFocusLabel', 'unreadTabLabel', 'textcolorLabel', 'bgColorLabel', 'speLinkAllLinks', 'speLinkLabel', 'speLinkNone', 'speLinkExternal', 'currentTabLabel', 'otherTabsLabel'];
+  '994289308992179865', '1725149567830788547', '4643612240819915418', '4256316378292851214', '2019718679933488176', '782057141565633384', '5116628073786783676', '1465176863081977902', '3007771295016901659', '5078638979202084724', '4589268276914962177', '3551320343578183772', '2448312741937722512', '1524430321211440688', '42126664696688958', '2663302507110284145', '3635030235490426869', '4888510611625056742', '5860209693144823476', '5846929185714966548', '7955383984025963790', '3128230619496333808', '3391716558283801616', '6606070663386660533', '9011178328451474963', '9065203028668620118', '2473195200299095979', '1047431265488717055', '9218430445555521422', '8926389886865778422', '2893168226686371498', '4289540628985791613', '3095995014811312755', '59174027418879706', '6550675742724504774', '5453029940327926427', '4989966318180235467', '6326175484149238433', '9147392381910171771', '8260864402787962391', '8477384620836102176', '7701040980221191251', '6146563240635539929', '8026334261755873520', '1375321115329958930', '5513242761114685513', '5582839680698949063', '5317780077021120954', '8986267729801483565', '5431318178759467895', '7853747251428735', '2948300991547862301', '8251578425305135684', 'playOrPause', 'frameStep', 'frameBackStep', 'rewind1', 'rewind2', 'forward1', 'forward2', 'rewind3', 'forward3', 'normalSpeed', 'halveSpeed', 'doubleSpeed', 'decSpeed', 'incSpeed', 'fullscreen', 'exitFullscreen', 'mute', 'decreaseVolume', 'increaseVolume', 'incZoom', 'decZoom', 'resetZoom', 'plRepeat', 'mediaSeeking', 'volumeControl', 'changeSpeed', 'mouseWheelFunctions', 'reverseWheelMediaSeeking', 'noScriptPref', 'blockCanvasFingerprinting', 'browsingHistory', 'downloadHistory', 'cachedImagesAndFiles', 'allSiteCookies', 'autocompleteData', 'autofillData', 'clearBrowsingDataNow', 'tabSettings', 'alwaysOnTop', 'neverOnTop', 'privateData', 'privateDataMessage', 'closeAllTabsMenuLabel', 'openalllinksLabel', 'clicktabCopyTabUrl', 'clicktabCopyUrlFromClipboard', 'clicktabReloadtabs', 'clicktabReloadothertabs', 'clicktabReloadlefttabs', 'clicktabReloadrighttabs', 'freezeTabMenuLabel', 'protectTabMenuLabel', 'lockTabMenuLabel', 'autoReloadTabLabel', 'clicktabUcatab', 'secondsLabel', 'minuteLabel', 'minutesLabel', 'generalWindowOpenLabel', 'linkTargetTab', 'linkTargetWindow', 'openDuplicateNextLabel', 'keepWindowLabel31', 'currenttabCaptionLabel', 'focusTabLabelBegin', 'focusTabFirstTab', 'focusTabLeftTab', 'focusTabRightTab', 'focusTabLastTab', 'focusTabLastSelectedTab', 'focusTabOpenerTab', 'focusTabOpenerTabRtl', 'focusTabLastOpenedTab', 'tabbarscrollingInverseLabel', 'minWidthLabel', 'widthToLabel', 'widthPixelsLabel', 'mouseHoverSelectLabelBegin', 'tabFlipLabel', 'clicktabLabel', 'doubleLabel', 'middleLabel', 'altLabel', 'clicktabNothing', 'tabbarscrollingSelectTabLabel', 'tabScrollMultibar', 'millisecondsLabel', 'mouseClickLabel', 'tabFlipDelay', 'tabCloseLabel', 'maxrowLabel', 'newTabButtonLabel', 'ssInterval', 'openTabNextLabel', 'tabbarscrollingCaption', 'showOntabLabel', 'tabFocusLabel', 'unreadTabLabel', 'textcolorLabel', 'bgColorLabel', 'speLinkAllLinks', 'speLinkLabel', 'speLinkNone', 'speLinkExternal', 'currentTabLabel', 'otherTabsLabel'];
 };
 
 var ctx = null;

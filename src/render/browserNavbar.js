@@ -91,9 +91,10 @@ function BrowserNavbarBtn(props){
   return <a href="javascript:void(0)" onContextMenu={props.onContextMenu} style={props.style} className={`${props.className||''} draggable-source ${props.disabled?'disabled':''} ${props.sync ? 'sync' : ''}`} title={props.title} onClick={props.onClick}><i style={props.styleFont} className={`fa fa-${props.icon}`}/>{props.children}</a>
 }
 
-let [alwaysOnTop,multistageTabs,verticalTab,{left,right,backSide},orderOfAutoComplete,numOfSuggestion,numOfHistory,displayFullIcon,addressBarNewTab,historyBadget,versions] = ipc.sendSync('get-sync-main-states',['alwaysOnTop','multistageTabs','verticalTab','navbarItems','orderOfAutoComplete','numOfSuggestion','numOfHistory','displayFullIcon','addressBarNewTab','historyBadget','versions'])
+let [alwaysOnTop,multistageTabs,verticalTab,{left,right,backSide},orderOfAutoComplete,numOfSuggestion,numOfHistory,displayFullIcon,addressBarNewTab,historyBadget,versions,bookmarkBar,bookmarkBarTopPage] = ipc.sendSync('get-sync-main-states',['alwaysOnTop','multistageTabs','verticalTab','navbarItems','orderOfAutoComplete','numOfSuggestion','numOfHistory','displayFullIcon','addressBarNewTab','historyBadget','versions','bookmarkBar','bookmarkBarTopPage'])
 numOfSuggestion = parseInt(numOfSuggestion), numOfHistory = parseInt(numOfHistory)
-
+sharedState.bookmarkBar = bookmarkBar
+sharedState.bookmarkBarTopPage = bookmarkBarTopPage
 
 
 let staticDisableExtensions = []
@@ -261,7 +262,8 @@ class BrowserNavbar extends Component{
       this.state.pdfMode == nextState.pdfMode &&
       this.props.oppositeGlobal == nextProps.oppositeGlobal &&
       this.props.tabKey == this.tabKey &&
-      this.searchWordHighlight == sharedState.searchWordHighlight)
+      this.searchWordHighlight == sharedState.searchWordHighlight &&
+      this.bookmarkBar == sharedState.bookmarkBar)
     if(ret){
       this.currentWebContents = nextProps.currentWebContents
       this.wv = nextProps.tab.wv
@@ -277,6 +279,7 @@ class BrowserNavbar extends Component{
       this.oppositeMode = nextProps.tab.oppositeMode
       this.tabKey = nextProps.tabKey
       this.searchWordHighlight = sharedState.searchWordHighlight
+      this.bookmarkBar = sharedState.bookmarkBar
     }
     return ret
   }
@@ -591,9 +594,9 @@ class BrowserNavbar extends Component{
       </NavbarMenuBarItem>
       <NavbarMenuItem text={locale.translation("newWindow")} icon='clone' onClick={()=>BrowserWindowPlus.load({id:remote.getCurrentWindow().id,sameSize:true})}/>
       <div className="divider" />
-      <NavbarMenuItem text={this.props.toggleNav == 0 ? 'OneLine Menu(ALL)' : 'Normal Menu(ALL)'} icon='ellipsis horizontal'
+      <NavbarMenuItem text={`[${this.props.toggleNav == 0 ? ' ' : '✓'}] OneLine Menu(ALL)`} icon='ellipsis horizontal'
                       onClick={()=>{cont.hostWebContents.send('toggle-nav',this.props.toggleNav == 0 ? 1 : 0);this.setState({})}}/>
-      {this.props.toggleNav == 0 ? <NavbarMenuItem text={multistageTabs ? 'Disable Multi Row Tabs' : 'Enable Multi Row Tabs'} icon='table'
+      {this.props.toggleNav == 0 ? <NavbarMenuItem text={`[${multistageTabs  ? '✓' : ' '}] Multi Row Tabs`} icon='table'
                                                    onClick={()=>{
                                                      ipc.send('save-state',{tableName:'state',key:'multistageTabs',val:!multistageTabs})
                                                      PubSub.publish('change-multistage-tabs',!multistageTabs)
@@ -602,7 +605,7 @@ class BrowserNavbar extends Component{
       }
       <div className="divider" />
 
-      <NavbarMenuItem text={locale.translation(alwaysOnTop ? 'neverOnTop' : 'alwaysOnTop')} icon='level up' onClick={()=>{
+      <NavbarMenuItem text={`[${alwaysOnTop ? '✓' : ' '}] ${locale.translation('alwaysOnTop')}`} icon='level up' onClick={()=>{
         alwaysOnTop = !alwaysOnTop
         mainState.set('alwaysOnTop',alwaysOnTop)
         remote.getCurrentWindow().setAlwaysOnTop(alwaysOnTop)
@@ -610,13 +613,14 @@ class BrowserNavbar extends Component{
         this.setState({})
       }}/>
       {isDarwin ? null :<NavbarMenuItem text='Bind Selected Window' icon='crosshairs' onClick={_=>this.bindWindow()}/>}
-      <NavbarMenuItem text={`Search Highlight ${sharedState.searchWordHighlight ? 'OFF' : 'ON'}`} icon='asterisk' onClick={_=>{
+      <NavbarMenuItem text={`[${sharedState.searchWordHighlight ? '✓' : ' '}] Search Highlight`} icon='asterisk' onClick={_=>{
         sharedState.searchWordHighlight = !sharedState.searchWordHighlight
-        ipc.send('search-word-highlight',sharedState.searchWordHighlight)
+        mainState.set('searchWordHighlight',sharedState.searchWordHighlight)
         this.props.searchWordHighlight(this.props.tab)
         this.refs['main-menu'].menuClose()
         this.setState({})
-      }}/>     <div className="divider" />
+      }}/>
+      <div className="divider" />
 
 
       <NavbarMenuItem icon='zoom out' className='zoom-out' onClick={::this.onZoomOut} keepVisible={true} />
@@ -624,13 +628,26 @@ class BrowserNavbar extends Component{
       <NavbarMenuItem text={`${parseInt(this.state.zoom)}%`} className='zoom-setting' onClick={::this.noZoom} keepVisible={true} />
       <div className="divider" />
 
-      <NavbarMenuItem text={`AdBlock ${this.props.adBlockEnable ? 'OFF' : 'ON'}(ALL)`} icon='hand paper' onClick={::this.handleAdBlockGlobal}/>
-      {this.props.adBlockEnable ? <NavbarMenuItem text={`AdBlock ${this.props.adBlockThis ? 'OFF' : 'ON'}(Panel)`} icon='hand paper' onClick={::this.handleAdBlockThis}/> : null}
-      {this.props.adBlockEnable ? <NavbarMenuItem text={`AdBlock ${global.adBlockDisableSite[hostname] ? 'ON' : 'OFF'}(Domain)`} icon='hand paper' onClick={_=>this.handleAdBlockDomain(hostname)}/> : null}
+      <NavbarMenuItem text={`[${this.props.adBlockEnable ? '✓' : ' '}] AdBlock(ALL)`} icon='hand paper' onClick={::this.handleAdBlockGlobal}/>
+      {this.props.adBlockEnable ? <NavbarMenuItem text={`[${this.props.adBlockThis ? '✓' : ' '}] AdBlock(Panel)`} icon='hand paper' onClick={::this.handleAdBlockThis}/> : null}
+      {this.props.adBlockEnable ? <NavbarMenuItem text={`[${global.adBlockDisableSite[hostname] ? ' ' : '✓'}] AdBlock(Domain)`} icon='hand paper' onClick={_=>this.handleAdBlockDomain(hostname)}/> : null}
       <div className="divider" />
 
       <NavbarMenuSubMenu icon="browser" text="Window SubMenu">
-        <NavbarMenuItem text={this.props.toggleNav == 0 ? 'OneLine Menu' : 'Normal Menu'} icon='ellipsis horizontal' onClick={()=>{this.props.parent.toggleNavPanel(this.props.toggleNav == 0 ? 1 : 0);this.setState({})}}/>
+        <NavbarMenuItem text={`[${sharedState.bookmarkBar ? '✓' : ' '}] ${locale.translation('2845382757467349449')}`} icon='bookmark' onClick={_=>{
+          sharedState.bookmarkBar = !sharedState.bookmarkBar
+          mainState.set('bookmarkBar',sharedState.bookmarkBar)
+          this.refs['main-menu'].menuClose()
+          this.props.parent.setState({})
+        }}/>
+        <NavbarMenuItem text={`[${sharedState.bookmarkBarTopPage ? '✓' : ' '}] Show bookmark bar on top page`} icon='bookmark' onClick={_=>{
+          sharedState.bookmarkBarTopPage = !sharedState.bookmarkBarTopPage
+          mainState.set('bookmarkBarTopPage',sharedState.bookmarkBarTopPage)
+          this.refs['main-menu'].menuClose()
+          this.props.parent.setState({})
+        }}/>
+        <NavbarMenuItem text={`[${this.props.toggleNav == 0 ? ' ' : '✓'}] OneLine Menu`} icon='ellipsis horizontal' onClick={()=>{this.props.parent.toggleNavPanel(this.props.toggleNav == 0 ? 1 : 0);this.setState({})}}/>
+        <div className="divider" />
         <NavbarMenuItem text='Detach This Panel' icon='space shuttle' onClick={_=>{this.props.parent.detachPanel();this.refs['main-menu'].menuClose()}}/>
         <NavbarMenuItem text='Panels to Windows' icon='cubes' onClick={_=>{PubSub.publish('all-detach');this.refs['main-menu'].menuClose()}}/>
         {isDarwin ? null :<NavbarMenuItem text={this.props.toggleNav == 3 ? 'Normal Screen Mode' : 'Full Screen Mode'} icon={this.props.toggleNav == 3 ? 'compress' : 'expand'}
@@ -641,8 +658,8 @@ class BrowserNavbar extends Component{
           this.setState({vpnList:!this.state.vpnList})
         }
         }/> : null}
-        <NavbarMenuItem text={`Open Opposite ${this.props.oppositeGlobal ? 'OFF' : 'ON'}`} icon='columns' onClick={_=>{this.handleOppositeGlobal();this.refs['main-menu'].menuClose()}}/>
-        <NavbarMenuItem text={ sharedState.notLoadTabUntilSelected ? "Always load tabs": "Don't load tabs untill selected"} onClick={_=>{this.loadTabSetting();this.refs['main-menu'].menuClose()}}/>
+        <NavbarMenuItem text={`[${this.props.oppositeGlobal ? '✓' : ' '}] Open Opposite`} icon='columns' onClick={_=>{this.handleOppositeGlobal();this.refs['main-menu'].menuClose()}}/>
+        <NavbarMenuItem text={`[${sharedState.notLoadTabUntilSelected ? '✓' : ' '}] Don't load tabs untill selected`} onClick={_=>{this.loadTabSetting();this.refs['main-menu'].menuClose()}}/>
         <div className="divider" />
         <NavbarMenuItem text='Extract Audio from Video' icon='music' onClick={_=>{ipc.send('audio-extract');this.refs['main-menu'].menuClose()}}/>
         <NavbarMenuItem text={`Change Pdf View to ${this.state.pdfMode == 'normal' ? 'Comic' : 'Normal'}`} icon='file pdf outline' onClick={_=>{this.handlePdfMode();this.refs['main-menu'].menuClose()}}/>
@@ -967,7 +984,8 @@ class BrowserNavbar extends Component{
     // this.props.toggleNav == 1 ? {width : this.props.isTopRight ? '55%' : '50%',float: 'right'} : {}
 
 
-    return <div className={`navbar-main browser-navbar${isFixed && !isFloat ? " fixed-panel" : ""}`} ref="navbar"  onDragOver={(e)=>{e.preventDefault();return false}}
+    return <div className={`navbar-main browser-navbar${isFixed && !isFloat ? " fixed-panel" : ""}`}
+                ref="navbar" onDragOver={(e)=>{e.preventDefault();return false}}
                 onDrop={(e)=>{e.preventDefault();return false}} style={navbarStyle}>
       {/*<BrowserNavbarBtn title="Rewind" icon="home fa-lg" onClick={this.props.onClickHome} disabled={!this.props.page.canGoBack} />*/}
 

@@ -46,12 +46,14 @@ if(window.__started_){
   }
 
   function handleDragEnd(evt) {
+    console.log(evt)
     const target = evt.target
     if(!target) return
 
-    let url
+    let url,text
     if(target.href){
       url = target.href
+      text = target.innerText
     }
     else if(target.nodeName == "#text"){
       ipc.sendToHost("link-drop",{screenX: evt.screenX, screenY: evt.screenY, text:window.getSelection().toString() || target.data})
@@ -60,16 +62,34 @@ if(window.__started_){
       const parent = target.closest("a")
       if(parent){
         url = parent.href
+        text = target.innerText
       }
       else{
         url = target.src
+        text = target.getAttribute('alt')
       }
     }
 
-    ipc.sendToHost("link-drop",{screenX: evt.screenX, screenY: evt.screenY, url})
+    ipc.sendToHost("link-drop",{screenX: evt.screenX, screenY: evt.screenY, url,text})
   }
+  // if(location.href.match(/^chrome-extension:\/\/dckpbojndfoinamcdamhkjhnjnmjkfjd\/(favorite|favorite_sidebar)\.html/)){
+  //   console.log("favorite")
+  //   document.addEventListener("drop", e=>{
+  //     e.preventDefault()
+  //     e.stopPropagation()
+  //     console.log('drop',e)
+  //   }, false)
+  //
+  //   document.addEventListener("dragend", function( event ) {
+  //     event.preventDefault();
+  //     event.stopPropagation()
+  //     console.log('dragend',event)
+  //   }, false);
+  // }
+  // else{
+    document.addEventListener('dragend', handleDragEnd, false)
+  // }
 
-  document.addEventListener('dragend', handleDragEnd, false)
 
 
   let timer

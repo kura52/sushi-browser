@@ -22,7 +22,7 @@ const isLinux = process.platform === 'linux'
 const meiryo = isWin && Intl.NumberFormat().resolvedOptions().locale == 'ja'
 import mainState from './mainState'
 import extensionInfos from "./extensionInfos";
-import {token} from "./databaseFork";
+import {history, token} from "./databaseFork";
 const open = require('./open')
 const {readMacro,readMacroOff,readTargetSelector,readTargetSelectorOff,readComplexSearch} = require('./readMacro')
 const sharedState = require('./sharedStateMain')
@@ -199,6 +199,20 @@ ipcMain.on('insert-favorite',(event,key,writePath,data)=>{
   })
 })
 
+ipcMain.on('insert-favorite2',(event,key,writePath,dbKey,data)=>{
+  console.log("insert",writePath,data)
+  favorite.findOne({key:writePath}).then(rec=>{
+    const ind = rec.children.findIndex(x=>x == dbKey)
+    rec.children.splice(ind+1,0,key)
+    console.log("insert2",rec)
+    favorite.insert({key,...data,created_at: Date.now(), updated_at: Date.now()}).then(ret=>{
+      console.log("insert3",ret)
+      favorite.update({ key: writePath }, { $set:{children: rec.children,updated_at: Date.now()}}).then(ret2=>{
+        event.sender.send(`insert-favorite2-reply_${key}`,key)
+      })
+    })
+  })
+})
 
 ipcMain.on('rename-favorite',(event,key,dbKey,newName)=>{
   console.log(99,dbKey,newName)
@@ -208,14 +222,15 @@ ipcMain.on('rename-favorite',(event,key,dbKey,newName)=>{
 })
 
 
-async function recurGet(keys){
+async function recurGet(keys,num){
   const ret = await favorite.find({key:{$in: keys}})
   const datas = []
   const promises = []
+
   for(let x of ret){
     const data = {key:x.key,title:x.title,url:x.url,favicon:x.favicon,is_file:x.is_file}
     if(x.children){
-      promises.push(recurGet(x.children))
+      promises.push(recurGet(num ? x.children.slice(num) : x.children))
     }
     else{
       promises.push(false)
@@ -229,8 +244,8 @@ async function recurGet(keys){
   return datas
 }
 
-ipcMain.on('get-all-favorites',async(event,key,dbKeys)=>{
-  const ret = await recurGet(dbKeys)
+ipcMain.on('get-all-favorites',async(event,key,dbKeys,num)=>{
+  const ret = await recurGet(dbKeys,num)
   event.sender.send(`get-all-favorites-reply_${key}`,ret)
 })
 
@@ -239,7 +254,15 @@ ipcMain.on('get-all-states',async(event,key)=>{
   event.sender.send(`get-all-states-reply_${key}`,ret)
 })
 
-
+ipcMain.on('get-favorites-shallow', async(event,key,dbKey,limit)=>{
+  const x = await favorite.findOne({key:dbKey})
+  const result = {key:x.key,title:x.title,url:x.url,favicon:x.favicon,is_file:x.is_file}
+  if(x.children){
+    const ret = await favorite.find({key:{$in: x.children.slice(0,limit)}})
+    result.children = ret.map(x=>({key:x.key,title:x.title,url:x.url,favicon:x.favicon,is_file:x.is_file}))
+  }
+  event.sender.send(`get-favorites-shallow-reply_${key}`,result)
+})
 
 async function recurFind(keys,list){
   const ret = await favorite.find({key:{$in: keys}})
@@ -904,23 +927,23 @@ ipcMain.on('set-pos-window',async (e,{id,hwnd,key,x,y,width,height,top,active,ta
 let timer,timers={}
 ipcMain.on('change-tab-infos',(e,changeTabInfos)=> {
   const f = function (cont,c) {
-      if (c.index !== (void 0)) {
-        // if(timers[c.tabId]) clearTimeout(timers[c.tabId])
-        // timers[c.tabId] = setTimeout(()=>{
+    if (c.index !== (void 0)) {
+      // if(timers[c.tabId]) clearTimeout(timers[c.tabId])
+      // timers[c.tabId] = setTimeout(()=>{
+      console.log('change-tab-infos', c)
+      // cont.setTabIndex(c.index)
+      ipcMain.emit('update-tab-index-org', null, c.tabId, c.index)
+      // delete timers[c.tabId]
+      // }, 10)
+    }
+    if (c.active) {
+      if (timer) clearTimeout(timer)
+      timer = setTimeout(() => {
         console.log('change-tab-infos', c)
-        // cont.setTabIndex(c.index)
-        ipcMain.emit('update-tab-index-org', null, c.tabId, c.index)
-        // delete timers[c.tabId]
-        // }, 10)
-      }
-      if (c.active) {
-        if (timer) clearTimeout(timer)
-        timer = setTimeout(() => {
-          console.log('change-tab-infos', c)
-          if (!cont.isDestroyed()) cont.setActive(c.active)
-          timer = void 0
-        }, 10)
-      }
+        if (!cont.isDestroyed()) cont.setActive(c.active)
+        timer = void 0
+      }, 10)
+    }
   };
   for(let c of changeTabInfos){
     let cont = sharedState[c.tabId] || webContents.fromTabID(c.tabId)
@@ -1506,8 +1529,10 @@ ipcMain.on('start-complex-search',(e,key,tabId,operation,noMacro)=>{
   }
 })
 
-ipcMain.on('search-word-highlight',(e,val)=>{
-  mainState.searchWordHighlight = val
+ipcMain.on('history-count-reset',async (e,key,_id,count)=>{
+  const ret = await history.findOne({_id})
+  await history.update({_id}, {$set:{count}})
+  e.sender.send(`history-count-reset-reply_${key}`,ret.count)
 })
 // ipcMain.on('send-keys',(e,keys)=>{
 //   e.sender.sendInputEvent(keys)

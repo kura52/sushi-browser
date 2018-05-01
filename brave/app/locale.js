@@ -310,6 +310,7 @@ var rendererIdentifiers = function () {
     'saveToPocketDesc',
     'minimumPageTimeLow',
     'paintTabs',
+    'restoreAll',
 
     //chrome
     '994289308992179865',
@@ -364,6 +365,8 @@ var rendererIdentifiers = function () {
     '5431318178759467895',
     '7853747251428735',
     '2948300991547862301',
+    '8251578425305135684',
+    '2845382757467349449',
 
     'playOrPause',
     'frameStep',

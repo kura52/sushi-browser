@@ -26,3 +26,51 @@
     margin-top: auto;
     margin-bottom: 12px;
 }
+
+.ui.cards>.card>.close-button {
+    position: absolute;
+    cursor: pointer;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: normal;
+    font-stretch: normal;
+    font-size: 20px;
+    line-height: 0.9;
+    font-family: arial, sans-serif;
+    right: 2px;
+    margin-top: 2px;
+    text-decoration: none;
+    text-shadow: rgb(255, 255, 255) 0px 1px 0px;
+    opacity: 1;
+    width: 16px;
+    height: 16px;
+    text-align: center;
+    border-radius: 6px !important;
+    z-index: 9999;
+    filter: none;
+    display: none;
+}
+
+
+.ui.cards>.card:hover>.close-button {
+    background-color: rgba(0,0,0,0.1);
+    display: initial;
+}
+
+
+.restore{
+    font-size: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 10px;
+    margin-right: 48px;
+}
+.restore>a{
+    cursor: pointer;
+    padding-left: 8px;
+}
+
+.restore.hidden{
+    display: none;
+}

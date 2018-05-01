@@ -60,6 +60,8 @@ const settingDefault =  {
   displayFullIcon: true,
   notLoadTabUntilSelected: false,
   searchWordHighlight: false,
+  bookmarkBar: false,
+  bookmarkBarTopPage: true,
 
   //privacy
   clearHistoryOnClose: false,

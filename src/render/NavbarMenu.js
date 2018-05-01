@@ -93,13 +93,23 @@ export default class NavbarMenu extends Component {
         const left = parseInt(this.refs.div.offsetLeft)
         const width = parseInt(this.refs.menu.offsetWidth)
         console.log(38,left,width)
-        if(left - width < 0){
-          this.refs.menu.style.left = `${5 - left}px`
-          this.refs.menu.style.setProperty('right', 'auto', 'important')
+        if(this.props.alignLeft){
+          const totalWidth = parseInt(this.refs.div.parentNode.parentNode.offsetWidth)
+          console.log(38,left,width,totalWidth)
+          if(width - (totalWidth - left) > 0){
+            this.refs.menu.style.left = `${-5 -left + totalWidth - width}px`
+            this.refs.menu.style.setProperty('right', 'auto', 'important')
+          }
         }
         else{
-          this.refs.menu.style.left = 'auto'
-          this.refs.menu.style.right = null
+          if(left - width < 0){
+            this.refs.menu.style.left = `${5 - left}px`
+            this.refs.menu.style.setProperty('right', 'auto', 'important')
+          }
+          else{
+            this.refs.menu.style.left =  'auto'
+            this.refs.menu.style.right = null
+          }
         }
       }
       if(this.props.timeOut){
@@ -144,13 +154,15 @@ export default class NavbarMenu extends Component {
 
   render(){
     const self = this
+    let style = {lineHeight: '1.9',minWidth:0}
+    if(this.props.style) style = {...this.props.style,...style}
     const list = this.state.dataList ? this.props.children.concat(this.state.dataList) : this.props.children
     return <div onContextMenu={this.props.onContextMenu} onMouseOver={this.props.mouseOver ? this.onMouseOver : (void 0)}
                 onMouseLeave={this.props.mouseOver ? this.onMouseLeave : (void 0)} id={this.uuid} ref="div" role="listbox"
                 aria-expanded="false" className={`${this.props.className != 'main-menu' ? 'draggable-source' : ''} ui top${this.props.mouseOver ? '' : ' right pointing'} nav-button dropdown ${this.props.className}`}
-                tabIndex={1} style={{lineHeight: '1.9',minWidth:0}}>
+                tabIndex={1} style={style}>
       <a ref="button" href="javascript:void(0)" title={this.props.title} onClick={this.props.mouseOver ? e=>this.props.onClick(e) : ::this.handleClick}>
-        <i className={`fa fa-${this.props.icon}`} />
+        {this.props.icon ? <i className={`fa fa-${this.props.icon}`} /> : null}
         {this.props.badget || null}
       </a>
       {!this.state.visible && !this.props.alwaysView ? null : <div ref="menu" className={`menu${this.state.visible || this.state.forceOpen ? " visible" : ""} transition left ${this.props.mouseOver ? 'nav2-menu' : 'nav-menu'}`} style={this.props.style}>

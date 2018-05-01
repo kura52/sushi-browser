@@ -89,11 +89,11 @@ export default class WebPageList extends Component{
             const tab = datas.tab
             if(datas.ref){
               const pos = datas.ref
-              let modify = 30
+              let modify = 30 + datas.modify
               if(datas.navbar){
                 const style = datas.navbar.style
                 if(style.display == "none" || style.position == "sticky" || style.visibility == "hidden"){
-                  modify = 0
+                  modify = datas.modify
                 }
               }
               style = datas.isActive ? {position: "absolute",

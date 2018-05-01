@@ -57,7 +57,7 @@ export default function(margin){
               )}
             />}
 
-          <span className={`"infinite-tree-title${faviconEmpty ? " date-slice" : ""}${node.inactive ? " node-inactive" : ""}`}>{name}</span>
+          <span className={`infinite-tree-title${faviconEmpty ? " date-slice" : ""}${node.inactive ? " node-inactive" : ""}`}>{name}</span>
           <i
             style={{ marginLeft: 5 }}
             className={classNames(

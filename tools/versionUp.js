@@ -4,24 +4,22 @@ const fs = require('fs')
 const glob = require("glob")
 
 const BEFORE_CODE_NAME = 'Unagi(Eel)'
-const CODE_NAME = 'Shirauo(Icefish)'
+const CODE_NAME = 'Unagi(Eel)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.16.0"
+const NEXT_APP_VERSION = "0.16.1"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Tab freeze, tab protection, tab locking function added (It is close to Tab Mix Plus)
-Changed Pin Tab behavior to be like Chrome.
-Added Match Case, OR search, Regular expression to search function(Ctrl+F).（We referred to the source of https://github.com/intelfike/isear）
-Added search word highlight function. (such as word highlight extension)
-When right-click menu is displayed after selecting URL, right-click menu is modified so that move to URL instead of search is displayed
-Updated to Muon 5.2.7 (chromium 66.0.3359.117)`
+const CHANGE_ENGLISH = `Added bookmark bar
+Added display control function on top page of bookmark bar
+I made it possible to drop and drag a link to a bookmark sidebar
+Changed on / off display method of some items of main menu to ✓
+Fixed some bugs`
 
-const CHANGE_JAPANESE = `タブの凍結、保護、ロックの追加(Tab Mix Plusと近い動作とした）
-タブの固定の動作をchromeと同じとなるよう変更
-検索機能(Ctrl+F)に、大文字小文字の区別、OR検索、正規表現を追加（https://github.com/intelfike/isearのソースを改変）
-検索語のハイライト機能を追加。(word highlight拡張のような機能)
-URLを選択後に右クリックメニューを表示した場合、検索ではなくURLへの移動が表示されるように変更
-Muonを5.2.7に更新(chromium 66.0.3359.117)`
+const CHANGE_JAPANESE = `ブックマークバー機能を追加
+ブックマークバーのtop pageでの表示制御機能を追加
+ブックマークサイドバーへのリンクのドロップアンドドラッグを可能とした
+メインメニューのON/OFF表示方法を✓に変更
+いくつかのバグを修正`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

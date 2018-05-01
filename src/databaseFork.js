@@ -50,21 +50,20 @@ function handler(table){
               if(msg.key !== key) return
               if((table == "history" || table == "favorite" || table == "tabState") && (prop == "insert" || prop == "update")){
                 for(let cont of webContents.getAllWebContents()){
-                  if(!cont.isDestroyed() && !cont.isBackgroundPage() && cont.isGuest()) {
+                  if(!cont.isDestroyed() && !cont.isBackgroundPage() && (cont.isGuest() || !cont.hostWebContents)) {
                     const url = cont.getURL()
-                    if(url.endsWith(`/${table}_sidebar.html`) ||url.endsWith(`/${table}.html`) || (table == "tabState" && url.endsWith(`/tab_history_sidebar.html`))){
-                    if(prop == "update"){
-                      db[table].findOne(argumentsList[0]).then(ret=>{
-                        console.log(111,'update-datas', ret,cont.getURL())
-                        cont.send('update-datas', ret)
-                      })
-                    }
-                    else{
-                      console.log(222,'update-datas', ret,cont.getURL())
-                      cont.send('update-datas', msg.result)
+                    if((url.startsWith('chrome://brave') || table == "favorite") || url.endsWith(`/${table}_sidebar.html`) ||url.endsWith(`/${table}.html`) || (table == "tabState" && url.endsWith(`/tab_history_sidebar.html`))){
+                      if(prop == "update"){
+                        db[table].findOne(argumentsList[0]).then(ret=>{
+                          cont.send('update-datas', ret)
+                        })
+                      }
+                      else{
+                        cont.send('update-datas', msg.result)
+                      }
                     }
                   }
-                  }
+
                 }
               }
               resolve(msg.result)

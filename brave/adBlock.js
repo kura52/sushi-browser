@@ -158,7 +158,7 @@ function registerForBeforeRequest (session) {
   session.webRequest.onHeadersReceived((details, cb) => {
     setTimeout(_=>{
       const headers = details.responseHeaders, newURL = details.url
-      const contType = headers['Content-Type']
+      const contType = headers['Content-Type'] || headers['content-type'] || headers['CONTENT-TYPE']
       if(!contType) return
 
       // console.log(contType[0])
@@ -180,7 +180,7 @@ function registerForBeforeRequest (session) {
 
       let record,ret,parseUrl
       if(ret = (contType[0].match(RegRichMedia))){
-        let len = headers['Content-Length']
+        let len = headers['Content-Length'] || headers['content-length'] || headers['CONTENT-LENGTH']
         len = len ? len[0] : null
         parseUrl = url.parse(newURL)
         const pathname = parseUrl.pathname
@@ -188,7 +188,7 @@ function registerForBeforeRequest (session) {
         record = {tabId:details.tabId,type:ret[0],contType,size:len,url:newURL,fname: pathname.slice(ind+1)}
       }
       else{
-        let len = headers['Content-Length']
+        let len = headers['Content-Length'] || headers['content-length'] || headers['CONTENT-LENGTH']
         len = len ? len[0] : null
         parseUrl = url.parse(newURL)
         const pathname = parseUrl.pathname
@@ -200,6 +200,7 @@ function registerForBeforeRequest (session) {
       }
 
       if(record){
+        console.log(record)
         let cont
         for(let w of BrowserWindow.getAllWindows()){
           if(w.getTitle().includes('Sushi Browser')){
