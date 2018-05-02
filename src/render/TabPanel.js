@@ -43,11 +43,15 @@ let topURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html',
 const sidebarURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html'
 const blankURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html'
 const REG_VIDEO = /^https:\/\/www\.(youtube)\.com\/watch\?v=(.+)&?|^http:\/\/www\.(dailymotion)\.com\/video\/(.+)$|^https:\/\/(vimeo)\.com\/(\d+)$/
-let [newTabMode,inputsVideo,disableTabContextMenus,priorityTabContextMenus,reloadIntervals,closeTabBehavior,keepWindowLabel31,multistageTabs,maxrowLabel,addressBarNewTab,alwaysOpenLinkBackground,adBlockEnable,searchWordHighlight] = ipc.sendSync('get-sync-main-states',['newTabMode','inputsVideo','disableTabContextMenus','priorityTabContextMenus','reloadIntervals','closeTabBehavior','keepWindowLabel31','multistageTabs','maxrowLabel','addressBarNewTab','alwaysOpenLinkBackground','adBlockEnable','searchWordHighlight'])
+const REG_HIGHLIGHT_SITES = /www\.google\..+?q=|search\.yahoo\.c.+?p=|www\.baidu\.com.+?wd|\.baidu\.com.+?word=|www\.ask\.com.+?q=|\.bing\.com.+?q=|www\.youdao\.com.+?q=/
+
+let [newTabMode,inputsVideo,disableTabContextMenus,priorityTabContextMenus,reloadIntervals,closeTabBehavior,keepWindowLabel31,multistageTabs,maxrowLabel,addressBarNewTab,alwaysOpenLinkBackground,adBlockEnable,searchWordHighlight,searchWordHighlightRecursive] = ipc.sendSync('get-sync-main-states',['newTabMode','inputsVideo','disableTabContextMenus','priorityTabContextMenus','reloadIntervals','closeTabBehavior','keepWindowLabel31','multistageTabs','maxrowLabel','addressBarNewTab','alwaysOpenLinkBackground','adBlockEnable','searchWordHighlight','searchWordHighlightRecursive'])
 
 sharedState.searchWordHighlight = searchWordHighlight
+sharedState.searchWordHighlightRecursive = searchWordHighlightRecursive
+
 disableTabContextMenus = new Set(disableTabContextMenus)
-const searchWords = {}
+sharedState.searchWords = {}
 
 
 function getNewTabPage(){
@@ -73,6 +77,7 @@ const convertUrlMap = new Map([
   ['about:blank','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html'],
   ['chrome://bookmarks-sidebar/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html'],
   ['chrome://tab-history-sidebar/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_history_sidebar.html'],
+  ['chrome://session-manager-sidebar/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/saved_state_sidebar.html'],
   ['chrome://history-sidebar/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history_sidebar.html'],
   ['chrome://explorer/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html'],
   ['chrome://explorer-sidebar/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer_sidebar.html'],
@@ -689,10 +694,20 @@ export default class TabPanel extends Component {
     if(this.isFixed) return [tokenResize,tokenDrag,tokenClose,tokenBodyKeydown,tokenIncludeKey,tokenRichMedia,tokenMultiScroll,tokenCloseTab,tokenAdblock]
 
 
-    const tokenNewTabFromKey = PubSub.subscribe(`new-tab-from-key_${this.props.k}`, (msg,{url,mobile,adBlockThis,notSelected,privateMode,guestInstanceId})=> {
+    const tokenNewTabFromKey = PubSub.subscribe(`new-tab-from-key_${this.props.k}`, (msg,{url,mobile,adBlockThis,notSelected,privateMode,guestInstanceId,type})=> {
       if (!this.mounted) return
       console.log(`new-tab-from-key_${this.props.k}`,this)
-      tabAdd(this, url, !notSelected,privateMode,guestInstanceId,(void 0),(void 0));
+      if(!type || type == 'new-tab'){
+        tabAdd(this, url, !notSelected,privateMode,guestInstanceId,(void 0),(void 0));
+      }
+      else if(type == 'load-url'){
+        const tab = this.state.tabs.find(x=>x.key==this.state.selectedTab)
+        this.navigateTo(tab.page, url, tab)
+      }
+      else if(type == 'create-web-contents'){
+        const tab = this.state.tabs.find(x=>x.key==this.state.selectedTab)
+        tab.events['create-web-contents'](null, {id:tab.wvId,targetUrl:url,disposition:'background-tab'})
+      }
     })
 
 
@@ -1055,17 +1070,38 @@ export default class TabPanel extends Component {
     autoHighLightInjection(this.getWebContents(tab),word=>{
       if(!word){
         let tabId = tab.wvId
-        while(true){
-          if(!tabId) break
-          if(searchWords[tabId]){
-            word = searchWords[tabId]
-            break
+        if(sharedState.searchWordHighlightRecursive){
+          while(true){
+            if(!tabId) break
+            if(sharedState.searchWords[tabId]){
+              word = sharedState.searchWords[tabId]
+              break
+            }
+            tabId = sharedState.tabValues[tabId]
           }
-          tabId = this.props.parent.tabValues[tabId]
+        }
+        else{
+          if(sharedState.searchWords[tabId]){
+            const navbar = refs2[`navbar-${tab.key}`].state
+            const url = navbar.historyList[navbar.currentIndex -1]
+            if(url && url[0].match(REG_HIGHLIGHT_SITES)){
+              word = sharedState.searchWords[tabId]
+            }
+          }
+          else{
+            const tabId2 = sharedState.tabValues[tabId]
+            if(sharedState.searchWords[tabId2] &&
+              refs2[`navbar-${tab.key}`].state.currentIndex == 0){
+              const cont = this.props.currentWebContents[tabId2]
+              if(cont.getURL().match(REG_HIGHLIGHT_SITES)){
+                word = sharedState.searchWords[tabId2]
+              }
+            }
+          }
         }
       }
       else{
-        searchWords[tab.wvId] = word
+        sharedState.searchWords[tab.wvId] = word
       }
       if(word) ipc.emit('menu-or-key-events',null,'findOnPage',tab.wvId,word,'OR')
     })
@@ -1188,6 +1224,10 @@ export default class TabPanel extends Component {
         console.log('onDidFinishLoading',e)
         if (!self.mounted) return
 
+        if(!sharedState.searchWordHighlightRecursive && sharedState.searchWordHighlight){
+          self.searchWordHighlight(tab)
+        }
+
         ipc.send('chrome-webNavigation-onCompleted',{
           tabId:tab.wvId,
           url:page.navUrl,
@@ -1290,9 +1330,10 @@ export default class TabPanel extends Component {
         console.log('onDomReady',e,tab,Date.now())
         if (!self.mounted) return
 
-        if(sharedState.searchWordHighlight){
+        if(sharedState.searchWordHighlightRecursive && sharedState.searchWordHighlight){
           self.searchWordHighlight(tab)
         }
+
         ipc.send('chrome-webNavigation-onDOMContentLoaded',{
           tabId:tab.wvId,
           url:page.navUrl,
@@ -1587,7 +1628,7 @@ export default class TabPanel extends Component {
     this.registChromeEvent(tab)
   }
 
-  restoreTabFromTabKey(tabKey,i,restoreIndex=null,callback){
+  restoreTabFromTabKey(tabKey,i,restoreIndex=null,callback,openType){
     tabState.findOne({tabKey}).then(rSession=>{
       const urls = rSession.urls
       const titles = rSession.titles
@@ -1602,8 +1643,9 @@ export default class TabPanel extends Component {
       else{
         this.state.tabs.splice(i + 1, 0, n_tab)
       }
+      if(openType == 'load-url') this.handleTabClose({}, this.state.selectedTab)
       console.log("selected20", n_tab.key)
-      this.setState({selectedTab: n_tab.key})
+      this.setState(openType == 'create-web-contents' ? {} : {selectedTab: n_tab.key})
       this.focus_webview(n_tab,n_tab.page.location != topURL)
       if(callback) setTimeout(_=>callback(n_tab.wvId),2000)
     })
@@ -1660,13 +1702,13 @@ export default class TabPanel extends Component {
     }
     ipc.on('new-tab', tab.events['new-tab'])
 
-    tab.events['new-tab-opposite'] = (e, id, url,lastMouseDown, privateMode)=> {
+    tab.events['new-tab-opposite'] = (e, id, url,lastMouseDown, privateMode, type = 'new-tab')=> {
       if (!this.mounted) return
       if (tab.wvId && id == tab.wvId) {
         global.openerQueue.push(id)
         const oppositeKey = lastMouseDown ? (this.props.getPrevFocusPanel(this.props.k) || this.props.getOpposite(this.props.k)) : this.props.getOpposite(this.props.k)
         if (oppositeKey && !isFixedPanel(oppositeKey))
-          PubSub.publish(`new-tab-from-key_${oppositeKey}`, {url,mobile:tab.mobile, adBlockThis: tab.adBlockThis, privateMode:privateMode || tab.privateMode})
+          PubSub.publish(`new-tab-from-key_${oppositeKey}`, {url,mobile:tab.mobile, adBlockThis: tab.adBlockThis, privateMode:privateMode || tab.privateMode, type})
         else{
           // const selectedTab =  this.state.selectedTab
           // const t = tabAdd(this, url, "nothing",(void 0),(void 0),tab.mobile,tab.adBlockThis,true);
@@ -1682,24 +1724,24 @@ export default class TabPanel extends Component {
     ipc.on('new-tab-opposite', tab.events['new-tab-opposite'])
 
 
-    tab.events['restore-tab-opposite'] = (e, id, tabKey,restoreIndex,favicons)=> {
+    tab.events['restore-tab-opposite'] = (e, id, tabKey,restoreIndex,favicons,openType)=> {
       if (!this.mounted) return
       if (tab.wvId && id == tab.wvId) {
         const oppositeKey = lastMouseDown ? (this.props.getPrevFocusPanel(this.props.k) || this.props.getOpposite(this.props.k)) : this.props.getOpposite(this.props.k)
         if (oppositeKey && !isFixedPanel(oppositeKey))
-          PubSub.publish(`restore-tab-opposite-key_${oppositeKey}`, [tabKey,restoreIndex,favicons])
+          PubSub.publish(`restore-tab-opposite-key_${oppositeKey}`, [tabKey,restoreIndex,favicons,openType])
       }
     }
     ipc.on('restore-tab-opposite', tab.events['restore-tab-opposite'])
 
-    tab.events['restore-tab'] = (e, id, tabKey,restoreIndex,favicons)=> {
+    tab.events['restore-tab'] = (e, id, tabKey,restoreIndex,favicons,openType)=> {
       if (!this.mounted) return
       if (tab.wvId && id == tab.wvId) {
         for(let [url,favicon] of favicons){
           historyMap.set(url,["",favicon])
         }
         const i = this.state.tabs.findIndex(x=>x.key == tab.key)
-        this.restoreTabFromTabKey(tabKey,i,restoreIndex)
+        this.restoreTabFromTabKey(tabKey,i,restoreIndex,void 0,openType)
       }
     }
     ipc.on('restore-tab', tab.events['restore-tab'])
@@ -1896,7 +1938,8 @@ export default class TabPanel extends Component {
       if (e.channel == 'open-tab-opposite') {
         const url = e.args[1] ? e.args[0] : `file://${e.args[0]}`,
           id = tab.wvId
-        tab.events['new-tab-opposite'](e, id, url)
+        const type = e.args[2]
+        tab.events['new-tab-opposite'](e, id, url,void 0,void 0, type)
       }
       else if (e.channel == 'open-tab') {
         const url = e.args[1] ? e.args[0] : `file://${e.args[0]}`,

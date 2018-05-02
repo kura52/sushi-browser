@@ -27,6 +27,13 @@ if(!isMain){
   })
 }
 
+let openType
+const key = uuid.v4()
+ipc.send("get-main-state",key,[isMain ? 'toolbarLink' : 'sidebarLink'])
+ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
+  openType = data[isMain ? 'toolbarLink' : 'sidebarLink']
+})
+
 let favicons = {}
 async function faviconGet(url){
   const favicon = favicons[url]
@@ -41,6 +48,7 @@ const convertUrlMap = new Map([
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html','chrome://bookmarks-sidebar/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html','chrome://history/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_history_sidebar.html','chrome://tab-history-sidebar/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/saved_state_sidebar.html','chrome://session-manager-sidebar/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history_sidebar.html','chrome://history-sidebar/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html','chrome://explorer/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer_sidebar.html','chrome://explorer-sidebar/'],
@@ -303,6 +311,7 @@ export default class App extends React.Component {
             <Menu pointing secondary >
               <Menu.Item as='a' href={`${baseURL}/favorite_sidebar.html`} key="favorite" icon="star"/>
               <Menu.Item as='a' href={`${baseURL}/history_sidebar.html`} key="history" icon="history"/>
+              <Menu.Item as='a' href={`${baseURL}/saved_state_sidebar.html`} key="database" icon="database"/>
               <Menu.Item key="tags" icon="tags" active={true}/>
               <Menu.Item as='a' href={`${baseURL}/explorer_sidebar.html`} key="file-explorer" icon="folder"/>
             </Menu>
@@ -323,6 +332,7 @@ class Contents extends React.Component {
   }
 
   async updateData(data){
+    if(!this.refs.iTree) return
     const tree = this.refs.iTree.tree
     const nodes = this.searchNodeByUrl(data.tabKey)
     data.urls = data.urls.split("\t")
@@ -398,7 +408,7 @@ class Contents extends React.Component {
     if(isMain){
       this.loaded = false
       await localForage.setItem("tab-history-sidebar-open-node",'24 Hours Ago')
-      this.loadAllData('24 Hours Ago')
+      const promise = this.loadAllData('24 Hours Ago')
       const self = this
       this.scrollEvent = function(e){
         if(self.loaded) return
@@ -410,6 +420,12 @@ class Contents extends React.Component {
         }
       }
       document.querySelector('.infinite-tree.infinite-tree-scroll').addEventListener('scroll',this.scrollEvent,{passive:true})
+
+      await promise
+      const scroll = document.querySelector('.infinite-tree.infinite-tree-scroll')
+      if(scroll.clientHeight == scroll.scrollHeight){
+        self.loadAllData()
+      }
     }
     else{
       this.loadAllData()
@@ -473,16 +489,17 @@ class Contents extends React.Component {
 
               }
               if(currentNode.type == 'file' && currentNode.favicon != "empty"){
+                const type = event.button == 1 ? 'create-web-contents' : openType ? 'new-tab' : 'load-url'
                 if(this.props.cont){
                   const args = currentNode.id.split("/")
                   const favicons = currentNode.refs.map(x=>[x._url,x.favicon])
-                  this.props.cont.hostWebContents.send('restore-tab',this.props.cont.getId(),args[1],parseInt(args[2]),favicons)
+                  this.props.cont.hostWebContents.send('restore-tab',this.props.cont.getId(),args[1],parseInt(args[2]),favicons,type)
                   if(this.props.onClick) this.props.onClick()
                 }
                 else{
                   const args = currentNode.id.split("/")
                   const favicons = currentNode.refs.map(x=>[x._url,x.favicon])
-                  ipc.sendToHost("restore-tab-opposite",args[1],parseInt(args[2]),favicons)
+                  ipc.sendToHost("restore-tab-opposite",args[1],parseInt(args[2]),favicons,type)
                 }
               }
               else{
@@ -562,11 +579,4 @@ class Contents extends React.Component {
       </div>
     );
   }
-}
-
-if(!isMain){
-  ReactDOM.render(
-    <App />,
-    document.querySelector('#classic')
-  );
 }

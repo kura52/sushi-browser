@@ -153,6 +153,11 @@ simpleIpcFunc('auto-get-async',async (tabId,type)=>{
   return true
 })
 
+ipcMain.on('auto-play-auth',(e,tabId,user,pass)=>{
+  const cont = webContents.fromTabID(tabId)
+  if(cont && !cont.isDestroyed()) cont.hostWebContents.send('auto-play-auth',user,pass)
+})
+
 ipcMain.on('auto-play-notification',(e,tabId,value)=>{
   const cont = webContents.fromTabID(tabId)
   if(cont && !cont.isDestroyed()) cont.hostWebContents.send('auto-play-notification',value)

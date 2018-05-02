@@ -263,6 +263,7 @@ class BrowserNavbar extends Component{
       this.props.oppositeGlobal == nextProps.oppositeGlobal &&
       this.props.tabKey == this.tabKey &&
       this.searchWordHighlight == sharedState.searchWordHighlight &&
+      this.searchWordHighlightRecursive == sharedState.searchWordHighlightRecursive &&
       this.bookmarkBar == sharedState.bookmarkBar)
     if(ret){
       this.currentWebContents = nextProps.currentWebContents
@@ -279,6 +280,7 @@ class BrowserNavbar extends Component{
       this.oppositeMode = nextProps.tab.oppositeMode
       this.tabKey = nextProps.tabKey
       this.searchWordHighlight = sharedState.searchWordHighlight
+      this.searchWordHighlightRecursive = sharedState.searchWordHighlightRecursive
       this.bookmarkBar = sharedState.bookmarkBar
     }
     return ret
@@ -629,7 +631,7 @@ class BrowserNavbar extends Component{
       <div className="divider" />
 
       <NavbarMenuItem text={`[${this.props.adBlockEnable ? '✓' : ' '}] AdBlock(ALL)`} icon='hand paper' onClick={::this.handleAdBlockGlobal}/>
-      {this.props.adBlockEnable ? <NavbarMenuItem text={`[${this.props.adBlockThis ? '✓' : ' '}] AdBlock(Panel)`} icon='hand paper' onClick={::this.handleAdBlockThis}/> : null}
+      {this.props.adBlockEnable ? <NavbarMenuItem text={`[${this.props.adBlockThis ? '✓' : ' '}] AdBlock(Tab)`} icon='hand paper' onClick={::this.handleAdBlockThis}/> : null}
       {this.props.adBlockEnable ? <NavbarMenuItem text={`[${global.adBlockDisableSite[hostname] ? ' ' : '✓'}] AdBlock(Domain)`} icon='hand paper' onClick={_=>this.handleAdBlockDomain(hostname)}/> : null}
       <div className="divider" />
 
@@ -659,6 +661,12 @@ class BrowserNavbar extends Component{
         }
         }/> : null}
         <NavbarMenuItem text={`[${this.props.oppositeGlobal ? '✓' : ' '}] Open Opposite`} icon='columns' onClick={_=>{this.handleOppositeGlobal();this.refs['main-menu'].menuClose()}}/>
+        <NavbarMenuItem text={`[${sharedState.searchWordHighlightRecursive ? '✓' : ' '}] Search Highlight Recursive`} icon='asterisk' onClick={_=>{
+          sharedState.searchWordHighlightRecursive = !sharedState.searchWordHighlightRecursive
+          mainState.set('searchWordHighlightRecursive',sharedState.searchWordHighlightRecursive)
+          this.refs['main-menu'].menuClose()
+          this.setState({})
+        }}/>
         <NavbarMenuItem text={`[${sharedState.notLoadTabUntilSelected ? '✓' : ' '}] Don't load tabs untill selected`} onClick={_=>{this.loadTabSetting();this.refs['main-menu'].menuClose()}}/>
         <div className="divider" />
         <NavbarMenuItem text='Extract Audio from Video' icon='music' onClick={_=>{ipc.send('audio-extract');this.refs['main-menu'].menuClose()}}/>

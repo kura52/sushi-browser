@@ -995,6 +995,7 @@ div.org-menu>div.item:hover{
     border-radius: 2px;
     cursor: pointer;
     display: inline-block;
+    line-height: 2.0 !important;
 }
 
 .bookmark-bar a:hover{

@@ -237,8 +237,13 @@ class Frame {
   /**
    * @return {!Array.<!Frame>}
    */
-  childFrames() {
-    return Array.from(this._childFrames);
+  async childFrames() {
+    if(this.isMain){
+      return (await frameManager.frames()).filter(f=>!f.isMain)
+    }
+    else{
+      return []
+    }
   }
 
   /**

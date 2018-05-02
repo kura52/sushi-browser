@@ -5,6 +5,29 @@ const NOT_MATCH_VALUE = -5928295
 
 class Helper {
 
+  /**
+   * @param {Function|string} fun
+   * @param {!Array<*>} args
+   * @return {string}
+   */
+  static evaluationString(fun, ...args) {
+    if (Helper.isString(fun)) {
+      console.assert(args.length === 0, 'Cannot evaluate a string with arguments');
+      return /** @type {string} */ (fun);
+    }
+    return `(${fun})(${args.map(serializeArgument).join(',')})`;
+
+    /**
+     * @param {*} arg
+     * @return {string}
+     */
+    function serializeArgument(arg) {
+      if (Object.is(arg, undefined))
+        return 'undefined';
+      return JSON.stringify(arg);
+    }
+  }
+
   static wait(time){
     return new Promise(r=>setTimeout(r,time))
   }
@@ -125,6 +148,9 @@ class Helper {
       }
     })
   }
+
+
+
 }
 
 module.exports = Helper

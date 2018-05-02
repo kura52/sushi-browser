@@ -90,20 +90,19 @@ export default class NavbarMenu extends Component {
 
     if(!this.props.mouseOver){
       const func = _=>{
-        const left = parseInt(this.refs.div.offsetLeft)
+        const left = parseInt(this.refs.div.getBoundingClientRect().x)
         const width = parseInt(this.refs.menu.offsetWidth)
-        console.log(38,left,width)
+        const totalWidth = parseInt(window.innerWidth)
+        console.log(38,left,width,totalWidth)
         if(this.props.alignLeft){
-          const totalWidth = parseInt(this.refs.div.parentNode.parentNode.offsetWidth)
-          console.log(38,left,width,totalWidth)
-          if(width - (totalWidth - left) > 0){
-            this.refs.menu.style.left = `${-5 -left + totalWidth - width}px`
+          if((totalWidth - left) - width < 0){
+            this.refs.menu.style.setProperty('left', `${-5 -left + totalWidth - width}px`, 'important')
             this.refs.menu.style.setProperty('right', 'auto', 'important')
           }
         }
         else{
           if(left - width < 0){
-            this.refs.menu.style.left = `${5 - left}px`
+            this.refs.menu.style.setProperty('left', `${5 -left}px`, 'important')
             this.refs.menu.style.setProperty('right', 'auto', 'important')
           }
           else{

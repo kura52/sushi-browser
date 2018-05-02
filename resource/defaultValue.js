@@ -28,6 +28,8 @@ const settingDefault =  {
   contextMenuSearchEngines: ["Google","google past year and normal","google multi search"],
   downloadPath: '',
   enableWidevine: true,
+  sidebarLink: false,
+  toolbarLink: false,
 
   bindMarginFrame: isLinux ? 6 : 0,
   bindMarginTitle: isLinux ? 24  : 0,
@@ -60,6 +62,7 @@ const settingDefault =  {
   displayFullIcon: true,
   notLoadTabUntilSelected: false,
   searchWordHighlight: false,
+  searchWordHighlightRecursive: false,
   bookmarkBar: false,
   bookmarkBarTopPage: true,
 

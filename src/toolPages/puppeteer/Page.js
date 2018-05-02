@@ -1,4 +1,6 @@
 import {FrameManager} from './FrameManager'
+import {Request,Response} from './NetworkManager'
+import Target from './Target'
 import Dialog from './Dialog'
 const {Keyboard, Mouse} = require('./Input');
 const EventEmitter = require('events');
@@ -7,14 +9,41 @@ import mime  from 'mime'
 import defaultOptions from './defaultOptions'
 import PubSub from '../../render/pubsub'
 import uuid from 'node-uuid'
+import LRUCache from 'lru-cache'
 const ipc = chrome.ipcRenderer
 const set = new Set()
 const pagesMap = {}
+const beforeRequestCache = new LRUCache(2000)
+const requestCache = new LRUCache(2000)
+const preloadJsMap = {}
+
 
 ipc.on('start-dialog',(e,{key,title,message,buttons,tabId,url,type})=>{
   for(let page of set){
     if(page.tabId == tabId){
       page.emit('dialog',new Dialog(type, message,'',tabId))
+      return
+    }
+  }
+})
+
+chrome.webNavigation.onBeforeNavigate.addListener(async details=>{
+  const scripts = preloadJsMap[details.tabId]
+  if(scripts){
+    for(let page of set){
+      if(page.tabId == tabId){
+        for(let script of scripts){
+          await page.evaluateExtContext(script)
+        }
+      }
+    }
+  }
+})
+
+chrome.webNavigation.onDOMContentLoaded.addListener(details=>{
+  for(let page of set){
+    if(page.tabId == details.tabId){
+      page.emit('domcontentloaded')
       return
     }
   }
@@ -29,10 +58,58 @@ chrome.webNavigation.onCompleted.addListener(details=>{
   }
 })
 
-chrome.webNavigation.onBeforeNavigate.addListener(details=>{
+
+chrome.webRequest.onBeforeRequest.addListener(details=>{
   for(let page of set){
     if(page.tabId == details.tabId){
-      page.emit('domcontentloaded')
+      beforeRequestCache.set(details.requestId,details)
+      return
+    }
+  }
+})
+
+chrome.webRequest.onBeforeSendHeaders.addListener(details=>{
+  for(let page of set){
+    if(page.tabId == details.tabId){
+      const beforeRequest = beforeRequestCache.get(get.requestId)
+      const request = new Request(page, details, beforeRequest)
+      requestCache.set(details.requestId,request)
+
+      page.emit('request',request)
+      return
+    }
+  }
+})
+
+chrome.webRequest.onErrorOccurred.addListener(details=>{
+  for(let page of set){
+    if(page.tabId == details.tabId){
+      const request = requestCache.get(details.requestId)
+      request._failureText = details.error
+      page.emit('requestfinished',request)
+      return
+    }
+  }
+})
+
+chrome.webRequest.onResponseStarted.addListener(details=>{
+  for(let page of set){
+    if(page.tabId == details.tabId){
+      const request = requestCache.get(details.requestId)
+      page.emit('requestfailed',request)
+      return
+    }
+  }
+})
+
+chrome.webRequest.onCompleted.addListener(details=>{
+  for(let page of set){
+    if(page.tabId == details.tabId){
+      const request = requestCache.get(details.requestId)
+      const response = new Request(page, details, request)
+      request._response = response
+
+      page.emit('response',request)
       return
     }
   }
@@ -43,7 +120,7 @@ class Page extends EventEmitter {
     return pagesMap
   }
   // constructor(client, target, frameTree, ignoreHTTPSErrors, screenshotTaskQueue) {
-  constructor({tabId,tab,url,active = true}={}){
+  constructor({tabId,tab,url,active = true,browser}={}){
     super()
     set.add(this)
     return new Promise(r=>{
@@ -53,6 +130,9 @@ class Page extends EventEmitter {
         this._frameManager = new FrameManager(this.tabId,this)
         this._keyboard = new Keyboard(this.tabId);
         this._mouse = new Mouse(this.tabId, this._keyboard)
+        this._browser = browser
+        this._target = new Target(this)
+        this._defaultNavigationTimeout = defaultOptions.timeout;
         r(this)
       }
       if(tab){
@@ -312,7 +392,7 @@ class Page extends EventEmitter {
    * @param {?{username: string, password: string}} credentials
    */
   async authenticate(credentials) {
-    return this._networkManager.authenticate(credentials);
+    ipc.send('auto-play-auth',this._tabId,credentials.username,credentials.password)
   }
 
   /**
@@ -419,9 +499,12 @@ class Page extends EventEmitter {
    * @return {!Promise<?Puppeteer.Response>}
    */
   async goto(url, options = {}) {
+    if(!helper.isNumber(options.timeout)) options.timeout = this._defaultNavigationTimeout
     return new Promise((resolve,reject)=>{
+      const timeoutId = setTimeout(_=>reject('Timeout Error'),options.timeout)
       const handleNavigateEvent = details=>{
         if(details.tabId == this.tabId && details.frameId == 0){
+          clearTimeout(timeoutId)
           resolve(this) //@TODO response
           chrome.webNavigation.onCompleted.removeListener(handleNavigateEvent)
         }
@@ -448,7 +531,7 @@ class Page extends EventEmitter {
    */
   waitForNavigation(options = {}) {
     return new Promise((resolve,reject)=>{
-      if(!helper.isNumber(options.timeout)) options.timeout = defaultOptions.timeout
+      if(!helper.isNumber(options.timeout)) options.timeout = this._defaultNavigationTimeout
       const token = PubSub.subscribe('onCompleted',(msg,tabId)=>{
         if(this.tabId == tabId){
           resolve(true) //@TOOD
@@ -557,7 +640,12 @@ class Page extends EventEmitter {
    */
   async evaluateOnNewDocument(pageFunction, ...args) {
     const source = helper.evaluationString(pageFunction, ...args);
-    await this._client.send('Page.addScriptToEvaluateOnNewDocument', { source });
+    if(preloadJsMap[this.tabId]){
+      preloadJsMap[this.tabId].push(source)
+    }
+    else{
+      preloadJsMap[this.tabId] = [source]
+    }
   }
 
   /**

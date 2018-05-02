@@ -62,7 +62,7 @@ export default class BrowserPageSearch extends Component {
       <Checkbox style={{paddingLeft: 4, borderLeft: '1px solid #aaa'}} label="Case" checked={this.state.case} onChange={(e,data)=>this.changeCheck(e,'case',data)}/>
       <Checkbox label="OR" checked={this.state.or} onChange={(e,data)=>this.changeCheck(e,'or',data)}/>
       <Checkbox label="Reg" checked={this.state.reg} onChange={(e,data)=>this.changeCheck(e,'reg',data)}/>
-      <a className="search-button" href="javascript:void(0)"><div className="search-close" style={{lineHeight: "1.5",height:"30px"}} onClick={this.props.onClose}>☓</div></a>
+      <a className="search-button" href="javascript:void(0)"><div className="search-close" style={{lineHeight: "1.5",height:"30px"}} onClick={e=>this.props.onClose(e,true)}>☓</div></a>
     </div>
   }
 }

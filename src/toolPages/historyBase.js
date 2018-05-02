@@ -27,6 +27,13 @@ if(!isMain){
   })
 }
 
+let openType
+const key = uuid.v4()
+ipc.send("get-main-state",key,[isMain ? 'toolbarLink' : 'sidebarLink'])
+ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
+  openType = data[isMain ? 'toolbarLink' : 'sidebarLink']
+})
+
 async function faviconGet(x){
   return x.favicon == "resource/file.png" ? (void 0) : x.favicon && (await localForage.getItem(x.favicon))
 }
@@ -39,6 +46,7 @@ const convertUrlMap = new Map([
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html','chrome://bookmarks-sidebar/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html','chrome://history/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_history_sidebar.html','chrome://tab-history-sidebar/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/saved_state_sidebar.html','chrome://session-manager-sidebar/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history_sidebar.html','chrome://history-sidebar/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html','chrome://explorer/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer_sidebar.html','chrome://explorer-sidebar/'],
@@ -291,6 +299,7 @@ export default class App extends React.Component {
             <Menu pointing secondary >
               <Menu.Item as='a' href={`${baseURL}/favorite_sidebar.html`} key="favorite" icon="star"/>
               <Menu.Item key="history" icon="history" active={true}/>
+              <Menu.Item as='a' href={`${baseURL}/saved_state_sidebar.html`} key="database" icon="database"/>
               <Menu.Item as='a' href={`${baseURL}/tab_history_sidebar.html`} key="tags" icon="tags"/>
               <Menu.Item as='a' href={`${baseURL}/explorer_sidebar.html`} key="file-explorer" icon="folder"/>
             </Menu>
@@ -311,6 +320,7 @@ class Contents extends React.Component {
   }
 
   async updateData(data){
+    if(!this.refs.iTree) return
     const tree = this.refs.iTree.tree
     const node = this.searchNodeByUrl(data.location)
     if(node){
@@ -371,7 +381,7 @@ class Contents extends React.Component {
     if(isMain){
       this.loaded = false
       await localForage.setItem("history-sidebar-open-node",'24 Hours Ago')
-      this.loadAllData('24 Hours Ago')
+      const promise = this.loadAllData('24 Hours Ago')
       const self = this
       this.scrollEvent = function(e){
         if(self.loaded) return
@@ -383,6 +393,12 @@ class Contents extends React.Component {
         }
       }
       document.querySelector('.infinite-tree.infinite-tree-scroll').addEventListener('scroll',this.scrollEvent,{passive:true})
+
+      await promise
+      const scroll = document.querySelector('.infinite-tree.infinite-tree-scroll')
+      if(scroll.clientHeight == scroll.scrollHeight){
+        self.loadAllData()
+      }
     }
     else{
       this.loadAllData()
@@ -447,11 +463,16 @@ class Contents extends React.Component {
               }
               if(currentNode.type == 'file' && currentNode.favicon != "empty"){
                 if(this.props.cont){
-                  this.props.cont.hostWebContents.send('new-tab',this.props.cont.getId(),currentNode.url)
+                  if(event.button == 1){
+                    this.props.cont.hostWebContents.send('create-web-contents',{id:this.props.cont.getId(),targetUrl:currentNode.url,disposition:'background-tab'})
+                  }
+                  else{
+                    this.props.cont.hostWebContents.send(openType ? 'new-tab' : 'load-url',this.props.cont.getId(),currentNode.url)
+                  }
                   if(this.props.onClick) this.props.onClick()
                 }
                 else{
-                  ipc.sendToHost("open-tab-opposite",currentNode.url,true)
+                  ipc.sendToHost("open-tab-opposite",currentNode.url,true,event.button == 1 ? 'create-web-contents' : openType ? 'new-tab' : 'load-url')
                 }
               }
               else{
@@ -531,11 +552,4 @@ class Contents extends React.Component {
       </div>
     );
   }
-}
-
-if(!isMain){
-  ReactDOM.render(
-    <App />,
-    document.querySelector('#classic')
-  );
 }

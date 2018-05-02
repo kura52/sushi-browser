@@ -18,6 +18,7 @@ const {token} = require('./databaseRender')
 const PanelOverlay = require('./PanelOverlay')
 import firebase,{storage,auth,database} from 'firebase'
 global.sharedStateMain = require('electron').remote.require('./sharedStateMainRemote')
+const sharedState = require('./sharedState')
 let [MARGIN,verticalTabPosition] = ipc.sendSync('get-sync-main-states',['syncScrollMargin','verticalTabPosition'])
 let count = 0
 // ipc.setMaxListeners(0)
@@ -159,6 +160,7 @@ export default class SplitWindows extends Component{
     super(props)
     this.currentWebContents = {}
     this.tabValues = {}
+    sharedState.tabValues = this.tabValues
     global.currentWebContents = this.currentWebContents
     global.adBlockDisableSite = ipc.sendSync('get-sync-main-state','adBlockDisableSite')
     this.initBind()

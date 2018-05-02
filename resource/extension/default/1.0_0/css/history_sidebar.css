@@ -18,3 +18,8 @@ span.margin-left{
 .node-inactive{
     color: #999;
 }
+
+
+.ui.secondary.pointing.menu .item {
+    padding: .85714286em 0.88285714em;
+}

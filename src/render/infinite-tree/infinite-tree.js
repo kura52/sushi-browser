@@ -76,8 +76,19 @@ class InfiniteTree extends events.EventEmitter {
   droppableTarget = null;
 
   contentListener = {
+    'mousedown': (event) => {
+      event = event || window.event;
+      this.mouseDown = event.target
+      this.button = event.button
+    },
+
     'click': (event) => {
       event = event || window.event;
+
+      if(event.button == 2 || this.mouseDown !== event.target || this.button !== event.button) return
+      this.mouseDown = void 0
+      this.button = void 0
+
 
       // Wrap stopPropagation that allows click event handler to stop execution
       // by setting the cancelBubble property
@@ -366,7 +377,8 @@ class InfiniteTree extends events.EventEmitter {
       blocks_in_cluster: this.options.blocks_in_cluster
     });
 
-    addEventListener(this.contentElement, 'click', this.contentListener.click);
+    addEventListener(this.contentElement, 'mousedown', this.contentListener.mousedown);
+    addEventListener(this.contentElement, 'mouseup', this.contentListener.click);
     addEventListener(this.contentElement, 'dblclick', this.contentListener.dblclick);
     addEventListener(this.contentElement, 'keydown', this.contentListener.keydown);
     addEventListener(this.contentElement, 'keyup', this.contentListener.keyup);
@@ -381,7 +393,8 @@ class InfiniteTree extends events.EventEmitter {
     }
   }
   destroy() {
-    removeEventListener(this.contentElement, 'click', this.contentListener.click);
+    removeEventListener(this.contentElement, 'mousedown', this.contentListener.mousedown);
+    removeEventListener(this.contentElement, 'mouseup', this.contentListener.click);
     removeEventListener(this.contentElement, 'dblclick', this.contentListener.dblclick);
     removeEventListener(this.contentElement, 'keydown', this.contentListener.keydown);
     removeEventListener(this.contentElement, 'keyup', this.contentListener.keyup);

@@ -500,9 +500,9 @@ if(!window.__complex_search_define__){
       return;
     }
     already_event = true;
-    document.body.onkeydown = function (e) {
-      bodyKeydownEvent(e, gstatus.words);
-    };
+    // document.body.onkeydown = function (e) {
+    //   bodyKeydownEvent(e, gstatus.words);
+    // };
     window.onresize = function () {
       words = gstatus.words;
       if (!enabled) {

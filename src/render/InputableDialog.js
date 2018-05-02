@@ -8,6 +8,7 @@ export default class InputableDialog extends Component{
   constructor(props) {
     super(props)
     this.handleOk = ::this.handleOk
+    this.autoInput = ::this.autoInput
   }
 
   componentDidMount(){
@@ -19,6 +20,15 @@ export default class InputableDialog extends Component{
         inputLast.inputRef.addEventListener('keydown',e=>{if(e.keyCode == 13) this.handleOk()})
       }
     }
+    if(this.props.data.auth){
+      ipc.once('auto-play-auth',this.autoInput)
+    }
+  }
+
+  autoInput(e,user,pass){
+    this.refs.input0.input.value = user
+    this.refs.input1.input.value = pass
+    this.handleOk()
   }
 
   renderInputs(){
@@ -75,6 +85,7 @@ export default class InputableDialog extends Component{
     this.props.delete(0,[...document.querySelectorAll('.inputable-dialog > input:not(.hidden),textArea.inputable-dialog,.checkbox.inputable-dialog')].map(x=>{
       return x.className.includes('checkbox') ? x.classList.contains('checked') : x.value
     }))
+    ipc.removeListener('auto-play-auth',this.autoInput)
   }
 
   render(){
@@ -89,7 +100,9 @@ export default class InputableDialog extends Component{
       </Modal.Content>
       <Modal.Actions>
         <Button positive refs="ok" content="OK" onClick={this.handleOk} />
-        <Button color='black' content="Cancel" onClick={_=>{this.props.delete(1)}}/>
+        <Button color='black' content="Cancel" onClick={_=>{
+          this.props.delete(1)
+          ipc.removeListener('auto-play-auth',this.autoInput)}}/>
       </Modal.Actions>
     </Modal>
   }

@@ -15,10 +15,62 @@ import rowRenderer from '../render/react-infinite-tree/renderer';
 
 const isMain = location.href.startsWith("chrome://brave/")
 
+let openType
+const key = uuid.v4()
+ipc.send("get-main-state",key,[isMain ? 'toolbarLink' : 'sidebarLink'])
+ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
+  openType = data[isMain ? 'toolbarLink' : 'sidebarLink']
+})
+
+const convertUrlMap = new Map([
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html',''],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html','about:blank'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html','chrome://bookmarks/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html','chrome://bookmarks-sidebar/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html','chrome://history/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_history_sidebar.html','chrome://tab-history-sidebar/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/saved_state_sidebar.html','chrome://session-manager-sidebar/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history_sidebar.html','chrome://history-sidebar/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html','chrome://explorer/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer_sidebar.html','chrome://explorer-sidebar/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html','chrome://download/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html','chrome://terminal/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html','chrome://converter/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html','chrome://automation/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html','chrome://settings/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general','chrome://settings#general'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search','chrome://settings#search'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs','chrome://settings#tabs'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#keyboard','chrome://settings#keyboard'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extension','chrome://settings#extension'],
+])
+
+const convertUrlReg = /^chrome\-extension:\/\/dckpbojndfoinamcdamhkjhnjnmjkfjd\/(video|ace|bind)\.html\?url=([^&]+)/
+const convertUrlPdfReg = /^chrome\-extension:\/\/jdbefljfgobbmcidnmpjamcbhnbphjnb\/content\/web\/viewer\.html\?file=(.+?)$/
+const convertUrlPdfReg2 = /^chrome\-extension:\/\/jdbefljfgobbmcidnmpjamcbhnbphjnb\/comicbed\/index\.html#\?url=(.+?)$/
+
+function convertURL(url){
+  if(!url) return
+  if(convertUrlMap.has(url)){
+    return convertUrlMap.get(url)
+  }
+  else{
+    const match = url.match(convertUrlReg)
+    let matchPdf
+    if(match){
+      return decodeURIComponent(match[2])
+    }
+    else if(matchPdf = (url.match(convertUrlPdfReg) || url.match(convertUrlPdfReg2))){
+      return decodeURIComponent(matchPdf[1])
+    }
+    return url
+  }
+}
 
 function escapeRegExp(string){
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
+
 
 
 function dateFormat(d) {
@@ -235,7 +287,19 @@ export default class App extends React.Component {
 
   render(){
     return <StickyContainer ref="stickey">
-      <Input ref='input' icon='search' placeholder='Search...' size="small" onChange={::this.onChange}/>
+      {this.props.sidebar ?
+        <Sticky>
+          <div>
+            <Menu pointing secondary >
+              <Menu.Item as='a' href={`${baseURL}/favorite_sidebar.html`} key="favorite" icon="star"/>
+              <Menu.Item as='a' href={`${baseURL}/history_sidebar.html`} key="history" icon="history"/>
+              <Menu.Item key="database" icon="database" active={true}/>
+              <Menu.Item as='a' href={`${baseURL}/tab_history_sidebar.html`} key="tags" icon="tags"/>
+              <Menu.Item as='a' href={`${baseURL}/explorer_sidebar.html`} key="file-explorer" icon="folder"/>
+            </Menu>
+            <Input ref='input' icon='search' placeholder='Search...' size="small" onChange={::this.onChange}/>
+          </div>
+        </Sticky> :  <Input ref='input' icon='search' placeholder='Search...' size="small" onChange={::this.onChange}/>}
       <Contents ref="content" onClick={this.props.onClick} cont={this.props.cont}/>
     </StickyContainer>
   }
@@ -304,7 +368,7 @@ class Contents extends React.Component {
       if(cmd == "openInNewWindow") {
         const currentNode = this.menuKey
         this.menuKey = (void 0)
-        openState(this.props.cont.getId(),currentNode.datas || currentNode.id).then(_=>{
+        openState(this.props.cont ? this.props.cont.getId() : (void 0),currentNode.datas || currentNode.id).then(_=>{
           this.props.onClick && this.props.onClick()
         })
       }
@@ -323,7 +387,7 @@ class Contents extends React.Component {
           text: `Enter a new Name`,
           initValue: [currentNode.name],
           needInput: ["Title"]
-        },this.props.cont.getId()).then(value => {
+        },this.props.cont ? this.props.cont.getId() : (void 0)).then(value => {
           if (!value) return
           const data = {name:value[0]}
           renameState(currentNode.id,data).then(_=>_)
@@ -343,7 +407,7 @@ class Contents extends React.Component {
   render() {
     const self = this
     return (
-      <div style={{paddingLeft:4,paddingTop:4,width:'600px'}}>
+      <div style={{paddingLeft:4,paddingTop:4,width:this.props.cont ? '600px' : 'calc(100vw - 4px)'}}>
         <InfiniteTree
           ref="iTree"
           noDataText=""
@@ -367,8 +431,14 @@ class Contents extends React.Component {
             }
 
             if(currentNode.type == 'file'){
-              this.props.cont.hostWebContents.send('restore-tab',this.props.cont.getId(),currentNode.id,void 0,[])
-              if(this.props.onClick) this.props.onClick()
+              const type = event.button == 1 ? 'create-web-contents' : openType ? 'new-tab' : 'load-url'
+              if(this.props.cont) {
+                this.props.cont.hostWebContents.send('restore-tab', this.props.cont.getId(), currentNode.id, void 0, [] ,type)
+                if (this.props.onClick) this.props.onClick()
+              }
+              else{
+                ipc.sendToHost("restore-tab-opposite", currentNode.id, void 0, [],type)
+              }
               return
             }
             else{

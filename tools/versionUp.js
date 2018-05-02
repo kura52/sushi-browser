@@ -3,23 +3,22 @@ const path = require('path')
 const fs = require('fs')
 const glob = require("glob")
 
-const BEFORE_CODE_NAME = 'Unagi(Eel)'
-const CODE_NAME = 'Unagi(Eel)'
+const BEFORE_CODE_NAME = 'Shirauo(Icefish)'
+const CODE_NAME = 'Shirauo(Icefish)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
 const NEXT_APP_VERSION = "0.16.1"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Added bookmark bar
-Added display control function on top page of bookmark bar
-I made it possible to drop and drag a link to a bookmark sidebar
-Changed on / off display method of some items of main menu to ✓
-Fixed some bugs`
+const CHANGE_ENGLISH = ``
 
-const CHANGE_JAPANESE = `ブックマークバー機能を追加
-ブックマークバーのtop pageでの表示制御機能を追加
-ブックマークサイドバーへのリンクのドロップアンドドラッグを可能とした
-メインメニューのON/OFF表示方法を✓に変更
-いくつかのバグを修正`
+const CHANGE_JAPANESE = `Auto Highlightを検索窓を閉じた際に無効にするよう変更
+Auto Highlightのデフォルト動作を1つ先のページまでしかHighlightしないように変更
+再帰的にAuto Highlightするか否かのオプションを追加
+サイドバーおよびツールバー上のリンクを開いた際のデフォルトの挙動を現在のタブに変更
+サイドバーおよびツールバー上のリンクを開く設定を追加
+サイドバーおよびツールバー上のリンクを中クリックで開けるように変更
+Session Managerをサイドバーに追加
+いくつかのバグ修正`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

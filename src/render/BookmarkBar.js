@@ -175,6 +175,8 @@ class BookmarkBar extends Component {
 
   handleFileMouseUp(url,e){
     if(this.mouseDown !== e.target || this.button !== e.button) return
+    this.mouseDown = void 0
+    this.button = void 0
 
     const tab = this.props.tab
     if(e.button == 0){
@@ -185,8 +187,6 @@ class BookmarkBar extends Component {
     }
     else{
     }
-    this.mouseDown = void 0
-    this.button = void 0
   }
 
   handleFolderMouseUp(url,e){

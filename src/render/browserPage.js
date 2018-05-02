@@ -11,6 +11,7 @@ const fs = remote.require('fs')
 const BrowserPageSearch = require('./BrowserPageSearch')
 const AutofillPopup = require('./AutofillPopup')
 const isDarwin = navigator.userAgent.includes('Mac OS X')
+const sharedState = require('./sharedState')
 // const isWin = navigator.userAgent.includes('Windows')
 
 function stringEscape(string){
@@ -328,7 +329,7 @@ class BrowserPage extends Component {
 
   onHandleKeyDown(e){
     if (e.keyCode == 27) { // ESC
-      this.onClose(e)
+      this.onClose(e,true)
     }
     else if (e.keyCode == 116) { // F5
       const cont = this.getWebContents(this.props.tab)
@@ -352,7 +353,18 @@ class BrowserPage extends Component {
     }
   }
 
-  onClose(e){
+  onClose(e,stopAutoHighlight){
+    if(stopAutoHighlight){
+      let tabId = this.props.tab.wvId
+      while(true){
+        if(!tabId) break
+        if(sharedState.searchWords[tabId]){
+          delete sharedState.searchWords[tabId]
+          break
+        }
+        tabId = sharedState.tabValues[tabId]
+      }
+    }
     this.refs.webview.stopFindInPage('clearSelection')
     this.complexReset()
     this.previous_text = ""

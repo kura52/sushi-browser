@@ -34682,11 +34682,18 @@ if (!isMain) {
   });
 }
 
+let openType;
+const key = _nodeUuid2.default.v4();
+_electron.ipcRenderer.send("get-main-state", key, [isMain ? 'toolbarLink' : 'sidebarLink']);
+_electron.ipcRenderer.once(`get-main-state-reply_${key}`, (e, data) => {
+  openType = data[isMain ? 'toolbarLink' : 'sidebarLink'];
+});
+
 async function faviconGet(x) {
   return x.favicon == "resource/file.png" ? void 0 : x.favicon && (await _LocalForage2.default.getItem(x.favicon));
 }
 
-const convertUrlMap = new Map([['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html', ''], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html', 'about:blank'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html', 'chrome://bookmarks/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html', 'chrome://bookmarks-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html', 'chrome://history/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_history_sidebar.html', 'chrome://tab-history-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history_sidebar.html', 'chrome://history-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html', 'chrome://explorer/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer_sidebar.html', 'chrome://explorer-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html', 'chrome://download/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html', 'chrome://terminal/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html', 'chrome://converter/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html', 'chrome://automation/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html', 'chrome://settings/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general', 'chrome://settings#general'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search', 'chrome://settings#search'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs', 'chrome://settings#tabs'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#keyboard', 'chrome://settings#keyboard'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extension', 'chrome://settings#extension']]);
+const convertUrlMap = new Map([['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html', ''], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html', 'about:blank'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html', 'chrome://bookmarks/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html', 'chrome://bookmarks-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html', 'chrome://history/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_history_sidebar.html', 'chrome://tab-history-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/saved_state_sidebar.html', 'chrome://session-manager-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history_sidebar.html', 'chrome://history-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html', 'chrome://explorer/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer_sidebar.html', 'chrome://explorer-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html', 'chrome://download/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html', 'chrome://terminal/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html', 'chrome://converter/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html', 'chrome://automation/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html', 'chrome://settings/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general', 'chrome://settings#general'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search', 'chrome://settings#search'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs', 'chrome://settings#tabs'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#keyboard', 'chrome://settings#keyboard'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extension', 'chrome://settings#extension']]);
 
 const convertUrlReg = /^chrome\-extension:\/\/dckpbojndfoinamcdamhkjhnjnmjkfjd\/(video|ace|bind)\.html\?url=([^&]+)/;
 const convertUrlPdfReg = /^chrome\-extension:\/\/jdbefljfgobbmcidnmpjamcbhnbphjnb\/content\/web\/viewer\.html\?file=(.+?)$/;
@@ -34923,6 +34930,7 @@ class App extends _infernoCompat2.default.Component {
             { pointing: true, secondary: true },
             _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/favorite_sidebar.html`, key: 'favorite', icon: 'star' }),
             _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { key: 'history', icon: 'history', active: true }),
+            _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/saved_state_sidebar.html`, key: 'database', icon: 'database' }),
             _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/tab_history_sidebar.html`, key: 'tags', icon: 'tags' }),
             _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/explorer_sidebar.html`, key: 'file-explorer', icon: 'folder' })
           ),
@@ -34944,6 +34952,7 @@ class Contents extends _infernoCompat2.default.Component {
   }
 
   async updateData(data) {
+    if (!this.refs.iTree) return;
     const tree = this.refs.iTree.tree;
     const node = this.searchNodeByUrl(data.location);
     if (node) {
@@ -35002,7 +35011,7 @@ class Contents extends _infernoCompat2.default.Component {
     if (isMain) {
       this.loaded = false;
       await _LocalForage2.default.setItem("history-sidebar-open-node", '24 Hours Ago');
-      this.loadAllData('24 Hours Ago');
+      const promise = this.loadAllData('24 Hours Ago');
       const self = this;
       this.scrollEvent = function (e) {
         if (self.loaded) return;
@@ -35014,6 +35023,12 @@ class Contents extends _infernoCompat2.default.Component {
         }
       };
       document.querySelector('.infinite-tree.infinite-tree-scroll').addEventListener('scroll', this.scrollEvent, { passive: true });
+
+      await promise;
+      const scroll = document.querySelector('.infinite-tree.infinite-tree-scroll');
+      if (scroll.clientHeight == scroll.scrollHeight) {
+        self.loadAllData();
+      }
     } else {
       this.loadAllData();
     }
@@ -35077,10 +35092,14 @@ class Contents extends _infernoCompat2.default.Component {
             }
             if (currentNode.type == 'file' && currentNode.favicon != "empty") {
               if (this.props.cont) {
-                this.props.cont.hostWebContents.send('new-tab', this.props.cont.getId(), currentNode.url);
+                if (event.button == 1) {
+                  this.props.cont.hostWebContents.send('create-web-contents', { id: this.props.cont.getId(), targetUrl: currentNode.url, disposition: 'background-tab' });
+                } else {
+                  this.props.cont.hostWebContents.send(openType ? 'new-tab' : 'load-url', this.props.cont.getId(), currentNode.url);
+                }
                 if (this.props.onClick) this.props.onClick();
               } else {
-                _electron.ipcRenderer.sendToHost("open-tab-opposite", currentNode.url, true);
+                _electron.ipcRenderer.sendToHost("open-tab-opposite", currentNode.url, true, event.button == 1 ? 'create-web-contents' : openType ? 'new-tab' : 'load-url');
               }
             } else {
               tree.toggleNode(currentNode);
@@ -35162,10 +35181,6 @@ class Contents extends _infernoCompat2.default.Component {
       })
     );
   }
-}
-
-if (!isMain) {
-  _infernoCompat2.default.render(_infernoCompat2.default.createElement(App, null), document.querySelector('#classic'));
 }
 module.exports = exports['default'];
 
@@ -72763,8 +72778,18 @@ class InfiniteTree extends _events2.default.EventEmitter {
     this.draggableTarget = null;
     this.droppableTarget = null;
     this.contentListener = {
+      'mousedown': event => {
+        event = event || window.event;
+        this.mouseDown = event.target;
+        this.button = event.button;
+      },
+
       'click': event => {
         event = event || window.event;
+
+        if (event.button == 2 || this.mouseDown !== event.target || this.button !== event.button) return;
+        this.mouseDown = void 0;
+        this.button = void 0;
 
         // Wrap stopPropagation that allows click event handler to stop execution
         // by setting the cancelBubble property
@@ -73038,7 +73063,8 @@ class InfiniteTree extends _events2.default.EventEmitter {
       blocks_in_cluster: this.options.blocks_in_cluster
     });
 
-    (0, _domEvents.addEventListener)(this.contentElement, 'click', this.contentListener.click);
+    (0, _domEvents.addEventListener)(this.contentElement, 'mousedown', this.contentListener.mousedown);
+    (0, _domEvents.addEventListener)(this.contentElement, 'mouseup', this.contentListener.click);
     (0, _domEvents.addEventListener)(this.contentElement, 'dblclick', this.contentListener.dblclick);
     (0, _domEvents.addEventListener)(this.contentElement, 'keydown', this.contentListener.keydown);
     (0, _domEvents.addEventListener)(this.contentElement, 'keyup', this.contentListener.keyup);
@@ -73053,7 +73079,8 @@ class InfiniteTree extends _events2.default.EventEmitter {
     }
   }
   destroy() {
-    (0, _domEvents.removeEventListener)(this.contentElement, 'click', this.contentListener.click);
+    (0, _domEvents.removeEventListener)(this.contentElement, 'mousedown', this.contentListener.mousedown);
+    (0, _domEvents.removeEventListener)(this.contentElement, 'mouseup', this.contentListener.click);
     (0, _domEvents.removeEventListener)(this.contentElement, 'dblclick', this.contentListener.dblclick);
     (0, _domEvents.removeEventListener)(this.contentElement, 'keydown', this.contentListener.keydown);
     (0, _domEvents.removeEventListener)(this.contentElement, 'keyup', this.contentListener.keyup);
@@ -75817,7 +75844,7 @@ exports.default = function (margin) {
         }),
         _infernoCompat2.default.createElement(
           'span',
-          { className: `"infinite-tree-title${faviconEmpty ? " date-slice" : ""}${node.inactive ? " node-inactive" : ""}` },
+          { className: `infinite-tree-title${faviconEmpty ? " date-slice" : ""}${node.inactive ? " node-inactive" : ""}` },
           name
         ),
         _infernoCompat2.default.createElement('i', {

@@ -213,7 +213,7 @@ importer.on('add-favicons', async (e, detail) => {
   for(let entry of detail){
     const furl = entry.favicon_url.includes('made-up-favicon') ? uuid.v4() : entry.favicon_url
     for (let url of entry.urls) {
-      if(!entry.png_data || furl.startsWith("data:")) continue
+      if(!entry.png_data || entry.png_data == 'data:image/png;base64,' || furl.startsWith("data:")) continue
       favicon.update({url:furl},  {url:furl, data: entry.png_data, updated_at: Date.now()}, { upsert: true }).then(_=>_)
       let datas
       if(datas = await history.find({location: url})){

@@ -13,14 +13,14 @@ class Browser{
    * @return {!Promise<!Puppeteer.Page>}
    */
   newPage({url, active}={}) {
-    return new Page({url,active})
+    return new Page({url,active,browser:this})
   }
 
   /**
    * @return {!Array<!Target>}
    */
-  targets() {
-    return Array.from(this._targets.values()).filter(target => target._isInitialized);
+  async targets() {
+    return (await this.pages()).map(p=>p.target())
   }
 
   /**
@@ -33,7 +33,7 @@ class Browser{
         for(let win of windows){
           for(let tab of win.tabs){
             if(!Page.PagesMap[tab.id]){
-              Page.PagesMap[tab.id] = new Page({tab})
+              Page.PagesMap[tab.id] = new Page({tab,browser:this})
             }
             pages.push(Page.PagesMap[tab.id])
           }

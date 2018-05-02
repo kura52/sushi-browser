@@ -667,13 +667,6 @@ class GeneralSetting extends React.Component {
 
 
         <div className="field">
-          <label>Default Sidebar Position</label>
-          <Dropdown onChange={this.onChange.bind(this,'sideBarDirection')} selection options={sideBarDirectionOptions} defaultValue={this.state.sideBarDirection}/>
-        </div>
-        <br/>
-
-
-        <div className="field">
           <label>{l10n.translation('ssInterval')}&nbsp;({l10n.translation('secondsLabel')})</label>
           <Input onChange={this.onChange.bind(this,'autoSaveInterval')} defaultValue={this.state.autoSaveInterval}/>
         </div>
@@ -727,6 +720,25 @@ class GeneralSetting extends React.Component {
           <Checkbox defaultChecked={this.state.blockCanvasFingerprinting} toggle onChange={this.onChange.bind(this,'blockCanvasFingerprinting')}/>
           <span className="toggle-label">{l10n.translation('blockCanvasFingerprinting')}</span>
           <br/>
+        </div>
+        <br/>
+
+        <div className="field">
+          <label>Default Sidebar Position</label>
+          <Dropdown onChange={this.onChange.bind(this,'sideBarDirection')} selection options={sideBarDirectionOptions} defaultValue={this.state.sideBarDirection}/>
+        </div>
+        <br/>
+
+        <div className="field">
+          <label>Sidebar Link Behavior</label>
+          <Checkbox defaultChecked={this.state.sidebarLink} toggle onChange={this.onChange.bind(this,'sidebarLink')}/>
+          <span className="toggle-label">{l10n.translation('openInNewTab')}  ({l10n.translation('requiresRestart').replace('* ','')})</span>
+        </div>
+
+        <div className="field">
+          <label>Toolbar Link Behavior</label>
+          <Checkbox defaultChecked={this.state.toolbarLink} toggle onChange={this.onChange.bind(this,'toolbarLink')}/>
+          <span className="toggle-label">{l10n.translation('openInNewTab')}  ({l10n.translation('requiresRestart').replace('* ','')})</span>
         </div>
         <br/>
 
@@ -1869,7 +1881,7 @@ ipc.send("get-main-state",key,['startsWith','newTabMode','myHomepage','searchPro
   'defaultDownloadPath','alwaysOpenLinkNewTab','alwaysOpenLinkBackground','addressBarNewTab','oppositeGlobal','colorNormalText','colorNormalBackground','colorActiveText',
   'colorActiveBackground','colorTabDot','colorUnreadText','colorUnreadBackground','enableColorOfNoSelect','themeColorChange','showBorderActiveTab','historyBadget','colorTabMode',
   'clearHistoryOnClose','clearDownloadOnClose','clearCacheOnClose','clearStorageDataOnClose','clearAutocompleteDataOnClose','clearAutofillDataOnClose','clearPasswordOnClose','clearGeneralSettingsOnClose','clearFavoriteOnClose',
-  'enableWidevine'])
+  'enableWidevine','toolbarLink','sidebarLink'])
 ipc.once(`get-main-state-reply_${key}`,(e,data)=>{
   generalDefault = data
   keyboardDefault = data

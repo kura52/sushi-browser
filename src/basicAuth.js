@@ -14,7 +14,9 @@ app.on('login', (e, webContents, request, authInfo, cb) => {
     {id :tabId,key,title:locale.translation('basicAuthRequired'),
     text:locale.translation('basicAuthMessage').replace('{{ host }}',`http${authInfo.port == 443 ? 's' : ''}://${authInfo.host}/`),
     needInput: [locale.translation('basicAuthUsernameLabel'),
-      locale.translation('basicAuthPasswordLabel')]})
+      locale.translation('basicAuthPasswordLabel'),
+    ],
+      auth: true})
 
   ipcMain.once(`reply-notification-${key}`,(e,ret)=>{
     if(ret.pressIndex !== 0){

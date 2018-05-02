@@ -30,6 +30,13 @@ if(!isMain){
   })
 }
 
+let openType
+const key = uuid.v4()
+ipc.send("get-main-state",key,[isMain ? 'toolbarLink' : 'sidebarLink'])
+ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
+  openType = data[isMain ? 'toolbarLink' : 'sidebarLink']
+})
+
 async function faviconGet(x){
   return x.favicon == "resource/file.png" ? (void 0) : x.favicon && (await localForage.getItem(x.favicon))
 }
@@ -273,6 +280,7 @@ export default class App extends React.Component {
             <Menu pointing secondary >
               <Menu.Item key="favorite" icon="star" active={true}/>
               <Menu.Item as='a' href={`${baseURL}/history_sidebar.html`} key="history" icon="history"/>
+              <Menu.Item as='a' href={`${baseURL}/saved_state_sidebar.html`} key="database" icon="database"/>
               <Menu.Item as='a' href={`${baseURL}/tab_history_sidebar.html`} key="tags" icon="tags"/>
               <Menu.Item as='a' href={`${baseURL}/explorer_sidebar.html`} key="file-explorer" icon="folder"/>
             </Menu>
@@ -752,11 +760,16 @@ class Contents extends React.Component {
                     if(this.props.onClick) this.props.onClick()
                   }
                   else if(this.props.cont){
-                    this.props.cont.hostWebContents.send('new-tab',this.props.cont.getId(),currentNode.url)
+                    if(event.button == 1){
+                      this.props.cont.hostWebContents.send('create-web-contents',{id:this.props.cont.getId(),targetUrl:currentNode.url,disposition:'background-tab'})
+                    }
+                    else{
+                      this.props.cont.hostWebContents.send(openType ? 'new-tab' : 'load-url',this.props.cont.getId(),currentNode.url)
+                    }
                     if(this.props.onClick) this.props.onClick()
                   }
                   else{
-                    ipc.sendToHost("open-tab-opposite",currentNode.url,true)
+                    ipc.sendToHost("open-tab-opposite",currentNode.url,true,event.button == 1 ? 'create-web-contents' : openType ? 'new-tab' : 'load-url')
                   }
                   return;
                 }

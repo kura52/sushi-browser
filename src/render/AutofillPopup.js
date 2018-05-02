@@ -7,75 +7,73 @@ export default class AutofillPopup extends Component {
   constructor(props) {
     super(props)
     this.state = {datas:{},active:-1}
+
   }
 
   componentDidMount() {
-    const showAutoFill = (e) => {
-      console.log('autofill',e)
-      if(e.rect.height + e.rect.width == 0) return
-      this.setState({datas:e})
-
-      this.keyDown = (evt)=>{
-        if(evt.keyCode === 13 && this.state.active != -1) { //enter
-          if(e.callback){
-            e.callback(this.state.datas.suggestions[this.state.active].value)
-          }
-          else{
-            ipc.send('autofill-selection-clicked', this.state.tab.wvId, this.state.datas.suggestions[this.state.active].value, 0, this.state.active)
-          }
-          evt.stopPropagation()
-        }
-        else if(evt.keyCode === 38 ){//up
-          const now = Date.now()
-          if(!this.keyPageUp){
-            this.setState({active : this.state.active == -1 || this.state.active == 0 ? e.suggestions.length - 1 : this.state.active - 1})
-            this.keyPageUp = now
-          }
-          else if(this.keyPageUplongPress && now - this.keyPageUp > 30){
-            this.setState({active : this.state.active == -1 || this.state.active == 0 ? e.suggestions.length - 1 : this.state.active - 1})
-            this.keyPageUp = now
-          }
-          else if(now - this.keyPageUp > 1000){
-            this.keyPageUplongPress = true
-          }
-        }
-        else if(evt.keyCode === 40){//down
-          const now = Date.now()
-          if(!this.keyPageDown){
-            this.setState({active : this.state.active == e.suggestions.length - 1 ? 0 : this.state.active + 1})
-            this.keyPageDown = now
-          }
-          else if(this.keyPageDownlongPress && now - this.keyPageDown > 30){
-            this.setState({active : this.state.active == e.suggestions.length - 1 ? 0 : this.state.active + 1})
-            this.keyPageDown = now
-          }
-          else if(now - this.keyPageDown > 1000){
-            this.keyPageDownlongPress = true
-          }
-        }
-      }
-
-      this.keyUp = (evt)=>{
-        if(evt.keyCode === 38 ) {//up
-          this.keyPageUp = void 0
-          this.keyPageUplongPress = false
-        }
-        else if(evt.keyCode === 40 ) {//down
-          this.keyPageDown = void 0
-          this.keyPageDownlongPress = false
-        }
-      }
-
-      document.addEventListener("keydown",this.keyDown)
-      document.addEventListener("keyup",this.keyUp)
-    }
-
-    this.token = PubSub.subscribe(`regist-webview_${this.props.k}`,(msg,tab)=>{
+    this.tokenRegistWebview = PubSub.subscribe(`regist-webview_${this.props.k}`,(msg,tab)=>{
       const wv = tab.wv
+      this.showAutoFill = (e) => {
+        console.log('autofill',e)
+        if(e.rect.height + e.rect.width == 0) return
+        this.setState({datas:e})
 
-      wv.addEventListener('show-autofill-popup',showAutoFill)
+        this.keyDown = (evt)=>{
+          if(evt.keyCode === 13 && this.state.active != -1) { //enter
+            if(e.callback){
+              e.callback(this.state.datas.suggestions[this.state.active].value)
+            }
+            else{
+              ipc.send('autofill-selection-clicked', this.state.tab.wvId, this.state.datas.suggestions[this.state.active].value, 0, this.state.active)
+            }
+            evt.stopPropagation()
+          }
+          else if(evt.keyCode === 38 ){//up
+            const now = Date.now()
+            if(!this.keyPageUp){
+              this.setState({active : this.state.active == -1 || this.state.active == 0 ? e.suggestions.length - 1 : this.state.active - 1})
+              this.keyPageUp = now
+            }
+            else if(this.keyPageUplongPress && now - this.keyPageUp > 30){
+              this.setState({active : this.state.active == -1 || this.state.active == 0 ? e.suggestions.length - 1 : this.state.active - 1})
+              this.keyPageUp = now
+            }
+            else if(now - this.keyPageUp > 1000){
+              this.keyPageUplongPress = true
+            }
+          }
+          else if(evt.keyCode === 40){//down
+            const now = Date.now()
+            if(!this.keyPageDown){
+              this.setState({active : this.state.active == e.suggestions.length - 1 ? 0 : this.state.active + 1})
+              this.keyPageDown = now
+            }
+            else if(this.keyPageDownlongPress && now - this.keyPageDown > 30){
+              this.setState({active : this.state.active == e.suggestions.length - 1 ? 0 : this.state.active + 1})
+              this.keyPageDown = now
+            }
+            else if(now - this.keyPageDown > 1000){
+              this.keyPageDownlongPress = true
+            }
+          }
+        }
 
-      wv.addEventListener('hide-autofill-popup', (e) => {
+        this.keyUp = (evt)=>{
+          if(evt.keyCode === 38 ) {//up
+            this.keyPageUp = void 0
+            this.keyPageUplongPress = false
+          }
+          else if(evt.keyCode === 40 ) {//down
+            this.keyPageDown = void 0
+            this.keyPageDownlongPress = false
+          }
+        }
+
+        document.addEventListener("keydown",this.keyDown)
+        document.addEventListener("keyup",this.keyUp)
+      }
+
+      this.hideAutoFill =  (e) => {
         if(this.state.datas.suggestions) {
           this.setState({datas:{},active:-1})
           wv.removeEventListener("keypress", this.keyEnter)
@@ -87,14 +85,22 @@ export default class AutofillPopup extends Component {
           this.keyPageDownlongPress = false
           this.keyEnter= void 0
         }
-      })
+      }
+      wv.addEventListener('show-autofill-popup',this.showAutoFill)
+      wv.addEventListener('hide-autofill-popup',this.hideAutoFill)
 
+      this.tokenDidNavigate = PubSub.subscribe(`did-navigate_${tab.key}`,(msg,url)=>{
+        this.hideAutoFill()
+      })
       this.setState({wv,tab})
     })
   }
 
   componentWillUnmount() {
-    PubSub.unsubscribe(this.token)
+    PubSub.unsubscribe(this.tokenRegistWebview)
+    PubSub.unsubscribe(this.tokenDidNavigate)
+    if(this.showAutoFill) this.state.wv.removeEventListener('show-autofill-popup',this.showAutoFill)
+    if(this.hideAutoFill) this.state.wv.removeEventListener('hide-autofill-popup',this.hideAutoFill)
   }
 
   componentWillUpdate(nextProps, nextState){

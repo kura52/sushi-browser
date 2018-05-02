@@ -323,3 +323,7 @@ canvas.drag-image{
 .ui.menu .active.item>i.icon {
     color: navy;
 }
+
+.ui.secondary.pointing.menu .item {
+    padding: .85714286em 0.88285714em;
+}
