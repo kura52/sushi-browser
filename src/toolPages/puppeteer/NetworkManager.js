@@ -324,13 +324,6 @@ class SecurityDetails {
   }
 }
 
-NetworkManager.Events = {
-  Request: 'request',
-  Response: 'response',
-  RequestFailed: 'requestfailed',
-  RequestFinished: 'requestfinished',
-};
-
 const statusTexts = {
   '100': 'Continue',
   '101': 'Switching Protocols',

@@ -58,7 +58,7 @@ class Browser{
   }
 
   async close() {
-    helper._stopObserveLoadEvent()
+    // helper._stopObserveLoadEvent()
   }
 
   disconnect() {

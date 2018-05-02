@@ -32,21 +32,21 @@ class Helper {
     return new Promise(r=>setTimeout(r,time))
   }
 
-  static _handleNavigateEvent(details){
-    if(details.frameId == 0) PubSub.publish('onCompleted',details.tabId)
-  }
-
-  static _startObserveLoadEvent(){
-    if(!Helper.observeDOMContentLoaded){
-      Helper.observeDOMContentLoaded = true
-      chrome.webNavigation.onCompleted.addListener(Helper._handleNavigateEvent)
-    }
-  }
-  static _stopObserveLoadEvent(){
-    Helper.observeDOMContentLoaded = false
-    chrome.webNavigation.onCompleted.removeListener(Helper._handleNavigateEvent)
-
-  }
+  // static _handleNavigateEvent(details){
+  //   if(details.frameId == 0) PubSub.publish('onCompleted',details.tabId)
+  // }
+  //
+  // static _startObserveLoadEvent(){
+  //   if(!Helper.observeDOMContentLoaded){
+  //     Helper.observeDOMContentLoaded = true
+  //     chrome.webNavigation.onCompleted.addListener(Helper._handleNavigateEvent)
+  //   }
+  // }
+  // static _stopObserveLoadEvent(){
+  //   Helper.observeDOMContentLoaded = false
+  //   chrome.webNavigation.onCompleted.removeListener(Helper._handleNavigateEvent)
+  //
+  // }
 
   static _serializeArgument(arg) {
     if (Object.is(arg, undefined))

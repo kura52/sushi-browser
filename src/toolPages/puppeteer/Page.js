@@ -50,6 +50,8 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details=>{
 })
 
 chrome.webNavigation.onCompleted.addListener(details=>{
+  console.log(details)
+  if(details.frameId == 0) PubSub.publish('onCompleted',details.tabId)
   for(let page of set){
     if(page.tabId == details.tabId){
       page.emit('load')
@@ -66,7 +68,7 @@ chrome.webRequest.onBeforeRequest.addListener(details=>{
       return
     }
   }
-})
+}, {urls: ["<all_urls>"]},["requestBody"])
 
 chrome.webRequest.onBeforeSendHeaders.addListener(details=>{
   for(let page of set){
@@ -79,7 +81,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(details=>{
       return
     }
   }
-})
+}, {urls: ["<all_urls>"]},["requestHeaders"])
 
 chrome.webRequest.onErrorOccurred.addListener(details=>{
   for(let page of set){
@@ -90,7 +92,7 @@ chrome.webRequest.onErrorOccurred.addListener(details=>{
       return
     }
   }
-})
+}, {urls: ["<all_urls>"]})
 
 chrome.webRequest.onResponseStarted.addListener(details=>{
   for(let page of set){
@@ -100,7 +102,7 @@ chrome.webRequest.onResponseStarted.addListener(details=>{
       return
     }
   }
-})
+}, {urls: ["<all_urls>"]},["responseHeaders"])
 
 chrome.webRequest.onCompleted.addListener(details=>{
   for(let page of set){
@@ -113,7 +115,7 @@ chrome.webRequest.onCompleted.addListener(details=>{
       return
     }
   }
-})
+}, {urls: ["<all_urls>"]},["responseHeaders"])
 
 class Page extends EventEmitter {
   static get PagesMap(){
