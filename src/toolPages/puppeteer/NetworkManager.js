@@ -29,7 +29,7 @@ class Request {
     this._url = details.url
     this._resourceType = details.type.toLowerCase();
     this._method = details.method;
-    this._postData = beforeRequest.formData;
+    this._postData = beforeRequest && beforeRequest.formData;
     this._headers = {};
     this._frame = page.mainFrame();
     // this._redirectChain = redirectChain;

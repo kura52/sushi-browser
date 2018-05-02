@@ -27,97 +27,101 @@ ipc.on('start-dialog',(e,{key,title,message,buttons,tabId,url,type})=>{
   }
 })
 
-chrome.webNavigation.onBeforeNavigate.addListener(async details=>{
-  const scripts = preloadJsMap[details.tabId]
-  if(scripts){
-    for(let page of set){
-      if(page.tabId == tabId){
-        for(let script of scripts){
-          await page.evaluateExtContext(script)
+class Page extends EventEmitter {
+  static _init(){
+    if(this._isInit) return
+    this._isInit = true
+    chrome.webNavigation.onBeforeNavigate.addListener(async details=>{
+      const scripts = preloadJsMap[details.tabId]
+      if(scripts){
+        for(let page of set){
+          if(page.tabId == tabId){
+            for(let script of scripts){
+              await page.evaluateExtContext(script)
+            }
+          }
         }
       }
-    }
+    })
+
+    chrome.webNavigation.onDOMContentLoaded.addListener(details=>{
+      for(let page of set){
+        if(page.tabId == details.tabId){
+          page.emit('domcontentloaded')
+          return
+        }
+      }
+    })
+
+    chrome.webNavigation.onCompleted.addListener(details=>{
+      console.log(details)
+      if(details.frameId == 0) PubSub.publish('onCompleted',details.tabId)
+      for(let page of set){
+        if(page.tabId == details.tabId){
+          page.emit('load')
+          return
+        }
+      }
+    })
+
+
+    chrome.webRequest.onBeforeRequest.addListener(details=>{
+      for(let page of set){
+        if(page.tabId == details.tabId){
+          beforeRequestCache.set(details.requestId,details)
+          return
+        }
+      }
+    }, {urls: ["<all_urls>"]},["requestBody"])
+
+    chrome.webRequest.onBeforeSendHeaders.addListener(details=>{
+      for(let page of set){
+        if(page.tabId == details.tabId){
+          const beforeRequest = beforeRequestCache.get(details.requestId)
+          const request = new Request(page, details, beforeRequest)
+          requestCache.set(details.requestId,request)
+
+          page.emit('request',request)
+          return
+        }
+      }
+    }, {urls: ["<all_urls>"]},["requestHeaders"])
+
+    chrome.webRequest.onErrorOccurred.addListener(details=>{
+      for(let page of set){
+        if(page.tabId == details.tabId){
+          const request = requestCache.get(details.requestId)
+          request._failureText = details.error
+          page.emit('requestfinished',request)
+          return
+        }
+      }
+    }, {urls: ["<all_urls>"]})
+
+    chrome.webRequest.onResponseStarted.addListener(details=>{
+      for(let page of set){
+        if(page.tabId == details.tabId){
+          const request = requestCache.get(details.requestId)
+          page.emit('requestfailed',request)
+          return
+        }
+      }
+    }, {urls: ["<all_urls>"]},["responseHeaders"])
+
+    chrome.webRequest.onCompleted.addListener(details=>{
+      for(let page of set){
+        if(page.tabId == details.tabId){
+          const request = requestCache.get(details.requestId)
+          const response = new Response(page, details, request)
+          request._response = response
+
+          page.emit('response',request)
+          return
+        }
+      }
+    }, {urls: ["<all_urls>"]},["responseHeaders"])
   }
-})
 
-chrome.webNavigation.onDOMContentLoaded.addListener(details=>{
-  for(let page of set){
-    if(page.tabId == details.tabId){
-      page.emit('domcontentloaded')
-      return
-    }
-  }
-})
-
-chrome.webNavigation.onCompleted.addListener(details=>{
-  console.log(details)
-  if(details.frameId == 0) PubSub.publish('onCompleted',details.tabId)
-  for(let page of set){
-    if(page.tabId == details.tabId){
-      page.emit('load')
-      return
-    }
-  }
-})
-
-
-chrome.webRequest.onBeforeRequest.addListener(details=>{
-  for(let page of set){
-    if(page.tabId == details.tabId){
-      beforeRequestCache.set(details.requestId,details)
-      return
-    }
-  }
-}, {urls: ["<all_urls>"]},["requestBody"])
-
-chrome.webRequest.onBeforeSendHeaders.addListener(details=>{
-  for(let page of set){
-    if(page.tabId == details.tabId){
-      const beforeRequest = beforeRequestCache.get(get.requestId)
-      const request = new Request(page, details, beforeRequest)
-      requestCache.set(details.requestId,request)
-
-      page.emit('request',request)
-      return
-    }
-  }
-}, {urls: ["<all_urls>"]},["requestHeaders"])
-
-chrome.webRequest.onErrorOccurred.addListener(details=>{
-  for(let page of set){
-    if(page.tabId == details.tabId){
-      const request = requestCache.get(details.requestId)
-      request._failureText = details.error
-      page.emit('requestfinished',request)
-      return
-    }
-  }
-}, {urls: ["<all_urls>"]})
-
-chrome.webRequest.onResponseStarted.addListener(details=>{
-  for(let page of set){
-    if(page.tabId == details.tabId){
-      const request = requestCache.get(details.requestId)
-      page.emit('requestfailed',request)
-      return
-    }
-  }
-}, {urls: ["<all_urls>"]},["responseHeaders"])
-
-chrome.webRequest.onCompleted.addListener(details=>{
-  for(let page of set){
-    if(page.tabId == details.tabId){
-      const request = requestCache.get(details.requestId)
-      const response = new Request(page, details, request)
-      request._response = response
-
-      page.emit('response',request)
-      return
-    }
-  }
-}, {urls: ["<all_urls>"]},["responseHeaders"])
-
-class Page extends EventEmitter {
   static get PagesMap(){
     return pagesMap
   }
@@ -426,7 +430,7 @@ class Page extends EventEmitter {
     }
     chrome.webRequest.onBeforeSendHeaders.addListener(listener, {
       "urls": ["http://*/*", "https://*/*"]
-    }, ["requestHeaders", "blocking"])
+    }, ["requestHeaders"])
 
     this.httpHeaderListener = listener
   }
