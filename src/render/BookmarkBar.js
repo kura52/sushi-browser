@@ -307,7 +307,7 @@ class BookmarkBar extends Component {
   initEvents() {
     this.event = (e, cmd) => {
       if(!this.menuKey) return
-      if(cmd == "openInNewTab" || cmd == "openInNewPrivateTab" || cmd == "openInNewSessionTab" || cmd == "openInNewWindow" || cmd == "openInNewWindowWithOneRow" || cmd == "openInNewWindowWithTwoRow") {
+      if(cmd == "openInNewTab" || cmd == "openInNewPrivateTab" || cmd == "openInNewTorTab" || cmd == "openInNewSessionTab" || cmd == "openInNewWindow" || cmd == "openInNewWindowWithOneRow" || cmd == "openInNewWindowWithTwoRow") {
         const nodes = this.menuKey
         this.menuKey = (void 0)
         openFavorite(nodes.map(n=>n.key),this.props.tab.wvId,cmd).then(_=>{

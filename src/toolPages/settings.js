@@ -353,6 +353,7 @@ const contextMenus = [
   ['openInNewTab', l10n.translation('openInNewTab')],
   ['Open Link in Opposite Tab', 'Open Link in Opposite Tab'],
   ['openInNewPrivateTab', l10n.translation('openInNewPrivateTab')],
+  ['openInNewTorTab', 'Open Links in New Tor Tabs'],
   ['openInNewSessionTab', l10n.translation('openInNewSessionTab')],
   ['openInNewWindow', l10n.translation('openInNewWindow')],
   ['5317780077021120954', l10n.translation('5317780077021120954')],

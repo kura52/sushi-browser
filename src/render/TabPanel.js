@@ -1415,7 +1415,7 @@ export default class TabPanel extends Component {
           historyMap.set(newPage.navUrl,[newPage.title,newPage.favicon])
         }
 
-        if(!tab.privateMode || tab.privateMode.startsWith('persist')){
+        if(!tab.privateMode || tab.privateMode.match(/^persist:\d/)){
           ;(async ()=>{
             if(newPage.hid || (newPage.hid = await history.findOne({location: newPage.navUrl}))){
               await history.update({_id: typeof newPage.hid == "string" ? newPage.hid : newPage.hid._id},{ $set:{favicon: newPage.favicon,updated_at: Date.now()}})
@@ -1516,7 +1516,7 @@ export default class TabPanel extends Component {
       self.setStatePartical(tab)
     }
 
-    if (needFavicon && (!tab.privateMode || tab.privateMode.startsWith('persist'))) {
+    if (needFavicon && (!tab.privateMode || tab.privateMode.match(/^persist:\d/))) {
       ;
       (async () => {
         if (page.hid || (page.hid = await history.findOne({location: page.navUrl}))) {
@@ -2803,7 +2803,7 @@ export default class TabPanel extends Component {
         const cont = this.getWebContents(tab)
         let isActive
         if(isChangeSelected){
-          isActive = tab.key == this.state.selectedTab
+          isActive = tab.key == this.state.selectedTab && global.lastMouseDown[1] == tab.wvId
           if(isActive && !this.isFixed){
             ipc.send("change-title",tab.page.title)
           }
@@ -3105,7 +3105,7 @@ export default class TabPanel extends Component {
   }
 
   addCloseTabHistory(e, i) {
-    if (!e.noHistory && (!this.state.tabs[i].privateMode || this.state.tabs[i].privateMode.startsWith('persist'))) {
+    if (!e.noHistory && (!this.state.tabs[i].privateMode || this.state.tabs[i].privateMode.match(/^persist:\d/))) {
       const tabKey = this.state.tabs[i].key
       this.state.history.push([tabKey,i])
       tabState.update({tabKey},{$set:{close:1,updated_at: Date.now()}}).then(_=>_)
@@ -3328,6 +3328,7 @@ export default class TabPanel extends Component {
     // menuItems.push(({ label: 'New Tab', click: ()=>document.querySelector(".rdTabAddButton").click()}))
     menuItems.push(({ t:'newTab',label: locale.translation('newTab'), click: ()=>this.createNewTab(_tabs, i)}))
     menuItems.push(({ t:'newPrivateTab',label: locale.translation('newPrivateTab'), click: ()=>this.createNewTab(_tabs, i,{default_url:"",privateMode:Math.random().toString()})}))
+    // menuItems.push(({ t:'newTorTab',label: 'Open Links in New Tor Tabs', click: ()=>this.createNewTab(_tabs, i,{default_url:"",privateMode:'persist:tor'})}))
     menuItems.push(({ t:'newSessionTab',label: locale.translation('newSessionTab'), click: ()=>this.createNewTab(_tabs, i,{privateMode:`persist:${ipc.sendSync('get-session-sequence')}`})}))
     menuItems.push(({ type: 'separator' }))
 
@@ -3849,7 +3850,7 @@ export default class TabPanel extends Component {
             historyMap.set(url, [tab.page.title])
           }
 
-          if (!tab.privateMode || tab.privateMode.startsWith('persist')) {
+          if (!tab.privateMode || tab.privateMode.match(/^persist:\d/)) {
             ;(async () => {
               // console.log('his-update',tab.page.location)
               if (tab.page.hid || (tab.page.hid = await history.findOne({location: tab.page.navUrl}))) {
@@ -4041,7 +4042,13 @@ export default class TabPanel extends Component {
       searchMethod = {multiple: [searchMethod.name], type: 'basic'}
     }
     const searchs = searchMethod.multiple
-    const urls = searchs.map(engine=> searchProviders[engine].search.replace('%s',text))
+    let urls
+    if(tab.privateMode == 'persist:tor'){
+      urls = searchs.map(engine=> searchProviders[engine].search.replace('www.google.com/search','duckduckgo.com/').replace('tbs=qdr:','df=').replace('%s',text))
+    }
+    else{
+      urls = searchs.map(engine=> searchProviders[engine].search.replace('%s',text))
+    }
 
     if(searchMethod.type == 'basic' || searchMethod.type == 'two'){
       this.searchSameWindow(tab,urls,checkOpposite,searchMethod.type, forceNewTab)

@@ -570,7 +570,19 @@ function createWindow (first,url) {
 }
 
 ipcMain.on('init-private-mode',(e,key,partition)=>{
-  const ses = session.fromPartition(partition)
+  let options = {}
+  if(partition.startsWith('persist')) options.parent_partition = ''
+
+  if (partition == 'persist:tor') {
+    options.isolated_storage = true
+    options.tor_proxy = 'socks5://127.0.0.1:9250'
+    options.tor_path = path.join(__dirname, '../resource/bin/tor',
+      process.platform == 'win32' ? 'win/tor.exe' :
+        process.platform == 'darwin' ? 'mac/tor' : 'linux/tor').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
+  }
+
+  const ses = session.fromPartition(partition, options)
+
   ses.userPrefs.setDictionaryPref('content_settings', defaultConf)
   ses.userPrefs.setBooleanPref('autofill.enabled', true)
   ses.userPrefs.setBooleanPref('profile.password_manager_enabled', true)
@@ -707,6 +719,7 @@ function contextMenu(webContents) {
 
       menuItems.push({label: locale.translation('openInNewTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewTab')}})
       menuItems.push({label: locale.translation('openInNewPrivateTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewPrivateTab')}})
+      // menuItems.push({label: locale.translation('openInNewTorTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewTorTab')}})
       menuItems.push({label: locale.translation('openInNewSessionTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewSessionTab')}})
       menuItems.push({label: locale.translation('openInNewWindow'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindow')}})
       menuItems.push({label: 'Open Link in New Window with a Row',click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindowWithOneRow')}})
@@ -813,6 +826,11 @@ function contextMenu(webContents) {
           win.webContents.send('new-tab', webContents.getId(), props.linkURL,Math.random().toString())
         }
       })
+      // menuItems.push({
+      //   t: 'newTorTab', label: 'Open Links in New Tor Tabs', click: (item, win) => {
+      //     win.webContents.send('new-tab', webContents.getId(), props.linkURL,'persist:tor')
+      //   }
+      // })
       menuItems.push({
         t: 'openInNewSessionTab', label: locale.translation('openInNewSessionTab'), click: (item, win) => {
           win.webContents.send('new-tab', webContents.getId(), props.linkURL,`persist:${seq()}`)

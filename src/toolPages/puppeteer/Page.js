@@ -77,7 +77,7 @@ class Page extends EventEmitter {
     chrome.webRequest.onBeforeSendHeaders.addListener(details=>{
       for(let page of set){
         if(page.tabId == details.tabId){
-          const beforeRequest = beforeRequestCache.get(details.requestId)
+          const beforeRequest = beforeRequestCache.get(details.requestId) || {}
           const request = new Request(page, details, beforeRequest)
           requestCache.set(details.requestId,request)
 
@@ -90,9 +90,9 @@ class Page extends EventEmitter {
     chrome.webRequest.onErrorOccurred.addListener(details=>{
       for(let page of set){
         if(page.tabId == details.tabId){
-          const request = requestCache.get(details.requestId)
+          const request = requestCache.get(details.requestId) || {}
           request._failureText = details.error
-          page.emit('requestfinished',request)
+          page.emit('requestfailed',request)
           return
         }
       }
@@ -101,8 +101,8 @@ class Page extends EventEmitter {
     chrome.webRequest.onResponseStarted.addListener(details=>{
       for(let page of set){
         if(page.tabId == details.tabId){
-          const request = requestCache.get(details.requestId)
-          page.emit('requestfailed',request)
+          const request = requestCache.get(details.requestId) || {}
+          page.emit('requestfinished',request)
           return
         }
       }
@@ -111,7 +111,7 @@ class Page extends EventEmitter {
     chrome.webRequest.onCompleted.addListener(details=>{
       for(let page of set){
         if(page.tabId == details.tabId){
-          const request = requestCache.get(details.requestId)
+          const request = requestCache.get(details.requestId) || {}
           const response = new Response(page, details, request)
           request._response = response
 
@@ -126,7 +126,7 @@ class Page extends EventEmitter {
     return pagesMap
   }
   // constructor(client, target, frameTree, ignoreHTTPSErrors, screenshotTaskQueue) {
-  constructor({tabId,tab,url,active = true,browser}={}){
+  constructor({tabId,tab,url,browser}={}){
     super()
     set.add(this)
     return new Promise(r=>{
@@ -144,8 +144,11 @@ class Page extends EventEmitter {
       if(tab){
         getTab(tab)
       }
-      else if(url){
+      else if(tabId){
         chrome.tabs.get(tabId,getTab)
+      }
+      else if(url){
+        chrome.tabs.query({url},getTab)
       }
       else{
         chrome.tabs.create({url: url || 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html', active},getTab)
@@ -200,20 +203,6 @@ class Page extends EventEmitter {
    */
   frames() {
     return this._frameManager.frames();
-  }
-
-  /**
-   * @param {boolean} value
-   */
-  async setRequestInterception(value) {
-    return this._networkManager.setRequestInterception(value);
-  }
-
-  /**
-   * @param {boolean} enabled
-   */
-  setOfflineMode(enabled) {
-    return this._networkManager.setOfflineMode(enabled);
   }
 
   /**
@@ -539,11 +528,13 @@ class Page extends EventEmitter {
     return new Promise((resolve,reject)=>{
       if(!helper.isNumber(options.timeout)) options.timeout = this._defaultNavigationTimeout
       const token = PubSub.subscribe('onCompleted',(msg,tabId)=>{
+        console.log(msg,this.tabId,tabId)
         if(this.tabId == tabId){
           resolve(true) //@TOOD
           PubSub.unsubscribe(token)
         }
       })
+      console.log(Date.now(),this.tabId,'wait-for2')
       setTimeout(_=>{
         PubSub.unsubscribe(token)
         reject('navigation-timeout')
@@ -601,27 +592,29 @@ class Page extends EventEmitter {
    * @param {!Page.Viewport} viewport
    */
   async setViewport(viewport) {
-    const attrs = []
-    for(let [k,v] of Object.entries(viewport)){
-      if(k == 'width' || k == 'height') attrs.push(`${k}=${v}`)
-      else if(k == 'deviceScaleFactor') attrs.push(`initial-scale=${v}`)
-    }
-    const metalist = document.getElementsByTagName('meta');
-    let hasMeta = false;
-    for(let i = 0; i < metalist.length; i++) {
-      const name = metalist[i].getAttribute('name')
-      if(name && name.toLowerCase() === 'viewport') {
-        metalist[i].setAttribute('content', attrs.join(','))
-        hasMeta = true
-        break
+    await this.evaluate(viewport=>{
+      const attrs = []
+      for(let [k,v] of Object.entries(viewport)){
+        if(k == 'width' || k == 'height') attrs.push(`${k}=${v}`)
+        else if(k == 'deviceScaleFactor') attrs.push(`initial-scale=${v}`)
       }
-    }
-    if(!hasMeta) {
-      const meta = document.createElement('meta')
-      meta.setAttribute('name', 'viewport')
-      meta.setAttribute('content', attrs.join(','))
-      document.head.appendChild(meta)
-    }
+      const metalist = document.getElementsByTagName('meta');
+      let hasMeta = false;
+      for(let i = 0; i < metalist.length; i++) {
+        const name = metalist[i].getAttribute('name')
+        if(name && name.toLowerCase() === 'viewport') {
+          metalist[i].setAttribute('content', attrs.join(','))
+          hasMeta = true
+          break
+        }
+      }
+      if(!hasMeta) {
+        const meta = document.createElement('meta')
+        meta.setAttribute('name', 'viewport')
+        meta.setAttribute('content', attrs.join(','))
+        document.head.appendChild(meta)
+      }
+    },viewport)
   }
 
   /**

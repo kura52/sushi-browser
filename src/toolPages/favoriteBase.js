@@ -407,7 +407,7 @@ class Contents extends React.Component {
 
   initEvents() {
     this.event = (e, cmd) => {
-      if(cmd == "openInNewTab" || cmd == "openInNewPrivateTab" || cmd == "openInNewSessionTab" || cmd == "openInNewWindow" || cmd == "openInNewWindowWithOneRow" || cmd == "openInNewWindowWithTwoRow") {
+      if(cmd == "openInNewTab" || cmd == "openInNewPrivateTab" || cmd == "openInNewTorTab" || cmd == "openInNewSessionTab" || cmd == "openInNewWindow" || cmd == "openInNewWindowWithOneRow" || cmd == "openInNewWindowWithTwoRow") {
         const nodes = this.menuKey
         this.menuKey = (void 0)
         openFavorite(nodes.map(n=>this.getKey(n)),this.props.cont ? this.props.cont.getId() : (void 0),cmd).then(_=>{

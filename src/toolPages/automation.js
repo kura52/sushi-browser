@@ -21,6 +21,8 @@ const util = Function(require('./puppeteer/orgUtils'))()
 
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
 const isWin = navigator.userAgent.includes('Windows')
+const TOP_URL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html'
+const CHROME_TOP_URL = 'chrome-search://local-ntp/local-ntp.html'
 l10n.init()
 
 
@@ -45,7 +47,7 @@ function dateFormat(d) {
 }
 
 function escapeRegExp(string){
-  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+  return string.replace(/[.*+?^${}()|[\]\\\-]/g, '\\$&'); // $& means the whole matched string
 }
 
 function getUrlVars(){
@@ -408,7 +410,7 @@ class Automation extends React.Component {
       //   str = `await page.goIndex('${helper.stringEscape(op.optSelector)}')`
       // }
       else if(op.name == 'navigate'){
-        str = `await page.goto('${helper.stringEscape(op.value)}')`
+        str = `await page.goto('${helper.stringEscape(op.value == TOP_URL ? 'chrome://newtab/' : op.value)}')`
       }
       else if(op.name == 'tabCreate'){
         str = `await newPage(browser, '${helper.stringEscape(op.value)}')`
@@ -418,16 +420,40 @@ class Automation extends React.Component {
         str = 'await page.close()'
       }
       else if(op.name == 'tabSelected'){
-        str = `page = await selectPage(browser, '${helper.stringEscape(op.value)}')`
+        const match = op.value == TOP_URL ? new RegExp(`^(${escapeRegExp(op.value)}|${escapeRegExp(CHROME_TOP_URL)})$`)
+          : `'${helper.stringEscape(op.value)}'`
+        str = `page = await selectPage(browser, ${match})`
         events.add('selectPage')
+        if(mode == 'play' && codes[codes.length - 1][0].includes('await newPage')){
+          codes[codes.length - 1][0] = codes[codes.length - 1][0].replace(/\)$/,', true)')
+        }
+        else if(mode == 'export' && codes[codes.length - 1].includes('await newPage')){
+          codes[codes.length - 1] = codes[codes.length - 1].replace(/\)$/,', true)')
+        }
       }
       else if(op.name == 'tabLoaded'){
         str = 'await page.waitForNavigation()'
         if(mode == 'play'){
-          codes[codes.length - 1][0] = codes[codes.length - 1][0].replace('await ','')
+          if(codes.length > 1 && codes[codes.length - 1][0].includes('await selectPage') &&
+            codes[codes.length - 2][0].includes('await newPage')) continue
+
+          if(codes[codes.length - 1][0].match(/await (newPage|selectPage)/)){
+            codes[codes.length - 1][0] = codes[codes.length - 1][0].replace(/\)$/,', true)')
+          }
+          else{
+            codes[codes.length - 1][0] = codes[codes.length - 1][0].replace('await ','')
+          }
         }
         else if(mode == 'export'){
-          codes[codes.length - 1] = codes[codes.length - 1].replace('await ','')
+          if(codes.length > 1 && codes[codes.length - 1].includes('await selectPage') &&
+            codes[codes.length - 2].includes('await newPage')) continue
+
+          if(codes[codes.length - 1].match(/await (newPage|selectPage)/)){
+            codes[codes.length - 1] = codes[codes.length - 1].replace(/\)$/,', true)')
+          }
+          else{
+            codes[codes.length - 1] = codes[codes.length - 1].replace('await ','')
+          }
         }
       }
       else if(op.name == 'dialog'){

@@ -51,7 +51,7 @@ module.exports = {
   'Enter': {'keyCode': 13, 'code': 'Enter', 'key': 'Enter', 'text': '\r'},
   '\r': {'keyCode': 13, 'code': 'Enter', 'key': 'Enter', 'text': '\r'},
   '\n': {'keyCode': 13, 'code': 'Enter', 'key': 'Enter', 'text': '\r'},
-  'ShiftLeft': {'keyCode': 16, 'code': 'ShiftLeft', 'key': 'ShiftShift', 'location': 1},
+  'ShiftLeft': {'keyCode': 16, 'code': 'ShiftLeft', 'key': 'Shift', 'location': 1},
   'ShiftRight': {'keyCode': 16, 'code': 'ShiftRight', 'key': 'Shift', 'location': 2},
   'ControlLeft': {'keyCode': 17, 'code': 'ControlLeft', 'key': 'Control', 'location': 1},
   'ControlRight': {'keyCode': 17, 'code': 'ControlRight', 'key': 'Control', 'location': 2},

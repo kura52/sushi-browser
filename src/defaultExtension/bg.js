@@ -304,6 +304,9 @@ function sendOps(){
 }
 
 function addTabOp(name,tab,now){
+  if(!fixedOpList.length && !Object.keys(opMap).length && !Object.keys(opMap2).length && op.name == 'tabSelected'){
+    return
+  }
   opMap2[uuidv4()] = {name,value:tab.url,url:tab.url,tabId:tab.id,now}
   console.log(opMap2)
   changeTime = Date.now()
@@ -311,6 +314,7 @@ function addTabOp(name,tab,now){
 
 function handleTabCreated(tab){
   const now = Date.now()
+  console.log(tab)
   addTabOp('tabCreate',tab,now)
   if(tab.active) addTabOp('tabSelected',tab,now)
 }
@@ -318,6 +322,7 @@ function handleTabCreated(tab){
 function handleTabActived(activeInfo){
   const now = Date.now()
   chrome.tabs.get(activeInfo.tabId, tab => {
+    console.log(tab)
     if(tab.url == automationURL) return
     addTabOp('tabSelected',tab,now)
   })
@@ -491,9 +496,6 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 });
 
 ipc.on('add-op',(e,op)=>{
-  if(!fixedOpList.length && !Object.keys(opMap).length && !Object.keys(opMap2).length && op.name == 'tabSelected'){
-    return
-  }
   opMap2[op.key] = op
   changeTime = Date.now()
 })

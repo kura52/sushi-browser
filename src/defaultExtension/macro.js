@@ -112,8 +112,8 @@ if(!window.__isRecording__){
   function getFrameIndex() {
     if (window.top === window.self)
       return 0;
-    for (var i=0; i<window.top.frames.length; i++) {
-      if (window.top.frames[i] === window.self) {
+    for (var i=0; i<window.frames.length; i++) {
+      if (window.frames[i] === window.self) {
         return i+1;
       }
     }

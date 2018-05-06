@@ -2,20 +2,35 @@ export default `return {
   wait(time){
     return new Promise(r=>setTimeout(r,time))
   },
-  async newPage(browser, url){
+  async newPage(browser, url, noWait){
     const page = await browser.newPage()
-    await page.goto(url)
+    if(noWait){
+      page.goto(url)
+    }
+    else{
+      await page.goto(url)
+    }
     return page
   },
-  async selectPage(browser, url){
+  async selectPage(browser, url, noWait){
     let page
     for(let i=0;i<300;i++){
       const pages = await browser.pages()
-      page = pages.find(p => p.url() == url)
+      if(url instanceof RegExp){
+        page = pages.find(p => p.url().match(url))
+      }
+      else{
+        page = pages.find(p => p.url() == url)
+      }
       if(page) break
       await wait(100)
     }
-    await page.bringToFront()
+    if(noWait){
+      page.bringToFront()
+    }
+    else{
+      await page.bringToFront()
+    }
     return page
   },
   async click(page, selector) {

@@ -110,7 +110,7 @@ class Keyboard {
    * @param {string} char
    */
   sendCharacter(char) {
-    const description = this._keyDescriptionForString(key)
+    const description = this._keyDescriptionForString(char)
 
     return this.common('press',description.key)
   }
@@ -142,6 +142,8 @@ class Mouse {
   constructor(tabId, keyboard) {
     this.tabId = tabId
     this._keyboard = keyboard
+    this._x = 0;
+    this._y = 0;
   }
 
   _addModifierOption(options){

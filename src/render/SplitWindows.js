@@ -1063,12 +1063,12 @@ export default class SplitWindows extends Component{
 
       if(typeof obj.l === "string"){
         // obj.l = [obj.l,[]]
-        obj.l = {key:obj.l, tabs:this.refs2[obj.l].state.tabs.map(tab=>{return {tabKey:tab.key, title:tab.page.title, url:tab.page.navUrl, pin:!!tab.pin, protect:!!tab.protect, lock:!!tab.lock, mute:!!tab.mute, reloadInterval:!!tab.reloadInterval}}).filter(x=> x.tabKey !== undefined)}
+        obj.l = {key:obj.l, tabs:this.refs2[obj.l].state.tabs.map(tab=>{return {tabKey:tab.key, title:tab.page.title, url:tab.page.navUrl, pin:!!tab.pin, protect:!!tab.protect, lock:!!tab.lock, mute:!!tab.mute, reloadInterval:!!tab.reloadInterval}}).filter(tab=> tab.tabKey !== undefined && (!tab.privateMode || tab.privateMode.match(/^persist:\d/)))}
       }
 
       if(typeof obj.r === "string"){
         // obj.r = [obj.r,[]]
-        obj.r = {key:obj.r, tabs:this.refs2[obj.r].state.tabs.map(tab=>{return {tabKey:tab.key, title:tab.page.title, url:tab.page.navUrl, pin:!!tab.pin, protect:!!tab.protect, lock:!!tab.lock, mute:!!tab.mute, reloadInterval:!!tab.reloadInterval}}).filter(x=> x.tabKey !== undefined)}
+        obj.r = {key:obj.r, tabs:this.refs2[obj.r].state.tabs.map(tab=>{return {tabKey:tab.key, title:tab.page.title, url:tab.page.navUrl, pin:!!tab.pin, protect:!!tab.protect, lock:!!tab.lock, mute:!!tab.mute, reloadInterval:!!tab.reloadInterval}}).filter(tab=> tab.tabKey !== undefined && (!tab.privateMode || tab.privateMode.match(/^persist:\d/)))}
       }
     }
 

@@ -1,4 +1,5 @@
 import ElementHandle from './ElementHandle'
+import {ExecutionContext} from './ExecutionContext'
 import helper from './helper'
 import defaultOptions from './defaultOptions'
 import PubSub from '../../render/pubsub'
@@ -17,8 +18,8 @@ const getFramesCode = `(_ => {
   const getFrameIndex = ()=>{
     if (window.top === window.self)
       return 0;
-    for (var i=0; i<window.top.frames.length; i++) {
-      if (window.top.frames[i] === window.self) {
+    for (var i=0; i<window.frames.length; i++) {
+      if (window.frames[i] === window.self) {
         return i+1;
       }
     }
@@ -44,6 +45,14 @@ class FrameManager {
    */
   mainFrame() {
     return this._mainFrame;
+  }
+
+  /**
+   * @param {!string} frameId
+   * @return {?Frame}
+   */
+  async frame(frameId) {
+    return (await this.frames()).find(f=>f.frameId = frameId)
   }
 
   /**
@@ -77,6 +86,14 @@ class Frame {
     this._url = url
     this._parentFrame = parentFrame
     this._waitTasks = new Set()
+    this._contextPromise = Promise.resolve(new ExecutionContext(this))
+  }
+
+  /**
+   * @return {!Promise<!ExecutionContext>}
+   */
+  executionContext() {
+    return this._contextPromise;
   }
 
   /**
@@ -117,7 +134,7 @@ class Frame {
    * @return {!Promise<?ElementHandle>}
    */
   async $(selector) {
-    return new ElementHandle(selector,this._page,this._frameManager)
+    return new ElementHandle(selector,this._page,this,this._frameManager)
   }
 
   /**
@@ -138,7 +155,7 @@ class Frame {
    * @return {!Promise<!Array<!ElementHandle>>}
    */
   async $x(expression) {
-    return new ElementHandle('html',this._page,this._frameManager).$x(expression)
+    return new ElementHandle('html',this._page,this,this._frameManager).$x(expression)
   }
 
   /**
@@ -180,7 +197,7 @@ class Frame {
    * @return {!Promise<!Array<!ElementHandle>>}
    */
   async $$(selector) {
-    return new ElementHandle('html',this._page,this._frameManager).$$(selector)
+    return new ElementHandle('html',this._page,this,this._frameManager).$$(selector)
   }
 
   /**
@@ -424,7 +441,7 @@ class Frame {
 
     if(!this.isMain){
       const num = await this.parentFrame().evaluateExtContext(frameId => {
-        const subFrame = window.top.frames[frameId - 1]
+        const subFrame = window.frames[frameId - 1]
         let i = 0
         for(let f of document.querySelectorAll('iframe')){
           ++i

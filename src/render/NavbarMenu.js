@@ -20,7 +20,7 @@ export default class NavbarMenu extends Component {
     // this.setState({tokens: [tokenSetVal]})
     const self = this
     this.outerClick = e=>{
-      if(!e.srcElement.closest(`#${this.uuid}`)){
+      if(!e.target.closest(`#${this.uuid}`)){
         self.setState({visible:false})
         this.closeBind()
       }

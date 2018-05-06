@@ -283,11 +283,14 @@ class BrowserPage extends Component {
           operation =  `window.__complex_search_define__.scrollFocusPrev('itel-highlight', 'itel-selected')`
         }
         const key = uuid.v4()
-        ipc.send('start-complex-search',key,this.props.tab.wvId,operation,!next)
-        ipc.once(`start-complex-search-reply_${key}`, (e,result)=>{
-          console.log(54353,result)
-          this.setState({result_string: result})
-        })
+        clearTimeout(this.timer)
+        this.timer = setTimeout(_=>{
+          ipc.send('start-complex-search',key,this.props.tab.wvId,operation,!next)
+          ipc.once(`start-complex-search-reply_${key}`, (e,result)=>{
+            console.log(54353,result)
+            this.setState({result_string: result})
+          })
+        },300)
       }
       return
     }

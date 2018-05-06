@@ -171,7 +171,9 @@ if(!window.__complex_search_define__){
     characterData: true,
     subtree: true,
   };
+  var limitCount = 0
   function highlight_all(dest, words) {
+    limitCount = 0
     for (var n = 0; n < words.array.length; n++) {
       var word = words.array[n];
       if (!regbool) {
@@ -211,6 +213,8 @@ if(!window.__complex_search_define__){
       if (start == -1) {
         return;
       }
+      if(++limitCount>1000) return
+
       words_nums[word.origin]++;
       var prefix = text.substr(0, start);
       var middle = text.substr(start, tmpword.length);
@@ -406,7 +410,7 @@ if(!window.__complex_search_define__){
 
     sfcount = sfcountNext(sfcount, length);
     scrollFocusAuto(elems[sfcount]);
-    return `${sfcount + 1}/${length}`
+    return `${sfcount + 1}/${length}${length < 1000 ? '' : '+'}`
   }
   function scrollFocusPrev(className, idName) {
     init_sfcount(className, idName, 1);
@@ -416,7 +420,7 @@ if(!window.__complex_search_define__){
 
     sfcount = sfcountPrev(sfcount, length);
     scrollFocusAuto(elems[sfcount]);
-    return `${sfcount + 1}/${length}`
+    return `${sfcount + 1}/${length}${length < 1000 ? '' : '+'}`
   }
 // 次のワードを辿る
   function scrollFocusNextWord(word, className, idName, regbool) {

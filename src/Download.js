@@ -1,6 +1,7 @@
 import {getFocusedWebContents} from "./util";
 
 const {BrowserWindow, webContents,dialog,ipcMain,app,shell} = require('electron')
+const _webContents = webContents
 import mainState from './mainState'
 const Aria2cWrapper = require('./Aria2cWrapper')
 const FfmpegWrapper = require('./FfmpegWrapper')
@@ -142,7 +143,7 @@ export default class Download {
 
     const ses = win.webContents.session
     ses.on('will-download', (event, item, webContents) => {
-      console.log("will-download0",webContents.isDestroyed())
+      console.log("will-download0")
       if (!webContents || webContents.isDestroyed()) {
         event.preventDefault()
         return
@@ -178,7 +179,11 @@ export default class Download {
         return
       }
 
-      if(!(retry.has(url) || url.startsWith('data:'))){
+      const cont = _webContents.getFocusedWebContents()
+      let focusedWebContent
+      if(cont && !cont.isDestroyed()) focusedWebContent = cont.session.partition || ""
+      const cond = focusedWebContent != 'persist:tor' && !focusedWebContent.match(/^[\d\.]+$/)
+      if(cond && !(retry.has(url) || url.startsWith('data:'))){
         console.log('cancel')
         item.destroy()
         // const _item = item
@@ -214,7 +219,7 @@ export default class Download {
       if(!savePath){
         autoSetSavePath = true
         savePath = path.join(saveDirectory || app.getPath('downloads'), fname || path.basename(url))
-        console.log(5)
+        console.log(5,savePath)
       }
 
       if(needSavePath || (this.getData(this.prompt,url) && fs.existsSync(savePath))){
@@ -227,7 +232,7 @@ export default class Download {
           console.log(6)
           savePath = filepaths[0]
           overwrite = true
-          this.process(url, overwrite, savePath, item, webContents, win, mimeType, audioExtract, videoConvert);
+          this.process(url, overwrite, savePath, item, webContents, win, mimeType, audioExtract, videoConvert, cond);
         })
         return
       }
@@ -241,18 +246,18 @@ export default class Download {
         console.log(7)
       }
 
-      this.process(url, overwrite, savePath, item, webContents, win, mimeType, audioExtract, videoConvert);
+      this.process(url, overwrite, savePath, item, webContents, win, mimeType, audioExtract, videoConvert, cond);
     })
   }
 
-  process(url, overwrite, savePath, item, webContents, win, mimeType, audioExtract, videoConvert) {
-    if (retry.has(url) || url.startsWith('data:')) {
+  process(url, overwrite, savePath, item, webContents, win, mimeType, audioExtract, videoConvert, cond) {
+    if (!cond || retry.has(url) || url.startsWith('data:')) {
+      item.setPrompt(false)
       console.log('retry')
       retry.delete(url)
       if (!this.getData(overwrite, url)) {
         savePath = this.getUniqFileName(savePath)
       }
-      item.setPrompt(false)
       item.setSavePath(savePath)
       timeMap.set(savePath, Date.now())
       this.downloadReady(item, url, webContents, win)

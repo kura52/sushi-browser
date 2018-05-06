@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 const path = require('path');
-const helper = require('./helper');
+import {ExecutionContext} from './ExecutionContext'
 
-class ElementHandle {
+export default class ElementHandle {
   /**
    * @param {!Puppeteer.ExecutionContext} context
    * @param {!Puppeteer.CDPSession} client
@@ -24,17 +24,51 @@ class ElementHandle {
    * @param {!Puppeteer.Page} page
    * @param {!Puppeteer.FrameManager} frameManager
    */
-  constructor( selector, page, frameManager) {
+  constructor( selector, page, frame, frameManager) {
     this._selector = selector;
     this._page = page;
+    this._frame = frame;
     this._frameManager = frameManager;
+    this._context = new ExecutionContext(frame)
+  }
+
+  /**
+   * @return {!ExecutionContext}
+   */
+  executionContext() {
+    return this._context;
+  }
+
+  /**
+   * @return {!Promise<?Object>}
+   */
+  async jsonValue() {
+    return this._frame.$eval(this._selector,e=>e)
+  }
+
+  /**
+   * @override
+   * @return {?ElementHandle}
+   */
+  asElement() {
+    return this;
+  }
+
+  async dispose() {
+  }
+
+  /**
+   * @return {!Promise<?Puppeteer.Frame>}
+   */
+  async contentFrame() {
+    return Promise.resolve(this._frame)
   }
 
   /**
    * @return {!Promise<?{model: object}>}
    */
   _getBoxModel() {
-    return this._page.$eval(this._selector,ele=>{
+    return this._frame.$eval(this._selector,ele=>{
       const getProps = (styles, prop)=>{
         let props = {top: 0, right: 0, bottom: 0, left: 0}
         Object.keys(props).forEach(side => {
@@ -105,18 +139,18 @@ class ElementHandle {
   }
 
   async hover() {
-    this._page.hover(this._selector)
+    await this._frame.hover(this._selector)
   }
 
   /**
    * @param {!Object=} options
    */
   async click(options = {}) {
-    this._page.click(this._selector, options)
+    await this._frame.click(this._selector, options)
   }
 
   async focus() {
-    this._page.focus(this._selector)
+    await this._frame.focus(this._selector)
   }
 
   /**
@@ -124,8 +158,7 @@ class ElementHandle {
    * @param {{delay: (number|undefined)}=} options
    */
   async type(text, options) {
-    await this.focus();
-    await this._page.keyboard.type(text, options);
+    await this._frame.type(this._selector, text, options)
   }
 
   /**
@@ -164,7 +197,15 @@ class ElementHandle {
     if (!result)
       return null;
 
-    const {content, padding, border, margin, width, height} = result.model;
+    const {content, padding, border, margin} = result.model;
+    if([...content,...padding,...border,...margin].every(x=>x==0)) return null
+
+    const quad = result.model.border;
+    const x = Math.min(quad[0], quad[2], quad[4], quad[6]);
+    const y = Math.min(quad[1], quad[3], quad[5], quad[7]);
+    const width = Math.max(quad[0], quad[2], quad[4], quad[6]) - x;
+    const height = Math.max(quad[1], quad[3], quad[5], quad[7]) - y;
+
     return {
       content: this._fromProtocolQuad(content),
       padding: this._fromProtocolQuad(padding),
@@ -208,7 +249,7 @@ class ElementHandle {
     //   needsViewportReset = true;
     // }
 
-    const { pageX, pageY } = await this._page.$eval(this._selector,function(element) {
+    const { pageX, pageY } = await this._frame.$eval(this._selector,function(element) {
       element.scrollIntoView({block: 'center', inline: 'center', behavior: 'instant'});
       return {pageX:window.scrollX,pageY:window.scrollY}
     });
@@ -236,7 +277,7 @@ class ElementHandle {
    * @return {!Promise<?ElementHandle>}
    */
   async $(selector) {
-    const newSelector = await this._page.$eval(this._selector,(ele,selector)=>{
+    const newSelector = await this._frame.$eval(this._selector,(ele,selector)=>{
       const escapeValue = (value) => value && value.replace(/['"`\\/:\?&!#$%^()[\]{|}*+;,.<=>@~]/g, '\\$&').replace(/\n/g, '\A')
       const createSelector = (element)=>{
         for (var sels = []; element && element.nodeType == 1; element = element.parentNode) {
@@ -288,7 +329,7 @@ class ElementHandle {
       return createSelector(ele.querySelector(selector))
     },selector)
 
-    return new ElementHandle(newSelector,this._page,this._frameManager)
+    return new ElementHandle(newSelector,this._page,this._frame,this._frameManager)
   }
 
   /**
@@ -296,7 +337,7 @@ class ElementHandle {
    * @return {!Promise<!Array<!ElementHandle>>}
    */
   async $$(selector) {
-    const newSelectors = await this._page.$eval(this._selector,(ele,selector)=>{
+    const newSelectors = await this._frame.$eval(this._selector,(ele,selector)=>{
       const escapeValue = (value) => value && value.replace(/['"`\\/:\?&!#$%^()[\]{|}*+;,.<=>@~]/g, '\\$&').replace(/\n/g, '\A')
       const createSelector = (element)=>{
         for (var sels = []; element && element.nodeType == 1; element = element.parentNode) {
@@ -348,7 +389,7 @@ class ElementHandle {
       return [...ele.querySelectorAll(selector)].map(ele=>createSelector(ele))
     },selector)
 
-    return newSelectors.map(newSelector => new ElementHandle(newSelector,this._page,this._frameManager))
+    return newSelectors.map(newSelector => new ElementHandle(newSelector,this._page,this._frame,this._frameManager))
   }
 
   /**
@@ -356,7 +397,7 @@ class ElementHandle {
    * @return {!Promise<!Array<!ElementHandle>>}
    */
   async $x(expression) {
-    const newSelectors = await this._page.$eval(this._selector,(ele,expression)=>{
+    const newSelectors = await this._frame.$eval(this._selector,(ele,expression)=>{
       const escapeValue = (value) => value && value.replace(/['"`\\/:\?&!#$%^()[\]{|}*+;,.<=>@~]/g, '\\$&').replace(/\n/g, '\A')
       const createSelector = (element)=>{
         for (var sels = []; element && element.nodeType == 1; element = element.parentNode) {
@@ -413,8 +454,6 @@ class ElementHandle {
       return arr
     },expression)
 
-    return newSelectors.map(newSelector => new ElementHandle(newSelector,this._page,this._frameManager))
+    return newSelectors.map(newSelector => new ElementHandle(newSelector,this._page,this._frame,this._frameManager))
   }
 }
-
-module.exports = ElementHandle;

@@ -16,9 +16,10 @@ Auto Highlightのデフォルト動作を1つ先のページまでしかHighligh
 再帰的にAuto Highlightするか否かのオプションを追加
 サイドバーおよびツールバー上のリンクを開いた際のデフォルトの挙動を現在のタブに変更
 サイドバーおよびツールバー上のリンクを開く設定を追加
-サイドバーおよびツールバー上のリンクを中クリックで開けるように変更
+アドレスバー、サイドバー、ツールバー上のリンクを中クリックで開けるように変更
 Session Managerをサイドバーに追加
-いくつかのバグ修正`
+Automation Centerの機能追加およびバグ修正
+その他いくつかのバグ修正`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

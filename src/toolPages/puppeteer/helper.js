@@ -1,9 +1,12 @@
+import ElementHandle from './ElementHandle'
+import {JSHandle} from './ExecutionContext'
+
 import uuid from 'node-uuid'
 import PubSub from '../../render/pubsub'
 const ipc = chrome.ipcRenderer
 const NOT_MATCH_VALUE = -5928295
 
-class Helper {
+export default class Helper {
 
   /**
    * @param {Function|string} fun
@@ -15,17 +18,8 @@ class Helper {
       console.assert(args.length === 0, 'Cannot evaluate a string with arguments');
       return /** @type {string} */ (fun);
     }
-    return `(${fun})(${args.map(serializeArgument).join(',')})`;
+    return `(${fun})(${args.map(Helper._serializeArgument).join(',')})`;
 
-    /**
-     * @param {*} arg
-     * @return {string}
-     */
-    function serializeArgument(arg) {
-      if (Object.is(arg, undefined))
-        return 'undefined';
-      return JSON.stringify(arg);
-    }
   }
 
   static wait(time){
@@ -49,7 +43,13 @@ class Helper {
   // }
 
   static _serializeArgument(arg) {
-    if (Object.is(arg, undefined))
+    if(arg instanceof JSHandle){
+      return `(${arg._pageFunction})(${arg._args.map(Helper._serializeArgument).join(',')})`
+    }
+    else if(arg instanceof ElementHandle){
+      return `document.querySelector('${Helper.stringEscape(arg._selector)}')`
+    }
+    else if (Object.is(arg, undefined))
       return 'undefined';
     return JSON.stringify(arg);
   }
@@ -58,8 +58,8 @@ class Helper {
     return `const getFrameIndex = _=> {
     if (window.top === window.self)
       return 0;
-    for (var i=0; i<window.top.frames.length; i++) {
-      if (window.top.frames[i] === window.self) {
+    for (var i=0; i<window.frames.length; i++) {
+      if (window.frames[i] === window.self) {
         return i+1;
       }
     }
@@ -152,5 +152,3 @@ class Helper {
 
 
 }
-
-module.exports = Helper

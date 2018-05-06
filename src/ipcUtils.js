@@ -285,15 +285,15 @@ ipcMain.on('open-favorite',async (event,key,dbKeys,tabId,type)=>{
   const cont = tabId !== 0 && (sharedState[tabId] || webContents.fromTabID(tabId))
   const ret = await recurFind(dbKeys,list)
   const host = cont ? event.sender : event.sender.hostWebContents
-  if(type == "openInNewTab" || type=='openInNewPrivateTab' || type=='openInNewSessionTab'){
+  if(type == "openInNewTab" || type=='openInNewPrivateTab' || type=='openInNewTorTab' || type=='openInNewSessionTab'){
     for(let url of list){
       await new Promise((resolve,reject)=>{
         setTimeout(_=>{
           if(tabId){
-            host.send("new-tab",tabId,url,type=='openInNewSessionTab' ? `persist:${seq()}` : type=='openInNewPrivateTab' ? Math.random().toString() : false)
+            host.send("new-tab",tabId,url,type=='openInNewSessionTab' ? `persist:${seq()}` : type=='openInNewTorTab' ? 'persist:tor' : type=='openInNewPrivateTab' ? Math.random().toString() : false)
           }
           else{
-            host.send("new-tab-opposite", event.sender.getId(),url,(void 0),type=='openInNewSessionTab' ? `persist:${seq()}` : type=='openInNewPrivateTab' ? Math.random().toString() : false)
+            host.send("new-tab-opposite", event.sender.getId(),url,(void 0),type=='openInNewSessionTab' ? `persist:${seq()}` : type=='openInNewTorTab' ? 'persist:tor' : type=='openInNewPrivateTab' ? Math.random().toString() : false)
           }
           resolve()
         },200)

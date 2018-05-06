@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 const EventEmitter = require('events');
-const Multimap = require('./Multimap');
 
 class Request {
 

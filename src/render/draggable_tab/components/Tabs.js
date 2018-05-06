@@ -108,7 +108,9 @@ class Title extends React.Component {
       <p style={tabTiteleStyle}
          className={tabTitleClasses}
          {...extraAttribute} >
-        {m ? <span className='private-mode'>[{m}]</span>: privateMode ? <i className="fa fa-eye-slash private-mode" ></i> : ""}
+        {m ? <span className='private-mode'>[{m}]</span> :
+          privateMode == 'persist:tor' ? <span className='private-mode'>[T]</span>:
+          privateMode ? <i className="fa fa-eye-slash private-mode" ></i> : ""}
 
         {mute ? <i className="fa fa-bell-slash mute-mode" ></i> : ""}
         {reloadInterval ? <i className="fa fa-repeat reload-mode" ></i> : ""}
@@ -1249,7 +1251,8 @@ class Tabs extends React.Component {
                 else{
                   win.maximize()
                 }
-              }: null}>
+              }: null}
+              onScroll={e=>{e.preventDefault();e.target.scrollTo(0,0)}}>
             {isDarwin && this.props.isTopRight && this.props.toggleNav != 1 && !document.querySelector('.vertical-tab.left') ? <div style={{width: this.props.fullscreen ? 0 : 62}}/>  : ""}
             {tabs}
             <span ref="addButton" draggable="true" className="rdTabAddButton"

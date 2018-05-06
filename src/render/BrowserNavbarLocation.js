@@ -67,6 +67,7 @@ export default class BrowserNavbarLocation extends Component {
       this.keyEvent({channel: 'navbar-search'})
     }
     this.keyEvent = ::this.keyEvent
+    this.outerClick = ::this.outerClick
     this.isFloat = isFloatPanel(this.props.k)
   }
 
@@ -117,6 +118,7 @@ export default class BrowserNavbarLocation extends Component {
     }
     if(!noBlur && this.input) this.input.blur()
     this.prevValue = void 0
+    document.removeEventListener('mousedown',this.outerClick,{once:true})
     this.setState({ results: []})
   }
 
@@ -228,6 +230,7 @@ export default class BrowserNavbarLocation extends Component {
   }
 
   onBlur(e){
+    if(this.mouseDown) return
     if(this.isFloat){
       PubSub.publish(`menu-showed_${this.props.k}`,false)
     }
@@ -235,9 +238,37 @@ export default class BrowserNavbarLocation extends Component {
   }
 
   onMouseDown(e){
+    this.mouseDown = e.target
+    this.button = e.button
     // if(this.isFloat){
-    e.target.click()
     // }
+  }
+
+  onMouseUp(e){
+    if(e.button == 2 || !this.mouseDown || this.button !== e.button) return
+    this.mouseDown = void 0
+    this.button = void 0
+    if(e.button == 0){
+      e.target.click()
+    }
+    else if(e.button == 1){
+      const content = e.target.closest('.content')
+      const description = content.querySelector('.description')
+
+      if(description){
+        const targetUrl = description.textContent
+        this.props.tab.events['create-web-contents'](e, {id:this.props.tab.wvId,targetUrl,disposition:'background-tab'})
+      }
+      else{
+        const word = content.querySelector('.title').textContent
+        this.props.search(this.props.tab, word, true, this.props.addressBarNewTab)
+      }
+      document.addEventListener('mousedown',this.outerClick,{once:true})
+    }
+  }
+
+  outerClick(e){
+    if(!e.target.closest(`.input-group`)) this.onBlur(e)
   }
 
 
@@ -295,6 +326,7 @@ export default class BrowserNavbarLocation extends Component {
         onSearchChange={::this.handleSearchChange}
         onSelectionChange={::this.handleSelectionChange}
         onMouseDown={::this.onMouseDown}
+        onMouseUp={::this.onMouseUp}
         results={results.map(x=>{return {title:x.title,description: x.description}})}
         value={convertURL(this.props.page.location)}
         ref="input"
