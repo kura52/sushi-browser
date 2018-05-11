@@ -1482,9 +1482,18 @@ ipcMain.on('get-isMaximized',e=>{
   e.returnValue = win.isMaximized() || win.isFullScreen()
 })
 
-ipcMain.on('set-audio-muted',(e,tabId,val)=>{
+ipcMain.on('set-audio-muted',(e,tabId,val,changeTabPanel)=>{
   const cont = webContents.fromTabID(tabId)
   if(cont && !cont.isDestroyed()) cont.setAudioMuted(val)
+  if(changeTabPanel){
+
+    for(let win of BrowserWindow.getAllWindows()) {
+      if(win.getTitle().includes('Sushi Browser')){
+        win.webContents.send('chrome-tabs-event',{tabId,changeInfo:{muted: val}},'updated')
+      }
+    }
+  }
+
 })
 
 ipcMain.on('get-automation',async e=>{

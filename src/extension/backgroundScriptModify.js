@@ -227,19 +227,26 @@ if(chrome.tabs){
 
   if(!chrome.tabs._update) chrome.tabs._update = chrome.tabs.update
   chrome.tabs.update = (tabId, updateProperties, callback)=>{
+    const func = (tabId, updateProperties, callback)=>{
+      if(updateProperties.muted !== void 0){
+        ipc.send('set-audio-muted',tabId,updateProperties.muted,true)
+        chrome.tabs._update(tabId, updateProperties, callback)
+      }
+    }
+
     if(!Number.isFinite(tabId) && tabId !== null && tabId !== void 0){
       [tabId,updateProperties,callback] = [null,tabId,updateProperties]
       simpleIpcFunc('chrome-tabs-current-tabId',tabId=>{
-        chrome.tabs._update(tabId, updateProperties, callback)
+        func(tabId, updateProperties, callback)
       })
     }
     else if(!tabId){
       simpleIpcFunc('chrome-tabs-current-tabId',tabId=>{
-        chrome.tabs._update(tabId, updateProperties, callback)
+        func(tabId, updateProperties, callback)
       })
     }
     else{
-      chrome.tabs._update(tabId, updateProperties, callback)
+      func(tabId, updateProperties, callback)
     }
   }
 

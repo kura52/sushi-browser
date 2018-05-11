@@ -3118,8 +3118,12 @@ export default class TabPanel extends Component {
       console.log("selected07",tab.key)
       this.setState({selectedTab: tab.key}) //@TODO
     }
-    if(changeInfo.pinned != (void 0)){ //@TODO mute?
+    if(changeInfo.pinned != (void 0)){
       tab.pin = changeInfo.pinned
+      this.setState({})
+    }
+    if(changeInfo.muted != (void 0)){
+      tab.mute = changeInfo.muted
       this.setState({})
     }
   }
