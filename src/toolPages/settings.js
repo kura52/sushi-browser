@@ -731,15 +731,22 @@ class GeneralSetting extends React.Component {
         <br/>
 
         <div className="field">
-          <label>Sidebar Link Behavior</label>
+          <label>{l10n.translation('openInNewTab')}  ({l10n.translation('requiresRestart').replace('* ','')})</label>
           <Checkbox defaultChecked={this.state.sidebarLink} toggle onChange={this.onChange.bind(this,'sidebarLink')}/>
-          <span className="toggle-label">{l10n.translation('openInNewTab')}  ({l10n.translation('requiresRestart').replace('* ','')})</span>
-        </div>
+          <span className="toggle-label">SideBar Link</span>
+          <br/>
 
-        <div className="field">
-          <label>Toolbar Link Behavior</label>
           <Checkbox defaultChecked={this.state.toolbarLink} toggle onChange={this.onChange.bind(this,'toolbarLink')}/>
-          <span className="toggle-label">{l10n.translation('openInNewTab')}  ({l10n.translation('requiresRestart').replace('* ','')})</span>
+          <span className="toggle-label">ToolBar Link</span>
+          <br/>
+
+          <Checkbox defaultChecked={this.state.addressBarNewTab} toggle onChange={this.onChange.bind(this,'addressBarNewTab')}/>
+          <span className="toggle-label">AddressBar Link</span>
+          <br/>
+
+          <Checkbox defaultChecked={this.state.bookmarkbarLink} toggle onChange={this.onChange.bind(this,'bookmarkbarLink')}/>
+          <span className="toggle-label">BookmarkBar Link</span>
+          <br/>
         </div>
         <br/>
 
@@ -1177,14 +1184,6 @@ class TabsSetting extends React.Component {
         <Checkbox defaultChecked={this.state.openTabNextLabel} toggle onChange={this.onChange.bind(this,'openTabNextLabel')}/>
         <span className="toggle-label">{l10n.translation('openTabNextLabel')}</span>
       </div>
-
-      <div className='spacer2'/>
-
-      <div className="field">
-        <Checkbox defaultChecked={this.state.addressBarNewTab} toggle onChange={this.onChange.bind(this,'addressBarNewTab')}/>
-        <span className="toggle-label">New Tab from Address Bar</span>
-      </div>
-
 
       <div className='spacer2'/>
 
@@ -1882,7 +1881,7 @@ ipc.send("get-main-state",key,['startsWith','newTabMode','myHomepage','searchPro
   'defaultDownloadPath','alwaysOpenLinkNewTab','alwaysOpenLinkBackground','addressBarNewTab','oppositeGlobal','colorNormalText','colorNormalBackground','colorActiveText',
   'colorActiveBackground','colorTabDot','colorUnreadText','colorUnreadBackground','enableColorOfNoSelect','themeColorChange','showBorderActiveTab','historyBadget','colorTabMode',
   'clearHistoryOnClose','clearDownloadOnClose','clearCacheOnClose','clearStorageDataOnClose','clearAutocompleteDataOnClose','clearAutofillDataOnClose','clearPasswordOnClose','clearGeneralSettingsOnClose','clearFavoriteOnClose',
-  'enableWidevine','toolbarLink','sidebarLink'])
+  'enableWidevine','toolbarLink','sidebarLink','bookmarkbarLink'])
 ipc.once(`get-main-state-reply_${key}`,(e,data)=>{
   generalDefault = data
   keyboardDefault = data

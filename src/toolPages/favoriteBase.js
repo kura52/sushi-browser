@@ -306,7 +306,7 @@ export default class App extends React.Component {
           </Sticky>
           : this.props.searchNum || this.props.searchKey ? null
           : <Input ref='input' icon='search' placeholder='Search...' size="small" onChange={::this.onChange}/>}
-      {this.props.cont ?  <Contents ref="content" onClick={this.props.onClick}
+      {this.props.cont ?  <Contents ref="content" onClick={this.props.onClick} bookmarkbarLink={this.props.bookmarkbarLink}
                                     cont={(typeof this.props.cont) == 'function' ? this.props.cont() : this.props.cont} searchNum={this.props.searchNum} searchKey={this.props.searchKey}/>:
         <Selection ref="select" target=".infinite-tree-item" selectedClass="selection-selected"
                    afterSelect={::this.afterSelect} clearSelect={::this.clearSelect}>
@@ -718,6 +718,7 @@ class Contents extends React.Component {
             return true;
           }}
           onClick={(event) => {
+            let openType2 = this.props.bookmarkbarLink !== void 0 ? this.props.bookmarkbarLink : openType
             const tree = this.refs.iTree.tree
             const currentNode = tree.getNodeFromPoint(event.x, event.y);
             if (!currentNode) {
@@ -755,21 +756,17 @@ class Contents extends React.Component {
                   selectedNodes = [];
                 }
                 else{
-                  if(this.props.searchNum || this.props.searchKey){
-                    this.props.cont.hostWebContents.send('load-url',this.props.cont.getId(),currentNode.url)
-                    if(this.props.onClick) this.props.onClick()
-                  }
-                  else if(this.props.cont){
+                  if(this.props.cont){
                     if(event.button == 1){
                       this.props.cont.hostWebContents.send('create-web-contents',{id:this.props.cont.getId(),targetUrl:currentNode.url,disposition:'background-tab'})
                     }
                     else{
-                      this.props.cont.hostWebContents.send(openType ? 'new-tab' : 'load-url',this.props.cont.getId(),currentNode.url)
+                      this.props.cont.hostWebContents.send(openType2 ? 'new-tab' : 'load-url',this.props.cont.getId(),currentNode.url)
                     }
                     if(this.props.onClick) this.props.onClick()
                   }
                   else{
-                    ipc.sendToHost("open-tab-opposite",currentNode.url,true,event.button == 1 ? 'create-web-contents' : openType ? 'new-tab' : 'load-url')
+                    ipc.sendToHost("open-tab-opposite",currentNode.url,true,event.button == 1 ? 'create-web-contents' : openType2 ? 'new-tab' : 'load-url')
                   }
                   return;
                 }

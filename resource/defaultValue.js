@@ -30,6 +30,7 @@ const settingDefault =  {
   enableWidevine: true,
   sidebarLink: false,
   toolbarLink: false,
+  bookmarkbarLink: false,
 
   bindMarginFrame: isLinux ? 6 : 0,
   bindMarginTitle: isLinux ? 24  : 0,

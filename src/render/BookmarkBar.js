@@ -18,7 +18,8 @@ const ipc = require('electron').ipcRenderer
 const {favorite} = require('./databaseRender')
 const sharedState = require('./sharedState')
 
-let _result,_update
+
+let _result,_update,bookmarkbarLink
 
 function getTextWidth(text, font) {
   const canvas = getTextWidth.canvas || (getTextWidth.canvas = document.createElement("canvas"))
@@ -151,6 +152,7 @@ class BookmarkBar extends Component {
     this.state = {bookmarks:[]}
     this.refs2 = {}
     this.calcNum= ::this.calcNum
+    if(bookmarkbarLink === void 0) bookmarkbarLink = mainState.bookmarkbarLink
   }
 
   getWebContents(tab){
@@ -180,7 +182,12 @@ class BookmarkBar extends Component {
 
     const tab = this.props.tab
     if(e.button == 0){
-      this.props.navigateTo(tab.page, url, tab)
+      if(bookmarkbarLink){
+        tab.events['new-tab']({}, tab.wvId, url)
+      }
+      else{
+        this.props.navigateTo(tab.page, url, tab)
+      }
     }
     else if(e.button == 1){
       tab.events['create-web-contents'](null, {id:tab.wvId,targetUrl:url,disposition:'background-tab'})
@@ -229,7 +236,7 @@ class BookmarkBar extends Component {
                                      <span className="bookmark-right-arrow"><i className="fa fa-angle-double-right"></i></span>}>
       <div className="divider" />
       <div role="option" className="item favorite infinite-classic">
-        <FavoriteExplorer cont={_=>this.getWebContents(this.props.tab)} searchNum={this.calcNum}
+        <FavoriteExplorer bookmarkbarLink={bookmarkbarLink} cont={_=>this.getWebContents(this.props.tab)} searchNum={this.calcNum}
                           onClick={_=> {this.refs2.last.setState({visible:false})}}/>
       </div>
     </NavbarMenu>]
@@ -259,7 +266,7 @@ class BookmarkBar extends Component {
                             </a>}>
           <div className="divider" />
           <div role="option" className="item favorite infinite-classic">
-            <FavoriteExplorer cont={_=>this.getWebContents(this.props.tab)} searchKey={f.key}
+            <FavoriteExplorer bookmarkbarLink={bookmarkbarLink} cont={_=>this.getWebContents(this.props.tab)} searchKey={f.key}
                               onClick={_=> {this.refs2[ref].setState({visible:false})}}/>
           </div>
         </NavbarMenu>

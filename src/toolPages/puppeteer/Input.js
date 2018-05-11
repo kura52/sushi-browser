@@ -89,7 +89,7 @@ class Keyboard {
       description.text = definition.shiftText;
 
     // if any modifiers besides shift are pressed, no text should be sent
-    if (this._modifiers.length > 2 || (!shift && this._modifiers.length == 1))
+    if (this._modifiers.size > 2 || (!shift && this._modifiers.size == 1))
       description.text = ''
 
     return description;
