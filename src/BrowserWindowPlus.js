@@ -282,6 +282,7 @@ export default {
 
     mainState.scaleFactor = electron.screen.getPrimaryDisplay().scaleFactor
 
+    console.log(77677,setting)
     if(!opt){
       for(let [key,dVal] of Object.entries(settingDefault)){
         setOptionVal(key,dVal,setting[key])

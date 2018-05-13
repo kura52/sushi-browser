@@ -621,31 +621,31 @@ class GeneralSetting extends React.Component {
               <div className="field">
                 <label>{l10n.translation('privateDataMessage').replace("Brave","Sushi Browser")}</label>
 
-                <Checkbox toggle onChange={this.onChange.bind(this,'clearHistoryOnClose')} defaultValue={this.state.clearHistoryOnClose}/>
+                <Checkbox toggle onChange={this.onChange.bind(this,'clearHistoryOnClose')} defaultChecked={this.state.clearHistoryOnClose}/>
                 <span className="toggle-label">{l10n.translation('browsingHistory')}</span>
                 <br/>
-                <Checkbox toggle onChange={this.onChange.bind(this,'clearDownloadOnClose')} defaultValue={this.state.clearDownloadOnClose}/>
+                <Checkbox toggle onChange={this.onChange.bind(this,'clearDownloadOnClose')} defaultChecked={this.state.clearDownloadOnClose}/>
                 <span className="toggle-label">{l10n.translation('downloadHistory')}</span>
                 <br/>
-                <Checkbox toggle onChange={this.onChange.bind(this,'clearCacheOnClose')} defaultValue={this.state.clearCacheOnClose}/>
+                <Checkbox toggle onChange={this.onChange.bind(this,'clearCacheOnClose')} defaultChecked={this.state.clearCacheOnClose}/>
                 <span className="toggle-label">{l10n.translation('cachedImagesAndFiles')}</span>
                 <br/>
-                <Checkbox toggle onChange={this.onChange.bind(this,'clearStorageDataOnClose')} defaultValue={this.state.clearStorageDataOnClose}/>
+                <Checkbox toggle onChange={this.onChange.bind(this,'clearStorageDataOnClose')} defaultChecked={this.state.clearStorageDataOnClose}/>
                 <span className="toggle-label">{l10n.translation('allSiteCookies')}</span>
                 <br/>
-                <Checkbox toggle onChange={this.onChange.bind(this,'clearAutocompleteDataOnClose')} defaultValue={this.state.clearAutocompleteDataOnClose}/>
+                <Checkbox toggle onChange={this.onChange.bind(this,'clearAutocompleteDataOnClose')} defaultChecked={this.state.clearAutocompleteDataOnClose}/>
                 <span className="toggle-label">{l10n.translation('autocompleteData')}</span>
                 <br/>
-                <Checkbox toggle onChange={this.onChange.bind(this,'clearAutofillDataOnClose')} defaultValue={this.state.clearAutofillDataOnClose}/>
+                <Checkbox toggle onChange={this.onChange.bind(this,'clearAutofillDataOnClose')} defaultChecked={this.state.clearAutofillDataOnClose}/>
                 <span className="toggle-label">{l10n.translation('autofillData')}</span>
                 <br/>
-                <Checkbox toggle onChange={this.onChange.bind(this,'clearPasswordOnClose')} defaultValue={this.state.clearPasswordOnClose}/>
+                <Checkbox toggle onChange={this.onChange.bind(this,'clearPasswordOnClose')} defaultChecked={this.state.clearPasswordOnClose}/>
                 <span className="toggle-label">{l10n.translation('1375321115329958930')}</span>
                 <br/>
-                <Checkbox toggle onChange={this.onChange.bind(this,'clearGeneralSettingsOnClose')} defaultValue={this.state.clearGeneralSettingsOnClose}/>
+                <Checkbox toggle onChange={this.onChange.bind(this,'clearGeneralSettingsOnClose')} defaultChecked={this.state.clearGeneralSettingsOnClose}/>
                 <span className="toggle-label">{l10n.translation('generalSettings')}</span>
                 <br/>
-                <Checkbox toggle onChange={this.onChange.bind(this,'clearFavoriteOnClose')} defaultValue={this.state.clearFavoriteOnClose}/>
+                <Checkbox toggle onChange={this.onChange.bind(this,'clearFavoriteOnClose')} defaultChecked={this.state.clearFavoriteOnClose}/>
                 <span className="toggle-label">{l10n.translation('bookmarks')}</span>
                 <br/>
               </div>

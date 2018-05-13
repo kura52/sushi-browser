@@ -135,14 +135,14 @@ This browser makes use of wonderful web technologies, starting with the followin
 Both the installer for every platform and the portable version can be downloaded.  
 To use the portable edition, please run sushi.exe for Windows and sushi-browser for Mac/Linux after decompressing.
 
-- [Windows Installer v0.16.1](https://sushib.me/dl/sushi-browser-0.16.1-setup-x64.exe)
-- [Windows Portable v0.16.1(self-extract)](https://sushib.me/dl/sushi-browser-0.16.1-win-x64.exe)
-- [Windows Portable v0.16.1](https://sushib.me/dl/sushi-browser-0.16.1-win-x64.zip)
-- [MacOS dmg v0.16.1](https://sushib.me/dl/SushiBrowser-0.16.1.dmg)
-- [MacOS Portable v0.16.1](https://sushib.me/dl/sushi-browser-0.16.1-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.16.1](https://sushib.me/dl/sushi-browser-0.16.1.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.16.1](https://sushib.me/dl/sushi-browser_0.16.1_amd64.deb)
-- [Linux Portable v0.16.1](https://sushib.me/dl/sushi-browser-0.16.1.tar.bz2)
+- [Windows Installer v0.16.2](https://sushib.me/dl/sushi-browser-0.16.2-setup-x64.exe)
+- [Windows Portable v0.16.2(self-extract)](https://sushib.me/dl/sushi-browser-0.16.2-win-x64.exe)
+- [Windows Portable v0.16.2](https://sushib.me/dl/sushi-browser-0.16.2-win-x64.zip)
+- [MacOS dmg v0.16.2](https://sushib.me/dl/SushiBrowser-0.16.2.dmg)
+- [MacOS Portable v0.16.2](https://sushib.me/dl/sushi-browser-0.16.2-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.16.2](https://sushib.me/dl/sushi-browser-0.16.2.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.16.2](https://sushib.me/dl/sushi-browser_0.16.2_amd64.deb)
+- [Linux Portable v0.16.2](https://sushib.me/dl/sushi-browser-0.16.2.tar.bz2)
 
 # Use of Flash 
 If Flash won't run, please install Flash from the following web sites.  
@@ -157,7 +157,23 @@ sushi-browser --no-sandbox
 
 # New Features
 
-#### New function(v0.16.1)
+#### New function(v0.162)
+- Improve the volume icon so that it appears on the tab when playing videos.
+- Added function to switch mute status by clicking volume icon.
+- Added function to change volume from 0 to 800% when mouse over volume icon.
+- Changed to disable Auto Highlight when closing search window.
+- Changed Auto High Highlight's default behavior to Highlight only to the next page.
+- Added option of whether to auto highlight recursively.
+- Changed default behavior when opening links on sidebar and toolbar to open link on current tab.
+- Added setting to open links on sidebar and toolbar.
+- Changed to be able to open links on sidebar and toolbar with middle click.
+- Added setting to open bookmark bar link in new tab.
+- Added Session Manager to sidebar.
+- Improvement of Automation Center.
+- Fixed a lot of bugs.
+- Updated to youtube-dl 2018.05.09.
+
+#### New function(v0.16.2)
 - Added bookmark bar
 - Added display control function on top page of bookmark bar
 - I made it possible to drop and drag a link to a bookmark sidebar

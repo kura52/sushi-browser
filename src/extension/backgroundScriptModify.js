@@ -218,7 +218,7 @@ if(chrome.tabs){
       const id = setInterval(_=>chrome.tabs.get(_tab.id,tab=>{
         if(++retry > 200 || (tab && tab.url)){
           clearInterval(id)
-          callback(tab)
+          callback && callback(tab)
         }
       }),10)
     })

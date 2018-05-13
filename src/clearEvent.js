@@ -3,6 +3,7 @@ import {favorite,image,favicon,tabState,history,visit,savedState,download,downlo
 
 import path from 'path'
 import fs from 'fs'
+import mainState from "./mainState";
 
 const m = {
   async clearHistory(ses){
@@ -50,9 +51,20 @@ const m = {
   },
 
   async clearGeneralSettings(){
-    for(let table of [state,syncReplace]){
-      await table.remove({}, { multi: true })
+    await syncReplace.remove({}, { multi: true })
+    await state.update({ key: 1 }, {
+      key: 1,
+      clearHistoryOnClose: mainState.clearHistoryOnClose,
+      clearDownloadOnClose: mainState.clearDownloadOnClose,
+      clearCacheOnClose: mainState.clearCacheOnClose,
+      clearStorageDataOnClose: mainState.clearStorageDataOnClose,
+      clearAutocompleteDataOnClose: mainState.clearAutocompleteDataOnClose,
+      clearAutofillDataOnClose: mainState.clearAutofillDataOnClose,
+      clearPasswordOnClose: mainState.clearPasswordOnClose,
+      clearGeneralSettingsOnClose: mainState.clearGeneralSettingsOnClose,
+      clearFavoriteOnClose: mainState.clearFavoriteOnClose
     }
+      )
   },
 
   async clearFavorite(){
