@@ -301,6 +301,10 @@ a.search-button:hover {
     top: 90% !important;
 }
 
+.nav-menu-audio{
+    position: fixed !important;
+}
+
 .ui.dropdown.main-menu .menu>.item {
     padding: .32rem 0.94285714rem!important;
 }
@@ -986,6 +990,7 @@ div.org-menu>div.item:hover{
     padding: 0 5px;
     background: #f6f6f6;
     border-bottom: 1px solid #dfdfdf;
+    user-select: none;
 }
 
 .bookmark-item{
@@ -1040,4 +1045,18 @@ div.org-menu>div.item:hover{
 
 .bookmark-right-arrow:hover{
     background-color: rgba(0,0,0,0.1);
+}
+
+i.play-mode, .play-mode i {
+    color: orangered;
+}
+
+i.mute-mode.playing {
+    color: orangered;
+}
+
+i.mute-mode{
+    padding-left: 2px;
+    padding-right: 3.14px;
+    pointer-events: initial;
 }

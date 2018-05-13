@@ -634,6 +634,9 @@ ipcMain.on('get-main-state',(e,key,names)=>{
     else if(name == "alwaysOpenLinkNewTab"){
       ret[name] = mainState.lockTabs[e.sender.getId()] ? 'speLinkAllLinks' : mainState[name]
     }
+    else if(name == "isVolumeControl"){
+      ret[name] = mainState.isVolumeControl[e.sender.getId()]
+    }
     else{
       ret[name] = mainState[name]
     }

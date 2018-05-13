@@ -369,6 +369,24 @@ app.on('web-contents-created', (e, tab) => {
     passwordManager.updatePassword(tab, username, origin)
   })
 
+  tab.on('media-started-playing', (e) => {
+    mainState.mediaPlaying[tabId] = true
+    for(let win of BrowserWindow.getAllWindows()) {
+      if(win.getTitle().includes('Sushi Browser')){
+        win.webContents.send('update-media-playing',tabId,true)
+      }
+    }
+  })
+
+  tab.on('media-paused', (e) => {
+    delete mainState.mediaPlaying[tabId]
+    for(let win of BrowserWindow.getAllWindows()) {
+      if(win.getTitle().includes('Sushi Browser')){
+        win.webContents.send('update-media-playing',tabId,false)
+      }
+    }
+  })
+
   tab.on('close', () => {
     delete sharedState[tabId]
     tab.forceClose()

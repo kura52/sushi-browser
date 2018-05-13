@@ -6,20 +6,38 @@ const glob = require("glob")
 const BEFORE_CODE_NAME = 'Shirauo(Icefish)'
 const CODE_NAME = 'Shirauo(Icefish)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.16.1"
+const NEXT_APP_VERSION = "0.16.2"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = ``
+const CHANGE_ENGLISH = `Improve the volume icon so that it appears on the tab when playing videos.
+Added function to switch mute status by clicking volume icon.
+Added function to change volume from 0 to 800% when mouse over volume icon.
+Changed to disable Auto Highlight when closing search window.
+Changed Auto High Highlight's default behavior to Highlight only to the next page.
+Added option of whether to auto highlight recursively.
+Changed default behavior when opening links on sidebar and toolbar to open link on current tab.
+Added setting to open links on sidebar and toolbar.
+Changed to be able to open links on sidebar and toolbar with middle click.
+Added setting to open bookmark bar link in new tab.
+Added Session Manager to sidebar.
+Improvement of Automation Center.
+Fixed a lot of bugs.
+Updated to youtube-dl 2018.05.09.`
 
-const CHANGE_JAPANESE = `Auto Highlightを検索窓を閉じた際に無効にするよう変更
+const CHANGE_JAPANESE = `動画再生時に音量アイコンがタブに表示されるように改善
+音量アイコンをクリックするとミュート状態が切り替わる機能を追加
+音量アイコンにマウスオーバーすると音量を0〜800%まで変更できる機能を追加
+Auto Highlightを検索窓を閉じた際に無効にするよう変更
 Auto Highlightのデフォルト動作を1つ先のページまでしかHighlightしないように変更
 再帰的にAuto Highlightするか否かのオプションを追加
 サイドバーおよびツールバー上のリンクを開いた際のデフォルトの挙動を現在のタブに変更
 サイドバーおよびツールバー上のリンクを開く設定を追加
-アドレスバー、サイドバー、ツールバー上のリンクを中クリックで開けるように変更
+サイドバー、ツールバー上のリンクを中クリックで開けるように変更
+ブックマークバーのリンクを新しいタブで開く設定を追加
 Session Managerをサイドバーに追加
 Automation Centerの機能追加およびバグ修正
-その他いくつかのバグ修正`
+多数のバグ修正
+youtube-dlを2018.05.09に更新`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

@@ -623,9 +623,11 @@ export default class SplitWindows extends Component{
         for(let key of keyArr) {
           if(key == indexKey) continue
           const panel = this.refs2[key]
-          funcs[key]()
-          panel.setState({})
-          if(!panel.state.tabs.length) PubSub.publish(`close-panel_${panel.props.k}`,100)
+          setTimeout(_=> {
+            funcs[key]()
+            panel.setState({})
+            if (!panel.state.tabs.length) PubSub.publish(`close-panel_${panel.props.k}`, 100)
+          },30)
         }
         if(sendKey) ipc.send(`chrome-tabs-move-finished_${sendKey}`)
       })

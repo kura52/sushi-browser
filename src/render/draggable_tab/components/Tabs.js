@@ -26,12 +26,14 @@ const BrowserWindowPlus = remote.require('./BrowserWindowPlus')
 const mainState = remote.require('./mainState')
 const ipc = require('electron').ipcRenderer
 const {alwaysOnTop} = require('../../browserNavbar')
+const NavbarMenu = require('../../NavbarMenu')
+const {NavbarMenuItem, NavbarMenuBarItem} = require('../../NavbarMenuItem')
 const sharedState = require('../../sharedState')
 const {getTextColorForBackground} = require('../../../../brave/app/color')
 
 const isDarwin = navigator.userAgent.includes('Mac OS X')
 const isWin = navigator.userAgent.includes('Windows')
-let [scrollTab,reverseScrollTab,multistageTabs,verticalTabWidth,tabBarHide,tabMinWidth,tabMaxWidth,tabFlipLabel,mouseHoverSelectLabelBeginDelay,mouseHoverSelectLabelBegin,doubleClickTab,middleClickTab,altClickTab,maxrowLabel,openTabNextLabel,rightClickTabAdd,middleClickTabAdd,altClickTabAdd,displayFullIcon] = ipc.sendSync('get-sync-main-states',['scrollTab','reverseScrollTab','multistageTabs','verticalTabWidth','tabBarHide','tabMinWidth','tabMaxWidth','tabFlipLabel','mouseHoverSelectLabelBeginDelay','mouseHoverSelectLabelBegin','doubleClickTab','middleClickTab','altClickTab','maxrowLabel','openTabNextLabel','rightClickTabAdd','middleClickTabAdd','altClickTabAdd','displayFullIcon'])
+let [scrollTab,reverseScrollTab,multistageTabs,verticalTabWidth,tabBarHide,tabMinWidth,tabMaxWidth,tabFlipLabel,mouseHoverSelectLabelBeginDelay,mouseHoverSelectLabelBegin,doubleClickTab,middleClickTab,altClickTab,maxrowLabel,openTabNextLabel,rightClickTabAdd,middleClickTabAdd,altClickTabAdd,displayFullIcon,mediaPlaying] = ipc.sendSync('get-sync-main-states',['scrollTab','reverseScrollTab','multistageTabs','verticalTabWidth','tabBarHide','tabMinWidth','tabMaxWidth','tabFlipLabel','mouseHoverSelectLabelBeginDelay','mouseHoverSelectLabelBegin','doubleClickTab','middleClickTab','altClickTab','maxrowLabel','openTabNextLabel','rightClickTabAdd','middleClickTabAdd','altClickTabAdd','displayFullIcon','mediaPlaying'])
 maxrowLabel = parseInt(maxrowLabel)
 
 ;(function(){
@@ -70,8 +72,22 @@ function getWebContents(tab){
   return global.currentWebContents[tab.wvId]
 }
 
+function gaiseki(ax,ay,bx,by){
+  return ax*by-bx*ay;
+}
+
+function pointInCheck(X,Y,W,H,PX,PY){
+  var a = gaiseki(-W,0,PX-W-X,PY-Y);
+  var b = gaiseki(0,H,PX-X,PY-Y);
+  var c = gaiseki(W,0,PX-X,PY-Y-H);
+  var d = gaiseki(0,-H,PX-W-X,PY-H-Y);
+  if(a<0&&b<0&&c<0&&d<0) return true;
+  else return false;
+}
+
 class Title extends React.Component {
   componentDidMount() {
+    this.audioVolume = "10"
     this.beforeTitle = this.props.datas.beforeTitle
     this.tokenTabComponentUpdate = PubSub.subscribe(`tab-component-update_${this.props.datas.key}`,(msg,datas)=>{
       this.title = datas.title
@@ -90,9 +106,56 @@ class Title extends React.Component {
     PubSub.unsubscribe(this.tokenTabComponentUpdate)
   }
 
+  audioControl(e){
+    console.log(e)
+    const val = parseFloat(e.target.value)
+    this.audioVolume = e.target.value
+
+    this.props.datas.tab.wv.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',
+      `window._mediaElements_ = window._mediaElements_ || {}
+      if(window._mediaIntervalId) clearInterval(window._mediaIntervalId)
+      var _intervalFunc = _=>{
+        for(let stream of document.querySelectorAll('video,audio')){
+            const audioCtx = new (window.AudioContext)();
+            let gainNode = window._mediaElements_[stream]
+            if(!gainNode){
+              const source = audioCtx.createMediaElementSource(stream);
+              window._mediaElements_[stream] = source
+              gainNode = audioCtx.createGain();
+              window._mediaElements_[stream] = gainNode
+              source.connect(gainNode);
+              gainNode.connect(audioCtx.destination);
+            }
+            if(gainNode.gain.value != ${val}/10.0)gainNode.gain.value = ${val}/10.0;
+        }
+      }
+      _intervalFunc()
+      window._mediaIntervalId = setInterval(_intervalFunc,500)`
+      ,{},()=>{})
+
+    this.setState({})
+
+    mainState.add('isVolumeControl',this.props.datas.tab.wvId,val)
+  }
+
+  handleClick(){
+    ipc.emit('menu-or-key-events', null, 'unmuteTab', this.props.datas.tab.wvId)
+  }
+
+  mediaMenu(){
+    return <NavbarMenu className="sort-sidebar" k={this.props.datas.k} mouseOver={true} isFloat={isFloatPanel(this.props.datas.k)} onClick={::this.handleClick}
+                audio={true} icon="volume-up" className="play-mode playing" style={{lineHeight: 'inherit',pointerEvents: 'initial'}} keepVisible={true}>
+
+      <div className="ui input" style={{ margin: '4px 5px 0px 10px', display: 'inline-block'}}>
+        <input onMouseDown={e=>e.target.closest('li').setAttribute('draggable',false)}
+               style={{padding: '.5em 0', width: 180}} type="range" min="0" max="80" name="vol" step="1" value={this.audioVolume} onInput={::this.audioControl}/>
+      </div>
+      <label style={{verticalAlign: '13px', paddingRight: 10}}>{parseInt(this.audioVolume) * 10}%</label>
+     </NavbarMenu>
+  }
 
   render(){
-    const {key,TabStyles,tabBeforeTitleClasses,beforeTitle,tabTiteleStyle,tabTitleClasses,extraAttribute,privateMode,lock,protect,mute,reloadInterval,title,verticalTabPanel,toggleNav,beforeTitleStyle} = this.props.datas
+    const {key,tab,TabStyles,tabBeforeTitleClasses,beforeTitle,tabTiteleStyle,tabTitleClasses,extraAttribute,privateMode,lock,protect,mute,reloadInterval,title,verticalTabPanel,toggleNav,beforeTitleStyle} = this.props.datas
 
     let m
     if(privateMode && (m = privateMode.match(/^persist:(\d+)$/))){
@@ -102,8 +165,8 @@ class Title extends React.Component {
     return <div style={{display:'unset',boxSizing: !verticalTabPanel && multistageTabs && toggleNav == 0 ? 'content-box' : (void 0)}}>
        <span style={beforeTitleStyle} className={tabBeforeTitleClasses}>
         {this.beforeTitle || beforeTitle}
-         {protect ? <i className="fa fa-shield protect-mode" ></i> : ""}
-         {lock ? <i className="fa fa-ban lock-mode" ></i> : ""}
+         {protect ? <i className="fa fa-shield protect-mode" /> : ""}
+         {lock ? <i className="fa fa-ban lock-mode" /> : ""}
        </span>
       <p style={tabTiteleStyle}
          className={tabTitleClasses}
@@ -111,9 +174,11 @@ class Title extends React.Component {
         {m ? <span className='private-mode'>[{m}]</span> :
           privateMode == 'persist:tor' ? <span className='private-mode'>[T]</span>:
           privateMode ? <i className="fa fa-eye-slash private-mode" ></i> : ""}
+        {mediaPlaying[tab.wvId] ? mute ? <i className="fa fa-volume-off mute-mode playing" onClick={::this.handleClick}/> :
+          this.mediaMenu() :
+          mute ? <i className="fa fa-volume-off mute-mode"/> : ""}
 
-        {mute ? <i className="fa fa-bell-slash mute-mode" ></i> : ""}
-        {reloadInterval ? <i className="fa fa-repeat reload-mode" ></i> : ""}
+        {reloadInterval ? <i className="fa fa-repeat reload-mode" /> : ""}
         {this.title || title}
       </p>
     </div>
@@ -311,6 +376,13 @@ class Tabs extends React.Component {
       }
       thisDom.querySelector('.rdTabAddButton').style.left = `${i * -13}px`
     })
+
+    this.handleUpdateMediaPlaying = (e,tabId,val)=>{
+      mediaPlaying[tabId] = val
+      this.setState({})
+    }
+    ipc.on('update-media-playing',this.handleUpdateMediaPlaying)
+
     // PubSub.publish('update-tabs',this.props.k)
   }
 
@@ -320,6 +392,7 @@ class Tabs extends React.Component {
     PubSub.unsubscribe(this.tokenMultistageTabs)
     PubSub.unsubscribe(this.tokenHideTabBar)
     PubSub.unsubscribe(this.tokenTabMove)
+    ipc.removeListener('update-media-playing',this.handleUpdateMediaPlaying)
 
     this.refs.ttab.removeEventListener('wheel',this.handleWheel,{passive: true})
     delete transfer[this.props.k]
@@ -618,7 +691,7 @@ class Tabs extends React.Component {
               </div>
           }
           {prevTitle}
-          <Title datas={{key:tab.key,toggleNav:this.props.toggleNav,verticalTabPanel:this.props.verticalTabPanel,TabStyles:this.TabStyles,tabBeforeTitleClasses,beforeTitle,tabTiteleStyle,tabTitleClasses,extraAttribute,privateMode,lock,protect,mute,reloadInterval,title,beforeTitleStyle}}/>
+          <Title datas={{key:tab.key,k:this.props.k,tab:t,toggleNav:this.props.toggleNav,verticalTabPanel:this.props.verticalTabPanel,TabStyles:this.TabStyles,tabBeforeTitleClasses,beforeTitle,tabTiteleStyle,tabTitleClasses,extraAttribute,privateMode,lock,protect,mute,reloadInterval,title,beforeTitleStyle}}/>
           {closeButton}
         </li>
       );
@@ -692,9 +765,7 @@ class Tabs extends React.Component {
   }
 
   handleUpdate(e) {
-    if(noUpdate){
-      return
-    }
+    if(noUpdate) return
     const key = this.state.tabs[e.newIndex].key
     this.props.onTabPositionChange(e, key, this.state.tabs);
     this.setState({selectedTab:key});
@@ -706,9 +777,7 @@ class Tabs extends React.Component {
   }
 
   handleAdd(e) {
-    if(noUpdate){
-      return
-    }
+    if(noUpdate) return
     console.log("handleAdd")
     const key = this.state.tabs[e.newIndex].key
     const fromTab = this.state.tabs[e.newIndex].props.orgTab.wvId
@@ -787,7 +856,7 @@ class Tabs extends React.Component {
     }
 
     const classes = (e.target.getAttribute('class') || '').split(' ');
-    if (classes.indexOf('rdTabCloseIcon') > -1) {
+    if (classes.indexOf('rdTabCloseIcon') > -1 || (e.target.closest('.nav-menu-audio') && e.target.tagName != 'INPUT')) {
       this._cancelEventSafety(e);
     }
     else {

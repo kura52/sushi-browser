@@ -807,7 +807,7 @@ class Converter extends React.Component {
 
           <label style={{verticalAlign: 'bottom', paddingRight: 30}}>Deblock:</label>
           <div className="ui input">
-            <input type="range" min="0" max="11" name="duration" step="1" value={state.out.PictureDeblock == 0 ? 0 : state.out.PictureDeblock - 4} onChange={e=>this.handleChangeDeblock(e,'PictureDeblock')}/>
+            <input type="range" min="0" max="11" name="duration" step="1" value={state.out.PictureDeblock == 0 ? 0 : state.out.PictureDeblock - 4} onInput={e=>this.handleChangeDeblock(e,'PictureDeblock')}/>
           </div>
           <div className='spacer5'/>
 

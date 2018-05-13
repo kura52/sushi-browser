@@ -621,7 +621,7 @@ export default class TabPanel extends Component {
       //   }
       // })
       // ;(async ()=>{await media.insert({...record, updated_at: Date.now()}) })()
-      refs2[`navbar-${tab.key}`].setState({})
+      if(refs2[`navbar-${tab.key}`]) refs2[`navbar-${tab.key}`].setState({})
       if(record.url == tab.page.navUrl){
         this.navigateTo(tab.page, `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/video.html?url=${encodeURIComponent(record.url)}${record.contType ? `&type=${encodeURIComponent(record.contType)}` : ''}`, tab)
       }

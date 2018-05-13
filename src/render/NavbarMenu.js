@@ -154,8 +154,17 @@ export default class NavbarMenu extends Component {
   render(){
     const self = this
     let style = {lineHeight: '1.9',minWidth:0}
-    if(this.props.style) style = {...this.props.style,...style}
-    const list = this.state.dataList ? this.props.children.concat(this.state.dataList) : this.props.children
+    if(this.props.style) style = {...style,...this.props.style}
+
+    let styleMenu = {}
+    if(this.props.audio && this.refs && this.refs.div){
+      const bound = this.refs.div.getBoundingClientRect()
+      styleMenu.top = `${bound.top + bound.height - 2}px`
+      styleMenu.left = `${bound.left + bound.width - 18}px`
+    }
+
+    let list = this.state.dataList ? this.props.children.concat(this.state.dataList) : this.props.children
+    if(list && !Array.isArray(list)) list = [list]
     return <div onContextMenu={this.props.onContextMenu} onMouseOver={this.props.mouseOver ? this.onMouseOver : (void 0)}
                 onMouseLeave={this.props.mouseOver ? this.onMouseLeave : (void 0)} id={this.uuid} ref="div" role="listbox"
                 aria-expanded="false" className={`${this.props.className != 'main-menu' ? 'draggable-source' : ''} ui top${this.props.mouseOver ? '' : ' right pointing'} nav-button dropdown ${this.props.className}`}
@@ -164,7 +173,9 @@ export default class NavbarMenu extends Component {
         {this.props.icon ? <i className={`fa fa-${this.props.icon}`} /> : null}
         {this.props.badget || null}
       </a>
-      {!this.state.visible && !this.props.alwaysView ? null : <div ref="menu" className={`menu${this.state.visible || this.state.forceOpen ? " visible" : ""} transition left ${this.props.mouseOver ? 'nav2-menu' : 'nav-menu'}`} style={this.props.style}>
+      {!this.state.visible && !this.props.alwaysView ? null :
+        <div ref="menu" style={{...styleMenu,...this.props.style}}
+             className={`menu${this.state.visible || this.state.forceOpen ? " visible" : ""} transition left ${this.props.audio ? 'nav-menu-audio' : this.props.mouseOver ? 'nav2-menu' : 'nav-menu'}`} >
         {(list || []).map((child) => {
             if(child && (child.type == NavbarMenuBarItem || child.type == NavbarMenuItem)){
               return React.cloneElement(child, {
