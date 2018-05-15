@@ -686,6 +686,9 @@ class BrowserNavbar extends Component{
       <NavbarMenuItem text={locale.translation("closeWindow")} icon='remove circle' onClick={MenuOperation.windowClose}/>
 
       <div className="divider" />
+      <NavbarMenuItem text='Restart Browser' icon='undo rotate60' onClick={()=>ipc.send('restart-browser')}/>
+
+      <div className="divider" />
       <NavbarMenuSubMenu text="About">
         <NavbarMenuItem text={`Browser Version: ${versions.browser}`} onClick={_=>this.navigate('https://sushib.me/download.html')}/>
         <NavbarMenuItem text={`Chromium Version: ${versions.chrome}`} onClick={_=>this.navigate('https://github.com/chromium/chromium/releases')}/>

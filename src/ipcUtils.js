@@ -1546,6 +1546,14 @@ ipcMain.on('history-count-reset',async (e,key,_id,count)=>{
   await history.update({_id}, {$set:{count}})
   e.sender.send(`history-count-reset-reply_${key}`,ret.count)
 })
+
+ipcMain.on('restart-browser',e=>{
+  app.relaunch()
+  BrowserWindow.getAllWindows().forEach(win=>{
+    win.close()
+  })
+  app.quit()
+})
 // ipcMain.on('send-keys',(e,keys)=>{
 //   e.sender.sendInputEvent(keys)
 // })

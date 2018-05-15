@@ -182,7 +182,7 @@ export default class Download {
       const cont = _webContents.getFocusedWebContents()
       let focusedWebContent
       if(cont && !cont.isDestroyed()) focusedWebContent = cont.session.partition || ""
-      const cond = focusedWebContent != 'persist:tor' && !focusedWebContent.match(/^[\d\.]+$/)
+      const cond = focusedWebContent == void 0 ? true : focusedWebContent != 'persist:tor' && !focusedWebContent.match(/^[\d\.]+$/)
       if(cond && !(retry.has(url) || url.startsWith('data:'))){
         console.log('cancel')
         item.destroy()

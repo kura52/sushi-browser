@@ -1060,3 +1060,7 @@ i.mute-mode{
     padding-right: 3.14px;
     pointer-events: initial;
 }
+
+.rotate60{
+    transform: rotate(60deg);
+}
