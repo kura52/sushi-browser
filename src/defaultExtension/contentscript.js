@@ -32,11 +32,12 @@ if(window.__started_){
       else if(location.href.match(/^https:\/\/addons\.mozilla\.org\/.+?\/firefox/) && !document.querySelector('.Badge.Badge-not-compatible')){
         let url
         setInterval(_=>{
-          const b = document.querySelector('.InstallButton-button--disabled')
+          const b = document.querySelector('.Button--confirm.Button--puffy')
           if(!b) return
-          b.classList.remove('disabled')
-          b.classList.remove('InstallButton-button--disabled')
-
+          b.classList.remove('Button--confirm')
+          b.classList.add('InstallButton-button')
+          b.classList.add('Button--action')
+          b.innerText = 'Add to Sushi'
           if(b.href != 'javascript:void(0)') url = b.href
           b.addEventListener('click',_=>ipc.send('add-extension',{url}))
           b.href = 'javascript:void(0)'
