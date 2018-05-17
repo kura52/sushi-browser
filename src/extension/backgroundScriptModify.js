@@ -608,20 +608,15 @@ if(chrome.browserAction){
     }
   }
 
-  // chrome.browserAction._setIcon = chrome.browserAction.setIcon
-  // chrome.browserAction.setIcon = (details,callback) => {
-  //   try{
-  //     throw new Error('get-stacktrace')
-  //   }catch(e){
-  //     const path = e.stack.split("\n")[2].split("(")[1].split("/").slice(3,-1)
-  //     if(details.path && path.length){
-  //       details = Object.assign({},details)
-  //       details.path = `${path}/${details.path}`
-  //     }
-  //   }finally{
-  //     chrome.browserAction._setIcon(details,callback)
-  //   }
-  // }
+  chrome.browserAction._setIcon = chrome.browserAction.setIcon
+  chrome.browserAction.setIcon = (details,callback) => {
+    if(details.imageData){
+      callback()
+    }
+    else{
+      chrome.browserAction._setIcon(details,callback)
+    }
+  }
 }
 
 if(chrome.storage){

@@ -144,7 +144,7 @@ class Title extends React.Component {
 
   mediaMenu(){
     return <NavbarMenu className="sort-sidebar" k={this.props.datas.k} mouseOver={true} isFloat={isFloatPanel(this.props.datas.k)} onClick={::this.handleClick}
-                audio={true} icon="volume-up" className="play-mode playing" style={{lineHeight: 'inherit',pointerEvents: 'initial'}} keepVisible={true}>
+                audio={true} icon="volume-up" className="play-mode playing" style={{lineHeight: 'inherit',pointerEvents: 'initial', float: 'left'}} keepVisible={true}>
 
       <div className="ui input" style={{ margin: '4px 5px 0px 10px', display: 'inline-block'}}>
         <input onMouseDown={e=>e.target.closest('li').setAttribute('draggable',false)}

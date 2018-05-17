@@ -35,7 +35,7 @@ export default {
     if(isDarwin){
       win.setFullScreen(false)
     }
-    win.close()
+    ipc.send('close-window')
   },
   windowResizeForSplit(){
     const win = remote.getCurrentWindow()

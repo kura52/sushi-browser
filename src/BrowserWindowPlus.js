@@ -91,125 +91,126 @@ function create(args){
 
   bw.on('closed', function (e) {
     console.log("closed!")
-    const win = BrowserWindow.getAllWindows().find(w=>w.getTitle().includes('Sushi Browser'))
-    if(!win){
-      console.log(4442)
-      BrowserWindow.getAllWindows().forEach(win=>{
-        win.close()
-      })
-    }
+    // const win = BrowserWindow.getAllWindows().find(w=>w.getTitle().includes('Sushi Browser'))
+    // if(!win){
+    //   console.log(4442)
+    //   BrowserWindow.getAllWindows().forEach(win=>{
+    //     win.close()
+    //   })
+    // }
   })
 
   bw.on('close', function (e) {
     console.log('close',e.sender.getTitle())
-    const sendTitle = e.sender.getTitle()
-    if(sendTitle.includes('Closed')){
-      if(!saved){
-        e.preventDefault()
-      }
+    localShortcuts.unregister(bw)
+    // const sendTitle = e.sender.getTitle()
+    // if(sendTitle.includes('Closed')){
+    //   if(!saved){
+    //     e.preventDefault()
+    //   }
+    //   return
+    // }
+    // else if(sendTitle.includes('Sushi Browser')){
+    const wins = BrowserWindow.getAllWindows().filter(w=>w.getTitle().includes('Sushi Browser'))
+    console.log(wins.length,BrowserWindow.getAllWindows().filter(w=>w.getTitle().includes('Sushi Browser')))
+    if(wins.length > 1){ //@TODO close event hang out other windows
+      // // bw.setSkipTaskbar(true)
+      // bw.webContents.send('unmount-components',{})
+      // unmouted = true
+      // let flag = false
+      // const closeFunc = _=>{
+      //   if(!flag){
+      //     flag = true
+      //     unmouted = false
+      //     bw.setTitle('Closed')
+      //     bw.hide()
+      //     PubSub.publish('chrome-windows-onRemoved',bw.id)
+      //   }
+      // }
+      // ipcMain.once('unmount-components-reply',closeFunc)
+      // setTimeout(closeFunc,1500)
+      // e.preventDefault()
       return
     }
-    else if(sendTitle.includes('Sushi Browser')){
-      const wins = BrowserWindow.getAllWindows().filter(w=>w.getTitle().includes('Sushi Browser'))
-      console.log(wins.length,BrowserWindow.getAllWindows().filter(w=>w.getTitle().includes('Sushi Browser')))
-      if(wins.length > 1){ //@TODO close event hang out other windows
-        // bw.setSkipTaskbar(true)
-        bw.webContents.send('unmount-components',{})
-        unmouted = true
-        let flag = false
-        const closeFunc = _=>{
-          if(!flag){
-            flag = true
-            unmouted = false
-            bw.setTitle('Closed')
-            bw.hide()
-            PubSub.publish('chrome-windows-onRemoved',bw.id)
-          }
+    else if(mainState.keepOpen){
+      mainState.keepOpen -= 1
+      e.preventDefault()
+      setTimeout(_=>{
+        try{
+          e.sender.close()
+        }catch(ex){
+          console.log(ex)
         }
-        ipcMain.once('unmount-components-reply',closeFunc)
-        setTimeout(closeFunc,1500)
-        e.preventDefault()
-        return
-      }
-      else if(mainState.keepOpen){
-        mainState.keepOpen -= 1
-        e.preventDefault()
-        setTimeout(_=>{
-          try{
-            e.sender.close()
-          }catch(ex){
-            console.log(ex)
-          }
-        },2000)
-        return
-      }
-      else if(global.downloadItems && global.downloadItems.some(item=>{return (item.getState() == 'progressing' || item.getState() == 'interrupted')})){
-        const key = uuid.v4()
-        console.log(global.downloadItems, global.downloadItems.forEach(item=>console.log(item.getURL(),item.isAria2c())))
-        bw.webContents.send('show-notification',{key,text:'Do you want to close the browser and cancel all downloads?', buttons:['Yes','No']})
-
-        ipcMain.once(`reply-notification-${key}`,(e,ret)=>{
-          if(ret.pressIndex !== 0) return
-          for(let item of global.downloadItems){
-            if(item.aria2c) item.kill()
-          }
-          global.downloadItems = []
-          bw.close()
-        })
-        e.preventDefault()
-        return
-      }
-      // bw = null
-      const maximize = bw.isMaximized()
-      console.log(maximize)
-      const bounds = maximize ? normalSize[bw.id] : bw.getBounds()
-      const maxBounds = bw.getBounds()
-
-      if(!saved){
-        bw.webContents.send('get-window-state')
-        let flag = false
-
-        ipcMain.once('get-window-state-reply',(e,ret)=>{
-          try{
-            const saveState = {}
-            for(let key of Object.keys(settingDefault)){
-              if(key == "toggleNav") continue
-              if(key == "adBlockDisableSite"){
-                saveState[key] = JSON.stringify(mainState[key])
-              }
-              else{
-                saveState[key] = mainState[key]
-              }
-            }
-            state.update({ key: 1 }, { $set: {key: 1, ver:fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString(), ...bounds, maximize,maxBounds,
-              toggleNav:mainState.toggleNav==2 || mainState.toggleNav==3 ? 0 :mainState.toggleNav,...saveState,winState:ret} }, { upsert: true }).then(_=>{
-              InitSetting.reload()
-            })
-
-            saved = true
-            console.log("getState")
-            if(!flag) bw.close()
-          }catch(e){
-            saved = true
-          }
-        })
-        setTimeout(_=>{
-          if(!flag){
-            flag = true
-            saved = true
-            if(!bw.isDestroyed()) bw.close()
-          }
-        },2000)
-        e.preventDefault()
-      }
-      else{
-        console.log("closing")
-        BrowserWindow.getAllWindows().forEach(win=>{
-          if(bw!=win) win.close()
-        })
-        PubSub.publish('chrome-windows-onRemoved',bw.id)
-      }
+      },2000)
+      return
     }
+    else if(global.downloadItems && global.downloadItems.some(item=>{return (item.getState() == 'progressing' || item.getState() == 'interrupted')})){
+      const key = uuid.v4()
+      console.log(global.downloadItems, global.downloadItems.forEach(item=>console.log(item.getURL(),item.isAria2c())))
+      bw.webContents.send('show-notification',{key,text:'Do you want to close the browser and cancel all downloads?', buttons:['Yes','No']})
+
+      ipcMain.once(`reply-notification-${key}`,(e,ret)=>{
+        if(ret.pressIndex !== 0) return
+        for(let item of global.downloadItems){
+          if(item.aria2c) item.kill()
+        }
+        global.downloadItems = []
+        bw.close()
+      })
+      e.preventDefault()
+      return
+    }
+    // bw = null
+    const maximize = bw.isMaximized()
+    console.log(maximize)
+    const bounds = maximize ? normalSize[bw.id] : bw.getBounds()
+    const maxBounds = bw.getBounds()
+
+    if(!saved){
+      bw.webContents.send('get-window-state')
+      let flag = false
+
+      ipcMain.once('get-window-state-reply',(e,ret)=>{
+        try{
+          const saveState = {}
+          for(let key of Object.keys(settingDefault)){
+            if(key == "toggleNav") continue
+            if(key == "adBlockDisableSite"){
+              saveState[key] = JSON.stringify(mainState[key])
+            }
+            else{
+              saveState[key] = mainState[key]
+            }
+          }
+          state.update({ key: 1 }, { $set: {key: 1, ver:fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString(), ...bounds, maximize,maxBounds,
+              toggleNav:mainState.toggleNav==2 || mainState.toggleNav==3 ? 0 :mainState.toggleNav,...saveState,winState:ret} }, { upsert: true }).then(_=>{
+            InitSetting.reload()
+          })
+
+          saved = true
+          console.log("getState")
+          if(!flag) bw.close()
+        }catch(e){
+          saved = true
+        }
+      })
+      setTimeout(_=>{
+        if(!flag){
+          flag = true
+          saved = true
+          if(!bw.isDestroyed()) bw.close()
+        }
+      },2000)
+      e.preventDefault()
+    }
+    else{
+      console.log("closing")
+      BrowserWindow.getAllWindows().forEach(win=>{
+        if(bw!=win) win.close()
+      })
+      PubSub.publish('chrome-windows-onRemoved',bw.id)
+    }
+    // }
   })
 
   // bw.once('ready-to-show', () => {
@@ -470,7 +471,7 @@ export default {
           }
         }
         state.update({ key: 1 }, { $set: {key: 1, ver:fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString(), ...bounds, maximize,maxBounds,
-          toggleNav:mainState.toggleNav==2 || mainState.toggleNav==3 ? 0 :mainState.toggleNav,...saveState,winState:ret} }, { upsert: true }).then(_=>_)
+            toggleNav:mainState.toggleNav==2 || mainState.toggleNav==3 ? 0 :mainState.toggleNav,...saveState,winState:ret} }, { upsert: true }).then(_=>_)
         saved = true
         console.log("getState")
       }catch(e){

@@ -344,7 +344,7 @@ export default class Download {
       for (let wc of this.getDownloadPage()) {
         wc.send('download-progress', this.buildItem(item))
       }
-      if(!win.webContents.isDestroyed()) win.webContents.send('download-progress', this.buildItem(item))
+      if(!win.isDestroyed() && !win.webContents.isDestroyed()) win.webContents.send('download-progress', this.buildItem(item))
     })
 
     item.once('done', async (event, state) => {

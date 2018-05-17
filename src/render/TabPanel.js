@@ -502,11 +502,13 @@ export default class TabPanel extends Component {
 
       Promise.all(promises).then(vals=>{
         ipc.send("detach-tab-to-main",vals)
-        if(vals.length == 1)
-          PubSub.publish(`close_tab_${this.props.k}`, {key: vals[0].c_key})
-        else{
-          for(let val of vals) PubSub.publish(`close_tab_${this.props.k}`, {key: val.c_key})
-        }
+        setTimeout(_=>{
+          if(vals.length == 1)
+            PubSub.publish(`close_tab_${this.props.k}`, {key: vals[0].c_key})
+          else{
+            for(let val of vals) PubSub.publish(`close_tab_${this.props.k}`, {key: val.c_key})
+          }
+        },100)
       })
     }
     ipc.on(`close-tab-from-other-window`,closeTabFromOtherWindow)

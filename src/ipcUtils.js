@@ -1554,6 +1554,12 @@ ipcMain.on('restart-browser',e=>{
   })
   app.quit()
 })
+
+ipcMain.on('close-window',e=>{
+  const bw = BrowserWindow.fromWebContents(e.sender.webContents)
+  bw.close()
+})
+
 // ipcMain.on('send-keys',(e,keys)=>{
 //   e.sender.sendInputEvent(keys)
 // })

@@ -889,7 +889,7 @@ export default class SplitWindows extends Component{
   componentDidUpdate(prevProps, prevState) {
     console.log(this.jsonfyiable(this.state.root,{}),this.state.root)
     if(this.getAllKey().filter(key=>!isFixedPanel(key)).length === 0){
-      require('electron').remote.getCurrentWindow().close()
+      ipc.send('close-window')
     }
   }
 
