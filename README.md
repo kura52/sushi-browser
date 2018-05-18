@@ -157,13 +157,13 @@ sushi-browser --no-sandbox
 
 # New Features
 
-#### New function(v0.163)
+#### New function(v0.16.3)
 - Fixed a fatal bug when closing Window.
 - Added browser restart to main menu.
 - Fixed some bugs.
 - Updated to youtube-dl 2018.05.18.
 
-#### New function(v0.162)
+#### New function(v0.16.2)
 - Improve the volume icon so that it appears on the tab when playing videos.
 - Added function to switch mute status by clicking volume icon.
 - Added function to change volume from 0 to 800% when mouse over volume icon.
@@ -179,7 +179,7 @@ sushi-browser --no-sandbox
 - Fixed a lot of bugs.
 - Updated to youtube-dl 2018.05.09.
 
-#### New function(v0.16.3)
+#### New function(v0.16.1)
 - Added bookmark bar
 - Added display control function on top page of bookmark bar
 - I made it possible to drop and drag a link to a bookmark sidebar
