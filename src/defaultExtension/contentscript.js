@@ -38,7 +38,12 @@ if(window.__started_){
           b.classList.add('InstallButton-button')
           b.classList.add('Button--action')
           b.innerText = 'Add to Sushi'
-          if(b.href != 'javascript:void(0)') url = b.href
+
+          const isDarwin = navigator.userAgent.includes('Mac OS X')
+          const isWin = navigator.userAgent.includes('Windows')
+          const files = Object.values(JSON.parse(document.querySelector('#redux-store-state').textContent).addons.byID)[0].platformFiles
+          const url = (files['all'] || files[isWin ? 'windows' : isDarwin ? 'mac' : 'linux']).url + 'dp-btn-primary'
+
           b.addEventListener('click',_=>ipc.send('add-extension',{url}))
           b.href = 'javascript:void(0)'
         },1000)

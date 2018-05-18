@@ -1560,6 +1560,12 @@ ipcMain.on('close-window',e=>{
   bw.close()
 })
 
+// ipcMain.on('get-firefox-url',(e,key,url)=>{
+//   session.defaultSession.webRequest.fetch(url, {'user-agent': `Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:57.0) Gecko/20100101 Firefox/57.0`}, (err, response, body) => {
+//      e.sender.send(`get-firefox-url-reply_${key}`,body.toString())
+//   })
+// })
+
 // ipcMain.on('send-keys',(e,keys)=>{
 //   e.sender.sendInputEvent(keys)
 // })
