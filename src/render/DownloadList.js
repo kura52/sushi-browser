@@ -154,7 +154,7 @@ export default class DownloadList extends Component{
 
   render() {
     const arr = [...this.state.downloads.values()]
-    arr.sort((a,b)=> b.startTime - a.startTime)
+    // arr.sort((a,b)=> b.startTime - a.startTime)
 
     const downloadList = []
     for (let item of arr.slice(0,10)) {

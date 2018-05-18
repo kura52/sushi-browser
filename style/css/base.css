@@ -1064,3 +1064,7 @@ i.mute-mode{
 .rotate60{
     transform: rotate(60deg);
 }
+
+#dllist{
+    z-index: 10001;
+}
