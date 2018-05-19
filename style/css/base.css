@@ -305,11 +305,13 @@ a.search-button:hover {
     position: fixed !important;
 }
 
-.ui.dropdown.main-menu .menu>.item {
+.ui.dropdown.main-menu .menu>.item,
+.ui.dropdown.zoom-menu .menu>.item{
     padding: .32rem 0.94285714rem!important;
 }
 
-.ui.dropdown.main-menu .menu.nav-menu {
+.ui.dropdown.main-menu .menu.nav-menu,
+.ui.dropdown.zoom-menu .menu.nav-menu {
     padding-top: 3px;
 }
 
@@ -678,8 +680,8 @@ div.item.favorite>ul>li>div>ul{
     z-index: 10;
 }
 .tabs-layout-overlay-wrapper.visible {
-     opacity: 0.1;
- }
+    opacity: 0.1;
+}
 
 .tab-hidden{
     display: none;
@@ -690,7 +692,7 @@ div.item.favorite>ul>li>div>ul{
 }
 
 .ui:not(.disabled) .fa.fa-film{
-     color: rgb(171, 71, 0);
+    color: rgb(171, 71, 0);
 }
 
 .browserActionBadge {
@@ -781,20 +783,23 @@ li.preset.val:hover{
     margin-top: -20px !important;
 }
 
-.ui.dropdown.main-menu .menu>.item.zoom-setting {
+.ui.dropdown.main-menu .menu>.item.zoom-setting,
+.ui.dropdown.zoom-menu .menu>.item.zoom-setting {
     margin-left: 50px;
     margin-right: 50px;
     text-align: center;
 }
 
-.ui.dropdown.main-menu .menu>.item.zoom-in {
+.ui.dropdown.main-menu .menu>.item.zoom-in,
+.ui.dropdown.zoom-menu .menu>.item.zoom-in {
     float: right;
     margin-left: auto;
     margin-right: 7px;
     padding-right: 0px !important;
     padding-left: 15px !important;
 }
-.ui.dropdown.main-menu .menu>.item.zoom-out {
+.ui.dropdown.main-menu .menu>.item.zoom-out,
+.ui.dropdown.zoom-menu .menu>.item.zoom-out {
     position: absolute;
     padding-right: 7px !important;
     margin-left: 2px;
@@ -1067,4 +1072,14 @@ i.mute-mode{
 
 #dllist{
     z-index: 10001;
+}
+
+span.additional-info{
+    color: rgba(0,0,0,.5);
+    padding-left: 5px;
+}
+
+span.suggestion-visit{
+    padding-left: 7px;
+    font-weight: 400;
 }

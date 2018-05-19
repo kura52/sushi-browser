@@ -21,11 +21,6 @@ global.lastMouseDown = []
 global.lastMouseDownSet = new Set()
 global.openerQueue = []
 
-global.zoomMapping = new Map([
-  [25,-6],[33,-5],[50,-4],[67,-3],[75,-2],[90,-1],[100,0],
-  [110,1],[125,2],[150,3],[175,4],[200,5],[250,6],[300,7],[400,8],[500,9]
-])
-
 if(location.href.endsWith("index.html#")){
   try{
     for(let [url,path] of Object.entries(ipc.sendSync('get-sync-main-state','favicons'))){
@@ -133,6 +128,9 @@ export default class MainContent extends Component{
     }, { passive: true })
 
 
+    document.addEventListener('wheel',e=>{
+      if(e.ctrlKey || e.metaKey) e.preventDefault()
+    })
     // window.addEventListener('drop', function (event) {
     //   // allow webviews to handle dnd
     //   if (event.target.tagName === 'WEBVIEW') {

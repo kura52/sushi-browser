@@ -84,6 +84,20 @@ function convertURL(url){
   }
 }
 
+
+function getAppropriateTimeUnit(time){
+  if(time / 60 < 1){
+    return `${Math.round(time)}s`
+  }
+  else if(time / 60 / 60 < 1){
+    return `${Math.round(time /60)}m${Math.round(time % 60)}s`
+  }
+  else if(time / 60 / 60 / 24 < 1){
+    return `${Math.round(time /60 / 60)}h${Math.round((time / 60) % 60)}m`
+  }
+  return `${Math.round(time /60 / 60 / 24)}d${Math.round((time/60/60) % 24)}h`
+}
+
 function escapeRegExp(string){
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
@@ -126,7 +140,7 @@ function getAllHistory(){
 async function buildItem(h,nodePath){
   const name = h.title  || h.location
   return {
-    name: `[${h.updated_at.slice(11,16)}] ${name && name.length > 55 ? `${name.substr(0, 55)}...` : name}`,
+    name: <span>[{h.updated_at.slice(11,16)}] {name && name.length > 55 ? `${name.substr(0, 55)}...` : name}<span className="additional-info">[{h.count}pv{h.time ? `, ${getAppropriateTimeUnit(h.time / 1000)}` : ''}]</span></span>,
     url: convertURL(h.location),
     id: `${nodePath}/${h.location}`,
     favicon: await faviconGet(h),

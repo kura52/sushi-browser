@@ -22,6 +22,8 @@ const settingDefault =  {
   sideBarDirection: 'left',
   doubleShift: false,
   tripleClick: true,
+  enableMouseGesture: true,
+  extensionOnToolbar: true,
   longPressMiddle: true,
   historyBadget: true,
   syncScrollMargin: 30,
@@ -31,6 +33,7 @@ const settingDefault =  {
   sidebarLink: false,
   toolbarLink: false,
   bookmarkbarLink: false,
+  zoomBehavior: '10',
 
   bindMarginFrame: isLinux ? 6 : 0,
   bindMarginTitle: isLinux ? 24  : 0,
@@ -116,6 +119,7 @@ const settingDefault =  {
   alwaysOpenLinkNewTab: 'speLinkNone',
   alwaysOpenLinkBackground: false,
   addressBarNewTab: false,
+  openTabPosition: 'default',
 
   //video convert
   defaultVideoPreset: 'Fast 1080p30',

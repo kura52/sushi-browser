@@ -60,6 +60,7 @@ let result = _=>{
       })
     }
     else{
+      // console.log(43344,msg.methods.slice(0,msg.methods.length - 1)[0],exeMethods[0],msg.args)
       ret = ret[exeMethods[0]](...msg.args)
     }
 

@@ -23,3 +23,8 @@ span.margin-left{
 .ui.secondary.pointing.menu .item {
     padding: .85714286em 0.88285714em;
 }
+
+span.additional-info{
+    color: rgba(0,0,0,.5);
+    padding-left: 5px;
+}

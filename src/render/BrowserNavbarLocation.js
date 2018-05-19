@@ -59,6 +59,19 @@ function isFloatPanel(key){
   return key.startsWith('fixed-float')
 }
 
+function getAppropriateTimeUnit(time){
+  if(time / 60 < 1){
+    return `${Math.round(time)}s`
+  }
+  else if(time / 60 / 60 < 1){
+    return `${Math.round(time /60)}m${Math.round(time % 60)}s`
+  }
+  else if(time / 60 / 60 / 24 < 1){
+    return `${Math.round(time /60 / 60)}h${Math.round((time / 60) % 60)}m`
+  }
+  return `${Math.round(time /60 / 60 / 24)}d${Math.round((time/60/60) % 24)}h`
+}
+
 export default class BrowserNavbarLocation extends Component {
   constructor(props) {
     super(props)
@@ -192,7 +205,7 @@ export default class BrowserNavbarLocation extends Component {
           // console.log("end", Date.now())
           let results = ret.history.map(x => ({
             title: x.title || (x.location.length > 75 ? `${x.location.substr(0, 75)}...` : x.location),
-            description: x.location.length > 100 ? `${x.location.substr(0, 100)}...` : convertURL(x.location),
+            description: <span>{x.location.length > 90 ? `${x.location.substr(0, 90)}...` : convertURL(x.location)}<span className="suggestion-visit">[{x.count}pv{x.time ? `, ${getAppropriateTimeUnit(x.time / 1000)}` : ''}]</span></span>,
             url: x.location
           }))
           resolve(_.uniqBy(results.filter(x => x.title), x => x.title).slice(0, this.props.autoCompleteInfos.numOfHistory));
@@ -213,7 +226,7 @@ export default class BrowserNavbarLocation extends Component {
 
   handleSelectionChange(e,value){
     if(value.result.description){
-      e.target.value = value.result.description
+      e.target.value = value.result.description.children[0].children
     }
     else{
       e.target.value = value.result.title

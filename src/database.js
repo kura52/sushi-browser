@@ -16,6 +16,37 @@ if (!fs.existsSync(favoritePath)) {
     `{"is_file":false,"title":"root","updated_at":1497713000000,"children":[],"key":"root","_id":"zplOMCoNb1BzCt15"}`)
 }
 
+
+const db = {};
+const historyPath = path.join(resourcePath,'history.db')
+const history2Path = path.join(resourcePath,'history2.db')
+if (!fs.existsSync(history2Path) && fs.existsSync(historyPath)) {
+  const history = new Datastore({filename: path.join(resourcePath,'history.db'), autoload: true})
+  const datas = {}
+  history.find({}).exec().then(rets=>{
+    for(let r of rets){
+      if(datas[r.location]){
+        let a,b
+        if(datas[r.location].updated_at > r.updated_at){
+          b = datas[r.location]
+          a = r
+        }
+        else{
+          a = datas[r.location]
+          b = r
+        }
+        b.count = (a.count || 0) + (b.count || 0)
+        if(!b.favicon) b.favicon = a.favicon
+        if(!b.title) b.title = a.title
+      }
+      else{
+        datas[r.location] = r
+      }
+    }
+    db.history.insert(Object.values(datas)).then(_=>_)
+  })
+}
+
 // const automationPath = path.join(resourcePath,'automation.db')
 // if (!fs.existsSync(favoritePath)) {
 //   fs.writeFileSync(favoritePath,
@@ -56,8 +87,7 @@ if (!fs.existsSync(searchEnginePath)) {
 }
 
 
-const db = {};
-db.history = new Datastore({filename: path.join(resourcePath,'history.db'), autoload: true})
+db.history = new Datastore({filename: path.join(resourcePath,'history2.db'), autoload: true})
 db.visit = new Datastore({filename: path.join(resourcePath,'visit.db'), autoload: true})
 db.tabState = new Datastore({filename: path.join(resourcePath,'tabState.db'), autoload: true})
 // db.historyFull = new Datastore({filename: path.join(resourcePath,'historyFull.db'), autoload: true})

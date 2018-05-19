@@ -1,6 +1,7 @@
 window.__started_ = window.__started_ ? void 0 : 1
 var ipc = chrome.ipcRenderer
 if(window.__started_){
+  const openTime = Date.now()
   if(location.href.startsWith('http') && window == window.parent){
     document.addEventListener("DOMContentLoaded",_=>{
       // const key = Math.random().toString()
@@ -107,6 +108,14 @@ if(window.__started_){
       scrollbar: window.innerHeight - document.documentElement.clientHeight
     })
   },{passive:true})
+
+
+  document.addEventListener('wheel',e=>{
+    if(e.ctrlKey || e.metaKey){
+      e.preventDefault()
+      ipc.send('menu-or-key-events',e.deltaY > 0 ? 'zoomOut' : 'zoomIn')
+    }
+  })
 
   const key = Math.random().toString()
   ipc.send("get-main-state",key,['tripleClick','alwaysOpenLinkNewTab','themeColorChange','isRecording','isVolumeControl'])

@@ -1549,15 +1549,20 @@ ipcMain.on('history-count-reset',async (e,key,_id,count)=>{
 
 ipcMain.on('restart-browser',e=>{
   app.relaunch()
-  BrowserWindow.getAllWindows().forEach(win=>{
-    win.close()
-  })
+  BrowserWindow.getAllWindows().forEach(win=>win.close())
   app.quit()
 })
 
 ipcMain.on('close-window',e=>{
-  const bw = BrowserWindow.fromWebContents(e.sender.webContents)
-  bw.close()
+  BrowserWindow.fromWebContents(e.sender.webContents).close()
+})
+
+ipcMain.on('find-event',(e,tabId,method,...args)=>{
+  if(!method.includes('find')) return
+  const cont = webContents.fromTabID(tabId)
+  if(cont && !cont.isDestroyed()){
+    cont[method](...args)
+  }
 })
 
 // ipcMain.on('get-firefox-url',(e,key,url)=>{

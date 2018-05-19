@@ -292,6 +292,10 @@ const sideBarDirectionOptions = [
   }
 ]
 
+
+const zoomBehaviorOptions = [
+  { value: 'chrome', text: 'Same as Chrome'},...Array.from(new Array(25)).map((v,n)=>({value: (n+1).toString() ,text: `${n+1}%`}))
+]
 const availableLanguages = [
   'bn-BD',
   'bn-IN',
@@ -674,6 +678,12 @@ class GeneralSetting extends React.Component {
         <br/>
 
         <div className="field">
+          <label>{l10n.translation('zoom')} ({l10n.translation('requiresRestart').replace('* ','')})</label>
+          <Dropdown onChange={this.onChange.bind(this,'zoomBehavior')} selection options={zoomBehaviorOptions} defaultValue={this.state.zoomBehavior}/>
+        </div>
+        <br/>
+
+        <div className="field">
           <label>{l10n.translation('autocompleteData')} ({l10n.translation('requiresRestart').replace('* ','')})</label>
         </div>
 
@@ -752,9 +762,15 @@ class GeneralSetting extends React.Component {
 
         <div className="field">
           <label>Special Behavior</label>
+          <Checkbox defaultChecked={this.state.extensionOnToolbar} toggle onChange={this.onChange.bind(this,'extensionOnToolbar')}/>
+          <span className="toggle-label">Show Chrome Extension Icon on Toolbar({l10n.translation('requiresRestart').replace('* ','')})</span>
+          <br/>
           {isDarwin ? null : <Checkbox defaultChecked={this.state.displayFullIcon} toggle onChange={this.onChange.bind(this,'displayFullIcon')}/>}
           {isDarwin ? null : <span className="toggle-label">Show Fullscreen Button({l10n.translation('requiresRestart').replace('* ','')})</span>}
           {isDarwin ? null : <br/>}
+          <Checkbox defaultChecked={this.state.enableMouseGesture} toggle onChange={this.onChange.bind(this,'enableMouseGesture')}/>
+          <span className="toggle-label">Enable Mouse Gesture({l10n.translation('requiresRestart').replace('* ','')})</span>
+          <br/>
           <Checkbox defaultChecked={this.state.tripleClick} toggle onChange={this.onChange.bind(this,'tripleClick')}/>
           <span className="toggle-label">Enable horizontal position moving (When you triple left clicking)</span>
           <br/>
@@ -1185,7 +1201,19 @@ class TabsSetting extends React.Component {
         <span className="toggle-label">{l10n.translation('openTabNextLabel')}</span>
       </div>
 
+
       <div className='spacer2'/>
+
+      <Grid>
+        <Grid.Row>
+          <Grid.Column width={6}><label style={{paddingLeft: 60}}>Open New Tabs At:</label></Grid.Column>
+          <Grid.Column width={5}><Dropdown onChange={this.onChange.bind(this,'openTabPosition')} selection
+                                           options={[{value: 'default',text:'Default Position'},{value: 'left',text: 'Left End'},{value: 'right',text: 'Right End'}]}
+                                           defaultValue={this.state.openTabPosition}/></Grid.Column>
+        </Grid.Row>
+      </Grid>
+
+      <div className='spacer'/>
 
       <Grid>
         <Grid.Row>
@@ -1209,7 +1237,6 @@ class TabsSetting extends React.Component {
         <Checkbox defaultChecked={this.state.oppositeGlobal} toggle onChange={this.onChange.bind(this,'oppositeGlobal')}/>
         <span className="toggle-label">Opposite Mode (If a link is about to be opened in the new background, it opens in the oppopsite tab.)</span>
       </div>
-
 
       <Divider/>
       <h4 style={{marginTop:0, marginBottom: 20}}>{l10n.translation('showOntabLabel')}</h4>
@@ -1873,15 +1900,15 @@ const App = () => (
 
 const key = Math.random().toString()
 ipc.send("get-main-state",key,['startsWith','newTabMode','myHomepage','searchProviders','searchEngine','language','enableFlash','concurrentDownload','downloadNum','sideBarDirection','scrollTab',
-  'doubleShift','tripleClick','syncScrollMargin','contextMenuSearchEngines','ALL_KEYS','bindMarginFrame','bindMarginTitle','longPressMiddle','checkDefaultBrowser','sendToVideo',
+  'doubleShift','tripleClick','enableMouseGesture','extensionOnToolbar','syncScrollMargin','contextMenuSearchEngines','ALL_KEYS','bindMarginFrame','bindMarginTitle','longPressMiddle','checkDefaultBrowser','sendToVideo',
   'multistageTabs','tabMinWidth','httpsEverywhereEnable','trackingProtectionEnable','autoSaveInterval','noScript','blockCanvasFingerprinting','browsingHistory', 'downloadHistory',
   'disableContextMenus','disableTabContextMenus','priorityContextMenus','priorityTabContextMenus','reloadIntervals','generalWindowOpenLabel','keepWindowLabel31',
   'closeTabBehavior','reverseScrollTab','tabMaxWidth','mouseHoverSelectLabelBegin','mouseHoverSelectLabelBeginDelay','tabFlipLabel','doubleClickTab','middleClickTab','altClickTab',
   'maxrowLabel','orderOfAutoComplete','numOfSuggestion','numOfHistory','openTabNextLabel','rightClickTabAdd','middleClickTabAdd','altClickTabAdd','displayFullIcon','downloadPath',
-  'defaultDownloadPath','alwaysOpenLinkNewTab','alwaysOpenLinkBackground','addressBarNewTab','oppositeGlobal','colorNormalText','colorNormalBackground','colorActiveText',
+  'defaultDownloadPath','alwaysOpenLinkNewTab','openTabPosition','alwaysOpenLinkBackground','addressBarNewTab','oppositeGlobal','colorNormalText','colorNormalBackground','colorActiveText',
   'colorActiveBackground','colorTabDot','colorUnreadText','colorUnreadBackground','enableColorOfNoSelect','themeColorChange','showBorderActiveTab','historyBadget','colorTabMode',
   'clearHistoryOnClose','clearDownloadOnClose','clearCacheOnClose','clearStorageDataOnClose','clearAutocompleteDataOnClose','clearAutofillDataOnClose','clearPasswordOnClose','clearGeneralSettingsOnClose','clearFavoriteOnClose',
-  'enableWidevine','toolbarLink','sidebarLink','bookmarkbarLink'])
+  'enableWidevine','toolbarLink','sidebarLink','bookmarkbarLink','zoomBehavior'])
 ipc.once(`get-main-state-reply_${key}`,(e,data)=>{
   generalDefault = data
   keyboardDefault = data

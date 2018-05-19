@@ -43,7 +43,7 @@ const isWin = navigator.userAgent.includes('Windows')
 
 new Clipboard('.clipboard-btn')
 
-const MOBILE_USERAGENT = 'Mozilla/5.0 (Linux; Android 5.1.1; Nexus 5 Build/LMY48B; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/43.0.2357.65 Mobile Safari/537.36'
+const MOBILE_USERAGENT = 'Mozilla/5.0 (Linux; Android 7.1.2; Nexus 6P Build/NJH47D; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/64.0.3282.137 Mobile Safari/537.36'
 
 let lastExecTime = new Date().getTime()
 const interval = 500
@@ -91,7 +91,7 @@ function BrowserNavbarBtn(props){
   return <a href="javascript:void(0)" onContextMenu={props.onContextMenu} style={props.style} className={`${props.className||''} draggable-source ${props.disabled?'disabled':''} ${props.sync ? 'sync' : ''}`} title={props.title} onClick={props.onClick}><i style={props.styleFont} className={`fa fa-${props.icon}`}/>{props.children}</a>
 }
 
-let [alwaysOnTop,multistageTabs,verticalTab,{left,right,backSide},orderOfAutoComplete,numOfSuggestion,numOfHistory,displayFullIcon,addressBarNewTab,historyBadget,versions,bookmarkBar,bookmarkBarTopPage] = ipc.sendSync('get-sync-main-states',['alwaysOnTop','multistageTabs','verticalTab','navbarItems','orderOfAutoComplete','numOfSuggestion','numOfHistory','displayFullIcon','addressBarNewTab','historyBadget','versions','bookmarkBar','bookmarkBarTopPage'])
+let [alwaysOnTop,multistageTabs,verticalTab,{left,right,backSide},orderOfAutoComplete,numOfSuggestion,numOfHistory,displayFullIcon,addressBarNewTab,historyBadget,versions,bookmarkBar,bookmarkBarTopPage,extensionOnToolbar] = ipc.sendSync('get-sync-main-states',['alwaysOnTop','multistageTabs','verticalTab','navbarItems','orderOfAutoComplete','numOfSuggestion','numOfHistory','displayFullIcon','addressBarNewTab','historyBadget','versions','bookmarkBar','bookmarkBarTopPage','extensionOnToolbar'])
 numOfSuggestion = parseInt(numOfSuggestion), numOfHistory = parseInt(numOfHistory)
 sharedState.bookmarkBar = bookmarkBar
 sharedState.bookmarkBarTopPage = bookmarkBarTopPage
@@ -330,27 +330,47 @@ class BrowserNavbar extends Component{
     ipc.send('get-cont-history',this.props.tab.wvId,this.props.tab.key,this.props.tab.rSession)
   }
 
-  onZoomOut(){
+  onZoomCommon(type){
     const webContents = this.getWebContents(this.props.tab)
     if(webContents){
-      webContents.zoomOut()
+      const zoomBehavior = mainState.zoomBehavior
+      if(zoomBehavior == 'chrome'){
+        webContents[type]()
+      }
+      else{
+        webContents.setZoomLevel(sharedState.zoomMapping.get(webContents.getZoomPercent() + parseInt(zoomBehavior) * (type == 'zoomOut' ? -1 : 1)))
+      }
       const percent = webContents.getZoomPercent()
+      if(!this.refs['main-menu'].state.visible){
+        this.state.zoomDisplay = `${percent}%`
+        clearTimeout(this.zoomTimeout)
+        this.zoomTimeout = setTimeout(_=>{
+          this.forceUpdates = true
+          this.setState({zoomDisplay:''})
+        },2000)
+      }
       this.setState({zoom:percent})
       if(this.props.tab.sync) this.props.parent.syncZoom(percent,this.props.tab.sync)
     }
   }
+
+  onZoomOut(){
+    this.onZoomCommon('zoomOut')
+  }
   onZoomIn(){
-    const webContents = this.getWebContents(this.props.tab)
-    if(webContents){
-      webContents.zoomIn()
-      const percent = webContents.getZoomPercent()
-      this.setState({zoom:percent})
-      if(this.props.tab.sync) this.props.parent.syncZoom(percent,this.props.tab.sync)
-    }
+    this.onZoomCommon('zoomIn')
   }
   noZoom(){
     const webContents = this.getWebContents(this.props.tab)
     if(webContents) webContents.zoomReset()
+    if(!this.refs['main-menu'].state.visible){
+      this.state.zoomDisplay = '100%'
+      clearTimeout(this.zoomTimeout)
+      this.zoomTimeout = setTimeout(_=>{
+        this.forceUpdates = true
+        this.setState({zoomDisplay:''})
+      },2000)
+    }
     this.setState({zoom:100})
     if(this.props.tab.sync) this.props.parent.syncZoom(100,this.props.tab.sync)
   }
@@ -971,10 +991,10 @@ class BrowserNavbar extends Component{
 
     const items = this.buildItems(isFixed,isFloat,rich,cont,onContextMenu)
     const usedKey = new Set(['float','addressBar','margin'])
-    const navBarMenus = [],backSideMenus = []
+    const navBarMenus = [],backSideMenus = [],rightMenus = []
 
     for(let name of ['left','right','backSide']){
-      const menus = name == 'backSide' ? backSideMenus : navBarMenus
+      const menus = name == 'backSide' ? backSideMenus : name == 'left' ? navBarMenus : rightMenus
       for(let key of this.state[name]) {
         menus.push(items[key])
         usedKey.add(key)
@@ -985,11 +1005,19 @@ class BrowserNavbar extends Component{
         menus.push(items.margin)
       }
     }
+    const rights = []
     for(let [key,item] of Object.entries(items)){
       if(!usedKey.has(key)){
-        backSideMenus.push(item)
+        if(extensionOnToolbar && key != 'igiofjhpmpihnifddepnpngfjhkfenbp' && key != 'jpkfjicglakibpenojifdiepckckakgk' && key != 'occjjkgifpmdgodlplnacmkejpdionan'){
+          rights.push(item)
+        }
+        else{
+          backSideMenus.push(item)
+        }
       }
     }
+    if(rights.length) rightMenus.unshift(...rights)
+    navBarMenus.push(...rightMenus)
 
     const navbarStyle = this.props.toggleNav == 2 ? {visibility: "hidden"} : this.props.toggleNav == 3 ? {zIndex: 2, position: "sticky", top: 27} : {}
     // this.props.toggleNav == 1 ? {width : this.props.isTopRight ? '55%' : '50%',float: 'right'} : {}
@@ -1012,6 +1040,16 @@ class BrowserNavbar extends Component{
         <span className="typcn typcn-media-stop-outline" onClick={()=>PubSub.publish(`maximize-float-panel_${this.props.k}`)}></span>
         <span className="typcn typcn-times" onClick={()=>PubSub.publish(`close-panel_${this.props.k}`)}></span>
       </div> : null}
+      {this.state.zoomDisplay ?
+        <div className="ui dropdown zoom-menu" style={{top: 50, right: 30}}>
+          <div className="menu visible transition left nav-menu" style={{overflowX: 'visible', left: 'auto',paddingBottom:3}}>
+            <div className="item zoom-out" role="option" onClick={::this.onZoomOut}><i className="zoom out icon" aria-hidden="true"/><span
+              className="text"></span></div>
+            <div className="item zoom-in" role="option" onClick={::this.onZoomIn}><i className="zoom in icon" aria-hidden="true"/><span
+              className="text"></span></div>
+            <div className="item zoom-setting" role="option" onClick={::this.noZoom}><span className="text">{this.state.zoomDisplay}</span></div>
+          </div>
+        </div>: null}
 
       {this.state.bindWindow ? <Modal basic size='small' open={true}>
         <Modal.Content>

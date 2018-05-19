@@ -392,6 +392,7 @@ app.on('web-contents-created', (e, tab) => {
     tab.forceClose()
   })
 
+
   // tab.on('did-get-response-details', (e, status, newURL, originalURL, httpResponseCode, requestMethod, referrer, headers, resourceType) => {
   //   const contType = headers['content-type']
   //   console.log(contType[0])

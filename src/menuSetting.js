@@ -294,7 +294,7 @@ const createViewSubmenu = () => {
       accelerator: mainState.keyZoomIn,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.zoomIn()
+          cont && cont.hostWebContents.send('menu-or-key-events', 'zoomIn', cont.getId())
         })
       }
     }, {
@@ -302,7 +302,7 @@ const createViewSubmenu = () => {
       accelerator: mainState.keyZoomOut,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.zoomOut()
+          cont && cont.hostWebContents.send('menu-or-key-events', 'zoomOut', cont.getId())
         })
       }
     },

@@ -45,7 +45,7 @@ const blankURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html
 const REG_VIDEO = /^https:\/\/www\.(youtube)\.com\/watch\?v=(.+)&?|^http:\/\/www\.(dailymotion)\.com\/video\/(.+)$|^https:\/\/(vimeo)\.com\/(\d+)$/
 const REG_HIGHLIGHT_SITES = /www\.google\..+?q=|search\.yahoo\.c.+?p=|www\.baidu\.com.+?wd|\.baidu\.com.+?word=|www\.ask\.com.+?q=|\.bing\.com.+?q=|www\.youdao\.com.+?q=/
 
-let [newTabMode,inputsVideo,disableTabContextMenus,priorityTabContextMenus,reloadIntervals,closeTabBehavior,keepWindowLabel31,multistageTabs,maxrowLabel,addressBarNewTab,alwaysOpenLinkBackground,adBlockEnable,searchWordHighlight,searchWordHighlightRecursive] = ipc.sendSync('get-sync-main-states',['newTabMode','inputsVideo','disableTabContextMenus','priorityTabContextMenus','reloadIntervals','closeTabBehavior','keepWindowLabel31','multistageTabs','maxrowLabel','addressBarNewTab','alwaysOpenLinkBackground','adBlockEnable','searchWordHighlight','searchWordHighlightRecursive'])
+let [newTabMode,inputsVideo,disableTabContextMenus,priorityTabContextMenus,reloadIntervals,closeTabBehavior,keepWindowLabel31,multistageTabs,maxrowLabel,addressBarNewTab,alwaysOpenLinkBackground,adBlockEnable,searchWordHighlight,searchWordHighlightRecursive,openTabPosition] = ipc.sendSync('get-sync-main-states',['newTabMode','inputsVideo','disableTabContextMenus','priorityTabContextMenus','reloadIntervals','closeTabBehavior','keepWindowLabel31','multistageTabs','maxrowLabel','addressBarNewTab','alwaysOpenLinkBackground','adBlockEnable','searchWordHighlight','searchWordHighlightRecursive','openTabPosition'])
 
 sharedState.searchWordHighlight = searchWordHighlight
 sharedState.searchWordHighlightRecursive = searchWordHighlightRecursive
@@ -60,6 +60,7 @@ function getNewTabPage(){
   bookmarksURL = arr[1] || bookmarksURL
   historyURL = arr[2] || historyURL
 }
+
 
 ipc.on('update-mainstate',(e,key,val)=>{
   if(key == 'myHomepage' || key == 'newTabMode'){
@@ -448,10 +449,20 @@ export default class TabPanel extends Component {
     this.searchWordHighlight = ::this.searchWordHighlight
     this.navigateTo = ::this.navigateTo
 
-    if(multistageTabs && maxrowLabel != 0){
+    if((multistageTabs && maxrowLabel != 0) || openTabPosition != 'default'){
       this.componentWillUpdate = (prevProps, prevState)=>{
-        if(this.state.tabKeys.length !== this.state.tabs.length){
+        if(multistageTabs && maxrowLabel != 0 && this.state.tabKeys.length !== this.state.tabs.length){
           this.refs.tabs.updateWidth()
+        }
+        if(openTabPosition != 'default'){
+          const adds = [],rests = []
+          const now = Date.now()
+          this.state.tabs.forEach(e=>((this.state.tabKeys.includes(e.key) || (now - parseInt(e.key.split("_")[0]) > 300)) ? rests : adds).push(e))
+          if(adds.length > 0){
+            const newTabs = openTabPosition == 'left' ? [...adds,...rests] : [...rests,...adds]
+            this.state.tabs.splice(0,this.state.tabs.length, ...newTabs)
+            this.setState({})
+          }
         }
       }
     }
@@ -786,13 +797,13 @@ export default class TabPanel extends Component {
       }
     })
 
-    const tokenSyncZoom = PubSub.subscribe('sync-zoom',(msg,{k,sync,percent})=>{
-      if(this.props.k == k || !sync) return
-      const tab = this.state.tabs.find(x => x.sync == sync)
-      if(tab){
-        this.getWebContents(tab).setZoomLevel(global.zoomMapping.get(percent))
-      }
-    })
+    // const tokenSyncZoom = PubSub.subscribe('sync-zoom',(msg,{k,sync,percent})=>{
+    //   if(this.props.k == k || !sync) return
+    //   const tab = this.state.tabs.find(x => x.sync == sync)
+    //   if(tab){
+    //     this.getWebContents(tab).setZoomLevel(global.zoomMapping.get(percent))
+    //   }
+    // })
 
     const tokenSyncSelectTab = PubSub.subscribe('sync-select-tab',(msg,{k,sync})=>{
       if(this.props.k == k || !sync) return
@@ -855,7 +866,7 @@ export default class TabPanel extends Component {
     })
 
     // return [tokenResize,tokenDrag,tokenSplit,tokenClose,tokenToggleDirction,tokenSync,tokenSync2,tokenBodyKeydown,tokenNewTabFromKey]
-    return [tokenResize,tokenDrag,tokenClose,tokenToggleDirction,tokenSwapPosition,tokenSync2,tokenCloseSyncTabs,tokenSyncZoom,tokenSyncSelectTab,tokenBodyKeydown,tokenAdblock,tokenNewTabFromKey,tokenRestoreTabFromKey,tokenCloseTab,tokenIncludeKey,tokenRichMedia,tokenMultiScroll,tokenOpposite,tokenSplit,tokenSearch]
+    return [tokenResize,tokenDrag,tokenClose,tokenToggleDirction,tokenSwapPosition,tokenSync2,tokenCloseSyncTabs,tokenSyncSelectTab,tokenBodyKeydown,tokenAdblock,tokenNewTabFromKey,tokenRestoreTabFromKey,tokenCloseTab,tokenIncludeKey,tokenRichMedia,tokenMultiScroll,tokenOpposite,tokenSplit,tokenSearch]
   }
 
 
@@ -1095,7 +1106,7 @@ export default class TabPanel extends Component {
             if(sharedState.searchWords[tabId2] &&
               refs2[`navbar-${tab.key}`].state.currentIndex == 0){
               const cont = this.props.currentWebContents[tabId2]
-              if(cont.getURL().match(REG_HIGHLIGHT_SITES)){
+              if(!cont.isDestroyed() && cont.getURL().match(REG_HIGHLIGHT_SITES)){
                 word = sharedState.searchWords[tabId2]
               }
             }
@@ -1142,6 +1153,12 @@ export default class TabPanel extends Component {
       // },
       onDidNavigate(e, page) {
         console.log('onDidNavigete',e,page)
+        const now = Date.now()
+        if(self.activeTab){
+          history.update({location: self.activeTab[0]}, {$inc:{time: now - self.activeTab[1]}})
+        }
+        self.activeTab = [page.navUrl,now]
+
         PubSub.publish(`did-navigate_${tab.key}`,e.url)
         setTimeout(_=>refs2[`bookmarkbar-${tab.key}`].setState({}),100)
         // page.navUrl = e.url
@@ -1419,12 +1436,23 @@ export default class TabPanel extends Component {
 
         if(!tab.privateMode || tab.privateMode.match(/^persist:\d/)){
           ;(async ()=>{
-            if(newPage.hid || (newPage.hid = await history.findOne({location: newPage.navUrl}))){
-              await history.update({_id: typeof newPage.hid == "string" ? newPage.hid : newPage.hid._id},{ $set:{favicon: newPage.favicon,updated_at: Date.now()}})
+            let navUrl = newPage.navUrl
+            console.log(7778881,newPage.navUrl)
+            if(newPage.hid || (newPage.hid = await history.findOne({location: navUrl}))){
+              await history.update({_id: newPage.hid._id},{ $set:{favicon: newPage.favicon,updated_at: Date.now()}})
               // console.log('update_favicon')
             }
             else{
-              newPage.hid = (await history.insert({location:newPage.navUrl ,title: newPage.title,favicon: newPage.favicon, created_at: Date.now(),updated_at: Date.now(),count: 1}))._id
+              while(navUrl != newPage.navUrl){
+                navUrl = newPage.navUrl
+                newPage.hid = await history.findOne({location: navUrl})
+                if(newPage.hid){
+                  await history.update({_id: newPage.hid._id},{ $set:{favicon: newPage.favicon,updated_at: Date.now()}})
+                  return
+                }
+              }
+              console.log(7778882,newPage.navUrl)
+              await history.update({location:navUrl},{location:navUrl ,title: newPage.title,favicon: newPage.favicon, created_at: Date.now(),updated_at: Date.now(),count: 1,type: 1},{upsert: true})
               // console.log('insert_favicon')
             }
             const favi = await favicon.findOne({url: newPage.favicon})
@@ -1519,17 +1547,26 @@ export default class TabPanel extends Component {
     }
 
     if (needFavicon && (!tab.privateMode || tab.privateMode.match(/^persist:\d/))) {
-      ;
-      (async () => {
-        if (page.hid || (page.hid = await history.findOne({location: page.navUrl}))) {
+      ;(async () => {
+        console.log(777888,page.navUrl)
+        let navUrl = page.navUrl
+        if (page.hid || (page.hid = await history.findOne({location: navUrl}))) {
         }
         else {
-          page.hid = (await history.insert({
-            location: page.navUrl,
-            created_at: Date.now(),
-            updated_at: Date.now(),
-            count: 1
-          }))._id
+          while(navUrl != page.navUrl){
+            navUrl = page.navUrl
+            page.hid = await history.findOne({location: navUrl})
+            if(page.hid) return
+          }
+          const histUpdateTime = Date.now()
+          if(histUpdateTime - tab.histUpdateTime < 20) return
+          tab.histUpdateTime = histUpdateTime
+          const result = (await history.update({location: navUrl},{
+            location: navUrl,
+            created_at: histUpdateTime,
+            updated_at: histUpdateTime,
+            count: 1,type: 2
+          }, { upsert: true }))
           // console.log('insert_start')
         }
       })()
@@ -1922,6 +1959,12 @@ export default class TabPanel extends Component {
       }
       else if(name == 'detachPanel'){
         this.detachPanel()
+      }
+      else if(name == 'zoomIn'){
+        refs2[`navbar-${tab.key}`].onZoomIn()
+      }
+      else if(name == 'zoomOut'){
+        refs2[`navbar-${tab.key}`].onZoomOut()
       }
 
     }
@@ -2776,6 +2819,11 @@ export default class TabPanel extends Component {
         this.state.selectedKeys = this.state.selectedKeys.filter(key => key != this.state.selectedTab && this.state.tabs.some(tab => tab.key == key))
         this.state.selectedKeys.push(this.state.selectedTab)
         sharedState.allSelectedkeys.add(this.state.selectedTab)
+        const now = Date.now()
+        if(this.activeTab){
+          history.update({location: this.activeTab[0]}, {$inc:{time: now - this.activeTab[1]}})
+        }
+        this.activeTab = [this.state.tabs.find(t=>t.key == this.state.selectedTab).page.navUrl,now]
       }
 
       this.state._tabKeys = []
@@ -3719,7 +3767,7 @@ export default class TabPanel extends Component {
   }
 
   syncZoom(percent,sync){
-    PubSub.publish('sync-zoom',{k:this.props.k,percent,sync})
+    // PubSub.publish('sync-zoom',{k:this.props.k,percent,sync})
   }
 
   // getTabs(cond) {
@@ -3859,23 +3907,34 @@ export default class TabPanel extends Component {
           if (!tab.privateMode || tab.privateMode.match(/^persist:\d/)) {
             ;(async () => {
               // console.log('his-update',tab.page.location)
-              if (tab.page.hid || (tab.page.hid = await history.findOne({location: tab.page.navUrl}))) {
-                await history.update({_id: typeof tab.page.hid == "string" ? tab.page.hid : tab.page.hid._id}, {
-                  $set: {
-                    title: tab.page.title,
-                    updated_at: Date.now()
-                  }, $inc: {count: 1}
+              let navUrl = tab.page.navUrl
+              if (tab.page.hid || (tab.page.hid = await history.findOne({location: navUrl}))) {
+                const now = Date.now()
+                const inc = now - tab.page.hid.updated_at > 400 ? {$inc: {count: 1}} : {}
+                await history.update({_id: tab.page.hid._id}, {
+                  $set: { title: tab.page.title, updated_at: now }, ...inc
                 })
               }
               else {
-                // console.log('his-insert',tab.page.location)
-                tab.page.hid = (await history.insert({
-                  location: tab.page.navUrl,
+                while(navUrl != tab.page.navUrl){
+                  navUrl = tab.page.navUrl
+                  tab.page.hid = await history.findOne({location: navUrl})
+                  if(tab.page.hid){
+                    const now = Date.now()
+                    const inc = now - tab.page.hid.updated_at > 400 ? {$inc: {count: 1}} : {}
+                    await history.update({_id: tab.page.hid._id}, {
+                      $set: { title: tab.page.title, updated_at: now }, ...inc
+                    })
+                    return
+                  }
+                }
+                await history.update({location: navUrl},{
+                  location: navUrl,
                   title: tab.page.title,
                   created_at: Date.now(),
                   updated_at: Date.now(),
-                  count: 1
-                }))._id
+                  count: 1,type: 3
+                },{upsert: true})
               }
             })()
           }

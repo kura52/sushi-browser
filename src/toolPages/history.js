@@ -62,6 +62,19 @@ function convertURL(url){
   }
 }
 
+function getAppropriateTimeUnit(time){
+  if(time / 60 < 1){
+    return `${Math.round(time)}s`
+  }
+  else if(time / 60 / 60 < 1){
+    return `${Math.round(time /60)}m${Math.round(time % 60)}s`
+  }
+  else if(time / 60 / 60 / 24 < 1){
+    return `${Math.round(time /60 / 60)}h${Math.round((time / 60) % 60)}m`
+  }
+  return `${Math.round(time /60 / 60 / 24)}d${Math.round((time/60/60) % 24)}h`
+}
+
 
 let resourcePath
 localForage.getItem('favicon-set').then(setTime=>{
@@ -257,7 +270,7 @@ class HistoryList{
       <img src="${favicon}" style="width: 20px; height: 20px; float: left; margin-right: 4px; margin-top: 6px;"/>
       <div class="content">
         <a class="description" style="float:right;margin-right:15px;font-size: 12px">${h.updated_at.slice(5)}</a>
-        ${!h.title ? "" : `<a class="header" target="_blank" href=${h.location}>${h.title.length > 55 ? `${h.title.substr(0, 55)}...` : h.title}</a>`}
+        ${!h.title ? "" : `<a class="header" target="_blank" href=${h.location}>${h.title.length > 55 ? `${h.title.substr(0, 55)}...` : h.title}</a><span class="additional-info">[${h.count}pv${h.time ? `, ${getAppropriateTimeUnit(h.time / 1000)}` : ''}]</span>`}
         ${!h.location ? "" : `<a class="description" target="_blank" style="fontSize: 12px;" href=${h.location}>${h.location.length > 125 ? `${h.location.substr(0, 125)}...` : convertURL(h.location)}</a>`}
       </div>
     </div>`;

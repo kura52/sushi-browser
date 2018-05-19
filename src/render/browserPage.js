@@ -12,6 +12,7 @@ const BrowserPageSearch = require('./BrowserPageSearch')
 const AutofillPopup = require('./AutofillPopup')
 const isDarwin = navigator.userAgent.includes('Mac OS X')
 const sharedState = require('./sharedState')
+const mainState = remote.require('./mainState')
 // const isWin = navigator.userAgent.includes('Windows')
 
 function stringEscape(string){
@@ -150,16 +151,11 @@ class BrowserPage extends Component {
     // }
 
     this.wvEvents['found-in-page'] = (e) => {
-      this.clear = e.result.activeMatchOrdinal == e.result.matches   //@TODO framework bug
-      this.first = e.result.activeMatchOrdinal == 1   //@TODO framework bug
-      console.log(this.clear,e.result.activeMatchOrdinal, e.result.matches)
       if (e.result.activeMatchOrdinal) {
         this.setState({result_string: `${e.result.activeMatchOrdinal}/${e.result.matches}`})
       }
       else{
-        webview.stopFindInPage('clearSelection')  //@TODO framework bug
         this.setState({result_string: "0/0"})
-        // if(this.previous_text) webview.findInPage(this.previous_text) //@TODO framework bug
       }
     }
 
@@ -177,7 +173,7 @@ class BrowserPage extends Component {
       if(e.wv === webview) this.onHandleKeyDown(e.event)
     })
 
-    this.refs.browserPage.addEventListener('wheel',::this.handleWheel,{passive: true})
+    // webview.addEventListener('wheel',::this.handleWheel)
 
     this.props.tab.returnWebView(webview)
     this.props.tab.guestInstanceId = (void 0)
@@ -266,7 +262,7 @@ class BrowserPage extends Component {
     if(!cont) return
 
     if(or || reg){
-      webview.stopFindInPage('clearSelection')
+      ipc.send('find-event',this.props.tab.wvId,'stopFindInPage','clearSelection')
       this.previous_text = "__complex_search__"
 
       if(query === ""){
@@ -298,34 +294,23 @@ class BrowserPage extends Component {
       this.complexReset()
     }
 
-    const clear = (this.clear && next) || (this.first && !next) //@TODO framework bug
-    if(clear){
-      webview.stopFindInPage('clearSelection')
-    }
-    console.log(this.previous_text === query)
     if(query === ""){
       console.log(789,query)
-      webview.stopFindInPage('clearSelection')
+      ipc.send('find-event',this.props.tab.wvId,'stopFindInPage','clearSelection')
       this.previous_text = ""
       this.setState({result_string: ""})
     }
-    else if (this.previous_text === query && !clear) {
-      this.previous_text = query;
-      console.log(123,query)
-      if(query) webview.findInPage(query, {
+    else if (this.previous_text === query) {
+      if(query) ipc.send('find-event',this.props.tab.wvId,'findInPage',query, {
         matchCase,
         forward: next,
         findNext: true
       })
     }
     else {
-      console.log(456,query)
       this.previous_text = query;
       if(query){
-        webview.stopFindInPage('keepSelection')
-        webview.findInPage(query,{matchCase,forward: next,findNext: true}) //@TODO framework bug
-        webview.findInPage(query,{matchCase,forward: next,findNext: false})
-        webview.findInPage(query,{matchCase,forward: !next,findNext: false})
+        ipc.send('find-event',this.props.tab.wvId,'findInPage',query,{matchCase,forward: next})
       }
     }
   }
@@ -340,21 +325,33 @@ class BrowserPage extends Component {
     }
   }
 
-  handleWheel(e){
-    if(isDarwin || !(e.ctrlKey || e.metaKey)) return
-    const webContents = this.getWebContents(this.props.tab)
-    if(webContents) {
-      console.log(webContents)
-      if(e.deltaY > 0){
-        webContents.zoomOut()
-      }
-      else{
-        webContents.zoomIn()
-      }
-      const percent = webContents.getZoomPercent()
-      PubSub.publish(`zoom_${this.props.tab.key}`,percent)
-    }
-  }
+  // handleWheel(e){
+  //   if(isDarwin || !(e.ctrlKey || e.metaKey)) return
+  //   e.preventDefault()
+  //   const webContents = this.getWebContents(this.props.tab)
+  //   if(webContents) {
+  //     console.log(webContents)
+  //     const zoomBehavior = mainState.zoomBehavior
+  //     if(e.deltaY > 0){
+  //       if(zoomBehavior == 'chrome'){
+  //         webContents.zoomOut()
+  //       }
+  //       else{
+  //         webContents.setZoomLevel(sharedState.zoomMapping.get(webContents.getZoomPercent() - parseInt(zoomBehavior)))
+  //       }
+  //     }
+  //     else{
+  //       if(zoomBehavior == 'chrome'){
+  //         webContents.zoomIn()
+  //       }
+  //       else{
+  //         webContents.setZoomLevel(sharedState.zoomMapping.get(webContents.getZoomPercent() + parseInt(zoomBehavior)))
+  //       }
+  //     }
+  //     const percent = webContents.getZoomPercent()
+  //     PubSub.publish(`zoom_${this.props.tab.key}`,percent)
+  //   }
+  // }
 
   onClose(e,stopAutoHighlight){
     if(stopAutoHighlight){
