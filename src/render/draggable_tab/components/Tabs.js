@@ -176,7 +176,7 @@ class Title extends React.Component {
           privateMode ? <i className="fa fa-eye-slash private-mode" ></i> : ""}
         {mediaPlaying[tab.wvId] ? mute ? <i className="fa fa-volume-off mute-mode playing" onClick={::this.handleClick}/> :
           this.mediaMenu() :
-          mute ? <i className="fa fa-volume-off mute-mode"/> : ""}
+          mute ? <i className="fa fa-volume-off mute-mode" onClick={::this.handleClick}/> : ""}
 
         {reloadInterval ? <i className="fa fa-repeat reload-mode" /> : ""}
         {this.title || title}

@@ -70,7 +70,15 @@ export default class MainContent extends Component{
       global.lastMouseDownSet.add(e.target)
 
       const currentTabId = global.lastMouseDown[1]
-      global.lastMouseDown = [e.target,global.lastMouseDown[0] == e.target ? global.lastMouseDown[1] : this.refs.splitWindow.getTabId(e.target)]
+      if(global.lastMouseDown[0] != e.target){
+        const tabInfo = this.refs.splitWindow.getTab(e.target)
+        if(tabInfo[0]){
+          if(global.lastMouseDown[2] != tabInfo[1]){
+            ipc.send("change-title",tabInfo[0].page.title)
+          }
+          global.lastMouseDown = [e.target, tabInfo[0].wvId, tabInfo[1]]
+        }
+      }
       if(currentTabId !== global.lastMouseDown[1]){
         ipc.send('change-tab-infos', [{tabId:global.lastMouseDown[1],active:true}])
         PubSub.publish('active-tab-change',global.lastMouseDown[1])

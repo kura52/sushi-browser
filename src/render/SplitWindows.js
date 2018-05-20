@@ -473,21 +473,29 @@ export default class SplitWindows extends Component{
     ipc.on('get-window-state2',this.getWinStateEvent2)
 
     const self = this
-    this.getTabId = (activeElement)=>{
-      let tabId
+    this.getTab = (activeElement)=>{
+      let tab,k
       if (activeElement.tagName == 'BODY') {
       }
       else if(activeElement.tagName == 'WEBVIEW' && activeElement.className != 'popup'){
-        tabId = self.refs2[activeElement.className.slice(1)].getSelectedTabId()
+        k = activeElement.className.slice(1)
+        tab = self.refs2[k].getSelectedTab()
       }
       else{
         const closestElement = activeElement.closest(".split-window")
         if (closestElement) {
-          tabId = self.refs2[closestElement.classList[1].slice(1)].getSelectedTabId()
+          k = closestElement.classList[1].slice(1)
+          tab = self.refs2[k].getSelectedTab()
         }
       }
-      return tabId;
+      return [tab,k]
     }
+
+    this.getTabId = (activeElement)=>{
+      const tabInfo = this.getTab(activeElement)
+      return tabInfo[0] && tabInfo[0].wvId
+    }
+
     this.getFocusedWebContent = (e,key,needPrivate,needSelectedText,queueGet,retry)=>{
       if(queueGet){
         const tabId = global.openerQueue.shift()
@@ -1470,6 +1478,7 @@ export default class SplitWindows extends Component{
 
   getPrevFocusPanel(k){
     const eles = []
+    const allKeys = this.getAllKey()
     for(let ele of [...global.lastMouseDownSet.keys()].reverse()){
       eles.push(ele)
       if (ele.tagName == 'BODY') {
@@ -1478,7 +1487,7 @@ export default class SplitWindows extends Component{
         const key = ele.className.slice(1)
         if(k != key && !isFixedPanel(key)){
           global.lastMouseDownSet  = new Set(eles.reverse())
-          return this.getAllKey().includes(key) ? key : false
+          if(allKeys.includes(key)) return key
         }
       }
       else{
@@ -1487,12 +1496,12 @@ export default class SplitWindows extends Component{
           const key = closestElement.classList[1].slice(1)
           if(k != key && !isFixedPanel(key)){
             global.lastMouseDownSet  = new Set(eles.reverse())
-            return this.getAllKey().includes(key) ? key : false
+            if(allKeys.includes(key)) return key
           }
         }
       }
     }
-    return false
+    return allKeys.find(key=>k != key && !isFixedPanel(key))
   }
 
 

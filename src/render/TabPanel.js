@@ -277,6 +277,8 @@ export default class TabPanel extends Component {
         history: [],
         tabKeys: []
       }
+
+      ipc.send("change-title",this.state.tabs[0].page.title)
       this.state.selectedTab = this.state.tabs[0].key
       this.state.selectedKeys = [this.state.selectedTab]
       sharedState.allSelectedkeys.add(this.state.selectedTab)
@@ -414,6 +416,7 @@ export default class TabPanel extends Component {
         history: [],
         tabKeys: []
       }
+      ipc.send("change-title",tabs[0].page.title)
       this.state.selectedKeys = [this.state.selectedTab]
       sharedState.allSelectedkeys.add(this.state.selectedTab)
       this.props.child[0] = this
@@ -632,9 +635,9 @@ export default class TabPanel extends Component {
           for(let f of formats){
             // if(f.protocol.includes('m3u8')) continue
             const format = f.format ? f.format.replace(/ /g,'') : `${f.resolution ? `${f.resolution}${f.quality ? `_${f.quality}` : ''}_${f.profile}_${f.audioEncoding || 'nonaudio'}`: 'audioonly'}`
-            const fname = `${title}_${format}.${f.protocol && f.protocol.includes('m3u8') ? 'm3u8' : (f.ext||f.container)}`
+            const fname = `${f.acodec == 'none' ? '[no-audio]' : f.vcodec == 'none' ? '[audio-only]' : ''}${title}_${format}.${f.protocol && f.protocol.includes('m3u8') ? 'm3u8' : (f.ext||f.container)}`
             if(!cache || !tab.page.richContents.find(x=>x.url == f.url)){
-              tab.page.richContents.push({url:f.url,type:'video',fname,size: f.filesize})
+              tab.page.richContents.unshift({url:f.url,type:'video',fname,size: f.filesize})
             }
           }
           refs2[`navbar-${tab.key}`].setState({})
@@ -1167,7 +1170,7 @@ export default class TabPanel extends Component {
       history.update({location: activeTab[1]}, {$inc:{time: now - activeTab[2]}})
       activeTabs[this.props.k] = [tab,tab.page.navUrl,now]
     }
-    else if(!activeTab && tab.key == this.state.selectedTab && global.lastMouseDown[1] == tab.wvId){
+    else if(!activeTab && tab.key == this.state.selectedTab && global.lastMouseDown[2] == this.props.k){
       activeTabs[this.props.k] = [tab,tab.page.navUrl,now]
     }
   }
@@ -1217,7 +1220,7 @@ export default class TabPanel extends Component {
         self.updateActive(tab)
 
         PubSub.publish(`did-navigate_${tab.key}`,e.url)
-        setTimeout(_=>refs2[`bookmarkbar-${tab.key}`].setState({}),100)
+        setTimeout(_=>refs2[`bookmarkbar-${tab.key}`] && refs2[`bookmarkbar-${tab.key}`].setState({}),100)
         // page.navUrl = e.url
         // self.sendOpenLink(tab, page);
         // ipc.send('chrome-webNavigation-onBeforeNavigate',self.createChromeWebNavDetails(tab))
@@ -1382,14 +1385,14 @@ export default class TabPanel extends Component {
           ipc.once('video-infos-reply',(e,{title,formats,error})=>{
             console.log('video-infos-reply',e,{title,formats,error})
             if(error) return
-            const arr = []
+            const arr = [],arr2 = []
             for(let f of formats){
               // if(f.protocol.includes('m3u8')) continue
               const format = f.format ? f.format.replace(/ /g,'') : `${f.resolution ? `${f.resolution}${f.quality ? `_${f.quality}` : ''}_${f.profile}_${f.audioEncoding || 'nonaudio'}`: 'audioonly'}`
-              const fname = `${title}_${format}.${f.protocol && f.protocol.includes('m3u8') ? 'm3u8' : (f.ext||f.container)}`
-              arr.push({url:f.url,type:'video',fname,size: f.filesize})
+              const fname = `${f.acodec == 'none' ? '[no-audio]' : f.vcodec == 'none' ? '[audio-only]' : ''}${title}_${format}.${f.protocol && f.protocol.includes('m3u8') ? 'm3u8' : (f.ext||f.container)}`
+              ;(f.acodec == 'none' ? arr2 : arr).push({url:f.url,type:'video',fname,size: f.filesize})
             }
-            tab.page.richContents.push(...arr.slice(0).reverse())
+            tab.page.richContents.unshift(...arr.slice(0).reverse(),...arr2.slice(0).reverse())
             console.log(99875556,tab.page)
             refs2[`navbar-${tab.key}`].setState({})
           })
@@ -1435,7 +1438,7 @@ export default class TabPanel extends Component {
           // tab.wv.send('set-tab',{tab:self.getChromeTab(tab)})
 
           const title = c.title
-          if(tab.key == self.state.selectedTab && !this.isFixed && title != page.title){
+          if(tab.key == self.state.selectedTab && !this.isFixed && global.lastMouseDown[2] == self.props.k && title != page.title){
             ipc.send("change-title",title)
           }
           page.title = title
@@ -1974,7 +1977,11 @@ export default class TabPanel extends Component {
         }
         if(ret){
           ret.focus()
-          global.lastMouseDown = ret
+          if(global.lastMouseDown[0] != ret){
+            const tabInfo = this.props.parent.getTab(ret)
+            global.lastMouseDown = [ret, tabInfo[0].wvId, tabInfo[1]]
+            ipc.send("change-title",tabInfo[0].page.title)
+          }
           global.lastMouseDownSet.delete(ret)
           global.lastMouseDownSet.add(ret)
         }
@@ -2355,7 +2362,7 @@ export default class TabPanel extends Component {
             if(!c) return
             if(c.rSession) tab.rSession = c.rSession
             const title = c.title
-            if(tab.key == this.state.selectedTab  && !this.isFixed && title != tab.page.title){
+            if(tab.key == this.state.selectedTab  && !this.isFixed && global.lastMouseDown[2] == this.props.k && title != tab.page.title){
               ipc.send("change-title",title)
             }
             tab.page.title = title
@@ -2640,6 +2647,12 @@ export default class TabPanel extends Component {
     // const tab = this.state.tabs.find(x => x.key == key)
     // if(tab) ipc.send('chrome-tab-removed',parseInt(tab.key))
 
+    const nextK = this.props.getPrevFocusPanel(this.props.k)
+    if(nextK){
+      const tabPanel = this.props.parent.refs2[nextK]
+      ipc.emit('menu-or-key-events',null,'changeFocusPanel',tabPanel.state.tabs.find(tab=>tab.key == tabPanel.state.selectedTab).wvId)
+    }
+
     if(keepWindow){
       const t = this.handleTabAddButtonClick(null,null,true)
       // setTimeout(_=>this.handleTabClose({}, key),0)
@@ -2864,7 +2877,7 @@ export default class TabPanel extends Component {
       if(needSort) this.setState({tabs: [...pinTabs,...normalTabs]})
 
       const sameSelected = this.selectedTab == this.state.selectedTab
-      // console.log('sameSelected',sameSelected,this.selectedTab,this.state.selectedTab)
+      console.log('sameSelected',sameSelected,this.selectedTab,this.state.selectedTab)
       // if(sameSelected) return
 
       const allKeySame = this.state.tabKeys.length == this.state.tabs.length &&
@@ -2907,8 +2920,9 @@ export default class TabPanel extends Component {
         const cont = this.getWebContents(tab)
         let isActive
         if(isChangeSelected){
-          isActive = tab.key == this.state.selectedTab && global.lastMouseDown[1] == tab.wvId
+          isActive = tab.key == this.state.selectedTab && global.lastMouseDown[2] == this.props.k
           if(isActive && !this.isFixed){
+            console.log("change-title",tab.page.title)
             ipc.send("change-title",tab.page.title)
           }
           if(tab.bind){
@@ -2941,7 +2955,7 @@ export default class TabPanel extends Component {
     else if(!isIdle && !activeTab){
       const now = Date.now()
       const tab = this.state.tabs.find(t=>t.key == this.state.selectedTab)
-      if(global.lastMouseDown[1] == tab.wvId){
+      if(global.lastMouseDown[2] == this.props.k){
         activeTabs[this.props.k] = [tab,tab.page.navUrl,now]
       }
     }
@@ -2954,12 +2968,17 @@ export default class TabPanel extends Component {
       const now = Date.now()
       history.update({location: activeTab[1]}, {$inc:{time: now - activeTab[2]}})
       const tab = this.state.tabs.find(t=>t.key == this.state.selectedTab)
-      activeTabs[this.props.k] = [tab,tab.page.navUrl,now]
+      if(tab){
+        activeTabs[this.props.k] = [tab,tab.page.navUrl,now]
+      }
+      else{
+        delete activeTabs[this.props.k]
+      }
     }
     else if(!activeTab){
       const now = Date.now()
       const tab = this.state.tabs.find(t=>t.key == this.state.selectedTab)
-      if(global.lastMouseDown[1] == tab.wvId){
+      if(global.lastMouseDown[2] == this.props.k){
         activeTabs[this.props.k] = [tab,tab.page.navUrl,now]
       }
     }
@@ -2981,7 +3000,7 @@ export default class TabPanel extends Component {
       }
     }
 
-    if(!this.isFixed){
+    if(!this.isFixed && global.lastMouseDown[2] == this.props.k){
       ipc.send("change-title",tab.page.title)
     }
     PubSub.publish('sync-select-tab',{k:this.props.k,sync:tab.sync})
@@ -3979,7 +3998,7 @@ export default class TabPanel extends Component {
           const url = c.url
 
           const title = c.title
-          if (tab.key == this.state.selectedTab && !this.isFixed && title != tab.page.title) {
+          if (tab.key == this.state.selectedTab && !this.isFixed && global.lastMouseDown[2] == this.props.k && title != tab.page.title) {
             ipc.send("change-title", title)
           }
           tab.page.title = title
@@ -4116,8 +4135,12 @@ export default class TabPanel extends Component {
   }
 
   getSelectedTabId(){
-    const tab = this.state.tabs.find(tab=>tab.key == this.state.selectedTab)
+    const tab = this.getSelectedTab()
     if(tab) return tab.wvId
+  }
+
+  getSelectedTab(){
+    return this.state.tabs.find(tab=>tab.key == this.state.selectedTab)
   }
 
   getTabFromTabId(id){

@@ -230,8 +230,8 @@ if(chrome.tabs){
     const func = (tabId, updateProperties, callback)=>{
       if(updateProperties.muted !== void 0){
         ipc.send('set-audio-muted',tabId,updateProperties.muted,true)
-        chrome.tabs._update(tabId, updateProperties, callback)
       }
+      chrome.tabs._update(tabId, updateProperties, callback)
     }
 
     if(!Number.isFinite(tabId) && tabId !== null && tabId !== void 0){

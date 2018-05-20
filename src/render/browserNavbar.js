@@ -890,7 +890,7 @@ class BrowserNavbar extends Component{
               return <div role="option" className="item" key={i} value={i} icon={e.type == "audio" ? "music" : e.type }
                           onClick={()=>{
                             if(m3u8){
-                              ipc.send('download-m3u8',url,e.fname,this.props.tab.wvId)
+                              ipc.send('download-m3u8',url,e.fname,this.props.tab.wvId,navigator.userAgent,cont.getURL())
                             }
                             else{
                               this.onMediaDownload(url,e.fname)
@@ -925,7 +925,7 @@ class BrowserNavbar extends Component{
                   e2.stopPropagation()
                   const p = e2.target.parentNode.parentNode;(e2.target.tagName == "I" ? p.parentNode : p).classList.remove("visible")
                   if(m3u8){
-                    ipc.send('download-m3u8',url,e.fname,this.props.tab.wvId,true)
+                    ipc.send('download-m3u8',url,e.fname,this.props.tab.wvId,navigator.userAgent,cont.getURL(),true)
                   }
                   else{
                     this.onMediaDownload(url,false,false,true)
