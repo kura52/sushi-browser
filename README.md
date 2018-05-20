@@ -135,14 +135,14 @@ This browser makes use of wonderful web technologies, starting with the followin
 Both the installer for every platform and the portable version can be downloaded.  
 To use the portable edition, please run sushi.exe for Windows and sushi-browser for Mac/Linux after decompressing.
 
-- [Windows Installer v0.16.4](https://sushib.me/dl/sushi-browser-0.16.4-setup-x64.exe)
-- [Windows Portable v0.16.4(self-extract)](https://sushib.me/dl/sushi-browser-0.16.4-win-x64.exe)
-- [Windows Portable v0.16.4](https://sushib.me/dl/sushi-browser-0.16.4-win-x64.zip)
-- [MacOS dmg v0.16.4](https://sushib.me/dl/SushiBrowser-0.16.4.dmg)
-- [MacOS Portable v0.16.4](https://sushib.me/dl/sushi-browser-0.16.4-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.16.4](https://sushib.me/dl/sushi-browser-0.16.4.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.16.4](https://sushib.me/dl/sushi-browser_0.16.4_amd64.deb)
-- [Linux Portable v0.16.4](https://sushib.me/dl/sushi-browser-0.16.4.tar.bz2)
+- [Windows Installer v0.16.5](https://sushib.me/dl/sushi-browser-0.16.5-setup-x64.exe)
+- [Windows Portable v0.16.5(self-extract)](https://sushib.me/dl/sushi-browser-0.16.5-win-x64.exe)
+- [Windows Portable v0.16.5](https://sushib.me/dl/sushi-browser-0.16.5-win-x64.zip)
+- [MacOS dmg v0.16.5](https://sushib.me/dl/SushiBrowser-0.16.5.dmg)
+- [MacOS Portable v0.16.5](https://sushib.me/dl/sushi-browser-0.16.5-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.16.5](https://sushib.me/dl/sushi-browser-0.16.5.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.16.5](https://sushib.me/dl/sushi-browser_0.16.5_amd64.deb)
+- [Linux Portable v0.16.5](https://sushib.me/dl/sushi-browser-0.16.5.tar.bz2)
 
 # Use of Flash 
 If Flash won't run, please install Flash from the following web sites.  
@@ -156,6 +156,13 @@ sushi-browser --no-sandbox
 ```
 
 # New Features
+
+#### New function(v0.16.5)
+- Changed the display order of the video list so that the new one is above.
+- Changed to attach no-audio prefix and audio-only prefix when detecting motion picture.
+- HLS Movie download argument change.
+- Changed to be able to transition to the unmuted state by clicking the mute icon except during movie playback.
+- Fixed Some bugs
 
 #### New function(v0.16.4)
 - Added page view count and browsing time to history function and auto suggestion of address bar. (The browsing time is measured from this version. The browsing time is the time of the active tab state.)
