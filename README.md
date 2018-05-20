@@ -159,7 +159,7 @@ sushi-browser --no-sandbox
 
 #### New function(v0.16.5)
 - Changed the display order of the video list so that the new one is above.
-- Changed to attach no-audio prefix and audio-only prefix when detecting motion picture.
+- Changed to attach no-audio prefix and audio-only prefix when detecting video.
 - HLS Movie download argument change.
 - Changed to be able to transition to the unmuted state by clicking the mute icon except during movie playback.
 - Fixed Some bugs

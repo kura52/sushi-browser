@@ -205,7 +205,7 @@ div.vertical-tab{
 
     height: 100%;
     top: 0px;
-    webkit-app-region: no-drag;
+    -webkit-app-region: no-drag;
 }
 .vertical-resizer:hover {
     border-left: 5px solid rgba(0, 0, 0, 0.5);

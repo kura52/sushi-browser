@@ -51,6 +51,7 @@ export default class NavbarMenu extends Component {
   // }
 
   onMouseOver(e){
+    this.mouseOverTime = Date.now()
     if(!this.state.visible){
       this.setState({visible:true})
     }
@@ -58,7 +59,10 @@ export default class NavbarMenu extends Component {
 
   onMouseLeave(e){
     if(this.state.visible){
-      this.setState({visible:false})
+      const now = Date.now()
+      setTimeout(_=>{
+        if((this.mouseOverTime || 0) - now < 0) this.setState({visible:false})
+      },100)
     }
   }
 
