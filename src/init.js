@@ -149,7 +149,6 @@ app.on('ready', async ()=>{
   // loadDevtool(loadDevtool.REACT_DEVELOPER_TOOLS);
   //console.log(app.getPath('pepperFlashSystemPlugin'))
   extensionInfos = require('./extensionInfos')
-  rlog(process)
   console.log(process.versions)
 
 

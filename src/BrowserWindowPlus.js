@@ -229,8 +229,14 @@ function create(args){
     }
   })
 
-  bw.on('blur', ()=> PubSub.publish('chrome-windows-onFocusChanged',bw.id))
-  bw.on('focus', ()=> PubSub.publish('chrome-windows-onFocusChanged',bw.id))
+  bw.on('blur', ()=> {
+    PubSub.publish('chrome-windows-onFocusChanged',bw.id)
+    bw.webContents.send('visit-state-update','blur')
+  })
+  bw.on('focus', ()=> {
+    PubSub.publish('chrome-windows-onFocusChanged',bw.id)
+    bw.webContents.send('visit-state-update','focus')
+  })
 
   if(isDarwin){
     bw.on('enter-full-screen',_=>{

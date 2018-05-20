@@ -74,6 +74,8 @@ ipc.on('record-op',(e,val)=>{
   isRecording = val
 })
 
+const activeTabs = {}
+
 const convertUrlMap = new Map([
   ['about:blank','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html'],
   ['chrome://bookmarks-sidebar/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html'],
@@ -448,6 +450,7 @@ export default class TabPanel extends Component {
     this.screenShot = ::this.screenShot
     this.searchWordHighlight = ::this.searchWordHighlight
     this.navigateTo = ::this.navigateTo
+    this.updateIdle = ::this.updateIdle
 
     if((multistageTabs && maxrowLabel != 0) || openTabPosition != 'default'){
       this.componentWillUpdate = (prevProps, prevState)=>{
@@ -577,6 +580,20 @@ export default class TabPanel extends Component {
     const tokenDrag = PubSub.subscribe('drag', (msg, val)=> {
       this.drag = val
     })
+    const tokenActiveTabChanged = PubSub.subscribe('active-tab-change', (msg, val)=> {
+      console.log('change-visit-state-focus',this.props.k)
+      const activeTab = activeTabs[this.props.k]
+      if(activeTab && val != activeTab[0].wvId){
+        history.update({location: activeTab[1]}, {$inc:{time: Date.now() - activeTab[2]}})
+        delete activeTabs[this.props.k]
+      }
+      else if(!activeTab){
+        const tab = this.state.tabs.find(t=>t.key == this.state.selectedTab)
+        if(val == tab.wvId){
+          activeTabs[this.props.k] = [tab,tab.page.navUrl,Date.now()]
+        }
+      }
+    })
 
     const tokenClose = PubSub.subscribe(`close-panel_${this.props.k}`, (msg,time)=> {
       mainState.set('keepOpen',1)
@@ -704,7 +721,7 @@ export default class TabPanel extends Component {
 
     const tokenAdblock = PubSub.subscribe('set-adblock-enable',(msg,enable)=> {adBlockEnable = enable;this.setState({})} )
 
-    if(this.isFixed) return [tokenResize,tokenDrag,tokenClose,tokenBodyKeydown,tokenIncludeKey,tokenRichMedia,tokenMultiScroll,tokenCloseTab,tokenAdblock]
+    if(this.isFixed) return [tokenResize,tokenDrag,tokenActiveTabChanged,tokenClose,tokenBodyKeydown,tokenIncludeKey,tokenRichMedia,tokenMultiScroll,tokenCloseTab,tokenAdblock]
 
 
     const tokenNewTabFromKey = PubSub.subscribe(`new-tab-from-key_${this.props.k}`, (msg,{url,mobile,adBlockThis,notSelected,privateMode,guestInstanceId,type})=> {
@@ -866,7 +883,7 @@ export default class TabPanel extends Component {
     })
 
     // return [tokenResize,tokenDrag,tokenSplit,tokenClose,tokenToggleDirction,tokenSync,tokenSync2,tokenBodyKeydown,tokenNewTabFromKey]
-    return [tokenResize,tokenDrag,tokenClose,tokenToggleDirction,tokenSwapPosition,tokenSync2,tokenCloseSyncTabs,tokenSyncSelectTab,tokenBodyKeydown,tokenAdblock,tokenNewTabFromKey,tokenRestoreTabFromKey,tokenCloseTab,tokenIncludeKey,tokenRichMedia,tokenMultiScroll,tokenOpposite,tokenSplit,tokenSearch]
+    return [tokenResize,tokenDrag,tokenActiveTabChanged,tokenClose,tokenToggleDirction,tokenSwapPosition,tokenSync2,tokenCloseSyncTabs,tokenSyncSelectTab,tokenBodyKeydown,tokenAdblock,tokenNewTabFromKey,tokenRestoreTabFromKey,tokenCloseTab,tokenIncludeKey,tokenRichMedia,tokenMultiScroll,tokenOpposite,tokenSplit,tokenSearch]
   }
 
 
@@ -1120,6 +1137,41 @@ export default class TabPanel extends Component {
     })
   }
 
+  async refreshHistory(e,page){
+    page.navUrl = e.url;
+    let location = page.navUrl
+    try {
+      location = decodeURIComponent(location)
+    } catch (e) {}
+    page.location = location
+
+    let navUrl = page.navUrl
+    console.log(7778884,page.navUrl)
+    if(page.hid = await history.findOne({location: navUrl})){
+    }
+    else{
+      while(navUrl != page.navUrl){
+        navUrl = page.navUrl
+        page.hid = await history.findOne({location: navUrl})
+        if(page.hid) return
+      }
+      console.log(7778885,page.navUrl)
+      await history.update({location:navUrl},{location:navUrl ,title: page.title,favicon: page.favicon, created_at: Date.now(),updated_at: Date.now(),count: 1,type: 1},{upsert: true})
+    }
+  }
+
+  updateActive(tab){
+    const now = Date.now()
+    const activeTab = activeTabs[this.props.k]
+    if(activeTab && activeTab[0].key == tab.key){
+      history.update({location: activeTab[1]}, {$inc:{time: now - activeTab[2]}})
+      activeTabs[this.props.k] = [tab,tab.page.navUrl,now]
+    }
+    else if(!activeTab && tab.key == this.state.selectedTab && global.lastMouseDown[1] == tab.wvId){
+      activeTabs[this.props.k] = [tab,tab.page.navUrl,now]
+    }
+  }
+
   pageHandlers(navigateTo, tab, self, newPage) {
     return {
       onUpdateTargetUrl(e, page) {
@@ -1132,8 +1184,12 @@ export default class TabPanel extends Component {
       },
       onLoadCommit(e, page) {
         // console.log('onCommitted',e,Date.now(),e.isMainFrame)
+        console.log('onLoadCommit',e)
         if(e.isMainFrame){
-          page.navUrl = e.url;
+          if(page.navUrl != e.url){
+            self.refreshHistory(e,page)
+            self.updateActive(tab)
+          }
 
           self.filterFromContents(page, navigateTo, tab, self);
           self.sendOpenLink(tab, page);
@@ -1153,11 +1209,12 @@ export default class TabPanel extends Component {
       // },
       onDidNavigate(e, page) {
         console.log('onDidNavigete',e,page)
-        const now = Date.now()
-        if(self.activeTab){
-          history.update({location: self.activeTab[0]}, {$inc:{time: now - self.activeTab[1]}})
+
+        if(page.navUrl != e.url) {
+          self.refreshHistory(e, page)
         }
-        self.activeTab = [page.navUrl,now]
+        console.log('change-visit-state-navigate',self.props.k,page.navUrl)
+        self.updateActive(tab)
 
         PubSub.publish(`did-navigate_${tab.key}`,e.url)
         setTimeout(_=>refs2[`bookmarkbar-${tab.key}`].setState({}),100)
@@ -1291,10 +1348,11 @@ export default class TabPanel extends Component {
       },
       onDidGetRedirectRequest(e, page) {
         console.log('redirect',e)
-        // console.log('onDidGetRedirectRequest',Date.now())
-        if(e.oldURL === decodeURIComponent(page.location)){
-          page.navUrl = e.newURL
+        if(page.navUrl != e.url){
+          self.refreshHistory(e,page)
+          self.updateActive(tab)
         }
+
       },
       onLoadStart(e, page) {
         console.log('onLoadStart',e,Date.now() - ttime,Date.now())
@@ -2806,7 +2864,7 @@ export default class TabPanel extends Component {
       if(needSort) this.setState({tabs: [...pinTabs,...normalTabs]})
 
       const sameSelected = this.selectedTab == this.state.selectedTab
-      console.log(sameSelected,this.selectedTab,this.state.selectedTab)
+      // console.log('sameSelected',sameSelected,this.selectedTab,this.state.selectedTab)
       // if(sameSelected) return
 
       const allKeySame = this.state.tabKeys.length == this.state.tabs.length &&
@@ -2819,11 +2877,7 @@ export default class TabPanel extends Component {
         this.state.selectedKeys = this.state.selectedKeys.filter(key => key != this.state.selectedTab && this.state.tabs.some(tab => tab.key == key))
         this.state.selectedKeys.push(this.state.selectedTab)
         sharedState.allSelectedkeys.add(this.state.selectedTab)
-        const now = Date.now()
-        if(this.activeTab){
-          history.update({location: this.activeTab[0]}, {$inc:{time: now - this.activeTab[1]}})
-        }
-        this.activeTab = [this.state.tabs.find(t=>t.key == this.state.selectedTab).page.navUrl,now]
+        this.updateVisitState()
       }
 
       this.state._tabKeys = []
@@ -2865,14 +2919,50 @@ export default class TabPanel extends Component {
         if(isActive){
           console.log({tabId:tab.wvId,active:isActive})
           changeTabInfos.push({tabId:tab.wvId,active:isActive})
-          if(tab.key == this.state.selectedTab) this.selectedTab = this.state.selectedTab
         }
       }
+      this.selectedTab = this.state.selectedTab
       this.state.tabKeys = this.state._tabKeys
 
       func()
       this.didUpdateTimer = void 0
     }, 10)
+  }
+
+  updateIdle(isIdle){
+    console.log('change-idle',isIdle,this.props.k)
+    const activeTab = activeTabs[this.props.k]
+    if(isIdle && activeTab){
+      const now = Date.now()
+      history.update({location: activeTab[1]}, {$inc:{time: now - activeTab[2]}})
+      const tab = this.state.tabs.find(t=>t.key == this.state.selectedTab)
+      delete activeTabs[this.props.k]
+    }
+    else if(!isIdle && !activeTab){
+      const now = Date.now()
+      const tab = this.state.tabs.find(t=>t.key == this.state.selectedTab)
+      if(global.lastMouseDown[1] == tab.wvId){
+        activeTabs[this.props.k] = [tab,tab.page.navUrl,now]
+      }
+    }
+  }
+
+  updateVisitState(){
+    const activeTab = activeTabs[this.props.k]
+    console.log('change-visit-state',this.props.k)
+    if(activeTab){
+      const now = Date.now()
+      history.update({location: activeTab[1]}, {$inc:{time: now - activeTab[2]}})
+      const tab = this.state.tabs.find(t=>t.key == this.state.selectedTab)
+      activeTabs[this.props.k] = [tab,tab.page.navUrl,now]
+    }
+    else if(!activeTab){
+      const now = Date.now()
+      const tab = this.state.tabs.find(t=>t.key == this.state.selectedTab)
+      if(global.lastMouseDown[1] == tab.wvId){
+        activeTabs[this.props.k] = [tab,tab.page.navUrl,now]
+      }
+    }
   }
 
   handleTabSelect(e, key, scroll) {
@@ -2951,7 +3041,14 @@ export default class TabPanel extends Component {
     const tab = this.state.tabs[i]
     if(tab.protect) return
 
-    console.log('tabClosed key:', key,tab.page.navUrl,this.state.tabs.length);
+    console.log('tabClosed key:', key,tab.page.navUrl,this.state.tabs.length)
+    console.log('change-visit-state-close',this.props.k,tab.page.navUrl)
+    const activeTab = activeTabs[this.props.k]
+    if(activeTab && activeTab[0].key == key){
+      history.update({location: activeTab[1]}, {$inc:{time: Date.now() - activeTab[2]}})
+      delete activeTabs[this.props.k]
+    }
+
     sharedState.allSelectedkeys.delete(key)
 
     this._closeBind(tab)
@@ -2978,6 +3075,8 @@ export default class TabPanel extends Component {
 
     if (!this.mounted) return
     // console.log("selected06",_tabs.find(t=>t.key == (this.state.selectedTab !== key ? this.state.selectedTab : this.getPrevSelectedTab(key,_tabs,i))),this.state.selectedTab !== key ? this.state.selectedTab : this.getPrevSelectedTab(key,_tabs,i))
+
+    console.log('close44',closeTab.key,_tabs.find(t=>t.key == this.state.selectedTab) ? this.state.selectedTab : this.getPrevSelectedTab(key,_tabs,closeTab,i))
 
     if(isUpdateState){
       this.setState({tabs:_tabs,

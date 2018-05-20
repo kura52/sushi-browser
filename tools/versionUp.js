@@ -10,25 +10,27 @@ const NEXT_APP_VERSION = "0.16.4"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
 const CHANGE_ENGLISH = `
-Added page view count and browsing time to history function and auto suggestion of address bar. (The browsing time is measured from this version)
+Added page view count and browsing time to history function and auto suggestion of address bar. (The browsing time is measured from this version. The browsing time is the time of the active tab state.)
 Fixed bug in history saving. (Data migration processing will work with this version)
+Added setting of increment / decrement degree of page zoom. (Same as Chrome / 1-25%)
+Changed default behavior of page zoom to 10% increase / decrease.
+Added pop-up that displays zoom ratio when page is zoomed.
 Added setting of whether Chrome extension icon is displayed on address bar or background(displayed when main menu is opened).
 Changed default display of Chrome extension icon to address bar.
-Added built-in mouse gesture ON / OFF setting.
-Added setting of increment / decrement degree of page zoom. (Same as Chrome / 1-25%)
-Change default behavior of page zoom to 10% increase / decrease.
 Added setting to open new tab at left end or right end.
+Added built-in mouse gesture ON / OFF setting.
 Fixed a fatal bug at page search.
 Fixed Some bugs`
 
-const CHANGE_JAPANESE = `履歴表示時および、アドレスバーのオートサジェストにページ閲覧回数と閲覧時間を追加（閲覧時間は本バージョンから測定されます）
+const CHANGE_JAPANESE = `履歴表示時および、アドレスバーのオートサジェストにページ閲覧回数と閲覧時間を追加（閲覧時間は本バージョンから測定されます。閲覧時間はアクティブタブ状態の時間になります。）
 履歴保存の不具合を修正（本バージョンでデータ移行処理が動きます）
-Chrome拡張のアイコンをアドレスバー上に表示するかバックグラウンド（メインメニューを開いた際に表示）に表示するかの設定を追加。
-Chrome拡張のアイコンのデフォルト表示をアドレスバーに変更
-ビルドインのマウスジェスチャーのON/OFF設定を追加
 ページズームの増減幅の設定を追加(Same as Chrome / 1〜25%)
 ページズームのデフォルト動作を10%の増減に変更
+ページズーム時にズーム率を表示するポップアップを追加
+Chrome拡張のアイコンをアドレスバー上に表示するかバックグラウンド（メインメニューを開いた際に表示）に表示するかの設定を追加。
+Chrome拡張のアイコンのデフォルト表示をアドレスバーに変更
 新しいタブを左端または右端で開く設定を追加
+ビルドインのマウスジェスチャーのON/OFF設定を追加
 ページ検索時の致命的な不具合を修正
 いくつかの不具合修正`
 

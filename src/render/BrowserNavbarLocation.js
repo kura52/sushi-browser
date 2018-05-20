@@ -205,7 +205,7 @@ export default class BrowserNavbarLocation extends Component {
           // console.log("end", Date.now())
           let results = ret.history.map(x => ({
             title: x.title || (x.location.length > 75 ? `${x.location.substr(0, 75)}...` : x.location),
-            description: <span>{x.location.length > 90 ? `${x.location.substr(0, 90)}...` : convertURL(x.location)}<span className="suggestion-visit">[{x.count}pv{x.time ? `, ${getAppropriateTimeUnit(x.time / 1000)}` : ''}]</span></span>,
+            description: <span><span>{x.location.length > 90 ? `${x.location.substr(0, 90)}...` : convertURL(x.location)}</span><span className="suggestion-visit">[{x.count}pv{x.time ? `, ${getAppropriateTimeUnit(x.time / 1000)}` : ''}]</span></span>,
             url: x.location
           }))
           resolve(_.uniqBy(results.filter(x => x.title), x => x.title).slice(0, this.props.autoCompleteInfos.numOfHistory));
@@ -226,7 +226,7 @@ export default class BrowserNavbarLocation extends Component {
 
   handleSelectionChange(e,value){
     if(value.result.description){
-      e.target.value = value.result.description.children[0].children
+      e.target.value = value.result.description.children[0].children.children
     }
     else{
       e.target.value = value.result.title
@@ -266,7 +266,7 @@ export default class BrowserNavbarLocation extends Component {
     }
     else if(e.button == 1){
       const content = e.target.closest('.content')
-      const description = content.querySelector('.description')
+      const description = content.querySelector('.description>span>span')
 
       if(description){
         const targetUrl = description.textContent

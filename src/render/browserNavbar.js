@@ -347,7 +347,7 @@ class BrowserNavbar extends Component{
         this.zoomTimeout = setTimeout(_=>{
           this.forceUpdates = true
           this.setState({zoomDisplay:''})
-        },2000)
+        },1500)
       }
       this.setState({zoom:percent})
       if(this.props.tab.sync) this.props.parent.syncZoom(percent,this.props.tab.sync)
@@ -369,7 +369,7 @@ class BrowserNavbar extends Component{
       this.zoomTimeout = setTimeout(_=>{
         this.forceUpdates = true
         this.setState({zoomDisplay:''})
-      },2000)
+      },1500)
     }
     this.setState({zoom:100})
     if(this.props.tab.sync) this.props.parent.syncZoom(100,this.props.tab.sync)

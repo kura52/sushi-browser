@@ -60,7 +60,8 @@ export default class MainContent extends Component{
       })
     })
 
-    window.addEventListener('resize', ::this.handleResize,{ passive: true });
+    window.addEventListener('resize', ::this.handleResize,{ passive: true })
+
     document.addEventListener('mousedown',e=>{
       if(e.target.closest('.ui.modal')) return
       let ele,key
@@ -72,6 +73,7 @@ export default class MainContent extends Component{
       global.lastMouseDown = [e.target,global.lastMouseDown[0] == e.target ? global.lastMouseDown[1] : this.refs.splitWindow.getTabId(e.target)]
       if(currentTabId !== global.lastMouseDown[1]){
         ipc.send('change-tab-infos', [{tabId:global.lastMouseDown[1],active:true}])
+        PubSub.publish('active-tab-change',global.lastMouseDown[1])
       }
        if(e.target.tagName == 'WEBVIEW'){
         const key = e.target.className

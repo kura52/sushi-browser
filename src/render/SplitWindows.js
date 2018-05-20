@@ -160,6 +160,8 @@ export default class SplitWindows extends Component{
     super(props)
     this.currentWebContents = {}
     this.tabValues = {}
+    this.focused = true
+    this.actived = true
     sharedState.tabValues = this.tabValues
     global.currentWebContents = this.currentWebContents
     global.adBlockDisableSite = ipc.sendSync('get-sync-main-state','adBlockDisableSite')
@@ -811,6 +813,33 @@ export default class SplitWindows extends Component{
     ipc.on('open-fixed-panel',this.eventOpenFixedPanel)
     ipc.on('close-fixed-panel',this.eventCloseFixedPanel)
 
+
+    this.eventVisitStateUpdate = (e,type)=>{
+      const prev = this.focused && this.actived
+      if(type == 'focus'){
+        this.focused = true
+      }
+      else if(type == 'blur'){
+        this.focused = false
+      }
+      else if(type == 'idle'){
+        this.actived = false
+      }
+      else{
+        this.actived = true
+      }
+
+      const current = this.focused && this.actived
+      if(prev != current){
+        const keys = []
+        this.allKeys(this.state.root,keys)
+        for(let key of keys){
+          if(this.refs2[key]) this.refs2[key].updateIdle(!current)
+        }
+      }
+    }
+    ipc.on('visit-state-update', this.eventVisitStateUpdate)
+
     this.tokenAlign = PubSub.subscribe("align",(_,e)=>{
 
       const mapDepth = this.getDepth()
@@ -879,11 +908,6 @@ export default class SplitWindows extends Component{
     //   }
     // }
     // document.body.addEventListener("keydown",this.search)
-
-    ipc.on('rlog', (e, args)=> {
-      console.log(...args)
-    })
-
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -915,6 +939,7 @@ export default class SplitWindows extends Component{
     ipc.removeListener('tab-create',this.eventTabCreate)
     ipc.removeListener('open-fixed-panel',this.eventOpenFixedPanel)
     ipc.removeListener('close-fixed-panel',this.eventCloseFixedPanel)
+    ipc.removeListener('visit-state-update', this.eventVisitStateUpdate)
 
     PubSub.unsubscribe(this.tokenAlign)
     PubSub.unsubscribe(this.tokenAllDetach)

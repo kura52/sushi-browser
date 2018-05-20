@@ -6,9 +6,18 @@ let ENABLE_MIDDLE_MOUSE = false
 let ENABLE_META_KEYS = false
 
 chrome.idle.setDetectionInterval(15)
-chrome.idle.onStateChanged.addListener((idleState) => {
+chrome.idle.onStateChanged.addListener(idleState => {
   if(idleState == "idle"){
     ipc.send('get-favicon', {})
+  }
+})
+
+chrome.idle.onStateChanged.addListener(120,idleState => {
+  if(idleState == "idle" || idleState == "locked"){
+    ipc.send('visit-timer', 'idle')
+  }
+  else{
+    ipc.send('visit-timer', 'active')
   }
 })
 
