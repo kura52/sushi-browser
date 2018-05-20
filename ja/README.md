@@ -23,7 +23,7 @@ Webブラウジングの際、画面の一部しか利用できず、勿体無�
 * [特徴](#特徴)
   * [マルチパネル機能](#マルチパネル機能)
   * [拡張ツール](#拡張ツール)
-  * <a href="#muonelectron-fork機能">Muon(Electron Fork)機能</a>
+  * <a href="#muonelectron-fork機能">Muon(Electron Fo.rk)機能</a>
   * [便利機能](#便利機能)
   * [Webテクノロジー](#webテクノロジー)
 
@@ -137,14 +137,14 @@ Sync Data機能をOnにすると複数端末間で履歴とお気に入りの同
 
 各プラットフォームに対し、インストーラとポータブル版の両方がダウンロードできます。
 
-- [Windows Installer v0.16.3](https://sushib.me/dl/sushi-browser-0.16.3-setup-x64.exe)
-- [Windows Portable v0.16.3(自己解凍)](https://sushib.me/dl/sushi-browser-0.16.3-win-x64.exe)
-- [Windows Portable v0.16.3](https://sushib.me/dl/sushi-browser-0.16.3-win-x64.zip)
-- [MacOS dmg v0.16.3](https://sushib.me/dl/SushiBrowser-0.16.3.dmg)
-- [MacOS Portable v0.16.3](https://sushib.me/dl/sushi-browser-0.16.3-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.16.3](https://sushib.me/dl/sushi-browser-0.16.3.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.16.3](https://sushib.me/dl/sushi-browser_0.16.3_amd64.deb)
-- [Linux Portable v0.16.3](https://sushib.me/dl/sushi-browser-0.16.3.tar.bz2)
+- [Windows Installer v0.16.4](https://sushib.me/dl/sushi-browser-0.16.4-setup-x64.exe)
+- [Windows Portable v0.16.4(自己解凍)](https://sushib.me/dl/sushi-browser-0.16.4-win-x64.exe)
+- [Windows Portable v0.16.4](https://sushib.me/dl/sushi-browser-0.16.4-win-x64.zip)
+- [MacOS dmg v0.16.4](https://sushib.me/dl/SushiBrowser-0.16.4.dmg)
+- [MacOS Portable v0.16.4](https://sushib.me/dl/sushi-browser-0.16.4-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.16.4](https://sushib.me/dl/sushi-browser-0.16.4.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.16.4](https://sushib.me/dl/sushi-browser_0.16.4_amd64.deb)
+- [Linux Portable v0.16.4](https://sushib.me/dl/sushi-browser-0.16.4.tar.bz2)
 
 ポータブル版の利用は、解凍後にWindowsはsushi.exeを、Mac/Linuxはsushi-browserを実行ください。
 

@@ -135,14 +135,14 @@ This browser makes use of wonderful web technologies, starting with the followin
 Both the installer for every platform and the portable version can be downloaded.  
 To use the portable edition, please run sushi.exe for Windows and sushi-browser for Mac/Linux after decompressing.
 
-- [Windows Installer v0.16.3](https://sushib.me/dl/sushi-browser-0.16.3-setup-x64.exe)
-- [Windows Portable v0.16.3(self-extract)](https://sushib.me/dl/sushi-browser-0.16.3-win-x64.exe)
-- [Windows Portable v0.16.3](https://sushib.me/dl/sushi-browser-0.16.3-win-x64.zip)
-- [MacOS dmg v0.16.3](https://sushib.me/dl/SushiBrowser-0.16.3.dmg)
-- [MacOS Portable v0.16.3](https://sushib.me/dl/sushi-browser-0.16.3-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.16.3](https://sushib.me/dl/sushi-browser-0.16.3.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.16.3](https://sushib.me/dl/sushi-browser_0.16.3_amd64.deb)
-- [Linux Portable v0.16.3](https://sushib.me/dl/sushi-browser-0.16.3.tar.bz2)
+- [Windows Installer v0.16.4](https://sushib.me/dl/sushi-browser-0.16.4-setup-x64.exe)
+- [Windows Portable v0.16.4(self-extract)](https://sushib.me/dl/sushi-browser-0.16.4-win-x64.exe)
+- [Windows Portable v0.16.4](https://sushib.me/dl/sushi-browser-0.16.4-win-x64.zip)
+- [MacOS dmg v0.16.4](https://sushib.me/dl/SushiBrowser-0.16.4.dmg)
+- [MacOS Portable v0.16.4](https://sushib.me/dl/sushi-browser-0.16.4-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.16.4](https://sushib.me/dl/sushi-browser-0.16.4.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.16.4](https://sushib.me/dl/sushi-browser_0.16.4_amd64.deb)
+- [Linux Portable v0.16.4](https://sushib.me/dl/sushi-browser-0.16.4.tar.bz2)
 
 # Use of Flash 
 If Flash won't run, please install Flash from the following web sites.  
@@ -156,6 +156,18 @@ sushi-browser --no-sandbox
 ```
 
 # New Features
+
+#### New function(v0.16.4)
+- Added page view count and browsing time to history function and auto suggestion of address bar. (The browsing time is measured from this version. The browsing time is the time of the active tab state.)
+- Fixed bug in history saving. (Data migration processing will work with this version)
+- Added setting of whether Chrome extension icon is displayed on address bar or background(displayed when main menu is opened).
+- Changed default display of Chrome extension icon to address bar.
+- Added built-in mouse gesture ON / OFF setting.
+- Added setting of increment / decrement degree of page zoom. (Same as Chrome / 1-25%)
+- Change default behavior of page zoom to 10% increase / decrease.
+- Added setting to open new tab at left end or right end.
+- Fixed a fatal bug at page search.
+- Fixed Some bugs
 
 #### New function(v0.16.3)
 - Fixed a fatal bug when closing Window.

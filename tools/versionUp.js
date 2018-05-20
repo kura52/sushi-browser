@@ -9,8 +9,7 @@ const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
 const NEXT_APP_VERSION = "0.16.4"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `
-Added page view count and browsing time to history function and auto suggestion of address bar. (The browsing time is measured from this version. The browsing time is the time of the active tab state.)
+const CHANGE_ENGLISH = `Added page view count and browsing time to history function and auto suggestion of address bar. (The browsing time is measured from this version. The browsing time is the time of the active tab state.)
 Fixed bug in history saving. (Data migration processing will work with this version)
 Added setting of increment / decrement degree of page zoom. (Same as Chrome / 1-25%)
 Changed default behavior of page zoom to 10% increase / decrease.
