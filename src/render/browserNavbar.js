@@ -520,7 +520,7 @@ class BrowserNavbar extends Component{
             const interval = setInterval(_=>{
               console.log('interval')
               ipc.send('set-pos-window',{key,id,tabId:tab.wvId,checkClose:true})
-              ipc.once(`set-pos-window-reply_${key}`,(e,{needClose})=>{
+              ipc.once(`set-pos-window-reply_${key}`,(e,{needClose} = {})=>{
                 if(needClose){
                   PubSub.publish(`close_tab_${this.props.k}`,{key:tab.key})
                 }

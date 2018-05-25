@@ -101,7 +101,7 @@ ipcMain.on('add-extension',(e,{id,url})=>{
   }
   console.log(url,`${extRootPath}.crx`,getCurrentWindow().webContents.getURL())
   ipcMain.emit('set-save-path', null,url, `${extRootPath}.crx`,true)
-  e.sender.loadURL(url)
+  e.sender.downloadURL(url)
 
   let exePath = require("glob").sync(path.join(__dirname,'../../7zip/*/{7za,7za.exe}'))
   if(!exePath.length){

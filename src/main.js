@@ -38,7 +38,6 @@ function changePortable(folder){
 }
 
 if(databaseForked){
-  const fs = require('fs-extra')
   if(isDarwin){
     app.dock.hide()
   }
@@ -53,12 +52,19 @@ if(databaseForked){
   databaseForked()
 }
 else{
-  const fs = require('fs-extra')
-  const path = require('path')
-
   global.originalUserDataPath = app.getPath('userData')
   app.setPath('userData', app.getPath('userData').replace('brave','sushiBrowser').replace('sushi-browser','sushiBrowser'))
   changePortable('data')
+
+  const glob = require("glob")
+  const files = glob.sync(path.join(__dirname,'..','_update_*'))
+  if(files.length && glob.sync(path.join(files[files.length - 1],"*")).length){
+    const dir = files[files.length - 1]
+    const open = require('./open')
+    const isWin = process.platform == 'win32'
+    open(path.join(files[files.length - 1], isWin ? 'sushi.exe' : 'sushi'), '')
+  }
+
   const appPath = app.getPath('userData')
   if (!fs.existsSync(appPath)) {
     fs.mkdirSync(appPath)

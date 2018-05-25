@@ -261,6 +261,10 @@ if(window.__started_){
     for(let url of (inputs.blackList || [])){
       if(url && location.href.startsWith(url)) return
     }
+
+    const gaiseki = (ax,ay,bx,by) => ax*by-bx*ay
+    const pointInCheck = (X,Y,W,H,PX,PY) => gaiseki(-W,0,PX-W-X,PY-Y) < 0 && gaiseki(0,H,PX-X,PY-Y) < 0 && gaiseki(W,0,PX-X,PY-Y-H) < 0 && gaiseki(0,-H,PX-W-X,PY-H-Y) < 0
+
     const popUp = (v,text)=>{
       const rect = v.getBoundingClientRect()
       const rStyle = `left:${Math.round(rect.left)+20}px;top:${Math.round(rect.top)+20}px`
@@ -412,7 +416,16 @@ if(window.__started_){
               target = c.children && [...c.children].find(x=>x.tagName == "VIDEO")
               if(target) break
             }
-            if(!target) return
+            if(!target){
+              for(let ele of document.querySelectorAll('video')){
+                const r =  ele.getBoundingClientRect()
+                if(pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)){
+                  target = ele
+                  break
+                }
+              }
+              if(!target) return
+            }
           }
         }
         if (e.which == 1) {
@@ -432,7 +445,16 @@ if(window.__started_){
               target = c.children && [...c.children].find(x=>x.tagName == "VIDEO")
               if(target) break
             }
-            if(!target) return
+            if(!target){
+              for(let ele of document.querySelectorAll('video')){
+                const r =  ele.getBoundingClientRect()
+                if(pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)){
+                  target = ele
+                  break
+                }
+              }
+              if(!target) return
+            }
           }
         }
         eventHandler(e,inputs.dbClick,target)
@@ -452,7 +474,16 @@ if(window.__started_){
               target = c.children && [...c.children].find(x=>x.tagName == "VIDEO")
               if(target) break
             }
-            if(!target) return
+            if(!target){
+              for(let ele of document.querySelectorAll('video')){
+                const r =  ele.getBoundingClientRect()
+                if(pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)){
+                  target = ele
+                  break
+                }
+              }
+              if(!target) return
+            }
           }
         }
         if(e.ctrlKey || e.metaKey){

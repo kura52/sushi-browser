@@ -15,6 +15,7 @@ const fs = require('fs')
 const os = require('os')
 const isDarwin = process.platform == 'darwin'
 const isLinux = process.platform === 'linux'
+const isWin = process.platform == 'win32'
 const LRUCache = require('lru-cache')
 import url from 'url'
 const {getUrlFromCommandLine,getNewWindowURL} = require('./cmdLine')
@@ -44,7 +45,7 @@ function exec(command) {
   });
 }
 
-const isWin = os.platform() == 'win32'
+
 
 process.userAgent = `Mozilla/5.0 (${isWin ? 'Windows NT 10.0; Win64; x64': isDarwin ? 'Macintosh; Intel Mac OS X 10_12_2' : 'X11; Linux x86_64'}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${process.versions.chrome} Safari/537.36`
 
@@ -388,7 +389,7 @@ app.on('web-contents-created', (e, tab) => {
 
   tab.on('close', () => {
     delete sharedState[tabId]
-    tab.forceClose()
+    // tab.forceClose()
   })
 
 

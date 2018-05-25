@@ -519,13 +519,13 @@ export default class TabPanel extends Component {
 
       Promise.all(promises).then(vals=>{
         ipc.send("detach-tab-to-main",vals)
-        setTimeout(_=>{
+        ipc.once('detach-tab-from-other-window-finish-from-main',_=>{
           if(vals.length == 1)
             PubSub.publish(`close_tab_${this.props.k}`, {key: vals[0].c_key})
           else{
             for(let val of vals) PubSub.publish(`close_tab_${this.props.k}`, {key: val.c_key})
           }
-        },100)
+        })
       })
     }
     ipc.on(`close-tab-from-other-window`,closeTabFromOtherWindow)
@@ -3815,6 +3815,7 @@ export default class TabPanel extends Component {
       console.log("selected14",n_tab.key)
       this.setState({selectedTab: n_tab.key})
       this.focus_webview(n_tab,true)
+      ipc.send('detach-tab-from-other-window-finish')
     })
   }
 

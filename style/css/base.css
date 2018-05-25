@@ -509,6 +509,12 @@ span.private-mode {
     padding: 0;
 }
 
+span.audio-percent {
+    font-size: 14px;
+    color: orangered;
+    padding: 0;
+}
+
 .ui.top.right.pointing.dropdown>.menu.browser-action{
     min-width: max-content!important;
 }

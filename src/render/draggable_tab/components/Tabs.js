@@ -67,24 +67,6 @@ function isFloatPanel(key){
   return key.startsWith('fixed-float')
 }
 
-function getWebContents(tab){
-  if(!tab.wv || !tab.wvId) return
-  return global.currentWebContents[tab.wvId]
-}
-
-function gaiseki(ax,ay,bx,by){
-  return ax*by-bx*ay;
-}
-
-function pointInCheck(X,Y,W,H,PX,PY){
-  var a = gaiseki(-W,0,PX-W-X,PY-Y);
-  var b = gaiseki(0,H,PX-X,PY-Y);
-  var c = gaiseki(W,0,PX-X,PY-Y-H);
-  var d = gaiseki(0,-H,PX-W-X,PY-H-Y);
-  if(a<0&&b<0&&c<0&&d<0) return true;
-  else return false;
-}
-
 class Title extends React.Component {
   componentDidMount() {
     this.audioVolume = "10"
@@ -177,6 +159,7 @@ class Title extends React.Component {
         {mediaPlaying[tab.wvId] ? mute ? <i className="fa fa-volume-off mute-mode playing" onClick={::this.handleClick}/> :
           this.mediaMenu() :
           mute ? <i className="fa fa-volume-off mute-mode" onClick={::this.handleClick}/> : ""}
+        {this.audioVolume && this.audioVolume != "10" ? <span className='audio-percent'>[{parseInt(this.audioVolume) * 10}%]</span> : ""}
 
         {reloadInterval ? <i className="fa fa-repeat reload-mode" /> : ""}
         {this.title || title}
@@ -1108,7 +1091,7 @@ class Tabs extends React.Component {
                 PubSub.publish(`close_tab_${k}`, {key:tab.key})
                 PubSub.unsubscribe(token)
               })
-            },100)
+            },300)
           })
         }
         else{
