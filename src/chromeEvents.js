@@ -120,7 +120,7 @@ ipcMain.on('add-extension',(e,{id,url})=>{
           console.log(`${extRootPath}.crx`,retry)
           if(!fs.existsSync(`${extRootPath}.crx`)) return
           clearInterval(intId)
-          const ret = await exec(`"${exePath[0]}" x -o"${extRootPath}_crx" "${extRootPath}.crx"`)
+          const ret = await exec(`"${exePath[0]}" x -y -o"${extRootPath}_crx" "${extRootPath}.crx"`)
           console.log(345,ret)
           let manifestPath = path.join(`${extRootPath}_crx`,'manifest.json')
           if (!fs.existsSync(manifestPath)) {

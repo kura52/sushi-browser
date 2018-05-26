@@ -59,6 +59,12 @@ ${isWin ? '.browserActionBadge {top: 14px !important;}' : ''}`));
 
 let noUpdate
 
+
+function getWebContents(tab){
+  if(!tab.wv || !tab.wvId) return
+  return global.currentWebContents[tab.wvId]
+}
+
 function isFixedPanel(key){
   return key.startsWith('fixed-')
 }

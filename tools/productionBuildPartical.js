@@ -55,7 +55,7 @@ function filesContentsReplace(files,reg,after){
 
 function build(){
   const platform = isLinux ? 'darwin,linux' : isWindows ? 'win32' : isDarwin ? 'darwin' : 'mas'
-  const ret = sh.exec(`node ./node_modules/electron-packager/cli.js . ${isWindows ? 'brave' : 'sushi-browser'} --platform=${platform} --arch=${arch} --overwrite --icon=${appIcon} --version=${MUON_VERSION}  --asar=true --app-version=${APP_VERSION} --build-version=${MUON_VERSION} --protocol="http" --protocol-name="HTTP Handler" --protocol="https" --protocol-name="HTTPS Handler" --version-string.ProductName="Sushi Browser" --version-string.Copyright="Copyright 2017, Sushi Browser" --version-string.FileDescription="Sushi" --asar-unpack-dir="{node_modules/{node-pty,youtube-dl/bin},node_modules/node-pty/**/*,resource/{bin,extension}/**/*}" --ignore="\\.(cache|babelrc|gitattributes|githug|gitignore|gitattributes|gitignore|gitkeep|gitmodules)|node_modules/(electron-installer-squirrel-windows|electron-installer-debian|node-gyp|npm|electron-download|electron-rebuild|electron-packager|electron-builder|electron-prebuilt|electron-rebuild|electron-winstaller-fixed|muon-winstaller|electron-installer-redhat|react-addons-perf|babel-polyfill|infinite-tree|babel-register|jsx-to-string|happypack|es5-ext|browser-sync-ui|gulp-uglify|devtron|electron$|deasync|webpack|babel-runtime|uglify-es|babel-plugin|7zip-bin|webdriverio|semantic-ui-react/(node_modules|src)|semantic-ui-react/dist/(commonjs|umd)|babili|babel-helper|react-dom|react|@types|@gulp-sourcemaps|js-beautify)|tools|sushi-browser-|release-packed|cppunitlite|happypack|es3ify"`)
+  const ret = sh.exec(`node ./node_modules/electron-packager/cli.js . ${isWindows ? 'brave' : 'sushi-browser'} --platform=${platform} --arch=${arch} --overwrite --icon=${appIcon} --version=${MUON_VERSION}  --asar=true --app-version=${APP_VERSION} --build-version=${MUON_VERSION} --protocol="http" --protocol-name="HTTP Handler" --protocol="https" --protocol-name="HTTPS Handler" --version-string.ProductName="Sushi Browser" --version-string.Copyright="Copyright 2017, Sushi Browser" --version-string.FileDescription="Sushi" --asar-unpack-dir="{node_modules/{node-pty,youtube-dl/bin},node_modules/node-pty/**/*,resource/{bin,extension}/**/*}" --ignore="\\.(cache|babelrc|gitattributes|githug|gitignore|gitattributes|gitignore|gitkeep|gitmodules)|node_modules/(electron-installer-squirrel-windows|electron-installer-debian|node-gyp|electron-download|electron-rebuild|electron-packager|electron-builder|electron-prebuilt|electron-rebuild|electron-winstaller-fixed|muon-winstaller|electron-installer-redhat|react-addons-perf|babel-polyfill|infinite-tree|babel-register|jsx-to-string|happypack|es5-ext|browser-sync-ui|gulp-uglify|devtron|electron$|deasync|webpack|babel-runtime|uglify-es|babel-plugin|7zip-bin|webdriverio|semantic-ui-react/(node_modules|src)|semantic-ui-react/dist/(commonjs|umd)|babili|babel-helper|react-dom|react|@types|@gulp-sourcemaps|js-beautify)|tools|sushi-browser-|release-packed|cppunitlite|happypack|es3ify"`)
 
   if(ret.code !== 0) {
     console.log("ERROR2")
@@ -260,7 +260,6 @@ var getTabValue = function (tabId) {`)
     val.openerTabId = opener
     sendToBackgroundPages('all', getSessionForTab(tabId), 'chrome-tabs-created', val)
     sendToBackgroundPages('all', getSessionForTab(tabId), 'chrome-tabs-updated', tabId, {status:'loading'}, val)
-    console.log('dddddddd',tabId,val.openerTabId)
   }
   else{
     let win = BrowserWindow.fromId(val.windowId)
@@ -429,15 +428,15 @@ var getTabValue = function (tabId) {`)
       const result2 = contents2
         .replace('let packagePath = null',`let packagePath
 const basePath = path.join(__dirname,'../..')
-if(!fs.existsSync(path.join(basePath,'app.asar'))){
+if(fs.existsSync(path.join(basePath,'app.asar.7z'))){
   const binPath = path.join(basePath,\`7zip/\${process.platform === 'win32' ? 'win' : process.platform === 'darwin' ? 'mac' : 'linux'}/7za\`)
   const execSync = require('child_process').execSync
   const dataPath = path.join(basePath,'app.asar.unpacked.7z')
-  const result =  execSync(\`"\${binPath}" x -o"\${basePath}" "\${dataPath}"\`)
+  const result =  execSync(\`"\${binPath}" x -y -o"\${basePath}" "\${dataPath}"\`)
   fs.unlinkSync(dataPath)
   
   const dataPath2 = path.join(basePath,'app.asar.7z')
-  const result2 =  execSync(\`"\${binPath}" x -o"\${basePath}" "\${dataPath2}"\`)
+  const result2 =  execSync(\`"\${binPath}" x -y -o"\${basePath}" "\${dataPath2}"\`)
   fs.unlinkSync(dataPath2)
   
   fs.renameSync(path.join(basePath,'app'),path.join(basePath,'_app'))

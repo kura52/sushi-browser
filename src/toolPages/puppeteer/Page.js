@@ -151,7 +151,7 @@ class Page extends EventEmitter {
         chrome.tabs.query({url},getTab)
       }
       else{
-        chrome.tabs.create({url: url || 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html', active},getTab)
+        chrome.tabs.create({url: url || 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html'},getTab)
       }
     })
   }

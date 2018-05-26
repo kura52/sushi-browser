@@ -60,7 +60,7 @@ function fixForInferno(file){
 
 function build(){
   const platform = isLinux ? 'linux' : isWindows ? 'win32' : isDarwin ? 'darwin' : 'mas'
-  const ret = sh.exec(`node ./node_modules/electron-packager/cli.js . ${isWindows ? 'brave' : 'sushi-browser'} --platform=${platform} --arch=x64 --overwrite --icon=${appIcon} --version=${MUON_VERSION}  --asar=true --app-version=${APP_VERSION} --build-version=${MUON_VERSION} --protocol="http" --protocol-name="HTTP Handler" --protocol="https" --protocol-name="HTTPS Handler" --version-string.ProductName="Sushi Browser" --version-string.Copyright="Copyright 2017, Sushi Browser" --version-string.FileDescription="Sushi" --asar-unpack-dir="{node_modules/{node-pty,youtube-dl/bin},node_modules/node-pty/**/*,resource/{bin,extension}/**/*}" --ignore="\\.(cache|babelrc|gitattributes|githug|gitignore|gitattributes|gitignore|gitkeep|gitmodules)|node_modules/(electron-installer-squirrel-windows|electron-installer-debian|node-gyp|npm|electron-download|electron-rebuild|electron-packager|electron-builder|electron-prebuilt|electron-rebuild|electron-winstaller-fixed|muon-winstaller|electron-installer-redhat|react-addons-perf|babel-polyfill|infinite-tree|babel-register|jsx-to-string|happypack|es5-ext|browser-sync-ui|gulp-uglify|devtron|electron$|deasync|webpack|babel-runtime|uglify-es|babel-plugin|7zip-bin|webdriverio|semantic-ui-react/(node_modules|src)|semantic-ui-react/dist/(commonjs|umd)|babili|babel-helper|react-dom|react|@types|@gulp-sourcemaps|js-beautify)|tools|sushi-browser-|release-packed|cppunitlite|happypack|es3ify"`)
+  const ret = sh.exec(`node ./node_modules/electron-packager/cli.js . ${isWindows ? 'brave' : 'sushi-browser'} --platform=${platform} --arch=x64 --overwrite --icon=${appIcon} --version=${MUON_VERSION}  --asar=true --app-version=${APP_VERSION} --build-version=${MUON_VERSION} --protocol="http" --protocol-name="HTTP Handler" --protocol="https" --protocol-name="HTTPS Handler" --version-string.ProductName="Sushi Browser" --version-string.Copyright="Copyright 2017, Sushi Browser" --version-string.FileDescription="Sushi" --asar-unpack-dir="{node_modules/{node-pty,youtube-dl/bin},node_modules/node-pty/**/*,resource/{bin,extension}/**/*}" --ignore="\\.(cache|babelrc|gitattributes|githug|gitignore|gitattributes|gitignore|gitkeep|gitmodules)|node_modules/(electron-installer-squirrel-windows|electron-installer-debian|node-gyp|electron-download|electron-rebuild|electron-packager|electron-builder|electron-prebuilt|electron-rebuild|electron-winstaller-fixed|muon-winstaller|electron-installer-redhat|react-addons-perf|babel-polyfill|infinite-tree|babel-register|jsx-to-string|happypack|es5-ext|browser-sync-ui|gulp-uglify|devtron|electron$|deasync|webpack|babel-runtime|uglify-es|babel-plugin|7zip-bin|webdriverio|semantic-ui-react/(node_modules|src)|semantic-ui-react/dist/(commonjs|umd)|babili|babel-helper|react-dom|react|@types|@gulp-sourcemaps|js-beautify)|tools|sushi-browser-|release-packed|cppunitlite|happypack|es3ify"`)
 
   const pwd = sh.pwd().toString()
   if(isDarwin){
@@ -84,7 +84,7 @@ function build(){
   sh.mv('app.asar.unpacked/resource/extension/default/1.0_0/css/semantic-ui/themes/default/assets',
     'app.asar.unpacked/resource/extension/default/1.0_0/css/semantic-ui/themes/default/assets2')
   sh.mv(`${pwd}/${buildDir}/LICENSE`,`${pwd}/${buildDir}/_LICENSE`)
-  sh.exec(`~/.go/bin/node-prune ${pwd}/${buildDir}`)
+  // sh.exec(`~/.go/bin/node-prune ${pwd}/${buildDir}`)
   sh.mv(`${pwd}/${buildDir}/_LICENSE`,`${pwd}/${buildDir}/LICENSE`)
   sh.mv('app.asar.unpacked/resource/extension/default/1.0_0/css/semantic-ui/themes/default/assets2',
     'app.asar.unpacked/resource/extension/default/1.0_0/css/semantic-ui/themes/default/assets')
@@ -213,7 +213,6 @@ var getTabValue = function (tabId) {`)
     val.openerTabId = opener
     sendToBackgroundPages('all', getSessionForTab(tabId), 'chrome-tabs-created', val)
     sendToBackgroundPages('all', getSessionForTab(tabId), 'chrome-tabs-updated', tabId, {status:'loading'}, val)
-    console.log('dddddddd',tabId,val.openerTabId)
   }
   else{
     let win = BrowserWindow.fromId(val.windowId)
@@ -382,15 +381,15 @@ var getTabValue = function (tabId) {`)
 //       const result2 = contents2
 //         .replace('let packagePath = null',`let packagePath
 // const basePath = path.join(__dirname,'../..')
-// if(!fs.existsSync(path.join(basePath,'app.asar'))){
+// if(fs.existsSync(path.join(basePath,'app.asar.7z'))){
 //   const binPath = path.join(basePath,\`7zip/\${process.platform === 'win32' ? 'win' : process.platform === 'darwin' ? 'mac' : 'linux'}/7za\`)
 //   const execSync = require('child_process').execSync
 //   const dataPath = path.join(basePath,'app.asar.unpacked.7z')
-//   const result =  execSync(\`\${binPath} x -o\${basePath} \${dataPath}\`)
+//   const result =  execSync(\`\${binPath} x -y -o\${basePath} \${dataPath}\`)
 //   fs.unlinkSync(dataPath)
 //
 //   const dataPath2 = path.join(basePath,'app.asar.7z')
-//   const result2 =  execSync(\`\${binPath} x -o\${basePath} \${dataPath2}\`)
+//   const result2 =  execSync(\`\${binPath} x -y -o\${basePath} \${dataPath2}\`)
 //   fs.unlinkSync(dataPath2)
 //
 //   fs.renameSync(path.join(basePath,'app'),path.join(basePath,'_app'))
@@ -582,16 +581,16 @@ glob.sync(`${pwd}/**/.directory`).forEach(file=>{
 
 // Replace console.log
 const jsFiles = glob.sync(`${pwd}/src/**/*.js`)
-filesContentsReplace(jsFiles,/console\.log\(/,'//debug(')
-filesContentsReplace(jsFiles,/window.debug = require\('debug'\)\('info'\)/,"// window.debug = require('debug')('info')")
-filesContentsReplace(jsFiles,/global.debug = require\('debug'\)\('info'\)/,"// global.debug = require('debug')('info')")
+// filesContentsReplace(jsFiles,/console\.log\(/,'//debug(')
+// filesContentsReplace(jsFiles,/window.debug = require\('debug'\)\('info'\)/,"// window.debug = require('debug')('info')")
+// filesContentsReplace(jsFiles,/global.debug = require\('debug'\)\('info'\)/,"// global.debug = require('debug')('info')")
 filesContentsReplace(jsFiles,/extensions.init\(true\)/,"extensions.init(setting.ver !== fs.readFileSync(path.join(__dirname, '../VERSION.txt')).toString())")
 
 const jsFiles2 = glob.sync(`${pwd}/brave/**/*.js`)
 filesContentsReplace(jsFiles2,/console\.log\(/,'//debug(')
 
 // Babel Use babili
-filesContentsReplace(`${pwd}/.babelrc`,/"babel\-preset\-stage\-2"\]/,'"babel-preset-stage-2","babili"]')
+// filesContentsReplace(`${pwd}/.babelrc`,/"react"\]/,'"react","babili"]')
 filesContentsReplace(`${pwd}/.babelrc`,'] // ,["lodash", { "id": ["lodash", "semantic-ui-react"] }]]',',["lodash", { "id": ["lodash", "semantic-ui-react"] }]]')
 
 console.log((Date.now() - start)/1000)
@@ -634,9 +633,17 @@ if(sh.exec('webpack').code !== 0) {
   process.exit()
 }
 
-filesContentsReplace(`${pwd}/.babelrc`,/"babel\-preset\-stage\-2","babili"\]/,'"babel-preset-stage-2"]')
+// filesContentsReplace(`${pwd}/.babelrc`,/"react","babili"\]/,'"react"]')
 
 const promises = []
+
+fixForInferno(`${pwd}/${compiledJsFiles.slice(-1)[0]}`)
+// const promises2 = [new Promise((resolve,reject)=>{
+//   sh.exec(`uglifyjs --compress --mangle -o ${compiledJsFiles.slice(-1)[0]} -- ${compiledJsFiles.slice(-1)[0]}`, {async:true}, (code, stdout, stderr) => {
+//     resolve()
+//   })
+// })]
+const promises2 = []
 
 for(let f of compiledJsFiles.slice(0,-1)){
   filesContentsReplace(webpackFile,/\/\/ +?merge\(/,'merge(')
@@ -658,20 +665,19 @@ for(let f of compiledJsFiles.slice(0,-1)){
 
 //Uglify build files
 Promise.all(promises).then(_=>{
-  compiledJsFiles.forEach(f=>fixForInferno(`${pwd}/${f}`))
+  compiledJsFiles.slice(0,-1).forEach(f=>fixForInferno(`${pwd}/${f}`))
 
-  const promises = []
   const uglifyFiles = compiledJsFiles.slice(0,-1)
-  for(let f of uglifyFiles){
-    const promise = new Promise((resolve,reject)=>{
-      sh.exec(`uglifyjs --compress --mangle -o ${f} -- ${f}`, {async:true}, (code, stdout, stderr) => {
-        resolve()
-      })
-    })
-    promises.push(promise)
-  }
+  // for(let f of uglifyFiles){
+  //   const promise = new Promise((resolve,reject)=>{
+  //     sh.exec(`uglifyjs --compress --mangle -o ${f} -- ${f}`, {async:true}, (code, stdout, stderr) => {
+  //       resolve()
+  //     })
+  //   })
+  //   promises2.push(promise)
+  // }
 
-  Promise.all(promises).then(_ => {
+  Promise.all(promises2).then(_ => {
     sh.rm('-rf','sushi-browser-*')
     build()
 

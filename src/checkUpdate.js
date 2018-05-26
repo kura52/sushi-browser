@@ -70,7 +70,7 @@ function checkUpdate(ver,checkedVersion){
                     console.log(fullPath,retry)
                     if(!fs.existsSync(fullPath)) return
                     clearInterval(intId)
-                    const ret = await exec(`"${exePath[0]}" x -o"${extractDirc}" "${fullPath}"`)
+                    const ret = await exec(`"${exePath[0]}" x -y -o"${extractDirc}" "${fullPath}"`)
                     console.log(345,ret)
 
                     open(path.join(extractDirc,isDarwin || isLinux ? 'sushi' : 'sushi.exe'))

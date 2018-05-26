@@ -287,6 +287,7 @@ class BrowserNavbar extends Component{
   }
 
   updateStates(){
+    if(!this.props.tab.wvId) return
     ipc.once(`get-cont-history-reply_${this.props.tab.wvId}`,(e,currentIndex,historyList,rSession,disableExtensions,adBlockGlobal,pdfMode,navbarItems)=>{
       left = navbarItems.left
       right = navbarItems.right
@@ -307,6 +308,7 @@ class BrowserNavbar extends Component{
   }
 
   componentWillUpdate(prevProps, prevState) {
+    if(!this.props.tab.wvId) return
     ipc.once(`get-cont-history-reply_${this.props.tab.wvId}`,(e,currentIndex,historyList,rSession,disableExtensions,adBlockGlobal,pdfMode,navbarItems)=>{
       if(currentIndex === (void 0)) return
       staticDisableExtensions = disableExtensions

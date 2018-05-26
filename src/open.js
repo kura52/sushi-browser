@@ -17,7 +17,7 @@ var exec = require('child_process').exec
 
 module.exports = open;
 
-function open(target, appName, callback) {
+function open(target, appName, callback, cwd) {
   var opener;
 
   if (typeof(appName) === 'function') {
@@ -54,7 +54,10 @@ function open(target, appName, callback) {
   if (process.env.SUDO_USER) {
     opener = 'sudo -u ' + process.env.SUDO_USER + ' ' + opener;
   }
-  console.log(opener + ' "' + escape(target) + '"')
+  console.log(opener + ' "' + escape(target) + '" &', {cwd})
+  if(cwd){
+    return exec(opener + ' "' + escape(target) + '" &', {cwd}, callback);
+  }
   return exec(opener + ' "' + escape(target) + '" &', callback);
 }
 

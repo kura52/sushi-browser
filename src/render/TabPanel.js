@@ -191,10 +191,10 @@ function tabAdd(self, url, isSelect=true,privateMode = false,guestInstanceId,mob
 }
 
 function exeScript(wv,callback,evalFunc,...args){
-  let strs = `(${evalFunc.toString()})()`.split('___SPLIT___')
+  let strs = `(${evalFunc.toString()})()`.split(/___SPLIT___,?/)
   if(strs.length > 1) strs.splice(1,0,...args)
   // console.log(strs.join('\n'))
-  wv.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',strs.join('\n'),{},callback)
+  wv.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',strs.join(';\n'),{},callback)
 }
 
 const tabsClassNames = {
@@ -1315,7 +1315,7 @@ export default class TabPanel extends Component {
         })
 
         ipc.send('get-did-finish-load',tab.wvId,tab.key,tab.rSession)
-        ipc.on(`get-did-finish-load-reply_${tab.wvId}`,(e,c)=> {
+        ipc.once(`get-did-finish-load-reply_${tab.wvId}`,(e,c)=> {
           console.log(`get-did-finish-load-reply_${tab.wvId}`,c)
           if(!c || !self.mounted) return
           const loc = c.url
