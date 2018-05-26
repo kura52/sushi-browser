@@ -84,7 +84,7 @@ function build(){
   sh.mv('app.asar.unpacked/resource/extension/default/1.0_0/css/semantic-ui/themes/default/assets',
     'app.asar.unpacked/resource/extension/default/1.0_0/css/semantic-ui/themes/default/assets2')
   sh.mv(`${pwd}/${buildDir}/LICENSE`,`${pwd}/${buildDir}/_LICENSE`)
-  // sh.exec(`~/.go/bin/node-prune ${pwd}/${buildDir}`)
+  sh.exec(`~/.go/bin/node-prune ${pwd}/${buildDir}`)
   sh.mv(`${pwd}/${buildDir}/_LICENSE`,`${pwd}/${buildDir}/LICENSE`)
   sh.mv('app.asar.unpacked/resource/extension/default/1.0_0/css/semantic-ui/themes/default/assets2',
     'app.asar.unpacked/resource/extension/default/1.0_0/css/semantic-ui/themes/default/assets')
@@ -581,16 +581,16 @@ glob.sync(`${pwd}/**/.directory`).forEach(file=>{
 
 // Replace console.log
 const jsFiles = glob.sync(`${pwd}/src/**/*.js`)
-// filesContentsReplace(jsFiles,/console\.log\(/,'//debug(')
-// filesContentsReplace(jsFiles,/window.debug = require\('debug'\)\('info'\)/,"// window.debug = require('debug')('info')")
-// filesContentsReplace(jsFiles,/global.debug = require\('debug'\)\('info'\)/,"// global.debug = require('debug')('info')")
+filesContentsReplace(jsFiles,/console\.log\(/,'//debug(')
+filesContentsReplace(jsFiles,/window.debug = require\('debug'\)\('info'\)/,"// window.debug = require('debug')('info')")
+filesContentsReplace(jsFiles,/global.debug = require\('debug'\)\('info'\)/,"// global.debug = require('debug')('info')")
 filesContentsReplace(jsFiles,/extensions.init\(true\)/,"extensions.init(setting.ver !== fs.readFileSync(path.join(__dirname, '../VERSION.txt')).toString())")
 
 const jsFiles2 = glob.sync(`${pwd}/brave/**/*.js`)
 filesContentsReplace(jsFiles2,/console\.log\(/,'//debug(')
 
 // Babel Use babili
-// filesContentsReplace(`${pwd}/.babelrc`,/"react"\]/,'"react","babili"]')
+filesContentsReplace(`${pwd}/.babelrc`,/"react"\]/,'"react","babili"]')
 filesContentsReplace(`${pwd}/.babelrc`,'] // ,["lodash", { "id": ["lodash", "semantic-ui-react"] }]]',',["lodash", { "id": ["lodash", "semantic-ui-react"] }]]')
 
 console.log((Date.now() - start)/1000)
@@ -633,17 +633,17 @@ if(sh.exec('webpack').code !== 0) {
   process.exit()
 }
 
-// filesContentsReplace(`${pwd}/.babelrc`,/"react","babili"\]/,'"react"]')
+filesContentsReplace(`${pwd}/.babelrc`,/"react","babili"\]/,'"react"]')
 
 const promises = []
 
 fixForInferno(`${pwd}/${compiledJsFiles.slice(-1)[0]}`)
-// const promises2 = [new Promise((resolve,reject)=>{
-//   sh.exec(`uglifyjs --compress --mangle -o ${compiledJsFiles.slice(-1)[0]} -- ${compiledJsFiles.slice(-1)[0]}`, {async:true}, (code, stdout, stderr) => {
-//     resolve()
-//   })
-// })]
-const promises2 = []
+const promises2 = [new Promise((resolve,reject)=>{
+  sh.exec(`uglifyjs --compress --mangle -o ${compiledJsFiles.slice(-1)[0]} -- ${compiledJsFiles.slice(-1)[0]}`, {async:true}, (code, stdout, stderr) => {
+    resolve()
+  })
+})]
+// const promises2 = []
 
 for(let f of compiledJsFiles.slice(0,-1)){
   filesContentsReplace(webpackFile,/\/\/ +?merge\(/,'merge(')
@@ -668,14 +668,14 @@ Promise.all(promises).then(_=>{
   compiledJsFiles.slice(0,-1).forEach(f=>fixForInferno(`${pwd}/${f}`))
 
   const uglifyFiles = compiledJsFiles.slice(0,-1)
-  // for(let f of uglifyFiles){
-  //   const promise = new Promise((resolve,reject)=>{
-  //     sh.exec(`uglifyjs --compress --mangle -o ${f} -- ${f}`, {async:true}, (code, stdout, stderr) => {
-  //       resolve()
-  //     })
-  //   })
-  //   promises2.push(promise)
-  // }
+  for(let f of uglifyFiles){
+    const promise = new Promise((resolve,reject)=>{
+      sh.exec(`uglifyjs --compress --mangle -o ${f} -- ${f}`, {async:true}, (code, stdout, stderr) => {
+        resolve()
+      })
+    })
+    promises2.push(promise)
+  }
 
   Promise.all(promises2).then(_ => {
     sh.rm('-rf','sushi-browser-*')

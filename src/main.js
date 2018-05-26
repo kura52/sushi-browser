@@ -59,53 +59,18 @@ function changePortable(folder){
     changePortable('data')
     console.log(7773477,process.argv)
 
-    if(process.argv[1] == '--update'){
-      const isWin = process.platform == 'win32'
+    const isWin = process.platform == 'win32'
+    if(isWin && process.argv[1] == '--update-delete'){
       const sh = require('shelljs')
       const glob = require("glob")
-      const fkill = require('fkill')
-      fkill(isWin ? 'sushi' : 'sushi-browser', {force: true}).then(e=>console.log(e))
-      const files = glob.sync(path.join(__dirname, '../../../..', '_update_*'))
-      if (files.length && glob.sync(path.join(path.join(__dirname, '../../..'), "sushi*")).length &&
-        glob.sync(path.join(path.join(__dirname, '../../../..'), "sushi*")).length){
-        setTimeout(_=>{
-          sh.cp('-Rf', path.join(__dirname, '../../..', '*'), path.join(__dirname, '../../../..','.'))
-          sh.mv('-f',path.join(__dirname, '../../../..',isWin ? 'sushiu.exe' : 'sushiu', isWin ? 'sushi.exe' : 'sushi-browser'))
-          const {spawn} = require('child_process')
-          const p = path.join(__dirname,'../../../..')
-          spawn(path.join(p,isWin ? 'sushi.exe' : 'sushi-browser'),['--update-delete'],{detached: true, stdio: 'ignore', cwd: p}).unref()
-          setTimeout(_=>app.quit(),0)
-        },2000)
-        return
-      }
-    }
-    else if(process.argv[1] == '--update-delete'){
-      const isWin = process.platform == 'win32'
-      const sh = require('shelljs')
-      const glob = require("glob")
-      const fkill = require('fkill')
-      fkill(isWin ? 'sushiu' : 'sushiu', {force: true}).then(e=>console.log(e))
       setTimeout(_=>{
         const files = glob.sync(path.join(__dirname, '../../..', '_update_*'))
-        if (files.length && glob.sync(path.join(files[files.length - 1], "sushi*")).length) {
+        if (files.length && glob.sync(path.join(files[files.length - 1], "resources")).length) {
           const dir = files[files.length - 1]
           console.log(dir)
           if(dir.match(/_update_\d+$/)) sh.rm('-rf', dir)
         }
-      },2000)
-    }
-    else {
-      const glob = require("glob")
-      const files = glob.sync(path.join(__dirname, '../../..', '_update_*'))
-      if (files.length && glob.sync(path.join(files[files.length - 1], "sushi*")).length) {
-        const dir = files[files.length - 1]
-        const {spawn} = require('child_process')
-        const isWin = process.platform == 'win32'
-        console.log(43432423,path.join(files[files.length - 1], isWin ? 'sushi.exe' : 'sushi-browser'))
-        spawn(path.join(files[files.length - 1], isWin ? 'sushiu.exe' : 'sushiu'),['--update'],{detached: true, stdio: 'ignore', cwd: files[files.length - 1]}).unref()
-        setTimeout(_=>app.quit(),0)
-        return
-      }
+      },100)
     }
 
     const appPath = app.getPath('userData')
