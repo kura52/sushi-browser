@@ -1392,6 +1392,10 @@ ipcMain.on('print-to-pdf',(e,key,tabId,savePath,options)=>{
   })
 })
 
+ipcMain.on('open-update-cmd',e=>{
+  shell.showItemInFolder(path.join(__dirname, '../../../update.cmd'))
+})
+
 ipcMain.on('screen-shot',(e,{full,type,rect,tabId,tabKey,quality=92,savePath,autoPlay})=>{
   const capture = (cb,image)=>{
     if(cb) cb()

@@ -119,12 +119,15 @@ if not "%ver%"=="%newver%" (
   resources\\7zip\\win\\7za.exe x -y -o"_update_%newver%" "sushi-browser-%newver%-win-ia32.zip"
 
   taskkill /F /IM sushi.exe
+  copy /Y resources\\app.asar.unpacked\\resource\\portable.txt resources\\portable.txt
   rd /s /q resources\\_app
   rd /s /q resources\\app.asar.unpacked
+  del /Q resources\\app.asar
+  del /Q resources\\electron.asar
   cd _update_%newver%\\sushi-browser-portable
   xcopy /S /E /Y . ..\\..
   cd ..\\..
-  sushi.exe --update-delete
+  powershell Start-Process sushi.exe --update-delete
 )`)
   }
 
@@ -409,6 +412,16 @@ if(fs.existsSync(path.join(basePath,'app.asar.7z'))){
   const dataPath2 = path.join(basePath,'app.asar.7z')
   const result2 =  execSync(\`"\${binPath}" x -y -o"\${basePath}" "\${dataPath2}"\`)
   fs.unlinkSync(dataPath2)
+  
+  if(process.argv[1] == '--update-delete'){
+    const portablePath = path.join(basePath, 'app.asar.unpacked/resource', 'portable.txt')
+    fs.unlinkSync(portablePath)
+    
+    const portablePath2 = path.join(basePath,'portable.txt')
+    if(fs.existsSync(portablePath2)){
+      fs.renameSync(portablePath2,portablePath)
+    }
+  }
   
   fs.renameSync(path.join(basePath,'app'),path.join(basePath,'_app'))
 }`)
