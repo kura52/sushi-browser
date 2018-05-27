@@ -65,7 +65,7 @@ function changePortable(folder){
       const glob = require("glob")
       setTimeout(_=>{
         const files = glob.sync(path.join(__dirname, '../../..', '_update_*'))
-        if (files.length && glob.sync(path.join(files[files.length - 1], "resources")).length) {
+        if (files.length && glob.sync(path.join(files[files.length - 1], "sushi-browser-portable")).length) {
           const dir = files[files.length - 1]
           console.log(dir)
           if(dir.match(/_update_\d+$/)) sh.rm('-rf', dir)
