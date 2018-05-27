@@ -34,11 +34,11 @@ function checkUpdate(ver,checkedVersion){
     const updVer = JSON.parse(body).ver
       console.log(ver,updVer,checkedVersion,mainState.checkedVersion)
       if(gt(mainState.checkedVersion,checkedVersion)) checkedVersion = mainState.checkedVersion
-      if(true || gt(updVer,ver) && gt(updVer,checkedVersion)){
+      if(gt(updVer,ver) && gt(updVer,checkedVersion)){
         const key = uuid.v4()
         const bw = getCurrentWindow()
         const isWin = process.platform == 'win32'
-        bw.webContents.send('show-notification',{key,text:`${locale.translation('updateAvail').replace('Brave','Sushi Browser')} (Version: ${updVer})${isWin ? '*When you run update.cmd, automatic update will be done.(Experimental)' : ''}`, buttons:['Check Website','No Thanks']})
+        bw.webContents.send('show-notification',{key,text:`${locale.translation('updateAvail').replace('Brave','Sushi Browser')} (Version: ${updVer})${isWin ? '\n*When you run update.cmd, automatic update will be done.(Experimental)' : ''}`, buttons:['Check Website','No Thanks']})
 
         ipcMain.once(`reply-notification-${key}`,(e,ret)=>{
           mainState.checkedVersion = updVer

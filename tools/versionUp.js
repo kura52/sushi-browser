@@ -6,19 +6,21 @@ const glob = require("glob")
 const BEFORE_CODE_NAME = 'Shirauo(Icefish)'
 const CODE_NAME = 'Shirauo(Icefish)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.16.5"
+const NEXT_APP_VERSION = "0.16.6"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Changed the display order of the video list so that the new one is above.
-Changed to attach no-audio prefix and audio-only prefix when detecting motion picture.
-HLS Movie download argument change.
-Changed to be able to transition to the unmuted state by clicking the mute icon except during movie playback.
-Fixed Some bugs`
+const CHANGE_ENGLISH = `Implemented update batch (update.cmd). *Windows only, experimental function.
+Expanded available range of movie manipulation functions by clicking and scrolling.
+Improveed to display percentage in tab title when volume is changed.
+Apply minify to all files.
+Fixed fatal bug when tab dragging.
+Fixed Some bugs.`
 
-const CHANGE_JAPANESE = `動画一覧の表示順を新しいものが上になるようを変更
-動画検出時に、音声なしはno-audio、動画なしはaudio-onlyとファイル名の先頭につけるように変更。また、音声なし動画の並び順を下げた
-hls動画のダウンロード引数変更
-動画再生時以外もミュートアイコンをクリックして、アンミュート状態に遷移できるよう変更
+const CHANGE_JAPANESE = `アップデートバッチ(update.cmd)を実装(Windowsのみ、実験的機能)
+クリックやスクロールによる動画操作機能の利用可能範囲を拡大
+音量変更時にタブタイトルに％を表示するように改善
+minifyを全ファイルに適用
+タブドラッグ時の致命的な不具合修正
 いくつかの不具合修正`
 
 const isWindows = process.platform === 'win32'

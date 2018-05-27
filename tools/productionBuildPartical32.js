@@ -97,14 +97,14 @@ function build(){
     sh.exec(`C:/Users/kura5/go/bin/node-prune ${pwd}/${buildDir}`)
     sh.mv(`${pwd}/${buildDir}/_LICENSE`,`${pwd}/${buildDir}/LICENSE`)
     sh.rm(`${pwd}/${buildDir}/LICENSES.chromium.html`)
-    sh.cp(`app/resource/VERSION.txt`,`${pwd}/${buildDir}/VERSION.txt`)
+    sh.cp(`app/VERSION.txt`,`${pwd}/${buildDir}/VERSION.txt`)
     fs.writeFileSync(`${pwd}/${buildDir}/update.cmd`,`@echo off
 cd /d %~dp0
 for /f "tokens=1" %%i in (VERSION.txt) do (
   set ver=%%i
 )
 
-resources\\app.asar.unpacked\\resource\\bin\\aria2\\win\\aria2c.exe --check-certificate=false https://sushib.me/check.json
+resources\\app.asar.unpacked\\resource\\bin\\aria2\\win\\aria2c.exe --check-certificate=false --auto-file-renaming=false --allow-overwrite=true https://sushib.me/check.json
 
 for /f "tokens=1" %%j in (check.json) do (
   set ver2=%%j
@@ -112,16 +112,17 @@ for /f "tokens=1" %%j in (check.json) do (
 
 set newver=%ver2:~8,6%
 
-echo %ver%
-echo %newver%
+echo old:%ver% new:%newver%
 
 if not "%ver%"=="%newver%" (
-  resources\\app.asar.unpacked\\resource\\bin\\aria2\\win\\aria2c.exe --check-certificate=false https://sushib.me/dl/sushi-browser-%newver%-win-ia32.zip
+  resources\\app.asar.unpacked\\resource\\bin\\aria2\\win\\aria2c.exe --check-certificate=false --auto-file-renaming=false --allow-overwrite=true https://sushib.me/dl/sushi-browser-%newver%-win-ia32.zip
   resources\\7zip\\win\\7za.exe x -y -o"_update_%newver%" "sushi-browser-%newver%-win-ia32.zip"
 
   taskkill /F /IM sushi.exe
+  rd /s /q resources\\_app
+  rd /s /q resources\\app.asar.unpacked
   cd _update_%newver%\\sushi-browser-portable
-  xcopy /S /E /Y . ..
+  xcopy /S /E /Y . ..\\..
   cd ..\\..
   sushi.exe --update-delete
 )`)

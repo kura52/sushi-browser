@@ -402,6 +402,7 @@ if(window.__started_){
       if(!nothing){
         e.preventDefault()
         e.stopPropagation()
+        return false
       }
     }
 
