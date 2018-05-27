@@ -7,7 +7,7 @@ export default function Notification(props){
   if(props.data.style) style = Object.assign(style,props.data.style)
 
   const message = props.data.text.includes('When you run update.cmd') ?
-    props.data.text.split(/\r?\n/).map((x,i)=> i == 0 ? <div key={i}>{x}</div> : <div key={i}><a onClick={_=>ipc.send('open-update-cmd')}>{x}</a></div>) :
+    props.data.text.split(/\r?\n/).map((x,i)=> i == 0 ? <div key={i}>{x}</div> : <div key={i}><a style={{textDecoration: 'underline'}}onClick={_=>ipc.send('open-update-cmd')}>{x}</a></div>) :
     props.data.text.split(/\r?\n/).map((x,i)=> <div key={i}>{x}</div>)
 
   if(props.data.windowDialog){

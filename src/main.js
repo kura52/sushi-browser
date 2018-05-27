@@ -68,7 +68,7 @@ function changePortable(folder){
         if (files.length && glob.sync(path.join(files[files.length - 1], "sushi-browser-portable")).length) {
           const dir = files[files.length - 1]
           console.log(dir)
-          if(dir.match(/_update_\d+$/)) sh.rm('-rf', dir)
+          if(dir.match(/_update_[\d\.]+$/)) sh.rm('-rf', dir)
         }
       },100)
     }

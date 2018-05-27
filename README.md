@@ -135,14 +135,14 @@ This browser makes use of wonderful web technologies, starting with the followin
 Both the installer for every platform and the portable version can be downloaded.  
 To use the portable edition, please run sushi.exe for Windows and sushi-browser for Mac/Linux after decompressing.
 
-- [Windows Installer v0.16.5](https://sushib.me/dl/sushi-browser-0.16.5-setup-x64.exe)
-- [Windows Portable v0.16.5(self-extract)](https://sushib.me/dl/sushi-browser-0.16.5-win-x64.exe)
-- [Windows Portable v0.16.5](https://sushib.me/dl/sushi-browser-0.16.5-win-x64.zip)
-- [MacOS dmg v0.16.5](https://sushib.me/dl/SushiBrowser-0.16.5.dmg)
-- [MacOS Portable v0.16.5](https://sushib.me/dl/sushi-browser-0.16.5-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.16.5](https://sushib.me/dl/sushi-browser-0.16.5.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.16.5](https://sushib.me/dl/sushi-browser_0.16.5_amd64.deb)
-- [Linux Portable v0.16.5](https://sushib.me/dl/sushi-browser-0.16.5.tar.bz2)
+- [Windows Installer v0.16.6](https://sushib.me/dl/sushi-browser-0.16.6-setup-x64.exe)
+- [Windows Portable v0.16.6(self-extract)](https://sushib.me/dl/sushi-browser-0.16.6-win-x64.exe)
+- [Windows Portable v0.16.6](https://sushib.me/dl/sushi-browser-0.16.6-win-x64.zip)
+- [MacOS dmg v0.16.6](https://sushib.me/dl/SushiBrowser-0.16.6.dmg)
+- [MacOS Portable v0.16.6](https://sushib.me/dl/sushi-browser-0.16.6-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.16.6](https://sushib.me/dl/sushi-browser-0.16.6.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.16.6](https://sushib.me/dl/sushi-browser_0.16.6_amd64.deb)
+- [Linux Portable v0.16.6](https://sushib.me/dl/sushi-browser-0.16.6.tar.bz2)
 
 # Use of Flash 
 If Flash won't run, please install Flash from the following web sites.  
@@ -156,6 +156,14 @@ sushi-browser --no-sandbox
 ```
 
 # New Features
+
+#### New function(v0.16.6)
+- Implemented update batch (update.cmd). *Windows only, experimental function
+- Expanded available range of movie manipulation functions by clicking and scrolling.
+- Improveed to display percentage in tab title when volume is changed.
+- Apply minify to all files.
+- Fixed fatal bug when tab dragging.
+- Fixed Some bugs.
 
 #### New function(v0.16.5)
 - Changed the display order of the video list so that the new one is above.
