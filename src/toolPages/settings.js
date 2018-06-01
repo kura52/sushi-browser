@@ -1684,7 +1684,7 @@ class VideoSetting extends React.Component {
       </Grid>
       <br/>
       <br/>
-
+w
       <div className="field">
         <Checkbox defaultChecked={this.state.reverseWheelVideo} toggle onChange={this.onChange.bind(this,'reverseWheelVideo')}/>
         <span className="toggle-label">{l10n.translation('reverseWheelMediaSeeking').replace(/\(.\)/,'')}</span>
@@ -1707,6 +1707,14 @@ class VideoSetting extends React.Component {
         <Grid.Row>
           <Grid.Column width={4}><label>{l10n.translation('mediaSeeking').replace(/\(.\)/,'')+'3'}</label></Grid.Column>
           <Grid.Column width={7}><Input onChange={this.onChange.bind(this,'mediaSeek3Video')} defaultValue={this.state.mediaSeek3Video}/>{' '+l10n.translation('minimumPageTimeLow').replace(/5 */,'')}</Grid.Column>
+        </Grid.Row>
+        <Grid.Row>
+          <Grid.Column width={4}><label>{l10n.translation('volumeControl').replace(/\(.\)/,'')}</label></Grid.Column>
+          <Grid.Column width={7}><Input onChange={this.onChange.bind(this,'audioSeekVideo')} defaultValue={this.state.audioSeekVideo}/>%</Grid.Column>
+        </Grid.Row>
+        <Grid.Row>
+          <Grid.Column width={4}><label>{l10n.translation('changeSpeed').replace(/\(.\)/,'')}</label></Grid.Column>
+          <Grid.Column width={7}><Input onChange={this.onChange.bind(this,'speedSeekVideo')} defaultValue={this.state.speedSeekVideo}/>%</Grid.Column>
         </Grid.Row>
       </Grid>
       <br/>

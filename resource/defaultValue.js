@@ -264,6 +264,9 @@ const settingDefault =  {
   mediaSeek2Video: 10,
   mediaSeek3Video: 60,
 
+  speedSeekVideo: 10,
+  audioSeekVideo: 10,
+
   clickVideo: '',
   dbClickVideo: 'fullscreen',
 

@@ -365,11 +365,13 @@ if(window.__started_){
         v.currentTime -= 1 / 30
       }
       else if(name == 'decSpeed'){
-        v.playbackRate -= 0.1
+        const seek = parseInt(inputs.speedSeek)/100.0
+        v.playbackRate -= seek
         popUp(v,`Speed: ${Math.round(v.playbackRate * 100)}%`)
       }
       else if(name == 'incSpeed'){
-        v.playbackRate += 0.1
+        const seek = parseInt(inputs.speedSeek)/100.0
+        v.playbackRate += seek
         popUp(v,`Speed: ${Math.round(v.playbackRate * 100)}%`)
       }
       else if(name == 'normalSpeed'){
@@ -385,11 +387,15 @@ if(window.__started_){
         popUp(v,`Speed: ${Math.round(v.playbackRate * 100)}%`)
       }
       else if(name == 'decreaseVolume'){
-        v.volume -= 0.1
+        const band = parseInt(inputs.audioSeek)
+        const seek = band/100.0
+        v.volume = Math.max(Math.round(v.volume*100/band)*band/100 - seek, 0)
         popUp(v,`Volume: ${Math.round(v.volume * 100)}%`)
       }
       else if(name == 'increaseVolume'){
-        v.volume += 0.1
+        const band = parseInt(inputs.audioSeek)
+        const seek = band/100.0
+        v.volume = Math.min(Math.round(v.volume*100/band)*band/100 + seek, 1)
         popUp(v,`Volume: ${Math.round(v.volume * 100)}%`)
       }
       else if(name == 'plRepeat'){

@@ -114,7 +114,7 @@ ipcMain.on('add-extension',(e,{id,url})=>{
   setTimeout(_=>{
     const intId = setInterval(async _=>{
       console.log(234,global.downloadItems)
-      if(retry++ > 100) clearInterval(intId)
+      if(retry++ > 1000) clearInterval(intId)
       if(!global.downloadItems.find(x=>x.savePath == `${extRootPath}.crx`)){
         try{
           console.log(`${extRootPath}.crx`,retry)

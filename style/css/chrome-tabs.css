@@ -47,7 +47,7 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
-  pointer-events: none;
+  /*pointer-events: none;*/
   border-bottom: 1px solid #aaa;
 }
 .chrome-tabs .chrome-tab.chrome-tab-current .chrome-tab-background {
