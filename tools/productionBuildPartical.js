@@ -117,18 +117,21 @@ echo old:%ver% new:%newver%
 if not "%ver%"=="%newver%" (
   resources\\app.asar.unpacked\\resource\\bin\\aria2\\win\\aria2c.exe --check-certificate=false --auto-file-renaming=false --allow-overwrite=true https://sushib.me/dl/sushi-browser-%newver%-win-x64.zip
   resources\\7zip\\win\\7za.exe x -y -o"_update_%newver%" "sushi-browser-%newver%-win-x64.zip"
-  del /Q sushi-browser-%newver%-win-x64.zip
   
-  taskkill /F /IM sushi.exe
-  copy /Y resources\\app.asar.unpacked\\resource\\portable.txt resources\\portable.txt
-  rd /s /q resources\\_app
-  rd /s /q resources\\app.asar.unpacked
-  del /Q resources\\app.asar
-  del /Q resources\\electron.asar
-  cd _update_%newver%\\sushi-browser-portable
-  xcopy /S /E /Y . ..\\..
-  cd ..\\..
-  powershell Start-Process sushi.exe --update-delete
+  if exist sushi-browser-%newver%-win-x64.zip (
+    del /Q sushi-browser-%newver%-win-x64.zip
+  
+    taskkill /F /IM sushi.exe
+    copy /Y resources\\app.asar.unpacked\\resource\\portable.txt resources\\portable.txt
+    rd /s /q resources\\_app
+    rd /s /q resources\\app.asar.unpacked
+    del /Q resources\\app.asar
+    del /Q resources\\electron.asar
+    cd _update_%newver%\\sushi-browser-portable
+    xcopy /S /E /Y . ..\\..
+    cd ..\\..
+    powershell Start-Process sushi.exe --update-delete
+  )
 )`)
   }
 

@@ -445,7 +445,7 @@ class Tabs extends React.Component {
     else {
       tabInlineStyles.tabBar.display = "flex"
       tabInlineStyles.tabBar.paddingRight = void 0
-      if(this.tabPreviewHeight) tabInlineStyles.tabBar.height = `${this.tabPreviewHeight}px`
+      if(this.tabPreviewHeight && this.tabPreviewHeight != 27) tabInlineStyles.tabBar.height = `${this.tabPreviewHeight}px`
       // const titleElements = document.getElementsByClassName("rdTabBar mfyTabBar")
       //   for (let i = 0; i < titleElements.length; i++) {
       //     titleElements[i].style.display = "flex"
@@ -460,12 +460,12 @@ class Tabs extends React.Component {
     else if(this.isMultistageTabsMode()){
       this.TabStyles.tab.minWidth = `${this.minWidth}px`
       this.TabStyles.tab.maxWidth = `${this.maxWidth}px`
-      this.TabStyles.tab.height = this.tabPreviewHeight ? 'auto' : '27px'
+      this.TabStyles.tab.height = this.tabPreviewHeight && this.tabPreviewHeight != 27 ? 'auto' : '27px'
     }
     else{
       this.TabStyles.tab.minWidth = '0px'
       this.TabStyles.tab.maxWidth = `${tabMaxWidth}px`
-      this.TabStyles.tab.height = this.tabPreviewHeight ? `${this.tabPreviewHeight}px` :  void 0
+      this.TabStyles.tab.height = this.tabPreviewHeight && this.tabPreviewHeight != 27 ? `${this.tabPreviewHeight}px` :  void 0
     }
     tabInlineStyles.tabTitle = this.TabStyles.tabTitle //StyleOverride.merge(this.TabStyles.tabTitle, this.props.tabsStyles.tabTitle);
     tabInlineStyles.tabCloseIcon = this.TabStyles.tabCloseIcon //StyleOverride.merge(this.TabStyles.tabCloseIcon, this.props.tabsStyles.tabCloseIcon);
@@ -549,7 +549,7 @@ class Tabs extends React.Component {
         const ele = document.querySelector(`.s${this.props.k} .tab-base`)
         containerStyle.height = `calc(100% - ${ele ? ele.offsetHeight : 30}px)`
       }
-      else if(this.props.toggleNav == 0 && this.tabPreviewHeight){
+      else if(this.props.toggleNav == 0 && this.tabPreviewHeight && this.tabPreviewHeight != 27){
         const ele = document.querySelector(`.s${this.props.k} .tab-base`)
         containerStyle.height = `calc(100% - ${ele ? ele.offsetHeight : 27}px)`
       }
@@ -1346,7 +1346,7 @@ class Tabs extends React.Component {
         }:
         this.isMultistageTabsMode() ?
           {
-            height : this.tabPreviewHeight || void 0,
+            height : this.tabPreviewHeight && this.tabPreviewHeight != 27 ? this.tabPreviewHeight : void 0,
             background: 'rgb(221, 221, 221)',
             borderBottom: '1px solid #aaa',
           } :
@@ -1375,7 +1375,7 @@ class Tabs extends React.Component {
       <div style={tabInlineStyles.tabWrapper} className={_tabClassNames.tabWrapper} ref="div"
            onDragOver={(e)=>{e.preventDefault();return false}} onDrop={(e)=>{e.preventDefault();return false}}
            onKeyDown={this.props.onKeyDown}>
-        {!this.tabPreviewHeight && preview ? <div style={{
+        {(!this.tabPreviewHeight || this.tabPreviewHeight == 27) && preview ? <div style={{
           position: 'fixed',
           zIndex: 9999999,
           width:200,

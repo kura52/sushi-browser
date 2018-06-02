@@ -2415,14 +2415,13 @@ export default class TabPanel extends Component {
     }
   }
 
-  createTab({default_url,c_page=null,c_wv=null,c_key=null,hist=null,privateMode=false,pin=false,protect=false,lock=false,mute=false,reloadInterval=false,guestInstanceId,rest,..._rest} = {}){
+  createTab({default_url,c_page=null,c_wv=null,c_key=null,hist=null,privateMode=false,pin=false,protect=false,lock=false,mute=false,reloadInterval=false,guestInstanceId,rest,tabPreview} = {}){
     default_url = default_url || (isFixedVerticalPanel(this.props.k) ? sidebarURL : topURL)
     if(default_url) default_url = convertURL(default_url)
     const tab = {events:{},ext:{}}
     if(c_wv) tab.wv = c_wv
     // if(hist) tab.history = hist
     if(rest) Object.assign(tab,rest)
-    if(_rest) Object.assign(tab,_rest)
     if(tab.oppositeMode === (void 0)){
       tab.oppositeMode = isFloatPanel(this.props.k) ? false : this.state ? this.state.oppositeGlobal : ipc.sendSync('get-sync-main-state','oppositeGlobal')
     }
@@ -2610,6 +2609,7 @@ export default class TabPanel extends Component {
         reloadInterval,
         protect,
         lock,
+        tabPreview,
         page: newPage,
         locationContextMenu,
         navHandlers: this.navHandlers(tab, navigateTo, newPage, locationContextMenu),

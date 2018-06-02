@@ -135,14 +135,14 @@ This browser makes use of wonderful web technologies, starting with the followin
 Both the installer for every platform and the portable version can be downloaded.  
 To use the portable edition, please run sushi.exe for Windows and sushi-browser for Mac/Linux after decompressing.
 
-- [Windows Installer v0.16.6](https://sushib.me/dl/sushi-browser-0.16.6-setup-x64.exe)
-- [Windows Portable v0.16.6(self-extract)](https://sushib.me/dl/sushi-browser-0.16.6-win-x64.exe)
-- [Windows Portable v0.16.6](https://sushib.me/dl/sushi-browser-0.16.6-win-x64.zip)
-- [MacOS dmg v0.16.6](https://sushib.me/dl/SushiBrowser-0.16.6.dmg)
-- [MacOS Portable v0.16.6](https://sushib.me/dl/sushi-browser-0.16.6-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.16.6](https://sushib.me/dl/sushi-browser-0.16.6.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.16.6](https://sushib.me/dl/sushi-browser_0.16.6_amd64.deb)
-- [Linux Portable v0.16.6](https://sushib.me/dl/sushi-browser-0.16.6.tar.bz2)
+- [Windows Installer v0.17.0](https://sushib.me/dl/sushi-browser-0.17.0-setup-x64.exe)
+- [Windows Portable v0.17.0(self-extract)](https://sushib.me/dl/sushi-browser-0.17.0-win-x64.exe)
+- [Windows Portable v0.17.0](https://sushib.me/dl/sushi-browser-0.17.0-win-x64.zip)
+- [MacOS dmg v0.17.0](https://sushib.me/dl/SushiBrowser-0.17.0.dmg)
+- [MacOS Portable v0.17.0](https://sushib.me/dl/sushi-browser-0.17.0-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.17.0](https://sushib.me/dl/sushi-browser-0.17.0.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.17.0](https://sushib.me/dl/sushi-browser_0.17.0_amd64.deb)
+- [Linux Portable v0.17.0](https://sushib.me/dl/sushi-browser-0.17.0.tar.bz2)
 
 # Use of Flash 
 If Flash won't run, please install Flash from the following web sites.  
@@ -156,6 +156,16 @@ sushi-browser --no-sandbox
 ```
 
 # New Features
+
+#### New function(v0.17.0)
+- Added tab preview function. (mouse over, slide type, setting change on main menu)
+- Added home button and homepage setting.
+- Added change setting of volume and speed increment by mouse wheel.
+- Added "Main menu > More tools > Ask where to save each file before downloading"
+- Added mouse gesture that restart, search within the page, close left or right tabs, move left or right tab.
+- Added ON / OFF setting of mouse gesture from extension page.
+- Updated to youtube-dl 2018.06.02.
+- Fixed a lot of bugs.
 
 #### New function(v0.16.6)
 - Implemented update batch (update.cmd). *Windows only, experimental function
