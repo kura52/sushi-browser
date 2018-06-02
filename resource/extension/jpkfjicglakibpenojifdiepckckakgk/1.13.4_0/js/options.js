@@ -86,6 +86,12 @@ const msg = {
   "action_name_reload_all_tabs": {
     "message": "reload all tabs"
   },
+  "action_name_find_in_page": {
+    "message": "find in page"
+  },
+  "action_name_restart_browser": {
+    "message": "restart browser"
+  },
   "action_name_scroll_down": {
     "message": "scroll down"
   },
@@ -127,6 +133,18 @@ const msg = {
   },
   "action_name_unpin_this_tab": {
     "message": "unpin this tab"
+  },
+  "action_name_close_left_tab": {
+    "message": "close left tab"
+  },
+  "action_name_close_right_tab": {
+    "message": "close right tab"
+  },
+  "action_name_move_tab_left": {
+    "message": "move tab left"
+  },
+  "action_name_move_tab_right": {
+    "message": "move tab right"
   },
   "chrome_extension_description": {
     "message": "Chrome Mouse Gestures"

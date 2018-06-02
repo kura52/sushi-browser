@@ -616,6 +616,7 @@ export default class SplitWindows extends Component{
           afters.push(ele)
         }
       }
+      if(isIndex) realIndex += befores.length
 
       const befores2 = befores.slice(0).sort((a,b)=>tabIds.findIndex(t=>t==a[0].wvId) > tabIds.findIndex(t=>t==b[0].wvId))
       const afters2 = afters.slice(0).sort((a,b)=>tabIds.findIndex(t=>t==a[0].wvId) > tabIds.findIndex(t=>t==b[0].wvId))
@@ -623,6 +624,7 @@ export default class SplitWindows extends Component{
 
       const range = beforeOthers.length + afterOthers.length + afters.length
       tabs.splice(isBack ? realIndex+1 : realIndex,0,...beforeOthers.map(x=>x[0]),...befores2.map(x=>x[0]),...afters2.map(x=>x[0]),...afterOthers.map(x=>x[0]))
+      const tabs2 = tabs.slice(0)
       for(let ele of befores.reverse()){
         tabs.splice(ele[1],1)
       }

@@ -100,6 +100,7 @@ ipcMain.on('add-extension',(e,{id,url})=>{
     extRootPath = path.join(extensionPath,id)
   }
   console.log(url,`${extRootPath}.crx`,getCurrentWindow().webContents.getURL())
+  ipcMain.emit('noneed-set-save-filename',null,url)
   ipcMain.emit('set-save-path', null,url, `${extRootPath}.crx`,true)
   e.sender.downloadURL(url)
 
@@ -114,7 +115,7 @@ ipcMain.on('add-extension',(e,{id,url})=>{
   setTimeout(_=>{
     const intId = setInterval(async _=>{
       console.log(234,global.downloadItems)
-      if(retry++ > 1000) clearInterval(intId)
+      if(retry++ > 10000) clearInterval(intId)
       if(!global.downloadItems.find(x=>x.savePath == `${extRootPath}.crx`)){
         try{
           console.log(`${extRootPath}.crx`,retry)

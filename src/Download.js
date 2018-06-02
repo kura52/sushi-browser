@@ -96,6 +96,7 @@ export default class Download {
 
   constructor(win){
     this.needSavePath = {}
+    this.noNeedSavePath = {}
     this.savePath = {}
     this.dlKey = {}
     this.saveDirectory = {}
@@ -103,10 +104,6 @@ export default class Download {
     this.videoConvert = {}
     this.overwrite = {}
     this.prompt = {}
-
-    const eventNeedSetSaveFilename = (event,url)=>{
-      set(this.needSavePath,url,true)
-    }
 
     ipcMain.on('set-save-path',(e,url,fname,absolute)=>{
       set(this.savePath,url,absolute ? fname : path.join(app.getPath('downloads'), sanitizeFilename(fname,{replacement:'_'})))
@@ -128,6 +125,10 @@ export default class Download {
       set(this.videoConvert,url,operation)
     })
 
+    ipcMain.on('noneed-set-save-filename',(e,url)=>{
+      set(this.noNeedSavePath,url,true)
+    })
+
     ipcMain.on('need-set-save-filename',(e,url)=>{
       set(this.needSavePath,url,true)
     })
@@ -139,7 +140,6 @@ export default class Download {
     })
 
     // ipcMain.on('need-set-save-filename',eventSetSaveFilename)
-    PubSub.subscribe('need-set-save-filename',eventNeedSetSaveFilename)
 
     const ses = win.webContents.session
     ses.on('will-download', (event, item, webContents) => {
@@ -212,6 +212,7 @@ export default class Download {
       if(!win.webContents.isDestroyed()) win.webContents.send(`download-start-tab_${webContents.getId()}`)
 
       const needSavePath = this.getData(this.needSavePath,url)
+      const noNeedSavePath = this.getData(this.noNeedSavePath,url)
 
       const saveDirectory = this.getData(this.saveDirectory,url)
       let autoSetSavePath
@@ -222,7 +223,7 @@ export default class Download {
         console.log(5,savePath)
       }
 
-      if(needSavePath || (this.getData(this.prompt,url) && fs.existsSync(savePath))){
+      if((mainState.askDownload && !noNeedSavePath) || needSavePath || (this.getData(this.prompt,url) && fs.existsSync(savePath))){
         console.log("needSavePath")
         dialog.showDialog(win,{defaultPath: savePath,type: 'select-saveas-file',includeAllFiles:true },filepaths=>{
           if(!filepaths || filepaths.length > 1){

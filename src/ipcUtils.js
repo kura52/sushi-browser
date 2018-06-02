@@ -647,7 +647,7 @@ ipcMain.on('get-main-state',(e,key,names)=>{
   for (let [k,v] of Object.entries(extInfos)) {
     if(!('url' in v) || v.name == "brave") continue
     const orgId = v.base_path.split(/[\/\\]/).slice(-2,-1)[0]
-    extensions[k] = {name:v.name,url:v.url,basePath:v.base_path,optionPage: v.manifest.options_page,background: v.manifest.background && v.manifest.background.page,icons:v.manifest.icons, version: v.manifest.version, description: v.manifest.description,enabled: !disableExtensions.includes(orgId) }
+    extensions[k] = {name:v.name,url:v.url,basePath:v.base_path,optionPage: v.manifest.options_page || (v.manifest.options_ui && v.manifest.options_ui.page), background: v.manifest.background && v.manifest.background.page,icons:v.manifest.icons, version: v.manifest.version, description: v.manifest.description,enabled: !disableExtensions.includes(orgId) }
   }
   ret.extensions = extensions
   e.sender.send(`get-main-state-reply_${key}`,ret)
@@ -661,11 +661,29 @@ ipcMain.on('save-state',async (e,{tableName,key,val})=>{
       for(let orgId of diffArray(val,mainState[key])){
         console.log(orgId,Object.values(extInfos))
         const ext = Object.values(extInfos).find(x=>x.base_path && x.base_path.includes(orgId))
-        if(ext) session.defaultSession.extensions.disable(ext.id)
+        if(ext){
+          if(orgId == "jpkfjicglakibpenojifdiepckckakgk"){
+            for(let cont of webContents.getAllWebContents()){
+              if(!cont.isDestroyed() && cont.isBackgroundPage()) cont.send('disable-mouse-gesture',true)
+            }
+          }
+          else{
+            session.defaultSession.extensions.disable(ext.id)
+          }
+        }
       }
       for(let orgId of diffArray(mainState[key],val)){
         const ext = Object.values(extInfos).find(x=>x.base_path && x.base_path.includes(orgId))
-        if(ext) session.defaultSession.extensions.enable(ext.id)
+        if(ext) {
+          if (orgId == "jpkfjicglakibpenojifdiepckckakgk") {
+            for(let cont of webContents.getAllWebContents()){
+              if(!cont.isDestroyed() && cont.isBackgroundPage()) cont.send('disable-mouse-gesture',false)
+            }
+          }
+          else {
+            session.defaultSession.extensions.enable(ext.id)
+          }
+        }
       }
     }
     else if(key == 'httpsEverywhereEnable'){
@@ -718,13 +736,13 @@ ipcMain.on('save-state',async (e,{tableName,key,val})=>{
   }
 })
 
-ipcMain.on('menu-or-key-events',(e,name)=>{
+ipcMain.on('menu-or-key-events',(e,name,...args)=>{
   getFocusedWebContents().then(cont=>{
     if(name == 'toggleDeveloperTools'){
       cont && cont.openDevTools()
       return
     }
-    cont && cont.hostWebContents.send('menu-or-key-events',name,cont.getId())
+    cont && cont.hostWebContents.send('menu-or-key-events',name,cont.getId(),...args)
   })
 })
 

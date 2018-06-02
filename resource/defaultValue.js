@@ -14,7 +14,7 @@ const settingDefault =  {
   downloadNum: 1,
   concurrentDownload: 10,
   searchEngine: 'Google',
-  myHomepage: 'https://sushib.me/',
+  myHomepage: '',
   startsWith: 'newTab',
   newTabMode: 'top',
   language: 'default',
@@ -50,7 +50,7 @@ const settingDefault =  {
   sendToVideo: isLinux ? 'vlc' : isDarwin ? '"quicktime player"' : 'wmplayer',
   vpnNames: [],
   navbarItems: {
-    left: ['back','forward','reload'],
+    left: ['back','forward','reload','home'],
     right: ['sync','sidebar','mobile','screenshot','favorite','history','savedState','video'],
     backSide: ['syncReplace','tabHistory','opposite','download','folder','terminal'],
   },
@@ -65,10 +65,12 @@ const settingDefault =  {
   numOfHistory: 15,
   displayFullIcon: true,
   notLoadTabUntilSelected: false,
+  askDownload: false,
   searchWordHighlight: false,
   searchWordHighlightRecursive: false,
   bookmarkBar: false,
   bookmarkBarTopPage: true,
+  tabPreview: true,
 
   //privacy
   clearHistoryOnClose: false,

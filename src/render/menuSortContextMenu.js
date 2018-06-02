@@ -3,6 +3,7 @@ const {Menu} = remote
 const ipc = require('electron').ipcRenderer
 import Sortable from './draggable_tab/components/Sortable';
 const PubSub = require('./pubsub')
+const sharedState = require('./sharedState')
 
 function updateState(node,olds){
   const mainNode = node.querySelector('.navbar-main.browser-navbar')
@@ -89,6 +90,7 @@ export default (tabId,navbar,e)=>{
   const current = getState(node)
   Menu.buildFromTemplate([{
     label: 'Sort Menu', click: _=>{
+      sharedState.menuSort = true
       const mainMenu = navbar.refs['main-menu']
       mainMenu.forceOpen()
       const sortable = new Sortable(node.querySelector('.navbar-main.browser-navbar'), {
@@ -102,6 +104,7 @@ export default (tabId,navbar,e)=>{
       const key = Math.random().toString()
       ipc.send('show-notification-sort-menu',key,tabId)
       ipc.once(`show-notification-sort-menu-reply_${key}`,_=>{
+        sharedState.menuSort = false
         sortable.destroy()
         sortable2.destroy()
         mainMenu.forceClose()

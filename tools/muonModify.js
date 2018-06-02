@@ -34,6 +34,9 @@ ipcMain.on('get-tab-opener',(e,tabId)=>{
 ipcMain.on('get-tab-opener-sync',(e,tabId)=>{
   e.returnValue = tabOpenerMap[tabId]
 })
+ipcMain.on('get-tab-value-sync',(e,tabId)=>{
+  e.returnValue = getTabValue(tabId)
+})
 ipcMain.on('update-tab-index-org',(e,tabId,index)=>tabIndexMap[tabId] = index)
 var getTabValue = function (tabId) {`)
 

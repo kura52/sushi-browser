@@ -1,3 +1,7 @@
+chrome.ipcRenderer.on('disable-mouse-gesture',(e,msg)=>{
+  localStorage.setItem('disable', msg ? 'true' : 'false')
+})
+
 this.GesturesInfo = {
   name: 'Chrome Gestures',
   version: '',
@@ -148,7 +152,11 @@ this.MG = {
         {name: "close left tabs", args: []},
         {name: "pin this tab", args: []},
         {name: "unpin this tab", args: []},
-        {name: "toggle pin tab", args: []}
+        {name: "toggle pin tab", args: []},
+        {name: "close left tab", args: []},
+        {name: "close right tab", args: []},
+        {name: "move tab left", args: []},
+        {name: "move tab right", args: []}
       ]
     },
     {
@@ -228,7 +236,9 @@ this.MG = {
         {name: "run script #1", args: [
           {type: 'JavaScript'},
           {type: 'NAME'}
-        ]}
+        ]},
+        {name: "find in page", args: []},
+        {name: "restart browser", args: []}
       ]
     }
   ],
@@ -424,7 +434,7 @@ chrome.extension.onMessage.addListener(RequestHandler);
 function RequestHandler(message, con, sender) {
   var tab = con.tab;
   if (message.init) {
-    sender({conf: GesturesInfo});
+    sender({conf: GesturesInfo, disable: localStorage.getItem('disable')});
     return true;
   }
   if (message.action === 'copy') {

@@ -183,6 +183,9 @@ ipcMain.on('get-tab-opener',(e,tabId)=>{
 ipcMain.on('get-tab-opener-sync',(e,tabId)=>{
   e.returnValue = tabOpenerMap[tabId]
 })
+ipcMain.on('get-tab-value-sync',(e,tabId)=>{
+  e.returnValue = getTabValue(tabId)
+})
 ipcMain.on('update-tab-index-org',(e,tabId,index)=>tabIndexMap[tabId] = index)
 var getTabValue = function (tabId) {`)
 
@@ -535,7 +538,10 @@ const chrome_valid = new RegExp(`^(${['994289308992179865',
   '2948300991547862301',
   '7853747251428735',
   '8251578425305135684',
-  '2845382757467349449'].join("|")})`)
+  '2845382757467349449',
+  '8870318296973696995',
+  '480990236307250886',
+  '7754704193130578113',].join("|")})`)
 
 
 

@@ -152,6 +152,12 @@
    "action_name_run_script__1": {
       "message": "#1のスクリプトを実行"
    },
+   "action_name_find_in_page": {
+      "message": "ページ内検索"
+   },
+   "action_name_restart_browser": {
+      "message": "ブラウザを再起動"
+   },
    "action_name_scroll_down": {
       "message": "下にスクロール"
    },
@@ -211,6 +217,18 @@
    },
    "action_name_unpin_this_tab": {
       "message": "タブの固定を解除"
+   },
+   "action_name_close_left_tab": {
+      "message": "左のタブを閉じる"
+   },
+   "action_name_close_right_tab": {
+      "message": "右のタブを閉じる"
+   },
+   "action_name_move_tab_left": {
+      "message": "タブを左に移動"
+   },
+   "action_name_move_tab_right": {
+      "message": "タブを右に移動"
    },
    "chrome_extension_description": {
       "message": "マウスジェスチャーを実現するGoogle Chrome拡張です"

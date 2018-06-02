@@ -472,7 +472,7 @@ class FileExplorer extends React.Component{
       menu =  <Menu pointing secondary >
         <Menu.Item key="open" name="Open Directory" active={true} onClick={::this.selectFolder}
                    style={{backgroundColor: 'rgb(228, 242, 255)', borderRadius: '4px 4px 0px 0px'}}/>
-        <Menu.Item as='a' href={<Menu.Item as='a' href={`chrome://newtab/`} key="top" name="Top"/>} key="top" name="Top"/>
+        <Menu.Item as='a' href={`chrome://newtab/`} key="top" name="Top"/>
         <Menu.Item as='a' href={`chrome://bookmarks/`} key="favorite" name={l10n.translation('bookmarks')}/>
         <Menu.Item as='a' href={`chrome://history/`} key="history" name={l10n.translation('history')}/>
         <Menu.Item as='a' href={`${baseURL}/download.html`} key="download" name={l10n.translation('downloads')}/>

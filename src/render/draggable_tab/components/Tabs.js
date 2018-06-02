@@ -486,6 +486,7 @@ class Tabs extends React.Component {
         orgTab,
         privateMode,
         pin,
+        tabPreview,
         mute,
         freeze,
         protect,
@@ -1089,7 +1090,7 @@ class Tabs extends React.Component {
           getWebContents(tab).detach(_=>{
             ipc.send('chrome-tabs-onDetached-to-main',tab.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==tab.key)})
             BrowserWindowPlus.load({id:remote.getCurrentWindow().id,dropX:evt.screenX,dropY:evt.screenY,alwaysOnTop,
-              tabParam:JSON.stringify([{wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
+              tabParam:JSON.stringify([{wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
                 rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || getWebContents(tab).guestInstanceId}])})
             setTimeout(_=>{
               PubSub.publish('include-key',tab.key)
@@ -1104,7 +1105,7 @@ class Tabs extends React.Component {
           const promises = tabs.map(tab=>{
             return new Promise((resolve,reject)=>{
               getWebContents(tab).detach(_=>{
-                resolve({wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
+                resolve({wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
                   rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || getWebContents(tab).guestInstanceId})
               })
             })

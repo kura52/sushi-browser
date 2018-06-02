@@ -5,6 +5,29 @@ function simpleIpcFunc(name,callback,...args){
   })
   chrome.ipcRenderer.send(name,key,...args)
 }
+const convertUrlMap = {
+  'chrome://newtab/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html',
+  'chrome://bookmarks/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html',
+  'chrome://history/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html',
+  'about:blank': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html',
+  'chrome://bookmarks-sidebar/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html',
+  'chrome://tab-history-sidebar/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_history_sidebar.html',
+  'chrome://session-manager-sidebar/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/saved_state_sidebar.html',
+  'chrome://history-sidebar/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history_sidebar.html',
+  'chrome://explorer/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html',
+  'chrome://explorer-sidebar/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer_sidebar.html',
+  'chrome://download/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html',
+  'chrome://terminal/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html',
+  'chrome://converter/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html',
+  'chrome://automation/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html',
+  'chrome://settings/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html',
+  'chrome://settings#general': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general',
+  'chrome://settings#search': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search',
+  'chrome://settings#tabs': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs',
+  'chrome://settings#keyboard': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#keyboard',
+  'chrome://settings#extensions': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extensions',
+}
+
 
 window.close = _=> chrome.ipcRenderer.sendToHost('window-close',{})
 
@@ -13,6 +36,22 @@ chrome.app.getDetails = _=>chrome.ipcRenderer.sendSync('chrome-management-get-sy
 chrome.csi = _=>({})
 chrome.runtime.openOptionsPage = _=> simpleIpcFunc('chrome-runtime-openOptionsPage',_=>_,chrome.runtime.id)
 chrome.runtime.getBrowserInfo = callback=> callback({name:'Firefox',vendor:'Mozilla',version:'57.0',buildID:'20171203000000'})
+
+
+chrome.runtime.onMessage._addListener = chrome.runtime.onMessage.addListener
+chrome.runtime.onMessage.addListener = (func)=>{
+  chrome.runtime.onMessage._addListener((message,sender,sendResponse)=>{
+    if(sender.tab && chrome.tabs){
+      const tabValue = chrome.ipcRenderer.sendSync('get-tab-value-sync',sender.tab.id)
+      if(tabValue){
+        sender.tab.index = tabValue.index
+        sender.tab.openerTabId = tabValue.openerTabId
+        sender.tab.status = tabValue.status
+      }
+    }
+    return func(message,sender,sendResponse)
+  })
+}
 
 if(chrome.i18n){
   chrome.i18n.getAcceptLanguages = callback=> simpleIpcFunc('chrome-i18n-getAcceptLanguages',callback)
@@ -158,11 +197,14 @@ if(chrome.windows){
     })
   }
 
-  chrome.windows.create = (createData,callback)=>{
-    if(typeof createData === 'function') [createData,callback] = [null,createData]
-    console.log(2224,createData)
-    if(createData && createData.url && !createData.url.includes("://")){
-      createData.url = `chrome-extension://${chrome.runtime.id}/${createData.url.split("/").filter(x=>x).join("/")}`
+  chrome.windows.create = (createData,callback)=> {
+    if (typeof createData === 'function') [createData, callback] = [null, createData]
+    console.log(2224, createData)
+    if (createData && createData.url){
+      if (!createData.url.includes("://")) {
+        createData.url = `chrome-extension://${chrome.runtime.id}/${createData.url.split("/").filter(x => x).join("/")}`
+      }
+      createData.url = convertUrlMap[createData.url] || createData.url
     }
     simpleIpcFunc('chrome-windows-create',_=>setTimeout(_=>chrome.windows.getCurrent({populate:true},callback),3000),createData)
   }
@@ -209,9 +251,20 @@ if(chrome.tabs){
   }
 
   if(!chrome.tabs._create) chrome.tabs._create = chrome.tabs.create
-  chrome.tabs.create = (createProperties, callback)=>{
-    if(createProperties && createProperties.url && !createProperties.url.includes("://")){
-      createProperties.url = `chrome-extension://${chrome.runtime.id}/${createProperties.url.split("/").filter(x=>x).join("/")}`
+  chrome.tabs.create = (createProperties, callback)=> {
+    if(createProperties){
+      if(createProperties.url) {
+        if(!createProperties.url.includes("://")) {
+          createProperties.url = `chrome-extension://${chrome.runtime.id}/${createProperties.url.split("/").filter(x => x).join("/")}`
+        }
+        createProperties.url = convertUrlMap[createProperties.url] || createProperties.url
+      }
+      if(createProperties.selected !== void 0) {
+        createProperties.active = createProperties.selected
+      }
+      if(createProperties.highlighted !== void 0) {
+        createProperties.active = createProperties.highlighted
+      }
     }
     chrome.tabs._create(createProperties, (_tab)=>{
       let retry = 0

@@ -8,6 +8,7 @@ const {Menu} = remote
 const {messages,locale} = require('./localAndMessage')
 let [defaultIcons,popups,bgs,titles,texts] = ipc.sendSync('get-sync-main-states',['browserActionDefaultIcons','browserActionPopups','browserActionBgs','browserActionTitles','browserActionTexts'])
 const LRUCache = require('lru-cache')
+const sharedState = require('./sharedState')
 
 ipc.on('chrome-browser-action-set-ipc-all',(e,extensionId,name,val) => {
   if(val.path){
@@ -260,7 +261,7 @@ export default class BrowserActionMenu extends Component{
   }
 
   handleClick(e){
-    if(document.elementFromPoint(e.clientX, e.clientY).tagName == 'WEBVIEW'){
+    if(sharedState.menuSort || document.elementFromPoint(e.clientX, e.clientY).tagName == 'WEBVIEW'){
       return
     }
     console.log(e)

@@ -180,7 +180,7 @@ class BrowserPage extends Component {
 
     PubSub.publish(`regist-webview_${this.props.k}`,this.props.tab)
 
-    this.searchEvent = async (e, name, id, word, type)=> {
+    this.searchEvent = async (e, name, id, word, type, toggle)=> {
       const tab = this.props.tab
       if (!tab.wvId || id !== tab.wvId) return
 
@@ -190,6 +190,9 @@ class BrowserPage extends Component {
           if(type == 'OR') this.refs.bps.or = true
         }
         else{
+          if(toggle && this.state.isSearching){
+            return this.setState({isSearching: false})
+          }
           await new Promise(r=>{
             webview.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd','window.getSelection().toString()', {},(err, url, result)=>{
               if(result[0]) this.refs.bps.refs.input.value = result[0]

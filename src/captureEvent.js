@@ -16,12 +16,19 @@ if (!fs.existsSync(capturePath)) {
   fs.mkdirSync(capturePath)
 }
 
-async function captureCurrentPage(_id,pageUrl,loc){
+async function captureCurrentPage(_id,pageUrl,loc,base64,sender){
   const cont = await getFocusedWebContents()
   // eval(locus)
   if(cont){
     const url = cont.getURL()
     if(url != pageUrl && url != loc) return
+
+    if(base64){
+      cont.capturePage((imageBuffer)=>{
+      sender.send(`take-capture-reply_${base64}`,`data:image/jpeg;base64,${imageBuffer.toJPEG(80).toString("base64")}`)
+      })
+      return
+    }
 
     const title = cont.getTitle()
     const doc = await image.findOne({url:pageUrl})
@@ -77,10 +84,10 @@ function faviconUpdate(url) {
 }
 
 const captures = {}
-ipcMain.on('take-capture', (event,{id,url,loc}) => {
+ipcMain.on('take-capture', (event,{id,url,loc,base64}) => {
   if(captures[url]) return
   captures[url] = true
-  captureCurrentPage(id,url,loc).then(_=>{
+  captureCurrentPage(id,url,loc,base64,event.sender).then(_=>{
     delete captures[url]
   })
 })

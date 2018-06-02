@@ -602,6 +602,13 @@ class BrowserNavbar extends Component{
     this.props.parent.setState({})
   }
 
+  askDownload(){
+    sharedState.askDownload = !sharedState.askDownload
+    mainState.set('askDownload',sharedState.askDownload)
+    this.forceUpdates = true
+    this.props.parent.setState({})
+  }
+
   mainMenu(cont,tab,menuActions){
     const hostname = this.props.page.navUrl ? urlParse(this.props.page.navUrl).hostname : ""
     return <NavbarMenu ref="main-menu" className="main-menu" alwaysView={true} k={this.props.k} isFloat={isFloatPanel(this.props.k)} style={{overflowX: 'visible'}}
@@ -690,6 +697,7 @@ class BrowserNavbar extends Component{
           this.setState({})
         }}/>
         <NavbarMenuItem text={`[${sharedState.notLoadTabUntilSelected ? '✓' : ' '}] Don't load tabs untill selected`} onClick={_=>{this.loadTabSetting();this.refs['main-menu'].menuClose()}}/>
+        <NavbarMenuItem text={`[${sharedState.askDownload ? '✓' : ' '}] ${locale.translation('7754704193130578113')}`} onClick={_=>{this.askDownload();this.refs['main-menu'].menuClose()}}/>
         <div className="divider" />
         <NavbarMenuItem text='Extract Audio from Video' icon='music' onClick={_=>{ipc.send('audio-extract');this.refs['main-menu'].menuClose()}}/>
         <NavbarMenuItem text={`Change Pdf View to ${this.state.pdfMode == 'normal' ? 'Comic' : 'Normal'}`} icon='file pdf outline' onClick={_=>{this.handlePdfMode();this.refs['main-menu'].menuClose()}}/>
@@ -828,6 +836,8 @@ class BrowserNavbar extends Component{
       </NavbarMenu>,
 
       reload: <BrowserNavbarBtn className="sort-reload" title={locale.translation('reload')} icon="repeat" onContextMenu={onContextMenu} onClick={this.props.navHandle.onClickRefresh} disabled={!this.props.page.canRefresh} />,
+
+      home: <BrowserNavbarBtn className="sort-home" title={locale.translation('480990236307250886')} icon="home" onContextMenu={onContextMenu} onClick={_=>this.props.navHandle.onEnterLocation(sharedState.homeURL)} />,
 
       addressBar: <div className="input-group">
         <BrowserNavbarLocation ref="loc" wv={this.props.tab.wv} navbar={this} onEnterLocation={this.props.navHandle.onEnterLocation}

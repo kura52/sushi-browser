@@ -111,6 +111,18 @@
     "toggle pin tab": function () {
       connection.postMessage('toggle_pin_tab');
     },
+    "close left tab": function () {
+      connection.postMessage('close_left_tab');
+    },
+    "close right tab": function () {
+      connection.postMessage('close_right_tab');
+    },
+    "move tab left": function () {
+      connection.postMessage('move_tab_left');
+    },
+    "move tab right": function () {
+      connection.postMessage('move_tab_right');
+    },
     "scroll down": function (config) {
       if (config.smooth_scroll) {
         SmoothScroll(0, 100, 100);
@@ -235,6 +247,12 @@
           alert(e);
         }
       }
+    },
+    "find in page": function () {
+      chrome.ipcRenderer.send('menu-or-key-events','findOnPage',void 0,void 0,true)
+    },
+    "restart browser": function () {
+      chrome.ipcRenderer.send('restart-browser')
     },
     "open link in new tab": function (arg) {
       var link = $X('ancestor-or-self::a', GM.target)[0] || false;
@@ -954,6 +972,8 @@
   }
 
   connection.postMessage({init: true, location: location}, function (message) {
+    if(message && message.disable == 'true') return
+
     if (/BackCompat/i.test(document.compatMode)) {
       var body_check = function () {
         Root = document.body;

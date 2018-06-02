@@ -177,6 +177,18 @@ TabUtils.actions = {
   },
   toggle_pin_tab: function (tab) {
     chrome.tabs.update({pinned: !tab.pinned});
+  },
+  close_left_tab: function (tab) {
+    chrome.tabs.query({index:tab.index-1}, tabs=>chrome.tabs.remove(tabs[0].id))
+  },
+  close_right_tab: function (tab) {
+    chrome.tabs.query({index:tab.index+1}, tabs=>chrome.tabs.remove(tabs[0].id))
+  },
+  move_tab_left: function (tab) {
+    chrome.tabs.move(tab.id,{index:tab.index-1})
+  },
+  move_tab_right: function (tab) {
+    chrome.tabs.move(tab.id,{index:tab.index+1})
   }
 };
 TabUtils.actions_with_connection = {

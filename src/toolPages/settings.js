@@ -154,7 +154,7 @@ const newTabModeOptions = [
   {
     key: 'myHomepage',
     value: 'myHomepage',
-    text: l10n.translation('startsWithOptionHomePage'),
+    text: l10n.translation('8870318296973696995'),
   },
   {
     key: 'top',
@@ -547,6 +547,10 @@ class GeneralSetting extends React.Component {
         <div className="field">
           <label>{l10n.translation('newTabMode')}</label>
           <Dropdown onChange={this.onChange.bind(this,'newTabMode')} selection options={newTabModeOptions} defaultValue={this.state.newTabMode}/>
+        </div>
+        <div className="field">
+          <label>{l10n.translation('8870318296973696995')}</label>
+          <Input onChange={this.onChange.bind(this,'myHomepage')} defaultValue={this.state.myHomepage}/>
         </div>
 
         <div className="field">
@@ -1184,6 +1188,13 @@ class TabsSetting extends React.Component {
       <div className='spacer2'/>
 
       <div className="field">
+        <Checkbox defaultChecked={this.state.tabPreview} toggle onChange={this.onChange.bind(this,'tabPreview')}/>
+        <span className="toggle-label">Enable Tab Preview</span>
+      </div>
+
+      <div className='spacer2'/>
+
+      <div className="field">
         <label>{l10n.translation('autoReloadTabLabel')}&nbsp;({l10n.translation('secondsLabel')}):&nbsp;</label>
         <Input style={{width: 40,paddingRight:32}} onChange={this.onChange3.bind(this,'reloadIntervals',0)} defaultValue={this.state.reloadIntervals[0]}/>
         <Input style={{width: 40,paddingRight:32}} onChange={this.onChange3.bind(this,'reloadIntervals',1)} defaultValue={this.state.reloadIntervals[1]}/>
@@ -1782,7 +1793,7 @@ class ExtensionSetting extends React.Component {
   buildSearchEngineColumn(i,id,v){
     console.log(id,v)
     const orgId = v.basePath.split(/[\/\\]/).slice(-2,-1)[0]
-    const cannotDisable = orgId == "jpkfjicglakibpenojifdiepckckakgk" || orgId == "occjjkgifpmdgodlplnacmkejpdionan"
+    const cannotDisable =  orgId == "occjjkgifpmdgodlplnacmkejpdionan"
     const icon = v.icons ? v.icons[Math.max(...Object.keys(v.icons))] : ""
     return <tr key={`tr${i}`}>
       <td key={`icon${i}`}><img style={{width:32,height:32,margin:'auto'}} src={`file://${v.basePath}/${icon}`}/></td>
@@ -1910,7 +1921,7 @@ const key = Math.random().toString()
 ipc.send("get-main-state",key,['startsWith','newTabMode','myHomepage','searchProviders','searchEngine','language','enableFlash','concurrentDownload','downloadNum','sideBarDirection','scrollTab',
   'doubleShift','tripleClick','enableMouseGesture','extensionOnToolbar','syncScrollMargin','contextMenuSearchEngines','ALL_KEYS','bindMarginFrame','bindMarginTitle','longPressMiddle','checkDefaultBrowser','sendToVideo',
   'multistageTabs','tabMinWidth','httpsEverywhereEnable','trackingProtectionEnable','autoSaveInterval','noScript','blockCanvasFingerprinting','browsingHistory', 'downloadHistory',
-  'disableContextMenus','disableTabContextMenus','priorityContextMenus','priorityTabContextMenus','reloadIntervals','generalWindowOpenLabel','keepWindowLabel31',
+  'disableContextMenus','disableTabContextMenus','priorityContextMenus','priorityTabContextMenus','reloadIntervals','generalWindowOpenLabel','keepWindowLabel31','tabPreview',
   'closeTabBehavior','reverseScrollTab','tabMaxWidth','mouseHoverSelectLabelBegin','mouseHoverSelectLabelBeginDelay','tabFlipLabel','doubleClickTab','middleClickTab','altClickTab',
   'maxrowLabel','orderOfAutoComplete','numOfSuggestion','numOfHistory','openTabNextLabel','rightClickTabAdd','middleClickTabAdd','altClickTabAdd','displayFullIcon','downloadPath',
   'defaultDownloadPath','alwaysOpenLinkNewTab','openTabPosition','alwaysOpenLinkBackground','addressBarNewTab','oppositeGlobal','colorNormalText','colorNormalBackground','colorActiveText',

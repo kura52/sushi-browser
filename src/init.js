@@ -871,12 +871,13 @@ function contextMenu(webContents) {
 
       menuItems.push({
         t: '5317780077021120954', label: locale.translation('5317780077021120954'), click: (item, win) => {
+          ipcMain.emit('noneed-set-save-filename',null,props.linkURL)
           win.webContents.downloadURL(props.linkURL,true)
         }
       })
       menuItems.push({
         t: 'saveLinkAs', label: locale.translation('saveLinkAs'), click: (item, win) => {
-          PubSub.publishSync('need-set-save-filename',props.linkURL)
+          ipcMain.emit('need-set-save-filename',null,props.linkURL)
           console.log("Save Link",win)
           win.webContents.downloadURL(props.linkURL,true)
         }

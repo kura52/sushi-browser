@@ -4,7 +4,7 @@ const {Component} = React
 const PubSub = require('./pubsub')
 
 let x
-export default class VerticalTabResizer extends Component{
+export default class ToolbarResizer extends Component{
   constructor(props){
     super(props)
     this.state = {}
@@ -52,14 +52,9 @@ export default class VerticalTabResizer extends Component{
 
     e.preventDefault();
 
-    const move = event.pageX - x
-    x = event.pageX
-    if(this.props.direction == "left"){
-      this.props.setWidth(this.props.width + move)
-    }
-    else{
-      this.props.setWidth(this.props.width - move)
-    }
+    const move = event.pageY - y
+    y = event.pageY
+    this.props.setHeight(this.props.height + move)
   }
 
   mup(e) {
@@ -69,10 +64,10 @@ export default class VerticalTabResizer extends Component{
     document.body.removeEventListener("mousemove", this.mmove, false);
     document.body.removeEventListener("touchmove", this.mmove, false);
     const drag = this.refs.dad
-    this.props.setWidth(this.props.width,true)
+    this.props.setHeight(this.props.height,true)
   }
 
   render(){
-    return  <div ref="dad" onMouseDown={this.mdown} onMouseUp={this.mup} className="vertical-resizer" />
+    return <div ref="dad" onMouseDown={this.mdown} onMouseUp={this.mup}  className="Resizer horizontal" />
   }
 }
