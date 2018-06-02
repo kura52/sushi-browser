@@ -593,7 +593,7 @@ export default class SplitWindows extends Component{
         const others = isBefore ? beforeOthers : afterOthers
         for(let ele of map[key]){
           const tab = ele[0]
-          const n_tab = this.refs2[indexKey].createTab({c_page:tab.page,c_wv:tab.wv,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,guestInstanceId: tab.guestInstanceId,
+          const n_tab = this.refs2[indexKey].createTab({c_page:tab.page,c_wv:tab.wv,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,guestInstanceId: tab.guestInstanceId,
             rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis}})
           others.push([n_tab,ele[1],ele[0]])
         }
@@ -703,7 +703,7 @@ export default class SplitWindows extends Component{
           const panel = this.refs2[key]
           const promise = new Promise((resolve,reject)=>{
             getWebContents(tab).detach(_=>{
-              resolve({wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,freeze:tab.freeze,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
+              resolve({wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,freeze:tab.freeze,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
                 rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || getWebContents(tab).guestInstanceId})
             })
           })
@@ -767,7 +767,7 @@ export default class SplitWindows extends Component{
       for(let data of datas){
         tabIds.add(data.wvId)
         this.currentWebContents[data.wvId] = global.sharedStateMain(data.wvId)
-        const n_tab = panel.createTab({c_page:data.c_page,c_key:data.c_key,privateMode:data.privateMode,pin:data.pin,protect:data.protect,lock:data.lock,mute:data.mute,reloadInterval:tab.reloadInterval,guestInstanceId:data.guestInstanceId,rest:data.rest})
+        const n_tab = panel.createTab({c_page:data.c_page,c_key:data.c_key,privateMode:data.privateMode,tabPreview:data.tabPreview,pin:data.pin,protect:data.protect,lock:data.lock,mute:data.mute,reloadInterval:tab.reloadInterval,guestInstanceId:data.guestInstanceId,rest:data.rest})
         tabs.splice(realIndex++, 0, n_tab)
       }
       this.refs2[indexKey].setState({})

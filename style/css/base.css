@@ -1089,3 +1089,11 @@ span.suggestion-visit{
     padding-left: 7px;
     font-weight: 400;
 }
+
+.hol-resizer{
+    height: 5px;
+    cursor: row-resize;
+    width: 100%;
+    position: absolute;
+    z-index: 3;
+}

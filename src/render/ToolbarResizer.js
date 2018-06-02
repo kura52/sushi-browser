@@ -3,7 +3,6 @@ const ReactDOM = require('react-dom');
 const {Component} = React
 const PubSub = require('./pubsub')
 
-let x
 export default class ToolbarResizer extends Component{
   constructor(props){
     super(props)
@@ -31,12 +30,13 @@ export default class ToolbarResizer extends Component{
       var event = e.changedTouches[0];
     }
 
-    x = event.pageX
+    this.y = event.pageY
 
     document.body.addEventListener("mousemove", this.mmove, false);
     document.body.addEventListener("touchmove", this.mmove, false);
     document.body.addEventListener("mouseleave", this.mup, false);
     document.body.addEventListener("touchleave", this.mup, false);
+    document.body.addEventListener("mouseup", this.mup, false);
   }
 
 
@@ -52,8 +52,8 @@ export default class ToolbarResizer extends Component{
 
     e.preventDefault();
 
-    const move = event.pageY - y
-    y = event.pageY
+    const move = event.pageY - this.y
+    this.y = event.pageY
     this.props.setHeight(this.props.height + move)
   }
 
@@ -68,6 +68,6 @@ export default class ToolbarResizer extends Component{
   }
 
   render(){
-    return <div ref="dad" onMouseDown={this.mdown} onMouseUp={this.mup}  className="Resizer horizontal" />
+    return <div ref="dad" onMouseDown={this.mdown} className="hol-resizer" />
   }
 }

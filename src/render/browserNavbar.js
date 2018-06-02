@@ -264,7 +264,8 @@ class BrowserNavbar extends Component{
       this.props.tabKey == this.tabKey &&
       this.searchWordHighlight == sharedState.searchWordHighlight &&
       this.searchWordHighlightRecursive == sharedState.searchWordHighlightRecursive &&
-      this.bookmarkBar == sharedState.bookmarkBar)
+      this.bookmarkBar == sharedState.bookmarkBar &&
+      this.tabPreview == sharedState.tabPreview)
     if(ret){
       this.currentWebContents = nextProps.currentWebContents
       this.wv = nextProps.tab.wv
@@ -282,6 +283,7 @@ class BrowserNavbar extends Component{
       this.searchWordHighlight = sharedState.searchWordHighlight
       this.searchWordHighlightRecursive = sharedState.searchWordHighlightRecursive
       this.bookmarkBar = sharedState.bookmarkBar
+      this.tabPreview = sharedState.tabPreview
     }
     return ret
   }
@@ -634,6 +636,12 @@ class BrowserNavbar extends Component{
                                                      PubSub.publish("resizeWindow",{})
                                                    }}/> : null
       }
+      <NavbarMenuItem text={`[${sharedState.tabPreview ? '✓' : ' '}] Tab Preview`} icon='picture'
+                      onClick={()=>{
+                        sharedState.tabPreview = !sharedState.tabPreview
+                        mainState.set('tabPreview',sharedState.tabPreview)
+                        PubSub.publish('token-preview-change',sharedState.tabPreview)
+                      }}/>
       <div className="divider" />
 
       <NavbarMenuItem text={`[${alwaysOnTop ? '✓' : ' '}] ${locale.translation('alwaysOnTop')}`} icon='level up' onClick={()=>{

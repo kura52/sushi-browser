@@ -112,8 +112,8 @@ export default class WebPageList extends Component{
                 // height: "0px"
                 // // width: `${pos.width}px`,
                 // // height: `${pos.height - modify}px`,
-                // // zIndex: 0
-                visibility: "hidden",
+                zIndex: -1,
+                visibility: sharedState.tabPreview && datas.getCapture ? "initial" : "hidden",
                 position: "absolute",
                 top: pos.top + modify,
                 left: pos.left,

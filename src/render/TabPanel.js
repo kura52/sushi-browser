@@ -1,5 +1,3 @@
-import ToolbarResizer from "./ToolbarResizer";
-
 const React = require('react')
 const {Component} = React
 const {remote} = require('electron');
@@ -1217,6 +1215,7 @@ export default class TabPanel extends Component {
       // },
       onDidNavigate(e, page) {
         console.log('onDidNavigete',e,page)
+        tab.tabPreview = void 0
 
         if(page.navUrl != e.url) {
           self.refreshHistory(e, page)
@@ -1346,10 +1345,18 @@ export default class TabPanel extends Component {
             if ((typeof page.hid === 'object' && page.hid !== null ) || (page.hid = await history.findOne({location: page.navUrl}))) {
               console.log(22, page.hid)
               if (page.hid.count > 2 && !page.hid.capture) {
-                ipc.send('take-capture', {id: page.hid._id, url: page.navUrl, loc})
+                ipc.send('take-capture', {id: page.hid._id, url: page.navUrl, loc, tabId: tab.wvId})
               }
             }
           })()
+          if(sharedState.tabPreview){
+            const base64 = uuid.v4()
+            ipc.send('take-capture', {url: page.navUrl, loc, base64, tabId: tab.wvId})
+            ipc.once(`take-capture-reply_${base64}`,(e,dataURL,size)=>{
+              tab.tabPreview = {dataURL,...size}
+              PubSub.publish('tab-preview-update',{dataURL,...size})
+            })
+          }
           // ipc.send('chrome-tab-updated',parseInt(tab.key), e, self.getChromeTab(tab))
         })
 
@@ -1975,7 +1982,7 @@ export default class TabPanel extends Component {
         const ele = winInfos[nextIndex]
         let ret
         for(let wv of document.querySelectorAll(`.w${ele[0]}`)){
-          if(wv.parentNode.parentNode.style.visibility != 'hidden'){
+          if(wv.parentNode.parentNode.style.zIndex !== '-1'){
             ret = wv
             break
           }
@@ -2408,13 +2415,14 @@ export default class TabPanel extends Component {
     }
   }
 
-  createTab({default_url,c_page=null,c_wv=null,c_key=null,hist=null,privateMode=false,pin=false,protect=false,lock=false,mute=false,reloadInterval=false,guestInstanceId,rest} = {}){
+  createTab({default_url,c_page=null,c_wv=null,c_key=null,hist=null,privateMode=false,pin=false,protect=false,lock=false,mute=false,reloadInterval=false,guestInstanceId,rest,..._rest} = {}){
     default_url = default_url || (isFixedVerticalPanel(this.props.k) ? sidebarURL : topURL)
     if(default_url) default_url = convertURL(default_url)
     const tab = {events:{},ext:{}}
     if(c_wv) tab.wv = c_wv
     // if(hist) tab.history = hist
     if(rest) Object.assign(tab,rest)
+    if(_rest) Object.assign(tab,_rest)
     if(tab.oppositeMode === (void 0)){
       tab.oppositeMode = isFloatPanel(this.props.k) ? false : this.state ? this.state.oppositeGlobal : ipc.sendSync('get-sync-main-state','oppositeGlobal')
     }
@@ -2627,7 +2635,8 @@ export default class TabPanel extends Component {
           ref: ref,
           navbar: navbar,
           modify: sharedState.bookmarkBar || (sharedState.bookmarkBarTopPage && tab.page.navUrl == topURL) ? 28 : 0,
-          float:this.props.float
+          float:this.props.float,
+          getCapture: !tab.tabPreview
           // chromeTab: this.getChromeTab(tab)
         }}
       ).filter(x=> x.key !== undefined)})
@@ -4353,34 +4362,31 @@ export default class TabPanel extends Component {
         ref='tabs'
         tabs={this.state.tabs.map((tab,num)=>{
           const notifications = this.state.notifications.filter(x=>x._key == tab.key)
-          return (<Tab key={tab.key} page={tab.page} orgTab={tab} unread={this.state.selectedTab != tab.key && !allSelectedkeys.has(tab.key)} tabPreview={tab.tabPreview} pin={tab.pin} protect={tab.protect} lock={tab.lock} mute={tab.mute} reloadInterval={tab.reloadInterval} privateMode={tab.privateMode} selection={tab.selection}>
-            <div style={{height: '100%'}}>
-              <ToolbarResizer width={height}  setWidth={this.setHeight}/>
-              <div style={{height: '100%'}} className="div-back" ref={`div-${tab.key}`} >
-                <BrowserNavbar ref={`navbar-${tab.key}`} tabkey={tab.key} k={this.props.k} navHandle={tab.navHandlers} parent={this}
-                               privateMode={tab.privateMode} page={tab.page} tab={tab} refs2={refs2} key={tab.key} adBlockEnable={adBlockEnable}
-                               oppositeGlobal={this.state.oppositeGlobal} toggleNav={toggle} adBlockThis={tab.adBlockThis}
-                               historyMap={historyMap} currentWebContents={this.props.currentWebContents}
-                               isTopRight={this.props.isTopRight} isTopLeft={this.props.isTopLeft} fixedPanelOpen={this.props.fixedPanelOpen}
-                               tabBar={!this.state.tabBar} hidePanel={this.props.hidePanel} autocompleteUrl={autocompleteUrl}
-                               fullscreen={this.props.fullscreen} bind={tab.bind} screenShot={this.screenShot} searchWordHighlight={this.searchWordHighlight}/>
-                {notifications.length ? notifications.map((data,i)=>{
-                  if(data.needInput){
-                    return <InputableDialog data={data} key={i} k={this.props.k} delete={this.deleteNotification.bind(this,i)} />
-                  }
-                  else if(data.import){
-                    return <ImportDialog data={data} key={i} k={this.props.k} delete={this.deleteNotification.bind(this,i)} />
-                  }
-                  else if(data.convert){
-                    return <ConverterDialog data={data} key={i} k={this.props.k} delete={this.deleteNotification.bind(this,i)} />
-                  }
-                  else{
-                    return <Notification data={data} key={i} k={this.props.k} delete={this.deleteNotification.bind(this,i)} />
-                  }
-                }) : null}
-                <BookmarkBar webViewCreate={this.webViewCreate} tab={tab} refs2={refs2} topURL={topURL} navigateTo={this.navigateTo} k={this.props.k} currentWebContents={this.props.currentWebContents}/>
-                <BrowserPageStatus tab={tab}/>
-              </div>
+          return (<Tab key={tab.key} page={tab.page} orgTab={tab} unread={this.state.selectedTab != tab.key && !allSelectedkeys.has(tab.key)} pin={tab.pin} protect={tab.protect} lock={tab.lock} mute={tab.mute} reloadInterval={tab.reloadInterval} privateMode={tab.privateMode} selection={tab.selection}>
+            <div style={{height: '100%'}} className="div-back" ref={`div-${tab.key}`} >
+              <BrowserNavbar ref={`navbar-${tab.key}`} tabkey={tab.key} k={this.props.k} navHandle={tab.navHandlers} parent={this}
+                             privateMode={tab.privateMode} page={tab.page} tab={tab} refs2={refs2} key={tab.key} adBlockEnable={adBlockEnable}
+                             oppositeGlobal={this.state.oppositeGlobal} toggleNav={toggle} adBlockThis={tab.adBlockThis}
+                             historyMap={historyMap} currentWebContents={this.props.currentWebContents}
+                             isTopRight={this.props.isTopRight} isTopLeft={this.props.isTopLeft} fixedPanelOpen={this.props.fixedPanelOpen}
+                             tabBar={!this.state.tabBar} hidePanel={this.props.hidePanel} autocompleteUrl={autocompleteUrl}
+                             fullscreen={this.props.fullscreen} bind={tab.bind} screenShot={this.screenShot} searchWordHighlight={this.searchWordHighlight}/>
+              {notifications.length ? notifications.map((data,i)=>{
+                if(data.needInput){
+                  return <InputableDialog data={data} key={i} k={this.props.k} delete={this.deleteNotification.bind(this,i)} />
+                }
+                else if(data.import){
+                  return <ImportDialog data={data} key={i} k={this.props.k} delete={this.deleteNotification.bind(this,i)} />
+                }
+                else if(data.convert){
+                  return <ConverterDialog data={data} key={i} k={this.props.k} delete={this.deleteNotification.bind(this,i)} />
+                }
+                else{
+                  return <Notification data={data} key={i} k={this.props.k} delete={this.deleteNotification.bind(this,i)} />
+                }
+              }) : null}
+              <BookmarkBar webViewCreate={this.webViewCreate} tab={tab} refs2={refs2} topURL={topURL} navigateTo={this.navigateTo} k={this.props.k} currentWebContents={this.props.currentWebContents}/>
+              <BrowserPageStatus tab={tab}/>
             </div>
           </Tab>)
         })}

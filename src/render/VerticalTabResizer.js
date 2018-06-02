@@ -37,6 +37,7 @@ export default class VerticalTabResizer extends Component{
     document.body.addEventListener("touchmove", this.mmove, false);
     document.body.addEventListener("mouseleave", this.mup, false);
     document.body.addEventListener("touchleave", this.mup, false);
+    document.body.addEventListener("mouseup", this.mup, false);
   }
 
 
@@ -73,6 +74,6 @@ export default class VerticalTabResizer extends Component{
   }
 
   render(){
-    return  <div ref="dad" onMouseDown={this.mdown} onMouseUp={this.mup} className="vertical-resizer" />
+    return  <div ref="dad" onMouseDown={this.mdown} className="vertical-resizer" />
   }
 }

@@ -30,6 +30,7 @@ const NavbarMenu = require('../../NavbarMenu')
 const {NavbarMenuItem, NavbarMenuBarItem} = require('../../NavbarMenuItem')
 const sharedState = require('../../sharedState')
 const {getTextColorForBackground} = require('../../../../brave/app/color')
+const ToolbarResizer = require('../../ToolbarResizer')
 
 const isDarwin = navigator.userAgent.includes('Mac OS X')
 const isWin = navigator.userAgent.includes('Windows')
@@ -132,14 +133,14 @@ class Title extends React.Component {
 
   mediaMenu(){
     return <NavbarMenu className="sort-sidebar" k={this.props.datas.k} mouseOver={true} isFloat={isFloatPanel(this.props.datas.k)} onClick={::this.handleClick}
-                audio={true} icon="volume-up" className="play-mode playing" style={{lineHeight: 'inherit',pointerEvents: 'initial', float: 'left','-webkit-app-region': 'no-drag'}} keepVisible={true}>
+                       audio={true} icon="volume-up" className="play-mode playing" style={{lineHeight: 'inherit',pointerEvents: 'initial', float: 'left','-webkit-app-region': 'no-drag'}} keepVisible={true}>
 
       <div className="ui input" style={{ margin: '4px 5px 0px 10px', display: 'inline-block'}}>
         <input onMouseDown={e=>e.target.closest('li').setAttribute('draggable',false)}
                style={{padding: '.5em 0', width: 180}} type="range" min="0" max="80" name="vol" step="1" value={this.audioVolume} onInput={::this.audioControl}/>
       </div>
       <label style={{verticalAlign: '13px', paddingRight: 10}}>{parseInt(this.audioVolume) * 10}%</label>
-     </NavbarMenu>
+    </NavbarMenu>
   }
 
   render(){
@@ -161,7 +162,7 @@ class Title extends React.Component {
          {...extraAttribute} >
         {m ? <span className='private-mode'>[{m}]</span> :
           privateMode == 'persist:tor' ? <span className='private-mode'>[T]</span>:
-          privateMode ? <i className="fa fa-eye-slash private-mode" ></i> : ""}
+            privateMode ? <i className="fa fa-eye-slash private-mode" ></i> : ""}
         {mediaPlaying[tab.wvId] ? mute ? <i className="fa fa-volume-off mute-mode playing" onClick={::this.handleClick}/> :
           this.mediaMenu() :
           mute ? <i className="fa fa-volume-off mute-mode" onClick={::this.handleClick}/> : ""}
@@ -177,6 +178,7 @@ class Title extends React.Component {
 
 let isMove
 let transfer = {}
+let tabPreviewHeight
 class Tabs extends React.Component {
   constructor(props) {
     super(props);
@@ -210,6 +212,8 @@ class Tabs extends React.Component {
     this.clickCount = 0
     this.minWidth = tabMinWidth
     this.maxWidth = tabMaxWidth
+    this.tabPreviews = {}
+    this.tabPreviewHeight = tabPreviewHeight
 
     this.handlePanelDragOver = ::this.handlePanelDragOver
     this.handleWheel = ::this.handleWheel
@@ -366,6 +370,21 @@ class Tabs extends React.Component {
       thisDom.querySelector('.rdTabAddButton').style.left = `${i * -13}px`
     })
 
+    this.tokenPreviewHeight = PubSub.subscribe('token-preview-change',(msg,val)=>{
+      if(val){
+        this.tabPreviewHeight = this._tabPreviewHeight
+      }
+      else{
+        this._tabPreviewHeight = this.tabPreviewHeight
+        this.tabPreviewHeight = void 0
+      }
+      this.props.parent.setState({})
+    })
+
+    this.tokenPreview = PubSub.subscribe('tab-preview-update',(msg,val)=>{
+      this.setState({})
+    })
+
     this.handleUpdateMediaPlaying = (e,tabId,val)=>{
       mediaPlaying[tabId] = val
       this.setState({})
@@ -381,6 +400,8 @@ class Tabs extends React.Component {
     PubSub.unsubscribe(this.tokenMultistageTabs)
     PubSub.unsubscribe(this.tokenHideTabBar)
     PubSub.unsubscribe(this.tokenTabMove)
+    PubSub.unsubscribe(this.tokenPreview)
+    PubSub.unsubscribe(this.tokenPreviewHeight)
     ipc.removeListener('update-media-playing',this.handleUpdateMediaPlaying)
 
     this.refs.ttab.removeEventListener('wheel',this.handleWheel,{passive: true})
@@ -424,6 +445,7 @@ class Tabs extends React.Component {
     else {
       tabInlineStyles.tabBar.display = "flex"
       tabInlineStyles.tabBar.paddingRight = void 0
+      if(this.tabPreviewHeight) tabInlineStyles.tabBar.height = `${this.tabPreviewHeight}px`
       // const titleElements = document.getElementsByClassName("rdTabBar mfyTabBar")
       //   for (let i = 0; i < titleElements.length; i++) {
       //     titleElements[i].style.display = "flex"
@@ -438,12 +460,12 @@ class Tabs extends React.Component {
     else if(this.isMultistageTabsMode()){
       this.TabStyles.tab.minWidth = `${this.minWidth}px`
       this.TabStyles.tab.maxWidth = `${this.maxWidth}px`
-      this.TabStyles.tab.height = '27px'
+      this.TabStyles.tab.height = this.tabPreviewHeight ? 'auto' : '27px'
     }
     else{
       this.TabStyles.tab.minWidth = '0px'
       this.TabStyles.tab.maxWidth = `${tabMaxWidth}px`
-      this.TabStyles.tab.height = void 0
+      this.TabStyles.tab.height = this.tabPreviewHeight ? `${this.tabPreviewHeight}px` :  void 0
     }
     tabInlineStyles.tabTitle = this.TabStyles.tabTitle //StyleOverride.merge(this.TabStyles.tabTitle, this.props.tabsStyles.tabTitle);
     tabInlineStyles.tabCloseIcon = this.TabStyles.tabCloseIcon //StyleOverride.merge(this.TabStyles.tabCloseIcon, this.props.tabsStyles.tabCloseIcon);
@@ -486,7 +508,6 @@ class Tabs extends React.Component {
         orgTab,
         privateMode,
         pin,
-        tabPreview,
         mute,
         freeze,
         protect,
@@ -527,6 +548,10 @@ class Tabs extends React.Component {
       if(this.props.toggleNav == 0 && multistageTabs){
         const ele = document.querySelector(`.s${this.props.k} .tab-base`)
         containerStyle.height = `calc(100% - ${ele ? ele.offsetHeight : 30}px)`
+      }
+      else if(this.props.toggleNav == 0 && this.tabPreviewHeight){
+        const ele = document.querySelector(`.s${this.props.k} .tab-base`)
+        containerStyle.height = `calc(100% - ${ele ? ele.offsetHeight : 27}px)`
       }
       else{
         containerStyle.height = `calc(100% - ${this.props.toggleNav == 0 ?  27 : 0}px)`
@@ -623,18 +648,47 @@ class Tabs extends React.Component {
 
       const t = tab.props.orgTab
 
-      const onMouseHover = mouseHoverSelectLabelBegin ? e=>{
+      const onMouseHover = sharedState.tabPreview || mouseHoverSelectLabelBegin ? e=>{
         let target = e.target
-        const handleMouseMove = e => target = e.target
-        document.addEventListener('mousemove',handleMouseMove)
-        setTimeout(_=>{
-          document.removeEventListener('mousemove',handleMouseMove)
-          if(target.closest(`[data-key='${tab.key}']`)){
-            this.setState({ selectedTab: tab.key }, () => {
-              this.props.onTabSelect(e, tab.key, this._getCurrentOpenTabs());
+
+        if(sharedState.tabPreview) {
+          if(this.tabPreviewStop || tab.key == this.props.selectedTab) return
+          setTimeout(_=>{
+            if(this.tabPreviewStop || tab.key == this.props.selectedTab) return
+
+            const handleMouseMove = e =>{
+              if(!e || !e.target.closest(`#draggable_tabs_${tab.key}`)){
+                delete this.tabPreviews[tab.key]
+                PubSub.unsubscribe(token)
+                document.removeEventListener('mousemove',handleMouseMove)
+                this.setState({})
+              }
+            }
+
+            const rect = target.getBoundingClientRect()
+            this.tabPreviews[tab.key] = {left: rect.left,top:rect.top,tabPreview: t.tabPreview}
+            const token = PubSub.subscribe('tab-preview-update',(msg,val)=>{
+              if(val) handleMouseMove()
+              this.setState({})
             })
-          }
-        },parseInt(mouseHoverSelectLabelBeginDelay)) } : void 0
+            this.setState({})
+            document.addEventListener('mousemove',handleMouseMove)
+          },Object.keys(this.tabPreviews).length ? 0 : 300)
+        }
+
+        if(mouseHoverSelectLabelBegin){
+          const handleMouseMove = e => target = e.target
+          document.addEventListener('mousemove',handleMouseMove)
+          setTimeout(_=>{
+            document.removeEventListener('mousemove',handleMouseMove)
+            if(target.closest(`[data-key='${tab.key}']`)){
+              this.setState({ selectedTab: tab.key }, () => {
+                this.props.onTabSelect(e, tab.key, this._getCurrentOpenTabs());
+              })
+            }
+          },parseInt(mouseHoverSelectLabelBeginDelay))
+        }
+      } : void 0
 
 
       let prevTitle,beforeTitleStyle
@@ -659,6 +713,7 @@ class Tabs extends React.Component {
       return (
         <li style={tabStyle} className={tabClasses} draggable
             key={`draggable_tabs_${tab.key}`}
+            id={`draggable_tabs_${tab.key}`}
             data-id={t.wvId}
             data-key={tab.key}
             onDragStart={this.handleDragStart.bind(this, [t])}
@@ -675,9 +730,11 @@ class Tabs extends React.Component {
             null :
             this.isMultistageTabsMode() ?
               <div className="chrome-tab-background" style={{backgroundColor: selected ? sharedState.colorActiveBackground : unreadTab ? sharedState.colorUnreadBackground : sharedState.colorNormalBackground}}>
+                {tab.props.orgTab.tabPreview && this.tabPreviewHeight && this.tabPreviewHeight != 27 ? <img style={{width: '100%',height: 140, marginTop:30}} src={tab.props.orgTab.tabPreview.dataURL}/> : null}
               </div> :
               <div className="chrome-tab-background">
                 <svg dangerouslySetInnerHTML={{__html: bgSvg }} />
+                {tab.props.orgTab.tabPreview && this.tabPreviewHeight && this.tabPreviewHeight != 27 ? <img style={{width: '100%',height: 140,marginTop: -4}} src={tab.props.orgTab.tabPreview.dataURL}/> : null}
               </div>
           }
           {prevTitle}
@@ -802,6 +859,7 @@ class Tabs extends React.Component {
         ele.classList.remove("vertical-selection")
       }
     }
+    this.tabPreviewStop = false
     setTimeout(_=>PubSub.publish('drag-overlay',false),100)
   }
 
@@ -813,6 +871,8 @@ class Tabs extends React.Component {
   }
 
   handleTabClick(key, e) {
+    this.tabPreviewStop = true
+    PubSub.publish('tab-preview-update',true)
     console.log(e)
     if(!e.nativeEvent) e.nativeEvent = e
     if(e.nativeEvent.which == 3){
@@ -902,6 +962,7 @@ class Tabs extends React.Component {
   }
 
   handleTabMouseUp(e){
+    this.tabPreviewStop = false
     setTimeout(_=>{
       const dom = ReactDOM.findDOMNode(this.refs.ttab)
       if(dom){
@@ -1019,6 +1080,7 @@ class Tabs extends React.Component {
 
     const overlayElement = document.querySelector('.tabs-layout-overlay-wrapper.visible')
     const overlayClassList = overlayElement && [...overlayElement.classList]
+    this.tabPreviewStop = false
     PubSub.publish('drag-overlay',false)
 
 
@@ -1260,6 +1322,17 @@ class Tabs extends React.Component {
     }
   }
 
+  setHeight(height){
+    if(height < 0) height = 0
+    if(height > 140 && !this.isMultistageTabsMode()) height = 140
+    if(this.tokenPreview && !height){
+      PubSub.unsubscribe(this.tokenPreview)
+    }
+    this.tabPreviewHeight = height + 27
+    tabPreviewHeight = height + 27
+    this.props.parent.setState({})
+  }
+
   render() {
     const {_tabClassNames,tabInlineStyles,tabs,content} = this.buildRenderComponent()
     const tabBaseStyle = this.props.toggleNav == 2 ? {display: 'none'} :
@@ -1273,13 +1346,13 @@ class Tabs extends React.Component {
         }:
         this.isMultistageTabsMode() ?
           {
-            height : void 0,
+            height : this.tabPreviewHeight || void 0,
             background: 'rgb(221, 221, 221)',
             borderBottom: '1px solid #aaa',
           } :
           this.props.toggleNav == 1 ? {} :
             {
-              height: 27,
+              height: this.tabPreviewHeight || 27,
               background: 'rgb(221, 221, 221)',
               borderBottom: '1px solid #aaa',
             }
@@ -1295,10 +1368,25 @@ class Tabs extends React.Component {
       tabBaseStyle.display = 'inherit'
     }
 
+    const previews = Object.values(this.tabPreviews)
+    const preview = previews.length && previews[previews.length - 1]
+
     return (
       <div style={tabInlineStyles.tabWrapper} className={_tabClassNames.tabWrapper} ref="div"
            onDragOver={(e)=>{e.preventDefault();return false}} onDrop={(e)=>{e.preventDefault();return false}}
            onKeyDown={this.props.onKeyDown}>
+        {!this.tabPreviewHeight && preview ? <div style={{
+          position: 'fixed',
+          zIndex: 9999999,
+          width:200,
+          height: preview.tabPreview ? Math.round(200 * preview.tabPreview.height / preview.tabPreview.width) : 140,
+          left: preview.left,
+          top: preview.top + 27,
+          backgroundImage: preview.tabPreview ? `url(${preview.tabPreview.dataURL})` : 'none',
+          backgroundColor: '#fbfbfb',
+          backgroundSize: `200px ${preview.tabPreview ? Math.round(200 * preview.tabPreview.height / preview.tabPreview.width) : 140}px`,
+          backgroundRepeat: 'no-repeat'
+        }}/> : null}
         <div className={`tab-base${this.props.toggleNav == 3 ? ' full-screen' : ''}`} style={tabBaseStyle}>
           <ul tabIndex="-1" style={tabInlineStyles.tabBar} className={_tabClassNames.tabBar} ref="ttab"
               onDoubleClick={isDarwin ? _=>{
@@ -1327,6 +1415,7 @@ class Tabs extends React.Component {
             {!isDarwin && this.props.isTopRight && this.props.toggleNav != 1 ? <RightTopBottonSet displayFullIcon={displayFullIcon} toggleNav={this.props.toggleNav} style={{paddingTop:this.props.verticalTabPanel ? 10 : void 0,transform: `translateX(${this.isMultistageTabsMode() ? 1 : - this.state.tabs.length * 13 + 6}px)`}}/>: ""}
           </ul>
         </div>
+        {this.props.toggleNav == 1 || !sharedState.tabPreview ? null : <ToolbarResizer height={this.tabPreviewHeight ? this.tabPreviewHeight - 27 : 0} setHeight={::this.setHeight}/>}
         {content}
       </div>
     );
