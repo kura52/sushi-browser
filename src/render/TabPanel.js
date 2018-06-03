@@ -1215,7 +1215,7 @@ export default class TabPanel extends Component {
       // },
       onDidNavigate(e, page) {
         console.log('onDidNavigete',e,page)
-        tab.tabPreview = void 0
+        // tab.tabPreview = void 0
 
         if(page.navUrl != e.url) {
           self.refreshHistory(e, page)
@@ -1333,6 +1333,7 @@ export default class TabPanel extends Component {
           }
           if(page.isLoading){
             page.isLoading = false
+            if(page.favicon == 'loading')page.favicon = 'resource/file.png'
             PubSub.publish(`change-status-${tab.key}`)
           }
           if (page.eventDownloadStartTab) ipc.removeListener(`download-start-tab_${tab.wvId}`, page.eventDownloadStartTab)
@@ -1438,6 +1439,8 @@ export default class TabPanel extends Component {
         ipc.send('get-on-dom-ready',tab.wvId,tab.key,tab.rSession)
         ipc.once(`get-on-dom-ready-reply_${tab.wvId}`,(e,c)=>{
           if(!c) return
+          const domLoadedTime = Date.now()
+          tab.domLoadedTime = domLoadedTime
           if(c.rSession) tab.rSession = c.rSession
           const pre = {
             canGoBack: c.currentEntryIndex !== 0,
@@ -1462,9 +1465,22 @@ export default class TabPanel extends Component {
 
       },
       onDidFailLoad(e, page, pageIndex) {
+        if(!e.isMainFrame) return
         if(page.isLoading){
           page.isLoading = false
+          if(page.favicon == 'loading') page.favicon = 'resource/file.png'
           PubSub.publish(`change-status-${tab.key}`)
+          refs2[`navbar-${tab.key}`].setState({})
+          self.setStatePartical(tab)
+
+          if(sharedState.tabPreview){
+            const base64 = uuid.v4()
+            ipc.send('take-capture', {url: page.navUrl, loc:page.navUrl, base64, tabId: tab.wvId})
+            ipc.once(`take-capture-reply_${base64}`,(e,dataURL,size)=>{
+              tab.tabPreview = {dataURL,...size}
+              PubSub.publish('tab-preview-update',{dataURL,...size})
+            })
+          }
         }
         console.log('fail',e)
         // if (page.location !== e.validatedURL || e.errorDescription == 'ERR_ABORTED' || e.errorCode == -3 || e.errorCode == 0) return
@@ -1560,10 +1576,21 @@ export default class TabPanel extends Component {
         setTimeout(_=>{
           if(page.isLoading && refs2[`navbar-${tab.key}`] && navUrl == page.navUrl){
             page.isLoading = false
+            if(page.favicon == 'loading') page.favicon = 'resource/file.png'
             PubSub.publish(`change-status-${tab.key}`)
             refs2[`navbar-${tab.key}`].setState({})
+            self.setStatePartical(tab)
+
+            if(sharedState.tabPreview){
+              const base64 = uuid.v4()
+              ipc.send('take-capture', {url: page.navUrl, loc:page.navUrl, base64, tabId: tab.wvId})
+              ipc.once(`take-capture-reply_${base64}`,(e,dataURL,size)=>{
+                tab.tabPreview = {dataURL,...size}
+                PubSub.publish('tab-preview-update',{dataURL,...size})
+              })
+            }
           }
-        },6000)
+        },7500)
         page.favicon = page.navUrl == '' || page.navUrl.match(/^(file:\/\/|chrome|about)/) ? 'resource/file.png' : 'loading'
       }
 

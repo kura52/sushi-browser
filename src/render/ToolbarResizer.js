@@ -63,6 +63,7 @@ export default class ToolbarResizer extends Component{
     document.body.removeEventListener("touchleave", this.mup, false);
     document.body.removeEventListener("mousemove", this.mmove, false);
     document.body.removeEventListener("touchmove", this.mmove, false);
+    document.body.removeEventListener("mouseup", this.mup, false);
     const drag = this.refs.dad
     this.props.setHeight(this.props.height,true)
   }

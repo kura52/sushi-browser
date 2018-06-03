@@ -373,16 +373,20 @@ class Tabs extends React.Component {
     this.tokenPreviewHeight = PubSub.subscribe('token-preview-change',(msg,val)=>{
       if(val){
         this.tabPreviewHeight = this._tabPreviewHeight
+        tabPreviewHeight = this._tabPreviewHeight
       }
       else{
         this._tabPreviewHeight = this.tabPreviewHeight
         this.tabPreviewHeight = void 0
+        tabPreviewHeight = void 0
       }
       this.props.parent.setState({})
     })
 
     this.tokenPreview = PubSub.subscribe('tab-preview-update',(msg,val)=>{
-      this.setState({})
+      if(this.tabPreviewHeight && this.tabPreviewHeight != 27){
+        this.setState({})
+      }
     })
 
     this.handleUpdateMediaPlaying = (e,tabId,val)=>{
@@ -1325,9 +1329,6 @@ class Tabs extends React.Component {
   setHeight(height){
     if(height < 0) height = 0
     if(height > 140 && !this.isMultistageTabsMode()) height = 140
-    if(this.tokenPreview && !height){
-      PubSub.unsubscribe(this.tokenPreview)
-    }
     this.tabPreviewHeight = height + 27
     tabPreviewHeight = height + 27
     this.props.parent.setState({})

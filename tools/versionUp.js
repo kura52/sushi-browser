@@ -6,26 +6,12 @@ const glob = require("glob")
 const BEFORE_CODE_NAME = 'Shirauo(Icefish)'
 const CODE_NAME = 'Ikura(Salmon Roe)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.17.0"
+const NEXT_APP_VERSION = "0.17.1"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Added tab preview function. (mouse over, slide type, setting change on main menu)
-Added home button and homepage setting.
-Added change setting of volume and speed increment by mouse wheel.
-Added "Main menu > More tools > Ask where to save each file before downloading"
-Added mouse gesture that restart, search within the page, close left or right tabs, move left or right tab.
-Added ON / OFF setting of mouse gesture from extension page.
-Updated to youtube-dl 2018.06.02.
-Fixed a lot of bugs.`
+const CHANGE_ENGLISH = `Fixed some bugs.`
 
-const CHANGE_JAPANESE = `タブプレビュー機能の追加（マウスオーバー、スライド式、メインメニューでの設定変更）
-ホームボタンの追加およびホームページの設定を追加。
-マウスホイールによる音量、速度の刻み幅の変更設定を追加
-メインメニュー＞その他ツール＞ダウンロード前にファイルの保存場所を確認する」を追加
-再起動、ページ内検索、左右のタブを閉じる、左右のタブを移動のマウスジェスチャを追加
-マウスジェスチャの拡張機能からのON/OFF設定を追加
-youtube-dlを2018.06.02に更新
-多数のバグ修正`
+const CHANGE_JAPANESE = `いくつかのバグ修正`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'
