@@ -157,11 +157,11 @@ sushi-browser --no-sandbox
 
 # New Features
 
-#### New function(v0.172)
+#### New function(v0.17.2)
 - Added setting "Keep value ​​in LocalStorage" when volume is changed by seek operation.
 - Fixed some bug.
 
-#### New function(v0.17.2)
+#### New function(v0.17.1)
 - Fixed some bugs.
 
 #### New function(v0.17.0)
