@@ -1033,11 +1033,11 @@ function contextMenu(webContents) {
           const isURLGo = !type && urlutil.isURL(text)
           for(let suffix of type ? [''] : mainState.oppositeGlobal ? ['(o)','(c)'] : ['(c)','(o)']){
             const label = isURLGo ? locale.translation('2948300991547862301').replace(/<ph name="PAGE_TITLE">/,text).replace(/<\/ph>/,'') :
-              locale.translation('openSearch').replace(/{{\s*selectedVariable\s*}}/, text.length > 20 ? `${text.substr(0, 20)}...` : text)
+              labelShortcut + locale.translation('openSearch').replace(/{{\s*selectedVariable\s*}}/, text.length > 20 ? `${text.substr(0, 20)}...` : text)
             menuItems.push({
               t: 'openSearch', label: label + suffix,
               click: (item, win) =>  win.webContents.send(isURLGo ? suffix == '(o)' ? 'new-tab-opposite' : 'new-tab' : 'search-text',
-                webContents.getId(), isURLGo ? urlutil.getUrlFromInput(text) : text ,suffix == '(o)')
+                webContents.getId(), isURLGo ? urlutil.getUrlFromInput(text) : `${searchShortcut}${text}` ,suffix == '(o)')
             })
           }
         }

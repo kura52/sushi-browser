@@ -94,7 +94,7 @@ if(window.__started_){
   //   }, false);
   // }
   // else{
-    document.addEventListener('dragend', handleDragEnd, false)
+  document.addEventListener('dragend', handleDragEnd, false)
   // }
 
 
@@ -118,7 +118,7 @@ if(window.__started_){
   })
 
   const key = Math.random().toString()
-  ipc.send("get-main-state",key,['tripleClick','alwaysOpenLinkNewTab','themeColorChange','isRecording','isVolumeControl'])
+  ipc.send("get-main-state",key,['tripleClick','alwaysOpenLinkNewTab','themeColorChange','isRecording','isVolumeControl','keepAudioSeekValueVideo'])
   ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
     if (data.tripleClick) {
       window.addEventListener('click', e => {
@@ -228,6 +228,29 @@ if(window.__started_){
         }
       },500)
     }
+
+    if(data.keepAudioSeekValueVideo){
+      const diffArray = (arr1, arr2)=>arr1.filter(e=>!arr2.includes(e))
+      let pre = []
+      setInterval(_=>{
+        const volume = localStorage.getItem("vol")
+        if(volume !== null){
+          const videos = [...document.querySelectorAll('video')]
+          const srcs = videos.map(v=>v.src)
+          if(diffArray(pre,srcs).length || diffArray(srcs,pre).length){
+            pre = srcs
+            for(let v of videos){
+              let i = 0
+              const id = setInterval(_=>{
+                if(i++ > 300) clearInterval(id)
+                v.volume = parseFloat(volume)
+              },10)
+            }
+          }
+        }
+      },100)
+    }
+
   })
 
 
@@ -257,6 +280,7 @@ if(window.__started_){
       }
     })
   }
+
   const videoFunc = (e,inputs)=>{
     for(let url of (inputs.blackList || [])){
       if(url && location.href.startsWith(url)) return
@@ -391,12 +415,14 @@ if(window.__started_){
         const seek = band/100.0
         v.volume = Math.max(Math.round(v.volume*100/band)*band/100 - seek, 0)
         popUp(v,`Volume: ${Math.round(v.volume * 100)}%`)
+        if(inputs.keepAudioSeekValue) localStorage.setItem("vol",v.volume)
       }
       else if(name == 'increaseVolume'){
         const band = parseInt(inputs.audioSeek)
         const seek = band/100.0
         v.volume = Math.min(Math.round(v.volume*100/band)*band/100 + seek, 1)
         popUp(v,`Volume: ${Math.round(v.volume * 100)}%`)
+        if(inputs.keepAudioSeekValue) localStorage.setItem("vol",v.volume)
       }
       else if(name == 'plRepeat'){
         v.loop = !v.loop

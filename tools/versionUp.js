@@ -6,12 +6,14 @@ const glob = require("glob")
 const BEFORE_CODE_NAME = 'Shirauo(Icefish)'
 const CODE_NAME = 'Ikura(Salmon Roe)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.17.1"
+const NEXT_APP_VERSION = "0.17.2"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Fixed some bugs.`
+const CHANGE_ENGLISH = `Added setting "Keep value ​​in LocalStorage" when volume is changed by seek operation.
+Fixed some bug.`
 
-const CHANGE_JAPANESE = `いくつかのバグ修正`
+const CHANGE_JAPANESE = `シーク操作で音量を変更した場合の音量をローカルストレージに記憶する設定を追加
+いくつかのバグ修正`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

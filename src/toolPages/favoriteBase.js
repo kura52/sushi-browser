@@ -449,7 +449,7 @@ class Contents extends React.Component {
         },this.props.cont ? this.props.cont.getId() : (void 0)).then(value => {
           if (!value) return
           const data = isPage ? {title:value[0], url:value[1], is_file:true} : {title:value[0], is_file:false,children:[]}
-          insertFavorite(this.getKey(nodes[0].getParent()),data).then(_=>_)
+          insertFavorite(this.getKey(nodes[0].type == 'file' ? nodes[0].getParent() : nodes[0]),data).then(_=>_)
         })
       }
     }

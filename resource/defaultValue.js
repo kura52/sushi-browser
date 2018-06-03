@@ -268,6 +268,7 @@ const settingDefault =  {
 
   speedSeekVideo: 10,
   audioSeekVideo: 10,
+  keepAudioSeekValueVideo: false,
 
   clickVideo: '',
   dbClickVideo: 'fullscreen',

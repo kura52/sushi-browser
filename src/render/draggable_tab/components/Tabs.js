@@ -1254,7 +1254,9 @@ class Tabs extends React.Component {
       if(dragData.tabs) return
     }
     console.log(evt,evt.target)
-    const classList = evt.target.classList
+    const closest = evt.target.closest('.chrome-tab')
+    if(!closest) return
+    const classList = closest.classList
     if (classList.contains('chrome-tab') && !classList.contains('chrome-tab-drag') ) {
       classList.add("chrome-tab-drag")
     }

@@ -843,6 +843,7 @@ class SearchSetting extends React.Component {
     this.onBlur = ::this.onBlur
     this.changeCheck = ::this.changeCheck
     this.addSite = ::this.addSite
+    this.deleteSite = ::this.deleteSite
   }
 
   changeCheck(e,i,name,data){
@@ -905,6 +906,9 @@ class SearchSetting extends React.Component {
       <td key={`name${i}`} data-num={i} data-name='name' onInput={this.emitChange} onBlur={this.onBlur} contentEditable>{name}</td>
       <td key={`search${i}`} data-num={i} data-name='search' onInput={this.emitChange} onBlur={this.onBlur} contentEditable>{url}</td>
       <td key={`shortcut${i}`} data-num={i} data-name='shortcut' onInput={this.emitChange} onBlur={this.onBlur} contentEditable>{alias}</td>
+      <td key={`delete${i}`} style={{fontSize: 20, textAlign: 'center'}}>
+        <a href="javascript:void(0)" onClick={_=>this.deleteSite(i)}> <i aria-hidden="true" className="trash icon"></i></a>
+      </td>
     </tr>
   }
 
@@ -949,6 +953,9 @@ class SearchSetting extends React.Component {
                   ]} defaultValue={type}/>
       </td>
       <td key={`shortcut${i}`} data-num={i} data-name='shortcut' onInput={this.emitChange} onBlur={this.onBlur} contentEditable>{alias}</td>
+      <td key={`delete${i}`} style={{fontSize: 20, textAlign: 'center'}}>
+        <a href="javascript:void(0)" onClick={_=>this.deleteSite(i)}> <i aria-hidden="true" className="trash icon"></i></a>
+      </td>
     </tr>
   }
 
@@ -960,6 +967,11 @@ class SearchSetting extends React.Component {
       newRecord.type = 'one-row'
     }
     this.state.searchProviders.push(newRecord)
+    this.setState({})
+  }
+
+  deleteSite(i){
+    this.state.searchProviders.splice(i,1)
     this.setState({})
   }
 
@@ -981,6 +993,7 @@ class SearchSetting extends React.Component {
           <th>{l10n.translation('searchEngines')}</th>
           <th>{l10n.translation('2448312741937722512')}</th>
           <th>{l10n.translation('engineGoKey')}</th>
+          <th>{l10n.translation('delete')}</th>
         </tr>
         </thead>
         <tbody>
@@ -990,7 +1003,7 @@ class SearchSetting extends React.Component {
         <tr>
           <th>
           </th>
-          <th colspan="4">
+          <th colspan="5">
             <button className="ui small icon primary button" onClick={_=>this.addSite(true)}>Add Search Engine</button>
           </th>
         </tr>
@@ -1007,6 +1020,7 @@ class SearchSetting extends React.Component {
           <th>{l10n.translation('name')}</th>
           <th>Search URL</th>
           <th>{l10n.translation('engineGoKey')}</th>
+          <th>{l10n.translation('delete')}</th>
         </tr>
         </thead>
         <tbody>
@@ -1016,7 +1030,7 @@ class SearchSetting extends React.Component {
         <tr>
           <th>
           </th>
-          <th colspan="4">
+          <th colspan="5">
             <button className="ui small icon primary button" onClick={_=>this.addSite()}>Add Search Engine</button>
           </th>
         </tr>
@@ -1695,7 +1709,7 @@ class VideoSetting extends React.Component {
       </Grid>
       <br/>
       <br/>
-w
+
       <div className="field">
         <Checkbox defaultChecked={this.state.reverseWheelVideo} toggle onChange={this.onChange.bind(this,'reverseWheelVideo')}/>
         <span className="toggle-label">{l10n.translation('reverseWheelMediaSeeking').replace(/\(.\)/,'')}</span>
@@ -1721,7 +1735,11 @@ w
         </Grid.Row>
         <Grid.Row>
           <Grid.Column width={4}><label>{l10n.translation('volumeControl').replace(/\(.\)/,'')}</label></Grid.Column>
-          <Grid.Column width={7}><Input onChange={this.onChange.bind(this,'audioSeekVideo')} defaultValue={this.state.audioSeekVideo}/>%</Grid.Column>
+          <Grid.Column width={4}><Input onChange={this.onChange.bind(this,'audioSeekVideo')} defaultValue={this.state.audioSeekVideo}/>%</Grid.Column>
+          <Grid.Column width={4} style={{paddingTop: 6}}>
+            <Checkbox defaultChecked={this.state.keepAudioSeekValueVideo} toggle onChange={this.onChange.bind(this,'keepAudioSeekValueVideo')}/>
+            <span className="toggle-label">Keep value ​​in LocalStorage</span>
+          </Grid.Column>
         </Grid.Row>
         <Grid.Row>
           <Grid.Column width={4}><label>{l10n.translation('changeSpeed').replace(/\(.\)/,'')}</label></Grid.Column>
@@ -1801,7 +1819,7 @@ class ExtensionSetting extends React.Component {
       <td key={`description${i}`} >{v.description}</td>
       <td key={`version${i}`} style={{width: 40}}>{v.version}</td>
       <td key={`option${i}`} style={{fontSize: 20,textAlign: 'center'}}>
-        {v.enabled && v.optionPage ? <a href="#" onClick={_=> ipc.sendToHost("open-tab", `chrome-extension://${id}/${v.optionPage}`, true)}>
+        {v.enabled && v.optionPage ? <a href="javascript:void(0)" onClick={_=> ipc.sendToHost("open-tab", `chrome-extension://${id}/${v.optionPage}`, true)}>
           <i aria-hidden="true" class="setting icon"></i>
         </a> : null}
       </td>
@@ -1809,12 +1827,12 @@ class ExtensionSetting extends React.Component {
         <Checkbox checked={v.enabled} disabled={cannotDisable} toggle onChange={(e,data)=>this.changeCheck(id,data)}/>
       </td>
       <td key={`background${i}`} style={{fontSize: 20,textAlign: 'center'}}>
-        {v.enabled && v.background ? <a href="#" onClick={_=> ipc.sendToHost("load-url", `chrome-extension://${id}/${v.background}`, true)}>
+        {v.enabled && v.background ? <a href="javascript:void(0)" onClick={_=> ipc.sendToHost("load-url", `chrome-extension://${id}/${v.background}`, true)}>
           <i aria-hidden="true" class="bug icon"></i>
         </a> : null}
       </td>
       <td key={`delete${i}`} style={{fontSize: 20,textAlign: 'center'}}>
-        {cannotDisable ? null : <a href="#" onClick={_=> ipc.send("delete-extension",id,orgId)}>
+        {cannotDisable ? null : <a href="javascript:void(0)" onClick={_=> ipc.send("delete-extension",id,orgId)}>
           <i aria-hidden="true" class="trash icon"></i>
         </a>}
       </td>
