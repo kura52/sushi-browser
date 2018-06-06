@@ -252,7 +252,7 @@ export default class Download {
   }
 
   process(url, overwrite, savePath, item, webContents, win, mimeType, audioExtract, videoConvert, cond) {
-    if (!cond || retry.has(url) || url.startsWith('data:')) {
+    if (!cond || retry.has(url) || url.startsWith('data:') || url.startsWith('blob:') || url.startsWith('chrome-extension:')) {
       item.setPrompt(false)
       console.log('retry')
       retry.delete(url)

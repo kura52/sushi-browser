@@ -164,8 +164,8 @@ app.on('ready', async ()=>{
   require('./clearEvent')
 
 
-  ptyProcessSet = require('./ptyProcess')
-  // ptyProcessSet = new Set()
+  // ptyProcessSet = require('./ptyProcess')
+  ptyProcessSet = new Set()
   passwordManager = require('./passwordManagerMain')
   require('./importer')
   require('./bookmarksExporter')
@@ -1022,6 +1022,8 @@ function contextMenu(webContents) {
       }
       else{
         for(let engine of mainState.contextMenuSearchEngines){
+          if(!mainState.searchProviders[engine]) continue
+
           let labelShortcut = ''
           let searchShortcut = ''
           if(engine != mainState.searchEngine){

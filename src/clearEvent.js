@@ -10,7 +10,7 @@ const m = {
     for(let table of [image,favicon,tabState,history,visit,savedState]){
       await table.remove({}, { multi: true })
     }
-    ses.clearHistory()
+    // ses.clearHistory()
 
     const resourcePath = path.join(app.getPath('userData'),'resource')
     const capturePath = path.join(resourcePath,'capture')

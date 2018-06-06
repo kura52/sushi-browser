@@ -971,7 +971,8 @@ class SearchSetting extends React.Component {
   }
 
   deleteSite(i){
-    this.state.searchProviders.splice(i,1)
+    const ind = this.state.searchProviders.findIndex(x=>x.ind == i)
+    this.state.searchProviders.splice(ind,1)
     this.setState({})
   }
 
