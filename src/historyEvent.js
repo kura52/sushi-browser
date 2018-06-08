@@ -59,7 +59,7 @@ ipcMain.on('fetch-frequently-history', async (event, range) => {
         if((h = hists.find(x=>x.location == fav.location))){
           fav.count = h.count
           fav.favicon = h.favicon
-        }
+      }
       }
     }
   }

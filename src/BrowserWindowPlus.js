@@ -385,6 +385,8 @@ export default {
         ...fontOpt
       }
     }
+    if(mainState.windowCustomIcon && fs.existsSync(mainState.windowCustomIcon)) winArg.icon = mainState.windowCustomIcon
+
     console.log(444,winArg)
 
     let [maxWidth,maxHeight] = [0,0]
@@ -420,11 +422,12 @@ export default {
 
 
     console.log(909,winArg)
-    if(!win){
+    // if(!win){
       winArg.width = winArg.width || setting.width
       winArg.height = winArg.height || setting.height
       initWindow = create(winArg)
       localShortcuts.register(initWindow)
+      // initWindow.setIcon("C:\\Users\\kura5\\Downloads\xawtv-icone-9477-128.png")
       initWindow.setMenuBarVisibility(true)
       initWindow.loadURL(`chrome://brave/${path.join(__dirname, '../index.html').replace(/\\/g,"/")}${getParam}`)
       // initWindow.webContents.openDevTools()
@@ -438,22 +441,22 @@ export default {
       })
 
       new (require('./Download'))(initWindow)
-    }
-    else{
-      initWindow = win
-      win.setBounds({x: winArg.x, y: winArg.y, width: winArg.width || setting.width, height: winArg.height || setting.height})
-      win.setSkipTaskbar(false)
-      win.setTitle('Sushi Browser')
-      // win.reload()
-      win.loadURL(`chrome://brave/${path.join(__dirname, '../index.html').replace(/\\/g,"/")}${getParam}`)
-      console.log(winArg,setting)
-
-      win.webContents.once('did-finish-load', () => {
-        win.show()
-        if(winArg.maximize) win.maximize()
-        win.setAlwaysOnTop(!!winArg.alwaysOnTop)
-      })
-    }
+    // }
+    // else{
+    //   initWindow = win
+    //   win.setBounds({x: winArg.x, y: winArg.y, width: winArg.width || setting.width, height: winArg.height || setting.height})
+    //   win.setSkipTaskbar(false)
+    //   win.setTitle('Sushi Browser')
+    //   // win.reload()
+    //   win.loadURL(`chrome://brave/${path.join(__dirname, '../index.html').replace(/\\/g,"/")}${getParam}`)
+    //   console.log(winArg,setting)
+    //
+    //   win.webContents.once('did-finish-load', () => {
+    //     win.show()
+    //     if(winArg.maximize) win.maximize()
+    //     win.setAlwaysOnTop(!!winArg.alwaysOnTop)
+    //   })
+    // }
     // initWindow.webContents.openDevTools()
     PubSub.publish('chrome-windows-onCreated',initWindow.id)
     return initWindow

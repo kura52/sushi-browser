@@ -99,6 +99,8 @@ const keyMapping = {
   keyClicktabCopyUrlFromClipboard: l10n.translation('clicktabCopyUrlFromClipboard'),
   keyPasteAndOpen: 'Paste and Open',
   keyCopyTabInfo: 'Copy Tab Info',
+  keyCopyAllTabTitles: 'Copy All Tab Titles',
+  keyCopyAllTabUrls: 'Copy All Tab URLS',
   keyCopyAllTabInfos: 'Copy All Tab Infos',
 
   //util
@@ -426,6 +428,8 @@ const tabContextMenus = [
   ['clicktabCopyUrlFromClipboard',l10n.translation('clicktabCopyUrlFromClipboard')],
   ['Paste and Open','Paste and Open'],
   ['Copy Tab Info','Copy Tab Info'],
+  ['Copy All Tab Titles','Copy All Tab Titles'],
+  ['Copy All Tab URLs','Copy All Tab URLs'],
   ['Copy All Tab Infos','Copy All Tab Infos'],
 
   ['divider', null],
@@ -808,6 +812,20 @@ class GeneralSetting extends React.Component {
         <br/>
 
         <div className="field">
+          <label>Custom Window Icon({l10n.translation('requiresRestart').replace('* ','')})</label>
+          <Input ref="iconSet" style={{width: 400}} onChange={this.onChange.bind(this,'windowCustomIcon')} defaultValue={this.state.windowCustomIcon}/>
+          <Button icon='folder' onClick={_=>{
+            const key = Math.random().toString()
+            ipc.send('show-dialog-exploler',key,{defaultPath: this.state.windowCustomIcon, needIcon: true})
+            ipc.once(`show-dialog-exploler-reply_${key}`,(event,ret)=>{
+              if(!ret) return
+              this.refs.iconSet.inputRef.value = ret
+              this.onChange('windowCustomIcon',{},{value:ret})
+            })
+          }}/>
+        </div>
+
+        <div className="field">
           <label>Sync Scroll Margin({l10n.translation('requiresRestart').replace('* ','')})</label>
           <Dropdown onChange={this.onChange.bind(this,'syncScrollMargin')} selection options={syncScrollMarginOptions} defaultValue={this.state.syncScrollMargin}/>
         </div>
@@ -1047,7 +1065,7 @@ class TabsSetting extends React.Component {
   constructor(props) {
     super(props)
     this.state = {...TabDefault,errors:{}}
-    this.mouseOptions = this.makeOptions(['clicktabNothing','newTab','newPrivateTab','newSessionTab','Split Left','Split Right','Split Top','Split Bottom','Split left tabs to left','Split right tabs to right','Floating Panel','Swap Position','Switch Direction','Align Horizontal','Align Vertical','clicktabCopyTabUrl','clicktabCopyUrlFromClipboard','Paste and Open','Copy Tab Info','Copy All Tab Infos','reload','cleanReload','clicktabReloadtabs','clicktabReloadothertabs','clicktabReloadlefttabs','clicktabReloadrighttabs','3007771295016901659','unpinTab','unmuteTab','freezeTabMenuLabel','protectTabMenuLabel','lockTabMenuLabel','closeTab','closeOtherTabs','closeTabsToLeft','closeTabsToRight','closeAllTabsMenuLabel','reopenLastClosedTab','clicktabUcatab','bookmarkPage','5078638979202084724'])
+    this.mouseOptions = this.makeOptions(['clicktabNothing','newTab','newPrivateTab','newSessionTab','Split Left','Split Right','Split Top','Split Bottom','Split left tabs to left','Split right tabs to right','Floating Panel','Swap Position','Switch Direction','Align Horizontal','Align Vertical','clicktabCopyTabUrl','clicktabCopyUrlFromClipboard','Paste and Open','Copy Tab Info','Copy All Tab Titles','Copy All Tab URLs','Copy All Tab Infos','reload','cleanReload','clicktabReloadtabs','clicktabReloadothertabs','clicktabReloadlefttabs','clicktabReloadrighttabs','3007771295016901659','unpinTab','unmuteTab','freezeTabMenuLabel','protectTabMenuLabel','lockTabMenuLabel','closeTab','closeOtherTabs','closeTabsToLeft','closeTabsToRight','closeAllTabsMenuLabel','reopenLastClosedTab','clicktabUcatab','bookmarkPage','5078638979202084724'])
   }
 
   onChange2(isTab,name,e,data){
@@ -1171,6 +1189,12 @@ class TabsSetting extends React.Component {
     }
   }
 
+  handleChangeTabPreviewQuality(e){
+    const val = parseInt(e.target.value)
+    this.setState({tabPreviewQuality: val })
+    ipc.send('save-state',{tableName:'state',key:'tabPreviewQuality',val})
+  }
+
   render() {
     return <div>
       <h3>{l10n.translation('tabs')} ({l10n.translation('requiresRestart').replace('* ','')})</h3>
@@ -1198,13 +1222,6 @@ class TabsSetting extends React.Component {
       <div className="field">
         <Checkbox defaultChecked={this.state.keepWindowLabel31} toggle onChange={this.onChange.bind(this,'keepWindowLabel31')}/>
         <span className="toggle-label">{l10n.translation('keepWindowLabel31')}</span>
-      </div>
-
-      <div className='spacer2'/>
-
-      <div className="field">
-        <Checkbox defaultChecked={this.state.tabPreview} toggle onChange={this.onChange.bind(this,'tabPreview')}/>
-        <span className="toggle-label">Enable Tab Preview</span>
       </div>
 
       <div className='spacer2'/>
@@ -1263,6 +1280,46 @@ class TabsSetting extends React.Component {
         <Checkbox defaultChecked={this.state.oppositeGlobal} toggle onChange={this.onChange.bind(this,'oppositeGlobal')}/>
         <span className="toggle-label">Opposite Mode (If a link is about to be opened in the new background, it opens in the oppopsite tab.)</span>
       </div>
+
+      <Divider/>
+      <h4 style={{marginTop:0, marginBottom: 20}}>Tab Preview</h4>
+
+      <div className="field">
+        <Checkbox defaultChecked={this.state.tabPreview} toggle onChange={this.onChange.bind(this,'tabPreview')}/>
+        <span className="toggle-label">Enable Tab Preview</span>
+      </div>
+
+      <div className='spacer2'/>
+
+      <div className="field">
+        <label>Delay Time:&nbsp;</label>
+        <Input onChange={this.onChange.bind(this,'tabPreviewWait')} defaultValue={this.state.tabPreviewWait}/>
+        <label>&nbsp;{l10n.translation('millisecondsLabel')}</label>
+      </div>
+
+      <div className='spacer2'/>
+
+      <div className="field">
+        <label>Width:&nbsp;</label>
+        <Input onChange={this.onChange.bind(this,'tabPreviewSizeWidth')} defaultValue={this.state.tabPreviewSizeWidth}/>
+        <label>&nbsp;Height:&nbsp;</label>
+        <Input onChange={this.onChange.bind(this,'tabPreviewSizeHeight')} defaultValue={this.state.tabPreviewSizeHeight}/>
+      </div>
+      <div className='spacer2'/>
+
+      <div className="field">
+        <label>Slide Height:&nbsp;</label>
+        <Input onChange={this.onChange.bind(this,'tabPreviewSlideHeight')} defaultValue={this.state.tabPreviewSlideHeight}/>
+      </div>
+
+      <div className='spacer2'/>
+
+      <label style={{verticalAlign: '7px', paddingRight: 10}}>TabPreview Image Quality:</label>
+      <div className="ui input">
+        <input style={{padding: '.2em 0'}} type="range" min="0" max="100" name="imageQuality" step="1" value={this.state.tabPreviewQuality} onInput={e=>this.handleChangeTabPreviewQuality(e)}/>
+      </div>
+      <label style={{verticalAlign: '7px', paddingLeft: 10}}>{this.state.tabPreviewQuality}</label>
+
 
       <Divider/>
       <h4 style={{marginTop:0, marginBottom: 20}}>{l10n.translation('showOntabLabel')}</h4>
@@ -1940,13 +1997,13 @@ const key = Math.random().toString()
 ipc.send("get-main-state",key,['startsWith','newTabMode','myHomepage','searchProviders','searchEngine','language','enableFlash','concurrentDownload','downloadNum','sideBarDirection','scrollTab',
   'doubleShift','tripleClick','enableMouseGesture','extensionOnToolbar','syncScrollMargin','contextMenuSearchEngines','ALL_KEYS','bindMarginFrame','bindMarginTitle','longPressMiddle','checkDefaultBrowser','sendToVideo',
   'multistageTabs','tabMinWidth','httpsEverywhereEnable','trackingProtectionEnable','autoSaveInterval','noScript','blockCanvasFingerprinting','browsingHistory', 'downloadHistory',
-  'disableContextMenus','disableTabContextMenus','priorityContextMenus','priorityTabContextMenus','reloadIntervals','generalWindowOpenLabel','keepWindowLabel31','tabPreview',
+  'disableContextMenus','disableTabContextMenus','priorityContextMenus','priorityTabContextMenus','reloadIntervals','generalWindowOpenLabel','keepWindowLabel31','tabPreview','tabPreviewQuality',
   'closeTabBehavior','reverseScrollTab','tabMaxWidth','mouseHoverSelectLabelBegin','mouseHoverSelectLabelBeginDelay','tabFlipLabel','doubleClickTab','middleClickTab','altClickTab',
-  'maxrowLabel','orderOfAutoComplete','numOfSuggestion','numOfHistory','openTabNextLabel','rightClickTabAdd','middleClickTabAdd','altClickTabAdd','displayFullIcon','downloadPath',
+  'maxrowLabel','orderOfAutoComplete','numOfSuggestion','numOfHistory','openTabNextLabel','rightClickTabAdd','middleClickTabAdd','altClickTabAdd','displayFullIcon','downloadPath','windowCustomIcon',
   'defaultDownloadPath','alwaysOpenLinkNewTab','openTabPosition','alwaysOpenLinkBackground','addressBarNewTab','oppositeGlobal','colorNormalText','colorNormalBackground','colorActiveText',
   'colorActiveBackground','colorTabDot','colorUnreadText','colorUnreadBackground','enableColorOfNoSelect','themeColorChange','showBorderActiveTab','historyBadget','colorTabMode',
   'clearHistoryOnClose','clearDownloadOnClose','clearCacheOnClose','clearStorageDataOnClose','clearAutocompleteDataOnClose','clearAutofillDataOnClose','clearPasswordOnClose','clearGeneralSettingsOnClose','clearFavoriteOnClose',
-  'enableWidevine','toolbarLink','sidebarLink','bookmarkbarLink','zoomBehavior'])
+  'enableWidevine','toolbarLink','sidebarLink','bookmarkbarLink','zoomBehavior','tabPreviewSizeWidth','tabPreviewSizeHeight','tabPreviewSlideHeight','tabPreviewWait'])
 ipc.once(`get-main-state-reply_${key}`,(e,data)=>{
   generalDefault = data
   keyboardDefault = data

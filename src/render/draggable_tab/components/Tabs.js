@@ -34,8 +34,12 @@ const ToolbarResizer = require('../../ToolbarResizer')
 
 const isDarwin = navigator.userAgent.includes('Mac OS X')
 const isWin = navigator.userAgent.includes('Windows')
-let [scrollTab,reverseScrollTab,multistageTabs,verticalTabWidth,tabBarHide,tabMinWidth,tabMaxWidth,tabFlipLabel,mouseHoverSelectLabelBeginDelay,mouseHoverSelectLabelBegin,doubleClickTab,middleClickTab,altClickTab,maxrowLabel,openTabNextLabel,rightClickTabAdd,middleClickTabAdd,altClickTabAdd,displayFullIcon,mediaPlaying] = ipc.sendSync('get-sync-main-states',['scrollTab','reverseScrollTab','multistageTabs','verticalTabWidth','tabBarHide','tabMinWidth','tabMaxWidth','tabFlipLabel','mouseHoverSelectLabelBeginDelay','mouseHoverSelectLabelBegin','doubleClickTab','middleClickTab','altClickTab','maxrowLabel','openTabNextLabel','rightClickTabAdd','middleClickTabAdd','altClickTabAdd','displayFullIcon','mediaPlaying'])
+let [scrollTab,reverseScrollTab,multistageTabs,verticalTabWidth,tabBarHide,tabMinWidth,tabMaxWidth,tabFlipLabel,mouseHoverSelectLabelBeginDelay,mouseHoverSelectLabelBegin,doubleClickTab,middleClickTab,altClickTab,maxrowLabel,openTabNextLabel,rightClickTabAdd,middleClickTabAdd,altClickTabAdd,displayFullIcon,mediaPlaying,tabPreviewSizeWidth,tabPreviewSizeHeight,tabPreviewSlideHeight,tabPreviewWait] = ipc.sendSync('get-sync-main-states',['scrollTab','reverseScrollTab','multistageTabs','verticalTabWidth','tabBarHide','tabMinWidth','tabMaxWidth','tabFlipLabel','mouseHoverSelectLabelBeginDelay','mouseHoverSelectLabelBegin','doubleClickTab','middleClickTab','altClickTab','maxrowLabel','openTabNextLabel','rightClickTabAdd','middleClickTabAdd','altClickTabAdd','displayFullIcon','mediaPlaying','tabPreviewSizeWidth','tabPreviewSizeHeight','tabPreviewSlideHeight','tabPreviewWait'])
 maxrowLabel = parseInt(maxrowLabel)
+tabPreviewSizeWidth = tabPreviewSizeWidth ? parseInt(tabPreviewSizeWidth) : null
+tabPreviewSizeHeight = tabPreviewSizeHeight ? parseInt(tabPreviewSizeHeight) : null
+tabPreviewSlideHeight = tabPreviewSlideHeight ? parseInt(tabPreviewSlideHeight) : 140
+tabPreviewWait = tabPreviewWait ? parseInt(tabPreviewWait) : 0
 
 ;(function(){
   const s = document.createElement('style');
@@ -677,7 +681,7 @@ class Tabs extends React.Component {
             })
             this.setState({})
             document.addEventListener('mousemove',handleMouseMove)
-          },Object.keys(this.tabPreviews).length ? 0 : 300)
+          },Object.keys(this.tabPreviews).length ? 0 : tabPreviewWait)
         }
 
         if(mouseHoverSelectLabelBegin){
@@ -1330,7 +1334,7 @@ class Tabs extends React.Component {
 
   setHeight(height){
     if(height < 0) height = 0
-    if(height > 140 && !this.isMultistageTabsMode()) height = 140
+    if(height > tabPreviewSlideHeight && !this.isMultistageTabsMode()) height = tabPreviewSlideHeight
     this.tabPreviewHeight = height + 27
     tabPreviewHeight = height + 27
     this.props.parent.setState({})
@@ -1381,13 +1385,13 @@ class Tabs extends React.Component {
         {(!this.tabPreviewHeight || this.tabPreviewHeight == 27) && preview ? <div style={{
           position: 'fixed',
           zIndex: 9999999,
-          width:200,
-          height: preview.tabPreview ? Math.round(200 * preview.tabPreview.height / preview.tabPreview.width) : 140,
+          width:tabPreviewSizeWidth || preview.tabPreview.width,
+          height: preview.tabPreview ? Math.round((tabPreviewSizeWidth || preview.tabPreview.width) * (tabPreviewSizeHeight || preview.tabPreview.height / preview.tabPreview.width)) : tabPreviewSlideHeight,
           left: preview.left,
           top: preview.top + 27,
           backgroundImage: preview.tabPreview ? `url(${preview.tabPreview.dataURL})` : 'none',
           backgroundColor: '#fbfbfb',
-          backgroundSize: `200px ${preview.tabPreview ? Math.round(200 * preview.tabPreview.height / preview.tabPreview.width) : 140}px`,
+          backgroundSize: `${tabPreviewSizeWidth || preview.tabPreview.width}px ${preview.tabPreview ? Math.round((tabPreviewSizeWidth || preview.tabPreview.width) * (tabPreviewSizeHeight || preview.tabPreview.height / preview.tabPreview.width)) : tabPreviewSlideHeight}px`,
           backgroundRepeat: 'no-repeat'
         }}/> : null}
         <div className={`tab-base${this.props.toggleNav == 3 ? ' full-screen' : ''}`} style={tabBaseStyle}>

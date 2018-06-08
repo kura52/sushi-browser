@@ -117,11 +117,24 @@ export default class BookmarkBarWrapper extends Component {
 
   componentWillMount() {
     this.props.refs2[`bookmarkbar-${this.props.tab.key}`] = this
+    console.log(68888,`hover-bookmarkbar-${this.props.tab.key}`)
+    this.token = PubSub.subscribe(`hover-bookmarkbar-${this.props.tab.key}`,(e,val)=>{
+      if(this.hoverBookmarkBar == val) return
+      if(!this._isShow()){
+        this.hoverBookmarkBar = val
+        this.setState({})
+      }
+    })
+  }
+
+  _isShow(){
+    return sharedState.bookmarkBar ||
+      (sharedState.bookmarkBarTopPage && this.props.tab.page.navUrl == this.props.topURL)
   }
 
   isShow(){
-    return sharedState.bookmarkBar || (sharedState.bookmarkBarTopPage && this.props.tab.page.navUrl == this.props.topURL)
-  }
+    return this._isShow() || this.hoverBookmarkBar
+ }
 
   shouldComponentUpdate(nextProps, nextState) {
     const val = this.isShow()
@@ -136,13 +149,14 @@ export default class BookmarkBarWrapper extends Component {
   }
 
   componentWillUnmount() {
+    PubSub.unsubscribe(this.token)
     if(this.props.refs2[`bookmarkbar-${this.props.tab.key}`] == this){
       delete this.props.refs2[`bookmarkbar-${this.props.tab.key}`]
     }
   }
 
   render(){
-    return this.isShow() ? <BookmarkBar {...this.props}/> : null
+    return this.isShow() ? <BookmarkBar {...this.props} hoverBookmarkBar={this.hoverBookmarkBar}/> : null
   }
 }
 
@@ -363,7 +377,12 @@ class BookmarkBar extends Component {
     ipc.on('favorite-menu-reply', this.event)
   }
   render(){
-    return <div ref="bar" className="bookmark-bar">
+    let style
+    if(this.props.hoverBookmarkBar){
+      const rect = this.props.hoverBookmarkBar.getBoundingClientRect()
+      style = {position: 'fixed',zIndex:1000,width:rect.width,top:rect.top,left:rect.left}
+    }
+    return <div ref="bar" className="bookmark-bar" style={style}>
       {this.state.bookmarks}
     </div>
   }

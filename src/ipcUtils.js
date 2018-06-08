@@ -160,6 +160,10 @@ ipcMain.on('show-dialog-exploler',(event,key,info,tabId)=>{
       option.type = 'select-open-multi-file'
       option.extensions =  ['3gp','3gpp','3gpp2','asf','avi','dv','flv','m2t','m4v','mkv','mov','mp4','mpeg','mpg','mts','oggtheora','ogv','rm','ts','vob','webm','wmv']
     }
+    else if(info.needIcon){
+      option.type = 'select-open-file'
+      option.extensions =  ['ico','icon','png','gif','bmp','jpg','jpeg']
+    }
     dialog.showDialog(BrowserWindow.getFocusedWindow(), option, (selected) => {
       if (selected && selected.length > 0) {
         event.sender.send(`show-dialog-exploler-reply_${key}`,info.needVideo ? selected : selected[0])
@@ -632,10 +636,10 @@ ipcMain.on('get-main-state',(e,key,names)=>{
       ret[name] = isRecording ? readMacro() : void 0
     }
     else if(name == "alwaysOpenLinkNewTab"){
-      ret[name] = mainState.lockTabs[e.sender.getId()] ? 'speLinkAllLinks' : mainState[name]
+      ret[name] = mainState.lockTabs[e.sender.isDestroyed() ? null : e.sender.getId()] ? 'speLinkAllLinks' : mainState[name]
     }
     else if(name == "isVolumeControl"){
-      ret[name] = mainState.isVolumeControl[e.sender.getId()]
+      ret[name] = mainState.isVolumeControl[e.sender.isDestroyed() ? null : e.sender.getId()]
     }
     else{
       ret[name] = mainState[name]
@@ -1568,6 +1572,21 @@ ipcMain.on('history-count-reset',async (e,key,_id,count)=>{
   await history.update({_id}, {$set:{count}})
   e.sender.send(`history-count-reset-reply_${key}`,ret.count)
 })
+
+ipcMain.on('history-pin',async (e,key,_id,val)=>{
+  let max = -1
+  if(!val){
+    await history.update({_id}, {$unset:{pin: true}})
+  }
+  else{
+    for(let rec of (await history.find({pin: {$exists: true}}))){
+      max = Math.max(rec.pin, max)
+    }
+    await history.update({_id}, {$set:{pin: max+1}})
+  }
+  e.sender.send(`history-pin-reply_${key}`,max+1)
+})
+
 
 ipcMain.on('restart-browser',e=>{
   app.relaunch()

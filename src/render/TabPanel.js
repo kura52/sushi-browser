@@ -1948,6 +1948,12 @@ export default class TabPanel extends Component {
       else if(name == 'copyTabInfo'){
         ipc.send("set-clipboard",[`${this.state.tabs.findIndex(tab2=>tab.key==tab2.key)+1}\t${tab.page.title}\t${tab.page.navUrl}`])
       }
+      else if(name == 'copyAllTabTitles'){
+        ipc.send("set-clipboard",this.state.tabs.map((t,i)=>t.page.title))
+      }
+      else if(name == 'copyAllTabUrls'){
+        ipc.send("set-clipboard",this.state.tabs.map((t,i)=>t.page.navUrl))
+      }
       else if(name == 'copyAllTabInfos'){
         ipc.send("set-clipboard",this.state.tabs.map((t,i)=>`${i+1}\t${t.page.title}\t${t.page.navUrl}`))
       }
@@ -3685,6 +3691,8 @@ export default class TabPanel extends Component {
       menuItems.push(({ t:'clicktabCopyTabUrl',label: locale.translation('clicktabCopyTabUrl').replace('&apos;',"'"), click: ()=>ipc.send("set-clipboard",selections[0].map(t.page.navUrl))}))
       menuItems.push(({ t:'clicktabCopyUrlFromClipboard',label: locale.translation('clicktabCopyUrlFromClipboard'), click: _=>selections[0].forEach(t=>this.openClipboardUrl(t))}))
       menuItems.push(({ t:'Copy Tab Info',label: 'Copy Tab Info', click: _=>ipc.send("set-clipboard",selections[0].map(t=>`${this.state.tabs.findIndex(tab=>t.key==tab.key)+1}\t${t.page.title}\t${t.page.navUrl}`))}))
+      menuItems.push(({ t:'Copy All Tab Titles',label: 'Copy All Tab Titles', click: _=>ipc.send("set-clipboard",this.state.tabs.map((t,i)=>t.page.title))}))
+      menuItems.push(({ t:'Copy All Tab URLs',label: 'Copy All Tab URLs', click: _=>ipc.send("set-clipboard",this.state.tabs.map((t,i)=>t.page.navUrl))}))
       menuItems.push(({ t:'Copy All Tab Infos',label: 'Copy All Tab Infos', click: _=>ipc.send("set-clipboard",this.state.tabs.map((t,i)=>`${i+1}\t${t.page.title}\t${t.page.navUrl}`))}))
       menuItems.push(({ type: 'separator' }))
 
@@ -3747,6 +3755,8 @@ export default class TabPanel extends Component {
       menuItems.push(({ t:'clicktabCopyUrlFromClipboard',label: locale.translation('clicktabCopyUrlFromClipboard'), click: _=>this.openClipboardUrl(t)}))
       menuItems.push(({ t:'Paste and Open',label: 'Paste and Open', click: _=>this.newTabClipboardUrl(t)}))
       menuItems.push(({ t:'Copy Tab Info',label: 'Copy Tab Info', click: _=>ipc.send("set-clipboard",[`${this.state.tabs.findIndex(tab=>t.key==tab.key)+1}\t${t.page.title}\t${t.page.navUrl}`])}))
+      menuItems.push(({ t:'Copy All Tab Titles',label: 'Copy All Tab Titles', click: _=>ipc.send("set-clipboard",this.state.tabs.map((t,i)=>t.page.title))}))
+      menuItems.push(({ t:'Copy All Tab URLs',label: 'Copy All Tab URLs', click: _=>ipc.send("set-clipboard",this.state.tabs.map((t,i)=>t.page.navUrl))}))
       menuItems.push(({ t:'Copy All Tab Infos',label: 'Copy All Tab Infos', click: _=>ipc.send("set-clipboard",this.state.tabs.map((t,i)=>`${i+1}\t${t.page.title}\t${t.page.navUrl}`))}))
       menuItems.push(({ type: 'separator' }))
 

@@ -9,12 +9,14 @@ const WebPageList = require("./WebPageList")
 const DownloadList = require("./DownloadList")
 const SearchAnything = require("./SearchAnything")
 const PubSub = require('./pubsub')
+const sharedState = require('./sharedState')
 // global.Perf = require('react-addons-perf');
 const {remote} = require('electron')
 const ipc = require('electron').ipcRenderer
 const isDarwin = navigator.userAgent.includes('Mac OS X')
 const isWin = navigator.userAgent.includes('Windows')
-const [longPressMiddle,doubleShift] = ipc.sendSync('get-sync-main-states',['longPressMiddle','doubleShift'])
+const [longPressMiddle,doubleShift,hoverBookmarkBar] = ipc.sendSync('get-sync-main-states',['longPressMiddle','doubleShift','hoverBookmarkBar'])
+sharedState.hoverBookmarkBar = hoverBookmarkBar
 
 // require('inferno').options.recyclingEnabled = true; // Advanced optimisation
 global.lastMouseDown = []
@@ -37,6 +39,11 @@ function isFloatPanel(key){
 }
 
 export default class MainContent extends Component{
+  constructor(props) {
+    super(props)
+    this.handleMouseMove = ::this.handleMouseMove
+  }
+
   handleResize(e) {
     const w = window.innerWidth
     const h = window.innerHeight
@@ -45,6 +52,25 @@ export default class MainContent extends Component{
     PubSub.publish("resizeWindow",{old_w:this.w,old_h:this.h,new_w:w,new_h:h,native:true})
     this.w = w
     this.h = h
+  }
+
+  handleMouseMove(e){
+    if (e.target.tagName == 'WEBVIEW' && e.offsetY <= 28) {
+      clearTimeout(this.moveId)
+      this.moveId = void 0
+      const key = e.target.dataset.key
+      PubSub.publish(`hover-bookmarkbar-${key}`, e.target)
+      this.hoverBookmarkBar = key
+    }
+    else if (this.hoverBookmarkBar && !e.target.closest('.bookmark-bar')) {
+      if(this.moveId) return
+      this.moveId = setTimeout(_=>{
+        PubSub.publish(`hover-bookmarkbar-${this.hoverBookmarkBar}`, false)
+        this.hoverBookmarkBar = void 0
+        this.moveId = void 0
+      },700)
+    }
+
   }
 
   componentDidMount() {
@@ -60,7 +86,22 @@ export default class MainContent extends Component{
       })
     })
 
+    PubSub.subscribe('hover-bookmark-bar',e=>{
+      if(sharedState.hoverBookmarkBar) {
+        document.removeEventListener('mousemove',this.handleMouseMove,{passive: true})
+        document.addEventListener('mousemove',this.handleMouseMove,{passive: true})
+      }
+      else{
+        document.removeEventListener('mousemove',this.handleMouseMove,{passive: true})
+      }
+    })
+
     window.addEventListener('resize', ::this.handleResize,{ passive: true })
+
+
+    if(sharedState.hoverBookmarkBar) {
+      document.addEventListener('mousemove',this.handleMouseMove,{passive: true})
+    }
 
     document.addEventListener('mousedown',e=>{
       if(e.target.closest('.ui.modal')) return
@@ -83,7 +124,7 @@ export default class MainContent extends Component{
         ipc.send('change-tab-infos', [{tabId:global.lastMouseDown[1],active:true}])
         PubSub.publish('active-tab-change',global.lastMouseDown[1])
       }
-       if(e.target.tagName == 'WEBVIEW'){
+      if(e.target.tagName == 'WEBVIEW'){
         const key = e.target.className
         if(isFloatPanel(key)){
           PubSub.publish('float-panel',{key:key.slice(1)})

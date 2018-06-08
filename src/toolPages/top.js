@@ -309,7 +309,21 @@ class TopList extends React.Component {
   async buildItem(h) {
     const favicon = await faviconGet(h)
     return <Card color={h.fav ? 'grey' : (void 0)} key={h._id}>
-      <div className="close-button" onClick={e=>{
+      <div className={`top-button pin-button ${h.pin ? 'pinned' : ''}`} onClick={e=>{
+        e.stopPropagation()
+        const key = Math.random().toString()
+        ipc.send('history-pin',key,h._id,!h.pin)
+        ipc.once(`history-pin-reply_${key}`,(e,val)=>{
+          if(val == -1){
+            delete h.pin
+          }
+          else{
+            h.pin = val
+          }
+          this._render(data)
+        })
+      }}><i className="pin icon" style={{marginTop: 2}}/></div>
+      <div className="top-button close-button" onClick={e=>{
         e.stopPropagation()
         const key = Math.random().toString()
         ipc.send('history-count-reset',key,h._id,-1)

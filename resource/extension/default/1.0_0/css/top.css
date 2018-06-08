@@ -27,7 +27,7 @@
     margin-bottom: 12px;
 }
 
-.ui.cards>.card>.close-button {
+.ui.cards>.card>.top-button {
     position: absolute;
     cursor: pointer;
     font-style: normal;
@@ -37,7 +37,6 @@
     font-size: 20px;
     line-height: 0.9;
     font-family: arial, sans-serif;
-    right: 2px;
     margin-top: 2px;
     text-decoration: none;
     text-shadow: rgb(255, 255, 255) 0px 1px 0px;
@@ -52,11 +51,24 @@
 }
 
 
-.ui.cards>.card:hover>.close-button {
+.ui.cards>.card:hover>.top-button {
     background-color: rgba(0,0,0,0.1);
     display: initial;
 }
 
+
+.ui.cards>.card>.close-button {
+    right: 2px;
+}
+
+.ui.cards>.card>.pin-button {
+    right: 20px;
+    font-size: 14px;
+}
+
+.ui.cards>.card>.pin-button.pinned {
+    display: initial;
+}
 
 .restore{
     font-size: 15px;

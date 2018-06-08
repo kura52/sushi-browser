@@ -250,6 +250,24 @@ const createEditSubmenu = () => {
       }
     },
     {
+      label: 'Copy All Tab Titles',
+      accelerator: mainState.keyCopyAllTabTitles,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'copyAllTabTitles', cont.getId())
+        })
+      }
+    },
+    {
+      label: 'Copy All Tab URLs',
+      accelerator: mainState.keyCopyAllTabUrls,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'copyAllTabUrls', cont.getId())
+        })
+      }
+    },
+    {
       label: 'Copy All Tab Infos',
       accelerator: mainState.keyCopyAllTabInfos,
       click(item, focusedWindow) {

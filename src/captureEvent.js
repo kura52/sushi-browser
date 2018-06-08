@@ -4,6 +4,7 @@ import path from 'path'
 import { favicon,history,image,sock } from './databaseFork'
 import uuid from 'node-uuid'
 import {request} from './request'
+import mainState from './mainState'
 const underscore = require('underscore')
 const Jimp = require('jimp')
 import {getFocusedWebContents} from './util'
@@ -26,7 +27,7 @@ async function captureCurrentPage(_id,pageUrl,loc,base64,sender,tabId){
 
     if(base64){
       cont.capturePage((imageBuffer)=>{
-      sender.send(`take-capture-reply_${base64}`,`data:image/jpeg;base64,${imageBuffer.toJPEG(80).toString("base64")}`,imageBuffer.getSize())
+      sender.send(`take-capture-reply_${base64}`,`data:image/jpeg;base64,${imageBuffer.toJPEG(parseInt(mainState.tabPreviewQuality)).toString("base64")}`,imageBuffer.getSize())
       })
       return
     }

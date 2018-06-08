@@ -33,6 +33,7 @@ const settingDefault =  {
   sidebarLink: false,
   toolbarLink: false,
   bookmarkbarLink: false,
+  hoverBookmarkBar: false,
   zoomBehavior: '10',
 
   bindMarginFrame: isLinux ? 6 : 0,
@@ -70,7 +71,7 @@ const settingDefault =  {
   searchWordHighlightRecursive: false,
   bookmarkBar: false,
   bookmarkBarTopPage: true,
-  tabPreview: true,
+  windowCustomIcon: null,
 
   //privacy
   clearHistoryOnClose: false,
@@ -104,6 +105,12 @@ const settingDefault =  {
   rightClickTabAdd: 'Paste and Open',
   middleClickTabAdd: 'newPrivateTab',
   altClickTabAdd: 'clicktabNothing',
+  tabPreview: true,
+  tabPreviewWait: 300,
+  tabPreviewQuality: 80,
+  tabPreviewSizeWidth: 200,
+  tabPreviewSizeHeight: null,
+  tabPreviewSlideHeight: 140,
 
   colorNormalText: '#222',
   colorNormalBackground: '#d0d0d0',

@@ -685,6 +685,13 @@ class BrowserNavbar extends Component{
           this.refs['main-menu'].menuClose()
           this.props.parent.setState({})
         }}/>
+        <NavbarMenuItem text={`[${sharedState.hoverBookmarkBar ? '✓' : ' '}] Show bookmark bar on mouse hover`} icon='bookmark' onClick={_=>{
+          sharedState.hoverBookmarkBar = !sharedState.hoverBookmarkBar
+          mainState.set('hoverBookmarkBar',sharedState.hoverBookmarkBar)
+          this.refs['main-menu'].menuClose()
+          PubSub.publish('hover-bookmark-bar')
+          this.props.parent.setState({})
+        }}/>
         <NavbarMenuItem text={`[${this.props.toggleNav == 0 ? ' ' : '✓'}] OneLine Menu`} icon='ellipsis horizontal' onClick={()=>{this.props.parent.toggleNavPanel(this.props.toggleNav == 0 ? 1 : 0);this.setState({})}}/>
         <div className="divider" />
         <NavbarMenuItem text='Detach This Panel' icon='space shuttle' onClick={_=>{this.props.parent.detachPanel();this.refs['main-menu'].menuClose()}}/>
