@@ -135,14 +135,14 @@ This browser makes use of wonderful web technologies, starting with the followin
 Both the installer for every platform and the portable version can be downloaded.  
 To use the portable edition, please run sushi.exe for Windows and sushi-browser for Mac/Linux after decompressing.
 
-- [Windows Installer v0.17.2](https://sushib.me/dl/sushi-browser-0.17.2-setup-x64.exe)
-- [Windows Portable v0.17.2(self-extract)](https://sushib.me/dl/sushi-browser-0.17.2-win-x64.exe)
-- [Windows Portable v0.17.2](https://sushib.me/dl/sushi-browser-0.17.2-win-x64.zip)
-- [MacOS dmg v0.17.2](https://sushib.me/dl/SushiBrowser-0.17.2.dmg)
-- [MacOS Portable v0.17.2](https://sushib.me/dl/sushi-browser-0.17.2-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.17.2](https://sushib.me/dl/sushi-browser-0.17.2.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.17.2](https://sushib.me/dl/sushi-browser_0.17.2_amd64.deb)
-- [Linux Portable v0.17.2](https://sushib.me/dl/sushi-browser-0.17.2.tar.bz2)
+- [Windows Installer v0.17.3](https://sushib.me/dl/sushi-browser-0.17.3-setup-x64.exe)
+- [Windows Portable v0.17.3(self-extract)](https://sushib.me/dl/sushi-browser-0.17.3-win-x64.exe)
+- [Windows Portable v0.17.3](https://sushib.me/dl/sushi-browser-0.17.3-win-x64.zip)
+- [MacOS dmg v0.17.3](https://sushib.me/dl/SushiBrowser-0.17.3.dmg)
+- [MacOS Portable v0.17.3](https://sushib.me/dl/sushi-browser-0.17.3-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.17.3](https://sushib.me/dl/sushi-browser-0.17.3.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.17.3](https://sushib.me/dl/sushi-browser_0.17.3_amd64.deb)
+- [Linux Portable v0.17.3](https://sushib.me/dl/sushi-browser-0.17.3.tar.bz2)
 
 # Use of Flash 
 If Flash won't run, please install Flash from the following web sites.  
@@ -157,7 +157,18 @@ sushi-browser --no-sandbox
 
 # New Features
 
-#### New function(v0.17.2)
+#### New function(v0.173)
+- Updated to Muon 7.0.5. (chromium 67.0.3396.79)
+- Added Bookmark Add / Delete Menu in Bookmark Bar.
+- Added option 'Show bookmark bar on mouse hover' to main menu.
+- Added advanced setting option of tab preview.
+- Bug fix for search engine settings.
+- Added option to set window icon.
+- Added 'Copy All Tab Titles' and 'Copy All Tab URLs' to tab right click menu
+- Added pin function to Top Page's Speed ​​Dial.
+- Fixed some bugs.
+
+#### New function(v0.17.3)
 - Added setting "Keep value ​​in LocalStorage" when volume is changed by seek operation.
 - Fixed some bug.
 

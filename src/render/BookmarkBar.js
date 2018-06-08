@@ -59,25 +59,35 @@ function isFloatPanel(key){
   return key.startsWith('fixed-float')
 }
 
-// function insertFavorite(writePath,data){
-//   return new Promise((resolve,reject)=>{
-//     const key = uuid.v4()
-//     ipc.send('insert-favorite',key,writePath,data)
-//     ipc.once(`insert-favorite-reply_${key}`,(event,ret)=>{
-//       resolve(ret)
-//     })
-//   })
-// }
-//
-// function renameFavorite(dbKey,newName){
-//   return new Promise((resolve,reject)=>{
-//     const key = uuid.v4()
-//     ipc.send('rename-favorite',key,dbKey,newName)
-//     ipc.once(`rename-favorite-reply_${key}`,(event,ret)=>{
-//       resolve(ret)
-//     })
-//   })
-// }
+function insertFavorite(writePath,data){
+  return new Promise((resolve,reject)=>{
+    const key = uuid.v4()
+    ipc.send('insert-favorite',key,writePath,data)
+    ipc.once(`insert-favorite-reply_${key}`,(event,ret)=>{
+      resolve(ret)
+    })
+  })
+}
+
+function insertFavorite2(writePath,dbKey,data){
+  return new Promise((resolve,reject)=>{
+    const key = uuid.v4()
+    ipc.send('insert-favorite2',key,writePath,dbKey,data)
+    ipc.once(`insert-favorite2-reply_${key}`,(event,ret)=>{
+      resolve(ret)
+    })
+  })
+}
+
+function renameFavorite(dbKey,newName){
+  return new Promise((resolve,reject)=>{
+    const key = uuid.v4()
+    ipc.send('rename-favorite',key,dbKey,newName)
+    ipc.once(`rename-favorite-reply_${key}`,(event,ret)=>{
+      resolve(ret)
+    })
+  })
+}
 
 function openFavorite(dbKey,id,type){
   return new Promise((resolve,reject)=>{
@@ -89,25 +99,25 @@ function openFavorite(dbKey,id,type){
   })
 }
 
-// function deleteFavorite(dbKey,newName){
-//   return new Promise((resolve,reject)=>{
-//     const key = uuid.v4()
-//     ipc.send('delete-favorite',key,dbKey,newName)
-//     ipc.once(`delete-favorite-reply_${key}`,(event,ret)=>{
-//       resolve(ret)
-//     })
-//   })
-// }
-//
-// function showDialog(input,id){
-//   return new Promise((resolve,reject)=>{
-//     const key = uuid.v4()
-//     ipc.send('show-dialog-exploler',key,input,id)
-//     ipc.once(`show-dialog-exploler-reply_${key}`,(event,ret)=>{
-//       resolve(ret)
-//     })
-//   })
-// }
+function deleteFavorite(dbKey,newName){
+  return new Promise((resolve,reject)=>{
+    const key = uuid.v4()
+    ipc.send('delete-favorite',key,dbKey,newName)
+    ipc.once(`delete-favorite-reply_${key}`,(event,ret)=>{
+      resolve(ret)
+    })
+  })
+}
+
+function showDialog(input,id){
+  return new Promise((resolve,reject)=>{
+    const key = uuid.v4()
+    ipc.send('show-dialog-exploler',key,input,id)
+    ipc.once(`show-dialog-exploler-reply_${key}`,(event,ret)=>{
+      resolve(ret)
+    })
+  })
+}
 
 export default class BookmarkBarWrapper extends Component {
   constructor(props){
@@ -182,7 +192,7 @@ class BookmarkBar extends Component {
 
   handleFileMouseDown(node,e){
     if(e.button == 2){
-      ipc.send("favorite-menu","__BAR__")
+      ipc.send("favorite-menu",[node.url])
       this.menuKey = [node]
     }
     this.mouseDown = e.target
@@ -336,43 +346,46 @@ class BookmarkBar extends Component {
           this.props.onClick && this.props.onClick()
         })
       }
-      // else if(cmd == "delete") {
-      //   const nodes = this.menuKey
-      //   this.menuKey = (void 0)
-      //   const parentNodes = nodes.map(n => n.getParent())
-      //   deleteFavorite(nodes.map(n=>this.getKey(n)),parentNodes.map(parent=>this.getKey(parent))).then(_ => {
-      //     if(isMain) this.eventUpdateDatas()
-      //   })
-      // }
-      // else if(cmd == "edit"){
-      //   const nodes = this.menuKey
-      //   this.menuKey = (void 0)
-      //   showDialog({
-      //     inputable: true, title: 'Rename',
-      //     text: `Enter a new Name`,
-      //     initValue: nodes[0].type == 'file' ? [nodes[0].name,nodes[0].url] : [nodes[0].name],
-      //     needInput: nodes[0].type == 'file' ? ["Title","URL"] : ["Title"]
-      //   },this.props.cont ? this.props.cont.getId() : (void 0)).then(value => {
-      //     if (!value) return
-      //     const data = nodes[0].type == 'file' ? {title:value[0], url:value[1]} : {title:value[0]}
-      //     console.log(this.getKey(nodes[0]),data)
-      //     renameFavorite(this.getKey(nodes[0]),data).then(_=>_)
-      //   })
-      // }
-      // else if(cmd == "addBookmark" || cmd == "addFolder") {
-      //   const isPage = cmd == "addBookmark"
-      //   const nodes = this.menuKey
-      //   this.menuKey = (void 0)
-      //   showDialog({
-      //     inputable: true, title: `New ${isPage ? 'Page' : 'Directory'}`,
-      //     text: `Enter a new ${isPage ? 'page title and URL' : 'directory name'}`,
-      //     needInput: isPage ? ["Title","URL"] : [""]
-      //   },this.props.cont ? this.props.cont.getId() : (void 0)).then(value => {
-      //     if (!value) return
-      //     const data = isPage ? {title:value[0], url:value[1], is_file:true} : {title:value[0], is_file:false,children:[]}
-      //     insertFavorite(this.getKey(nodes[0].getParent()),data).then(_=>_)
-      //   })
-      // }
+      else if(cmd == "delete") {
+        const nodes = this.menuKey
+        this.menuKey = (void 0)
+        deleteFavorite(nodes.map(n=>n.key),nodes.map(parent=>'root')).then(_=>{})
+      }
+      else if(cmd == "edit"){
+        const nodes = this.menuKey
+        this.menuKey = (void 0)
+        showDialog({
+          inputable: true, title: 'Rename',
+          text: `Enter a new Name`,
+          initValue: nodes[0].is_file ? [nodes[0].title,nodes[0].url] : [nodes[0].title],
+          needInput: nodes[0].is_file ? ["Title","URL"] : ["Title"]
+        },this.props.tab.wvId).then(value => {
+          if (!value) return
+          const data = nodes[0].is_file ? {title:value[0], url:value[1]} : {title:value[0]}
+          console.log(nodes[0].key,data)
+          renameFavorite(nodes[0].key,data).then(_=>_)
+        })
+      }
+      else if(cmd == "addBookmark" || cmd == "addFolder") {
+        const isPage = cmd == "addBookmark"
+        const nodes = this.menuKey
+        this.menuKey = (void 0)
+        showDialog({
+          inputable: true, title: `New ${isPage ? 'Page' : 'Directory'}`,
+          text: `Enter a new ${isPage ? 'page title and URL' : 'directory name'}`,
+          needInput: isPage ? ["Title","URL"] : [""]
+        },this.props.tab.wvId).then(value => {
+          if (!value) return
+          const data = isPage ? {title:value[0], url:value[1], is_file:true} : {title:value[0], is_file:false,children:[]}
+
+          if(nodes[0].is_file){
+            insertFavorite2('root',nodes[0].key,data).then(_=>_)
+          }
+          else{
+            insertFavorite(nodes[0].key,data).then(_=>_)
+          }
+        })
+      }
     }
     ipc.on('favorite-menu-reply', this.event)
   }

@@ -64,7 +64,7 @@ ipcMain.on('fetch-frequently-history', async (event, range) => {
     }
   }
 
-  const data = favorites.concat((await history.find_sort_limit([{}],[{ count: -1 }],[80])))
+  const data = favorites.concat((await history.find_sort_limit([{}],[{ pin:-1, count: -1 }],[80])))
   console.log(5,Date.now())
   const images = await image.find({ url: { $in: data.map(x=>x.location) }})
   console.log(6,Date.now())

@@ -86,6 +86,16 @@ function insertFavorite(writePath,data){
   })
 }
 
+function insertFavorite2(writePath,dbKey,data){
+  return new Promise((resolve,reject)=>{
+    const key = uuid.v4()
+    ipc.send('insert-favorite2',key,writePath,dbKey,data)
+    ipc.once(`insert-favorite2-reply_${key}`,(event,ret)=>{
+      resolve(ret)
+    })
+  })
+}
+
 function renameFavorite(dbKey,newName){
   return new Promise((resolve,reject)=>{
     const key = uuid.v4()
@@ -449,7 +459,12 @@ class Contents extends React.Component {
         },this.props.cont ? this.props.cont.getId() : (void 0)).then(value => {
           if (!value) return
           const data = isPage ? {title:value[0], url:value[1], is_file:true} : {title:value[0], is_file:false,children:[]}
-          insertFavorite(this.getKey(nodes[0].type == 'file' ? nodes[0].getParent() : nodes[0]),data).then(_=>_)
+          if(nodes[0].type == 'file'){
+            insertFavorite2(this.getKey(nodes[0].getParent()),this.getKey(nodes[0]),data).then(_=>_)
+          }
+          else{
+            insertFavorite(this.getKey(nodes[0]),data).then(_=>_)
+          }
         })
       }
     }

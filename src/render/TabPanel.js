@@ -1229,9 +1229,9 @@ export default class TabPanel extends Component {
         // self.sendOpenLink(tab, page);
         // ipc.send('chrome-webNavigation-onBeforeNavigate',self.createChromeWebNavDetails(tab))
       },
-      onGuestReady(e, page) {
+      onTabIdChanged(e, page) {
         guestIds[tab.key] = e
-        tab.wvId = e.tabId
+        tab.wvId = e.tabID
         tab._guestInstanceId = e.guestInstanceId
 
         if(withWindowCreateTabs.has(tab.key)){
@@ -1246,7 +1246,7 @@ export default class TabPanel extends Component {
 
         self.startProcess(self, page, navigateTo, tab)
 
-        console.log('onGuestReady', e.tabId,page)
+        console.log('onTabIdChanged', e.tabID,page)
 
         const cont = self.getWebContents(tab)
 
@@ -1262,41 +1262,6 @@ export default class TabPanel extends Component {
         }
         ipc.on(`get-did-start-loading-reply_${tab.wvId}`,didStart)
 
-        // ipc.send('get-update-title-loading',tab.wvId)
-        // const didStop = (e,c)=> {
-        //   console.log('onDidStopLoading',e,Date.now(),page)
-        //   if(!c || !self.mounted) return
-        //   if(c=='destroy'){
-        //     ipc.removeListener(`get-did-stop-loading-reply_${tab.wvId}`,didStop)
-        //     return
-        //   }
-        //   const loc = c.url
-        //   const entryIndex = c.currentEntryIndex
-        //   page.entryIndex = entryIndex
-        //   page.canGoBack = entryIndex !== 0
-        //   page.canGoForward = entryIndex + 1 !== c.entryCount
-        //   if (!page.title) {
-        //     page.title = page.location
-        //     if (tab.key == self.state.selectedTab && !this.isFixed) ipc.send("change-title", page.title)
-        //   }
-        //   page.isLoading = false
-        //   if (page.eventDownloadStartTab) ipc.removeListener(`download-start-tab_${tab.wvId}`, page.eventDownloadStartTab)
-        //   clearTimeout(page.downloadTimer)
-        //   // console.log(self.refs)
-        //   // self.setState({})
-        //   self.setStatePartical(tab)
-        //   PubSub.publish(`change-status-${tab.key}`)
-        //   ;(async () => {
-        //     if ((typeof page.hid === 'object' && page.hid !== null ) || (page.hid = await history.findOne({location: page.navUrl}))) {
-        //       console.log(22, page.hid)
-        //       if (page.hid.count > 2 && !page.hid.capture) {
-        //         ipc.send('take-capture', {id: page.hid._id, url: page.navUrl, loc})
-        //       }
-        //     }
-        //   })()
-        //   // ipc.send('chrome-tab-updated',parseInt(tab.key), e, self.getChromeTab(tab))
-        // }
-        // ipc.on(`get-update-title-reply_${tab.wvId}`,didStop)
       },
       // onDidNavigateInPage(e, page) {
       //   console.log('onDidNavigateInPage')

@@ -164,8 +164,8 @@ app.on('ready', async ()=>{
   require('./clearEvent')
 
 
-  // ptyProcessSet = require('./ptyProcess')
-  ptyProcessSet = new Set()
+  ptyProcessSet = require('./ptyProcess')
+  // ptyProcessSet = new Set()
   passwordManager = require('./passwordManagerMain')
   require('./importer')
   require('./bookmarksExporter')
@@ -744,20 +744,18 @@ function contextMenu(webContents) {
       menuItems.push({label: 'Open Link in New Window with a Row',click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindowWithOneRow')}})
       menuItems.push({label: 'Open Link in New Window with two Rows',click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindowWithTwoRow')}})
 
-      if(favMenu.path !== "__BAR__"){
-        menuItems.push({type: 'separator'})
+      menuItems.push({type: 'separator'})
 
-        menuItems.push({label: locale.translation('9065203028668620118'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'edit')}})
-        menuItems.push({type: 'separator'})
+      menuItems.push({label: locale.translation('9065203028668620118'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'edit')}})
+      menuItems.push({type: 'separator'})
 
-        menuItems.push({label: locale.translation('copy'),click: (item,win)=>{clipboard.writeText(favMenu.path.join(os.EOL))}})
-        menuItems.push({label: locale.translation('delete'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'delete')}})
-        menuItems.push({type: 'separator'})
+      menuItems.push({label: locale.translation('copy'),click: (item,win)=>{clipboard.writeText(favMenu.path.join(os.EOL))}})
+      menuItems.push({label: locale.translation('delete'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'delete')}})
+      menuItems.push({type: 'separator'})
 
-        menuItems.push({label: locale.translation('addBookmark'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'addBookmark')}})
-        menuItems.push({label: locale.translation('addFolder'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'addFolder')}})
+      menuItems.push({label: locale.translation('addBookmark'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'addBookmark')}})
+      menuItems.push({label: locale.translation('addFolder'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'addFolder')}})
 
-      }
       var menu = Menu.buildFromTemplate(menuItems)
       menu.popup(targetWindow)
       return
@@ -1251,7 +1249,8 @@ function contextMenu(webContents) {
         menu.popup(targetWindow)
       }
       else{
-        (webContents.hostWebContents || webContents).executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',
+        console.log(webContents.hostWebContents.getURL());
+        ( webContents).executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',
           `(function(){
           const eventMoveHandler = e=>{
             chrome.ipcRenderer.send('context-menu-move',{})
@@ -1266,10 +1265,13 @@ function contextMenu(webContents) {
           document.addEventListener('mousemove',eventMoveHandler)
           document.addEventListener('mouseup',eventUpHandler)
         })()`, {},_=>{
+            console.log(11112)
             let isMove = false
             ipcMain.once('context-menu-move',e => isMove = true)
             ipcMain.once('context-menu-up',e => {
+              console.log(11113)
               if(!isMove){
+                console.log(11114)
                 menu.popup(targetWindow)
               }
             })
