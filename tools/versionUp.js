@@ -10,7 +10,6 @@ const NEXT_APP_VERSION = "0.17.3"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
 const CHANGE_ENGLISH = `Updated to Muon 7.0.5. (chromium 67.0.3396.79)
-Delete processing that was creating brave folder for widevine (completely portable)
 Added Bookmark Add / Delete Menu in Bookmark Bar.
 Added option 'Show bookmark bar on mouse hover' to main menu.
 Added advanced setting option of tab preview.
@@ -21,7 +20,6 @@ Added pin function to Top Page's Speed ​​Dial.
 Fixed some bugs.`
 
 const CHANGE_JAPANESE = `Muonを7.0.5に更新(chromium 67.0.3396.79)
-widevineのためにbraveフォルダを作成していた処理を削除（完全にポータブル化）
 ブックマークバーでのブックマーク追加・削除メニューの追加
 ブックマークバーをマウスホバーで表示するオプションをメインメニューに追加
 タブプレビューの詳細設定オプションを追加

@@ -205,7 +205,7 @@ function registerForBeforeRequest (session) {
         for(let w of BrowserWindow.getAllWindows()){
           if(w.getTitle().includes('Sushi Browser')){
             cont = w.webContents
-            cont.send("did-get-response-details",record)
+            if(cont && !cont.isDestroyed()) cont.send("did-get-response-details",record)
           }
         }
       }

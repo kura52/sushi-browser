@@ -98,6 +98,7 @@ function build(){
     sh.mv(`${pwd}/${buildDir}/_LICENSE`,`${pwd}/${buildDir}/LICENSE`)
     sh.rm(`${pwd}/${buildDir}/LICENSES.chromium.html`)
     sh.cp(`app/VERSION.txt`,`${pwd}/${buildDir}/VERSION.txt`)
+    sh.cp('-Rf',`${pwd}/../WidevineCdm`,`${pwd}/${buildDir}/.`)
     fs.writeFileSync(`${pwd}/${buildDir}/update.cmd`,`@echo off
 cd /d %~dp0
 for /f "tokens=1" %%i in (VERSION.txt) do (
@@ -550,7 +551,8 @@ sh.cp('-Rf',`../bin/7zip/${plat}`,'resource/bin/7zip/.')
 sh.cp('-Rf',`../bin/aria2/${plat}`,'resource/bin/aria2/.')
 sh.cp('-Rf',`../bin/ffmpeg/${plat}`,'resource/bin/ffmpeg/.')
 sh.cp('-Rf',`../bin/handbrake/${plat}`,'resource/bin/handbrake/.')
-sh.cp('-Rf','../WidevineCdm','.')
+sh.mkdir('-p', 'resource/bin/widevine');
+sh.cp('-Rf',`../bin/widevine/${plat}`,'resource/bin/widevine/.')
 
 filesContentsReplace(`${pwd}/node_modules/youtube-dl/lib/youtube-dl.js`,"path.join(__dirname, '..', 'bin/details')","path.join(__dirname, '..', 'bin/details').replace(/app.asar([\\/\\\\])/,'app.asar.unpacked$1')")
 filesContentsReplace(`${pwd}/node_modules/youtube-dl/lib/youtube-dl.js`,"(details.path) ? details.path : path.resolve(__dirname, '..', 'bin', details.exec)","((details.path) ? details.path : path.resolve(__dirname, '..', 'bin', details.exec)).replace(/app.asar([\\/\\\\])/,'app.asar.unpacked$1')")
