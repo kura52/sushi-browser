@@ -55,7 +55,7 @@ export default class MainContent extends Component{
   }
 
   handleMouseMove(e){
-    if (e.target.tagName == 'WEBVIEW' && e.offsetY <= 28) {
+    if (e.target.tagName == 'WEBVIEW' && e.offsetY <= 14) {
       clearTimeout(this.moveId)
       this.moveId = void 0
       const key = e.target.dataset.key
@@ -68,7 +68,7 @@ export default class MainContent extends Component{
         PubSub.publish(`hover-bookmarkbar-${this.hoverBookmarkBar}`, false)
         this.hoverBookmarkBar = void 0
         this.moveId = void 0
-      },700)
+      },500)
     }
 
   }

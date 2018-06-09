@@ -44,7 +44,10 @@ const settingDefault =  {
   disableExtensions: [],
   adBlockDisableSite: {},
   disableContextMenus: [],
-  disableTabContextMenus: ['closeTab','reload','Split Left','Split Top','cleanReload','Split right tabs to right','Split left tabs to left','Align Vertical','closeTabsToLeft','bookmarkPage','clicktabCopyTabUrl','clicktabCopyUrlFromClipboard','Copy Tab Info','clicktabReloadtabs','clicktabReloadothertabs','clicktabReloadlefttabs','clicktabReloadrighttabs','clicktabUcatab','protectTabMenuLabel','lockTabMenuLabel'],
+  disableTabContextMenus: ['closeTab','reload','Split Left','Split Top','cleanReload','Split right tabs to right',
+    'Split left tabs to left','Align Vertical','closeTabsToLeft','bookmarkPage','clicktabCopyTabUrl',
+    'clicktabCopyUrlFromClipboard','Copy Tab Info','clicktabReloadtabs','clicktabReloadothertabs','clicktabReloadlefttabs',
+    'clicktabReloadrighttabs','clicktabUcatab','protectTabMenuLabel','lockTabMenuLabel','Copy All Tab URLs','Copy All Tab Titles'],
   priorityContextMenus: {},
   priorityTabContextMenus: {},
 

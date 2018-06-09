@@ -98,20 +98,36 @@ export default class NavbarMenu extends Component {
         const width = parseInt(this.refs.menu.offsetWidth)
         const totalWidth = parseInt(window.innerWidth)
         console.log(38,left,width,totalWidth)
-        if(this.props.alignLeft){
-          if((totalWidth - left) - width < 0){
-            this.refs.menu.style.setProperty('left', `${-5 -left + totalWidth - width}px`, 'important')
-            this.refs.menu.style.setProperty('right', 'auto', 'important')
-          }
+
+        if(this.props.fixed && this.refs && this.refs.div){
+          const rect = ReactDOM.findDOMNode(this.refs.div).getBoundingClientRect()
+          this.refs.menu.style.position = 'fixed'
+          this.refs.menu.style.zIndex = 1001
+          this.refs.menu.style.width = 'max-content'
+          this.refs.menu.style.setProperty('top', `${rect.top + 10}px`, 'important')
+          this.refs.menu.style.setProperty('left', `${rect.left}px`, 'important')
         }
         else{
-          if(left - width < 0){
-            this.refs.menu.style.setProperty('left', `${5 -left}px`, 'important')
-            this.refs.menu.style.setProperty('right', 'auto', 'important')
+          if(this.refs.menu.style.zIndex){
+            this.refs.menu.style.position = 'absolute'
+            this.refs.menu.style.zIndex = null
+            this.refs.menu.style.width = null
+          }
+          if(this.props.alignLeft){
+            if((totalWidth - left) - width < 0){
+              this.refs.menu.style.setProperty('left', `${-5 -left + totalWidth - width}px`, 'important')
+              this.refs.menu.style.setProperty('right', 'auto', 'important')
+            }
           }
           else{
-            this.refs.menu.style.left =  'auto'
-            this.refs.menu.style.right = null
+            if(left - width < 0){
+              this.refs.menu.style.setProperty('left', `${5 -left}px`, 'important')
+              this.refs.menu.style.setProperty('right', 'auto', 'important')
+            }
+            else{
+              this.refs.menu.style.left =  'auto'
+              this.refs.menu.style.right = null
+            }
           }
         }
       }

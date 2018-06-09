@@ -281,7 +281,8 @@ class BookmarkBar extends Component {
       }
       else{
         const ref = `favoriteMenu${f.key}`
-        ele = <NavbarMenu k={this.props.k} isFloat={isFloat} ref={r=>this.refs2[ref] = r} onClick={_=>_} timeOut={50} alignLeft={true} key={f.key}
+        ele = <NavbarMenu k={this.props.k} isFloat={isFloat} ref={r=>this.refs2[ref] = r}
+                          onClick={_=>_} timeOut={50} alignLeft={true} key={f.key} fixed={this.props.hoverBookmarkBar}
                           badget={
                             <a className="bookmark-item"
                                onMouseDown={this.handleFileMouseDown.bind(this, f)}>
@@ -393,7 +394,7 @@ class BookmarkBar extends Component {
     let style
     if(this.props.hoverBookmarkBar){
       const rect = this.props.hoverBookmarkBar.getBoundingClientRect()
-      style = {position: 'fixed',zIndex:1000,width:rect.width,top:rect.top,left:rect.left}
+      style = {overflow: 'hidden',position: 'fixed',zIndex:1000,width:rect.width,top:rect.top,left:rect.left}
     }
     return <div ref="bar" className="bookmark-bar" style={style}>
       {this.state.bookmarks}

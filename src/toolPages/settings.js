@@ -991,6 +991,7 @@ class SearchSetting extends React.Component {
   deleteSite(i){
     const ind = this.state.searchProviders.findIndex(x=>x.ind == i)
     this.state.searchProviders.splice(ind,1)
+    ipc.send('save-state',{tableName:'searchEngine',val:this.state.searchProviders})
     this.setState({})
   }
 
