@@ -110,18 +110,18 @@ app.on('ready', async ()=>{
     if(isLinux || !setting.enableWidevine){
       defaultConf.plugins =  []
     }
-    else{
-      try{
-        const widevinePath = path.join(global.originalUserDataPath,'Extensions/WidevineCdm')
-        if(require("glob").sync(path.join(widevinePath,"*")).length == 0){
-          const src = path.join(__dirname, '../resource/bin/widevine',
-            isWin ? 'win/WidevineCdm' : isDarwin ? 'mac/WidevineCdm' : '').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
-          require('fs-extra').copySync(src,widevinePath)
-        }
-      }catch(e){
-        console.log(e)
-      }
-    }
+    // else{
+    //   try{
+    //     const widevinePath = path.join(global.originalUserDataPath,'Extensions/WidevineCdm')
+    //     if(require("glob").sync(path.join(widevinePath,"*")).length == 0){
+    //       const src = path.join(__dirname, '../resource/bin/widevine',
+    //         isWin ? 'win/WidevineCdm' : isDarwin ? 'mac/WidevineCdm' : '').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
+    //       require('fs-extra').copySync(src,widevinePath)
+    //     }
+    //   }catch(e){
+    //     console.log(e)
+    //   }
+    // }
     defaultConf.javascript[0].setting = setting.noScript ? 'block' : 'allow'
     defaultConf.canvasFingerprinting[0].setting = setting.blockCanvasFingerprinting ? 'block' : 'allow'
     console.log(678,session.defaultSession.userPrefs.getDictionaryPref('content_settings'))
