@@ -265,16 +265,14 @@ class DownloadList extends React.Component {
       downloadList.push(this.buildItem(item))
     }
 
-    return <div style={{flexDirection: 'column', display: 'flex', paddingTop: 10}}>
+    return <div style={{flexDirection: 'column', display: 'flex', paddingTop: 10,margin: '0 6px'}}>
       {downloadList}
     </div>
   }
 }
 
 const App = () => (
-  <Container>
     <TopMenu/>
-  </Container>
 )
 
 

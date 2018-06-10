@@ -106,3 +106,8 @@ body{
 ::-webkit-scrollbar-corner {
     background: transparent;
 }
+
+
+.ui.secondary.pointing.menu .item {
+    padding: .85714286em 0.58285714em;
+}

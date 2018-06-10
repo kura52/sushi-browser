@@ -14,7 +14,7 @@ import PubSub from './render/pubsub'
 import fs from 'fs'
 const URL = require('url')
 const downloadPath = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html'
-const downloadPath2 = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download_all.html'
+const downloadPath2 = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download_sidebar.html'
 const timeMap = new Map()
 global.downloadItems = []
 const retry = new Set()

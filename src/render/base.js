@@ -15,7 +15,7 @@ const {remote} = require('electron')
 const ipc = require('electron').ipcRenderer
 const isDarwin = navigator.userAgent.includes('Mac OS X')
 const isWin = navigator.userAgent.includes('Windows')
-const [longPressMiddle,doubleShift,hoverBookmarkBar] = ipc.sendSync('get-sync-main-states',['longPressMiddle','doubleShift','hoverBookmarkBar'])
+const [longPressMiddle,doubleShift,hoverBookmarkBar,enableDownloadList] = ipc.sendSync('get-sync-main-states',['longPressMiddle','doubleShift','hoverBookmarkBar','enableDownloadList'])
 sharedState.hoverBookmarkBar = hoverBookmarkBar
 
 // require('inferno').options.recyclingEnabled = true; // Advanced optimisation
@@ -222,7 +222,7 @@ export default class MainContent extends Component{
 }
 
 render(<WebPageList />, document.querySelector('#wvlist'))
-render(<DownloadList />, document.querySelector('#dllist'))
+if(enableDownloadList) render(<DownloadList />, document.querySelector('#dllist'))
 render(<MainContent />, document.querySelector('#content'))
 
 if(doubleShift){

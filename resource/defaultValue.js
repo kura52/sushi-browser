@@ -76,6 +76,7 @@ const settingDefault =  {
   bookmarkBar: false,
   bookmarkBarTopPage: true,
   windowCustomIcon: null,
+  enableDownloadList: true,
 
   //privacy
   clearHistoryOnClose: false,
