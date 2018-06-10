@@ -596,7 +596,7 @@ const jsFiles2 = glob.sync(`${pwd}/brave/**/*.js`)
 filesContentsReplace(jsFiles2,/console\.log\(/,'//debug(')
 
 // Babel Use babili
-filesContentsReplace(`${pwd}/.babelrc`,/"react"\]/,'"react","babili"]')
+// filesContentsReplace(`${pwd}/.babelrc`,/"react"\]/,'"react","babili"]')
 filesContentsReplace(`${pwd}/.babelrc`,'] // ,["lodash", { "id": ["lodash", "semantic-ui-react"] }]]',',["lodash", { "id": ["lodash", "semantic-ui-react"] }]]')
 
 console.log((Date.now() - start)/1000)
@@ -639,7 +639,7 @@ if(sh.exec('webpack').code !== 0) {
   process.exit()
 }
 
-filesContentsReplace(`${pwd}/.babelrc`,/"react","babili"\]/,'"react"]')
+// filesContentsReplace(`${pwd}/.babelrc`,/"react","babili"\]/,'"react"]')
 
 const promises = []
 

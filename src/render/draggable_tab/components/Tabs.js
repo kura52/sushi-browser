@@ -1155,39 +1155,17 @@ class Tabs extends React.Component {
         if(this.state.tabs.length == tabs.length && this.props.isOnlyPanel) return
         console.log(evt,tabs,this.state.tabs)
         if(evt.dataTransfer.dropEffect == "move") return
-        if(tabs.length == 1){
-          const tab = tabs[0]
-          getWebContents(tab).detach(_=>{
-            ipc.send('chrome-tabs-onDetached-to-main',tab.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==tab.key)})
-            BrowserWindowPlus.load({id:remote.getCurrentWindow().id,dropX:evt.screenX,dropY:evt.screenY,alwaysOnTop,
-              tabParam:JSON.stringify([{wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
-                rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || getWebContents(tab).guestInstanceId}])})
-            setTimeout(_=>{
-              PubSub.publish('include-key',tab.key)
-              const token = PubSub.subscribe(`include-key-reply_${tab.key}`,(msg,k)=>{
-                PubSub.publish(`close_tab_${k}`, {key:tab.key})
-                PubSub.unsubscribe(token)
-              })
-            },300)
-          })
-        }
-        else{
-          const promises = tabs.map(tab=>{
-            return new Promise((resolve,reject)=>{
-              getWebContents(tab).detach(_=>{
-                resolve({wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
-                  rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || getWebContents(tab).guestInstanceId})
-              })
-            })
-          })
-          Promise.all(promises).then(vals=>{
-            for(let d of vals){
-              ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
-            }
-            BrowserWindowPlus.load({id:remote.getCurrentWindow().id,x:evt.screenX,y:evt.screenY,tabParam:JSON.stringify(vals)})
-            console.log(5435,vals)
-            for(let val of vals) PubSub.publish(`close_tab_${this.props.k}`, {key: val.c_key})
-          })
+        const vals = tabs.map(tab=>{
+          const cont = getWebContents(tab)
+          tab.wv.attachGuest(cont._detachGuest().guestInstanceId)
+          const d = {wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
+            rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || cont.guestInstanceId}
+          ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
+          return [d,cont]
+        })
+        const winId = ipc.sendSync('browser-load',{id:remote.getCurrentWindow().id,x:evt.screenX,y:evt.screenY,tabParam:JSON.stringify(vals.map(x=>x[0]))})
+        for(let x of vals){
+          x[1].moveTo(0, winId)
         }
       }
       ,100)

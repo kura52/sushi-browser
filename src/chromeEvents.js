@@ -346,7 +346,7 @@ simpleIpcFuncCb('chrome-tabs-move',(tabIds, moveProperties,cb)=> {
   const fromWin = BrowserWindow.fromWebContents((sharedState[tabIds[0]] || webContents.fromTabID(tabIds[0])).hostWebContents)
   if(moveProperties.windowId && fromWin.id !== moveProperties.windowId){
     const toWin = BrowserWindow.fromId(moveProperties.windowId)
-    fromWin.webContents.send('chrome-tabs-move-detach',key,tabIds)
+    fromWin.webContents.send('chrome-tabs-move-detach',key,tabIds,moveProperties.windowId)
     ipcMain.once(`chrome-tabs-move-detach-reply_${key}`,(e,datas)=>{
       toWin.send('chrome-tabs-move-attach',moveProperties.index,datas)
     })

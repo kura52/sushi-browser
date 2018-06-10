@@ -42,6 +42,7 @@ export default class MainContent extends Component{
   constructor(props) {
     super(props)
     this.handleMouseMove = ::this.handleMouseMove
+    this.handleMouseUp = ::this.handleMouseUp
   }
 
   handleResize(e) {
@@ -73,18 +74,37 @@ export default class MainContent extends Component{
 
   }
 
+  handleMouseUp(e){
+    const eventMoveHandler = e2=>{
+      e.sender.send('context-menu-move')
+      document.removeEventListener('mousemove',eventMoveHandler)
+    }
+    const eventUpHandler = e2=>{
+      if(e2.which == 3){
+        e.sender.send('context-menu-up')
+        document.removeEventListener('mouseup',eventUpHandler,true)
+      }
+    }
+    document.addEventListener('mousemove',eventMoveHandler)
+    document.addEventListener('mouseup',eventUpHandler,true)
+  }
+
   componentDidMount() {
-    ipc.once('unmount-components',_=>{
-      const key = this.refs.splitWindow.state.root.key
-      ipc.send('save-all-windows-state',key)
-      ipc.once(`save-all-windows-state-reply_${key}`,_=>{
-        unmountComponentAtNode(document.querySelector('#wvlist'))
-        unmountComponentAtNode(document.querySelector('#dllist'))
-        unmountComponentAtNode(document.querySelector('#content'))
-        unmountComponentAtNode(document.querySelector('#anything'))
-        ipc.send('unmount-components-reply')
-      })
-    })
+    // ipc.once('unmount-components',_=>{
+    //   const key = this.refs.splitWindow.state.root.key
+    //   ipc.send('save-all-windows-state',key)
+    //   ipc.once(`save-all-windows-state-reply_${key}`,_=>{
+    //     unmountComponentAtNode(document.querySelector('#wvlist'))
+    //     unmountComponentAtNode(document.querySelector('#dllist'))
+    //     unmountComponentAtNode(document.querySelector('#content'))
+    //     unmountComponentAtNode(document.querySelector('#anything'))
+    //     ipc.send('unmount-components-reply')
+    //   })
+    // })
+
+    if(!isWin){
+      ipc.on('start-mouseup-handler',this.handleMouseUp)
+    }
 
     PubSub.subscribe('hover-bookmark-bar',e=>{
       if(sharedState.hoverBookmarkBar) {

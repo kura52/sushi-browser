@@ -14,6 +14,7 @@ const settingDefault =  {
   downloadNum: 1,
   concurrentDownload: 10,
   searchEngine: 'Google',
+  searchEngineDisplayType: 'co',
   myHomepage: '',
   startsWith: 'newTab',
   newTabMode: 'top',

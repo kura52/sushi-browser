@@ -164,8 +164,8 @@ app.on('ready', async ()=>{
   require('./clearEvent')
 
 
-  ptyProcessSet = require('./ptyProcess')
-  // ptyProcessSet = new Set()
+  // ptyProcessSet = require('./ptyProcess')
+  ptyProcessSet = new Set()
   passwordManager = require('./passwordManagerMain')
   require('./importer')
   require('./bookmarksExporter')
@@ -893,7 +893,8 @@ function contextMenu(webContents) {
       menuItems.push({type: 'separator'})
       if(!hasText && props.mediaType === 'none'){
         const type = mainState.searchProviders[mainState.searchEngine].type
-        for(let suffix of type ? [''] : mainState.oppositeGlobal ? ['(o)','(c)'] : ['(c)','(o)']){
+        for(let suffix of type ? [''] : mainState.searchEngineDisplayType == 'c' ? ['(c)'] :
+          mainState.searchEngineDisplayType == 'o' ? ['(o)'] : mainState.oppositeGlobal ? ['(o)','(c)'] : ['(c)','(o)']){
           menuItems.push({
             t: 'openSearch', label: locale.translation('openSearch').replace(/{{\s*selectedVariable\s*}}/, props.linkText.length > 20 ? `${props.linkText.substr(0, 20)}...` : props.linkText) + suffix,
             click: (item, win) =>  win.webContents.send('search-text', webContents.getId(), props.linkText,suffix == '(o)')
@@ -1008,7 +1009,8 @@ function contextMenu(webContents) {
       if(mainState.contextMenuSearchEngines.length == 0){
         const type = mainState.searchProviders[mainState.searchEngine].type
         const isURLGo = !type && urlutil.isURL(text)
-        for(let suffix of type ? [''] : mainState.oppositeGlobal ? ['(o)','(c)'] : ['(c)','(o)']){
+        for(let suffix of type ? [''] : mainState.searchEngineDisplayType == 'c' ? ['(c)'] :
+          mainState.searchEngineDisplayType == 'o' ? ['(o)'] : mainState.oppositeGlobal ? ['(o)','(c)'] : ['(c)','(o)']){
           const label = isURLGo ? locale.translation('2948300991547862301').replace(/<ph name="PAGE_TITLE">/,text).replace(/<\/ph>/,'') :
             locale.translation('openSearch').replace(/{{\s*selectedVariable\s*}}/, text.length > 20 ? `${text.substr(0, 20)}...` : text)
           menuItems.push({
@@ -1019,6 +1021,18 @@ function contextMenu(webContents) {
         }
       }
       else{
+        if(urlutil.isURL(text)){
+          for(let suffix of mainState.searchEngineDisplayType == 'c' ? ['(c)'] :
+            mainState.searchEngineDisplayType == 'o' ? ['(o)'] : mainState.oppositeGlobal ? ['(o)','(c)'] : ['(c)','(o)']){
+            const label = locale.translation('2948300991547862301').replace(/<ph name="PAGE_TITLE">/,text).replace(/<\/ph>/,'')
+            menuItems.push({
+              t: 'openSearch', label: label + suffix,
+              click: (item, win) =>  win.webContents.send(suffix == '(o)' ? 'new-tab-opposite' : 'new-tab',
+                webContents.getId(), urlutil.getUrlFromInput(text) ,suffix == '(o)')
+            })
+          }
+        }
+
         for(let engine of mainState.contextMenuSearchEngines){
           if(!mainState.searchProviders[engine]) continue
 
@@ -1030,14 +1044,12 @@ function contextMenu(webContents) {
             searchShortcut = `${shortcut} `
           }
           const type = mainState.searchProviders[engine].type
-          const isURLGo = !type && urlutil.isURL(text)
-          for(let suffix of type ? [''] : mainState.oppositeGlobal ? ['(o)','(c)'] : ['(c)','(o)']){
-            const label = isURLGo ? locale.translation('2948300991547862301').replace(/<ph name="PAGE_TITLE">/,text).replace(/<\/ph>/,'') :
-              labelShortcut + locale.translation('openSearch').replace(/{{\s*selectedVariable\s*}}/, text.length > 20 ? `${text.substr(0, 20)}...` : text)
+          for(let suffix of type ? [''] :  mainState.searchEngineDisplayType == 'c' ? ['(c)'] :
+            mainState.searchEngineDisplayType == 'o' ? ['(o)'] : mainState.oppositeGlobal ? ['(o)','(c)'] : ['(c)','(o)']){
+            const label = labelShortcut + locale.translation('openSearch').replace(/{{\s*selectedVariable\s*}}/, text.length > 20 ? `${text.substr(0, 20)}...` : text)
             menuItems.push({
               t: 'openSearch', label: label + suffix,
-              click: (item, win) =>  win.webContents.send(isURLGo ? suffix == '(o)' ? 'new-tab-opposite' : 'new-tab' : 'search-text',
-                webContents.getId(), isURLGo ? urlutil.getUrlFromInput(text) : `${searchShortcut}${text}` ,suffix == '(o)')
+              click: (item, win) =>  win.webContents.send('search-text', webContents.getId(), `${searchShortcut}${text}` ,suffix == '(o)')
             })
           }
         }
@@ -1249,33 +1261,17 @@ function contextMenu(webContents) {
         menu.popup(targetWindow)
       }
       else{
-        console.log(webContents.hostWebContents.getURL());
-        ( webContents).executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',
-          `(function(){
-          const eventMoveHandler = e=>{
-            chrome.ipcRenderer.send('context-menu-move',{})
-            document.removeEventListener('mousemove',eventMoveHandler)
+        console.log(webContents.hostWebContents.getURL())
+        let isMove = false
+        ipcMain.once('context-menu-move',e => isMove = true)
+        ipcMain.once('context-menu-up',e => {
+          console.log(11113)
+          if(!isMove){
+            console.log(11114)
+            menu.popup(targetWindow)
           }
-          const eventUpHandler = e=>{
-            if(e.which == 3){
-              chrome.ipcRenderer.send('context-menu-up',{})
-              document.removeEventListener('mouseup',eventUpHandler)
-            }
-          }
-          document.addEventListener('mousemove',eventMoveHandler)
-          document.addEventListener('mouseup',eventUpHandler)
-        })()`, {},_=>{
-            console.log(11112)
-            let isMove = false
-            ipcMain.once('context-menu-move',e => isMove = true)
-            ipcMain.once('context-menu-up',e => {
-              console.log(11113)
-              if(!isMove){
-                console.log(11114)
-                menu.popup(targetWindow)
-              }
-            })
-          })
+        })
+        ;(webContents.hostWebContents || webContents).send('start-mouseup-handler')
       }
     }catch(e){
       console.log(e)

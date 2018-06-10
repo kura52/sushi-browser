@@ -238,6 +238,7 @@ this.MG = {
           {type: 'NAME'}
         ]},
         {name: "find in page", args: []},
+        {name: "quit browser", args: []},
         {name: "restart browser", args: []}
       ]
     }

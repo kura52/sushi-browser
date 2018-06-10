@@ -155,6 +155,9 @@
    "action_name_find_in_page": {
       "message": "ページ内検索"
    },
+   "action_name_quit_browser": {
+      "message": "ブラウザを終了"
+   },
    "action_name_restart_browser": {
       "message": "ブラウザを再起動"
    },

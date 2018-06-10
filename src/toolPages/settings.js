@@ -864,6 +864,10 @@ class SearchSetting extends React.Component {
     this.deleteSite = ::this.deleteSite
   }
 
+  onChange(name,e,data){
+    ipc.send('save-state',{tableName:'state',key:name,val:data.value || data.checked})
+  }
+
   changeCheck(e,i,name,data){
     const val = data.checked
     ipc.send('save-state',{tableName:'state',key:'searchEngine',val:name})
@@ -874,10 +878,10 @@ class SearchSetting extends React.Component {
     const name = e.target.dataset.name
     const i = parseInt(e.target.dataset.num)
     const val = e.target.innerText
-    if(name == "name" && this.state.searchProviders[i][name] == this.state.default){
+    if(name == "name" && this.state.searchProviders.find(x=>x.ind==i)[name] == this.state.default){
       ipc.send('save-state',{tableName:'state',key:'searchEngine',val})
     }
-    this.state.searchProviders[i][name] = val
+    this.state.searchProviders.find(x=>x.ind==i)[name] = val
     ipc.send('save-state',{tableName:'searchEngine',val:this.state.searchProviders})
   }
 
@@ -888,14 +892,14 @@ class SearchSetting extends React.Component {
 
   typeChange(i,e,data){
     console.log(i,e,data)
-    this.state.searchProviders[i].type = data.value
+    this.state.searchProviders.find(x=>x.ind==i).type = data.value
     ipc.send('save-state',{tableName:'searchEngine',val:this.state.searchProviders})
     this.setState({})
   }
 
   multipleChange(i,e,data){
     console.log(i,e,data)
-    this.state.searchProviders[i].multiple = data.value
+    this.state.searchProviders.find(x=>x.ind==i).multiple = data.value
     ipc.send('save-state',{tableName:'searchEngine',val:this.state.searchProviders})
     this.setState({})
   }
@@ -979,7 +983,7 @@ class SearchSetting extends React.Component {
 
   addSite(multiple){
     const max = Math.max(...this.state.searchProviders.map(x=>x.ind))+1
-    const newRecord = {name:"",search:"",shortcut:"", ind:max,updated_at:Date.now()}
+    const newRecord = {name:`name${max}`,search: multiple ? "" : `url${max}`,shortcut:`s${max}`, ind:max,updated_at:Date.now()}
     if(multiple){
       newRecord.multiple = []
       newRecord.type = 'one-row'
@@ -1002,6 +1006,16 @@ class SearchSetting extends React.Component {
       <h3>Right Click Menu Search Engines</h3>
       <Divider/>
       <Dropdown fluid multiple search selection onChange={::this.contextMenuSearchEngineChange} options={optionsAll} defaultValue={this.state.contextMenuSearchEngines}/>
+
+      <br/>
+      <div className="field">
+        <label>Search Methods:&nbsp;</label>
+        <Dropdown onChange={this.onChange.bind(this,'searchEngineDisplayType')} selection options={[
+          {value:'co' , text: 'Current(c) and Opposite(o) Panel'},
+          {value:'c' , text: 'Current(c) Panel'},
+          {value:'o' , text: 'Opposite(o) Panel'},
+        ]} defaultValue={this.state.searchEngineDisplayType}/>
+      </div>
 
       <h3>Multi Search</h3>
       <Divider/>
@@ -2004,7 +2018,7 @@ ipc.send("get-main-state",key,['startsWith','newTabMode','myHomepage','searchPro
   'defaultDownloadPath','alwaysOpenLinkNewTab','openTabPosition','alwaysOpenLinkBackground','addressBarNewTab','oppositeGlobal','colorNormalText','colorNormalBackground','colorActiveText',
   'colorActiveBackground','colorTabDot','colorUnreadText','colorUnreadBackground','enableColorOfNoSelect','themeColorChange','showBorderActiveTab','historyBadget','colorTabMode',
   'clearHistoryOnClose','clearDownloadOnClose','clearCacheOnClose','clearStorageDataOnClose','clearAutocompleteDataOnClose','clearAutofillDataOnClose','clearPasswordOnClose','clearGeneralSettingsOnClose','clearFavoriteOnClose',
-  'enableWidevine','toolbarLink','sidebarLink','bookmarkbarLink','zoomBehavior','tabPreviewSizeWidth','tabPreviewSizeHeight','tabPreviewSlideHeight','tabPreviewWait'])
+  'enableWidevine','toolbarLink','sidebarLink','bookmarkbarLink','zoomBehavior','tabPreviewSizeWidth','tabPreviewSizeHeight','tabPreviewSlideHeight','tabPreviewWait','searchEngineDisplayType'])
 ipc.once(`get-main-state-reply_${key}`,(e,data)=>{
   generalDefault = data
   keyboardDefault = data
@@ -2013,12 +2027,12 @@ ipc.once(`get-main-state-reply_${key}`,(e,data)=>{
   extensionDefault = data
   contextMenuDefault = data
 
-  const {searchProviders, searchEngine, contextMenuSearchEngines} = data
+  const {searchProviders, searchEngine, contextMenuSearchEngines,searchEngineDisplayType} = data
   let arr = []
   for(let [name,value] of Object.entries(searchProviders)){
     arr[value.ind] = value
   }
-  searchDefault = {searchProviders: arr.filter(x=>x),default: searchEngine,contextMenuSearchEngines}
+  searchDefault = {searchProviders: arr.filter(x=>x),default: searchEngine,contextMenuSearchEngines,searchEngineDisplayType}
 
   ReactDOM.render(<App />,  document.getElementById('app'))
 })

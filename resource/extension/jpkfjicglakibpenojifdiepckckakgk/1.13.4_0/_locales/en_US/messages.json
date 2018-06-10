@@ -89,6 +89,9 @@
    "action_name_find_in_page": {
       "message": "find in page"
    },
+   "action_name_quit_browser": {
+      "message": "quit browser"
+   },
    "action_name_restart_browser": {
       "message": "restart browser"
    },

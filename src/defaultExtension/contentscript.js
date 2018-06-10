@@ -2,6 +2,7 @@ window.__started_ = window.__started_ ? void 0 : 1
 var ipc = chrome.ipcRenderer
 if(window.__started_){
   const openTime = Date.now()
+
   if(location.href.startsWith('http') && window == window.parent){
     document.addEventListener("DOMContentLoaded",_=>{
       // const key = Math.random().toString()

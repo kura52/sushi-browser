@@ -143,7 +143,7 @@ export default class BookmarkBarWrapper extends Component {
   }
 
   isShow(){
-    return this._isShow() || this.hoverBookmarkBar
+    return this.props.toggleNav != 2 && this.props.toggleNav != 3 && (this._isShow() || this.hoverBookmarkBar)
  }
 
   shouldComponentUpdate(nextProps, nextState) {

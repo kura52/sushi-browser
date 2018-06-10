@@ -251,8 +251,11 @@
     "find in page": function () {
       chrome.ipcRenderer.send('menu-or-key-events','findOnPage',void 0,void 0,true)
     },
+    "quit browser": function () {
+      chrome.ipcRenderer.send('quit-browser')
+    },
     "restart browser": function () {
-      chrome.ipcRenderer.send('restart-browser')
+      chrome.ipcRenderer.send('quit-browser','restart')
     },
     "open link in new tab": function (arg) {
       var link = $X('ancestor-or-self::a', GM.target)[0] || false;

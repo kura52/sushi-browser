@@ -10,7 +10,7 @@ ipcMain.on("close-tab-from-other-window-to-main", (event, data) => {
     const win = BrowserWindow.fromId(data.windowId)
     event.sender.send("detach-tab-from-other-window",data2)
     ipcMain.once("detach-tab-from-other-window-finish",e=>{
-      setTimeout(_=>win.webContents.send(`detach-tab-from-other-window-finish-from-main`),100)
+      // setTimeout(_=>win.webContents.send(`detach-tab-from-other-window-finish-from-main`),100)
     })
   })
 

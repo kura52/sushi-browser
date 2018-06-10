@@ -265,6 +265,8 @@ class BrowserNavbar extends Component{
       this.searchWordHighlight == sharedState.searchWordHighlight &&
       this.searchWordHighlightRecursive == sharedState.searchWordHighlightRecursive &&
       this.bookmarkBar == sharedState.bookmarkBar &&
+      this.hoverBookmarkBar == sharedState.hoverBookmarkBar &&
+      this.bookmarkBarTopPage == sharedState.bookmarkBarTopPage &&
       this.tabPreview == sharedState.tabPreview)
     if(ret){
       this.currentWebContents = nextProps.currentWebContents
@@ -283,6 +285,8 @@ class BrowserNavbar extends Component{
       this.searchWordHighlight = sharedState.searchWordHighlight
       this.searchWordHighlightRecursive = sharedState.searchWordHighlightRecursive
       this.bookmarkBar = sharedState.bookmarkBar
+      this.hoverBookmarkBar = sharedState.hoverBookmarkBar
+      this.bookmarkBarTopPage = sharedState.bookmarkBarTopPage
       this.tabPreview = sharedState.tabPreview
     }
     return ret
@@ -676,6 +680,8 @@ class BrowserNavbar extends Component{
         <NavbarMenuItem text={`[${sharedState.bookmarkBar ? '✓' : ' '}] ${locale.translation('2845382757467349449')}`} icon='bookmark' onClick={_=>{
           sharedState.bookmarkBar = !sharedState.bookmarkBar
           mainState.set('bookmarkBar',sharedState.bookmarkBar)
+          sharedState.hoverBookmarkBar = false
+          mainState.set('hoverBookmarkBar',false)
           this.refs['main-menu'].menuClose()
           this.props.parent.setState({})
         }}/>
@@ -686,6 +692,8 @@ class BrowserNavbar extends Component{
           this.props.parent.setState({})
         }}/>
         <NavbarMenuItem text={`[${sharedState.hoverBookmarkBar ? '✓' : ' '}] Show bookmark bar on mouse hover`} icon='bookmark' onClick={_=>{
+          sharedState.bookmarkBar = false
+          mainState.set('bookmarkBar',false)
           sharedState.hoverBookmarkBar = !sharedState.hoverBookmarkBar
           mainState.set('hoverBookmarkBar',sharedState.hoverBookmarkBar)
           this.refs['main-menu'].menuClose()
@@ -731,7 +739,8 @@ class BrowserNavbar extends Component{
       <NavbarMenuItem text={locale.translation("closeWindow")} icon='remove circle' onClick={MenuOperation.windowClose}/>
 
       <div className="divider" />
-      <NavbarMenuItem text='Restart Browser' icon='undo rotate60' onClick={()=>ipc.send('restart-browser')}/>
+      <NavbarMenuItem text={locale.translation("quitApp").replace('Brave','Browser')} icon='window close outline' onClick={()=>ipc.send('quit-browser')}/>
+      <NavbarMenuItem text='Restart Browser' icon='undo rotate60' onClick={()=>ipc.send('quit-browser','restart')}/>
 
       <div className="divider" />
       <NavbarMenuSubMenu text="About">

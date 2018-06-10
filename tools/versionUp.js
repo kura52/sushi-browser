@@ -6,27 +6,17 @@ const glob = require("glob")
 const BEFORE_CODE_NAME = 'Shirauo(Icefish)'
 const CODE_NAME = 'Ikura(Salmon Roe)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.17.3"
+const NEXT_APP_VERSION = "0.17.4"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Updated to Muon 7.0.5. (chromium 67.0.3396.79)
-Added Bookmark Add / Delete Menu in Bookmark Bar.
-Added option 'Show bookmark bar on mouse hover' to main menu.
-Added advanced setting option of tab preview.
-Bug fix for search engine settings.
-Added option to set window icon.
-Added 'Copy All Tab Titles' and 'Copy All Tab URLs' to tab right click menu
-Added pin function to Top Page's Speed ​​Dial.
-Fixed some bugs.`
+const CHANGE_ENGLISH = `Fixed fatal bug of tab detach.
+Added 'Quit Browser' to Main Menu.
+Added 'Search Methods' Option to Search Setting.
+Fixed some bugs,`
 
-const CHANGE_JAPANESE = `Muonを7.0.5に更新(chromium 67.0.3396.79)
-ブックマークバーでのブックマーク追加・削除メニューの追加
-ブックマークバーをマウスホバーで表示するオプションをメインメニューに追加
-タブプレビューの詳細設定オプションを追加
-検索エンジン設定のバグ修正
-ウインドウのアイコンを設定するオプションを追加
-タブの右クリックメニューに「Copy All Tab Titles」と「Copy All Tab URLs」を追加
-Top PageのSpeed Dialにピン留め機能を追加
+const CHANGE_JAPANESE = `タブのデタッチの致命的なバグ修正
+ブラウザを終了をメインメニューに追加
+「Search Methods」のオプションを設定＞検索に追加
 いくつかのバグ修正`
 
 const isWindows = process.platform === 'win32'

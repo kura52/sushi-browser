@@ -106,7 +106,7 @@ function updateSearchEngine(){
   const vals = ipc.sendSync('get-sync-main-states',['searchProviders','searchEngine'])
   searchProviders = {...vals[0]}
   const searchEngine = vals[1]
-  autocompleteUrl = searchProviders[searchEngine].autocomplete || searchProviders['Google'].autocomplete
+  autocompleteUrl = (searchProviders[searchEngine] && searchProviders[searchEngine].autocomplete) || searchProviders['Google'].autocomplete
   spAliasMap = new Map(Object.values(searchProviders).map(sp=> [sp.shortcut,sp.name]))
 }
 
@@ -503,32 +503,26 @@ export default class TabPanel extends Component {
       const _tabs = this.state.tabs
       let i = 0
       console.log(data,_tabs)
-      const promises = []
+      const vals = [],conts = []
       for(let tab of _tabs){
         if(data.keySet.includes(tab.key)){
-          const p = new Promise((resolve,reject)=>{
-            this.getWebContents(tab).detach(_=>{
-              ipc.send('chrome-tabs-onDetached-to-main',tab.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==tab.key)})
-              resolve({wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
-                rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || this.getWebContents(tab).guestInstanceId})
-            })
-          })
-          promises.push(p)
+          const cont = this.getWebContents(tab)
+          ipc.send('chrome-tabs-onDetached-to-main',tab.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==tab.key)})
+          const d = {wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
+            rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || cont.guestInstanceId}
+          vals.push(d)
+          conts.push([tab,cont])
+          cont.moveTo(0, data.newWindowId)
         }
         i++
       }
 
-      if(promises.length == 0) return
-
-      Promise.all(promises).then(vals=>{
-        ipc.send("detach-tab-to-main",vals)
-        ipc.once('detach-tab-from-other-window-finish-from-main',_=>{
-          if(vals.length == 1)
-            PubSub.publish(`close_tab_${this.props.k}`, {key: vals[0].c_key})
-          else{
-            for(let val of vals) PubSub.publish(`close_tab_${this.props.k}`, {key: val.c_key})
-          }
-        })
+      if(vals.length == 0) return
+      for(let [tab,cont] of conts){
+        tab.wv.attachGuest(cont._detachGuest().guestInstanceId)
+      }
+      ipc.send("detach-tab-to-main",vals)
+      ipc.once('detach-tab-from-other-window-finish-from-main',_=>{
       })
     }
     ipc.on(`close-tab-from-other-window`,closeTabFromOtherWindow)
@@ -549,15 +543,16 @@ export default class TabPanel extends Component {
       const tab = this.state.tabs.find(t=>t.wvId == createData.tabId)
       if(!tab) return
 
-      this.getWebContents(tab).detach(_=>{
-        const d = {wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
-          rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || getWebContents(tab).guestInstanceId}
-        ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
+      const cont = this.getWebContents(tab)
+      tab.wv.attachGuest(cont._detachGuest().guestInstanceId)
+      const d = {wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
+        rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || cont.guestInstanceId}
+      ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
 
-        BrowserWindowPlus.load({id:remote.getCurrentWindow().id,x:createData.left,y:createData.top,
-          height:createData.height,width:createData.width,tabParam:JSON.stringify([d])})
-        PubSub.publish(`close_tab_${this.props.k}`, {key: d.c_key})
-      })
+      const winId = ipc.sendSync('browser-load',{id:remote.getCurrentWindow().id,x:createData.left,y:createData.top,
+        height:createData.height,width:createData.width,tabParam:JSON.stringify([d])})
+      cont.moveTo(0, winId)
+
     }
     ipc.on('chrome-windows-create-from-tabId',eventChromeWindowsCreateFromTabId)
 
@@ -2311,7 +2306,7 @@ export default class TabPanel extends Component {
           break
         case 'removed':
           if(this.state.tabs.find((x)=> x.key == tab.key)){
-            this.handleTabClose({}, tab.key)
+            setTimeout(_=>this.handleTabClose({}, tab.key),200)
           }
           break
       }
@@ -2632,7 +2627,7 @@ export default class TabPanel extends Component {
           isActive: this.state.selectedTab == tab.key,
           ref: ref,
           navbar: navbar,
-          modify: sharedState.bookmarkBar || (sharedState.bookmarkBarTopPage && tab.page.navUrl == topURL) ? 28 : 0,
+          modify: this.props.toggleNav != 2 && this.props.toggleNav != 3 && (sharedState.bookmarkBar || (sharedState.bookmarkBarTopPage && tab.page.navUrl == topURL)) ? 28 : 0,
           float:this.props.float,
           getCapture: !tab.tabPreview
           // chromeTab: this.getChromeTab(tab)
@@ -4099,46 +4094,43 @@ export default class TabPanel extends Component {
 
   detachPanel(bounds={}) {
     if(!this.props.parent.state.root.r) return
-    const promises = this.state.tabs.map(tab=>{
-      return new Promise((resolve,reject)=>{
-        this.getWebContents(tab).detach(_=>{
-          resolve({wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
-            rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || this.getWebContents(tab).guestInstanceId})
-        })
-      })
+    const vals = this.state.tabs.map(tab=>{
+      const cont = this.getWebContents(tab)
+      tab.wv.attachGuest(cont._detachGuest().guestInstanceId)
+      const d = {wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
+        rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || cont.guestInstanceId}
+      ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
+      return [d,cont]
     })
-    Promise.all(promises).then(vals=>{
-      for(let d of vals){
-        ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
-      }
-      BrowserWindowPlus.load({id:remote.getCurrentWindow().id,...bounds,tabParam:JSON.stringify(vals)})
-      PubSub.publish(`close-panel_${this.props.k}`)
-    })
+    const winId = ipc.sendSync('browser-load',{id:remote.getCurrentWindow().id,...bounds,tabParam:JSON.stringify(vals.map(x=>x[0]))})
+    for(let x of vals){
+      x[1].moveTo(0, winId)
+    }
   }
 
   detachTab(tab,bounds={}) {
     const _tabs = this.state.tabs
     if(_tabs.length > 1) {
       const i = _tabs.findIndex((x)=>x.key === tab.key)
-      this.getWebContents(tab).detach(_=>{
-        const d = {wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
-          rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || this.getWebContents(tab).guestInstanceId}
-        ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
-        BrowserWindowPlus.load({id:remote.getCurrentWindow().id,...bounds,_alwaysOnTop:true,toggle:1,tabParam:JSON.stringify([d])})
-        PubSub.publish(`close_tab_${this.props.k}`,{key:tab.key})
-      })
+      const cont = this.getWebContents(tab)
+      tab.wv.attachGuest(cont._detachGuest().guestInstanceId)
+      const d = {wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
+        rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || cont.guestInstanceId}
+      ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
+      BrowserWindowPlus.load({id:remote.getCurrentWindow().id,...bounds,_alwaysOnTop:true,toggle:1,tabParam:JSON.stringify([d])})
+      cont.moveTo(0, winId)
     }
     else{
       const t = this.handleTabAddButtonClick()
       setTimeout(_=> {
         const i = _tabs.findIndex((x)=>x.key === tab.key)
-        this.getWebContents(tab).detach(_=>{
-          const d = {wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
-            rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || this.getWebContents(tab).guestInstanceId}
-          ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
-          BrowserWindowPlus.load({id:remote.getCurrentWindow().id,...bounds,_alwaysOnTop:true,toggle:1,tabParam:JSON.stringify([d])})
-          PubSub.publish(`close_tab_${this.props.k}`,{key:tab.key})
-        })
+        const cont = this.getWebContents(tab)
+        tab.wv.attachGuest(cont._detachGuest().guestInstanceId)
+        const d = {wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
+          rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || cont.guestInstanceId}
+        ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
+        BrowserWindowPlus.load({id:remote.getCurrentWindow().id,...bounds,_alwaysOnTop:true,toggle:1,tabParam:JSON.stringify([d])})
+        cont.moveTo(0, winId)
       },100)
     }
 
@@ -4387,7 +4379,7 @@ export default class TabPanel extends Component {
                   return <Notification data={data} key={i} k={this.props.k} delete={this.deleteNotification.bind(this,i)} />
                 }
               }) : null}
-              <BookmarkBar webViewCreate={this.webViewCreate} tab={tab} refs2={refs2} topURL={topURL} navigateTo={this.navigateTo} k={this.props.k} currentWebContents={this.props.currentWebContents}/>
+              <BookmarkBar webViewCreate={this.webViewCreate} tab={tab} refs2={refs2} topURL={topURL} navigateTo={this.navigateTo} toggleNav={toggle} k={this.props.k} currentWebContents={this.props.currentWebContents}/>
               <BrowserPageStatus tab={tab}/>
             </div>
           </Tab>)

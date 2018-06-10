@@ -111,12 +111,12 @@ class BrowserPage extends Component {
       webview.addEventListener(k, webviewHandler(this, webviewEvents[k]),{passive:true})
 
 
-    // const debugEvents = ['tab-replaced-at', 'tab-id-changed', 'will-attach', 'did-attach', 'did-detach', 'will-detach']
-    // for (const event of debugEvents) {
-    //   webview.addEventListener(event, (e) => {
-    //     console.log(event,e, webview)
-    //   })
-    // }
+    const debugEvents = ['tab-replaced-at', 'tab-id-changed', 'will-attach', 'did-attach', 'did-detach', 'will-detach']
+    for (const event of debugEvents) {
+      webview.addEventListener(event, (e) => {
+        console.log(event,e, webview)
+      })
+    }
 
     this.wvEvents['ipc-message'] = (e, page) =>{
       if(e.channel == 'webview-scroll'){

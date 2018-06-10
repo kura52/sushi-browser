@@ -41,7 +41,7 @@ function insertCss(colors){
   const s = document.createElement('style');
   s.setAttribute('type', 'text/css');
   s.appendChild(document.createTextNode());
-    document.head.appendChild(s)
+  document.head.appendChild(s)
 }
 
 function isFixedPanel(key){
@@ -645,7 +645,7 @@ export default class SplitWindows extends Component{
       })
 
       const newIndexes = {}
-     // order = 0
+      // order = 0
       let before
       for(let key of keys){
         let i = 0
@@ -670,7 +670,7 @@ export default class SplitWindows extends Component{
 
 
 
-    this.eventChromeTabsMoveDetach = (e,sendKey,tabIds)=>{
+    this.eventChromeTabsMoveDetach = (e,sendKey,tabIds,winId)=>{
       const keys = []
       const oldIndexes = {}
       this.allKeys(this.state.root,keys)
@@ -694,42 +694,40 @@ export default class SplitWindows extends Component{
       }
 
       const keyArr = Object.keys(map)
-      const detaches = [],promises = []
+      const detaches = []
 
       for(let key of keyArr){
         const tabs = this.refs2[key].state.tabs
+        const datas = []
         for(let ele of map[key]){
           const tab = ele[0]
+          const cont = getWebContents(tab)
+          tab.wv.attachGuest(cont._detachGuest().guestInstanceId)
           const panel = this.refs2[key]
-          const promise = new Promise((resolve,reject)=>{
-            getWebContents(tab).detach(_=>{
-              resolve({wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,freeze:tab.freeze,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
-                rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || getWebContents(tab).guestInstanceId})
-            })
-          })
-          promises.push(promise)
+          const d = resolve({wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,freeze:tab.freeze,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
+            rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || getWebContents(tab).guestInstanceId})
+
+          ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: oldIndexes[d.wvId]})
           detaches.push(ele)
+          datas.push(d)
+          if(winId) cont.moveTo(0, winId)
         }
-        Promise.all(promises).then(datas=>{
-          console.log(434234,datas)
-          for(let d of datas){
-            ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: oldIndexes[d.wvId]})
-          }
-          ipc.send(`chrome-tabs-move-detach-reply_${sendKey}`,datas)
-          setTimeout(_=>{
-            for(let ele of detaches.reverse()){
-              if(ele[0].events) removeEvents(ipc,ele[0].events)
-              const closeTab = tabs.splice(ele[1],1)[0]
-              this.refs2[key].state.selectedTab = this.refs2[key].getNextSelectedTab(ele[0],closeTab,ele[1])
-            }
-            for(let key of keyArr) {
-              const panel = this.refs2[key]
-              panel.setState({})
-              if(!panel.state.tabs.length) panel.props.close(panel.props.k)
-            }
-            ipc.send(`chrome-tabs-move-finished_${sendKey}`)
-          },100)
-        })
+
+        console.log(434234,datas)
+        ipc.send(`chrome-tabs-move-detach-reply_${sendKey}`,datas)
+        // setTimeout(_=>{
+        //   for(let ele of detaches.reverse()){
+        //     if(ele[0].events) removeEvents(ipc,ele[0].events)
+        //     const closeTab = tabs.splice(ele[1],1)[0]
+        //     this.refs2[key].state.selectedTab = this.refs2[key].getNextSelectedTab(ele[0],closeTab,ele[1])
+        //   }
+        //   for(let key of keyArr) {
+        //     const panel = this.refs2[key]
+        //     panel.setState({})
+        //     if(!panel.state.tabs.length) panel.props.close(panel.props.k)
+        //   }
+        //   ipc.send(`chrome-tabs-move-finished_${sendKey}`)
+        // },100)
       }
     }
     ipc.on('chrome-tabs-move-detach',this.eventChromeTabsMoveDetach)
@@ -1652,6 +1650,7 @@ export default class SplitWindows extends Component{
         PubSub.publishSync("resizeWindow",direction == "v" ? {old_w:wholeSize,new_w:wholeSize - size,old_h:otherSize,new_h:otherSize} : {old_w:otherSize,new_w:otherSize,old_h:wholeSize,new_h:wholeSize - size})
         panel.sizeChange(size,false)
         localForage.removeItem(key)
+        delete this.hidePanels[key]
         this.setState({})
       }
       else{
@@ -1659,6 +1658,7 @@ export default class SplitWindows extends Component{
         localForage.setItem(key,size.toString())
         console.log("sizeee",{key,size,psize:panel.state.size,wholeSize,otherSize})
         panel.sizeChange(ret.dirc == "l" ? 0 : 100,true)
+        this.hidePanels[key] = true
         this.setState({})
         PubSub.publish("resizeWindow",direction == "v" ? {old_w:wholeSize - size,new_w:wholeSize,old_h:otherSize,new_h:otherSize} : {old_w:otherSize,new_w:otherSize,old_h:wholeSize - size,new_h:wholeSize})
       }
@@ -1729,7 +1729,7 @@ export default class SplitWindows extends Component{
     </FloatPanel>
   }
 
-  //
+//
   render() {
     const arr = []
     for (var [key, value] of this.state.floatPanels.entries()) {

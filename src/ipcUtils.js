@@ -1588,8 +1588,8 @@ ipcMain.on('history-pin',async (e,key,_id,val)=>{
 })
 
 
-ipcMain.on('restart-browser',e=>{
-  app.relaunch()
+ipcMain.on('quit-browser',(e,type)=>{
+  if(type == 'restart') app.relaunch()
   BrowserWindow.getAllWindows().forEach(win=>win.close())
   app.quit()
 })
@@ -1614,7 +1614,10 @@ ipcMain.on('visit-timer',(e,type)=>{
   }
 })
 
-
+ipcMain.on('browser-load',async (e,arg)=>{
+  const win = await BrowserWindowPlus.load(arg)
+  e.returnValue = win.id
+})
 // ipcMain.on('get-firefox-url',(e,key,url)=>{
 //   session.defaultSession.webRequest.fetch(url, {'user-agent': `Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:57.0) Gecko/20100101 Firefox/57.0`}, (err, response, body) => {
 //      e.sender.send(`get-firefox-url-reply_${key}`,body.toString())
