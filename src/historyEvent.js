@@ -1,14 +1,18 @@
 import { ipcMain } from 'electron'
 import {tabState,history,image,favorite} from './databaseFork'
 
-ipcMain.on('fetch-history', async (event, range, tab=false,limit) => {
+ipcMain.on('fetch-history', async (event, range, tab=false,limit,tabTrash) => {
   console.log(range)
-  const cond =  !Object.keys(range).length ? range :
+  let cond =  !Object.keys(range).length ? range :
     { updated_at: (
-      range.start === void 0 ? { $lte: range.end } :
-        range.end === void 0 ? { $gte: range.start } :
-          { $gte: range.start ,$lte: range.end }
-    )}
+        range.start === void 0 ? { $lte: range.end } :
+          range.end === void 0 ? { $gte: range.start } :
+            { $gte: range.start ,$lte: range.end }
+      )}
+  if(tabTrash){
+    cond = {$and : [{close: 1},cond]}
+  }
+  console.log(tab,cond)
   let data
   if(limit){
     data = await (tab ? tabState : history).find_sort_limit([cond],[{ updated_at: -1 }],[limit])
@@ -59,7 +63,7 @@ ipcMain.on('fetch-frequently-history', async (event, range) => {
         if((h = hists.find(x=>x.location == fav.location))){
           fav.count = h.count
           fav.favicon = h.favicon
-      }
+        }
       }
     }
   }
@@ -73,14 +77,14 @@ ipcMain.on('fetch-frequently-history', async (event, range) => {
 
 
   event.sender.send('history-reply', {freq:data.map(x=>{
-    if(!x.capture){
-      const img = images.find(im=>im.url == x.location)
-      if(img){
-        x.capture = img.path
+      if(!x.capture){
+        const img = images.find(im=>im.url == x.location)
+        if(img){
+          x.capture = img.path
+        }
       }
-    }
-    return {...x, path:x.capture ? x.capture : (void 0)}
-  }),upd:data2});
+      return {...x, path:x.capture ? x.capture : (void 0)}
+    }),upd:data2});
 })
 
 ipcMain.on('search-history', async (event, cond, full=false,limit) => {

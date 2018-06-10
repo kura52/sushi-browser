@@ -34,8 +34,10 @@ ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
   openType = data[isMain ? 'toolbarLink' : 'sidebarLink']
 })
 
-async function faviconGet(x){
-  return x.favicon == "resource/file.png" ? (void 0) : x.favicon && (await localForage.getItem(x.favicon))
+let favicons = {}
+async function faviconGet(url){
+  const favicon = favicons[url]
+  return favicon == "resource/file.png" ? (void 0) : favicon && (await localForage.getItem(favicon))
 }
 
 
@@ -87,20 +89,6 @@ function convertURL(url){
   }
 }
 
-
-function getAppropriateTimeUnit(time){
-  if(time / 60 < 1){
-    return `${Math.round(time)}s`
-  }
-  else if(time / 60 / 60 < 1){
-    return `${Math.round(time /60)}m${Math.round(time % 60)}s`
-  }
-  else if(time / 60 / 60 / 24 < 1){
-    return `${Math.round(time /60 / 60)}h${Math.round((time / 60) % 60)}m`
-  }
-  return `${Math.round(time /60 / 60 / 24)}d${Math.round((time/60/60) % 24)}h`
-}
-
 function escapeRegExp(string){
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
@@ -123,7 +111,7 @@ function getHistory(name){
   }
 
   return new Promise((resolve,reject)=>{
-    ipc.send('fetch-history',cond)
+    ipc.send('fetch-history',cond,true,void 0,true)
     ipc.once('history-reply',(event,ret)=>{
       resolve(ret)
     })
@@ -133,22 +121,38 @@ function getHistory(name){
 
 function getAllHistory(){
   return new Promise((resolve,reject)=>{
-    ipc.send('fetch-history',{})
+    ipc.send('fetch-history',{},true,void 0,true)
     ipc.once('history-reply',(event,ret)=>{
       resolve(ret)
     })
   })
 }
 
-async function buildItem(h,nodePath){
-  const name = h.title  || h.location
-  return {
-    name: <span>[{h.updated_at.slice(11,16)}] {name && name.length > 55 ? `${name.substr(0, 55)}...` : name}<span className="additional-info">[{h.count}pv{h.time ? `, ${getAppropriateTimeUnit(h.time / 1000)}` : ''}]</span></span>,
-    url: convertURL(h.location),
-    id: `${nodePath}/${h.location}`,
-    favicon: await faviconGet(h),
-    type: 'file'
+async function buildItem(h,nodePath,dirc=[]){
+  const urls = h.urls
+  const titles = h.titles.split("\t")
+  const len = urls.length
+  const refs = []
+  for(let i=len-1;i>=0;i--){
+    const inactive = h.currentIndex != i
+    if(inactive) continue
+    const url = urls[i]
+    const title = titles[i]
+    const name = title  || url
+    const ele = {
+      name: `[${h.updated_at.slice(11,16)}] ${name && name.length > 55 ? `${name.substr(0, 55)}...` : name}`,
+      url: convertURL(url),
+      _url: url,
+      id: `${nodePath}/${h.tabKey}/${i}`,
+      favicon: await faviconGet(url),
+      inactive,
+      type: 'file',
+      refs
+    }
+    dirc.push(ele)
+    refs.push(ele)
   }
+  return dirc
 }
 
 function wrapBuildItem(h,nodePath){
@@ -209,9 +213,9 @@ async function getAllChildren(nodePath,name){
   console.log((Date.now() - window.start)/1000)
   // console.log(treeBuild(ret,nodePath))
   const newChildren = []
-  let pre = {location:false}
-  for(let h of ret){
-    const dirc = (h.updated_at > later24h ? later24hData :
+  let pre = {url:false}
+  for(let h of ret.tabs){
+    let dirc = (h.updated_at > later24h ? later24hData :
       h.updated_at > later48h ? later48hData :
         h.updated_at > later07d ? later07dData :
           h.updated_at > later30d ? later30dData : lastData).children
@@ -226,15 +230,9 @@ async function getAllChildren(nodePath,name){
         type: 'file'
       })
     }
-    if(h.location === pre.location){
-      if(!pre.title) pre.title = h.title
-      if(!pre.favicon) pre.favicon = h.favicon
-      dirc[dirc.length-1] = await buildItem(pre,nodePath)
-    }
-    else{
-      dirc.push(await buildItem(h,nodePath))
-      pre = h
-    }
+    favicons = ret.favicons
+    await buildItem(h,nodePath,dirc)
+    pre = h
   }
   console.log((Date.now() - window.start)/1000)
   return [later24hData,later48hData,later07dData,later30dData,lastData]
@@ -248,7 +246,7 @@ export default class App extends React.Component {
   }
 
   async onChange(e,data) {
-    const prevState = await localForage.getItem("history-sidebar-open-node")
+    const prevState = await localForage.getItem("tab-history-sidebar-open-node")
     e.preventDefault()
     if(!treeAllData) return
     if(loading){
@@ -300,7 +298,7 @@ export default class App extends React.Component {
       console.log(newTreeData)
       tree.loadData(newTreeData,false,openNodes)
 
-      localForage.setItem("history-sidebar-open-node",prevState)
+      localForage.setItem("tab-history-sidebar-open-node",prevState)
     }, 200)
   }
 
@@ -315,12 +313,9 @@ export default class App extends React.Component {
           <div>
             <Menu pointing secondary >
               <Menu.Item as='a' href={`${baseURL}/favorite_sidebar.html`} key="favorite" icon="star"/>
-              <Menu.Item key="history" icon="history" active={true}/>
-              <Menu.Item as='a' href={`${baseURL}/download_sidebar.html`} key="download" icon="download"/>
-              <Menu.Item as='a' href={`${baseURL}/note_sidebar.html`} key="note" icon="sticky note"/>
+              <Menu.Item as='a' href={`${baseURL}/history_sidebar.html`} key="history" icon="history"/>
               <Menu.Item as='a' href={`${baseURL}/saved_state_sidebar.html`} key="database" icon="database"/>
-              <Menu.Item as='a' href={`${baseURL}/tab_trash_sidebar.html`} key="trash" icon="trash"/>
-              <Menu.Item as='a' href={`${baseURL}/tab_history_sidebar.html`} key="tags" icon="tags"/>
+              <Menu.Item key="tags" icon="tags" active={true}/>
               <Menu.Item as='a' href={`${baseURL}/explorer_sidebar.html`} key="file-explorer" icon="folder"/>
             </Menu>
             <Input ref='input' icon='search' placeholder='Search...' size="small" onChange={::this.onChange}/>
@@ -340,38 +335,53 @@ class Contents extends React.Component {
   }
 
   async updateData(data){
-    if(!this.refs.iTree) return
+    if(!this.refs.iTree || !data.urls) return
     const tree = this.refs.iTree.tree
-    const node = this.searchNodeByUrl(data.location)
-    if(node){
-      tree.removeNode(node,void 0,true)
+    const nodes = this.searchNodeByUrl(data.tabKey)
+    data.urls = data.urls.split("\t")
+    if(nodes){
+      const len = nodes.length
+      for(let i=0;i<len;i++){
+        tree.removeNode(nodes[i],void 0,i==len - 1)
+      }
     }
     const parent = tree.getChildNodes()[0]
-    const beforeNode = parent.getFirstChild()
+    let beforeNode = parent.getFirstChild()
     console.log(parent)
     tree.insertNodeAfter(await wrapBuildItem(data,'root'),beforeNode)
-    const insertedNode = beforeNode.getNextSibling()
-    this.map[insertedNode.url] = insertedNode
+    this.map[data.tabKey] = []
+    while(true){
+      beforeNode = beforeNode.getNextSibling()
+      const key = beforeNode.id.split("/")[1]
+      if(data.tabKey != key) break
+      this.map[key].push(beforeNode)
+    }
   }
 
-  searchNodeByUrl(url){
+  searchNodeByUrl(tabKey){
     if(!this.map){
       this.map = {}
       const tree = this.refs.iTree.tree
       for(let n of tree.getChildNodes()){
         for(let node of tree.getChildNodes(n))
           if(node.type == "file"){
-            this.map[node.url] = node
+          const key = node.id.split("/")[1]
+            if(this.map[key]){
+              this.map[key].push(node)
+            }
+            else{
+              this.map[key] = [node]
+            }
           }
       }
     }
-    return this.map[url]
+    return this.map[tabKey]
   }
 
   async loadAllData(name,notUpdate){
     this.props.setName(name)
     if(!name) this.loaded = true
-    const prevState = await localForage.getItem("history-sidebar-open-node")
+    const prevState = await localForage.getItem("tab-history-sidebar-open-node")
     const start = Date.now()
     const data = await getAllChildren('root',name)
     console.log(Date.now() - start)
@@ -379,7 +389,7 @@ class Contents extends React.Component {
     if(!notUpdate){
       if(this.refs.iTree){
         const tree = this.refs.iTree.tree
-        localForage.setItem("history-sidebar-open-node",prevState)
+        localForage.setItem("tab-history-sidebar-open-node",prevState)
         tree.loadData(data,false,prevState ? prevState.split("\t",-1) : ['24 Hours Ago'])
         console.log(Date.now() - start)
         console.log((Date.now() - window.start)/1000)
@@ -387,7 +397,7 @@ class Contents extends React.Component {
       else{
         setTimeout(_=>{
           const tree = this.refs.iTree.tree
-          localForage.setItem("history-sidebar-open-node",prevState)
+          localForage.setItem("tab-history-sidebar-open-node",prevState)
           tree.loadData(data,false,prevState ? prevState.split("\t",-1) : ['24 Hours Ago'])
         },100)
       }
@@ -400,7 +410,7 @@ class Contents extends React.Component {
     if(isMain && !this.props.onClick) return
     if(isMain){
       this.loaded = false
-      await localForage.setItem("history-sidebar-open-node",'24 Hours Ago')
+      await localForage.setItem("tab-history-sidebar-open-node",'24 Hours Ago')
       const promise = this.loadAllData('24 Hours Ago')
       const self = this
       this.scrollEvent = function(e){
@@ -482,17 +492,17 @@ class Contents extends React.Component {
 
               }
               if(currentNode.type == 'file' && currentNode.favicon != "empty"){
+                const type = event.button == 1 ? 'create-web-contents' : openType ? 'new-tab' : 'load-url'
                 if(this.props.cont){
-                  if(event.button == 1){
-                    this.props.cont.hostWebContents.send('create-web-contents',{id:this.props.cont.getId(),targetUrl:currentNode.url,disposition:'background-tab'})
-                  }
-                  else{
-                    this.props.cont.hostWebContents.send(openType ? 'new-tab' : 'load-url',this.props.cont.getId(),currentNode.url)
-                  }
+                  const args = currentNode.id.split("/")
+                  const favicons = currentNode.refs.map(x=>[x._url,x.favicon])
+                  this.props.cont.hostWebContents.send('restore-tab',this.props.cont.getId(),args[1],parseInt(args[2]),favicons,type)
                   if(this.props.onClick) this.props.onClick()
                 }
                 else{
-                  ipc.sendToHost("open-tab-opposite",currentNode.url,true,event.button == 1 ? 'create-web-contents' : openType ? 'new-tab' : 'load-url')
+                  const args = currentNode.id.split("/")
+                  const favicons = currentNode.refs.map(x=>[x._url,x.favicon])
+                  ipc.sendToHost("restore-tab-opposite",args[1],parseInt(args[2]),favicons,type)
                 }
               }
               else{
@@ -559,11 +569,11 @@ class Contents extends React.Component {
           // }}
           onOpenNode={(node) => {
             if(isMain && !this.loaded) this.loadAllData()
-            localForage.setItem("history-sidebar-open-node",this.refs.iTree.tree.getOpenNodes().map(node=>node.id).join("\t"))
+            localForage.setItem("tab-history-sidebar-open-node",this.refs.iTree.tree.getOpenNodes().map(node=>node.id).join("\t"))
           }}
           onCloseNode={(node) => {
             if(isMain && !this.loaded) this.loadAllData()
-            localForage.setItem("history-sidebar-open-node",this.refs.iTree.tree.getOpenNodes().map(node=>node.id).join("\t"))
+            localForage.setItem("tab-history-sidebar-open-node",this.refs.iTree.tree.getOpenNodes().map(node=>node.id).join("\t"))
           }}
           // onSelectNode={(node) => {
           //   this.updatePreview(node);

@@ -186,12 +186,15 @@ ipcMain.on('get-tab-opener-sync',(e,tabId)=>{
 ipcMain.on('get-tab-value-sync',(e,tabId)=>{
   e.returnValue = getTabValue(tabId)
 })
+ipcMain.on('new-tab-mode',(e,val)=>{
+  newTabMode = val
+})
 ipcMain.on('update-tab-index-org',(e,tabId,index)=>tabIndexMap[tabId] = index)
 var getTabValue = function (tabId) {`)
 
         .replace("sendToBackgroundPages('all', getSessionForTab(tabId), 'chrome-tabs-created', tabs[tabId].tabValue)",`const val = tabs[tabId].tabValue
   if(val.url=='chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html'){
-    val.url = 'chrome://newtab/'
+    val.url = newTabMode
   }
   const opener = tabOpenerMap[tabId]
   if(val.windowId == -1){
@@ -253,7 +256,10 @@ var getTabValue = function (tabId) {`)
   }
   return ret`)
 
-        .replace('  if (!error && createProperties.partition) {',`  if(!createProperties.openerTabId || createProperties.openerTabId == -1){
+        .replace('  if (!error && createProperties.partition) {',`  if(createProperties.url == 'chrome://newtab/'){
+    createProperties.url = newTabMode
+  }
+  if(!createProperties.openerTabId || createProperties.openerTabId == -1){
     if(!win){
       const focus = BrowserWindow.getFocusedWindow()
       if(focus && focus.getTitle().includes('Sushi Browser')){
@@ -606,12 +612,14 @@ filesContentsReplace(`${pwd}/node_modules/youtube-dl/lib/youtube-dl.js`,"path.jo
 filesContentsReplace(`${pwd}/node_modules/youtube-dl/lib/youtube-dl.js`,"(details.path) ? details.path : path.resolve(__dirname, '..', 'bin', details.exec)","((details.path) ? details.path : path.resolve(__dirname, '..', 'bin', details.exec)).replace(/app.asar([\\/\\\\])/,'app.asar.unpacked$1')")
 
 
-// Build Files
+// Build Filestory
 const compiledJsFiles = ['resource/extension/default/1.0_0/js/top.js',
   // 'resource/extension/default/1.0_0/js/download.js',
   'resource/extension/default/1.0_0/js/downloader.js',
   'resource/extension/default/1.0_0/js/selector.js',
   'resource/extension/default/1.0_0/js/history.js',
+  'resource/extension/default/1.0_0/js/tabHistorySidebar.js',
+  'resource/extension/default/1.0_0/js/noteSidebar.js',
   'resource/extension/default/1.0_0/js/tabHistorySidebar.js',
   'resource/extension/default/1.0_0/js/savedStateSidebar.js',
   'resource/extension/default/1.0_0/js/historySidebar.js',

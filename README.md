@@ -135,14 +135,14 @@ This browser makes use of wonderful web technologies, starting with the followin
 Both the installer for every platform and the portable version can be downloaded.  
 To use the portable edition, please run sushi.exe for Windows and sushi-browser for Mac/Linux after decompressing.
 
-- [Windows Installer v0.17.3](https://sushib.me/dl/sushi-browser-0.17.3-setup-x64.exe)
-- [Windows Portable v0.17.3(self-extract)](https://sushib.me/dl/sushi-browser-0.17.3-win-x64.exe)
-- [Windows Portable v0.17.3](https://sushib.me/dl/sushi-browser-0.17.3-win-x64.zip)
-- [MacOS dmg v0.17.3](https://sushib.me/dl/SushiBrowser-0.17.3.dmg)
-- [MacOS Portable v0.17.3](https://sushib.me/dl/sushi-browser-0.17.3-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.17.3](https://sushib.me/dl/sushi-browser-0.17.3.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.17.3](https://sushib.me/dl/sushi-browser_0.17.3_amd64.deb)
-- [Linux Portable v0.17.3](https://sushib.me/dl/sushi-browser-0.17.3.tar.bz2)
+- [Windows Installer v0.17.4](https://sushib.me/dl/sushi-browser-0.17.4-setup-x64.exe)
+- [Windows Portable v0.17.4(self-extract)](https://sushib.me/dl/sushi-browser-0.17.4-win-x64.exe)
+- [Windows Portable v0.17.4](https://sushib.me/dl/sushi-browser-0.17.4-win-x64.zip)
+- [MacOS dmg v0.17.4](https://sushib.me/dl/SushiBrowser-0.17.4.dmg)
+- [MacOS Portable v0.17.4](https://sushib.me/dl/sushi-browser-0.17.4-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.17.4](https://sushib.me/dl/sushi-browser-0.17.4.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.17.4](https://sushib.me/dl/sushi-browser_0.17.4_amd64.deb)
+- [Linux Portable v0.17.4](https://sushib.me/dl/sushi-browser-0.17.4.tar.bz2)
 
 # Use of Flash 
 If Flash won't run, please install Flash from the following web sites.  
@@ -157,7 +157,13 @@ sushi-browser --no-sandbox
 
 # New Features
 
-#### New function(v0.173)
+#### New function(v0.17.4)
+- Fixed fatal bug of tab detach.
+- Added 'Quit Browser' to Main Menu.
+- Added 'Search Methods' Option to Search Setting.
+- Fixed some bugs,
+
+#### New function(v0.17.3)
 - Updated to Muon 7.0.5. (chromium 67.0.3396.79)
 - Added Bookmark Add / Delete Menu in Bookmark Bar.
 - Added option 'Show bookmark bar on mouse hover' to main menu.
@@ -168,7 +174,7 @@ sushi-browser --no-sandbox
 - Added pin function to Top Page's Speed ​​Dial.
 - Fixed some bugs.
 
-#### New function(v0.17.3)
+#### New function(v0.17.2)
 - Added setting "Keep value ​​in LocalStorage" when volume is changed by seek operation.
 - Fixed some bug.
 

@@ -57,11 +57,16 @@ sharedState.searchWords = {}
 
 
 function getNewTabPage(){
-  const arr = ipc.sendSync('get-sync-main-states',[newTabMode == 'myHomepage' ? 'myHomepage' : 'topPage' ,'bookmarksPage','historyPage','myHomepage'])
-  topURL = arr[0] || topURL
+  const arr = ipc.sendSync('get-sync-main-states',[
+    newTabMode == 'myHomepage' ? 'myHomepage' : newTabMode == 'top' ? 'topPage' :
+    newTabMode == 'favorite' ? 'bookmarksPage' :
+    newTabMode == 'history' ? 'historyPage' : 'none',
+    'bookmarksPage','historyPage','myHomepage'])
+  topURL = arr[0] || `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/${newTabMode}.html`
   bookmarksURL = arr[1] || bookmarksURL
   historyURL = arr[2] || historyURL
   sharedState.homeURL = arr[3] || topURL
+  sharedState.topURL = topURL
 }
 
 
@@ -83,6 +88,9 @@ const convertUrlMap = new Map([
   ['about:blank','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html'],
   ['chrome://bookmarks-sidebar/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html'],
   ['chrome://tab-history-sidebar/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_history_sidebar.html'],
+  ['chrome://tab-trash-sidebar/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_trash_sidebar.html'],
+  ['chrome://download-sidebar/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download_sidebar.html'],
+  ['chrome://note-sidebar/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note_sidebar.html'],
   ['chrome://session-manager-sidebar/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/saved_state_sidebar.html'],
   ['chrome://history-sidebar/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history_sidebar.html'],
   ['chrome://explorer/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html'],

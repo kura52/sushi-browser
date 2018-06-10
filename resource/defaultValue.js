@@ -57,7 +57,7 @@ const settingDefault =  {
   navbarItems: {
     left: ['back','forward','reload','home'],
     right: ['sync','sidebar','mobile','screenshot','favorite','history','savedState','video'],
-    backSide: ['syncReplace','tabHistory','opposite','download','folder','terminal'],
+    backSide: ['syncReplace','tabTrash','tabHistory','opposite','download','folder','terminal'],
   },
   verticalTab: false,
   verticalTabWidth: 200,

@@ -253,8 +253,14 @@ ipcMain.on('get-all-favorites',async(event,key,dbKeys,num)=>{
   event.sender.send(`get-all-favorites-reply_${key}`,ret)
 })
 
-ipcMain.on('get-all-states',async(event,key)=>{
-  const ret = await savedState.find_sort([{}],[{ created_at: -1 }])
+ipcMain.on('get-all-states',async(event,key,range)=>{
+  const cond =  !Object.keys(range).length ? range :
+    { created_at: (
+        range.start === void 0 ? { $lte: range.end } :
+          range.end === void 0 ? { $gte: range.start } :
+            { $gte: range.start ,$lte: range.end }
+      )}
+  const ret = await savedState.find_sort([cond],[{ created_at: -1 }])
   event.sender.send(`get-all-states-reply_${key}`,ret)
 })
 

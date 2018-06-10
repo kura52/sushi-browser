@@ -11,6 +11,7 @@ import l10n from '../../brave/js/l10n';
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
 l10n.init()
 
+
 function downloadingItemReply(callback){
   ipc.on('download-progress', (event, item) => {
     callback(item,event.sender)
@@ -19,7 +20,7 @@ function downloadingItemReply(callback){
 
 function fetchDownload(range){
   console.log("fetchDownload",range)
-  ipc.send('fetch-download',range)
+  ipc.send('fetch-downloader-data',range)
 }
 
 function searchDownload(cond){
@@ -27,7 +28,7 @@ function searchDownload(cond){
 }
 
 function downloadReply(callback){
-  ipc.on('download-reply', (event, data) => {
+  ipc.on('downloader-data-reply', (event, data) => {
     callback(data)
   })
 }
@@ -35,7 +36,6 @@ function downloadReply(callback){
 function openFolder(path){
   ipc.send("download-open-folder", path)
 }
-
 
 function escapeRegExp(string){
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
@@ -76,19 +76,15 @@ class TopMenu extends React.Component {
       <StickyContainer>
         <Sticky>
           <div>
-            <Menu pointing secondary>
-              <Menu.Item as='a' href={`chrome://newtab/`} key="top" name="Top"/>
-              <Menu.Item as='a' href={`chrome://bookmarks/`} key="favorite" name={l10n.translation('bookmarks')}/>
-              <Menu.Item as='a' href={`chrome://history/`} key="history" name={l10n.translation('history')}/>
-              <Menu.Item key="download" name={l10n.translation('downloads')} active={true}/>
-              <Menu.Item as='a' href={`${baseURL}/explorer.html`} key="file-explorer" name="File Explorer"/>
-              <Menu.Item as='a' href={`${baseURL}/terminal.html`} key="terminal" name="Terminal"/>
-              <Menu.Item as='a' href={`${baseURL}/settings.html`} key="settings" name={l10n.translation('settings')}/>
-              <Menu.Item as='a' href={`${baseURL}/automation.html`} key="automation" name="Automation"/>
-              <Menu.Item as='a' href={`${baseURL}/converter.html`} key="converter" name="Video Converter"/>
-              {/*<Menu.Item>*/}
-                {/*<Input ref='input' icon='search' placeholder='Search...' onChange={::this.onChange}/>*/}
-              {/*</Menu.Item>*/}
+            <Menu pointing secondary >
+              <Menu.Item as='a' href={`${baseURL}/favorite_sidebar.html`} key="favorite" icon="star"/>
+              <Menu.Item as='a' href={`${baseURL}/history_sidebar.html`} key="history" icon="history"/>
+              <Menu.Item as='a' key="download" icon="download" active={true}/>
+              <Menu.Item as='a' href={`${baseURL}/note_sidebar.html`} key="note" icon="sticky note"/>
+              <Menu.Item as='a' href={`${baseURL}/saved_state_sidebar.html`} key="database" icon="database"/>
+              <Menu.Item as='a' href={`${baseURL}/tab_trash_sidebar.html`} key="trash" icon="trash"/>
+              <Menu.Item as='a' href={`${baseURL}/tab_history_sidebar.html`} key="tags" icon="tags"/>
+              <Menu.Item as='a' href={`${baseURL}/explorer_sidebar.html`} key="file-explorer" icon="folder"/>
             </Menu>
           </div>
         </Sticky>
@@ -118,35 +114,22 @@ class DownloadList extends React.Component {
     downloadingItemReply((item,sender)=>{
       item.sender = sender
       item.created_at = item.startTime
-      this.state.downloads.set(item.key || item.created_at,item)
+      this.state.downloads.set(item.key || item.created_at.toString(),item)
       this.debounceSetState({})
     })
 
     downloadReply((data,flag)=>{
       let num = 0
-      for(let e of data){
-        if(!this.state.downloads.has(item.key || e.created_at) || num<1000){
-          this.state.downloads.set(item.key || e.created_at,e)
+      for(let item of data){
+        item.fromDB = true
+        if(!this.state.downloads.has(item.key || item.created_at.toString()) || num<1000){
+          this.state.downloads.set(item.key || item.created_at.toString(),item)
           num++
         }
       }
       this.debounceSetState({})
     })
     this.props.setToken(intervalRun(()=>fetchDownload({})))
-  }
-
-  render() {
-    const arr = [...this.state.downloads.values()]
-    arr.sort((a,b)=> b.created_at - a.created_at)
-
-    const downloadList = []
-    for (let item of arr) {
-      downloadList.push(this.buildItem(item))
-    }
-
-    return <List divided relaxed>
-      {downloadList}
-    </List>
   }
 
   round(val, precision) {
@@ -213,34 +196,78 @@ class DownloadList extends React.Component {
     return {diff,percent,speed,restTime}
   }
 
+  play(item){
+    if(item.fromDB){
+      ipc.send("download-retry", item.url, item.savePath, item.key)
+    }
+    else{
+      ipc.send("download-pause", item)
+    }
+  }
+
   buildItem(item) {
     const rest = this.calcSpeed(item)
+    const progress = item.state == "progressing" ? `${item.speed || this.getAppropriateByteUnit(rest.speed).join(" ")}/s ${this.getAppropriateByteUnit(item.receivedBytes).join(" ")} of ${this.getAppropriateByteUnit(item.totalBytes).join(" ")}（${this.getAppropriateTimeUnit(rest.restTime).join(" ")} left）`.replace(/NaN/g,'-') :
+      item.state == "completed" ? "Completed" : "Canceled"
+    const fname = item.filename
 
-    return <List.Item key={`${item.savePath}_${item.created_at}`}>
-      <List.Content>
-        <a className="description" style={{
-          float: 'right',
-          marginRight: 15,
-          fontSize: "12px"
-        }}>{moment(item.now).format("MM/DD HH:mm:ss")}</a>
-        <List.Header as='a' target="_blank" href={item.url}>{item.filename.length > 55 ? `${item.filename.substr(0, 55)}...` : item.filename}</List.Header>
-        <List.Description>{item.url.length > 125 ? `${item.url.substr(0, 125)}...` : item.url}</List.Description>
-        {item.state == "progressing" && !item.isPaused ? <List.Description>{`${item.speed ||this.getAppropriateByteUnit(rest.speed).join(" ")}/sec - ${this.getAppropriateByteUnit(item.receivedBytes).join(" ")} of ${this.getAppropriateByteUnit(item.totalBytes).join(" ")}（${this.getAppropriateTimeUnit(rest.restTime).join(" ")} left）`}</List.Description> : ""}
-        {item.receivedBytes ? <Progress percent={rest.percent}  size='small' color='blue' label {...(item.state == "progressing" ? {active: true} : item.state == "completed" ? {success : true} : {})} /> : ""}
-        <div style={{display: "flex"}}>
-          {item.sender && item.state == "progressing" ? item.isPaused ?
-            <Button size='mini' onClick={()=>item.sender.send("download-pause",item)}><Icon name="play"></Icon>Resume</Button> :
-            <Button size='mini' onClick={()=>item.sender.send("download-pause",item)}><Icon name="pause"></Icon>Pause</Button> : ""
-          }
-          {item.state == "completed" ?
-            <Button size='mini' onClick={()=>openFolder(item.savePath)}><Icon name="folder"></Icon>Open Folder</Button> :
-            !item.sender ? null : item.state == "cancelled" ?
-              <Button size='mini' onClick={()=>item.sender.send("download-retry", item.url, item.savePath, item.key)}><Icon name="video play"></Icon>Retry</Button> :
-              <Button size='mini' onClick={()=>item.sender.send("download-cancel", item)}><Icon name="stop"></Icon>Cancel</Button>
-          }
-        </div>
-      </List.Content>
-    </List.Item>;
+    return <div className="ui horizontal segments dl-list">
+    <div className="ui blue segment" key={item.savePath}>
+      {!(item.state == "completed" || (item.state == "progressing" && !item.isPaused)) ?
+        <i className="play icon download-list-above" onClick={_=>this.play(item)}></i> :
+        item.state == "progressing" && !item.isPaused ?
+        <i className="pause icon download-list-above" onClick={_=>ipc.send("download-pause",item)}></i> : ""
+      }
+      {item.state == "completed" ?
+        <i className="folder icon download-list-above" onClick={()=>ipc.send("download-open-folder", item.savePath)}></i> :
+        item.state != "cancelled" ?
+          <i className="stop icon download-list-bottom" onClick={_=>ipc.send("download-cancel", item)}></i> : ''
+      }
+      {/*{item.state == "completed" ? <div><a href="#" onClick={()=>ipc.send("download-open",item)}>{fname}</a></div> : <div>{fname}</div>}*/}
+      <div><a className="title" href="javascript:void(0)" onClick={()=>ipc.send("download-open",item)}>{fname}</a></div>
+      <div style={item.state == "progressing" ? {fontSize: '12px'} : {}}>{progress}</div>
+    </div>
+    </div>
+
+    // return <List.Item key={`${item.savePath}_${item.created_at}`}>
+    //   <List.Content>
+    //     <a className="description" style={{
+    //       float: 'right',
+    //       marginRight: 15,
+    //       fontSize: "12px"
+    //     }}>{moment(item.now).format("MM/DD HH:mm:ss")}</a>
+    //     <List.Header as='a' target="_blank" href={item.url}>{item.filename.length > 55 ? `${item.filename.substr(0, 55)}...` : item.filename}</List.Header>
+    //     <List.Description>{item.url.length > 125 ? `${item.url.substr(0, 125)}...` : item.url}</List.Description>
+    //     {item.state == "progressing" && !item.isPaused ? <List.Description>{`${item.speed ||this.getAppropriateByteUnit(rest.speed).join(" ")}/sec - ${this.getAppropriateByteUnit(item.receivedBytes).join(" ")} of ${this.getAppropriateByteUnit(item.totalBytes).join(" ")}（${this.getAppropriateTimeUnit(rest.restTime).join(" ")} left）`}</List.Description> : ""}
+    //     {item.receivedBytes ? <Progress percent={rest.percent}  size='small' color='blue' label {...(item.state == "progressing" ? {active: true} : item.state == "completed" ? {success : true} : {})} /> : ""}
+    //     <div style={{display: "flex"}}>
+    //       {item.sender && item.state == "progressing" ? item.isPaused ?
+    //         <Button size='mini' onClick={()=>item.sender.send("download-pause",item)}><Icon name="play"></Icon>Resume</Button> :
+    //         <Button size='mini' onClick={()=>item.sender.send("download-pause",item)}><Icon name="pause"></Icon>Pause</Button> : ""
+    //       }
+    //       {item.state == "completed" ?
+    //         <Button size='mini' onClick={()=>openFolder(item.savePath)}><Icon name="folder"></Icon>Open Folder</Button> :
+    //         !item.sender ? null : item.state == "cancelled" ?
+    //           <Button size='mini' onClick={()=>item.sender.send("download-retry", item.url, item.savePath, item.key)}><Icon name="video play"></Icon>Retry</Button> :
+    //           <Button size='mini' onClick={()=>item.sender.send("download-cancel", item)}><Icon name="stop"></Icon>Cancel</Button>
+    //       }
+    //     </div>
+    //   </List.Content>
+    // </List.Item>;
+  }
+
+  render() {
+    const arr = [...this.state.downloads.values()]
+    arr.sort((a,b)=> b.created_at - a.created_at)
+
+    const downloadList = []
+    for (let item of arr) {
+      downloadList.push(this.buildItem(item))
+    }
+
+    return <div style={{flexDirection: 'column', display: 'flex', paddingTop: 10}}>
+      {downloadList}
+    </div>
   }
 }
 

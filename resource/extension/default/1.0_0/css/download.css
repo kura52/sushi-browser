@@ -1,4 +1,5 @@
 .sticky {
+    z-index: 1;
     background-color: white;
 }
 
@@ -9,4 +10,99 @@
 .ui.button {
     padding: .68571429em 1.0em;
     line-height: 0.7em;
+}
+
+.ui.horizontal.segments {
+    bottom: 5px;
+    height: 45px;
+    margin: auto 0 2px 0;
+}
+.ui.blue.segment {
+    padding: 0 8px 0 8px;
+}
+
+.download-list-above {
+    position: absolute;
+    right: 0px;
+    top: 2px;
+    font-size: 16px !important;
+}
+.folder-open, .folder {
+    color: #3498db;
+}
+
+.download-list-above:hover{
+    color: #b90101;
+}
+
+.download-list-bottom {
+    position: absolute;
+    top: 22px;
+    right: 1px;
+}
+.download-list-bottom:hover {
+    color: #b90101;
+}
+
+a {
+    color: var(--color-link);
+}
+
+a.title {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    /*width: 82vw;*/
+    overflow: hidden;
+    display: block;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    height: 100%;
+    font-family: 'BlinkMacSystemFont', 'Lucida Grande', 'Segoe UI', Ubuntu, Cantarell, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    overflow: hidden;
+    color: var(--color);
+    background-color: #fff;
+}
+/*.ui.horizontal.segments>.segment{*/
+    /*margin-top: 2px;*/
+    /*margin-bottom: 2px;*/
+/*}*/
+
+body{
+    min-width: initial;
+}
+
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+::-webkit-scrollbar-button {
+    width: 0px;
+    height: 0px;
+}
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border: 0px none #ffffff;
+    border-radius: 50px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #d1d0d0;
+}
+::-webkit-scrollbar-thumb:active {
+    background: #d1d0d0;
+}
+::-webkit-scrollbar-track {
+    background: #666666;
+    border: 0px none #ffffff;
+    border-radius: 50px;
+}
+::-webkit-scrollbar-corner {
+    background: transparent;
 }

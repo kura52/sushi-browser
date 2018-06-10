@@ -2,11 +2,14 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+import mainState from "./mainState";
+
 const path = require('path')
 const moment = require('moment')
 const fs = require('fs')
 const {dialog,app,BrowserWindow,ipcMain} = require('electron')
-import {favorite} from './databaseFork'
+import {favorite, state} from './databaseFork'
+import {settingDefault} from "../resource/defaultValue";
 const os = require('os')
 
 function createBookmarkHTML(ret) {
@@ -23,6 +26,11 @@ function createBookmarkHTML(ret) {
 ${ret.join(breakTag)}
 </DL><p>`
 }
+
+function setOptionVal(key,dVal,val){
+  mainState[key] = val === (void 0) ? dVal : val
+}
+
 
 ipcMain.on('export-bookmark',_=>{
   const focusedWindow = BrowserWindow.getFocusedWindow()
@@ -42,6 +50,43 @@ ipcMain.on('export-bookmark',_=>{
   })
 })
 
+ipcMain.on('export-setting', _ => {
+  const focusedWindow = BrowserWindow.getFocusedWindow();
+  const fileName = moment().format('DD_MM_YYYY') + '.json'
+  const defaultPath = path.join(app.getPath('downloads'), fileName)
+
+  dialog.showDialog(focusedWindow, {
+    defaultPath: defaultPath,
+    type: 'select-saveas-file',
+    extensions: [['json']]
+  }, fileNames => {
+    if (fileNames && fileNames.length == 1) {
+      state.findOne({key: 1}).then(rec=>{
+        fs.writeFileSync(fileNames[0], JSON.stringify(rec))
+      })
+    }
+  })
+})
+
+ipcMain.on('import-setting', _ => {
+  const focusedWindow = BrowserWindow.getFocusedWindow();
+  const fileName = moment().format('DD_MM_YYYY') + '.json'
+  const defaultPath = path.join(app.getPath('downloads'), fileName)
+
+  dialog.showDialog(focusedWindow, {
+    defaultPath: defaultPath,
+    type: 'select-open-file',
+    extensions: [['json']]
+  }, fileNames => {
+    if (fileNames && fileNames.length == 1) {
+      const setting = JSON.parse(fs.readFileSync(fileNames[0]).toString())
+      for(let [key,dVal] of Object.entries(settingDefault)){
+        setOptionVal(key,dVal,setting[key])
+      }
+      state.update({ key: 1 }, setting).then(_=>_)
+    }
+  })
+})
 
 async function recurSelect(keys,indent){
   const favorites = await favorite.find({key:{$in: keys}})

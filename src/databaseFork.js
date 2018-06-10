@@ -52,7 +52,7 @@ function handler(table){
                for(let cont of webContents.getAllWebContents()){
                   if(!cont.isDestroyed() && !cont.isBackgroundPage() && (cont.isGuest() || !cont.hostWebContents)) {
                     const url = cont.getURL()
-                    if((url.startsWith('chrome://brave') || table == "favorite") || url.endsWith(`/${table}_sidebar.html`) ||url.endsWith(`/${table}.html`) || (table == "tabState" && url.endsWith(`/tab_history_sidebar.html`)) || (table == "savedState" && url.endsWith(`/saved_state_sidebar.html`))){
+                    if((url.startsWith('chrome://brave') || table == "favorite") || url.endsWith(`/${table}_sidebar.html`) ||url.endsWith(`/${table}.html`) || (table == "tabState" && (url.endsWith(`/tab_history_sidebar.html`)||url.endsWith(`/tab_trash_sidebar.html`))) || (table == "savedState" && url.endsWith(`/saved_state_sidebar.html`))){
                       if(prop == "update"){
                         if(argumentsList[1].$inc) return
                         db[table].findOne(argumentsList[0]).then(ret=>{
@@ -118,7 +118,7 @@ ipcMain.on('db-rend',(event,datas)=>{
       for(let cont of webContents.getAllWebContents()){
         if(!cont.isDestroyed() && !cont.isBackgroundPage() && (cont.isGuest() || !cont.hostWebContents)) {
           const url = cont.getURL()
-          if((url.startsWith('chrome://brave') || table == "favorite") || url.endsWith(`/${table}_sidebar.html`) ||url.endsWith(`/${table}.html`) || (table == "tabState" && url.endsWith(`/tab_history_sidebar.html`)) || (table == "savedState" && url.endsWith(`/saved_state_sidebar.html`))){
+          if((url.startsWith('chrome://brave') || table == "favorite") || url.endsWith(`/${table}_sidebar.html`) ||url.endsWith(`/${table}.html`) || (table == "tabState" && (url.endsWith(`/tab_history_sidebar.html`)||url.endsWith(`/tab_trash_sidebar.html`))) || (table == "savedState" && url.endsWith(`/saved_state_sidebar.html`))){
             if(prop == "update"){
               if(argumentsList[1].$inc) return
               db[table].findOne(argumentsList[0]).then(ret=>{

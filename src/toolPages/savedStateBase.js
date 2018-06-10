@@ -12,6 +12,7 @@ const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
 
 import InfiniteTree from '../render/react-infinite-tree';
 import rowRenderer from '../render/react-infinite-tree/renderer';
+import moment from "moment/moment";
 
 const isMain = location.href.startsWith("chrome://brave/")
 
@@ -29,6 +30,9 @@ const convertUrlMap = new Map([
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html','chrome://bookmarks-sidebar/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html','chrome://history/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_history_sidebar.html','chrome://tab-history-sidebar/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_trash_sidebar.html','chrome://tab-trash-sidebar/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download_sidebar.html','chrome://download-sidebar/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note_sidebar.html','chrome://note-sidebar/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/saved_state_sidebar.html','chrome://session-manager-sidebar/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history_sidebar.html','chrome://history-sidebar/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html','chrome://explorer/'],
@@ -95,10 +99,27 @@ function showDialog(input,id){
 }
 
 
-function getAllStates(dbKey){
+function getAllStates(name){
+  let cond = {}
+  if(name){
+    switch(name){
+      case 'Later than 30 days':
+        cond = {end: moment().subtract(30, 'days').valueOf()}
+        break;
+      case '24 Hours Ago':
+        cond = {start: moment().subtract(24, 'hours').valueOf()}
+        break;
+      case '24-48 Hours Ago':
+        cond = {start: moment().subtract(48, 'hours').valueOf(),end: moment().subtract(24, 'hours').valueOf()}
+        break;
+      default:
+        cond = {start: moment().subtract(parseInt(name), 'days').valueOf() ,end: moment().subtract(48, 'hours').valueOf()}
+        break;
+    }
+  }
   return new Promise((resolve,reject)=>{
     const key = uuid.v4()
-    ipc.send('get-all-states',key,dbKey)
+    ipc.send('get-all-states',key,cond)
     ipc.once(`get-all-states-reply_${key}`,(event,ret)=>{
       resolve(ret)
     })
@@ -152,19 +173,59 @@ function traversal(node,arr){
 }
 
 async function treeBuild(datas){
+  const later24h = Date.now() - 60 * 60 * 24 * 1000
+  const later24hData = {
+    id: '24 Hours Ago',
+    name: '24 Hours Ago',
+    type : 'directory',
+    children: []
+  }
+  const later48h = Date.now() - 60 * 60 * 48 * 1000
+  const later48hData = {
+    id: '24-48 Hours Ago',
+    name: '24-48 Hours Ago',
+    type : 'directory',
+    children: []
+  }
+  const later07d = Date.now() - 60 * 60 * 24 * 7 * 1000
+  const later07dData = {
+    id: '7 Days Ago',
+    name: '7 Days Ago',
+    type : 'directory',
+    children: []
+  }
+  const later30d = Date.now() - 60 * 60 * 24 * 30 * 1000
+  const later30dData = {
+    id: '30 Days Ago',
+    name: '30 Days Ago',
+    type : 'directory',
+    children: []
+  }
+  const lastData = {
+    id: 'Later than 30 Days',
+    name: 'Later than 30 Days',
+    type : 'directory',
+    children: []
+  }
+
   const newChildren = [{
     id: 'saved-sessions',
     name: `User Saved Sessions`,
     type: 'directory',
     children: []
-  }]
+  },later24hData,later48hData,later07dData,later30dData,lastData]
+
   let pre  = ""
   for(let x of datas){
+    const created_at = x.created_at
     x.created_at = dateFormat(new Date(x.created_at))
     x.yyyymmdd = x.created_at.slice(0,10)
     x.name2 = x.created_at.slice(11,16)
     if(pre != x.yyyymmdd){
-      newChildren.push({
+      (created_at > later24h ? later24hData :
+        created_at > later48h ? later48hData :
+          created_at > later07d ? later07dData :
+            created_at > later30d ? later30dData : lastData).children.push({
         id: x.yyyymmdd,
         name: `[${x.yyyymmdd}]`,
         favicon: 'empty',
@@ -210,7 +271,10 @@ async function treeBuild(datas){
         children: children.length > 1 ? children : children[0].children,
         datas: children.length > 1 ? x.wins : children[0].datas
       }
-    ;(data.user ? newChildren[0].children : newChildren).push(data)
+    ;(data.user ? newChildren[0] : created_at > later24h ? later24hData :
+      created_at > later48h ? later48hData :
+        created_at > later07d ? later07dData :
+          created_at > later30d ? later30dData : lastData).children.push(data)
   }
   return newChildren
 }
@@ -226,8 +290,8 @@ function searchOpenNodes(nodes,set,tree){
   }
 }
 
-async function getAllChildren(){
-  const ret = await getAllStates()
+async function getAllChildren(name){
+  const ret = await getAllStates(name)
   return (await treeBuild(ret))
 }
 
@@ -293,7 +357,10 @@ export default class App extends React.Component {
             <Menu pointing secondary >
               <Menu.Item as='a' href={`${baseURL}/favorite_sidebar.html`} key="favorite" icon="star"/>
               <Menu.Item as='a' href={`${baseURL}/history_sidebar.html`} key="history" icon="history"/>
+              <Menu.Item as='a' href={`${baseURL}/download_sidebar.html`} key="download" icon="download"/>
+              <Menu.Item as='a' href={`${baseURL}/note_sidebar.html`} key="note" icon="sticky note"/>
               <Menu.Item key="database" icon="database" active={true}/>
+              <Menu.Item as='a' href={`${baseURL}/tab_trash_sidebar.html`} key="trash" icon="trash"/>
               <Menu.Item as='a' href={`${baseURL}/tab_history_sidebar.html`} key="tags" icon="tags"/>
               <Menu.Item as='a' href={`${baseURL}/explorer_sidebar.html`} key="file-explorer" icon="folder"/>
             </Menu>
@@ -310,28 +377,54 @@ class Contents extends React.Component {
     console.log(node)
   }
 
-  async loadAllData(){
+  async loadAllData(name){
+    if(!name) this.loaded = true
     const prevState = this.prevState || (await localForage.getItem("savedState-sidebar-open-node"))
     this.prevState = (void 0)
-    getAllChildren().then(data=>{
-      console.log(data)
-      treeAllData = data
+    const data = await getAllChildren(name)
+    console.log(data)
+    treeAllData = data
 
-      localForage.setItem("savedState-sidebar-open-node",prevState)
-      const openNodes = prevState ? prevState.split("\t",-1) : (void 0)
-      const tree = this.refs.iTree.tree
-      if(tree){
-        tree.loadData(data,false,openNodes)
-      }
-      else{
-        setTimeout(_=>tree.loadData(data,false,openNodes),100)
-      }
-    })
+    localForage.setItem("savedState-sidebar-open-node",prevState)
+    const openNodes = prevState ? prevState.split("\t",-1) : (void 0)
+    const tree = this.refs.iTree.tree
+    if(tree){
+      tree.loadData(data,false,openNodes)
+    }
+    else{
+      setTimeout(_=>tree.loadData(data,false,openNodes),100)
+    }
+    return data
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     if(isMain && !this.props.onClick) return
-    this.loadAllData()
+
+    if(isMain){
+      this.loaded = false
+      await localForage.setItem("savedState-sidebar-open-node",'24 Hours Ago')
+      const promise = this.loadAllData('24 Hours Ago')
+      const self = this
+      this.scrollEvent = function(e){
+        if(self.loaded) return
+        const scroll = this.scrollTop
+        const range = this.scrollHeight - this.offsetHeight
+
+        if(range - scroll < 300){
+          self.loadAllData()
+        }
+      }
+      document.querySelector('.infinite-tree.infinite-tree-scroll').addEventListener('scroll',this.scrollEvent,{passive:true})
+
+      await promise
+      const scroll = document.querySelector('.infinite-tree.infinite-tree-scroll')
+      if(scroll.clientHeight == scroll.scrollHeight){
+        self.loadAllData()
+      }
+    }
+    else{
+      this.loadAllData()
+    }
     this.eventUpdateDatas = (e,data)=>{
       console.log('eventUpdateDatas')
       this.loadAllData()
@@ -361,6 +454,10 @@ class Contents extends React.Component {
     tree.contentElement.removeEventListener('mousedown',this.onMouseDown)
     if(this.event) ipc.removeListener("savedState-menu-reply",this.event)
     if(this.eventUpdateDatas) ipc.removeListener("update-datas",this.eventUpdateDatas)
+    if(isMain) {
+      const ele = document.querySelector('.infinite-tree.infinite-tree-scroll')
+      if(ele) ele.removeEventListener('scroll', this.scrollEvent, {passive: true})
+    }
   }
 
   initEvents() {

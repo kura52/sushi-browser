@@ -212,12 +212,15 @@ ipcMain.on('get-tab-opener-sync',(e,tabId)=>{
 ipcMain.on('get-tab-value-sync',(e,tabId)=>{
   e.returnValue = getTabValue(tabId)
 })
+ipcMain.on('new-tab-mode',(e,val)=>{
+  newTabMode = val
+})
 ipcMain.on('update-tab-index-org',(e,tabId,index)=>tabIndexMap[tabId] = index)
 var getTabValue = function (tabId) {`)
 
         .replace("sendToBackgroundPages('all', getSessionForTab(tabId), 'chrome-tabs-created', tabs[tabId].tabValue)",`const val = tabs[tabId].tabValue
   if(val.url=='chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html'){
-    val.url = 'chrome://newtab/'
+    val.url = newTabMode
   }
   const opener = tabOpenerMap[tabId]
   if(val.windowId == -1){
@@ -279,7 +282,10 @@ var getTabValue = function (tabId) {`)
   }
   return ret`)
 
-        .replace('  if (!error && createProperties.partition) {',`  if(!createProperties.openerTabId || createProperties.openerTabId == -1){
+        .replace('  if (!error && createProperties.partition) {',`  if(createProperties.url == 'chrome://newtab/'){
+    createProperties.url = newTabMode
+  }
+  if(!createProperties.openerTabId || createProperties.openerTabId == -1){
     if(!win){
       const focus = BrowserWindow.getFocusedWindow()
       if(focus && focus.getTitle().includes('Sushi Browser')){

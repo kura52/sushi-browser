@@ -192,6 +192,12 @@ app.on('ready', async ()=>{
     // extensions.init(setting.ver !== fs.readFileSync(path.join(__dirname, '../VERSION.txt')).toString())
     extensions.init(true)
 
+    ipcMain.emit('new-tab-mode',{},(mainState.newTabMode == 'myHomepage' ? mainState.myHomepage :
+      mainState.newTabMode == 'topPage' ? mainState.topPage :
+        mainState.newTabMode == 'favorite' ? mainState.bookmarksPage :
+          mainState.newTabMode == 'history' ? mainState.historyPage : "") || `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/${mainState.newTabMode}.html`
+    )
+
     require('./checkUpdate')
     require('./portablePathSelector')
     // require('./checkDefault')

@@ -1,5 +1,5 @@
 this.TabUtils = this.TabUtils || {};
-var topURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html'
+var topURL = 'chrome://newtab/'
 var blankURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html'
 TabUtils.actions = {
   open_tab: function (tab) {

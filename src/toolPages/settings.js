@@ -668,13 +668,25 @@ class GeneralSetting extends React.Component {
         <br/>
 
         <div className="field">
-          <label>{l10n.translation('importBrowserData').replace('…','')}</label>
+          <label>{l10n.translation('importBrowserData').replace('…','')} ({l10n.translation('requiresRestart').replace('* ','')})</label>
           <Button primary content={l10n.translation('import')} onClick={_=>ipc.send("import-browser-data",{})}/>
         </div>
 
         <div className="field">
           <label>{l10n.translation('exportBookmarks').replace('…','')}</label>
           <Button primary content={l10n.translation('42126664696688958')} onClick={_=>ipc.send("export-bookmark",{})}/>
+        </div>
+        <br/>
+
+
+        <div className="field">
+          <label>{l10n.translation('settingsImport').replace('…','')}</label>
+          <Button primary content={l10n.translation('import')} onClick={_=>ipc.send("import-setting",{})}/>
+        </div>
+
+        <div className="field">
+          <label>{l10n.translation('settingsExport').replace('…','')}</label>
+          <Button primary content={l10n.translation('42126664696688958')} onClick={_=>ipc.send("export-setting",{})}/>
         </div>
         <br/>
 

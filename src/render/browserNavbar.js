@@ -30,6 +30,7 @@ const Clipboard = require('clipboard')
 const FavoriteExplorer = require('../toolPages/favoriteBase')
 const HistoryExplorer = require('../toolPages/historyBase')
 const TabHistoryExplorer = require('../toolPages/tabHistoryBase')
+const TabTrashExplorer = require('../toolPages/tabTrashHistoryBase')
 const SavedStateExplorer = require('../toolPages/savedStateBase')
 const {messages,locale} = require('./localAndMessage')
 const urlParse = require('../../brave/urlParse')
@@ -827,6 +828,18 @@ class BrowserNavbar extends Component{
     </NavbarMenu>
   }
 
+  tabTrashMenu(cont,onContextMenu){
+    const menuItems = []
+    return <NavbarMenu className="sort-tabTrash" k={this.props.k} isFloat={isFloatPanel(this.props.k)} ref="tabTrashMenu" title="Trash of Tabs" icon="trash" onClick={_=>_} onContextMenu={onContextMenu} timeOut={50}>
+      {/*<NavbarMenuItem bold={true} text='Navigate to the History Page' onClick={_=>this.onCommon("history")} />*/}
+      <div className="divider" />
+      <div role="option" className="item favorite infinite-classic">
+        <TabTrashExplorer cont={cont} onClick={_=> this.refs.tabTrashMenu.setState({visible:false})}/>
+      </div>
+    </NavbarMenu>
+  }
+
+
   savedStateMenu(cont,onContextMenu){
     const menuItems = []
     return <NavbarMenu className="sort-savedState" k={this.props.k} isFloat={isFloatPanel(this.props.k)} ref="savedStateMenu" title="Super Session Manager" icon="database" onClick={_=>_} onContextMenu={onContextMenu} timeOut={50}>
@@ -906,6 +919,7 @@ class BrowserNavbar extends Component{
       favorite: isFixed && !isFloat ? null : this.favoriteMenu(cont,onContextMenu),
       history: isFixed && !isFloat ? null : this.historyMenu(cont,onContextMenu),
       tabHistory: isFixed && !isFloat ? null : this.tabHistoryMenu(cont,onContextMenu),
+      tabTrash: isFixed && !isFloat ? null : this.tabTrashMenu(cont,onContextMenu),
       savedState: isFixed && !isFloat ? null : this.savedStateMenu(cont,onContextMenu),
 
       download: <BrowserNavbarBtn className="sort-download" title={locale.translation("downloads")} icon="download" onClick={this.onCommon.bind(this,"download")}/>,
