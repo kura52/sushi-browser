@@ -104,27 +104,7 @@ class Title extends React.Component {
     const val = parseFloat(e.target.value)
     this.audioVolume = e.target.value
 
-    this.props.datas.tab.wv.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',
-      `window._mediaElements_ = window._mediaElements_ || {}
-      if(window._mediaIntervalId) clearInterval(window._mediaIntervalId)
-      var _intervalFunc = _=>{
-        for(let stream of document.querySelectorAll('video,audio')){
-            const audioCtx = new (window.AudioContext)();
-            let gainNode = window._mediaElements_[stream]
-            if(!gainNode){
-              const source = audioCtx.createMediaElementSource(stream);
-              window._mediaElements_[stream] = source
-              gainNode = audioCtx.createGain();
-              window._mediaElements_[stream] = gainNode
-              source.connect(gainNode);
-              gainNode.connect(audioCtx.destination);
-            }
-            if(gainNode.gain.value != ${val}/10.0)gainNode.gain.value = ${val}/10.0;
-        }
-      }
-      _intervalFunc()
-      window._mediaIntervalId = setInterval(_intervalFunc,500)`
-      ,{},()=>{})
+    this.props.datas.tab.wv.send('on-stream-event',val)
 
     this.setState({})
 

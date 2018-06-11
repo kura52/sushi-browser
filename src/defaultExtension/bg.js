@@ -431,6 +431,9 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   if(request.event == "video-event"){
     chrome.tabs.sendMessage(sender.tab.id, request.inputs);
   }
+  else if(request.event == "stream-event"){
+    chrome.tabs.sendMessage(sender.tab.id, {stream:true, val:request.val});
+  }
   else if(request.event == 'start-op') {
     currentKey = request.key //MenuKey
     opMap = {}

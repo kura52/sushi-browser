@@ -48,11 +48,11 @@ function handler(table){
           return new Promise((resolve,reject)=>{
             sock.send({key,methods,args: regToStr(argumentsList)},msg=>{
               if(msg.key !== key) return
-              if((table == "history" || table == "favorite" || table == "tabState" || table == "savedState") && (prop == "insert" || prop == "update")){
+              if((table == "history" || table == "favorite" || table == "note" || table == "tabState" || table == "savedState") && (prop == "insert" || prop == "update")){
                for(let cont of webContents.getAllWebContents()){
                   if(!cont.isDestroyed() && !cont.isBackgroundPage() && (cont.isGuest() || !cont.hostWebContents)) {
                     const url = cont.getURL()
-                    if((url.startsWith('chrome://brave') || table == "favorite") || url.endsWith(`/${table}_sidebar.html`) ||url.endsWith(`/${table}.html`) || (table == "tabState" && (url.endsWith(`/tab_history_sidebar.html`)||url.endsWith(`/tab_trash_sidebar.html`))) || (table == "savedState" && url.endsWith(`/saved_state_sidebar.html`))){
+                    if(url.startsWith('chrome://brave') || table == "favorite" || url.endsWith(`/${table}_sidebar.html`) ||url.endsWith(`/${table}.html`) || (table == "tabState" && (url.endsWith(`/tab_history_sidebar.html`)||url.endsWith(`/tab_trash_sidebar.html`))) || (table == "savedState" && url.endsWith(`/saved_state_sidebar.html`))){
                       if(prop == "update"){
                         if(argumentsList[1].$inc) return
                         db[table].findOne(argumentsList[0]).then(ret=>{
@@ -86,6 +86,7 @@ const db = new Proxy({
   // get historyFull(){return new Proxy(dummy, handler('historyFull'))},
   get searchEngine(){return new Proxy(dummy, handler('searchEngine'))},
   get favorite(){return new Proxy(dummy, handler('favorite'))},
+  get note(){return new Proxy(dummy, handler('note'))},
   get download(){return new Proxy(dummy, handler('download'))},
   get downloader(){return new Proxy(dummy, handler('downloader'))},
   get state(){return new Proxy(dummy, handler('state'))},
@@ -114,11 +115,11 @@ ipcMain.on('db-rend',(event,datas)=>{
     if(msg.key !== datas.key) return
     event.sender.send(`db-rend_${datas.key}`,msg.result)
     const {table,prop,argumentsList} = datas
-    if((table == "history" || table == "favorite" || table == "tabState" || table == "savedState") && (prop == "insert" || prop == "update")){
+    if((table == "history" || table == "favorite" || table == "note" || table == "tabState" || table == "savedState") && (prop == "insert" || prop == "update")){
       for(let cont of webContents.getAllWebContents()){
         if(!cont.isDestroyed() && !cont.isBackgroundPage() && (cont.isGuest() || !cont.hostWebContents)) {
           const url = cont.getURL()
-          if((url.startsWith('chrome://brave') || table == "favorite") || url.endsWith(`/${table}_sidebar.html`) ||url.endsWith(`/${table}.html`) || (table == "tabState" && (url.endsWith(`/tab_history_sidebar.html`)||url.endsWith(`/tab_trash_sidebar.html`))) || (table == "savedState" && url.endsWith(`/saved_state_sidebar.html`))){
+          if(url.startsWith('chrome://brave') || table == "favorite" || url.endsWith(`/${table}_sidebar.html`) ||url.endsWith(`/${table}.html`) || (table == "tabState" && (url.endsWith(`/tab_history_sidebar.html`)||url.endsWith(`/tab_trash_sidebar.html`))) || (table == "savedState" && url.endsWith(`/saved_state_sidebar.html`))){
             if(prop == "update"){
               if(argumentsList[1].$inc) return
               db[table].findOne(argumentsList[0]).then(ret=>{

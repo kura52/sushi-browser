@@ -1,6 +1,6 @@
 {
   "name": "sushi-browser",
-  "version": "0.17.4",
+  "version": "0.18.0",
   "description": "Sushi Browser",
   "main": "./lib/main.js",
   "author": "kura52",
@@ -136,6 +136,7 @@
     "sprintf-js": "^1.0.3",
     "string.prototype.endswith": "^0.2.0",
     "string.prototype.startswith": "^0.2.0",
+    "tui-editor": "^1.2.2",
     "uglify-es": "^3.3.9",
     "underscore": "^1.8.3",
     "warning": "^3.0.0",

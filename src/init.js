@@ -626,8 +626,8 @@ ipcMain.on("explorer-menu",(e,path)=>{
   setTimeout(_=>explorerMenu=(void 0),1000)
 })
 
-ipcMain.on("favorite-menu",(e,path)=>{
-  favoriteMenu = {sender:e.sender,path}
+ipcMain.on("favorite-menu",(e,path,isNote,isFile)=>{
+  favoriteMenu = {sender:e.sender,path,isNote,isFile}
   setTimeout(_=>favoriteMenu=(void 0),1000)
 })
 
@@ -741,25 +741,26 @@ function contextMenu(webContents) {
 
     if(favoriteMenu){
       const favMenu = favoriteMenu
-
-      menuItems.push({label: locale.translation('openInNewTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewTab')}})
-      menuItems.push({label: locale.translation('openInNewPrivateTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewPrivateTab')}})
-      // menuItems.push({label: locale.translation('openInNewTorTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewTorTab')}})
-      menuItems.push({label: locale.translation('openInNewSessionTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewSessionTab')}})
-      menuItems.push({label: locale.translation('openInNewWindow'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindow')}})
-      menuItems.push({label: 'Open Link in New Window with a Row',click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindowWithOneRow')}})
-      menuItems.push({label: 'Open Link in New Window with two Rows',click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindowWithTwoRow')}})
-
-      menuItems.push({type: 'separator'})
-
-      menuItems.push({label: locale.translation('9065203028668620118'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'edit')}})
-      menuItems.push({type: 'separator'})
+      if(!favMenu.isNote){
+        menuItems.push({label: locale.translation('openInNewTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewTab')}})
+        menuItems.push({label: locale.translation('openInNewPrivateTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewPrivateTab')}})
+        // menuItems.push({label: locale.translation('openInNewTorTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewTorTab')}})
+        menuItems.push({label: locale.translation('openInNewSessionTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewSessionTab')}})
+        menuItems.push({label: locale.translation('openInNewWindow'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindow')}})
+        menuItems.push({label: 'Open Link in New Window with a Row',click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindowWithOneRow')}})
+        menuItems.push({label: 'Open Link in New Window with two Rows',click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindowWithTwoRow')}})
+        menuItems.push({type: 'separator'})
+     }
+     if(!favMenu.isFile){
+       menuItems.push({label: locale.translation('9065203028668620118'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'edit')}})
+       menuItems.push({type: 'separator'})
+     }
 
       menuItems.push({label: locale.translation('copy'),click: (item,win)=>{clipboard.writeText(favMenu.path.join(os.EOL))}})
       menuItems.push({label: locale.translation('delete'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'delete')}})
       menuItems.push({type: 'separator'})
 
-      menuItems.push({label: locale.translation('addBookmark'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'addBookmark')}})
+      menuItems.push({label: locale.translation(favMenu.isNote ? '7791543448312431591' : 'addBookmark'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'addBookmark')}})
       menuItems.push({label: locale.translation('addFolder'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'addFolder')}})
 
       var menu = Menu.buildFromTemplate(menuItems)

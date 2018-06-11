@@ -3,20 +3,28 @@ const path = require('path')
 const fs = require('fs')
 const glob = require("glob")
 
-const BEFORE_CODE_NAME = 'Shirauo(Icefish)'
-const CODE_NAME = 'Ikura(Salmon Roe)'
+const BEFORE_CODE_NAME = 'Ikura(Salmon Roe)'
+const CODE_NAME = 'Iwashi(Sardine)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.17.4"
+const NEXT_APP_VERSION = "0.18.0"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Fixed fatal bug of tab detach.
-Added 'Quit Browser' to Main Menu.
-Added 'Search Methods' Option to Search Setting.
-Fixed some bugs,`
+const CHANGE_ENGLISH = `Added note function to sidebar. (using TOAST UI Editor) *Experimental
+Added a tab trash box(closed tab history).
+Added tab trash box and download menu to sidebar.
+Added export / import function set to "Settings> General".
+Added control option for auto display of download list in "Settings > General > Enable Bottom Download List".
+Change the layout to divide the session manager by folder every elapsed time.
+Fixed a problem that volume change function does not work in iframe.
+Fixed some bugs.`
 
-const CHANGE_JAPANESE = `タブのデタッチの致命的なバグ修正
-ブラウザを終了をメインメニューに追加
-「Search Methods」のオプションを設定＞検索に追加
+const CHANGE_JAPANESE = `サイドバーにメモ機能を追加(TOAST UI Editorを利用）※Experimental
+タブゴミ箱（閉じたタブ履歴）を追加
+サイドバーにタブゴミ箱、ダウンロードを追加
+「設定＞一般」に設定のエクスポート/インポート機能を追加
+「設定＞一般」にダウンロードリストの自動表示を制御オプションを追加（Enable Bottom Download List）
+セッションマネージャを経過時間ごとにフォルダ分けするようレイアウトを変更
+音量変更機能がiframeで動作しない不具合を修正
 いくつかのバグ修正`
 
 const isWindows = process.platform === 'win32'

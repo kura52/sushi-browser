@@ -54,7 +54,7 @@ export default class ToolbarResizer extends Component{
 
     const move = event.pageY - this.y
     this.y = event.pageY
-    this.props.setHeight(this.props.height + move)
+    this.props.setHeight(this.props.height + (move * (this.props.minus ? -1 : 1)))
   }
 
   mup(e) {

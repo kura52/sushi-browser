@@ -1,0 +1,43 @@
+.react-selection{
+    user-select:none;
+    -webkit-user-select:none;
+    -moz-user-select:none;
+    position:relative;
+}
+
+.react-selection-rectangle{
+    pointer-events:none;
+    transition: opacity .4s;
+    position: absolute;
+    background-color: rgba(204,204,204,.2);
+    border: 1px solid #ccc;
+    opacity: 0;
+}
+
+.ui.secondary.pointing.menu .item {
+    padding: .85714286em 0.58285714em;
+}
+
+#classic .infinite-tree-scroll {
+    height: calc(100vh - 426px);
+}
+
+.ui.icon.button, .ui.icon.buttons .button {
+    padding: .48571429em;
+}
+
+.ui.icon.button>.icon, .ui.icon.buttons .button>.icon {
+    color: inherit;
+}
+
+body{
+    min-width: initial;
+}
+
+.hol-resizer{
+    height: 5px;
+    cursor: row-resize;
+    width: 100%;
+    position: absolute;
+    z-index: 3;
+}

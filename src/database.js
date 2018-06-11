@@ -16,6 +16,12 @@ if (!fs.existsSync(favoritePath)) {
     `{"is_file":false,"title":"root","updated_at":1497713000000,"children":[],"key":"root","_id":"zplOMCoNb1BzCt15"}`)
 }
 
+const notePath = path.join(resourcePath,'note.db')
+if (!fs.existsSync(notePath)) {
+  fs.writeFileSync(notePath,
+    `{"is_file":false,"title":"root","updated_at":1497713000000,"children":["f1bf9993-3bc4-4874-ac7d-7656054c1850"],"key":"root","_id":"zplOMCoNb1BzCt15"}
+{"key":"f1bf9993-3bc4-4874-ac7d-7656054c1850","title":"example","is_file":true,"created_at":1514732400000,"updated_at":1514732400000,"_id":"00jcpO1hKu0L3MLQ"}`)
+}
 
 const db = {};
 const historyPath = path.join(resourcePath,'history.db')
@@ -94,6 +100,7 @@ db.tabState = new Datastore({filename: path.join(resourcePath,'tabState.db'), au
 // db.searchHistory = new Datastore({filename: path.join(resourcePath,'searchHistory.db'), autoload: true})
 db.searchEngine = new Datastore({filename: path.join(resourcePath,'searchEngine.db'), autoload: true})
 db.favorite = new Datastore({filename: path.join(resourcePath,'favorite.db'), autoload: true})
+db.note = new Datastore({filename: path.join(resourcePath,'note.db'), autoload: true})
 db.download = new Datastore({filename: path.join(resourcePath,'download.db'), autoload: true})
 db.downloader = new Datastore({filename: path.join(resourcePath,'downloader.db'), autoload: true})
 db.state = new Datastore({filename: path.join(resourcePath,'state.db'), autoload: true})
@@ -120,6 +127,7 @@ db.automationOrder = new Datastore({filename: path.join(resourcePath,'automation
   await db.downloader.ensureIndex({ fieldName: 'key' })
   // await db.historyFull.ensureIndex({ fieldName: 'updated_at' })
   await db.favorite.ensureIndex({ fieldName: 'key' })
+  await db.note.ensureIndex({ fieldName: 'key' })
   await db.savedState.ensureIndex({ fieldName: 'created_at' })
   await db.favicon.ensureIndex({ fieldName: 'url' })
   await db.image.ensureIndex({ fieldName: 'url' })

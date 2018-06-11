@@ -1,6 +1,7 @@
-.sticky {
+div.sticky {
     z-index: 1;
     background-color: white;
+    width: calc(100% - 10px) !important;
 }
 
 .ui.progress {
@@ -15,7 +16,7 @@
 .ui.horizontal.segments {
     bottom: 5px;
     height: 45px;
-    margin: auto 0 2px 0;
+    margin: auto 0 4px 0;
 }
 .ui.blue.segment {
     padding: 0 8px 0 8px;
@@ -107,7 +108,14 @@ body{
     background: transparent;
 }
 
-
 .ui.secondary.pointing.menu .item {
     padding: .85714286em 0.58285714em;
+}
+
+.ui.small.input {
+    padding-left: 6px;
+}
+
+.ui.secondary.pointing.menu {
+    margin-bottom: 8px;
 }

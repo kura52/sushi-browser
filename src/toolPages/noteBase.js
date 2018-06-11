@@ -6,29 +6,85 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import path from 'path';
 import {StickyContainer, Sticky} from 'react-sticky';
-import {Menu, Segment, Input} from 'semantic-ui-react';
+import {Menu, Segment, Input, Button} from 'semantic-ui-react';
 import classNames from 'classnames'
 import elementClass from 'element-class'
 import escapeHTML from 'escape-html'
 import Selection from '../render/react-selection/index'
+import ToolbarResizer from '../render/ToolbarResizer'
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
+
+require('tui-editor/dist/tui-editor-extChart');
+require('tui-editor/dist/tui-editor-extUML');
+require('tui-editor/dist/tui-editor-extScrollSync');
+require('tui-editor/dist/tui-editor-extTable');
+require('tui-editor/dist/tui-editor-extColorSyntax');
+const Editor = require('tui-editor');
+
+Editor.i18n.setLanguage(['ja', 'ja_JP'], {
+  'Markdown': 'Markdown',
+  'WYSIWYG': 'WYSIWYG',
+  'Write': '編集',
+  'Preview': 'プレビュー',
+  'Headings': '見出し',
+  'Paragraph': '本文',
+  'Bold': '太字',
+  'Italic': '斜体',
+  'Strike': '取り消し線',
+  'Code': 'インラインコード',
+  'Line': 'ライン',
+  'Blockquote': '引用',
+  'Unordered list': '番号なしリスト',
+  'Ordered list': '順序付きリスト',
+  'Task': 'タスク',
+  'Indent': 'インデントを減らす',
+  'Outdent': 'インデントを増やす',
+  'Insert link': 'リンク挿入',
+  'Insert CodeBlock': 'コードブロック挿入',
+  'Insert table': 'テーブル挿入',
+  'Insert image': '画像挿入',
+  'Heading': '見出し',
+  'Image URL': '画像URL',
+  'Select image file': '画像ファイル選択',
+  'Description': '概要 ',
+  'OK': 'OK',
+  'More': '他のボタン',
+  'Cancel': 'Cancel',
+  'File': 'ファイル',
+  'URL': 'URL',
+  'Link text': 'リンクテキスト',
+  'Add row': '行追加',
+  'Add col': '列追加',
+  'Remove row': '行削除',
+  'Remove col': '列削除',
+  'Align left': '左揃え',
+  'Align center': '中央揃え',
+  'Align right': '右揃え',
+  'Remove table': 'テーブル削除',
+  'Would you like to paste as table?': '表を貼り付けますか?',
+  'Text color': '文字色変更',
+  'Auto scroll enabled': '自動スクロール有効',
+  'Auto scroll disabled': '自動スクロール無効',
+  'Cannot paste values ​​other than a table in the cell selection state': '表以外の値をセル選択状態に貼り付けることはできません。',
+  'Choose language': '言語選択'
+})
 
 import InfiniteTree from '../render/react-infinite-tree';
 import rowRenderer from '../render/react-infinite-tree/renderer';
 
 const isMain = location.href.startsWith("chrome://brave/")
 
-if(!isMain){
-  localForage.getItem('favicon-set').then(setTime=>{
-    ipc.send("favicon-get",setTime ? parseInt(setTime) : null)
-    ipc.once("favicon-get-reply",(e,ret)=>{
-      localForage.setItem('favicon-set',Date.now().toString())
-      for(let [k,v] of Object.entries(ret)){
-        localForage.setItem(k,v)
-      }
-    })
-  })
-}
+// if(!isMain){
+//   localForage.getItem('favicon-set').then(setTime=>{
+//     ipc.send("favicon-get",setTime ? parseInt(setTime) : null)
+//     ipc.once("favicon-get-reply",(e,ret)=>{
+//       localForage.setItem('favicon-set',Date.now().toString())
+//       for(let [k,v] of Object.entries(ret)){
+//         localForage.setItem(k,v)
+//       }
+//     })
+//   })
+// }
 
 let openType
 const key = uuid.v4()
@@ -37,9 +93,9 @@ ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
   openType = data[isMain ? 'toolbarLink' : 'sidebarLink']
 })
 
-async function faviconGet(x){
-  return x.favicon == "resource/file.png" ? (void 0) : x.favicon && (await localForage.getItem(x.favicon))
-}
+// async function faviconGet(x){
+//   return x.favicon == "resource/file.png" ? (void 0) : x.favicon && (await localForage.getItem(x.favicon))
+// }
 
 function escapeRegExp(string){
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
@@ -69,7 +125,7 @@ function showDialog(input,id){
 function getAllFavorites(dbKey,num){
   return new Promise((resolve,reject)=>{
     const key = uuid.v4()
-    ipc.send('get-all-favorites',key,dbKey,num ? num() : void 0)
+    ipc.send('get-all-favorites',key,dbKey,num ? num() : void 0,true)
     ipc.once(`get-all-favorites-reply_${key}`,(event,ret)=>{
       resolve(ret)
     })
@@ -79,7 +135,7 @@ function getAllFavorites(dbKey,num){
 function insertFavorite(writePath,data){
   return new Promise((resolve,reject)=>{
     const key = uuid.v4()
-    ipc.send('insert-favorite',key,writePath,data)
+    ipc.send('insert-favorite',key,writePath,data,true)
     ipc.once(`insert-favorite-reply_${key}`,(event,ret)=>{
       resolve(ret)
     })
@@ -89,7 +145,7 @@ function insertFavorite(writePath,data){
 function insertFavorite2(writePath,dbKey,data){
   return new Promise((resolve,reject)=>{
     const key = uuid.v4()
-    ipc.send('insert-favorite2',key,writePath,dbKey,data)
+    ipc.send('insert-favorite2',key,writePath,dbKey,data,true)
     ipc.once(`insert-favorite2-reply_${key}`,(event,ret)=>{
       resolve(ret)
     })
@@ -99,7 +155,7 @@ function insertFavorite2(writePath,dbKey,data){
 function renameFavorite(dbKey,newName){
   return new Promise((resolve,reject)=>{
     const key = uuid.v4()
-    ipc.send('rename-favorite',key,dbKey,newName)
+    ipc.send('rename-favorite',key,dbKey,newName,true)
     ipc.once(`rename-favorite-reply_${key}`,(event,ret)=>{
       resolve(ret)
     })
@@ -109,7 +165,7 @@ function renameFavorite(dbKey,newName){
 function openFavorite(dbKey,id,type){
   return new Promise((resolve,reject)=>{
     const key = uuid.v4()
-    ipc.send('open-favorite',key,dbKey,id,type)
+    ipc.send('open-favorite',key,dbKey,id,type,true)
     ipc.once(`open-favorite-reply_${key}`,(event,ret)=>{
       resolve(ret)
     })
@@ -119,7 +175,7 @@ function openFavorite(dbKey,id,type){
 function deleteFavorite(dbKey,newName){
   return new Promise((resolve,reject)=>{
     const key = uuid.v4()
-    ipc.send('delete-favorite',key,dbKey,newName)
+    ipc.send('delete-favorite',key,dbKey,newName,true)
     ipc.once(`delete-favorite-reply_${key}`,(event,ret)=>{
       resolve(ret)
     })
@@ -129,7 +185,7 @@ function deleteFavorite(dbKey,newName){
 function moveFavorite(args){
   return new Promise((resolve,reject)=>{
     const key = uuid.v4()
-    ipc.send('move-favorite',key,args)
+    ipc.send('move-favorite',key,args,true)
     ipc.once(`move-favorite-reply_${key}`,(event,ret)=>{
       resolve(ret)
     })
@@ -142,9 +198,9 @@ async function treeBuild(datas,nodePath){
     const id = `${nodePath}/${x.key}`
     const data = {
       id,
-      name: x.title,
+      name: x.is_file ? x.title.slice(0,15) : x.title,
+      title: x.title,
       url: x.url,
-      favicon: await faviconGet(x),
       // loadOnDemand: !x.is_file,
       type: x.is_file ? 'file' : 'directory'
     }
@@ -181,10 +237,61 @@ export default class App extends React.Component {
   constructor(props) {
     super(props)
     l10n = this.props.favoritePage && require('../../brave/js/l10n')
+    this.handleBlur = ::this.handleBlur
+    this.handleClickFile = ::this.handleClickFile
+    this.setHeight = ::this.setHeight
+    this.state = {}
+  }
+
+  handleBlur(e){
+    if(this.currentNode){
+      renameFavorite(this.refs.content.getKey(this.currentNode),{title: this.state.editor.getMarkdown()})
+      this.setState({})
+    }
+  }
+
+  async handleClickFile(nextNode){
+    this.setHidden(false)
+    this.currentNode = nextNode
+    this.state.editor.setValue(nextNode.title)
+  }
+
+  setHeight(height){
+    document.querySelector('#editSection').style.height = `${height}px`
+    this.state.editor.wwEditor.setHeight(height - 55)
+    this.state.editor.mdEditor.setHeight(height - 55)
+    document.querySelector("#classic .infinite-tree-scroll").style.height = `calc(100vh - ${height+126}px)`
+    this.setState({height})
+  }
+
+  setHidden(val){
+    if(val){
+      document.querySelector('#editSection').style.backgroundColor = '#f2f2f2f2'
+      document.querySelector('.tui-editor-defaultUI').style.visibility = 'hidden'
+    }
+    else{
+      document.querySelector('#editSection').style.backgroundColor = null
+      document.querySelector('.tui-editor-defaultUI').style.visibility = null
+    }
   }
 
   componentDidMount() {
     ReactDOM.findDOMNode(this.refs.stickey).style.height = "100%"
+
+    this.setState({editor: new Editor({
+        el: document.querySelector('#editSection'),
+        initialEditType: 'wysiwyg',
+        previewStyle: 'vertical',
+        height: '300px',
+        minHeight: '0px',
+        language: navigator.languages[0].slice(0,2),
+        exts: ['chart', 'scrollSync', 'table', 'uml', 'colorSyntax'],
+        events: {
+          blur: this.handleBlur
+        }
+      })
+    })
+    this.refs.content.refs.iTree.tree.getRootNode().getLastChild()
   }
 
   afterSelect(selectedTargets){
@@ -252,6 +359,7 @@ export default class App extends React.Component {
           newDatas.push({
             id: ele.id,
             name: ele.name,
+            title: ele.title,
             url: ele.url,
             favicon: ele.favicon,
             type: ele.type,
@@ -298,6 +406,29 @@ export default class App extends React.Component {
               <Menu.Item as='a' href={`${baseURL}/explorer_sidebar.html`} key="file-explorer" icon="folder"/>
             </Menu>
             <Input ref='input' icon='search' placeholder='Search...' size="small" onChange={::this.onChange}/>
+            <div style={{padding: '4px 0px 2px 12px'}}>
+              <Button.Group basic>
+              <Button icon='file' onClick={_=>{
+                this.refs.content.menuKey = selectedNodes.length ? selectedNodes : [this.refs.content.refs.iTree.tree.getRootNode().getLastChild()]
+                ipc.emit('favorite-menu-reply',null,'addBookmark',true)
+              }}/>
+              <Button icon='folder' onClick={_=>{
+                this.refs.content.menuKey = selectedNodes.length ? selectedNodes : [this.refs.content.refs.iTree.tree.getRootNode().getLastChild()]
+                ipc.emit('favorite-menu-reply',null,'addFolder',true)
+              }}/>
+              <Button icon='minus' onClick={_=>{
+                if(selectedNodes.length){
+                  this.refs.content.menuKey = selectedNodes
+                  ipc.emit('favorite-menu-reply',null,'delete')
+                }
+              }}/>
+              <Button icon='save' onClick={_=>{
+                if(selectedNodes.length && selectedNodes[0].type == 'file'){
+                  ipc.send('save-file',{content:this.state.editor.getMarkdown(), fname: 'note.txt', isDesktop: true})
+                }
+              }}/>
+              </Button.Group>
+            </div>
           </div>
         </Sticky> :
         this.props.favoritePage ?
@@ -319,12 +450,15 @@ export default class App extends React.Component {
           </Sticky>
           : this.props.searchNum || this.props.searchKey ? null
           : <Input ref='input' icon='search' placeholder='Search...' size="small" onChange={::this.onChange}/>}
-      {this.props.cont ?  <Contents ref="content" onClick={this.props.onClick} bookmarkbarLink={this.props.bookmarkbarLink}
+      {this.props.cont ?  <Contents ref="content" editor={this.state.editor} parent={this}
+                                    onClick={this.props.onClick} bookmarkbarLink={this.props.bookmarkbarLink}
                                     cont={(typeof this.props.cont) == 'function' ? this.props.cont() : this.props.cont} searchNum={this.props.searchNum} searchKey={this.props.searchKey}/>:
         <Selection ref="select" target=".infinite-tree-item" selectedClass="selection-selected"
                    afterSelect={::this.afterSelect} clearSelect={::this.clearSelect}>
-          <Contents ref="content" favoritePage={this.props.favoritePage}/>
+          <Contents ref="content" editor={this.state.editor} parent={this} favoritePage={this.props.favoritePage}/>
         </Selection>}
+      <ToolbarResizer height={this.state.height || 300} setHeight={this.setHeight} minus={true}/>
+      <div id="editSection" ref="editor"/>
     </StickyContainer>
   }
 }
@@ -347,7 +481,8 @@ class Contents extends React.Component {
       const openNodes = prevState ? prevState.split("\t",-1) : (void 0)
       const tree = this.refs.iTree.tree
       if(tree){
-        tree.loadData(data,false,openNodes)
+        const node = tree.loadData(data,false,openNodes,true)
+        if(node) selectedNodes.splice(0,selectedNodes.length,node)
       }
       else{
         setTimeout(_=>tree.loadData(data,false,openNodes),100)
@@ -380,7 +515,7 @@ class Contents extends React.Component {
       const dropKey = dropNode && this.getKey(dropNode)
 
       const key = uuid.v4()
-      ipc.send('insert-favorite2',key,newDirectory,dropKey,{title:text || url, url, is_file:true})
+      ipc.send('insert-favorite2',key,newDirectory,dropKey,{title:text || url, url, is_file:true},true)
       // ipc.once(`insert-favorite2-reply_${key}`,e=>{
       //
       // })
@@ -397,7 +532,7 @@ class Contents extends React.Component {
 
       if(event.which == 3){
         const nodes = [...new Set([currentNode,...selectedNodes])]
-        ipc.send("favorite-menu",nodes.map(node=>(node.url || node.title)))
+        ipc.send("favorite-menu",nodes.map(node=>(node.url || node.title)),true,nodes[0].type == 'file')
         this.menuKey = nodes
         return
       }
@@ -419,7 +554,7 @@ class Contents extends React.Component {
   }
 
   initEvents() {
-    this.event = (e, cmd) => {
+    this.event = (e, cmd, forceFile) => {
       if(cmd == "openInNewTab" || cmd == "openInNewPrivateTab" || cmd == "openInNewTorTab" || cmd == "openInNewSessionTab" || cmd == "openInNewWindow" || cmd == "openInNewWindowWithOneRow" || cmd == "openInNewWindowWithTwoRow") {
         const nodes = this.menuKey
         this.menuKey = (void 0)
@@ -442,27 +577,36 @@ class Contents extends React.Component {
         showDialog({
           inputable: true, title: 'Rename',
           text: `Enter a new Name`,
-          initValue: nodes[0].type == 'file' ? [nodes[0].name,nodes[0].url] : [nodes[0].name],
-          needInput: nodes[0].type == 'file' ? ["Title","URL"] : ["Title"]
+          initValue:  [nodes[0].name],
+          needInput:  ["Title"]
         },this.props.cont ? this.props.cont.getId() : (void 0)).then(value => {
           if (!value) return
-          const data = nodes[0].type == 'file' ? {title:value[0], url:value[1]} : {title:value[0]}
+          const data =  {title:value[0]}
           console.log(this.getKey(nodes[0]),data)
           renameFavorite(this.getKey(nodes[0]),data).then(_=>_)
         })
       }
       else if(cmd == "addBookmark" || cmd == "addFolder") {
-        const isPage = cmd == "addBookmark"
         const nodes = this.menuKey
         this.menuKey = (void 0)
+        const isPage = cmd == "addBookmark"
+        if(isPage){
+          if(nodes[0].type == 'file' || forceFile){
+            insertFavorite2(this.getKey(nodes[0].getParent()),this.getKey(nodes[0]),{title:"",is_file:true}).then(_=>_)
+          }
+          else{
+            insertFavorite(this.getKey(nodes[0]),{title:"",is_file:true}).then(_=>_)
+          }
+          return
+        }
         showDialog({
-          inputable: true, title: `New ${isPage ? 'Page' : 'Directory'}`,
-          text: `Enter a new ${isPage ? 'page title and URL' : 'directory name'}`,
-          needInput: isPage ? ["Title","URL"] : [""]
+          inputable: true, title: 'New Directory',
+          text: `Enter a new Directory name`,
+          needInput: [""]
         },this.props.cont ? this.props.cont.getId() : (void 0)).then(value => {
           if (!value) return
-          const data = isPage ? {title:value[0], url:value[1], is_file:true} : {title:value[0], is_file:false,children:[]}
-          if(nodes[0].type == 'file'){
+          const data =  {title:value[0], is_file:false,children:[]}
+          if(nodes[0].type == 'file' || forceFile){
             insertFavorite2(this.getKey(nodes[0].getParent()),this.getKey(nodes[0]),data).then(_=>_)
           }
           else{
@@ -766,13 +910,17 @@ class Contents extends React.Component {
                     if(this.props.onClick) this.props.onClick()
                   }
                   else{
-                    ipc.sendToHost("open-tab-opposite",currentNode.url,true,event.button == 1 ? 'create-web-contents' : openType2 ? 'new-tab' : 'load-url')
+                    this.props.parent.handleClickFile(currentNode)
+                    selectedNodes.push(currentNode)
+                    // ipc.sendToHost("open-tab-opposite",currentNode.url,true,event.button == 1 ? 'create-web-contents' : openType2 ? 'new-tab' : 'load-url')
                   }
                   return;
                 }
               }
               else{
+                this.props.parent.setHidden(true)
                 tree.toggleNode(currentNode);
+                selectedNodes.push(currentNode)
                 return;
               }
             }
@@ -826,11 +974,30 @@ class Contents extends React.Component {
             } else if (event.keyCode === 38) { // Up
               const prevNode = tree.nodes[nodeIndex - 1] || node;
               tree.selectNode(prevNode);
+
+              if(prevNode.type == 'file'){
+                this.props.parent.handleClickFile(prevNode)
+                selectedNodes.splice(0,selectedNodes.length,prevNode)
+              }
+              else{
+                this.props.parent.setHidden(true)
+                tree.toggleNode(prevNode)
+                selectedNodes.push(prevNode)
+              }
             } else if (event.keyCode === 39) { // Right
               tree.openNode(node);
             } else if (event.keyCode === 40) { // Down
               const nextNode = tree.nodes[nodeIndex + 1] || node;
               tree.selectNode(nextNode);
+              if(nextNode.type == 'file'){
+                this.props.parent.handleClickFile(nextNode)
+                selectedNodes.splice(0,selectedNodes.length,nextNode)
+              }
+              else{
+                this.props.parent.setHidden(true)
+                tree.toggleNode(nextNode)
+                selectedNodes.push(nextNode)
+              }
             }
           }}
           onOpenNode={(node) => {

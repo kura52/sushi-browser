@@ -77,6 +77,7 @@ class InfiniteTree extends events.EventEmitter {
 
   contentListener = {
     'mousedown': (event) => {
+      console.log('mousedown')
       event = event || window.event;
       this.mouseDown = event.target
       this.button = event.button
@@ -85,7 +86,12 @@ class InfiniteTree extends events.EventEmitter {
     'click': (event) => {
       event = event || window.event;
 
-      if(event.button == 2 || this.mouseDown !== event.target || this.button !== event.button) return
+      console.log(432432,this.mouseDown, event.target)
+      if(event.button == 2 ||
+        (this.mouseDown !== event.target && (!(this.mouseDown && this.mouseDown.parentNode && this.mouseDown.parentNode.dataset &&
+          event.target.parentNode && event.target.parentNode.dataset) ||
+          this.mouseDown.parentNode.dataset.id !== event.target.parentNode.dataset.id)) ||
+        this.button !== event.button) return
       this.mouseDown = void 0
       this.button = void 0
 
@@ -747,7 +753,7 @@ class InfiniteTree extends events.EventEmitter {
   }
   // Loads data in the tree.
   // @param {object|array} data The data is an object or array of objects that defines the node.
-  loadData(data = [],noUpdate,openNodes) {
+  loadData(data = [],noUpdate,openNodes,noClearSelectedNode) {
     this.nodes = flatten(data, { openNodes,openAllNodes: this.options.autoOpen });
 
     // Clear lookup table
@@ -756,7 +762,7 @@ class InfiniteTree extends events.EventEmitter {
     this.state.openNodes = this.nodes.filter((node) => {
       return node.hasChildren() && node.state.open;
     });
-    this.state.selectedNode = null;
+    const oldSelectedNode = this.state.selectedNode
 
     const rootNode = ((node = null) => {
       // Finding the root node
@@ -780,6 +786,12 @@ class InfiniteTree extends events.EventEmitter {
 
     // Updates list with new data
     if(!noUpdate) this.update();
+    console.log(noClearSelectedNode,oldSelectedNode)
+    if(noClearSelectedNode && oldSelectedNode){
+      const node = this.getNodeById(oldSelectedNode.id)
+      if(node) this.selectNode(node)
+      return node
+    }
   }
   // Moves a node from its current position to the new position.
   // @param {Node} node The Node object.

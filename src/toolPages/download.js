@@ -53,10 +53,15 @@ function intervalRun(func,id){
   return window.setInterval(func, 10000)
 }
 
+function formatDate(longDate) {
+  const date = new Date(longDate)
+  return `${('0' + (date.getMonth() + 1)).slice(-2)}/${('0' + date.getDate()).slice(-2)} ${('0' + date.getHours()).slice(-2)}:${('0' + date.getMinutes()).slice(-2)}`
+}
+
 class TopMenu extends React.Component {
   constructor(props) {
     super(props)
-    this.state = { }
+    this.state = {}
   }
 
   setToken(token){
@@ -64,11 +69,7 @@ class TopMenu extends React.Component {
   }
 
   onChange(e,data) {
-    e.preventDefault()
-    clearTimeout(this.timer);
-    this.timer = setTimeout(()=>{
-      searchDownload(escapeRegExp(data.value))
-    }, 200)
+    this.setState({word: new RegExp(escapeRegExp(data.value),'i')})
   }
 
   render() {
@@ -86,9 +87,10 @@ class TopMenu extends React.Component {
               <Menu.Item as='a' href={`${baseURL}/tab_history_sidebar.html`} key="tags" icon="tags"/>
               <Menu.Item as='a' href={`${baseURL}/explorer_sidebar.html`} key="file-explorer" icon="folder"/>
             </Menu>
+            <Input ref='input' icon='search' placeholder='Search...' size="small" onChange={::this.onChange}/>
           </div>
         </Sticky>
-        <DownloadList setToken={::this.setToken}/>
+        <DownloadList word={this.state.word} setToken={::this.setToken}/>
       </StickyContainer>
     )
     return <div style={{paddingTop: "10px"}}><DownloadList setToken={::this.setToken}/></div>
@@ -207,8 +209,12 @@ class DownloadList extends React.Component {
 
   buildItem(item) {
     const rest = this.calcSpeed(item)
-    const progress = item.state == "progressing" ? `${item.speed || this.getAppropriateByteUnit(rest.speed).join(" ")}/s ${this.getAppropriateByteUnit(item.receivedBytes).join(" ")} of ${this.getAppropriateByteUnit(item.totalBytes).join(" ")}（${this.getAppropriateTimeUnit(rest.restTime).join(" ")} left）`.replace(/NaN/g,'-') :
+    const isPregressing = item.state == "progressing"
+    const progress = isPregressing ? `${item.speed || this.getAppropriateByteUnit(rest.speed).join(" ")}/s ${this.getAppropriateByteUnit(item.receivedBytes).join(" ")} of ${this.getAppropriateByteUnit(item.totalBytes).join(" ")}（${this.getAppropriateTimeUnit(rest.restTime).join(" ")} left）`.replace(/NaN/g,'-') :
       item.state == "completed" ? "Completed" : "Canceled"
+
+    const date = isPregressing ? null : <span style={{fontSize: 12, paddingRight: 3, verticalAlign: 1}}>[{item.now ? formatDate(item.now) : ''}]</span>
+
     const fname = item.filename
 
     return <div className="ui horizontal segments dl-list">
@@ -225,7 +231,7 @@ class DownloadList extends React.Component {
       }
       {/*{item.state == "completed" ? <div><a href="#" onClick={()=>ipc.send("download-open",item)}>{fname}</a></div> : <div>{fname}</div>}*/}
       <div><a className="title" href="javascript:void(0)" onClick={()=>ipc.send("download-open",item)}>{fname}</a></div>
-      <div style={item.state == "progressing" ? {fontSize: '12px'} : {}}>{progress}</div>
+      <div style={{fontSize: isPregressing ? 12 : 13}}>{date}{progress.length > 28 ? `${progress.substr(0, 28)}...` :progress}</div>
     </div>
     </div>
 
@@ -262,7 +268,8 @@ class DownloadList extends React.Component {
 
     const downloadList = []
     for (let item of arr) {
-      downloadList.push(this.buildItem(item))
+      if(!this.props.word || this.props.word.test(item.filename))
+        downloadList.push(this.buildItem(item))
     }
 
     return <div style={{flexDirection: 'column', display: 'flex', paddingTop: 10,margin: '0 6px'}}>

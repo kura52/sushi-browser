@@ -9,10 +9,10 @@ function saveFile(event,savePath,content){
   });
 }
 
-ipcMain.on('save-file', (event, {savePath,content,fname}) => {
+ipcMain.on('save-file', (event, {savePath,content,fname,isDesktop}) => {
   if(!savePath){
     dialog.showDialog(getCurrentWindow(),
-      {defaultPath: path.join(app.getPath('downloads'),fname),type: 'select-saveas-file',includeAllFiles:true},
+      {defaultPath: path.join(app.getPath(isDesktop ? 'desktop' : 'downloads'),fname),type: 'select-saveas-file',includeAllFiles:true},
       (savePaths) => {
         if(savePaths && savePaths.length == 1) saveFile(event,savePaths[0],content)
     })

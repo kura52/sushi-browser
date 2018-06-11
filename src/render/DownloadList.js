@@ -23,6 +23,11 @@ function multiByteSlice(str,end) {
   return `${unescape(str.slice(0,i))}${i == str.length ? "" :"..."}`;
 }
 
+function formatDate(longDate) {
+  const date = new Date(longDate)
+  return `${('0' + (date.getMonth() + 1)).slice(-2)}/${('0' + date.getDate()).slice(-2)} ${('0' + date.getHours()).slice(-2)}:${('0' + date.getMinutes()).slice(-2)}`
+}
+
 let debounceInterval = 40, debounceTimer
 export default class DownloadList extends Component{
   constructor(props) {
@@ -130,8 +135,12 @@ export default class DownloadList extends Component{
 
   buildItem(item) {
     const rest = this.calcSpeed(item)
-    const progress = item.state == "progressing" ? `${item.speed || this.getAppropriateByteUnit(rest.speed).join(" ")}/s ${this.getAppropriateByteUnit(item.receivedBytes).join(" ")} of ${this.getAppropriateByteUnit(item.totalBytes).join(" ")}（${this.getAppropriateTimeUnit(rest.restTime).join(" ")} left）`.replace(/NaN/g,'-') :
+    const isPregressing = item.state == "progressing"
+    const progress = isPregressing ? `${item.speed || this.getAppropriateByteUnit(rest.speed).join(" ")}/s ${this.getAppropriateByteUnit(item.receivedBytes).join(" ")} of ${this.getAppropriateByteUnit(item.totalBytes).join(" ")}（${this.getAppropriateTimeUnit(rest.restTime).join(" ")} left）`.replace(/NaN/g,'-') :
       item.state == "completed" ? "Completed" : "Canceled"
+
+    const date = isPregressing ? null : <span style={{fontSize: 12, paddingRight: 3, verticalAlign: 1}}>[{item.now ? formatDate(item.now) : ''}]</span>
+
     const fname = multiByteSlice(item.filename, 23)
 
     return <div className="ui blue segment" key={item.savePath}>
@@ -147,7 +156,7 @@ export default class DownloadList extends Component{
       }
       {/*{item.state == "completed" ? <div><a href="#" onClick={()=>ipc.send("download-open",item)}>{fname}</a></div> : <div>{fname}</div>}*/}
       <div><a style={{whiteSpace: 'nowrap'}} href="javascript:void(0)" onClick={()=>ipc.send("download-open",item)}>{fname}</a></div>
-      <div style={item.state == "progressing" ? {fontSize: '12px'} : {}}>{progress.length > 28 ? `${progress.substr(0, 28)}...` :progress}</div>
+      <div style={item.state == "progressing" ? {fontSize: '12px'} : {}}>{date}{progress.length > 28 ? `${progress.substr(0, 28)}...` :progress}</div>
     </div>
 
   }

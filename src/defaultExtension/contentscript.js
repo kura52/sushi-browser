@@ -118,6 +118,26 @@ if(window.__started_){
     }
   })
 
+  function streamFunc(val){
+    window._mediaElements_ = window._mediaElements_ || {}
+    if(window._mediaIntervalId) clearInterval(window._mediaIntervalId)
+    window._mediaIntervalId = setInterval(_=>{
+      for(let stream of document.querySelectorAll('video,audio')){
+        const audioCtx = new (window.AudioContext)();
+        let gainNode = window._mediaElements_[stream]
+        if(!gainNode){
+          const source = audioCtx.createMediaElementSource(stream);
+          window._mediaElements_[stream] = source
+          gainNode = audioCtx.createGain();
+          window._mediaElements_[stream] = gainNode
+          source.connect(gainNode);
+          gainNode.connect(audioCtx.destination);
+        }
+        if(gainNode.gain.value != val/10.0) gainNode.gain.value = val/10.0;
+      }
+    },500)
+  }
+
   const key = Math.random().toString()
   ipc.send("get-main-state",key,['tripleClick','alwaysOpenLinkNewTab','themeColorChange','isRecording','isVolumeControl','keepAudioSeekValueVideo'])
   ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
@@ -211,23 +231,7 @@ if(window.__started_){
       Function(data.isRecording)()
     }
     if(data.isVolumeControl !== void 0){
-      window._mediaElements_ = window._mediaElements_ || {}
-      if(window._mediaIntervalId) clearInterval(window._mediaIntervalId)
-      window._mediaIntervalId = setInterval(_=>{
-        for(let stream of document.querySelectorAll('video,audio')){
-          const audioCtx = new (window.AudioContext)();
-          let gainNode = window._mediaElements_[stream]
-          if(!gainNode){
-            const source = audioCtx.createMediaElementSource(stream);
-            window._mediaElements_[stream] = source
-            gainNode = audioCtx.createGain();
-            window._mediaElements_[stream] = gainNode
-            source.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-          }
-          if(gainNode.gain.value != data.isVolumeControl/10.0) gainNode.gain.value = data.isVolumeControl/10.0;
-        }
-      },500)
+      streamFunc(data.isVolumeControl)
     }
 
     if(data.keepAudioSeekValueVideo){
@@ -564,8 +568,18 @@ if(window.__started_){
   ipc.once('on-video-event',(e,inputs)=>{
     chrome.runtime.sendMessage({ event: "video-event",inputs })
   })
+
+  ipc.on('on-stream-event',(e,val)=>{
+    chrome.runtime.sendMessage({ event: "stream-event",val })
+  })
   chrome.runtime.onMessage.addListener(inputs=>{
-    videoFunc({},inputs)
+    if(inputs.stream){
+      streamFunc(inputs.val)
+    }
+    else{
+      videoFunc({},inputs)
+    }
     return false
   })
+
 }
