@@ -21,16 +21,16 @@ async function captureCurrentPage(_id,pageUrl,loc,base64,sender,tabId){
   const cont = tabId ? webContents.fromTabID(tabId) : (await getFocusedWebContents())
   // eval(locus)
   if(cont){
-    const url = cont.getURL()
-    console.log(tabId,url,pageUrl,loc)
-    if(url != pageUrl && url != loc) return
-
     if(base64){
       cont.capturePage((imageBuffer)=>{
-      sender.send(`take-capture-reply_${base64}`,`data:image/jpeg;base64,${imageBuffer.toJPEG(parseInt(mainState.tabPreviewQuality)).toString("base64")}`,imageBuffer.getSize())
+        sender.send(`take-capture-reply_${base64}`,`data:image/jpeg;base64,${imageBuffer.toJPEG(parseInt(mainState.tabPreviewQuality)).toString("base64")}`,imageBuffer.getSize())
       })
       return
     }
+
+    const url = cont.getURL()
+    console.log(tabId,url,pageUrl,loc)
+    if(url != pageUrl && url != loc) return
 
     const title = cont.getTitle()
     const doc = await image.findOne({url:pageUrl})
@@ -87,10 +87,12 @@ function faviconUpdate(url) {
 
 const captures = {}
 ipcMain.on('take-capture', (event,{id,url,loc,base64,tabId}) => {
-  if(captures[url]) return
-  captures[url] = true
+  if(!base64){
+    if(captures[url]) return
+    captures[url] = true
+  }
   captureCurrentPage(id,url,loc,base64,event.sender,tabId).then(_=>{
-    delete captures[url]
+    if(!base64) delete captures[url]
   })
 })
 

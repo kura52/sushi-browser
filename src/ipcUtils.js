@@ -1613,7 +1613,7 @@ ipcMain.on('close-window',e=>{
 })
 
 ipcMain.on('find-event',(e,tabId,method,...args)=>{
-  if(!method.includes('find')) return
+  if(!method.includes('find') && !method.includes('Find')) return
   const cont = webContents.fromTabID(tabId)
   if(cont && !cont.isDestroyed()){
     cont[method](...args)

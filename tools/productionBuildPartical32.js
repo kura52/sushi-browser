@@ -268,7 +268,7 @@ var getTabValue = function (tabId) {`)
     cont.send('get-focused-webContent',key,void 0,void 0,true)
   }`)
 
-        .replace('return tabContents && !tabContents.isDestroyed() && tabContents.tabValue()',`const ret = tabContents && !tabContents.isDestroyed() && tabContents.tabValue()
+        .replace('return tabContents && tabContents.tabValue()',`const ret = tabContents && !tabContents.isDestroyed() && tabContents.tabValue()
   let index,opener
   if(ret) {
     if((index = tabIndexMap[ret.id]) !== (void 0)) ret.index = index

@@ -4,6 +4,10 @@ if(window.__started_){
   const openTime = Date.now()
 
   if(location.href.startsWith('http') && window == window.parent){
+    window.addEventListener("beforeunload", e=>{
+      ipc.send('scroll-position',window.scrollX ,window.scrollY)
+    });
+
     document.addEventListener("DOMContentLoaded",_=>{
       // const key = Math.random().toString()
       // ipc.send('need-get-inner-text',key)

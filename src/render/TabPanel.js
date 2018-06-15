@@ -46,9 +46,10 @@ const REG_VIDEO = /^https:\/\/www\.(youtube)\.com\/watch\?v=(.+)&?|^http:\/\/www
 const REG_HIGHLIGHT_SITES = /www\.google\..+?q=|search\.yahoo\.c.+?p=|www\.baidu\.com.+?wd|\.baidu\.com.+?word=|www\.ask\.com.+?q=|\.bing\.com.+?q=|www\.youdao\.com.+?q=/
 sharedState.homeURL = topURL
 
-let [newTabMode,inputsVideo,disableTabContextMenus,priorityTabContextMenus,reloadIntervals,closeTabBehavior,keepWindowLabel31,multistageTabs,maxrowLabel,addressBarNewTab,alwaysOpenLinkBackground,adBlockEnable,searchWordHighlight,searchWordHighlightRecursive,openTabPosition,tabPreview] = ipc.sendSync('get-sync-main-states',['newTabMode','inputsVideo','disableTabContextMenus','priorityTabContextMenus','reloadIntervals','closeTabBehavior','keepWindowLabel31','multistageTabs','maxrowLabel','addressBarNewTab','alwaysOpenLinkBackground','adBlockEnable','searchWordHighlight','searchWordHighlightRecursive','openTabPosition','tabPreview'])
+let [newTabMode,inputsVideo,disableTabContextMenus,priorityTabContextMenus,reloadIntervals,closeTabBehavior,keepWindowLabel31,multistageTabs,maxrowLabel,addressBarNewTab,alwaysOpenLinkBackground,adBlockEnable,searchWordHighlight,searchWordHighlightRecursive,openTabPosition,tabPreview,tabPreviewRecent] = ipc.sendSync('get-sync-main-states',['newTabMode','inputsVideo','disableTabContextMenus','priorityTabContextMenus','reloadIntervals','closeTabBehavior','keepWindowLabel31','multistageTabs','maxrowLabel','addressBarNewTab','alwaysOpenLinkBackground','adBlockEnable','searchWordHighlight','searchWordHighlightRecursive','openTabPosition','tabPreview','tabPreviewRecent'])
 
 sharedState.tabPreview = tabPreview
+sharedState.tabPreviewRecent = tabPreviewRecent
 sharedState.searchWordHighlight = searchWordHighlight
 sharedState.searchWordHighlightRecursive = searchWordHighlightRecursive
 
@@ -1320,7 +1321,7 @@ export default class TabPanel extends Component {
           })()
           if(sharedState.tabPreview){
             const base64 = uuid.v4()
-            ipc.send('take-capture', {url: page.navUrl, loc, base64, tabId: tab.wvId})
+            ipc.send('take-capture', {base64, tabId: tab.wvId})
             ipc.once(`take-capture-reply_${base64}`,(e,dataURL,size)=>{
               tab.tabPreview = {dataURL,...size}
               PubSub.publish('tab-preview-update',{dataURL,...size})
@@ -2348,11 +2349,12 @@ export default class TabPanel extends Component {
       }
       console.log('location-navigateTo',newPage.location)
       if(!tab.guestInstanceId){
-        if(tab.wvId){
+        let cont
+        if(tab.wvId && (cont = this.getWebContents(tab))){
           // tab.wv.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',
           //   `var a_=document.createElement('a');a_.setAttribute('rel','noreferrer');a_.setAttribute('href','${convertURL(l)}');a_.click()`
           //   ,{})
-          this.getWebContents(tab).loadURL(convertURL(l))
+          cont.loadURL(convertURL(l))
         }
         else{
           setTimeout(_=>{
@@ -3077,6 +3079,9 @@ export default class TabPanel extends Component {
 
     console.log('tabClosed key:', key,tab.page.navUrl,this.state.tabs.length)
     console.log('change-visit-state-close',this.props.k,tab.page.navUrl)
+
+    this.addCloseTabHistory(e, i)
+
     const activeTab = activeTabs[this.props.k]
     if(activeTab && activeTab[0].key == key){
       history.update({location: activeTab[1]}, {$inc:{time: Date.now() - activeTab[2]}})
@@ -3099,8 +3104,6 @@ export default class TabPanel extends Component {
       // ipc.send('chrome-tab-removed',parseInt(tab.key))
     }
     console.log('handleTabClose')
-
-    this.addCloseTabHistory(e, i)
 
     if(tab.events) removeEvents(ipc,tab.events)
     const closeTab = this.state.tabs.splice(i,1)[0]
@@ -3289,9 +3292,16 @@ export default class TabPanel extends Component {
 
   addCloseTabHistory(e, i) {
     if (!e.noHistory && (!this.state.tabs[i].privateMode || this.state.tabs[i].privateMode.match(/^persist:\d/))) {
-      const tabKey = this.state.tabs[i].key
+      const tab = this.state.tabs[i]
+      const tabKey = tab.key
       this.state.history.push([tabKey,i])
-      tabState.update({tabKey},{$set:{close:1,updated_at: Date.now()}}).then(_=>_)
+
+      tab.wv.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd','{x:window.scrollX ,y:window.scrollY}',{},
+        (err, url, result) => {
+          if(result[0]){
+            tabState.update({tabKey},{$set:{close:1,updated_at: Date.now()}}).then(_=>_)
+          }
+        })
     }
   }
 

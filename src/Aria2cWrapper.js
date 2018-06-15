@@ -169,16 +169,20 @@ export default class Aria2cWrapper{
     if(!resume && !this.overwrite) this.savePath = this.getUniqFileName(this.savePath)
 
     let params = cookie ? [`--header=Cookie:${cookie}`] : []
-    params = [...params,'-c',`-x${this.downloadNum}`,'--check-certificate=false','--summary-interval=1','--file-allocation=none','--bt-metadata-only=true',
+    params = [...params,`-x${this.downloadNum}`,'--check-certificate=false','--summary-interval=1','--file-allocation=none','--bt-metadata-only=true',
       `--user-agent=${process.userAgent}`,`--dir=${path.dirname(this.savePath)}`,`--out=${path.basename(this.savePath)}`,`${this.url}`]
 
     if(!resume && this.overwrite){
       params.push('--auto-file-renaming=false','--allow-overwrite=true')
     }
+    else{
+      params.push('-c')
+    }
 
     this.created_at = Date.now()
     this.timeMap.set(this.savePath, this.created_at)
 
+    console.log(params)
     this.aria2c = spawn(binaryPath,params)
 
     this.aria2c.stdout.on('data', (data) => {

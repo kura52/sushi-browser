@@ -727,7 +727,7 @@ function contextMenu(webContents) {
     const can = type => editFlags[`can${type}`] && hasText
 
     const downloadPrompt = (item, win) => {
-      PubSub.publishSync('need-set-save-filename',props.srcURL)
+      ipcMain.emit('need-set-save-filename',null,props.srcURL)
       win.webContents.downloadURL(props.srcURL,true)
     }
 
@@ -883,7 +883,7 @@ function contextMenu(webContents) {
       menuItems.push({
         t: 'saveLinkAs', label: locale.translation('saveLinkAs'), click: (item, win) => {
           ipcMain.emit('need-set-save-filename',null,props.linkURL)
-          console.log("Save Link",win)
+          console.log("Save Link",props.linkURL)
           win.webContents.downloadURL(props.linkURL,true)
         }
       })
@@ -1078,7 +1078,8 @@ function contextMenu(webContents) {
     if(isNoAction) {
       menuItems.push({
         t: 'savePageAs', label: locale.translation('savePageAs'), click: (item, win) => {
-          PubSub.publishSync('need-set-save-filename',webContents.getURL())
+          console.log('down1',webContents.getURL())
+          ipcMain.emit('need-set-save-filename',null,webContents.getURL())
           win.webContents.downloadURL(webContents.getURL(), true)
         }
       })

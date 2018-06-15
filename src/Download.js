@@ -212,6 +212,7 @@ export default class Download {
       if(!win.webContents.isDestroyed()) win.webContents.send(`download-start-tab_${webContents.getId()}`)
 
       const needSavePath = this.getData(this.needSavePath,url)
+      console.log('down2',url)
       const noNeedSavePath = this.getData(this.noNeedSavePath,url)
 
       const saveDirectory = this.getData(this.saveDirectory,url)
@@ -256,7 +257,7 @@ export default class Download {
       item.setPrompt(false)
       console.log('retry')
       retry.delete(url)
-      if (!this.getData(overwrite, url)) {
+      if (!this.getData(this.overwrite, url)) {
         savePath = this.getUniqFileName(savePath)
       }
       item.setSavePath(savePath)

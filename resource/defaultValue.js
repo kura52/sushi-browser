@@ -111,11 +111,13 @@ const settingDefault =  {
   middleClickTabAdd: 'newPrivateTab',
   altClickTabAdd: 'clicktabNothing',
   tabPreview: true,
+  tabPreviewRecent: false,
   tabPreviewWait: 300,
   tabPreviewQuality: 80,
   tabPreviewSizeWidth: 200,
   tabPreviewSizeHeight: null,
   tabPreviewSlideHeight: 140,
+  tabCirculateSelection: false,
 
   colorNormalText: '#222',
   colorNormalBackground: '#d0d0d0',

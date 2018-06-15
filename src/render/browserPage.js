@@ -111,14 +111,6 @@ class BrowserPage extends Component {
     for (var k in webviewEvents)
       webview.addEventListener(k, webviewHandler(this, webviewEvents[k]),{passive:true})
 
-
-    const debugEvents = ['tab-replaced-at', 'tab-id-changed', 'will-attach', 'did-attach', 'did-detach', 'will-detach']
-    for (const event of debugEvents) {
-      webview.addEventListener(event, (e) => {
-        console.log(event,e, webview)
-      })
-    }
-
     this.wvEvents['ipc-message'] = (e, page) =>{
       if(e.channel == 'webview-scroll'){
         PubSub.publishSync("scroll-sync-webview",{sync:this.props.tab.sync,...e.args[0]})
@@ -175,7 +167,7 @@ class BrowserPage extends Component {
       this.setState({isSearching: false})
     })
     //
-    // webview.addEventListener('will-detach',e=>console.log('will-detach',e))
+    // webview.addEventListener('will-navigate',e=>console.log('will-navigate',e))
     // webview.addEventListener('did-detach',e=>console.log('did-detach',e))
     // webview.addEventListener('guest-ready',e=>console.log('guest-ready',e))
 

@@ -1721,7 +1721,7 @@ export default class SplitWindows extends Component{
                 key={x[0]} node={x} split={this.split} close={this.closeFloat}
                 getScrollPriorities={this.getScrollPriorities} child={x[1]}
                 toggleNav={x[0].startsWith('fixed-float-one') ? 1 : this.state.root.toggleNav} parent={this} addFloatPanel={this.addFloatPanel}
-                getAllKey={this.getAllKey} float={true}
+                getPrevFocusPanel={this.getPrevFocusPanel} getAllKey={this.getAllKey} float={true}
                 currentWebContents={this.currentWebContents} htmlContentSet={this.htmlContentSet} getKeyPosition={this.getKeyPosition}
                 fixedPanelOpen={this.fixedPanelOpen} hidePanel={this.hidePanel} windowId={this.windowId}
                 attach={this.state.root.attach && {delete: this.deleteAttach,data:this.state.root.attach}}

@@ -1350,6 +1350,13 @@ class TabsSetting extends React.Component {
       </div>
       <label style={{verticalAlign: '7px', paddingLeft: 10}}>{this.state.tabPreviewQuality}</label>
 
+      <div className='spacer2'/>
+
+      <div className="field">
+        <Checkbox defaultChecked={this.state.tabPreviewRecent} toggle onChange={this.onChange.bind(this,'tabPreviewRecent')}/>
+        <span className="toggle-label">Display Current Preview</span>
+      </div>
+
 
       <Divider/>
       <h4 style={{marginTop:0, marginBottom: 20}}>{l10n.translation('showOntabLabel')}</h4>
@@ -1460,6 +1467,13 @@ class TabsSetting extends React.Component {
       <div className="field">
         <Checkbox defaultChecked={this.state.reverseScrollTab} toggle onChange={this.onChange.bind(this,'reverseScrollTab')}/>
         <span className="toggle-label">{l10n.translation('tabbarscrollingInverseLabel')}</span>
+      </div>
+
+      <div className='spacer2'/>
+
+      <div className="field">
+        <Checkbox defaultChecked={this.state.tabCirculateSelection} toggle onChange={this.onChange.bind(this,'tabCirculateSelection')}/>
+        <span className="toggle-label">Circulate Tab Selection</span>
       </div>
 
       <Divider/>
@@ -2028,12 +2042,12 @@ ipc.send("get-main-state",key,['startsWith','newTabMode','myHomepage','searchPro
   'doubleShift','tripleClick','enableMouseGesture','extensionOnToolbar','syncScrollMargin','contextMenuSearchEngines','ALL_KEYS','bindMarginFrame','bindMarginTitle','longPressMiddle','checkDefaultBrowser','sendToVideo',
   'multistageTabs','tabMinWidth','httpsEverywhereEnable','trackingProtectionEnable','autoSaveInterval','noScript','blockCanvasFingerprinting','browsingHistory', 'downloadHistory',
   'disableContextMenus','disableTabContextMenus','priorityContextMenus','priorityTabContextMenus','reloadIntervals','generalWindowOpenLabel','keepWindowLabel31','tabPreview','tabPreviewQuality',
-  'closeTabBehavior','reverseScrollTab','tabMaxWidth','mouseHoverSelectLabelBegin','mouseHoverSelectLabelBeginDelay','tabFlipLabel','doubleClickTab','middleClickTab','altClickTab',
+  'closeTabBehavior','reverseScrollTab','tabCirculateSelection','tabMaxWidth','mouseHoverSelectLabelBegin','mouseHoverSelectLabelBeginDelay','tabFlipLabel','doubleClickTab','middleClickTab','altClickTab',
   'maxrowLabel','orderOfAutoComplete','numOfSuggestion','numOfHistory','openTabNextLabel','rightClickTabAdd','middleClickTabAdd','altClickTabAdd','displayFullIcon','downloadPath','windowCustomIcon',
   'defaultDownloadPath','alwaysOpenLinkNewTab','openTabPosition','alwaysOpenLinkBackground','addressBarNewTab','oppositeGlobal','colorNormalText','colorNormalBackground','colorActiveText',
   'colorActiveBackground','colorTabDot','colorUnreadText','colorUnreadBackground','enableColorOfNoSelect','themeColorChange','showBorderActiveTab','historyBadget','colorTabMode','enableDownloadList',
   'clearHistoryOnClose','clearDownloadOnClose','clearCacheOnClose','clearStorageDataOnClose','clearAutocompleteDataOnClose','clearAutofillDataOnClose','clearPasswordOnClose','clearGeneralSettingsOnClose','clearFavoriteOnClose',
-  'enableWidevine','toolbarLink','sidebarLink','bookmarkbarLink','zoomBehavior','tabPreviewSizeWidth','tabPreviewSizeHeight','tabPreviewSlideHeight','tabPreviewWait','searchEngineDisplayType'])
+  'enableWidevine','toolbarLink','sidebarLink','bookmarkbarLink','zoomBehavior','tabPreviewSizeWidth','tabPreviewSizeHeight','tabPreviewSlideHeight','tabPreviewWait','searchEngineDisplayType','tabPreviewRecent'])
 ipc.once(`get-main-state-reply_${key}`,(e,data)=>{
   generalDefault = data
   keyboardDefault = data

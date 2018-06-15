@@ -41,3 +41,7 @@ body{
     position: absolute;
     z-index: 3;
 }
+
+.te-ww-container .tui-editor-contents:first-child {
+    padding: 16px 10px 0 10px;
+}

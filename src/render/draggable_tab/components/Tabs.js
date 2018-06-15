@@ -34,7 +34,7 @@ const ToolbarResizer = require('../../ToolbarResizer')
 
 const isDarwin = navigator.userAgent.includes('Mac OS X')
 const isWin = navigator.userAgent.includes('Windows')
-let [scrollTab,reverseScrollTab,multistageTabs,verticalTabWidth,tabBarHide,tabMinWidth,tabMaxWidth,tabFlipLabel,mouseHoverSelectLabelBeginDelay,mouseHoverSelectLabelBegin,doubleClickTab,middleClickTab,altClickTab,maxrowLabel,openTabNextLabel,rightClickTabAdd,middleClickTabAdd,altClickTabAdd,displayFullIcon,mediaPlaying,tabPreviewSizeWidth,tabPreviewSizeHeight,tabPreviewSlideHeight,tabPreviewWait] = ipc.sendSync('get-sync-main-states',['scrollTab','reverseScrollTab','multistageTabs','verticalTabWidth','tabBarHide','tabMinWidth','tabMaxWidth','tabFlipLabel','mouseHoverSelectLabelBeginDelay','mouseHoverSelectLabelBegin','doubleClickTab','middleClickTab','altClickTab','maxrowLabel','openTabNextLabel','rightClickTabAdd','middleClickTabAdd','altClickTabAdd','displayFullIcon','mediaPlaying','tabPreviewSizeWidth','tabPreviewSizeHeight','tabPreviewSlideHeight','tabPreviewWait'])
+let [scrollTab,reverseScrollTab,multistageTabs,verticalTabWidth,tabBarHide,tabMinWidth,tabMaxWidth,tabFlipLabel,mouseHoverSelectLabelBeginDelay,mouseHoverSelectLabelBegin,doubleClickTab,middleClickTab,altClickTab,maxrowLabel,openTabNextLabel,rightClickTabAdd,middleClickTabAdd,altClickTabAdd,displayFullIcon,mediaPlaying,tabPreviewSizeWidth,tabPreviewSizeHeight,tabPreviewSlideHeight,tabPreviewWait,tabCirculateSelection] = ipc.sendSync('get-sync-main-states',['scrollTab','reverseScrollTab','multistageTabs','verticalTabWidth','tabBarHide','tabMinWidth','tabMaxWidth','tabFlipLabel','mouseHoverSelectLabelBeginDelay','mouseHoverSelectLabelBegin','doubleClickTab','middleClickTab','altClickTab','maxrowLabel','openTabNextLabel','rightClickTabAdd','middleClickTabAdd','altClickTabAdd','displayFullIcon','mediaPlaying','tabPreviewSizeWidth','tabPreviewSizeHeight','tabPreviewSlideHeight','tabPreviewWait','tabCirculateSelection'])
 maxrowLabel = parseInt(maxrowLabel)
 tabPreviewSizeWidth = tabPreviewSizeWidth ? parseInt(tabPreviewSizeWidth) : null
 tabPreviewSizeHeight = tabPreviewSizeHeight ? parseInt(tabPreviewSizeHeight) : null
@@ -234,6 +234,9 @@ class Tabs extends React.Component {
         nextKey = this._getNextTabKey(nextKey);
       }
     }
+    else if(tabCirculateSelection){
+      nextKey = this.state.tabs[0].key;
+    }
     return nextKey;
   }
 
@@ -245,6 +248,9 @@ class Tabs extends React.Component {
       if (this._isClosed(prevKey)) {
         prevKey = this._getPrevTabKey(prevKey);
       }
+    }
+    else if(tabCirculateSelection){
+      prevKey = this.state.tabs[this.state.tabs.length-1].key;
     }
     return prevKey;
   }
@@ -641,7 +647,7 @@ class Tabs extends React.Component {
 
         if(sharedState.tabPreview) {
           if(this.tabPreviewStop || tab.key == this.props.selectedTab) return
-          setTimeout(_=>{
+          setTimeout(async _=>{
             if(this.tabPreviewStop || tab.key == this.props.selectedTab) return
 
             const handleMouseMove = e =>{
@@ -653,6 +659,16 @@ class Tabs extends React.Component {
               }
             }
 
+            if(sharedState.tabPreviewRecent && (!this.tabPreviewHeight || this.tabPreviewHeight == 27)){
+              const base64 = Math.random().toString()
+              ipc.send('take-capture', {base64, tabId: t.wvId})
+              await new Promise(r=>{
+                ipc.once(`take-capture-reply_${base64}`,(e,dataURL,size)=>{
+                  t.tabPreview = {dataURL,...size}
+                  r()
+                })
+              })
+            }
             const rect = target.getBoundingClientRect()
             this.tabPreviews[tab.key] = {left: rect.left,top:rect.top,tabPreview: t.tabPreview}
             const token = PubSub.subscribe('tab-preview-update',(msg,val)=>{
@@ -1345,7 +1361,8 @@ class Tabs extends React.Component {
           zIndex: 9999999,
           width:tabPreviewSizeWidth || preview.tabPreview.width,
           height: preview.tabPreview ? Math.round((tabPreviewSizeWidth || preview.tabPreview.width) * (tabPreviewSizeHeight || preview.tabPreview.height / preview.tabPreview.width)) : tabPreviewSlideHeight,
-          left: preview.left,
+          left: preview.left + (tabPreviewSizeWidth || preview.tabPreview.width) > window.innerWidth ? (void 0) : preview.left,
+          right: preview.left + (tabPreviewSizeWidth || preview.tabPreview.width) > window.innerWidth ? 0 : (void 0),
           top: preview.top + 27,
           backgroundImage: preview.tabPreview ? `url(${preview.tabPreview.dataURL})` : 'none',
           backgroundColor: '#fbfbfb',
