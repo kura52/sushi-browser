@@ -157,7 +157,7 @@ sushi-browser --no-sandbox
 
 # New Features
 
-#### New function(v0.180)
+#### New function(v0.18.0)
 - Added note function to sidebar. (using TOAST UI Editor) *Experimental
 - Added a tab trash box(closed tab history).
 - Added tab trash box and download menu to sidebar.
@@ -167,7 +167,7 @@ sushi-browser --no-sandbox
 - Fixed a problem that volume change function does not work in iframe.
 - Fixed some bugs.
 
-#### New function(v0.18.0)
+#### New function(v0.17.4)
 - Fixed fatal bug of tab detach.
 - Added 'Quit Browser' to Main Menu.
 - Added 'Search Methods' Option to Search Setting.
