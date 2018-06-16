@@ -55,6 +55,7 @@ const players = [
   { value: 'mplayerx', text: 'MPlayerX',os:['mac']},
   { value: 'smplayer', text: 'SMPlayer',os:['win','mac','linux']},
   { value: 'C:\\Program Files\\MPC-HC\\mpc-hc64.exe', text: 'Media Player Classic(MPC-HC)',os:['win']},
+  { value: 'C:\\Program Files\\MPC-BE x64\\mpc-be64.exe', text: 'MPC-BE',os:['win']},
 
   // { value: 'C:\\Program Files (x86)\\DearMob\\5KPlayer\\5KPlayer.exe', text: '5K Player',os:['win']},
   // { value: '5kplayer', text: '5K Player',os:['mac']},
