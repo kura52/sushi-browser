@@ -51,6 +51,10 @@ const settingDefault =  {
     'clicktabReloadrighttabs','clicktabUcatab','protectTabMenuLabel','lockTabMenuLabel','Copy All Tab URLs','Copy All Tab Titles'],
   priorityContextMenus: {},
   priorityTabContextMenus: {},
+  sendUrlContextMenus: [{enable:false,ind:1,name:"Wayback",sendTo:"https://web.archive.org/web/*/%s",type:"new",updated_at:1529149042412},
+    {enable:false,ind:2,name:"Twitter",sendTo:"https://twitter.com/search?f=tweets&q=%s",type:"opposite",updated_at:1529149067781},
+    {enable:false,ind:3,name:"Firefox",sendTo:"firefox %s",type:"command",updated_at:1529149090619},
+    {enable:false,ind:4,name:"Download",sendTo:`${isLinux || isDarwin ? 'wget %s' : 'Invoke-WebRequest -uri %s'}`,type:"terminal",updated_at:1529149259164}],
 
   sendToVideo: isLinux ? 'vlc' : isDarwin ? '"quicktime player"' : 'wmplayer',
   vpnNames: [],

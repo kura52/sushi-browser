@@ -87,3 +87,7 @@ td>.ui.dropdown.type>.text {
 .ui.form .field .ui.input, .ui.form .fields .field .ui.input, .ui.form .wide.field .ui.input{
     width: 264px;
 }
+table .ui.fluid.selection.dropdown.type {
+    line-height: 1.3em;
+    padding-bottom: 5px;
+}

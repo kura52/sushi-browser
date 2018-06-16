@@ -6,26 +6,30 @@ const glob = require("glob")
 const BEFORE_CODE_NAME = 'Ikura(Salmon Roe)'
 const CODE_NAME = 'Iwashi(Sardine)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.18.0"
+const NEXT_APP_VERSION = "0.18.1"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Added note function to sidebar. (using TOAST UI Editor) *Experimental
-Added a tab trash box(closed tab history).
-Added tab trash box and download menu to sidebar.
-Added export / import function set to "Settings> General".
-Added control option for auto display of download list in "Settings > General > Enable Bottom Download List".
-Change the layout to divide the session manager by folder every elapsed time.
-Fixed a problem that volume change function does not work in iframe.
-Fixed some bugs.`
+const CHANGE_ENGLISH = `Improve to recreate scroll position when tab restoration.
+Improved to restore all windows after exiting / restarting browser when "My windows / tabs from last time" is selected.
+Added Send to URL function to "Settings> Context Menu" (function to send URL to new tab or command).
+Improved to memorize last selected file, delimiter position with memo function.
+Added "Circulate Tab Selection" option to "When scrolling over the tab-bar".
+Added "Display Current Preview" option to "Tab Preview".
+Updated to Muon 7.0.6.
+Updated to youtube-dl 2018.06.14.
+Fixed bug that pdf download error.
+Fixed a lot of bugs.`
 
-const CHANGE_JAPANESE = `サイドバーにメモ機能を追加(TOAST UI Editorを利用）※Experimental
-タブゴミ箱（閉じたタブ履歴）を追加
-サイドバーにタブゴミ箱、ダウンロードを追加
-「設定＞一般」に設定のエクスポート/インポート機能を追加
-「設定＞一般」にダウンロードリストの自動表示を制御オプションを追加（Enable Bottom Download List）
-セッションマネージャを経過時間ごとにフォルダ分けするようレイアウトを変更
-音量変更機能がiframeで動作しない不具合を修正
-いくつかのバグ修正`
+const CHANGE_JAPANESE = `タブ復元時にスクロール位置を再現するよう改善
+「前回のウィンドウもしくはタブ」を選択した場合に、ブラウザ終了/再起動後に全Windowを復元するよう改善
+設定＞コンテキストメニューにSend to URL機能を追加（新しいタブやコマンドにURLを送るための機能）
+メモ機能で前回の選択ファイル、区切り位置を記憶するように改善
+「Circulate Tab Selection」オプションを追加
+「Tab Preview」に「Display Current Preview」オプションを追加
+Muonを7.0.6に更新
+youtube-dlを2018.06.14に更新
+pdfのダウンロードがエラーとなる不具合修正
+多数のバグ修正`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

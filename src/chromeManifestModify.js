@@ -103,7 +103,7 @@ function stripBOM(str){
   return str.charCodeAt(0) === 0xFEFF ? str.slice(1) : str
 }
 
-export default function modify(extensionId,verPath){
+export default async function modify(extensionId,verPath){
   const isWebExt = !extensionId.match(/^[a-z]+$/)
   cache = new Set()
   if(!verPath){
@@ -111,42 +111,43 @@ export default function modify(extensionId,verPath){
   }
 
   const manifestPath = path.join(verPath, 'manifest.json')
-  fs.exists(manifestPath, (exists) => {
-    if (exists) {
-      const manifestStr = stripBOM(fs.readFileSync(manifestPath).toString()).replace('\\u003Call_urls>','<all_urls>')
-      const infos = hjson.parse(manifestStr)
+  const exists = fs.existsSync(manifestPath)
+  if (exists) {
+    const manifestStr = stripBOM(fs.readFileSync(manifestPath).toString()).replace('\\u003Call_urls>','<all_urls>')
+    const infos = hjson.parse(manifestStr)
 
-      if(infos.permissions && infos.permissions.includes('activeTab')
-        && (!infos.permissions.includes('http://*/*') || !infos.permissions.includes('https://*/*'))){
-        infos.permissions = [...new Set([...infos.permissions,'http://*/*','https://*/*'])]
-      }
+    if(infos.permissions && infos.permissions.includes('activeTab')
+      && (!infos.permissions.includes('http://*/*') || !infos.permissions.includes('https://*/*'))){
+      infos.permissions = [...new Set([...infos.permissions,'http://*/*','https://*/*'])]
+    }
 
-      if(infos.optional_permissions){
-        infos.permissions = [...new Set([...(infos.permissions || []),...infos.optional_permissions])]
-      }
+    if(infos.optional_permissions){
+      infos.permissions = [...new Set([...(infos.permissions || []),...infos.optional_permissions])]
+    }
 
-      if(!infos.content_security_policy){
-        infos.content_security_policy = "script-src 'self' 'unsafe-eval'; object-src 'self'"
-      }
+    if(!infos.content_security_policy){
+      infos.content_security_policy = "script-src 'self' 'unsafe-eval'; object-src 'self'"
+    }
 
-      if(isWebExt && infos.permissions){
-        infos.permissions = infos.permissions.filter(x=>x!=='clipboardWrite' && x!=='clipboardRead')
-      }
+    if(isWebExt && infos.permissions){
+      infos.permissions = infos.permissions.filter(x=>x!=='clipboardWrite' && x!=='clipboardRead')
+    }
 
-      let flagContent,flagBackground
-      if(infos.content_scripts){
-        findJsTags(infos.content_scripts,js=>{
-          if(!Array.isArray(js)) js = [js]
-          if(isWebExt && !js.includes(polyfillName)){
-            js.unshift(webExtModifyCs)
-            js.unshift(polyfillName)
-          }
-          if(!js.includes(contentScriptName)) js.unshift(contentScriptName)
-          return js
-        })
-        flagContent = true
-      }
+    let flagContent,flagBackground
+    if(infos.content_scripts){
+      findJsTags(infos.content_scripts,js=>{
+        if(!Array.isArray(js)) js = [js]
+        if(isWebExt && !js.includes(polyfillName)){
+          js.unshift(webExtModifyCs)
+          js.unshift(polyfillName)
+        }
+        if(!js.includes(contentScriptName)) js.unshift(contentScriptName)
+        return js
+      })
+      flagContent = true
+    }
 
+    try{
       if(infos.background){
         if(infos.background.persistent === false && !['jpkfjicglakibpenojifdiepckckakgk','occjjkgifpmdgodlplnacmkejpdionan'].includes(extensionId)){
           infos.background.persistent = true
@@ -221,21 +222,21 @@ export default function modify(extensionId,verPath){
         htmlModify(verPath,file.replace(`${verPath.replace(/\\/g,'/')}/`,''),isWebExt)
       }
 
-        for(let file of require("glob").sync(`${verPath}/**/*.js`)){
-          let datas = fs.readFileSync(file).toString(),needWrite = false
-          if (isWebExt && datas.includes('moz-extension')) {
-            // console.log(file)
-            datas = datas.replace(/moz\-extension/ig,'chrome-extension')
-            needWrite = true
-          }
-          if(extensionId == 'mlomiejdfkolichcflejclcbmpeaniij' && datas.includes('about:blank')){
-            datas = datas.replace(/about:blank/ig,'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html')
-            needWrite = true
-          }
-          if(needWrite){
-            fs.writeFileSync(file, datas)
-          }
+      for(let file of require("glob").sync(`${verPath}/**/*.js`)){
+        let datas = fs.readFileSync(file).toString(),needWrite = false
+        if (isWebExt && datas.includes('moz-extension')) {
+          // console.log(file)
+          datas = datas.replace(/moz\-extension/ig,'chrome-extension')
+          needWrite = true
         }
+        if(extensionId == 'mlomiejdfkolichcflejclcbmpeaniij' && datas.includes('about:blank')){
+          datas = datas.replace(/about:blank/ig,'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html')
+          needWrite = true
+        }
+        if(needWrite){
+          fs.writeFileSync(file, datas)
+        }
+      }
       if(infos.commands){
         for(let [k,v] of Object.entries(infos.commands)) {
           if(v.suggested_key){
@@ -256,41 +257,40 @@ export default function modify(extensionId,verPath){
       fs.unlinkSync(manifestPath)
       fs.writeFileSync(manifestPath,JSON.stringify(infos, null, '  '))
 
-      ;(async ()=>{
-        let open
-        for(let svg of require("glob").sync(`${verPath}/**/*.svg`)){
-          const out = svg.replace(/\.svg$/,".png")
-          if(!fs.existsSync(out)){
-            if(!open){
-              electronImageResize.open({width: 16, height: 16})
-              open = true
-            }
-            const img = await electronImageResize.capture({url: `file://${svg}`, width: 16, height: 16})
-
-            Jimp.read(img.toPng(), function (err, image) {
-              if(image.bitmap.width > image.bitmap.height){
-                image = image.resize(16,Jimp.AUTO,Jimp.RESIZE_BICUBIC)
-              }
-              else{
-                image = image.resize(Jimp.AUTO,16,Jimp.RESIZE_BICUBIC)
-              }
-              image.write(out)
-            })
+      let open
+      for(let svg of require("glob").sync(`${verPath}/**/*.svg`)){
+        const out = svg.replace(/\.svg$/,".png")
+        if(!fs.existsSync(out)){
+          if(!open){
+            electronImageResize.open({width: 16, height: 16})
+            open = true
           }
-        }
-        if(open) electronImageResize.close()
-      })();
+          const img = await electronImageResize.capture({url: `file://${svg}`, width: 16, height: 16})
 
-      // if(isWebExt){
-      //   for(let js of require("glob").sync(`${verPath}/**/*.js`)){
-      //     const datas = fs.readFileSync(js).toString()
-      //     if(datas.match(/document.execCommand\( *(["'])copy\1 *\)/)){
-      //       const result = datas.replace(/document.execCommand\( *(["'])copy\1 *\)/,`chrome.ipcRenderer.send('execCommand-copy')`)
-      //       fs.writeFileSync(js, result)
-      //     }
-      //   }
-      // }
+          Jimp.read(img.toPng(), function (err, image) {
+            if(image.bitmap.width > image.bitmap.height){
+              image = image.resize(16,Jimp.AUTO,Jimp.RESIZE_BICUBIC)
+            }
+            else{
+              image = image.resize(Jimp.AUTO,16,Jimp.RESIZE_BICUBIC)
+            }
+            image.write(out)
+          })
+        }
+      }
+      if(open) electronImageResize.close()
+    }catch(e){
+      console.log(e)
     }
-  })
+    // if(isWebExt){
+    //   for(let js of require("glob").sync(`${verPath}/**/*.js`)){
+    //     const datas = fs.readFileSync(js).toString()
+    //     if(datas.match(/document.execCommand\( *(["'])copy\1 *\)/)){
+    //       const result = datas.replace(/document.execCommand\( *(["'])copy\1 *\)/,`chrome.ipcRenderer.send('execCommand-copy')`)
+    //       fs.writeFileSync(js, result)
+    //     }
+    //   }
+    // }
+  }
 
 }

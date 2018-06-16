@@ -1630,6 +1630,8 @@ class ContextMenuSetting extends React.Component {
   constructor(props) {
     super(props)
     this.state = {...contextMenuDefault,errors:{}}
+    this.emitChange2 = ::this.emitChange2
+    this.onBlur2 = ::this.onBlur2
   }
 
   onChange(isTab,name,e,data){
@@ -1643,23 +1645,6 @@ class ContextMenuSetting extends React.Component {
     }
     ipc.send('save-state',{tableName:'state',key:disableMenu,val:this.state[disableMenu]})
 
-    this.setState({})
-  }
-
-  emitChange(isTab,name,e){
-    const val = e.target.innerText
-    const priorityMenu = isTab ? 'priorityTabContextMenus' : 'priorityContextMenus'
-    if(val == "" || val === void 0){
-      delete this.state[priorityMenu]
-    }
-    else{
-      this.state[priorityMenu][name] = val
-    }
-    ipc.send('save-state',{tableName:'state',key:priorityMenu,val:this.state[priorityMenu]})
-  }
-
-  onBlur(isTab,name,e){
-    this.emitChange(isTab, name, e)
     this.setState({})
   }
 
@@ -1689,11 +1674,126 @@ class ContextMenuSetting extends React.Component {
     return ret
   }
 
+  emitChange(isTab,name,e){
+    const val = e.target.innerText
+    const priorityMenu = isTab ? 'priorityTabContextMenus' : 'priorityContextMenus'
+    if(val == "" || val === void 0){
+      delete this.state[priorityMenu]
+    }
+    else{
+      this.state[priorityMenu][name] = val
+    }
+    ipc.send('save-state',{tableName:'state',key:priorityMenu,val:this.state[priorityMenu]})
+  }
+
+  onBlur(isTab,name,e){
+    this.emitChange(isTab, name, e)
+    this.setState({})
+  }
+
+  typeChange(i,e,data){
+    console.log(i,e,data)
+    this.state.sendUrlContextMenus.find(x=>x.ind==i).type = data.value
+    ipc.send('save-state',{tableName:'state',key:'sendUrlContextMenus',val:this.state.sendUrlContextMenus})
+    this.setState({})
+  }
+
+  changeCheck(e,i,data){
+    const val = data.checked
+    this.state.sendUrlContextMenus.find(x=>x.ind==i).enable = val
+    ipc.send('save-state',{tableName:'state',key:'sendUrlContextMenus',val:this.state.sendUrlContextMenus})
+    this.setState({})
+  }
+
+  emitChange2(e){
+    const name = e.target.dataset.name
+    const i = parseInt(e.target.dataset.num)
+    const val = e.target.innerText
+    this.state.sendUrlContextMenus.find(x=>x.ind==i)[name] = val
+    ipc.send('save-state',{tableName:'state',key:'sendUrlContextMenus',val:this.state.sendUrlContextMenus})
+  }
+
+  onBlur2(e){
+    this.emitChange2(e)
+    this.setState({})
+  }
+
+  buildSendToColumns(){
+    const ret = []
+    for(let values of this.state.sendUrlContextMenus){
+      const i = values.ind
+      const col = <tr key={`tr${i}`}>
+        <td key={`enable${i}`}>
+          <Checkbox checked={values.enable} toggle onChange={(e,data)=>this.changeCheck(e,i,data)}/>
+        </td>
+        <td key={`name${i}`} data-num={i} data-name='name' onInput={this.emitChange2} onBlur={this.onBlur2} contentEditable>{values.name}</td>
+        <td key={`type${i}`}>
+          <Dropdown placeholder='State' fluid selection className="type" onChange={this.typeChange.bind(this,i)}
+                    options={[
+                      { text: 'New Tab', value: 'new' },
+                      { text: 'New Opposite Tab', value: 'opposite' },
+                      { text: 'Command', value: 'command' },
+                      { text: 'Command in Terminal', value: 'terminal' },
+                    ]} defaultValue={values.type}/>
+        </td>
+        <td key={`sendTo${i}`} data-num={i} data-name='sendTo' onInput={this.emitChange2} onBlur={this.onBlur2} contentEditable>{values.sendTo}</td>
+        <td key={`delete${i}`} style={{fontSize: 20, textAlign: 'center'}}>
+          <a href="javascript:void(0)" onClick={_=>this.deleteMenu(i)}> <i aria-hidden="true" className="trash icon"></i></a>
+        </td>
+      </tr>
+      ret.push(col)
+    }
+    return ret
+  }
+
+  addMenu(){
+    const max = Math.max(...this.state.sendUrlContextMenus.map(x=>x.ind),0)+1
+    const newRecord = {enable:true, name:`name${max}`, type:'new', sendTo:'%s', ind:max,updated_at:Date.now()}
+    this.state.sendUrlContextMenus.push(newRecord)
+    this.setState({})
+  }
+
+  deleteMenu(i){
+    const ind = this.state.sendUrlContextMenus.findIndex(x=>x.ind == i)
+    this.state.sendUrlContextMenus.splice(ind,1)
+    ipc.send('save-state',{tableName:'state', key:'sendUrlContextMenus', val:this.state.sendUrlContextMenus})
+    this.setState({})
+  }
+
   render() {
     return <div>
       <h3>{l10n.translation('5513242761114685513')}</h3>
       <Divider/>
 
+      <h3>Send to URL</h3>
+      <Divider/>
+      <table className="ui celled compact table">
+        <thead>
+        <tr>
+          <th>{l10n.translation('59174027418879706')}</th>
+          <th>{l10n.translation('name')}</th>
+          <th>Send Type</th>
+          <th>Send URL/Command</th>
+          <th>{l10n.translation('delete')}</th>
+        </tr>
+        </thead>
+        <tbody>
+        {this.buildSendToColumns()}
+        </tbody>
+        <tfoot className="full-width">
+        <tr>
+          <th>
+          </th>
+          <th colSpan="4">
+            <button className="ui small icon primary button" onClick={_ => this.addMenu()}>Add
+            </button>
+          </th>
+        </tr>
+        </tfoot>
+      </table>
+
+      <h3>{l10n.translation('contextMain')}</h3>
+      <Divider/>
       <table className="ui celled compact table" style={{borderCollapse: 'collapse'}}>
         <thead>
         <tr>
@@ -2048,7 +2148,8 @@ ipc.send("get-main-state",key,['startsWith','newTabMode','myHomepage','searchPro
   'defaultDownloadPath','alwaysOpenLinkNewTab','openTabPosition','alwaysOpenLinkBackground','addressBarNewTab','oppositeGlobal','colorNormalText','colorNormalBackground','colorActiveText',
   'colorActiveBackground','colorTabDot','colorUnreadText','colorUnreadBackground','enableColorOfNoSelect','themeColorChange','showBorderActiveTab','historyBadget','colorTabMode','enableDownloadList',
   'clearHistoryOnClose','clearDownloadOnClose','clearCacheOnClose','clearStorageDataOnClose','clearAutocompleteDataOnClose','clearAutofillDataOnClose','clearPasswordOnClose','clearGeneralSettingsOnClose','clearFavoriteOnClose',
-  'enableWidevine','toolbarLink','sidebarLink','bookmarkbarLink','zoomBehavior','tabPreviewSizeWidth','tabPreviewSizeHeight','tabPreviewSlideHeight','tabPreviewWait','searchEngineDisplayType','tabPreviewRecent'])
+  'enableWidevine','toolbarLink','sidebarLink','bookmarkbarLink','zoomBehavior','tabPreviewSizeWidth','tabPreviewSizeHeight','tabPreviewSlideHeight','tabPreviewWait','searchEngineDisplayType','tabPreviewRecent',
+  'sendUrlContextMenus'])
 ipc.once(`get-main-state-reply_${key}`,(e,data)=>{
   generalDefault = data
   keyboardDefault = data

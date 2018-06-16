@@ -1012,7 +1012,7 @@ ipcMain.on('change-tab-infos',(e,changeTabInfos)=> {
 // e.sender.send(`need-get-inner-text-reply_${key}`,mainState.historyFull)
 // })
 
-ipcMain.on('play-external',(e,url)=> open(url,mainState.sendToVideo))
+ipcMain.on('play-external',(e,url)=> open(mainState.sendToVideo,url))
 
 ipcMain.on('download-m3u8',(e,url,fname,tabId,userAgent,referer,needInput)=>{
   const youtubeDl = path.join(__dirname,'../node_modules/youtube-dl/bin/youtube-dl').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
@@ -1119,13 +1119,13 @@ ipcMain.on('get-country-names',e=>{
 })
 
 let prevCount = {}
-ipcMain.on('get-on-dom-ready',(e,tabId,tabKey,rSession)=>{
+ipcMain.on('get-on-dom-ready',(e,tabId,tabKey,rSession,closingPos)=>{
   const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
   if(!cont || cont.isDestroyed()){
     e.sender.send(`get-on-dom-ready-reply_${tabId}`,null)
     return
   }
-  saveTabState(cont, rSession, tabKey)
+  saveTabState(cont, rSession, tabKey, void 0, closingPos)
   if(mainState.flash) cont.authorizePlugin(mainState.flash)
 
   let currentEntryIndex,entryCount = cont.getEntryCount()
@@ -1146,13 +1146,19 @@ ipcMain.on('get-on-dom-ready',(e,tabId,tabKey,rSession)=>{
   e.sender.send(`get-on-dom-ready-reply_${tabId}`,{currentEntryIndex,entryCount,title: cont.getTitle(),rSession})
 })
 
-ipcMain.on('get-update-title',(e,tabId,tabKey,rSession)=>{
+ipcMain.on('tab-close-handler',(e,tabId,tabKey,rSession,closingPos)=>{
+  const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
+  if(!cont || cont.isDestroyed()) return
+  saveTabState(cont, rSession, tabKey, void 0, closingPos, 1)
+})
+
+ipcMain.on('get-update-title',(e,tabId,tabKey,rSession,closingPos)=>{
   const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
   if(!cont || cont.isDestroyed()){
     e.sender.send(`get-update-title-reply_${tabId}`,null)
     return
   }
-  saveTabState(cont, rSession, tabKey)
+  saveTabState(cont, rSession, tabKey, void 0, closingPos)
 
   let currentEntryIndex,entryCount = cont.getEntryCount()
   if(rSession){
@@ -1290,21 +1296,25 @@ function setTabState(cont,cb){
   ipcMain.emit('get-tab-opener',null,tabId)
 }
 
-function saveTabState(cont, rSession, tabKey, noUpdate) {
+function saveTabState(cont, rSession, tabKey, noUpdate, closingPos, close) {
+  closingPos = closingPos || {}
+
   let histNum = cont.getEntryCount(),
     currentIndex = cont.getCurrentEntryIndex(),
     historyList = []
-  const urls = [], titles = []
+  const urls = [], titles = [], positions = []
   if (!rSession) {
     for (let i = 0; i < histNum; i++) {
       const url = cont.getURLAtIndex(i)
       const title = cont.getTitleAtIndex(i)
+      const pos = closingPos[url] || ""
       urls.push(url)
       titles.push(title)
-      historyList.push([url, title])
+      positions.push(pos)
+      historyList.push([url, title, pos])
     }
     if (currentIndex > -1 && !noUpdate) {
-      setTabState(cont,vals => tabState.update({tabKey}, {...vals ,tabKey,titles: titles.join("\t"),urls: urls.join("\t"),currentIndex,updated_at: Date.now() }, {upsert: true}))
+      setTabState(cont,vals => tabState.update({tabKey}, {...vals ,tabKey,titles: titles.join("\t"),urls: urls.join("\t"),positions:JSON.stringify(positions),currentIndex, close, updated_at: Date.now() }, {upsert: true}))
     }
   }
   else {
@@ -1312,21 +1322,24 @@ function saveTabState(cont, rSession, tabKey, noUpdate) {
     if (histNum > (prevCount[tabKey] || 1) && currentIndex == histNum - 1) {
       const url = cont.getURLAtIndex(currentIndex)
       const title = cont.getTitleAtIndex(currentIndex)
+      const pos = closingPos[url] || ""
       rSession.urls = rSession.urls.slice(0, rSession.currentIndex + 1)
       rSession.titles = rSession.titles.slice(0, rSession.currentIndex + 1)
+      rSession.positions = rSession.positions.slice(0, rSession.currentIndex + 1)
       if(rSession.urls[rSession.urls.length-1] != url){
         rSession.urls.push(url)
         rSession.titles.push(title)
+        rSession.positions.push(pos)
       }
       rSession.currentIndex = rSession.urls.length - 1
       if (currentIndex > -1 && !noUpdate) {
-        setTabState(cont,vals => tabState.update({tabKey}, {$set: {...vals , titles: rSession.titles.join("\t"),urls: rSession.urls.join("\t"),currentIndex: rSession.currentIndex,updated_at: Date.now() } }))
+        setTabState(cont,vals => tabState.update({tabKey}, {$set: {...vals , titles: rSession.titles.join("\t"),urls: rSession.urls.join("\t"),positions:JSON.stringify(positions),currentIndex: rSession.currentIndex,updated_at: Date.now() } }))
       }
     }
     if (currentIndex > -1 && !noUpdate) {
       setTabState(cont,vals => tabState.update({tabKey}, {$set: {...vals ,currentIndex: rSession.currentIndex, updated_at: Date.now()}}))
     }
-    historyList = rSession.urls.map((x, i) => [x, rSession.titles[i]])
+    historyList = rSession.urls.map((x, i) => [x, rSession.titles[i], rSession.positions[i]])
     currentIndex = rSession.currentIndex
   }
   if(!noUpdate) prevCount[tabKey] = histNum
@@ -1603,9 +1616,12 @@ ipcMain.on('history-pin',async (e,key,_id,val)=>{
 
 
 ipcMain.on('quit-browser',(e,type)=>{
-  if(type == 'restart') app.relaunch()
-  BrowserWindow.getAllWindows().forEach(win=>win.close())
-  app.quit()
+  ipcMain.emit('save-all-windows-state',null,'quit')
+  ipcMain.once('wait-saveState-on-quit',()=>{
+    if(type == 'restart') app.relaunch()
+    BrowserWindow.getAllWindows().forEach(win=>win.close())
+    app.quit()
+  })
 })
 
 ipcMain.on('close-window',e=>{

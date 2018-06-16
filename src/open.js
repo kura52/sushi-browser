@@ -17,9 +17,10 @@ var exec = require('child_process').exec
 
 module.exports = open;
 
-function open(target, appName, callback, cwd) {
-  var opener;
+function open(appName, target, callback, cwd, noEscape) {
+  target = target || ""
 
+  var opener;
   if (typeof(appName) === 'function') {
     callback = appName;
     appName = null;
@@ -28,8 +29,9 @@ function open(target, appName, callback, cwd) {
   switch (process.platform) {
     case 'darwin':
       if (appName) {
-        opener = 'open -a "' + escape(appName) + '"';
-      } else {
+        opener = 'open -a ' + (noEscape ? appName : escape(appName))
+      }
+      else {
         opener = 'open';
       }
       break;
@@ -37,15 +39,17 @@ function open(target, appName, callback, cwd) {
       // if the first parameter to start is quoted, it uses that as the title
       // so we pass a blank title so we can quote the file we are opening
       if (appName) {
-        opener = 'start "" "' + escape(appName) + '"';
-      } else {
+        opener = 'start "" ' + (noEscape ? appName : escape(appName))
+      }
+      else {
         opener = 'start ""';
       }
       break;
     default:
       if (appName) {
-        opener = escape(appName);
-      } else {
+        opener = noEscape ? appName : escape(appName)
+      }
+      else {
         opener = 'xdg-open';
       }
       break;
@@ -54,13 +58,14 @@ function open(target, appName, callback, cwd) {
   if (process.env.SUDO_USER) {
     opener = 'sudo -u ' + process.env.SUDO_USER + ' ' + opener;
   }
-  console.log(opener + ' "' + escape(target) + '" &', {cwd})
+  // console.log(opener + ' "' + escape(target) + '" &', {cwd})
   if(cwd){
-    return exec(opener + ' "' + escape(target) + '" &', {cwd}, callback);
+    return exec(`${opener} ${escape(target)} &`, {cwd}, callback);
   }
-  return exec(opener + ' "' + escape(target) + '" &', callback);
+  return exec(`${opener} ${escape(target)} &`, callback);
 }
 
 function escape(s) {
-  return s.replace(/"/g, '\\\"');
+  return '"'+s.replace(/(["\t\n\r\f'$`\\])/g,'\\$1')+'"'
+  // return s.replace(/"/g, '\\\"');
 }

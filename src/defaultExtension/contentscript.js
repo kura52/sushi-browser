@@ -5,7 +5,7 @@ if(window.__started_){
 
   if(location.href.startsWith('http') && window == window.parent){
     window.addEventListener("beforeunload", e=>{
-      ipc.send('scroll-position',window.scrollX ,window.scrollY)
+      ipc.sendToHost('scroll-position',{x:window.scrollX ,y:window.scrollY})
     });
 
     document.addEventListener("DOMContentLoaded",_=>{

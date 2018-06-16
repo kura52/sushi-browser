@@ -182,6 +182,7 @@ var rendererIdentifiers = function () {
     'learnSpelling',
     'forgetLearnedSpelling',
     'lookupSelection',
+    'contextMain',
     // Other identifiers
     'aboutBlankTitle',
     'urlCopied',
@@ -373,6 +374,7 @@ var rendererIdentifiers = function () {
     '480990236307250886',
     '7754704193130578113',
     '7791543448312431591',
+    '59174027418879706',
 
     'playOrPause',
     'frameStep',

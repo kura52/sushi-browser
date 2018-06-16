@@ -157,8 +157,7 @@ function registerForBeforeRequest (session) {
 
   session.webRequest.onHeadersReceived((details, cb) => {
     setTimeout(_=>{
-      if(details.statusCode === 302){
-        console.log(details)
+      if(details.statusCode === 301 || details.statusCode === 302){
         redirectUrlsCache.set((details.responseHeaders.Location || details.responseHeaders.location || details.responseHeaders.LOCATION)[0], details.firstPartyUrl)
       }
       const headers = details.responseHeaders, newURL = details.url
@@ -263,7 +262,6 @@ const startAdBlocking = (adblock, resourceName, shouldCheckMainFrame,ses=session
   registerForBeforeRequest(ses)
 
   ses.webRequest.onBeforeRedirect((details) => {
-    console.log('rredirect',details)
     redirectUrlsCache.set(details.redirectURL,details.url)
   })
 }

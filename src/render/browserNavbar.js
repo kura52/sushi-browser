@@ -306,6 +306,7 @@ class BrowserNavbar extends Component{
         console.log(9996,rSession)
         this.props.tab.rSession.urls = rSession.urls
         this.props.tab.rSession.titles = rSession.titles
+        this.props.tab.rSession.positions = rSession.positions
         this.props.tab.rSession.currentIndex = currentIndex
       }
       if(this.props.adBlockEnable != adBlockGlobal) PubSub.publish('set-adblock-enable',adBlockGlobal)
@@ -325,6 +326,7 @@ class BrowserNavbar extends Component{
         console.log(9998,this.props.tab.rSession)
         this.props.tab.rSession.urls = rSession.urls
         this.props.tab.rSession.titles = rSession.titles
+        this.props.tab.rSession.positions = rSession.positions
         this.props.tab.rSession.currentIndex = currentIndex
       }
       if(!(this.state.currentIndex === currentIndex &&

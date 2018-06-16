@@ -80,10 +80,17 @@ ipcMain.on('import-setting', _ => {
   }, fileNames => {
     if (fileNames && fileNames.length == 1) {
       const setting = JSON.parse(fs.readFileSync(fileNames[0]).toString())
+      state.update({ key: 1 }, setting).then(_=>_)
+      try{
+        if(setting && setting.adBlockDisableSite.length){
+          setting.adBlockDisableSite = JSON.parse(setting.adBlockDisableSite)
+        }
+      }catch(e){
+        setting.adBlockDisableSite = {}
+      }
       for(let [key,dVal] of Object.entries(settingDefault)){
         setOptionVal(key,dVal,setting[key])
       }
-      state.update({ key: 1 }, setting).then(_=>_)
     }
   })
 })

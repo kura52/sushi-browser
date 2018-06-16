@@ -238,9 +238,21 @@ export default class App extends React.Component {
     super(props)
     l10n = this.props.favoritePage && require('../../brave/js/l10n')
     this.handleBlur = ::this.handleBlur
+    this.handleLoad = ::this.handleLoad
     this.handleClickFile = ::this.handleClickFile
     this.setHeight = ::this.setHeight
-    this.state = {}
+    this.state = {height: 300}
+  }
+
+  handleLoad(e){
+    localForage.getItem("note-sidebar-select-node").then(nodeIds=>{
+      if(!nodeIds || !nodeIds.length) return
+      const iTree = this.refs.content.refs.iTree
+      for(let id of nodeIds){
+        const currentNode = iTree.tree.getNodeById(id)
+        iTree.props.onClick({ctrlKey:true, currentNode, stopPropagation:()=>{}})
+      }
+    })
   }
 
   handleBlur(e){
@@ -257,6 +269,7 @@ export default class App extends React.Component {
   }
 
   setHeight(height){
+    localForage.setItem("note-sidebar-height",height)
     document.querySelector('#editSection').style.height = `${height}px`
     this.state.editor.wwEditor.setHeight(height - 55)
     this.state.editor.mdEditor.setHeight(height - 55)
@@ -278,17 +291,22 @@ export default class App extends React.Component {
   componentDidMount() {
     ReactDOM.findDOMNode(this.refs.stickey).style.height = "100%"
 
-    this.setState({editor: new Editor({
-        el: document.querySelector('#editSection'),
-        initialEditType: 'wysiwyg',
-        previewStyle: 'vertical',
-        height: '300px',
-        minHeight: '0px',
-        language: navigator.languages[0].slice(0,2),
-        exts: ['chart', 'scrollSync', 'table', 'uml', 'colorSyntax'],
-        events: {
-          blur: this.handleBlur
-        }
+    localForage.getItem("note-sidebar-height").then(height=>{
+      height = height ? parseInt(height) : 300
+      document.querySelector("#classic .infinite-tree-scroll").style.height = `calc(100vh - ${height+126}px)`
+      this.setState({editor: new Editor({
+          el: document.querySelector('#editSection'),
+          initialEditType: 'wysiwyg',
+          previewStyle: 'vertical',
+          height: `${height}px`,
+          minHeight: '0px',
+          language: navigator.languages[0].slice(0,2),
+          exts: ['chart', 'scrollSync', 'table', 'uml', 'colorSyntax'],
+          events: {
+            load: this.handleLoad,
+            blur: this.handleBlur
+          }
+        }),height
       })
     })
     this.refs.content.refs.iTree.tree.getRootNode().getLastChild()
@@ -408,25 +426,25 @@ export default class App extends React.Component {
             <Input ref='input' icon='search' placeholder='Search...' size="small" onChange={::this.onChange}/>
             <div style={{padding: '4px 0px 2px 12px'}}>
               <Button.Group basic>
-              <Button icon='file' onClick={_=>{
-                this.refs.content.menuKey = selectedNodes.length ? selectedNodes : [this.refs.content.refs.iTree.tree.getRootNode().getLastChild()]
-                ipc.emit('favorite-menu-reply',null,'addBookmark',true)
-              }}/>
-              <Button icon='folder' onClick={_=>{
-                this.refs.content.menuKey = selectedNodes.length ? selectedNodes : [this.refs.content.refs.iTree.tree.getRootNode().getLastChild()]
-                ipc.emit('favorite-menu-reply',null,'addFolder',true)
-              }}/>
-              <Button icon='minus' onClick={_=>{
-                if(selectedNodes.length){
-                  this.refs.content.menuKey = selectedNodes
-                  ipc.emit('favorite-menu-reply',null,'delete')
-                }
-              }}/>
-              <Button icon='save' onClick={_=>{
-                if(selectedNodes.length && selectedNodes[0].type == 'file'){
-                  ipc.send('save-file',{content:this.state.editor.getMarkdown(), fname: 'note.txt', isDesktop: true})
-                }
-              }}/>
+                <Button icon='file' onClick={_=>{
+                  this.refs.content.menuKey = selectedNodes.length ? selectedNodes : [this.refs.content.refs.iTree.tree.getRootNode().getLastChild()]
+                  ipc.emit('favorite-menu-reply',null,'addBookmark',true)
+                }}/>
+                <Button icon='folder' onClick={_=>{
+                  this.refs.content.menuKey = selectedNodes.length ? selectedNodes : [this.refs.content.refs.iTree.tree.getRootNode().getLastChild()]
+                  ipc.emit('favorite-menu-reply',null,'addFolder',true)
+                }}/>
+                <Button icon='minus' onClick={_=>{
+                  if(selectedNodes.length){
+                    this.refs.content.menuKey = selectedNodes
+                    ipc.emit('favorite-menu-reply',null,'delete')
+                  }
+                }}/>
+                <Button icon='save' onClick={_=>{
+                  if(selectedNodes.length && selectedNodes[0].type == 'file'){
+                    ipc.send('save-file',{content:this.state.editor.getMarkdown(), fname: 'note.txt', isDesktop: true})
+                  }
+                }}/>
               </Button.Group>
             </div>
           </div>
@@ -457,7 +475,7 @@ export default class App extends React.Component {
                    afterSelect={::this.afterSelect} clearSelect={::this.clearSelect}>
           <Contents ref="content" editor={this.state.editor} parent={this} favoritePage={this.props.favoritePage}/>
         </Selection>}
-      <ToolbarResizer height={this.state.height || 300} setHeight={this.setHeight} minus={true}/>
+      <ToolbarResizer height={this.state.height} setHeight={this.setHeight} minus={true}/>
       <div id="editSection" ref="editor"/>
     </StickyContainer>
   }
@@ -864,7 +882,7 @@ class Contents extends React.Component {
           onClick={(event) => {
             let openType2 = this.props.bookmarkbarLink !== void 0 ? this.props.bookmarkbarLink : openType
             const tree = this.refs.iTree.tree
-            const currentNode = tree.getNodeFromPoint(event.x, event.y);
+            const currentNode = event.currentNode || tree.getNodeFromPoint(event.x, event.y);
             if (!currentNode) {
               return;
             }
@@ -912,6 +930,7 @@ class Contents extends React.Component {
                   else{
                     this.props.parent.handleClickFile(currentNode)
                     selectedNodes.push(currentNode)
+                    localForage.setItem("note-sidebar-select-node",selectedNodes.map(node=>node.id))
                     // ipc.sendToHost("open-tab-opposite",currentNode.url,true,event.button == 1 ? 'create-web-contents' : openType2 ? 'new-tab' : 'load-url')
                   }
                   return;
@@ -921,8 +940,12 @@ class Contents extends React.Component {
                 this.props.parent.setHidden(true)
                 tree.toggleNode(currentNode);
                 selectedNodes.push(currentNode)
+                localForage.setItem("note-sidebar-select-node",selectedNodes.map(node=>node.id))
                 return;
               }
+            }
+            else if(currentNode.type == 'file'){
+              this.props.parent.handleClickFile(currentNode)
             }
 
             // Call event.stopPropagation() to stop event bubbling
@@ -949,6 +972,8 @@ class Contents extends React.Component {
               selectedNodes.push(currentNode);
               tree.updateNode(currentNode, {}, { shallowRendering: true });
             }
+
+            localForage.setItem("note-sidebar-select-node",selectedNodes.map(node=>node.id))
           }}
           onDoubleClick={(event) => {
             if(this.props.favoritePage) {
@@ -978,11 +1003,13 @@ class Contents extends React.Component {
               if(prevNode.type == 'file'){
                 this.props.parent.handleClickFile(prevNode)
                 selectedNodes.splice(0,selectedNodes.length,prevNode)
+                localForage.setItem("note-sidebar-select-node",selectedNodes.map(node=>node.id))
               }
               else{
                 this.props.parent.setHidden(true)
                 tree.toggleNode(prevNode)
                 selectedNodes.push(prevNode)
+                localForage.setItem("note-sidebar-select-node",selectedNodes.map(node=>node.id))
               }
             } else if (event.keyCode === 39) { // Right
               tree.openNode(node);
@@ -992,11 +1019,13 @@ class Contents extends React.Component {
               if(nextNode.type == 'file'){
                 this.props.parent.handleClickFile(nextNode)
                 selectedNodes.splice(0,selectedNodes.length,nextNode)
+                localForage.setItem("note-sidebar-select-node",selectedNodes.map(node=>node.id))
               }
               else{
                 this.props.parent.setHidden(true)
                 tree.toggleNode(nextNode)
                 selectedNodes.push(nextNode)
+                localForage.setItem("note-sidebar-select-node",selectedNodes.map(node=>node.id))
               }
             }
           }}

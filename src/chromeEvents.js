@@ -136,7 +136,7 @@ ipcMain.on('add-extension',(e,{id,url})=>{
             fs.removeSync(`${extRootPath}_crx`)
           }
           fs.unlink(`${extRootPath}.crx`,_=>_)
-          chromeManifestModify(id,verPath)
+          await chromeManifestModify(id,verPath)
           extensions.loadExtension(session.defaultSession,id,verPath)
         }catch(e){
           console.log(e)

@@ -18,16 +18,15 @@ const normalSize = {}
 let saved = false
 let unmouted
 
-function savedStateUpdate(states,closeKey){
-  savedState.insert(states).then(doc=>{
-    const updated_at = Date.now()
-    for(let win of doc.wins){
-      const key = win.winState.key
-      const val = {key,id:doc._id, updated_at}
-      if(key == closeKey) val.close = 1
-      windowState.update({key}, val, { upsert: true }).then(_=>_)
-    }
-  })
+async function savedStateUpdate(states,closeKey){
+  const doc = await savedState.insert(states)
+  const updated_at = Date.now()
+  for(let win of doc.wins){
+    const key = win.winState.key
+    const val = {key,id:doc._id, updated_at}
+    if(key == closeKey) val.close = 1
+    await windowState.update({key}, val, { upsert: true })
+  }
 }
 
 let autoSaveStarted
@@ -69,16 +68,23 @@ async function saveAllWindowsState(){
   return {wins}
 }
 
-ipcMain.on('save-all-windows-state',async (e,key)=>{
+async function saveAllWindowsStateHandler(e,key){
   console.log(575,key)
   const states = await saveAllWindowsState()
   if(key){
-    e.sender.send(`save-all-windows-state-reply_${key}`)
+    e && e.sender.send(`save-all-windows-state-reply_${key}`)
   }
   states.created_at = Date.now()
+  if(key == 'quit'){
+    await state.update({key: 2},{key: 2, created_at: states.created_at, updated_at: Date.now()},{upsert: true})
+    console.log(5275,key)
+  }
   if(!key) states.user = true
-  savedStateUpdate(states,key)
-})
+  await savedStateUpdate(states,key)
+  ipcMain.emit('wait-saveState-on-quit')
+}
+
+ipcMain.on('save-all-windows-state',saveAllWindowsStateHandler)
 
 
 function create(args){
@@ -113,23 +119,7 @@ function create(args){
     // else if(sendTitle.includes('Sushi Browser')){
     const wins = BrowserWindow.getAllWindows().filter(w=>w.getTitle().includes('Sushi Browser'))
     console.log(wins.length,BrowserWindow.getAllWindows().filter(w=>w.getTitle().includes('Sushi Browser')))
-    if(wins.length > 1){ //@TODO close event hang out other windows
-      // // bw.setSkipTaskbar(true)
-      // bw.webContents.send('unmount-components',{})
-      // unmouted = true
-      // let flag = false
-      // const closeFunc = _=>{
-      //   if(!flag){
-      //     flag = true
-      //     unmouted = false
-      //     bw.setTitle('Closed')
-      //     bw.hide()
-      //     PubSub.publish('chrome-windows-onRemoved',bw.id)
-      //   }
-      // }
-      // ipcMain.once('unmount-components-reply',closeFunc)
-      // setTimeout(closeFunc,1500)
-      // e.preventDefault()
+    if(wins.length > 1){
       return
     }
     else if(mainState.keepOpen){
@@ -340,6 +330,19 @@ export default {
       console.log(7778,mainState.winState)
       mainState.maxBounds = JSON.stringify(setting.maxBounds)
       mainState.maxState = JSON.stringify({width: setting.width, height: setting.height, maximize: setting.maximize,maxWidth: setting.maximize && setting.maxBounds.width,maxHeight: setting.maximize && setting.maxBounds.height})
+
+      let rec
+      if(mainState.startsWith == 'startsWithOptionLastTime' && (rec = await state.findOne({key: 2}))){
+        await state.remove({key: 2}, { multi: true })
+        const saveState = await savedState.findOne({ created_at: rec.created_at })
+        if(saveState){
+          for(let newWin of saveState.wins){
+            this.load({x:newWin.x, y:newWin.y, width:newWin.width, height:newWin.height,
+              maximize: newWin.maximize, tabParam:JSON.stringify(newWin)})
+          }
+        }
+      }
+
     }
     else if(opt.id){
       const newState = Object.assign({...setting.winState},{key:uuid.v4(),dirc: 'v',pd:'l',l:{key: uuid.v4(),tabs: []},size:'100%'})
@@ -349,7 +352,6 @@ export default {
 
 
     console.log(77,winSetting)
-    const win = BrowserWindow.getAllWindows().find(w=>w.getTitle().includes('Closed'))
     const fontOpt = process.platform == 'win32' && lang == 'ja' ? {
       defaultFontFamily: {
         standard: 'Meiryo UI',
@@ -422,42 +424,24 @@ export default {
 
 
     console.log(909,winArg)
-    // if(!win){
-      winArg.width = winArg.width || setting.width
-      winArg.height = winArg.height || setting.height
-      initWindow = create(winArg)
-      localShortcuts.register(initWindow)
-      // initWindow.setIcon("C:\\Users\\kura5\\Downloads\xawtv-icone-9477-128.png")
-      initWindow.setMenuBarVisibility(true)
-      initWindow.loadURL(`chrome://brave/${path.join(__dirname, '../index.html').replace(/\\/g,"/")}${getParam}`)
-      // initWindow.webContents.openDevTools()
-      initWindow.webContents.once('did-finish-load', () => {
-        initWindow.show()
-        if(!initWindow.isMaximized()){
-          normalSize[initWindow.id] = initWindow.getBounds()
-        }
-        if(winArg.maximize) initWindow.maximize()
-        initWindow.setAlwaysOnTop(!!winArg.alwaysOnTop)
-      })
-
-      new (require('./Download'))(initWindow)
-    // }
-    // else{
-    //   initWindow = win
-    //   win.setBounds({x: winArg.x, y: winArg.y, width: winArg.width || setting.width, height: winArg.height || setting.height})
-    //   win.setSkipTaskbar(false)
-    //   win.setTitle('Sushi Browser')
-    //   // win.reload()
-    //   win.loadURL(`chrome://brave/${path.join(__dirname, '../index.html').replace(/\\/g,"/")}${getParam}`)
-    //   console.log(winArg,setting)
-    //
-    //   win.webContents.once('did-finish-load', () => {
-    //     win.show()
-    //     if(winArg.maximize) win.maximize()
-    //     win.setAlwaysOnTop(!!winArg.alwaysOnTop)
-    //   })
-    // }
+    winArg.width = winArg.width || setting.width
+    winArg.height = winArg.height || setting.height
+    initWindow = create(winArg)
+    localShortcuts.register(initWindow)
+    initWindow.setMenuBarVisibility(true)
+    initWindow.loadURL(`chrome://brave/${path.join(__dirname, '../index.html').replace(/\\/g,"/")}${getParam}`)
     // initWindow.webContents.openDevTools()
+    initWindow.webContents.once('did-finish-load', () => {
+      initWindow.show()
+      if(!initWindow.isMaximized()){
+        normalSize[initWindow.id] = initWindow.getBounds()
+      }
+      if(winArg.maximize) initWindow.maximize()
+      initWindow.setAlwaysOnTop(!!winArg.alwaysOnTop)
+    })
+
+    new (require('./Download'))(initWindow)
+
     PubSub.publish('chrome-windows-onCreated',initWindow.id)
     return initWindow
   },

@@ -165,8 +165,8 @@ app.on('ready', async ()=>{
   require('./clearEvent')
 
 
-  // ptyProcessSet = require('./ptyProcess')
-  ptyProcessSet = new Set()
+  ptyProcessSet = require('./ptyProcess')
+  // ptyProcessSet = new Set()
   passwordManager = require('./passwordManagerMain')
   require('./importer')
   require('./bookmarksExporter')
@@ -896,10 +896,38 @@ function contextMenu(webContents) {
 
       if(isVideoURL){
         menuItems.push({label: 'Save and Play Video', click: (item, win) => ipcMain.emit('save-and-play-video',null,props.linkURL,win)})
-        if(!disableContextMenus.has('Send URL to Video Player')) menuItems.push({label: `Send URL to ${players.find(x=>x.value == mainState.sendToVideo).text}`, click: () => videoProcessList.push(open(props.linkURL,mainState.sendToVideo))})
+        if(!disableContextMenus.has('Send URL to Video Player')) menuItems.push({label: `Send URL to ${players.find(x=>x.value == mainState.sendToVideo).text}`, click: () => videoProcessList.push(open(mainState.sendToVideo,props.linkURL))})
       }
       menuItems.push({type: 'separator'})
       if(!hasText && props.mediaType === 'none'){
+        for(let send of mainState.sendUrlContextMenus){
+          if(!send.enable) continue
+          let handleClick
+          if(send.type == 'new' || send.type == 'opposite'){
+            handleClick = (item, win) => win.webContents.send(send.type == 'new' ? 'new-tab' : 'new-tab-opposite',
+              webContents.getId(), send.sendTo.replace("%s",props.linkURL))
+          }
+          else if(send.type == 'command' || send.type == 'terminal'){
+            const escape = (s)=> '"'+s.replace(/(["\t\n\r\f'$`\\])/g,'\\$1')+'"'
+            const command = send.sendTo.replace("%s",escape(props.linkURL))
+            if(send.type == 'command'){
+              handleClick = (item, win) => open(command, void 0, void 0, void 0, true)
+            }
+            else{
+              ipcMain.once('start-pty-reply', (e, key) => {
+                ipcMain.emit(`send-pty_${key}`, null, `${command}\n`)
+              })
+              handleClick = (item, win) => win.webContents.send('new-tab', webContents.getId(), 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html')
+            }
+          }
+
+
+          menuItems.push({
+            label: `Send URL to ${send.name}`,
+            click: handleClick
+          })
+        }
+
         const type = mainState.searchProviders[mainState.searchEngine].type
         for(let suffix of type ? [''] : mainState.searchEngineDisplayType == 'c' ? ['(c)'] :
           mainState.searchEngineDisplayType == 'o' ? ['(o)'] : mainState.oppositeGlobal ? ['(o)','(c)'] : ['(c)','(o)']){
@@ -974,7 +1002,7 @@ function contextMenu(webContents) {
       menuItems.push({label: 'Save and Play Video', click: (item, win) => ipcMain.emit('save-and-play-video',null,props.srcURL,win)})
 
       const player = players.find(x=>x.value == mainState.sendToVideo)
-      if(player) menuItems.push({t: 'Send URL to Video Player', label: `Send URL to ${player.text}`, click: () => videoProcessList.push(open(props.srcURL,mainState.sendToVideo))})
+      if(player) menuItems.push({t: 'Send URL to Video Player', label: `Send URL to ${player.text}`, click: () => videoProcessList.push(open(mainState.sendToVideo,props.srcURL))})
       menuItems.push({type: 'separator'})
     }
 

@@ -84,6 +84,7 @@ ipc.on('record-op',(e,val)=>{
 })
 
 const activeTabs = {}
+const closingPos = {}
 
 const convertUrlMap = new Map([
   ['about:blank','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html'],
@@ -387,8 +388,9 @@ export default class TabPanel extends Component {
         if(rSession){
           rSession.urls = rSession.urls.split("\t")
           rSession.titles = rSession.titles.split("\t")
+          rSession.positions = rSession.positions ? JSON.parse(rSession.positions) : []
         }
-        const n_tab = this.createTab({default_url:tab.url || (rSession && rSession.urls[rSession.currentIndex]),privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,guestInstanceId: tab.guestInstanceId,rest:{rSession}})
+        const n_tab = this.createTab({default_url:tab.url || (rSession && rSession.urls[rSession.currentIndex]),initPos: rSession && rSession.positions[rSession.currentIndex],privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,guestInstanceId: tab.guestInstanceId,rest:{rSession}})
         if(tab.lock){
           const id = setInterval(_=>{
             if(n_tab.wvId){
@@ -408,7 +410,7 @@ export default class TabPanel extends Component {
           },300)
         }
         tabs.push(n_tab)
-        if(rSession) tabState.insert({tabKey:n_tab.key,titles:rSession.titles.join("\t"),urls:rSession.urls.join("\t"),currentIndex:rSession.currentIndex, updated_at: Date.now()})
+        if(rSession) tabState.insert({tabKey:n_tab.key,titles:rSession.titles.join("\t"),urls:rSession.urls.join("\t"),positions: JSON.stringify(rSession.positions),currentIndex:rSession.currentIndex, updated_at: Date.now()})
         withWindowCreateTabs.add(n_tab.key)
         i++
       }
@@ -1287,6 +1289,22 @@ export default class TabPanel extends Component {
           timeStamp: Date.now()
         })
 
+        if(tab.initPos){
+          if(tab.initPos[0] == page.navUrl){
+            tab.wv.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',`window.scrollTo(${tab.initPos[1].x},${tab.initPos[1].y})`,{},()=>{})
+          }
+          delete tab.initPos
+        }
+
+        if(sharedState.tabPreview){
+          const base64 = uuid.v4()
+          ipc.send('take-capture', {base64, tabId: tab.wvId})
+          ipc.once(`take-capture-reply_${base64}`,(e,dataURL,size)=>{
+            tab.tabPreview = {dataURL,...size}
+            PubSub.publish('tab-preview-update',{dataURL,...size})
+          })
+        }
+
         ipc.send('get-did-finish-load',tab.wvId,tab.key,tab.rSession)
         ipc.once(`get-did-finish-load-reply_${tab.wvId}`,(e,c)=> {
           console.log(`get-did-finish-load-reply_${tab.wvId}`,c)
@@ -1319,14 +1337,6 @@ export default class TabPanel extends Component {
               }
             }
           })()
-          if(sharedState.tabPreview){
-            const base64 = uuid.v4()
-            ipc.send('take-capture', {base64, tabId: tab.wvId})
-            ipc.once(`take-capture-reply_${base64}`,(e,dataURL,size)=>{
-              tab.tabPreview = {dataURL,...size}
-              PubSub.publish('tab-preview-update',{dataURL,...size})
-            })
-          }
           // ipc.send('chrome-tab-updated',parseInt(tab.key), e, self.getChromeTab(tab))
         })
 
@@ -1405,7 +1415,7 @@ export default class TabPanel extends Component {
 
         console.log(tab.wv,tab.wvId,guestIds.tabId,tab.e&&tab.e.tabId,tab.e,e)
 
-        ipc.send('get-on-dom-ready',tab.wvId,tab.key,tab.rSession)
+        ipc.send('get-on-dom-ready',tab.wvId,tab.key,tab.rSession,closingPos[tab.key])
         ipc.once(`get-on-dom-ready-reply_${tab.wvId}`,(e,c)=>{
           if(!c) return
           const domLoadedTime = Date.now()
@@ -1550,6 +1560,13 @@ export default class TabPanel extends Component {
             refs2[`navbar-${tab.key}`].setState({})
             self.setStatePartical(tab)
 
+            if(tab.initPos){
+              if(tab.initPos[0] == page.navUrl){
+                tab.wv.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',`window.scrollTo(${tab.initPos[1].x},${tab.initPos[1].y})`,{},()=>{})
+              }
+              delete tab.initPos
+            }
+
             if(sharedState.tabPreview){
               const base64 = uuid.v4()
               ipc.send('take-capture', {url: page.navUrl, loc:page.navUrl, base64, tabId: tab.wvId})
@@ -1559,7 +1576,7 @@ export default class TabPanel extends Component {
               })
             }
           }
-        },7500)
+        },7000)
         page.favicon = page.navUrl == '' || page.navUrl.match(/^(file:\/\/|chrome|about)/) ? 'resource/file.png' : 'loading'
       }
 
@@ -1740,11 +1757,13 @@ export default class TabPanel extends Component {
     tabState.findOne({tabKey}).then(rSession=>{
       const urls = rSession.urls
       const titles = rSession.titles
+      const positions = rSession.positions
       rSession.urls = urls.split("\t")
       rSession.titles = titles.split("\t")
+      rSession.positions = positions ? JSON.parse(positions) : []
       if(restoreIndex !== null) rSession.currentIndex = restoreIndex
-      const n_tab = this.createTab({default_url:rSession.urls[rSession.currentIndex],rest:{rSession}})
-      tabState.insert({tabKey:n_tab.key,titles,urls,currentIndex:rSession.currentIndex, updated_at: Date.now()})
+      const n_tab = this.createTab({default_url:rSession.urls[rSession.currentIndex],initPos: rSession.positions[rSession.currentIndex], rest:{rSession}})
+      tabState.insert({tabKey:n_tab.key,titles,urls,positions,currentIndex:rSession.currentIndex, updated_at: Date.now()})
       if(i === void 0){
         this.state.tabs.push(n_tab)
       }
@@ -2108,6 +2127,14 @@ export default class TabPanel extends Component {
         sharedState[`color-${tab.key}`] = e.args[0]
         this.refs.tabs.setState({})
       }
+      else if(e.channel == 'scroll-position'){
+        if(closingPos[tab.key]){
+          closingPos[tab.key][tab.page.navUrl] = e.args[0]
+        }
+        else{
+          closingPos[tab.key] = {[tab.page.navUrl]: e.args[0]}
+        }
+      }
     }];
     tab.wv.addEventListener('ipc-message',tab.events['ipc-message'][1] )
 
@@ -2259,6 +2286,7 @@ export default class TabPanel extends Component {
     if(!url) return
     tab.rSession.currentIndex = newIndex
     tab.wv.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',`location.replace("${url}")`,{},()=>{})
+    tab.initPos = [url, tab.rSession.positions[newIndex]]
     refs2[`navbar-${tab.key}`].setState({})
   }
 
@@ -2372,7 +2400,7 @@ export default class TabPanel extends Component {
         // tab.wv.reload()
         const cont = this.getWebContents(tab)
         if(cont){
-          ipc.send('get-update-title',tab.wvId,tab.key,tab.rSession)
+          ipc.send('get-update-title',tab.wvId,tab.key,tab.rSession,closingPos[tab.key])
           ipc.once(`get-update-title-reply_${tab.wvId}`,(e,c)=> {
             if(!c) return
             if(c.rSession) tab.rSession = c.rSession
@@ -2418,7 +2446,7 @@ export default class TabPanel extends Component {
     }
   }
 
-  createTab({default_url,c_page=null,c_wv=null,c_key=null,hist=null,privateMode=false,pin=false,protect=false,lock=false,mute=false,reloadInterval=false,guestInstanceId,rest,tabPreview} = {}){
+  createTab({default_url,c_page=null,c_wv=null,c_key=null,hist=null,privateMode=false,pin=false,protect=false,lock=false,mute=false,reloadInterval=false,guestInstanceId,tabPreview,initPos,rest} = {}){
     default_url = default_url || (isFixedVerticalPanel(this.props.k) ? sidebarURL : topURL)
     if(default_url) default_url = convertURL(default_url)
     const tab = {events:{},ext:{}}
@@ -2431,6 +2459,7 @@ export default class TabPanel extends Component {
     if(tab.adBlockThis === (void 0)) tab.adBlockThis = adBlockEnable
 
     if(guestInstanceId) tab.guestInstanceId = guestInstanceId
+    if(initPos) tab.initPos = [default_url, initPos]
 
     const newPage = c_page || this.createPageObject(default_url)
     const navigateTo = (l)=> this.navigateTo(newPage, l, tab)
@@ -3296,11 +3325,18 @@ export default class TabPanel extends Component {
       const tabKey = tab.key
       this.state.history.push([tabKey,i])
 
-      tab.wv.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd','{x:window.scrollX ,y:window.scrollY}',{},
+      tab.wv.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd','({x:window.scrollX ,y:window.scrollY})',{},
         (err, url, result) => {
           if(result[0]){
-            tabState.update({tabKey},{$set:{close:1,updated_at: Date.now()}}).then(_=>_)
+            if(closingPos[tab.key]){
+              closingPos[tab.key][tab.page.navUrl] = result[0]
+            }
+            else{
+              closingPos[tab.key] = {[tab.page.navUrl]: result[0]}
+            }
           }
+          ipc.send('tab-close-handler',tab.wvId,tab.key,tab.rSession,closingPos[tab.key])
+          delete closingPos[tab.key]
         })
     }
   }
@@ -4013,7 +4049,7 @@ export default class TabPanel extends Component {
   updateTitle(id){
     this.state.tabs.forEach(tab=> {
       if (tab.wvId && tab.wvId === id) {
-        ipc.send('get-update-title',tab.wvId,tab.key,tab.rSession)
+        ipc.send('get-update-title',tab.wvId,tab.key,tab.rSession,closingPos[tab.key])
         ipc.once(`get-update-title-reply_${tab.wvId}`,(e,c)=> {
           if(!c) return
 
