@@ -135,14 +135,14 @@ This browser makes use of wonderful web technologies, starting with the followin
 Both the installer for every platform and the portable version can be downloaded.  
 To use the portable edition, please run sushi.exe for Windows and sushi-browser for Mac/Linux after decompressing.
 
-- [Windows Installer v0.18.0](https://sushib.me/dl/sushi-browser-0.18.0-setup-x64.exe)
-- [Windows Portable v0.18.0(self-extract)](https://sushib.me/dl/sushi-browser-0.18.0-win-x64.exe)
-- [Windows Portable v0.18.0](https://sushib.me/dl/sushi-browser-0.18.0-win-x64.zip)
-- [MacOS dmg v0.18.0](https://sushib.me/dl/SushiBrowser-0.18.0.dmg)
-- [MacOS Portable v0.18.0](https://sushib.me/dl/sushi-browser-0.18.0-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.18.0](https://sushib.me/dl/sushi-browser-0.18.0.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.18.0](https://sushib.me/dl/sushi-browser_0.18.0_amd64.deb)
-- [Linux Portable v0.18.0](https://sushib.me/dl/sushi-browser-0.18.0.tar.bz2)
+- [Windows Installer v0.18.1](https://sushib.me/dl/sushi-browser-0.18.1-setup-x64.exe)
+- [Windows Portable v0.18.1(self-extract)](https://sushib.me/dl/sushi-browser-0.18.1-win-x64.exe)
+- [Windows Portable v0.18.1](https://sushib.me/dl/sushi-browser-0.18.1-win-x64.zip)
+- [MacOS dmg v0.18.1](https://sushib.me/dl/SushiBrowser-0.18.1.dmg)
+- [MacOS Portable v0.18.1](https://sushib.me/dl/sushi-browser-0.18.1-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.18.1](https://sushib.me/dl/sushi-browser-0.18.1.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.18.1](https://sushib.me/dl/sushi-browser_0.18.1_amd64.deb)
+- [Linux Portable v0.18.1](https://sushib.me/dl/sushi-browser-0.18.1.tar.bz2)
 
 # Use of Flash 
 If Flash won't run, please install Flash from the following web sites.  
@@ -156,6 +156,18 @@ sushi-browser --no-sandbox
 ```
 
 # New Features
+
+#### New function(v0.18.1)
+- Improve to recreate scroll position when tab restoration.
+- Improved to restore all windows after exiting / restarting browser when "My windows / tabs from last time" is selected.
+- Added Send to URL function to "Settings> Context Menu" (function to send URL to new tab or command).
+- Improved to memorize last selected file, delimiter position with memo function.
+- Added "Circulate Tab Selection" option to "When scrolling over the tab-bar".
+- Added "Display Current Preview" option to "Tab Preview".
+- Updated to Muon 7.0.6.
+- Updated to youtube-dl 2018.06.14.
+- Fixed bug that pdf download error.
+- Fixed a lot of bugs.
 
 #### New function(v0.18.0)
 - Added note function to sidebar. (using TOAST UI Editor) *Experimental

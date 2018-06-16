@@ -1,5 +1,6 @@
 const isDarwin = process.platform === 'darwin'
 const isLinux = process.platform === 'linux'
+const isWin = process.platform == 'win32'
 
 const settingDefault =  {
   toggleNav: 0,
@@ -54,9 +55,10 @@ const settingDefault =  {
   sendUrlContextMenus: [{enable:false,ind:1,name:"Wayback",sendTo:"https://web.archive.org/web/*/%s",type:"new",updated_at:1529149042412},
     {enable:false,ind:2,name:"Twitter",sendTo:"https://twitter.com/search?f=tweets&q=%s",type:"opposite",updated_at:1529149067781},
     {enable:false,ind:3,name:"Firefox",sendTo:"firefox %s",type:"command",updated_at:1529149090619},
-    {enable:false,ind:4,name:"Download",sendTo:`${isLinux || isDarwin ? 'wget %s' : 'Invoke-WebRequest -uri %s'}`,type:"terminal",updated_at:1529149259164}],
+    {enable:false,ind:4,name:"Download",sendTo:`${isWin ? "." : ""}"${require('path').join(__dirname, '../resource/bin/aria2',
+        isWin ? 'win/aria2c.exe' : isDarwin ? 'mac/bin/aria2c' : 'linux/aria2c').replace(/app.asar([\\/\\\\])/, 'app.asar.unpacked$1')}" %s`,type:"terminal",updated_at:1529149259164}],
 
-  sendToVideo: isLinux ? 'vlc' : isDarwin ? '"quicktime player"' : 'wmplayer',
+  sendToVideo: isLinux ? 'vlc' : isDarwin ? 'quicktime player' : 'wmplayer',
   vpnNames: [],
   navbarItems: {
     left: ['back','forward','reload','home'],
