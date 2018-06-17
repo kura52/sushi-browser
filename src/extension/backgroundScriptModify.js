@@ -38,7 +38,6 @@ chrome.app.getDetails = _=>chrome.ipcRenderer.sendSync('chrome-management-get-sy
 
 chrome.csi = _=>({})
 chrome.runtime.openOptionsPage = _=> simpleIpcFunc('chrome-runtime-openOptionsPage',_=>_,chrome.runtime.id)
-chrome.runtime.getBrowserInfo = callback=> callback({name:'Firefox',vendor:'Mozilla',version:'57.0',buildID:'20171203000000'})
 
 
 chrome.runtime.onMessage._addListener = chrome.runtime.onMessage.addListener
@@ -667,7 +666,7 @@ if(chrome.browserAction){
   chrome.browserAction._setIcon = chrome.browserAction.setIcon
   chrome.browserAction.setIcon = (details,callback) => {
     if(details.imageData){
-      callback()
+      callback && callback()
     }
     else{
       chrome.browserAction._setIcon(details,callback)

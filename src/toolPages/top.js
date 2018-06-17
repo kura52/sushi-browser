@@ -26,7 +26,7 @@ localForage.getItem('favicon-set').then(setTime=>{
 })
 
 async function faviconGet(h){
-  return h.favicon ? (await localForage.getItem(h.favicon)) || `file://${resourcePath}/file.png` : `file://${resourcePath}/file.png`
+  return h.favicon ? (await localForage.getItem(h.favicon)) || `file://${resourcePath}/file.svg` : `file://${resourcePath}/file.svg`
 }
 
 ipc.send("get-resource-path",{})

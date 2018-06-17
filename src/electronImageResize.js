@@ -5,9 +5,9 @@ var BrowserWindow = electron.BrowserWindow || electron.remote.BrowserWindow;
 var nativeImage = electron.nativeImage;
 
 let win
-export default {
+export default class ElectronImageResize{
   open(opts){
-    win = new BrowserWindow({
+    this.win = new BrowserWindow({
       x: 0,
       y: 0,
       width: opts.width,
@@ -20,14 +20,13 @@ export default {
       }
     });
 
-  },
+  }
 
   close(){
-    win.close()
-  },
+    this.win.close()
+  }
 
   capture(params){
-
     var opts = params || {};
     return new Promise((resolve, reject) => {
       if (typeof opts.url !== 'string') {
@@ -56,20 +55,16 @@ export default {
       }
 
 
-      var isRejected = false;
-      var $reject = err => {
-        win.close();
+      let isRejected = false;
+      const $reject = err => {
         isRejected = true;
         return reject(err);
       };
 
-      win.once('closed', () => {
-        win = null;
-      });
 
-      win.loadURL(opts.url);
+      this.win.loadURL(opts.url);
 
-      win.webContents.once('did-get-response-details',
+      this.win.webContents.once('did-get-response-details',
         (event, status, newURL, originalURL, httpResponseCode) => {
           if (httpResponseCode !== 200) {
             $reject(
@@ -80,26 +75,26 @@ export default {
           }
         });
 
-      win.webContents.once('did-fail-load', (ev, errCode, errDescription, url) =>
+      this.win.webContents.once('did-fail-load', (ev, errCode, errDescription, url) =>
         $reject(new Error(`failed loading: ${url} ${errDescription}`))
       );
-      win.webContents.once('did-finish-load', () => {
+      this.win.webContents.once('did-finish-load', () => {
         if (isRejected) return;
-        win.webContents.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',
-          `const s = document.querySelector('svg,img');
-    s.setAttribute('width', '100%');
-    s.setAttribute('height', '100%');
-    `,{},_=>{
-            setTimeout(() => {
-              win.capturePage(img => {
-                if (isRejected) return;
-                resolve(img);
-              });
-            }, opts.delay);
-          }
-        )
+        setTimeout(() => {
+          this.win.capturePage(img => {
+            if (isRejected) return;
+            resolve(img);
+            isRejected = true
+          });
+        }, opts.delay);
 
-      });
+      })
+
+      setTimeout(_=>{
+        if(isRejected) return
+        isRejected = true;
+        reject('timeout')
+      },5000)
     });
   }
 }

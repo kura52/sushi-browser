@@ -2000,18 +2000,18 @@ class ExtensionSetting extends React.Component {
     this.setState({})
   }
 
-  buildSearchEngineColumns(){
+  buildExtensionColumns(){
     const ret = []
     let i = 0
     for(let [id,v] of Object.entries(this.state.extensions)){
-      if(['dckpbojndfoinamcdamhkjhnjnmjkfjd','jdbefljfgobbmcidnmpjamcbhnbphjnb'].includes(id)) continue
-      ret.push(this.buildSearchEngineColumn(i++,id,v))
+      if(['dckpbojndfoinamcdamhkjhnjnmjkfjd','jdbefljfgobbmcidnmpjamcbhnbphjnb'].includes(id) || v.theme) continue
+      ret.push(this.buildExtensionColumn(i++,id,v))
     }
     return ret
   }
 
 
-  buildSearchEngineColumn(i,id,v){
+  buildExtensionColumn(i,id,v){
     console.log(id,v)
     const orgId = v.basePath.split(/[\/\\]/).slice(-2,-1)[0]
     const cannotDisable =  orgId == "occjjkgifpmdgodlplnacmkejpdionan"
@@ -2061,7 +2061,7 @@ class ExtensionSetting extends React.Component {
         </tr>
         </thead>
         <tbody>
-        {this.buildSearchEngineColumns()}
+        {this.buildExtensionColumns()}
         </tbody>
         <tfoot className="full-width">
         <tr>
@@ -2149,7 +2149,7 @@ ipc.send("get-main-state",key,['startsWith','newTabMode','myHomepage','searchPro
   'colorActiveBackground','colorTabDot','colorUnreadText','colorUnreadBackground','enableColorOfNoSelect','themeColorChange','showBorderActiveTab','historyBadget','colorTabMode','enableDownloadList',
   'clearHistoryOnClose','clearDownloadOnClose','clearCacheOnClose','clearStorageDataOnClose','clearAutocompleteDataOnClose','clearAutofillDataOnClose','clearPasswordOnClose','clearGeneralSettingsOnClose','clearFavoriteOnClose',
   'enableWidevine','toolbarLink','sidebarLink','bookmarkbarLink','zoomBehavior','tabPreviewSizeWidth','tabPreviewSizeHeight','tabPreviewSlideHeight','tabPreviewWait','searchEngineDisplayType','tabPreviewRecent',
-  'sendUrlContextMenus'])
+  'sendUrlContextMenus','extensions'])
 ipc.once(`get-main-state-reply_${key}`,(e,data)=>{
   generalDefault = data
   keyboardDefault = data

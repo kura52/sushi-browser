@@ -125,7 +125,7 @@ app.on('ready', async ()=>{
     }
     defaultConf.javascript[0].setting = setting.noScript ? 'block' : 'allow'
     defaultConf.canvasFingerprinting[0].setting = setting.blockCanvasFingerprinting ? 'block' : 'allow'
-    console.log(678,session.defaultSession.userPrefs.getDictionaryPref('content_settings'))
+    // console.log(678,session.defaultSession.userPrefs.getDictionaryPref('content_settings'))
   })
 
   console.log(1)
@@ -380,7 +380,7 @@ app.on('web-contents-created', (e, tab) => {
     mainState.mediaPlaying[tabId] = true
     for(let win of BrowserWindow.getAllWindows()) {
       if(win.getTitle().includes('Sushi Browser')){
-        win.webContents.send('update-media-playing',tabId,true)
+        if(!win.webContents.isDestroyed()) win.webContents.send('update-media-playing',tabId,true)
       }
     }
   })
@@ -389,7 +389,7 @@ app.on('web-contents-created', (e, tab) => {
     delete mainState.mediaPlaying[tabId]
     for(let win of BrowserWindow.getAllWindows()) {
       if(win.getTitle().includes('Sushi Browser')){
-        win.webContents.send('update-media-playing',tabId,false)
+        if(!win.webContents.isDestroyed()) win.webContents.send('update-media-playing',tabId,false)
       }
     }
   })
@@ -1252,7 +1252,7 @@ function contextMenu(webContents) {
           menuItems.push({type: 'separator'})
           menuItems.push({
             label: extensionInfos[extensionId].name,
-            icon: menuList[0].icon.replace(/\.svg$/,'.png'),
+            icon: menuList[0].icon && menuList[0].icon.replace(/\.svg$/,'.png'),
             submenu: menuList
           })
           menuList.forEach(menu=>{

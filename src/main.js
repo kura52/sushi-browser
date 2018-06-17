@@ -81,7 +81,9 @@ function changePortable(folder){
     const resourcePath = path.join(app.getPath('userData'),'resource')
     if (!fs.existsSync(resourcePath)) {
       fs.mkdirSync(resourcePath)
-      fs.copySync(path.join(__dirname,'../resource/file.png'),path.join(resourcePath,'file.png'))
+    }
+    if(!fs.existsSync(path.join(resourcePath,'file.svg'))){
+      fs.copySync(path.join(__dirname,'../resource/file.svg'),path.join(resourcePath,'file.svg'))
     }
 
     require('./init')

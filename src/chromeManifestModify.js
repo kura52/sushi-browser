@@ -1,5 +1,6 @@
 import fs from 'fs'
 import path from 'path'
+import ElectronImageResize from "./electronImageResize";
 const Jimp = require('jimp')
 const hjson = require('hjson')
 const electronImageResize = require('./electronImageResize')
@@ -99,8 +100,8 @@ function htmlModify(verPath,fname,isWebExt){
   fs.writeFileSync(fullPath,writeStr)
 }
 
-function stripBOM(str){
-  return str.charCodeAt(0) === 0xFEFF ? str.slice(1) : str
+function removeBom(x){
+  return x.charCodeAt(0) === 0xFEFF ? x.slice(1) : x
 }
 
 export default async function modify(extensionId,verPath){
@@ -113,7 +114,7 @@ export default async function modify(extensionId,verPath){
   const manifestPath = path.join(verPath, 'manifest.json')
   const exists = fs.existsSync(manifestPath)
   if (exists) {
-    const manifestStr = stripBOM(fs.readFileSync(manifestPath).toString()).replace('\\u003Call_urls>','<all_urls>')
+    const manifestStr = removeBom(fs.readFileSync(manifestPath).toString()).replace('\\u003Call_urls>','<all_urls>')
     const infos = hjson.parse(manifestStr)
 
     if(infos.permissions && infos.permissions.includes('activeTab')
@@ -147,6 +148,8 @@ export default async function modify(extensionId,verPath){
       flagContent = true
     }
 
+    let open
+    const imageResize = new electronImageResize()
     try{
       if(infos.background){
         if(infos.background.persistent === false && !['jpkfjicglakibpenojifdiepckckakgk','occjjkgifpmdgodlplnacmkejpdionan'].includes(extensionId)){
@@ -257,15 +260,32 @@ export default async function modify(extensionId,verPath){
       fs.unlinkSync(manifestPath)
       fs.writeFileSync(manifestPath,JSON.stringify(infos, null, '  '))
 
-      let open
+      console.log(33332001)
       for(let svg of require("glob").sync(`${verPath}/**/*.svg`)){
         const out = svg.replace(/\.svg$/,".png")
         if(!fs.existsSync(out)){
           if(!open){
-            electronImageResize.open({width: 16, height: 16})
+            imageResize.open({width: 16, height: 16})
             open = true
           }
-          const img = await electronImageResize.capture({url: `file://${svg}`, width: 16, height: 16})
+          console.log(`file://${svg}`)
+          const url = path.join(path.parse(svg).dir,'svg.html')
+          fs.writeFileSync(url,`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+    <style type="text/css">
+    img,svg{
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+<img src="${svg}"/>
+</body>
+</html>`)
+          const img = await imageResize.capture({url: `file://${url}`, width: 16, height: 16})
 
           Jimp.read(img.toPng(), function (err, image) {
             if(image.bitmap.width > image.bitmap.height){
@@ -278,9 +298,10 @@ export default async function modify(extensionId,verPath){
           })
         }
       }
-      if(open) electronImageResize.close()
+      if(open) imageResize.close()
     }catch(e){
-      console.log(e)
+      if(open) imageResize.close()
+      console.log(33332002,e)
     }
     // if(isWebExt){
     //   for(let js of require("glob").sync(`${verPath}/**/*.js`)){

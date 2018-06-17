@@ -182,26 +182,31 @@ module.exports.init = (verChange) => {
     if(!extensionPath) return
     extensionPath = extensionPath.replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
     const manifestPath = path.join(extensionPath, 'manifest.json')
-    console.log(manifestPath)
+    console.log('loadExtension',extensionId,manifestPath)
     fs.exists(manifestPath, (exists) => {
       if (exists) {
         // if(extInfos[extensionId]) return
-        // try{
-        //   const mani = JSON.parse(fs.readFileSync(manifestPath).toString())
-        //   console.log(mani)
-        //   mani.id = extensionId
-        //   transInfos(mani)
-        //   extInfos.setInfo(mani)
-        //   console.log(mani)
-        // }catch(e){
-        //   console.log(e)
-        // }
-        console.log('load',extensionPath)
-        ses.extensions.load(extensionPath, manifest, manifestLocation)
+        try{
+          const manifestContents = hjson.parse(removeBom(fs.readFileSync(manifestPath).toString()))
+          if(manifestContents.theme){
+            manifestContents.id = extensionId
+            manifestContents.url = `https://chrome.google.com/webstore/detail/${extensionId}`
+            manifestContents.manifest = {}
+            manifestContents.base_path = extensionPath
+            transInfos(manifestContents)
+            extInfos.setInfo(manifestContents)
+            return
+          }
+
+          console.log('load',extensionPath)
+          ses.extensions.load(extensionPath, manifest, manifestLocation)
+        }catch(e){
+          console.log(e)
+        }
       } else {
         // This is an error condition, but we can recover.
         // extensionInfo.setState(extensionId, undefined)
-        componentUpdater.checkNow(extensionId)
+        // componentUpdater.checkNow(extensionId)
       }
     })
   }
@@ -262,7 +267,7 @@ module.exports.init = (verChange) => {
       loadExtension(ses,...ext,(void 0),'component')
     }
     for(let e of ['igiofjhpmpihnifddepnpngfjhkfenbp']){
-      ext = [e, getPath1(e)]
+      let ext = [e, getPath1(e)]
       if(verChange) chromeManifestModify(...ext)
       loadExtension(ses,...ext)
     }

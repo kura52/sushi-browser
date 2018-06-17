@@ -3,7 +3,6 @@ import fs from 'fs'
 import path from 'path'
 import { favicon,history,image,sock } from './databaseFork'
 import uuid from 'node-uuid'
-import {request} from './request'
 import mainState from './mainState'
 const underscore = require('underscore')
 const Jimp = require('jimp')

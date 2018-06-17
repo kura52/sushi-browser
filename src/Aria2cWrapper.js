@@ -198,8 +198,9 @@ export default class Aria2cWrapper{
         console.log(this.status)
       }
       else{
-        const match = msg.match(/\[(.+)\]/g)
+        const match = msg.split("FILE:")[0].match(/\[(.+)\]/g)
         if(match && match.length){
+          console.log(33335,match[match.length - 1])
           const match2 = match[match.length - 1].match(/ (\d+.+?B)\/(\d+.+?B)\((\d+)%\).+?DL:(\d+.+?B)/)
           if(match2 && match2[4]){
             this.processed = match2[1]

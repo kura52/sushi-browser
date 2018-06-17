@@ -5,6 +5,8 @@ import sh from 'shelljs'
 import uuid from 'node-uuid'
 import PubSub from './render/pubsub'
 import {toKeyEvent} from 'keyboardevent-from-electron-accelerator'
+import https from 'https'
+import URL from 'url'
 
 const os = require('os')
 const seq = require('./sequence')
@@ -259,11 +261,11 @@ ipcMain.on('get-all-favorites',async(event,key,dbKeys,num,isNote)=>{
 
 ipcMain.on('get-all-states',async(event,key,range)=>{
   const cond =  !Object.keys(range).length ? range :
-    { created_at: (
+    {$or: [{ created_at: (
         range.start === void 0 ? { $lte: range.end } :
           range.end === void 0 ? { $gte: range.start } :
             { $gte: range.start ,$lte: range.end }
-      )}
+      )}, {user: true}]}
   const ret = await savedState.find_sort([cond],[{ created_at: -1 }])
   event.sender.send(`get-all-states-reply_${key}`,ret)
 })
@@ -470,41 +472,68 @@ ipcMain.on('toggle-fullscreen-sync',(event,val)=> {
   event.returnValue = !isFullScreen
 })
 
+function getYoutubeFileSize(url){
+  const u = URL.parse(url)
+  const options = {method: 'GET', hostname: u.hostname, port: 443, path: `${u.pathname}${u.search}`,
+    headers: { 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
+      'Accept-Language': 'en-us,en;q=0.5',
+      'Accept-Encoding': 'gzip, deflate',
+      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      'User-Agent': process.userAgent }};
+  return new Promise(r=>{
+    let resolved
+    setTimeout(_=>{
+      resolved = true
+      r()
+    },5000)
+    const req = https.request(options, function(res) {
+        if(!resolved){
+          resolved = true
+          console.log(888,res.headers)
+          r(res.headers['content-length'] ? parseInt(res.headers['content-length']) : void 0)
+        }
+      res.destroy()
+      }
+    )
+    req.end()
+  })
+}
+
 const LRUCache = require('lru-cache')
 const videoUrlsCache = new LRUCache(1000)
 ipcMain.on('video-infos',(event,{url})=>{
   console.log(2222,url)
   const cache = videoUrlsCache.get(url)
   if(cache){
-    event.sender.send('video-infos-reply',{cache:true,...cache})
+    event.sender.send(`video-infos-reply_${url}`,{cache:true,...cache})
     return
   }
-  youtubedl.getInfo(url,void 0,{maxBuffer: 7000 * 1024}, function(err, info) {
+  youtubedl.getInfo(url,void 0,{maxBuffer: 7000 * 1024}, async function(err, info) {
     if (err){
       console.log(err)
       videoUrlsCache.set(url,{error:err})
-      event.sender.send('video-infos-reply',{error:err})
+      event.sender.send(`video-infos-reply_${url}`,{error:err})
       return
     }
-    console.log(info)
+    // console.log(info)
     if(!info){
-      if(url.includes("youtube")){
+      if(url.includes("youtube.com/")){
         ytdl.getInfo(url, (err, info)=> {
           if (err){
             videoUrlsCache.set(url,{error:err})
-            event.sender.send('video-infos-reply',{error:'error2'})
+            event.sender.send(`video-infos-reply_${url}`,{error:'error2'})
           }
           else{
             const title = info.title
             const formats = info.formats
             videoUrlsCache.set(url,{title,formats})
-            event.sender.send('video-infos-reply',{title,formats})
+            event.sender.send(`video-infos-reply_${url}`,{title,formats})
           }
         })
       }
       else{
         videoUrlsCache.set(url,{error:'error'})
-        event.sender.send('video-infos-reply',{error:'error3'})
+        event.sender.send(`video-infos-reply_${url}`,{error:'error3'})
       }
     }
     else{
@@ -513,12 +542,18 @@ ipcMain.on('video-infos',(event,{url})=>{
         for(let i of info){
           const title = i.title
           videoUrlsCache.set(url, { title, formats: i.formats });
-          event.sender.send('video-infos-reply', { title, formats: i.formats });
+          event.sender.send(`video-infos-reply_${url}`, { title, formats: i.formats });
         }
       }
       else{
+        if(url.includes("youtube.com/")){
+          for(let f of info.formats){
+            if(f.filesize) continue
+            f.filesize = await getYoutubeFileSize(f.url)
+          }
+        }
         videoUrlsCache.set(url, { title, formats: info.formats});
-        event.sender.send('video-infos-reply', { title, formats: info.formats });
+        event.sender.send(`video-infos-reply_${url}`, { title, formats: info.formats });
       }
     }
   });
@@ -655,19 +690,24 @@ ipcMain.on('get-main-state',(e,key,names)=>{
     else if(name == "isVolumeControl"){
       ret[name] = mainState.isVolumeControl[e.sender.isDestroyed() ? null : e.sender.getId()]
     }
+    else if(name == "extensions"){
+      const extensions = {}
+      const disableExtensions = mainState.disableExtensions
+      for (let [k,v] of Object.entries(extInfos)) {
+        if(!('url' in v) || v.name == "brave") continue
+        const orgId = v.base_path.split(/[\/\\]/).slice(-2,-1)[0]
+        extensions[k] = {name:v.name,url:v.url,basePath:v.base_path,version: v.manifest.version,theme:v.theme,
+          optionPage: v.manifest.options_page || (v.manifest.options_ui && v.manifest.options_ui.page),
+          background: v.manifest.background && v.manifest.background.page,icons:v.manifest.icons,
+           description: v.manifest.description,enabled: !disableExtensions.includes(orgId) }
+      }
+      ret[name] = extensions
+    }
     else{
       ret[name] = mainState[name]
     }
   })
 
-  const extensions = {}
-  const disableExtensions = mainState.disableExtensions
-  for (let [k,v] of Object.entries(extInfos)) {
-    if(!('url' in v) || v.name == "brave") continue
-    const orgId = v.base_path.split(/[\/\\]/).slice(-2,-1)[0]
-    extensions[k] = {name:v.name,url:v.url,basePath:v.base_path,optionPage: v.manifest.options_page || (v.manifest.options_ui && v.manifest.options_ui.page), background: v.manifest.background && v.manifest.background.page,icons:v.manifest.icons, version: v.manifest.version, description: v.manifest.description,enabled: !disableExtensions.includes(orgId) }
-  }
-  ret.extensions = extensions
   e.sender.send(`get-main-state-reply_${key}`,ret)
 })
 

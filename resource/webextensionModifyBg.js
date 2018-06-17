@@ -1,3 +1,5 @@
+chrome.runtime.getBrowserInfo = callback=> callback({name:'Firefox',vendor:'Mozilla',version:'57.0',buildID:'20171203000000'})
+
 // for(let method of ['onMessage']){
 //   const ipc = chrome.ipcRenderer
 //   const isThenable = value => {

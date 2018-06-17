@@ -767,7 +767,7 @@ class BrowserNavbar extends Component{
   //   menuItems.splice(0, menuItems.length);
   //   let i = 0
   //   for(let item of ret){
-  //     const favicon = (item.favicon != "undefined" && localStorage.getItem(item.favicon)) || "resource/file.png"
+  //     const favicon = (item.favicon != "undefined" && localStorage.getItem(item.favicon)) || "resource/file.svg"
   //     menuItems.push(<NavbarMenuItem key={i++} favicon={favicon} text={item.title} onClick={_=>this.navigate(item.url)} />)
   //     if(i > 100) break
   //   }
@@ -801,7 +801,7 @@ class BrowserNavbar extends Component{
     let i = 0
     for(let item of ret){
       if(!item.title) continue
-      const favicon = (item.favicon != "undefined" && localStorage.getItem(item.favicon)) || "resource/file.png"
+      const favicon = (item.favicon != "undefined" && localStorage.getItem(item.favicon)) || "resource/file.svg"
       menuItems.push(<NavbarMenuItem key={i++} favicon={favicon} text={`[${moment(item.updated_at).format("YYYY/MM/DD HH:mm:ss")}] ${item.title}`} onClick={_=>this.navigate(item.location)} />)
       if(i > 200) break
     }

@@ -37,7 +37,7 @@ ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
 let favicons = {}
 async function faviconGet(url){
   const favicon = favicons[url]
-  return favicon == "resource/file.png" ? (void 0) : favicon && (await localForage.getItem(favicon))
+  return favicon == "resource/file.svg" ? (void 0) : favicon && (await localForage.getItem(favicon))
 }
 
 

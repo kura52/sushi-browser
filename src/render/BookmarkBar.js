@@ -48,7 +48,7 @@ function multiByteSlice(str,end) {
 }
 
 async function faviconGet(x){
-  return x.favicon == "resource/file.png" ? (void 0) : x.favicon && (await localForage.getItem(x.favicon))
+  return x.favicon == "resource/file.svg" ? (void 0) : x.favicon && (await localForage.getItem(x.favicon))
 }
 
 function escapeRegExp(string){
@@ -240,7 +240,7 @@ class BookmarkBar extends Component {
     const barWidth = ReactDOM.findDOMNode(this.refs.bar).offsetWidth
     let accumWidth = 27
     for(let f of _result.children){
-      const favicon = f.is_file && f.favicon !== "resource/file.png" ?  1 : void 0
+      const favicon = f.is_file && f.favicon !== "resource/file.svg" ?  1 : void 0
       const title = multiByteSlice(f.title,15)
       const width = (favicon ? 19 : 17) + 12 + getTextWidth(title,'14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"')
       accumWidth += width

@@ -246,17 +246,17 @@ const tabsStyles = {
 let ttime = 0
 let guestIds = {}
 let historyMap = new Map([
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html',['Top Page','resource/file.png']],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html',['Blank','resource/file.png']],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html',['Bookmarks','resource/file.png']],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html',['History','resource/file.png']],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_history.html',['TabHistory','resource/file.png']],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html',['Explorer','resource/file.png']],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html',['Download','resource/file.png']],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html',['Video Converter','resource/file.png']],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html',['Automation Center','resource/file.png']],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html',['Terminal','resource/file.png']],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html',['History','resource/file.png']],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html',['Top Page','resource/file.svg']],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html',['Blank','resource/file.svg']],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html',['Bookmarks','resource/file.svg']],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html',['History','resource/file.svg']],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_history.html',['TabHistory','resource/file.svg']],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html',['Explorer','resource/file.svg']],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html',['Download','resource/file.svg']],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html',['Video Converter','resource/file.svg']],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html',['Automation Center','resource/file.svg']],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html',['Terminal','resource/file.svg']],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html',['History','resource/file.svg']],
 ])
 
 const withWindowCreateTabs = new Set()
@@ -638,7 +638,7 @@ export default class TabPanel extends Component {
       }
       else if(record.url.endsWith('.ts')){
         ipc.send('video-infos',{url:tab.page.navUrl})
-        ipc.once('video-infos-reply',(e,{title,formats,error,cache})=>{
+        ipc.once(`video-infos-reply_${tab.page.navUrl}`,(e,{title,formats,error,cache})=>{
           if(error) return
           console.log(43242342,{title,formats,error,cache})
           for(let f of formats){
@@ -1320,7 +1320,7 @@ export default class TabPanel extends Component {
           }
           if(page.isLoading){
             page.isLoading = false
-            if(page.favicon == 'loading')page.favicon = 'resource/file.png'
+            if(page.favicon == 'loading')page.favicon = 'resource/file.svg'
             PubSub.publish(`change-status-${tab.key}`)
           }
           if (page.eventDownloadStartTab) ipc.removeListener(`download-start-tab_${tab.wvId}`, page.eventDownloadStartTab)
@@ -1374,8 +1374,8 @@ export default class TabPanel extends Component {
         let match
         if(e.url.match(REG_VIDEO)){
           ipc.send('video-infos',{url:e.url})
-          ipc.once('video-infos-reply',(e,{title,formats,error})=>{
-            console.log('video-infos-reply',e,{title,formats,error})
+          ipc.once(`video-infos-reply_${e.url}`,(e,{title,formats,error})=>{
+            console.log(`video-infos-reply_${e.url}`,e,{title,formats,error})
             if(error) return
             const arr = [],arr2 = []
             for(let f of formats){
@@ -1447,7 +1447,7 @@ export default class TabPanel extends Component {
         if(!e.isMainFrame) return
         if(page.isLoading){
           page.isLoading = false
-          if(page.favicon == 'loading') page.favicon = 'resource/file.png'
+          if(page.favicon == 'loading') page.favicon = 'resource/file.svg'
           PubSub.publish(`change-status-${tab.key}`)
           refs2[`navbar-${tab.key}`].setState({})
           self.setStatePartical(tab)
@@ -1481,7 +1481,7 @@ export default class TabPanel extends Component {
         // }
         // self.getWebContents(tab).executeJavaScript(`document.documentElement.innerHTML = '<h1>An Error Occured.<br> Detail : ${e.errorDescription}</h1>'`)
         // page.title = 'Error Page'
-        // page.favicon = 'resource/file.png'
+        // page.favicon = 'resource/file.svg'
         // self.setState({})
       },
       onDidFrameFinishLoad(e, page, pageIndex) {
@@ -1555,7 +1555,7 @@ export default class TabPanel extends Component {
         setTimeout(_=>{
           if(page.isLoading && refs2[`navbar-${tab.key}`] && navUrl == page.navUrl){
             page.isLoading = false
-            if(page.favicon == 'loading') page.favicon = 'resource/file.png'
+            if(page.favicon == 'loading') page.favicon = 'resource/file.svg'
             PubSub.publish(`change-status-${tab.key}`)
             refs2[`navbar-${tab.key}`].setState({})
             self.setStatePartical(tab)
@@ -1577,7 +1577,7 @@ export default class TabPanel extends Component {
             }
           }
         },7000)
-        page.favicon = page.navUrl == '' || page.navUrl.match(/^(file:\/\/|chrome|about)/) ? 'resource/file.png' : 'loading'
+        page.favicon = page.navUrl == '' || page.navUrl.match(/^(file:\/\/|chrome|about)/) ? 'resource/file.svg' : 'loading'
       }
 
       const eventDownloadStartTab = (event) => {
@@ -1665,7 +1665,7 @@ export default class TabPanel extends Component {
     if (t){
       const p = t.querySelector('p')
       const title = `${page.favicon !== 'loading' || page.titleSet || page.location == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? page.title : page.location} `
-      const beforeTitle = <img className='favi-tab' src={page.title && page.favicon !== 'loading' ? page.favicon : 'resource/l.svg'} onError={(e)=>{e.target.src = 'resource/file.png'}}/>
+      const beforeTitle = <img className='favi-tab' src={page.title && page.favicon !== 'loading' ? page.favicon : 'resource/l.svg'} onError={(e)=>{e.target.src = 'resource/file.svg'}}/>
       PubSub.publish(`tab-component-update_${tab.key}`,{title,beforeTitle})
     }
     const n = refs2[`navbar-${tab.key}`]

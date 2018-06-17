@@ -42,7 +42,7 @@ const defaults = {}
 class BrowserActionWebView extends Component {
   constructor(props) {
     super(props)
-    this.state = {style:{opacity: 0.01}}
+    this.state = {style:{opacity: 0.01,...this.props.style}}
     this.first = true
     this.close = true
 
@@ -74,8 +74,13 @@ class BrowserActionWebView extends Component {
       console.log(webview)
       webview.getPreferredSize((preferredSize) => {
         console.log(preferredSize)
-        const width = preferredSize.width
-        const height = preferredSize.height
+        let width = preferredSize.width
+        let height = preferredSize.height
+        if(!width && !height) return
+
+        const obj = ReactDOM.findDOMNode(webview).querySelector("::shadow object")
+        width = Math.max(width,obj.clientWidth)
+
         this.setState({style:{width,height}},_=>{
           setTimeout(_=>{
             this.props.setClassName("")
@@ -93,7 +98,7 @@ class BrowserActionWebView extends Component {
             div.style.setProperty("min-width", 'fit-content', "important")
             if(this.first){
               this.first = false
-              if(this.refs.webview) this.refs.webview.reload()
+              // if(this.refs.webview) this.refs.webview.reload()
             }
           },200)
         })
@@ -302,7 +307,7 @@ export default class BrowserActionMenu extends Component{
   }
 
   close(){
-    this.refs.popupView && this.refs.popupView.noClose()
+    // this.refs.popupView && this.refs.popupView.noClose()
     setTimeout(_=>this.refs.dd.close(),10)
   }
 

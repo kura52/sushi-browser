@@ -6,7 +6,7 @@ const browserActionMap = new Map()
 
 function load(extInfos) {
   for (let [k,v] of Object.entries(extInfos)) {
-    if(!('url' in v) || v.name == "brave") continue
+    if(!('url' in v) || v.name == "brave" || v.theme) continue
     console.log(51,v)
     const o = {name:v.name,url:v.url,basePath:v.base_path,optionPage: v.manifest.options_page || (v.manifest.options_ui && v.manifest.options_ui.page),
       icons:v.manifest.icons, version: v.manifest.version, description: v.manifest.description,orgId: v.base_path.split(/[\/\\]/).slice(-2,-1)[0] }

@@ -279,7 +279,7 @@ export default {
 
     mainState.scaleFactor = electron.screen.getPrimaryDisplay().scaleFactor
 
-    console.log(77677,setting)
+    // console.log(77677,setting)
     if(!opt){
       for(let [key,dVal] of Object.entries(settingDefault)){
         setOptionVal(key,dVal,setting[key])
@@ -340,6 +340,7 @@ export default {
             this.load({x:newWin.x, y:newWin.y, width:newWin.width, height:newWin.height,
               maximize: newWin.maximize, tabParam:JSON.stringify(newWin)})
           }
+          if(saveState.wins.length) return
         }
       }
 

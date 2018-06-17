@@ -183,7 +183,7 @@ export default class Download {
       let focusedWebContent
       if(cont && !cont.isDestroyed()) focusedWebContent = cont.session.partition || ""
       const cond = focusedWebContent == void 0 ? true : focusedWebContent != 'persist:tor' && !focusedWebContent.match(/^[\d\.]+$/)
-      if(cond && !(retry.has(url) || url.startsWith('data:'))){
+      if(cond && !(retry.has(url) || url.startsWith('data:') || url.startsWith('blob:') || url.startsWith('chrome-extension:'))){
         console.log('cancel')
         item.destroy()
         // const _item = item

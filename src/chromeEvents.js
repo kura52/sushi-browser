@@ -19,7 +19,7 @@ const isWin = process.platform == 'win32'
 const isLinux = process.platform === 'linux'
 import mainState from './mainState'
 const sharedState = require('./sharedStateMain')
-const hjson = require('hjson');
+const hjson = require('hjson')
 
 const bindPath = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/bind.html'
 const transLang = {eng:'en', dan:'da', dut:'nl', fin:'fi', fre:'fr', ger:'de', heb:'he', ita:'it', jpn:'ja', kor:'ko', nor:'nb', pol:'pl', por:'pt', rus:'ru', spa:'es', swe:'sv', chi:'zh', cze:'cs', gre:'el', ice:'is', lav:'lv', lit:'lt', rum:'ro', hun:'hu', est:'et', bul:'bg', scr:'hr', scc:'sr', gle:'ga', glg:'gl', tur:'tr', ukr:'uk', hin:'hi', mac:'mk', ben:'bn', ind:'id', lat:'la', may:'ms', mal:'ml', wel:'cy', nep:'ne', tel:'te', alb:'sq', tam:'ta', bel:'be', jav:'jw', oci:'oc', urd:'ur', bih:'bh', guj:'gu', tha:'th', ara:'ar', cat:'ca', epo:'eo', baq:'eu', ina:'ia', kan:'kn', pan:'pa', gla:'gd', swa:'sw', slv:'sl', mar:'mr', mlt:'mt', vie:'vi', fry:'fy', slo:'sk', fao:'fo', sun:'su', uzb:'uz', amh:'am', aze:'az', geo:'ka', tir:'ti', per:'fa', bos:'bs', sin:'si', nno:'nn', xho:'xh', zul:'zu', grn:'gn', sot:'st', tuk:'tk', kir:'ky', bre:'br', twi:'tw', yid:'yi', som:'so', uig:'ug', kur:'ku', mon:'mn', arm:'hy', lao:'lo', snd:'sd', roh:'rm', afr:'af', ltz:'lb', bur:'my', khm:'km', tib:'bo', div:'dv', ori:'or', asm:'as', cos:'co', ine:'ie', kaz:'kk', lin:'ln', mol:'mo', pus:'ps', que:'qu', sna:'sn', tgk:'tg', tat:'tt', tog:'to', yor:'yo', mao:'mi', wol:'wo', abk:'ab', aar:'aa', aym:'ay', bak:'ba', bis:'bi', dzo:'dz', fij:'fj', kal:'kl', hau:'ha', ipk:'ik', iku:'iu', kas:'ks', kin:'rw', mlg:'mg', nau:'na', orm:'om', run:'rn', smo:'sm', sag:'sg', san:'sa', ssw:'ss', tso:'ts', tsn:'tn', vol:'vo', zha:'za', lug:'lg', glv:'gv'}
@@ -81,10 +81,6 @@ function simpleIpcFuncCb(name,callback){
   })
 }
 
-function stripBOM(str){
-  return str.charCodeAt(0) === 0xFEFF ? str.slice(1) : str
-}
-
 const {getPath1,getPath2,extensionPath} = require('./chromeExtensionUtil')
 
 ipcMain.on('add-extension',(e,{id,url})=>{
@@ -129,17 +125,20 @@ ipcMain.on('add-extension',(e,{id,url})=>{
           }
           const dir = path.dirname(manifestPath)
 
-          const verPath = path.join(extRootPath,hjson.parse(stripBOM(fs.readFileSync(manifestPath).toString())).version)
+          const manifestContents = hjson.parse(removeBom(fs.readFileSync(manifestPath).toString()))
+          const verPath = path.join(extRootPath,manifestContents.version)
           fs.mkdirSync(extRootPath)
           fs.renameSync(dir, verPath)
           if(fs.existsSync(`${extRootPath}_crx`)){
             fs.removeSync(`${extRootPath}_crx`)
           }
           fs.unlink(`${extRootPath}.crx`,_=>_)
-          await chromeManifestModify(id,verPath)
+          if(!manifestContents.theme){
+            await chromeManifestModify(id,verPath)
+          }
           extensions.loadExtension(session.defaultSession,id,verPath)
         }catch(e){
-          console.log(e)
+          console.log(3333222,e)
         }
       }
     },300)
@@ -272,7 +271,10 @@ simpleIpcFunc('chrome-windows-getLastFocused',_=>{
 })
 
 
-simpleIpcFunc('chrome-windows-remove',windowId=> BrowserWindow.fromId(windowId).close())
+simpleIpcFunc('chrome-windows-remove',windowId=> {
+  const win = windowId ? BrowserWindow.fromId(windowId) : BrowserWindow.getFocusedWindow()
+  win && win.close()
+})
 
 simpleIpcFunc('chrome-windows-get-attributes',windowIds=>{
   return windowIds.map(windowId=>{

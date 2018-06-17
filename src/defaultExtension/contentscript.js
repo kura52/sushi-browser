@@ -241,21 +241,25 @@ if(window.__started_){
     if(data.keepAudioSeekValueVideo){
       const diffArray = (arr1, arr2)=>arr1.filter(e=>!arr2.includes(e))
       let pre = []
-      setInterval(_=>{
-        const volume = localStorage.getItem("vol")
-        if(volume !== null){
-          const videos = [...document.querySelectorAll('video')]
-          const srcs = videos.map(v=>v.src)
-          if(diffArray(pre,srcs).length || diffArray(srcs,pre).length){
-            pre = srcs
-            for(let v of videos){
-              let i = 0
-              const id = setInterval(_=>{
-                if(i++ > 300) clearInterval(id)
-                v.volume = parseFloat(volume)
-              },10)
+      const id = setInterval(_=>{
+        try{
+          const volume = localStorage.getItem("vol")
+          if(volume !== null){
+            const videos = [...document.querySelectorAll('video')]
+            const srcs = videos.map(v=>v.src)
+            if(diffArray(pre,srcs).length || diffArray(srcs,pre).length){
+              pre = srcs
+              for(let v of videos){
+                let i = 0
+                const id2 = setInterval(_=>{
+                  if(i++ > 300) clearInterval(id2)
+                  v.volume = parseFloat(volume)
+                },10)
+              }
             }
           }
+        }catch(e){
+          clearInterval(id)
         }
       },100)
     }
