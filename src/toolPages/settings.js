@@ -1034,7 +1034,6 @@ class SearchSetting extends React.Component {
       </div>
 
       <h3>Multi Search</h3>
-      <Divider/>
       <table className="ui celled compact table">
         <thead>
         <tr>
@@ -1062,7 +1061,6 @@ class SearchSetting extends React.Component {
 
 
       <h3>{l10n.translation('searchEngine')}</h3>
-      <Divider/>
       <table className="ui celled compact table">
         <thead>
         <tr>
@@ -1266,6 +1264,21 @@ class TabsSetting extends React.Component {
         <Input style={{width: 40,paddingRight:32}} onChange={this.onChange3.bind(this,'reloadIntervals',4)} defaultValue={this.state.reloadIntervals[4]}/>
       </div>
 
+      <div className='spacer2'/>
+
+      <div className="field">
+        <label>TabBar Top Margin:&nbsp;</label>
+        <Input onChange={this.onChange.bind(this,'tabBarMarginTop')} defaultValue={this.state.tabBarMarginTop}/>
+        <label>px</label>
+      </div>
+
+      <div className='spacer2'/>
+      
+      <div className="field">
+        <Checkbox defaultChecked={this.state.removeTabBarMarginTop} toggle onChange={this.onChange.bind(this,'removeTabBarMarginTop')}/>
+        <span className="toggle-label">Remove Top Margin When Maximizing</span>
+      </div>
+      
       <Divider/>
 
       <h4 style={{marginTop:0, marginBottom: 20}}>{l10n.translation('newTab')}</h4>
@@ -1766,7 +1779,6 @@ class ContextMenuSetting extends React.Component {
       <Divider/>
 
       <h3>Send to URL</h3>
-      <Divider/>
       <table className="ui celled compact table">
         <thead>
         <tr>
@@ -1793,7 +1805,6 @@ class ContextMenuSetting extends React.Component {
       </table>
 
       <h3>{l10n.translation('contextMain')}</h3>
-      <Divider/>
       <table className="ui celled compact table" style={{borderCollapse: 'collapse'}}>
         <thead>
         <tr>
@@ -2010,7 +2021,6 @@ class ExtensionSetting extends React.Component {
     return ret
   }
 
-
   buildExtensionColumn(i,id,v){
     console.log(id,v)
     const orgId = v.basePath.split(/[\/\\]/).slice(-2,-1)[0]
@@ -2042,10 +2052,10 @@ class ExtensionSetting extends React.Component {
     </tr>
   }
 
+
   render() {
     return <div>
       <h3>{l10n.translation('extensions')}</h3>
-
       <table className="ui celled compact table">
         <thead>
         <tr>
@@ -2056,8 +2066,7 @@ class ExtensionSetting extends React.Component {
           <th>{l10n.translation('6550675742724504774')}</th>
           <th>{l10n.translation('59174027418879706')}</th>
           <th>{l10n.translation('4989966318180235467')}</th>
-          <th>{l10n.translation('6326175484149238433').replace('Chrome','Sushi Browser')}</th>
-
+          <th>{l10n.translation('remove')}</th>
         </tr>
         </thead>
         <tbody>
@@ -2072,6 +2081,80 @@ class ExtensionSetting extends React.Component {
         </tr>
         </tfoot>
       </table>
+
+    </div>
+  }
+
+}
+
+class ThemeSetting extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {extensions:extensionDefault.extensions, enableTheme:extensionDefault.enableTheme}
+  }
+
+
+  changeCheckTheme(id,data){
+    const val = data.checked ? id : null
+    ipc.send('save-state',{tableName:'state',key:'enableTheme',val})
+    this.setState({enableTheme: val})
+  }
+
+  buildThemeColumns(){
+    const ret = []
+    let i = 0
+    for(let [id,v] of Object.entries(this.state.extensions)){
+      if(!v.theme) continue
+      ret.push(this.buildThemeColumn(i++,id,v))
+    }
+    return ret
+  }
+
+  buildThemeColumn(i,id,v){
+    console.log(id,v)
+    const enable = this.state.enableTheme == id
+
+    return <tr key={`tr${i}`}>
+      <td key={`name${i}`}><a target="_blank" href={`https://chrome.google.com/webstore/detail/${id}`}>{v.name}</a></td>
+      <td key={`description${i}`} >{v.description}</td>
+      <td key={`version${i}`} style={{width: 40}}>{v.version}</td>
+      <td key={`enabled${i}`}>
+        <Checkbox checked={enable} toggle onChange={(e,data)=>this.changeCheckTheme(id,data)}/>
+      </td>
+      <td key={`delete${i}`} style={{fontSize: 20,textAlign: 'center'}}>
+        <a href="javascript:void(0)" onClick={_=> ipc.send("delete-extension",id,orgId)}>
+          <i aria-hidden="true" class="trash icon"></i>
+        </a>
+      </td>
+    </tr>
+  }
+
+  render() {
+    return <div>
+      <h3>Theme</h3>
+      <table className="ui celled compact table">
+        <thead>
+        <tr>
+          <th>{l10n.translation('name')}</th>
+          <th>{l10n.translation('4289540628985791613')}</th>
+          <th>{l10n.translation('3095995014811312755')}</th>
+          <th>{l10n.translation('59174027418879706')}</th>
+          <th>{l10n.translation('remove')}</th>
+        </tr>
+        </thead>
+        <tbody>
+        {this.buildThemeColumns()}
+        </tbody>
+        <tfoot className="full-width">
+        <tr>
+          <th>
+          </th>
+          <th colspan="4">
+          </th>
+        </tr>
+        </tfoot>
+      </table>
+
     </div>
   }
 
@@ -2085,6 +2168,7 @@ const routings = {
   'keyboard' : <KeyboardSetting/>,
   'video' : <VideoSetting/>,
   'extensions' : <ExtensionSetting/>,
+  'theme' : <ThemeSetting/>,
 }
 
 class TopList extends React.Component {
@@ -2102,7 +2186,7 @@ class TopList extends React.Component {
                       onClick={_=>this.setState({page:name})}
     >
       <Icon name={icon}/>
-      {l10n.translation(name == "keyboard" ? '1524430321211440688' : name == 'video' ? '6146563240635539929' : name == 'contextMenu'? '5513242761114685513' : name)}
+      {name == "theme" ? 'Theme' : l10n.translation(name == "keyboard" ? '1524430321211440688' : name == 'video' ? '6146563240635539929' : name == 'contextMenu'? '5513242761114685513' : name)}
     </Menu.Item>
   }
 
@@ -2120,6 +2204,7 @@ class TopList extends React.Component {
         {this.getMenu('contextMenu','square outline')}
         {this.getMenu('keyboard','keyboard')}
         {this.getMenu('video','video')}
+        {this.getMenu('theme','picture')}
         {this.getMenu('extensions','industry')}
       </Sidebar>
       <Sidebar.Pusher>
@@ -2149,7 +2234,7 @@ ipc.send("get-main-state",key,['startsWith','newTabMode','myHomepage','searchPro
   'colorActiveBackground','colorTabDot','colorUnreadText','colorUnreadBackground','enableColorOfNoSelect','themeColorChange','showBorderActiveTab','historyBadget','colorTabMode','enableDownloadList',
   'clearHistoryOnClose','clearDownloadOnClose','clearCacheOnClose','clearStorageDataOnClose','clearAutocompleteDataOnClose','clearAutofillDataOnClose','clearPasswordOnClose','clearGeneralSettingsOnClose','clearFavoriteOnClose',
   'enableWidevine','toolbarLink','sidebarLink','bookmarkbarLink','zoomBehavior','tabPreviewSizeWidth','tabPreviewSizeHeight','tabPreviewSlideHeight','tabPreviewWait','searchEngineDisplayType','tabPreviewRecent',
-  'sendUrlContextMenus','extensions'])
+  'sendUrlContextMenus','extensions','tabBarMarginTop','removeTabBarMarginTop','enableTheme'])
 ipc.once(`get-main-state-reply_${key}`,(e,data)=>{
   generalDefault = data
   keyboardDefault = data

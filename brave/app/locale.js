@@ -183,6 +183,7 @@ var rendererIdentifiers = function () {
     'forgetLearnedSpelling',
     'lookupSelection',
     'contextMain',
+    'remove',
     // Other identifiers
     'aboutBlankTitle',
     'urlCopied',

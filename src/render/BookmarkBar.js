@@ -17,6 +17,7 @@ const FavoriteExplorer = require('../toolPages/favoriteBase')
 const ipc = require('electron').ipcRenderer
 const {favorite} = require('./databaseRender')
 const sharedState = require('./sharedState')
+const getTheme = require('./theme')
 
 
 let _result,_update,bookmarkbarLink
@@ -308,13 +309,14 @@ class BookmarkBar extends Component {
       if(!_update){
         _update = uuid.v4()
         ipc.send('get-favorites-shallow',_update,'root',70)
+
+        ipc.once(`get-favorites-shallow-reply_${_update}`,(e,result)=>{
+          _update = false
+          _result = result
+          this.updateBookmark()
+        })
       }
 
-      ipc.once(`get-favorites-shallow-reply_${_update}`,(e,result)=>{
-        _update = false
-        _result = result
-        this.updateBookmark()
-      })
     }
     ipc.on("update-datas",this.eventUpdateDatas)
 
@@ -391,10 +393,10 @@ class BookmarkBar extends Component {
     ipc.on('favorite-menu-reply', this.event)
   }
   render(){
-    let style
+    let style = {background: (getTheme('images','theme_tab_background') || void 0)}
     if(this.props.hoverBookmarkBar){
       const rect = this.props.hoverBookmarkBar.getBoundingClientRect()
-      style = {overflow: 'hidden',position: 'fixed',zIndex:1000,width:rect.width,top:rect.top,left:rect.left}
+      style = {overflow: 'hidden',position: 'fixed',zIndex:1000,width:rect.width,top:rect.top,left:rect.left,...style}
     }
     return <div ref="bar" className="bookmark-bar" style={style}>
       {this.state.bookmarks}

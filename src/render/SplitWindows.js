@@ -19,7 +19,9 @@ const PanelOverlay = require('./PanelOverlay')
 import firebase,{storage,auth,database} from 'firebase'
 global.sharedStateMain = require('electron').remote.require('./sharedStateMainRemote')
 const sharedState = require('./sharedState')
-let [MARGIN,verticalTabPosition] = ipc.sendSync('get-sync-main-states',['syncScrollMargin','verticalTabPosition'])
+let [MARGIN,verticalTabPosition,enableTheme] = ipc.sendSync('get-sync-main-states',['syncScrollMargin','verticalTabPosition','enableTheme'])
+sharedState.theme = enableTheme
+
 let count = 0
 // ipc.setMaxListeners(0)
 const isDarwin = navigator.userAgent.includes('Mac OS X')
@@ -826,9 +828,13 @@ export default class SplitWindows extends Component{
       const prev = this.focused && this.actived
       if(type == 'focus'){
         this.focused = true
+        sharedState.inActive = false
+        this.setState({})
       }
       else if(type == 'blur'){
         this.focused = false
+        sharedState.inActive = true
+        this.setState({})
       }
       else if(type == 'idle'){
         this.actived = false
@@ -847,6 +853,12 @@ export default class SplitWindows extends Component{
       }
     }
     ipc.on('visit-state-update', this.eventVisitStateUpdate)
+
+    this.eventUpdateTheme = (e,theme)=>{
+      sharedState.theme = theme
+      this.setState({})
+    }
+    ipc.on('update-theme', this.eventUpdateTheme)
 
     this.tokenAlign = PubSub.subscribe("align",(_,e)=>{
 
@@ -907,6 +919,8 @@ export default class SplitWindows extends Component{
       this.setState({verticalTabPosition: updVal})
       mainState.set('verticalTabPosition',updVal)
     })
+
+    this.tokenSetState = PubSub.subscribe('set-state-split-window',_=>this.setState({}))
     // const self = this
     //
     // this.search = (e)=>{
@@ -948,11 +962,12 @@ export default class SplitWindows extends Component{
     ipc.removeListener('open-fixed-panel',this.eventOpenFixedPanel)
     ipc.removeListener('close-fixed-panel',this.eventCloseFixedPanel)
     ipc.removeListener('visit-state-update', this.eventVisitStateUpdate)
+    ipc.removeListener('update-theme', this.eventUpdateTheme)
 
     PubSub.unsubscribe(this.tokenAlign)
     PubSub.unsubscribe(this.tokenAllDetach)
     PubSub.unsubscribe(this.tokenSetVerticalTabState)
-
+    PubSub.unsubscribe(this.tokenSetState)
   }
 
   notifyChange(date){

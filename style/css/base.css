@@ -341,7 +341,7 @@ a.search-button:hover {
 .rdTabAddButton:hover {
     /*background-image: linear-gradient(rgb(66, 66, 66), rgb(49, 49, 49)) !important;*/
     background-image: linear-gradient(rgba(255,255,255,0.1), rgba(255,255,255,0.1)) !important;
-    transform: skewX(30deg)
+    /*transform: skewX(30deg)*/
 }
 
 .ui.search>.results {

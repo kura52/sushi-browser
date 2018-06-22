@@ -696,10 +696,10 @@ ipcMain.on('get-main-state',(e,key,names)=>{
       for (let [k,v] of Object.entries(extInfos)) {
         if(!('url' in v) || v.name == "brave") continue
         const orgId = v.base_path.split(/[\/\\]/).slice(-2,-1)[0]
-        extensions[k] = {name:v.name,url:v.url,basePath:v.base_path,version: v.manifest.version,theme:v.theme,
+        extensions[k] = {name:v.name,url:v.url,basePath:v.base_path,version: (v.manifest.version || v.version),theme:v.theme,
           optionPage: v.manifest.options_page || (v.manifest.options_ui && v.manifest.options_ui.page),
           background: v.manifest.background && v.manifest.background.page,icons:v.manifest.icons,
-           description: v.manifest.description,enabled: !disableExtensions.includes(orgId) }
+           description: (v.manifest.description || v.description),enabled: !disableExtensions.includes(orgId) }
       }
       ret[name] = extensions
     }
@@ -764,6 +764,13 @@ ipcMain.on('save-state',async (e,{tableName,key,val})=>{
       }
       else{
         return
+      }
+    }
+    else if(key == 'enableTheme'){
+      for(let win of BrowserWindow.getAllWindows()) {
+        if(win.getTitle().includes('Sushi Browser')){
+          win.webContents.send('update-theme',extInfos[val] && extInfos[val].theme)
+        }
       }
     }
     mainState[key] = val
@@ -1438,6 +1445,9 @@ ipcMain.on('get-sync-main-states',(e,keys)=>{
       }
       return ret
     }
+    else if(key == 'enableTheme'){
+      return extInfos[mainState.enableTheme] && extInfos[mainState.enableTheme].theme
+    }
     else{
       return mainState[key]
     }
@@ -1688,6 +1698,7 @@ ipcMain.on('browser-load',async (e,arg)=>{
   const win = await BrowserWindowPlus.load(arg)
   e.returnValue = win.id
 })
+
 // ipcMain.on('get-firefox-url',(e,key,url)=>{
 //   session.defaultSession.webRequest.fetch(url, {'user-agent': `Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:57.0) Gecko/20100101 Firefox/57.0`}, (err, response, body) => {
 //      e.sender.send(`get-firefox-url-reply_${key}`,body.toString())

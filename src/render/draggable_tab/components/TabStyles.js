@@ -30,7 +30,7 @@ export default function (){
       overflowY: 'hidden',
       overflowX: 'hidden',
       // paddingRight: '35px',
-      height: "27px",
+      // height: "27px",
       padding: 0,
       // zIndex: 10,
       // '-webkit-app-region': 'drag'

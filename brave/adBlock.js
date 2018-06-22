@@ -268,9 +268,9 @@ const startAdBlocking = (adblock, resourceName, shouldCheckMainFrame,ses=session
 
 let adblock
 fs.readFile(path.join(__dirname, '../resource/ABPFilterParserData.dat'),  function (err, text) {
-  adblock = new AdBlockClient()
-  adblock.deserialize(text);
-  startAdBlocking(adblock,null,false)
+  // adblock = new AdBlockClient()
+  // adblock.deserialize(text);
+  // startAdBlocking(adblock,null,false)
 });
 
 module.exports = {

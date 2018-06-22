@@ -35,6 +35,7 @@ const SavedStateExplorer = require('../toolPages/savedStateBase')
 const {messages,locale} = require('./localAndMessage')
 const urlParse = require('../../brave/urlParse')
 const sharedState = require('./sharedState')
+const getTheme = require('./theme')
 import ResizeObserver from 'resize-observer-polyfill'
 import uuid from 'node-uuid'
 import menuSortContextMenu from './menuSortContextMenu'
@@ -635,7 +636,10 @@ class BrowserNavbar extends Component{
       <NavbarMenuItem text={locale.translation("newWindow")} icon='clone' onClick={()=>BrowserWindowPlus.load({id:remote.getCurrentWindow().id,sameSize:true})}/>
       <div className="divider" />
       <NavbarMenuItem text={`[${this.props.toggleNav == 0 ? ' ' : '✓'}] OneLine Menu(ALL)`} icon='ellipsis horizontal'
-                      onClick={()=>{cont.hostWebContents.send('toggle-nav',this.props.toggleNav == 0 ? 1 : 0);this.setState({})}}/>
+                      onClick={()=>{
+                        ipc.emit('toggle-nav',null,this.props.toggleNav == 0 ? 1 : 0)
+                        setTimeout(_=>this.props.parent.setState({}),0)
+                      }}/>
       {this.props.toggleNav == 0 ? <NavbarMenuItem text={`[${multistageTabs  ? '✓' : ' '}] Multi Row Tabs`} icon='table'
                                                    onClick={()=>{
                                                      ipc.send('save-state',{tableName:'state',key:'multistageTabs',val:!multistageTabs})
@@ -1071,9 +1075,10 @@ class BrowserNavbar extends Component{
     if(rights.length) rightMenus.unshift(...rights)
     navBarMenus.push(...rightMenus)
 
-    const navbarStyle = this.props.toggleNav == 2 ? {visibility: "hidden"} : this.props.toggleNav == 3 ? {zIndex: 2, position: "sticky", top: 27} : {}
+    let navbarStyle = this.props.toggleNav == 2 ? {visibility: "hidden"} : this.props.toggleNav == 3 ? {zIndex: 2, position: "sticky", top: 27} : {}
     // this.props.toggleNav == 1 ? {width : this.props.isTopRight ? '55%' : '50%',float: 'right'} : {}
-
+    const toolbarTheme = getTheme('images','theme_toolbar')
+    if(toolbarTheme) navbarStyle = {...navbarStyle,background:toolbarTheme}
 
     return <div className={`navbar-main browser-navbar${isFixed && !isFloat ? " fixed-panel" : ""}`}
                 ref="navbar" onDragOver={(e)=>{e.preventDefault();return false}}

@@ -161,12 +161,6 @@ ipcMain.on('delete-extension',(e,extensionId,orgId)=>{
 const extInfos = require('./extensionInfos')
 simpleIpcFunc('chrome-app-getDetails',id=>extInfos[id])
 
-//#runtime
-simpleIpcFunc('chrome-runtime-openOptionsPage',id=>{
-  if(extInfos[id].manifest.options_ui && extInfos[id].manifest.options_ui.page){
-    getFocusedWebContents().then(cont=>cont.hostWebContents.send('new-tab', cont.getId(), `chrome-extension://${id}/${extInfos[id].manifest.options_ui.page.split("/").filter(x=>x).join("/")}`))
-  }
-})
 
 // for(let method of ['onMessage']){
 //   const registBackgroundPages = new Map()

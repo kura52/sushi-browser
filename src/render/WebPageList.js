@@ -75,7 +75,7 @@ export default class WebPageList extends Component{
 
 
   render() {
-    const {notLoadTabUntilSelected,allSelectedkeys} = sharedState
+    const {notLoadTabUntilSelected,allSelectedkeys,tabBarMarginTop} = sharedState
     let arr = []
     const list = this.state.l
     // console.log(list)
@@ -100,7 +100,7 @@ export default class WebPageList extends Component{
                 top: pos.top + modify,
                 left: pos.left,
                 width: pos.width,
-                height: pos.height - modify,
+                height: pos.height - modify - tabBarMarginTop,
                 // display: "inline-flex",
                 zIndex: datas.float ? this.state.floatKey == key ? 6 : 4 : 1
               } : {
@@ -118,7 +118,7 @@ export default class WebPageList extends Component{
                 top: pos.top + modify,
                 left: pos.left,
                 width: pos.width,
-                height: pos.height - modify,
+                height: pos.height - modify - tabBarMarginTop,
               }
             }
             const notLoadPage = notLoadTabUntilSelected && !allSelectedkeys.has(tab.key) && !tab.wvId

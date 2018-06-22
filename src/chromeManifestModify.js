@@ -174,6 +174,12 @@ export default async function modify(extensionId,verPath){
         flagBackground = true
       }
 
+      if(infos.options_ui && infos.options_ui.page){
+        if(!infos.options_page) infos.options_page = infos.options_ui.page
+        htmlModify(verPath,infos.options_ui.page,isWebExt)
+        flagBackground = true
+      }
+
       if(infos.page_action && infos.page_action.default_popup){
         htmlModify(verPath,infos.page_action.default_popup,isWebExt)
         flagBackground = true
@@ -184,10 +190,6 @@ export default async function modify(extensionId,verPath){
         flagBackground = true
       }
 
-      if(infos.options_ui && infos.options_ui.page){
-        htmlModify(verPath,infos.options_ui.page,isWebExt)
-        flagBackground = true
-      }
 
       if(infos.web_accessible_resources){
         for(let file of infos.web_accessible_resources){

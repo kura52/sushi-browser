@@ -31,15 +31,35 @@ const {NavbarMenuItem, NavbarMenuBarItem} = require('../../NavbarMenuItem')
 const sharedState = require('../../sharedState')
 const {getTextColorForBackground} = require('../../../../brave/app/color')
 const ToolbarResizer = require('../../ToolbarResizer')
+const getTheme = require('../../theme')
 
 const isDarwin = navigator.userAgent.includes('Mac OS X')
 const isWin = navigator.userAgent.includes('Windows')
-let [scrollTab,reverseScrollTab,multistageTabs,verticalTabWidth,tabBarHide,tabMinWidth,tabMaxWidth,tabFlipLabel,mouseHoverSelectLabelBeginDelay,mouseHoverSelectLabelBegin,doubleClickTab,middleClickTab,altClickTab,maxrowLabel,openTabNextLabel,rightClickTabAdd,middleClickTabAdd,altClickTabAdd,displayFullIcon,mediaPlaying,tabPreviewSizeWidth,tabPreviewSizeHeight,tabPreviewSlideHeight,tabPreviewWait,tabCirculateSelection] = ipc.sendSync('get-sync-main-states',['scrollTab','reverseScrollTab','multistageTabs','verticalTabWidth','tabBarHide','tabMinWidth','tabMaxWidth','tabFlipLabel','mouseHoverSelectLabelBeginDelay','mouseHoverSelectLabelBegin','doubleClickTab','middleClickTab','altClickTab','maxrowLabel','openTabNextLabel','rightClickTabAdd','middleClickTabAdd','altClickTabAdd','displayFullIcon','mediaPlaying','tabPreviewSizeWidth','tabPreviewSizeHeight','tabPreviewSlideHeight','tabPreviewWait','tabCirculateSelection'])
+let [scrollTab,reverseScrollTab,multistageTabs,verticalTabWidth,tabBarHide,tabMinWidth,tabMaxWidth,tabFlipLabel,mouseHoverSelectLabelBeginDelay,mouseHoverSelectLabelBegin,doubleClickTab,middleClickTab,altClickTab,maxrowLabel,openTabNextLabel,rightClickTabAdd,middleClickTabAdd,altClickTabAdd,displayFullIcon,mediaPlaying,tabPreviewSizeWidth,tabPreviewSizeHeight,tabPreviewSlideHeight,tabPreviewWait,tabCirculateSelection,tabBarMarginTop,removeTabBarMarginTop] = ipc.sendSync('get-sync-main-states',['scrollTab','reverseScrollTab','multistageTabs','verticalTabWidth','tabBarHide','tabMinWidth','tabMaxWidth','tabFlipLabel','mouseHoverSelectLabelBeginDelay','mouseHoverSelectLabelBegin','doubleClickTab','middleClickTab','altClickTab','maxrowLabel','openTabNextLabel','rightClickTabAdd','middleClickTabAdd','altClickTabAdd','displayFullIcon','mediaPlaying','tabPreviewSizeWidth','tabPreviewSizeHeight','tabPreviewSlideHeight','tabPreviewWait','tabCirculateSelection','tabBarMarginTop','removeTabBarMarginTop'])
 maxrowLabel = parseInt(maxrowLabel)
 tabPreviewSizeWidth = tabPreviewSizeWidth ? parseInt(tabPreviewSizeWidth) : null
 tabPreviewSizeHeight = tabPreviewSizeHeight ? parseInt(tabPreviewSizeHeight) : null
 tabPreviewSlideHeight = tabPreviewSlideHeight ? parseInt(tabPreviewSlideHeight) : 140
 tabPreviewWait = tabPreviewWait ? parseInt(tabPreviewWait) : 0
+sharedState._tabBarMarginTop = parseInt(tabBarMarginTop)
+sharedState.tabBarMarginTop = (removeTabBarMarginTop && remote.getCurrentWindow().isMaximized()) ? 0 : sharedState._tabBarMarginTop
+
+if(removeTabBarMarginTop){
+  ipc.on('maximize',(e,val)=>{
+    let nextVal
+    if(val){
+      nextVal = 0
+    }
+    else{
+      nextVal = sharedState._tabBarMarginTop
+    }
+    if(nextVal != sharedState.tabBarMarginTop){
+      sharedState.tabBarMarginTop = nextVal
+      PubSub.publish('set-state-split-window')
+      PubSub.publish('set-state-split-window')
+    }
+  })
+}
 
 ;(function(){
   const s = document.createElement('style');
@@ -414,6 +434,7 @@ class Tabs extends React.Component {
   }
 
   buildRenderComponent(){
+    this.TabStyles = TabStylesCreate()
     // override inline tabs styles
     const tabInlineStyles = {};
     tabInlineStyles.tabWrapper = this.TabStyles.tabWrapper //StyleOverride.merge(this.TabStyles.tabWrapper, this.props.tabsStyles.tabWrapper);
@@ -439,7 +460,7 @@ class Tabs extends React.Component {
     else {
       tabInlineStyles.tabBar.display = "flex"
       tabInlineStyles.tabBar.paddingRight = void 0
-      if(this.tabPreviewHeight && this.tabPreviewHeight != 27) tabInlineStyles.tabBar.height = `${this.tabPreviewHeight}px`
+      tabInlineStyles.tabBar.height = `${(this.tabPreviewHeight || 27) + sharedState.tabBarMarginTop}px`
       // const titleElements = document.getElementsByClassName("rdTabBar mfyTabBar")
       //   for (let i = 0; i < titleElements.length; i++) {
       //     titleElements[i].style.display = "flex"
@@ -712,7 +733,34 @@ class Tabs extends React.Component {
         tabTiteleStyle.maxWidth =  `calc(100% - ${beforeTitleCount == 0 ? 54 : beforeTitleCount == 1 ? 66 : beforeTitleCount == 2 ? 80 : 98}px)`
       }
 
-      const bgSvg = `<svg version="1.1" xmlns="http://www.w3.org/2000/svg"><defs><symbol id="topleft" viewBox="0 0 214 29"><path d="M14.3 0.1L214 0.1 214 29 0 29C0 29 12.2 2.6 13.2 1.1 14.3-0.4 14.3 0.1 14.3 0.1Z"></path></symbol><symbol id="topright" viewBox="0 0 214 29"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topleft"></use></symbol><clipPath id="crop"><rect class="mask" width="100%" height="100%" x="0"></rect></clipPath></defs><svg width="50%" height="100%" transfrom="scale(-1, 1)"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topleft" width="214" height="29" class="chrome-tab-background" style="fill:${bgColor};"></use><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topleft" width="214" height="29" class="chrome-tab-shadow"></use></svg><g transform="scale(-1, 1)"><svg width="50%" height="100%" x="-100%" y="0"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topright" width="214" height="29" class="chrome-tab-background" style="fill:${bgColor};"></use><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topright" width="214" height="29" class="chrome-tab-shadow"></use></svg></g></svg>`
+      let bgUrl = selected ? getTheme('images','theme_toolbar') : getTheme('images','theme_tab_background')
+      if(bgUrl) bgUrl = bgUrl.substring(4, bgUrl.length-1)
+      const bgSvg = `<svg version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    ${bgUrl ? `<pattern id="imgpattern${tabNum}" x="0" y="0" width="1" height="1">
+      <image width="214" height="29" xlink:href="${bgUrl}"/>
+    </pattern>` : ""}
+    <symbol id="topleft" viewBox="0 0 214 29">
+      <path d="M14.3 0.1L214 0.1 214 29 0 29C0 29 12.2 2.6 13.2 1.1 14.3-0.4 14.3 0.1 14.3 0.1Z"></path>
+    </symbol>
+    <symbol id="topright" viewBox="0 0 214 29">
+      <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topleft"></use>
+    </symbol>
+    <clipPath id="crop">
+      <rect class="mask" width="100%" height="100%" x="0"></rect>
+    </clipPath>
+  </defs>
+  <svg width="50%" height="100%" transfrom="scale(-1, 1)">
+    <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topleft" width="214" height="29" class="chrome-tab-background" style="fill:${bgUrl ? `url(#imgpattern${tabNum})` : bgColor};"></use>
+    <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topleft" width="214" height="29" class="chrome-tab-shadow"></use>
+  </svg>
+  <g transform="scale(-1, 1)">
+    <svg width="50%" height="100%" x="-100%" y="0">
+      <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topright" width="214" height="29" class="chrome-tab-background" style="fill:${bgUrl ? `url(#imgpattern${tabNum})` : bgColor};"></use>
+      <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topright" width="214" height="29" class="chrome-tab-shadow"></use>
+    </svg>
+  </g>
+</svg>`
 
       return (
         <li style={tabStyle} className={tabClasses} draggable
@@ -733,7 +781,12 @@ class Tabs extends React.Component {
           { this.props.verticalTabPanel ?
             null :
             this.isMultistageTabsMode() ?
-              <div className="chrome-tab-background" style={{backgroundColor: selected ? sharedState.colorActiveBackground : unreadTab ? sharedState.colorUnreadBackground : sharedState.colorNormalBackground}}>
+              <div className="chrome-tab-background" style={
+                {borderTop: sharedState.tabBarMarginTop ? '0.5px solid #bbbbbb' : void 0,
+                  backgroundColor: selected ? sharedState.colorActiveBackground : unreadTab ? sharedState.colorUnreadBackground : sharedState.colorNormalBackground,
+                  background: getTheme('images',selected ? 'theme_toolbar' : 'theme_tab_background' ) || void 0
+                }
+              }>
                 {tab.props.orgTab.tabPreview && this.tabPreviewHeight && this.tabPreviewHeight != 27 ? <img style={{width: '100%',height: 140, marginTop:30}} src={tab.props.orgTab.tabPreview.dataURL}/> : null}
               </div> :
               <div className="chrome-tab-background">
@@ -776,21 +829,28 @@ class Tabs extends React.Component {
     }
 
     if(this.props.verticalTabPanel){
-      this.TabStyles.tabBar.flexDirection = 'column'
+      tabInlineStyles.tabBar.flexDirection = 'column'
       this.TabStyles.tabAddButton.top = 2
       this.TabStyles.tabAddButton.display = 'flex'
       this.TabStyles.tabAddButton.width = '80%'
       this.TabStyles.tabAddButton.height = 17
       delete this.TabStyles.tabAddButton.left
       this.TabStyles.tabAddButton.marginLeft = 'auto'
+      delete tabInlineStyles.tabBar.paddingTop
     }
     else{
-      delete this.TabStyles.tabBar.overflowY
+      delete tabInlineStyles.tabBar.overflowY
       this.TabStyles.tabAddButton.top = 7
       this.TabStyles.tabAddButton.height = 16
       delete this.TabStyles.tabAddButton.display
       this.TabStyles.tabAddButton.width = 25
       this.TabStyles.tabAddButton.marginLeft = 14
+      if(this.props.toggleNav == 0){
+        tabInlineStyles.tabBar.paddingTop = sharedState.tabBarMarginTop
+      }
+      else{
+        delete tabInlineStyles.tabBar.paddingTop
+      }
     }
 
 
@@ -1316,10 +1376,12 @@ class Tabs extends React.Component {
 
   render() {
     const {_tabClassNames,tabInlineStyles,tabs,content} = this.buildRenderComponent()
+    const background = `${getTheme('images','theme_frame')} ${getTheme('colors','frame')} repeat`
+
     const tabBaseStyle = this.props.toggleNav == 2 ? {display: 'none'} :
       this.props.toggleNav == 3 ? {
           height: 27,
-          background: 'rgb(221, 221, 221)',
+          background,
           borderBottom: '1px solid #aaa',
           zIndex: 2,
           position: 'absolute',
@@ -1328,13 +1390,13 @@ class Tabs extends React.Component {
         this.isMultistageTabsMode() ?
           {
             height : this.tabPreviewHeight && this.tabPreviewHeight != 27 ? this.tabPreviewHeight : void 0,
-            background: 'rgb(221, 221, 221)',
+            background,
             borderBottom: '1px solid #aaa',
           } :
           this.props.toggleNav == 1 ? {} :
             {
-              height: this.tabPreviewHeight || 27,
-              background: 'rgb(221, 221, 221)',
+              height: (this.tabPreviewHeight || 27) + sharedState.tabBarMarginTop,
+              background,
               borderBottom: '1px solid #aaa',
             }
 
@@ -1385,7 +1447,8 @@ class Tabs extends React.Component {
             {isDarwin && this.props.isTopRight && this.props.toggleNav != 1 && !document.querySelector('.vertical-tab.left') ? <div style={{width: this.props.fullscreen ? 0 : 62}}/>  : ""}
             {tabs}
             <span ref="addButton" draggable="true" className="rdTabAddButton"
-                  style={Object.assign({},this.TabStyles.tabAddButton)} onClick={this.handleAddButtonClick.bind(this)} onMouseDown={this.handleAddButtonMouseDown.bind(this)}
+                  style={{...this.TabStyles.tabAddButton, background: getTheme('images','theme_tab_background' ) || void 0}}
+                  onClick={this.handleAddButtonClick.bind(this)} onMouseDown={this.handleAddButtonMouseDown.bind(this)}
                   onDragStart={this.handleDragStart.bind(this, null)} onDragEnd={this.handleDragEnd.bind(this, null)}>
               {this.props.verticalTabPanel ? <i className="fa fa-plus" aria-hidden="true"  style={{marginLeft: 'auto', marginRight: 'auto', fontSize: 13, padding: 2}}/> : null}
               {this.props.tabAddButton}
@@ -1394,7 +1457,8 @@ class Tabs extends React.Component {
               <span className="typcn typcn-media-stop-outline" onClick={()=>PubSub.publish(`maximize-float-panel_${this.props.k}`)}></span>
               <span className="typcn typcn-times" onClick={()=>PubSub.publish(`close-panel_${this.props.k}`)}></span>
             </div> : null}
-            {!isDarwin && this.props.isTopRight && this.props.toggleNav != 1 ? <RightTopBottonSet displayFullIcon={displayFullIcon} toggleNav={this.props.toggleNav} style={{paddingTop:this.props.verticalTabPanel ? 10 : void 0,transform: `translateX(${this.isMultistageTabsMode() ? 1 : - this.state.tabs.length * 13 + 6}px)`}}/>: ""}
+            {!isDarwin && this.props.isTopRight && this.props.toggleNav != 1 ? <RightTopBottonSet displayFullIcon={displayFullIcon} toggleNav={this.props.toggleNav} style={{paddingTop:this.props.verticalTabPanel ? 10 : void 0,
+              marginTop: (this.props.verticalTabPanel ||this.props.toggleNav == 3 || this.isMultistageTabsMode()) ? void 0 : sharedState.tabBarMarginTop * -1, transform: `translateX(${this.isMultistageTabsMode() ? 1 : - this.state.tabs.length * 13 + 6}px)`}}/>: ""}
           </ul>
         </div>
         {this.props.toggleNav == 1 || !sharedState.tabPreview ? null : <ToolbarResizer height={this.tabPreviewHeight ? this.tabPreviewHeight - 27 : 0} setHeight={::this.setHeight}/>}

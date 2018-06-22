@@ -78,8 +78,8 @@ class BrowserActionWebView extends Component {
         let height = preferredSize.height
         if(!width && !height) return
 
-        const obj = ReactDOM.findDOMNode(webview).querySelector("::shadow object")
-        width = Math.max(width,obj.clientWidth)
+        // const obj = ReactDOM.findDOMNode(webview).querySelector("::shadow object")
+        // width = Math.max(width,obj.clientWidth)
 
         this.setState({style:{width,height}},_=>{
           setTimeout(_=>{

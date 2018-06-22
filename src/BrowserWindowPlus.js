@@ -228,6 +228,14 @@ function create(args){
     bw.webContents.send('visit-state-update','focus')
   })
 
+  bw.on('maximize',_=>{
+    bw.webContents.send('maximize',true)
+  })
+
+  bw.on('unmaximize',_=>{
+    bw.webContents.send('maximize',false)
+  })
+
   if(isDarwin){
     bw.on('enter-full-screen',_=>{
       bw.webContents.send('enter-full-screen',true)

@@ -115,16 +115,20 @@ module.exports.init = (verChange) => {
 
     if(!basePath) return
     let localePath = path.join(basePath, `_locales/${locale.split("_")[0]}/messages.json`)
+    console.log(661,localePath)
     if (!fs.existsSync(localePath)) {
       localePath = path.join(basePath, `_locales/${locale}/messages.json`)
+      console.log(662,localePath)
       if (!fs.existsSync(localePath)) {
-        localePath = path.join(basePath, `_locales/${installInfo.manifest.default_locale}/messages.json`)
-        if (!installInfo.manifest.default_locale || !fs.existsSync(localePath)) {
+        const default_locale = installInfo.manifest.default_locale || installInfo.default_locale
+        localePath = path.join(basePath, `_locales/${default_locale}/messages.json`)
+        console.log(663,localePath)
+        if (!default_locale || !fs.existsSync(localePath)) {
           return
         }
       }
     }
-    console.log(localePath)
+    console.log(552,localePath)
     const messages = hjson.parse(removeBom(fs.readFileSync(localePath).toString()))
     search(installInfo,messages)
   }
@@ -194,6 +198,7 @@ module.exports.init = (verChange) => {
             manifestContents.manifest = {}
             manifestContents.base_path = extensionPath
             transInfos(manifestContents)
+            if(manifestContents.theme) manifestContents.theme.base_path = extensionPath
             extInfos.setInfo(manifestContents)
             return
           }

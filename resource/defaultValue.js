@@ -44,6 +44,7 @@ const settingDefault =  {
   checkedVersion: '0.00',
   checkDefaultBrowser: true,
   disableExtensions: [],
+  enableTheme: null,
   adBlockDisableSite: {},
   disableContextMenus: [],
   disableTabContextMenus: ['closeTab','reload','Split Left','Split Top','cleanReload','Split right tabs to right',
@@ -124,6 +125,8 @@ const settingDefault =  {
   tabPreviewSizeHeight: null,
   tabPreviewSlideHeight: 140,
   tabCirculateSelection: false,
+  tabBarMarginTop: 10,
+  removeTabBarMarginTop: true,
 
   colorNormalText: '#222',
   colorNormalBackground: '#d0d0d0',

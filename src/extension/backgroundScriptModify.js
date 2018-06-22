@@ -37,7 +37,6 @@ window.close = _=> chrome.ipcRenderer.sendToHost('window-close',{})
 chrome.app.getDetails = _=>chrome.ipcRenderer.sendSync('chrome-management-get-sync',chrome.runtime.id)
 
 chrome.csi = _=>({})
-chrome.runtime.openOptionsPage = _=> simpleIpcFunc('chrome-runtime-openOptionsPage',_=>_,chrome.runtime.id)
 
 
 chrome.runtime.onMessage._addListener = chrome.runtime.onMessage.addListener
