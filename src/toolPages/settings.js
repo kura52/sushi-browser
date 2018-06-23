@@ -522,6 +522,8 @@ class GeneralSetting extends React.Component {
     super(props)
     this.state = generalDefault
     this.clear = []
+    this.imports = []
+    this.exports = []
   }
 
 
@@ -530,12 +532,26 @@ class GeneralSetting extends React.Component {
   }
 
   onChange2(name,e,data){
-    if(data.checked){
+    if(data.checked)
       this.clear.push(name)
-    }
-    else{
+    else
       this.clear = this.clear.filter(x=> x !== name)
-    }
+    this.setState({})
+  }
+
+  onChangeImport(name,e,data){
+    if(data.checked)
+      this.imports.push(name)
+    else
+      this.imports = this.imports.filter(x=> x !== name)
+    this.setState({})
+  }
+
+  onChangeExport(name,e,data){
+    if(data.checked)
+      this.exports.push(name)
+    else
+      this.exports = this.exports.filter(x=> x !== name)
     this.setState({})
   }
 
@@ -667,28 +683,99 @@ class GeneralSetting extends React.Component {
         </Grid>
         <br/>
         <br/>
+        <br/>
 
-        <div className="field">
-          <label>{l10n.translation('importBrowserData').replace('…','')} ({l10n.translation('requiresRestart').replace('* ','')})</label>
-          <Button primary content={l10n.translation('import')} onClick={_=>ipc.send("import-browser-data",{})}/>
-        </div>
-
-        <div className="field">
-          <label>{l10n.translation('exportBookmarks').replace('…','')}</label>
-          <Button primary content={l10n.translation('42126664696688958')} onClick={_=>ipc.send("export-bookmark",{})}/>
-        </div>
+        <Grid>
+          <Grid.Row>
+            <Grid.Column width={6}>
+              <div className="field">
+                <label>{l10n.translation('importBrowserData').replace('…','')} ({l10n.translation('requiresRestart').replace('* ','')})</label>
+                <Button primary content={l10n.translation('import')} onClick={_=>ipc.send("import-browser-data",{})}/>
+              </div>
+            </Grid.Column>
+            <Grid.Column width={6} style={{marginTop: 0}}>
+              <div className="field">
+                <label>{l10n.translation('exportBookmarks').replace('…','')}</label>
+                <Button primary content={l10n.translation('42126664696688958')} onClick={_=>ipc.send("export-bookmark",{})}/>
+              </div>
+            </Grid.Column>
+          </Grid.Row>
+        </Grid>
+        <br/>
+        <br/>
         <br/>
 
 
-        <div className="field">
-          <label>{l10n.translation('settingsImport').replace('…','')}</label>
-          <Button primary content={l10n.translation('import')} onClick={_=>ipc.send("import-setting",{})}/>
-        </div>
+        <Grid>
+          <Grid.Row>
+            <Grid.Column width={6}>
+              <div className="field">
+                <label>{l10n.translation('settingsImport').replace('…','')} (Delete all data and import restore data)</label>
 
-        <div className="field">
-          <label>{l10n.translation('settingsExport').replace('…','')}</label>
-          <Button primary content={l10n.translation('42126664696688958')} onClick={_=>ipc.send("export-setting",{})}/>
-        </div>
+                <Checkbox toggle onChange={this.onChangeImport.bind(this,'generalSettings')}/>
+                <span className="toggle-label">{l10n.translation('generalSettings')}</span>
+                <br/>
+                <Checkbox toggle onChange={this.onChangeImport.bind(this,'bookmarks')}/>
+                <span className="toggle-label">{l10n.translation('bookmarks')}</span>
+                <br/>
+                <Checkbox toggle onChange={this.onChangeImport.bind(this,'browsingHistory')}/>
+                <span className="toggle-label">{l10n.translation('browsingHistory')}</span>
+                <br/>
+                <Checkbox toggle onChange={this.onChangeImport.bind(this,'sessionTools')}/>
+                <span className="toggle-label">{l10n.translation('sessionTools')}</span>
+                <br/>
+                <Checkbox toggle onChange={this.onChangeImport.bind(this,'favicons')}/>
+                <span className="toggle-label">Favicon</span>
+                <br/>
+                <Checkbox toggle onChange={this.onChangeImport.bind(this,'downloadHistory')}/>
+                <span className="toggle-label">{l10n.translation('downloadHistory')}</span>
+                <br/>
+                <Checkbox toggle onChange={this.onChangeImport.bind(this,'automation')}/>
+                <span className="toggle-label">Automation</span>
+                <br/>
+                <Checkbox toggle onChange={this.onChangeImport.bind(this,'note')}/>
+                <span className="toggle-label">Note</span>
+                <br/>
+
+                <Button disabled={!this.imports.length} primary content={l10n.translation('import')} onClick={_=>ipc.send("import-setting",this.imports)}/>
+              </div>
+            </Grid.Column>
+            <Grid.Column width={6} style={{marginTop: 0}}>
+              <div className="field">
+                <label>{l10n.translation('settingsExport').replace('…','')}</label>
+
+                <Checkbox toggle onChange={this.onChangeExport.bind(this,'generalSettings')}/>
+                <span className="toggle-label">{l10n.translation('generalSettings')}</span>
+                <br/>
+                <Checkbox toggle onChange={this.onChangeExport.bind(this,'bookmarks')}/>
+                <span className="toggle-label">{l10n.translation('bookmarks')}</span>
+                <br/>
+                <Checkbox toggle onChange={this.onChangeExport.bind(this,'browsingHistory')}/>
+                <span className="toggle-label">{l10n.translation('browsingHistory')}</span>
+                <br/>
+                <Checkbox toggle onChange={this.onChangeExport.bind(this,'sessionTools')}/>
+                <span className="toggle-label">{l10n.translation('sessionTools')}</span>
+                <br/>
+                <Checkbox toggle onChange={this.onChangeExport.bind(this,'favicons')}/>
+                <span className="toggle-label">Favicon</span>
+                <br/>
+                <Checkbox toggle onChange={this.onChangeExport.bind(this,'downloadHistory')}/>
+                <span className="toggle-label">{l10n.translation('downloadHistory')}</span>
+                <br/>
+                <Checkbox toggle onChange={this.onChangeExport.bind(this,'automation')}/>
+                <span className="toggle-label">Automation</span>
+                <br/>
+                <Checkbox toggle onChange={this.onChangeExport.bind(this,'note')}/>
+                <span className="toggle-label">Note</span>
+                <br/>
+
+                <Button disabled={!this.exports.length} primary content={l10n.translation('42126664696688958')} onClick={_=>ipc.send("export-setting",this.exports)}/>
+              </div>
+            </Grid.Column>
+          </Grid.Row>
+        </Grid>
+        <br/>
+        <br/>
         <br/>
 
 

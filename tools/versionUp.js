@@ -3,19 +3,45 @@ const path = require('path')
 const fs = require('fs')
 const glob = require("glob")
 
-const BEFORE_CODE_NAME = 'Ikura(Salmon Roe)'
-const CODE_NAME = 'Iwashi(Sardine)'
+// Ika(Squid)
+// Tako(Octopus)
+// Katsuo(Tuna)
+// Sanma(Saury)
+// Tobiuo(Flying Fish)
+// Negitoro
+// Hotate(Scallop)
+// Sazae(Turban Shell)
+// Tai(Sea Bream)
+// Gari(Sushi Ginger)
+// Kappa(Cucumber)
+// Aji(Horse mackerel)
+// Kani(Crab)
+// Unagi(Eel)
+// Shirauo(Icefish)
+// Ikura(Salmon Roe)
+// Iwashi(Sardine)
+// Engawa(Flounder Fin)
+
+const BEFORE_CODE_NAME = 'Iwashi(Sardine)'
+const CODE_NAME = 'Engawa(Flounder Fin)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.18.2"
+const NEXT_APP_VERSION = "0.19.0"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Fixed a fatal bug in chrome extension.
-Fixed some bugs.`
+const CHANGE_ENGLISH = `Added Tor browsing function. (new Muon function)
+Supports Chrome theme. (Download themes from the Chrome Store and add them, add theme setting page)
+Added General Settings, Bookmarks, Browsing history, Session Manager, Favicon, Download history, Automation, Note import/export function *Experimental
+Added option to set margin at top of tab bar when unmaximized.
+Added a function to change the top frame color when the window is out of focus.
+Updated to Muon 7.1.1.
+Fixed a lot of bugs.`
 
-const CHANGE_JAPANESE = `Tor通信に対応(Tor Tab)
-Chromeテーマに対応
-非最大化時にタブバーの上部にマージンをもたせるオプションを追加
-
+const CHANGE_JAPANESE = `Tor通信機能を追加(Muonの新機能)
+Chromeテーマに対応(Chrome Storeからテーマをダウンロードして追加可能、テーマ設定ページの追加）
+設定、ブックマーク、履歴、セッション、ファビコン、ダウンロード履歴、オートメーション、ノートのエクスポート/インポート機能追加 ※Experimental
+非最大化時にタブバー上部にマージンをセットするオプションを追加
+ウインドウの非フォーカス時にフレーム上部の色を変更する機能を追加
+Muonを7.1.1に更新
 多数の不具合修正`
 
 const isWindows = process.platform === 'win32'

@@ -184,6 +184,7 @@ var rendererIdentifiers = function () {
     'lookupSelection',
     'contextMain',
     'remove',
+    'sessionTools',
     // Other identifiers
     'aboutBlankTitle',
     'urlCopied',

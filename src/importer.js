@@ -63,7 +63,7 @@ importer.on('add-history-page', async (e, hist, visitSource) => {
   console.log("history-start")
   for (let i = 0; i < hist.length; ++i) {
     if(await history.findOne({location:hist[i].url})){}
-    else{nit
+    else{
       await history.insert({
         location: hist[i].url,
         title: hist[i].title,
