@@ -3124,7 +3124,7 @@ export default class TabPanel extends Component {
 
     if(this.state.tabs.length==1){
       if(!e.noSync) this.closeSyncTabs(key)
-      const keepWindow = keepWindowLabel31 && !this.props.parent.state.root.r
+      const keepWindow = keepWindowLabel31 && this.props.getAllKey().filter(key=>!isFixedPanel(key)).length == 1 && !isFixedPanel(this.props.k)
       if(!keepWindow) this.props.close(this.props.k)
       this.TabPanelClose(key,void 0,keepWindow)
     }

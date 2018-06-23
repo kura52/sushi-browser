@@ -551,12 +551,14 @@ sh.rm('-rf','resource/bin/7zip/linux')
 sh.rm('-rf','resource/bin/aria2/linux')
 sh.rm('-rf','resource/bin/ffmpeg/linux')
 sh.rm('-rf','resource/bin/handbrake/linux')
+sh.rm('-rf','resource/bin/tor/linux')
 
 const plat = isWindows ? 'win' : isDarwin ? 'mac' : 'linux'
 sh.cp('-Rf',`../bin/7zip/${plat}`,'resource/bin/7zip/.')
 sh.cp('-Rf',`../bin/aria2/${plat}`,'resource/bin/aria2/.')
 sh.cp('-Rf',`../bin/ffmpeg/${plat}`,'resource/bin/ffmpeg/.')
 sh.cp('-Rf',`../bin/handbrake/${plat}`,'resource/bin/handbrake/.')
+sh.cp('-Rf',`../bin/tor/${plat}`,'resource/bin/tor/.')
 sh.mkdir('-p', 'resource/bin/widevine');
 sh.cp('-Rf',`../bin/widevine/${plat}`,'resource/bin/widevine/.')
 
