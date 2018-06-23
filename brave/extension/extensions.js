@@ -5,7 +5,7 @@ const path = require('path')
 const os = require('os')
 const chromeExtensionPath = require('../../lib/extension/chromeExtensionPath')
 const chromeManifestModify = require('../../lib/chromeManifestModify')
-const {BrowserWindow,componentUpdater,app} = require('electron')
+const {BrowserWindow,componentUpdater,app,nativeImage} = require('electron')
 const extInfos = require('../../lib/extensionInfos')
 const mainState = require('../../lib/mainState')
 const PubSub = require('../../lib/render/pubsub')
@@ -203,6 +203,20 @@ module.exports.init = (verChange) => {
 
             if(enable){
               mainState.enableTheme = extensionId
+
+
+              const theme = manifestContents.theme
+              if(theme && theme.images){
+                theme.sizes = {}
+                for(let name of ['theme_toolbar','theme_tab_background']){
+                  if(!theme.images[name]) continue
+                  const file = path.join(theme.base_path,theme.images[name])
+                  if(file && fs.existsSync(file)){
+                    theme.sizes[name] = nativeImage.createFromPath(file).getSize()
+                  }
+                }
+              }
+
               for(let win of BrowserWindow.getAllWindows()) {
                 if(win.getTitle().includes('Sushi Browser')){
                   win.webContents.send('update-theme',manifestContents.theme)

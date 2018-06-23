@@ -573,10 +573,10 @@ class Tabs extends React.Component {
       }
       else if(this.props.toggleNav == 0 && this.tabPreviewHeight && this.tabPreviewHeight != 27){
         const ele = document.querySelector(`.s${this.props.k} .tab-base`)
-        containerStyle.height = `calc(100% - ${ele ? ele.offsetHeight : 27}px)`
+        containerStyle.height = `calc(100% - ${ele ? ele.offsetHeight : 27 + sharedState.tabBarMarginTop}px)`
       }
       else{
-        containerStyle.height = `calc(100% - ${this.props.toggleNav == 0 ?  27 : 0}px)`
+        containerStyle.height = `calc(100% - ${this.props.toggleNav == 0 ?  27 + sharedState.tabBarMarginTop : 0}px)`
       }
 
       // override inline each tab styles
@@ -793,12 +793,16 @@ class Tabs extends React.Component {
                   backgroundColor: getTheme('images',selected ? 'theme_toolbar' : 'theme_tab_background' ) ? 'initial' :
                     selected ? sharedState.colorActiveBackground : unreadTab ? sharedState.colorUnreadBackground : sharedState.colorNormalBackground,
                   backgroundImage: getTheme('images',selected ? 'theme_toolbar' : 'theme_tab_background' ) || void 0,
-                  height: selected && !this.props.verticalTabPanel ? 28 : void 0
+                  height: tab.props.orgTab.tabPreview && this.tabPreviewHeight && this.tabPreviewHeight != 27 ? 'initial' : selected && !this.props.verticalTabPanel ? 28 : void 0
                 }
               }>
                 {tab.props.orgTab.tabPreview && this.tabPreviewHeight && this.tabPreviewHeight != 27 ? <img style={{width: '100%',height: 140, marginTop:30}} src={tab.props.orgTab.tabPreview.dataURL}/> : null}
               </div> :
-              <div className="chrome-tab-background">
+              <div className="chrome-tab-background" style={
+                {
+                  height: tab.props.orgTab.tabPreview && this.tabPreviewHeight && this.tabPreviewHeight != 27 ? 'initial' : selected && !this.props.verticalTabPanel ? 28 : void 0
+                }
+              }>
                 <svg dangerouslySetInnerHTML={{__html: bgSvg }} />
                 {tab.props.orgTab.tabPreview && this.tabPreviewHeight && this.tabPreviewHeight != 27 ? <img style={{width: '100%',height: 140,marginTop: -4}} src={tab.props.orgTab.tabPreview.dataURL}/> : null}
               </div>

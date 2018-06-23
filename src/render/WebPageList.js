@@ -100,7 +100,7 @@ export default class WebPageList extends Component{
                 top: pos.top + modify,
                 left: pos.left,
                 width: pos.width,
-                height: pos.height - modify - ((sharedState.multistageTabs || datas.oneLine) ? 0 : tabBarMarginTop),
+                height: pos.height - modify,
                 // display: "inline-flex",
                 zIndex: datas.float ? this.state.floatKey == key ? 6 : 4 : 1
               } : {
@@ -118,7 +118,7 @@ export default class WebPageList extends Component{
                 top: pos.top + modify,
                 left: pos.left,
                 width: pos.width,
-                height: pos.height - modify - ((sharedState.multistageTabs || datas.oneLine) ? 0 : tabBarMarginTop),
+                height: pos.height - modify,
               }
             }
             const notLoadPage = notLoadTabUntilSelected && !allSelectedkeys.has(tab.key) && !tab.wvId

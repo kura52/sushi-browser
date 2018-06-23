@@ -509,6 +509,7 @@ sh.mv('resource/bin/aria2/win32','resource/bin/aria2/win')
 sh.mv('resource/bin/ffmpeg/win32','resource/bin/ffmpeg/win')
 sh.mv('resource/bin/handbrake/win32','resource/bin/handbrake/win')
 sh.mv('resource/bin/widevine/win32','resource/bin/widevine/win')
+sh.mv('resource/bin/tor/win32','resource/bin/tor/win')
 
 filesContentsReplace(`${pwd}/node_modules/youtube-dl/lib/youtube-dl.js`,"path.join(__dirname, '..', 'bin/details')","path.join(__dirname, '..', 'bin/details').replace(/app.asar([\\/\\\\])/,'app.asar.unpacked$1')")
 filesContentsReplace(`${pwd}/node_modules/youtube-dl/lib/youtube-dl.js`,"(details.path) ? details.path : path.resolve(__dirname, '..', 'bin', details.exec)","((details.path) ? details.path : path.resolve(__dirname, '..', 'bin', details.exec)).replace(/app.asar([\\/\\\\])/,'app.asar.unpacked$1')")

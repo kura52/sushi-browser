@@ -135,14 +135,14 @@ This browser makes use of wonderful web technologies, starting with the followin
 Both the installer for every platform and the portable version can be downloaded.  
 To use the portable edition, please run sushi.exe for Windows and sushi-browser for Mac/Linux after decompressing.
 
-- [Windows Installer v0.18.2](https://sushib.me/dl/sushi-browser-0.18.2-setup-x64.exe)
-- [Windows Portable v0.18.2(self-extract)](https://sushib.me/dl/sushi-browser-0.18.2-win-x64.exe)
-- [Windows Portable v0.18.2](https://sushib.me/dl/sushi-browser-0.18.2-win-x64.zip)
-- [MacOS dmg v0.18.2](https://sushib.me/dl/SushiBrowser-0.18.2.dmg)
-- [MacOS Portable v0.18.2](https://sushib.me/dl/sushi-browser-0.18.2-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.18.2](https://sushib.me/dl/sushi-browser-0.18.2.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.18.2](https://sushib.me/dl/sushi-browser_0.18.2_amd64.deb)
-- [Linux Portable v0.18.2](https://sushib.me/dl/sushi-browser-0.18.2.tar.bz2)
+- [Windows Installer v0.19.0](https://sushib.me/dl/sushi-browser-0.19.0-setup-x64.exe)
+- [Windows Portable v0.19.0(self-extract)](https://sushib.me/dl/sushi-browser-0.19.0-win-x64.exe)
+- [Windows Portable v0.19.0](https://sushib.me/dl/sushi-browser-0.19.0-win-x64.zip)
+- [MacOS dmg v0.19.0](https://sushib.me/dl/SushiBrowser-0.19.0.dmg)
+- [MacOS Portable v0.19.0](https://sushib.me/dl/sushi-browser-0.19.0-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.19.0](https://sushib.me/dl/sushi-browser-0.19.0.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.19.0](https://sushib.me/dl/sushi-browser_0.19.0_amd64.deb)
+- [Linux Portable v0.19.0](https://sushib.me/dl/sushi-browser-0.19.0.tar.bz2)
 
 # Use of Flash 
 If Flash won't run, please install Flash from the following web sites.  
@@ -156,6 +156,15 @@ sushi-browser --no-sandbox
 ```
 
 # New Features
+
+#### New function(v0.19.0)
+- Added Tor browsing function. (new Muon function)
+- Supports Chrome theme. (Download themes from the Chrome Store and add them, add theme setting page)
+- Added General Settings, Bookmarks, Browsing history, Session Manager, Favicon, Download history, Automation, Note import/export function *Experimental
+- Added option to set margin at top of tab bar when unmaximized.
+- Added a function to change the top frame color when the window is out of focus.
+- Updated to Muon 7.1.1.
+- Fixed a lot of bugs.
 
 #### New function(v0.18.2)
 - Fixed a fatal bug in chrome extension.

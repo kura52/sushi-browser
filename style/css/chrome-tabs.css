@@ -56,6 +56,10 @@
   height: 28px;
 }
 
+.split-window .chrome-tabs .chrome-tab.multi-row  .chrome-tab-background{
+  height: 27px;
+}
+
 .chrome-tabs .chrome-tab.chrome-tab-current .chrome-tab-background {
   /*border-bottom: none;*/
   /*height: 27px;*/

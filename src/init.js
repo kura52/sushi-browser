@@ -851,11 +851,11 @@ function contextMenu(webContents) {
           win.webContents.send('new-tab', webContents.getId(), props.linkURL,Math.random().toString())
         }
       })
-      // menuItems.push({
-      //   t: 'newTorTab', label: 'Open Links in New Tor Tabs', click: (item, win) => {
-      //     win.webContents.send('new-tab', webContents.getId(), props.linkURL,'persist:tor')
-      //   }
-      // })
+      menuItems.push({
+        label: 'Open Links in New Tor Tabs', click: (item, win) => {
+          win.webContents.send('new-tab', webContents.getId(), props.linkURL,'persist:tor')
+        }
+      })
       menuItems.push({
         t: 'openInNewSessionTab', label: locale.translation('openInNewSessionTab'), click: (item, win) => {
           win.webContents.send('new-tab', webContents.getId(), props.linkURL,`persist:${seq()}`)
