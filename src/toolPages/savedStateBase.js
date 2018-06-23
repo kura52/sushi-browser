@@ -402,7 +402,8 @@ class Contents extends React.Component {
 
     if(isMain){
       this.loaded = false
-      await localForage.setItem("savedState-sidebar-open-node",'24 Hours Ago')
+      const items = await localForage.getItem("savedState-sidebar-open-node")
+      await localForage.setItem("savedState-sidebar-open-node",items ? `${[...new Set([...items.split("	"),'24 Hours Ago'])].join("\t")}` : '24 Hours Ago')
       const promise = this.loadAllData('24 Hours Ago')
       const self = this
       this.scrollEvent = function(e){

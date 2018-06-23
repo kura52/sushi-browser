@@ -1,4 +1,4 @@
-import {ipcMain,app,dialog,BrowserWindow,shell,webContents,session,clipboard} from 'electron'
+import {ipcMain,app,dialog,BrowserWindow,shell,webContents,session,clipboard,nativeImage} from 'electron'
 const BrowserWindowPlus = require('./BrowserWindowPlus')
 import fs from 'fs'
 import sh from 'shelljs'
@@ -703,6 +703,25 @@ ipcMain.on('get-main-state',(e,key,names)=>{
       }
       ret[name] = extensions
     }
+    else if(name == 'themeInfo'){
+      const theme = extInfos[mainState.enableTheme] && extInfos[mainState.enableTheme].theme
+      if(theme){
+        if(theme.images && !theme.datas){
+          theme.datas = {}
+          for(let name of ['theme_ntp_background','theme_ntp_attribution']){
+            if(!theme.images[name]) continue
+            const file = path.join(theme.base_path,theme.images[name])
+            if(file && fs.existsSync(file)){
+              theme.datas[name] = nativeImage.createFromPath(file).toDataURL()
+            }
+          }
+        }
+        for(let page of ['themeTopPage','themeBookmark','themeHistory','themeDownloader','themeExplorer','themeBookmarkSidebar','themeHistorySidebar','themeSessionManagerSidebar','themeTabTrashSidebar','themeTabHistorySidebar','themeExplorerSidebar']){
+          theme[page] = mainState[page]
+        }
+      }
+      ret[name] = theme
+    }
     else{
       ret[name] = mainState[name]
     }
@@ -767,9 +786,20 @@ ipcMain.on('save-state',async (e,{tableName,key,val})=>{
       }
     }
     else if(key == 'enableTheme'){
+      const theme = extInfos[val] && extInfos[val].theme
+      if(theme && theme.images){
+        theme.sizes = {}
+        for(let name of ['theme_toolbar','theme_tab_background']){
+          if(!theme.images[name]) continue
+          const file = path.join(theme.base_path,theme.images[name])
+          if(file && fs.existsSync(file)){
+            theme.sizes[name] = nativeImage.createFromPath(file).getSize()
+          }
+        }
+      }
       for(let win of BrowserWindow.getAllWindows()) {
         if(win.getTitle().includes('Sushi Browser')){
-          win.webContents.send('update-theme',extInfos[val] && extInfos[val].theme)
+          win.webContents.send('update-theme',theme)
         }
       }
     }
@@ -1446,7 +1476,31 @@ ipcMain.on('get-sync-main-states',(e,keys)=>{
       return ret
     }
     else if(key == 'themeInfo'){
-      return extInfos[mainState.enableTheme] && extInfos[mainState.enableTheme].theme
+      const theme = extInfos[mainState.enableTheme] && extInfos[mainState.enableTheme].theme
+      if(!theme) return
+      if(theme.images){
+        if(!theme.sizes){
+          theme.sizes = {}
+          for(let name of ['theme_toolbar','theme_tab_background']){
+            if(!theme.images[name]) continue
+            const file = path.join(theme.base_path,theme.images[name])
+            if(file && fs.existsSync(file)){
+              theme.sizes[name] = nativeImage.createFromPath(file).getSize()
+            }
+          }
+        }
+        if(!theme.datas){
+          theme.datas = {}
+          for(let name of ['theme_ntp_background','theme_ntp_attribution']){
+            if(!theme.images[name]) continue
+            const file = path.join(theme.base_path,theme.images[name])
+            if(file && fs.existsSync(file)){
+              theme.datas[name] = nativeImage.createFromPath(file).toDataURL()
+            }
+          }
+        }
+      }
+      return theme
     }
     else{
       return mainState[key]

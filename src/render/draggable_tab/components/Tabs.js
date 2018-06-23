@@ -43,6 +43,7 @@ tabPreviewSlideHeight = tabPreviewSlideHeight ? parseInt(tabPreviewSlideHeight) 
 tabPreviewWait = tabPreviewWait ? parseInt(tabPreviewWait) : 0
 sharedState._tabBarMarginTop = parseInt(tabBarMarginTop)
 sharedState.tabBarMarginTop = (removeTabBarMarginTop && remote.getCurrentWindow().isMaximized()) ? 0 : sharedState._tabBarMarginTop
+sharedState.multistageTabs = multistageTabs
 
 if(removeTabBarMarginTop){
   ipc.on('maximize',(e,val)=>{
@@ -446,10 +447,10 @@ class Tabs extends React.Component {
     if(this.isMultistageTabsMode()){
       tabInlineStyles.tabBar.display = "flex"
       tabInlineStyles.tabBar.height = void 0
-      tabInlineStyles.tabBar.left = '3px'
-      tabInlineStyles.tabBar.right = '3px'
-      tabInlineStyles.tabBar.paddingRight = '4px'
-      tabInlineStyles.tabBar.marginBottom = '-1px'
+      tabInlineStyles.tabBar.left = 3
+      tabInlineStyles.tabBar.right = 3
+      tabInlineStyles.tabBar.paddingRight = 4
+      tabInlineStyles.tabBar.marginBottom = -1
     }
     else if(this.props.toggleNav == 1){
       tabInlineStyles.tabBar = StyleOverride.merge(tabInlineStyles.tabBar, {display: 'flex',position:'absolute',height: 30});
@@ -457,7 +458,8 @@ class Tabs extends React.Component {
       tabInlineStyles.tabBar.marginBottom = void 0
     }
     else if(this.props.toggleNav == 3){
-      tabInlineStyles.tabBar.left = '0px'
+      tabInlineStyles.tabBar.left = 0
+      tabInlineStyles.tabBar.height = 27
     }
     else {
       tabInlineStyles.tabBar.display = "flex"
@@ -468,7 +470,8 @@ class Tabs extends React.Component {
       //     titleElements[i].style.display = "flex"
       //   }
     }
-    if(!getTheme('images','theme_frame',true)) tabInlineStyles.tabBar.backgroundColor = 'rgba(255, 255, 255, 0.5)'
+    if(sharedState.theme && !getTheme('images','theme_frame',true))
+      tabInlineStyles.tabBar.backgroundColor = 'rgba(255, 255, 255, 0.5)'
 
     tabInlineStyles.tab = this.TabStyles.tab //StyleOverride.merge(this.TabStyles.tab, this.props.tabsStyles.tab);
     if(this.props.verticalTabPanel){
@@ -540,6 +543,7 @@ class Tabs extends React.Component {
       const themeColor = sharedState.themeColorChange && sharedState[`color-${tab.key}`]
       const bgColor = selected ? (themeColor || sharedState.colorActiveBackground) : sharedState.colorNormalBackground
       const titleColor = this.props.verticalTabTree ? selected ? themeColor ?  getTextColorForBackground(themeColor) : tabInlineStyles.tabTitleActive.color : unreadTab ? sharedState.colorUnreadText : tabInlineStyles.tabTitle.color : null
+
 
       let beforeTitleCount = 0
       const beforeTitle = []
@@ -643,10 +647,10 @@ class Tabs extends React.Component {
 
       if(this.props.verticalTabPanel){
         tabStyle.backgroundColor = bgColor
-        tabStyle.borderRight = '1px solid #bbbbbb'
-        tabStyle.borderLeft = '1px solid #bbbbbb'
-        if(tabNum == 0) tabStyle.borderTop = '1px solid #bbbbbb'
-        tabStyle.borderBottom = '1px solid #bbbbbb'
+        tabStyle.borderBottom = '1px solid rgba(0, 0, 0, 0.27)'
+        tabStyle.borderLeft = '1px solid rgba(0, 0, 0, 0.27)'
+        tabStyle.borderRight = '1px solid rgba(0, 0, 0, 0.27)'
+        if(tabNum == 0) tabStyle.borderTop = '1px solid rgba(0, 0, 0, 0.27)'
         if(tab.props.depth){
           const margin = tab.props.depth * 10
           tabStyle.marginLeft = margin
@@ -737,33 +741,34 @@ class Tabs extends React.Component {
       }
 
       let bgUrl = selected ? getTheme('images','theme_toolbar') : getTheme('images','theme_tab_background')
+      let bgSize = !bgUrl ? null : selected ? getTheme('sizes','theme_toolbar') : getTheme('sizes','theme_tab_background')
       if(bgUrl) bgUrl = bgUrl.substring(4, bgUrl.length-1)
+      const height = selected ? 29 : 28
       const bgSvg = `<svg version="1.1" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    ${bgUrl ? `<pattern id="imgpattern${tabNum}" x="0" y="0" width="1" height="1">
-      <image width="214" height="29" xlink:href="${bgUrl}"/>
+    ${bgUrl ? `<pattern patternUnits="userSpaceOnUse"  id="imgpattern${tab.key}" x="0" y="0" width="${bgSize.width}" height="${bgSize.height}">
+      <image width="${bgSize.width}" height="${bgSize.height}" xlink:href="${bgUrl}"/>
     </pattern>` : ""}
-    <symbol id="topleft" viewBox="0 0 214 29">
-      <path d="M14.3 0.1L214 0.1 214 29 0 29C0 29 12.2 2.6 13.2 1.1 14.3-0.4 14.3 0.1 14.3 0.1Z"></path>
+    <symbol id="topleft${tab.key}" viewBox="0 0 214 ${height}">
+      <path d="M14.3 0.1L214 0.1 214 ${height} 0 ${height}C0 ${height} 12.2 2.6 13.2 1.1 14.3-0.4 14.3 0.1 14.3 0.1Z" fill="${bgUrl ? `url(#imgpattern${tab.key}` : bgColor}"></path>
     </symbol>
-    <symbol id="topright" viewBox="0 0 214 29">
-      <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topleft"></use>
+    <symbol id="topright${tab.key}" viewBox="0 0 214 ${height}">
+      <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topleft${tab.key}"></use>
     </symbol>
-    <clipPath id="crop">
+    <clipPath>
       <rect class="mask" width="100%" height="100%" x="0"></rect>
     </clipPath>
   </defs>
   <svg width="50%" height="100%" transfrom="scale(-1, 1)">
-    <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topleft" width="214" height="29" class="chrome-tab-background" style="fill:${bgUrl ? `url(#imgpattern${tabNum})` : bgColor};"></use>
-    <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topleft" width="214" height="29" class="chrome-tab-shadow"></use>
+    <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topleft${tab.key}" width="214" height="${height}" class="chrome-tab-shadow"></use>
   </svg>
   <g transform="scale(-1, 1)">
-    <svg width="50%" height="100%" x="-100%" y="0">
-      <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topright" width="214" height="29" class="chrome-tab-background" style="fill:${bgUrl ? `url(#imgpattern${tabNum})` : bgColor};"></use>
-      <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topright" width="214" height="29" class="chrome-tab-shadow"></use>
+    <svg width="50%" height="100%" x="-99%" y="0">
+      <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#topright${tab.key}" width="214" height="${height}" class="chrome-tab-shadow"></use>
     </svg>
   </g>
 </svg>`
+
 
       return (
         <li style={tabStyle} className={tabClasses} draggable
@@ -781,14 +786,14 @@ class Tabs extends React.Component {
             onMouseEnter={onMouseHover}
             ref={tab.key}
             {...others}>
-          { this.props.verticalTabPanel ?
-            null :
-            this.isMultistageTabsMode() ?
+          {
+            this.isMultistageTabsMode() || this.props.verticalTabPanel?
               <div className="chrome-tab-background" style={
-                {borderTop: sharedState.tabBarMarginTop ? '0.5px solid #bbbbbb' : void 0,
+                {
                   backgroundColor: getTheme('images',selected ? 'theme_toolbar' : 'theme_tab_background' ) ? 'initial' :
                     selected ? sharedState.colorActiveBackground : unreadTab ? sharedState.colorUnreadBackground : sharedState.colorNormalBackground,
-                  backgroundImage: getTheme('images',selected ? 'theme_toolbar' : 'theme_tab_background' ) || void 0
+                  backgroundImage: getTheme('images',selected ? 'theme_toolbar' : 'theme_tab_background' ) || void 0,
+                  height: selected && !this.props.verticalTabPanel ? 28 : void 0
                 }
               }>
                 {tab.props.orgTab.tabPreview && this.tabPreviewHeight && this.tabPreviewHeight != 27 ? <img style={{width: '100%',height: 140, marginTop:30}} src={tab.props.orgTab.tabPreview.dataURL}/> : null}
@@ -1380,13 +1385,13 @@ class Tabs extends React.Component {
 
   render() {
     const {_tabClassNames,tabInlineStyles,tabs,content} = this.buildRenderComponent()
-    const background = `${getTheme('images','theme_frame')} ${getTheme('images','theme_frame') ? (getTheme('colors','frame') || 'initial') : ''} repeat`
+    const background = !sharedState.theme ? getTheme('colors','frame') : `${getTheme('images','theme_frame')} ${getTheme('images','theme_frame') ? (getTheme('colors','frame') || 'initial') : ''}`
 
     const tabBaseStyle = this.props.toggleNav == 2 ? {display: 'none'} :
       this.props.toggleNav == 3 ? {
           height: 27,
           background,
-          borderBottom: '1px solid #aaa',
+          borderBottom: '1px solid rgba(0, 0, 0, 0.27)',
           zIndex: 2,
           position: 'absolute',
           width: '100%'
@@ -1395,13 +1400,13 @@ class Tabs extends React.Component {
           {
             height : this.tabPreviewHeight && this.tabPreviewHeight != 27 ? this.tabPreviewHeight : void 0,
             background,
-            borderBottom: '1px solid #aaa',
+            borderBottom: '1px solid rgba(0, 0, 0, 0.27)',
           } :
           this.props.toggleNav == 1 ? {} :
             {
               height: (this.tabPreviewHeight || 27) + sharedState.tabBarMarginTop,
               background,
-              borderBottom: '1px solid #aaa',
+              borderBottom: '1px solid rgba(0, 0, 0, 0.27)',
             }
 
     if(this.props.verticalTabPanel){
@@ -1452,7 +1457,7 @@ class Tabs extends React.Component {
             {isDarwin && this.props.isTopRight && this.props.toggleNav != 1 && !document.querySelector('.vertical-tab.left') ? <div style={{width: this.props.fullscreen ? 0 : 62}}/>  : ""}
             {tabs}
             <span ref="addButton" draggable="true" className="rdTabAddButton"
-                  style={{...this.TabStyles.tabAddButton, backgroundImage: bgImage, backgroundColor: bgImage ? 'initial' : void 0}}
+                  style={{...this.TabStyles.tabAddButton, backgroundImage: bgImage, backgroundColor: !sharedState.theme ? sharedState.colorNormalBackground : bgImage ? 'initial' : void 0}}
                   onClick={this.handleAddButtonClick.bind(this)} onMouseDown={this.handleAddButtonMouseDown.bind(this)}
                   onDragStart={this.handleDragStart.bind(this, null)} onDragEnd={this.handleDragEnd.bind(this, null)}>
               {this.props.verticalTabPanel ? <i className="fa fa-plus" aria-hidden="true"  style={{marginLeft: 'auto', marginRight: 'auto', fontSize: 13, padding: 2}}/> : null}
@@ -1462,7 +1467,7 @@ class Tabs extends React.Component {
               <span className="typcn typcn-media-stop-outline" onClick={()=>PubSub.publish(`maximize-float-panel_${this.props.k}`)}></span>
               <span className="typcn typcn-times" onClick={()=>PubSub.publish(`close-panel_${this.props.k}`)}></span>
             </div> : null}
-            {!isDarwin && this.props.isTopRight && this.props.toggleNav != 1 ? <RightTopBottonSet displayFullIcon={displayFullIcon} toggleNav={this.props.toggleNav} style={{paddingTop:this.props.verticalTabPanel ? 10 : void 0,
+            {!isDarwin && this.props.isTopRight && this.props.toggleNav != 1 ? <RightTopBottonSet displayFullIcon={displayFullIcon} toggleNav={this.props.toggleNav} style={{
               marginTop: (this.props.verticalTabPanel ||this.props.toggleNav == 3 || this.isMultistageTabsMode()) ? void 0 : sharedState.tabBarMarginTop * -1, transform: `translateX(${this.isMultistageTabsMode() ? 1 : - this.state.tabs.length * 13 + 6}px)`}}/>: ""}
           </ul>
         </div>

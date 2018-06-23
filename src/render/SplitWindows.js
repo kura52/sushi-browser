@@ -24,11 +24,11 @@ let [MARGIN,verticalTabPosition,themeInfo] = ipc.sendSync('get-sync-main-states'
 sharedState.theme = themeInfo
 
 function setStyle(){
-  const s = document.createElement('style');
-  s.setAttribute('type', 'text/css');
-  s.setAttribute('id', 'style_element_');
+  const s = document.createElement('style')
+  s.setAttribute('type', 'text/css')
+  s.setAttribute('id', 'style_element_')
   const style =  `.rdTabAddButton:hover {
-    background-image: none;
+    background-image: ${`${getTheme('images','theme_tab_background')} !important` || 'none'};
     opacity: 0.8;
 }
 ${sharedState.theme.tints && sharedState.theme.tints.buttons ? `.browser-navbar a {
@@ -41,7 +41,7 @@ ${sharedState.theme.tints && sharedState.theme.tints.buttons ? `.browser-navbar 
     ${getTheme('colors','toolbar') ? `background-color: ${getTheme('colors','toolbar')}` : ''};
     ${getTheme('colors','bookmark_text') ? `color: ${getTheme('colors','bookmark_text')}` : ''};
 }
-.folder-open, .folder {
+.ui.blue.segment>.folder-open, .ui.blue.segment>.folder {
     color: ${getTheme('colors','bookmark_text')||'black'};
 }`
   s.appendChild(document.createTextNode(style));

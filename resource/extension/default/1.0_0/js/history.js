@@ -81,7 +81,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "unmountComponentAtNode", function() { return unmountComponentAtNode; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "unstable_renderSubtreeIntoContainer", function() { return unstable_renderSubtreeIntoContainer; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "version", function() { return version; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_inferno__ = __webpack_require__(58);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_inferno__ = __webpack_require__(59);
 /* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "Component", function() { return __WEBPACK_IMPORTED_MODULE_0_inferno__["a"]; });
 /* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "EMPTY_OBJ", function() { return __WEBPACK_IMPORTED_MODULE_0_inferno__["b"]; });
 /* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "createComponentVNode", function() { return __WEBPACK_IMPORTED_MODULE_0_inferno__["c"]; });
@@ -2127,7 +2127,7 @@ module.exports = includes;
 /* 41 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var isObject = __webpack_require__(59);
+var isObject = __webpack_require__(60);
 module.exports = function (it) {
   if (!isObject(it)) throw TypeError(it + ' is not an object!');
   return it;
@@ -2319,7 +2319,7 @@ module.exports = baseEach;
 /***/ (function(module, exports, __webpack_require__) {
 
 var dP = __webpack_require__(34);
-var createDesc = __webpack_require__(60);
+var createDesc = __webpack_require__(61);
 module.exports = __webpack_require__(42) ? function (object, key, value) {
   return dP.f(object, key, createDesc(1, value));
 } : function (object, key, value) {
@@ -2391,7 +2391,7 @@ module.exports = Symbol;
 /* 55 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var arrayEach = __webpack_require__(65),
+var arrayEach = __webpack_require__(66),
     baseEach = __webpack_require__(49),
     castFunction = __webpack_require__(237),
     isArray = __webpack_require__(11);
@@ -2492,6 +2492,12 @@ module.exports = copyObject;
 
 /***/ }),
 /* 58 */
+/***/ (function(module, exports) {
+
+module.exports = chrome;
+
+/***/ }),
+/* 59 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2519,7 +2525,7 @@ if (false) {
 
 
 /***/ }),
-/* 59 */
+/* 60 */
 /***/ (function(module, exports) {
 
 module.exports = function (it) {
@@ -2528,7 +2534,7 @@ module.exports = function (it) {
 
 
 /***/ }),
-/* 60 */
+/* 61 */
 /***/ (function(module, exports) {
 
 module.exports = function (bitmap, value) {
@@ -2542,7 +2548,7 @@ module.exports = function (bitmap, value) {
 
 
 /***/ }),
-/* 61 */
+/* 62 */
 /***/ (function(module, exports) {
 
 /**
@@ -2585,7 +2591,7 @@ module.exports = eq;
 
 
 /***/ }),
-/* 62 */
+/* 63 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(module) {var root = __webpack_require__(17),
@@ -2630,7 +2636,7 @@ module.exports = isBuffer;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(91)(module)))
 
 /***/ }),
-/* 63 */
+/* 64 */
 /***/ (function(module, exports) {
 
 /** Used as references for various `Number` constants. */
@@ -2658,7 +2664,7 @@ module.exports = isIndex;
 
 
 /***/ }),
-/* 64 */
+/* 65 */
 /***/ (function(module, exports) {
 
 /** Used for built-in method references. */
@@ -2682,7 +2688,7 @@ module.exports = isPrototype;
 
 
 /***/ }),
-/* 65 */
+/* 66 */
 /***/ (function(module, exports) {
 
 /**
@@ -2710,7 +2716,7 @@ module.exports = arrayEach;
 
 
 /***/ }),
-/* 66 */
+/* 67 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2767,7 +2773,7 @@ exports.default = function () {
 }();
 
 /***/ }),
-/* 67 */
+/* 68 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var isObject = __webpack_require__(19);
@@ -2801,12 +2807,6 @@ var baseCreate = (function() {
 
 module.exports = baseCreate;
 
-
-/***/ }),
-/* 68 */
-/***/ (function(module, exports) {
-
-module.exports = chrome;
 
 /***/ }),
 /* 69 */
@@ -2955,7 +2955,7 @@ module.exports = ListCache;
 /* 77 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var eq = __webpack_require__(61);
+var eq = __webpack_require__(62);
 
 /**
  * Gets the index at which the `key` is found in `array` of key-value pairs.
@@ -3480,7 +3480,7 @@ module.exports = isTypedArray;
 /* 93 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var isPrototype = __webpack_require__(64),
+var isPrototype = __webpack_require__(65),
     nativeKeys = __webpack_require__(456);
 
 /** Used for built-in method references. */
@@ -3609,8 +3609,8 @@ var baseKeys = __webpack_require__(93),
     isArguments = __webpack_require__(87),
     isArray = __webpack_require__(11),
     isArrayLike = __webpack_require__(25),
-    isBuffer = __webpack_require__(62),
-    isPrototype = __webpack_require__(64),
+    isBuffer = __webpack_require__(63),
+    isPrototype = __webpack_require__(65),
     isTypedArray = __webpack_require__(92);
 
 /** `Object#toString` result references. */
@@ -3718,9 +3718,9 @@ module.exports = baseAssignValue;
 /* 98 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var eq = __webpack_require__(61),
+var eq = __webpack_require__(62),
     isArrayLike = __webpack_require__(25),
-    isIndex = __webpack_require__(63),
+    isIndex = __webpack_require__(64),
     isObject = __webpack_require__(19);
 
 /**
@@ -3866,7 +3866,7 @@ module.exports = createWrap;
 /* 100 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var baseCreate = __webpack_require__(67),
+var baseCreate = __webpack_require__(68),
     isObject = __webpack_require__(19);
 
 /**
@@ -3971,7 +3971,7 @@ module.exports = replaceHolders;
 /***/ (function(module, exports, __webpack_require__) {
 
 var baseAssignValue = __webpack_require__(97),
-    eq = __webpack_require__(61);
+    eq = __webpack_require__(62);
 
 /** Used for built-in method references. */
 var objectProto = Object.prototype;
@@ -4776,7 +4776,7 @@ module.exports = function (fn, that, length) {
 /***/ (function(module, exports, __webpack_require__) {
 
 // 7.1.1 ToPrimitive(input [, PreferredType])
-var isObject = __webpack_require__(59);
+var isObject = __webpack_require__(60);
 // instead of the ES6 spec version, we didn't implement @@toPrimitive case
 // and the second argument - flag - preferred type is a string
 module.exports = function (it, S) {
@@ -4982,7 +4982,7 @@ module.exports = function (name) {
 /***/ (function(module, exports, __webpack_require__) {
 
 var pIE = __webpack_require__(71);
-var createDesc = __webpack_require__(60);
+var createDesc = __webpack_require__(61);
 var toIObject = __webpack_require__(44);
 var toPrimitive = __webpack_require__(121);
 var has = __webpack_require__(43);
@@ -5560,7 +5560,7 @@ var numberToWordMap = {
 /* 153 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var baseCreate = __webpack_require__(67),
+var baseCreate = __webpack_require__(68),
     baseLodash = __webpack_require__(154);
 
 /** Used as references for the maximum length and index of an array. */
@@ -5631,7 +5631,7 @@ module.exports = getData;
 /* 156 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var baseCreate = __webpack_require__(67),
+var baseCreate = __webpack_require__(68),
     baseLodash = __webpack_require__(154);
 
 /**
@@ -5679,7 +5679,7 @@ module.exports = getHolder;
 /***/ (function(module, exports, __webpack_require__) {
 
 var Stack = __webpack_require__(147),
-    arrayEach = __webpack_require__(65),
+    arrayEach = __webpack_require__(66),
     assignValue = __webpack_require__(103),
     baseAssign = __webpack_require__(253),
     baseAssignIn = __webpack_require__(520),
@@ -5694,7 +5694,7 @@ var Stack = __webpack_require__(147),
     initCloneByTag = __webpack_require__(527),
     initCloneObject = __webpack_require__(536),
     isArray = __webpack_require__(11),
-    isBuffer = __webpack_require__(62),
+    isBuffer = __webpack_require__(63),
     isObject = __webpack_require__(19),
     keys = __webpack_require__(20);
 
@@ -8310,7 +8310,7 @@ var substr = 'ab'.substr(-1) === 'b'
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return cloneVNode; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_inferno__ = __webpack_require__(58);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_inferno__ = __webpack_require__(59);
 
 
 // This should be boolean and not reference to window.document
@@ -8453,7 +8453,7 @@ function cloneVNode(vNodeToClone, props) {
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return createClass; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_inferno__ = __webpack_require__(58);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_inferno__ = __webpack_require__(59);
 
 
 var ERROR_MSG = 'a runtime error occured! Use Inferno in development environment to find the error.';
@@ -8636,7 +8636,7 @@ function createClass(obj) {
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return createElement; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_inferno__ = __webpack_require__(58);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_inferno__ = __webpack_require__(59);
 
 
 // This should be boolean and not reference to window.document
@@ -8772,7 +8772,7 @@ module.exports = !__webpack_require__(42) && !__webpack_require__(51)(function (
 /* 197 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var isObject = __webpack_require__(59);
+var isObject = __webpack_require__(60);
 var document = __webpack_require__(33).document;
 // typeof document.createElement is 'object' in old IE
 var is = isObject(document) && isObject(document.createElement);
@@ -9452,8 +9452,8 @@ module.exports = arrayFilter;
 var baseTimes = __webpack_require__(221),
     isArguments = __webpack_require__(87),
     isArray = __webpack_require__(11),
-    isBuffer = __webpack_require__(62),
-    isIndex = __webpack_require__(63),
+    isBuffer = __webpack_require__(63),
+    isIndex = __webpack_require__(64),
     isTypedArray = __webpack_require__(92);
 
 /** Used for built-in method references. */
@@ -9898,7 +9898,7 @@ module.exports = hasIn;
 var castPath = __webpack_require__(45),
     isArguments = __webpack_require__(87),
     isArray = __webpack_require__(11),
-    isIndex = __webpack_require__(63),
+    isIndex = __webpack_require__(64),
     isLength = __webpack_require__(144),
     toKey = __webpack_require__(35);
 
@@ -10794,7 +10794,7 @@ module.exports = stringToArray;
 
 var assignValue = __webpack_require__(103),
     castPath = __webpack_require__(45),
-    isIndex = __webpack_require__(63),
+    isIndex = __webpack_require__(64),
     isObject = __webpack_require__(19),
     toKey = __webpack_require__(35);
 
@@ -19941,7 +19941,7 @@ var _process = __webpack_require__(369);
 
 var _process2 = _interopRequireDefault(_process);
 
-var _electron = __webpack_require__(68);
+var _electron = __webpack_require__(58);
 
 var _LocalForage = __webpack_require__(370);
 
@@ -20026,7 +20026,7 @@ _LocalForage2.default.getItem('favicon-set').then(setTime => {
 });
 
 async function faviconGet(h) {
-  return h.favicon ? (await _LocalForage2.default.getItem(h.favicon)) || `file://${resourcePath}/file.png` : `file://${resourcePath}/file.png`;
+  return h.favicon ? (await _LocalForage2.default.getItem(h.favicon)) || `file://${resourcePath}/file.svg` : `file://${resourcePath}/file.svg`;
 }
 
 _electron.ipcRenderer.send("get-resource-path", {});
@@ -20225,6 +20225,8 @@ const App = () => _infernoCompat2.default.createElement(
   null,
   _infernoCompat2.default.createElement(TopMenu, null)
 );
+
+__webpack_require__(717)('themeHistory');
 
 _infernoCompat2.default.render(_infernoCompat2.default.createElement(App, null), document.getElementById('app'));
 
@@ -25671,7 +25673,7 @@ module.exports = function (TO_STRING) {
 "use strict";
 
 var create = __webpack_require__(130);
-var descriptor = __webpack_require__(60);
+var descriptor = __webpack_require__(61);
 var setToStringTag = __webpack_require__(131);
 var IteratorPrototype = {};
 
@@ -25810,7 +25812,7 @@ var isArray = __webpack_require__(399);
 var anObject = __webpack_require__(41);
 var toIObject = __webpack_require__(44);
 var toPrimitive = __webpack_require__(121);
-var createDesc = __webpack_require__(60);
+var createDesc = __webpack_require__(61);
 var _create = __webpack_require__(130);
 var gOPNExt = __webpack_require__(400);
 var $GOPD = __webpack_require__(135);
@@ -26031,7 +26033,7 @@ setToStringTag(global.JSON, 'JSON', true);
 /***/ (function(module, exports, __webpack_require__) {
 
 var META = __webpack_require__(70)('meta');
-var isObject = __webpack_require__(59);
+var isObject = __webpack_require__(60);
 var has = __webpack_require__(43);
 var setDesc = __webpack_require__(34).f;
 var id = 0;
@@ -26191,7 +26193,7 @@ $export($export.S, 'Object', { setPrototypeOf: __webpack_require__(407).set });
 
 // Works with __proto__ only. Old v8 can't work with null proto objects.
 /* eslint-disable no-proto */
-var isObject = __webpack_require__(59);
+var isObject = __webpack_require__(60);
 var anObject = __webpack_require__(41);
 var check = function (O, proto) {
   anObject(O);
@@ -28197,7 +28199,7 @@ var Stack = __webpack_require__(147),
     equalObjects = __webpack_require__(467),
     getTag = __webpack_require__(95),
     isArray = __webpack_require__(11),
-    isBuffer = __webpack_require__(62),
+    isBuffer = __webpack_require__(63),
     isTypedArray = __webpack_require__(92);
 
 /** Used to compose bitmasks for value comparisons. */
@@ -28282,7 +28284,7 @@ module.exports = baseIsEqualDeep;
 
 var Symbol = __webpack_require__(54),
     Uint8Array = __webpack_require__(225),
-    eq = __webpack_require__(61),
+    eq = __webpack_require__(62),
     equalArrays = __webpack_require__(223),
     mapToArray = __webpack_require__(226),
     setToArray = __webpack_require__(94);
@@ -28831,7 +28833,7 @@ module.exports = baseHas;
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return getChildMapping; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return mergeChildMappings; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_babel_runtime_helpers_slicedToArray__ = __webpack_require__(66);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_babel_runtime_helpers_slicedToArray__ = __webpack_require__(67);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_babel_runtime_helpers_slicedToArray___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_babel_runtime_helpers_slicedToArray__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_lodash_has__ = __webpack_require__(38);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_lodash_has___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_lodash_has__);
@@ -29851,7 +29853,7 @@ module.exports = function (it) {
 "use strict";
 
 var $defineProperty = __webpack_require__(34);
-var createDesc = __webpack_require__(60);
+var createDesc = __webpack_require__(61);
 
 module.exports = function (object, index, value) {
   if (index in object) $defineProperty.f(object, index, createDesc(0, value));
@@ -30855,7 +30857,7 @@ module.exports = {
   'assign': __webpack_require__(253),
   'clone': __webpack_require__(519),
   'curry': __webpack_require__(257),
-  'forEach': __webpack_require__(65),
+  'forEach': __webpack_require__(66),
   'isArray': __webpack_require__(11),
   'isFunction': __webpack_require__(48),
   'iteratee': __webpack_require__(537),
@@ -31262,7 +31264,7 @@ module.exports = insertWrapDetails;
 /* 515 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var arrayEach = __webpack_require__(65),
+var arrayEach = __webpack_require__(66),
     arrayIncludes = __webpack_require__(82);
 
 /** Used to compose bitmasks for function metadata. */
@@ -31315,7 +31317,7 @@ module.exports = updateWrapDetails;
 /***/ (function(module, exports, __webpack_require__) {
 
 var copyArray = __webpack_require__(101),
-    isIndex = __webpack_require__(63);
+    isIndex = __webpack_require__(64);
 
 /* Built-in method references for those with the same name as other `lodash` methods. */
 var nativeMin = Math.min;
@@ -31560,7 +31562,7 @@ module.exports = baseAssignIn;
 /***/ (function(module, exports, __webpack_require__) {
 
 var isObject = __webpack_require__(19),
-    isPrototype = __webpack_require__(64),
+    isPrototype = __webpack_require__(65),
     nativeKeysIn = __webpack_require__(522);
 
 /** Used for built-in method references. */
@@ -32017,9 +32019,9 @@ module.exports = cloneTypedArray;
 /* 536 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var baseCreate = __webpack_require__(67),
+var baseCreate = __webpack_require__(68),
     getPrototype = __webpack_require__(104),
-    isPrototype = __webpack_require__(64);
+    isPrototype = __webpack_require__(65);
 
 /**
  * Initializes an object clone.
@@ -33752,7 +33754,7 @@ function getElementType(Component, props, getDefault) {
   // ----------------------------------------
   // user defined "as" element type
 
-  if (props.as && props.as !== (defaultProps && (defaultProps && (defaultProps && defaultProps.as)))) return props.as;
+  if (props.as && props.as !== (defaultProps && (defaultProps && defaultProps.as))) return props.as;
 
   // ----------------------------------------
   // computed default element type
@@ -33770,7 +33772,7 @@ function getElementType(Component, props, getDefault) {
   // ----------------------------------------
   // use defaultProp or 'div'
 
-  return (defaultProps && (defaultProps && (defaultProps && defaultProps.as))) || 'div';
+  return (defaultProps && (defaultProps && defaultProps.as)) || 'div';
 }
 
 /* harmony default export */ __webpack_exports__["a"] = (getElementType);
@@ -33981,7 +33983,7 @@ module.exports = func;
 /***/ (function(module, exports, __webpack_require__) {
 
 var convert = __webpack_require__(13),
-    func = convert('eq', __webpack_require__(61));
+    func = convert('eq', __webpack_require__(62));
 
 func.placeholder = __webpack_require__(12);
 module.exports = func;
@@ -34561,13 +34563,13 @@ keyboardKey.RightSquareBracket = keyboardKey[']'];
 /* 598 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var arrayEach = __webpack_require__(65),
-    baseCreate = __webpack_require__(67),
+var arrayEach = __webpack_require__(66),
+    baseCreate = __webpack_require__(68),
     baseForOwn = __webpack_require__(146),
     baseIteratee = __webpack_require__(21),
     getPrototype = __webpack_require__(104),
     isArray = __webpack_require__(11),
-    isBuffer = __webpack_require__(62),
+    isBuffer = __webpack_require__(63),
     isFunction = __webpack_require__(48),
     isObject = __webpack_require__(19),
     isTypedArray = __webpack_require__(92);
@@ -36026,7 +36028,7 @@ Radio.defaultProps = {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_babel_runtime_helpers_slicedToArray__ = __webpack_require__(66);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_babel_runtime_helpers_slicedToArray__ = __webpack_require__(67);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_babel_runtime_helpers_slicedToArray___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_babel_runtime_helpers_slicedToArray__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_babel_runtime_helpers_extends__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_babel_runtime_helpers_extends___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_babel_runtime_helpers_extends__);
@@ -36633,7 +36635,7 @@ var Dropdown = function (_Component) {
 
       e.stopPropagation();
       // prevent closeOnDocumentClick() if multiple or item is disabled
-      if (multiple || item.disabled) (e.nativeEvent || e).stopImmediatePropagation();
+      if (multiple || item.disabled) e.nativeEvent.stopImmediatePropagation();
       if (item.disabled) return;
 
       var isAdditionItem = item['data-additional'];
@@ -38521,7 +38523,7 @@ TextArea.propTypes =  false ? {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_babel_runtime_helpers_slicedToArray__ = __webpack_require__(66);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_babel_runtime_helpers_slicedToArray__ = __webpack_require__(67);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_babel_runtime_helpers_slicedToArray___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_babel_runtime_helpers_slicedToArray__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_babel_runtime_helpers_extends__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_babel_runtime_helpers_extends___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_babel_runtime_helpers_extends__);
@@ -39323,7 +39325,7 @@ Form.propTypes =  false ? {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_babel_runtime_helpers_slicedToArray__ = __webpack_require__(66);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_babel_runtime_helpers_slicedToArray__ = __webpack_require__(67);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_babel_runtime_helpers_slicedToArray___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_babel_runtime_helpers_slicedToArray__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_babel_runtime_helpers_extends__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_babel_runtime_helpers_extends___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_babel_runtime_helpers_extends__);
@@ -41987,7 +41989,7 @@ var assignValue = __webpack_require__(103),
     copyObject = __webpack_require__(56),
     createAssigner = __webpack_require__(677),
     isArrayLike = __webpack_require__(25),
-    isPrototype = __webpack_require__(64),
+    isPrototype = __webpack_require__(65),
     keys = __webpack_require__(20);
 
 /** Used for built-in method references. */
@@ -42675,7 +42677,7 @@ Rating.propTypes =  false ? {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_babel_runtime_helpers_slicedToArray__ = __webpack_require__(66);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_babel_runtime_helpers_slicedToArray__ = __webpack_require__(67);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_babel_runtime_helpers_slicedToArray___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_babel_runtime_helpers_slicedToArray__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_babel_runtime_helpers_objectWithoutProperties__ = __webpack_require__(117);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_babel_runtime_helpers_objectWithoutProperties___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_babel_runtime_helpers_objectWithoutProperties__);
@@ -42816,7 +42818,7 @@ var Search = function (_Component) {
     }, _this.handleInputClick = function (e) {
 
       // prevent closeOnDocumentClick()
-      (e.nativeEvent || e).stopImmediatePropagation();
+      e.nativeEvent.stopImmediatePropagation();
 
       _this.tryOpen();
     }, _this.handleItemClick = function (e, _ref2) {
@@ -42825,7 +42827,7 @@ var Search = function (_Component) {
       var result = _this.getSelectedResult(id);
 
       // prevent closeOnDocumentClick()
-      (e.nativeEvent || e).stopImmediatePropagation();
+      e.nativeEvent.stopImmediatePropagation();
 
       // notify the onResultSelect prop that the user is trying to change value
       _this.setValue(result.title);
@@ -49479,7 +49481,7 @@ return hooks;
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-const ipcRenderer = __webpack_require__(68).ipcRenderer;
+const ipcRenderer = __webpack_require__(58).ipcRenderer;
 const locale = __webpack_require__(710);
 const { LANGUAGE, REQUEST_LANGUAGE } = __webpack_require__(367);
 
@@ -49526,14 +49528,14 @@ exports.init = () => {
 
 const L20n = __webpack_require__(711);
 const path = __webpack_require__(192);
-const ipcMain = __webpack_require__(68).ipcMain;
-const electron = __webpack_require__(68);
+const ipcMain = __webpack_require__(58).ipcMain;
+const electron = __webpack_require__(58);
 const app = electron.app;
 const { LANGUAGE, REQUEST_LANGUAGE } = __webpack_require__(367);
 
 // Exhaustive list of identifiers used by top and context menus
 var rendererIdentifiers = function () {
-  return ['downloadsManager', 'confirmClearPasswords', 'passwordCopied', 'flashInstalled', 'goToPrefs', 'goToAdobe', 'allowFlashPlayer', 'allowWidevine', 'about', 'aboutApp', 'quit', 'quitApp', 'addToReadingList', 'viewPageSource', 'copyImageAddress', 'openImageInNewTab', 'saveImage', 'copyImage', 'searchImage', 'copyLinkAddress', 'copyEmailAddress', 'saveLinkAs', 'allowFlashOnce', 'allowFlashAlways', 'openFlashPreferences', 'openInNewWindow', 'openInNewSessionTab', 'openInNewSessionTabs', 'openInNewPrivateTab', 'openInNewPrivateTabs', 'openInNewTab', 'openInNewTabs', 'openAllInTabs', 'disableAdBlock', 'disableTrackingProtection', 'muteTab', 'unmuteTab', 'pinTab', 'unpinTab', 'deleteFolder', 'deleteBookmark', 'deleteBookmarks', 'deleteHistoryEntry', 'deleteHistoryEntries', 'deleteLedgerEntry', 'ledgerBackupText1', 'ledgerBackupText2', 'ledgerBackupText3', 'ledgerBackupText4', 'ledgerBackupText5', 'editFolder', 'editBookmark', 'unmuteTabs', 'muteTabs', 'muteOtherTabs', 'addBookmark', 'addFolder', 'newTab', 'closeTab', 'closeOtherTabs', 'closeTabsToRight', 'closeTabsToLeft', 'closeTabPage', 'bookmarkPage', 'bookmarkLink', 'openFile', 'openLocation', 'openSearch', 'importFrom', 'closeWindow', 'savePageAs', 'share', 'undo', 'redo', 'cut', 'copy', 'paste', 'pasteAndGo', 'pasteAndSearch', 'pasteWithoutFormatting', 'delete', 'selectAll', 'findNext', 'findPrevious', 'file', 'edit', 'view', 'actualSize', 'zoomIn', 'zoomOut', 'toolbars', 'stop', 'reloadPage', 'reloadTab', 'cleanReload', 'reload', 'clone', 'detach', 'readingView', 'tabManager', 'textEncoding', 'inspectElement', 'toggleDeveloperTools', 'toggleBrowserConsole', 'toggleFullScreenView', 'home', 'back', 'forward', 'reopenLastClosedWindow', 'showAllHistory', 'clearCache', 'clearHistory', 'clearSiteData', 'clearBrowsingData', 'recentlyClosed', 'recentlyVisited', 'bookmarks', 'addToFavoritesBar', 'window', 'minimize', 'zoom', 'selectNextTab', 'selectPreviousTab', 'moveTabToNewWindow', 'mergeAllWindows', 'downloads', 'history', 'bringAllToFront', 'help', 'sendUsFeedback', 'services', 'hideBrave', 'hideOthers', 'showAll', 'newPrivateTab', 'newSessionTab', 'newWindow', 'reopenLastClosedTab', 'print', 'emailPageLink', 'tweetPageLink', 'facebookPageLink', 'pinterestPageLink', 'googlePlusPageLink', 'linkedInPageLink', 'bufferPageLink', 'redditPageLink', 'findOnPage', 'find', 'checkForUpdates', 'preferences', 'settings', 'bookmarksManager', 'importBrowserData', 'exportBookmarks', 'settingsExport', 'settingsImport', 'submitFeedback', 'bookmarksToolbar', 'bravery', 'braverySite', 'braveryGlobal', 'braveryPayments', 'braveryStartUsingPayments', 'blockPopups', 'learnSpelling', 'forgetLearnedSpelling', 'lookupSelection',
+  return ['downloadsManager', 'confirmClearPasswords', 'passwordCopied', 'flashInstalled', 'goToPrefs', 'goToAdobe', 'allowFlashPlayer', 'allowWidevine', 'about', 'aboutApp', 'quit', 'quitApp', 'addToReadingList', 'viewPageSource', 'copyImageAddress', 'openImageInNewTab', 'saveImage', 'copyImage', 'searchImage', 'copyLinkAddress', 'copyEmailAddress', 'saveLinkAs', 'allowFlashOnce', 'allowFlashAlways', 'openFlashPreferences', 'openInNewWindow', 'openInNewSessionTab', 'openInNewSessionTabs', 'openInNewPrivateTab', 'openInNewPrivateTabs', 'openInNewTab', 'openInNewTabs', 'openAllInTabs', 'disableAdBlock', 'disableTrackingProtection', 'muteTab', 'unmuteTab', 'pinTab', 'unpinTab', 'deleteFolder', 'deleteBookmark', 'deleteBookmarks', 'deleteHistoryEntry', 'deleteHistoryEntries', 'deleteLedgerEntry', 'ledgerBackupText1', 'ledgerBackupText2', 'ledgerBackupText3', 'ledgerBackupText4', 'ledgerBackupText5', 'editFolder', 'editBookmark', 'unmuteTabs', 'muteTabs', 'muteOtherTabs', 'addBookmark', 'addFolder', 'newTab', 'closeTab', 'closeOtherTabs', 'closeTabsToRight', 'closeTabsToLeft', 'closeTabPage', 'bookmarkPage', 'bookmarkLink', 'openFile', 'openLocation', 'openSearch', 'importFrom', 'closeWindow', 'savePageAs', 'share', 'undo', 'redo', 'cut', 'copy', 'paste', 'pasteAndGo', 'pasteAndSearch', 'pasteWithoutFormatting', 'delete', 'selectAll', 'findNext', 'findPrevious', 'file', 'edit', 'view', 'actualSize', 'zoomIn', 'zoomOut', 'toolbars', 'stop', 'reloadPage', 'reloadTab', 'cleanReload', 'reload', 'clone', 'detach', 'readingView', 'tabManager', 'textEncoding', 'inspectElement', 'toggleDeveloperTools', 'toggleBrowserConsole', 'toggleFullScreenView', 'home', 'back', 'forward', 'reopenLastClosedWindow', 'showAllHistory', 'clearCache', 'clearHistory', 'clearSiteData', 'clearBrowsingData', 'recentlyClosed', 'recentlyVisited', 'bookmarks', 'addToFavoritesBar', 'window', 'minimize', 'zoom', 'selectNextTab', 'selectPreviousTab', 'moveTabToNewWindow', 'mergeAllWindows', 'downloads', 'history', 'bringAllToFront', 'help', 'sendUsFeedback', 'services', 'hideBrave', 'hideOthers', 'showAll', 'newPrivateTab', 'newSessionTab', 'newWindow', 'reopenLastClosedTab', 'print', 'emailPageLink', 'tweetPageLink', 'facebookPageLink', 'pinterestPageLink', 'googlePlusPageLink', 'linkedInPageLink', 'bufferPageLink', 'redditPageLink', 'findOnPage', 'find', 'checkForUpdates', 'preferences', 'settings', 'bookmarksManager', 'importBrowserData', 'exportBookmarks', 'settingsExport', 'settingsImport', 'submitFeedback', 'bookmarksToolbar', 'bravery', 'braverySite', 'braveryGlobal', 'braveryPayments', 'braveryStartUsingPayments', 'blockPopups', 'learnSpelling', 'forgetLearnedSpelling', 'lookupSelection', 'contextMain', 'remove',
   // Other identifiers
   'aboutBlankTitle', 'urlCopied', 'autoHideMenuBar', 'unexpectedErrorWindowReload', 'updateChannel', 'licenseText', 'allow', 'deny', 'permissionCameraMicrophone', 'permissionLocation', 'permissionNotifications', 'permissionWebMidi', 'permissionDisableCursor', 'permissionFullscreen', 'permissionExternal', 'permissionProtocolRegistration', 'permissionMessage', 'tabsSuggestionTitle', 'bookmarksSuggestionTitle', 'historySuggestionTitle', 'aboutPagesSuggestionTitle', 'searchSuggestionTitle', 'topSiteSuggestionTitle', 'addFundsNotification', 'reconciliationNotification', 'reviewSites', 'addFunds', 'turnOffNotifications', 'copyToClipboard', 'smartphoneTitle', 'displayQRCode', 'updateLater', 'updateHello', 'notificationPasswordWithUserName', 'notificationUpdatePasswordWithUserName', 'notificationUpdatePassword', 'notificationPassword', 'notificationPasswordSettings', 'notificationPaymentDone', 'notificationTryPayments', 'notificationTryPaymentsYes', 'prefsRestart', 'areYouSure', 'dismiss', 'yes', 'no', 'noThanks', 'neverForThisSite', 'passwordsManager', 'extensionsManager', 'downloadItemPause', 'downloadItemResume', 'downloadItemCancel', 'downloadItemRedownload', 'downloadItemCopyLink', 'downloadItemPath', 'downloadItemDelete', 'downloadItemClear', 'downloadToolbarHide', 'downloadItemClearCompleted', 'torrentDesc',
   // Caption buttons in titlebar (min/max/close - Windows only)
@@ -49543,7 +49545,7 @@ var rendererIdentifiers = function () {
   'default', 'name', 'searchEngine', 'searchEngines', 'engineGoKey', 'general', 'generalSettings', 'search', 'tabs', 'extensions', 'myHomepage', 'startsWith', 'startsWithOptionLastTime', 'newTabMode', 'newTabEmpty', 'import', 'bn-BD', 'bn-IN', 'zh-CN', 'cs', 'nl-NL', 'en-US', 'fr-FR', 'de-DE', 'hi-IN', 'id-ID', 'it-IT', 'ja-JP', 'ko-KR', 'ms-MY', 'pl-PL', 'pt-BR', 'ru', 'sl', 'es', 'ta', 'te', 'tr-TR', 'uk', 'requiresRestart', 'enableFlash', 'startsWithOptionHomePage', 'updateAvail', 'notNow', 'makeBraveDefault', 'saveToPocketDesc', 'minimumPageTimeLow', 'paintTabs', 'restoreAll',
 
   //chrome
-  '994289308992179865', '1725149567830788547', '4643612240819915418', '4256316378292851214', '2019718679933488176', '782057141565633384', '5116628073786783676', '1465176863081977902', '3007771295016901659', '5078638979202084724', '4589268276914962177', '3551320343578183772', '2448312741937722512', '1524430321211440688', '42126664696688958', '2663302507110284145', '3635030235490426869', '4888510611625056742', '5860209693144823476', '5846929185714966548', '7955383984025963790', '3128230619496333808', '3391716558283801616', '6606070663386660533', '9011178328451474963', '9065203028668620118', '2473195200299095979', '1047431265488717055', '9218430445555521422', '8926389886865778422', '2893168226686371498', '4289540628985791613', '3095995014811312755', '59174027418879706', '6550675742724504774', '5453029940327926427', '4989966318180235467', '6326175484149238433', '9147392381910171771', '8260864402787962391', '8477384620836102176', '7701040980221191251', '6146563240635539929', '8026334261755873520', '1375321115329958930', '5513242761114685513', '5582839680698949063', '5317780077021120954', '8986267729801483565', '5431318178759467895', '7853747251428735', '2948300991547862301', '8251578425305135684', '2845382757467349449', '8870318296973696995', '480990236307250886', '7754704193130578113', 'playOrPause', 'frameStep', 'frameBackStep', 'rewind1', 'rewind2', 'forward1', 'forward2', 'rewind3', 'forward3', 'normalSpeed', 'halveSpeed', 'doubleSpeed', 'decSpeed', 'incSpeed', 'fullscreen', 'exitFullscreen', 'mute', 'decreaseVolume', 'increaseVolume', 'incZoom', 'decZoom', 'resetZoom', 'plRepeat', 'mediaSeeking', 'volumeControl', 'changeSpeed', 'mouseWheelFunctions', 'reverseWheelMediaSeeking', 'noScriptPref', 'blockCanvasFingerprinting', 'browsingHistory', 'downloadHistory', 'cachedImagesAndFiles', 'allSiteCookies', 'autocompleteData', 'autofillData', 'clearBrowsingDataNow', 'tabSettings', 'alwaysOnTop', 'neverOnTop', 'privateData', 'privateDataMessage', 'closeAllTabsMenuLabel', 'openalllinksLabel', 'clicktabCopyTabUrl', 'clicktabCopyUrlFromClipboard', 'clicktabReloadtabs', 'clicktabReloadothertabs', 'clicktabReloadlefttabs', 'clicktabReloadrighttabs', 'freezeTabMenuLabel', 'protectTabMenuLabel', 'lockTabMenuLabel', 'autoReloadTabLabel', 'clicktabUcatab', 'secondsLabel', 'minuteLabel', 'minutesLabel', 'generalWindowOpenLabel', 'linkTargetTab', 'linkTargetWindow', 'openDuplicateNextLabel', 'keepWindowLabel31', 'currenttabCaptionLabel', 'focusTabLabelBegin', 'focusTabFirstTab', 'focusTabLeftTab', 'focusTabRightTab', 'focusTabLastTab', 'focusTabLastSelectedTab', 'focusTabOpenerTab', 'focusTabOpenerTabRtl', 'focusTabLastOpenedTab', 'tabbarscrollingInverseLabel', 'minWidthLabel', 'widthToLabel', 'widthPixelsLabel', 'mouseHoverSelectLabelBegin', 'tabFlipLabel', 'clicktabLabel', 'doubleLabel', 'middleLabel', 'altLabel', 'clicktabNothing', 'tabbarscrollingSelectTabLabel', 'tabScrollMultibar', 'millisecondsLabel', 'mouseClickLabel', 'tabFlipDelay', 'tabCloseLabel', 'maxrowLabel', 'newTabButtonLabel', 'ssInterval', 'openTabNextLabel', 'tabbarscrollingCaption', 'showOntabLabel', 'tabFocusLabel', 'unreadTabLabel', 'textcolorLabel', 'bgColorLabel', 'speLinkAllLinks', 'speLinkLabel', 'speLinkNone', 'speLinkExternal', 'currentTabLabel', 'otherTabsLabel'];
+  '994289308992179865', '1725149567830788547', '4643612240819915418', '4256316378292851214', '2019718679933488176', '782057141565633384', '5116628073786783676', '1465176863081977902', '3007771295016901659', '5078638979202084724', '4589268276914962177', '3551320343578183772', '2448312741937722512', '1524430321211440688', '42126664696688958', '2663302507110284145', '3635030235490426869', '4888510611625056742', '5860209693144823476', '5846929185714966548', '7955383984025963790', '3128230619496333808', '3391716558283801616', '6606070663386660533', '9011178328451474963', '9065203028668620118', '2473195200299095979', '1047431265488717055', '9218430445555521422', '8926389886865778422', '2893168226686371498', '4289540628985791613', '3095995014811312755', '59174027418879706', '6550675742724504774', '5453029940327926427', '4989966318180235467', '6326175484149238433', '9147392381910171771', '8260864402787962391', '8477384620836102176', '7701040980221191251', '6146563240635539929', '8026334261755873520', '1375321115329958930', '5513242761114685513', '5582839680698949063', '5317780077021120954', '8986267729801483565', '5431318178759467895', '7853747251428735', '2948300991547862301', '8251578425305135684', '2845382757467349449', '8870318296973696995', '480990236307250886', '7754704193130578113', '7791543448312431591', '59174027418879706', 'playOrPause', 'frameStep', 'frameBackStep', 'rewind1', 'rewind2', 'forward1', 'forward2', 'rewind3', 'forward3', 'normalSpeed', 'halveSpeed', 'doubleSpeed', 'decSpeed', 'incSpeed', 'fullscreen', 'exitFullscreen', 'mute', 'decreaseVolume', 'increaseVolume', 'incZoom', 'decZoom', 'resetZoom', 'plRepeat', 'mediaSeeking', 'volumeControl', 'changeSpeed', 'mouseWheelFunctions', 'reverseWheelMediaSeeking', 'noScriptPref', 'blockCanvasFingerprinting', 'browsingHistory', 'downloadHistory', 'cachedImagesAndFiles', 'allSiteCookies', 'autocompleteData', 'autofillData', 'clearBrowsingDataNow', 'tabSettings', 'alwaysOnTop', 'neverOnTop', 'privateData', 'privateDataMessage', 'closeAllTabsMenuLabel', 'openalllinksLabel', 'clicktabCopyTabUrl', 'clicktabCopyUrlFromClipboard', 'clicktabReloadtabs', 'clicktabReloadothertabs', 'clicktabReloadlefttabs', 'clicktabReloadrighttabs', 'freezeTabMenuLabel', 'protectTabMenuLabel', 'lockTabMenuLabel', 'autoReloadTabLabel', 'clicktabUcatab', 'secondsLabel', 'minuteLabel', 'minutesLabel', 'generalWindowOpenLabel', 'linkTargetTab', 'linkTargetWindow', 'openDuplicateNextLabel', 'keepWindowLabel31', 'currenttabCaptionLabel', 'focusTabLabelBegin', 'focusTabFirstTab', 'focusTabLeftTab', 'focusTabRightTab', 'focusTabLastTab', 'focusTabLastSelectedTab', 'focusTabOpenerTab', 'focusTabOpenerTabRtl', 'focusTabLastOpenedTab', 'tabbarscrollingInverseLabel', 'minWidthLabel', 'widthToLabel', 'widthPixelsLabel', 'mouseHoverSelectLabelBegin', 'tabFlipLabel', 'clicktabLabel', 'doubleLabel', 'middleLabel', 'altLabel', 'clicktabNothing', 'tabbarscrollingSelectTabLabel', 'tabScrollMultibar', 'millisecondsLabel', 'mouseClickLabel', 'tabFlipDelay', 'tabCloseLabel', 'maxrowLabel', 'newTabButtonLabel', 'ssInterval', 'openTabNextLabel', 'tabbarscrollingCaption', 'showOntabLabel', 'tabFocusLabel', 'unreadTabLabel', 'textcolorLabel', 'bgColorLabel', 'speLinkAllLinks', 'speLinkLabel', 'speLinkNone', 'speLinkExternal', 'currentTabLabel', 'otherTabsLabel'];
 };
 
 var ctx = null;
@@ -52509,6 +52511,118 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
+
+/***/ }),
+/* 717 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = setTheme;
+
+var _electron = __webpack_require__(58);
+
+function getTheme(theme, entity, name) {
+  if (!theme || !theme[entity] || !theme[entity][name]) {
+    return void 0;
+  }
+
+  const val = theme[entity][name];
+
+  if (entity == 'colors' || entity == 'tints') {
+    return `rgb${val.length == 4 ? 'a' : ''}(${val.join(',')})`;
+  } else if (entity == 'images') {
+    return theme.datas[name];
+  }
+  return val;
+}
+
+function colorOnRGB(c) {
+  c = c.split(/[()]/)[1].split(",").map(x => parseInt(x));
+  return c[0] * 0.299 + c[1] * 0.587 + c[2] * 0.114 < 186 ? 'white' : 'black';
+}
+
+function setTheme(page) {
+  const key = Math.random().toString();
+  _electron.ipcRenderer.send("get-main-state", key, ['themeInfo']);
+  _electron.ipcRenderer.once(`get-main-state-reply_${key}`, (e, data) => {
+    const theme = data.themeInfo;
+    if (theme[page]) common(theme);
+  });
+}
+
+function common(theme) {
+  const app = document.body,
+        arr = [],
+        other = [];
+  const bgImage = getTheme(theme, 'images', 'theme_ntp_background');
+  if (bgImage) {
+    arr.push(`background-image: url(${bgImage})`);
+
+    const align = getTheme(theme, 'properties', 'ntp_background_alignment');
+    if (align) arr.push(`background-position: ${align}`);
+
+    const repeat = getTheme(theme, 'properties', 'ntp_background_repeat');
+    if (repeat) arr.push(`background-repeat: ${repeat}`);
+  }
+
+  const attrImage = getTheme(theme, 'images', 'theme_ntp_attribution');
+  if (attrImage) {
+    const ele = document.createElement('img');
+    ele.setAttribute('src', attrImage);
+    ele.style.position = 'fixed';
+    ele.style.width = 'fit-content';
+    ele.style.height = 'fit-content';
+    ele.style.bottom = 0;
+    ele.style.left = 0;
+    document.body.appendChild(ele);
+  }
+
+  const bgColor = getTheme(theme, 'colors', 'ntp_background');
+  if (bgColor) arr.push(`background-color: ${bgColor}`);
+
+  const sectionColor = getTheme(theme, 'colors', 'ntp_header') || getTheme(theme, 'colors', 'ntp_section');
+  if (sectionColor) other.push(`.ui.card, .ui.cards>.card {
+    box-shadow: 0 1px 3px 0 ${sectionColor}, 0 0 0 1px ${sectionColor};
+}`);
+
+  const color = getTheme(theme, 'colors', 'ntp_text');
+  if (color) other.push(`*,
+   .ui.list .list>.item a.header, .ui.list>.item a.header,a.header,
+       .ui.list .list>.item a.header:hover, .ui.list>.item a.header:hover { color: ${color} !important; }`);
+
+  const linkColor = getTheme(theme, 'colors', 'ntp_link');
+  if (linkColor) {
+    other.push(`
+      .ui.list .list>.item a.header, .ui.list>.item a.header,a.header,
+       .ui.list .list>.item a.header:hover, .ui.list>.item a.header:hover{
+    color: ${linkColor} !important;
+  }`);
+  }
+
+  if ((linkColor || color) && colorOnRGB(linkColor || color) == 'black') {
+    other.push(`
+      div.description{
+    background-color: rgb(75, 75, 75) !important;
+    border-radius: .28571429rem .28571429rem 0 0;
+    }
+  `);
+  }
+
+  if (arr.length || other.length) {
+    const s = document.createElement('style');
+    s.setAttribute('type', 'text/css');
+    s.appendChild(document.createTextNode(`body{ ${arr.join(";\n")} }
+    ${arr.length ? '.sticky{ background-color: initial }' : ''}
+    ${other.join("\n")}`));
+    document.head.appendChild(s);
+  }
+}
+module.exports = exports['default'];
 
 /***/ })
 /******/ ]);

@@ -600,5 +600,6 @@ class Downloader extends React.Component {
       </Selection>);
   }
 }
+require('./themeForPage')('themeDownloader')
 
 ReactDOM.render(<Downloader/>,  document.getElementById('app'))

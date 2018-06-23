@@ -351,6 +351,20 @@ const settingDefault =  {
   autoPlaySpeed: 0,
   puppeteer: '',
   automationHistory: [],
+
+  //theme
+  themeTopPage: true,
+  themeBookmark: false,
+  themeHistory: false,
+  themeDownloader: false,
+  themeExplorer: false,
+  themeBookmarkSidebar: false,
+  themeHistorySidebar: false,
+  themeSessionManagerSidebar: false,
+  themeTabTrashSidebar: false,
+  themeTabHistorySidebar: false,
+  themeExplorerSidebar: false,
+
 }
 
 

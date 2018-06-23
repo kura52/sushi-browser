@@ -287,5 +287,6 @@ const App = () => (
   </Container>
 )
 
+require('./themeForPage')('themeHistory')
 
 ReactDOM.render(<App />,  document.getElementById('app'))

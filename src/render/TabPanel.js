@@ -2668,6 +2668,7 @@ export default class TabPanel extends Component {
           navbar: navbar,
           modify: this.props.toggleNav != 2 && this.props.toggleNav != 3 && (sharedState.bookmarkBar || (sharedState.bookmarkBarTopPage && tab.page.navUrl == topURL)) ? 28 : 0,
           float:this.props.float,
+          oneLine: this.props.toggleNav == 1,
           getCapture: !tab.tabPreview
           // chromeTab: this.getChromeTab(tab)
         }}

@@ -644,6 +644,7 @@ class BrowserNavbar extends Component{
                       }}/>
       {this.props.toggleNav == 0 ? <NavbarMenuItem text={`[${multistageTabs  ? '✓' : ' '}] Multi Row Tabs`} icon='table'
                                                    onClick={()=>{
+                                                     sharedState.multistageTabs = !multistageTabs
                                                      ipc.send('save-state',{tableName:'state',key:'multistageTabs',val:!multistageTabs})
                                                      PubSub.publish('change-multistage-tabs',!multistageTabs)
                                                      PubSub.publish("resizeWindow",{})
@@ -850,7 +851,7 @@ class BrowserNavbar extends Component{
 
   savedStateMenu(cont,onContextMenu){
     const menuItems = []
-    return <NavbarMenu className="sort-savedState" k={this.props.k} isFloat={isFloatPanel(this.props.k)} ref="savedStateMenu" title="Super Session Manager" icon="database" onClick={_=>_} onContextMenu={onContextMenu} timeOut={50}>
+    return <NavbarMenu className="sort-savedState" k={this.props.k} isFloat={isFloatPanel(this.props.k)} ref="savedStateMenu" title="Session Manager" icon="database" onClick={_=>_} onContextMenu={onContextMenu} timeOut={50}>
       <NavbarMenuItem bold={true} text='Save Current Session' onClick={_=>ipc.send('save-all-windows-state')} />
       <div className="divider" />
       <div role="option" className="item favorite infinite-classic">
@@ -890,7 +891,11 @@ class BrowserNavbar extends Component{
                                k ={this.props.k} onContextMenu={this.props.navHandle.onLocationContextMenu} tab={this.props.tab} page={this.props.page} privateMode={this.props.privateMode} search={this.props.parent.search}/>
       </div>,
 
-      margin: <div className="navbar-margin" style={{width: this.props.toggleNav != 1 ? 0 : this.props.isTopRight ? '45%' : '50%',minWidth: this.props.toggleNav != 1 ? 0 :'80px',background: 'rgb(221, 221, 221)'}}
+      margin: <div className="navbar-margin" style={{
+        width: this.props.toggleNav != 1 ? 0 : this.props.isTopRight ? '45%' : '50%',
+        minWidth: this.props.toggleNav != 1 ? 0 :'80px',
+        background: !sharedState.theme ? getTheme('colors','frame') : `${getTheme('images','theme_frame')} ${getTheme('images','theme_frame') ? (getTheme('colors','frame') || 'initial') : ''} repeat`
+      }}
                    onDoubleClick={isDarwin ? _=>{
                      const win = remote.getCurrentWindow()
                      if(win.isFullScreen()){}
@@ -1080,7 +1085,7 @@ class BrowserNavbar extends Component{
     let navbarStyle = this.props.toggleNav == 2 ? {visibility: "hidden"} : this.props.toggleNav == 3 ? {zIndex: 2, position: "sticky", top: 27} : {}
     // this.props.toggleNav == 1 ? {width : this.props.isTopRight ? '55%' : '50%',float: 'right'} : {}
     const toolbarTheme = getTheme('images','theme_toolbar')
-    if(toolbarTheme) navbarStyle = {...navbarStyle,backgroundImage:toolbarTheme,backgroundColor: toolbarTheme ? 'initial' : void 0}
+    if(toolbarTheme) navbarStyle = {...navbarStyle,backgroundImage:toolbarTheme,backgroundColor: toolbarTheme ? 'initial' : void 0, backgroundPositionY: toolbarTheme ? -29 : void 0}
 
     return <div className={`navbar-main browser-navbar${isFixed && !isFloat ? " fixed-panel" : ""}`}
                 ref="navbar" onDragOver={(e)=>{e.preventDefault();return false}}

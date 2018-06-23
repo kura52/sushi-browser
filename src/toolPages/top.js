@@ -14,6 +14,7 @@ const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd';
 import l10n from '../../brave/js/l10n';
 l10n.init()
 
+let theme
 let resourcePath
 localForage.getItem('favicon-set').then(setTime=>{
   ipc.send("favicon-get",setTime ? parseInt(setTime) : null)
@@ -282,27 +283,27 @@ class TopList extends React.Component {
     const hlist= await (new HistoryList().build(data.upd))
 
     this.setState({rend:<div>
-      <Card.Group >
-        {result}
-        <Button circular icon='plus' onClick={this.clickButton}/>
-      </Card.Group>
-      <div className={`restore ${this.state.restoreVisible ? '' : 'hidden'}`} >
-        {l10n.translation('8251578425305135684')}&nbsp;&nbsp;
-        <a onClick={e=>{
-          for(let [id,count] of Object.entries(this.state.removeMap)){
-            const key = Math.random().toString()
-            ipc.send('history-count-reset',key,id,count)
-            delete this.state.removeMap[id]
-          }
-          this.state.restoreVisible = false
-          this._render(data)
-        }}>{l10n.translation('restoreAll')}</a>
-      </div>
-      <div className="ui divider"/>
-      <div role="list" className="ui divided relaxed list">
-        {hlist}
-      </div>
-    </div>})
+        <Card.Group >
+          {result}
+          <Button circular icon='plus' onClick={this.clickButton}/>
+        </Card.Group>
+        <div className={`restore ${this.state.restoreVisible ? '' : 'hidden'}`} >
+          {l10n.translation('8251578425305135684')}&nbsp;&nbsp;
+          <a onClick={e=>{
+            for(let [id,count] of Object.entries(this.state.removeMap)){
+              const key = Math.random().toString()
+              ipc.send('history-count-reset',key,id,count)
+              delete this.state.removeMap[id]
+            }
+            this.state.restoreVisible = false
+            this._render(data)
+          }}>{l10n.translation('restoreAll')}</a>
+        </div>
+        <div className="ui divider"/>
+        <div role="list" className="ui divided relaxed list">
+          {hlist}
+        </div>
+      </div>})
   }
 
   render(){
@@ -350,5 +351,7 @@ const App = () => (
   </Container>
 )
 
+
+require('./themeForPage')('themeTopPage')
 
 ReactDOM.render(<App />,  document.getElementById('app'))

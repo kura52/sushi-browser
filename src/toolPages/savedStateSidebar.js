@@ -4,6 +4,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './savedStateBase';
 
+require('./themeForPage')('themeSessionManagerSidebar')
 
 ReactDOM.render(
   <App sidebar={true}/>,

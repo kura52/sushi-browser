@@ -12,8 +12,11 @@ const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}$
 const CHANGE_ENGLISH = `Fixed a fatal bug in chrome extension.
 Fixed some bugs.`
 
-const CHANGE_JAPANESE = `chrome拡張に対する致命的な不具合修正
-いくつかの不具合修正`
+const CHANGE_JAPANESE = `Tor通信に対応(Tor Tab)
+Chromeテーマに対応
+非最大化時にタブバーの上部にマージンをもたせるオプションを追加
+
+多数の不具合修正`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

@@ -2090,7 +2090,7 @@ class ExtensionSetting extends React.Component {
 class ThemeSetting extends React.Component {
   constructor(props) {
     super(props)
-    this.state = {extensions:extensionDefault.extensions, enableTheme:extensionDefault.enableTheme}
+    this.state = extensionDefault
   }
 
 
@@ -2128,9 +2128,13 @@ class ThemeSetting extends React.Component {
     </tr>
   }
 
+  onChange(name,e,data){
+    ipc.send('save-state',{tableName:'state',key:name,val:data.value || data.checked})
+  }
+
   render() {
     const enable = !this.state.enableTheme
-    return <div>
+    return <div className="ui form">
       <h3>Theme</h3>
       <table className="ui celled compact table">
         <thead>
@@ -2167,6 +2171,55 @@ class ThemeSetting extends React.Component {
         </tfoot>
       </table>
 
+      <div className="field">
+        <label>Apply for Pages</label>
+        <br/>
+
+        <Checkbox defaultChecked={this.state.themeTopPage} toggle onChange={this.onChange.bind(this,'themeTopPage')}/>
+        <span className="toggle-label">Top Page</span>
+        <br/>
+
+        <Checkbox defaultChecked={this.state.themeBookmark} toggle onChange={this.onChange.bind(this,'themeBookmark')}/>
+        <span className="toggle-label">Bookmarks</span>
+        <br/>
+
+        <Checkbox defaultChecked={this.state.themeHistory} toggle onChange={this.onChange.bind(this,'themeHistory')}/>
+        <span className="toggle-label">History</span>
+        <br/>
+
+        <Checkbox defaultChecked={this.state.themeDownloader} toggle onChange={this.onChange.bind(this,'themeDownloader')}/>
+        <span className="toggle-label">Download</span>
+        <br/>
+
+        <Checkbox defaultChecked={this.state.themeExplorer} toggle onChange={this.onChange.bind(this,'themeExplorer')}/>
+        <span className="toggle-label">File Explorer</span>
+        <br/>
+
+        <Checkbox defaultChecked={this.state.themeBookmarkSidebar} toggle onChange={this.onChange.bind(this,'themeBookmarkSidebar')}/>
+        <span className="toggle-label">Bookmarks Sidebar</span>
+        <br/>
+
+        <Checkbox defaultChecked={this.state.themeHistorySidebar} toggle onChange={this.onChange.bind(this,'themeHistorySidebar')}/>
+        <span className="toggle-label">History Sidebar</span>
+        <br/>
+
+        <Checkbox defaultChecked={this.state.themeSessionManagerSidebar} toggle onChange={this.onChange.bind(this,'themeSessionManagerSidebar')}/>
+        <span className="toggle-label">Session Manager Sidebar</span>
+        <br/>
+
+        <Checkbox defaultChecked={this.state.themeTabTrashSidebar} toggle onChange={this.onChange.bind(this,'themeTabTrashSidebar')}/>
+        <span className="toggle-label">Trash of Tabs Sidebar</span>
+        <br/>
+
+        <Checkbox defaultChecked={this.state.themeTabHistorySidebar} toggle onChange={this.onChange.bind(this,'themeTabHistorySidebar')}/>
+        <span className="toggle-label">History of Tabs Sidebar</span>
+        <br/>
+
+        <Checkbox defaultChecked={this.state.themeExplorerSidebar} toggle onChange={this.onChange.bind(this,'themeExplorerSidebar')}/>
+        <span className="toggle-label">File Explorer Sidebar</span>
+
+      </div>
+      <br/>
     </div>
   }
 
@@ -2235,6 +2288,7 @@ const App = () => (
   </Container>
 )
 
+
 const key = Math.random().toString()
 ipc.send("get-main-state",key,['startsWith','newTabMode','myHomepage','searchProviders','searchEngine','language','enableFlash','concurrentDownload','downloadNum','sideBarDirection','scrollTab',
   'doubleShift','tripleClick','enableMouseGesture','extensionOnToolbar','syncScrollMargin','contextMenuSearchEngines','ALL_KEYS','bindMarginFrame','bindMarginTitle','longPressMiddle','checkDefaultBrowser','sendToVideo',
@@ -2246,7 +2300,8 @@ ipc.send("get-main-state",key,['startsWith','newTabMode','myHomepage','searchPro
   'colorActiveBackground','colorTabDot','colorUnreadText','colorUnreadBackground','enableColorOfNoSelect','themeColorChange','showBorderActiveTab','historyBadget','colorTabMode','enableDownloadList',
   'clearHistoryOnClose','clearDownloadOnClose','clearCacheOnClose','clearStorageDataOnClose','clearAutocompleteDataOnClose','clearAutofillDataOnClose','clearPasswordOnClose','clearGeneralSettingsOnClose','clearFavoriteOnClose',
   'enableWidevine','toolbarLink','sidebarLink','bookmarkbarLink','zoomBehavior','tabPreviewSizeWidth','tabPreviewSizeHeight','tabPreviewSlideHeight','tabPreviewWait','searchEngineDisplayType','tabPreviewRecent',
-  'sendUrlContextMenus','extensions','tabBarMarginTop','removeTabBarMarginTop','enableTheme'])
+  'sendUrlContextMenus','extensions','tabBarMarginTop','removeTabBarMarginTop','enableTheme','themeTopPage','themeBookmark','themeHistory','themeDownloader','themeExplorer','themeBookmarkSidebar','themeHistorySidebar',
+  'themeSessionManagerSidebar','themeTabTrashSidebar','themeTabHistorySidebar','themeExplorerSidebar'])
 ipc.once(`get-main-state-reply_${key}`,(e,data)=>{
   generalDefault = data
   keyboardDefault = data

@@ -9,6 +9,8 @@ import path from 'path';
 ;(async ()=>{
   const homePath = await getHome()
 
+  require('./themeForPage')('themeExplorer')
+
   ReactDOM.render(<FileExplorer items={[{
     name: path.basename(homePath),
     path: homePath,

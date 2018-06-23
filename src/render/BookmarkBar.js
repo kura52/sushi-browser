@@ -396,6 +396,7 @@ class BookmarkBar extends Component {
     const bgImage = getTheme('images','theme_toolbar')|| void 0
     let style = {backgroundImage: bgImage,
       backgroundColor: bgImage ? 'initial' : void 0,
+      backgroundPositionY: bgImage ? -57 : void 0,
       color: (getTheme('colors','bookmark_text') || void 0)}
     if(this.props.hoverBookmarkBar){
       const rect = this.props.hoverBookmarkBar.getBoundingClientRect()
