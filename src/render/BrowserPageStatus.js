@@ -1,5 +1,6 @@
 const React = require('react')
 const PubSub = require('./pubsub')
+const getTheme = require('./theme')
 const {Component} = React
 
 export default class BrowserPageStatus extends Component {
@@ -12,6 +13,8 @@ export default class BrowserPageStatus extends Component {
   }
 
   render(){
+    let style = {backgroundColor: getTheme('colors','toolbar') || void 0,
+      color: (getTheme('colors','bookmark_text') || void 0)}
     let status = this.props.tab.page.statusText
     if (!status && this.props.tab.page.isLoading)
       status = 'Loading...'
@@ -22,7 +25,7 @@ export default class BrowserPageStatus extends Component {
         console.log(e)
       }
     }
-    return <div className={`${(status ? 'visible' : 'hidden')} browser-page-status`}>{!status || status.length <= 100 ? status : `${status.substr(0,100)}...`}</div>
+    return <div style={style} className={`${(status ? 'visible' : 'hidden')} browser-page-status`}>{!status || status.length <= 100 ? status : `${status.substr(0,100)}...`}</div>
 
   }
 

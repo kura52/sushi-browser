@@ -2095,9 +2095,8 @@ class ThemeSetting extends React.Component {
 
 
   changeCheckTheme(id,data){
-    const val = data.checked ? id : null
-    ipc.send('save-state',{tableName:'state',key:'enableTheme',val})
-    this.setState({enableTheme: val})
+    ipc.send('save-state',{tableName:'state',key:'enableTheme',val:id})
+    this.setState({enableTheme: id})
   }
 
   buildThemeColumns(){
@@ -2111,7 +2110,7 @@ class ThemeSetting extends React.Component {
   }
 
   buildThemeColumn(i,id,v){
-    console.log(id,v)
+    console.log(id,v,this.state.enableTheme)
     const enable = this.state.enableTheme == id
 
     return <tr key={`tr${i}`}>
@@ -2119,7 +2118,7 @@ class ThemeSetting extends React.Component {
       <td key={`description${i}`} >{v.description}</td>
       <td key={`version${i}`} style={{width: 40}}>{v.version}</td>
       <td key={`enabled${i}`}>
-        <Checkbox checked={enable} toggle onChange={(e,data)=>this.changeCheckTheme(id,data)}/>
+        <Checkbox checked={enable} disabled={enable} toggle onChange={(e,data)=>this.changeCheckTheme(id,data)}/>
       </td>
       <td key={`delete${i}`} style={{fontSize: 20,textAlign: 'center'}}>
         <a href="javascript:void(0)" onClick={_=> ipc.send("delete-extension",id,orgId)}>
@@ -2130,6 +2129,7 @@ class ThemeSetting extends React.Component {
   }
 
   render() {
+    const enable = !this.state.enableTheme
     return <div>
       <h3>Theme</h3>
       <table className="ui celled compact table">
@@ -2143,6 +2143,18 @@ class ThemeSetting extends React.Component {
         </tr>
         </thead>
         <tbody>
+        <tr key={`tr`}>
+          <td key={`name`}>Default</td>
+          <td key={`description`}>Default Theme</td>
+          <td key={`version`} style={{width: 40}}>1.0.0</td>
+          <td key={`enabled`}>
+            <Checkbox checked={enable} disabled={enable} toggle onChange={(e, data) =>{
+              ipc.send('save-state',{tableName:'state',key:'enableTheme',val: null})
+              this.setState({enableTheme: null})
+            }}/>
+          </td>
+          <td key={`delete`} style={{fontSize: 20, textAlign: 'center'}}/>
+        </tr>
         {this.buildThemeColumns()}
         </tbody>
         <tfoot className="full-width">

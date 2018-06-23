@@ -136,7 +136,7 @@ ipcMain.on('add-extension',(e,{id,url})=>{
           if(!manifestContents.theme){
             await chromeManifestModify(id,verPath)
           }
-          extensions.loadExtension(session.defaultSession,id,verPath)
+          extensions.loadExtension(session.defaultSession,id,verPath,void 0,void 0,true)
         }catch(e){
           console.log(3333222,e)
         }

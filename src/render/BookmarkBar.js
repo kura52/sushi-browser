@@ -393,7 +393,10 @@ class BookmarkBar extends Component {
     ipc.on('favorite-menu-reply', this.event)
   }
   render(){
-    let style = {background: (getTheme('images','theme_tab_background') || void 0)}
+    const bgImage = getTheme('images','theme_toolbar')|| void 0
+    let style = {backgroundImage: bgImage,
+      backgroundColor: bgImage ? 'initial' : void 0,
+      color: (getTheme('colors','bookmark_text') || void 0)}
     if(this.props.hoverBookmarkBar){
       const rect = this.props.hoverBookmarkBar.getBoundingClientRect()
       style = {overflow: 'hidden',position: 'fixed',zIndex:1000,width:rect.width,top:rect.top,left:rect.left,...style}

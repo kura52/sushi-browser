@@ -269,7 +269,8 @@ class BrowserNavbar extends Component{
       this.bookmarkBar == sharedState.bookmarkBar &&
       this.hoverBookmarkBar == sharedState.hoverBookmarkBar &&
       this.bookmarkBarTopPage == sharedState.bookmarkBarTopPage &&
-      this.tabPreview == sharedState.tabPreview)
+      this.tabPreview == sharedState.tabPreview &&
+      this.themeBasePath == (sharedState.theme && sharedState.theme.base_path))
     if(ret){
       this.currentWebContents = nextProps.currentWebContents
       this.wv = nextProps.tab.wv
@@ -290,6 +291,7 @@ class BrowserNavbar extends Component{
       this.hoverBookmarkBar = sharedState.hoverBookmarkBar
       this.bookmarkBarTopPage = sharedState.bookmarkBarTopPage
       this.tabPreview = sharedState.tabPreview
+      this.themeBasePath = (sharedState.theme && sharedState.theme.base_path)
     }
     return ret
   }
@@ -1078,7 +1080,7 @@ class BrowserNavbar extends Component{
     let navbarStyle = this.props.toggleNav == 2 ? {visibility: "hidden"} : this.props.toggleNav == 3 ? {zIndex: 2, position: "sticky", top: 27} : {}
     // this.props.toggleNav == 1 ? {width : this.props.isTopRight ? '55%' : '50%',float: 'right'} : {}
     const toolbarTheme = getTheme('images','theme_toolbar')
-    if(toolbarTheme) navbarStyle = {...navbarStyle,background:toolbarTheme}
+    if(toolbarTheme) navbarStyle = {...navbarStyle,backgroundImage:toolbarTheme,backgroundColor: toolbarTheme ? 'initial' : void 0}
 
     return <div className={`navbar-main browser-navbar${isFixed && !isFloat ? " fixed-panel" : ""}`}
                 ref="navbar" onDragOver={(e)=>{e.preventDefault();return false}}

@@ -1,5 +1,6 @@
 const React = require('react')
 import { Dropdown } from 'semantic-ui-react';
+const getTheme = require('./theme')
 
 
 function handleClick(props,e){
@@ -62,7 +63,10 @@ class NavbarMenuSubMenu extends React.Component {
 
 export default {
   NavbarMenuBarItem(props){
-    return <div role="option" className="item browser-navbar">
+    let style
+    const toolbarTheme = getTheme('images','theme_toolbar')
+    if(toolbarTheme) style = {backgroundImage:toolbarTheme,backgroundColor: toolbarTheme ? 'initial' : void 0}
+    return <div role="option" className="item browser-navbar" style={style}>
       {props.children}
     </div>
   },

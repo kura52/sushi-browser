@@ -19,8 +19,39 @@ const PanelOverlay = require('./PanelOverlay')
 import firebase,{storage,auth,database} from 'firebase'
 global.sharedStateMain = require('electron').remote.require('./sharedStateMainRemote')
 const sharedState = require('./sharedState')
-let [MARGIN,verticalTabPosition,enableTheme] = ipc.sendSync('get-sync-main-states',['syncScrollMargin','verticalTabPosition','enableTheme'])
-sharedState.theme = enableTheme
+const getTheme = require('./theme')
+let [MARGIN,verticalTabPosition,themeInfo] = ipc.sendSync('get-sync-main-states',['syncScrollMargin','verticalTabPosition','themeInfo'])
+sharedState.theme = themeInfo
+
+function setStyle(){
+  const s = document.createElement('style');
+  s.setAttribute('type', 'text/css');
+  s.setAttribute('id', 'style_element_');
+  const style =  `.rdTabAddButton:hover {
+    background-image: none;
+    opacity: 0.8;
+}
+${sharedState.theme.tints && sharedState.theme.tints.buttons ? `.browser-navbar a {
+    color: hsl(${sharedState.theme.tints.buttons[0] * 360},${sharedState.theme.tints.buttons[1] * 100}%,${sharedState.theme.tints.buttons[2] * 100}%);
+}` : ''}
+.ui.blue.segment:not(.inverted) {
+    border-image: ${getTheme('images','theme_toolbar') || getTheme('images','theme_frame')} 15 round;
+}
+.ui.horizontal.segments {
+    ${getTheme('colors','toolbar') ? `background-color: ${getTheme('colors','toolbar')}` : ''};
+    ${getTheme('colors','bookmark_text') ? `color: ${getTheme('colors','bookmark_text')}` : ''};
+}
+.folder-open, .folder {
+    color: ${getTheme('colors','bookmark_text')||'black'};
+}`
+  s.appendChild(document.createTextNode(style));
+  document.head.appendChild(s)
+}
+
+if(sharedState.theme){
+  setStyle()
+}
+
 
 let count = 0
 // ipc.setMaxListeners(0)
@@ -856,6 +887,16 @@ export default class SplitWindows extends Component{
 
     this.eventUpdateTheme = (e,theme)=>{
       sharedState.theme = theme
+      const ele = document.querySelector('#style_element_')
+
+      if(sharedState.theme){
+        if(ele) ele.parentNode.removeChild(ele)
+        setStyle()
+      }
+      else if(ele && !sharedState.theme){
+        ele.parentNode.removeChild(ele)
+      }
+
       this.setState({})
     }
     ipc.on('update-theme', this.eventUpdateTheme)

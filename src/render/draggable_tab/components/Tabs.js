@@ -148,12 +148,14 @@ class Title extends React.Component {
   }
 
   render(){
-    const {key,tab,TabStyles,tabBeforeTitleClasses,beforeTitle,tabTiteleStyle,tabTitleClasses,extraAttribute,privateMode,lock,protect,mute,reloadInterval,title,verticalTabPanel,toggleNav,beforeTitleStyle} = this.props.datas
+    const {key,tab,TabStyles,tabBeforeTitleClasses,beforeTitle,tabTiteleStyle,tabTitleClasses,extraAttribute,privateMode,lock,protect,mute,reloadInterval,title,verticalTabPanel,toggleNav,beforeTitleStyle,selected} = this.props.datas
 
     let m
     if(privateMode && (m = privateMode.match(/^persist:(\d+)$/))){
       m = m[1]
     }
+    const color = selected ? getTheme('colors','tab_text') : getTheme('colors','tab_background_text')
+    if(color) tabTiteleStyle.color = color
 
     return <div style={{display:'unset',boxSizing: !verticalTabPanel && multistageTabs && toggleNav == 0 ? 'content-box' : (void 0)}}>
        <span style={beforeTitleStyle} className={tabBeforeTitleClasses}>
@@ -466,6 +468,7 @@ class Tabs extends React.Component {
       //     titleElements[i].style.display = "flex"
       //   }
     }
+    if(!getTheme('images','theme_frame',true)) tabInlineStyles.tabBar.backgroundColor = 'rgba(255, 255, 255, 0.5)'
 
     tabInlineStyles.tab = this.TabStyles.tab //StyleOverride.merge(this.TabStyles.tab, this.props.tabsStyles.tab);
     if(this.props.verticalTabPanel){
@@ -783,8 +786,9 @@ class Tabs extends React.Component {
             this.isMultistageTabsMode() ?
               <div className="chrome-tab-background" style={
                 {borderTop: sharedState.tabBarMarginTop ? '0.5px solid #bbbbbb' : void 0,
-                  backgroundColor: selected ? sharedState.colorActiveBackground : unreadTab ? sharedState.colorUnreadBackground : sharedState.colorNormalBackground,
-                  background: getTheme('images',selected ? 'theme_toolbar' : 'theme_tab_background' ) || void 0
+                  backgroundColor: getTheme('images',selected ? 'theme_toolbar' : 'theme_tab_background' ) ? 'initial' :
+                    selected ? sharedState.colorActiveBackground : unreadTab ? sharedState.colorUnreadBackground : sharedState.colorNormalBackground,
+                  backgroundImage: getTheme('images',selected ? 'theme_toolbar' : 'theme_tab_background' ) || void 0
                 }
               }>
                 {tab.props.orgTab.tabPreview && this.tabPreviewHeight && this.tabPreviewHeight != 27 ? <img style={{width: '100%',height: 140, marginTop:30}} src={tab.props.orgTab.tabPreview.dataURL}/> : null}
@@ -795,7 +799,7 @@ class Tabs extends React.Component {
               </div>
           }
           {prevTitle}
-          <Title datas={{key:tab.key,k:this.props.k,tab:t,toggleNav:this.props.toggleNav,verticalTabPanel:this.props.verticalTabPanel,TabStyles:this.TabStyles,tabBeforeTitleClasses,beforeTitle,tabTiteleStyle,tabTitleClasses,extraAttribute,privateMode,lock,protect,mute,reloadInterval,title,beforeTitleStyle}}/>
+          <Title datas={{key:tab.key,k:this.props.k,tab:t,toggleNav:this.props.toggleNav,verticalTabPanel:this.props.verticalTabPanel,TabStyles:this.TabStyles,tabBeforeTitleClasses,beforeTitle,tabTiteleStyle,tabTitleClasses,extraAttribute,privateMode,lock,protect,mute,reloadInterval,title,beforeTitleStyle,selected}}/>
           {closeButton}
         </li>
       );
@@ -1376,7 +1380,7 @@ class Tabs extends React.Component {
 
   render() {
     const {_tabClassNames,tabInlineStyles,tabs,content} = this.buildRenderComponent()
-    const background = `${getTheme('images','theme_frame')} ${getTheme('colors','frame')} repeat`
+    const background = `${getTheme('images','theme_frame')} ${getTheme('images','theme_frame') ? (getTheme('colors','frame') || 'initial') : ''} repeat`
 
     const tabBaseStyle = this.props.toggleNav == 2 ? {display: 'none'} :
       this.props.toggleNav == 3 ? {
@@ -1413,6 +1417,7 @@ class Tabs extends React.Component {
 
     const previews = Object.values(this.tabPreviews)
     const preview = previews.length && previews[previews.length - 1]
+    const bgImage = getTheme('images','theme_tab_background' ) || void 0
 
     return (
       <div style={tabInlineStyles.tabWrapper} className={_tabClassNames.tabWrapper} ref="div"
@@ -1447,7 +1452,7 @@ class Tabs extends React.Component {
             {isDarwin && this.props.isTopRight && this.props.toggleNav != 1 && !document.querySelector('.vertical-tab.left') ? <div style={{width: this.props.fullscreen ? 0 : 62}}/>  : ""}
             {tabs}
             <span ref="addButton" draggable="true" className="rdTabAddButton"
-                  style={{...this.TabStyles.tabAddButton, background: getTheme('images','theme_tab_background' ) || void 0}}
+                  style={{...this.TabStyles.tabAddButton, backgroundImage: bgImage, backgroundColor: bgImage ? 'initial' : void 0}}
                   onClick={this.handleAddButtonClick.bind(this)} onMouseDown={this.handleAddButtonMouseDown.bind(this)}
                   onDragStart={this.handleDragStart.bind(this, null)} onDragEnd={this.handleDragEnd.bind(this, null)}>
               {this.props.verticalTabPanel ? <i className="fa fa-plus" aria-hidden="true"  style={{marginLeft: 'auto', marginRight: 'auto', fontSize: 13, padding: 2}}/> : null}

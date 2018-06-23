@@ -1445,7 +1445,7 @@ ipcMain.on('get-sync-main-states',(e,keys)=>{
       }
       return ret
     }
-    else if(key == 'enableTheme'){
+    else if(key == 'themeInfo'){
       return extInfos[mainState.enableTheme] && extInfos[mainState.enableTheme].theme
     }
     else{

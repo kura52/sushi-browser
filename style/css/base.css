@@ -837,12 +837,12 @@ div.org-menu>div.item:hover{
     border-radius: 4px;
     top: 30px;
     box-sizing: border-box;
-    max-width: 600px;
+    width: 480px;
     max-height: -moz-calc(80vh - 60px);
     max-height: -webkit-calc(80vh - 60px);
     max-height: calc(80vh - 60px);
-    position: relative;
-    z-index: 2;
+    position: fixed;
+    z-index: 9999999;
     margin-left: auto;
     margin-right: auto;
 }

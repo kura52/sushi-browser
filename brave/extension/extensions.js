@@ -182,7 +182,7 @@ module.exports.init = (verChange) => {
     }
   })
 
-  const loadExtension = (ses,extensionId, extensionPath, manifest = {}, manifestLocation = 'unpacked') => {
+  const loadExtension = (ses,extensionId, extensionPath, manifest = {}, manifestLocation = 'unpacked',enable) => {
     if(!extensionPath) return
     extensionPath = extensionPath.replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
     const manifestPath = path.join(extensionPath, 'manifest.json')
@@ -200,6 +200,16 @@ module.exports.init = (verChange) => {
             transInfos(manifestContents)
             if(manifestContents.theme) manifestContents.theme.base_path = extensionPath
             extInfos.setInfo(manifestContents)
+
+            if(enable){
+              mainState.enableTheme = extensionId
+              for(let win of BrowserWindow.getAllWindows()) {
+                if(win.getTitle().includes('Sushi Browser')){
+                  win.webContents.send('update-theme',manifestContents.theme)
+                }
+              }
+            }
+
             return
           }
 

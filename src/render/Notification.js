@@ -1,4 +1,5 @@
 const React = require('react')
+const ReactDOM = require('react-dom')
 const ipc = require('electron').ipcRenderer
 
 export default function Notification(props){
@@ -11,9 +12,11 @@ export default function Notification(props){
     props.data.text.split(/\r?\n/).map((x,i)=> <div key={i}>{x}</div>)
 
   if(props.data.windowDialog){
+    const rect = document.querySelector(`.w${props.k}`).getBoundingClientRect()
+    const style = {top : rect.y + 10, left: rect.x + ((rect.width - 480)/2 > 0 ? (rect.width - 480)/2 : 10)}
     const func = (e,i)=>{document.querySelector(`.alert-button${i}`).click()}
     ipc.once('auto-play-notification',func)
-    return <div className="alertDialog">
+    return <div className="alertDialog"　style={style}>
       <div className="alertDialogTitle">{props.data.title}</div>
       <div className="alertDialogBody">{message}</div>
       <div>
