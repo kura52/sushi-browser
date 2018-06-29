@@ -478,6 +478,7 @@ class Contents extends React.Component {
         })
       }
       else if(cmd == "edit"){
+        if (this.props.onClick) this.props.onClick()
         const currentNode = this.menuKey
         this.menuKey = (void 0)
         showDialog({

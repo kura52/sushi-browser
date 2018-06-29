@@ -95,6 +95,10 @@ const settingDefault =  {
   clearPasswordOnClose: false,
   clearGeneralSettingsOnClose: false,
   clearFavoriteOnClose: false,
+  clearSessionManagerOnClose: false,
+  clearFaviconOnClose: false,
+  clearAutomationOnClose: false,
+  clearNoteOnClose: false,
 
   //tab
   reloadIntervals: [60,120,300,900,1800],

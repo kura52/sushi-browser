@@ -1154,12 +1154,14 @@ export default class SplitWindows extends Component{
 
       if(typeof obj.l === "string"){
         // obj.l = [obj.l,[]]
-        obj.l = {key:obj.l, tabs:this.refs2[obj.l].state.tabs.map(tab=>{return {tabKey:tab.key, title:tab.page.title, url:tab.page.navUrl, pin:!!tab.pin, protect:!!tab.protect, lock:!!tab.lock, mute:!!tab.mute, reloadInterval:!!tab.reloadInterval}}).filter(tab=> tab.tabKey !== undefined && (!tab.privateMode || tab.privateMode.match(/^persist:\d/)))}
+        const tabPanel = this.refs2[obj.l].state
+        obj.l = {key:obj.l, tabs:tabPanel.tabs.map(tab=>{return {tabKey:tab.key, title:tab.page.title, url:tab.page.navUrl, pin:!!tab.pin, protect:!!tab.protect, lock:!!tab.lock, mute:!!tab.mute, reloadInterval:!!tab.reloadInterval, active: tab.key == tabPanel.selectedTab}}).filter(tab=> tab.tabKey !== undefined && (!tab.privateMode || tab.privateMode.match(/^persist:\d/)))}
       }
 
       if(typeof obj.r === "string"){
         // obj.r = [obj.r,[]]
-        obj.r = {key:obj.r, tabs:this.refs2[obj.r].state.tabs.map(tab=>{return {tabKey:tab.key, title:tab.page.title, url:tab.page.navUrl, pin:!!tab.pin, protect:!!tab.protect, lock:!!tab.lock, mute:!!tab.mute, reloadInterval:!!tab.reloadInterval}}).filter(tab=> tab.tabKey !== undefined && (!tab.privateMode || tab.privateMode.match(/^persist:\d/)))}
+        const tabPanel = this.refs2[obj.r].state
+        obj.r = {key:obj.r, tabs:tabPanel.tabs.map(tab=>{return {tabKey:tab.key, title:tab.page.title, url:tab.page.navUrl, pin:!!tab.pin, protect:!!tab.protect, lock:!!tab.lock, mute:!!tab.mute, reloadInterval:!!tab.reloadInterval, active: tab.key == tabPanel.selectedTab}}).filter(tab=> tab.tabKey !== undefined && (!tab.privateMode || tab.privateMode.match(/^persist:\d/)))}
       }
     }
 
@@ -1677,8 +1679,10 @@ export default class SplitWindows extends Component{
       const ref = node ? this.refs[`pane_${node.key}`].state : {}
       const size = node ? this.refs[`pane_${node.key}`].getSize() : {}
       console.log('existsAllFixedPanel',x,ref)
-      obj[x] = node ? (x == "top" || x == "left") ? ref.size :
-        (x=="bottom" ? size.height : size.width) - ref.size : 0
+      const refSize = ref.size === void 0 ? 0 : ref.size.toString().includes("%") ?
+        ((x == "top" || x == "bottom") ? size.height  : size.width) * parseInt(ref.size) / 100 : ref.size
+      obj[x] = node ? (x == "top" || x == "left") ? refSize :
+        (x=="bottom" ? size.height : size.width) - refSize : 0
       if(obj[x] == "0%") obj[x] = 0
     })
     return obj
@@ -1700,11 +1704,21 @@ export default class SplitWindows extends Component{
     localForage.getItem(key).then(getSize=>{
       console.log("sizeee3",getSize,key)
       if(getSize){
+        const fixedObj = this.existsAllFixedPanel()
+
         size = getSize == "0%" ? 200 : getSize.includes("%") ? getSize : parseInt(getSize)
-        size = key.match(/^fixed-left/) ? size : wholeSize - size
+        const size2 = key.match(/^fixed-left/) ? size : wholeSize - size
+
+        // if(fixedObj.right && this.state.root.l[0] == key){
+        //   size = size + fixedObj.right
+        // }
+
+        panel.sizeChange(size2,false)
+
         console.log("sizeee2",{key,size,psize:panel.state.size,wholeSize,otherSize})
-        PubSub.publishSync("resizeWindow",direction == "v" ? {old_w:wholeSize,new_w:wholeSize - size,old_h:otherSize,new_h:otherSize} : {old_w:otherSize,new_w:otherSize,old_h:wholeSize,new_h:wholeSize - size})
-        panel.sizeChange(size,false)
+        PubSub.publishSync("resizeWindow",direction == "v" ? {old_w:wholeSize,new_w:wholeSize - size,old_h:otherSize,new_h:otherSize} :
+          {old_w:otherSize,new_w:otherSize,old_h:wholeSize,new_h:wholeSize - size})
+        // panel.sizeChange(size2,false)
         localForage.removeItem(key)
         delete this.hidePanels[key]
         this.setState({})
@@ -1713,10 +1727,11 @@ export default class SplitWindows extends Component{
         size = key.match(/^fixed-left/) ? panel.state.size : wholeSize - panel.state.size
         localForage.setItem(key,size.toString())
         console.log("sizeee",{key,size,psize:panel.state.size,wholeSize,otherSize})
-        panel.sizeChange(ret.dirc == "l" ? 0 : 100,true)
         this.hidePanels[key] = true
         this.setState({})
-        PubSub.publish("resizeWindow",direction == "v" ? {old_w:wholeSize - size,new_w:wholeSize,old_h:otherSize,new_h:otherSize} : {old_w:otherSize,new_w:otherSize,old_h:wholeSize - size,new_h:wholeSize})
+        panel.sizeChange(ret.dirc == "l" ? 0 : 100,true)
+        PubSub.publishSync("resizeWindow",direction == "v" ? {old_w:wholeSize - size,new_w:wholeSize,old_h:otherSize,new_h:otherSize} :
+          {old_w:otherSize,new_w:otherSize,old_h:wholeSize - size,new_h:wholeSize})
       }
     })
   }

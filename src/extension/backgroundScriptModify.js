@@ -171,7 +171,7 @@ if(chrome.windows){
         chrome.windows.getLastFocused(getInfo,callback)
       }
       else{
-        simpleIpcFunc('chrome-windows-get-attributes',ret=>callback({...window,...ret[0]}),[window.id])
+        simpleIpcFunc('chrome-windows-get-attributes',ret=>callback && callback({...window,...ret[0]}),[window.id])
       }
     })
   }
@@ -499,6 +499,13 @@ if(chrome.cookies){
   }
   chrome.cookies.remove = (details, callback)=>{
     simpleIpcFunc('chrome-cookies-remove',callback,details)
+  }
+  chrome.cookies.getAllCookieStores = callback=>{
+    chrome.windows.getAll({populate:true},wins=>{
+      const tabIds = []
+      for(let win of wins) tabIds.push(...win.tabs.map(t=>t.id))
+      callback([{id:"0", tabIds}])
+    })
   }
 }
 

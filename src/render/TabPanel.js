@@ -380,6 +380,7 @@ export default class TabPanel extends Component {
       const rSessions = ipc.sendSync('get-sync-rSession',restoreTabs.map(tab=>tab.tabKey))
       console.log(4354,rSessions)
       let i = 0
+      let selectedTab
       for(let tab of restoreTabs){
         console.log(544,tab)
         if(!keepTabs && !tab.forceKeep && !tab.pin) continue
@@ -412,6 +413,7 @@ export default class TabPanel extends Component {
         tabs.push(n_tab)
         if(rSession) tabState.insert({tabKey:n_tab.key,titles:rSession.titles.join("\t"),urls:rSession.urls.join("\t"),positions: JSON.stringify(rSession.positions),currentIndex:rSession.currentIndex, updated_at: Date.now()})
         withWindowCreateTabs.add(n_tab.key)
+        if(tab.active) selectedTab = n_tab.key
         i++
       }
       if(tabs.length == 0){
@@ -426,7 +428,7 @@ export default class TabPanel extends Component {
         tabBar:props.k.match(/^fixed-bottom/) ? 1 : props.k.match(/^fixed-(left|right)/) ? 0 :(void 0),
         prevAddKeyCount: [null,[]],
         notifications:[],
-        selectedTab: forceKeep ? tabs[0].key : tabs[tabs.length - 1].key,
+        selectedTab: selectedTab || (forceKeep ? tabs[0].key : tabs[tabs.length - 1].key),
         history: [],
         tabKeys: []
       }

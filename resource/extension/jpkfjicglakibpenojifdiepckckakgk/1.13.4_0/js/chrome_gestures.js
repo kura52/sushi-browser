@@ -691,9 +691,10 @@
           }
           break;
         case "contextmenu":
-          if(!showContext){
+          if(showContext === false){
             e.preventDefault();
           }
+          showContext = void 0
           break;
       }
     },

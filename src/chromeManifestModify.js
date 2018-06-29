@@ -117,6 +117,10 @@ export default async function modify(extensionId,verPath){
     const manifestStr = removeBom(fs.readFileSync(manifestPath).toString()).replace('\\u003Call_urls>','<all_urls>')
     const infos = hjson.parse(manifestStr)
 
+    if(!infos.key){
+      infos.key = extensionId
+    }
+
     if(infos.permissions && infos.permissions.includes('activeTab')
       && (!infos.permissions.includes('http://*/*') || !infos.permissions.includes('https://*/*'))){
       infos.permissions = [...new Set([...infos.permissions,'http://*/*','https://*/*'])]
