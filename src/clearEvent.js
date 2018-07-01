@@ -9,9 +9,9 @@ import fs from 'fs'
 import mainState from "./mainState";
 
 const m = {
-  async clearHistory(ses){
+  async clearHistory(ses,_,opt2){
     for(let table of [image,history,visit]){
-      await table.remove({}, { multi: true })
+      await table.remove(opt2||{}, { multi: true })
     }
     // ses.clearHistory()
 
@@ -26,31 +26,33 @@ const m = {
     }
   },
 
-  async clearSessionManager(ses){
+  async clearSessionManager(ses,_,opt2){
     for(let table of [tabState,windowState,savedState]){
-      await table.remove({}, { multi: true })
+      await table.remove(opt2||{}, { multi: true })
     }
   },
 
-  async clearFavicon(ses){
-    await favicon.remove({}, { multi: true })
+  async clearFavicon(ses,_,opt2){
+    await favicon.remove(opt2||{}, { multi: true })
   },
 
-  async clearAutomation(ses){
+  async clearAutomation(ses,_,opt2){
     for(let table of [automation,automationOrder]){
-      await table.remove({}, { multi: true })
+      await table.remove(opt2||{}, { multi: true })
     }
   },
 
-  async clearNote(ses){
-    await note.remove({}, { multi: true })
-    await note.insert([{"is_file":false,"title":"root","updated_at":1497713000000,"children":["f1bf9993-3bc4-4874-ac7d-7656054c1850"],"key":"root","_id":"zplOMCoNb1BzCt15"},
-      {"key":"f1bf9993-3bc4-4874-ac7d-7656054c1850","title":"example","is_file":true,"created_at":1514732400000,"updated_at":1514732400000,"_id":"00jcpO1hKu0L3MLQ"}])
-  },
+  async clearNote(ses,_,opt2){
+    await note.remove(opt2||{}, { multi: true })
+    if(!(await note.findOne({_id:"zplOMCoNb1BzCt15"}))){
+      await note.insert([{"is_file":false,"title":"root","updated_at":1497713000000,"children":["f1bf9993-3bc4-4874-ac7d-7656054c1850"],"key":"root","_id":"zplOMCoNb1BzCt15"},
+        {"key":"f1bf9993-3bc4-4874-ac7d-7656054c1850","title":"example","is_file":true,"created_at":1514732400000,"updated_at":1514732400000,"_id":"00jcpO1hKu0L3MLQ"}])
+    }
+   },
 
-  async clearDownload(){
+  async clearDownload(ses,_,opt2){
     for(let table of [download,downloader]){
-      await table.remove({}, { multi: true })
+      await table.remove(opt2||{}, { multi: true })
     }
   },
 
@@ -125,16 +127,17 @@ const m = {
     )
   },
 
-  async clearFavorite(){
-    await favorite.remove({}, { multi: true })
-    await favorite.insert({"is_file":false,"title":"root","updated_at":1497713000000,"children":[],"key":"root","_id":"zplOMCoNb1BzCt15"})
+  async clearFavorite(ses,_,opt2){
+    await favorite.remove(opt2||{}, { multi: true })
+    if(!(await favorite.findOne({_id:"zplOMCoNb1BzCt15"})))
+      await favorite.insert({"is_file":false,"title":"root","updated_at":1497713000000,"children":[],"key":"root","_id":"zplOMCoNb1BzCt15"})
   }
 }
 
-async function clearEvent(event, targets,opt){
+async function clearEvent(event, targets, opt, opt2){
   console.log(targets)
   for(let target of targets){
-    await m[target](session.defaultSession,opt)
+    await m[target](session.defaultSession, opt, opt2)
   }
 }
 

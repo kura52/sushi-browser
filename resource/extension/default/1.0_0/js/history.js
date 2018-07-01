@@ -20073,6 +20073,10 @@ class TopMenu extends _infernoCompat2.default.Component {
     this.cond = { start: (0, _moment2.default)().subtract(48, 'hours').valueOf() };
   }
 
+  removeHistory(e) {
+    chrome.ipcRenderer.send('remove-history', JSON.parse(e.target.closest('a').dataset.key));
+  }
+
   componentDidMount() {
     fetchHistory(this.cond);
     historyReply(async data => {
@@ -20085,6 +20089,9 @@ class TopMenu extends _infernoCompat2.default.Component {
           scrollId: 'scrollArea',
           contentId: 'contentArea'
         });
+      }
+      for (let ele of document.querySelectorAll(".trash-link")) {
+        ele.addEventListener('click', this.removeHistory);
       }
     });
     this.eventUpdateDatas = (e, data) => {
@@ -20160,6 +20167,21 @@ class TopMenu extends _infernoCompat2.default.Component {
                 _semanticUiReact.Menu.Item,
                 null,
                 _infernoCompat2.default.createElement(_semanticUiReact.Input, { ref: 'input', icon: 'search', placeholder: 'Search...', onChange: this.onChange.bind(this) })
+              ),
+              _infernoCompat2.default.createElement(
+                _semanticUiReact.Menu.Item,
+                null,
+                _infernoCompat2.default.createElement(
+                  _semanticUiReact.Button,
+                  { style: { left: -22 }, color: 'grey', icon: 'trash', onClick: _ => {
+                      const key = Math.random().toString();
+                      _electron.ipcRenderer.send('show-dialog-exploler', key, { text: "Are you sure you want to delete all the history data?", buttons: ['OK', 'Cancel'], normal: true });
+                      _electron.ipcRenderer.once(`show-dialog-exploler-reply_${key}`, (event, ret) => {
+                        if (ret === 0) chrome.ipcRenderer.send('remove-history', { all: true });
+                      });
+                    } },
+                  'Clear All history'
+                )
               )
             ),
             _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `chrome://newtab/`, key: 'top', name: 'Top', style: {
@@ -20192,7 +20214,7 @@ class HistoryList {
       h.updated_at = (0, _moment2.default)(h.updated_at).format("YYYY/MM/DD HH:mm:ss");
       h.yyyymmdd = h.updated_at.slice(0, 10);
       if (pre.yyyymmdd != h.yyyymmdd) {
-        historyList.push(`<h4>${h.yyyymmdd}</h4>`);
+        historyList.push(`<h4>${h.yyyymmdd}<a data-key='{"date":"${h.yyyymmdd}"}' class="trash-link left-pad"><i class="trash icon"></i></a></h4>`);
       }
       if (h.location === pre.location) {
         if (!pre.title) pre.title = h.title;
@@ -20212,8 +20234,11 @@ class HistoryList {
       <img src="${favicon}" style="width: 20px; height: 20px; float: left; margin-right: 4px; margin-top: 6px;"/>
       <div class="content">
         <a class="description" style="float:right;margin-right:15px;font-size: 12px">${h.updated_at.slice(5)}</a>
-        ${!h.title ? "" : `<a class="header" target="_blank" href=${h.location}>${h.title.length > 55 ? `${h.title.substr(0, 55)}...` : h.title}</a><span class="additional-info">[${h.count}pv${h.time ? `, ${getAppropriateTimeUnit(h.time / 1000)}` : ''}]</span>`}
+        ${!h.title ? "" : `<a class="header" target="_blank" href=${h.location}>${h.title.length > 55 ? `${h.title.substr(0, 55)}...` : h.title}</a>
+<span class="additional-info">[${h.count}pv${h.time ? `, ${getAppropriateTimeUnit(h.time / 1000)}` : ''}]</span>
+<a data-key='{"_id":"${h._id}"}' class="trash-link"><i class="trash icon"></i></a><br>`}
         ${!h.location ? "" : `<a class="description" target="_blank" style="fontSize: 12px;" href=${h.location}>${h.location.length > 125 ? `${h.location.substr(0, 125)}...` : convertURL(h.location)}</a>`}
+        ${h.title ? "" : `<a data-key='{"_id":"${h._id}"}' class="trash-link"><i class="trash icon"></i></a>`}
       </div>
     </div>`;
   }
@@ -49535,7 +49560,7 @@ const { LANGUAGE, REQUEST_LANGUAGE } = __webpack_require__(367);
 
 // Exhaustive list of identifiers used by top and context menus
 var rendererIdentifiers = function () {
-  return ['downloadsManager', 'confirmClearPasswords', 'passwordCopied', 'flashInstalled', 'goToPrefs', 'goToAdobe', 'allowFlashPlayer', 'allowWidevine', 'about', 'aboutApp', 'quit', 'quitApp', 'addToReadingList', 'viewPageSource', 'copyImageAddress', 'openImageInNewTab', 'saveImage', 'copyImage', 'searchImage', 'copyLinkAddress', 'copyEmailAddress', 'saveLinkAs', 'allowFlashOnce', 'allowFlashAlways', 'openFlashPreferences', 'openInNewWindow', 'openInNewSessionTab', 'openInNewSessionTabs', 'openInNewPrivateTab', 'openInNewPrivateTabs', 'openInNewTab', 'openInNewTabs', 'openAllInTabs', 'disableAdBlock', 'disableTrackingProtection', 'muteTab', 'unmuteTab', 'pinTab', 'unpinTab', 'deleteFolder', 'deleteBookmark', 'deleteBookmarks', 'deleteHistoryEntry', 'deleteHistoryEntries', 'deleteLedgerEntry', 'ledgerBackupText1', 'ledgerBackupText2', 'ledgerBackupText3', 'ledgerBackupText4', 'ledgerBackupText5', 'editFolder', 'editBookmark', 'unmuteTabs', 'muteTabs', 'muteOtherTabs', 'addBookmark', 'addFolder', 'newTab', 'closeTab', 'closeOtherTabs', 'closeTabsToRight', 'closeTabsToLeft', 'closeTabPage', 'bookmarkPage', 'bookmarkLink', 'openFile', 'openLocation', 'openSearch', 'importFrom', 'closeWindow', 'savePageAs', 'share', 'undo', 'redo', 'cut', 'copy', 'paste', 'pasteAndGo', 'pasteAndSearch', 'pasteWithoutFormatting', 'delete', 'selectAll', 'findNext', 'findPrevious', 'file', 'edit', 'view', 'actualSize', 'zoomIn', 'zoomOut', 'toolbars', 'stop', 'reloadPage', 'reloadTab', 'cleanReload', 'reload', 'clone', 'detach', 'readingView', 'tabManager', 'textEncoding', 'inspectElement', 'toggleDeveloperTools', 'toggleBrowserConsole', 'toggleFullScreenView', 'home', 'back', 'forward', 'reopenLastClosedWindow', 'showAllHistory', 'clearCache', 'clearHistory', 'clearSiteData', 'clearBrowsingData', 'recentlyClosed', 'recentlyVisited', 'bookmarks', 'addToFavoritesBar', 'window', 'minimize', 'zoom', 'selectNextTab', 'selectPreviousTab', 'moveTabToNewWindow', 'mergeAllWindows', 'downloads', 'history', 'bringAllToFront', 'help', 'sendUsFeedback', 'services', 'hideBrave', 'hideOthers', 'showAll', 'newPrivateTab', 'newSessionTab', 'newWindow', 'reopenLastClosedTab', 'print', 'emailPageLink', 'tweetPageLink', 'facebookPageLink', 'pinterestPageLink', 'googlePlusPageLink', 'linkedInPageLink', 'bufferPageLink', 'redditPageLink', 'findOnPage', 'find', 'checkForUpdates', 'preferences', 'settings', 'bookmarksManager', 'importBrowserData', 'exportBookmarks', 'settingsExport', 'settingsImport', 'submitFeedback', 'bookmarksToolbar', 'bravery', 'braverySite', 'braveryGlobal', 'braveryPayments', 'braveryStartUsingPayments', 'blockPopups', 'learnSpelling', 'forgetLearnedSpelling', 'lookupSelection', 'contextMain', 'remove',
+  return ['downloadsManager', 'confirmClearPasswords', 'passwordCopied', 'flashInstalled', 'goToPrefs', 'goToAdobe', 'allowFlashPlayer', 'allowWidevine', 'about', 'aboutApp', 'quit', 'quitApp', 'addToReadingList', 'viewPageSource', 'copyImageAddress', 'openImageInNewTab', 'saveImage', 'copyImage', 'searchImage', 'copyLinkAddress', 'copyEmailAddress', 'saveLinkAs', 'allowFlashOnce', 'allowFlashAlways', 'openFlashPreferences', 'openInNewWindow', 'openInNewSessionTab', 'openInNewSessionTabs', 'openInNewPrivateTab', 'openInNewPrivateTabs', 'openInNewTab', 'openInNewTabs', 'openAllInTabs', 'disableAdBlock', 'disableTrackingProtection', 'muteTab', 'unmuteTab', 'pinTab', 'unpinTab', 'deleteFolder', 'deleteBookmark', 'deleteBookmarks', 'deleteHistoryEntry', 'deleteHistoryEntries', 'deleteLedgerEntry', 'ledgerBackupText1', 'ledgerBackupText2', 'ledgerBackupText3', 'ledgerBackupText4', 'ledgerBackupText5', 'editFolder', 'editBookmark', 'unmuteTabs', 'muteTabs', 'muteOtherTabs', 'addBookmark', 'addFolder', 'newTab', 'closeTab', 'closeOtherTabs', 'closeTabsToRight', 'closeTabsToLeft', 'closeTabPage', 'bookmarkPage', 'bookmarkLink', 'openFile', 'openLocation', 'openSearch', 'importFrom', 'closeWindow', 'savePageAs', 'share', 'undo', 'redo', 'cut', 'copy', 'paste', 'pasteAndGo', 'pasteAndSearch', 'pasteWithoutFormatting', 'delete', 'selectAll', 'findNext', 'findPrevious', 'file', 'edit', 'view', 'actualSize', 'zoomIn', 'zoomOut', 'toolbars', 'stop', 'reloadPage', 'reloadTab', 'cleanReload', 'reload', 'clone', 'detach', 'readingView', 'tabManager', 'textEncoding', 'inspectElement', 'toggleDeveloperTools', 'toggleBrowserConsole', 'toggleFullScreenView', 'home', 'back', 'forward', 'reopenLastClosedWindow', 'showAllHistory', 'clearCache', 'clearHistory', 'clearSiteData', 'clearBrowsingData', 'recentlyClosed', 'recentlyVisited', 'bookmarks', 'addToFavoritesBar', 'window', 'minimize', 'zoom', 'selectNextTab', 'selectPreviousTab', 'moveTabToNewWindow', 'mergeAllWindows', 'downloads', 'history', 'bringAllToFront', 'help', 'sendUsFeedback', 'services', 'hideBrave', 'hideOthers', 'showAll', 'newPrivateTab', 'newSessionTab', 'newWindow', 'reopenLastClosedTab', 'print', 'emailPageLink', 'tweetPageLink', 'facebookPageLink', 'pinterestPageLink', 'googlePlusPageLink', 'linkedInPageLink', 'bufferPageLink', 'redditPageLink', 'findOnPage', 'find', 'checkForUpdates', 'preferences', 'settings', 'bookmarksManager', 'importBrowserData', 'exportBookmarks', 'settingsExport', 'settingsImport', 'submitFeedback', 'bookmarksToolbar', 'bravery', 'braverySite', 'braveryGlobal', 'braveryPayments', 'braveryStartUsingPayments', 'blockPopups', 'learnSpelling', 'forgetLearnedSpelling', 'lookupSelection', 'contextMain', 'remove', 'sessionTools',
   // Other identifiers
   'aboutBlankTitle', 'urlCopied', 'autoHideMenuBar', 'unexpectedErrorWindowReload', 'updateChannel', 'licenseText', 'allow', 'deny', 'permissionCameraMicrophone', 'permissionLocation', 'permissionNotifications', 'permissionWebMidi', 'permissionDisableCursor', 'permissionFullscreen', 'permissionExternal', 'permissionProtocolRegistration', 'permissionMessage', 'tabsSuggestionTitle', 'bookmarksSuggestionTitle', 'historySuggestionTitle', 'aboutPagesSuggestionTitle', 'searchSuggestionTitle', 'topSiteSuggestionTitle', 'addFundsNotification', 'reconciliationNotification', 'reviewSites', 'addFunds', 'turnOffNotifications', 'copyToClipboard', 'smartphoneTitle', 'displayQRCode', 'updateLater', 'updateHello', 'notificationPasswordWithUserName', 'notificationUpdatePasswordWithUserName', 'notificationUpdatePassword', 'notificationPassword', 'notificationPasswordSettings', 'notificationPaymentDone', 'notificationTryPayments', 'notificationTryPaymentsYes', 'prefsRestart', 'areYouSure', 'dismiss', 'yes', 'no', 'noThanks', 'neverForThisSite', 'passwordsManager', 'extensionsManager', 'downloadItemPause', 'downloadItemResume', 'downloadItemCancel', 'downloadItemRedownload', 'downloadItemCopyLink', 'downloadItemPath', 'downloadItemDelete', 'downloadItemClear', 'downloadToolbarHide', 'downloadItemClearCompleted', 'torrentDesc',
   // Caption buttons in titlebar (min/max/close - Windows only)

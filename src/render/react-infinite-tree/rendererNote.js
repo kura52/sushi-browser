@@ -46,8 +46,7 @@ export default function(margin){
           </a>
           }
           {node.favicon ? faviconEmpty ? <span className="margin-left"></span> : <img src={node.favicon} className="favi-favorite"/>
-            :<i
-              className={classNames(
+            :<i className={classNames(
                 'infinite-tree-folder-icon',
                 { 'folder-icon': more || loadOnDemand },
                 'fa',
@@ -58,7 +57,8 @@ export default function(margin){
             />}
 
           <span className={`infinite-tree-title${faviconEmpty ? " date-slice" : ""}${node.inactive ? " node-inactive" : ""}`}>{name}</span>
-          <i style={{ marginLeft: 5 }}
+          <i
+            style={{ marginLeft: 5 }}
             className={classNames(
               { 'hidden': !loading },
               'glyphicon',
@@ -66,7 +66,8 @@ export default function(margin){
               { 'rotating': loading }
             )}
           />
-          {more ? <span className="count">{childrenLength}</span> : null}
+          {more ? <span className="count">{childrenLength}</span> :
+            <span className="count hover-external"><i className="fa fa-external-link"/></span>}
         </div>
       </div>
     );

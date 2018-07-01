@@ -152,7 +152,7 @@ ipcMain.on('show-dialog-exploler',(event,key,info,tabId)=>{
       }
       else{
         console.log(`show-dialog-exploler-reply_${key}`)
-        event.sender.send(`show-dialog-exploler-reply_${key}`,ret.value)
+        event.sender.send(`show-dialog-exploler-reply_${key}`,ret.value || ret.pressIndex)
       }
     })
   }
@@ -1718,6 +1718,12 @@ ipcMain.on('history-pin',async (e,key,_id,val)=>{
   e.sender.send(`history-pin-reply_${key}`,max+1)
 })
 
+ipcMain.on('remove-history',async (e,val)=> {
+  const opt = val.all ? {} :
+    val.date ? { $gte: Date.parse(`${val.date.replace(/\//g,'-')} 00:00:00`) ,$lte: Date.parse(`${val.date.replace(/\//g,'-')} 00:00:00`) + 24 * 60 * 60 * 1000 } :
+      {_id: val._id}
+  history.remove(opt, { multi: true })
+})
 
 ipcMain.on('quit-browser',(e,type)=>{
   ipcMain.emit('save-all-windows-state',null,'quit')

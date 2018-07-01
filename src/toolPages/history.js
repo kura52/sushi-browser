@@ -6,7 +6,7 @@ import localForage from "../LocalForage";
 import path from 'path';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import {Container, List, Menu, Input} from 'semantic-ui-react';
+import {Container, List, Menu, Input, Button} from 'semantic-ui-react';
 import {StickyContainer, Sticky} from 'react-sticky';
 import moment from 'moment';
 import l10n from '../../brave/js/l10n';
@@ -139,6 +139,10 @@ class TopMenu extends React.Component {
 
   }
 
+  removeHistory(e){
+    chrome.ipcRenderer.send('remove-history',JSON.parse(e.target.closest('a').dataset.key))
+  }
+
   componentDidMount() {
     fetchHistory(this.cond)
     historyReply(async (data)=>{
@@ -152,6 +156,9 @@ class TopMenu extends React.Component {
           scrollId: 'scrollArea',
           contentId: 'contentArea'
         });
+      }
+      for(let ele of document.querySelectorAll(".trash-link")){
+        ele.addEventListener('click',this.removeHistory)
       }
     })
     this.eventUpdateDatas = (e,data)=>{
@@ -220,6 +227,17 @@ class TopMenu extends React.Component {
                 <Menu.Item>
                   <Input ref='input' icon='search' placeholder='Search...' onChange={::this.onChange}/>
                 </Menu.Item>
+                <Menu.Item>
+                  <Button style={{left: -22}} color='grey' icon='trash' onClick={_=>{
+                    const key = Math.random().toString()
+                    ipc.send('show-dialog-exploler',key,{text: "Are you sure you want to delete all the history data?", buttons: ['OK', 'Cancel'], normal:true})
+                    ipc.once(`show-dialog-exploler-reply_${key}`,(event,ret)=>{
+                      if(ret === 0) chrome.ipcRenderer.send('remove-history',{all: true})
+
+                    })
+                    }
+                  }>Clear All history</Button>
+                </Menu.Item>
               </Menu.Menu>
               <Menu.Item as='a' href={`chrome://newtab/`} key="top" name="Top" style={{
                 borderLeft: "2px solid rgba(34,36,38,.15)",
@@ -251,7 +269,7 @@ class HistoryList{
       h.updated_at = moment(h.updated_at).format("YYYY/MM/DD HH:mm:ss")
       h.yyyymmdd = h.updated_at.slice(0,10)
       if(pre.yyyymmdd != h.yyyymmdd){
-        historyList.push(`<h4>${h.yyyymmdd}</h4>`)
+        historyList.push(`<h4>${h.yyyymmdd}<a data-key='{"date":"${h.yyyymmdd}"}' class="trash-link left-pad"><i class="trash icon"></i></a></h4>`)
       }
       if(h.location === pre.location){
         if(!pre.title) pre.title = h.title
@@ -273,8 +291,11 @@ class HistoryList{
       <img src="${favicon}" style="width: 20px; height: 20px; float: left; margin-right: 4px; margin-top: 6px;"/>
       <div class="content">
         <a class="description" style="float:right;margin-right:15px;font-size: 12px">${h.updated_at.slice(5)}</a>
-        ${!h.title ? "" : `<a class="header" target="_blank" href=${h.location}>${h.title.length > 55 ? `${h.title.substr(0, 55)}...` : h.title}</a><span class="additional-info">[${h.count}pv${h.time ? `, ${getAppropriateTimeUnit(h.time / 1000)}` : ''}]</span>`}
+        ${!h.title ? "" : `<a class="header" target="_blank" href=${h.location}>${h.title.length > 55 ? `${h.title.substr(0, 55)}...` : h.title}</a>
+<span class="additional-info">[${h.count}pv${h.time ? `, ${getAppropriateTimeUnit(h.time / 1000)}` : ''}]</span>
+<a data-key='{"_id":"${h._id}"}' class="trash-link"><i class="trash icon"></i></a><br>`}
         ${!h.location ? "" : `<a class="description" target="_blank" style="fontSize: 12px;" href=${h.location}>${h.location.length > 125 ? `${h.location.substr(0, 125)}...` : convertURL(h.location)}</a>`}
+        ${h.title ? "" : `<a data-key='{"_id":"${h._id}"}' class="trash-link"><i class="trash icon"></i></a>`}
       </div>
     </div>`;
   }

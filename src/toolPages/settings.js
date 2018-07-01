@@ -555,6 +555,17 @@ class GeneralSetting extends React.Component {
     this.setState({})
   }
 
+
+  handleChangeRadio(clearType){
+    ipc.send('save-state',{tableName:'state',key:'clearType',val:clearType})
+    this.setState({clearType})
+  }
+
+  today(){
+    const now = new Date()
+    return `${now.getFullYear()}-${("0"+(now.getMonth()+1)).slice(-2)}-${("0"+now.getDate()).slice(-2)}`
+  }
+
   render() {
     console.log(this.state.startsWith,this.state.myHomepage)
     return <div>
@@ -704,103 +715,128 @@ class GeneralSetting extends React.Component {
         <br/>
 
 
-        <Grid>
-          <Grid.Row>
-            <Grid.Column width={6}>
-              <div className="field">
-                <label>{l10n.translation('8026334261755873520')}</label>
+        <div className="field">
+          <label>{l10n.translation('8026334261755873520')}</label>
 
-                <Checkbox toggle onChange={this.onChange2.bind(this,'clearGeneralSettings')}/>
-                <span className="toggle-label">{l10n.translation('generalSettings')}</span>
-                <br/>
-                <Checkbox toggle onChange={this.onChange2.bind(this,'clearFavorite')}/>
-                <span className="toggle-label">{l10n.translation('bookmarks')}</span>
-                <br/>
-                <Checkbox toggle onChange={this.onChange2.bind(this,'clearHistory')}/>
-                <span className="toggle-label">{l10n.translation('browsingHistory')}</span>
-                <br/>
-                <Checkbox toggle onChange={this.onChange2.bind(this,'clearSessionManager')}/>
-                <span className="toggle-label">{l10n.translation('sessionTools')}</span>
-                <br/>
-                <Checkbox toggle onChange={this.onChange2.bind(this,'clearFavicon')}/>
-                <span className="toggle-label">Favicon</span>
-                <br/>
-                <Checkbox toggle onChange={this.onChange2.bind(this,'clearDownload')}/>
-                <span className="toggle-label">{l10n.translation('downloadHistory')}</span>
-                <br/>
-                <Checkbox toggle onChange={this.onChange2.bind(this,'clearAutomation')}/>
-                <span className="toggle-label">Automation</span>
-                <br/>
-                <Checkbox toggle onChange={this.onChange2.bind(this,'clearNote')}/>
-                <span className="toggle-label">Note</span>
-                <br/>
-                <Checkbox toggle onChange={this.onChange2.bind(this,'clearCache')}/>
-                <span className="toggle-label">{l10n.translation('cachedImagesAndFiles')}</span>
-                <br/>
-                <Checkbox toggle onChange={this.onChange2.bind(this,'clearStorageData')}/>
-                <span className="toggle-label">{l10n.translation('allSiteCookies')}</span>
-                <br/>
-                <Checkbox toggle onChange={this.onChange2.bind(this,'clearAutocompleteData')}/>
-                <span className="toggle-label">{l10n.translation('autocompleteData')}</span>
-                <br/>
-                <Checkbox toggle onChange={this.onChange2.bind(this,'clearAutofillData')}/>
-                <span className="toggle-label">{l10n.translation('autofillData')}</span>
-                <br/>
-                <Checkbox toggle onChange={this.onChange2.bind(this,'clearPassword')}/>
-                <span className="toggle-label">{l10n.translation('1375321115329958930')}</span>
-                <br/>
-                <Button disabled={!this.clear.length} primary content={l10n.translation('clearBrowsingDataNow')} onClick={_=>ipc.send("clear-browsing-data",this.clear)}/>
-              </div>
-            </Grid.Column>
-            <Grid.Column width={6} style={{marginTop: 0}}>
-              <div className="field">
-                <label>{l10n.translation('privateDataMessage').replace("Brave","Sushi Browser")}</label>
+          <Checkbox toggle onChange={this.onChange2.bind(this,'clearGeneralSettings')}/>
+          <span className="toggle-label">{l10n.translation('generalSettings')}</span>
+          <br/>
+          <Checkbox toggle onChange={this.onChange2.bind(this,'clearFavorite')}/>
+          <span className="toggle-label">{l10n.translation('bookmarks')}</span>
+          <br/>
+          <Checkbox toggle onChange={this.onChange2.bind(this,'clearHistory')}/>
+          <span className="toggle-label">{l10n.translation('browsingHistory')}</span>
+          <br/>
+          <Checkbox toggle onChange={this.onChange2.bind(this,'clearSessionManager')}/>
+          <span className="toggle-label">{l10n.translation('sessionTools')}</span>
+          <br/>
+          <Checkbox toggle onChange={this.onChange2.bind(this,'clearFavicon')}/>
+          <span className="toggle-label">Favicon</span>
+          <br/>
+          <Checkbox toggle onChange={this.onChange2.bind(this,'clearDownload')}/>
+          <span className="toggle-label">{l10n.translation('downloadHistory')}</span>
+          <br/>
+          <Checkbox toggle onChange={this.onChange2.bind(this,'clearAutomation')}/>
+          <span className="toggle-label">Automation</span>
+          <br/>
+          <Checkbox toggle onChange={this.onChange2.bind(this,'clearNote')}/>
+          <span className="toggle-label">Note</span>
+          <br/>
+          <Checkbox toggle onChange={this.onChange2.bind(this,'clearCache')}/>
+          <span className="toggle-label">{l10n.translation('cachedImagesAndFiles')}</span>
+          <br/>
+          <Checkbox toggle onChange={this.onChange2.bind(this,'clearStorageData')}/>
+          <span className="toggle-label">{l10n.translation('allSiteCookies')}</span>
+          <br/>
+          <Checkbox toggle onChange={this.onChange2.bind(this,'clearAutocompleteData')}/>
+          <span className="toggle-label">{l10n.translation('autocompleteData')}</span>
+          <br/>
+          <Checkbox toggle onChange={this.onChange2.bind(this,'clearAutofillData')}/>
+          <span className="toggle-label">{l10n.translation('autofillData')}</span>
+          <br/>
+          <Checkbox toggle onChange={this.onChange2.bind(this,'clearPassword')}/>
+          <span className="toggle-label">{l10n.translation('1375321115329958930')}</span>
+          <br/>
+          <Button disabled={!this.clear.length} primary content={l10n.translation('clearBrowsingDataNow')} onClick={_=>ipc.send("clear-browsing-data",this.clear)}/>
+        </div>
+        <br/>
 
-                <Checkbox toggle onChange={this.onChange.bind(this,'clearGeneralSettingsOnClose')} defaultChecked={this.state.clearGeneralSettingsOnClose}/>
-                <span className="toggle-label">{l10n.translation('generalSettings')}</span>
-                <br/>
-                <Checkbox toggle onChange={this.onChange.bind(this,'clearFavoriteOnClose')} defaultChecked={this.state.clearFavoriteOnClose}/>
-                <span className="toggle-label">{l10n.translation('bookmarks')}</span>
-                <br/>
-                <Checkbox toggle onChange={this.onChange.bind(this,'clearHistoryOnClose')} defaultChecked={this.state.clearHistoryOnClose}/>
-                <span className="toggle-label">{l10n.translation('browsingHistory')}</span>
-                <br/>
-                <Checkbox toggle onChange={this.onChange.bind(this,'clearSessionManagerOnClose')} defaultChecked={this.state.clearSessionManagerOnClose}/>
-                <span className="toggle-label">{l10n.translation('sessionTools')}</span>
-                <br/>
-                <Checkbox toggle onChange={this.onChange.bind(this,'clearFaviconOnClose')} defaultChecked={this.state.clearFaviconOnClose}/>
-                <span className="toggle-label">Favicon</span>
-                <br/>
-                <Checkbox toggle onChange={this.onChange.bind(this,'clearDownloadOnClose')} defaultChecked={this.state.clearDownloadOnClose}/>
-                <span className="toggle-label">{l10n.translation('downloadHistory')}</span>
-                <br/>
-                <Checkbox toggle onChange={this.onChange.bind(this,'clearAutomationOnClose')} defaultChecked={this.state.clearAutomationOnClose}/>
-                <span className="toggle-label">Automation</span>
-                <br/>
-                <Checkbox toggle onChange={this.onChange.bind(this,'clearNoteOnClose')} defaultChecked={this.state.clearNoteOnClose}/>
-                <span className="toggle-label">Note</span>
-                <br/>
-                <Checkbox toggle onChange={this.onChange.bind(this,'clearCacheOnClose')} defaultChecked={this.state.clearCacheOnClose}/>
-                <span className="toggle-label">{l10n.translation('cachedImagesAndFiles')}</span>
-                <br/>
-                <Checkbox toggle onChange={this.onChange.bind(this,'clearStorageDataOnClose')} defaultChecked={this.state.clearStorageDataOnClose}/>
-                <span className="toggle-label">{l10n.translation('allSiteCookies')}</span>
-                <br/>
-                <Checkbox toggle onChange={this.onChange.bind(this,'clearAutocompleteDataOnClose')} defaultChecked={this.state.clearAutocompleteDataOnClose}/>
-                <span className="toggle-label">{l10n.translation('autocompleteData')}</span>
-                <br/>
-                <Checkbox toggle onChange={this.onChange.bind(this,'clearAutofillDataOnClose')} defaultChecked={this.state.clearAutofillDataOnClose}/>
-                <span className="toggle-label">{l10n.translation('autofillData')}</span>
-                <br/>
-                <Checkbox toggle onChange={this.onChange.bind(this,'clearPasswordOnClose')} defaultChecked={this.state.clearPasswordOnClose}/>
-                <span className="toggle-label">{l10n.translation('1375321115329958930')}</span>
-                <br/>
+
+        <div className="field">
+          <label>{l10n.translation('privateDataMessage').replace("Brave","Sushi Browser")}</label>
+          <div className="panel-column">
+            <div className="field">
+              <div className="ui radio checkbox" onClick={e=>this.handleChangeRadio('all')}>
+                <input type="radio" className="hidden" readOnly tabIndex={0} value="all" checked={this.state.clearType == 'all'}/>
+                <label className="right-pad">All Data</label>
               </div>
-            </Grid.Column>
-          </Grid.Row>
-        </Grid>
-        <br/>
-        <br/>
+              <br/>
+
+              <div className="ui radio checkbox" onClick={e=>this.handleChangeRadio('before')}>
+                <input type="radio" className="hidden" readOnly tabIndex={0} value="before" checked={this.state.clearType == 'before'}/>
+                <label className="right-pad">Clear Data greater than</label>
+                <div className="ui input date" style={{paddingBottom: 8, paddingTop: 10}}>
+                  <input type="text" onChange={this.onChange.bind(this,'clearDays')} defaultValue={this.state.clearDays}/>
+                </div>
+                <span style={{paddingLeft: 5}}>days ago from now</span>
+              </div>
+              <br/>
+
+              <div className="ui radio checkbox" onClick={e=>this.handleChangeRadio('range')}>
+                <input type="radio" className="hidden" readOnly tabIndex={0} value="range" checked={this.state.clearType == 'range'}/>
+                <label className="right-pad">Range:</label>
+
+                <div className="ui input date">
+                  <input type="date" onChange={this.onChange.bind(this,'clearStart')} defaultValue={this.state.clearStart}/>
+                </div>
+                &nbsp;〜&nbsp;
+                <div className="ui input date">
+                  <input type="date" onChange={this.onChange.bind(this,'clearEnd')} defaultValue={this.state.clearEnd}/>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <Checkbox toggle onChange={this.onChange.bind(this,'clearGeneralSettingsOnClose')} defaultChecked={this.state.clearGeneralSettingsOnClose}/>
+          <span className="toggle-label">{l10n.translation('generalSettings')}&nbsp;(Clear All Data)</span>
+          <br/>
+          <Checkbox toggle onChange={this.onChange.bind(this,'clearFavoriteOnClose')} defaultChecked={this.state.clearFavoriteOnClose}/>
+          <span className="toggle-label">{l10n.translation('bookmarks')}</span>
+          <br/>
+          <Checkbox toggle onChange={this.onChange.bind(this,'clearHistoryOnClose')} defaultChecked={this.state.clearHistoryOnClose}/>
+          <span className="toggle-label">{l10n.translation('browsingHistory')}</span>
+          <br/>
+          <Checkbox toggle onChange={this.onChange.bind(this,'clearSessionManagerOnClose')} defaultChecked={this.state.clearSessionManagerOnClose}/>
+          <span className="toggle-label">{l10n.translation('sessionTools')}</span>
+          <br/>
+          <Checkbox toggle onChange={this.onChange.bind(this,'clearFaviconOnClose')} defaultChecked={this.state.clearFaviconOnClose}/>
+          <span className="toggle-label">Favicon</span>
+          <br/>
+          <Checkbox toggle onChange={this.onChange.bind(this,'clearDownloadOnClose')} defaultChecked={this.state.clearDownloadOnClose}/>
+          <span className="toggle-label">{l10n.translation('downloadHistory')}</span>
+          <br/>
+          <Checkbox toggle onChange={this.onChange.bind(this,'clearAutomationOnClose')} defaultChecked={this.state.clearAutomationOnClose}/>
+          <span className="toggle-label">Automation</span>
+          <br/>
+          <Checkbox toggle onChange={this.onChange.bind(this,'clearNoteOnClose')} defaultChecked={this.state.clearNoteOnClose}/>
+          <span className="toggle-label">Note</span>
+          <br/>
+          <Checkbox toggle onChange={this.onChange.bind(this,'clearCacheOnClose')} defaultChecked={this.state.clearCacheOnClose}/>
+          <span className="toggle-label">{l10n.translation('cachedImagesAndFiles')}&nbsp;(Clear All Data)</span>
+          <br/>
+          <Checkbox toggle onChange={this.onChange.bind(this,'clearStorageDataOnClose')} defaultChecked={this.state.clearStorageDataOnClose}/>
+          <span className="toggle-label">{l10n.translation('allSiteCookies')}&nbsp;(Clear All Data)</span>
+          <br/>
+          <Checkbox toggle onChange={this.onChange.bind(this,'clearAutocompleteDataOnClose')} defaultChecked={this.state.clearAutocompleteDataOnClose}/>
+          <span className="toggle-label">{l10n.translation('autocompleteData')}&nbsp;(Clear All Data)</span>
+          <br/>
+          <Checkbox toggle onChange={this.onChange.bind(this,'clearAutofillDataOnClose')} defaultChecked={this.state.clearAutofillDataOnClose}/>
+          <span className="toggle-label">{l10n.translation('autofillData')}&nbsp;(Clear All Data)</span>
+          <br/>
+          <Checkbox toggle onChange={this.onChange.bind(this,'clearPasswordOnClose')} defaultChecked={this.state.clearPasswordOnClose}/>
+          <span className="toggle-label">{l10n.translation('1375321115329958930')}&nbsp;(Clear All Data)</span>
+          <br/>
+        </div>
         <br/>
 
         <div className="field">
@@ -2410,7 +2446,7 @@ ipc.send("get-main-state",key,['startsWith','newTabMode','myHomepage','searchPro
   'defaultDownloadPath','alwaysOpenLinkNewTab','openTabPosition','alwaysOpenLinkBackground','addressBarNewTab','oppositeGlobal','colorNormalText','colorNormalBackground','colorActiveText',
   'colorActiveBackground','colorTabDot','colorUnreadText','colorUnreadBackground','enableColorOfNoSelect','themeColorChange','showBorderActiveTab','historyBadget','colorTabMode','enableDownloadList',
   'clearHistoryOnClose','clearDownloadOnClose','clearCacheOnClose','clearStorageDataOnClose','clearAutocompleteDataOnClose','clearAutofillDataOnClose','clearPasswordOnClose','clearGeneralSettingsOnClose','clearFavoriteOnClose',
-  'clearSessionManagerOnClose','clearFaviconOnClose','clearAutomationOnClose','clearNoteOnClose',
+  'clearSessionManagerOnClose','clearFaviconOnClose','clearAutomationOnClose','clearNoteOnClose','clearType','clearDays','clearStart','clearEnd',
   'enableWidevine','toolbarLink','sidebarLink','bookmarkbarLink','zoomBehavior','tabPreviewSizeWidth','tabPreviewSizeHeight','tabPreviewSlideHeight','tabPreviewWait','searchEngineDisplayType','tabPreviewRecent',
   'sendUrlContextMenus','extensions','tabBarMarginTop','removeTabBarMarginTop','enableTheme','themeTopPage','themeBookmark','themeHistory','themeDownloader','themeExplorer','themeBookmarkSidebar','themeHistorySidebar',
   'themeSessionManagerSidebar','themeTabTrashSidebar','themeTabHistorySidebar','themeExplorerSidebar'])

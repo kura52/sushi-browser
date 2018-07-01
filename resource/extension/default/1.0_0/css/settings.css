@@ -91,3 +91,27 @@ table .ui.fluid.selection.dropdown.type {
     line-height: 1.3em;
     padding-bottom: 5px;
 }
+
+.ui.radio.checkbox input:checked~.box:after, .ui.radio.checkbox input:checked~label:after {
+    top: 2px;
+    left: 1px;
+}
+
+label.bold {
+    font-weight: bold;
+}
+
+.ui.checkbox label.right-pad {
+    padding-right: 5px;
+    display: inline-block;
+}
+
+.ui.input.date {
+    width: 180px !important;
+    height: 30px;
+    padding: 1px 2px;
+}
+
+.panel-column{
+    padding-bottom: 10px;
+}

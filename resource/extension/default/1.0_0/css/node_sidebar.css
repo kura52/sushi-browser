@@ -45,3 +45,12 @@ body{
 .te-ww-container .tui-editor-contents:first-child {
     padding: 16px 10px 0 10px;
 }
+
+.hover-external{
+    display: none;
+    cursor: pointer;
+}
+
+.infinite-tree-node:hover>.hover-external{
+    display: initial;
+}

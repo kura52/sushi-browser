@@ -48,7 +48,7 @@ function handler(table){
           return new Promise((resolve,reject)=>{
             sock.send({key,methods,args: regToStr(argumentsList)},msg=>{
               if(msg.key !== key) return
-              if((table == "history" || table == "favorite" || table == "note" || table == "tabState" || table == "savedState") && (prop == "insert" || prop == "update")){
+              if((table == "history" || table == "favorite" || table == "note" || table == "tabState" || table == "savedState") && (prop == "insert" || prop == "update" || prop == "remove")){
                for(let cont of webContents.getAllWebContents()){
                   if(!cont.isDestroyed() && !cont.isBackgroundPage() && (cont.isGuest() || !cont.hostWebContents)) {
                     const url = cont.getURL()
@@ -114,7 +114,7 @@ ipcMain.on('db-rend',(event,datas)=>{
     if(msg.key !== datas.key) return
     event.sender.send(`db-rend_${datas.key}`,msg.result)
     const {table,prop,argumentsList} = datas
-    if((table == "history" || table == "favorite" || table == "note" || table == "tabState" || table == "savedState") && (prop == "insert" || prop == "update")){
+    if((table == "history" || table == "favorite" || table == "note" || table == "tabState" || table == "savedState") && (prop == "insert" || prop == "update" || prop == "remove")){
       for(let cont of webContents.getAllWebContents()){
         if(!cont.isDestroyed() && !cont.isBackgroundPage() && (cont.isGuest() || !cont.hostWebContents)) {
           const url = cont.getURL()
