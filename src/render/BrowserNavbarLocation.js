@@ -19,6 +19,7 @@ const convertUrlMap = new Map([
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_trash_sidebar.html','chrome://tab-trash-sidebar/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download_sidebar.html','chrome://download-sidebar/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note_sidebar.html','chrome://note-sidebar/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note.html','chrome://note/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/saved_state_sidebar.html','chrome://session-manager-sidebar/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history_sidebar.html','chrome://history-sidebar/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html','chrome://explorer/'],
@@ -83,6 +84,7 @@ export default class BrowserNavbarLocation extends Component {
       this.keyEvent({channel: 'navbar-search'})
     }
     this.keyEvent = ::this.keyEvent
+    this.torEvent = ::this.torEvent
     this.outerClick = ::this.outerClick
     this.isFloat = isFloatPanel(this.props.k)
   }
@@ -94,6 +96,17 @@ export default class BrowserNavbarLocation extends Component {
     }
   }
 
+  torEvent(e,cond){
+    this.canUpdate = true
+    if(cond.finished){
+      this.props.wv.reload()
+      this.setState({torProgress: void 0})
+    }
+    else{
+      this.setState({torProgress: cond.progress})
+    }
+  }
+
   componentWillMount() {
     this.resetComponent()
   }
@@ -101,6 +114,7 @@ export default class BrowserNavbarLocation extends Component {
   componentDidMount() {
     console.log(55553,this.props.page.navUrl,this.props.page.location)
     ipc.on('focus-location-bar',this.keyEvent2)
+    if(this.props.tab.privateMode == 'persist:tor') ipc.on('tor-progress',this.torEvent)
     if(this.props.wv){
       this.input = ReactDOM.findDOMNode(this.refs.input).querySelector("input")
       this.addEvent(this.props)
@@ -112,7 +126,8 @@ export default class BrowserNavbarLocation extends Component {
 
   componentWillUnmount() {
     PubSub.unsubscribe(this.token)
-    ipc.removeListener('focus-location-bar',this.keyEvent2)
+    if(this.props.tab.privateMode == 'persist:tor') ipc.removeListener('focus-location-bar',this.keyEvent2)
+    ipc.removeListener('tor-progress',this.torEvent)
     if(this.props.wv) this.props.wv.removeEventListener('ipc-message',this.keyEvent)
   }
 
@@ -344,7 +359,7 @@ export default class BrowserNavbarLocation extends Component {
         onMouseDown={::this.onMouseDown}
         onMouseUp={::this.onMouseUp}
         results={results.map(x=>{return {title:x.title,description: x.description}})}
-        value={convertURL(this.props.page.location)}
+        value={this.state.torProgress ? `Connecting to the Tor network: ${this.state.torProgress}%...` : convertURL(this.props.page.location)}
         ref="input"
         onFocus={::this.onFocus}
         onBlur={::this.onBlur}

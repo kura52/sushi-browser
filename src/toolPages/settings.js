@@ -502,9 +502,10 @@ class TopMenu extends React.Component {
               <Menu.Item as='a' href={`chrome://bookmarks/`} key="favorite" name={l10n.translation('bookmarks')}/>
               <Menu.Item as='a' href={`chrome://history/`} key="history" name={l10n.translation('history')}/>
               <Menu.Item as='a' href={`${baseURL}/download.html`} key="download" name={l10n.translation('downloads')}/>
+              <Menu.Item as='a' href={`${baseURL}/note.html`} key="note" name="Note"/>
+              <Menu.Item key="settings" name={l10n.translation('settings')} active={true}/>
               <Menu.Item as='a' href={`${baseURL}/explorer.html`} key="file-explorer" name="File Explorer"/>
               <Menu.Item as='a' href={`${baseURL}/terminal.html`} key="terminal" name="Terminal"/>
-              <Menu.Item key="settings" name={l10n.translation('settings')} active={true}/>
               <Menu.Item as='a' href={`${baseURL}/automation.html`} key="automation" name="Automation"/>
               <Menu.Item as='a' href={`${baseURL}/converter.html`} key="converter" name="Video Converter"/>
             </Menu>
@@ -941,6 +942,9 @@ class GeneralSetting extends React.Component {
           <br/>
           <Checkbox defaultChecked={this.state.historyBadget} toggle onChange={this.onChange.bind(this,'historyBadget')}/>
           <span className="toggle-label">Show Back/Forward Button's Badget ({l10n.translation('requiresRestart').replace('* ','')})</span>
+          <br/>
+          <Checkbox defaultChecked={this.state.focusLocationBar} toggle onChange={this.onChange.bind(this,'focusLocationBar')}/>
+          <span className="toggle-label">Show Focus Location Bar of Top Page </span>
           <br/>
           <Checkbox defaultChecked={this.state.enableDownloadList} toggle onChange={this.onChange.bind(this,'enableDownloadList')}/>
           <span className="toggle-label">Enable Bottom Download List ({l10n.translation('requiresRestart').replace('* ','')})</span>
@@ -2444,7 +2448,7 @@ ipc.send("get-main-state",key,['startsWith','newTabMode','myHomepage','searchPro
   'closeTabBehavior','reverseScrollTab','tabCirculateSelection','tabMaxWidth','mouseHoverSelectLabelBegin','mouseHoverSelectLabelBeginDelay','tabFlipLabel','doubleClickTab','middleClickTab','altClickTab',
   'maxrowLabel','orderOfAutoComplete','numOfSuggestion','numOfHistory','openTabNextLabel','rightClickTabAdd','middleClickTabAdd','altClickTabAdd','displayFullIcon','downloadPath','windowCustomIcon',
   'defaultDownloadPath','alwaysOpenLinkNewTab','openTabPosition','alwaysOpenLinkBackground','addressBarNewTab','oppositeGlobal','colorNormalText','colorNormalBackground','colorActiveText',
-  'colorActiveBackground','colorTabDot','colorUnreadText','colorUnreadBackground','enableColorOfNoSelect','themeColorChange','showBorderActiveTab','historyBadget','colorTabMode','enableDownloadList',
+  'colorActiveBackground','colorTabDot','colorUnreadText','colorUnreadBackground','enableColorOfNoSelect','themeColorChange','showBorderActiveTab','historyBadget','colorTabMode','enableDownloadList','focusLocationBar',
   'clearHistoryOnClose','clearDownloadOnClose','clearCacheOnClose','clearStorageDataOnClose','clearAutocompleteDataOnClose','clearAutofillDataOnClose','clearPasswordOnClose','clearGeneralSettingsOnClose','clearFavoriteOnClose',
   'clearSessionManagerOnClose','clearFaviconOnClose','clearAutomationOnClose','clearNoteOnClose','clearType','clearDays','clearStart','clearEnd',
   'enableWidevine','toolbarLink','sidebarLink','bookmarkbarLink','zoomBehavior','tabPreviewSizeWidth','tabPreviewSizeHeight','tabPreviewSlideHeight','tabPreviewWait','searchEngineDisplayType','tabPreviewRecent',

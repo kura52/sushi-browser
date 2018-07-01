@@ -19,8 +19,6 @@ import RightTopBottonSet from '../../RightTopBottonSet'
 import PubSub from '../../pubsub'
 import ResizeObserver from 'resize-observer-polyfill'
 
-import VerticalTabResizer from '../../VerticalTabResizer'
-
 const {remote} = require('electron')
 const BrowserWindowPlus = remote.require('./BrowserWindowPlus')
 const mainState = remote.require('./mainState')

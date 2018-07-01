@@ -22,3 +22,20 @@ span.additional-info{
     padding-left:3px;
     cursor: pointer;
 }
+
+div.content i.cancel{
+    display: none;
+}
+
+h4 i.cancel{
+    color: #ccc;
+}
+
+h4:hover i.cancel{
+    color: #4183C4;
+}
+
+div.content:hover i.cancel{
+    color: #4183C4;
+    display: initial;
+}

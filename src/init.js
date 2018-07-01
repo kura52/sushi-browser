@@ -24,6 +24,7 @@ const open = require('./open')
 const sharedState = require('./sharedStateMain')
 const defaultConf = require('./defaultConf')
 const urlutil = require('./render/urlutil')
+const tor = require('../brave/app/tor')
 let adblock,httpsEverywhere,trackingProtection,extensions,videoProcessList = []
 
 // process.on('unhandledRejection', console.dir);
@@ -616,6 +617,63 @@ ipcMain.on('init-private-mode',(e,key,partition)=>{
     options.tor_path = path.join(__dirname, '../resource/bin/tor',
       process.platform == 'win32' ? 'win/tor.exe' :
         process.platform == 'darwin' ? 'mac/tor' : 'linux/tor').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
+
+    const torDaemon = new tor.TorDaemon()
+    const sendProgress = condition=>{
+      for(let w of BrowserWindow.getAllWindows()){
+        if(w.getTitle().includes('Sushi Browser')){
+          console.log(condition)
+          w.webContents.send("tor-progress",condition)
+        }
+      }
+    }
+    torDaemon.setup((err) => {
+      if (err) {
+        console.log(`Tor failed to make directories: ${err}`)
+        return
+      }
+      torDaemon.on('exit', () => {
+        console.log('The Tor process has stopped.')
+      })
+      torDaemon.on('launch', (socksAddr) => {
+        const version = torDaemon.getVersion()
+        console.log(`tor: daemon listens on ${socksAddr}, version ${version}`)
+        // if (version) {
+        //   appActions.setVersionInfo('Tor', version)
+        // }
+        const bootstrapped = (err, progress) => {
+          if (err) {
+            console.log(`Tor bootstrap error: ${err}`)
+            return
+          }
+          sendProgress({progress})
+        }
+        const circuitEstablished = (err, ok) => {
+          if (ok) {
+            sendProgress({finished: true})
+          } else {
+            if (err) {
+              // Wait for tor to re-initialize a circuit (ex: after a clock jump)
+              sendProgress('0')
+              console.log(17000, `Tor not ready: ${err}`)
+            } else {
+              console.log('tor still not ready')
+            }
+          }
+        }
+        torDaemon.onBootstrap(bootstrapped, (err) => {
+          if (err) {
+            console.log(`Tor error bootstrapping: ${err}`)
+          }
+          torDaemon.onCircuitEstablished(circuitEstablished, (err) => {
+            if (err) {
+              console.log(`Tor error opening a circuit: ${err}`)
+            }
+          })
+        })
+      })
+      torDaemon.start()
+    })
   }
 
   const ses = session.fromPartition(partition, options)
@@ -653,7 +711,7 @@ ipcMain.on("savedState-menu",(e,canDelete)=>{
   setTimeout(_=>savedStateMenu=(void 0),1000)
 })
 
-function getSelectionLinks(webContents,props){
+function getSelectionLinks(webContents){
   return new Promise((resolve,reject)=>{
     if(!webContents.hostWebContents) return resolve()
     webContents.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',
@@ -663,6 +721,23 @@ function getSelectionLinks(webContents,props){
             if(n.href && n.href != "#" && !n.href.startsWith('javascript')) set.add(n.href)
           }
           return [...set]
+        })()`, {},(err, url, result)=>{
+        resolve(result[0])
+      })
+  })
+}
+
+
+function getSelectionHTML(webContents,props){
+  return new Promise((resolve,reject)=>{
+    if(!webContents.hostWebContents) return resolve()
+    webContents.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',
+      `(function(){
+          let str = ""
+          for(let n of window.getSelection().getRangeAt(0).cloneContents().childNodes){
+            str += n.outerHTML || n.textContent
+          }
+          return str
         })()`, {},(err, url, result)=>{
         resolve(result[0])
       })
@@ -1101,6 +1176,16 @@ function contextMenu(webContents) {
           }
         }
       }
+
+      for(let suffix of mainState.searchEngineDisplayType == 'c' ? ['(c)'] :
+        mainState.searchEngineDisplayType == 'o' ? ['(o)'] : mainState.oppositeGlobal ? ['(o)','(c)'] : ['(c)','(o)']){
+        menuItems.push({ label: 'Add to Notes' + suffix, click: async (item,win)=>{
+            win.webContents.send(suffix == '(o)' ? 'new-tab-opposite' : 'new-tab',
+              webContents.getId(), `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note.html?content=${encodeURIComponent(await getSelectionHTML(webContents))}` ,suffix == '(o)')
+
+          }})
+      }
+
       const links = await getSelectionLinks(webContents,props)
       if(links && links.length) {
         menuItems.push({type: 'separator'})

@@ -28,20 +28,21 @@ const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
 const NEXT_APP_VERSION = "0.19.0"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Added Tor browsing function. (new Muon function)
-Supports Chrome theme. (Download themes from the Chrome Store and add them, add theme setting page)
-Added General Settings, Bookmarks, Browsing history, Session Manager, Favicon, Download history, Automation, Note import/export function *Experimental
-Added option to set margin at top of tab bar when unmaximized.
-Added a function to change the top frame color when the window is out of focus.
+const CHANGE_ENGLISH = `
 Updated to Muon 7.1.1.
 Fixed a lot of bugs.`
 
-const CHANGE_JAPANESE = `Tor通信機能を追加(Muonの新機能)
-Chromeテーマに対応(Chrome Storeからテーマをダウンロードして追加可能、テーマ設定ページの追加）
-設定、ブックマーク、履歴、セッション、ファビコン、ダウンロード履歴、オートメーション、ノートのエクスポート/インポート機能追加 ※Experimental
-非最大化時にタブバー上部にマージンをセットするオプションを追加
-ウインドウの非フォーカス時にフレーム上部の色を変更する機能を追加
-Muonを7.1.1に更新
+const CHANGE_JAPANESE = `選択したテキスト(HTML)をNoteへ追加する機能を追加
+Note機能をツールページに追加
+ブラウザ終了時にデータを削除する期間を設定できるように改善
+履歴ページに履歴の削除機能を追加
+Torプロセスの進捗状況をロケーションバーに表示するよう改善
+セッションの復帰時にアクティブタブを復元するよう改善
+Show Focus Location Bar of Top Pageのオプションを追加
+Muonを7.1.4に更新
+youtube-dlを2018.06.25に更新
+ロケーションを変更するとchrome拡張の設定が消える不具合を修正
+マルチパネル機能の表示不具合を修正
 多数の不具合修正`
 
 const isWindows = process.platform === 'win32'

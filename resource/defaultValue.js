@@ -28,6 +28,7 @@ const settingDefault =  {
   extensionOnToolbar: true,
   longPressMiddle: true,
   historyBadget: true,
+  focusLocationBar: true,
   syncScrollMargin: 30,
   contextMenuSearchEngines: ["Google","google past year and normal","google multi search"],
   downloadPath: '',

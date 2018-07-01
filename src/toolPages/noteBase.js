@@ -12,6 +12,7 @@ import elementClass from 'element-class'
 import escapeHTML from 'escape-html'
 import Selection from '../render/react-selection/index'
 import ToolbarResizer from '../render/ToolbarResizer'
+import VerticalTabResizer from '../render/VerticalTabResizer'
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
 
 require('tui-editor/dist/tui-editor-extChart');
@@ -232,27 +233,69 @@ async function getAllChildren(nodePath,num){
 
 
 let selectedNodes = [];
-let treeAllData,l10n
+let treeAllData,l10n,timeoutId
 export default class App extends React.Component {
   constructor(props) {
     super(props)
     l10n = this.props.favoritePage && require('../../brave/js/l10n')
     this.handleBlur = ::this.handleBlur
     this.handleLoad = ::this.handleLoad
+    this.handleChange = ::this.handleChange
     this.handleClickFile = ::this.handleClickFile
     this.setHeight = ::this.setHeight
-    this.state = {height: 300}
+    this.setWidth = ::this.setWidth
+    this.state = {height: 300, width:235, hidden: !!this.props.id}
   }
 
-  handleLoad(e){
-    localForage.getItem("note-sidebar-select-node").then(nodeIds=>{
-      if(!nodeIds || !nodeIds.length) return
+   handleLoad(e){
+    localForage.getItem("note-sidebar-select-node").then(async nodeIds=>{
       const iTree = this.refs.content.refs.iTree
+      let root = iTree.tree.getRootNode()
+      if(!root.children.length){
+        for(let i=0;i<100;i++){
+          await new Promise(r=>{
+            setTimeout(_=>{
+              root = iTree.tree.getRootNode()
+              r()
+            },100)
+          })
+          if(root.children.length) break
+        }
+      }
+      if(this.props.content){
+        const node = root.getLastChild()
+        insertFavorite2(this.refs.content.getKey(node.getParent()),this.refs.content.getKey(node),{title:this.props.content,is_file:true}).then(async key=>{
+          this.refs.content.eventUpdateDatas()
+          let currentNode
+          for(let i=0;i<100;i++){
+            await new Promise(r=>{
+              setTimeout(_=>{
+                currentNode = iTree.tree.getNodeById(`/root/${key}`)
+                r()
+              },100)
+            })
+            if(currentNode) break
+          }
+          iTree.props.onClick({ctrlKey:true, currentNode, stopPropagation:()=>{}})
+        })
+      }
+      if(this.props.id){
+        const currentNode = iTree.tree.getNodeById(this.props.id)
+        iTree.props.onClick({ctrlKey:true, currentNode, stopPropagation:()=>{}})
+        return
+      }
+
+      if(!nodeIds || !nodeIds.length) return
       for(let id of nodeIds){
         const currentNode = iTree.tree.getNodeById(id)
         iTree.props.onClick({ctrlKey:true, currentNode, stopPropagation:()=>{}})
       }
     })
+  }
+
+  handleChange(e){
+    clearTimeout(timeoutId)
+    timeoutId = setTimeout(_=>this.handleBlur(e),1500)
   }
 
   handleBlur(e){
@@ -269,12 +312,19 @@ export default class App extends React.Component {
   }
 
   setHeight(height){
+    if(height <= 0) height = 1
     localForage.setItem("note-sidebar-height",height)
     document.querySelector('#editSection').style.height = `${height}px`
     this.state.editor.wwEditor.setHeight(height - 55)
     this.state.editor.mdEditor.setHeight(height - 55)
     document.querySelector("#classic .infinite-tree-scroll").style.height = `calc(100vh - ${height+126}px)`
     this.setState({height})
+  }
+
+  setWidth(width){
+    if(width <= 0) width = 1
+    localForage.setItem("note-width",width)
+    this.setState({width})
   }
 
   setHidden(val){
@@ -288,26 +338,36 @@ export default class App extends React.Component {
     }
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     ReactDOM.findDOMNode(this.refs.stickey).style.height = "100%"
+    const isAuto = this.props.favoritePage
 
-    localForage.getItem("note-sidebar-height").then(height=>{
+    let height,width
+
+    if(!isAuto){
+      height = await localForage.getItem("note-sidebar-height")
       height = height ? parseInt(height) : 300
       document.querySelector("#classic .infinite-tree-scroll").style.height = `calc(100vh - ${height+126}px)`
-      this.setState({editor: new Editor({
-          el: document.querySelector('#editSection'),
-          initialEditType: 'wysiwyg',
-          previewStyle: 'vertical',
-          height: `${height}px`,
-          minHeight: '0px',
-          language: navigator.languages[0].slice(0,2),
-          exts: ['chart', 'scrollSync', 'table', 'uml', 'colorSyntax'],
-          events: {
-            load: this.handleLoad,
-            blur: this.handleBlur
-          }
-        }),height
-      })
+    }
+    else{
+      width = await localForage.getItem("note-width")
+      document.querySelector("#classic .infinite-tree-scroll").style.height = `calc(100vh - 68px)`
+      if(width) this.setState({width: parseInt(width)})
+    }
+    this.setState({editor: new Editor({
+        el: document.querySelector('#editSection'),
+        initialEditType: 'wysiwyg',
+        previewStyle: 'vertical',
+        height: isAuto ? 'calc(100vh - 68px)' : `${height}px`,
+        minHeight: '0px',
+        language: navigator.languages[0].slice(0,2),
+        exts: ['chart', 'scrollSync', 'table', 'uml', 'colorSyntax'],
+        events: {
+          load: this.handleLoad,
+          change: this.handleChange,
+          blur: this.handleBlur
+        }
+      }),height
     })
     this.refs.content.refs.iTree.tree.getRootNode().getLastChild()
   }
@@ -450,33 +510,73 @@ export default class App extends React.Component {
           </div>
         </Sticky> :
         this.props.favoritePage ?
-          <Sticky>
-            <div>
-              <Menu pointing secondary >
-                <Menu.Item as='a' href={`chrome://newtab/`} key="top" name="Top"/>
-                <Menu.Item key="favorite" name={l10n.translation('bookmarks')} active={true}/>
-                <Menu.Item as='a' href={`chrome://history/`} key="history" name={l10n.translation('history')}/>
-                <Menu.Item as='a' href={`${baseURL}/download.html`} key="download" name={l10n.translation('downloads')}/>
-                <Menu.Item as='a' href={`${baseURL}/explorer.html`} key="file-explorer" name="File Explorer"/>
-                <Menu.Item as='a' href={`${baseURL}/terminal.html`} key="terminal" name="Terminal"/>
-                <Menu.Item as='a' href={`${baseURL}/settings.html`} key="settings" name={l10n.translation('settings')}/>
-                <Menu.Item as='a' href={`${baseURL}/automation.html`} key="automation" name="Automation"/>
-                <Menu.Item as='a' href={`${baseURL}/converter.html`} key="converter" name="Video Converter"/>
-              </Menu>
-              <Input ref='input' icon='search' placeholder='Search...' size="small" onChange={::this.onChange}/>
+          <div>
+            <Menu pointing secondary className="no-sidebar">
+              <Menu.Menu >
+                <Menu.Item style={{ paddingBottom: 5, paddingRight: 0}}>
+                  <Button.Group basic size="small">
+                    <Button icon='angle double left' onClick={_=>{
+                      this.setState({hidden: !this.state.hidden})
+                    }} />
+                    <Button icon='file' onClick={_=>{
+                      this.refs.content.menuKey = selectedNodes.length ? selectedNodes : [this.refs.content.refs.iTree.tree.getRootNode().getLastChild()]
+                      ipc.emit('favorite-menu-reply',null,'addBookmark',true)
+                    }} content="New"/>
+                    <Button icon='folder' onClick={_=>{
+                      this.refs.content.menuKey = selectedNodes.length ? selectedNodes : [this.refs.content.refs.iTree.tree.getRootNode().getLastChild()]
+                      ipc.emit('favorite-menu-reply',null,'addFolder',true)
+                    }} content="New Folder"/>
+                    <Button icon='minus' onClick={_=>{
+                      if(selectedNodes.length){
+                        this.refs.content.menuKey = selectedNodes
+                        ipc.emit('favorite-menu-reply',null,'delete')
+                      }
+                    }} content="Delete"/>
+                    <Button icon='save' onClick={_=>{
+                      if(selectedNodes.length && selectedNodes[0].type == 'file'){
+                        ipc.send('save-file',{content:this.state.editor.getMarkdown(), fname: 'note.txt', isDesktop: true})
+                      }
+                    }} content="Save"/>
+                  </Button.Group>
+                </Menu.Item>
+                <Menu.Item>
+                  <Input ref='input' icon='search' placeholder='Search...' onChange={::this.onChange}/>
+                </Menu.Item>
+              </Menu.Menu>
+              <Menu.Item as='a' href={`chrome://newtab/`} key="top" name="Top" style={{
+                borderLeft: "2px solid rgba(34,36,38,.15)",
+                marginLeft: 20,
+                paddingLeft: 30
+              }}/>
+              <Menu.Item as='a' href={`chrome://bookmarks/`} key="favorite" name={l10n.translation('bookmarks')}/>
+              <Menu.Item as='a' href={`chrome://history/`} key="history" name={l10n.translation('history')}/>
+              <Menu.Item as='a' href={`${baseURL}/download.html`} key="download" name={l10n.translation('downloads')}/>
+              <Menu.Item key="note" name="Note" active={true}/>
+              <Menu.Item as='a' href={`${baseURL}/settings.html`} key="settings" name={l10n.translation('settings')}/>
+              <Menu.Item as='a' href={`${baseURL}/explorer.html`} key="file-explorer" name="File Explorer"/>
+              <Menu.Item as='a' href={`${baseURL}/terminal.html`} key="terminal" name="Terminal"/>
+              <Menu.Item as='a' href={`${baseURL}/automation.html`} key="automation" name="Automation"/>
+              <Menu.Item as='a' href={`${baseURL}/converter.html`} key="converter" name="Video Converter"/>
+            </Menu>
+            <div style={{padding: '4px 0px 2px 0px', float: 'left'}}>
+
             </div>
-          </Sticky>
-          : this.props.searchNum || this.props.searchKey ? null
+          </div>
           : <Input ref='input' icon='search' placeholder='Search...' size="small" onChange={::this.onChange}/>}
       {this.props.cont ?  <Contents ref="content" editor={this.state.editor} parent={this}
-                                    onClick={this.props.onClick} bookmarkbarLink={this.props.bookmarkbarLink}
-                                    cont={(typeof this.props.cont) == 'function' ? this.props.cont() : this.props.cont} searchNum={this.props.searchNum} searchKey={this.props.searchKey}/>:
-        <Selection ref="select" target=".infinite-tree-item" selectedClass="selection-selected"
+                                    onClick={this.props.onClick}
+                                    cont={(typeof this.props.cont) == 'function' ? this.props.cont() : this.props.cont} /> : null}
+      <div className={this.props.favoritePage ? 'main' : 'main-sidebar'}>
+        <Selection ref="select" target=".infinite-tree-item" selectedClass="selection-selected" style={this.props.favoritePage && this.state.hidden ? {display: 'none'} :
+          this.props.favoritePage && this.state.width ? {width: this.state.width} : void 0}
                    afterSelect={::this.afterSelect} clearSelect={::this.clearSelect}>
           <Contents ref="content" editor={this.state.editor} parent={this} favoritePage={this.props.favoritePage}/>
-        </Selection>}
-      <ToolbarResizer height={this.state.height} setHeight={this.setHeight} minus={true}/>
-      <div id="editSection" ref="editor"/>
+        </Selection>
+        {this.props.favoritePage ? <VerticalTabResizer width={this.state.width} setWidth={this.setWidth} direction='left' /> :
+          <ToolbarResizer height={this.state.height} setHeight={this.setHeight} minus={true}/>}
+
+        <div id="editSection" ref="editor"/>
+      </div>
     </StickyContainer>
   }
 }
@@ -491,7 +591,7 @@ class Contents extends React.Component {
   async loadAllData(){
     const prevState = this.prevState || (await localForage.getItem("note-sidebar-open-node"))
     this.prevState = (void 0)
-    getAllChildren(this.props.searchKey || 'root',this.props.searchNum).then(data=>{
+    getAllChildren('root').then(data=>{
       console.log(data)
       treeAllData = data
 
@@ -517,29 +617,6 @@ class Contents extends React.Component {
     }
     ipc.on("update-datas",this.eventUpdateDatas)
 
-    this.eventDropLink = (e,url,text)=>{
-      let el = document.elementFromPoint(this.mousePoint.x, this.mousePoint.y);
-      if(!el) return
-
-      el = el.closest('.infinite-tree-node')
-      if(!el) return
-      el = el.parentNode
-
-      const tree = this.refs.iTree.tree
-      let dropNode = tree.getNodeById(el.dataset.id)
-      console.log(dropNode,el,this.mousePoint,url)
-
-      const newDirectory = dropNode.type == 'file' ? this.getKey(dropNode,2) : this.getKey(dropNode,1)
-      const dropKey = dropNode && this.getKey(dropNode)
-
-      const key = uuid.v4()
-      ipc.send('insert-favorite2',key,newDirectory,dropKey,{title:text || url, url, is_file:true},true)
-      // ipc.once(`insert-favorite2-reply_${key}`,e=>{
-      //
-      // })
-    }
-    ipc.on('add-favorite-by-drop',this.eventDropLink)
-
     const tree = this.refs.iTree.tree
     this.onMouseDown = (event)=>{
       if(!this.refs.iTree) return
@@ -554,6 +631,12 @@ class Contents extends React.Component {
         this.menuKey = nodes
         return
       }
+      if(event.target.closest('.hover-external')){
+        ipc.sendToHost("open-tab-opposite", `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note.html?id=${currentNode.id}`
+          ,true,event.button == 1 ? 'create-web-contents' : openType ? 'new-tab' : 'load-url')
+        return
+      }
+
     }
     tree.contentElement.addEventListener('mousedown',this.onMouseDown)
     this.initEvents()
@@ -568,7 +651,6 @@ class Contents extends React.Component {
     tree.contentElement.removeEventListener('dragover',this.onDragOver);
     if(this.event) ipc.removeListener("favorite-menu-reply",this.event)
     if(this.eventUpdateDatas) ipc.removeListener("update-datas",this.eventUpdateDatas)
-    if(this.eventDropLink) ipc.removeListener('add-favorite-by-drop',this.eventDropLink)
   }
 
   initEvents() {
@@ -862,8 +944,9 @@ class Contents extends React.Component {
 
   render() {
     const self = this
+    const style = this.props.favoritePage ? {paddingLeft:2} : {paddingLeft:4,paddingTop:4,width:this.props.cont ? '600px' :'calc(100vw - 4px)'}
     return (
-      <div style={{paddingLeft:4,paddingTop:4,width:this.props.cont ? '600px' : this.props.favoritePage ? (void 0) :'calc(100vw - 4px)'}}>
+      <div style={style}>
         <InfiniteTree
           ref="iTree"
           noDataText=""
@@ -880,7 +963,7 @@ class Contents extends React.Component {
             return true;
           }}
           onClick={(event) => {
-            let openType2 = this.props.bookmarkbarLink !== void 0 ? this.props.bookmarkbarLink : openType
+            let openType2 = openType
             const tree = this.refs.iTree.tree
             const currentNode = event.currentNode || tree.getNodeFromPoint(event.x, event.y);
             if (!currentNode) {
@@ -910,31 +993,31 @@ class Contents extends React.Component {
               }
 
               if(currentNode.type == 'file'){
-                if(this.props.favoritePage){
-                  selectedNodes.forEach(selectedNode => {
-                    selectedNode.state.selected = false
-                    tree.updateNode(selectedNode, {}, { shallowRendering: true },true)
-                  });
-                  selectedNodes = [];
-                }
-                else{
-                  if(this.props.cont){
-                    if(event.button == 1){
-                      this.props.cont.hostWebContents.send('create-web-contents',{id:this.props.cont.getId(),targetUrl:currentNode.url,disposition:'background-tab'})
-                    }
-                    else{
-                      this.props.cont.hostWebContents.send(openType2 ? 'new-tab' : 'load-url',this.props.cont.getId(),currentNode.url)
-                    }
-                    if(this.props.onClick) this.props.onClick()
+                // if(this.props.favoritePage){
+                //   selectedNodes.forEach(selectedNode => {
+                //     selectedNode.state.selected = false
+                //     tree.updateNode(selectedNode, {}, { shallowRendering: true },true)
+                //   });
+                //   selectedNodes = [];
+                // }
+                // else{
+                if(this.props.cont){
+                  if(event.button == 1){
+                    this.props.cont.hostWebContents.send('create-web-contents',{id:this.props.cont.getId(),targetUrl:currentNode.url,disposition:'background-tab'})
                   }
                   else{
-                    this.props.parent.handleClickFile(currentNode)
-                    selectedNodes.push(currentNode)
-                    localForage.setItem("note-sidebar-select-node",selectedNodes.map(node=>node.id))
-                    // ipc.sendToHost("open-tab-opposite",currentNode.url,true,event.button == 1 ? 'create-web-contents' : openType2 ? 'new-tab' : 'load-url')
+                    this.props.cont.hostWebContents.send(openType2 ? 'new-tab' : 'load-url',this.props.cont.getId(),currentNode.url)
                   }
-                  return;
+                  if(this.props.onClick) this.props.onClick()
                 }
+                else{
+                  this.props.parent.handleClickFile(currentNode)
+                  selectedNodes.push(currentNode)
+                  localForage.setItem("note-sidebar-select-node",selectedNodes.map(node=>node.id))
+                  // ipc.sendToHost("open-tab-opposite",currentNode.url,true,event.button == 1 ? 'create-web-contents' : openType2 ? 'new-tab' : 'load-url')
+                }
+                return;
+                // }
               }
               else{
                 this.props.parent.setHidden(true)
@@ -974,16 +1057,6 @@ class Contents extends React.Component {
             }
 
             localForage.setItem("note-sidebar-select-node",selectedNodes.map(node=>node.id))
-          }}
-          onDoubleClick={(event) => {
-            if(this.props.favoritePage) {
-              const tree = this.refs.iTree.tree
-              const currentNode = tree.getNodeFromPoint(event.x, event.y);
-              if (!currentNode) {
-                return;
-              }
-              ipc.sendToHost("open-tab", currentNode.url, true)
-            }
           }}
           onKeyDown={(event) => {
             const tree = this.refs.iTree.tree

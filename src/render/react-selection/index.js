@@ -14,6 +14,7 @@ class Selection extends React.Component {
     selectedClass: PropTypes.string,
     afterSelect: PropTypes.func,
     isLimit: PropTypes.bool,
+    style: PropTypes.object
   }
 
   static defaultProps = {
@@ -230,7 +231,7 @@ class Selection extends React.Component {
   render() {
     const {children, target, ...props} = this.props
     return (
-      <div {...props} className="react-selection" onMouseDown={this.mousedown}>
+      <div {...props} className="react-selection" onMouseDown={this.mousedown} style={this.props.style}>
         {children}
         <div ref="rect" className="react-selection-rectangle"/>
       </div>

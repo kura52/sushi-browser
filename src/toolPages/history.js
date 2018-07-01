@@ -27,6 +27,7 @@ const convertUrlMap = new Map([
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_trash_sidebar.html','chrome://tab-trash-sidebar/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download_sidebar.html','chrome://download-sidebar/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note_sidebar.html','chrome://note-sidebar/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note.html','chrome://note/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/saved_state_sidebar.html','chrome://session-manager-sidebar/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history_sidebar.html','chrome://history-sidebar/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html','chrome://explorer/'],
@@ -228,7 +229,7 @@ class TopMenu extends React.Component {
                   <Input ref='input' icon='search' placeholder='Search...' onChange={::this.onChange}/>
                 </Menu.Item>
                 <Menu.Item>
-                  <Button style={{left: -22}} color='grey' icon='trash' onClick={_=>{
+                  <Button style={{left: -22}} icon='cancel' onClick={_=>{
                     const key = Math.random().toString()
                     ipc.send('show-dialog-exploler',key,{text: "Are you sure you want to delete all the history data?", buttons: ['OK', 'Cancel'], normal:true})
                     ipc.once(`show-dialog-exploler-reply_${key}`,(event,ret)=>{
@@ -236,7 +237,7 @@ class TopMenu extends React.Component {
 
                     })
                     }
-                  }>Clear All history</Button>
+                  } content="Clear All history"/>
                 </Menu.Item>
               </Menu.Menu>
               <Menu.Item as='a' href={`chrome://newtab/`} key="top" name="Top" style={{
@@ -246,8 +247,7 @@ class TopMenu extends React.Component {
               }}/>
               <Menu.Item as='a' href={`chrome://bookmarks/`} key="favorite" name={l10n.translation('bookmarks')}/>
               <Menu.Item as='a' href={`${baseURL}/download.html`} key="download" name={l10n.translation('downloads')}/>
-              <Menu.Item as='a' href={`${baseURL}/explorer.html`} key="file-explorer" name="File Explorer"/>
-              <Menu.Item as='a' href={`${baseURL}/terminal.html`} key="terminal" name="Terminal"/>
+              <Menu.Item as='a' href={`${baseURL}/note.html`} key="note" name="Note"/>
               <Menu.Item as='a' href={`${baseURL}/settings.html`} key="settings" name={l10n.translation('settings')}/>
             </Menu>
           </div>
@@ -269,7 +269,7 @@ class HistoryList{
       h.updated_at = moment(h.updated_at).format("YYYY/MM/DD HH:mm:ss")
       h.yyyymmdd = h.updated_at.slice(0,10)
       if(pre.yyyymmdd != h.yyyymmdd){
-        historyList.push(`<h4>${h.yyyymmdd}<a data-key='{"date":"${h.yyyymmdd}"}' class="trash-link left-pad"><i class="trash icon"></i></a></h4>`)
+        historyList.push(`<h4>${h.yyyymmdd}<a data-key='{"date":"${h.yyyymmdd}"}' class="trash-link left-pad"><i class="cancel icon"></i></a></h4>`)
       }
       if(h.location === pre.location){
         if(!pre.title) pre.title = h.title
@@ -293,9 +293,9 @@ class HistoryList{
         <a class="description" style="float:right;margin-right:15px;font-size: 12px">${h.updated_at.slice(5)}</a>
         ${!h.title ? "" : `<a class="header" target="_blank" href=${h.location}>${h.title.length > 55 ? `${h.title.substr(0, 55)}...` : h.title}</a>
 <span class="additional-info">[${h.count}pv${h.time ? `, ${getAppropriateTimeUnit(h.time / 1000)}` : ''}]</span>
-<a data-key='{"_id":"${h._id}"}' class="trash-link"><i class="trash icon"></i></a><br>`}
+<a data-key='{"_id":"${h._id}"}' class="trash-link"><i class="cancel icon"></i></a><br>`}
         ${!h.location ? "" : `<a class="description" target="_blank" style="fontSize: 12px;" href=${h.location}>${h.location.length > 125 ? `${h.location.substr(0, 125)}...` : convertURL(h.location)}</a>`}
-        ${h.title ? "" : `<a data-key='{"_id":"${h._id}"}' class="trash-link"><i class="trash icon"></i></a>`}
+        ${h.title ? "" : `<a data-key='{"_id":"${h._id}"}' class="trash-link"><i class="cancel icon"></i></a>`}
       </div>
     </div>`;
   }

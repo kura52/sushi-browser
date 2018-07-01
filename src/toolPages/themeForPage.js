@@ -23,10 +23,16 @@ function colorOnRGB(c){
 
 export default function setTheme(page){
   const key = Math.random().toString()
-  ipc.send("get-main-state",key,['themeInfo'])
+  ipc.send("get-main-state",key,['themeInfo','focusLocationBar'])
   ipc.once(`get-main-state-reply_${key}`,(e,data)=>{
     const theme = data.themeInfo
-    if(theme[page]) common(theme)
+    if(theme && theme[page]) common(theme)
+    if(page == 'themeTopPage' && data.focusLocationBar === false){
+      const s = document.createElement('style')
+      s.setAttribute('type', 'text/css')
+      s.appendChild(document.createTextNode('.ui.big.icon.input{display: none}'))
+      document.head.appendChild(s)
+    }
   })
 }
 

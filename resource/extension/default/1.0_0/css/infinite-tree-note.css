@@ -1,0 +1,219 @@
+.infinite-tree-scroll {
+  overflow: auto;
+}
+.infinite-tree-table {
+  width: 100%;
+}
+.infinite-tree-content {
+  outline: 0;
+  position: relative;
+}
+.infinite-tree-content .infinite-tree-selected.infinite-tree-item,
+.infinite-tree-content .infinite-tree-selected.infinite-tree-item:hover {
+  background: #deecfd;
+  /*border: 1px solid #06c;*/
+}
+.infinite-tree-content .selection-selected.infinite-tree-item,
+.infinite-tree-content .selection-selected.infinite-tree-item:hover {
+  background: #deecfd;
+  /*border: 1px solid #06c;*/
+}
+.infinite-tree-content .infinite-tree-item {
+  border: 1px solid transparent;
+  cursor: default;
+  line-height: 1.2em;
+  white-space: nowrap;
+}
+.infinite-tree-content .infinite-tree-item:hover {
+  background: #f2fdff;
+}
+.infinite-tree-content .infinite-tree-item:disabled,
+.infinite-tree-content .infinite-tree-item[disabled] {
+  cursor: not-allowed;
+  opacity: 0.5;
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
+  filter: alpha(opacity=50);
+}
+.infinite-tree-content .infinite-tree-node {
+  position: relative;
+}
+.infinite-tree-content .infinite-tree-toggler {
+  color: #666;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+.infinite-tree-content .infinite-tree-toggler:hover {
+  color: #333;
+  text-decoration: none;
+}
+.infinite-tree-content .infinite-tree-title {
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+.infinite-tree-no-data {
+  text-align: center;
+}
+
+#classic .preview {
+  font-family: Consolas;
+  font-size: 14px;
+  font-weight: bold;
+  white-space: pre-wrap;
+  background-color: #282c34;
+  border: solid 1px #ccc;
+  color: #9197a3;
+  padding: 20px;
+  min-height: 400px;
+}
+#classic .progress-bar {
+  -webkit-transition: none;
+  -moz-transition: none;
+  -ms-transition: none;
+  -o-transition: none;
+  transition: none;
+}
+#classic .dropped-result {
+  font-size: 16px;
+  line-height: 42px;
+}
+#classic .tree {
+  border: 1px solid #ccc;
+  background-color: #fff;
+}
+#classic .infinite-tree-toggler {
+  text-align: center;
+  margin-right: 5px;
+}
+#classic .infinite-tree-folder-icon {
+  width: 17px;
+}
+#classic .infinite-tree-folder-icon:first-child {
+  margin-left: 14px;
+}
+#classic .infinite-tree-folder-icon:before {
+  margin-right: 5px;
+}
+#classic .infinite-tree-node .count {
+  position: absolute;
+  right: 2px;
+  padding: 0 8px;
+  height: 17px;
+  line-height: 18px;
+  background-color: rgba(216, 223, 234, 0.5);
+  color: #3B5998;
+  font-style: normal;
+  font-weight: bold;
+  text-align: center;
+  border-radius: 2px;
+}
+#classic .infinite-tree-scroll {
+  overflow: auto;
+  height: calc(100vh - 89px);
+}
+
+
+#classic .infinite-tree-overlay {
+  position: absolute;
+  background-color: rgba(255, 0, 0, 0.5);
+  border: 1px solid red;
+  font-size: 20px;
+  font-weight: bold;
+  width: 100%;
+  text-align: center;
+}
+
+#classic .infinite-tree-overlay.hover {
+  background-color: rgba(255, 0, 0, 0.6);
+}
+
+@-webkit-keyframes rotating /* Safari and Chrome */ {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes rotating {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+.rotating {
+  animation: rotating 2s linear infinite;
+}
+
+
+img.favi-favorite {
+  width: auto;
+  height: 16px;
+  vertical-align: sub;
+  padding-right: 3px;
+  margin-left: 11px;
+}
+
+.folder-open,.folder {
+  color: #3498db;
+}
+
+
+.sticky {
+  z-index: 1;
+  background-color: white;
+}
+
+.ui.menu .icon.item>.icon {
+  color: black;
+}
+
+.caret {
+  color: #222;
+  width: 8px;
+}
+
+.fa-file.doc{
+  font-size:13px;
+  vertical-align: 1px;
+}
+
+html, body { height:100%; margin:0; }
+
+.ui.secondary.pointing.menu {
+  margin-bottom: 8px;
+}
+
+.ui.icon.input input {
+  margin-left: 12px;
+}
+
+
+#classic .infinite-tree-item.top-overlap:not(.middle),
+#classic .infinite-tree-item.top-overlap.middle:not(.folder-item),
+#classic .infinite-tree-item.top-next-sibling-overlap{
+  border-top-color: blue;
+}
+
+
+#classic .infinite-tree-item.bottom-overlap.middle:not(.folder-item),
+#classic .infinite-tree-item.bottom-overlap:not(.middle),
+#classic .infinite-tree-item.bottom-previous-sibling-overlap{
+  border-bottom-color: blue;
+}
+
+
+#classic .infinite-tree-item.folder-item {
+  background-color: #bfdaf5;
+}
+
+canvas.drag-image{
+  position:absolute;
+  left:-100%;
+}

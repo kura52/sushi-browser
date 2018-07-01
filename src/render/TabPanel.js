@@ -93,6 +93,7 @@ const convertUrlMap = new Map([
   ['chrome://tab-trash-sidebar/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_trash_sidebar.html'],
   ['chrome://download-sidebar/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download_sidebar.html'],
   ['chrome://note-sidebar/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note_sidebar.html'],
+  ['chrome://note/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note.html'],
   ['chrome://session-manager-sidebar/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/saved_state_sidebar.html'],
   ['chrome://history-sidebar/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history_sidebar.html'],
   ['chrome://explorer/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html'],

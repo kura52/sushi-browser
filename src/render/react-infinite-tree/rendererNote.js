@@ -1,6 +1,8 @@
 import React from 'react';
 import classNames from 'classnames';
 
+const isSidebar = location.href == "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note_sidebar.html"
+
 export default function(margin){
   return (node, treeOptions) => {
     const { id, name, loadOnDemand = false, children, state, props = {} } = node;
@@ -66,8 +68,8 @@ export default function(margin){
               { 'rotating': loading }
             )}
           />
-          {more ? <span className="count">{childrenLength}</span> :
-            <span className="count hover-external"><i className="fa fa-external-link"/></span>}
+          {more ? <span className="count">{childrenLength}</span> : isSidebar ?
+            <span className="count hover-external"><i className="fa fa-external-link"/></span> : null}
         </div>
       </div>
     );

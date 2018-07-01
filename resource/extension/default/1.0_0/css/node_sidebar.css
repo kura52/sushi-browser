@@ -54,3 +54,38 @@ body{
 .infinite-tree-node:hover>.hover-external{
     display: initial;
 }
+.ui.secondary.pointing.menu.no-sidebar .item {
+    padding: .85714286em 1.14285714em;
+}
+
+.main{
+    display: flex;
+}
+
+.main>#editSection{
+    flex-direction: column;
+    width: 100%;
+}
+.button>.folder {
+    color: inherit;
+}
+
+#classic .main-sidebar .infinite-tree-scroll {
+    overflow-x: hidden;
+}
+
+.vertical-resizer {
+    background: #000;
+    opacity: .2;
+    z-index: 3;
+    box-sizing: border-box;
+    background-clip: padding-box;
+    width: 11px;
+    margin: 0 -5px;
+    border-left: 5px solid rgba(255, 255, 255, 0);
+    border-right: 5px solid rgba(255, 255, 255, 0);
+    cursor: col-resize;
+    height: 100%;
+    top: 0px;
+    height:calc(100vh - 68px);
+}
