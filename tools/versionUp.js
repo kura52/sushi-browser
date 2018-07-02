@@ -22,10 +22,10 @@ const glob = require("glob")
 // Iwashi(Sardine)
 // Engawa(Flounder Fin)
 
-const BEFORE_CODE_NAME = 'Iwashi(Sardine)'
+const BEFORE_CODE_NAME = 'Engawa(Flounder Fin)'
 const CODE_NAME = 'Engawa(Flounder Fin)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.19.0"
+const NEXT_APP_VERSION = "0.19.1"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
 const CHANGE_ENGLISH = `

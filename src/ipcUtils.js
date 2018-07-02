@@ -1720,7 +1720,7 @@ ipcMain.on('history-pin',async (e,key,_id,val)=>{
 
 ipcMain.on('remove-history',async (e,val)=> {
   const opt = val.all ? {} :
-    val.date ? { $gte: Date.parse(`${val.date.replace(/\//g,'-')} 00:00:00`) ,$lte: Date.parse(`${val.date.replace(/\//g,'-')} 00:00:00`) + 24 * 60 * 60 * 1000 } :
+    val.date ? {updated_at:{ $gte: Date.parse(`${val.date.replace(/\//g,'-')} 00:00:00`) ,$lte: Date.parse(`${val.date.replace(/\//g,'-')} 00:00:00`) + 24 * 60 * 60 * 1000 }} :
       {_id: val._id}
   history.remove(opt, { multi: true })
 })
