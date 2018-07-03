@@ -680,7 +680,7 @@ class Contents extends React.Component {
         const parentNodes = nodes.map(n => n.getParent())
         deleteFavorite(nodes.map(n=>this.getKey(n)),parentNodes.map(parent=>this.getKey(parent))).then(_ => {
           if(isMain) this.eventUpdateDatas()
-          const nextNode = tree.nodes[nodeIndex - 1] || tree.nodes[nodeIndex]
+          const nextNode = tree.nodes[nodeIndex + 1] || tree.nodes[nodeIndex - 1]
           this.refs.iTree.props.onClick({currentNode: nextNode, stopPropagation:()=>{}})
         })
       }
@@ -717,7 +717,7 @@ class Contents extends React.Component {
                 })
                 if(currentNode) break
               }
-              this.refs.iTree.props.onClick({ctrlKey:true, currentNode, stopPropagation:()=>{}})
+              this.refs.iTree.props.onClick({currentNode, stopPropagation:()=>{}})
             })
           }
           else{
@@ -733,7 +733,7 @@ class Contents extends React.Component {
                 })
                 if(currentNode) break
               }
-              this.refs.iTree.props.onClick({ctrlKey:true, currentNode, stopPropagation:()=>{}})
+              this.refs.iTree.props.onClick({currentNode, stopPropagation:()=>{}})
             })
           }
           return

@@ -35569,7 +35569,7 @@ class Contents extends _infernoCompat2.default.Component {
         deleteFavorite(nodes.map(n => this.getKey(n)), parentNodes.map(parent => this.getKey(parent))).then(_ => {
           if (isMain) this.eventUpdateDatas();
           // if(nodeIndex !== -1){
-          //   const nextNode = tree.nodes[nodeIndex - 1] || tree.nodes[nodeIndex]
+          // const nextNode = tree.nodes[nodeIndex] || tree.nodes[nodeIndex - 1]
           //   selectedNodes.splice(0,selectedNodes.length,nextNode)
           //   setTimeout(_=>tree.selectNode(nextNode),10)
           // }

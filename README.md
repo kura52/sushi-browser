@@ -135,14 +135,14 @@ This browser makes use of wonderful web technologies, starting with the followin
 Both the installer for every platform and the portable version can be downloaded.  
 To use the portable edition, please run sushi.exe for Windows and sushi-browser for Mac/Linux after decompressing.
 
-- [Windows Installer v0.19.0](https://sushib.me/dl/sushi-browser-0.19.0-setup-x64.exe)
-- [Windows Portable v0.19.0(self-extract)](https://sushib.me/dl/sushi-browser-0.19.0-win-x64.exe)
-- [Windows Portable v0.19.0](https://sushib.me/dl/sushi-browser-0.19.0-win-x64.zip)
-- [MacOS dmg v0.19.0](https://sushib.me/dl/SushiBrowser-0.19.0.dmg)
-- [MacOS Portable v0.19.0](https://sushib.me/dl/sushi-browser-0.19.0-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.19.0](https://sushib.me/dl/sushi-browser-0.19.0.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.19.0](https://sushib.me/dl/sushi-browser_0.19.0_amd64.deb)
-- [Linux Portable v0.19.0](https://sushib.me/dl/sushi-browser-0.19.0.tar.bz2)
+- [Windows Installer v0.19.1](https://sushib.me/dl/sushi-browser-0.19.1-setup-x64.exe)
+- [Windows Portable v0.19.1(self-extract)](https://sushib.me/dl/sushi-browser-0.19.1-win-x64.exe)
+- [Windows Portable v0.19.1](https://sushib.me/dl/sushi-browser-0.19.1-win-x64.zip)
+- [MacOS dmg v0.19.1](https://sushib.me/dl/SushiBrowser-0.19.1.dmg)
+- [MacOS Portable v0.19.1](https://sushib.me/dl/sushi-browser-0.19.1-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.19.1](https://sushib.me/dl/sushi-browser-0.19.1.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.19.1](https://sushib.me/dl/sushi-browser_0.19.1_amd64.deb)
+- [Linux Portable v0.19.1](https://sushib.me/dl/sushi-browser-0.19.1.tar.bz2)
 
 # Use of Flash 
 If Flash won't run, please install Flash from the following web sites.  
@@ -156,6 +156,20 @@ sushi-browser --no-sandbox
 ```
 
 # New Features
+
+#### New function(v0.19.1)
+- Added function to add selected text (HTML) to Note.
+- Added Note function to tool page.
+- Improved to be able to set the range for deleting data.
+- Added deletion function to history page.
+- Added function to display Tor process progress in the location bar.
+- Improved to restore active tab when session is restored.
+- Added option of Show Focus Location Bar of Top Page.
+- Updated to Muon 7.1.4.
+- Fixed bug that chrome extension setting disappears when changing file location.
+- Fixed display defect of multi panel function.
+- Fixed Tor tab's webrtc leak.
+- Fixed a lot of bugs.
 
 #### New function(v0.19.0)
 - Added Tor browsing function. (new Muon function)
