@@ -35440,9 +35440,10 @@ class App extends _infernoCompat2.default.Component {
             _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { key: 'favorite', name: l10n.translation('bookmarks'), active: true }),
             _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `chrome://history/`, key: 'history', name: l10n.translation('history') }),
             _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/download.html`, key: 'download', name: l10n.translation('downloads') }),
+            _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/note.html`, key: 'note', name: 'Note' }),
+            _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/settings.html`, key: 'settings', name: l10n.translation('settings') }),
             _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/explorer.html`, key: 'file-explorer', name: 'File Explorer' }),
             _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/terminal.html`, key: 'terminal', name: 'Terminal' }),
-            _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/settings.html`, key: 'settings', name: l10n.translation('settings') }),
             _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/automation.html`, key: 'automation', name: 'Automation' }),
             _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/converter.html`, key: 'converter', name: 'Video Converter' })
           ),
@@ -35559,13 +35560,22 @@ class Contents extends _infernoCompat2.default.Component {
           this.props.onClick && this.props.onClick();
         });
       } else if (cmd == "delete") {
+        // const tree = this.refs.iTree.tree
+        // const nodeIndex = tree.getSelectedIndex()
+
         const nodes = this.menuKey;
         this.menuKey = void 0;
         const parentNodes = nodes.map(n => n.getParent());
         deleteFavorite(nodes.map(n => this.getKey(n)), parentNodes.map(parent => this.getKey(parent))).then(_ => {
           if (isMain) this.eventUpdateDatas();
+          // if(nodeIndex !== -1){
+          //   const nextNode = tree.nodes[nodeIndex - 1] || tree.nodes[nodeIndex]
+          //   selectedNodes.splice(0,selectedNodes.length,nextNode)
+          //   setTimeout(_=>tree.selectNode(nextNode),10)
+          // }
         });
       } else if (cmd == "edit") {
+        if (this.props.onClick) this.props.onClick();
         const nodes = this.menuKey;
         this.menuKey = void 0;
         showDialog({
@@ -35852,7 +35862,7 @@ class Contents extends _infernoCompat2.default.Component {
         onClick: event => {
           let openType2 = this.props.bookmarkbarLink !== void 0 ? this.props.bookmarkbarLink : openType;
           const tree = this.refs.iTree.tree;
-          const currentNode = tree.getNodeFromPoint(event.x, event.y);
+          const currentNode = event.currentNode || tree.getNodeFromPoint(event.x, event.y);
           if (!currentNode) {
             return;
           }
@@ -35879,11 +35889,12 @@ class Contents extends _infernoCompat2.default.Component {
 
             if (currentNode.type == 'file') {
               if (this.props.favoritePage) {
-                selectedNodes.forEach(selectedNode => {
-                  selectedNode.state.selected = false;
-                  tree.updateNode(selectedNode, {}, { shallowRendering: true }, true);
-                });
-                selectedNodes = [];
+                // selectedNodes.forEach(selectedNode => {
+                //   selectedNode.state.selected = false
+                //   tree.updateNode(selectedNode, {}, { shallowRendering: true },true)
+                // });
+                // selectedNodes = [];
+                return;
               } else {
                 if (this.props.cont) {
                   if (event.button == 1) {
@@ -35954,6 +35965,7 @@ class Contents extends _infernoCompat2.default.Component {
             // Up
             const prevNode = tree.nodes[nodeIndex - 1] || node;
             tree.selectNode(prevNode);
+            selectedNodes.splice(0, selectedNodes.length, prevNode);
           } else if (event.keyCode === 39) {
             // Right
             tree.openNode(node);
@@ -35961,6 +35973,7 @@ class Contents extends _infernoCompat2.default.Component {
             // Down
             const nextNode = tree.nodes[nodeIndex + 1] || node;
             tree.selectNode(nextNode);
+            selectedNodes.splice(0, selectedNodes.length, nextNode);
           }
         }
         // onContentWillUpdate={() => {
@@ -68898,7 +68911,7 @@ class Selection extends _infernoCompat2.default.Component {
           props = _objectWithoutProperties(_props, ['children', 'target']);
     return _infernoCompat2.default.createElement(
       'div',
-      _extends({}, props, { className: 'react-selection', onMouseDown: this.mousedown }),
+      _extends({}, props, { className: 'react-selection', onMouseDown: this.mousedown, style: this.props.style }),
       children,
       _infernoCompat2.default.createElement('div', { ref: 'rect', className: 'react-selection-rectangle' })
     );
@@ -68909,7 +68922,8 @@ Selection.propTypes = {
   target: _infernoCompat.PropTypes.string.isRequired,
   selectedClass: _infernoCompat.PropTypes.string,
   afterSelect: _infernoCompat.PropTypes.func,
-  isLimit: _infernoCompat.PropTypes.bool
+  isLimit: _infernoCompat.PropTypes.bool,
+  style: _infernoCompat.PropTypes.object
 };
 Selection.defaultProps = {
   target: '.react-selection-target',
@@ -72283,8 +72297,7 @@ exports.default = function (margin) {
           { className: `infinite-tree-title${faviconEmpty ? " date-slice" : ""}${node.inactive ? " node-inactive" : ""}` },
           name
         ),
-        _infernoCompat2.default.createElement('i', {
-          style: { marginLeft: 5 },
+        _infernoCompat2.default.createElement('i', { style: { marginLeft: 5 },
           className: (0, _classnames2.default)({ 'hidden': !loading }, 'glyphicon', 'glyphicon-refresh', { 'rotating': loading })
         }),
         more ? _infernoCompat2.default.createElement(
@@ -72374,7 +72387,7 @@ const { LANGUAGE, REQUEST_LANGUAGE } = __webpack_require__(438);
 
 // Exhaustive list of identifiers used by top and context menus
 var rendererIdentifiers = function () {
-  return ['downloadsManager', 'confirmClearPasswords', 'passwordCopied', 'flashInstalled', 'goToPrefs', 'goToAdobe', 'allowFlashPlayer', 'allowWidevine', 'about', 'aboutApp', 'quit', 'quitApp', 'addToReadingList', 'viewPageSource', 'copyImageAddress', 'openImageInNewTab', 'saveImage', 'copyImage', 'searchImage', 'copyLinkAddress', 'copyEmailAddress', 'saveLinkAs', 'allowFlashOnce', 'allowFlashAlways', 'openFlashPreferences', 'openInNewWindow', 'openInNewSessionTab', 'openInNewSessionTabs', 'openInNewPrivateTab', 'openInNewPrivateTabs', 'openInNewTab', 'openInNewTabs', 'openAllInTabs', 'disableAdBlock', 'disableTrackingProtection', 'muteTab', 'unmuteTab', 'pinTab', 'unpinTab', 'deleteFolder', 'deleteBookmark', 'deleteBookmarks', 'deleteHistoryEntry', 'deleteHistoryEntries', 'deleteLedgerEntry', 'ledgerBackupText1', 'ledgerBackupText2', 'ledgerBackupText3', 'ledgerBackupText4', 'ledgerBackupText5', 'editFolder', 'editBookmark', 'unmuteTabs', 'muteTabs', 'muteOtherTabs', 'addBookmark', 'addFolder', 'newTab', 'closeTab', 'closeOtherTabs', 'closeTabsToRight', 'closeTabsToLeft', 'closeTabPage', 'bookmarkPage', 'bookmarkLink', 'openFile', 'openLocation', 'openSearch', 'importFrom', 'closeWindow', 'savePageAs', 'share', 'undo', 'redo', 'cut', 'copy', 'paste', 'pasteAndGo', 'pasteAndSearch', 'pasteWithoutFormatting', 'delete', 'selectAll', 'findNext', 'findPrevious', 'file', 'edit', 'view', 'actualSize', 'zoomIn', 'zoomOut', 'toolbars', 'stop', 'reloadPage', 'reloadTab', 'cleanReload', 'reload', 'clone', 'detach', 'readingView', 'tabManager', 'textEncoding', 'inspectElement', 'toggleDeveloperTools', 'toggleBrowserConsole', 'toggleFullScreenView', 'home', 'back', 'forward', 'reopenLastClosedWindow', 'showAllHistory', 'clearCache', 'clearHistory', 'clearSiteData', 'clearBrowsingData', 'recentlyClosed', 'recentlyVisited', 'bookmarks', 'addToFavoritesBar', 'window', 'minimize', 'zoom', 'selectNextTab', 'selectPreviousTab', 'moveTabToNewWindow', 'mergeAllWindows', 'downloads', 'history', 'bringAllToFront', 'help', 'sendUsFeedback', 'services', 'hideBrave', 'hideOthers', 'showAll', 'newPrivateTab', 'newSessionTab', 'newWindow', 'reopenLastClosedTab', 'print', 'emailPageLink', 'tweetPageLink', 'facebookPageLink', 'pinterestPageLink', 'googlePlusPageLink', 'linkedInPageLink', 'bufferPageLink', 'redditPageLink', 'findOnPage', 'find', 'checkForUpdates', 'preferences', 'settings', 'bookmarksManager', 'importBrowserData', 'exportBookmarks', 'settingsExport', 'settingsImport', 'submitFeedback', 'bookmarksToolbar', 'bravery', 'braverySite', 'braveryGlobal', 'braveryPayments', 'braveryStartUsingPayments', 'blockPopups', 'learnSpelling', 'forgetLearnedSpelling', 'lookupSelection', 'contextMain', 'remove',
+  return ['downloadsManager', 'confirmClearPasswords', 'passwordCopied', 'flashInstalled', 'goToPrefs', 'goToAdobe', 'allowFlashPlayer', 'allowWidevine', 'about', 'aboutApp', 'quit', 'quitApp', 'addToReadingList', 'viewPageSource', 'copyImageAddress', 'openImageInNewTab', 'saveImage', 'copyImage', 'searchImage', 'copyLinkAddress', 'copyEmailAddress', 'saveLinkAs', 'allowFlashOnce', 'allowFlashAlways', 'openFlashPreferences', 'openInNewWindow', 'openInNewSessionTab', 'openInNewSessionTabs', 'openInNewPrivateTab', 'openInNewPrivateTabs', 'openInNewTab', 'openInNewTabs', 'openAllInTabs', 'disableAdBlock', 'disableTrackingProtection', 'muteTab', 'unmuteTab', 'pinTab', 'unpinTab', 'deleteFolder', 'deleteBookmark', 'deleteBookmarks', 'deleteHistoryEntry', 'deleteHistoryEntries', 'deleteLedgerEntry', 'ledgerBackupText1', 'ledgerBackupText2', 'ledgerBackupText3', 'ledgerBackupText4', 'ledgerBackupText5', 'editFolder', 'editBookmark', 'unmuteTabs', 'muteTabs', 'muteOtherTabs', 'addBookmark', 'addFolder', 'newTab', 'closeTab', 'closeOtherTabs', 'closeTabsToRight', 'closeTabsToLeft', 'closeTabPage', 'bookmarkPage', 'bookmarkLink', 'openFile', 'openLocation', 'openSearch', 'importFrom', 'closeWindow', 'savePageAs', 'share', 'undo', 'redo', 'cut', 'copy', 'paste', 'pasteAndGo', 'pasteAndSearch', 'pasteWithoutFormatting', 'delete', 'selectAll', 'findNext', 'findPrevious', 'file', 'edit', 'view', 'actualSize', 'zoomIn', 'zoomOut', 'toolbars', 'stop', 'reloadPage', 'reloadTab', 'cleanReload', 'reload', 'clone', 'detach', 'readingView', 'tabManager', 'textEncoding', 'inspectElement', 'toggleDeveloperTools', 'toggleBrowserConsole', 'toggleFullScreenView', 'home', 'back', 'forward', 'reopenLastClosedWindow', 'showAllHistory', 'clearCache', 'clearHistory', 'clearSiteData', 'clearBrowsingData', 'recentlyClosed', 'recentlyVisited', 'bookmarks', 'addToFavoritesBar', 'window', 'minimize', 'zoom', 'selectNextTab', 'selectPreviousTab', 'moveTabToNewWindow', 'mergeAllWindows', 'downloads', 'history', 'bringAllToFront', 'help', 'sendUsFeedback', 'services', 'hideBrave', 'hideOthers', 'showAll', 'newPrivateTab', 'newSessionTab', 'newWindow', 'reopenLastClosedTab', 'print', 'emailPageLink', 'tweetPageLink', 'facebookPageLink', 'pinterestPageLink', 'googlePlusPageLink', 'linkedInPageLink', 'bufferPageLink', 'redditPageLink', 'findOnPage', 'find', 'checkForUpdates', 'preferences', 'settings', 'bookmarksManager', 'importBrowserData', 'exportBookmarks', 'settingsExport', 'settingsImport', 'submitFeedback', 'bookmarksToolbar', 'bravery', 'braverySite', 'braveryGlobal', 'braveryPayments', 'braveryStartUsingPayments', 'blockPopups', 'learnSpelling', 'forgetLearnedSpelling', 'lookupSelection', 'contextMain', 'remove', 'sessionTools',
   // Other identifiers
   'aboutBlankTitle', 'urlCopied', 'autoHideMenuBar', 'unexpectedErrorWindowReload', 'updateChannel', 'licenseText', 'allow', 'deny', 'permissionCameraMicrophone', 'permissionLocation', 'permissionNotifications', 'permissionWebMidi', 'permissionDisableCursor', 'permissionFullscreen', 'permissionExternal', 'permissionProtocolRegistration', 'permissionMessage', 'tabsSuggestionTitle', 'bookmarksSuggestionTitle', 'historySuggestionTitle', 'aboutPagesSuggestionTitle', 'searchSuggestionTitle', 'topSiteSuggestionTitle', 'addFundsNotification', 'reconciliationNotification', 'reviewSites', 'addFunds', 'turnOffNotifications', 'copyToClipboard', 'smartphoneTitle', 'displayQRCode', 'updateLater', 'updateHello', 'notificationPasswordWithUserName', 'notificationUpdatePasswordWithUserName', 'notificationUpdatePassword', 'notificationPassword', 'notificationPasswordSettings', 'notificationPaymentDone', 'notificationTryPayments', 'notificationTryPaymentsYes', 'prefsRestart', 'areYouSure', 'dismiss', 'yes', 'no', 'noThanks', 'neverForThisSite', 'passwordsManager', 'extensionsManager', 'downloadItemPause', 'downloadItemResume', 'downloadItemCancel', 'downloadItemRedownload', 'downloadItemCopyLink', 'downloadItemPath', 'downloadItemDelete', 'downloadItemClear', 'downloadToolbarHide', 'downloadItemClearCompleted', 'torrentDesc',
   // Caption buttons in titlebar (min/max/close - Windows only)
@@ -75053,10 +75066,17 @@ function colorOnRGB(c) {
 
 function setTheme(page) {
   const key = Math.random().toString();
-  _electron.ipcRenderer.send("get-main-state", key, ['themeInfo']);
+  _electron.ipcRenderer.send("get-main-state", key, ['themeInfo', 'focusLocationBar']);
   _electron.ipcRenderer.once(`get-main-state-reply_${key}`, (e, data) => {
     const theme = data.themeInfo;
-    if (theme[page]) common(theme);
+    if (theme && theme[page]) common(theme);
+    if (page == 'themeTopPage' && data.focusLocationBar === false) {
+      const s = document.createElement('style');
+      s.setAttribute('type', 'text/css');
+      s.appendChild(document.createTextNode(`.ui.big.icon.input{display: none}
+      .ui.cards{padding-top: 25px;}`));
+      document.head.appendChild(s);
+    }
   });
 }
 

@@ -672,11 +672,16 @@ class Contents extends React.Component {
         })
       }
       else if(cmd == "delete") {
+        const tree = this.refs.iTree.tree
+        const nodeIndex = tree.getSelectedIndex()
+
         const nodes = this.menuKey
         this.menuKey = (void 0)
         const parentNodes = nodes.map(n => n.getParent())
         deleteFavorite(nodes.map(n=>this.getKey(n)),parentNodes.map(parent=>this.getKey(parent))).then(_ => {
           if(isMain) this.eventUpdateDatas()
+          const nextNode = tree.nodes[nodeIndex - 1] || tree.nodes[nodeIndex]
+          this.refs.iTree.props.onClick({currentNode: nextNode, stopPropagation:()=>{}})
         })
       }
       else if(cmd == "edit"){
@@ -1036,13 +1041,13 @@ class Contents extends React.Component {
                 // }
                 // else{
                 if(this.props.cont){
-                  if(event.button == 1){
-                    this.props.cont.hostWebContents.send('create-web-contents',{id:this.props.cont.getId(),targetUrl:currentNode.url,disposition:'background-tab'})
-                  }
-                  else{
-                    this.props.cont.hostWebContents.send(openType2 ? 'new-tab' : 'load-url',this.props.cont.getId(),currentNode.url)
-                  }
-                  if(this.props.onClick) this.props.onClick()
+                  // if(event.button == 1){
+                  //   this.props.cont.hostWebContents.send('create-web-contents',{id:this.props.cont.getId(),targetUrl:currentNode.url,disposition:'background-tab'})
+                  // }
+                  // else{
+                  //   this.props.cont.hostWebContents.send(openType2 ? 'new-tab' : 'load-url',this.props.cont.getId(),currentNode.url)
+                  // }
+                  // if(this.props.onClick) this.props.onClick()
                 }
                 else{
                   this.props.parent.handleClickFile(currentNode)

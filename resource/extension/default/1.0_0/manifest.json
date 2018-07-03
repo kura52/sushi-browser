@@ -36,6 +36,7 @@
             "file://*",
             "data:*"
          ],
+         "match_about_blank": true,
          "js": [
             "scripts/blockCanvasFingerprinting.js"
          ],

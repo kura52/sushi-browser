@@ -23,6 +23,7 @@ export default {
   passwordManager: [ { setting: 'allow', primaryPattern: '*' } ],
   runInsecureContent: [ { setting: 'block', primaryPattern: '*' } ],
   canvasFingerprinting: [ { setting: 'allow', primaryPattern: '*' } ],
+  torEnabled: [ { setting: 'allow', primaryPattern: '*' } ],
   flashAllowed: [ { setting: 'allow', primaryPattern: '*' } ],
   plugins: [ { setting: 'allow', primaryPattern: '*',resourceId:'widevine' } ]
   // plugins: [ { setting: 'allow', primaryPattern: '*' } ]

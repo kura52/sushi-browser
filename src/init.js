@@ -671,7 +671,15 @@ ipcMain.on('init-private-mode',(e,key,partition)=>{
 
   const ses = session.fromPartition(partition, options)
 
-  ses.userPrefs.setDictionaryPref('content_settings', defaultConf)
+
+  if (partition == 'persist:tor') {
+    const torConf = {...defaultConf}
+    torConf.torEnabled[0].setting = 'block'
+    ses.userPrefs.setDictionaryPref('content_settings', torConf)
+  }
+  else{
+    ses.userPrefs.setDictionaryPref('content_settings', defaultConf)
+  }
   ses.userPrefs.setBooleanPref('autofill.enabled', true)
   ses.userPrefs.setBooleanPref('profile.password_manager_enabled', true)
   ses.userPrefs.setBooleanPref('credentials_enable_service', true)

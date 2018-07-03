@@ -38,6 +38,7 @@ Added option of Show Focus Location Bar of Top Page.
 Updated to Muon 7.1.4.
 Fixed bug that chrome extension setting disappears when changing file location.
 Fixed display defect of multi panel function.
+Fixed Tor tab's webrtc leak.
 Fixed a lot of bugs.`
 
 const CHANGE_JAPANESE = `選択したテキスト(HTML)をNoteへ追加する機能を追加
@@ -50,6 +51,7 @@ Show Focus Location Bar of Top Pageのオプションを追加
 Muonを7.1.4に更新
 ロケーションを変更するとchrome拡張の設定が消える不具合を修正
 マルチパネル機能の表示不具合を修正
+Torタブのwebrtc leakを修正
 多数の不具合修正`
 
 const isWindows = process.platform === 'win32'

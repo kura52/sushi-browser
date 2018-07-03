@@ -430,11 +430,19 @@ class Contents extends React.Component {
         })
       }
       else if(cmd == "delete") {
+        // const tree = this.refs.iTree.tree
+        // const nodeIndex = tree.getSelectedIndex()
+
         const nodes = this.menuKey
         this.menuKey = (void 0)
         const parentNodes = nodes.map(n => n.getParent())
         deleteFavorite(nodes.map(n=>this.getKey(n)),parentNodes.map(parent=>this.getKey(parent))).then(_ => {
           if(isMain) this.eventUpdateDatas()
+          // if(nodeIndex !== -1){
+          //   const nextNode = tree.nodes[nodeIndex - 1] || tree.nodes[nodeIndex]
+          //   selectedNodes.splice(0,selectedNodes.length,nextNode)
+          //   setTimeout(_=>tree.selectNode(nextNode),10)
+          // }
         })
       }
       else if(cmd == "edit"){
@@ -740,7 +748,7 @@ class Contents extends React.Component {
           onClick={(event) => {
             let openType2 = this.props.bookmarkbarLink !== void 0 ? this.props.bookmarkbarLink : openType
             const tree = this.refs.iTree.tree
-            const currentNode = tree.getNodeFromPoint(event.x, event.y);
+            const currentNode = event.currentNode || tree.getNodeFromPoint(event.x, event.y);
             if (!currentNode) {
               return;
             }
@@ -769,11 +777,12 @@ class Contents extends React.Component {
 
               if(currentNode.type == 'file'){
                 if(this.props.favoritePage){
-                  selectedNodes.forEach(selectedNode => {
-                    selectedNode.state.selected = false
-                    tree.updateNode(selectedNode, {}, { shallowRendering: true },true)
-                  });
-                  selectedNodes = [];
+                  // selectedNodes.forEach(selectedNode => {
+                  //   selectedNode.state.selected = false
+                  //   tree.updateNode(selectedNode, {}, { shallowRendering: true },true)
+                  // });
+                  // selectedNodes = [];
+                  return
                 }
                 else{
                   if(this.props.cont){
@@ -846,11 +855,13 @@ class Contents extends React.Component {
             } else if (event.keyCode === 38) { // Up
               const prevNode = tree.nodes[nodeIndex - 1] || node;
               tree.selectNode(prevNode);
+              selectedNodes.splice(0,selectedNodes.length,prevNode)
             } else if (event.keyCode === 39) { // Right
               tree.openNode(node);
             } else if (event.keyCode === 40) { // Down
               const nextNode = tree.nodes[nodeIndex + 1] || node;
               tree.selectNode(nextNode);
+              selectedNodes.splice(0,selectedNodes.length,nextNode)
             }
           }}
           // onContentWillUpdate={() => {
