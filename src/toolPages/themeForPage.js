@@ -30,7 +30,8 @@ export default function setTheme(page){
     if(page == 'themeTopPage' && data.focusLocationBar === false){
       const s = document.createElement('style')
       s.setAttribute('type', 'text/css')
-      s.appendChild(document.createTextNode('.ui.big.icon.input{display: none}'))
+      s.appendChild(document.createTextNode(`.ui.big.icon.input{display: none}
+      .ui.cards{padding-top: 25px;}`))
       document.head.appendChild(s)
     }
   })

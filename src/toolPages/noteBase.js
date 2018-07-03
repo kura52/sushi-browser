@@ -276,6 +276,7 @@ export default class App extends React.Component {
             })
             if(currentNode) break
           }
+          this.firstContent = true
           iTree.props.onClick({ctrlKey:true, currentNode, stopPropagation:()=>{}})
         })
       }
@@ -308,7 +309,13 @@ export default class App extends React.Component {
   async handleClickFile(nextNode){
     this.setHidden(false)
     this.currentNode = nextNode
-    this.state.editor.setValue(nextNode.title)
+    if(this.firstContent){
+      this.firstContent = false
+      this.state.editor.setHtml(nextNode.title,false)
+    }
+    else{
+      this.state.editor.setValue(nextNode.title,false)
+    }
   }
 
   setHeight(height){
@@ -362,6 +369,7 @@ export default class App extends React.Component {
         minHeight: '0px',
         language: navigator.languages[0].slice(0,2),
         exts: ['chart', 'scrollSync', 'table', 'uml', 'colorSyntax'],
+        useDefaultHTMLSanitizer: false,
         events: {
           load: this.handleLoad,
           change: this.handleChange,
@@ -692,10 +700,36 @@ class Contents extends React.Component {
         const isPage = cmd == "addBookmark"
         if(isPage){
           if(nodes[0].type == 'file' || forceFile){
-            insertFavorite2(this.getKey(nodes[0].getParent()),this.getKey(nodes[0]),{title:"",is_file:true}).then(_=>_)
+            insertFavorite2(this.getKey(nodes[0].getParent()),this.getKey(nodes[0]),{title:"",is_file:true}).then(async key=>{
+              this.eventUpdateDatas()
+              let currentNode
+              for(let i=0;i<100;i++){
+                await new Promise(r=>{
+                  setTimeout(_=>{
+                    currentNode = this.refs.iTree.tree.getNodeById(`/root/${key}`)
+                    r()
+                  },100)
+                })
+                if(currentNode) break
+              }
+              this.refs.iTree.props.onClick({ctrlKey:true, currentNode, stopPropagation:()=>{}})
+            })
           }
           else{
-            insertFavorite(this.getKey(nodes[0]),{title:"",is_file:true}).then(_=>_)
+            insertFavorite(this.getKey(nodes[0]),{title:"",is_file:true}).then(async key=>{
+              this.eventUpdateDatas()
+              let currentNode
+              for(let i=0;i<100;i++){
+                await new Promise(r=>{
+                  setTimeout(_=>{
+                    currentNode = this.refs.iTree.tree.getNodeById(`/root/${key}`)
+                    r()
+                  },100)
+                })
+                if(currentNode) break
+              }
+              this.refs.iTree.props.onClick({ctrlKey:true, currentNode, stopPropagation:()=>{}})
+            })
           }
           return
         }

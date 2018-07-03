@@ -158,9 +158,9 @@ ipcMain.on('clear-browsing-data', (event, targets, range)=>{
     }
     else if(range.clearType == 'range'){
       opt2 = { updated_at: (
-          range.clearStart === void 0 ? { $lte: Date.parse(`${range.clearEnd} 00:00:00`) } :
+          range.clearStart === void 0 ? { $lte: Date.parse(`${range.clearEnd} 00:00:00`) + 24 * 60 * 60 * 1000 } :
             range.clearEnd === void 0 ? { $gte: Date.parse(`${range.clearStart} 00:00:00`) } :
-              { $gte: Date.parse(`${range.clearEnd} 00:00:00`), $lte: Date.parse(`${range.clearStart} 00:00:00`) }
+              { $gte: Date.parse(`${range.clearStart} 00:00:00`), $lte: Date.parse(`${range.clearEnd} 00:00:00`) + 24 * 60 * 60 * 1000 }
         )}
     }
   }

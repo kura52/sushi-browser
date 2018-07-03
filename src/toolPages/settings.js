@@ -523,7 +523,7 @@ class GeneralSetting extends React.Component {
     super(props)
     this.state = generalDefault
     this.clear = []
-    this.clearRange = {clearType: 'all', clearDays: 30, clearStart: this.today(),clearEnd:this.today(1)}
+    this.clearRange = {clearType: 'all', clearDays: 30, clearStart: this.today(-1),clearEnd:this.today()}
     this.imports = []
     this.exports = []
   }

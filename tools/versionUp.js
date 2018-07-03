@@ -28,19 +28,26 @@ const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
 const NEXT_APP_VERSION = "0.19.1"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `
-Updated to Muon 7.1.1.
+const CHANGE_ENGLISH = `Added function to add selected text (HTML) to Note.
+Added Note function to tool page.
+Improved to be able to set the range for deleting data.
+Added deletion function to history page.
+Added function to display Tor process progress in the location bar.
+Improved to restore active tab when session is restored.
+Added option of Show Focus Location Bar of Top Page.
+Updated to Muon 7.1.4.
+Fixed bug that chrome extension setting disappears when changing file location.
+Fixed display defect of multi panel function.
 Fixed a lot of bugs.`
 
 const CHANGE_JAPANESE = `選択したテキスト(HTML)をNoteへ追加する機能を追加
 Note機能をツールページに追加
-ブラウザ終了時にデータを削除する期間を設定できるように改善
+データを削除の設定に期間を設定できるよう改善
 履歴ページに履歴の削除機能を追加
 Torプロセスの進捗状況をロケーションバーに表示するよう改善
 セッションの復帰時にアクティブタブを復元するよう改善
 Show Focus Location Bar of Top Pageのオプションを追加
 Muonを7.1.4に更新
-youtube-dlを2018.06.25に更新
 ロケーションを変更するとchrome拡張の設定が消える不具合を修正
 マルチパネル機能の表示不具合を修正
 多数の不具合修正`
