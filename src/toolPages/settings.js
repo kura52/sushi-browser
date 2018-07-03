@@ -523,10 +523,16 @@ class GeneralSetting extends React.Component {
     super(props)
     this.state = generalDefault
     this.clear = []
+    this.clearRange = {clearType: 'all', clearDays: 30, clearStart: this.today(),clearEnd:this.today(1)}
     this.imports = []
     this.exports = []
   }
 
+
+  today(add=0){
+    const now = new Date()
+    return `${now.getFullYear()}-${("0"+(now.getMonth()+1+add)).slice(-2)}-${("0"+now.getDate()).slice(-2)}`
+  }
 
   onChange(name,e,data){
     ipc.send('save-state',{tableName:'state',key:name,val:data.value || data.checked})
@@ -537,6 +543,11 @@ class GeneralSetting extends React.Component {
       this.clear.push(name)
     else
       this.clear = this.clear.filter(x=> x !== name)
+    this.setState({})
+  }
+
+  onChangeClear(name,e,data){
+    this.clearRange[name] = data.value || data.checked
     this.setState({})
   }
 
@@ -560,11 +571,6 @@ class GeneralSetting extends React.Component {
   handleChangeRadio(clearType){
     ipc.send('save-state',{tableName:'state',key:'clearType',val:clearType})
     this.setState({clearType})
-  }
-
-  today(){
-    const now = new Date()
-    return `${now.getFullYear()}-${("0"+(now.getMonth()+1)).slice(-2)}-${("0"+now.getDate()).slice(-2)}`
   }
 
   render() {
@@ -718,9 +724,40 @@ class GeneralSetting extends React.Component {
 
         <div className="field">
           <label>{l10n.translation('8026334261755873520')}</label>
+          <div className="panel-column">
+            <div className="field">
+              <div className="ui radio checkbox" onClick={e=>this.onChangeClear('clearType',e,{value: 'all'})}>
+                <input type="radio" className="hidden" readOnly tabIndex={0} value="all" checked={this.clearRange.clearType == 'all'}/>
+                <label className="right-pad">All Data</label>
+              </div>
+              <br/>
 
+              <div className="ui radio checkbox" onClick={e=>this.onChangeClear('clearType',e,{value: 'before'})}>
+                <input type="radio" className="hidden" readOnly tabIndex={0} value="before" checked={this.clearRange.clearType == 'before'}/>
+                <label className="right-pad">Clear Data greater than</label>
+                <div className="ui input date" style={{paddingBottom: 8, paddingTop: 10}}>
+                  <input type="text" onChange={e=>this.onChangeClear('clearDays',e,e.target)} defaultValue={this.clearRange.clearDays}/>
+                </div>
+                <span style={{paddingLeft: 24}}>days ago from now</span>
+              </div>
+              <br/>
+
+              <div className="ui radio checkbox" onClick={e=>this.onChangeClear('clearType',e,{value: 'range'})}>
+                <input type="radio" className="hidden" readOnly tabIndex={0} value="range" checked={this.clearRange.clearType == 'range'}/>
+                <label className="right-pad">Range:</label>
+
+                <div className="ui input date">
+                  <input type="date" onChange={e=>this.onChangeClear('clearStart',e,e.target)} defaultValue={this.clearRange.clearStart}/>
+                </div>
+                &nbsp;〜&nbsp;
+                <div className="ui input date">
+                  <input type="date" onChange={e=>this.onChangeClear('clearEnd',e,e.target)} defaultValue={this.clearRange.clearEnd}/>
+                </div>
+              </div>
+            </div>
+          </div>
           <Checkbox toggle onChange={this.onChange2.bind(this,'clearGeneralSettings')}/>
-          <span className="toggle-label">{l10n.translation('generalSettings')}</span>
+          <span className="toggle-label">{l10n.translation('generalSettings')}&nbsp;(Clear All Data)</span>
           <br/>
           <Checkbox toggle onChange={this.onChange2.bind(this,'clearFavorite')}/>
           <span className="toggle-label">{l10n.translation('bookmarks')}</span>
@@ -744,24 +781,23 @@ class GeneralSetting extends React.Component {
           <span className="toggle-label">Note</span>
           <br/>
           <Checkbox toggle onChange={this.onChange2.bind(this,'clearCache')}/>
-          <span className="toggle-label">{l10n.translation('cachedImagesAndFiles')}</span>
+          <span className="toggle-label">{l10n.translation('cachedImagesAndFiles')}&nbsp;(Clear All Data)</span>
           <br/>
           <Checkbox toggle onChange={this.onChange2.bind(this,'clearStorageData')}/>
-          <span className="toggle-label">{l10n.translation('allSiteCookies')}</span>
+          <span className="toggle-label">{l10n.translation('allSiteCookies')}&nbsp;(Clear All Data)</span>
           <br/>
           <Checkbox toggle onChange={this.onChange2.bind(this,'clearAutocompleteData')}/>
-          <span className="toggle-label">{l10n.translation('autocompleteData')}</span>
+          <span className="toggle-label">{l10n.translation('autocompleteData')}&nbsp;(Clear All Data)</span>
           <br/>
           <Checkbox toggle onChange={this.onChange2.bind(this,'clearAutofillData')}/>
-          <span className="toggle-label">{l10n.translation('autofillData')}</span>
+          <span className="toggle-label">{l10n.translation('autofillData')}&nbsp;(Clear All Data)</span>
           <br/>
           <Checkbox toggle onChange={this.onChange2.bind(this,'clearPassword')}/>
-          <span className="toggle-label">{l10n.translation('1375321115329958930')}</span>
+          <span className="toggle-label">{l10n.translation('1375321115329958930')}&nbsp;(Clear All Data)</span>
           <br/>
-          <Button disabled={!this.clear.length} primary content={l10n.translation('clearBrowsingDataNow')} onClick={_=>ipc.send("clear-browsing-data",this.clear)}/>
+          <Button disabled={!this.clear.length} primary content={l10n.translation('clearBrowsingDataNow')} onClick={_=>ipc.send("clear-browsing-data",this.clear,this.clearRange)}/>
         </div>
         <br/>
-
 
         <div className="field">
           <label>{l10n.translation('privateDataMessage').replace("Brave","Sushi Browser")}</label>
@@ -777,24 +813,12 @@ class GeneralSetting extends React.Component {
                 <input type="radio" className="hidden" readOnly tabIndex={0} value="before" checked={this.state.clearType == 'before'}/>
                 <label className="right-pad">Clear Data greater than</label>
                 <div className="ui input date" style={{paddingBottom: 8, paddingTop: 10}}>
-                  <input type="text" onChange={this.onChange.bind(this,'clearDays')} defaultValue={this.state.clearDays}/>
+                  <input type="text" onChange={e=>this.onChange('clearDays',e,e.target)} defaultValue={this.state.clearDays}/>
                 </div>
-                <span style={{paddingLeft: 5}}>days ago from now</span>
+                <span style={{paddingLeft: 24}}>days ago from now</span>
               </div>
               <br/>
 
-              <div className="ui radio checkbox" onClick={e=>this.handleChangeRadio('range')}>
-                <input type="radio" className="hidden" readOnly tabIndex={0} value="range" checked={this.state.clearType == 'range'}/>
-                <label className="right-pad">Range:</label>
-
-                <div className="ui input date">
-                  <input type="date" onChange={this.onChange.bind(this,'clearStart')} defaultValue={this.state.clearStart}/>
-                </div>
-                &nbsp;〜&nbsp;
-                <div className="ui input date">
-                  <input type="date" onChange={this.onChange.bind(this,'clearEnd')} defaultValue={this.state.clearEnd}/>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -2450,7 +2474,7 @@ ipc.send("get-main-state",key,['startsWith','newTabMode','myHomepage','searchPro
   'defaultDownloadPath','alwaysOpenLinkNewTab','openTabPosition','alwaysOpenLinkBackground','addressBarNewTab','oppositeGlobal','colorNormalText','colorNormalBackground','colorActiveText',
   'colorActiveBackground','colorTabDot','colorUnreadText','colorUnreadBackground','enableColorOfNoSelect','themeColorChange','showBorderActiveTab','historyBadget','colorTabMode','enableDownloadList','focusLocationBar',
   'clearHistoryOnClose','clearDownloadOnClose','clearCacheOnClose','clearStorageDataOnClose','clearAutocompleteDataOnClose','clearAutofillDataOnClose','clearPasswordOnClose','clearGeneralSettingsOnClose','clearFavoriteOnClose',
-  'clearSessionManagerOnClose','clearFaviconOnClose','clearAutomationOnClose','clearNoteOnClose','clearType','clearDays','clearStart','clearEnd',
+  'clearSessionManagerOnClose','clearFaviconOnClose','clearAutomationOnClose','clearNoteOnClose','clearType','clearDays',
   'enableWidevine','toolbarLink','sidebarLink','bookmarkbarLink','zoomBehavior','tabPreviewSizeWidth','tabPreviewSizeHeight','tabPreviewSlideHeight','tabPreviewWait','searchEngineDisplayType','tabPreviewRecent',
   'sendUrlContextMenus','extensions','tabBarMarginTop','removeTabBarMarginTop','enableTheme','themeTopPage','themeBookmark','themeHistory','themeDownloader','themeExplorer','themeBookmarkSidebar','themeHistorySidebar',
   'themeSessionManagerSidebar','themeTabTrashSidebar','themeTabHistorySidebar','themeExplorerSidebar'])

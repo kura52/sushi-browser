@@ -130,7 +130,6 @@ db.automationOrder = new Datastore({filename: path.join(resourcePath,'automation
   await db.savedState.ensureIndex({ fieldName: 'created_at' })
   await db.favicon.ensureIndex({ fieldName: 'url' })
   await db.image.ensureIndex({ fieldName: 'url' })
-  await db.savedState.ensureIndex({ fieldName: 'created_at' })
   await db.windowState.ensureIndex({ fieldName: 'key' })
   await db.automation.ensureIndex({ fieldName: 'key' })
 

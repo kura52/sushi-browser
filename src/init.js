@@ -260,13 +260,6 @@ async function clearDatas(){
     if(mainState.clearType == 'before'){
       opt2 = { updated_at: { $lte: Date.now() - parseInt(mainState.clearDays) * 24 * 60 * 60 * 1000 }}
     }
-    else if(mainState.clearType == 'range'){
-      opt2 = { updated_at: (
-        mainState.clearStart === void 0 ? { $lte: Date.parse(`${mainState.clearEnd} 00:00:00`) } :
-          mainState.clearEnd === void 0 ? { $gte: Date.parse(`${mainState.clearStart} 00:00:00`) } :
-            { $gte: Date.parse(`${mainState.clearEnd} 00:00:00`), $lte: Date.parse(`${mainState.clearStart} 00:00:00`) }
-      )}
-    }
     const clearEvent = require('./clearEvent')
     await clearEvent(null,targets,void 0, opt2)
   }

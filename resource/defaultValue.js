@@ -102,8 +102,6 @@ const settingDefault =  {
   clearNoteOnClose: false,
   clearType: 'all',
   clearDays: 30,
-  clearStart: '2010-01-01',
-  clearEnd: '2020-01-01',
 
 
   //tab

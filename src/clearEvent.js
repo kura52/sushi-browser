@@ -10,25 +10,31 @@ import mainState from "./mainState";
 
 const m = {
   async clearHistory(ses,_,opt2){
+    let i = 0
     for(let table of [image,history,visit]){
-      await table.remove(opt2||{}, { multi: true })
+      const opt = (opt2 && i++==2) ? {created_at: opt2.updated_at} : opt2
+      await table.remove(opt||{}, { multi: true })
     }
     // ses.clearHistory()
 
-    const resourcePath = path.join(app.getPath('userData'),'resource')
-    const capturePath = path.join(resourcePath,'capture')
-    if (fs.existsSync(capturePath)) {
-      fs.readdir(capturePath, (err, list)=>{
-        for(let file of list){
-          fs.unlink(path.join(capturePath,file),_=>_)
-        }
-      })
+    if(!opt2){
+      const resourcePath = path.join(app.getPath('userData'),'resource')
+      const capturePath = path.join(resourcePath,'capture')
+      if (fs.existsSync(capturePath)) {
+        fs.readdir(capturePath, (err, list)=>{
+          for(let file of list){
+            fs.unlink(path.join(capturePath,file),_=>_)
+          }
+        })
+      }
     }
   },
 
   async clearSessionManager(ses,_,opt2){
+    let i = 0
     for(let table of [tabState,windowState,savedState]){
-      await table.remove(opt2||{}, { multi: true })
+      const opt = (opt2 && i++==2) ? {created_at: opt2.updated_at} : opt2
+      await table.remove(opt||{}, { multi: true })
     }
   },
 
@@ -51,8 +57,10 @@ const m = {
    },
 
   async clearDownload(ses,_,opt2){
+    let i = 0
     for(let table of [download,downloader]){
-      await table.remove(opt2||{}, { multi: true })
+      const opt = (opt2 &&  i++==1) ? {now: opt2.updated_at} : opt2
+      await table.remove(opt||{}, { multi: true })
     }
   },
 
@@ -135,12 +143,28 @@ const m = {
 }
 
 async function clearEvent(event, targets, opt, opt2){
-  console.log(targets)
+  console.log(2243,targets,opt2)
   for(let target of targets){
     await m[target](session.defaultSession, opt, opt2)
   }
 }
 
-ipcMain.on('clear-browsing-data', clearEvent)
+ipcMain.on('clear-browsing-data', (event, targets, range)=>{
+
+  let opt2
+  if(range){
+    if(range.clearType == 'before'){
+      opt2 = { updated_at: { $lte: Date.now() - parseInt(range.clearDays) * 24 * 60 * 60 * 1000 }}
+    }
+    else if(range.clearType == 'range'){
+      opt2 = { updated_at: (
+          range.clearStart === void 0 ? { $lte: Date.parse(`${range.clearEnd} 00:00:00`) } :
+            range.clearEnd === void 0 ? { $gte: Date.parse(`${range.clearStart} 00:00:00`) } :
+              { $gte: Date.parse(`${range.clearEnd} 00:00:00`), $lte: Date.parse(`${range.clearStart} 00:00:00`) }
+        )}
+    }
+  }
+  clearEvent(event, targets, void 0, opt2)
+})
 
 export default clearEvent
