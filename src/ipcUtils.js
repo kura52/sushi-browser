@@ -307,10 +307,10 @@ ipcMain.on('open-favorite',async (event,key,dbKeys,tabId,type,isNote)=>{
       await new Promise((resolve,reject)=>{
         setTimeout(_=>{
           if(tabId){
-            host.send("new-tab",tabId,url,type=='openInNewSessionTab' ? `persist:${seq()}` : type=='openInNewTorTab' ? 'persist:tor' : type=='openInNewPrivateTab' ? Math.random().toString() : false)
+            host.send("new-tab",tabId,url,type=='openInNewSessionTab' ? `persist:${seq()}` : type=='openInNewTorTab' ? 'persist:tor' : type=='openInNewPrivateTab' ? '0.01' : false)
           }
           else{
-            host.send("new-tab-opposite", event.sender.getId(),url,(void 0),type=='openInNewSessionTab' ? `persist:${seq()}` : type=='openInNewTorTab' ? 'persist:tor' : type=='openInNewPrivateTab' ? Math.random().toString() : false)
+            host.send("new-tab-opposite", event.sender.getId(),url,(void 0),type=='openInNewSessionTab' ? `persist:${seq()}` : type=='openInNewTorTab' ? 'persist:tor' : type=='openInNewPrivateTab' ? '0.01' : false)
           }
           resolve()
         },200)

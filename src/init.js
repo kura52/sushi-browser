@@ -688,7 +688,7 @@ ipcMain.on('init-private-mode',(e,key,partition)=>{
   httpsEverywhere(ses)
   trackingProtection(ses)
   extensions.loadAll(ses)
-  e.sender.send(`init-private-mode-reply_${key}`,1)
+  setTimeout(_=>e.sender.send(`init-private-mode-reply_${key}`,1),1000)
 })
 
 let explorerMenu,favoriteMenu,savedStateMenu,downloadMenu
