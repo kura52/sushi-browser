@@ -118,7 +118,7 @@ export default async function modify(extensionId,verPath){
     const infos = hjson.parse(manifestStr)
 
     if(!infos.key || infos.key.match(/[\-\.]/)){
-      infos.key = extensionId.match(/^[\da-z]+$/) ? extensionId : require('./base32').encode(extensionId)
+      infos.key = new Buffer(extensionId).toString('base64')
     }
 
     if(infos.permissions && infos.permissions.includes('activeTab')
