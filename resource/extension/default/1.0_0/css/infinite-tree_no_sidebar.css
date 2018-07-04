@@ -21,7 +21,7 @@
 .infinite-tree-content .infinite-tree-item {
   border: 1px solid transparent;
   cursor: default;
-  line-height: 1.2em;
+  line-height: 1.4em;
   white-space: nowrap;
 }
 .infinite-tree-content .infinite-tree-item:hover {
