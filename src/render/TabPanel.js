@@ -110,6 +110,7 @@ const convertUrlMap = new Map([
   ['chrome://settings#extensions','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extensions'],
 ])
 
+const firefoxAddonSite = 'https://addons.mozilla.org'
 const allSelectedkeys = sharedState.allSelectedkeys
 const refs2 = {}
 
@@ -1355,6 +1356,15 @@ export default class TabPanel extends Component {
       onLoadStart(e, page) {
         console.log('onLoadStart',e,Date.now() - ttime,Date.now())
         if (!self.mounted || !e.isMainFrame) return
+
+        if(e.url.startsWith(firefoxAddonSite)){
+          const ua = navigator.userAgent.includes('Windows') ? 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:61.0) Gecko/20100101 Firefox/61.0' :
+            navigator.userAgent.includes('Mac OS X') ? 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:61.0) Gecko/20100101 Firefox/61.0' :
+              'Mozilla/5.0 (X11; Linux i686; rv:61.0) Gecko/20100101 Firefox/61.0'
+          ipc.send('user-agent-change',{tabId:tab.wvId,ua,domain: firefoxAddonSite})
+          if(!tab.firefoxAddon) self.navigateTo(tab.page, e.url, tab)
+          tab.firefoxAddon = true
+        }
 
         PubSub.publishSync(`on-load-start_${tab.key}`,e.url)
         ipc.send('chrome-webNavigation-onBeforeNavigate',{

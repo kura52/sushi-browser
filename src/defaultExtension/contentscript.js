@@ -37,20 +37,14 @@ if(window.__started_){
       }
       else if(location.href.match(/^https:\/\/addons\.mozilla\.org\/.+?\/firefox/) && !document.querySelector('.Badge.Badge-not-compatible')){
         let url
+        const func = _=>ipc.send('add-extension',{url})
         setInterval(_=>{
-          const b = document.querySelector('.Button--confirm.Button--puffy')
+          const b = document.querySelector('.Button--action.Button--puffy:not(.Button--disabled)')
           if(!b) return
-          b.classList.remove('Button--confirm')
-          b.classList.add('InstallButton-button')
-          b.classList.add('Button--action')
+          if(b.href != 'javascript:void(0)') url = b.href
+
           b.innerText = 'Add to Sushi'
-
-          const isDarwin = navigator.userAgent.includes('Mac OS X')
-          const isWin = navigator.userAgent.includes('Windows')
-          const files = Object.values(JSON.parse(document.querySelector('#redux-store-state').textContent).addons.byID)[0].platformFiles
-          const url = (files['all'] || files[isWin ? 'windows' : isDarwin ? 'mac' : 'linux']).url + 'dp-btn-primary'
-
-          b.addEventListener('click',_=>ipc.send('add-extension',{url}))
+          b.addEventListener('click',func)
           b.href = 'javascript:void(0)'
         },1000)
       }

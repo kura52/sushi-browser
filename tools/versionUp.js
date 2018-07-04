@@ -25,34 +25,14 @@ const glob = require("glob")
 const BEFORE_CODE_NAME = 'Engawa(Flounder Fin)'
 const CODE_NAME = 'Engawa(Flounder Fin)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.19.1"
+const NEXT_APP_VERSION = "0.19.2"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Added function to add selected text (HTML) to Note.
-Added Note function to tool page.
-Improved to be able to set the range for deleting data.
-Added deletion function to history page.
-Added function to display Tor process progress in the location bar.
-Improved to restore active tab when session is restored.
-Added option of Show Focus Location Bar of Top Page.
-Updated to Muon 7.1.4.
-Fixed bug that chrome extension setting disappears when changing file location.
-Fixed display defect of multi panel function.
-Fixed Tor tab's webrtc leak.
-Fixed a lot of bugs.`
+const CHANGE_ENGLISH = `Fixed WebExtension function bug.
+Updated to youtube-dl 2018.07.04.`
 
-const CHANGE_JAPANESE = `選択したテキスト(HTML)をNoteへ追加する機能を追加
-Note機能をツールページに追加
-データを削除の設定に期間を設定できるよう改善
-履歴ページに履歴の削除機能を追加
-Torプロセスの進捗状況をロケーションバーに表示するよう改善
-セッションの復帰時にアクティブタブを復元するよう改善
-Show Focus Location Bar of Top Pageのオプションを追加
-Muonを7.1.4に更新
-ロケーションを変更するとchrome拡張の設定が消える不具合を修正
-マルチパネル機能の表示不具合を修正
-Torタブのwebrtc leakを修正
-多数の不具合修正`
+const CHANGE_JAPANESE = `WebExtensionに対する処理のバグを修正
+youtube-dlを2018.07.04に更新`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'
