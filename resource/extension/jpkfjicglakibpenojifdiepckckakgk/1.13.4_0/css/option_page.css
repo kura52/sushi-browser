@@ -116,8 +116,8 @@ section > div > fieldset {
 }
 
 optgroup {
-  background: #333333;
-  color: #ffffff;
+  /*background: #333333;*/
+  /*color: #ffffff;*/
 }
 
 optgroup > option {

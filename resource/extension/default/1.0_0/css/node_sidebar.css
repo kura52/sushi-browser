@@ -89,3 +89,12 @@ body{
     top: 0px;
     height:calc(100vh - 68px);
 }
+
+.save-text{
+    font-size: 11px;
+    left: 142px;
+    margin-top: 12px;
+    opacity: 0.8;
+    pointer-events: none;
+    position: absolute;
+}

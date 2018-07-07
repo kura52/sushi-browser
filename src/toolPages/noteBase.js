@@ -13,6 +13,7 @@ import escapeHTML from 'escape-html'
 import Selection from '../render/react-selection/index'
 import ToolbarResizer from '../render/ToolbarResizer'
 import VerticalTabResizer from '../render/VerticalTabResizer'
+import removeMarkdown from './removeMarkdown'
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
 
 require('tui-editor/dist/tui-editor-extChart');
@@ -513,6 +514,14 @@ export default class App extends React.Component {
                     ipc.send('save-file',{content:this.state.editor.getMarkdown(), fname: 'note.txt', isDesktop: true})
                   }
                 }}/>
+                <Button icon='save' onClick={_=>{
+                  if(selectedNodes.length && selectedNodes[0].type == 'file'){
+                    ipc.send('save-file',{content:removeMarkdown(this.state.editor.getMarkdown()), fname: 'note.txt', isDesktop: true})
+                  }
+                }}/>
+                <div className='save-text'>Text</div>
+
+
               </Button.Group>
             </div>
           </div>
@@ -545,6 +554,11 @@ export default class App extends React.Component {
                         ipc.send('save-file',{content:this.state.editor.getMarkdown(), fname: 'note.txt', isDesktop: true})
                       }
                     }} content="Save"/>
+                    <Button icon='save' onClick={_=>{
+                      if(selectedNodes.length && selectedNodes[0].type == 'file'){
+                        ipc.send('save-file',{content:removeMarkdown(this.state.editor.getMarkdown()), fname: 'note.txt', isDesktop: true})
+                      }
+                    }} content="Save As Text"/>
                   </Button.Group>
                 </Menu.Item>
                 <Menu.Item>
@@ -552,9 +566,7 @@ export default class App extends React.Component {
                 </Menu.Item>
               </Menu.Menu>
               <Menu.Item as='a' href={`chrome://newtab/`} key="top" name="Top" style={{
-                borderLeft: "2px solid rgba(34,36,38,.15)",
-                marginLeft: 20,
-                paddingLeft: 30
+                borderLeft: "2px solid rgba(34,36,38,.15)"
               }}/>
               <Menu.Item as='a' href={`chrome://bookmarks/`} key="favorite" name={l10n.translation('bookmarks')}/>
               <Menu.Item as='a' href={`chrome://history/`} key="history" name={l10n.translation('history')}/>

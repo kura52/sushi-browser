@@ -31,11 +31,20 @@ const m = {
   },
 
   async clearSessionManager(ses,_,opt2){
-    let i = 0
-    for(let table of [tabState,windowState,savedState]){
-      const opt = (opt2 && i++==2) ? {created_at: opt2.updated_at} : opt2
-      await table.remove(opt||{}, { multi: true })
-    }
+    const optBack = {user: true}
+    const userSavedState = await savedState.find(optBack)
+    const arr = JSON.stringify(userSavedState).match(/"tabKey":"(.+?)"/g)
+    ;(arr || []).map(x=>x.slice(10,-1))
+    const userSavedTabState = await tabState.find({tabKey: {$in: arr}})
+
+    await tabState.remove(opt2||{}, { multi: true })
+    await tabState.remove({tabKey: {$in: userSavedTabState.map(r=>r.tabKey)}}, { multi: true })
+    await tabState.insert(userSavedTabState)
+
+    await windowState.remove(opt2||{}, { multi: true })
+
+    const opt = opt2 ? {user: {$ne: true}, created_at: opt2.updated_at} : {user: {$ne: true}}
+    await savedState.remove(opt||{}, { multi: true })
   },
 
   async clearFavicon(ses,_,opt2){
@@ -139,6 +148,8 @@ const m = {
     await favorite.remove(opt2||{}, { multi: true })
     if(!(await favorite.findOne({_id:"zplOMCoNb1BzCt15"})))
       await favorite.insert({"is_file":false,"title":"root","updated_at":1497713000000,"children":[],"key":"root","_id":"zplOMCoNb1BzCt15"})
+
+    await savedState.remove(opt2 ? {user: true, created_at: opt2.updated_at} : {user: true}, { multi: true })
   }
 }
 

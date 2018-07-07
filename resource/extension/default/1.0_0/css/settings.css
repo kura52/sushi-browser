@@ -51,7 +51,8 @@ td>.ui.dropdown.type>.text {
 }
 
 .ui.visible.thin.left.sidebar~.pusher {
-    min-height: calc(100vh - 70px);
+    height: calc(100vh - 58px);
+    overflow-y: auto;
 }
 
 .toggle-label{

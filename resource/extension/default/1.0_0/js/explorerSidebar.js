@@ -13530,8 +13530,8 @@ function normalizeArray(parts, allowAboveRoot) {
 
 // Split a filename into [root, dir, basename, ext], unix version
 // 'root' is just a slash, or nothing.
-var splitPathRe = navigator.userAgent.includes('Windows') ? /^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/\\]+?|)(\.[^.\/\\]*|))(?:[\/\\]*)$/ :
-    /^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/]+?|)(\.[^.\/]*|))(?:[\/]*)$/;
+var splitPathRe =
+  /^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/\\]+?|)(\.[^.\/\\]*|))(?:[\/\\]*)$/;
 var splitPath = function(filename) {
   return splitPathRe.exec(filename).slice(1);
 };
@@ -32781,7 +32781,7 @@ StatisticValue.propTypes =  false ? {
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-const mapValuesByKeys = __webpack_require__(876).mapValuesByKeys;
+const mapValuesByKeys = __webpack_require__(879).mapValuesByKeys;
 
 const _ = null;
 
@@ -32941,7 +32941,7 @@ module.exports = mapValuesByKeys(messages);
  * Expose `debug()` as the module.
  */
 
-exports = module.exports = __webpack_require__(877);
+exports = module.exports = __webpack_require__(880);
 exports.log = log;
 exports.formatArgs = formatArgs;
 exports.save = save;
@@ -33162,7 +33162,7 @@ window.debug = __webpack_require__(437)('info');
 ;(async () => {
   const homePath = await (0, _explorer.getHome)();
 
-  __webpack_require__(879)('themeExplorerSidebar');
+  __webpack_require__(882)('themeExplorerSidebar');
 
   _infernoCompat2.default.render(_infernoCompat2.default.createElement(_explorer.FileExplorer, { items: [{
       name: _path2.default.basename(homePath),
@@ -35886,8 +35886,9 @@ class FileExplorer extends _infernoCompat2.default.Component {
         _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `chrome://bookmarks/`, key: 'favorite', name: _l10n2.default.translation('bookmarks') }),
         _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `chrome://history/`, key: 'history', name: _l10n2.default.translation('history') }),
         _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/download.html`, key: 'download', name: _l10n2.default.translation('downloads') }),
-        _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/terminal.html`, key: 'terminal', name: 'Terminal' }),
+        _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/note.html`, key: 'note', name: 'Note' }),
         _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/settings.html`, key: 'settings', name: _l10n2.default.translation('settings') }),
+        _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/terminal.html`, key: 'terminal', name: 'Terminal' }),
         _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/automation.html`, key: 'automation', name: 'Automation' }),
         _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/converter.html`, key: 'converter', name: 'Video Converter' })
       );
@@ -39796,7 +39797,7 @@ module.exports.makeKey = makeKey
 /* 492 */
 /***/ (function(module, exports) {
 
-module.exports = {"_args":[[{"raw":"elliptic@^6.0.0","scope":null,"escapedName":"elliptic","name":"elliptic","rawSpec":"^6.0.0","spec":">=6.0.0 <7.0.0","type":"range"},"/home/kura52/RubymineProjects/sushi-browser/node_modules/browserify-sign"]],"_from":"elliptic@>=6.0.0 <7.0.0","_id":"elliptic@6.4.0","_inCache":true,"_location":"/elliptic","_nodeVersion":"7.0.0","_npmOperationalInternal":{"host":"packages-18-east.internal.npmjs.com","tmp":"tmp/elliptic-6.4.0.tgz_1487798866428_0.30510620190761983"},"_npmUser":{"name":"indutny","email":"fedor@indutny.com"},"_npmVersion":"3.10.8","_phantomChildren":{},"_requested":{"raw":"elliptic@^6.0.0","scope":null,"escapedName":"elliptic","name":"elliptic","rawSpec":"^6.0.0","spec":">=6.0.0 <7.0.0","type":"range"},"_requiredBy":["/browserify-sign","/create-ecdh"],"_resolved":"https://registry.npmjs.org/elliptic/-/elliptic-6.4.0.tgz","_shasum":"cac9af8762c85836187003c8dfe193e5e2eae5df","_shrinkwrap":null,"_spec":"elliptic@^6.0.0","_where":"/home/kura52/RubymineProjects/sushi-browser/node_modules/browserify-sign","author":{"name":"Fedor Indutny","email":"fedor@indutny.com"},"bugs":{"url":"https://github.com/indutny/elliptic/issues"},"dependencies":{"bn.js":"^4.4.0","brorand":"^1.0.1","hash.js":"^1.0.0","hmac-drbg":"^1.0.0","inherits":"^2.0.1","minimalistic-assert":"^1.0.0","minimalistic-crypto-utils":"^1.0.0"},"description":"EC cryptography","devDependencies":{"brfs":"^1.4.3","coveralls":"^2.11.3","grunt":"^0.4.5","grunt-browserify":"^5.0.0","grunt-cli":"^1.2.0","grunt-contrib-connect":"^1.0.0","grunt-contrib-copy":"^1.0.0","grunt-contrib-uglify":"^1.0.1","grunt-mocha-istanbul":"^3.0.1","grunt-saucelabs":"^8.6.2","istanbul":"^0.4.2","jscs":"^2.9.0","jshint":"^2.6.0","mocha":"^2.1.0"},"directories":{},"dist":{"shasum":"cac9af8762c85836187003c8dfe193e5e2eae5df","tarball":"https://registry.npmjs.org/elliptic/-/elliptic-6.4.0.tgz"},"files":["lib"],"gitHead":"6b0d2b76caae91471649c8e21f0b1d3ba0f96090","homepage":"https://github.com/indutny/elliptic","keywords":["EC","Elliptic","curve","Cryptography"],"license":"MIT","main":"lib/elliptic.js","maintainers":[{"name":"indutny","email":"fedor@indutny.com"}],"name":"elliptic","optionalDependencies":{},"readme":"ERROR: No README data found!","repository":{"type":"git","url":"git+ssh://git@github.com/indutny/elliptic.git"},"scripts":{"jscs":"jscs benchmarks/*.js lib/*.js lib/**/*.js lib/**/**/*.js test/index.js","jshint":"jscs benchmarks/*.js lib/*.js lib/**/*.js lib/**/**/*.js test/index.js","lint":"npm run jscs && npm run jshint","test":"npm run lint && npm run unit","unit":"istanbul test _mocha --reporter=spec test/index.js","version":"grunt dist && git add dist/"},"version":"6.4.0"}
+module.exports = {"_args":[[{"raw":"elliptic@^6.0.0","scope":null,"escapedName":"elliptic","name":"elliptic","rawSpec":"^6.0.0","spec":">=6.0.0 <7.0.0","type":"range"},"C:\\Users\\kura\\RubymineProjects\\sushi-browser\\node_modules\\browserify-sign"]],"_from":"elliptic@>=6.0.0 <7.0.0","_id":"elliptic@6.4.0","_inCache":true,"_location":"/elliptic","_nodeVersion":"7.0.0","_npmOperationalInternal":{"host":"packages-18-east.internal.npmjs.com","tmp":"tmp/elliptic-6.4.0.tgz_1487798866428_0.30510620190761983"},"_npmUser":{"name":"indutny","email":"fedor@indutny.com"},"_npmVersion":"3.10.8","_phantomChildren":{},"_requested":{"raw":"elliptic@^6.0.0","scope":null,"escapedName":"elliptic","name":"elliptic","rawSpec":"^6.0.0","spec":">=6.0.0 <7.0.0","type":"range"},"_requiredBy":["/browserify-sign","/create-ecdh"],"_resolved":"https://registry.npmjs.org/elliptic/-/elliptic-6.4.0.tgz","_shasum":"cac9af8762c85836187003c8dfe193e5e2eae5df","_shrinkwrap":null,"_spec":"elliptic@^6.0.0","_where":"C:\\Users\\kura\\RubymineProjects\\sushi-browser\\node_modules\\browserify-sign","author":{"name":"Fedor Indutny","email":"fedor@indutny.com"},"bugs":{"url":"https://github.com/indutny/elliptic/issues"},"dependencies":{"bn.js":"^4.4.0","brorand":"^1.0.1","hash.js":"^1.0.0","hmac-drbg":"^1.0.0","inherits":"^2.0.1","minimalistic-assert":"^1.0.0","minimalistic-crypto-utils":"^1.0.0"},"description":"EC cryptography","devDependencies":{"brfs":"^1.4.3","coveralls":"^2.11.3","grunt":"^0.4.5","grunt-browserify":"^5.0.0","grunt-cli":"^1.2.0","grunt-contrib-connect":"^1.0.0","grunt-contrib-copy":"^1.0.0","grunt-contrib-uglify":"^1.0.1","grunt-mocha-istanbul":"^3.0.1","grunt-saucelabs":"^8.6.2","istanbul":"^0.4.2","jscs":"^2.9.0","jshint":"^2.6.0","mocha":"^2.1.0"},"directories":{},"dist":{"shasum":"cac9af8762c85836187003c8dfe193e5e2eae5df","tarball":"https://registry.npmjs.org/elliptic/-/elliptic-6.4.0.tgz"},"files":["lib"],"gitHead":"6b0d2b76caae91471649c8e21f0b1d3ba0f96090","homepage":"https://github.com/indutny/elliptic","keywords":["EC","Elliptic","curve","Cryptography"],"license":"MIT","main":"lib/elliptic.js","maintainers":[{"name":"indutny","email":"fedor@indutny.com"}],"name":"elliptic","optionalDependencies":{},"readme":"ERROR: No README data found!","repository":{"type":"git","url":"git+ssh://git@github.com/indutny/elliptic.git"},"scripts":{"jscs":"jscs benchmarks/*.js lib/*.js lib/**/*.js lib/**/**/*.js test/index.js","jshint":"jscs benchmarks/*.js lib/*.js lib/**/*.js lib/**/**/*.js test/index.js","lint":"npm run jscs && npm run jshint","test":"npm run lint && npm run unit","unit":"istanbul test _mocha --reporter=spec test/index.js","version":"grunt dist && git add dist/"},"version":"6.4.0"}
 
 /***/ }),
 /* 493 */
@@ -46287,7 +46288,7 @@ class Selection extends _infernoCompat2.default.Component {
           props = _objectWithoutProperties(_props, ['children', 'target']);
     return _infernoCompat2.default.createElement(
       'div',
-      _extends({}, props, { className: 'react-selection', onMouseDown: this.mousedown }),
+      _extends({}, props, { className: 'react-selection', onMouseDown: this.mousedown, style: this.props.style }),
       children,
       _infernoCompat2.default.createElement('div', { ref: 'rect', className: 'react-selection-rectangle' })
     );
@@ -46298,7 +46299,8 @@ Selection.propTypes = {
   target: _infernoCompat.PropTypes.string.isRequired,
   selectedClass: _infernoCompat.PropTypes.string,
   afterSelect: _infernoCompat.PropTypes.func,
-  isLimit: _infernoCompat.PropTypes.bool
+  isLimit: _infernoCompat.PropTypes.bool,
+  style: _infernoCompat.PropTypes.object
 };
 Selection.defaultProps = {
   target: '.react-selection-target',
@@ -57004,7 +57006,7 @@ function getElementType(Component, props, getDefault) {
   // ----------------------------------------
   // user defined "as" element type
 
-  if (props.as && props.as !== (defaultProps && (defaultProps && defaultProps.as))) return props.as;
+  if (props.as && props.as !== (defaultProps && defaultProps.as)) return props.as;
 
   // ----------------------------------------
   // computed default element type
@@ -57022,7 +57024,7 @@ function getElementType(Component, props, getDefault) {
   // ----------------------------------------
   // use defaultProp or 'div'
 
-  return (defaultProps && (defaultProps && defaultProps.as)) || 'div';
+  return (defaultProps && defaultProps.as) || 'div';
 }
 
 /* harmony default export */ __webpack_exports__["a"] = (getElementType);
@@ -66202,9 +66204,9 @@ var Search = function (_Component) {
           noResultsMessage
         ),
         noResultsDescription && __WEBPACK_IMPORTED_MODULE_19_inferno_compat__["default"].createElement(
-        'div',
-        { className: 'description' },
-        noResultsDescription
+          'div',
+          { className: 'description' },
+          noResultsDescription
         )
       );
     }, _this.renderResult = function (_ref3, index, _array) {
@@ -67900,7 +67902,7 @@ const { LANGUAGE, REQUEST_LANGUAGE } = __webpack_require__(436);
 
 // Exhaustive list of identifiers used by top and context menus
 var rendererIdentifiers = function () {
-  return ['downloadsManager', 'confirmClearPasswords', 'passwordCopied', 'flashInstalled', 'goToPrefs', 'goToAdobe', 'allowFlashPlayer', 'allowWidevine', 'about', 'aboutApp', 'quit', 'quitApp', 'addToReadingList', 'viewPageSource', 'copyImageAddress', 'openImageInNewTab', 'saveImage', 'copyImage', 'searchImage', 'copyLinkAddress', 'copyEmailAddress', 'saveLinkAs', 'allowFlashOnce', 'allowFlashAlways', 'openFlashPreferences', 'openInNewWindow', 'openInNewSessionTab', 'openInNewSessionTabs', 'openInNewPrivateTab', 'openInNewPrivateTabs', 'openInNewTab', 'openInNewTabs', 'openAllInTabs', 'disableAdBlock', 'disableTrackingProtection', 'muteTab', 'unmuteTab', 'pinTab', 'unpinTab', 'deleteFolder', 'deleteBookmark', 'deleteBookmarks', 'deleteHistoryEntry', 'deleteHistoryEntries', 'deleteLedgerEntry', 'ledgerBackupText1', 'ledgerBackupText2', 'ledgerBackupText3', 'ledgerBackupText4', 'ledgerBackupText5', 'editFolder', 'editBookmark', 'unmuteTabs', 'muteTabs', 'muteOtherTabs', 'addBookmark', 'addFolder', 'newTab', 'closeTab', 'closeOtherTabs', 'closeTabsToRight', 'closeTabsToLeft', 'closeTabPage', 'bookmarkPage', 'bookmarkLink', 'openFile', 'openLocation', 'openSearch', 'importFrom', 'closeWindow', 'savePageAs', 'share', 'undo', 'redo', 'cut', 'copy', 'paste', 'pasteAndGo', 'pasteAndSearch', 'pasteWithoutFormatting', 'delete', 'selectAll', 'findNext', 'findPrevious', 'file', 'edit', 'view', 'actualSize', 'zoomIn', 'zoomOut', 'toolbars', 'stop', 'reloadPage', 'reloadTab', 'cleanReload', 'reload', 'clone', 'detach', 'readingView', 'tabManager', 'textEncoding', 'inspectElement', 'toggleDeveloperTools', 'toggleBrowserConsole', 'toggleFullScreenView', 'home', 'back', 'forward', 'reopenLastClosedWindow', 'showAllHistory', 'clearCache', 'clearHistory', 'clearSiteData', 'clearBrowsingData', 'recentlyClosed', 'recentlyVisited', 'bookmarks', 'addToFavoritesBar', 'window', 'minimize', 'zoom', 'selectNextTab', 'selectPreviousTab', 'moveTabToNewWindow', 'mergeAllWindows', 'downloads', 'history', 'bringAllToFront', 'help', 'sendUsFeedback', 'services', 'hideBrave', 'hideOthers', 'showAll', 'newPrivateTab', 'newSessionTab', 'newWindow', 'reopenLastClosedTab', 'print', 'emailPageLink', 'tweetPageLink', 'facebookPageLink', 'pinterestPageLink', 'googlePlusPageLink', 'linkedInPageLink', 'bufferPageLink', 'redditPageLink', 'findOnPage', 'find', 'checkForUpdates', 'preferences', 'settings', 'bookmarksManager', 'importBrowserData', 'exportBookmarks', 'settingsExport', 'settingsImport', 'submitFeedback', 'bookmarksToolbar', 'bravery', 'braverySite', 'braveryGlobal', 'braveryPayments', 'braveryStartUsingPayments', 'blockPopups', 'learnSpelling', 'forgetLearnedSpelling', 'lookupSelection', 'contextMain', 'remove',
+  return ['downloadsManager', 'confirmClearPasswords', 'passwordCopied', 'flashInstalled', 'goToPrefs', 'goToAdobe', 'allowFlashPlayer', 'allowWidevine', 'about', 'aboutApp', 'quit', 'quitApp', 'addToReadingList', 'viewPageSource', 'copyImageAddress', 'openImageInNewTab', 'saveImage', 'copyImage', 'searchImage', 'copyLinkAddress', 'copyEmailAddress', 'saveLinkAs', 'allowFlashOnce', 'allowFlashAlways', 'openFlashPreferences', 'openInNewWindow', 'openInNewSessionTab', 'openInNewSessionTabs', 'openInNewPrivateTab', 'openInNewPrivateTabs', 'openInNewTab', 'openInNewTabs', 'openAllInTabs', 'disableAdBlock', 'disableTrackingProtection', 'muteTab', 'unmuteTab', 'pinTab', 'unpinTab', 'deleteFolder', 'deleteBookmark', 'deleteBookmarks', 'deleteHistoryEntry', 'deleteHistoryEntries', 'deleteLedgerEntry', 'ledgerBackupText1', 'ledgerBackupText2', 'ledgerBackupText3', 'ledgerBackupText4', 'ledgerBackupText5', 'editFolder', 'editBookmark', 'unmuteTabs', 'muteTabs', 'muteOtherTabs', 'addBookmark', 'addFolder', 'newTab', 'closeTab', 'closeOtherTabs', 'closeTabsToRight', 'closeTabsToLeft', 'closeTabPage', 'bookmarkPage', 'bookmarkLink', 'openFile', 'openLocation', 'openSearch', 'importFrom', 'closeWindow', 'savePageAs', 'share', 'undo', 'redo', 'cut', 'copy', 'paste', 'pasteAndGo', 'pasteAndSearch', 'pasteWithoutFormatting', 'delete', 'selectAll', 'findNext', 'findPrevious', 'file', 'edit', 'view', 'actualSize', 'zoomIn', 'zoomOut', 'toolbars', 'stop', 'reloadPage', 'reloadTab', 'cleanReload', 'reload', 'clone', 'detach', 'readingView', 'tabManager', 'textEncoding', 'inspectElement', 'toggleDeveloperTools', 'toggleBrowserConsole', 'toggleFullScreenView', 'home', 'back', 'forward', 'reopenLastClosedWindow', 'showAllHistory', 'clearCache', 'clearHistory', 'clearSiteData', 'clearBrowsingData', 'recentlyClosed', 'recentlyVisited', 'bookmarks', 'addToFavoritesBar', 'window', 'minimize', 'zoom', 'selectNextTab', 'selectPreviousTab', 'moveTabToNewWindow', 'mergeAllWindows', 'downloads', 'history', 'bringAllToFront', 'help', 'sendUsFeedback', 'services', 'hideBrave', 'hideOthers', 'showAll', 'newPrivateTab', 'newSessionTab', 'newWindow', 'reopenLastClosedTab', 'print', 'emailPageLink', 'tweetPageLink', 'facebookPageLink', 'pinterestPageLink', 'googlePlusPageLink', 'linkedInPageLink', 'bufferPageLink', 'redditPageLink', 'findOnPage', 'find', 'checkForUpdates', 'preferences', 'settings', 'bookmarksManager', 'importBrowserData', 'exportBookmarks', 'settingsExport', 'settingsImport', 'submitFeedback', 'bookmarksToolbar', 'bravery', 'braverySite', 'braveryGlobal', 'braveryPayments', 'braveryStartUsingPayments', 'blockPopups', 'learnSpelling', 'forgetLearnedSpelling', 'lookupSelection', 'contextMain', 'remove', 'sessionTools',
   // Other identifiers
   'aboutBlankTitle', 'urlCopied', 'autoHideMenuBar', 'unexpectedErrorWindowReload', 'updateChannel', 'licenseText', 'allow', 'deny', 'permissionCameraMicrophone', 'permissionLocation', 'permissionNotifications', 'permissionWebMidi', 'permissionDisableCursor', 'permissionFullscreen', 'permissionExternal', 'permissionProtocolRegistration', 'permissionMessage', 'tabsSuggestionTitle', 'bookmarksSuggestionTitle', 'historySuggestionTitle', 'aboutPagesSuggestionTitle', 'searchSuggestionTitle', 'topSiteSuggestionTitle', 'addFundsNotification', 'reconciliationNotification', 'reviewSites', 'addFunds', 'turnOffNotifications', 'copyToClipboard', 'smartphoneTitle', 'displayQRCode', 'updateLater', 'updateHello', 'notificationPasswordWithUserName', 'notificationUpdatePasswordWithUserName', 'notificationUpdatePassword', 'notificationPassword', 'notificationPasswordSettings', 'notificationPaymentDone', 'notificationTryPayments', 'notificationTryPaymentsYes', 'prefsRestart', 'areYouSure', 'dismiss', 'yes', 'no', 'noThanks', 'neverForThisSite', 'passwordsManager', 'extensionsManager', 'downloadItemPause', 'downloadItemResume', 'downloadItemCancel', 'downloadItemRedownload', 'downloadItemCopyLink', 'downloadItemPath', 'downloadItemDelete', 'downloadItemClear', 'downloadToolbarHide', 'downloadItemClearCompleted', 'torrentDesc',
   // Caption buttons in titlebar (min/max/close - Windows only)
@@ -68037,7 +68039,7 @@ exports.init = function (language) {
     return lang;
   });
 };
-/* WEBPACK VAR INJECTION */}.call(exports, "brave/app"))
+/* WEBPACK VAR INJECTION */}.call(exports, "brave\\app"))
 
 /***/ }),
 /* 875 */
@@ -68046,7 +68048,15 @@ exports.init = function (language) {
 "use strict";
 
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError('Cannot call a class as a function');
+  }
+}
+
+var string_prototype_startswith = __webpack_require__(876);
+var string_prototype_endswith = __webpack_require__(877);
+var fs = __webpack_require__(878);
 
 function L10nError(message, id, lang) {
   this.name = 'L10nError';
@@ -68057,68 +68067,23 @@ function L10nError(message, id, lang) {
 L10nError.prototype = Object.create(Error.prototype);
 L10nError.prototype.constructor = L10nError;
 
-var HTTP_STATUS_CODE_OK = 200;
-
-function load(type, url) {
+function load(url) {
   return new Promise(function (resolve, reject) {
-    var xhr = new XMLHttpRequest();
-
-    if (xhr.overrideMimeType) {
-      xhr.overrideMimeType(type);
-    }
-
-    xhr.open('GET', url, true);
-
-    if (type === 'application/json') {
-      xhr.responseType = 'json';
-    }
-
-    xhr.addEventListener('load', function (e) {
-      if (e.target.status === HTTP_STATUS_CODE_OK || e.target.status === 0) {
-        resolve(e.target.response);
+    fs.readFile(url, function (err, data) {
+      if (err) {
+        reject(new L10nError(err.message));
       } else {
-        reject(new L10nError('Not found: ' + url));
+        resolve(data.toString());
       }
     });
-    xhr.addEventListener('error', reject);
-    xhr.addEventListener('timeout', reject);
-
-    try {
-      xhr.send(null);
-    } catch (e) {
-      if (e.name === 'NS_ERROR_FILE_NOT_FOUND') {
-        reject(new L10nError('Not found: ' + url));
-      } else {
-        throw e;
-      }
-    }
   });
 }
 
-var io = {
-  extra: function (code, ver, path, type) {
-    return navigator.mozApps.getLocalizationResource(code, ver, path, type);
-  },
-  app: function (code, ver, path, type) {
-    switch (type) {
-      case 'text':
-        return load('text/plain', path);
-      case 'json':
-        return load('application/json', path);
-      default:
-        throw new L10nError('Unknown file type: ' + type);
-    }
-  }
-};
-
 function fetchResource$1(res, _ref) {
   var code = _ref.code;
-  var src = _ref.src;
-  var ver = _ref.ver;
 
   var url = res.replace('{locale}', code);
-  var type = res.endsWith('.json') ? 'json' : 'text';
-  return io[src](code, ver, url, type);
+  return res.endsWith('.json') ? load(url).then(JSON.parse) : load(url);
 }
 
 var KNOWN_MACROS = ['plural'];
@@ -68456,14 +68421,14 @@ function isIn(n, list) {
   return list.indexOf(n) !== -1;
 }
 function isBetween(n, start, end) {
-  return typeof n === typeof start && start <= n && n <= end;
+  return (typeof n === 'undefined' ? 'undefined' : babelHelpers.typeof(n)) === (typeof start === 'undefined' ? 'undefined' : babelHelpers.typeof(start)) && start <= n && n <= end;
 }
 
 var pluralRules = {
-  '0': function () {
+  '0': function _() {
     return 'other';
   },
-  '1': function (n) {
+  '1': function _(n) {
     if (isBetween(n % 100, 3, 10)) {
       return 'few';
     }
@@ -68481,7 +68446,7 @@ var pluralRules = {
     }
     return 'other';
   },
-  '2': function (n) {
+  '2': function _(n) {
     if (n !== 0 && n % 10 === 0) {
       return 'many';
     }
@@ -68493,25 +68458,25 @@ var pluralRules = {
     }
     return 'other';
   },
-  '3': function (n) {
+  '3': function _(n) {
     if (n === 1) {
       return 'one';
     }
     return 'other';
   },
-  '4': function (n) {
+  '4': function _(n) {
     if (isBetween(n, 0, 1)) {
       return 'one';
     }
     return 'other';
   },
-  '5': function (n) {
+  '5': function _(n) {
     if (isBetween(n, 0, 2) && n !== 2) {
       return 'one';
     }
     return 'other';
   },
-  '6': function (n) {
+  '6': function _(n) {
     if (n === 0) {
       return 'zero';
     }
@@ -68520,7 +68485,7 @@ var pluralRules = {
     }
     return 'other';
   },
-  '7': function (n) {
+  '7': function _(n) {
     if (n === 2) {
       return 'two';
     }
@@ -68529,7 +68494,7 @@ var pluralRules = {
     }
     return 'other';
   },
-  '8': function (n) {
+  '8': function _(n) {
     if (isBetween(n, 3, 6)) {
       return 'few';
     }
@@ -68544,7 +68509,7 @@ var pluralRules = {
     }
     return 'other';
   },
-  '9': function (n) {
+  '9': function _(n) {
     if (n === 0 || n !== 1 && isBetween(n % 100, 1, 19)) {
       return 'few';
     }
@@ -68553,7 +68518,7 @@ var pluralRules = {
     }
     return 'other';
   },
-  '10': function (n) {
+  '10': function _(n) {
     if (isBetween(n % 10, 2, 9) && !isBetween(n % 100, 11, 19)) {
       return 'few';
     }
@@ -68562,7 +68527,7 @@ var pluralRules = {
     }
     return 'other';
   },
-  '11': function (n) {
+  '11': function _(n) {
     if (isBetween(n % 10, 2, 4) && !isBetween(n % 100, 12, 14)) {
       return 'few';
     }
@@ -68574,7 +68539,7 @@ var pluralRules = {
     }
     return 'other';
   },
-  '12': function (n) {
+  '12': function _(n) {
     if (isBetween(n, 2, 4)) {
       return 'few';
     }
@@ -68583,7 +68548,7 @@ var pluralRules = {
     }
     return 'other';
   },
-  '13': function (n) {
+  '13': function _(n) {
     if (isBetween(n % 10, 2, 4) && !isBetween(n % 100, 12, 14)) {
       return 'few';
     }
@@ -68595,7 +68560,7 @@ var pluralRules = {
     }
     return 'other';
   },
-  '14': function (n) {
+  '14': function _(n) {
     if (isBetween(n % 100, 3, 4)) {
       return 'few';
     }
@@ -68607,7 +68572,7 @@ var pluralRules = {
     }
     return 'other';
   },
-  '15': function (n) {
+  '15': function _(n) {
     if (n === 0 || isBetween(n % 100, 2, 10)) {
       return 'few';
     }
@@ -68619,13 +68584,13 @@ var pluralRules = {
     }
     return 'other';
   },
-  '16': function (n) {
+  '16': function _(n) {
     if (n % 10 === 1 && n !== 11) {
       return 'one';
     }
     return 'other';
   },
-  '17': function (n) {
+  '17': function _(n) {
     if (n === 3) {
       return 'few';
     }
@@ -68643,7 +68608,7 @@ var pluralRules = {
     }
     return 'other';
   },
-  '18': function (n) {
+  '18': function _(n) {
     if (n === 0) {
       return 'zero';
     }
@@ -68652,7 +68617,7 @@ var pluralRules = {
     }
     return 'other';
   },
-  '19': function (n) {
+  '19': function _(n) {
     if (isBetween(n, 2, 10)) {
       return 'few';
     }
@@ -68661,7 +68626,7 @@ var pluralRules = {
     }
     return 'other';
   },
-  '20': function (n) {
+  '20': function _(n) {
     if ((isBetween(n % 10, 3, 4) || n % 10 === 9) && !(isBetween(n % 100, 10, 19) || isBetween(n % 100, 70, 79) || isBetween(n % 100, 90, 99))) {
       return 'few';
     }
@@ -68676,7 +68641,7 @@ var pluralRules = {
     }
     return 'other';
   },
-  '21': function (n) {
+  '21': function _(n) {
     if (n === 0) {
       return 'zero';
     }
@@ -68685,19 +68650,19 @@ var pluralRules = {
     }
     return 'other';
   },
-  '22': function (n) {
+  '22': function _(n) {
     if (isBetween(n, 0, 1) || isBetween(n, 11, 99)) {
       return 'one';
     }
     return 'other';
   },
-  '23': function (n) {
+  '23': function _(n) {
     if (isBetween(n % 10, 1, 2) || n % 20 === 0) {
       return 'one';
     }
     return 'other';
   },
-  '24': function (n) {
+  '24': function _(n) {
     if (isBetween(n, 3, 10) || isBetween(n, 13, 19)) {
       return 'few';
     }
@@ -68722,16 +68687,16 @@ function getPluralRule(code) {
 }
 
 var L20nIntl = typeof Intl !== 'undefined' ? Intl : {
-  NumberFormat: function () {
+  NumberFormat: function NumberFormat() {
     return {
-      format: function (v) {
+      format: function format(v) {
         return v;
       }
     };
   }
 };
 
-var Context = (function () {
+var Context = function () {
   function Context(env, langs, resIds) {
     var _this = this;
 
@@ -68901,7 +68866,7 @@ var Context = (function () {
   };
 
   return Context;
-})();
+}();
 
 function reportMissing(keys, formatter, resolved) {
   var _this6 = this;
@@ -68929,7 +68894,7 @@ var PropertiesParser = {
   entryIds: null,
   emit: null,
 
-  init: function () {
+  init: function init() {
     this.patterns = {
       comment: /^\s*#|^\s*$/,
       entity: /^([^=\s]+)\s*=\s*(.*)$/,
@@ -68942,7 +68907,7 @@ var PropertiesParser = {
     };
   },
 
-  parse: function (emit, source) {
+  parse: function parse(emit, source) {
     if (!this.patterns) {
       this.init();
     }
@@ -68979,7 +68944,7 @@ var PropertiesParser = {
     return entries;
   },
 
-  parseEntity: function (id, value, entries) {
+  parseEntity: function parseEntity(id, value, entries) {
     var name = undefined,
         key = undefined;
 
@@ -69013,7 +68978,7 @@ var PropertiesParser = {
     this.setEntityValue(name, attr, key, this.unescapeString(value), entries);
   },
 
-  setEntityValue: function (id, attr, key, rawValue, entries) {
+  setEntityValue: function setEntityValue(id, attr, key, rawValue, entries) {
     var value = rawValue.indexOf('{{') > -1 ? this.parseString(rawValue) : rawValue;
 
     var isSimpleValue = typeof value === 'string';
@@ -69068,7 +69033,7 @@ var PropertiesParser = {
     }
   },
 
-  parseString: function (str) {
+  parseString: function parseString(str) {
     var chunks = str.split(this.patterns.placeables);
     var complexStr = [];
 
@@ -69092,7 +69057,7 @@ var PropertiesParser = {
     return complexStr;
   },
 
-  unescapeString: function (str) {
+  unescapeString: function unescapeString(str) {
     if (str.lastIndexOf('\\') !== -1) {
       str = str.replace(this.patterns.controlChars, '$1');
     }
@@ -69101,7 +69066,7 @@ var PropertiesParser = {
     });
   },
 
-  parseIndex: function (str) {
+  parseIndex: function parseIndex(str) {
     var match = str.match(this.patterns.index);
     if (!match) {
       throw new L10nError('Malformed index');
@@ -69127,7 +69092,7 @@ var PropertiesParser = {
     }
   },
 
-  error: function (msg) {
+  error: function error(msg) {
     var type = arguments.length <= 1 || arguments[1] === undefined ? 'parsererror' : arguments[1];
 
     var err = new L10nError(msg);
@@ -69141,7 +69106,7 @@ var PropertiesParser = {
 var MAX_PLACEABLES$1 = 100;
 
 var L20nParser = {
-  parse: function (emit, string) {
+  parse: function parse(emit, string) {
     this._source = string;
     this._index = 0;
     this._length = string.length;
@@ -69151,7 +69116,7 @@ var L20nParser = {
     return this.getResource();
   },
 
-  getResource: function () {
+  getResource: function getResource() {
     this.getWS();
     while (this._index < this._length) {
       try {
@@ -69175,7 +69140,7 @@ var L20nParser = {
     return this.entries;
   },
 
-  getEntry: function () {
+  getEntry: function getEntry() {
     if (this._source[this._index] === '<') {
       ++this._index;
       var id = this.getIdentifier();
@@ -69193,7 +69158,7 @@ var L20nParser = {
     throw this.error('Invalid entry');
   },
 
-  getEntity: function (id, index) {
+  getEntity: function getEntity(id, index) {
     if (!this.getRequiredWS()) {
       throw this.error('Expected white space');
     }
@@ -69234,7 +69199,7 @@ var L20nParser = {
     }
   },
 
-  getValue: function () {
+  getValue: function getValue() {
     var ch = arguments.length <= 0 || arguments[0] === undefined ? this._source[this._index] : arguments[0];
     var index = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
     var required = arguments.length <= 2 || arguments[2] === undefined ? true : arguments[2];
@@ -69254,7 +69219,7 @@ var L20nParser = {
     return undefined;
   },
 
-  getWS: function () {
+  getWS: function getWS() {
     var cc = this._source.charCodeAt(this._index);
 
     while (cc === 32 || cc === 10 || cc === 9 || cc === 13) {
@@ -69262,7 +69227,7 @@ var L20nParser = {
     }
   },
 
-  getRequiredWS: function () {
+  getRequiredWS: function getRequiredWS() {
     var pos = this._index;
     var cc = this._source.charCodeAt(pos);
 
@@ -69272,7 +69237,7 @@ var L20nParser = {
     return this._index !== pos;
   },
 
-  getIdentifier: function () {
+  getIdentifier: function getIdentifier() {
     var start = this._index;
     var cc = this._source.charCodeAt(this._index);
 
@@ -69289,7 +69254,7 @@ var L20nParser = {
     return this._source.slice(start, this._index);
   },
 
-  getUnicodeChar: function () {
+  getUnicodeChar: function getUnicodeChar() {
     for (var i = 0; i < 4; i++) {
       var cc = this._source.charCodeAt(++this._index);
       if (cc > 96 && cc < 103 || cc > 64 && cc < 71 || cc > 47 && cc < 58) {
@@ -69302,7 +69267,7 @@ var L20nParser = {
   },
 
   stringRe: /"|'|{{|\\/g,
-  getString: function (opchar, opcharLen) {
+  getString: function getString(opchar, opcharLen) {
     var body = [];
     var placeables = 0;
 
@@ -69376,7 +69341,7 @@ var L20nParser = {
     return body;
   },
 
-  getAttributes: function () {
+  getAttributes: function getAttributes() {
     var attrs = Object.create(null);
 
     while (true) {
@@ -69392,7 +69357,7 @@ var L20nParser = {
     return attrs;
   },
 
-  getAttribute: function (attrs) {
+  getAttribute: function getAttribute(attrs) {
     var key = this.getIdentifier();
     var index = undefined;
 
@@ -69424,7 +69389,7 @@ var L20nParser = {
     }
   },
 
-  getHash: function (index) {
+  getHash: function getHash(index) {
     var items = Object.create(null);
 
     ++this._index;
@@ -69472,7 +69437,7 @@ var L20nParser = {
     return items;
   },
 
-  getHashItem: function () {
+  getHashItem: function getHashItem() {
     var defItem = false;
     if (this._source[this._index] === '*') {
       ++this._index;
@@ -69490,7 +69455,7 @@ var L20nParser = {
     return [key, this.getValue(), defItem];
   },
 
-  getComment: function () {
+  getComment: function getComment() {
     this._index += 2;
     var start = this._index;
     var end = this._source.indexOf('*/', start);
@@ -69502,7 +69467,7 @@ var L20nParser = {
     this._index = end + 2;
   },
 
-  getExpression: function () {
+  getExpression: function getExpression() {
     var exp = this.getPrimaryExpression();
 
     while (true) {
@@ -69521,7 +69486,7 @@ var L20nParser = {
     return exp;
   },
 
-  getPropertyExpression: function (idref, computed) {
+  getPropertyExpression: function getPropertyExpression(idref, computed) {
     var exp = undefined;
 
     if (computed) {
@@ -69544,7 +69509,7 @@ var L20nParser = {
     };
   },
 
-  getCallExpression: function (callee) {
+  getCallExpression: function getCallExpression(callee) {
     this.getWS();
 
     return {
@@ -69554,7 +69519,7 @@ var L20nParser = {
     };
   },
 
-  getPrimaryExpression: function () {
+  getPrimaryExpression: function getPrimaryExpression() {
     var ch = this._source[this._index];
 
     switch (ch) {
@@ -69578,7 +69543,7 @@ var L20nParser = {
     }
   },
 
-  getItemList: function (callback, closeChar) {
+  getItemList: function getItemList(callback, closeChar) {
     var items = [];
     var closed = false;
 
@@ -69610,7 +69575,7 @@ var L20nParser = {
     return items;
   },
 
-  getJunkEntry: function () {
+  getJunkEntry: function getJunkEntry() {
     var pos = this._index;
     var nextEntity = this._source.indexOf('<', pos);
     var nextComment = this._source.indexOf('/*', pos);
@@ -69627,7 +69592,7 @@ var L20nParser = {
     this._index = nextEntry;
   },
 
-  error: function (message) {
+  error: function error(message) {
     var type = arguments.length <= 1 || arguments[1] === undefined ? 'parsererror' : arguments[1];
 
     var pos = this._index;
@@ -69710,13 +69675,13 @@ function createGetter(id, name) {
     };
 
     var mods = {
-      'fr-x-psaccent': function (val) {
+      'fr-x-psaccent': function frXPsaccent(val) {
         return val.replace(reVowels, function (match) {
           return match + match.toLowerCase();
         });
       },
 
-      'ar-x-psbidi': function (val) {
+      'ar-x-psbidi': function arXPsbidi(val) {
         return val.replace(reWords, function (match) {
           return '‮' + match + '‬';
         });
@@ -69724,17 +69689,17 @@ function createGetter(id, name) {
     };
 
     var ASCII_LETTER_A = 65;
-    var replaceChars = function (map, val) {
+    var replaceChars = function replaceChars(map, val) {
       return val.replace(reAlphas, function (match) {
         return map.charAt(match.charCodeAt(0) - ASCII_LETTER_A);
       });
     };
 
-    var transform = function (val) {
+    var transform = function transform(val) {
       return replaceChars(charMaps[id], mods[id](val));
     };
 
-    var apply = function (fn, val) {
+    var apply = function apply(fn, val) {
       if (!val) {
         return val;
       }
@@ -69751,7 +69716,7 @@ function createGetter(id, name) {
 
     return _pseudo = {
       name: transform(name),
-      process: function (str) {
+      process: function process(str) {
         return apply(transform, str);
       }
     };
@@ -69808,7 +69773,7 @@ function removeEventListener(listeners, type, listener) {
   typeListeners.splice(pos, 1);
 }
 
-var Env$1 = (function () {
+var Env$1 = function () {
   function Env$1(fetchResource) {
     _classCallCheck(this, Env$1);
 
@@ -69865,7 +69830,7 @@ var Env$1 = (function () {
       return data;
     }
 
-    var emitAndAmend = function (type, err) {
+    var emitAndAmend = function emitAndAmend(type, err) {
       return _this10.emit(type, amendError(lang, err));
     };
     return parser.parse(emitAndAmend, data);
@@ -69895,12 +69860,12 @@ var Env$1 = (function () {
 
     var syntax = res.substr(res.lastIndexOf('.') + 1);
 
-    var saveEntries = function (data) {
+    var saveEntries = function saveEntries(data) {
       var entries = _this11._parse(syntax, lang, data);
       cache.set(id, _this11._create(lang, entries));
     };
 
-    var recover = function (err) {
+    var recover = function recover(err) {
       err.lang = lang;
       _this11.emit('fetcherror', err);
       cache.set(id, err);
@@ -69916,7 +69881,7 @@ var Env$1 = (function () {
   };
 
   return Env$1;
-})();
+}();
 
 function amendError(lang, err) {
   err.lang = lang;
@@ -69928,6 +69893,139 @@ exports.Env = Env$1;
 
 /***/ }),
 /* 876 */
+/***/ (function(module, exports) {
+
+/*! http://mths.be/startswith v0.2.0 by @mathias */
+if (!String.prototype.startsWith) {
+	(function() {
+		'use strict'; // needed to support `apply`/`call` with `undefined`/`null`
+		var defineProperty = (function() {
+			// IE 8 only supports `Object.defineProperty` on DOM elements
+			try {
+				var object = {};
+				var $defineProperty = Object.defineProperty;
+				var result = $defineProperty(object, object, object) && $defineProperty;
+			} catch(error) {}
+			return result;
+		}());
+		var toString = {}.toString;
+		var startsWith = function(search) {
+			if (this == null) {
+				throw TypeError();
+			}
+			var string = String(this);
+			if (search && toString.call(search) == '[object RegExp]') {
+				throw TypeError();
+			}
+			var stringLength = string.length;
+			var searchString = String(search);
+			var searchLength = searchString.length;
+			var position = arguments.length > 1 ? arguments[1] : undefined;
+			// `ToInteger`
+			var pos = position ? Number(position) : 0;
+			if (pos != pos) { // better `isNaN`
+				pos = 0;
+			}
+			var start = Math.min(Math.max(pos, 0), stringLength);
+			// Avoid the `indexOf` call if no match is possible
+			if (searchLength + start > stringLength) {
+				return false;
+			}
+			var index = -1;
+			while (++index < searchLength) {
+				if (string.charCodeAt(start + index) != searchString.charCodeAt(index)) {
+					return false;
+				}
+			}
+			return true;
+		};
+		if (defineProperty) {
+			defineProperty(String.prototype, 'startsWith', {
+				'value': startsWith,
+				'configurable': true,
+				'writable': true
+			});
+		} else {
+			String.prototype.startsWith = startsWith;
+		}
+	}());
+}
+
+
+/***/ }),
+/* 877 */
+/***/ (function(module, exports) {
+
+/*! http://mths.be/endswith v0.2.0 by @mathias */
+if (!String.prototype.endsWith) {
+	(function() {
+		'use strict'; // needed to support `apply`/`call` with `undefined`/`null`
+		var defineProperty = (function() {
+			// IE 8 only supports `Object.defineProperty` on DOM elements
+			try {
+				var object = {};
+				var $defineProperty = Object.defineProperty;
+				var result = $defineProperty(object, object, object) && $defineProperty;
+			} catch(error) {}
+			return result;
+		}());
+		var toString = {}.toString;
+		var endsWith = function(search) {
+			if (this == null) {
+				throw TypeError();
+			}
+			var string = String(this);
+			if (search && toString.call(search) == '[object RegExp]') {
+				throw TypeError();
+			}
+			var stringLength = string.length;
+			var searchString = String(search);
+			var searchLength = searchString.length;
+			var pos = stringLength;
+			if (arguments.length > 1) {
+				var position = arguments[1];
+				if (position !== undefined) {
+					// `ToInteger`
+					pos = position ? Number(position) : 0;
+					if (pos != pos) { // better `isNaN`
+						pos = 0;
+					}
+				}
+			}
+			var end = Math.min(Math.max(pos, 0), stringLength);
+			var start = end - searchLength;
+			if (start < 0) {
+				return false;
+			}
+			var index = -1;
+			while (++index < searchLength) {
+				if (string.charCodeAt(start + index) != searchString.charCodeAt(index)) {
+					return false;
+				}
+			}
+			return true;
+		};
+		if (defineProperty) {
+			defineProperty(String.prototype, 'endsWith', {
+				'value': endsWith,
+				'configurable': true,
+				'writable': true
+			});
+		} else {
+			String.prototype.endsWith = endsWith;
+		}
+	}());
+}
+
+
+/***/ }),
+/* 878 */
+/***/ (function(module, exports) {
+
+
+
+/***/ }),
+/* 879 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -69954,7 +70052,7 @@ module.exports.firstDefinedValue = (...arr) => {
 };
 
 /***/ }),
-/* 877 */
+/* 880 */
 /***/ (function(module, exports, __webpack_require__) {
 
 
@@ -69970,7 +70068,7 @@ exports.coerce = coerce;
 exports.disable = disable;
 exports.enable = enable;
 exports.enabled = enabled;
-exports.humanize = __webpack_require__(878);
+exports.humanize = __webpack_require__(881);
 
 /**
  * Active `debug` instances.
@@ -70185,7 +70283,7 @@ function coerce(val) {
 
 
 /***/ }),
-/* 878 */
+/* 881 */
 /***/ (function(module, exports) {
 
 /**
@@ -70343,7 +70441,7 @@ function plural(ms, n, name) {
 
 
 /***/ }),
-/* 879 */
+/* 882 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -70378,10 +70476,17 @@ function colorOnRGB(c) {
 
 function setTheme(page) {
   const key = Math.random().toString();
-  _electron.ipcRenderer.send("get-main-state", key, ['themeInfo']);
+  _electron.ipcRenderer.send("get-main-state", key, ['themeInfo', 'focusLocationBar']);
   _electron.ipcRenderer.once(`get-main-state-reply_${key}`, (e, data) => {
     const theme = data.themeInfo;
-    if (theme[page]) common(theme);
+    if (theme && theme[page]) common(theme);
+    if (page == 'themeTopPage' && data.focusLocationBar === false) {
+      const s = document.createElement('style');
+      s.setAttribute('type', 'text/css');
+      s.appendChild(document.createTextNode(`.ui.big.icon.input{display: none}
+      .ui.cards{padding-top: 25px;}`));
+      document.head.appendChild(s);
+    }
   });
 }
 

@@ -113,7 +113,6 @@ const keyMapping = {
   keyDownloadsManager: l10n.translation('downloadsManager'),
   keyHideBrave: l10n.translation('hideBrave').replace('Brave','Sushi Browser'),
   keyHideOthers: l10n.translation('hideOthers'),
-  keyQuit: l10n.translation('quitApp').replace('Brave','Sushi Browser')
 }
 
 const videoKeyMapping = {
@@ -628,6 +627,245 @@ class GeneralSetting extends React.Component {
         {isDarwin || isWin ? <br/> : null}
 
 
+        <div className="field">
+          <label>Protection</label>
+          <Checkbox defaultChecked={this.state.httpsEverywhereEnable} toggle onChange={this.onChange.bind(this,'httpsEverywhereEnable')}/>
+          <span className="toggle-label">Enable HTTPS Everywhere</span>
+          <br/>
+
+          <Checkbox defaultChecked={this.state.trackingProtectionEnable} toggle onChange={this.onChange.bind(this,'trackingProtectionEnable')}/>
+          <span className="toggle-label">Enable Tracing Protection (e.g. Google Analytics)</span>
+          <br/>
+
+          <Checkbox defaultChecked={this.state.noScript} toggle onChange={this.onChange.bind(this,'noScript')}/>
+          <span className="toggle-label">{l10n.translation('noScriptPref')}</span>
+          <br/>
+
+          <Checkbox defaultChecked={this.state.blockCanvasFingerprinting} toggle onChange={this.onChange.bind(this,'blockCanvasFingerprinting')}/>
+          <span className="toggle-label">{l10n.translation('blockCanvasFingerprinting')}</span>
+          <br/>
+        </div>
+        <br/>
+
+        <div className="field">
+          <label>{l10n.translation('autocompleteData')} ({l10n.translation('requiresRestart').replace('* ','')})</label>
+        </div>
+
+        <Grid>
+          <Grid.Row>
+            <Grid.Column width={3}><label>Order of AutoComplete</label></Grid.Column>
+            <Grid.Column width={8}><Dropdown onChange={this.onChange.bind(this,'orderOfAutoComplete')} selection
+                                             options={[
+                                               {key:'suggestionToHistory',value:'suggestionToHistory',text:'Suggestion -> History'},
+                                               {key:'historyToSuggestion',value:'historyToSuggestion',text:'History -> Suggestion'},
+                                             ]}
+                                             defaultValue={this.state.orderOfAutoComplete}/></Grid.Column>
+          </Grid.Row>
+          <Grid.Row>
+            <Grid.Column width={3}><label>Number of Suggestions</label></Grid.Column>
+            <Grid.Column width={8}><Dropdown onChange={this.onChange.bind(this,'numOfSuggestion')} selection
+                                             options={concurrentDownloadOptions} defaultValue={this.state.numOfSuggestion}/></Grid.Column>
+          </Grid.Row>
+          <Grid.Row>
+            <Grid.Column width={3}><label>Number of Histories</label></Grid.Column>
+            <Grid.Column width={8}><Dropdown onChange={this.onChange.bind(this,'numOfHistory')} selection
+                                             options={concurrentDownloadOptions} defaultValue={this.state.numOfHistory}/></Grid.Column>
+          </Grid.Row>
+        </Grid>
+
+        <br/>
+        <br/>
+
+        <div className="field">
+          <label>{l10n.translation('zoom')} ({l10n.translation('requiresRestart').replace('* ','')})</label>
+          <Dropdown onChange={this.onChange.bind(this,'zoomBehavior')} selection options={zoomBehaviorOptions} defaultValue={this.state.zoomBehavior}/>
+        </div>
+        <br/>
+
+        <div className="field">
+          <label>Default Sidebar Position</label>
+          <Dropdown onChange={this.onChange.bind(this,'sideBarDirection')} selection options={sideBarDirectionOptions} defaultValue={this.state.sideBarDirection}/>
+        </div>
+        <br/>
+
+        <div className="field">
+          <label>{l10n.translation('openInNewTab')}  ({l10n.translation('requiresRestart').replace('* ','')})</label>
+          <Checkbox defaultChecked={this.state.sidebarLink} toggle onChange={this.onChange.bind(this,'sidebarLink')}/>
+          <span className="toggle-label">SideBar Link</span>
+          <br/>
+
+          <Checkbox defaultChecked={this.state.toolbarLink} toggle onChange={this.onChange.bind(this,'toolbarLink')}/>
+          <span className="toggle-label">ToolBar Link</span>
+          <br/>
+
+          <Checkbox defaultChecked={this.state.addressBarNewTab} toggle onChange={this.onChange.bind(this,'addressBarNewTab')}/>
+          <span className="toggle-label">AddressBar Link</span>
+          <br/>
+
+          <Checkbox defaultChecked={this.state.bookmarkbarLink} toggle onChange={this.onChange.bind(this,'bookmarkbarLink')}/>
+          <span className="toggle-label">BookmarkBar Link</span>
+          <br/>
+        </div>
+        <br/>
+
+        <div className="field">
+          <label>Special Behavior</label>
+          <Checkbox defaultChecked={this.state.extensionOnToolbar} toggle onChange={this.onChange.bind(this,'extensionOnToolbar')}/>
+          <span className="toggle-label">Show Chrome Extension Icon on Toolbar({l10n.translation('requiresRestart').replace('* ','')})</span>
+          <br/>
+          {isDarwin ? null : <Checkbox defaultChecked={this.state.displayFullIcon} toggle onChange={this.onChange.bind(this,'displayFullIcon')}/>}
+          {isDarwin ? null : <span className="toggle-label">Show Fullscreen Button({l10n.translation('requiresRestart').replace('* ','')})</span>}
+          {isDarwin ? null : <br/>}
+          <Checkbox defaultChecked={this.state.enableMouseGesture} toggle onChange={this.onChange.bind(this,'enableMouseGesture')}/>
+          <span className="toggle-label">Enable Mouse Gesture({l10n.translation('requiresRestart').replace('* ','')})</span>
+          <br/>
+          <Checkbox defaultChecked={this.state.historyBadget} toggle onChange={this.onChange.bind(this,'historyBadget')}/>
+          <span className="toggle-label">Show Back/Forward Button's Badget ({l10n.translation('requiresRestart').replace('* ','')})</span>
+          <br/>
+          <Checkbox defaultChecked={this.state.focusLocationBar} toggle onChange={this.onChange.bind(this,'focusLocationBar')}/>
+          <span className="toggle-label">Show Focus Location Bar of Top Page </span>
+          <br/>
+          <Checkbox defaultChecked={this.state.enableDownloadList} toggle onChange={this.onChange.bind(this,'enableDownloadList')}/>
+          <span className="toggle-label">Enable Bottom Download List ({l10n.translation('requiresRestart').replace('* ','')})</span>
+          <br/>
+          <Checkbox defaultChecked={this.state.longPressMiddle} toggle onChange={this.onChange.bind(this,'longPressMiddle')}/>
+          <span className="toggle-label">Enable behavior change when long press of middle mouse button ({l10n.translation('requiresRestart').replace('* ','')})</span>
+          <br/>
+          <Checkbox defaultChecked={this.state.tripleClick} toggle onChange={this.onChange.bind(this,'tripleClick')}/>
+          <span className="toggle-label">Enable horizontal position moving (When you triple left clicking)</span>
+          <br/>
+          <Checkbox defaultChecked={this.state.doubleShift} toggle onChange={this.onChange.bind(this,'doubleShift')}/>
+          <span className="toggle-label">Enable anything search (When you double pressing the shift key)  ({l10n.translation('requiresRestart').replace('* ','')})</span>
+          </div>
+        <br/>
+
+        <div className="field">
+          <label>Send URL to external media player</label>
+          <Dropdown onChange={this.onChange.bind(this,'sendToVideo')} selection options={sendToVideoOptions} defaultValue={this.state.sendToVideo}/>
+        </div>
+        <br/>
+
+        <div className="field">
+          <label>Concurrent Download(0 means no limit)</label>
+          <Dropdown onChange={this.onChange.bind(this,'concurrentDownload')} selection options={concurrentDownloadOptions} defaultValue={this.state.concurrentDownload}/>
+        </div>
+        <br/>
+
+        <div className="field">
+          <label>Max number of connections per item (Parallel Download)</label>
+          <Dropdown onChange={this.onChange.bind(this,'downloadNum')} selection options={downloadNumOptions} defaultValue={parseInt(this.state.downloadNum)}/>
+        </div>
+        <br/>
+
+        <div className="field">
+          <label>Custom Window Icon({l10n.translation('requiresRestart').replace('* ','')})</label>
+          <Input ref="iconSet" style={{width: 400}} onChange={this.onChange.bind(this,'windowCustomIcon')} defaultValue={this.state.windowCustomIcon}/>
+          <Button icon='folder' onClick={_=>{
+            const key = Math.random().toString()
+            ipc.send('show-dialog-exploler',key,{defaultPath: this.state.windowCustomIcon, needIcon: true})
+            ipc.once(`show-dialog-exploler-reply_${key}`,(event,ret)=>{
+              if(!ret) return
+              this.refs.iconSet.inputRef.value = ret
+              this.onChange('windowCustomIcon',{},{value:ret})
+            })
+          }}/>
+        </div>
+
+        <div className="field">
+          <label>Sync Scroll Margin({l10n.translation('requiresRestart').replace('* ','')})</label>
+          <Dropdown onChange={this.onChange.bind(this,'syncScrollMargin')} selection options={syncScrollMarginOptions} defaultValue={this.state.syncScrollMargin}/>
+        </div>
+        <br/>
+
+        <div className="field">
+          <label>Bind Window Frame Margin</label>
+          <Input onChange={this.onChange.bind(this,'bindMarginFrame')} defaultValue={this.state.bindMarginFrame}/>
+          <label>Bind Window Title Margin</label>
+          <Input onChange={this.onChange.bind(this,'bindMarginTitle')} defaultValue={this.state.bindMarginTitle}/>
+        </div>
+
+        {/*<div className="field">*/}
+        {/*<label>{l10n.translation('2893168226686371498').replace('…','')} (Windows/Mac)</label>*/}
+        {/*<Button primary content={l10n.translation('9218430445555521422')} onClick={_=>ipc.send("default-browser",{})}/>*/}
+        {/*</div>*/}
+
+        <br/>
+        <br/>
+        <br/>
+
+      </div>
+    </div>
+  }
+}
+
+
+class DataSetting extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = generalDefault
+    this.clear = []
+    this.clearRange = {clearType: 'all', clearDays: 30, clearStart: this.today(-1),clearEnd:this.today()}
+    this.imports = []
+    this.exports = []
+  }
+
+
+  today(add=0){
+    const now = new Date()
+    return `${now.getFullYear()}-${("0"+(now.getMonth()+1+add)).slice(-2)}-${("0"+now.getDate()).slice(-2)}`
+  }
+
+  onChange(name,e,data){
+    ipc.send('save-state',{tableName:'state',key:name,val:data.value || data.checked})
+  }
+
+  onChange2(name,e,data){
+    if(data.checked)
+      this.clear.push(name)
+    else
+      this.clear = this.clear.filter(x=> x !== name)
+    this.setState({})
+  }
+
+  onChangeClear(name,e,data){
+    this.clearRange[name] = data.value || data.checked
+    this.setState({})
+  }
+
+  onChangeImport(name,e,data){
+    if(data.checked)
+      this.imports.push(name)
+    else
+      this.imports = this.imports.filter(x=> x !== name)
+    this.setState({})
+  }
+
+  onChangeExport(name,e,data){
+    if(data.checked)
+      this.exports.push(name)
+    else
+      this.exports = this.exports.filter(x=> x !== name)
+    this.setState({})
+  }
+
+
+  handleChangeRadio(clearType){
+    ipc.send('save-state',{tableName:'state',key:'clearType',val:clearType})
+    this.setState({clearType})
+  }
+
+  render() {
+    console.log(this.state.startsWith,this.state.myHomepage)
+    return <div>
+      <h3>Data</h3>
+      <Divider/>
+      <div className="ui form">
+        <div className="field">
+          <label>{l10n.translation('ssInterval')}&nbsp;({l10n.translation('secondsLabel')})</label>
+          <Input onChange={this.onChange.bind(this,'autoSaveInterval')} defaultValue={this.state.autoSaveInterval}/>
+        </div>
+        <br/>
+
         <Grid>
           <Grid.Row>
             <Grid.Column width={6}>
@@ -760,7 +998,7 @@ class GeneralSetting extends React.Component {
           <span className="toggle-label">{l10n.translation('generalSettings')}&nbsp;(Clear All Data)</span>
           <br/>
           <Checkbox toggle onChange={this.onChange2.bind(this,'clearFavorite')}/>
-          <span className="toggle-label">{l10n.translation('bookmarks')}</span>
+          <span className="toggle-label">Bookmarks / User Saved Sessions</span>
           <br/>
           <Checkbox toggle onChange={this.onChange2.bind(this,'clearHistory')}/>
           <span className="toggle-label">{l10n.translation('browsingHistory')}</span>
@@ -826,7 +1064,7 @@ class GeneralSetting extends React.Component {
           <span className="toggle-label">{l10n.translation('generalSettings')}&nbsp;(Clear All Data)</span>
           <br/>
           <Checkbox toggle onChange={this.onChange.bind(this,'clearFavoriteOnClose')} defaultChecked={this.state.clearFavoriteOnClose}/>
-          <span className="toggle-label">{l10n.translation('bookmarks')}</span>
+          <span className="toggle-label">Bookmarks / User Saved Sessions</span>
           <br/>
           <Checkbox toggle onChange={this.onChange.bind(this,'clearHistoryOnClose')} defaultChecked={this.state.clearHistoryOnClose}/>
           <span className="toggle-label">{l10n.translation('browsingHistory')}</span>
@@ -863,181 +1101,6 @@ class GeneralSetting extends React.Component {
           <br/>
         </div>
         <br/>
-
-        <div className="field">
-          <label>{l10n.translation('ssInterval')}&nbsp;({l10n.translation('secondsLabel')})</label>
-          <Input onChange={this.onChange.bind(this,'autoSaveInterval')} defaultValue={this.state.autoSaveInterval}/>
-        </div>
-        <br/>
-
-        <div className="field">
-          <label>{l10n.translation('zoom')} ({l10n.translation('requiresRestart').replace('* ','')})</label>
-          <Dropdown onChange={this.onChange.bind(this,'zoomBehavior')} selection options={zoomBehaviorOptions} defaultValue={this.state.zoomBehavior}/>
-        </div>
-        <br/>
-
-        <div className="field">
-          <label>{l10n.translation('autocompleteData')} ({l10n.translation('requiresRestart').replace('* ','')})</label>
-        </div>
-
-        <Grid>
-          <Grid.Row>
-            <Grid.Column width={3}><label>Order of AutoComplete</label></Grid.Column>
-            <Grid.Column width={8}><Dropdown onChange={this.onChange.bind(this,'orderOfAutoComplete')} selection
-                                             options={[
-                                               {key:'suggestionToHistory',value:'suggestionToHistory',text:'Suggestion -> History'},
-                                               {key:'historyToSuggestion',value:'historyToSuggestion',text:'History -> Suggestion'},
-                                             ]}
-                                             defaultValue={this.state.orderOfAutoComplete}/></Grid.Column>
-          </Grid.Row>
-          <Grid.Row>
-            <Grid.Column width={3}><label>Number of Suggestions</label></Grid.Column>
-            <Grid.Column width={8}><Dropdown onChange={this.onChange.bind(this,'numOfSuggestion')} selection
-                                             options={concurrentDownloadOptions} defaultValue={this.state.numOfSuggestion}/></Grid.Column>
-          </Grid.Row>
-          <Grid.Row>
-            <Grid.Column width={3}><label>Number of Histories</label></Grid.Column>
-            <Grid.Column width={8}><Dropdown onChange={this.onChange.bind(this,'numOfHistory')} selection
-                                             options={concurrentDownloadOptions} defaultValue={this.state.numOfHistory}/></Grid.Column>
-          </Grid.Row>
-        </Grid>
-
-        <br/>
-        <br/>
-
-
-
-        <div className="field">
-          <label>Protection</label>
-          <Checkbox defaultChecked={this.state.httpsEverywhereEnable} toggle onChange={this.onChange.bind(this,'httpsEverywhereEnable')}/>
-          <span className="toggle-label">Enable HTTPS Everywhere</span>
-          <br/>
-
-          <Checkbox defaultChecked={this.state.trackingProtectionEnable} toggle onChange={this.onChange.bind(this,'trackingProtectionEnable')}/>
-          <span className="toggle-label">Enable Tracing Protection (e.g. Google Analytics)</span>
-          <br/>
-
-          <Checkbox defaultChecked={this.state.noScript} toggle onChange={this.onChange.bind(this,'noScript')}/>
-          <span className="toggle-label">{l10n.translation('noScriptPref')}</span>
-          <br/>
-
-          <Checkbox defaultChecked={this.state.blockCanvasFingerprinting} toggle onChange={this.onChange.bind(this,'blockCanvasFingerprinting')}/>
-          <span className="toggle-label">{l10n.translation('blockCanvasFingerprinting')}</span>
-          <br/>
-        </div>
-        <br/>
-
-        <div className="field">
-          <label>Default Sidebar Position</label>
-          <Dropdown onChange={this.onChange.bind(this,'sideBarDirection')} selection options={sideBarDirectionOptions} defaultValue={this.state.sideBarDirection}/>
-        </div>
-        <br/>
-
-        <div className="field">
-          <label>{l10n.translation('openInNewTab')}  ({l10n.translation('requiresRestart').replace('* ','')})</label>
-          <Checkbox defaultChecked={this.state.sidebarLink} toggle onChange={this.onChange.bind(this,'sidebarLink')}/>
-          <span className="toggle-label">SideBar Link</span>
-          <br/>
-
-          <Checkbox defaultChecked={this.state.toolbarLink} toggle onChange={this.onChange.bind(this,'toolbarLink')}/>
-          <span className="toggle-label">ToolBar Link</span>
-          <br/>
-
-          <Checkbox defaultChecked={this.state.addressBarNewTab} toggle onChange={this.onChange.bind(this,'addressBarNewTab')}/>
-          <span className="toggle-label">AddressBar Link</span>
-          <br/>
-
-          <Checkbox defaultChecked={this.state.bookmarkbarLink} toggle onChange={this.onChange.bind(this,'bookmarkbarLink')}/>
-          <span className="toggle-label">BookmarkBar Link</span>
-          <br/>
-        </div>
-        <br/>
-
-        <div className="field">
-          <label>Special Behavior</label>
-          <Checkbox defaultChecked={this.state.extensionOnToolbar} toggle onChange={this.onChange.bind(this,'extensionOnToolbar')}/>
-          <span className="toggle-label">Show Chrome Extension Icon on Toolbar({l10n.translation('requiresRestart').replace('* ','')})</span>
-          <br/>
-          {isDarwin ? null : <Checkbox defaultChecked={this.state.displayFullIcon} toggle onChange={this.onChange.bind(this,'displayFullIcon')}/>}
-          {isDarwin ? null : <span className="toggle-label">Show Fullscreen Button({l10n.translation('requiresRestart').replace('* ','')})</span>}
-          {isDarwin ? null : <br/>}
-          <Checkbox defaultChecked={this.state.enableMouseGesture} toggle onChange={this.onChange.bind(this,'enableMouseGesture')}/>
-          <span className="toggle-label">Enable Mouse Gesture({l10n.translation('requiresRestart').replace('* ','')})</span>
-          <br/>
-          <Checkbox defaultChecked={this.state.historyBadget} toggle onChange={this.onChange.bind(this,'historyBadget')}/>
-          <span className="toggle-label">Show Back/Forward Button's Badget ({l10n.translation('requiresRestart').replace('* ','')})</span>
-          <br/>
-          <Checkbox defaultChecked={this.state.focusLocationBar} toggle onChange={this.onChange.bind(this,'focusLocationBar')}/>
-          <span className="toggle-label">Show Focus Location Bar of Top Page </span>
-          <br/>
-          <Checkbox defaultChecked={this.state.enableDownloadList} toggle onChange={this.onChange.bind(this,'enableDownloadList')}/>
-          <span className="toggle-label">Enable Bottom Download List ({l10n.translation('requiresRestart').replace('* ','')})</span>
-          <br/>
-          <Checkbox defaultChecked={this.state.longPressMiddle} toggle onChange={this.onChange.bind(this,'longPressMiddle')}/>
-          <span className="toggle-label">Enable behavior change when long press of middle mouse button ({l10n.translation('requiresRestart').replace('* ','')})</span>
-          <br/>
-          <Checkbox defaultChecked={this.state.tripleClick} toggle onChange={this.onChange.bind(this,'tripleClick')}/>
-          <span className="toggle-label">Enable horizontal position moving (When you triple left clicking)</span>
-          <br/>
-          <Checkbox defaultChecked={this.state.doubleShift} toggle onChange={this.onChange.bind(this,'doubleShift')}/>
-          <span className="toggle-label">Enable anything search (When you double pressing the shift key)  ({l10n.translation('requiresRestart').replace('* ','')})</span>
-          </div>
-        <br/>
-
-        <div className="field">
-          <label>Send URL to external media player</label>
-          <Dropdown onChange={this.onChange.bind(this,'sendToVideo')} selection options={sendToVideoOptions} defaultValue={this.state.sendToVideo}/>
-        </div>
-        <br/>
-
-        <div className="field">
-          <label>Concurrent Download(0 means no limit)</label>
-          <Dropdown onChange={this.onChange.bind(this,'concurrentDownload')} selection options={concurrentDownloadOptions} defaultValue={this.state.concurrentDownload}/>
-        </div>
-        <br/>
-
-        <div className="field">
-          <label>Max number of connections per item (Parallel Download)</label>
-          <Dropdown onChange={this.onChange.bind(this,'downloadNum')} selection options={downloadNumOptions} defaultValue={parseInt(this.state.downloadNum)}/>
-        </div>
-        <br/>
-
-        <div className="field">
-          <label>Custom Window Icon({l10n.translation('requiresRestart').replace('* ','')})</label>
-          <Input ref="iconSet" style={{width: 400}} onChange={this.onChange.bind(this,'windowCustomIcon')} defaultValue={this.state.windowCustomIcon}/>
-          <Button icon='folder' onClick={_=>{
-            const key = Math.random().toString()
-            ipc.send('show-dialog-exploler',key,{defaultPath: this.state.windowCustomIcon, needIcon: true})
-            ipc.once(`show-dialog-exploler-reply_${key}`,(event,ret)=>{
-              if(!ret) return
-              this.refs.iconSet.inputRef.value = ret
-              this.onChange('windowCustomIcon',{},{value:ret})
-            })
-          }}/>
-        </div>
-
-        <div className="field">
-          <label>Sync Scroll Margin({l10n.translation('requiresRestart').replace('* ','')})</label>
-          <Dropdown onChange={this.onChange.bind(this,'syncScrollMargin')} selection options={syncScrollMarginOptions} defaultValue={this.state.syncScrollMargin}/>
-        </div>
-        <br/>
-
-        <div className="field">
-          <label>Bind Window Frame Margin</label>
-          <Input onChange={this.onChange.bind(this,'bindMarginFrame')} defaultValue={this.state.bindMarginFrame}/>
-          <label>Bind Window Title Margin</label>
-          <Input onChange={this.onChange.bind(this,'bindMarginTitle')} defaultValue={this.state.bindMarginTitle}/>
-        </div>
-
-        {/*<div className="field">*/}
-        {/*<label>{l10n.translation('2893168226686371498').replace('…','')} (Windows/Mac)</label>*/}
-        {/*<Button primary content={l10n.translation('9218430445555521422')} onClick={_=>ipc.send("default-browser",{})}/>*/}
-        {/*</div>*/}
-
-        <br/>
-        <br/>
-        <br/>
-
       </div>
     </div>
   }
@@ -2402,6 +2465,7 @@ class ThemeSetting extends React.Component {
 
 const routings = {
   'general' : <GeneralSetting/>,
+  'data' : <DataSetting/>,
   'search' : <SearchSetting/>,
   'tabs' : <TabsSetting/>,
   'contextMenu' : <ContextMenuSetting/>,
@@ -2426,7 +2490,7 @@ class TopList extends React.Component {
                       onClick={_=>this.setState({page:name})}
     >
       <Icon name={icon}/>
-      {name == "theme" ? 'Theme' : l10n.translation(name == "keyboard" ? '1524430321211440688' : name == 'video' ? '6146563240635539929' : name == 'contextMenu'? '5513242761114685513' : name)}
+      {name == "data" ? 'Data' : name == "theme" ? 'Theme' : l10n.translation(name == "keyboard" ? '1524430321211440688' : name == 'video' ? '6146563240635539929' : name == 'contextMenu'? '5513242761114685513' : name)}
     </Menu.Item>
   }
 
@@ -2439,6 +2503,7 @@ class TopList extends React.Component {
       <Sidebar as={Menu} animation='slide along' width='thin' visible={true} icon='labeled' vertical inverted>
         <Menu.Item></Menu.Item>
         {this.getMenu('general','browser')}
+        {this.getMenu('data','database')}
         {this.getMenu('search','search')}
         {this.getMenu('tabs','table')}
         {this.getMenu('contextMenu','square outline')}
@@ -2446,6 +2511,9 @@ class TopList extends React.Component {
         {this.getMenu('video','video')}
         {this.getMenu('theme','picture')}
         {this.getMenu('extensions','industry')}
+        <Menu.Item as="a" href='javascript:void(0)' onClick={_=>ipc.send('open-page','chrome-extension://jpkfjicglakibpenojifdiepckckakgk/options_page.html')} active={false}>
+          Mouse Gesture
+        </Menu.Item>
       </Sidebar>
       <Sidebar.Pusher>
         <Segment basic>
