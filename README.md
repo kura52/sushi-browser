@@ -157,7 +157,7 @@ sushi-browser --no-sandbox
 
 # New Features
 
-#### New function(v0.193)
+#### New function(v0.19.3)
 - Improved behavior of private tab and Tor tab (top page is displayed, etc.).
 - Change all private tabs to same session.
 - Changed to discard private session when all private tabs are closed.
@@ -171,7 +171,7 @@ sushi-browser --no-sandbox
 - Updated to Muon 7.1.5.
 - Fixed some bugs.
 
-#### New function(v0.19.3)
+#### New function(v0.19.2)
 - Fixed WebExtension function bug.
 - Updated to youtube-dl 2018.07.04.
 

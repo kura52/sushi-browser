@@ -2502,8 +2502,12 @@ class TopList extends React.Component {
   }
 
   getMenu(name,icon){
+
     return <Menu.Item as="a" href={`#${name}`} active={this.isActive(name)}
-                      onClick={_=>this.setState({page:name})}
+                      onClick={_=>{
+                        ReactDOM.findDOMNode(this).querySelector('.pusher').scrollTo(0,0)
+                        this.setState({page:name})
+                      }}
     >
       <Icon name={icon}/>
       {name == "data" ? 'Data' : name == "theme" ? 'Theme' : l10n.translation(name == "keyboard" ? '1524430321211440688' : name == 'video' ? '6146563240635539929' : name == 'contextMenu'? '5513242761114685513' : name)}
