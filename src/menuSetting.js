@@ -41,6 +41,15 @@ const createFileSubmenu = () => {
       }
     },
     {
+      label: 'New Tor Tab',
+      accelerator: mainState.keyNewTorTab,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('new-tab',cont.getId(),"chrome://newtab/",'persist:tor',!mainState.openTabNextLabel)
+        })
+      }
+    },
+    {
       label: locale.translation('newSessionTab'),
       accelerator: mainState.keyNewSessionTab,
       click(item, focusedWindow) {
@@ -148,9 +157,14 @@ const createFileSubmenu = () => {
   if (!isDarwin) {
     submenu.push({ type: 'separator' })
     submenu.push({
+      label: 'Restart Browser',
+      accelerator: mainState.keyRestart,
+      click() { ipcMain.emit('quit-browser',null,'restart') }
+    })
+    submenu.push({
       label: locale.translation('quitApp').replace('Brave','Sushi Browser'),
       accelerator: mainState.keyQuit,
-      click() { app.quit() }
+      click() { ipcMain.emit('quit-browser') }
     })
   }
 
@@ -432,7 +446,8 @@ const createViewSubmenu = () => {
           cont && cont.hostWebContents.send('menu-or-key-events', 'protectTabMenuLabel', cont.getId())
         })
       }
-    },    {
+    },
+    {
       label: locale.translation('lockTabMenuLabel'),
       accelerator: mainState.keyLockTabMenuLabel,
       click(item, focusedWindow) {
@@ -471,7 +486,62 @@ const createViewSubmenu = () => {
           }
         }
       }
-    }
+    },
+    { type: 'separator' },
+    {
+      label: 'Full Page Capture to Clipboard',
+      accelerator: mainState.keyScreenShotFullClipBoard,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'screenShotFullClipBoard', cont.getId())
+        })
+      }
+    },
+    {
+      label: 'Full Page Capture as JPEG',
+      accelerator: mainState.keyScreenShotFullJpeg,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'screenShotFullJpeg', cont.getId())
+        })
+      }
+    },
+    {
+      label: 'Full Page Capture as PNG',
+      accelerator: mainState.keyScreenShotFullPng,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'screenShotFullPng', cont.getId())
+        })
+      }
+    },
+    {
+      label: 'Selection Capture to Clipboard',
+      accelerator: mainState.keyScreenShotSelectionClipBoard,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'screenShotSelectionClipBoard', cont.getId())
+        })
+      }
+    },
+    {
+      label: 'Selection Capture as JPEG',
+      accelerator: mainState.keyScreenShotSelectionJpeg,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'screenShotSelectionJpeg', cont.getId())
+        })
+      }
+    },
+    {
+      label: 'Selection Capture as PNG',
+      accelerator: mainState.keyScreenShotSelectionPng,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'screenShotSelectionPng', cont.getId())
+        })
+      }
+    },
   ]
 }
 
@@ -618,6 +688,24 @@ const createWindowSubmenu = () => {
     },
     { type: 'separator' },
     {
+      label: 'Multi Row Tabs',
+      accelerator: mainState.keyMultiRowTabs,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'multiRowTabs', cont.getId())
+        })
+      }
+    },
+    {
+      label: 'Tab Preview',
+      accelerator: mainState.keyTabPreview,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'tabPreview', cont.getId())
+        })
+      }
+    },
+    {
       label: 'Toggle MenuBar',
       accelerator: mainState.keyToggleMenuBar,
       click(item, focusedWindow) {
@@ -745,6 +833,15 @@ const createWindowSubmenu = () => {
       }
     },
     {
+      label: 'Enable Search Highlight',
+      accelerator: mainState.keySearchHighlight,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'searchHighlight', cont.getId())
+        })
+      }
+    },
+    {
       label: 'Change to Mobile Agent',
       accelerator: mainState.keyChangeMobileAgent,
       click(item, focusedWindow) {
@@ -788,6 +885,51 @@ const createWindowSubmenu = () => {
       click(item, focusedWindow){
         getFocusedWebContents().then(cont=>{
           cont && cont.hostWebContents.send('new-tab',cont.getId(),'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html')
+        })
+      }
+    },
+    {
+      label: 'Open Note',
+      accelerator: mainState.keyNote,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('new-tab',cont.getId(),'chrome://note/')
+        })
+      }
+    },
+    {
+      label: 'Open FileExploler',
+      accelerator: mainState.keyFileExploler,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('new-tab',cont.getId(),'chrome://explorer/')
+        })
+      }
+    },
+    {
+      label: 'Open Terminal',
+      accelerator: mainState.keyTerminal,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('new-tab',cont.getId(),'chrome://terminal/')
+        })
+      }
+    },
+    {
+      label: 'Open Automation',
+      accelerator: mainState.keyAutomation,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('new-tab',cont.getId(),'chrome://automation/')
+        })
+      }
+    },
+    {
+      label: 'Open VideoConverter',
+      accelerator: mainState.keyVideoConverter,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('new-tab',cont.getId(),'chrome://converter/')
         })
       }
     }
@@ -940,11 +1082,14 @@ function getTemplate(){
         },
         { type: 'separator' },
         {
+          label: 'Restart Browser',
+          accelerator: mainState.keyRestart,
+          click() { ipcMain.emit('quit-browser',null,'restart') }
+        },
+        {
           label: locale.translation('quitApp').replace('Brave','Sushi Browser'),
           accelerator: mainState.keyQuit,
-          click() {
-            app.quit()
-          }
+          click() { ipcMain.emit('quit-browser') }
         }
       ]
     })

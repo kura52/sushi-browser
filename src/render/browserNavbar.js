@@ -749,8 +749,8 @@ class BrowserNavbar extends Component{
       <NavbarMenuItem text={locale.translation("closeWindow")} icon='remove circle' onClick={MenuOperation.windowClose}/>
 
       <div className="divider" />
-      <NavbarMenuItem text={locale.translation("quitApp").replace('Brave','Browser')} icon='window close outline' onClick={()=>ipc.send('quit-browser')}/>
       <NavbarMenuItem text='Restart Browser' icon='undo rotate60' onClick={()=>ipc.send('quit-browser','restart')}/>
+      <NavbarMenuItem text={locale.translation("quitApp").replace('Brave','Browser')} icon='window close outline' onClick={()=>ipc.send('quit-browser')}/>
 
       <div className="divider" />
       <NavbarMenuSubMenu text="About">

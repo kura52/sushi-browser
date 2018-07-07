@@ -149,6 +149,18 @@ const msg = {
   "action_name_move_tab_right": {
     "message": "move tab right"
   },
+  "action_name_mute_tab": {
+    "message": "mute tab"
+  },
+  "action_name_freeze_tab": {
+    "message": "freeze tab"
+  },
+  "action_name_protect_tab": {
+    "message": "protect tab"
+  },
+  "action_name_lock_tab": {
+    "message": "lock tab"
+  },
   "chrome_extension_description": {
     "message": "Chrome Mouse Gestures"
   },
@@ -156,6 +168,8 @@ const msg = {
     "message": "Chrome Gestures"
   }
 }
+
+
 
 // chrome.i18n = {}
 // chrome.i18n.getMessage = m => msg[m] && msg[m]["message"]

@@ -707,8 +707,8 @@ ipcMain.on("download-menu",(e,item)=>{
   setTimeout(_=>downloadMenu=(void 0),1000)
 })
 
-ipcMain.on("savedState-menu",(e,canDelete)=>{
-  savedStateMenu = {sender:e.sender,canDelete}
+ipcMain.on("savedState-menu",(e,type)=>{
+  savedStateMenu = {sender:e.sender,type}
   setTimeout(_=>savedStateMenu=(void 0),1000)
 })
 
@@ -877,13 +877,21 @@ function contextMenu(webContents) {
     }
     else if(savedStateMenu){
       const saveMenu = savedStateMenu
-      menuItems.push({label: locale.translation('openInNewWindow'),click: (item,win)=>{saveMenu.sender.send(`savedState-menu-reply`,'openInNewWindow')}})
-      if(saveMenu.canDelete){
-        menuItems.push({label: locale.translation('9065203028668620118'),click: (item,win)=>{saveMenu.sender.send(`savedState-menu-reply`,'edit')}})
+      if(saveMenu.type == 'item' || saveMenu.type == 'directory'){
+        menuItems.push({label: locale.translation('openInNewWindow'),click: (item,win)=>{saveMenu.sender.send(`savedState-menu-reply`,'openInNewWindow')}})
+        if(saveMenu.type == 'item'){
+          menuItems.push({label: locale.translation('9065203028668620118'),click: (item,win)=>{saveMenu.sender.send(`savedState-menu-reply`,'edit')}})
+          menuItems.push({label: locale.translation('delete'),click: (item,win)=>{saveMenu.sender.send(`savedState-menu-reply`,'delete')}})
+        }
+      }
+      else if(saveMenu.type == 'category'){
         menuItems.push({label: locale.translation('delete'),click: (item,win)=>{saveMenu.sender.send(`savedState-menu-reply`,'delete')}})
       }
-      var menu = Menu.buildFromTemplate(menuItems)
-      menu.popup(targetWindow)
+
+      if(menuItems.length){
+        const menu = Menu.buildFromTemplate(menuItems)
+        menu.popup(targetWindow)
+      }
       return
     }
     else if(explorerMenu){
@@ -935,7 +943,7 @@ function contextMenu(webContents) {
       })
       menuItems.push({
         t: 'openInNewPrivateTab', label: locale.translation('openInNewPrivateTab'), click: (item, win) => {
-          win.webContents.send('new-tab', webContents.getId(), props.linkURL,Math.random().toString())
+          win.webContents.send('new-tab', webContents.getId(), props.linkURL,`${seq(true)}`)
         }
       })
       menuItems.push({

@@ -86,6 +86,24 @@
    "action_name_copy_url_and_title_by_custom_tag__1": {
       "message": "URLとタイトルを#1でコピー"
    },
+   "action_name_full_page_capture_to_clipboard": {
+      "message": "ページ全体のキャプチャをClipboardに保存"
+   },
+   "action_name_full_page_capture_as_jpeg": {
+      "message": "ページ全体のキャプチャをJPEGで保存"
+   },
+   "action_name_full_page_capture_as_png": {
+      "message": "ページ全体のキャプチャをPNGで保存"
+   },
+   "action_name_selection_capture_to_clipboard": {
+      "message": "選択範囲のキャプチャをClipboardに保存"
+   },
+   "action_name_selection_capture_as_jpeg": {
+      "message": "選択範囲のキャプチャをJPEGで保存"
+   },
+   "action_name_selection_capture_as_png": {
+      "message": "選択範囲のキャプチャをPNGで保存"
+   },
    "action_name_fastback": {
       "message": "最初のページに戻る"
    },
@@ -158,8 +176,41 @@
    "action_name_quit_browser": {
       "message": "ブラウザを終了"
    },
-   "action_name_restart_browser": {
-      "message": "ブラウザを再起動"
+   "action_name_split_left": {
+      "message": "左にパネルを分割"
+   },
+   "action_name_split_right": {
+      "message": "右にパネルを分割"
+   },
+   "action_name_split_top": {
+      "message": "上にパネルを分割"
+   },
+   "action_name_split_bottom": {
+      "message": "下にパネルを分割"
+   },
+   "action_name_swap_position": {
+      "message": "パネルの位置を入れ替え"
+   },
+   "action_name_switch_direction": {
+      "message": "パネルの方向を切り替え"
+   },
+   "action_name_align_horizontal": {
+      "message": "水平に整列"
+   },
+   "action_name_align_vertical": {
+      "message": "垂直に整列"
+   },
+   "action_name_switch_sync_scroll": {
+      "message": "パネル間の同期スクロール切り替え"
+   },
+   "action_name_open_sidebar": {
+      "message": "サイドバーを切り替え"
+   },
+   "action_name_enable_search_highlight": {
+      "message": "ハイライト検索を有効にする"
+   },
+   "action_name_change_to_mobile_agent": {
+      "message": "モバイル表示に切り替え"
    },
    "action_name_scroll_down": {
       "message": "下にスクロール"
@@ -232,6 +283,30 @@
    },
    "action_name_move_tab_right": {
       "message": "タブを右に移動"
+   },
+   "action_name_mute_tab": {
+      "message": "タブをミュート"
+   },
+   "action_name_freeze_tab": {
+      "message": "タブを凍結"
+   },
+   "action_name_protect_tab": {
+      "message": "タブを保護"
+   },
+   "action_name_lock_tab": {
+      "message": "タブをロック"
+   },
+   "action_name_bookmark_page": {
+      "message": "このページをブックマーク"
+   },
+   "action_name_view_page_source": {
+      "message": "ページのソースを表示"
+   },
+   "action_name_load_url_from_clipboard": {
+      "message": "クリップボードの URL を開く"
+   },
+   "action_name_paste_and_open": {
+      "message": "新しいタブにClipboardのURLを貼り付けて移動"
    },
    "chrome_extension_description": {
       "message": "マウスジェスチャーを実現するGoogle Chrome拡張です"

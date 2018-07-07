@@ -149,9 +149,9 @@ class Title extends React.Component {
   render(){
     const {key,tab,TabStyles,tabBeforeTitleClasses,beforeTitle,tabTiteleStyle,tabTitleClasses,extraAttribute,privateMode,lock,protect,mute,reloadInterval,title,verticalTabPanel,toggleNav,beforeTitleStyle,selected} = this.props.datas
 
-    let m
-    if(privateMode && (m = privateMode.match(/^persist:(\d+)$/))){
-      m = m[1]
+    let m, m2
+    if(privateMode){
+      if(m = privateMode.match(/^persist:(\d+)$/)) m = m[1]
     }
     const color = selected ? getTheme('colors','tab_text') : getTheme('colors','tab_background_text')
     if(color) tabTiteleStyle.color = color

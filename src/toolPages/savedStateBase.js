@@ -442,7 +442,9 @@ class Contents extends React.Component {
       }
 
       if(event.which == 3){
-        ipc.send("savedState-menu",!currentNode.id.match(/[/_-]/))
+        ipc.send("savedState-menu",currentNode.id == 'saved-sessions' ? 'none' :
+          currentNode.id.match(/ [Days|Hours]/) ? 'category' :
+          currentNode.id.match(/[/_-]/) ? 'item' : 'directory')
         this.menuKey = currentNode
         return
       }
@@ -474,7 +476,26 @@ class Contents extends React.Component {
       else if(cmd == "delete") {
         const currentNode = this.menuKey
         this.menuKey = (void 0)
-        deleteState(currentNode.id).then(_ => {
+        let cond = currentNode.id
+        const now = Date.now()
+        const day = 60 * 60 * 24 * 1000
+        if(currentNode.id == '24 Hours Ago'){
+          cond = {created_at: {user: {$ne: true}, $gt: now - day}}
+        }
+        else if(currentNode.id == '24-48 Hours Ago'){
+          cond = {created_at: {user: {$ne: true}, $lte: now - day, $gt: now - day * 2}}
+        }
+        else if(currentNode.id == '7 Days Ago'){
+          cond = {created_at: {user: {$ne: true}, $lte: now - day * 2, $gt: now - day * 7}}
+        }
+        else if(currentNode.id == '30 Days Ago'){
+          cond = {created_at: {user: {$ne: true}, $lte: now - day * 7, $gt: now - day * 30}}
+        }
+        else if(currentNode.id == 'Later than 30 Days'){
+          cond = {created_at: {user: {$ne: true}, $lte: now - day * 30}}
+        }
+
+        deleteState(cond).then(_ => {
           if(isMain) this.eventUpdateDatas()
         })
       }

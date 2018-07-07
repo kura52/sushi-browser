@@ -1958,6 +1958,9 @@ export default class TabPanel extends Component {
       else if(name == 'copyAllTabInfos'){
         ipc.send("set-clipboard",this.state.tabs.map((t,i)=>`${i+1}\t${t.page.title}\t${t.page.navUrl}`))
       }
+      else if(name == 'addBookmark'){
+        tab.events['add-favorite'](null, tab.wvId)
+      }
       else if(name == 'addBookmarkAll'){
         this.onAddFavorites()
       }
@@ -1981,7 +1984,7 @@ export default class TabPanel extends Component {
         this.setState({})
       }
       else if(name == 'lockTabMenuLabel'){
-        this.updateLockTab(tab,tab.lock)
+        this.updateLockTab(tab,!tab.lock)
         this.setState({})
       }
       else if(name == 'splitLeftTabs' || name == 'splitRightTabs' || name == 'duplicateTab'){
@@ -2076,6 +2079,41 @@ export default class TabPanel extends Component {
       }
       else if(name == 'zoomOut'){
         refs2[`navbar-${tab.key}`].onZoomOut()
+      }
+      else if(name == 'multiRowTabs'){
+        sharedState.multistageTabs = !sharedState.multistageTabs
+        ipc.send('save-state',{tableName:'state',key:'multistageTabs',val:sharedState.multistageTabs})
+        PubSub.publish('change-multistage-tabs',sharedState.multistageTabs)
+        PubSub.publish("resizeWindow",{})
+      }
+      else if(name == 'tabPreview'){
+        sharedState.tabPreview = !sharedState.tabPreview
+        mainState.set('tabPreview',sharedState.tabPreview)
+        PubSub.publish('token-preview-change',sharedState.tabPreview)
+      }
+      else if(name == 'searchHighlight'){
+        sharedState.searchWordHighlight = !sharedState.searchWordHighlight
+        mainState.set('searchWordHighlight',sharedState.searchWordHighlight)
+        this.searchWordHighlight(tab)
+        this.setState({})
+      }
+      else if(name == 'screenShotFullClipBoard'){
+        this.screenShot(true,'clipboard',tab)
+      }
+      else if(name == 'screenShotFullJpeg'){
+        this.screenShot(true,'JPEG',tab)
+      }
+      else if(name == 'screenShotFullPng'){
+        this.screenShot(true,'PNG',tab)
+      }
+      else if(name == 'screenShotSelectionClipBoard'){
+        this.screenShot(false,'clipboard',tab)
+      }
+      else if(name == 'screenShotSelectionJpeg'){
+        this.screenShot(false,'JPEG',tab)
+      }
+      else if(name == 'screenShotSelectionPng'){
+        this.screenShot(false,'PNG',tab)
       }
 
     }
@@ -3573,7 +3611,7 @@ export default class TabPanel extends Component {
     }
     // menuItems.push(({ label: 'New Tab', click: ()=>document.querySelector(".rdTabAddButton").click()}))
     menuItems.push(({ t:'newTab',label: locale.translation('newTab'), click: ()=>this.createNewTab(_tabs, i)}))
-    menuItems.push(({ t:'newPrivateTab',label: locale.translation('newPrivateTab'), click: ()=>this.createNewTab(_tabs, i,{default_url:"",privateMode:'0.01'})}))
+    menuItems.push(({ t:'newPrivateTab',label: locale.translation('newPrivateTab'), click: ()=>this.createNewTab(_tabs, i,{default_url:"",privateMode:`${ipc.sendSync('get-session-sequence',true)}`})}))
     menuItems.push(({ t:'newTorTab',label: 'New Tor Tab', click: ()=>this.createNewTab(_tabs, i,{default_url:"",privateMode:'persist:tor'})}))
     menuItems.push(({ t:'newSessionTab',label: locale.translation('newSessionTab'), click: ()=>this.createNewTab(_tabs, i,{privateMode:`persist:${ipc.sendSync('get-session-sequence')}`})}))
     menuItems.push(({ type: 'separator' }))

@@ -902,7 +902,7 @@ export default class SplitWindows extends Component{
     ipc.on('update-theme', this.eventUpdateTheme)
 
     this.tokenAlign = PubSub.subscribe("align",(_,e)=>{
-
+      if(!this.state.root.r) return
       const mapDepth = this.getDepth()
 
       const fixedObj = this.existsAllFixedPanel()

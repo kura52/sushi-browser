@@ -123,6 +123,30 @@
     "move tab right": function () {
       connection.postMessage('move_tab_right');
     },
+    "mute tab": function () {
+      chrome.ipcRenderer.send('menu-or-key-events','unmuteTab',void 0,void 0,true)
+    },
+    "freeze tab": function () {
+      chrome.ipcRenderer.send('menu-or-key-events','freezeTabMenuLabel',void 0,void 0,true)
+    },
+    "protect tab": function () {
+      chrome.ipcRenderer.send('menu-or-key-events','protectTabMenuLabel',void 0,void 0,true)
+    },
+    "lock tab": function () {
+      chrome.ipcRenderer.send('menu-or-key-events','lockTabMenuLabel',void 0,void 0,true)
+    },
+    "bookmark page": function () {
+      chrome.ipcRenderer.send('menu-or-key-events','addBookmark',void 0,void 0,true)
+    },
+    "view page source": function () {
+      chrome.ipcRenderer.send('menu-or-key-events','viewPageSource',void 0,void 0,true)
+    },
+    "load url from clipboard": function () {
+      chrome.ipcRenderer.send('menu-or-key-events','clicktabCopyUrlFromClipboard',void 0,void 0,true)
+    },
+    "paste and open": function () {
+      chrome.ipcRenderer.send('menu-or-key-events','pasteAndOpen',void 0,void 0,true)
+    },
     "scroll down": function (config) {
       if (config.smooth_scroll) {
         SmoothScroll(0, 100, 100);
@@ -238,6 +262,25 @@
         });
       }
     },
+    "full page capture to clipboard": function () {
+      chrome.ipcRenderer.send('menu-or-key-events','screenShotFullClipBoard',void 0,void 0,true)
+    },
+    "full page capture as JPEG": function () {
+      chrome.ipcRenderer.send('menu-or-key-events','screenShotFullJpeg',void 0,void 0,true)
+    },
+    "full page capture as PNG": function () {
+      chrome.ipcRenderer.send('menu-or-key-events','screenShotFullPng',void 0,void 0,true)
+    },
+    "selection capture to clipboard": function () {
+      chrome.ipcRenderer.send('menu-or-key-events','screenShotSelectionClipBoard',void 0,void 0,true)
+    },
+    "selection capture as JPEG": function () {
+      chrome.ipcRenderer.send('menu-or-key-events','screenShotSelectionJpeg',void 0,void 0,true)
+    },
+    "selection capture as PNG": function () {
+      chrome.ipcRenderer.send('menu-or-key-events','screenShotSelectionPng',void 0,void 0,true)
+    },
+
     "run script #1": function (arg) {
       if (arg.action && arg.action.args && arg.action.args[0]) {
         var script = arg.action.args[0];
@@ -256,6 +299,42 @@
     },
     "restart browser": function () {
       chrome.ipcRenderer.send('quit-browser','restart')
+    },
+    "split left": function () {
+      chrome.ipcRenderer.send('menu-or-key-events','splitLeft',void 0,void 0,true)
+    },
+    "split right": function () {
+      chrome.ipcRenderer.send('menu-or-key-events','splitRight',void 0,void 0,true)
+    },
+    "split top": function () {
+      chrome.ipcRenderer.send('menu-or-key-events','splitTop',void 0,void 0,true)
+    },
+    "split bottom": function () {
+      chrome.ipcRenderer.send('menu-or-key-events','splitBottom',void 0,void 0,true)
+    },
+    "swap position": function () {
+      chrome.ipcRenderer.send('menu-or-key-events','swapPosition',void 0,void 0,true)
+    },
+    "switch direction": function () {
+      chrome.ipcRenderer.send('menu-or-key-events','switchDirection',void 0,void 0,true)
+    },
+    "align horizontal": function () {
+      chrome.ipcRenderer.send('menu-or-key-events','alignHorizontal',void 0,void 0,true)
+    },
+    "align vertical": function () {
+      chrome.ipcRenderer.send('menu-or-key-events','alignVertical',void 0,void 0,true)
+    },
+    "switch sync scroll": function () {
+      chrome.ipcRenderer.send('menu-or-key-events','switchSyncScroll',void 0,void 0,true)
+    },
+    "open sidebar": function () {
+      chrome.ipcRenderer.send('menu-or-key-events','openSidebar',void 0,void 0,true)
+    },
+    "enable search highlight": function () {
+      chrome.ipcRenderer.send('menu-or-key-events','searchHighlight',void 0,void 0,true)
+    },
+    "change to mobile agent": function () {
+      chrome.ipcRenderer.send('menu-or-key-events','changeMobileAgent',void 0,void 0,true)
     },
     "open link in new tab": function (arg) {
       var link = $X('ancestor-or-self::a', GM.target)[0] || false;

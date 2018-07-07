@@ -156,7 +156,15 @@ this.MG = {
         {name: "close left tab", args: []},
         {name: "close right tab", args: []},
         {name: "move tab left", args: []},
-        {name: "move tab right", args: []}
+        {name: "move tab right", args: []},
+        {name: "mute tab", args: []},
+        {name: "freeze tab", args: []},
+        {name: "protect tab", args: []},
+        {name: "lock tab", args: []},
+        {name: "bookmark page", args: []},
+        {name: "view page source", args: []},
+        {name: "load url from clipboard", args: []},
+        {name: "paste and open", args: []},
       ]
     },
     {
@@ -230,6 +238,17 @@ this.MG = {
       ]
     },
     {
+      group: 'ScreenShot',
+      actions: [
+        {name: "full page capture to clipboard", args: []},
+        {name: "full page capture as JPEG", args: []},
+        {name: "full page capture as PNG", args: []},
+        {name: "selection capture to clipboard", args: []},
+        {name: "selection capture as JPEG", args: []},
+        {name: "selection capture as PNG", args: []},
+      ]
+    },
+    {
       group: 'Others',
       actions: [
         {name: "config", args: []},
@@ -239,7 +258,19 @@ this.MG = {
         ]},
         {name: "find in page", args: []},
         {name: "quit browser", args: []},
-        {name: "restart browser", args: []}
+        {name: "restart browser", args: []},
+        {name: "split left", args: []},
+        {name: "split right", args: []},
+        {name: "split top", args: []},
+        {name: "split bottom", args: []},
+        {name: "swap position", args: []},
+        {name: "switch direction", args: []},
+        {name: "align horizontal", args: []},
+        {name: "align vertical", args: []},
+        {name: "switch sync scroll", args: []},
+        {name: "open sidebar", args: []},
+        {name: "enable search highlight", args: []},
+        {name: "change to mobile agent", args: []}
       ]
     }
   ],

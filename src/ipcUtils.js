@@ -307,10 +307,10 @@ ipcMain.on('open-favorite',async (event,key,dbKeys,tabId,type,isNote)=>{
       await new Promise((resolve,reject)=>{
         setTimeout(_=>{
           if(tabId){
-            host.send("new-tab",tabId,url,type=='openInNewSessionTab' ? `persist:${seq()}` : type=='openInNewTorTab' ? 'persist:tor' : type=='openInNewPrivateTab' ? '0.01' : false)
+            host.send("new-tab",tabId,url,type=='openInNewSessionTab' ? `persist:${seq()}` : type=='openInNewTorTab' ? 'persist:tor' : type=='openInNewPrivateTab' ? `${seq(true)}` : false)
           }
           else{
-            host.send("new-tab-opposite", event.sender.getId(),url,(void 0),type=='openInNewSessionTab' ? `persist:${seq()}` : type=='openInNewTorTab' ? 'persist:tor' : type=='openInNewPrivateTab' ? '0.01' : false)
+            host.send("new-tab-opposite", event.sender.getId(),url,(void 0),type=='openInNewSessionTab' ? `persist:${seq()}` : type=='openInNewTorTab' ? 'persist:tor' : type=='openInNewPrivateTab' ? `${seq(true)}` : false)
           }
           resolve()
         },200)
@@ -359,7 +359,12 @@ ipcMain.on('open-savedState',async (event,key,tabId,datas)=>{
 })
 
 ipcMain.on('delete-savedState',(event,key,dbKey)=>{
-  savedState.remove({_id: dbKey}).then(ret=>{
+  let opt = {_id: dbKey},opt2
+  if(typeof datas != "string"){
+    opt = dbKey
+    opt2 = { multi: true }
+  }
+  savedState.remove(opt,opt2).then(ret=>{
     event.sender.send(`delete-savedState-reply_${key}`,key)
   })
 })
@@ -1432,8 +1437,8 @@ ipcMain.on('get-cont-history',(e,tabId,tabKey,rSession)=>{
   let {currentIndex, historyList} = saveTabState(cont, rSession, tabKey, true);
   e.sender.send(`get-cont-history-reply_${tabId}`,currentIndex,historyList,rSession,mainState.disableExtensions,mainState.adBlockEnable,mainState.pdfMode,mainState.navbarItems)
 })
-ipcMain.on('get-session-sequence',e=> {
-  e.returnValue = seq()
+ipcMain.on('get-session-sequence',(e,isPrivate)=> {
+  e.returnValue = seq(isPrivate)
 })
 
 ipcMain.on('menu-or-key-events-main',(e,msg,tabId)=>{

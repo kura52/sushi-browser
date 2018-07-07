@@ -25,14 +25,33 @@ const glob = require("glob")
 const BEFORE_CODE_NAME = 'Engawa(Flounder Fin)'
 const CODE_NAME = 'Engawa(Flounder Fin)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.19.2"
+const NEXT_APP_VERSION = "0.19.3"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Fixed WebExtension function bug.
-Updated to youtube-dl 2018.07.04.`
+const CHANGE_ENGLISH = `Improved behavior of private tab and Tor tab (top page is displayed, etc.).
+Change all private tabs to same session.
+Changed to discard private session when all private tabs are closed.
+Added items for keyboard shortcuts.
+Added items for mouse gesture.
+Added function to output file with Plain Text on Note page.
+Improved display of setting page.
+Changed data deleting range of session manager.
+Improved to be able to delete data by right clicking on the period folder in the session manager.
+Changed the margin between list items in the sidebar.
+Updated to Muon 7.1.5.
+Fixed some bugs.`
 
-const CHANGE_JAPANESE = `WebExtensionに対する処理のバグを修正
-youtube-dlを2018.07.04に更新`
+const CHANGE_JAPANESE = `privateタブおよびTorタブの動作改善（top pageが表示されるなど）
+privateタブをすべて同じセッションに変更し、全privateタブが閉じるとセッションを破棄するように変更
+キーボードショートカットに設定可能な項目を追加
+マウスジェスチャに設定可能な項目を追加
+NoteにPlain Textでファイル出力する機能を追加
+設定ページの表示を改善
+セッションマネージャのデータ削除範囲を変更
+セッションマネージャで期間のフォルダを右クリックしてデータを削除できるように改善
+サイドバーの一覧の項目間のマージンを変更
+Muonを7.1.5に更新
+いくつか不具合修正`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

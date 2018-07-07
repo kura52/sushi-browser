@@ -98,3 +98,7 @@ body{
     pointer-events: none;
     position: absolute;
 }
+
+.ui.menu:not(.vertical)>.menu {
+    display: contents;
+}

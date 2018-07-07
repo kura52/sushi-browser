@@ -110,7 +110,7 @@ const settingDefault =  {
   generalWindowOpenLabel: 'linkTargetWindow',
   keepWindowLabel31 : false,
   closeTabBehavior: 'focusTabRightTab',
-  multistageTabs: false,
+  multistageTabs: true,
   maxrowLabel: 0,
   scrollTab: true,
   reverseScrollTab: false,
@@ -159,9 +159,11 @@ const settingDefault =  {
   defaultPopupSelect: 'video',
 
   //keyboard shortcut default
+  keyRestart: '',
   keyQuit: 'CmdOrCtrl+Q',
   keyNewTab: 'CmdOrCtrl+T',
   keyNewPrivateTab: 'Shift+CmdOrCtrl+P',
+  keyNewTorTab: '',
   keyNewSessionTab: 'Shift+CmdOrCtrl+S',
   keyNewWindow: 'CmdOrCtrl+N',
   keyOpenLocation: 'CmdOrCtrl+L',
@@ -183,7 +185,6 @@ const settingDefault =  {
   keySelectAll: 'CmdOrCtrl+A',
 
   keyFindOnPage: 'CmdOrCtrl+F',
-  keySettings: 'CmdOrCtrl+,',
 
   keyActualSize: 'CmdOrCtrl+0',
   keyZoomIn: 'CmdOrCtrl+=',
@@ -205,11 +206,18 @@ const settingDefault =  {
   keyForward: 'CmdOrCtrl+]',
   keyReopenLastClosedTab: 'Shift+CmdOrCtrl+T',
   keyClicktabUcatab: 'Shift+CmdOrCtrl+A',
-  keyShowAllHistory: 'CmdOrCtrl+Y',
 
-  keyBookmarkPage: 'CmdOrCtrl+D',
   keyAddBookmarkAll: 'Shift+CmdOrCtrl+B',
   keyBookmarksManager: isDarwin ? 'CmdOrCtrl+Alt+B' : 'Ctrl+Shift+O',
+
+  keyBookmarkPage: 'CmdOrCtrl+D',
+  keyShowAllHistory: 'CmdOrCtrl+Y',
+  keyNote: '',
+  keySettings: 'CmdOrCtrl+,',
+  keyFileExploler: '',
+  keyTerminal: '',
+  keyAutomation: '',
+  keyVideoConverter: '',
 
   keyMinimize: 'CmdOrCtrl+M',
   keySelectNextTab: 'Ctrl+Tab',
@@ -220,6 +228,8 @@ const settingDefault =  {
   keyHideOthers: 'Command+Alt+H',
 
   //Orginal key binding
+  keyMultiRowTabs: '',
+  keyTabPreview: '',
   keyToggleMenuBar: 'CmdOrCtrl+Alt+T',
   keyChangeFocusPanel: 'CmdOrCtrl+Alt+Space',
 
@@ -238,6 +248,7 @@ const settingDefault =  {
 
   keySwitchSyncScroll: 'CmdOrCtrl+Alt+S',
   keyOpenSidebar: 'CmdOrCtrl+Alt+B',
+  keySearchHighlight: '',
   keyChangeMobileAgent: 'CmdOrCtrl+Alt+M',
 
   keyDetachPanel: 'CmdOrCtrl+Alt+E',
@@ -250,6 +261,8 @@ const settingDefault =  {
   keyClicktabCopyUrlFromClipboard: 'CmdOrCtrl+Alt+U',
   keyPasteAndOpen: 'CmdOrCtrl+Alt+N',
   keyCopyTabInfo: '',
+  keyCopyAllTabTitles: '',
+  keyCopyAllTabUrls: '',
   keyCopyAllTabInfos: '',
 
   //util
@@ -266,7 +279,6 @@ const settingDefault =  {
   keySelectNextTab_2: 'Ctrl+PageDown',
   keySelectPreviousTab_1: 'CmdOrCtrl+Shift+[',
   keySelectPreviousTab_2: 'Ctrl+PageUp',
-  keyLastTab: 'CmdOrCtrl+9',
   keyFindNext: 'CmdOrCtrl+G',
   keyFindPrevious: 'CmdOrCtrl+Shift+G',
   keyToggleDeveloperTools_1: 'CmdOrCtrl+Alt+J',
@@ -287,6 +299,17 @@ const settingDefault =  {
   keyTab6: 'CmdOrCtrl+6',
   keyTab7: 'CmdOrCtrl+7',
   keyTab8: 'CmdOrCtrl+8',
+  keyLastTab: 'CmdOrCtrl+9',
+  keyMultiRowTabs: '',
+  keyTabPreview: '',
+
+  //screenshot
+  keyScreenShotFullClipBoard: '',
+  keyScreenShotFullJpeg: '',
+  keyScreenShotFullPng: '',
+  keyScreenShotSelectionClipBoard: '',
+  keyScreenShotSelectionJpeg: '',
+  keyScreenShotSelectionPng: '',
 
 
   enableKeyDownVideo: false,
