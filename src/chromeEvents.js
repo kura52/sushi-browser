@@ -938,7 +938,13 @@ async function recurGet(parentId,keys,count=99999999){
     const index = i
     const data = {id:x.key == 'root' ? '0' : x.key ,url:x.url,index,title:x.title,dateAdded:x.created_at}
     if(parentId !== void 0) data.parentId = parentId == 'root' ? '0' : parentId
-    if(!x.is_file) data.dateGroupModified = x.updated_at
+    if(x.is_file){
+      data.type = 'bookmark'
+    }
+    else{
+      data.type = 'folder'
+      data.dateGroupModified = x.updated_at
+    }
 
     if(x.children && count > 0){
       promises.push(recurGet(x.key,x.children,count--))

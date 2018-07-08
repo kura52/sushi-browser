@@ -136,6 +136,8 @@ export default async function modify(extensionId,verPath){
 
     if(isWebExt && infos.permissions){
       infos.permissions = infos.permissions.filter(x=>x!=='clipboardWrite' && x!=='clipboardRead')
+      const ind = infos.permissions.findIndex(x=>x=='menus')
+      if(ind != -1) infos.permissions[ind] = 'contextMenus'
     }
 
     let flagContent,flagBackground

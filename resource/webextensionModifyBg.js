@@ -1,5 +1,5 @@
 chrome.runtime.getBrowserInfo = callback=> callback({name:'Firefox',vendor:'Mozilla',version:'57.0',buildID:'20171203000000'})
-
+browser.menus = chrome.contextMenus
 // for(let method of ['onMessage']){
 //   const ipc = chrome.ipcRenderer
 //   const isThenable = value => {

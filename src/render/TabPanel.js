@@ -476,7 +476,7 @@ export default class TabPanel extends Component {
     if((multistageTabs && maxrowLabel != 0) || openTabPosition != 'default'){
       this.componentWillUpdate = (prevProps, prevState)=>{
         if(multistageTabs && maxrowLabel != 0 && this.state.tabKeys.length !== this.state.tabs.length){
-          refs2.tabs.updateWidth()
+          refs2[`tabs-${this.props.k}`].updateWidth()
         }
         if(openTabPosition != 'default'){
           const adds = [],rests = []
@@ -877,7 +877,7 @@ export default class TabPanel extends Component {
         this.props.split(droppedKey, dirc, pos * -1)
       }
 
-      if(refs2.tabs) refs2.tabs.unmountMount()
+      if(refs2[`tabs-${this.props.k}`]) refs2[`tabs-${this.props.k}`].unmountMount()
     })
 
     const tokenSearch = PubSub.subscribe(`drag-search_${this.props.k}`,(msg,{key,text,url})=>{
@@ -1318,6 +1318,20 @@ export default class TabPanel extends Component {
           page.entryIndex = entryIndex
           page.canGoBack = entryIndex !== 0
           page.canGoForward = entryIndex + 1 !== c.entryCount
+
+
+          const title = c.title
+          if(title != page.title){
+            if(tab.key == self.state.selectedTab && !this.isFixed && global.lastMouseDown[2] == self.props.k){
+              ipc.send("change-title",title)
+            }
+            page.title = title
+          }
+
+          if(page.navUrl != c.url) {
+            self.refreshHistory(c, page)
+          }
+
           if (!page.title) {
             page.title = page.location
             if (tab.key == self.state.selectedTab && !this.isFixed) ipc.send("change-title", page.title)
@@ -1674,7 +1688,7 @@ export default class TabPanel extends Component {
 
   setStatePartical(tab){
     const page = tab.page
-    const t = refs2.tabs && refs2.tabs.refs[tab.key]
+    const t = refs2[`tabs-${this.props.k}`] && refs2[`tabs-${this.props.k}`].refs[tab.key]
     if (t){
       const p = t.querySelector('p')
       const title = `${page.favicon !== 'loading' || page.titleSet || page.location == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? page.title : page.location} `
@@ -2176,7 +2190,7 @@ export default class TabPanel extends Component {
       }
       else if(e.channel == 'theme-color-computed'){
         sharedState[`color-${tab.key}`] = e.args[0]
-        refs2.tabs.setState({})
+        refs2[`tabs-${this.props.k}`].setState({})
       }
       else if(e.channel == 'scroll-position'){
         if(closingPos[tab.key]){
@@ -3646,7 +3660,7 @@ export default class TabPanel extends Component {
           this.props.split(this.props.k, dirc, pos * -1)
         }
       }
-      if(refs2.tabs) refs2.tabs.unmountMount()
+      if(refs2[`tabs-${this.props.k}`]) refs2[`tabs-${this.props.k}`].unmountMount()
     }
 
     const splitOtherTabsFunc = (dirc,pos)=> {
@@ -3669,7 +3683,7 @@ export default class TabPanel extends Component {
           PubSub.publish(`close_tab_${this.props.k}`,{key,isUpdateState:i == arr.length - 1})
         })
       }
-      if(refs2.tabs) refs2[`tabs-${this.props.k}`].unmountMount()
+      if(refs2[`tabs-${this.props.k}`]) refs2[`tabs-${this.props.k}`].unmountMount()
     }
 
     const detachToFloatPanel = _=>{

@@ -879,7 +879,7 @@ function contextMenu(webContents) {
       const saveMenu = savedStateMenu
       if(saveMenu.type == 'item' || saveMenu.type == 'directory'){
         menuItems.push({label: locale.translation('openInNewWindow'),click: (item,win)=>{saveMenu.sender.send(`savedState-menu-reply`,'openInNewWindow')}})
-        if(saveMenu.type == 'item'){
+        if(saveMenu.type == 'directory'){
           menuItems.push({label: locale.translation('9065203028668620118'),click: (item,win)=>{saveMenu.sender.send(`savedState-menu-reply`,'edit')}})
           menuItems.push({label: locale.translation('delete'),click: (item,win)=>{saveMenu.sender.send(`savedState-menu-reply`,'delete')}})
         }

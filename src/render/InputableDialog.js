@@ -12,12 +12,12 @@ export default class InputableDialog extends Component{
   }
 
   componentDidMount(){
-    const input = this.refs.input0
-    if(input && input.focus) input.focus()
+    const input = this.refs.input0 && ReactDOM.findDOMNode(this.refs.input0)
+    if(input) input.focus()
     if(this.props.data.needInput){
       const inputLast = this.refs[`input${ this.props.data.needInput.length - 1}`]
       if(inputLast){
-        inputLast.inputRef.addEventListener('keydown',e=>{if(e.keyCode == 13) this.handleOk()})
+        ReactDOM.findDOMNode(inputLast).addEventListener('keydown',e=>{if(e.keyCode == 13) this.handleOk()})
       }
     }
     if(this.props.data.auth){

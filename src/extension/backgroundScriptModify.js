@@ -721,7 +721,18 @@ if(chrome.bookmarks){
   chrome.bookmarks.get = (idOrIdList, callback) => simpleIpcFunc('chrome-bookmarks-get', callback, idOrIdList)
   chrome.bookmarks.getChildren = (id, callback) => simpleIpcFunc('chrome-bookmarks-getChildren', callback, id)
   chrome.bookmarks.getRecent = (numberOfItems, callback) => simpleIpcFunc('chrome-bookmarks-getRecent', callback, numberOfItems)
-  chrome.bookmarks.getTree = (callback) => simpleIpcFunc('chrome-bookmarks-getTree', callback)
+  chrome.bookmarks.getTree = (callback) => simpleIpcFunc('chrome-bookmarks-getTree', ret=>{
+    if(chrome.runtime.getBrowserInfo){
+      ret[0].children = [
+        { id:"menu________", title:"Bookmark Menu", index:0, dateAdded:1528599737256, type:"folder", parentId:"0", dateGroupModified:1528599737854, children:[] },
+        { id:"toolbar_____", title:"Bookmark Toolbar", index:0, dateAdded:1528599737256, type:"folder", parentId:"0", dateGroupModified:1528599737854, children:ret[0].children },
+        { id:"unfiled_____", title:"Bookmark Unfiled", index:0, dateAdded:1528599737256, type:"folder", parentId:"0", dateGroupModified:1528599737854, children:[] },
+        { id:"mobile______", title:"Bookmark Mobile", index:0, dateAdded:1528599737256, type:"folder", parentId:"0", dateGroupModified:1528599737854, children:[] },
+        { id:"menu________", title:"Bookmark Menu", index:0, dateAdded:1528599737256, type:"folder", parentId:"0", dateGroupModified:1528599737854, children:[] },
+      ]
+    }
+    callback(ret)
+  })
   chrome.bookmarks.getSubTree = (id, callback) => simpleIpcFunc('chrome-bookmarks-getSubTree', callback, id)
   chrome.bookmarks.search = (query, callback) => simpleIpcFunc('chrome-bookmarks-search', callback, query)
   chrome.bookmarks.create = (bookmark, callback) => simpleIpcFunc('chrome-bookmarks-create', callback, bookmark)

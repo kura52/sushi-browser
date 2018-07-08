@@ -359,12 +359,11 @@ ipcMain.on('open-savedState',async (event,key,tabId,datas)=>{
 })
 
 ipcMain.on('delete-savedState',(event,key,dbKey)=>{
-  let opt = {_id: dbKey},opt2
-  if(typeof datas != "string"){
-    opt = dbKey
-    opt2 = { multi: true }
+  let opt = [{_id: dbKey}]
+  if(typeof dbKey != "string"){
+    opt = [dbKey, { multi: true }]
   }
-  savedState.remove(opt,opt2).then(ret=>{
+  savedState.remove(...opt).then(ret=>{
     event.sender.send(`delete-savedState-reply_${key}`,key)
   })
 })
@@ -1297,7 +1296,8 @@ ipcMain.on('get-did-finish-load',(e,tabId,tabKey,rSession)=>{
   const ret = cont ? {
     currentEntryIndex,
     entryCount,
-    url: cont.getURL()
+    url: cont.getURL(),
+    title: cont.getTitle()
   } : null
 
   e.sender.send(`get-did-finish-load-reply_${tabId}`,ret)

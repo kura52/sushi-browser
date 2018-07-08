@@ -41,7 +41,7 @@ let result = _=>{
       return
     }
     else if(msg.favicon){
-      getFavicon(msg.favicon)
+      if(msg.favicon != 'resource/file.svg') getFavicon(msg.favicon)
       return
     }
 

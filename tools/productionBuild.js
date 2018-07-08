@@ -617,7 +617,7 @@ filesContentsReplace(`${pwd}/node_modules/youtube-dl/lib/youtube-dl.js`,"(detail
 
 // Build Filestory
 const compiledJsFiles = ['resource/extension/default/1.0_0/js/top.js',
-  // 'resource/extension/default/1.0_0/js/download.js',
+  'resource/extension/default/1.0_0/js/download.js',
   'resource/extension/default/1.0_0/js/downloader.js',
   'resource/extension/default/1.0_0/js/selector.js',
   'resource/extension/default/1.0_0/js/history.js',
