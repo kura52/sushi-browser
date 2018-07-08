@@ -1476,6 +1476,7 @@ export default class TabPanel extends Component {
           page.isLoading = false
           if(page.favicon == 'loading') page.favicon = 'resource/file.svg'
           PubSub.publish(`change-status-${tab.key}`)
+          if(!refs2[`navbar-${tab.key}`]) return
           refs2[`navbar-${tab.key}`].setState({})
           self.setStatePartical(tab)
 
@@ -1688,7 +1689,7 @@ export default class TabPanel extends Component {
 
   setStatePartical(tab){
     const page = tab.page
-    const t = refs2[`tabs-${this.props.k}`] && refs2[`tabs-${this.props.k}`].refs[tab.key]
+    const t = refs2[`tabs-${this.props.k}`] && ReactDOM.findDOMNode(refs2[`tabs-${this.props.k}`]).querySelector(`#draggable_tabs_${tab.key}`)
     if (t){
       const p = t.querySelector('p')
       const title = `${page.favicon !== 'loading' || page.titleSet || page.location == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? page.title : page.location} `
@@ -2556,7 +2557,9 @@ export default class TabPanel extends Component {
       // }
       // ipc.send('chrome-webNavigation-onCreatedNavigationTarget', this.createChromeWebNavDetails(tab,newPage.location))
     }
-    if(c_wv) this.registWebView(tab, c_wv)
+    if(c_wv){
+      this.registWebView(tab, c_wv)
+    }
 
     tab.events['create-web-contents'] = (e,{id,targetUrl,disposition,guestInstanceId})=>{
       console.log('0create-web-contents',id,targetUrl,disposition,guestInstanceId,tab,this)
@@ -3169,7 +3172,7 @@ export default class TabPanel extends Component {
     if (!this.mounted) return
     const i = this.state.tabs.findIndex((x)=> x.key == key)
     const tab = this.state.tabs[i]
-    if(tab.protect) return
+    if(!tab || tab.protect) return
 
     console.log('tabClosed key:', key,tab.page.navUrl,this.state.tabs.length)
     console.log('change-visit-state-close',this.props.k,tab.page.navUrl)

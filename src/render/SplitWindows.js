@@ -626,12 +626,17 @@ export default class SplitWindows extends Component{
         const others = isBefore ? beforeOthers : afterOthers
         for(let ele of map[key]){
           const tab = ele[0]
-          const n_tab = this.refs2[indexKey].createTab({c_page:tab.page,c_wv:tab.wv,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,guestInstanceId: tab.guestInstanceId,
+          const cont = getWebContents(tab)
+          tab.wv.attachGuest(cont._detachGuest().guestInstanceId)
+          const newKey = uuid.v4()
+          if(selectedTab == tab.key) selectedTab = newKey
+          const n_tab = this.refs2[indexKey].createTab({c_page:tab.page,c_key:newKey,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,guestInstanceId: tab._guestInstanceId || getWebContents(tab).guestInstanceId,
             rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis}})
           others.push([n_tab,ele[1],ele[0]])
         }
         funcs[key] =_=>{
           for(let ele of others.slice(0).reverse()){
+            // this.refs2[key].handleTabClose({},ele[0].key)
             if(ele[2].events) removeEvents(ipc,ele[2].events)
             const closeTab = tabs.splice(ele[1],1)[0]
             this.refs2[key].state.selectedTab = this.refs2[key].getNextSelectedTab(ele[0],closeTab,ele[1])

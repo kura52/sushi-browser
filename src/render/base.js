@@ -22,7 +22,7 @@ sharedState.hoverBookmarkBar = hoverBookmarkBar
 global.lastMouseDown = []
 global.lastMouseDownSet = new Set()
 global.openerQueue = []
-
+//
 if(location.href.endsWith("index.html#")){
   try{
     for(let [url,path] of Object.entries(ipc.sendSync('get-sync-main-state','favicons'))){

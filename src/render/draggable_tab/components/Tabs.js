@@ -226,7 +226,17 @@ class Tabs extends React.Component {
   }
 
   componentWillMount(){
+    if(this.props.refs2) this.props.refs2[`tabs-${this.props.k}`] = this
+  }
+
+  componentDidMount(){
     this.props.refs2[`tabs-${this.props.k}`] = this
+  }
+
+  componentWillUnmount() {
+    if(this.props.refs2[`tabs-${this.props.k}`] == this){
+      delete this.props.refs2[`tabs-${this.props.k}`]
+    }
   }
 
   isMultistageTabsMode(){
@@ -786,7 +796,6 @@ class Tabs extends React.Component {
             onMouseDown={this.handleTabClick.bind(this, tab.key)}
             onMouseUp={::this.handleTabMouseUp}
             onMouseEnter={onMouseHover}
-            ref={tab.key}
             {...others}>
           {
             this.isMultistageTabsMode() || this.props.verticalTabPanel?

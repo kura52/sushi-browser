@@ -195,15 +195,18 @@ class BrowserNavbar extends Component{
   }
 
   componentWillMount(){
+    console.log('navbar','componentWillMount',this.props.tabkey)
     this.props.refs2[`navbar-${this.props.tabkey}`] = this
   }
 
   componentDidMount() {
+    console.log('navbar','componentDidMount',this.props.tabkey)
     this.updateStates()
     this.initEvents()
   }
 
   componentWillUnmount() {
+    console.log('navbar','componentWillUnmount',this.props.tabkey)
     PubSub.unsubscribe(this.tokenZoom)
     PubSub.unsubscribe(this.tokenReplaceInfo)
     // PubSub.unsubscribe(this.tokenAdblockGlobal)
