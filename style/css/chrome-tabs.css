@@ -94,7 +94,7 @@
   fill: #343434;
 }
 
-.chrome-tabs .chrome-tab.multi-row  .chrome-tab-background{
+.split-window .chrome-tabs .chrome-tab.multi-row  .chrome-tab-background{
   background-color: rgb(79, 79, 79);
   border-left: 0.5px solid rgba(0, 0, 0, 0.27);
   border-right: 0.5px solid rgba(0, 0, 0, 0.27);
@@ -108,7 +108,7 @@
   background-color: #343434;
 }
 
-.chrome-tabs .multi-row .chrome-tab-favicon,
+.split-window .chrome-tabs .multi-row .chrome-tab-favicon,
 .vertical-tab .chrome-tabs .chrome-tab-favicon{
   margin-left: 1em;
 }
@@ -120,7 +120,7 @@
   stroke-dashoffset:80;
 }
 
-.chrome-tabs .chrome-tab-drag.multi-row .chrome-tab-background,
+.split-window .chrome-tabs .chrome-tab-drag.multi-row .chrome-tab-background,
 .chrome-tab-selection.multi-row .chrome-tab-background,
 .vertical-tab .chrome-tab-drag,
 .vertical-selection{

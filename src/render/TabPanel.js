@@ -476,7 +476,7 @@ export default class TabPanel extends Component {
     if((multistageTabs && maxrowLabel != 0) || openTabPosition != 'default'){
       this.componentWillUpdate = (prevProps, prevState)=>{
         if(multistageTabs && maxrowLabel != 0 && this.state.tabKeys.length !== this.state.tabs.length){
-          this.refs.tabs.updateWidth()
+          refs2.tabs.updateWidth()
         }
         if(openTabPosition != 'default'){
           const adds = [],rests = []
@@ -877,7 +877,7 @@ export default class TabPanel extends Component {
         this.props.split(droppedKey, dirc, pos * -1)
       }
 
-      if(this.refs.tabs) this.refs.tabs.unmountMount()
+      if(refs2.tabs) refs2.tabs.unmountMount()
     })
 
     const tokenSearch = PubSub.subscribe(`drag-search_${this.props.k}`,(msg,{key,text,url})=>{
@@ -1674,7 +1674,7 @@ export default class TabPanel extends Component {
 
   setStatePartical(tab){
     const page = tab.page
-    const t = this.refs.tabs && this.refs.tabs.refs[tab.key]
+    const t = refs2.tabs && refs2.tabs.refs[tab.key]
     if (t){
       const p = t.querySelector('p')
       const title = `${page.favicon !== 'loading' || page.titleSet || page.location == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? page.title : page.location} `
@@ -2176,7 +2176,7 @@ export default class TabPanel extends Component {
       }
       else if(e.channel == 'theme-color-computed'){
         sharedState[`color-${tab.key}`] = e.args[0]
-        this.refs.tabs.setState({})
+        refs2.tabs.setState({})
       }
       else if(e.channel == 'scroll-position'){
         if(closingPos[tab.key]){
@@ -2703,7 +2703,7 @@ export default class TabPanel extends Component {
 
   webViewCreate(){
     if(this.mounted===false) return
-    const div = this.refs[`div-${this.state.selectedTab}`]
+    const div = this.refs[`div-${this.state.selectedTab}`] || document.querySelector(`.db${this.state.selectedTab}`)
     if(!div) return
 
 
@@ -3646,7 +3646,7 @@ export default class TabPanel extends Component {
           this.props.split(this.props.k, dirc, pos * -1)
         }
       }
-      if(this.refs.tabs) this.refs.tabs.unmountMount()
+      if(refs2.tabs) refs2.tabs.unmountMount()
     }
 
     const splitOtherTabsFunc = (dirc,pos)=> {
@@ -3669,7 +3669,7 @@ export default class TabPanel extends Component {
           PubSub.publish(`close_tab_${this.props.k}`,{key,isUpdateState:i == arr.length - 1})
         })
       }
-      if(this.refs.tabs) this.refs.tabs.unmountMount()
+      if(refs2.tabs) refs2[`tabs-${this.props.k}`].unmountMount()
     }
 
     const detachToFloatPanel = _=>{
@@ -4222,7 +4222,7 @@ export default class TabPanel extends Component {
       const d = {wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
         rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || cont.guestInstanceId}
       ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
-      BrowserWindowPlus.load({id:remote.getCurrentWindow().id,...bounds,_alwaysOnTop:true,toggle:1,tabParam:JSON.stringify([d])})
+      const winId = ipc.sendSync('browser-load',{id:remote.getCurrentWindow().id,...bounds,_alwaysOnTop:true,toggle:1,tabParam:JSON.stringify([d])})
       cont.moveTo(0, winId)
     }
     else{
@@ -4234,7 +4234,7 @@ export default class TabPanel extends Component {
         const d = {wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
           rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || cont.guestInstanceId}
         ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
-        BrowserWindowPlus.load({id:remote.getCurrentWindow().id,...bounds,_alwaysOnTop:true,toggle:1,tabParam:JSON.stringify([d])})
+        const winId = ipc.sendSync('browser-load',{id:remote.getCurrentWindow().id,...bounds,_alwaysOnTop:true,toggle:1,tabParam:JSON.stringify([d])})
         cont.moveTo(0, winId)
       },100)
     }
@@ -4457,13 +4457,13 @@ export default class TabPanel extends Component {
         isOnlyPanel={!this.props.parent.state.root.r}
         windowId={this.props.windowId}
         k={this.props.k}
+        refs2={refs2}
         mouseClickHandles={key=>this._handleContextMenu(null,key,null,this.state.tabs,false,true)}
-        ref='tabs'
         tabs={this.state.tabs.map((tab,num)=>{
           const notifications = this.state.notifications.filter(x=>x._key == tab.key)
           return (<Tab key={tab.key} page={tab.page} orgTab={tab} unread={this.state.selectedTab != tab.key && !allSelectedkeys.has(tab.key)} pin={tab.pin} protect={tab.protect} lock={tab.lock} mute={tab.mute} reloadInterval={tab.reloadInterval} privateMode={tab.privateMode} selection={tab.selection}>
-            <div style={{height: '100%'}} className="div-back" ref={`div-${tab.key}`} >
-              <BrowserNavbar ref={`navbar-${tab.key}`} tabkey={tab.key} k={this.props.k} navHandle={tab.navHandlers} parent={this}
+            <div style={{height: '100%'}} className={`div-back db${tab.key}`} ref={`div-${tab.key}`} >
+              <BrowserNavbar tabkey={tab.key} k={this.props.k} navHandle={tab.navHandlers} parent={this}
                              privateMode={tab.privateMode} page={tab.page} tab={tab} refs2={refs2} key={tab.key} adBlockEnable={adBlockEnable}
                              oppositeGlobal={this.state.oppositeGlobal} toggleNav={toggle} adBlockThis={tab.adBlockThis}
                              historyMap={historyMap} currentWebContents={this.props.currentWebContents}

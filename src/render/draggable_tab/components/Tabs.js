@@ -225,6 +225,10 @@ class Tabs extends React.Component {
     this.updateWidth = ::this.updateWidth
   }
 
+  componentWillMount(){
+    this.props.refs2[`tabs-${this.props.k}`] = this
+  }
+
   isMultistageTabsMode(){
     return (multistageTabs && this.props.toggleNav == 0) || this.props.verticalTabPanel
   }
@@ -724,11 +728,11 @@ class Tabs extends React.Component {
       let prevTitle,beforeTitleStyle
       if(this.props.verticalTabTree && tab.props.expand){
         if(tab.props.fold){
-          prevTitle = <span onMouseDown={e =>{e.stopPropagation();PubSub.publish('expand-tab',{key:tab.key,val:false})}} className="tab-expand" style={{color:titleColor}}>▶</span>
+          prevTitle = <span onMouseDown={e =>{e.stopPropagation();PubSub.publish('expand-tab',{key:tab.key,val:false})}} className="tab-expand" style={{color:titleColor,position: 'relative'}}>▶</span>
           beforeTitleStyle = {marginLeft: 2}
         }
         else{
-          prevTitle = <span onMouseDown={e =>{e.stopPropagation();PubSub.publish('expand-tab',{key:tab.key,val:true})}} className="tab-expand" style={{color:titleColor,verticalAlign: -3}}>▼</span>
+          prevTitle = <span onMouseDown={e =>{e.stopPropagation();PubSub.publish('expand-tab',{key:tab.key,val:true})}} className="tab-expand" style={{color:titleColor,verticalAlign: -3,position: 'relative'}}>▼</span>
           beforeTitleStyle = {marginLeft: 4}
         }
         beforeTitleCount++
