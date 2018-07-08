@@ -962,7 +962,7 @@ async function recurGet(parentId,keys,count=99999999){
   // if(keys[0] == 'root'){
   //   modifyRoot(datas[0])
   // }
-  if(datas[0] && datas[0].children)console.log(6664,keys[0],datas[0].id,datas[0].children.length)
+  // if(datas[0] && datas[0].children)console.log(6664,keys[0],datas[0].id,datas[0].children.length)
   return datas
 }
 

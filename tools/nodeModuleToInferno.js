@@ -1,8 +1,8 @@
 const glob = require("glob")
 const fs = require("fs")
 
-const files = ['../node_modules/react-sticky','../node_modules/semantic-ui-react','../node_modules/react-table',
-'../node_modules/react-sortable-hoc']
+const files = ['../node_modules/react-sticky','../node_modules/semantic-ui-react','../node_modules/react-table','../node_modules/react-virtualized',
+  '../node_modules/react-sortable-hoc']
 
 for(let f of files){
   for(let js of glob.sync(`${f}/**/*.js`)){
