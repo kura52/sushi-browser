@@ -262,10 +262,10 @@ ipcMain.on('get-all-favorites',async(event,key,dbKeys,num,isNote)=>{
 ipcMain.on('get-all-states',async(event,key,range)=>{
   const cond =  !Object.keys(range).length ? range :
     {$or: [{ created_at: (
-        range.start === void 0 ? { $lte: range.end } :
-          range.end === void 0 ? { $gte: range.start } :
-            { $gte: range.start ,$lte: range.end }
-      )}, {user: true}]}
+          range.start === void 0 ? { $lte: range.end } :
+            range.end === void 0 ? { $gte: range.start } :
+              { $gte: range.start ,$lte: range.end }
+        )}, {user: true}]}
   const ret = await savedState.find_sort([cond],[{ created_at: -1 }])
   event.sender.send(`get-all-states-reply_${key}`,ret)
 })
@@ -496,7 +496,7 @@ function getYoutubeFileSize(url){
           console.log(888,res.headers)
           r(res.headers['content-length'] ? parseInt(res.headers['content-length']) : void 0)
         }
-      res.destroy()
+        res.destroy()
       }
     )
     req.end()
@@ -703,7 +703,7 @@ ipcMain.on('get-main-state',(e,key,names)=>{
         extensions[k] = {name:v.name,url:v.url,basePath:v.base_path,version: (v.manifest.version || v.version),theme:v.theme,
           optionPage: v.manifest.options_page || (v.manifest.options_ui && v.manifest.options_ui.page),
           background: v.manifest.background && v.manifest.background.page,icons:v.manifest.icons,
-           description: (v.manifest.description || v.description),enabled: !disableExtensions.includes(orgId) }
+          description: (v.manifest.description || v.description),enabled: !disableExtensions.includes(orgId) }
       }
       ret[name] = extensions
     }
@@ -1156,27 +1156,26 @@ ipcMain.on('vpn-event',async (e,key,address)=>{
 
 })
 
-ipcMain.on('audio-extract',async e=>{
+ipcMain.on('audio-extract',e=>{
   const focusedWindow = BrowserWindow.getFocusedWindow()
-  const files = dialog.showOpenDialog(focusedWindow,{
-    properties: ['openFile','multiSelections'],
-    filters: [{
-      name: 'Select Video Files',
-      extensions: ['3gp','3gpp','3gpp2','asf','avi','dv','flv','m2t','m4v','mkv','mov','mp4','mpeg','mpg','mts','oggtheora','ogv','rm','ts','vob','webm','wmv']
-    }]
-  })
-  if (files && files.length > 0) {
-    for(let fileList of eachSlice(files,6)){
-      const promises = []
-      for(let file of fileList){
-        const key = Math.random().toString()
-        promises.push(new Promise((resolve)=>{
-          new FfmpegWrapper(file).exe(resolve)
-        }))
+  dialog.showDialog(focusedWindow,{
+    type: 'select-open-multi-file',
+    name: 'Select Video Files',
+    extensions: ['3gp','3gpp','3gpp2','asf','avi','dv','flv','m2t','m4v','mkv','mov','mp4','mpeg','mpg','mts','oggtheora','ogv','rm','ts','vob','webm','wmv']
+  },async files=>{
+    if (files && files.length > 0) {
+      for(let fileList of eachSlice(files,6)){
+        const promises = []
+        for(let file of fileList){
+          const key = Math.random().toString()
+          promises.push(new Promise((resolve)=>{
+            new FfmpegWrapper(file).exe(resolve)
+          }))
+        }
+        await Promise.all(promises)
       }
-      await Promise.all(promises)
     }
-  }
+  })
 })
 
 ipcMain.on('get-country-names',e=>{

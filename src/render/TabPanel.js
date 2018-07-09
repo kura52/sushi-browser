@@ -938,7 +938,7 @@ export default class TabPanel extends Component {
     return false
   }
 
-  closeTabFunc(key,tabs,closeTab,i){
+  closeTabFunc(key,tabs,closeTab,i,nextKey){
     const leftTab = _=> i-1 >= 0 ? tabs[i-1].key : tabs.length > 0 ? tabs[0].key : null
     const rightTab = _=> tabs.length > i ? tabs[i].key : tabs.length > 0 ? tabs[i - 1].key : null
 
@@ -981,10 +981,13 @@ export default class TabPanel extends Component {
     else if(closeTabBehavior == 'focusTabLastTab'){
       return tabs[tabs.length-1].key
     }
+    else if (closeTabBehavior == 'nearlyChrome'){
+      return (nextKey === void 0 ? this._getPrevSelectedTab(key,tabs,closeTab,i) : nextKey) || rightTab()
+    }
   }
 
-  getPrevSelectedTab(key,tabs,closeTab,i){
-    let ind,ret
+  _getPrevSelectedTab(key,tabs,closeTab,i){
+    let ind,ret = null
     // console.log(key,this.state.prevAddKeyCount,this.state.selectedKeys)
     if((ind = this.state.prevAddKeyCount[1].findIndex(k=>k==key))!= -1){
       const compKeys2 = [this.state.prevAddKeyCount[0],...this.state.prevAddKeyCount[1]].sort()
@@ -1006,10 +1009,10 @@ export default class TabPanel extends Component {
     }
 
     if(ret && !tabs.find(tab=>tab.key == ret)){
-      ret = (void 0)
+      ret = null
     }
 
-    return this.closeTabFunc(key,tabs,closeTab,i)
+    return ret
 
 
     // for(let i = this.state.selectedKeys.length - 1;i > -1 ;i--){
@@ -1019,6 +1022,11 @@ export default class TabPanel extends Component {
     //     return selected
     //   }
     // }
+  }
+
+  getPrevSelectedTab(key,tabs,closeTab,i) {
+    const nextKey = this._getPrevSelectedTab(key,tabs,closeTab,i)
+    return this.closeTabFunc(key, tabs, closeTab, i,nextKey)
   }
 
   locationContextMenu(el, tab, newPage, self, navigateTo) {
@@ -3210,7 +3218,7 @@ export default class TabPanel extends Component {
     if (!this.mounted) return
     // console.log("selected06",_tabs.find(t=>t.key == (this.state.selectedTab !== key ? this.state.selectedTab : this.getPrevSelectedTab(key,_tabs,i))),this.state.selectedTab !== key ? this.state.selectedTab : this.getPrevSelectedTab(key,_tabs,i))
 
-    console.log('close44',closeTab.key,_tabs.find(t=>t.key == this.state.selectedTab) ? this.state.selectedTab : this.getPrevSelectedTab(key,_tabs,closeTab,i))
+    // console.log('close44',closeTab.key,_tabs.find(t=>t.key == this.state.selectedTab) ? this.state.selectedTab : this.getPrevSelectedTab(key,_tabs,closeTab,i))
 
     if(isUpdateState){
       this.setState({tabs:_tabs,

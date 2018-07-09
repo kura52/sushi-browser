@@ -317,10 +317,10 @@ class Downloader extends React.Component {
     if(item.state == "progressing" && !item.isPaused){
       arr.push(<i onClick={_=>ipc.send("download-pause",item)} className="fa fa-pause-circle-o menu-item" aria-hidden="true"></i>)
     }
-    arr.push(<i onClick={_=>ipc.send("download-open-folder", item.savePath)} className="fa fa-folder-o menu-item" aria-hidden="true"></i>)
     if(item.state != "cancelled"){
       arr.push(<i onClick={_=>ipc.send("download-open",item)} className="fa fa-file-o menu-item" aria-hidden="true"></i>)
     }
+    arr.push(<i onClick={_=>ipc.send("download-open-folder", item.savePath)} className="fa fa-folder-o menu-item" aria-hidden="true"></i>)
     if(item.state != "completed" && item.state != "cancelled"){
       arr.push(<i onClick={_=>cancelItems([item])} className="fa fa-trash-o menu-item" aria-hidden="true"></i>)
     }
@@ -409,7 +409,7 @@ class Downloader extends React.Component {
       option: ['textArea','dialog',void 0,'toggle'],
       needInput: ["URLs  (You can expand URLs. Example: file{a,b,c}.jpg , file{00..10}.png, file{0..4..2}.gif)",
         "Save Directory","FileName(Optional) (You can use tags (name/ext/base/sub/host/y/m/d/hh/mm/ss). Example: {name}_{y}.{ext})",
-        'Attempt to find and download video']
+        'Attempt to find and download video (Using youtube-dl)']
     }).then(value => {
       console.log(7778,value)
       if (!value) return
@@ -553,11 +553,11 @@ class Downloader extends React.Component {
             <button onClick={_=>this.handleRemoveAll(true)} className="btn btn-sm align-middle btn-outline-secondary" type="button">
               <i className="fa fa-window-close" aria-hidden="true"></i>Remove Finished
             </button>
+            <button onclick={_ => this.handleOpenFile()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
+              <i className="fa fa-file-o" aria-hidden="true"></i>Open File
+            </button>
             <button onClick={_=>this.handleOpenFolder()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
               <i className="fa fa-folder-o" aria-hidden="true"></i>Show Folder
-            </button>
-            <button onClick={_=>this.handleOpenFile()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
-              <i className="fa fa-file-o" aria-hidden="true"></i>Open File
             </button>
             <button onClick={_=>this.handleCopyPath()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
               <i className="fa fa-clipboard" aria-hidden="true"></i>Copy Path

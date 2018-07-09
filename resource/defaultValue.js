@@ -109,7 +109,7 @@ const settingDefault =  {
   openTabNextLabel: false,
   generalWindowOpenLabel: 'linkTargetWindow',
   keepWindowLabel31 : false,
-  closeTabBehavior: 'focusTabLastSelectedTab',
+  closeTabBehavior: 'nearlyChrome',
   multistageTabs: true,
   maxrowLabel: 0,
   scrollTab: true,

@@ -822,7 +822,7 @@ export default class SplitWindows extends Component{
     ipc.on('chrome-tabs-move-attach',this.eventChromeTabsMoveAttach)
 
     this.eventTabCreate = (e,tabValue)=>{
-      this.tabValues[tabValue.id] = tabValue.url == 'chrome://newtab/' ? void 0 : tabValue.openerTabId
+      this.tabValues[tabValue.id] = (tabValue.url == 'chrome://newtab/' || tabValue.url == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html') ? void 0 : tabValue.openerTabId
     }
     ipc.on('tab-create',this.eventTabCreate)
 

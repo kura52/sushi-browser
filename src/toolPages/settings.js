@@ -413,6 +413,7 @@ const contextMenus = [
 const tabContextMenus = [
   ['newTab', l10n.translation('newTab')],
   ['newPrivateTab', l10n.translation('newPrivateTab')],
+  ['New Tor Tab', 'New Tor Tab'],
   ['newSessionTab', l10n.translation('newSessionTab')],
 
   ['divider', null],
@@ -1348,7 +1349,7 @@ class TabsSetting extends React.Component {
   constructor(props) {
     super(props)
     this.state = {...TabDefault,errors:{}}
-    this.mouseOptions = this.makeOptions(['clicktabNothing','newTab','newPrivateTab','newSessionTab','Split Left','Split Right','Split Top','Split Bottom','Split left tabs to left','Split right tabs to right','Floating Panel','Swap Position','Switch Direction','Align Horizontal','Align Vertical','clicktabCopyTabUrl','clicktabCopyUrlFromClipboard','Paste and Open','Copy Tab Info','Copy All Tab Titles','Copy All Tab URLs','Copy All Tab Infos','reload','cleanReload','clicktabReloadtabs','clicktabReloadothertabs','clicktabReloadlefttabs','clicktabReloadrighttabs','3007771295016901659','unpinTab','unmuteTab','freezeTabMenuLabel','protectTabMenuLabel','lockTabMenuLabel','closeTab','closeOtherTabs','closeTabsToLeft','closeTabsToRight','closeAllTabsMenuLabel','reopenLastClosedTab','clicktabUcatab','bookmarkPage','5078638979202084724'])
+    this.mouseOptions = this.makeOptions(['clicktabNothing','newTab','newPrivateTab','New Tor Tab','newSessionTab','Split Left','Split Right','Split Top','Split Bottom','Split left tabs to left','Split right tabs to right','Floating Panel','Swap Position','Switch Direction','Align Horizontal','Align Vertical','clicktabCopyTabUrl','clicktabCopyUrlFromClipboard','Paste and Open','Copy Tab Info','Copy All Tab Titles','Copy All Tab URLs','Copy All Tab Infos','reload','cleanReload','clicktabReloadtabs','clicktabReloadothertabs','clicktabReloadlefttabs','clicktabReloadrighttabs','3007771295016901659','unpinTab','unmuteTab','freezeTabMenuLabel','protectTabMenuLabel','lockTabMenuLabel','closeTab','closeOtherTabs','closeTabsToLeft','closeTabsToRight','closeAllTabsMenuLabel','reopenLastClosedTab','clicktabUcatab','bookmarkPage','5078638979202084724'])
   }
 
   onChange2(isTab,name,e,data){
@@ -1495,7 +1496,8 @@ class TabsSetting extends React.Component {
         <Grid.Row>
           <Grid.Column width={6}><label>{l10n.translation('focusTabLabelBegin')}</label></Grid.Column>
           <Grid.Column width={5}><Dropdown onChange={this.onChange.bind(this,'closeTabBehavior')} selection
-                                           options={this.makeOptions(['focusTabLeftTab','focusTabRightTab','focusTabLastSelectedTab','focusTabOpenerTab','focusTabOpenerTabRtl','focusTabLastOpenedTab','focusTabFirstTab','focusTabLastTab'])}
+                                           options={[{key: 'nearlyChrome', value: 'nearlyChrome', text: 'Almost the same as chrome'},
+                                             ...this.makeOptions(['focusTabLeftTab','focusTabRightTab','focusTabLastSelectedTab','focusTabOpenerTab','focusTabOpenerTabRtl','focusTabLastOpenedTab','focusTabFirstTab','focusTabLastTab'])]}
                                            defaultValue={this.state.closeTabBehavior}/></Grid.Column>
         </Grid.Row>
       </Grid>
@@ -1656,72 +1658,6 @@ class TabsSetting extends React.Component {
       </div>
 
       <Divider/>
-      <h4 style={{marginTop:0, marginBottom: 20}}>{l10n.translation('5431318178759467895')}</h4>
-
-
-      <div className="field">
-        <Checkbox style={{verticalAlign: 'middle'}} defaultChecked={this.state.themeColorChange} toggle onChange={this.onChange.bind(this,'themeColorChange')}/>
-        <span style={{verticalAlign: 'baseline'}} className="toggle-label">{l10n.translation('paintTabs')}</span>
-      </div>
-
-      <div className='spacer2'/>
-
-      <div className="field">
-        <span style={{verticalAlign: 'baseline',paddingLeft:60}} className="toggle-label">{l10n.translation('currentTabLabel')}&nbsp;&nbsp;&nbsp;{l10n.translation('textcolorLabel')}:&nbsp;&nbsp;</span>
-        <Input ref='colorActiveText' onChange={this.onChange.bind(this,'colorActiveText')} defaultValue={this.state.colorActiveText}/>
-        <span style={{verticalAlign: 'baseline'}} className="toggle-label">&nbsp;{l10n.translation('bgColorLabel')}:&nbsp;&nbsp;</span>
-        <Input ref='colorActiveBackground' onChange={this.onChange.bind(this,'colorActiveBackground')} defaultValue={this.state.colorActiveBackground}/>
-      </div>
-
-      <div className='spacer2'/>
-
-      <div className="field">
-        <Checkbox style={{verticalAlign: 'middle'}} defaultChecked={this.state.enableColorOfNoSelect} toggle onChange={this.onChange.bind(this,'enableColorOfNoSelect')}/>
-        <span style={{verticalAlign: 'baseline'}} className="toggle-label">{l10n.translation('unreadTabLabel')}&nbsp;&nbsp;&nbsp;{l10n.translation('textcolorLabel')}:&nbsp;&nbsp;</span>
-        <Input ref='colorUnreadText' onChange={this.onChange.bind(this,'colorUnreadText')} defaultValue={this.state.colorUnreadText}/>
-        <span style={{verticalAlign: 'baseline'}} className="toggle-label">&nbsp;{l10n.translation('bgColorLabel')}:&nbsp;&nbsp;</span>
-        <Input ref='colorUnreadBackground' onChange={this.onChange.bind(this,'colorUnreadBackground')} defaultValue={this.state.colorUnreadBackground}/>
-      </div>
-
-      <div className='spacer2'/>
-
-      <div className="field">
-        <span style={{verticalAlign: 'baseline',paddingLeft:60}} className="toggle-label">{l10n.translation('otherTabsLabel')}&nbsp;&nbsp;&nbsp;{l10n.translation('textcolorLabel')}:&nbsp;&nbsp;</span>
-        <Input ref='colorNormalText' onChange={this.onChange.bind(this,'colorNormalText')} defaultValue={this.state.colorNormalText}/>
-        <span style={{verticalAlign: 'baseline'}} className="toggle-label">&nbsp;{l10n.translation('bgColorLabel')}:&nbsp;&nbsp;</span>
-        <Input ref='colorNormalBackground' onChange={this.onChange.bind(this,'colorNormalBackground')} defaultValue={this.state.colorNormalBackground}/>
-      </div>
-
-      <div className='spacer2'/>
-
-      <div className="field">
-        <span style={{verticalAlign: 'baseline',paddingLeft:60}} className="toggle-label">Dashed line when dragging:&nbsp;&nbsp;</span>
-        <Input ref='colorTabDot' onChange={this.onChange.bind(this,'colorTabDot')} defaultValue={this.state.colorTabDot}/>
-      </div>
-
-      <div className='spacer2'/>
-
-      <div className="field">
-        <span style={{verticalAlign: 'baseline',paddingLeft:60}} className="toggle-label">Color of Mute/Pin/Reload Icon:&nbsp;&nbsp;</span>
-        <Input ref='colorTabMode' onChange={this.onChange.bind(this,'colorTabMode')} defaultValue={this.state.colorTabMode}/>
-      </div>
-
-      <div className='spacer2'/>
-
-      <div className="field">
-        <Checkbox ref='showBorderActiveTab' style={{verticalAlign: 'middle'}} defaultChecked={this.state.showBorderActiveTab} toggle onChange={this.onChange.bind(this,'showBorderActiveTab')}/>
-        <span style={{verticalAlign: 'baseline'}} className="toggle-label">Show Bottom Border in Current Tab</span>
-      </div>
-
-
-      <div className='spacer2'/>
-
-      <div className="field">
-        <Button primary content='Default Theme' onClick={_=>this.changeTheme('default')}/>
-        <Button primary content='Dark Theme' onClick={_=>this.changeTheme('dark')}/>
-      </div>
-
-      <Divider/>
 
       <h4 style={{marginTop:0, marginBottom: 20}}>{l10n.translation('tabbarscrollingCaption')}</h4>
 
@@ -1827,6 +1763,74 @@ class TabsSetting extends React.Component {
         {this.renderRows('tab')}
         </tbody>
       </table>
+
+
+      <Divider/>
+      <h4 style={{marginTop:0, marginBottom: 20}}>{l10n.translation('5431318178759467895')}</h4>
+
+
+      <div className="field">
+        <Checkbox style={{verticalAlign: 'middle'}} defaultChecked={this.state.themeColorChange} toggle onChange={this.onChange.bind(this,'themeColorChange')}/>
+        <span style={{verticalAlign: 'baseline'}} className="toggle-label">{l10n.translation('paintTabs')}</span>
+      </div>
+
+      <div className='spacer2'/>
+
+      <div className="field">
+        <span style={{verticalAlign: 'baseline',paddingLeft:60}} className="toggle-label">{l10n.translation('currentTabLabel')}&nbsp;&nbsp;&nbsp;{l10n.translation('textcolorLabel')}:&nbsp;&nbsp;</span>
+        <Input ref='colorActiveText' onChange={this.onChange.bind(this,'colorActiveText')} defaultValue={this.state.colorActiveText}/>
+        <span style={{verticalAlign: 'baseline'}} className="toggle-label">&nbsp;{l10n.translation('bgColorLabel')}:&nbsp;&nbsp;</span>
+        <Input ref='colorActiveBackground' onChange={this.onChange.bind(this,'colorActiveBackground')} defaultValue={this.state.colorActiveBackground}/>
+      </div>
+
+      <div className='spacer2'/>
+
+      <div className="field">
+        <Checkbox style={{verticalAlign: 'middle'}} defaultChecked={this.state.enableColorOfNoSelect} toggle onChange={this.onChange.bind(this,'enableColorOfNoSelect')}/>
+        <span style={{verticalAlign: 'baseline'}} className="toggle-label">{l10n.translation('unreadTabLabel')}&nbsp;&nbsp;&nbsp;{l10n.translation('textcolorLabel')}:&nbsp;&nbsp;</span>
+        <Input ref='colorUnreadText' onChange={this.onChange.bind(this,'colorUnreadText')} defaultValue={this.state.colorUnreadText}/>
+        <span style={{verticalAlign: 'baseline'}} className="toggle-label">&nbsp;{l10n.translation('bgColorLabel')}:&nbsp;&nbsp;</span>
+        <Input ref='colorUnreadBackground' onChange={this.onChange.bind(this,'colorUnreadBackground')} defaultValue={this.state.colorUnreadBackground}/>
+      </div>
+
+      <div className='spacer2'/>
+
+      <div className="field">
+        <span style={{verticalAlign: 'baseline',paddingLeft:60}} className="toggle-label">{l10n.translation('otherTabsLabel')}&nbsp;&nbsp;&nbsp;{l10n.translation('textcolorLabel')}:&nbsp;&nbsp;</span>
+        <Input ref='colorNormalText' onChange={this.onChange.bind(this,'colorNormalText')} defaultValue={this.state.colorNormalText}/>
+        <span style={{verticalAlign: 'baseline'}} className="toggle-label">&nbsp;{l10n.translation('bgColorLabel')}:&nbsp;&nbsp;</span>
+        <Input ref='colorNormalBackground' onChange={this.onChange.bind(this,'colorNormalBackground')} defaultValue={this.state.colorNormalBackground}/>
+      </div>
+
+      <div className='spacer2'/>
+
+      <div className="field">
+        <span style={{verticalAlign: 'baseline',paddingLeft:60}} className="toggle-label">Dashed line when dragging:&nbsp;&nbsp;</span>
+        <Input ref='colorTabDot' onChange={this.onChange.bind(this,'colorTabDot')} defaultValue={this.state.colorTabDot}/>
+      </div>
+
+      <div className='spacer2'/>
+
+      <div className="field">
+        <span style={{verticalAlign: 'baseline',paddingLeft:60}} className="toggle-label">Color of Mute/Pin/Reload Icon:&nbsp;&nbsp;</span>
+        <Input ref='colorTabMode' onChange={this.onChange.bind(this,'colorTabMode')} defaultValue={this.state.colorTabMode}/>
+      </div>
+
+      <div className='spacer2'/>
+
+      <div className="field">
+        <Checkbox ref='showBorderActiveTab' style={{verticalAlign: 'middle'}} defaultChecked={this.state.showBorderActiveTab} toggle onChange={this.onChange.bind(this,'showBorderActiveTab')}/>
+        <span style={{verticalAlign: 'baseline'}} className="toggle-label">Show Bottom Border in Current Tab</span>
+      </div>
+
+
+      <div className='spacer2'/>
+
+      <div className="field">
+        <Button primary content='Default Theme' onClick={_=>this.changeTheme('default')}/>
+        <Button primary content='Dark Theme' onClick={_=>this.changeTheme('dark')}/>
+      </div>
+
     </div>
   }
 }

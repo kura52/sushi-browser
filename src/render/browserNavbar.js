@@ -951,7 +951,7 @@ class BrowserNavbar extends Component{
           <Divider/>
           <div className="org-menu">
             {(rich||[]).map((e,i)=>{
-              const url = e.url
+              let url = e.url
               const m3u8 = e.fname.endsWith('.m3u8')
               return <div role="option" className="item" key={i} value={i} icon={e.type == "audio" ? "music" : e.type }
                           onClick={()=>{
@@ -1002,7 +1002,9 @@ class BrowserNavbar extends Component{
 
                 {m3u8 ? null : <button className="play-btn" title="Download and Convert Video" onClick={e2=>{
                   e2.stopPropagation()
-                  const p = e2.target.parentNode.parentNode;(e2.target.tagName == "I" ? p.parentNode : p).classList.remove("visible")
+                  const parent = e2.target.parentNode.parentNode
+                  const node = e2.target.tagName == "I" ? parent.parentNode : parent
+                  node.classList.remove("visible")
                   showConvertDialog(url, e.fname, this.props.tab.wvId, this.onMediaDownload.bind(this,url,e.fname,false,false))
                 }}>
                   <i className="fa fa-industry" aria-hidden="true"></i>

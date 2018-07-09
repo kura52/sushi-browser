@@ -292,7 +292,7 @@ class Selector extends React.Component {
       text: `Please enter URLs and save directory`,
       initValue: [urls.join("\n"),""],
       option: ['textArea','dialog',void 0,'toggle'],
-      needInput: ["URLs","Save Directory","FileName(Optional)",'Attempt to find and download video']
+      needInput: ["URLs","Save Directory","FileName(Optional)",'Attempt to find and download video (Using youtube-dl)']
     }).then(value => {
       console.log(7778,value)
       if (!value) return
