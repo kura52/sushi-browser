@@ -357,6 +357,7 @@ class Contents extends React.Component {
   }
 
   componentDidMount() {
+    console.log('fsfsdf','componentDidMount')
     if(isMain && !this.props.onClick) return
     this.loadAllData()
     this.eventUpdateDatas = (e,data)=>{
@@ -409,10 +410,11 @@ class Contents extends React.Component {
   }
 
   componentWillUnmount() {
+    console.log('fsfsdf','componentWillUnmount')
     const tree = this.refs.iTree.tree
     tree.contentElement.removeEventListener('mousedown',this.onMouseDown)
     document.removeEventListener('dragstart', this.onDragStart);
-    document.removeEventListener('dragend',this.onDragEnd);
+    document.removeEventListener('dragend',this.onDragEnd,false);
     tree.contentElement.removeEventListener('dragover',this.onDragOver);
     if(this.event) ipc.removeListener("favorite-menu-reply",this.event)
     if(this.eventUpdateDatas) ipc.removeListener("update-datas",this.eventUpdateDatas)
@@ -614,7 +616,7 @@ class Contents extends React.Component {
         dragImage = (void 0)
       }
     }
-    document.addEventListener('dragend',this.onDragEnd);
+    document.addEventListener('dragend',this.onDragEnd,false);
 
 
     this.onDragOver = (e) => {

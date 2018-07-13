@@ -291,7 +291,7 @@ class Contents extends React.Component {
     const tree = this.refs.iTree.tree
     tree.contentElement.removeEventListener('mousedown',this.onMouseDown)
     document.removeEventListener('dragstart', this.onDragStart);
-    document.removeEventListener('dragend',this.onDragEnd);
+    document.removeEventListener('dragend',this.onDragEnd,false);
     tree.contentElement.removeEventListener('dragover',this.onDragOver);
     if(this.event) ipc.removeListener("automation-menu-reply",this.event)
   }
@@ -461,7 +461,7 @@ class Contents extends React.Component {
         dragImage = (void 0)
       }
     }
-    document.addEventListener('dragend',this.onDragEnd);
+    document.addEventListener('dragend',this.onDragEnd,false);
 
 
     this.onDragOver = (e) => {

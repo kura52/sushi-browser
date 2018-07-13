@@ -199,7 +199,7 @@ class DownloadList extends React.Component {
   }
 
   play(item){
-    if(item.fromDB){
+    if(item.fromDB || item.state == "cancelled"){
       ipc.send("download-retry", item.url, item.savePath, item.key)
     }
     else{

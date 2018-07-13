@@ -52,11 +52,30 @@ function getByte(str){
   }
 }
 
+function isWait(){
+  return mainState.concurrentDownload && downloadItems.size >= parseInt(mainState.concurrentDownload)
+}
+
+let interval = 1000
+
+function recur(){
+  setTimeout(_=>{
+    if(waitQueue.length && !isWait()){
+      const [item,resume] = waitQueue.shift()
+      item.download({retry:true, resume})
+    }
+    if(!waitQueue.length) interval = 1000
+    recur()
+  },interval)
+}
+recur()
+
 const downloadItems = new Set()
 let count = 0
+const waitQueue = []
 export default class Aria2cWrapper{
-  constructor({url,orgUrl,mimeType,savePath,downloadNum=1,overwrite,timeMap,aria2cKey}){
-    this.key = aria2cKey || uuid.v4()
+  constructor({url,orgUrl,mimeType,savePath,downloadNum=1,overwrite,timeMap,aria2cKey,downloadId}){
+    this.key = downloadId
     this.resumeFlg = !!aria2cKey
     this.url = url
     this.orgUrl = orgUrl
@@ -146,16 +165,18 @@ export default class Aria2cWrapper{
     if(this.status == 'CANCEL') return
     if(this.status == 'PAUSE'){
       this.retry = true
-      setTimeout(_=>this.download({retry:true,resume}),500)
+      setTimeout(_=>this.download({retry:true,resume}),300)
       return
     }
 
     if(!retry){
       setTimeout(_=>this.stdoutCallback(),100)
     }
-    if(mainState.concurrentDownload && downloadItems.size >= parseInt(mainState.concurrentDownload)){
+    if(isWait()){
       this.retry = true
-      setTimeout(_=>this.download({retry:true,resume}),50)
+      console.log("cc",this.getSavePath(),"aaa",waitQueue.map(x=>x[0].getSavePath()).join(", "))
+      waitQueue.push([this,resume])
+      interval = 100
       return
     }
     this.retry = false

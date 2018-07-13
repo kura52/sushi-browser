@@ -140,7 +140,7 @@ function PercentCompleteFormatter(props){
   </div>
 }
 
-let debounceInterval = 40, debounceTimer
+let debounceInterval = 500, debounceTimer
 let [concurrentDownload,downloadNum] = ipc.sendSync('get-sync-main-states',['concurrentDownload','downloadNum'])
 global.multiSelection = false
 class Downloader extends React.Component {
@@ -300,7 +300,7 @@ class Downloader extends React.Component {
 
 
   play(item){
-    if(item.fromDB){
+    if(item.fromDB || item.state == "cancelled"){
       ipc.send("download-retry", item.url, item.savePath, item.key)
     }
     else{
@@ -421,21 +421,21 @@ class Downloader extends React.Component {
       const fname = value[2]
       const tryVideo = value[3]
 
-      const func = (url,fname)=>{
+      const func = (url,fname,i)=>{
         if(fname){
           ipc.send('set-save-path',url,path.join(directory,fname),true)
         }
         else{
           ipc.send('set-save-directory',url,directory)
         }
-        setTimeout(_=>ipc.send('download-start',url),0)
+        setTimeout(_=>ipc.send('download-start',url),i*100)
       }
 
       if(tryVideo){
         this.getVideoUrls(urls,func)
       }
       else{
-        for(let url of urls) func(url,fname)
+        urls.forEach((url,i)=>func(url,fname,i))
       }
     })
   }

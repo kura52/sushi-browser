@@ -140,6 +140,7 @@ app.on('ready', async ()=>{
   ses.userPrefs.setBooleanPref('profile.password_manager_enabled', true)
   ses.userPrefs.setBooleanPref('credentials_enable_service', true)
   ses.userPrefs.setBooleanPref('credentials_enable_autosignin', true)
+  ses.userPrefs.setStringPref('download.default_directory', app.getPath('downloads'))
 
 
   // ses.autofill.getAutofillableLogins((result) => {

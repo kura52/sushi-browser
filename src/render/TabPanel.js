@@ -1624,7 +1624,8 @@ export default class TabPanel extends Component {
           title: page.title,
           canGoBack: page.canGoBack
         }
-        if (!pre.titleSet && !pre.canGoBack && self.state.tabs.length > 1) {
+        const controller = this.getWebContents(tab).controller()
+        if (controller && controller.isValid() && controller.isInitialNavigation() && self.state.tabs.length > 1) {
           self.handleTabClose({noHistory: true, noSync: true}, tab.key)
         }
         page.hid = pre.hid

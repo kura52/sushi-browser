@@ -722,6 +722,7 @@ class BrowserNavbar extends Component{
       </NavbarMenuSubMenu>
       <NavbarMenuSubMenu icon="hashtag" text={locale.translation('7853747251428735')}>
         {isWin  ? <NavbarMenuItem text={`Change VPN Mode`} icon='plug' onClick={_=>{
+          this.refs['main-menu'].menuClose()
           this.setState({vpnList:!this.state.vpnList})
         }
         }/> : null}

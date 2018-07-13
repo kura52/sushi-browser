@@ -17,7 +17,7 @@ const downloadPath = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/downlo
 const downloadPath2 = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download_sidebar.html'
 const timeMap = new Map()
 global.downloadItems = []
-const retry = new Set()
+const retry = new Map()
 
 
 function exec(command) {
@@ -153,6 +153,8 @@ export default class Download {
       console.log("will-download",bw === win)
       if(bw !== win) return
 
+
+      let downloadId = item.getGuid()
       // let initialNav = false
       // const controller = webContents.controller()
       // if (controller && controller.isValid() && controller.isInitialNavigation()) {
@@ -234,7 +236,7 @@ export default class Download {
           console.log(6)
           savePath = filepaths[0]
           overwrite = true
-          this.process(url, overwrite, savePath, item, webContents, win, mimeType, audioExtract, videoConvert, cond);
+          this.process(url, overwrite, savePath, item, webContents, win, mimeType, audioExtract, videoConvert, cond, downloadId);
         })
         return
       }
@@ -248,21 +250,25 @@ export default class Download {
         console.log(7)
       }
 
-      this.process(url, overwrite, savePath, item, webContents, win, mimeType, audioExtract, videoConvert, cond);
+      this.process(url, overwrite, savePath, item, webContents, win, mimeType, audioExtract, videoConvert, cond, downloadId);
     })
   }
 
-  process(url, overwrite, savePath, item, webContents, win, mimeType, audioExtract, videoConvert, cond) {
+  process(url, overwrite, savePath, item, webContents, win, mimeType, audioExtract, videoConvert, cond, downloadId) {
+    console.log('downloadId1',downloadId)
     if (!cond || retry.has(url) || url.startsWith('data:') || url.startsWith('blob:') || url.startsWith('chrome-extension:')) {
       item.setPrompt(false)
       console.log('retry')
+      downloadId = retry.get(url)
+      console.log('downloadId2',downloadId)
       retry.delete(url)
       if (!this.getData(this.overwrite, url)) {
         savePath = this.getUniqFileName(savePath)
       }
       item.setSavePath(savePath)
       timeMap.set(savePath, Date.now())
-      this.downloadReady(item, url, webContents, win)
+      item.key = downloadId
+      this.downloadReady(item, url, webContents, win, void 0, void 0)
     }
     else {
       console.log(8, savePath)
@@ -277,6 +283,7 @@ export default class Download {
       let id, updated, ended, isError
 
       const aria2cKey = this.getData(this.dlKey, url)
+      if(aria2cKey) downloadId = aria2cKey
       const dl = new Aria2cWrapper({
         url,
         orgUrl: this.orgUrl,
@@ -285,7 +292,8 @@ export default class Download {
         downloadNum: mainState.downloadNum,
         overwrite,
         timeMap,
-        aria2cKey
+        aria2cKey,
+        downloadId
       })
 
       console.log(9)
@@ -296,13 +304,16 @@ export default class Download {
           if (!win.webContents.isDestroyed()) win.webContents.send('download-progress', this.buildItem(dl));
           if (!isError) {
             isError = true
-            retry.add(url)
+            retry.set(url,downloadId)
             global.downloadItems = global.downloadItems.filter(i => i !== dl)
             set(this.savePath, url, savePath)
             set(this.audioExtract, url, audioExtract)
             set(this.videoConvert, url, videoConvert)
             if (overwrite) set(this.overwrite, url, true)
             webContents.downloadURL(url, true)
+          }
+          else{
+            global.downloadItems = global.downloadItems.filter(i => i !== dl)
           }
         })
         this.downloadReady(dl, url, webContents, win, audioExtract, videoConvert)
@@ -314,6 +325,7 @@ export default class Download {
 
   downloadReady(item, url, webContents,win,audioExtract,videoConvert) {
     global.downloadItems.push(item)
+    console.log('downloadId3',item.key)
 
     console.log(11)
     const eventPause = (event, data, type) => {
@@ -333,6 +345,7 @@ export default class Download {
     ipcMain.on('download-pause', eventPause)
 
     const eventCancel = (event, data) => {
+      console.log('eventCancel')
       if (data.id ? data.id !== item.idForExtension : data.key ? data.key !== item.key : data.savePath !== item.getSavePath()) return
       item.cancel()
       ipcMain.removeListener('download-pause', eventPause)
@@ -343,10 +356,28 @@ export default class Download {
     ipcMain.on('download-cancel', eventCancel)
 
     item.on('updated', (event, state) => {
-      for (let wc of this.getDownloadPage()) {
-        wc.send('download-progress', this.buildItem(item))
+      const buildedItem = this.buildItem(item)
+
+      if(buildedItem.state == 'interrupted'){
+        buildedItem.state = 'cancelled'
+        global.downloadItems = global.downloadItems.filter(i => i !== item)
       }
-      if(!win.isDestroyed() && !win.webContents.isDestroyed()) win.webContents.send('download-progress', this.buildItem(item))
+
+      for (let wc of this.getDownloadPage()) {
+        wc.send('download-progress', buildedItem)
+      }
+      if(!win.isDestroyed() && !win.webContents.isDestroyed()) win.webContents.send('download-progress', buildedItem)
+    })
+
+
+    item.once('error', (_) => {
+      console.log('errorfff')
+      const buildedItem = this.buildItem(item)
+      for (let wc of this.getDownloadPage()) {
+        wc.send('download-progress', buildedItem)
+      }
+      if(!win.isDestroyed() && !win.webContents.isDestroyed()) win.webContents.send('download-progress', buildedItem)
+      global.downloadItems = global.downloadItems.filter(i => i !== item)
     })
 
     item.once('done', async (event, state) => {
@@ -362,10 +393,11 @@ export default class Download {
             void 0, void 0, void 0, true)
         })
       }
+      const buildedItem = this.buildItem(item)
       for (let wc of this.getDownloadPage()) {
-        wc.send('download-progress', this.buildItem(item))
+        wc.send('download-progress', buildedItem)
       }
-      if(!win.webContents.isDestroyed()) win.webContents.send('download-progress', this.buildItem(item))
+      if(!win.webContents.isDestroyed()) win.webContents.send('download-progress', buildedItem)
 
       download.insert({
         state: item.getState(),
@@ -384,7 +416,12 @@ export default class Download {
       timeMap.delete(item.getSavePath())
       // ipcMain.removeListener('set-save-filename',eventSetSaveFilename)
     })
-    if(!win.webContents.isDestroyed()) win.webContents.send('download-start')
+    if(!win.webContents.isDestroyed()){
+      win.webContents.send('download-start')
+    }
+    console.log(333434,!win.webContents.isDestroyed())
+    console.log(333435,this.buildItem(item))
+
   }
 
 

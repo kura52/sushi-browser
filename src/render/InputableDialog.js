@@ -9,6 +9,7 @@ export default class InputableDialog extends Component{
     super(props)
     this.handleOk = ::this.handleOk
     this.autoInput = ::this.autoInput
+    this.state = {datas: props.data.needInput.map((x,i)=>props.data.initValue ? props.data.initValue[i] : "")}
   }
 
   componentDidMount(){
@@ -26,9 +27,15 @@ export default class InputableDialog extends Component{
   }
 
   autoInput(e,user,pass){
-    this.refs.input0.input.value = user
-    this.refs.input1.input.value = pass
+    this.state.datas[0] = user
+    this.state.datas[1] = pass
+    this.setState({})
     this.handleOk()
+  }
+
+  onChange(i,e,data){
+    this.state.datas[i] = data.value || data.checked
+    this.setState({})
   }
 
   renderInputs(){
@@ -36,15 +43,17 @@ export default class InputableDialog extends Component{
     return this.props.data.needInput.map((x,i)=>{
       if(this.props.data.option && this.props.data.option[i] == "textArea"){
         return <p key={i}>{x}
-          <Form><TextArea ref={`input${i}`} className="inputable-dialog"
-                          defaultValue={this.props.data.initValue ? this.props.data.initValue[i] : ""} placeholder='Enter URLs' rows={10} /></Form>
+          <form class="ui form">
+            <textarea placeholder="Enter URLs" ref={`input${i}`} value={this.state.datas[i]} onChange={e=>this.onChange(i,e,e.target)}
+                      className="inputable-dialog" rows="10" style="resize:"/>
+          </form>
         </p>
       }
       else if(this.props.data.option &&this.props.data.option[i] == "dialog"){
         return <p key={i}>{x}
           <div style={{display:'flex'}}>
             <Input focus={false} ref={`input${i}`} className="inputable-dialog"
-                   defaultValue={app.getPath('downloads')}
+                   value={this.state.datas[i] || app.getPath('downloads')} onChange={this.onChange.bind(this,i)}
                    onKeyDown={e=>{
                      if(len == 1 && x == "" && e.keyCode==13){
                        this.props.delete(0,[e.target.value])
@@ -55,7 +64,8 @@ export default class InputableDialog extends Component{
               ipc.send('show-dialog-exploler',key,{})
               ipc.once(`show-dialog-exploler-reply_${key}`,(e,val)=>{
                 if(!val) return
-                ReactDOM.findDOMNode(this.refs[`input${i}`]).querySelector('input').value = val
+                this.state.datas[i] = val
+                this.setState({})
               })
             }}/>
           </div>
@@ -63,14 +73,15 @@ export default class InputableDialog extends Component{
       }
       else if(this.props.data.option && this.props.data.option[i] == "toggle"){
         return <p key={i}>
-          <Checkbox toggle ref={`input${i}`} className="inputable-dialog"/>
+          <Checkbox toggle ref={`input${i}`} className="inputable-dialog"
+                    value={this.state.datas[i]} onChange={this.onChange.bind(this,i)}/>
           <span className="toggle-label">{x}</span>
         </p>
       }
       else{
         return <p key={i}>{x}
           <Input ref={`input${i}`} focus className="inputable-dialog"
-                 defaultValue={this.props.data.initValue ? this.props.data.initValue[i] : ""}
+                 value={this.state.datas[i]} onChange={this.onChange.bind(this,i)}
                  onKeyDown={e=>{
                    if(len == 1 && x == "" && e.keyCode==13){
                      this.props.delete(0,[e.target.value])
@@ -90,20 +101,20 @@ export default class InputableDialog extends Component{
 
   render(){
     console.log(this.props.data)
-    return <Modal dimmer={false} size="small" open={true}>
-      <Modal.Header>{this.props.data.title}</Modal.Header>
-      <Modal.Content>
-        <Modal.Description>
-          <Header>{this.props.data.text.split(/\r?\n/).map((x,i)=> <div key={i}>{x}</div>)}</Header>
+    return  <div className="ui small modal transition visible active" style="margin-top: -306px;">
+      <div class="header">{this.props.data.title}</div>
+      <div class="content">
+        <div class="description">
+          <div class="ui header">{this.props.data.text.split(/\r?\n/).map((x,i)=> <div key={i}>{x}</div>)}</div>
           {this.renderInputs()}
-        </Modal.Description>
-      </Modal.Content>
-      <Modal.Actions>
+        </div>
+      </div>
+      <div class="actions">
         <Button positive refs="ok" content="OK" onClick={this.handleOk} />
         <Button color='black' content="Cancel" onClick={_=>{
           this.props.delete(1)
           ipc.removeListener('auto-play-auth',this.autoInput)}}/>
-      </Modal.Actions>
-    </Modal>
+      </div>
+    </div>
   }
 }
