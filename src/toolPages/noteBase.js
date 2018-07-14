@@ -420,15 +420,15 @@ export default class App extends React.Component {
   }
 
   clearSelect(){
-    const tree = this.refs.content.refs.iTree.tree
-    // Empty an array of selected nodes
-    selectedNodes.forEach(selectedNode => {
-      selectedNode.state.selected = false;
-      tree.updateNode(selectedNode, {}, { shallowRendering: true },true)
-    });
-    selectedNodes = [];
-
-    tree.update()
+    // const tree = this.refs.content.refs.iTree.tree
+    // // Empty an array of selected nodes
+    // selectedNodes.forEach(selectedNode => {
+    //   selectedNode.state.selected = false;
+    //   tree.updateNode(selectedNode, {}, { shallowRendering: true },true)
+    // });
+    // selectedNodes = [];
+    //
+    // tree.update()
 
   }
 
@@ -609,7 +609,7 @@ class Contents extends React.Component {
   }
 
   async loadAllData(){
-    const prevState = this.prevState || (await localForage.getItem("note-sidebar-open-node"))
+    const prevState = this.prevState || (await localForage.getItem("note-sidebar-open-node")) || '/root/f1bf9993-3bc4-4874-ac7d-7656054c1850'
     this.prevState = (void 0)
     getAllChildren('root').then(data=>{
       console.log(data)
