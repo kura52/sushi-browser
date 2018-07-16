@@ -28,15 +28,31 @@ const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
 const NEXT_APP_VERSION = "0.19.5"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Changed default setting values
-Updated to infernojs 5.3.0.
-Updated to xterm.js 3.4.0.
-Fixed some bugs.`
+const CHANGE_ENGLISH = `Added line number to markdown mode of Note.
+Added a button (P) to switch the preview mode in markdown mode to tab or vertical.
+Added button (L) to change markdown line wrapping setting.
+Fixed bugs related to Note, improved operation.
+"Sort history in descending order of PV" is added to auto complete setting.
+Changed to display PV, dwell time, delete button in history at the bottom of Top Page
+Fixed bug that can not delete theme.
+Fixed a bug in bookmark drop.
+fixed Bug of bookmark import.
+Fixed many download bugs.
+"Almost the same as as Chrome" was added to "When closing current tab, focus".
+Fixed bug that Audio Extract, and Video Converter do not start.`
 
-const CHANGE_JAPANESE = `一般設定のデフォルト値を変更
-infernojsを5.3.0に更新
-xterm.jsを3.4.1に更新
-いくつか不具合修正`
+const CHANGE_JAPANESE = `Noteのmarkdownモードに行番号を追加
+Noteのmarkdownのプレビューモードをtabとverticalで切り替えるボタン(P)を追加
+Noteのmarkdownの行折り返し設定を変更できるボタン(L)を追加
+Noteに関する不具合修正、動作改善
+オートコンプリート設定に「Sort history in descending order of PV」を追加
+Top Page下部の履歴にPV、滞在時間、削除ボタンを表示するように修正
+テーマの削除ができない不具合修正
+ブックマークのドロップの不具合修正
+ブックマークインポートの不具合修正
+ダウンロードに関する不具合を多数修正
+「現在のタブを閉じたときのフォーカスの移動場所」に「Almost the same as Chrome」を追加
+Audio Extract, Video Converterが起動しない不具合を修正`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

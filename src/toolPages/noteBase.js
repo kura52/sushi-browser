@@ -7,21 +7,14 @@ import ReactDOM from 'react-dom';
 import path from 'path';
 import {StickyContainer, Sticky} from 'react-sticky';
 import {Menu, Segment, Input, Button} from 'semantic-ui-react';
-import classNames from 'classnames'
-import elementClass from 'element-class'
-import escapeHTML from 'escape-html'
 import Selection from '../render/react-selection/index'
 import ToolbarResizer from '../render/ToolbarResizer'
 import VerticalTabResizer from '../render/VerticalTabResizer'
 import removeMarkdown from './removeMarkdown'
+import $ from 'jquery';
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
 
-require('tui-editor/dist/tui-editor-extChart');
-require('tui-editor/dist/tui-editor-extUML');
-require('tui-editor/dist/tui-editor-extScrollSync');
-require('tui-editor/dist/tui-editor-extTable');
-require('tui-editor/dist/tui-editor-extColorSyntax');
-const Editor = require('tui-editor');
+const Editor = require('./tui-editor/dist/tui-editor-Editor-all.min');
 
 Editor.i18n.setLanguage(['ja', 'ja_JP'], {
   'Markdown': 'Markdown',
@@ -200,7 +193,7 @@ async function treeBuild(datas,nodePath){
     const id = `${nodePath}/${x.key}`
     const data = {
       id,
-      name: x.is_file ? x.title.slice(0,15) : x.title,
+      name: x.is_file ? removeMarkdown(x.title).slice(0,15) : x.title,
       title: x.title,
       url: x.url,
       // loadOnDemand: !x.is_file,
@@ -248,7 +241,7 @@ export default class App extends React.Component {
     this.state = {height: 300, width:235, hidden: !!this.props.id}
   }
 
-   handleLoad(e){
+  handleLoad(e){
     localForage.getItem("note-sidebar-select-node").then(async nodeIds=>{
       const iTree = this.refs.content.refs.iTree
       let root = iTree.tree.getRootNode()
@@ -278,19 +271,24 @@ export default class App extends React.Component {
             if(currentNode) break
           }
           this.firstContent = true
-          iTree.props.onClick({ctrlKey:true, currentNode, stopPropagation:()=>{}})
+          iTree.props.onClick({currentNode, stopPropagation:()=>{}})
         })
+        return
       }
       if(this.props.id){
         const currentNode = iTree.tree.getNodeById(this.props.id)
-        iTree.props.onClick({ctrlKey:true, currentNode, stopPropagation:()=>{}})
+        iTree.props.onClick({currentNode, stopPropagation:()=>{}})
         return
       }
 
-      if(!nodeIds || !nodeIds.length) return
+      if(!nodeIds){
+        const currentNode = iTree.tree.getNodeById('/root/f1bf9993-3bc4-4874-ac7d-7656054c1850')
+        if(currentNode) iTree.props.onClick({currentNode, stopPropagation:()=>{}})
+      }
+      let i=0
       for(let id of nodeIds){
         const currentNode = iTree.tree.getNodeById(id)
-        iTree.props.onClick({ctrlKey:true, currentNode, stopPropagation:()=>{}})
+        if(currentNode)  iTree.props.onClick({ctrlKey:i++ == 0, currentNode, stopPropagation:()=>{}})
       }
     })
   }
@@ -346,6 +344,38 @@ export default class App extends React.Component {
     }
   }
 
+  setMarkdownButton(){
+    const editor = this.state.editor
+    if(this.mode == 'markdown'){
+      if(this.notFirst){
+        editor.getUI().getToolbar().$el.find('.tui-toolbar-divider').eq(0).remove()
+      }
+      editor.getUI().getToolbar().addButton( {
+        name: 'preview',
+        className: 'fab fa-accessible-icon',
+        event: 'PreviewStyleChangeEvent',
+        tooltip: 'Change Markdown Preview Style',
+        $el: $('<div class="our-button-class" style="font-weight: bold">P</div>')
+      }, 1)
+      editor.getUI().getToolbar().addButton( {
+        name: 'lineWrapping',
+        className: 'fab fa-accessible-icon',
+        event: 'lineWrappingEvent',
+        tooltip: 'Switch Line Wrapping',
+        $el: $('<div class="our-button-class" style="font-weight: bold">L</div>')
+      }, 1)
+      editor.getUI().getToolbar().$el.find('.tui-toolbar-icons').eq(0).before($('<div class="tui-toolbar-divider"></div>'))
+    }
+    else if(this.notFirst){
+      editor.getUI().getToolbar().removeItem(1)
+      editor.getUI().getToolbar().removeItem(1)
+    }
+    else{
+      editor.getUI().getToolbar().$el.find('.tui-toolbar-icons').eq(0).before($('<div class="tui-toolbar-divider"></div>'))
+    }
+    this.notFirst = true
+  }
+
   async componentDidMount() {
     ReactDOM.findDOMNode(this.refs.stickey).style.height = "100%"
     const isAuto = this.props.favoritePage
@@ -362,10 +392,18 @@ export default class App extends React.Component {
       document.querySelector("#classic .infinite-tree-scroll").style.height = `calc(100vh - 68px)`
       if(width) this.setState({width: parseInt(width)})
     }
+
+
+    this.mode = await localForage.getItem("note-sidebar-mode") || 'wysiwyg'
+    this.previewMode = await localForage.getItem("note-sidebar-preview") || 'vertical'
+    this.notlineWrapping = await localForage.getItem("note-sidebar-line")
+
+    this.refs.content.refs.iTree.tree.getRootNode().getLastChild()
+
     this.setState({editor: new Editor({
         el: document.querySelector('#editSection'),
-        initialEditType: 'wysiwyg',
-        previewStyle: 'vertical',
+        initialEditType: this.mode,
+        previewStyle: this.previewMode,
         height: isAuto ? 'calc(100vh - 68px)' : `${height}px`,
         minHeight: '0px',
         language: navigator.languages[0].slice(0,2),
@@ -378,7 +416,60 @@ export default class App extends React.Component {
         }
       }),height
     })
-    this.refs.content.refs.iTree.tree.getRootNode().getLastChild()
+
+    const editor = this.state.editor
+
+    ;["js/codemirror/dialog.js",
+    "js/codemirror/searchcursor.js",
+    "js/codemirror/search.js",
+    "js/codemirror/jump-to-line.js"].forEach(x=>{
+      const css = document.createElement('script')
+      css.setAttribute('src',x)
+      const head = document.getElementsByTagName('head')
+      if(head[0]) head[0].appendChild(css)
+    })
+
+
+    if(!this.props.sidebar){
+      editor.eventManager.addEventType('HideEvent');
+      editor.eventManager.listen('HideEvent', () => this.setState({hidden: !this.state.hidden}))
+    }
+    editor.eventManager.addEventType('PreviewStyleChangeEvent');
+    editor.eventManager.listen('PreviewStyleChangeEvent', () =>{
+      this.previewMode = editor.mdPreviewStyle == 'tab' ? 'vertical' : 'tab'
+      localForage.setItem("note-sidebar-preview",this.previewMode)
+      editor.changePreviewStyle(this.previewMode)
+    })
+
+    editor.eventManager.addEventType('lineWrappingEvent');
+    editor.eventManager.listen('lineWrappingEvent', () =>{
+      this.notlineWrapping = !this.notlineWrapping
+      localForage.setItem("note-sidebar-line",this.notlineWrapping)
+      editor.mdEditor.cm.setOption('lineWrapping',!this.notlineWrapping)
+    })
+
+    editor.getUI().getToolbar().addButton({
+      name: 'Hide',
+      className: 'fab fa-accessible-icon',
+      event: 'HideEvent',
+      tooltip: 'Hide SideBar',
+      $el: $('<div class="our-button-class"><i class="angle double left icon"></i></div>')
+    }, 1)
+
+    this.setMarkdownButton()
+
+    editor.on('changeMode', e=>{
+      if(this.state.editor && this.mode != e){
+        this.mode = e
+        localForage.setItem("note-sidebar-mode",this.mode)
+        this.setMarkdownButton()
+      }
+    })
+
+    if(this.notlineWrapping){
+      editor.mdEditor.cm.setOption('lineWrapping',!this.notlineWrapping)
+    }
+
   }
 
   afterSelect(selectedTargets){
@@ -436,7 +527,7 @@ export default class App extends React.Component {
     const newDatas = []
     for(let ele of datas){
       if(ele.type == "file"){
-        if(reg.test(`${ele.name}\t${ele.url}`)){
+        if(reg.test(`${ele.title}\t${ele.url}`)){
           newDatas.push(ele)
         }
       }
@@ -472,6 +563,17 @@ export default class App extends React.Component {
 
     const openNodes = prevState ? prevState.split("\t",-1) : (void 0)
     tree.loadData(this.recurNewTreeData(treeAllData,reg),false,openNodes)
+
+    let selected
+    for(let node of selectedNodes){
+      const node2 = tree.getNodeById(node.id)
+      if(node2){
+        node2.state.selected = true;
+        tree.updateNode(node2, {}, { shallowRendering: true });
+        if(node.type == 'file') selected = true
+      }
+      this.setHidden(!selected)
+    }
 
     localForage.setItem("note-sidebar-open-node",prevState)
 
@@ -609,7 +711,7 @@ class Contents extends React.Component {
   }
 
   async loadAllData(){
-    const prevState = this.prevState || (await localForage.getItem("note-sidebar-open-node")) || '/root/f1bf9993-3bc4-4874-ac7d-7656054c1850'
+    const prevState = this.prevState || (await localForage.getItem("note-sidebar-open-node"))
     this.prevState = (void 0)
     getAllChildren('root').then(data=>{
       console.log(data)
@@ -620,7 +722,21 @@ class Contents extends React.Component {
       const tree = this.refs.iTree.tree
       if(tree){
         const node = tree.loadData(data,false,openNodes,true)
-        if(node) selectedNodes.splice(0,selectedNodes.length,node)
+        if(node){
+          selectedNodes.splice(0,selectedNodes.length,node)
+        }
+        else{
+          let selected
+          for(let node of selectedNodes){
+            const node2 = tree.getNodeById(node.id)
+            if(node2){
+              node2.state.selected = true;
+              tree.updateNode(node2, {}, { shallowRendering: true });
+              if(node.type == 'file') selected = true
+            }
+            this.props.parent.setHidden(!selected)
+          }
+        }
       }
       else{
         setTimeout(_=>tree.loadData(data,false,openNodes),100)
@@ -693,7 +809,12 @@ class Contents extends React.Component {
         deleteFavorite(nodes.map(n=>this.getKey(n)),parentNodes.map(parent=>this.getKey(parent))).then(_ => {
           if(isMain) this.eventUpdateDatas()
           const nextNode = tree.nodes[nodeIndex + 1] || tree.nodes[nodeIndex - 1]
-          this.refs.iTree.props.onClick({currentNode: nextNode, stopPropagation:()=>{}})
+          if(!nextNode){
+            this.props.parent.setHidden(true)
+          }
+          else{
+            this.refs.iTree.props.onClick({currentNode: nextNode, stopPropagation:()=>{}})
+          }
         })
       }
       else if(cmd == "edit"){
@@ -712,9 +833,14 @@ class Contents extends React.Component {
         })
       }
       else if(cmd == "addBookmark" || cmd == "addFolder") {
-        const nodes = this.menuKey
+        let nodes = this.menuKey
         this.menuKey = (void 0)
         const isPage = cmd == "addBookmark"
+        if(!nodes[0]){
+          nodes = [{}]
+          forceFile = false
+        }
+
         if(isPage){
           if(nodes[0].type == 'file' || forceFile){
             insertFavorite2(this.getKey(nodes[0].getParent()),this.getKey(nodes[0]),{title:"",is_file:true}).then(async key=>{
@@ -1035,13 +1161,13 @@ class Contents extends React.Component {
                   tree.updateNode(selectedNode, {}, { shallowRendering: true });
                 });
                 selectedNodes = [];
-
-                // Select current node
-                tree.state.selectedNode = currentNode;
-                currentNode.state.selected = true;
-                tree.updateNode(currentNode, {}, { shallowRendering: true });
-
               }
+
+              // Select current node
+              tree.state.selectedNode = currentNode;
+              currentNode.state.selected = true;
+              tree.updateNode(currentNode, {}, { shallowRendering: true });
+
 
               if(currentNode.type == 'file'){
                 // if(this.props.favoritePage){

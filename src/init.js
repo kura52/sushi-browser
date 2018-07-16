@@ -833,7 +833,7 @@ function contextMenu(webContents) {
       if(!favMenu.isNote){
         menuItems.push({label: locale.translation('openInNewTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewTab')}})
         menuItems.push({label: locale.translation('openInNewPrivateTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewPrivateTab')}})
-        // menuItems.push({label: locale.translation('openInNewTorTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewTorTab')}})
+        menuItems.push({label: 'Open Link in New Tor Tab',click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewTorTab')}})
         menuItems.push({label: locale.translation('openInNewSessionTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewSessionTab')}})
         menuItems.push({label: locale.translation('openInNewWindow'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindow')}})
         menuItems.push({label: 'Open Link in New Window with a Row',click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindowWithOneRow')}})

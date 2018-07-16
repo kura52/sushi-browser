@@ -23,7 +23,7 @@ const settingDefault =  {
   enableFlash: true,
   sideBarDirection: 'left',
   doubleShift: false,
-  tripleClick: true,
+  tripleClick: false,
   enableMouseGesture: true,
   extensionOnToolbar: true,
   longPressMiddle: true,
@@ -38,6 +38,7 @@ const settingDefault =  {
   bookmarkbarLink: false,
   hoverBookmarkBar: false,
   zoomBehavior: '10',
+  searchHistoryOrderCount: false,
 
   bindMarginFrame: isLinux ? 6 : 0,
   bindMarginTitle: isLinux ? 24  : 0,

@@ -91,3 +91,38 @@
 .restore.hidden{
     display: none;
 }
+
+
+span.additional-info{
+    color: rgba(0,0,0,.5);
+    padding-left: 5px;
+}
+
+.ui.list .list>.item .header, .ui.list>.item .header{
+    display: initial;
+}
+.ui.list .list>.item .description, .ui.list>.item .description {
+    display: inline;
+}
+
+.left-pad{
+    padding-left:3px;
+    cursor: pointer;
+}
+
+div.content i.cancel{
+    display: none;
+}
+
+h4 i.cancel{
+    color: #ccc;
+}
+
+h4:hover i.cancel{
+    color: #4183C4;
+}
+
+div.content:hover i.cancel{
+    color: #4183C4;
+    display: initial;
+}

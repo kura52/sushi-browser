@@ -691,6 +691,11 @@ class GeneralSetting extends React.Component {
         </Grid>
 
         <br/>
+        <Checkbox defaultChecked={this.state.searchHistoryOrderCount} toggle onChange={this.onChange.bind(this,'searchHistoryOrderCount')}/>
+        <span className="toggle-label">Sort history in descending order of PV</span>
+        <br/>
+
+
         <br/>
 
         <div className="field">
@@ -883,23 +888,16 @@ class DataSetting extends React.Component {
         </div>
         <br/>
 
-        <Grid>
-          <Grid.Row>
-            <Grid.Column width={6}>
-              <div className="field">
-                <label>{l10n.translation('importBrowserData').replace('…','')} ({l10n.translation('requiresRestart').replace('* ','')})</label>
-                <Button primary content={l10n.translation('import')} onClick={_=>ipc.send("import-browser-data",{})}/>
-              </div>
-            </Grid.Column>
-            <Grid.Column width={6} style={{marginTop: 0}}>
-              <div className="field">
-                <label>{l10n.translation('exportBookmarks').replace('…','')}</label>
-                <Button primary content={l10n.translation('42126664696688958')} onClick={_=>ipc.send("export-bookmark",{})}/>
-              </div>
-            </Grid.Column>
-          </Grid.Row>
-        </Grid>
+        <div className="field">
+          <label>{l10n.translation('importBrowserData').replace('…','')} ({l10n.translation('requiresRestart').replace('* ','')})</label>
+          <Button primary content={l10n.translation('import')} onClick={_=>ipc.send("import-browser-data",{})}/>
+        </div>
         <br/>
+
+        <div className="field">
+          <label>{l10n.translation('exportBookmarks').replace('…','')}</label>
+          <Button primary content={l10n.translation('42126664696688958')} onClick={_=>ipc.send("export-bookmark",{})}/>
+        </div>
         <br/>
         <br/>
 
@@ -993,7 +991,7 @@ class DataSetting extends React.Component {
                 <div className="ui input date" style={{paddingBottom: 8, paddingTop: 10}}>
                   <input type="text" onChange={e=>this.onChangeClear('clearDays',e,e.target)} defaultValue={this.clearRange.clearDays}/>
                 </div>
-                <span style={{paddingLeft: 24}}>days ago from now</span>
+                <span style={{paddingLeft: 4}}>days ago from now</span>
               </div>
               <br/>
 
@@ -1070,7 +1068,7 @@ class DataSetting extends React.Component {
                 <div className="ui input date" style={{paddingBottom: 8, paddingTop: 10}}>
                   <input type="text" onChange={e=>this.onChange('clearDays',e,e.target)} defaultValue={this.state.clearDays}/>
                 </div>
-                <span style={{paddingLeft: 24}}>days ago from now</span>
+                <span style={{paddingLeft: 4}}>days ago from now</span>
               </div>
               <br/>
 
@@ -2303,7 +2301,11 @@ class ExtensionSetting extends React.Component {
         </a> : null}
       </td>
       <td key={`delete${i}`} style={{fontSize: 20,textAlign: 'center'}}>
-        {cannotDisable ? null : <a href="javascript:void(0)" onClick={_=> ipc.send("delete-extension",id,orgId)}>
+        {cannotDisable ? null : <a href="javascript:void(0)" onClick={_=>{
+          ipc.send("delete-extension",id,orgId)
+          delete this.state.extensions[id]
+          this.setState({})
+        }}>
           <i aria-hidden="true" class="trash icon"></i>
         </a>}
       </td>
@@ -2369,6 +2371,7 @@ class ThemeSetting extends React.Component {
 
   buildThemeColumn(i,id,v){
     console.log(id,v,this.state.enableTheme)
+    const orgId = v.basePath.split(/[\/\\]/).slice(-2,-1)[0]
     const enable = this.state.enableTheme == id
 
     return <tr key={`tr${i}`}>
@@ -2379,7 +2382,17 @@ class ThemeSetting extends React.Component {
         <Checkbox checked={enable} disabled={enable} toggle onChange={(e,data)=>this.changeCheckTheme(id,data)}/>
       </td>
       <td key={`delete${i}`} style={{fontSize: 20,textAlign: 'center'}}>
-        <a href="javascript:void(0)" onClick={_=> ipc.send("delete-extension",id,orgId)}>
+        <a href="javascript:void(0)" onClick={_=>{
+          ipc.send("delete-extension",id,id)
+          delete this.state.extensions[id]
+          if(this.state.enableTheme == id){
+            ipc.send('save-state',{tableName:'state',key:'enableTheme',val: null})
+            this.setState({enableTheme: null})
+          }
+          else{
+            this.setState({})
+          }
+        }}>
           <i aria-hidden="true" class="trash icon"></i>
         </a>
       </td>
@@ -2569,7 +2582,7 @@ ipc.send("get-main-state",key,['startsWith','newTabMode','myHomepage','searchPro
   'clearSessionManagerOnClose','clearFaviconOnClose','clearAutomationOnClose','clearNoteOnClose','clearType','clearDays',
   'enableWidevine','toolbarLink','sidebarLink','bookmarkbarLink','zoomBehavior','tabPreviewSizeWidth','tabPreviewSizeHeight','tabPreviewSlideHeight','tabPreviewWait','searchEngineDisplayType','tabPreviewRecent',
   'sendUrlContextMenus','extensions','tabBarMarginTop','removeTabBarMarginTop','enableTheme','themeTopPage','themeBookmark','themeHistory','themeDownloader','themeExplorer','themeBookmarkSidebar','themeHistorySidebar',
-  'themeSessionManagerSidebar','themeTabTrashSidebar','themeTabHistorySidebar','themeExplorerSidebar'])
+  'themeSessionManagerSidebar','themeTabTrashSidebar','themeTabHistorySidebar','themeExplorerSidebar','searchHistoryOrderCount'])
 ipc.once(`get-main-state-reply_${key}`,(e,data)=>{
   generalDefault = data
   keyboardDefault = data

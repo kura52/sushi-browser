@@ -103,8 +103,10 @@ const db = new Proxy({
   _kill(){child.kill('SIGINT')}
 },handler())
 
+let mainState
 ipcMain.on('search-history-loc',(event,key,regText,limit)=>{
-  db.searchHistories(regText,limit).then(val=>{
+  if(!mainState) mainState = require('./mainState')
+  db.searchHistories(regText,limit,mainState.searchHistoryOrderCount).then(val=>{
     event.sender.send(`search-history-loc-reply_${key}`,val)
   })
 })

@@ -222,9 +222,13 @@ ipcMain.on('insert-favorite2',(event,key,writePath,dbKey,data,isNote)=>{
   })
 })
 
-ipcMain.on('rename-favorite',(event,key,dbKey,newName,isNote)=>{
+ipcMain.on('rename-favorite',async (event,key,dbKey,newName,isNote)=>{
   console.log(99,dbKey,newName)
   const db = isNote ? note : favorite
+  if(isNote){
+    const d = await db.findOne({ key: dbKey })
+    if(d && d.title == newName.title) return
+  }
   db.update({ key: dbKey }, { $set: {...newName,updated_at: Date.now()}}).then(ret2=>{
     event.sender.send(`rename-favorite-reply_${key}`,key)
   })

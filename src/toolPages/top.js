@@ -14,6 +14,69 @@ const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd';
 import l10n from '../../brave/js/l10n';
 l10n.init()
 
+
+const convertUrlMap = new Map([
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html',''],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html','about:blank'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html','chrome://bookmarks/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html','chrome://bookmarks-sidebar/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html','chrome://history/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_history_sidebar.html','chrome://tab-history-sidebar/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_trash_sidebar.html','chrome://tab-trash-sidebar/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download_sidebar.html','chrome://download-sidebar/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note_sidebar.html','chrome://note-sidebar/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note.html','chrome://note/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/saved_state_sidebar.html','chrome://session-manager-sidebar/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history_sidebar.html','chrome://history-sidebar/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html','chrome://explorer/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer_sidebar.html','chrome://explorer-sidebar/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html','chrome://download/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html','chrome://terminal/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html','chrome://converter/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html','chrome://automation/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html','chrome://settings/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general','chrome://settings#general'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search','chrome://settings#search'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs','chrome://settings#tabs'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#keyboard','chrome://settings#keyboard'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extensions','chrome://settings#extensions'],
+])
+
+const convertUrlReg = /^chrome\-extension:\/\/dckpbojndfoinamcdamhkjhnjnmjkfjd\/(video|ace|bind)\.html\?url=([^&]+)/
+const convertUrlPdfReg = /^chrome\-extension:\/\/jdbefljfgobbmcidnmpjamcbhnbphjnb\/content\/web\/viewer\.html\?file=(.+?)$/
+const convertUrlPdfReg2 = /^chrome\-extension:\/\/jdbefljfgobbmcidnmpjamcbhnbphjnb\/comicbed\/index\.html#\?url=(.+?)$/
+
+function convertURL(url){
+  if(!url) return
+  if(convertUrlMap.has(url)){
+    return convertUrlMap.get(url)
+  }
+  else{
+    const match = url.match(convertUrlReg)
+    let matchPdf
+    if(match){
+      return decodeURIComponent(match[2])
+    }
+    else if(matchPdf = (url.match(convertUrlPdfReg) || url.match(convertUrlPdfReg2))){
+      return decodeURIComponent(matchPdf[1])
+    }
+    return url
+  }
+}
+
+function getAppropriateTimeUnit(time){
+  if(time / 60 < 1){
+    return `${Math.round(time)}s`
+  }
+  else if(time / 60 / 60 < 1){
+    return `${Math.round(time /60)}m${Math.round(time % 60)}s`
+  }
+  else if(time / 60 / 60 / 24 < 1){
+    return `${Math.round(time /60 / 60)}h${Math.round((time / 60) % 60)}m`
+  }
+  return `${Math.round(time /60 / 60 / 24)}d${Math.round((time/60/60) % 24)}h`
+}
+
 let theme
 let resourcePath
 localForage.getItem('favicon-set').then(setTime=>{
@@ -159,6 +222,7 @@ class TopSearch extends React.Component {
     console.log("mount")
   }
 
+
   sendHost(e){
     console.log(222222)
     ipc.sendToHost("navbar-search",{})
@@ -178,6 +242,12 @@ class TopSearch extends React.Component {
 }
 
 class HistoryList{
+
+  removeHistory(e){
+    ipc.send('remove-history',JSON.parse(e.target.closest('a').dataset.key))
+    fetchHistory({})
+  }
+
   async build(data) {
     const historyList = []
     let pre = {location:false}
@@ -202,8 +272,11 @@ class HistoryList{
       <img src={favicon} style="width: 20px; height: 20px; float: left; margin-right: 4px; margin-top: 6px;"/>
       <div className="content">
         <a className="description" style="float:right;margin-right:15px;font-size: 12px">{h.updated_at.slice(5)}</a>
-        {!h.title ? "" : <a className="header" href={h.location}>{h.title.length > 55 ? `${h.title.substr(0, 55)}...` : h.title}</a>}
-        {!h.location ? "" : <a className="description" style="fontSize: 12px;" href={h.location}>{h.location.length > 125 ? `${h.location.substr(0, 125)}...` : h.location}</a>}
+        {!h.title ? "" : [<a className="header" target="_blank" href={h.location}>{h.title.length > 55 ? `${h.title.substr(0, 55)}...` : h.title}</a>,
+<span className="additional-info">[{h.count}pv{h.time ? `, ${getAppropriateTimeUnit(h.time / 1000)}` : ''}]</span>,
+<a data-key={`{"_id":"${h._id}"}`} className="trash-link" onClick={this.removeHistory}><i className="cancel icon"></i></a>,<br/>]}
+        {!h.location ? "" : <a className="description" target="_blank" style="fontSize: 12px;" href={h.location}>{h.location.length > 125 ? `${h.location.substr(0, 125)}...` : convertURL(h.location)}</a>}
+        {h.title ? "" : <a data-key={`{"_id":"${h._id}"}`} className="trash-link" onClick={this.removeHistory}><i className="cancel icon"></i></a>}
       </div>
     </div>;
   }

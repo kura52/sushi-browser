@@ -102,3 +102,28 @@ body{
 .ui.menu:not(.vertical)>.menu {
     display: contents;
 }
+
+.our-button-class{
+    float: left;
+    box-sizing: border-box;
+    outline: none;
+    cursor: pointer;
+    background-color: #fff;
+    width: 22px;
+    height: 22px;
+    border-radius: 0;
+    margin: 4px 3px;
+    border: 1px solid #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.our-button-class:hover {
+    border: 1px solid #aaa;
+    background-color: #fff;
+}
+
+.tui-editor-defaultUI-toolbar {
+    padding: 0 5px ;
+}

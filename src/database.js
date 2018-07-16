@@ -137,7 +137,7 @@ db.automationOrder = new Datastore({filename: path.join(resourcePath,'automation
   // await db.searchHistory.ensureIndex({ fieldName: 'created_at' }).exec()
 })()
 
-db.searchHistories = async (regText,limit) =>{
+db.searchHistories = async (regText,limit,searchHistoryOrderCount) =>{
   // console.log("searchStart",Date.now())
   let cond = regText.split(/ +/,-1).filter(x=>x)
   const arr = [],arr2 = []
@@ -146,7 +146,9 @@ db.searchHistories = async (regText,limit) =>{
     arr.push({ $or: [{ title: e }, { location: e }]})
     arr2.push({text: e })
   }
-  const ret1 =  await db.history.find(arr.length == 1 ? arr[0] : { $and: arr}).sort({ updated_at: -1 }).limit(limit).exec()
+
+  const sort = searchHistoryOrderCount ? { count: -1, updated_at: -1 } : { updated_at: -1 }
+  const ret1 =  await db.history.find(arr.length == 1 ? arr[0] : { $and: arr}).sort(sort).limit(limit).exec()
   // const ret2 = await db.searchHistory.find(arr2.length == 1 ? arr2[0] : { $and: arr2}).sort({ created_at: -1 }).limit(limit).exec()
 
   // console.log("searchEnd",Date.now())
