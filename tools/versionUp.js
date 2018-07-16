@@ -39,7 +39,8 @@ Fixed a bug in bookmark drop.
 fixed Bug of bookmark import.
 Fixed many download bugs.
 "Almost the same as as Chrome" was added to "When closing current tab, focus".
-Fixed bug that Audio Extract, and Video Converter do not start.`
+Fixed bug that Audio Extract, and Video Converter do not start.
+Fixed Search Highlight bug.`
 
 const CHANGE_JAPANESE = `Noteのmarkdownモードに行番号を追加
 Noteのmarkdownのプレビューモードをtabとverticalで切り替えるボタン(P)を追加
@@ -52,7 +53,8 @@ Top Page下部の履歴にPV、滞在時間、削除ボタンを表示するよ�
 ブックマークインポートの不具合修正
 ダウンロードに関する不具合を多数修正
 「現在のタブを閉じたときのフォーカスの移動場所」に「Almost the same as Chrome」を追加
-Audio Extract, Video Converterが起動しない不具合を修正`
+Audio Extract, Video Converterが起動しない不具合を修正
+Search Highlightの不具合修正`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

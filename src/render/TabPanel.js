@@ -1137,7 +1137,9 @@ export default class TabPanel extends Component {
         else{
           if(sharedState.searchWords[tabId]){
             const navbar = refs2[`navbar-${tab.key}`].state
-            const url = navbar.historyList[navbar.currentIndex -1]
+            const currentUrl = this.getWebContents(tab).getURL()
+            const currentIndex = navbar.historyList[navbar.currentIndex][0] == currentUrl ? navbar.currentIndex : navbar.currentIndex + 1
+            const url = navbar.historyList[currentIndex -1]
             if(url && url[0].match(REG_HIGHLIGHT_SITES)){
               word = sharedState.searchWords[tabId]
             }
@@ -1290,9 +1292,9 @@ export default class TabPanel extends Component {
         console.log('onDidFinishLoading',e)
         if (!self.mounted) return
 
-        if(!sharedState.searchWordHighlightRecursive && sharedState.searchWordHighlight){
-          self.searchWordHighlight(tab)
-        }
+        // if(!sharedState.searchWordHighlightRecursive && sharedState.searchWordHighlight){
+        //   self.searchWordHighlight(tab)
+        // }
 
         ipc.send('chrome-webNavigation-onCompleted',{
           tabId:tab.wvId,
@@ -1437,7 +1439,7 @@ export default class TabPanel extends Component {
         console.log('onDomReady',e,tab,Date.now())
         if (!self.mounted) return
 
-        if(sharedState.searchWordHighlightRecursive && sharedState.searchWordHighlight){
+        if(sharedState.searchWordHighlight){
           self.searchWordHighlight(tab)
         }
 

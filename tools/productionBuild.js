@@ -29,6 +29,7 @@ function escapeRegExp(string){
 
 
 function fileContentsReplace(file, reg, after) {
+  if(file.includes('tui-editor-Editor-all.min.js')) return
   if(typeof reg == "string"){
     reg = new RegExp(escapeRegExp(reg))
   }

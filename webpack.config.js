@@ -100,8 +100,8 @@ delete baseConfig2.devtool
 // delete baseConfig.plugins
 
 module.exports = [
-  // merge({fileName:"base.js",src:path.join(__dirname,"./src/render")},baseConfig),
-  merge({fileName:"top.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
+  merge({fileName:"base.js",src:path.join(__dirname,"./src/render")},baseConfig),
+  // merge({fileName:"top.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
   // merge({fileName:"downloader.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
   // merge({fileName:"download.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
   // merge({fileName:"selector.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
