@@ -613,12 +613,16 @@ export default class App extends React.Component {
                 }}/>
                 <Button icon='save' onClick={_=>{
                   if(selectedNodes.length && selectedNodes[0].type == 'file'){
-                    ipc.send('save-file',{content:this.state.editor.getMarkdown(), fname: 'note.txt', isDesktop: true})
+                    let content = this.state.editor.getMarkdown()
+                    if(navigator.userAgent.includes('Windows')) content = content.replace(/\r?\n/g, "\r\n")
+                    ipc.send('save-file',{content, fname: 'note.txt', isDesktop: true})
                   }
                 }}/>
                 <Button icon='save' onClick={_=>{
                   if(selectedNodes.length && selectedNodes[0].type == 'file'){
-                    ipc.send('save-file',{content:removeMarkdown(this.state.editor.getMarkdown()), fname: 'note.txt', isDesktop: true})
+                    let content = removeMarkdown(this.state.editor.getMarkdown())
+                    if(navigator.userAgent.includes('Windows')) content = content.replace(/\r?\n/g, "\r\n")
+                    ipc.send('save-file',{content, fname: 'note.txt', isDesktop: true})
                   }
                 }}/>
                 <div className='save-text'>Text</div>
@@ -653,12 +657,16 @@ export default class App extends React.Component {
                     }} content="Delete"/>
                     <Button icon='save' onClick={_=>{
                       if(selectedNodes.length && selectedNodes[0].type == 'file'){
-                        ipc.send('save-file',{content:this.state.editor.getMarkdown(), fname: 'note.txt', isDesktop: true})
+                        let content = this.state.editor.getMarkdown()
+                        if(navigator.userAgent.includes('Windows')) content = content.replace(/\r?\n/g, "\r\n")
+                        ipc.send('save-file',{content, fname: 'note.txt', isDesktop: true})
                       }
                     }} content="Save"/>
                     <Button icon='save' onClick={_=>{
                       if(selectedNodes.length && selectedNodes[0].type == 'file'){
-                        ipc.send('save-file',{content:removeMarkdown(this.state.editor.getMarkdown()), fname: 'note.txt', isDesktop: true})
+                        let content = removeMarkdown(this.state.editor.getMarkdown())
+                        if(navigator.userAgent.includes('Windows')) content = content.replace(/\r?\n/g, "\r\n")
+                        ipc.send('save-file',{content, fname: 'note.txt', isDesktop: true})
                       }
                     }} content="Save As Text"/>
                   </Button.Group>

@@ -45,7 +45,24 @@ const isWin = navigator.userAgent.includes('Windows')
 
 new Clipboard('.clipboard-btn')
 
-const MOBILE_USERAGENT = 'Mozilla/5.0 (Linux; Android 7.1.2; Nexus 6P Build/NJH47D; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/64.0.3282.137 Mobile Safari/537.36'
+const DEFAULT_USERAGENT = navigator.userAgent
+
+const NEXUS_USERAGENT = 'Mozilla/5.0 (Linux; Android 7.1.2; Nexus 6P Build/NJH47D; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/65.0.3325.109 Mobile Safari/537.36'
+const GALAXY_S9_USERAGENT = 'Mozilla/5.0 (Linux; Android 8.0.0; SM-G965F Build/R16NW) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.109 Mobile Safari/537.36'
+const IPHONE_USERAGENT = 'Mozilla/5.0 (iPod touch; CPU iPhone OS 11_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/11.0 Mobile/15E148 Safari/604.1'
+
+const IE6_USERAGENT = 'Mozilla/4.0 (compatible; MSIE 6.0; Windows XP)'
+const IE9_USERAGENT = 'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)'
+const IE11_USERAGENT = 'Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko'
+const EDGE_USERAGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134'
+const FIREFOX_USERAGENT = `Mozilla/5.0 (${isWin ? 'Windows NT 10.0; Win64; x64' : isDarwin ? 'Macintosh; Intel Mac OS X 10.13' : 'X11; Linux x86_64'}; rv:61.0) Gecko/20100101 Firefox/61.0`
+const OPERA_USERAGENT = `Mozilla/5.0 (${isWin ? 'Windows NT 10.0; Win64; x64' : isDarwin ? 'Macintosh; Intel Mac OS X 10_13_2' : 'X11; Linux x86_64'}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.170 Safari/537.36 OPR/53.0.2907.68`
+const SAFARI_USERAGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/604.1.28 (KHTML, like Gecko) Version/11.0 Safari/604.1.28'
+
+const WINDOWS_USERAGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36'
+const MAC_USERAGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36'
+const LINUX_USERAGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36'
+
 
 let lastExecTime = new Date().getTime()
 const interval = 500
@@ -103,7 +120,7 @@ let staticDisableExtensions = []
 class BrowserNavbar extends Component{
   constructor(props) {
     super(props)
-    this.state = {userAgentBefore: MOBILE_USERAGENT,
+    this.state = {userAgent: DEFAULT_USERAGENT,
       pdfMode:'normal',currentIndex:0,historyList:[],disableExtensions:staticDisableExtensions,left,right,backSide}
     this.canRefresh = this.props.page.canRefresh
     this.location = this.props.page.location
@@ -173,7 +190,7 @@ class BrowserNavbar extends Component{
 
     if(this.props.tab.mobile){
       setTimeout(_=>{
-        [this.state.userAgent,this.state.userAgentBefore] = [this.state.userAgentBefore,this.state.userAgent];
+        this.state.userAgent = this.props.tab.mobile
         this.setState({mobile: this.props.tab.mobile})
         const tabId = this.props.tab.wvId
         if(!tabs.has(tabId)){
@@ -465,11 +482,14 @@ class BrowserNavbar extends Component{
     return this.props.currentWebContents[tab.wvId]
   }
 
-  handleUserAgent(){
-    [this.state.userAgent,this.state.userAgentBefore] = [this.state.userAgentBefore,this.state.userAgent];
+  handleUserAgent(newUserAgent){
+    if(!newUserAgent){
+      newUserAgent = this.props.tab.mobile ? DEFAULT_USERAGENT : NEXUS_USERAGENT
+    }
+    this.state.userAgent = newUserAgent
     ipc.send('user-agent-change',{tabId:this.props.tab.wvId,ua:this.state.userAgent})
-    this.props.tab.mobile = !this.state.mobile
-    this.setState({mobile: !this.state.mobile})
+    this.props.tab.mobile = newUserAgent == DEFAULT_USERAGENT ? void 0 : newUserAgent
+    this.setState({mobile: this.props.tab.mobile})
     this.getWebContents(this.props.tab).reload()
   }
 
@@ -930,8 +950,27 @@ class BrowserNavbar extends Component{
         <NavbarMenuItem key="verticalRight" text="Vertical Tabs Right" icon="caret right" onClick={()=>PubSub.publish('set-vertical-tab-state',"right")}/>
       </NavbarMenu>,
 
-      mobile: <BrowserNavbarBtn className="sort-mobile" title="Change to Mobile UserAgent" icon="mobile" styleFont={{fontSize: 20}} sync={this.state.mobile} onContextMenu={onContextMenu}
-                                onClick={::this.handleUserAgent}/>,
+      mobile: <NavbarMenu className="sort-mobile" k={this.props.k} mouseOver={true} isFloat={isFloatPanel(this.props.k)}  sync={this.state.mobile} style={{fontSize: 20, lineHeight: 1.4 }}
+                          title="Change to Mobile UserAgent" icon="mobile" onContextMenu={onContextMenu} onClick={()=>this.handleUserAgent(this.state.mobile ? DEFAULT_USERAGENT : NEXUS_USERAGENT)}>
+        <NavbarMenuItem key="default" text="Default" onClick={()=>this.handleUserAgent(DEFAULT_USERAGENT)}/>
+        <div className="divider" />
+        <NavbarMenuItem key="nexus" text="Nexus P6" onClick={()=>this.handleUserAgent(NEXUS_USERAGENT)}/>
+        <NavbarMenuItem key="galaxy" text="Galaxy S9" onClick={()=>this.handleUserAgent(GALAXY_S9_USERAGENT)}/>
+        <NavbarMenuItem key="iphone" text="iPhone" onClick={()=>this.handleUserAgent(IPHONE_USERAGENT)}/>
+        <div className="divider" />
+        <NavbarMenuItem key="ie" text="IE6" onClick={()=>this.handleUserAgent(IE6_USERAGENT)}/>
+        <NavbarMenuItem key="ie" text="IE9" onClick={()=>this.handleUserAgent(IE9_USERAGENT)}/>
+        <NavbarMenuItem key="ie" text="IE11" onClick={()=>this.handleUserAgent(IE11_USERAGENT)}/>
+        <div className="divider" />
+        <NavbarMenuItem key="edge" text="Edge " onClick={()=>this.handleUserAgent(EDGE_USERAGENT)}/>
+        <NavbarMenuItem key="firefox" text="Firefox 61" onClick={()=>this.handleUserAgent(FIREFOX_USERAGENT)}/>
+        <NavbarMenuItem key="opera" text="Opera" onClick={()=>this.handleUserAgent(OPERA_USERAGENT)}/>
+        <NavbarMenuItem key="safari" text="Safari (Mac)" onClick={()=>this.handleUserAgent(SAFARI_USERAGENT)}/>
+        <div className="divider" />
+        <NavbarMenuItem key="win" text="Chrome 67 (Win)" onClick={()=>this.handleUserAgent(WINDOWS_USERAGENT)}/>
+        <NavbarMenuItem key="mac" text="Chrome 67 (Mac)" onClick={()=>this.handleUserAgent(MAC_USERAGENT)}/>
+        <NavbarMenuItem key="linux" text="Chrome 67 (Linux)" onClick={()=>this.handleUserAgent(LINUX_USERAGENT)}/>
+      </NavbarMenu>,
 
       favorite: isFixed && !isFloat ? null : this.favoriteMenu(cont,onContextMenu),
       history: isFixed && !isFloat ? null : this.historyMenu(cont,onContextMenu),

@@ -189,7 +189,7 @@ export default class NavbarMenu extends Component {
                 onMouseLeave={this.props.mouseOver ? this.onMouseLeave : (void 0)} id={this.uuid} ref="div" role="listbox"
                 aria-expanded="false" className={`${this.props.className != 'main-menu' ? 'draggable-source' : ''} ui top${this.props.mouseOver ? '' : ' right pointing'} nav-button dropdown ${this.props.className}`}
                 tabIndex={1} style={style}>
-      <a ref="button" href="javascript:void(0)" title={this.props.title} onClick={this.props.mouseOver ? e=>this.props.onClick(e) : ::this.handleClick}>
+      <a ref="button" href="javascript:void(0)" className={this.props.sync ? 'sync' : void 0} title={this.props.title} onClick={this.props.mouseOver ? e=>this.props.onClick(e) : ::this.handleClick}>
         {this.props.icon ? <i className={`fa fa-${this.props.icon}`} /> : null}
         {this.props.badget || null}
       </a>
