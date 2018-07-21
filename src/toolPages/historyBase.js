@@ -284,7 +284,7 @@ export default class App extends React.Component {
             count = 0
           }
           else{
-            if(reg.test(`${ele.name}\t${ele.url}`)){
+            if(reg.test(`${ele.name.children[3].children}\t${ele.url}`)){
               newDirc.push(ele)
               count++
             }

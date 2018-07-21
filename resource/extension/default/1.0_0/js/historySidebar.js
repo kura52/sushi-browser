@@ -114,10 +114,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 
 var NO_OP = '$NO_OP';
-// This should be boolean and not reference to window.document
 var isBrowser = !!(typeof window !== 'undefined' && window.document);
-// this is MUCH faster than .constructor === Array and instanceof Array
-// in Node 7 and the later versions of V8, slower in older versions though
 var isArray = Array.isArray;
 function isNullOrUndef(o) {
     return isUndefined(o) || isNull(o);
@@ -355,7 +352,7 @@ var Children = {
         }
         return children[0];
     },
-    toArray: function toArray$$1(children) {
+    toArray: function toArray(children) {
         if (isNullOrUndef(children)) {
             return [];
         }
@@ -16818,10 +16815,7 @@ window.process = {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_inferno__ = __webpack_require__(60);
 
 
-// This should be boolean and not reference to window.document
 var isBrowser = !!(typeof window !== 'undefined' && window.document);
-// this is MUCH faster than .constructor === Array and instanceof Array
-// in Node 7 and the later versions of V8, slower in older versions though
 var isArray = Array.isArray;
 function isStringOrNumber(o) {
     var type = typeof o;
@@ -16838,9 +16832,6 @@ function isTrue(o) {
 }
 function isUndefined(o) {
     return o === void 0;
-}
-function isDefined(o) {
-    return o !== void 0;
 }
 function combineFrom(first, second) {
     var out = {};
@@ -16896,13 +16887,13 @@ function cloneVNode(vNodeToClone, props) {
     var key = vNodeToClone.key;
     var ref = vNodeToClone.ref;
     if (props) {
-        if (isDefined(props.className)) {
+        if (props.className !== void 0) {
             className = props.className;
         }
-        if (isDefined(props.ref)) {
+        if (props.ref !== void 0) {
             ref = props.ref;
         }
-        if (isDefined(props.key)) {
+        if (props.key !== void 0) {
             key = props.key;
         }
     }
@@ -16962,13 +16953,9 @@ function cloneVNode(vNodeToClone, props) {
 
 
 var ERROR_MSG = 'a runtime error occured! Use Inferno in development environment to find the error.';
-// This should be boolean and not reference to window.document
 var isBrowser = !!(typeof window !== 'undefined' && window.document);
 function isFunction(o) {
     return typeof o === 'function';
-}
-function isDefined(o) {
-    return o !== void 0;
 }
 function isObject(o) {
     return typeof o === 'object';
@@ -17038,7 +17025,7 @@ function multihook(hooks, mergeFn) {
             if (mergeFn) {
                 ret = mergeFn(ret, r);
             }
-            else if (isDefined(r)) {
+            else if (r) {
                 ret = r;
             }
         }
@@ -17046,7 +17033,7 @@ function multihook(hooks, mergeFn) {
     };
 }
 function mergeNoDupes(previous, current) {
-    if (isDefined(current)) {
+    if (current) {
         if (!isObject(current)) {
             throwError('Expected Mixin to return value to be an object or null.');
         }
@@ -17065,7 +17052,7 @@ function mergeNoDupes(previous, current) {
     return previous;
 }
 function applyMixin(key, inst, mixin) {
-    var hooks = isDefined(inst[key]) ? mixin.concat(inst[key]) : mixin;
+    var hooks = inst[key] !== void 0 ? mixin.concat(inst[key]) : mixin;
     if (key === 'getDefaultProps' || key === 'getInitialState' || key === 'getChildContext') {
         inst[key] = multihook(hooks, mergeNoDupes);
     }
@@ -17144,7 +17131,6 @@ function createClass(obj) {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_inferno__ = __webpack_require__(60);
 
 
-// This should be boolean and not reference to window.document
 var isBrowser = !!(typeof window !== 'undefined' && window.document);
 function isNullOrUndef(o) {
     return isUndefined(o) || isNull(o);
@@ -32444,10 +32430,7 @@ _infernoCompat2.default.render(_infernoCompat2.default.createElement(_historyBas
 /* unused harmony export JSX */
 var NO_OP = '$NO_OP';
 var ERROR_MSG = 'a runtime error occured! Use Inferno in development environment to find the error.';
-// This should be boolean and not reference to window.document
 var isBrowser = !!(typeof window !== 'undefined' && window.document);
-// this is MUCH faster than .constructor === Array and instanceof Array
-// in Node 7 and the later versions of V8, slower in older versions though
 var isArray = Array.isArray;
 function isStringOrNumber(o) {
     var type = typeof o;
@@ -32476,12 +32459,6 @@ function isTrue(o) {
 }
 function isUndefined(o) {
     return o === void 0;
-}
-function isDefined(o) {
-    return o !== void 0;
-}
-function isObject(o) {
-    return typeof o === 'object';
 }
 function throwError(message) {
     if (!message) {
@@ -32533,7 +32510,7 @@ function createVNode(flags, type, className, children, childFlags, props, key, r
 }
 function createComponentVNode(flags, type, props, key, ref) {
     if ((flags & 2 /* ComponentUnknown */) > 0) {
-        flags = isDefined(type.prototype) && isFunction(type.prototype.render) ? 4 /* ComponentClass */ : 8 /* ComponentFunction */;
+        flags = type.prototype && isFunction(type.prototype.render) ? 4 /* ComponentClass */ : 8 /* ComponentFunction */;
     }
     // set default props
     var defaultProps = type.defaultProps;
@@ -32578,19 +32555,19 @@ function normalizeProps(vNode) {
     if (props) {
         var flags = vNode.flags;
         if (flags & 481 /* Element */) {
-            if (isDefined(props.children) && isNullOrUndef(vNode.children)) {
+            if (props.children !== void 0 && isNullOrUndef(vNode.children)) {
                 normalizeChildren(vNode, props.children);
             }
-            if (isDefined(props.className)) {
+            if (props.className !== void 0) {
                 vNode.className = props.className || null;
                 props.className = undefined;
             }
         }
-        if (isDefined(props.key)) {
+        if (props.key !== void 0) {
             vNode.key = props.key;
             props.key = undefined;
         }
-        if (isDefined(props.ref)) {
+        if (props.ref !== void 0) {
             if (flags & 8 /* ComponentFunction */) {
                 vNode.ref = combineFrom(vNode.ref, props.ref);
             }
@@ -32617,8 +32594,7 @@ function directClone(vNodeToClone) {
         newVNode = createComponentVNode(flags, vNodeToClone.type, props, vNodeToClone.key, vNodeToClone.ref);
     }
     else if (flags & 481 /* Element */) {
-        var children = vNodeToClone.children;
-        newVNode = createVNode(flags, vNodeToClone.type, vNodeToClone.className, children, vNodeToClone.childFlags, vNodeToClone.props, vNodeToClone.key, vNodeToClone.ref);
+        newVNode = createVNode(flags, vNodeToClone.type, vNodeToClone.className, vNodeToClone.children, vNodeToClone.childFlags, vNodeToClone.props, vNodeToClone.key, vNodeToClone.ref);
     }
     else if (flags & 16 /* Text */) {
         newVNode = createTextVNode(vNodeToClone.children, vNodeToClone.key);
@@ -32753,13 +32729,10 @@ function normalizeChildren(vNode, children) {
     return vNode;
 }
 var options = {
-    afterMount: null,
     afterRender: null,
-    afterUpdate: null,
     beforeRender: null,
-    beforeUnmount: null,
     createVNode: null,
-    roots: []
+    renderComplete: null
 };
 
 /**
@@ -32886,7 +32859,9 @@ function normalizeEventName(name) {
 }
 function stopPropagation() {
     this.cancelBubble = true;
-    this.stopImmediatePropagation();
+    if (!this.immediatePropagationStopped) {
+        this.stopImmediatePropagation();
+    }
 }
 function attachEventToDocument(name) {
     var docEvent = function (event) {
@@ -32896,7 +32871,6 @@ function attachEventToDocument(name) {
             // Firefox incorrectly triggers click event for mid/right mouse buttons.
             // This bug has been active for 12 years.
             // https://bugzilla.mozilla.org/show_bug.cgi?id=184051
-            event.preventDefault();
             event.stopPropagation();
             return false;
         }
@@ -33151,7 +33125,7 @@ function isControlledFormElement(nextPropsOrEmpty) {
 
 function remove(vNode, parentDom) {
     unmount(vNode);
-    if (!isNull(parentDom)) {
+    if (parentDom && vNode.dom) {
         removeChild(parentDom, vNode.dom);
         // Let carbage collector free memory
         vNode.dom = null;
@@ -33198,33 +33172,34 @@ function unmount(vNode) {
             }
         }
     }
-    else if (flags & 14 /* Component */) {
-        var instance = vNode.children;
-        var ref$1 = vNode.ref;
-        if (flags & 4 /* ComponentClass */) {
-            if (isFunction(options.beforeUnmount)) {
-                options.beforeUnmount(vNode);
-            }
-            if (isFunction(instance.componentWillUnmount)) {
-                instance.componentWillUnmount();
-            }
-            if (isFunction(ref$1)) {
-                ref$1(null);
-            }
-            instance.$UN = true;
-            unmount(instance.$LI);
-        }
-        else {
-            if (!isNullOrUndef(ref$1) && isFunction(ref$1.onComponentWillUnmount)) {
-                ref$1.onComponentWillUnmount(vNode.dom, vNode.props || EMPTY_OBJ);
-            }
-            unmount(instance);
-        }
-    }
-    else if (flags & 1024 /* Portal */) {
+    else {
         var children$1 = vNode.children;
-        if (!isNull(children$1) && isObject(children$1)) {
-            remove(children$1, vNode.type);
+        // Safe guard for crashed VNode
+        if (children$1) {
+            if (flags & 14 /* Component */) {
+                var ref$1 = vNode.ref;
+                if (flags & 4 /* ComponentClass */) {
+                    if (isFunction(children$1.componentWillUnmount)) {
+                        children$1.componentWillUnmount();
+                    }
+                    if (isFunction(ref$1)) {
+                        ref$1(null);
+                    }
+                    children$1.$UN = true;
+                    if (children$1.$LI) {
+                        unmount(children$1.$LI);
+                    }
+                }
+                else {
+                    if (!isNullOrUndef(ref$1) && isFunction(ref$1.onComponentWillUnmount)) {
+                        ref$1.onComponentWillUnmount(vNode.dom, vNode.props || EMPTY_OBJ);
+                    }
+                    unmount(children$1);
+                }
+            }
+            else if (flags & 1024 /* Portal */) {
+                remove(children$1, vNode.type);
+            }
         }
     }
 }
@@ -33249,8 +33224,6 @@ function patchEvent(name, lastValue, nextValue, dom) {
         var linkEvent = nextValue.event;
         if (linkEvent && isFunction(linkEvent)) {
             dom[nameLowerCase] = createLinkEvent(linkEvent, nextValue);
-        }
-        else {
         }
     }
     else {
@@ -33358,9 +33331,11 @@ function patchProp(prop, lastValue, nextValue, dom, isSVG, hasControlledValue, l
         case 'key':
         case 'multiple':
         case 'ref':
-            return;
-        case 'allowfullscreen':
+            break;
         case 'autoFocus':
+            dom.autofocus = !!nextValue;
+            break;
+        case 'allowfullscreen':
         case 'autoplay':
         case 'capture':
         case 'checked':
@@ -33379,7 +33354,6 @@ function patchProp(prop, lastValue, nextValue, dom, isSVG, hasControlledValue, l
         case 'scoped':
         case 'seamless':
         case 'selected':
-            prop = prop === 'autoFocus' ? prop.toLowerCase() : prop;
             dom[prop] = !!nextValue;
             break;
         case 'defaultChecked':
@@ -33423,7 +33397,7 @@ function patchProp(prop, lastValue, nextValue, dom, isSVG, hasControlledValue, l
                 patchStyle(lastValue, nextValue, dom);
             }
             else if (isSVG && namespaces[prop]) {
-                // We optimize for NS being boolean. Its 99.9% time false
+                // We optimize for isSVG being false
                 // If we end up in this path we can read property again
                 dom.setAttributeNS(namespaces[prop], prop, nextValue);
             }
@@ -33521,19 +33495,19 @@ function handleComponentInput(input, componentVNode) {
     return input;
 }
 
-function mount(vNode, parentDom, lifecycle, context, isSVG) {
+function mount(vNode, parentDom, context, isSVG) {
     var flags = vNode.flags;
     if (flags & 481 /* Element */) {
-        return mountElement(vNode, parentDom, lifecycle, context, isSVG);
+        return mountElement(vNode, parentDom, context, isSVG);
     }
     if (flags & 14 /* Component */) {
-        return mountComponent(vNode, parentDom, lifecycle, context, isSVG, (flags & 4 /* ComponentClass */) > 0);
+        return mountComponent(vNode, parentDom, context, isSVG, (flags & 4 /* ComponentClass */) > 0);
     }
     if (flags & 512 /* Void */ || flags & 16 /* Text */) {
         return mountText(vNode, parentDom);
     }
     if (flags & 1024 /* Portal */) {
-        mount(vNode.children, vNode.type, lifecycle, context, false);
+        mount(vNode.children, vNode.type, context, false);
         return (vNode.dom = mountText(createVoidVNode(), parentDom));
     }
 }
@@ -33544,7 +33518,7 @@ function mountText(vNode, parentDom) {
     }
     return dom;
 }
-function mountElement(vNode, parentDom, lifecycle, context, isSVG) {
+function mountElement(vNode, parentDom, context, isSVG) {
     var flags = vNode.flags;
     var children = vNode.children;
     var props = vNode.props;
@@ -33568,115 +33542,102 @@ function mountElement(vNode, parentDom, lifecycle, context, isSVG) {
     if ((childFlags & 1 /* HasInvalidChildren */) === 0) {
         var childrenIsSVG = isSVG === true && vNode.type !== 'foreignObject';
         if (childFlags === 2 /* HasVNodeChildren */) {
-            mount(children, dom, lifecycle, context, childrenIsSVG);
+            mount(children, dom, context, childrenIsSVG);
         }
         else if (childFlags & 12 /* MultipleChildren */) {
-            mountArrayChildren(children, dom, lifecycle, context, childrenIsSVG);
+            mountArrayChildren(children, dom, context, childrenIsSVG);
         }
     }
     if (!isNull(props)) {
         mountProps(vNode, flags, props, dom, isSVG);
     }
     if (isFunction(ref)) {
-        mountRef(dom, ref, lifecycle);
+        mountRef(dom, ref);
     }
     return dom;
 }
-function mountArrayChildren(children, dom, lifecycle, context, isSVG) {
+function mountArrayChildren(children, dom, context, isSVG) {
     for (var i = 0, len = children.length; i < len; i++) {
         var child = children[i];
         if (!isNull(child.dom)) {
             children[i] = child = directClone(child);
         }
-        mount(child, dom, lifecycle, context, isSVG);
+        mount(child, dom, context, isSVG);
     }
 }
-function mountComponent(vNode, parentDom, lifecycle, context, isSVG, isClass) {
+function mountComponent(vNode, parentDom, context, isSVG, isClass) {
     var dom;
     var type = vNode.type;
     var props = vNode.props || EMPTY_OBJ;
     var ref = vNode.ref;
     if (isClass) {
         var instance = createClassComponentInstance(vNode, type, props, context);
-        vNode.dom = dom = mount(instance.$LI, null, lifecycle, instance.$CX, isSVG);
-        mountClassComponentCallbacks(vNode, ref, instance, lifecycle);
+        vNode.dom = dom = mount(instance.$LI, null, instance.$CX, isSVG);
+        mountClassComponentCallbacks(vNode, ref, instance);
         instance.$UPD = false;
     }
     else {
         var input = handleComponentInput(type(props, context), vNode);
         vNode.children = input;
-        vNode.dom = dom = mount(input, null, lifecycle, context, isSVG);
-        mountFunctionalComponentCallbacks(props, ref, dom, lifecycle);
+        vNode.dom = dom = mount(input, null, context, isSVG);
+        mountFunctionalComponentCallbacks(props, ref, dom);
     }
     if (!isNull(parentDom)) {
         appendChild(parentDom, dom);
     }
     return dom;
 }
-function createClassMountCallback(instance, hasAfterMount, afterMount, vNode, hasDidMount) {
+function createClassMountCallback(instance) {
     return function () {
-        instance.$UPD = true;
-        if (hasAfterMount) {
-            afterMount(vNode);
-        }
-        if (hasDidMount) {
-            instance.componentDidMount();
-        }
-        instance.$UPD = false;
+        instance.componentDidMount();
     };
 }
-function mountClassComponentCallbacks(vNode, ref, instance, lifecycle) {
+function mountClassComponentCallbacks(vNode, ref, instance) {
     if (isFunction(ref)) {
         ref(instance);
     }
-    else {
-    }
-    var hasDidMount = isFunction(instance.componentDidMount);
-    var afterMount = options.afterMount;
-    var hasAfterMount = isFunction(afterMount);
-    if (hasDidMount || hasAfterMount) {
-        lifecycle.push(createClassMountCallback(instance, hasAfterMount, afterMount, vNode, hasDidMount));
+    if (isFunction(instance.componentDidMount)) {
+        LIFECYCLE.push(createClassMountCallback(instance));
     }
 }
-// Create did mount callback lazily to avoid creating function context if not needed
 function createOnMountCallback(ref, dom, props) {
     return function () { return ref.onComponentDidMount(dom, props); };
 }
-function mountFunctionalComponentCallbacks(props, ref, dom, lifecycle) {
+function mountFunctionalComponentCallbacks(props, ref, dom) {
     if (!isNullOrUndef(ref)) {
         if (isFunction(ref.onComponentWillMount)) {
             ref.onComponentWillMount(props);
         }
         if (isFunction(ref.onComponentDidMount)) {
-            lifecycle.push(createOnMountCallback(ref, dom, props));
+            LIFECYCLE.push(createOnMountCallback(ref, dom, props));
         }
     }
 }
-function mountRef(dom, value, lifecycle) {
-    lifecycle.push(function () { return value(dom); });
+function mountRef(dom, value) {
+    LIFECYCLE.push(function () { return value(dom); });
 }
 
-function hydrateComponent(vNode, dom, lifecycle, context, isSVG, isClass) {
+function hydrateComponent(vNode, dom, context, isSVG, isClass) {
     var type = vNode.type;
     var ref = vNode.ref;
     var props = vNode.props || EMPTY_OBJ;
     if (isClass) {
         var instance = createClassComponentInstance(vNode, type, props, context);
         var input = instance.$LI;
-        hydrateVNode(input, dom, lifecycle, instance.$CX, isSVG);
+        hydrateVNode(input, dom, instance.$CX, isSVG);
         vNode.dom = input.dom;
-        mountClassComponentCallbacks(vNode, ref, instance, lifecycle);
+        mountClassComponentCallbacks(vNode, ref, instance);
         instance.$UPD = false; // Mount finished allow going sync
     }
     else {
         var input$1 = handleComponentInput(type(props, context), vNode);
-        hydrateVNode(input$1, dom, lifecycle, context, isSVG);
+        hydrateVNode(input$1, dom, context, isSVG);
         vNode.children = input$1;
         vNode.dom = input$1.dom;
-        mountFunctionalComponentCallbacks(props, ref, dom, lifecycle);
+        mountFunctionalComponentCallbacks(props, ref, dom);
     }
 }
-function hydrateElement(vNode, dom, lifecycle, context, isSVG) {
+function hydrateElement(vNode, dom, context, isSVG) {
     var children = vNode.children;
     var props = vNode.props;
     var className = vNode.className;
@@ -33684,7 +33645,7 @@ function hydrateElement(vNode, dom, lifecycle, context, isSVG) {
     var ref = vNode.ref;
     isSVG = isSVG || (flags & 32 /* SvgElement */) > 0;
     if (dom.nodeType !== 1 || dom.tagName.toLowerCase() !== vNode.type) {
-        var newDom = mountElement(vNode, null, lifecycle, context, isSVG);
+        var newDom = mountElement(vNode, null, context, isSVG);
         vNode.dom = newDom;
         replaceChild(dom.parentNode, newDom, dom);
     }
@@ -33709,11 +33670,11 @@ function hydrateElement(vNode, dom, lifecycle, context, isSVG) {
             childNode = dom.firstChild;
             if (childFlags === 2 /* HasVNodeChildren */) {
                 if (isNull(childNode)) {
-                    mount(children, dom, lifecycle, context, isSVG);
+                    mount(children, dom, context, isSVG);
                 }
                 else {
                     nextSibling = childNode.nextSibling;
-                    hydrateVNode(children, childNode, lifecycle, context, isSVG);
+                    hydrateVNode(children, childNode, context, isSVG);
                     childNode = nextSibling;
                 }
             }
@@ -33721,11 +33682,11 @@ function hydrateElement(vNode, dom, lifecycle, context, isSVG) {
                 for (var i = 0, len = children.length; i < len; i++) {
                     var child = children[i];
                     if (isNull(childNode)) {
-                        mount(child, dom, lifecycle, context, isSVG);
+                        mount(child, dom, context, isSVG);
                     }
                     else {
                         nextSibling = childNode.nextSibling;
-                        hydrateVNode(child, childNode, lifecycle, context, isSVG);
+                        hydrateVNode(child, childNode, context, isSVG);
                         childNode = nextSibling;
                     }
                 }
@@ -33759,9 +33720,7 @@ function hydrateElement(vNode, dom, lifecycle, context, isSVG) {
             dom.className = className;
         }
         if (isFunction(ref)) {
-            mountRef(dom, ref, lifecycle);
-        }
-        else {
+            mountRef(dom, ref);
         }
     }
 }
@@ -33779,13 +33738,13 @@ function hydrateText(vNode, dom) {
         vNode.dom = dom;
     }
 }
-function hydrateVNode(vNode, dom, lifecycle, context, isSVG) {
+function hydrateVNode(vNode, dom, context, isSVG) {
     var flags = vNode.flags;
     if (flags & 14 /* Component */) {
-        hydrateComponent(vNode, dom, lifecycle, context, isSVG, (flags & 4 /* ComponentClass */) > 0);
+        hydrateComponent(vNode, dom, context, isSVG, (flags & 4 /* ComponentClass */) > 0);
     }
     else if (flags & 481 /* Element */) {
-        hydrateElement(vNode, dom, lifecycle, context, isSVG);
+        hydrateElement(vNode, dom, context, isSVG);
     }
     else if (flags & 16 /* Text */) {
         hydrateText(vNode, dom);
@@ -33801,7 +33760,7 @@ function hydrate(input, parentDom, callback) {
     var dom = parentDom.firstChild;
     if (!isNull(dom)) {
         if (!isInvalid(input)) {
-            hydrateVNode(input, dom, LIFECYCLE, EMPTY_OBJ, false);
+            hydrateVNode(input, dom, EMPTY_OBJ, false);
         }
         dom = parentDom.firstChild;
         // clear any other DOM nodes, there should be only a single entry for the root
@@ -33812,30 +33771,27 @@ function hydrate(input, parentDom, callback) {
     if (LIFECYCLE.length > 0) {
         callAll(LIFECYCLE);
     }
-    if (!parentDom.$V) {
-        options.roots.push(parentDom);
-    }
     parentDom.$V = input;
     if (isFunction(callback)) {
         callback();
     }
 }
 
-function replaceWithNewNode(lastNode, nextNode, parentDom, lifecycle, context, isSVG) {
+function replaceWithNewNode(lastNode, nextNode, parentDom, context, isSVG) {
     unmount(lastNode);
-    replaceChild(parentDom, mount(nextNode, null, lifecycle, context, isSVG), lastNode.dom);
+    replaceChild(parentDom, mount(nextNode, null, context, isSVG), lastNode.dom);
 }
-function patch(lastVNode, nextVNode, parentDom, lifecycle, context, isSVG) {
+function patch(lastVNode, nextVNode, parentDom, context, isSVG) {
     if (lastVNode !== nextVNode) {
         var nextFlags = nextVNode.flags | 0;
         if (lastVNode.flags !== nextFlags || nextFlags & 2048 /* ReCreate */) {
-            replaceWithNewNode(lastVNode, nextVNode, parentDom, lifecycle, context, isSVG);
+            replaceWithNewNode(lastVNode, nextVNode, parentDom, context, isSVG);
         }
         else if (nextFlags & 481 /* Element */) {
-            patchElement(lastVNode, nextVNode, parentDom, lifecycle, context, isSVG);
+            patchElement(lastVNode, nextVNode, parentDom, context, isSVG);
         }
         else if (nextFlags & 14 /* Component */) {
-            patchComponent(lastVNode, nextVNode, parentDom, lifecycle, context, isSVG, (nextFlags & 4 /* ComponentClass */) > 0);
+            patchComponent(lastVNode, nextVNode, parentDom, context, isSVG, (nextFlags & 4 /* ComponentClass */) > 0);
         }
         else if (nextFlags & 16 /* Text */) {
             patchText(lastVNode, nextVNode, parentDom);
@@ -33845,15 +33801,15 @@ function patch(lastVNode, nextVNode, parentDom, lifecycle, context, isSVG) {
         }
         else {
             // Portal
-            patchPortal(lastVNode, nextVNode, lifecycle, context);
+            patchPortal(lastVNode, nextVNode, context);
         }
     }
 }
-function patchPortal(lastVNode, nextVNode, lifecycle, context) {
+function patchPortal(lastVNode, nextVNode, context) {
     var lastContainer = lastVNode.type;
     var nextContainer = nextVNode.type;
     var nextChildren = nextVNode.children;
-    patchChildren(lastVNode.childFlags, nextVNode.childFlags, lastVNode.children, nextChildren, lastContainer, lifecycle, context, false);
+    patchChildren(lastVNode.childFlags, nextVNode.childFlags, lastVNode.children, nextChildren, lastContainer, context, false);
     nextVNode.dom = lastVNode.dom;
     if (lastContainer !== nextContainer && !isInvalid(nextChildren)) {
         var node = nextChildren.dom;
@@ -33861,10 +33817,10 @@ function patchPortal(lastVNode, nextVNode, lifecycle, context) {
         nextContainer.appendChild(node);
     }
 }
-function patchElement(lastVNode, nextVNode, parentDom, lifecycle, context, isSVG) {
+function patchElement(lastVNode, nextVNode, parentDom, context, isSVG) {
     var nextTag = nextVNode.type;
     if (lastVNode.type !== nextTag) {
-        replaceWithNewNode(lastVNode, nextVNode, parentDom, lifecycle, context, isSVG);
+        replaceWithNewNode(lastVNode, nextVNode, parentDom, context, isSVG);
     }
     else {
         var dom = lastVNode.dom;
@@ -33908,7 +33864,7 @@ function patchElement(lastVNode, nextVNode, parentDom, lifecycle, context, isSVG
         var lastClassName = lastVNode.className;
         var nextClassName = nextVNode.className;
         if (lastChildren !== nextChildren) {
-            patchChildren(lastVNode.childFlags, nextVNode.childFlags, lastChildren, nextChildren, dom, lifecycle, context, isSVG && nextTag !== 'foreignObject');
+            patchChildren(lastVNode.childFlags, nextVNode.childFlags, lastChildren, nextChildren, dom, context, isSVG && nextTag !== 'foreignObject');
         }
         if (isFormElement) {
             processElement(nextFlags, nextVNode, dom, nextPropsOrEmpty, false, hasControlledValue);
@@ -33926,37 +33882,35 @@ function patchElement(lastVNode, nextVNode, parentDom, lifecycle, context, isSVG
             }
         }
         if (isFunction(nextRef) && lastVNode.ref !== nextRef) {
-            mountRef(dom, nextRef, lifecycle);
-        }
-        else {
+            mountRef(dom, nextRef);
         }
     }
 }
-function patchChildren(lastChildFlags, nextChildFlags, lastChildren, nextChildren, parentDOM, lifecycle, context, isSVG) {
+function patchChildren(lastChildFlags, nextChildFlags, lastChildren, nextChildren, parentDOM, context, isSVG) {
     switch (lastChildFlags) {
         case 2 /* HasVNodeChildren */:
             switch (nextChildFlags) {
                 case 2 /* HasVNodeChildren */:
-                    patch(lastChildren, nextChildren, parentDOM, lifecycle, context, isSVG);
+                    patch(lastChildren, nextChildren, parentDOM, context, isSVG);
                     break;
                 case 1 /* HasInvalidChildren */:
                     remove(lastChildren, parentDOM);
                     break;
                 default:
                     remove(lastChildren, parentDOM);
-                    mountArrayChildren(nextChildren, parentDOM, lifecycle, context, isSVG);
+                    mountArrayChildren(nextChildren, parentDOM, context, isSVG);
                     break;
             }
             break;
         case 1 /* HasInvalidChildren */:
             switch (nextChildFlags) {
                 case 2 /* HasVNodeChildren */:
-                    mount(nextChildren, parentDOM, lifecycle, context, isSVG);
+                    mount(nextChildren, parentDOM, context, isSVG);
                     break;
                 case 1 /* HasInvalidChildren */:
                     break;
                 default:
-                    mountArrayChildren(nextChildren, parentDOM, lifecycle, context, isSVG);
+                    mountArrayChildren(nextChildren, parentDOM, context, isSVG);
                     break;
             }
             break;
@@ -33967,17 +33921,17 @@ function patchChildren(lastChildFlags, nextChildFlags, lastChildren, nextChildre
                 // Fast path's for both algorithms
                 if (lastLength === 0) {
                     if (nextLength > 0) {
-                        mountArrayChildren(nextChildren, parentDOM, lifecycle, context, isSVG);
+                        mountArrayChildren(nextChildren, parentDOM, context, isSVG);
                     }
                 }
                 else if (nextLength === 0) {
                     removeAllChildren(parentDOM, lastChildren);
                 }
                 else if (nextChildFlags === 8 /* HasKeyedChildren */ && lastChildFlags === 8 /* HasKeyedChildren */) {
-                    patchKeyedChildren(lastChildren, nextChildren, parentDOM, lifecycle, context, isSVG, lastLength, nextLength);
+                    patchKeyedChildren(lastChildren, nextChildren, parentDOM, context, isSVG, lastLength, nextLength);
                 }
                 else {
-                    patchNonKeyedChildren(lastChildren, nextChildren, parentDOM, lifecycle, context, isSVG, lastLength, nextLength);
+                    patchNonKeyedChildren(lastChildren, nextChildren, parentDOM, context, isSVG, lastLength, nextLength);
                 }
             }
             else if (nextChildFlags === 1 /* HasInvalidChildren */) {
@@ -33985,12 +33939,12 @@ function patchChildren(lastChildFlags, nextChildFlags, lastChildren, nextChildre
             }
             else {
                 removeAllChildren(parentDOM, lastChildren);
-                mount(nextChildren, parentDOM, lifecycle, context, isSVG);
+                mount(nextChildren, parentDOM, context, isSVG);
             }
             break;
     }
 }
-function updateClassComponent(instance, nextState, nextVNode, nextProps, parentDom, lifecycle, context, isSVG, force, fromSetState) {
+function updateClassComponent(instance, nextState, nextVNode, nextProps, parentDom, context, isSVG, force, fromSetState) {
     var lastState = instance.state;
     var lastProps = instance.props;
     nextVNode.children = instance;
@@ -34015,7 +33969,7 @@ function updateClassComponent(instance, nextState, nextVNode, nextProps, parentD
         }
     }
     /* Update if scu is not defined, or it returns truthy value or force */
-    var hasSCU = isFunction(instance.shouldComponentUpdate);
+    var hasSCU = Boolean(instance.shouldComponentUpdate);
     if (force || !hasSCU || (hasSCU && instance.shouldComponentUpdate(nextProps, nextState, context))) {
         if (isFunction(instance.componentWillUpdate)) {
             instance.$BS = true;
@@ -34047,12 +34001,9 @@ function updateClassComponent(instance, nextState, nextVNode, nextProps, parentD
         if (didUpdate) {
             var lastInput = instance.$LI;
             var nextInput = (instance.$LI = handleComponentInput(renderOutput, nextVNode));
-            patch(lastInput, nextInput, parentDom, lifecycle, childContext, isSVG);
+            patch(lastInput, nextInput, parentDom, childContext, isSVG);
             if (isFunction(instance.componentDidUpdate)) {
                 instance.componentDidUpdate(lastProps, lastState);
-            }
-            if (isFunction(options.afterUpdate)) {
-                options.afterUpdate(nextVNode);
             }
         }
     }
@@ -34063,20 +34014,20 @@ function updateClassComponent(instance, nextState, nextVNode, nextProps, parentD
     }
     nextVNode.dom = instance.$LI.dom;
 }
-function patchComponent(lastVNode, nextVNode, parentDom, lifecycle, context, isSVG, isClass) {
+function patchComponent(lastVNode, nextVNode, parentDom, context, isSVG, isClass) {
     var nextType = nextVNode.type;
     var lastKey = lastVNode.key;
     var nextKey = nextVNode.key;
     if (lastVNode.type !== nextType || lastKey !== nextKey) {
-        replaceWithNewNode(lastVNode, nextVNode, parentDom, lifecycle, context, isSVG);
+        replaceWithNewNode(lastVNode, nextVNode, parentDom, context, isSVG);
     }
     else {
         var nextProps = nextVNode.props || EMPTY_OBJ;
         if (isClass) {
             var instance = lastVNode.children;
             instance.$UPD = true;
-            updateClassComponent(instance, instance.state, nextVNode, nextProps, parentDom, lifecycle, context, isSVG, false, false);
             instance.$V = nextVNode;
+            updateClassComponent(instance, instance.state, nextVNode, nextProps, parentDom, context, isSVG, false, false);
             instance.$UPD = false;
         }
         else {
@@ -34097,7 +34048,7 @@ function patchComponent(lastVNode, nextVNode, parentDom, lifecycle, context, isS
                 var nextInput = nextType(nextProps, context);
                 if (nextInput !== NO_OP) {
                     nextInput = handleComponentInput(nextInput, nextVNode);
-                    patch(lastInput, nextInput, parentDom, lifecycle, context, isSVG);
+                    patch(lastInput, nextInput, parentDom, context, isSVG);
                     nextVNode.children = nextInput;
                     nextVNode.dom = nextInput.dom;
                     if (nextHooksDefined && isFunction(nextHooks.onComponentDidUpdate)) {
@@ -34128,16 +34079,19 @@ function patchText(lastVNode, nextVNode, parentDom) {
     }
     nextVNode.dom = dom;
 }
-function patchNonKeyedChildren(lastChildren, nextChildren, dom, lifecycle, context, isSVG, lastChildrenLength, nextChildrenLength) {
+function patchNonKeyedChildren(lastChildren, nextChildren, dom, context, isSVG, lastChildrenLength, nextChildrenLength) {
     var commonLength = lastChildrenLength > nextChildrenLength ? nextChildrenLength : lastChildrenLength;
     var i = 0;
     var nextChild;
+    var lastChild;
     for (; i < commonLength; i++) {
         nextChild = nextChildren[i];
+        lastChild = lastChildren[i];
         if (nextChild.dom) {
             nextChild = nextChildren[i] = directClone(nextChild);
         }
-        patch(lastChildren[i], nextChild, dom, lifecycle, context, isSVG);
+        patch(lastChild, nextChild, dom, context, isSVG);
+        lastChildren[i] = nextChild;
     }
     if (lastChildrenLength < nextChildrenLength) {
         for (i = commonLength; i < nextChildrenLength; i++) {
@@ -34145,7 +34099,7 @@ function patchNonKeyedChildren(lastChildren, nextChildren, dom, lifecycle, conte
             if (nextChild.dom) {
                 nextChild = nextChildren[i] = directClone(nextChild);
             }
-            mount(nextChild, dom, lifecycle, context, isSVG);
+            mount(nextChild, dom, context, isSVG);
         }
     }
     else if (lastChildrenLength > nextChildrenLength) {
@@ -34154,16 +34108,13 @@ function patchNonKeyedChildren(lastChildren, nextChildren, dom, lifecycle, conte
         }
     }
 }
-function patchKeyedChildren(a, b, dom, lifecycle, context, isSVG, aLength, bLength) {
+function patchKeyedChildren(a, b, dom, context, isSVG, aLength, bLength) {
     var aEnd = aLength - 1;
     var bEnd = bLength - 1;
-    var aStart = 0;
-    var bStart = 0;
     var i;
-    var j;
-    var aNode = a[aStart];
-    var bNode = b[bStart];
-    var nextNode;
+    var j = 0;
+    var aNode = a[j];
+    var bNode = b[j];
     var nextPos;
     // Step 1
     // tslint:disable-next-line
@@ -34171,16 +34122,16 @@ function patchKeyedChildren(a, b, dom, lifecycle, context, isSVG, aLength, bLeng
         // Sync nodes with the same key at the beginning.
         while (aNode.key === bNode.key) {
             if (bNode.dom) {
-                b[bStart] = bNode = directClone(bNode);
+                b[j] = bNode = directClone(bNode);
             }
-            patch(aNode, bNode, dom, lifecycle, context, isSVG);
-            aStart++;
-            bStart++;
-            if (aStart > aEnd || bStart > bEnd) {
+            patch(aNode, bNode, dom, context, isSVG);
+            a[j] = bNode;
+            j++;
+            if (j > aEnd || j > bEnd) {
                 break outer;
             }
-            aNode = a[aStart];
-            bNode = b[bStart];
+            aNode = a[j];
+            bNode = b[j];
         }
         aNode = a[aEnd];
         bNode = b[bEnd];
@@ -34189,38 +34140,41 @@ function patchKeyedChildren(a, b, dom, lifecycle, context, isSVG, aLength, bLeng
             if (bNode.dom) {
                 b[bEnd] = bNode = directClone(bNode);
             }
-            patch(aNode, bNode, dom, lifecycle, context, isSVG);
+            patch(aNode, bNode, dom, context, isSVG);
+            a[aEnd] = bNode;
             aEnd--;
             bEnd--;
-            if (aStart > aEnd || bStart > bEnd) {
+            if (j > aEnd || j > bEnd) {
                 break outer;
             }
             aNode = a[aEnd];
             bNode = b[bEnd];
         }
     }
-    if (aStart > aEnd) {
-        if (bStart <= bEnd) {
+    if (j > aEnd) {
+        if (j <= bEnd) {
             nextPos = bEnd + 1;
-            nextNode = nextPos < bLength ? b[nextPos].dom : null;
-            while (bStart <= bEnd) {
-                bNode = b[bStart];
+            var nextNode = nextPos < bLength ? b[nextPos].dom : null;
+            while (j <= bEnd) {
+                bNode = b[j];
                 if (bNode.dom) {
-                    b[bStart] = bNode = directClone(bNode);
+                    b[j] = bNode = directClone(bNode);
                 }
-                bStart++;
-                insertOrAppend(dom, mount(bNode, null, lifecycle, context, isSVG), nextNode);
+                j++;
+                insertOrAppend(dom, mount(bNode, null, context, isSVG), nextNode);
             }
         }
     }
-    else if (bStart > bEnd) {
-        while (aStart <= aEnd) {
-            remove(a[aStart++], dom);
+    else if (j > bEnd) {
+        while (j <= aEnd) {
+            remove(a[j++], dom);
         }
     }
     else {
-        var aLeft = aEnd - aStart + 1;
-        var bLeft = bEnd - bStart + 1;
+        var aStart = j;
+        var bStart = j;
+        var aLeft = aEnd - j + 1;
+        var bLeft = bEnd - j + 1;
         var sources = [];
         for (i = 0; i < bLeft; i++) {
             sources.push(0);
@@ -34231,7 +34185,7 @@ function patchKeyedChildren(a, b, dom, lifecycle, context, isSVG, aLength, bLeng
         var pos = 0;
         var patched = 0;
         // When sizes are small, just loop them through
-        if (bLeft <= 4 || aLeft * bLeft <= 16) {
+        if (bLength < 4 || (aLeft | bLeft) < 32) {
             for (i = aStart; i <= aEnd; i++) {
                 aNode = a[i];
                 if (patched < bLeft) {
@@ -34254,7 +34208,7 @@ function patchKeyedChildren(a, b, dom, lifecycle, context, isSVG, aLength, bLeng
                             if (bNode.dom) {
                                 b[j] = bNode = directClone(bNode);
                             }
-                            patch(aNode, bNode, dom, lifecycle, context, isSVG);
+                            patch(aNode, bNode, dom, context, isSVG);
                             patched++;
                             break;
                         }
@@ -34270,7 +34224,7 @@ function patchKeyedChildren(a, b, dom, lifecycle, context, isSVG, aLength, bLeng
         }
         else {
             var keyIndex = {};
-            // Map keys by their index in array
+            // Map keys by their index
             for (i = bStart; i <= bEnd; i++) {
                 keyIndex[b[i].key] = i;
             }
@@ -34279,7 +34233,7 @@ function patchKeyedChildren(a, b, dom, lifecycle, context, isSVG, aLength, bLeng
                 aNode = a[i];
                 if (patched < bLeft) {
                     j = keyIndex[aNode.key];
-                    if (isDefined(j)) {
+                    if (j !== void 0) {
                         if (canRemoveWholeContent) {
                             canRemoveWholeContent = false;
                             while (i > aStart) {
@@ -34297,7 +34251,7 @@ function patchKeyedChildren(a, b, dom, lifecycle, context, isSVG, aLength, bLeng
                         if (bNode.dom) {
                             b[j] = bNode = directClone(bNode);
                         }
-                        patch(aNode, bNode, dom, lifecycle, context, isSVG);
+                        patch(aNode, bNode, dom, context, isSVG);
                         patched++;
                     }
                     else if (!canRemoveWholeContent) {
@@ -34312,7 +34266,7 @@ function patchKeyedChildren(a, b, dom, lifecycle, context, isSVG, aLength, bLeng
         // fast-path: if nothing patched remove all old and add all new
         if (canRemoveWholeContent) {
             removeAllChildren(dom, a);
-            mountArrayChildren(b, dom, lifecycle, context, isSVG);
+            mountArrayChildren(b, dom, context, isSVG);
         }
         else {
             if (moved) {
@@ -34326,7 +34280,7 @@ function patchKeyedChildren(a, b, dom, lifecycle, context, isSVG, aLength, bLeng
                             b[pos] = bNode = directClone(bNode);
                         }
                         nextPos = pos + 1;
-                        insertOrAppend(dom, mount(bNode, null, lifecycle, context, isSVG), nextPos < bLength ? b[nextPos].dom : null);
+                        insertOrAppend(dom, mount(bNode, null, context, isSVG), nextPos < bLength ? b[nextPos].dom : null);
                     }
                     else if (j < 0 || i !== seq[j]) {
                         pos = i + bStart;
@@ -34350,14 +34304,14 @@ function patchKeyedChildren(a, b, dom, lifecycle, context, isSVG, aLength, bLeng
                             b[pos] = bNode = directClone(bNode);
                         }
                         nextPos = pos + 1;
-                        insertOrAppend(dom, mount(bNode, null, lifecycle, context, isSVG), nextPos < bLength ? b[nextPos].dom : null);
+                        insertOrAppend(dom, mount(bNode, null, context, isSVG), nextPos < bLength ? b[nextPos].dom : null);
                     }
                 }
             }
         }
     }
 }
-// // https://en.wikipedia.org/wiki/Longest_increasing_subsequence
+// https://en.wikipedia.org/wiki/Longest_increasing_subsequence
 function lis_algorithm(arr) {
     var p = arr.slice();
     var result = [0];
@@ -34404,30 +34358,20 @@ function lis_algorithm(arr) {
     return result;
 }
 
-var roots = options.roots;
 var documentBody = isBrowser ? document.body : null;
 function render(input, parentDom, callback) {
     if (input === NO_OP) {
         return;
     }
-    var rootLen = roots.length;
-    var rootInput;
-    var index;
-    for (index = 0; index < rootLen; index++) {
-        if (roots[index] === parentDom) {
-            rootInput = parentDom.$V;
-            break;
-        }
-    }
-    if (isUndefined(rootInput)) {
+    var rootInput = parentDom.$V;
+    if (isNullOrUndef(rootInput)) {
         if (!isInvalid(input)) {
             if (input.dom) {
                 input = directClone(input);
             }
             if (isNull(parentDom.firstChild)) {
-                mount(input, parentDom, LIFECYCLE, EMPTY_OBJ, false);
+                mount(input, parentDom, EMPTY_OBJ, false);
                 parentDom.$V = input;
-                roots.push(parentDom);
             }
             else {
                 hydrate(input, parentDom);
@@ -34438,13 +34382,13 @@ function render(input, parentDom, callback) {
     else {
         if (isNullOrUndef(input)) {
             remove(rootInput, parentDom);
-            roots.splice(index, 1);
+            parentDom.$V = null;
         }
         else {
             if (input.dom) {
                 input = directClone(input);
             }
-            patch(rootInput, input, parentDom, LIFECYCLE, EMPTY_OBJ, false);
+            patch(rootInput, input, parentDom, EMPTY_OBJ, false);
             rootInput = parentDom.$V = input;
         }
     }
@@ -34454,10 +34398,12 @@ function render(input, parentDom, callback) {
     if (isFunction(callback)) {
         callback();
     }
+    if (isFunction(options.renderComplete)) {
+        options.renderComplete(rootInput);
+    }
     if (rootInput && rootInput.flags & 14 /* Component */) {
         return rootInput.children;
     }
-    return;
 }
 function createRenderer(parentDom) {
     return function renderer(lastInput, nextInput) {
@@ -34480,7 +34426,7 @@ function nextTick(fn) {
     }
     return fallbackMethod(fn);
 }
-function queueStateChanges(component, newState, callback) {
+function queueStateChanges(component, newState, callback, force) {
     if (isFunction(newState)) {
         newState = newState(component.state, component.props, component.context);
     }
@@ -34497,7 +34443,7 @@ function queueStateChanges(component, newState, callback) {
         if (!component.$UPD) {
             component.$PSS = true;
             component.$UPD = true;
-            applyState(component, false, callback);
+            applyState(component, force, callback);
             component.$UPD = false;
         }
         else {
@@ -34546,7 +34492,7 @@ function applyState(component, force, callback) {
         var vNode = component.$V;
         var lastInput = component.$LI;
         var parentDom = lastInput.dom && lastInput.dom.parentNode;
-        updateClassComponent(component, nextState, vNode, props, parentDom, LIFECYCLE, context, (vNode.flags & 32 /* SvgElement */) > 0, force, true);
+        updateClassComponent(component, nextState, vNode, props, parentDom, context, (vNode.flags & 32 /* SvgElement */) > 0, force, true);
         if (component.$UN) {
             return;
         }
@@ -34592,25 +34538,22 @@ Component.prototype.forceUpdate = function forceUpdate (callback) {
     if (this.$UN) {
         return;
     }
-    applyState(this, true, callback);
+    // Do not allow double render during force update
+    queueStateChanges(this, {}, callback, true);
 };
 Component.prototype.setState = function setState (newState, callback) {
     if (this.$UN) {
         return;
     }
     if (!this.$BS) {
-        queueStateChanges(this, newState, callback);
+        queueStateChanges(this, newState, callback, false);
     }
     else {
         return;
     }
 };
 // tslint:disable-next-line:no-empty
-Component.prototype.render = function render (nextProps, nextState, nextContext) {
-    return undefined;
-};
-// Public
-Component.defaultProps = null;
+Component.prototype.render = function render (nextProps, nextState, nextContext) { };
 
 
 
@@ -34618,7 +34561,7 @@ var JSX = /*#__PURE__*/Object.freeze({
 
 });
 
-var version = "5.0.4";
+var version = "5.3.0";
 
 
 
@@ -41422,7 +41365,7 @@ module.exports.makeKey = makeKey
 /* 492 */
 /***/ (function(module, exports) {
 
-module.exports = {"_args":[[{"raw":"elliptic@^6.0.0","scope":null,"escapedName":"elliptic","name":"elliptic","rawSpec":"^6.0.0","spec":">=6.0.0 <7.0.0","type":"range"},"C:\\Users\\kura\\RubymineProjects\\sushi-browser\\node_modules\\browserify-sign"]],"_from":"elliptic@>=6.0.0 <7.0.0","_id":"elliptic@6.4.0","_inCache":true,"_location":"/elliptic","_nodeVersion":"7.0.0","_npmOperationalInternal":{"host":"packages-18-east.internal.npmjs.com","tmp":"tmp/elliptic-6.4.0.tgz_1487798866428_0.30510620190761983"},"_npmUser":{"name":"indutny","email":"fedor@indutny.com"},"_npmVersion":"3.10.8","_phantomChildren":{},"_requested":{"raw":"elliptic@^6.0.0","scope":null,"escapedName":"elliptic","name":"elliptic","rawSpec":"^6.0.0","spec":">=6.0.0 <7.0.0","type":"range"},"_requiredBy":["/browserify-sign","/create-ecdh"],"_resolved":"https://registry.npmjs.org/elliptic/-/elliptic-6.4.0.tgz","_shasum":"cac9af8762c85836187003c8dfe193e5e2eae5df","_shrinkwrap":null,"_spec":"elliptic@^6.0.0","_where":"C:\\Users\\kura\\RubymineProjects\\sushi-browser\\node_modules\\browserify-sign","author":{"name":"Fedor Indutny","email":"fedor@indutny.com"},"bugs":{"url":"https://github.com/indutny/elliptic/issues"},"dependencies":{"bn.js":"^4.4.0","brorand":"^1.0.1","hash.js":"^1.0.0","hmac-drbg":"^1.0.0","inherits":"^2.0.1","minimalistic-assert":"^1.0.0","minimalistic-crypto-utils":"^1.0.0"},"description":"EC cryptography","devDependencies":{"brfs":"^1.4.3","coveralls":"^2.11.3","grunt":"^0.4.5","grunt-browserify":"^5.0.0","grunt-cli":"^1.2.0","grunt-contrib-connect":"^1.0.0","grunt-contrib-copy":"^1.0.0","grunt-contrib-uglify":"^1.0.1","grunt-mocha-istanbul":"^3.0.1","grunt-saucelabs":"^8.6.2","istanbul":"^0.4.2","jscs":"^2.9.0","jshint":"^2.6.0","mocha":"^2.1.0"},"directories":{},"dist":{"shasum":"cac9af8762c85836187003c8dfe193e5e2eae5df","tarball":"https://registry.npmjs.org/elliptic/-/elliptic-6.4.0.tgz"},"files":["lib"],"gitHead":"6b0d2b76caae91471649c8e21f0b1d3ba0f96090","homepage":"https://github.com/indutny/elliptic","keywords":["EC","Elliptic","curve","Cryptography"],"license":"MIT","main":"lib/elliptic.js","maintainers":[{"name":"indutny","email":"fedor@indutny.com"}],"name":"elliptic","optionalDependencies":{},"readme":"ERROR: No README data found!","repository":{"type":"git","url":"git+ssh://git@github.com/indutny/elliptic.git"},"scripts":{"jscs":"jscs benchmarks/*.js lib/*.js lib/**/*.js lib/**/**/*.js test/index.js","jshint":"jscs benchmarks/*.js lib/*.js lib/**/*.js lib/**/**/*.js test/index.js","lint":"npm run jscs && npm run jshint","test":"npm run lint && npm run unit","unit":"istanbul test _mocha --reporter=spec test/index.js","version":"grunt dist && git add dist/"},"version":"6.4.0"}
+module.exports = {"_args":[[{"raw":"elliptic@^6.0.0","scope":null,"escapedName":"elliptic","name":"elliptic","rawSpec":"^6.0.0","spec":">=6.0.0 <7.0.0","type":"range"},"/home/kura52/RubymineProjects/sushi-browser/node_modules/browserify-sign"]],"_from":"elliptic@>=6.0.0 <7.0.0","_id":"elliptic@6.4.0","_inCache":true,"_location":"/elliptic","_nodeVersion":"7.0.0","_npmOperationalInternal":{"host":"packages-18-east.internal.npmjs.com","tmp":"tmp/elliptic-6.4.0.tgz_1487798866428_0.30510620190761983"},"_npmUser":{"name":"indutny","email":"fedor@indutny.com"},"_npmVersion":"3.10.8","_phantomChildren":{},"_requested":{"raw":"elliptic@^6.0.0","scope":null,"escapedName":"elliptic","name":"elliptic","rawSpec":"^6.0.0","spec":">=6.0.0 <7.0.0","type":"range"},"_requiredBy":["/browserify-sign","/create-ecdh"],"_resolved":"https://registry.npmjs.org/elliptic/-/elliptic-6.4.0.tgz","_shasum":"cac9af8762c85836187003c8dfe193e5e2eae5df","_shrinkwrap":null,"_spec":"elliptic@^6.0.0","_where":"/home/kura52/RubymineProjects/sushi-browser/node_modules/browserify-sign","author":{"name":"Fedor Indutny","email":"fedor@indutny.com"},"bugs":{"url":"https://github.com/indutny/elliptic/issues"},"dependencies":{"bn.js":"^4.4.0","brorand":"^1.0.1","hash.js":"^1.0.0","hmac-drbg":"^1.0.0","inherits":"^2.0.1","minimalistic-assert":"^1.0.0","minimalistic-crypto-utils":"^1.0.0"},"description":"EC cryptography","devDependencies":{"brfs":"^1.4.3","coveralls":"^2.11.3","grunt":"^0.4.5","grunt-browserify":"^5.0.0","grunt-cli":"^1.2.0","grunt-contrib-connect":"^1.0.0","grunt-contrib-copy":"^1.0.0","grunt-contrib-uglify":"^1.0.1","grunt-mocha-istanbul":"^3.0.1","grunt-saucelabs":"^8.6.2","istanbul":"^0.4.2","jscs":"^2.9.0","jshint":"^2.6.0","mocha":"^2.1.0"},"directories":{},"dist":{"shasum":"cac9af8762c85836187003c8dfe193e5e2eae5df","tarball":"https://registry.npmjs.org/elliptic/-/elliptic-6.4.0.tgz"},"files":["lib"],"gitHead":"6b0d2b76caae91471649c8e21f0b1d3ba0f96090","homepage":"https://github.com/indutny/elliptic","keywords":["EC","Elliptic","curve","Cryptography"],"license":"MIT","main":"lib/elliptic.js","maintainers":[{"name":"indutny","email":"fedor@indutny.com"}],"name":"elliptic","optionalDependencies":{},"readme":"ERROR: No README data found!","repository":{"type":"git","url":"git+ssh://git@github.com/indutny/elliptic.git"},"scripts":{"jscs":"jscs benchmarks/*.js lib/*.js lib/**/*.js lib/**/**/*.js test/index.js","jshint":"jscs benchmarks/*.js lib/*.js lib/**/*.js lib/**/**/*.js test/index.js","lint":"npm run jscs && npm run jshint","test":"npm run lint && npm run unit","unit":"istanbul test _mocha --reporter=spec test/index.js","version":"grunt dist && git add dist/"},"version":"6.4.0"}
 
 /***/ }),
 /* 493 */
@@ -47736,8 +47679,8 @@ function normalizeArray(parts, allowAboveRoot) {
 
 // Split a filename into [root, dir, basename, ext], unix version
 // 'root' is just a slash, or nothing.
-var splitPathRe =
-  /^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/\\]+?|)(\.[^.\/\\]*|))(?:[\/\\]*)$/;
+var splitPathRe = navigator.userAgent.includes('Windows') ? /^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/\\]+?|)(\.[^.\/\\]*|))(?:[\/\\]*)$/ :
+    /^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/]+?|)(\.[^.\/]*|))(?:[\/]*)$/;
 var splitPath = function(filename) {
   return splitPathRe.exec(filename).slice(1);
 };
@@ -61746,7 +61689,7 @@ function getElementType(Component, props, getDefault) {
   // ----------------------------------------
   // user defined "as" element type
 
-  if (props.as && props.as !== (defaultProps && defaultProps.as)) return props.as;
+  if (props.as && props.as !== (defaultProps && (defaultProps && (defaultProps && (defaultProps && (defaultProps && (defaultProps && (defaultProps && defaultProps.as)))))))) return props.as;
 
   // ----------------------------------------
   // computed default element type
@@ -61764,7 +61707,7 @@ function getElementType(Component, props, getDefault) {
   // ----------------------------------------
   // use defaultProp or 'div'
 
-  return (defaultProps && defaultProps.as) || 'div';
+  return (defaultProps && (defaultProps && (defaultProps && (defaultProps && (defaultProps && (defaultProps && (defaultProps && defaultProps.as))))))) || 'div';
 }
 
 /* harmony default export */ __webpack_exports__["a"] = (getElementType);
@@ -64627,7 +64570,7 @@ var Dropdown = function (_Component) {
 
       e.stopPropagation();
       // prevent closeOnDocumentClick() if multiple or item is disabled
-      if (multiple || item.disabled) e.nativeEvent.stopImmediatePropagation();
+      if (multiple || item.disabled) (((((e.nativeEvent || e) || e) || e) || e) || e).stopImmediatePropagation();
       if (item.disabled) return;
 
       var isAdditionItem = item['data-additional'];
@@ -70810,7 +70753,7 @@ var Search = function (_Component) {
     }, _this.handleInputClick = function (e) {
 
       // prevent closeOnDocumentClick()
-      e.nativeEvent.stopImmediatePropagation();
+      (((((e.nativeEvent || e) || e) || e) || e) || e).stopImmediatePropagation();
 
       _this.tryOpen();
     }, _this.handleItemClick = function (e, _ref2) {
@@ -70819,7 +70762,7 @@ var Search = function (_Component) {
       var result = _this.getSelectedResult(id);
 
       // prevent closeOnDocumentClick()
-      e.nativeEvent.stopImmediatePropagation();
+      (((((e.nativeEvent || e) || e) || e) || e) || e).stopImmediatePropagation();
 
       // notify the onResultSelect prop that the user is trying to change value
       _this.setValue(result.title);
@@ -70944,9 +70887,9 @@ var Search = function (_Component) {
           noResultsMessage
         ),
         noResultsDescription && __WEBPACK_IMPORTED_MODULE_19_inferno_compat__["default"].createElement(
-          'div',
-          { className: 'description' },
-          noResultsDescription
+        'div',
+        { className: 'description' },
+        noResultsDescription
         )
       );
     }, _this.renderResult = function (_ref3, index, _array) {
@@ -74136,24 +74079,24 @@ module.exports = exports['default'];
 * Copyright (c) 2015 Denis Lukov; Licensed GPLv3 */
 
 ;(function(name, definition) {
-    if (true) module.exports = definition();
-    else if (typeof define == 'function' && typeof define.amd == 'object') define(definition);
-    else this[name] = definition();
+  if (true) module.exports = definition();
+  else if (typeof define == 'function' && typeof define.amd == 'object') define(definition);
+  else this[name] = definition();
 }('Clusterize', function() {
   "use strict"
 
   // detect ie9 and lower
   // https://gist.github.com/padolsey/527683#comment-786682
   var ie = (function(){
-    for( var v = 3,
+      for( var v = 3,
              el = document.createElement('b'),
              all = el.all || [];
-         el.innerHTML = '<!--[if gt IE ' + (++v) + ']><i><![endif]-->',
-         all[0];
-       ){}
-    return v > 4 ? v : document.documentMode;
-  }()),
-  is_mac = navigator.platform.toLowerCase().indexOf('mac') + 1;
+           el.innerHTML = '<!--[if gt IE ' + (++v) + ']><i><![endif]-->',
+             all[0];
+      ){}
+      return v > 4 ? v : document.documentMode;
+    }()),
+    is_mac = navigator.platform.toLowerCase().indexOf('mac') + 1;
   var Clusterize = function(data) {
     if( ! (this instanceof Clusterize))
       return new Clusterize(data);
@@ -74194,8 +74137,8 @@ module.exports = exports['default'];
 
     // private parameters
     var rows = isArray(data.rows)
-        ? data.rows
-        : self.fetchMarkup(),
+      ? data.rows
+      : self.fetchMarkup(),
       cache = {},
       scroll_top = self.scroll_elem.scrollTop;
 
@@ -74207,29 +74150,29 @@ module.exports = exports['default'];
 
     // adding scroll handler
     var last_cluster = false,
-    scroll_debounce = 0,
-    pointer_events_set = false,
-    scrollEv = function() {
-      // fixes scrolling issue on Mac #3
-      if (is_mac) {
+      scroll_debounce = 0,
+      pointer_events_set = false,
+      scrollEv = function() {
+        // fixes scrolling issue on Mac #3
+        if (is_mac) {
           if( ! pointer_events_set) self.content_elem.style.pointerEvents = 'none';
           pointer_events_set = true;
           clearTimeout(scroll_debounce);
           scroll_debounce = setTimeout(function () {
-              self.content_elem.style.pointerEvents = 'auto';
-              pointer_events_set = false;
+            self.content_elem.style.pointerEvents = 'auto';
+            pointer_events_set = false;
           }, 50);
+        }
+        if (last_cluster != (last_cluster = self.getClusterNum()))
+          self.insertToDOM(rows, cache);
+        if (self.options.callbacks.scrollingProgress)
+          self.options.callbacks.scrollingProgress(self.getScrollProgress());
+      },
+      resize_debounce = 0,
+      resizeEv = function() {
+        clearTimeout(resize_debounce);
+        resize_debounce = setTimeout(self.refresh, 100);
       }
-      if (last_cluster != (last_cluster = self.getClusterNum()))
-        self.insertToDOM(rows, cache);
-      if (self.options.callbacks.scrollingProgress)
-        self.options.callbacks.scrollingProgress(self.getScrollProgress());
-    },
-    resize_debounce = 0,
-    resizeEv = function() {
-      clearTimeout(resize_debounce);
-      resize_debounce = setTimeout(self.refresh, 100);
-    }
     on('scroll', self.scroll_elem, scrollEv);
     on('resize', window, resizeEv);
 
@@ -74431,11 +74374,11 @@ module.exports = exports['default'];
       }
     },
     getChildNodes: function(tag) {
-        var child_nodes = tag.children, nodes = [];
-        for (var i = 0, ii = child_nodes.length; i < ii; i++) {
-            nodes.push(child_nodes[i]);
-        }
-        return nodes;
+      var child_nodes = tag.children, nodes = [];
+      for (var i = 0, ii = child_nodes.length; i < ii; i++) {
+        nodes.push(child_nodes[i]);
+      }
+      return nodes;
     },
     checkChanges: function(type, value, cache) {
       var changed = value != cache[type];
@@ -75041,7 +74984,6 @@ if (false) {
 
 
 var ERROR_MSG = 'a runtime error occured! Use Inferno in development environment to find the error.';
-// This should be boolean and not reference to window.document
 var isBrowser = !!(typeof window !== 'undefined' && window.document);
 function isNullOrUndef(o) {
     return isUndefined(o) || isNull(o);
