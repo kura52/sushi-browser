@@ -204,7 +204,7 @@ With Sushi Browser, you can choose between installation version and portable ver
 It is possible to set up the keyboard shortcuts and mouse gestures for over 100 functions.
 
 ### 8. Screenshot
-Screenshots of the whole page or of a selected area can be made.  
+Screenshots of the whole page or a selected area can be made.  
 
 ### 9. Find in Page
 In addition to the search function of Chrome, OR search and regular expression search can be performed.
@@ -217,7 +217,7 @@ There are functions such as "Fullscreen mode" and "Always on top".
 - AutoPagerize： It can automatically read ahead websites that spans several pages. (Chrome Extension)
 
 ### 11. Automation
-ith automatic operation assist functions such as iMacros and IDE,
+With automatic operation assist functions such as iMacros and IDE,
 we have implemented an API compatible with Puppeteer (automation in headless Chrome) API.
 
 ### 12. Other
