@@ -222,7 +222,7 @@ Chromeの検索機能に加え、OR検索と正規表現による検索が行え
 - AutoPagerize： 複数ページに渡るWebサイトの自動先読み機能が利用できます。(Chrome拡張)
 
 
-#### 11. Automation
+### 11. Automation
 iMacrosやSelenium IDEのような自動操作補助機能で、
 Puppeteer(ヘッドレスChromeでの自動化) APIと互換性のあるAPIを実装しています。
 

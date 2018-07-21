@@ -4,19 +4,26 @@
 ## Why?
  
 When you are browsing the web you can only use a section of your screen. Have you ever thought that that's a waste?   
-The concept of the "Sushi Browser" is wanting to utilize the screen to the maximum capacity just by a simple operation.  
+"Maximize the web browsing efficiency", it is the concept of "Sushi Browser".  
 
-"Multiple panels, sync scrolling, sidebar, slim menu, panel alignment etc. are some of the gimmicks it has onboard.  
+"Multiple panels, sync scrolling, sidebar, swapping and aligning panels etc. are some of the gimmicks it has onboard. 
+
+In addition to the above, its 20+ strong and convenient functions include "video support function, tab operation function,
+session manager, privacy function, and downloader".  
+
+Also, since it is built with Electron([Brave's Fork](https://github.com/brave/muon)), it is available for a multi-platform (i.e. Windows, MacOS, Linux).
 
 [Downloads](#downloads)
 
-![OverView](https://sushib.me/github/demos.gif)
+![OverView](https://sushib.me/myimg/top.jpg)
 
 ## Table of Contents
 
 * [Special features](#special-features)
   * [Multi panel](#multi-panel)
-  * [Extension tools](#extension-tools)
+  * [Video Support Function](#video-support-function)
+  * [Tab](#tab)
+  * [Privacy and Security](#privacy-and-security)
   * <a href="#muon-electron-fork">Muon (Electron Fork)</a>
   * [Useful features](#useful-features)
   * [Web Technologies](#web-technologies)
@@ -37,63 +44,120 @@ The concept of the "Sushi Browser" is wanting to utilize the screen to the maxim
 The browser's greatest feature is the specialized display and operation using multiple panels.   
 It not only displays multiple web pages side-by-side but it also has various functions. 
 
-#### 1. Display to the opposite panel  
+Please check [here](https://sushib.me/tips/#multi-panel/) for more details.
+
+![multi-panel](https://sushib.me/myimg/multi-panel.gif)
+
+#### 1. Split Panel
+The panel can be divided by dragging the tab towards the corner of the panel.  
+It can also be divided from the right click menu on the tab as well.
+
+The divided panel is available for the size change as well.
+
+#### 2. Display to the opposite panel  
 
 By **middle clicking (pressing the mouse wheel)** the link you can open the page in the link to the opposite panel.   
 **Middle clicking** with 1 panel automatically splits the display into 2 panels.   
 Of course, just like ordinary browsers, it can be configured to open a new browser. 
 
-#### 2. Sync scrolling 
+#### 3. Sync scrolling 
 
 By pressing the Sync scroll button, 1 page can be lined up like the pages of a book.  
 Moreover, for a group of panels at this state, you can do actions such as scroll, page transition or close at the same time. 　
  
 Also, right clicking the we page, you can choose from a menu for a 2-page spread that reads left to right or from right to left. (Commonly it's left to right) 
 
-#### 3. Side (bottom) bar
+#### 4. Side (bottom) bar
 
 You can open favorite pages or pages from your history using the side bar.  
 The side bar can display web pages same as common panels. 　　  
 The difference to common panels is even if you change the window size, the width remains fixed, and only this cannot be used with sync scrolling. 
 
-#### 4. Slim menu 
-In order to optimize the use of screen space, there are 2 possible display modes.  
-- One Line mode: Using a display method that integrates the menu bar and tab bar, it achieves a menu with a mere 30px.   
-- Full screen mode: The menu bar is not displayed and the menu is displayed by moving the cursor. 
-
-#### 5. Panel movement
-For general browser, by dragging and dropping the tab, you can move the tab.
-In addition to moving the tab, this browser can be moved all the tabs of one tab to other panel or window by dragging or dropping the tab addition button.
-
-#### 6. Float panel mode
-By selecting Floating Panel from the menu that is displayed by right clicking a tab,you can detach the panel that can be moved within the window.   
-It is a function that can be used for playing videos etc. while web browsing. 
-
-#### 7. Simultaneous page transition 
-By using a regular expression, the page URL can be permutated and opened in a different page.  
-It can also open a normal page at the left and Google Translate at the right.   
-
-The method of entering data is entering the regular expression for the URL at the left, and entering the text after permutation at the right.   
-By using () at the left makes it CAPTCHA, and can be used for the content after permutation using numerals.   
-(It can be used as text which was encoded with $$ numbers.)   
-
-For example, by making the left side `(.+)` and the right side `https://www.google.com/search?q=$$1`, the target URL can be Google-searched. 
-
-#### 8. Other
+#### 5. Other
+- Floating panel: By selecting "Floating Panel" from the tab context menu, you can detach the panel that can be moved within the window. 
+- Panel movement: this browser can be moved all the tabs of one panel to other panel or window by dragging or dropping the tab addition button.
 - Swapping panels: You can switch the position of 2 panels. 
 - Aligning panels: Panels can be lined up with fixed widths horizontally or vertically. 
-- Switch direction:You can realign vertically-lined panels horizontally or horizontally-lined panels vertically. 
+- Switch direction: You can realign vertically-lined panels horizontally or horizontally-lined panels vertically. 
 - Simultaneous scrolling: By moving the mouse wheel, you can scroll 2 panels at the same time.
-- Mobile mode: You can carry out the switch to pages for mobile device use. (Change of user agent)
 
-## Extension tools 
-As a special tool, it has the following functions. 
-1. Terminal: It can operate Bash for Linux/Mac and Power Shell for Windows. 
-2. File explorer: It can manage and browse files. 
-3. Text editor: It can edit text and source codes etc.
-4. Video playback: It can be used for automatic playback of videos. 
 
-By taking advantage of the above functions operation close to IDE (integrated development environment) becomes possible.
+## Video Support Function
+
+Sushi Browser has support functions for such as video downloading and mouse operation,
+it can be used as a video playback browser.  
+*For video download, please do no not violate the terms of the Web service and use at your own risk.
+
+Please check [here](https://sushib.me/tips/#video/) for more details.
+
+![video](https://sushib.me/myimg/video.gif)
+
+#### 1. Video download 
+Once it detects a video existing on a web page, the video icon on in the toolbar becomes red and allows video download and replay.  
+Also downloading a streaming video (.m3u8) or a batch video download are available by using youTube-dl.
+
+#### 2. Pop-up window
+If you select "Play Video in Popup Window" from the context menu right clicked on the movie being played or from the menu displayed after clicking the movie icon, 
+the movie will be cut out as a popup window or panel.
+
+#### 3. Mouse, keyboard operation
+Varieties of control and setting are possible with mouse and keyboard like movie player onto the movies being played.   
+Mouse wheel control is assigned to Seek, Double-click is assigned to full screen mode as default.  
+
+#### 4. Other
+- Mute, adjusting volume： Sound volume can be muted or modified by operating the volume icon in the tab during a video play.  
+- Sending a URL to an external player ：The video's URL can be set to an external player that you have configured. 
+
+
+## Tab
+
+With regard to the tab function too, Sushi Browser actively incorporates effective use and convenient functions for the screen.   
+For example, it incorporates a number of functions equivalent to the Firefox add-on Tab Mix Plus.  
+
+Please check [here](https://sushib.me/tips/#tab/) for more details.
+
+![tabs](https://sushib.me/myimg/tabs.png)
+
+#### 1. Multi-row tab
+Multistep tabs can be used in the Sushi Browser. and ordinary tabs can be switched to Multi-row tabs from the main menu.  
+
+#### 2. Vertical Tab, Tree Tab
+Horizontal tabs can be used in Sushi Browser. Vertical tabs can be displayed from the sidebar icon of the menu bar.   
+It's also possible to hide ordinary tabs when displaying vertical tabs.  
+
+#### 3. Tab Preview
+You can use Tap Preview of Pop-up method and sliding method.(Same as Edge or Vivaldi)  
+
+#### 4. Other
+- Tab selection using the mousewheel： By moving the mousewheel over the tab bar, tabs can be selected by scrolling.    
+- Various Settings： Many settings referring to Mix Plus can be arranged from the setting page.
+
+
+## Privacy and Security
+
+Sushi Browser carries functions regarding the privacy and security refering to the fonction of Brave Browser.  
+
+Please check [here](https://sushib.me/tips/#privacy-and-security/) for more details.
+
+![privacy](https://sushib.me/myimg/privacy.gif)
+
+#### 1. Adblock	
+Equipped with a native-implemented high speed advertisement block.
+It is possible to set up the validity or invalidity in all page, each tab and each domain from Main menu.  
+
+#### 2. Tor Tab	
+This will be a tab where it uses anonymous networking system “Tor”. It makes network with high anonymity possible.  
+
+#### 3. VPN (Windows only)
+It does VPN search with MS-SSTP VPN by using VPN Gate service.  
+* Since it creates and connects an actual VPN network connection on Windows, not a pseudo VPN, and network profiling is created. 
+
+#### 4. Other Privacy Protection Functions
+- Private, Sesison tabs： These have a Private tab that strengthens its privacy and a session tab function where it makes the operation in separate sessions possible as other browsers.  
+- HTTPS Everywhere： Function to replace http communication with https communication as much as possible
+- Tracking Protection： Protection function from tracking services such as Google Analytics
+- Block Scripts： Function to disable Javascript (will break many sites)
+- Fingerprinting Protection： Function to protect information reading by fingerprinting
 
 
 ## Muon (Electron Fork)
@@ -107,42 +171,82 @@ Muon is a framework for very fast browser with [Electron's](https://github.com/e
 
 ## Useful features
 
-#### 1. Download function
+### 1. Session Manager
+This browser has a session control system that preserves the condition of the window of browser and tab at regular interval and plays.  
+There is also a function for the recover of tab like a tab trush and a tab record.  
+
+### 2. Downloader
+- Aria2c: It features download function used express download library's Aria2c.  
 - Video download: When downloading video and music information, download link is displayed automatically.  
 - Parallel download: For 1 file it can download with a maximum of 16 parallel downloads. 
+- Download All： By right-clicking on the page and select "Download All", you can do bulk download links and media files on the page.  
+- Bulk Download： You can also bulk download by choosing multiple URLs from the Downloader page.  
 
-#### 2. Mouse gesture
-It can use mouse gestures from Chrome's extension features. Even in Mac and Linux it can be used with the same operability as in Windows. 
+### 3. Search Engines
+It features a powerful search function such as searching a selection range and simultaneous search with multiple search engines.  
 
-#### 3. AutoPagerize
-It can automatically read ahead websites that spans several pages. (Chrome Extension)
+### 4. Build-in Tool
+As a special tool, it has the following functions. 
+1. Terminal: It can operate Bash for Linux/Mac and Power Shell for Windows. 
+2. File explorer: It can manage and browse files. 
+3. Text editor: It can edit text and source codes etc.
+4. Video playback: It can be used for automatic playback of videos. 
 
-#### 4. Anything Search
-When entering an address in the address bar, or by pressing the Shift key twice, it can carry out a search from the browser history. 
+By taking advantage of the above functions operation close to IDE (integrated development environment) becomes possible.
 
-#### 5. Data syncing (Experimental)
-Turning Sync Data on makes syncing possible from the history and favorites from multiple machines. 
+### 5. Note
+Sushi browser is equipped with an editable note (memo) function in WYSIWYG format (edit as seen) and Markdown format.
+
+### 6. Portable Edition
+With Sushi Browser, you can choose between installation version and portable version.    
+
+### 7. Keyboard Shortcut, Mouse Gesture
+It is possible to set up the keyboard shortcuts and mouse gestures for over 100 functions.
+
+### 8. Screenshot
+Screenshots of the whole page or of a selected area can be made.  
+
+### 9. Find in Page
+In addition to the search function of Chrome, OR search and regular expression search can be performed.
+It is also equipped with "Search Highlight" function. 
+
+### 10. Display Functions, Binding Window
+There are functions such as "Fullscreen mode" and "Always on top".
+- Bind Selected Window： it becomes a function where it fixes and controls the windows of other apps against the tab on browser as if it’s an app inside one tab. 
+- Mobile Mode(Change of user agent)： You can change the user agent and display the page as mobile or another browser.
+- AutoPagerize： It can automatically read ahead websites that spans several pages. (Chrome Extension)
+
+### 11. Automation
+ith automatic operation assist functions such as iMacros and IDE,
+we have implemented an API compatible with Puppeteer (automation in headless Chrome) API.
+
+### 12. Other
+Please check [here](https://sushib.me/tips/) for more details.
 
 ## Web Technologies
 
 This browser makes use of wonderful web technologies, starting with the following. 
 - [Muon](https://github.com/brave/muon) (A fork from [Electron](https://github.com/electron/electron), used for the [Brave browser](https://github.com/brave/browser-laptop), and a framework for high speed browsers) 
 - [Inferno](https://github.com/infernojs/inferno) (An extremely fast, React-like library)
-- [Semantic UI React](https://github.com/Semantic-Org/Semantic-UI-React)
 - [xterm.js](https://github.com/sourcelair/xterm.js/) (Terminal used for visual studio code etc.)
+- [Tor](https://www.torproject.org/)
+- [youtube-dl](https://github.com/rg3/youtube-dl)
+- [Semantic UI React](https://github.com/Semantic-Org/Semantic-UI-React)
+- [TOAST UI Editor](http://ui.toast.com/tui-editor/)
+- [Ace Editor](https://ace.c9.io/)
 
 # Downloads
 Both the installer for every platform and the portable version can be downloaded.  
 To use the portable edition, please run sushi.exe for Windows and sushi-browser for Mac/Linux after decompressing.
 
-- [Windows Installer v0.19.4](https://sushib.me/dl/sushi-browser-0.19.4-setup-x64.exe)
-- [Windows Portable v0.19.4(self-extract)](https://sushib.me/dl/sushi-browser-0.19.4-win-x64.exe)
-- [Windows Portable v0.19.4](https://sushib.me/dl/sushi-browser-0.19.4-win-x64.zip)
-- [MacOS dmg v0.19.4](https://sushib.me/dl/SushiBrowser-0.19.4.dmg)
-- [MacOS Portable v0.19.4](https://sushib.me/dl/sushi-browser-0.19.4-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.19.4](https://sushib.me/dl/sushi-browser-0.19.4.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.19.4](https://sushib.me/dl/sushi-browser_0.19.4_amd64.deb)
-- [Linux Portable v0.19.4](https://sushib.me/dl/sushi-browser-0.19.4.tar.bz2)
+- [Windows Installer v0.19.5](https://sushib.me/dl/sushi-browser-0.19.5-setup-x64.exe)
+- [Windows Portable v0.19.5(self-extract)](https://sushib.me/dl/sushi-browser-0.19.5-win-x64.exe)
+- [Windows Portable v0.19.5](https://sushib.me/dl/sushi-browser-0.19.5-win-x64.zip)
+- [MacOS dmg v0.19.5](https://sushib.me/dl/SushiBrowser-0.19.5.dmg)
+- [MacOS Portable v0.19.5](https://sushib.me/dl/sushi-browser-0.19.5-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.19.5](https://sushib.me/dl/sushi-browser-0.19.5.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.19.5](https://sushib.me/dl/sushi-browser_0.19.5_amd64.deb)
+- [Linux Portable v0.19.5](https://sushib.me/dl/sushi-browser-0.19.5.tar.bz2)
 
 # Use of Flash 
 If Flash won't run, please install Flash from the following web sites.  
@@ -156,6 +260,22 @@ sushi-browser --no-sandbox
 ```
 
 # New Features
+
+#### New function(v0.19.5)
+- Added line number to markdown mode of Note.
+- Added a button (P) to switch the preview mode in markdown mode to tab or vertical.
+- Added button (L) to change markdown line wrapping setting.
+- Fixed bugs related to Note, improved operation.
+- "Sort history in descending order of PV" is added to auto complete setting.
+- Changed to display PV, dwell time, delete button in history at the bottom of Top Page
+- Fixed bug that can not delete theme.
+- Fixed a bug in bookmark drop.
+- fixed Bug of bookmark import.
+- Fixed many download bugs.
+- "Almost the same as as Chrome" was added to "When closing current tab, focus".
+- Fixed bug that Audio Extract, and Video Converter do not start.
+- Fixed Search Highlight bug.
+- Fixed some other bugs.
 
 #### New function(v0.19.4)
 - Changed default setting values
@@ -637,11 +757,8 @@ sushi-browser --no-sandbox
 
 # TODO
 
-- Enhanced Anything Search
-- Adblock control panel
 - Addition of build method in the Readme
-- Refactoring, introduction of Mobx (currently closely integrated with the PubSub base) 
+- Refactoring
 - Add test code
 - Auto Update
-- Manual
 - New features  
