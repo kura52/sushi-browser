@@ -196,8 +196,8 @@ class TopMenu extends React.Component {
           <div>
             <Menu pointing secondary >
               <Menu.Item key="top" name="Top" active={true}/>
-              <Menu.Item as='a' href={`chrome://bookmarks/`} key="favorite" name={l10n.translation('bookmarks')}/>
-              <Menu.Item as='a' href={`chrome://history/`} key="history" name={l10n.translation('history')}/>
+              <Menu.Item as='a' href='chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html' id='bookmark-link' key="favorite" name={l10n.translation('bookmarks')}/>
+              <Menu.Item as='a' href='chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html' id='history-link' key="history" name={l10n.translation('history')}/>
               <Menu.Item as='a' href={`${baseURL}/download.html`} key="download" name={l10n.translation('downloads')}/>
               <Menu.Item as='a' href={`${baseURL}/note.html`} key="note" name="Note"/>
               <Menu.Item as='a' href={`${baseURL}/settings.html`} key="settings" name={l10n.translation('settings')}/>

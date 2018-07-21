@@ -521,6 +521,10 @@ class Downloader extends React.Component {
   onChange(type,e){
     if(type == 'concurrentDownload') concurrentDownload = e.target.value
     else if(type == 'downloadNum') downloadNum = e.target.value
+    else if(type == 'enableDownloadList'){
+      global.enableDownloadList = !global.enableDownloadList
+      e = {target: {value: global.enableDownloadList}}
+    }
     ipc.send('save-state',{tableName:'state',key:type,val:e.target.value})
   }
 
@@ -572,6 +576,13 @@ class Downloader extends React.Component {
               </label>
             </div>
 
+            <div className="form-check form-check-inline">
+              <label className="form-check-label">
+                <input className="form-check-input" type="checkbox" checked={global.enableDownloadList}
+                       onChange={this.onChange.bind(this,'enableDownloadList')}/>Enable Download List
+              </label>
+            </div>
+
           <div className="divider-vertical" />
 
             Concurrent downloads:
@@ -600,6 +611,6 @@ class Downloader extends React.Component {
       </Selection>);
   }
 }
-require('./themeForPage')('themeDownloader')
+require('./themeForPage')('themeDownloader').then(data=> global.enableDownloadList = data.enableDownloadList)
 
 ReactDOM.render(<Downloader/>,  document.getElementById('app'))

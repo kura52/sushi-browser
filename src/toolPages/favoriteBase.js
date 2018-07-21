@@ -304,9 +304,9 @@ export default class App extends React.Component {
           <Sticky>
             <div>
               <Menu pointing secondary >
-                <Menu.Item as='a' href={`chrome://newtab/`} key="top" name="Top"/>
+                <Menu.Item as='a' href='chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' id='top-link' key="top" name="Top"/>
                 <Menu.Item key="favorite" name={l10n.translation('bookmarks')} active={true}/>
-                <Menu.Item as='a' href={`chrome://history/`} key="history" name={l10n.translation('history')}/>
+                <Menu.Item as='a' href='chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html' id='history-link' key="history" name={l10n.translation('history')}/>
                 <Menu.Item as='a' href={`${baseURL}/download.html`} key="download" name={l10n.translation('downloads')}/>
                 <Menu.Item as='a' href={`${baseURL}/note.html`} key="note" name="Note"/>
                 <Menu.Item as='a' href={`${baseURL}/settings.html`} key="settings" name={l10n.translation('settings')}/>

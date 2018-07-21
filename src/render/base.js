@@ -222,7 +222,7 @@ export default class MainContent extends Component{
 }
 
 render(<WebPageList />, document.querySelector('#wvlist'))
-if(enableDownloadList) render(<DownloadList />, document.querySelector('#dllist'))
+render(<DownloadList enableDownloadList={enableDownloadList}/>, document.querySelector('#dllist'))
 render(<MainContent />, document.querySelector('#content'))
 
 if(doubleShift){

@@ -4,6 +4,7 @@ const ReactDOM = require('react-dom')
 const ipc = require('electron').ipcRenderer
 const {webContents} = require('electron').remote.require('electron')
 const path = require('path')
+const sharedState = require('./sharedState')
 
 function multiByteSlice(str,end) {
   let len = 0
@@ -33,7 +34,7 @@ export default class DownloadList extends Component{
   constructor(props) {
     super(props)
     this.downloadSet = new Set()
-    this.state = {downloads:new Map(),visible: false}
+    this.state = {downloads:new Map(),visible: false, enableDownloadList:props.enableDownloadList}
     this.events = {}
   }
 
@@ -61,6 +62,13 @@ export default class DownloadList extends Component{
       this.debounceSetState({visible: true})
     }
     ipc.on('download-start', this.events['download-start'])
+
+    this.events['update-mainstate'] = (e,key,val)=>{
+      if(key == 'enableDownloadList'){
+        this.setState({enableDownloadList: val})
+      }
+    }
+    ipc.on('update-mainstate', this.events['update-mainstate'])
   }
 
   componentWillUnmount() {
@@ -162,12 +170,15 @@ export default class DownloadList extends Component{
   }
 
   render() {
+    if(!this.state.enableDownloadList) return null
+
     const arr = [...this.state.downloads.values()]
     // arr.sort((a,b)=> b.startTime - a.startTime)
 
     const downloadList = []
     for (let item of arr.slice(0,10)) {
       // console.log(item)
+      if(sharedState.autoDeleteDownloadList && item.state == 'completed') continue
       downloadList.push(this.buildItem(item))
     }
 

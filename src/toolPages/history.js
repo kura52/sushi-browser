@@ -240,12 +240,12 @@ class TopMenu extends React.Component {
                   } content="Clear All history"/>
                 </Menu.Item>
               </Menu.Menu>
-              <Menu.Item as='a' href={`chrome://newtab/`} key="top" name="Top" style={{
+              <Menu.Item as='a' href='chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' id='top-link' key="top" name="Top" style={{
                 borderLeft: "2px solid rgba(34,36,38,.15)",
                 marginLeft: 20,
                 paddingLeft: 30
               }}/>
-              <Menu.Item as='a' href={`chrome://bookmarks/`} key="favorite" name={l10n.translation('bookmarks')}/>
+              <Menu.Item as='a' href='chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html' id='bookmark-link' key="favorite" name={l10n.translation('bookmarks')}/>
               <Menu.Item as='a' href={`${baseURL}/download.html`} key="download" name={l10n.translation('downloads')}/>
               <Menu.Item as='a' href={`${baseURL}/note.html`} key="note" name="Note"/>
               <Menu.Item as='a' href={`${baseURL}/settings.html`} key="settings" name={l10n.translation('settings')}/>

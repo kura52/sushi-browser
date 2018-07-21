@@ -20,8 +20,9 @@ import firebase,{storage,auth,database} from 'firebase'
 global.sharedStateMain = require('electron').remote.require('./sharedStateMainRemote')
 const sharedState = require('./sharedState')
 const getTheme = require('./theme')
-let [MARGIN,verticalTabPosition,themeInfo] = ipc.sendSync('get-sync-main-states',['syncScrollMargin','verticalTabPosition','themeInfo'])
+let [MARGIN,verticalTabPosition,themeInfo,autoDeleteDownloadList] = ipc.sendSync('get-sync-main-states',['syncScrollMargin','verticalTabPosition','themeInfo','autoDeleteDownloadList'])
 sharedState.theme = themeInfo
+sharedState.autoDeleteDownloadList = autoDeleteDownloadList
 
 function setStyle(){
   const s = document.createElement('style')

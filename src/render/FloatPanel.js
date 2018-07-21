@@ -33,8 +33,10 @@ export default class FloatPanel extends Component{
       }
     })
     this.tokenResize = PubSub.subscribe('resizeWindow',(_,e)=>{
-      this.state.style.left = this.state.style.left * e.new_w / e.old_w
-      this.state.style.top = this.state.style.top * e.new_h / e.old_h
+      if(e.new_w){
+        this.state.style.left = this.state.style.left * e.new_w / e.old_w
+        this.state.style.top = this.state.style.top * e.new_h / e.old_h
+      }
       this.setState({})
     })
 

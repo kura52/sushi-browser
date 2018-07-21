@@ -242,7 +242,8 @@ class SplitPane extends Component {
           const fixedObj = this.props.existsAllFixedPanel()
           const wMod = fixedObj.left + fixedObj.right
           const hMod = fixedObj.top + fixedObj.bottom
-          const ratio = this.props.split === 'vertical' ? (event.new_w - wMod) / ((event.old_w || this.w) - wMod): (event.new_h - hMod) / ((event.old_h || this.h) - hMod)
+          let ratio = this.props.split === 'vertical' ? (event.new_w - wMod) / ((event.old_w || this.w) - wMod): (event.new_h - hMod) / ((event.old_h || this.h) - hMod)
+          if(isNaN(ratio)) ratio = 1
           const size = fPanel ? (this.props.split === 'vertical' ? wh.width - fixedObj.right : wh.height - fixedObj.bottom) : Math.round(this.state.size * ratio)
           console.log(size,fPanel,wh.width,fixedObj.right,wh.height,fixedObj.bottom,this.state.size,ratio,wMod,hMod,this.props.split)
           this.setState({...wh,size})

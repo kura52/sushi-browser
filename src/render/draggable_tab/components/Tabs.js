@@ -409,7 +409,7 @@ class Tabs extends React.Component {
     })
 
     this.tokenPreview = PubSub.subscribe('tab-preview-update',(msg,val)=>{
-      if(this.tabPreviewHeight && this.tabPreviewHeight != 27){
+      if((this.tabPreviewHeight && this.tabPreviewHeight != 27) || this.props.verticalTabPanel){
         this.setState({})
       }
     })
@@ -496,6 +496,7 @@ class Tabs extends React.Component {
       this.TabStyles.tab.height = this.tabPreviewHeight && this.tabPreviewHeight != 27 ? 'auto' : '27px'
     }
     else{
+      this.TabStyles.tabActive.zIndex = 2
       this.TabStyles.tab.minWidth = '0px'
       this.TabStyles.tab.maxWidth = `${tabMaxWidth}px`
       this.TabStyles.tab.height = this.tabPreviewHeight && this.tabPreviewHeight != 27 ? `${this.tabPreviewHeight}px` :  void 0
@@ -520,7 +521,10 @@ class Tabs extends React.Component {
     _tabClassNames.tabBeforeTitle = `rdTabBeforeTitle ${this.props.tabsClassNames.tabBeforeTitle}`
     _tabClassNames.tabCloseIcon = `rdTabCloseIcon ${this.props.tabsClassNames.tabCloseIcon}`
 
-
+    let vHeight
+    if(this.props.verticalTabPanel && sharedState.tabPreview){
+      vHeight = Math.min(tabPreviewSlideHeight + 32, (window.innerHeight - 92 - document.querySelectorAll('.split-window .chrome-tabs').length * 38 ) / document.querySelectorAll('.split-window .chrome-tab').length)
+    }
     let content = [];
     const {notLoadTabUntilSelected,allSelectedkeys} = sharedState
     let tabs = this.state.tabs.map((tab,tabNum) => {
@@ -663,6 +667,7 @@ class Tabs extends React.Component {
         tabStyle.borderLeft = '1px solid rgba(0, 0, 0, 0.27)'
         tabStyle.borderRight = '1px solid rgba(0, 0, 0, 0.27)'
         if(tabNum == 0) tabStyle.borderTop = '1px solid rgba(0, 0, 0, 0.27)'
+        if(vHeight) tabStyle.height = vHeight
         if(tab.props.depth){
           const margin = tab.props.depth * 10
           tabStyle.marginLeft = margin
@@ -685,7 +690,7 @@ class Tabs extends React.Component {
       const onMouseHover = sharedState.tabPreview || mouseHoverSelectLabelBegin ? e=>{
         let target = e.target
 
-        if(sharedState.tabPreview) {
+        if(sharedState.tabPreview && !this.props.verticalTabPanel) {
           if(this.tabPreviewStop || tab.key == this.props.selectedTab) return
           setTimeout(async _=>{
             if(this.tabPreviewStop || tab.key == this.props.selectedTab) return
@@ -798,7 +803,7 @@ class Tabs extends React.Component {
             onMouseEnter={onMouseHover}
             {...others}>
           {
-            this.isMultistageTabsMode() || this.props.verticalTabPanel?
+            this.isMultistageTabsMode() || this.props.verticalTabPanel ?
               <div className="chrome-tab-background" style={
                 {
                   backgroundColor: getTheme('images',selected ? 'theme_toolbar' : 'theme_tab_background' ) ? 'initial' :
@@ -807,7 +812,8 @@ class Tabs extends React.Component {
                   height: tab.props.orgTab.tabPreview && this.tabPreviewHeight && this.tabPreviewHeight != 27 ? 'initial' : selected && !this.props.verticalTabPanel ? 28 : void 0
                 }
               }>
-                {tab.props.orgTab.tabPreview && this.tabPreviewHeight && this.tabPreviewHeight != 27 ? <img style={{width: '100%',height: 140, marginTop:30}} src={tab.props.orgTab.tabPreview.dataURL}/> : null}
+                {tab.props.orgTab.tabPreview && ((this.tabPreviewHeight && this.tabPreviewHeight != 27) || this.props.verticalTabPanel) ?
+                  <img style={{width: '100%',height: tabPreviewSlideHeight, marginTop:30}} src={tab.props.orgTab.tabPreview.dataURL}/> : null}
               </div> :
               <div className="chrome-tab-background" style={
                 {
@@ -1413,7 +1419,7 @@ class Tabs extends React.Component {
         }:
         this.isMultistageTabsMode() ?
           {
-            height : this.tabPreviewHeight && this.tabPreviewHeight != 27 ? this.tabPreviewHeight : void 0,
+            height : !this.props.verticalTabPanel && this.tabPreviewHeight && this.tabPreviewHeight != 27 ? this.tabPreviewHeight : void 0,
             background,
             borderBottom: '1px solid rgba(0, 0, 0, 0.27)',
           } :

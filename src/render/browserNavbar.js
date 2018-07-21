@@ -952,24 +952,24 @@ class BrowserNavbar extends Component{
 
       mobile: <NavbarMenu className="sort-mobile" k={this.props.k} mouseOver={true} isFloat={isFloatPanel(this.props.k)}  sync={this.state.mobile} style={{fontSize: 20, lineHeight: 1.4 }}
                           title="Change to Mobile UserAgent" icon="mobile" onContextMenu={onContextMenu} onClick={()=>this.handleUserAgent(this.state.mobile ? DEFAULT_USERAGENT : NEXUS_USERAGENT)}>
-        <NavbarMenuItem key="default" text="Default" onClick={()=>this.handleUserAgent(DEFAULT_USERAGENT)}/>
+        <NavbarMenuItem key="default" text={`${this.state.userAgent == DEFAULT_USERAGENT ? '✓ ' : ''}Default`} onClick={()=>this.handleUserAgent(DEFAULT_USERAGENT)}/>
         <div className="divider" />
-        <NavbarMenuItem key="nexus" text="Nexus P6" onClick={()=>this.handleUserAgent(NEXUS_USERAGENT)}/>
-        <NavbarMenuItem key="galaxy" text="Galaxy S9" onClick={()=>this.handleUserAgent(GALAXY_S9_USERAGENT)}/>
-        <NavbarMenuItem key="iphone" text="iPhone" onClick={()=>this.handleUserAgent(IPHONE_USERAGENT)}/>
+        <NavbarMenuItem key="nexus" text={`${this.state.userAgent == NEXUS_USERAGENT ? '✓ ' : ''}Nexus P6`} onClick={()=>this.handleUserAgent(NEXUS_USERAGENT)}/>
+        <NavbarMenuItem key="galaxy" text={`${this.state.userAgent == GALAXY_S9_USERAGENT ? '✓ ' : ''}Galaxy S9`} onClick={()=>this.handleUserAgent(GALAXY_S9_USERAGENT)}/>
+        <NavbarMenuItem key="iphone" text={`${this.state.userAgent == IPHONE_USERAGENT ? '✓ ' : ''}iPhone`} onClick={()=>this.handleUserAgent(IPHONE_USERAGENT)}/>
         <div className="divider" />
-        <NavbarMenuItem key="ie" text="IE6" onClick={()=>this.handleUserAgent(IE6_USERAGENT)}/>
-        <NavbarMenuItem key="ie" text="IE9" onClick={()=>this.handleUserAgent(IE9_USERAGENT)}/>
-        <NavbarMenuItem key="ie" text="IE11" onClick={()=>this.handleUserAgent(IE11_USERAGENT)}/>
+        <NavbarMenuItem key="ie" text={`${this.state.userAgent == IE6_USERAGENT ? '✓ ' : ''}IE6`} onClick={()=>this.handleUserAgent(IE6_USERAGENT)}/>
+        <NavbarMenuItem key="ie" text={`${this.state.userAgent == IE9_USERAGENT ? '✓ ' : ''}IE9`} onClick={()=>this.handleUserAgent(IE9_USERAGENT)}/>
+        <NavbarMenuItem key="ie" text={`${this.state.userAgent == IE11_USERAGENT ? '✓ ' : ''}IE11`} onClick={()=>this.handleUserAgent(IE11_USERAGENT)}/>
         <div className="divider" />
-        <NavbarMenuItem key="edge" text="Edge " onClick={()=>this.handleUserAgent(EDGE_USERAGENT)}/>
-        <NavbarMenuItem key="firefox" text="Firefox 61" onClick={()=>this.handleUserAgent(FIREFOX_USERAGENT)}/>
-        <NavbarMenuItem key="opera" text="Opera" onClick={()=>this.handleUserAgent(OPERA_USERAGENT)}/>
-        <NavbarMenuItem key="safari" text="Safari (Mac)" onClick={()=>this.handleUserAgent(SAFARI_USERAGENT)}/>
+        <NavbarMenuItem key="edge" text={`${this.state.userAgent == EDGE_USERAGENT ? '✓ ' : ''}Edge`} onClick={()=>this.handleUserAgent(EDGE_USERAGENT)}/>
+        <NavbarMenuItem key="firefox" text={`${this.state.userAgent == FIREFOX_USERAGENT ? '✓ ' : ''}Firefox 61`} onClick={()=>this.handleUserAgent(FIREFOX_USERAGENT)}/>
+        <NavbarMenuItem key="opera" text={`${this.state.userAgent == OPERA_USERAGENT ? '✓ ' : ''}Opera`} onClick={()=>this.handleUserAgent(OPERA_USERAGENT)}/>
+        <NavbarMenuItem key="safari" text={`${this.state.userAgent == SAFARI_USERAGENT ? '✓ ' : ''}Safari (Mac)`} onClick={()=>this.handleUserAgent(SAFARI_USERAGENT)}/>
         <div className="divider" />
-        <NavbarMenuItem key="win" text="Chrome 67 (Win)" onClick={()=>this.handleUserAgent(WINDOWS_USERAGENT)}/>
-        <NavbarMenuItem key="mac" text="Chrome 67 (Mac)" onClick={()=>this.handleUserAgent(MAC_USERAGENT)}/>
-        <NavbarMenuItem key="linux" text="Chrome 67 (Linux)" onClick={()=>this.handleUserAgent(LINUX_USERAGENT)}/>
+        <NavbarMenuItem key="win" text={`${this.state.userAgent == WINDOWS_USERAGENT ? '✓ ' : ''}Chrome 67 (Win)`} onClick={()=>this.handleUserAgent(WINDOWS_USERAGENT)}/>
+        <NavbarMenuItem key="mac" text={`${this.state.userAgent == MAC_USERAGENT ? '✓ ' : ''}Chrome 67 (Mac)`} onClick={()=>this.handleUserAgent(MAC_USERAGENT)}/>
+        <NavbarMenuItem key="linux" text={`${this.state.userAgent == LINUX_USERAGENT ? '✓ ' : ''}Chrome 67 (Linux)`} onClick={()=>this.handleUserAgent(LINUX_USERAGENT)}/>
       </NavbarMenu>,
 
       favorite: isFixed && !isFloat ? null : this.favoriteMenu(cont,onContextMenu),

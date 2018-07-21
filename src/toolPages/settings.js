@@ -514,9 +514,9 @@ class TopMenu extends React.Component {
         <Sticky>
           <div>
             <Menu pointing secondary >
-              <Menu.Item as='a' href={`chrome://newtab/`} key="top" name="Top"/>
-              <Menu.Item as='a' href={`chrome://bookmarks/`} key="favorite" name={l10n.translation('bookmarks')}/>
-              <Menu.Item as='a' href={`chrome://history/`} key="history" name={l10n.translation('history')}/>
+              <Menu.Item as='a' href='chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' id='top-link' key="top" name="Top"/>
+              <Menu.Item as='a' href='chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html' id='bookmark-link' key="favorite" name={l10n.translation('bookmarks')}/>
+              <Menu.Item as='a' href='chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html' id='history-link' key="history" name={l10n.translation('history')}/>
               <Menu.Item as='a' href={`${baseURL}/download.html`} key="download" name={l10n.translation('downloads')}/>
               <Menu.Item as='a' href={`${baseURL}/note.html`} key="note" name="Note"/>
               <Menu.Item key="settings" name={l10n.translation('settings')} active={true}/>
@@ -741,6 +741,9 @@ class GeneralSetting extends React.Component {
           <Checkbox defaultChecked={this.state.enableMouseGesture} toggle onChange={this.onChange.bind(this,'enableMouseGesture')}/>
           <span className="toggle-label">Enable Mouse Gesture({l10n.translation('requiresRestart').replace('* ','')})</span>
           <br/>
+          <Checkbox defaultChecked={this.state.fullscreenTransition} toggle onChange={this.onChange.bind(this,'fullscreenTransition')}/>
+          <span className="toggle-label">Cancel fullscreen mode at page transition({l10n.translation('requiresRestart').replace('* ','')})</span>
+          <br/>
           <Checkbox defaultChecked={this.state.historyBadget} toggle onChange={this.onChange.bind(this,'historyBadget')}/>
           <span className="toggle-label">Show Back/Forward Button's Badget ({l10n.translation('requiresRestart').replace('* ','')})</span>
           <br/>
@@ -749,6 +752,9 @@ class GeneralSetting extends React.Component {
           <br/>
           <Checkbox defaultChecked={this.state.enableDownloadList} toggle onChange={this.onChange.bind(this,'enableDownloadList')}/>
           <span className="toggle-label">Enable Bottom Download List ({l10n.translation('requiresRestart').replace('* ','')})</span>
+          <br/>
+          <Checkbox defaultChecked={this.state.autoDeleteDownloadList} toggle onChange={this.onChange.bind(this,'autoDeleteDownloadList')}/>
+          <span className="toggle-label">Delete from download list when download is completed ({l10n.translation('requiresRestart').replace('* ','')})</span>
           <br/>
           <Checkbox defaultChecked={this.state.longPressMiddle} toggle onChange={this.onChange.bind(this,'longPressMiddle')}/>
           <span className="toggle-label">Enable behavior change when long press of middle mouse button ({l10n.translation('requiresRestart').replace('* ','')})</span>
@@ -2571,7 +2577,7 @@ const App = () => (
 
 const key = Math.random().toString()
 ipc.send("get-main-state",key,['startsWith','newTabMode','myHomepage','searchProviders','searchEngine','language','enableFlash','concurrentDownload','downloadNum','sideBarDirection','scrollTab',
-  'doubleShift','tripleClick','enableMouseGesture','extensionOnToolbar','syncScrollMargin','contextMenuSearchEngines','ALL_KEYS','bindMarginFrame','bindMarginTitle','longPressMiddle','checkDefaultBrowser','sendToVideo',
+  'doubleShift','tripleClick','enableMouseGesture','fullscreenTransition','autoDeleteDownloadList','extensionOnToolbar','syncScrollMargin','contextMenuSearchEngines','ALL_KEYS','bindMarginFrame','bindMarginTitle','longPressMiddle','checkDefaultBrowser','sendToVideo',
   'multistageTabs','tabMinWidth','httpsEverywhereEnable','trackingProtectionEnable','autoSaveInterval','noScript','blockCanvasFingerprinting','browsingHistory', 'downloadHistory',
   'disableContextMenus','disableTabContextMenus','priorityContextMenus','priorityTabContextMenus','reloadIntervals','generalWindowOpenLabel','keepWindowLabel31','tabPreview','tabPreviewQuality',
   'closeTabBehavior','reverseScrollTab','tabCirculateSelection','tabMaxWidth','mouseHoverSelectLabelBegin','mouseHoverSelectLabelBeginDelay','tabFlipLabel','doubleClickTab','middleClickTab','altClickTab',

@@ -20,11 +20,16 @@ export default class AutofillPopup extends Component {
 
         this.keyDown = (evt)=>{
           if(evt.keyCode === 13 && this.state.active != -1) { //enter
-            if(e.callback){
-              e.callback(this.state.datas.suggestions[this.state.active].value)
+            try{
+              if(e.callback){
+                e.callback(this.state.datas.suggestions[this.state.active].value)
+              }
+              else{
+                ipc.send('autofill-selection-clicked', this.state.tab.wvId, this.state.datas.suggestions[this.state.active].value, 0, this.state.active)
+              }
             }
-            else{
-              ipc.send('autofill-selection-clicked', this.state.tab.wvId, this.state.datas.suggestions[this.state.active].value, 0, this.state.active)
+            catch(e){
+              console.log(e)
             }
             evt.stopPropagation()
           }

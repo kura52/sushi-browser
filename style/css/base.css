@@ -431,6 +431,7 @@ body::before {
     display: flex;
     margin-right: 0;
     margin-left: auto;
+    z-index: 3;
 }
 
 .ui.horizontal.segments {

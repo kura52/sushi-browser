@@ -129,7 +129,7 @@ export default function (){
       msFlex: 1,
       flex: 1,
       flexDirection: 'column',
-      zIndex: 2,
+      zIndex: 1,
       // color: '#ffffff',
       // fontSize: '13px',
       // backgroundImage: 'linear-gradient(#343434, #222222)',

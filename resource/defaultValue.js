@@ -39,6 +39,8 @@ const settingDefault =  {
   hoverBookmarkBar: false,
   zoomBehavior: '10',
   searchHistoryOrderCount: false,
+  fullscreenTransition: false,
+  autoDeleteDownloadList: false,
 
   bindMarginFrame: isLinux ? 6 : 0,
   bindMarginTitle: isLinux ? 24  : 0,

@@ -451,9 +451,10 @@ ipcMain.on('force-mouse-up',(event,{x,y})=> {
 
 })
 
-ipcMain.on('toggle-fullscreen',(event)=> {
+ipcMain.on('toggle-fullscreen',(event,cancel)=> {
   const win = BrowserWindow.fromWebContents(event.sender.hostWebContents || event.sender)
   const isFullScreen = win.isFullScreen()
+  if(cancel && !isFullScreen) return
   win.webContents.send('switch-fullscreen',!isFullScreen)
   win.setFullScreenable(true)
   const menubar = win.isMenuBarVisible()

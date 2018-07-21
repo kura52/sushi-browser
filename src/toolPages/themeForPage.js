@@ -23,17 +23,23 @@ function colorOnRGB(c){
 
 export default function setTheme(page){
   const key = Math.random().toString()
-  ipc.send("get-main-state",key,['themeInfo','focusLocationBar'])
-  ipc.once(`get-main-state-reply_${key}`,(e,data)=>{
-    const theme = data.themeInfo
-    if(theme && theme[page]) common(theme)
-    if(page == 'themeTopPage' && data.focusLocationBar === false){
-      const s = document.createElement('style')
-      s.setAttribute('type', 'text/css')
-      s.appendChild(document.createTextNode(`.ui.big.icon.input{display: none}
+  ipc.send("get-main-state",key,['themeInfo','focusLocationBar','topPage','bookmarksPage','historyPage','enableDownloadList'])
+  return new Promise(r=>{
+    ipc.once(`get-main-state-reply_${key}`,(e,data)=>{
+      r(data)
+      const theme = data.themeInfo
+      if(theme && theme[page]) common(theme)
+      if(page == 'themeTopPage' && data.focusLocationBar === false){
+        const s = document.createElement('style')
+        s.setAttribute('type', 'text/css')
+        s.appendChild(document.createTextNode(`.ui.big.icon.input{display: none}
       .ui.cards{padding-top: 25px;}`))
-      document.head.appendChild(s)
-    }
+        document.head.appendChild(s)
+      }
+      // if(data.topPage) document.querySelector('#top-link').setAttribute('href',data.topPage)
+      // if(data.bookmarksPage) document.querySelector('#bookmark-link').setAttribute('href',data.bookmarksPage)
+      // if(data.historyPage) document.querySelector('#history-link').setAttribute('href',data.historyPage)
+    })
   })
 }
 

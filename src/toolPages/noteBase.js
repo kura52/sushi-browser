@@ -675,11 +675,11 @@ export default class App extends React.Component {
                   <Input ref='input' icon='search' placeholder='Search...' onChange={::this.onChange}/>
                 </Menu.Item>
               </Menu.Menu>
-              <Menu.Item as='a' href={`chrome://newtab/`} key="top" name="Top" style={{
+              <Menu.Item as='a' href='chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' id='top-link' key="top" name="Top" style={{
                 borderLeft: "2px solid rgba(34,36,38,.15)"
               }}/>
-              <Menu.Item as='a' href={`chrome://bookmarks/`} key="favorite" name={l10n.translation('bookmarks')}/>
-              <Menu.Item as='a' href={`chrome://history/`} key="history" name={l10n.translation('history')}/>
+              <Menu.Item as='a' href='chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html' id='bookmark-link' key="favorite" name={l10n.translation('bookmarks')}/>
+              <Menu.Item as='a' href='chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html' id='history-link' key="history" name={l10n.translation('history')}/>
               <Menu.Item as='a' href={`${baseURL}/download.html`} key="download" name={l10n.translation('downloads')}/>
               <Menu.Item key="note" name="Note" active={true}/>
               <Menu.Item as='a' href={`${baseURL}/settings.html`} key="settings" name={l10n.translation('settings')}/>

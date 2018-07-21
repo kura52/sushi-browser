@@ -25,36 +25,28 @@ const glob = require("glob")
 const BEFORE_CODE_NAME = 'Engawa(Flounder Fin)'
 const CODE_NAME = 'Engawa(Flounder Fin)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.19.5"
+const NEXT_APP_VERSION = "0.19.6"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Added line number to markdown mode of Note.
-Added a button (P) to switch the preview mode in markdown mode to tab or vertical.
-Added button (L) to change markdown line wrapping setting.
-Fixed bugs related to Note, improved operation.
-"Sort history in descending order of PV" is added to auto complete setting.
-Changed to display PV, dwell time, delete button in history at the bottom of Top Page
-Fixed bug that can not delete theme.
-Fixed a bug in bookmark drop.
-fixed Bug of bookmark import.
-Fixed many download bugs.
-"Almost the same as as Chrome" was added to "When closing current tab, focus".
-Fixed bug that Audio Extract, and Video Converter do not start.
-Fixed Search Highlight bug.`
+const CHANGE_ENGLISH = `Opened the Sushi Browser Tips page (https://sushib.me/tips/).
+Improved mobile mode so that user agents of various browsers can be selected. 
+Added option to release fullscreen mode when page transition.(Cancel fullscreen mode at page transition)
+Added setting button for download list display to downloader. (Enable Download List)
+Added option to delete items from download list when download is completed. (Delete from download list when download is completed)
+Fixed a bug in tab preview at multi-tab
+Improved tab preview on vertical tab
+fixed Hide tabs bug on vertical tab
+Fixed some bugs.`
 
-const CHANGE_JAPANESE = `Noteのmarkdownモードに行番号を追加
-Noteのmarkdownのプレビューモードをtabとverticalで切り替えるボタン(P)を追加
-Noteのmarkdownの行折り返し設定を変更できるボタン(L)を追加
-Noteに関する不具合修正、動作改善
-オートコンプリート設定に「Sort history in descending order of PV」を追加
-Top Page下部の履歴にPV、滞在時間、削除ボタンを表示するように修正
-テーマの削除ができない不具合修正
-ブックマークのドロップの不具合修正
-ブックマークインポートの不具合修正
-ダウンロードに関する不具合を多数修正
-「現在のタブを閉じたときのフォーカスの移動場所」に「Almost the same as Chrome」を追加
-Audio Extract, Video Converterが起動しない不具合を修正
-Search Highlightの不具合修正`
+const CHANGE_JAPANESE = `Sushi Browser Tipsページ(https://sushib.me/ja/tips/)を開設
+様々なブラウザのユーザーエージェントを選択できるようモバイルモードを改善
+ページ遷移時にフルスクリーンモードを解除するオプションを追加(Cancel fullscreen mode at page transition)
+ダウンローダーにダウンロードリストの表示非表示の設定ボタンを追加(Enable Download List)
+ダウンロード完了時にダウンロードリストから項目を削除するオプションを追加(Delete from download list when download is completed)
+多段タブ時のタブプレビューの不具合修正
+縦タブでタブプレビューが表示されるように改善
+縦タブのHide tabsのバグ修正
+いくつかの不具合修正`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'
