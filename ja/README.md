@@ -48,7 +48,7 @@ Webブラウジングの際、画面の一部しか利用できず、勿体無�
 
 詳細は、[こちら](https://sushib.me/ja/tips/#multi-panel/)をご確認ください。
 
-![multi-panel](https://sushib.me/myimg/multi-panel.gif)
+![multi-panel](https://sushib.me/myimg/multi-panel2.gif)
 
 #### 1. パネルを分割
 タブをパネルの端にドラッグすることでパネルを分割できます。  

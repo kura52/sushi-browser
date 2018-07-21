@@ -46,7 +46,7 @@ It not only displays multiple web pages side-by-side but it also has various fun
 
 Please check [here](https://sushib.me/tips/#multi-panel/) for more details.
 
-![multi-panel](https://sushib.me/myimg/multi-panel.gif)
+![multi-panel](https://sushib.me/myimg/multi-panel2.gif)
 
 #### 1. Split Panel
 The panel can be divided by dragging the tab towards the corner of the panel.  
@@ -97,12 +97,12 @@ Once it detects a video existing on a web page, the video icon on in the toolbar
 Also downloading a streaming video (.m3u8) or a batch video download are available by using youTube-dl.
 
 #### 2. Pop-up window
-If you select "Play Video in Popup Window" from the context menu right clicked on the movie being played or from the menu displayed after clicking the movie icon, 
-the movie will be cut out as a popup window or panel.
+If you select "Play Video in Popup Window" from the context menu right clicked on the video being played or from the menu displayed after clicking the video icon, 
+the video will be cut out as a popup window or panel.
 
 #### 3. Mouse, keyboard operation
-Varieties of control and setting are possible with mouse and keyboard like movie player onto the movies being played.   
-Mouse wheel control is assigned to Seek, Double-click is assigned to full screen mode as default.  
+Varieties of control and setting are possible with mouse and keyboard like video player onto the videos being played.   
+**Mouse wheel control is assigned to Seek**, Double-click is assigned to full screen mode as default.  
 
 #### 4. Other
 - Mute, adjusting volume： Sound volume can be muted or modified by operating the volume icon in the tab during a video play.  
@@ -119,10 +119,10 @@ Please check [here](https://sushib.me/tips/#tab/) for more details.
 ![tabs](https://sushib.me/myimg/tabs.png)
 
 #### 1. Multi-row tab
-Multistep tabs can be used in the Sushi Browser. and ordinary tabs can be switched to Multi-row tabs from the main menu.  
+Multi-row tabs can be used in the Sushi Browser. And ordinary tabs can be switched to Multi-row tabs from the main menu.  
 
 #### 2. Vertical Tab, Tree Tab
-Horizontal tabs can be used in Sushi Browser. Vertical tabs can be displayed from the sidebar icon of the menu bar.   
+Vertical tabs can be used in Sushi Browser. Vertical tabs can be displayed from the sidebar icon of the menu bar.   
 It's also possible to hide ordinary tabs when displaying vertical tabs.  
 
 #### 3. Tab Preview
@@ -146,7 +146,7 @@ Equipped with a native-implemented high speed advertisement block.
 It is possible to set up the validity or invalidity in all page, each tab and each domain from Main menu.  
 
 #### 2. Tor Tab	
-This will be a tab where it uses anonymous networking system “Tor”. It makes network with high anonymity possible.  
+This will be a tab where it uses anonymous networking system "Tor". It makes network with high anonymity possible.  
 
 #### 3. VPN (Windows only)
 It does VPN search with MS-SSTP VPN by using VPN Gate service.  
@@ -198,10 +198,10 @@ By taking advantage of the above functions operation close to IDE (integrated de
 Sushi browser is equipped with an editable note (memo) function in WYSIWYG format (edit as seen) and Markdown format.
 
 ### 6. Portable Edition
-With Sushi Browser, you can choose between installation version and portable version.    
+You can choose between installation version and portable version.    
 
 ### 7. Keyboard Shortcut, Mouse Gesture
-It is possible to set up the keyboard shortcuts and mouse gestures for over 100 functions.
+It is possible to set up the keyboard shortcuts and mouse gestures for 100+ functions.
 
 ### 8. Screenshot
 Screenshots of the whole page or a selected area can be made.  
@@ -212,7 +212,7 @@ It is also equipped with "Search Highlight" function.
 
 ### 10. Display Functions, Binding Window
 There are functions such as "Fullscreen mode" and "Always on top".
-- Bind Selected Window： it becomes a function where it fixes and controls the windows of other apps against the tab on browser as if it’s an app inside one tab. 
+- Bind Selected Window： The function to bind other windows on the tab and control like the application in the tab. 
 - Mobile Mode(Change of user agent)： You can change the user agent and display the page as mobile or another browser.
 - AutoPagerize： It can automatically read ahead websites that spans several pages. (Chrome Extension)
 
