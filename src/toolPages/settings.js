@@ -745,7 +745,7 @@ class GeneralSetting extends React.Component {
           <span className="toggle-label">Cancel fullscreen mode at page transition({l10n.translation('requiresRestart').replace('* ','')})</span>
           <br/>
           <Checkbox defaultChecked={this.state.historyBadget} toggle onChange={this.onChange.bind(this,'historyBadget')}/>
-          <span className="toggle-label">Show Back/Forward Button's Badget ({l10n.translation('requiresRestart').replace('* ','')})</span>
+          <span className="toggle-label">Show Back/Forward Button's Badge ({l10n.translation('requiresRestart').replace('* ','')})</span>
           <br/>
           <Checkbox defaultChecked={this.state.focusLocationBar} toggle onChange={this.onChange.bind(this,'focusLocationBar')}/>
           <span className="toggle-label">Show Focus Location Bar of Top Page </span>
@@ -1241,12 +1241,12 @@ class SearchSetting extends React.Component {
       <td key={`type${i}`}>
         <Dropdown placeholder='State' fluid selection className="type" onChange={this.typeChange.bind(this,i)}
                   options={[
-                    { key: 'basic', text: 'open a panel', value: 'basic' },
-                    { key: 'two', text: 'open 2 panels', value: 'two' },
-                    { key: 'new-win', text: 'open to new window', value: 'new-win' },
-                    { key: 'one-row', text: ' a row in new window', value: 'one-row' },
-                    { key: 'two-row', text: '2 rows in new window', value: 'two-row' },
-                    { key: 'three-row', text: '3 rows in new window', value: 'three-row' },
+                    { key: 'basic', text: 'Open in a panel', value: 'basic' },
+                    { key: 'two', text: 'Open in 2 panels', value: 'two' },
+                    { key: 'new-win', text: 'Open in a new window', value: 'new-win' },
+                    { key: 'one-row', text: 'Open in a new window with a row', value: 'one-row' },
+                    { key: 'two-row', text: 'Open in new window with 2 rows', value: 'two-row' },
+                    { key: 'three-row', text: 'Open in a new window with 3 rows', value: 'three-row' },
                   ]} defaultValue={type}/>
       </td>
       <td key={`shortcut${i}`} data-num={i} data-name='shortcut' onInput={this.emitChange} onBlur={this.onBlur} contentEditable>{alias}</td>
@@ -2040,7 +2040,7 @@ class ContextMenuSetting extends React.Component {
       <h3>{l10n.translation('5513242761114685513')}</h3>
       <Divider/>
 
-      <h3>Send to URL</h3>
+      <h3>Send URL</h3>
       <table className="ui celled compact table">
         <thead>
         <tr>
@@ -2449,7 +2449,7 @@ class ThemeSetting extends React.Component {
       </table>
 
       <div className="field">
-        <label>Apply for Pages</label>
+        <label>Pages to apply</label>
         <br/>
 
         <Checkbox defaultChecked={this.state.themeTopPage} toggle onChange={this.onChange.bind(this,'themeTopPage')}/>
