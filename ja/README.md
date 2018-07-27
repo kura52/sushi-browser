@@ -247,14 +247,14 @@ Puppeteer(ヘッドレスChromeでの自動化) APIと互換性のあるAPIを�
 
 各プラットフォームに対し、インストーラとポータブル版の両方がダウンロードできます。
 
-- [Windows Installer v0.19.5](https://sushib.me/dl/sushi-browser-0.19.5-setup-x64.exe)
-- [Windows Portable v0.19.5(自己解凍)](https://sushib.me/dl/sushi-browser-0.19.5-win-x64.exe)
-- [Windows Portable v0.19.5](https://sushib.me/dl/sushi-browser-0.19.5-win-x64.zip)
-- [MacOS dmg v0.19.5](https://sushib.me/dl/SushiBrowser-0.19.5.dmg)
-- [MacOS Portable v0.19.5](https://sushib.me/dl/sushi-browser-0.19.5-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.19.5](https://sushib.me/dl/sushi-browser-0.19.5.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.19.5](https://sushib.me/dl/sushi-browser_0.19.5_amd64.deb)
-- [Linux Portable v0.19.5](https://sushib.me/dl/sushi-browser-0.19.5.tar.bz2)
+- [Windows Installer v0.19.6](https://sushib.me/dl/sushi-browser-0.19.6-setup-x64.exe)
+- [Windows Portable v0.19.6(自己解凍)](https://sushib.me/dl/sushi-browser-0.19.6-win-x64.exe)
+- [Windows Portable v0.19.6](https://sushib.me/dl/sushi-browser-0.19.6-win-x64.zip)
+- [MacOS dmg v0.19.6](https://sushib.me/dl/SushiBrowser-0.19.6.dmg)
+- [MacOS Portable v0.19.6](https://sushib.me/dl/sushi-browser-0.19.6-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.19.6](https://sushib.me/dl/sushi-browser-0.19.6.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.19.6](https://sushib.me/dl/sushi-browser_0.19.6_amd64.deb)
+- [Linux Portable v0.19.6](https://sushib.me/dl/sushi-browser-0.19.6.tar.bz2)
 
 ポータブル版の利用は、解凍後にWindowsはsushi.exeを、Mac/Linuxはsushi-browserを実行ください。
 

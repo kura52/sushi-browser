@@ -736,7 +736,7 @@ class BrowserNavbar extends Component{
         <NavbarMenuItem text={`[${this.props.toggleNav == 0 ? ' ' : '✓'}] OneLine Menu`} icon='ellipsis horizontal' onClick={()=>{this.props.parent.toggleNavPanel(this.props.toggleNav == 0 ? 1 : 0);this.setState({})}}/>
         <div className="divider" />
         <NavbarMenuItem text='Detach This Panel' icon='space shuttle' onClick={_=>{this.props.parent.detachPanel();this.refs['main-menu'].menuClose()}}/>
-        <NavbarMenuItem text='Panels to Windows' icon='cubes' onClick={_=>{PubSub.publish('all-detach');this.refs['main-menu'].menuClose()}}/>
+        <NavbarMenuItem text='Convert Panels to Windows' icon='cubes' onClick={_=>{PubSub.publish('all-detach');this.refs['main-menu'].menuClose()}}/>
         {isDarwin ? null :<NavbarMenuItem text={this.props.toggleNav == 3 ? 'Normal Screen Mode' : 'Full Screen Mode'} icon={this.props.toggleNav == 3 ? 'compress' : 'expand'}
                                           onClick={()=>{ipc.send('toggle-fullscreen');this.refs['main-menu'].menuClose()}}/>}
       </NavbarMenuSubMenu>
@@ -746,7 +746,7 @@ class BrowserNavbar extends Component{
           this.setState({vpnList:!this.state.vpnList})
         }
         }/> : null}
-        <NavbarMenuItem text={`[${this.props.oppositeGlobal ? '✓' : ' '}] Open Opposite`} icon='columns' onClick={_=>{this.handleOppositeGlobal();this.refs['main-menu'].menuClose()}}/>
+        <NavbarMenuItem text={`[${this.props.oppositeGlobal ? '✓' : ' '}] Open on Opposite`} icon='columns' onClick={_=>{this.handleOppositeGlobal();this.refs['main-menu'].menuClose()}}/>
         <NavbarMenuItem text={`[${sharedState.searchWordHighlightRecursive ? '✓' : ' '}] Search Highlight Recursive`} icon='asterisk' onClick={_=>{
           sharedState.searchWordHighlightRecursive = !sharedState.searchWordHighlightRecursive
           mainState.set('searchWordHighlightRecursive',sharedState.searchWordHighlightRecursive)
@@ -938,7 +938,7 @@ class BrowserNavbar extends Component{
 
       float:   isFixed || !this.props.tab.sync || this.props.tab.syncReplace || !this.props.isTopLeft ? null : <FloatSyncScrollButton  onContextMenu={onContextMenu}toggleNav={this.props.toggleNav} scrollPage={this.props.parent.scrollPage}/>,
 
-      opposite: isFloat ? null: <BrowserNavbarBtn className="sort-opposite" title="Switch Opposite Open" icon="external-link-square" sync={this.props.tab.oppositeMode} onContextMenu={onContextMenu} onClick={()=>{this.props.parent.changeOppositeMode()}}/>,
+      opposite: isFloat ? null: <BrowserNavbarBtn className="sort-opposite" title='Switch "Open on Opposite"' icon="external-link-square" sync={this.props.tab.oppositeMode} onContextMenu={onContextMenu} onClick={()=>{this.props.parent.changeOppositeMode()}}/>,
 
       sidebar: isFixed ? null : <NavbarMenu className="sort-sidebar" k={this.props.k} mouseOver={true} isFloat={isFloatPanel(this.props.k)}
                                             title="Open Sidebar" icon="list-ul" onContextMenu={onContextMenu} onClick={()=>this.props.fixedPanelOpen({dirc:mainState.sideBarDirection})}>
@@ -1019,7 +1019,7 @@ class BrowserNavbar extends Component{
                   <i className="fa fa-play-circle" aria-hidden="true"></i>
                 </button>}
 
-                <button className="play-btn" title="Play External Video Player" onClick={e=>{
+                <button className="play-btn" title="Play in External Video Player" onClick={e=>{
                   e.stopPropagation()
                   const p = e.target.parentNode.parentNode;(e.target.tagName == "I" ? p.parentNode : p).classList.remove("visible")
                   ipc.send('play-external',url)
