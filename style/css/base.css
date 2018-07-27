@@ -381,24 +381,10 @@ body::before {
 /*-webkit-app-region: drag;*/
 /*}*/
 
-.rdTab{
+.rdTab,.rdTab img,.rdTabAddButton,.browser-navbar> a,.ui.dropdown{
     -webkit-app-region: no-drag;
 }
 
-.rdTabAddButton{
-    -webkit-app-region: no-drag;
-}
-
-.browser-navbar> a{
-    -webkit-app-region: no-drag;
-}
-.browser-navbar> div{
-    /*-webkit-app-region: no-drag;*/
-}
-
-.ui.dropdown {
-    -webkit-app-region: no-drag;
-}
 
 @font-face {
     font-family: 'typicons';

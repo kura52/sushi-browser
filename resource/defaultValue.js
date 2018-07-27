@@ -88,6 +88,7 @@ const settingDefault =  {
   bookmarkBarTopPage: true,
   windowCustomIcon: null,
   enableDownloadList: true,
+  rectangularSelection: true,
 
   //privacy
   clearHistoryOnClose: false,

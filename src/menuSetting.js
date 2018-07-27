@@ -1,4 +1,4 @@
-const {app,Menu,shell,ipcMain,BrowserWindow,session,webContents} = require('electron')
+const {app,Menu,shell,ipcMain,BrowserWindow,session,webContents,clipboard} = require('electron')
 const BrowserWindowPlus = require('./BrowserWindowPlus')
 const seq = require('./sequence')
 const locale = require('../brave/app/locale')
@@ -294,13 +294,22 @@ const createEditSubmenu = () => {
     // NOTE: macOS inserts "start dictation" and "emoji and symbols" automatically
   ]
 
+  // console.log('mainState.rectSelection',mainState.rectSelection&&mainState.rectSelection[1])
+  // if(mainState.rectSelection){
+  //   delete submenu[4].role
+  //   submenu[4].click = function(item, focusedWindow) {
+  //     console.log('mainState.rectSelection2',mainState.rectSelection[1])
+  //     clipboard.writeText(mainState.rectSelection[1])
+  //   }
+  // }
+
   if (isDarwin) {
-    delete submenu[4].role
-    submenu[4].click = function(item, focusedWindow) {
-      getFocusedWebContents(true).then(cont=>{
-        cont && cont.copy()
-      })
-    }
+    // delete submenu[4].role
+    // submenu[4].click = function(item, focusedWindow) {
+    //   getFocusedWebContents(true).then(cont=>{
+    //     cont && cont.copy()
+    //   })
+    // }
   }
   else{
     submenu.push({ type: 'separator' })
@@ -1096,10 +1105,16 @@ function getTemplate(){
   }
   return template
 }
-let oldMenu = appMenu
-appMenu = Menu.buildFromTemplate(getTemplate())
-Menu.setApplicationMenu(appMenu)
 
-if (oldMenu) {
-  oldMenu.destroy()
+export default function updateMenu(){
+  let oldMenu = appMenu
+  appMenu = Menu.buildFromTemplate(getTemplate())
+  Menu.setApplicationMenu(appMenu)
+
+  if (oldMenu) {
+    oldMenu.destroy()
+  }
 }
+
+updateMenu()
+

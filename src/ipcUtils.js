@@ -1768,6 +1768,12 @@ ipcMain.on('browser-load',async (e,arg)=>{
   e.returnValue = win.id
 })
 
+ipcMain.on('rectangular-selection',(e,val)=>{
+  mainState.rectSelection = val ? [e.sender,val] : void 0
+  if(val) require('./menuSetting')()
+})
+
+
 // ipcMain.on('get-firefox-url',(e,key,url)=>{
 //   session.defaultSession.webRequest.fetch(url, {'user-agent': `Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:57.0) Gecko/20100101 Firefox/57.0`}, (err, response, body) => {
 //      e.sender.send(`get-firefox-url-reply_${key}`,body.toString())

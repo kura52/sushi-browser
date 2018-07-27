@@ -137,7 +137,7 @@ if(window.__started_){
   }
 
   const key = Math.random().toString()
-  ipc.send("get-main-state",key,['tripleClick','alwaysOpenLinkNewTab','themeColorChange','isRecording','isVolumeControl','keepAudioSeekValueVideo'])
+  ipc.send("get-main-state",key,['tripleClick','alwaysOpenLinkNewTab','themeColorChange','isRecording','isVolumeControl','keepAudioSeekValueVideo','rectangularSelection'])
   ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
     if (data.tripleClick) {
       window.addEventListener('click', e => {
@@ -257,6 +257,12 @@ if(window.__started_){
         }
       },100)
     }
+    if(data.rectangularSelection){
+      const RectangularSelection = require('./RectangularSelection')
+      new RectangularSelection()
+    }
+
+
 
   })
 
