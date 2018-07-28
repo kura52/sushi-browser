@@ -18,13 +18,14 @@ var xhr = new XMLHttpRequest();
 xhr.open('GET', url, true);
 xhr.responseType = 'text';
 xhr.onreadystatechange = function(e) {
+  console.log(this.readyState,this.status)
   if(this.readyState == this.HEADERS_RECEIVED) {
     const contType = xhr.getResponseHeader("Content-Type")
     if(contType && contType.includes("/html")){
       chrome.ipcRenderer.sendToHost("html-content",url)
     }
   }
-  else if (this.status == 200) {
+  else if (this.status == 200 || xhr.response) {
     xhrRes = xhr.response
     if(editorLoaded){
       editor.getSession().setValue(xhrRes,-1)

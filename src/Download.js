@@ -12,6 +12,7 @@ const path = require('path')
 import {download,downloader} from './databaseFork'
 import PubSub from './render/pubsub'
 import fs from 'fs'
+import uuid from 'node-uuid'
 const URL = require('url')
 const downloadPath = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html'
 const downloadPath2 = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download_sidebar.html'
@@ -104,6 +105,7 @@ export default class Download {
     this.videoConvert = {}
     this.overwrite = {}
     this.prompt = {}
+    this.savePageAs = {}
 
     ipcMain.on('set-save-path',(e,url,fname,absolute)=>{
       set(this.savePath,url,absolute ? fname : path.join(app.getPath('downloads'), sanitizeFilename(fname,{replacement:'_'})))
@@ -133,6 +135,9 @@ export default class Download {
       set(this.needSavePath,url,true)
     })
 
+    ipcMain.on('save-page-as',(e,url)=>{
+      set(this.savePageAs,url,true)
+    })
 
     ipcMain.on('set-conflictAction',(e,url,type)=>{
       if(type == "overwrite") set(this.overwrite,url,true)
@@ -228,13 +233,40 @@ export default class Download {
 
       if((mainState.askDownload && !noNeedSavePath) || needSavePath || (this.getData(this.prompt,url) && fs.existsSync(savePath))){
         console.log("needSavePath")
-        dialog.showDialog(win,{defaultPath: savePath,type: 'select-saveas-file',includeAllFiles:true },filepaths=>{
+        const isSavePageAs = this.getData(this.savePageAs,url)
+        const opt = isSavePageAs ? {defaultPath: savePath,type: 'select-saveas-file', extensions: [['html','mht']], includeAllFiles:false } :
+          {defaultPath: savePath,type: 'select-saveas-file',includeAllFiles:true }
+        dialog.showDialog(win,opt,filepaths=>{
           if(!filepaths || filepaths.length > 1){
             if(active) item.destroy()
             return
           }
+
           console.log(6)
           savePath = filepaths[0]
+          if(savePath.endsWith(".mht") || savePath.endsWith(".mhtml")){
+            console.log(43432,savePath,cont.getURL())
+            cont.savePage(savePath, 'MHTML', (error) => {
+              const buildedItem = { key: uuid.v4(),
+                isPaused: false,
+                canResume: false,
+                url,
+                filename: path.basename(savePath),
+                receivedBytes: 0,
+                totalBytes: 0,
+                state: 'completed',
+                speed: void 0,
+                savePath,
+                startTime: Date.now(),
+                now: Date.now() }
+                for (let wc of this.getDownloadPage()) {
+                  wc.send('download-progress', buildedItem)
+                }
+                if(!win.webContents.isDestroyed()) win.webContents.send('download-progress', buildedItem)
+            })
+            return
+          }
+
           overwrite = true
           this.process(url, overwrite, savePath, item, webContents, win, mimeType, audioExtract, videoConvert, cond, downloadId);
         })
@@ -398,6 +430,7 @@ export default class Download {
         wc.send('download-progress', buildedItem)
       }
       if(!win.webContents.isDestroyed()) win.webContents.send('download-progress', buildedItem)
+      console.log(7887,buildedItem)
 
       download.insert({
         state: item.getState(),

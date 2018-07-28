@@ -1241,18 +1241,27 @@ class Tabs extends React.Component {
         if(this.state.tabs.length == tabs.length && this.props.isOnlyPanel) return
         console.log(evt,tabs,this.state.tabs)
         if(evt.dataTransfer.dropEffect == "move") return
-        const vals = tabs.map(tab=>{
-          const cont = getWebContents(tab)
-          tab.wv.attachGuest(cont._detachGuest().guestInstanceId)
-          const d = {wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
-            rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || cont.guestInstanceId}
-          ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
-          return [d,cont]
+        const promises = tabs.map(tab=>{
+          return new Promise(r=>{
+            const cont = getWebContents(tab)
+            const guestInstanceId = tab._guestInstanceId || cont.guestInstanceId
+            const tabId = tab.wvId
+            ipc.send('detach-tab',tabId)
+            ipc.once(`detach-tab_${tabId}`,(e,_guestInstanceId)=>{
+              tab.wv.attachGuest(_guestInstanceId)
+              const d = {wvId:tabId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
+                rest:{rSession:tab.rSession,wvId:tabId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId}
+              ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
+              r([d,cont])
+            })
+          })
         })
-        const winId = ipc.sendSync('browser-load',{id:remote.getCurrentWindow().id,x:evt.screenX,y:evt.screenY,tabParam:JSON.stringify(vals.map(x=>x[0]))})
-        for(let x of vals){
-          x[1].moveTo(0, winId)
-        }
+        Promise.all(promises).then(vals=> {
+          const winId = ipc.sendSync('browser-load',{id:remote.getCurrentWindow().id,x:evt.screenX,y:evt.screenY,tabParam:JSON.stringify(vals.map(x=>x[0]))})
+          for(let x of vals){
+            x[1].moveTo(0, winId)
+          }
+        })
       }
       ,100)
 

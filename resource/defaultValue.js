@@ -40,6 +40,7 @@ const settingDefault =  {
   zoomBehavior: '10',
   searchHistoryOrderCount: false,
   fullscreenTransition: false,
+  fullscreenTransitionKeep: false,
   autoDeleteDownloadList: false,
 
   bindMarginFrame: isLinux ? 6 : 0,

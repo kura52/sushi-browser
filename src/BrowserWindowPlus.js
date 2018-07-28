@@ -312,6 +312,7 @@ export default {
       mainState.versions = {...process.versions,browser: fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString()}
       mainState.mediaPlaying = {}
       mainState.isVolumeControl = {}
+      mainState.fullScreenIds = {}
 
       mainState.searchProviders = {}
       for(let ele of (await searchEngine.find({}))){

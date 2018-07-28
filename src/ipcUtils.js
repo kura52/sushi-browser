@@ -731,6 +731,9 @@ ipcMain.on('get-main-state',(e,key,names)=>{
       }
       ret[name] = theme
     }
+    else if(name == 'fullScreen'){
+      ret[name] = mainState.fullScreenIds[e.sender.getId()]
+    }
     else{
       ret[name] = mainState[name]
     }
@@ -1355,13 +1358,32 @@ ipcMain.on('get-did-start-loading',(e,tabId)=>{
 // })
 
 
+const detachTabs = []
+ipcMain.on('detach-tab',(e,tabId)=>{
+  const cont = webContents.fromTabID(tabId)
+  detachTabs.push([e.sender,tabId,cont.getURL()])
+  cont._detachGuest()
+})
+
 PubSub.subscribe("web-contents-created",(msg,[tabId,sender])=>{
   console.log("web-contents-created",tabId)
   const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
   if(!cont) return
-  console.log("web-contents-created",tabId,cont.getURL())
+  console.log("web-contents-created",tabId,cont.guestInstanceId,cont.getURL())
 
   if(!sender.isDestroyed()) sender.send('web-contents-created',tabId)
+
+  if(detachTabs.length){
+    console.log(5483543,detachTabs)
+    const ind = detachTabs.findIndex(t=>{
+      return t[2] == cont.getURL()
+    })
+    if(ind !== -1){
+      detachTabs[ind][0].send(`detach-tab_${detachTabs[ind][1]}`,tabId)
+      detachTabs.splice(ind, 1)
+      return
+    }
+  }
 
   cont.on('page-title-updated',e2=> {
     if(!sender.isDestroyed()) sender.send('page-title-updated',tabId)
@@ -1773,6 +1795,10 @@ ipcMain.on('rectangular-selection',(e,val)=>{
   if(val) require('./menuSetting')()
 })
 
+
+ipcMain.on("full-screen-html",(e,val)=>{
+  mainState.fullScreenIds[e.sender.getId()] = val
+})
 
 // ipcMain.on('get-firefox-url',(e,key,url)=>{
 //   session.defaultSession.webRequest.fetch(url, {'user-agent': `Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:57.0) Gecko/20100101 Firefox/57.0`}, (err, response, body) => {

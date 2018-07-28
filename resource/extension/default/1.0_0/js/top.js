@@ -32859,7 +32859,7 @@ class TopList extends _infernoCompat2.default.Component {
     const topList = new Map();
     let pre = { location: false };
     for (let h of data.freq.sort((a, b) => {
-      const comp = (a.pin || 999999) - (b.pin || 999999);
+      const comp = (a.pin || -999999) - (b.pin || -999999);
       return comp == 0 ? b.count - a.count : comp;
     })) {
       if (h.location.startsWith('chrome-extension') || this.state.removeMap[h._id]) continue;
@@ -75040,20 +75040,23 @@ function colorOnRGB(c) {
 
 function setTheme(page) {
   const key = Math.random().toString();
-  _electron.ipcRenderer.send("get-main-state", key, ['themeInfo', 'focusLocationBar', 'topPage', 'bookmarksPage', 'historyPage']);
-  _electron.ipcRenderer.once(`get-main-state-reply_${key}`, (e, data) => {
-    const theme = data.themeInfo;
-    if (theme && theme[page]) common(theme);
-    if (page == 'themeTopPage' && data.focusLocationBar === false) {
-      const s = document.createElement('style');
-      s.setAttribute('type', 'text/css');
-      s.appendChild(document.createTextNode(`.ui.big.icon.input{display: none}
+  _electron.ipcRenderer.send("get-main-state", key, ['themeInfo', 'focusLocationBar', 'topPage', 'bookmarksPage', 'historyPage', 'enableDownloadList']);
+  return new Promise(r => {
+    _electron.ipcRenderer.once(`get-main-state-reply_${key}`, (e, data) => {
+      r(data);
+      const theme = data.themeInfo;
+      if (theme && theme[page]) common(theme);
+      if (page == 'themeTopPage' && data.focusLocationBar === false) {
+        const s = document.createElement('style');
+        s.setAttribute('type', 'text/css');
+        s.appendChild(document.createTextNode(`.ui.big.icon.input{display: none}
       .ui.cards{padding-top: 25px;}`));
-      document.head.appendChild(s);
-    }
-    // if(data.topPage) document.querySelector('#top-link').setAttribute('href',data.topPage)
-    // if(data.bookmarksPage) document.querySelector('#bookmark-link').setAttribute('href',data.bookmarksPage)
-    // if(data.historyPage) document.querySelector('#history-link').setAttribute('href',data.historyPage)
+        document.head.appendChild(s);
+      }
+      // if(data.topPage) document.querySelector('#top-link').setAttribute('href',data.topPage)
+      // if(data.bookmarksPage) document.querySelector('#bookmark-link').setAttribute('href',data.bookmarksPage)
+      // if(data.historyPage) document.querySelector('#history-link').setAttribute('href',data.historyPage)
+    });
   });
 }
 

@@ -61,8 +61,8 @@ sharedState.searchWords = {}
 function getNewTabPage(){
   const arr = ipc.sendSync('get-sync-main-states',[
     newTabMode == 'myHomepage' ? 'myHomepage' : newTabMode == 'top' ? 'topPage' :
-    newTabMode == 'favorite' ? 'bookmarksPage' :
-    newTabMode == 'history' ? 'historyPage' : 'none',
+      newTabMode == 'favorite' ? 'bookmarksPage' :
+        newTabMode == 'history' ? 'historyPage' : 'none',
     'bookmarksPage','historyPage','myHomepage'])
   topURL = arr[0] || `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/${newTabMode}.html`
   bookmarksURL = arr[1] || bookmarksURL
@@ -514,7 +514,7 @@ export default class TabPanel extends Component {
     }
     ipc.on("show-notification",eventNotification)
 
-    const closeTabFromOtherWindow = (e,data)=>{
+    const closeTabFromOtherWindow = async (e,data)=>{
       if(!this.mounted) return
       const _tabs = this.state.tabs
       let i = 0
@@ -535,7 +535,14 @@ export default class TabPanel extends Component {
 
       if(vals.length == 0) return
       for(let [tab,cont] of conts){
-        tab.wv.attachGuest(cont._detachGuest().guestInstanceId)
+        const tabId = tab.wvId
+        ipc.send('detach-tab',tabId)
+        await new Promise(r=>{
+          ipc.once(`detach-tab_${tabId}`,(e,_guestInstanceId)=>{
+            tab.wv.attachGuest(_guestInstanceId)
+            r()
+          })
+        })
       }
       ipc.send("detach-tab-to-main",vals)
       ipc.once('detach-tab-from-other-window-finish-from-main',_=>{
@@ -554,15 +561,24 @@ export default class TabPanel extends Component {
     ipc.on("close-sync-tab",eventCloseSyncTab)
 
 
-    const eventChromeWindowsCreateFromTabId = (e,createData)=>{
+    const eventChromeWindowsCreateFromTabId = async (e,createData)=>{
       if(!this.mounted) return
       const tab = this.state.tabs.find(t=>t.wvId == createData.tabId)
       if(!tab) return
 
       const cont = this.getWebContents(tab)
-      tab.wv.attachGuest(cont._detachGuest().guestInstanceId)
-      const d = {wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
-        rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || cont.guestInstanceId}
+      const guestInstanceId = tab._guestInstanceId || cont.guestInstanceId
+      const tabId = tab.wvId
+      ipc.send('detach-tab',tabId)
+      await new Promise(r=>{
+        ipc.once(`detach-tab_${tabId}`,(e,_guestInstanceId)=>{
+          tab.wv.attachGuest(_guestInstanceId)
+          r()
+        })
+      })
+
+      const d = {wvId:tabId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
+        rest:{rSession:tab.rSession,wvId:tabId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId}
       ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
 
       const winId = ipc.sendSync('browser-load',{id:remote.getCurrentWindow().id,x:createData.left,y:createData.top,
@@ -2214,6 +2230,10 @@ export default class TabPanel extends Component {
         else{
           closingPos[tab.key] = {[tab.page.navUrl]: e.args[0]}
         }
+      }
+      else if(e.channel == 'full-screen-mouseup'){
+        const rect = tab.wv.getBoundingClientRect()
+        ipc.send('force-mouse-up',{x: Math.round(rect.x+10),y:Math.round(rect.y+10)})
       }
     }];
     tab.wv.addEventListener('ipc-message',tab.events['ipc-message'][1] )
@@ -4230,40 +4250,63 @@ export default class TabPanel extends Component {
 
   detachPanel(bounds={}) {
     if(!this.props.parent.state.root.r) return
-    const vals = this.state.tabs.map(tab=>{
-      const cont = this.getWebContents(tab)
-      tab.wv.attachGuest(cont._detachGuest().guestInstanceId)
-      const d = {wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
-        rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || cont.guestInstanceId}
-      ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
-      return [d,cont]
+    const promises = this.state.tabs.map(tab=>{
+      return new Promise(r=>{
+        const cont = this.getWebContents(tab)
+        const guestInstanceId = tab._guestInstanceId || cont.guestInstanceId
+        const tabId = tab.wvId
+        ipc.send('detach-tab',tabId)
+        ipc.once(`detach-tab_${tabId}`,(e,_guestInstanceId)=>{
+          tab.wv.attachGuest(_guestInstanceId)
+          const d = {wvId:tabId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
+            rest:{rSession:tab.rSession,wvId:tabId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId}
+          ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
+          r([d,cont])
+        })
+      })
     })
-    const winId = ipc.sendSync('browser-load',{id:remote.getCurrentWindow().id,...bounds,tabParam:JSON.stringify(vals.map(x=>x[0]))})
-    for(let x of vals){
-      x[1].moveTo(0, winId)
-    }
+    Promise.all(promises).then(vals=> {
+      const winId = ipc.sendSync('browser-load',{id:remote.getCurrentWindow().id,...bounds,tabParam:JSON.stringify(vals.map(x=>x[0]))})
+      for(let x of vals){
+        x[1].moveTo(0, winId)
+      }
+    })
   }
 
-  detachTab(tab,bounds={}) {
+  async detachTab(tab,bounds={}) {
     const _tabs = this.state.tabs
     if(_tabs.length > 1) {
       const i = _tabs.findIndex((x)=>x.key === tab.key)
       const cont = this.getWebContents(tab)
-      tab.wv.attachGuest(cont._detachGuest().guestInstanceId)
+      const guestInstanceId = tab._guestInstanceId || cont.guestInstanceId
+      ipc.send('detach-tab',tab.wvId)
+      await new Promise(r=>{
+        ipc.once(`detach-tab_${tab.wvId}`,(e,_guestInstanceId)=>{
+          tab.wv.attachGuest(_guestInstanceId)
+          r()
+        })
+      })
       const d = {wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
-        rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || cont.guestInstanceId}
+        rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId}
       ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
       const winId = ipc.sendSync('browser-load',{id:remote.getCurrentWindow().id,...bounds,_alwaysOnTop:true,toggle:1,tabParam:JSON.stringify([d])})
       cont.moveTo(0, winId)
     }
     else{
       const t = this.handleTabAddButtonClick()
-      setTimeout(_=> {
+      setTimeout(async _=> {
         const i = _tabs.findIndex((x)=>x.key === tab.key)
         const cont = this.getWebContents(tab)
-        tab.wv.attachGuest(cont._detachGuest().guestInstanceId)
+        const guestInstanceId = tab._guestInstanceId || cont.guestInstanceId
+        ipc.send('detach-tab',tab.wvId)
+        await new Promise(r=>{
+          ipc.once(`detach-tab_${tab.wvId}`,(e,_guestInstanceId)=>{
+            tab.wv.attachGuest(_guestInstanceId)
+            r()
+          })
+        })
         const d = {wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
-          rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || cont.guestInstanceId}
+          rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId}
         ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
         const winId = ipc.sendSync('browser-load',{id:remote.getCurrentWindow().id,...bounds,_alwaysOnTop:true,toggle:1,tabParam:JSON.stringify([d])})
         cont.moveTo(0, winId)

@@ -1,4 +1,7 @@
 const ipc = chrome.ipcRenderer
+const isWin = navigator.userAgent.includes('Windows')
+const EOL = isWin ? "\r\n" : "\n"
+
 
 export default class RectangularSelection{
   constructor(){
@@ -21,7 +24,7 @@ export default class RectangularSelection{
     if(!node || this.set.has(node)) return
     this.set.add(node)
     for(let n of node.childNodes || []){
-      if(n.constructor.name == 'Text' || n.tagName == 'V1_'){
+      if((n.constructor.name == 'Text' && !n.data.match(/^[ \t\r\n]+$/)) || n.tagName == 'V1_'){
         this.textNodes.set(n,node)
       }
       else{
@@ -174,22 +177,49 @@ export default class RectangularSelection{
     this.task = _=> {
       this._replaceNodes = this.selectRectangular(this.rect,this._replaceNodes)
 
-      let pre, data = ""
+      let  i = 0, map = {}
       for(let n of document.querySelectorAll("v2_")){
-        if(n.style.color !== 'white') continue
+        if(n.style.color !== 'white' || window.getComputedStyle(n).visibility == 'hidden') continue
         const rect = n.getBoundingClientRect()
-
-      }
-
-
-      for(let n of document.querySelectorAll("v2_")){
-        if(n.style.color !== 'white') continue
-        if(pre){
-          data += pre.nextElementSibling == n ? pre.innerText : `${pre.innerText}\n`
+        if(map[rect.y]){
+          map[rect.y].push([i,rect,n])
         }
-        pre = n
+        else{
+          map[rect.y] = [[i,rect,n]]
+        }
+        i++
       }
-      if(pre) data += pre.innerText
+
+      const arr = []
+      for(let [k,v] of Object.entries(map)){
+        arr.push([v.length, k, v])
+      }
+      arr.sort((a,b)=> b - a)
+
+      let n = 0, skip = new Set(), newArr = []
+      for(let [len,y,v] of arr){
+        if(skip.has(n++)) continue
+
+        let m = n
+        for(let [len2,y2,v2] of arr.slice(n)){
+          if(skip.has(m)) continue
+          if(Math.abs(y-y2) <= 3){
+            v.push(...v2)
+            skip.add(m)
+          }
+          m++
+        }
+        newArr.push(v)
+      }
+
+      let data = "",j = 0
+      for(let v of newArr.sort((a,b)=>(a[0][1].y - b[0][1].y))){
+        v.sort((a,b)=>(a[1].x - b[1].x == 0 ? a[0] - b[0] : a[1].x - b[1].x))
+        data += v.map((x,i)=> (!v[i+1] || v[i+1][1].x - (x[1].x + x[1].width) < 10 ) ? x[2].innerText : `${x[2].innerText}\t`).join("")
+        data += (newArr[j+1] && (newArr[j+1][0][1].y - (v[0][1].y + v[0][1].height)) > 10 ? EOL + EOL : EOL)
+        j++
+      }
+
       ipc.send('rectangular-selection',data)
 
       this.data = data

@@ -325,7 +325,7 @@ class TopList extends React.Component {
     const topList = new Map()
     let pre = {location:false}
     for(let h of data.freq.sort((a,b)=> {
-      const comp = (a.pin||999999) - (b.pin||999999)
+      const comp = (a.pin||-999999) - (b.pin||-999999)
       return comp == 0 ? b.count - a.count : comp
     })){
       if(h.location.startsWith('chrome-extension') || this.state.removeMap[h._id]) continue

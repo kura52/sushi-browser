@@ -578,7 +578,7 @@ export default class SplitWindows extends Component{
     ipc.on('leave-full-screen',this.fullScreenState)
 
 
-    this.eventChromeTabsMoveInner = (e,sendKey,tabIds,indexOrKey,isBack,selectedTab)=>{
+    this.eventChromeTabsMoveInner = async (e,sendKey,tabIds,indexOrKey,isBack,selectedTab)=>{
       const isIndex = Number.isFinite(indexOrKey)
       const keys = []
       const oldIndexes = {}
@@ -628,11 +628,19 @@ export default class SplitWindows extends Component{
         for(let ele of map[key]){
           const tab = ele[0]
           const cont = getWebContents(tab)
-          tab.wv.attachGuest(cont._detachGuest().guestInstanceId)
+          const guestInstanceId = tab._guestInstanceId || getWebContents(tab).guestInstanceId
+          const tabId = tab.wvId
+          ipc.send('detach-tab',tabId)
+          await new Promise(r=>{
+            ipc.once(`detach-tab_${tabId}`,(e,_guestInstanceId)=>{
+              tab.wv.attachGuest(_guestInstanceId)
+              r()
+            })
+          })
           const newKey = uuid.v4()
           if(selectedTab == tab.key) selectedTab = newKey
-          const n_tab = this.refs2[indexKey].createTab({c_page:tab.page,c_key:newKey,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,guestInstanceId: tab._guestInstanceId || getWebContents(tab).guestInstanceId,
-            rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis}})
+          const n_tab = this.refs2[indexKey].createTab({c_page:tab.page,c_key:newKey,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,guestInstanceId,
+            rest:{rSession:tab.rSession,wvId:tabId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis}})
           others.push([n_tab,ele[1],ele[0]])
         }
         funcs[key] =_=>{
@@ -709,7 +717,7 @@ export default class SplitWindows extends Component{
 
 
 
-    this.eventChromeTabsMoveDetach = (e,sendKey,tabIds,winId)=>{
+    this.eventChromeTabsMoveDetach = async (e,sendKey,tabIds,winId)=>{
       const keys = []
       const oldIndexes = {}
       this.allKeys(this.state.root,keys)
@@ -741,10 +749,18 @@ export default class SplitWindows extends Component{
         for(let ele of map[key]){
           const tab = ele[0]
           const cont = getWebContents(tab)
-          tab.wv.attachGuest(cont._detachGuest().guestInstanceId)
+          const guestInstanceId = tab._guestInstanceId || getWebContents(tab).guestInstanceId
+          const tabId = tab.wvId
+          ipc.send('detach-tab',tabId)
+          await new Promise(r=>{
+            ipc.once(`detach-tab_${tabId}`,(e,_guestInstanceId)=>{
+              tab.wv.attachGuest(_guestInstanceId)
+              r()
+            })
+          })
           const panel = this.refs2[key]
-          const d = resolve({wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,freeze:tab.freeze,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
-            rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || getWebContents(tab).guestInstanceId})
+          const d = resolve({wvId:tabId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,freeze:tab.freeze,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
+            rest:{rSession:tab.rSession,wvId:tabId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId})
 
           ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: oldIndexes[d.wvId]})
           detaches.push(ele)

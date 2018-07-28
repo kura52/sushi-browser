@@ -295,13 +295,21 @@ const createEditSubmenu = () => {
   ]
 
   // console.log('mainState.rectSelection',mainState.rectSelection&&mainState.rectSelection[1])
-  // if(mainState.rectSelection){
-  //   delete submenu[4].role
-  //   submenu[4].click = function(item, focusedWindow) {
-  //     console.log('mainState.rectSelection2',mainState.rectSelection[1])
-  //     clipboard.writeText(mainState.rectSelection[1])
-  //   }
-  // }
+  if(mainState.rectSelection){
+    delete submenu[4].role
+    submenu[4].click = function(item, focusedWindow) {
+        getFocusedWebContents(true).then(cont=>{
+          if(cont){
+            if(cont.getId() == mainState.rectSelection[0].getId()){
+              clipboard.writeText(mainState.rectSelection[1])
+            }
+            else{
+              cont.copy()
+            }
+          }
+        })
+    }
+  }
 
   if (isDarwin) {
     // delete submenu[4].role

@@ -142,6 +142,7 @@ app.on('ready', async ()=>{
   ses.userPrefs.setBooleanPref('credentials_enable_autosignin', true)
   ses.userPrefs.setStringPref('download.default_directory', app.getPath('downloads'))
 
+  console.log(4342455,ses.userPrefs)
 
   // ses.autofill.getAutofillableLogins((result) => {
   //   // console.log(1,result)
@@ -809,6 +810,13 @@ function contextMenu(webContents) {
     console.log(props.pageURL)
     const disableContextMenus = new Set(mainState.disableContextMenus)
 
+    // if(mainState.rectSelection){
+    let rectSelectText
+    if(mainState.rectSelection && mainState.rectSelection[0].getId() == webContents.getId()){
+      props.selectionText = mainState.rectSelection[1]
+      rectSelectText = props.selectionText
+    }
+
     let menuItems = []
     const {mediaFlags, editFlags} = props
     const text = props.selectionText.trim()
@@ -1130,14 +1138,21 @@ function contextMenu(webContents) {
       menuItems.push({type: 'separator'})
     }
     else if (hasText) {
-      if (isDarwin) {
-        menuItems.push({t: 'copy', label: locale.translation("copy"), enabled: can('Copy'),
-          click(item, focusedWindow) { getFocusedWebContents().then(cont =>cont && cont.copy())}
-        })
+      // if (isDarwin) {
+      //   menuItems.push({t: 'copy', label: locale.translation("copy"), enabled: can('Copy'),
+      //     click(item, focusedWindow) { getFocusedWebContents().then(cont =>cont && cont.copy())}
+      //   })
+      // }
+      // else{
+      if(mainState.rectSelection){
+        menuItems.push({t: 'copy', label: locale.translation("copy"), click(item, focusedWindow){
+            clipboard.writeText(mainState.rectSelection[1])
+          }})
       }
       else{
         menuItems.push({t: 'copy', label: locale.translation("copy"), role: 'copy', enabled: can('Copy')})
       }
+      // }
       if(mainState.contextMenuSearchEngines.length == 0){
         const type = mainState.searchProviders[mainState.searchEngine].type
         const isURLGo = !type && urlutil.isURL(text)
@@ -1191,7 +1206,7 @@ function contextMenu(webContents) {
         mainState.searchEngineDisplayType == 'o' ? ['(o)'] : mainState.oppositeGlobal ? ['(o)','(c)'] : ['(c)','(o)']){
         menuItems.push({ label: 'Add to Notes' + suffix, click: async (item,win)=>{
             win.webContents.send(suffix == '(o)' ? 'new-tab-opposite' : 'new-tab',
-              webContents.getId(), `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note.html?content=${encodeURIComponent(await getSelectionHTML(webContents))}` ,suffix == '(o)')
+              webContents.getId(), `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note.html?content=${encodeURIComponent(rectSelectText ? rectSelectText.replace(/\r?\n/g,"<br/>") :  (await getSelectionHTML(webContents)))}` ,suffix == '(o)')
 
           }})
       }
@@ -1215,6 +1230,7 @@ function contextMenu(webContents) {
         t: 'savePageAs', label: locale.translation('savePageAs'), click: (item, win) => {
           console.log('down1',webContents.getURL())
           ipcMain.emit('need-set-save-filename',null,webContents.getURL())
+          ipcMain.emit('save-page-as',null,webContents.getURL())
           win.webContents.downloadURL(webContents.getURL(), true)
         }
       })

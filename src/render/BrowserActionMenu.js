@@ -39,10 +39,22 @@ ipc.on('chrome-browser-action-set-ipc-all',(e,extensionId,name,val) => {
 })
 
 const defaults = {}
+
+const waitForFrame = () => new Promise(resolve => window.requestAnimationFrame(resolve))
+
+async function forceDrawWebview (webview) {
+  await waitForFrame()
+  webview.style.visibility = 'hidden'
+  await waitForFrame()
+  webview.style.visibility = ''
+  await waitForFrame()
+}
+
+
 class BrowserActionWebView extends Component {
   constructor(props) {
     super(props)
-    this.state = {style:{opacity: 0.01,...this.props.style}}
+    this.state = {style:{opacity: 0.01, userSelect: 'none', ...this.props.style}}
     this.first = true
     this.close = true
 
@@ -53,6 +65,10 @@ class BrowserActionWebView extends Component {
     }
     this.didAttachEvent = () => {
       this.refs.webview.enablePreferredSizeMode(true);
+      if (!this.hasDrawn) {
+        forceDrawWebview(this.refs.webview)
+        this.hasDrawn = true
+      }
     }
 
     let count,time
@@ -81,7 +97,7 @@ class BrowserActionWebView extends Component {
         // const obj = ReactDOM.findDOMNode(webview).querySelector("::shadow object")
         // width = Math.max(width,obj.clientWidth)
 
-        this.setState({style:{width,height}},_=>{
+        this.setState({style:{width,height, userSelect: 'none'}},_=>{
           setTimeout(_=>{
             this.props.setClassName("")
 
@@ -137,7 +153,11 @@ class BrowserActionWebView extends Component {
   }
 
   render(){
-    return this.close ? null : <webview ref="webview" className="popup" src={this.props.url} style={this.state.style}/>
+    return this.close ? null : <webview ref="webview" name="browserAction" onClick={e=>{
+      e.stopPropagation()
+      e.preventDefault()
+      return false
+    }} className="popup" src={this.props.url} style={this.state.style}/>
   }
 }
 
@@ -318,9 +338,11 @@ export default class BrowserActionMenu extends Component{
     const popup = this.state.popup || popups[this.props.id] || values.default_popup
     const text = this.state.text || texts[this.props.id]
     const title = this.state.title || titles[this.props.id]
-    return <Dropdown onMouseDown={::this.handleClick} onOpen={_=>{if(this.refs && this.refs.popupView){this.refs.popupView.reload()}; document.addEventListener('mousedown',this.outerClick)}} onClose={_=>{if(this.refs && this.refs.popupView){this.refs.popupView.onClose()};document.removeEventListener('mousedown',this.outerClick)}}
+    return <Dropdown onMouseDown={::this.handleClick} tabIndex={-1}
+                     onOpen={_=>{if(this.refs && this.refs.popupView){this.refs.popupView.reload()}; document.addEventListener('mousedown',this.outerClick)}}
+                     onClose={_=>{if(this.refs && this.refs.popupView){this.refs.popupView.onClose()};document.removeEventListener('mousedown',this.outerClick)}}
       // onDragStart={e=>console.log(4342355,e)} onDragEnter={e=>{console.log(4342344,e)}}
-                     scrolling className={`draggable-source nav-button sort-${id}`} ref="dd" key={id} trigger={<a href="javascript:void(0)"  title={title|| values.name}>
+                     scrolling className={`draggable-source nav-button sort-${id}`} ref="dd" key={id} trigger={<a href="javascript:void(0)"  title={title|| values.name} tabIndex="-1">
       <img style={{width:16,height:16,verticalAlign:'middle'}} src={this.state.icon ? `file://${this.state.icon}` : `file://${values.basePath}/${values.default_icon ? (typeof values.default_icon === "object" ? Object.values(values.default_icon)[0] : values.default_icon) : Object.values(values.icons)[0]}`} onError={(e)=>{
         console.log(99854,this.state.icon)
         if(retry++ > 10) return

@@ -366,6 +366,11 @@ const contextMenus = [
   ['Sync Scroll Right to Left', 'Sync Scroll Right to Left'],
 
   ['divider', null],
+  
+  ['Add to Notes(c)', 'Add to Notes(c)'],
+  ['Add to Notes(o)', 'Add to Notes(o)'],
+
+  ['divider', null],
 
   ['viewPageSource', l10n.translation('viewPageSource')],
   ['inspectElement', l10n.translation('inspectElement')],
@@ -732,17 +737,23 @@ class GeneralSetting extends React.Component {
 
         <div className="field">
           <label>Special Behavior</label>
+          <Checkbox defaultChecked={this.state.rectangularSelection} toggle onChange={this.onChange.bind(this,'rectangularSelection')}/>
+          <span className="toggle-label">Enable Rectangular Selection (Alt + Mouse Drag) </span>
+          <br/>
           <Checkbox defaultChecked={this.state.extensionOnToolbar} toggle onChange={this.onChange.bind(this,'extensionOnToolbar')}/>
-          <span className="toggle-label">Show Chrome Extension Icon on Toolbar({l10n.translation('requiresRestart').replace('* ','')})</span>
+          <span className="toggle-label">Show Chrome Extension Icon on Toolbar ({l10n.translation('requiresRestart').replace('* ','')})</span>
           <br/>
           {isDarwin ? null : <Checkbox defaultChecked={this.state.displayFullIcon} toggle onChange={this.onChange.bind(this,'displayFullIcon')}/>}
-          {isDarwin ? null : <span className="toggle-label">Show Fullscreen Button({l10n.translation('requiresRestart').replace('* ','')})</span>}
+          {isDarwin ? null : <span className="toggle-label">Show Fullscreen Button ({l10n.translation('requiresRestart').replace('* ','')})</span>}
           {isDarwin ? null : <br/>}
           <Checkbox defaultChecked={this.state.enableMouseGesture} toggle onChange={this.onChange.bind(this,'enableMouseGesture')}/>
-          <span className="toggle-label">Enable Mouse Gesture({l10n.translation('requiresRestart').replace('* ','')})</span>
+          <span className="toggle-label">Enable Mouse Gesture ({l10n.translation('requiresRestart').replace('* ','')})</span>
+          <br/>
+          <Checkbox defaultChecked={this.state.fullscreenTransitionKeep} toggle onChange={this.onChange.bind(this,'fullscreenTransitionKeep')}/>
+          <span className="toggle-label">Maintain fullscreen mode even after page transition</span>
           <br/>
           <Checkbox defaultChecked={this.state.fullscreenTransition} toggle onChange={this.onChange.bind(this,'fullscreenTransition')}/>
-          <span className="toggle-label">Cancel fullscreen mode at page transition({l10n.translation('requiresRestart').replace('* ','')})</span>
+          <span className="toggle-label">Cancel fullscreen mode at page transition ({l10n.translation('requiresRestart').replace('* ','')})</span>
           <br/>
           <Checkbox defaultChecked={this.state.historyBadget} toggle onChange={this.onChange.bind(this,'historyBadget')}/>
           <span className="toggle-label">Show Back/Forward Button's Badge ({l10n.translation('requiresRestart').replace('* ','')})</span>
@@ -2588,7 +2599,7 @@ ipc.send("get-main-state",key,['startsWith','newTabMode','myHomepage','searchPro
   'clearSessionManagerOnClose','clearFaviconOnClose','clearAutomationOnClose','clearNoteOnClose','clearType','clearDays',
   'enableWidevine','toolbarLink','sidebarLink','bookmarkbarLink','zoomBehavior','tabPreviewSizeWidth','tabPreviewSizeHeight','tabPreviewSlideHeight','tabPreviewWait','searchEngineDisplayType','tabPreviewRecent',
   'sendUrlContextMenus','extensions','tabBarMarginTop','removeTabBarMarginTop','enableTheme','themeTopPage','themeBookmark','themeHistory','themeDownloader','themeExplorer','themeBookmarkSidebar','themeHistorySidebar',
-  'themeSessionManagerSidebar','themeTabTrashSidebar','themeTabHistorySidebar','themeExplorerSidebar','searchHistoryOrderCount'])
+  'themeSessionManagerSidebar','themeTabTrashSidebar','themeTabHistorySidebar','themeExplorerSidebar','searchHistoryOrderCount','rectangularSelection','fullscreenTransitionKeep'])
 ipc.once(`get-main-state-reply_${key}`,(e,data)=>{
   generalDefault = data
   keyboardDefault = data

@@ -143,6 +143,7 @@ db.searchHistories = async (regText,limit,searchHistoryOrderCount) =>{
   const arr = [],arr2 = []
   for (let e of cond) {
     e = new RegExp(e,'i')
+    // e = new RegExp(e)
     arr.push({ $or: [{ title: e }, { location: e }]})
     arr2.push({text: e })
   }
