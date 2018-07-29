@@ -479,12 +479,12 @@ class FileExplorer extends React.Component{
         <Menu.Item as='a' href='chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html' id='bookmark-link' key="favorite" name={l10n.translation('bookmarks')}/>
         <Menu.Item as='a' href='chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html' id='history-link' key="history" name={l10n.translation('history')}/>
         <Menu.Item as='a' href={`${baseURL}/download.html`} key="download" name={l10n.translation('downloads')}/>
-        <Menu.Item as='a' href={`${baseURL}/note.html`} key="note" name="Note"/>
+        <Menu.Item as='a' href={`${baseURL}/note.html`} key="note" name={l10n.translation('note')}/>
         <Menu.Item as='a' href={`${baseURL}/settings.html`} key="settings" name={l10n.translation('settings')}/>
-        {/*<Menu.Item key="file-explorer" name="File Explorer" active={true}/>*/}
-        <Menu.Item as='a' href={`${baseURL}/terminal.html`} key="terminal" name="Terminal"/>
-        <Menu.Item as='a' href={`${baseURL}/automation.html`} key="automation" name="Automation"/>
-        <Menu.Item as='a' href={`${baseURL}/converter.html`} key="converter" name="Video Converter"/>
+        {/*<Menu.Item key="file-explorer" name={l10n.translation('fileExplorer')} active={true}/>*/}
+        <Menu.Item as='a' href={`${baseURL}/terminal.html`} key="terminal" name={l10n.translation('terminal')}/>
+        <Menu.Item as='a' href={`${baseURL}/automation.html`} key="automation" name={l10n.translation('automation')}/>
+        <Menu.Item as='a' href={`${baseURL}/converter.html`} key="converter" name={l10n.translation('videoConverter')}/>
       </Menu>
     }
 

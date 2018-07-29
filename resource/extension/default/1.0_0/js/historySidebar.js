@@ -34868,7 +34868,7 @@ class App extends _infernoCompat2.default.Component {
             newDirc.push(ele);
             count = 0;
           } else {
-            if (reg.test(`${ele.name}\t${ele.url}`)) {
+            if (reg.test(`${ele.name.children[3].children}\t${ele.url}`)) {
               newDirc.push(ele);
               count++;
             }
@@ -61689,7 +61689,7 @@ function getElementType(Component, props, getDefault) {
   // ----------------------------------------
   // user defined "as" element type
 
-  if (props.as && props.as !== (defaultProps && (defaultProps && (defaultProps && (defaultProps && (defaultProps && (defaultProps && (defaultProps && defaultProps.as)))))))) return props.as;
+  if (props.as && props.as !== (defaultProps && (defaultProps && defaultProps.as))) return props.as;
 
   // ----------------------------------------
   // computed default element type
@@ -61707,7 +61707,7 @@ function getElementType(Component, props, getDefault) {
   // ----------------------------------------
   // use defaultProp or 'div'
 
-  return (defaultProps && (defaultProps && (defaultProps && (defaultProps && (defaultProps && (defaultProps && (defaultProps && defaultProps.as))))))) || 'div';
+  return (defaultProps && (defaultProps && defaultProps.as)) || 'div';
 }
 
 /* harmony default export */ __webpack_exports__["a"] = (getElementType);
@@ -64570,7 +64570,7 @@ var Dropdown = function (_Component) {
 
       e.stopPropagation();
       // prevent closeOnDocumentClick() if multiple or item is disabled
-      if (multiple || item.disabled) (((((e.nativeEvent || e) || e) || e) || e) || e).stopImmediatePropagation();
+      if (multiple || item.disabled) e.nativeEvent.stopImmediatePropagation();
       if (item.disabled) return;
 
       var isAdditionItem = item['data-additional'];
@@ -70753,7 +70753,7 @@ var Search = function (_Component) {
     }, _this.handleInputClick = function (e) {
 
       // prevent closeOnDocumentClick()
-      (((((e.nativeEvent || e) || e) || e) || e) || e).stopImmediatePropagation();
+      e.nativeEvent.stopImmediatePropagation();
 
       _this.tryOpen();
     }, _this.handleItemClick = function (e, _ref2) {
@@ -70762,7 +70762,7 @@ var Search = function (_Component) {
       var result = _this.getSelectedResult(id);
 
       // prevent closeOnDocumentClick()
-      (((((e.nativeEvent || e) || e) || e) || e) || e).stopImmediatePropagation();
+      e.nativeEvent.stopImmediatePropagation();
 
       // notify the onResultSelect prop that the user is trying to change value
       _this.setValue(result.title);
@@ -76480,17 +76480,23 @@ function colorOnRGB(c) {
 
 function setTheme(page) {
   const key = Math.random().toString();
-  _electron.ipcRenderer.send("get-main-state", key, ['themeInfo', 'focusLocationBar']);
-  _electron.ipcRenderer.once(`get-main-state-reply_${key}`, (e, data) => {
-    const theme = data.themeInfo;
-    if (theme && theme[page]) common(theme);
-    if (page == 'themeTopPage' && data.focusLocationBar === false) {
-      const s = document.createElement('style');
-      s.setAttribute('type', 'text/css');
-      s.appendChild(document.createTextNode(`.ui.big.icon.input{display: none}
+  _electron.ipcRenderer.send("get-main-state", key, ['themeInfo', 'focusLocationBar', 'topPage', 'bookmarksPage', 'historyPage', 'enableDownloadList']);
+  return new Promise(r => {
+    _electron.ipcRenderer.once(`get-main-state-reply_${key}`, (e, data) => {
+      r(data);
+      const theme = data.themeInfo;
+      if (theme && theme[page]) common(theme);
+      if (page == 'themeTopPage' && data.focusLocationBar === false) {
+        const s = document.createElement('style');
+        s.setAttribute('type', 'text/css');
+        s.appendChild(document.createTextNode(`.ui.big.icon.input{display: none}
       .ui.cards{padding-top: 25px;}`));
-      document.head.appendChild(s);
-    }
+        document.head.appendChild(s);
+      }
+      // if(data.topPage) document.querySelector('#top-link').setAttribute('href',data.topPage)
+      // if(data.bookmarksPage) document.querySelector('#bookmark-link').setAttribute('href',data.bookmarksPage)
+      // if(data.historyPage) document.querySelector('#history-link').setAttribute('href',data.historyPage)
+    });
   });
 }
 

@@ -1,3 +1,5 @@
+import l10n from "../../brave/js/l10n";
+
 const React = require('react')
 const {Component} = React
 const {remote} = require('electron');
@@ -249,17 +251,18 @@ const tabsStyles = {
 let ttime = 0
 let guestIds = {}
 let historyMap = new Map([
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html',['Top Page','resource/file.svg']],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html',[locale.translation('topPage'),'resource/file.svg']],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html',['Blank','resource/file.svg']],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html',['Bookmarks','resource/file.svg']],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html',['History','resource/file.svg']],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_history.html',['TabHistory','resource/file.svg']],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html',['Explorer','resource/file.svg']],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html',['Download','resource/file.svg']],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html',['Video Converter','resource/file.svg']],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html',['Automation Center','resource/file.svg']],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html',['Terminal','resource/file.svg']],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html',['History','resource/file.svg']],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html',[locale.translation('bookmarks'),'resource/file.svg']],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html',[locale.translation('history'),'resource/file.svg']],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_history.html',['Tab History','resource/file.svg']],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html',[locale.translation('fileExplorer'),'resource/file.svg']],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html',[locale.translation('downloads'),'resource/file.svg']],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html',[locale.translation('videoConverter'),'resource/file.svg']],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html',[locale.translation('Automation'),'resource/file.svg']],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html',[locale.translation('terminal'),'resource/file.svg']],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html',[locale.translation('settings'),'resource/file.svg']],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note.html',[locale.translation('note'),'resource/file.svg']],
 ])
 
 const withWindowCreateTabs = new Set()

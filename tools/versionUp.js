@@ -21,31 +21,28 @@ const glob = require("glob")
 // Ikura(Salmon Roe)
 // Iwashi(Sardine)
 // Engawa(Flounder Fin)
+// Amaebi(Sweet Shrimp)
 
 const BEFORE_CODE_NAME = 'Engawa(Flounder Fin)'
-const CODE_NAME = 'Engawa(Flounder Fin)'
+const CODE_NAME = 'Amaebi(Sweet Shrimp)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.19.6"
+const NEXT_APP_VERSION = "0.20.0"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Opened the Sushi Browser Tips page (https://sushib.me/tips/).
-Improved mobile mode so that user agents of various browsers can be selected. 
-Added option to release fullscreen mode when page transition.(Cancel fullscreen mode at page transition)
-Added setting button for download list display to downloader. (Enable Download List)
-Added option to delete items from download list when download is completed. (Delete from download list when download is completed)
-Fixed a bug in tab preview at multi-tab
-Improved tab preview on vertical tab
-fixed Hide tabs bug on vertical tab
+const CHANGE_ENGLISH = `Added rectangle selection function.
+Localized 200+ items.
+Added function to save in MHTML when extension is selected as mht or mhtml when saving page. (#16)
+Added "Maintain fullscreen mode even after page transition" option.
+Updated to Muon 8.0.3. (Chromium 68.0.3440.75)
+Fixed bug in download
 Fixed some bugs.`
 
-const CHANGE_JAPANESE = `Sushi Browser Tipsページ(https://sushib.me/ja/tips/)を開設
-様々なブラウザのユーザーエージェントを選択できるようモバイルモードを改善
-ページ遷移時にフルスクリーンモードを解除するオプションを追加(Cancel fullscreen mode at page transition)
-ダウンローダーにダウンロードリストの表示非表示の設定ボタンを追加(Enable Download List)
-ダウンロード完了時にダウンロードリストから項目を削除するオプションを追加(Delete from download list when download is completed)
-多段タブ時のタブプレビューの不具合修正
-縦タブでタブプレビューが表示されるように改善
-縦タブのHide tabsのバグ修正
+const CHANGE_JAPANESE = `矩形選択機能を追加
+200項目以上をローカライズ（多言語化)
+ページ保存時に拡張子にmhtまたはmhtmlを選択した場合に、MHTMLで保存する機能を追加
+「ページ遷移後もフルスクリーンモードを維持」のオプションを追加
+Muonを8.0.3に更新(Chromium 68.0.3440.75)
+ダウンロードの不具合修正
 いくつかの不具合修正`
 
 const isWindows = process.platform === 'win32'
