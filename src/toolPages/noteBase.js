@@ -13,6 +13,8 @@ import VerticalTabResizer from '../render/VerticalTabResizer'
 import removeMarkdown from './removeMarkdown'
 import $ from 'jquery';
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
+import l10n from '../../brave/js/l10n';
+l10n.init()
 
 const Editor = require('./tui-editor/dist/tui-editor-Editor-all.min');
 
@@ -227,11 +229,10 @@ async function getAllChildren(nodePath,num){
 
 
 let selectedNodes = [];
-let treeAllData,l10n,timeoutId
+let treeAllData,timeoutId
 export default class App extends React.Component {
   constructor(props) {
     super(props)
-    l10n = this.props.favoritePage && require('../../brave/js/l10n')
     this.handleBlur = ::this.handleBlur
     this.handleLoad = ::this.handleLoad
     this.handleChange = ::this.handleChange

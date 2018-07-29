@@ -94,7 +94,6 @@ if(window.__started_){
   // }
   // else{
   document.addEventListener('dragend', handleDragEnd, false)
-  document.addEventListener('drop',e=>console.log(e),false)
   // }
 
 

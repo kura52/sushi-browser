@@ -116,7 +116,7 @@ For example, it incorporates a number of functions equivalent to the Firefox add
 
 Please check [here](https://sushib.me/tips/#tab/) for more details.
 
-![tabs](https://sushib.me/myimg/tabs.png)
+![tabs](https://sushib.me/myimg/tabs.gif)
 
 #### 1. Multi-row tab
 Multi-row tabs can be used in the Sushi Browser. And ordinary tabs can be switched to Multi-row tabs from the main menu.  
@@ -239,14 +239,14 @@ This browser makes use of wonderful web technologies, starting with the followin
 Both the installer for every platform and the portable version can be downloaded.  
 To use the portable edition, please run sushi.exe for Windows and sushi-browser for Mac/Linux after decompressing.
 
-- [Windows Installer v0.19.6](https://sushib.me/dl/sushi-browser-0.19.6-setup-x64.exe)
-- [Windows Portable v0.19.6(self-extract)](https://sushib.me/dl/sushi-browser-0.19.6-win-x64.exe)
-- [Windows Portable v0.19.6](https://sushib.me/dl/sushi-browser-0.19.6-win-x64.zip)
-- [MacOS dmg v0.19.6](https://sushib.me/dl/SushiBrowser-0.19.6.dmg)
-- [MacOS Portable v0.19.6](https://sushib.me/dl/sushi-browser-0.19.6-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.19.6](https://sushib.me/dl/sushi-browser-0.19.6.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.19.6](https://sushib.me/dl/sushi-browser_0.19.6_amd64.deb)
-- [Linux Portable v0.19.6](https://sushib.me/dl/sushi-browser-0.19.6.tar.bz2)
+- [Windows Installer v0.20.0](https://sushib.me/dl/sushi-browser-0.20.0-setup-x64.exe)
+- [Windows Portable v0.20.0(self-extract)](https://sushib.me/dl/sushi-browser-0.20.0-win-x64.exe)
+- [Windows Portable v0.20.0](https://sushib.me/dl/sushi-browser-0.20.0-win-x64.zip)
+- [MacOS dmg v0.20.0](https://sushib.me/dl/SushiBrowser-0.20.0.dmg)
+- [MacOS Portable v0.20.0](https://sushib.me/dl/sushi-browser-0.20.0-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.20.0](https://sushib.me/dl/sushi-browser-0.20.0.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.20.0](https://sushib.me/dl/sushi-browser_0.20.0_amd64.deb)
+- [Linux Portable v0.20.0](https://sushib.me/dl/sushi-browser-0.20.0.tar.bz2)
 
 # Use of Flash 
 If Flash won't run, please install Flash from the following web sites.  
@@ -260,6 +260,15 @@ sushi-browser --no-sandbox
 ```
 
 # New Features
+
+#### New function(v0.20.0)
+- Added rectangle selection function.(Alt + Mouse Drag)
+- Localized 200+ items.
+- Added function to save in MHTML when extension is selected as mht or mhtml when saving page. (#16)
+- Added "Maintain fullscreen mode even after page transition" option.
+- Updated to Muon 8.0.3. (Chromium 68.0.3440.75)
+- Fixed bug in download
+- Fixed some bugs.
 
 #### New function(v0.19.6)
 - Opened the Sushi Browser Tips page (https://sushib.me/tips/).

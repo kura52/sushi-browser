@@ -117,7 +117,7 @@ Sushi Browserはタブに関しても、画面の有効利用や便利機能の�
 
 詳細は、[こちら](https://sushib.me/ja/tips/#tab/)をご確認ください。
 
-![tabs](https://sushib.me/myimg/tabs.png)
+![tabs](https://sushib.me/myimg/tabs.gif)
 
 #### 1. 多段タブ
 Sushi Browserでは多段タブを利用でき、メインメニューから通常タブと多段タブを切り替えることができます。  
@@ -247,14 +247,14 @@ Puppeteer(ヘッドレスChromeでの自動化) APIと互換性のあるAPIを�
 
 各プラットフォームに対し、インストーラとポータブル版の両方がダウンロードできます。
 
-- [Windows Installer v0.19.6](https://sushib.me/dl/sushi-browser-0.19.6-setup-x64.exe)
-- [Windows Portable v0.19.6(自己解凍)](https://sushib.me/dl/sushi-browser-0.19.6-win-x64.exe)
-- [Windows Portable v0.19.6](https://sushib.me/dl/sushi-browser-0.19.6-win-x64.zip)
-- [MacOS dmg v0.19.6](https://sushib.me/dl/SushiBrowser-0.19.6.dmg)
-- [MacOS Portable v0.19.6](https://sushib.me/dl/sushi-browser-0.19.6-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.19.6](https://sushib.me/dl/sushi-browser-0.19.6.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.19.6](https://sushib.me/dl/sushi-browser_0.19.6_amd64.deb)
-- [Linux Portable v0.19.6](https://sushib.me/dl/sushi-browser-0.19.6.tar.bz2)
+- [Windows Installer v0.20.0](https://sushib.me/dl/sushi-browser-0.20.0-setup-x64.exe)
+- [Windows Portable v0.20.0(自己解凍)](https://sushib.me/dl/sushi-browser-0.20.0-win-x64.exe)
+- [Windows Portable v0.20.0](https://sushib.me/dl/sushi-browser-0.20.0-win-x64.zip)
+- [MacOS dmg v0.20.0](https://sushib.me/dl/SushiBrowser-0.20.0.dmg)
+- [MacOS Portable v0.20.0](https://sushib.me/dl/sushi-browser-0.20.0-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.20.0](https://sushib.me/dl/sushi-browser-0.20.0.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.20.0](https://sushib.me/dl/sushi-browser_0.20.0_amd64.deb)
+- [Linux Portable v0.20.0](https://sushib.me/dl/sushi-browser-0.20.0.tar.bz2)
 
 ポータブル版の利用は、解凍後にWindowsはsushi.exeを、Mac/Linuxはsushi-browserを実行ください。
 

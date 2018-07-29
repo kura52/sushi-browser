@@ -234,7 +234,7 @@ export default class Download {
       if((mainState.askDownload && !noNeedSavePath) || needSavePath || (this.getData(this.prompt,url) && fs.existsSync(savePath))){
         console.log("needSavePath")
         const isSavePageAs = this.getData(this.savePageAs,url)
-        const opt = isSavePageAs ? {defaultPath: savePath,type: 'select-saveas-file', extensions: [['html','mht']], includeAllFiles:false } :
+        const opt = isSavePageAs ? {defaultPath: savePath,type: 'select-saveas-file', extensions: [['html'],['mht']], includeAllFiles:false } :
           {defaultPath: savePath,type: 'select-saveas-file',includeAllFiles:true }
         dialog.showDialog(win,opt,filepaths=>{
           if(!filepaths || filepaths.length > 1){
