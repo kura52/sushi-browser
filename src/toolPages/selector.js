@@ -10,6 +10,9 @@ import path from 'path';
 
 import ReactTable from 'react-table'
 
+const l10n = require('../../brave/js/l10n')
+l10n.init()
+
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
 
 function showDialog(input,id){
@@ -412,10 +415,10 @@ class Selector extends React.Component {
         <nav className="navbar navbar-light bg-faded">
           <form className="form-inline">
             <button onClick={_=>this.handleStart()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
-              <i className="fa fa-play-circle-o" aria-hidden="true"></i>Download Selection
+              <i className="fa fa-play-circle-o" aria-hidden="true"></i>{l10n.translation('downloadSelection')}
             </button>
             <button onClick={_=>this.handleStart('all')} className="btn btn-sm align-middle btn-outline-secondary" type="button">
-              <i className="fa fa-play-circle-o" aria-hidden="true"></i>Download ALL
+              <i className="fa fa-play-circle-o" aria-hidden="true"></i>{l10n.translation('downloadAll')}
             </button>
 
             <div className="divider-vertical" />

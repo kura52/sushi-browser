@@ -2033,8 +2033,8 @@ export default class TabPanel extends Component {
         this.setState({})
       }
       else if(name == 'splitLeftTabs' || name == 'splitRightTabs' || name == 'duplicateTab'){
-        const trans = {splitLeftTabs:'Split left tabs to left',
-          splitRightTabs:'Split right tabs to right',
+        const trans = {splitLeftTabs: locale.translation('splitLeftTabsToLeft'),
+          splitRightTabs: locale.translation('splitRightTabsToRight'),
           duplicateTab:'3007771295016901659'
         }
         this._handleContextMenu(null,tab.key,null,this.state.tabs,false,true).find(i=>(i.t || i.label) == trans[name]).click()
@@ -3657,7 +3657,7 @@ export default class TabPanel extends Component {
     var menuItems = []
 
     if(tree){
-      menuItems.push(({ label: 'Close This Tree', click: ()=>PubSub.publish('close-tree',{key:this.props.k,tabId:t.wvId,tabKey:t.key})}))
+      menuItems.push(({ t: 'closeThisTree', label: locale.translation('closeThisTree'), click: ()=>PubSub.publish('close-tree',{key:this.props.k,tabId:t.wvId,tabKey:t.key})}))
       menuItems.push(({ type: 'separator' }))
     }
     // menuItems.push(({ label: 'New Tab', click: ()=>document.querySelector(".rdTabAddButton").click()}))
@@ -3778,24 +3778,24 @@ export default class TabPanel extends Component {
     }
 
     if(!this.isFixed){
-      menuItems.push(({ label: 'Split Left', click: splitFunc.bind(this,'v',-1) }))
-      menuItems.push(({ label: 'Split Right', click: splitFunc.bind(this,'v',1) }))
-      menuItems.push(({ label: 'Split Top', click: splitFunc.bind(this,'h',-1) }))
-      menuItems.push(({ label: 'Split Bottom', click: splitFunc.bind(this,'h',1) }))
+      menuItems.push(({ t: 'splitLeft', label: locale.translation('splitLeft'), click: splitFunc.bind(this,'v',-1) }))
+      menuItems.push(({ t: 'splitRight', label: locale.translation('splitRight'), click: splitFunc.bind(this,'v',1) }))
+      menuItems.push(({ t: 'splitTop', label: locale.translation('splitTop'), click: splitFunc.bind(this,'h',-1) }))
+      menuItems.push(({ t: 'splitBottom', label: locale.translation('splitBottom'), click: splitFunc.bind(this,'h',1) }))
       menuItems.push(({ type: 'separator' }))
       // menuItems.push(({ label: 'Split Left Tabs to Left', click: splitOtherTabsFunc.bind(this,'v',-1) }))
       if(!enableSelection){
-        menuItems.push(({ label: 'Split left tabs to left', click: splitOtherTabsFunc.bind(this,'v',-1) }))
-        menuItems.push(({ label: 'Split right tabs to right', click: splitOtherTabsFunc.bind(this,'v',1) }))
+        menuItems.push(({ t: 'splitLeftTabsToLeft', label: locale.translation('splitLeftTabsToLeft'), click: splitOtherTabsFunc.bind(this,'v',-1) }))
+        menuItems.push(({ t: 'splitRightTabsToRight', label: locale.translation('splitRightTabsToRight'), click: splitOtherTabsFunc.bind(this,'v',1) }))
       }
 
-      menuItems.push(({ label: 'Floating Panel', click: _=>detachToFloatPanel() }))
+      menuItems.push(({ t: 'floatingPanel', label: locale.translation('floatingPanel'), click: _=>detachToFloatPanel() }))
       menuItems.push(({ type: 'separator' }))
-      menuItems.push(({ label: 'Swap Position', click: ()=> { PubSub.publish(`swap-position_${this.props.k}`)} }))
-      menuItems.push(({ label: 'Switch Direction', click: ()=> { PubSub.publish(`switch-direction_${this.props.k}`)} }))
+      menuItems.push(({ t: 'swapPosition', label: locale.translation('swapPosition'), click: ()=> { PubSub.publish(`swap-position_${this.props.k}`)} }))
+      menuItems.push(({ t: 'switchDirection', label: locale.translation('switchDirection'), click: ()=> { PubSub.publish(`switch-direction_${this.props.k}`)} }))
       menuItems.push(({ type: 'separator' }))
-      menuItems.push(({ label: 'Align Horizontal', click: ()=> { PubSub.publish('align','h')} }))
-      menuItems.push(({ label: 'Align Vertical', click: ()=> { PubSub.publish('align','v')} }))
+      menuItems.push(({ t: 'alignHorizontal', label: locale.translation('alignHorizontal'), click: ()=> { PubSub.publish('align','h')} }))
+      menuItems.push(({ t: 'alignVertical', label: locale.translation('alignVertical'), click: ()=> { PubSub.publish('align','v')} }))
       menuItems.push(({ type: 'separator' }))
     }
 
@@ -3806,10 +3806,10 @@ export default class TabPanel extends Component {
     if(enableSelection){
       menuItems.push(({ t:'clicktabCopyTabUrl',label: locale.translation('clicktabCopyTabUrl').replace('&apos;',"'"), click: ()=>ipc.send("set-clipboard",selections[0].map(t.page.navUrl))}))
       menuItems.push(({ t:'clicktabCopyUrlFromClipboard',label: locale.translation('clicktabCopyUrlFromClipboard'), click: _=>selections[0].forEach(t=>this.openClipboardUrl(t))}))
-      menuItems.push(({ t:'Copy Tab Info',label: 'Copy Tab Info', click: _=>ipc.send("set-clipboard",selections[0].map(t=>`${this.state.tabs.findIndex(tab=>t.key==tab.key)+1}\t${t.page.title}\t${t.page.navUrl}`))}))
-      menuItems.push(({ t:'Copy All Tab Titles',label: 'Copy All Tab Titles', click: _=>ipc.send("set-clipboard",this.state.tabs.map((t,i)=>t.page.title))}))
-      menuItems.push(({ t:'Copy All Tab URLs',label: 'Copy All Tab URLs', click: _=>ipc.send("set-clipboard",this.state.tabs.map((t,i)=>t.page.navUrl))}))
-      menuItems.push(({ t:'Copy All Tab Infos',label: 'Copy All Tab Infos', click: _=>ipc.send("set-clipboard",this.state.tabs.map((t,i)=>`${i+1}\t${t.page.title}\t${t.page.navUrl}`))}))
+      menuItems.push(({ t: 'copyTabInfo', label: locale.translation('copyTabInfo'), click: _=>ipc.send("set-clipboard",selections[0].map(t=>`${this.state.tabs.findIndex(tab=>t.key==tab.key)+1}\t${t.page.title}\t${t.page.navUrl}`))}))
+      menuItems.push(({ t: 'copyAllTabTitles', label: locale.translation('copyAllTabTitles'), click: _=>ipc.send("set-clipboard",this.state.tabs.map((t,i)=>t.page.title))}))
+      menuItems.push(({ t: 'copyAllTabURLs', label: locale.translation('copyAllTabURLs'), click: _=>ipc.send("set-clipboard",this.state.tabs.map((t,i)=>t.page.navUrl))}))
+      menuItems.push(({ t: 'copyAllTabInfos', label: locale.translation('copyAllTabInfos'), click: _=>ipc.send("set-clipboard",this.state.tabs.map((t,i)=>`${i+1}\t${t.page.title}\t${t.page.navUrl}`))}))
       menuItems.push(({ type: 'separator' }))
 
       menuItems.push(({ t:'reloads',label: locale.translation('reload'), click: ()=> selections[0].forEach(t=>this.getWebContents(t).reload())}))
@@ -3841,21 +3841,21 @@ export default class TabPanel extends Component {
 
       menuItems.push(({ type: 'separator' }))
       const allFreezed = selections[0].every(t=>t.protect && t.lock)
-      menuItems.push(({ t:'freezeTabMenuLabel',type: 'checkbox',label: 'freezeTabMenuLabel', checked: allFreezed,
+      menuItems.push(({ t:'freezeTabMenuLabel',type: 'checkbox',label: locale.translation('freezeTabMenuLabel'), checked: allFreezed,
         click: ()=> {
           selections[0].forEach(t=>{t.protect = !allFreezed;this.updateLockTab(t,!allFreezed)})
           this.resetSelection()
           this.setState({})
         }}))
       const allProtected = selections[0].every(t=>t.protect)
-      menuItems.push(({ t:'protectTabMenuLabel',type: 'checkbox',label: 'protectTabMenuLabel', checked: allProtected,
+      menuItems.push(({ t:'protectTabMenuLabel',type: 'checkbox',label: locale.translation('protectTabMenuLabel'), checked: allProtected,
         click: ()=> {
           selections[0].forEach(t=>t.protect = !allProtected)
           this.resetSelection()
           this.setState({})
         }}))
       const allLocked = selections[0].every(t=>t.lock)
-      menuItems.push(({ t:'lockTabMenuLabel',type: 'checkbox',label: 'lockTabMenuLabel', checked: allLocked,
+      menuItems.push(({ t:'lockTabMenuLabel',type: 'checkbox',label: locale.translation('lockTabMenuLabel'), checked: allLocked,
         click: ()=> {
           selections[0].forEach(t=>this.updateLockTab(t,!allFreezed))
           this.resetSelection()
@@ -3869,11 +3869,11 @@ export default class TabPanel extends Component {
     else{
       menuItems.push(({ t:'clicktabCopyTabUrl',label: locale.translation('clicktabCopyTabUrl').replace('&apos;',"'"), click: ()=>ipc.send("set-clipboard",[t.page.navUrl])}))
       menuItems.push(({ t:'clicktabCopyUrlFromClipboard',label: locale.translation('clicktabCopyUrlFromClipboard'), click: _=>this.openClipboardUrl(t)}))
-      menuItems.push(({ t:'Paste and Open',label: 'Paste and Open', click: _=>this.newTabClipboardUrl(t)}))
-      menuItems.push(({ t:'Copy Tab Info',label: 'Copy Tab Info', click: _=>ipc.send("set-clipboard",[`${this.state.tabs.findIndex(tab=>t.key==tab.key)+1}\t${t.page.title}\t${t.page.navUrl}`])}))
-      menuItems.push(({ t:'Copy All Tab Titles',label: 'Copy All Tab Titles', click: _=>ipc.send("set-clipboard",this.state.tabs.map((t,i)=>t.page.title))}))
-      menuItems.push(({ t:'Copy All Tab URLs',label: 'Copy All Tab URLs', click: _=>ipc.send("set-clipboard",this.state.tabs.map((t,i)=>t.page.navUrl))}))
-      menuItems.push(({ t:'Copy All Tab Infos',label: 'Copy All Tab Infos', click: _=>ipc.send("set-clipboard",this.state.tabs.map((t,i)=>`${i+1}\t${t.page.title}\t${t.page.navUrl}`))}))
+      menuItems.push(({ t: 'pasteAndOpen', label: locale.translation('pasteAndOpen'), click: _=>this.newTabClipboardUrl(t)}))
+      menuItems.push(({ t: 'copyTabInfo', label: locale.translation('copyTabInfo'), click: _=>ipc.send("set-clipboard",[`${this.state.tabs.findIndex(tab=>t.key==tab.key)+1}\t${t.page.title}\t${t.page.navUrl}`])}))
+      menuItems.push(({ t: 'copyAllTabTitles', label: locale.translation('copyAllTabTitles'), click: _=>ipc.send("set-clipboard",this.state.tabs.map((t,i)=>t.page.title))}))
+      menuItems.push(({ t: 'copyAllTabURLs', label: locale.translation('copyAllTabURLs'), click: _=>ipc.send("set-clipboard",this.state.tabs.map((t,i)=>t.page.navUrl))}))
+      menuItems.push(({ t: 'copyAllTabInfos', label: locale.translation('copyAllTabInfos'), click: _=>ipc.send("set-clipboard",this.state.tabs.map((t,i)=>`${i+1}\t${t.page.title}\t${t.page.navUrl}`))}))
       menuItems.push(({ type: 'separator' }))
 
       menuItems.push(({ t:'reload',label: locale.translation('reload'), click: ()=>this.getWebContents(t).reload()}))

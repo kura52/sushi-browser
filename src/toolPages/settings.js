@@ -29,7 +29,7 @@ const keyMapping = {
   keyCloseTabsToRight: l10n.translation('closeTabsToRight'),
   keySavePageAs: l10n.translation('savePageAs'),
   keyPrint: l10n.translation('print'),
-  keyRestart: 'Restart Browser',
+  keyRestart: l10n.translation("restartBrowser"),
   keyQuit: l10n.translation('quitApp').replace('Brave','Sushi Browser'),
   keyUndo: l10n.translation('undo'),
   keyRedo: l10n.translation('redo'),
@@ -62,12 +62,12 @@ const keyMapping = {
   keyBookmarksManager: l10n.translation('bookmarksManager'),
   keyBookmarkPage: l10n.translation('bookmarkPage'),
   keyShowAllHistory: l10n.translation('showAllHistory'),
-  keyNote: 'Open Note',
+  keyNote: l10n.translation("openNote"),
   keySettings: l10n.translation(isDarwin ? 'preferences' : 'settings'),
-  keyFileExploler: 'Open FileExploler',
-  keyTerminal: 'Open Terminal',
-  keyAutomation: 'Open Automation',
-  keyVideoConverter: 'Open VideoConverter',
+  keyFileExploler: l10n.translation("openFileExploler"),
+  keyTerminal: l10n.translation("openTerminal"),
+  keyAutomation: l10n.translation("openAutomation"),
+  keyVideoConverter: l10n.translation("openVideoConverter"),
   keyViewPageSource: l10n.translation('viewPageSource'),
   keyMinimize: l10n.translation('minimize'),
   keySelectNextTab: l10n.translation('selectNextTab'),
@@ -81,37 +81,37 @@ const keyMapping = {
   keyTab7: l10n.translation('3391716558283801616'),
   keyTab8: l10n.translation('6606070663386660533'),
   keyLastTab: l10n.translation('9011178328451474963'),
-  keyMultiRowTabs: 'Multi Row Tabs',
-  keyTabPreview: 'Tab Preview',
-  keyToggleMenuBar: 'Toggle MenuBar',
-  keyChangeFocusPanel: 'Change Focus Panel',
-  keySplitLeft: 'Split Left',
-  keySplitRight: 'Split Right',
-  keySplitTop: 'Split Top',
-  keySplitBottom: 'Split Bottom',
-  keySplitLeftTabs: 'Split left tabs to left',
-  keySplitRightTabs: 'Split right tabs to right',
-  keySwapPosition: 'Swap Position',
-  keySwitchDirection: 'Switch Direction',
-  keyAlignHorizontal: 'Align Horizontal',
-  keyAlignVertical: 'Align Vertical',
-  keySwitchSyncScroll: 'Switch Sync Scroll',
-  keyOpenSidebar: 'Open Sidebar',
-  keySearchHighlight: 'Enable Search Highlight',
-  keyChangeMobileAgent: 'Change to Mobile Agent',
-  keyDetachPanel: 'Detach Panel',
+  keyMultiRowTabs: l10n.translation('multiRowTabs'),
+  keyTabPreview: l10n.translation("tabPreview"),
+  keyToggleMenuBar: l10n.translation("toggleMenuBar"),
+  keyChangeFocusPanel: l10n.translation("changeFocusPanel"),
+  keySplitLeft: l10n.translation("splitLeft"),
+  keySplitRight: l10n.translation("splitRight"),
+  keySplitTop: l10n.translation("splitTop"),
+  keySplitBottom: l10n.translation("splitBottom"),
+  keySplitLeftTabs: l10n.translation("splitLeftTabsToLeft"),
+  keySplitRightTabs: l10n.translation("splitRightTabsToRight"),
+  keySwapPosition: l10n.translation("swapPosition"),
+  keySwitchDirection: l10n.translation("switchDirection"),
+  keyAlignHorizontal: l10n.translation("alignHorizontal"),
+  keyAlignVertical: l10n.translation("alignVertical"),
+  keySwitchSyncScroll: l10n.translation("switchSyncScroll"),
+  keyOpenSidebar: l10n.translation("openSidebar"),
+  keySearchHighlight: l10n.translation("enableSearchHighlight"),
+  keyChangeMobileAgent: l10n.translation("changeToMobileAgent"),
+  keyDetachPanel: l10n.translation("detachPanel"),
 
-  // keyDownloadAll: 'Download All',
+  // keyDownloadAll: l10n.translation("downloadAll"),
   // keyPageTranslate: l10n.translation('2473195200299095979'),
 
   //clipboard
   keyClicktabCopyTabUrl: l10n.translation('clicktabCopyTabUrl').replace('&apos;',"'"),
   keyClicktabCopyUrlFromClipboard: l10n.translation('clicktabCopyUrlFromClipboard'),
-  keyPasteAndOpen: 'Paste and Open',
-  keyCopyTabInfo: 'Copy Tab Info',
-  keyCopyAllTabTitles: 'Copy All Tab Titles',
-  keyCopyAllTabUrls: 'Copy All Tab URLs',
-  keyCopyAllTabInfos: 'Copy All Tab Infos',
+  keyPasteAndOpen: l10n.translation("pasteAndOpen"),
+  keyCopyTabInfo: l10n.translation("copyTabInfo"),
+  keyCopyAllTabTitles: l10n.translation("copyAllTabTitles"),
+  keyCopyAllTabUrls: l10n.translation("copyAllTabURLs"),
+  keyCopyAllTabInfos: l10n.translation("copyAllTabInfos"),
 
   //util
   keyDuplicateTab: l10n.translation('3007771295016901659'),
@@ -121,12 +121,12 @@ const keyMapping = {
   keyProtectTabMenuLabel: l10n.translation('protectTabMenuLabel'),
   keyLockTabMenuLabel: l10n.translation('lockTabMenuLabel'),
   keyDownloadsManager: l10n.translation('downloadsManager'),
-  keyScreenShotFullClipBoard: 'Full Page Capture to Clipboard',
-  keyScreenShotFullJpeg: 'Full Page Capture as JPEG',
-  keyScreenShotFullPng: 'Full Page Capture as PNG',
-  keyScreenShotSelectionClipBoard: 'Selection Capture to Clipboard',
-  keyScreenShotSelectionJpeg: 'Selection Capture as JPEG',
-  keyScreenShotSelectionPng: 'Selection Capture as PNG',
+  keyScreenShotFullClipBoard: l10n.translation("fullPageCaptureToClipboard"),
+  keyScreenShotFullJpeg: l10n.translation("fullPageCaptureAsJPEG"),
+  keyScreenShotFullPng: l10n.translation("fullPageCaptureAsPNG"),
+  keyScreenShotSelectionClipBoard: l10n.translation("selectionCaptureToClipboard"),
+  keyScreenShotSelectionJpeg: l10n.translation("selectionCaptureAsJPEG"),
+  keyScreenShotSelectionPng: l10n.translation("selectionCaptureAsPNG"),
   keyHideBrave: l10n.translation('hideBrave').replace('Brave','Sushi Browser'),
   keyHideOthers: l10n.translation('hideOthers'),
 }
@@ -176,7 +176,7 @@ const newTabModeOptions = [
   {
     key: 'top',
     value: 'top',
-    text: 'Top Page',
+    text: l10n.translation("topPage"),
   },
   {
     key: 'bookmarks',
@@ -296,17 +296,17 @@ const sideBarDirectionOptions = [
   {
     key: 'left',
     value: 'left',
-    text: 'Left',
+    text: l10n.translation('leftSide'),
   },
   {
     key: 'right',
     value: 'right',
-    text: 'Right',
+    text: l10n.translation('rightSide'),
   },
   {
     key: 'bottom',
     value: 'bottom',
-    text: 'Bottom',
+    text: l10n.translation('bottomSide'),
   }
 ]
 
@@ -348,9 +348,9 @@ const contextMenus = [
   ['divider', null],
 
   ['openSearch', l10n.translation('openSearch').replace(/{{ *selectedVariable *}}/,'')],
-  ['Copy Links', 'Copy Links'],
+  ['copyLinks', l10n.translation('copyLinks')],
   ['openalllinksLabel', l10n.translation('openalllinksLabel')],
-  ['Download Selection', 'Download Selection'],
+  ['downloadSelection', l10n.translation('downloadSelection')],
   ['savePageAs', l10n.translation('savePageAs')],
   ['bookmarkPage', l10n.translation('bookmarkPage')],
   ['print', l10n.translation('print')],
@@ -358,17 +358,17 @@ const contextMenus = [
 
   ['divider', null],
 
-  ['Download All', 'Download All'],
+  ['downloadAll', l10n.translation('downloadAll')],
 
   ['divider', null],
 
-  ['Sync Scroll Left to Right', 'Sync Scroll Left to Right'],
-  ['Sync Scroll Right to Left', 'Sync Scroll Right to Left'],
+  ['syncScrollLeftToRight', l10n.translation('syncScrollLeftToRight')],
+  ['syncScrollRightToLeft', l10n.translation('syncScrollRightToLeft')],
 
   ['divider', null],
-  
-  ['Add to Notes(c)', 'Add to Notes(c)'],
-  ['Add to Notes(o)', 'Add to Notes(o)'],
+
+  ['addToNotes(c)', `${l10n.translation('addToNotes')}(c)`],
+  ['addToNotes(o)', `${l10n.translation('addToNotes')}(o)`],
 
   ['divider', null],
 
@@ -378,7 +378,7 @@ const contextMenus = [
   ['divider', null],
 
   ['openInNewTab', l10n.translation('openInNewTab')],
-  ['Open Link in Opposite Tab', 'Open Link in Opposite Tab'],
+  ['openLinkInOppositeTab', l10n.translation('openLinkInOppositeTab')],
   ['openInNewPrivateTab', l10n.translation('openInNewPrivateTab')],
   ['Open Link in Tor Tab', 'Open Links in New Tor Tabs'],
   ['openInNewSessionTab', l10n.translation('openInNewSessionTab')],
@@ -387,8 +387,8 @@ const contextMenus = [
   ['saveLinkAs', l10n.translation('saveLinkAs')],
   ['copyLinkAddress', l10n.translation('copyLinkAddress')],
   ['1047431265488717055', l10n.translation('1047431265488717055')],
-  ['Save and Play Video', 'Save and Play Video'],
-  ['Send URL to Video Player', 'Send URL to Video Player'],
+  ['saveAndPlayVideo', l10n.translation('saveAndPlayVideo')],
+  ['sendURLToVideoPlayer', l10n.translation('sendURLToVideoPlayer')],
 
   ['divider', null],
 
@@ -405,8 +405,8 @@ const contextMenus = [
   ['994289308992179865', l10n.translation('994289308992179865')],
   ['Muted', 'Muted'],
   ['1725149567830788547', l10n.translation('1725149567830788547')],
-  ['Play Video in Popup Window', 'Play Video in Popup Window'],
-  ['Play Video in Floating Panel', 'Play Video in Floating Panel'],
+  ['playVideoInPopupWindow', l10n.translation('playVideoInPopupWindow')],
+  ['playVideoInFloatingPanel', l10n.translation('playVideoInFloatingPanel')],
   ['4643612240819915418', l10n.translation('4643612240819915418')],
   ['4256316378292851214', l10n.translation('4256316378292851214')],
   ['782057141565633384', l10n.translation('782057141565633384')],
@@ -423,36 +423,36 @@ const tabContextMenus = [
 
   ['divider', null],
 
-  ['Split Left','Split Left'],
-  ['Split Right','Split Right'],
-  ['Split Top','Split Top'],
-  ['Split Bottom','Split Bottom'],
+  ['splitLeft', l10n.translation('splitLeft')],
+  ['splitRight', l10n.translation('splitRight')],
+  ['splitTop', l10n.translation('splitTop')],
+  ['splitBottom', l10n.translation('splitBottom')],
 
   ['divider', null],
 
-  ['Split left tabs to left','Split left tabs to left'],
-  ['Split right tabs to right','Split right tabs to right'],
-  ['Floating Panel','Floating Panel'],
+  ['splitLeftTabsToLeft', l10n.translation('splitLeftTabsToLeft')],
+  ['splitRightTabsToRight', l10n.translation('splitRightTabsToRight')],
+  ['floatingPanel', l10n.translation('floatingPanel')],
 
   ['divider', null],
 
-  ['Swap Position','Swap Position'],
-  ['Switch Direction','Switch Direction'],
+  ['swapPosition', l10n.translation('swapPosition')],
+  ['switchDirection', l10n.translation('switchDirection')],
 
   ['divider', null],
 
-  ['Align Horizontal','Align Horizontal'],
-  ['Align Vertical','Align Vertical'],
+  ['alignHorizontal', l10n.translation('alignHorizontal')],
+  ['alignVertical', l10n.translation('alignVertical')],
 
   ['divider', null],
 
   ['clicktabCopyTabUrl',l10n.translation('clicktabCopyTabUrl').replace('&apos;',"'")],
   ['clicktabCopyUrlFromClipboard',l10n.translation('clicktabCopyUrlFromClipboard')],
-  ['Paste and Open','Paste and Open'],
-  ['Copy Tab Info','Copy Tab Info'],
-  ['Copy All Tab Titles','Copy All Tab Titles'],
-  ['Copy All Tab URLs','Copy All Tab URLs'],
-  ['Copy All Tab Infos','Copy All Tab Infos'],
+  ['pasteAndOpen', l10n.translation('pasteAndOpen')],
+  ['copyTabInfo', l10n.translation('copyTabInfo')],
+  ['copyAllTabTitles', l10n.translation('copyAllTabTitles')],
+  ['copyAllTabURLs', l10n.translation('copyAllTabURLs')],
+  ['copyAllTabInfos', l10n.translation('copyAllTabInfos')],
 
   ['divider', null],
 
@@ -493,7 +493,7 @@ const tabContextMenus = [
 
   ['divider', null],
 
-  ['Close This Tree','Close This Tree']
+  ['closeThisTree', l10n.translation('closeThisTree')]
 ]
 
 const languageOptions = availableLanguages.map(x=>{
@@ -528,7 +528,7 @@ class TopMenu extends React.Component {
               <Menu.Item as='a' href={`${baseURL}/explorer.html`} key="file-explorer" name="File Explorer"/>
               <Menu.Item as='a' href={`${baseURL}/terminal.html`} key="terminal" name="Terminal"/>
               <Menu.Item as='a' href={`${baseURL}/automation.html`} key="automation" name="Automation"/>
-              <Menu.Item as='a' href={`${baseURL}/converter.html`} key="converter" name="Video Converter"/>
+              <Menu.Item as='a' href={`${baseURL}/converter.html`} key="converter" name={l10n.translation("videoConverter")}/>
             </Menu>
           </div>
         </Sticky>
@@ -650,13 +650,13 @@ class GeneralSetting extends React.Component {
 
 
         <div className="field">
-          <label>Protection</label>
+          <label>{l10n.translation("protection")}</label>
           <Checkbox defaultChecked={this.state.httpsEverywhereEnable} toggle onChange={this.onChange.bind(this,'httpsEverywhereEnable')}/>
-          <span className="toggle-label">Enable HTTPS Everywhere</span>
+          <span className="toggle-label">{l10n.translation("enableHTTPSEverywhere")}</span>
           <br/>
 
           <Checkbox defaultChecked={this.state.trackingProtectionEnable} toggle onChange={this.onChange.bind(this,'trackingProtectionEnable')}/>
-          <span className="toggle-label">Enable Tracing Protection (e.g. Google Analytics)</span>
+          <span className="toggle-label">{l10n.translation("enableTracingProtection")}</span>
           <br/>
 
           <Checkbox defaultChecked={this.state.noScript} toggle onChange={this.onChange.bind(this,'noScript')}/>
@@ -675,21 +675,21 @@ class GeneralSetting extends React.Component {
 
         <Grid>
           <Grid.Row>
-            <Grid.Column width={3}><label>Order of AutoComplete</label></Grid.Column>
+            <Grid.Column width={3}><label>{l10n.translation("orderOfAutoComplete")}</label></Grid.Column>
             <Grid.Column width={8}><Dropdown onChange={this.onChange.bind(this,'orderOfAutoComplete')} selection
                                              options={[
-                                               {key:'suggestionToHistory',value:'suggestionToHistory',text:'Suggestion -> History'},
-                                               {key:'historyToSuggestion',value:'historyToSuggestion',text:'History -> Suggestion'},
+                                               {key:'suggestionToHistory',value:'suggestionToHistory',text: l10n.translation("suggestionHistory")},
+                                               {key:'historyToSuggestion',value:'historyToSuggestion',text: l10n.translation("historySuggestion")},
                                              ]}
                                              defaultValue={this.state.orderOfAutoComplete}/></Grid.Column>
           </Grid.Row>
           <Grid.Row>
-            <Grid.Column width={3}><label>Number of Suggestions</label></Grid.Column>
+            <Grid.Column width={3}><label>{l10n.translation("numberOfSuggestions")}</label></Grid.Column>
             <Grid.Column width={8}><Dropdown onChange={this.onChange.bind(this,'numOfSuggestion')} selection
                                              options={concurrentDownloadOptions} defaultValue={this.state.numOfSuggestion}/></Grid.Column>
           </Grid.Row>
           <Grid.Row>
-            <Grid.Column width={3}><label>Number of Histories</label></Grid.Column>
+            <Grid.Column width={3}><label>{l10n.translation("numberOfHistories")}</label></Grid.Column>
             <Grid.Column width={8}><Dropdown onChange={this.onChange.bind(this,'numOfHistory')} selection
                                              options={concurrentDownloadOptions} defaultValue={this.state.numOfHistory}/></Grid.Column>
           </Grid.Row>
@@ -697,7 +697,7 @@ class GeneralSetting extends React.Component {
 
         <br/>
         <Checkbox defaultChecked={this.state.searchHistoryOrderCount} toggle onChange={this.onChange.bind(this,'searchHistoryOrderCount')}/>
-        <span className="toggle-label">Sort history in descending order of PV</span>
+        <span className="toggle-label">{l10n.translation("sortHistoryInDescendingOrderOfPV")}</span>
         <br/>
 
 
@@ -710,7 +710,7 @@ class GeneralSetting extends React.Component {
         <br/>
 
         <div className="field">
-          <label>Default Sidebar Position</label>
+          <label>{l10n.translation("defaultSidebarPosition")}</label>
           <Dropdown onChange={this.onChange.bind(this,'sideBarDirection')} selection options={sideBarDirectionOptions} defaultValue={this.state.sideBarDirection}/>
         </div>
         <br/>
@@ -718,19 +718,19 @@ class GeneralSetting extends React.Component {
         <div className="field">
           <label>{l10n.translation('openInNewTab')}  ({l10n.translation('requiresRestart').replace('* ','')})</label>
           <Checkbox defaultChecked={this.state.sidebarLink} toggle onChange={this.onChange.bind(this,'sidebarLink')}/>
-          <span className="toggle-label">SideBar Link</span>
+          <span className="toggle-label">{l10n.translation("sideBarLink")}</span>
           <br/>
 
           <Checkbox defaultChecked={this.state.toolbarLink} toggle onChange={this.onChange.bind(this,'toolbarLink')}/>
-          <span className="toggle-label">ToolBar Link</span>
+          <span className="toggle-label">{l10n.translation("toolBarLink")}</span>
           <br/>
 
           <Checkbox defaultChecked={this.state.addressBarNewTab} toggle onChange={this.onChange.bind(this,'addressBarNewTab')}/>
-          <span className="toggle-label">AddressBar Link</span>
+          <span className="toggle-label">{l10n.translation("addressBarLink")}</span>
           <br/>
 
           <Checkbox defaultChecked={this.state.bookmarkbarLink} toggle onChange={this.onChange.bind(this,'bookmarkbarLink')}/>
-          <span className="toggle-label">BookmarkBar Link</span>
+          <span className="toggle-label">{l10n.translation("bookmarkBarLink")}</span>
           <br/>
         </div>
         <br/>
@@ -738,66 +738,66 @@ class GeneralSetting extends React.Component {
         <div className="field">
           <label>Special Behavior</label>
           <Checkbox defaultChecked={this.state.rectangularSelection} toggle onChange={this.onChange.bind(this,'rectangularSelection')}/>
-          <span className="toggle-label">Enable Rectangular Selection (Alt + Mouse Drag) </span>
+          <span className="toggle-label">{l10n.translation("enableRectangularSelection")} </span>
           <br/>
           <Checkbox defaultChecked={this.state.extensionOnToolbar} toggle onChange={this.onChange.bind(this,'extensionOnToolbar')}/>
-          <span className="toggle-label">Show Chrome Extension Icon on Toolbar ({l10n.translation('requiresRestart').replace('* ','')})</span>
+          <span className="toggle-label">{l10n.translation("showChromeExtensionIconOnToolbar")} ({l10n.translation('requiresRestart').replace('* ','')})</span>
           <br/>
           {isDarwin ? null : <Checkbox defaultChecked={this.state.displayFullIcon} toggle onChange={this.onChange.bind(this,'displayFullIcon')}/>}
-          {isDarwin ? null : <span className="toggle-label">Show Fullscreen Button ({l10n.translation('requiresRestart').replace('* ','')})</span>}
+          {isDarwin ? null : <span className="toggle-label">{l10n.translation("showFullscreenButton")} ({l10n.translation('requiresRestart').replace('* ','')})</span>}
           {isDarwin ? null : <br/>}
           <Checkbox defaultChecked={this.state.enableMouseGesture} toggle onChange={this.onChange.bind(this,'enableMouseGesture')}/>
-          <span className="toggle-label">Enable Mouse Gesture ({l10n.translation('requiresRestart').replace('* ','')})</span>
+          <span className="toggle-label">{l10n.translation("enableMouseGesture")} ({l10n.translation('requiresRestart').replace('* ','')})</span>
           <br/>
           <Checkbox defaultChecked={this.state.fullscreenTransitionKeep} toggle onChange={this.onChange.bind(this,'fullscreenTransitionKeep')}/>
-          <span className="toggle-label">Maintain fullscreen mode even after page transition</span>
+          <span className="toggle-label">{l10n.translation("maintainFullscreenModeEvenAfterPageTransition")}</span>
           <br/>
           <Checkbox defaultChecked={this.state.fullscreenTransition} toggle onChange={this.onChange.bind(this,'fullscreenTransition')}/>
-          <span className="toggle-label">Cancel fullscreen mode at page transition ({l10n.translation('requiresRestart').replace('* ','')})</span>
+          <span className="toggle-label">{l10n.translation("cancelFullscreenModeAtPageTransition")} ({l10n.translation('requiresRestart').replace('* ','')})</span>
           <br/>
           <Checkbox defaultChecked={this.state.historyBadget} toggle onChange={this.onChange.bind(this,'historyBadget')}/>
-          <span className="toggle-label">Show Back/Forward Button's Badge ({l10n.translation('requiresRestart').replace('* ','')})</span>
+          <span className="toggle-label">{l10n.translation("showBackForwardButtonSBadge")} ({l10n.translation('requiresRestart').replace('* ','')})</span>
           <br/>
           <Checkbox defaultChecked={this.state.focusLocationBar} toggle onChange={this.onChange.bind(this,'focusLocationBar')}/>
-          <span className="toggle-label">Show Focus Location Bar of Top Page </span>
+          <span className="toggle-label">{l10n.translation("showFocusLocationBarOfTopPage")} </span>
           <br/>
           <Checkbox defaultChecked={this.state.enableDownloadList} toggle onChange={this.onChange.bind(this,'enableDownloadList')}/>
-          <span className="toggle-label">Enable Bottom Download List ({l10n.translation('requiresRestart').replace('* ','')})</span>
+          <span className="toggle-label">{l10n.translation("enableBottomDownloadList")} ({l10n.translation('requiresRestart').replace('* ','')})</span>
           <br/>
           <Checkbox defaultChecked={this.state.autoDeleteDownloadList} toggle onChange={this.onChange.bind(this,'autoDeleteDownloadList')}/>
-          <span className="toggle-label">Delete from download list when download is completed ({l10n.translation('requiresRestart').replace('* ','')})</span>
+          <span className="toggle-label">{l10n.translation("deleteFromDownloadListWhenDownloadIsCompleted")} ({l10n.translation('requiresRestart').replace('* ','')})</span>
           <br/>
           <Checkbox defaultChecked={this.state.longPressMiddle} toggle onChange={this.onChange.bind(this,'longPressMiddle')}/>
-          <span className="toggle-label">Enable behavior change when long press of middle mouse button ({l10n.translation('requiresRestart').replace('* ','')})</span>
+          <span className="toggle-label">{l10n.translation("enableBehaviorChangeWhenLongPressOfMiddleMouseButton")} ({l10n.translation('requiresRestart').replace('* ','')})</span>
           <br/>
           <Checkbox defaultChecked={this.state.tripleClick} toggle onChange={this.onChange.bind(this,'tripleClick')}/>
-          <span className="toggle-label">Enable horizontal position moving (When you triple left clicking)</span>
-          <br/>
-          <Checkbox defaultChecked={this.state.doubleShift} toggle onChange={this.onChange.bind(this,'doubleShift')}/>
-          <span className="toggle-label">Enable anything search (When you double pressing the shift key)  ({l10n.translation('requiresRestart').replace('* ','')})</span>
-          </div>
+          <span className="toggle-label">{l10n.translation("enableHorizontalPositionMoving")}</span>
+          {/*<br/>*/}
+          {/*<Checkbox defaultChecked={this.state.doubleShift} toggle onChange={this.onChange.bind(this,'doubleShift')}/>*/}
+          {/*<span className="toggle-label">{l10n.translation("enableAnythingSearch")}  ({l10n.translation('requiresRestart').replace('* ','')})</span>*/}
+        </div>
         <br/>
 
         <div className="field">
-          <label>Send URL to external media player</label>
+          <label>{l10n.translation("sendURLToExternalMediaPlayer")}</label>
           <Dropdown onChange={this.onChange.bind(this,'sendToVideo')} selection options={sendToVideoOptions} defaultValue={this.state.sendToVideo}/>
         </div>
         <br/>
 
         <div className="field">
-          <label>Concurrent Download(0 means no limit)</label>
+          <label>{l10n.translation("concurrentDownload")}</label>
           <Dropdown onChange={this.onChange.bind(this,'concurrentDownload')} selection options={concurrentDownloadOptions} defaultValue={this.state.concurrentDownload}/>
         </div>
         <br/>
 
         <div className="field">
-          <label>Max number of connections per item (Parallel Download)</label>
+          <label>{l10n.translation("maxNumberOfConnectionsPerItem")}</label>
           <Dropdown onChange={this.onChange.bind(this,'downloadNum')} selection options={downloadNumOptions} defaultValue={parseInt(this.state.downloadNum)}/>
         </div>
         <br/>
 
         <div className="field">
-          <label>Custom Window Icon({l10n.translation('requiresRestart').replace('* ','')})</label>
+          <label>{l10n.translation("customWindowIcon")}({l10n.translation('requiresRestart').replace('* ','')})</label>
           <Input ref="iconSet" style={{width: 400}} onChange={this.onChange.bind(this,'windowCustomIcon')} defaultValue={this.state.windowCustomIcon}/>
           <Button icon='folder' onClick={_=>{
             const key = Math.random().toString()
@@ -811,15 +811,15 @@ class GeneralSetting extends React.Component {
         </div>
 
         <div className="field">
-          <label>Sync Scroll Margin({l10n.translation('requiresRestart').replace('* ','')})</label>
+          <label>{l10n.translation("syncScrollMargin")}({l10n.translation('requiresRestart').replace('* ','')})</label>
           <Dropdown onChange={this.onChange.bind(this,'syncScrollMargin')} selection options={syncScrollMarginOptions} defaultValue={this.state.syncScrollMargin}/>
         </div>
         <br/>
 
         <div className="field">
-          <label>Bind Window Frame Margin</label>
+          <label>{l10n.translation("bindWindowFrameMargin")}</label>
           <Input onChange={this.onChange.bind(this,'bindMarginFrame')} defaultValue={this.state.bindMarginFrame}/>
-          <label>Bind Window Title Margin</label>
+          <label>{l10n.translation("bindWindowTitleMargin")}</label>
           <Input onChange={this.onChange.bind(this,'bindMarginTitle')} defaultValue={this.state.bindMarginTitle}/>
         </div>
 
@@ -896,7 +896,7 @@ class DataSetting extends React.Component {
   render() {
     console.log(this.state.startsWith,this.state.myHomepage)
     return <div>
-      <h3>Data</h3>
+      <h3>{l10n.translation('data')}</h3>
       <Divider/>
       <div className="ui form">
         <div className="field">
@@ -923,7 +923,7 @@ class DataSetting extends React.Component {
           <Grid.Row>
             <Grid.Column width={6}>
               <div className="field">
-                <label>{l10n.translation('settingsImport').replace('…','')} (Delete all data and import restore data)</label>
+                <label>{l10n.translation('settingsImport').replace('…','')} ({l10n.translation('deleteAllDataAndImportRestoreData')})</label>
 
                 <Checkbox toggle onChange={this.onChangeImport.bind(this,'generalSettings')}/>
                 <span className="toggle-label">{l10n.translation('generalSettings')}</span>
@@ -938,16 +938,16 @@ class DataSetting extends React.Component {
                 <span className="toggle-label">{l10n.translation('sessionTools')}</span>
                 <br/>
                 <Checkbox toggle onChange={this.onChangeImport.bind(this,'favicons')}/>
-                <span className="toggle-label">Favicon</span>
+                <span className="toggle-label">{l10n.translation('favicon')}</span>
                 <br/>
                 <Checkbox toggle onChange={this.onChangeImport.bind(this,'downloadHistory')}/>
                 <span className="toggle-label">{l10n.translation('downloadHistory')}</span>
                 <br/>
                 <Checkbox toggle onChange={this.onChangeImport.bind(this,'automation')}/>
-                <span className="toggle-label">Automation</span>
+                <span className="toggle-label">{l10n.translation('automation')}</span>
                 <br/>
                 <Checkbox toggle onChange={this.onChangeImport.bind(this,'note')}/>
-                <span className="toggle-label">Note</span>
+                <span className="toggle-label">{l10n.translation('note')}</span>
                 <br/>
 
                 <Button disabled={!this.imports.length} primary content={l10n.translation('import')} onClick={_=>ipc.send("import-setting",this.imports)}/>
@@ -970,16 +970,16 @@ class DataSetting extends React.Component {
                 <span className="toggle-label">{l10n.translation('sessionTools')}</span>
                 <br/>
                 <Checkbox toggle onChange={this.onChangeExport.bind(this,'favicons')}/>
-                <span className="toggle-label">Favicon</span>
+                <span className="toggle-label">{l10n.translation('favicon')}</span>
                 <br/>
                 <Checkbox toggle onChange={this.onChangeExport.bind(this,'downloadHistory')}/>
                 <span className="toggle-label">{l10n.translation('downloadHistory')}</span>
                 <br/>
                 <Checkbox toggle onChange={this.onChangeExport.bind(this,'automation')}/>
-                <span className="toggle-label">Automation</span>
+                <span className="toggle-label">{l10n.translation('automation')}</span>
                 <br/>
                 <Checkbox toggle onChange={this.onChangeExport.bind(this,'note')}/>
-                <span className="toggle-label">Note</span>
+                <span className="toggle-label">{l10n.translation('note')}</span>
                 <br/>
 
                 <Button disabled={!this.exports.length} primary content={l10n.translation('42126664696688958')} onClick={_=>ipc.send("export-setting",this.exports)}/>
@@ -998,23 +998,23 @@ class DataSetting extends React.Component {
             <div className="field">
               <div className="ui radio checkbox" onClick={e=>this.onChangeClear('clearType',e,{value: 'all'})}>
                 <input type="radio" className="hidden" readOnly tabIndex={0} value="all" checked={this.clearRange.clearType == 'all'}/>
-                <label className="right-pad">All Data</label>
+                <label className="right-pad">{l10n.translation("allData")}</label>
               </div>
               <br/>
 
               <div className="ui radio checkbox" onClick={e=>this.onChangeClear('clearType',e,{value: 'before'})}>
                 <input type="radio" className="hidden" readOnly tabIndex={0} value="before" checked={this.clearRange.clearType == 'before'}/>
-                <label className="right-pad">Clear Data greater than</label>
+                <label className="right-pad">{l10n.translation('clearDataGreaterThan30DaysAgoFromNow').split("30")[0]}</label>
                 <div className="ui input date" style={{paddingBottom: 8, paddingTop: 10}}>
                   <input type="text" onChange={e=>this.onChangeClear('clearDays',e,e.target)} defaultValue={this.clearRange.clearDays}/>
                 </div>
-                <span style={{paddingLeft: 4}}>days ago from now</span>
+                <span style={{paddingLeft: 4}}>{l10n.translation('clearDataGreaterThan30DaysAgoFromNow').split("30")[1]}</span>
               </div>
               <br/>
 
               <div className="ui radio checkbox" onClick={e=>this.onChangeClear('clearType',e,{value: 'range'})}>
                 <input type="radio" className="hidden" readOnly tabIndex={0} value="range" checked={this.clearRange.clearType == 'range'}/>
-                <label className="right-pad">Range:</label>
+                <label className="right-pad">{l10n.translation("range")}</label>
 
                 <div className="ui input date">
                   <input type="date" onChange={e=>this.onChangeClear('clearStart',e,e.target)} defaultValue={this.clearRange.clearStart}/>
@@ -1027,10 +1027,10 @@ class DataSetting extends React.Component {
             </div>
           </div>
           <Checkbox toggle onChange={this.onChange2.bind(this,'clearGeneralSettings')}/>
-          <span className="toggle-label">{l10n.translation('generalSettings')}&nbsp;(Clear All Data)</span>
+          <span className="toggle-label">{l10n.translation('generalSettings')}&nbsp;({l10n.translation('clearAllData')})</span>
           <br/>
           <Checkbox toggle onChange={this.onChange2.bind(this,'clearFavorite')}/>
-          <span className="toggle-label">Bookmarks / User Saved Sessions</span>
+          <span className="toggle-label">{l10n.translation("bookmarksUserSavedSessions")}</span>
           <br/>
           <Checkbox toggle onChange={this.onChange2.bind(this,'clearHistory')}/>
           <span className="toggle-label">{l10n.translation('browsingHistory')}</span>
@@ -1039,31 +1039,31 @@ class DataSetting extends React.Component {
           <span className="toggle-label">{l10n.translation('sessionTools')}</span>
           <br/>
           <Checkbox toggle onChange={this.onChange2.bind(this,'clearFavicon')}/>
-          <span className="toggle-label">Favicon</span>
+          <span className="toggle-label">{l10n.translation('favicon')}</span>
           <br/>
           <Checkbox toggle onChange={this.onChange2.bind(this,'clearDownload')}/>
           <span className="toggle-label">{l10n.translation('downloadHistory')}</span>
           <br/>
           <Checkbox toggle onChange={this.onChange2.bind(this,'clearAutomation')}/>
-          <span className="toggle-label">Automation</span>
+          <span className="toggle-label">{l10n.translation('automation')}</span>
           <br/>
           <Checkbox toggle onChange={this.onChange2.bind(this,'clearNote')}/>
-          <span className="toggle-label">Note</span>
+          <span className="toggle-label">{l10n.translation('note')}</span>
           <br/>
           <Checkbox toggle onChange={this.onChange2.bind(this,'clearCache')}/>
-          <span className="toggle-label">{l10n.translation('cachedImagesAndFiles')}&nbsp;(Clear All Data)</span>
+          <span className="toggle-label">{l10n.translation('cachedImagesAndFiles')}&nbsp;({l10n.translation('clearAllData')})</span>
           <br/>
           <Checkbox toggle onChange={this.onChange2.bind(this,'clearStorageData')}/>
-          <span className="toggle-label">{l10n.translation('allSiteCookies')}&nbsp;(Clear All Data)</span>
+          <span className="toggle-label">{l10n.translation('allSiteCookies')}&nbsp;({l10n.translation('clearAllData')})</span>
           <br/>
           <Checkbox toggle onChange={this.onChange2.bind(this,'clearAutocompleteData')}/>
-          <span className="toggle-label">{l10n.translation('autocompleteData')}&nbsp;(Clear All Data)</span>
+          <span className="toggle-label">{l10n.translation('autocompleteData')}&nbsp;({l10n.translation('clearAllData')})</span>
           <br/>
           <Checkbox toggle onChange={this.onChange2.bind(this,'clearAutofillData')}/>
-          <span className="toggle-label">{l10n.translation('autofillData')}&nbsp;(Clear All Data)</span>
+          <span className="toggle-label">{l10n.translation('autofillData')}&nbsp;({l10n.translation('clearAllData')})</span>
           <br/>
           <Checkbox toggle onChange={this.onChange2.bind(this,'clearPassword')}/>
-          <span className="toggle-label">{l10n.translation('1375321115329958930')}&nbsp;(Clear All Data)</span>
+          <span className="toggle-label">{l10n.translation('1375321115329958930')}&nbsp;({l10n.translation('clearAllData')})</span>
           <br/>
           <Button disabled={!this.clear.length} primary content={l10n.translation('clearBrowsingDataNow')} onClick={_=>ipc.send("clear-browsing-data",this.clear,this.clearRange)}/>
         </div>
@@ -1075,17 +1075,17 @@ class DataSetting extends React.Component {
             <div className="field">
               <div className="ui radio checkbox" onClick={e=>this.handleChangeRadio('all')}>
                 <input type="radio" className="hidden" readOnly tabIndex={0} value="all" checked={this.state.clearType == 'all'}/>
-                <label className="right-pad">All Data</label>
+                <label className="right-pad">{l10n.translation("allData")}</label>
               </div>
               <br/>
 
               <div className="ui radio checkbox" onClick={e=>this.handleChangeRadio('before')}>
                 <input type="radio" className="hidden" readOnly tabIndex={0} value="before" checked={this.state.clearType == 'before'}/>
-                <label className="right-pad">Clear Data greater than</label>
+                <label className="right-pad">{l10n.translation('clearDataGreaterThan30DaysAgoFromNow').split("30")[0]}</label>
                 <div className="ui input date" style={{paddingBottom: 8, paddingTop: 10}}>
                   <input type="text" onChange={e=>this.onChange('clearDays',e,e.target)} defaultValue={this.state.clearDays}/>
                 </div>
-                <span style={{paddingLeft: 4}}>days ago from now</span>
+                <span style={{paddingLeft: 4}}>{l10n.translation('clearDataGreaterThan30DaysAgoFromNow').split("30")[1]}</span>
               </div>
               <br/>
 
@@ -1093,10 +1093,10 @@ class DataSetting extends React.Component {
           </div>
 
           <Checkbox toggle onChange={this.onChange.bind(this,'clearGeneralSettingsOnClose')} defaultChecked={this.state.clearGeneralSettingsOnClose}/>
-          <span className="toggle-label">{l10n.translation('generalSettings')}&nbsp;(Clear All Data)</span>
+          <span className="toggle-label">{l10n.translation('generalSettings')}&nbsp;({l10n.translation('clearAllData')})</span>
           <br/>
           <Checkbox toggle onChange={this.onChange.bind(this,'clearFavoriteOnClose')} defaultChecked={this.state.clearFavoriteOnClose}/>
-          <span className="toggle-label">Bookmarks / User Saved Sessions</span>
+          <span className="toggle-label">{l10n.translation("bookmarksUserSavedSessions")}</span>
           <br/>
           <Checkbox toggle onChange={this.onChange.bind(this,'clearHistoryOnClose')} defaultChecked={this.state.clearHistoryOnClose}/>
           <span className="toggle-label">{l10n.translation('browsingHistory')}</span>
@@ -1105,31 +1105,31 @@ class DataSetting extends React.Component {
           <span className="toggle-label">{l10n.translation('sessionTools')}</span>
           <br/>
           <Checkbox toggle onChange={this.onChange.bind(this,'clearFaviconOnClose')} defaultChecked={this.state.clearFaviconOnClose}/>
-          <span className="toggle-label">Favicon</span>
+          <span className="toggle-label">{l10n.translation('favicon')}</span>
           <br/>
           <Checkbox toggle onChange={this.onChange.bind(this,'clearDownloadOnClose')} defaultChecked={this.state.clearDownloadOnClose}/>
           <span className="toggle-label">{l10n.translation('downloadHistory')}</span>
           <br/>
           <Checkbox toggle onChange={this.onChange.bind(this,'clearAutomationOnClose')} defaultChecked={this.state.clearAutomationOnClose}/>
-          <span className="toggle-label">Automation</span>
+          <span className="toggle-label">{l10n.translation('automation')}</span>
           <br/>
           <Checkbox toggle onChange={this.onChange.bind(this,'clearNoteOnClose')} defaultChecked={this.state.clearNoteOnClose}/>
-          <span className="toggle-label">Note</span>
+          <span className="toggle-label">{l10n.translation('note')}</span>
           <br/>
           <Checkbox toggle onChange={this.onChange.bind(this,'clearCacheOnClose')} defaultChecked={this.state.clearCacheOnClose}/>
-          <span className="toggle-label">{l10n.translation('cachedImagesAndFiles')}&nbsp;(Clear All Data)</span>
+          <span className="toggle-label">{l10n.translation('cachedImagesAndFiles')}&nbsp;({l10n.translation('clearAllData')})</span>
           <br/>
           <Checkbox toggle onChange={this.onChange.bind(this,'clearStorageDataOnClose')} defaultChecked={this.state.clearStorageDataOnClose}/>
-          <span className="toggle-label">{l10n.translation('allSiteCookies')}&nbsp;(Clear All Data)</span>
+          <span className="toggle-label">{l10n.translation('allSiteCookies')}&nbsp;({l10n.translation('clearAllData')})</span>
           <br/>
           <Checkbox toggle onChange={this.onChange.bind(this,'clearAutocompleteDataOnClose')} defaultChecked={this.state.clearAutocompleteDataOnClose}/>
-          <span className="toggle-label">{l10n.translation('autocompleteData')}&nbsp;(Clear All Data)</span>
+          <span className="toggle-label">{l10n.translation('autocompleteData')}&nbsp;({l10n.translation('clearAllData')})</span>
           <br/>
           <Checkbox toggle onChange={this.onChange.bind(this,'clearAutofillDataOnClose')} defaultChecked={this.state.clearAutofillDataOnClose}/>
-          <span className="toggle-label">{l10n.translation('autofillData')}&nbsp;(Clear All Data)</span>
+          <span className="toggle-label">{l10n.translation('autofillData')}&nbsp;({l10n.translation('clearAllData')})</span>
           <br/>
           <Checkbox toggle onChange={this.onChange.bind(this,'clearPasswordOnClose')} defaultChecked={this.state.clearPasswordOnClose}/>
-          <span className="toggle-label">{l10n.translation('1375321115329958930')}&nbsp;(Clear All Data)</span>
+          <span className="toggle-label">{l10n.translation('1375321115329958930')}&nbsp;({l10n.translation('clearAllData')})</span>
           <br/>
         </div>
         <br/>
@@ -1252,12 +1252,12 @@ class SearchSetting extends React.Component {
       <td key={`type${i}`}>
         <Dropdown placeholder='State' fluid selection className="type" onChange={this.typeChange.bind(this,i)}
                   options={[
-                    { key: 'basic', text: 'Open in a panel', value: 'basic' },
-                    { key: 'two', text: 'Open in 2 panels', value: 'two' },
-                    { key: 'new-win', text: 'Open in a new window', value: 'new-win' },
-                    { key: 'one-row', text: 'Open in a new window with a row', value: 'one-row' },
-                    { key: 'two-row', text: 'Open in new window with 2 rows', value: 'two-row' },
-                    { key: 'three-row', text: 'Open in a new window with 3 rows', value: 'three-row' },
+                    { key: 'basic', text: l10n.translation("openInAPanel"), value: 'basic' },
+                    { key: 'two', text: l10n.translation("openIn2Panels"), value: 'two' },
+                    { key: 'new-win', text: l10n.translation("openInANewWindow"), value: 'new-win' },
+                    { key: 'one-row', text: l10n.translation("openInANewWindowWithARow"), value: 'one-row' },
+                    { key: 'two-row', text: l10n.translation("openInNewWindowWith2Rows"), value: 'two-row' },
+                    { key: 'three-row', text: l10n.translation("openInANewWindowWith3Rows"), value: 'three-row' },
                   ]} defaultValue={type}/>
       </td>
       <td key={`shortcut${i}`} data-num={i} data-name='shortcut' onInput={this.emitChange} onBlur={this.onBlur} contentEditable>{alias}</td>
@@ -1289,21 +1289,21 @@ class SearchSetting extends React.Component {
     const {ret,optionsAll} = this.buildMultiSearchColumns()
 
     return <div>
-      <h3>Right Click Menu Search Engines</h3>
+      <h3>{l10n.translation("rightClickMenuSearchEngines")}</h3>
       <Divider/>
       <Dropdown fluid multiple search selection onChange={::this.contextMenuSearchEngineChange} options={optionsAll} defaultValue={this.state.contextMenuSearchEngines}/>
 
       <br/>
       <div className="field">
-        <label>Search Methods:&nbsp;</label>
+        <label>{l10n.translation("searchMethods")}&nbsp;</label>
         <Dropdown onChange={this.onChange.bind(this,'searchEngineDisplayType')} selection options={[
-          {value:'co' , text: 'Current(c) and Opposite(o) Panel'},
-          {value:'c' , text: 'Current(c) Panel'},
-          {value:'o' , text: 'Opposite(o) Panel'},
+          {value:'co' , text: l10n.translation("current")},
+          {value:'c' , text: l10n.translation("current")},
+          {value:'o' , text: l10n.translation("opposite")},
         ]} defaultValue={this.state.searchEngineDisplayType}/>
       </div>
 
-      <h3>Multi Search</h3>
+      <h3>{l10n.translation("multiSearch")}</h3>
       <table className="ui celled compact table">
         <thead>
         <tr>
@@ -1323,7 +1323,7 @@ class SearchSetting extends React.Component {
           <th>
           </th>
           <th colspan="5">
-            <button className="ui small icon primary button" onClick={_=>this.addSite(true)}>Add Search Engine</button>
+            <button className="ui small icon primary button" onClick={_=>this.addSite(true)}>{l10n.translation("addSearchEngine")}</button>
           </th>
         </tr>
         </tfoot>
@@ -1349,7 +1349,7 @@ class SearchSetting extends React.Component {
           <th>
           </th>
           <th colspan="5">
-            <button className="ui small icon primary button" onClick={_=>this.addSite()}>Add Search Engine</button>
+            <button className="ui small icon primary button" onClick={_=>this.addSite()}>{l10n.translation("addSearchEngine")}</button>
           </th>
         </tr>
         </tfoot>
@@ -1511,7 +1511,7 @@ class TabsSetting extends React.Component {
         <Grid.Row>
           <Grid.Column width={6}><label>{l10n.translation('focusTabLabelBegin')}</label></Grid.Column>
           <Grid.Column width={5}><Dropdown onChange={this.onChange.bind(this,'closeTabBehavior')} selection
-                                           options={[{key: 'nearlyChrome', value: 'nearlyChrome', text: 'Almost the same as chrome'},
+                                           options={[{key: 'nearlyChrome', value: 'nearlyChrome', text: l10n.translation("almostTheSameAsChrome")},
                                              ...this.makeOptions(['focusTabLeftTab','focusTabRightTab','focusTabLastSelectedTab','focusTabOpenerTab','focusTabOpenerTabRtl','focusTabLastOpenedTab','focusTabFirstTab','focusTabLastTab'])]}
                                            defaultValue={this.state.closeTabBehavior}/></Grid.Column>
         </Grid.Row>
@@ -1538,18 +1538,18 @@ class TabsSetting extends React.Component {
       <div className='spacer2'/>
 
       <div className="field">
-        <label>TabBar Top Margin:&nbsp;</label>
+        <label>{l10n.translation("tabBarTopMargin")}:&nbsp;</label>
         <Input onChange={this.onChange.bind(this,'tabBarMarginTop')} defaultValue={this.state.tabBarMarginTop}/>
         <label>px</label>
       </div>
 
       <div className='spacer2'/>
-      
+
       <div className="field">
         <Checkbox defaultChecked={this.state.removeTabBarMarginTop} toggle onChange={this.onChange.bind(this,'removeTabBarMarginTop')}/>
-        <span className="toggle-label">Remove Top Margin When Maximizing</span>
+        <span className="toggle-label">{l10n.translation("removeTopMarginWhenMaximizing")}</span>
       </div>
-      
+
       <Divider/>
 
       <h4 style={{marginTop:0, marginBottom: 20}}>{l10n.translation('newTab')}</h4>
@@ -1564,9 +1564,9 @@ class TabsSetting extends React.Component {
 
       <Grid>
         <Grid.Row>
-          <Grid.Column width={6}><label style={{paddingLeft: 60}}>Open New Tabs At:</label></Grid.Column>
+          <Grid.Column width={6}><label style={{paddingLeft: 60}}>{l10n.translation("openNewTabsAt")}</label></Grid.Column>
           <Grid.Column width={5}><Dropdown onChange={this.onChange.bind(this,'openTabPosition')} selection
-                                           options={[{value: 'default',text:'Default Position'},{value: 'left',text: 'Left End'},{value: 'right',text: 'Right End'}]}
+                                           options={[{value: 'default',text: l10n.translation("defaultPosition")},{value: 'left',text: l10n.translation("defaultPosition")},{value: 'right',text: l10n.translation("defaultPosition")}]}
                                            defaultValue={this.state.openTabPosition}/></Grid.Column>
         </Grid.Row>
       </Grid>
@@ -1586,18 +1586,18 @@ class TabsSetting extends React.Component {
 
       <div className="field">
         <Checkbox defaultChecked={this.state.alwaysOpenLinkBackground} toggle onChange={this.onChange.bind(this,'alwaysOpenLinkBackground')}/>
-        <span className="toggle-label">Open New Tab in Background</span>
+        <span className="toggle-label">{l10n.translation("openNewTabInBackground")}</span>
       </div>
 
       <div className='spacer'/>
 
       <div className="field">
         <Checkbox defaultChecked={this.state.oppositeGlobal} toggle onChange={this.onChange.bind(this,'oppositeGlobal')}/>
-        <span className="toggle-label">Opposite Mode (If a link is about to be opened in the new background, it opens in the oppopsite tab.)</span>
+        <span className="toggle-label">{l10n.translation("oppositeMode")}</span>
       </div>
 
       <Divider/>
-      <h4 style={{marginTop:0, marginBottom: 20}}>Tab Preview</h4>
+      <h4 style={{marginTop:0, marginBottom: 20}}>{l10n.translation("tabPreview")}</h4>
 
       <div className="field">
         <Checkbox defaultChecked={this.state.tabPreview} toggle onChange={this.onChange.bind(this,'tabPreview')}/>
@@ -1607,7 +1607,7 @@ class TabsSetting extends React.Component {
       <div className='spacer2'/>
 
       <div className="field">
-        <label>Delay Time:&nbsp;</label>
+        <label>{l10n.translation("delayTime")}&nbsp;</label>
         <Input onChange={this.onChange.bind(this,'tabPreviewWait')} defaultValue={this.state.tabPreviewWait}/>
         <label>&nbsp;{l10n.translation('millisecondsLabel')}</label>
       </div>
@@ -1615,21 +1615,21 @@ class TabsSetting extends React.Component {
       <div className='spacer2'/>
 
       <div className="field">
-        <label>Width:&nbsp;</label>
+        <label>{l10n.translation('width')}&nbsp;</label>
         <Input onChange={this.onChange.bind(this,'tabPreviewSizeWidth')} defaultValue={this.state.tabPreviewSizeWidth}/>
-        <label>&nbsp;Height:&nbsp;</label>
+        <label>&nbsp;{l10n.translation('height')}&nbsp;</label>
         <Input onChange={this.onChange.bind(this,'tabPreviewSizeHeight')} defaultValue={this.state.tabPreviewSizeHeight}/>
       </div>
       <div className='spacer2'/>
 
       <div className="field">
-        <label>Slide Height:&nbsp;</label>
+        <label>{l10n.translation("slideHeight")}&nbsp;</label>
         <Input onChange={this.onChange.bind(this,'tabPreviewSlideHeight')} defaultValue={this.state.tabPreviewSlideHeight}/>
       </div>
 
       <div className='spacer2'/>
 
-      <label style={{verticalAlign: '7px', paddingRight: 10}}>TabPreview Image Quality:</label>
+      <label style={{verticalAlign: '7px', paddingRight: 10}}>{l10n.translation("tabPreviewImageQuality")}</label>
       <div className="ui input">
         <input style={{padding: '.2em 0'}} type="range" min="0" max="100" name="imageQuality" step="1" value={this.state.tabPreviewQuality} onInput={e=>this.handleChangeTabPreviewQuality(e)}/>
       </div>
@@ -1639,7 +1639,7 @@ class TabsSetting extends React.Component {
 
       <div className="field">
         <Checkbox defaultChecked={this.state.tabPreviewRecent} toggle onChange={this.onChange.bind(this,'tabPreviewRecent')}/>
-        <span className="toggle-label">Display Current Preview</span>
+        <span className="toggle-label">{l10n.translation("displayCurrentPreview")}</span>
       </div>
 
 
@@ -1692,7 +1692,7 @@ class TabsSetting extends React.Component {
 
       <div className="field">
         <Checkbox defaultChecked={this.state.tabCirculateSelection} toggle onChange={this.onChange.bind(this,'tabCirculateSelection')}/>
-        <span className="toggle-label">Circulate Tab Selection</span>
+        <span className="toggle-label">{l10n.translation("circulateTabSelection")}</span>
       </div>
 
       <Divider/>
@@ -1743,7 +1743,7 @@ class TabsSetting extends React.Component {
 
       <Grid>
         <Grid.Row>
-          <Grid.Column width={3}><label>Right Click</label></Grid.Column>
+          <Grid.Column width={3}><label>{l10n.translation("rightClick")}</label></Grid.Column>
           <Grid.Column width={8}><Dropdown onChange={this.onChange.bind(this,'rightClickTabAdd')} selection
                                            options={this.mouseOptions}
                                            defaultValue={this.state.rightClickTabAdd}/></Grid.Column>
@@ -1820,14 +1820,14 @@ class TabsSetting extends React.Component {
       <div className='spacer2'/>
 
       <div className="field">
-        <span style={{verticalAlign: 'baseline',paddingLeft:60}} className="toggle-label">Dashed line when dragging:&nbsp;&nbsp;</span>
+        <span style={{verticalAlign: 'baseline',paddingLeft:60}} className="toggle-label">{l10n.translation("dashedLineWhenDragging")}&nbsp;&nbsp;</span>
         <Input ref='colorTabDot' onChange={this.onChange.bind(this,'colorTabDot')} defaultValue={this.state.colorTabDot}/>
       </div>
 
       <div className='spacer2'/>
 
       <div className="field">
-        <span style={{verticalAlign: 'baseline',paddingLeft:60}} className="toggle-label">Color of Mute/Pin/Reload Icon:&nbsp;&nbsp;</span>
+        <span style={{verticalAlign: 'baseline',paddingLeft:60}} className="toggle-label">{l10n.translation("colorOfMutePinReloadIcon")}&nbsp;&nbsp;</span>
         <Input ref='colorTabMode' onChange={this.onChange.bind(this,'colorTabMode')} defaultValue={this.state.colorTabMode}/>
       </div>
 
@@ -1835,15 +1835,15 @@ class TabsSetting extends React.Component {
 
       <div className="field">
         <Checkbox ref='showBorderActiveTab' style={{verticalAlign: 'middle'}} defaultChecked={this.state.showBorderActiveTab} toggle onChange={this.onChange.bind(this,'showBorderActiveTab')}/>
-        <span style={{verticalAlign: 'baseline'}} className="toggle-label">Show Bottom Border in Current Tab</span>
+        <span style={{verticalAlign: 'baseline'}} className="toggle-label">{l10n.translation("showBottomBorderInCurrentTab")}</span>
       </div>
 
 
       <div className='spacer2'/>
 
       <div className="field">
-        <Button primary content='Default Theme' onClick={_=>this.changeTheme('default')}/>
-        <Button primary content='Dark Theme' onClick={_=>this.changeTheme('dark')}/>
+        <Button primary content={l10n.translation("defaultTheme")} onClick={_=>this.changeTheme('default')}/>
+        <Button primary content={l10n.translation("darkTheme")} onClick={_=>this.changeTheme('dark')}/>
       </div>
 
     </div>
@@ -1900,7 +1900,7 @@ class KeyboardSetting extends React.Component {
     return <div>
       <h3>{l10n.translation('1524430321211440688')}</h3>
       <Divider/>
-      <p>Please refer <a target="_blank" href="https://github.com/electron/electron/blob/master/docs/api/accelerator.md">here</a> for input method of shortcut</p>
+      <p><a target="_blank" href="https://github.com/electron/electron/blob/master/docs/api/accelerator.md">{l10n.translation('pleaseReferHereForInputMethodOfShortcut')}</a></p>
       <br/>
 
       <Grid >
@@ -2051,14 +2051,14 @@ class ContextMenuSetting extends React.Component {
       <h3>{l10n.translation('5513242761114685513')}</h3>
       <Divider/>
 
-      <h3>Send URL</h3>
+      <h3>{l10n.translation("sendURL")}</h3>
       <table className="ui celled compact table">
         <thead>
         <tr>
           <th>{l10n.translation('59174027418879706')}</th>
           <th>{l10n.translation('name')}</th>
-          <th>Send Type</th>
-          <th>Send URL/Command</th>
+          <th>{l10n.translation("sendType")}</th>
+          <th>{l10n.translation("sendURLCommand")}</th>
           <th>{l10n.translation('delete')}</th>
         </tr>
         </thead>
@@ -2158,11 +2158,11 @@ class VideoSetting extends React.Component {
       <Divider/>
       <Grid>
         <Grid.Row>
-          <Grid.Column width={4}><label>Mouse Click</label></Grid.Column>
+          <Grid.Column width={4}><label>{l10n.translation("mouseClick")}</label></Grid.Column>
           <Grid.Column width={7}><Dropdown onChange={this.onChange.bind(this,'clickVideo')} selection options={videoClickOptions} defaultValue={this.state.clickVideo}/></Grid.Column>
         </Grid.Row>
         <Grid.Row>
-          <Grid.Column width={4}><label>Mouse Double Click</label></Grid.Column>
+          <Grid.Column width={4}><label>{l10n.translation("mouseDoubleClick")}</label></Grid.Column>
           <Grid.Column width={7}><Dropdown onChange={this.onChange.bind(this,'dbClickVideo')} selection options={videoClickOptions} defaultValue={this.state.dbClickVideo}/></Grid.Column>
         </Grid.Row>
       </Grid>
@@ -2172,25 +2172,25 @@ class VideoSetting extends React.Component {
       <Divider/>
       <Grid>
         <Grid.Row>
-          <Grid.Column width={4}><label>Mouse Wheel</label></Grid.Column>
+          <Grid.Column width={4}><label>{l10n.translation("mouseWheel")}</label></Grid.Column>
           <Grid.Column width={7}><Dropdown onChange={this.onChange.bind(this,'wheelMinusVideo')} selection options={videoWheelOptions} defaultValue={this.state.wheelMinusVideo}/></Grid.Column>
         </Grid.Row>
       </Grid>
       <Grid>
         <Grid.Row>
-          <Grid.Column width={4}><label>Shift+Mouse Wheel</label></Grid.Column>
+          <Grid.Column width={4}><label>{l10n.translation("shiftMouseWheel")}</label></Grid.Column>
           <Grid.Column width={7}><Dropdown onChange={this.onChange.bind(this,'shiftWheelMinusVideo')} selection options={videoWheelOptions} defaultValue={this.state.shiftWheelMinusVideo}/></Grid.Column>
         </Grid.Row>
       </Grid>
       <Grid>
         <Grid.Row>
-          <Grid.Column width={4}><label>Ctrl+Mouse Wheel</label></Grid.Column>
+          <Grid.Column width={4}><label>{l10n.translation("ctrlMouseWheel")}</label></Grid.Column>
           <Grid.Column width={7}><Dropdown onChange={this.onChange.bind(this,'ctrlWheelMinusVideo')} selection options={videoWheelOptions} defaultValue={this.state.ctrlWheelMinusVideo}/></Grid.Column>
         </Grid.Row>
       </Grid>
       <Grid>
         <Grid.Row>
-          <Grid.Column width={4}><label>Shift+Ctrl+Mouse Wheel</label></Grid.Column>
+          <Grid.Column width={4}><label>{l10n.translation("shiftCtrlMouseWheel")}</label></Grid.Column>
           <Grid.Column width={7}><Dropdown onChange={this.onChange.bind(this,'shiftCtrlWheelMinusVideo')} selection options={videoWheelOptions} defaultValue={this.state.shiftCtrlWheelMinusVideo}/></Grid.Column>
         </Grid.Row>
       </Grid>
@@ -2225,7 +2225,7 @@ class VideoSetting extends React.Component {
           <Grid.Column width={4}><Input onChange={this.onChange.bind(this,'audioSeekVideo')} defaultValue={this.state.audioSeekVideo}/>%</Grid.Column>
           <Grid.Column width={4} style={{paddingTop: 6}}>
             <Checkbox defaultChecked={this.state.keepAudioSeekValueVideo} toggle onChange={this.onChange.bind(this,'keepAudioSeekValueVideo')}/>
-            <span className="toggle-label">Keep value ​​in LocalStorage</span>
+            <span className="toggle-label">{l10n.translation("keepValue​​inLocalStorage")}</span>
           </Grid.Column>
         </Grid.Row>
         <Grid.Row>
@@ -2241,11 +2241,11 @@ class VideoSetting extends React.Component {
 
       <div className="field">
         <Checkbox defaultChecked={this.state.enableKeyDownVideo} toggle onChange={this.onChange.bind(this,'enableKeyDownVideo')}/>
-        <span className="toggle-label">Enable Keyboard Shortcut</span>
+        <span className="toggle-label">{l10n.translation("enableKeyboardShortcut")}</span>
       </div>
       <br/>
 
-      <p>Please refer <a target="_blank" href="https://github.com/electron/electron/blob/master/docs/api/accelerator.md">here</a> for input method of shortcut</p>
+      <p><a target="_blank" href="https://github.com/electron/electron/blob/master/docs/api/accelerator.md">{l10n.translation('pleaseReferHereForInputMethodOfShortcut')}</a></p>
       <br/>
 
       <Grid >
@@ -2254,7 +2254,7 @@ class VideoSetting extends React.Component {
       <br/>
 
 
-      <h4>Black List Sites (Forward match)</h4>
+      <h4>{l10n.translation("blackListSites")}</h4>
       <Divider/>
       <Form>
         <TextArea autoHeight placeholder='input URLs' onChange={this.onChange.bind(this,'blackListVideo')} defaultValue={this.state.blackListVideo.join("\n")}/>
@@ -2423,7 +2423,7 @@ class ThemeSetting extends React.Component {
   render() {
     const enable = !this.state.enableTheme
     return <div className="ui form">
-      <h3>Theme</h3>
+      <h3>{l10n.translation('theme')}</h3>
       <table className="ui celled compact table">
         <thead>
         <tr>
@@ -2437,7 +2437,7 @@ class ThemeSetting extends React.Component {
         <tbody>
         <tr key={`tr`}>
           <td key={`name`}>Default</td>
-          <td key={`description`}>Default Theme</td>
+          <td key={`description`}>{l10n.translation("defaultTheme")}</td>
           <td key={`version`} style={{width: 40}}>1.0.0</td>
           <td key={`enabled`}>
             <Checkbox checked={enable} disabled={enable} toggle onChange={(e, data) =>{
@@ -2460,51 +2460,51 @@ class ThemeSetting extends React.Component {
       </table>
 
       <div className="field">
-        <label>Pages to apply</label>
+        <label>{l10n.translation("pagesToApply")}</label>
         <br/>
 
         <Checkbox defaultChecked={this.state.themeTopPage} toggle onChange={this.onChange.bind(this,'themeTopPage')}/>
-        <span className="toggle-label">Top Page</span>
+        <span className="toggle-label">{l10n.translation("topPage")}</span>
         <br/>
 
         <Checkbox defaultChecked={this.state.themeBookmark} toggle onChange={this.onChange.bind(this,'themeBookmark')}/>
-        <span className="toggle-label">Bookmarks</span>
+        <span className="toggle-label">{l10n.translation("bookmarks")}</span>
         <br/>
 
         <Checkbox defaultChecked={this.state.themeHistory} toggle onChange={this.onChange.bind(this,'themeHistory')}/>
-        <span className="toggle-label">History</span>
+        <span className="toggle-label">{l10n.translation("history")}</span>
         <br/>
 
         <Checkbox defaultChecked={this.state.themeDownloader} toggle onChange={this.onChange.bind(this,'themeDownloader')}/>
-        <span className="toggle-label">Download</span>
+        <span className="toggle-label">{l10n.translation("downloads")}</span>
         <br/>
 
         <Checkbox defaultChecked={this.state.themeExplorer} toggle onChange={this.onChange.bind(this,'themeExplorer')}/>
-        <span className="toggle-label">File Explorer</span>
+        <span className="toggle-label">{l10n.translation("fileExplorer")}</span>
         <br/>
 
         <Checkbox defaultChecked={this.state.themeBookmarkSidebar} toggle onChange={this.onChange.bind(this,'themeBookmarkSidebar')}/>
-        <span className="toggle-label">Bookmarks Sidebar</span>
+        <span className="toggle-label">{l10n.translation("bookmarksSidebar")}</span>
         <br/>
 
         <Checkbox defaultChecked={this.state.themeHistorySidebar} toggle onChange={this.onChange.bind(this,'themeHistorySidebar')}/>
-        <span className="toggle-label">History Sidebar</span>
+        <span className="toggle-label">{l10n.translation("historySidebar")}</span>
         <br/>
 
         <Checkbox defaultChecked={this.state.themeSessionManagerSidebar} toggle onChange={this.onChange.bind(this,'themeSessionManagerSidebar')}/>
-        <span className="toggle-label">Session Manager Sidebar</span>
+        <span className="toggle-label">{l10n.translation("sessionManagerSidebar")}</span>
         <br/>
 
         <Checkbox defaultChecked={this.state.themeTabTrashSidebar} toggle onChange={this.onChange.bind(this,'themeTabTrashSidebar')}/>
-        <span className="toggle-label">Trash of Tabs Sidebar</span>
+        <span className="toggle-label">{l10n.translation("trashOfTabsSidebar")}</span>
         <br/>
 
         <Checkbox defaultChecked={this.state.themeTabHistorySidebar} toggle onChange={this.onChange.bind(this,'themeTabHistorySidebar')}/>
-        <span className="toggle-label">History of Tabs Sidebar</span>
+        <span className="toggle-label">{l10n.translation("historyOfTabsSidebar")}</span>
         <br/>
 
         <Checkbox defaultChecked={this.state.themeExplorerSidebar} toggle onChange={this.onChange.bind(this,'themeExplorerSidebar')}/>
-        <span className="toggle-label">File Explorer Sidebar</span>
+        <span className="toggle-label">{l10n.translation("fileExplorerSidebar")}</span>
 
       </div>
       <br/>
@@ -2544,7 +2544,7 @@ class TopList extends React.Component {
                       }}
     >
       <Icon name={icon}/>
-      {name == "data" ? 'Data' : name == "theme" ? 'Theme' : l10n.translation(name == "keyboard" ? '1524430321211440688' : name == 'video' ? '6146563240635539929' : name == 'contextMenu'? '5513242761114685513' : name)}
+      { l10n.translation(name == "keyboard" ? '1524430321211440688' : name == 'video' ? '6146563240635539929' : name == 'contextMenu'? '5513242761114685513' : name)}
     </Menu.Item>
   }
 
@@ -2566,7 +2566,7 @@ class TopList extends React.Component {
         {this.getMenu('theme','picture')}
         {this.getMenu('extensions','industry')}
         <Menu.Item as="a" href='javascript:void(0)' onClick={_=>ipc.send('open-page','chrome-extension://jpkfjicglakibpenojifdiepckckakgk/options_page.html')} active={false}>
-          Mouse Gesture
+          {l10n.translation('mouseGesture')}
         </Menu.Item>
       </Sidebar>
       <Sidebar.Pusher>

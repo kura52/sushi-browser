@@ -10,6 +10,10 @@ import path from 'path';
 
 import ReactTable from 'react-table';
 
+const l10n = require('../../brave/js/l10n')
+l10n.init()
+
+
 const expand = require('brace-expansion');
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
 
@@ -26,9 +30,9 @@ function showDialog(input,id){
 function cancelItems(items){
   showDialog({
     normal: true,
-    title: 'Confirm',
-    text: 'Are you sure you want to delete the following files?',
-    buttons:['Yes','No']
+    title: l10n.translation('confirm'),
+    text: l10n.translation('areYouSureYouWantToDeleteTheFollowingFiles'),
+    buttons:[l10n.translation('yes'),l10n.translation('no')]
   }).then(value => {
     console.log(value)
     for(let item of items){
@@ -149,13 +153,13 @@ class Downloader extends React.Component {
   constructor(props,context) {
     super(props,context);
     this.columns = [
-      { accessor: 'menu', Header: 'Menu', Cell: this.getMenuIcons, resizable: true, minWidth: 20, maxWidth: 95 },
-      { accessor: 'name', Header: 'Name', resizable: true, sortable: true,filterable:true, minWidth: 20, maxWidth: 250 },
-      { accessor: 'progress', Header: 'Progress', Cell: PercentCompleteFormatter, minWidth: 10, maxWidth:150  },
-      { accessor: 'size', Header: 'Size', resizable: true, sortable: true,filterable:true, minWidth: 10, maxWidth:80  },
-      { accessor: 'est', Header: 'Est. Time', resizable: true, sortable: true,filterable:true, minWidth: 10, maxWidth:90  },
-      { accessor: 'speed', Header: 'Speed', resizable: true, sortable: true,filterable:true, minWidth: 10, maxWidth:80  },
-      { accessor: 'starttime', Header: 'Start Time',resizable: true, sortable: true,filterable:true, minWidth:10, maxWidth:150  },
+      { accessor: 'menu', Header: l10n.translation('menu'), Cell: this.getMenuIcons, resizable: true, minWidth: 20, maxWidth: 95 },
+      { accessor: 'name', Header: l10n.translation('name'), resizable: true, sortable: true,filterable:true, minWidth: 20, maxWidth: 250 },
+      { accessor: 'progress', Header: l10n.translation('progress'), Cell: PercentCompleteFormatter, minWidth: 10, maxWidth:150  },
+      { accessor: 'size', Header: l10n.translation('size'), resizable: true, sortable: true,filterable:true, minWidth: 10, maxWidth:80  },
+      { accessor: 'est', Header: l10n.translation('estTime'), resizable: true, sortable: true,filterable:true, minWidth: 10, maxWidth:90  },
+      { accessor: 'speed', Header: l10n.translation('speed'), resizable: true, sortable: true,filterable:true, minWidth: 10, maxWidth:80  },
+      { accessor: 'starttime', Header: l10n.translation('startTime'),resizable: true, sortable: true,filterable:true, minWidth:10, maxWidth:150  },
       { accessor: 'url', Header: 'URL', resizable: true, sortable: true,filterable:true,minWidth:10 },
     ]
     this.state = {downloads: new Map(), rows: [], selectedIds: []};
@@ -403,13 +407,14 @@ class Downloader extends React.Component {
 
   handleNewDownload = ()=>{
     showDialog({
-      inputable: true, title: 'New Download',
-      text: `Please enter URLs and save directory`,
+      inputable: true, title: l10n.translation('newDownload'),
+      text: `${l10n.translation('pleaseEnterURLsAndSaveDirectory')}`,
       initValue: ["",""],
       option: ['textArea','dialog',void 0,'toggle'],
-      needInput: ["URLs  (You can expand URLs. Example: file{a,b,c}.jpg , file{00..10}.png, file{0..4..2}.gif)",
-        "Save Directory","FileName(Optional) (You can use tags (name/ext/base/sub/host/y/m/d/hh/mm/ss). Example: {name}_{y}.{ext})",
-        'Attempt to find and download video (Using youtube-dl)']
+      needInput: [l10n.translation('uRLs'),
+        l10n.translation('saveDirectory'),
+        l10n.translation('fileName'),
+        l10n.translation('attemptToFindAndDownloadVideo')]
     }).then(value => {
       console.log(7778,value)
       if (!value) return
@@ -540,56 +545,57 @@ class Downloader extends React.Component {
         <nav className="navbar navbar-light bg-faded">
           <form className="form-inline">
             <button onClick={_=>this.handleNewDownload()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
-              <i className="fa fa-plus-circle" aria-hidden="true"></i>New DL
+              <i className="fa fa-plus-circle" aria-hidden="true"></i>{l10n.translation('newDL')}
             </button>
             <button onClick={_=>this.handleStart()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
-              <i className="fa fa-play-circle-o" aria-hidden="true"></i>Start
+              <i className="fa fa-play-circle-o" aria-hidden="true"></i>{l10n.translation('start')}
             </button>
             <button onClick={_=>this.handlePause()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
-              <i className="fa fa-pause-circle-o" aria-hidden="true"></i>Pause
+              <i className="fa fa-pause-circle-o" aria-hidden="true"></i>{l10n.translation('downloadItemPause')}
             </button>
             <button onClick={_=>this.handleCancel()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
-              <i className="fa fa-trash-o" aria-hidden="true"></i>Cancel DL
+              <i className="fa fa-trash-o" aria-hidden="true"></i>{l10n.translation('cancelDL')}
             </button>
             <button onClick={_=>this.handleRemove()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
-              <i className="fa fa-times" aria-hidden="true"></i>Remove Row
+              <i className="fa fa-times" aria-hidden="true"></i>{l10n.translation('removeRow')}
             </button>
             <button onClick={_=>this.handleRemoveAll(true)} className="btn btn-sm align-middle btn-outline-secondary" type="button">
-              <i className="fa fa-window-close" aria-hidden="true"></i>Remove Finished
+              <i className="fa fa-window-close" aria-hidden="true"></i>{l10n.translation('removeFinished')}
             </button>
             <button onclick={_ => this.handleOpenFile()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
-              <i className="fa fa-file-o" aria-hidden="true"></i>Open File
+              <i className="fa fa-file-o" aria-hidden="true"></i>{l10n.translation('openFile').replace(/…|\.\.\./,'')}
             </button>
             <button onClick={_=>this.handleOpenFolder()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
-              <i className="fa fa-folder-o" aria-hidden="true"></i>Show Folder
+              <i className="fa fa-folder-o" aria-hidden="true"></i>{l10n.translation('showFolder')}
             </button>
             <button onClick={_=>this.handleCopyPath()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
-              <i className="fa fa-clipboard" aria-hidden="true"></i>Copy Path
+              <i className="fa fa-clipboard" aria-hidden="true"></i>{l10n.translation('copyPath')}
             </button>
             <button onClick={_=>this.handleCopyUrl()} className="btn btn-sm align-middle btn-outline-secondary" type="button">
-              <i className="fa fa-clipboard" aria-hidden="true"></i>Copy URL
+              <i className="fa fa-clipboard" aria-hidden="true"></i>{l10n.translation('copyURL')}
             </button>
 
             <div className="form-check form-check-inline">
               <label className="form-check-label">
-                <input className="form-check-input" type="checkbox" checked={global.multiSelection} onChange={::this.onChangeMultiSelection}/>Multiple Selection
+                <input className="form-check-input" type="checkbox" checked={global.multiSelection} onChange={::this.onChangeMultiSelection}/>
+                Multiple Selection
               </label>
             </div>
 
             <div className="form-check form-check-inline">
               <label className="form-check-label">
                 <input className="form-check-input" type="checkbox" checked={global.enableDownloadList}
-                       onChange={this.onChange.bind(this,'enableDownloadList')}/>Enable Download List
+                       onChange={this.onChange.bind(this,'enableDownloadList')}/>{l10n.translation('enableDownloadList')}
               </label>
             </div>
 
-          <div className="divider-vertical" />
+            <div className="divider-vertical" />
 
-            Concurrent downloads:
+            {l10n.translation('concurrentDownloads')}
             <select className="form-control form-control-sm" onChange={this.onChange.bind(this,'concurrentDownload')}>
               {[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20].map(x=><option selected={concurrentDownload == x}value={x}>{x}</option>)}
             </select>
-            Downloads per server:
+            {l10n.translation('downloadsPerServer')}
             <select className="form-control form-control-sm" onChange={this.onChange.bind(this,'downloadNum')}>
               {[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16].map(x=><option selected={downloadNum == x} value={x}>{x}</option>)}
             </select>

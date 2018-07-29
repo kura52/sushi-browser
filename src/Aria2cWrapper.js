@@ -237,9 +237,11 @@ export default class Aria2cWrapper{
     });
     this.aria2c.on('close', (code) => {
       console.log(`*r**${code}`)
+      if(code == 7) return
       if(this.status != 'PAUSE' && this.status != 'CANCEL' ) this.status = code === 0 ? 'COMPLETE' : 'ERROR'
       if(this.status == 'ERROR'){
         this.errorCallback()
+        this.closeCallback()
       }
       if(this.status != 'PAUSE'){
         this.closeCallback()

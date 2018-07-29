@@ -705,7 +705,7 @@ const createWindowSubmenu = () => {
     },
     { type: 'separator' },
     {
-      label: 'Multi Row Tabs',
+      label: locale.translation('multiRowTabs'),
       accelerator: mainState.keyMultiRowTabs,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{

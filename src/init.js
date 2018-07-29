@@ -258,7 +258,7 @@ async function clearDatas(){
   if(mainState.clearGeneralSettingsOnClose) targets.push('clearGeneralSettings')
   if(mainState.clearFavoriteOnClose) targets.push('clearFavorite')
   if(targets.length){
-     let opt2
+    let opt2
     if(mainState.clearType == 'before'){
       opt2 = { updated_at: { $lte: Date.now() - parseInt(mainState.clearDays) * 24 * 60 * 60 * 1000 }}
     }
@@ -841,17 +841,17 @@ function contextMenu(webContents) {
       if(!favMenu.isNote){
         menuItems.push({label: locale.translation('openInNewTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewTab')}})
         menuItems.push({label: locale.translation('openInNewPrivateTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewPrivateTab')}})
-        menuItems.push({label: 'Open Link in New Tor Tab',click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewTorTab')}})
+        menuItems.push({t: 'openLinkInNewTorTab', label: locale.translation('openLinkInNewTorTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewTorTab')}})
         menuItems.push({label: locale.translation('openInNewSessionTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewSessionTab')}})
         menuItems.push({label: locale.translation('openInNewWindow'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindow')}})
-        menuItems.push({label: 'Open Link in New Window with a Row',click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindowWithOneRow')}})
-        menuItems.push({label: 'Open Link in New Window with two Rows',click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindowWithTwoRow')}})
+        menuItems.push({t: 'openLinkInNewWindowWithARow', label: locale.translation('openLinkInNewWindowWithARow'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindowWithOneRow')}})
+        menuItems.push({t: 'openLinkInNewWindowWithTwoRows', label: locale.translation('openLinkInNewWindowWithTwoRows'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindowWithTwoRow')}})
         menuItems.push({type: 'separator'})
-     }
-     if(!favMenu.isFile){
-       menuItems.push({label: locale.translation('9065203028668620118'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'edit')}})
-       menuItems.push({type: 'separator'})
-     }
+      }
+      if(!favMenu.isFile){
+        menuItems.push({label: locale.translation('9065203028668620118'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'edit')}})
+        menuItems.push({type: 'separator'})
+      }
 
       menuItems.push({label: locale.translation('copy'),click: (item,win)=>{clipboard.writeText(favMenu.path.join(os.EOL))}})
       menuItems.push({label: locale.translation('delete'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'delete')}})
@@ -905,11 +905,11 @@ function contextMenu(webContents) {
     }
     else if(explorerMenu){
       const expMenu = explorerMenu
-      menuItems.push({label: 'Copy Path',click: (item,win)=>{clipboard.writeText(expMenu.path.join(os.EOL))}})
-      menuItems.push({label: 'Create New File',click: (item,win)=>{expMenu.sender.send(`explorer-menu-reply`,'create-file')}})
-      menuItems.push({label: 'Create New Directory',click: (item,win)=>{expMenu.sender.send(`explorer-menu-reply`,'create-dirctory')}})
-      menuItems.push({label: 'Rename',click: (item,win)=>{expMenu.sender.send(`explorer-menu-reply`,'rename')}})
-      menuItems.push({label: 'Delete (Move to Trash)',click: (item,win)=>{expMenu.sender.send(`explorer-menu-reply`,'delete')}})
+      menuItems.push({t: 'copyPath', label: locale.translation('copyPath'),click: (item,win)=>{clipboard.writeText(expMenu.path.join(os.EOL))}})
+      menuItems.push({t: 'createNewFile', label: locale.translation('createNewFile'),click: (item,win)=>{expMenu.sender.send(`explorer-menu-reply`,'create-file')}})
+      menuItems.push({t: 'createNewDirectory', label: locale.translation('createNewDirectory'),click: (item,win)=>{expMenu.sender.send(`explorer-menu-reply`,'create-dirctory')}})
+      menuItems.push({t: 'rename', label: locale.translation('rename'),click: (item,win)=>{expMenu.sender.send(`explorer-menu-reply`,'rename')}})
+      menuItems.push({t: 'delete', label: locale.translation('delete'),click: (item,win)=>{expMenu.sender.send(`explorer-menu-reply`,'delete')}})
       menuItems.push({type: 'separator'})
     }
 
@@ -946,7 +946,7 @@ function contextMenu(webContents) {
         }
       })
       menuItems.push({
-        label: 'Open Link in Opposite Tab', click: (item, win) => {
+        t: 'openLinkInOppositeTab', label: locale.translation('openLinkInOppositeTab'), click: (item, win) => {
           win.webContents.send('new-tab-opposite', webContents.getId(), props.linkURL)
         }
       })
@@ -956,7 +956,7 @@ function contextMenu(webContents) {
         }
       })
       menuItems.push({
-        label: 'Open Links in New Tor Tabs', click: (item, win) => {
+        t: 'openLinkInNewTorTab', label: locale.translation('openLinkInNewTorTab'), click: (item, win) => {
           win.webContents.send('new-tab', webContents.getId(), props.linkURL,'persist:tor')
         }
       })
@@ -999,7 +999,7 @@ function contextMenu(webContents) {
       }
 
       if(isVideoURL){
-        menuItems.push({label: 'Save and Play Video', click: (item, win) => ipcMain.emit('save-and-play-video',null,props.linkURL,win)})
+        menuItems.push({t: 'saveAndPlayVideo', label: locale.translation('saveAndPlayVideo'), click: (item, win) => ipcMain.emit('save-and-play-video',null,props.linkURL,win)})
         if(!disableContextMenus.has('Send URL to Video Player')) menuItems.push({label: `Send URL to ${players.find(x=>x.value == mainState.sendToVideo).text}`, click: () => videoProcessList.push(open(mainState.sendToVideo,props.linkURL))})
       }
       menuItems.push({type: 'separator'})
@@ -1086,11 +1086,11 @@ function contextMenu(webContents) {
     // videos
     if (isVideo) {
       menuItems.push({
-        label:  'Play Video in Popup Window',
+        t: 'playVideoInPopupWindow', label: locale.translation('playVideoInPopupWindow'),
         click: (item, win) => win.webContents.send('pin-video', webContents.getId(), true)
       })
       menuItems.push({
-        label:  'Play Video in Floating Panel',
+        t: 'playVideoInFloatingPanel', label: locale.translation('playVideoInFloatingPanel'),
         click: (item, win) => win.webContents.send('pin-video', webContents.getId())
       })
       menuItems.push({type: 'separator'})
@@ -1103,10 +1103,10 @@ function contextMenu(webContents) {
       menuItems.push({t: '782057141565633384', label: locale.translation('782057141565633384'), //'Copy Video URL',
         click: () => clipboard.writeText(props.srcURL)})
 
-      menuItems.push({label: 'Save and Play Video', click: (item, win) => ipcMain.emit('save-and-play-video',null,props.srcURL,win)})
+      menuItems.push({t: 'saveAndPlayVideo', label: locale.translation('saveAndPlayVideo'), click: (item, win) => ipcMain.emit('save-and-play-video',null,props.srcURL,win)})
 
       const player = players.find(x=>x.value == mainState.sendToVideo)
-      if(player) menuItems.push({t: 'Send URL to Video Player', label: `Send URL to ${player.text}`, click: () => videoProcessList.push(open(mainState.sendToVideo,props.srcURL))})
+      if(player) menuItems.push({t: 'Send URL to Video Player', label: `${locale.translation('sendURL')} to ${player.text}`, click: () => videoProcessList.push(open(mainState.sendToVideo,props.srcURL))})
       menuItems.push({type: 'separator'})
     }
 
@@ -1204,7 +1204,7 @@ function contextMenu(webContents) {
 
       for(let suffix of mainState.searchEngineDisplayType == 'c' ? ['(c)'] :
         mainState.searchEngineDisplayType == 'o' ? ['(o)'] : mainState.oppositeGlobal ? ['(o)','(c)'] : ['(c)','(o)']){
-        menuItems.push({ label: 'Add to Notes' + suffix, click: async (item,win)=>{
+        menuItems.push({ t: 'addToNotes', label: locale.translation('addToNotes') + suffix, click: async (item,win)=>{
             win.webContents.send(suffix == '(o)' ? 'new-tab-opposite' : 'new-tab',
               webContents.getId(), `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note.html?content=${encodeURIComponent(rectSelectText ? rectSelectText.replace(/\r?\n/g,"<br/>") :  (await getSelectionHTML(webContents)))}` ,suffix == '(o)')
 
@@ -1214,13 +1214,13 @@ function contextMenu(webContents) {
       const links = await getSelectionLinks(webContents,props)
       if(links && links.length) {
         menuItems.push({type: 'separator'})
-        menuItems.push({label: 'Copy Links', click: (item,win)=> clipboard.writeText(links.join(os.EOL))})
+        menuItems.push({t: 'copyLinks', label: locale.translation('copyLinks'), click: (item,win)=> clipboard.writeText(links.join(os.EOL))})
         menuItems.push({label: locale.translation('openalllinksLabel'), click: (item,win)=>{
             for(let link of links){
               setTimeout(_=>win.webContents.send('new-tab', webContents.getId(), link),0)
             }
           }})
-        menuItems.push({label: 'Download Selection', click: (item,win)=> startDownloadSelector(win,webContents,props,true)})
+        menuItems.push({t: 'downloadSelection', label: locale.translation('downloadSelection'), click: (item,win)=> startDownloadSelector(win,webContents,props,true)})
       }
       menuItems.push({type: 'separator'})
     }
@@ -1244,16 +1244,16 @@ function contextMenu(webContents) {
       menuItems.push({t: '2473195200299095979', label: syncReplaceName, click: (item, win) => win.webContents.send('sync-replace-from-menu', webContents.getId())})
       menuItems.push({type: 'separator'})
 
-      menuItems.push({label: 'Download All', click: (item,win)=> startDownloadSelector(win,webContents,props)})
+      menuItems.push({t: 'downloadAll', label: locale.translation('downloadAll'), click: (item,win)=> startDownloadSelector(win,webContents,props)})
       menuItems.push({type: 'separator'})
 
       menuItems.push({
-        label: 'Sync Scroll Left to Right', click: (item, win) => {
+        t: 'syncScrollLeftToRight', label: locale.translation('syncScrollLeftToRight'), click: (item, win) => {
           win.webContents.send('open-panel', {url: webContents.getURL(), sync: uuid.v4(), id: webContents.getId()})
         }
       })
       menuItems.push({
-        label: 'Sync Scroll Right to Left', click: (item, win) => {
+        t: 'syncScrollRightToLeft', label: locale.translation('syncScrollRightToLeft'), click: (item, win) => {
           win.webContents.send('open-panel', {
             url: webContents.getURL(),
             sync: uuid.v4(),
