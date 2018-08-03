@@ -1,3 +1,5 @@
+require('v8-compile-cache')
+
 global.debug = require('debug')('info')
 const databaseForked = require('./databaseForked')
 import { app } from 'electron'

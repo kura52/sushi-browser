@@ -1,3 +1,5 @@
+import {favorite} from "./databaseRender";
+
 const React = require('react')
 const ReactDOM = require('react-dom');
 const {Component} = React
@@ -6,6 +8,7 @@ import { Search } from 'semantic-ui-react';
 const uuid = require('node-uuid')
 const PubSub = require('./pubsub')
 const urlutil = require('./urlutil')
+const sharedState = require('./sharedState')
 
 const SKIP_CODES = [8,9,13,16,17,18,19,20,27,33,34,35,36,37,38,39,40,45,46,144,145]
 
@@ -348,7 +351,7 @@ export default class BrowserNavbarLocation extends Component {
   render() {
     console.log(this.props)
     const { results } = this.state
-    return (
+    return !sharedState.showAddressBarFavicon && !sharedState.showAddressBarBookmarks ?
       <Search
         icon={null}
         showNoResults={false}
@@ -365,7 +368,44 @@ export default class BrowserNavbarLocation extends Component {
         onBlur={::this.onBlur}
         onKeyDown={::this.onKeyDown}
         onContextMenu={this.props.onContextMenu}
-      />
-    )
+      />  :
+      <span className={`address-bar-wrapper ${sharedState.showAddressBarFavicon ? ' favicon' : ''} ${sharedState.showAddressBarBookmarks ? ' bookmarks' : ''}`}>
+        {sharedState.showAddressBarFavicon ? <a className="address-bar" style={{backgroundImage: `url(${this.props.tab.page.title && this.props.tab.page.favicon !== 'loading' ? this.props.tab.page.favicon : ''})`}}
+                                                href={this.props.tab.page.navUrl} onClick={e=>{e.stopPropagation();e.preventDefault();return false}}/> : null }
+        <Search
+          icon={null}
+          showNoResults={false}
+          loading={false}
+          onResultSelect={::this.handleResultSelect}
+          onSearchChange={::this.handleSearchChange}
+          onSelectionChange={::this.handleSelectionChange}
+          onMouseDown={::this.onMouseDown}
+          onMouseUp={::this.onMouseUp}
+          results={results.map(x=>{return {title:x.title,description: x.description}})}
+          value={this.state.torProgress ? `Connecting to the Tor network: ${this.state.torProgress}%...` : convertURL(this.props.page.location)}
+          ref="input"
+          onFocus={::this.onFocus}
+          onBlur={::this.onBlur}
+          onKeyDown={::this.onKeyDown}
+          onContextMenu={this.props.onContextMenu}
+        />
+        {sharedState.showAddressBarBookmarks ? <a onClick={async e=>{
+          const key = uuid.v4()
+          await favorite.insert({key, url: this.props.page.location, title: this.props.page.title, favicon: this.props.page.favicon,
+            is_file:true, created_at: Date.now(), updated_at: Date.now()})
+          await favorite.update({ key: 'root' }, { $push: { children: key }, $set:{updated_at: Date.now()} })
+          const rect = e.target.getBoundingClientRect()
+          const span = document.createElement('span')
+          span.innerHTML = `<div class="ui bottom right inverted popup transition visible" style="position: fixed; z-index: 99999; width: 140px; left: ${rect.x - 114}px; top: ${rect.y + 12}px;">
+<div class="content">Bookmark Added</div>
+</div>`
+          document.body.appendChild(span)
+          setTimeout(_=>{
+            document.body.removeChild(span)
+          },2500)
+
+        }} className="address-bar-favorite"><i className="fa fa-star" aria-hidden="true"/></a> : null}
+        </span>
+
   }
 }

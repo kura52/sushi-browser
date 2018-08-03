@@ -4,21 +4,10 @@ const ipc = require('electron').ipcRenderer
 const path = require('path')
 const React = require('react')
 const ReactDOM = require('react-dom')
-import firebase from 'firebase'
-
-const config = {
-  apiKey: "AIzaSyCZFJ_UVwezRCWS3IMfGusPMZqmZsN6zdE",
-  authDomain: "browser-b2ecd.firebaseapp.com",
-  databaseURL: "https://browser-b2ecd.firebaseio.com",
-  projectId: "browser-b2ecd",
-  storageBucket: "browser-b2ecd.appspot.com",
-  messagingSenderId: "427711452647"
-}
 
 class Sync extends React.Component {
   constructor(props) {
     super(props)
-    firebase.initializeApp(config)
   }
 
   componentDidMount(){

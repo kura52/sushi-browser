@@ -1084,3 +1084,45 @@ span.suggestion-visit{
     position: absolute;
     z-index: 3;
 }
+
+.address-bar-wrapper.favicon .ui.search .prompt {
+    padding-left: 25px;
+}
+
+.address-bar-wrapper.bookmarks .ui.search .prompt {
+    padding-right: 22px;
+}
+
+.browser-navbar .input-group a.address-bar{
+    position: absolute;
+    display: inline-block;
+    z-index: 3;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    width: 16px;
+    height: 16px;
+    margin-left: 6px;
+    margin-top: 0.45em;
+    background-size: contain;
+}
+
+span.address-bar-wrapper{
+    width: 100%;
+    height: 100%;
+    display: flex
+}
+
+.browser-navbar .input-group a.address-bar-favorite{
+    position: relative;
+    display: flex;
+    z-index: 3;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    width: 16px;
+    height: 16px;
+    margin-left: -30px;
+    margin-top: 0.45em;
+    left: 9px;
+}

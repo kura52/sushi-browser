@@ -314,6 +314,8 @@ export default {
       mainState.isVolumeControl = {}
       mainState.fullScreenIds = {}
 
+      if(!mainState.enableSmoothScrolling) app.commandLine.appendSwitch('disable-smooth-scrolling')
+
       mainState.searchProviders = {}
       for(let ele of (await searchEngine.find({}))){
         mainState.searchProviders[ele.name] = ele

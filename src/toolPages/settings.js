@@ -767,6 +767,15 @@ class GeneralSetting extends React.Component {
           <Checkbox defaultChecked={this.state.autoDeleteDownloadList} toggle onChange={this.onChange.bind(this,'autoDeleteDownloadList')}/>
           <span className="toggle-label">{l10n.translation("deleteFromDownloadListWhenDownloadIsCompleted")} ({l10n.translation('requiresRestart').replace('* ','')})</span>
           <br/>
+          <Checkbox defaultChecked={this.state.enableSmoothScrolling} toggle onChange={this.onChange.bind(this,'enableSmoothScrolling')}/>
+          <span className="toggle-label">{l10n.translation("useSmoothScroll").replace("*","")} ({l10n.translation('requiresRestart').replace('* ','')})</span>
+          <br/>
+          <Checkbox defaultChecked={this.state.showAddressBarFavicon} toggle onChange={this.onChange.bind(this,'showAddressBarFavicon')}/>
+          <span className="toggle-label">Show the favicon at the left end of the address bar ({l10n.translation('requiresRestart').replace('* ','')})</span>
+          <br/>
+          <Checkbox defaultChecked={this.state.showAddressBarBookmarks} toggle onChange={this.onChange.bind(this,'showAddressBarBookmarks')}/>
+          <span className="toggle-label">Show bookmark add icon on the right end of the address bar ({l10n.translation('requiresRestart').replace('* ','')})</span>
+          <br/>
           <Checkbox defaultChecked={this.state.longPressMiddle} toggle onChange={this.onChange.bind(this,'longPressMiddle')}/>
           <span className="toggle-label">{l10n.translation("enableBehaviorChangeWhenLongPressOfMiddleMouseButton")} ({l10n.translation('requiresRestart').replace('* ','')})</span>
           <br/>
@@ -1297,7 +1306,7 @@ class SearchSetting extends React.Component {
       <div className="field">
         <label>{l10n.translation("searchMethods")}&nbsp;</label>
         <Dropdown onChange={this.onChange.bind(this,'searchEngineDisplayType')} selection options={[
-          {value:'co' , text: l10n.translation("current")},
+          {value:'co' , text: l10n.translation("currentAndOpposite")},
           {value:'c' , text: l10n.translation("current")},
           {value:'o' , text: l10n.translation("opposite")},
         ]} defaultValue={this.state.searchEngineDisplayType}/>
@@ -2510,19 +2519,42 @@ class ThemeSetting extends React.Component {
       <br/>
     </div>
   }
+}
 
+
+class SyncDataSetting extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = generalDefault
+  }
+
+
+  onChange(name,e,data){
+    ipc.send('save-state',{tableName:'state',key:name,val:data.value || data.checked})
+  }
+
+  render() {
+    const enable = !this.state.enableTheme
+    return <div className="ui form">
+      <h3>{l10n.translation('theme')}</h3>
+
+
+
+    </div>
+  }
 }
 
 const routings = {
-  'general' : <GeneralSetting/>,
-  'data' : <DataSetting/>,
-  'search' : <SearchSetting/>,
-  'tabs' : <TabsSetting/>,
-  'contextMenu' : <ContextMenuSetting/>,
-  'keyboard' : <KeyboardSetting/>,
-  'video' : <VideoSetting/>,
-  'extensions' : <ExtensionSetting/>,
-  'theme' : <ThemeSetting/>,
+  general : <GeneralSetting/>,
+  data : <DataSetting/>,
+  search : <SearchSetting/>,
+  tabs : <TabsSetting/>,
+  contextMenu : <ContextMenuSetting/>,
+  keyboard : <KeyboardSetting/>,
+  video : <VideoSetting/>,
+  extensions : <ExtensionSetting/>,
+  theme : <ThemeSetting/>,
+  syncData: <SyncDataSetting/>
 }
 
 class TopList extends React.Component {
@@ -2565,6 +2597,7 @@ class TopList extends React.Component {
         {this.getMenu('video','video')}
         {this.getMenu('theme','picture')}
         {this.getMenu('extensions','industry')}
+        {this.getMenu('syncData','exchange')}
         <Menu.Item as="a" href='javascript:void(0)' onClick={_=>ipc.send('open-page','chrome-extension://jpkfjicglakibpenojifdiepckckakgk/options_page.html')} active={false}>
           {l10n.translation('mouseGesture')}
         </Menu.Item>
@@ -2599,7 +2632,7 @@ ipc.send("get-main-state",key,['startsWith','newTabMode','myHomepage','searchPro
   'clearSessionManagerOnClose','clearFaviconOnClose','clearAutomationOnClose','clearNoteOnClose','clearType','clearDays',
   'enableWidevine','toolbarLink','sidebarLink','bookmarkbarLink','zoomBehavior','tabPreviewSizeWidth','tabPreviewSizeHeight','tabPreviewSlideHeight','tabPreviewWait','searchEngineDisplayType','tabPreviewRecent',
   'sendUrlContextMenus','extensions','tabBarMarginTop','removeTabBarMarginTop','enableTheme','themeTopPage','themeBookmark','themeHistory','themeDownloader','themeExplorer','themeBookmarkSidebar','themeHistorySidebar',
-  'themeSessionManagerSidebar','themeTabTrashSidebar','themeTabHistorySidebar','themeExplorerSidebar','searchHistoryOrderCount','rectangularSelection','fullscreenTransitionKeep'])
+  'themeSessionManagerSidebar','themeTabTrashSidebar','themeTabHistorySidebar','themeExplorerSidebar','searchHistoryOrderCount','rectangularSelection','fullscreenTransitionKeep','enableSmoothScrolling','showAddressBarFavicon','showAddressBarBookmarks'])
 ipc.once(`get-main-state-reply_${key}`,(e,data)=>{
   generalDefault = data
   keyboardDefault = data

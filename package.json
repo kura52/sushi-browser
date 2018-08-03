@@ -138,6 +138,7 @@
     "string.prototype.startswith": "^0.2.0",
     "uglify-es": "^3.3.9",
     "underscore": "^1.8.3",
+    "v8-compile-cache": "^2.0.0",
     "warning": "^3.0.0",
     "xterm": "^3.4.1",
     "youtube-dl": "^1.11.1",

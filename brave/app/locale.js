@@ -733,7 +733,8 @@ var rendererIdentifiers = function () {
     'historyOfTabsSidebar',
     'fileExplorerSidebar',
     'default',
-    'pagesToApply'
+    'pagesToApply',
+    'enableSmoothScrolling'
   ]
 }
 

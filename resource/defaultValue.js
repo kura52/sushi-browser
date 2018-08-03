@@ -90,6 +90,9 @@ const settingDefault =  {
   windowCustomIcon: null,
   enableDownloadList: true,
   rectangularSelection: true,
+  enableSmoothScrolling: true,
+  showAddressBarFavicon: false,
+  showAddressBarBookmarks: false,
 
   //privacy
   clearHistoryOnClose: false,
