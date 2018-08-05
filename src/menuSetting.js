@@ -157,7 +157,7 @@ const createFileSubmenu = () => {
   if (!isDarwin) {
     submenu.push({ type: 'separator' })
     submenu.push({
-      label: 'Restart Browser',
+      t: 'restartBrowser', label: locale.translation('restartBrowser'),
       accelerator: mainState.keyRestart,
       click() { ipcMain.emit('quit-browser',null,'restart') }
     })
@@ -246,7 +246,7 @@ const createEditSubmenu = () => {
       }
     },
     {
-      label: 'Paste and Open',
+      label: locale.translation('pasteAndOpen'),
       accelerator: mainState.keyPasteAndOpen,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
@@ -255,7 +255,7 @@ const createEditSubmenu = () => {
       }
     },
     {
-      label: 'Copy Tab Info',
+      t: 'copyTabInfo', label: locale.translation('copyTabInfo'),
       accelerator: mainState.keyCopyTabInfo,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
@@ -264,7 +264,7 @@ const createEditSubmenu = () => {
       }
     },
     {
-      label: 'Copy All Tab Titles',
+      t: 'copyAllTabTitles', label: locale.translation('copyAllTabTitles'),
       accelerator: mainState.keyCopyAllTabTitles,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
@@ -273,7 +273,7 @@ const createEditSubmenu = () => {
       }
     },
     {
-      label: 'Copy All Tab URLs',
+      t: 'copyAllTabURLs', label: locale.translation('copyAllTabURLs'),
       accelerator: mainState.keyCopyAllTabUrls,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
@@ -282,7 +282,7 @@ const createEditSubmenu = () => {
       }
     },
     {
-      label: 'Copy All Tab Infos',
+      t: 'copyAllTabInfos', label: locale.translation('copyAllTabInfos'),
       accelerator: mainState.keyCopyAllTabInfos,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
@@ -506,7 +506,7 @@ const createViewSubmenu = () => {
     },
     { type: 'separator' },
     {
-      label: 'Full Page Capture to Clipboard',
+      t: 'fullPageCaptureToClipboard', label: locale.translation('fullPageCaptureToClipboard'),
       accelerator: mainState.keyScreenShotFullClipBoard,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
@@ -515,7 +515,7 @@ const createViewSubmenu = () => {
       }
     },
     {
-      label: 'Full Page Capture as JPEG',
+      t: 'fullPageCaptureAsJPEG', label: locale.translation('fullPageCaptureAsJPEG'),
       accelerator: mainState.keyScreenShotFullJpeg,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
@@ -524,7 +524,7 @@ const createViewSubmenu = () => {
       }
     },
     {
-      label: 'Full Page Capture as PNG',
+      t: 'fullPageCaptureAsPNG', label: locale.translation('fullPageCaptureAsPNG'),
       accelerator: mainState.keyScreenShotFullPng,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
@@ -533,7 +533,7 @@ const createViewSubmenu = () => {
       }
     },
     {
-      label: 'Selection Capture to Clipboard',
+      t: 'selectionCaptureToClipboard', label: locale.translation('selectionCaptureToClipboard'),
       accelerator: mainState.keyScreenShotSelectionClipBoard,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
@@ -542,7 +542,7 @@ const createViewSubmenu = () => {
       }
     },
     {
-      label: 'Selection Capture as JPEG',
+      t: 'selectionCaptureAsJPEG', label: locale.translation('selectionCaptureAsJPEG'),
       accelerator: mainState.keyScreenShotSelectionJpeg,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
@@ -551,7 +551,7 @@ const createViewSubmenu = () => {
       }
     },
     {
-      label: 'Selection Capture as PNG',
+      t: 'selectionCaptureAsPNG', label: locale.translation('selectionCaptureAsPNG'),
       accelerator: mainState.keyScreenShotSelectionPng,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
@@ -714,7 +714,7 @@ const createWindowSubmenu = () => {
       }
     },
     {
-      label: 'Tab Preview',
+      t: 'tabPreview', label: locale.translation('tabPreview'),
       accelerator: mainState.keyTabPreview,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
@@ -723,14 +723,14 @@ const createWindowSubmenu = () => {
       }
     },
     {
-      label: 'Toggle MenuBar',
+      t: 'toggleMenuBar', label: locale.translation('toggleMenuBar'),
       accelerator: mainState.keyToggleMenuBar,
       click(item, focusedWindow) {
         if (focusedWindow) focusedWindow.webContents.send('toggle-nav')
       }
     },
     {
-      label: 'Change Focus Panel',
+      t: 'changeFocusPanel', label: locale.translation('changeFocusPanel'),
       accelerator: mainState.keyChangeFocusPanel,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
@@ -740,7 +740,7 @@ const createWindowSubmenu = () => {
     },
     { type: 'separator' },
     {
-      label: 'Split Left',
+      t: 'splitLeft', label: locale.translation('splitLeft'),
       accelerator: mainState.keySplitLeft,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
@@ -749,7 +749,7 @@ const createWindowSubmenu = () => {
       }
     },
     {
-      label: 'Split Right',
+      t: 'splitRight', label: locale.translation('splitRight'),
       accelerator: mainState.keySplitRight,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
@@ -758,7 +758,7 @@ const createWindowSubmenu = () => {
       }
     },
     {
-      label: 'Split Top',
+      t: 'splitTop', label: locale.translation('splitTop'),
       accelerator: mainState.keySplitTop,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
@@ -767,7 +767,7 @@ const createWindowSubmenu = () => {
       }
     },
     {
-      label: 'Split Bottom',
+      t: 'splitBottom', label: locale.translation('splitBottom'),
       accelerator: mainState.keySplitBottom,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
@@ -776,7 +776,7 @@ const createWindowSubmenu = () => {
       }
     },
     {
-      label: 'Split left tabs to left',
+      t: 'splitLeftTabsToLeft', label: locale.translation('splitLeftTabsToLeft'),
       accelerator: mainState.keySplitLeftTabs,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
@@ -785,7 +785,7 @@ const createWindowSubmenu = () => {
       }
     },
     {
-      label: 'Split right tabs to right',
+      t: 'splitRightTabsToRight', label: locale.translation('splitRightTabsToRight'),
       accelerator: mainState.keySplitRightTabs,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
@@ -795,7 +795,7 @@ const createWindowSubmenu = () => {
     },
     { type: 'separator' },
     {
-      label: 'Swap Position',
+      t: 'swapPosition', label: locale.translation('swapPosition'),
       accelerator: mainState.keySwapPosition,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
@@ -804,7 +804,7 @@ const createWindowSubmenu = () => {
       }
     },
     {
-      label: 'Switch Direction',
+      t: 'switchDirection', label: locale.translation('switchDirection'),
       accelerator: mainState.keySwitchDirection,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
@@ -813,7 +813,7 @@ const createWindowSubmenu = () => {
       }
     },
     {
-      label: 'Align Horizontal',
+      t: 'alignHorizontal', label: locale.translation('alignHorizontal'),
       accelerator: mainState.keyAlignHorizontal,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
@@ -822,7 +822,7 @@ const createWindowSubmenu = () => {
       }
     },
     {
-      label: 'Align Vertical',
+      t: 'alignVertical', label: locale.translation('alignVertical'),
       accelerator: mainState.keyAlignVertical,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
@@ -832,7 +832,7 @@ const createWindowSubmenu = () => {
     },
     { type: 'separator' },
     {
-      label: 'Switch Sync Scroll',
+      t: 'switchSyncScroll', label: locale.translation('switchSyncScroll'),
       accelerator: mainState.keySwitchSyncScroll,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
@@ -841,7 +841,7 @@ const createWindowSubmenu = () => {
       }
     },
     {
-      label: 'Open Sidebar',
+      t: 'openSidebar', label: locale.translation('openSidebar'),
       accelerator: mainState.keyOpenSidebar,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
@@ -850,7 +850,7 @@ const createWindowSubmenu = () => {
       }
     },
     {
-      label: 'Enable Search Highlight',
+      t: 'enableSearchHighlight', label: locale.translation('enableSearchHighlight'),
       accelerator: mainState.keySearchHighlight,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
@@ -859,7 +859,7 @@ const createWindowSubmenu = () => {
       }
     },
     {
-      label: 'Change to Mobile Agent',
+      t: 'changeToMobileAgent', label: locale.translation('changeToMobileAgent'),
       accelerator: mainState.keyChangeMobileAgent,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
@@ -869,7 +869,7 @@ const createWindowSubmenu = () => {
     },
     { type: 'separator' },
     {
-      label: 'Detach Panel',
+      t: 'detachPanel', label: locale.translation('detachPanel'),
       accelerator: mainState.keyDetachPanel,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
@@ -877,8 +877,26 @@ const createWindowSubmenu = () => {
         })
       }
     },
+    {
+      t: 'floatingPanel', label: locale.translation('floatingPanel'),
+      accelerator: mainState.keyFloatingPanel,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'floatingPanel', cont.getId())
+        })
+      }
+    },
+    {
+      label: 'Maximize Panel',
+      accelerator: mainState.keyMaximizePanel,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'maximizePanel', cont.getId())
+        })
+      }
+    },
     // {
-    //   label: 'Download All',
+    //   t: 'downloadAll', label: locale.translation('downloadAll'),
     //   accelerator: mainState.keyDownloadAll,
     //   click(item, focusedWindow) {
     //     getFocusedWebContents().then(cont=>{
@@ -906,7 +924,7 @@ const createWindowSubmenu = () => {
       }
     },
     {
-      label: 'Open Note',
+      t: 'openNote', label: locale.translation('openNote'),
       accelerator: mainState.keyNote,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
@@ -915,7 +933,7 @@ const createWindowSubmenu = () => {
       }
     },
     {
-      label: 'Open FileExploler',
+      t: 'openFileExploler', label: locale.translation('openFileExploler'),
       accelerator: mainState.keyFileExploler,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
@@ -924,7 +942,7 @@ const createWindowSubmenu = () => {
       }
     },
     {
-      label: 'Open Terminal',
+      t: 'openTerminal', label: locale.translation('openTerminal'),
       accelerator: mainState.keyTerminal,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
@@ -933,7 +951,7 @@ const createWindowSubmenu = () => {
       }
     },
     {
-      label: 'Open Automation',
+      t: 'openAutomation', label: locale.translation('openAutomation'),
       accelerator: mainState.keyAutomation,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
@@ -942,7 +960,7 @@ const createWindowSubmenu = () => {
       }
     },
     {
-      label: 'Open VideoConverter',
+      t: 'openVideoConverter', label: locale.translation('openVideoConverter'),
       accelerator: mainState.keyVideoConverter,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
@@ -1013,7 +1031,7 @@ function getTemplate(){
   //     label: 'View',
   //     submenu: [
   //       {
-  //         label: `Toggle MenuBar`,
+  //         label: `${locale.translation('toggleMenuBar')}`,
   //         accelerator: 'CmdOrCtrl+Alt+T',
   //         click(item, focusedWindow) {
   //           if (focusedWindow) focusedWindow.webContents.send('toggle-nav')
@@ -1099,7 +1117,7 @@ function getTemplate(){
         },
         { type: 'separator' },
         {
-          label: 'Restart Browser',
+          t: 'restartBrowser', label: locale.translation('restartBrowser'),
           accelerator: mainState.keyRestart,
           click() { ipcMain.emit('quit-browser',null,'restart') }
         },

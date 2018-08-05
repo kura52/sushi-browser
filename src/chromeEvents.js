@@ -281,6 +281,7 @@ simpleIpcFunc('chrome-windows-get-attributes',windowIds=>{
 
 
 //#tabs
+
 process.on('chrome-tabs-created', (tabId) => {
   console.log('chrome-tabs-created',tabId)
 })
@@ -322,6 +323,12 @@ process.on('chrome-tabs-removed', (tabId) => {
       // console.log(e)
     }
   }
+})
+
+simpleIpcFunc('chrome-tabs-read-file',(extensionId,file)=> {
+  const basePath = getPath2(extensionId) || getPath1(extensionId)
+  console.log(basePath,extensionId,file)
+  return fs.readFileSync(path.join(basePath,file)).toString()
 })
 
 simpleIpcFuncCb('chrome-tabs-current-tabId',cb=>{
@@ -382,12 +389,12 @@ simpleIpcFuncCb('chrome-tabs-insertCSS',async (extensionId,tabId,details,cb)=>{
     return
   }
   if(cont){
-    cont.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',
-      `const s = document.createElement('style');
-    s.setAttribute('type', 'text/css');
-    s.appendChild(document.createTextNode(\`${cssText}\`));
-    document.head.appendChild(s)`,{},_=> cb()
-    )
+    cb(`;(function(){
+      const s = document.createElement('style');
+      s.setAttribute('type', 'text/css');
+      s.appendChild(document.createTextNode(\`${cssText}\`));
+      document.head.appendChild(s)
+      })()`)
   }
 })
 

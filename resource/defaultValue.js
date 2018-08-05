@@ -111,6 +111,16 @@ const settingDefault =  {
   clearType: 'all',
   clearDays: 30,
 
+  //sync
+  syncGeneralSettings: true,
+  syncBookmarks: true,
+  syncBrowsingHistory: true,
+  syncSessionTools: true,
+  syncFavicons: true,
+  syncDownloadHistory: true,
+  syncAutomation: true,
+  syncNote: true,
+  syncPassword: true,
 
   //tab
   reloadIntervals: [60,120,300,900,1800],
@@ -130,8 +140,8 @@ const settingDefault =  {
   doubleClickTab: 'reload',
   middleClickTab: 'closeTab',
   altClickTab: 'clicktabNothing',
-  rightClickTabAdd: 'Paste and Open',
-  middleClickTabAdd: 'newPrivateTab',
+  rightClickTabAdd: 'pasteAndOpen',
+  middleClickTabAdd: 'maximizePanel',
   altClickTabAdd: 'clicktabNothing',
   tabPreview: true,
   tabPreviewRecent: false,
@@ -260,6 +270,8 @@ const settingDefault =  {
   keyChangeMobileAgent: 'CmdOrCtrl+Alt+M',
 
   keyDetachPanel: 'CmdOrCtrl+Alt+E',
+  keyFloatingPanel: '',
+  keyMaximizePanel: '',
 
   // keyDownloadAll: 'Shift+CmdOrCtrl+D',
   // keyPageTranslate: 'CmdOrCtrl+Alt+A',

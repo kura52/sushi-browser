@@ -1,175 +1,215 @@
 import firebase from 'firebase'
-import {ipcMain} from 'electron'
+import {ipcMain,session,app,nativeImage} from 'electron'
 import path from 'path'
-import FirebaseSetting from './FirebaseSetting'
 import {getCurrentWindow} from './util'
-import {token,history,favorite} from './databaseFork'
+import {state,
+  searchEngine,
+  favorite,
+  visit,
+  history,
+  image,
+  tabState,
+  windowState,
+  savedState,
+  favicon,
+  download,
+  downloader,
+  automation,
+  automationOrder,
+  note,
+  token} from './databaseFork'
 import fs from 'fs'
 import zlib from 'zlib'
+import crypto from 'crypto'
+import mainState from "./mainState"
+import passCrypto from './crypto'
+import importData from './bookmarksExporter'
 
-let fb
-async function process(){
-  const datas = await FirebaseSetting()
-  const time = await token.findOne({key:'sync_at'})
-  const sync_at = (time && time.sync_at) || 0
 
-  const favorites = await favorite.find({ updated_at: { $gte: sync_at } })
-  const favoriteList = []
-  for(let fav of favorites){
-    const d = {
-      url : fav.url,
-      title : fav.title,
-      favicon : fav.favicon,
-      is_file : fav.is_file,
-      key: fav.key,
-    }
-    if(fav.children) d.children = fav.children
-    favoriteList.push(d)
-  }
+let firebaseUtils
 
-  const histories = await history.find({ updated_at: { $gte: sync_at } })
-  const historyList = []
-  for(let hist of histories){
-    historyList.push({
-      location : hist.location,
-      count : hist.count,
-      title : hist.title,
-      favicon : hist.favicon,
-      updated_at : hist.updated_at
-    })
-  }
 
-  // console.log(favoriteList)
-  zlib.gzip(JSON.stringify([favoriteList,historyList]),
-    (error, buf)=>{
-      if (error) throw error;
-      // console.log(new Buffer(buf).toString('base64'))
-      const win = getCurrentWindow()
-      setTimeout(_=>(win || getCurrentWindow()).webContents.send('sync-datas',{sync_at,email:datas.email,password:datas.password,base64:new Buffer(buf).toString('base64')}),win ? 0 : 5000)
-    })
-}
-
-async function intervalRun(timeout){
+async function intervalRun(timeout = 60*60*6*1000){
+  clearInterval(clearId)
   const interval = 60*60*6*1000
-  if(timeout != (void 0)){
-    const time = await token.findOne({key:'sync_at'})
-    const diff = Date.now() - (time ? time.sync_at : 0)
-    timeout = diff > interval ? 0 : interval - diff
-  }
+  const tokenData = await token.findOne({login: true})
+  const diff = Date.now() - (tokenData ? tokenData.sync_at : 0)
+  timeout = diff > interval ? 0 : interval - diff
+
   setTimeout(_=>{
     process()
-    setInterval(process,interval)
+    clearId = setInterval(process,interval)
   },timeout)
 }
 
-FirebaseSetting().then(ret=>{
-  if(ret){
-    fb = ret
-    intervalRun()
+async function getData(table, table_name, column, sync_at, results){
+  const data = await table.find({ [column]: { $gte: sync_at } })
+  if(data){
+    results[table_name] = data
   }
-})
+}
 
+let email,clearId
+async function process(){
+  const tokenData = await token.findOne({login: true})
+  const sync_at = (tokenData && tokenData.sync_at) || 0
+  const results = {}
 
-ipcMain.on('start-sync',async (e,k)=>{
-  let firstTry = await FirebaseSetting()
-  if(firstTry){
-    if(!fb){
-      fb = firstTry
-      intervalRun(0)
-    }
-    return
+  const promises = []
+
+  if(mainState.syncGeneralSettings){
+    promises.push(getData(state, 'state', 'updated_at', sync_at, results))
+    promises.push(getData(searchEngine, 'searchEngine', 'updated_at', sync_at, results))
   }
-  else{
-    const cont = e.sender
-    const emptyPort = require('./emptyPort');
-    emptyPort((err, port) => {
-      const express = require("express");
-      const bodyParser = require('body-parser');
-      const app = express();
-
-      app.use(bodyParser.urlencoded({
-        extended: true
-      }));
-      app.use(bodyParser.json());
-
-      const sendFile = (app,files)=>{
-        for(let file of files){
-          app.get(`/${file}`, function(req, res){
-            res.sendFile(path.join(__dirname, `../resource/extension/default/1.0_0/${file}`))
-          });
-        }
-      }
-
-      sendFile(app,['sync.html','css/semantic-ui/semantic.min.css','js/vendor.dll.js','js/sync.js'])
-
-      let server
-      app.post('/sync', (req, res)=>{
-        if(req.body.idToken){
-          res.send('success');
-          FirebaseSetting(req.body).then(ret=>{
-            if(ret){
-              cont.send("close-sync-tab",port)
-              server.close()
-              if(!fb){
-                fb = ret
-                intervalRun(0)
-              }
-            }
-            else{
-              console.log("error1")
-            }
-          })
-        }
-        else{
-          console.log("error2")
-        }
-      })
-
-      server = app.listen(port,_=>{
-        cont.send('new-tab', (void 0), `http://localhost:${port}/sync.html`, false, k)
-      })
-    });
+  if(mainState.syncBookmarks){
+    promises.push(getData(favorite, 'favorite', 'updated_at', sync_at, results))
   }
-})
+  if(mainState.syncBrowsingHistory){
+    promises.push(getData(visit, 'visit', 'created_at', sync_at, results))
+    promises.push(getData(history, 'history', 'updated_at', sync_at, results))
+    promises.push(getData(image, 'image', 'updated_at', sync_at, results))
 
-
-ipcMain.on('sync-datas-to-main',(e,base64)=>{
-  zlib.gunzip(Buffer.from(base64, 'base64'), async (err, binary)=>{
-    const [favoriteList,historyList] = JSON.parse(binary.toString('utf-8'))
-
-    for (let hist of historyList) {
-      const ret = await history.findOne({location:hist.location})
-      if(ret){
-        const updData = {updated_at:hist.updated_at}
-        if(hist.count > ret.count){
-          updData.count = hist.count
-        }
-        await history.update({location: hist.location}, {$set:updData})
-      }
-      else{
-        hist.created_at = hist.updated_at
-        await history.insert(hist)
-      }
-    }
-
-    const now = Date.now()
-    for(let fav of favoriteList) {
-      const ret = await favorite.findOne({key:fav.key})
-      if(ret){
-        if(!fav.is_file) {
-          fav.children = fav.children || []
-          if(ret.children){
-            fav.children = ret.children.concat(fav.children)
+    const capturePath = path.join(path.join(app.getPath('userData'),'resource'),'capture')
+    const realImages = []
+    if (fs.existsSync(capturePath)) {
+      for(let file of fs.readdirSync(capturePath)){
+        try{
+          const filePath = path.join(capturePath,file)
+          if(fs.statSync(filePath).mtime.getTime() > sync_at){
+            realImages.push([file,nativeImage.createFromPath(filePath).toDataURL()])
           }
-          fav.children = [...new Set(fav.children)]
-          await favorite.update({key: fav.key}, {$set: {children: fav.children,updated_at: now}})
+        }catch(e){
+          console.log(e)
         }
       }
-      else{
-        fav.created_at = now
-        fav.updated_at = now
-        await favorite.insert(fav)
-      }
+      results.realImages = realImages
     }
+  }
+  if(mainState.syncSessionTools){
+    promises.push(getData(tabState, 'tabState', 'updated_at', sync_at, results))
+    promises.push(getData(windowState, 'windowState', 'updated_at', sync_at, results))
+    promises.push(getData(savedState, 'savedState', 'created_at', sync_at, results))
+  }
+  if(mainState.syncFavicons){
+    promises.push(getData(favicon, 'favicon', 'updated_at', sync_at, results))
+  }
+  if(mainState.syncDownloadHistory){
+    promises.push(getData(download, 'download', 'updated_at', sync_at, results))
+    promises.push(getData(downloader, 'downloader', 'now', sync_at, results))
+  }
+  if(mainState.syncAutomation){
+    promises.push(getData(automation, 'automation', 'updated_at', sync_at, results))
+    promises.push(getData(automationOrder, 'automationOrder', 'updated_at', sync_at, results))
+  }
+  if(mainState.syncNote){
+    promises.push(getData(note, 'note', 'updated_at', sync_at, results))
+  }
+  if(mainState.syncPassword){
+    const password = await new Promise(r=>{
+      session.defaultSession.autofill.getAutofillableLogins(r)
+    })
+    results.password = password.map(x=>{
+      x.password = passCrypto.encrypt(x.password)
+      return x
+    })
+  }
+
+  await Promise.all(promises)
+
+  // console.log(favoriteList)
+  zlib.gzip(JSON.stringify(results),
+    (error, buf)=>{
+      if (error) throw error;
+
+      if(!firebaseUtils) firebaseUtils = require('./FirebaseUtils')
+      const password = firebaseUtils.decryptPassword(tokenData.email,tokenData.password)
+      const cipher = crypto.createCipher('aes-256-ctr', password)
+
+      // console.log(new Buffer(buf).toString('base64'))
+      const win = getCurrentWindow()
+      setTimeout(_=>(win || getCurrentWindow()).webContents.send('sync-datas',
+        {sync_at,email:tokenData.email,password,
+          base64:cipher.update(buf).toString('base64')}),win ? 0 : 5000)
+    })
+}
+
+
+ipcMain.on('sync-datas-to-main',(e,base64,password)=>{
+  const decipher = crypto.createDecipher('aes-256-ctr',password);
+  zlib.gunzip(decipher.update(Buffer.from(base64, 'base64')), async (err, binary)=>{
+    const restoreDatas = JSON.parse(binary.toString('utf-8'))
+    fs.writeFileSync("/home/kura52/a.json",binary.toString('utf-8'))
+
+    const imports = []
+    if(mainState.syncGeneralSettings) imports.push('generalSettings')
+    if(mainState.syncBookmarks) imports.push('bookmarks')
+    if(mainState.syncBrowsingHistory) imports.push('browsingHistory')
+    if(mainState.syncSessionTools) imports.push('sessionTools')
+    if(mainState.syncFavicons) imports.push('favicons')
+    if(mainState.syncDownloadHistory) imports.push('downloadHistory')
+    if(mainState.syncAutomation) imports.push('automation')
+    if(mainState.syncNote) imports.push('note')
+    if(mainState.syncPassword) imports.push('password')
+
+    importData(imports, restoreDatas, false, true)
+
+    // for (let hist of historyList) {
+    //   const ret = await history.findOne({location:hist.location})
+    //   if(ret){
+    //     const updData = {updated_at:hist.updated_at}
+    //     if(hist.count > ret.count){
+    //       updData.count = hist.count
+    //     }
+    //     await history.update({location: hist.location}, {$set:updData})
+    //   }
+    //   else{
+    //     hist.created_at = hist.updated_at
+    //     await history.insert(hist)
+    //   }
+    // }
+    //
+    // const now = Date.now()
+    // for(let fav of favoriteList) {
+    //   const ret = await favorite.findOne({key:fav.key})
+    //   if(ret){
+    //     if(!fav.is_file) {
+    //       fav.children = fav.children || []
+    //       if(ret.children){
+    //         fav.children = ret.children.concat(fav.children)
+    //       }
+    //       fav.children = [...new Set(fav.children)]
+    //       await favorite.update({key: fav.key}, {$set: {children: fav.children,updated_at: now}})
+    //     }
+    //   }
+    //   else{
+    //     fav.created_at = now
+    //     fav.updated_at = now
+    //     await favorite.insert(fav)
+    //   }
+    // }
   })
 })
+
+ipcMain.on('start-sync',async (e,val)=>{
+  if(val){
+    intervalRun(0)
+  }
+  else{
+    clearInterval(clearId)
+  }
+})
+
+token.findOne({login: true}).then(val=>{
+  console.log('syncLoop',val)
+  if(val){
+    if(!firebaseUtils) firebaseUtils = require('./FirebaseUtils')
+    firebaseUtils.checkAndLogin().then(ret=>{
+      console.log('syncLoop1',ret)
+      if(ret){
+        email = ret
+        intervalRun()
+      }
+    })
+  }
+})
+

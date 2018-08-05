@@ -7,10 +7,28 @@ import mainState from "./mainState";
 const path = require('path')
 const moment = require('moment')
 const fs = require('fs')
-const {dialog,app,BrowserWindow,ipcMain,nativeImage} = require('electron')
-import {state,searchEngine,favorite,visit,history,image,tabState,windowState,savedState,favicon,download,downloader,automation,automationOrder,note} from './databaseFork'
+const {dialog,app,BrowserWindow,ipcMain,nativeImage,session} = require('electron')
+import {
+  state,
+  searchEngine,
+  favorite,
+  visit,
+  history,
+  image,
+  tabState,
+  windowState,
+  savedState,
+  favicon,
+  download,
+  downloader,
+  automation,
+  automationOrder,
+  note,
+  token
+} from './databaseFork'
 import {settingDefault} from "../resource/defaultValue";
 const os = require('os')
+const passCrypto = require('./crypto')
 
 function createBookmarkHTML(ret) {
   const breakTag = os.EOL
@@ -66,6 +84,7 @@ ipcMain.on('export-setting', (e,exports) => {
         if(name == 'generalSettings'){
           results.state = await state.findOne({key: 1})
           results.searchEngine = await searchEngine.find({})
+          results.token = await token.find({})
         }
         else if(name == 'bookmarks'){
           results.favorite = await favorite.find({})
@@ -107,6 +126,15 @@ ipcMain.on('export-setting', (e,exports) => {
         else if(name == 'note'){
           results.note = await note.find({})
         }
+        else if(name == 'password'){
+          const password = await new Promise(r=>{
+            session.defaultSession.autofill.getAutofillableLogins(r)
+          })
+          results.password = password.map(x=>{
+            x.password = passCrypto.encrypt(x.password)
+            return x
+          })
+        }
       }
       fs.writeFileSync(fileNames[0], JSON.stringify(results))
     }
@@ -122,7 +150,267 @@ function deleteInsert(table,datas){
   })
 }
 
-ipcMain.on('import-setting', (e,imports) => {
+async function incrementalImport(table,datas,compareKey,updateKey){
+  if(!datas) return
+  const _nowData = await table.find({})
+  const nowData = {}
+
+  let updateFlag = false
+  let i = 0
+  const _idSet = new Set()
+  for(let d of _nowData){
+    nowData[d[compareKey]] = [d[updateKey],i++,d._id]
+    _idSet.add(d._id)
+  }
+  for(let d of datas){
+    const cData = nowData[d[compareKey]]
+    if(cData){
+      if(d[updateKey] > cData[0]){
+        if(cData[2] !== d._id && _idSet.has(d._id)){
+          delete d._id
+        }
+        _nowData[cData[1]] = d
+        updateFlag = true
+      }
+    }
+    else{
+      if(_idSet.has(d._id)){
+        delete d._id
+      }
+      _nowData.push(d)
+      updateFlag = true
+    }
+  }
+
+  if(updateFlag) deleteInsert(table,_nowData)
+}
+
+function diffArray(arr1, arr2) {
+  return arr1.filter(e=>!arr2.includes(e))
+}
+
+async function incrementalImportRecur(table,datas){
+  if(!datas) return
+  const _nowData = await table.find({})
+  const nowData = {}
+
+  let updateFlag = false
+  let i = 0
+  const _idSet = new Set()
+  for(let d of _nowData){
+    nowData[d.key] = [d,i++]
+    _idSet.add(d._id)
+  }
+  for(let d of datas){
+    const cData = nowData[d.key]
+    if(cData){
+      const nData = cData[0]
+      if(!d.is_file) {
+        if(nData.children && (diffArray(d.children,nData.children).length || diffArray(nData.children,d.children).length)){
+          d.children = [...new Set([...nData.children,...(d.children || [])])]
+          if(nData._id !== d._id && _idSet.has(d._id)){
+            delete d._id
+          }
+          _nowData[cData[1]] = d
+          updateFlag = true
+        }
+      }
+      else{
+        if(d.updated_at > nData.updated_at){
+          if(nData._id !== d._id && _idSet.has(d._id)){
+            delete d._id
+          }
+          _nowData[cData[1]] = d
+          updateFlag = true
+        }
+      }
+    }
+    else{
+      if(_idSet.has(d._id)){
+        delete d._id
+      }
+      _nowData.push(d)
+      updateFlag = true
+    }
+  }
+
+  if(updateFlag) deleteInsert(table,_nowData)
+}
+
+
+async function importData(imports, restoreDatas, all, ignoreToken) {
+  for (let name of imports) {
+    if (name == 'generalSettings' && restoreDatas.startsWith !== void 0) {
+      const setting = restoreDatas
+      state.update({key: 1}, setting).then(_ => _)
+      try {
+        if (setting && setting.adBlockDisableSite.length) {
+          setting.adBlockDisableSite = JSON.parse(setting.adBlockDisableSite)
+        }
+      } catch (e) {
+        setting.adBlockDisableSite = {}
+      }
+      for (let [key, dVal] of Object.entries(settingDefault)) {
+        setOptionVal(key, dVal, setting[key])
+      }
+    }
+    else if (name == 'generalSettings' && restoreDatas.state) {
+      const setting = restoreDatas.state
+      if (all) {
+        state.update({key: 1}, setting, {upsert: true}).then(_ => _)
+        try {
+          if (setting && setting.adBlockDisableSite.length) {
+            setting.adBlockDisableSite = JSON.parse(setting.adBlockDisableSite)
+          }
+        } catch (e) {
+          setting.adBlockDisableSite = {}
+        }
+        for (let [key, dVal] of Object.entries(settingDefault)) {
+          setOptionVal(key, dVal, setting[key])
+        }
+
+        deleteInsert(searchEngine, restoreDatas.searchEngine).then(_ => {
+          for (let win of BrowserWindow.getAllWindows()) {
+            if (win.getTitle().includes('Sushi Browser')) {
+              if (!win.webContents.isDestroyed()) win.webContents.send('update-search-engine')
+            }
+          }
+        })
+        deleteInsert(token, restoreDatas.token).then(_ => _)
+      }
+      else {
+        const orgState = await state.findOne({key: 1})
+        if (orgState.updated_at > setting.updated_at) {
+          state.update({key: 1}, setting, {upsert: true}).then(_ => _)
+          try {
+            if (setting && setting.adBlockDisableSite.length) {
+              setting.adBlockDisableSite = JSON.parse(setting.adBlockDisableSite)
+            }
+          } catch (e) {
+            setting.adBlockDisableSite = {}
+          }
+          for (let [key, dVal] of Object.entries(settingDefault)) {
+            setOptionVal(key, dVal, setting[key])
+          }
+        }
+        incrementalImport(searchEngine, restoreDatas.searchEngine, 'search', 'updated_at')
+        if(!ignoreToken){
+          incrementalImport(token, restoreDatas.token, 'email', 'updated_at')
+        }
+      }
+    }
+    else if (name == 'bookmarks') {
+      if (all) {
+        deleteInsert(favorite, restoreDatas.favorite)
+      }
+      else {
+        incrementalImportRecur(favorite,restoreDatas.favorite)
+      }
+    }
+    else if (name == 'browsingHistory') {
+      if (all) {
+        deleteInsert(visit, restoreDatas.visit)
+        deleteInsert(history, restoreDatas.history)
+        deleteInsert(image, restoreDatas.image)
+      }
+      else {
+        incrementalImport(visit, restoreDatas.visit, '_id', 'created_at')
+        incrementalImport(history, restoreDatas.history, 'location', 'updated_at')
+        incrementalImport(image, restoreDatas.image, 'url', 'updated_at')
+      }
+
+      const capturePath = path.join(path.join(app.getPath('userData'), 'resource'), 'capture')
+      if (fs.existsSync(capturePath)) {
+        for (let [file, data] of restoreDatas.realImages) {
+          const filePath = path.join(capturePath, file)
+          if (!fs.existsSync(filePath)) {
+            try {
+              fs.writeFile(filePath, nativeImage.createFromDataURL(data).toPNG(), err => {
+                console.log(err)
+              })
+            } catch (e) {
+              console.log(e)
+            }
+          }
+        }
+      }
+    }
+    else if (name == 'sessionTools') {
+      if (all) {
+        deleteInsert(tabState, restoreDatas.tabState)
+        deleteInsert(windowState, restoreDatas.windowState)
+        deleteInsert(savedState, restoreDatas.savedState)
+      }
+      else {
+        incrementalImport(tabState, restoreDatas.tabState, 'tabKey', 'updated_at')
+        incrementalImport(windowState, restoreDatas.windowState, 'key', 'updated_at')
+        incrementalImport(savedState, restoreDatas.savedState, '_id', 'created_at')
+      }
+    }
+    else if (name == 'favicons') {
+      if (all) {
+        deleteInsert(favicon, restoreDatas.favicon)
+      }
+      else {
+        incrementalImport(favicon, restoreDatas.favicon, 'url', 'updated_at')
+      }
+    }
+    else if (name == 'downloadHistory') {
+      if (all) {
+        deleteInsert(download, restoreDatas.download)
+        deleteInsert(downloader, restoreDatas.downloader)
+      }
+      else {
+        incrementalImport(download, restoreDatas.download, '_id', 'updated_at')
+        incrementalImport(downloader, restoreDatas.downloader, 'key', 'now')
+      }
+    }
+    else if (name == 'automation') {
+      if (all) {
+        deleteInsert(automation, restoreDatas.automation)
+        deleteInsert(automationOrder, restoreDatas.automationOrder)
+      }
+      else {
+        incrementalImport(automation, restoreDatas.automation, 'key', 'updated_at')
+        if (restoreDatas.automationOrder) {
+          const nowData = await automationOrder.findOne({})
+          for (let d of restoreDatas.automationOrder[0].datas) {
+            const ind = nowData.datas.findIndex(x => x.key == d.key)
+            if (ind !== -1) {
+              nowData.datas[ind] = d
+            }
+            else {
+              nowData.datas.push(d)
+            }
+          }
+          automationOrder.update({key: nowData.key}, nowData, {upsert: true})
+        }
+      }
+    }
+    else if (name == 'note') {
+      if (all) {
+        deleteInsert(note, restoreDatas.note)
+      }
+      else {
+        incrementalImportRecur(note, restoreDatas.note)
+      }
+    }
+    else if (name == 'password' && restoreDatas.password) {
+      const ses = session.defaultSession
+      if (all) {
+        ses.autofill.clearLogins()
+      }
+      for (let pass of restoreDatas.password) {
+        pass.password = passCrypto.decrypt(pass.password)
+        ses.autofill.addLogin(pass)
+      }
+    }
+  }
+}
+
+export default importData
+
+ipcMain.on('import-setting', (e,imports,all) => {
   const focusedWindow = BrowserWindow.getFocusedWindow();
   const fileName = moment().format('DD_MM_YYYY') + '.json'
   const defaultPath = path.join(app.getPath('downloads'), fileName)
@@ -135,87 +423,7 @@ ipcMain.on('import-setting', (e,imports) => {
     if (fileNames && fileNames.length == 1) {
       const restoreDatas = JSON.parse(fs.readFileSync(fileNames[0]).toString())
 
-      for(let name of imports){
-        if(name == 'generalSettings' && restoreDatas.startsWith !== void 0){
-          const setting = restoreDatas
-          state.update({ key: 1 }, setting).then(_=>_)
-          try{
-            if(setting && setting.adBlockDisableSite.length){
-              setting.adBlockDisableSite = JSON.parse(setting.adBlockDisableSite)
-            }
-          }catch(e){
-            setting.adBlockDisableSite = {}
-          }
-          for(let [key,dVal] of Object.entries(settingDefault)){
-            setOptionVal(key,dVal,setting[key])
-          }
-        }
-        else if(name == 'generalSettings' && restoreDatas.state){
-          const setting = restoreDatas.state
-          state.update({ key: 1 }, setting).then(_=>_)
-          try{
-            if(setting && setting.adBlockDisableSite.length){
-              setting.adBlockDisableSite = JSON.parse(setting.adBlockDisableSite)
-            }
-          }catch(e){
-            setting.adBlockDisableSite = {}
-          }
-          for(let [key,dVal] of Object.entries(settingDefault)){
-            setOptionVal(key,dVal,setting[key])
-          }
-
-          deleteInsert(searchEngine,restoreDatas.searchEngine).then(_=>{
-            for(let win of BrowserWindow.getAllWindows()) {
-              if(win.getTitle().includes('Sushi Browser')){
-                if(!win.webContents.isDestroyed()) win.webContents.send('update-search-engine')
-              }
-            }
-          })
-        }
-        else if(name == 'bookmarks'){
-          deleteInsert(favorite,restoreDatas.favorite)
-        }
-        else if(name == 'browsingHistory'){
-          deleteInsert(visit,restoreDatas.visit)
-          deleteInsert(history,restoreDatas.history)
-          deleteInsert(image,restoreDatas.image)
-
-          const capturePath = path.join(path.join(app.getPath('userData'),'resource'),'capture')
-          if (fs.existsSync(capturePath)) {
-            for(let [file,data] of restoreDatas.realImages){
-              const filePath = path.join(capturePath,file)
-              if(!fs.existsSync(filePath)){
-                try{
-                  fs.writeFile(filePath,nativeImage.createFromDataURL(data).toPNG(),err=>{
-                    console.log(err)
-                  })
-                }catch(e){
-                  console.log(e)
-                }
-              }
-            }
-          }
-        }
-        else if(name == 'sessionTools'){
-          deleteInsert(tabState,restoreDatas.tabState)
-          deleteInsert(windowState,restoreDatas.windowState)
-          deleteInsert(savedState,restoreDatas.savedState)
-        }
-        else if(name == 'favicons'){
-          deleteInsert(favicon,restoreDatas.favicon)
-        }
-        else if(name == 'downloadHistory'){
-          deleteInsert(download,restoreDatas.download)
-          deleteInsert(downloader,restoreDatas.downloader)
-        }
-        else if(name == 'automation'){
-          deleteInsert(automation,restoreDatas.automation)
-          deleteInsert(automationOrder,restoreDatas.automationOrder)
-        }
-        else if(name == 'note'){
-          deleteInsert(note,restoreDatas.note)
-        }
-      }
+      await importData(imports, restoreDatas, all);
     }
   })
 })

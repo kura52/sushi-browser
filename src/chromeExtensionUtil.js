@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import {app} from 'electron'
+const extInfos = require('./extensionInfos')
 
 const extensionPath = path.join(app.getPath('userData'),'resource/extension')
 if (!fs.existsSync(extensionPath)) {
@@ -12,12 +13,18 @@ if (!fs.existsSync(proxyPath)) {
   fs.mkdirSync(proxyPath)
 }
 
+function getId(appId){
+  return extInfos[appId].base_path.split(/[\/\\]/).slice(-2,-1)[0]
+}
+
 export default {
   getPath1(appId){
     const extRootPath = path.join(__dirname,'../resource/extension').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
     let appPath = path.join(extRootPath,appId)
     if(!fs.existsSync(appPath)){
-      return null
+      appId = getId(appId)
+      appPath = path.join(extRootPath,appId)
+      if(!fs.existsSync(appPath)) return null
     }
     const version = fs.readdirSync(appPath).sort().pop()
     const basePath = path.join(appPath,version)
@@ -26,7 +33,9 @@ export default {
   getPath2(appId){
     let appPath = path.join(extensionPath,appId)
     if(!fs.existsSync(appPath)){
-      return null
+      appId = getId(appId)
+      appPath = path.join(extensionPath,appId)
+      if(!fs.existsSync(appPath)) return null
     }
     const version = fs.readdirSync(appPath).sort().pop()
     const basePath = path.join(appPath,version)

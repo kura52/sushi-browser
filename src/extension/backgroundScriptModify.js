@@ -273,7 +273,7 @@ if(chrome.tabs){
       const id = setInterval(_=>chrome.tabs.get(_tab.id,tab=>{
         if(++retry > 200 || (tab && tab.url)){
           clearInterval(id)
-          callback && callback(tab)
+          setTimeout(_=>callback && callback(tab),250)
         }
       }),10)
     })
@@ -382,6 +382,14 @@ if(chrome.tabs){
 
   if(!chrome.tabs._executeScript) chrome.tabs._executeScript = chrome.tabs.executeScript
   chrome.tabs.executeScript = (tabId,details,callback) => {
+    if(details.file){
+      simpleIpcFunc('chrome-tabs-read-file',code=>{
+        details.code = code
+        delete details.file
+        chrome.tabs.executeScript(tabId, details, callback)
+      },chrome.runtime.id,details.file)
+      return
+    }
     console.log('executeScript',tabId,details)
     if (!Number.isFinite(tabId) && tabId !== null && tabId !== void 0) {
       [tabId,details,callback] = [null,tabId,details]
@@ -413,7 +421,9 @@ if(chrome.tabs){
         [tabId,details,callback] = [null,tabId,details]
       }
     }
-    simpleIpcFunc('chrome-tabs-insertCSS',callback,chrome.runtime.id,tabId,details)
+    simpleIpcFunc('chrome-tabs-insertCSS',code=>{
+      chrome.tabs.executeScript(tabId,{code},callback)
+    },chrome.runtime.id,tabId,details)
   }
 
   chrome.tabs.duplicate = (tabId,callback) => {

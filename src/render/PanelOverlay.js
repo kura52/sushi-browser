@@ -14,7 +14,7 @@ export default class PanelOverlay extends Component{
     this.state = {dragOverElements:[],overlay: {},visible:false}
     this.handleMouseMove = ::this.handleMouseMove
     PubSub.subscribe('drag-over-overlay',(msg,{x,y})=>{
-      this.handleMouseMove({clientX:x,clientX})
+      this.handleMouseMove({clientX:x})
     })
   }
 
@@ -65,7 +65,7 @@ export default class PanelOverlay extends Component{
   onInvisible(){
     for(let ele of document.querySelectorAll('.rdTabBar.chrome-tabs-content,.tab-base,.drag-and-drop')){
       // if(ele.classList.contains("full-screen")){
-        ele.style.zIndex = ele.classList.contains("drag-and-drop") ? 6 : ele.classList.contains("full-screen") ? 2 : ""
+        ele.style.zIndex = ele.classList.contains("drag-and-drop") ? 6 : ele.classList.contains("full-screen") ? 13 : ""
       // }
     }
     const ele = document.querySelector(".dl-list")

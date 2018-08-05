@@ -89,7 +89,7 @@ export default class BrowserNavbarLocation extends Component {
     this.keyEvent = ::this.keyEvent
     this.torEvent = ::this.torEvent
     this.outerClick = ::this.outerClick
-    this.isFloat = isFloatPanel(this.props.k)
+    this.isFloat = isFloatPanel(props.k)
   }
 
   keyEvent(e){
@@ -147,7 +147,7 @@ export default class BrowserNavbarLocation extends Component {
   }
 
   resetComponent(noBlur){
-    if(this.isFloat){
+    if(this.isFloat || this.props.isMaximize){
       PubSub.publish(`menu-showed_${this.props.k}`,false)
     }
     if(!noBlur && this.input) this.input.blur()
@@ -238,7 +238,7 @@ export default class BrowserNavbarLocation extends Component {
     Promise.all(promises).then(values=>{
       if(this.props.autoCompleteInfos.orderOfAutoComplete == 'historyToSuggestion') values.reverse()
       const results = [...values[0],...(values[1]||[])]
-      if(this.isFloat){
+      if(this.isFloat || this.props.isMaximize){
         PubSub.publish(`menu-showed_${this.props.k}`,true)
       }
       this.setState({ results })
@@ -258,23 +258,20 @@ export default class BrowserNavbarLocation extends Component {
     const input = this.input || ReactDOM.findDOMNode(this.refs.input).querySelector("input")
     input.select()
 
-    if(this.isFloat && input.value != ""){
+    if((this.isFloat || this.props.isMaximize) && input.value != ""){
       PubSub.publish(`menu-showed_${this.props.k}`,true)
     }
   }
 
   onBlur(e){
     if(this.mouseDown) return
-    if(this.isFloat){
-      PubSub.publish(`menu-showed_${this.props.k}`,false)
-    }
     this.resetComponent()
   }
 
   onMouseDown(e){
     this.mouseDown = e.target
     this.button = e.button
-    // if(this.isFloat){
+    // if(this.isFloat || this.props.isMaximize){
     // }
   }
 

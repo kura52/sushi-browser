@@ -1,3 +1,5 @@
+import uuid from "node-uuid";
+
 window.debug = require('debug')('info')
 import process from './process'
 const ipc = require('electron').ipcRenderer
@@ -100,6 +102,8 @@ const keyMapping = {
   keySearchHighlight: l10n.translation("enableSearchHighlight"),
   keyChangeMobileAgent: l10n.translation("changeToMobileAgent"),
   keyDetachPanel: l10n.translation("detachPanel"),
+  keyFloatingPanel: l10n.translation("floatingPanel"),
+  keyMaximizePanel: 'Maximize Panel',
 
   // keyDownloadAll: l10n.translation("downloadAll"),
   // keyPageTranslate: l10n.translation('2473195200299095979'),
@@ -462,6 +466,7 @@ const tabContextMenus = [
   ['clicktabReloadothertabs', l10n.translation('clicktabReloadothertabs')],
   ['clicktabReloadlefttabs', l10n.translation('clicktabReloadlefttabs')],
   ['clicktabReloadrighttabs', l10n.translation('clicktabReloadrighttabs')],
+  ['maximizePanel', 'Maximize Panel'],
   ['autoReloadTabLabel', l10n.translation('autoReloadTabLabel')],
   ['3007771295016901659', l10n.translation('3007771295016901659')],
   ['unpinTab', l10n.translation('pinTab')],
@@ -503,6 +508,7 @@ const languageOptions = availableLanguages.map(x=>{
     text: l10n.translation(x),
   }
 })
+
 
 class TopMenu extends React.Component {
   constructor(props) {
@@ -932,7 +938,7 @@ class DataSetting extends React.Component {
           <Grid.Row>
             <Grid.Column width={6}>
               <div className="field">
-                <label>{l10n.translation('settingsImport').replace('…','')} ({l10n.translation('deleteAllDataAndImportRestoreData')})</label>
+                <label>{l10n.translation('settingsImport').replace('…','')}</label>
 
                 <Checkbox toggle onChange={this.onChangeImport.bind(this,'generalSettings')}/>
                 <span className="toggle-label">{l10n.translation('generalSettings')}</span>
@@ -958,8 +964,20 @@ class DataSetting extends React.Component {
                 <Checkbox toggle onChange={this.onChangeImport.bind(this,'note')}/>
                 <span className="toggle-label">{l10n.translation('note')}</span>
                 <br/>
+                <Checkbox toggle onChange={this.onChangeImport.bind(this,'password')}/>
+                <span className="toggle-label">{l10n.translation('passwordsPassword')}</span>
+                <br/>
 
-                <Button disabled={!this.imports.length} primary content={l10n.translation('import')} onClick={_=>ipc.send("import-setting",this.imports)}/>
+                <Button style={{maxWidth: 240}} disabled={!this.imports.length} primary  onClick={_=>ipc.send("import-setting",this.imports,true)}>
+                  {l10n.translation('import')} <br/>
+                  <span style={{fontSize: 12}}>*{l10n.translation('deleteAllDataAndImportRestoreData')}</span>
+                </Button>
+                <br/>
+                <br/>
+                <Button style={{maxWidth: 240}} disabled={!this.imports.length} primary onClick={_=>ipc.send("import-setting",this.imports,false)}>
+                  Incremental Import <br/>
+                  <span style={{fontSize: 12}}>*Overwrite restored data with current data (compare update dates)</span>
+                </Button>
               </div>
             </Grid.Column>
             <Grid.Column width={6} style={{marginTop: 0}}>
@@ -989,6 +1007,9 @@ class DataSetting extends React.Component {
                 <br/>
                 <Checkbox toggle onChange={this.onChangeExport.bind(this,'note')}/>
                 <span className="toggle-label">{l10n.translation('note')}</span>
+                <br/>
+                <Checkbox toggle onChange={this.onChangeExport.bind(this,'password')}/>
+                <span className="toggle-label">{l10n.translation('passwordsPassword')}</span>
                 <br/>
 
                 <Button disabled={!this.exports.length} primary content={l10n.translation('42126664696688958')} onClick={_=>ipc.send("export-setting",this.exports)}/>
@@ -1373,7 +1394,11 @@ class TabsSetting extends React.Component {
   constructor(props) {
     super(props)
     this.state = {...TabDefault,errors:{}}
-    this.mouseOptions = this.makeOptions(['clicktabNothing','newTab','newPrivateTab','New Tor Tab','newSessionTab','Split Left','Split Right','Split Top','Split Bottom','Split left tabs to left','Split right tabs to right','Floating Panel','Swap Position','Switch Direction','Align Horizontal','Align Vertical','clicktabCopyTabUrl','clicktabCopyUrlFromClipboard','Paste and Open','Copy Tab Info','Copy All Tab Titles','Copy All Tab URLs','Copy All Tab Infos','reload','cleanReload','clicktabReloadtabs','clicktabReloadothertabs','clicktabReloadlefttabs','clicktabReloadrighttabs','3007771295016901659','unpinTab','unmuteTab','freezeTabMenuLabel','protectTabMenuLabel','lockTabMenuLabel','closeTab','closeOtherTabs','closeTabsToLeft','closeTabsToRight','closeAllTabsMenuLabel','reopenLastClosedTab','clicktabUcatab','bookmarkPage','5078638979202084724'])
+    this.mouseOptions = this.makeOptions(['clicktabNothing','newTab','newPrivateTab','New Tor Tab','newSessionTab','splitLeft','splitRight','splitTop','splitBottom','splitLeftTabsToLeft','splitRightTabsToRight','floatingPanel','swapPosition','switchDirection','alignHorizontal','alignVertical','clicktabCopyTabUrl',
+      'clicktabCopyUrlFromClipboard','pasteAndOpen','copyTabInfo','copyAllTabTitles','copyAllTabURLs','copyAllTabInfos','reload','cleanReload', 'maximizePanel',
+      'clicktabReloadtabs','clicktabReloadothertabs','clicktabReloadlefttabs','clicktabReloadrighttabs','3007771295016901659','unpinTab','unmuteTab',
+      'freezeTabMenuLabel','protectTabMenuLabel','lockTabMenuLabel','closeTab','closeOtherTabs','closeTabsToLeft','closeTabsToRight','closeAllTabsMenuLabel',
+      'reopenLastClosedTab','clicktabUcatab','bookmarkPage','5078638979202084724'])
   }
 
   onChange2(isTab,name,e,data){
@@ -1449,7 +1474,7 @@ class TabsSetting extends React.Component {
     return {
       key: key,
       value: key,
-      text: (trans && !key.includes(' ')) ? l10n.translation(key) : key
+      text: (trans && !key.includes(' ')) && !l10n.translation(key).startsWith('[') ? l10n.translation(key) : tabContextMenus.find(t=>t[0] == key)[1]
     }
   }
 
@@ -2530,15 +2555,123 @@ class SyncDataSetting extends React.Component {
 
 
   onChange(name,e,data){
-    ipc.send('save-state',{tableName:'state',key:name,val:data.value || data.checked})
+    this.setState({[name]: data.value})
+    // ipc.send('save-state',{tableName:'state',key:name,val:data.value || data.checked})
   }
 
+  loginSync(type){
+    const key = Math.random().toString()
+    const email = type == 'login' ? this.state.loginEmail : this.state.newEmail
+    const password = type == 'login' ? this.state.loginPassword : this.state.newPassword
+    ipc.send("login-sync",{key,type,email,password})
+    ipc.once(`login-sync-reply_${key}`,(e,result,message)=>{
+      if(result && (type == 'login' || type == 'regist')){
+        this.state.emailSync = email
+      }
+      else{
+        delete this.state.emailSync
+      }
+      this.setState({result,message})
+    })
+  }
+
+
   render() {
-    const enable = !this.state.enableTheme
     return <div className="ui form">
-      <h3>{l10n.translation('theme')}</h3>
+      <h3>{l10n.translation('syncDatas')}</h3>
+      <Divider/>
+      <div className="ui icon info message" style={{width: 'initial'}}>
+        <div className="content">
+          It is a function to synchronize data between devices.<br/>
+            For initial registration, please input "{l10n.translation('email')}" and "{l10n.translation('passwordsPassword')}" in "New User" and click "{l10n.translation('839736845446313156')}" button.<br/>
+            After that, if you login with the registered user information, data synchronization processing will be performed every 6 hours.
+        </div>
+      </div>
+      <br/>
+     <Grid>
+        <Grid.Row>
+          <Grid.Column width={5}>
+            {this.state.emailSync ?
+              <div className="field">
+                <label>{l10n.translation('5222676887888702881')}</label>
+
+                <lable>{l10n.translation('email')}：{this.state.emailSync}</lable>
+                <br/>
+                <br/>
+                <Button primary content={l10n.translation('5222676887888702881')} onClick={_=>this.loginSync('logout')}/>
+                <br/>
+                <br/>
+                <Button primary content='Sync Now!' onClick={_=>ipc.send('start-sync',true)}/>
+              </div>
+              :
+            <div className="field">
+              <label>{l10n.translation('1864111464094315414')}</label>
+
+              <div className="field">
+                <Input onChange={this.onChange.bind(this,'loginEmail')} placeholder={l10n.translation('email')}/>
+              </div>
+              <div className="field">
+                <Input onChange={this.onChange.bind(this,'loginPassword')} placeholder={l10n.translation('passwordsPassword')} onKeyDown={e=>e.keyCode == 13 && this.loginSync('login')}/>
+              </div>
+
+              <Button primary content={l10n.translation('1864111464094315414')} onClick={_=>this.loginSync('login')}/>
+            </div>}
+          </Grid.Column>
+          {this.state.emailSync ? null :<Grid.Column width={5} style={{marginTop: 0}}>
+            <div className="field">
+              <label>New User</label>
+
+              <div className="field">
+                <Input onChange={this.onChange.bind(this,'newEmail')} placeholder={l10n.translation('email')}/>
+              </div>
+              <div className="field">
+                <Input onChange={this.onChange.bind(this,'newPassword')} placeholder={l10n.translation('passwordsPassword')} onKeyDown={e=>e.keyCode == 13 && this.loginSync('regist')}/>
+              </div>
+
+              <Button primary content={l10n.translation('839736845446313156')} onClick={_=>this.loginSync('regist')}/>
+            </div>
+          </Grid.Column>}
+        </Grid.Row>
+      </Grid>
+      <br/>
+
+      {this.state.message ? <div className={`ui ${this.state.result ? 'info' : 'negative'} message`} style={{width: 'initial'}}>
+        <div className="header">
+          {this.state.message}
+        </div>
+      </div> : null}
 
 
+      <br/>
+      <div className="field">
+        <label>{l10n.translation('data')}</label>
+        <Checkbox toggle onChange={this.onChange.bind(this,'syncGeneralSettings')} defaultChecked={this.state.syncGeneralSettings}/>
+        <span className="toggle-label">{l10n.translation('generalSettings')}</span>
+        <br/>
+        <Checkbox toggle onChange={this.onChange.bind(this,'syncBookmarks')} defaultChecked={this.state.syncBookmarks}/>
+        <span className="toggle-label">{l10n.translation('bookmarks')}</span>
+        <br/>
+        <Checkbox toggle onChange={this.onChange.bind(this,'syncBrowsingHistory')} defaultChecked={this.state.syncBrowsingHistory}/>
+        <span className="toggle-label">{l10n.translation('browsingHistory')}</span>
+        <br/>
+        <Checkbox toggle onChange={this.onChange.bind(this,'syncSessionTools')} defaultChecked={this.state.syncSessionTools}/>
+        <span className="toggle-label">{l10n.translation('sessionTools')}</span>
+        <br/>
+        <Checkbox toggle onChange={this.onChange.bind(this,'syncFavicons')} defaultChecked={this.state.syncFavicons}/>
+        <span className="toggle-label">{l10n.translation('favicon')}</span>
+        <br/>
+        <Checkbox toggle onChange={this.onChange.bind(this,'syncDownloadHistory')} defaultChecked={this.state.syncDownloadHistory}/>
+        <span className="toggle-label">{l10n.translation('downloadHistory')}</span>
+        <br/>
+        <Checkbox toggle onChange={this.onChange.bind(this,'syncAutomation')} defaultChecked={this.state.syncAutomation}/>
+        <span className="toggle-label">{l10n.translation('automation')}</span>
+        <br/>
+        <Checkbox toggle onChange={this.onChange.bind(this,'syncNote')} defaultChecked={this.state.syncNote}/>
+        <span className="toggle-label">{l10n.translation('note')}</span>
+        <br/>
+        <Checkbox toggle onChange={this.onChange.bind(this,'syncPassword')} defaultChecked={this.state.syncPassword}/>
+        <span className="toggle-label">{l10n.translation('passwordsPassword')}</span>
+      </div>
 
     </div>
   }
@@ -2554,7 +2687,7 @@ const routings = {
   video : <VideoSetting/>,
   extensions : <ExtensionSetting/>,
   theme : <ThemeSetting/>,
-  syncData: <SyncDataSetting/>
+  syncDatas: <SyncDataSetting/>
 }
 
 class TopList extends React.Component {
@@ -2597,7 +2730,7 @@ class TopList extends React.Component {
         {this.getMenu('video','video')}
         {this.getMenu('theme','picture')}
         {this.getMenu('extensions','industry')}
-        {this.getMenu('syncData','exchange')}
+        {this.getMenu('syncDatas','exchange')}
         <Menu.Item as="a" href='javascript:void(0)' onClick={_=>ipc.send('open-page','chrome-extension://jpkfjicglakibpenojifdiepckckakgk/options_page.html')} active={false}>
           {l10n.translation('mouseGesture')}
         </Menu.Item>
@@ -2632,7 +2765,8 @@ ipc.send("get-main-state",key,['startsWith','newTabMode','myHomepage','searchPro
   'clearSessionManagerOnClose','clearFaviconOnClose','clearAutomationOnClose','clearNoteOnClose','clearType','clearDays',
   'enableWidevine','toolbarLink','sidebarLink','bookmarkbarLink','zoomBehavior','tabPreviewSizeWidth','tabPreviewSizeHeight','tabPreviewSlideHeight','tabPreviewWait','searchEngineDisplayType','tabPreviewRecent',
   'sendUrlContextMenus','extensions','tabBarMarginTop','removeTabBarMarginTop','enableTheme','themeTopPage','themeBookmark','themeHistory','themeDownloader','themeExplorer','themeBookmarkSidebar','themeHistorySidebar',
-  'themeSessionManagerSidebar','themeTabTrashSidebar','themeTabHistorySidebar','themeExplorerSidebar','searchHistoryOrderCount','rectangularSelection','fullscreenTransitionKeep','enableSmoothScrolling','showAddressBarFavicon','showAddressBarBookmarks'])
+  'themeSessionManagerSidebar','themeTabTrashSidebar','themeTabHistorySidebar','themeExplorerSidebar','searchHistoryOrderCount','rectangularSelection','fullscreenTransitionKeep','enableSmoothScrolling','showAddressBarFavicon','showAddressBarBookmarks'
+  ,'emailSync','syncGeneralSettings','syncBookmarks','syncBrowsingHistory','syncSessionTools','syncFavicons','syncDownloadHistory','syncAutomation','syncNote','syncPassword'])
 ipc.once(`get-main-state-reply_${key}`,(e,data)=>{
   generalDefault = data
   keyboardDefault = data

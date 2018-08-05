@@ -173,7 +173,7 @@ function create(args){
             }
           }
           state.update({ key: 1 }, { $set: {key: 1, ver:fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString(), ...bounds, maximize,maxBounds,
-              toggleNav:mainState.toggleNav==2 || mainState.toggleNav==3 ? 0 :mainState.toggleNav,...saveState,winState:ret} }, { upsert: true }).then(_=>{
+              toggleNav:mainState.toggleNav==2 || mainState.toggleNav==3 ? 0 :mainState.toggleNav,...saveState,winState:ret, updated_at: Date.now()} }, { upsert: true }).then(_=>{
             InitSetting.reload()
           })
 
@@ -292,6 +292,7 @@ export default {
       for(let [key,dVal] of Object.entries(settingDefault)){
         setOptionVal(key,dVal,setting[key])
       }
+      mainState.emailSync = setting.emailSync
       mainState.defaultDownloadPath = app.getPath('downloads')
       app.setPath('downloads',mainState.downloadPath && fs.existsSync(mainState.downloadPath) ? mainState.downloadPath : mainState.defaultDownloadPath)
 
@@ -476,7 +477,7 @@ export default {
           }
         }
         state.update({ key: 1 }, { $set: {key: 1, ver:fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString(), ...bounds, maximize,maxBounds,
-            toggleNav:mainState.toggleNav==2 || mainState.toggleNav==3 ? 0 :mainState.toggleNav,...saveState,winState:ret} }, { upsert: true }).then(_=>_)
+            toggleNav:mainState.toggleNav==2 || mainState.toggleNav==3 ? 0 :mainState.toggleNav,...saveState,winState:ret, updated_at: Date.now()} }, { upsert: true }).then(_=>_)
         saved = true
         console.log("getState")
       }catch(e){

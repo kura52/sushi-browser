@@ -816,7 +816,7 @@ ipcMain.on('save-state',async (e,{tableName,key,val})=>{
       }
     }
     mainState[key] = val
-    state.update({ key: 1 }, { $set: {[key]: mainState[key]} }).then(_=>_)
+    state.update({ key: 1 }, { $set: {[key]: mainState[key], updated_at: Date.now()} }).then(_=>_)
   }
   else{
     if(tableName　== "searchEngine"){
@@ -1759,7 +1759,9 @@ ipcMain.on('remove-history',async (e,val)=> {
 ipcMain.on('quit-browser',(e,type)=>{
   ipcMain.emit('save-all-windows-state',null,'quit')
   ipcMain.once('wait-saveState-on-quit',()=>{
-    if(type == 'restart') app.relaunch()
+    if(type == 'restart'){
+      app.relaunch()
+    }
     BrowserWindow.getAllWindows().forEach(win=>win.close())
     app.quit()
   })
@@ -1798,6 +1800,29 @@ ipcMain.on('rectangular-selection',(e,val)=>{
 
 ipcMain.on("full-screen-html",(e,val)=>{
   mainState.fullScreenIds[e.sender.getId()] = val
+})
+
+
+ipcMain.on("full-screen-html",(e,val)=>{
+  mainState.fullScreenIds[e.sender.getId()] = val
+})
+
+ipcMain.on("login-sync",async (e,{key,type,email,password})=>{
+  const firebaseUtils = require('./FirebaseUtils')
+  let errMsg,msg
+  if(type == 'login'){
+    msg = 'Login'
+    errMsg = await firebaseUtils.login(email,password)
+  }
+  else if(type == 'logout'){
+    msg = 'Logout'
+    errMsg = await firebaseUtils.logout(email)
+  }
+  else if(type == 'regist'){
+    msg = 'User registration'
+    errMsg = await firebaseUtils.regist(email,password)
+  }
+  e.sender.send(`login-sync-reply_${key}`,!errMsg, errMsg || `${msg} succeeded!`)
 })
 
 // ipcMain.on('get-firefox-url',(e,key,url)=>{

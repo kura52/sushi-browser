@@ -379,6 +379,9 @@ var rendererIdentifiers = function () {
     '7791543448312431591',
     '59174027418879706',
     '4250229828105606438',
+    '1864111464094315414',
+    '5222676887888702881',
+    '839736845446313156',
 
     'playOrPause',
     'frameStep',
@@ -683,7 +686,7 @@ var rendererIdentifiers = function () {
     'openInANewWindowWithARow',
     'openInNewWindowWith2Rows',
     'openInANewWindowWith3Rows',
-    'current',
+    'currentAndOpposite',
     'current',
     'opposite',
     'addSearchEngine',
@@ -734,7 +737,10 @@ var rendererIdentifiers = function () {
     'fileExplorerSidebar',
     'default',
     'pagesToApply',
-    'enableSmoothScrolling'
+    'enableSmoothScrolling',
+    'useSmoothScroll',
+    'email',
+    'passwordsPassword'
   ]
 }
 

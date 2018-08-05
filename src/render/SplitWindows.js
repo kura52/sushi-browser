@@ -419,7 +419,7 @@ export default class SplitWindows extends Component{
             return response.blob();
           }).then(blob=>{
             const reader = new FileReader();
-            reader.onload = _=>{ipc.send('sync-datas-to-main',reader.result.split(',')[1])}
+            reader.onload = _=>{ipc.send('sync-datas-to-main',reader.result.split(',')[1], password)}
             reader.readAsDataURL(blob)
           })
         }
@@ -432,7 +432,8 @@ export default class SplitWindows extends Component{
         dbRef.update({
           [setTime]: ""
         });
-        token.update({key:'sync_at'},{key:'sync_at', sync_at: now}, { upsert: true }).then(_=>_)
+        console.log(email,now)
+        token.update({email},{$set: {sync_at: now}}).then(_=>_)
       });
 
 

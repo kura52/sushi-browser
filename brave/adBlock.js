@@ -179,7 +179,8 @@ function registerForBeforeRequest (session) {
         }
       }
 
-      if(!contType || matchNormal || contType[0].startsWith('image')) return
+      const urlMatch = newURL.match(/\.(mp4|webm|avi|3gp|m3u8)$/)
+      if((!contType || matchNormal || contType[0].startsWith('image')) && !urlMatch) return
 
       let record,ret,parseUrl
       if(ret = (contType[0].match(RegRichMedia))){
@@ -200,7 +201,11 @@ function registerForBeforeRequest (session) {
           const ind = pathname.lastIndexOf('/')
           record = {tabId:details.tabId,type:ret[0],contType,size:len,url:newURL,fname: pathname.slice(ind+1)}
         }
+        else if(urlMatch){
+          record = {tabId:details.tabId,contType,size:len,url:newURL,fname: pathname.slice(ind+1)}
+        }
       }
+
 
       if(record){
         console.log(record)

@@ -478,6 +478,7 @@ export default class TabPanel extends Component {
     this.searchWordHighlight = ::this.searchWordHighlight
     this.navigateTo = ::this.navigateTo
     this.updateIdle = ::this.updateIdle
+    this.maximizePanel = ::this.maximizePanel
 
     if((multistageTabs && maxrowLabel != 0) || openTabPosition != 'default'){
       this.componentWillUpdate = (prevProps, prevState)=>{
@@ -920,8 +921,22 @@ export default class TabPanel extends Component {
       }
     })
 
+
+    const tokenMenuShow = PubSub.subscribe(`menu-showed_${this.props.k}`,(msg,show)=>{
+      const dom = document.querySelector(`.s${this.props.k}`)
+      const isMaximize = dom && dom.style.width == '100vw'
+      if(!isMaximize) return
+
+      if(show){
+        dom.style.zIndex = 7
+      }
+      else{
+        dom.style.zIndex = 5
+      }
+    })
+
     // return [tokenResize,tokenDrag,tokenSplit,tokenClose,tokenToggleDirction,tokenSync,tokenSync2,tokenBodyKeydown,tokenNewTabFromKey]
-    return [tokenResize,tokenDrag,tokenActiveTabChanged,tokenClose,tokenToggleDirction,tokenSwapPosition,tokenSync2,tokenCloseSyncTabs,tokenSyncSelectTab,tokenBodyKeydown,tokenAdblock,tokenNewTabFromKey,tokenRestoreTabFromKey,tokenCloseTab,tokenIncludeKey,tokenRichMedia,tokenMultiScroll,tokenOpposite,tokenSplit,tokenSearch]
+    return [tokenResize,tokenDrag,tokenActiveTabChanged,tokenClose,tokenToggleDirction,tokenSwapPosition,tokenSync2,tokenCloseSyncTabs,tokenSyncSelectTab,tokenBodyKeydown,tokenAdblock,tokenNewTabFromKey,tokenRestoreTabFromKey,tokenCloseTab,tokenIncludeKey,tokenRichMedia,tokenMultiScroll,tokenOpposite,tokenSplit,tokenSearch,tokenMenuShow]
   }
 
 
@@ -2124,6 +2139,12 @@ export default class TabPanel extends Component {
       else if(name == 'detachPanel'){
         this.detachPanel()
       }
+      else if(name == 'floatingPanel'){
+        this._handleContextMenu(null,tab.key,null,this.state.tabs,false,true).find(i=>i.t == name).click()
+      }
+      else if(name == 'maximizePanel'){
+        this.maximizePanel()
+      }
       else if(name == 'zoomIn'){
         refs2[`navbar-${tab.key}`].onZoomIn()
       }
@@ -2762,7 +2783,8 @@ export default class TabPanel extends Component {
     const div = this.refs[`div-${this.state.selectedTab}`] || document.querySelector(`.db${this.state.selectedTab}`)
     if(!div) return
 
-
+    const dom = document.querySelector(`.s${this.props.k}`)
+    const isMaximize = dom && dom.style.width == '100vw'
     const ref = div.getBoundingClientRect()
     const navbar = ReactDOM.findDOMNode(refs2[`navbar-${this.state.selectedTab}`])
     PubSub.publish('webview-create', {key: this.props.k,
@@ -2775,7 +2797,8 @@ export default class TabPanel extends Component {
           navbar: navbar,
           modify: this.props.toggleNav != 2 && this.props.toggleNav != 3 && (sharedState.bookmarkBar || (sharedState.bookmarkBarTopPage && tab.page.navUrl == topURL)) ? 28 : 0,
           float:this.props.float,
-          getCapture: !tab.tabPreview
+          getCapture: !tab.tabPreview,
+          isMaximize
           // chromeTab: this.getChromeTab(tab)
         }}
       ).filter(x=> x.key !== undefined)})
@@ -3393,6 +3416,28 @@ export default class TabPanel extends Component {
     }
   }
 
+  maximizePanel(){
+    const e = document.querySelector(`.s${this.props.k}`)
+    if(e.style.width == '100vw'){
+      e.style.position = null
+      e.style.width = null
+      e.style.height = null
+      e.style.left = null
+      e.style.top = null
+      e.style.zIndex = null
+    }
+    else{
+      e.style.position = 'fixed'
+      e.style.width = '100vw'
+      e.style.height = '100vh'
+      e.style.left = 0
+      e.style.top = 0
+      e.style.zIndex = 5
+    }
+    this.setState({})
+    this.webViewCreate()
+  }
+
   buildReloadInterval(t,sec){
     const checked = !!t.reloadInterval && t.reloadInterval[0] == sec
     const click = () =>{
@@ -3795,6 +3840,7 @@ export default class TabPanel extends Component {
       }
 
       menuItems.push(({ t: 'floatingPanel', label: locale.translation('floatingPanel'), click: _=>detachToFloatPanel() }))
+      menuItems.push(({ t: 'maximizePanel', label: 'Maximize Panel', click: _=>this.maximizePanel()}))
       menuItems.push(({ type: 'separator' }))
       menuItems.push(({ t: 'swapPosition', label: locale.translation('swapPosition'), click: ()=> { PubSub.publish(`swap-position_${this.props.k}`)} }))
       menuItems.push(({ t: 'switchDirection', label: locale.translation('switchDirection'), click: ()=> { PubSub.publish(`switch-direction_${this.props.k}`)} }))
@@ -4511,6 +4557,10 @@ export default class TabPanel extends Component {
   render() {
     let toggle = this.state.tabBar !== (void 0) ? this.state.tabBar : this.props.toggleNav
     if(toggle == 1 && this.props.k.match(/fixed\-[lr]/)) toggle = 0
+
+    const dom = document.querySelector(`.s${this.props.k}`)
+    const isMaximize = dom && dom.style.width == '100vw'
+
     return (
       <Tabs
         tabsClassNames={tabsClassNames}
@@ -4538,6 +4588,7 @@ export default class TabPanel extends Component {
         k={this.props.k}
         refs2={refs2}
         mouseClickHandles={key=>this._handleContextMenu(null,key,null,this.state.tabs,false,true)}
+        isMaximize={isMaximize}
         tabs={this.state.tabs.map((tab,num)=>{
           const notifications = this.state.notifications.filter(x=>x._key == tab.key)
           return (<Tab key={tab.key} page={tab.page} orgTab={tab} unread={this.state.selectedTab != tab.key && !allSelectedkeys.has(tab.key)} pin={tab.pin} protect={tab.protect} lock={tab.lock} mute={tab.mute} reloadInterval={tab.reloadInterval} privateMode={tab.privateMode} selection={tab.selection}>
@@ -4545,7 +4596,7 @@ export default class TabPanel extends Component {
               <BrowserNavbar tabkey={tab.key} k={this.props.k} navHandle={tab.navHandlers} parent={this}
                              privateMode={tab.privateMode} page={tab.page} tab={tab} refs2={refs2} key={tab.key} adBlockEnable={adBlockEnable}
                              oppositeGlobal={this.state.oppositeGlobal} toggleNav={toggle} adBlockThis={tab.adBlockThis}
-                             historyMap={historyMap} currentWebContents={this.props.currentWebContents}
+                             historyMap={historyMap} currentWebContents={this.props.currentWebContents} isMaximize={isMaximize} maximizePanel={this.maximizePanel}
                              isTopRight={this.props.isTopRight} isTopLeft={this.props.isTopLeft} fixedPanelOpen={this.props.fixedPanelOpen}
                              tabBar={!this.state.tabBar} hidePanel={this.props.hidePanel} autocompleteUrl={autocompleteUrl}
                              fullscreen={this.props.fullscreen} bind={tab.bind} screenShot={this.screenShot} searchWordHighlight={this.searchWordHighlight}/>

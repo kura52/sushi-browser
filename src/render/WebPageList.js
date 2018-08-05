@@ -102,7 +102,7 @@ export default class WebPageList extends Component{
                 width: pos.width,
                 height: pos.height - modify,
                 // display: "inline-flex",
-                zIndex: datas.float ? this.state.floatKey == key ? 6 : 4 : 1
+                zIndex: datas.isMaximize ? 6 : datas.float ? this.state.floatKey == key ? 6 : 4 : 1
               } : {
                 // position: "absolute",
                 // // top: `${pos.top + modify}px`,

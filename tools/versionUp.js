@@ -23,26 +23,32 @@ const glob = require("glob")
 // Engawa(Flounder Fin)
 // Amaebi(Sweet Shrimp)
 
-const BEFORE_CODE_NAME = 'Engawa(Flounder Fin)'
+const BEFORE_CODE_NAME = 'Amaebi(Sweet Shrimp)'
 const CODE_NAME = 'Amaebi(Sweet Shrimp)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.20.0"
+const NEXT_APP_VERSION = "0.20.1"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Added rectangle selection function.
-Localized 200+ items.
-Added function to save in MHTML when extension is selected as mht or mhtml when saving page. (#16)
-Added "Maintain fullscreen mode even after page transition" option.
-Updated to Muon 8.0.3. (Chromium 68.0.3440.75)
-Fixed bug in download
+const CHANGE_ENGLISH = `Renew "Sync Data" (Add setting page, AES256 encryption of stored data, Select sync data). (* Experimental)
+"Maximize Panel" is added to the right menu of the tab.
+"Incremental Import" added for setting import. (* Experimental)
+Add password to import / export settings.
+"Show the favicon at the left end of the address bar" added to setting.
+"Show bookmark add icon on the right end of the address bar" added to setting.
+Add "Enable smooth scrolling" to setting
+Updated to Muon 8.0.6. (Chromium 68.0.3440.84)
+Updated to youtube-dl 2018.08.04.
 Fixed some bugs.`
 
-const CHANGE_JAPANESE = `矩形選択機能を追加
-200項目以上をローカライズ（多言語化)
-ページ保存時に拡張子にmhtまたはmhtmlを選択した場合に、MHTMLで保存する機能を追加
-「ページ遷移後もフルスクリーンモードを維持」のオプションを追加
-Muonを8.0.3に更新(Chromium 68.0.3440.75)
-ダウンロードの不具合修正
+const CHANGE_JAPANESE = `データ同期をリニューアル（設定ページを追加、保管データのAES256暗号化、同期データの選択）(※Experimental)
+タブの右メニューに「Maximize Panel」を追加
+設定のインポートに「Incremental Import」を追加(※Experimental)
+設定のインポート/エクスポートにパスワードを追加
+「Show the favicon at the left end of the address bar」を設定に追加
+「Show bookmark add icon on the right end of the address bar」を設定に追加
+「滑らかなスクロールを有効にする」を設定に追加
+Muonを8.0.6に更新(Chromium 68.0.3440.84)
+youtube-dlを2018.08.04に更新
 いくつかの不具合修正`
 
 const isWindows = process.platform === 'win32'

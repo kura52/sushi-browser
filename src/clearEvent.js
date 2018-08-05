@@ -1,7 +1,7 @@
 import {app,ipcMain,session} from 'electron'
 import {
   favorite, image, favicon, tabState, history, visit, savedState, download, downloader, state, syncReplace,
-  note, automation, automationOrder, windowState, searchEngine
+  note, automation, automationOrder, windowState, searchEngine, token
 } from './databaseFork'
 
 import path from 'path'
@@ -96,6 +96,7 @@ const m = {
 
   async clearGeneralSettings(){
     await syncReplace.remove({}, { multi: true })
+    await token.remove({}, { multi: true })
     await searchEngine.remove({}, { multi: true })
     await searchEngine.insert([
       {"name":"Amazon","base":"https://www.amazon.com","image":"https://www.amazon.com/favicon.ico","search":"https://www.amazon.com/exec/obidos/external-search/?field-keywords=%s&mode=blended","autocomplete":"https://completion.amazon.com/search/complete?method=completion&q=%s&search-alias=aps&client=amazon-search-ui&mkt=1","shortcut":"a","ind":0,"updated_at":1502539595508,"_id":"oBpB1LbmeM1a0Dma"},

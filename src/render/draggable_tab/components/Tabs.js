@@ -1493,11 +1493,16 @@ class Tabs extends React.Component {
               {this.props.verticalTabPanel ? <i className="fa fa-plus" aria-hidden="true"  style={{marginLeft: 'auto', marginRight: 'auto', fontSize: 13, padding: 2}}/> : null}
               {this.props.tabAddButton}
             </span>
+            {this.props.isMaximize && this.props.toggleNav != 1 ? <div className="title-button-set" style={{lineHeight: 0.9}}>
+                {displayFullIcon ? <span className={this.props.toggleNav == 3 ? "typcn typcn-arrow-minimise" : "typcn typcn-arrow-maximise"} onClick={_=>ipc.send('toggle-fullscreen')}></span> : null}
+                <span className="typcn typcn-media-stop-outline" onClick={()=>this.props.parent.maximizePanel()}></span>
+              </div>
+              : null}
             {isFloatPanel(this.props.k)  && this.props.toggleNav != 1 ? <div className="title-button-set" style={{lineHeight: 0.9, transform: `translateX(${this.isMultistageTabsMode() ? 1 : - this.state.tabs.length * 13 + 6}px)`}}>
               <span className="typcn typcn-media-stop-outline" onClick={()=>PubSub.publish(`maximize-float-panel_${this.props.k}`)}></span>
               <span className="typcn typcn-times" onClick={()=>PubSub.publish(`close-panel_${this.props.k}`)}></span>
             </div> : null}
-            {!isDarwin && this.props.isTopRight && this.props.toggleNav != 1 ? <RightTopBottonSet displayFullIcon={displayFullIcon} toggleNav={this.props.toggleNav} style={{
+            {!isDarwin && !this.props.isMaximize && this.props.isTopRight && this.props.toggleNav != 1 ? <RightTopBottonSet displayFullIcon={displayFullIcon} toggleNav={this.props.toggleNav} style={{
               marginTop: (this.props.verticalTabPanel ||this.props.toggleNav == 3 || this.isMultistageTabsMode()) ? void 0 : sharedState.tabBarMarginTop * -1, transform: `translateX(${this.isMultistageTabsMode() ? 1 : - this.state.tabs.length * 13 + 6}px)`}}/>: ""}
           </ul>
         </div>
