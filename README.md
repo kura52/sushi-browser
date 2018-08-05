@@ -239,14 +239,14 @@ This browser makes use of wonderful web technologies, starting with the followin
 Both the installer for every platform and the portable version can be downloaded.  
 To use the portable edition, please run sushi.exe for Windows and sushi-browser for Mac/Linux after decompressing.
 
-- [Windows Installer v0.20.0](https://sushib.me/dl/sushi-browser-0.20.0-setup-x64.exe)
-- [Windows Portable v0.20.0(self-extract)](https://sushib.me/dl/sushi-browser-0.20.0-win-x64.exe)
-- [Windows Portable v0.20.0](https://sushib.me/dl/sushi-browser-0.20.0-win-x64.zip)
-- [MacOS dmg v0.20.0](https://sushib.me/dl/SushiBrowser-0.20.0.dmg)
-- [MacOS Portable v0.20.0](https://sushib.me/dl/sushi-browser-0.20.0-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.20.0](https://sushib.me/dl/sushi-browser-0.20.0.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.20.0](https://sushib.me/dl/sushi-browser_0.20.0_amd64.deb)
-- [Linux Portable v0.20.0](https://sushib.me/dl/sushi-browser-0.20.0.tar.bz2)
+- [Windows Installer v0.20.1](https://sushib.me/dl/sushi-browser-0.20.1-setup-x64.exe)
+- [Windows Portable v0.20.1(self-extract)](https://sushib.me/dl/sushi-browser-0.20.1-win-x64.exe)
+- [Windows Portable v0.20.1](https://sushib.me/dl/sushi-browser-0.20.1-win-x64.zip)
+- [MacOS dmg v0.20.1](https://sushib.me/dl/SushiBrowser-0.20.1.dmg)
+- [MacOS Portable v0.20.1](https://sushib.me/dl/sushi-browser-0.20.1-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.20.1](https://sushib.me/dl/sushi-browser-0.20.1.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.20.1](https://sushib.me/dl/sushi-browser_0.20.1_amd64.deb)
+- [Linux Portable v0.20.1](https://sushib.me/dl/sushi-browser-0.20.1.tar.bz2)
 
 # Use of Flash 
 If Flash won't run, please install Flash from the following web sites.  
@@ -261,7 +261,19 @@ sushi-browser --no-sandbox
 
 # New Features
 
-#### New function(v0.20.0)
+#### New function(v0.201)
+- Renew "Sync Data" (Add setting page, AES256 encryption of stored data, Select sync data). (* Experimental)
+- "Maximize Panel" is added to the right menu of the tab.
+- "Incremental Import" added for setting import. (* Experimental)
+- Add password to import / export settings.
+- "Show the favicon at the left end of the address bar" added to setting.
+- "Show bookmark add icon on the right end of the address bar" added to setting.
+- Add "Enable smooth scrolling" to setting
+- Updated to Muon 8.0.6. (Chromium 68.0.3440.84)
+- Updated to youtube-dl 2018.08.04.
+- Fixed some bugs.
+
+#### New function(v0.20.1)
 - Added rectangle selection function.(Alt + Mouse Drag)
 - Localized 200+ items.
 - Added function to save in MHTML when extension is selected as mht or mhtml when saving page. (#16)
