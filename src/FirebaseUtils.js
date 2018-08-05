@@ -65,7 +65,9 @@ class firebaseUtils{
       cryptoKey = email
       password = passCrypto.encrypt(password)
 
-      token.update({email},{email:email,uid,password,login:true, updated_at: Date.now()}, { upsert: true }).then(_=>_)
+      const data = await token.findOne({email})
+      const sync_at = data && data.sync_at
+      token.update({email},{email:email,uid,password,login:true,sync_at, updated_at: Date.now()}, { upsert: true }).then(_=>_)
       mainState.emailSync = email
       ipcMain.emit('start-sync',null,true)
       return false
@@ -97,7 +99,7 @@ class firebaseUtils{
         await this.login(tokenData.email, this.decryptPassword(tokenData.email,tokenData.password))
         return tokenData.email
       }catch(e){
-        consol.elog(e)
+        console.log(e)
         token.update({email: tokenData.email},{$set: {login:false, updated_at: Date.now()}}).then(_=>_)
         delete mainState.emailSync
       }

@@ -412,7 +412,7 @@ export default class SplitWindows extends Component{
       }
 
       for(let key of Object.keys(vals || {})){
-        console.log(key,bTime)
+        console.log(33343,key,bTime)
         if(key > bTime){
           const url = await storageRef.child(`${key}.gz`).getDownloadURL()
           fetch(url).then(response=>{

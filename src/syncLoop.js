@@ -29,12 +29,21 @@ import importData from './bookmarksExporter'
 let firebaseUtils
 
 
-async function intervalRun(timeout = 60*60*6*1000){
+async function intervalRun(timeout){
   clearInterval(clearId)
   const interval = 60*60*6*1000
   const tokenData = await token.findOne({login: true})
-  const diff = Date.now() - (tokenData ? tokenData.sync_at : 0)
-  timeout = diff > interval ? 0 : interval - diff
+
+  if(timeout !== (void 0)){
+
+  }
+  else if(!tokenData || !tokenData.sync_at){
+    timeout = 300 * 1000
+  }
+  else{
+    const diff = Date.now() - tokenData.sync_at
+    timeout = diff > interval ? 0 : interval - diff
+  }
 
   setTimeout(_=>{
     process()
@@ -43,6 +52,7 @@ async function intervalRun(timeout = 60*60*6*1000){
 }
 
 async function getData(table, table_name, column, sync_at, results){
+  console.log('getData222','sync_at',sync_at)
   const data = await table.find({ [column]: { $gte: sync_at } })
   if(data){
     results[table_name] = data
@@ -55,19 +65,18 @@ async function process(){
   const sync_at = (tokenData && tokenData.sync_at) || 0
   const results = {}
 
-  const promises = []
 
   if(mainState.syncGeneralSettings){
-    promises.push(getData(state, 'state', 'updated_at', sync_at, results))
-    promises.push(getData(searchEngine, 'searchEngine', 'updated_at', sync_at, results))
+    await getData(state, 'state', 'updated_at', sync_at, results)
+    await getData(searchEngine, 'searchEngine', 'updated_at', sync_at, results)
   }
   if(mainState.syncBookmarks){
-    promises.push(getData(favorite, 'favorite', 'updated_at', sync_at, results))
+    await getData(favorite, 'favorite', 'updated_at', sync_at, results)
   }
   if(mainState.syncBrowsingHistory){
-    promises.push(getData(visit, 'visit', 'created_at', sync_at, results))
-    promises.push(getData(history, 'history', 'updated_at', sync_at, results))
-    promises.push(getData(image, 'image', 'updated_at', sync_at, results))
+    await getData(visit, 'visit', 'created_at', sync_at, results)
+    await getData(history, 'history', 'updated_at', sync_at, results)
+    await getData(image, 'image', 'updated_at', sync_at, results)
 
     const capturePath = path.join(path.join(app.getPath('userData'),'resource'),'capture')
     const realImages = []
@@ -86,23 +95,23 @@ async function process(){
     }
   }
   if(mainState.syncSessionTools){
-    promises.push(getData(tabState, 'tabState', 'updated_at', sync_at, results))
-    promises.push(getData(windowState, 'windowState', 'updated_at', sync_at, results))
-    promises.push(getData(savedState, 'savedState', 'created_at', sync_at, results))
+    await getData(tabState, 'tabState', 'updated_at', sync_at, results)
+    await getData(windowState, 'windowState', 'updated_at', sync_at, results)
+    await getData(savedState, 'savedState', 'created_at', sync_at, results)
   }
   if(mainState.syncFavicons){
-    promises.push(getData(favicon, 'favicon', 'updated_at', sync_at, results))
+    await getData(favicon, 'favicon', 'updated_at', sync_at, results)
   }
   if(mainState.syncDownloadHistory){
-    promises.push(getData(download, 'download', 'updated_at', sync_at, results))
-    promises.push(getData(downloader, 'downloader', 'now', sync_at, results))
+    await getData(download, 'download', 'updated_at', sync_at, results)
+    await getData(downloader, 'downloader', 'now', sync_at, results)
   }
   if(mainState.syncAutomation){
-    promises.push(getData(automation, 'automation', 'updated_at', sync_at, results))
-    promises.push(getData(automationOrder, 'automationOrder', 'updated_at', sync_at, results))
+    await getData(automation, 'automation', 'updated_at', sync_at, results)
+    await getData(automationOrder, 'automationOrder', 'updated_at', sync_at, results)
   }
   if(mainState.syncNote){
-    promises.push(getData(note, 'note', 'updated_at', sync_at, results))
+    await getData(note, 'note', 'updated_at', sync_at, results)
   }
   if(mainState.syncPassword){
     const password = await new Promise(r=>{
@@ -113,8 +122,6 @@ async function process(){
       return x
     })
   }
-
-  await Promise.all(promises)
 
   // console.log(favoriteList)
   zlib.gzip(JSON.stringify(results),
