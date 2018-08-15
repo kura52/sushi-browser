@@ -1,3 +1,5 @@
+const locale = require('../brave/app/locale')
+
 const isDarwin = process.platform === 'darwin'
 const isLinux = process.platform === 'linux'
 const isWin = process.platform == 'win32'
@@ -95,6 +97,8 @@ const settingDefault =  {
   showAddressBarBookmarks: false,
   devToolsMode: 'dock',
   devToolsHeight: 200,
+  rockerGestureLeft: null,
+  rockerGestureRight: null,
 
   //privacy
   clearHistoryOnClose: false,

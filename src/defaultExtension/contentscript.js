@@ -138,7 +138,7 @@ if(window.__started_){
 
   const key = Math.random().toString()
   ipc.send("get-main-state",key,['tripleClick','alwaysOpenLinkNewTab','themeColorChange','isRecording','isVolumeControl',
-    'keepAudioSeekValueVideo','rectangularSelection','fullscreenTransitionKeep','fullScreen'])
+    'keepAudioSeekValueVideo','rectangularSelection','fullscreenTransitionKeep','fullScreen','rockerGestureLeft','rockerGestureRight'])
   ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
     if(data.fullscreenTransitionKeep){
       let full = data.fullScreen ? true : false
@@ -329,6 +329,52 @@ if(window.__started_){
       new RectangularSelection()
     }
 
+    if(data.rockerGestureLeft != 'none' || data.rockerGestureRight != 'none'){
+      let downLeft, downRight
+      document.addEventListener('mouseup',e=>{
+        if(e.button === 0){
+          downLeft = void 0
+          if(downLeft == "send"){
+            e.stopPropagation()
+            e.preventDefault()
+            return false
+          }
+        }
+        else if(e.button === 2){
+          downRight = void 0
+          if(downRight == "send"){
+            e.stopPropagation()
+            e.preventDefault()
+            return false
+          }
+        }
+      })
+
+      document.addEventListener('mousedown',e=>{
+        if(e.button === 0){
+          downLeft = 'on'
+          if(downRight == 'on' && data.rockerGestureLeft != 'none'){
+            ipc.send('menu-command',data.rockerGestureLeft)
+            e.stopPropagation()
+            e.preventDefault()
+            downRight = 'send'
+            downLeft = 'send'
+            return false
+          }
+        }
+        else if(e.button === 2){
+          downRight = 'on'
+          if(downLeft == 'on' && data.rockerGestureRight != 'none'){
+            ipc.send('menu-command',data.rockerGestureRight)
+            e.stopPropagation()
+            e.preventDefault()
+            downRight = 'send'
+            downLeft = 'send'
+            return false
+          }
+        }
+      })
+    }
 
 
   })

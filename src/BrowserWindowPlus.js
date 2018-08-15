@@ -10,6 +10,7 @@ import {settingDefault} from '../resource/defaultValue'
 import PubSub from './render/pubsub'
 const uuid = require("node-uuid")
 const isDarwin = process.platform === 'darwin'
+const isWin = process.platform == 'win32';
 const lang = Intl.NumberFormat().resolvedOptions().locale
 const locale = require('../brave/app/locale')
 const localShortcuts = require('../brave/app/localShortcuts')
@@ -314,6 +315,10 @@ export default {
       mainState.mediaPlaying = {}
       mainState.isVolumeControl = {}
       mainState.fullScreenIds = {}
+      if(!mainState.rockerGestureLeft){
+        mainState.rockerGestureLeft = isWin ? locale.translation('back') : 'none'
+        mainState.rockerGestureRight = isWin ? locale.translation('forward') : 'none'
+      }
 
       if(!mainState.enableSmoothScrolling) app.commandLine.appendSwitch('disable-smooth-scrolling')
 
@@ -387,7 +392,7 @@ export default {
       // A frame but no title bar and windows buttons in titlebar 10.10 OSX and up only?
       titleBarStyle: 'hidden',
       autoHideMenuBar: true,
-      frame: true,
+      frame: isDarwin,
       show: false,
       webPreferences: {
         plugins: true,

@@ -1794,7 +1794,7 @@ ipcMain.on('browser-load',async (e,arg)=>{
 
 ipcMain.on('rectangular-selection',(e,val)=>{
   mainState.rectSelection = val ? [e.sender,val] : void 0
-  if(val) require('./menuSetting')()
+  if(val) require('./menuSetting').updateMenu()
 })
 
 
@@ -1853,6 +1853,28 @@ ipcMain.on("devTools-contextMenu-open",(e,template,x,y)=>{
     template.push({label: locale.translation("paste"), role: 'paste'})
   }
   Menu.buildFromTemplate(template).popup(targetWindow)
+})
+
+ipcMain.on("menu-command",(e,name)=>{
+  const templates = require('./menuSetting').getTemplate()
+  for(let template of templates){
+    for(let menu of template.submenu){
+      console.log(222,menu,name)
+      if(name == menu.label){
+        console.log(menu,name)
+        if(menu.click){
+          menu.click(null,getCurrentWindow())
+        }
+        else{
+          getFocusedWebContents(true).then(cont=>{
+            if(menu.role == 'selectall') menu.role = 'selectAll'
+            cont && cont[menu.role]()
+          })
+        }
+        break
+      }
+    }
+  }
 })
 
 // ipcMain.on('get-firefox-url',(e,key,url)=>{

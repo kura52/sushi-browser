@@ -637,7 +637,7 @@
           if(e.button === 2){
             showContext = true
             if(_config.useMousewheel){
-              window.addEventListener("mousewheel", GM, {passive: true} );
+              window.addEventListener("mousewheel", GM );
             }
           }
           if (e.button === 2 && !GM._isLeftMousedown) {

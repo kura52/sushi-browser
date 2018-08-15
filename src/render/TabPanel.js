@@ -2190,6 +2190,10 @@ export default class TabPanel extends Component {
       if(name == 'toggleDeveloperTools'){
         if(!tab.fields) tab.fields = {}
         const cont = this.getWebContents(tab)
+        if(!cont.setDevToolsWebContents){
+          cont.toggleDevTools()
+          return
+        }
         if(cont.devToolsWebContents){
           if(!cont.devToolsWebContents.isGuest()){
             cont.toggleDevTools()

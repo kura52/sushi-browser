@@ -794,6 +794,22 @@ class GeneralSetting extends React.Component {
         <br/>
 
         <div className="field">
+          <label>Enable Rocker Gestures</label>
+
+          <div className="field">
+            <label style={{fontWeight: 'initial', display: 'inline'}}>Right -> Left MouseDown &nbsp;</label>
+            <Dropdown onChange={this.onChange.bind(this,'rockerGestureLeft')} selection
+                      options={[{value: 'none', text: l10n.translation('clicktabNothing')},...Object.entries(keyMapping).filter(x=>!['keyMinimize','keyLastTab','keyFindNext','keyFindPrevious','keyTab1','keyTab2','keyTab3','keyTab4','keyTab5','keyTab6','keyTab7','keyTab8'].includes(x[0])).map(x=>({value:x[1],text:x[1]}))]} defaultValue={this.state.rockerGestureLeft}/>
+          </div>
+          <div className="field">
+            <label style={{fontWeight: 'initial', display: 'inline'}}>Left -> Right MouseDown &nbsp;</label>
+            <Dropdown onChange={this.onChange.bind(this,'rockerGestureRight')} selection
+                      options={[{value: 'none', text: l10n.translation('clicktabNothing')},...Object.entries(keyMapping).filter(x=>!['keyMinimize','keyLastTab','keyFindNext','keyFindPrevious','keyTab1','keyTab2','keyTab3','keyTab4','keyTab5','keyTab6','keyTab7','keyTab8'].includes(x[0])).map(x=>({value:x[1],text:x[1]}))]} defaultValue={this.state.rockerGestureRight}/>
+          </div>
+        </div>
+        <br/>
+
+        <div className="field">
           <label>{l10n.translation("sendURLToExternalMediaPlayer")}</label>
           <Dropdown onChange={this.onChange.bind(this,'sendToVideo')} selection options={sendToVideoOptions} defaultValue={this.state.sendToVideo}/>
         </div>
@@ -2766,7 +2782,7 @@ ipc.send("get-main-state",key,['startsWith','newTabMode','myHomepage','searchPro
   'enableWidevine','toolbarLink','sidebarLink','bookmarkbarLink','zoomBehavior','tabPreviewSizeWidth','tabPreviewSizeHeight','tabPreviewSlideHeight','tabPreviewWait','searchEngineDisplayType','tabPreviewRecent',
   'sendUrlContextMenus','extensions','tabBarMarginTop','removeTabBarMarginTop','enableTheme','themeTopPage','themeBookmark','themeHistory','themeDownloader','themeExplorer','themeBookmarkSidebar','themeHistorySidebar',
   'themeSessionManagerSidebar','themeTabTrashSidebar','themeTabHistorySidebar','themeExplorerSidebar','searchHistoryOrderCount','rectangularSelection','fullscreenTransitionKeep','enableSmoothScrolling','showAddressBarFavicon','showAddressBarBookmarks'
-  ,'emailSync','syncGeneralSettings','syncBookmarks','syncBrowsingHistory','syncSessionTools','syncFavicons','syncDownloadHistory','syncAutomation','syncNote','syncPassword'])
+  ,'emailSync','syncGeneralSettings','syncBookmarks','syncBrowsingHistory','syncSessionTools','syncFavicons','syncDownloadHistory','syncAutomation','syncNote','syncPassword','rockerGestureLeft','rockerGestureRight'])
 ipc.once(`get-main-state-reply_${key}`,(e,data)=>{
   generalDefault = data
   keyboardDefault = data

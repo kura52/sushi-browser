@@ -1132,15 +1132,20 @@ function getTemplate(){
   return template
 }
 
-export default function updateMenu(){
-  let oldMenu = appMenu
-  appMenu = Menu.buildFromTemplate(getTemplate())
-  Menu.setApplicationMenu(appMenu)
+const exp = {
+  updateMenu(){
+    let oldMenu = appMenu
+    appMenu = Menu.buildFromTemplate(getTemplate())
+    Menu.setApplicationMenu(appMenu)
 
-  if (oldMenu) {
-    oldMenu.destroy()
-  }
+    if (oldMenu) {
+      oldMenu.destroy()
+    }
+  },
+  getTemplate
 }
 
-updateMenu()
+export default exp
+
+exp.updateMenu()
 
