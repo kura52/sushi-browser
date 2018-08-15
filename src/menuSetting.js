@@ -479,7 +479,7 @@ const createViewSubmenu = () => {
       accelerator: mainState.keyToggleDeveloperTools,
       click(item) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.openDevTools()
+          cont && cont.hostWebContents.send('menu-or-key-events', 'toggleDeveloperTools', cont.getId())
         })
       }
     },

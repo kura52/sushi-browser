@@ -766,7 +766,7 @@ class BrowserNavbar extends Component{
       <NavbarMenuItem text={locale.translation("print").replace('…','')} icon='print' onClick={()=>this.getWebContents(this.props.tab).print()}/>
       <NavbarMenuItem text={locale.translation("search")} icon='search' onClick={()=>ipc.emit('menu-or-key-events',null,'findOnPage',this.props.tab.wvId)}/>
       <NavbarMenuItem text={locale.translation("settings").replace('…','')} icon='settings' onClick={()=>this.onCommon("settings")}/>
-      <NavbarMenuItem text={locale.translation("toggleDeveloperTools")} icon='bug' onClick={()=>this.getWebContents(this.props.tab).openDevTools()}/>
+      <NavbarMenuItem text={locale.translation("toggleDeveloperTools")} icon='bug' onClick={()=>ipc.emit('menu-or-key-events',null,'toggleDeveloperTools',this.props.tab.wvId)}/>
       <div className="divider" />
 
       <NavbarMenuItem text={locale.translation("closeThisPanel")} icon='close' onClick={()=>PubSub.publish(`close-panel_${this.props.k}`)}/>

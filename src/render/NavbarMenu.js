@@ -94,10 +94,6 @@ export default class NavbarMenu extends Component {
 
     if(!this.props.mouseOver){
       const func = _=>{
-        const left = parseInt(this.refs.div.getBoundingClientRect().x)
-        const width = parseInt(this.refs.menu.offsetWidth)
-        const totalWidth = parseInt(window.innerWidth)
-        console.log(38,left,width,totalWidth)
 
         if(this.props.fixed && this.refs && this.refs.div){
           const rect = ReactDOM.findDOMNode(this.refs.div).getBoundingClientRect()
@@ -108,6 +104,12 @@ export default class NavbarMenu extends Component {
           this.refs.menu.style.setProperty('left', `${rect.left}px`, 'important')
         }
         else{
+          if(!this.refs.menu) return
+          const left = parseInt(this.refs.div.getBoundingClientRect().x)
+          const width = parseInt(this.refs.menu.offsetWidth)
+          const totalWidth = parseInt(window.innerWidth)
+          console.log(38,left,width,totalWidth)
+
           if(this.refs.menu.style.zIndex){
             this.refs.menu.style.position = 'absolute'
             this.refs.menu.style.zIndex = null

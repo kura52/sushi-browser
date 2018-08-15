@@ -123,7 +123,7 @@ function showDialog(input,id){
 export default class BookmarkBarWrapper extends Component {
   constructor(props){
     super(props)
-    this.prev = -999
+    this.prev = void 0
   }
 
   componentWillMount() {

@@ -34,6 +34,8 @@ let adblock,httpsEverywhere,trackingProtection,extensions,videoProcessList = []
 //   console.log('unhandledRejection', error);
 // });
 
+// require('./chrome-extension')
+
 function exec(command) {
   console.log(command)
   return new Promise(function(resolve, reject) {
@@ -350,9 +352,96 @@ app.on('activate', function () {
 
 app.on('web-contents-created', (e, tab) => {
   contextMenu(tab)
+
+  tab.on('devtools-opened', ()=>{
+    tab.executeJavascriptInDevTools(`(async function(){
+  window.InspectorFrontendHost.showContextMenuAtPoint = (x, y, items)=>{
+    const convertToMenuTemplate = function (items) {
+      return items.map(function (item) {
+        const transformed = item.type === 'subMenu' ? {
+          type: 'submenu',
+          label: item.label,
+          enabled: item.enabled,
+          submenu: convertToMenuTemplate(item.subItems)
+        } : item.type === 'separator' ? {
+          type: 'separator'
+        } : item.type === 'checkbox' ? {
+          type: 'checkbox',
+          label: item.label,
+          enabled: item.enabled,
+          checked: item.checked
+        } : {
+          type: 'normal',
+          label: item.label,
+          enabled: item.enabled
+        }
+        if(item.id) transformed.id = item.id
+        return transformed
+      })
+    }
+
+    const useEditMenuItems = function (x, y, items) {
+      return items.length === 0 && document.elementsFromPoint(x, y).some(function (element) {
+        return element.nodeName === 'INPUT' || element.nodeName === 'TEXTAREA' || element.isContentEditable
+      })
+    }
+
+    let template = convertToMenuTemplate(items)
+    if (useEditMenuItems(x, y, template)) {
+      template = []
+    }
+    else if(!items.length){
+      return window.DevToolsAPI.contextMenuCleared()
+    }
+    let context = UI.context.flavor(SDK.ExecutionContext)
+    if(context.origin != "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd" && context.origin != "chrome://brave"){
+      context = [...context.runtimeModel._executionContextById].sort((a,b)=> a[0] - b[0]).find(x=>x[1].origin == "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd")[1]
+    }
+    context.evaluate({expression: \`chrome.ipcRenderer.send('devTools-contextMenu-open',\${JSON.stringify(template)},\${x},\${y})\`},false)
+  }
+  
+  let closeButton
+  for(let i=0;i<100;i++){
+    await new Promise(r=>{
+      setTimeout(_=>{
+        closeButton = document.querySelector(".insertion-point-main").shadowRoot.querySelector(".tabbed-pane-right-toolbar").shadowRoot.querySelector('.toolbar-button.toolbar-item.toolbar-has-glyph.hidden')
+        r()
+      },100)
+    })
+    if(closeButton){
+      closeButton.classList.remove('hidden')
+      closeButton.addEventListener('mousedown',e=>{
+        let context = UI.context.flavor(SDK.ExecutionContext)
+        if(context.origin != "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd" && context.origin != "chrome://brave"){
+          context = [...context.runtimeModel._executionContextById].sort((a,b)=> a[0] - b[0]).find(x=>x[1].origin == "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd")[1]
+        }
+        context.evaluate({expression: "chrome.ipcRenderer.sendToHost('devTools-close')"},false)
+      })
+
+      const dockButton = document.createElement('button')
+      dockButton.className = 'toolbar-button toolbar-item toolbar-has-glyph toolbar-state-off'
+      dockButton.setAttribute('aria-label','Undock into separate window')
+      dockButton.innerHTML = \`<span is="ui-icon" class="toolbar-glyph spritesheet-largeicons largeicon-undock icon-mask" style="--spritesheet-position:-168px 24px; width: 28px; height: 24px;"></span><div is="" class="toolbar-text hidden"></div>\`
+      closeButton.parentElement.insertBefore(dockButton,closeButton)
+
+      dockButton.addEventListener('mousedown',e=>{
+        let context = UI.context.flavor(SDK.ExecutionContext)
+        if(context.origin != "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd" && context.origin != "chrome://brave"){
+          context = [...context.runtimeModel._executionContextById].sort((a,b)=> a[0] - b[0]).find(x=>x[1].origin == "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd")[1]
+        }
+        context.evaluate({expression: "chrome.ipcRenderer.sendToHost('devTools-dock')"},false)
+      })
+
+      break
+    }
+  }
+}());`)
+  })
+
   if (tab.isBackgroundPage() || !tab.isGuest()) {
     return
   }
+
   let tabId = tab.getId()
   sharedState[tabId] = tab
 
@@ -828,7 +917,7 @@ function contextMenu(webContents) {
       win.webContents.downloadURL(props.srcURL,true)
     }
 
-    var targetWindow = BrowserWindow.getFocusedWindow()
+    const targetWindow = BrowserWindow.fromWebContents(webContents.hostWebContents || webContents)
     if (!targetWindow) return
 
     const isIndex = props.pageURL.match(/^chrome:\/\/brave.+?\/index.html/)
@@ -1271,10 +1360,31 @@ function contextMenu(webContents) {
       })
     }
     menuItems.push({
-      t: 'inspectElement', label: locale.translation('inspectElement'), click: item => {
-        webContents.inspectElement(props.x, props.y)
-        if (webContents.isDevToolsOpened())
-          webContents.devToolsWebContents.focus()
+      t: 'inspectElement', label: locale.translation('inspectElement'), click: async item => {
+        if(webContents.devToolsWebContents){
+          webContents.inspectElement(props.x, props.y)
+          if (webContents.isDevToolsOpened())
+            webContents.devToolsWebContents.focus()
+        }
+        else{
+          const cont = webContents
+          cont && cont.hostWebContents.send('menu-or-key-events', 'toggleDeveloperTools', cont.getId())
+          let devToolsWebContents
+          for(let i=0;i<100;i++){
+            await new Promise(r=>{
+              setTimeout(_=>{
+                devToolsWebContents = cont.devToolsWebContents
+                r()
+              },100)
+            })
+            if(devToolsWebContents){
+              webContents.inspectElement(props.x, props.y)
+              if (webContents.isDevToolsOpened())
+                webContents.devToolsWebContents.focus()
+              break
+            }
+          }
+        }
       }
     })
 

@@ -93,6 +93,8 @@ const settingDefault =  {
   enableSmoothScrolling: true,
   showAddressBarFavicon: false,
   showAddressBarBookmarks: false,
+  devToolsMode: 'dock',
+  devToolsHeight: 200,
 
   //privacy
   clearHistoryOnClose: false,

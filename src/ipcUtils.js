@@ -1,4 +1,4 @@
-import {ipcMain,app,dialog,BrowserWindow,shell,webContents,session,clipboard,nativeImage} from 'electron'
+import {ipcMain, app, dialog, BrowserWindow, shell, webContents, session, clipboard, nativeImage, Menu} from 'electron'
 const BrowserWindowPlus = require('./BrowserWindowPlus')
 import fs from 'fs'
 import sh from 'shelljs'
@@ -14,6 +14,7 @@ const {state,favorite,tabState,visit,savedState,automation,automationOrder,note}
 const db = require('./databaseFork')
 const FfmpegWrapper = require('./FfmpegWrapper')
 const defaultConf = require('./defaultConf')
+const locale = require('../brave/app/locale')
 
 import path from 'path'
 const ytdl = require('ytdl-core')
@@ -845,10 +846,6 @@ ipcMain.on('save-state',async (e,{tableName,key,val})=>{
 
 ipcMain.on('menu-or-key-events',(e,name,...args)=>{
   getFocusedWebContents().then(cont=>{
-    if(name == 'toggleDeveloperTools'){
-      cont && cont.openDevTools()
-      return
-    }
     cont && cont.hostWebContents.send('menu-or-key-events',name,cont.getId(),...args)
   })
 })
@@ -1086,7 +1083,10 @@ ipcMain.on('change-tab-infos',(e,changeTabInfos)=> {
           return
         }
         cont = sharedState[c.tabId] || webContents.fromTabID(c.tabId)
-        if(cont) f(cont,c)
+        if(cont){
+          f(cont,c)
+          clearInterval(id)
+        }
       },10)
     }
   }
@@ -1823,6 +1823,36 @@ ipcMain.on("login-sync",async (e,{key,type,email,password})=>{
     errMsg = await firebaseUtils.regist(email,password)
   }
   e.sender.send(`login-sync-reply_${key}`,!errMsg, errMsg || `${msg} succeeded!`)
+})
+
+function recurMenu(template,cont){
+  for(let item of template){
+    if(item.submenu){
+      recurMenu(item.submenu,cont)
+    }
+    else if(item.id){
+      item.click = ()=>{
+        cont.executeJavascriptInDevTools(`(function(){window.DevToolsAPI.contextMenuItemSelected(${item.id});window.DevToolsAPI.contextMenuCleared()}())`)
+      }
+    }
+  }
+}
+
+ipcMain.on("devTools-contextMenu-open",(e,template,x,y)=>{
+  const cont = e.sender
+  console.log(template)
+  const targetWindow = BrowserWindow.fromWebContents(cont.hostWebContents || cont)
+  if (!targetWindow) return
+
+  if(template.length){
+    recurMenu(template,cont)
+  }
+  else{
+    template.push({label: locale.translation("cut"), role: 'cut'})
+    template.push({label: locale.translation("copy"), role: 'copy'})
+    template.push({label: locale.translation("paste"), role: 'paste'})
+  }
+  Menu.buildFromTemplate(template).popup(targetWindow)
 })
 
 // ipcMain.on('get-firefox-url',(e,key,url)=>{

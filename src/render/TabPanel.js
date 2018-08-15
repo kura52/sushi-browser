@@ -286,7 +286,7 @@ export default class TabPanel extends Component {
       let tabs
       tabs = attachTabs.map(tab=>{
         // console.log(37,{c_page:tab.c_page,c_key:tab.c_key,privateMode:tab.privateMode,pin:tab.pin,wvId:tab.wvId,guestInstanceId: tab.guestInstanceId,rest:tab.rest})
-        return this.createTab({c_page:tab.c_page,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,guestInstanceId: tab.guestInstanceId,rest:tab.rest})
+        return this.createTab({c_page:tab.c_page,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,fields:tab.fields,reloadInterval:tab.reloadInterval,guestInstanceId: tab.guestInstanceId,rest:tab.rest})
       })
 
       this.state = {tokens,
@@ -314,7 +314,7 @@ export default class TabPanel extends Component {
       const fromTabs = this.props.node.pop()
       const tabs = indexes.map(i=>{
         const tab = fromTabs[i]
-        return this.createTab({c_page:tab.page,c_wv:tab.wv,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,guestInstanceId: tab.guestInstanceId
+        return this.createTab({c_page:tab.page,c_wv:tab.wv,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,fields:tab.fields,reloadInterval:tab.reloadInterval,guestInstanceId: tab.guestInstanceId
           ,rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis}})
       })
       this.state = {tokens,
@@ -367,7 +367,7 @@ export default class TabPanel extends Component {
       state.tokens.ipc.forEach(x=>removeEvents(ipc,x))
       this.state = {tokens,
         oppositeGlobal: ipc.sendSync('get-sync-main-state','oppositeGlobal'),
-        tabs: state.tabs.map(tab=>this.createTab({c_page:tab.page,c_wv:tab.wv,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,guestInstanceId: tab.guestInstanceId,
+        tabs: state.tabs.map(tab=>this.createTab({c_page:tab.page,c_wv:tab.wv,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,fields:tab.fields,reloadInterval:tab.reloadInterval,guestInstanceId: tab.guestInstanceId,
           rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis}})),
         tabBar:state.tabBar,
         prevAddKeyCount: state.prevAddKeyCount.slice(0),
@@ -399,7 +399,7 @@ export default class TabPanel extends Component {
           rSession.titles = rSession.titles.split("\t")
           rSession.positions = rSession.positions ? JSON.parse(rSession.positions) : []
         }
-        const n_tab = this.createTab({default_url:tab.url || (rSession && rSession.urls[rSession.currentIndex]),initPos: rSession && rSession.positions[rSession.currentIndex],privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,guestInstanceId: tab.guestInstanceId,rest:{rSession}})
+        const n_tab = this.createTab({default_url:tab.url || (rSession && rSession.urls[rSession.currentIndex]),initPos: rSession && rSession.positions[rSession.currentIndex],privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,fields:tab.fields,reloadInterval:tab.reloadInterval,guestInstanceId: tab.guestInstanceId,rest:{rSession}})
         if(tab.lock){
           const id = setInterval(_=>{
             if(n_tab.wvId){
@@ -530,7 +530,7 @@ export default class TabPanel extends Component {
         if(data.keySet.includes(tab.key)){
           const cont = this.getWebContents(tab)
           ipc.send('chrome-tabs-onDetached-to-main',tab.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==tab.key)})
-          const d = {wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
+          const d = {wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,fields:tab.fields,reloadInterval:tab.reloadInterval,
             rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || cont.guestInstanceId}
           vals.push(d)
           conts.push([tab,cont])
@@ -583,7 +583,7 @@ export default class TabPanel extends Component {
         })
       })
 
-      const d = {wvId:tabId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
+      const d = {wvId:tabId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,fields:tab.fields,reloadInterval:tab.reloadInterval,
         rest:{rSession:tab.rSession,wvId:tabId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId}
       ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
 
@@ -2186,7 +2186,27 @@ export default class TabPanel extends Component {
       else if(name == 'screenShotSelectionPng'){
         this.screenShot(false,'PNG',tab)
       }
-
+      else
+      if(name == 'toggleDeveloperTools'){
+        if(!tab.fields) tab.fields = {}
+        const cont = this.getWebContents(tab)
+        if(cont.devToolsWebContents){
+          if(!cont.devToolsWebContents.isGuest()){
+            cont.toggleDevTools()
+          }
+          delete tab.fields.devToolsInfo
+          this.setState({})
+        }
+        else{
+          if(mainState.devToolsMode == 'dock'){
+            tab.fields.devToolsInfo = {height: mainState.devToolsHeight, isPanel: true}
+            this.setState({})
+          }
+          else if(mainState.devToolsMode == 'separate'){
+            cont.toggleDevTools()
+          }
+        }
+      }
     }
     ipc.on('menu-or-key-events', tab.events['menu-or-key-events'])
 
@@ -2260,6 +2280,38 @@ export default class TabPanel extends Component {
       else if(e.channel == 'full-screen-mouseup'){
         const rect = tab.wv.getBoundingClientRect()
         ipc.send('force-mouse-up',{x: Math.round(rect.x+10),y:Math.round(rect.y+10)})
+      }
+      else if(e.channel == 'devTools-close'){
+        ipc.emit('menu-or-key-events',null,'toggleDeveloperTools',tab.wvId)
+      }
+      else if(e.channel == 'devTools-dock'){
+        const cont = this.getWebContents(tab)
+        if(cont.devToolsWebContents){
+          if(cont.devToolsWebContents.isGuest()){
+            ipc.emit('menu-or-key-events',null,'toggleDeveloperTools',tab.wvId)
+            mainState.set('devToolsMode','separate')
+            ;(async function(){
+              let devToolsWebContents
+              for(let i=0;i<100;i++){
+                await new Promise(r=>{
+                  setTimeout(_=>{
+                    devToolsWebContents = cont.devToolsWebContents
+                    r()
+                  },100)
+                })
+                if(!devToolsWebContents){
+                  cont.toggleDevTools()
+                  break
+                }
+              }
+            }())
+          }
+          else{
+            cont.toggleDevTools()
+            mainState.set('devToolsMode','dock')
+            ipc.emit('menu-or-key-events',null,'toggleDeveloperTools',tab.wvId)
+          }
+        }
       }
     }];
     tab.wv.addEventListener('ipc-message',tab.events['ipc-message'][1] )
@@ -2572,7 +2624,7 @@ export default class TabPanel extends Component {
     }
   }
 
-  createTab({default_url,c_page=null,c_wv=null,c_key=null,hist=null,privateMode=false,pin=false,protect=false,lock=false,mute=false,reloadInterval=false,guestInstanceId,tabPreview,initPos,rest} = {}){
+  createTab({default_url,c_page=null,c_wv=null,c_key=null,hist=null,privateMode=false,pin=false,protect=false,lock=false,mute=false,fields={},reloadInterval=false,guestInstanceId,tabPreview,initPos,rest} = {}){
     default_url = default_url || (isFixedVerticalPanel(this.props.k) ? sidebarURL : topURL)
     if(default_url) default_url = convertURL(default_url)
     const tab = {events:{},ext:{}}
@@ -2766,6 +2818,7 @@ export default class TabPanel extends Component {
         privateMode,
         pin,
         mute,
+        fields,
         reloadInterval,
         protect,
         lock,
@@ -2780,7 +2833,7 @@ export default class TabPanel extends Component {
 
   webViewCreate(){
     if(this.mounted===false) return
-    const div = this.refs[`div-${this.state.selectedTab}`] || document.querySelector(`.db${this.state.selectedTab}`)
+    const div = this.refs[`div-${this.state.selectedTab}`] || document.querySelector(`div.div-back.db${this.state.selectedTab}`)
     if(!div) return
 
     const dom = document.querySelector(`.s${this.props.k}`)
@@ -4026,7 +4079,7 @@ export default class TabPanel extends Component {
       for(let data of datas){
         this.props.currentWebContents[data.wvId] = global.sharedStateMain(data.wvId)
 
-        n_tab = this.createTab({c_page:data.c_page,c_key:data.c_key,privateMode:data.privateMode,tabPreview:data.tabPreview,pin:data.pin,protect:data.protect,lock:data.lock,mute:data.mute,reloadInterval:data.reloadInterval,guestInstanceId:data.guestInstanceId,rest:data.rest})
+        n_tab = this.createTab({c_page:data.c_page,c_key:data.c_key,privateMode:data.privateMode,tabPreview:data.tabPreview,pin:data.pin,protect:data.protect,lock:data.lock,mute:data.mute,fields:data.fields,reloadInterval:data.reloadInterval,guestInstanceId:data.guestInstanceId,rest:data.rest})
         tabs.splice(++i, 0, n_tab)
       }
 
@@ -4309,7 +4362,7 @@ export default class TabPanel extends Component {
         ipc.send('detach-tab',tabId)
         ipc.once(`detach-tab_${tabId}`,(e,_guestInstanceId)=>{
           tab.wv.attachGuest(_guestInstanceId)
-          const d = {wvId:tabId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
+          const d = {wvId:tabId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,fields:tab.fields,reloadInterval:tab.reloadInterval,
             rest:{rSession:tab.rSession,wvId:tabId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId}
           ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
           r([d,cont])
@@ -4337,7 +4390,7 @@ export default class TabPanel extends Component {
           r()
         })
       })
-      const d = {wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
+      const d = {wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,fields:tab.fields,reloadInterval:tab.reloadInterval,
         rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId}
       ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
       const winId = ipc.sendSync('browser-load',{id:remote.getCurrentWindow().id,...bounds,_alwaysOnTop:true,toggle:1,tabParam:JSON.stringify([d])})
@@ -4356,7 +4409,7 @@ export default class TabPanel extends Component {
             r()
           })
         })
-        const d = {wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
+        const d = {wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,fields:tab.fields,reloadInterval:tab.reloadInterval,
           rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId}
         ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
         const winId = ipc.sendSync('browser-load',{id:remote.getCurrentWindow().id,...bounds,_alwaysOnTop:true,toggle:1,tabParam:JSON.stringify([d])})
@@ -4591,7 +4644,7 @@ export default class TabPanel extends Component {
         isMaximize={isMaximize}
         tabs={this.state.tabs.map((tab,num)=>{
           const notifications = this.state.notifications.filter(x=>x._key == tab.key)
-          return (<Tab key={tab.key} page={tab.page} orgTab={tab} unread={this.state.selectedTab != tab.key && !allSelectedkeys.has(tab.key)} pin={tab.pin} protect={tab.protect} lock={tab.lock} mute={tab.mute} reloadInterval={tab.reloadInterval} privateMode={tab.privateMode} selection={tab.selection}>
+          return (<Tab key={tab.key} page={tab.page} orgTab={tab} unread={this.state.selectedTab != tab.key && !allSelectedkeys.has(tab.key)} pin={tab.pin} protect={tab.protect} lock={tab.lock} mute={tab.mute} fields={tab.fields} reloadInterval={tab.reloadInterval} privateMode={tab.privateMode} selection={tab.selection}>
             <div style={{height: '100%'}} className={`div-back db${tab.key}`} ref={`div-${tab.key}`} >
               <BrowserNavbar tabkey={tab.key} k={this.props.k} navHandle={tab.navHandlers} parent={this}
                              privateMode={tab.privateMode} page={tab.page} tab={tab} refs2={refs2} key={tab.key} adBlockEnable={adBlockEnable}

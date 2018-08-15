@@ -235,6 +235,7 @@ var getTabValue = function (tabId) {`)
       }
     })
   }`)
+  .replace('if (tabs[tabId]) {','if (tabs[tabId] || (tab && tab.tabValue && tab.tabValue.url && tab.tabValue.url.startsWith("chrome-devtools://"))) {')
 
 fs.writeFileSync(file,result)
 

@@ -640,7 +640,7 @@ export default class SplitWindows extends Component{
           })
           const newKey = uuid.v4()
           if(selectedTab == tab.key) selectedTab = newKey
-          const n_tab = this.refs2[indexKey].createTab({c_page:tab.page,c_key:newKey,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,guestInstanceId,
+          const n_tab = this.refs2[indexKey].createTab({c_page:tab.page,c_key:newKey,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,fields:tab.fields,reloadInterval:tab.reloadInterval,guestInstanceId,
             rest:{rSession:tab.rSession,wvId:tabId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis}})
           others.push([n_tab,ele[1],ele[0]])
         }
@@ -760,7 +760,7 @@ export default class SplitWindows extends Component{
             })
           })
           const panel = this.refs2[key]
-          const d = resolve({wvId:tabId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,freeze:tab.freeze,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,
+          const d = resolve({wvId:tabId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,freeze:tab.freeze,protect:tab.protect,lock:tab.lock,mute:tab.mute,fields:tab.fields,reloadInterval:tab.reloadInterval,
             rest:{rSession:tab.rSession,wvId:tabId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId})
 
           ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: oldIndexes[d.wvId]})
@@ -821,7 +821,7 @@ export default class SplitWindows extends Component{
       for(let data of datas){
         tabIds.add(data.wvId)
         this.currentWebContents[data.wvId] = global.sharedStateMain(data.wvId)
-        const n_tab = panel.createTab({c_page:data.c_page,c_key:data.c_key,privateMode:data.privateMode,tabPreview:data.tabPreview,pin:data.pin,protect:data.protect,lock:data.lock,mute:data.mute,reloadInterval:tab.reloadInterval,guestInstanceId:data.guestInstanceId,rest:data.rest})
+        const n_tab = panel.createTab({c_page:data.c_page,c_key:data.c_key,privateMode:data.privateMode,tabPreview:data.tabPreview,pin:data.pin,protect:data.protect,lock:data.lock,mute:data.mute,fields:tab.fields,reloadInterval:tab.reloadInterval,guestInstanceId:data.guestInstanceId,rest:data.rest})
         tabs.splice(realIndex++, 0, n_tab)
       }
       this.refs2[indexKey].setState({})
@@ -1178,13 +1178,13 @@ export default class SplitWindows extends Component{
       if(typeof obj.l === "string"){
         // obj.l = [obj.l,[]]
         const tabPanel = this.refs2[obj.l].state
-        obj.l = {key:obj.l, tabs:tabPanel.tabs.map(tab=>{return {tabKey:tab.key, title:tab.page.title, url:tab.page.navUrl, pin:!!tab.pin, protect:!!tab.protect, lock:!!tab.lock, mute:!!tab.mute, reloadInterval:!!tab.reloadInterval, active: tab.key == tabPanel.selectedTab}}).filter(tab=> tab.tabKey !== undefined && (!tab.privateMode || tab.privateMode.match(/^persist:\d/)))}
+        obj.l = {key:obj.l, tabs:tabPanel.tabs.map(tab=>{return {tabKey:tab.key, title:tab.page.title, url:tab.page.navUrl, pin:!!tab.pin, protect:!!tab.protect, lock:!!tab.lock, mute:!!tab.mute, fields:tab.fields, reloadInterval:!!tab.reloadInterval, active: tab.key == tabPanel.selectedTab}}).filter(tab=> tab.tabKey !== undefined && (!tab.privateMode || tab.privateMode.match(/^persist:\d/)))}
       }
 
       if(typeof obj.r === "string"){
         // obj.r = [obj.r,[]]
         const tabPanel = this.refs2[obj.r].state
-        obj.r = {key:obj.r, tabs:tabPanel.tabs.map(tab=>{return {tabKey:tab.key, title:tab.page.title, url:tab.page.navUrl, pin:!!tab.pin, protect:!!tab.protect, lock:!!tab.lock, mute:!!tab.mute, reloadInterval:!!tab.reloadInterval, active: tab.key == tabPanel.selectedTab}}).filter(tab=> tab.tabKey !== undefined && (!tab.privateMode || tab.privateMode.match(/^persist:\d/)))}
+        obj.r = {key:obj.r, tabs:tabPanel.tabs.map(tab=>{return {tabKey:tab.key, title:tab.page.title, url:tab.page.navUrl, pin:!!tab.pin, protect:!!tab.protect, lock:!!tab.lock, mute:!!tab.mute, fields:tab.fields, reloadInterval:!!tab.reloadInterval, active: tab.key == tabPanel.selectedTab}}).filter(tab=> tab.tabKey !== undefined && (!tab.privateMode || tab.privateMode.match(/^persist:\d/)))}
       }
     }
 

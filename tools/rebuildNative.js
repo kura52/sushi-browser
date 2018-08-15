@@ -10,7 +10,7 @@ for(let lib of libs){
 function rebuild(lib){
   sh.cd(lib)
 
-  if(sh.exec('node-gyp rebuild --target=7.0.5 --arch=x64 --dist-url=http://brave-laptop-binaries.s3.amazonaws.com/atom-shell/dist').code !== 0) {
+  if(sh.exec('node-gyp rebuild --target=8.0.8 --arch=x64 --dist-url=http://brave-laptop-binaries.s3.amazonaws.com/atom-shell/dist').code !== 0) {
     console.log("ERROR")
     process.exit()
   }

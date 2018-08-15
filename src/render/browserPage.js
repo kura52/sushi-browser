@@ -13,6 +13,7 @@ const AutofillPopup = require('./AutofillPopup')
 const isDarwin = navigator.userAgent.includes('Mac OS X')
 const sharedState = require('./sharedState')
 const mainState = remote.require('./mainState')
+const DevToolsPanel = require('./DevToolsPanel')
 // const isWin = navigator.userAgent.includes('Windows')
 
 function stringEscape(string){
@@ -382,11 +383,14 @@ class BrowserPage extends Component {
   }
 
   render() {
+    const devToolsInfo = this.props.tab.fields.devToolsInfo
+    const hasDevToolsPanel = devToolsInfo && devToolsInfo.isPanel
     // console.log("BrowserPage")
     // const preload = path.join(__dirname, './preload/mainPreload.js')
     return <div className="browser-page" ref="browserPage"  onKeyDown={::this.onHandleKeyDown}>
       <BrowserPageSearch ref="bps" isActive={this.state.isSearching} onPageSearch={::this.onPageSearch} progress={this.state.result_string} onClose={::this.onClose}/>
-      <webview ref="webview" className={`w${this.props.k2}`} data-key={this.props.k} src={this.props.tab.privateMode ? (void 0) : this.state.src}/>
+      <webview ref="webview" className={`w${this.props.k2}`} data-key={this.props.k} src={this.props.tab.privateMode ? (void 0) : this.state.src} style={hasDevToolsPanel ? {height: `calc(100% - ${devToolsInfo.height}px)`} : null}/>
+      {hasDevToolsPanel ? <DevToolsPanel tab={this.props.tab} devToolsInfo={devToolsInfo} parent={this}/> : null}
       <AutofillPopup k={this.props.k}/>
     </div>
   }

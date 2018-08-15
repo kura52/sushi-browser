@@ -248,6 +248,7 @@ async function treeBuild(datas){
           mute: x.mute,
           lock: x.lock,
           protect: x.protect,
+          fields:x.fields,
           reloadInterval: x.reloadInterval,
           type: 'file'
         }
