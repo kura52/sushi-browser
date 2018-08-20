@@ -148,9 +148,10 @@ export default class BookmarkBarWrapper extends Component {
  }
 
   shouldComponentUpdate(nextProps, nextState) {
-    const val = this.isShow()
-    const cond = this.prev !== val
-    if(!cond){
+    let val = this.isShow()
+    if(!val) val = void 0
+    const cond = this.prev === val
+    if(cond){
       this.prev = val
     }
     else{
@@ -217,8 +218,6 @@ class BookmarkBar extends Component {
     else if(e.button == 1){
       tab.events['create-web-contents'](null, {id:tab.wvId,targetUrl:url,disposition:'background-tab'})
     }
-    else{
-    }
   }
 
   handleFolderMouseUp(url,e){
@@ -273,8 +272,8 @@ class BookmarkBar extends Component {
       let ele
       if(f.is_file){
         ele = <a className="bookmark-item" key={f.key}
-                 onMouseUp={this.handleFileMouseUp.bind(this, f.url)}
-                 onMouseDown={this.handleFileMouseDown.bind(this, f)}>
+                 onMouseDown={this.handleFileMouseDown.bind(this, f)}
+                 onMouseUp={this.handleFileMouseUp.bind(this, f.url)}>
           {favicon ? <img className="favi-favorite" src={favicon}/> :
             <i class="infinite-tree-folder-icon fa fa-file doc"/> }
           <span className="infinite-tree-title">{title}</span>
@@ -334,7 +333,6 @@ class BookmarkBar extends Component {
   }
 
   componentWillUnmount() {
-    PubSub.unsubscribe(this.tokenResize)
     ipc.removeListener("update-datas",this.eventUpdateDatas)
   }
 

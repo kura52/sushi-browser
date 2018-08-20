@@ -11,12 +11,12 @@ const LRUCache = require('lru-cache')
 const sharedState = require('./sharedState')
 
 ipc.on('chrome-browser-action-set-ipc-all',(e,extensionId,name,val) => {
-  if(val.path){
+  if(val.path !== void 0){
     let _icon = typeof val.path === "object" ? Object.values(val.path)[0] : val.path
     if(_icon.startsWith('chrome-extension://')) _icon = _icon.split("/").slice(3).join("/")
     defaultIcons[extensionId] = _icon
   }
-  else if(val.popup){
+  else if(val.popup !== void 0){
     if(val.popup === ""){
       delete popups[extensionId]
     }
@@ -24,16 +24,16 @@ ipc.on('chrome-browser-action-set-ipc-all',(e,extensionId,name,val) => {
       popups[extensionId] = val.popup
     }
   }
-  else if(val.color){
+  else if(val.color !== void 0){
     if(Array.isArray(val.color)){
       val.color = `rgba(${val.color.join(',')})`
     }
     bgs[extensionId] = val.color
   }
-  else if(val.text){
+  else if(val.text !== void 0){
     texts[extensionId] = val.text
   }
-  else if(val.title){
+  else if(val.title !== void 0){
     titles[extensionId] = val.title
   }
 })

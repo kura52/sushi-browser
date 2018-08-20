@@ -89,6 +89,8 @@ const settingDefault =  {
   searchWordHighlightRecursive: false,
   bookmarkBar: false,
   bookmarkBarTopPage: true,
+  statusBar: false,
+  hoverStatusBar: true,
   windowCustomIcon: null,
   enableDownloadList: true,
   rectangularSelection: true,
@@ -97,6 +99,8 @@ const settingDefault =  {
   showAddressBarBookmarks: false,
   devToolsMode: 'dock',
   devToolsHeight: 200,
+  mobilePanelWidth: 400,
+  mobilePanelSyncScroll: true,
   rockerGestureLeft: null,
   rockerGestureRight: null,
 

@@ -202,7 +202,7 @@ function tabAdd(self, url, isSelect=true,privateMode = false,guestInstanceId,mob
     // sharedState.allSelectedkeys.add(key)
     console.log("selected01",key)
     self.setState({selectedTab: key})
-    self.focus_webview(t,t.page.location != topURL)
+    self.focus_webview(t,t.page.location != topURL,t.page.location == topURL)
   }
   else
     self.setState({})
@@ -542,10 +542,13 @@ export default class TabPanel extends Component {
       if(vals.length == 0) return
       for(let [tab,cont] of conts){
         const tabId = tab.wvId
+        PubSub.publishSync(`detach-tab`,true)
+        await new Promise(r=>setTimeout(r,100))
         ipc.send('detach-tab',tabId)
         await new Promise(r=>{
           ipc.once(`detach-tab_${tabId}`,(e,_guestInstanceId)=>{
             tab.wv.attachGuest(_guestInstanceId)
+            PubSub.publishSync(`detach-tab`,false)
             r()
           })
         })
@@ -614,6 +617,9 @@ export default class TabPanel extends Component {
 
   initEventListener() {
     const tokenResize = PubSub.subscribe('resize', ()=> {
+      this.webViewCreate()
+    })
+    const tokenWebViewCreate = PubSub.subscribe('web-view-create', ()=> {
       this.webViewCreate()
     })
     const tokenDrag = PubSub.subscribe('drag', (msg, val)=> {
@@ -760,7 +766,7 @@ export default class TabPanel extends Component {
 
     const tokenAdblock = PubSub.subscribe('set-adblock-enable',(msg,enable)=> {adBlockEnable = enable;this.setState({})} )
 
-    if(this.isFixed) return [tokenResize,tokenDrag,tokenActiveTabChanged,tokenClose,tokenBodyKeydown,tokenIncludeKey,tokenRichMedia,tokenMultiScroll,tokenCloseTab,tokenAdblock]
+    if(this.isFixed) return [tokenResize,tokenWebViewCreate,tokenDrag,tokenActiveTabChanged,tokenClose,tokenBodyKeydown,tokenIncludeKey,tokenRichMedia,tokenMultiScroll,tokenCloseTab,tokenAdblock]
 
 
     const tokenNewTabFromKey = PubSub.subscribe(`new-tab-from-key_${this.props.k}`, (msg,{url,mobile,adBlockThis,notSelected,privateMode,guestInstanceId,type})=> {
@@ -936,7 +942,7 @@ export default class TabPanel extends Component {
     })
 
     // return [tokenResize,tokenDrag,tokenSplit,tokenClose,tokenToggleDirction,tokenSync,tokenSync2,tokenBodyKeydown,tokenNewTabFromKey]
-    return [tokenResize,tokenDrag,tokenActiveTabChanged,tokenClose,tokenToggleDirction,tokenSwapPosition,tokenSync2,tokenCloseSyncTabs,tokenSyncSelectTab,tokenBodyKeydown,tokenAdblock,tokenNewTabFromKey,tokenRestoreTabFromKey,tokenCloseTab,tokenIncludeKey,tokenRichMedia,tokenMultiScroll,tokenOpposite,tokenSplit,tokenSearch,tokenMenuShow]
+    return [tokenResize,tokenWebViewCreate,tokenDrag,tokenActiveTabChanged,tokenClose,tokenToggleDirction,tokenSwapPosition,tokenSync2,tokenCloseSyncTabs,tokenSyncSelectTab,tokenBodyKeydown,tokenAdblock,tokenNewTabFromKey,tokenRestoreTabFromKey,tokenCloseTab,tokenIncludeKey,tokenRichMedia,tokenMultiScroll,tokenOpposite,tokenSplit,tokenSearch,tokenMenuShow]
   }
 
 
@@ -3162,6 +3168,9 @@ export default class TabPanel extends Component {
             console.log(88988,'tabchange')
             ipc.send('set-pos-window',{id:tab.bind.id,hwnd:tab.bind.hwnd,top:isActive ? 'above' : 'not-above'})
           }
+          else if(tab.fields.mobilePanel){
+            ipc.send('mobile-panel-operation',{type: isActive ? 'above' : 'below', key: tab.key, tabId: tab.wvId, force: true})
+          }
         }
         if(isActive){
           console.log({tabId:tab.wvId,active:isActive})
@@ -3611,7 +3620,7 @@ export default class TabPanel extends Component {
     }
     console.log("selected11",key)
     this.setState({selectedTab: key})
-    this.focus_webview(t,t.page.location != topURL)
+    this.focus_webview(t,t.page.location != topURL,t.page.location == topURL)
     return t
   }
 
@@ -4235,7 +4244,7 @@ export default class TabPanel extends Component {
     return this.props.currentWebContents[tab.wvId]
   }
 
-  focus_webview(tab,flag=true) {
+  focus_webview(tab,flag=true,locationBar) {
     let retry = 0
     const id = window.setInterval(()=> {
       retry++
@@ -4251,8 +4260,14 @@ export default class TabPanel extends Component {
       if (!t || tab.page.isLoading || !this.getWebContents(tab)) return
       clearInterval(id)
       const active = document.activeElement
-      if((flag || active.className != 'prompt')|| active.tagName == 'BODY')
-        t.focus()
+      if((flag || active.className != 'prompt')|| active.tagName == 'BODY'){
+        if(locationBar){
+          ipc.emit('focus-location-bar',null,tab.wvId)
+        }
+        else{
+          t.focus
+        }
+      }
     }, 100)
   }
 

@@ -239,14 +239,14 @@ This browser makes use of wonderful web technologies, starting with the followin
 Both the installer for every platform and the portable version can be downloaded.  
 To use the portable edition, please run sushi.exe for Windows and sushi-browser for Mac/Linux after decompressing.
 
-- [Windows Installer v0.20.1](https://sushib.me/dl/sushi-browser-0.20.1-setup-x64.exe)
-- [Windows Portable v0.20.1(self-extract)](https://sushib.me/dl/sushi-browser-0.20.1-win-x64.exe)
-- [Windows Portable v0.20.1](https://sushib.me/dl/sushi-browser-0.20.1-win-x64.zip)
-- [MacOS dmg v0.20.1](https://sushib.me/dl/SushiBrowser-0.20.1.dmg)
-- [MacOS Portable v0.20.1](https://sushib.me/dl/sushi-browser-0.20.1-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.20.1](https://sushib.me/dl/sushi-browser-0.20.1.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.20.1](https://sushib.me/dl/sushi-browser_0.20.1_amd64.deb)
-- [Linux Portable v0.20.1](https://sushib.me/dl/sushi-browser-0.20.1.tar.bz2)
+- [Windows Installer v0.21.0](https://sushib.me/dl/sushi-browser-0.21.0-setup-x64.exe)
+- [Windows Portable v0.21.0(self-extract)](https://sushib.me/dl/sushi-browser-0.21.0-win-x64.exe)
+- [Windows Portable v0.21.0](https://sushib.me/dl/sushi-browser-0.21.0-win-x64.zip)
+- [MacOS dmg v0.21.0](https://sushib.me/dl/SushiBrowser-0.21.0.dmg)
+- [MacOS Portable v0.21.0](https://sushib.me/dl/sushi-browser-0.21.0-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.21.0](https://sushib.me/dl/sushi-browser-0.21.0.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.21.0](https://sushib.me/dl/sushi-browser_0.21.0_amd64.deb)
+- [Linux Portable v0.21.0](https://sushib.me/dl/sushi-browser-0.21.0.tar.bz2)
 
 # Use of Flash 
 If Flash won't run, please install Flash from the following web sites.  
@@ -261,6 +261,20 @@ sushi-browser --no-sandbox
 
 # New Features
 
+#### New function(v0.210)
+- Implemented Mobile Panel (similar to Blisk) (Windows and Linux only) (Main Menu > Mobile Panel)
+- Implemented Mobile Sync Scroll (Windows and Linux only) (Main Menu > More Tools > Enable Mobile Panel Sync Scroll)
+- Developer Tools improved docking to window. (Windows and Linux only)
+- Fixed a bug that right-click menu of Developer Tools was not displayed. (Windows and Linux only)
+- Added rocker gesture (Windows only) (Settings > General > Enable Rocker Gestures)
+- Added batch to add to Windows default browser (add_to_default_browser.cmd)
+- Improved to focus on the address bar even when a new tab page does not appear on the top page
+- Implemented status bar function (Window Sub Menu> Always Show Status Bar)
+- Implemented hover function of status bar (Window Sub Menu> Show Status Bar on mouse hover)
+- Updated Muon to its own customized version of 8.0.7 (Chromium 68.0.3440.84)
+- Updated to Muon customized version 8.0.7. (Chromium 68.0.3440.84)
+- Fixed a lot of bugs.
+
 #### New function(v0.201)
 - Renew "Sync Data" (Add setting page, AES256 encryption of stored data, Select sync data). (* Experimental)
 - "Maximize Panel" is added to the right menu of the tab.
@@ -273,7 +287,7 @@ sushi-browser --no-sandbox
 - Updated to youtube-dl 2018.08.04.
 - Fixed some bugs.
 
-#### New function(v0.20.1)
+#### New function(v0.21.0)
 - Added rectangle selection function.(Alt + Mouse Drag)
 - Localized 200+ items.
 - Added function to save in MHTML when extension is selected as mht or mhtml when saving page. (#16)

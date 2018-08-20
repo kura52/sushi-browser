@@ -14,7 +14,12 @@ const isDarwin = navigator.userAgent.includes('Mac OS X')
 const sharedState = require('./sharedState')
 const mainState = remote.require('./mainState')
 const DevToolsPanel = require('./DevToolsPanel')
+const MobilePanel = require('./MobilePanel')
+const StatusBar = require('./StatusBar')
 // const isWin = navigator.userAgent.includes('Windows')
+
+const refs2 = {}
+const STATUS_BAR_HEIGHT = 20
 
 function stringEscape(string){
   return ('' + string).replace(/['\\\n\r\u2028\u2029]/g, function (character) {
@@ -385,13 +390,25 @@ class BrowserPage extends Component {
   render() {
     const devToolsInfo = this.props.tab.fields.devToolsInfo
     const hasDevToolsPanel = devToolsInfo && devToolsInfo.isPanel
-    // console.log("BrowserPage")
-    // const preload = path.join(__dirname, './preload/mainPreload.js')
+
+    const webViewHeightModify = (hasDevToolsPanel && sharedState.statusBar) ? devToolsInfo.height + STATUS_BAR_HEIGHT :
+      hasDevToolsPanel ? devToolsInfo.height : sharedState.statusBar ? STATUS_BAR_HEIGHT : null
+
+    const style = webViewHeightModify ? {height: `calc(100% - ${webViewHeightModify}px)`} : {}
+
+    const mobilePanel = this.props.tab.fields.mobilePanel
+
+    if(mobilePanel && mobilePanel.isPanel) style.width = `calc(100% - ${mobilePanel.width + 1}px)`
+
     return <div className="browser-page" ref="browserPage"  onKeyDown={::this.onHandleKeyDown}>
       <BrowserPageSearch ref="bps" isActive={this.state.isSearching} onPageSearch={::this.onPageSearch} progress={this.state.result_string} onClose={::this.onClose}/>
-      <webview ref="webview" className={`w${this.props.k2}`} data-key={this.props.k} src={this.props.tab.privateMode ? (void 0) : this.state.src} style={hasDevToolsPanel ? {height: `calc(100% - ${devToolsInfo.height}px)`} : null}/>
-      {hasDevToolsPanel ? <DevToolsPanel tab={this.props.tab} devToolsInfo={devToolsInfo} parent={this}/> : null}
+      {mobilePanel ? <MobilePanel tab={this.props.tab} mobilePanel={mobilePanel} parent={this} isActive={this.props.isActive}/> : null}
+      <webview ref="webview" className={`w${this.props.k2}`} data-key={this.props.k} src={this.props.tab.privateMode ? (void 0) : this.state.src}
+               style={style}/>
+      {hasDevToolsPanel ? <DevToolsPanel tab={this.props.tab} devToolsInfo={devToolsInfo} parent={this}
+                                         style={style.width ? {width: style.width, display: 'inline-block'} : {}}/> : null}
       <AutofillPopup k={this.props.k}/>
+      <StatusBar tab={this.props.tab} refs2={refs2}/>
     </div>
   }
 }

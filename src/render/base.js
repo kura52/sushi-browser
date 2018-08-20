@@ -15,8 +15,9 @@ const {remote} = require('electron')
 const ipc = require('electron').ipcRenderer
 const isDarwin = navigator.userAgent.includes('Mac OS X')
 const isWin = navigator.userAgent.includes('Windows')
-const [longPressMiddle,doubleShift,hoverBookmarkBar,enableDownloadList] = ipc.sendSync('get-sync-main-states',['longPressMiddle','doubleShift','hoverBookmarkBar','enableDownloadList'])
+const [longPressMiddle,doubleShift,hoverBookmarkBar,hoverStatusBar,enableDownloadList] = ipc.sendSync('get-sync-main-states',['longPressMiddle','doubleShift','hoverBookmarkBar','hoverStatusBar','enableDownloadList'])
 sharedState.hoverBookmarkBar = hoverBookmarkBar
+sharedState.hoverStatusBar = hoverStatusBar
 
 // require('inferno').options.recyclingEnabled = true; // Advanced optimisation
 global.lastMouseDown = []
@@ -56,20 +57,43 @@ export default class MainContent extends Component{
   }
 
   handleMouseMove(e){
-    if (e.target.tagName == 'WEBVIEW' && e.offsetY <= 14) {
-      clearTimeout(this.moveId)
-      this.moveId = void 0
-      const key = e.target.dataset.key
-      PubSub.publish(`hover-bookmarkbar-${key}`, e.target)
-      this.hoverBookmarkBar = key
-    }
-    else if (this.hoverBookmarkBar && !e.target.closest('.bookmark-bar')) {
-      if(this.moveId) return
-      this.moveId = setTimeout(_=>{
-        PubSub.publish(`hover-bookmarkbar-${this.hoverBookmarkBar}`, false)
-        this.hoverBookmarkBar = void 0
+    if(sharedState.hoverBookmarkBar){
+      if (e.target.tagName == 'WEBVIEW' && e.offsetY <= 14) {
+        clearTimeout(this.moveId)
         this.moveId = void 0
-      },500)
+        const key = e.target.dataset.key
+        PubSub.publish(`hover-bookmarkbar-${key}`, e.target)
+        this.hoverBookmarkBar = key
+      }
+      else if (this.hoverBookmarkBar && !e.target.closest('.bookmark-bar')) {
+        this.moveId = setTimeout(_=>{
+          PubSub.publish(`hover-bookmarkbar-${this.hoverBookmarkBar}`, false)
+          this.hoverBookmarkBar = void 0
+          this.moveId = void 0
+        },500)
+      }
+    }
+    if(sharedState.hoverStatusBar){
+      this.hoverClearId = setTimeout(_=>{
+        clearTimeout(this.hoverClearId)
+        if (e.target.tagName == 'WEBVIEW' && (e.target.offsetHeight - e.offsetY) <= 20) {
+          console.log(1)
+          clearTimeout(this.moveStatusId)
+          this.moveStatusId = void 0
+          const key = e.target.dataset.key
+          PubSub.publish(`hover-statusbar-${key}`, e.target)
+          this.hoverStatusBar = key
+        }
+        else if (this.hoverStatusBar && !e.target.closest('.status-bar')) {
+          console.log(2)
+          this.moveStatusId = setTimeout(_=>{
+            console.log(3)
+            PubSub.publish(`hover-statusbar-${this.hoverStatusBar}`, false)
+            this.hoverStatusBar = void 0
+            this.moveStatusId = void 0
+          },500)
+        }
+      },100)
     }
 
   }
@@ -106,8 +130,8 @@ export default class MainContent extends Component{
       ipc.on('start-mouseup-handler',this.handleMouseUp)
     }
 
-    PubSub.subscribe('hover-bookmark-bar',e=>{
-      if(sharedState.hoverBookmarkBar) {
+    PubSub.subscribe('hover-bookmark-or-status-bar',e=>{
+      if(sharedState.hoverBookmarkBar || sharedState.hoverStatusBar) {
         document.removeEventListener('mousemove',this.handleMouseMove,{passive: true})
         document.addEventListener('mousemove',this.handleMouseMove,{passive: true})
       }
@@ -116,10 +140,20 @@ export default class MainContent extends Component{
       }
     })
 
+    PubSub.subscribe('mouseleave-status-bar',()=>{
+      console.log(4)
+      this.moveStatusId = setTimeout(_=>{
+        console.log(5)
+        PubSub.publish(`hover-statusbar-${this.hoverStatusBar}`, false)
+        this.hoverStatusBar = void 0
+        this.moveStatusId = void 0
+      },500)
+    })
+
     window.addEventListener('resize', ::this.handleResize,{ passive: true })
 
 
-    if(sharedState.hoverBookmarkBar) {
+    if(sharedState.hoverBookmarkBar || sharedState.hoverStatusBar) {
       document.addEventListener('mousemove',this.handleMouseMove,{passive: true})
     }
 

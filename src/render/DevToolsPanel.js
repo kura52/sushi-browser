@@ -16,6 +16,7 @@ const mainState = remote.require('./mainState')
 export default class DevToolsPanel extends Component {
   constructor(props) {
     super(props)
+    this.state  = {}
     this.tabIdChanged = ::this.tabIdChanged
     this.setHeight = ::this.setHeight
   }
@@ -41,11 +42,15 @@ export default class DevToolsPanel extends Component {
     console.log("devToolsPanel")
     const webview = this.refs.devWebview
     webview.addEventListener('tab-id-changed',this.tabIdChanged)
+    this.token = PubSub.subscribe(`detach-tab`,(msg,val)=>{
+      this.setState({detach: val})
+    })
   }
 
   componentWillUnmount() {
     const webview = this.refs.devWebview
-    webview.removeEventListener('tab-id-changed',this.tabIdChanged)
+    if(webview) webview.removeEventListener('tab-id-changed',this.tabIdChanged)
+    PubSub.unsubscribe(this.token)
   }
 
 
@@ -62,11 +67,11 @@ export default class DevToolsPanel extends Component {
 
   render() {
     const devToolsInfo = this.props.devToolsInfo
-    return <span>
+    return this.state.detach ? null : <span style={this.props.style}>
       <ToolbarResizer height={devToolsInfo.height} setHeight={this.setHeight} minus={true}
                       style={{position: 'relative', height: 5, margin: '-2px 0' ,backgroundColor: '#a2a2a2', backgroundClip: 'padding-box',
                         borderTop: '2px solid rgba(255, 255, 255, 0)', borderBottom: '2px solid rgba(255, 255, 255, 0)' }}/>
-      <webview ref="devWebview" style={{height: devToolsInfo.height - 1}} src='chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html'/>
+      <webview className="dev-tool" ref="devWebview" style={{height: devToolsInfo.height - 1}} src='chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html'/>
     </span>
   }
 }

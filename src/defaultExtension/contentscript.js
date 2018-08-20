@@ -330,53 +330,36 @@ if(window.__started_){
     }
 
     if(data.rockerGestureLeft != 'none' || data.rockerGestureRight != 'none'){
-      let downLeft, downRight
-      document.addEventListener('mouseup',e=>{
-        if(e.button === 0){
-          downLeft = void 0
-          if(downLeft == "send"){
+      let downRight
+
+        document.addEventListener('contextmenu',e=>{
+          if(!downRight || downRight == "send"){
             e.stopPropagation()
             e.preventDefault()
-            return false
           }
-        }
-        else if(e.button === 2){
           downRight = void 0
-          if(downRight == "send"){
-            e.stopPropagation()
-            e.preventDefault()
-            return false
-          }
-        }
-      })
+        },false)
 
       document.addEventListener('mousedown',e=>{
-        if(e.button === 0){
-          downLeft = 'on'
-          if(downRight == 'on' && data.rockerGestureLeft != 'none'){
-            ipc.send('menu-command',data.rockerGestureLeft)
-            e.stopPropagation()
-            e.preventDefault()
-            downRight = 'send'
-            downLeft = 'send'
-            return false
-          }
+        if(e.button === 0 && e.buttons == 3 && data.rockerGestureLeft != 'none'){
+          ipc.send('menu-command',data.rockerGestureLeft)
+          e.stopPropagation()
+          e.preventDefault()
+          downRight = 'send'
+          return false
         }
         else if(e.button === 2){
           downRight = 'on'
-          if(downLeft == 'on' && data.rockerGestureRight != 'none'){
+          if(e.buttons == 3 && data.rockerGestureRight != 'none'){
             ipc.send('menu-command',data.rockerGestureRight)
             e.stopPropagation()
             e.preventDefault()
             downRight = 'send'
-            downLeft = 'send'
             return false
           }
         }
-      })
+      },false)
     }
-
-
   })
 
 
@@ -701,6 +684,98 @@ if(window.__started_){
       videoFunc({},inputs)
     }
     return false
+  })
+
+  ipc.on('mobile-scroll',(e,{type,code,optSelector,selector,move})=>{
+    if(type == 'init'){
+      if(!window.__scroll__){
+        window.__scroll__ = true
+
+        Function(code)()
+
+        const escapeValue = (value) => value && value.replace(/['"`\\/:\?&!#$%^()[\]{|}*+;,.<=>@~]/g, '\\$&').replace(/\n/g, '\A')
+        const createSelector = (element)=>{
+          for (var sels = []; element && element.nodeType == 1; element = element.parentNode) {
+            if(element.id) {
+              const escapedId = escapeValue(element.id)
+              const uniqueIdCount = document.querySelectorAll(`[id="${escapedId}"]`).length
+
+              if (uniqueIdCount == 1) {
+                sels.unshift(`[id="${escapedId}"]`)
+                return sels.join(' > ')
+              }
+              if (element.nodeName) sels.unshift(`${escapeValue(element.nodeName.toLowerCase())}[id="${escapedId}"]`);
+            }
+            else {
+              for (var i = 1, i2 = 1,sib = element.previousSibling; sib; sib = sib.previousSibling) {
+                if (sib.nodeName == element.nodeName) i++
+              }
+              let onlyElement = i == 1
+              if(onlyElement){
+                for(sib = element.nextSibling;sib;sib = sib.nextSibling){
+                  if(sib.nodeName == element.nodeName){
+                    onlyElement = false
+                    break
+                  }
+                }
+              }
+              let className = element.className
+              if(!onlyElement && element.className){
+                for(sib = element.previousSibling;sib;sib = sib.previousSibling){
+                  if(sib.nodeName == element.nodeName && sib.className.trim().replace(/[ \t]+/g, ".") == element.className.trim().replace(/[ \t]+/g, ".")){
+                    className = null
+                    break
+                  }
+                }
+                if(className){
+                  for(sib = element.nextSibling;sib;sib = sib.nextSibling){
+                    if(sib.nodeName == element.nodeName && sib.className.trim().replace(/[ \t]+/g, ".") == element.className.trim().replace(/[ \t]+/g, ".")){
+                      className = null
+                      break
+                    }
+                  }
+                }
+              }
+              sels.unshift(element.nodeName.toLowerCase() + (onlyElement ? '' : className ? `.${className.trim().replace(/[ \t]+/g, ".")}` : `:nth-of-type(${i})`))
+            }
+          }
+          return sels.length ? sels.join(' > ') : null
+        }
+
+        let pre = 0
+        document.addEventListener('scroll',(e)=>{
+          if(Date.now() - window.__scroll_time__ < 300) return
+          const w = window.innerWidth
+          const h = window.innerHeight
+          const scrollY = window.scrollY
+          const ele = document.elementFromPoint(Math.min(300,w / 2),h/2)
+          console.log(e,ele)
+          chrome.ipcRenderer.send('sync-mobile-scroll',window.__select__(ele), createSelector(ele), (scrollY - pre)/document.body.scrollHeight)
+          pre = scrollY
+        },{capture: true, passive: true})
+      }
+    }
+    else if(type == 'scroll'){
+      console.log(4324324)
+      const scrollY = window.scrollY
+      let ele = document.querySelector(optSelector)
+      window.__scroll_time__ = Date.now()
+      if(ele){
+        ele.scrollIntoViewIfNeeded()
+      }
+      else{
+        ele = document.querySelector(selector)
+        if(ele) ele.scrollIntoViewIfNeeded()
+      }
+      if(scrollY == window.scrollY){
+        if(Date.now() - window.__into_view__ > 400){
+          window.scrollTo(window.scrollX, window.scrollY + move * document.body.scrollHeight)
+        }
+      }
+      else if(ele){
+        window.__into_view__ = Date.now()
+      }
+    }
   })
 
 }

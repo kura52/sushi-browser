@@ -24,32 +24,35 @@ const glob = require("glob")
 // Amaebi(Sweet Shrimp)
 
 const BEFORE_CODE_NAME = 'Amaebi(Sweet Shrimp)'
-const CODE_NAME = 'Amaebi(Sweet Shrimp)'
+const CODE_NAME = 'Kani(Crab)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.20.1"
+const NEXT_APP_VERSION = "0.21.0"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Renew "Sync Data" (Add setting page, AES256 encryption of stored data, Select sync data). (* Experimental)
-"Maximize Panel" is added to the right menu of the tab.
-"Incremental Import" added for setting import. (* Experimental)
-Add password to import / export settings.
-"Show the favicon at the left end of the address bar" added to setting.
-"Show bookmark add icon on the right end of the address bar" added to setting.
-Add "Enable smooth scrolling" to setting
-Updated to Muon 8.0.6. (Chromium 68.0.3440.84)
-Updated to youtube-dl 2018.08.04.
-Fixed some bugs.`
+const CHANGE_ENGLISH = `Implemented Mobile Panel (similar to Blisk) (Windows and Linux only) (Main Menu > Mobile Panel)
+Implemented Mobile Sync Scroll (Windows and Linux only) (Main Menu > More Tools > Enable Mobile Panel Sync Scroll)
+Developer Tools improved docking to window. (Windows and Linux only)
+Fixed a bug that right-click menu of Developer Tools was not displayed. (Windows and Linux only)
+Added rocker gesture (Windows only) (Settings > General > Enable Rocker Gestures)
+Added batch to add to Windows default browser (add_to_default_browser.cmd)
+Improved to focus on the address bar even when a new tab page does not appear on the top page
+Implemented status bar function (Window Sub Menu> Always Show Status Bar)
+Implemented hover function of status bar (Window Sub Menu> Show Status Bar on mouse hover)
+Updated Muon to its own customized version of 8.0.7 (Chromium 68.0.3440.84)
+Updated to Muon customized version 8.0.7. (Chromium 68.0.3440.84)
+Fixed a lot of bugs.`
 
-const CHANGE_JAPANESE = `データ同期をリニューアル（設定ページを追加、保管データのAES256暗号化、同期データの選択）(※Experimental)
-タブの右メニューに「Maximize Panel」を追加
-設定のインポートに「Incremental Import」を追加(※Experimental)
-設定のインポート/エクスポートにパスワードを追加
-「Show the favicon at the left end of the address bar」を設定に追加
-「Show bookmark add icon on the right end of the address bar」を設定に追加
-「滑らかなスクロールを有効にする」を設定に追加
-Muonを8.0.6に更新(Chromium 68.0.3440.84)
-youtube-dlを2018.08.04に更新
-いくつかの不具合修正`
+const CHANGE_JAPANESE = `Mobile Panelを実装（Bliskと類似、Windows・Linuxのみ)(メインメニュー > Mobile Panel)
+Mobile Sync Scrollを実装(Windows・Linuxのみ)(メインメニュー > その他のツール > Enable Mobile Panel Sync Scroll)
+Developer ToolsがウインドウにDock可能に改善(Windows・Linuxのみ)
+Developer Toolsの右クリックメニューが表示されない不具合を修正(Windows・Linuxのみ)
+ロッカージェスチャを追加(Windowsのみ)(設定 > 一般設定 > Enable Rocker Gestures)
+Windowsのデフォルトブラウザに追加するバッチを追加(add_to_default_browser.cmd)
+新しいタブページがトップページ出ない場合もアドレスバーにフォーカスするように改善
+ステータスバー機能を実装(Window SubMenu > Always Show Status Bar)
+ステータスバーのホバー機能を実装(Window SubMenu > Show Status Bar on mouse hover)
+Muonを8.0.7の独自カスタマイズ版に更新(Chromium 68.0.3440.84)
+多数の不具合修正`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

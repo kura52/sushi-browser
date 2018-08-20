@@ -12,11 +12,11 @@ function getFocusedWebContents(needSelectedText,skipBuildInSearch,callback,retry
   let cont
   if(!skipBuildInSearch){
     const tmp = webContents.getFocusedWebContents()
-    if(tmp && !tmp.isDestroyed() && !tmp.isBackgroundPage() && !(tmp.tabValue().openerTabId == -1 && tmp.getURL().startsWith('chrome-extension'))) {
+    if(tmp && !tmp.isDestroyed() && !tmp.isBackgroundPage() && !(tmp.tabValue().openerTabId == -1 && tmp.getURL().match(/^(chrome\-extension|chrome\-devtools)/))) {
       if(tmp.isGuest()){
         return new Promise(resolve=>resolve(tmp))
       }
-      else{
+      else if(tmp.getURL().startsWith("chrome://brave/")){
         cont = tmp
       }
     }
@@ -58,7 +58,8 @@ function getFocusedWebContents(needSelectedText,skipBuildInSearch,callback,retry
           setTimeout(_=>getFocusedWebContents(needSelectedText,skipBuildInSearch,resolve,++retry),300)
         }
         else{
-          resolve((sharedState[tabId] || webContents.fromTabID(tabId)))
+          const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
+          resolve(cont)
         }
       })
       cont.send('get-focused-webContent',key,void 0,needSelectedText,void 0,retry)

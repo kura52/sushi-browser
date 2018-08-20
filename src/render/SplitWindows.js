@@ -512,7 +512,7 @@ export default class SplitWindows extends Component{
       let tab,k
       if (activeElement.tagName == 'BODY') {
       }
-      else if(activeElement.tagName == 'WEBVIEW' && activeElement.className != 'popup'){
+      else if(activeElement.tagName == 'WEBVIEW' && activeElement.className != 'popup' && activeElement.className != 'dev-tool'){
         k = activeElement.className.slice(1)
         tab = self.refs2[k].getSelectedTab()
       }

@@ -213,6 +213,8 @@ div.vertical-tab{
     transition: all 2s ease;
 }
 
+.vertical-divider
+
 img.favi{
     width: 16px;
     height: 16px;
@@ -1126,3 +1128,118 @@ span.address-bar-wrapper{
     margin-top: 0.45em;
     left: 9px;
 }
+
+.status-bar{
+    height: 20px;
+    padding: 0 5px;
+    background: #f6f6f6;
+    border-top: 1px solid #dfdfdf;
+    user-select: none;
+    color: #444;
+}
+
+input.zoom[type=range]{
+    -webkit-appearance: none;
+    height: 11px;
+}
+
+input.zoom[type=range]::-webkit-slider-runnable-track {
+    width: 300px;
+    height: 5px;
+    background: #ddd;
+    border: none;
+    border-radius: 3px;
+}
+
+input.zoom[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    border: none;
+    height: 12px;
+    width: 12px;
+    border-radius: 50%;
+    background: #17a7ff;
+    margin-top: -4px;
+}
+
+input.zoom[type=range]:focus {
+    outline: none;
+}
+
+input.zoom[type=range]:focus::-webkit-slider-runnable-track {
+    background: #ccc;
+}
+
+.zoom-text{
+    width: 36px;
+    display: inline-block;
+    text-align: center;
+    font-size: 13px;
+    vertical-align: 1px;
+}
+
+a.zoom-change{
+    text-decoration: none;
+    color: #777;
+    cursor: pointer;
+    outline: none;
+    padding: 0 2px;
+    border-radius: 10px;
+    margin: 0 2px;
+}
+
+a.zoom-reset{
+    text-decoration: none;
+    color: #444;
+    cursor: pointer;
+    outline: none;
+    padding: 0 4px;
+    border-radius: 5px;
+    margin: 0;
+    font-size: 13px;
+    vertical-align: bottom;
+    display: inline-block;
+    vertical-align: 2px;
+}
+
+a.status-bar-button{
+    text-decoration: none;
+    color: #777;
+    cursor: pointer;
+    outline: none;
+    padding: 0 3px 0 2px;
+    border-radius: 5px;
+    margin: 0 2px;
+    vertical-align: text-bottom;
+}
+
+a.status-bar-button:hover{
+    color: #2185d0;
+}
+
+a.zoom-change:hover,a.zoom-reset:hover{
+    background-color: rgba(0,0,0,0.1);
+}
+
+
+.vertical-divider {
+    height: 100%;
+    margin: 0 5px;
+    border-left: 1px solid #ccc;
+}
+
+.status-text{
+    width: calc(100% - 439px);
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    display: inline-block;
+}
+
+/*div.nav-menu .fa.fa-mobile{*/
+    /*vertical-align: initial;*/
+    /*font-size: inherit;*/
+/*}*/
+
+/*.fa.fa-mobile{*/
+    /*vertical-align: 5px;*/
+/*}*/

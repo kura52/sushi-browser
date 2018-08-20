@@ -36,7 +36,7 @@ div.back-next > a{
 
 .browser-navbar a:hover {
   text-decoration: none;
-  color: blue;
+  color: rgb(0, 71, 171);
 }
 
 .browser-navbar div {

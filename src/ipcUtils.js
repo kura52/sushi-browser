@@ -1049,6 +1049,184 @@ ipcMain.on('set-pos-window',async (e,{id,hwnd,key,x,y,width,height,top,active,ta
   }
 })
 
+const mpoMap = {}, loopMap = {}, bwMap= {},tabMap = {}, loadMap = {}
+global.bwMap = bwMap
+let mobileInject
+ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, url, x, y, width, height, oldKey, show, force})=>{
+  console.log('mobile',{type, key, tabId, url, x, y, width, height, oldKey})
+  if(!mobileInject){
+    mobileInject = fs.readFileSync(path.join(__dirname,"../resource/extension/default/1.0_0/js/mobilePanel.js").replace(/app.asar([\/\\])/,'app.asar.unpacked$1')).toString()
+  }
+
+  if(type == 'create'){
+    const fontOpt = meiryo ? {
+      defaultFontFamily: {
+        standard: 'Meiryo UI',
+        serif: 'MS PMincho',
+        sansSerif: 'Meiryo UI',
+        monospace: 'MS Gothic'
+      }
+    } : {}
+
+    const bw = new BrowserWindow({
+      x, y, width, height,
+      title: 'Mobile Panel',
+      fullscreenable: false,
+      titleBarStyle: 'hidden',
+      autoHideMenuBar: true,
+      frame: process.platform === 'darwin',
+      show: true,
+      skipTaskbar: true,
+      // resizable: false,
+      movable: false,
+      webPreferences: {
+        plugins: true,
+        sharedWorker: true,
+        nodeIntegration: false,
+        webSecurity: false,
+        allowFileAccessFromFileUrls: true,
+        allowUniversalAccessFromFileUrls: true,
+        ...fontOpt
+      }
+    })
+    bw.setMenuBarVisibility(false)
+    bw.webContents.openDevTools()
+    bw.loadURL(url)
+    bw.setAlwaysOnTop(true)
+    mpoMap[key] = bw
+
+    bw.on('resize', ()=>{
+      const [width,height] = bw.getSize()
+      e.sender.send(`resize-mobile-panel_${key}`,width,height)
+    })
+
+    bw.webContents.on('did-navigate', (e)=>{
+      const url = bw.webContents.getURL()
+      const tab = webContents.fromTabID(tabId)
+      if(url != tab.getURL()){
+        const now = Date.now()
+        const time = loadMap[`${key}_bw`]
+        if(time && now - time < 1000) return
+
+        tab.loadURL(url)
+      }
+    })
+
+    bwMap[bw.webContents.getId()] = tabId
+    tabMap[tabId] = bw.webContents
+
+    loopMap[key] = setInterval(_=>{
+      bw.webContents.send('mobile-scroll',{type:'init' ,code: mobileInject})
+      const cont = webContents.fromTabID(tabId)
+      if(cont && !cont.isDestroyed()) cont.send('mobile-scroll',{type:'init' ,code: mobileInject})
+    },1000)
+
+    const cont = bw.webContents
+    let devToolsWebContents
+    for(let i=0;i<100;i++){
+      await new Promise(r=>{
+        setTimeout(_=>{
+          try{
+            devToolsWebContents = cont.devToolsWebContents
+          }catch(e){}
+          r()
+        },100)
+      })
+      if(devToolsWebContents){
+        cont.executeJavascriptInDevTools(`(async function(){
+  let phoneButton
+  for(let i=0;i<100;i++){
+    await new Promise(r=>{
+      setTimeout(_=>{
+        try{
+          phoneButton = document.querySelector(".insertion-point-main").shadowRoot.querySelector(".tabbed-pane-left-toolbar").shadowRoot.querySelector('.largeicon-phone').parentNode
+        }catch(e){}
+        r()
+      },100)
+    })
+    if(phoneButton){
+      if(phoneButton.classList.contains('toolbar-state-off')) phoneButton.click()
+      phoneButton.parentNode.removeChild(phoneButton)
+      break
+    }
+        Components.dockController.setDockSide('bottom')
+  }
+
+}())`)
+      }
+    }
+
+  }
+  else{
+    const bw = mpoMap[key]
+    if(!bw) return
+    if(type == 'resize'){
+      // if(x !== void 0 && width !== void 0){
+        bw.setBounds({x: Math.round(x),y: Math.round(y),width: Math.round(width),height: Math.round(height)})
+      // }
+      // else if(x !== void 0){
+      //   win.setPosition(x,y)
+      // }
+      // else{
+      //   win.setSize(width, height)
+      // }
+    }
+    else if(type == 'url'){
+      const thisUrl = bw.webContents.getURL()
+      if(url != thisUrl){
+        const now = Date.now()
+        const time = loadMap[`${key}_tab`]
+
+        if(time && now - time < 1000) return
+        loadMap[`${key}_bw`] = now
+        bw.loadURL(url)
+      }
+    }
+    else if(type == 'close'){
+      clearInterval(loopMap[key])
+      delete bwMap[bw.webContents.getId()]
+      delete tabMap[tabId]
+      bw.close()
+      delete mpoMap[key]
+      delete loopMap[key]
+    }
+    else if(type == 'below'){
+      bw.setAlwaysOnTop(false)
+      if(force){
+        const cont = webContents.fromTabID(tabId)
+        cont.hostWebContents.focus()
+      }
+      else if(show && !bw.isFocused()){
+        bw.hide()
+        bw.showInactive()
+        bw.setSkipTaskbar(true)
+      }
+    }
+    else if(type == 'above'){
+      bw.setAlwaysOnTop(true)
+    }
+    else if(type == 'key-change'){
+      mpoMap[key] = mpoMap[oldKey]
+    }
+  }
+})
+
+ipcMain.on('sync-mobile-scroll',(e,optSelector,selector,move)=>{
+  if(mainState.mobilePanelSyncScroll){
+    const tabId = bwMap[e.sender.getId()]
+    if(tabId){
+      console.log('sync-mobile-scroll',optSelector,selector,tabId,move)
+      const tab = webContents.fromTabID(tabId)
+      tab.send('mobile-scroll',{type: 'scroll', optSelector,selector,move})
+    }
+    else{
+      console.log('sync-mobile-scroll2',optSelector,selector,tabId,move)
+      const cont = tabMap[e.sender.getId()]
+      cont.send('mobile-scroll',{type: 'scroll', optSelector,selector,move})
+    }
+  }
+})
+
 let timer,timers={}
 ipcMain.on('change-tab-infos',(e,changeTabInfos)=> {
   const f = function (cont,c) {
@@ -1875,6 +2053,11 @@ ipcMain.on("menu-command",(e,name)=>{
       }
     }
   }
+})
+
+ipcMain.on('set-zoom',(e,tabId,level)=>{
+  const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
+  cont.setZoomLevel(level)
 })
 
 // ipcMain.on('get-firefox-url',(e,key,url)=>{

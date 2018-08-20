@@ -1,6 +1,7 @@
 const React = require('react')
 const PubSub = require('./pubsub')
 const getTheme = require('./theme')
+const sharedState = require('./sharedState')
 const {Component} = React
 
 export default class BrowserPageStatus extends Component {
@@ -25,7 +26,7 @@ export default class BrowserPageStatus extends Component {
         console.log(e)
       }
     }
-    return <div style={style} className={`${(status ? 'visible' : 'hidden')} browser-page-status`}>{!status || status.length <= 100 ? status : `${status.substr(0,100)}...`}</div>
+    return sharedState.statusBar ? null : <div style={style} className={`${(status ? 'visible' : 'hidden')} browser-page-status`}>{!status || status.length <= 100 ? status : `${status.substr(0,100)}...`}</div>
 
   }
 

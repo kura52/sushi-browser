@@ -7,13 +7,12 @@ import path from 'path'
 const PubSub = require('./pubsub')
 const {remote} = require('electron')
 const BrowserWindowPlus = remote.require('./BrowserWindowPlus')
-const {Menu} = remote
+const {Menu, webContents} = remote
 // const {searchHistory} = require('./databaseRender')
 const ipc = require('electron').ipcRenderer
 import MenuOperation from './MenuOperation'
 import {favorite} from './databaseRender'
 // const getCaches = remote.require('./CacheList');
-const {webContents} = remote
 const browserActionMap = require('./browserActionDatas')
 const BrowserActionMenu = require('./BrowserActionMenu')
 const VpnList = require('./VpnList')
@@ -110,10 +109,13 @@ function BrowserNavbarBtn(props){
   return <a href="javascript:void(0)" onContextMenu={props.onContextMenu} style={props.style} className={`${props.className||''} draggable-source ${props.disabled?'disabled':''} ${props.sync ? 'sync' : ''}`} title={props.title} onClick={props.onClick}><i style={props.styleFont} className={`fa fa-${props.icon}`}/>{props.children}</a>
 }
 
-let [alwaysOnTop,multistageTabs,verticalTab,{left,right,backSide},orderOfAutoComplete,numOfSuggestion,numOfHistory,displayFullIcon,addressBarNewTab,historyBadget,versions,bookmarkBar,bookmarkBarTopPage,extensionOnToolbar] = ipc.sendSync('get-sync-main-states',['alwaysOnTop','multistageTabs','verticalTab','navbarItems','orderOfAutoComplete','numOfSuggestion','numOfHistory','displayFullIcon','addressBarNewTab','historyBadget','versions','bookmarkBar','bookmarkBarTopPage','extensionOnToolbar'])
+let [alwaysOnTop,multistageTabs,verticalTab,{left,right,backSide},orderOfAutoComplete,numOfSuggestion,numOfHistory,displayFullIcon,addressBarNewTab,historyBadget,versions,bookmarkBar,bookmarkBarTopPage,extensionOnToolbar,statusBar,mobilePanelSyncScroll] =
+  ipc.sendSync('get-sync-main-states',['alwaysOnTop','multistageTabs','verticalTab','navbarItems','orderOfAutoComplete','numOfSuggestion','numOfHistory','displayFullIcon','addressBarNewTab','historyBadget','versions','bookmarkBar','bookmarkBarTopPage','extensionOnToolbar','statusBar','mobilePanelSyncScroll'])
 numOfSuggestion = parseInt(numOfSuggestion), numOfHistory = parseInt(numOfHistory)
 sharedState.bookmarkBar = bookmarkBar
 sharedState.bookmarkBarTopPage = bookmarkBarTopPage
+sharedState.statusBar = statusBar
+sharedState.mobilePanelSyncScroll = mobilePanelSyncScroll
 
 
 let staticDisableExtensions = []
@@ -287,11 +289,16 @@ class BrowserNavbar extends Component{
       this.props.tabKey == this.tabKey &&
       this.searchWordHighlight == sharedState.searchWordHighlight &&
       this.searchWordHighlightRecursive == sharedState.searchWordHighlightRecursive &&
+      this.mobilePanelSyncScroll == sharedState.mobilePanelSyncScroll &&
       this.bookmarkBar == sharedState.bookmarkBar &&
       this.hoverBookmarkBar == sharedState.hoverBookmarkBar &&
       this.bookmarkBarTopPage == sharedState.bookmarkBarTopPage &&
+      this.statusBar == sharedState.statusBar &&
+      this.hoverStatusBar == sharedState.hoverStatusBar &&
       this.tabPreview == sharedState.tabPreview &&
-      this.themeBasePath == (sharedState.theme && sharedState.theme.base_path))
+      this.themeBasePath == (sharedState.theme && sharedState.theme.base_path) &&
+      this.mobilePanel == (nextProps.tab.fields && nextProps.tab.fields.mobilePanel)
+    )
     if(ret){
       this.currentWebContents = nextProps.currentWebContents
       this.wv = nextProps.tab.wv
@@ -308,11 +315,15 @@ class BrowserNavbar extends Component{
       this.tabKey = nextProps.tabKey
       this.searchWordHighlight = sharedState.searchWordHighlight
       this.searchWordHighlightRecursive = sharedState.searchWordHighlightRecursive
+      this.mobilePanelSyncScroll = sharedState.mobilePanelSyncScroll
       this.bookmarkBar = sharedState.bookmarkBar
       this.hoverBookmarkBar = sharedState.hoverBookmarkBar
       this.bookmarkBarTopPage = sharedState.bookmarkBarTopPage
+      this.statusBar = sharedState.statusBar
+      this.hoverStatusBar = sharedState.hoverStatusBar
       this.tabPreview = sharedState.tabPreview
       this.themeBasePath = (sharedState.theme && sharedState.theme.base_path)
+      this.mobilePanel = nextProps.tab.fields && nextProps.tab.fields.mobilePanel
     }
     return ret
   }
@@ -365,6 +376,10 @@ class BrowserNavbar extends Component{
     ipc.send('get-cont-history',this.props.tab.wvId,this.props.tab.key,this.props.tab.rSession)
   }
 
+  publishZoom(){
+    if(sharedState.statusBar || sharedState.hoverStatusBar)PubSub.publish(`zoom-change_${this.props.tab.key}`,percent)
+  }
+
   onZoomCommon(type){
     const webContents = this.getWebContents(this.props.tab)
     if(webContents){
@@ -384,8 +399,9 @@ class BrowserNavbar extends Component{
           this.setState({zoomDisplay:''})
         },1500)
       }
+      this.publishZoom()
       this.setState({zoom:percent})
-      if(this.props.tab.sync) this.props.parent.syncZoom(percent,this.props.tab.sync)
+      // if(this.props.tab.sync) this.props.parent.syncZoom(percent,this.props.tab.sync)
     }
   }
 
@@ -406,8 +422,9 @@ class BrowserNavbar extends Component{
         this.setState({zoomDisplay:''})
       },1500)
     }
+    this.publishZoom()
     this.setState({zoom:100})
-    if(this.props.tab.sync) this.props.parent.syncZoom(100,this.props.tab.sync)
+    // if(this.props.tab.sync) this.props.parent.syncZoom(100,this.props.tab.sync)
   }
 
   onCommon(str){
@@ -661,11 +678,6 @@ class BrowserNavbar extends Component{
       </NavbarMenuBarItem>
       <NavbarMenuItem text={locale.translation("newWindow")} icon='clone' onClick={()=>BrowserWindowPlus.load({id:remote.getCurrentWindow().id,sameSize:true})}/>
       <div className="divider" />
-      <NavbarMenuItem text={`[${this.props.toggleNav == 0 ? ' ' : '✓'}] ${locale.translation("oneLineMenuALL")}`} icon='ellipsis horizontal'
-                      onClick={()=>{
-                        ipc.emit('toggle-nav',null,this.props.toggleNav == 0 ? 1 : 0)
-                        setTimeout(_=>this.props.parent.setState({}),0)
-                      }}/>
       {this.props.toggleNav == 0 ? <NavbarMenuItem text={`[${multistageTabs  ? '✓' : ' '}] ${locale.translation("multiRowTabs")}`} icon='table'
                                                    onClick={()=>{
                                                      sharedState.multistageTabs = !multistageTabs
@@ -697,6 +709,17 @@ class BrowserNavbar extends Component{
         this.refs['main-menu'].menuClose()
         this.setState({})
       }}/>
+      {isDarwin ? null : <NavbarMenuItem text={`[${this.props.tab.fields && this.props.tab.fields.mobilePanel ? '✓' : ' '}] Show Mobile Panel`} icon='mobile'
+                      onClick={()=>{
+                        if(!this.props.tab.fields) this.props.tab.fields = {}
+                        if(this.props.tab.fields.mobilePanel){
+                          delete this.props.tab.fields.mobilePanel
+                        }
+                        else{
+                          this.props.tab.fields.mobilePanel = {width: mainState.mobilePanelWidth, isPanel: true}
+                        }
+                        this.props.parent.setState({})
+                      }}/>}
       <div className="divider" />
 
 
@@ -731,9 +754,33 @@ class BrowserNavbar extends Component{
           sharedState.hoverBookmarkBar = !sharedState.hoverBookmarkBar
           mainState.set('hoverBookmarkBar',sharedState.hoverBookmarkBar)
           this.refs['main-menu'].menuClose()
-          PubSub.publish('hover-bookmark-bar')
+          PubSub.publish('hover-bookmark-or-status-bar')
           this.props.parent.setState({})
         }}/>
+        <div className="divider" />
+        <NavbarMenuItem text={`[${sharedState.statusBar ? '✓' : ' '}] Always Show Status Bar`} onClick={_=>{
+          sharedState.statusBar = !sharedState.statusBar
+          mainState.set('statusBar',sharedState.statusBar)
+          sharedState.hoverStatusBar = false
+          mainState.set('hoverStatusBar',false)
+          this.refs['main-menu'].menuClose()
+          this.props.parent.setState({})
+        }}/>
+        <NavbarMenuItem text={`[${sharedState.hoverStatusBar ? '✓' : ' '}] Show Status Bar on mouse hover`} onClick={_=>{
+          sharedState.statusBar = false
+          mainState.set('statusBar',false)
+          sharedState.hoverStatusBar = !sharedState.hoverStatusBar
+          mainState.set('hoverStatusBar',sharedState.hoverStatusBar)
+          this.refs['main-menu'].menuClose()
+          PubSub.publish('hover-bookmark-or-status-bar')
+          this.props.parent.setState({})
+        }}/>
+        <div className="divider" />
+        <NavbarMenuItem text={`[${this.props.toggleNav == 0 ? ' ' : '✓'}] ${locale.translation("oneLineMenuALL")}`} icon='ellipsis horizontal'
+                        onClick={()=>{
+                          ipc.emit('toggle-nav',null,this.props.toggleNav == 0 ? 1 : 0)
+                          setTimeout(_=>this.props.parent.setState({}),0)
+                        }}/>
         <NavbarMenuItem text={`[${this.props.toggleNav == 0 ? ' ' : '✓'}] ${locale.translation("oneLineMenu")}`} icon='ellipsis horizontal' onClick={()=>{this.props.parent.toggleNavPanel(this.props.toggleNav == 0 ? 1 : 0);this.setState({})}}/>
         <div className="divider" />
         <NavbarMenuItem text={`${locale.translation("detachThisPanel")}`} icon='space shuttle' onClick={_=>{this.props.parent.detachPanel();this.refs['main-menu'].menuClose()}}/>
@@ -754,6 +801,13 @@ class BrowserNavbar extends Component{
           this.refs['main-menu'].menuClose()
           this.setState({})
         }}/>
+
+        {isDarwin ? null : <NavbarMenuItem text={`[${sharedState.mobilePanelSyncScroll ? '✓' : ' '}] Enable Mobile Panel Sync Scroll`} icon='mobile' onClick={_=>{
+          sharedState.mobilePanelSyncScroll = !sharedState.mobilePanelSyncScroll
+          mainState.set('mobilePanelSyncScroll',sharedState.mobilePanelSyncScroll)
+          this.refs['main-menu'].menuClose()
+          this.setState({})
+        }}/>}
         <NavbarMenuItem text={`[${sharedState.notLoadTabUntilSelected ? '✓' : ' '}] ${locale.translation("donTLoadTabsUntillSelected")}`} onClick={_=>{this.loadTabSetting();this.refs['main-menu'].menuClose()}}/>
         <NavbarMenuItem text={`[${sharedState.askDownload ? '✓' : ' '}] ${locale.translation('7754704193130578113')}`} onClick={_=>{this.askDownload();this.refs['main-menu'].menuClose()}}/>
         <div className="divider" />

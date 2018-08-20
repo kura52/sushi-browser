@@ -134,6 +134,31 @@ if not "%ver%"=="%newver%" (
     powershell Start-Process sushi.exe --update-delete
   )
 )`)
+    fs.writeFileSync(`${pwd}/${buildDir}/add_to_default_browser.cmd`,`powershell start-process __add_to_default_browser.cmd -verb runas`)
+    fs.writeFileSync(`${pwd}/${buildDir}/__add_to_default_browser.cmd`,`reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Sushi\\Capabilities" /v ApplicationDescription /t REG_SZ /d "Sushi Browser" /f
+reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Sushi\\Capabilities" /v ApplicationName /t REG_SZ /d "Sushi" /f
+reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Sushi\\Capabilities" /v ApplicationIcon /t REG_SZ /d "%~dp0sushi.exe,0" /f
+
+reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Sushi\\Capabilities\\FileAssociations" /v .htm /t REG_SZ /d "SushiURL" /f
+reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Sushi\\Capabilities\\FileAssociations" /v .html /t REG_SZ /d "SushiURL" /f
+reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Sushi\\Capabilities\\FileAssociations" /v .shtml /t REG_SZ /d "SushiURL" /f
+reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Sushi\\Capabilities\\FileAssociations" /v .xht /t REG_SZ /d "SushiURL" /f
+reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Sushi\\Capabilities\\FileAssociations" /v .xhtml /t REG_SZ /d "SushiURL" /f
+reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Sushi\\Capabilities\\FileAssociations" /v .webp /t REG_SZ /d "SushiURL" /f
+
+reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Sushi\\Capabilities\\URLAssociations" /v ftp /t REG_SZ /d "SushiURL" /f
+reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Sushi\\Capabilities\\URLAssociations" /v http /t REG_SZ /d "SushiURL" /f
+reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Sushi\\Capabilities\\URLAssociations" /v https /t REG_SZ /d "SushiURL" /f
+
+
+reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\RegisteredApplications" /v Sushi /t REG_SZ /d "Software\\Sushi\\Capabilities" /f
+
+reg add "HKEY_LOCAL_MACHINE\\Software\\Classes\\SushiURL" /t REG_SZ /d "Sushi Document" /f
+reg add "HKEY_LOCAL_MACHINE\\Software\\Classes\\SushiURL" /v FriendlyTypeName /t REG_SZ /d "Sushi Document" /f
+
+reg add "HKEY_LOCAL_MACHINE\\Software\\Classes\\SushiURL\\shell\\open\\command" /t REG_SZ /d "\\"%~dp0sushi.exe\\" -- \\"%%1\\"" /f
+
+pause`)
   }
 
   sh.mv('app.asar.unpacked/resource/extension/default/1.0_0/css/semantic-ui/themes/default/assets2',
@@ -409,7 +434,7 @@ var getTabValue = function (tabId) {`)
       }
     })
   }`)
-     .replace('if (tabs[tabId]) {','if (tabs[tabId] || (tab && tab.tabValue && tab.tabValue.url && tab.tabValue.url.startsWith("chrome-devtools://"))) {')
+        .replace('if (tabs[tabId]) {','if (tabs[tabId] || (tab && tab.tabValue && tab.tabValue.url && tab.tabValue.url.startsWith("chrome-devtools://"))) {')
 
       fs.writeFileSync(file,result)
 

@@ -147,6 +147,10 @@ export default class BrowserNavbarLocation extends Component {
   }
 
   resetComponent(noBlur){
+    if(this.props.tab.fields && this.props.tab.fields.mobilePanel){
+      ipc.send('mobile-panel-operation',{type: 'above', key: this.props.tab.key, tabId: this.props.tab.wvId, force: true})
+    }
+
     if(this.isFloat || this.props.isMaximize){
       PubSub.publish(`menu-showed_${this.props.k}`,false)
     }
@@ -191,6 +195,9 @@ export default class BrowserNavbarLocation extends Component {
     this.props.onChangeLocation.bind(this)(e.target.value)
     if (this.props.page.location.length < 1) return this.resetComponent(true);
 
+    if(this.props.tab.fields && this.props.tab.fields.mobilePanel){
+      ipc.send('mobile-panel-operation',{type: 'below', key: this.props.tab.key, tabId: this.props.tab.wvId, force: true})
+    }
     // if ((lastExecTime + interval) <= new Date().getTime()) {
     //   lastExecTime = new Date().getTime()
 

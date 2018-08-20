@@ -793,7 +793,7 @@ class GeneralSetting extends React.Component {
         </div>
         <br/>
 
-        <div className="field">
+        {isWin ? <div className="field">
           <label>Enable Rocker Gestures</label>
 
           <div className="field">
@@ -806,7 +806,7 @@ class GeneralSetting extends React.Component {
             <Dropdown onChange={this.onChange.bind(this,'rockerGestureRight')} selection
                       options={[{value: 'none', text: l10n.translation('clicktabNothing')},...Object.entries(keyMapping).filter(x=>!['keyMinimize','keyLastTab','keyFindNext','keyFindPrevious','keyTab1','keyTab2','keyTab3','keyTab4','keyTab5','keyTab6','keyTab7','keyTab8'].includes(x[0])).map(x=>({value:x[1],text:x[1]}))]} defaultValue={this.state.rockerGestureRight}/>
           </div>
-        </div>
+        </div> : null}
         <br/>
 
         <div className="field">

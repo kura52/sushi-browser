@@ -354,6 +354,7 @@ app.on('web-contents-created', (e, tab) => {
   contextMenu(tab)
 
   tab.on('devtools-opened', ()=>{
+    if(!tab.executeJavascriptInDevTools) return
     tab.executeJavascriptInDevTools(`(async function(){
   window.InspectorFrontendHost.showContextMenuAtPoint = (x, y, items)=>{
     const convertToMenuTemplate = function (items) {
@@ -618,13 +619,25 @@ process.on('add-new-contents', async (e, source, newTab, disposition, size, user
     let cont = source.hostWebContents
     // console.log(3333,cont)
     if(!cont){
+      console.log(11)
       let host,_url
       if((_url = source.getURL()) && _url.startsWith('chrome://brave')){
         host = source
       }
+      else{
+        console.log(115)
+        const tabId = global.bwMap[source.getId()]
+        source = webContents.fromTabID(tabId)
+        source.hostWebContents.send('create-web-contents', { id: source.getId(), targetUrl, disposition})
+        return
+      }
       source = await getFocusedWebContents()
+
+      console.log(22)
       if(!source){
         setTimeout(async _=>{
+
+          console.log(33)
           source = await getFocusedWebContents()
           ipcMain.emit('set-tab-opener',null,newTab.getId(),source.getId())
           (host || source.hostWebContents).send('create-web-contents', { id: source.getId(), targetUrl, disposition, guestInstanceId: newTab.guestInstanceId })
@@ -1530,7 +1543,6 @@ function contextMenu(webContents) {
         menu.popup(targetWindow)
       }
       else{
-        console.log(webContents.hostWebContents.getURL())
         let isMove = false
         ipcMain.once('context-menu-move',e => isMove = true)
         ipcMain.once('context-menu-up',e => {
