@@ -261,7 +261,7 @@ sushi-browser --no-sandbox
 
 # New Features
 
-#### New function(v0.210)
+#### New function(v0.21.0)
 - Implemented Mobile Panel (similar to Blisk) (Windows and Linux only) (Main Menu > Mobile Panel)
 - Implemented Mobile Sync Scroll (Windows and Linux only) (Main Menu > More Tools > Enable Mobile Panel Sync Scroll)
 - Developer Tools improved docking to window. (Windows and Linux only)
@@ -275,7 +275,7 @@ sushi-browser --no-sandbox
 - Updated to Muon customized version 8.0.7. (Chromium 68.0.3440.84)
 - Fixed a lot of bugs.
 
-#### New function(v0.201)
+#### New function(v0.20.1)
 - Renew "Sync Data" (Add setting page, AES256 encryption of stored data, Select sync data). (* Experimental)
 - "Maximize Panel" is added to the right menu of the tab.
 - "Incremental Import" added for setting import. (* Experimental)
@@ -287,7 +287,7 @@ sushi-browser --no-sandbox
 - Updated to youtube-dl 2018.08.04.
 - Fixed some bugs.
 
-#### New function(v0.21.0)
+#### New function(v0.20.0)
 - Added rectangle selection function.(Alt + Mouse Drag)
 - Localized 200+ items.
 - Added function to save in MHTML when extension is selected as mht or mhtml when saving page. (#16)
