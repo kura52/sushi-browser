@@ -376,8 +376,9 @@ class BrowserNavbar extends Component{
     ipc.send('get-cont-history',this.props.tab.wvId,this.props.tab.key,this.props.tab.rSession)
   }
 
-  publishZoom(){
-    if(sharedState.statusBar || sharedState.hoverStatusBar)PubSub.publish(`zoom-change_${this.props.tab.key}`,percent)
+  publishZoom(percent){
+    if(sharedState.statusBar || sharedState.hoverStatusBar)
+      PubSub.publish(`zoom-change_${this.props.tab.key}`,percent)
   }
 
   onZoomCommon(type){
@@ -399,7 +400,7 @@ class BrowserNavbar extends Component{
           this.setState({zoomDisplay:''})
         },1500)
       }
-      this.publishZoom()
+      this.publishZoom(percent)
       this.setState({zoom:percent})
       // if(this.props.tab.sync) this.props.parent.syncZoom(percent,this.props.tab.sync)
     }
@@ -422,7 +423,7 @@ class BrowserNavbar extends Component{
         this.setState({zoomDisplay:''})
       },1500)
     }
-    this.publishZoom()
+    this.publishZoom(100)
     this.setState({zoom:100})
     // if(this.props.tab.sync) this.props.parent.syncZoom(100,this.props.tab.sync)
   }

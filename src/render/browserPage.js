@@ -246,6 +246,9 @@ class BrowserPage extends Component {
 
     if(this.searchEvent) ipc.removeListener('menu-or-key-events', this.searchEvent)
     if(this.changeSizeEvent) ipc.removeListener('webview-size-change', this.changeSizeEvent)
+
+
+    ipc.send('close-tab-pretask',this.props.tab.wvId)
   }
 
 
@@ -408,7 +411,7 @@ class BrowserPage extends Component {
       {hasDevToolsPanel ? <DevToolsPanel tab={this.props.tab} devToolsInfo={devToolsInfo} parent={this}
                                          style={style.width ? {width: style.width, display: 'inline-block'} : {}}/> : null}
       <AutofillPopup k={this.props.k}/>
-      <StatusBar tab={this.props.tab} refs2={refs2}/>
+      <StatusBar toggleNav={this.props.toggleNav} tab={this.props.tab} refs2={refs2}/>
     </div>
   }
 }

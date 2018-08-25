@@ -386,7 +386,7 @@ function normalizeGenericProps(props) {
             props[prop] = void 0;
         }
         var mappedProp = SVGDOMPropertyConfig[prop];
-        if (mappedProp && mappedProp !== prop) {
+        if (mappedProp && props[prop] && mappedProp !== prop) {
             props[mappedProp] = props[prop];
             props[prop] = void 0;
         }
@@ -17299,6 +17299,9 @@ function createElement(type, props) {
                     ref = props.ref;
                 }
                 else {
+                    if (prop === 'contenteditable') {
+                        flags |= 4096 /* ContentEditable */;
+                    }
                     newProps[prop] = props[prop];
                 }
             }
@@ -33236,7 +33239,7 @@ function insertOrAppend(parentDom, newNode, nextNode) {
     }
 }
 function documentCreateElement(tag, isSVG) {
-    if (isSVG === true) {
+    if (isSVG) {
         return document.createElementNS(svgNS, tag);
     }
     return document.createElement(tag);
@@ -34045,7 +34048,9 @@ function mountComponent(vNode, parentDom, context, isSVG, isClass) {
 }
 function createClassMountCallback(instance) {
     return function () {
+        instance.$UPD = true;
         instance.componentDidMount();
+        instance.$UPD = false;
     };
 }
 function mountClassComponentCallbacks(vNode, ref, instance) {
@@ -34238,27 +34243,29 @@ function replaceWithNewNode(lastNode, nextNode, parentDom, context, isSVG) {
     replaceChild(parentDom, mount(nextNode, null, context, isSVG), lastNode.dom);
 }
 function patch(lastVNode, nextVNode, parentDom, context, isSVG) {
-    if (lastVNode !== nextVNode) {
-        var nextFlags = nextVNode.flags | 0;
-        if (lastVNode.flags !== nextFlags || nextFlags & 2048 /* ReCreate */) {
-            replaceWithNewNode(lastVNode, nextVNode, parentDom, context, isSVG);
-        }
-        else if (nextFlags & 481 /* Element */) {
-            patchElement(lastVNode, nextVNode, parentDom, context, isSVG);
-        }
-        else if (nextFlags & 14 /* Component */) {
-            patchComponent(lastVNode, nextVNode, parentDom, context, isSVG, (nextFlags & 4 /* ComponentClass */) > 0);
-        }
-        else if (nextFlags & 16 /* Text */) {
-            patchText(lastVNode, nextVNode, parentDom);
-        }
-        else if (nextFlags & 512 /* Void */) {
-            nextVNode.dom = lastVNode.dom;
-        }
-        else {
-            // Portal
-            patchPortal(lastVNode, nextVNode, context);
-        }
+    var nextFlags = nextVNode.flags | 0;
+    if (lastVNode.flags !== nextFlags || nextFlags & 2048 /* ReCreate */) {
+        replaceWithNewNode(lastVNode, nextVNode, parentDom, context, isSVG);
+    }
+    else if (nextFlags & 481 /* Element */) {
+        patchElement(lastVNode, nextVNode, parentDom, context, isSVG, nextFlags);
+    }
+    else if (nextFlags & 14 /* Component */) {
+        patchComponent(lastVNode, nextVNode, parentDom, context, isSVG, (nextFlags & 4 /* ComponentClass */) > 0);
+    }
+    else if (nextFlags & 16 /* Text */) {
+        patchText(lastVNode, nextVNode);
+    }
+    else if (nextFlags & 512 /* Void */) {
+        nextVNode.dom = lastVNode.dom;
+    }
+    else {
+        patchPortal(lastVNode, nextVNode, context);
+    }
+}
+function patchContentEditableChildren(dom, nextVNode) {
+    if (dom.textContent !== nextVNode.children) {
+        dom.textContent = nextVNode.children;
     }
 }
 function patchPortal(lastVNode, nextVNode, context) {
@@ -34273,14 +34280,13 @@ function patchPortal(lastVNode, nextVNode, context) {
         nextContainer.appendChild(node);
     }
 }
-function patchElement(lastVNode, nextVNode, parentDom, context, isSVG) {
+function patchElement(lastVNode, nextVNode, parentDom, context, isSVG, nextFlags) {
     var nextTag = nextVNode.type;
     if (lastVNode.type !== nextTag) {
         replaceWithNewNode(lastVNode, nextVNode, parentDom, context, isSVG);
     }
     else {
         var dom = lastVNode.dom;
-        var nextFlags = nextVNode.flags;
         var lastProps = lastVNode.props;
         var nextProps = nextVNode.props;
         var isFormElement = false;
@@ -34307,7 +34313,6 @@ function patchElement(lastVNode, nextVNode, parentDom, context, isSVG) {
             }
             if (lastPropsOrEmpty !== EMPTY_OBJ) {
                 for (var prop$1 in lastPropsOrEmpty) {
-                    // do not add a hasOwnProperty check here, it affects performance
                     if (!nextPropsOrEmpty.hasOwnProperty(prop$1) && !isNullOrUndef(lastPropsOrEmpty[prop$1])) {
                         patchProp(prop$1, lastPropsOrEmpty[prop$1], null, dom, isSVG, hasControlledValue, lastVNode);
                     }
@@ -34319,7 +34324,10 @@ function patchElement(lastVNode, nextVNode, parentDom, context, isSVG) {
         var nextRef = nextVNode.ref;
         var lastClassName = lastVNode.className;
         var nextClassName = nextVNode.className;
-        if (lastChildren !== nextChildren) {
+        if (nextFlags & 4096 /* ContentEditable */) {
+            patchContentEditableChildren(dom, nextChildren);
+        }
+        else {
             patchChildren(lastVNode.childFlags, nextVNode.childFlags, lastChildren, nextChildren, dom, context, isSVG && nextTag !== 'foreignObject');
         }
         if (isFormElement) {
@@ -34393,7 +34401,7 @@ function patchChildren(lastChildFlags, nextChildFlags, lastChildren, nextChildre
             else if (nextChildFlags === 1 /* HasInvalidChildren */) {
                 removeAllChildren(parentDOM, lastChildren);
             }
-            else {
+            else if (nextChildFlags === 2 /* HasVNodeChildren */) {
                 removeAllChildren(parentDOM, lastChildren);
                 mount(nextChildren, parentDOM, context, isSVG);
             }
@@ -34456,8 +34464,9 @@ function updateClassComponent(instance, nextState, nextVNode, nextProps, parentD
         instance.$CX = childContext;
         if (didUpdate) {
             var lastInput = instance.$LI;
-            var nextInput = (instance.$LI = handleComponentInput(renderOutput, nextVNode));
+            var nextInput = handleComponentInput(renderOutput, nextVNode);
             patch(lastInput, nextInput, parentDom, childContext, isSVG);
+            instance.$LI = nextInput;
             if (isFunction(instance.componentDidUpdate)) {
                 instance.componentDidUpdate(lastProps, lastState);
             }
@@ -34518,20 +34527,11 @@ function patchComponent(lastVNode, nextVNode, parentDom, context, isSVG, isClass
         }
     }
 }
-function patchText(lastVNode, nextVNode, parentDom) {
+function patchText(lastVNode, nextVNode) {
     var nextText = nextVNode.children;
-    var textNode = parentDom.firstChild;
-    var dom;
-    // Guard against external change on DOM node.
-    if (isNull(textNode)) {
-        parentDom.textContent = nextText;
-        dom = parentDom.firstChild;
-    }
-    else {
-        dom = lastVNode.dom;
-        if (nextText !== lastVNode.children) {
-            dom.nodeValue = nextText;
-        }
+    var dom = lastVNode.dom;
+    if (nextText !== lastVNode.children) {
+        dom.nodeValue = nextText;
     }
     nextVNode.dom = dom;
 }
@@ -35017,7 +35017,7 @@ var JSX = /*#__PURE__*/Object.freeze({
 
 });
 
-var version = "5.3.0";
+var version = "5.4.2";
 
 
 
@@ -71488,6 +71488,25 @@ function getCssPropertyName(str) {
     }
     return (CssPropCache[str] = str.replace(uppercasePattern, '-$&').toLowerCase() + ':');
 }
+var ATTRIBUTE_NAME_START_CHAR = ':A-Z_a-z\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u02FF\\u0370-\\u037D\\u037F-\\u1FFF\\u200C-\\u200D\\u2070-\\u218F\\u2C00-\\u2FEF\\u3001-\\uD7FF\\uF900-\\uFDCF\\uFDF0-\\uFFFD';
+var ATTRIBUTE_NAME_CHAR = ATTRIBUTE_NAME_START_CHAR + '\\-.0-9\\u00B7\\u0300-\\u036F\\u203F-\\u2040';
+var VALID_ATTRIBUTE_NAME_REGEX = new RegExp('^[' + ATTRIBUTE_NAME_START_CHAR + '][' + ATTRIBUTE_NAME_CHAR + ']*$');
+var illegalAttributeNameCache = {};
+var validatedAttributeNameCache = {};
+function isAttributeNameSafe(attributeName) {
+    if (validatedAttributeNameCache[attributeName] !== void 0) {
+        return true;
+    }
+    if (illegalAttributeNameCache[attributeName] !== void 0) {
+        return false;
+    }
+    if (VALID_ATTRIBUTE_NAME_REGEX.test(attributeName)) {
+        validatedAttributeNameCache[attributeName] = true;
+        return true;
+    }
+    illegalAttributeNameCache[attributeName] = true;
+    return false;
+}
 var voidElements = new Set([
     'area',
     'base',
@@ -71637,14 +71656,16 @@ function renderVNodeToString(vNode, parent, context, firstChild) {
                         }
                         break;
                     default:
-                        if (isString(value)) {
-                            renderedString += " " + prop + "=\"" + (escapeText(value)) + "\"";
-                        }
-                        else if (isNumber(value)) {
-                            renderedString += " " + prop + "=\"" + value + "\"";
-                        }
-                        else if (isTrue(value)) {
-                            renderedString += " " + prop;
+                        if (isAttributeNameSafe(prop)) {
+                            if (isString(value)) {
+                                renderedString += " " + prop + "=\"" + (escapeText(value)) + "\"";
+                            }
+                            else if (isNumber(value)) {
+                                renderedString += " " + prop + "=\"" + value + "\"";
+                            }
+                            else if (isTrue(value)) {
+                                renderedString += " " + prop;
+                            }
                         }
                         break;
                 }
@@ -71675,6 +71696,9 @@ function renderVNodeToString(vNode, parent, context, firstChild) {
                 renderedString += "</" + type + ">";
             }
         }
+        if (String(type).match(/[\s\n\/='"\0<>]/)) {
+            throw renderedString;
+        }
         return renderedString;
     }
     else if ((flags & 16 /* Text */) > 0) {
@@ -71683,7 +71707,7 @@ function renderVNodeToString(vNode, parent, context, firstChild) {
     else {
         throwError();
     }
-    return undefined;
+    return '';
 }
 function renderToString(input) {
     return renderVNodeToString(input, {}, {}, true);
@@ -71907,26 +71931,31 @@ var RenderQueueStream = (function (Readable$$1) {
                             }
                             break;
                         default:
-                            if (isString(value)) {
-                                renderedString += " " + prop + "=\"" + (escapeText(value)) + "\"";
-                            }
-                            else if (isNumber(value)) {
-                                renderedString += " " + prop + "=\"" + value + "\"";
-                            }
-                            else if (isTrue(value)) {
-                                renderedString += " " + prop;
+                            if (isAttributeNameSafe(prop)) {
+                                if (isString(value)) {
+                                    renderedString += " " + prop + "=\"" + (escapeText(value)) + "\"";
+                                }
+                                else if (isNumber(value)) {
+                                    renderedString += " " + prop + "=\"" + value + "\"";
+                                }
+                                else if (isTrue(value)) {
+                                    renderedString += " " + prop;
+                                }
                             }
                             break;
                     }
                 }
             }
+            renderedString += ">";
+            if (String(type).match(/[\s\n\/='"\0<>]/)) {
+                throw renderedString;
+            }
             // Voided element, push directly to queue
             if (isVoidElement) {
-                this.addToQueue(renderedString + ">", position);
+                this.addToQueue(renderedString, position);
                 // Regular element with content
             }
             else {
-                renderedString += ">";
                 // Element has children, build them in
                 var childFlags = vNode.childFlags;
                 if (childFlags & 2 /* HasVNodeChildren */) {
@@ -72132,27 +72161,30 @@ var RenderStream = (function (Readable$$1) {
                         }
                         break;
                     default:
-                        if (isString(value)) {
-                            renderedString += " " + prop + "=\"" + (escapeText(value)) + "\"";
+                        if (isAttributeNameSafe(prop)) {
+                            if (isString(value)) {
+                                renderedString += " " + prop + "=\"" + (escapeText(value)) + "\"";
+                            }
+                            else if (isNumber(value)) {
+                                renderedString += " " + prop + "=\"" + value + "\"";
+                            }
+                            else if (isTrue(value)) {
+                                renderedString += " " + prop;
+                            }
+                            break;
                         }
-                        else if (isNumber(value)) {
-                            renderedString += " " + prop + "=\"" + value + "\"";
-                        }
-                        else if (isTrue(value)) {
-                            renderedString += " " + prop;
-                        }
-                        break;
                 }
             }
         }
+        renderedString += ">";
+        this.push(renderedString);
+        if (String(type).match(/[\s\n\/='"\0<>]/)) {
+            throw renderedString;
+        }
         if (isVoidElement) {
-            renderedString += ">";
-            this.push(renderedString);
             return;
         }
         else {
-            renderedString += ">";
-            this.push(renderedString);
             if (html) {
                 this.push(html);
                 this.push(("</" + type + ">"));
@@ -72341,7 +72373,7 @@ var rendererIdentifiers = function () {
   'default', 'name', 'searchEngine', 'searchEngines', 'engineGoKey', 'general', 'generalSettings', 'search', 'tabs', 'extensions', 'myHomepage', 'startsWith', 'startsWithOptionLastTime', 'newTabMode', 'newTabEmpty', 'import', 'bn-BD', 'bn-IN', 'zh-CN', 'cs', 'nl-NL', 'en-US', 'fr-FR', 'de-DE', 'hi-IN', 'id-ID', 'it-IT', 'ja-JP', 'ko-KR', 'ms-MY', 'pl-PL', 'pt-BR', 'ru', 'sl', 'es', 'ta', 'te', 'tr-TR', 'uk', 'requiresRestart', 'enableFlash', 'startsWithOptionHomePage', 'updateAvail', 'notNow', 'makeBraveDefault', 'saveToPocketDesc', 'minimumPageTimeLow', 'paintTabs', 'restoreAll',
 
   //chrome
-  '994289308992179865', '1725149567830788547', '4643612240819915418', '4256316378292851214', '2019718679933488176', '782057141565633384', '5116628073786783676', '1465176863081977902', '3007771295016901659', '5078638979202084724', '4589268276914962177', '3551320343578183772', '2448312741937722512', '1524430321211440688', '42126664696688958', '2663302507110284145', '3635030235490426869', '4888510611625056742', '5860209693144823476', '5846929185714966548', '7955383984025963790', '3128230619496333808', '3391716558283801616', '6606070663386660533', '9011178328451474963', '9065203028668620118', '2473195200299095979', '1047431265488717055', '9218430445555521422', '8926389886865778422', '2893168226686371498', '4289540628985791613', '3095995014811312755', '59174027418879706', '6550675742724504774', '5453029940327926427', '4989966318180235467', '6326175484149238433', '9147392381910171771', '8260864402787962391', '8477384620836102176', '7701040980221191251', '6146563240635539929', '8026334261755873520', '1375321115329958930', '5513242761114685513', '5582839680698949063', '5317780077021120954', '8986267729801483565', '5431318178759467895', '7853747251428735', '2948300991547862301', '8251578425305135684', '2845382757467349449', '8870318296973696995', '480990236307250886', '7754704193130578113', '7791543448312431591', '59174027418879706', '4250229828105606438', 'playOrPause', 'frameStep', 'frameBackStep', 'rewind1', 'rewind2', 'forward1', 'forward2', 'rewind3', 'forward3', 'normalSpeed', 'halveSpeed', 'doubleSpeed', 'decSpeed', 'incSpeed', 'fullscreen', 'exitFullscreen', 'mute', 'decreaseVolume', 'increaseVolume', 'incZoom', 'decZoom', 'resetZoom', 'plRepeat', 'mediaSeeking', 'volumeControl', 'changeSpeed', 'mouseWheelFunctions', 'reverseWheelMediaSeeking', 'noScriptPref', 'blockCanvasFingerprinting', 'browsingHistory', 'downloadHistory', 'cachedImagesAndFiles', 'allSiteCookies', 'autocompleteData', 'autofillData', 'clearBrowsingDataNow', 'tabSettings', 'alwaysOnTop', 'neverOnTop', 'privateData', 'privateDataMessage', 'closeAllTabsMenuLabel', 'openalllinksLabel', 'clicktabCopyTabUrl', 'clicktabCopyUrlFromClipboard', 'clicktabReloadtabs', 'clicktabReloadothertabs', 'clicktabReloadlefttabs', 'clicktabReloadrighttabs', 'freezeTabMenuLabel', 'protectTabMenuLabel', 'lockTabMenuLabel', 'autoReloadTabLabel', 'clicktabUcatab', 'secondsLabel', 'minuteLabel', 'minutesLabel', 'generalWindowOpenLabel', 'linkTargetTab', 'linkTargetWindow', 'openDuplicateNextLabel', 'keepWindowLabel31', 'currenttabCaptionLabel', 'focusTabLabelBegin', 'focusTabFirstTab', 'focusTabLeftTab', 'focusTabRightTab', 'focusTabLastTab', 'focusTabLastSelectedTab', 'focusTabOpenerTab', 'focusTabOpenerTabRtl', 'focusTabLastOpenedTab', 'tabbarscrollingInverseLabel', 'minWidthLabel', 'widthToLabel', 'widthPixelsLabel', 'mouseHoverSelectLabelBegin', 'tabFlipLabel', 'clicktabLabel', 'doubleLabel', 'middleLabel', 'altLabel', 'clicktabNothing', 'tabbarscrollingSelectTabLabel', 'tabScrollMultibar', 'millisecondsLabel', 'mouseClickLabel', 'tabFlipDelay', 'tabCloseLabel', 'maxrowLabel', 'newTabButtonLabel', 'ssInterval', 'openTabNextLabel', 'tabbarscrollingCaption', 'showOntabLabel', 'tabFocusLabel', 'unreadTabLabel', 'textcolorLabel', 'bgColorLabel', 'speLinkAllLinks', 'speLinkLabel', 'speLinkNone', 'speLinkExternal', 'currentTabLabel', 'otherTabsLabel', 'oneLineMenuALL', 'multiRowTabs', 'tabPreview', 'searchHighlight', 'bindSelectedWindow', 'adBlockALL', 'adBlockTab', 'adBlockDomain', 'showBookmarkBarOnTopPage', 'showBookmarkBarOnMouseHover', 'oneLineMenu', 'normalScreenMode', 'fullScreenMode', 'detachThisPanel', 'convertPanelsToWindows', 'syncDatas', 'changeVPNMode', 'openOnOpposite', 'searchHighlightRecursive', 'donTLoadTabsUntillSelected', 'extractAudioFromVideo', 'changePdfViewToComic', 'changePdfViewToNormal', 'closeThisPanel', 'restartBrowser', 'browserVersion', 'chromiumVersion', 'muonVersion', 'historyOfTabs', 'trashOfTabs', 'sessionManager', 'switchSyncScroll', 'switchOpenOnOpposite', 'openSidebar', 'changeToMobileUserAgent', 'fileExplorer', 'richMediaList', 'playVideo', 'downloadAndPlayVideo', 'playInExternalVideoPlayer', 'downloadVideo', 'downloadAndConvertVideo', 'downloadVideoAndExtractAudio', 'copyVideoURL', 'fullPage|Clipboard', 'fullPage|Jpeg', 'fullPage|PNG', 'selection|Clipboard', 'selection|Jpeg', 'selection|PNG', 'hideTabs', 'terminal', 'note', 'automation', 'videoConverter', 'openLinkInNewTorTab', 'openLinkInNewWindowWithARow', 'openLinkInNewWindowWithTwoRows', 'copyPath', 'createNewFile', 'createNewDirectory', 'rename', 'delete', 'openLinkInOppositeTab', 'saveAndPlayVideo', 'sendURLToVideoPlayer', 'playVideoInPopupWindow', 'playVideoInFloatingPanel', 'addToNotes', 'copyLinks', 'downloadSelection', 'downloadAll', 'syncScrollLeftToRight', 'syncScrollRightToLeft', 'navigateToTheBookmarkPage', 'addThisPageToTheBookmarks', 'navigateToTheHistoryPage', 'saveCurrentSession', 'confirm', 'areYouSureYouWantToDeleteTheFollowingFiles', 'yes', 'no', 'menu', 'name', 'progress', 'size', 'estTime', 'speed', 'startTime', 'uRL', 'newDownload', 'pleaseEnterURLsAndSaveDirectory', 'uRLs', 'saveDirectory', 'fileName', 'attemptToFindAndDownloadVideo', 'newDL', 'start', 'cancelDL', 'removeRow', 'removeFinished', 'showFolder', 'copyURL', 'enableDownloadList', 'concurrentDownloads', 'downloadsPerServer', 'completed', 'canceled', 'openNote', 'openFileExploler', 'openTerminal', 'openAutomation', 'openVideoConverter', 'toggleMenuBar', 'changeFocusPanel', 'splitLeft', 'splitRight', 'splitTop', 'splitBottom', 'splitLeftTabsToLeft', 'splitRightTabsToRight', 'swapPosition', 'switchDirection', 'alignHorizontal', 'alignVertical', 'enableSearchHighlight', 'changeToMobileAgent', 'detachPanel', 'pasteAndOpen', 'copyTabInfo', 'copyAllTabTitles', 'copyAllTabURLs', 'copyAllTabInfos', 'fullPageCaptureToClipboard', 'fullPageCaptureAsJPEG', 'fullPageCaptureAsPNG', 'selectionCaptureToClipboard', 'selectionCaptureAsJPEG', 'selectionCaptureAsPNG', 'topPage', 'floatingPanel', 'closeThisTree', 'suggestionHistory', 'historySuggestion', 'protection', 'enableHTTPSEverywhere', 'enableTracingProtection', 'orderOfAutoComplete', 'numberOfSuggestions', 'numberOfHistories', 'sortHistoryInDescendingOrderOfPV', 'defaultSidebarPosition', 'leftSide', 'rightSide', 'bottomSide', 'sideBarLink', 'toolBarLink', 'addressBarLink', 'bookmarkBarLink', 'showChromeExtensionIconOnToolbar', 'showFullscreenButton', 'enableMouseGesture', 'enableRectangularSelection', 'maintainFullscreenModeEvenAfterPageTransition', 'cancelFullscreenModeAtPageTransition', 'showBackForwardButtonSBadge', 'showFocusLocationBarOfTopPage', 'enableBottomDownloadList', 'deleteFromDownloadListWhenDownloadIsCompleted', 'enableBehaviorChangeWhenLongPressOfMiddleMouseButton', 'enableHorizontalPositionMoving', 'enableAnythingSearch', 'sendURLToExternalMediaPlayer', 'concurrentDownload', 'maxNumberOfConnectionsPerItem', 'customWindowIcon', 'syncScrollMargin', 'bindWindowFrameMargin', 'bindWindowTitleMargin', 'deleteAllDataAndImportRestoreData', 'favicon', 'allData', 'clearDataGreaterThan30DaysAgoFromNow', 'range', 'clearAllData', 'bookmarksUserSavedSessions', 'rightClickMenuSearchEngines', 'searchMethods', 'multiSearch', 'openInAPanel', 'openIn2Panels', 'openInANewWindow', 'openInANewWindowWithARow', 'openInNewWindowWith2Rows', 'openInANewWindowWith3Rows', 'current', 'current', 'opposite', 'addSearchEngine', 'almostTheSameAsChrome', 'tabBarTopMargin', 'removeTopMarginWhenMaximizing', 'openNewTabsAt', 'defaultPosition', 'leftEnd', 'rightEnd', 'openNewTabInBackground', 'oppositeMode', 'enableTabPreview', 'delayTime', 'width', 'height', 'slideHeight', 'tabPreviewImageQuality', 'displayCurrentPreview', 'circulateTabSelection', 'dashedLineWhenDragging', 'colorOfMutePinReloadIcon', 'showBottomBorderInCurrentTab', 'defaultTheme', 'darkTheme', 'data', 'sendURL', 'sendType', 'sendURLCommand', 'theme', 'mouseGesture', 'pleaseReferHereForInputMethodOfShortcut', 'mouseClick', 'mouseDoubleClick', 'mouseWheel', 'shiftMouseWheel', 'ctrlMouseWheel', 'shiftCtrlMouseWheel', 'keepValue​​inLocalStorage', 'enableKeyboardShortcut', 'blackListSites', 'rightClick', 'bookmarksSidebar', 'historySidebar', 'sessionManagerSidebar', 'trashOfTabsSidebar', 'historyOfTabsSidebar', 'fileExplorerSidebar', 'default', 'pagesToApply'];
+  '994289308992179865', '1725149567830788547', '4643612240819915418', '4256316378292851214', '2019718679933488176', '782057141565633384', '5116628073786783676', '1465176863081977902', '3007771295016901659', '5078638979202084724', '4589268276914962177', '3551320343578183772', '2448312741937722512', '1524430321211440688', '42126664696688958', '2663302507110284145', '3635030235490426869', '4888510611625056742', '5860209693144823476', '5846929185714966548', '7955383984025963790', '3128230619496333808', '3391716558283801616', '6606070663386660533', '9011178328451474963', '9065203028668620118', '2473195200299095979', '1047431265488717055', '9218430445555521422', '8926389886865778422', '2893168226686371498', '4289540628985791613', '3095995014811312755', '59174027418879706', '6550675742724504774', '5453029940327926427', '4989966318180235467', '6326175484149238433', '9147392381910171771', '8260864402787962391', '8477384620836102176', '7701040980221191251', '6146563240635539929', '8026334261755873520', '1375321115329958930', '5513242761114685513', '5582839680698949063', '5317780077021120954', '8986267729801483565', '5431318178759467895', '7853747251428735', '2948300991547862301', '8251578425305135684', '2845382757467349449', '8870318296973696995', '480990236307250886', '7754704193130578113', '7791543448312431591', '59174027418879706', '4250229828105606438', '1864111464094315414', '5222676887888702881', '839736845446313156', 'playOrPause', 'frameStep', 'frameBackStep', 'rewind1', 'rewind2', 'forward1', 'forward2', 'rewind3', 'forward3', 'normalSpeed', 'halveSpeed', 'doubleSpeed', 'decSpeed', 'incSpeed', 'fullscreen', 'exitFullscreen', 'mute', 'decreaseVolume', 'increaseVolume', 'incZoom', 'decZoom', 'resetZoom', 'plRepeat', 'mediaSeeking', 'volumeControl', 'changeSpeed', 'mouseWheelFunctions', 'reverseWheelMediaSeeking', 'noScriptPref', 'blockCanvasFingerprinting', 'browsingHistory', 'downloadHistory', 'cachedImagesAndFiles', 'allSiteCookies', 'autocompleteData', 'autofillData', 'clearBrowsingDataNow', 'tabSettings', 'alwaysOnTop', 'neverOnTop', 'privateData', 'privateDataMessage', 'closeAllTabsMenuLabel', 'openalllinksLabel', 'clicktabCopyTabUrl', 'clicktabCopyUrlFromClipboard', 'clicktabReloadtabs', 'clicktabReloadothertabs', 'clicktabReloadlefttabs', 'clicktabReloadrighttabs', 'freezeTabMenuLabel', 'protectTabMenuLabel', 'lockTabMenuLabel', 'autoReloadTabLabel', 'clicktabUcatab', 'secondsLabel', 'minuteLabel', 'minutesLabel', 'generalWindowOpenLabel', 'linkTargetTab', 'linkTargetWindow', 'openDuplicateNextLabel', 'keepWindowLabel31', 'currenttabCaptionLabel', 'focusTabLabelBegin', 'focusTabFirstTab', 'focusTabLeftTab', 'focusTabRightTab', 'focusTabLastTab', 'focusTabLastSelectedTab', 'focusTabOpenerTab', 'focusTabOpenerTabRtl', 'focusTabLastOpenedTab', 'tabbarscrollingInverseLabel', 'minWidthLabel', 'widthToLabel', 'widthPixelsLabel', 'mouseHoverSelectLabelBegin', 'tabFlipLabel', 'clicktabLabel', 'doubleLabel', 'middleLabel', 'altLabel', 'clicktabNothing', 'tabbarscrollingSelectTabLabel', 'tabScrollMultibar', 'millisecondsLabel', 'mouseClickLabel', 'tabFlipDelay', 'tabCloseLabel', 'maxrowLabel', 'newTabButtonLabel', 'ssInterval', 'openTabNextLabel', 'tabbarscrollingCaption', 'showOntabLabel', 'tabFocusLabel', 'unreadTabLabel', 'textcolorLabel', 'bgColorLabel', 'speLinkAllLinks', 'speLinkLabel', 'speLinkNone', 'speLinkExternal', 'currentTabLabel', 'otherTabsLabel', 'oneLineMenuALL', 'multiRowTabs', 'tabPreview', 'searchHighlight', 'bindSelectedWindow', 'adBlockALL', 'adBlockTab', 'adBlockDomain', 'showBookmarkBarOnTopPage', 'showBookmarkBarOnMouseHover', 'oneLineMenu', 'normalScreenMode', 'fullScreenMode', 'detachThisPanel', 'convertPanelsToWindows', 'syncDatas', 'changeVPNMode', 'openOnOpposite', 'searchHighlightRecursive', 'donTLoadTabsUntillSelected', 'extractAudioFromVideo', 'changePdfViewToComic', 'changePdfViewToNormal', 'closeThisPanel', 'restartBrowser', 'browserVersion', 'chromiumVersion', 'muonVersion', 'historyOfTabs', 'trashOfTabs', 'sessionManager', 'switchSyncScroll', 'switchOpenOnOpposite', 'openSidebar', 'changeToMobileUserAgent', 'fileExplorer', 'richMediaList', 'playVideo', 'downloadAndPlayVideo', 'playInExternalVideoPlayer', 'downloadVideo', 'downloadAndConvertVideo', 'downloadVideoAndExtractAudio', 'copyVideoURL', 'fullPage|Clipboard', 'fullPage|Jpeg', 'fullPage|PNG', 'selection|Clipboard', 'selection|Jpeg', 'selection|PNG', 'hideTabs', 'terminal', 'note', 'automation', 'videoConverter', 'openLinkInNewTorTab', 'openLinkInNewWindowWithARow', 'openLinkInNewWindowWithTwoRows', 'copyPath', 'createNewFile', 'createNewDirectory', 'rename', 'delete', 'openLinkInOppositeTab', 'saveAndPlayVideo', 'sendURLToVideoPlayer', 'playVideoInPopupWindow', 'playVideoInFloatingPanel', 'addToNotes', 'copyLinks', 'downloadSelection', 'downloadAll', 'syncScrollLeftToRight', 'syncScrollRightToLeft', 'navigateToTheBookmarkPage', 'addThisPageToTheBookmarks', 'navigateToTheHistoryPage', 'saveCurrentSession', 'confirm', 'areYouSureYouWantToDeleteTheFollowingFiles', 'yes', 'no', 'menu', 'name', 'progress', 'size', 'estTime', 'speed', 'startTime', 'uRL', 'newDownload', 'pleaseEnterURLsAndSaveDirectory', 'uRLs', 'saveDirectory', 'fileName', 'attemptToFindAndDownloadVideo', 'newDL', 'start', 'cancelDL', 'removeRow', 'removeFinished', 'showFolder', 'copyURL', 'enableDownloadList', 'concurrentDownloads', 'downloadsPerServer', 'completed', 'canceled', 'openNote', 'openFileExploler', 'openTerminal', 'openAutomation', 'openVideoConverter', 'toggleMenuBar', 'changeFocusPanel', 'splitLeft', 'splitRight', 'splitTop', 'splitBottom', 'splitLeftTabsToLeft', 'splitRightTabsToRight', 'swapPosition', 'switchDirection', 'alignHorizontal', 'alignVertical', 'enableSearchHighlight', 'changeToMobileAgent', 'detachPanel', 'pasteAndOpen', 'copyTabInfo', 'copyAllTabTitles', 'copyAllTabURLs', 'copyAllTabInfos', 'fullPageCaptureToClipboard', 'fullPageCaptureAsJPEG', 'fullPageCaptureAsPNG', 'selectionCaptureToClipboard', 'selectionCaptureAsJPEG', 'selectionCaptureAsPNG', 'topPage', 'floatingPanel', 'closeThisTree', 'suggestionHistory', 'historySuggestion', 'protection', 'enableHTTPSEverywhere', 'enableTracingProtection', 'orderOfAutoComplete', 'numberOfSuggestions', 'numberOfHistories', 'sortHistoryInDescendingOrderOfPV', 'defaultSidebarPosition', 'leftSide', 'rightSide', 'bottomSide', 'sideBarLink', 'toolBarLink', 'addressBarLink', 'bookmarkBarLink', 'showChromeExtensionIconOnToolbar', 'showFullscreenButton', 'enableMouseGesture', 'enableRectangularSelection', 'maintainFullscreenModeEvenAfterPageTransition', 'cancelFullscreenModeAtPageTransition', 'showBackForwardButtonSBadge', 'showFocusLocationBarOfTopPage', 'enableBottomDownloadList', 'deleteFromDownloadListWhenDownloadIsCompleted', 'enableBehaviorChangeWhenLongPressOfMiddleMouseButton', 'enableHorizontalPositionMoving', 'enableAnythingSearch', 'sendURLToExternalMediaPlayer', 'concurrentDownload', 'maxNumberOfConnectionsPerItem', 'customWindowIcon', 'syncScrollMargin', 'bindWindowFrameMargin', 'bindWindowTitleMargin', 'deleteAllDataAndImportRestoreData', 'favicon', 'allData', 'clearDataGreaterThan30DaysAgoFromNow', 'range', 'clearAllData', 'bookmarksUserSavedSessions', 'rightClickMenuSearchEngines', 'searchMethods', 'multiSearch', 'openInAPanel', 'openIn2Panels', 'openInANewWindow', 'openInANewWindowWithARow', 'openInNewWindowWith2Rows', 'openInANewWindowWith3Rows', 'currentAndOpposite', 'current', 'opposite', 'addSearchEngine', 'almostTheSameAsChrome', 'tabBarTopMargin', 'removeTopMarginWhenMaximizing', 'openNewTabsAt', 'defaultPosition', 'leftEnd', 'rightEnd', 'openNewTabInBackground', 'oppositeMode', 'enableTabPreview', 'delayTime', 'width', 'height', 'slideHeight', 'tabPreviewImageQuality', 'displayCurrentPreview', 'circulateTabSelection', 'dashedLineWhenDragging', 'colorOfMutePinReloadIcon', 'showBottomBorderInCurrentTab', 'defaultTheme', 'darkTheme', 'data', 'sendURL', 'sendType', 'sendURLCommand', 'theme', 'mouseGesture', 'pleaseReferHereForInputMethodOfShortcut', 'mouseClick', 'mouseDoubleClick', 'mouseWheel', 'shiftMouseWheel', 'ctrlMouseWheel', 'shiftCtrlMouseWheel', 'keepValue​​inLocalStorage', 'enableKeyboardShortcut', 'blackListSites', 'rightClick', 'bookmarksSidebar', 'historySidebar', 'sessionManagerSidebar', 'trashOfTabsSidebar', 'historyOfTabsSidebar', 'fileExplorerSidebar', 'default', 'pagesToApply', 'enableSmoothScrolling', 'useSmoothScroll', 'email', 'passwordsPassword'];
 };
 
 var ctx = null;

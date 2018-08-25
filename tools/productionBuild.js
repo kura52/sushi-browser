@@ -185,7 +185,7 @@ ipcMain.on('get-tab-opener-sync',(e,tabId)=>{
   e.returnValue = tabOpenerMap[tabId]
 })
 ipcMain.on('get-tab-value-sync',(e,tabId)=>{
-  e.returnValue = getTabValue(tabId)
+  e.returnValue = getTabValue(tabId) || null
 })
 ipcMain.on('new-tab-mode',(e,val)=>{
   newTabMode = val

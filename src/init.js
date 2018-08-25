@@ -705,6 +705,7 @@ function createWindow (first,url) {
 }
 
 ipcMain.on('init-private-mode',(e,key,partition)=>{
+  console.log(898989,e,key,partition)
   let options = {}
   if(partition.startsWith('persist')) options.parent_partition = ''
 

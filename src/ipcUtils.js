@@ -30,7 +30,7 @@ import importData from "./bookmarksExporter";
 const open = require('./open')
 const {readMacro,readMacroOff,readTargetSelector,readTargetSelectorOff,readComplexSearch} = require('./readMacro')
 const sharedState = require('./sharedStateMain')
-const request = require('./request')
+const {request} = require('./request')
 const bindPath = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/bind.html'
 
 function exec(command) {
@@ -1082,6 +1082,7 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, url, x, y, width
       // resizable: false,
       movable: false,
       webPreferences: {
+        partition: 'persist:mobile',
         plugins: true,
         sharedWorker: true,
         nodeIntegration: false,
@@ -1092,7 +1093,13 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, url, x, y, width
       }
     })
     bw.setMenuBarVisibility(false)
+
     bw.webContents.openDevTools()
+    bw.loadURL('data:text/html,<html></html>')
+    await new Promise(r=>{
+      ipcMain.emit('init-private-mode',{sender: {send: _=>r()}},'','persist:mobile')
+    })
+    // await new Promise(r=>setTimeout(r,300))
     bw.loadURL(url)
     bw.setAlwaysOnTop(true)
     mpoMap[key] = bw
@@ -1118,6 +1125,7 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, url, x, y, width
     tabMap[tabId] = bw.webContents
 
     loopMap[key] = setInterval(_=>{
+      if(bw.isDestroyed()) return
       bw.webContents.send('mobile-scroll',{type:'init' ,code: mobileInject})
       const cont = webContents.fromTabID(tabId)
       if(cont && !cont.isDestroyed()) cont.send('mobile-scroll',{type:'init' ,code: mobileInject})
@@ -1545,10 +1553,19 @@ ipcMain.on('detach-tab',(e,tabId)=>{
   cont._detachGuest()
 })
 
+
+const preCloseTabs = []
+ipcMain.on('close-tab-pretask',(e,tabId)=>{
+  const cont = webContents.fromTabID(tabId)
+  if(cont){
+    cont._detachGuest()
+  }
+})
+
 PubSub.subscribe("web-contents-created",(msg,[tabId,sender])=>{
   console.log("web-contents-created",tabId)
   const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
-  if(!cont) return
+  if(!cont || cont.isDestroyed()) return
   console.log("web-contents-created",tabId,cont.guestInstanceId,cont.getURL())
 
   if(!sender.isDestroyed()) sender.send('web-contents-created',tabId)
@@ -1561,6 +1578,18 @@ PubSub.subscribe("web-contents-created",(msg,[tabId,sender])=>{
     if(ind !== -1){
       detachTabs[ind][0].send(`detach-tab_${detachTabs[ind][1]}`,tabId)
       detachTabs.splice(ind, 1)
+      return
+    }
+  }
+  if(preCloseTabs.length){
+    const ind = preCloseTabs.findIndex(t=>{
+      return t == cont.getURL()
+    })
+    if(ind !== -1){
+      console.log('discard',cont.getURL())
+      const cont2 = webContents.fromTabID(tabId)
+      cont2.forceClose()
+      preCloseTabs.splice(ind, 1)
       return
     }
   }

@@ -21,11 +21,11 @@ body {
     overflow-y: hidden;
 }
 .terminal {
-    font-family: 'DejaVu Sans Mono''Droid Sans Mono', 'Courier New', monospace, 'Droid Sans Fallback' !important;
+    font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Courier New', monospace, 'Droid Sans Fallback' !important;
 }
-.terminal .xterm-viewport {
-    background-color: #101010 !important;
-}
+/*.terminal .xterm-viewport {*/
+    /*background-color: #101010 !important;*/
+/*}*/
 
 ::-webkit-scrollbar {
     width: 10px;

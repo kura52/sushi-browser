@@ -1745,7 +1745,8 @@ export default class TabPanel extends Component {
 
   setStatePartical(tab){
     const page = tab.page
-    const t = refs2[`tabs-${this.props.k}`] && ReactDOM.findDOMNode(refs2[`tabs-${this.props.k}`]).querySelector(`#draggable_tabs_${tab.key}`)
+    const _t = refs2[`tabs-${this.props.k}`] && ReactDOM.findDOMNode(refs2[`tabs-${this.props.k}`])
+    const t = _t && _t.querySelector(`#draggable_tabs_${tab.key}`)
     if (t){
       const p = t.querySelector('p')
       const title = `${page.favicon !== 'loading' || page.titleSet || page.location == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? page.title : page.location} `
@@ -2854,6 +2855,7 @@ export default class TabPanel extends Component {
       val: this.state.tabs.map((tab)=> {return  {
           key: tab.key,
           tab,
+          toggleNav: this.props.toggleNav,
           privateMode: tab.privateMode,
           isActive: this.state.selectedTab == tab.key,
           ref: ref,
@@ -4265,7 +4267,7 @@ export default class TabPanel extends Component {
           ipc.emit('focus-location-bar',null,tab.wvId)
         }
         else{
-          t.focus
+          t.focus()
         }
       }
     }, 100)

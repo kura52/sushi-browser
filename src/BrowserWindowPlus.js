@@ -448,8 +448,8 @@ export default {
     localShortcuts.register(initWindow)
     initWindow.setMenuBarVisibility(true)
     initWindow.loadURL(`chrome://brave/${path.join(__dirname, '../index.html').replace(/\\/g,"/")}${getParam}`)
-    // initWindow.webContents.openDevTools()
     initWindow.webContents.once('did-finish-load', () => {
+      // initWindow.webContents.toggleDevTools()
       initWindow.show()
       if(!initWindow.isMaximized()){
         normalSize[initWindow.id] = initWindow.getBounds()

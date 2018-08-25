@@ -3,11 +3,27 @@ window.debug = require('debug')('info')
 import process from './process'
 const ipc = require('electron').ipcRenderer
 const uuid = require('node-uuid')
+import { Terminal } from 'xterm';
+import * as fit from 'xterm/lib/addons/fit/fit'
+import * as webLinks from 'xterm/lib/addons/webLinks/webLinks'
+import * as winptyCompat from 'xterm/lib/addons/winptyCompat/winptyCompat'
 
-const xterm = new Terminal()
+const isWin = navigator.userAgent.includes('Windows')
+const isDarwin = navigator.userAgent.includes('Mac OS X')
+const DEFAULT_WINDOWS_FONT_FAMILY = 'Consolas, \'Courier New\', monospace';
+const DEFAULT_MAC_FONT_FAMILY = 'Menlo, Monaco, \'Courier New\', monospace';
+const DEFAULT_LINUX_FONT_FAMILY = '\'DejaVu Sans Mono\', \'Droid Sans Mono\', \'monospace\', monospace, \'Droid Sans Fallback\'';
+
+Terminal.applyAddon(fit);
+Terminal.applyAddon(webLinks);
+Terminal.applyAddon(winptyCompat);
+const xterm = new Terminal({
+  theme: {"background":"#0f0f0f","foreground":"#cccccc","cursor":"#cccccc","cursorAccent":"#1e1e1e","selection":"rgba(255, 255, 255, 0.25)","black":"#000000","red":"#cd3131","green":"#0dbc79","yellow":"#e5e510","blue":"#2472c8","magenta":"#bc3fbc","cyan":"#11a8cd","white":"#e5e5e5","brightBlack":"#666666","brightRed":"#f14c4c","brightGreen":"#23d18b","brightYellow":"#f5f543","brightBlue":"#3b8eea","brightMagenta":"#d670d6","brightCyan":"#29b8db","brightWhite":"#e5e5e5"},
+  fontFamily: isWin ? DEFAULT_WINDOWS_FONT_FAMILY : isDarwin ? DEFAULT_MAC_FONT_FAMILY : DEFAULT_LINUX_FONT_FAMILY,
+  fontSize: 14,
+})
 xterm.open(document.getElementById('terminal'))
 xterm.fit()
-xterm.linkify()
 const key = uuid.v4()
 
 xterm.on('data', function(data){

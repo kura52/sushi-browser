@@ -23,7 +23,7 @@ export default class VpnList extends Component {
     const key = uuid.v4()
     ipc.send('get-vpn-list',key)
     ipc.once(`get-vpn-list-reply_${key}`,(e,text)=>{
-      const list = JSON.parse(text)
+      const {list} = JSON.parse(text)
       ipc.send('get-country-names')
       ipc.once('get-country-names-reply',(e,countries)=>{
         this.setState({list,countries,visible:true,vpn:mainState.vpn})

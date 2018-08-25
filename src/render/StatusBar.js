@@ -25,19 +25,34 @@ export default class StatusBarWrapper extends Component {
     console.log(68888,`hover-statusbar-${this.props.tab.key}`)
     this.token = PubSub.subscribe(`hover-statusbar-${this.props.tab.key}`,(e,val)=>{
       if(this.hoverStatusBar == val) return
-      if(!this._isShow()){
-        this.hoverStatusBar = val
-        this.setState({})
+      if(!sharedState.statusBar){
+        clearTimeout(this.id)
+        this.id = setTimeout(_=>{
+          this.getWebContents(this.props.tab).executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd','document.scrollingElement.scrollWidth - document.scrollingElement.clientWidth', {},(err, url, result)=>{
+            this.hoverStatusBar = val
+            console.log(543543543,result[0])
+            if(result[0] !== 0){
+              this.margin = true
+            }
+            else{
+              this.margin = false
+            }
+            this.setState({})
+          })
+        },100)
       }
     })
   }
 
-  _isShow(){
-    return sharedState.statusBar
+  getWebContents(tab){
+    if(!tab.wv || !tab.wvId) return
+    return global.currentWebContents[tab.wvId]
   }
 
   isShow(){
-    return (this._isShow() || this.hoverStatusBar)
+    return (sharedState.statusBar || this.hoverStatusBar) &&
+      (this.props.toggleNav != 2 && this.props.toggleNav != 3) &&
+      this.props.tab.page.navUrl != 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html'
   }
 
   // shouldComponentUpdate(nextProps, nextState) {
@@ -61,7 +76,7 @@ export default class StatusBarWrapper extends Component {
   }
 
   render(){
-    return this.isShow() ? <StatusBar {...this.props} hoverStatusBar={this.hoverStatusBar}/> : null
+    return this.isShow() ? <StatusBar {...this.props} margin={this.margin} hoverStatusBar={this.hoverStatusBar}/> : null
   }
 }
 
@@ -182,7 +197,7 @@ class StatusBar extends Component {
       color: (getTheme('colors','bookmark_text') || void 0)}
     if(sharedState.hoverStatusBar){
       const rect = this.props.hoverStatusBar.getBoundingClientRect()
-      style = {overflow: 'hidden',position: 'fixed',zIndex:1000,width:rect.width,bottom:0,left:rect.left,
+      style = {overflow: 'hidden',position: 'fixed',zIndex:1000,width:rect.width,bottom:this.props.margin ? 15 : 0,left:rect.left,
         paddingTop: 2,height:25 ,borderBottom: '1px solid rgb(148, 148, 148)',...style}
     }
     return <div ref="bar" className="status-bar" style={style}>

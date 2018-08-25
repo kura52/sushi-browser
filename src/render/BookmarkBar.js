@@ -150,11 +150,9 @@ export default class BookmarkBarWrapper extends Component {
   shouldComponentUpdate(nextProps, nextState) {
     let val = this.isShow()
     if(!val) val = void 0
-    const cond = this.prev === val
+    const cond = this.prev !== val
     if(cond){
       this.prev = val
-    }
-    else{
       this.props.webViewCreate()
     }
     return cond
