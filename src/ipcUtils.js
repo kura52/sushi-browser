@@ -1,6 +1,6 @@
 import {ipcMain, app, dialog, BrowserWindow, shell, webContents, session, clipboard, nativeImage, Menu} from 'electron'
 const BrowserWindowPlus = require('./BrowserWindowPlus')
-import fs from 'fs'
+import fs from 'fs-extra'
 import sh from 'shelljs'
 import uuid from 'node-uuid'
 import PubSub from './render/pubsub'
@@ -26,9 +26,11 @@ const meiryo = isWin && Intl.NumberFormat().resolvedOptions().locale == 'ja'
 import mainState from './mainState'
 import extensionInfos from "./extensionInfos";
 import {history, token} from "./databaseFork";
+import importData from "./bookmarksExporter";
 const open = require('./open')
 const {readMacro,readMacroOff,readTargetSelector,readTargetSelectorOff,readComplexSearch} = require('./readMacro')
 const sharedState = require('./sharedStateMain')
+const request = require('./request')
 const bindPath = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/bind.html'
 
 function exec(command) {
@@ -2060,6 +2062,29 @@ ipcMain.on('set-zoom',(e,tabId,level)=>{
   cont.setZoomLevel(level)
 })
 
+ipcMain.on('install-from-local-file-extension', e=>{
+  dialog.showDialog(getCurrentWindow(), {
+    defaultPath: app.getPath('downloads'),
+    type: 'select-open-file',
+    extensions: [['crx']],
+    includeAllFiles:false
+  }, async fileNames => {
+    if (fileNames && fileNames.length == 1) {
+      const {extInstall,extensionPath} = require('./chromeEvents')
+      const fPath = path.parse(fileNames[0])
+      const id = `${fPath.name}_chrome_`
+      const dest = path.join(extensionPath,`${id}.crx`)
+      fs.copySync(fileNames[0],dest)
+      extInstall(dest.replace(/\.crx$/,''),void 0, void 0, id)
+    }
+  })
+})
+
+ipcMain.on('get-vpn-list',(e,key)=> {
+  request({url: `https://sushib.me/vpngate.json?a=${Math.floor(Date.now() / 1000 / 1800)}`}, (err, response, text) => {
+    e.sender.send(`get-vpn-list-reply_${key}`, text)
+  })
+})
 // ipcMain.on('get-firefox-url',(e,key,url)=>{
 //   session.defaultSession.webRequest.fetch(url, {'user-agent': `Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:57.0) Gecko/20100101 Firefox/57.0`}, (err, response, body) => {
 //      e.sender.send(`get-firefox-url-reply_${key}`,body.toString())

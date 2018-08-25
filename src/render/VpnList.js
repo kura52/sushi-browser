@@ -20,14 +20,17 @@ export default class VpnList extends Component {
   componentDidMount() {
     console.log(33)
     document.addEventListener('mousedown',this.outerClick)
-    fetch(`https://sushib.me/vpngate.json?a=${Math.floor(Date.now()/1000/1800)}`).then((response)=>response.json()).then(({list})=>{
+    const key = uuid.v4()
+    ipc.send('get-vpn-list',key)
+    ipc.once(`get-vpn-list-reply_${key}`,(e,text)=>{
+      const list = JSON.parse(text)
       ipc.send('get-country-names')
       ipc.once('get-country-names-reply',(e,countries)=>{
         this.setState({list,countries,visible:true,vpn:mainState.vpn})
         ipc.on('vpn-event-reply',this.event)
         console.log(list,countries)
       })
-    });
+    })
   }
 
   event(){

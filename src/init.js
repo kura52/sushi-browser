@@ -4,7 +4,7 @@ import PubSub from './render/pubsub'
 import mainState from './mainState'
 const locale = require('../brave/app/locale')
 const BrowserWindowPlus = require('./BrowserWindowPlus')
-const extensionMenu = require('./chromeEvents')
+const {extensionMenu} = require('./chromeEvents')
 const InitSetting = require('./InitSetting')
 const seq = require('./sequence')
 // const loadDevtool = require('electron-load-devtool');

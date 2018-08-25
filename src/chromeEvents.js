@@ -81,6 +81,46 @@ function simpleIpcFuncCb(name,callback){
   })
 }
 
+
+async function extInstall(extRootPath, retry, intId, id) {
+  let exePath = require("glob").sync(path.join(__dirname,'../../7zip/*/{7za,7za.exe}'))
+  if(!exePath.length){
+    exePath = require("glob").sync(path.join(__dirname,'../../app.asar.unpacked/resource/bin/7zip/*/{7za,7za.exe}'))
+    if(!exePath.length){
+      return
+    }
+  }
+
+  try {
+    console.log(`${extRootPath}.crx`, retry)
+    if (!fs.existsSync(`${extRootPath}.crx`)) return
+    clearInterval(intId)
+    const ret = await exec(`"${exePath[0]}" x -y -o"${extRootPath}_crx" "${extRootPath}.crx"`)
+    console.log(345, ret)
+    let manifestPath = path.join(`${extRootPath}_crx`, 'manifest.json')
+    if (!fs.existsSync(manifestPath)) {
+      manifestPath = require("glob").sync(`${extRootPath}_crx/**/manifest.json`)[0]
+    }
+    const dir = path.dirname(manifestPath)
+
+    const manifestContents = hjson.parse(removeBom(fs.readFileSync(manifestPath).toString()))
+    const verPath = path.join(extRootPath, manifestContents.version)
+    if(!id) id = manifestContents
+    fs.mkdirSync(extRootPath)
+    fs.renameSync(dir, verPath)
+    if (fs.existsSync(`${extRootPath}_crx`)) {
+      fs.removeSync(`${extRootPath}_crx`)
+    }
+    fs.unlink(`${extRootPath}.crx`, _ => _)
+    if (!manifestContents.theme) {
+      await chromeManifestModify(id, verPath)
+    }
+    extensions.loadExtension(session.defaultSession, id, verPath, void 0, void 0, true)
+  } catch (e) {
+    console.log(3333222, e)
+  }
+}
+
 const {getPath1,getPath2,extensionPath} = require('./chromeExtensionUtil')
 
 ipcMain.on('add-extension',(e,{id,url})=>{
@@ -100,46 +140,13 @@ ipcMain.on('add-extension',(e,{id,url})=>{
   ipcMain.emit('set-save-path', null,url, `${extRootPath}.crx`,true)
   e.sender.downloadURL(url)
 
-  let exePath = require("glob").sync(path.join(__dirname,'../../7zip/*/{7za,7za.exe}'))
-  if(!exePath.length){
-    exePath = require("glob").sync(path.join(__dirname,'../../app.asar.unpacked/resource/bin/7zip/*/{7za,7za.exe}'))
-    if(!exePath.length){
-      return
-    }
-  }
   let retry = 0
   setTimeout(_=>{
     const intId = setInterval(async _=>{
       console.log(234,global.downloadItems)
       if(retry++ > 10000) clearInterval(intId)
       if(!global.downloadItems.find(x=>x.savePath == `${extRootPath}.crx`)){
-        try{
-          console.log(`${extRootPath}.crx`,retry)
-          if(!fs.existsSync(`${extRootPath}.crx`)) return
-          clearInterval(intId)
-          const ret = await exec(`"${exePath[0]}" x -y -o"${extRootPath}_crx" "${extRootPath}.crx"`)
-          console.log(345,ret)
-          let manifestPath = path.join(`${extRootPath}_crx`,'manifest.json')
-          if (!fs.existsSync(manifestPath)) {
-            manifestPath = require("glob").sync(`${extRootPath}_crx/**/manifest.json`)[0]
-          }
-          const dir = path.dirname(manifestPath)
-
-          const manifestContents = hjson.parse(removeBom(fs.readFileSync(manifestPath).toString()))
-          const verPath = path.join(extRootPath,manifestContents.version)
-          fs.mkdirSync(extRootPath)
-          fs.renameSync(dir, verPath)
-          if(fs.existsSync(`${extRootPath}_crx`)){
-            fs.removeSync(`${extRootPath}_crx`)
-          }
-          fs.unlink(`${extRootPath}.crx`,_=>_)
-          if(!manifestContents.theme){
-            await chromeManifestModify(id,verPath)
-          }
-          extensions.loadExtension(session.defaultSession,id,verPath,void 0,void 0,true)
-        }catch(e){
-          console.log(3333222,e)
-        }
+        await extInstall(extRootPath, retry, intId, id)
       }
     },300)
   },2000)
@@ -148,12 +155,15 @@ ipcMain.on('add-extension',(e,{id,url})=>{
 ipcMain.on('delete-extension',(e,extensionId,orgId)=>{
   const basePath = getPath2(orgId) || getPath1(orgId)
   extensions.disableExtension(extensionId)
-  if(basePath){
-    const delPath = path.join(basePath,'..')
-    if(delPath.includes(orgId)){
-      sh.rm('-r',delPath)
+  console.log(55454,extensionId,orgId)
+  setTimeout(_=>{
+    if(basePath){
+      const delPath = path.join(basePath,'..')
+      if(delPath.includes(orgId)){
+        sh.rm('-rf',delPath)
+      }
     }
-  }
+  },1000)
 
 })
 
@@ -1446,4 +1456,4 @@ process.on('chrome-context-menus-create', (extensionId, menuItemId, properties, 
   extensionMenu[extensionId].push({properties, menuItemId, icon})
 })
 
-export default extensionMenu
+export default {extensionMenu, extInstall, extensionPath}

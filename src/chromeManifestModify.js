@@ -105,7 +105,7 @@ function removeBom(x){
 }
 
 export default async function modify(extensionId,verPath){
-  const isWebExt = !extensionId.match(/^[a-z]+$/)
+  const isWebExt = !extensionId.match(/(^[a-z]+$)|(_chrome_$)/)
   cache = new Set()
   if(!verPath){
     verPath = getPath2(extensionId) || getPath1(extensionId) //getPath1(extensionId)

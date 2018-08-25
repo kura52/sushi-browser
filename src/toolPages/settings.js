@@ -2409,6 +2409,11 @@ class ExtensionSetting extends React.Component {
         </tfoot>
       </table>
 
+      <br/>
+
+      <Button primary content='Install from local file(.crx)'
+              onClick={_=>ipc.send('install-from-local-file-extension')}/>
+
     </div>
   }
 

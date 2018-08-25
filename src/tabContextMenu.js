@@ -1,5 +1,5 @@
 import {ipcMain} from 'electron'
-const extensionMenu = require('./chromeEvents')
+const {extensionMenu} = require('./chromeEvents')
 const extensionInfos = require('./extensionInfos')
 import path from 'path'
 
