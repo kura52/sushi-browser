@@ -90,7 +90,7 @@ const settingDefault =  {
   bookmarkBar: false,
   bookmarkBarTopPage: true,
   statusBar: false,
-  hoverStatusBar: true,
+  hoverStatusBar: false,
   windowCustomIcon: null,
   enableDownloadList: true,
   rectangularSelection: true,
@@ -103,6 +103,7 @@ const settingDefault =  {
   mobilePanelSyncScroll: true,
   rockerGestureLeft: null,
   rockerGestureRight: null,
+  inputHistory: true,
 
   //privacy
   clearHistoryOnClose: false,

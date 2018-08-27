@@ -239,14 +239,14 @@ This browser makes use of wonderful web technologies, starting with the followin
 Both the installer for every platform and the portable version can be downloaded.  
 To use the portable edition, please run sushi.exe for Windows and sushi-browser for Mac/Linux after decompressing.
 
-- [Windows Installer v0.21.0](https://sushib.me/dl/sushi-browser-0.21.0-setup-x64.exe)
-- [Windows Portable v0.21.0(self-extract)](https://sushib.me/dl/sushi-browser-0.21.0-win-x64.exe)
-- [Windows Portable v0.21.0](https://sushib.me/dl/sushi-browser-0.21.0-win-x64.zip)
-- [MacOS dmg v0.21.0](https://sushib.me/dl/SushiBrowser-0.21.0.dmg)
-- [MacOS Portable v0.21.0](https://sushib.me/dl/sushi-browser-0.21.0-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.21.0](https://sushib.me/dl/sushi-browser-0.21.0.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.21.0](https://sushib.me/dl/sushi-browser_0.21.0_amd64.deb)
-- [Linux Portable v0.21.0](https://sushib.me/dl/sushi-browser-0.21.0.tar.bz2)
+- [Windows Installer v0.21.1](https://sushib.me/dl/sushi-browser-0.21.1-setup-x64.exe)
+- [Windows Portable v0.21.1(self-extract)](https://sushib.me/dl/sushi-browser-0.21.1-win-x64.exe)
+- [Windows Portable v0.21.1](https://sushib.me/dl/sushi-browser-0.21.1-win-x64.zip)
+- [MacOS dmg v0.21.1](https://sushib.me/dl/SushiBrowser-0.21.1.dmg)
+- [MacOS Portable v0.21.1](https://sushib.me/dl/sushi-browser-0.21.1-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.21.1](https://sushib.me/dl/sushi-browser-0.21.1.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.21.1](https://sushib.me/dl/sushi-browser_0.21.1_amd64.deb)
+- [Linux Portable v0.21.1](https://sushib.me/dl/sushi-browser-0.21.1.tar.bz2)
 
 # Use of Flash 
 If Flash won't run, please install Flash from the following web sites.  
@@ -260,6 +260,17 @@ sushi-browser --no-sandbox
 ```
 
 # New Features
+
+#### New function(v0.21.1)
+-  Added local install feature of Chrome extension. (Settings> Extensions) (issue #22)
+- Fixed bug related to multiple languages. (issue #23)
+- Fixed bug that VPN does not work. (issue #26)
+- Fixed bug related to status bar.
+- Fixed a problem that crashes with tab closing. (Interim measures)
+- Updated to youtube-dl 2018.08.22.
+- Updated to inferno.js 5.4.2.
+- Updated to xterm.js 3.6.0.
+- Fixed a lot of bugs.
 
 #### New function(v0.21.0)
 - Implemented Mobile Panel (similar to Blisk) (Windows and Linux only) (Main Menu > Mobile Panel)

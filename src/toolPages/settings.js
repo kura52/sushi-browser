@@ -1616,7 +1616,7 @@ class TabsSetting extends React.Component {
         <Grid.Row>
           <Grid.Column width={6}><label style={{paddingLeft: 60}}>{l10n.translation("openNewTabsAt")}</label></Grid.Column>
           <Grid.Column width={5}><Dropdown onChange={this.onChange.bind(this,'openTabPosition')} selection
-                                           options={[{value: 'default',text: l10n.translation("defaultPosition")},{value: 'left',text: l10n.translation("defaultPosition")},{value: 'right',text: l10n.translation("defaultPosition")}]}
+                                           options={[{value: 'default',text: l10n.translation("defaultPosition")},{value: 'left',text: l10n.translation("leftEnd")},{value: 'right',text: l10n.translation("rightEnd")}]}
                                            defaultValue={this.state.openTabPosition}/></Grid.Column>
         </Grid.Row>
       </Grid>

@@ -14,7 +14,7 @@ const mainState = remote.require('./mainState')
 // const isWin = navigator.userAgent.includes('Windows')
 
 
-export default class DevToolsPanel extends Component {
+export default class MobilePanel extends Component {
   constructor(props) {
     super(props)
     this.state  = {}

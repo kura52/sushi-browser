@@ -99,6 +99,7 @@ const db = new Proxy({
   get windowState(){return new Proxy(dummy, handler('windowState'))},
   get automation(){return new Proxy(dummy, handler('automation'))},
   get automationOrder(){return new Proxy(dummy, handler('automationOrder'))},
+  get inputHistory(){return new Proxy(dummy, handler('inputHistory'))},
   get sock(){ return sock},
   _kill(){child.kill('SIGINT')}
 },handler())

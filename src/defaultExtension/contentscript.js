@@ -138,7 +138,7 @@ if(window.__started_){
 
   const key = Math.random().toString()
   ipc.send("get-main-state",key,['tripleClick','alwaysOpenLinkNewTab','themeColorChange','isRecording','isVolumeControl',
-    'keepAudioSeekValueVideo','rectangularSelection','fullscreenTransitionKeep','fullScreen','rockerGestureLeft','rockerGestureRight'])
+    'keepAudioSeekValueVideo','rectangularSelection','fullscreenTransitionKeep','fullScreen','rockerGestureLeft','rockerGestureRight','inputHistory'])
   ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
     if(data.fullscreenTransitionKeep){
       let full = data.fullScreen ? true : false
@@ -360,6 +360,11 @@ if(window.__started_){
         }
       },false)
     }
+
+    if(data.inputHistory){
+      require('./inputHistory')
+    }
+
   })
 
 
@@ -693,55 +698,6 @@ if(window.__started_){
 
         Function(code)()
 
-        const escapeValue = (value) => value && value.replace(/['"`\\/:\?&!#$%^()[\]{|}*+;,.<=>@~]/g, '\\$&').replace(/\n/g, '\A')
-        const createSelector = (element)=>{
-          for (var sels = []; element && element.nodeType == 1; element = element.parentNode) {
-            if(element.id) {
-              const escapedId = escapeValue(element.id)
-              const uniqueIdCount = document.querySelectorAll(`[id="${escapedId}"]`).length
-
-              if (uniqueIdCount == 1) {
-                sels.unshift(`[id="${escapedId}"]`)
-                return sels.join(' > ')
-              }
-              if (element.nodeName) sels.unshift(`${escapeValue(element.nodeName.toLowerCase())}[id="${escapedId}"]`);
-            }
-            else {
-              for (var i = 1, i2 = 1,sib = element.previousSibling; sib; sib = sib.previousSibling) {
-                if (sib.nodeName == element.nodeName) i++
-              }
-              let onlyElement = i == 1
-              if(onlyElement){
-                for(sib = element.nextSibling;sib;sib = sib.nextSibling){
-                  if(sib.nodeName == element.nodeName){
-                    onlyElement = false
-                    break
-                  }
-                }
-              }
-              let className = element.className
-              if(!onlyElement && element.className){
-                for(sib = element.previousSibling;sib;sib = sib.previousSibling){
-                  if(sib.nodeName == element.nodeName && sib.className.trim().replace(/[ \t]+/g, ".") == element.className.trim().replace(/[ \t]+/g, ".")){
-                    className = null
-                    break
-                  }
-                }
-                if(className){
-                  for(sib = element.nextSibling;sib;sib = sib.nextSibling){
-                    if(sib.nodeName == element.nodeName && sib.className.trim().replace(/[ \t]+/g, ".") == element.className.trim().replace(/[ \t]+/g, ".")){
-                      className = null
-                      break
-                    }
-                  }
-                }
-              }
-              sels.unshift(element.nodeName.toLowerCase() + (onlyElement ? '' : className ? `.${className.trim().replace(/[ \t]+/g, ".")}` : `:nth-of-type(${i})`))
-            }
-          }
-          return sels.length ? sels.join(' > ') : null
-        }
-
         let pre = 0
         document.addEventListener('scroll',(e)=>{
           if(Date.now() - window.__scroll_time__ < 300) return
@@ -750,7 +706,7 @@ if(window.__started_){
           const scrollY = window.scrollY
           const ele = document.elementFromPoint(Math.min(300,w / 2),h/2)
           console.log(e,ele)
-          chrome.ipcRenderer.send('sync-mobile-scroll',window.__select__(ele), createSelector(ele), (scrollY - pre)/document.body.scrollHeight)
+          chrome.ipcRenderer.send('sync-mobile-scroll',window.__select__(ele), window.__simpleSelect__(ele), (scrollY - pre)/document.body.scrollHeight)
           pre = scrollY
         },{capture: true, passive: true})
       }

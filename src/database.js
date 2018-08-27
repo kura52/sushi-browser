@@ -114,6 +114,7 @@ db.savedState = new Datastore({filename: path.join(resourcePath,'savedState.db')
 db.windowState = new Datastore({filename: path.join(resourcePath,'windowState.db'), autoload: true})
 db.automation = new Datastore({filename: path.join(resourcePath,'automation.db'), autoload: true})
 db.automationOrder = new Datastore({filename: path.join(resourcePath,'automationOrder.db'), autoload: true})
+db.inputHistory = new Datastore({filename: path.join(resourcePath,'inputHistory.db'), autoload: true})
 
 
 ;(async ()=>{
@@ -132,6 +133,7 @@ db.automationOrder = new Datastore({filename: path.join(resourcePath,'automation
   await db.image.ensureIndex({ fieldName: 'url' })
   await db.windowState.ensureIndex({ fieldName: 'key' })
   await db.automation.ensureIndex({ fieldName: 'key' })
+  await db.inputHistory.ensureIndex({ fieldName: 'frameUrl' })
 
   // await db.searchHistory.ensureIndex({ fieldName: 'text' }).exec()
   // await db.searchHistory.ensureIndex({ fieldName: 'created_at' }).exec()

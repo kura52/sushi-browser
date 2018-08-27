@@ -10,7 +10,7 @@ import URL from 'url'
 
 const os = require('os')
 const seq = require('./sequence')
-const {state,favorite,tabState,visit,savedState,automation,automationOrder,note} = require('./databaseFork')
+const {state,favorite,tabState,visit,savedState,automation,automationOrder,note,inputHistory} = require('./databaseFork')
 const db = require('./databaseFork')
 const FfmpegWrapper = require('./FfmpegWrapper')
 const defaultConf = require('./defaultConf')
@@ -2114,48 +2114,12 @@ ipcMain.on('get-vpn-list',(e,key)=> {
     e.sender.send(`get-vpn-list-reply_${key}`, text)
   })
 })
-// ipcMain.on('get-firefox-url',(e,key,url)=>{
-//   session.defaultSession.webRequest.fetch(url, {'user-agent': `Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:57.0) Gecko/20100101 Firefox/57.0`}, (err, response, body) => {
-//      e.sender.send(`get-firefox-url-reply_${key}`,body.toString())
-//   })
-// })
 
-// ipcMain.on('send-keys',(e,keys)=>{
-//   e.sender.sendInputEvent(keys)
-// })
+ipcMain.on('get-selector-code',(e,key)=>{
+  const code = fs.readFileSync(path.join(__dirname,"../resource/extension/default/1.0_0/js/mobilePanel.js").replace(/app.asar([\/\\])/,'app.asar.unpacked$1')).toString()
+  e.sender.send(`get-selector-code_${key}`,code)
+})
 
-// async function recurSelect(keys){
-//   const ret = await favorite.find({key:{$in: keys}})
-//   const addKey = []
-//   let children = ret.map(x=>{
-//     if(x.is_file){
-//       addKey.push(x.url)
-//     }
-//     else{
-//       recurSelect(x.children)
-//     }
-//   })
-//   const nextKeys = Array.prototype.concat.apply([],children).filter(ret=>ret)
-//   list.splice(list.length,0,...addKey)
-//   if(nextKeys && nextKeys.length > 0) {
-//     return (await recurFind(nextKeys, list))
-//   }
-// }
-//
-// ipcMain.on('get-all-favorites',async (event,key)=>{
-//   let list = []
-//   const ret = await recurSelect(['root'])
-//   const cont = event.sender.hostWebContents
-//   for(let url of list){
-//     await new Promise((resolve,reject)=>{
-//       setTimeout(_=>{
-//         cont.send("new-tab-opposite",event.sender.getId(),url)
-//         resolve()
-//       },200)
-//
-//     })
-//   }
-//   console.log(list)
-//   event.sender.send(`open-favorite-reply_${key}`,key)
-//
-// })
+ipcMain.on('input-history-data',(e,data)=>{
+  inputHistory.update({frameUrl: data.frameUrl}, data, { upsert: true }).then(_=>_)
+})
