@@ -138,7 +138,8 @@ if(window.__started_){
 
   const key = Math.random().toString()
   ipc.send("get-main-state",key,['tripleClick','alwaysOpenLinkNewTab','themeColorChange','isRecording','isVolumeControl',
-    'keepAudioSeekValueVideo','rectangularSelection','fullscreenTransitionKeep','fullScreen','rockerGestureLeft','rockerGestureRight','inputHistory'])
+    'keepAudioSeekValueVideo','rectangularSelection','fullscreenTransitionKeep','fullScreen','rockerGestureLeft','rockerGestureRight',
+    'inputHistory','inputHistoryMaxChar'])
   ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
     if(data.fullscreenTransitionKeep){
       let full = data.fullScreen ? true : false
@@ -362,7 +363,7 @@ if(window.__started_){
     }
 
     if(data.inputHistory){
-      require('./inputHistory')
+      require('./inputHistory')(data.inputHistoryMaxChar)
     }
 
   })

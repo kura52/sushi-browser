@@ -31,6 +31,7 @@ const isWin = navigator.userAgent.includes('Windows')
 const sharedState = require('./sharedState')
 const BrowserPageStatus = require('./BrowserPageStatus')
 const autoHighLightInjection = require('./autoHighLightInjection')
+const InputPopup = require('./InputPopup')
 
 let searchProviders,spAliasMap,autocompleteUrl
 updateSearchEngine();
@@ -479,6 +480,7 @@ export default class TabPanel extends Component {
     this.navigateTo = ::this.navigateTo
     this.updateIdle = ::this.updateIdle
     this.maximizePanel = ::this.maximizePanel
+    this.focus_webview = ::this.focus_webview
 
     if((multistageTabs && maxrowLabel != 0) || openTabPosition != 'default'){
       this.componentWillUpdate = (prevProps, prevState)=>{
@@ -605,13 +607,31 @@ export default class TabPanel extends Component {
     }
     ipc.on('restore-tabs-from-tabKey',eventRestoreTabs)
 
+    const eventFocusInput = (e,data)=>{
+      const tab = this.state.tabs.find(t=>t.wvId == data.tabId)
+      if(tab){
+        if(data.mode == 'in'){
+          if(!this.state.tabs.find(t=>tab.key == this.state.selectedTab)) return
+          const rect = ReactDOM.findDOMNode(tab.wv).getBoundingClientRect()
+          const inputPopup = {tabId: data.tabId, key:tab.key,
+            left: rect.left + data.x + data.width - 25, top: rect.top + data.y + data.height / 2 - 17,
+            selector: data.selector, optSelector: data.optSelector, inHistory: data.inHistory}
+          this.setState({inputPopup})
+        }
+        else if(this.state.inputPopup && !document.activeElement.closest('.input-popup-wrapper')){
+          this.setState({inputPopup: null})
+        }
+      }
+    }
+    ipc.on('focus-input',eventFocusInput)
 
     return [
       {'show-notification': eventNotification},
       {'close-tab-from-other-window': closeTabFromOtherWindow},
       {'close-sync-tab': eventCloseSyncTab},
       {'chrome-windows-create-from-tabId': eventChromeWindowsCreateFromTabId},
-      {'restore-tabs-from-tabKey': eventRestoreTabs}
+      {'restore-tabs-from-tabKey': eventRestoreTabs},
+      {'focus-input': eventFocusInput}
     ]
   }
 
@@ -3128,6 +3148,7 @@ export default class TabPanel extends Component {
 
       const isChangeSelected = !sameSelected
       if(isChangeSelected) {
+        if(this.state.inputPopup && this.state.inputPopup.key != this.state.selectedTab) this.setState({inputPopup: null})
         this.state.selectedKeys = this.state.selectedKeys.filter(key => key != this.state.selectedTab && this.state.tabs.some(tab => tab.key == key))
         this.state.selectedKeys.push(this.state.selectedTab)
         sharedState.allSelectedkeys.add(this.state.selectedTab)
@@ -4691,6 +4712,7 @@ export default class TabPanel extends Component {
               }) : null}
               <BookmarkBar webViewCreate={this.webViewCreate} tab={tab} refs2={refs2} topURL={topURL} navigateTo={this.navigateTo} toggleNav={toggle} k={this.props.k} currentWebContents={this.props.currentWebContents}/>
               <BrowserPageStatus tab={tab}/>
+              {this.state.inputPopup && this.state.inputPopup.key == tab.key ? <InputPopup {...this.state.inputPopup} tab={tab} focus_webview={this.focus_webview}/>: null}
             </div>
           </Tab>)
         })}

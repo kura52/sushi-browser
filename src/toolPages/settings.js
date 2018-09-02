@@ -217,6 +217,10 @@ const concurrentDownloadOptions = Array.from(new Array(21)).map((v,n)=>{
   return {value: n ,text: n}
 })
 
+const historySuggestionOptions = Array.from(new Array(51)).map((v,n)=>{
+  return {value: n ,text: n}
+})
+
 const sendToVideoOptionsAll = [
   { value: 'vlc', text: 'VLC Media Player',os:['win','mac','linux']},
   { value: 'PotPlayerMini64', text: 'PotPlayer',os:['win']},
@@ -697,7 +701,7 @@ class GeneralSetting extends React.Component {
           <Grid.Row>
             <Grid.Column width={3}><label>{l10n.translation("numberOfHistories")}</label></Grid.Column>
             <Grid.Column width={8}><Dropdown onChange={this.onChange.bind(this,'numOfHistory')} selection
-                                             options={concurrentDownloadOptions} defaultValue={this.state.numOfHistory}/></Grid.Column>
+                                             options={historySuggestionOptions} defaultValue={this.state.numOfHistory}/></Grid.Column>
           </Grid.Row>
         </Grid>
 
@@ -740,6 +744,21 @@ class GeneralSetting extends React.Component {
           <br/>
         </div>
         <br/>
+
+
+        <div className="field">
+          <label>Input History</label>
+
+          <Checkbox defaultChecked={this.state.inputHistory} toggle onChange={this.onChange.bind(this,'inputHistory')}/>
+          <span className="toggle-label">Enable input history function</span>
+
+          <span style={{height: 5}}/>
+
+          <span>Maximum number of characters:&nbsp;</span>
+          <Input onChange={this.onChange.bind(this,'inputHistoryMaxChar')} defaultValue={this.state.inputHistoryMaxChar}/>
+        </div>
+        <br/>
+
 
         <div className="field">
           <label>Special Behavior</label>
@@ -2755,6 +2774,9 @@ class TopList extends React.Component {
         <Menu.Item as="a" href='javascript:void(0)' onClick={_=>ipc.send('open-page','chrome-extension://jpkfjicglakibpenojifdiepckckakgk/options_page.html')} active={false}>
           {l10n.translation('mouseGesture')}
         </Menu.Item>
+        <Menu.Item as="a" href='javascript:void(0)' onClick={_=>ipc.send('open-page','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/input_history.html')} active={false}>
+          Input History
+        </Menu.Item>
       </Sidebar>
       <Sidebar.Pusher>
         <Segment basic>
@@ -2787,7 +2809,7 @@ ipc.send("get-main-state",key,['startsWith','newTabMode','myHomepage','searchPro
   'enableWidevine','toolbarLink','sidebarLink','bookmarkbarLink','zoomBehavior','tabPreviewSizeWidth','tabPreviewSizeHeight','tabPreviewSlideHeight','tabPreviewWait','searchEngineDisplayType','tabPreviewRecent',
   'sendUrlContextMenus','extensions','tabBarMarginTop','removeTabBarMarginTop','enableTheme','themeTopPage','themeBookmark','themeHistory','themeDownloader','themeExplorer','themeBookmarkSidebar','themeHistorySidebar',
   'themeSessionManagerSidebar','themeTabTrashSidebar','themeTabHistorySidebar','themeExplorerSidebar','searchHistoryOrderCount','rectangularSelection','fullscreenTransitionKeep','enableSmoothScrolling','showAddressBarFavicon','showAddressBarBookmarks'
-  ,'emailSync','syncGeneralSettings','syncBookmarks','syncBrowsingHistory','syncSessionTools','syncFavicons','syncDownloadHistory','syncAutomation','syncNote','syncPassword','rockerGestureLeft','rockerGestureRight'])
+  ,'emailSync','syncGeneralSettings','syncBookmarks','syncBrowsingHistory','syncSessionTools','syncFavicons','syncDownloadHistory','syncAutomation','syncNote','syncPassword','rockerGestureLeft','rockerGestureRight','inputHistory','inputHistoryMaxChar'])
 ipc.once(`get-main-state-reply_${key}`,(e,data)=>{
   generalDefault = data
   keyboardDefault = data

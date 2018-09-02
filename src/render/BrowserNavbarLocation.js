@@ -10,8 +10,6 @@ const PubSub = require('./pubsub')
 const urlutil = require('./urlutil')
 const sharedState = require('./sharedState')
 
-const SKIP_CODES = [8,9,13,16,17,18,19,20,27,33,34,35,36,37,38,39,40,45,46,144,145]
-
 const convertUrlMap = new Map([
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html',''],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html','about:blank'],
@@ -146,6 +144,16 @@ export default class BrowserNavbarLocation extends Component {
     }
   }
 
+  componentDidUpdate(prevProps, prevState){
+    if(!this.input) return
+    const ele = this.input.parentNode.nextElementSibling
+    if(!ele) return
+    const rect = this.input.getBoundingClientRect()
+    ele.style.maxHeight = `${window.innerHeight - (rect.top + rect.height) - 5}px`
+    ele.style.maxWidth = `${window.innerWidth - rect.left}px`
+    ele.style.left = `${rect.left}px`
+  }
+
   resetComponent(noBlur){
     if(this.props.tab.fields && this.props.tab.fields.mobilePanel){
       ipc.send('mobile-panel-operation',{type: 'above', key: this.props.tab.key, tabId: this.props.tab.wvId, force: true})
@@ -278,6 +286,7 @@ export default class BrowserNavbarLocation extends Component {
   onMouseDown(e){
     this.mouseDown = e.target
     this.button = e.button
+    this.mouseDownPos = e.target.clientWidth - e.offsetX
     // if(this.isFloat || this.props.isMaximize){
     // }
   }
@@ -286,7 +295,7 @@ export default class BrowserNavbarLocation extends Component {
     if(e.button == 2 || !this.mouseDown || this.button !== e.button) return
     this.mouseDown = void 0
     this.button = void 0
-    if(e.button == 0){
+    if(e.button == 0 && this.mouseDownPos > 0){
       e.target.click()
     }
     else if(e.button == 1){
@@ -303,6 +312,7 @@ export default class BrowserNavbarLocation extends Component {
       }
       document.addEventListener('mousedown',this.outerClick,{once:true})
     }
+    this.mouseDownPos = void 0
   }
 
   outerClick(e){

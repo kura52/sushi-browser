@@ -2120,6 +2120,37 @@ ipcMain.on('get-selector-code',(e,key)=>{
   e.sender.send(`get-selector-code_${key}`,code)
 })
 
-ipcMain.on('input-history-data',(e,data)=>{
-  inputHistory.update({frameUrl: data.frameUrl}, data, { upsert: true }).then(_=>_)
+ipcMain.on('input-history-data',async (e,key,data,isTmp)=>{
+  if(isTmp){
+    const d = await inputHistory.findOne({host: data.host, value:data.value})
+    if(!d){
+      data.key = key
+      await inputHistory.update({key}, data, { upsert: true })
+    }
+  }
+  else{
+    await inputHistory.remove({key})
+    await inputHistory.update({host: data.host, value:data.value}, data, { upsert: true })
+  }
+})
+
+ipcMain.on('focus-input',async (e,mode,data)=>{
+  if(mode == 'in'){
+    const inHistory = await inputHistory.find({host: data.host})
+    if(inHistory && inHistory.length){
+      e.sender.hostWebContents.send('focus-input',{mode,tabId: e.sender.getId(),...data,inHistory})
+    }
+  }
+  else{
+    e.sender.hostWebContents.send('focus-input',{mode,tabId: e.sender.getId(),...data})
+  }
+})
+
+ipcMain.on('get-input-history',async (e,key)=>{
+  const data = await inputHistory.find_sort([{}],[{ now: -1 }])
+  e.sender.send(`get-input-history-reply_${key}`,data)
+})
+
+ipcMain.on('delete-input-history',async (e,cond)=>{
+  await inputHistory.remove(cond, { multi: true })
 })

@@ -1233,11 +1233,73 @@ a.zoom-change:hover,a.zoom-reset:hover{
     display: inline-block;
 }
 
-/*div.nav-menu .fa.fa-mobile{*/
-    /*vertical-align: initial;*/
-    /*font-size: inherit;*/
-/*}*/
+.input-group .results.transition.visible{
+    overflow-y: auto;
+    position: fixed;
+    top: auto;
+    z-index: 999;
+}
 
-/*.fa.fa-mobile{*/
-    /*vertical-align: 5px;*/
-/*}*/
+
+.input-group .results.transition.visible::-webkit-scrollbar,
+.input-popup-wrapper .results.transition.visible::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+.input-group .results.transition.visible::-webkit-scrollbar-button,
+.input-popup-wrapper .results.transition.visible::-webkit-scrollbar-button {
+    width: 0px;
+    height: 0px;
+}
+.input-group .results.transition.visible::-webkit-scrollbar-thumb,
+.input-popup-wrapper .results.transition.visible::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border: 0px none #ffffff;
+    border-radius: 50px;
+}
+.input-group .results.transition.visible::-webkit-scrollbar-thumb:hover,
+.input-popup-wrapper .results.transition.visible::-webkit-scrollbar-thumb:hover {
+    background: #d1d0d0;
+}
+.input-group .results.transition.visible::-webkit-scrollbar-thumb:active,
+.input-popup-wrapper .results.transition.visible::-webkit-scrollbar-thumb:active  {
+    background: #d1d0d0;
+}
+.input-group .results.transition.visible::-webkit-scrollbar-track,
+.input-popup-wrapper .results.transition.visible::-webkit-scrollbar-track {
+    background: #666666;
+    border: 0px none #ffffff;
+    border-radius: 50px;
+}
+.input-group .results.transition.visible::-webkit-scrollbar-corner,
+.input-popup-wrapper .results.transition.visible::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+.input-popup-wrapper{
+    position: fixed;
+    z-index: 3;
+    font-size: 18px;
+    color: darkgrey;
+    outline: none;
+}
+
+.nav3-menu {
+    top: 80% !important;
+    left: -10% !important;
+}
+
+.input-popup .results.transition {
+    width: 250px;
+    max-height: 339px;
+    overflow-y: auto;
+}
+
+.input-popup .ui.search>.results .result .title {
+    font-weight: normal;
+}
+
+.input-popup .ui.input input {
+    padding: .27861429em 0.6em;
+    height: 27px;
+}

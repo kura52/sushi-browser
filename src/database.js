@@ -133,7 +133,7 @@ db.inputHistory = new Datastore({filename: path.join(resourcePath,'inputHistory.
   await db.image.ensureIndex({ fieldName: 'url' })
   await db.windowState.ensureIndex({ fieldName: 'key' })
   await db.automation.ensureIndex({ fieldName: 'key' })
-  await db.inputHistory.ensureIndex({ fieldName: 'frameUrl' })
+  await db.inputHistory.ensureIndex({ fieldName: 'host' })
 
   // await db.searchHistory.ensureIndex({ fieldName: 'text' }).exec()
   // await db.searchHistory.ensureIndex({ fieldName: 'created_at' }).exec()

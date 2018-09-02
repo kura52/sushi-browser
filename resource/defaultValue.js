@@ -81,7 +81,7 @@ const settingDefault =  {
   autoSaveInterval: 60,
   orderOfAutoComplete: 'suggestionToHistory',
   numOfSuggestion: 0,
-  numOfHistory: 15,
+  numOfHistory: 50,
   displayFullIcon: true,
   notLoadTabUntilSelected: false,
   askDownload: false,
@@ -104,6 +104,8 @@ const settingDefault =  {
   rockerGestureLeft: null,
   rockerGestureRight: null,
   inputHistory: true,
+  inputHistoryAll: false,
+  inputHistoryMaxChar: 10000,
 
   //privacy
   clearHistoryOnClose: false,
