@@ -29,25 +29,15 @@ const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
 const NEXT_APP_VERSION = "0.21.1"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = ` Added local install feature of Chrome extension. (Settings> Extensions) (issue #22)
-Fixed bug related to multiple languages. (issue #23)
-Fixed bug that VPN does not work. (issue #26)
-Fixed bug related to status bar.
-Fixed a problem that crashes with tab closing. (Interim measures)
-Updated to youtube-dl 2018.08.22.
-Updated to inferno.js 5.4.2.
-Updated to xterm.js 3.6.0.
-Fixed a lot of bugs.`
+const CHANGE_ENGLISH = `
+Updated to youtube-dl 2018.09.01.
+Fixed some bugs.`
 
-const CHANGE_JAPANESE = `Chrome拡張のローカルインストール機能を追加(設定 > 拡張機能)(issue #22)
-多言語に関する不具合を修正(issue #23)
-VPNが動作しない不具合を修正(issue #26)
-ステータスバーに関する不具合を修正
-タブクローズでクラッシュする不具合を修正（暫定策）
-youtube-dlを2018.08.22に更新
-inferno.jsを5.4.2に更新
-xterm.jsを3.6.0に更新
-多数の不具合修正`
+const CHANGE_JAPANESE = `フォームの入力履歴機能を追加
+モバイルパネルをDetachできるように改善
+フランス語の設定の表現を改善
+youtube-dlを2018.09.01に更新
+いくつかの不具合修正`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

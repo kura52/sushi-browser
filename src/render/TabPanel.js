@@ -155,6 +155,34 @@ function multiByteSlice(str,end) {
   return `${unescape(str.slice(0,i))}${i == str.length ? "" :"..."}`;
 }
 
+function recursiveDeepCopy(o) {
+  var newO,
+    i;
+
+  if (typeof o !== 'object') {
+    return o;
+  }
+  if (!o) {
+    return o;
+  }
+
+  if ('[object Array]' === Object.prototype.toString.apply(o)) {
+    newO = [];
+    for (i = 0; i < o.length; i += 1) {
+      newO[i] = recursiveDeepCopy(o[i]);
+    }
+    return newO;
+  }
+
+  newO = {};
+  for (i in o) {
+    if (o.hasOwnProperty(i)) {
+      newO[i] = recursiveDeepCopy(o[i]);
+    }
+  }
+  return newO;
+}
+
 function isFixedPanel(key){
   return key.startsWith('fixed-')
 }
@@ -182,8 +210,8 @@ function removeEvents(ipc,events){
   }
 }
 
-function tabAdd(self, url, isSelect=true,privateMode = false,guestInstanceId,mobile,adBlockThis,last=false) {
-  const t = self.createTab({default_url:convertURL(url),privateMode,guestInstanceId,rest:{mobile,adBlockThis}})
+function tabAdd(self, url, isSelect=true,privateMode = false,guestInstanceId,mobile,adBlockThis,fields,last=false) {
+  const t = self.createTab({default_url:convertURL(url),privateMode,guestInstanceId,fields,rest:{mobile,adBlockThis}})
   const key = t.key
 
 
@@ -342,7 +370,7 @@ export default class TabPanel extends Component {
         this.props.node.pop()
       }
       console.log('TabCreate')
-      const tab = this.createTab(params && {default_url:params.url,privateMode: params.privateMode,guestInstanceId: params.guestInstanceId,
+      const tab = this.createTab(params && {default_url:params.url,privateMode: params.privateMode,guestInstanceId: params.guestInstanceId, fields: params.fields,
         rest:{bind:params.bind,mobile:params.mobile,adBlockThis:params.adBlockThis,tabPreview:params.tabPreview}})
       withWindowCreateTabs.add(tab.key)
 
@@ -789,11 +817,11 @@ export default class TabPanel extends Component {
     if(this.isFixed) return [tokenResize,tokenWebViewCreate,tokenDrag,tokenActiveTabChanged,tokenClose,tokenBodyKeydown,tokenIncludeKey,tokenRichMedia,tokenMultiScroll,tokenCloseTab,tokenAdblock]
 
 
-    const tokenNewTabFromKey = PubSub.subscribe(`new-tab-from-key_${this.props.k}`, (msg,{url,mobile,adBlockThis,notSelected,privateMode,guestInstanceId,type})=> {
+    const tokenNewTabFromKey = PubSub.subscribe(`new-tab-from-key_${this.props.k}`, (msg,{url,mobile,adBlockThis,fields,notSelected,privateMode,guestInstanceId,type})=> {
       if (!this.mounted) return
       console.log(`new-tab-from-key_${this.props.k}`,this)
       if(!type || type == 'new-tab'){
-        tabAdd(this, url, !notSelected,privateMode,guestInstanceId,(void 0),(void 0));
+        tabAdd(this, url, !notSelected,privateMode,guestInstanceId,mobile,adBlockThis,fields)
       }
       else if(type == 'load-url'){
         const tab = this.state.tabs.find(x=>x.key==this.state.selectedTab)
@@ -1908,7 +1936,7 @@ export default class TabPanel extends Component {
       if ((tab.wvId && id == tab.wvId) || (k == this.props.k && tab.key == this.state.selectedTab)) {
         global.openerQueue.push(id || this.state.tabs.find(t=>t.key == this.state.selectedTab).wvId)
         console.log(this)
-        const t = tabAdd(this, url, !alwaysOpenLinkBackground && !openBackground, privateMode || tab.privateMode,(void 0),tab.mobile,tab.adBlockThis,last);
+        const t = tabAdd(this, url, !alwaysOpenLinkBackground && !openBackground, privateMode || tab.privateMode,(void 0),tab.mobile,tab.adBlockThis,tab.fields,last);
         if(tab.sync){
           t.sync = uuid.v4()
           t.dirc = tab.dirc
@@ -1927,7 +1955,7 @@ export default class TabPanel extends Component {
             const cont = this.getWebContents(t)
             if (!cont) return
             clearInterval(id)
-            cont.hostWebContents.send('open-panel', {url,sync:t.sync,id:tab.wvId,dirc:t.dirc,replaceInfo: tab.syncReplace,mobile: tab.mobile, adBlockThis: tab.adBlockThis})
+            cont.hostWebContents.send('open-panel', {url,sync:t.sync,id:tab.wvId,dirc:t.dirc,replaceInfo: tab.syncReplace,mobile: tab.mobile, adBlockThis: tab.adBlockThis, fields: tab.fields})
           }, 100)
         }
       }
@@ -1940,14 +1968,14 @@ export default class TabPanel extends Component {
         global.openerQueue.push(id)
         const oppositeKey = lastMouseDown ? (this.props.getPrevFocusPanel(this.props.k) || this.props.getOpposite(this.props.k)) : this.props.getOpposite(this.props.k)
         if (oppositeKey && !isFixedPanel(oppositeKey))
-          PubSub.publish(`new-tab-from-key_${oppositeKey}`, {url,mobile:tab.mobile, adBlockThis: tab.adBlockThis, privateMode:privateMode || tab.privateMode, type})
+          PubSub.publish(`new-tab-from-key_${oppositeKey}`, {url,mobile:tab.mobile, adBlockThis: tab.adBlockThis, fields: tab.fields, privateMode:privateMode || tab.privateMode, type})
         else{
           // const selectedTab =  this.state.selectedTab
           // const t = tabAdd(this, url, "nothing",(void 0),(void 0),tab.mobile,tab.adBlockThis,true);
           // setTimeout(_=> {
           //   const _tabs = this.state.tabs
           //   const i = _tabs.length - 1
-          this.props.split(this.props.k, 'v',1, (void 0), (void 0), {url,mobile:tab.mobile,adBlockThis:tab.adBlockThis, privateMode:privateMode || tab.privateMode})
+          this.props.split(this.props.k, 'v',1, (void 0), (void 0), {url,mobile:tab.mobile,adBlockThis:tab.adBlockThis, fields: tab.fields, privateMode:privateMode || tab.privateMode})
           // PubSub.publish(`close_tab_${this.props.k}`, {key:t.key, selectedTab})
           // },100)
         }
@@ -2213,9 +2241,12 @@ export default class TabPanel extends Component {
       else if(name == 'screenShotSelectionPng'){
         this.screenShot(false,'PNG',tab)
       }
+      else if(name == 'openLocation'){
+        ipc.emit('focus-location-bar',null,tab.wvId)
+      }
       else
       if(name == 'toggleDeveloperTools'){
-        if(!tab.fields) tab.fields = {}
+        // if(!tab.fields) tab.fields = {}
         const cont = this.getWebContents(tab)
         if(!cont.setDevToolsWebContents){
           cont.toggleDevTools()
@@ -2655,7 +2686,7 @@ export default class TabPanel extends Component {
     }
   }
 
-  createTab({default_url,c_page=null,c_wv=null,c_key=null,hist=null,privateMode=false,pin=false,protect=false,lock=false,mute=false,fields={},reloadInterval=false,guestInstanceId,tabPreview,initPos,rest} = {}){
+  createTab({default_url,c_page=null,c_wv=null,c_key=null,hist=null,privateMode=false,pin=false,protect=false,lock=false,mute=false,fields,reloadInterval=false,guestInstanceId,tabPreview,initPos,rest} = {}){
     default_url = default_url || (isFixedVerticalPanel(this.props.k) ? sidebarURL : topURL)
     if(default_url) default_url = convertURL(default_url)
     const tab = {events:{},ext:{}}
@@ -2669,6 +2700,11 @@ export default class TabPanel extends Component {
 
     if(guestInstanceId) tab.guestInstanceId = guestInstanceId
     if(initPos) tab.initPos = [default_url, initPos]
+
+    if(!fields) fields = {}
+    else{
+      fields = recursiveDeepCopy(fields)
+    }
 
     const newPage = c_page || this.createPageObject(default_url)
     const navigateTo = (l)=> this.navigateTo(newPage, l, tab)
@@ -2727,16 +2763,16 @@ export default class TabPanel extends Component {
       if(!tab.sync && !isFloatPanel(this.props.k) && opposite && disposition !== 'foreground-tab'){
         const oppositeKey = this.props.getOpposite(this.props.k)
         if (oppositeKey && !isFixedPanel(oppositeKey)){
-          PubSub.publish(`new-tab-from-key_${oppositeKey}`, {url,mobile:tab.mobile, adBlockThis: tab.adBlockThis,privateMode:tab.privateMode,guestInstanceId})
+          PubSub.publish(`new-tab-from-key_${oppositeKey}`, {url,mobile:tab.mobile, adBlockThis: tab.adBlockThis,fields: tab.fields,privateMode:tab.privateMode,guestInstanceId})
           return
         }
         else{
-          this.props.split(this.props.k, 'v',1, (void 0), (void 0), {url,mobile:tab.mobile,adBlockThis:tab.adBlockThis,privateMode:tab.privateMode,guestInstanceId})
+          this.props.split(this.props.k, 'v',1, (void 0), (void 0), {url,mobile:tab.mobile,adBlockThis:tab.adBlockThis,fields: tab.fields,privateMode:tab.privateMode,guestInstanceId})
           return
         }
       }
 
-      const t = tabAdd(this, url, disposition === 'foreground-tab',tab.privateMode,guestInstanceId,tab.mobile,tab.adBlockThis)
+      const t = tabAdd(this, url, disposition === 'foreground-tab',tab.privateMode,guestInstanceId,tab.mobile,tab.adBlockThis,tab.fields)
 
       if(tab.sync){
         t.sync = uuid.v4()
@@ -2755,7 +2791,7 @@ export default class TabPanel extends Component {
           if (!t.wv || !t.wvId) return
           const cont = this.getWebContents(t)
           clearInterval(id)
-          cont.hostWebContents.send('open-panel', {url,sync:t.sync,id:t.wvId,dirc:t.dirc,fore:disposition === 'foreground-tab',replaceInfo: tab.syncReplace,mobile: tab.mobile, adBlockThis: tab.adBlockThis,privateMode:tab.privateMode})
+          cont.hostWebContents.send('open-panel', {url,sync:t.sync,id:t.wvId,dirc:t.dirc,fore:disposition === 'foreground-tab',replaceInfo: tab.syncReplace,mobile: tab.mobile, adBlockThis: tab.adBlockThis,fields: tab.fields,privateMode:tab.privateMode})
         }, 100)
       }
     }
@@ -2976,7 +3012,7 @@ export default class TabPanel extends Component {
 
     this.webViewCreate()
 
-    this.eventOpenPanel = (e, {url,sync,id,dirc=1,fore=true,replaceInfo,needCloseTab=false,mobile,adBlockThis,privateMode})=> {
+    this.eventOpenPanel = (e, {url,sync,id,dirc=1,fore=true,replaceInfo,needCloseTab=false,mobile,adBlockThis,fields,privateMode})=> {
       if(sync && this.isFixed) return
 
       let orgReplaceInfo = replaceInfo
@@ -2996,9 +3032,9 @@ export default class TabPanel extends Component {
               tab.sync = sync
               if(this.props.getAllKey().filter(key=>!isFixedPanel(key)).length == 1){
                 console.log(url)
-                this.props.split(this.props.k,'v',1,(void 0),(void 0),{url:this.syncUrl(url,orgReplaceInfo,dirc,(void 0),true),mobile:tab.mobile,adBlockThis:tab.adBlockThis,privateMode:tab.privateMode})
+                this.props.split(this.props.k,'v',1,(void 0),(void 0),{url:this.syncUrl(url,orgReplaceInfo,dirc,(void 0),true),mobile:tab.mobile,adBlockThis:tab.adBlockThis,fields:tab.fields,privateMode:tab.privateMode})
                 setTimeout(()=>{
-                  cont.hostWebContents.send('open-panel',{url,sync,id,dirc,replaceInfo:tab.syncReplace,needCloseTab:true,mobile:tab.mobile,adBlockThis:tab.adBlockThis,privateMode:tab.privateMode})
+                  cont.hostWebContents.send('open-panel',{url,sync,id,dirc,replaceInfo:tab.syncReplace,needCloseTab:true,mobile:tab.mobile,adBlockThis:tab.adBlockThis,fields:tab.fields,privateMode:tab.privateMode})
                 },0)
                 return
               }
@@ -3014,7 +3050,7 @@ export default class TabPanel extends Component {
       if(!key) {
         if(this.isFixed) return
 
-        const tab = needCloseTab ? this.state.tabs[0] : tabAdd(this, this.syncUrl(url,replaceInfo,dirc,(void 0),true),fore,privateMode,(void 0),mobile,adBlockThis)
+        const tab = needCloseTab ? this.state.tabs[0] : tabAdd(this, this.syncUrl(url,replaceInfo,dirc,(void 0),true),fore,privateMode,(void 0),mobile,adBlockThis,fields)
         // if(needCloseTab) PubSub.publish(`close_tab_${this.props.k}`, {key:this.state.tabs[0].key})
 
         key = tab.key
@@ -3027,9 +3063,9 @@ export default class TabPanel extends Component {
               // setTimeout(()=>{
               const cont = this.getWebContents(tab)
               console.log(url)
-              this.props.split(this.props.k,'v',1,(void 0),(void 0),{url:this.syncUrl(url,replaceInfo,dirc),mobile:tab.mobile,adBlockThis:tab.adBlockThis,privateMode:tab.privateMode})
+              this.props.split(this.props.k,'v',1,(void 0),(void 0),{url:this.syncUrl(url,replaceInfo,dirc),mobile:tab.mobile,adBlockThis:tab.adBlockThis,fields:tab.fields,privateMode:tab.privateMode})
               setTimeout(()=>{
-                cont.hostWebContents.send('open-panel',{url,sync,id:tab.wvId,dirc,replaceInfo:tab.syncReplace,needCloseTab:true,mobile:tab.mobile,adBlockThis:tab.adBlockThis,privateMode:tab.privateMode})
+                cont.hostWebContents.send('open-panel',{url,sync,id:tab.wvId,dirc,replaceInfo:tab.syncReplace,needCloseTab:true,mobile:tab.mobile,adBlockThis:tab.adBlockThis,fields:tab.fields,privateMode:tab.privateMode})
               },0)
               this.setState({})
               // },100)
@@ -3566,7 +3602,8 @@ export default class TabPanel extends Component {
       const tabKey = tab.key
       this.state.history.push([tabKey,i])
 
-      this.getWebContents(tab).send('record-input-history')
+      const cont = this.getWebContents(tab)
+      if(!cont.isDestroyed()) cont.send('record-input-history')
       tab.wv.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd','({x:window.scrollX ,y:window.scrollY})',{},
         (err, url, result) => {
           if(result[0]){
@@ -4173,7 +4210,7 @@ export default class TabPanel extends Component {
     }
     if(!tabSync || (tabSyncReplace && !replaceInfo)||(!tabSyncReplace && replaceInfo)){
       const cont = this.getWebContents(tab)
-      const val = {url:tab.page.navUrl,sync:uuid.v4(), id:tab.wvId,replaceInfo,mobile: tab.mobile, adBlockThis: tab.adBlockThis, privateMode: tab.privateMode}
+      const val = {url:tab.page.navUrl,sync:uuid.v4(), id:tab.wvId,replaceInfo,mobile: tab.mobile, adBlockThis: tab.adBlockThis, fields: tab.fields, privateMode: tab.privateMode}
       if(replaceInfo){
         val.dirc = this.props.getKeyPosition(this.props.k).dirc == 'l' ? 1 : -1
       }
@@ -4590,13 +4627,14 @@ export default class TabPanel extends Component {
       if (condBasic || condTwo) {
         const oppositeKey = this.props.getOpposite(this.props.k)
         if (!isFirst || (oppositeKey && !isFixedPanel(oppositeKey)))
-          PubSub.publish(`new-tab-from-key_${oppositeKey}`, {url, mobile: tab.mobile, adBlockThis: tab.adBlockThis,notSelected: !isFirst,privateMode:tab.privateMode})
+          PubSub.publish(`new-tab-from-key_${oppositeKey}`, {url, mobile: tab.mobile, adBlockThis: tab.adBlockThis,fields: tab.fields,notSelected: !isFirst,privateMode:tab.privateMode})
         else {
           setTimeout(_=>{
             this.props.split(this.props.k, 'v', 1, (void 0), (void 0), {
               url,
               mobile: tab.mobile,
               adBlockThis: tab.adBlockThis,
+              fields: tab.fields,
               privateMode: tab.privateMode
             })
           },100)
@@ -4612,7 +4650,7 @@ export default class TabPanel extends Component {
           }
         }
         else{
-          const t = tabAdd(this, url, isFirst, tab.privateMode, (void 0), tab.mobile, tab.adBlockThis);
+          const t = tabAdd(this, url, isFirst, tab.privateMode, (void 0), tab.mobile, tab.adBlockThis, tab.fields);
           if (tab.sync) {
             t.sync = uuid.v4()
             t.dirc = tab.dirc
@@ -4639,6 +4677,7 @@ export default class TabPanel extends Component {
                 replaceInfo: tab.syncReplace,
                 mobile: tab.mobile,
                 adBlockThis: tab.adBlockThis,
+                fields: tab.fields,
                 privateMode: tab.privateMode
               })
             }, 100)

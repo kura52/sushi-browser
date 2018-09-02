@@ -362,7 +362,7 @@ if(window.__started_){
       },false)
     }
 
-    if(data.inputHistory){
+    if(data.inputHistory && !location.href.startsWith('chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd')){
       require('./inputHistory')(data.inputHistoryMaxChar)
     }
 

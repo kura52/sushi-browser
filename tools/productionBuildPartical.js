@@ -367,7 +367,7 @@ var getTabValue = function (tabId) {`)
   }
   return ret`)
 
-        .replace('  if (!error && createProperties.partition) {',`  if(createProperties.url == 'chrome://newtab/'){
+        .replace('  if (!error && createProperties.partition) {',`  if(!createProperties.url || createProperties.url == 'chrome://newtab/'){
     createProperties.url = newTabMode
   }
   if(!createProperties.openerTabId || createProperties.openerTabId == -1){

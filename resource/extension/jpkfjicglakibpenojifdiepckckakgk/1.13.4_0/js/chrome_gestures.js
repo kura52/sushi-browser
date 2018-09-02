@@ -294,6 +294,9 @@
     "find in page": function () {
       chrome.ipcRenderer.send('menu-or-key-events','findOnPage',void 0,void 0,true)
     },
+    "open location": function () {
+      chrome.ipcRenderer.send('menu-or-key-events','openLocation',void 0,void 0,true)
+    },
     "quit browser": function () {
       chrome.ipcRenderer.send('quit-browser')
     },

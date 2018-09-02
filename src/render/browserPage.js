@@ -192,6 +192,11 @@ class BrowserPage extends Component {
       const tab = this.props.tab
       if (!tab.wvId || id !== tab.wvId) return
 
+      if(name == 'toggleFindOnPage'){
+        name = 'findOnPage'
+        toggle = true
+      }
+
       if(name == 'findOnPage'){
         if(word){
           this.refs.bps.refs.input.value = word

@@ -1051,11 +1051,11 @@ ipcMain.on('set-pos-window',async (e,{id,hwnd,key,x,y,width,height,top,active,ta
   }
 })
 
-const mpoMap = {}, loopMap = {}, bwMap= {},tabMap = {}, loadMap = {}
+const mpoMap = {}, loopMap = {}, bwMap= {},tabMap = {}, loadMap = {}, detachMap = {}
 global.bwMap = bwMap
 let mobileInject
-ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, url, x, y, width, height, oldKey, show, force})=>{
-  console.log('mobile',{type, key, tabId, url, x, y, width, height, oldKey})
+ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, y, width, height, oldKey, show, force})=>{
+  console.log('mobile',{type, key, tabId, url, x, y, width, height, oldKey, detach})
   if(!mobileInject){
     mobileInject = fs.readFileSync(path.join(__dirname,"../resource/extension/default/1.0_0/js/mobilePanel.js").replace(/app.asar([\/\\])/,'app.asar.unpacked$1')).toString()
   }
@@ -1071,16 +1071,16 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, url, x, y, width
     } : {}
 
     const bw = new BrowserWindow({
-      x, y, width, height,
+      x: x - 25, y, width, height: height - 25,
       title: 'Mobile Panel',
-      fullscreenable: false,
-      titleBarStyle: 'hidden',
+      fullscreenable: detach,
+      // titleBarStyle: detach ? void 0 : 'hidden',
       autoHideMenuBar: true,
-      frame: process.platform === 'darwin',
+      // frame: detach || process.platform === 'darwin',
       show: true,
-      skipTaskbar: true,
-      // resizable: false,
-      movable: false,
+      skipTaskbar: !detach,
+      // resizable: detach,
+      // movable: detach,
       webPreferences: {
         partition: 'persist:mobile',
         plugins: true,
@@ -1092,7 +1092,13 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, url, x, y, width
         ...fontOpt
       }
     })
-    bw.setMenuBarVisibility(false)
+    bw.setMinimizable(detach)
+    bw.setMaximizable(detach)
+    bw.setMenuBarVisibility(detach)
+
+    setTimeout(_=>bw.setBounds({x: Math.round(x),y: Math.round(y),width: Math.round(width),height: Math.round(height) - 25}),0)
+
+
 
     bw.webContents.openDevTools()
     bw.loadURL('data:text/html,<html></html>')
@@ -1101,8 +1107,9 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, url, x, y, width
     })
     // await new Promise(r=>setTimeout(r,300))
     bw.loadURL(url)
-    bw.setAlwaysOnTop(true)
+    bw.setAlwaysOnTop(!detach)
     mpoMap[key] = bw
+    detachMap[key] = detach
 
     bw.on('resize', ()=>{
       const [width,height] = bw.getSize()
@@ -1112,6 +1119,7 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, url, x, y, width
     bw.webContents.on('did-navigate', (e)=>{
       const url = bw.webContents.getURL()
       const tab = webContents.fromTabID(tabId)
+      if(!tab) return
       if(url != tab.getURL()){
         const now = Date.now()
         const time = loadMap[`${key}_bw`]
@@ -1121,7 +1129,12 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, url, x, y, width
       }
     })
 
-    bwMap[bw.webContents.getId()] = tabId
+    bw.on('closed',_=>{
+      const tab = webContents.fromTabID(tabId)
+      if(tab && tab.hostWebContents) tab.hostWebContents.send(`mobile-panel-close_${key}`)
+    })
+
+    bwMap[bw.webContents.id] = tabId
     tabMap[tabId] = bw.webContents
 
     loopMap[key] = setInterval(_=>{
@@ -1143,7 +1156,7 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, url, x, y, width
         },100)
       })
       if(devToolsWebContents){
-        cont.executeJavascriptInDevTools(`(async function(){
+        if(!cont.isDestroyed()) cont.executeJavascriptInDevTools(`(async function(){
   let phoneButton
   for(let i=0;i<100;i++){
     await new Promise(r=>{
@@ -1169,17 +1182,11 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, url, x, y, width
   }
   else{
     const bw = mpoMap[key]
+    const _detach = detachMap[key]
     if(!bw) return
     if(type == 'resize'){
-      // if(x !== void 0 && width !== void 0){
-        bw.setBounds({x: Math.round(x),y: Math.round(y),width: Math.round(width),height: Math.round(height)})
-      // }
-      // else if(x !== void 0){
-      //   win.setPosition(x,y)
-      // }
-      // else{
-      //   win.setSize(width, height)
-      // }
+      if(_detach) return
+        bw.setBounds({x: Math.round(x),y: Math.round(y),width: Math.round(width),height: Math.round(height) - 25})
     }
     else if(type == 'url'){
       const thisUrl = bw.webContents.getURL()
@@ -1194,13 +1201,18 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, url, x, y, width
     }
     else if(type == 'close'){
       clearInterval(loopMap[key])
-      delete bwMap[bw.webContents.getId()]
+      if(!bw.isDestroyed()){
+        delete bwMap[bw.webContents.id]
+        bw.close()
+      }
       delete tabMap[tabId]
-      bw.close()
+      delete detachMap[key]
       delete mpoMap[key]
       delete loopMap[key]
     }
     else if(type == 'below'){
+      if(_detach) return
+      if(bw.isMinimized()) return
       bw.setAlwaysOnTop(false)
       if(force){
         const cont = webContents.fromTabID(tabId)
@@ -1213,26 +1225,52 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, url, x, y, width
       }
     }
     else if(type == 'above'){
+      if(_detach) return
+      if(bw.isMinimized()) return
       bw.setAlwaysOnTop(true)
+    }
+    else if(type == 'minimize'){
+      if(_detach) return
+      bw.minimize()
+    }
+    else if(type == 'unminimize'){
+      if(_detach) return
+      bw.restore()
     }
     else if(type == 'key-change'){
       mpoMap[key] = mpoMap[oldKey]
+    }
+    else if(type == 'detach'){
+      detachMap[key] = detach
+
+      bw.setFullScreenable(detach)
+      bw.setSkipTaskbar(!detach)
+      bw.setMenuBarVisibility(detach)
+      bw.setMinimizable(detach)
+      bw.setMaximizable(detach)
+      bw.setAlwaysOnTop(!detach)
+      if(detach) bw.focus()
+
+      mainState.mobilePanelDetach = detach
+
+      // titleBarStyle: detach ? void 0 : 'hidden',
+      // frame: detach || process.platform === 'darwin',
     }
   }
 })
 
 ipcMain.on('sync-mobile-scroll',(e,optSelector,selector,move)=>{
   if(mainState.mobilePanelSyncScroll){
-    const tabId = bwMap[e.sender.getId()]
+    const tabId = bwMap[e.sender.id]
     if(tabId){
-      console.log('sync-mobile-scroll',optSelector,selector,tabId,move)
+      console.log('sync-mobile-scroll',optSelector,selector,e.sender.id,tabId,move)
       const tab = webContents.fromTabID(tabId)
-      tab.send('mobile-scroll',{type: 'scroll', optSelector,selector,move})
+      if(!tab.isDestroyed()) tab.send('mobile-scroll',{type: 'scroll', optSelector,selector,move})
     }
     else{
-      console.log('sync-mobile-scroll2',optSelector,selector,tabId,move)
+      console.log('sync-mobile-scroll2',optSelector,selector,e.sender.getId(),move)
       const cont = tabMap[e.sender.getId()]
-      cont.send('mobile-scroll',{type: 'scroll', optSelector,selector,move})
+      if(cont && !cont.isDestroyed()) cont.send('mobile-scroll',{type: 'scroll', optSelector,selector,move})
     }
   }
 })
@@ -2135,14 +2173,16 @@ ipcMain.on('input-history-data',async (e,key,data,isTmp)=>{
 })
 
 ipcMain.on('focus-input',async (e,mode,data)=>{
+  const hostWebContents = e.sender.hostWebContents
+  if(!hostWebContents) return
   if(mode == 'in'){
     const inHistory = await inputHistory.find({host: data.host})
     if(inHistory && inHistory.length){
-      e.sender.hostWebContents.send('focus-input',{mode,tabId: e.sender.getId(),...data,inHistory})
+      hostWebContents.send('focus-input',{mode,tabId: e.sender.getId(),...data,inHistory})
     }
   }
   else{
-    e.sender.hostWebContents.send('focus-input',{mode,tabId: e.sender.getId(),...data})
+    hostWebContents.send('focus-input',{mode,tabId: e.sender.getId(),...data})
   }
 })
 

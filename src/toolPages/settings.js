@@ -41,6 +41,7 @@ const keyMapping = {
   keyPasteWithoutFormatting: l10n.translation('pasteWithoutFormatting'),
   keySelectAll: l10n.translation('selectAll'),
   keyFindOnPage: l10n.translation('findOnPage'),
+  keyToggleFindOnPage: 'Toggle Find in Page',
   keyFindNext:  l10n.translation('findNext'),
   keyFindPrevious:  l10n.translation('findPrevious'),
   keyActualSize: l10n.translation('actualSize'),
@@ -752,7 +753,7 @@ class GeneralSetting extends React.Component {
           <Checkbox defaultChecked={this.state.inputHistory} toggle onChange={this.onChange.bind(this,'inputHistory')}/>
           <span className="toggle-label">Enable input history function</span>
 
-          <span style={{height: 5}}/>
+          <div style={{height: 5}}/>
 
           <span>Maximum number of characters:&nbsp;</span>
           <Input onChange={this.onChange.bind(this,'inputHistoryMaxChar')} defaultValue={this.state.inputHistoryMaxChar}/>
@@ -812,7 +813,7 @@ class GeneralSetting extends React.Component {
         </div>
         <br/>
 
-        {isWin ? <div className="field">
+        {isWin || true ? <div className="field">
           <label>Enable Rocker Gestures</label>
 
           <div className="field">

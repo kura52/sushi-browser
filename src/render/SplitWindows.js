@@ -1245,6 +1245,7 @@ export default class SplitWindows extends Component{
 
   split(key,direction,pos,tabs,index,params){
     if(!Array.isArray(index)) index = [index]
+    if(params && params.fields) params.fields = JSON.parse(JSON.stringify(params.fields))
     this._split(this.state.root,key,direction,pos,tabs,index,params)
     console.log(this.state.root)
   }
@@ -1629,7 +1630,7 @@ export default class SplitWindows extends Component{
 
   addFixedPanel(direction,pos,node=this.state.root,url){
     const fixedKey = this.getFixedPanelKey(direction == "v" ? pos == 1 ? "right" :"left" : pos == 1 ? "bottom" : "top") + `-${Math.random().toString().replace(".","")}_${count++}`
-    const newData = url ? [fixedKey,[],undefined,[undefined],{url, mobile: undefined, adBlockThis: true, privateMode: false, guestInstanceId: undefined}] : [fixedKey,[]]
+    const newData = url ? [fixedKey,[],undefined,[undefined],{url, mobile: undefined, adBlockThis: true,fields: {}, privateMode: false, guestInstanceId: undefined}] : [fixedKey,[]]
 
     const ref = this.refs[`pane_${node.key}`].state
     const refSize = this.refs[`pane_${node.key}`].getSize()

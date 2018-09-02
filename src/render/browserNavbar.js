@@ -297,7 +297,7 @@ class BrowserNavbar extends Component{
       this.hoverStatusBar == sharedState.hoverStatusBar &&
       this.tabPreview == sharedState.tabPreview &&
       this.themeBasePath == (sharedState.theme && sharedState.theme.base_path) &&
-      this.mobilePanel == (nextProps.tab.fields && nextProps.tab.fields.mobilePanel)
+      this.mobilePanelIsPanel === (nextProps.tab.fields.mobilePanel && nextProps.tab.fields.mobilePanel.isPanel)
     )
     if(ret){
       this.currentWebContents = nextProps.currentWebContents
@@ -323,7 +323,7 @@ class BrowserNavbar extends Component{
       this.hoverStatusBar = sharedState.hoverStatusBar
       this.tabPreview = sharedState.tabPreview
       this.themeBasePath = (sharedState.theme && sharedState.theme.base_path)
-      this.mobilePanel = nextProps.tab.fields && nextProps.tab.fields.mobilePanel
+      this.mobilePanelIsPanel = nextProps.tab.fields.mobilePanel && nextProps.tab.fields.mobilePanel.isPanel
     }
     return ret
   }
@@ -712,12 +712,12 @@ class BrowserNavbar extends Component{
       }}/>
       {isDarwin ? null : <NavbarMenuItem text={`[${this.props.tab.fields && this.props.tab.fields.mobilePanel ? '✓' : ' '}] Show Mobile Panel`} icon='mobile'
                       onClick={()=>{
-                        if(!this.props.tab.fields) this.props.tab.fields = {}
+                        // if(!this.props.tab.fields) this.props.tab.fields = {}
                         if(this.props.tab.fields.mobilePanel){
                           delete this.props.tab.fields.mobilePanel
                         }
                         else{
-                          this.props.tab.fields.mobilePanel = {width: mainState.mobilePanelWidth, isPanel: true}
+                          this.props.tab.fields.mobilePanel = {width: mainState.mobilePanelWidth, isPanel: !mainState.mobilePanelDetach}
                         }
                         this.props.parent.setState({})
                       }}/>}
@@ -803,12 +803,6 @@ class BrowserNavbar extends Component{
           this.setState({})
         }}/>
 
-        {isDarwin ? null : <NavbarMenuItem text={`[${sharedState.mobilePanelSyncScroll ? '✓' : ' '}] Enable Mobile Panel Sync Scroll`} icon='mobile' onClick={_=>{
-          sharedState.mobilePanelSyncScroll = !sharedState.mobilePanelSyncScroll
-          mainState.set('mobilePanelSyncScroll',sharedState.mobilePanelSyncScroll)
-          this.refs['main-menu'].menuClose()
-          this.setState({})
-        }}/>}
         <NavbarMenuItem text={`[${sharedState.notLoadTabUntilSelected ? '✓' : ' '}] ${locale.translation("donTLoadTabsUntillSelected")}`} onClick={_=>{this.loadTabSetting();this.refs['main-menu'].menuClose()}}/>
         <NavbarMenuItem text={`[${sharedState.askDownload ? '✓' : ' '}] ${locale.translation('7754704193130578113')}`} onClick={_=>{this.askDownload();this.refs['main-menu'].menuClose()}}/>
         <div className="divider" />
@@ -945,6 +939,21 @@ class BrowserNavbar extends Component{
     return datas ? <div className="favi-wrap"><img src={datas[1]} className="favi"/>{x[1]}</div> :  x[1] || x[0]
   }
 
+  mobilePanelButton(){
+    return [<BrowserNavbarBtn title={""} icon="link" sync={this.props.tab.fields.mobilePanel.isPanel}
+                      onClick={()=>{
+                        this.props.tab.fields.mobilePanel.isPanel = !this.props.tab.fields.mobilePanel.isPanel
+                        ipc.send('mobile-panel-operation',{type: 'detach', key: this.props.tab.key, tabId: this.props.tab.wvId, detach: !this.props.tab.fields.mobilePanel.isPanel})
+                        this.props.parent.setState({})
+                      }}/>,
+      <BrowserNavbarBtn title={""} icon="exchange" sync={sharedState.mobilePanelSyncScroll}
+                        onClick={()=>{
+                          sharedState.mobilePanelSyncScroll = !sharedState.mobilePanelSyncScroll
+                          mainState.set('mobilePanelSyncScroll',sharedState.mobilePanelSyncScroll)
+                          this.props.parent.setState({})
+                        }}/>,
+      ]
+  }
 
   buildItems(isFixed,isFloat,rich,cont,onContextMenu){
     const backItems = this.state.historyList.slice(0,this.state.currentIndex)
@@ -1194,6 +1203,7 @@ class BrowserNavbar extends Component{
 
       {isDarwin && this.props.isTopRight && this.props.toggleNav == 1 && !document.querySelector('.vertical-tab.left') ? <div style={{width: this.props.fullscreen ? 0 : 62}}/>  : null }
 
+      {this.props.tab.fields.mobilePanel ? this.mobilePanelButton() : null}
       {navBarMenus}
       {this.mainMenu(cont, this.props.tab, backSideMenus)}
       {this.state.vpnList ? <VpnList onClick={_=>this.setState({vpnList:false})}/> : null}

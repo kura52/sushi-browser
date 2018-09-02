@@ -626,7 +626,7 @@ process.on('add-new-contents', async (e, source, newTab, disposition, size, user
       }
       else{
         console.log(115)
-        const tabId = global.bwMap[source.getId()]
+        const tabId = global.bwMap[source.id]
         source = webContents.fromTabID(tabId)
         source.hostWebContents.send('create-web-contents', { id: source.getId(), targetUrl, disposition})
         return

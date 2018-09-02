@@ -226,6 +226,15 @@ const createEditSubmenu = () => {
         })
       }
     },
+    {
+      label: locale.translation('toggleFindOnPage'),
+      accelerator: mainState.keyToggleFindOnPage,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events','toggleFindOnPage',cont.getId())
+        })
+      }
+    },
     { type: 'separator' },
     {
       label: locale.translation('clicktabCopyTabUrl').replace('&apos;',"'"),

@@ -101,6 +101,7 @@ const settingDefault =  {
   devToolsHeight: 200,
   mobilePanelWidth: 400,
   mobilePanelSyncScroll: true,
+  mobilePanelDetach: false,
   rockerGestureLeft: null,
   rockerGestureRight: null,
   inputHistory: true,
@@ -216,6 +217,7 @@ const settingDefault =  {
   keySelectAll: 'CmdOrCtrl+A',
 
   keyFindOnPage: 'CmdOrCtrl+F',
+  keyToggleFindOnPage: '',
 
   keyActualSize: 'CmdOrCtrl+0',
   keyZoomIn: 'CmdOrCtrl+=',

@@ -173,6 +173,9 @@
    "action_name_find_in_page": {
       "message": "ページ内検索"
    },
+   "action_name_open_location": {
+      "message": "場所を開く"
+   },
    "action_name_quit_browser": {
       "message": "ブラウザを終了"
    },

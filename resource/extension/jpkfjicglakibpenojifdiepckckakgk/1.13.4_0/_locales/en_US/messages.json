@@ -89,6 +89,9 @@
    "action_name_find_in_page": {
       "message": "find in page"
    },
+   "action_name_open_location": {
+      "message": "open location"
+   },
    "action_name_quit_browser": {
       "message": "quit browser"
    },
