@@ -397,7 +397,11 @@ if(window.__started_){
   }
 
 
+  let isFirst = true
   const videoFunc = (e,inputs)=>{
+    if(!isFirst) return
+    isFirst = false
+
     const matchReg = (key) => location.href.match(new RegExp(inputs[`regex${key.charAt(0).toUpperCase()}${key.slice(1)}`],'i'))
 
     for(let url of (inputs.blackList || [])){
@@ -426,10 +430,10 @@ if(window.__started_){
     let nothing
     const eventHandler = (e,name,target)=>{
       const v = target || e.target
-      if(name == 'playOrPause' && matchReg('playOrPause')){
+      if(name == 'playOrPause'){
         v.paused ? v.play() : v.pause()
       }
-      else if(name == 'fullscreen' && matchReg('fullscreen')){
+      else if(name == 'fullscreen'){
         if(location.href.startsWith('https://www.youtube.com')){
           const newStyle = document.createElement('style')
           newStyle.type = "text/css"
@@ -461,7 +465,7 @@ if(window.__started_){
           }
         }
       }
-      else if(name == 'exitFullscreen' && matchReg('exitFullscreen')){
+      else if(name == 'exitFullscreen'){
         const isFull = ipc.send('toggle-fullscreen-sync',1)
         const isFullscreen = v.offsetWidth == window.innerWidth || v.offsetHeight == window.innerHeight
         if(isFullscreen == isFull) return
@@ -478,71 +482,71 @@ if(window.__started_){
           }
         }
       }
-      else if(name == 'mute' && matchReg('mute')){
+      else if(name == 'mute'){
         v.muted = !v.muted
         popUp(v,`Mute: ${v.muted ? "ON" : "OFF"}`)
       }
-      else if(name == 'rewind1' && matchReg('rewind1')){
+      else if(name == 'rewind1'){
         v.currentTime -= parseInt(inputs.mediaSeek1)
       }
-      else if(name == 'rewind2' && matchReg('rewind2')){
+      else if(name == 'rewind2'){
         v.currentTime -= parseInt(inputs.mediaSeek2)
       }
-      else if(name == 'rewind3' && matchReg('rewind3')){
+      else if(name == 'rewind3'){
         v.currentTime -= parseInt(inputs.mediaSeek3)
       }
-      else if(name == 'forward1' && matchReg('forward1')){
+      else if(name == 'forward1'){
         v.currentTime += parseInt(inputs.mediaSeek1)
       }
-      else if(name == 'forward2' && matchReg('forward2')){
+      else if(name == 'forward2'){
         v.currentTime += parseInt(inputs.mediaSeek2)
       }
-      else if(name == 'forward3' && matchReg('forward3')){
+      else if(name == 'forward3'){
         v.currentTime += parseInt(inputs.mediaSeek3)
       }
-      else if(name == 'frameStep' && matchReg('frameStep')){
+      else if(name == 'frameStep'){
         v.currentTime += 1 / 30
       }
-      else if(name == 'frameBackStep' && matchReg('frameBackStep')){
+      else if(name == 'frameBackStep'){
         v.currentTime -= 1 / 30
       }
-      else if(name == 'decSpeed' && matchReg('decSpeed')){
+      else if(name == 'decSpeed'){
         const seek = parseInt(inputs.speedSeek)/100.0
         v.playbackRate -= seek
         popUp(v,`Speed: ${Math.round(v.playbackRate * 100)}%`)
       }
-      else if(name == 'incSpeed' && matchReg('incSpeed')){
+      else if(name == 'incSpeed'){
         const seek = parseInt(inputs.speedSeek)/100.0
         v.playbackRate += seek
         popUp(v,`Speed: ${Math.round(v.playbackRate * 100)}%`)
       }
-      else if(name == 'normalSpeed' && matchReg('normalSpeed')){
+      else if(name == 'normalSpeed'){
         v.playbackRate = 1
         popUp(v,`Speed: ${Math.round(v.playbackRate * 100)}%`)
       }
-      else if(name == 'halveSpeed' && matchReg('halveSpeed')){
+      else if(name == 'halveSpeed'){
         v.playbackRate *= 0.5
         popUp(v,`Speed: ${Math.round(v.playbackRate * 100)}%`)
       }
-      else if(name == 'doubleSpeed' && matchReg('doubleSpeed')){
+      else if(name == 'doubleSpeed'){
         v.playbackRate *= 2
         popUp(v,`Speed: ${Math.round(v.playbackRate * 100)}%`)
       }
-      else if(name == 'decreaseVolume' && matchReg('decreaseVolume')){
+      else if(name == 'decreaseVolume'){
         const band = parseInt(inputs.audioSeek)
         const seek = band/100.0
         v.volume = Math.max(Math.round(v.volume*100/band)*band/100 - seek, 0)
         popUp(v,`Volume: ${Math.round(v.volume * 100)}%`)
         if(inputs.keepAudioSeekValue) localStorage.setItem("vol",v.volume)
       }
-      else if(name == 'increaseVolume' && matchReg('increaseVolume')){
+      else if(name == 'increaseVolume'){
         const band = parseInt(inputs.audioSeek)
         const seek = band/100.0
         v.volume = Math.min(Math.round(v.volume*100/band)*band/100 + seek, 1)
         popUp(v,`Volume: ${Math.round(v.volume * 100)}%`)
         if(inputs.keepAudioSeekValue) localStorage.setItem("vol",v.volume)
       }
-      else if(name == 'plRepeat' && matchReg('plRepeat')){
+      else if(name == 'plRepeat'){
         v.loop = !v.loop
         popUp(v,`Loop: ${v.loop ? "ON" : "OFF"}`)
       }
@@ -679,8 +683,9 @@ if(window.__started_){
         if(e.metaKey) addInput.metaKey = true
         if(e.shiftKey) addInput.shiftKey = true
         if(e.altKey) addInput.altKey = true
+        const name = inputs[JSON.stringify({code: e.code.toLowerCase().replace('arrow','').replace('escape','esc'),...addInput})] || inputs[JSON.stringify({key: e.key.toLowerCase().replace('arrow','').replace('escape','esc'),...addInput})]
 
-        eventHandler(e,inputs[JSON.stringify({code: e.code.toLowerCase().replace('arrow','').replace('escape','esc'),...addInput})] || inputs[JSON.stringify({key: e.key.toLowerCase().replace('arrow','').replace('escape','esc'),...addInput})],target)
+        if(matchReg(name)) eventHandler(e,name,target)
       },true)
     }
   }
