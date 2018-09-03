@@ -53,7 +53,8 @@ export default function(inputHistoryMaxChar){
       const tag = target.tagName && target.tagName.toLowerCase()
       const type = target.type && target.type.toLowerCase()
       if((!tag.match(/^(input|textarea)$/) && !target.isContentEditable) ||
-        (tag == 'input' && (type == 'checkbox' || type == 'radio' || type == 'password'))) return
+        (tag == 'input' && (type == 'checkbox' || type == 'radio' || type == 'password' ||
+          type == 'submit' || type == 'hidden' || type == 'reset' || type == 'button' || type == 'image'))) return
       if(eventName == 'focusin'){
         if(!hasCode){
           await new Promise(r=>{
