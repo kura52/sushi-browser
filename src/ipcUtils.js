@@ -1094,7 +1094,6 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
     })
     bw.setMinimizable(detach)
     bw.setMaximizable(detach)
-    bw.setMenuBarVisibility(detach)
 
     setTimeout(_=>bw.setBounds({x: Math.round(x),y: Math.round(y),width: Math.round(width),height: Math.round(height) - 25}),0)
 
@@ -1245,7 +1244,6 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
 
       bw.setFullScreenable(detach)
       bw.setSkipTaskbar(!detach)
-      bw.setMenuBarVisibility(detach)
       bw.setMinimizable(detach)
       bw.setMaximizable(detach)
       bw.setAlwaysOnTop(!detach)
