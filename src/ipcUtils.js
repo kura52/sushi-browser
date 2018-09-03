@@ -1750,6 +1750,9 @@ ipcMain.on('get-sync-main-states',(e,keys)=>{
         else if(key.endsWith('Video')){
           ret[key.slice(0,-5)] = val
         }
+        else if(key.startsWith('regexKeyVideo')){
+          ret[`regex${key.slice(13)}`] = val
+        }
       }
       return ret
     }

@@ -2200,10 +2200,11 @@ class VideoSetting extends React.Component {
         <label style={{verticalAlign: -9}}>{val}</label>
       </Grid.Column>
       {arr.map((x,i)=>{
-        return <Grid.Column width={3}>
+        return <Grid.Column width={2}>
           <Input fluid error={!!this.state.errors[key+i]} onChange={this.onChange2.bind(this,key,i)} defaultValue={x}/>
         </Grid.Column>
       })}
+      <Grid.Column width={3}><Input onChange={this.onChange.bind(this,`regex${key.charAt(0).toUpperCase()}${key.slice(1)}`)} defaultValue={this.state[`regex${key.charAt(0).toUpperCase()}${key.slice(1)}`]}/></Grid.Column>
     </Grid.Row>
   }
 
@@ -2224,44 +2225,68 @@ class VideoSetting extends React.Component {
       <h3>{l10n.translation('6146563240635539929')}</h3>
       <Divider/>
 
-      <h4>{l10n.translation('8260864402787962391')}</h4>
+      <br/>
+      <br/>
+      <Grid>
+        <Grid.Row>
+          <Grid.Column width={4}><h4>{l10n.translation('8260864402787962391')}</h4></Grid.Column>
+          <Grid.Column width={4}></Grid.Column>
+          <Grid.Column width={3}><h4 style={{paddingLeft: 2}}>URL Filter (RegExp)</h4></Grid.Column>
+        </Grid.Row>
+      </Grid>
+
       <Divider/>
       <Grid>
         <Grid.Row>
           <Grid.Column width={4}><label>{l10n.translation("mouseClick")}</label></Grid.Column>
-          <Grid.Column width={7}><Dropdown onChange={this.onChange.bind(this,'clickVideo')} selection options={videoClickOptions} defaultValue={this.state.clickVideo}/></Grid.Column>
+          <Grid.Column width={4}><Dropdown onChange={this.onChange.bind(this,'clickVideo')} selection options={videoClickOptions} defaultValue={this.state.clickVideo}/></Grid.Column>
+          <Grid.Column width={3}><Input onChange={this.onChange.bind(this,'regexClickVideo')} defaultValue={this.state.regexClickVideo}/></Grid.Column>
         </Grid.Row>
         <Grid.Row>
           <Grid.Column width={4}><label>{l10n.translation("mouseDoubleClick")}</label></Grid.Column>
-          <Grid.Column width={7}><Dropdown onChange={this.onChange.bind(this,'dbClickVideo')} selection options={videoClickOptions} defaultValue={this.state.dbClickVideo}/></Grid.Column>
+          <Grid.Column width={4}><Dropdown onChange={this.onChange.bind(this,'dbClickVideo')} selection options={videoClickOptions} defaultValue={this.state.dbClickVideo}/></Grid.Column>
+          <Grid.Column width={3}><Input onChange={this.onChange.bind(this,'regexDbClickVideo')} defaultValue={this.state.regexDbClickVideo}/></Grid.Column>
         </Grid.Row>
       </Grid>
       <br/>
 
-      <h4>{l10n.translation('mouseWheelFunctions')}</h4>
+      <br/>
+      <br/>
+      <Grid>
+        <Grid.Row>
+          <Grid.Column width={4}><h4>{l10n.translation('mouseWheelFunctions')}</h4></Grid.Column>
+          <Grid.Column width={4}></Grid.Column>
+          <Grid.Column width={3}><h4 style={{paddingLeft: 2}}>URL Filter (RegExp)</h4></Grid.Column>
+        </Grid.Row>
+      </Grid>
+
       <Divider/>
       <Grid>
         <Grid.Row>
           <Grid.Column width={4}><label>{l10n.translation("mouseWheel")}</label></Grid.Column>
-          <Grid.Column width={7}><Dropdown onChange={this.onChange.bind(this,'wheelMinusVideo')} selection options={videoWheelOptions} defaultValue={this.state.wheelMinusVideo}/></Grid.Column>
+          <Grid.Column width={4}><Dropdown onChange={this.onChange.bind(this,'wheelMinusVideo')} selection options={videoWheelOptions} defaultValue={this.state.wheelMinusVideo}/></Grid.Column>
+          <Grid.Column width={3}><Input onChange={this.onChange.bind(this,'regexWheelMinusVideo')} defaultValue={this.state.regexWheelMinusVideo}/></Grid.Column>
         </Grid.Row>
       </Grid>
       <Grid>
         <Grid.Row>
           <Grid.Column width={4}><label>{l10n.translation("shiftMouseWheel")}</label></Grid.Column>
-          <Grid.Column width={7}><Dropdown onChange={this.onChange.bind(this,'shiftWheelMinusVideo')} selection options={videoWheelOptions} defaultValue={this.state.shiftWheelMinusVideo}/></Grid.Column>
+          <Grid.Column width={4}><Dropdown onChange={this.onChange.bind(this,'shiftWheelMinusVideo')} selection options={videoWheelOptions} defaultValue={this.state.shiftWheelMinusVideo}/></Grid.Column>
+          <Grid.Column width={3}><Input onChange={this.onChange.bind(this,'regexShiftWheelMinusVideo')} defaultValue={this.state.regexShiftWheelMinusVideo}/></Grid.Column>
         </Grid.Row>
       </Grid>
       <Grid>
         <Grid.Row>
           <Grid.Column width={4}><label>{l10n.translation("ctrlMouseWheel")}</label></Grid.Column>
-          <Grid.Column width={7}><Dropdown onChange={this.onChange.bind(this,'ctrlWheelMinusVideo')} selection options={videoWheelOptions} defaultValue={this.state.ctrlWheelMinusVideo}/></Grid.Column>
+          <Grid.Column width={4}><Dropdown onChange={this.onChange.bind(this,'ctrlWheelMinusVideo')} selection options={videoWheelOptions} defaultValue={this.state.ctrlWheelMinusVideo}/></Grid.Column>
+          <Grid.Column width={3}><Input onChange={this.onChange.bind(this,'regexCtrlWheelMinusVideo')} defaultValue={this.state.regexCtrlWheelMinusVideo}/></Grid.Column>
         </Grid.Row>
       </Grid>
       <Grid>
         <Grid.Row>
           <Grid.Column width={4}><label>{l10n.translation("shiftCtrlMouseWheel")}</label></Grid.Column>
-          <Grid.Column width={7}><Dropdown onChange={this.onChange.bind(this,'shiftCtrlWheelMinusVideo')} selection options={videoWheelOptions} defaultValue={this.state.shiftCtrlWheelMinusVideo}/></Grid.Column>
+          <Grid.Column width={4}><Dropdown onChange={this.onChange.bind(this,'shiftCtrlWheelMinusVideo')} selection options={videoWheelOptions} defaultValue={this.state.shiftCtrlWheelMinusVideo}/></Grid.Column>
+          <Grid.Column width={3}><Input onChange={this.onChange.bind(this,'regexShiftCtrlWheelMinusVideo')} defaultValue={this.state.regexShiftCtrlWheelMinusVideo}/></Grid.Column>
         </Grid.Row>
       </Grid>
       <br/>
@@ -2280,15 +2305,15 @@ class VideoSetting extends React.Component {
       <Grid>
         <Grid.Row>
           <Grid.Column width={4}><label>{l10n.translation('mediaSeeking').replace(/\(.\)/,'')+'1'}</label></Grid.Column>
-          <Grid.Column width={7}><Input onChange={this.onChange.bind(this,'mediaSeek1Video')} defaultValue={this.state.mediaSeek1Video}/>{' '+l10n.translation('minimumPageTimeLow').replace(/5 */,'')}</Grid.Column>
+          <Grid.Column width={4}><Input onChange={this.onChange.bind(this,'mediaSeek1Video')} defaultValue={this.state.mediaSeek1Video}/>{' '+l10n.translation('minimumPageTimeLow').replace(/5 */,'')}</Grid.Column>
         </Grid.Row>
         <Grid.Row>
           <Grid.Column width={4}><label>{l10n.translation('mediaSeeking').replace(/\(.\)/,'')+'2'}</label></Grid.Column>
-          <Grid.Column width={7}><Input onChange={this.onChange.bind(this,'mediaSeek2Video')} defaultValue={this.state.mediaSeek2Video}/>{' '+l10n.translation('minimumPageTimeLow').replace(/5 */,'')}</Grid.Column>
+          <Grid.Column width={4}><Input onChange={this.onChange.bind(this,'mediaSeek2Video')} defaultValue={this.state.mediaSeek2Video}/>{' '+l10n.translation('minimumPageTimeLow').replace(/5 */,'')}</Grid.Column>
         </Grid.Row>
         <Grid.Row>
           <Grid.Column width={4}><label>{l10n.translation('mediaSeeking').replace(/\(.\)/,'')+'3'}</label></Grid.Column>
-          <Grid.Column width={7}><Input onChange={this.onChange.bind(this,'mediaSeek3Video')} defaultValue={this.state.mediaSeek3Video}/>{' '+l10n.translation('minimumPageTimeLow').replace(/5 */,'')}</Grid.Column>
+          <Grid.Column width={4}><Input onChange={this.onChange.bind(this,'mediaSeek3Video')} defaultValue={this.state.mediaSeek3Video}/>{' '+l10n.translation('minimumPageTimeLow').replace(/5 */,'')}</Grid.Column>
         </Grid.Row>
         <Grid.Row>
           <Grid.Column width={4}><label>{l10n.translation('volumeControl').replace(/\(.\)/,'')}</label></Grid.Column>
@@ -2300,13 +2325,23 @@ class VideoSetting extends React.Component {
         </Grid.Row>
         <Grid.Row>
           <Grid.Column width={4}><label>{l10n.translation('changeSpeed').replace(/\(.\)/,'')}</label></Grid.Column>
-          <Grid.Column width={7}><Input onChange={this.onChange.bind(this,'speedSeekVideo')} defaultValue={this.state.speedSeekVideo}/>%</Grid.Column>
+          <Grid.Column width={4}><Input onChange={this.onChange.bind(this,'speedSeekVideo')} defaultValue={this.state.speedSeekVideo}/>%</Grid.Column>
         </Grid.Row>
       </Grid>
       <br/>
       <br/>
 
-      <h4>{l10n.translation('1524430321211440688')}</h4>
+      <br/>
+      <br/>
+      <Grid>
+        <Grid.Row>
+          <Grid.Column width={3}><h4>{l10n.translation('1524430321211440688')}</h4></Grid.Column>
+          <Grid.Column width={2}></Grid.Column>
+          <Grid.Column width={2}></Grid.Column>
+          <Grid.Column width={2}></Grid.Column>
+          <Grid.Column width={3}><h4 style={{paddingLeft: 2}}>URL Filter (RegExp)</h4></Grid.Column>
+        </Grid.Row>
+      </Grid>
       <Divider/>
 
       <div className="field">
@@ -2333,471 +2368,471 @@ class VideoSetting extends React.Component {
 
     </div>
   }
-}
+  }
 
-let extensionDefault
-class ExtensionSetting extends React.Component {
-  constructor(props) {
+  let extensionDefault
+  class ExtensionSetting extends React.Component {
+    constructor(props) {
     super(props)
     this.state = {extensions:extensionDefault.extensions}
   }
 
 
-  changeCheck(id,data){
+    changeCheck(id,data){
     this.state.extensions[id].enabled = data.checked
     const val = []
     for(let [id,values] of Object.entries(this.state.extensions)){
-      const orgId = values.basePath.split(/[\/\\]/).slice(-2,-1)[0]
-      if(!values.enabled) val.push(orgId)
-    }
+    const orgId = values.basePath.split(/[\/\\]/).slice(-2,-1)[0]
+    if(!values.enabled) val.push(orgId)
+  }
     ipc.send('save-state',{tableName:'state',key:'disableExtensions',val})
     this.setState({})
   }
 
-  buildExtensionColumns(){
+    buildExtensionColumns(){
     const ret = []
     let i = 0
     for(let [id,v] of Object.entries(this.state.extensions)){
-      if(['dckpbojndfoinamcdamhkjhnjnmjkfjd','jdbefljfgobbmcidnmpjamcbhnbphjnb'].includes(id) || v.theme) continue
-      ret.push(this.buildExtensionColumn(i++,id,v))
-    }
+    if(['dckpbojndfoinamcdamhkjhnjnmjkfjd','jdbefljfgobbmcidnmpjamcbhnbphjnb'].includes(id) || v.theme) continue
+    ret.push(this.buildExtensionColumn(i++,id,v))
+  }
     return ret
   }
 
-  buildExtensionColumn(i,id,v){
+    buildExtensionColumn(i,id,v){
     console.log(id,v)
     const orgId = v.basePath.split(/[\/\\]/).slice(-2,-1)[0]
     const cannotDisable =  orgId == "occjjkgifpmdgodlplnacmkejpdionan"
     const icon = v.icons ? v.icons[Math.max(...Object.keys(v.icons))] : ""
     return <tr key={`tr${i}`}>
-      <td key={`icon${i}`}><img style={{width:32,height:32,margin:'auto'}} src={`file://${v.basePath}/${icon}`}/></td>
-      <td key={`name${i}`}><a target="_blank" href={`https://chrome.google.com/webstore/detail/${orgId}`}>{v.name}</a></td>
-      <td key={`description${i}`} >{v.description}</td>
-      <td key={`version${i}`} style={{width: 40}}>{v.version}</td>
-      <td key={`option${i}`} style={{fontSize: 20,textAlign: 'center'}}>
-        {v.enabled && v.optionPage ? <a href="javascript:void(0)" onClick={_=> ipc.sendToHost("open-tab", `chrome-extension://${id}/${v.optionPage}`, true)}>
-          <i aria-hidden="true" class="setting icon"></i>
-        </a> : null}
-      </td>
-      <td key={`enabled${i}`}>
-        <Checkbox checked={v.enabled} disabled={cannotDisable} toggle onChange={(e,data)=>this.changeCheck(id,data)}/>
-      </td>
-      <td key={`background${i}`} style={{fontSize: 20,textAlign: 'center'}}>
-        {v.enabled && v.background ? <a href="javascript:void(0)" onClick={_=> ipc.sendToHost("load-url", `chrome-extension://${id}/${v.background}`, true)}>
-          <i aria-hidden="true" class="bug icon"></i>
-        </a> : null}
-      </td>
-      <td key={`delete${i}`} style={{fontSize: 20,textAlign: 'center'}}>
-        {cannotDisable ? null : <a href="javascript:void(0)" onClick={_=>{
-          ipc.send("delete-extension",id,orgId)
-          delete this.state.extensions[id]
-          this.setState({})
-        }}>
-          <i aria-hidden="true" class="trash icon"></i>
-        </a>}
-      </td>
+    <td key={`icon${i}`}><img style={{width:32,height:32,margin:'auto'}} src={`file://${v.basePath}/${icon}`}/></td>
+    <td key={`name${i}`}><a target="_blank" href={`https://chrome.google.com/webstore/detail/${orgId}`}>{v.name}</a></td>
+    <td key={`description${i}`} >{v.description}</td>
+    <td key={`version${i}`} style={{width: 40}}>{v.version}</td>
+    <td key={`option${i}`} style={{fontSize: 20,textAlign: 'center'}}>
+    {v.enabled && v.optionPage ? <a href="javascript:void(0)" onClick={_=> ipc.sendToHost("open-tab", `chrome-extension://${id}/${v.optionPage}`, true)}>
+      <i aria-hidden="true" class="setting icon"></i>
+    </a> : null}
+    </td>
+    <td key={`enabled${i}`}>
+    <Checkbox checked={v.enabled} disabled={cannotDisable} toggle onChange={(e,data)=>this.changeCheck(id,data)}/>
+    </td>
+    <td key={`background${i}`} style={{fontSize: 20,textAlign: 'center'}}>
+    {v.enabled && v.background ? <a href="javascript:void(0)" onClick={_=> ipc.sendToHost("load-url", `chrome-extension://${id}/${v.background}`, true)}>
+      <i aria-hidden="true" class="bug icon"></i>
+    </a> : null}
+    </td>
+    <td key={`delete${i}`} style={{fontSize: 20,textAlign: 'center'}}>
+    {cannotDisable ? null : <a href="javascript:void(0)" onClick={_=>{
+      ipc.send("delete-extension",id,orgId)
+      delete this.state.extensions[id]
+      this.setState({})
+    }}>
+      <i aria-hidden="true" class="trash icon"></i>
+    </a>}
+    </td>
     </tr>
   }
 
 
-  render() {
+    render() {
     return <div>
-      <h3>{l10n.translation('extensions')}</h3>
-      <table className="ui celled compact table">
-        <thead>
-        <tr>
-          <th></th>
-          <th>{l10n.translation('name')}</th>
-          <th>{l10n.translation('4289540628985791613')}</th>
-          <th>{l10n.translation('3095995014811312755')}</th>
-          <th>{l10n.translation('6550675742724504774')}</th>
-          <th>{l10n.translation('59174027418879706')}</th>
-          <th>{l10n.translation('4989966318180235467')}</th>
-          <th>{l10n.translation('remove')}</th>
-        </tr>
-        </thead>
-        <tbody>
-        {this.buildExtensionColumns()}
-        </tbody>
-        <tfoot className="full-width">
-        <tr>
-          <th>
-          </th>
-          <th colspan="7">
-          </th>
-        </tr>
-        </tfoot>
-      </table>
+    <h3>{l10n.translation('extensions')}</h3>
+    <table className="ui celled compact table">
+    <thead>
+    <tr>
+    <th></th>
+    <th>{l10n.translation('name')}</th>
+    <th>{l10n.translation('4289540628985791613')}</th>
+    <th>{l10n.translation('3095995014811312755')}</th>
+    <th>{l10n.translation('6550675742724504774')}</th>
+    <th>{l10n.translation('59174027418879706')}</th>
+    <th>{l10n.translation('4989966318180235467')}</th>
+    <th>{l10n.translation('remove')}</th>
+    </tr>
+    </thead>
+    <tbody>
+    {this.buildExtensionColumns()}
+    </tbody>
+    <tfoot className="full-width">
+    <tr>
+    <th>
+    </th>
+    <th colspan="7">
+    </th>
+    </tr>
+    </tfoot>
+    </table>
 
-      <br/>
+    <br/>
 
-      <Button primary content='Install from local file(.crx)'
-              onClick={_=>ipc.send('install-from-local-file-extension')}/>
+    <Button primary content='Install from local file(.crx)'
+    onClick={_=>ipc.send('install-from-local-file-extension')}/>
 
     </div>
   }
 
-}
+  }
 
-class ThemeSetting extends React.Component {
-  constructor(props) {
+  class ThemeSetting extends React.Component {
+    constructor(props) {
     super(props)
     this.state = extensionDefault
   }
 
 
-  changeCheckTheme(id,data){
+    changeCheckTheme(id,data){
     ipc.send('save-state',{tableName:'state',key:'enableTheme',val:id})
     this.setState({enableTheme: id})
   }
 
-  buildThemeColumns(){
+    buildThemeColumns(){
     const ret = []
     let i = 0
     for(let [id,v] of Object.entries(this.state.extensions)){
-      if(!v.theme) continue
-      ret.push(this.buildThemeColumn(i++,id,v))
-    }
+    if(!v.theme) continue
+    ret.push(this.buildThemeColumn(i++,id,v))
+  }
     return ret
   }
 
-  buildThemeColumn(i,id,v){
+    buildThemeColumn(i,id,v){
     console.log(id,v,this.state.enableTheme)
     const orgId = v.basePath.split(/[\/\\]/).slice(-2,-1)[0]
     const enable = this.state.enableTheme == id
 
     return <tr key={`tr${i}`}>
-      <td key={`name${i}`}><a target="_blank" href={`https://chrome.google.com/webstore/detail/${id}`}>{v.name}</a></td>
-      <td key={`description${i}`} >{v.description}</td>
-      <td key={`version${i}`} style={{width: 40}}>{v.version}</td>
-      <td key={`enabled${i}`}>
-        <Checkbox checked={enable} disabled={enable} toggle onChange={(e,data)=>this.changeCheckTheme(id,data)}/>
-      </td>
-      <td key={`delete${i}`} style={{fontSize: 20,textAlign: 'center'}}>
-        <a href="javascript:void(0)" onClick={_=>{
-          ipc.send("delete-extension",id,id)
-          delete this.state.extensions[id]
-          if(this.state.enableTheme == id){
-            ipc.send('save-state',{tableName:'state',key:'enableTheme',val: null})
-            this.setState({enableTheme: null})
-          }
-          else{
-            this.setState({})
-          }
-        }}>
-          <i aria-hidden="true" class="trash icon"></i>
-        </a>
-      </td>
+    <td key={`name${i}`}><a target="_blank" href={`https://chrome.google.com/webstore/detail/${id}`}>{v.name}</a></td>
+    <td key={`description${i}`} >{v.description}</td>
+    <td key={`version${i}`} style={{width: 40}}>{v.version}</td>
+    <td key={`enabled${i}`}>
+    <Checkbox checked={enable} disabled={enable} toggle onChange={(e,data)=>this.changeCheckTheme(id,data)}/>
+    </td>
+    <td key={`delete${i}`} style={{fontSize: 20,textAlign: 'center'}}>
+    <a href="javascript:void(0)" onClick={_=>{
+      ipc.send("delete-extension",id,id)
+      delete this.state.extensions[id]
+      if(this.state.enableTheme == id){
+        ipc.send('save-state',{tableName:'state',key:'enableTheme',val: null})
+        this.setState({enableTheme: null})
+      }
+      else{
+        this.setState({})
+      }
+    }}>
+    <i aria-hidden="true" class="trash icon"></i>
+    </a>
+    </td>
     </tr>
   }
 
-  onChange(name,e,data){
+    onChange(name,e,data){
     ipc.send('save-state',{tableName:'state',key:name,val:data.value || data.checked})
   }
 
-  render() {
+    render() {
     const enable = !this.state.enableTheme
     return <div className="ui form">
-      <h3>{l10n.translation('theme')}</h3>
-      <table className="ui celled compact table">
-        <thead>
-        <tr>
-          <th>{l10n.translation('name')}</th>
-          <th>{l10n.translation('4289540628985791613')}</th>
-          <th>{l10n.translation('3095995014811312755')}</th>
-          <th>{l10n.translation('59174027418879706')}</th>
-          <th>{l10n.translation('remove')}</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr key={`tr`}>
-          <td key={`name`}>Default</td>
-          <td key={`description`}>{l10n.translation("defaultTheme")}</td>
-          <td key={`version`} style={{width: 40}}>1.0.0</td>
-          <td key={`enabled`}>
-            <Checkbox checked={enable} disabled={enable} toggle onChange={(e, data) =>{
-              ipc.send('save-state',{tableName:'state',key:'enableTheme',val: null})
-              this.setState({enableTheme: null})
-            }}/>
-          </td>
-          <td key={`delete`} style={{fontSize: 20, textAlign: 'center'}}/>
-        </tr>
-        {this.buildThemeColumns()}
-        </tbody>
-        <tfoot className="full-width">
-        <tr>
-          <th>
-          </th>
-          <th colspan="4">
-          </th>
-        </tr>
-        </tfoot>
-      </table>
+    <h3>{l10n.translation('theme')}</h3>
+    <table className="ui celled compact table">
+    <thead>
+    <tr>
+    <th>{l10n.translation('name')}</th>
+    <th>{l10n.translation('4289540628985791613')}</th>
+    <th>{l10n.translation('3095995014811312755')}</th>
+    <th>{l10n.translation('59174027418879706')}</th>
+    <th>{l10n.translation('remove')}</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr key={`tr`}>
+    <td key={`name`}>Default</td>
+    <td key={`description`}>{l10n.translation("defaultTheme")}</td>
+    <td key={`version`} style={{width: 40}}>1.0.0</td>
+    <td key={`enabled`}>
+    <Checkbox checked={enable} disabled={enable} toggle onChange={(e, data) =>{
+      ipc.send('save-state',{tableName:'state',key:'enableTheme',val: null})
+      this.setState({enableTheme: null})
+    }}/>
+    </td>
+    <td key={`delete`} style={{fontSize: 20, textAlign: 'center'}}/>
+    </tr>
+    {this.buildThemeColumns()}
+    </tbody>
+    <tfoot className="full-width">
+    <tr>
+    <th>
+    </th>
+    <th colspan="4">
+    </th>
+    </tr>
+    </tfoot>
+    </table>
 
-      <div className="field">
-        <label>{l10n.translation("pagesToApply")}</label>
-        <br/>
+    <div className="field">
+    <label>{l10n.translation("pagesToApply")}</label>
+    <br/>
 
-        <Checkbox defaultChecked={this.state.themeTopPage} toggle onChange={this.onChange.bind(this,'themeTopPage')}/>
-        <span className="toggle-label">{l10n.translation("topPage")}</span>
-        <br/>
+    <Checkbox defaultChecked={this.state.themeTopPage} toggle onChange={this.onChange.bind(this,'themeTopPage')}/>
+    <span className="toggle-label">{l10n.translation("topPage")}</span>
+    <br/>
 
-        <Checkbox defaultChecked={this.state.themeBookmark} toggle onChange={this.onChange.bind(this,'themeBookmark')}/>
-        <span className="toggle-label">{l10n.translation("bookmarks")}</span>
-        <br/>
+    <Checkbox defaultChecked={this.state.themeBookmark} toggle onChange={this.onChange.bind(this,'themeBookmark')}/>
+    <span className="toggle-label">{l10n.translation("bookmarks")}</span>
+    <br/>
 
-        <Checkbox defaultChecked={this.state.themeHistory} toggle onChange={this.onChange.bind(this,'themeHistory')}/>
-        <span className="toggle-label">{l10n.translation("history")}</span>
-        <br/>
+    <Checkbox defaultChecked={this.state.themeHistory} toggle onChange={this.onChange.bind(this,'themeHistory')}/>
+    <span className="toggle-label">{l10n.translation("history")}</span>
+    <br/>
 
-        <Checkbox defaultChecked={this.state.themeDownloader} toggle onChange={this.onChange.bind(this,'themeDownloader')}/>
-        <span className="toggle-label">{l10n.translation("downloads")}</span>
-        <br/>
+    <Checkbox defaultChecked={this.state.themeDownloader} toggle onChange={this.onChange.bind(this,'themeDownloader')}/>
+    <span className="toggle-label">{l10n.translation("downloads")}</span>
+    <br/>
 
-        <Checkbox defaultChecked={this.state.themeExplorer} toggle onChange={this.onChange.bind(this,'themeExplorer')}/>
-        <span className="toggle-label">{l10n.translation("fileExplorer")}</span>
-        <br/>
+    <Checkbox defaultChecked={this.state.themeExplorer} toggle onChange={this.onChange.bind(this,'themeExplorer')}/>
+    <span className="toggle-label">{l10n.translation("fileExplorer")}</span>
+    <br/>
 
-        <Checkbox defaultChecked={this.state.themeBookmarkSidebar} toggle onChange={this.onChange.bind(this,'themeBookmarkSidebar')}/>
-        <span className="toggle-label">{l10n.translation("bookmarksSidebar")}</span>
-        <br/>
+    <Checkbox defaultChecked={this.state.themeBookmarkSidebar} toggle onChange={this.onChange.bind(this,'themeBookmarkSidebar')}/>
+    <span className="toggle-label">{l10n.translation("bookmarksSidebar")}</span>
+    <br/>
 
-        <Checkbox defaultChecked={this.state.themeHistorySidebar} toggle onChange={this.onChange.bind(this,'themeHistorySidebar')}/>
-        <span className="toggle-label">{l10n.translation("historySidebar")}</span>
-        <br/>
+    <Checkbox defaultChecked={this.state.themeHistorySidebar} toggle onChange={this.onChange.bind(this,'themeHistorySidebar')}/>
+    <span className="toggle-label">{l10n.translation("historySidebar")}</span>
+    <br/>
 
-        <Checkbox defaultChecked={this.state.themeSessionManagerSidebar} toggle onChange={this.onChange.bind(this,'themeSessionManagerSidebar')}/>
-        <span className="toggle-label">{l10n.translation("sessionManagerSidebar")}</span>
-        <br/>
+    <Checkbox defaultChecked={this.state.themeSessionManagerSidebar} toggle onChange={this.onChange.bind(this,'themeSessionManagerSidebar')}/>
+    <span className="toggle-label">{l10n.translation("sessionManagerSidebar")}</span>
+    <br/>
 
-        <Checkbox defaultChecked={this.state.themeTabTrashSidebar} toggle onChange={this.onChange.bind(this,'themeTabTrashSidebar')}/>
-        <span className="toggle-label">{l10n.translation("trashOfTabsSidebar")}</span>
-        <br/>
+    <Checkbox defaultChecked={this.state.themeTabTrashSidebar} toggle onChange={this.onChange.bind(this,'themeTabTrashSidebar')}/>
+    <span className="toggle-label">{l10n.translation("trashOfTabsSidebar")}</span>
+    <br/>
 
-        <Checkbox defaultChecked={this.state.themeTabHistorySidebar} toggle onChange={this.onChange.bind(this,'themeTabHistorySidebar')}/>
-        <span className="toggle-label">{l10n.translation("historyOfTabsSidebar")}</span>
-        <br/>
+    <Checkbox defaultChecked={this.state.themeTabHistorySidebar} toggle onChange={this.onChange.bind(this,'themeTabHistorySidebar')}/>
+    <span className="toggle-label">{l10n.translation("historyOfTabsSidebar")}</span>
+    <br/>
 
-        <Checkbox defaultChecked={this.state.themeExplorerSidebar} toggle onChange={this.onChange.bind(this,'themeExplorerSidebar')}/>
-        <span className="toggle-label">{l10n.translation("fileExplorerSidebar")}</span>
+    <Checkbox defaultChecked={this.state.themeExplorerSidebar} toggle onChange={this.onChange.bind(this,'themeExplorerSidebar')}/>
+    <span className="toggle-label">{l10n.translation("fileExplorerSidebar")}</span>
 
-      </div>
-      <br/>
+    </div>
+    <br/>
     </div>
   }
-}
+  }
 
 
-class SyncDataSetting extends React.Component {
-  constructor(props) {
+  class SyncDataSetting extends React.Component {
+    constructor(props) {
     super(props)
     this.state = generalDefault
   }
 
 
-  onChange(name,e,data){
+    onChange(name,e,data){
     this.setState({[name]: data.value})
     // ipc.send('save-state',{tableName:'state',key:name,val:data.value || data.checked})
   }
 
-  loginSync(type){
+    loginSync(type){
     const key = Math.random().toString()
     const email = type == 'login' ? this.state.loginEmail : this.state.newEmail
     const password = type == 'login' ? this.state.loginPassword : this.state.newPassword
     ipc.send("login-sync",{key,type,email,password})
     ipc.once(`login-sync-reply_${key}`,(e,result,message)=>{
-      if(result && (type == 'login' || type == 'regist')){
-        this.state.emailSync = email
-      }
-      else{
-        delete this.state.emailSync
-      }
-      this.setState({result,message})
-    })
+    if(result && (type == 'login' || type == 'regist')){
+    this.state.emailSync = email
+  }
+    else{
+    delete this.state.emailSync
+  }
+    this.setState({result,message})
+  })
   }
 
 
-  render() {
+    render() {
     return <div className="ui form">
-      <h3>{l10n.translation('syncDatas')}</h3>
-      <Divider/>
-      <div className="ui icon info message" style={{width: 'initial'}}>
-        <div className="content">
-          It is a function to synchronize data between devices.<br/>
-            For initial registration, please input "{l10n.translation('email')}" and "{l10n.translation('passwordsPassword')}" in "New User" and click "{l10n.translation('839736845446313156')}" button.<br/>
-            After that, if you login with the registered user information, data synchronization processing will be performed every 6 hours.
-        </div>
-      </div>
-      <br/>
-     <Grid>
-        <Grid.Row>
-          <Grid.Column width={5}>
-            {this.state.emailSync ?
-              <div className="field">
-                <label>{l10n.translation('5222676887888702881')}</label>
-
-                <lable>{l10n.translation('email')}：{this.state.emailSync}</lable>
-                <br/>
-                <br/>
-                <Button primary content={l10n.translation('5222676887888702881')} onClick={_=>this.loginSync('logout')}/>
-                <br/>
-                <br/>
-                <Button primary content='Sync Now!' onClick={_=>ipc.send('start-sync',true)}/>
-              </div>
-              :
-            <div className="field">
-              <label>{l10n.translation('1864111464094315414')}</label>
-
-              <div className="field">
-                <Input onChange={this.onChange.bind(this,'loginEmail')} placeholder={l10n.translation('email')}/>
-              </div>
-              <div className="field">
-                <Input onChange={this.onChange.bind(this,'loginPassword')} placeholder={l10n.translation('passwordsPassword')} onKeyDown={e=>e.keyCode == 13 && this.loginSync('login')}/>
-              </div>
-
-              <Button primary content={l10n.translation('1864111464094315414')} onClick={_=>this.loginSync('login')}/>
-            </div>}
-          </Grid.Column>
-          {this.state.emailSync ? null :<Grid.Column width={5} style={{marginTop: 0}}>
-            <div className="field">
-              <label>New User</label>
-
-              <div className="field">
-                <Input onChange={this.onChange.bind(this,'newEmail')} placeholder={l10n.translation('email')}/>
-              </div>
-              <div className="field">
-                <Input onChange={this.onChange.bind(this,'newPassword')} placeholder={l10n.translation('passwordsPassword')} onKeyDown={e=>e.keyCode == 13 && this.loginSync('regist')}/>
-              </div>
-
-              <Button primary content={l10n.translation('839736845446313156')} onClick={_=>this.loginSync('regist')}/>
-            </div>
-          </Grid.Column>}
-        </Grid.Row>
-      </Grid>
-      <br/>
-
-      {this.state.message ? <div className={`ui ${this.state.result ? 'info' : 'negative'} message`} style={{width: 'initial'}}>
-        <div className="header">
-          {this.state.message}
-        </div>
-      </div> : null}
-
-
-      <br/>
+    <h3>{l10n.translation('syncDatas')}</h3>
+    <Divider/>
+    <div className="ui icon info message" style={{width: 'initial'}}>
+    <div className="content">
+    It is a function to synchronize data between devices.<br/>
+    For initial registration, please input "{l10n.translation('email')}" and "{l10n.translation('passwordsPassword')}" in "New User" and click "{l10n.translation('839736845446313156')}" button.<br/>
+    After that, if you login with the registered user information, data synchronization processing will be performed every 6 hours.
+    </div>
+    </div>
+    <br/>
+    <Grid>
+    <Grid.Row>
+    <Grid.Column width={5}>
+    {this.state.emailSync ?
       <div className="field">
-        <label>{l10n.translation('data')}</label>
-        <Checkbox toggle onChange={this.onChange.bind(this,'syncGeneralSettings')} defaultChecked={this.state.syncGeneralSettings}/>
-        <span className="toggle-label">{l10n.translation('generalSettings')}</span>
+        <label>{l10n.translation('5222676887888702881')}</label>
+
+        <lable>{l10n.translation('email')}：{this.state.emailSync}</lable>
         <br/>
-        <Checkbox toggle onChange={this.onChange.bind(this,'syncBookmarks')} defaultChecked={this.state.syncBookmarks}/>
-        <span className="toggle-label">{l10n.translation('bookmarks')}</span>
         <br/>
-        <Checkbox toggle onChange={this.onChange.bind(this,'syncBrowsingHistory')} defaultChecked={this.state.syncBrowsingHistory}/>
-        <span className="toggle-label">{l10n.translation('browsingHistory')}</span>
+        <Button primary content={l10n.translation('5222676887888702881')} onClick={_=>this.loginSync('logout')}/>
         <br/>
-        <Checkbox toggle onChange={this.onChange.bind(this,'syncSessionTools')} defaultChecked={this.state.syncSessionTools}/>
-        <span className="toggle-label">{l10n.translation('sessionTools')}</span>
         <br/>
-        <Checkbox toggle onChange={this.onChange.bind(this,'syncFavicons')} defaultChecked={this.state.syncFavicons}/>
-        <span className="toggle-label">{l10n.translation('favicon')}</span>
-        <br/>
-        <Checkbox toggle onChange={this.onChange.bind(this,'syncDownloadHistory')} defaultChecked={this.state.syncDownloadHistory}/>
-        <span className="toggle-label">{l10n.translation('downloadHistory')}</span>
-        <br/>
-        <Checkbox toggle onChange={this.onChange.bind(this,'syncAutomation')} defaultChecked={this.state.syncAutomation}/>
-        <span className="toggle-label">{l10n.translation('automation')}</span>
-        <br/>
-        <Checkbox toggle onChange={this.onChange.bind(this,'syncNote')} defaultChecked={this.state.syncNote}/>
-        <span className="toggle-label">{l10n.translation('note')}</span>
-        <br/>
-        <Checkbox toggle onChange={this.onChange.bind(this,'syncPassword')} defaultChecked={this.state.syncPassword}/>
-        <span className="toggle-label">{l10n.translation('passwordsPassword')}</span>
+        <Button primary content='Sync Now!' onClick={_=>ipc.send('start-sync',true)}/>
       </div>
+      :
+      <div className="field">
+        <label>{l10n.translation('1864111464094315414')}</label>
+
+        <div className="field">
+          <Input onChange={this.onChange.bind(this,'loginEmail')} placeholder={l10n.translation('email')}/>
+        </div>
+        <div className="field">
+          <Input onChange={this.onChange.bind(this,'loginPassword')} placeholder={l10n.translation('passwordsPassword')} onKeyDown={e=>e.keyCode == 13 && this.loginSync('login')}/>
+        </div>
+
+        <Button primary content={l10n.translation('1864111464094315414')} onClick={_=>this.loginSync('login')}/>
+      </div>}
+    </Grid.Column>
+    {this.state.emailSync ? null :<Grid.Column width={5} style={{marginTop: 0}}>
+      <div className="field">
+        <label>New User</label>
+
+        <div className="field">
+          <Input onChange={this.onChange.bind(this,'newEmail')} placeholder={l10n.translation('email')}/>
+        </div>
+        <div className="field">
+          <Input onChange={this.onChange.bind(this,'newPassword')} placeholder={l10n.translation('passwordsPassword')} onKeyDown={e=>e.keyCode == 13 && this.loginSync('regist')}/>
+        </div>
+
+        <Button primary content={l10n.translation('839736845446313156')} onClick={_=>this.loginSync('regist')}/>
+      </div>
+    </Grid.Column>}
+    </Grid.Row>
+    </Grid>
+    <br/>
+
+    {this.state.message ? <div className={`ui ${this.state.result ? 'info' : 'negative'} message`} style={{width: 'initial'}}>
+      <div className="header">
+        {this.state.message}
+      </div>
+    </div> : null}
+
+
+    <br/>
+    <div className="field">
+    <label>{l10n.translation('data')}</label>
+    <Checkbox toggle onChange={this.onChange.bind(this,'syncGeneralSettings')} defaultChecked={this.state.syncGeneralSettings}/>
+    <span className="toggle-label">{l10n.translation('generalSettings')}</span>
+    <br/>
+    <Checkbox toggle onChange={this.onChange.bind(this,'syncBookmarks')} defaultChecked={this.state.syncBookmarks}/>
+    <span className="toggle-label">{l10n.translation('bookmarks')}</span>
+    <br/>
+    <Checkbox toggle onChange={this.onChange.bind(this,'syncBrowsingHistory')} defaultChecked={this.state.syncBrowsingHistory}/>
+    <span className="toggle-label">{l10n.translation('browsingHistory')}</span>
+    <br/>
+    <Checkbox toggle onChange={this.onChange.bind(this,'syncSessionTools')} defaultChecked={this.state.syncSessionTools}/>
+    <span className="toggle-label">{l10n.translation('sessionTools')}</span>
+    <br/>
+    <Checkbox toggle onChange={this.onChange.bind(this,'syncFavicons')} defaultChecked={this.state.syncFavicons}/>
+    <span className="toggle-label">{l10n.translation('favicon')}</span>
+    <br/>
+    <Checkbox toggle onChange={this.onChange.bind(this,'syncDownloadHistory')} defaultChecked={this.state.syncDownloadHistory}/>
+    <span className="toggle-label">{l10n.translation('downloadHistory')}</span>
+    <br/>
+    <Checkbox toggle onChange={this.onChange.bind(this,'syncAutomation')} defaultChecked={this.state.syncAutomation}/>
+    <span className="toggle-label">{l10n.translation('automation')}</span>
+    <br/>
+    <Checkbox toggle onChange={this.onChange.bind(this,'syncNote')} defaultChecked={this.state.syncNote}/>
+    <span className="toggle-label">{l10n.translation('note')}</span>
+    <br/>
+    <Checkbox toggle onChange={this.onChange.bind(this,'syncPassword')} defaultChecked={this.state.syncPassword}/>
+    <span className="toggle-label">{l10n.translation('passwordsPassword')}</span>
+    </div>
 
     </div>
   }
-}
+  }
 
-const routings = {
-  general : <GeneralSetting/>,
-  data : <DataSetting/>,
-  search : <SearchSetting/>,
-  tabs : <TabsSetting/>,
-  contextMenu : <ContextMenuSetting/>,
-  keyboard : <KeyboardSetting/>,
-  video : <VideoSetting/>,
-  extensions : <ExtensionSetting/>,
-  theme : <ThemeSetting/>,
-  syncDatas: <SyncDataSetting/>
-}
+  const routings = {
+    general : <GeneralSetting/>,
+    data : <DataSetting/>,
+    search : <SearchSetting/>,
+    tabs : <TabsSetting/>,
+    contextMenu : <ContextMenuSetting/>,
+    keyboard : <KeyboardSetting/>,
+    video : <VideoSetting/>,
+    extensions : <ExtensionSetting/>,
+    theme : <ThemeSetting/>,
+    syncDatas: <SyncDataSetting/>
+  }
 
-class TopList extends React.Component {
-  constructor(props) {
+  class TopList extends React.Component {
+    constructor(props) {
     super(props)
     this.state = {page: location.hash.startsWith("#") ? location.hash.slice(1) : 'general'}
   }
 
-  isActive(str){
+    isActive(str){
     return str == this.state.page
   }
 
-  getMenu(name,icon){
+    getMenu(name,icon){
 
     return <Menu.Item as="a" href={`#${name}`} active={this.isActive(name)}
-                      onClick={_=>{
-                        ReactDOM.findDOMNode(this).querySelector('.pusher').scrollTo(0,0)
-                        this.setState({page:name})
-                      }}
+    onClick={_=>{
+      ReactDOM.findDOMNode(this).querySelector('.pusher').scrollTo(0,0)
+      this.setState({page:name})
+    }}
     >
-      <Icon name={icon}/>
-      { l10n.translation(name == "keyboard" ? '1524430321211440688' : name == 'video' ? '6146563240635539929' : name == 'contextMenu'? '5513242761114685513' : name)}
+    <Icon name={icon}/>
+    { l10n.translation(name == "keyboard" ? '1524430321211440688' : name == 'video' ? '6146563240635539929' : name == 'contextMenu'? '5513242761114685513' : name)}
     </Menu.Item>
   }
 
-  route(name){
+    route(name){
 
   }
 
-  render() {
+    render() {
     return <Sidebar.Pushable style={{minHeight: 'calc(100vh - 58px)'}} as={Segment}>
-      <Sidebar as={Menu} animation='slide along' width='thin' visible={true} icon='labeled' vertical inverted>
-        <Menu.Item></Menu.Item>
-        {this.getMenu('general','browser')}
-        {this.getMenu('data','database')}
-        {this.getMenu('search','search')}
-        {this.getMenu('tabs','table')}
-        {this.getMenu('contextMenu','square outline')}
-        {this.getMenu('keyboard','keyboard')}
-        {this.getMenu('video','video')}
-        {this.getMenu('theme','picture')}
-        {this.getMenu('extensions','industry')}
-        {this.getMenu('syncDatas','exchange')}
-        <Menu.Item as="a" href='javascript:void(0)' onClick={_=>ipc.send('open-page','chrome-extension://jpkfjicglakibpenojifdiepckckakgk/options_page.html')} active={false}>
-          {l10n.translation('mouseGesture')}
-        </Menu.Item>
-        <Menu.Item as="a" href='javascript:void(0)' onClick={_=>ipc.send('open-page','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/input_history.html')} active={false}>
-          Input History
-        </Menu.Item>
-      </Sidebar>
-      <Sidebar.Pusher>
-        <Segment basic>
-          {routings[this.state.page]}
-        </Segment>
-      </Sidebar.Pusher>
+    <Sidebar as={Menu} animation='slide along' width='thin' visible={true} icon='labeled' vertical inverted>
+    <Menu.Item></Menu.Item>
+    {this.getMenu('general','browser')}
+    {this.getMenu('data','database')}
+    {this.getMenu('search','search')}
+    {this.getMenu('tabs','table')}
+    {this.getMenu('contextMenu','square outline')}
+    {this.getMenu('keyboard','keyboard')}
+    {this.getMenu('video','video')}
+    {this.getMenu('theme','picture')}
+    {this.getMenu('extensions','industry')}
+    {this.getMenu('syncDatas','exchange')}
+    <Menu.Item as="a" href='javascript:void(0)' onClick={_=>ipc.send('open-page','chrome-extension://jpkfjicglakibpenojifdiepckckakgk/options_page.html')} active={false}>
+    {l10n.translation('mouseGesture')}
+    </Menu.Item>
+    <Menu.Item as="a" href='javascript:void(0)' onClick={_=>ipc.send('open-page','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/input_history.html')} active={false}>
+    Input History
+    </Menu.Item>
+    </Sidebar>
+    <Sidebar.Pusher>
+    <Segment basic>
+    {routings[this.state.page]}
+    </Segment>
+    </Sidebar.Pusher>
     </Sidebar.Pushable>
   }
 
-}
+  }
 
-const App = () => (
-  <Container>
-    <TopMenu/>
-  </Container>
-)
+  const App = () => (
+    <Container>
+      <TopMenu/>
+    </Container>
+  )
 
 
-const key = Math.random().toString()
-ipc.send("get-main-state",key,['startsWith','newTabMode','myHomepage','searchProviders','searchEngine','language','enableFlash','concurrentDownload','downloadNum','sideBarDirection','scrollTab',
+  const key = Math.random().toString()
+  ipc.send("get-main-state",key,['startsWith','newTabMode','myHomepage','searchProviders','searchEngine','language','enableFlash','concurrentDownload','downloadNum','sideBarDirection','scrollTab',
   'doubleShift','tripleClick','enableMouseGesture','fullscreenTransition','autoDeleteDownloadList','extensionOnToolbar','syncScrollMargin','contextMenuSearchEngines','ALL_KEYS','bindMarginFrame','bindMarginTitle','longPressMiddle','checkDefaultBrowser','sendToVideo',
   'multistageTabs','tabMinWidth','httpsEverywhereEnable','trackingProtectionEnable','autoSaveInterval','noScript','blockCanvasFingerprinting','browsingHistory', 'downloadHistory',
   'disableContextMenus','disableTabContextMenus','priorityContextMenus','priorityTabContextMenus','reloadIntervals','generalWindowOpenLabel','keepWindowLabel31','tabPreview','tabPreviewQuality',
@@ -2810,21 +2845,24 @@ ipc.send("get-main-state",key,['startsWith','newTabMode','myHomepage','searchPro
   'enableWidevine','toolbarLink','sidebarLink','bookmarkbarLink','zoomBehavior','tabPreviewSizeWidth','tabPreviewSizeHeight','tabPreviewSlideHeight','tabPreviewWait','searchEngineDisplayType','tabPreviewRecent',
   'sendUrlContextMenus','extensions','tabBarMarginTop','removeTabBarMarginTop','enableTheme','themeTopPage','themeBookmark','themeHistory','themeDownloader','themeExplorer','themeBookmarkSidebar','themeHistorySidebar',
   'themeSessionManagerSidebar','themeTabTrashSidebar','themeTabHistorySidebar','themeExplorerSidebar','searchHistoryOrderCount','rectangularSelection','fullscreenTransitionKeep','enableSmoothScrolling','showAddressBarFavicon','showAddressBarBookmarks'
-  ,'emailSync','syncGeneralSettings','syncBookmarks','syncBrowsingHistory','syncSessionTools','syncFavicons','syncDownloadHistory','syncAutomation','syncNote','syncPassword','rockerGestureLeft','rockerGestureRight','inputHistory','inputHistoryMaxChar'])
-ipc.once(`get-main-state-reply_${key}`,(e,data)=>{
-  generalDefault = data
-  keyboardDefault = data
-  TabDefault = data
-  videoDefault = data
-  extensionDefault = data
-  contextMenuDefault = data
+  ,'emailSync','syncGeneralSettings','syncBookmarks','syncBrowsingHistory','syncSessionTools','syncFavicons','syncDownloadHistory','syncAutomation','syncNote','syncPassword','rockerGestureLeft','rockerGestureRight','inputHistory','inputHistoryMaxChar',
+  'regexClickVideo','regexDbClickVideo','regexWheelMinusVideo','regexShiftWheelMinusVideo','regexCtrlWheelMinusVideo','regexShiftCtrlWheelMinusVideo','regexKeyVideoPlayOrPause',
+  'regexKeyVideoFrameStep','regexKeyVideoFrameBackStep','regexKeyVideoRewind1','regexKeyVideoRewind2','regexKeyVideoRewind3','regexKeyVideoForward1','regexKeyVideoForward2','regexKeyVideoForward3','regexKeyVideoNormalSpeed','regexKeyVideoHalveSpeed','regexKeyVideoDoubleSpeed',
+  'regexKeyVideoDecSpeed','regexKeyVideoIncSpeed','regexKeyVideoFullscreen','regexKeyVideoExitFullscreen','regexKeyVideoMute','regexKeyVideoDecreaseVolume','regexKeyVideoIncreaseVolume','regexKeyVideoPlRepeat'])
+  ipc.once(`get-main-state-reply_${key}`,(e,data)=>{
+    generalDefault = data
+    keyboardDefault = data
+    TabDefault = data
+    videoDefault = data
+    extensionDefault = data
+    contextMenuDefault = data
 
-  const {searchProviders, searchEngine, contextMenuSearchEngines,searchEngineDisplayType} = data
-  let arr = []
-  for(let [name,value] of Object.entries(searchProviders)){
+    const {searchProviders, searchEngine, contextMenuSearchEngines,searchEngineDisplayType} = data
+    let arr = []
+    for(let [name,value] of Object.entries(searchProviders)){
     arr[value.ind] = value
   }
-  searchDefault = {searchProviders: arr.filter(x=>x),default: searchEngine,contextMenuSearchEngines,searchEngineDisplayType}
+    searchDefault = {searchProviders: arr.filter(x=>x),default: searchEngine,contextMenuSearchEngines,searchEngineDisplayType}
 
-  ReactDOM.render(<App />,  document.getElementById('app'))
-})
+    ReactDOM.render(<App />,  document.getElementById('app'))
+  })

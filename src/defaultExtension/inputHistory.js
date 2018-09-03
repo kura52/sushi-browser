@@ -16,7 +16,7 @@ export default function(inputHistoryMaxChar){
       host: window.location.host,
       now: Date.now()
     }
-    for (let ele of document.querySelectorAll('input:not([type="submit"]):not([type="hidden"]):not([type="reset"]):not([type="button"]):not([type="image"]):not([disabled]),select:not([disabled]),textarea:not([disabled]),[contenteditable="true"]:not([disabled])')) {
+    for (let ele of document.querySelectorAll('input:not([type="submit"]):not([type="hidden"]):not([type="reset"]):not([type="button"]):not([type="image"]):not([type="password"]):not([disabled]),select:not([disabled]),textarea:not([disabled]),[contenteditable="true"]:not([disabled])')) {
       const val = getValue(ele)
       if (val) value.push(val)
     }
@@ -53,7 +53,7 @@ export default function(inputHistoryMaxChar){
       const tag = target.tagName && target.tagName.toLowerCase()
       const type = target.type && target.type.toLowerCase()
       if((!tag.match(/^(input|textarea)$/) && !target.isContentEditable) ||
-        (tag == 'input' && (type == 'checkbox' || type == 'radio'))) return
+        (tag == 'input' && (type == 'checkbox' || type == 'radio' || type == 'password'))) return
       if(eventName == 'focusin'){
         if(!hasCode){
           await new Promise(r=>{

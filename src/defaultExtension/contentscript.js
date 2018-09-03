@@ -396,7 +396,10 @@ if(window.__started_){
     })
   }
 
+
   const videoFunc = (e,inputs)=>{
+    const matchReg = (key) => location.href.match(new RegExp(inputs[`regex${key.charAt(0).toUpperCase()}${key.slice(1)}`],'i'))
+
     for(let url of (inputs.blackList || [])){
       if(url && location.href.startsWith(url)) return
     }
@@ -423,10 +426,10 @@ if(window.__started_){
     let nothing
     const eventHandler = (e,name,target)=>{
       const v = target || e.target
-      if(name == 'playOrPause'){
+      if(name == 'playOrPause' && matchReg('playOrPause')){
         v.paused ? v.play() : v.pause()
       }
-      else if(name == 'fullscreen'){
+      else if(name == 'fullscreen' && matchReg('fullscreen')){
         if(location.href.startsWith('https://www.youtube.com')){
           const newStyle = document.createElement('style')
           newStyle.type = "text/css"
@@ -458,7 +461,7 @@ if(window.__started_){
           }
         }
       }
-      else if(name == 'exitFullscreen'){
+      else if(name == 'exitFullscreen' && matchReg('exitFullscreen')){
         const isFull = ipc.send('toggle-fullscreen-sync',1)
         const isFullscreen = v.offsetWidth == window.innerWidth || v.offsetHeight == window.innerHeight
         if(isFullscreen == isFull) return
@@ -475,71 +478,71 @@ if(window.__started_){
           }
         }
       }
-      else if(name == 'mute'){
+      else if(name == 'mute' && matchReg('mute')){
         v.muted = !v.muted
         popUp(v,`Mute: ${v.muted ? "ON" : "OFF"}`)
       }
-      else if(name == 'rewind1'){
+      else if(name == 'rewind1' && matchReg('rewind1')){
         v.currentTime -= parseInt(inputs.mediaSeek1)
       }
-      else if(name == 'rewind2'){
+      else if(name == 'rewind2' && matchReg('rewind2')){
         v.currentTime -= parseInt(inputs.mediaSeek2)
       }
-      else if(name == 'rewind3'){
+      else if(name == 'rewind3' && matchReg('rewind3')){
         v.currentTime -= parseInt(inputs.mediaSeek3)
       }
-      else if(name == 'forward1'){
+      else if(name == 'forward1' && matchReg('forward1')){
         v.currentTime += parseInt(inputs.mediaSeek1)
       }
-      else if(name == 'forward2'){
+      else if(name == 'forward2' && matchReg('forward2')){
         v.currentTime += parseInt(inputs.mediaSeek2)
       }
-      else if(name == 'forward3'){
+      else if(name == 'forward3' && matchReg('forward3')){
         v.currentTime += parseInt(inputs.mediaSeek3)
       }
-      else if(name == 'frameStep'){
+      else if(name == 'frameStep' && matchReg('frameStep')){
         v.currentTime += 1 / 30
       }
-      else if(name == 'frameBackStep'){
+      else if(name == 'frameBackStep' && matchReg('frameBackStep')){
         v.currentTime -= 1 / 30
       }
-      else if(name == 'decSpeed'){
+      else if(name == 'decSpeed' && matchReg('decSpeed')){
         const seek = parseInt(inputs.speedSeek)/100.0
         v.playbackRate -= seek
         popUp(v,`Speed: ${Math.round(v.playbackRate * 100)}%`)
       }
-      else if(name == 'incSpeed'){
+      else if(name == 'incSpeed' && matchReg('incSpeed')){
         const seek = parseInt(inputs.speedSeek)/100.0
         v.playbackRate += seek
         popUp(v,`Speed: ${Math.round(v.playbackRate * 100)}%`)
       }
-      else if(name == 'normalSpeed'){
+      else if(name == 'normalSpeed' && matchReg('normalSpeed')){
         v.playbackRate = 1
         popUp(v,`Speed: ${Math.round(v.playbackRate * 100)}%`)
       }
-      else if(name == 'halveSpeed'){
+      else if(name == 'halveSpeed' && matchReg('halveSpeed')){
         v.playbackRate *= 0.5
         popUp(v,`Speed: ${Math.round(v.playbackRate * 100)}%`)
       }
-      else if(name == 'doubleSpeed'){
+      else if(name == 'doubleSpeed' && matchReg('doubleSpeed')){
         v.playbackRate *= 2
         popUp(v,`Speed: ${Math.round(v.playbackRate * 100)}%`)
       }
-      else if(name == 'decreaseVolume'){
+      else if(name == 'decreaseVolume' && matchReg('decreaseVolume')){
         const band = parseInt(inputs.audioSeek)
         const seek = band/100.0
         v.volume = Math.max(Math.round(v.volume*100/band)*band/100 - seek, 0)
         popUp(v,`Volume: ${Math.round(v.volume * 100)}%`)
         if(inputs.keepAudioSeekValue) localStorage.setItem("vol",v.volume)
       }
-      else if(name == 'increaseVolume'){
+      else if(name == 'increaseVolume' && matchReg('increaseVolume')){
         const band = parseInt(inputs.audioSeek)
         const seek = band/100.0
         v.volume = Math.min(Math.round(v.volume*100/band)*band/100 + seek, 1)
         popUp(v,`Volume: ${Math.round(v.volume * 100)}%`)
         if(inputs.keepAudioSeekValue) localStorage.setItem("vol",v.volume)
       }
-      else if(name == 'plRepeat'){
+      else if(name == 'plRepeat' && matchReg('plRepeat')){
         v.loop = !v.loop
         popUp(v,`Loop: ${v.loop ? "ON" : "OFF"}`)
       }
@@ -553,7 +556,7 @@ if(window.__started_){
       }
     }
 
-    if(inputs.click) {
+    if(inputs.click && matchReg('click')) {
       document.addEventListener('click', e => {
         let target = e.target
         if(e.target.tagName !== 'VIDEO'){
@@ -582,7 +585,7 @@ if(window.__started_){
       }, true)
     }
 
-    if(inputs.dbClick){
+    if(inputs.dbClick && matchReg('dbClick')){
       document.addEventListener('dblclick',e=>{
         let target = e.target
         if(e.target.tagName !== 'VIDEO'){
@@ -609,7 +612,10 @@ if(window.__started_){
       },true)
     }
 
-    if(inputs.wheelMinus || inputs.shiftWheelMinus || inputs.ctrlWheelMinus|| inputs.shiftCtrlWheelMinus){
+    if((inputs.wheelMinus && matchReg('wheelMinus')) ||
+      (inputs.shiftWheelMinus && matchReg('shiftWheelMinus')) ||
+      (inputs.ctrlWheelMinus && matchReg('ctrlWheelMinus')) ||
+      (inputs.shiftCtrlWheelMinus && matchReg('shiftCtrlWheelMinus'))){
       const minusToPlus = {rewind1: 'forward1', decSpeed: 'incSpeed', decreaseVolume: 'increaseVolume',frameBackStep: 'frameStep'}
       const modify = inputs.reverseWheel ? -1 : 1
       document.addEventListener('wheel',e=>{
@@ -662,7 +668,10 @@ if(window.__started_){
               target = c.children && [...c.children].find(x=>x.tagName == "VIDEO")
               if(target) break
             }
-            if(!target) return
+            if(!target){
+              target = document.querySelector('video')
+              if(!target) return
+            }
           }
         }
         const addInput = {}
@@ -675,7 +684,19 @@ if(window.__started_){
       },true)
     }
   }
+
+  let retry = 0
+  let receivedVideoEvent = setInterval(_=>{
+    if(document.querySelector('video,audio')){
+      const [inputs] = ipc.sendSync('get-sync-main-states',['inputsVideo'])
+      chrome.runtime.sendMessage({ event: "video-event",inputs })
+      clearInterval(receivedVideoEvent)
+    }
+    if(retry++ > 3) clearInterval(receivedVideoEvent)
+  },1000)
+
   ipc.once('on-video-event',(e,inputs)=>{
+    clearInterval(receivedVideoEvent)
     chrome.runtime.sendMessage({ event: "video-event",inputs })
   })
 
