@@ -3603,7 +3603,7 @@ export default class TabPanel extends Component {
       this.state.history.push([tabKey,i])
 
       const cont = this.getWebContents(tab)
-      if(!cont.isDestroyed()) cont.send('record-input-history')
+      if(cont && !cont.isDestroyed()) cont.send('record-input-history')
       tab.wv.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd','({x:window.scrollX ,y:window.scrollY})',{},
         (err, url, result) => {
           if(result[0]){

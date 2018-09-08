@@ -451,6 +451,30 @@ ipcMain.on('force-click',(event,{x,y})=> {
 
 ipcMain.on('force-mouse-up',(event,{x,y})=> {
   event.sender.sendInputEvent({ type: 'mouseUp', x, y, button: 'left',clickCount: 1});
+})
+
+ipcMain.on('send-input-event',(e,{type,tabId,x,y,button,deltaY,keyCode,modifiers})=>{
+  console.log(type,tabId,x,y,deltaY)
+  const cont = webContents.fromTabID(tabId)
+  if(!cont || cont.isDestroyed()) return
+
+  if(type == 'mouseDown'){
+    cont.sendInputEvent({ type, x, y, button, clickCount: 1})
+  }
+  else if(type == 'mouseUp'){
+    cont.sendInputEvent({ type, x, y, button, clickCount: 1})
+  }
+  else if(type == 'mouseWheel'){
+    cont.sendInputEvent({ type, x: x, y: y, deltaX: 0, deltaY, canScroll: true})
+  }
+  else if(type == 'mouseMove'){
+    cont.sendInputEvent({ type, x: x, y: y})
+  }
+  else if(type == 'keyDown'){
+    console.log(999,keyCode, modifiers)
+    cont.sendInputEvent({type: 'keyDown', keyCode, modifiers})
+    cont.sendInputEvent({type: 'char', keyCode, modifiers})
+  }
 
 })
 
@@ -1051,7 +1075,7 @@ ipcMain.on('set-pos-window',async (e,{id,hwnd,key,x,y,width,height,top,active,ta
   }
 })
 
-const mpoMap = {}, loopMap = {}, bwMap= {},tabMap = {}, loadMap = {}, detachMap = {}
+const mpoMap = {}, loopMap = {}, bwMap= {},tabMap = {}, loadMap = {}, detachMap = {}, winMap = {}, modifyPos = isLinux ? 25 : 0
 global.bwMap = bwMap
 let mobileInject
 ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, y, width, height, oldKey, show, force})=>{
@@ -1071,16 +1095,15 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
     } : {}
 
     const bw = new BrowserWindow({
-      x: x - 25, y, width, height: height - 25,
+      x: x - modifyPos, y, width, height: height - modifyPos,
       title: 'Mobile Panel',
       fullscreenable: detach,
       // titleBarStyle: detach ? void 0 : 'hidden',
       autoHideMenuBar: true,
       // frame: detach || process.platform === 'darwin',
       show: true,
-      skipTaskbar: !detach,
-      // resizable: detach,
-      // movable: detach,
+      resizable: true,
+      movable: true,
       webPreferences: {
         partition: 'persist:mobile',
         plugins: true,
@@ -1094,9 +1117,11 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
     })
     bw.setMinimizable(detach)
     bw.setMaximizable(detach)
+    bw.setSkipTaskbar(!detach)
 
-    setTimeout(_=>bw.setBounds({x: Math.round(x),y: Math.round(y),width: Math.round(width),height: Math.round(height) - 25}),0)
-
+    if(isLinux){
+      setTimeout(_=>bw.setBounds({x: Math.round(x),y: Math.round(y),width: Math.round(width),height: Math.round(height) - modifyPos}),0)
+    }
 
 
     bw.webContents.openDevTools()
@@ -1106,9 +1131,22 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
     })
     // await new Promise(r=>setTimeout(r,300))
     bw.loadURL(url)
-    bw.setAlwaysOnTop(!detach)
     mpoMap[key] = bw
     detachMap[key] = detach
+
+    if(isWin){
+      const winctl = require('winctl')
+      const win =  winctl.GetActiveWindow()
+      winMap[key] = win
+      if(!detach){
+        win.setWindowLongPtr()
+        win.setWindowPos(0,0,0,0,0,39+1024)
+        win.setWindowPos(winctl.HWND.TOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
+      }
+    }
+    else{
+      bw.setAlwaysOnTop(!detach)
+    }
 
     bw.on('resize', ()=>{
       const [width,height] = bw.getSize()
@@ -1185,7 +1223,7 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
     if(!bw) return
     if(type == 'resize'){
       if(_detach) return
-        bw.setBounds({x: Math.round(x),y: Math.round(y),width: Math.round(width),height: Math.round(height) - 25})
+        bw.setBounds({x: Math.round(x),y: Math.round(y),width: Math.round(width),height: Math.round(height) - modifyPos})
     }
     else if(type == 'url'){
       const thisUrl = bw.webContents.getURL()
@@ -1208,16 +1246,28 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
       delete detachMap[key]
       delete mpoMap[key]
       delete loopMap[key]
+      delete winMap[key]
     }
     else if(type == 'below'){
       if(_detach) return
       if(bw.isMinimized()) return
-      bw.setAlwaysOnTop(false)
+      if(isWin){
+        const win = winMap[key]
+        const winctl = require('winctl')
+        win.setWindowPos(winctl.HWND.NOTOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
+        if(!bw.isFocused()) win.setWindowPos(winctl.HWND.BOTTOM,0,0,0,0,19+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
+      }
+      else{
+          bw.setAlwaysOnTop(false)
+      }
+      console.log(66665555)
       if(force){
         const cont = webContents.fromTabID(tabId)
         cont.hostWebContents.focus()
+        console.log(666655556)
       }
       else if(show && !bw.isFocused()){
+        console.log(666655557)
         bw.hide()
         bw.showInactive()
         bw.setSkipTaskbar(true)
@@ -1226,7 +1276,13 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
     else if(type == 'above'){
       if(_detach) return
       if(bw.isMinimized()) return
-      bw.setAlwaysOnTop(true)
+      if(isWin){
+        const win = winMap[key]
+        win.setWindowPos(require('winctl').HWND.TOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
+      }
+      else{
+        bw.setAlwaysOnTop(true)
+      }
     }
     else if(type == 'minimize'){
       if(_detach) return
@@ -1246,8 +1302,30 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
       bw.setSkipTaskbar(!detach)
       bw.setMinimizable(detach)
       bw.setMaximizable(detach)
-      bw.setAlwaysOnTop(!detach)
+      if(isWin){
+        const win = winMap[key]
+        if(detach){
+          win.setWindowPos(require('winctl').HWND.NOTOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
+        }
+        else{
+          win.setWindowPos(require('winctl').HWND.TOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
+        }
+      }
+      else{
+        bw.setAlwaysOnTop(!detach)
+      }
       if(detach) bw.focus()
+
+      if(isWin){
+        const win = winMap[key]
+        if(detach){
+          win.setWindowLongPtrRestore()
+        }
+        else{
+          win.setWindowLongPtr()
+        win.setWindowPos(0,0,0,0,0,39+1024);
+        }
+      }
 
       mainState.mobilePanelDetach = detach
 

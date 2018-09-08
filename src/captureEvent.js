@@ -85,14 +85,30 @@ function faviconUpdate(url) {
 }
 
 const captures = {}
-ipcMain.on('take-capture', (event,{id,url,loc,base64,tabId}) => {
+ipcMain.on('take-capture', async (event,{id,url,loc,base64,tabId,tabIds}) => {
   if(!base64){
     if(captures[url]) return
     captures[url] = true
   }
-  captureCurrentPage(id,url,loc,base64,event.sender,tabId).then(_=>{
-    if(!base64) delete captures[url]
-  })
+  if(tabIds){
+    const promises = []
+    for(let tabId of tabIds){
+      const cont = webContents.fromTabID(tabId)
+      if(!cont) continue
+      promises.push(new Promise(r=>{
+        cont.capturePage((imageBuffer)=>{
+          r([tabId,`data:image/jpeg;base64,${imageBuffer.toJPEG(parseInt(mainState.tabPreviewQuality)).toString("base64")}`,imageBuffer.getSize()])
+        })
+      }))
+    }
+    const results = await Promise.all(promises)
+    event.sender.send(`take-capture-reply_${base64}`,results)
+  }
+  else{
+    captureCurrentPage(id,url,loc,base64,event.sender,tabId).then(_=>{
+      if(!base64) delete captures[url]
+    })
+  }
 })
 
 

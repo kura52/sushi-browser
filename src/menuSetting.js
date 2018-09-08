@@ -227,7 +227,7 @@ const createEditSubmenu = () => {
       }
     },
     {
-      label: locale.translation('toggleFindOnPage'),
+      label: 'Toggle Find in Page',
       accelerator: mainState.keyToggleFindOnPage,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{

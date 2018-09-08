@@ -161,7 +161,9 @@ export default class SplitWindows extends Component{
     this.orderingIndexes = ::this.orderingIndexes
     this.closeFloat = ::this.closeFloat
     this.allKeys = ::this.allKeys
-
+    this.arrangePanels = ::this.arrangePanels
+    this.arrangePanelKeyDown = ::this.arrangePanelKeyDown
+    this.arrangePanelMouseMove = ::this.arrangePanelMouseMove
   }
 
   restoreState(param){
@@ -1032,6 +1034,10 @@ export default class SplitWindows extends Component{
     PubSub.unsubscribe(this.tokenAllDetach)
     PubSub.unsubscribe(this.tokenSetVerticalTabState)
     PubSub.unsubscribe(this.tokenSetState)
+
+    document.removeEventListener('keydown',this.arrangePanelKeyDown)
+    document.removeEventListener('mousemove',this.arrangePanelMouseMove)
+    clearInterval(this.arrangeId)
   }
 
   notifyChange(date){
@@ -1620,6 +1626,180 @@ export default class SplitWindows extends Component{
     this.orderingIndexes()
   }
 
+  arrangePanelKeyDown(e){
+    if(e.key == 'Shift' || e.key == 'Alt' || e.key == 'Control' || e.key == 'Meta' || e.key == 'Process') return
+
+    console.log(77766,e)
+    const ele = document.elementFromPoint(this.mouseMove.pageX,this.mouseMove.pageY).closest('.arrange-img')
+    if(!ele) return
+
+    const tabId = parseInt(ele.className.split("tabId-")[1])
+
+    const modifiers = []
+    if(e.altKey) modifiers.push('Alt')
+    if(e.ctrlKey) modifiers.push('Control')
+    if(e.shiftKey) modifiers.push('Meta')
+    if(e.metaKey) modifiers.push('Shift')
+    ipc.send('send-input-event', {type: 'keyDown',tabId,keyCode: e.key, modifiers})
+  }
+
+  arrangePanelMouseMove(e){
+    this.mouseMove = e
+  }
+
+  arrangePanels(){
+    if(this.state.arrange){
+      clearInterval(this.arrangeId)
+      sharedState.arrange = false
+      this.setState({arrange: null})
+      document.removeEventListener('keydown',this.arrangePanelKeyDown)
+      document.removeEventListener('mousemove',this.arrangePanelMouseMove)
+    }
+    else{
+      document.addEventListener('keydown',this.arrangePanelKeyDown)
+      document.addEventListener('mousemove',this.arrangePanelMouseMove)
+      sharedState.arrange = true
+
+      const arr = []
+      let tabIds = []
+      this.allKeys(this.state.root,arr)
+      for(let key of arr){
+        this.refs2[key].webViewCreate()
+        tabIds.push(...this.refs2[key].state.tabs.map(t=>t.wvId))
+      }
+
+      let rowNum = Math.ceil(Math.sqrt(tabIds.length))
+      let rect = document.querySelector('.typcn.typcn-minus').getBoundingClientRect()
+      let wholeWidth = window.innerWidth
+      let top = rect.y + rect.height + 30
+      let wholeHeight = window.innerHeight - top
+
+      let num = 0, doing
+      const arrange = []
+      const func = first=>{
+        if(doing) return
+        doing = true
+        if(num++ % 4 == 0){
+          const arr = []
+          tabIds = []
+          this.allKeys(this.state.root,arr)
+          for(let key of arr){
+            tabIds.push(...this.refs2[key].state.tabs.map(t=>t.wvId))
+          }
+
+          rect = document.querySelector('.typcn.typcn-minus').getBoundingClientRect()
+          wholeWidth = window.innerWidth
+          top = rect.y + rect.height + 30
+          wholeHeight = window.innerHeight - top
+        }
+
+        const base64 = uuid.v4()
+        ipc.send('take-capture', {base64, tabIds})
+        ipc.once(`take-capture-reply_${base64}`,(e,data)=>{
+          if(first || this.state.arrange){
+            this.setState({arrange: {top,tabIds,wholeWidth,wholeHeight,data}})
+          }
+          doing = false
+        })
+      }
+      func(true)
+      this.arrangeId = setInterval(_=>func(),300)
+
+    }
+  }
+
+  getOptimizeHeight(wholeWidth,wholeHeight,data){
+    for(let j=10;j<1000;j++){
+      const i = j / 10.0
+      const eachHeight = wholeHeight / i
+      let totalWidth = 0, num = 1
+      for(let [tabId, dataURL, size] of data){
+        const eachWidth = (size.width + 2) / (size.height + 2) * eachHeight
+        if(eachWidth + totalWidth > wholeWidth){
+          if(++num > Math.floor(i)) break
+          totalWidth = eachWidth
+        }
+        else{
+          totalWidth += eachWidth
+        }
+      }
+      if(num <=  Math.floor(i) && totalWidth <= wholeWidth){
+        return eachHeight
+      }
+    }
+  }
+
+  handleArrangeEvent(e,tabId,realWidth,realHeight,imgWidth,imgHeight){
+    console.log(9343,e,realWidth,realHeight,imgWidth,imgHeight)
+    const x = e.offsetX / imgWidth * realWidth
+    const y = e.offsetY / imgHeight * realHeight
+    const button = e.button == 0 ? 'left' : e.button == 1 ? 'middle' : 'right'
+    if(e.type == 'mousedown' && button != 'right') ipc.send('send-input-event', {type: 'mouseDown',tabId,x,y,button})
+    else if(e.type == 'mouseup' && button != 'right') ipc.send('send-input-event', {type: 'mouseUp',tabId,x,y,button})
+    else if(e.type == 'wheel' && e.wheelDelta != 0) ipc.send('send-input-event', {type: 'mouseWheel',tabId,x,y,deltaY:e.deltaY * -1})
+    else if(e.type == 'mousemove') ipc.send('send-input-event', {type: 'mouseMove',tabId,x,y})
+  }
+
+  renderArrange(){
+    const results = []
+    const {top,tabIds,wholeWidth,wholeHeight,data} = this.state.arrange
+
+    const eachHeight = this.getOptimizeHeight(wholeWidth,wholeHeight,data)
+
+    const h = {}
+    for(let [tabId, dataURL, size] of data){
+      h[tabId] = [dataURL, (size.width + 2) / (size.height + 2) * eachHeight, size.width, size.height]
+    }
+
+    const arr = [], selectedTabIds = new Set()
+    this.allKeys(this.state.root,arr)
+    for(let key of arr){
+      const selectedTab = this.refs2[key].state.selectedTab
+      const tab = this.refs2[key].state.tabs.find(t=>t.key == selectedTab)
+      selectedTabIds.add(tab.wvId)
+    }
+
+    for(let tabId of tabIds){
+      const data = h[tabId]
+      if(!data) continue
+      const [dataURL, eachWidth, realWidth, realHeight] = data
+      const imgWidth = eachWidth - 2, imgHeight = eachHeight - 2
+      results.push(<div className={`arrange-img tabId-${tabId}`} style={{width: eachWidth, height: eachHeight, display: 'flex', border: `1px solid ${selectedTabIds.has(tabId) ? '#08cefb': 'rgb(80, 80, 80)'}`}}>
+        <img src={dataURL} style={{width: imgWidth, height: imgHeight, objectFit: 'contain'}}
+             onDragStart={()=>false}
+             onMouseDown={e=>this.handleArrangeEvent(e,tabId,realWidth,realHeight,imgWidth,imgHeight)}
+             onMouseUp={e=>this.handleArrangeEvent(e,tabId,realWidth,realHeight,imgWidth,imgHeight)}
+             onClick={e=>this.handleArrangeEvent(e,tabId,realWidth,realHeight,imgWidth,imgHeight)}
+             onDoubleClick={e=>{
+               sharedState.arrange = false
+               clearInterval(this.arrangeId)
+               this.setState({arrange: null})
+
+               const arr = []
+               this.allKeys(this.state.root,arr)
+               for(let key of arr){
+                 const tab = this.refs2[key].state.tabs.find(t=>t.wvId == tabId)
+                 if(tab){
+                   this.refs2[key].setState({selectedTab: tab.key})
+                   this.refs2[key].focus_webview(tab)
+                   break
+                 }
+               }
+
+             }}
+             onWheel={e=>this.handleArrangeEvent(e,tabId,realWidth,realHeight,imgWidth,imgHeight)}
+             onMouseMove={e=>this.handleArrangeEvent(e,tabId,realWidth,realHeight,imgWidth,imgHeight)}
+        />
+      </div>)
+    }
+
+
+    return <div style={{display: 'flex',position: 'fixed', zIndex: 99999999999,
+      backgroundColor: 'rgb(80, 80, 80)',left: 0, top, width: wholeWidth, height: wholeHeight}}>
+      <div style={{display: 'flex',flexWrap: 'wrap',alignContent: 'flex-start', margin: 'auto', justifyContent: 'center'}}>{results}</div>
+    </div>
+  }
+
   getFixedPanelKey(dirc){
     return `fixed-${dirc}`
   }
@@ -1824,12 +2004,12 @@ export default class SplitWindows extends Component{
     </FloatPanel>
   }
 
-//
   render() {
     const arr = []
     for (var [key, value] of this.state.floatPanels.entries()) {
       arr.push(this.renderFloatPanel(value))
     }
+
 
     return <div className="wrap-split-window">
       {/*<VerticalTabPanel key="vd" parent={this} tabValues={this.tabValues} direction={this.state.verticalTabPosition}/>*/}
@@ -1838,6 +2018,7 @@ export default class SplitWindows extends Component{
       {this.state.verticalTabPosition == "right" ? <VerticalTabPanel key="vd" parent={this} tabValues={this.tabValues} toggleNav={this.state.root.toggleNav} direction={this.state.verticalTabPosition}/> : null}
       <div>{arr}</div>
       <PanelOverlay/>
+      {this.state.arrange ? this.renderArrange(): null}
     </div>
   }
 }

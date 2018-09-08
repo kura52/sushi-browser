@@ -70,7 +70,7 @@ const settingDefault =  {
   vpnNames: [],
   navbarItems: {
     left: ['back','forward','reload','home'],
-    right: ['sync','sidebar','mobile','screenshot','favorite','history','savedState','video'],
+    right: ['sync','arrange','sidebar','mobile','screenshot','favorite','history','savedState','video'],
     backSide: ['syncReplace','tabTrash','tabHistory','opposite','download','folder','terminal'],
   },
   verticalTab: false,
@@ -157,7 +157,7 @@ const settingDefault =  {
   rightClickTabAdd: 'pasteAndOpen',
   middleClickTabAdd: 'maximizePanel',
   altClickTabAdd: 'clicktabNothing',
-  tabPreview: true,
+  tabPreview: false,
   tabPreviewRecent: false,
   tabPreviewWait: 300,
   tabPreviewQuality: 80,

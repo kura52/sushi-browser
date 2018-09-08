@@ -297,7 +297,8 @@ class BrowserNavbar extends Component{
       this.hoverStatusBar == sharedState.hoverStatusBar &&
       this.tabPreview == sharedState.tabPreview &&
       this.themeBasePath == (sharedState.theme && sharedState.theme.base_path) &&
-      this.mobilePanelIsPanel === (nextProps.tab.fields.mobilePanel && nextProps.tab.fields.mobilePanel.isPanel)
+      this.mobilePanelIsPanel === (nextProps.tab.fields.mobilePanel && nextProps.tab.fields.mobilePanel.isPanel) &&
+      this.arrange == this.props.parent.props.parent.state.arrange
     )
     if(ret){
       this.currentWebContents = nextProps.currentWebContents
@@ -324,6 +325,7 @@ class BrowserNavbar extends Component{
       this.tabPreview = sharedState.tabPreview
       this.themeBasePath = (sharedState.theme && sharedState.theme.base_path)
       this.mobilePanelIsPanel = nextProps.tab.fields.mobilePanel && nextProps.tab.fields.mobilePanel.isPanel
+      this.arrange = this.props.parent.props.parent.state.arrange
     }
     return ret
   }
@@ -576,7 +578,8 @@ class BrowserNavbar extends Component{
             const interval = setInterval(_=>{
               console.log('interval')
               ipc.send('set-pos-window',{key,id,tabId:tab.wvId,checkClose:true})
-              ipc.once(`set-pos-window-reply_${key}`,(e,{needClose} = {})=>{
+              ipc.once(`set-pos-window-reply_${key}`,(e,data)=>{
+                const needClose = data.needClose
                 if(needClose){
                   PubSub.publish(`close_tab_${this.props.k}`,{key:tab.key})
                 }
@@ -998,7 +1001,10 @@ class BrowserNavbar extends Component{
       syncReplace: isFixed ? null : <SyncReplace ref="syncReplace" onContextMenu={onContextMenu} changeSyncMode={this.props.parent.changeSyncMode} replaceInfo={this.props.tab.syncReplace} updateReplaceInfo={this.props.parent.updateReplaceInfo}/>,
 
       sync: isFixed ? null : <BrowserNavbarBtn className="sort-sync" title={locale.translation("switchSyncScroll")} icon="circle-o" sync={this.props.tab.sync && !this.props.tab.syncReplace}
-                                               onContextMenu={onContextMenu}onClick={()=>{this.props.parent.changeSyncMode();this.refs.syncReplace.clearAllCheck()}}/>,
+                                               onContextMenu={onContextMenu} onClick={()=>{this.props.parent.changeSyncMode();this.refs.syncReplace.clearAllCheck()}}/>,
+
+      arrange:  <BrowserNavbarBtn className="sort-arrange" title="Arrange Panels" icon="th" sync={this.props.parent.props.parent.state.arrange}
+                                               onContextMenu={onContextMenu} onClick={()=>{this.props.parent.props.parent.arrangePanels()}}/>,
 
       float:   isFixed || !this.props.tab.sync || this.props.tab.syncReplace || !this.props.isTopLeft ? null : <FloatSyncScrollButton  onContextMenu={onContextMenu}toggleNav={this.props.toggleNav} scrollPage={this.props.parent.scrollPage}/>,
 
