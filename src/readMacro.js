@@ -40,5 +40,9 @@ export default {
   readComplexSearch(){
     return fs.readFileSync(path.join(__dirname,"../resource/SearchFunction.js")).toString()
 
+  },
+  readFindAll(){
+    return fs.readFileSync(path.join(__dirname,"../src/render/findAllFunction.js")).toString()
+
   }
 }

@@ -44,6 +44,7 @@ const keyMapping = {
   keyToggleFindOnPage: 'Toggle Find in Page',
   keyFindNext:  l10n.translation('findNext'),
   keyFindPrevious:  l10n.translation('findPrevious'),
+  keyFindAll: 'FindAll',
   keyActualSize: l10n.translation('actualSize'),
   keyZoomIn: l10n.translation('zoomIn'),
   keyZoomOut: l10n.translation('zoomOut'),
@@ -98,6 +99,8 @@ const keyMapping = {
   keySwitchDirection: l10n.translation("switchDirection"),
   keyAlignHorizontal: l10n.translation("alignHorizontal"),
   keyAlignVertical: l10n.translation("alignVertical"),
+  keyArrangePanel: 'Arrange All Panel',
+  keyArrangePanelEach: 'Arrange Panel',
   keySwitchSyncScroll: l10n.translation("switchSyncScroll"),
   keyOpenSidebar: l10n.translation("openSidebar"),
   keySearchHighlight: l10n.translation("enableSearchHighlight"),
@@ -452,6 +455,11 @@ const tabContextMenus = [
 
   ['alignHorizontal', l10n.translation('alignHorizontal')],
   ['alignVertical', l10n.translation('alignVertical')],
+
+  ['divider', null],
+
+  ['Arrange All Panel', 'Arrange All Panel'],
+  ['Arrange Panel', 'Arrange Panel'],
 
   ['divider', null],
 

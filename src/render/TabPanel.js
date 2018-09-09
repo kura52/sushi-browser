@@ -2244,8 +2244,7 @@ export default class TabPanel extends Component {
       else if(name == 'openLocation'){
         ipc.emit('focus-location-bar',null,tab.wvId)
       }
-      else
-      if(name == 'toggleDeveloperTools'){
+      else if(name == 'toggleDeveloperTools'){
         // if(!tab.fields) tab.fields = {}
         const cont = this.getWebContents(tab)
         if(!cont.setDevToolsWebContents){
@@ -2268,6 +2267,15 @@ export default class TabPanel extends Component {
             cont.toggleDevTools()
           }
         }
+      }
+      else if(name == 'arrangePanel'){
+        this.props.parent.arrangePanels('all')
+      }
+      else if(name == 'arrangePanelEach'){
+        this.props.parent.arrangePanels(this.props.k)
+      }
+      else if(name == 'findAll'){
+        this.props.parent.setState({findPanelHeight: mainState.findPanelHeight})
       }
     }
     ipc.on('menu-or-key-events', tab.events['menu-or-key-events'])

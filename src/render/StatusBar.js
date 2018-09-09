@@ -113,7 +113,11 @@ class StatusBar extends Component {
   }
 
   updateZoom(){
-    this.setState({percent: this.getWebContents(this.props.tab).getZoomPercent()})
+    const cont = this.getWebContents(this.props.tab)
+    if(!cont.isDestroyed()){
+      this.setState({percent: this.getWebContents(this.props.tab).getZoomPercent()})
+    }
+
   }
 
   componentDidMount() {

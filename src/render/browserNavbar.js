@@ -931,7 +931,7 @@ class BrowserNavbar extends Component{
       <NavbarMenuItem bold={true} text={locale.translation("saveCurrentSession")} onClick={_=>ipc.send('save-all-windows-state')} />
       <div className="divider" />
       <div role="option" className="item favorite infinite-classic">
-        <SavedStateExplorer cont={cont} onClick={_=> this.refs.savedStateMenu.setState({visible:false})}/>
+        <SavedStateExplorer cont={cont} onClick={_=> this.refs.savedStateMenu && this.refs.savedStateMenu.setState({visible:false})}/>
       </div>
     </NavbarMenu>
   }
@@ -1003,8 +1003,8 @@ class BrowserNavbar extends Component{
       sync: isFixed ? null : <BrowserNavbarBtn className="sort-sync" title={locale.translation("switchSyncScroll")} icon="circle-o" sync={this.props.tab.sync && !this.props.tab.syncReplace}
                                                onContextMenu={onContextMenu} onClick={()=>{this.props.parent.changeSyncMode();this.refs.syncReplace.clearAllCheck()}}/>,
 
-      arrange:  <BrowserNavbarBtn className="sort-arrange" title="Arrange Panels" icon="th" sync={this.props.parent.props.parent.state.arrange}
-                                               onContextMenu={onContextMenu} onClick={()=>{this.props.parent.props.parent.arrangePanels()}}/>,
+      arrange:  isDarwin ? null : <BrowserNavbarBtn className="sort-arrange" title="Arrange Panels" icon="th" sync={sharedState.arrange == this.props.k}
+                                               onContextMenu={onContextMenu} onClick={()=>{this.props.parent.props.parent.arrangePanels(this.props.k)}}/>,
 
       float:   isFixed || !this.props.tab.sync || this.props.tab.syncReplace || !this.props.isTopLeft ? null : <FloatSyncScrollButton  onContextMenu={onContextMenu}toggleNav={this.props.toggleNav} scrollPage={this.props.parent.scrollPage}/>,
 
@@ -1217,11 +1217,14 @@ class BrowserNavbar extends Component{
       {!this.props.isMaximize && !isDarwin && this.props.isTopRight && (this.props.toggleNav == 1 || verticalTab) ? <RightTopBottonSet displayFullIcon={displayFullIcon} style={{lineHeight: 0.9, transform: 'translateX(6px)',paddingTop: 1}}/> : null }
 
       {this.props.isMaximize && this.props.toggleNav == 1 ? <div className="title-button-set" style={{lineHeight: 0.9, transform: 'translateX(6px)'}}>
+        {isDarwin ? null : <span className={`fa fa-th ${sharedState.arrange == 'all' ? 'active-arrange' : ''}`} onClick={_=>PubSub.publish('toggle-arrange')}></span>}
+
         {displayFullIcon ? <span className={this.props.toggleNav == 3 ? "typcn typcn-arrow-minimise" : "typcn typcn-arrow-maximise"} onClick={_=>ipc.send('toggle-fullscreen')}></span> : null}
         <span className="typcn typcn-media-stop-outline" onClick={()=>this.props.maximizePanel()}></span>
       </div> : null}
 
       {isFloat  && this.props.toggleNav == 1 ? <div className="title-button-set" style={{lineHeight: 0.9, transform: 'translateX(6px)'}}>
+        {isDarwin ? null : <span className={`fa fa-th ${sharedState.arrange == 'all' ? 'active-arrange' : ''}`} onClick={_=>PubSub.publish('toggle-arrange')}></span>}
         <span className="typcn typcn-media-stop-outline" onClick={()=>PubSub.publish(`maximize-float-panel_${this.props.k}`)}></span>
         <span className="typcn typcn-times" onClick={()=>PubSub.publish(`close-panel_${this.props.k}`)}></span>
       </div> : null}

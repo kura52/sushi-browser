@@ -235,6 +235,15 @@ const createEditSubmenu = () => {
         })
       }
     },
+    {
+      label: 'Find All',
+      accelerator: mainState.keyFindAll,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events','findAll',cont.getId())
+        })
+      }
+    },
     { type: 'separator' },
     {
       label: locale.translation('clicktabCopyTabUrl').replace('&apos;',"'"),
@@ -836,6 +845,26 @@ const createWindowSubmenu = () => {
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
           cont && cont.hostWebContents.send('menu-or-key-events', 'alignVertical', cont.getId())
+        })
+      }
+    },
+    { type: 'separator' },
+    {
+      label: 'Arrange All Panel',
+      accelerator: mainState.keyArrangePanel,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events', 'arrangePanel', cont.getId())
+        })
+      }
+    },
+    {
+      label: 'Arrange Panel',
+      accelerator: mainState.keyArrangePanelEach,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          console.log('arrangePanelEach')
+          cont && cont.hostWebContents.send('menu-or-key-events', 'arrangePanelEach', cont.getId())
         })
       }
     },

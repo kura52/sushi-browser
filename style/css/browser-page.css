@@ -24,6 +24,11 @@
   padding-left: 8px;
 }
 
+.browser-page-search input:focus {
+  border-color: #85B7D9;
+  outline: 0;
+}
+
 .browser-page-status {
   position: absolute;
   bottom: 0;

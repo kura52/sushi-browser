@@ -172,8 +172,9 @@ if(!window.__complex_search_define__){
     subtree: true,
   };
   var limitCount = 0
-  function highlight_all(dest, words) {
+  function highlight_all(dest, words, noHighlight) {
     limitCount = 0
+    const results = []
     for (var n = 0; n < words.array.length; n++) {
       var word = words.array[n];
       if (!regbool) {
@@ -183,16 +184,57 @@ if(!window.__complex_search_define__){
       word.bgColor = bgColors[n % bgColors.length];
       word.barColor = word.bgColor;
       words_nums[word.origin] = 0;
-      replace_auto(dest, word, hlClass);
+      const result = replace_auto(dest, word, hlClass, noHighlight);
+      if(noHighlight){
+        results.push(...result)
+      }
     }
+    return results
   }
+
+  function getAroundText(obj,text,before,after){
+    let exist = false
+    for(let child of obj.parentNode.childNodes){
+      if(child.nodeType != 1 && child.nodeType != 3) continue
+      if(child.nodeType == 1){
+        if(child.style.display == 'none' ||
+          child.style.visibility == 'hidden' ||
+          child.tagName == 'STYLE' ||
+          child.tagName == 'SCRIPT' ||
+          child.tagName == 'NOSCRIPT' ||
+          child.tagName == 'TEXTAREA') continue
+        else{
+          const style = window.getComputedStyle(child)
+          if(style.display == 'none' || style.visibility == 'hidden') continue
+        }
+      }
+
+      if(obj == child){
+        exist = true
+      }
+      else if(exist){
+        const text = (child.nodeType == 3 ? child.data : child.innerText).trim()
+        if(text.length) after += ` ${text}`
+      }
+      else{
+        const text = (child.nodeType == 3 ? child.data : child.innerText).trim()
+        if(text.length) before += ` ${text}`
+      }
+    }
+    if(text.length + before.length + after.length < 200){
+      return getAroundText(obj.parentNode,text,before,after)
+    }
+    return [before, after]
+  }
+
 // 呼び出し元に返す値(callback)
   var words_nums = {};
 // 再帰的にテキストノードを書き換えるため
   var icnt = 0;
-  function replace_auto(dest, word, className) {
+  function replace_auto(dest, word, className, noHighlight) {
     //word.id, document.body, word.origin, className, word.bgColor, word.regbool, word.barColor
-    textNode_req(document.body, className, function (obj) {
+    const results = []
+    textNode_req(document.body, className, results, function (obj) {
       var tmpword = word.origin;
       // 置換処理
       var text = obj.data;
@@ -213,39 +255,50 @@ if(!window.__complex_search_define__){
       if (start == -1) {
         return;
       }
-      if(++limitCount>1000) return
+      if(!noHighlight && ++limitCount>1000) return
 
       words_nums[word.origin]++;
       var prefix = text.substr(0, start);
       var middle = text.substr(start, tmpword.length);
       var suffix = text.substr(start + tmpword.length);
-      var prefix_tn = document.createTextNode(prefix);
-      var middle_tn = document.createTextNode(middle);
-      var suffix_tn = document.createTextNode(suffix);
-      var newObj = document.createElement('esspan');
-      newObj.id = 'isear-' + icnt;
-      newObj.className = className + ' ' + icnt;
-      newObj.style.backgroundColor = word.bgColor;
-      newObj.style.color = 'black';
-      newObj.appendChild(middle_tn);
-      var parent = obj.parentNode;
-      parent.replaceChild(suffix_tn, obj);
-      parent.insertBefore(prefix_tn, suffix_tn);
-      parent.insertBefore(newObj, suffix_tn);
-      // ハイライト位置くん
-      newObj = document.getElementById('isear-' + icnt);
-      if (newObj == null) {
-        return;
+      if(!noHighlight){
+        var prefix_tn = document.createTextNode(prefix);
+        var middle_tn = document.createTextNode(middle);
+        var suffix_tn = document.createTextNode(suffix);
+        var newObj = document.createElement('esspan');
+        newObj.id = 'isear-' + icnt;
+        newObj.className = className + ' ' + icnt;
+        newObj.style.backgroundColor = word.bgColor;
+        newObj.style.color = 'black';
+        newObj.appendChild(middle_tn);
+        var parent = obj.parentNode;
+        parent.replaceChild(suffix_tn, obj);
+        parent.insertBefore(prefix_tn, suffix_tn);
+        parent.insertBefore(newObj, suffix_tn);
+        // ハイライト位置くん
+        newObj = document.getElementById('isear-' + icnt);
+        if (newObj == null) {
+          return;
+        }
+        word.elems.push(newObj);
       }
-      word.elems.push(newObj);
+      else if(text.length < 200){
+        const around = getAroundText(obj,text, prefix, suffix)
+        prefix = around[0]
+        suffix = around[1]
+      }
+      console.log(obj.parentNode, obj, prefix, suffix)
       word.count.num++;
       icnt++;
+      if(noHighlight) return [icnt -1 ,prefix, middle, suffix]
     });
+    return results
   }
 // id:number, obj:any, word:string, className:string, bgcolor:string, regbool:boolean, barcolor:string
-  function textNode_req(obj, className, callback) {
+  function textNode_req(obj, className, results, callback) {
     if (obj.nodeType == 3) { // テキストノードなら
-      callback(obj);
+      const val = callback(obj)
+      if(val) results.push(val)
       return;
     }
     if (obj.nodeType != 1 ||
@@ -263,8 +316,12 @@ if(!window.__complex_search_define__){
           child.tagName == 'TEXTAREA') {
           continue;
         }
+        else{
+          const style = window.getComputedStyle(child)
+          if(style.display == 'none' || style.visibility == 'hidden') continue
+        }
       }
-      textNode_req(child, className, callback);
+      textNode_req(child, className, results, callback);
     }
   }
   function wordMatch(str, word, regbool) {
@@ -483,14 +540,34 @@ if(!window.__complex_search_define__){
     matchCase = _matchCase
     return parsed_main(words, enabled);
   }
-  function parsed_main(words, enabled) {
+
+  function itel_main2(search_words, enabled, _matchCase, andSearch) {
+    if(andSearch) search_words = `"${search_words}"`
+    if(search_words_prev == search_words && _matchCase == matchCase) return
+    gstatus.enabled = enabled;
+    var words = new Words(search_words);
+    if (words.array.length == 0) {
+      enabled = false;
+    }
+    reset_all();
+    search_words_prev = search_words
+    matchCase = _matchCase
+    return parsed_main(words, enabled, true);
+  }
+
+  function parsed_main(words, enabled, noHighlight) {
     // 全部リセット
     if (!enabled) {
       return;
     }
-    highlight_all(document.body, words);
-    defineEvents(words, enabled);
-    window.onresize(null);
+    const results = highlight_all(document.body, words, noHighlight);
+    if(!noHighlight){
+      defineEvents(words, enabled);
+      window.onresize(null);
+    }
+    else{
+      return [words_nums, results]
+    }
     return words_nums;
   }
   var already_event = false;
@@ -533,6 +610,7 @@ if(!window.__complex_search_define__){
 
   window.__complex_search_define__ = {
     itel_main,
+    itel_main2,
     reset_all,
     scrollFocusNext,
     scrollFocusPrev

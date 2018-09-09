@@ -17,15 +17,15 @@ export default class AutofillPopup extends Component {
         console.log('autofill',e)
         if(e.rect.height + e.rect.width == 0) return
 
-        if(e.suggestions.length == 1){
-          if(e.callback){
-            e.callback(e.suggestions[0].value)
-          }
-          else{
-            ipc.send('autofill-selection-clicked', this.state.tab.wvId, e.suggestions[0].value, 0, 0)
-          }
-          return
-        }
+        // if(e.suggestions.length == 1){
+        //   if(e.callback){
+        //     e.callback(e.suggestions[0].value)
+        //   }
+        //   else{
+        //     ipc.send('autofill-selection-clicked', this.state.tab.wvId, e.suggestions[0].value, 0, 0)
+        //   }
+        //   return
+        // }
 
         this.setState({datas:e})
 

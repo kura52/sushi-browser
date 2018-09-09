@@ -102,6 +102,7 @@ const settingDefault =  {
   mobilePanelWidth: 400,
   mobilePanelSyncScroll: true,
   mobilePanelDetach: false,
+  findPanelHeight: 300,
   rockerGestureLeft: null,
   rockerGestureRight: null,
   inputHistory: true,
@@ -217,6 +218,7 @@ const settingDefault =  {
   keySelectAll: 'CmdOrCtrl+A',
 
   keyFindOnPage: 'CmdOrCtrl+F',
+  keyFindAll: 'CmdOrCtrl+Shift+F',
   keyToggleFindOnPage: '',
 
   keyActualSize: 'CmdOrCtrl+0',
@@ -346,6 +348,8 @@ const settingDefault =  {
   keyScreenShotSelectionJpeg: '',
   keyScreenShotSelectionPng: '',
 
+  keyArrangePanel: 'Shift+Alt+A',
+  keyArrangePanelEach: 'Shift+Alt+E',
 
   enableKeyDownVideo: false,
   reverseWheelVideo: false,

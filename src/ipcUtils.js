@@ -28,7 +28,7 @@ import extensionInfos from "./extensionInfos";
 import {history, token} from "./databaseFork";
 import importData from "./bookmarksExporter";
 const open = require('./open')
-const {readMacro,readMacroOff,readTargetSelector,readTargetSelectorOff,readComplexSearch} = require('./readMacro')
+const {readMacro,readMacroOff,readTargetSelector,readTargetSelectorOff,readComplexSearch,readFindAll} = require('./readMacro')
 const sharedState = require('./sharedStateMain')
 const {request} = require('./request')
 const bindPath = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/bind.html'
@@ -2053,6 +2053,24 @@ ipcMain.on('start-complex-search',(e,key,tabId,operation,noMacro)=>{
       e.sender.send(`start-complex-search-reply_${key}`,result[0])
     })
   }
+})
+
+ipcMain.on('start-find-all',async (e,key,tabIds,operation,noMacro)=>{ //@TODO
+  const macro = noMacro ? '' : readFindAll()
+  const code = `${macro}\n${operation}`
+  const promises = []
+  for(let tabId of tabIds){
+    promises.push(new Promise(r=>{
+      const cont = webContents.fromTabID(tabId)
+      if(cont && !cont.isDestroyed()){
+        cont.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',code, {},(err, url, result)=>{
+          r([tabId,result[0]])
+        })
+      }
+    }))
+  }
+
+  e.sender.send(`start-find-all-reply_${key}`,await Promise.all(promises))
 })
 
 ipcMain.on('history-count-reset',async (e,key,_id,count)=>{

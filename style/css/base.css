@@ -1303,3 +1303,61 @@ a.zoom-change:hover,a.zoom-reset:hover{
     padding: .27861429em 0.6em;
     height: 27px;
 }
+
+.title-button-set>.fa.fa-th {
+    font-size: 17px;
+    position: relative;
+    padding: 5px 4px;
+    right: 4px;
+    -webkit-app-region: no-drag;
+}
+
+.title-button-set>.fa.fa-th:hover {
+    border-radius: 12px;
+    background-color: #9a9696;
+    color: white;
+}
+
+.active-arrange{
+    color: rgb(171, 71, 0);
+}
+
+.find-panel i.fa,
+.find-panel .browser-page-search>.ui.checkbox,
+.find-panel .search-close{
+    border-top: none
+}
+
+
+.find-panel .ui.table thead th{
+    padding: 1px 5px;
+}
+.find-panel .ui.checkbox input.hidden+label {
+    padding-right: 10px;
+}
+
+.find-panel .search-num {
+    right: 284px;
+}
+
+
+.find-panel .browser-page-search input:focus {
+    border-color: #aaa;
+}
+
+.search-all-seq{
+    width: 60px;
+}
+
+.search-all-title{
+    width: 150px;
+}
+
+.search-all-tbody {
+    font-size: 13px;
+    line-height: 1.2;
+}
+
+.ui.compact.table .search-all-tbody td{
+    padding: .3em .4em;
+}

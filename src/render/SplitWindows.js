@@ -1,3 +1,5 @@
+import {ipcMain} from "electron";
+
 const React = require('react')
 const ReactDOM = require('react-dom')
 const {Component} = React
@@ -14,6 +16,7 @@ import MenuOperation from './MenuOperation'
 import url from 'url'
 import VerticalTabPanel from './VerticalTabPanel'
 const FloatPanel = require('./FloatPanel')
+const FindPanel = require('./FindPanel')
 const {token} = require('./databaseRender')
 const PanelOverlay = require('./PanelOverlay')
 import firebase,{storage,auth,database} from 'firebase'
@@ -196,6 +199,7 @@ export default class SplitWindows extends Component{
     super(props)
     this.currentWebContents = {}
     this.tabValues = {}
+    this.sizeMap = {}
     this.focused = true
     this.actived = true
     sharedState.tabValues = this.tabValues
@@ -987,6 +991,8 @@ export default class SplitWindows extends Component{
     })
 
     this.tokenSetState = PubSub.subscribe('set-state-split-window',_=>this.setState({}))
+
+    this.tokenArrange = PubSub.subscribe('toggle-arrange',_=>this.arrangePanels('all'))
     // const self = this
     //
     // this.search = (e)=>{
@@ -1630,6 +1636,7 @@ export default class SplitWindows extends Component{
     if(e.key == 'Shift' || e.key == 'Alt' || e.key == 'Control' || e.key == 'Meta' || e.key == 'Process') return
 
     console.log(77766,e)
+    if(!this.mouseMove) return
     const ele = document.elementFromPoint(this.mouseMove.pageX,this.mouseMove.pageY).closest('.arrange-img')
     if(!ele) return
 
@@ -1647,22 +1654,30 @@ export default class SplitWindows extends Component{
     this.mouseMove = e
   }
 
-  arrangePanels(){
+  arrangePanels(k){
+    if(this.state.arrange && sharedState.arrange !== k){
+      sharedState.arrange = k
+      return this.setState({})
+    }
     if(this.state.arrange){
       clearInterval(this.arrangeId)
       sharedState.arrange = false
-      this.setState({arrange: null})
+      this.state._arrange = {...this.state.arrange}
+      this.setState({arrange: null,renderArrange: null})
+      // ipc.send('clear-captures')
+      // this.sizeMap = {}
       document.removeEventListener('keydown',this.arrangePanelKeyDown)
       document.removeEventListener('mousemove',this.arrangePanelMouseMove)
     }
     else{
       document.addEventListener('keydown',this.arrangePanelKeyDown)
       document.addEventListener('mousemove',this.arrangePanelMouseMove)
-      sharedState.arrange = true
+      sharedState.arrange = k
+      this.state._arrange = this.state.arrange
 
       const arr = []
       let tabIds = []
-      this.allKeys(this.state.root,arr)
+      this.setKeys(arr)
       for(let key of arr){
         this.refs2[key].webViewCreate()
         tabIds.push(...this.refs2[key].state.tabs.map(t=>t.wvId))
@@ -1679,10 +1694,10 @@ export default class SplitWindows extends Component{
       const func = first=>{
         if(doing) return
         doing = true
-        if(num++ % 4 == 0){
+        if(num++ % 2 == 0){
           const arr = []
           tabIds = []
-          this.allKeys(this.state.root,arr)
+          this.setKeys(arr)
           for(let key of arr){
             tabIds.push(...this.refs2[key].state.tabs.map(t=>t.wvId))
           }
@@ -1695,9 +1710,18 @@ export default class SplitWindows extends Component{
 
         const base64 = uuid.v4()
         ipc.send('take-capture', {base64, tabIds})
-        ipc.once(`take-capture-reply_${base64}`,(e,data)=>{
+        ipc.once(`take-capture-reply_${base64}`,async (e,data)=>{
+          if(this.state.arrange) {
+            for (let d of data) {
+              if (d[1]) {
+                const prevD = this.state.arrange.data.find(d2 => d2[3] == d[3])
+                d[1] = prevD && prevD[1]
+              }
+            }
+          }
           if(first || this.state.arrange){
-            this.setState({arrange: {top,tabIds,wholeWidth,wholeHeight,data}})
+            this.state.arrange = {top,tabIds,wholeWidth,wholeHeight,data}
+            await this.renderArrange()
           }
           doing = false
         })
@@ -1708,9 +1732,89 @@ export default class SplitWindows extends Component{
     }
   }
 
+  async renderArrange(){
+    const results = []
+    const {top,tabIds,wholeWidth,wholeHeight,data} = this.state.arrange
+
+    const eachHeight = this.getOptimizeHeight(wholeWidth,wholeHeight,data)
+
+    const getWidthImageTabIdAndWidth = []
+    for(let [tabId, img, size, key] of data){
+      const width = Math.floor((size.width + 2) / (size.height + 2) * eachHeight - 2 )
+      if(!img || img === true || !this.sizeMap[tabId] || this.sizeMap[tabId].width != width){
+        getWidthImageTabIdAndWidth.push([tabId, width])
+      }
+    }
+
+    const key = uuid.v4()
+    ipc.send('get-captures', key,getWidthImageTabIdAndWidth)
+    await new Promise(r=>{
+      ipc.once(`get-captures-reply_${key}`,(e,imgInfo)=>{
+        data.forEach(([tabId, img, size, key],i)=>{
+          if(imgInfo[tabId]){
+            const [img,size2] = imgInfo[tabId]
+            this.sizeMap[tabId] = size2
+            data[i] = [tabId, img, size, key]
+          }
+        })
+        r()
+      })
+    })
+
+    const h = {}
+    for(let [tabId, dataURL, size, key] of data){
+      h[tabId] = [dataURL,(size.width + 2) / (size.height + 2) * eachHeight , size.width, size.height, key]
+    }
+
+    const arr = [], selectedTabIds = new Set()
+    this.setKeys(arr)
+    for(let key of arr){
+      const tabPanel = this.refs2[key]
+      if(!tabPanel) continue
+      const selectedTab = tabPanel.state.selectedTab
+      const tab = this.refs2[key].state.tabs.find(t=>t.key == selectedTab)
+      selectedTabIds.add(tab.wvId)
+    }
+
+    for(let tabId of tabIds){
+      const data = h[tabId]
+      if(!data) continue
+      const [dataURL, eachWidth, realWidth, realHeight, key] = data
+      const imgWidth = this.sizeMap[tabId].width, imgHeight = this.sizeMap[tabId].height
+      results.push(<div key={`d${key}`} className={`arrange-img tabId-${tabId}`} style={{width: eachWidth, height: eachHeight, display: 'flex', border: `1px solid ${selectedTabIds.has(tabId) ? '#08cefb': 'rgb(80, 80, 80)'}`}}>
+        <img key={`i${key}`} src={dataURL} style={{width: imgWidth, height: imgHeight, objectFit: 'cover'}}
+             onDragStart={()=>false}
+             onMouseDown={e=>this.handleArrangeEvent(e,tabId,realWidth,realHeight,imgWidth,imgHeight)}
+             onMouseUp={e=>this.handleArrangeEvent(e,tabId,realWidth,realHeight,imgWidth,imgHeight)}
+             onClick={e=>this.handleArrangeEvent(e,tabId,realWidth,realHeight,imgWidth,imgHeight)}
+          // onDoubleClick={()=>this.handleSelectTab(tabId)}
+             onWheel={e=>this.handleArrangeEvent(e,tabId,realWidth,realHeight,imgWidth,imgHeight)}
+             onMouseMove={e=>this.handleArrangeEvent(e,tabId,realWidth,realHeight,imgWidth,imgHeight)}
+        />
+      </div>)
+    }
+
+
+    this.setState({renderArrange: <div key='arrange-fixed-wrapper' style={{display: 'flex',position: 'fixed', zIndex: 99999999999,
+        backgroundColor: 'rgb(80, 80, 80)',left: 0, top, width: wholeWidth, height: wholeHeight}}>
+        <div key='arrange-wrapper' style={{display: 'flex',flexWrap: 'wrap',alignContent: 'flex-start', margin: 'auto', justifyContent: 'center'}}>{results}</div>
+      </div>})
+  }
+
+  setKeys(arr) {
+    const k = sharedState.arrange
+    if (k === 'all') {
+      this.allKeys(this.state.root, arr)
+    }
+    else {
+      arr.push(k)
+    }
+  }
+
   getOptimizeHeight(wholeWidth,wholeHeight,data){
-    for(let j=10;j<1000;j++){
-      const i = j / 10.0
+    let i = 1
+    for(let j=0;j<1000;j++){
+      i += 1 / (j < 10 ? 100.0 :  10.0)
       const eachHeight = wholeHeight / i
       let totalWidth = 0, num = 1
       for(let [tabId, dataURL, size] of data){
@@ -1734,70 +1838,34 @@ export default class SplitWindows extends Component{
     const x = e.offsetX / imgWidth * realWidth
     const y = e.offsetY / imgHeight * realHeight
     const button = e.button == 0 ? 'left' : e.button == 1 ? 'middle' : 'right'
-    if(e.type == 'mousedown' && button != 'right') ipc.send('send-input-event', {type: 'mouseDown',tabId,x,y,button})
+    if(e.type == 'mousedown'){
+      if(button == 'right'){
+        this.handleSelectTab(tabId)
+      }
+      else{
+        ipc.send('send-input-event', {type: 'mouseDown',tabId,x,y,button})
+      }
+    }
     else if(e.type == 'mouseup' && button != 'right') ipc.send('send-input-event', {type: 'mouseUp',tabId,x,y,button})
     else if(e.type == 'wheel' && e.wheelDelta != 0) ipc.send('send-input-event', {type: 'mouseWheel',tabId,x,y,deltaY:e.deltaY * -1})
     else if(e.type == 'mousemove') ipc.send('send-input-event', {type: 'mouseMove',tabId,x,y})
   }
 
-  renderArrange(){
-    const results = []
-    const {top,tabIds,wholeWidth,wholeHeight,data} = this.state.arrange
+  handleSelectTab(tabId){
+    sharedState.arrange = false
+    clearInterval(this.arrangeId)
+    this.setState({arrange: null})
 
-    const eachHeight = this.getOptimizeHeight(wholeWidth,wholeHeight,data)
-
-    const h = {}
-    for(let [tabId, dataURL, size] of data){
-      h[tabId] = [dataURL, (size.width + 2) / (size.height + 2) * eachHeight, size.width, size.height]
-    }
-
-    const arr = [], selectedTabIds = new Set()
+    const arr = []
     this.allKeys(this.state.root,arr)
     for(let key of arr){
-      const selectedTab = this.refs2[key].state.selectedTab
-      const tab = this.refs2[key].state.tabs.find(t=>t.key == selectedTab)
-      selectedTabIds.add(tab.wvId)
+      const tab = this.refs2[key].state.tabs.find(t=>t.wvId == tabId)
+      if(tab){
+        this.refs2[key].setState({selectedTab: tab.key})
+        this.refs2[key].focus_webview(tab)
+        break
+      }
     }
-
-    for(let tabId of tabIds){
-      const data = h[tabId]
-      if(!data) continue
-      const [dataURL, eachWidth, realWidth, realHeight] = data
-      const imgWidth = eachWidth - 2, imgHeight = eachHeight - 2
-      results.push(<div className={`arrange-img tabId-${tabId}`} style={{width: eachWidth, height: eachHeight, display: 'flex', border: `1px solid ${selectedTabIds.has(tabId) ? '#08cefb': 'rgb(80, 80, 80)'}`}}>
-        <img src={dataURL} style={{width: imgWidth, height: imgHeight, objectFit: 'contain'}}
-             onDragStart={()=>false}
-             onMouseDown={e=>this.handleArrangeEvent(e,tabId,realWidth,realHeight,imgWidth,imgHeight)}
-             onMouseUp={e=>this.handleArrangeEvent(e,tabId,realWidth,realHeight,imgWidth,imgHeight)}
-             onClick={e=>this.handleArrangeEvent(e,tabId,realWidth,realHeight,imgWidth,imgHeight)}
-             onDoubleClick={e=>{
-               sharedState.arrange = false
-               clearInterval(this.arrangeId)
-               this.setState({arrange: null})
-
-               const arr = []
-               this.allKeys(this.state.root,arr)
-               for(let key of arr){
-                 const tab = this.refs2[key].state.tabs.find(t=>t.wvId == tabId)
-                 if(tab){
-                   this.refs2[key].setState({selectedTab: tab.key})
-                   this.refs2[key].focus_webview(tab)
-                   break
-                 }
-               }
-
-             }}
-             onWheel={e=>this.handleArrangeEvent(e,tabId,realWidth,realHeight,imgWidth,imgHeight)}
-             onMouseMove={e=>this.handleArrangeEvent(e,tabId,realWidth,realHeight,imgWidth,imgHeight)}
-        />
-      </div>)
-    }
-
-
-    return <div style={{display: 'flex',position: 'fixed', zIndex: 99999999999,
-      backgroundColor: 'rgb(80, 80, 80)',left: 0, top, width: wholeWidth, height: wholeHeight}}>
-      <div style={{display: 'flex',flexWrap: 'wrap',alignContent: 'flex-start', margin: 'auto', justifyContent: 'center'}}>{results}</div>
-    </div>
   }
 
   getFixedPanelKey(dirc){
@@ -2011,14 +2079,17 @@ export default class SplitWindows extends Component{
     }
 
 
-    return <div className="wrap-split-window">
-      {/*<VerticalTabPanel key="vd" parent={this} tabValues={this.tabValues} direction={this.state.verticalTabPosition}/>*/}
-      {this.state.verticalTabPosition == "left" ? <VerticalTabPanel key="vd" parent={this} tabValues={this.tabValues} toggleNav={this.state.root.toggleNav} direction={this.state.verticalTabPosition}/> : null}
-      {this.recur(this.state.root,0,true,{val:false})}
-      {this.state.verticalTabPosition == "right" ? <VerticalTabPanel key="vd" parent={this} tabValues={this.tabValues} toggleNav={this.state.root.toggleNav} direction={this.state.verticalTabPosition}/> : null}
-      <div>{arr}</div>
-      <PanelOverlay/>
-      {this.state.arrange ? this.renderArrange(): null}
-    </div>
+    return <span>
+      <div className="wrap-split-window" style={this.state.findPanelHeight !== void 0 ? {height: `calc(100% - ${this.state.findPanelHeight}px)`}: null}>
+        {/*<VerticalTabPanel key="vd" parent={this} tabValues={this.tabValues} direction={this.state.verticalTabPosition}/>*/}
+        {this.state.verticalTabPosition == "left" ? <VerticalTabPanel key="vd" parent={this} tabValues={this.tabValues} toggleNav={this.state.root.toggleNav} direction={this.state.verticalTabPosition}/> : null}
+        {this.recur(this.state.root,0,true,{val:false})}
+        {this.state.verticalTabPosition == "right" ? <VerticalTabPanel key="vd" parent={this} tabValues={this.tabValues} toggleNav={this.state.root.toggleNav} direction={this.state.verticalTabPosition}/> : null}
+        <div>{arr}</div>
+        <PanelOverlay/>
+        {this.state.arrange ? this.state.renderArrange: null}
+      </div>
+      {this.state.findPanelHeight !== void 0 ? <FindPanel parent={this} findPanelHeight={this.state.findPanelHeight}/> : null}
+    </span>
   }
 }

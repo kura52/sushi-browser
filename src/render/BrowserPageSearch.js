@@ -2,7 +2,7 @@ const React = require('react')
 const {Component} = React
 import { Checkbox } from 'semantic-ui-react';
 
-let options = {case:false,or:false,reg:false,}
+let options = {case:false,or:false,reg:false}
 
 export default class BrowserPageSearch extends Component {
   constructor(props) {

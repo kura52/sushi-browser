@@ -1494,6 +1494,7 @@ class Tabs extends React.Component {
               {this.props.tabAddButton}
             </span>
             {this.props.isMaximize && this.props.toggleNav != 1 ? <div className="title-button-set" style={{lineHeight: 0.9}}>
+                {isDarwin ? null : <span className={`fa fa-th ${sharedState.arrange == 'all' ? 'active-arrange' : ''}`} onClick={_=>PubSub.publish('toggle-arrange')}></span>}
                 {displayFullIcon ? <span className={this.props.toggleNav == 3 ? "typcn typcn-arrow-minimise" : "typcn typcn-arrow-maximise"} onClick={_=>ipc.send('toggle-fullscreen')}></span> : null}
                 <span className="typcn typcn-media-stop-outline" onClick={()=>this.props.parent.maximizePanel()}></span>
               </div>

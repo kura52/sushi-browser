@@ -7,6 +7,7 @@ import mainState from './mainState'
 const underscore = require('underscore')
 const Jimp = require('jimp')
 import {getFocusedWebContents} from './util'
+const LRUCache = require('lru-cache')
 // require('locus')
 
 
@@ -85,6 +86,7 @@ function faviconUpdate(url) {
 }
 
 const captures = {}
+let imgCache = new LRUCache(200)
 ipcMain.on('take-capture', async (event,{id,url,loc,base64,tabId,tabIds}) => {
   if(!base64){
     if(captures[url]) return
@@ -97,18 +99,40 @@ ipcMain.on('take-capture', async (event,{id,url,loc,base64,tabId,tabIds}) => {
       if(!cont) continue
       promises.push(new Promise(r=>{
         cont.capturePage((imageBuffer)=>{
-          r([tabId,`data:image/jpeg;base64,${imageBuffer.toJPEG(parseInt(mainState.tabPreviewQuality)).toString("base64")}`,imageBuffer.getSize()])
+          r([tabId,imageBuffer,imageBuffer.getSize(), Math.random().toString(),imageBuffer.resize({width:100,quality: 'good'}).toJPEG(parseInt(mainState.tabPreviewQuality))])
         })
       }))
     }
     const results = await Promise.all(promises)
-    event.sender.send(`take-capture-reply_${base64}`,results)
+    const reply = []
+    for(let result of results){
+      const prevImg = imgCache.get(result[0])
+      if(prevImg && Buffer.compare(prevImg[4],result[4]) === 0){
+        reply.push([result[0],true,result[2],prevImg[3]])
+      }
+      else{
+        imgCache.set(result[0],result)
+        reply.push([result[0],false,result[2],result[3]])
+        console.log(111)
+      }
+    }
+    event.sender.send(`take-capture-reply_${base64}`,reply)
   }
   else{
     captureCurrentPage(id,url,loc,base64,event.sender,tabId).then(_=>{
       if(!base64) delete captures[url]
     })
   }
+})
+
+ipcMain.on('get-captures', (event,key,getWidthImageTabIdAndWidth) => {
+  const result = {}
+  for(let [tabId, width] of getWidthImageTabIdAndWidth){
+    const img = imgCache.get(tabId)
+    const resizedImg = img[1].resize({width,quality: 'best'})
+    result[tabId] = [`data:image/jpeg;base64,${resizedImg.toJPEG(100).toString("base64")}`,resizedImg.getSize()]
+  }
+  event.sender.send(`get-captures-reply_${key}`,result)
 })
 
 
