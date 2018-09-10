@@ -44,7 +44,7 @@ const keyMapping = {
   keyToggleFindOnPage: 'Toggle Find in Page',
   keyFindNext:  l10n.translation('findNext'),
   keyFindPrevious:  l10n.translation('findPrevious'),
-  keyFindAll: 'FindAll',
+  // keyFindAll: 'FindAll',
   keyActualSize: l10n.translation('actualSize'),
   keyZoomIn: l10n.translation('zoomIn'),
   keyZoomOut: l10n.translation('zoomOut'),

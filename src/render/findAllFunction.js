@@ -193,6 +193,7 @@ if(!window.__complex_search_define__){
   }
 
   function getAroundText(obj,text,before,after){
+    const befores = []
     let exist = false
     for(let child of obj.parentNode.childNodes){
       if(child.nodeType != 1 && child.nodeType != 3) continue
@@ -205,7 +206,7 @@ if(!window.__complex_search_define__){
           child.tagName == 'TEXTAREA') continue
         else{
           const style = window.getComputedStyle(child)
-          if(style.display == 'none' || style.visibility == 'hidden') continue
+          if(style.display == 'none' || style.visibility == 'hidden' || (['0px','1px'].includes(style.width) && ['0px','1px'].includes(style.height))) continue
         }
       }
 
@@ -218,9 +219,10 @@ if(!window.__complex_search_define__){
       }
       else{
         const text = (child.nodeType == 3 ? child.data : child.innerText).trim()
-        if(text.length) before += ` ${text}`
+        if(text.length) befores.push(text)
       }
     }
+    before = `${befores.join(" ")} ${before}`
     if(text.length + before.length + after.length < 200){
       return getAroundText(obj.parentNode,text,before,after)
     }
@@ -318,7 +320,7 @@ if(!window.__complex_search_define__){
         }
         else{
           const style = window.getComputedStyle(child)
-          if(style.display == 'none' || style.visibility == 'hidden') continue
+          if(style.display == 'none' || style.visibility == 'hidden' || (['0px','1px'].includes(style.width) && ['0px','1px'].includes(style.height))) continue
         }
       }
       textNode_req(child, className, results, callback);
@@ -543,7 +545,7 @@ if(!window.__complex_search_define__){
 
   function itel_main2(search_words, enabled, _matchCase, andSearch) {
     if(andSearch) search_words = `"${search_words}"`
-    if(search_words_prev == search_words && _matchCase == matchCase) return
+    // if(search_words_prev == search_words && _matchCase == matchCase) return
     gstatus.enabled = enabled;
     var words = new Words(search_words);
     if (words.array.length == 0) {

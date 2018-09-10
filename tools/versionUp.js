@@ -26,23 +26,16 @@ const glob = require("glob")
 const BEFORE_CODE_NAME = 'Kani(Crab)'
 const CODE_NAME = 'Kani(Crab)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.21.2"
+const NEXT_APP_VERSION = "0.21.3"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Added form input history function.
-Improved to detect mobile panel.
-Added setting to enable video operation only for URL matching regular expression.
-Improved auto-suggestion of address bar.
-Improved French translation. (Pull Request # 27)
-Updated to youtube-dl 2018.09.01.
+const CHANGE_ENGLISH = `Added "Arrange Panel" function.
+Improved mobile panel.
+Improved French translation. (Pull Request #29, #30)
 Fixed some bugs.`
 
-const CHANGE_JAPANESE = `フォームの入力履歴機能を追加
-モバイルパネルをDetachできるように改善
-動画操作を正規表現にマッチしたURLのみに有効にする設定を追加
-アドレスバーのオートサジェストの表示改善(スクロールバーなど)
-フランス語の翻訳を改善 (Pull Request #27)
-youtube-dlを2018.09.01に更新
+const CHANGE_JAPANESE = `パネルを並べて表示する機能を追加
+モバイルパネルを改善
 いくつかの不具合修正`
 
 const isWindows = process.platform === 'win32'

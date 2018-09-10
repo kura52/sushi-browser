@@ -1330,7 +1330,7 @@ a.zoom-change:hover,a.zoom-reset:hover{
 
 
 .find-panel .ui.table thead th{
-    padding: 1px 5px;
+    padding: 5px 5px;
 }
 .find-panel .ui.checkbox input.hidden+label {
     padding-right: 10px;
@@ -1350,7 +1350,7 @@ a.zoom-change:hover,a.zoom-reset:hover{
 }
 
 .search-all-title{
-    width: 150px;
+    width: 200px;
 }
 
 .search-all-tbody {
@@ -1359,5 +1359,10 @@ a.zoom-change:hover,a.zoom-reset:hover{
 }
 
 .ui.compact.table .search-all-tbody td{
-    padding: .3em .4em;
+    padding: .33em .4em;
+}
+
+.find-panel .ui.table thead tr th {
+    position: sticky;
+    top: 0;
 }

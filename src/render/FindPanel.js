@@ -55,7 +55,7 @@ function multiByteSliceReverse(str,end) {
   return [unescape(str.slice(0,i)),len];
 }
 
-function multiByteSlice(str,end) {
+function multiByteSlice(str,end, elip) {
   let len = 0
   str = escape(str);
   const strLen = str.length
@@ -70,6 +70,7 @@ function multiByteSlice(str,end) {
       i++;
     }
   }
+  if(elip) return `${unescape(str.slice(0,i))}${i == str.length ? "" :"..."}`
   return unescape(str.slice(0,i))
 }
 
@@ -163,7 +164,7 @@ export default class FindPanel extends Component {
   }
 
   buildTextNode(prefix,text,suffix){
-    const maxLen = Math.round((window.innerWidth - 210) / 6.3)
+    const maxLen = Math.round((window.innerWidth - 260) / 6.8)
     const len = maxLen - text.length
     const halfLen = len / 2
     const data = multiByteSliceReverse(stringReverse(prefix), halfLen)
@@ -184,7 +185,7 @@ export default class FindPanel extends Component {
         const textNode = this.buildTextNode(prefix,text,suffix)
         tr.push(<tr key={no}>
           <td className="search-all-seq">{seq}-{i++}</td>
-          <td className="search-all-title">{title}</td>
+          <td className="search-all-title">{multiByteSlice(title,26,true)}</td>
           {textNode}
         </tr>)
       }
@@ -196,8 +197,9 @@ export default class FindPanel extends Component {
     return <div className="find-panel" style={{height: this.props.findPanelHeight - 1, background: '#f3f3f3', overflowY: 'auto'}}>
       <div className="visible browser-page-search" style={{
         width: 'fit-content',
-        position: 'relative',
-        zIndex: 'inherit',
+        position: 'sticky',
+        zIndex: 2,
+        top: 0,
         right: 0,
         marginRight: 0,
         marginLeft: 'auto'}}>
@@ -212,7 +214,7 @@ export default class FindPanel extends Component {
           <div className="search-close" style={{lineHeight: "1.5",height:"30px",borderRadius: 'unset',borderRight: 0}} onClick={e=>this.props.parent.setState({findPanelHeight: void 0})}>☓</div>
         </a>
       </div>
-      <table className="ui celled compact table" style={{marginTop: 0}}>
+      <table className="ui celled compact table" style={{marginTop: -31}}>
         <thead>
         <tr>
           <th>No</th>
