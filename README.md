@@ -239,14 +239,14 @@ This browser makes use of wonderful web technologies, starting with the followin
 Both the installer for every platform and the portable version can be downloaded.  
 To use the portable edition, please run sushi.exe for Windows and sushi-browser for Mac/Linux after decompressing.
 
-- [Windows Installer v0.21.2](https://sushib.me/dl/sushi-browser-0.21.2-setup-x64.exe)
-- [Windows Portable v0.21.2(self-extract)](https://sushib.me/dl/sushi-browser-0.21.2-win-x64.exe)
-- [Windows Portable v0.21.2](https://sushib.me/dl/sushi-browser-0.21.2-win-x64.zip)
-- [MacOS dmg v0.21.2](https://sushib.me/dl/SushiBrowser-0.21.2.dmg)
-- [MacOS Portable v0.21.2](https://sushib.me/dl/sushi-browser-0.21.2-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.21.2](https://sushib.me/dl/sushi-browser-0.21.2.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.21.2](https://sushib.me/dl/sushi-browser_0.21.2_amd64.deb)
-- [Linux Portable v0.21.2](https://sushib.me/dl/sushi-browser-0.21.2.tar.bz2)
+- [Windows Installer v0.21.3](https://sushib.me/dl/sushi-browser-0.21.3-setup-x64.exe)
+- [Windows Portable v0.21.3(self-extract)](https://sushib.me/dl/sushi-browser-0.21.3-win-x64.exe)
+- [Windows Portable v0.21.3](https://sushib.me/dl/sushi-browser-0.21.3-win-x64.zip)
+- [MacOS dmg v0.21.3](https://sushib.me/dl/SushiBrowser-0.21.3.dmg)
+- [MacOS Portable v0.21.3](https://sushib.me/dl/sushi-browser-0.21.3-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.21.3](https://sushib.me/dl/sushi-browser-0.21.3.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.21.3](https://sushib.me/dl/sushi-browser_0.21.3_amd64.deb)
+- [Linux Portable v0.21.3](https://sushib.me/dl/sushi-browser-0.21.3.tar.bz2)
 
 # Use of Flash 
 If Flash won't run, please install Flash from the following web sites.  
@@ -260,6 +260,12 @@ sushi-browser --no-sandbox
 ```
 
 # New Features
+
+#### New function(v0.21.3)
+- Added "Arrange Panel" function.
+- Improved mobile panel.
+- Improved French translation. (Pull Request #29, #30)
+- Fixed some bugs.
 
 #### New function(v0.21.2)
 - Added form input history function.

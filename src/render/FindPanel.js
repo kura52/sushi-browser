@@ -12,7 +12,7 @@ const sharedState = require('./sharedState')
 const {remote} = require('electron')
 const mainState = remote.require('./mainState')
 
-const options = {case:false,or:false,reg:false}
+const options = {case:false,or:false,reg:false,onlyActive:false}
 
 
 function stringEscape(string){
@@ -87,8 +87,10 @@ export default class FindPanel extends Component {
   constructor(props) {
     super(props)
     this.state  = {searchResult: []}
+    this.prevState = {}
     this.tabMap = {}
     this.setHeight = ::this.setHeight
+    this.handleKeyDown = ::this.handleKeyDown
   }
 
 
@@ -101,37 +103,116 @@ export default class FindPanel extends Component {
     })
 
     this.tokenChangeSelected = PubSub.subscribe('change-selected',()=>this.setState({}))
+
+    document.addEventListener('keydown',this.handleKeyDown)
   }
 
   componentWillUnmount() {
     PubSub.unsubscribe(this.tokenChangeTabs)
     PubSub.unsubscribe(this.tokenChangeSelected)
+
+    document.removeEventListener('keydown',this.handleKeyDown)
   }
 
+  scrollIntoViewIfNeeded(){
+    const tr = document.querySelector('.find-panel .tr-selected')
+    const panel = document.querySelector('.find-panel')
+
+    const trRect = tr.getBoundingClientRect()
+    const panelRect = panel.getBoundingClientRect()
+
+    if(trRect.y + trRect.height - 31 <= window.innerHeight - panelRect.height){
+      panel.scrollTo(0,trRect.y - panelRect.y + panel.scrollTop - 31)
+    }
+    else if(trRect.y + trRect.height > window.innerHeight){
+      panel.scrollTo(0,trRect.y - panelRect.y + panel.scrollTop - panelRect.height + trRect.height)
+    }
+  }
+
+  onPrev(){
+    let dataKey
+    Object.entries(this.datas).forEach(([_dataKey,data])=>{
+      if(_dataKey == this.state.selected) return
+      dataKey = _dataKey
+    })
+
+    if(!this.datas[dataKey]) dataKey = this.max
+    this.handleMouseDown(dataKey, ...this.datas[dataKey],this.scrollIntoViewIfNeeded)
+  }
+
+  onNext(){
+    let dataKey, min,next
+    Object.entries(this.datas).forEach(([_dataKey,data],i)=>{
+      if(i == 0) min = _dataKey
+      if(next){
+        dataKey = _dataKey
+        return
+      }
+      else if(_dataKey == this.state.selected){
+        next = true
+      }
+    })
+
+    if(!this.datas[dataKey]) dataKey = min
+    this.handleMouseDown(dataKey, ...this.datas[dataKey],this.scrollIntoViewIfNeeded)
+  }
+
+  handleKeyDown(e){
+    if((e.keyCode !== 38 && e.keyCode !== 40) || document.activeElement !== document.body) return
+    if(e.keyCode === 38 ) {//up
+      this.onPrev()
+      e.stopPropagation()
+      e.preventDefault()
+    }
+    else if(e.keyCode === 40 ) {//down
+      this.onNext()
+      e.stopPropagation()
+      e.preventDefault()
+    }
+  }
 
   setHeight(height, mouseUp){
     this.props.parent.setState({findPanelHeight: height})
     if(mouseUp) mainState.set('findPanelHeight',height)
   }
 
-  search(query, next){
-    let operation
-    if(next){
-      operation =  `window.__complex_search_define__.itel_main2('${this.state.reg ? '@RE:' : ''}${stringEscape(query)}',true,${!!this.state.case},${!this.state.or})`
+  focusSelectedPanelRow(){
+    let find
+    for(let [dataKey,data] of Object.entries(this.datas)){
+      if(data[1] == data[2].state.selectedTab){
+        this.handleMouseDown(dataKey, ...data,this.scrollIntoViewIfNeeded)
+        find = true
+        break
+      }
     }
-    else{
-      operation =  `window.__complex_search_define__.scrollFocusPrev('itel-highlight', 'itel-selected')`
+
+    if(find) return
+    for(let [dataKey,data] of Object.entries(this.datas)) {
+      this.handleMouseDown(dataKey, ...data, this.scrollIntoViewIfNeeded)
+      return
     }
-    const key = uuid.v4()
-    clearTimeout(this.timer)
-    this.timer = setTimeout(_=>{
+  }
+
+  search(next){ //@TODO 空文字リセット
+    const isParamSame = this.prevState.case === this.state.case &&
+      this.prevState.or === this.state.or &&
+      this.prevState.reg === this.state.reg &&
+      this.prevState.onlyActive === this.state.onlyActive &&
+      this.prevState.query === this.state.query
+
+    if(!isParamSame){
+      this.prevState = this.state
+      const operation =  `window.__complex_search_define__.itel_main2('${this.state.reg ? '@RE:' : ''}${stringEscape(this.state.query)}',true,${!!this.state.case},${!this.state.or})`
+      const key = uuid.v4()
+      // clearTimeout(this.timer)
+      // this.timer = setTimeout(_=>{
 
       const arr = [], allWvIds= []
       this.props.parent.allKeys(void 0,arr)
       let i = 1
       for(let key of arr){
         const tabPanel = this.props.parent.refs2[key]
-        const tabs = tabPanel.state.tabs
+        const tabs = this.state.onlyActive ? tabPanel.state.tabs.filter(t=>t.key == tabPanel.state.selectedTab) : tabPanel.state.tabs
         let j = 1
         for(let tab of tabs){
           allWvIds.push(tab.wvId)
@@ -144,24 +225,26 @@ export default class FindPanel extends Component {
       ipc.once(`start-find-all-reply_${key}`, (e,result)=>{
         console.log(54353,result)
         this.setState({searchResult: result})
+        this.focusSelectedPanelRow()
       })
-    },300)
+      // },300)
+
+    }
+    else{
+      if(next){
+        this.onNext()
+      }
+      else{
+        this.onPrev()
+      }
+    }
   }
 
   onKeyDown(e) {
     if (e.keyCode == 13) {
-      this.query = e.target.value
-      this.search(e.target.value, !e.shiftKey)
+      this.state.query = e.target.value
+      this.search(!e.shiftKey)
     }
-  }
-
-  onClickNext(e){
-    this.search(this.refs.input.value, true)
-  }
-
-
-  onClickPrev(e){
-    this.search(this.refs.input.value, true,false)
   }
 
   changeCheck(e,name,data){
@@ -184,14 +267,15 @@ export default class FindPanel extends Component {
     return <td className="search-all-text">{prefix}<strong style={{backgroundColor: 'yellow'}}>{text}</strong>{suffix}...</td>
   }
 
-  handleMouseDown(no,tabId,tabKey,tabPanel){
-    const operation =  `window.__complex_search_define__.itel_main('${this.state.reg ? '@RE:' : ''}${stringEscape(this.query)}',true,${!!this.state.case},${!this.state.or})
-      window.__complex_search_define__.scrollFocusNo(${no}, 'itel-highlight', 'itel-selected')`
+  handleMouseDown(dataKey,tabId,tabKey,tabPanel,callback){
+    const operation =  `window.__complex_search_define__.itel_main('${this.state.reg ? '@RE:' : ''}${stringEscape(this.state.query)}',true,${!!this.state.case},${!this.state.or})
+      window.__complex_search_define__.scrollFocusNo(${dataKey.split("-").slice(-1)[0]}, 'itel-highlight', 'itel-selected')`
 
     ipc.send('start-find-all',tabKey,[tabId],operation,true) //@TODO
     ipc.once(`start-find-all-reply_${tabKey}`, (e,result)=>{
       tabPanel.setState({selectedTab: tabKey})
-      this.setState({selected: no})
+      this.setState({selected: dataKey})
+      if(callback) callback()
     })
   }
 
@@ -204,10 +288,13 @@ export default class FindPanel extends Component {
       for(let row of result[1]){
         const [no,prefix,text,suffix] = row
         const [seq,title,tabKey,tabPanel] = this.tabMap[tabId]
-        this.datas[no] = [tabId,tabKey,tabPanel]
+
+        const dataKey = `${seq}-${no}`
+        this.datas[dataKey] = [tabId,tabKey,tabPanel]
+        this.max = dataKey
         const textNode = this.buildTextNode(prefix,text,suffix)
         const isSelected = tabPanel.state.selectedTab == tabKey
-        tr.push(<tr key={no} className={`${this.state.selected == no ? 'tr-selected' : 'tr-normal'} ${isSelected ? 'tr-selected-tab' : ''}`}
+        tr.push(<tr key={dataKey} className={`${this.state.selected == dataKey ? 'tr-selected' : 'tr-normal'} ${isSelected ? 'tr-selected-tab' : ''}`}
                     onMouseDown={e=>this.handleMouseDown(no,tabId,tabKey,tabPanel)}>
           <td className="search-all-seq">{seq}-{i++}</td>
           <td className="search-all-title">{multiByteSlice(title,26,true)}</td>
@@ -220,23 +307,7 @@ export default class FindPanel extends Component {
 
   renderFindPanel(){
     return <div className="find-panel"
-                style={{height: this.props.findPanelHeight - 1, background: '#f3f3f3', overflowY: 'auto'}}
-                onKeyDown={e=>{
-                  if(e.keyCode === 38 ) {//up
-                    let no = this.state.selected - 1
-                    if(!this.datas[no]) no = this.state.selected
-                    this.handleMouseDown(no, this.datas[no])
-                    e.stopPropagation()
-                    e.preventDefault()
-                  }
-                  else if(e.keyCode === 40 ) {//down
-                    let no = this.state.selected + 1
-                    if(!this.datas[no]) no = this.state.selected
-                    this.handleMouseDown(no, this.datas[no])
-                    e.stopPropagation()
-                    e.preventDefault()
-                  }
-                }}>
+                style={{height: this.props.findPanelHeight - 1, background: '#f3f3f3', overflowY: 'auto'}} >
       <div className="visible browser-page-search" style={{
         width: 'fit-content',
         position: 'sticky',
@@ -246,12 +317,17 @@ export default class FindPanel extends Component {
         marginRight: 0,
         marginLeft: 'auto'}}>
         <input style={{borderRadius: 'unset', borderTop: 0, width: 350}} className="search-text" ref="input" type="text" placeholder="Search..." onKeyDown={::this.onKeyDown}/>
-        <a className="search-button" href="javascript:void(0)"><i className="search-next fa fa-angle-up" style={{fontSize: "1.5em",lineHeight: "1.2",height:"30px"}} onClick={::this.onClickPrev}></i></a>
-        <a className="search-button" href="javascript:void(0)"><i className="search-prev fa fa-angle-down" style={{fontSize: "1.5em",lineHeight: "1.3",height:"30px"}} onClick={::this.onClickNext}></i></a>
+        <a className="search-button" href="javascript:void(0)">
+          <i className="search-next fa fa-angle-up" style={{fontSize: "1.5em",lineHeight: "1.2",height:"30px"}} onClick={::this.onPrev}></i>
+        </a>
+        <a className="search-button" href="javascript:void(0)">
+          <i className="search-prev fa fa-angle-down" style={{fontSize: "1.5em",lineHeight: "1.3",height:"30px"}} onClick={::this.onNext}></i>
+        </a>
         <span className="search-num">{'1/1'}</span>
         <Checkbox style={{paddingLeft: 4, borderLeft: '1px solid #aaa'}} label="Match Case" checked={this.state.case} onChange={(e,data)=>this.changeCheck(e,'case',data)}/>
         <Checkbox label="OR" checked={this.state.or} onChange={(e,data)=>this.changeCheck(e,'or',data)}/>
         <Checkbox label="RegExp" checked={this.state.reg} onChange={(e,data)=>this.changeCheck(e,'reg',data)}/>
+        <Checkbox label="Only Active" checked={this.state.onlyActive} onChange={(e,data)=>this.changeCheck(e,'onlyActive',data)}/>
         <a className="search-button" href="javascript:void(0)">
           <div className="search-close" style={{lineHeight: "1.5",height:"30px",borderRadius: 'unset',borderRight: 0}} onClick={e=>this.props.parent.setState({findPanelHeight: void 0})}>☓</div>
         </a>
@@ -280,3 +356,12 @@ export default class FindPanel extends Component {
     </span>
   }
 }
+
+// デフォルト選択
+//
+// 検索を連打したとき、shift enter
+// 検索の数値
+//
+// 通常のページ内検索にALLを追加し、クリックするとALL側にフォーカスを移す
+// ページ遷移やタブ数が変わったときのリセット処理
+//
