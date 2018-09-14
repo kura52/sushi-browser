@@ -202,6 +202,7 @@ function registerForBeforeRequest (session) {
           record = {tabId:details.tabId,type:ret[0],contType,size:len,url:newURL,fname: pathname.slice(ind+1)}
         }
         else if(urlMatch){
+          const ind = pathname.lastIndexOf('/')
           record = {tabId:details.tabId,contType,size:len,url:newURL,fname: pathname.slice(ind+1)}
         }
       }

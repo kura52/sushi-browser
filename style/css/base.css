@@ -1366,3 +1366,15 @@ a.zoom-change:hover,a.zoom-reset:hover{
     position: sticky;
     top: 0;
 }
+
+.find-panel .tr-selected{
+    background-color: #b8e1ff;
+}
+
+.find-panel .tr-normal{
+    cursor: pointer;
+}
+
+.find-panel .tr-selected-tab{
+    color: mediumblue;
+}

@@ -1337,6 +1337,8 @@ export default class TabPanel extends Component {
         self.updateActive(tab)
 
         PubSub.publish(`did-navigate_${tab.key}`,e.url)
+        PubSub.publish('change-tabs')
+
         setTimeout(_=>refs2[`bookmarkbar-${tab.key}`] && refs2[`bookmarkbar-${tab.key}`].setState({}),100)
         // page.navUrl = e.url
         // self.sendOpenLink(tab, page);
@@ -2275,7 +2277,7 @@ export default class TabPanel extends Component {
         this.props.parent.arrangePanels(this.props.k)
       }
       else if(name == 'findAll'){
-        this.props.parent.setState({findPanelHeight: mainState.findPanelHeight})
+        this.props.parent.toggleFindPanel()
       }
     }
     ipc.on('menu-or-key-events', tab.events['menu-or-key-events'])
@@ -3189,6 +3191,13 @@ export default class TabPanel extends Component {
         this.state.tabKeys.every((pre,i)=> this.state.tabs[i].key == pre)
 
       if(allKeySame && sameSelected) return
+
+      if(!allKeySame){
+        PubSub.publish('change-tabs')
+      }
+      else if(!sameSelected){
+        PubSub.publish('change-selected')
+      }
 
       const isChangeSelected = !sameSelected
       if(isChangeSelected) {

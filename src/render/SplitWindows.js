@@ -167,6 +167,7 @@ export default class SplitWindows extends Component{
     this.arrangePanels = ::this.arrangePanels
     this.arrangePanelKeyDown = ::this.arrangePanelKeyDown
     this.arrangePanelMouseMove = ::this.arrangePanelMouseMove
+    this.toggleFindPanel = ::this.toggleFindPanel
   }
 
   restoreState(param){
@@ -2017,6 +2018,10 @@ export default class SplitWindows extends Component{
     const key = `${this.getFixedPanelKey('float')}${oneLine ? '-one' : ''}-${Math.random().toString().replace(".","")}_${count++}`
     this.state.floatPanels.set(key,[key, [], tabs, [index],(void 0)])
     this.setState({})
+  }
+
+  toggleFindPanel(){
+    this.setState({findPanelHeight: this.state.findPanelHeight === void 0 ? mainState.findPanelHeight : void 0})
   }
 
   recur(obj,order,isTopRight,isFindIsTopLeft){

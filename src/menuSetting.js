@@ -235,15 +235,15 @@ const createEditSubmenu = () => {
         })
       }
     },
-    // {
-    //   label: 'Find All',
-    //   accelerator: mainState.keyFindAll,
-    //   click(item, focusedWindow) {
-    //     getFocusedWebContents().then(cont=>{
-    //       cont && cont.hostWebContents.send('menu-or-key-events','findAll',cont.getId())
-    //     })
-    //   }
-    // },
+    {
+      label: 'Find All',
+      accelerator: mainState.keyFindAll,
+      click(item, focusedWindow) {
+        getFocusedWebContents().then(cont=>{
+          cont && cont.hostWebContents.send('menu-or-key-events','findAll',cont.getId())
+        })
+      }
+    },
     { type: 'separator' },
     {
       label: locale.translation('clicktabCopyTabUrl').replace('&apos;',"'"),

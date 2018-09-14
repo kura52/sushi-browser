@@ -214,11 +214,15 @@ if(!window.__complex_search_define__){
         exist = true
       }
       else if(exist){
-        const text = (child.nodeType == 3 ? child.data : child.innerText).trim()
+        let text = child.nodeType == 3 ? child.data : child.innerText
+        if(!text) continue
+        text = text.trim()
         if(text.length) after += ` ${text}`
       }
       else{
-        const text = (child.nodeType == 3 ? child.data : child.innerText).trim()
+        let text = child.nodeType == 3 ? child.data : child.innerText
+        if(!text) continue
+        text = text.trim()
         if(text.length) befores.push(text)
       }
     }
@@ -253,17 +257,44 @@ if(!window.__complex_search_define__){
       if (tmpword == '') {
         return;
       }
-      var start = unifyWord(obj.data).indexOf(unifyWord(tmpword));
-      if (start == -1) {
-        return;
-      }
-      if(!noHighlight && ++limitCount>1000) return
 
-      words_nums[word.origin]++;
-      var prefix = text.substr(0, start);
-      var middle = text.substr(start, tmpword.length);
-      var suffix = text.substr(start + tmpword.length);
-      if(!noHighlight){
+      const _text = unifyWord(obj.data)
+      const _tmpword = unifyWord(tmpword)
+
+      if(noHighlight){
+        let ind = 0, start, datas = []
+        while(true){
+          start = _text.indexOf(_tmpword,ind)
+
+          if(start == -1) break
+          ind = start + _tmpword.length
+
+          words_nums[word.origin]++;
+          var prefix = text.substr(0, start);
+          var middle = text.substr(start, tmpword.length);
+          var suffix = text.substr(start + tmpword.length);
+
+          if(text.length < 200){
+            const around = getAroundText(obj,text, prefix, suffix)
+            prefix = around[0]
+            suffix = around[1]
+          }
+          word.count.num++;
+          icnt++;
+          datas.push([icnt -1 ,prefix, middle, suffix])
+        }
+        return datas
+      }
+      else{
+        var start = _text.indexOf(_tmpword);
+        if (start == -1) return
+        if( ++limitCount>1000) return
+
+        words_nums[word.origin]++;
+        var prefix = text.substr(0, start);
+        var middle = text.substr(start, tmpword.length);
+        var suffix = text.substr(start + tmpword.length);
+
         var prefix_tn = document.createTextNode(prefix);
         var middle_tn = document.createTextNode(middle);
         var suffix_tn = document.createTextNode(suffix);
@@ -283,16 +314,9 @@ if(!window.__complex_search_define__){
           return;
         }
         word.elems.push(newObj);
+        word.count.num++;
+        icnt++;
       }
-      else if(text.length < 200){
-        const around = getAroundText(obj,text, prefix, suffix)
-        prefix = around[0]
-        suffix = around[1]
-      }
-      console.log(obj.parentNode, obj, prefix, suffix)
-      word.count.num++;
-      icnt++;
-      if(noHighlight) return [icnt -1 ,prefix, middle, suffix]
     });
     return results
   }
@@ -300,7 +324,7 @@ if(!window.__complex_search_define__){
   function textNode_req(obj, className, results, callback) {
     if (obj.nodeType == 3) { // テキストノードなら
       const val = callback(obj)
-      if(val) results.push(val)
+      if(val && val.length) results.push(...val)
       return;
     }
     if (obj.nodeType != 1 ||
@@ -461,6 +485,15 @@ if(!window.__complex_search_define__){
     }
     return -1;
   }
+
+  function scrollFocusNo(no, className, idName) {
+    var elems = document.getElementsByClassName(className);
+    const length = elems.length
+    if(!length) return
+
+    scrollFocusAuto(elems[no]);
+  }
+
 // 探索するクラス名と、選択時に一時的につけるid
   function scrollFocusNext(className, idName) {
     init_sfcount(className, idName, -1);
@@ -614,6 +647,7 @@ if(!window.__complex_search_define__){
     itel_main,
     itel_main2,
     reset_all,
+    scrollFocusNo,
     scrollFocusNext,
     scrollFocusPrev
   }

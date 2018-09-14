@@ -218,7 +218,7 @@ const settingDefault =  {
   keySelectAll: 'CmdOrCtrl+A',
 
   keyFindOnPage: 'CmdOrCtrl+F',
-  // keyFindAll: 'CmdOrCtrl+Shift+F',
+  keyFindAll: 'CmdOrCtrl+Shift+F',
   keyToggleFindOnPage: '',
 
   keyActualSize: 'CmdOrCtrl+0',
