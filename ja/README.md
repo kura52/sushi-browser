@@ -247,14 +247,14 @@ Puppeteer(ヘッドレスChromeでの自動化) APIと互換性のあるAPIを�
 
 各プラットフォームに対し、インストーラとポータブル版の両方がダウンロードできます。
 
-- [Windows Installer v0.21.3](https://sushib.me/dl/sushi-browser-0.21.3-setup-x64.exe)
-- [Windows Portable v0.21.3(自己解凍)](https://sushib.me/dl/sushi-browser-0.21.3-win-x64.exe)
-- [Windows Portable v0.21.3](https://sushib.me/dl/sushi-browser-0.21.3-win-x64.zip)
-- [MacOS dmg v0.21.3](https://sushib.me/dl/SushiBrowser-0.21.3.dmg)
-- [MacOS Portable v0.21.3](https://sushib.me/dl/sushi-browser-0.21.3-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.21.3](https://sushib.me/dl/sushi-browser-0.21.3.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.21.3](https://sushib.me/dl/sushi-browser_0.21.3_amd64.deb)
-- [Linux Portable v0.21.3](https://sushib.me/dl/sushi-browser-0.21.3.tar.bz2)
+- [Windows Installer v0.22.0](https://sushib.me/dl/sushi-browser-0.22.0-setup-x64.exe)
+- [Windows Portable v0.22.0(自己解凍)](https://sushib.me/dl/sushi-browser-0.22.0-win-x64.exe)
+- [Windows Portable v0.22.0](https://sushib.me/dl/sushi-browser-0.22.0-win-x64.zip)
+- [MacOS dmg v0.22.0](https://sushib.me/dl/SushiBrowser-0.22.0.dmg)
+- [MacOS Portable v0.22.0](https://sushib.me/dl/sushi-browser-0.22.0-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.22.0](https://sushib.me/dl/sushi-browser-0.22.0.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.22.0](https://sushib.me/dl/sushi-browser_0.22.0_amd64.deb)
+- [Linux Portable v0.22.0](https://sushib.me/dl/sushi-browser-0.22.0.tar.bz2)
 
 ポータブル版の利用は、解凍後にWindowsはsushi.exeを、Mac/Linuxはsushi-browserを実行ください。
 
