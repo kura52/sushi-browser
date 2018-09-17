@@ -10,7 +10,7 @@ const ipc = require('electron').ipcRenderer
 const PubSub = require('./pubsub');
 const sharedState = require('./sharedState')
 const {remote} = require('electron')
-const mainState = remote.require('./mainState')
+const mainState = require('./mainStateRemote')
 
 const options = {case:false,or:false,reg:false,onlyActive:false}
 

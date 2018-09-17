@@ -7,7 +7,7 @@ const uuid = require('node-uuid')
 const sharedState = require('./sharedState')
 const NavbarMenu = require('./NavbarMenu')
 const {remote} = require('electron')
-const mainState = remote.require('./mainState')
+const mainState = require('./mainStateRemote')
 
 function isString(obj) {
   return typeof obj === 'string' || obj instanceof String;

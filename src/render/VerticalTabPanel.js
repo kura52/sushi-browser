@@ -6,7 +6,7 @@ const uuid = require("node-uuid")
 const ipc = require('electron').ipcRenderer
 const {remote} = require('electron')
 const {BrowserWindow} = remote
-const mainState = remote.require('./mainState')
+const mainState = require('./mainStateRemote')
 const sharedState = require('./sharedState')
 import MenuOperation from './MenuOperation'
 import { Button } from 'semantic-ui-react'

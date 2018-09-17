@@ -6,7 +6,7 @@ export default function(isPrivate){
       const m = cont.session.partition.match(/^private(\d+)$/)
       if(m) return cont.session.partition
     }
-    return `private${Math.random()*100000000000000000}`
+    return `persist:p${Date.now()}${Math.random()*100000000000000000}`
   }
   let num = 0
   for(let cont of webContents.getAllWebContents()){

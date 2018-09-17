@@ -7,12 +7,11 @@ const ipc = require('electron').ipcRenderer
 const PubSub = require('./pubsub');
 const {remote} = require('electron');
 const {Menu} = remote
-const fs = remote.require('fs')
 const BrowserPageSearch = require('./BrowserPageSearch')
 const AutofillPopup = require('./AutofillPopup')
 const isDarwin = navigator.userAgent.includes('Mac OS X')
 const sharedState = require('./sharedState')
-const mainState = remote.require('./mainState')
+const mainState = require('./mainStateRemote')
 const DevToolsPanel = require('./DevToolsPanel')
 const MobilePanel = require('./MobilePanel')
 const StatusBar = require('./StatusBar')
@@ -116,6 +115,59 @@ class BrowserPage extends Component {
 
     for (var k in webviewEvents)
       webview.addEventListener(k, webviewHandler(this, webviewEvents[k]),{passive:true})
+
+    // let supportedWebViewEvents = [
+    //   'tab-replaced-at',
+    //   'tab-detached-at',
+    //   'tab-moved',
+    //   'load-start',
+    //   'did-attach',
+    //   'guest-ready',
+    //   'will-detach',
+    //   'did-detach',
+    //   'did-finish-load',
+    //   'did-fail-provisional-load',
+    //   'did-fail-load',
+    //   'dom-ready',
+    //   'preferred-size-changed',
+    //   'console-message',
+    //   'did-navigate',
+    //   'did-navigate-in-page',
+    //   'security-style-changed',
+    //   'close',
+    //   'gpu-crashed',
+    //   'plugin-crashed',
+    //   'will-destroy',
+    //   'destroyed',
+    //   'page-favicon-updated',
+    //   'enter-html-full-screen',
+    //   'leave-html-full-screen',
+    //   'media-started-playing',
+    //   'media-paused',
+    //   'found-in-page',
+    //   'did-change-theme-color',
+    //   'update-target-url',
+    //   'context-menu',
+    //   'enable-pepper-menu',
+    //   'repost-form-warning',
+    //   'content-blocked',
+    //   'show-autofill-settings',
+    //   'update-autofill-popup-data-list-values',
+    //   'hide-autofill-popup',
+    //   'show-autofill-popup',
+    //   'did-run-insecure-content',
+    //   'did-block-run-insecure-content'
+    // ]
+    //
+    // for(let name of supportedWebViewEvents){
+    //   webview.addEventListener(name, (e,...args)=>{
+    //     console.log(54555531,name,e,...args)
+    //     e.stopPropagation()
+    //     e.preventDefault()
+    //     e.returnValue = true
+    //     return true
+    //   })
+    // }
 
     this.wvEvents['ipc-message'] = (e, page) =>{
       if(e.channel == 'webview-scroll'){

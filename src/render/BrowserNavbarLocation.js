@@ -362,6 +362,12 @@ export default class BrowserNavbarLocation extends Component {
     // }
   }
 
+  getValue(){
+    return this.state.torProgress ? `Connecting to the Tor network: ${this.state.torProgress}%...` :
+      document.activeElement == this.input ? this.input.value :
+    convertURL(this.props.page.location)
+  }
+
   render() {
     console.log(this.props)
     const { results } = this.state
@@ -376,7 +382,7 @@ export default class BrowserNavbarLocation extends Component {
         onMouseDown={::this.onMouseDown}
         onMouseUp={::this.onMouseUp}
         results={results.map(x=>{return {title:x.title,description: x.description}})}
-        value={this.state.torProgress ? `Connecting to the Tor network: ${this.state.torProgress}%...` : convertURL(this.props.page.location)}
+        value={this.getValue()}
         ref="input"
         onFocus={::this.onFocus}
         onBlur={::this.onBlur}
@@ -396,7 +402,7 @@ export default class BrowserNavbarLocation extends Component {
           onMouseDown={::this.onMouseDown}
           onMouseUp={::this.onMouseUp}
           results={results.map(x=>{return {title:x.title,description: x.description}})}
-          value={this.state.torProgress ? `Connecting to the Tor network: ${this.state.torProgress}%...` : convertURL(this.props.page.location)}
+          value={this.getValue()}
           ref="input"
           onFocus={::this.onFocus}
           onBlur={::this.onBlur}

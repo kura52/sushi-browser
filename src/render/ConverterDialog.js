@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom'
 import { Button, Modal,Dropdown } from 'semantic-ui-react';
 const electron = require('electron')
 const ipc = electron.ipcRenderer
-const mainState = electron.remote.require('./mainState')
+const mainState = require('./mainStateRemote')
 
 const presets = {
   General: ['Very Fast 1080p30','Very Fast 720p30','Very Fast 576p25','Very Fast 480p30','Fast 1080p30','Fast 720p30','Fast 576p25','Fast 480p30','HQ 1080p30 Surround','HQ 720p30 Surround','HQ 576p25 Surround','HQ 480p30 Surround','Super HQ 1080p30 Surround','Super HQ 720p30 Surround','Super HQ 576p25 Surround','Super HQ 480p30 Surround'],

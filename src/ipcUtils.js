@@ -2136,6 +2136,10 @@ ipcMain.on('browser-load',async (e,arg)=>{
   e.returnValue = win.id
 })
 
+ipcMain.on('get-shared-state-main',async (e,id)=>{
+  e.returnValue = require('./sharedStateMainRemote')(id)
+})
+
 ipcMain.on('rectangular-selection',(e,val)=>{
   mainState.rectSelection = val ? [e.sender,val] : void 0
   if(val) require('./menuSetting').updateMenu()
@@ -2290,4 +2294,19 @@ ipcMain.on('get-input-history',async (e,key)=>{
 
 ipcMain.on('delete-input-history',async (e,cond)=>{
   await inputHistory.remove(cond, { multi: true })
+})
+
+ipcMain.on('main-state-op',(e,op,name,key,val)=>{
+  if(op == 'get'){
+    e.returnValue = mainState[name]
+  }
+  else if(op == 'set'){
+    mainState[op](name,val)
+  }
+  else if(op == 'add'){
+    mainState[op](name,key,val)
+  }
+  else if(op == 'del'){
+    mainState[op](name,key)
+  }
 })

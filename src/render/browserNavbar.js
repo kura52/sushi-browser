@@ -6,13 +6,11 @@ import localForage from "../LocalForage";
 import path from 'path'
 const PubSub = require('./pubsub')
 const {remote} = require('electron')
-const BrowserWindowPlus = remote.require('./BrowserWindowPlus')
 const {Menu, webContents} = remote
 // const {searchHistory} = require('./databaseRender')
 const ipc = require('electron').ipcRenderer
 import MenuOperation from './MenuOperation'
 import {favorite} from './databaseRender'
-// const getCaches = remote.require('./CacheList');
 const browserActionMap = require('./browserActionDatas')
 const BrowserActionMenu = require('./BrowserActionMenu')
 const VpnList = require('./VpnList')
@@ -23,7 +21,7 @@ import RightTopBottonSet from './RightTopBottonSet'
 const NavbarMenu = require('./NavbarMenu')
 const {NavbarMenuItem,NavbarMenuBarItem,NavbarMenuSubMenu} = require('./NavbarMenuItem')
 const FloatSyncScrollButton = require('./FloatSyncScrollButton')
-const mainState = remote.require('./mainState')
+const mainState = require('./mainStateRemote')
 const moment = require('moment')
 const Clipboard = require('clipboard')
 const FavoriteExplorer = require('../toolPages/favoriteBase')
@@ -680,7 +678,7 @@ class BrowserNavbar extends Component{
       <NavbarMenuBarItem>
         {menuActions}
       </NavbarMenuBarItem>
-      <NavbarMenuItem text={locale.translation("newWindow")} icon='clone' onClick={()=>BrowserWindowPlus.load({id:remote.getCurrentWindow().id,sameSize:true})}/>
+      <NavbarMenuItem text={locale.translation("newWindow")} icon='clone' onClick={()=>ipc.send('browser-load',{id:remote.getCurrentWindow().id,sameSize:true})}/>
       <div className="divider" />
       {this.props.toggleNav == 0 ? <NavbarMenuItem text={`[${multistageTabs  ? '✓' : ' '}] ${locale.translation("multiRowTabs")}`} icon='table'
                                                    onClick={()=>{

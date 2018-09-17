@@ -90,7 +90,8 @@ export default function(inputHistoryMaxChar){
         exec()
       }
     }
-    window.addEventListener(eventName, handler, {capture: true,passive: true})
+    window.addEventListener(eventName, handler, {passive: true})
+    // window.addEventListener(eventName, handler, {capture: true,passive: true})
   }
 
   function getValue(target){

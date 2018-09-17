@@ -2,7 +2,7 @@ const React = require('react')
 const {Component} = React
 const ReactDOM = require('react-dom')
 const ipc = require('electron').ipcRenderer
-const {webContents} = require('electron').remote.require('electron')
+const {webContents} = require('electron').remote
 const path = require('path')
 const sharedState = require('./sharedState')
 

@@ -1,4 +1,3 @@
-// export default require('electron').remote.require('../lib/databaseFork')
 const uuid = require('node-uuid')
 const ipc = require('electron').ipcRenderer
 

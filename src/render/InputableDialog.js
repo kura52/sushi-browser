@@ -2,7 +2,7 @@ import React,{Component} from 'react'
 import ReactDOM from 'react-dom'
 import { Icon,Form, TextArea, Input, Button, Header, Modal,Checkbox } from 'semantic-ui-react';
 const ipc = require('electron').ipcRenderer
-const {app} = require('electron').remote.require('electron')
+const {app} = require('electron').remote
 export default class InputableDialog extends Component{
 
   constructor(props) {

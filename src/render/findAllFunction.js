@@ -564,7 +564,12 @@ if(!window.__complex_search_define__){
   var itel_inject_flag = false;
   var search_words_prev,matchCase
   function itel_main(search_words, enabled, _matchCase) {
+    if(document.readyState != 'complete'){
+      window.onload = ()=> itel_main(search_words, enabled, _matchCase)
+      return
+    }
     if(search_words_prev == search_words && _matchCase == matchCase) return
+    icnt = 0
     gstatus.enabled = enabled;
     var words = new Words(search_words);
     if (words.array.length == 0) {
@@ -577,8 +582,13 @@ if(!window.__complex_search_define__){
   }
 
   function itel_main2(search_words, enabled, _matchCase, andSearch) {
+    if(document.readyState != 'complete'){
+      window.onload = ()=> itel_main2(search_words, enabled, _matchCase)
+      return
+    }
     if(andSearch) search_words = `"${search_words}"`
     // if(search_words_prev == search_words && _matchCase == matchCase) return
+    icnt = 0
     gstatus.enabled = enabled;
     var words = new Words(search_words);
     if (words.array.length == 0) {

@@ -263,6 +263,10 @@ if(!window.__complex_search_define__){
           child.tagName == 'TEXTAREA') {
           continue;
         }
+        else{
+          const style = window.getComputedStyle(child)
+          if(style.display == 'none' || style.visibility == 'hidden' || (['0px','1px'].includes(style.width) && ['0px','1px'].includes(style.height))) continue
+        }
       }
       textNode_req(child, className, callback);
     }

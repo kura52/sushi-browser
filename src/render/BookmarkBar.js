@@ -9,7 +9,7 @@ const {app,Menu,clipboard} = remote
 
 const PubSub = require('./pubsub')
 const uuid = require('node-uuid')
-const mainState = remote.require('./mainState')
+const mainState = require('./mainStateRemote')
 const NavbarMenu = require('./NavbarMenu')
 const {NavbarMenuItem,NavbarMenuBarItem,NavbarMenuSubMenu} = require('./NavbarMenuItem')
 const FavoriteExplorer = require('../toolPages/favoriteBase')

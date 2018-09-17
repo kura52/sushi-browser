@@ -1,6 +1,6 @@
 const {remote} = require('electron')
 const isDarwin = navigator.userAgent.includes('Mac OS X')
-const mainState = remote.require('./mainState')
+const mainState = require('./mainStateRemote')
 const ipc = require('electron').ipcRenderer
 
 export default {

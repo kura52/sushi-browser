@@ -4,7 +4,7 @@ const {Component} = React
 const uuid = require("node-uuid")
 const {remote} = require('electron')
 const ipc = require('electron').ipcRenderer
-const mainState = remote.require('./mainState')
+const mainState = require('./mainStateRemote')
 const NavbarMenu = require('./NavbarMenu')
 const {NavbarMenuItem,NavbarMenuBarItem} = require('./NavbarMenuItem')
 

@@ -20,8 +20,7 @@ import PubSub from '../../pubsub'
 import ResizeObserver from 'resize-observer-polyfill'
 
 const {remote} = require('electron')
-const BrowserWindowPlus = remote.require('./BrowserWindowPlus')
-const mainState = remote.require('./mainState')
+const mainState = require('../../mainStateRemote')
 const ipc = require('electron').ipcRenderer
 const {alwaysOnTop} = require('../../browserNavbar')
 const NavbarMenu = require('../../NavbarMenu')
@@ -136,6 +135,8 @@ class Title extends React.Component {
 
   mediaMenu(){
     return <NavbarMenu className="sort-sidebar" k={this.props.datas.k} mouseOver={true} isFloat={isFloatPanel(this.props.datas.k)} onClick={::this.handleClick}
+                       onMouseOver={_=>{document.querySelector('.hol-resizer').style.display = 'none';this.props.parent.setState({})}}
+                       onMouseLeave={_=>{document.querySelector('.hol-resizer').style.display = 'inherit'}}
                        audio={true} icon="volume-up" className="play-mode playing" style={{lineHeight: 'inherit',pointerEvents: 'initial', float: 'left','-webkit-app-region': 'no-drag'}} keepVisible={true}>
 
       <div className="ui input" style={{ margin: '4px 5px 0px 10px', display: 'inline-block'}}>
@@ -825,7 +826,7 @@ class Tabs extends React.Component {
               </div>
           }
           {prevTitle}
-          <Title datas={{key:tab.key,k:this.props.k,tab:t,toggleNav:this.props.toggleNav,verticalTabPanel:this.props.verticalTabPanel,TabStyles:this.TabStyles,tabBeforeTitleClasses,beforeTitle,tabTiteleStyle,tabTitleClasses,extraAttribute,privateMode,lock,protect,mute,reloadInterval,title,beforeTitleStyle,selected}}/>
+          <Title parent={this} datas={{key:tab.key,k:this.props.k,tab:t,toggleNav:this.props.toggleNav,verticalTabPanel:this.props.verticalTabPanel,TabStyles:this.TabStyles,tabBeforeTitleClasses,beforeTitle,tabTiteleStyle,tabTitleClasses,extraAttribute,privateMode,lock,protect,mute,reloadInterval,title,beforeTitleStyle,selected}}/>
           {closeButton}
         </li>
       );
@@ -1465,7 +1466,7 @@ class Tabs extends React.Component {
           height: preview.tabPreview ? Math.round((tabPreviewSizeWidth || preview.tabPreview.width) * (tabPreviewSizeHeight || preview.tabPreview.height / preview.tabPreview.width)) : tabPreviewSlideHeight,
           left: preview.left + (tabPreviewSizeWidth || preview.tabPreview.width) > window.innerWidth ? (void 0) : preview.left,
           right: preview.left + (tabPreviewSizeWidth || preview.tabPreview.width) > window.innerWidth ? 0 : (void 0),
-          top: preview.top + 27,
+          top: preview.top + 27 + (document.elementFromPoint(preview.left + (tabPreviewSizeWidth || preview.tabPreview.width) > window.innerWidth ? (void 0) : preview.left,preview.top + 27).className == 'hol-resizer' ? 0 : 38),
           backgroundImage: preview.tabPreview ? `url(${preview.tabPreview.dataURL})` : 'none',
           backgroundColor: '#fbfbfb',
           backgroundSize: `${tabPreviewSizeWidth || preview.tabPreview.width}px ${preview.tabPreview ? Math.round((tabPreviewSizeWidth || preview.tabPreview.width) * (tabPreviewSizeHeight || preview.tabPreview.height / preview.tabPreview.width)) : tabPreviewSlideHeight}px`,

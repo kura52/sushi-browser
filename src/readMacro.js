@@ -42,7 +42,7 @@ export default {
 
   },
   readFindAll(){
-    return fs.readFileSync(path.join(__dirname,"../src/render/findAllFunction.js")).toString()
+    return fs.readFileSync(path.join(__dirname,"../resource/findAllFunction.js")).toString()
 
   }
 }

@@ -5,7 +5,7 @@ const ReactDOM = require('react-dom')
 const {remote} = require('electron');
 const {webContents} = remote
 const PubSub = require('./pubsub')
-const mainState = remote.require('./mainState')
+const mainState = require('./mainStateRemote')
 const NavbarMenu = require('./NavbarMenu')
 const {NavbarMenuItem,NavbarMenuBarItem,NavbarMenuSubMenu} = require('./NavbarMenuItem')
 

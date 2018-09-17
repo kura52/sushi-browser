@@ -3,7 +3,7 @@ import l10n from "../../brave/js/l10n";
 const React = require('react')
 const {Component} = React
 const {remote} = require('electron');
-const mainState = remote.require('./mainState')
+const mainState = require('./mainStateRemote')
 const {app,Menu,clipboard} = remote
 import Tabs from './draggable_tab/components/Tabs'
 import Tab from './draggable_tab/components/Tab'
@@ -13,8 +13,6 @@ const uuid = require('node-uuid')
 const ReactDOM = require('react-dom')
 const ipc = require('electron').ipcRenderer
 const path = require('path');
-const fs = remote.require('fs')
-const mkdirp = remote.require('mkdirp')
 const {favicon,history,media,favorite,syncReplace,tabState} = require('./databaseRender')
 const db = require('./databaseRender')
 const Notification = require('./Notification')
@@ -23,7 +21,6 @@ const ImportDialog = require('./ImportDialog')
 const ConverterDialog = require('./ConverterDialog')
 import BookmarkBar from "./BookmarkBar";
 import url from 'url'
-const BrowserWindowPlus = remote.require('./BrowserWindowPlus')
 const moment = require('moment')
 const urlutil = require('./urlutil')
 const {messages,locale} = require('./localAndMessage')
@@ -4168,7 +4165,7 @@ export default class TabPanel extends Component {
       console.log(tab,datas)
 
       for(let data of datas){
-        this.props.currentWebContents[data.wvId] = global.sharedStateMain(data.wvId)
+        this.props.currentWebContents[data.wvId] = ipc.sendSync('get-shared-state-main',data.wvId)
 
         n_tab = this.createTab({c_page:data.c_page,c_key:data.c_key,privateMode:data.privateMode,tabPreview:data.tabPreview,pin:data.pin,protect:data.protect,lock:data.lock,mute:data.mute,fields:data.fields,reloadInterval:data.reloadInterval,guestInstanceId:data.guestInstanceId,rest:data.rest})
         tabs.splice(++i, 0, n_tab)
@@ -4630,7 +4627,7 @@ export default class TabPanel extends Component {
       this.searchSameWindow(tab,urls,checkOpposite,searchMethod.type, forceNewTab)
     }
     else{
-      BrowserWindowPlus.load({id:remote.getCurrentWindow().id,sameSize:true,tabParam:JSON.stringify({urls:urls.map(url=>{return {url}}),type:searchMethod.type})})
+      ipc.send('browser-load',{id:remote.getCurrentWindow().id,sameSize:true,tabParam:JSON.stringify({urls:urls.map(url=>{return {url}}),type:searchMethod.type})})
     }
   }
 
