@@ -409,7 +409,7 @@ class BrowserPage extends Component {
     if(mobilePanel && mobilePanel.isPanel) style.width = `calc(100% - ${mobilePanel.width + 1}px)`
 
     return <div className="browser-page" ref="browserPage"  onKeyDown={::this.onHandleKeyDown}>
-      <BrowserPageSearch ref="bps" isActive={this.state.isSearching} onPageSearch={::this.onPageSearch} progress={this.state.result_string} onClose={::this.onClose}/>
+      <BrowserPageSearch ref="bps" tab={this.props.tab} isActive={this.state.isSearching} onPageSearch={::this.onPageSearch} progress={this.state.result_string} onClose={::this.onClose}/>
       {mobilePanel ? <MobilePanel tab={this.props.tab} mobilePanel={mobilePanel} parent={this} isActive={this.props.isActive}/> : null}
       <webview ref="webview" className={`w${this.props.k2}`} data-key={this.props.k} src={this.props.tab.privateMode ? (void 0) : this.state.src}
                style={style}/>

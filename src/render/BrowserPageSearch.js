@@ -1,6 +1,8 @@
 const React = require('react')
 const {Component} = React
 import { Checkbox } from 'semantic-ui-react';
+const ipc = require('electron').ipcRenderer
+const PubSub = require('./pubsub')
 
 let options = {case:false,or:false,reg:false}
 
@@ -62,6 +64,14 @@ export default class BrowserPageSearch extends Component {
       <Checkbox style={{paddingLeft: 4, borderLeft: '1px solid #aaa'}} label="Case" checked={this.state.case} onChange={(e,data)=>this.changeCheck(e,'case',data)}/>
       <Checkbox label="OR" checked={this.state.or} onChange={(e,data)=>this.changeCheck(e,'or',data)}/>
       <Checkbox label="Reg" checked={this.state.reg} onChange={(e,data)=>this.changeCheck(e,'reg',data)}/>
+      <Checkbox label="All" checked={false} onChange={(e,data)=>{
+        if(!document.querySelector('.find-panel')){
+          ipc.emit('menu-or-key-events', null, 'findAll', this.props.tab.wvId)
+        }
+        PubSub.publish('find-all-search',this.refs.input.value)
+        this.props.onClose()
+        this.refs.input.value = ""
+      }}/>
       <a className="search-button" href="javascript:void(0)"><div className="search-close" style={{lineHeight: "1.5",height:"30px"}} onClick={e=>this.props.onClose(e,true)}>☓</div></a>
     </div>
   }

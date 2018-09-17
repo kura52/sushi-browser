@@ -99,10 +99,20 @@ export default class FindPanel extends Component {
     this.refs.input.focus()
 
     this.tokenChangeTabs = PubSub.subscribe('change-tabs',()=>{
-
+      setTimeout(_=>{
+        this.prevState = {}
+        this.search(true)
+      },1500)
     })
 
     this.tokenChangeSelected = PubSub.subscribe('change-selected',()=>this.setState({}))
+
+    this.tokenAllSearch = PubSub.subscribe('find-all-search',(msg,val)=>{
+      this.refs.input.focus()
+      this.refs.input.value = val
+      this.state.query = val
+      this.search(true)
+    })
 
     document.addEventListener('keydown',this.handleKeyDown)
   }
@@ -110,6 +120,7 @@ export default class FindPanel extends Component {
   componentWillUnmount() {
     PubSub.unsubscribe(this.tokenChangeTabs)
     PubSub.unsubscribe(this.tokenChangeSelected)
+    PubSub.unsubscribe(this.tokenAllSearch)
 
     document.removeEventListener('keydown',this.handleKeyDown)
   }
@@ -131,8 +142,8 @@ export default class FindPanel extends Component {
 
   onPrev(){
     let dataKey
-    Object.entries(this.datas).forEach(([_dataKey,data])=>{
-      if(_dataKey == this.state.selected) return
+    Object.entries(this.datas).some(([_dataKey,data])=>{
+      if(_dataKey == this.state.selected) return true
       dataKey = _dataKey
     })
 
@@ -142,11 +153,11 @@ export default class FindPanel extends Component {
 
   onNext(){
     let dataKey, min,next
-    Object.entries(this.datas).forEach(([_dataKey,data],i)=>{
+    Object.entries(this.datas).some(([_dataKey,data],i)=>{
       if(i == 0) min = _dataKey
       if(next){
         dataKey = _dataKey
-        return
+        return true
       }
       else if(_dataKey == this.state.selected){
         next = true
@@ -254,6 +265,7 @@ export default class FindPanel extends Component {
       options[name] = this.state[name]
     }
     this.setState({})
+    if(this.state.query) search(true)
   }
 
   buildTextNode(prefix,text,suffix){
@@ -282,6 +294,7 @@ export default class FindPanel extends Component {
   renderTr(){
     this.datas = {}
     const tr = []
+    let current = 0, num = 0
     for(let [tabId, result, key] of this.state.searchResult){
       if(!result) continue
       let i = 1
@@ -294,18 +307,22 @@ export default class FindPanel extends Component {
         this.max = dataKey
         const textNode = this.buildTextNode(prefix,text,suffix)
         const isSelected = tabPanel.state.selectedTab == tabKey
-        tr.push(<tr key={dataKey} className={`${this.state.selected == dataKey ? 'tr-selected' : 'tr-normal'} ${isSelected ? 'tr-selected-tab' : ''}`}
-                    onMouseDown={e=>this.handleMouseDown(no,tabId,tabKey,tabPanel)}>
+        const rowSelected = this.state.selected == dataKey
+        if(rowSelected) current = num + 1
+        tr.push(<tr key={dataKey} className={`${rowSelected ? 'tr-selected' : 'tr-normal'} ${isSelected ? 'tr-selected-tab' : ''}`}
+                    onMouseDown={e=>this.handleMouseDown(dataKey,tabId,tabKey,tabPanel)}>
           <td className="search-all-seq">{seq}-{i++}</td>
           <td className="search-all-title">{multiByteSlice(title,26,true)}</td>
           {textNode}
         </tr>)
+        num++
       }
     }
-    return tr
+    return {tr, numText: `${current}/${num}`}
   }
 
   renderFindPanel(){
+    const {tr, numText} = this.renderTr()
     return <div className="find-panel"
                 style={{height: this.props.findPanelHeight - 1, background: '#f3f3f3', overflowY: 'auto'}} >
       <div className="visible browser-page-search" style={{
@@ -323,7 +340,7 @@ export default class FindPanel extends Component {
         <a className="search-button" href="javascript:void(0)">
           <i className="search-prev fa fa-angle-down" style={{fontSize: "1.5em",lineHeight: "1.3",height:"30px"}} onClick={::this.onNext}></i>
         </a>
-        <span className="search-num">{'1/1'}</span>
+        <span className="search-num">{numText}</span>
         <Checkbox style={{paddingLeft: 4, borderLeft: '1px solid #aaa'}} label="Match Case" checked={this.state.case} onChange={(e,data)=>this.changeCheck(e,'case',data)}/>
         <Checkbox label="OR" checked={this.state.or} onChange={(e,data)=>this.changeCheck(e,'or',data)}/>
         <Checkbox label="RegExp" checked={this.state.reg} onChange={(e,data)=>this.changeCheck(e,'reg',data)}/>
@@ -341,7 +358,7 @@ export default class FindPanel extends Component {
         </tr>
         </thead>
         <tbody className="search-all-tbody">
-        {this.renderTr()}
+        {tr}
         </tbody>
       </table>
     </div>
@@ -356,12 +373,3 @@ export default class FindPanel extends Component {
     </span>
   }
 }
-
-// デフォルト選択
-//
-// 検索を連打したとき、shift enter
-// 検索の数値
-//
-// 通常のページ内検索にALLを追加し、クリックするとALL側にフォーカスを移す
-// ページ遷移やタブ数が変わったときのリセット処理
-//
