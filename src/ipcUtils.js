@@ -136,7 +136,7 @@ ipcMain.on('create-file',(event,key,path,isFile)=>{
 })
 
 ipcMain.on('show-dialog-exploler',(event,key,info,tabId)=>{
-  const cont = tabId !== 0 && (sharedState[tabId] || webContents.fromId(tabId))
+  const cont = tabId && (sharedState[tabId] || webContents.fromId(tabId))
   console.log(tabId,cont)
   if(info.inputable || info.normal || info.convert){
     const key2 = uuid.v4();
@@ -2339,7 +2339,7 @@ ipcMain.on('create-browser-view', (e, panelKey, tabKey, x, y, width, height, zIn
       sandbox: true,
       allowFileAccessFromFileUrls: true,
       allowUniversalAccessFromFileUrls: true,
-      // enableRemoteModule: true,
+      enableRemoteModule: false,
       preload: path.join(__dirname, '../resource/preload-content-scripts.js')
     } })
   view.setAutoResize({width: false, height: false})
@@ -2472,8 +2472,9 @@ ipcMain.on('operation-overlap-component', (e, opType, panelKey) => {
   for(let type of ['page-status']){
     if(opType == 'create' && !compMap[`${type}\t${panelKey}`]){
       const view = new BrowserView({ webPreferences: {
-        nodeIntegration: type == 'page-search',
-        sandbox: type != 'page-search',
+        nodeIntegration: false,
+        sandbox: true,
+        preload: type == 'page-search' ? path.join(__dirname, '../page-search-preload.js') : void 0,
         allowFileAccessFromFileUrls: true,
         allowUniversalAccessFromFileUrls: true
       } })
@@ -2506,8 +2507,9 @@ ipcMain.on('set-overlap-component', async (e, type, panelKey, tabKey, x, y, widt
   let data = compMap[`${type}\t${panelKey}`]
   if(!data){
     const view = new BrowserView({ webPreferences: {
-        nodeIntegration: type == 'page-search',
-        sandbox: type != 'page-search',
+        nodeIntegration: false,
+        sandbox: true,
+        preload: type == 'page-search' ? path.join(__dirname, '../page-search-preload.js') : void 0,
         allowFileAccessFromFileUrls: true,
         allowUniversalAccessFromFileUrls: true
       } })

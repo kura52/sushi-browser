@@ -191,7 +191,14 @@ function create(args){
         bw.webContents.send('get-window-state')
         let flag = false
 
-        ipcMain.once('get-window-state-reply',(e,ret)=>{
+        ipcMain.once('get-window-state-reply',async (e,ret)=>{
+
+          await clearDatas()
+          await new Promise(r=>{session.defaultSession.cookies.get({}, (e,cookies)=>{
+            fs.writeFileSync(path.join(app.getPath('userData'), 'cookie.txt'),JSON.stringify(cookies)) //@TODO ELECTRON
+            r()
+          })})
+
           try{
             const saveState = {}
             for(let key of Object.keys(settingDefault)){
@@ -226,11 +233,9 @@ function create(args){
       }
       else{
         console.log("closing")
-        clearDatas().then(()=>{
-          BrowserWindow.getAllWindows().forEach(win=>{
-            if(bw!=win) win.close()
-          })
-          PubSub.publish('chrome-windows-onRemoved',bw.id)
+        if(!bw.isDestroyed()) PubSub.publish('chrome-windows-onRemoved',bw.id)
+        BrowserWindow.getAllWindows().forEach(win=>{
+          if(bw!=win) win.close()
         })
       }
     }

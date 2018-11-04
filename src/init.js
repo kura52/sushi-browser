@@ -129,6 +129,12 @@ setWidevine(app)
 let ptyProcessSet,passwordManager,extensionInfos,syncReplaceName
 app.on('ready', async ()=>{
   // webFrame.registerURLSchemeAsBypassingCSP('chrome-extension')
+  const cookieFile = path.join(app.getPath('userData'), 'cookie.txt') //@TODO ELECTRON
+  if(fs.existsSync(cookieFile)){
+    for(let cookie of JSON.parse(fs.readFileSync(cookieFile))){
+      session.defaultSession.cookies.set({url:`https://${cookie.domain}`,...cookie},()=>{})
+    }
+  }
   InitSetting.val.then(setting=>{
     // if(setting.enableFlash){
     //   setFlash(app)
@@ -182,10 +188,7 @@ app.on('ready', async ()=>{
   // loadDevtool(loadDevtool.REACT_DEVELOPER_TOOLS);
   //console.log(app.getPath('pepperFlashSystemPlugin'))
   extensionInfos = require('./extensionInfos')
-  console.log({
-    arch: process.arch,
-    platform: process.platform}
-    ,process.versions)
+  console.log({arch: process.arch,platform: process.platform},process.versions)
 
 
   // console.log(app.getPath('userData'))
@@ -294,6 +297,8 @@ app.on('window-all-closed', function () {
     }
     ipcMain.emit('handbrake-stop',null)
     global.__CHILD__.kill()
+    BrowserView.getAllViews().map(v=> !v.isDestroyed() && v.destroy())
+    webContents.getAllWebContents().map(w=> !w.isDestroyed() && w.getURL().startsWith('chrome-extension:') && w.destroy())
     app.quit()
   }
   else{
@@ -784,22 +789,22 @@ function setWidevine(app){
     const path_widevine = require("glob").sync(`C:\\Program Files (x86)\\Google\\Chrome\\Application\\*\\WidevineCdm\\_platform_specific\\*\\widevinecdm.dll`)
     if (path_widevine.length > 0) {
       ppapi_widevine_path = path_widevine[0]
-      app.commandLine.appendSwitch('widevine-cdm-path', ppapi_widevine_path)
+      app.commandLine.appendSwitch('widevine-cdm-path', path.join(ppapi_widevine_path, '..'))
     }
   }
   else if (process.platform == 'linux') {
     const path_widevine = require("glob").sync(`/opt/google/chrome/libwidevinecdm.so`)
     if (path_widevine.length > 0) {
-      console.log('widevine',path_widevine)
       ppapi_widevine_path = path_widevine[0]
-      app.commandLine.appendSwitch('widevine-cdm-path', ppapi_widevine_path)
+      console.log('widevine', path.join(ppapi_widevine_path, '..'))
+      app.commandLine.appendSwitch('widevine-cdm-path', path.join(ppapi_widevine_path, '..'))
     }
   }
   else{
     let path_widevine = widevine_path ? require("glob").sync(widevine_path) : require("glob").sync("/Applications/Google Chrome.app/Contents/Versions/*/Google Chrome Framework.framework/Versions/A/Libraries/WidevineCdm/_platform_specific/*/libwidevinecdm.dylib")
     if (path_widevine.length > 0) {
       ppapi_widevine_path = path_widevine[0]
-      app.commandLine.appendSwitch('widevine-cdm-path', ppapi_widevine_path);
+      app.commandLine.appendSwitch('widevine-cdm-path', path.join(ppapi_widevine_path, '..'))
     }
   }
   if(ppapi_widevine_path){

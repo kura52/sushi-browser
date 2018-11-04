@@ -1,6 +1,17 @@
 
 # Sushi Browser
 
+## Electron Edtion's TODO
+ - Fixed Sync Scroll and Autocomplete.
+ - Fixed Page Search
+ - Fixed Settings Page.
+ - Fixed Mobile Panel.
+ - Fixed z-order's bugs.
+ - Fixed chrome extension bugs.
+ - Added function to import from other browsers.
+ - Added Password Manager.
+ - Added Tor Proxy.
+
 ## Why?
  
 When you are browsing the web you can only use a section of your screen. Have you ever thought that that's a waste?   
