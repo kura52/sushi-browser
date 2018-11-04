@@ -5,6 +5,8 @@ const ipc = require('electron').ipcRenderer
 const {webContents} = require('electron').remote
 const path = require('path')
 const sharedState = require('./sharedState')
+const LRUCache = require('lru-cache')
+const cache = new LRUCache(200)
 
 function multiByteSlice(str,end) {
   let len = 0
@@ -36,6 +38,7 @@ export default class DownloadList extends Component{
     this.downloadSet = new Set()
     this.state = {downloads:new Map(),visible: false, enableDownloadList:props.enableDownloadList}
     this.events = {}
+    this.visible = false
   }
 
   debounceSetState = (newState) => {
@@ -43,7 +46,7 @@ export default class DownloadList extends Component{
       this.state[k] = v
     }
     clearTimeout(debounceTimer)
-    debounceTimer = setTimeout(()=>this.setState({}),debounceInterval)
+    debounceTimer = setTimeout(()=>this.setState(newState),debounceInterval)
   }
 
   componentDidMount() {
@@ -69,6 +72,13 @@ export default class DownloadList extends Component{
       }
     }
     ipc.on('update-mainstate', this.events['update-mainstate'])
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if(this.state.visible != this.visible){
+      this.props.parent.setState({})
+      this.visible = this.state.visible
+    }
   }
 
   componentWillUnmount() {
@@ -133,9 +143,31 @@ export default class DownloadList extends Component{
   }
 
   calcSpeed(item){
-    const diff =item.now - item.startTime
+    const diff = item.now - item.startTime
     const percent = this.round(item.receivedBytes / item.totalBytes * 100,2)
-    const speed = item.speed ? this.calcSpeedSec(item) : item.receivedBytes / diff * 1000
+    let speed = item.receivedBytes / diff * 1000
+    if(!item.speed){
+      const preList = cache.get(item.key)
+      if(preList){
+        const preList2 = []
+        for(let i=preList.length - 1; i>= 0; i--){
+          const pre = preList[i]
+          preList2.push(pre)
+          if(item.now - pre.now > 3000){
+            speed = (item.receivedBytes - pre.receivedBytes) / (item.now - pre.now) * 1000
+            cache.set(item.key,preList2.reverse())
+            break
+          }
+        }
+      }
+      else{
+        cache.set(item.key, [])
+      }
+      cache.get(item.key).push({receivedBytes: item.receivedBytes, now: item.now})
+    }
+    else{
+      speed = this.calcSpeedSec(item)
+    }
     const restTime = (item.totalBytes - item.receivedBytes) / speed
 
     return {diff,percent,speed,restTime}
@@ -182,24 +214,26 @@ export default class DownloadList extends Component{
       downloadList.push(this.buildItem(item))
     }
 
-    return <div className="ui horizontal segments dl-list" style={downloadList.length > 0 && this.state.visible ? {} : {display: 'none'}}>
-      {downloadList}
-      <div className="ui blue segment" key={-1} style={{width: '30px'}}>
-        <i className="remove circle icon download-list-above" onClick={()=>{
-          this.state.downloads.clear()
-          this.setState({visible: false})
-        }} />
-        <i className="download icon download-list-bottom" onClick={()=>{
-          const conts = webContents.getAllWebContents()
-          let cont = null
-          for(let c of conts){
-            if(!c.hostWebContents || c.getURL().startsWith("chrome-devtools://") || c.isDestroyed() || c.isCrashed()) continue
-            cont = c
-            break
-          }
-          // console.log(cont.getURL())
-          cont.hostWebContents.send('new-tab', cont.getId(), 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html')
-        }} />
+    return <div id="dllist" style={downloadList.length > 0 && this.state.visible ? {} : {display: 'none'}}>
+      <div className="ui horizontal segments dl-list">
+        {downloadList}
+        <div className="ui blue segment" key={-1} style={{width: '30px'}}>
+          <i className="remove circle icon download-list-above" onClick={()=>{
+            this.state.downloads.clear()
+            this.setState({visible: false})
+          }} />
+          <i className="download icon download-list-bottom" onClick={()=>{
+            const conts = webContents.getAllWebContents()
+            let cont = null
+            for(let c of conts){
+              if(!c.hostWebContents2 || c.getURL().startsWith("chrome-devtools://") || c.isDestroyed() || c.isCrashed()) continue
+              cont = c
+              break
+            }
+            // console.log(cont.getURL())
+            cont.hostWebContents2.send('new-tab', cont.id, 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html')
+          }} />
+        </div>
       </div>
     </div>
   }

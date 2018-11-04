@@ -135,7 +135,10 @@
 
             if (copyOptions.stateHandler) {
               this[copyOptions.stateHandler](newState);
-            } else {
+            } else if(name === 'onAdd'){
+              Object.assign(this.state,newState);
+            }
+            else{
               this.setState(newState);
             }
 

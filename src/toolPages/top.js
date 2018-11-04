@@ -89,8 +89,9 @@ localForage.getItem('favicon-set').then(setTime=>{
   })
 })
 
+let accessKey
 async function faviconGet(h){
-  return h.favicon ? (await localForage.getItem(h.favicon)) || `file://${resourcePath}/file.svg` : `file://${resourcePath}/file.svg`
+  return h.favicon ? (await localForage.getItem(h.favicon)) || `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/?key=${accessKey}&file=${resourcePath}/file.svg` : `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/?key=${accessKey}&file=${resourcePath}/file.svg`
 }
 
 ipc.send("get-resource-path",{})
@@ -218,14 +219,15 @@ class TopMenu extends React.Component {
 class TopSearch extends React.Component {
 
   componentDidMount() {
-    ipc.sendToHost("navbar-search",{})
+    accessKey = ipc.sendSync('get-access-key')
+    ipc.send('send-to-host', "navbar-search",{})
     console.log("mount")
   }
 
 
   sendHost(e){
     console.log(222222)
-    ipc.sendToHost("navbar-search",{})
+    ipc.send('send-to-host', "navbar-search",{})
     e.target.value = ""
     e.target.blur()
     e.preventDefault()
@@ -414,7 +416,7 @@ class TopList extends React.Component {
       <Card.Description>
         {!h.title ? "" : <Card.Header as='a' href={h.location}><img src={favicon} style={{width: 16, height: 16, verticalAlign: "text-top"}}/>{multiByteSlice(h.title,32)} {h.count ? `(${h.count}pv)` : ''}</Card.Header>}
       </Card.Description>
-      {h.path ? <a href={h.location} style={{textAlign:"center"}}><img className="capture" style={{width:160,height:100,objectFit: "contain"}} src={`file://${resourcePath}/capture/${h.path}`}/></a> : null}
+      {h.path ? <a href={h.location} style={{textAlign:"center"}}><img className="capture" style={{width:160,height:100,objectFit: "contain"}} src={`chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/?key=${accessKey}&file=${resourcePath}/capture/${h.path}`}/></a> : null}
     </Card>;
   }
 }

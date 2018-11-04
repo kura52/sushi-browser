@@ -2418,7 +2418,7 @@ class VideoSetting extends React.Component {
     <td key={`description${i}`} >{v.description}</td>
     <td key={`version${i}`} style={{width: 40}}>{v.version}</td>
     <td key={`option${i}`} style={{fontSize: 20,textAlign: 'center'}}>
-    {v.enabled && v.optionPage ? <a href="javascript:void(0)" onClick={_=> ipc.sendToHost("open-tab", `chrome-extension://${id}/${v.optionPage}`, true)}>
+    {v.enabled && v.optionPage ? <a href="javascript:void(0)" onClick={_=> ipc.send('send-to-host', "open-tab", `chrome-extension://${id}/${v.optionPage}`, true)}>
       <i aria-hidden="true" class="setting icon"></i>
     </a> : null}
     </td>
@@ -2426,7 +2426,7 @@ class VideoSetting extends React.Component {
     <Checkbox checked={v.enabled} disabled={cannotDisable} toggle onChange={(e,data)=>this.changeCheck(id,data)}/>
     </td>
     <td key={`background${i}`} style={{fontSize: 20,textAlign: 'center'}}>
-    {v.enabled && v.background ? <a href="javascript:void(0)" onClick={_=> ipc.sendToHost("load-url", `chrome-extension://${id}/${v.background}`, true)}>
+    {v.enabled && v.background ? <a href="javascript:void(0)" onClick={_=> ipc.send('send-to-host', "load-url", `chrome-extension://${id}/${v.background}`, true)}>
       <i aria-hidden="true" class="bug icon"></i>
     </a> : null}
     </td>

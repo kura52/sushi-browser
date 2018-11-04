@@ -159,11 +159,11 @@ function reportBlock (type) {
  * @param item special item objects
  */
 function trapInstanceMethod (item) {
-  if (!item.methodName) {
-    chrome.webFrame.setGlobal(item.objName + ".prototype." + item.propName, reportBlock.bind(null, item.type))
-  } else {
-    chrome.webFrame.setGlobal(item.methodName, reportBlock.bind(null, item.type))
-  }
+  // if (!item.methodName) { @TODO ELECTRON
+  //   chrome.webFrame.setGlobal(item.objName + ".prototype." + item.propName, reportBlock.bind(null, item.type))
+  // } else {
+  //   chrome.webFrame.setGlobal(item.methodName, reportBlock.bind(null, item.type))
+  // }
 }
 
 function blockWebRTC () {

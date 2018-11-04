@@ -138,6 +138,10 @@ export default class BookmarkBarWrapper extends Component {
     })
   }
 
+  componentDidMount() {
+    this.prev = this.isShow()
+  }
+
   _isShow(){
     return sharedState.bookmarkBar ||
       (sharedState.bookmarkBarTopPage && this.props.tab.page.navUrl == this.props.topURL)
@@ -155,6 +159,7 @@ export default class BookmarkBarWrapper extends Component {
       this.prev = val
       this.props.webViewCreate()
     }
+    console.log(9999777,val,cond,this.props.tab.page.navUrl)
     return cond
   }
 

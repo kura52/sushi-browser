@@ -215,7 +215,7 @@ function muonModify(){
       const contents = fs.readFileSync(file).toString()
       const result = contents
       // .replace(/getInfo\.populate/g,'{}')
-        .replace('tabContents.close(tabContents)',"tabContents.hostWebContents && tabContents.hostWebContents.send('menu-or-key-events','closeTab',tabId)")
+        .replace('tabContents.close(tabContents)',"tabContents.hostWebcontents2 && tabContents.hostWebcontents2.send('menu-or-key-events','closeTab',tabId)")
         .replace("evt.sender.send('chrome-tabs-create-response-' + responseId, tab.tabValue(), error)","evt.sender.send('chrome-tabs-create-response-' + responseId, tab && tab.tabValue(), error)")
         .replace('  if (updateProperties.active || updateProperties.selected || updateProperties.highlighted) {',
           `  if (updateProperties.active || updateProperties.selected || updateProperties.highlighted) {
@@ -250,7 +250,7 @@ var getTabValue = function (tabId) {`)
   const opener = tabOpenerMap[tabId]
   if(val.windowId == -1){
     if(opener){
-      val.windowId = BrowserWindow.fromWebContents(webContents.fromTabID(opener).hostWebContents).id
+      val.windowId = BrowserWindow.fromWebContents(webContents.fromTabID(opener).hostWebcontents2).id
     }
     else{
       ipcMain.once(\`new-window-tabs-created_\${tabId}\`,(e,index)=>{
@@ -258,7 +258,7 @@ var getTabValue = function (tabId) {`)
         tabOpenerMap[tabId] = null
         delete val.openerTabId
         val.index = index
-        val.windowId = BrowserWindow.fromWebContents(e.sender.hostWebContents).id
+        val.windowId = BrowserWindow.fromWebContents(e.sender.hostWebcontents2).id
         sendToBackgroundPages('all', getSessionForTab(tabId), 'chrome-tabs-created', val)
         sendToBackgroundPages('all', getSessionForTab(tabId), 'chrome-tabs-updated', tabId, {status:'loading'}, val)
       })

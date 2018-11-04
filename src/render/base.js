@@ -6,7 +6,6 @@ const {Component} = React
 const {render,unmountComponentAtNode} = require('react-dom')
 const SplitWindows = require("./SplitWindows")
 const WebPageList = require("./WebPageList")
-const DownloadList = require("./DownloadList")
 const SearchAnything = require("./SearchAnything")
 const PubSub = require('./pubsub')
 const sharedState = require('./sharedState')
@@ -15,7 +14,8 @@ const {remote} = require('electron')
 const ipc = require('electron').ipcRenderer
 const isDarwin = navigator.userAgent.includes('Mac OS X')
 const isWin = navigator.userAgent.includes('Windows')
-const [longPressMiddle,doubleShift,hoverBookmarkBar,hoverStatusBar,enableDownloadList] = ipc.sendSync('get-sync-main-states',['longPressMiddle','doubleShift','hoverBookmarkBar','hoverStatusBar','enableDownloadList'])
+const [longPressMiddle,doubleShift,hoverBookmarkBar,hoverStatusBar] = ipc.sendSync('get-sync-main-states',['longPressMiddle','doubleShift','hoverBookmarkBar','hoverStatusBar'])
+ipc.setMaxListeners(0)
 sharedState.hoverBookmarkBar = hoverBookmarkBar
 sharedState.hoverStatusBar = hoverStatusBar
 
@@ -57,8 +57,28 @@ export default class MainContent extends Component{
   }
 
   handleMouseMove(e){
+    // console.log('mousemove',e)
+    if(document.getElementsByClassName('visible transition').length){
+      ipc.send('change-browser-view-z-index', true)
+      if(this.menuVisible) clearInterval(this.menuVisible)
+      this.menuVisible = setInterval(_=>this.handleMouseMove(e),10)
+    }
+    else{
+      if(this.menuVisible) clearInterval(this.menuVisible)
+      this.menuVisible = void 0
+      ipc.send('change-browser-view-z-index', e.target.className !== 'browser-page')
+    }
+
+    // if(e.target.classList.contains('rdTabBar')){
+    //   ipc.send('drag-window', {flag: true, x:e.clientX, y:e.clientY})
+    //   this.dragFlag = true
+    // }
+    // else if(this.dragFlag && !e.target.classList.contains('rdTabBar')){
+    //   ipc.send('drag-window', {flag: false})
+    //   this.dragFlag = false
+    // }
     if(sharedState.hoverBookmarkBar){
-      if (e.target.tagName == 'WEBVIEW' && e.offsetY <= 14) {
+      if (e.target.dataset.webview && e.offsetY <= 14) { //@TODO ELECTRON
         clearTimeout(this.moveId)
         this.moveId = void 0
         const key = e.target.dataset.key
@@ -76,7 +96,7 @@ export default class MainContent extends Component{
     if(sharedState.hoverStatusBar){
       this.hoverClearId = setTimeout(_=>{
         clearTimeout(this.hoverClearId)
-        if (e.target.tagName == 'WEBVIEW' && (e.target.offsetHeight - e.offsetY) <= 20) {
+        if (e.target.dataset.webview && (e.target.offsetHeight - e.offsetY) <= 20) {//@TODO ELECTRON
           console.log(1)
           clearTimeout(this.moveStatusId)
           this.moveStatusId = void 0
@@ -114,17 +134,22 @@ export default class MainContent extends Component{
   }
 
   componentDidMount() {
-    // ipc.once('unmount-components',_=>{
-    //   const key = this.refs.splitWindow.state.root.key
-    //   ipc.send('save-all-windows-state',key)
-    //   ipc.once(`save-all-windows-state-reply_${key}`,_=>{
-    //     unmountComponentAtNode(document.querySelector('#wvlist'))
-    //     unmountComponentAtNode(document.querySelector('#dllist'))
-    //     unmountComponentAtNode(document.querySelector('#content'))
-    //     unmountComponentAtNode(document.querySelector('#anything'))
-    //     ipc.send('unmount-components-reply')
-    //   })
-    // })
+    ipc.once('unmount-components',_=>{ //@TODO ELECTRON
+      const key = this.refs.splitWindow.state.root.key
+      ipc.send('save-all-windows-state',key)
+      ipc.once(`save-all-windows-state-reply_${key}`,_=>{
+        unmountComponentAtNode(document.querySelector('#wvlist'))
+        unmountComponentAtNode(document.querySelector('#dllist'))
+        unmountComponentAtNode(document.querySelector('#content'))
+        unmountComponentAtNode(document.querySelector('#anything'))
+        ipc.send('unmount-components-reply')
+      })
+    })
+
+    document.addEventListener('contextmenu',e=>{
+      e.preventDefault()
+      return false
+    },true)
 
     if(!isWin){
       ipc.on('start-mouseup-handler',this.handleMouseUp)
@@ -132,11 +157,16 @@ export default class MainContent extends Component{
 
     PubSub.subscribe('hover-bookmark-or-status-bar',e=>{
       if(sharedState.hoverBookmarkBar || sharedState.hoverStatusBar) {
-        document.removeEventListener('mousemove',this.handleMouseMove,{passive: true})
-        document.addEventListener('mousemove',this.handleMouseMove,{passive: true})
+
+        PubSub.unsubscribe(this.tokenMouseMove)
+        this.tokenMouseMove = PubSub.subscribe('webview-mousemove',(msg,e)=>{
+          this.handleMouseMove(e)
+        })
       }
       else{
-        document.removeEventListener('mousemove',this.handleMouseMove,{passive: true})
+        this.tokenMouseMove = PubSub.subscribe('webview-mousemove',(msg,e)=>{
+          this.handleMouseMove(e)
+        })
       }
     })
 
@@ -153,11 +183,14 @@ export default class MainContent extends Component{
     window.addEventListener('resize', ::this.handleResize,{ passive: true })
 
 
+    document.addEventListener('mousemove',this.handleMouseMove,{passive: true})
     if(sharedState.hoverBookmarkBar || sharedState.hoverStatusBar) {
-      document.addEventListener('mousemove',this.handleMouseMove,{passive: true})
+      this.tokenMouseMove = PubSub.subscribe('webview-mousemove',(msg,e)=>{
+        this.handleMouseMove(e)
+      })
     }
 
-    document.addEventListener('mousedown',e=>{
+    const handleMouseDown = e=>{
       if(e.target.closest('.ui.modal')) return
       let ele,key
       global.middleButtonLongPressing = (void 0)
@@ -194,16 +227,28 @@ export default class MainContent extends Component{
       else{
         global.middleButtonPressing = void 0
       }
-    },{passive:true})
+    }
+    document.addEventListener('mousedown',handleMouseDown,{passive:true})
+    PubSub.subscribe('webview-mousedown',(msg,e)=>{
+      console.log(6644,'webview-mousedown')
+      handleMouseDown(e)
+    })
 
-    document.addEventListener('mouseup',e=>{
+    const handleMouseUp = e=>{
       global.middleButtonLongPressing = (void 0)
       console.log(9983,longPressMiddle,Date.now() - global.middleButtonPressing,global.middleButtonPressing)
       if(global.middleButtonPressing) global.middleButtonLongPressing = longPressMiddle && (Date.now() - global.middleButtonPressing > 320)
-    },{passive:true})
+    }
+
+    document.addEventListener('mouseup',handleMouseUp,{passive:true})
+    PubSub.subscribe('webview-mouseup',(msg,e)=>{
+      console.log(6644,'webview-mouseup')
+      handleMouseUp(e)
+    })
+
 
     // For window level shortcuts that don't work as local shortcuts
-    document.addEventListener('keydown', (e) => {
+    const handleKeyDown = (e) => {
       const isForSecondaryAction = (e) =>
         (e.ctrlKey && !isDarwin) ||
         (e.metaKey && isDarwin) ||
@@ -230,7 +275,12 @@ export default class MainContent extends Component{
           }
           break
       }
-    }, { passive: true })
+    }
+
+    document.addEventListener('keydown', handleKeyDown, { passive: true })
+    PubSub.subscribe('webview-keydown',(msg,e)=>{
+      handleKeyDown(e)
+    })
 
 
     document.addEventListener('wheel',e=>{
@@ -256,7 +306,6 @@ export default class MainContent extends Component{
 }
 
 render(<WebPageList />, document.querySelector('#wvlist'))
-render(<DownloadList enableDownloadList={enableDownloadList}/>, document.querySelector('#dllist'))
 render(<MainContent />, document.querySelector('#content'))
 
 if(doubleShift){

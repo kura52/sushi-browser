@@ -22,7 +22,9 @@ import fs from 'fs'
 import zlib from 'zlib'
 import crypto from 'crypto'
 import mainState from "./mainState"
-import passCrypto from './crypto'
+import _passCrypto from './crypto'
+const passCrypto = _passCrypto('sushi-browser-password-key')
+
 import importData from './bookmarksExporter'
 
 

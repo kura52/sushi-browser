@@ -1,11 +1,83 @@
 window.__started_ = window.__started_ ? void 0 : 1
 var ipc = chrome.ipcRenderer
 if(window.__started_){
-  const openTime = Date.now()
 
-  if(location.href.startsWith('http') && window == window.parent){
+  let preAElemsLength = 0
+
+  const colorOnRGB = (ele)=>{
+    let c = getComputedStyle(ele).color
+    c = c.split(/[()]/)[1].split(",").map(x=>parseInt(x))
+    return (c[0] * 0.299 + c[1] * 0.587 + c[2] * 0.114) < 200 ? 'black' : 'white'
+  }
+
+  const setVisitedLinkColor = (visitedLinkColor, visitedLinkColorWhite, force) => {
+    const aElems = document.getElementsByTagName('a')
+    const length = aElems.length
+    if(!force && preAElemsLength == length) return
+    preAElemsLength = length
+    const checkElems = {}
+    for (let i = 0; i < length; i++) {
+      const ele = aElems[i]
+      if(ele.style.color == visitedLinkColor || ele.style.color == visitedLinkColorWhite) continue
+      const url = ele.href
+      if (url.startsWith('http')) {
+        let arr = checkElems[url]
+        if(arr){
+          arr.push(ele)
+        }
+        else{
+          checkElems[url] = [ele]
+        }
+      }
+    }
+    const urls = Object.keys(checkElems)
+    if(!urls.length) return
+
+    const key = Math.random().toString()
+    ipc.send('get-visited-links', key, urls)
+    ipc.on(`get-visited-links-reply_${key}`, (e, urls) => {
+      for (let url of urls) {
+        for(let ele of checkElems[url]){
+          ele.style.setProperty('color', colorOnRGB(ele) == 'white' ? visitedLinkColorWhite : visitedLinkColor, 'important')
+        }
+      }
+    })
+  }
+
+  const openTime = Date.now()
+  let visitedLinkColor, visitedLinkColorWhite
+  if(location.href.match(/^(http|chrome\-extension)/) && window == window.parent){
+    require('./passwordEvents')
+    require('./webviewEvents')
+
+    let mdownEvent
+    document.addEventListener('mousedown',e=>{
+      mdownEvent = e
+      ipc.send('send-to-host', 'webview-mousedown',e.button)
+    },{passive: true, capture: true})
+
+    document.addEventListener('mouseup',e=>{
+      ipc.send('send-to-host', 'webview-mouseup',e.button)
+      if(visitedLinkColor && mdownEvent && e.target == mdownEvent.target &&
+        e.button == mdownEvent.button && (e.button == 0 || e.button == 1)){
+        const ele = e.target.closest('a')
+        if(ele && ele.href.startsWith('http')){
+          setTimeout(()=>setVisitedLinkColor(visitedLinkColor, visitedLinkColorWhite, true),200)
+        }
+      }
+    },{passive: true, capture: true})
+
+    document.addEventListener('keydown',e=>{
+      ipc.send('send-to-host', 'webview-keydown',{key: e.key, keyCode: e.keyCode, which: e.which, button: e.button, ctrlKey: e.ctrlKey, metaKey: e.metaKey,altKey: e.altKey})
+    },{passive: true, capture: true})
+
+    document.addEventListener('mousemove',e=>{
+      console.log('mousemove')
+      ipc.send('send-to-host', 'webview-mousemove',e.clientY)
+    },{passive: true, capture: true})
+
     window.addEventListener("beforeunload", e=>{
-      ipc.sendToHost('scroll-position',{x:window.scrollX ,y:window.scrollY})
+      ipc.send('send-to-host', 'scroll-position',{x:window.scrollX ,y:window.scrollY})
     });
 
     document.addEventListener("DOMContentLoaded",_=>{
@@ -62,7 +134,7 @@ if(window.__started_){
       text = target.innerText
     }
     else if(target.nodeName == "#text"){
-      ipc.sendToHost("link-drop",{screenX: evt.screenX, screenY: evt.screenY, text:window.getSelection().toString() || target.data})
+      ipc.send('send-to-host', "link-drop",{screenX: evt.screenX, screenY: evt.screenY, text:window.getSelection().toString() || target.data})
     }
     else{
       const parent = target.closest("a")
@@ -76,7 +148,7 @@ if(window.__started_){
       }
     }
 
-    ipc.sendToHost("link-drop",{screenX: evt.screenX, screenY: evt.screenY, url,text})
+    ipc.send('send-to-host', "link-drop",{screenX: evt.screenX, screenY: evt.screenY, url,text})
   }
   // if(location.href.match(/^chrome-extension:\/\/dckpbojndfoinamcdamhkjhnjnmjkfjd\/(favorite|favorite_sidebar)\.html/)){
   //   console.log("favorite")
@@ -101,7 +173,7 @@ if(window.__started_){
   let timer
   window.addEventListener('scroll', (e)=>{
     if(window.__scrollSync__ !== 0 || window.__scrollSync__ === (void 0)) return
-    ipc.sendToHost("webview-scroll",{
+    ipc.send('send-to-host', "webview-scroll",{
       top: e.target.scrollingElement ? e.target.scrollingElement.scrollTop : undefined,
       left: e.target.scrollingElement ? e.target.scrollingElement.scrollLeft : 0,
       scrollbar: window.innerHeight - document.documentElement.clientHeight
@@ -139,7 +211,7 @@ if(window.__started_){
   const key = Math.random().toString()
   ipc.send("get-main-state",key,['tripleClick','alwaysOpenLinkNewTab','themeColorChange','isRecording','isVolumeControl',
     'keepAudioSeekValueVideo','rectangularSelection','fullscreenTransitionKeep','fullScreen','rockerGestureLeft','rockerGestureRight',
-    'inputHistory','inputHistoryMaxChar'])
+    'inputHistory','inputHistoryMaxChar','hoverStatusBar','hoverBookmarkBar', 'visitedLinkColor', 'visitedLinkColorWhite'])
   ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
     if(data.fullscreenTransitionKeep){
       let full = data.fullScreen ? true : false
@@ -171,7 +243,7 @@ if(window.__started_){
                 }
               }
               document.addEventListener('mouseup',callback ,true);
-              setTimeout(_=>ipc.sendToHost('full-screen-mouseup'),500)
+              setTimeout(_=>ipc.send('send-to-host', 'full-screen-mouseup'),500)
             }
             else{
               const callback = e => {
@@ -183,7 +255,7 @@ if(window.__started_){
               let i = 0
               const cId = setInterval(_=>{
                 document.addEventListener('mouseup',callback ,true);
-                ipc.sendToHost('full-screen-mouseup')
+                ipc.send('send-to-host', 'full-screen-mouseup')
                 if(i++ == 5){
                   clearInterval(cId)
                 }
@@ -288,7 +360,7 @@ if(window.__started_){
           }
 
           if(window.top == window.self) {
-            ipc.sendToHost('theme-color-computed', computeThemeColor())
+            ipc.send('send-to-host', 'theme-color-computed', computeThemeColor())
           }
         }
       })
@@ -333,13 +405,13 @@ if(window.__started_){
     if(data.rockerGestureLeft != 'none' || data.rockerGestureRight != 'none'){
       let downRight
 
-        document.addEventListener('contextmenu',e=>{
-          if(!downRight || downRight == "send"){
-            e.stopPropagation()
-            e.preventDefault()
-          }
-          downRight = void 0
-        },false)
+      document.addEventListener('contextmenu',e=>{
+        if(!downRight || downRight == "send"){
+          e.stopPropagation()
+          e.preventDefault()
+        }
+        downRight = void 0
+      },false)
 
       document.addEventListener('mousedown',e=>{
         if(e.button === 0 && e.buttons == 3 && data.rockerGestureLeft != 'none'){
@@ -365,6 +437,19 @@ if(window.__started_){
     if(data.inputHistory && !location.href.startsWith('chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd')){
       require('./inputHistory')(data.inputHistoryMaxChar)
     }
+
+    if(data.visitedLinkColor){
+      visitedLinkColor = data.visitedLinkColor
+      visitedLinkColorWhite = data.visitedLinkColorWhite
+      document.addEventListener("DOMContentLoaded",_=> setVisitedLinkColor(visitedLinkColor, visitedLinkColorWhite))
+      setInterval(()=>setVisitedLinkColor(visitedLinkColor, visitedLinkColorWhite),1000)
+    }
+
+    // if(data.hoverStatusBar || data.hoverBookmarkBar){
+    //   document.addEventListener('mousemove',e=>{
+    //     ipc.send('send-to-host', 'webview-mousemove',e.clientY)
+    //   },{passive:true})
+    // }
 
   })
 
@@ -759,6 +844,10 @@ if(window.__started_){
         window.__into_view__ = Date.now()
       }
     }
+  })
+
+  ipc.on('execute-script-in-isolation-world', (e, key, code) => {
+    ipc.send(`execute-script-in-isolation-world-reply_${key}`, Function(`return ${code}`)())
   })
 
 }

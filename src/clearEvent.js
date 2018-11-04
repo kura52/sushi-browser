@@ -15,7 +15,7 @@ const m = {
       const opt = (opt2 && i++==2) ? {created_at: opt2.updated_at} : opt2
       await table.remove(opt||{}, { multi: true })
     }
-    ses.clearHistory()
+    // ses.clearHistory()
 
     if(!opt2){
       const resourcePath = path.join(app.getPath('userData'),'resource')
@@ -83,15 +83,15 @@ const m = {
   },
 
   clearAutocompleteData(ses){
-    ses.autofill.clearAutocompleteData()
+    // ses.autofill.clearAutocompleteData()
   },
 
   clearAutofillData(ses){
-    ses.autofill.clearAutofillData()
+    // ses.autofill.clearAutofillData()
   },
 
   clearPassword(ses){
-    ses.autofill.clearLogins()
+    // ses.autofill.clearLogins()
   },
 
   async clearGeneralSettings(){

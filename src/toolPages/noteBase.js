@@ -777,7 +777,7 @@ class Contents extends React.Component {
         return
       }
       if(event.target.closest('.hover-external')){
-        ipc.sendToHost("open-tab-opposite", `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note.html?id=${currentNode.id}`
+        ipc.send('send-to-host', "open-tab-opposite", `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note.html?id=${currentNode.id}`
           ,true,event.button == 1 ? 'create-web-contents' : openType ? 'new-tab' : 'load-url')
         return
       }
@@ -803,7 +803,7 @@ class Contents extends React.Component {
       if(cmd == "openInNewTab" || cmd == "openInNewPrivateTab" || cmd == "openInNewTorTab" || cmd == "openInNewSessionTab" || cmd == "openInNewWindow" || cmd == "openInNewWindowWithOneRow" || cmd == "openInNewWindowWithTwoRow") {
         const nodes = this.menuKey
         this.menuKey = (void 0)
-        openFavorite(nodes.map(n=>this.getKey(n)),this.props.cont ? this.props.cont.getId() : (void 0),cmd).then(_=>{
+        openFavorite(nodes.map(n=>this.getKey(n)),this.props.cont ? this.props.cont.id : (void 0),cmd).then(_=>{
           console.log(324234235346545)
           this.props.onClick && this.props.onClick()
         })
@@ -834,7 +834,7 @@ class Contents extends React.Component {
           text: `Enter a new Name`,
           initValue:  [nodes[0].name],
           needInput:  ["Title"]
-        },this.props.cont ? this.props.cont.getId() : (void 0)).then(value => {
+        },this.props.cont ? this.props.cont.id : (void 0)).then(value => {
           if (!value) return
           const data =  {title:value[0]}
           console.log(this.getKey(nodes[0]),data)
@@ -889,7 +889,7 @@ class Contents extends React.Component {
           inputable: true, title: 'New Directory',
           text: `Enter a new Directory name`,
           needInput: [""]
-        },this.props.cont ? this.props.cont.getId() : (void 0)).then(value => {
+        },this.props.cont ? this.props.cont.id : (void 0)).then(value => {
           if (!value) return
           const data =  {title:value[0], is_file:false,children:[]}
           if(nodes[0].type == 'file' || forceFile){
@@ -1189,10 +1189,10 @@ class Contents extends React.Component {
                 // else{
                 if(this.props.cont){
                   // if(event.button == 1){
-                  //   this.props.cont.hostWebContents.send('create-web-contents',{id:this.props.cont.getId(),targetUrl:currentNode.url,disposition:'background-tab'})
+                  //   this.props.cont.hostWebContents2.send('create-web-contents',{id:this.props.cont.id,targetUrl:currentNode.url,disposition:'background-tab'})
                   // }
                   // else{
-                  //   this.props.cont.hostWebContents.send(openType2 ? 'new-tab' : 'load-url',this.props.cont.getId(),currentNode.url)
+                  //   this.props.cont.hostWebContents2.send(openType2 ? 'new-tab' : 'load-url',this.props.cont.id,currentNode.url)
                   // }
                   // if(this.props.onClick) this.props.onClick()
                 }
@@ -1200,7 +1200,7 @@ class Contents extends React.Component {
                   this.props.parent.handleClickFile(currentNode)
                   selectedNodes.push(currentNode)
                   localForage.setItem("note-sidebar-select-node",selectedNodes.map(node=>node.id))
-                  // ipc.sendToHost("open-tab-opposite",currentNode.url,true,event.button == 1 ? 'create-web-contents' : openType2 ? 'new-tab' : 'load-url')
+                  // ipc.send('send-to-host', "open-tab-opposite",currentNode.url,true,event.button == 1 ? 'create-web-contents' : openType2 ? 'new-tab' : 'load-url')
                 }
                 return;
                 // }

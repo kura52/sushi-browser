@@ -1,6 +1,7 @@
-export default function(callback) {
+export default function(callback,size) {
   const net = require('net')
   const server = new net.Server()
+  const ports = new Set()
 
   function listen(port) {
     if (port++ >= 20000) {
@@ -12,7 +13,13 @@ export default function(callback) {
         listen(port + 1);
         return
       }
-      server.close(_=>callback(null, port))
+      ports.add(port)
+      if(ports.size == size){
+        server.close(_=>callback(null, [...ports]))
+      }
+      else{
+        server.close(_=>listen(10000 + Math.floor(Math.random() * 1000)))
+      }
     })
   }
   listen(10000 + Math.floor(Math.random() * 1000))

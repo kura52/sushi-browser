@@ -500,13 +500,13 @@ class Contents extends React.Component {
                 if(this.props.cont){
                   const args = currentNode.id.split("/")
                   const favicons = currentNode.refs.map(x=>[x._url,x.favicon])
-                  this.props.cont.hostWebContents.send('restore-tab',this.props.cont.getId(),args[1],parseInt(args[2]),favicons,type)
+                  this.props.cont.hostWebContents2.send('restore-tab',this.props.cont.id,args[1],parseInt(args[2]),favicons,type)
                   if(this.props.onClick) this.props.onClick()
                 }
                 else{
                   const args = currentNode.id.split("/")
                   const favicons = currentNode.refs.map(x=>[x._url,x.favicon])
-                  ipc.sendToHost("restore-tab-opposite",args[1],parseInt(args[2]),favicons,type)
+                  ipc.send('send-to-host', "restore-tab-opposite",args[1],parseInt(args[2]),favicons,type)
                 }
               }
               else{

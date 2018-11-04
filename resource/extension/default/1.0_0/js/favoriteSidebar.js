@@ -35843,9 +35843,9 @@ class Contents extends _infernoCompat2.default.Component {
               } else {
                 if (this.props.cont) {
                   if (event.button == 1) {
-                    this.props.cont.hostWebContents.send('create-web-contents', { id: this.props.cont.getId(), targetUrl: currentNode.url, disposition: 'background-tab' });
+                    this.props.cont.hostWebcontents2.send('create-web-contents', { id: this.props.cont.getId(), targetUrl: currentNode.url, disposition: 'background-tab' });
                   } else {
-                    this.props.cont.hostWebContents.send(openType2 ? 'new-tab' : 'load-url', this.props.cont.getId(), currentNode.url);
+                    this.props.cont.hostWebcontents2.send(openType2 ? 'new-tab' : 'load-url', this.props.cont.getId(), currentNode.url);
                   }
                   if (this.props.onClick) this.props.onClick();
                 } else {

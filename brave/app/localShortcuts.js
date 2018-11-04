@@ -75,10 +75,10 @@ module.exports.register = (win) => {
           cont.reloadIgnoringCache()
         }
         else if(name == 'closeWindow'){
-          electron.BrowserWindow.fromWebContents(cont.hostWebContents).close()
+          electron.BrowserWindow.fromWebContents(cont.hostWebcontents2).close()
         }
         else if(name == 'openLocation'){
-          cont.hostWebContents.send('focus-location-bar',cont.getId())
+          cont.hostWebcontents2.send('focus-location-bar',cont.getId())
         }
         else if(name == 'back'){
           cont.goBack()
@@ -87,7 +87,7 @@ module.exports.register = (win) => {
           cont.goForward()
         }
         else{
-          cont.hostWebContents.send('menu-or-key-events',name,cont.getId())
+          cont.hostWebcontents2.send('menu-or-key-events',name,cont.getId())
         }
       })
     })
@@ -101,7 +101,7 @@ module.exports.register = (win) => {
   PubSub.subscribe('add-shortcut',(msg,{id,key,command}) => {
     console.log(333,key,command)
     electronLocalshortcut.register(win, key.replace('Period','.').replace('Comma',',').replace(',nd','Command').replace(/ /g,""), () => {
-      PubSub.publish('chrome-commands-exec',{id,command})
+      ipcMain.emit('chrome-commands-exec',null,{id,command})
     })
   })
 

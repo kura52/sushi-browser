@@ -13,7 +13,7 @@ var importedSites
 let sender,key,type
 
 ipcMain.on("import-browser-data",e=>{
-  sender = (e.sender.hostWebContents || e.sender)
+  sender = (e.sender.hostWebContents2 || e.sender)
   importer.initialize()
 })
 
@@ -23,9 +23,12 @@ const importData = (selected) => {
 }
 
 const importHTML = (selected) => {
-  const files = dialog.showDialog(getCurrentWindow(),{
-    type: 'select-open-file',
-    extensions: [['html', 'htm']]
+  const files = dialog.showOpenDialog(getCurrentWindow(),{
+    properties: ['openFile'],
+    filters: [
+      {name: 'HTML File', extensions: ['html', 'htm']},
+      {name: 'All Files', extensions: ['*']}
+    ]
   },files=>{
     if (files && files.length > 0) {
       const file = files[0]

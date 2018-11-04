@@ -51,7 +51,7 @@ function setMouseArgs(options){
 }
 
 simpleIpcFunc('auto-play-operation',(tabId,method,...args)=>{
-  const cont = webContents.fromTabID(tabId)
+  const cont = webContents.fromId(tabId)
   if(!cont || cont.isDestroyed()) return
 
   return cont[method](...args)
@@ -59,7 +59,7 @@ simpleIpcFunc('auto-play-operation',(tabId,method,...args)=>{
 
 simpleIpcFuncCb('auto-play-mouse',async (type,tabId,x,y,options,cb)=>{
   const delay = setMouseArgs(options)
-  const cont = webContents.fromTabID(tabId)
+  const cont = webContents.fromId(tabId)
   if(!cont || cont.isDestroyed()) return cb()
 
   if(type == 'click'){
@@ -81,7 +81,7 @@ simpleIpcFuncCb('auto-play-mouse',async (type,tabId,x,y,options,cb)=>{
 
 
 simpleIpcFuncCb('auto-play-keyboard',async (mode,tabId,key,text,options,cb)=>{
-  const cont = webContents.fromTabID(tabId)
+  const cont = webContents.fromId(tabId)
   if(!cont || cont.isDestroyed()) return cb()
 
   if(mode != 'type') {
@@ -122,7 +122,7 @@ ipcMain.on('auto-play-evaluate',async (e,key,tabId,code)=>{
   ipcMain.emit('add-context-alert',null,key)
   const url = `javascript:(function(){const _extends=Object.assign||function(t){for(var e=1;e<arguments.length;e++){var n=arguments[e];for(var e in n)Object.prototype.hasOwnProperty.call(n,e)&&(t[e]=n[e])}return t};let ret=${UglifyJS.minify(code,UglifyOptions).code};(async ()=>alert('${key}' + JSON.stringify({a:(await ret)})))()}())`
   console.log(url)
-  const cont = webContents.fromTabID(tabId)
+  const cont = webContents.fromId(tabId)
   if(cont && !cont.isDestroyed()) cont.loadURL(url)
   ipcMain.once(`add-context-alert-reply_${key}`,(e2,result)=>{
     e.sender.send(`auto-play-evaluate-reply_${key}`,result)
@@ -130,7 +130,7 @@ ipcMain.on('auto-play-evaluate',async (e,key,tabId,code)=>{
 })
 
 ipcMain.on('auto-get-sync',(e,tabId,type)=>{
-  const cont = webContents.fromTabID(tabId)
+  const cont = webContents.fromId(tabId)
   let data = null
   if(type == 'url' && cont && !cont.isDestroyed()){
     data = cont.getURL()
@@ -139,7 +139,7 @@ ipcMain.on('auto-get-sync',(e,tabId,type)=>{
 })
 
 simpleIpcFunc('auto-get-async',async (tabId,type)=>{
-  const cont = webContents.fromTabID(tabId)
+  const cont = webContents.fromId(tabId)
   if(!cont || cont.isDestroyed()){}
   if(type == 'back'){
     cont.goBack()
@@ -154,17 +154,17 @@ simpleIpcFunc('auto-get-async',async (tabId,type)=>{
 })
 
 ipcMain.on('auto-play-auth',(e,tabId,user,pass)=>{
-  const cont = webContents.fromTabID(tabId)
-  if(cont && !cont.isDestroyed()) cont.hostWebContents.send('auto-play-auth',user,pass)
+  const cont = webContents.fromId(tabId)
+  if(cont && !cont.isDestroyed()) cont.hostWebContents2.send('auto-play-auth',user,pass)
 })
 
 ipcMain.on('auto-play-notification',(e,tabId,value)=>{
-  const cont = webContents.fromTabID(tabId)
-  if(cont && !cont.isDestroyed()) cont.hostWebContents.send('auto-play-notification',value)
+  const cont = webContents.fromId(tabId)
+  if(cont && !cont.isDestroyed()) cont.hostWebContents2.send('auto-play-notification',value)
 })
 
 ipcMain.on('open-dev-tool',(e)=>{
-  if(!e.sender.isDestroyed()) e.sender.openDevTools()
+  if(!e.sender.isDestroyed()) e.sender.toggleDevTools()
 })
 
 simpleIpcFunc('read-file',async (file)=>{
@@ -172,7 +172,7 @@ simpleIpcFunc('read-file',async (file)=>{
 })
 
 // ipcMain.on('set-cookies',async (e,key,tabId,items)=>{
-//   const cont = webContents.fromTabID(tabId)
+//   const cont = webContents.fromId(tabId)
 //   for(let item of items){
 //     await new Promise(resolve=>cont.session.cookies.set(item, err=>{console.log(err);resolve()}))
 //   }

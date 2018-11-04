@@ -3,6 +3,10 @@ const ipc = chrome.ipcRenderer
 document.title = url.split("/").slice(-1)[0]
 const myPlayer = videojs('main-video')
 
+if(url.startsWith('file://')){
+  const accessKey = ipc.sendSync('get-access-key')
+  url = `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/?key=${accessKey}&file=${url.replace(/^file:\/\//,'')}`
+}
 myPlayer.src(type ? {type, src:url}: url)
 
 function onMouseDown(){

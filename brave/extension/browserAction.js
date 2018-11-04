@@ -42,16 +42,16 @@ for(let [eventName,name] of [
   ['chrome-browser-action-set-badge-background-color','background'],
 ]){
 
-  process.on(eventName, (extensionId, details) => {
+  ipcMain.on(eventName, (e, extensionId, details) => {
     console.log(eventName, extensionId, details)
     const tabId = details.tabId
     if(tabId){
       const cont = webContents.fromTabID(tabId)
-      if(cont && cont.hostWebContents) cont.hostWebContents.send(`chrome-browser-action-set-${name}-ipc-${extensionId}`,tabId,details)
+      if(cont && cont.hostWebcontents2) cont.hostWebcontents2.send(`chrome-browser-action-set-${name}-ipc-${extensionId}`,tabId,details)
     }
     else{
       for(let cont of webContents.getAllWebContents()){
-        if(cont && !cont.isDestroyed() && !cont.isBackgroundPage() && !cont.hostWebContents) {
+        if(cont && !cont.isDestroyed() && !cont.isBackgroundPage() && !cont.hostWebcontents2) {
           cont.send(`chrome-browser-action-set-${name}-ipc-${extensionId}`,null ,details)
           cont.send(`chrome-browser-action-set-ipc-all`,extensionId,name,details)
           setMainState(extensionId,name,details)
@@ -60,19 +60,3 @@ for(let [eventName,name] of [
     }
   })
 }
-
-process.on('chrome-browser-action-popup', (extensionId, tabId, name, popup, props) => {
-  console.log('chrome-browser-action-popup', extensionId, tabId, name, popup, props)
-  // let nodeProps = {
-  //   left: props.x,
-  //   top: props.y + 20,
-  //   src: popup
-  // }
-  //
-  // let win = BrowserWindow.getFocusedWindow()
-  // if (!win) {
-  //   return
-  // }
-  //
-  // win.webContents.send(messages.NEW_POPUP_WINDOW, extensionId, popup, nodeProps)
-})

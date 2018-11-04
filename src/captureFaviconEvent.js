@@ -1,7 +1,7 @@
 import {webContents,ipcMain,app } from 'electron'
 import path from 'path'
 import { favicon } from './database'
-import {request} from './request'
+import request from 'request'
 const underscore = require('underscore')
 const Jimp = require('jimp')
 const ico = require('icojs');
@@ -9,7 +9,7 @@ import {getFocusedWebContents} from './util'
 // require('locus')
 
 
-const resourcePath = path.join(app.getPath('userData').replace('brave','sushiBrowser').replace('sushi-browser','sushiBrowser').replace('sushiBrowserDB','sushiBrowser'),'resource')
+const resourcePath = path.join((app ? app.getPath('userData') : process.argv[2]).replace('brave','sushiBrowser').replace('sushi-browser','sushiBrowser').replace('sushiBrowserDB','sushiBrowser'),'resource')
 
 var fileTypes = {
   bmp: new Buffer([ 0x42, 0x4d ]),
@@ -76,7 +76,8 @@ const fetchFavIcon = (url, redirects) => {
   return new Promise((resolve,reject)=>{
 
     console.log(url)
-    request({ url: url, responseType: 'blob' }, (err, response, blob) => {
+    request({ url: url, encoding: null }, (err, response, blob) => {
+      blob = 'data:' + response.headers['content-type'] + ';base64,' + blob.toString('base64')
       let matchP, prefix, tail
 
       if (err) {

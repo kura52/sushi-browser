@@ -426,7 +426,7 @@ class Contents extends React.Component {
       if(cmd == "openInNewTab" || cmd == "openInNewPrivateTab" || cmd == "openInNewTorTab" || cmd == "openInNewSessionTab" || cmd == "openInNewWindow" || cmd == "openInNewWindowWithOneRow" || cmd == "openInNewWindowWithTwoRow") {
         const nodes = this.menuKey
         this.menuKey = (void 0)
-        openFavorite(nodes.map(n=>this.getKey(n)),this.props.cont ? this.props.cont.getId() : (void 0),cmd).then(_=>{
+        openFavorite(nodes.map(n=>this.getKey(n)),this.props.cont ? this.props.cont.id : (void 0),cmd).then(_=>{
           console.log(324234235346545)
           this.props.onClick && this.props.onClick()
         })
@@ -456,7 +456,7 @@ class Contents extends React.Component {
           text: `Enter a new Name`,
           initValue: nodes[0].type == 'file' ? [nodes[0].name,nodes[0].url] : [nodes[0].name],
           needInput: nodes[0].type == 'file' ? ["Title","URL"] : ["Title"]
-        },this.props.cont ? this.props.cont.getId() : (void 0)).then(value => {
+        },this.props.cont ? this.props.cont.id : (void 0)).then(value => {
           if (!value) return
           const data = nodes[0].type == 'file' ? {title:value[0], url:value[1]} : {title:value[0]}
           console.log(this.getKey(nodes[0]),data)
@@ -471,7 +471,7 @@ class Contents extends React.Component {
           inputable: true, title: `New ${isPage ? 'Page' : 'Directory'}`,
           text: `Enter a new ${isPage ? 'page title and URL' : 'directory name'}`,
           needInput: isPage ? ["Title","URL"] : [""]
-        },this.props.cont ? this.props.cont.getId() : (void 0)).then(value => {
+        },this.props.cont ? this.props.cont.id : (void 0)).then(value => {
           if (!value) return
           const data = isPage ? {title:value[0], url:value[1], is_file:true} : {title:value[0], is_file:false,children:[]}
           if(nodes[0].type == 'file'){
@@ -789,15 +789,15 @@ class Contents extends React.Component {
                 else{
                   if(this.props.cont){
                     if(event.button == 1){
-                      this.props.cont.hostWebContents.send('create-web-contents',{id:this.props.cont.getId(),targetUrl:currentNode.url,disposition:'background-tab'})
+                      this.props.cont.hostWebContents2.send('create-web-contents',{id:this.props.cont.id,targetUrl:currentNode.url,disposition:'background-tab'})
                     }
                     else{
-                      this.props.cont.hostWebContents.send(openType2 ? 'new-tab' : 'load-url',this.props.cont.getId(),currentNode.url)
+                      this.props.cont.hostWebContents2.send(openType2 ? 'new-tab' : 'load-url',this.props.cont.id,currentNode.url)
                     }
                     if(this.props.onClick) this.props.onClick()
                   }
                   else{
-                    ipc.sendToHost("open-tab-opposite",currentNode.url,true,event.button == 1 ? 'create-web-contents' : openType2 ? 'new-tab' : 'load-url')
+                    ipc.send('send-to-host', "open-tab-opposite",currentNode.url,true,event.button == 1 ? 'create-web-contents' : openType2 ? 'new-tab' : 'load-url')
                   }
                   return;
                 }
@@ -840,7 +840,7 @@ class Contents extends React.Component {
               if (!currentNode) {
                 return;
               }
-              ipc.sendToHost("open-tab", currentNode.url, true)
+              ipc.send('send-to-host', "open-tab", currentNode.url, true)
             }
           }}
           onKeyDown={(event) => {

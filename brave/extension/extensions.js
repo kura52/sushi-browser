@@ -1,82 +1,19 @@
-// const browserActions = require('./extensions/browserActions')
-// const contextMenus = require('./extensions/contextMenus')
 const fs = require('fs-extra')
 const path = require('path')
 const os = require('os')
-const chromeExtensionPath = require('../../lib/extension/chromeExtensionPath')
 const chromeManifestModify = require('../../lib/chromeManifestModify')
-const {BrowserWindow,componentUpdater,app,nativeImage} = require('electron')
+const {BrowserWindow,app,nativeImage} = require('electron')
 const extInfos = require('../../lib/extensionInfos')
 const mainState = require('../../lib/mainState')
 const PubSub = require('../../lib/render/pubsub')
-const hjson = require('hjson');
-// Takes Content Security Policy flags, for example { 'default-src': '*' }
-// Returns a CSP string, for example 'default-src: *;'
-let concatCSP = (cspDirectives) => {
-  let csp = ''
-  for (let directive in cspDirectives) {
-    csp += directive + ' ' + cspDirectives[directive] + '; '
-  }
-  return csp.trim()
-}
+const hjson = require('hjson')
 
 function removeBom(x){
   return x.charCodeAt(0) === 0xFEFF ? x.slice(1) : x
 }
 
-
 module.exports.init = (verChange) => {
-//   browserActions.init()
-//   contextMenus.init()
-
-  const {componentUpdater, session} = require('electron')
-  componentUpdater.on('component-checking-for-updates', () => {
-    // console.log('checking for update')
-  })
-  componentUpdater.on('component-update-found', () => {
-    // console.log('update-found')
-  })
-  componentUpdater.on('component-update-ready', () => {
-    // console.log('update-ready')
-  })
-  componentUpdater.on('component-update-updated', (e, extensionId, version) => {
-    // console.log('update-updated', extensionId, version)
-  })
-  componentUpdater.on('component-ready', (e, componentId, extensionPath) => {
-    console.log('component-ready', componentId, extensionPath)
-    // Re-setup the loadedExtensions info if it exists
-    // loadExtension(componentId, extensionPath)
-  })
-  componentUpdater.on('component-not-updated', () => {
-    // console.log('update-not-updated')
-  })
-  componentUpdater.on('component-registered', (e, extensionId) => {
-    // const extensionPath = extensions.getIn([extensionId, 'filePath'])
-    // // If we don't have info on the extension yet, check for an update / install
-    // if (!extensionPath) {
-    //   componentUpdater.checkNow(extensionId)
-    // } else {
-    //   loadExtension(extensionId, extensionPath)
-    // }
-  })
-
-  process.on('reload-sync-extension', () => {
-    console.log('reloading sync')
-    // disableExtension(config.syncExtensionId)
-  })
-
-  process.on('extension-load-error', (error) => {
-    console.error(error)
-  })
-
-  process.on('extension-unloaded', (extensionId) => {
-    // if (extensionId === config.syncExtensionId) {
-    //   // Reload sync extension to restart the background script
-    //   setImmediate(() => {
-    //     enableExtension(config.syncExtensionId)
-    //   })
-    // }
-  })
+  const {session} = require('electron')
 
   function search(obj,messages){
     if(Array.isArray(obj)){
@@ -133,7 +70,7 @@ module.exports.init = (verChange) => {
     search(installInfo,messages)
   }
 
-  process.on('extension-ready', (installInfo) => {
+  const extensionReady = (installInfo) => {
     console.log('extension-ready',installInfo.id)
     // console.log(434343,installInfo)
     extInfos.setInfo(installInfo)
@@ -180,21 +117,20 @@ module.exports.init = (verChange) => {
         // console.log(e)
       }
     }
-  })
+  }
 
-  const loadExtension = (ses,extensionId, extensionPath, manifest = {}, manifestLocation = 'unpacked',enable) => {
+  const loadExtension = (extensionPath, admin) => {
     if(!extensionPath) return
     extensionPath = extensionPath.replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
     const manifestPath = path.join(extensionPath, 'manifest.json')
-    console.log('loadExtension',extensionId,manifestPath)
+    console.log('loadExtension',manifestPath)
     fs.exists(manifestPath, (exists) => {
       if (exists) {
-        // if(extInfos[extensionId]) return
         try{
           const manifestContents = hjson.parse(removeBom(fs.readFileSync(manifestPath).toString()))
           if(manifestContents.theme){
-            manifestContents.id = extensionId
-            manifestContents.url = `https://chrome.google.com/webstore/detail/${extensionId}`
+            manifestContents.id = path.basename(path.parse(srcDirectory).dir)
+            manifestContents.url = `https://chrome.google.com/webstore/detail/${manifestContents.id}`
             manifestContents.manifest = {}
             manifestContents.base_path = extensionPath
             transInfos(manifestContents)
@@ -202,8 +138,7 @@ module.exports.init = (verChange) => {
             extInfos.setInfo(manifestContents)
 
             if(enable){
-              mainState.enableTheme = extensionId
-
+              mainState.enableTheme = manifestContents.id
 
               const theme = manifestContents.theme
               if(theme && theme.images){
@@ -228,7 +163,8 @@ module.exports.init = (verChange) => {
           }
 
           console.log('load',extensionPath)
-          ses.extensions.load(extensionPath, manifest, manifestLocation)
+          const manifest = BrowserWindow.addExtensionWebview(extensionPath, admin)
+          extensionReady({id: manifest.id, name: manifest.name, url: manifest.url, base_path: manifest.base_path, manifest})
         }catch(e){
           console.log(e)
         }
@@ -241,22 +177,8 @@ module.exports.init = (verChange) => {
   }
   module.exports.loadExtension = loadExtension
 
-  const enableExtension = (extensionId) => {
-    session.defaultSession.extensions.enable(extensionId)
-
-    const wins = BrowserWindow.getAllWindows()
-    if(!wins) return
-    for(let win of wins.filter(w=>w.getTitle().includes('Sushi Browser'))){
-      try {
-        if(!win.webContents.isDestroyed()){
-            win.webContents.send('update-mainstate','newTabMode')
-        }
-      }catch(e){}
-    }
-  }
-
   const disableExtension = (extensionId) => {
-    session.defaultSession.extensions.disable(extensionId)
+    BrowserWindow.removeExtension(extensionId)
 
     const wins = BrowserWindow.getAllWindows()
     if(!wins) return
@@ -277,43 +199,37 @@ module.exports.init = (verChange) => {
 
   let first = true
   const rejectExtensions = ['jpkfjicglakibpenojifdiepckckakgk','default','jdbefljfgobbmcidnmpjamcbhnbphjnb','occjjkgifpmdgodlplnacmkejpdionan','igiofjhpmpihnifddepnpngfjhkfenbp']
-  module.exports.loadAll = function(ses){
-    loadExtension(ses,'dckpbojndfoinamcdamhkjhnjnmjkfjd',getPath1('default'),(void 0),'component')
-    componentUpdater.registerComponent('oimompecagnajdejgnnjijobebaeigek', 'MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCmhe+02cLPPAViaevk/fzODKUnb/ysaAeD8lpE9pwirV6GYOm+naTo7xPOCh8ujcR6Ryi1nPTq2GTG0CyqdDyOsZ1aRLuMZ5QqX3dJ9jXklS0LqGfosoIpGexfwggbiLvQOo9Q+IWTrAO620KAzYU0U6MV272TJLSmZPUEFY6IGQIDAQAB')
-
-    loadExtension(ses,'jdbefljfgobbmcidnmpjamcbhnbphjnb',getPath1('jdbefljfgobbmcidnmpjamcbhnbphjnb'),(void 0),'component')
-    componentUpdater.registerComponent('jdbefljfgobbmcidnmpjamcbhnbphjnb', 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqmqh6Kxmj00IjKvjPsCtw6g2BHvKipjS3fBD0IInXZZ57u5oZfw6q42L7tgWDLrNDPvu3XDH0vpECr+IcgBjkM+w6+2VdTyPj5ubngTwvBqCIPItetpsZNJOJfrFw0OIgmyekZYsI+BsK7wiMtHczwfKSTi0JKgrwIRhHbEhpUnCxFhi+zI61p9jwMb2EBFwxru7MtpP21jG7pVznFeLV9W9BkNL1Th9QBvVs7GvZwtIIIniQkKtqT1wp4IY9/mDeM5SgggKakumCnT9D37ZxDnM2K13BKAXOkeH6JLGrZCl3aXmqDO9OhLwoch+LGb5IaXwOZyGnhdhm9MNA3hgEwIDAQAB')
+  module.exports.loadAll = function(){
+    loadExtension(getPath1('default'), true)
+    loadExtension(getPath1('jdbefljfgobbmcidnmpjamcbhnbphjnb'),true)
 
     if(mainState.enableMouseGesture){
       let ext = ['jpkfjicglakibpenojifdiepckckakgk',getPath1('jpkfjicglakibpenojifdiepckckakgk')]
       if(verChange) chromeManifestModify(...ext)
-      loadExtension(ses,...ext,(void 0),'component')
+      loadExtension(ext[1], true)
     }
 
     if(process.platform != 'win32'){
       let ext = ['occjjkgifpmdgodlplnacmkejpdionan',getPath1('occjjkgifpmdgodlplnacmkejpdionan')]
       if(verChange) chromeManifestModify(...ext)
-      loadExtension(ses,...ext,(void 0),'component')
+      loadExtension(ext[1], true)
     }
-    for(let e of ['igiofjhpmpihnifddepnpngfjhkfenbp']){
-      let ext = [e, getPath1(e)]
+      let ext = ['igiofjhpmpihnifddepnpngfjhkfenbp', getPath1('igiofjhpmpihnifddepnpngfjhkfenbp')]
       if(verChange) chromeManifestModify(...ext)
-      loadExtension(ses,...ext)
-    }
+      loadExtension(ext[1])
 
     //for(let fullPath of require("glob").sync(path.join(__dirname,'../../resource/extension/*').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'))) {
     for(let fullPath of require("glob").sync(path.join(extensionPath,'*'))) {
       const appId = fullPath.split(/[\/]/).slice(-1)[0]
       console.log(555,appId,mainState.disableExtensions)
       if(!appId.match(/crx$/) && !rejectExtensions.includes(appId)){
-        // if(!first && appId == 'niloccemoadcdkdjlinkgdfekeahmflj') continue
         let ext = [appId,getPath2(appId)]
         if(verChange) chromeManifestModify(...ext)
         console.log('modi',appId)
-        loadExtension(ses,...ext)
+        loadExtension(ext)
       }
     }
     first = false
   }
-  module.exports.loadAll(session.defaultSession)
+  module.exports.loadAll()
 }

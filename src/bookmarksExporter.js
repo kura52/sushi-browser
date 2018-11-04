@@ -28,7 +28,7 @@ import {
 } from './databaseFork'
 import {settingDefault} from "../resource/defaultValue";
 const os = require('os')
-const passCrypto = require('./crypto')
+const passCrypto = require('./crypto')('sushi-browser-password-key')
 
 function createBookmarkHTML(ret) {
   const breakTag = os.EOL
@@ -55,14 +55,15 @@ ipcMain.on('export-bookmark',_=>{
   const fileName = moment().format('DD_MM_YYYY') + '.html'
   const defaultPath = path.join(app.getPath('downloads'), fileName)
 
-  dialog.showDialog(focusedWindow, {
+  dialog.showSaveDialog(focusedWindow, {
     defaultPath: defaultPath,
-    type: 'select-saveas-file',
-    extensions: [['html']]
-  }, (fileNames) => {
-    if (fileNames && fileNames.length == 1) {
+    filters: [
+      {name: 'HTML File', extensions: ['html']},
+    ]
+  }, (fileName) => {
+    if (fileName) {
       getAllFavorites().then(ret=>{
-        fs.writeFileSync(fileNames[0], createBookmarkHTML(ret))
+        fs.writeFileSync(fileName, createBookmarkHTML(ret))
       })
     }
   })
@@ -73,12 +74,13 @@ ipcMain.on('export-setting', (e,exports) => {
   const fileName = moment().format('DD_MM_YYYY') + '.json'
   const defaultPath = path.join(app.getPath('downloads'), fileName)
 
-  dialog.showDialog(focusedWindow, {
+  dialog.showSaveDialog(focusedWindow, {
     defaultPath: defaultPath,
-    type: 'select-saveas-file',
-    extensions: [['json']]
-  }, async fileNames => {
-    if (fileNames && fileNames.length == 1) {
+    filters: [
+      {name: 'JSON File', extensions: ['json']},
+    ]
+  }, async fileName => {
+    if (fileName) {
       const results = {}
       for(let name of exports){
         if(name == 'generalSettings'){
@@ -136,7 +138,7 @@ ipcMain.on('export-setting', (e,exports) => {
           })
         }
       }
-      fs.writeFileSync(fileNames[0], JSON.stringify(results))
+      fs.writeFileSync(fileName, JSON.stringify(results))
     }
   })
 })
@@ -415,10 +417,13 @@ ipcMain.on('import-setting', (e,imports,all) => {
   const fileName = moment().format('DD_MM_YYYY') + '.json'
   const defaultPath = path.join(app.getPath('downloads'), fileName)
 
-  dialog.showDialog(focusedWindow, {
+  dialog.showOpenDialog(focusedWindow, {
     defaultPath: defaultPath,
-    type: 'select-open-file',
-    extensions: [['json']]
+    properties: ['openFile'],
+    filters: [
+      {name: 'JSON File', extensions: ['json']},
+      {name: 'All Files', extensions: ['*']}
+    ]
   }, async fileNames => {
     if (fileNames && fileNames.length == 1) {
       const restoreDatas = JSON.parse(fs.readFileSync(fileNames[0]).toString())

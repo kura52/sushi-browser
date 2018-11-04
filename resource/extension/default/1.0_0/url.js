@@ -12,5 +12,5 @@ function getUrlVars(){
 }
 
 const vars = getUrlVars()
-const url = vars.url
+let url = vars.url
 const type = vars.type

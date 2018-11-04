@@ -92,7 +92,7 @@ localForage.getItem('favicon-set').then(setTime=>{
 })
 
 async function faviconGet(h){
-  return h.favicon ? (await localForage.getItem(h.favicon)) || `file://${resourcePath}/file.svg` : `file://${resourcePath}/file.svg`
+  return h.favicon ? (await localForage.getItem(h.favicon)) || `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/?file=${resourcePath}/file.svg` : `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/?file=${resourcePath}/file.svg`
 }
 
 ipc.send("get-resource-path",{})

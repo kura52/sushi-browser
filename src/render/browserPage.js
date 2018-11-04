@@ -1,3 +1,5 @@
+import ResizeObserver from "resize-observer-polyfill";
+
 const path = require('path')
 const React = require('react')
 const uuid = require("node-uuid")
@@ -43,23 +45,23 @@ function stringEscape(string){
 }
 
 function webviewHandler (self, fnName) {
-  return function (e) {
+  return function (e,...args) {
     if (self.props[fnName])
-      self.props[fnName](e, self.props.tab.page)
+      self.props[fnName](e, self.props.tab.page, ...args)
   }
 }
 
 const webviewEvents = {
   // 'guest-ready': 'onGuestReady',
-  'tab-id-changed': 'onTabIdChanged',
+  // 'will-attach-webview': 'onTabIdChanged', //@TODO ELECTRON
   'load-commit': 'onLoadCommit',
   // 'did-start-loading': 'onDidStartLoading',
-  // 'did-stop-loading': 'onDidStopLoading',
+  'did-stop-loading': 'onDidStopLoading',
   'did-finish-load': 'onDidFinishLoading',
   'did-fail-load': 'onDidFailLoad',
-  'did-fail-provisional-load':'onDidFailLoad',
+  // 'did-fail-provisional-load':'onDidFailLoad',
   // 'did-frame-finish-load': 'onDidFrameFinishLoad',
-  'did-get-redirect-request': 'onDidGetRedirectRequest',
+  // 'did-redirect-navigation': 'onDidGetRedirectRequest',
   'dom-ready': 'onDomReady',
   // 'page-title-updated': 'onPageTitleSet',
   // 'close': 'onClose',
@@ -70,9 +72,10 @@ const webviewEvents = {
   // 'new-window': "onNewWindow",
   // 'will-navigate' : "onWillNavigate",
   'did-navigate' : "onDidNavigate",
-  'load-start' : "onLoadStart",
+  'did-start-navigation' : "onLoadStart", //@TODO ELECTRON
   // 'did-navigate-in-page' : 'onDidNavigateInPage',
-  'update-target-url' : 'onUpdateTargetUrl'
+  'update-target-url' : 'onUpdateTargetUrl',
+  'cursor-changed': 'onCursorChanged'
 }
 
 class BrowserPage extends Component {
@@ -80,29 +83,48 @@ class BrowserPage extends Component {
     super(props)
     this.state = {isSearching: false,src:this.props.tab.guestInstanceId === (void 0) ? this.props.tab.page.navUrl : (void 0)}
     this.wvEvents = {}
+
+    this.handleMouseDown = ::this.handleMouseDown
+    this.handleMouseUp = ::this.handleMouseUp
+    this.handleWheel = ::this.handleWheel
+    this.handleMouseMove = ::this.handleMouseMove
+    this.handleMouseEnter = ::this.handleMouseEnter
+    this.handleMouseLeave = ::this.handleMouseLeave
   }
 
+  componentDidUpdate(prevProps, prevState) {
+    console.log('componentDidUpdate',prevProps, this.props)
+    const style = this.props.pos
+    if(style.zIndex > 0 && (prevProps.pos.top != style.top ||
+      prevProps.pos.left != style.left ||
+      prevProps.pos.width != style.width ||
+      prevProps.pos.height != style.height ||
+      prevProps.pos.zIndex != style.zIndex)){
+      ipc.send('set-bound-browser-view', this.props.k2, this.props.k, style.left, style.top, style.width, style.height, style.zIndex)
+    }
+  }
 
   componentDidMount() {
-    const webview = this.refs.webview
-    const shadow = webview.querySelector("::shadow object")
-    shadow.style.width = '100%'
-    shadow.style.height = '100%'
-    // if(isWin) webview.webpreferences = `defaultFontFamily: {standard: 'Meiryo UI', serif: 'MS PMincho', sansSerif: 'Meiryo UI', monospace: 'MS Gothic'}`
+    // const webview = this.refs.webview
+    const style = this.props.pos
+    let tabId
+    if(this.props.tab.guestInstanceId){
+      tabId = this.props.tab.guestInstanceId
+      ipc.send('move-browser-view', this.props.k2, this.props.k, 'attach', tabId,
+        style.left, style.top, style.width, style.height, style.zIndex, true)
+    }
+    else{
+      tabId = ipc.sendSync('create-browser-view', this.props.k2, this.props.k, style.left, style.top,
+        style.width, style.height, style.zIndex, this.props.tab.privateMode ? (void 0) : this.state.src)
+    }
+    const webview = remote.webContents.fromId(tabId)
+    this.webview = webview
+    // const shadow = webview.shadowRoot.querySelector('object') //@TODO ELECTRON
 
-    // webview.addEventListener('did-fail-provisional-load', (e) => {
-    //   console.log(e)
-    // })
-    webview.plugins = true
+    // webview.plugins = true
     // webview.userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.109 Safari/537.366'
 
-    if(this.props.tab.guestInstanceId){
-      webview.attachGuest(this.props.tab.guestInstanceId).then(_=>{
-        this.props.tab.readyAttach = true
-
-        console.log("webview.attachGuest(this.props.tab.guestInstanceId)",this.props.tab.guestInstanceId)
-      })
-    }
+    this.props.tab.guestInstanceId = void 0
 
     if(this.props.tab.privateMode){
       const key = this.props.tab.key
@@ -114,31 +136,35 @@ class BrowserPage extends Component {
     console.log(this.props.tab.privateMode)
 
     for (var k in webviewEvents)
-      webview.addEventListener(k, webviewHandler(this, webviewEvents[k]),{passive:true})
+      webview.on(k, webviewHandler(this, webviewEvents[k]),{passive:true})
 
-    // let supportedWebViewEvents = [
-    //   'tab-replaced-at',
-    //   'tab-detached-at',
-    //   'tab-moved',
-    //   'load-start',
+    // const supportedWebViewEvents = [
+    //   'load-commit',
     //   'did-attach',
-    //   'guest-ready',
-    //   'will-detach',
-    //   'did-detach',
     //   'did-finish-load',
-    //   'did-fail-provisional-load',
     //   'did-fail-load',
+    //   // 'did-frame-finish-load',
+    //   'did-start-loading',
+    //   'did-stop-loading',
     //   'dom-ready',
-    //   'preferred-size-changed',
-    //   'console-message',
+    //   // 'console-message',
+    //   'context-menu',
+    //   'devtools-opened',
+    //   'devtools-closed',
+    //   'devtools-focused',
+    //   'new-window',
+    //   'will-navigate',
+    //   'did-start-navigation',
     //   'did-navigate',
+    //   // 'did-frame-navigate',
     //   'did-navigate-in-page',
-    //   'security-style-changed',
+    //   'focus-change',
     //   'close',
+    //   'crashed',
     //   'gpu-crashed',
     //   'plugin-crashed',
-    //   'will-destroy',
     //   'destroyed',
+    //   'page-title-updated',
     //   'page-favicon-updated',
     //   'enter-html-full-screen',
     //   'leave-html-full-screen',
@@ -147,35 +173,22 @@ class BrowserPage extends Component {
     //   'found-in-page',
     //   'did-change-theme-color',
     //   'update-target-url',
-    //   'context-menu',
-    //   'enable-pepper-menu',
-    //   'repost-form-warning',
-    //   'content-blocked',
-    //   'show-autofill-settings',
-    //   'update-autofill-popup-data-list-values',
-    //   'hide-autofill-popup',
-    //   'show-autofill-popup',
-    //   'did-run-insecure-content',
-    //   'did-block-run-insecure-content'
+    //   'cursor-changed'
     // ]
     //
     // for(let name of supportedWebViewEvents){
-    //   webview.addEventListener(name, (e,...args)=>{
+    //   webview.on(name, (e,...args)=>{
     //     console.log(54555531,name,e,...args)
-    //     e.stopPropagation()
-    //     e.preventDefault()
-    //     e.returnValue = true
-    //     return true
     //   })
     // }
 
-    this.wvEvents['ipc-message'] = (e, page) =>{
-      if(e.channel == 'webview-scroll'){
-        PubSub.publishSync("scroll-sync-webview",{sync:this.props.tab.sync,...e.args[0]})
+    this.wvEvents[`send-to-host_${tabId}`] = (e, msg, ...args) =>{
+      if(msg == 'webview-scroll'){
+        PubSub.publishSync("scroll-sync-webview",{sync:this.props.tab.sync,...args[0]})
       }
-      else if(e.channel == 'link-drop'){
+      else if(msg == 'link-drop'){ //@TODO ELECTRON
         console.log(e)
-        const {screenX,screenY,url,text} = e.args[0]
+        const {screenX,screenY,url,text} = args[0]
         const cont = e.sender
 
         const rect = e.target.getBoundingClientRect()
@@ -196,8 +209,19 @@ class BrowserPage extends Component {
           }
         }
       }
+      else if(msg == 'webview-mousedown' || msg == 'webview-mouseup'){
+        const button = args[0]
+        PubSub.publishSync(msg,{target: this.refs.webview, button})
+      }
+      else if(msg == 'webview-mousemove'){
+        const clientY = args[0]
+        PubSub.publishSync(msg,{ target: this.refs.webview, offsetY: clientY + this.refs.webview.getBoundingClientRect().y})
+      }
+      else if(msg == 'webview-keydown'){
+        PubSub.publishSync(msg,{ target: this.refs.webview, ...args[0]})
+      }
     }
-    webview.addEventListener('ipc-message',this.wvEvents['ipc-message'],{passive:true})
+    ipc.on(`send-to-host_${tabId}`,this.wvEvents[`send-to-host_${tabId}`])
 
     // this.wvEvents['found-in-page'] = (e) => {
     //   this.clear = e.result.activeMatchOrdinal == e.result.matches   //@TODO framework bug
@@ -210,32 +234,29 @@ class BrowserPage extends Component {
     //   }
     // }
 
-    this.wvEvents['found-in-page'] = (e) => {
-      if (e.result.activeMatchOrdinal) {
-        this.setState({result_string: `${e.result.activeMatchOrdinal}/${e.result.matches}`})
+    this.wvEvents['found-in-page'] = (e, result) => {
+      if (result.activeMatchOrdinal) {
+        this.setState({result_string: `${result.activeMatchOrdinal}/${result.matches}`})
       }
       else{
         this.setState({result_string: "0/0"})
       }
     }
 
-    webview.addEventListener('found-in-page',this.wvEvents['found-in-page'],{passive:true})
+    webview.on('found-in-page',this.wvEvents['found-in-page'])
 
     this.tokenDidNavigate = PubSub.subscribe(`did-navigate_${this.props.tab.key}`,_=>{
       this.setState({isSearching: false})
     })
-    //
-    // webview.addEventListener('will-navigate',e=>console.log('will-navigate',e))
-    // webview.addEventListener('did-detach',e=>console.log('did-detach',e))
-    // webview.addEventListener('guest-ready',e=>console.log('guest-ready',e))
 
     this.tokenWebviewKeydown = PubSub.subscribe("webview-keydown",(msg,e)=>{
-      if(e.wv === webview) this.onHandleKeyDown(e.event)
+      if(e.target === this.refs.webview) this.onHandleKeyDown(e)
     })
 
-    // webview.addEventListener('wheel',::this.handleWheel)
-
-    this.props.tab.returnWebView(webview)
+    console.log("returnWebView",webview, tabId, this.refs.webview)
+    const tab = remote.webContents.fromId(tabId)
+    global.currentWebContents[tabId] = tab
+    this.props.tab.returnWebView(webview, tabId, this.refs.webview)
     this.props.tab.guestInstanceId = (void 0)
 
     PubSub.publish(`regist-webview_${this.props.k}`,this.props.tab)
@@ -251,7 +272,7 @@ class BrowserPage extends Component {
 
       if(name == 'findOnPage'){
         if(word){
-          this.refs.bps.refs.input.value = word
+          this.refs.bps.setState({value: word})
           if(type == 'OR') this.refs.bps.or = true
         }
         else{
@@ -259,14 +280,14 @@ class BrowserPage extends Component {
             return this.setState({isSearching: false})
           }
           await new Promise(r=>{
-            webview.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd','window.getSelection().toString()', {},(err, url, result)=>{
-              if(result[0]) this.refs.bps.refs.input.value = result[0]
+            webview.executeJavaScript('window.getSelection().toString()', (result)=>{
+              if(result) this.refs.bps.setState({value: result})
               r()
             })
           })
         }
         this.setState({isSearching: true})
-        this.refs.browserPage.querySelector('.browser-page-search input').focus()
+        this.refs.bps.setState({focus: true})
       }
       else if(name == 'findNext'){
         if(this.state.isSearching) this.onPageSearch(this.previous_text)
@@ -280,8 +301,8 @@ class BrowserPage extends Component {
 
     this.changeSizeEvent = (e,tabKeyOrTabId,key,width,height,reply)=>{
       if(this.props.tab.key !== tabKeyOrTabId && this.props.tab.wvId !== tabKeyOrTabId) return
-      webview.style.width = width
-      webview.style.height = height
+      this.refs.webview.style.width = width
+      this.refs.webview.style.height = height
       if(reply) setTimeout(_=>ipc.send(`webview-size-change-reply_${key}`),1200)
     }
     ipc.on('webview-size-change', this.changeSizeEvent)
@@ -290,11 +311,12 @@ class BrowserPage extends Component {
   }
 
   componentWillUnmount() {
-    for (var k in webviewEvents)
-      this.refs.webview.removeEventListener(k, webviewHandler(this, webviewEvents[k]),{passive:true})
+    console.log('delete-browser-view', this.props.k2, this.props.k)
+    for (let k in webviewEvents)
+      this.webview.removeListener(k, webviewHandler(this, webviewEvents[k]))
 
-    for(var [k,v] in Object.entries(this.wvEvents)){
-      this.refs.webview.removeEventListener(k, v,{passive:true})
+    for(let [k,v] of Object.entries(this.wvEvents)){
+      this.webview.removeListener(k, v)
     }
     this.refs.webview = null
 
@@ -304,8 +326,10 @@ class BrowserPage extends Component {
     if(this.searchEvent) ipc.removeListener('menu-or-key-events', this.searchEvent)
     if(this.changeSizeEvent) ipc.removeListener('webview-size-change', this.changeSizeEvent)
 
+    ipc.send('delete-browser-view', this.props.k2, this.props.k)
+    // this.getWebContents(this.props.tab).destroy()
 
-    ipc.send('close-tab-pretask',this.props.tab.wvId)
+    // ipc.send('close-tab-pretask',this.props.tab.wvId)
   }
 
 
@@ -436,7 +460,7 @@ class BrowserPage extends Component {
         tabId = sharedState.tabValues[tabId]
       }
     }
-    this.refs.webview.stopFindInPage('clearSelection')
+    this.webview.stopFindInPage('clearSelection')
     this.complexReset()
     this.previous_text = ""
     this.setState({result_string: "", isSearching: false})
@@ -445,6 +469,45 @@ class BrowserPage extends Component {
   getWebContents(tab){
     if(!tab.wv || !tab.wvId) return
     return global.currentWebContents[tab.wvId]
+  }
+
+  handleMouseDown(e){
+    const modifiers = []
+    if(e.shiftKey) modifiers.push('shift')
+    if(e.ctrlKey) modifiers.push('control')
+    if(e.altKey) modifiers.push('alt')
+    if(e.metaKey) modifiers.push('meta')
+    this.webview.sendInputEvent({ type: 'mouseDown',x: e.offsetX, y: e.offsetY, modifiers,
+      button: e.button == 0 ? 'left' : e.button == 1 ? 'middle' : 'right',clickCount: 1})
+    if(!this.webview.isFocused()) this.webview.focus()
+  }
+
+  handleMouseUp(e){
+    const modifiers = []
+    if(e.shiftKey) modifiers.push('shift')
+    if(e.ctrlKey) modifiers.push('control')
+    if(e.altKey) modifiers.push('alt')
+    if(e.metaKey) modifiers.push('meta')
+    this.webview.sendInputEvent({ type: 'mouseUp',x: e.offsetX, y: e.offsetY, modifiers,
+      button: e.button == 0 ? 'left' : e.button == 1 ? 'middle' : 'right',clickCount: 1})
+
+  }
+
+  handleWheel(e){
+    this.webview.sendInputEvent({ type: 'mouseWheel', x: e.offsetX, y: e.offsetY,
+      deltaX: e.deltaX && e.deltaX * -1, deltaY: e.deltaY && e.deltaY * -1, canScroll: true})
+  }
+
+  handleMouseMove(e){
+    this.webview.sendInputEvent({ type: 'mouseMove',x: e.offsetX, y: e.offsetY})
+  }
+
+  handleMouseEnter(e){
+    this.webview.sendInputEvent({ type: 'mouseEnter',x: e.offsetX, y: e.offsetY})
+  }
+
+  handleMouseLeave(e){
+    this.webview.sendInputEvent({ type: 'mouseLeave',x: e.offsetX, y: e.offsetY})
   }
 
   render() {
@@ -460,11 +523,12 @@ class BrowserPage extends Component {
 
     if(mobilePanel && mobilePanel.isPanel) style.width = `calc(100% - ${mobilePanel.width + 1}px)`
 
-    return <div className="browser-page" ref="browserPage"  onKeyDown={::this.onHandleKeyDown}>
-      <BrowserPageSearch ref="bps" tab={this.props.tab} isActive={this.state.isSearching} onPageSearch={::this.onPageSearch} progress={this.state.result_string} onClose={::this.onClose}/>
+    return <div className="browser-page" ref="browserPage"  onKeyDown={::this.onHandleKeyDown} key={this.props.k}
+                onMouseDown={this.handleMouseDown} onMouseUp={this.handleMouseUp} onWheel={this.handleWheel} onMouseMove={this.handleMouseMove}
+                onMouseEnter={this.handleMouseEnter} onMouseLeave={this.handleMouseLeave}>
+      <BrowserPageSearch ref="bps" k={this.props.k2} tab={this.props.tab} isActive={this.state.isSearching} onPageSearch={::this.onPageSearch} progress={this.state.result_string} onClose={::this.onClose} parent={this}/>
       {mobilePanel ? <MobilePanel tab={this.props.tab} mobilePanel={mobilePanel} parent={this} isActive={this.props.isActive}/> : null}
-      <webview ref="webview" className={`w${this.props.k2}`} data-key={this.props.k} src={this.props.tab.privateMode ? (void 0) : this.state.src}
-               style={style}/>
+      <div ref="webview" className={`w${this.props.k2}`} key={this.props.k} data-webview="1" data-key={this.props.k} style={style}/>
       {hasDevToolsPanel ? <DevToolsPanel tab={this.props.tab} devToolsInfo={devToolsInfo} parent={this}
                                          style={style.width ? {width: style.width, display: 'inline-block'} : {}}/> : null}
       <AutofillPopup k={this.props.k}/>

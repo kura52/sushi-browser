@@ -12,8 +12,8 @@ function getFocusedWebContents(needSelectedText,skipBuildInSearch,callback,retry
   let cont
   if(!skipBuildInSearch){
     const tmp = webContents.getFocusedWebContents()
-    if(tmp && !tmp.isDestroyed() && !tmp.isBackgroundPage() && !(tmp.tabValue().openerTabId == -1 && tmp.getURL().match(/^(chrome\-extension|chrome\-devtools)/))) {
-      if(tmp.isGuest()){
+    if(tmp && !tmp.isDestroyed() /*&& !tmp.isBackgroundPage()*/ && !(/*tmp.tabValue().openerTabId == -1 && */ tmp.getURL().match(/^(chrome\-extension|chrome\-devtools)/))) { //@TODO ELECTRON
+      if(tmp.hostWebContents2){
         return new Promise(resolve=>resolve(tmp))
       }
       else if(tmp.getURL().startsWith("chrome://brave/")){
@@ -45,7 +45,7 @@ function getFocusedWebContents(needSelectedText,skipBuildInSearch,callback,retry
         setTimeout(_=>getFocusedWebContents(needSelectedText,skipBuildInSearch,callback,++retry),300)
       }
       else{
-        callback((sharedState[tabId] || webContents.fromTabID(tabId)))
+        callback((sharedState[tabId] || webContents.fromId(tabId)))
       }
     })
     cont.send('get-focused-webContent',key,void 0,needSelectedText,void 0,retry)
@@ -58,7 +58,7 @@ function getFocusedWebContents(needSelectedText,skipBuildInSearch,callback,retry
           setTimeout(_=>getFocusedWebContents(needSelectedText,skipBuildInSearch,resolve,++retry),300)
         }
         else{
-          const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
+          const cont = (sharedState[tabId] || webContents.fromId(tabId))
           resolve(cont)
         }
       })

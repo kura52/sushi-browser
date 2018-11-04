@@ -6,10 +6,10 @@ import db from "./databaseFork";
 const contextAlert = new Set()
 
 // function messageBox(webContents, message, cb, buttons) {
-//   const tabId = webContents.getId()
+//   const tabId = webContents.id
 //   const key = uuid.v4()
 //   console.log('show-notification',tabId)
-//   webContents.hostWebContents.send('show-notification', {id:tabId,key, text: message, buttons, style:{top:50}})
+//   webContents.hostWebContents2.send('show-notification', {id:tabId,key, text: message, buttons, style:{top:50}})
 //   ipcMain.once(`reply-notification-${key}`, (e, ret) => {
 //     cb(ret.pressIndex === 0, '', false)
 //   })
@@ -17,9 +17,9 @@ const contextAlert = new Set()
 
 function messageBox(_webContents, title, message, cb, buttons, type) {
   const key = uuid.v4()
-  const tabId = _webContents.getId()
+  const tabId = _webContents.id
   const url = _webContents.getURL()
-  ;(_webContents.hostWebContents || _webContents).send('show-notification',{key,text:message, title, windowDialog: true, buttons,id:tabId})
+  ;(_webContents.hostWebContents2 || _webContents).send('show-notification',{key,text:message, title, windowDialog: true, buttons,id:tabId})
 
   ipcMain.once(`reply-notification-${key}`, (e, ret) => {
     cb(ret.pressIndex === 0, '', false)
@@ -27,7 +27,7 @@ function messageBox(_webContents, title, message, cb, buttons, type) {
   })
 
   for(let cont of webContents.getAllWebContents()){
-    if(!cont.isDestroyed() && !cont.isBackgroundPage() && cont.isGuest()) {
+    if(!cont.isDestroyed() /*&& !cont.isBackgroundPage()*/ && cont.hostWebContents2) {
       if(cont.getURL().startsWith('chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html')){
         cont.send(`start-dialog`,{key,title,message,buttons,tabId,url,type})
       }

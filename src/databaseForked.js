@@ -1,7 +1,10 @@
 const sock = require('axon').socket('rep')
 const fs = require('fs')
 const path = require('path')
+const url = require('url')
 import { app } from 'electron'
+// import extensionServer from './extensionServer'
+console.log(7776666,app)
 const isDarwin = process.platform === 'darwin'
 const resizeFile = require('./resizeFile')
 
@@ -10,10 +13,13 @@ function getPortable(){
   return fs.existsSync(file) && fs.readFileSync(file).toString().replace(/[ \r\n]/g,'')
 }
 
-let port,pingTime
+let port,port2,key,pingTime
+
 let result = _=>{
   const db = require('./database')
   const getFavicon = require('./captureFaviconEvent')
+  // extensionServer(port2, key)
+
   function strToReg(obj){
     let match
     if(Array.isArray(obj)){
@@ -71,13 +77,17 @@ let result = _=>{
 }
 
 const portableData = getPortable()
-const sushiPath = (portableData == 'true' || portableData == 'portable') ? path.join(__dirname,`../../../${isDarwin ? '../../' : ''}data`).replace(/app.asar([\/\\])/,'app.asar.unpacked$1') : app.getPath('userData').replace('brave','sushiBrowser').replace('sushi-browser','sushiBrowser')
+const sushiPath = (portableData == 'true' || portableData == 'portable') ?
+  path.join(__dirname,`../../../${isDarwin ? '../../' : ''}data`).replace(/app.asar([\/\\])/,'app.asar.unpacked$1') :
+  app ? app.getPath('userData').replace('brave','sushiBrowser').replace('sushi-browser','sushiBrowser') : process.argv[2]
 
 const filePath = path.join(sushiPath,'resource/fork.txt').replace(/\\/g,"/")
 if(fs.existsSync(filePath)){
   const content = fs.readFileSync(filePath).toString().split("\t")
   const date = parseInt(content[0])
-  port = parseInt(content[1])
+  key = content[1]
+  port = parseInt(content[2])
+  port2 = parseInt(content[3])
   if(Date.now() - date > 15 * 1000){
     result = false
   }

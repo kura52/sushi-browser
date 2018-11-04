@@ -38,7 +38,7 @@ export default class MobilePanel extends Component {
       if(devWebContents){
         const webContents = this.getWebContents(this.props.tab)
         webContents.setDevToolsWebContents(devWebContents)
-        webContents.toggleDevTools()
+        webContents.toggleDevTools() //@TODO ELECTRON
         break
       }
     }

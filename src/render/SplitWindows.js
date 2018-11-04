@@ -1,5 +1,3 @@
-import {ipcMain} from "electron";
-
 const React = require('react')
 const ReactDOM = require('react-dom')
 const {Component} = React
@@ -19,10 +17,11 @@ const FloatPanel = require('./FloatPanel')
 const FindPanel = require('./FindPanel')
 const {token} = require('./databaseRender')
 const PanelOverlay = require('./PanelOverlay')
+const DownloadList = require("./DownloadList")
 import firebase,{storage,auth,database} from 'firebase'
 const sharedState = require('./sharedState')
 const getTheme = require('./theme')
-let [MARGIN,verticalTabPosition,themeInfo,autoDeleteDownloadList] = ipc.sendSync('get-sync-main-states',['syncScrollMargin','verticalTabPosition','themeInfo','autoDeleteDownloadList'])
+let [MARGIN,verticalTabPosition,themeInfo,autoDeleteDownloadList,enableDownloadList] = ipc.sendSync('get-sync-main-states',['syncScrollMargin','verticalTabPosition','themeInfo','autoDeleteDownloadList','enableDownloadList'])
 sharedState.theme = themeInfo
 sharedState.autoDeleteDownloadList = autoDeleteDownloadList
 
@@ -134,12 +133,7 @@ function removeEvents(ipc,events){
   for (var key in events) {
     if (events.hasOwnProperty(key)) {
       const value = events[key]
-      if(key == 'ipc-message'){
-        value[0].removeEventListener('ipc-message',value[1] )
-      }
-      else{
-        ipc.removeListener(key,value)
-      }
+      ipc.removeListener(key,value)
     }
   }
 }
@@ -374,13 +368,6 @@ export default class SplitWindows extends Component{
 
 
   componentDidMount() {
-    this.webContentsCreated = (event, tabId)=>{
-      remote.getWebContents(tabId,tab=>{
-        this.currentWebContents[tabId] = tab
-      })
-    }
-    ipc.on('web-contents-created', this.webContentsCreated)
-
     this.pageUpdate = (e,tabId)=> {
       // console.log(tab.getTitle())
       const keys = []
@@ -456,12 +443,12 @@ export default class SplitWindows extends Component{
     ipc.on('toggle-nav',this.toggleNavEvent)
 
     this.menuSticky = (e)=>{
-      if(!this.menuStickyFlag && e.clientY < 5){
+      if(!this.menuStickyFlag && e.offsetY < 5){
         this.menuStickyFlag = true
         this.state.root.toggleNav = 3
         this.setState({})
       }
-      else if(this.menuStickyFlag && e.clientY > 80 && !e.target.closest(".navbar-main")){
+      else if(this.menuStickyFlag && e.offsetY > 80 && !e.target.closest(".navbar-main")){
         this.menuStickyFlag = false
         this.state.root.toggleNav = 2
         this.setState({})
@@ -475,13 +462,15 @@ export default class SplitWindows extends Component{
         this._toggleNav = this.state.root.toggleNav
         this.state.root.toggleNav = 2
         // mainState.set('toggleNav',2)
-        document.addEventListener('mousemove',this.menuSticky,{passive: true})
+        this.tokenMouseMove = PubSub.subscribe('webview-mousemove',(msg,e)=>{
+          this.menuSticky(e)
+        })
       }
       else{
         this.state.root.toggleNav = this._toggleNav
         // mainState.set('toggleNav',this._toggleNav)
         this._toggleNav = void 0
-        document.removeEventListener('mousemove',this.menuSticky)
+        PubSub.unsubscribe(this.tokenMouseMove)
       }
       this.setState({})
     }
@@ -518,13 +507,13 @@ export default class SplitWindows extends Component{
       let tab,k
       if (activeElement.tagName == 'BODY') {
       }
-      else if(activeElement.tagName == 'WEBVIEW' && activeElement.className != 'popup' && activeElement.className != 'dev-tool'){
+      else if(activeElement.dataset.webview){
         k = activeElement.className.slice(1)
         tab = self.refs2[k].getSelectedTab()
       }
       else{
         const closestElement = activeElement.closest(".split-window")
-        if (closestElement) {
+        if (closestElement && closestElement.classList[1]) {
           k = closestElement.classList[1].slice(1)
           tab = self.refs2[k].getSelectedTab()
         }
@@ -546,13 +535,13 @@ export default class SplitWindows extends Component{
           return
         }
       }
-      const act = document.activeElement
+      const act = global.lastMouseDown[0] || document.activeElement //@TODO ELECTRON document.activeElement
       if(needSelectedText && act.tagName == 'INPUT' && act.type == 'text'){
         ipc.send(`get-focused-webContent-reply_${key}`,-1)
         return
       }
       console.log(act,global.lastMouseDown)
-      let tabId = this.getTabId(act) || (global.lastMouseDown[0] && this.getTabId(global.lastMouseDown[0]))
+      let tabId = this.getTabId(act)
 
       if(!tabId && retry > 9){
         tabId = this.refs2[this.isTopLeft].getSelectedTabId()
@@ -634,20 +623,9 @@ export default class SplitWindows extends Component{
         const others = isBefore ? beforeOthers : afterOthers
         for(let ele of map[key]){
           const tab = ele[0]
-          const cont = getWebContents(tab)
-          const guestInstanceId = tab._guestInstanceId || getWebContents(tab).guestInstanceId
-          const tabId = tab.wvId
-          ipc.send('detach-tab',tabId)
-          await new Promise(r=>{
-            ipc.once(`detach-tab_${tabId}`,(e,_guestInstanceId)=>{
-              tab.wv.attachGuest(_guestInstanceId)
-              r()
-            })
-          })
-          const newKey = uuid.v4()
-          if(selectedTab == tab.key) selectedTab = newKey
-          const n_tab = this.refs2[indexKey].createTab({c_page:tab.page,c_key:newKey,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,fields:tab.fields,reloadInterval:tab.reloadInterval,guestInstanceId,
-            rest:{rSession:tab.rSession,wvId:tabId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis}})
+          ipc.send('move-browser-view', key, tab.key, 'detach')
+          const n_tab = this.refs2[indexKey].createTab({c_page:tab.page,c_wv:tab.wv,c_div:tab.div,c_key:tab.key,privateMode:tab.privateMode,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,reloadInterval:tab.reloadInterval,guestInstanceId: tab.guestInstanceId,
+            rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis}})
           others.push([n_tab,ele[1],ele[0]])
         }
         funcs[key] =_=>{
@@ -755,24 +733,14 @@ export default class SplitWindows extends Component{
         const datas = []
         for(let ele of map[key]){
           const tab = ele[0]
-          const cont = getWebContents(tab)
-          const guestInstanceId = tab._guestInstanceId || getWebContents(tab).guestInstanceId
-          const tabId = tab.wvId
-          ipc.send('detach-tab',tabId)
-          await new Promise(r=>{
-            ipc.once(`detach-tab_${tabId}`,(e,_guestInstanceId)=>{
-              tab.wv.attachGuest(_guestInstanceId)
-              r()
-            })
-          })
           const panel = this.refs2[key]
-          const d = resolve({wvId:tabId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,freeze:tab.freeze,protect:tab.protect,lock:tab.lock,mute:tab.mute,fields:tab.fields,reloadInterval:tab.reloadInterval,
-            rest:{rSession:tab.rSession,wvId:tabId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId})
+          ipc.send('move-browser-view', key, tab.key, 'detach')
+          const d = resolve({wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,freeze:tab.freeze,protect:tab.protect,lock:tab.lock,mute:tab.mute,fields:tab.fields,reloadInterval:tab.reloadInterval,
+            rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab.wvId})
 
           ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: oldIndexes[d.wvId]})
           detaches.push(ele)
           datas.push(d)
-          if(winId) cont.moveTo(0, winId)
         }
 
         console.log(434234,datas)
@@ -930,6 +898,37 @@ export default class SplitWindows extends Component{
     }
     ipc.on('update-theme', this.eventUpdateTheme)
 
+    this.eventChromeTabsTabValue = (e, requestId, tabId)=>{
+      const keys = []
+      this.allKeys(this.state.root,keys)
+      let order = 0
+      for(let key of keys){
+        const tabs = this.refs2[key].state.tabs
+        const index = tabs.findIndex(t=>t.wvId == tabId)
+        const tab = tabs[index]
+        if(tab){
+          const active = this.refs2[key].state.selectedTab == tab.key
+          const bound = tab.div.getBoundingClientRect()
+          e.sender.send(`CHROME_TABS_TAB_VALUE_RESULT_${requestId}`, {
+            active,
+            favIconUrl: tab.page.favicon,
+            height: bound.height,
+            incognito: !!tab.privateMode,
+            index: order + index,
+            highlighted: active,
+            pinned: tab.pin,
+            selected: active,
+            width: bound.width,
+          })
+          return
+        }
+        order += tabs.length
+      }
+      e.sender.send(`CHROME_TABS_TAB_VALUE_RESULT_${requestId}`, {})
+    }
+    ipc.on('CHROME_TABS_TAB_VALUE', this.eventChromeTabsTabValue)
+
+
     this.tokenAlign = PubSub.subscribe("align",(_,e)=>{
       if(!this.state.root.r) return
       const mapDepth = this.getDepth()
@@ -1035,6 +1034,8 @@ export default class SplitWindows extends Component{
     ipc.removeListener('close-fixed-panel',this.eventCloseFixedPanel)
     ipc.removeListener('visit-state-update', this.eventVisitStateUpdate)
     ipc.removeListener('update-theme', this.eventUpdateTheme)
+    ipc.removeListener('CHROME_TABS_TAB_VALUE', this.eventChromeTabsTabValue)
+    ipc.removeListener('CHROME_TABS_TAB_VALUE', this.eventChromeTabsTabValue)
 
     PubSub.unsubscribe(this.tokenAlign)
     PubSub.unsubscribe(this.tokenAllDetach)
@@ -1258,6 +1259,7 @@ export default class SplitWindows extends Component{
   split(key,direction,pos,tabs,index,params){
     if(!Array.isArray(index)) index = [index]
     if(params && params.fields) params.fields = JSON.parse(JSON.stringify(params.fields))
+    if(index[0] !== void 0) ipc.send('no-attach-browser-view',key, index.map(i=>tabs[i].key))
     this._split(this.state.root,key,direction,pos,tabs,index,params)
     console.log(this.state.root)
   }
@@ -1586,7 +1588,7 @@ export default class SplitWindows extends Component{
       }
       else{
         const closestElement = ele.closest(".split-window")
-        if (closestElement) {
+        if (closestElement && closestElement.classList[1]) {
           const key = closestElement.classList[1].slice(1)
           if(k != key && !isFixedPanel(key)){
             global.lastMouseDownSet  = new Set(eles.reverse())
@@ -2082,9 +2084,12 @@ export default class SplitWindows extends Component{
       arr.push(this.renderFloatPanel(value))
     }
 
+    const dlList = document.getElementById('dllist')
+    let height = this.state.findPanelHeight !== void 0 ? this.state.findPanelHeight : 0
+    height += dlList && dlList.style.display !== 'none' ? 50 : 0
 
     return <span>
-      <div className="wrap-split-window" style={this.state.findPanelHeight !== void 0 ? {height: `calc(100% - ${this.state.findPanelHeight}px)`}: null}>
+      <div className="wrap-split-window" style={ height ? {height: `calc(100% - ${height}px)`}: null}>
         {/*<VerticalTabPanel key="vd" parent={this} tabValues={this.tabValues} direction={this.state.verticalTabPosition}/>*/}
         {this.state.verticalTabPosition == "left" ? <VerticalTabPanel key="vd" parent={this} tabValues={this.tabValues} toggleNav={this.state.root.toggleNav} direction={this.state.verticalTabPosition}/> : null}
         {this.recur(this.state.root,0,true,{val:false})}
@@ -2093,6 +2098,7 @@ export default class SplitWindows extends Component{
         <PanelOverlay/>
         {this.state.arrange ? this.state.renderArrange: null}
       </div>
+      <DownloadList enableDownloadList={enableDownloadList} parent={this}/>
       {this.state.findPanelHeight !== void 0 ? <FindPanel parent={this} findPanelHeight={this.state.findPanelHeight}/> : null}
     </span>
   }

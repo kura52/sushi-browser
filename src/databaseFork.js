@@ -8,16 +8,19 @@ const emptyPort = require('./emptyPort')
 import { webContents,app } from 'electron'
 const isDarwin = process.platform === 'darwin'
 
-emptyPort((err,port)=>{
-  sock.bind(port,'127.0.0.1')
-  fs.writeFileSync(path.join(app.getPath('userData'),'resource/fork.txt').replace(/\\/g,"/"),`${Date.now()}\t${port}`);
+emptyPort((err,ports)=>{
+  sock.bind(ports[0],'127.0.0.1')
+  const key = `${Date.now()}${Math.random()}`
+  fs.writeFileSync(path.join(app.getPath('userData'),'resource/fork.txt').replace(/\\/g,"/"),`${Date.now()}\t${key}\t${ports.join("\t")}`)
+  ipcMain.once('get-port',()=>ipcMain.emit('get-port-reply', null, ports[1], key))
+
   if(isDarwin){
     global.__CHILD__ = childProcess.exec(path.join(__dirname,'../../../MacOS/sushi-browser'))
   }
   else{
-    global.__CHILD__ = childProcess.fork(path.join(__dirname,'main.js'))
+    global.__CHILD__ = childProcess.fork(path.join(__dirname,'main.js'),[app.getPath('userData')])
   }
-})
+},2)
 
 function regToStr(obj){
   if(Array.isArray(obj)){
@@ -50,7 +53,7 @@ function handler(table){
               if(msg.key !== key) return
               if((table == "history" || table == "favorite" || table == "note" || table == "tabState" || table == "savedState") && (prop == "insert" || prop == "update" || prop == "remove")){
                for(let cont of webContents.getAllWebContents()){
-                  if(!cont.isDestroyed() && !cont.isBackgroundPage() && (cont.isGuest() || !cont.hostWebContents)) {
+                  if(!cont.isDestroyed() /*&& !cont.isBackgroundPage()*/ && (cont.hostWebContents2 || !cont.hostWebContents2)) {
                     const url = cont.getURL()
                     if(url.startsWith('chrome://brave') || table == "favorite" || url.endsWith(`/${table}_sidebar.html`) ||url.endsWith(`/${table}.html`) || (table == "tabState" && (url.endsWith(`/tab_history_sidebar.html`)||url.endsWith(`/tab_trash_sidebar.html`))) || (table == "savedState" && url.endsWith(`/saved_state_sidebar.html`)) || (table == 'note' && url.includes('note.html?'))){
                       if(prop == "update"){
@@ -119,7 +122,7 @@ ipcMain.on('db-rend',(event,datas)=>{
     const {table,prop,argumentsList} = datas
     if((table == "history" || table == "favorite" || table == "note" || table == "tabState" || table == "savedState") && (prop == "insert" || prop == "update" || prop == "remove")){
       for(let cont of webContents.getAllWebContents()){
-        if(!cont.isDestroyed() && !cont.isBackgroundPage() && (cont.isGuest() || !cont.hostWebContents)) {
+        if(!cont.isDestroyed() /*&& !cont.isBackgroundPage()*/ && (cont.hostWebContents2 || !cont.hostWebContents2)) {
           const url = cont.getURL()
           if(url.startsWith('chrome://brave') || table == "favorite" || url.endsWith(`/${table}_sidebar.html`) ||url.endsWith(`/${table}.html`) || (table == "tabState" && (url.endsWith(`/tab_history_sidebar.html`)||url.endsWith(`/tab_trash_sidebar.html`))) || (table == "savedState" && url.endsWith(`/saved_state_sidebar.html`)) || (table == 'note' && url.includes('note.html?'))){
             if(prop == "update"){

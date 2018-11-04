@@ -45,7 +45,7 @@ const code = (function(){
 }).toString()
 
 export default function(cont,callback){
-  cont.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',`(${code})()`, {},(err, url, result)=>{
-    callback(result[0])
+  cont.executeJavaScript((result)=>{
+    callback(result)
   })
 }

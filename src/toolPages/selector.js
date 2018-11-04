@@ -320,7 +320,7 @@ class Selector extends React.Component {
       else{
         for(let url of urls) func(url,fname)
       }
-      ipc.sendToHost("open-tab",'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html',true)
+      ipc.send('send-to-host', "open-tab",'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html',true)
     })
   }
 

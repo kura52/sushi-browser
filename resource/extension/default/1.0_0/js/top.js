@@ -16856,8 +16856,8 @@ function normalizeArray(parts, allowAboveRoot) {
 
 // Split a filename into [root, dir, basename, ext], unix version
 // 'root' is just a slash, or nothing.
-var splitPathRe =
-  /^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/\\]+?|)(\.[^.\/\\]*|))(?:[\/\\]*)$/;
+var splitPathRe = navigator.userAgent.includes('Windows') ? /^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/\\]+?|)(\.[^.\/\\]*|))(?:[\/\\]*)$/ :
+    /^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/]+?|)(\.[^.\/]*|))(?:[\/]*)$/;
 var splitPath = function(filename) {
   return splitPathRe.exec(filename).slice(1);
 };
@@ -32593,8 +32593,9 @@ _LocalForage2.default.getItem('favicon-set').then(setTime => {
   });
 });
 
+let accessKey;
 async function faviconGet(h) {
-  return h.favicon ? (await _LocalForage2.default.getItem(h.favicon)) || `file://${resourcePath}/file.svg` : `file://${resourcePath}/file.svg`;
+  return h.favicon ? (await _LocalForage2.default.getItem(h.favicon)) || `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/?key=${accessKey}&file=${resourcePath}/file.svg` : `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/?key=${accessKey}&file=${resourcePath}/file.svg`;
 }
 
 _electron.ipcRenderer.send("get-resource-path", {});
@@ -32726,13 +32727,14 @@ class TopMenu extends _infernoCompat2.default.Component {
 class TopSearch extends _infernoCompat2.default.Component {
 
   componentDidMount() {
-    _electron.ipcRenderer.sendToHost("navbar-search", {});
+    accessKey = _electron.ipcRenderer.sendSync('get-access-key');
+    _electron.ipcRenderer.send('send-to-host', "navbar-search", {});
     console.log("mount");
   }
 
   sendHost(e) {
     console.log(222222);
-    _electron.ipcRenderer.sendToHost("navbar-search", {});
+    _electron.ipcRenderer.send('send-to-host', "navbar-search", {});
     e.target.value = "";
     e.target.blur();
     e.preventDefault();
@@ -32984,7 +32986,7 @@ class TopList extends _infernoCompat2.default.Component {
       h.path ? _infernoCompat2.default.createElement(
         'a',
         { href: h.location, style: { textAlign: "center" } },
-        _infernoCompat2.default.createElement('img', { className: 'capture', style: { width: 160, height: 100, objectFit: "contain" }, src: `file://${resourcePath}/capture/${h.path}` })
+        _infernoCompat2.default.createElement('img', { className: 'capture', style: { width: 160, height: 100, objectFit: "contain" }, src: `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/?key=${accessKey}&file=${resourcePath}/capture/${h.path}` })
       ) : null
     );
   }
@@ -45841,7 +45843,7 @@ module.exports.makeKey = makeKey
 /* 491 */
 /***/ (function(module, exports) {
 
-module.exports = {"_args":[[{"raw":"elliptic@^6.0.0","scope":null,"escapedName":"elliptic","name":"elliptic","rawSpec":"^6.0.0","spec":">=6.0.0 <7.0.0","type":"range"},"C:\\Users\\kura\\RubymineProjects\\sushi-browser\\node_modules\\browserify-sign"]],"_from":"elliptic@>=6.0.0 <7.0.0","_id":"elliptic@6.4.0","_inCache":true,"_location":"/elliptic","_nodeVersion":"7.0.0","_npmOperationalInternal":{"host":"packages-18-east.internal.npmjs.com","tmp":"tmp/elliptic-6.4.0.tgz_1487798866428_0.30510620190761983"},"_npmUser":{"name":"indutny","email":"fedor@indutny.com"},"_npmVersion":"3.10.8","_phantomChildren":{},"_requested":{"raw":"elliptic@^6.0.0","scope":null,"escapedName":"elliptic","name":"elliptic","rawSpec":"^6.0.0","spec":">=6.0.0 <7.0.0","type":"range"},"_requiredBy":["/browserify-sign","/create-ecdh"],"_resolved":"https://registry.npmjs.org/elliptic/-/elliptic-6.4.0.tgz","_shasum":"cac9af8762c85836187003c8dfe193e5e2eae5df","_shrinkwrap":null,"_spec":"elliptic@^6.0.0","_where":"C:\\Users\\kura\\RubymineProjects\\sushi-browser\\node_modules\\browserify-sign","author":{"name":"Fedor Indutny","email":"fedor@indutny.com"},"bugs":{"url":"https://github.com/indutny/elliptic/issues"},"dependencies":{"bn.js":"^4.4.0","brorand":"^1.0.1","hash.js":"^1.0.0","hmac-drbg":"^1.0.0","inherits":"^2.0.1","minimalistic-assert":"^1.0.0","minimalistic-crypto-utils":"^1.0.0"},"description":"EC cryptography","devDependencies":{"brfs":"^1.4.3","coveralls":"^2.11.3","grunt":"^0.4.5","grunt-browserify":"^5.0.0","grunt-cli":"^1.2.0","grunt-contrib-connect":"^1.0.0","grunt-contrib-copy":"^1.0.0","grunt-contrib-uglify":"^1.0.1","grunt-mocha-istanbul":"^3.0.1","grunt-saucelabs":"^8.6.2","istanbul":"^0.4.2","jscs":"^2.9.0","jshint":"^2.6.0","mocha":"^2.1.0"},"directories":{},"dist":{"shasum":"cac9af8762c85836187003c8dfe193e5e2eae5df","tarball":"https://registry.npmjs.org/elliptic/-/elliptic-6.4.0.tgz"},"files":["lib"],"gitHead":"6b0d2b76caae91471649c8e21f0b1d3ba0f96090","homepage":"https://github.com/indutny/elliptic","keywords":["EC","Elliptic","curve","Cryptography"],"license":"MIT","main":"lib/elliptic.js","maintainers":[{"name":"indutny","email":"fedor@indutny.com"}],"name":"elliptic","optionalDependencies":{},"readme":"ERROR: No README data found!","repository":{"type":"git","url":"git+ssh://git@github.com/indutny/elliptic.git"},"scripts":{"jscs":"jscs benchmarks/*.js lib/*.js lib/**/*.js lib/**/**/*.js test/index.js","jshint":"jscs benchmarks/*.js lib/*.js lib/**/*.js lib/**/**/*.js test/index.js","lint":"npm run jscs && npm run jshint","test":"npm run lint && npm run unit","unit":"istanbul test _mocha --reporter=spec test/index.js","version":"grunt dist && git add dist/"},"version":"6.4.0"}
+module.exports = {"_args":[["elliptic@6.4.0","/home/kura52/RubymineProjects/web-dev-browser"]],"_development":true,"_from":"elliptic@6.4.0","_id":"elliptic@6.4.0","_inBundle":false,"_integrity":"sha1-ysmvh2LIWDYYcAPI3+GT5eLq5d8=","_location":"/elliptic","_phantomChildren":{},"_requested":{"type":"version","registry":true,"raw":"elliptic@6.4.0","name":"elliptic","escapedName":"elliptic","rawSpec":"6.4.0","saveSpec":null,"fetchSpec":"6.4.0"},"_requiredBy":["/browserify-sign","/create-ecdh"],"_resolved":"https://registry.npmjs.org/elliptic/-/elliptic-6.4.0.tgz","_spec":"6.4.0","_where":"/home/kura52/RubymineProjects/web-dev-browser","author":{"name":"Fedor Indutny","email":"fedor@indutny.com"},"bugs":{"url":"https://github.com/indutny/elliptic/issues"},"dependencies":{"bn.js":"^4.4.0","brorand":"^1.0.1","hash.js":"^1.0.0","hmac-drbg":"^1.0.0","inherits":"^2.0.1","minimalistic-assert":"^1.0.0","minimalistic-crypto-utils":"^1.0.0"},"description":"EC cryptography","devDependencies":{"brfs":"^1.4.3","coveralls":"^2.11.3","grunt":"^0.4.5","grunt-browserify":"^5.0.0","grunt-cli":"^1.2.0","grunt-contrib-connect":"^1.0.0","grunt-contrib-copy":"^1.0.0","grunt-contrib-uglify":"^1.0.1","grunt-mocha-istanbul":"^3.0.1","grunt-saucelabs":"^8.6.2","istanbul":"^0.4.2","jscs":"^2.9.0","jshint":"^2.6.0","mocha":"^2.1.0"},"files":["lib"],"homepage":"https://github.com/indutny/elliptic","keywords":["EC","Elliptic","curve","Cryptography"],"license":"MIT","main":"lib/elliptic.js","name":"elliptic","repository":{"type":"git","url":"git+ssh://git@github.com/indutny/elliptic.git"},"scripts":{"jscs":"jscs benchmarks/*.js lib/*.js lib/**/*.js lib/**/**/*.js test/index.js","jshint":"jscs benchmarks/*.js lib/*.js lib/**/*.js lib/**/**/*.js test/index.js","lint":"npm run jscs && npm run jshint","test":"npm run lint && npm run unit","unit":"istanbul test _mocha --reporter=spec test/index.js","version":"grunt dist && git add dist/"},"version":"6.4.0"}
 
 /***/ }),
 /* 492 */
@@ -61050,7 +61052,7 @@ function getElementType(Component, props, getDefault) {
   // ----------------------------------------
   // user defined "as" element type
 
-  if (props.as && props.as !== (defaultProps && (defaultProps && (defaultProps && defaultProps.as)))) return props.as;
+  if (props.as && props.as !== (defaultProps && defaultProps.as)) return props.as;
 
   // ----------------------------------------
   // computed default element type
@@ -61068,7 +61070,7 @@ function getElementType(Component, props, getDefault) {
   // ----------------------------------------
   // use defaultProp or 'div'
 
-  return (defaultProps && (defaultProps && (defaultProps && defaultProps.as))) || 'div';
+  return (defaultProps && defaultProps.as) || 'div';
 }
 
 /* harmony default export */ __webpack_exports__["a"] = (getElementType);
@@ -70159,8 +70161,8 @@ var Search = function (_Component) {
       _this.setValue(newQuery);
     }, _this.getFlattenedResults = function () {
       var _this$props = _this.props,
-        category = _this$props.category,
-        results = _this$props.results;
+          category = _this$props.category,
+          results = _this$props.results;
 
 
       return !category ? results : __WEBPACK_IMPORTED_MODULE_13_lodash_reduce___default()(results, function (memo, categoryData) {
@@ -70219,24 +70221,22 @@ var Search = function (_Component) {
       _this.trySetState({ open: false });
     }, _this.renderSearchInput = function (rest) {
       var _this$props2 = _this.props,
-        icon = _this$props2.icon,
-        input = _this$props2.input;
+          icon = _this$props2.icon,
+          input = _this$props2.input;
       var value = _this.state.value;
 
 
       return __WEBPACK_IMPORTED_MODULE_21__elements_Input__["a" /* default */].create(input, { defaultProps: __WEBPACK_IMPORTED_MODULE_2_babel_runtime_helpers_extends___default()({}, rest, {
-        icon: icon,
-        input: { className: 'prompt', tabIndex: '0', autoComplete: 'off' },
-        onBlur: _this.handleBlur,
-        onChange: _this.handleSearchChange,
-        onClick: _this.handleInputClick,
-        onFocus: _this.handleFocus,
-        value: value
-      }) });
+          icon: icon,
+          input: { className: 'prompt', tabIndex: '0', autoComplete: 'off' },
+          onChange: _this.handleSearchChange,
+          onClick: _this.handleInputClick,
+          value: value
+        }) });
     }, _this.renderNoResults = function () {
       var _this$props3 = _this.props,
-        noResultsDescription = _this$props3.noResultsDescription,
-        noResultsMessage = _this$props3.noResultsMessage;
+          noResultsDescription = _this$props3.noResultsDescription,
+          noResultsMessage = _this$props3.noResultsMessage;
 
 
       return __WEBPACK_IMPORTED_MODULE_19_inferno_compat__["default"].createElement(
@@ -70257,7 +70257,7 @@ var Search = function (_Component) {
       var offset = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 0;
 
       var childKey = _ref3.childKey,
-        result = __WEBPACK_IMPORTED_MODULE_1_babel_runtime_helpers_objectWithoutProperties___default()(_ref3, ['childKey']);
+          result = __WEBPACK_IMPORTED_MODULE_1_babel_runtime_helpers_objectWithoutProperties___default()(_ref3, ['childKey']);
 
       var resultRenderer = _this.props.resultRenderer;
       var selectedIndex = _this.state.selectedIndex;
@@ -70279,8 +70279,8 @@ var Search = function (_Component) {
       return __WEBPACK_IMPORTED_MODULE_11_lodash_map___default()(results, _this.renderResult);
     }, _this.renderCategories = function () {
       var _this$props4 = _this.props,
-        categoryRenderer = _this$props4.categoryRenderer,
-        categories = _this$props4.results;
+          categoryRenderer = _this$props4.categoryRenderer,
+          categories = _this$props4.results;
       var selectedIndex = _this.state.selectedIndex;
 
 
@@ -70288,7 +70288,7 @@ var Search = function (_Component) {
 
       return __WEBPACK_IMPORTED_MODULE_11_lodash_map___default()(categories, function (_ref4) {
         var childKey = _ref4.childKey,
-          category = __WEBPACK_IMPORTED_MODULE_1_babel_runtime_helpers_objectWithoutProperties___default()(_ref4, ['childKey']);
+            category = __WEBPACK_IMPORTED_MODULE_1_babel_runtime_helpers_objectWithoutProperties___default()(_ref4, ['childKey']);
 
         var categoryProps = __WEBPACK_IMPORTED_MODULE_2_babel_runtime_helpers_extends___default()({
           key: childKey || category.name,
@@ -70307,9 +70307,9 @@ var Search = function (_Component) {
       });
     }, _this.renderMenuContent = function () {
       var _this$props5 = _this.props,
-        category = _this$props5.category,
-        showNoResults = _this$props5.showNoResults,
-        results = _this$props5.results;
+          category = _this$props5.category,
+          showNoResults = _this$props5.showNoResults,
+          results = _this$props5.results;
 
 
       if (__WEBPACK_IMPORTED_MODULE_8_lodash_isEmpty___default()(results)) {
@@ -70337,8 +70337,8 @@ var Search = function (_Component) {
     key: 'componentWillMount',
     value: function componentWillMount() {
       var _state = this.state,
-        open = _state.open,
-        value = _state.value;
+          open = _state.open,
+          value = _state.value;
 
 
       this.setValue(value);
@@ -70435,16 +70435,16 @@ var Search = function (_Component) {
     key: 'render',
     value: function render() {
       var _state2 = this.state,
-        searchClasses = _state2.searchClasses,
-        focus = _state2.focus,
-        open = _state2.open;
+          searchClasses = _state2.searchClasses,
+          focus = _state2.focus,
+          open = _state2.open;
       var _props = this.props,
-        aligned = _props.aligned,
-        category = _props.category,
-        className = _props.className,
-        fluid = _props.fluid,
-        loading = _props.loading,
-        size = _props.size;
+          aligned = _props.aligned,
+          category = _props.category,
+          className = _props.className,
+          fluid = _props.fluid,
+          loading = _props.loading,
+          size = _props.size;
 
       // Classes
 
@@ -70453,11 +70453,11 @@ var Search = function (_Component) {
       var ElementType = Object(__WEBPACK_IMPORTED_MODULE_20__lib__["o" /* getElementType */])(Search, this.props);
 
       var _partitionHTMLInputPr = Object(__WEBPACK_IMPORTED_MODULE_20__lib__["w" /* partitionHTMLInputProps */])(unhandled, {
-          htmlProps: __WEBPACK_IMPORTED_MODULE_20__lib__["q" /* htmlInputAttrs */]
-        }),
-        _partitionHTMLInputPr2 = __WEBPACK_IMPORTED_MODULE_0_babel_runtime_helpers_slicedToArray___default()(_partitionHTMLInputPr, 2),
-        htmlInputProps = _partitionHTMLInputPr2[0],
-        rest = _partitionHTMLInputPr2[1];
+        htmlProps: __WEBPACK_IMPORTED_MODULE_20__lib__["q" /* htmlInputAttrs */]
+      }),
+          _partitionHTMLInputPr2 = __WEBPACK_IMPORTED_MODULE_0_babel_runtime_helpers_slicedToArray___default()(_partitionHTMLInputPr, 2),
+          htmlInputProps = _partitionHTMLInputPr2[0],
+          rest = _partitionHTMLInputPr2[1];
 
       return __WEBPACK_IMPORTED_MODULE_19_inferno_compat__["default"].createElement(
         ElementType,
@@ -72498,7 +72498,7 @@ exports.init = function (language) {
     return lang;
   });
 };
-/* WEBPACK VAR INJECTION */}.call(exports, "brave\\app"))
+/* WEBPACK VAR INJECTION */}.call(exports, "brave/app"))
 
 /***/ }),
 /* 868 */
@@ -72506,12 +72506,6 @@ exports.init = function (language) {
 
 "use strict";
 
-
-function _classCallCheck(instance, Constructor) {
-  if (!(instance instanceof Constructor)) {
-    throw new TypeError('Cannot call a class as a function');
-  }
-}
 
 var string_prototype_startswith = __webpack_require__(869);
 var string_prototype_endswith = __webpack_require__(870);
@@ -72527,8 +72521,8 @@ L10nError.prototype = Object.create(Error.prototype);
 L10nError.prototype.constructor = L10nError;
 
 function load(url) {
-  return new Promise(function (resolve, reject) {
-    fs.readFile(url, function (err, data) {
+  return new Promise((resolve, reject) => {
+    fs.readFile(url, (err, data) => {
       if (err) {
         reject(new L10nError(err.message));
       } else {
@@ -72538,20 +72532,19 @@ function load(url) {
   });
 }
 
-function fetchResource$1(res, _ref) {
-  var code = _ref.code;
-
-  var url = res.replace('{locale}', code);
+function fetchResource$1(res, { code }) {
+  const url = res.replace('{locale}', code);
   return res.endsWith('.json') ? load(url).then(JSON.parse) : load(url);
 }
 
-var KNOWN_MACROS = ['plural'];
-var MAX_PLACEABLE_LENGTH = 2500;
+const KNOWN_MACROS = ['plural'];
+const MAX_PLACEABLE_LENGTH = 2500;
 
-var FSI = '⁨';
-var PDI = '⁩';
+// Unicode bidi isolation characters
+const FSI = '\u2068';
+const PDI = '\u2069';
 
-var resolutionChain = new WeakSet();
+const resolutionChain = new WeakSet();
 
 function format(ctx, lang, args, entity) {
   if (typeof entity === 'string') {
@@ -72564,8 +72557,10 @@ function format(ctx, lang, args, entity) {
 
   resolutionChain.add(entity);
 
-  var rv = undefined;
-
+  let rv;
+  // if format fails, we want the exception to bubble up and stop the whole
+  // resolving process;  however, we still need to remove the entity from the
+  // resolution chain
   try {
     rv = resolveValue({}, ctx, lang, args, entity.value, entity.index);
   } finally {
@@ -72587,11 +72582,13 @@ function resolveIdentifier(ctx, lang, args, id) {
     }
   }
 
+  // XXX: special case for Node.js where still:
+  // '__proto__' in Object.create(null) => true
   if (id === '__proto__') {
     throw new L10nError('Illegal id: ' + id);
   }
 
-  var entity = ctx._getEntity(lang, id);
+  const entity = ctx._getEntity(lang, id);
 
   if (entity) {
     return format(ctx, lang, args, entity);
@@ -72601,24 +72598,21 @@ function resolveIdentifier(ctx, lang, args, id) {
 }
 
 function subPlaceable(locals, ctx, lang, args, id) {
-  var newLocals = undefined,
-      value = undefined;
+  let newLocals, value;
 
   try {
-    var _resolveIdentifier = resolveIdentifier(ctx, lang, args, id);
-
-    newLocals = _resolveIdentifier[0];
-    value = _resolveIdentifier[1];
+    [newLocals, value] = resolveIdentifier(ctx, lang, args, id);
   } catch (err) {
     return [{ error: err }, FSI + '{{ ' + id + ' }}' + PDI];
   }
 
   if (typeof value === 'number') {
-    var formatter = ctx._getNumberFormatter(lang);
+    const formatter = ctx._getNumberFormatter(lang);
     return [newLocals, formatter.format(value)];
   }
 
   if (typeof value === 'string') {
+    // prevent Billion Laughs attacks
     if (value.length >= MAX_PLACEABLE_LENGTH) {
       throw new L10nError('Too many characters in placeable (' + value.length + ', max allowed is ' + MAX_PLACEABLE_LENGTH + ')');
     }
@@ -72629,38 +72623,36 @@ function subPlaceable(locals, ctx, lang, args, id) {
 }
 
 function interpolate(locals, ctx, lang, args, arr) {
-  return arr.reduce(function (_ref2, cur) {
-    var localsSeq = _ref2[0];
-    var valueSeq = _ref2[1];
-
+  return arr.reduce(([localsSeq, valueSeq], cur) => {
     if (typeof cur === 'string') {
       return [localsSeq, valueSeq + cur];
     } else {
-      var _subPlaceable = subPlaceable(locals, ctx, lang, args, cur.name);
-
-      var value = _subPlaceable[1];
-
+      const [, value] = subPlaceable(locals, ctx, lang, args, cur.name);
+      // wrap the substitution in bidi isolate characters
       return [localsSeq, valueSeq + value];
     }
   }, [locals, '']);
 }
 
 function resolveSelector(ctx, lang, args, expr, index) {
-  var selectorName = undefined;
+  //XXX: Dehardcode!!!
+  let selectorName;
   if (index[0].type === 'call' && index[0].expr.type === 'prop' && index[0].expr.expr.name === 'cldr') {
     selectorName = 'plural';
   } else {
     selectorName = index[0].name;
   }
-  var selector = resolveIdentifier(ctx, lang, args, selectorName)[1];
+  const selector = resolveIdentifier(ctx, lang, args, selectorName)[1];
 
   if (typeof selector !== 'function') {
+    // selector is a simple reference to an entity or args
     return selector;
   }
 
-  var argValue = index[0].args ? resolveIdentifier(ctx, lang, args, index[0].args[0].name)[1] : undefined;
+  const argValue = index[0].args ? resolveIdentifier(ctx, lang, args, index[0].args[0].name)[1] : undefined;
 
   if (selectorName === 'plural') {
+    // special cases for zero, one, two if they are defined on the hash
     if (argValue === 0 && 'zero' in expr) {
       return 'zero';
     }
@@ -72688,14 +72680,18 @@ function resolveValue(locals, ctx, lang, args, expr, index) {
     return interpolate(locals, ctx, lang, args, expr);
   }
 
+  // otherwise, it's a dict
   if (index) {
-    var selector = resolveSelector(ctx, lang, args, expr, index);
+    // try to use the index in order to select the right dict member
+    const selector = resolveSelector(ctx, lang, args, expr, index);
     if (selector in expr) {
       return resolveValue(locals, ctx, lang, args, expr[selector]);
     }
   }
 
-  var defaultKey = expr.__default || 'other';
+  // if there was no index or no selector was found, try the default
+  // XXX 'other' is an artifact from Gaia
+  const defaultKey = expr.__default || 'other';
   if (defaultKey in expr) {
     return resolveValue(locals, ctx, lang, args, expr[defaultKey]);
   }
@@ -72703,7 +72699,9 @@ function resolveValue(locals, ctx, lang, args, expr, index) {
   throw new L10nError('Unresolvable value');
 }
 
-var locales2rules = {
+/*eslint no-magic-numbers: [0]*/
+
+const locales2rules = {
   'af': 3,
   'ak': 4,
   'am': 4,
@@ -72876,18 +72874,21 @@ var locales2rules = {
   'zu': 3
 };
 
+// utility functions for plural rules methods
 function isIn(n, list) {
   return list.indexOf(n) !== -1;
 }
 function isBetween(n, start, end) {
-  return (typeof n === 'undefined' ? 'undefined' : babelHelpers.typeof(n)) === (typeof start === 'undefined' ? 'undefined' : babelHelpers.typeof(start)) && start <= n && n <= end;
+  return typeof n === typeof start && start <= n && n <= end;
 }
 
-var pluralRules = {
-  '0': function _() {
+// list of all plural rules methods:
+// map an integer to the plural form name to use
+const pluralRules = {
+  '0': function () {
     return 'other';
   },
-  '1': function _(n) {
+  '1': function (n) {
     if (isBetween(n % 100, 3, 10)) {
       return 'few';
     }
@@ -72905,7 +72906,7 @@ var pluralRules = {
     }
     return 'other';
   },
-  '2': function _(n) {
+  '2': function (n) {
     if (n !== 0 && n % 10 === 0) {
       return 'many';
     }
@@ -72917,25 +72918,25 @@ var pluralRules = {
     }
     return 'other';
   },
-  '3': function _(n) {
+  '3': function (n) {
     if (n === 1) {
       return 'one';
     }
     return 'other';
   },
-  '4': function _(n) {
+  '4': function (n) {
     if (isBetween(n, 0, 1)) {
       return 'one';
     }
     return 'other';
   },
-  '5': function _(n) {
+  '5': function (n) {
     if (isBetween(n, 0, 2) && n !== 2) {
       return 'one';
     }
     return 'other';
   },
-  '6': function _(n) {
+  '6': function (n) {
     if (n === 0) {
       return 'zero';
     }
@@ -72944,7 +72945,7 @@ var pluralRules = {
     }
     return 'other';
   },
-  '7': function _(n) {
+  '7': function (n) {
     if (n === 2) {
       return 'two';
     }
@@ -72953,7 +72954,7 @@ var pluralRules = {
     }
     return 'other';
   },
-  '8': function _(n) {
+  '8': function (n) {
     if (isBetween(n, 3, 6)) {
       return 'few';
     }
@@ -72968,7 +72969,7 @@ var pluralRules = {
     }
     return 'other';
   },
-  '9': function _(n) {
+  '9': function (n) {
     if (n === 0 || n !== 1 && isBetween(n % 100, 1, 19)) {
       return 'few';
     }
@@ -72977,7 +72978,7 @@ var pluralRules = {
     }
     return 'other';
   },
-  '10': function _(n) {
+  '10': function (n) {
     if (isBetween(n % 10, 2, 9) && !isBetween(n % 100, 11, 19)) {
       return 'few';
     }
@@ -72986,7 +72987,7 @@ var pluralRules = {
     }
     return 'other';
   },
-  '11': function _(n) {
+  '11': function (n) {
     if (isBetween(n % 10, 2, 4) && !isBetween(n % 100, 12, 14)) {
       return 'few';
     }
@@ -72998,7 +72999,7 @@ var pluralRules = {
     }
     return 'other';
   },
-  '12': function _(n) {
+  '12': function (n) {
     if (isBetween(n, 2, 4)) {
       return 'few';
     }
@@ -73007,7 +73008,7 @@ var pluralRules = {
     }
     return 'other';
   },
-  '13': function _(n) {
+  '13': function (n) {
     if (isBetween(n % 10, 2, 4) && !isBetween(n % 100, 12, 14)) {
       return 'few';
     }
@@ -73019,7 +73020,7 @@ var pluralRules = {
     }
     return 'other';
   },
-  '14': function _(n) {
+  '14': function (n) {
     if (isBetween(n % 100, 3, 4)) {
       return 'few';
     }
@@ -73031,7 +73032,7 @@ var pluralRules = {
     }
     return 'other';
   },
-  '15': function _(n) {
+  '15': function (n) {
     if (n === 0 || isBetween(n % 100, 2, 10)) {
       return 'few';
     }
@@ -73043,13 +73044,13 @@ var pluralRules = {
     }
     return 'other';
   },
-  '16': function _(n) {
+  '16': function (n) {
     if (n % 10 === 1 && n !== 11) {
       return 'one';
     }
     return 'other';
   },
-  '17': function _(n) {
+  '17': function (n) {
     if (n === 3) {
       return 'few';
     }
@@ -73067,7 +73068,7 @@ var pluralRules = {
     }
     return 'other';
   },
-  '18': function _(n) {
+  '18': function (n) {
     if (n === 0) {
       return 'zero';
     }
@@ -73076,7 +73077,7 @@ var pluralRules = {
     }
     return 'other';
   },
-  '19': function _(n) {
+  '19': function (n) {
     if (isBetween(n, 2, 10)) {
       return 'few';
     }
@@ -73085,7 +73086,7 @@ var pluralRules = {
     }
     return 'other';
   },
-  '20': function _(n) {
+  '20': function (n) {
     if ((isBetween(n % 10, 3, 4) || n % 10 === 9) && !(isBetween(n % 100, 10, 19) || isBetween(n % 100, 70, 79) || isBetween(n % 100, 90, 99))) {
       return 'few';
     }
@@ -73100,7 +73101,7 @@ var pluralRules = {
     }
     return 'other';
   },
-  '21': function _(n) {
+  '21': function (n) {
     if (n === 0) {
       return 'zero';
     }
@@ -73109,19 +73110,19 @@ var pluralRules = {
     }
     return 'other';
   },
-  '22': function _(n) {
+  '22': function (n) {
     if (isBetween(n, 0, 1) || isBetween(n, 11, 99)) {
       return 'one';
     }
     return 'other';
   },
-  '23': function _(n) {
+  '23': function (n) {
     if (isBetween(n % 10, 1, 2) || n % 20 === 0) {
       return 'one';
     }
     return 'other';
   },
-  '24': function _(n) {
+  '24': function (n) {
     if (isBetween(n, 3, 10) || isBetween(n, 13, 19)) {
       return 'few';
     }
@@ -73136,40 +73137,34 @@ var pluralRules = {
 };
 
 function getPluralRule(code) {
-  var index = locales2rules[code.replace(/-.*$/, '')];
+  // return a function that gives the plural form name for a given integer
+  const index = locales2rules[code.replace(/-.*$/, '')];
   if (!(index in pluralRules)) {
-    return function () {
-      return 'other';
-    };
+    return () => 'other';
   }
   return pluralRules[index];
 }
 
-var L20nIntl = typeof Intl !== 'undefined' ? Intl : {
-  NumberFormat: function NumberFormat() {
+// Safari 9 and iOS 9 does not support Intl
+const L20nIntl = typeof Intl !== 'undefined' ? Intl : {
+  NumberFormat: function () {
     return {
-      format: function format(v) {
+      format: function (v) {
         return v;
       }
     };
   }
 };
 
-var Context = function () {
-  function Context(env, langs, resIds) {
-    var _this = this;
-
-    _classCallCheck(this, Context);
-
+class Context {
+  constructor(env, langs, resIds) {
     this.langs = langs;
     this.resIds = resIds;
     this.env = env;
-    this.emit = function (type, evt) {
-      return env.emit(type, evt, _this);
-    };
+    this.emit = (type, evt) => env.emit(type, evt, this);
   }
 
-  Context.prototype._formatTuple = function _formatTuple(lang, args, entity, id, key) {
+  _formatTuple(lang, args, entity, id, key) {
     try {
       return format(this, lang, args, entity);
     } catch (err) {
@@ -73178,80 +73173,61 @@ var Context = function () {
       this.emit('resolveerror', err);
       return [{ error: err }, err.id];
     }
-  };
+  }
 
-  Context.prototype._formatEntity = function _formatEntity(lang, args, entity, id) {
-    var _formatTuple2 = this._formatTuple(lang, args, entity, id);
+  _formatEntity(lang, args, entity, id) {
+    const [, value] = this._formatTuple(lang, args, entity, id);
 
-    var value = _formatTuple2[1];
-
-    var formatted = {
-      value: value,
+    const formatted = {
+      value,
       attrs: null
     };
 
     if (entity.attrs) {
       formatted.attrs = Object.create(null);
-      for (var key in entity.attrs) {
-        var _formatTuple3 = this._formatTuple(lang, args, entity.attrs[key], id, key);
-
-        var attrValue = _formatTuple3[1];
-
+      for (let key in entity.attrs) {
+        /* jshint -W089 */
+        const [, attrValue] = this._formatTuple(lang, args, entity.attrs[key], id, key);
         formatted.attrs[key] = attrValue;
       }
     }
 
     return formatted;
-  };
+  }
 
-  Context.prototype._formatValue = function _formatValue(lang, args, entity, id) {
+  _formatValue(lang, args, entity, id) {
     return this._formatTuple(lang, args, entity, id)[1];
-  };
+  }
 
-  Context.prototype.fetch = function fetch() {
-    var _this2 = this;
-
-    var langs = arguments.length <= 0 || arguments[0] === undefined ? this.langs : arguments[0];
-
+  fetch(langs = this.langs) {
     if (langs.length === 0) {
       return Promise.resolve(langs);
     }
 
-    return Promise.all(this.resIds.map(function (resId) {
-      return _this2.env._getResource(langs[0], resId);
-    })).then(function () {
-      return langs;
-    });
-  };
+    return Promise.all(this.resIds.map(resId => this.env._getResource(langs[0], resId))).then(() => langs);
+  }
 
-  Context.prototype._resolve = function _resolve(langs, keys, formatter, prevResolved) {
-    var _this3 = this;
-
-    var lang = langs[0];
+  _resolve(langs, keys, formatter, prevResolved) {
+    const lang = langs[0];
 
     if (!lang) {
       return reportMissing.call(this, keys, formatter, prevResolved);
     }
 
-    var hasUnresolved = false;
+    let hasUnresolved = false;
 
-    var resolved = keys.map(function (key, i) {
+    const resolved = keys.map((key, i) => {
       if (prevResolved && prevResolved[i] !== undefined) {
         return prevResolved[i];
       }
-
-      var _ref3 = Array.isArray(key) ? key : [key, undefined];
-
-      var id = _ref3[0];
-      var args = _ref3[1];
-
-      var entity = _this3._getEntity(lang, id);
+      const [id, args] = Array.isArray(key) ? key : [key, undefined];
+      const entity = this._getEntity(lang, id);
 
       if (entity) {
-        return formatter.call(_this3, lang, args, entity, id);
+        return formatter.call(this, lang, args, entity, id);
       }
 
-      _this3.emit('notfounderror', new L10nError('"' + id + '" not found in ' + lang.code, id, lang));
+      this.emit('notfounderror', new L10nError('"' + id + '" not found in ' + lang.code, id, lang));
       hasUnresolved = true;
     });
 
@@ -73259,40 +73235,23 @@ var Context = function () {
       return resolved;
     }
 
-    return this.fetch(langs.slice(1)).then(function (nextLangs) {
-      return _this3._resolve(nextLangs, keys, formatter, resolved);
-    });
-  };
+    return this.fetch(langs.slice(1)).then(nextLangs => this._resolve(nextLangs, keys, formatter, resolved));
+  }
 
-  Context.prototype.formatEntities = function formatEntities() {
-    var _this4 = this;
+  formatEntities(...keys) {
+    return this.fetch().then(langs => this._resolve(langs, keys, this._formatEntity));
+  }
 
-    for (var _len = arguments.length, keys = Array(_len), _key = 0; _key < _len; _key++) {
-      keys[_key] = arguments[_key];
-    }
+  formatValues(...keys) {
+    return this.fetch().then(langs => this._resolve(langs, keys, this._formatValue));
+  }
 
-    return this.fetch().then(function (langs) {
-      return _this4._resolve(langs, keys, _this4._formatEntity);
-    });
-  };
+  _getEntity(lang, id) {
+    const cache = this.env.resCache;
 
-  Context.prototype.formatValues = function formatValues() {
-    var _this5 = this;
-
-    for (var _len2 = arguments.length, keys = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-      keys[_key2] = arguments[_key2];
-    }
-
-    return this.fetch().then(function (langs) {
-      return _this5._resolve(langs, keys, _this5._formatValue);
-    });
-  };
-
-  Context.prototype._getEntity = function _getEntity(lang, id) {
-    var cache = this.env.resCache;
-
-    for (var i = 0, resId = undefined; resId = this.resIds[i]; i++) {
-      var resource = cache.get(resId + lang.code + lang.src);
+    // Look for `id` in every resource in order.
+    for (let i = 0, resId; resId = this.resIds[i]; i++) {
+      const resource = cache.get(resId + lang.code + lang.src);
       if (resource instanceof L10nError) {
         continue;
       }
@@ -73301,44 +73260,43 @@ var Context = function () {
       }
     }
     return undefined;
-  };
+  }
 
-  Context.prototype._getNumberFormatter = function _getNumberFormatter(lang) {
+  _getNumberFormatter(lang) {
     if (!this.env.numberFormatters) {
       this.env.numberFormatters = new Map();
     }
     if (!this.env.numberFormatters.has(lang)) {
-      var formatter = L20nIntl.NumberFormat(lang);
+      const formatter = L20nIntl.NumberFormat(lang);
       this.env.numberFormatters.set(lang, formatter);
       return formatter;
     }
     return this.env.numberFormatters.get(lang);
-  };
+  }
 
-  Context.prototype._getMacro = function _getMacro(lang, id) {
+  // XXX in the future macros will be stored in localization resources together 
+  // with regular entities and this method will not be needed anymore
+  _getMacro(lang, id) {
     switch (id) {
       case 'plural':
         return getPluralRule(lang.code);
       default:
         return undefined;
     }
-  };
+  }
 
-  return Context;
-}();
+}
 
 function reportMissing(keys, formatter, resolved) {
-  var _this6 = this;
+  const missingIds = new Set();
 
-  var missingIds = new Set();
-
-  keys.forEach(function (key, i) {
+  keys.forEach((key, i) => {
     if (resolved && resolved[i] !== undefined) {
       return;
     }
-    var id = Array.isArray(key) ? key[0] : key;
+    const id = Array.isArray(key) ? key[0] : key;
     missingIds.add(id);
-    resolved[i] = formatter === _this6._formatValue ? id : { value: id, attrs: null };
+    resolved[i] = formatter === this._formatValue ? id : { value: id, attrs: null };
   });
 
   this.emit('notfounderror', new L10nError('"' + Array.from(missingIds).join(', ') + '"' + ' not found in any language', missingIds));
@@ -73346,14 +73304,14 @@ function reportMissing(keys, formatter, resolved) {
   return resolved;
 }
 
-var MAX_PLACEABLES = 100;
+const MAX_PLACEABLES = 100;
 
 var PropertiesParser = {
   patterns: null,
   entryIds: null,
   emit: null,
 
-  init: function init() {
+  init: function () {
     this.patterns = {
       comment: /^\s*#|^\s*$/,
       entity: /^([^=\s]+)\s*=\s*(.*)$/,
@@ -73366,20 +73324,20 @@ var PropertiesParser = {
     };
   },
 
-  parse: function parse(emit, source) {
+  parse: function (emit, source) {
     if (!this.patterns) {
       this.init();
     }
     this.emit = emit;
 
-    var entries = {};
+    const entries = {};
 
-    var lines = source.match(this.patterns.entries);
+    const lines = source.match(this.patterns.entries);
     if (!lines) {
       return entries;
     }
-    for (var i = 0; i < lines.length; i++) {
-      var line = lines[i];
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i];
 
       if (this.patterns.comment.test(line)) {
         continue;
@@ -73389,7 +73347,7 @@ var PropertiesParser = {
         line = line.slice(0, -1) + lines[++i].trim();
       }
 
-      var entityMatch = line.match(this.patterns.entity);
+      const entityMatch = line.match(this.patterns.entity);
       if (entityMatch) {
         try {
           this.parseEntity(entityMatch[1], entityMatch[2], entries);
@@ -73403,11 +73361,10 @@ var PropertiesParser = {
     return entries;
   },
 
-  parseEntity: function parseEntity(id, value, entries) {
-    var name = undefined,
-        key = undefined;
+  parseEntity: function (id, value, entries) {
+    let name, key;
 
-    var pos = id.indexOf('[');
+    const pos = id.indexOf('[');
     if (pos !== -1) {
       name = id.substr(0, pos);
       key = id.substring(pos + 1, id.length - 1);
@@ -73416,13 +73373,13 @@ var PropertiesParser = {
       key = null;
     }
 
-    var nameElements = name.split('.');
+    const nameElements = name.split('.');
 
     if (nameElements.length > 2) {
       throw this.error('Error in ID: "' + name + '".' + ' Nested attributes are not supported.');
     }
 
-    var attr = undefined;
+    let attr;
     if (nameElements.length > 1) {
       name = nameElements[0];
       attr = nameElements[1];
@@ -73437,13 +73394,13 @@ var PropertiesParser = {
     this.setEntityValue(name, attr, key, this.unescapeString(value), entries);
   },
 
-  setEntityValue: function setEntityValue(id, attr, key, rawValue, entries) {
-    var value = rawValue.indexOf('{{') > -1 ? this.parseString(rawValue) : rawValue;
+  setEntityValue: function (id, attr, key, rawValue, entries) {
+    const value = rawValue.indexOf('{{') > -1 ? this.parseString(rawValue) : rawValue;
 
-    var isSimpleValue = typeof value === 'string';
-    var root = entries;
+    let isSimpleValue = typeof value === 'string';
+    let root = entries;
 
-    var isSimpleNode = typeof entries[id] === 'string';
+    let isSimpleNode = typeof entries[id] === 'string';
 
     if (!entries[id] && (attr || key || !isSimpleValue)) {
       entries[id] = Object.create(null);
@@ -73452,7 +73409,7 @@ var PropertiesParser = {
 
     if (attr) {
       if (isSimpleNode) {
-        var val = entries[id];
+        const val = entries[id];
         entries[id] = Object.create(null);
         entries[id].value = val;
       }
@@ -73469,7 +73426,7 @@ var PropertiesParser = {
     if (key) {
       isSimpleNode = false;
       if (typeof root[id] === 'string') {
-        var val = root[id];
+        const val = root[id];
         root[id] = Object.create(null);
         root[id].index = this.parseIndex(val);
         root[id].value = Object.create(null);
@@ -73492,18 +73449,18 @@ var PropertiesParser = {
     }
   },
 
-  parseString: function parseString(str) {
-    var chunks = str.split(this.patterns.placeables);
-    var complexStr = [];
+  parseString: function (str) {
+    const chunks = str.split(this.patterns.placeables);
+    const complexStr = [];
 
-    var len = chunks.length;
-    var placeablesCount = (len - 1) / 2;
+    const len = chunks.length;
+    const placeablesCount = (len - 1) / 2;
 
     if (placeablesCount >= MAX_PLACEABLES) {
       throw this.error('Too many placeables (' + placeablesCount + ', max allowed is ' + MAX_PLACEABLES + ')');
     }
 
-    for (var i = 0; i < chunks.length; i++) {
+    for (let i = 0; i < chunks.length; i++) {
       if (chunks[i].length === 0) {
         continue;
       }
@@ -73516,17 +73473,15 @@ var PropertiesParser = {
     return complexStr;
   },
 
-  unescapeString: function unescapeString(str) {
+  unescapeString: function (str) {
     if (str.lastIndexOf('\\') !== -1) {
       str = str.replace(this.patterns.controlChars, '$1');
     }
-    return str.replace(this.patterns.unicode, function (match, token) {
-      return String.fromCodePoint(parseInt(token, 16));
-    });
+    return str.replace(this.patterns.unicode, (match, token) => String.fromCodePoint(parseInt(token, 16)));
   },
 
-  parseIndex: function parseIndex(str) {
-    var match = str.match(this.patterns.index);
+  parseIndex: function (str) {
+    const match = str.match(this.patterns.index);
     if (!match) {
       throw new L10nError('Malformed index');
     }
@@ -73551,10 +73506,8 @@ var PropertiesParser = {
     }
   },
 
-  error: function error(msg) {
-    var type = arguments.length <= 1 || arguments[1] === undefined ? 'parsererror' : arguments[1];
-
-    var err = new L10nError(msg);
+  error: function (msg, type = 'parsererror') {
+    const err = new L10nError(msg);
     if (this.emit) {
       this.emit(type, err);
     }
@@ -73562,10 +73515,10 @@ var PropertiesParser = {
   }
 };
 
-var MAX_PLACEABLES$1 = 100;
+const MAX_PLACEABLES$1 = 100;
 
 var L20nParser = {
-  parse: function parse(emit, string) {
+  parse: function (emit, string) {
     this._source = string;
     this._index = 0;
     this._length = string.length;
@@ -73575,13 +73528,14 @@ var L20nParser = {
     return this.getResource();
   },
 
-  getResource: function getResource() {
+  getResource: function () {
     this.getWS();
     while (this._index < this._length) {
       try {
         this.getEntry();
       } catch (e) {
         if (e instanceof L10nError) {
+          // we want to recover, but we don't need it in entries
           this.getJunkEntry();
           if (!this.emit) {
             throw e;
@@ -73599,10 +73553,10 @@ var L20nParser = {
     return this.entries;
   },
 
-  getEntry: function getEntry() {
+  getEntry: function () {
     if (this._source[this._index] === '<') {
       ++this._index;
-      var id = this.getIdentifier();
+      const id = this.getIdentifier();
       if (this._source[this._index] === '[') {
         ++this._index;
         return this.getEntity(id, this.getItemList(this.getExpression, ']'));
@@ -73617,15 +73571,15 @@ var L20nParser = {
     throw this.error('Invalid entry');
   },
 
-  getEntity: function getEntity(id, index) {
+  getEntity: function (id, index) {
     if (!this.getRequiredWS()) {
       throw this.error('Expected white space');
     }
 
-    var ch = this._source[this._index];
-    var hasIndex = index !== undefined;
-    var value = this.getValue(ch, hasIndex, hasIndex);
-    var attrs = undefined;
+    const ch = this._source[this._index];
+    const hasIndex = index !== undefined;
+    const value = this.getValue(ch, hasIndex, hasIndex);
+    let attrs;
 
     if (value === undefined) {
       if (ch === '>') {
@@ -73633,7 +73587,7 @@ var L20nParser = {
       }
       attrs = this.getAttributes();
     } else {
-      var ws1 = this.getRequiredWS();
+      const ws1 = this.getRequiredWS();
       if (this._source[this._index] !== '>') {
         if (!ws1) {
           throw this.error('Expected ">"');
@@ -73642,6 +73596,7 @@ var L20nParser = {
       }
     }
 
+    // skip '>'
     ++this._index;
 
     if (id in this.entries) {
@@ -73651,18 +73606,14 @@ var L20nParser = {
       this.entries[id] = value;
     } else {
       this.entries[id] = {
-        value: value,
-        attrs: attrs,
-        index: index
+        value,
+        attrs,
+        index
       };
     }
   },
 
-  getValue: function getValue() {
-    var ch = arguments.length <= 0 || arguments[0] === undefined ? this._source[this._index] : arguments[0];
-    var index = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
-    var required = arguments.length <= 2 || arguments[2] === undefined ? true : arguments[2];
-
+  getValue: function (ch = this._source[this._index], index = false, required = true) {
     switch (ch) {
       case '\'':
       case '"':
@@ -73678,45 +73629,55 @@ var L20nParser = {
     return undefined;
   },
 
-  getWS: function getWS() {
-    var cc = this._source.charCodeAt(this._index);
-
+  getWS: function () {
+    let cc = this._source.charCodeAt(this._index);
+    // space, \n, \t, \r
     while (cc === 32 || cc === 10 || cc === 9 || cc === 13) {
       cc = this._source.charCodeAt(++this._index);
     }
   },
 
-  getRequiredWS: function getRequiredWS() {
-    var pos = this._index;
-    var cc = this._source.charCodeAt(pos);
-
+  getRequiredWS: function () {
+    const pos = this._index;
+    let cc = this._source.charCodeAt(pos);
+    // space, \n, \t, \r
     while (cc === 32 || cc === 10 || cc === 9 || cc === 13) {
       cc = this._source.charCodeAt(++this._index);
     }
     return this._index !== pos;
   },
 
-  getIdentifier: function getIdentifier() {
-    var start = this._index;
-    var cc = this._source.charCodeAt(this._index);
+  getIdentifier: function () {
+    const start = this._index;
+    let cc = this._source.charCodeAt(this._index);
 
-    if (cc >= 97 && cc <= 122 || cc >= 65 && cc <= 90 || cc === 95) {
+    if (cc >= 97 && cc <= 122 || // a-z
+    cc >= 65 && cc <= 90 || // A-Z
+    cc === 95) {
+      // _
       cc = this._source.charCodeAt(++this._index);
     } else {
       throw this.error('Identifier has to start with [a-zA-Z_]');
     }
 
-    while (cc >= 97 && cc <= 122 || cc >= 65 && cc <= 90 || cc >= 48 && cc <= 57 || cc === 95) {
+    while (cc >= 97 && cc <= 122 || // a-z
+    cc >= 65 && cc <= 90 || // A-Z
+    cc >= 48 && cc <= 57 || // 0-9
+    cc === 95) {
+      // _
       cc = this._source.charCodeAt(++this._index);
     }
 
     return this._source.slice(start, this._index);
   },
 
-  getUnicodeChar: function getUnicodeChar() {
-    for (var i = 0; i < 4; i++) {
-      var cc = this._source.charCodeAt(++this._index);
-      if (cc > 96 && cc < 103 || cc > 64 && cc < 71 || cc > 47 && cc < 58) {
+  getUnicodeChar: function () {
+    for (let i = 0; i < 4; i++) {
+      const cc = this._source.charCodeAt(++this._index);
+      if (cc > 96 && cc < 103 || // a-f
+      cc > 64 && cc < 71 || // A-F
+      cc > 47 && cc < 58) {
+        // 0-9
         continue;
       }
       throw this.error('Illegal unicode escape sequence');
@@ -73726,19 +73687,19 @@ var L20nParser = {
   },
 
   stringRe: /"|'|{{|\\/g,
-  getString: function getString(opchar, opcharLen) {
-    var body = [];
-    var placeables = 0;
+  getString: function (opchar, opcharLen) {
+    const body = [];
+    let placeables = 0;
 
     this._index += opcharLen;
-    var start = this._index;
+    const start = this._index;
 
-    var bufStart = start;
-    var buf = '';
+    let bufStart = start;
+    let buf = '';
 
     while (true) {
       this.stringRe.lastIndex = this._index;
-      var match = this.stringRe.exec(this._source);
+      const match = this.stringRe.exec(this._source);
 
       if (!match) {
         throw this.error('Unclosed string literal');
@@ -73773,7 +73734,7 @@ var L20nParser = {
 
       if (match[0] === '\\') {
         this._index = match.index + 1;
-        var ch2 = this._source[this._index];
+        const ch2 = this._source[this._index];
         if (ch2 === 'u') {
           buf += this._source.slice(bufStart, match.index) + this.getUnicodeChar();
         } else if (ch2 === opchar || ch2 === '\\') {
@@ -73800,13 +73761,13 @@ var L20nParser = {
     return body;
   },
 
-  getAttributes: function getAttributes() {
-    var attrs = Object.create(null);
+  getAttributes: function () {
+    const attrs = Object.create(null);
 
     while (true) {
       this.getAttribute(attrs);
-      var ws1 = this.getRequiredWS();
-      var ch = this._source.charAt(this._index);
+      const ws1 = this.getRequiredWS();
+      const ch = this._source.charAt(this._index);
       if (ch === '>') {
         break;
       } else if (!ws1) {
@@ -73816,9 +73777,9 @@ var L20nParser = {
     return attrs;
   },
 
-  getAttribute: function getAttribute(attrs) {
-    var key = this.getIdentifier();
-    var index = undefined;
+  getAttribute: function (attrs) {
+    const key = this.getIdentifier();
+    let index;
 
     if (this._source[this._index] === '[') {
       ++this._index;
@@ -73831,8 +73792,8 @@ var L20nParser = {
     }
     ++this._index;
     this.getWS();
-    var hasIndex = index !== undefined;
-    var value = this.getValue(undefined, hasIndex);
+    const hasIndex = index !== undefined;
+    const value = this.getValue(undefined, hasIndex);
 
     if (key in attrs) {
       throw this.error('Duplicate attribute "' + key, 'duplicateerror');
@@ -73842,27 +73803,22 @@ var L20nParser = {
       attrs[key] = value;
     } else {
       attrs[key] = {
-        value: value,
-        index: index
+        value,
+        index
       };
     }
   },
 
-  getHash: function getHash(index) {
-    var items = Object.create(null);
+  getHash: function (index) {
+    const items = Object.create(null);
 
     ++this._index;
     this.getWS();
 
-    var defKey = undefined;
+    let defKey;
 
     while (true) {
-      var _getHashItem = this.getHashItem();
-
-      var key = _getHashItem[0];
-      var value = _getHashItem[1];
-      var def = _getHashItem[2];
-
+      const [key, value, def] = this.getHashItem();
       items[key] = value;
 
       if (def) {
@@ -73873,7 +73829,7 @@ var L20nParser = {
       }
       this.getWS();
 
-      var comma = this._source[this._index] === ',';
+      const comma = this._source[this._index] === ',';
       if (comma) {
         ++this._index;
         this.getWS();
@@ -73896,14 +73852,14 @@ var L20nParser = {
     return items;
   },
 
-  getHashItem: function getHashItem() {
-    var defItem = false;
+  getHashItem: function () {
+    let defItem = false;
     if (this._source[this._index] === '*') {
       ++this._index;
       defItem = true;
     }
 
-    var key = this.getIdentifier();
+    const key = this.getIdentifier();
     this.getWS();
     if (this._source[this._index] !== ':') {
       throw this.error('Expected ":"');
@@ -73914,10 +73870,10 @@ var L20nParser = {
     return [key, this.getValue(), defItem];
   },
 
-  getComment: function getComment() {
+  getComment: function () {
     this._index += 2;
-    var start = this._index;
-    var end = this._source.indexOf('*/', start);
+    const start = this._index;
+    const end = this._source.indexOf('*/', start);
 
     if (end === -1) {
       throw this.error('Comment without a closing tag');
@@ -73926,11 +73882,11 @@ var L20nParser = {
     this._index = end + 2;
   },
 
-  getExpression: function getExpression() {
-    var exp = this.getPrimaryExpression();
+  getExpression: function () {
+    let exp = this.getPrimaryExpression();
 
     while (true) {
-      var ch = this._source[this._index];
+      const ch = this._source[this._index];
       if (ch === '.' || ch === '[') {
         ++this._index;
         exp = this.getPropertyExpression(exp, ch === '[');
@@ -73945,8 +73901,8 @@ var L20nParser = {
     return exp;
   },
 
-  getPropertyExpression: function getPropertyExpression(idref, computed) {
-    var exp = undefined;
+  getPropertyExpression: function (idref, computed) {
+    let exp;
 
     if (computed) {
       this.getWS();
@@ -73968,7 +73924,7 @@ var L20nParser = {
     };
   },
 
-  getCallExpression: function getCallExpression(callee) {
+  getCallExpression: function (callee) {
     this.getWS();
 
     return {
@@ -73978,8 +73934,8 @@ var L20nParser = {
     };
   },
 
-  getPrimaryExpression: function getPrimaryExpression() {
-    var ch = this._source[this._index];
+  getPrimaryExpression: function () {
+    const ch = this._source[this._index];
 
     switch (ch) {
       case '$':
@@ -74002,9 +73958,9 @@ var L20nParser = {
     }
   },
 
-  getItemList: function getItemList(callback, closeChar) {
-    var items = [];
-    var closed = false;
+  getItemList: function (callback, closeChar) {
+    const items = [];
+    let closed = false;
 
     this.getWS();
 
@@ -74016,7 +73972,7 @@ var L20nParser = {
     while (!closed) {
       items.push(callback.call(this));
       this.getWS();
-      var ch = this._source.charAt(this._index);
+      const ch = this._source.charAt(this._index);
       switch (ch) {
         case ',':
           ++this._index;
@@ -74034,10 +73990,10 @@ var L20nParser = {
     return items;
   },
 
-  getJunkEntry: function getJunkEntry() {
-    var pos = this._index;
-    var nextEntity = this._source.indexOf('<', pos);
-    var nextComment = this._source.indexOf('/*', pos);
+  getJunkEntry: function () {
+    const pos = this._index;
+    let nextEntity = this._source.indexOf('<', pos);
+    let nextComment = this._source.indexOf('/*', pos);
 
     if (nextEntity === -1) {
       nextEntity = this._length;
@@ -74046,23 +74002,21 @@ var L20nParser = {
       nextComment = this._length;
     }
 
-    var nextEntry = Math.min(nextEntity, nextComment);
+    const nextEntry = Math.min(nextEntity, nextComment);
 
     this._index = nextEntry;
   },
 
-  error: function error(message) {
-    var type = arguments.length <= 1 || arguments[1] === undefined ? 'parsererror' : arguments[1];
+  error: function (message, type = 'parsererror') {
+    const pos = this._index;
 
-    var pos = this._index;
-
-    var start = this._source.lastIndexOf('<', pos - 1);
-    var lastClose = this._source.lastIndexOf('>', pos - 1);
+    let start = this._source.lastIndexOf('<', pos - 1);
+    const lastClose = this._source.lastIndexOf('>', pos - 1);
     start = lastClose > start ? lastClose + 1 : start;
-    var context = this._source.slice(start, pos + 10);
+    const context = this._source.slice(start, pos + 10);
 
-    var msg = message + ' at pos ' + pos + ': `' + context + '`';
-    var err = new L10nError(msg);
+    const msg = message + ' at pos ' + pos + ': `' + context + '`';
+    const err = new L10nError(msg);
     if (this.emit) {
       this.emit(type, err);
     }
@@ -74070,12 +74024,13 @@ var L20nParser = {
   }
 };
 
+// Walk an entry node searching for content leaves
 function walkEntry(entry, fn) {
   if (typeof entry === 'string') {
     return fn(entry);
   }
 
-  var newEntry = Object.create(null);
+  const newEntry = Object.create(null);
 
   if (entry.value) {
     newEntry.value = walkValue(entry.value, fn);
@@ -74087,7 +74042,7 @@ function walkEntry(entry, fn) {
 
   if (entry.attrs) {
     newEntry.attrs = Object.create(null);
-    for (var key in entry.attrs) {
+    for (let key in entry.attrs) {
       newEntry.attrs[key] = walkEntry(entry.attrs[key], fn);
     }
   }
@@ -74100,71 +74055,100 @@ function walkValue(value, fn) {
     return fn(value);
   }
 
+  // skip expressions in placeables
   if (value.type) {
     return value;
   }
 
-  var newValue = Array.isArray(value) ? [] : Object.create(null);
-  var keys = Object.keys(value);
+  const newValue = Array.isArray(value) ? [] : Object.create(null);
+  const keys = Object.keys(value);
 
-  for (var i = 0, key = undefined; key = keys[i]; i++) {
+  for (let i = 0, key; key = keys[i]; i++) {
     newValue[key] = walkValue(value[key], fn);
   }
 
   return newValue;
 }
 
+/* Pseudolocalizations
+ *
+ * pseudo is a dict of strategies to be used to modify the English
+ * context in order to create pseudolocalizations.  These can be used by
+ * developers to test the localizability of their code without having to
+ * actually speak a foreign language.
+ *
+ * Currently, the following pseudolocales are supported:
+ *
+ *   fr-x-psaccent - Ȧȧƈƈḗḗƞŧḗḗḓ Ḗḗƞɠŀīīşħ
+ *
+ *     In Accented English all English letters are replaced by accented
+ *     Unicode counterparts which don't impair the readability of the content.
+ *     This allows developers to quickly test if any given string is being
+ *     correctly displayed in its 'translated' form.  Additionally, simple
+ *     heuristics are used to make certain words longer to better simulate the
+ *     experience of international users.
+ *
+ *   ar-x-psbidi - ɥsıʅƃuƎ ıpıԐ
+ *
+ *     Bidi English is a fake RTL locale.  All words are surrounded by
+ *     Unicode formatting marks forcing the RTL directionality of characters.
+ *     In addition, to make the reversed text easier to read, individual
+ *     letters are flipped.
+ *
+ *     Note: The name above is hardcoded to be RTL in case code editors have
+ *     trouble with the RLO and PDF Unicode marks.  In reality, it should be
+ *     surrounded by those marks as well.
+ *
+ * See https://bugzil.la/900182 for more information.
+ *
+ */
+
 function createGetter(id, name) {
-  var _pseudo = null;
+  let _pseudo = null;
 
   return function getPseudo() {
     if (_pseudo) {
       return _pseudo;
     }
 
-    var reAlphas = /[a-zA-Z]/g;
-    var reVowels = /[aeiouAEIOU]/g;
-    var reWords = /[^\W0-9_]+/g;
+    const reAlphas = /[a-zA-Z]/g;
+    const reVowels = /[aeiouAEIOU]/g;
+    const reWords = /[^\W0-9_]+/g;
+    // strftime tokens (%a, %Eb), template {vars}, HTML entities (&#x202a;)
+    // and HTML tags.
+    const reExcluded = /(%[EO]?\w|\{\s*.+?\s*\}|&[#\w]+;|<\s*.+?\s*>)/;
 
-    var reExcluded = /(%[EO]?\w|\{\s*.+?\s*\}|&[#\w]+;|<\s*.+?\s*>)/;
-
-    var charMaps = {
+    const charMaps = {
       'fr-x-psaccent': 'ȦƁƇḒḖƑƓĦĪĴĶĿḾȠǾƤɊŘŞŦŬṼẆẊẎẐ[\\]^_`ȧƀƈḓḗƒɠħīĵķŀḿƞǿƥɋřşŧŭṽẇẋẏẑ',
-      'ar-x-psbidi': '∀ԐↃpƎɟפHIſӼ˥WNOԀÒᴚS⊥∩ɅＭXʎZ[\\]ᵥ_,ɐqɔpǝɟƃɥıɾʞʅɯuodbɹsʇnʌʍxʎz'
+      'ar-x-psbidi':
+      // XXX Use pɟפ˥ʎ as replacements for ᗡℲ⅁⅂⅄. https://bugzil.la/1007340
+      '∀ԐↃpƎɟפHIſӼ˥WNOԀÒᴚS⊥∩ɅＭXʎZ[\\]ᵥ_,ɐqɔpǝɟƃɥıɾʞʅɯuodbɹsʇnʌʍxʎz'
     };
 
-    var mods = {
-      'fr-x-psaccent': function frXPsaccent(val) {
-        return val.replace(reVowels, function (match) {
-          return match + match.toLowerCase();
-        });
-      },
+    const mods = {
+      'fr-x-psaccent': val => val.replace(reVowels, match => match + match.toLowerCase()),
 
-      'ar-x-psbidi': function arXPsbidi(val) {
-        return val.replace(reWords, function (match) {
-          return '‮' + match + '‬';
-        });
-      }
+      // Surround each word with Unicode formatting codes, RLO and PDF:
+      //   U+202E:   RIGHT-TO-LEFT OVERRIDE (RLO)
+      //   U+202C:   POP DIRECTIONAL FORMATTING (PDF)
+      // See http://www.w3.org/International/questions/qa-bidi-controls
+      'ar-x-psbidi': val => val.replace(reWords, match => '\u202e' + match + '\u202c')
     };
 
-    var ASCII_LETTER_A = 65;
-    var replaceChars = function replaceChars(map, val) {
-      return val.replace(reAlphas, function (match) {
-        return map.charAt(match.charCodeAt(0) - ASCII_LETTER_A);
-      });
-    };
+    // Replace each Latin letter with a Unicode character from map
+    const ASCII_LETTER_A = 65;
+    const replaceChars = (map, val) => val.replace(reAlphas, match => map.charAt(match.charCodeAt(0) - ASCII_LETTER_A));
 
-    var transform = function transform(val) {
-      return replaceChars(charMaps[id], mods[id](val));
-    };
+    const transform = val => replaceChars(charMaps[id], mods[id](val));
 
-    var apply = function apply(fn, val) {
+    // apply fn to translatable parts of val
+    const apply = (fn, val) => {
       if (!val) {
         return val;
       }
 
-      var parts = val.split(reExcluded);
-      var modified = parts.map(function (part) {
+      const parts = val.split(reExcluded);
+      const modified = parts.map(part => {
         if (reExcluded.test(part)) {
           return part;
         }
@@ -74175,14 +74159,12 @@ function createGetter(id, name) {
 
     return _pseudo = {
       name: transform(name),
-      process: function process(str) {
-        return apply(transform, str);
-      }
+      process: str => apply(transform, str)
     };
   };
 }
 
-var pseudo = Object.defineProperties(Object.create(null), {
+const pseudo = Object.defineProperties(Object.create(null), {
   'fr-x-psaccent': {
     enumerable: true,
     get: createGetter('fr-x-psaccent', 'Runtime Accented')
@@ -74193,25 +74175,15 @@ var pseudo = Object.defineProperties(Object.create(null), {
   }
 });
 
-function emit(listeners) {
-  var _this7 = this;
-
-  for (var _len3 = arguments.length, args = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
-    args[_key3 - 1] = arguments[_key3];
-  }
-
-  var type = args.shift();
+function emit(listeners, ...args) {
+  const type = args.shift();
 
   if (listeners['*']) {
-    listeners['*'].slice().forEach(function (listener) {
-      return listener.apply(_this7, args);
-    });
+    listeners['*'].slice().forEach(listener => listener.apply(this, args));
   }
 
   if (listeners[type]) {
-    listeners[type].slice().forEach(function (listener) {
-      return listener.apply(_this7, args);
-    });
+    listeners[type].slice().forEach(listener => listener.apply(this, args));
   }
 }
 
@@ -74223,8 +74195,8 @@ function addEventListener(listeners, type, listener) {
 }
 
 function removeEventListener(listeners, type, listener) {
-  var typeListeners = listeners[type];
-  var pos = typeListeners.indexOf(listener);
+  const typeListeners = listeners[type];
+  const pos = typeListeners.indexOf(listener);
   if (pos === -1) {
     return;
   }
@@ -74232,10 +74204,8 @@ function removeEventListener(listeners, type, listener) {
   typeListeners.splice(pos, 1);
 }
 
-var Env$1 = function () {
-  function Env$1(fetchResource) {
-    _classCallCheck(this, Env$1);
-
+class Env$1 {
+  constructor(fetchResource) {
     this.fetchResource = fetchResource;
 
     this.resCache = new Map();
@@ -74246,101 +74216,87 @@ var Env$1 = function () {
       l20n: L20nParser
     };
 
-    var listeners = {};
+    const listeners = {};
     this.emit = emit.bind(this, listeners);
     this.addEventListener = addEventListener.bind(this, listeners);
     this.removeEventListener = removeEventListener.bind(this, listeners);
   }
 
-  Env$1.prototype.createContext = function createContext(langs, resIds) {
-    var _this8 = this;
-
-    var ctx = new Context(this, langs, resIds);
-    resIds.forEach(function (resId) {
-      var usedBy = _this8.resRefs.get(resId) || 0;
-      _this8.resRefs.set(resId, usedBy + 1);
+  createContext(langs, resIds) {
+    const ctx = new Context(this, langs, resIds);
+    resIds.forEach(resId => {
+      const usedBy = this.resRefs.get(resId) || 0;
+      this.resRefs.set(resId, usedBy + 1);
     });
 
     return ctx;
-  };
+  }
 
-  Env$1.prototype.destroyContext = function destroyContext(ctx) {
-    var _this9 = this;
-
-    ctx.resIds.forEach(function (resId) {
-      var usedBy = _this9.resRefs.get(resId) || 0;
+  destroyContext(ctx) {
+    ctx.resIds.forEach(resId => {
+      const usedBy = this.resRefs.get(resId) || 0;
 
       if (usedBy > 1) {
-        return _this9.resRefs.set(resId, usedBy - 1);
+        return this.resRefs.set(resId, usedBy - 1);
       }
 
-      _this9.resRefs.delete(resId);
-      _this9.resCache.forEach(function (val, key) {
-        return key.startsWith(resId) ? _this9.resCache.delete(key) : null;
-      });
+      this.resRefs.delete(resId);
+      this.resCache.forEach((val, key) => key.startsWith(resId) ? this.resCache.delete(key) : null);
     });
-  };
+  }
 
-  Env$1.prototype._parse = function _parse(syntax, lang, data) {
-    var _this10 = this;
-
-    var parser = this.parsers[syntax];
+  _parse(syntax, lang, data) {
+    const parser = this.parsers[syntax];
     if (!parser) {
       return data;
     }
 
-    var emitAndAmend = function emitAndAmend(type, err) {
-      return _this10.emit(type, amendError(lang, err));
-    };
+    const emitAndAmend = (type, err) => this.emit(type, amendError(lang, err));
     return parser.parse(emitAndAmend, data);
-  };
+  }
 
-  Env$1.prototype._create = function _create(lang, entries) {
+  _create(lang, entries) {
     if (lang.src !== 'pseudo') {
       return entries;
     }
 
-    var pseudoentries = Object.create(null);
-    for (var key in entries) {
+    const pseudoentries = Object.create(null);
+    for (let key in entries) {
       pseudoentries[key] = walkEntry(entries[key], pseudo[lang.code].process);
     }
     return pseudoentries;
-  };
+  }
 
-  Env$1.prototype._getResource = function _getResource(lang, res) {
-    var _this11 = this;
-
-    var cache = this.resCache;
-    var id = res + lang.code + lang.src;
+  _getResource(lang, res) {
+    const cache = this.resCache;
+    const id = res + lang.code + lang.src;
 
     if (cache.has(id)) {
       return cache.get(id);
     }
 
-    var syntax = res.substr(res.lastIndexOf('.') + 1);
+    const syntax = res.substr(res.lastIndexOf('.') + 1);
 
-    var saveEntries = function saveEntries(data) {
-      var entries = _this11._parse(syntax, lang, data);
-      cache.set(id, _this11._create(lang, entries));
+    const saveEntries = data => {
+      const entries = this._parse(syntax, lang, data);
+      cache.set(id, this._create(lang, entries));
     };
 
-    var recover = function recover(err) {
+    const recover = err => {
       err.lang = lang;
-      _this11.emit('fetcherror', err);
+      this.emit('fetcherror', err);
       cache.set(id, err);
     };
 
-    var langToFetch = lang.src === 'pseudo' ? { code: 'en-US', src: 'app', ver: lang.ver } : lang;
+    const langToFetch = lang.src === 'pseudo' ? { code: 'en-US', src: 'app', ver: lang.ver } : lang;
 
-    var resource = this.fetchResource(res, langToFetch).then(saveEntries, recover);
+    const resource = this.fetchResource(res, langToFetch).then(saveEntries, recover);
 
     cache.set(id, resource);
 
     return resource;
-  };
-
-  return Env$1;
-}();
+  }
+}
 
 function amendError(lang, err) {
   err.lang = lang;

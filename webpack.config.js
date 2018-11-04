@@ -36,10 +36,11 @@ const baseConfig = {
     process: false,
     __filename: true,
     __dirname: true,
-    fs: 'empty'
+    fs: 'empty',
+    electron: 'empty'
   },
   externals: {
-    'electron': 'chrome'
+    'electron': 'require("electron")'
   },
   module: {
     loaders: [
@@ -95,6 +96,7 @@ const baseConfigExt = {
 
 const baseConfig2 = Object.assign({},baseConfig)
 baseConfig2.plugins = baseConfig.plugins.slice(1)
+baseConfig2.externals = {'electron': 'chrome'}
 delete baseConfig2.devtool
 
 // delete baseConfig.plugins
@@ -123,6 +125,6 @@ module.exports = [
   // merge({fileName:"inputHistorySetting.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
   // merge({fileName:"macro.js",src:path.join(__dirname,"./src/defaultExtension/"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfigExt),
   // merge({fileName:"mobilePanel.js",src:path.join(__dirname,"./src/defaultExtension/"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfigExt),
-  // merge({fileName:"contentscript.js",src:path.join(__dirname,"./src/defaultExtension/"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfigExt),
+  merge({fileName:"contentscript.js",src:path.join(__dirname,"./src/defaultExtension/"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfigExt),
   // merge({fileName:"bg.js",src:path.join(__dirname,"./src/defaultExtension/"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfigExt),
 ]

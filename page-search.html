@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="resource/css/semantic-ui/semantic.min.css">
+  <link rel="stylesheet" href="style/css/base.css">
+  <link rel="stylesheet" href="style/css/browser-page.css">
+  <link rel="stylesheet" href="style/css/font-awesome.css">
+</head>
+<body>
+<div class="visible browser-page-search">
+  <input class="search-text" id="text" type="text" placeholder="Search...">
+  <a class="search-button" id="back" href="javascript:void(0)">
+    <i class="search-next fa fa-angle-up" style="font-size: 1.5em; line-height: 1.2; height: 30px;"></i>
+  </a>
+  <a class="search-button" id="forward" href="javascript:void(0)">
+    <i class="search-prev fa fa-angle-down" style="font-size: 1.5em; line-height: 1.3; height: 30px;"></i>
+  </a>
+  <span class="search-num"></span>
+  <div class="ui checkbox" style="padding-left: 4px; border-left: 1px solid rgb(170, 170, 170);">
+    <input class="hidden" readonly="" tabindex="0" type="checkbox">
+    <label id="case">Case</label>
+  </div>
+  <div class="ui checkbox">
+    <input class="hidden" readonly="" tabindex="0" type="checkbox">
+    <label id="or">OR</label>
+  </div>
+  <div class="ui checkbox">
+    <input class="hidden" readonly="" tabindex="0" type="checkbox">
+    <label id="reg">Reg</label>
+  </div>
+  <div class="ui checkbox">
+    <input class="hidden" readonly="" tabindex="0" type="checkbox">
+    <label id="all">All</label>
+  </div>
+  <a class="search-button" id="close" href="javascript:void(0)">
+    <div class="search-close" style="line-height: 1.5; height: 30px;">☓</div>
+  </a>
+</div>
+<script>
+  const {ipcRenderer} = require('electron')
+
+  ipcRenderer.on('page-search-data', (e, panelKey, tabKey, progress, state) => {
+    window.panelKey = panelKey
+    window.tabKey = tabKey
+    document.querySelector('.search-num').innerHTML = progress
+
+    for(let id of ['case','or','reg']){
+      const ele = document.querySelector(`#${id}`)
+      const checkbox = ele.parentNode
+      if(!state[id]){
+        checkbox.querySelector('input').checked = false
+        checkbox.classList.remove('checked')
+      }
+      else{
+        checkbox.querySelector('input').checked = true
+        checkbox.classList.add('checked')
+      }
+    }
+    const text = document.querySelector('#text')
+    text.value = state.value || ""
+
+    if(state.focus){
+      text.focus()
+    }
+  })
+
+  const text = document.querySelector('#text')
+  text.addEventListener('keydown', (e)=>{
+    if (e.keyCode == 13) {
+      e.preventDefault()
+      ipcRenderer.send('page-search-event',window.panelKey, window.tabKey, 'text-keydown', e.target.value, e.shiftKey)
+    }
+    else
+    if (e.keyCode == 27) { // ESC
+      ipcRenderer.send('page-search-event', window.panelKey, window.tabKey, 'close')
+    }
+  })
+
+  text.addEventListener('input', (e)=>{
+    e.preventDefault()
+    ipcRenderer.send('page-search-event', window.panelKey, window.tabKey,'text-input', e.target.value)
+  })
+
+  const back = document.querySelector('#back')
+  back.addEventListener('click', (e)=>{
+    ipcRenderer.send('page-search-event', window.panelKey, window.tabKey, 'back')
+  })
+
+  const forward = document.querySelector('#forward')
+  forward.addEventListener('click', (e)=>{
+    ipcRenderer.send('page-search-event', window.panelKey, window.tabKey, 'forward')
+  })
+
+  for(let id of ['case','or','reg','all']){
+    const ele = document.querySelector(`#${id}`)
+    ele.addEventListener('click', (e)=>{
+      const checkbox = e.target.closest('.ui.checkbox')
+      if(checkbox.classList.contains('checked')){
+        checkbox.querySelector('input').checked = false
+        checkbox.classList.remove('checked')
+      }
+      else{
+        checkbox.querySelector('input').checked = true
+        checkbox.classList.add('checked')
+      }
+      ipcRenderer.send('page-search-event', window.panelKey, window.tabKey, 'check', id, checkbox.classList.contains('checked'))
+    })
+  }
+
+  const close = document.querySelector('#close')
+  close.addEventListener('click', (e)=>{
+    ipcRenderer.send('page-search-event', window.panelKey, window.tabKey, 'close')
+  })
+
+</script>
+</body>
+</html>

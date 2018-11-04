@@ -4,7 +4,7 @@
 
 'use strict'
 
-const L20n = require('l20n')
+const L20n = require('./l20n')
 const path = require('path')
 const ipcMain = require('electron').ipcMain
 const electron = require('electron')

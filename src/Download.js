@@ -5,7 +5,7 @@ const _webContents = webContents
 import mainState from './mainState'
 const Aria2cWrapper = require('./Aria2cWrapper')
 const FfmpegWrapper = require('./FfmpegWrapper')
-const {redirectUrlsCache} = require('../brave/adBlock')
+const {redirectUrlsCache} = {} //require('../brave/adBlock') @TODO ELECTRON
 const sanitizeFilename = require('./sanitizeFilename')
 
 const path = require('path')
@@ -80,11 +80,11 @@ function replaceFileName(savePath,url,fname){
 }
 
 export default class Download {
-  getData(map,url){
+  getData(map,url,urlChain){
     if(map[url] === void 0){
-      const rUrl = redirectUrlsCache.get(url)
+      const rUrl = urlChain[0]
       if(rUrl){
-        return this.getData(map,rUrl)
+        return this.getData(map,rUrl,urlChain.slice(1))
       }
     }
     else{
@@ -148,18 +148,19 @@ export default class Download {
 
     const ses = win.webContents.session
     ses.on('will-download', (event, item, webContents) => {
-      console.log("will-download0")
-      if (!webContents || webContents.isDestroyed()) {
+      if (!webContents || webContents.isDestroyed() || item.isDestroyed()) {
         event.preventDefault()
         return
       }
+      console.log("will-download0",item.getURLChain())
 
       const bw = (!webContents.isDestroyed() && BrowserWindow.fromWebContents(webContents)) || BrowserWindow.getFocusedWindow()
       console.log("will-download",bw === win)
       if(bw !== win) return
 
 
-      let downloadId = item.getGuid()
+      let downloadId = `${item.getURL()}\t${item.getStartTime()}`
+      const urlChain = item.getURLChain()
       // let initialNav = false
       // const controller = webContents.controller()
       // if (controller && controller.isValid() && controller.isInitialNavigation()) {
@@ -198,9 +199,9 @@ export default class Download {
         active = false
       }
 
-      let savePath = this.getData(this.savePath,url),
-        audioExtract = this.getData(this.audioExtract,url),
-        videoConvert = this.getData(this.videoConvert,url),
+      let savePath = this.getData(this.savePath,url,urlChain),
+        audioExtract = this.getData(this.audioExtract,url,urlChain),
+        videoConvert = this.getData(this.videoConvert,url,urlChain),
       overwrite = false
 
       console.log(1,savePath)
@@ -216,13 +217,13 @@ export default class Download {
       savePath = replaceFileName(savePath,url,fname)
 
       console.log(3,savePath)
-      if(!win.webContents.isDestroyed()) win.webContents.send(`download-start-tab_${webContents.getId()}`)
+      if(!win.webContents.isDestroyed()) win.webContents.send(`download-start-tab_${webContents.id}`)
 
-      const needSavePath = this.getData(this.needSavePath,url)
+      const needSavePath = this.getData(this.needSavePath,url,urlChain)
       console.log('down2',url)
-      const noNeedSavePath = this.getData(this.noNeedSavePath,url)
+      const noNeedSavePath = this.getData(this.noNeedSavePath,url,urlChain)
 
-      const saveDirectory = this.getData(this.saveDirectory,url)
+      const saveDirectory = this.getData(this.saveDirectory,url,urlChain)
       let autoSetSavePath
       console.log(4)
       if(!savePath){
@@ -231,19 +232,21 @@ export default class Download {
         console.log(5,savePath)
       }
 
-      if((mainState.askDownload && !noNeedSavePath) || needSavePath || (this.getData(this.prompt,url) && fs.existsSync(savePath))){
+      if((mainState.askDownload && !noNeedSavePath) || needSavePath || (this.getData(this.prompt,url,urlChain) && fs.existsSync(savePath))){
         console.log("needSavePath")
-        const isSavePageAs = this.getData(this.savePageAs,url)
-        const opt = isSavePageAs ? {defaultPath: savePath,type: 'select-saveas-file', extensions: [['html'],['mht']], includeAllFiles:false } :
-          {defaultPath: savePath,type: 'select-saveas-file',includeAllFiles:true }
-        dialog.showDialog(win,opt,filepaths=>{
-          if(!filepaths || filepaths.length > 1){
+        const isSavePageAs = this.getData(this.savePageAs,url,urlChain)
+        const opt = isSavePageAs ? {defaultPath: savePath, filters: [
+              {name: 'HTML File', extensions: ['html']},
+              {name: 'MHTML File', extensions: ['mht']}
+            ] } : {defaultPath: savePath }
+        dialog.showSaveDialog(win,opt,filepath=>{
+          if(!filepath){
             if(active) item.destroy()
             return
           }
 
           console.log(6)
-          savePath = filepaths[0]
+          savePath = filepath
           if(savePath.endsWith(".mht") || savePath.endsWith(".mhtml")){
             console.log(43432,savePath,cont.getURL())
             cont.savePage(savePath, 'MHTML', (error) => {
@@ -268,7 +271,7 @@ export default class Download {
           }
 
           overwrite = true
-          this.process(url, overwrite, savePath, item, webContents, win, mimeType, audioExtract, videoConvert, cond, downloadId);
+          this.process(url, overwrite, savePath, item, webContents, win, mimeType, audioExtract, videoConvert, cond, downloadId ,urlChain);
         })
         return
       }
@@ -282,19 +285,18 @@ export default class Download {
         console.log(7)
       }
 
-      this.process(url, overwrite, savePath, item, webContents, win, mimeType, audioExtract, videoConvert, cond, downloadId);
+      this.process(url, overwrite, savePath, item, webContents, win, mimeType, audioExtract, videoConvert, cond, downloadId ,urlChain);
     })
   }
 
-  process(url, overwrite, savePath, item, webContents, win, mimeType, audioExtract, videoConvert, cond, downloadId) {
+  process(url, overwrite, savePath, item, webContents, win, mimeType, audioExtract, videoConvert, cond, downloadId, urlChain) {
     console.log('downloadId1',downloadId)
     if (!cond || retry.has(url) || url.startsWith('data:') || url.startsWith('blob:') || url.startsWith('chrome-extension:')) {
-      item.setPrompt(false)
       console.log('retry')
       downloadId = retry.get(url)
       console.log('downloadId2',downloadId)
       retry.delete(url)
-      if (!this.getData(this.overwrite, url)) {
+      if (!this.getData(this.overwrite, url,urlChain)) {
         savePath = this.getUniqFileName(savePath)
       }
       item.setSavePath(savePath)
@@ -314,7 +316,7 @@ export default class Download {
       // }
       let id, updated, ended, isError
 
-      const aria2cKey = this.getData(this.dlKey, url)
+      const aria2cKey = this.getData(this.dlKey, url,urlChain)
       if(aria2cKey) downloadId = aria2cKey
       const dl = new Aria2cWrapper({
         url,
@@ -334,7 +336,7 @@ export default class Download {
         dl.once('error', (_) => {
           console.log('error')
           if (!win.webContents.isDestroyed()) win.webContents.send('download-progress', this.buildItem(dl));
-          if (!isError) {
+          if (!isError && Date.now() - parseInt(downloadId.split("\t")[1]) < 10000) {
             isError = true
             retry.set(url,downloadId)
             global.downloadItems = global.downloadItems.filter(i => i !== dl)
@@ -419,8 +421,8 @@ export default class Download {
       }
       if(videoConvert){
         getFocusedWebContents().then(cont=>{
-          console.log(cont.getId(),cont.getURL())
-          cont.hostWebContents.send('new-tab',cont.getId(),
+          console.log(cont.id,cont.getURL())
+          cont.hostWebContents2.send('new-tab',cont.id,
             `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html?data=${encodeURIComponent(JSON.stringify({path:item.getSavePath(),info:videoConvert}))}`,
             void 0, void 0, void 0, true)
         })

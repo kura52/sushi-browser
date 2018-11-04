@@ -90,8 +90,8 @@ export default class BrowserNavbarLocation extends Component {
     this.isFloat = isFloatPanel(props.k)
   }
 
-  keyEvent(e){
-    if (e.channel == 'navbar-search') {
+  keyEvent(e, msg, ...args){
+    if (msg == 'navbar-search') {
       const input = (this.input || ReactDOM.findDOMNode(this.refs.input).querySelector("input"))
       input.focus()
     }
@@ -129,12 +129,12 @@ export default class BrowserNavbarLocation extends Component {
     PubSub.unsubscribe(this.token)
     if(this.props.tab.privateMode == 'persist:tor') ipc.removeListener('focus-location-bar',this.keyEvent2)
     ipc.removeListener('tor-progress',this.torEvent)
-    if(this.props.wv) this.props.wv.removeEventListener('ipc-message',this.keyEvent)
+    ipc.removeListener(`send-to-host_${this.props.tab.wvId}`,this.keyEvent)
   }
 
   addEvent(props) {
-    props.wv.removeEventListener('ipc-message',this.keyEvent)
-    props.wv.addEventListener('ipc-message',this.keyEvent)
+    ipc.removeListener(`send-to-host_${props.tab.wvId}`,this.keyEvent)
+    ipc.on(`send-to-host_${props.tab.wvId}`,this.keyEvent)
   }
 
   componentWillReceiveProps(nextProps) {

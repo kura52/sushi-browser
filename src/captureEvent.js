@@ -18,7 +18,7 @@ if (!fs.existsSync(capturePath)) {
 }
 
 async function captureCurrentPage(_id,pageUrl,loc,base64,sender,tabId){
-  const cont = tabId ? webContents.fromTabID(tabId) : (await getFocusedWebContents())
+  const cont = tabId ? webContents.fromId(tabId) : (await getFocusedWebContents())
   // eval(locus)
   if(cont){
     if(base64){
@@ -95,7 +95,7 @@ ipcMain.on('take-capture', async (event,{id,url,loc,base64,tabId,tabIds}) => {
   if(tabIds){
     const promises = []
     for(let tabId of tabIds){
-      const cont = webContents.fromTabID(tabId)
+      const cont = webContents.fromId(tabId)
       if(!cont) continue
       promises.push(new Promise(r=>{
         cont.capturePage((imageBuffer)=>{

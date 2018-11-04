@@ -9,6 +9,8 @@ import Selection from '../render/react-selection/indexTable';
 import path from 'path';
 
 import ReactTable from 'react-table';
+import LRUCache from 'lru-cache'
+const cache = new LRUCache(200)
 
 const l10n = require('../../brave/js/l10n')
 l10n.init()
@@ -121,7 +123,30 @@ function calcSpeedSec(item){
 function calcSpeed(item){
   const diff =item.now - item.created_at
   const percent = round(item.receivedBytes / item.totalBytes * 100,1)
-  const speed = item.speed ? calcSpeedSec(item) : item.receivedBytes / diff * 1000
+
+  let speed = item.receivedBytes / diff * 1000
+  if(!item.speed){
+    const preList = cache.get(item.key)
+    if(preList){
+      const preList2 = []
+      for(let i=preList.length - 1; i>= 0; i--){
+        const pre = preList[i]
+        preList2.push(pre)
+        if(item.now - pre.now > 3000){
+          speed = (item.receivedBytes - pre.receivedBytes) / (item.now - pre.now) * 1000
+          cache.set(item.key,preList2.reverse())
+          break
+        }
+      }
+    }
+    else{
+      cache.set(item.key, [])
+    }
+    cache.get(item.key).push({receivedBytes: item.receivedBytes, now: item.now})
+  }
+  else{
+    speed = this.calcSpeedSec(item)
+  }
   const restTime = (item.totalBytes - item.receivedBytes) / speed
 
   return {diff,percent,speed,restTime}

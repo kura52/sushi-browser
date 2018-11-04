@@ -470,7 +470,7 @@ class Contents extends React.Component {
       if(cmd == "openInNewWindow") {
         const currentNode = this.menuKey
         this.menuKey = (void 0)
-        openState(this.props.cont ? this.props.cont.getId() : (void 0),currentNode.datas || currentNode.id).then(_=>{
+        openState(this.props.cont ? this.props.cont.id : (void 0),currentNode.datas || currentNode.id).then(_=>{
           this.props.onClick && this.props.onClick()
         })
       }
@@ -509,7 +509,7 @@ class Contents extends React.Component {
           text: `Enter a new Name`,
           initValue: [currentNode.name],
           needInput: ["Title"]
-        },this.props.cont ? this.props.cont.getId() : (void 0)).then(value => {
+        },this.props.cont ? this.props.cont.id : (void 0)).then(value => {
           if (!value) return
           const data = {name:value[0]}
           renameState(currentNode.id,data).then(_=>_)
@@ -555,11 +555,11 @@ class Contents extends React.Component {
             if(currentNode.type == 'file'){
               const type = event.button == 1 ? 'create-web-contents' : openType ? 'new-tab' : 'load-url'
               if(this.props.cont) {
-                this.props.cont.hostWebContents.send('restore-tab', this.props.cont.getId(), currentNode.id, void 0, [] ,type)
+                this.props.cont.hostWebContents2.send('restore-tab', this.props.cont.id, currentNode.id, void 0, [] ,type)
                 if (this.props.onClick) this.props.onClick()
               }
               else{
-                ipc.sendToHost("restore-tab-opposite", currentNode.id, void 0, [],type)
+                ipc.send('send-to-host', "restore-tab-opposite", currentNode.id, void 0, [],type)
               }
               return
             }

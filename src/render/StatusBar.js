@@ -28,10 +28,10 @@ export default class StatusBarWrapper extends Component {
       if(!sharedState.statusBar){
         clearTimeout(this.id)
         this.id = setTimeout(_=>{
-          this.getWebContents(this.props.tab).executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd','document.scrollingElement.scrollWidth - document.scrollingElement.clientWidth', {},(err, url, result)=>{
+          this.getWebContents(this.props.tab).executeJavaScript('document.scrollingElement.scrollWidth - document.scrollingElement.clientWidth',(result)=>{
             this.hoverStatusBar = val
-            console.log(543543543,result[0])
-            if(result[0] !== 0){
+            console.log(543543543,result)
+            if(result !== 0){
               this.margin = true
             }
             else{
@@ -108,14 +108,14 @@ class StatusBar extends Component {
     }
     if(cont){
       ipc.on(`get-on-dom-ready-reply_${this.props.tab.wvId}`,this.updateZoom)
-      this.setState({percent: cont.getZoomPercent()})
+      cont.getZoomFactor(factor=>this.setState({percent: factor * 100}))
     }
   }
 
   updateZoom(){
     const cont = this.getWebContents(this.props.tab)
     if(!cont.isDestroyed()){
-      this.setState({percent: this.getWebContents(this.props.tab).getZoomPercent()})
+      cont.getZoomFactor(factor=>this.setState({percent: factor * 100}))
     }
 
   }
@@ -149,7 +149,7 @@ class StatusBar extends Component {
 
   zoomCoomon(type){
     const percent = this.state.percent + parseInt(mainState.zoomBehavior) * (type == 'zoomOut' ? -1 : 1)
-    this.getWebContents(this.props.tab).setZoomLevel(sharedState.zoomMapping.get(percent))
+    this.getWebContents(this.props.tab).setZoomFactor(percent/100.0)
     this.setState({percent})
   }
 
@@ -223,7 +223,7 @@ class StatusBar extends Component {
         <span className="vertical-divider"/>
 
         <a className='zoom-reset' onClick={_=>{
-          ipc.send('set-zoom',this.props.tab.wvId,0)
+          ipc.send('set-zoom',this.props.tab.wvId,1)
           PubSub.publish(`zoom_${this.props.tab.key}`,100)
           this.setState({percent: 100})
         }}>Reset</a>
@@ -233,7 +233,7 @@ class StatusBar extends Component {
                   const percent = parseInt(e.target.value)
                   clearTimeout(this.clearId)
                   this.clearId = setTimeout(_=>{
-                    ipc.send('set-zoom',this.props.tab.wvId,sharedState.zoomMapping.get(percent))
+                    ipc.send('set-zoom',this.props.tab.wvId,percent/100.0)
                     PubSub.publish(`zoom_${this.props.tab.key}`,percent)
                   },100)
                   this.setState({percent})

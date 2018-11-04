@@ -22,7 +22,7 @@ let homePath
 
 function clickFile(node){
   if(node.props.isLeaf){
-    ipc.sendToHost("open-tab-opposite",node.props.eventKey.replace(/\\/g,'/'))
+    ipc.send('send-to-host', "open-tab-opposite",node.props.eventKey.replace(/\\/g,'/'))
   }
   else{
     node.onExpand()

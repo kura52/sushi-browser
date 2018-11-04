@@ -108,6 +108,8 @@ const settingDefault =  {
   inputHistory: true,
   inputHistoryAll: false,
   inputHistoryMaxChar: 10000,
+  visitedLinkColor: '#551a8b',
+  visitedLinkColorWhite: '#d0d0d0',
 
   //privacy
   clearHistoryOnClose: false,

@@ -116,7 +116,7 @@ function init(){
     let message = `${username}::${origin}`
     const key = uuid.v4()
 
-    tab.hostWebContents.send('show-notification',{id:tab.getId(),key,text:'Would you like to save this password?', buttons:['Yes','No','Never']})
+    tab.hostWebContents2.send('show-notification',{id:tab.id,key,text:'Would you like to save this password?', buttons:['Yes','No','Never']})
 
     ipcMain.once(`reply-notification-${key}`,(e,ret)=>{
       if(ret.pressIndex == 0){
@@ -136,7 +136,7 @@ function init(){
     let message = `${username}::${origin}`
     const key = uuid.v4()
 
-    tab.hostWebContents.send('show-notification',{id:tab.getId(),key,text:'Would you like to update this password?', buttons:['Yes','No']})
+    tab.hostWebContents2.send('show-notification',{id:tab.id,key,text:'Would you like to update this password?', buttons:['Yes','No']})
 
     ipcMain.once(`reply-notification-${key}`,(e,ret)=>{
       if(ret.pressIndex == 0){
@@ -215,7 +215,7 @@ function init(){
   //     })
   //
   //     if (results.length === 0) {
-  //       e.sender.hostWebContents.send('hide-context-menu')
+  //       e.sender.hostWebContents2.send('hide-context-menu')
   //       return
   //     }
   //
@@ -232,12 +232,12 @@ function init(){
   //           result.iv) || ''
   //     })
   //     if (Object.keys(usernames).length > 0) {
-  //       e.sender.hostWebContents.send('show-username-list',e.sender.getId(), usernames, origin, action, boundingRect)
-  //       ipcMain.once(`replay-username-list-${e.sender.getId()}`,(evt,username)=>{
+  //       e.sender.hostWebContents2.send('show-username-list',e.sender.id, usernames, origin, action, boundingRect)
+  //       ipcMain.once(`replay-username-list-${e.sender.id}`,(evt,username)=>{
   //         e.sender.send('got-password', username, usernames[username], origin, action, true)
   //       })
   //     } else {
-  //       e.sender.hostWebContents.send('hide-context-menu')
+  //       e.sender.hostWebContents2.send('hide-context-menu')
   //     }
   //   })
   // })
@@ -276,7 +276,7 @@ function init(){
   //     let message = `${username}::${origin}`
   //     const key = uuid.v4()
   //
-  //     e.sender.hostWebContents.send('show-notification',{id:e.sender.getId(),key,text:'Would you like to save this password?', buttons:['Yes','No']})
+  //     e.sender.hostWebContents2.send('show-notification',{id:e.sender.id,key,text:'Would you like to save this password?', buttons:['Yes','No']})
   //
   //     ipcMain.once(`reply-notification-${key}`,(e,ret)=>{
   //       if(ret.pressIndex !== 0) return

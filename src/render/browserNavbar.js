@@ -194,8 +194,9 @@ class BrowserNavbar extends Component{
         this.setState({mobile: this.props.tab.mobile})
         const tabId = this.props.tab.wvId
         if(!tabs.has(tabId)){
-          ipc.send('user-agent-change',{tabId,ua:this.state.userAgent})
-          this.getWebContents(this.props.tab).reload()
+          const cont = this.getWebContents(this.props.tab)
+          cont.setUserAgent(this.state.userAgent)
+          cont.reload()
         }
       },500)
     }
@@ -381,7 +382,7 @@ class BrowserNavbar extends Component{
       PubSub.publish(`zoom-change_${this.props.tab.key}`,percent)
   }
 
-  onZoomCommon(type){
+  async onZoomCommon(type){
     const webContents = this.getWebContents(this.props.tab)
     if(webContents){
       const zoomBehavior = mainState.zoomBehavior
@@ -389,20 +390,23 @@ class BrowserNavbar extends Component{
         webContents[type]()
       }
       else{
-        webContents.setZoomLevel(sharedState.zoomMapping.get(webContents.getZoomPercent() + parseInt(zoomBehavior) * (type == 'zoomOut' ? -1 : 1)))
+        const factor = await new Promise(r=>webContents.getZoomFactor(r))
+        webContents.setZoomFactor(factor + (parseInt(zoomBehavior) * (type == 'zoomOut' ? -1 : 1)/100.0))
       }
-      const percent = webContents.getZoomPercent()
-      if(!this.refs['main-menu'].state.visible){
-        this.state.zoomDisplay = `${percent}%`
-        clearTimeout(this.zoomTimeout)
-        this.zoomTimeout = setTimeout(_=>{
-          this.forceUpdates = true
-          this.setState({zoomDisplay:''})
-        },1500)
-      }
-      this.publishZoom(percent)
-      this.setState({zoom:percent})
-      // if(this.props.tab.sync) this.props.parent.syncZoom(percent,this.props.tab.sync)
+      webContents.getZoomFactor(factor=>{
+        const percent = factor * 100
+        if(!this.refs['main-menu'].state.visible){
+          this.state.zoomDisplay = `${percent}%`
+          clearTimeout(this.zoomTimeout)
+          this.zoomTimeout = setTimeout(_=>{
+            this.forceUpdates = true
+            this.setState({zoomDisplay:''})
+          },1500)
+        }
+        this.publishZoom(percent)
+        this.setState({zoom:percent})
+        // if(this.props.tab.sync) this.props.parent.syncZoom(percent,this.props.tab.sync)
+      })
     }
   }
 
@@ -414,7 +418,7 @@ class BrowserNavbar extends Component{
   }
   noZoom(){
     const webContents = this.getWebContents(this.props.tab)
-    if(webContents) webContents.zoomReset()
+    if(webContents) webContents.setZoomFactor(1)
     if(!this.refs['main-menu'].state.visible){
       this.state.zoomDisplay = '100%'
       clearTimeout(this.zoomTimeout)
@@ -431,15 +435,15 @@ class BrowserNavbar extends Component{
   onCommon(str){
     const cont = this.getWebContents(this.props.tab)
     const url = str == "history" ? "chrome://history/" : str == "favorite" ? "chrome://bookmarks/" : `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/${str}.html`
-    cont.hostWebContents.send('new-tab', this.props.tab.wvId, url)
-    // webContents.getAllWebContents().forEach(x=>{console.log(x.getId(),x.hostWebContents && x.hostWebContents.getId())})
+    cont.hostWebContents2.send('new-tab', this.props.tab.wvId, url)
+    // webContents.getAllWebContents().forEach(x=>{console.log(x.id,x.hostWebContents2 && x.hostWebContents2.id)})
   }
 
 
   navigate(url){
     const cont = this.getWebContents(this.props.tab)
-    cont.hostWebContents.send('new-tab', this.props.tab.wvId, url)
-    // webContents.getAllWebContents().forEach(x=>{console.log(x.getId(),x.hostWebContents && x.hostWebContents.getId())})
+    cont.hostWebContents2.send('new-tab', this.props.tab.wvId, url)
+    // webContents.getAllWebContents().forEach(x=>{console.log(x.id,x.hostWebContents2 && x.hostWebContents2.id)})
   }
 
   onAddFavorite(url,title,favicon){
@@ -456,7 +460,7 @@ class BrowserNavbar extends Component{
     if(needInput) ipc.send('need-set-save-filename',url)
     if(convert) ipc.send('set-video-convert',url,convert)
     const cont = this.getWebContents(this.props.tab)
-    cont.hostWebContents.downloadURL(url,true)
+    cont.hostWebContents2.downloadURL(url,true)
   }
 
 
@@ -478,7 +482,7 @@ class BrowserNavbar extends Component{
   //                           icon={e.type == "audio" ? "music" : e.type }
   //                           onClick={()=>{
   //                             const cont = this.getWebContents(this.props.tab)
-  //                             cont.hostWebContents.send('new-tab', this.props.tab.wvId, `file://${path.join(e.path,e.addr)}`)
+  //                             cont.hostWebContents2.send('new-tab', this.props.tab.wvId, `file://${path.join(e.path,e.addr)}`)
   //                           }}/>
   //   })
   // }
@@ -506,10 +510,11 @@ class BrowserNavbar extends Component{
       newUserAgent = this.props.tab.mobile ? DEFAULT_USERAGENT : NEXUS_USERAGENT
     }
     this.state.userAgent = newUserAgent
-    ipc.send('user-agent-change',{tabId:this.props.tab.wvId,ua:this.state.userAgent})
+    const cont = this.getWebContents(this.props.tab)
+    cont.setUserAgent(this.state.userAgent)
     this.props.tab.mobile = newUserAgent == DEFAULT_USERAGENT ? void 0 : newUserAgent
     this.setState({mobile: this.props.tab.mobile})
-    this.getWebContents(this.props.tab).reload()
+    cont.reload()
   }
 
   handleAdBlockGlobal(){
@@ -669,10 +674,12 @@ class BrowserNavbar extends Component{
     return <NavbarMenu ref="main-menu" className="main-menu" alwaysView={true} k={this.props.k} isFloat={isFloatPanel(this.props.k) || this.props.isMaximize} style={{overflowX: 'visible'}}
                        title={locale.translation('settings')} icon="bars" tab={tab.bind && tab}
                        onClick={_=>{
-                         PubSub.publishSync(`zoom_${this.props.tabkey}`,this.getWebContents(this.props.tab).getZoomPercent())
-                         if(tab.bind){
-                           ipc.send('set-pos-window',{id:tab.bind.id,hwnd:tab.bind.hwnd,top:'not-above'})
-                         }
+                         this.getWebContents(this.props.tab).getZoomFactor(factor=>{
+                           PubSub.publishSync(`zoom_${this.props.tabkey}`,factor * 100)
+                           if(tab.bind){
+                             ipc.send('set-pos-window',{id:tab.bind.id,hwnd:tab.bind.hwnd,top:'not-above'})
+                           }
+                         })
                        }
                        }>
       <NavbarMenuBarItem>
@@ -937,7 +944,7 @@ class BrowserNavbar extends Component{
   getTitle(x,historyMap){
     console.log(997,historyMap.get(x[0]))
     const datas = historyMap.get(x[0])
-    return datas ? <div className="favi-wrap"><img src={datas[1]} className="favi"/>{x[1]}</div> :  x[1] || x[0]
+    return datas ? <div className="favi-wrap"><img src={datas[1]} className="favi"/>{datas[0]}</div> :  x[1] || x[0]
   }
 
   mobilePanelButton(){
@@ -1074,7 +1081,7 @@ class BrowserNavbar extends Component{
                 {m3u8 ? null : <button className="play-btn" title={locale.translation("playVideo")} onClick={e=>{
                   e.stopPropagation()
                   const p = e.target.parentNode.parentNode;(e.target.tagName == "I" ? p.parentNode : p).classList.remove("visible")
-                  cont.hostWebContents.send('new-tab', this.props.tab.wvId, url)
+                  cont.hostWebContents2.send('new-tab', this.props.tab.wvId, url)
                 }}>
                   <i className="fa fa-play" aria-hidden="true"></i>
                 </button>}

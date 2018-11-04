@@ -22,7 +22,7 @@ export default class PanelOverlay extends Component{
     const dragOverElements = []
     for(let ele of document.querySelectorAll('.browser-page-wrapper.visible')){
       const r =  ele.getBoundingClientRect()
-      const wv = ele.querySelector("webview")
+      const wv = ele.querySelector("[data-webview]")
       dragOverElements.push({left:r.left,top:r.top,width:r.width,height:r.height,key:wv.className.slice(1),tabKey:wv.dataset.key})
     }
     this.fUpdate = true

@@ -1,4 +1,4 @@
-import {ipcMain, app, dialog, BrowserWindow, shell, webContents, session, clipboard, nativeImage, Menu} from 'electron'
+import {ipcMain, app, dialog, BrowserWindow, shell, webContents, session, clipboard, nativeImage, Menu, BrowserView, screen} from 'electron'
 const BrowserWindowPlus = require('./BrowserWindowPlus')
 import fs from 'fs-extra'
 import sh from 'shelljs'
@@ -30,7 +30,7 @@ import importData from "./bookmarksExporter";
 const open = require('./open')
 const {readMacro,readMacroOff,readTargetSelector,readTargetSelectorOff,readComplexSearch,readFindAll} = require('./readMacro')
 const sharedState = require('./sharedStateMain')
-const {request} = require('./request')
+const request = require('request')
 const bindPath = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/bind.html'
 
 function exec(command) {
@@ -47,7 +47,7 @@ function exec(command) {
 
 
 function getBindPage(tabId){
-  return webContents.getAllWebContents().filter(wc=>wc.getId() === tabId)
+  return webContents.getAllWebContents().filter(wc=>wc.id === tabId)
 }
 
 function scaling(num){
@@ -136,12 +136,12 @@ ipcMain.on('create-file',(event,key,path,isFile)=>{
 })
 
 ipcMain.on('show-dialog-exploler',(event,key,info,tabId)=>{
-  const cont = tabId !== 0 && (sharedState[tabId] || webContents.fromTabID(tabId))
+  const cont = tabId !== 0 && (sharedState[tabId] || webContents.fromId(tabId))
   console.log(tabId,cont)
   if(info.inputable || info.normal || info.convert){
     const key2 = uuid.v4();
-    (cont ? event.sender : event.sender.hostWebContents).send('show-notification',
-      {id:(cont || event.sender).getId(),
+    (cont ? event.sender : event.sender.hostWebContents2).send('show-notification',
+      {id:(cont || event.sender).id,
         key: key2, title: info.title, text: info.text,
         initValue: info.normal ? void 0 : info.initValue,
         needInput: info.normal || info.convert ? void 0 : info.needInput || [""],
@@ -160,16 +160,22 @@ ipcMain.on('show-dialog-exploler',(event,key,info,tabId)=>{
     })
   }
   else{
-    let option = { defaultPath:info.defaultPath, type: 'select-folder' }
+    let option = { defaultPath:info.defaultPath, properties: ['openDirectory'] }
     if(info.needVideo){
-      option.type = 'select-open-multi-file'
-      option.extensions =  ['3gp','3gpp','3gpp2','asf','avi','dv','flv','m2t','m4v','mkv','mov','mp4','mpeg','mpg','mts','oggtheora','ogv','rm','ts','vob','webm','wmv']
+      option.properties = ['openFile', 'multiSelections']
+      option.filters = [
+        {name: 'Media Files', extensions: ['3gp','3gpp','3gpp2','asf','avi','dv','flv','m2t','m4v','mkv','mov','mp4','mpeg','mpg','mts','oggtheora','ogv','rm','ts','vob','webm','wmv']},
+        {name: 'All Files', extensions: ['*']}
+      ]
     }
     else if(info.needIcon){
-      option.type = 'select-open-file'
-      option.extensions =  ['ico','icon','png','gif','bmp','jpg','jpeg']
+      option.properties = ['openFile']
+      option.filters = [
+        {name: 'Image Files', extensions: ['ico','icon','png','gif','bmp','jpg','jpeg']},
+        {name: 'All Files', extensions: ['*']}
+      ]
     }
-    dialog.showDialog(BrowserWindow.getFocusedWindow(), option, (selected) => {
+    dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), option, (selected) => {
       if (selected && selected.length > 0) {
         event.sender.send(`show-dialog-exploler-reply_${key}`,info.needVideo ? selected : selected[0])
       }
@@ -306,9 +312,9 @@ async function recurFind(keys,list,isNote){
 
 ipcMain.on('open-favorite',async (event,key,dbKeys,tabId,type,isNote)=>{
   let list = []
-  const cont = tabId !== 0 && (sharedState[tabId] || webContents.fromTabID(tabId))
+  const cont = tabId !== 0 && (sharedState[tabId] || webContents.fromId(tabId))
   const ret = await recurFind(dbKeys,list,isNote)
-  const host = cont ? event.sender : event.sender.hostWebContents
+  const host = cont ? event.sender : event.sender.hostWebContents2
   if(type == "openInNewTab" || type=='openInNewPrivateTab' || type=='openInNewTorTab' || type=='openInNewSessionTab'){
     for(let url of list){
       await new Promise((resolve,reject)=>{
@@ -317,7 +323,7 @@ ipcMain.on('open-favorite',async (event,key,dbKeys,tabId,type,isNote)=>{
             host.send("new-tab",tabId,url,type=='openInNewSessionTab' ? `persist:${seq()}` : type=='openInNewTorTab' ? 'persist:tor' : type=='openInNewPrivateTab' ? `${seq(true)}` : false)
           }
           else{
-            host.send("new-tab-opposite", event.sender.getId(),url,(void 0),type=='openInNewSessionTab' ? `persist:${seq()}` : type=='openInNewTorTab' ? 'persist:tor' : type=='openInNewPrivateTab' ? `${seq(true)}` : false)
+            host.send("new-tab-opposite", event.sender.id,url,(void 0),type=='openInNewSessionTab' ? `persist:${seq()}` : type=='openInNewTorTab' ? 'persist:tor' : type=='openInNewPrivateTab' ? `${seq(true)}` : false)
           }
           resolve()
         },200)
@@ -331,7 +337,7 @@ ipcMain.on('open-favorite',async (event,key,dbKeys,tabId,type,isNote)=>{
       BrowserWindowPlus.load({id:win.id,sameSize:true,tabParam:JSON.stringify({urls:list.map(url=>{return {url}}),
           type: type == 'openInNewWindow' ? 'new-win' : type == 'openInNewWindowWithOneRow' ? 'one-row' : 'two-row'})})
     })
-    win.webContents.send('get-private', (cont || event.sender).getId())
+    win.webContents.send('get-private', (cont || event.sender).id)
   }
 
   console.log(list)
@@ -341,8 +347,8 @@ ipcMain.on('open-favorite',async (event,key,dbKeys,tabId,type,isNote)=>{
 
 ipcMain.on('open-savedState',async (event,key,tabId,datas)=>{
   let list = []
-  const cont = tabId !== 0 && (sharedState[tabId] || webContents.fromTabID(tabId))
-  const host = cont ? event.sender : event.sender.hostWebContents
+  const cont = tabId !== 0 && (sharedState[tabId] || webContents.fromId(tabId))
+  const host = cont ? event.sender : event.sender.hostWebContents2
 
   const win = BrowserWindow.fromWebContents(host)
   console.log(52,datas,52)
@@ -358,7 +364,7 @@ ipcMain.on('open-savedState',async (event,key,tabId,datas)=>{
       }
     }
   })
-  win.webContents.send('get-private', (cont || event.sender).getId())
+  win.webContents.send('get-private', (cont || event.sender).id)
 
 
   console.log(list)
@@ -455,7 +461,7 @@ ipcMain.on('force-mouse-up',(event,{x,y})=> {
 
 ipcMain.on('send-input-event',(e,{type,tabId,x,y,button,deltaY,keyCode,modifiers})=>{
   console.log(type,tabId,x,y,deltaY)
-  const cont = webContents.fromTabID(tabId)
+  const cont = webContents.fromId(tabId)
   if(!cont || cont.isDestroyed()) return
 
   if(type == 'mouseDown'){
@@ -479,7 +485,7 @@ ipcMain.on('send-input-event',(e,{type,tabId,x,y,button,deltaY,keyCode,modifiers
 })
 
 ipcMain.on('toggle-fullscreen',(event,cancel)=> {
-  const win = BrowserWindow.fromWebContents(event.sender.hostWebContents || event.sender)
+  const win = BrowserWindow.fromWebContents(event.sender.hostWebContents2 || event.sender)
   const isFullScreen = win.isFullScreen()
   if(cancel && !isFullScreen) return
   win.webContents.send('switch-fullscreen',!isFullScreen)
@@ -492,7 +498,7 @@ ipcMain.on('toggle-fullscreen',(event,cancel)=> {
 
 
 ipcMain.on('toggle-fullscreen-sync',(event,val)=> {
-  const win = BrowserWindow.fromWebContents(event.sender.hostWebContents || event.sender)
+  const win = BrowserWindow.fromWebContents(event.sender.hostWebContents2 || event.sender)
   const isFullScreen = win.isFullScreen()
   if(val === 1 && !isFullScreen){
     event.returnValue = isFullScreen
@@ -609,12 +615,12 @@ ipcMain.on('get-video-urls',(event,key,url)=>{
 
 ipcMain.on('open-page',async (event,url)=>{
   const cont = await getFocusedWebContents()
-  if(cont) cont.hostWebContents.send('new-tab', cont.getId(), url)
+  if(cont) cont.hostWebContents2.send('new-tab', cont.id, url)
 })
 
 ipcMain.on('search-page',async (event,text)=>{
   const cont = await getFocusedWebContents()
-  if(cont) cont.hostWebContents.send('search-text', cont.getId(), text)
+  if(cont) cont.hostWebContents2.send('search-text', cont.id, text)
 })
 
 if(isWin){
@@ -633,7 +639,8 @@ ipcMain.on("change-title",(e,title)=>{
     const key = uuid.v4()
     return new Promise((resolve,reject)=>{
       ipcMain.once(`get-focused-webContent-reply_${key}`,(e,tabId)=>{
-        const focusedCont = (sharedState[tabId] || webContents.fromTabID(tabId))
+        if(!tabId) return
+        const focusedCont = (sharedState[tabId] || webContents.fromId(tabId))
         if(focusedCont){
           if(!bw.isDestroyed()) bw.setTitle(`${focusedCont.getTitle()} - Sushi Browser`)
         }
@@ -655,8 +662,8 @@ ipcMain.on('select-target',(e,val,selector)=>{
 
   const macro = val ? readTargetSelector() : readTargetSelectorOff()
   for(let cont of webContents.getAllWebContents()){
-    if(!cont.isDestroyed() && !cont.isBackgroundPage() && set.has(cont.hostWebContents)){
-      cont.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',macro, {},()=>{})
+    if(!cont.isDestroyed() /*&& !cont.isBackgroundPage()*/ && set.has(cont.hostWebContents2)){
+      cont.executeJavaScript(macro,()=>{})
     }
   }
   if(val){
@@ -699,8 +706,8 @@ ipcMain.on('record-op',(e,val)=>{
 
   const macro = val ? readMacro() : readMacroOff()
   for(let cont of webContents.getAllWebContents()){
-    if(!cont.isDestroyed() && !cont.isBackgroundPage() && set.has(cont.hostWebContents)){
-      cont.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',macro, {},()=>{})
+    if(!cont.isDestroyed() /*&& !cont.isBackgroundPage()*/ && set.has(cont.hostWebContents2)){
+      cont.executeJavaScript(macro, ()=>{})
     }
   }
 
@@ -721,10 +728,10 @@ ipcMain.on('get-main-state',(e,key,names)=>{
       ret[name] = isRecording ? readMacro() : void 0
     }
     else if(name == "alwaysOpenLinkNewTab"){
-      ret[name] = mainState.lockTabs[e.sender.isDestroyed() ? null : e.sender.getId()] ? 'speLinkAllLinks' : mainState[name]
+      ret[name] = mainState.lockTabs[e.sender.isDestroyed() ? null : e.sender.id] ? 'speLinkAllLinks' : mainState[name]
     }
     else if(name == "isVolumeControl"){
-      ret[name] = mainState.isVolumeControl[e.sender.isDestroyed() ? null : e.sender.getId()]
+      ret[name] = mainState.isVolumeControl[e.sender.isDestroyed() ? null : e.sender.id]
     }
     else if(name == "extensions"){
       const extensions = {}
@@ -759,7 +766,7 @@ ipcMain.on('get-main-state',(e,key,names)=>{
       ret[name] = theme
     }
     else if(name == 'fullScreen'){
-      ret[name] = mainState.fullScreenIds[e.sender.getId()]
+      ret[name] = mainState.fullScreenIds[e.sender.id]
     }
     else{
       ret[name] = mainState[name]
@@ -780,11 +787,11 @@ ipcMain.on('save-state',async (e,{tableName,key,val})=>{
         if(ext){
           if(orgId == "jpkfjicglakibpenojifdiepckckakgk"){
             for(let cont of webContents.getAllWebContents()){
-              if(!cont.isDestroyed() && cont.isBackgroundPage()) cont.send('disable-mouse-gesture',true)
+              if(!cont.isDestroyed() /*&& cont.isBackgroundPage()*/) cont.send('disable-mouse-gesture',true)
             }
           }
           else{
-            session.defaultSession.extensions.disable(ext.id)
+            BrowserWindow.removeExtension(ext.id)
           }
         }
       }
@@ -793,11 +800,11 @@ ipcMain.on('save-state',async (e,{tableName,key,val})=>{
         if(ext) {
           if (orgId == "jpkfjicglakibpenojifdiepckckakgk") {
             for(let cont of webContents.getAllWebContents()){
-              if(!cont.isDestroyed() && cont.isBackgroundPage()) cont.send('disable-mouse-gesture',false)
+              if(!cont.isDestroyed() /*&& cont.isBackgroundPage()*/) cont.send('disable-mouse-gesture',false)
             }
           }
           else {
-            session.defaultSession.extensions.enable(ext.id)
+            BrowserWindow.addExtensionWebview(ext.base_path)
           }
         }
       }
@@ -863,16 +870,16 @@ ipcMain.on('save-state',async (e,{tableName,key,val})=>{
   }
 
   if(tableName == "searchEngine" || key == "searchEngine"){
-    e.sender.hostWebContents.send("update-search-engine")
+    e.sender.hostWebContents2.send("update-search-engine")
   }
   else{
-    if(e.sender.hostWebContents) e.sender.hostWebContents.send("update-mainstate",key,val)
+    if(e.sender.hostWebContents2) e.sender.hostWebContents2.send("update-mainstate",key,val)
   }
 })
 
 ipcMain.on('menu-or-key-events',(e,name,...args)=>{
   getFocusedWebContents().then(cont=>{
-    cont && cont.hostWebContents.send('menu-or-key-events',name,cont.getId(),...args)
+    cont && cont.hostWebContents2.send('menu-or-key-events',name,cont.id,...args)
   })
 })
 
@@ -1100,15 +1107,15 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
       fullscreenable: detach,
       // titleBarStyle: detach ? void 0 : 'hidden',
       autoHideMenuBar: true,
-      // frame: detach || process.platform === 'darwin',
+      frame: detach || process.platform === 'darwin',
       show: true,
       resizable: true,
       movable: true,
       webPreferences: {
-        partition: 'persist:mobile',
+        // partition: 'persist:mobile',
         plugins: true,
         sharedWorker: true,
-        nodeIntegration: false,
+        nodeIntegration: true,
         webSecurity: false,
         allowFileAccessFromFileUrls: true,
         allowUniversalAccessFromFileUrls: true,
@@ -1124,29 +1131,29 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
     }
 
 
-    bw.webContents.openDevTools()
-    bw.loadURL('data:text/html,<html></html>')
-    await new Promise(r=>{
-      ipcMain.emit('init-private-mode',{sender: {send: _=>r()}},'','persist:mobile')
-    })
+    bw.webContents.toggleDevTools()
+    // bw.loadURL('data:text/html,<html></html>')
+    // await new Promise(r=>{
+    //   ipcMain.emit('init-private-mode',{sender: {send: _=>r()}},'','persist:mobile')
+    // })
     // await new Promise(r=>setTimeout(r,300))
     bw.loadURL(url)
     mpoMap[key] = bw
     detachMap[key] = detach
 
-    if(isWin){
-      const winctl = require('winctl')
-      const win =  winctl.GetActiveWindow()
-      winMap[key] = win
-      if(!detach){
-        win.setWindowLongPtr()
-        win.setWindowPos(0,0,0,0,0,39+1024)
-        win.setWindowPos(winctl.HWND.TOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
-      }
-    }
-    else{
-      bw.setAlwaysOnTop(!detach)
-    }
+    // if(isWin){
+    //   const winctl = require('winctl')
+    //   const win =  winctl.GetActiveWindow()
+    //   winMap[key] = win
+    //   if(!detach){
+    //     win.setWindowLongPtr()
+    //     win.setWindowPos(0,0,0,0,0,39+1024)
+    //     win.setWindowPos(winctl.HWND.TOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
+    //   }
+    // }
+    // else{
+    bw.setAlwaysOnTop(!detach)
+    // }
 
     bw.on('resize', ()=>{
       const [width,height] = bw.getSize()
@@ -1155,7 +1162,7 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
 
     bw.webContents.on('did-navigate', (e)=>{
       const url = bw.webContents.getURL()
-      const tab = webContents.fromTabID(tabId)
+      const tab = webContents.fromId(tabId)
       if(!tab) return
       if(url != tab.getURL()){
         const now = Date.now()
@@ -1167,8 +1174,8 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
     })
 
     bw.on('closed',_=>{
-      const tab = webContents.fromTabID(tabId)
-      if(tab && tab.hostWebContents) tab.hostWebContents.send(`mobile-panel-close_${key}`)
+      const tab = webContents.fromId(tabId)
+      if(tab && tab.hostWebContents2) tab.hostWebContents2.send(`mobile-panel-close_${key}`)
     })
 
     bwMap[bw.webContents.id] = tabId
@@ -1177,7 +1184,7 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
     loopMap[key] = setInterval(_=>{
       if(bw.isDestroyed()) return
       bw.webContents.send('mobile-scroll',{type:'init' ,code: mobileInject})
-      const cont = webContents.fromTabID(tabId)
+      const cont = webContents.fromId(tabId)
       if(cont && !cont.isDestroyed()) cont.send('mobile-scroll',{type:'init' ,code: mobileInject})
     },1000)
 
@@ -1223,7 +1230,7 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
     if(!bw) return
     if(type == 'resize'){
       if(_detach) return
-        bw.setBounds({x: Math.round(x),y: Math.round(y),width: Math.round(width),height: Math.round(height) - modifyPos})
+      bw.setBounds({x: Math.round(x),y: Math.round(y),width: Math.round(width),height: Math.round(height) - modifyPos})
     }
     else if(type == 'url'){
       const thisUrl = bw.webContents.getURL()
@@ -1251,19 +1258,19 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
     else if(type == 'below'){
       if(_detach) return
       if(bw.isMinimized()) return
-      if(isWin){
-        const win = winMap[key]
-        const winctl = require('winctl')
-        win.setWindowPos(winctl.HWND.NOTOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
-        if(!bw.isFocused()) win.setWindowPos(winctl.HWND.BOTTOM,0,0,0,0,19+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
-      }
-      else{
-          bw.setAlwaysOnTop(false)
-      }
+      // if(isWin){
+      //   const win = winMap[key]
+      //   const winctl = require('winctl')
+      //   win.setWindowPos(winctl.HWND.NOTOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
+      //   if(!bw.isFocused()) win.setWindowPos(winctl.HWND.BOTTOM,0,0,0,0,19+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
+      // }
+      // else{
+      bw.setAlwaysOnTop(false)
+      // }
       console.log(66665555)
       if(force){
-        const cont = webContents.fromTabID(tabId)
-        cont.hostWebContents.focus()
+        const cont = webContents.fromId(tabId)
+        cont.hostWebContents2.focus()
         console.log(666655556)
       }
       else if(show && !bw.isFocused()){
@@ -1276,13 +1283,13 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
     else if(type == 'above'){
       if(_detach) return
       if(bw.isMinimized()) return
-      if(isWin){
-        const win = winMap[key]
-        win.setWindowPos(require('winctl').HWND.TOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
-      }
-      else{
-        bw.setAlwaysOnTop(true)
-      }
+      // if(isWin){
+      //   const win = winMap[key]
+      //   win.setWindowPos(require('winctl').HWND.TOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
+      // }
+      // else{
+      bw.setAlwaysOnTop(true)
+      // }
     }
     else if(type == 'minimize'){
       if(_detach) return
@@ -1302,30 +1309,30 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
       bw.setSkipTaskbar(!detach)
       bw.setMinimizable(detach)
       bw.setMaximizable(detach)
-      if(isWin){
-        const win = winMap[key]
-        if(detach){
-          win.setWindowPos(require('winctl').HWND.NOTOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
-        }
-        else{
-          win.setWindowPos(require('winctl').HWND.TOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
-        }
-      }
-      else{
-        bw.setAlwaysOnTop(!detach)
-      }
+      // if(isWin){
+      //   const win = winMap[key]
+      //   if(detach){
+      //     win.setWindowPos(require('winctl').HWND.NOTOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
+      //   }
+      //   else{
+      //     win.setWindowPos(require('winctl').HWND.TOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
+      //   }
+      // }
+      // else{
+      bw.setAlwaysOnTop(!detach)
+      // }
       if(detach) bw.focus()
 
-      if(isWin){
-        const win = winMap[key]
-        if(detach){
-          win.setWindowLongPtrRestore()
-        }
-        else{
-          win.setWindowLongPtr()
-        win.setWindowPos(0,0,0,0,0,39+1024);
-        }
-      }
+      // if(isWin){
+      //   const win = winMap[key]
+      //   if(detach){
+      //     win.setWindowLongPtrRestore()
+      //   }
+      //   else{
+      //     win.setWindowLongPtr()
+      //     win.setWindowPos(0,0,0,0,0,39+1024);
+      //   }
+      // }
 
       mainState.mobilePanelDetach = detach
 
@@ -1340,59 +1347,59 @@ ipcMain.on('sync-mobile-scroll',(e,optSelector,selector,move)=>{
     const tabId = bwMap[e.sender.id]
     if(tabId){
       console.log('sync-mobile-scroll',optSelector,selector,e.sender.id,tabId,move)
-      const tab = webContents.fromTabID(tabId)
+      const tab = webContents.fromId(tabId)
       if(!tab.isDestroyed()) tab.send('mobile-scroll',{type: 'scroll', optSelector,selector,move})
     }
     else{
-      console.log('sync-mobile-scroll2',optSelector,selector,e.sender.getId(),move)
-      const cont = tabMap[e.sender.getId()]
+      console.log('sync-mobile-scroll2',optSelector,selector,e.sender.id,move)
+      const cont = tabMap[e.sender.id]
       if(cont && !cont.isDestroyed()) cont.send('mobile-scroll',{type: 'scroll', optSelector,selector,move})
     }
   }
 })
 
-let timer,timers={}
-ipcMain.on('change-tab-infos',(e,changeTabInfos)=> {
-  const f = function (cont,c) {
-    if (c.index !== (void 0)) {
-      // if(timers[c.tabId]) clearTimeout(timers[c.tabId])
-      // timers[c.tabId] = setTimeout(()=>{
-      console.log('change-tab-infos', c)
-      // cont.setTabIndex(c.index)
-      ipcMain.emit('update-tab-index-org', null, c.tabId, c.index)
-      // delete timers[c.tabId]
-      // }, 10)
-    }
-    if (c.active) {
-      if (timer) clearTimeout(timer)
-      timer = setTimeout(() => {
-        console.log('change-tab-infos', c)
-        if (!cont.isDestroyed()) cont.setActive(c.active)
-        timer = void 0
-      }, 10)
-    }
-  };
-  for(let c of changeTabInfos){
-    let cont = sharedState[c.tabId] || webContents.fromTabID(c.tabId)
-    if(cont) {
-      f(cont,c)
-    }
-    else{
-      let retry = 0
-      const id = setInterval(_=>{
-        if(retry++ > 100){
-          clearInterval(id)
-          return
-        }
-        cont = sharedState[c.tabId] || webContents.fromTabID(c.tabId)
-        if(cont){
-          f(cont,c)
-          clearInterval(id)
-        }
-      },10)
-    }
-  }
-})
+// let timer,timers={}
+// ipcMain.on('change-tab-infos',(e,changeTabInfos)=> { @TODO ELECTRON
+//   const f = function (cont,c) {
+//     if (c.index !== (void 0)) {
+//       // if(timers[c.tabId]) clearTimeout(timers[c.tabId])
+//       // timers[c.tabId] = setTimeout(()=>{
+//       console.log('change-tab-infos', c)
+//       // cont.setTabIndex(c.index)
+//       ipcMain.emit('update-tab-index-org', null, c.tabId, c.index)
+//       // delete timers[c.tabId]
+//       // }, 10)
+//     }
+//     if (c.active) {
+//       if (timer) clearTimeout(timer)
+//       timer = setTimeout(() => {
+//         console.log('change-tab-infos', c)
+//         // if (!cont.isDestroyed()) cont.setActive(c.active) @TODO ELECTRON
+//         timer = void 0
+//       }, 10)
+//     }
+//   };
+//   for(let c of changeTabInfos){
+//     let cont = sharedState[c.tabId] || webContents.fromId(c.tabId)
+//     if(cont) {
+//       f(cont,c)
+//     }
+//     else{
+//       let retry = 0
+//       const id = setInterval(_=>{
+//         if(retry++ > 100){
+//           clearInterval(id)
+//           return
+//         }
+//         cont = sharedState[c.tabId] || webContents.fromId(c.tabId)
+//         if(cont){
+//           f(cont,c)
+//           clearInterval(id)
+//         }
+//       },10)
+//     }
+//   }
+// })
 
 // ipcMain.on('need-get-inner-text',(e,key)=>{
 // if(mainState.historyFull){
@@ -1419,9 +1426,9 @@ ipcMain.on('download-m3u8',(e,url,fname,tabId,userAgent,referer,needInput)=>{
   }
 
   if(needInput){
-    dialog.showDialog(BrowserWindow.fromWebContents(e.sender),{defaultPath: downloadPath,type: 'select-saveas-file',includeAllFiles:true },filepaths=>{
-      if (!filepaths || filepaths.length > 1) return
-      downloadPath = filepaths[0]
+    dialog.showSaveDialog(BrowserWindow.fromWebContents(e.sender),{defaultPath: downloadPath },filepath=>{
+      if (!filepath) return
+      downloadPath = filepath
       dl()
     })
   }
@@ -1468,10 +1475,13 @@ ipcMain.on('vpn-event',async (e,key,address)=>{
 
 ipcMain.on('audio-extract',e=>{
   const focusedWindow = BrowserWindow.getFocusedWindow()
-  dialog.showDialog(focusedWindow,{
-    type: 'select-open-multi-file',
+  dialog.showOpenDialog(focusedWindow,{
+    properties: ['openFile', 'multiSelections'],
     name: 'Select Video Files',
-    extensions: ['3gp','3gpp','3gpp2','asf','avi','dv','flv','m2t','m4v','mkv','mov','mp4','mpeg','mpg','mts','oggtheora','ogv','rm','ts','vob','webm','wmv']
+    filters: [
+      {name: 'Media Files', extensions: ['3gp','3gpp','3gpp2','asf','avi','dv','flv','m2t','m4v','mkv','mov','mp4','mpeg','mpg','mts','oggtheora','ogv','rm','ts','vob','webm','wmv']},
+      {name: 'All Files', extensions: ['*']}
+    ]
   },async files=>{
     if (files && files.length > 0) {
       for(let fileList of eachSlice(files,6)){
@@ -1510,15 +1520,15 @@ ipcMain.on('get-country-names',e=>{
 
 let prevCount = {}
 ipcMain.on('get-on-dom-ready',(e,tabId,tabKey,rSession,closingPos)=>{
-  const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
+  const cont = (sharedState[tabId] || webContents.fromId(tabId))
   if(!cont || cont.isDestroyed()){
     e.sender.send(`get-on-dom-ready-reply_${tabId}`,null)
     return
   }
   saveTabState(cont, rSession, tabKey, void 0, closingPos)
-  if(mainState.flash) cont.authorizePlugin(mainState.flash)
+  //if(mainState.flash) cont.authorizePlugin(mainState.flash) @TODO ELECTRON
 
-  let currentEntryIndex,entryCount = cont.getEntryCount()
+  let currentEntryIndex,entryCount = cont.length()
   if(rSession){
     if(entryCount > (prevCount[tabKey] || 1)){
       currentEntryIndex = rSession.currentIndex + 1
@@ -1530,27 +1540,27 @@ ipcMain.on('get-on-dom-ready',(e,tabId,tabKey,rSession,closingPos)=>{
     }
   }
   else{
-    currentEntryIndex = cont.getCurrentEntryIndex()
+    currentEntryIndex = cont.getActiveIndex()
   }
 
   e.sender.send(`get-on-dom-ready-reply_${tabId}`,{currentEntryIndex,entryCount,title: cont.getTitle(),rSession})
 })
 
 ipcMain.on('tab-close-handler',(e,tabId,tabKey,rSession,closingPos)=>{
-  const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
+  const cont = (sharedState[tabId] || webContents.fromId(tabId))
   if(!cont || cont.isDestroyed()) return
   saveTabState(cont, rSession, tabKey, void 0, closingPos, 1)
 })
 
 ipcMain.on('get-update-title',(e,tabId,tabKey,rSession,closingPos)=>{
-  const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
+  const cont = (sharedState[tabId] || webContents.fromId(tabId))
   if(!cont || cont.isDestroyed()){
     e.sender.send(`get-update-title-reply_${tabId}`,null)
     return
   }
   saveTabState(cont, rSession, tabKey, void 0, closingPos)
 
-  let currentEntryIndex,entryCount = cont.getEntryCount()
+  let currentEntryIndex,entryCount = cont.length()
   if(rSession){
     if(entryCount > (prevCount[tabKey] || 1)){
       currentEntryIndex = rSession.currentIndex + 1
@@ -1562,7 +1572,7 @@ ipcMain.on('get-update-title',(e,tabId,tabKey,rSession,closingPos)=>{
     }
   }
   else{
-    currentEntryIndex = cont.getCurrentEntryIndex()
+    currentEntryIndex = cont.getActiveIndex()
   }
 
   const url = cont.getURL()
@@ -1579,13 +1589,13 @@ ipcMain.on('get-update-title',(e,tabId,tabKey,rSession,closingPos)=>{
 })
 
 ipcMain.on('get-did-finish-load',(e,tabId,tabKey,rSession)=>{
-  const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
+  const cont = (sharedState[tabId] || webContents.fromId(tabId))
   if(!cont || cont.isDestroyed()){
     e.sender.send(`get-did-finish-load-reply_${tabId}`,null)
     return
   }
 
-  let currentEntryIndex,entryCount = cont.getEntryCount()
+  let currentEntryIndex,entryCount = cont.length()
   if(rSession){
     if(entryCount > (prevCount[tabKey] || 1)){
       currentEntryIndex = rSession.currentIndex + 1
@@ -1599,7 +1609,7 @@ ipcMain.on('get-did-finish-load',(e,tabId,tabKey,rSession)=>{
     }
   }
   else{
-    currentEntryIndex = cont.getCurrentEntryIndex()
+    currentEntryIndex = cont.getActiveIndex()
   }
 
   const ret = cont ? {
@@ -1629,7 +1639,7 @@ function addDestroyedFunc(cont,tabId,sender,msg){
 }
 
 ipcMain.on('get-did-start-loading',(e,tabId)=>{
-  const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
+  const cont = (sharedState[tabId] || webContents.fromId(tabId))
   const msg = `get-did-start-loading-reply_${tabId}`
   if(!cont || cont.isDestroyed()){
     e.sender.send(msg)
@@ -1642,7 +1652,7 @@ ipcMain.on('get-did-start-loading',(e,tabId)=>{
 })
 
 // ipcMain.on('get-did-stop-loading',(e,tabId)=>{
-//   const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
+//   const cont = (sharedState[tabId] || webContents.fromId(tabId))
 //   const msg = `get-did-stop-loading-reply_${tabId}`
 //   if(!cont){
 //     e.sender.send(msg)
@@ -1662,27 +1672,27 @@ ipcMain.on('get-did-start-loading',(e,tabId)=>{
 
 const detachTabs = []
 ipcMain.on('detach-tab',(e,tabId)=>{
-  const cont = webContents.fromTabID(tabId)
+  const cont = webContents.fromId(tabId)
   detachTabs.push([e.sender,tabId,cont.getURL()])
   cont._detachGuest()
 })
 
 
-const preCloseTabs = []
-ipcMain.on('close-tab-pretask',(e,tabId)=>{
-  const cont = webContents.fromTabID(tabId)
-  if(cont){
-    cont._detachGuest()
-  }
-})
+// const preCloseTabs = []
+// ipcMain.on('close-tab-pretask',(e,tabId)=>{
+//   const cont = webContents.fromId(tabId)
+//   if(cont){
+//     cont._detachGuest()
+//   }
+// })
 
 PubSub.subscribe("web-contents-created",(msg,[tabId,sender])=>{
   console.log("web-contents-created",tabId)
-  const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
+  const cont = (sharedState[tabId] || webContents.fromId(tabId))
   if(!cont || cont.isDestroyed()) return
   console.log("web-contents-created",tabId,cont.guestInstanceId,cont.getURL())
 
-  if(!sender.isDestroyed()) sender.send('web-contents-created',tabId)
+  // if(!sender.isDestroyed()) sender.send('web-contents-created',tabId)
 
   if(detachTabs.length){
     console.log(5483543,detachTabs)
@@ -1695,18 +1705,18 @@ PubSub.subscribe("web-contents-created",(msg,[tabId,sender])=>{
       return
     }
   }
-  if(preCloseTabs.length){
-    const ind = preCloseTabs.findIndex(t=>{
-      return t == cont.getURL()
-    })
-    if(ind !== -1){
-      console.log('discard',cont.getURL())
-      const cont2 = webContents.fromTabID(tabId)
-      cont2.forceClose()
-      preCloseTabs.splice(ind, 1)
-      return
-    }
-  }
+  // if(preCloseTabs.length){
+  //   const ind = preCloseTabs.findIndex(t=>{
+  //     return t == cont.getURL()
+  //   })
+  //   if(ind !== -1){
+  //     console.log('discard',cont.getURL())
+  //     const cont2 = webContents.fromId(tabId)
+  //     cont2.forceClose()
+  //     preCloseTabs.splice(ind, 1)
+  //     return
+  //   }
+  // }
 
   cont.on('page-title-updated',e2=> {
     if(!sender.isDestroyed()) sender.send('page-title-updated',tabId)
@@ -1719,10 +1729,14 @@ ipcMain.on('get-navbar-menu-order',e=>{
 })
 
 function setTabState(cont,cb){
-  const tabId = cont.getId()
+  const tabId = cont.id
   ipcMain.once(`get-tab-opener-reply_${tabId}`,(e,openerTabId)=>{
-    const tabValue = cont.tabValue()
-    cb({id:tabId, openerTabId, index:tabValue.index, windowId:tabValue.windowId,active:tabValue.active,pinned:tabValue.pinned})
+    const requestId = Math.random().toString()
+    const hostWebContents = cont.hostWebContents2
+    hostWebContents.send('CHROME_TABS_TAB_VALUE', requestId, tabId)
+    ipcMain.once(`CHROME_TABS_TAB_VALUE_RESULT_${requestId}`,(event, tabValue)=>{
+      cb({id:tabId, openerTabId, index:tabValue.index, windowId:BrowserWindow.fromWebContents(hostWebContents).id,active:tabValue.active,pinned:tabValue.pinned})
+    })
   })
   ipcMain.emit('get-tab-opener',null,tabId)
 }
@@ -1730,8 +1744,8 @@ function setTabState(cont,cb){
 function saveTabState(cont, rSession, tabKey, noUpdate, closingPos, close) {
   closingPos = closingPos || {}
 
-  let histNum = cont.getEntryCount(),
-    currentIndex = cont.getCurrentEntryIndex(),
+  let histNum = cont.length(),
+    currentIndex = cont.getActiveIndex(),
     historyList = []
   const urls = [], titles = [], positions = []
   if (!rSession) {
@@ -1778,7 +1792,7 @@ function saveTabState(cont, rSession, tabKey, noUpdate, closingPos, close) {
 }
 
 ipcMain.on('get-cont-history',(e,tabId,tabKey,rSession)=>{
-  const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
+  const cont = (sharedState[tabId] || webContents.fromId(tabId))
   if(!cont || cont.isDestroyed()){
     e.sender.send(`get-cont-history-reply_${tabId}`)
     return
@@ -1882,7 +1896,7 @@ ipcMain.on('set-clipboard',(e,data)=>{
 
 ipcMain.on('download-start',(e,url)=>{
   try{
-    e.sender.hostWebContents.downloadURL(url,true)
+    e.sender.hostWebContents2.downloadURL(url,true)
   }
   catch(e){
     getCurrentWindow().webContents.downloadURL(url,true)
@@ -1890,7 +1904,7 @@ ipcMain.on('download-start',(e,url)=>{
 })
 
 ipcMain.on('print-to-pdf',(e,key,tabId,savePath,options)=>{
-  const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
+  const cont = (sharedState[tabId] || webContents.fromId(tabId))
   if(!path.isAbsolute(savePath)){
     savePath = path.join(app.getPath('desktop'),savePath)
   }
@@ -1937,10 +1951,10 @@ ipcMain.on('screen-shot',(e,{full,type,rect,tabId,tabKey,quality=92,savePath,aut
     }
   }
 
-  if(full || (e.sender.hostWebContents && rect)){
-    const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
+  if(full || (e.sender.hostWebContents2 && rect)){
+    const cont = (sharedState[tabId] || webContents.fromId(tabId))
     if(cont && !cont.isDestroyed()){
-      cont.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',
+      cont.executeJavaScript(
         `(function(){
           const d = document.body,dd = document.documentElement,
           width = Math.max(d.scrollWidth, d.offsetWidth, dd.clientWidth, dd.scrollWidth, dd.offsetWidth),
@@ -1948,16 +1962,16 @@ ipcMain.on('screen-shot',(e,{full,type,rect,tabId,tabKey,quality=92,savePath,aut
           if(d.style.overflow) d.dataset.overflow = d.style.overflow
           d.style.overflow = 'hidden'
           return {width,height}
-        })()`, {},(err, url, result)=>{
+        })()`, (result)=>{
           const key = Math.random().toString()
-          cont.hostWebContents.send('webview-size-change',tabKey,key,`${result[0].width}px`,`${result[0].height}px`,true)
+          cont.hostWebContents2.send('webview-size-change',tabKey,key,`${result.width}px`,`${result.height}px`,true)
           ipcMain.once(`webview-size-change-reply_${key}`,(e)=>{
-            cont.capturePage(rect || {x:0,y:0,width:scaling(result[0].width),height:scaling(result[0].height) },capture.bind(this,_=>{
-              cont.hostWebContents.send('webview-size-change',tabKey,key,'100%','100%')
-              cont.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',
+            cont.capturePage(rect || {x:0,y:0,width:scaling(result.width),height:scaling(result.height) },capture.bind(this,_=>{
+              cont.hostWebContents2.send('webview-size-change',tabKey,key,'100%','100%')
+              cont.executeJavaScript(
                 `(function(){
           document.body.style.overflow = document.body.dataset.overflow || null
-        })()`, {},(err, url, result)=>{})
+        })()`,(result)=>{})
             }))
           })
         })
@@ -1966,7 +1980,7 @@ ipcMain.on('screen-shot',(e,{full,type,rect,tabId,tabKey,quality=92,savePath,aut
   else{
     const args = [capture.bind(this,null)]
     if(rect) args.unshift(rect)
-    const cont = (e.sender.hostWebContents ? (sharedState[tabId] || webContents.fromTabID(tabId)) : e.sender)
+    const cont = (e.sender.hostWebContents2 ? (sharedState[tabId] || webContents.fromId(tabId)) : e.sender)
     if(cont && !cont.isDestroyed()) cont.capturePage(...args)
   }
 })
@@ -1996,11 +2010,11 @@ ipcMain.on('execCommand-copy',e=>{
 
 ipcMain.on('get-isMaximized',e=>{
   const win = BrowserWindow.fromWebContents(e.sender)
-  e.returnValue = win.isMaximized() || win.isFullScreen()
+  e.returnValue = win && !win.isDestroyed() ? (win.isMaximized() || win.isFullScreen()) : void 0
 })
 
 ipcMain.on('set-audio-muted',(e,tabId,val,changeTabPanel)=>{
-  const cont = webContents.fromTabID(tabId)
+  const cont = webContents.fromId(tabId)
   if(cont && !cont.isDestroyed()) cont.setAudioMuted(val)
   if(changeTabPanel){
 
@@ -2042,15 +2056,15 @@ ipcMain.on('run-puppeteer',(e, dir, file)=> {
   ipcMain.once('start-pty-reply', (e, key) => {
     ipcMain.emit(`send-pty_${key}`, null, `cd ${dir}\nnode ${file}\n`)
   })
-  e.sender.hostWebContents.send('new-tab', e.sender.getId(), 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html')
+  e.sender.hostWebContents2.send('new-tab', e.sender.id, 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html')
 })
 
 ipcMain.on('start-complex-search',(e,key,tabId,operation,noMacro)=>{
   const macro = noMacro ? '' : readComplexSearch()
-  const cont = webContents.fromTabID(tabId)
+  const cont = webContents.fromId(tabId)
   if(cont && !cont.isDestroyed()){
-    cont.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',`${macro}\n${operation}`, {},(err, url, result)=>{
-      e.sender.send(`start-complex-search-reply_${key}`,result[0])
+    cont.executeJavaScript(`${macro}\n${operation}`, (result)=>{
+      e.sender.send(`start-complex-search-reply_${key}`,result)
     })
   }
 })
@@ -2061,10 +2075,10 @@ ipcMain.on('start-find-all',async (e,key,tabIds,operation,noMacro)=>{ //@TODO
   const promises = []
   for(let tabId of tabIds){
     promises.push(new Promise(r=>{
-      const cont = webContents.fromTabID(tabId)
+      const cont = webContents.fromId(tabId)
       if(cont && !cont.isDestroyed()){
-        cont.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',code, {},(err, url, result)=>{
-          r([tabId,result[0]])
+        cont.executeJavaScript(code, (result)=>{
+          r([tabId,result])
         })
       }
     }))
@@ -2117,7 +2131,7 @@ ipcMain.on('close-window',e=>{
 
 ipcMain.on('find-event',(e,tabId,method,...args)=>{
   if(!method.includes('find') && !method.includes('Find')) return
-  const cont = webContents.fromTabID(tabId)
+  const cont = webContents.fromId(tabId)
   if(cont && !cont.isDestroyed()){
     cont[method](...args)
   }
@@ -2147,12 +2161,12 @@ ipcMain.on('rectangular-selection',(e,val)=>{
 
 
 ipcMain.on("full-screen-html",(e,val)=>{
-  mainState.fullScreenIds[e.sender.getId()] = val
+  mainState.fullScreenIds[e.sender.id] = val
 })
 
 
 ipcMain.on("full-screen-html",(e,val)=>{
-  mainState.fullScreenIds[e.sender.getId()] = val
+  mainState.fullScreenIds[e.sender.id] = val
 })
 
 ipcMain.on("login-sync",async (e,{key,type,email,password})=>{
@@ -2189,7 +2203,7 @@ function recurMenu(template,cont){
 ipcMain.on("devTools-contextMenu-open",(e,template,x,y)=>{
   const cont = e.sender
   console.log(template)
-  const targetWindow = BrowserWindow.fromWebContents(cont.hostWebContents || cont)
+  const targetWindow = BrowserWindow.fromWebContents(cont.hostWebContents2 || cont)
   if (!targetWindow) return
 
   if(template.length){
@@ -2225,16 +2239,18 @@ ipcMain.on("menu-command",(e,name)=>{
   }
 })
 
-ipcMain.on('set-zoom',(e,tabId,level)=>{
-  const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
-  cont.setZoomLevel(level)
+ipcMain.on('set-zoom',(e,tabId,factor)=>{
+  const cont = (sharedState[tabId] || webContents.fromId(tabId))
+  cont.setZoomFactor(factor)
 })
 
 ipcMain.on('install-from-local-file-extension', e=>{
-  dialog.showDialog(getCurrentWindow(), {
+  dialog.showOpenDialog(getCurrentWindow(), {
     defaultPath: app.getPath('downloads'),
-    type: 'select-open-file',
-    extensions: [['crx']],
+    properties: ['openFile'],
+    filters: [
+      {name: 'Chrome Extension File', extensions: ['crx']}
+    ],
     includeAllFiles:false
   }, async fileNames => {
     if (fileNames && fileNames.length == 1) {
@@ -2274,16 +2290,16 @@ ipcMain.on('input-history-data',async (e,key,data,isTmp)=>{
 })
 
 ipcMain.on('focus-input',async (e,mode,data)=>{
-  const hostWebContents = e.sender.hostWebContents
+  const hostWebContents = e.sender.hostWebContents2
   if(!hostWebContents) return
   if(mode == 'in'){
     const inHistory = await inputHistory.find({host: data.host})
     if(inHistory && inHistory.length){
-      hostWebContents.send('focus-input',{mode,tabId: e.sender.getId(),...data,inHistory})
+      hostWebContents.send('focus-input',{mode,tabId: e.sender.id,...data,inHistory})
     }
   }
   else{
-    hostWebContents.send('focus-input',{mode,tabId: e.sender.getId(),...data})
+    hostWebContents.send('focus-input',{mode,tabId: e.sender.id,...data})
   }
 })
 
@@ -2310,3 +2326,335 @@ ipcMain.on('main-state-op',(e,op,name,key,val)=>{
     mainState[op](name,key)
   }
 })
+
+let seqBv = 0, bvMap = {}, nowBvMap = {}, seqMap = {}
+const bvZindexMap = {}
+ipcMain.on('create-browser-view', (e, panelKey, tabKey, x, y, width, height, zIndex, src)=>{
+  console.log('create-browser-view', panelKey, tabKey, x, y, width, height, zIndex, src)
+  const view = new BrowserView({ webPreferences: {
+      plugins: true,
+      nodeIntegration: false,
+      navigateOnDragDrop: true,
+      // contextIsolation: true,
+      sandbox: true,
+      allowFileAccessFromFileUrls: true,
+      allowUniversalAccessFromFileUrls: true,
+      // enableRemoteModule: true,
+      preload: path.join(__dirname, '../resource/preload-content-scripts.js')
+    } })
+  view.setAutoResize({width: false, height: false})
+  if(!seqMap[panelKey]) seqMap[panelKey] = ++seqBv
+  if(zIndex > 0){
+    const win = BrowserWindow.fromWebContents(e.sender)
+    win.insertBrowserView(view, seqMap[panelKey])
+    delete bvZindexMap[win]
+    view.setBounds({ x: Math.round(x), y:Math.round(y), width: Math.round(width), height: Math.round(height) })
+    nowBvMap[panelKey] = tabKey
+  }
+  if(src) view.webContents.loadURL(src)
+  view.webContents.hostWebContents2 = e.sender
+  bvMap[`${panelKey}\t${tabKey}`] = view
+  ipcMain.emit('web-contents-created', {},view.webContents)
+  e.returnValue = view.webContents.id
+})
+
+const noAttachs = {}
+ipcMain.on('no-attach-browser-view', (e, panelKey, tabKeys)=>{
+  console.log('no-attach-browser-view', panelKey, tabKeys)
+  for(let tabKey of tabKeys){
+    noAttachs[`${panelKey}\t${tabKey}`] = true
+    setTimeout(()=> delete noAttachs[`${panelKey}_${tabKey}`],100)
+  }
+})
+
+const detachs = {}
+ipcMain.on('move-browser-view', (e, panelKey, tabKey, type, tabId, x, y, width, height, zIndex, remove)=>{
+  console.log('move-browser-view', panelKey, tabKey, type, tabId, x, y, width, height, zIndex)
+  const win = BrowserWindow.fromWebContents(e.sender)
+  if(type == 'detach'){
+    const view = bvMap[`${panelKey}\t${tabKey}`]
+    detachs[view.webContents.id] = [view, e.sender]
+    delete bvMap[`${panelKey}\t${tabKey}`]
+    if(nowBvMap[panelKey] == tabKey){
+      win.eraseBrowserView(seqMap[panelKey])
+      delete nowBvMap[panelKey]
+    }
+  }
+  else if(type == 'attach'){
+    if(noAttachs[`${panelKey}\t${tabKey}`]){
+      delete noAttachs[`${panelKey}\t${tabKey}`]
+      return
+    }
+    const data = detachs[tabId]
+    let view = data && data[0]
+    let sender = data && data[1]
+    if(!view){
+      for(let [panelAndTabKey,_view] of Object.entries(bvMap)){
+        const [_panelKey, _tabKey] = panelAndTabKey.split("\t")
+        if(panelKey != _panelKey && _tabKey == tabKey){
+          view = _view
+          delete bvMap[`${_panelKey}\t${tabKey}`]
+          if(nowBvMap[_panelKey] == tabKey){
+            win.eraseBrowserView(seqMap[_panelKey])
+            delete nowBvMap[_panelKey]
+          }
+        }
+      }
+    }
+    if(!view) return
+    delete detachs[tabId]
+    if(!seqMap[panelKey]){
+      seqMap[panelKey] = ++seqBv
+    }
+
+    view.webContents.hostWebContents2 = e.sender
+    bvMap[`${panelKey}\t${tabKey}`] = view
+    if(x !== void 0) view.setBounds({ x: Math.round(x), y:Math.round(y), width: Math.round(width), height: Math.round(height) })
+    if(remove && sender){
+      sender.send('chrome-tabs-event',{tabId}, 'removed')
+    }
+  }
+  delete bvZindexMap[win]
+})
+
+ipcMain.on('set-bound-browser-view', (e, panelKey, tabKey, x, y, width, height, zIndex)=>{
+  console.log('set-bound-browser-view', panelKey, tabKey, x, y, width, height, zIndex)
+  const view = bvMap[`${panelKey}\t${tabKey}`]
+  if(!view) return
+  // if(!view){
+  //   for(let [_panelKey,_tabKey] of Object.entries(nowBvMap)){
+  //     if(_tabKey == tabKey){
+  //       view = bvMap[`${_panelKey}\t${tabKey}`]
+  //       delete bvMap[`${_panelKey}\t${tabKey}`]
+  //       const win = BrowserWindow.fromWebContents(e.sender)
+  //       win.eraseBrowserView(seqMap[_panelKey])
+  //       bvMap[`${panelKey}\t${tabKey}`] = view
+  //     }
+  //   }
+  // }
+  if(nowBvMap[panelKey] != tabKey){
+    const win = BrowserWindow.fromWebContents(e.sender)
+    if (zIndex) {
+      const winAttachView = win.getAddtionalBrowserView(seqMap[panelKey])
+      if(!winAttachView || view.id != winAttachView.id){
+        win.insertBrowserView(view, seqMap[panelKey])
+      }
+    }
+    delete bvZindexMap[win]
+    nowBvMap[panelKey] = tabKey
+  }
+  view.setBounds({x: Math.round(x), y: Math.round(y), width: Math.round(width), height: Math.round(height)})
+})
+
+ipcMain.on('delete-browser-view', (e, panelKey, tabKey)=>{
+  console.log('delete-browser-view',panelKey,tabKey)
+  const view = bvMap[`${panelKey}\t${tabKey}`]
+
+  delete bvMap[`${panelKey}\t${tabKey}`]
+  if(nowBvMap[panelKey] == tabKey) delete nowBvMap[panelKey]
+
+  const win = BrowserWindow.fromWebContents(e.sender)
+  delete bvZindexMap[win]
+
+  if(view){
+    if(!Object.keys(bvMap).some(key=>key.startsWith(panelKey))){
+      win.eraseBrowserView(seqMap[panelKey])
+      delete seqMap[panelKey]
+    }
+    view.destroy()
+  }
+})
+
+const compMap = {}
+ipcMain.on('operation-overlap-component', (e, opType, panelKey) => {
+  console.log('operation-overlap-component', opType, panelKey)
+  const win = BrowserWindow.fromWebContents(e.sender)
+  for(let type of ['page-status']){
+    if(opType == 'create' && !compMap[`${type}\t${panelKey}`]){
+      const view = new BrowserView({ webPreferences: {
+        nodeIntegration: type == 'page-search',
+        sandbox: type != 'page-search',
+        allowFileAccessFromFileUrls: true,
+        allowUniversalAccessFromFileUrls: true
+      } })
+      view.setAutoResize({width: false, height: false})
+      const seq = ++seqBv
+      win.insertBrowserView(view, seq)
+      win.reorderBrowserView(seq, 0)
+      view.webContents.loadURL(`file://${path.join(__dirname, `../${type}.html`)}`)
+
+      compMap[`${type}\t${panelKey}`] = [seq, view, false]
+    }
+    else if(opType == 'delete' && compMap[`${type}\t${panelKey}`]){
+      win.eraseBrowserView(compMap[`${type}\t${panelKey}`][0])
+      delete compMap[`${type}\t${panelKey}`]
+    }
+  }
+})
+
+let wait = false
+ipcMain.on('set-overlap-component', async (e, type, panelKey, tabKey, x, y, width, height, ...args) => {
+  // console.log('set-overlap-component', type, panelKey, tabKey, x, y, width, height, ...args)
+  if(wait){
+    for(let i=0;i< 1000;i++){
+      await new Promise(r=> setTimeout(r,10))
+      if(!wait) break
+    }
+  }
+  wait = true
+  const win = BrowserWindow.fromWebContents(e.sender)
+  let data = compMap[`${type}\t${panelKey}`]
+  if(!data){
+    const view = new BrowserView({ webPreferences: {
+        nodeIntegration: type == 'page-search',
+        sandbox: type != 'page-search',
+        allowFileAccessFromFileUrls: true,
+        allowUniversalAccessFromFileUrls: true
+      } })
+    view.setAutoResize({width: false, height: false})
+    const seq = ++seqBv
+    win.insertBrowserView(view, seq)
+    win.reorderBrowserView(seq, 0)
+    view.webContents.loadURL(`file://${path.join(__dirname, `../${type}.html`)}`)
+
+    await new Promise(r=>view.webContents.once('did-finish-load', r))
+
+    compMap[`${type}\t${panelKey}`] = [seq, view, false]
+    data = compMap[`${type}\t${panelKey}`]
+  }
+  const [seq, view, isOnTop] = data
+
+  if(type == 'page-status'){
+    const [status, style] = args
+    if(width > 0){
+      win.reorderBrowserView(seq, -1)
+      view.webContents.executeJavaScript(`
+      var ele = document.querySelector('#browser-page-status')
+      if(${!!style.color}) ele.style.color = '${style.color}'
+      if(${!!style.backgroundColor}) ele.style.backgroundColor = '${style.backgroundColor}'
+      ele.innerHTML = '${status}'
+      `)
+      view.setBounds({ x: Math.round(x), y:Math.round(y), width: Math.round(width), height: Math.round(height) })
+      compMap[`${type}\t${panelKey}`] = [seq, view, true]
+    }
+    else{
+      win.reorderBrowserView(seq, 0)
+      compMap[`${type}\t${panelKey}`] = [seq, view, false]
+    }
+  }
+  else if(type == 'page-search'){
+    // const [progress, state] = args
+    if(y !== -1){
+      win.reorderBrowserView(seq, -1)
+      if(args[1].focus) view.webContents.focus()
+      view.webContents.send('page-search-data', panelKey, tabKey, ...args)
+      view.setBounds({ x: Math.round(x), y:Math.round(y), width: Math.round(width), height: Math.round(height) })
+      compMap[`${type}\t${panelKey}`] = [seq, view, true]
+    }
+    else{
+      win.reorderBrowserView(seq, 0)
+      compMap[`${type}\t${panelKey}`] = [seq, view, false]
+    }
+  }
+  wait = false
+})
+
+ipcMain.on('get-browser-window-from-web-contents', (e, tabId) =>{
+  e.returnValue = (BrowserWindow.fromWebContents(webContents.fromId(tabId)) || BrowserWindow.fromWebContents(webContents.fromId(tabId).hostWebContents2)).id
+})
+
+ipcMain.on('get-message-sender-info', (e,tabId) => {
+  const contents = webContents.fromId(tabId)
+
+  e.returnValue = contents ? {
+    mutedInfo: {muted: contents.isAudioMuted()},
+    status: contents.isLoading ? 'loading' : 'complete',
+    title: contents.getTitle(),
+    url: contents.getURL(),
+    windowId: contents.hostWebContents2 && BrowserWindow.fromWebContents(webContents.fromId(contents.hostWebContents2.id)).id
+  } : null
+})
+
+ipcMain.on('get-process-info', (e) => {
+  e.returnValue = {
+    arch: process.arch,
+    platform: process.platform
+  }
+})
+
+ipcMain.on('change-browser-view-z-index', (e, isFrame) =>{
+  const win = BrowserWindow.fromWebContents(e.sender)
+  // console.log('change-browser-view-z-index', isFrame, bvZindexMap[win])
+  if(isFrame && !bvZindexMap[win]){
+    for(let panelKey of Object.keys(nowBvMap)){
+      win.reorderBrowserView(seqMap[panelKey], 0)
+    }
+    bvZindexMap[win] = true
+  }
+  else if(!isFrame && bvZindexMap[win]){
+    for(let panelKey of Object.keys(nowBvMap)){
+      win.reorderBrowserView(seqMap[panelKey], -1)
+    }
+    for(let [seq, view, isOnTop] of Object.values(compMap)){
+      if(isOnTop) win.reorderBrowserView(seq, -1)
+    }
+    delete bvZindexMap[win]
+  }
+})
+
+ipcMain.on('webview-mousemove', e => {
+  ipcMain.emit('change-browser-view-z-index',{sender: e.sender.hostWebContents2}, false)
+})
+
+ipcMain.on('send-to-host', (e, ...args)=>{
+  // console.log(`send-to-host_${e.sender.id}`,e.sender.hostWebContents2.getURL(), ...args)
+  e.sender.hostWebContents2.send(`send-to-host_${e.sender.id}`, ...args)
+})
+
+ipcMain.on('get-visited-links', (e, key, urls) => {
+  history.find({location: {$in: urls}}).then(hists => {
+    e.sender.send(`get-visited-links-reply_${key}`, hists.map(h => h.location))
+  })
+})
+
+ipcMain.on('page-search-event', (e, panelKey, tabKey, type, ...args) => {
+  for(let win of BrowserWindow.getAllWindows()) {
+    if(win.getTitle().includes('Sushi Browser')){
+      win.webContents.send(`page-search-event-${panelKey}-${tabKey}`, type, ...args)
+    }
+  }
+})
+// let dragPos = {}, noMove = false
+// ipcMain.on('drag-window', (e, pos) =>{
+//   if(pos.start) dragPos = pos
+//   else if(!noMove){
+//     const win = BrowserWindow.fromWebContents(e.sender)
+//     if(win.isMaximized()){
+//       if(pos.y - dragPos.y < 30) return
+//       const bBounds = win.getBounds()
+//       win.unmaximize()
+//       noMove = true
+//       setTimeout(()=>{
+//         const [width, height] = win.getSize()
+//         console.log('win',bBounds, width, dragPos.x,dragPos.clientX, dragPos.y,dragPos.clientY)
+//         console.log({x: pos.x - dragPos.clientX * width / bBounds.width, y:pos.y - dragPos.clientY, width, height})
+//         win.setBounds({x: Math.round(pos.x - dragPos.clientX * width / bBounds.width), y:pos.y - dragPos.clientY, width, height})
+//         noMove = false
+//       },100)
+//     }
+//     else if(pos.x !== dragPos.x || pos.y !== dragPos.y){
+//       const [x,y] = win.getPosition()
+//       win.setPosition(x + (pos.x - dragPos.x), y + (pos.y - dragPos.y))
+//     }
+//     pos.clientX = dragPos.clientX
+//     pos.clientY = dragPos.clientY
+//     dragPos = pos
+//   }
+// })
+
+// let dragWindowId
+// ipcMain.on('drag-window', (e, data) =>{
+//   const win = BrowserWindow.fromWebContents(e.sender)
+//   const key = Math.random().toString()
+//   win.webContents.send('drag-switch', data)
+// })

@@ -47,7 +47,7 @@ export default class InputPopup extends Component {
 
   updateValue(selector,optSelector,val){
     if(isString(val))val = val.replace(/\r?\n/g,"\\n").replace(/'/,"\\'")
-    this.props.tab.wv.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',
+    this.props.tab.wv.executeJavaScript(
       `(function(){
         if(!window.__form_value___){
           window.__form_value___ = {}
@@ -73,11 +73,11 @@ export default class InputPopup extends Component {
         else{
           ele.value = '${val}'
         }
-      }())`,{},()=>{})
+      }())`,()=>{})
   }
 
   resumeValue(){
-    this.props.tab.wv.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',
+    this.props.tab.wv.executeJavaScript(
       `(function(){
         if(window.__form_value___  !== void 0){
           for(let [selector, val] of Object.entries(window.__form_value___)){
@@ -98,7 +98,7 @@ export default class InputPopup extends Component {
           }
           window.__form_value___ = void 0
         }
-      }())`,{},()=>{})
+      }())`,()=>{})
   }
 
   findItems(title){

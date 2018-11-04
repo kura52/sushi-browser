@@ -1,5 +1,5 @@
-require('v8-compile-cache')
-
+// require('v8-compile-cache')
+console.log(process.argv)
 global.debug = require('debug')('info')
 const databaseForked = require('./databaseForked')
 import { app } from 'electron'
@@ -14,7 +14,7 @@ function getPortable(){
     const file = path.join(__dirname,'../resource/portable.txt').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
     global.portable = {
       state: fs.existsSync(file) && fs.readFileSync(file).toString().replace(/[ \r\n]/g,''),
-      default: path.dirname(app.getPath('userData')),
+      default: path.dirname(app ? app.getPath('userData'): process.argv[2]),
       portable: path.join(__dirname,`../../../${isDarwin ? '../../' : ''}`),
       file
     }
@@ -35,7 +35,7 @@ function changePortable(folder){
     //     fs.copySync(noPortablePath,portablePath)
     //   }
     // }
-    app.setPath('userData', portablePath)
+    if(app) app.setPath('userData', portablePath)
   }
 }
 
@@ -45,19 +45,18 @@ function changePortable(folder){
     if(isDarwin){
       app.dock.hide()
     }
-    app.setPath('userData', app.getPath('userData').replace('brave','sushiBrowserDB').replace('sushi-browser','sushiBrowserDB'))
+    // app.setPath('userData', app.getPath('userData').replace('Electron','sushiBrowserDB').replace('sushi-browser','sushiBrowserDB'))
     changePortable('db')
-    const appPath = app.getPath('userData')
+    const appPath = process.argv[2].replace('sushiBrowser','sushiBrowserDB')
     if (!fs.existsSync(appPath)) {
       fs.mkdirSync(appPath)
     }
 
-    console.log(111,app.getPath('userData'),app.getPath('temp'))
     databaseForked()
   }
   else{
     global.originalUserDataPath = app.getPath('userData')
-    app.setPath('userData', app.getPath('userData').replace('brave','sushiBrowser').replace('sushi-browser','sushiBrowser'))
+    app.setPath('userData', app.getPath('userData').replace('Electron','sushiBrowser').replace('sushi-browser','sushiBrowser'))
     changePortable('data')
     console.log(7773477,process.argv)
 

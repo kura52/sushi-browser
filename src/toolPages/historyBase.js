@@ -485,15 +485,15 @@ class Contents extends React.Component {
               if(currentNode.type == 'file' && currentNode.favicon != "empty"){
                 if(this.props.cont){
                   if(event.button == 1){
-                    this.props.cont.hostWebContents.send('create-web-contents',{id:this.props.cont.getId(),targetUrl:currentNode.url,disposition:'background-tab'})
+                    this.props.cont.hostWebContents2.send('create-web-contents',{id:this.props.cont.id,targetUrl:currentNode.url,disposition:'background-tab'})
                   }
                   else{
-                    this.props.cont.hostWebContents.send(openType ? 'new-tab' : 'load-url',this.props.cont.getId(),currentNode.url)
+                    this.props.cont.hostWebContents2.send(openType ? 'new-tab' : 'load-url',this.props.cont.id,currentNode.url)
                   }
                   if(this.props.onClick) this.props.onClick()
                 }
                 else{
-                  ipc.sendToHost("open-tab-opposite",currentNode.url,true,event.button == 1 ? 'create-web-contents' : openType ? 'new-tab' : 'load-url')
+                  ipc.send('send-to-host', "open-tab-opposite",currentNode.url,true,event.button == 1 ? 'create-web-contents' : openType ? 'new-tab' : 'load-url')
                 }
               }
               else{

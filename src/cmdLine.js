@@ -32,9 +32,10 @@ function fileUrl(filePath){
 }
 
 function isProtocolHandled(protocol){
-  protocol = (protocol || '').split(':')[0]
-  return navigatableTypes.includes(`${protocol}:`) ||
-    electron.session.defaultSession.protocol.isNavigatorProtocolHandled(protocol)
+  return true //@TODO ELECTRON
+  // protocol = (protocol || '').split(':')[0]
+  // return navigatableTypes.includes(`${protocol}:`) ||
+  //   electron.session.defaultSession.protocol.isNavigatorProtocolHandled(protocol)
 }
 
 
@@ -42,10 +43,10 @@ const focusOrOpenWindow = function (url) {
   getFocusedWebContents().then(cont=>{
     if(cont){
       if(url){
-        cont.hostWebContents.send('new-tab', cont.getId(), url)
+        cont.hostWebContents2.send('new-tab', cont.id, url)
       }
       else{
-        BrowserWindow.fromWebContents(cont.hostWebContents).focus()
+        BrowserWindow.fromWebContents(cont.hostWebContents2).focus()
       }
     }
     else{
@@ -120,22 +121,22 @@ app.on('will-finish-launching', () => {
   })
 })
 
-const isSecondInstance = app.makeSingleInstance((argv, workingDirectory) => {
-  // Someone tried to run a second instance, we should focus our window.
-  if (isDarwin) {
-    focusOrOpenWindow()
-  } else {
-    console.log(33334,argv,getUrlFromCommandLine(argv))
-    focusOrOpenWindow(getUrlFromCommandLine(argv))
-  }
-})
-
-if (isSecondInstance) {
-  console.log(67686785)
-  if(global.__CHILD__) global.__CHILD__.kill()
-  app.exit(0)
-
-}
+// const isSecondInstance = app.makeSingleInstance((argv, workingDirectory) => { // @TODO ELECTRON
+//   // Someone tried to run a second instance, we should focus our window.
+//   if (isDarwin) {
+//     focusOrOpenWindow()
+//   } else {
+//     console.log(33334,argv,getUrlFromCommandLine(argv))
+//     focusOrOpenWindow(getUrlFromCommandLine(argv))
+//   }
+// })
+//
+// if (isSecondInstance) {
+//   console.log(67686785)
+//   if(global.__CHILD__) global.__CHILD__.kill()
+//   app.exit(0)
+//
+// }
 
 function getNewWindowURL(){
   return newWindowURL

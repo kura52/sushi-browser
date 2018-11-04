@@ -32,7 +32,7 @@ export default class DevToolsPanel extends Component {
       if(devWebContents){
         const webContents = this.getWebContents(this.props.tab)
         webContents.setDevToolsWebContents(devWebContents)
-        webContents.toggleDevTools()
+        webContents.toggleDevTools() //@TODO ELECTRON
         break
       }
     }
@@ -51,7 +51,7 @@ export default class DevToolsPanel extends Component {
     const webview = this.refs.devWebview
     if(webview) webview.removeEventListener('tab-id-changed',this.tabIdChanged)
     PubSub.unsubscribe(this.token)
-    ipc.send('close-tab-pretask',this.tabId)
+    // ipc.send('close-tab-pretask',this.tabId)
   }
 
 
