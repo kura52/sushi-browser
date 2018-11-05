@@ -1966,6 +1966,9 @@ ipcMain.on('screen-shot',(e,{full,type,rect,tabId,tabKey,quality=92,savePath,aut
           const key = Math.random().toString()
           cont.hostWebContents2.send('webview-size-change',tabKey,key,`${result.width}px`,`${result.height}px`,true)
           ipcMain.once(`webview-size-change-reply_${key}`,(e)=>{
+            const view = BrowserView.getAllViews().find(x=>x.webContents.id == cont.id)
+            view.setBounds(rect || {x:0,y:0,width:scaling(result.width),height:scaling(result.height) })
+            console.log('capture',rect || {x:0,y:0,width:scaling(result.width),height:scaling(result.height) },cont.getURL())
             cont.capturePage(rect || {x:0,y:0,width:scaling(result.width),height:scaling(result.height) },capture.bind(this,_=>{
               cont.hostWebContents2.send('webview-size-change',tabKey,key,'100%','100%')
               cont.executeJavaScript(
@@ -2336,6 +2339,7 @@ ipcMain.on('create-browser-view', (e, panelKey, tabKey, x, y, width, height, zIn
       nodeIntegration: false,
       navigateOnDragDrop: true,
       // contextIsolation: true,
+      enableLargerThanScreen: true,
       sandbox: true,
       allowFileAccessFromFileUrls: true,
       allowUniversalAccessFromFileUrls: true,
@@ -2354,7 +2358,7 @@ ipcMain.on('create-browser-view', (e, panelKey, tabKey, x, y, width, height, zIn
   if(src) view.webContents.loadURL(src)
   view.webContents.hostWebContents2 = e.sender
   bvMap[`${panelKey}\t${tabKey}`] = view
-  ipcMain.emit('web-contents-created', {},view.webContents)
+  // ipcMain.emit('web-contents-created', {},view.webContents)
   e.returnValue = view.webContents.id
 })
 
@@ -2541,6 +2545,7 @@ ipcMain.on('set-overlap-component', async (e, type, panelKey, tabKey, x, y, widt
     }
     else{
       win.reorderBrowserView(seq, 0)
+      view.setBounds({ x: 0, y:0, width: 0, height: 0 })
       compMap[`${type}\t${panelKey}`] = [seq, view, false]
     }
   }
@@ -2555,6 +2560,7 @@ ipcMain.on('set-overlap-component', async (e, type, panelKey, tabKey, x, y, widt
     }
     else{
       win.reorderBrowserView(seq, 0)
+      view.setBounds({ x: 0, y:0, width: 0, height: 0 })
       compMap[`${type}\t${panelKey}`] = [seq, view, false]
     }
   }

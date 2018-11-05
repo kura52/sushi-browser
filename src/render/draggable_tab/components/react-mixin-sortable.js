@@ -176,7 +176,7 @@
 
     componentWillUnmount: function () {
       console.log("unmountTabs",this)
-      this._sortableInstance.destroy();
+      if(this._sortableInstance) this._sortableInstance.destroy();
       this._sortableInstance = null;
     },
 

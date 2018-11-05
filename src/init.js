@@ -369,7 +369,7 @@ ipcMain.on('chrome-extension-popup-id', (e,tabId)=>{
   popupCache.set(tabId,true)
 })
 
-ipcMain.on('web-contents-created', (e, tab) => {
+app.on('web-contents-created', (e, tab) => {
   contextMenu(tab)
   const webContents2 = webContents
 
@@ -1018,6 +1018,7 @@ async function startDownloadSelector(win,webContents,props,selection){
 
 const webContents2 = webContents
 function contextMenu(webContents) {
+  console.log('contextttt',webContents.getURL())
 
   const baseSet = new Set([locale.translation('copyLinkAddress'),
     locale.translation('1047431265488717055'),

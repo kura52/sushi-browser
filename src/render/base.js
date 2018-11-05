@@ -147,6 +147,7 @@ export default class MainContent extends Component{
     })
 
     document.addEventListener('contextmenu',e=>{
+      if(e.target.closest('.infinite-tree-item')) return
       e.preventDefault()
       return false
     },true)

@@ -1,7 +1,7 @@
 
 # Sushi Browser
 
-## Electron Edtion's TODO
+## Electron Edition's TODO
  - Fixed Sync Scroll and Autocomplete.
  - Fixed Page Search
  - Fixed Settings Page.
@@ -11,6 +11,7 @@
  - Added function to import from other browsers.
  - Added Password Manager.
  - Added Tor Proxy.
+ - Added MacOS Version.
 
 ## Why?
  
