@@ -1967,9 +1967,9 @@ ipcMain.on('screen-shot',(e,{full,type,rect,tabId,tabKey,quality=92,savePath,aut
           cont.hostWebContents2.send('webview-size-change',tabKey,key,`${result.width}px`,`${result.height}px`,true)
           ipcMain.once(`webview-size-change-reply_${key}`,(e)=>{
             const view = BrowserView.getAllViews().find(x=>x.webContents.id == cont.id)
-            view.setBounds(rect || {x:0,y:0,width:scaling(result.width),height:scaling(result.height) })
-            console.log('capture',rect || {x:0,y:0,width:scaling(result.width),height:scaling(result.height) },cont.getURL())
+            if(full) view.setBounds({x:viewAttributeMap[view.id].x, y:viewAttributeMap[view.id].y, width:scaling(result.width),height:scaling(result.height) })
             cont.capturePage(rect || {x:0,y:0,width:scaling(result.width),height:scaling(result.height) },capture.bind(this,_=>{
+              if(full) view.setBounds(viewAttributeMap[view.id])
               cont.hostWebContents2.send('webview-size-change',tabKey,key,'100%','100%')
               cont.executeJavaScript(
                 `(function(){
@@ -2330,7 +2330,7 @@ ipcMain.on('main-state-op',(e,op,name,key,val)=>{
   }
 })
 
-let seqBv = 0, bvMap = {}, nowBvMap = {}, seqMap = {}
+let seqBv = 0, bvMap = {}, nowBvMap = {}, seqMap = {}, viewAttributeMap = {}
 const bvZindexMap = {}
 ipcMain.on('create-browser-view', (e, panelKey, tabKey, x, y, width, height, zIndex, src)=>{
   console.log('create-browser-view', panelKey, tabKey, x, y, width, height, zIndex, src)
@@ -2352,7 +2352,8 @@ ipcMain.on('create-browser-view', (e, panelKey, tabKey, x, y, width, height, zIn
     const win = BrowserWindow.fromWebContents(e.sender)
     win.insertBrowserView(view, seqMap[panelKey])
     delete bvZindexMap[win]
-    view.setBounds({ x: Math.round(x), y:Math.round(y), width: Math.round(width), height: Math.round(height) })
+    viewAttributeMap[view.id] = { x: Math.round(x), y:Math.round(y), width: Math.round(width), height: Math.round(height) }
+    view.setBounds(viewAttributeMap[view.id])
     nowBvMap[panelKey] = tabKey
   }
   if(src) view.webContents.loadURL(src)
@@ -2413,7 +2414,10 @@ ipcMain.on('move-browser-view', (e, panelKey, tabKey, type, tabId, x, y, width, 
 
     view.webContents.hostWebContents2 = e.sender
     bvMap[`${panelKey}\t${tabKey}`] = view
-    if(x !== void 0) view.setBounds({ x: Math.round(x), y:Math.round(y), width: Math.round(width), height: Math.round(height) })
+    if(x !== void 0){
+      viewAttributeMap[view.id] = { x: Math.round(x), y:Math.round(y), width: Math.round(width), height: Math.round(height) }
+      view.setBounds(viewAttributeMap[view.id])
+    }
     if(remove && sender){
       sender.send('chrome-tabs-event',{tabId}, 'removed')
     }
@@ -2447,12 +2451,14 @@ ipcMain.on('set-bound-browser-view', (e, panelKey, tabKey, x, y, width, height, 
     delete bvZindexMap[win]
     nowBvMap[panelKey] = tabKey
   }
-  view.setBounds({x: Math.round(x), y: Math.round(y), width: Math.round(width), height: Math.round(height)})
+  viewAttributeMap[view.id] = { x: Math.round(x), y:Math.round(y), width: Math.round(width), height: Math.round(height) }
+  view.setBounds(viewAttributeMap[view.id])
 })
 
 ipcMain.on('delete-browser-view', (e, panelKey, tabKey)=>{
   console.log('delete-browser-view',panelKey,tabKey)
   const view = bvMap[`${panelKey}\t${tabKey}`]
+  delete viewAttributeMap[view.id]
 
   delete bvMap[`${panelKey}\t${tabKey}`]
   if(nowBvMap[panelKey] == tabKey) delete nowBvMap[panelKey]

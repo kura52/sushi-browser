@@ -1797,7 +1797,7 @@ export default class SplitWindows extends Component{
     }
 
 
-    this.setState({renderArrange: <div key='arrange-fixed-wrapper' style={{display: 'flex',position: 'fixed', zIndex: 99999999999,
+    this.setState({renderArrange: <div key='arrange-fixed-wrapper' className='visible transition' style={{display: 'flex',position: 'fixed', zIndex: 99999999999,
         backgroundColor: 'rgb(80, 80, 80)',left: 0, top, width: wholeWidth, height: wholeHeight}}>
         <div key='arrange-wrapper' style={{display: 'flex',flexWrap: 'wrap',alignContent: 'flex-start', margin: 'auto', justifyContent: 'center'}}>{results}</div>
       </div>})
