@@ -13,7 +13,7 @@ let app
   }catch(e){}
 }())
 
-const resourcePath = path.join((app ? app.getPath('userData') : process.argv[2]).replace('brave','sushiBrowser').replace('sushi-browser','sushiBrowser').replace('sushiBrowserDB','sushiBrowser'),'resource')
+const resourcePath = path.join((app ? app.getPath('userData') : process.argv[2]).replace('brave','sushiBrowser').replace('sushi-browser','sushiBrowser'),'resource')
 
 var fileTypes = {
   bmp: new Buffer([ 0x42, 0x4d ]),
