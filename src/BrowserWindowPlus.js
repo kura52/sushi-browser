@@ -143,13 +143,20 @@ function create(args){
       const wins = BrowserWindow.getAllWindows().filter(w=>w.getTitle().includes('Sushi Browser'))
       console.log(wins.length,BrowserWindow.getAllWindows().filter(w=>w.getTitle().includes('Sushi Browser')))
       if(wins.length > 1){ //@TODO close event hang out other windows
-        bw.setSkipTaskbar(true)
-        bw.setTitle('Closed')
-        bw.webContents.send('unmount-components',{})
-        bw.loadURL(`file://${path.join(__dirname, '../blank.html').replace(/\\/g,"/")}`)
-        bw.hide()
-
-        e.preventDefault()
+        // bw.setSkipTaskbar(true)
+        // bw.setTitle('Closed')
+        // bw.webContents.send('unmount-components',{})
+        // bw.loadURL(`file://${path.join(__dirname, '../blank.html').replace(/\\/g,"/")}`)
+        // bw.hide()
+        //
+        // e.preventDefault()
+        for(let i = 0;i<=global.seqBv;i++){
+          if(bw.getAddtionalBrowserView(i)) bw.eraseBrowserView(i)
+        }
+        for(let seq of Object.keys(global.viewCache)){
+          const i = parseInt(seq)
+          if(bw.getAddtionalBrowserView(i)) bw.eraseBrowserView(i)
+        }
         PubSub.publish('chrome-windows-onRemoved',bw.id)
         return
       }
