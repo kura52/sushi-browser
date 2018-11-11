@@ -103,6 +103,7 @@ const db = new Proxy({
   get automation(){return new Proxy(dummy, handler('automation'))},
   get automationOrder(){return new Proxy(dummy, handler('automationOrder'))},
   get inputHistory(){return new Proxy(dummy, handler('inputHistory'))},
+  get visitedStyle(){return new Proxy(dummy, handler('visitedStyle'))},
   get sock(){ return sock},
   _kill(){child.kill('SIGINT')}
 },handler())

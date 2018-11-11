@@ -191,29 +191,29 @@ class BrowserPage extends Component {
       if(msg == 'webview-scroll'){
         PubSub.publishSync("scroll-sync-webview",{sync:this.props.tab.sync,...args[0]})
       }
-      else if(msg == 'link-drop'){ //@TODO ELECTRON
-        console.log(e)
-        const {screenX,screenY,url,text} = args[0]
-        const cont = e.sender
-
-        const rect = e.target.getBoundingClientRect()
-        const wx = rect.x
-        const wy = rect.y
-
-        const ele = document.elementFromPoint(screenX - window.screenX + wx, screenY - window.screenY + wy)
-        if(ele.tagName == "WEBVIEW"){
-          const dropped = ele.dataset.key
-          const src = e.target.dataset.key
-          if(src !== dropped){
-            if(url){
-              PubSub.publish(`drag-search_${ele.className.slice(1)}`,{key:ele.dataset.key, url,text})
-            }
-            else{
-              PubSub.publish(`drag-search_${ele.className.slice(1)}`,{key:ele.dataset.key, text})
-            }
-          }
-        }
-      }
+      // else if(msg == 'link-drop'){ //@TODO ELECTRON
+      //   console.log(e)
+      //   const {screenX,screenY,url,text} = args[0]
+      //   const cont = e.sender
+      //
+      //   const rect = e.target.getBoundingClientRect()
+      //   const wx = rect.x
+      //   const wy = rect.y
+      //
+      //   const ele = document.elementFromPoint(screenX - window.screenX + wx, screenY - window.screenY + wy)
+      //   if(ele.tagName == "WEBVIEW"){
+      //     const dropped = ele.dataset.key
+      //     const src = e.target.dataset.key
+      //     if(src !== dropped){
+      //       if(url){
+      //         PubSub.publish(`drag-search_${ele.className.slice(1)}`,{key:ele.dataset.key, url,text})
+      //       }
+      //       else{
+      //         PubSub.publish(`drag-search_${ele.className.slice(1)}`,{key:ele.dataset.key, text})
+      //       }
+      //     }
+      //   }
+      // }
       else if(msg == 'webview-mousedown' || msg == 'webview-mouseup'){
         const button = args[0]
         PubSub.publishSync(msg,{target: this.refs2.webview, button})
@@ -537,13 +537,13 @@ class BrowserPage extends Component {
     return <div className="browser-page" onKeyDown={::this.onHandleKeyDown} key={this.props.k}
                 onMouseDown={this.handleMouseDown} onMouseUp={this.handleMouseUp} onWheel={this.handleWheel} onMouseMove={this.handleMouseMove}
                 onMouseEnter={this.handleMouseEnter} onMouseLeave={this.handleMouseLeave}>
-      <BrowserPageSearch k={this.props.k2} tab={this.props.tab} isSelected={this.props.isActive} isActive={this.state.isSearching} onPageSearch={::this.onPageSearch} progress={this.state.result_string} onClose={::this.onClose} parent={this}/>
+      <BrowserPageSearch key={this.props.k + this.props.k2} k={this.props.k2} tab={this.props.tab} isSelected={this.props.isActive} isActive={this.state.isSearching} onPageSearch={::this.onPageSearch} progress={this.state.result_string} onClose={::this.onClose} parent={this}/>
       {mobilePanel ? <MobilePanel tab={this.props.tab} mobilePanel={mobilePanel} parent={this} isActive={this.props.isActive}/> : null}
       <div className={`w${this.props.k2}`} key={this.props.k} data-webview="1" data-key={this.props.k} style={style}/>
       {hasDevToolsPanel ? <DevToolsPanel tab={this.props.tab} devToolsInfo={devToolsInfo} parent={this}
                                          style={style.width ? {width: style.width, display: 'inline-block'} : {}}/> : null}
-      <AutofillPopup k={this.props.k}/>
-      <StatusBar toggleNav={this.props.toggleNav} tab={this.props.tab} refs2={refs2}/>
+      <AutofillPopup key={this.props.k + this.props.k2} k={this.props.k}/>
+      <StatusBar key={this.props.k + this.props.k2} toggleNav={this.props.toggleNav} tab={this.props.tab} refs2={refs2}/>
     </div>
   }
 }
