@@ -1,7 +1,6 @@
 const path = require("path")
 import * as fs from "fs"
 const Datastore = require('promisify-me')(require('nedb'), 'nedb')
-import { app } from 'electron'
 // const {ipcMain} = require('electron')
 
 const resourcePath = path.join(process.argv[2].replace('sushiBrowser','sushiBrowserDB'),'resource')

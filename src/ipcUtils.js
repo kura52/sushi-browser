@@ -2362,6 +2362,7 @@ ipcMain.on('create-browser-view', (e, panelKey, tabKey, x, y, width, height, zIn
       enableRemoteModule: false,
       preload: path.join(__dirname, '../resource/preload-content-scripts.js')
     } })
+  view.webContents.hostWebContents2 = e.sender
   view.setAutoResize({width: false, height: false})
   if(!seqMap[panelKey]) seqMap[panelKey] = ++seqBv
   if(zIndex > 0){
@@ -2374,7 +2375,6 @@ ipcMain.on('create-browser-view', (e, panelKey, tabKey, x, y, width, height, zIn
     nowBvMap[panelKey] = tabKey
   }
   if(src) view.webContents.loadURL(src)
-  view.webContents.hostWebContents2 = e.sender
   bvMap[`${panelKey}\t${tabKey}`] = view
   // ipcMain.emit('web-contents-created', {},view.webContents)
   e.returnValue = view.webContents.id

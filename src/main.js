@@ -2,12 +2,18 @@
 console.log(process.argv)
 global.debug = require('debug')('info')
 const databaseForked = require('./databaseForked')
-import { app } from 'electron'
+let app
 import fs from 'fs-extra'
 import path from 'path'
 const isDarwin = process.platform === 'darwin'
 
 process.on('unhandledRejection', r => console.error(r));
+
+;(function(){
+  try{
+    app = require('electron').app
+  }catch(e){}
+}())
 
 function getPortable(){
   if(!global.portable){
@@ -47,7 +53,7 @@ function changePortable(folder){
     }
     // app.setPath('userData', app.getPath('userData').replace('Electron','sushiBrowserDB').replace('sushi-browser','sushiBrowserDB'))
     changePortable('db')
-    const appPath = process.argv[2].replace('sushiBrowser','sushiBrowserDB')
+    const appPath = process.argv[2].replace('sushiBrowser','sushiBrowserDB').replace('sushiBrowserDB', 'sushiBrowserElectronDB')
     if (!fs.existsSync(appPath)) {
       fs.mkdirSync(appPath)
     }
@@ -56,7 +62,7 @@ function changePortable(folder){
   }
   else{
     global.originalUserDataPath = app.getPath('userData')
-    app.setPath('userData', app.getPath('userData').replace('Electron','sushiBrowser').replace('sushi-browser','sushiBrowser'))
+    app.setPath('userData', app.getPath('userData').replace('Electron','sushiBrowser').replace('sushi-browser','sushiBrowser').replace('sushiBrowser', 'sushiBrowserElectron'))
     changePortable('data')
     console.log(7773477,process.argv)
 
