@@ -17,6 +17,7 @@
  - Add Tor Proxy.
  - Add MacOS Version.
  - Wait until Electron updates Chromium 70.(Electron #15405)
+ - There is a problem that executable file can not be renamed with windows, and it is waiting for it to be fixed. (Electron #15436)
 
 ## Why?
  

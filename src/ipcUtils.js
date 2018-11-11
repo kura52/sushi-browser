@@ -2367,6 +2367,8 @@ ipcMain.on('create-browser-view', (e, panelKey, tabKey, x, y, width, height, zIn
   if(!seqMap[panelKey]) seqMap[panelKey] = ++seqBv
   if(zIndex > 0){
     const win = BrowserWindow.fromWebContents(e.sender)
+    if(!win || win.isDestroyed()) return
+
     win.insertBrowserView(view, seqMap[panelKey])
     winViewMap[win.id] = view.id
     delete bvZindexMap[win.id]
@@ -2393,6 +2395,8 @@ const detachs = {}
 ipcMain.on('move-browser-view', (e, panelKey, tabKey, type, tabId, x, y, width, height, zIndex, remove)=>{
   console.log('move-browser-view', panelKey, tabKey, type, tabId, x, y, width, height, zIndex)
   const win = BrowserWindow.fromWebContents(e.sender)
+  if(!win || win.isDestroyed()) return
+
   if(type == 'detach'){
     const view = bvMap[`${panelKey}\t${tabKey}`]
     detachs[view.webContents.id] = [view, e.sender]
@@ -2462,6 +2466,8 @@ ipcMain.on('set-bound-browser-view', (e, panelKey, tabKey, x, y, width, height, 
   // }
   if(nowBvMap[panelKey] != tabKey){
     const win = BrowserWindow.fromWebContents(e.sender)
+    if(!win || win.isDestroyed()) return
+
     if (zIndex) {
       const winAttachView = win.getAddtionalBrowserView(seqMap[panelKey])
       if(!winAttachView || view.id != winAttachView.id){
@@ -2484,6 +2490,8 @@ ipcMain.on('delete-browser-view', (e, panelKey, tabKey)=>{
   if(nowBvMap[panelKey] == tabKey) delete nowBvMap[panelKey]
 
   const win = BrowserWindow.fromWebContents(e.sender)
+  if(!win || win.isDestroyed()) return
+
   delete bvZindexMap[win.id]
 
   if(view){
@@ -2501,6 +2509,8 @@ const compMap = {}
 ipcMain.on('operation-overlap-component', (e, opType, panelKey) => {
   console.log('operation-overlap-component', opType, panelKey)
   const win = BrowserWindow.fromWebContents(e.sender)
+  if(!win || win.isDestroyed()) return
+
   for(let type of ['page-status','page-search']){
     if(type == 'page-status' && opType == 'create' && !compMap[`${type}\t${panelKey}`]){
       const view = new BrowserView({ webPreferences: {
@@ -2538,7 +2548,7 @@ ipcMain.on('set-overlap-component', async (e, type, panelKey, tabKey, x, y, widt
   wait = true
   const win = BrowserWindow.fromWebContents(e.sender)
   let data = compMap[`${type}\t${panelKey}`]
-  if(!data && y == -1){
+  if(!data && y == -1 || (!win || win.isDestroyed())){
     wait = false
     return
   }
@@ -2627,6 +2637,8 @@ ipcMain.on('get-process-info', (e) => {
 
 ipcMain.on('change-browser-view-z-index', (e, isFrame) =>{
   const win = BrowserWindow.fromWebContents(e.sender)
+  if(!win || win.isDestroyed()) return
+
   // console.log('change-browser-view-z-index', isFrame, bvZindexMap[win])
   if(isFrame && !bvZindexMap[win.id]){
     for(let panelKey of Object.keys(nowBvMap)){

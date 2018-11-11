@@ -53,7 +53,7 @@ function changePortable(folder){
     }
     // app.setPath('userData', app.getPath('userData').replace('Electron','sushiBrowserDB').replace('sushi-browser','sushiBrowserDB'))
     changePortable('db')
-    const appPath = process.argv[2].replace('sushiBrowser','sushiBrowserDB').replace('sushiBrowserDB', 'sushiBrowserElectronDB')
+    const appPath = process.argv[2].replace('sushiBrowser','sushiBrowserDB')
     if (!fs.existsSync(appPath)) {
       fs.mkdirSync(appPath)
     }

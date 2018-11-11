@@ -62,10 +62,10 @@ function build(){
     process.exit()
   }
 
-  // if (isWindows) {
-  //   sh.mv(`brave-${process.platform}-${arch}`, buildDir)
-  //   sh.mv(`${buildDir}/brave.exe`, `${buildDir}/sushi.exe`)
-  // }
+  if (isWindows) {
+    // sh.mv(`brave-${process.platform}-${arch}`, buildDir)
+    sh.mv(`${buildDir}/sushi-browser.exe`, `${buildDir}/electron.exe`) //@TODO ELECTRON
+  }
 
   const pwd = sh.pwd().toString()
   if(isDarwin){
@@ -122,7 +122,7 @@ if not "%ver%"=="%newver%" (
   if exist sushi-browser-%newver%-win-x64.zip (
     del /Q sushi-browser-%newver%-win-x64.zip
   
-    taskkill /F /IM sushi.exe
+    taskkill /F /IM electron.exe
     copy /Y resources\\app.asar.unpacked\\resource\\portable.txt resources\\portable.txt
     rd /s /q resources\\_app
     rd /s /q resources\\app.asar.unpacked
@@ -131,14 +131,14 @@ if not "%ver%"=="%newver%" (
     cd _update_%newver%\\sushi-browser-portable
     xcopy /S /E /Y . ..\\..
     cd ..\\..
-    powershell Start-Process sushi.exe --update-delete
+    powershell Start-Process electron.exe --update-delete
   )
 )`)
 
     fs.writeFileSync(`${pwd}/${buildDir}/add_to_default_browser.cmd`,`powershell start-process __add_to_default_browser.cmd -verb runas`)
     fs.writeFileSync(`${pwd}/${buildDir}/__add_to_default_browser.cmd`,`reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Sushi\\Capabilities" /v ApplicationDescription /t REG_SZ /d "Sushi Browser" /f
 reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Sushi\\Capabilities" /v ApplicationName /t REG_SZ /d "Sushi" /f
-reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Sushi\\Capabilities" /v ApplicationIcon /t REG_SZ /d "%~dp0sushi.exe,0" /f
+reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Sushi\\Capabilities" /v ApplicationIcon /t REG_SZ /d "%~dp0electron.exe,0" /f
 
 reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Sushi\\Capabilities\\FileAssociations" /v .htm /t REG_SZ /d "SushiURL" /f
 reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Sushi\\Capabilities\\FileAssociations" /v .html /t REG_SZ /d "SushiURL" /f
@@ -157,7 +157,7 @@ reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\RegisteredApplications" /v Sushi /t REG_S
 reg add "HKEY_LOCAL_MACHINE\\Software\\Classes\\SushiURL" /t REG_SZ /d "Sushi Document" /f
 reg add "HKEY_LOCAL_MACHINE\\Software\\Classes\\SushiURL" /v FriendlyTypeName /t REG_SZ /d "Sushi Document" /f
 
-reg add "HKEY_LOCAL_MACHINE\\Software\\Classes\\SushiURL\\shell\\open\\command" /t REG_SZ /d "\\"%~dp0sushi.exe\\" -- \\"%%1\\"" /f
+reg add "HKEY_LOCAL_MACHINE\\Software\\Classes\\SushiURL\\shell\\open\\command" /t REG_SZ /d "\\"%~dp0electron.exe\\" -- \\"%%1\\"" /f
 
 pause`)
 
@@ -173,6 +173,8 @@ pause`)
   sh.rm('-rf','app')
   sh.cd(pwd)
 
+  muonModify()
+
   if (isWindows) {
     const electronInstaller = require('electron-winstaller')
     const resultPromise = electronInstaller.createWindowsInstaller({
@@ -186,7 +188,7 @@ pause`)
       iconUrl: 'https://sushib.me/favicon.ico',
       // signWithParams: format('-a -fd sha256 -f "%s" -p "%s" -t http://timestamp.verisign.com/scripts/timstamp.dll', path.resolve(cert), certPassword),
       noMsi: true,
-      exe: 'sushi.exe'
+      exe: 'electron.exe'
     })
     resultPromise.then(() => {
       // sh.mv(`${outDir}/Setup.exe`,`${outDir}/sushi-browser-setup-${arch}.exe`)
@@ -253,6 +255,78 @@ pause`)
   }
 }
 
+function muonModify(){
+  const dircs = []
+  const pwd = sh.pwd().toString()
+  dircs.push(buildDir)
+  for(let dirc of dircs){
+    const paths = glob.sync(`${pwd}/${dirc}/**/electron.asar`)
+    console.log(paths)
+    if(paths.length == 1){
+      const base = paths[0].split("/").slice(0,-1).join("/")
+      sh.cd(`${base}`)
+      if(sh.exec('asar e electron.asar electron').code !== 0) {
+        console.log("ERROR3")
+        process.exit()
+      }
+
+      const initFile = path.join(sh.pwd().toString(),sh.ls('electron/browser/init.js')[0])
+      const contents2 = fs.readFileSync(initFile).toString()
+      const result2 = contents2
+        .replace('let packagePath = null',`let packagePath
+const basePath = path.join(__dirname,'../..')
+if(fs.existsSync(path.join(basePath,'app.asar.7z'))){
+  const binPath = path.join(basePath,\`7zip/\${process.platform === 'win32' ? 'win' : process.platform === 'darwin' ? 'mac' : 'linux'}/7za\`)
+  const execSync = require('child_process').execSync
+  const dataPath = path.join(basePath,'app.asar.unpacked.7z')
+  const result =  execSync(\`"\${binPath}" x -y -o"\${basePath}" "\${dataPath}"\`)
+  fs.unlinkSync(dataPath)
+  
+  const dataPath2 = path.join(basePath,'app.asar.7z')
+  const result2 =  execSync(\`"\${binPath}" x -y -o"\${basePath}" "\${dataPath2}"\`)
+  fs.unlinkSync(dataPath2)
+  
+  if(process.argv[1] == '--update-delete'){
+    const portablePath = path.join(basePath, 'app.asar.unpacked/resource', 'portable.txt')
+    fs.unlinkSync(portablePath)
+    
+    const portablePath2 = path.join(basePath,'portable.txt')
+    if(fs.existsSync(portablePath2)){
+      fs.renameSync(portablePath2,portablePath)
+    }
+  }
+  
+  fs.renameSync(path.join(basePath,'app'),path.join(basePath,'_app'))
+}`)
+      fs.writeFileSync(initFile,result2)
+      sh.mv('app.asar.unpacked/resource/bin/7zip','.')
+
+      if(sh.exec(`${isWindows ? '"C:/Program Files/7-Zip/7z.exe"' : '7z'} a -t7z -mx=9 app.asar.unpacked.7z app.asar.unpacked`).code !== 0) {
+        console.log("ERROR1")
+        process.exit()
+      }
+      sh.rm('-rf','app.asar.unpacked')
+
+      if(sh.exec(`${isWindows ? '"C:/Program Files/7-Zip/7z.exe"' : '7z'} a -t7z -mx=9 app.asar.7z app.asar`).code !== 0) {
+        console.log("ERROR2")
+        process.exit()
+      }
+      sh.rm('-rf','app.asar')
+
+      sh.mkdir('app')
+      sh.cp('../../package.json','app/.')
+
+      if(sh.exec('asar pack electron electron.asar').code !== 0) {
+        console.log("ERROR")
+        process.exit()
+      }
+      sh.rm('-rf','electron')
+
+    }
+
+  }
+  sh.cd(pwd)
+}
 
 const RELEASE_DIRECTORY = 'sushi-browser-release'
 const start = Date.now()
