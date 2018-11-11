@@ -403,7 +403,7 @@ class BookmarkBar extends Component {
       const rect = this.props.hoverBookmarkBar.getBoundingClientRect()
       style = {overflow: 'hidden',position: 'fixed',zIndex:1000,width:rect.width,top:rect.top,left:rect.left,...style}
     }
-    return <div ref="bar" className="bookmark-bar" style={style}>
+    return <div ref="bar" className={`bookmark-bar ${this.props.hoverBookmarkBar ? 'visible transition' : ''}`} style={style}>
       {this.state.bookmarks}
     </div>
   }

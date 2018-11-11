@@ -763,7 +763,7 @@ class BrowserNavbar extends Component{
           sharedState.hoverBookmarkBar = !sharedState.hoverBookmarkBar
           mainState.set('hoverBookmarkBar',sharedState.hoverBookmarkBar)
           this.refs['main-menu'].menuClose()
-          PubSub.publish('hover-bookmark-or-status-bar')
+          // PubSub.publish('hover-bookmark-or-status-bar')
           this.props.parent.setState({})
         }}/>
         <div className="divider" />
@@ -781,7 +781,7 @@ class BrowserNavbar extends Component{
           sharedState.hoverStatusBar = !sharedState.hoverStatusBar
           mainState.set('hoverStatusBar',sharedState.hoverStatusBar)
           this.refs['main-menu'].menuClose()
-          PubSub.publish('hover-bookmark-or-status-bar')
+          // PubSub.publish('hover-bookmark-or-status-bar')
           this.props.parent.setState({})
         }}/>
         <div className="divider" />
@@ -1011,7 +1011,7 @@ class BrowserNavbar extends Component{
       arrange:  isDarwin ? null : <BrowserNavbarBtn className="sort-arrange" title="Arrange Panels" icon="th" sync={sharedState.arrange == this.props.k}
                                                onContextMenu={onContextMenu} onClick={()=>{this.props.parent.props.parent.arrangePanels(this.props.k)}}/>,
 
-      float:   isFixed || !this.props.tab.sync || this.props.tab.syncReplace || !this.props.isTopLeft ? null : <FloatSyncScrollButton  onContextMenu={onContextMenu}toggleNav={this.props.toggleNav} scrollPage={this.props.parent.scrollPage}/>,
+      float:   isFixed || !this.props.tab.sync || this.props.tab.syncReplace || !this.props.isTopLeft ? null : <FloatSyncScrollButton wv={this.props.tab.wv}/>,
 
       opposite: isFloat ? null: <BrowserNavbarBtn className="sort-opposite" title={locale.translation("switchOpenOnOpposite")} icon="external-link-square" sync={this.props.tab.oppositeMode} onContextMenu={onContextMenu} onClick={()=>{this.props.parent.changeOppositeMode()}}/>,
 

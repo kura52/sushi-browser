@@ -56,18 +56,19 @@ export default class MainContent extends Component{
     this.h = h
   }
 
-  handleMouseMove(e){
+  handleMouseMove(e, visibleRepeat){
     // console.log('mousemove',e)
     if(document.getElementsByClassName('visible transition').length){
       ipc.send('change-browser-view-z-index', true)
       if(this.menuVisible) clearInterval(this.menuVisible)
-      this.menuVisible = setInterval(_=>this.handleMouseMove(e),10)
+      this.menuVisible = setInterval(_=>this.handleMouseMove(e, true),10)
     }
     else{
       if(this.menuVisible) clearInterval(this.menuVisible)
       this.menuVisible = void 0
-      ipc.send('change-browser-view-z-index', e.target.className !== 'browser-page')
+      ipc.send('change-browser-view-z-index', e.target.className !== 'browser-page' && !e.target.dataset.webview)
     }
+    if(visibleRepeat) return
 
     // if(e.target.classList.contains('rdTabBar')){
     //   ipc.send('drag-window', {flag: true, x:e.clientX, y:e.clientY})
@@ -96,8 +97,9 @@ export default class MainContent extends Component{
     if(sharedState.hoverStatusBar){
       this.hoverClearId = setTimeout(_=>{
         clearTimeout(this.hoverClearId)
-        if (e.target.dataset.webview && (e.target.offsetHeight - e.offsetY) <= 20) {//@TODO ELECTRON
-          console.log(1)
+        if (e.target.dataset.webview && (e.target.parentNode.offsetHeight - e.offsetY) <= 20) {//@TODO ELECTRON
+          console.log('hoverBookmarkBar1',e)
+          // console.log(1)
           clearTimeout(this.moveStatusId)
           this.moveStatusId = void 0
           const key = e.target.dataset.key
@@ -105,6 +107,7 @@ export default class MainContent extends Component{
           this.hoverStatusBar = key
         }
         else if (this.hoverStatusBar && !e.target.closest('.status-bar')) {
+          console.log('hoverBookmarkBar2',e)
           console.log(2)
           this.moveStatusId = setTimeout(_=>{
             console.log(3)
@@ -156,20 +159,20 @@ export default class MainContent extends Component{
       ipc.on('start-mouseup-handler',this.handleMouseUp)
     }
 
-    PubSub.subscribe('hover-bookmark-or-status-bar',e=>{
-      if(sharedState.hoverBookmarkBar || sharedState.hoverStatusBar) {
-
-        PubSub.unsubscribe(this.tokenMouseMove)
-        this.tokenMouseMove = PubSub.subscribe('webview-mousemove',(msg,e)=>{
-          this.handleMouseMove(e)
-        })
-      }
-      else{
-        this.tokenMouseMove = PubSub.subscribe('webview-mousemove',(msg,e)=>{
-          this.handleMouseMove(e)
-        })
-      }
-    })
+    // PubSub.subscribe('hover-bookmark-or-status-bar',e=>{
+    //   if(sharedState.hoverBookmarkBar || sharedState.hoverStatusBar) {
+    //
+    //     PubSub.unsubscribe(this.tokenMouseMove)
+    //     this.tokenMouseMove = PubSub.subscribe('webview-mousemove',(msg,e)=>{
+    //       this.handleMouseMove(e)
+    //     })
+    //   }
+    //   else{
+    //     this.tokenMouseMove = PubSub.subscribe('webview-mousemove',(msg,e)=>{
+    //       this.handleMouseMove(e)
+    //     })
+    //   }
+    // })
 
     PubSub.subscribe('mouseleave-status-bar',()=>{
       console.log(4)
@@ -185,11 +188,11 @@ export default class MainContent extends Component{
 
 
     document.addEventListener('mousemove',this.handleMouseMove,{passive: true})
-    if(sharedState.hoverBookmarkBar || sharedState.hoverStatusBar) {
+    // if(sharedState.hoverBookmarkBar || sharedState.hoverStatusBar) {
       this.tokenMouseMove = PubSub.subscribe('webview-mousemove',(msg,e)=>{
         this.handleMouseMove(e)
       })
-    }
+    // }
 
     const handleMouseDown = e=>{
       if(e.target.closest('.ui.modal')) return

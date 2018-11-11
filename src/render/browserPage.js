@@ -83,6 +83,7 @@ class BrowserPage extends Component {
     super(props)
     this.state = {isSearching: false,src:this.props.tab.guestInstanceId === (void 0) ? this.props.tab.page.navUrl : (void 0)}
     this.wvEvents = {}
+    this.refs2 = {}
 
     this.handleMouseDown = ::this.handleMouseDown
     this.handleMouseUp = ::this.handleMouseUp
@@ -105,7 +106,11 @@ class BrowserPage extends Component {
   }
 
   componentDidMount() {
-    // const webview = this.refs.webview
+    this.refs2.browserPage = this.$LI.dom
+    this.refs2.bps = this.$LI.children[0].children
+    this.refs2.webview = this.$LI.dom.querySelector(`.w${this.props.k2}`)
+
+    // const webview = this.refs2.webview
     const style = this.props.pos
     let tabId
     if(this.props.tab.guestInstanceId){
@@ -211,14 +216,14 @@ class BrowserPage extends Component {
       }
       else if(msg == 'webview-mousedown' || msg == 'webview-mouseup'){
         const button = args[0]
-        PubSub.publishSync(msg,{target: this.refs.webview, button})
+        PubSub.publishSync(msg,{target: this.refs2.webview, button})
       }
       else if(msg == 'webview-mousemove'){
         const clientY = args[0]
-        PubSub.publishSync(msg,{ target: this.refs.webview, offsetY: clientY + this.refs.webview.getBoundingClientRect().y})
+        PubSub.publishSync(msg,{ target: this.refs2.webview, offsetY: clientY /*+ this.refs2.webview.getBoundingClientRect().y*/})
       }
       else if(msg == 'webview-keydown'){
-        PubSub.publishSync(msg,{ target: this.refs.webview, ...args[0]})
+        PubSub.publishSync(msg,{ target: this.refs2.webview, ...args[0]})
       }
     }
     ipc.on(`send-to-host_${tabId}`,this.wvEvents[`send-to-host_${tabId}`])
@@ -250,13 +255,13 @@ class BrowserPage extends Component {
     })
 
     this.tokenWebviewKeydown = PubSub.subscribe("webview-keydown",(msg,e)=>{
-      if(e.target === this.refs.webview) this.onHandleKeyDown(e)
+      if(e.target === this.refs2.webview) this.onHandleKeyDown(e)
     })
 
-    console.log("returnWebView",webview, tabId, this.refs.webview)
+    console.log("returnWebView",webview, tabId, this.refs2.webview)
     const tab = remote.webContents.fromId(tabId)
     global.currentWebContents[tabId] = tab
-    this.props.tab.returnWebView(webview, tabId, this.refs.webview)
+    this.props.tab.returnWebView(webview, tabId, this.refs2.webview)
     this.props.tab.guestInstanceId = (void 0)
 
     PubSub.publish(`regist-webview_${this.props.k}`,this.props.tab)
@@ -272,8 +277,8 @@ class BrowserPage extends Component {
 
       if(name == 'findOnPage'){
         if(word){
-          this.refs.bps.setState({value: word})
-          if(type == 'OR') this.refs.bps.or = true
+          this.refs2.bps.setState({value: word})
+          if(type == 'OR') this.refs2.bps.or = true
         }
         else{
           if(toggle && this.state.isSearching){
@@ -281,13 +286,13 @@ class BrowserPage extends Component {
           }
           await new Promise(r=>{
             webview.executeJavaScript('window.getSelection().toString()', (result)=>{
-              if(result) this.refs.bps.setState({value: result})
+              if(result) this.refs2.bps.setState({value: result})
               r()
             })
           })
         }
         this.setState({isSearching: true})
-        this.refs.bps.setState({focus: true})
+        this.refs2.bps.setState({focus: true})
       }
       else if(name == 'findNext'){
         if(this.state.isSearching) this.onPageSearch(this.previous_text)
@@ -301,8 +306,8 @@ class BrowserPage extends Component {
 
     this.changeSizeEvent = (e,tabKeyOrTabId,key,width,height,reply)=>{
       if(this.props.tab.key !== tabKeyOrTabId && this.props.tab.wvId !== tabKeyOrTabId) return
-      this.refs.webview.style.width = width
-      this.refs.webview.style.height = height
+      this.refs2.webview.style.width = width
+      this.refs2.webview.style.height = height
       if(reply) setTimeout(_=>ipc.send(`webview-size-change-reply_${key}`),1200)
     }
     ipc.on('webview-size-change', this.changeSizeEvent)
@@ -318,7 +323,7 @@ class BrowserPage extends Component {
     for(let [k,v] of Object.entries(this.wvEvents)){
       this.webview.removeListener(k, v)
     }
-    this.refs.webview = null
+    this.refs2.webview = null
 
     PubSub.unsubscribe(this.tokenWebviewKeydown)
     PubSub.unsubscribe(this.tokenDidNavigate)
@@ -352,7 +357,7 @@ class BrowserPage extends Component {
 
   onPageSearch(query,next=true,matchCase,or,reg) {
     console.log(555,query)
-    const webview = this.refs.webview
+    const webview = this.refs2.webview
     const cont = this.getWebContents(this.props.tab)
     if(!cont) return
 
@@ -472,6 +477,7 @@ class BrowserPage extends Component {
   }
 
   handleMouseDown(e){
+    if(e.target.className !== 'browser-page') return
     const modifiers = []
     if(e.shiftKey) modifiers.push('shift')
     if(e.ctrlKey) modifiers.push('control')
@@ -483,6 +489,7 @@ class BrowserPage extends Component {
   }
 
   handleMouseUp(e){
+    if(e.target.className !== 'browser-page') return
     const modifiers = []
     if(e.shiftKey) modifiers.push('shift')
     if(e.ctrlKey) modifiers.push('control')
@@ -494,19 +501,23 @@ class BrowserPage extends Component {
   }
 
   handleWheel(e){
+    if(e.target.className !== 'browser-page') return
     this.webview.sendInputEvent({ type: 'mouseWheel', x: e.offsetX, y: e.offsetY,
       deltaX: e.deltaX && e.deltaX * -1, deltaY: e.deltaY && e.deltaY * -1, canScroll: true})
   }
 
   handleMouseMove(e){
+    if(e.target.className !== 'browser-page') return
     this.webview.sendInputEvent({ type: 'mouseMove',x: e.offsetX, y: e.offsetY})
   }
 
   handleMouseEnter(e){
+    if(e.target.className !== 'browser-page') return
     this.webview.sendInputEvent({ type: 'mouseEnter',x: e.offsetX, y: e.offsetY})
   }
 
   handleMouseLeave(e){
+    if(e.target.className !== 'browser-page') return
     this.webview.sendInputEvent({ type: 'mouseLeave',x: e.offsetX, y: e.offsetY})
   }
 
@@ -523,12 +534,12 @@ class BrowserPage extends Component {
 
     if(mobilePanel && mobilePanel.isPanel) style.width = `calc(100% - ${mobilePanel.width + 1}px)`
 
-    return <div className="browser-page" ref="browserPage"  onKeyDown={::this.onHandleKeyDown} key={this.props.k}
+    return <div className="browser-page" onKeyDown={::this.onHandleKeyDown} key={this.props.k}
                 onMouseDown={this.handleMouseDown} onMouseUp={this.handleMouseUp} onWheel={this.handleWheel} onMouseMove={this.handleMouseMove}
                 onMouseEnter={this.handleMouseEnter} onMouseLeave={this.handleMouseLeave}>
-      <BrowserPageSearch ref="bps" k={this.props.k2} tab={this.props.tab} isActive={this.state.isSearching} onPageSearch={::this.onPageSearch} progress={this.state.result_string} onClose={::this.onClose} parent={this}/>
+      <BrowserPageSearch k={this.props.k2} tab={this.props.tab} isSelected={this.props.isActive} isActive={this.state.isSearching} onPageSearch={::this.onPageSearch} progress={this.state.result_string} onClose={::this.onClose} parent={this}/>
       {mobilePanel ? <MobilePanel tab={this.props.tab} mobilePanel={mobilePanel} parent={this} isActive={this.props.isActive}/> : null}
-      <div ref="webview" className={`w${this.props.k2}`} key={this.props.k} data-webview="1" data-key={this.props.k} style={style}/>
+      <div className={`w${this.props.k2}`} key={this.props.k} data-webview="1" data-key={this.props.k} style={style}/>
       {hasDevToolsPanel ? <DevToolsPanel tab={this.props.tab} devToolsInfo={devToolsInfo} parent={this}
                                          style={style.width ? {width: style.width, display: 'inline-block'} : {}}/> : null}
       <AutofillPopup k={this.props.k}/>

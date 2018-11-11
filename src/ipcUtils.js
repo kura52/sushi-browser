@@ -2330,7 +2330,8 @@ ipcMain.on('main-state-op',(e,op,name,key,val)=>{
   }
 })
 
-let seqBv = 0, bvMap = {}, nowBvMap = {}, seqMap = {}, viewAttributeMap = {}
+let seqBv = 0, bvMap = {}, nowBvMap = {}, seqMap = {}, viewAttributeMap = {}, winViewMap = {}
+global.winViewMap = winViewMap
 const bvZindexMap = {}
 ipcMain.on('create-browser-view', (e, panelKey, tabKey, x, y, width, height, zIndex, src)=>{
   console.log('create-browser-view', panelKey, tabKey, x, y, width, height, zIndex, src)
@@ -2351,8 +2352,9 @@ ipcMain.on('create-browser-view', (e, panelKey, tabKey, x, y, width, height, zIn
   if(zIndex > 0){
     const win = BrowserWindow.fromWebContents(e.sender)
     win.insertBrowserView(view, seqMap[panelKey])
-    delete bvZindexMap[win]
-    viewAttributeMap[view.id] = { x: Math.round(x), y:Math.round(y), width: Math.round(width), height: Math.round(height) }
+    winViewMap[win.id] = view.id
+    delete bvZindexMap[win.id]
+    viewAttributeMap[view.id] = { x: Math.round(x), y:Math.round(y), width: Math.round(width), height: Math.round(height), zIndex }
     view.setBounds(viewAttributeMap[view.id])
     nowBvMap[panelKey] = tabKey
   }
@@ -2382,6 +2384,7 @@ ipcMain.on('move-browser-view', (e, panelKey, tabKey, type, tabId, x, y, width, 
     delete bvMap[`${panelKey}\t${tabKey}`]
     if(nowBvMap[panelKey] == tabKey){
       win.eraseBrowserView(seqMap[panelKey])
+      delete winViewMap[win.id]
       delete nowBvMap[panelKey]
     }
   }
@@ -2401,6 +2404,7 @@ ipcMain.on('move-browser-view', (e, panelKey, tabKey, type, tabId, x, y, width, 
           delete bvMap[`${_panelKey}\t${tabKey}`]
           if(nowBvMap[_panelKey] == tabKey){
             win.eraseBrowserView(seqMap[_panelKey])
+            delete winViewMap[win.id]
             delete nowBvMap[_panelKey]
           }
         }
@@ -2415,14 +2419,15 @@ ipcMain.on('move-browser-view', (e, panelKey, tabKey, type, tabId, x, y, width, 
     view.webContents.hostWebContents2 = e.sender
     bvMap[`${panelKey}\t${tabKey}`] = view
     if(x !== void 0){
-      viewAttributeMap[view.id] = { x: Math.round(x), y:Math.round(y), width: Math.round(width), height: Math.round(height) }
-      view.setBounds(viewAttributeMap[view.id])
+      ipcMain.emit('set-bound-browser-view', e, panelKey, tabKey, x, y, width, height, zIndex)
+      // viewAttributeMap[view.id] = { x: Math.round(x), y:Math.round(y), width: Math.round(width), height: Math.round(height), zIndex }
+      // view.setBounds(viewAttributeMap[view.id])
     }
     if(remove && sender){
       sender.send('chrome-tabs-event',{tabId}, 'removed')
     }
   }
-  delete bvZindexMap[win]
+  delete bvZindexMap[win.id]
 })
 
 ipcMain.on('set-bound-browser-view', (e, panelKey, tabKey, x, y, width, height, zIndex)=>{
@@ -2446,29 +2451,31 @@ ipcMain.on('set-bound-browser-view', (e, panelKey, tabKey, x, y, width, height, 
       const winAttachView = win.getAddtionalBrowserView(seqMap[panelKey])
       if(!winAttachView || view.id != winAttachView.id){
         win.insertBrowserView(view, seqMap[panelKey])
+        winViewMap[win.id] = view.id
       }
     }
-    delete bvZindexMap[win]
+    delete bvZindexMap[win.id]
     nowBvMap[panelKey] = tabKey
   }
-  viewAttributeMap[view.id] = { x: Math.round(x), y:Math.round(y), width: Math.round(width), height: Math.round(height) }
+  viewAttributeMap[view.id] = { x: Math.round(x), y:Math.round(y), width: Math.round(width), height: Math.round(height), zIndex }
   view.setBounds(viewAttributeMap[view.id])
 })
 
 ipcMain.on('delete-browser-view', (e, panelKey, tabKey)=>{
   console.log('delete-browser-view',panelKey,tabKey)
   const view = bvMap[`${panelKey}\t${tabKey}`]
-  delete viewAttributeMap[view.id]
 
   delete bvMap[`${panelKey}\t${tabKey}`]
   if(nowBvMap[panelKey] == tabKey) delete nowBvMap[panelKey]
 
   const win = BrowserWindow.fromWebContents(e.sender)
-  delete bvZindexMap[win]
+  delete bvZindexMap[win.id]
 
   if(view){
+    delete viewAttributeMap[view.id]
     if(!Object.keys(bvMap).some(key=>key.startsWith(panelKey))){
       win.eraseBrowserView(seqMap[panelKey])
+      delete winViewMap[win.id]
       delete seqMap[panelKey]
     }
     view.destroy()
@@ -2479,15 +2486,15 @@ const compMap = {}
 ipcMain.on('operation-overlap-component', (e, opType, panelKey) => {
   console.log('operation-overlap-component', opType, panelKey)
   const win = BrowserWindow.fromWebContents(e.sender)
-  for(let type of ['page-status']){
-    if(opType == 'create' && !compMap[`${type}\t${panelKey}`]){
+  for(let type of ['page-status','page-search']){
+    if(type == 'page-status' && opType == 'create' && !compMap[`${type}\t${panelKey}`]){
       const view = new BrowserView({ webPreferences: {
-        nodeIntegration: false,
-        sandbox: true,
-        preload: type == 'page-search' ? path.join(__dirname, '../page-search-preload.js') : void 0,
-        allowFileAccessFromFileUrls: true,
-        allowUniversalAccessFromFileUrls: true
-      } })
+          nodeIntegration: false,
+          sandbox: true,
+          preload: type == 'page-search' ? path.join(__dirname, '../page-search-preload.js') : void 0,
+          allowFileAccessFromFileUrls: true,
+          allowUniversalAccessFromFileUrls: true
+        } })
       view.setAutoResize({width: false, height: false})
       const seq = ++seqBv
       win.insertBrowserView(view, seq)
@@ -2498,6 +2505,7 @@ ipcMain.on('operation-overlap-component', (e, opType, panelKey) => {
     }
     else if(opType == 'delete' && compMap[`${type}\t${panelKey}`]){
       win.eraseBrowserView(compMap[`${type}\t${panelKey}`][0])
+      compMap[`${type}\t${panelKey}`][1].destroy()
       delete compMap[`${type}\t${panelKey}`]
     }
   }
@@ -2515,6 +2523,10 @@ ipcMain.on('set-overlap-component', async (e, type, panelKey, tabKey, x, y, widt
   wait = true
   const win = BrowserWindow.fromWebContents(e.sender)
   let data = compMap[`${type}\t${panelKey}`]
+  if(!data && y == -1){
+    wait = false
+    return
+  }
   if(!data){
     const view = new BrowserView({ webPreferences: {
         nodeIntegration: false,
@@ -2558,11 +2570,13 @@ ipcMain.on('set-overlap-component', async (e, type, panelKey, tabKey, x, y, widt
   else if(type == 'page-search'){
     // const [progress, state] = args
     if(y !== -1){
+      setTimeout(()=>{
       win.reorderBrowserView(seq, -1)
       if(args[1].focus) view.webContents.focus()
       view.webContents.send('page-search-data', panelKey, tabKey, ...args)
       view.setBounds({ x: Math.round(x), y:Math.round(y), width: Math.round(width), height: Math.round(height) })
       compMap[`${type}\t${panelKey}`] = [seq, view, true]
+      },0)
     }
     else{
       win.reorderBrowserView(seq, 0)
@@ -2599,26 +2613,27 @@ ipcMain.on('get-process-info', (e) => {
 ipcMain.on('change-browser-view-z-index', (e, isFrame) =>{
   const win = BrowserWindow.fromWebContents(e.sender)
   // console.log('change-browser-view-z-index', isFrame, bvZindexMap[win])
-  if(isFrame && !bvZindexMap[win]){
+  if(isFrame && !bvZindexMap[win.id]){
     for(let panelKey of Object.keys(nowBvMap)){
       win.reorderBrowserView(seqMap[panelKey], 0)
     }
-    bvZindexMap[win] = true
+    bvZindexMap[win.id] = true
   }
-  else if(!isFrame && bvZindexMap[win]){
+  else if(!isFrame && bvZindexMap[win.id]){
     for(let panelKey of Object.keys(nowBvMap)){
       win.reorderBrowserView(seqMap[panelKey], -1)
     }
-    for(let [seq, view, isOnTop] of Object.values(compMap)){
-      if(isOnTop) win.reorderBrowserView(seq, -1)
-    }
-    delete bvZindexMap[win]
+    delete bvZindexMap[win.id]
+  }
+
+  for(let [seq, view, isOnTop] of Object.values(compMap)){
+    if(isOnTop) win.reorderBrowserView(seq, -1)
   }
 })
 
-ipcMain.on('webview-mousemove', e => {
-  ipcMain.emit('change-browser-view-z-index',{sender: e.sender.hostWebContents2}, false)
-})
+// ipcMain.on('webview-mousemove', e => {
+//   ipcMain.emit('change-browser-view-z-index',{sender: e.sender.hostWebContents2}, false)
+// })
 
 ipcMain.on('send-to-host', (e, ...args)=>{
   // console.log(`send-to-host_${e.sender.id}`,e.sender.hostWebContents2.getURL(), ...args)

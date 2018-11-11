@@ -76,7 +76,7 @@ export default class DownloadList extends Component{
 
   componentDidUpdate(prevProps, prevState) {
     if(this.state.visible != this.visible){
-      this.props.parent.setState({})
+      this.props.parent.setState({dlList: this.state.visible})
       this.visible = this.state.visible
     }
   }

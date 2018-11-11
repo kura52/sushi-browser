@@ -1383,3 +1383,7 @@ a.zoom-change:hover,a.zoom-reset:hover{
 .find-panel .tr-selected-tab{
     color: darkblue;
 }
+
+.fa.fa-chevron-circle-down{
+    visibility: hidden;
+}

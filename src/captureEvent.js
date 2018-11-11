@@ -1,4 +1,4 @@
-import {webContents,ipcMain,app } from 'electron'
+import {webContents, ipcMain, app, BrowserView, BrowserWindow} from 'electron'
 import fs from 'fs'
 import path from 'path'
 import { favicon,history,image,sock } from './databaseFork'
@@ -87,6 +87,7 @@ function faviconUpdate(url) {
 
 const captures = {}
 let imgCache = new LRUCache(200)
+const viewCache = {}
 ipcMain.on('take-capture', async (event,{id,url,loc,base64,tabId,tabIds}) => {
   if(!base64){
     if(captures[url]) return
@@ -96,6 +97,16 @@ ipcMain.on('take-capture', async (event,{id,url,loc,base64,tabId,tabIds}) => {
     const promises = []
     for(let tabId of tabIds){
       const cont = webContents.fromId(tabId)
+      const view = BrowserView.getAllViews().find(x=>x.webContents.id == cont.id)
+      const win = BrowserWindow.fromWebContents(event.sender)
+      const winId = win.id
+      const viewId = view.id
+      if(global.winViewMap[winId] != viewId){
+        const seq = viewId + 100000
+        win.insertBrowserView(view, seq)
+        viewCache[seq] = winId
+        win.reorderBrowserView(seq, 0)
+      }
       if(!cont) continue
       promises.push(new Promise(r=>{
         cont.capturePage((imageBuffer)=>{
@@ -143,6 +154,17 @@ ipcMain.on('get-favicon', (event) => {
 
 ipcMain.on('get-a-favicon', (event,url) => {
   faviconUpdate(url)
+})
+
+ipcMain.on('end-arrange-mode' ,(e) => {
+  const win = BrowserWindow.fromWebContents(e.sender)
+  const winId = win.id
+
+  for(let [seq, _winId] of Object.entries(viewCache)){
+    if(winId == _winId){
+      win.eraseBrowserView(parseInt(seq))
+    }
+  }
 })
 
 // getFavicon().then(_=>_)

@@ -203,6 +203,8 @@ export default class BrowserNavbarLocation extends Component {
     this.props.onChangeLocation.bind(this)(e.target.value)
     if (this.props.page.location.length < 1) return this.resetComponent(true);
 
+    ipc.send('change-browser-view-z-index', true)
+
     if(this.props.tab.fields && this.props.tab.fields.mobilePanel){
       ipc.send('mobile-panel-operation',{type: 'below', key: this.props.tab.key, tabId: this.props.tab.wvId, force: true})
     }

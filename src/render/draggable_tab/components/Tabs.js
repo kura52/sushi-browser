@@ -1459,7 +1459,7 @@ class Tabs extends React.Component {
           backgroundSize: `${tabPreviewSizeWidth || preview.tabPreview.width}px ${preview.tabPreview ? Math.round((tabPreviewSizeWidth || preview.tabPreview.width) * (tabPreviewSizeHeight || preview.tabPreview.height / preview.tabPreview.width)) : tabPreviewSlideHeight}px`,
           backgroundRepeat: 'no-repeat'
         }}/> : null}
-        <div className={`tab-base${this.props.toggleNav == 3 ? ' full-screen' : ''}`} style={tabBaseStyle}>
+        <div className={`tab-base${this.props.toggleNav == 3 ? ' full-screen visible transition' : ''}`} style={tabBaseStyle}>
           <ul tabIndex="-1" style={tabInlineStyles.tabBar} className={_tabClassNames.tabBar} ref="ttab"
               onDoubleClick={isDarwin ? _=>{
                 const win = remote.getCurrentWindow()

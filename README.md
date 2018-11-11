@@ -2,16 +2,14 @@
 # Sushi Browser
 
 ## Electron Edition's TODO
- - Fixed Sync Scroll and Autocomplete.
- - Fixed Page Search
- - Fixed Settings Page.
- - Fixed Mobile Panel.
- - Fixed z-order's bugs.
- - Fixed chrome extension bugs.
- - Added function to import from other browsers.
- - Added Password Manager.
- - Added Tor Proxy.
- - Added MacOS Version.
+ - Fix Settings Page.
+ - Fix Mobile Panel.
+ - Fix chrome extension bugs.
+ - Add function to import from other browsers.
+ - Add Password Manager.
+ - Add Tor Proxy.
+ - Add MacOS Version.
+ - Wait until Electron updates Chromium 70.(Electron #15405)
 
 ## Why?
  

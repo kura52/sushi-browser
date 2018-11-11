@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded",()=>{
   const {ipcRenderer} = require('electron')
+  console.log(1)
 
   ipcRenderer.on('page-search-data', (e, panelKey, tabKey, progress, state) => {
     window.panelKey = panelKey

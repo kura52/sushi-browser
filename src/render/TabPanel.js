@@ -620,6 +620,7 @@ export default class TabPanel extends Component {
           const rect = ReactDOM.findDOMNode(tab.div).getBoundingClientRect()
           const inputPopup = {tabId: data.tabId, key:tab.key,
             left: rect.left + data.x + data.width - 25, top: rect.top + data.y + data.height / 2 - 17,
+            modLeft: rect.left, modTop: rect.top, tab, parent: this,
             selector: data.selector, optSelector: data.optSelector, inHistory: data.inHistory}
           this.setState({inputPopup})
         }
@@ -2365,6 +2366,9 @@ export default class TabPanel extends Component {
           }
         }
       }
+      else if(msg == 'scrollPage'){
+        this.scrollPage(args[0])
+      }
     }
     ipc.on(`send-to-host_${tab.wvId}`,tab.events[`send-to-host_${tab.wvId}`])
 
@@ -2846,14 +2850,14 @@ export default class TabPanel extends Component {
       let winInfo = winInfos[index]
       console.log('sync-mode', url,dirc,sync,replaceInfo)
 
-      const idParent = window.setInterval(()=> {
+      const idParent = setInterval(()=> {
         if(retryNum++ > 3){
           clearInterval(idParent)
         }
         tab.dirc = dirc || 1
 
         let retry = 0
-        const id = window.setInterval(()=> {
+        const id = setInterval(()=> {
           retry++
           if(retry > 200) {
             clearInterval(id)
@@ -2871,7 +2875,7 @@ export default class TabPanel extends Component {
             ___SPLIT___
             console.log(i,y,s,r)
             let retry = 0
-            const id = window.setInterval(()=> {
+            const id = setInterval(()=> {
               retry++
               if(retry > 200) {
                 clearInterval(id)
@@ -2918,6 +2922,9 @@ export default class TabPanel extends Component {
               }
             }, 50)
           }, `const i = ${index}`, `const y = ${winInfo[2]}`,`const s = '${sync}'`,`const r = ${(replaceInfo || tab.syncReplace) ? "true" : "false"}`)
+          if(index == 0){
+            tab.wv.send('sync-button', true, true)
+          }
         }, 500)
       },1000)
     }
@@ -4770,7 +4777,7 @@ export default class TabPanel extends Component {
           return (<Tab key={tab.key} page={tab.page} orgTab={tab} unread={this.state.selectedTab != tab.key && !allSelectedkeys.has(tab.key)} pin={tab.pin} protect={tab.protect} lock={tab.lock} mute={tab.mute} fields={tab.fields} reloadInterval={tab.reloadInterval} privateMode={tab.privateMode} selection={tab.selection}>
             <div style={{height: '100%'}} className={`div-back db${tab.key}`} ref={`div-${tab.key}`} >
               <BrowserNavbar tabkey={tab.key} k={this.props.k} navHandle={tab.navHandlers} parent={this}
-                             privateMode={tab.privateMode} page={tab.page} tab={tab} refs2={refs2} key={tab.key} adBlockEnable={adBlockEnable}
+                             privateMode={tab.privateMode} page={tab.page} tab={tab} refs2={refs2} key={tab.key + this.props.k} adBlockEnable={adBlockEnable}
                              oppositeGlobal={this.state.oppositeGlobal} toggleNav={toggle} adBlockThis={tab.adBlockThis}
                              historyMap={historyMap} currentWebContents={this.props.currentWebContents} isMaximize={isMaximize} maximizePanel={this.maximizePanel}
                              isTopRight={this.props.isTopRight} isTopLeft={this.props.isTopLeft} fixedPanelOpen={this.props.fixedPanelOpen}
