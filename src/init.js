@@ -297,6 +297,17 @@ app.on('window-all-closed', function () {
     }
     ipcMain.emit('handbrake-stop',null)
     global.__CHILD__.kill()
+
+    for(let win of BrowserWindow.getAllWindows()){
+      for(let i = 0;i<=global.seqBv;i++){
+        if(win.getAddtionalBrowserView(i)) win.eraseBrowserView(i)
+      }
+      for(let seq of Object.keys(global.viewCache)){
+        const i = parseInt(seq)
+        if(win.getAddtionalBrowserView(i)) win.eraseBrowserView(i)
+      }
+    }
+
     BrowserView.getAllViews().map(v=> !v.isDestroyed() && v.destroy())
     webContents.getAllWebContents().map(w=> !w.isDestroyed() && w.getURL().startsWith('chrome-extension:') && w.destroy())
     app.quit()
@@ -385,7 +396,7 @@ ipcMain.on('web-contents-created', (e, tab) => {
 
   tab.on('-add-new-contents', (event, webContents, disposition, userGesture, left, top, width, height, url, frameName) => {
     // console.log('-add-new-contents', webContents.getURL())
-    webContents.destroy()
+    if(!webContents.isDestroyed()) webContents.destroy()
     // const url = contMap.get(webContents)
     // contMap.delete(webContents)
     tab.emit('new-window', null, url, null, disposition)

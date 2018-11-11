@@ -87,7 +87,7 @@ function faviconUpdate(url) {
 
 const captures = {}
 let imgCache = new LRUCache(200)
-const viewCache = {}
+global.viewCache = {}
 ipcMain.on('take-capture', async (event,{id,url,loc,base64,tabId,tabIds}) => {
   if(!base64){
     if(captures[url]) return
@@ -104,7 +104,7 @@ ipcMain.on('take-capture', async (event,{id,url,loc,base64,tabId,tabIds}) => {
       if(global.winViewMap[winId] != viewId){
         const seq = viewId + 100000
         win.insertBrowserView(view, seq)
-        viewCache[seq] = winId
+        global.viewCache[seq] = winId
         win.reorderBrowserView(seq, 0)
       }
       if(!cont) continue
