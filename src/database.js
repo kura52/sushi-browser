@@ -3,7 +3,7 @@ import * as fs from "fs"
 const Datastore = require('promisify-me')(require('nedb'), 'nedb')
 // const {ipcMain} = require('electron')
 
-const resourcePath = path.join(process.argv[2].replace('sushiBrowser','sushiBrowserDB'),'resource')
+const resourcePath = path.join(process.argv[2],'resource')
 console.log(77777,resourcePath)
 if (!fs.existsSync(resourcePath)) {
   fs.mkdirSync(resourcePath)

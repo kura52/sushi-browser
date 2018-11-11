@@ -87,6 +87,8 @@ export default class BrowserNavbarLocation extends Component {
     this.keyEvent = ::this.keyEvent
     this.torEvent = ::this.torEvent
     this.outerClick = ::this.outerClick
+    this.onFocus = ::this.onFocus
+    this.onBlur = ::this.onBlur
     this.isFloat = isFloatPanel(props.k)
   }
 
@@ -117,9 +119,11 @@ export default class BrowserNavbarLocation extends Component {
     ipc.on('focus-location-bar',this.keyEvent2)
     if(this.props.tab.privateMode == 'persist:tor') ipc.on('tor-progress',this.torEvent)
     if(this.props.wv){
-      this.input = ReactDOM.findDOMNode(this.refs.input).querySelector("input")
       this.addEvent(this.props)
     }
+    this.input = ReactDOM.findDOMNode(this.refs.input).querySelector("input")
+    this.input.addEventListener('focus', this.onFocus)
+    this.input.addEventListener('blur', this.onBlur)
     // const input = (this.input || ReactDOM.findDOMNode(this.refs.input).querySelector("input"))
     // input.addEventListener('focus',::this.onFocus)
     // input.addEventListener('blur',::this.onBlur)
@@ -130,6 +134,8 @@ export default class BrowserNavbarLocation extends Component {
     if(this.props.tab.privateMode == 'persist:tor') ipc.removeListener('focus-location-bar',this.keyEvent2)
     ipc.removeListener('tor-progress',this.torEvent)
     ipc.removeListener(`send-to-host_${this.props.tab.wvId}`,this.keyEvent)
+    this.input.removeEventListener('focus', this.onFocus)
+    this.input.removeEventListener('blur', this.onBlur)
   }
 
   addEvent(props) {
@@ -386,8 +392,6 @@ export default class BrowserNavbarLocation extends Component {
         results={results.map(x=>{return {title:x.title,description: x.description}})}
         value={this.getValue()}
         ref="input"
-        onFocus={::this.onFocus}
-        onBlur={::this.onBlur}
         onKeyDown={::this.onKeyDown}
         onContextMenu={this.props.onContextMenu}
       />  :
@@ -406,8 +410,6 @@ export default class BrowserNavbarLocation extends Component {
           results={results.map(x=>{return {title:x.title,description: x.description}})}
           value={this.getValue()}
           ref="input"
-          onFocus={::this.onFocus}
-          onBlur={::this.onBlur}
           onKeyDown={::this.onKeyDown}
           onContextMenu={this.props.onContextMenu}
         />
