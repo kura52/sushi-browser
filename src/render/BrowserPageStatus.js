@@ -19,7 +19,7 @@ export default class BrowserPageStatus extends Component {
 
   componentDidUpdate(prevProps, prevState){
     const r = this.status ? ReactDOM.findDOMNode(this).getBoundingClientRect() : {left:0, top:0, width:0, height:0}
-    ipc.send('set-overlap-component', 'page-status', this.props.k, this.props.tab.key, r.left, r.top, r.width, r.height, this.status, this.style)
+    ipc.send('set-overlap-component', 'page-status', this.props.k, this.props.tab.key, r.left, r.top, r.width, r.height, !this.status || this.status.length <= 100 ? this.status : `${this.status.substr(0,100)}...`, this.style)
 
   }
 

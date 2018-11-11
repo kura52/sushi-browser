@@ -79,12 +79,12 @@ export default function(inputHistoryMaxChar){
         })
       }
       else if(eventName == 'focusout'){
-        ipc.send('focus-input','out',{
-          optSelector: window.__select__(target),
-          selector: window.__simpleSelect__(target),
-          frameUrl: window.location.href,
-          host: window.location.host
-        })
+        setTimeout(()=>ipc.send('focus-input','out',{
+            optSelector: window.__select__(target),
+            selector: window.__simpleSelect__(target),
+            frameUrl: window.location.href,
+            host: window.location.host
+          }),400)
       }
       else{
         exec()

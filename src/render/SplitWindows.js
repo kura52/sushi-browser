@@ -447,11 +447,13 @@ export default class SplitWindows extends Component{
         this.menuStickyFlag = true
         this.state.root.toggleNav = 3
         this.setState({})
+        ipc.send('change-browser-view-z-index', true)
       }
       else if(this.menuStickyFlag && e.offsetY > 80 && !e.target.closest(".navbar-main")){
         this.menuStickyFlag = false
         this.state.root.toggleNav = 2
         this.setState({})
+        ipc.send('change-browser-view-z-index', false)
       }
     }
     this.menuSticky = ::this.menuSticky
@@ -1662,6 +1664,7 @@ export default class SplitWindows extends Component{
       return this.setState({})
     }
     if(this.state.arrange){
+      ipc.send('end-arrange-mode')
       clearInterval(this.arrangeId)
       sharedState.arrange = false
       this.state._arrange = {...this.state.arrange}
@@ -1797,7 +1800,7 @@ export default class SplitWindows extends Component{
     }
 
 
-    this.setState({renderArrange: <div key='arrange-fixed-wrapper' style={{display: 'flex',position: 'fixed', zIndex: 99999999999,
+    this.setState({renderArrange: <div key='arrange-fixed-wrapper' className='visible transition' style={{display: 'flex',position: 'fixed', zIndex: 99999999999,
         backgroundColor: 'rgb(80, 80, 80)',left: 0, top, width: wholeWidth, height: wholeHeight}}>
         <div key='arrange-wrapper' style={{display: 'flex',flexWrap: 'wrap',alignContent: 'flex-start', margin: 'auto', justifyContent: 'center'}}>{results}</div>
       </div>})
@@ -2084,9 +2087,9 @@ export default class SplitWindows extends Component{
       arr.push(this.renderFloatPanel(value))
     }
 
-    const dlList = document.getElementById('dllist')
+    const dlList = this.state.dlList
     let height = this.state.findPanelHeight !== void 0 ? this.state.findPanelHeight : 0
-    height += dlList && dlList.style.display !== 'none' ? 50 : 0
+    height += dlList ? 50 : 0
 
     return <span>
       <div className="wrap-split-window" style={ height ? {height: `calc(100% - ${height}px)`}: null}>

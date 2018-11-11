@@ -49,6 +49,8 @@ if(window.__started_){
   if(location.href.match(/^(http|chrome\-extension)/) && window == window.parent){
     require('./passwordEvents')
     require('./webviewEvents')
+    require('./syncButton')
+    require('./inputPopupContentScript.js')
 
     let mdownEvent
     document.addEventListener('mousedown',e=>{
@@ -71,9 +73,14 @@ if(window.__started_){
       ipc.send('send-to-host', 'webview-keydown',{key: e.key, keyCode: e.keyCode, which: e.which, button: e.button, ctrlKey: e.ctrlKey, metaKey: e.metaKey,altKey: e.altKey})
     },{passive: true, capture: true})
 
+    let preClientY = -1
     document.addEventListener('mousemove',e=>{
-      console.log('mousemove')
-      ipc.send('send-to-host', 'webview-mousemove',e.clientY)
+      // console.log('mousemove')
+      if(preClientY != e.clientY){
+        ipc.send('send-to-host', 'webview-mousemove', e.clientY)
+        // console.log('webview-mousemove', e.clientY)
+        preClientY = e.clientY
+      }
     },{passive: true, capture: true})
 
     window.addEventListener("beforeunload", e=>{
@@ -438,7 +445,7 @@ if(window.__started_){
       require('./inputHistory')(data.inputHistoryMaxChar)
     }
 
-    if(data.visitedLinkColor){
+    if(data.visitedLinkColor && !location.href.startsWith('chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd')){
       visitedLinkColor = data.visitedLinkColor
       visitedLinkColorWhite = data.visitedLinkColorWhite
       document.addEventListener("DOMContentLoaded",_=> setVisitedLinkColor(visitedLinkColor, visitedLinkColorWhite))

@@ -204,7 +204,7 @@ class StatusBar extends Component {
       style = {overflow: 'hidden',position: 'fixed',zIndex:1000,width:rect.width,bottom:this.props.margin ? 15 : 0,left:rect.left,
         paddingTop: 2,height:25 ,borderBottom: '1px solid rgb(148, 148, 148)',...style}
     }
-    return <div ref="bar" className="status-bar" style={style}>
+    return <div ref="bar" className={`status-bar ${this.props.hoverStatusBar ? 'visible transition' : ''}`} style={style}>
       <p className="status-text">{this.getStatusText()}</p>
       <span style={{float: 'right'}}>
         {this.renderButton('home','480990236307250886',sharedState.homeURL)}

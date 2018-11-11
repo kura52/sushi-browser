@@ -23,12 +23,21 @@ export default class InputPopup extends Component {
   }
 
   componentDidMount() {
+    this.props.tab.wv.send('input-popup', true, {left: this.props.left - this.props.modLeft, top: this.props.top - this.props.modTop + 8.5})
+    this.inputPopupClickHandler = (e, name) => {
+      if(name == 'input-popup-click'){
+        this.refs.navMenu.handleClick()
+      }
+    }
+    ipc.on(`send-to-host_${this.props.tab.wvId}`, this.inputPopupClickHandler)
   }
 
   componentWillUnmount() {
     if(!this.decideResult){
       this.resumeValue()
     }
+    this.props.tab.wv.send('input-popup', false)
+    ipc.removeListener(`send-to-host_${this.props.tab.wvId}`, this.inputPopupClickHandler)
   }
 
 
@@ -212,7 +221,10 @@ export default class InputPopup extends Component {
           }
         }
       }
+      ipc.send('change-browser-view-z-index', true)
+      remote.getCurrentWebContents().focus()
       this.input.focus()
+      this.input.addEventListener('blur',()=>setTimeout(()=>this.props.parent.setState({inputPopup: null}),150), {once: true})
 
       const check = document.createElement('input')
       check.type = 'checkbox'

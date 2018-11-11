@@ -49,6 +49,7 @@ export default class BrowserPageSearch extends Component {
       }
     }
     ipc.on(`page-search-event-${this.props.k}-${this.props.tab.key}`, this.event)
+    console.log(`page-search-event-${this.props.k}-${this.props.tab.key}`)
   }
 
   componentWillUnmount(){
@@ -56,7 +57,8 @@ export default class BrowserPageSearch extends Component {
   }
 
   updateComponent(){
-    const r = this.props.isActive ? ReactDOM.findDOMNode(this.props.parent).getBoundingClientRect() : {left:0, top:-1, width:0, height:0}
+    const r = this.props.isActive && this.props.isSelected ? ReactDOM.findDOMNode(this.props.parent).getBoundingClientRect() : {left:0, top:-1, width:0, height:0}
+    console.log('set-overlap-component', 'page-search', this.props.k, this.props.tab.key, r.left + r.width - 446.72 -14, r.top, 446.72, 30, this.props.progress, this.state)
     ipc.send('set-overlap-component', 'page-search', this.props.k, this.props.tab.key, r.left + r.width - 446.72 -14, r.top, 446.72, 30, this.props.progress, this.state )
     if(this.state.focus) this.state.focus = false
   }
@@ -83,6 +85,9 @@ export default class BrowserPageSearch extends Component {
       this.updateComponent()
     }
     else if(this.state.focus){
+      this.updateComponent()
+    }
+    else if(prevProps.isSelected != this.props.isSelected){
       this.updateComponent()
     }
   }
