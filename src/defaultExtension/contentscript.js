@@ -130,33 +130,33 @@ if(window.__started_){
     setInterval(()=>setVisitedLinkColor(),1000)
   }
 
-  function handleDragEnd(evt) {
-    console.log(evt)
-    const target = evt.target
-    if(!target) return
-
-    let url,text
-    if(target.href){
-      url = target.href
-      text = target.innerText
-    }
-    else if(target.nodeName == "#text"){
-      ipc.send('send-to-host', "link-drop",{screenX: evt.screenX, screenY: evt.screenY, text:window.getSelection().toString() || target.data})
-    }
-    else{
-      const parent = target.closest("a")
-      if(parent){
-        url = parent.href
-        text = target.innerText
-      }
-      else{
-        url = target.src
-        text = target.getAttribute('alt')
-      }
-    }
-
-    ipc.send('send-to-host', "link-drop",{screenX: evt.screenX, screenY: evt.screenY, url,text})
-  }
+  // function handleDragEnd(evt) {
+  //   console.log(evt)
+  //   const target = evt.target
+  //   if(!target) return
+  //
+  //   let url,text
+  //   if(target.href){
+  //     url = target.href
+  //     text = target.innerText
+  //   }
+  //   else if(target.nodeName == "#text"){
+  //     ipc.send('send-to-host', "link-drop",{screenX: evt.screenX, screenY: evt.screenY, text:window.getSelection().toString() || target.data})
+  //   }
+  //   else{
+  //     const parent = target.closest("a")
+  //     if(parent){
+  //       url = parent.href
+  //       text = target.innerText
+  //     }
+  //     else{
+  //       url = target.src
+  //       text = target.getAttribute('alt')
+  //     }
+  //   }
+  //
+  //   ipc.send('send-to-host', "link-drop",{screenX: evt.screenX, screenY: evt.screenY, url,text})
+  // }
   // if(location.href.match(/^chrome-extension:\/\/dckpbojndfoinamcdamhkjhnjnmjkfjd\/(favorite|favorite_sidebar)\.html/)){
   //   console.log("favorite")
   //   document.addEventListener("drop", e=>{
@@ -172,7 +172,7 @@ if(window.__started_){
   //   }, false);
   // }
   // else{
-  document.addEventListener('dragend', handleDragEnd, false)
+  // document.addEventListener('dragend', handleDragEnd, false)
   // }
 
 

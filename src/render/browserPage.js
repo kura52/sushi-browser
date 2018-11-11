@@ -191,29 +191,29 @@ class BrowserPage extends Component {
       if(msg == 'webview-scroll'){
         PubSub.publishSync("scroll-sync-webview",{sync:this.props.tab.sync,...args[0]})
       }
-      else if(msg == 'link-drop'){ //@TODO ELECTRON
-        console.log(e)
-        const {screenX,screenY,url,text} = args[0]
-        const cont = e.sender
-
-        const rect = e.target.getBoundingClientRect()
-        const wx = rect.x
-        const wy = rect.y
-
-        const ele = document.elementFromPoint(screenX - window.screenX + wx, screenY - window.screenY + wy)
-        if(ele.tagName == "WEBVIEW"){
-          const dropped = ele.dataset.key
-          const src = e.target.dataset.key
-          if(src !== dropped){
-            if(url){
-              PubSub.publish(`drag-search_${ele.className.slice(1)}`,{key:ele.dataset.key, url,text})
-            }
-            else{
-              PubSub.publish(`drag-search_${ele.className.slice(1)}`,{key:ele.dataset.key, text})
-            }
-          }
-        }
-      }
+      // else if(msg == 'link-drop'){ //@TODO ELECTRON
+      //   console.log(e)
+      //   const {screenX,screenY,url,text} = args[0]
+      //   const cont = e.sender
+      //
+      //   const rect = e.target.getBoundingClientRect()
+      //   const wx = rect.x
+      //   const wy = rect.y
+      //
+      //   const ele = document.elementFromPoint(screenX - window.screenX + wx, screenY - window.screenY + wy)
+      //   if(ele.tagName == "WEBVIEW"){
+      //     const dropped = ele.dataset.key
+      //     const src = e.target.dataset.key
+      //     if(src !== dropped){
+      //       if(url){
+      //         PubSub.publish(`drag-search_${ele.className.slice(1)}`,{key:ele.dataset.key, url,text})
+      //       }
+      //       else{
+      //         PubSub.publish(`drag-search_${ele.className.slice(1)}`,{key:ele.dataset.key, text})
+      //       }
+      //     }
+      //   }
+      // }
       else if(msg == 'webview-mousedown' || msg == 'webview-mouseup'){
         const button = args[0]
         PubSub.publishSync(msg,{target: this.refs2.webview, button})

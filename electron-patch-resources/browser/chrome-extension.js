@@ -239,7 +239,7 @@ ipcMain.on('get-access-key', e => {
 const cache = {}
 // The chrome-extension: can map a extension URL request to real file path.
 const chromeExtensionHandler = function (request, callback) {
-  if(cache[request.url]){
+  if(cache[request.url] && !request.headers.Range){
     return callback({...cache[request.url][0], data: cache[request.url][1]()})
   }
 
