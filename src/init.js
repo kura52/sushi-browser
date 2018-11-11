@@ -370,6 +370,10 @@ ipcMain.on('chrome-extension-popup-id', (e,tabId)=>{
 })
 
 app.on('web-contents-created', (e, tab) => {
+  ipcMain.emit('web-contents-created', e, tab)
+})
+
+ipcMain.on('web-contents-created', (e, tab) => {
   contextMenu(tab)
   const webContents2 = webContents
 
@@ -520,64 +524,67 @@ app.on('web-contents-created', (e, tab) => {
 }());`)
   })
 
-  if (/*tab.isBackgroundPage() ||*/ !tab.hostWebContents2) { //@TODO ELECTRON
-    return
-  }
+  setTimeout(()=>{
 
-  let tabId = tab.id
-  sharedState[tabId] = tab
-
-  console.log(12223,tab.getURL())
-  let win
-  for(let w of BrowserWindow.getAllWindows()){
-    console.log(1222,w.getTitle())
-    if(w.getTitle().includes('Sushi Browser')){
-      if(!win) win = w
-      PubSub.publish("web-contents-created",[tabId,w.webContents])
+    if (/*tab.isBackgroundPage() ||*/ !tab.hostWebContents2) { //@TODO ELECTRON
+      return
     }
-  }
 
+    let tabId = tab.id
+    sharedState[tabId] = tab
 
-  const focus = BrowserWindow.getFocusedWindow()
-  if(focus && focus.getTitle().includes('Sushi Browser')){
-    win = focus
-  }
-
-  // const cont = win.webContents
-  const key = Math.random().toString()
-
-  tab.on('save-password', (e, username, origin) => {
-    console.log('save-password', username, origin)
-    passwordManager.savePassword(tab, username, origin)
-  })
-
-  tab.on('update-password', (e, username, origin) => {
-    console.log('update-password', username, origin)
-    passwordManager.updatePassword(tab, username, origin)
-  })
-
-  tab.on('media-started-playing', (e) => {
-    mainState.mediaPlaying[tabId] = true
-    for(let win of BrowserWindow.getAllWindows()) {
-      if(win.getTitle().includes('Sushi Browser')){
-        if(!win.webContents.isDestroyed()) win.webContents.send('update-media-playing',tabId,true)
+    console.log(12223,tab.getURL())
+    let win
+    for(let w of BrowserWindow.getAllWindows()){
+      console.log(1222,w.getTitle())
+      if(w.getTitle().includes('Sushi Browser')){
+        if(!win) win = w
+        PubSub.publish("web-contents-created",[tabId,w.webContents])
       }
     }
-  })
 
-  tab.on('media-paused', (e) => {
-    delete mainState.mediaPlaying[tabId]
-    for(let win of BrowserWindow.getAllWindows()) {
-      if(win.getTitle().includes('Sushi Browser')){
-        if(!win.webContents.isDestroyed()) win.webContents.send('update-media-playing',tabId,false)
-      }
+
+    const focus = BrowserWindow.getFocusedWindow()
+    if(focus && focus.getTitle().includes('Sushi Browser')){
+      win = focus
     }
-  })
 
-  tab.on('close', () => {
-    delete sharedState[tabId]
-    // tab.forceClose()
-  })
+    // const cont = win.webContents
+    const key = Math.random().toString()
+
+    tab.on('save-password', (e, username, origin) => {
+      console.log('save-password', username, origin)
+      passwordManager.savePassword(tab, username, origin)
+    })
+
+    tab.on('update-password', (e, username, origin) => {
+      console.log('update-password', username, origin)
+      passwordManager.updatePassword(tab, username, origin)
+    })
+
+    tab.on('media-started-playing', (e) => {
+      mainState.mediaPlaying[tabId] = true
+      for(let win of BrowserWindow.getAllWindows()) {
+        if(win.getTitle().includes('Sushi Browser')){
+          if(!win.webContents.isDestroyed()) win.webContents.send('update-media-playing',tabId,true)
+        }
+      }
+    })
+
+    tab.on('media-paused', (e) => {
+      delete mainState.mediaPlaying[tabId]
+      for(let win of BrowserWindow.getAllWindows()) {
+        if(win.getTitle().includes('Sushi Browser')){
+          if(!win.webContents.isDestroyed()) win.webContents.send('update-media-playing',tabId,false)
+        }
+      }
+    })
+
+    tab.on('close', () => {
+      delete sharedState[tabId]
+      // tab.forceClose()
+    })
+  },0)
 
 
   // tab.on('did-get-response-details', (e, status, newURL, originalURL, httpResponseCode, requestMethod, referrer, headers, resourceType) => {

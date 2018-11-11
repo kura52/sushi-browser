@@ -2,7 +2,13 @@ const sock = require('axon').socket('rep')
 const fs = require('fs')
 const path = require('path')
 const url = require('url')
-import { app } from 'electron'
+
+let app
+;(function(){
+  try{
+    app = require('electron').app
+  }catch(e){}
+}())
 // import extensionServer from './extensionServer'
 console.log(7776666,app)
 const isDarwin = process.platform === 'darwin'
@@ -82,6 +88,7 @@ const sushiPath = (portableData == 'true' || portableData == 'portable') ?
   app ? app.getPath('userData').replace('brave','sushiBrowser').replace('sushi-browser','sushiBrowser') : process.argv[2]
 
 const filePath = path.join(sushiPath,'resource/fork.txt').replace(/\\/g,"/")
+console.log(4444444,filePath,sushiPath)
 if(fs.existsSync(filePath)){
   const content = fs.readFileSync(filePath).toString().split("\t")
   const date = parseInt(content[0])

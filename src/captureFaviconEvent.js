@@ -1,13 +1,17 @@
-import {webContents,ipcMain,app } from 'electron'
 import path from 'path'
 import { favicon } from './database'
 import request from 'request'
 const underscore = require('underscore')
 const Jimp = require('jimp')
 const ico = require('icojs');
-import {getFocusedWebContents} from './util'
 // require('locus')
 
+let app
+;(function(){
+  try{
+    app = require('electron').app
+  }catch(e){}
+}())
 
 const resourcePath = path.join((app ? app.getPath('userData') : process.argv[2]).replace('brave','sushiBrowser').replace('sushi-browser','sushiBrowser').replace('sushiBrowserDB','sushiBrowser'),'resource')
 

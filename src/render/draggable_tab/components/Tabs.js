@@ -135,8 +135,11 @@ class Title extends React.Component {
 
   mediaMenu(){
     return <NavbarMenu className="sort-sidebar" k={this.props.datas.k} mouseOver={true} isFloat={isFloatPanel(this.props.datas.k)} onClick={::this.handleClick}
-                       onMouseOver={_=>{document.querySelector('.hol-resizer').style.display = 'none';this.props.parent.setState({})}}
-                       onMouseLeave={_=>{document.querySelector('.hol-resizer').style.display = 'inherit'}}
+                       onMouseOver={_=>{
+                         if(document.querySelector('.hol-resizer')) document.querySelector('.hol-resizer').style.display = 'none'
+                         this.props.parent.setState({})
+                       }}
+                       onMouseLeave={_=>{if(document.querySelector('.hol-resizer')) document.querySelector('.hol-resizer').style.display = 'inherit'}}
                        audio={true} icon="volume-up" className="play-mode playing" style={{lineHeight: 'inherit',pointerEvents: 'initial', float: 'left','-webkit-app-region': 'no-drag'}} keepVisible={true}>
 
       <div className="ui input preview-img-input" style={{ margin: '4px 5px 0px 10px', display: 'inline-block'}}>
