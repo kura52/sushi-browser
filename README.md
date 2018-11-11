@@ -1,10 +1,17 @@
 
 # Sushi Browser
 
+## Changes to maintain compatibility with Muon-based version
+ 1. "Webview" is not recommended, so change to use "BrowserView". Furthermore, a part of Electron is modified so that multiple browserViews can be used.
+ 2. Fixed a part of Electron so that Chrome Extension can be used.
+ 3. Fixed a part of Electron so that Contents Script can be executed with Isolation Context.
+ 4. Fixed a part of Electron WebContents to accelerate back / forward / reload.
+ 5. Since Electron does not have the function of changing the style of visited Link, we added a function to acquire and apply visited Link style at page loading.
+
 ## Electron Edition's TODO
  - Fix Settings Page.
  - Fix Mobile Panel.
- - Fix chrome extension bugs.
+ - Fix chrome extension bugs.(We have hardly confirmed the operation of it.)
  - Add function to import from other browsers.
  - Add Password Manager.
  - Add Tor Proxy.

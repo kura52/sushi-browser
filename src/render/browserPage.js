@@ -537,13 +537,13 @@ class BrowserPage extends Component {
     return <div className="browser-page" onKeyDown={::this.onHandleKeyDown} key={this.props.k}
                 onMouseDown={this.handleMouseDown} onMouseUp={this.handleMouseUp} onWheel={this.handleWheel} onMouseMove={this.handleMouseMove}
                 onMouseEnter={this.handleMouseEnter} onMouseLeave={this.handleMouseLeave}>
-      <BrowserPageSearch k={this.props.k2} tab={this.props.tab} isSelected={this.props.isActive} isActive={this.state.isSearching} onPageSearch={::this.onPageSearch} progress={this.state.result_string} onClose={::this.onClose} parent={this}/>
+      <BrowserPageSearch key={this.props.k + this.props.k2} k={this.props.k2} tab={this.props.tab} isSelected={this.props.isActive} isActive={this.state.isSearching} onPageSearch={::this.onPageSearch} progress={this.state.result_string} onClose={::this.onClose} parent={this}/>
       {mobilePanel ? <MobilePanel tab={this.props.tab} mobilePanel={mobilePanel} parent={this} isActive={this.props.isActive}/> : null}
       <div className={`w${this.props.k2}`} key={this.props.k} data-webview="1" data-key={this.props.k} style={style}/>
       {hasDevToolsPanel ? <DevToolsPanel tab={this.props.tab} devToolsInfo={devToolsInfo} parent={this}
                                          style={style.width ? {width: style.width, display: 'inline-block'} : {}}/> : null}
-      <AutofillPopup k={this.props.k}/>
-      <StatusBar toggleNav={this.props.toggleNav} tab={this.props.tab} refs2={refs2}/>
+      <AutofillPopup key={this.props.k + this.props.k2} k={this.props.k}/>
+      <StatusBar key={this.props.k + this.props.k2} toggleNav={this.props.toggleNav} tab={this.props.tab} refs2={refs2}/>
     </div>
   }
 }

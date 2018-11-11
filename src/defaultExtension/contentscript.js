@@ -4,13 +4,9 @@ if(window.__started_){
 
   let preAElemsLength = 0
 
-  const colorOnRGB = (ele)=>{
-    let c = getComputedStyle(ele).color
-    c = c.split(/[()]/)[1].split(",").map(x=>parseInt(x))
-    return (c[0] * 0.299 + c[1] * 0.587 + c[2] * 0.114) < 200 ? 'black' : 'white'
-  }
+  const visitedLinkName = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
 
-  const setVisitedLinkColor = (visitedLinkColor, visitedLinkColorWhite, force) => {
+  const setVisitedLinkColor = (force) => {
     const aElems = document.getElementsByTagName('a')
     const length = aElems.length
     if(!force && preAElemsLength == length) return
@@ -18,7 +14,7 @@ if(window.__started_){
     const checkElems = {}
     for (let i = 0; i < length; i++) {
       const ele = aElems[i]
-      if(ele.style.color == visitedLinkColor || ele.style.color == visitedLinkColorWhite) continue
+      if(ele.classList.contains(visitedLinkName)) continue
       const url = ele.href
       if (url.startsWith('http')) {
         let arr = checkElems[url]
@@ -38,14 +34,13 @@ if(window.__started_){
     ipc.on(`get-visited-links-reply_${key}`, (e, urls) => {
       for (let url of urls) {
         for(let ele of checkElems[url]){
-          ele.style.setProperty('color', colorOnRGB(ele) == 'white' ? visitedLinkColorWhite : visitedLinkColor, 'important')
+          ele.classList.add(visitedLinkName)
         }
       }
     })
   }
 
   const openTime = Date.now()
-  let visitedLinkColor, visitedLinkColorWhite
   if(location.href.match(/^(http|chrome\-extension)/) && window == window.parent){
     require('./passwordEvents')
     require('./webviewEvents')
@@ -60,11 +55,11 @@ if(window.__started_){
 
     document.addEventListener('mouseup',e=>{
       ipc.send('send-to-host', 'webview-mouseup',e.button)
-      if(visitedLinkColor && mdownEvent && e.target == mdownEvent.target &&
+      if(mdownEvent && e.target == mdownEvent.target &&
         e.button == mdownEvent.button && (e.button == 0 || e.button == 1)){
         const ele = e.target.closest('a')
         if(ele && ele.href.startsWith('http')){
-          setTimeout(()=>setVisitedLinkColor(visitedLinkColor, visitedLinkColorWhite, true),200)
+          setTimeout(()=>setVisitedLinkColor(true),200)
         }
       }
     },{passive: true, capture: true})
@@ -88,6 +83,10 @@ if(window.__started_){
     });
 
     document.addEventListener("DOMContentLoaded",_=>{
+      const visitedStyle = require('./visitedStyle')
+      setTimeout(()=> visitedStyle(`.${visitedLinkName}`), 0)
+      setVisitedLinkColor()
+      setInterval(()=>setVisitedLinkColor(),1000)
       // const key = Math.random().toString()
       // ipc.send('need-get-inner-text',key)
       // ipc.once(`need-get-inner-text-reply_${key}`,(e,result)=>{
@@ -128,6 +127,7 @@ if(window.__started_){
         },1000)
       }
     })
+    setInterval(()=>setVisitedLinkColor(),1000)
   }
 
   function handleDragEnd(evt) {
@@ -218,7 +218,7 @@ if(window.__started_){
   const key = Math.random().toString()
   ipc.send("get-main-state",key,['tripleClick','alwaysOpenLinkNewTab','themeColorChange','isRecording','isVolumeControl',
     'keepAudioSeekValueVideo','rectangularSelection','fullscreenTransitionKeep','fullScreen','rockerGestureLeft','rockerGestureRight',
-    'inputHistory','inputHistoryMaxChar','hoverStatusBar','hoverBookmarkBar', 'visitedLinkColor', 'visitedLinkColorWhite'])
+    'inputHistory','inputHistoryMaxChar','hoverStatusBar','hoverBookmarkBar'])
   ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
     if(data.fullscreenTransitionKeep){
       let full = data.fullScreen ? true : false
@@ -444,14 +444,6 @@ if(window.__started_){
     if(data.inputHistory && !location.href.startsWith('chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd')){
       require('./inputHistory')(data.inputHistoryMaxChar)
     }
-
-    if(data.visitedLinkColor && !location.href.startsWith('chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd')){
-      visitedLinkColor = data.visitedLinkColor
-      visitedLinkColorWhite = data.visitedLinkColorWhite
-      document.addEventListener("DOMContentLoaded",_=> setVisitedLinkColor(visitedLinkColor, visitedLinkColorWhite))
-      setInterval(()=>setVisitedLinkColor(visitedLinkColor, visitedLinkColorWhite),1000)
-    }
-
     // if(data.hoverStatusBar || data.hoverBookmarkBar){
     //   document.addEventListener('mousemove',e=>{
     //     ipc.send('send-to-host', 'webview-mousemove',e.clientY)

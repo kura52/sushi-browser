@@ -1,5 +1,5 @@
-let x,y,right,top,left
 const ipc = chrome.ipcRenderer
+let x,y,right,top,left
 
 class SyncButton{
   constructor(){

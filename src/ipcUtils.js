@@ -25,7 +25,7 @@ const isLinux = process.platform === 'linux'
 const meiryo = isWin && Intl.NumberFormat().resolvedOptions().locale == 'ja'
 import mainState from './mainState'
 import extensionInfos from "./extensionInfos";
-import {history, token} from "./databaseFork";
+import {history, token, visitedStyle} from "./databaseFork";
 import importData from "./bookmarksExporter";
 const open = require('./open')
 const {readMacro,readMacroOff,readTargetSelector,readTargetSelectorOff,readComplexSearch,readFindAll} = require('./readMacro')
@@ -2270,6 +2270,21 @@ ipcMain.on('install-from-local-file-extension', e=>{
 ipcMain.on('get-vpn-list',(e,key)=> {
   request({url: `https://sushib.me/vpngate.json?a=${Math.floor(Date.now() / 1000 / 1800)}`}, (err, response, text) => {
     e.sender.send(`get-vpn-list-reply_${key}`, text)
+  })
+})
+
+
+ipcMain.on('fetch-style',(e, key, url)=> {
+  visitedStyle.findOne({url}).then(result => {
+    if(result){
+      e.sender.send(`fetch-style-reply_${key}`, result.text)
+    }
+    else{
+      request({url}, (err, response, text) => {
+        e.sender.send(`fetch-style-reply_${key}`, text)
+        visitedStyle.insert({url, text})
+      })
+    }
   })
 })
 

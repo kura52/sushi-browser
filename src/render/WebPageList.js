@@ -123,7 +123,7 @@ export default class WebPageList extends Component{
             }
             const notLoadPage = notLoadTabUntilSelected && !allSelectedkeys.has(tab.key) && !tab.wvId
             arr.push([tab.key,
-              <div className={`browser-page-wrapper ${datas.isActive ? "visible" : "visible"}`} style={style} key={tab.key + key}>
+              <div className={`browser-page-wrapper ${datas.isActive ? "visible" : "visible"}`} style={style} key={tab.key}>
                 {notLoadPage ? null :<BrowserPage ref={`page-${tab.key}`} k={tab.key} k2={key} {...tab.pageHandlers}
                                                   toggleNav={datas.toggleNav} tab={tab} pageIndex={0} isActive={datas.isActive} pos={style}/>}
               </div>])

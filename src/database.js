@@ -68,6 +68,7 @@ db.windowState = new Datastore({filename: path.join(resourcePath,'windowState.db
 db.automation = new Datastore({filename: path.join(resourcePath,'automation.db'), autoload: true})
 db.automationOrder = new Datastore({filename: path.join(resourcePath,'automationOrder.db'), autoload: true})
 db.inputHistory = new Datastore({filename: path.join(resourcePath,'inputHistory.db'), autoload: true})
+db.visitedStyle = new Datastore({filename: path.join(resourcePath,'visitedStyle.db'), autoload: true})
 
 
 ;(async ()=>{
@@ -87,6 +88,7 @@ db.inputHistory = new Datastore({filename: path.join(resourcePath,'inputHistory.
   await db.windowState.ensureIndex({ fieldName: 'key' })
   await db.automation.ensureIndex({ fieldName: 'key' })
   await db.inputHistory.ensureIndex({ fieldName: 'host' })
+  await db.visitedStyle.ensureIndex({ fieldName: 'url' })
 
   if(!(await db.favorite.findOne({}).exec())){
     await db.favorite.insert({"is_file":false,"title":"root","updated_at":1497713000000,"children":[],"key":"root","_id":"zplOMCoNb1BzCt15"})
