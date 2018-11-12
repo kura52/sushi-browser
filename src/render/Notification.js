@@ -3,6 +3,8 @@ const ReactDOM = require('react-dom')
 const ipc = require('electron').ipcRenderer
 
 export default function Notification(props){
+  ipc.send('change-browser-view-z-index', true)
+
   let style = {position:'fixed', display: 'inline-block',width:600, margin:'auto',left:0, right:0,zIndex:11}
   console.log(props)
   if(props.data.style) style = Object.assign(style,props.data.style)
