@@ -12,7 +12,7 @@ var fs = require('fs')
   , async = require('async')
   , path = require('path')
   , storage = {}
-  ;
+;
 
 storage.exists = fs.exists;
 storage.rename = fs.rename;
@@ -85,7 +85,7 @@ storage.crashSafeWriteFile = function (filename, data, cb) {
 
   async.waterfall([
     async.apply(storage.flushToStorage, { filename: path.dirname(filename), isDir: true })
-  , function (cb) {
+    , function (cb) {
       storage.exists(filename, function (exists) {
         if (exists) {
           storage.flushToStorage(filename, function (err) { return cb(err); });
@@ -94,16 +94,21 @@ storage.crashSafeWriteFile = function (filename, data, cb) {
         }
       });
     }
-  , function (cb) {
+    , function (cb) {
       storage.writeFile(tempFilename, data, function (err) { return cb(err); });
     }
-  , async.apply(storage.flushToStorage, tempFilename)
-  , function (cb) {
-      storage.exists(tempFilename, function (oldFilenameExists) {
-        if(oldFilenameExists) storage.rename(tempFilename, filename, function (err) { return cb(err); });
+    , async.apply(storage.flushToStorage, tempFilename)
+    , function (cb) {
+      fs.stat(tempFilename, function (err, stats) {
+        storage.exists(filename, function (newFilenameExists) {
+          if (stats.size == 0 && newFilenameExists){
+            return storage.unlink(tempFilename, function (err) { return callback(err); });
+          }
+          storage.rename(tempFilename, filename, function (err) { return cb(err); });
+        })
       })
     }
-  , async.apply(storage.flushToStorage, { filename: path.dirname(filename), isDir: true })
+    , async.apply(storage.flushToStorage, { filename: path.dirname(filename), isDir: true })
   ], function (err) { return callback(err); })
 };
 
