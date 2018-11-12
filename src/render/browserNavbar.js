@@ -837,7 +837,6 @@ class BrowserNavbar extends Component{
       <NavbarMenuSubMenu text="About">
         <NavbarMenuItem text={`${locale.translation("browserVersion")}: ${versions.browser}`} onClick={_=>this.navigate('https://sushib.me/download.html')}/>
         <NavbarMenuItem text={`${locale.translation("chromiumVersion")}: ${versions.chrome}`} onClick={_=>this.navigate('https://github.com/chromium/chromium/releases')}/>
-        <NavbarMenuItem text={`${locale.translation("muonVersion")}: ${versions.Brave}`} onClick={_=>this.navigate('https://sushib.me/download.html')}/>
       </NavbarMenuSubMenu>
     </NavbarMenu>
   }
