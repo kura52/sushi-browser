@@ -226,7 +226,7 @@ module.exports.init = (verChange) => {
         let ext = [appId,getPath2(appId)]
         if(verChange) chromeManifestModify(...ext)
         console.log('modi',appId)
-        loadExtension(ext)
+        loadExtension(ext[1])
       }
     }
     first = false

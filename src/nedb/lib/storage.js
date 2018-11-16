@@ -104,7 +104,9 @@ storage.crashSafeWriteFile = function (filename, data, cb) {
           if (stats.size == 0 && newFilenameExists){
             return storage.unlink(tempFilename, function (err) { return callback(err); });
           }
-          storage.rename(tempFilename, filename, function (err) { return cb(err); });
+          storage.rename(tempFilename, filename, function (err) {
+            return cb(err);
+          });
         })
       })
     }

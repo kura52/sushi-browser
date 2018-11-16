@@ -51,7 +51,7 @@ for(let [eventName,name] of [
     }
     else{
       for(let cont of webContents.getAllWebContents()){
-        if(cont && !cont.isDestroyed() && !cont.isBackgroundPage() && !cont.hostWebcontents2) {
+        if(cont && !cont.isDestroyed() /*&& !cont.isBackgroundPage()*/ && !cont.hostWebcontents2) {
           cont.send(`chrome-browser-action-set-${name}-ipc-${extensionId}`,null ,details)
           cont.send(`chrome-browser-action-set-ipc-all`,extensionId,name,details)
           setMainState(extensionId,name,details)
