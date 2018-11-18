@@ -1,4 +1,5 @@
 const {ipcFuncMain, getIpcNameFunc, eventRegist} = require('./util-main')
+const {ipcMain} = require('electron')
 const getIpcName = getIpcNameFunc('WebNavigation')
 
 const eventObj = {}

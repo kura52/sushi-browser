@@ -7,17 +7,17 @@ module.exports = function(manifestMap, sendToBackgroundPage, getTabValue) {
 
   ipcMain.on('get-extension-menu',(e) => ipcMain.emit('get-extension-menu-reply', null, extensionMenu))
 
-  ipcMain.on('chrome-context-menus-clicked', (e, extensionId, tabId, info)=>{
-    sendToBackgroundPage(extensionId, getIpcName('onClicked'), info, getTabValue(tabId))
+  ipcMain.on('chrome-context-menus-clicked', async (e, extensionId, tabId, info)=>{
+    sendToBackgroundPage(extensionId, getIpcName('onClicked'), info, await getTabValue({}, tabId))
   })
 
   ipcFuncMainCb('contextMenus', 'create', (e, extensionId, createProperties, cb)=> {
     const manifest = manifestMap[extensionId]
-    const icon = Object.values(manifest.icons)
+    const icon = Object.values(manifest.icons)[0]
     const menuItemId = createProperties.id
 
     if(!extensionMenu[extensionId]) extensionMenu[extensionId] = []
-    extensionMenu[extensionId].push({createProperties, menuItemId, icon})
+    extensionMenu[extensionId].push({properties: createProperties, menuItemId, icon})
     //TODO onClick
     cb()
   })

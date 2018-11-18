@@ -9,6 +9,8 @@ class Cookies {
     this._chrome = chrome
 
     this.initEvents()
+
+    for(let name of Object.getOwnPropertyNames(Object.getPrototypeOf(this))) this[name] = name == 'constructor' ? this[name] : this[name].bind(this)
   }
 
   initEvents(){

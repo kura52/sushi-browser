@@ -7,6 +7,8 @@ module.exports = function(manifestMap, backgroundPages, sendToBackgroundPage, se
   const hookWebContentsEvents = function (webContents) {
     const tabId = webContents.id
 
+    if(webContents.hostWebContents) return
+
     sendToBackgroundPages('CHROME_TABS_ONCREATED', tabId)
 
     require('./extensions/web-navigation-main')(webContents, sendToBackgroundPage)
@@ -31,22 +33,35 @@ module.exports = function(manifestMap, backgroundPages, sendToBackgroundPage, se
 // Handle the chrome.* API messages.
   const nextId = {val: 0}
 
-  ipcMain.on('CHROME_RUNTIME_CONNECT', function (event, extensionId, connectInfo) {
-    const page = backgroundPages[extensionId]
-    console.log(`CHROME_RUNTIME_CONNECT`, extensionId, connectInfo,page && page.webContents.getURL())
-    if (!page) {
-      console.error(`Connect to unknown extension ${extensionId}`)
-      return
+  ipcMain.on('CHROME_RUNTIME_CONNECT', async function (event, extensionId, connectInfo, webContentsKey) {
+    const backgroundPage = backgroundPages[extensionId] && backgroundPages[extensionId].webContents
+    for(let page of new Set([backgroundPage,...webContents.getAllWebContents()])) {
+      if (!page || page.isDestroyed() || !page.getURL().startsWith(`chrome-extension://${extensionId}`)) {
+        continue
+      }
+
+      const portId = ++nextId.val
+      page.sendToAll(`CHROME_RUNTIME_ONCONNECT_${extensionId}`, event.sender.id, portId, connectInfo, webContentsKey)
+      const success = await new Promise(r=>{
+        ipcMain.once(`CHROME_RUNTIME_ONCONNECT_RES_${extensionId}`, (e2, canConnect) => {
+          console.log(`CHROME_RUNTIME_ONCONNECT_RES_${extensionId}`)
+          if (canConnect) {
+            event.returnValue = {tabId: page.id, portId: portId}
+
+            event.sender.once('render-view-deleted', () => {
+              if (page.isDestroyed()) return
+              page.sendToAll(`CHROME_PORT_DISCONNECT_${portId}`)
+            })
+            r(true)
+          }
+          else {
+            r(false)
+          }
+        })
+      })
+      if(success) return
     }
-
-    const portId = ++nextId.val
-    event.returnValue = {tabId: page.webContents.id, portId: portId}
-
-    event.sender.once('render-view-deleted', () => {
-      if (page.webContents.isDestroyed()) return
-      page.webContents.sendToAll(`CHROME_PORT_DISCONNECT_${portId}`)
-    })
-    page.webContents.sendToAll(`CHROME_RUNTIME_ONCONNECT_${extensionId}`, event.sender.id, portId, connectInfo)
+    event.returnValue = null
   })
 
   ipcMain.on('CHROME_I18N_MANIFEST', function (event, extensionId) {
@@ -54,24 +69,40 @@ module.exports = function(manifestMap, backgroundPages, sendToBackgroundPage, se
   })
 
   const resultID = {val: 1}
-  ipcMain.on('CHROME_RUNTIME_SENDMESSAGE', function (event, extensionId, message, originResultID) {
+  ipcMain.on('CHROME_RUNTIME_SENDMESSAGE', function (event, extensionId, message, originResultID, webContentsKey) {
     // console.log('CHROME_RUNTIME_SENDMESSAGE', event.sender.getURL(), extensionId, message, originResultID)
-    const page = backgroundPages[extensionId]
-    if (!page) {
-      console.error(`Connect to unknown extension ${extensionId}`)
-      return
-    }
+    const backgroundPage = backgroundPages[extensionId] && backgroundPages[extensionId].webContents
+    for(let page of new Set([backgroundPage,...webContents.getAllWebContents()])) {
+      if (!page || page.isDestroyed() || !page.getURL().startsWith(`chrome-extension://${extensionId}`)) {
+        continue
+      }
 
-    console.log(`CHROME_RUNTIME_ONMESSAGE_${extensionId}`)
-    page.webContents.sendToAll(`CHROME_RUNTIME_ONMESSAGE_${extensionId}`, event.sender.id, message, resultID.val)
-    ipcMain.once(`CHROME_RUNTIME_ONMESSAGE_RESULT_${resultID.val}`, (event2, result) => {
-      console.log(`CHROME_RUNTIME_ONMESSAGE_RESULT_${resultID.val}`)
-      event.sender.send(`CHROME_RUNTIME_SENDMESSAGE_RESULT_${originResultID}`, result)
-      console.log(`CHROME_RUNTIME_SENDMESSAGE_RESULT_${originResultID}`)
-    })
-    resultID.val++
+      console.log(`CHROME_RUNTIME_ONMESSAGE_${extensionId}`)
+      page.sendToAll(`CHROME_RUNTIME_ONMESSAGE_${extensionId}`, event.sender.id, message, resultID.val, webContentsKey)
+      const callback = (event2, result) => {
+        console.log(`CHROME_RUNTIME_ONMESSAGE_RESULT_${resultID.val}`)
+        if(!event.sender.isDestroyed()) event.sender.send(`CHROME_RUNTIME_SENDMESSAGE_RESULT_${originResultID}`, result)
+        console.log(`CHROME_RUNTIME_SENDMESSAGE_RESULT_${originResultID}`)
+      }
+      ipcMain.on(`CHROME_RUNTIME_ONMESSAGE_RESULT_${resultID.val}`, callback)
+      setTimeout(() => ipcMain.removeListener(`CHROME_RUNTIME_ONMESSAGE_RESULT_${resultID.val}`, callback), 1000 * 120)
+      resultID.val++
+    }
   })
 
+  ipcMain.on('background-data', (e, extensionId, dataKey, type, name, data) => {
+    const key = shortId()
+    console.log(extensionId, 'get-background-data', e.sender.getURL(),key, dataKey, type, name, data)
+    const success = sendToBackgroundPage(extensionId, 'get-background-data', key, dataKey, type, name, data)
+    if(!success){
+      return e.returnValue = {key: false, result: void 0, type: 'no-proxy'}
+    }
+
+    ipcMain.once(`get-background-data-reply_${key}`, (e2, result, type) => {
+      console.log(`get-background-data-reply_${key}`, result, type)
+      e.returnValue = {key, result, type}
+    })
+  })
   const {tabMain, tabsQuery, getTabValue} = require('./extensions/tabs-main')
   tabMain(manifestMap, resultID, nextId)
 
@@ -91,6 +122,7 @@ module.exports = function(manifestMap, backgroundPages, sendToBackgroundPage, se
   require('./extensions/context-menus-main')(manifestMap, sendToBackgroundPage, getTabValue)
   require('./extensions/i18n-main')(manifestMap)
   require('./extensions/management-main')(manifestMap)
+  require('./extensions/alarms-main')(sendToBackgroundPage)
 
   return hookWebContentsEvents
 }

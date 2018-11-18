@@ -46,12 +46,12 @@ for(let [eventName,name] of [
     console.log(eventName, extensionId, details)
     const tabId = details.tabId
     if(tabId){
-      const cont = webContents.fromTabID(tabId)
-      if(cont && cont.hostWebcontents2) cont.hostWebcontents2.send(`chrome-browser-action-set-${name}-ipc-${extensionId}`,tabId,details)
+      const cont = webContents.fromId(tabId)
+      if(cont && cont.hostWebContents2) cont.hostWebContents2.send(`chrome-browser-action-set-${name}-ipc-${extensionId}`,tabId,details)
     }
     else{
       for(let cont of webContents.getAllWebContents()){
-        if(cont && !cont.isDestroyed() /*&& !cont.isBackgroundPage()*/ && !cont.hostWebcontents2) {
+        if(cont && !cont.isDestroyed() /*&& !cont.isBackgroundPage()*/ && !cont.hostWebContents2) {
           cont.send(`chrome-browser-action-set-${name}-ipc-${extensionId}`,null ,details)
           cont.send(`chrome-browser-action-set-ipc-all`,extensionId,name,details)
           setMainState(extensionId,name,details)

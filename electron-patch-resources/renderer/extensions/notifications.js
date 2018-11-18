@@ -3,34 +3,35 @@ class Notifications {
     this.notifications = {}
     this.onClosedEvents = new Set()
     this.onClickedEvent = new Set()
+    const self = this
 
     this.onClosed = {
       addListener(cb) {
-        this.onClosedEvents.add(cb)
+        self.onClosedEvents.add(cb)
       },
       removeListener(cb){
-        this.onClosedEvents.delete(cb)
+        self.onClosedEvents.delete(cb)
       },
       hasListener(cb){
-        return this.onClosedEvents.has(cb)
+        return self.onClosedEvents.has(cb)
       },
       hasListeners(){
-        return !!this.onClosedEvents.length
+        return !!self.onClosedEvents.length
       }
     }
 
     this.onClicked = {
       addListener(cb) {
-        this.onClickedEvent.add(cb)
+        self.onClickedEvent.add(cb)
       },
       removeListener(cb){
-        this.onClickedEvent.delete(cb)
+        self.onClickedEvent.delete(cb)
       },
       hasListener(cb){
-        return this.onClickedEvent.has(cb)
+        return self.onClickedEvent.has(cb)
       },
       hasListeners(){
-        return !!this.onClickedEvent.length
+        return !!self.onClickedEvent.length
       }
     }
 
@@ -42,6 +43,7 @@ class Notifications {
       hasListeners(){}
     }
 
+    for(let name of Object.getOwnPropertyNames(Object.getPrototypeOf(this))) this[name] = name == 'constructor' ? this[name] : this[name].bind(this)
   }
 
   create(notificationId, options, callback){

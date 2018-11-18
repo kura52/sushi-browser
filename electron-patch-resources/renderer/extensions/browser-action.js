@@ -10,6 +10,11 @@ class BrowserAction {
     ipcRenderer.on('CHROME_BROWSERACTION_ONCLICKED',(e, tab)=>{
       this.onClicked.emit(tab)
     })
+
+    this.show = this.enable
+    this.hide = this.disable
+
+    for(let name of Object.getOwnPropertyNames(Object.getPrototypeOf(this))) this[name] = name == 'constructor' ? this[name] : this[name].bind(this)
   }
 
   setTitle(details, callback){

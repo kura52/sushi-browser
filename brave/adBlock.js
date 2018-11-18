@@ -115,7 +115,7 @@ const isThirdPartyHost = (baseContextHost, testHost) => {
 
 const registeredSession = new Set()
 const beforeRequestFilteringFns = []
-const frameCache = new LRUCache(200)
+const frameCache = new LRUCache(2000)
 const mainFrameCache = new LRUCache(200)
 const tabCache = new LRUCache(200)
 function registerForBeforeRequest (session) {
@@ -140,7 +140,7 @@ function registerForBeforeRequest (session) {
       return
     }
 
-    if(details.resourceType === 'subFrame' && details.firstPartyUrl){
+    if(/*details.resourceType === 'subFrame' &&*/ details.firstPartyUrl){
       const arr = frameCache.get(details.firstPartyUrl)
       if(arr){
         arr.push(details)
@@ -238,7 +238,7 @@ function registerForBeforeRequest (session) {
 
 
       if(record){
-        console.log(record)
+        // console.log(record)
         let cont
         for(let w of BrowserWindow.getAllWindows()){
           if(w.getTitle().includes('Sushi Browser')){
@@ -248,17 +248,67 @@ function registerForBeforeRequest (session) {
         }
       }
     },0)
-    if(details.webContentsId && webContents.fromId(details.webContentsId).getURL().startsWith('chrome-extension:')){
+    let extUrl
+    if(details.webContentsId && (extUrl = webContents.fromId(details.webContentsId).getURL()).startsWith('chrome-extension:')){
+      if(details.headers['Access-Control-Request-Headers']){
+        details.responseHeaders['Access-Control-Allow-Headers'] = details.headers['Access-Control-Request-Headers'].split(',')
+      }
+      if(details.headers['Access-Control-Request-Method']){
+        details.responseHeaders['Access-Control-Allow-Methods'] = [details.headers['Access-Control-Request-Method']]
+      }
+      delete details.responseHeaders['content-security-policy']
+      delete details.responseHeaders['x-frame-options']
+      delete details.responseHeaders['x-content-type-options']
+      delete details.responseHeaders['x-xss-protection']
       return cb({
-        cancel: false,
         responseHeaders: {
           ...details.responseHeaders,
-          "Access-Control-Allow-Origin": ["*"]
+          "Access-Control-Allow-Origin": [`${extUrl.match(/^(chrome-extension:\/\/[^\/]+)/)[0]}`],
+          "Access-Control-Allow-Credentials":  ['true']
         }
+      })
+      // details.responseHeaders["Access-Control-Allow-Origin"] = [new URL(details.url).origin]
+      // details.responseHeaders["Access-Control-Allow-Credentials"] = ['true']
+
+      // if(details.headers['Access-Control-Request-Headers']){
+      //   details.responseHeaders['Access-Control-Allow-Headers'] = details.headers['Access-Control-Request-Headers'].split(',')
+      // }
+      // if(details.headers['Access-Control-Request-Method']){
+      //   details.responseHeaders['Access-Control-Allow-Methods'] = [details.headers['Access-Control-Request-Method']]
+      // }
+      // delete details.responseHeaders['content-security-policy']
+      // delete details.responseHeaders['x-frame-options']
+      // delete details.responseHeaders['x-content-type-options']
+      // delete details.responseHeaders['x-xss-protection']
+      // return cb({
+      //   responseHeaders: details.responseHeaders
+      // })
+    }
+    return cb({})
+  })
+
+
+  ipcMain.emit('add-onBeforeSendHeaders',(details, cb) => {
+    let extUrl
+    // console.log(777,details)
+    if(details.webContentsId && (extUrl = webContents.fromId(details.webContentsId).getURL()).startsWith('chrome-extension:')){
+      // console.log(88366,details.requestHeaders)
+      const origin = extUrl.match(/^(chrome-extension:\/\/[^\/]+)/)[0]
+      if(details.requestHeaders.Origin) console.log(33, details.requestHeaders.Origin, extUrl.match(/^(chrome-extension:\/\/[^\/]+)/)[0])
+      if(details.requestHeaders.Origin && details.requestHeaders.Origin != origin){
+        details.requestHeaders.Origin = origin
+        details.requestHeaders.Vary =  'Accept-Encoding, Origin'
+      }
+
+      // details.requestHeaders.Origin = new URL(details.url).origin
+      // console.log(8866,details.requestHeaders)
+      return cb({
+        cancel: false, requestHeaders:details.requestHeaders
       })
     }
     return cb({})
   })
+
 }
 
 

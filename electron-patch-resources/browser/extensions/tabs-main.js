@@ -29,6 +29,14 @@ async function getTabValue(event, tabId){
   }
 
   const hostWebContents = contents.hostWebContents2
+  // console.log(hostWebContents)
+  // if(!hostWebContents){
+  //   event.returnValue = null
+  //   return
+  // }
+  // else{
+  //   console.log(BrowserWindow.fromWebContents(hostWebContents))
+  // }
   const _tabValue = {
     audible: false,
     autoDiscardable: true,
@@ -38,7 +46,7 @@ async function getTabValue(event, tabId){
     status: contents.isLoading ? 'loading' : 'complete',
     title: contents.getTitle(),
     url: contents.getURL(),
-    windowId: hostWebContents && global.viewWindowMap[hostWebContents].id,
+    windowId: hostWebContents && BrowserWindow.fromWebContents(hostWebContents).id,
   }
 
   if(tabOpenerMap[tabId]) _tabValue.openerTabId = tabOpenerMap[tabId]
@@ -62,7 +70,7 @@ async function getTabValue(event, tabId){
 async function tabsQuery(queryInfo, cb){
   const tabIds = []
   for(let content of webContents.getAllWebContents()){
-    if(!content.isGuest()) continue
+    if(!content.hostWebContents2) continue
     tabIds.push(content.id)
   }
 
@@ -82,6 +90,7 @@ async function tabsQuery(queryInfo, cb){
     tabValues[tabId] = (await getTabValue({}, tabId)) || {}
   }
 
+  console.log(tabValues, queryInfo)
   const result = []
   tabIds.forEach((tabId) => {
     // delete tab from the list if any key doesn't match
@@ -93,11 +102,54 @@ async function tabsQuery(queryInfo, cb){
   cb(result.sort(function(a, b){ return a.index - b.index }))
 }
 
+function recurTabGet(win, cb, error, ses, createProperties, retry) {
+  const cont = win.webContents
+  const key = shortId()
+  cont.send('get-focused-webContent', key, void 0)
+  ipcMain.once(`get-focused-webContent-reply_${key}`, (e, tabId) => {
+    if (!tabId) {
+      if(retry > 10) return cb(null, error)
+      return setTimeout(()=>recurTabGet(win, cb, error, ses, createProperties, retry + 1) ,30)
+    }
+    const opener = webContents.fromId(tabId)
+    ses = opener && opener.session
+    if (!error && createProperties.partition) {
+      // createProperties.partition always takes precendence
+      ses = session.fromPartition(createProperties.partition, {
+        parent_partition: createProperties.parent_partition
+      })
+      // don't pass the partition info through
+      delete createProperties.partition
+      delete createProperties.parent_partition
+    }
+
+    if (error) {
+      console.error(error)
+      return cb(null, error)
+    }
+
+    createProperties.userGesture = true
+
+    try {
+      // windowId
+      // index
+      // pinned
+      opener.emit('new-window', null, createProperties.url, null, createProperties.active ? 'foreground-tab' : 'background-tab')
+      ipcMain.once('CHROME_TABS_ONCREATED', (event, tab) => { //@TODO FIX
+        cb(tab)
+      })
+    } catch (e) {
+      console.error(e)
+      cb(null, 'An unexpected error occurred: ' + e.message)
+    }
+  })
+};
+
 function tabMain(manifestMap, resultID, nextId){
   ipcFuncMainCb('tabs', 'create', async (e, createProperties, cb2)=> {
     const cb = (tab, error) => {
       // if (!evt.sender.isDestroyed()) {
-      cb2(tab, error)
+      if(cb2) cb2(tab, error)
       // }
     }
     try {
@@ -140,42 +192,7 @@ function tabMain(manifestMap, resultID, nextId){
             win = BrowserWindow.getAllWindows().find(w=>w.getTitle().includes('Sushi Browser'))
           }
         }
-        const cont = win.webContents
-        const key = shortId()
-        cont.send('get-focused-webContent',key,void 0)
-        ipcMain.once(`get-focused-webContent-reply_${key}`,(e,tabId)=>{
-          const opener = webContents.fromId(tabId)
-          ses = opener && opener.session
-          if (!error && createProperties.partition) {
-            // createProperties.partition always takes precendence
-            ses = session.fromPartition(createProperties.partition, {
-              parent_partition: createProperties.parent_partition
-            })
-            // don't pass the partition info through
-            delete createProperties.partition
-            delete createProperties.parent_partition
-          }
-
-          if (error) {
-            console.error(error)
-            return cb(null, error)
-          }
-
-          createProperties.userGesture = true
-
-          try {
-            // windowId
-            // index
-            // pinned
-            opener.emit('new-window', null, createProperties.url, null, createProperties.active ? 'foreground-tab' : 'background-tab')
-            ipcMain.once('CHROME_TABS_ONCREATED', (event, tab)=>{ //@TODO FIX
-              cb(tab)
-            })
-          } catch (e) {
-            console.error(e)
-            cb(null, 'An unexpected error occurred: ' + e.message)
-          }
-        })
+        recurTabGet(win, cb, error, ses, createProperties, 0)
         return
       }
     } catch (e) {
@@ -268,7 +285,7 @@ function tabMain(manifestMap, resultID, nextId){
 
   ipcFuncMainCb('tabs', 'saveAsPDF', async (e, pageSettings,cb)=>{
     const contents = (await getFocusedWebContents())
-    const filepath = dialog.showDialog(global.viewWindowMap[cont.hostWebContents2],
+    const filepath = dialog.showDialog(BrowserWindow.fromWebContents(cont.hostWebContents2),
       {
         defaultPath: path.join(app.getPath('downloads'), `${cont.getTitle()}.pdf`),
         type: 'select-saveas-file',
@@ -301,7 +318,7 @@ function tabMain(manifestMap, resultID, nextId){
 
   ipcMain.on('CHROME_TABS_TAB_VALUE', getTabValue)
 
-  ipcMain.on('CHROME_TABS_SEND_MESSAGE', function (event, tabId, extensionId, isBackgroundPage, message, originResultID) {
+  ipcMain.on('CHROME_TABS_SEND_MESSAGE', function (event, tabId, extensionId, isBackgroundPage, message, originResultID, webContentsKey) {
     const contents = webContents.fromId(tabId)
     if (!contents) {
       console.error(`Sending message to unknown tab ${tabId}`)
@@ -310,7 +327,7 @@ function tabMain(manifestMap, resultID, nextId){
 
     const senderTabId = isBackgroundPage ? null : event.sender.id
 
-    contents.sendToAll(`CHROME_RUNTIME_ONMESSAGE_${extensionId}`, senderTabId, message, resultID.val)
+    contents.sendToAll(`CHROME_RUNTIME_ONMESSAGE_${extensionId}`, senderTabId, message, resultID.val, webContentsKey)
     ipcMain.once(`CHROME_RUNTIME_ONMESSAGE_RESULT_${resultID.val}`, (event, result) => {
       event.sender.send(`CHROME_TABS_SEND_MESSAGE_RESULT_${originResultID}`, result)
     })
@@ -339,21 +356,30 @@ function tabMain(manifestMap, resultID, nextId){
   })
 
 
-  ipcMain.on('CHROME_TABS_CONNECT', function (event, tabId, extensionId, connectInfo) {
+  ipcMain.on('CHROME_TABS_CONNECT', function (event, tabId, extensionId, connectInfo, webContentsKey) {
     const tab = webContents.fromId(tabId)
     if (!tab) {
       console.error(`Cannot connect to ${tabId} ${extensionId}`)
+      event.returnValue = null
       return
     }
 
     const portId = ++nextId.val
-    event.returnValue = portId
-
-    event.sender.once('render-view-deleted', () => {
-      if (page.webContents.isDestroyed()) return
-      tab.send(`CHROME_PORT_DISCONNECT_${portId}`)
-    })
     tab.send(`CHROME_RUNTIME_ONCONNECT_${extensionId}`, event.sender.id, portId, connectInfo)
+    ipcMain.once(`CHROME_RUNTIME_ONCONNECT_RES_${extensionId}`, (e, canConnect) => {
+      if(canConnect){
+        event.returnValue = portId
+
+        event.sender.once('render-view-deleted', () => {
+          if (page.webContents.isDestroyed()) return
+          tab.send(`CHROME_PORT_DISCONNECT_${portId}`)
+        })
+      }
+      else{
+        event.returnValue = null
+      }
+    })
+
   })
 }
 

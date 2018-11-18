@@ -17,10 +17,9 @@ class WebRequest {
       'onResponseStarted',
       'onSendHeaders'
     ]){
-
       this[method] = new Event2(this.constructor.name, method, extensionId, true)
     }
-  }
+ }
 }
 
 exports.setup = (...args) => {

@@ -6,6 +6,8 @@ class BrowsingData {
     for(let key of Object.keys(this.types)){
       this[`remove${key.charAt(0).toUpperCase()}${key.slice(1)}`] = (options,callback) => this.remove(options,{[key]: true},callback)
     }
+
+    for(let name of Object.getOwnPropertyNames(Object.getPrototypeOf(this))) this[name] = name == 'constructor' ? this[name] : this[name].bind(this)
   }
 
   settings(callback){

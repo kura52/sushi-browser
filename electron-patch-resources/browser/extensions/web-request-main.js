@@ -1,6 +1,7 @@
-const {ipcMain} = require('electron')
+const {ipcMain, webContents} = require('electron')
 const {getIpcNameFunc, eventRegist, shortId} = require('./util-main')
 const getIpcName = getIpcNameFunc('WebRequest')
+const lruCache = require('./lruCache')
 
 const methods = [
   'onAuthRequired',
@@ -24,11 +25,40 @@ const matchesPattern = function (pattern, url) {
   return url.match(regexp)
 }
 
+const tabIdCache = new lruCache(200)
 module.exports = function(session, sendToBackgroundPage){
 
   for(let method of methods){
     let properties = {}, adblocks = []
     const webRequestEvent = (details, cb) => {
+
+      if(method == 'onBeforeRequest' && details.resourceType == 'mainFrame' && !details.webContentsId){
+        const cont = webContents.getAllWebContents().find(x=> x.isLoading() && x.getURL() == details.url)
+        if(cont) tabIdCache.set(details.url, [Date.now(), cont.id])
+      }
+      else if(method == 'onHeadersReceived' && !details.webContentsId){
+        const data = tabIdCache.get(details.url)
+        if(data && Date.now() - data[0] < 3000){
+          details.webContentsId = data[1]
+        }
+      }
+
+      let requestHeaders, responseHeaders
+      if(Object.keys(properties).length){
+        if(details.requestHeaders !== void 0){
+          requestHeaders = []
+          for(let [name,value] of Object.entries(details.requestHeaders)){
+            requestHeaders.push({name, value: value[0]})
+          }
+        }
+        if(details.responseHeaders !== void 0){
+          responseHeaders = []
+          for(let [name,value] of Object.entries(details.responseHeaders)){
+            responseHeaders.push({name, value: value[0]})
+          }
+        }
+      }
+
       const promises = []
       for (let [extensionId, eventId, filter] of Object.values(properties)) {
         if (filter) {
@@ -52,7 +82,9 @@ module.exports = function(session, sendToBackgroundPage){
           frameId: 0,
           parentFrameId: -1,
           type: details.resourceType.replace('Frame', '_frame'),
-          ...details
+          ...details,
+          requestHeaders,
+          responseHeaders
         })
 
         // console.log([method, extensionId, eventId].join("\t"))
@@ -72,8 +104,22 @@ module.exports = function(session, sendToBackgroundPage){
             result = result || {}
             if(result.cancel !== void 0) finalResult.cancel = finalResult.cancel || result.cancel
             if(result.statusLine !== void 0) finalResult.statusLine = result.statusLine
-            if(result.requestHeaders !== void 0) finalResult.requestHeaders = Object.assign(finalResult.requestHeaders || {}, result.requestHeaders)
-            if(result.responseHeaders !== void 0) finalResult.responseHeaders = Object.assign(finalResult.responseHeaders || {}, result.responseHeaders)
+            if(result.requestHeaders !== void 0){
+              if(typeof result.requestHeaders == "object"){
+                finalResult.requestHeaders = Object.assign(finalResult.requestHeaders || {}, result.requestHeaders)
+              }
+              else{
+                for(let o of result.requestHeaders) finalResult.requestHeaders[o.name] = [o.value]
+              }
+            }
+            if(result.responseHeaders !== void 0){
+              if(typeof result.responseHeaders == "object"){
+                finalResult.responseHeaders = Object.assign(finalResult.responseHeaders || {}, result.responseHeaders)
+              }
+              else{
+                for(let o of result.responseHeaders) finalResult.responseHeaders[o.name] = [o.value]
+              }
+            }
          }
          cb(finalResult)
         })
@@ -93,7 +139,7 @@ module.exports = function(session, sendToBackgroundPage){
       }
     })
 
-    if(method == 'onBeforeRequest' || method == 'onHeadersReceived'){
+    if(method == 'onBeforeRequest' || method == 'onHeadersReceived' || method == 'onBeforeSendHeaders'){
       session.webRequest[method](webRequestEvent)
       ipcMain.on(`add-${method}`, (func) =>{
         adblocks.push(func)

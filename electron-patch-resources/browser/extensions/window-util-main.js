@@ -1,5 +1,6 @@
 const { BrowserWindow, ipcMain, webContents } = require('electron')
-const {shortId} = require('./util-main')
+const {getIpcNameFunc, _shortId} = require('../../renderer/extensions/common-util')
+const shortId = _shortId()
 
 function getCurrentWindow(){
   const focus = BrowserWindow.getFocusedWindow()
@@ -12,10 +13,10 @@ function getFocusedWebContents(needSelectedText,skipBuildInSearch,callback,retry
   if(!skipBuildInSearch){
     const tmp = webContents.getFocusedWebContents()
     if(tmp && !tmp.isDestroyed() /*&& !tmp.isBackgroundPage()*/ && !(/*tmp.tabValue().openerTabId == -1 && */ tmp.getURL().match(/^(chrome\-extension|chrome\-devtools)/))) { //@TODO ELECTRON
-      if(tmp.isGuest()){
+      if(tmp.hostWebContents2){
         return new Promise(resolve=>resolve(tmp))
       }
-      else if(tmp.getURL().startsWith('chrome://brave/')){
+      else if(tmp.isRoot){
         cont = tmp
       }
     }

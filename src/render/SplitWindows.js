@@ -528,7 +528,7 @@ export default class SplitWindows extends Component{
       return tabInfo[0] && tabInfo[0].wvId
     }
 
-    this.getFocusedWebContent = (e,key,needPrivate,needSelectedText,queueGet,retry)=>{
+    this.getFocusedWebContent = (e,key,needPrivate,needSelectedText,queueGet)=>{
       if(queueGet){
         const tabId = global.openerQueue.shift()
         if(tabId){
@@ -545,9 +545,9 @@ export default class SplitWindows extends Component{
       console.log(act,global.lastMouseDown)
       let tabId = this.getTabId(act)
 
-      if(!tabId && retry > 9){
-        tabId = this.refs2[this.isTopLeft].getSelectedTabId()
-      }
+      // if(!tabId && retry > 9){
+      //   tabId = this.refs2[this.isTopLeft].getSelectedTabId()
+      // }
       console.log(2323,tabId)
       if(needPrivate){
         const keys = []

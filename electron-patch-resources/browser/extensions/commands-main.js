@@ -1,4 +1,5 @@
 const {ipcFuncMain, getIpcNameFunc, eventRegist, getFocusedWebContents} = require('./util-main')
+const {ipcMain} = require('electron')
 const getIpcName = getIpcNameFunc('Commands')
 
 const eventOnCommand = eventRegist(getIpcName('onCommand'))

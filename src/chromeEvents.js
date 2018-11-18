@@ -242,18 +242,19 @@ for(let method of tabsEventMethods){
 }
 
 simpleIpcFunc('chrome-webNavigation-getAllFrames',details=>{
-  const {frameCache} = {}//require('../brave/adBlock')
-  console.log(details)
+  const {frameCache} = require('../brave/adBlock')
+  // console.log(details)
   const tab = sharedState[details.tabId] || webContents.fromId(details.tabId)
   const url = tab.getURL()
   const ret = [{errorOccurred: false, frameId: 0, parentFrameId: -1, processId: 1, url}]
   const arr = frameCache.get(url) || []
   for(let x of arr){
     if(x.tabId == details.tabId){
-      console.log(x)
+      // console.log(x)
       ret.push({errorOccurred: false, frameId: x.frameId, parentFrameId: 0, processId: 1, url: x.url})
     }
   }
+  console.log(885567,ret)
   return ret
 })
 

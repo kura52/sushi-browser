@@ -12,20 +12,27 @@ module.exports = function(manifest){
   const getMessagesPath = (extensionId, language) => {
     const metadata = manifest[extensionId]
     const localesDirectory = path.join(metadata.srcDirectory, '_locales')
+    const defaultLocale = metadata.default_locale || 'en'
     try {
+
       const filename = path.join(localesDirectory, language, 'messages.json')
       fs.accessSync(filename, fs.constants.R_OK)
-      return filename
+      return [path.join(localesDirectory, defaultLocale, 'messages.json'), filename]
     } catch (err) {
-      const defaultLocale = metadata.default_locale || 'en'
-      return path.join(localesDirectory, defaultLocale, 'messages.json')
+      return [path.join(localesDirectory, defaultLocale, 'messages.json')]
     }
   }
 
   const getMessages = (extensionId, language) => {
     try {
-      const messagesPath = getMessagesPath(extensionId, language)
-      return JSON.parse(fs.readFileSync(messagesPath)) || {}
+      const messagesPaths = getMessagesPath(extensionId, language)
+      console.log(666222,messagesPaths)
+      if(messagesPaths.length == 1){
+        return JSON.parse(fs.readFileSync(messagesPaths[0])) || {}
+      }
+      else{
+        return Object.assign(JSON.parse(fs.readFileSync(messagesPaths[0])) || {}, JSON.parse(fs.readFileSync(messagesPaths[1])) || {})
+      }
     } catch (error) {
       return {}
     }

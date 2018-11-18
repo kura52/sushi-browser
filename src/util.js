@@ -16,7 +16,7 @@ function getFocusedWebContents(needSelectedText,skipBuildInSearch,callback,retry
       if(tmp.hostWebContents2){
         return new Promise(resolve=>resolve(tmp))
       }
-      else if(tmp.getURL().startsWith("chrome://brave/")){
+      else if(tmp.isRoot){
         cont = tmp
       }
     }

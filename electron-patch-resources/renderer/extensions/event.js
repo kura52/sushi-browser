@@ -6,6 +6,8 @@ class Event {
     this.listeners = []
     this.firstExecuteCallback = firstExecuteCallback
     this.first = false
+
+    for(let name of Object.getOwnPropertyNames(Object.getPrototypeOf(this))) this[name] = name == 'constructor' ? this[name] : this[name].bind(this)
   }
 
   addListener (callback) {
@@ -48,6 +50,8 @@ class Event2 {
     this.needReturn = needReturn
     this.ipcName = getIpcNameFunc(name)(method, extensionId)
     ipcRenderer.on(this.ipcName, (event, ...args) => this.emit(...args))
+
+    for(let name of Object.getOwnPropertyNames(Object.getPrototypeOf(this))) this[name] = name == 'constructor' ? this[name] : this[name].bind(this)
   }
 
   addListener (callback, ...args) {
@@ -82,8 +86,12 @@ class Event2 {
 
   emit (eventId, ...args) {
     // console.log('emit', this.name,this.method,this.extensionId,eventId, ...args)
-    const result = this.listeners.get(eventId)(...args)
-    if(this.needReturn) ipcRenderer.send(`${this.ipcName}_${eventId}_RESULT`, result)
+    try{
+      const result = this.listeners.get(eventId)(...args)
+      if(this.needReturn) ipcRenderer.send(`${this.ipcName}_${eventId}_RESULT`, result)
+    }catch(e){
+      console.log(e, 'emit', this.name,this.method,this.extensionId,eventId, ...args)
+    }
   }
 }
 

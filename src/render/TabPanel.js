@@ -2289,7 +2289,7 @@ export default class TabPanel extends Component {
         tab.events['restore-tab-opposite'](e, id, ...args)
       }
       else if(msg == 'load-url'){
-        this.getWebContents(tab).loadURL(args[0])
+        // this.getWebContents(tab).loadURL(args[0])
         this.navigateTo(tab.page,args[0],tab)
       }
       else if(msg == 'html-content'){
@@ -2368,6 +2368,9 @@ export default class TabPanel extends Component {
       }
       else if(msg == 'scrollPage'){
         this.scrollPage(args[0])
+      }
+      else if(msg == 'window-close'){
+        this.handleTabClose({},tab.key)
       }
     }
     ipc.on(`send-to-host_${tab.wvId}`,tab.events[`send-to-host_${tab.wvId}`])
@@ -2603,6 +2606,15 @@ export default class TabPanel extends Component {
     ipc.on('chrome-tabs-duplicate', tab.events['chrome-tabs-duplicate'])
   }
 
+  loadURL(tab, url){
+    if(!tab.wv) return
+    if(url.startsWith('chrome-extension') && !tab.wv.hostWebContents && !tab.wv.hostWebContents2){
+      remote.webContents.getAllWebContents().find(x=>x.getURL().startsWith(url)).openDevTools()
+      return
+    }
+    tab.wv.loadURL(url)
+  }
+
   navigateTo(newPage, l, tab, guestInstanceId) {
     if (this.mounted){
       this.addOp('navigate',tab,l)
@@ -2619,22 +2631,12 @@ export default class TabPanel extends Component {
       }
       console.log('location-navigateTo',newPage.location)
       if(!tab.guestInstanceId){
-        let cont
-        if(tab.wvId && (cont = this.getWebContents(tab))){
-          // tab.wv.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',
-          //   `var a_=document.createElement('a');a_.setAttribute('rel','noreferrer');a_.setAttribute('href','${convertURL(l)}');a_.click()`
-          //   ,{})
-          cont.loadURL(convertURL(l))
+        if(tab.wv){
+          this.loadURL(tab, convertURL(l))
         }
         else{
           setTimeout(_=>{
-            const cont = this.getWebContents(tab)
-            if(cont){
-              cont.loadURL(convertURL(l))
-            }
-            else{
-              tab.wv.loadURL(convertURL(l))
-            }
+            this.loadURL(tab, convertURL(l))
           },1000)
         }
       }

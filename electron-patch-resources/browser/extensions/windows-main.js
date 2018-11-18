@@ -17,7 +17,7 @@ async function windowInfo(win, populateTabs, tabsQuery) {
     width: bounds.width,
     height: bounds.height,
     alwaysOnTop: win.isAlwaysOnTop(),
-    tabs: populateTabs ? (await new Promise(r=>r(tabsQuery({windowId: win.id})))) : null
+    tabs: populateTabs ? (await new Promise(r=>tabsQuery({windowId: win.id}, r))) : null
   }
 }
 
@@ -83,7 +83,7 @@ module.exports = function(manifestMap, sendToBackgroundPages, tabsQuery){
     cb(wins)
   })
 
-  ipcFuncMain('windows', 'create', (e, createData) => {
+  ipcFuncMainCb('windows', 'create', (e, createData, cb) => {
     if(createData.tabId){
       const wins = BrowserWindow.getAllWindows()
       if(!wins) return
@@ -102,6 +102,13 @@ module.exports = function(manifestMap, sendToBackgroundPages, tabsQuery){
       ipcMain.emit('browser-load', {}, {id:getCurrentWindow().id,x:createData.left,y:createData.top,
         height:createData.height,width:createData.width,
         tabParam:JSON.stringify({urls:[{url:createData.url,privateMode:false}],type:'new-win'})})
+      setTimeout(async ()=>{
+        let max = [-999]
+        for(let win of BrowserWindow.getAllWindows()){
+          if(win.id > max[0]) max = [win.id, win]
+        }
+        cb(await windowInfo(max[1], true, tabsQuery))
+      },100)
     }
   })
 
@@ -109,6 +116,12 @@ module.exports = function(manifestMap, sendToBackgroundPages, tabsQuery){
     const win = windowId ? BrowserWindow.fromId(windowId) : getCurrentWindow()
     win && win.close()
   })
+
+  ipcFuncMain('windows','getLastFocused',(e, windowId)=> {
+    const win = getCurrentWindow()
+    return win && win.id
+  })
+
 
   ipcFuncMainCb('windows', 'update', async (e, windowId, updateInfo, cb)=> {
     let win = BrowserWindow.fromId(windowId)

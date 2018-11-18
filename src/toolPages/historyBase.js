@@ -13,7 +13,7 @@ const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
 import InfiniteTree from '../render/react-infinite-tree';
 import rowRenderer from '../render/react-infinite-tree/renderer';
 
-const isMain = location.href.startsWith("chrome://brave/")
+const isMain = location.href.startsWith("file://")
 
 if(!isMain){
   localForage.getItem('favicon-set').then(setTime=>{

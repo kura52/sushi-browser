@@ -33,10 +33,11 @@ const convertUrlMap = {
 }
 
 class Tabs {
-  constructor (extensionId, manifest, isBackgroundPage, chrome) {
+  constructor (extensionId, manifest, isBackgroundPage, chrome, webContentsKey) {
     this._extensionId = extensionId
     this._manifest = manifest
     this._isBackgroundPage = isBackgroundPage
+    this._webContentsKey = webContentsKey
     this._chrome = chrome
     this.tabValues = {}
 
@@ -47,6 +48,8 @@ class Tabs {
     this.WindowType = {NORMAL: "normal", POPUP: "popup", PANEL: "panel", APP: "app", DEVTOOLS: "devtools"}
 
     this.initEvents()
+
+    for(let name of Object.getOwnPropertyNames(Object.getPrototypeOf(this))) this[name] = name == 'constructor' ? this[name] : this[name].bind(this)
   }
 
   initEvents(){
@@ -58,7 +61,11 @@ class Tabs {
       'onActiveChanged',
       'onActivated',
       'onHighlightChanged',
-      'onHighlighted']){
+      'onHighlighted',
+
+      'onReplaced',
+      'onZoomChange'
+    ]){
       this[event] = new Event()
     }
 
@@ -93,7 +100,8 @@ class Tabs {
       this.tabValues[tabId] = tab
       ipcRenderer.send('CHROME_TABS_ONCREATED', tab)
       this.onCreated.emit(tab)
-      this.onUpdated.emit(tabId, {status:'loading'})
+      console.log(444,tabId, {status:'loading'}, tab)
+      this.onUpdated.emit(tabId, {status:'loading'}, tab)
     })
 
     ipcRenderer.on('CHROME_TABS_ONREMOVED', (event, tabId) => {
@@ -112,7 +120,8 @@ class Tabs {
       }
 
       if (Object.keys(changeInfo).length > 0) {
-        this.onUpdated.emit(tabId, changeInfo)
+        const tab = Tab(tabId)
+        this.onUpdated.emit(tabId, changeInfo, tab)
         if(changeInfo.active){
           for(let event of ['onSelectionChanged',
             'onActiveChanged',
@@ -129,7 +138,7 @@ class Tabs {
   }
 
   get(tabId, callback){
-    callback(Tab(tabId))
+    setTimeout(()=>callback(Tab(tabId)),0)
   }
 
   getCurrent(callback){
@@ -324,7 +333,7 @@ class Tabs {
   // discard(tabId, callback){} //@TODO NOOP
 
   connect(tabId, connectInfo){
-    const portId = ipcRenderer.send('CHROME_TABS_CONNECT', tabId, this._extensionId, connectInfo)
+    const portId = ipcRenderer.send('CHROME_TABS_CONNECT', tabId, this._extensionId, connectInfo, this._webContentsKey)
     return new Port(tabId, portId, this.id, connectInfo.name)
   }
 
@@ -341,7 +350,7 @@ class Tabs {
     ipcRenderer.once(`CHROME_TABS_EXECUTESCRIPT_RESULT_${requestId}`, (event, result) => {
       // Disabled due to false positive in StandardJS
       // eslint-disable-next-line standard/no-callback-literal
-      callback([event.result])
+      if(callback) callback([event.result])
     })
     ipcRenderer.send('CHROME_TABS_EXECUTESCRIPT', requestId, tabId, this._extensionId, details)
   }
@@ -352,9 +361,9 @@ class Tabs {
     }
     const originResultID = shortId()
     if (responseCallback) {
-      ipcRenderer.on(`CHROME_TABS_SEND_MESSAGE_RESULT_${originResultID}`, (event, result) => responseCallback(result))
+      ipcRenderer.once(`CHROME_TABS_SEND_MESSAGE_RESULT_${originResultID}`, (event, result) => responseCallback(result))
     }
-    ipcRenderer.send('CHROME_TABS_SEND_MESSAGE', tabId, this._extensionId, this._isBackgroundPage, message, originResultID)
+    ipcRenderer.send('CHROME_TABS_SEND_MESSAGE', tabId, this._extensionId, this._isBackgroundPage, message, originResultID, this._webContentsKey)
   }
 }
 

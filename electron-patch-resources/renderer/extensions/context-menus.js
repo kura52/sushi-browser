@@ -11,6 +11,8 @@ class ContextMenus {
     ipcRenderer.on('CHROME_CONTEXTMENUS_ONCLICKED',(e, info, tab)=>{
       this.onClicked.emit(info, tab)
     })
+
+    for(let name of Object.getOwnPropertyNames(Object.getPrototypeOf(this))) this[name] = name == 'constructor' ? this[name] : this[name].bind(this)
   }
 
   create(createProperties, callback) {

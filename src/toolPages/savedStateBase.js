@@ -14,7 +14,7 @@ import InfiniteTree from '../render/react-infinite-tree';
 import rowRenderer from '../render/react-infinite-tree/renderer';
 import moment from "moment/moment";
 
-const isMain = location.href.startsWith("chrome://brave/")
+const isMain = location.href.startsWith("file://")
 
 let openType
 const key = uuid.v4()

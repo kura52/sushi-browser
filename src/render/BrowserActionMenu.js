@@ -102,10 +102,14 @@ class BrowserActionWebView extends Component {
           }
         }
         else{
-          widthRetry = result[3]
+          heightRetry = result[3]
         }
         if((!widthRetry && !heightRetry) || retry > 10){
           this.props.setClassName("")
+          ReactDOM.findDOMNode(this).parentNode.parentNode.querySelector(':not(.opacity001).browser-action.nav-menu').style.left = `${200 - width}px`
+          this.result = JSON.stringify(result)
+          this.size = [width, height]
+          this.checkSize(webview, width, height)
         }
         else{
           this.setPreferredSize(webview, widthRetry, heightRetry, ++retry)
@@ -114,17 +118,38 @@ class BrowserActionWebView extends Component {
     })
   }
 
+  checkSize(webview, width, height){
+    this.intervalId = setInterval(()=>{
+      webview.executeJavaScript(`(function(){
+      const ele = document.scrollingElement
+      return [ele.clientWidth, ele.scrollWidth, ele.clientHeight, ele.scrollHeight]
+    })()`,(result)=>{
+        if(JSON.stringify(result) != this.result){
+          clearInterval(this.intervalId)
+          this.setPreferredSize(webview, width, height, 0)
+        }
+      })
+    },1000)
+  }
+
   componentDidMount() {
     const webview = this.refs && this.refs.webview
     if(webview){
       ipc.on('send-to-host',this.ipcEvent) //@TODO ELECTRON
+      webview.disablewebsecurity  = true
+      // webview.partition = 'persist:__chrome_extension'
+      if(this.props.url) webview.setAttribute('src', this.props.url)
       // webview.addEventListener('did-attach',this.didAttachEvent );
       // webview.addEventListener('preferred-size-changed',this.preferredSizeEvent)
       setTimeout(()=>{
         this.setPreferredSize(webview, 200, 100, 0)
         ipc.send('chrome-extension-popup-id', webview.getWebContents().id)
-      },1)
+      },10)
     }
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.intervalId)
   }
 
   onClose = ()=>{
@@ -141,7 +166,7 @@ class BrowserActionWebView extends Component {
       e.stopPropagation()
       e.preventDefault()
       return false
-    }} className="popup" src={this.props.url} style={this.state.style}/>
+    }} className="popup" style={this.state.style}/>
   }
 }
 
@@ -328,7 +353,10 @@ export default class BrowserActionMenu extends Component{
     const menuItems = []
     menuItems.push(({label: values.default_title || values.name, click: _=>cont.hostWebContents2.send('new-tab', tabId, `https://chrome.google.com/webstore/detail/${values.orgId}`)}))
     if(values.optionPage) menuItems.push(({label: locale.translation('9147392381910171771'), click: _=>cont.hostWebContents2.send('new-tab', tabId, `chrome-extension://${extensionId}/${values.optionPage}`)}))
-    if(values.background) menuItems.push(({label: locale.translation("4989966318180235467"), click: _=>cont.loadURL(`chrome-extension://${extensionId}/${values.background}`)}))
+    if(values.background) menuItems.push(({label: locale.translation("4989966318180235467"), click: _=>{
+        const url = `chrome-extension://${extensionId}/${values.background}`
+        remote.webContents.getAllWebContents().find(x=>x.getURL().startsWith(url)).openDevTools()
+      }}))
     menuItems.push({label: locale.translation("6326175484149238433").replace('Chrome','Sushi Browser'),click: _=>ipc.send('delete-extension',extensionId,values.orgId)})
     const menu = Menu.buildFromTemplate(menuItems)
     menu.popup(remote.getCurrentWindow())

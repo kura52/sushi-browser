@@ -3,36 +3,34 @@ const {ipcFuncRenderer} = require('./util')
 const {Event} = require('./event')
 
 
-const getStorage = (storageType, extensionId, cb) => {
+const getData = (storageType, extensionId, keys, cb) => {
   ipcFuncRenderer('storage', 'read', ({err, data}) => {
     if (err) throw err
     if (!cb) throw new TypeError('No callback provided')
 
     if (data !== null) {
-      cb(JSON.parse(data))
+      cb(data)
     } else {
       // Disabled due to false positive in StandardJS
       // eslint-disable-next-line standard/no-callback-literal
       cb({})
     }
-  }, storageType, extensionId)
+  }, storageType, extensionId, keys)
 }
 
-const setStorage = (storageType, extensionId, storage, cb) => {
-  const json = JSON.stringify(storage)
-  ipcFuncRenderer('storage', 'write', err => {
+const setStorage = (storageType, extensionId, type, data, cb) => {
+  ipcFuncRenderer('storage', 'write', ({err,data}) => {
     if (err) throw err
-    if (cb) cb()
-  }, storageType, extensionId, json)
+    if (cb) cb(data)
+  }, storageType, extensionId, type, data)
 }
 
 const getStorageManager = (storageType, extensionId, onChanged) => {
   return {
     get (keys, callback) {
-      getStorage(storageType, extensionId, storage => {
-        if (keys == null) return callback(storage)
-
-        let defaults = {}
+      let defaults = {}
+      if(typeof keys === 'function') [keys,callback] = [null,keys]
+      if(keys != null){
         switch (typeof keys) {
           case 'string':
             keys = [keys]
@@ -44,6 +42,9 @@ const getStorageManager = (storageType, extensionId, onChanged) => {
             }
             break
         }
+      }
+      getData(storageType, extensionId, keys,  data => {
+        if (keys == null) return callback(data)
 
         // Disabled due to false positive in StandardJS
         // eslint-disable-next-line standard/no-callback-literal
@@ -51,51 +52,37 @@ const getStorageManager = (storageType, extensionId, onChanged) => {
 
         let items = {}
         keys.forEach(function (key) {
-          var value = storage[key]
+          var value = data[key]
           if (value == null) value = defaults[key]
-          items[key] = value
+          if (value != null) items[key] = value
         })
         callback(items)
       })
     },
 
     set (items, callback) {
-      getStorage(storageType, extensionId, storage => {
-        const changeInfos = {}
-        Object.keys(items).forEach(function (name) {
-          if(storage[name] != items[name]){
-            if(storage[name]){
-              changeInfos[name] = {oldValue: storage[name], newValue: items[name]}
-            }
-            else{
-              changeInfos[name] = {newValue: items[name]}
-            }
-          }
-          storage[name] = items[name]
-        })
+      if(!items) return callback && callback()
+      const changeInfos = {}
+      if(Object.keys(changeInfos).length) onChanged.emit(changeInfos, storageType)
+      setStorage(storageType, extensionId, 'set', items, changeInfos => {
+        if(callback) callback()
         if(Object.keys(changeInfos).length) onChanged.emit(changeInfos, storageType)
-        setStorage(storageType, extensionId, storage, callback)
       })
     },
 
     remove (keys, callback) {
-      getStorage(storageType, extensionId, storage => {
-        const changeInfos = {}
-        if (!Array.isArray(keys)) {
-          keys = [keys]
-        }
-        keys.forEach(function (key) {
-          if(storage[key]) changeInfos[key] = {oldValue: storage[key]}
-          delete storage[key]
-        })
+      if (!Array.isArray(keys)) {
+        keys = [keys]
+      }
 
+      setStorage(storageType, extensionId, 'remove', keys, changeInfos => {
+        if(callback) callback()
         if(Object.keys(changeInfos).length) onChanged.emit(changeInfos, storageType)
-        setStorage(storageType, extensionId, storage, callback)
       })
     },
 
     clear (callback) {
-      setStorage(storageType, extensionId, {}, callback)
+      setStorage(storageType, extensionId, 'clear', callback)
     }
   }
 }

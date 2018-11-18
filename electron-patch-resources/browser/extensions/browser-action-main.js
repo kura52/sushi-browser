@@ -1,11 +1,11 @@
 const {ipcFuncMainCb, getIpcNameFunc, shortId} = require('./util-main')
-const {ipcMain} = require('electron')
+const {ipcMain, BrowserWindow} = require('electron')
 const getIpcName = getIpcNameFunc('browserAction')
 
 module.exports = function(sendToBackgroundPage, getTabValue) {
 
-  ipcMain.on('chrome-browserAction-onClicked', (e, extensionId, tabId)=>{
-    sendToBackgroundPage(extensionId, getIpcName('onClicked'), getTabValue(tabId))
+  ipcMain.on('chrome-browserAction-onClicked', async (e, extensionId, tabId)=>{
+    sendToBackgroundPage(extensionId, getIpcName('onClicked'), await getTabValue({}, tabId))
   })
 
   ipcFuncMainCb('browserAction', 'getInfo', (e, extensionId, details, property, cb)=> {

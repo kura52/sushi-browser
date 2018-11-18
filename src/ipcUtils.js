@@ -531,7 +531,7 @@ function getYoutubeFileSize(url){
     const req = https.request(options, function(res) {
         if(!resolved){
           resolved = true
-          console.log(888,res.headers)
+          // console.log(888,res.headers)
           r(res.headers['content-length'] ? parseInt(res.headers['content-length']) : void 0)
         }
         res.destroy()
@@ -2346,6 +2346,7 @@ ipcMain.on('main-state-op',(e,op,name,key,val)=>{
   }
 })
 
+
 let bvMap = {}, nowBvMap = {}, seqMap = {}, viewAttributeMap = {}, winViewMap = {}
 global.winViewMap = winViewMap
 global.seqBv = 0
@@ -2359,10 +2360,10 @@ ipcMain.on('create-browser-view', (e, panelKey, tabKey, x, y, width, height, zIn
       // contextIsolation: true,
       enableLargerThanScreen: true,
       sandbox: true,
+      enableRemoteModule: false,
       allowFileAccessFromFileUrls: true,
       allowUniversalAccessFromFileUrls: true,
-      enableRemoteModule: false,
-      preload: path.join(__dirname, '../resource/preload-content-scripts.js')
+      preload: path.join(__dirname, '../resource/preload-content-scripts.js'),
     } })
   view.webContents.hostWebContents2 = e.sender
   view.setAutoResize({width: false, height: false})

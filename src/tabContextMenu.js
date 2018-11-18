@@ -96,5 +96,5 @@ ipcMain.on('get-tab-contextMenu',(e,key,pageURL,tabId)=>{
 })
 
 ipcMain.on('tab-contextMenu-clicked',(e,data)=>{
-  process.emit('chrome-context-menus-clicked', ...data)
+  process.emit('chrome-context-menus-clicked', ...data) //@TODO ELECTRON ipcMain.emitとか色々
 })

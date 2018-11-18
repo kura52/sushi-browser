@@ -21,6 +21,8 @@ module.exports = class Port {
       const sendResponse = function () { console.error('sendResponse is not implemented') }
       this.onMessage.emit(message, this)
     })
+
+    for(let name of Object.getOwnPropertyNames(Object.getPrototypeOf(this))) this[name] = name == 'constructor' ? this[name] : this[name].bind(this)
   }
 
   disconnect () {

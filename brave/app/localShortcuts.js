@@ -75,10 +75,10 @@ module.exports.register = (win) => {
           cont.reloadIgnoringCache()
         }
         else if(name == 'closeWindow'){
-          electron.BrowserWindow.fromWebContents(cont.hostWebcontents2).close()
+          electron.BrowserWindow.fromWebContents(cont.hostWebContents2).close()
         }
         else if(name == 'openLocation'){
-          cont.hostWebcontents2.send('focus-location-bar',cont.getId())
+          cont.hostWebContents2.send('focus-location-bar',cont.getId())
         }
         else if(name == 'back'){
           cont.goBack()
@@ -87,7 +87,7 @@ module.exports.register = (win) => {
           cont.goForward()
         }
         else{
-          cont.hostWebcontents2.send('menu-or-key-events',name,cont.getId())
+          cont.hostWebContents2.send('menu-or-key-events',name,cont.getId())
         }
       })
     })

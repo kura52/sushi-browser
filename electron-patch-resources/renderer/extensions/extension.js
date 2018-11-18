@@ -10,7 +10,7 @@ exports.setup = (chrome) => {
     sendRequest: chrome.runtime.sendMessage.bind(chrome.runtime), //@TODO FIX
     onRequest: chrome.runtime.onMessage, //@TODO FIX
     getBackgroundPage: chrome.runtime.getBackgroundPage.bind(chrome.runtime),
-    getViews(){return {}}, //@TODO NOOP
+    getViews(){return []}, //@TODO NOOP
     isAllowedFileSchemeAccess(callback){callback(true)}, //@TODO FIX
     isAllowedIncognitoAccess(callback){callback(true)}, //@TODO FIX
     setUpdateUrlData(data){}, //@TODO NOOP

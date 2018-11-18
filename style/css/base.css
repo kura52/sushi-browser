@@ -1387,3 +1387,7 @@ a.zoom-change:hover,a.zoom-reset:hover{
 .fa.fa-chevron-circle-down{
     visibility: hidden;
 }
+
+.ui.scrolling.dropdown .menu.browser-action{
+    min-width: max-content !important;
+}

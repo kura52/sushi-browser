@@ -151,11 +151,19 @@ function create(args){
         //
         // e.preventDefault()
         for(let i = 0;i<=global.seqBv;i++){
-          if(bw.getAddtionalBrowserView(i)) bw.eraseBrowserView(i)
+          const view = bw.getAddtionalBrowserView(i)
+          if(view){
+            bw.eraseBrowserView(i)
+            if(!view.isDestroyed()) view.destroy()
+          }
         }
         for(let seq of Object.keys(global.viewCache)){
           const i = parseInt(seq)
-          if(bw.getAddtionalBrowserView(i)) bw.eraseBrowserView(i)
+          const view = bw.getAddtionalBrowserView(i)
+          if(view){
+            bw.eraseBrowserView(i)
+            if(!view.isDestroyed()) view.destroy()
+          }
         }
         PubSub.publish('chrome-windows-onRemoved',bw.id)
         return
@@ -489,8 +497,8 @@ export default {
 
     console.log(909,winArg)
 
-    const win = BrowserWindow.getAllWindows().find(w=>w.getTitle().includes('Closed')) //@TODO ELECTRON
-    if(!win) {
+    // const win = BrowserWindow.getAllWindows().find(w=>w.getTitle().includes('Closed')) //@TODO ELECTRON
+    // if(!win) {
       winArg.width = winArg.width || setting.width
       winArg.height = winArg.height || setting.height
       // await new Promise(r=>setTimeout(r,1000))
@@ -499,15 +507,16 @@ export default {
       initWindow.setMenuBarVisibility(true)
 
       new (require('./Download'))(initWindow)
-    }
-    else{
-      initWindow = win
-      initWindow.setBounds({x: winArg.x, y: winArg.y, width: winArg.width || setting.width, height: winArg.height || setting.height})
-      initWindow.setSkipTaskbar(false)
-      initWindow.setTitle('Sushi Browser')
-    }
+    // }
+    // else{
+    //   initWindow = win
+    //   initWindow.setBounds({x: winArg.x, y: winArg.y, width: winArg.width || setting.width, height: winArg.height || setting.height})
+    //   initWindow.setSkipTaskbar(false)
+    //   initWindow.setTitle('Sushi Browser')
+    // }
 
     console.log(1111, `file://${path.join(__dirname, '../index.html').replace(/\\/g, "/")}${getParam}`)
+    initWindow.webContents.isRoot = true
     initWindow.loadURL(`file://${path.join(__dirname, '../index.html').replace(/\\/g, "/")}${getParam}`)
     // initWindow.webContents.toggleDevTools()
 

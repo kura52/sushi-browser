@@ -88,7 +88,8 @@ const getManifestFromPath = function (srcDirectory, admin) {
 const backgroundPages = {}
 
 const startBackgroundPages = function (manifest) {
-  if (backgroundPages[manifest.extensionId] || !manifest.background) return
+  if (backgroundPages[manifest.extensionId]) return
+  if(!manifest.background) manifest.background = {scripts: []}
 
   let html
   let name
@@ -104,7 +105,8 @@ const startBackgroundPages = function (manifest) {
   }
 
   const contents = webContents.create({
-    partition: 'persist:__chrome_extension',
+    // partition: 'persist:__chrome_extension',
+    webSecurity: false,
     isBackgroundPage: true,
     commandLineSwitches: ['--background-page']
   })
@@ -125,14 +127,26 @@ const removeBackgroundPages = function (manifest) {
 }
 
 const sendToBackgroundPages = function (...args) {
-  for (const page of Object.values(backgroundPages)) {
-    page.webContents._sendInternalToAll(...args)
+  let success = false
+  for(let cont of webContents.getAllWebContents()){
+    if(!cont.isDestroyed() && cont.getURL().startsWith('chrome-extension:')){
+      cont.sendToAll(...args)
+      success = true
+    }
   }
+  return success
 }
 
 const sendToBackgroundPage = function (extensionId, ...args) {
-  // console.log('sendToBackgroundPage',backgroundPages[extensionId].webContents.getURL(),...args)
-   backgroundPages[extensionId].webContents.send(...args)
+  let success = false
+  // console.log('sendToBackgroundPage',extensionId,...args)
+  for(let cont of webContents.getAllWebContents()){
+    if(!cont.isDestroyed() && cont.getURL().startsWith(`chrome-extension://${extensionId}`)){
+      cont.sendToAll(...args)
+      success = true
+    }
+  }
+  return success
 }
 
 const chromeExtensionApi = require('./chrome-extension-api')
@@ -336,15 +350,53 @@ app.on('will-quit', function () {
 // We can not use protocol or BrowserWindow until app is ready.
 app.once('ready', function () {
 
-  session.fromPartition('persist:__chrome_extension').webRequest.onHeadersReceived((details, callback) => {
-    callback({
-      cancel: false,
-      responseHeaders: {
-        ...details.responseHeaders,
-        "Access-Control-Allow-Origin": ["*"]
-      }
-    })
-  })
+  // session.fromPartition('persist:__chrome_extension').webRequest.onHeadersReceived((details, callback) => {
+  //   const extUrl = webContents.fromId(details.webContentsId).getURL()
+  //   if(extUrl){
+  //     details.responseHeaders["Access-Control-Allow-Origin"] = [extUrl.match(/^(chrome-extension:\/\/[^\/]+)/)[0]]
+  //     details.responseHeaders["Access-Control-Allow-Credentials"] = ['true']
+  //   }
+  //   if(details.headers['Access-Control-Request-Headers']){
+  //     details.responseHeaders['Access-Control-Allow-Headers'] = details.headers['Access-Control-Request-Headers'].split(',')
+  //   }
+  //   if(details.headers['Access-Control-Request-Method']){
+  //     details.responseHeaders['Access-Control-Allow-Methods'] = [details.headers['Access-Control-Request-Method']]
+  //   }
+  //   callback({
+  //     cancel: false,
+  //     responseHeaders: {...details.responseHeaders}
+  //   })
+  // })
+
+  // session.fromPartition('persist:__chrome_extension').webRequest.onHeadersReceived((details, callback) => {
+  //   details.responseHeaders["Access-Control-Allow-Origin"] = [new URL(details.url).origin]
+  //   details.responseHeaders["Access-Control-Allow-Credentials"] = ['true']
+  //
+  //   if(details.headers['Access-Control-Request-Headers']){
+  //     details.responseHeaders['Access-Control-Allow-Headers'] = details.headers['Access-Control-Request-Headers'].split(',')
+  //   }
+  //   if(details.headers['Access-Control-Request-Method']){
+  //     details.responseHeaders['Access-Control-Allow-Methods'] = [details.headers['Access-Control-Request-Method']]
+  //   }
+  //   details.responseHeaders['content-security-policy'] = []
+  //   delete details.responseHeaders['x-frame-options']
+  //   delete details.responseHeaders['x-content-type-options']
+  //   delete details.responseHeaders['x-xss-protection']
+  //   // console.log(details)
+  //   callback({
+  //     cancel: false,
+  //     responseHeaders: details.responseHeaders
+  //   })
+  // })
+  //
+  //
+  // session.fromPartition('persist:__chrome_extension').webRequest.onBeforeSendHeaders((details, callback) => {
+  //   details.requestHeaders.Origin = new URL(details.url).origin
+  //   callback({
+  //     cancel: false,
+  //     requestHeaders: details.requestHeaders
+  //   })
+  // })
 
   // Load persisted extensions.
   loadedDevToolsExtensionsPath = path.join(app.getPath('userData'), 'DevTools Extensions')

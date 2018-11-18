@@ -35,6 +35,8 @@ class Windows {
     this._extensionId = extensionId
 
     this.initEvents()
+
+    for(let name of Object.getOwnPropertyNames(Object.getPrototypeOf(this))) this[name] = name == 'constructor' ? this[name] : this[name].bind(this)
   }
 
   initEvents(){
@@ -64,7 +66,7 @@ class Windows {
   }
 
   getLastFocused(getInfo, callback){
-    simpleIpcFunc('chrome-windows-getLastFocused',(windowId)=>{
+    ipcFuncRenderer(this.constructor.name, 'getLastFocused', (windowId)=>{
       this.get(windowId, getInfo, callback)
     })
   }

@@ -30,7 +30,7 @@ const getMainFrameUrl = (details) => {
   if (details.resourceType === 'mainFrame') {
     return details.url
   }
-  const tab = webContents.fromTabID(details.tabId)
+  const tab = webContents.fromId(details.tabId)
   try {
     return tab.getURL()
   } catch (ex) {}

@@ -7,6 +7,8 @@ class Commands {
     const getIpcName = getIpcNameFunc(this.constructor.name)
     this.onCommand = new Event2(this.constructor.name, 'onCommand', extensionId)
     this._manifest = manifest
+
+    for(let name of Object.getOwnPropertyNames(Object.getPrototypeOf(this))) this[name] = name == 'constructor' ? this[name] : this[name].bind(this)
   }
 
   getAll(callback){

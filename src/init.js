@@ -135,6 +135,9 @@ app.on('ready', async ()=>{
       session.defaultSession.cookies.set({url:`https://${cookie.domain}`,...cookie},()=>{})
     }
   }
+
+  // session.defaultSession.setPreloads([path.join(__dirname, '../resource/preload-content-scripts.js')])
+
   InitSetting.val.then(setting=>{
     // if(setting.enableFlash){
     //   setFlash(app)
@@ -390,12 +393,11 @@ ipcMain.on('web-contents-created', (e, tab) => {
 
   // let contMap = new Map()
   // tab.on('-web-contents-created', (event, webContents, url, frameName) => {
-  //   // console.log('-web-contents-created', webContents.getURL(), url)
-  //   contMap.set(webContents, url)
+  //   console.log('-web-contents-created', webContents.getURL(), url)
   // })
 
   tab.on('-add-new-contents', (event, webContents, disposition, userGesture, left, top, width, height, url, frameName) => {
-    // console.log('-add-new-contents', webContents.getURL())
+    console.log('-add-new-contents', webContents.getURL(), url)
     if(!webContents.isDestroyed()) webContents.destroy()
     // const url = contMap.get(webContents)
     // contMap.delete(webContents)
@@ -1591,7 +1593,7 @@ function contextMenu(webContents) {
           const item = {
             label: properties.title,
             click(){
-              ipcMain.emit('chrome-context-menus-clicked',extensionId, webContents.id, info)}
+              ipcMain.emit('chrome-context-menus-clicked',null, extensionId, webContents.id, info)}
           }
           if(menuItemId) item.menuItemId = menuItemId
           if(properties.checked !== void 0) item.checked = properties.checked

@@ -1,6 +1,5 @@
 import fs from 'fs'
 import path from 'path'
-import ElectronImageResize from "./electronImageResize";
 const Jimp = require('jimp')
 const hjson = require('hjson')
 const electronImageResize = require('./electronImageResize')

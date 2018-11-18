@@ -399,49 +399,49 @@
 //
 // }
 
-  if(chrome.browserAction){
-    chrome.pageAction = chrome.browserAction
-    chrome.pageAction.show = chrome.browserAction.enable
-    chrome.pageAction.hide = chrome.browserAction.disable
-
-
-    const ipc = chrome.ipcRenderer
-    const method = 'onClicked'
-    const name = `chrome-browserAction-${method}`
-    const ipcEvents = {}
-    chrome.browserAction.onClicked = {
-      addListener: function (cb) {
-        console.log("addevent")
-        ipcEvents[cb] = function(evt,id, tabId) {
-          if(chrome.runtime.id == id){
-            chrome.tabs.get(parseInt(tabId), cb)
-          }
-        }
-        ipc.send(`regist-${name}`)
-        ipc.on('chrome-browserAction-onClicked', ipcEvents[cb])
-      },
-      removeListener: function(cb){
-        ipc.send(`unregist-${name}`)
-        ipc.removeListener('chrome-browserAction-onClicked', ipcEvents[cb])
-      },
-      hasListener(cb){
-        return !!onClicked[cb]
-      },
-      hasListeners(){
-        return !!Object.keys(onClicked).length
-      }
-    }
-
-    chrome.browserAction._setIcon = chrome.browserAction.setIcon
-    chrome.browserAction.setIcon = (details,callback) => {
-      if(details.imageData){
-        callback && callback()
-      }
-      else{
-        chrome.browserAction._setIcon(details,callback)
-      }
-    }
-  }
+  // if(chrome.browserAction){
+  //   chrome.pageAction = chrome.browserAction
+  //   chrome.pageAction.show = chrome.browserAction.enable
+  //   chrome.pageAction.hide = chrome.browserAction.disable
+  //
+  //
+  //   const ipc = chrome.ipcRenderer
+  //   const method = 'onClicked'
+  //   const name = `chrome-browserAction-${method}`
+  //   const ipcEvents = {}
+  //   chrome.browserAction.onClicked = {
+  //     addListener: function (cb) {
+  //       console.log("addevent")
+  //       ipcEvents[cb] = function(evt,id, tabId) {
+  //         if(chrome.runtime.id == id){
+  //           chrome.tabs.get(parseInt(tabId), cb)
+  //         }
+  //       }
+  //       ipc.send(`regist-${name}`)
+  //       ipc.on('chrome-browserAction-onClicked', ipcEvents[cb])
+  //     },
+  //     removeListener: function(cb){
+  //       ipc.send(`unregist-${name}`)
+  //       ipc.removeListener('chrome-browserAction-onClicked', ipcEvents[cb])
+  //     },
+  //     hasListener(cb){
+  //       return !!onClicked[cb]
+  //     },
+  //     hasListeners(){
+  //       return !!Object.keys(onClicked).length
+  //     }
+  //   }
+  //
+  //   chrome.browserAction._setIcon = chrome.browserAction.setIcon
+  //   chrome.browserAction.setIcon = (details,callback) => {
+  //     if(details.imageData){
+  //       callback && callback()
+  //     }
+  //     else{
+  //       chrome.browserAction._setIcon(details,callback)
+  //     }
+  //   }
+  // }
 
   if(chrome.sessions){
 

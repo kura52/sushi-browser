@@ -69,7 +69,7 @@ Editor.i18n.setLanguage(['ja', 'ja_JP'], {
 import InfiniteTree from '../render/react-infinite-tree';
 import rowRenderer from '../render/react-infinite-tree/rendererNote';
 
-const isMain = location.href.startsWith("chrome://brave/")
+const isMain = location.href.startsWith("file://")
 
 // if(!isMain){
 //   localForage.getItem('favicon-set').then(setTime=>{
