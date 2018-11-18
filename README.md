@@ -16,6 +16,9 @@
  - Add Password Manager.
  - Add Tor Proxy.
  - Add MacOS Version.
+ 
+ - contents script in iframes (Electron #12505)
+ - webSecurity in webPreferences ignored (CORB) (Electron #15132)
  - Wait until Electron updates Chromium 70.(Electron #15405)
  - There is a problem that executable file can not be renamed with windows, and it is waiting for it to be fixed. (Electron #15436)
 
@@ -257,14 +260,14 @@ This browser makes use of wonderful web technologies, starting with the followin
 Both the installer for every platform and the portable version can be downloaded.  
 To use the portable edition, please run sushi.exe for Windows and sushi-browser for Mac/Linux after decompressing.
 
-- [Windows Installer v0.22.0](https://sushib.me/dl/sushi-browser-0.22.0-setup-x64.exe)
-- [Windows Portable v0.22.0(self-extract)](https://sushib.me/dl/sushi-browser-0.22.0-win-x64.exe)
-- [Windows Portable v0.22.0](https://sushib.me/dl/sushi-browser-0.22.0-win-x64.zip)
-- [MacOS dmg v0.22.0](https://sushib.me/dl/SushiBrowser-0.22.0.dmg)
-- [MacOS Portable v0.22.0](https://sushib.me/dl/sushi-browser-0.22.0-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.22.0](https://sushib.me/dl/sushi-browser-0.22.0.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.22.0](https://sushib.me/dl/sushi-browser_0.22.0_amd64.deb)
-- [Linux Portable v0.22.0](https://sushib.me/dl/sushi-browser-0.22.0.tar.bz2)
+- [Windows Installer v0.23.a1](https://sushib.me/dl/sushi-browser-0.23.a1-setup-x64.exe)
+- [Windows Portable v0.23.a1(self-extract)](https://sushib.me/dl/sushi-browser-0.23.a1-win-x64.exe)
+- [Windows Portable v0.23.a1](https://sushib.me/dl/sushi-browser-0.23.a1-win-x64.zip)
+- [MacOS dmg v0.23.a1](https://sushib.me/dl/SushiBrowser-0.23.a1.dmg)
+- [MacOS Portable v0.23.a1](https://sushib.me/dl/sushi-browser-0.23.a1-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.23.a1](https://sushib.me/dl/sushi-browser-0.23.a1.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.23.a1](https://sushib.me/dl/sushi-browser_0.23.a1_amd64.deb)
+- [Linux Portable v0.23.a1](https://sushib.me/dl/sushi-browser-0.23.a1.tar.bz2)
 
 # Use of Flash 
 If Flash won't run, please install Flash from the following web sites.  
@@ -279,7 +282,19 @@ sushi-browser --no-sandbox
 
 # New Features
 
-#### New function(v0.22.0)
+#### New function(v0.23a1)
+- Added "Find ALL" function (Ctrl+Shift+F)
+- Corrected so that volume operation bar and tab preview do not overlap (issue #34)
+- Fixed to not update the address bar automatically while inputting the address bar (issue #35)
+- Fixed some bugs.
+
+#### New function(v0.22a1)
+- Added "Find ALL" function (Ctrl+Shift+F)
+- Corrected so that volume operation bar and tab preview do not overlap (issue #34)
+- Fixed to not update the address bar automatically while inputting the address bar (issue #35)
+- Fixed some bugs.
+
+#### New function(v0.23.a1)
 - Added "Find ALL" function (Ctrl+Shift+F)
 - Corrected so that volume operation bar and tab preview do not overlap (issue #34)
 - Fixed to not update the address bar automatically while inputting the address bar (issue #35)
