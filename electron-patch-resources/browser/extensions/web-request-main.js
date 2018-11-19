@@ -4,7 +4,7 @@ const getIpcName = getIpcNameFunc('WebRequest')
 const lruCache = require('./lruCache')
 
 const methods = [
-  'onAuthRequired',
+  // 'onAuthRequired',
   'onBeforeRedirect',
   'onBeforeRequest',
   'onBeforeSendHeaders',
@@ -128,6 +128,7 @@ module.exports = function(session, sendToBackgroundPage){
 
     eventObj[method].regist((extensionId, eventId, filter)=>{
       if(method != 'onBeforeRequest' && method != 'onHeadersReceived' && !Object.keys(properties).length){
+        console.log(method,session)
         session.webRequest[method](webRequestEvent)
       }
       properties[`${extensionId}${eventId}`] = [extensionId, eventId, filter]

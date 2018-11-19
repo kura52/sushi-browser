@@ -90,7 +90,7 @@ async function tabsQuery(queryInfo, cb){
     tabValues[tabId] = (await getTabValue({}, tabId)) || {}
   }
 
-  console.log(tabValues, queryInfo)
+  // console.log(tabValues, queryInfo)
   const result = []
   tabIds.forEach((tabId) => {
     // delete tab from the list if any key doesn't match

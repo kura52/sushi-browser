@@ -188,7 +188,7 @@ class Runtime {
       [options, responseCallback] = [void 0, options]
     }
 
-    console.log(`sendMessage`, extensionId, message, options, responseCallback)
+    console.log(`sendMessage`, extensionId, message, options)
     // if (this._isBackgroundPage) {
     //   console.log('chrome.runtime.sendMessage is not supported in background page')
     //   return
@@ -198,7 +198,19 @@ class Runtime {
     // Parse the optional args.
     let targetExtensionId = extensionId || this.id
 
-    if(responseCallback) ipcRenderer.once(`CHROME_RUNTIME_SENDMESSAGE_RESULT_${originResultID}`, (event, result) => responseCallback(result))
+    if(responseCallback){
+      let isResponsed
+      ipcRenderer.once(`CHROME_RUNTIME_SENDMESSAGE_RESULT_${originResultID}`, (event, result) =>{
+        isResponsed = true
+        responseCallback(result)
+      })
+      setTimeout(()=>{
+        if(!isResponsed){
+          console.error(`sendMessageError`, extensionId, message, options)
+          responseCallback(null)
+        }
+      },2000)
+    }
     ipcRenderer.send('CHROME_RUNTIME_SENDMESSAGE', targetExtensionId, message, originResultID, this._webContentsKey)
   }
 

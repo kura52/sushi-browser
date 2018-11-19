@@ -108,8 +108,7 @@ class BrowserActionWebView extends Component {
           this.props.setClassName("")
           ReactDOM.findDOMNode(this).parentNode.parentNode.querySelector(':not(.opacity001).browser-action.nav-menu').style.left = `${200 - width}px`
           this.result = JSON.stringify(result)
-          this.size = [width, height]
-          this.checkSize(webview, width, height)
+          this.checkSize()
         }
         else{
           this.setPreferredSize(webview, widthRetry, heightRetry, ++retry)
@@ -118,7 +117,9 @@ class BrowserActionWebView extends Component {
     })
   }
 
-  checkSize(webview, width, height){
+  checkSize(){
+    const webview = this.refs && this.refs.webview
+    if(!webview) return
     this.intervalId = setInterval(()=>{
       webview.executeJavaScript(`(function(){
       const ele = document.scrollingElement
@@ -126,7 +127,7 @@ class BrowserActionWebView extends Component {
     })()`,(result)=>{
         if(JSON.stringify(result) != this.result){
           clearInterval(this.intervalId)
-          this.setPreferredSize(webview, width, height, 0)
+          this.setPreferredSize(webview, result[1], result[3], 0)
         }
       })
     },1000)

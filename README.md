@@ -17,7 +17,6 @@
  - Add Tor Proxy.
  - Add MacOS Version.
  
- - contents script in iframes (Electron #12505)
  - webSecurity in webPreferences ignored (CORB) (Electron #15132)
  - Wait until Electron updates Chromium 70.(Electron #15405)
  - There is a problem that executable file can not be renamed with windows, and it is waiting for it to be fixed. (Electron #15436)

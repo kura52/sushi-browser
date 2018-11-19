@@ -218,7 +218,7 @@ class Tabs {
         ipcRenderer.send('set-audio-muted',tabId,updateProperties.muted,true)
       }
       updateProperties.active = updateProperties.active || updateProperties.highlighted ||updateProperties.selected
-      ipcFuncRenderer(this.constructor.name, 'update', callback, tabId, updateProperties)
+      ipcFuncRenderer(this.constructor.name, 'update', ()=>callback(Tab(tabId)), tabId, updateProperties)
     }
 
     if(!Number.isFinite(tabId) && tabId !== null && tabId !== void 0){

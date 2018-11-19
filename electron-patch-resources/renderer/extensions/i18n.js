@@ -57,7 +57,7 @@ const getMessage = (extensionId, messageName, substitutions) => {
 exports.setup = (extensionId) => {
   return {
     getMessage (messageName, substitutions) {
-      return getMessage(extensionId, messageName, substitutions)
+      return getMessage(extensionId, messageName, substitutions) || ''
     },
     getAcceptLanguages(callback){
       ipcFuncRenderer('i18n', 'getAcceptLanguages', callback)
