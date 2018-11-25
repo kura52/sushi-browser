@@ -13,7 +13,7 @@ module.exports = {
     const id = setTimeout(()=>{
       success = true
       console.log(`${name}_RESULT_ERROR_${requestId}`, {}, null)
-      if(callback) callback(null)
+      if(callback) callback({})
     },2000)
 
     ipcRenderer.once(`${name}_RESULT_${requestId}`, (event,...results)=>{

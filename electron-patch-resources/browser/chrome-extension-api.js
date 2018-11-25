@@ -3,6 +3,10 @@ const {shortId} = require('./extensions/util-main')
 
 module.exports = function(manifestMap, backgroundPages, sendToBackgroundPage, sendToBackgroundPages){
 
+  ipcMain.on('update-tab',(e,tabId)=>{
+    sendToBackgroundPages('CHROME_TABS_ONUPDATED', tabId)
+  })
+
 // Dispatch web contents events to Chrome APIs
   const hookWebContentsEvents = function (webContents) {
     const tabId = webContents.id
@@ -13,16 +17,23 @@ module.exports = function(manifestMap, backgroundPages, sendToBackgroundPage, se
 
     require('./extensions/web-navigation-main')(webContents, sendToBackgroundPage)
 
-    for(let event of ['did-finish-load',
-      'did-fail-load',
+    // webContents.on('did-fail-load', (e,errorCode,errorDescription,validatedURL,isMainFrame,frameProcessId,frameRoutingId)=>{
+    //   if(!isMainFrame)
+    //     sendToBackgroundPages('CHROME_TABS_ONUPDATED', tabId)
+    // })
+
+    for(let name of ['did-fail-load',
+      'did-finish-load',
       'did-start-loading',
       'did-stop-loading',
       'did-start-navigation',
-      'did-navigate',
-      'did-navigate-in-page',
+      // 'did-navigate',
+      // 'did-navigate-in-page',
       'page-title-updated',
-      'page-favicon-updated',]){
-      sendToBackgroundPages('CHROME_TABS_ONUPDATED', tabId)
+      'page-favicon-updated']){
+      webContents.on(name, (e,...args)=>{
+        sendToBackgroundPages('CHROME_TABS_ONUPDATED', tabId)
+      })
     }
 
     webContents.once('destroyed', () => {
@@ -70,30 +81,37 @@ module.exports = function(manifestMap, backgroundPages, sendToBackgroundPage, se
 
   const resultID = {val: 1}
   ipcMain.on('CHROME_RUNTIME_SENDMESSAGE', function (event, extensionId, message, originResultID, webContentsKey) {
-    // console.log('CHROME_RUNTIME_SENDMESSAGE', event.sender.getURL(), extensionId, message, originResultID)
+    // console.log('CHROME_RUNTIME_SENDMESSAGE', event.sender.getURL(), extensionId, message, originResultID, Date.now())
     const backgroundPage = backgroundPages[extensionId] && backgroundPages[extensionId].webContents
     for(let page of new Set([backgroundPage,...webContents.getAllWebContents()])) {
       if (!page || page.isDestroyed() || !page.getURL().startsWith(`chrome-extension://${extensionId}`)) {
         continue
       }
+      const val = resultID.val
 
-      console.log(`CHROME_RUNTIME_ONMESSAGE_${extensionId}`)
-      page.sendToAll(`CHROME_RUNTIME_ONMESSAGE_${extensionId}`, event.sender.id, message, resultID.val, webContentsKey)
+      console.log(`CHROME_RUNTIME_ONMESSAGE_${extensionId}`, val)
+      page.sendToAll(`CHROME_RUNTIME_ONMESSAGE_${extensionId}`, event.sender.id, message, val, webContentsKey)
       const callback = (event2, result) => {
-        console.log(`CHROME_RUNTIME_ONMESSAGE_RESULT_${resultID.val}`)
-        if(!event.sender.isDestroyed()) event.sender.send(`CHROME_RUNTIME_SENDMESSAGE_RESULT_${originResultID}`, result)
+        // console.log(`CHROME_RUNTIME_ONMESSAGE_RESULT_${val}`,event.sender.isDestroyed(),event.sender.getURL(), Date.now(),result)
+        if(!event.sender.isDestroyed()) event.sender.sendToAll(`CHROME_RUNTIME_SENDMESSAGE_RESULT_${originResultID}`, result)
         console.log(`CHROME_RUNTIME_SENDMESSAGE_RESULT_${originResultID}`)
       }
-      ipcMain.on(`CHROME_RUNTIME_ONMESSAGE_RESULT_${resultID.val}`, callback)
-      setTimeout(() => ipcMain.removeListener(`CHROME_RUNTIME_ONMESSAGE_RESULT_${resultID.val}`, callback), 1000 * 120)
+      ipcMain.on(`CHROME_RUNTIME_ONMESSAGE_RESULT_${val}`, callback)
+      setTimeout(() => ipcMain.removeListener(`CHROME_RUNTIME_ONMESSAGE_RESULT_${val}`, callback), 1000 * 120)
       resultID.val++
     }
+  })
+
+
+  ipcMain.on('send-args-renderer', (e, key, rendererId, args) => {
+    console.log('send-args-renderer', key, rendererId, args)
+    webContents.fromId(rendererId).send(`send-args-renderer_${key}`, args)
   })
 
   ipcMain.on('background-data', (e, extensionId, dataKey, type, name, data) => {
     const key = shortId()
     console.log(extensionId, 'get-background-data', e.sender.getURL(),key, dataKey, type, name, data)
-    const success = sendToBackgroundPage(extensionId, 'get-background-data', key, dataKey, type, name, data)
+    const success = sendToBackgroundPage(extensionId, 'get-background-data', e.sender.id, key, dataKey, type, name, data)
     if(!success){
       return e.returnValue = {key: false, result: void 0, type: 'no-proxy'}
     }

@@ -84,13 +84,18 @@ class Event2 {
     return !!this.listeners.size
   }
 
-  emit (eventId, ...args) {
+  emit (eventId, key, ...args) {
     // console.log('emit', this.name,this.method,this.extensionId,eventId, ...args)
     try{
-      const result = this.listeners.get(eventId)(...args)
-      if(this.needReturn) ipcRenderer.send(`${this.ipcName}_${eventId}_RESULT`, result)
+      if(this.needReturn){
+        const result = this.listeners.get(eventId)(...args)
+        ipcRenderer.send(`${this.ipcName}_${eventId}_${key}_RESULT`, result)
+      }
+      else{
+        const result = this.listeners.get(eventId)(key, ...args)
+      }
     }catch(e){
-      console.log(e, 'emit', this.name,this.method,this.extensionId,eventId, ...args)
+      console.log(e, 'emit', this.name,this.method,this.extensionId,eventId,key, ...args)
     }
   }
 }

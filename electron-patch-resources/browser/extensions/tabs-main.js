@@ -29,6 +29,9 @@ async function getTabValue(event, tabId){
   }
 
   const hostWebContents = contents.hostWebContents2
+  let window = hostWebContents && BrowserWindow.fromWebContents(hostWebContents)
+  if(!window) window = getCurrentWindow()
+
   // console.log(hostWebContents)
   // if(!hostWebContents){
   //   event.returnValue = null
@@ -43,21 +46,25 @@ async function getTabValue(event, tabId){
     discarded: false,
     id: tabId,
     mutedInfo: {muted: contents.isAudioMuted()},
-    status: contents.isLoading ? 'loading' : 'complete',
+    status: contents.isLoading() ? 'loading' : 'complete',
     title: contents.getTitle(),
     url: contents.getURL(),
-    windowId: hostWebContents && BrowserWindow.fromWebContents(hostWebContents).id,
+    windowId: window.id,
   }
 
   if(tabOpenerMap[tabId]) _tabValue.openerTabId = tabOpenerMap[tabId]
 
-  if(!hostWebContents){
+  if(!hostWebContents || hostWebContents.isDestroyed()){
     event.returnValue = _tabValue
     return event.returnValue
   }
 
   const requestId = shortId()
   hostWebContents.send('CHROME_TABS_TAB_VALUE', requestId, tabId)
+
+  setTimeout(()=>{ //@TODO FIX
+    event.returnValue = _tabValue
+  },300)
 
   return await new Promise(r=>{
     ipcMain.once(`CHROME_TABS_TAB_VALUE_RESULT_${requestId}`,(event2, tabValue)=>{
@@ -102,6 +109,38 @@ async function tabsQuery(queryInfo, cb){
   cb(result.sort(function(a, b){ return a.index - b.index }))
 }
 
+function createTab(error, createProperties, ses, opener, cb) {
+  if (!error && createProperties.partition) {
+    // createProperties.partition always takes precendence
+    ses = session.fromPartition(createProperties.partition, {
+      parent_partition: createProperties.parent_partition
+    })
+    // don't pass the partition info through
+    delete createProperties.partition
+    delete createProperties.parent_partition
+  }
+
+  if (error) {
+    console.error(error)
+    return cb(null, error)
+  }
+
+  createProperties.userGesture = true
+
+  try {
+    // windowId
+    // index
+    // pinned
+    opener.emit('new-window', null, createProperties.url, null, createProperties.active ? 'foreground-tab' : 'background-tab')
+    ipcMain.once('CHROME_TABS_ONCREATED', (event, tab) => { //@TODO FIX
+      cb(tab)
+    })
+  } catch (e) {
+    console.error(e)
+    cb(null, 'An unexpected error occurred: ' + e.message)
+  }
+}
+
 function recurTabGet(win, cb, error, ses, createProperties, retry) {
   const cont = win.webContents
   const key = shortId()
@@ -113,35 +152,7 @@ function recurTabGet(win, cb, error, ses, createProperties, retry) {
     }
     const opener = webContents.fromId(tabId)
     ses = opener && opener.session
-    if (!error && createProperties.partition) {
-      // createProperties.partition always takes precendence
-      ses = session.fromPartition(createProperties.partition, {
-        parent_partition: createProperties.parent_partition
-      })
-      // don't pass the partition info through
-      delete createProperties.partition
-      delete createProperties.parent_partition
-    }
-
-    if (error) {
-      console.error(error)
-      return cb(null, error)
-    }
-
-    createProperties.userGesture = true
-
-    try {
-      // windowId
-      // index
-      // pinned
-      opener.emit('new-window', null, createProperties.url, null, createProperties.active ? 'foreground-tab' : 'background-tab')
-      ipcMain.once('CHROME_TABS_ONCREATED', (event, tab) => { //@TODO FIX
-        cb(tab)
-      })
-    } catch (e) {
-      console.error(e)
-      cb(null, 'An unexpected error occurred: ' + e.message)
-    }
+    createTab(error, createProperties, ses, opener, cb)
   })
 };
 
@@ -170,8 +181,9 @@ function tabMain(manifestMap, resultID, nextId){
       }
 
       let ses = session.defaultSession
+      let opener
       if (!error && createProperties.openerTabId) {
-        const opener = webContents.tabId(createProperties.openerTabId)
+        opener = webContents.fromId(createProperties.openerTabId)
         if (!opener) {
           error = 'No tab found'
         } else {
@@ -182,7 +194,7 @@ function tabMain(manifestMap, resultID, nextId){
       if(!createProperties.url){
         createProperties.url = 'chrome://newtab/'
       }
-      if(!createProperties.openerTabId || createProperties.openerTabId == -1){
+      if(!opener /*!createProperties.openerTabId || createProperties.openerTabId == -1*/){
         if(!win){
           const focus = getCurrentWindow()
           if(focus && focus.getTitle().includes('Sushi Browser')){
@@ -193,7 +205,9 @@ function tabMain(manifestMap, resultID, nextId){
           }
         }
         recurTabGet(win, cb, error, ses, createProperties, 0)
-        return
+      }
+      else{
+        createTab(error, createProperties, ses, opener, cb)
       }
     } catch (e) {
       cb(null, e.message)
@@ -328,7 +342,7 @@ function tabMain(manifestMap, resultID, nextId){
     const senderTabId = isBackgroundPage ? null : event.sender.id
 
     contents.sendToAll(`CHROME_RUNTIME_ONMESSAGE_${extensionId}`, senderTabId, message, resultID.val, webContentsKey)
-    ipcMain.once(`CHROME_RUNTIME_ONMESSAGE_RESULT_${resultID.val}`, (event, result) => {
+    ipcMain.once(`CHROME_RUNTIME_ONMESSAGE_RESULT_${resultID.val}`, (event2, result) => {
       event.sender.send(`CHROME_TABS_SEND_MESSAGE_RESULT_${originResultID}`, result)
     })
     resultID.val++
@@ -367,6 +381,7 @@ function tabMain(manifestMap, resultID, nextId){
     const portId = ++nextId.val
     tab.send(`CHROME_RUNTIME_ONCONNECT_${extensionId}`, event.sender.id, portId, connectInfo)
     ipcMain.once(`CHROME_RUNTIME_ONCONNECT_RES_${extensionId}`, (e, canConnect) => {
+      // console.log(778833,`CHROME_RUNTIME_ONCONNECT_RES_${extensionId}`, event.sender.id, portId, connectInfo, canConnect)
       if(canConnect){
         event.returnValue = portId
 

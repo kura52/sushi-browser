@@ -20,7 +20,8 @@ function a(file){
   fs.writeFileSync(file,result2)
 }
 
-['../resource/extension/default/1.0_0/js/top.js',
+[
+  '../resource/extension/default/1.0_0/js/top.js',
   '../resource/extension/default/1.0_0/js/downloader.js',
   '../resource/extension/default/1.0_0/js/download.js',
   '../resource/extension/default/1.0_0/js/selector.js',
@@ -37,4 +38,5 @@ function a(file){
   '../resource/extension/default/1.0_0/js/terminal.js',
   '../resource/extension/default/1.0_0/js/sync.js',
   '../resource/extension/default/1.0_0/js/settings.js',
-  '../lib/render/base.js'].forEach(f=>a(f))
+  '../lib/render/base.js'
+].forEach(f=>a(f))

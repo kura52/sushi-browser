@@ -35843,9 +35843,9 @@ class Contents extends _infernoCompat2.default.Component {
               } else {
                 if (this.props.cont) {
                   if (event.button == 1) {
-                    this.props.cont.hostWebcontents2.send('create-web-contents', { id: this.props.cont.getId(), targetUrl: currentNode.url, disposition: 'background-tab' });
+                    this.props.cont.hostWebContents2.send('create-web-contents', { id: this.props.cont.getId(), targetUrl: currentNode.url, disposition: 'background-tab' });
                   } else {
-                    this.props.cont.hostWebcontents2.send(openType2 ? 'new-tab' : 'load-url', this.props.cont.getId(), currentNode.url);
+                    this.props.cont.hostWebContents2.send(openType2 ? 'new-tab' : 'load-url', this.props.cont.getId(), currentNode.url);
                   }
                   if (this.props.onClick) this.props.onClick();
                 } else {
@@ -57791,7 +57791,7 @@ function getElementType(Component, props, getDefault) {
   // ----------------------------------------
   // user defined "as" element type
 
-  if (props.as && props.as !== (defaultProps && (defaultProps && (defaultProps && defaultProps.as)))) return props.as;
+  if (props.as && props.as !== (defaultProps && (defaultProps && (defaultProps && (defaultProps && defaultProps.as))))) return props.as;
 
   // ----------------------------------------
   // computed default element type
@@ -57809,7 +57809,7 @@ function getElementType(Component, props, getDefault) {
   // ----------------------------------------
   // use defaultProp or 'div'
 
-  return (defaultProps && (defaultProps && (defaultProps && defaultProps.as))) || 'div';
+  return (defaultProps && (defaultProps && (defaultProps && (defaultProps && defaultProps.as)))) || 'div';
 }
 
 /* harmony default export */ __webpack_exports__["a"] = (getElementType);
@@ -60672,7 +60672,7 @@ var Dropdown = function (_Component) {
 
       e.stopPropagation();
       // prevent closeOnDocumentClick() if multiple or item is disabled
-      if (multiple || item.disabled) e.nativeEvent.stopImmediatePropagation();
+      if (multiple || item.disabled) (e.nativeEvent || e).stopImmediatePropagation();
       if (item.disabled) return;
 
       var isAdditionItem = item['data-additional'];
@@ -66855,7 +66855,7 @@ var Search = function (_Component) {
     }, _this.handleInputClick = function (e) {
 
       // prevent closeOnDocumentClick()
-      e.nativeEvent.stopImmediatePropagation();
+      (e.nativeEvent || e).stopImmediatePropagation();
 
       _this.tryOpen();
     }, _this.handleItemClick = function (e, _ref2) {
@@ -66864,7 +66864,7 @@ var Search = function (_Component) {
       var result = _this.getSelectedResult(id);
 
       // prevent closeOnDocumentClick()
-      e.nativeEvent.stopImmediatePropagation();
+      (e.nativeEvent || e).stopImmediatePropagation();
 
       // notify the onResultSelect prop that the user is trying to change value
       _this.setValue(result.title);

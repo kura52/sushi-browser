@@ -71,13 +71,13 @@ module.exports = function(session, sendToBackgroundPage){
 
         if(cb){
           promises.push(new Promise(r=>{
-            ipcMain.once(`${getIpcName(method, extensionId)}_${eventId}_RESULT`, (e, result) =>{
+            ipcMain.once(`${getIpcName(method, extensionId)}_${eventId}_${details.id}_RESULT`, (e, result) =>{
               r(result)
             })
           }))
         }
 
-        sendToBackgroundPage(extensionId, getIpcName(method, extensionId), eventId, {
+        sendToBackgroundPage(extensionId, getIpcName(method, extensionId), eventId, details.id, {
           tabId: details.webContentsId || -1,
           frameId: 0,
           parentFrameId: -1,

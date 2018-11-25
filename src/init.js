@@ -398,14 +398,33 @@ ipcMain.on('web-contents-created', (e, tab) => {
 
   tab.on('-add-new-contents', (event, webContents, disposition, userGesture, left, top, width, height, url, frameName) => {
     console.log('-add-new-contents', webContents.getURL(), url)
-    if(!webContents.isDestroyed()) webContents.destroy()
+    if(disposition == 'new-window' || disposition === 'new-popup'){
+      // let bw
+      // if((bw = BrowserWindow.getAllWindows().find(win=>win.webContents.getURL() == url))){
+      //   event.newGuest = bw
+      // }
+      // else{
+        event.newGuest = new BrowserWindow({
+          webContents,
+          autoHideMenuBar: true,
+          parent: BrowserWindow.fromWebContents(tab.hostWebContents2)
+        })
+      // }
+      return
+    }
     // const url = contMap.get(webContents)
     // contMap.delete(webContents)
-    tab.emit('new-window', null, url, null, disposition)
+    tab.emit('new-window', event, url, null, disposition, null, null, null, webContents)
   })
 
-  tab.on('new-window', async (event, targetUrl, frameName, disposition, options, features, referrer) => {
+  tab.on('new-window', async (event, targetUrl, frameName, disposition, options, features, referrer, _webContents) => {
     console.log('new-window', targetUrl, frameName, disposition)
+    // let bw
+    // if((bw = BrowserWindow.getAllWindows().find(win=>win.webContents.getURL() == targetUrl))){
+    //   console.log('bwww', bw.webContents.getURL(),bw,)
+    //   event.newGuest = bw
+    //   return
+    // }
 
     let source = tab
     if(popupCache.get(source.id)) source = await getFocusedWebContents()
@@ -413,21 +432,26 @@ ipcMain.on('web-contents-created', (e, tab) => {
     if(mainState.alwaysOpenLinkBackground) disposition = 'background-tab'
 
     console.log(disposition)
-    if ((disposition === 'new-window' || disposition === 'new-popup') && mainState.generalWindowOpenLabel == 'linkTargetWindow') {
-      const currentWindow = getCurrentWindow()
-      ipcMain.once('get-private-reply',(e,privateMode)=>{
-        BrowserWindowPlus.load({id:currentWindow.id,x:size.x,y:size.y,width:size.width,height:size.height,disposition,
-          tabParam:JSON.stringify([{privateMode}])})
-      })
-      // currentWindow.webContents.send('get-private', source.id) //@TODO ELECTRON
 
-    }
+    // if ((disposition === 'new-window' || disposition === 'new-popup') && mainState.generalWindowOpenLabel == 'linkTargetWindow') {
+    //   const currentWindow = getCurrentWindow()
+    //   ipcMain.once('get-private-reply',(e,privateMode)=>{
+    //     BrowserWindowPlus.load({id:currentWindow.id,disposition,
+    //       tabParam:JSON.stringify([{privateMode}])})
+    //   })
+    //   currentWindow.webContents.send('get-private', source.id) //@TODO ELECTRON
+    //   return
+    // }
+
+    ipcMain.emit('create-browser-view',{sender: source.hostWebContents2}, Math.random().toString(), 'no-attach',
+      0, 0, 0, 0, 0, void 0, _webContents)
+
     const id = source.id
     const func = (e, newTabId, tabIds)=>{
       console.log('create-web-contents-reply',[id,newTabId], tabIds)
       if(tabIds.includes(id)){
+        const cont = webContents.fromId(newTabId)
         ipcMain.emit('set-tab-opener', null, newTabId, id)
-        const cont = webContents.fromId((newTabId))
         cont.hostWebContents2.send('tab-create', {id: newTabId, url: cont.getURL(), openerTabId: id})
 
         ipcMain.emit('chrome-webNavigation-onCreatedNavigationTarget',null,{
@@ -443,7 +467,8 @@ ipcMain.on('web-contents-created', (e, tab) => {
       }
     }
     ipcMain.on('create-web-contents-reply',func)
-    if(source.hostWebContents2) source.hostWebContents2.send('create-web-contents', { id, targetUrl, disposition})
+    if(source.hostWebContents2)
+      source.hostWebContents2.send('create-web-contents', { id, targetUrl, disposition, guestInstanceId: _webContents && _webContents.id})
   })
 
   // tab.on('will-attach-webview',(e, cont)=>{

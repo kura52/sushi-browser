@@ -45,8 +45,9 @@ module.exports = function(isExtensionPage, isBackgroundPage){
 
 
     return function(){
-      webFrame.executeJavaScriptInIsolatedWorld(worldId, [{code: `;\n${code};\n`}], false)
-      console.log('runInThisContext',33)
+      return new Promise(r=>{
+        webFrame.executeJavaScriptInIsolatedWorld(worldId, [{code: `;\n${code};\n`}], false, r)
+      })
     }
 
     // const compiledWrapper = runInThisContext(wrapper, {
@@ -132,7 +133,7 @@ module.exports = function(isExtensionPage, isBackgroundPage){
 // Handle the request of chrome.tabs.executeJavaScript.
   ipcRenderer.on('CHROME_TABS_EXECUTESCRIPT', async function (event, senderWebContentsId, requestId, extensionId, url, code) {
     console.log('CHROME_TABS_EXECUTESCRIPT', url, code)
-    const result = (await runContentScript.call(window, extensionId, 'execute script', url, code))()
+    const result = await (await runContentScript.call(window, extensionId, 'execute script', url, code))()
     ipcRenderer.sendToAll(senderWebContentsId, `CHROME_TABS_EXECUTESCRIPT_RESULT_${requestId}`, result)
   })
 

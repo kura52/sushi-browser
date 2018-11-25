@@ -113,7 +113,7 @@ class Tabs {
       const oldTabInfo = this.tabValues[tabId] || {}
       let changeInfo = {}
 
-      for (var key in tabValue) {
+      for (const key in tabValue) {
         if (!deepEqual(tabValue[key], oldTabInfo[key])) {
           changeInfo[key] = tabValue[key]
         }
@@ -121,7 +121,8 @@ class Tabs {
 
       if (Object.keys(changeInfo).length > 0) {
         const tab = Tab(tabId)
-        this.onUpdated.emit(tabId, changeInfo, tab)
+        this.tabValues[tabId] = tab
+        console.log('CHROME_TABS_ONUPDATED',changeInfo,tab)
         if(changeInfo.active){
           for(let event of ['onSelectionChanged',
             'onActiveChanged',
@@ -133,6 +134,8 @@ class Tabs {
             }
           }
         }
+        delete changeInfo.active
+        this.onUpdated.emit(tabId, changeInfo, tab)
       }
     })
   }
@@ -185,7 +188,7 @@ class Tabs {
     const key = shortId()
     ipcRenderer.send('chrome-tabs-duplicate', key, tabId)
     ipcRenderer.once(`chrome-tabs-duplicate-reply_${key}`, (e, newTabId) => {
-      callback(Tab(newTabId))
+      callback && callback(Tab(newTabId))
     })
   }
 
@@ -208,7 +211,7 @@ class Tabs {
       tabIds = [tabIds]
     }
     for(let tabId of tabIds){
-      this.update(tabId, {active: true}, ()=>callback([])) //@TODO FIX
+      this.update(tabId, {active: true}, ()=>callback && callback([])) //@TODO FIX
     }
   }
 
@@ -218,7 +221,7 @@ class Tabs {
         ipcRenderer.send('set-audio-muted',tabId,updateProperties.muted,true)
       }
       updateProperties.active = updateProperties.active || updateProperties.highlighted ||updateProperties.selected
-      ipcFuncRenderer(this.constructor.name, 'update', ()=>callback(Tab(tabId)), tabId, updateProperties)
+      ipcFuncRenderer(this.constructor.name, 'update', ()=>callback && callback(Tab(tabId)), tabId, updateProperties)
     }
 
     if(!Number.isFinite(tabId) && tabId !== null && tabId !== void 0){
@@ -333,7 +336,7 @@ class Tabs {
   // discard(tabId, callback){} //@TODO NOOP
 
   connect(tabId, connectInfo){
-    const portId = ipcRenderer.send('CHROME_TABS_CONNECT', tabId, this._extensionId, connectInfo, this._webContentsKey)
+    const portId = ipcRenderer.sendSync('CHROME_TABS_CONNECT', tabId, this._extensionId, connectInfo, this._webContentsKey)
     return new Port(tabId, portId, this.id, connectInfo.name)
   }
 
@@ -350,7 +353,7 @@ class Tabs {
     ipcRenderer.once(`CHROME_TABS_EXECUTESCRIPT_RESULT_${requestId}`, (event, result) => {
       // Disabled due to false positive in StandardJS
       // eslint-disable-next-line standard/no-callback-literal
-      if(callback) callback([event.result])
+      if(callback) callback([result])
     })
     ipcRenderer.send('CHROME_TABS_EXECUTESCRIPT', requestId, tabId, this._extensionId, details)
   }
@@ -360,8 +363,18 @@ class Tabs {
       responseCallback = options
     }
     const originResultID = shortId()
+    let isResponsed
     if (responseCallback) {
-      ipcRenderer.once(`CHROME_TABS_SEND_MESSAGE_RESULT_${originResultID}`, (event, result) => responseCallback(result))
+      ipcRenderer.once(`CHROME_TABS_SEND_MESSAGE_RESULT_${originResultID}`, (event, result) => {
+        isResponsed = true
+        responseCallback(result)
+      })
+      setTimeout(()=>{
+        if(!isResponsed){
+          // console.error(`sendMessageTimeout`, message, options)
+          responseCallback(null)
+        }
+      },300)
     }
     ipcRenderer.send('CHROME_TABS_SEND_MESSAGE', tabId, this._extensionId, this._isBackgroundPage, message, originResultID, this._webContentsKey)
   }

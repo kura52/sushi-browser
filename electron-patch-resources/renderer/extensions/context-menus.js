@@ -10,6 +10,8 @@ class ContextMenus {
 
     ipcRenderer.on('CHROME_CONTEXTMENUS_ONCLICKED',(e, info, tab)=>{
       this.onClicked.emit(info, tab)
+      const onClick = this.onClickEvents[info.menuItemId]
+      if(onClick) onClick(info, tab)
     })
 
     for(let name of Object.getOwnPropertyNames(Object.getPrototypeOf(this))) this[name] = name == 'constructor' ? this[name] : this[name].bind(this)
@@ -18,7 +20,7 @@ class ContextMenus {
   create(createProperties, callback) {
     if(!createProperties.id) createProperties.id = shortId()
     if(createProperties.onclick){
-      this.onClicked.addListener(createProperties.onclick)
+      // this.onClicked.addListener(createProperties.onclick)
       this.onClickEvents[createProperties.id] = createProperties.onclick
       delete createProperties.onclick
     }
@@ -27,8 +29,8 @@ class ContextMenus {
 
   update(id, updateProperties, callback) {
     if(updateProperties.onclick){
-      if(this.onClickEvents[id]) this.onClicked.removeListener(this.onClickEvents[id])
-      this.onClicked.addListener(updateProperties.onclick)
+      // if(this.onClickEvents[id]) this.onClicked.removeListener(this.onClickEvents[id])
+      // this.onClicked.addListener(updateProperties.onclick)
       this.onClickEvents[id] = updateProperties.onclick
       delete updateProperties.onclick
     }

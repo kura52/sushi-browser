@@ -104,6 +104,13 @@ const startBackgroundPages = function (manifest) {
     html = Buffer.from(`<html><body>${scripts}</body></html>`)
   }
 
+  // const win = new BrowserWindow({
+  //     webSecurity: false,
+  //     isBackgroundPage: true,
+  //     commandLineSwitches: ['--background-page']
+  // })
+  // const contents = win.webContents
+
   const contents = webContents.create({
     // partition: 'persist:__chrome_extension',
     webSecurity: false,

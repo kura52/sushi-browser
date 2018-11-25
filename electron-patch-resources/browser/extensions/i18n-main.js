@@ -39,6 +39,6 @@ module.exports = function(manifest){
   }
 
   ipcFuncMain('i18n','detectLanguage',(e, inputText) => transLang[franc(inputText)] || 'en')
-  ipcFuncMain('i18n','getAcceptLanguages',(e) => app.getLocale())
+  ipcFuncMain('i18n','getAcceptLanguages',(e) => [app.getLocale()])
   ipcMain.on('CHROME_I18N_GET_MESSAGES', (e, extensionId, language) => e.returnValue = getMessages(extensionId, language))
 }

@@ -1070,6 +1070,7 @@ i.mute-mode{
     padding-top: 2px;
     border-top: 1px solid #dfdfdf;
     background-color: #fcfcfc;
+    overflow: hidden;
 }
 
 span.additional-info{

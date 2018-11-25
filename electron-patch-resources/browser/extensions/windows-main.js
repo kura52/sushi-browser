@@ -107,7 +107,16 @@ module.exports = function(manifestMap, sendToBackgroundPages, tabsQuery){
         for(let win of BrowserWindow.getAllWindows()){
           if(win.id > max[0]) max = [win.id, win]
         }
-        cb(await windowInfo(max[1], true, tabsQuery))
+        let win
+        for(let i=0;i<30;i++){
+          win = await windowInfo(max[1], true, tabsQuery)
+          if(win.tabs.length) break
+          await new Promise(r=>setTimeout(async ()=>{
+            win = await windowInfo(max[1], true, tabsQuery)
+            r()
+          },100))
+        }
+        cb(win)
       },100)
     }
   })

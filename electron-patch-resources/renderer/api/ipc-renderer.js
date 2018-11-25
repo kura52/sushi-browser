@@ -12,7 +12,10 @@ ipcRenderer.send = function (...args) {
 }
 
 ipcRenderer.sendSync = function (...args) {
-  return binding.sendSync('ipc-message-sync', args)[0]
+  console.log(31111,...args)
+  const val = binding.sendSync('ipc-message-sync', args)[0]
+  console.log(31112,...args, val)
+  return val
 }
 
 ipcRenderer.sendToHost = function (...args) {

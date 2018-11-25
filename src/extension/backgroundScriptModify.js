@@ -11,32 +11,32 @@
     })
     chrome.ipcRenderer.send(name,key,...args)
   }
-  const convertUrlMap = {
-    // 'chrome://newtab/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html',
-    'chrome://bookmarks/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html',
-    'chrome://history/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html',
-    'about:blank': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html',
-    'chrome://bookmarks-sidebar/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html',
-    'chrome://tab-history-sidebar/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_history_sidebar.html',
-    'chrome://tab-trash-sidebar/':'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_trash_sidebar.html',
-    'chrome://download-sidebar/':'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download_sidebar.html',
-    'chrome://note-sidebar/':'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note_sidebar.html',
-    'chrome://note/':'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note.html',
-    'chrome://session-manager-sidebar/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/saved_state_sidebar.html',
-    'chrome://history-sidebar/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history_sidebar.html',
-    'chrome://explorer/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html',
-    'chrome://explorer-sidebar/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer_sidebar.html',
-    'chrome://download/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html',
-    'chrome://terminal/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html',
-    'chrome://converter/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html',
-    'chrome://automation/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html',
-    'chrome://settings/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html',
-    'chrome://settings#general': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general',
-    'chrome://settings#search': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search',
-    'chrome://settings#tabs': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs',
-    'chrome://settings#keyboard': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#keyboard',
-    'chrome://settings#extensions': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extensions',
-  }
+  // const convertUrlMap = {
+  //   // 'chrome://newtab/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html',
+  //   'chrome://bookmarks/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html',
+  //   'chrome://history/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html',
+  //   'about:blank': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html',
+  //   'chrome://bookmarks-sidebar/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html',
+  //   'chrome://tab-history-sidebar/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_history_sidebar.html',
+  //   'chrome://tab-trash-sidebar/':'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_trash_sidebar.html',
+  //   'chrome://download-sidebar/':'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download_sidebar.html',
+  //   'chrome://note-sidebar/':'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note_sidebar.html',
+  //   'chrome://note/':'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note.html',
+  //   'chrome://session-manager-sidebar/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/saved_state_sidebar.html',
+  //   'chrome://history-sidebar/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history_sidebar.html',
+  //   'chrome://explorer/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html',
+  //   'chrome://explorer-sidebar/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer_sidebar.html',
+  //   'chrome://download/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html',
+  //   'chrome://terminal/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html',
+  //   'chrome://converter/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html',
+  //   'chrome://automation/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html',
+  //   'chrome://settings/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html',
+  //   'chrome://settings#general': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general',
+  //   'chrome://settings#search': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search',
+  //   'chrome://settings#tabs': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs',
+  //   'chrome://settings#keyboard': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#keyboard',
+  //   'chrome://settings#extensions': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extensions',
+  // }
 
   window.close = _=> chrome.windows.hostClose()
 

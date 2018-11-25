@@ -17,6 +17,10 @@ class Runtime {
     this.onConnect = new Event()
     this.onMessage = new Event()
 
+    this.onRequestExternal = new Event() //@TODO FIX
+    this.onConnectExternal = new Event() //@TODO FIX
+    this.onMessageExternal = new Event() //@TODO FIX
+
     this.onStartup = new Event() //@TODO NOOP
     this.onInstalled = new Event() //@TODO NOOP
     this.onSuspend = new Event() //@TODO NOOP
@@ -31,6 +35,9 @@ class Runtime {
     this.OnInstalledReason = {INSTALL: 'install', UPDATE: 'update', CHROME_UPDATE: 'chrome_update', SHARED_MODULE_UPDATE: 'shared_module_update'}
     this.OnRestartRequiredReason = {APP_UPDATE: 'app_update', OS_UPDATE: 'os_update', PERIODIC: 'periodic'}
 
+    this._map = {}
+    this.noProxy = new Set(['boolean', 'number', 'string', 'symbol', 'undefined'])
+
     if (!this._isExtensionPage) {
       delete this.getBackgroundPage
       delete this.openOptionsPage
@@ -42,47 +49,103 @@ class Runtime {
       delete this.getPackageDirectoryEntry
     }
 
+    const map = this._map
+    const self = this
+    const noProxy = this.noProxy
     if(this._isBackgroundPage){
-      const map = {}
-      const noProxy = new Set(['boolean', 'number', 'string', 'symbol', 'undefined'])
-      ipcRenderer.on('get-background-data', (e, key, dataKey, type, name, data) => {
-        console.log('get-background-data',  key, dataKey, type, name, data)
+      ipcRenderer.on('get-background-data', (e, rendererId, key, dataKey, type, name, data) => {
+        console.log('get-background-data', rendererId, key, dataKey, type, name, data)
         let result = null
         try{
           let o = map[dataKey] === void 0 ? window : map[dataKey]
 
           if(type == 'get'){
             result = o[name]
+            if(typeof result == 'function') result = result.bind(o)
             map[key] = result
           }
           else if(type == 'set'){
+            data = this._makeRemoteFunc(data, rendererId)
             o[name] = data
           }
+          else if(type == 'defineProperty'){
+            data = this._makeRemoteFunc(data, rendererId)
+            result = Object.defineProperty(o, name, data)
+            map[key] = result
+          }
           else if(type == 'apply'){
+            data = data.map(d => this._makeRemoteFunc(d, rendererId))
             result = o(...data)
             map[key] = result
           }
         }catch(e){ console.log(e)}
-        ipcRenderer.send(`get-background-data-reply_${key}`, result, typeof result == 'function' ? 'function' : !result || noProxy.has(typeof result) ? 'no-proxy' : 'proxy')
+        ipcRenderer.send(`get-background-data-reply_${key}`, result,
+          typeof result == 'function' ? 'function' : self._checkProxy(result))
       })
     }
 
     for(let name of Object.getOwnPropertyNames(Object.getPrototypeOf(this))) this[name] = name == 'constructor' ? this[name] : this[name].bind(this)
   }
 
+  _makeRemoteFunc(data, rendererId){
+    if(data != null && data.__function_){
+      return (...args) =>{
+        return ipcRenderer.send('send-args-renderer', data.__function_, rendererId, args)
+      }
+    }
+    return data
+  }
+
+  _checkProxy(data){
+    if(Array.isArray(data)){
+      for(let v of data){
+        if(this._checkProxy(v) == 'proxy') return 'proxy'
+      }
+    }
+    else if(data != null && data.constructor.name == 'Object'){
+      for(let v of Object.values(data)){
+        if(this._checkProxy(v) == 'proxy') return 'proxy'
+      }
+    }
+    else{
+      if(!data || this.noProxy.has(typeof data)){
+        return 'no-proxy'
+      }
+      else{
+        return 'proxy'
+      }
+    }
+  }
+
+  _buildProxyValue(data){
+    if(typeof data == 'function'){
+      const key = shortId()
+      const func = (e, args) => data(...args)
+      ipcRenderer.once(`send-args-renderer_${key}`,func)
+      setTimeout(()=>ipcRenderer.removeListener(`send-args-renderer_${key}`,func),3000)
+      return {__function_: key}
+    }
+    return data
+  }
+
+
   _makeProxy(key2, type2){
     const self = this
     return new Proxy(type2 == 'function' ? ()=>{} : {}, {
       get(target, property, receiver){
-        const {key, result, type} = ipcRenderer.sendSync('background-data', self.id, key2, 'get', property)
+        const {key, result, type} = ipcRenderer.sendSync('background-data', self.id, key2, 'get', self._buildProxyValue(property))
         return type == 'no-proxy' ? result : self._makeProxy(key, type)
       },
       set(target, property, value, receiver){
-        const {key, result, type} = ipcRenderer.sendSync('background-data', self.id, key2, 'set', property, value)
+        const {key, result, type} = ipcRenderer.sendSync('background-data', self.id, key2, 'set', property, self._buildProxyValue(value))
         return value
       },
       apply(target, thisArg, argumentsList){
-        const {key, result, type} = ipcRenderer.sendSync('background-data', self.id, key2, 'apply', void 0, argumentsList)
+        const {key, result, type} = ipcRenderer.sendSync('background-data', self.id, key2, 'apply', void 0, argumentsList.map(x=> self._buildProxyValue(x)))
+        return type == 'no-proxy' ? result : self._makeProxy(key, type)
+      },
+      defineProperty(target, property, descriptor) {
+        const {key, result, type} = ipcRenderer.sendSync('background-data', self.id, key2, 'defineProperty', property, self._buildProxyValue(descriptor))
         return type == 'no-proxy' ? result : self._makeProxy(key, type)
       }
     })
@@ -92,19 +155,26 @@ class Runtime {
     if(this._isBackgroundPage){
       return callback ? callback(window) : window
     }
+    // else{
+    //   return window.open(`chrome-extension://${this.id}/${this._manifest.background.page}`)
+    // }
 
     const self = this
     const bgWindow = new Proxy({}, {
       get(target, property, receiver){
-        const {key, result, type} = ipcRenderer.sendSync('background-data', self.id, null, 'get', property)
+        const {key, result, type} = ipcRenderer.sendSync('background-data', self.id, null, 'get', self._buildProxyValue(property))
         return type == 'no-proxy' ? result : self._makeProxy(key, type)
       },
       set(target, property, value, receiver){
-        const {key, result, type} = ipcRenderer.sendSync('background-data', self.id, null, 'set', property, value)
+        const {key, result, type} = ipcRenderer.sendSync('background-data', self.id, null, 'set', property, self._buildProxyValue(value))
         return value
       },
       apply(target, thisArg, argumentsList){
-        const {key, result, type} = ipcRenderer.sendSync('background-data', self.id, null, 'apply', void 0, argumentsList)
+        const {key, result, type} = ipcRenderer.sendSync('background-data', self.id, null, 'apply', void 0, argumentsList.map(x=> self._buildProxyValue(x)))
+        return type == 'no-proxy' ? result : self._makeProxy(key, type)
+      },
+      defineProperty(target, property, descriptor) {
+        const {key, result, type} = ipcRenderer.sendSync('background-data', self.id, null, 'defineProperty', property, self._buildProxyValue(descriptor))
         return type == 'no-proxy' ? result : self._makeProxy(key, type)
       }
     })
@@ -114,7 +184,7 @@ class Runtime {
 
   openOptionsPage(callback){
     const optionPage = this._manifest.options_page || (this._manifest.options_ui && this._manifest.options_ui.page)
-    //@TODO
+    console.error('optionPage')//@TODO
   }
 
   getManifest(){

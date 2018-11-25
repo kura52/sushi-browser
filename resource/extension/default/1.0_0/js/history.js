@@ -33717,7 +33717,7 @@ function getElementType(Component, props, getDefault) {
   // ----------------------------------------
   // user defined "as" element type
 
-  if (props.as && props.as !== (defaultProps && (defaultProps && (defaultProps && defaultProps.as)))) return props.as;
+  if (props.as && props.as !== (defaultProps && (defaultProps && (defaultProps && (defaultProps && defaultProps.as))))) return props.as;
 
   // ----------------------------------------
   // computed default element type
@@ -33735,7 +33735,7 @@ function getElementType(Component, props, getDefault) {
   // ----------------------------------------
   // use defaultProp or 'div'
 
-  return (defaultProps && (defaultProps && (defaultProps && defaultProps.as))) || 'div';
+  return (defaultProps && (defaultProps && (defaultProps && (defaultProps && defaultProps.as)))) || 'div';
 }
 
 /* harmony default export */ __webpack_exports__["a"] = (getElementType);
@@ -36598,7 +36598,7 @@ var Dropdown = function (_Component) {
 
       e.stopPropagation();
       // prevent closeOnDocumentClick() if multiple or item is disabled
-      if (multiple || item.disabled) e.nativeEvent.stopImmediatePropagation();
+      if (multiple || item.disabled) (e.nativeEvent || e).stopImmediatePropagation();
       if (item.disabled) return;
 
       var isAdditionItem = item['data-additional'];
@@ -42781,7 +42781,7 @@ var Search = function (_Component) {
     }, _this.handleInputClick = function (e) {
 
       // prevent closeOnDocumentClick()
-      e.nativeEvent.stopImmediatePropagation();
+      (e.nativeEvent || e).stopImmediatePropagation();
 
       _this.tryOpen();
     }, _this.handleItemClick = function (e, _ref2) {
@@ -42790,7 +42790,7 @@ var Search = function (_Component) {
       var result = _this.getSelectedResult(id);
 
       // prevent closeOnDocumentClick()
-      e.nativeEvent.stopImmediatePropagation();
+      (e.nativeEvent || e).stopImmediatePropagation();
 
       // notify the onResultSelect prop that the user is trying to change value
       _this.setValue(result.title);

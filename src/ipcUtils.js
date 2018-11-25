@@ -1359,48 +1359,49 @@ ipcMain.on('sync-mobile-scroll',(e,optSelector,selector,move)=>{
   }
 })
 
-// let timer,timers={}
-// ipcMain.on('change-tab-infos',(e,changeTabInfos)=> { @TODO ELECTRON
-//   const f = function (cont,c) {
-//     if (c.index !== (void 0)) {
-//       // if(timers[c.tabId]) clearTimeout(timers[c.tabId])
-//       // timers[c.tabId] = setTimeout(()=>{
-//       console.log('change-tab-infos', c)
-//       // cont.setTabIndex(c.index)
-//       ipcMain.emit('update-tab-index-org', null, c.tabId, c.index)
-//       // delete timers[c.tabId]
-//       // }, 10)
-//     }
-//     if (c.active) {
-//       if (timer) clearTimeout(timer)
-//       timer = setTimeout(() => {
-//         console.log('change-tab-infos', c)
-//         // if (!cont.isDestroyed()) cont.setActive(c.active) @TODO ELECTRON
-//         timer = void 0
-//       }, 10)
-//     }
-//   };
-//   for(let c of changeTabInfos){
-//     let cont = sharedState[c.tabId] || webContents.fromId(c.tabId)
-//     if(cont) {
-//       f(cont,c)
-//     }
-//     else{
-//       let retry = 0
-//       const id = setInterval(_=>{
-//         if(retry++ > 100){
-//           clearInterval(id)
-//           return
-//         }
-//         cont = sharedState[c.tabId] || webContents.fromId(c.tabId)
-//         if(cont){
-//           f(cont,c)
-//           clearInterval(id)
-//         }
-//       },10)
-//     }
-//   }
-// })
+let timer,timers={}
+ipcMain.on('change-tab-infos',(e,changeTabInfos)=> {
+  const f = function (cont,c) {
+    // if (c.index !== (void 0)) {
+    //   // if(timers[c.tabId]) clearTimeout(timers[c.tabId])
+    //   // timers[c.tabId] = setTimeout(()=>{
+    //   console.log('change-tab-infos', c)
+    //   // cont.setTabIndex(c.index)
+    //   ipcMain.emit('update-tab', null, c.tabId)
+    //   // delete timers[c.tabId]
+    //   // }, 10)
+    // }
+    if (c.active) {
+      if (timer) clearTimeout(timer)
+      timer = setTimeout(() => {
+        console.log('change-tab-infos', c)
+        ipcMain.emit('update-tab', null, c.tabId)
+        timer = void 0
+      }, 10)
+    }
+  };
+  for(let c of changeTabInfos){
+    if(!c.tabId) continue
+    let cont = sharedState[c.tabId] || webContents.fromId(c.tabId)
+    if(cont) {
+      f(cont,c)
+    }
+    else{
+      let retry = 0
+      const id = setInterval(_=>{
+        if(retry++ > 100){
+          clearInterval(id)
+          return
+        }
+        cont = sharedState[c.tabId] || webContents.fromId(c.tabId)
+        if(cont){
+          f(cont,c)
+          clearInterval(id)
+        }
+      },10)
+    }
+  }
+})
 
 // ipcMain.on('need-get-inner-text',(e,key)=>{
 // if(mainState.historyFull){
@@ -2351,9 +2352,11 @@ let bvMap = {}, nowBvMap = {}, seqMap = {}, viewAttributeMap = {}, winViewMap = 
 global.winViewMap = winViewMap
 global.seqBv = 0
 const bvZindexMap = {}
-ipcMain.on('create-browser-view', (e, panelKey, tabKey, x, y, width, height, zIndex, src)=>{
-  console.log('create-browser-view', panelKey, tabKey, x, y, width, height, zIndex, src)
-  const view = new BrowserView({ webPreferences: {
+ipcMain.on('create-browser-view', (e, panelKey, tabKey, x, y, width, height, zIndex, src, webContents)=>{
+  console.log('create-browser-view', panelKey, tabKey, x, y, width, height, zIndex, src, webContents)
+  const view = new BrowserView({
+    webContents,
+    webPreferences: {
       plugins: true,
       nodeIntegration: false,
       navigateOnDragDrop: true,
@@ -2364,6 +2367,8 @@ ipcMain.on('create-browser-view', (e, panelKey, tabKey, x, y, width, height, zIn
       allowFileAccessFromFileUrls: true,
       allowUniversalAccessFromFileUrls: true,
       preload: path.join(__dirname, '../resource/preload-content-scripts.js'),
+      webSecurity: false,
+      // nativeWindowOpen: true
     } })
   view.webContents.hostWebContents2 = e.sender
   view.setAutoResize({width: false, height: false})
@@ -2421,7 +2426,7 @@ ipcMain.on('move-browser-view', (e, panelKey, tabKey, type, tabId, x, y, width, 
     if(!view){
       for(let [panelAndTabKey,_view] of Object.entries(bvMap)){
         const [_panelKey, _tabKey] = panelAndTabKey.split("\t")
-        if(panelKey != _panelKey && _tabKey == tabKey){
+        if(panelKey != _panelKey && (_tabKey == tabKey || _tabKey == 'no-attach')){
           view = _view
           delete bvMap[`${_panelKey}\t${tabKey}`]
           if(nowBvMap[_panelKey] == tabKey){
@@ -2438,7 +2443,7 @@ ipcMain.on('move-browser-view', (e, panelKey, tabKey, type, tabId, x, y, width, 
       seqMap[panelKey] = ++global.seqBv
     }
 
-    view.webContents.hostWebContents2 = e.sender
+    if(!view.webContents.isDestroyed()) view.webContents.hostWebContents2 = e.sender
     bvMap[`${panelKey}\t${tabKey}`] = view
     if(x !== void 0){
       ipcMain.emit('set-bound-browser-view', e, panelKey, tabKey, x, y, width, height, zIndex)
@@ -2621,14 +2626,21 @@ ipcMain.on('get-browser-window-from-web-contents', (e, tabId) =>{
 
 ipcMain.on('get-message-sender-info', (e,tabId) => {
   const contents = webContents.fromId(tabId)
+  if(!contents){
+    return e.returnValue = null
+  }
 
-  e.returnValue = contents ? {
+  const hostWebContents = contents.hostWebContents2
+  let window = hostWebContents && BrowserWindow.fromWebContents(hostWebContents)
+  if(!window) window = getCurrentWindow()
+
+  e.returnValue = {
     mutedInfo: {muted: contents.isAudioMuted()},
     status: contents.isLoading ? 'loading' : 'complete',
     title: contents.getTitle(),
     url: contents.getURL(),
-    windowId: contents.hostWebContents2 && BrowserWindow.fromWebContents(webContents.fromId(contents.hostWebContents2.id)).id
-  } : null
+    windowId: window.id
+  }
 })
 
 ipcMain.on('get-process-info', (e) => {
@@ -2667,7 +2679,7 @@ ipcMain.on('change-browser-view-z-index', (e, isFrame) =>{
 
 ipcMain.on('send-to-host', (e, ...args)=>{
   // console.log(`send-to-host_${e.sender.id}`,e.sender.hostWebContents2.getURL(), ...args)
-  e.sender.hostWebContents2.send(`send-to-host_${e.sender.id}`, ...args)
+  (e.sender.hostWebContents2 || e.sender.hostWebContents).send(`send-to-host_${e.sender.id}`, ...args)
 })
 
 ipcMain.on('get-visited-links', (e, key, urls) => {

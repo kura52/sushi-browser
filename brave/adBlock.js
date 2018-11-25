@@ -263,7 +263,7 @@ function registerForBeforeRequest (session) {
       return cb({
         responseHeaders: {
           ...details.responseHeaders,
-          "Access-Control-Allow-Origin": [`${extUrl.match(/^(chrome-extension:\/\/[^\/]+)/)[0]}`],
+          "Access-Control-Allow-Origin": [extUrl.match(/^(chrome-extension:\/\/[^\/]+)/)[0]],
           "Access-Control-Allow-Credentials":  ['true']
         }
       })
@@ -293,15 +293,10 @@ function registerForBeforeRequest (session) {
     // console.log(777,details)
     if(details.webContentsId && (extUrl = webContents.fromId(details.webContentsId).getURL()).startsWith('chrome-extension:')){
       // console.log(88366,details.requestHeaders)
-      const origin = extUrl.match(/^(chrome-extension:\/\/[^\/]+)/)[0]
-      if(details.requestHeaders.Origin) console.log(33, details.requestHeaders.Origin, extUrl.match(/^(chrome-extension:\/\/[^\/]+)/)[0])
-      if(details.requestHeaders.Origin && details.requestHeaders.Origin != origin){
-        details.requestHeaders.Origin = origin
-        details.requestHeaders.Vary =  'Accept-Encoding, Origin'
-      }
-
-      // details.requestHeaders.Origin = new URL(details.url).origin
-      // console.log(8866,details.requestHeaders)
+      details.requestHeaders.Origin = new URL(details.url).origin //extUrl.match(/^(chrome-extension:\/\/[^\/]+)/)[0]
+      // if(details.requestHeaders['Accept-Encoding']){
+      //   details.requestHeaders['Accept-Encoding'] = details.requestHeaders['Accept-Encoding'].split(", ").filter(x=>x != 'gzip').join(', ')
+      // }
       return cb({
         cancel: false, requestHeaders:details.requestHeaders
       })
