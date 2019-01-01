@@ -224,6 +224,7 @@ export default class InputPopup extends Component {
       ipc.send('change-browser-view-z-index', true)
       remote.getCurrentWebContents().focus()
       this.input.focus()
+      this.input.click()
       this.input.addEventListener('blur',()=>setTimeout(()=>this.props.parent.setState({inputPopup: null}),150), {once: true})
 
       const check = document.createElement('input')

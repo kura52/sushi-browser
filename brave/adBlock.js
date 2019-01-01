@@ -317,11 +317,27 @@ ipcMain.on('set-adblock-enable', async (event, datas) => {
   }
 })
 
+const passRec = new LRUCache(100)
+const passwordManager = require('../lib/passwordManagerMain')
+ipcMain.on('record-password', (e, {url, origin, time, id, password})=>{
+  passRec.set(e.sender.id, {url, origin, time, id, password})
+  console.log(6661, e.sender.id, time, url, id, password)
+})
 
 const startAdBlocking = (adblock, resourceName, shouldCheckMainFrame,ses=session.defaultSession) => {
   beforeRequestFilteringFns.push((details,mainFrameUrl) => {
     if(details.method == 'POST' && details.resourceType == 'mainFrame' && details.uploadData){
-      console.log(666,referers.get(details.referrer) && webContents.fromId(referers.get(details.referrer)).getURL(),details,details.uploadData[0].bytes.toString())
+      const tabId = referers.get(details.referrer)
+      // console.log(6662,tabId, referers.get(details.referrer) && webContents.fromId(referers.get(details.referrer)).getURL(),details.uploadData[0].bytes.toString())
+      const data = passRec.get(tabId)
+      if(data && Date.now() - data.time < 5000){
+        const cont = webContents.fromId(tabId)
+        if(cont.getURL() == data.url){
+          // console.log(6663,tabId, referers.get(details.referrer) && webContents.fromId(referers.get(details.referrer)).getURL(),details.uploadData[0].bytes.toString())
+          passRec.del(tabId)
+          passwordManager.savePassword(cont, data.id, data.origin, data.url, data.password)
+        }
+      }
     }
     if(!mainState.adBlockEnable || (tabs.has(details.webContentsId) && !tabs.get(details.webContentsId))){
       return {}

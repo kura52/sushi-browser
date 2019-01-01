@@ -1634,7 +1634,7 @@ function addDestroyedFunc(cont,tabId,sender,msg){
     destroyedMap.set(tabId,[[sender,msg]])
     cont.once('destroyed',_=>{
       for(let [sender,msg] of destroyedMap.get(tabId)){
-        sender.send(msg,'destroy')
+        if(!sender.isDestroyed()) sender.send(msg,'destroy')
       }
     })
   }
@@ -2367,7 +2367,7 @@ ipcMain.on('create-browser-view', (e, panelKey, tabKey, x, y, width, height, zIn
       allowFileAccessFromFileUrls: true,
       allowUniversalAccessFromFileUrls: true,
       preload: path.join(__dirname, '../resource/preload-content-scripts.js'),
-      webSecurity: false,
+      webSecurity: true,
       // nativeWindowOpen: true
     } })
   view.webContents.hostWebContents2 = e.sender
@@ -2526,7 +2526,7 @@ ipcMain.on('operation-overlap-component', (e, opType, panelKey) => {
           sandbox: true,
           preload: type == 'page-search' ? path.join(__dirname, '../page-search-preload.js') : void 0,
           allowFileAccessFromFileUrls: true,
-          allowUniversalAccessFromFileUrls: true
+          allowUniversalAccessFromFileUrls: true,
         } })
       view.setAutoResize({width: false, height: false})
       const seq = ++global.seqBv
@@ -2564,9 +2564,12 @@ ipcMain.on('set-overlap-component', async (e, type, panelKey, tabKey, x, y, widt
     const view = new BrowserView({ webPreferences: {
         nodeIntegration: false,
         sandbox: true,
-        preload: type == 'page-search' ? path.join(__dirname, '../page-search-preload.js') : void 0,
+        enableRemoteModule: false,
+        preload: type == 'extension-popup' ? path.join(__dirname, '../resource/preload-content-scripts.js') :
+          type == 'page-search' ? path.join(__dirname, '../page-search-preload.js') : void 0,
         allowFileAccessFromFileUrls: true,
-        allowUniversalAccessFromFileUrls: true
+        allowUniversalAccessFromFileUrls: true,
+        webSecurity: type != 'extension-popup',
       } })
     view.setAutoResize({width: false, height: false})
     const seq = ++global.seqBv
@@ -2617,6 +2620,25 @@ ipcMain.on('set-overlap-component', async (e, type, panelKey, tabKey, x, y, widt
       compMap[`${type}\t${panelKey}`] = [seq, view, false]
     }
   }
+  else if(type == 'extension-popup'){
+    const url = args[0]
+    if(y !== -1){
+      win.reorderBrowserView(seq, -1)
+      if(url){
+        view.webContents.hostWebContents2 = e.sender
+        view.webContents.loadURL(url)
+      }
+      view.setBounds({ x: Math.round(x), y:Math.round(y), width: Math.round(width), height: Math.round(height) })
+      compMap[`${type}\t${panelKey}`] = [seq, view, true]
+    }
+    else{
+      win.reorderBrowserView(seq, 0)
+      view.setBounds({ x: 0, y:0, width: 0, height: 0 })
+      compMap[`${type}\t${panelKey}`] = [seq, view, false]
+    }
+     e.returnValue = view.webContents.id
+  }
+
   wait = false
 })
 
@@ -2695,6 +2717,7 @@ ipcMain.on('page-search-event', (e, panelKey, tabKey, type, ...args) => {
     }
   }
 })
+
 // let dragPos = {}, noMove = false
 // ipcMain.on('drag-window', (e, pos) =>{
 //   if(pos.start) dragPos = pos

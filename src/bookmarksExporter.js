@@ -24,7 +24,8 @@ import {
   automation,
   automationOrder,
   note,
-  token
+  token,
+  crypto
 } from './databaseFork'
 import {settingDefault} from "../resource/defaultValue";
 const os = require('os')
@@ -129,13 +130,7 @@ ipcMain.on('export-setting', (e,exports) => {
           results.note = await note.find({})
         }
         else if(name == 'password'){
-          const password = await new Promise(r=>{
-            session.defaultSession.autofill.getAutofillableLogins(r)
-          })
-          results.password = password.map(x=>{
-            x.password = passCrypto.encrypt(x.password)
-            return x
-          })
+          results.password = await crypto.find({})
         }
       }
       fs.writeFileSync(fileName, JSON.stringify(results))

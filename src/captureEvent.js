@@ -94,10 +94,13 @@ ipcMain.on('take-capture', async (event,{id,url,loc,base64,tabId,tabIds}) => {
     captures[url] = true
   }
   if(tabIds){
-    const promises = []
+    const results = []
     for(let tabId of tabIds){
       const cont = webContents.fromId(tabId)
+      if(!cont || cont.isDestroyed()) continue
       const view = BrowserView.getAllViews().find(x=>x.webContents.id == cont.id)
+      if(!cont || cont.isDestroyed()) continue
+
       const win = BrowserWindow.fromWebContents(event.sender)
       const winId = win.id
       const viewId = view.id
@@ -107,16 +110,17 @@ ipcMain.on('take-capture', async (event,{id,url,loc,base64,tabId,tabIds}) => {
         global.viewCache[seq] = winId
         win.reorderBrowserView(seq, 0)
       }
-      if(!cont) continue
-      promises.push(new Promise(r=>{
+      results.push(await new Promise(r=>{
         cont.capturePage((imageBuffer)=>{
           r([tabId,imageBuffer,imageBuffer.getSize(), Math.random().toString(),imageBuffer.resize({width:100,quality: 'good'}).toJPEG(parseInt(mainState.tabPreviewQuality))])
         })
+        // setTimeout(()=>r(null),500)
       }))
     }
-    const results = await Promise.all(promises)
+    // const results = await Promise.all(promises)
     const reply = []
     for(let result of results){
+      if(!result) continue
       const prevImg = imgCache.get(result[0])
       if(prevImg && Buffer.compare(prevImg[4],result[4]) === 0){
         reply.push([result[0],true,result[2],prevImg[3]])

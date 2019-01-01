@@ -138,6 +138,8 @@
     "shelljs": "^0.7.7",
     "sortablejs": "^1.5.1",
     "sprintf-js": "^1.0.3",
+    "sqlite": "^3.0.0",
+    "sqlite3": "^4.0.4",
     "squire-rte": "^1.9.0",
     "string.prototype.endswith": "^0.2.0",
     "string.prototype.startswith": "^0.2.0",

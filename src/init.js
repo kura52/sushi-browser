@@ -208,7 +208,6 @@ app.on('ready', async ()=>{
 
   ptyProcessSet = require('./ptyProcess')
   // ptyProcessSet = new Set()
-  passwordManager = require('./passwordManagerMain')
   // require('./importer')
   require('./bookmarksExporter')
   const setting = await InitSetting.val
@@ -216,7 +215,7 @@ app.on('ready', async ()=>{
     console.log(332,process.argv,getUrlFromCommandLine(process.argv))
     await createWindow(true,isDarwin ? getNewWindowURL() : getUrlFromCommandLine(process.argv))
 
-    // httpsEverywhere = require('../brave/httpsEverywhere') @TODO ELECTRON
+    httpsEverywhere = require('../brave/httpsEverywhere') //@TODO ELECTRON
     // trackingProtection = require('../brave/trackingProtection') @TODO ELECTRON
 
 
@@ -589,16 +588,6 @@ ipcMain.on('web-contents-created', (e, tab) => {
 
     // const cont = win.webContents
     const key = Math.random().toString()
-
-    tab.on('save-password', (e, username, origin) => {
-      console.log('save-password', username, origin)
-      passwordManager.savePassword(tab, username, origin)
-    })
-
-    tab.on('update-password', (e, username, origin) => {
-      console.log('update-password', username, origin)
-      passwordManager.updatePassword(tab, username, origin)
-    })
 
     tab.on('media-started-playing', (e) => {
       mainState.mediaPlaying[tabId] = true
@@ -1605,14 +1594,15 @@ function contextMenu(webContents) {
               contextsPassed = true
             }
             else if (props.frameURL && (context === 'frame' || context === 'all')) {
-              info.frameURL = props.frameURL
+              info.frameUrl = props.frameURL
               contextsPassed = true
             }
           }
           // TODO (Anthony): Browser Action context menu
           if(!contextsPassed || properties.contexts[0] === 'browser_action') continue
 
-          if(props.srcURL) info.srcURL = props.srcURL
+          if(props.srcURL) info.srcUrl = props.srcURL
+          if(props.pageURL) info.pageUrl = props.pageURL
           info.menuItemId = menuItemId
 
           const item = {

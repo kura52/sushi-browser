@@ -1391,4 +1391,5 @@ a.zoom-change:hover,a.zoom-reset:hover{
 
 .ui.scrolling.dropdown .menu.browser-action{
     min-width: max-content !important;
+    overflow: hidden !important;
 }

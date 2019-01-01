@@ -179,6 +179,7 @@ module.exports.init = (verChange) => {
 
   const disableExtension = (extensionId) => {
     BrowserWindow.removeExtension(extensionId)
+    delete extInfos[extensionId]
 
     const wins = BrowserWindow.getAllWindows()
     if(!wins) return
