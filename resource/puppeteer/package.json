@@ -1,0 +1,145 @@
+{
+  "_args": [
+    [
+      "puppeteer",
+      "/home/kura52/RubymineProjects/puppeteerTest"
+    ]
+  ],
+  "_from": "puppeteer@latest",
+  "_hasShrinkwrap": false,
+  "_id": "puppeteer@1.11.0",
+  "_inCache": true,
+  "_installable": true,
+  "_location": "/puppeteer",
+  "_nodeVersion": "8.9.4",
+  "_npmOperationalInternal": {
+    "host": "s3://npm-registry-packages",
+    "tmp": "tmp/puppeteer_1.11.0_1543558493640_0.9654367467889984"
+  },
+  "_npmUser": {
+    "email": "aslushnikov@gmail.com",
+    "name": "aslushnikov"
+  },
+  "_npmVersion": "5.6.0",
+  "_phantomChildren": {},
+  "_requested": {
+    "name": "puppeteer",
+    "raw": "puppeteer",
+    "rawSpec": "",
+    "scope": null,
+    "spec": "latest",
+    "type": "tag"
+  },
+  "_requiredBy": [
+    "#DEV:/"
+  ],
+  "_resolved": "https://registry.npmjs.org/puppeteer/-/puppeteer-1.11.0.tgz",
+  "_shasum": "63cdbe12b07275cd6e0b94bce41f3fcb20305770",
+  "_shrinkwrap": null,
+  "_spec": "puppeteer",
+  "_where": "/home/kura52/RubymineProjects/puppeteerTest",
+  "author": {
+    "name": "The Chromium Authors"
+  },
+  "browser": {
+    "./lib/BrowserFetcher.js": false,
+    "./node6/lib/Puppeteer": false,
+    "child_process": false,
+    "fs": false,
+    "readline": false,
+    "rimraf": false,
+    "ws": "./utils/browser/WebSocket"
+  },
+  "bugs": {
+    "url": "https://github.com/GoogleChrome/puppeteer/issues"
+  },
+  "dependencies": {
+    "debug": "^4.1.0",
+    "extract-zip": "^1.6.6",
+    "https-proxy-agent": "^2.2.1",
+    "mime": "^2.0.3",
+    "progress": "^2.0.1",
+    "proxy-from-env": "^1.0.0",
+    "rimraf": "^2.6.1",
+    "ws": "^6.1.0"
+  },
+  "description": "A high-level API to control headless Chrome over the DevTools Protocol",
+  "devDependencies": {
+    "@types/debug": "0.0.31",
+    "@types/extract-zip": "^1.6.2",
+    "@types/mime": "^2.0.0",
+    "@types/node": "^8.10.34",
+    "@types/rimraf": "^2.0.2",
+    "@types/ws": "^6.0.1",
+    "commonmark": "^0.28.1",
+    "cross-env": "^5.0.5",
+    "eslint": "^5.9.0",
+    "esprima": "^4.0.0",
+    "jpeg-js": "^0.3.4",
+    "minimist": "^1.2.0",
+    "ncp": "^2.0.0",
+    "pixelmatch": "^4.0.2",
+    "pngjs": "^3.3.3",
+    "text-diff": "^1.0.1",
+    "typescript": "3.1.6"
+  },
+  "directories": {},
+  "dist": {
+    "fileCount": 57,
+    "integrity": "sha512-iG4iMOHixc2EpzqRV+pv7o3GgmU2dNYEMkvKwSaQO/vMZURakwSOn/EYJ6OIRFYOque1qorzIBvrytPIQB3YzQ==",
+    "npm-signature": "-----BEGIN PGP SIGNATURE-----\r\nVersion: OpenPGP.js v3.0.4\r\nComment: https://openpgpjs.org\r\n\r\nwsFcBAEBCAAQBQJcANVeCRA9TVsSAnZWagAADZAP/R6dx/6T3bpUhj6CUhXU\n7bi1pmTfcDOXjz03OEOPqMiot4Vkc/T6pNVjZaXDrLqOxYh3IyWN4K+xcdPr\nf78ReFRgoRGtiNIrQ5R8J+sJ09Vp99XOb+bp2Ib8RKXDU+cSvJz5PZoBavax\n5LNdZIkarCHPWXbZfTjUIoueH8O79uB1rsP6KpT9/5v/sStYvZ6X9ZxEcDr7\nEW6/5Bw7ktyleBzV2eFgnGAK/HK5lAfgHrKk+GvMquQOzBjfm0Yv3XGCnbaY\ncUvqu8jopdfCyv1mdr9/h4tYJqrsxfTZs6XfpjWCcMpKwTT7HIDtT1kJLndv\nYLOm/dd7XOHRuyxCqXtq3QRcICAQJSPV2lG5GJSiT6g8bzIt47q5BV+1IXzE\ntqIYzbmlm4d+XKxYAoSWzl9tg+TFySYkA0vLICuiAKcfdY1gzzS0OKrsFeea\ni53RwODSz5Hpw4+o9jguCRjOw7ppv7eUohlQaBobbJYJ+Mks/PAFTFiaEJVx\nMnJamY1lI31kNXHrDqPo87X38gTiteNWxsJoROiwtPdyggP45L9cl1sK4fhj\ncNFWhjLLy9s7kG5TzEXt+PkMXzzAtNri9App8ZKG3O6bgRC0ZRVjNvxOK+mD\nXAmEJdIevqdSvcei4PN9lurgQY4PWs8aw/+oCY3N3bPEL4oJUIZdFo6Vuoi1\nUFuT\r\n=+hym\r\n-----END PGP SIGNATURE-----\r\n",
+    "shasum": "63cdbe12b07275cd6e0b94bce41f3fcb20305770",
+    "tarball": "https://registry.npmjs.org/puppeteer/-/puppeteer-1.11.0.tgz",
+    "unpackedSize": 663303
+  },
+  "engines": {
+    "node": ">=6.4.0"
+  },
+  "gitHead": "00b15994a410ed2d77d22159287355e85df70580",
+  "homepage": "https://github.com/GoogleChrome/puppeteer#readme",
+  "license": "Apache-2.0",
+  "main": "index.js",
+  "maintainers": [
+    {
+      "name": "aslushnikov",
+      "email": "aslushnikov@gmail.com"
+    },
+    {
+      "name": "ebidel",
+      "email": "ebidel@gmail.com"
+    },
+    {
+      "name": "paulirish",
+      "email": "paul.irish@gmail.com"
+    }
+  ],
+  "name": "puppeteer",
+  "optionalDependencies": {},
+  "puppeteer": {
+    "chromium_revision": "609904"
+  },
+  "readme": "ERROR: No README data found!",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GoogleChrome/puppeteer.git"
+  },
+  "scripts": {
+    "apply-next-version": "node utils/apply_next_version.js",
+    "build": "node utils/node6-transform/index.js",
+    "bundle": "npx browserify -r ./index.js:puppeteer -o utils/browser/puppeteer-web.js",
+    "coverage": "cross-env COVERAGE=true npm run unit",
+    "debug-unit": "node --inspect-brk test/test.js",
+    "doc": "node utils/doclint/cli.js",
+    "install": "node install.js",
+    "lint": "([ \"$CI\" = true ] && eslint --quiet -f codeframe . || eslint .) && npm run tsc && npm run doc",
+    "prepublishOnly": "npm run build",
+    "test": "npm run lint --silent && npm run coverage && npm run test-doclint && npm run test-node6-transformer",
+    "test-doclint": "node utils/doclint/check_public_api/test/test.js && node utils/doclint/preprocessor/test.js",
+    "test-node6-transformer": "node utils/node6-transform/test/test.js",
+    "tsc": "tsc -p .",
+    "unit": "node test/test.js",
+    "unit-bundle": "node utils/browser/test.js",
+    "unit-node6": "node node6/test/test.js"
+  },
+  "version": "1.11.0"
+}

@@ -1,8 +1,9 @@
 window.debug = require('debug')('info')
 // require('debug').enable("info")
 import process from './process'
-const ipc = require('electron').ipcRenderer
+import {ipcRenderer as ipc} from './ipcRenderer'
 const uuid = require('node-uuid')
+import '../defaultExtension/contentscript'
 import { Terminal } from 'xterm';
 import * as fit from 'xterm/lib/addons/fit/fit'
 import * as webLinks from 'xterm/lib/addons/webLinks/webLinks'

@@ -60,12 +60,12 @@ export default class MainContent extends Component{
     // console.log('mousemove',e)
     if(document.getElementsByClassName('visible transition').length){
       ipc.send('change-browser-view-z-index', true)
-      if(this.menuVisible) clearInterval(this.menuVisible)
-      this.menuVisible = setInterval(_=>this.handleMouseMove(e, true),10)
+      // if(this.menuVisible) clearInterval(this.menuVisible)
+      // this.menuVisible = setInterval(_=>this.handleMouseMove(e, true),10)
     }
     else{
-      if(this.menuVisible) clearInterval(this.menuVisible)
-      this.menuVisible = void 0
+      // if(this.menuVisible) clearInterval(this.menuVisible)
+      // this.menuVisible = void 0
       ipc.send('change-browser-view-z-index', e.target.className !== 'browser-page' && !e.target.dataset.webview)
     }
     if(visibleRepeat) return
@@ -174,6 +174,10 @@ export default class MainContent extends Component{
     //   }
     // })
 
+    PubSub.subscribe('tab-moved',(msg, {tabId,fromIndex,toIndex,before})=>{
+      ipc.send('tab-moved', {tabId,fromIndex,toIndex,before})
+    })
+
     PubSub.subscribe('mouseleave-status-bar',()=>{
       console.log(4)
       this.moveStatusId = setTimeout(_=>{
@@ -265,9 +269,9 @@ export default class MainContent extends Component{
         case 27: //ESC
           if(remote.getCurrentWindow().isFullScreen()) ipc.send('toggle-fullscreen')
           break
-        case 123: //F12
-          ipc.send('menu-or-key-events','toggleDeveloperTools')
-          break
+        // case 123: //F12
+        //   ipc.send('menu-or-key-events','toggleDeveloperTools')
+        //   break
         case 107: //NUMPAD_PLUS
           if (isForSecondaryAction(e)) {
             ipc.send('menu-or-key-events','zoomIn')

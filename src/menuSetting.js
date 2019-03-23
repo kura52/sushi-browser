@@ -1,4 +1,4 @@
-const {app,Menu,shell,ipcMain,BrowserWindow,session,webContents,clipboard} = require('electron')
+const {app,Menu,shell,ipcMain,BrowserWindow,session,clipboard} = require('electron')
 const BrowserWindowPlus = require('./BrowserWindowPlus')
 const seq = require('./sequence')
 const locale = require('../brave/app/locale')

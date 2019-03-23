@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-const ipcRenderer = require('electron').ipcRenderer
+const ipcRenderer = require('../../src/toolPages/ipcRenderer').ipcRenderer
 const locale = require('../app/locale')
 const {LANGUAGE, REQUEST_LANGUAGE} = require('./constants/messages')
 
@@ -10,16 +10,17 @@ const {LANGUAGE, REQUEST_LANGUAGE} = require('./constants/messages')
 // for the currently selected language
 var rendererTranslationCache = {}
 
+
 // As for a translation for the current language
 exports.translation = (token) => {
   // If we are in the renderer process
   if (ipcRenderer) {
     // If the token does not exist in the renderer translations cache
-    if (!rendererTranslationCache[token]) {
-      // Ask for all translations from the main process and cache (this will happen once
-      // per renderer process)
-      rendererTranslationCache = ipcRenderer.sendSync('translations')
-    }
+    // if (!rendererTranslationCache[token]) {
+    //   // Ask for all translations from the main process and cache (this will happen once
+    //   // per renderer process)
+    //   rendererTranslationCache = ipcRenderer.sendSync('translations')
+    // }
     // Return the translation
     return rendererTranslationCache[token] || `[${token.toLowerCase()}]`
   } else {
@@ -34,4 +35,14 @@ exports.init = () => {
     document.getElementsByName('availableLanguages')[0].content = detail.languageCodes.join(', ')
   })
   ipcRenderer.send(REQUEST_LANGUAGE)
+
+  return new Promise(r=>{
+    const key = Math.random().toString()
+    ipcRenderer.send('translations', key)
+    ipcRenderer.once(`translations-reply_${key}`, (e, result) => {
+      rendererTranslationCache = result
+      r()
+    })
+  })
+
 }

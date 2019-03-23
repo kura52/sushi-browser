@@ -1,6 +1,7 @@
 import {getFocusedWebContents} from "./util";
 
-const {BrowserWindow, webContents,dialog,ipcMain,app,shell} = require('electron')
+const {BrowserWindow, dialog,ipcMain,app,shell} = require('electron')
+import {webContents} from './remoted-chrome/BrowserView'
 const _webContents = webContents
 import mainState from './mainState'
 const Aria2cWrapper = require('./Aria2cWrapper')
@@ -147,7 +148,7 @@ export default class Download {
     // ipcMain.on('need-set-save-filename',eventSetSaveFilename)
 
     const ses = win.webContents.session
-    ses.on('will-download', (event, item, webContents) => {
+    ses.on('will-download', async (event, item, webContents) => {
       if (!webContents || webContents.isDestroyed() || item.isDestroyed()) {
         event.preventDefault()
         return
@@ -187,10 +188,11 @@ export default class Download {
         return
       }
 
-      const cont = _webContents.getFocusedWebContents()
-      let focusedWebContent
-      if(cont && !cont.isDestroyed()) focusedWebContent = cont.session.partition || ""
-      const cond = focusedWebContent == void 0 ? true : focusedWebContent != 'persist:tor' && !focusedWebContent.match(/^[\d\.]+$/)
+      // const cont = await _webContents.getFocusedWebContents()
+      // let focusedWebContent
+      // if(cont && !cont.isDestroyed()) focusedWebContent = cont.session.partition || ""
+      // const cond = focusedWebContent == void 0 ? true : focusedWebContent != 'persist:tor' && !focusedWebContent.match(/^[\d\.]+$/)
+      const cond = false
       if(cond && !(retry.has(url) || url.startsWith('data:') || url.startsWith('blob:') || url.startsWith('chrome-extension:'))){
         console.log('cancel')
         item.destroy()

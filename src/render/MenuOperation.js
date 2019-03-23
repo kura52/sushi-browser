@@ -24,10 +24,14 @@ export default {
       ipc.send('toggle-fullscreen')
     }
     else{
-      if(win.isMaximized())
-        win.unmaximize()
-      else
-        win.maximize()
+      if(win.isMaximized()){
+        // win.unmaximize()
+        win.nativeWindow.showWindow(9)
+      }
+      else{
+        // win.maximize()
+        win.nativeWindow.showWindow(3)
+      }
     }
   },
   windowClose(){
@@ -49,7 +53,8 @@ export default {
       }
     }
     else if(win.isMaximized()){
-      win.unmaximize()
+      // win.unmaximize()
+      win.nativeWindow.showWindow(9)
     }
   }
 }

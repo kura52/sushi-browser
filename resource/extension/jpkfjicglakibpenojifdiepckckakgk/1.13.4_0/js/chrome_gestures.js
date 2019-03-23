@@ -5,7 +5,30 @@
 //    http://github.com/ArcCosine/userscript/raw/master/simple_guestures.user.js#
 // license http://0-oo.net/pryn/MIT_license.txt (The MIT license)
 
-(function () {
+// content scripts
+chrome.ipcRenderer = {
+  on: (channel, listener) => {
+    chrome.runtime.onMessage.addListener((message, sender) => {
+      if(!message.ipc || channel != message.channel) return
+
+      listener({}, ...message.args)
+    })
+  },
+  once: (channel, listener) => {
+    const handler = (message, sender) => {
+      if(!message.ipc || channel != message.channel) return
+
+      listener({}, ...message.args)
+      chrome.runtime.onMessage.removeListener(handler)
+    }
+    chrome.runtime.onMessage.addListener(handler)
+  },
+  send: (channel, ...args) => {
+    chrome.runtime.sendMessage({ipcToBg: true, channel, args})
+  }
+}
+
+;(function () {
   if (this.ChromeGesture) return;
 
   var isWin = navigator.userAgent.includes('Windows')
@@ -773,8 +796,10 @@
           }
           break;
         case "contextmenu":
+          console.log('showContext', showContext)
           if(showContext === false){
             e.preventDefault();
+            e.stopImmediatePropagation()
           }
           showContext = void 0
           break;

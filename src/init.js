@@ -1,4 +1,5 @@
-import { app, Menu, clipboard, BrowserWindow, BrowserView, ipcMain, session,webContents,shell,protocol } from 'electron'
+import {app, Menu, clipboard, BrowserWindow, ipcMain, session, shell, protocol, screen} from 'electron'
+import {Browser, BrowserView, webContents} from './remoted-chrome/BrowserView'
 // import ExtensionsMain from './extension/ExtensionsMain'
 import PubSub from './render/pubsub'
 import mainState from './mainState'
@@ -19,6 +20,7 @@ const LRUCache = require('lru-cache')
 import url from 'url'
 const {getUrlFromCommandLine,getNewWindowURL} = require('./cmdLine')
 import {getFocusedWebContents, getCurrentWindow} from './util'
+import robot from "robotjs";
 const open = require('./open')
 const sharedState = require('./sharedStateMain')
 const defaultConf = require('./defaultConf')
@@ -27,16 +29,6 @@ const tor = require('../brave/app/tor')
 require('./chromeEvents')
 let adblock,httpsEverywhere,trackingProtection,extensions,videoProcessList = []
 ipcMain.setMaxListeners(0)
-
-// const sqlite = require('sqlite')
-// const dbPromise = sqlite.open('C:\\Users\\kura5\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\History', { Promise });
-//
-// ;(async function(){
-//   const db = await dbPromise
-//   const history = await db.all('SELECT * FROM urls')
-//   console.log(history)
-// }())
-
 
 let extensionMenu = {}
 ipcMain.emit('get-extension-menu')
@@ -126,15 +118,18 @@ require('./basicAuth')
 setFlash(app)
 setWidevine(app)
 
+Browser.setUserDataDir(path.join(app.getPath('userData'), 'Chrome'))
+
 let ptyProcessSet,passwordManager,extensionInfos,syncReplaceName
 app.on('ready', async ()=>{
   // webFrame.registerURLSchemeAsBypassingCSP('chrome-extension')
-  const cookieFile = path.join(app.getPath('userData'), 'cookie.txt') //@TODO ELECTRON
-  if(fs.existsSync(cookieFile)){
-    for(let cookie of JSON.parse(fs.readFileSync(cookieFile))){
-      session.defaultSession.cookies.set({url:`https://${cookie.domain}`,...cookie},()=>{})
-    }
-  }
+
+  // const cookieFile = path.join(app.getPath('userData'), 'cookie.txt') //@TODO ELECTRON
+  // if(fs.existsSync(cookieFile)){
+  //   for(let cookie of JSON.parse(fs.readFileSync(cookieFile))){
+  //     session.defaultSession.cookies.set({url:`https://${cookie.domain}`,...cookie},()=>{})
+  //   }
+  // }
 
   // session.defaultSession.setPreloads([path.join(__dirname, '../resource/preload-content-scripts.js')])
 
@@ -208,7 +203,6 @@ app.on('ready', async ()=>{
 
   ptyProcessSet = require('./ptyProcess')
   // ptyProcessSet = new Set()
-  passwordManager = require('./passwordManagerMain')
   // require('./importer')
   require('./bookmarksExporter')
   const setting = await InitSetting.val
@@ -216,7 +210,7 @@ app.on('ready', async ()=>{
     console.log(332,process.argv,getUrlFromCommandLine(process.argv))
     await createWindow(true,isDarwin ? getNewWindowURL() : getUrlFromCommandLine(process.argv))
 
-    // httpsEverywhere = require('../brave/httpsEverywhere') @TODO ELECTRON
+    httpsEverywhere = require('../brave/httpsEverywhere') //@TODO ELECTRON
     // trackingProtection = require('../brave/trackingProtection') @TODO ELECTRON
 
 
@@ -383,29 +377,39 @@ ipcMain.on('chrome-extension-popup-id', (e,tabId)=>{
   popupCache.set(tabId,true)
 })
 
-app.on('web-contents-created', (e, tab) => {
-  ipcMain.emit('web-contents-created', e, tab)
-})
-
 ipcMain.on('web-contents-created', (e, tab) => {
   contextMenu(tab)
   const webContents2 = webContents
 
-  // let contMap = new Map()
-  // tab.on('-web-contents-created', (event, webContents, url, frameName) => {
-  //   console.log('-web-contents-created', webContents.getURL(), url)
-  // })
-
   tab.on('-add-new-contents', (event, webContents, disposition, userGesture, left, top, width, height, url, frameName) => {
     console.log('-add-new-contents', webContents.getURL(), url)
-    if(!webContents.isDestroyed()) webContents.destroy()
+    if(disposition == 'new-window' || disposition === 'new-popup'){
+      // let bw
+      // if((bw = BrowserWindow.getAllWindows().find(win=>win.webContents.getURL() == url))){
+      //   event.newGuest = bw
+      // }
+      // else{
+      event.newGuest = new BrowserWindow({
+        webContents,
+        autoHideMenuBar: true,
+        parent: BrowserWindow.fromWebContents(tab.hostWebContents2)
+      })
+      // }
+      return
+    }
     // const url = contMap.get(webContents)
     // contMap.delete(webContents)
-    tab.emit('new-window', null, url, null, disposition)
+    tab.emit('new-window', event, url, null, disposition, null, null, null, webContents)
   })
 
-  tab.on('new-window', async (event, targetUrl, frameName, disposition, options, features, referrer) => {
+  tab.on('new-window', async (event, targetUrl, frameName, disposition, options, features, referrer, _webContents) => {
     console.log('new-window', targetUrl, frameName, disposition)
+    // let bw
+    // if((bw = BrowserWindow.getAllWindows().find(win=>win.webContents.getURL() == targetUrl))){
+    //   console.log('bwww', bw.webContents.getURL(),bw,)
+    //   event.newGuest = bw
+    //   return
+    // }
 
     let source = tab
     if(popupCache.get(source.id)) source = await getFocusedWebContents()
@@ -413,21 +417,26 @@ ipcMain.on('web-contents-created', (e, tab) => {
     if(mainState.alwaysOpenLinkBackground) disposition = 'background-tab'
 
     console.log(disposition)
-    if ((disposition === 'new-window' || disposition === 'new-popup') && mainState.generalWindowOpenLabel == 'linkTargetWindow') {
-      const currentWindow = getCurrentWindow()
-      ipcMain.once('get-private-reply',(e,privateMode)=>{
-        BrowserWindowPlus.load({id:currentWindow.id,x:size.x,y:size.y,width:size.width,height:size.height,disposition,
-          tabParam:JSON.stringify([{privateMode}])})
-      })
-      // currentWindow.webContents.send('get-private', source.id) //@TODO ELECTRON
 
-    }
+    // if ((disposition === 'new-window' || disposition === 'new-popup') && mainState.generalWindowOpenLabel == 'linkTargetWindow') {
+    //   const currentWindow = getCurrentWindow()
+    //   ipcMain.once('get-private-reply',(e,privateMode)=>{
+    //     BrowserWindowPlus.load({id:currentWindow.id,disposition,
+    //       tabParam:JSON.stringify([{privateMode}])})
+    //   })
+    //   currentWindow.webContents.send('get-private', source.id) //@TODO ELECTRON
+    //   return
+    // }
+
+    ipcMain.emit('create-browser-view',{sender: source.hostWebContents2}, void 0, void 0,
+      0, 0, 0, 0, 0, void 0, _webContents)
+
     const id = source.id
-    const func = (e, newTabId, tabIds)=>{
+    const func = (e, newTabId, panelKey, tabKey, tabIds)=>{
       console.log('create-web-contents-reply',[id,newTabId], tabIds)
       if(tabIds.includes(id)){
+        const cont = webContents.fromId(newTabId)
         ipcMain.emit('set-tab-opener', null, newTabId, id)
-        const cont = webContents.fromId((newTabId))
         cont.hostWebContents2.send('tab-create', {id: newTabId, url: cont.getURL(), openerTabId: id})
 
         ipcMain.emit('chrome-webNavigation-onCreatedNavigationTarget',null,{
@@ -443,7 +452,8 @@ ipcMain.on('web-contents-created', (e, tab) => {
       }
     }
     ipcMain.on('create-web-contents-reply',func)
-    if(source.hostWebContents2) source.hostWebContents2.send('create-web-contents', { id, targetUrl, disposition})
+    if(source.hostWebContents2)
+      source.hostWebContents2.send('create-web-contents', { id, targetUrl, disposition, guestInstanceId: _webContents && _webContents.id})
   })
 
   // tab.on('will-attach-webview',(e, cont)=>{
@@ -564,16 +574,6 @@ ipcMain.on('web-contents-created', (e, tab) => {
 
     // const cont = win.webContents
     const key = Math.random().toString()
-
-    tab.on('save-password', (e, username, origin) => {
-      console.log('save-password', username, origin)
-      passwordManager.savePassword(tab, username, origin)
-    })
-
-    tab.on('update-password', (e, username, origin) => {
-      console.log('update-password', username, origin)
-      passwordManager.updatePassword(tab, username, origin)
-    })
 
     tab.on('media-started-playing', (e) => {
       mainState.mediaPlaying[tabId] = true
@@ -834,9 +834,7 @@ function setWidevine(app){
 }
 
 function createWindow (first,url) {
-  const initWindow = BrowserWindowPlus.load
-  ((void 0),first,url)
-  return initWindow
+  return BrowserWindowPlus.load((void 0),first,url)
 }
 
 ipcMain.on('init-private-mode',(e,key,partition)=>{
@@ -1036,8 +1034,7 @@ async function startDownloadSelector(win,webContents,props,selection){
   win.webContents.send('new-tab', webContents.id, url)
 }
 
-const webContents2 = webContents
-function contextMenu(webContents) {
+async function contextMenu(webContents, props) {
   console.log('contextttt',webContents.getURL())
 
   const baseSet = new Set([locale.translation('copyLinkAddress'),
@@ -1047,663 +1044,679 @@ function contextMenu(webContents) {
     locale.translation("cut"),
     locale.translation("paste")])
 
-  webContents.on('context-menu', async (e, props) => {
-    console.log(props.pageURL)
-    const disableContextMenus = new Set(mainState.disableContextMenus)
+  console.log(props.pageURL)
+  const disableContextMenus = new Set(mainState.disableContextMenus)
 
-    // if(mainState.rectSelection){
-    let rectSelectText
-    if(mainState.rectSelection && mainState.rectSelection[0].id == webContents.id){
-      props.selectionText = mainState.rectSelection[1]
-      rectSelectText = props.selectionText
-    }
+  // if(mainState.rectSelection){
+  let rectSelectText
+  if(mainState.rectSelection && mainState.rectSelection[0].id == webContents.id){
+    props.selectionText = mainState.rectSelection[1]
+    rectSelectText = props.selectionText
+  }
 
-    let menuItems = []
-    const {mediaFlags, editFlags} = props
-    const text = props.selectionText.trim()
-    const hasText = text.length > 0
-    const can = type => editFlags[`can${type}`] && hasText
+  let menuItems = []
+  const {mediaFlags, editFlags} = props
+  const text = props.selectionText.trim()
+  const hasText = text.length > 0
+  const can = type => editFlags[`can${type}`] && hasText
 
-    const downloadPrompt = (item, win) => {
-      ipcMain.emit('need-set-save-filename',null,props.srcURL)
-      win.webContents.downloadURL(props.srcURL,true)
-    }
+  const downloadPrompt = (item, win) => {
+    ipcMain.emit('need-set-save-filename',null,props.srcURL)
+    win.webContents.downloadURL(props.srcURL,true)
+  }
 
-    const targetWindow = BrowserWindow.fromWebContents(webContents.hostWebContents2 || webContents)
-    if (!targetWindow) return
+  const targetWindow = BrowserWindow.fromWebContents(webContents.hostWebContents2 || webContents)
+  if (!targetWindow) return
 
-    const isIndex = props.pageURL.match(/^chrome:\/\/brave.+?\/index.html/)
-    console.log(props.pageURL)
-    // const sidebar = props.pageURL.match(/^chrome\-extension:\/\/.+?_sidebar.html/)
-    // if (isIndex && !favoriteMenu && !savedStateMenu) return
+  const isIndex = props.pageURL.match(/^chrome:\/\/brave.+?\/index.html/)
+  console.log(props.pageURL)
+  // const sidebar = props.pageURL.match(/^chrome\-extension:\/\/.+?_sidebar.html/)
+  // if (isIndex && !favoriteMenu && !savedStateMenu) return
 
-    if(favoriteMenu){
-      const favMenu = favoriteMenu
-      if(!favMenu.isNote){
-        menuItems.push({label: locale.translation('openInNewTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewTab')}})
-        menuItems.push({label: locale.translation('openInNewPrivateTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewPrivateTab')}})
-        menuItems.push({t: 'openLinkInNewTorTab', label: locale.translation('openLinkInNewTorTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewTorTab')}})
-        menuItems.push({label: locale.translation('openInNewSessionTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewSessionTab')}})
-        menuItems.push({label: locale.translation('openInNewWindow'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindow')}})
-        menuItems.push({t: 'openLinkInNewWindowWithARow', label: locale.translation('openLinkInNewWindowWithARow'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindowWithOneRow')}})
-        menuItems.push({t: 'openLinkInNewWindowWithTwoRows', label: locale.translation('openLinkInNewWindowWithTwoRows'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindowWithTwoRow')}})
-        menuItems.push({type: 'separator'})
-      }
-      if(!favMenu.isFile){
-        menuItems.push({label: locale.translation('9065203028668620118'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'edit')}})
-        menuItems.push({type: 'separator'})
-      }
-
-      menuItems.push({label: locale.translation('copy'),click: (item,win)=>{clipboard.writeText(favMenu.path.join(os.EOL))}})
-      menuItems.push({label: locale.translation('delete'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'delete')}})
+  if(favoriteMenu){
+    const favMenu = favoriteMenu
+    if(!favMenu.isNote){
+      menuItems.push({label: locale.translation('openInNewTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewTab')}})
+      menuItems.push({label: locale.translation('openInNewPrivateTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewPrivateTab')}})
+      menuItems.push({t: 'openLinkInNewTorTab', label: locale.translation('openLinkInNewTorTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewTorTab')}})
+      menuItems.push({label: locale.translation('openInNewSessionTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewSessionTab')}})
+      menuItems.push({label: locale.translation('openInNewWindow'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindow')}})
+      menuItems.push({t: 'openLinkInNewWindowWithARow', label: locale.translation('openLinkInNewWindowWithARow'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindowWithOneRow')}})
+      menuItems.push({t: 'openLinkInNewWindowWithTwoRows', label: locale.translation('openLinkInNewWindowWithTwoRows'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindowWithTwoRow')}})
       menuItems.push({type: 'separator'})
-
-      menuItems.push({label: locale.translation(favMenu.isNote ? '7791543448312431591' : 'addBookmark'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'addBookmark')}})
-      menuItems.push({label: locale.translation('addFolder'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'addFolder')}})
-
-      var menu = Menu.buildFromTemplate(menuItems)
-      menu.popup(targetWindow)
-      return
     }
-    else if(downloadMenu){
-      const downMenu = downloadMenu
-      const {item} = downloadMenu
-      if(item.description === void 0){
-        for(let name of ['Start','Pause','Cancel Download','Remove Row','Show Folder','Open File','Copy File Path','Copy URL']){
-          if(name == 'Start' && (item.state == "completed" || (item.state == "progressing" && !item.isPaused))) continue
-          if(name == 'Pause' && !(item.state == "progressing" && !item.isPaused)) continue
-          if(name == 'Cancel Download' && !(item.state != "completed" && item.state != "cancelled")) continue
-          if(name == 'Open File' && item.state == "cancelled") continue
-          menuItems.push({label: name,click: (item,win)=>{downMenu.sender.send('download-menu-reply',name)}})
-        }
-      }
-      else{
-        const name = 'Copy URL'
+    if(!favMenu.isFile){
+      menuItems.push({label: locale.translation('9065203028668620118'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'edit')}})
+      menuItems.push({type: 'separator'})
+    }
+
+    menuItems.push({label: locale.translation('copy'),click: (item,win)=>{clipboard.writeText(favMenu.path.join(os.EOL))}})
+    menuItems.push({label: locale.translation('delete'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'delete')}})
+    menuItems.push({type: 'separator'})
+
+    menuItems.push({label: locale.translation(favMenu.isNote ? '7791543448312431591' : 'addBookmark'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'addBookmark')}})
+    menuItems.push({label: locale.translation('addFolder'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'addFolder')}})
+
+    var menu = Menu.buildFromTemplate(menuItems)
+    menu.popup(targetWindow)
+    return
+  }
+  else if(downloadMenu){
+    const downMenu = downloadMenu
+    const {item} = downloadMenu
+    if(item.description === void 0){
+      for(let name of ['Start','Pause','Cancel Download','Remove Row','Show Folder','Open File','Copy File Path','Copy URL']){
+        if(name == 'Start' && (item.state == "completed" || (item.state == "progressing" && !item.isPaused))) continue
+        if(name == 'Pause' && !(item.state == "progressing" && !item.isPaused)) continue
+        if(name == 'Cancel Download' && !(item.state != "completed" && item.state != "cancelled")) continue
+        if(name == 'Open File' && item.state == "cancelled") continue
         menuItems.push({label: name,click: (item,win)=>{downMenu.sender.send('download-menu-reply',name)}})
       }
-      var menu = Menu.buildFromTemplate(menuItems)
-      menu.popup(targetWindow)
-      return
     }
-    else if(savedStateMenu){
-      const saveMenu = savedStateMenu
-      if(saveMenu.type == 'item' || saveMenu.type == 'directory'){
-        menuItems.push({label: locale.translation('openInNewWindow'),click: (item,win)=>{saveMenu.sender.send(`savedState-menu-reply`,'openInNewWindow')}})
-        if(saveMenu.type == 'directory'){
-          menuItems.push({label: locale.translation('9065203028668620118'),click: (item,win)=>{saveMenu.sender.send(`savedState-menu-reply`,'edit')}})
-          menuItems.push({label: locale.translation('delete'),click: (item,win)=>{saveMenu.sender.send(`savedState-menu-reply`,'delete')}})
-        }
-      }
-      else if(saveMenu.type == 'category'){
+    else{
+      const name = 'Copy URL'
+      menuItems.push({label: name,click: (item,win)=>{downMenu.sender.send('download-menu-reply',name)}})
+    }
+    var menu = Menu.buildFromTemplate(menuItems)
+    menu.popup(targetWindow)
+    return
+  }
+  else if(savedStateMenu){
+    const saveMenu = savedStateMenu
+    if(saveMenu.type == 'item' || saveMenu.type == 'directory'){
+      menuItems.push({label: locale.translation('openInNewWindow'),click: (item,win)=>{saveMenu.sender.send(`savedState-menu-reply`,'openInNewWindow')}})
+      if(saveMenu.type == 'directory'){
+        menuItems.push({label: locale.translation('9065203028668620118'),click: (item,win)=>{saveMenu.sender.send(`savedState-menu-reply`,'edit')}})
         menuItems.push({label: locale.translation('delete'),click: (item,win)=>{saveMenu.sender.send(`savedState-menu-reply`,'delete')}})
       }
-
-      if(menuItems.length){
-        const menu = Menu.buildFromTemplate(menuItems)
-        menu.popup(targetWindow)
-      }
-      return
     }
-    else if(explorerMenu){
-      const expMenu = explorerMenu
-      menuItems.push({t: 'copyPath', label: locale.translation('copyPath'),click: (item,win)=>{clipboard.writeText(expMenu.path.join(os.EOL))}})
-      menuItems.push({t: 'createNewFile', label: locale.translation('createNewFile'),click: (item,win)=>{expMenu.sender.send(`explorer-menu-reply`,'create-file')}})
-      menuItems.push({t: 'createNewDirectory', label: locale.translation('createNewDirectory'),click: (item,win)=>{expMenu.sender.send(`explorer-menu-reply`,'create-dirctory')}})
-      menuItems.push({t: 'rename', label: locale.translation('rename'),click: (item,win)=>{expMenu.sender.send(`explorer-menu-reply`,'rename')}})
-      menuItems.push({t: 'delete', label: locale.translation('delete'),click: (item,win)=>{expMenu.sender.send(`explorer-menu-reply`,'delete')}})
-      menuItems.push({type: 'separator'})
+    else if(saveMenu.type == 'category'){
+      menuItems.push({label: locale.translation('delete'),click: (item,win)=>{saveMenu.sender.send(`savedState-menu-reply`,'delete')}})
     }
 
-
-    const isLink = props.linkURL && props.linkURL !== ''
-    const isImage = props.mediaType === 'image'
-    const isVideo = props.mediaType === 'video'
-    const isAudio = props.mediaType === 'audio'
-    const isInputField = props.isEditable || props.inputFieldType !== 'none'
-    const isTextSelected = props.selectionText && props.selectionText.length > 0
-
-    const isNoAction = !(isTextSelected || isInputField || props.mediaType != 'none' || props.linkURL)
-
-    if(isNoAction){
-      menuItems.push({t: 'back', label: locale.translation('back'),enabled:webContents.canGoBack(),  click: (item, win)=>win.webContents.send('go-navigate', webContents.id, 'back')})
-      menuItems.push({t: 'forward', label: locale.translation('forward'),enabled: webContents.canGoForward(), click: (item, win)=>win.webContents.send('go-navigate', webContents.id, 'forward')})
-      menuItems.push({t: 'reload', label: locale.translation('reload'),enabled: !webContents.isLoading(), click: (item, win)=>win.webContents.send('go-navigate', webContents.id, 'reload')})
-      menuItems.push({type: 'separator'})
+    if(menuItems.length){
+      const menu = Menu.buildFromTemplate(menuItems)
+      menu.popup(targetWindow)
     }
+    return
+  }
+  else if(explorerMenu){
+    const expMenu = explorerMenu
+    menuItems.push({t: 'copyPath', label: locale.translation('copyPath'),click: (item,win)=>{clipboard.writeText(expMenu.path.join(os.EOL))}})
+    menuItems.push({t: 'createNewFile', label: locale.translation('createNewFile'),click: (item,win)=>{expMenu.sender.send(`explorer-menu-reply`,'create-file')}})
+    menuItems.push({t: 'createNewDirectory', label: locale.translation('createNewDirectory'),click: (item,win)=>{expMenu.sender.send(`explorer-menu-reply`,'create-dirctory')}})
+    menuItems.push({t: 'rename', label: locale.translation('rename'),click: (item,win)=>{expMenu.sender.send(`explorer-menu-reply`,'rename')}})
+    menuItems.push({t: 'delete', label: locale.translation('delete'),click: (item,win)=>{expMenu.sender.send(`explorer-menu-reply`,'delete')}})
+    menuItems.push({type: 'separator'})
+  }
 
-    // helper to call code on the element under the cursor
-    const callOnElement = js => {
-      webContents.executeJavaScript(
-        `var el = document.elementFromPoint(${props.x}, ${props.y})
+
+  const isLink = props.linkURL && props.linkURL !== ''
+  const isImage = props.mediaType === 'image'
+  const isVideo = props.mediaType === 'video'
+  const isAudio = props.mediaType === 'audio'
+  const isInputField = props.isEditable || props.inputFieldType !== 'none'
+  const isTextSelected = props.selectionText && props.selectionText.length > 0
+
+  const isNoAction = !(isTextSelected || isInputField || props.mediaType != 'none' || props.linkURL)
+
+  if(isNoAction){
+    menuItems.push({t: 'back', label: locale.translation('back'),enabled:webContents.canGoBack(),  click: (item, win)=>win.webContents.send('go-navigate', webContents.id, 'back')})
+    menuItems.push({t: 'forward', label: locale.translation('forward'),enabled: webContents.canGoForward(), click: (item, win)=>win.webContents.send('go-navigate', webContents.id, 'forward')})
+    menuItems.push({t: 'reload', label: locale.translation('reload'),enabled: !webContents.isLoading(), click: (item, win)=>win.webContents.send('go-navigate', webContents.id, 'reload')})
+    menuItems.push({type: 'separator'})
+  }
+
+  // helper to call code on the element under the cursor
+  const callOnElement = js => {
+    webContents.executeJavaScript(
+      `var el = document.elementFromPoint(${props.x}, ${props.y})
           ${js}`
-      )
-    }
+    )
+  }
 
-    // links
-    if (props.linkURL) {
-      menuItems.push({
-        t: 'openInNewTab', label: locale.translation('openInNewTab'), click: (item, win) => {
-          win.webContents.send('new-tab', webContents.id, props.linkURL)
-        }
-      })
-      menuItems.push({
-        t: 'openLinkInOppositeTab', label: locale.translation('openLinkInOppositeTab'), click: (item, win) => {
-          win.webContents.send('new-tab-opposite', webContents.id, props.linkURL)
-        }
-      })
-      menuItems.push({
-        t: 'openInNewPrivateTab', label: locale.translation('openInNewPrivateTab'), click: (item, win) => {
-          win.webContents.send('new-tab', webContents.id, props.linkURL,`${seq(true)}`)
-        }
-      })
-      menuItems.push({
-        t: 'openLinkInNewTorTab', label: locale.translation('openLinkInNewTorTab'), click: (item, win) => {
-          win.webContents.send('new-tab', webContents.id, props.linkURL,'persist:tor')
-        }
-      })
-      menuItems.push({
-        t: 'openInNewSessionTab', label: locale.translation('openInNewSessionTab'), click: (item, win) => {
-          win.webContents.send('new-tab', webContents.id, props.linkURL,`persist:${seq()}`)
-        }
-      })
-      menuItems.push({
-        t: 'openInNewWindow', label: locale.translation('openInNewWindow'), click: (item, win) => {
-          ipcMain.once('get-private-reply',(e,privateMode)=>{
-            BrowserWindowPlus.load({id:win.id,sameSize:true,tabParam:JSON.stringify({urls:[{url:props.linkURL,privateMode}],type:'new-win'})})
-          })
-          win.webContents.send('get-private', webContents.id)
-        }
-      })
-      menuItems.push({type: 'separator'})
-    }
-
-    if (props.linkURL) {
-      const isVideoURL = props.linkURL.split("?").slice(-2)[0].match(/\.(3gp|3gpp|3gpp2|asf|avi|dv|flv|m2t|m4v|mkv|mov|mp4|mpeg|mpg|mts|oggtheora|ogv|rm|ts|vob|webm|wmv|aac|m4a|mp3|oga|wav)$/)
-
-      menuItems.push({
-        t: '5317780077021120954', label: locale.translation('5317780077021120954'), click: (item, win) => {
-          ipcMain.emit('noneed-set-save-filename',null,props.linkURL)
-          win.webContents.downloadURL(props.linkURL,true)
-        }
-      })
-      menuItems.push({
-        t: 'saveLinkAs', label: locale.translation('saveLinkAs'), click: (item, win) => {
-          ipcMain.emit('need-set-save-filename',null,props.linkURL)
-          console.log("Save Link",props.linkURL)
-          win.webContents.downloadURL(props.linkURL,true)
-        }
-      })
-
-      menuItems.push({t: 'copyLinkAddress', label: locale.translation('copyLinkAddress'), click: () => clipboard.writeText(props.linkURL)})
-      if(props.mediaType === 'none'){
-        menuItems.push({t: '1047431265488717055', label: locale.translation('1047431265488717055'), click: () => clipboard.writeText(props.linkText)})
-      }
-
-      if(isVideoURL){
-        menuItems.push({t: 'saveAndPlayVideo', label: locale.translation('saveAndPlayVideo'), click: (item, win) => ipcMain.emit('save-and-play-video',null,props.linkURL,win)})
-        if(!disableContextMenus.has('Send URL to Video Player')) menuItems.push({label: `Send URL to ${players.find(x=>x.value == mainState.sendToVideo).text}`, click: () => videoProcessList.push(open(mainState.sendToVideo,props.linkURL))})
-      }
-      menuItems.push({type: 'separator'})
-      if(!hasText && props.mediaType === 'none'){
-        for(let send of mainState.sendUrlContextMenus){
-          if(!send.enable) continue
-          let handleClick
-          if(send.type == 'new' || send.type == 'opposite'){
-            handleClick = (item, win) => win.webContents.send(send.type == 'new' ? 'new-tab' : 'new-tab-opposite',
-              webContents.id, send.sendTo.replace("%s",props.linkURL))
-          }
-          else if(send.type == 'command' || send.type == 'terminal'){
-            const escape = (s)=> '"'+s.replace(/(["\t\n\r\f'$`\\])/g,'\\$1')+'"'
-            const command = send.sendTo.replace("%s",escape(props.linkURL))
-            if(send.type == 'command'){
-              handleClick = (item, win) => open(command, void 0, void 0, void 0, true)
-            }
-            else{
-              ipcMain.once('start-pty-reply', (e, key) => {
-                ipcMain.emit(`send-pty_${key}`, null, `${command}\n`)
-              })
-              handleClick = (item, win) => win.webContents.send('new-tab', webContents.id, 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html')
-            }
-          }
-
-
-          menuItems.push({
-            label: `Send URL to ${send.name}`,
-            click: handleClick
-          })
-        }
-
-        const type = mainState.searchProviders[mainState.searchEngine].type
-        for(let suffix of type ? [''] : mainState.searchEngineDisplayType == 'c' ? ['(c)'] :
-          mainState.searchEngineDisplayType == 'o' ? ['(o)'] : mainState.oppositeGlobal ? ['(o)','(c)'] : ['(c)','(o)']){
-          menuItems.push({
-            t: 'openSearch', label: locale.translation('openSearch').replace(/{{\s*selectedVariable\s*}}/, props.linkText.length > 20 ? `${props.linkText.substr(0, 20)}...` : props.linkText) + suffix,
-            click: (item, win) =>  win.webContents.send('search-text', webContents.id, props.linkText,suffix == '(o)')
-          })
-        }
-      }
-    }
-
-    // images
-    if (isImage) {
-      menuItems.push({
-        t: 'openImageInNewTab', label: locale.translation('openImageInNewTab'), click: (item, win) => {
-          win.webContents.send('new-tab', webContents.id, props.srcURL)
-        }
-      })
-      menuItems.push({t: 'saveImage', label: locale.translation('saveImage'), click: downloadPrompt})
-      menuItems.push({t: 'copyImage', label: locale.translation('copyImage'), click: () => webContents.copyImageAt(props.x, props.y)})
-      menuItems.push({t: 'copyImageAddress', label: locale.translation('copyImageAddress'), click: () => clipboard.writeText(props.srcURL)})
-      menuItems.push({type: 'separator'})
-    }
-
-    // videos and audios
-    if (isVideo || isAudio) {
-      menuItems.push({
-        t: '994289308992179865', label: locale.translation('994289308992179865'), //'Loop'
-        type: 'checkbox',
-        checked: mediaFlags.isLooping,
-        click: () => callOnElement('el.loop = !el.loop')
-      })
-      if (mediaFlags.hasAudio){
-        if(!disableContextMenus.has('Muted')) menuItems.push({
-          label: 'Muted',
-          type: 'checkbox',
-          checked: mediaFlags.isMuted,
-          click: () => callOnElement('el.muted = !el.muted')
-        })
-      }
-      if (mediaFlags.canToggleControls){
-        menuItems.push({
-          t: '1725149567830788547', label: locale.translation('1725149567830788547'), //'Show Controls'
-          type: 'checkbox',
-          checked: mediaFlags.isControlsVisible,
-          click: () => callOnElement('el.controls = !el.controls')
-        })
-      }
-      menuItems.push({type: 'separator'})
-    }
-
-    // videos
-    if (isVideo) {
-      menuItems.push({
-        t: 'playVideoInPopupWindow', label: locale.translation('playVideoInPopupWindow'),
-        click: (item, win) => win.webContents.send('pin-video', webContents.id, true)
-      })
-      menuItems.push({
-        t: 'playVideoInFloatingPanel', label: locale.translation('playVideoInFloatingPanel'),
-        click: (item, win) => win.webContents.send('pin-video', webContents.id)
-      })
-      menuItems.push({type: 'separator'})
-      menuItems.push({
-        t: '4643612240819915418', label:  locale.translation('4643612240819915418'), //'Open Video in New Tab',
-        click: (item, win) => win.webContents.send('new-tab', webContents.id, props.srcURL)
-      })
-      menuItems.push({t: '4256316378292851214', label: locale.translation('4256316378292851214'), //'Save Video As...',
-        click: downloadPrompt})
-      menuItems.push({t: '782057141565633384', label: locale.translation('782057141565633384'), //'Copy Video URL',
-        click: () => clipboard.writeText(props.srcURL)})
-
-      menuItems.push({t: 'saveAndPlayVideo', label: locale.translation('saveAndPlayVideo'), click: (item, win) => ipcMain.emit('save-and-play-video',null,props.srcURL,win)})
-
-      const player = players.find(x=>x.value == mainState.sendToVideo)
-      if(player) menuItems.push({t: 'Send URL to Video Player', label: `${locale.translation('sendURL')} to ${player.text}`, click: () => videoProcessList.push(open(mainState.sendToVideo,props.srcURL))})
-      menuItems.push({type: 'separator'})
-    }
-
-    // audios
-    if (isAudio) {
-      menuItems.push({
-        t: '2019718679933488176', label: locale.translation('2019718679933488176'), //'Open Audio in New Tab',
-        click: (item, win) => win.webContents.send('new-tab', webContents.id, props.srcURL)
-      })
-      menuItems.push({t: '5116628073786783676', label: locale.translation('5116628073786783676'), //'Save Audio As...',
-        click: downloadPrompt})
-      menuItems.push({t: '1465176863081977902', label: locale.translation('1465176863081977902'), //'Copy Audio URL',
-        click: () => clipboard.writeText(props.srcURL)})
-      menuItems.push({type: 'separator'})
-    }
-
-    // clipboard
-    if (props.isEditable) {
-      menuItems.push({t: 'cut', label: locale.translation("cut"), role: 'cut', enabled: can('Cut')})
-      if (isDarwin) {
-        menuItems.push({t: 'copy', label: locale.translation("copy"), enabled: can('Copy'),
-          click(item, focusedWindow) { getFocusedWebContents().then(cont =>cont && cont.copy())}
-        })
-      }
-      else{
-        menuItems.push({t: 'copy', label: locale.translation("copy"), role: 'copy', enabled: can('Copy')})
-      }
-      menuItems.push({t: 'paste', label: locale.translation("paste"), role: 'paste', enabled: editFlags.canPaste})
-      menuItems.push({type: 'separator'})
-    }
-    else if (hasText) {
-      // if (isDarwin) {
-      //   menuItems.push({t: 'copy', label: locale.translation("copy"), enabled: can('Copy'),
-      //     click(item, focusedWindow) { getFocusedWebContents().then(cont =>cont && cont.copy())}
-      //   })
-      // }
-      // else{
-      if(mainState.rectSelection){
-        menuItems.push({t: 'copy', label: locale.translation("copy"), click(item, focusedWindow){
-            clipboard.writeText(mainState.rectSelection[1])
-          }})
-      }
-      else{
-        menuItems.push({t: 'copy', label: locale.translation("copy"), role: 'copy', enabled: can('Copy')})
-      }
-      // }
-      if(mainState.contextMenuSearchEngines.length == 0){
-        const type = mainState.searchProviders[mainState.searchEngine].type
-        const isURLGo = !type && urlutil.isURL(text)
-        for(let suffix of type ? [''] : mainState.searchEngineDisplayType == 'c' ? ['(c)'] :
-          mainState.searchEngineDisplayType == 'o' ? ['(o)'] : mainState.oppositeGlobal ? ['(o)','(c)'] : ['(c)','(o)']){
-          const label = isURLGo ? locale.translation('2948300991547862301').replace(/<ph name="PAGE_TITLE">/,text).replace(/<\/ph>/,'') :
-            locale.translation('openSearch').replace(/{{\s*selectedVariable\s*}}/, text.length > 20 ? `${text.substr(0, 20)}...` : text)
-          menuItems.push({
-            t: 'openSearch', label: label + suffix,
-            click: (item, win) =>  win.webContents.send(isURLGo ? suffix == '(o)' ? 'new-tab-opposite' : 'new-tab' : 'search-text',
-              webContents.id, isURLGo ? urlutil.getUrlFromInput(text) : text ,suffix == '(o)')
-          })
-        }
-      }
-      else{
-        if(urlutil.isURL(text)){
-          for(let suffix of mainState.searchEngineDisplayType == 'c' ? ['(c)'] :
-            mainState.searchEngineDisplayType == 'o' ? ['(o)'] : mainState.oppositeGlobal ? ['(o)','(c)'] : ['(c)','(o)']){
-            const label = locale.translation('2948300991547862301').replace(/<ph name="PAGE_TITLE">/,text).replace(/<\/ph>/,'')
-            menuItems.push({
-              t: 'openSearch', label: label + suffix,
-              click: (item, win) =>  win.webContents.send(suffix == '(o)' ? 'new-tab-opposite' : 'new-tab',
-                webContents.id, urlutil.getUrlFromInput(text) ,suffix == '(o)')
-            })
-          }
-        }
-
-        for(let engine of mainState.contextMenuSearchEngines){
-          if(!mainState.searchProviders[engine]) continue
-
-          let labelShortcut = ''
-          let searchShortcut = ''
-          if(engine != mainState.searchEngine){
-            const shortcut = mainState.searchProviders[engine].shortcut
-            labelShortcut = `${shortcut}:`
-            searchShortcut = `${shortcut} `
-          }
-          const type = mainState.searchProviders[engine].type
-          for(let suffix of type ? [''] :  mainState.searchEngineDisplayType == 'c' ? ['(c)'] :
-            mainState.searchEngineDisplayType == 'o' ? ['(o)'] : mainState.oppositeGlobal ? ['(o)','(c)'] : ['(c)','(o)']){
-            const label = labelShortcut + locale.translation('openSearch').replace(/{{\s*selectedVariable\s*}}/, text.length > 20 ? `${text.substr(0, 20)}...` : text)
-            menuItems.push({
-              t: 'openSearch', label: label + suffix,
-              click: (item, win) =>  win.webContents.send('search-text', webContents.id, `${searchShortcut}${text}` ,suffix == '(o)')
-            })
-          }
-        }
-      }
-
-      for(let suffix of mainState.searchEngineDisplayType == 'c' ? ['(c)'] :
-        mainState.searchEngineDisplayType == 'o' ? ['(o)'] : mainState.oppositeGlobal ? ['(o)','(c)'] : ['(c)','(o)']){
-        menuItems.push({ t: 'addToNotes', label: locale.translation('addToNotes') + suffix, click: async (item,win)=>{
-            win.webContents.send(suffix == '(o)' ? 'new-tab-opposite' : 'new-tab',
-              webContents.id, `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note.html?content=${encodeURIComponent(rectSelectText ? rectSelectText.replace(/\r?\n/g,"<br/>") :  (await getSelectionHTML(webContents)))}` ,suffix == '(o)')
-
-          }})
-      }
-
-      console.log('getSelectionLinks1')
-      const links = await getSelectionLinks(webContents,props)
-      console.log('getSelectionLinks2')
-      if(links && links.length) {
-        menuItems.push({type: 'separator'})
-        menuItems.push({t: 'copyLinks', label: locale.translation('copyLinks'), click: (item,win)=> clipboard.writeText(links.join(os.EOL))})
-        menuItems.push({label: locale.translation('openalllinksLabel'), click: (item,win)=>{
-            for(let link of links){
-              setTimeout(_=>win.webContents.send('new-tab', webContents.id, link),0)
-            }
-          }})
-        menuItems.push({t: 'downloadSelection', label: locale.translation('downloadSelection'), click: (item,win)=> startDownloadSelector(win,webContents,props,true)})
-      }
-      menuItems.push({type: 'separator'})
-    }
-
-    if(isNoAction) {
-      menuItems.push({
-        t: 'savePageAs', label: locale.translation('savePageAs'), click: (item, win) => {
-          console.log('down1',webContents.getURL())
-          ipcMain.emit('need-set-save-filename',null,webContents.getURL())
-          ipcMain.emit('save-page-as',null,webContents.getURL())
-          win.webContents.downloadURL(webContents.getURL(), true)
-        }
-      })
-
-      menuItems.push({
-        t: 'bookmarkPage', label: locale.translation('bookmarkPage'), click: (item, win) => {
-          win.webContents.send('add-favorite', webContents.id)
-        }
-      })
-      menuItems.push({t: 'print', label: locale.translation('print'), click: () => webContents.print()})
-      menuItems.push({t: '2473195200299095979', label: syncReplaceName, click: (item, win) => win.webContents.send('sync-replace-from-menu', webContents.id)})
-      menuItems.push({type: 'separator'})
-
-      menuItems.push({t: 'downloadAll', label: locale.translation('downloadAll'), click: (item,win)=> startDownloadSelector(win,webContents,props)})
-      menuItems.push({type: 'separator'})
-
-      menuItems.push({
-        t: 'syncScrollLeftToRight', label: locale.translation('syncScrollLeftToRight'), click: (item, win) => {
-          win.webContents.send('open-panel', {url: webContents.getURL(), sync: uuid.v4(), id: webContents.id})
-        }
-      })
-      menuItems.push({
-        t: 'syncScrollRightToLeft', label: locale.translation('syncScrollRightToLeft'), click: (item, win) => {
-          win.webContents.send('open-panel', {
-            url: webContents.getURL(),
-            sync: uuid.v4(),
-            id: webContents.id,
-            dirc: -1
-          })
-        }
-      })
-      menuItems.push({type: 'separator'})
-
-      menuItems.push({
-        t: 'viewPageSource', label: locale.translation('viewPageSource'), click: (item, win) => {
-          win.webContents.send('new-tab', webContents.id, `view-source:${webContents.getURL()}`)
-        }
-      })
-    }
+  // links
+  if (props.linkURL) {
     menuItems.push({
-      t: 'inspectElement', label: locale.translation('inspectElement'), click: async item => {
-        if(webContents.devToolsWebContents){
-          webContents.inspectElement(props.x, props.y)
-          if (webContents.isDevToolsOpened())
-            webContents.devToolsWebContents.focus()
-        }
-        else{
-          const cont = webContents
-          cont && cont.hostWebContents2.send('menu-or-key-events', 'toggleDeveloperTools', cont.id)
-          let devToolsWebContents
-          for(let i=0;i<100;i++){
-            await new Promise(r=>{
-              setTimeout(_=>{
-                devToolsWebContents = cont.devToolsWebContents
-                r()
-              },100)
-            })
-            if(devToolsWebContents){
-              webContents.inspectElement(props.x, props.y)
-              if (webContents.isDevToolsOpened())
-                webContents.devToolsWebContents.focus()
-              break
-            }
-          }
-        }
+      t: 'openInNewTab', label: locale.translation('openInNewTab'), click: (item, win) => {
+        targetWindow.webContents.send('new-tab', webContents.id, props.linkURL)
+      }
+    })
+    menuItems.push({
+      t: 'openLinkInOppositeTab', label: locale.translation('openLinkInOppositeTab'), click: (item, win) => {
+        targetWindow.webContents.send('new-tab-opposite', webContents.id, props.linkURL)
+      }
+    })
+    menuItems.push({
+      t: 'openInNewPrivateTab', label: locale.translation('openInNewPrivateTab'), click: (item, win) => {
+        targetWindow.webContents.send('new-tab', webContents.id, props.linkURL,`${seq(true)}`)
+      }
+    })
+    menuItems.push({
+      t: 'openLinkInNewTorTab', label: locale.translation('openLinkInNewTorTab'), click: (item, win) => {
+        targetWindow.webContents.send('new-tab', webContents.id, props.linkURL,'persist:tor')
+      }
+    })
+    menuItems.push({
+      t: 'openInNewSessionTab', label: locale.translation('openInNewSessionTab'), click: (item, win) => {
+        targetWindow.webContents.send('new-tab', webContents.id, props.linkURL,`persist:${seq()}`)
+      }
+    })
+    menuItems.push({
+      t: 'openInNewWindow', label: locale.translation('openInNewWindow'), click: (item, win) => {
+        ipcMain.once('get-private-reply',(e,privateMode)=>{
+          BrowserWindowPlus.load({id:win.id,sameSize:true,tabParam:JSON.stringify({urls:[{url:props.linkURL,privateMode}],type:'new-win'})})
+        })
+        targetWindow.webContents.send('get-private', webContents.id)
+      }
+    })
+    menuItems.push({type: 'separator'})
+  }
+
+  if (props.linkURL) {
+    const isVideoURL = props.linkURL.split("?").slice(-2)[0].match(/\.(3gp|3gpp|3gpp2|asf|avi|dv|flv|m2t|m4v|mkv|mov|mp4|mpeg|mpg|mts|oggtheora|ogv|rm|ts|vob|webm|wmv|aac|m4a|mp3|oga|wav)$/)
+
+    menuItems.push({
+      t: '5317780077021120954', label: locale.translation('5317780077021120954'), click: (item, win) => {
+        ipcMain.emit('noneed-set-save-filename',null,props.linkURL)
+        targetWindow.webContents.downloadURL(props.linkURL,true)
+      }
+    })
+    menuItems.push({
+      t: 'saveLinkAs', label: locale.translation('saveLinkAs'), click: (item, win) => {
+        ipcMain.emit('need-set-save-filename',null,props.linkURL)
+        console.log("Save Link",props.linkURL)
+        targetWindow.webContents.downloadURL(props.linkURL,true)
       }
     })
 
-    if(Object.keys(extensionMenu).length){
-      for(let [extensionId, propertiesList] of Object.entries(extensionMenu)){
-        const menuList = []
-        // console.log(propertiesList)
-        for(let {properties, menuItemId, icon} of propertiesList){
-          let contextsPassed = false
-          const info = {}
-          if(!properties.contexts || !properties.contexts.length) properties.contexts = ['all']
-          for(let context of properties.contexts){
-            if (isTextSelected && (context === 'selection' || context === 'all')) {
-              info.selectionText = props.selectionText
-              contextsPassed = true
-            }
-            else if (isLink && (context === 'link' || context === 'all')) {
-              info.linkUrl = props.linkURL
-              contextsPassed = true
-            }
-            else if (isImage && (context === 'image' || context === 'all')) {
-              info.mediaType = 'image'
-              contextsPassed = true
-            }
-            else if (isInputField && (context === 'editable' || context === 'all')) {
-              info.editable = true
-              contextsPassed = true
-            }
-            else if (props.pageURL && (context === 'page' || context === 'all')) {
-              info.pageUrl = props.pageURL
-              contextsPassed = true
-            }
-            else if (isVideo && (context === 'video' || context === 'all')) {
-              info.mediaType = 'video'
-              contextsPassed = true
-            }
-            else if (isAudio && (context === 'audio' || context === 'all')) {
-              info.mediaType = 'audio'
-              contextsPassed = true
-            }
-            else if (props.frameURL && (context === 'frame' || context === 'all')) {
-              info.frameURL = props.frameURL
-              contextsPassed = true
-            }
-          }
-          // TODO (Anthony): Browser Action context menu
-          if(!contextsPassed || properties.contexts[0] === 'browser_action') continue
+    menuItems.push({t: 'copyLinkAddress', label: locale.translation('copyLinkAddress'), click: () => clipboard.writeText(props.linkURL)})
+    if(props.mediaType === 'none'){
+      menuItems.push({t: '1047431265488717055', label: locale.translation('1047431265488717055'), click: () => clipboard.writeText(props.linkText)})
+    }
 
-          if(props.srcURL) info.srcURL = props.srcURL
-          info.menuItemId = menuItemId
-
-          const item = {
-            label: properties.title,
-            click(){
-              ipcMain.emit('chrome-context-menus-clicked',null, extensionId, webContents.id, info)}
+    if(isVideoURL){
+      menuItems.push({t: 'saveAndPlayVideo', label: locale.translation('saveAndPlayVideo'), click: (item, win) => ipcMain.emit('save-and-play-video',null,props.linkURL,win)})
+      if(!disableContextMenus.has('Send URL to Video Player')) menuItems.push({label: `Send URL to ${players.find(x=>x.value == mainState.sendToVideo).text}`, click: () => videoProcessList.push(open(mainState.sendToVideo,props.linkURL))})
+    }
+    menuItems.push({type: 'separator'})
+    if(!hasText && props.mediaType === 'none'){
+      for(let send of mainState.sendUrlContextMenus){
+        if(!send.enable) continue
+        let handleClick
+        if(send.type == 'new' || send.type == 'opposite'){
+          handleClick = (item, win) => targetWindow.webContents.send(send.type == 'new' ? 'new-tab' : 'new-tab-opposite',
+            webContents.id, send.sendTo.replace("%s",props.linkURL))
+        }
+        else if(send.type == 'command' || send.type == 'terminal'){
+          const escape = (s)=> '"'+s.replace(/(["\t\n\r\f'$`\\])/g,'\\$1')+'"'
+          const command = send.sendTo.replace("%s",escape(props.linkURL))
+          if(send.type == 'command'){
+            handleClick = (item, win) => open(command, void 0, void 0, void 0, true)
           }
-          if(menuItemId) item.menuItemId = menuItemId
-          if(properties.checked !== void 0) item.checked = properties.checked
-          if(properties.enabled !== void 0) item.enabled = properties.enabled
-          if(properties.documentUrlPatterns !== void 0){
-            const url = props.pageURL || props.frameURL
-            // console.log('documentUrlPatterns',url,properties.documentUrlPatterns)
-            if(url && !nm.some(url, properties.documentUrlPatterns.map(x=>x=='<all_urls>' ? "**" : x.replace(/\*/,'**')))){
-              item.hide = true
-            }
-          }
-          if(properties.targetUrlPatterns !== void 0){
-            const url = props.linkURL
-            // console.log('targetUrlPatterns',url,properties.targetUrlPatterns.map(x=>x=='<all_urls>' ? "**" : x.replace(/\*/,'**')))
-            if(url && !nm.some(url, properties.targetUrlPatterns.map(x=>x=='<all_urls>' ? "**" : x.replace(/\*/,'**')))){
-              item.hide = true
-            }
-          }
-          if(!item.hide){
-            const addItem = properties.type == "separator" ? {type: 'separator'} : item
-            let parent
-            if(properties.parentId && (parent = menuList.find(m=>m.menuItemId == properties.parentId))){
-              if(properties.icons) addItem.icon = path.join(extensionInfos[extensionId].base_path,Object.values(properties.icons)[0].replace(/\.svg$/,'.png'))
-              if(parent.submenu === void 0){
-                parent.submenu = [addItem]
-              }
-              else{
-                parent.submenu.push(addItem)
-              }
-            }
-            else{
-              if(icon) addItem.icon = path.join(extensionInfos[extensionId].base_path,icon)
-              if(properties.icons) addItem.icon2 = path.join(extensionInfos[extensionId].base_path,Object.values(properties.icons)[0].replace(/\.svg$/,'.png'))
-              menuList.push(addItem)
-            }
+          else{
+            ipcMain.once('start-pty-reply', (e, key) => {
+              ipcMain.emit(`send-pty_${key}`, null, `${command}\n`)
+            })
+            handleClick = (item, win) => targetWindow.webContents.send('new-tab', webContents.id, 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html')
           }
         }
-        if(menuList.length == 1 || menuList.length == 2){
-          menuItems.push({type: 'separator'})
-          for(let menu of menuList){
-            if(menu.icon2){
-              menu.icon = menu.icon2
-              delete menu.icon2
-            }
-            menuItems.push(menu)
-          }
-        }
-        else if(menuList.length > 2){
-          menuItems.push({type: 'separator'})
+
+
+        menuItems.push({
+          label: `Send URL to ${send.name}`,
+          click: handleClick
+        })
+      }
+
+      const type = mainState.searchProviders[mainState.searchEngine].type
+      for(let suffix of type ? [''] : mainState.searchEngineDisplayType == 'c' ? ['(c)'] :
+        mainState.searchEngineDisplayType == 'o' ? ['(o)'] : mainState.oppositeGlobal ? ['(o)','(c)'] : ['(c)','(o)']){
+        menuItems.push({
+          t: 'openSearch', label: locale.translation('openSearch').replace(/{{\s*selectedVariable\s*}}/, props.linkText.length > 20 ? `${props.linkText.substr(0, 20)}...` : props.linkText) + suffix,
+          click: (item, win) =>  targetWindow.webContents.send('search-text', webContents.id, props.linkText,suffix == '(o)')
+        })
+      }
+    }
+  }
+
+  // images
+  if (isImage) {
+    menuItems.push({
+      t: 'openImageInNewTab', label: locale.translation('openImageInNewTab'), click: (item, win) => {
+        targetWindow.webContents.send('new-tab', webContents.id, props.srcURL)
+      }
+    })
+    menuItems.push({t: 'saveImage', label: locale.translation('saveImage'), click: downloadPrompt})
+    menuItems.push({t: 'copyImage', label: locale.translation('copyImage'), click: () => webContents.copyImageAt(props.x, props.y)})
+    menuItems.push({t: 'copyImageAddress', label: locale.translation('copyImageAddress'), click: () => clipboard.writeText(props.srcURL)})
+    menuItems.push({type: 'separator'})
+  }
+
+  // videos and audios
+  if (isVideo || isAudio) {
+    menuItems.push({
+      t: '994289308992179865', label: locale.translation('994289308992179865'), //'Loop'
+      type: 'checkbox',
+      checked: mediaFlags.isLooping,
+      click: () => callOnElement('el.loop = !el.loop')
+    })
+    if (mediaFlags.hasAudio){
+      if(!disableContextMenus.has('Muted')) menuItems.push({
+        label: 'Muted',
+        type: 'checkbox',
+        checked: mediaFlags.isMuted,
+        click: () => callOnElement('el.muted = !el.muted')
+      })
+    }
+    if (mediaFlags.canToggleControls){
+      menuItems.push({
+        t: '1725149567830788547', label: locale.translation('1725149567830788547'), //'Show Controls'
+        type: 'checkbox',
+        checked: mediaFlags.isControlsVisible,
+        click: () => callOnElement('el.controls = !el.controls')
+      })
+    }
+    menuItems.push({type: 'separator'})
+  }
+
+  // videos
+  if (isVideo) {
+    menuItems.push({
+      t: 'playVideoInPopupWindow', label: locale.translation('playVideoInPopupWindow'),
+      click: (item, win) => targetWindow.webContents.send('pin-video', webContents.id, true)
+    })
+    menuItems.push({
+      t: 'playVideoInFloatingPanel', label: locale.translation('playVideoInFloatingPanel'),
+      click: (item, win) => targetWindow.webContents.send('pin-video', webContents.id)
+    })
+    menuItems.push({type: 'separator'})
+    menuItems.push({
+      t: '4643612240819915418', label:  locale.translation('4643612240819915418'), //'Open Video in New Tab',
+      click: (item, win) => targetWindow.webContents.send('new-tab', webContents.id, props.srcURL)
+    })
+    menuItems.push({t: '4256316378292851214', label: locale.translation('4256316378292851214'), //'Save Video As...',
+      click: downloadPrompt})
+    menuItems.push({t: '782057141565633384', label: locale.translation('782057141565633384'), //'Copy Video URL',
+      click: () => clipboard.writeText(props.srcURL)})
+
+    menuItems.push({t: 'saveAndPlayVideo', label: locale.translation('saveAndPlayVideo'), click: (item, win) => ipcMain.emit('save-and-play-video',null,props.srcURL,win)})
+
+    const player = players.find(x=>x.value == mainState.sendToVideo)
+    if(player) menuItems.push({t: 'Send URL to Video Player', label: `${locale.translation('sendURL')} to ${player.text}`, click: () => videoProcessList.push(open(mainState.sendToVideo,props.srcURL))})
+    menuItems.push({type: 'separator'})
+  }
+
+  // audios
+  if (isAudio) {
+    menuItems.push({
+      t: '2019718679933488176', label: locale.translation('2019718679933488176'), //'Open Audio in New Tab',
+      click: (item, win) => targetWindow.webContents.send('new-tab', webContents.id, props.srcURL)
+    })
+    menuItems.push({t: '5116628073786783676', label: locale.translation('5116628073786783676'), //'Save Audio As...',
+      click: downloadPrompt})
+    menuItems.push({t: '1465176863081977902', label: locale.translation('1465176863081977902'), //'Copy Audio URL',
+      click: () => clipboard.writeText(props.srcURL)})
+    menuItems.push({type: 'separator'})
+  }
+
+  // clipboard
+  if (props.isEditable) {
+    menuItems.push({t: 'cut', label: locale.translation("cut"), role: 'cut', enabled: can('Cut')})
+    if (isDarwin) {
+      menuItems.push({t: 'copy', label: locale.translation("copy"), enabled: can('Copy'),
+        click(item, focusedWindow) { getFocusedWebContents().then(cont =>cont && cont.copy())}
+      })
+    }
+    else{
+      menuItems.push({t: 'copy', label: locale.translation("copy"), role: 'copy', enabled: can('Copy')})
+    }
+    menuItems.push({t: 'paste', label: locale.translation("paste"), role: 'paste', enabled: editFlags.canPaste})
+    menuItems.push({type: 'separator'})
+  }
+  else if (hasText) {
+    // if (isDarwin) {
+    //   menuItems.push({t: 'copy', label: locale.translation("copy"), enabled: can('Copy'),
+    //     click(item, focusedWindow) { getFocusedWebContents().then(cont =>cont && cont.copy())}
+    //   })
+    // }
+    // else{
+    if(mainState.rectSelection){
+      menuItems.push({t: 'copy', label: locale.translation("copy"), click(item, focusedWindow){
+          clipboard.writeText(mainState.rectSelection[1])
+        }})
+    }
+    else{
+      menuItems.push({t: 'copy', label: locale.translation("copy"), role: 'copy', enabled: can('Copy')})
+    }
+    // }
+    if(mainState.contextMenuSearchEngines.length == 0){
+      const type = mainState.searchProviders[mainState.searchEngine].type
+      const isURLGo = !type && urlutil.isURL(text)
+      for(let suffix of type ? [''] : mainState.searchEngineDisplayType == 'c' ? ['(c)'] :
+        mainState.searchEngineDisplayType == 'o' ? ['(o)'] : mainState.oppositeGlobal ? ['(o)','(c)'] : ['(c)','(o)']){
+        const label = isURLGo ? locale.translation('2948300991547862301').replace(/<ph name="PAGE_TITLE">/,text).replace(/<\/ph>/,'') :
+          locale.translation('openSearch').replace(/{{\s*selectedVariable\s*}}/, text.length > 20 ? `${text.substr(0, 20)}...` : text)
+        menuItems.push({
+          t: 'openSearch', label: label + suffix,
+          click: (item, win) =>  targetWindow.webContents.send(isURLGo ? suffix == '(o)' ? 'new-tab-opposite' : 'new-tab' : 'search-text',
+            webContents.id, isURLGo ? urlutil.getUrlFromInput(text) : text ,suffix == '(o)')
+        })
+      }
+    }
+    else{
+      if(urlutil.isURL(text)){
+        for(let suffix of mainState.searchEngineDisplayType == 'c' ? ['(c)'] :
+          mainState.searchEngineDisplayType == 'o' ? ['(o)'] : mainState.oppositeGlobal ? ['(o)','(c)'] : ['(c)','(o)']){
+          const label = locale.translation('2948300991547862301').replace(/<ph name="PAGE_TITLE">/,text).replace(/<\/ph>/,'')
           menuItems.push({
-            label: extensionInfos[extensionId].name,
-            icon: menuList[0].icon && menuList[0].icon.replace(/\.svg$/,'.png'),
-            submenu: menuList
+            t: 'openSearch', label: label + suffix,
+            click: (item, win) =>  targetWindow.webContents.send(suffix == '(o)' ? 'new-tab-opposite' : 'new-tab',
+              webContents.id, urlutil.getUrlFromInput(text) ,suffix == '(o)')
           })
-          menuList.forEach(menu=>{
-            delete menu.icon
-            if(menu.icon2){
-              menu.icon = menu.icon2
-              delete menu.icon2
-            }
+        }
+      }
+
+      for(let engine of mainState.contextMenuSearchEngines){
+        if(!mainState.searchProviders[engine]) continue
+
+        let labelShortcut = ''
+        let searchShortcut = ''
+        if(engine != mainState.searchEngine){
+          const shortcut = mainState.searchProviders[engine].shortcut
+          labelShortcut = `${shortcut}:`
+          searchShortcut = `${shortcut} `
+        }
+        const type = mainState.searchProviders[engine].type
+        for(let suffix of type ? [''] :  mainState.searchEngineDisplayType == 'c' ? ['(c)'] :
+          mainState.searchEngineDisplayType == 'o' ? ['(o)'] : mainState.oppositeGlobal ? ['(o)','(c)'] : ['(c)','(o)']){
+          const label = labelShortcut + locale.translation('openSearch').replace(/{{\s*selectedVariable\s*}}/, text.length > 20 ? `${text.substr(0, 20)}...` : text)
+          menuItems.push({
+            t: 'openSearch', label: label + suffix,
+            click: (item, win) =>  targetWindow.webContents.send('search-text', webContents.id, `${searchShortcut}${text}` ,suffix == '(o)')
           })
         }
       }
     }
-    // show menu
-    try{
-      if(isIndex){
-        console.log(menuItems,baseSet)
-        menuItems = menuItems.filter(x=>baseSet.has(x.label))
-        if(!menuItems.length) return
+
+    for(let suffix of mainState.searchEngineDisplayType == 'c' ? ['(c)'] :
+      mainState.searchEngineDisplayType == 'o' ? ['(o)'] : mainState.oppositeGlobal ? ['(o)','(c)'] : ['(c)','(o)']){
+      menuItems.push({ t: 'addToNotes', label: locale.translation('addToNotes') + suffix, click: async (item,win)=>{
+          targetWindow.webContents.send(suffix == '(o)' ? 'new-tab-opposite' : 'new-tab',
+            webContents.id, `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note.html?content=${encodeURIComponent(rectSelectText ? rectSelectText.replace(/\r?\n/g,"<br/>") :  (await getSelectionHTML(webContents)))}` ,suffix == '(o)')
+
+        }})
+    }
+
+    console.log('getSelectionLinks1')
+    const links = await getSelectionLinks(webContents,props)
+    console.log('getSelectionLinks2')
+    if(links && links.length) {
+      menuItems.push({type: 'separator'})
+      menuItems.push({t: 'copyLinks', label: locale.translation('copyLinks'), click: (item,win)=> clipboard.writeText(links.join(os.EOL))})
+      menuItems.push({label: locale.translation('openalllinksLabel'), click: (item,win)=>{
+          for(let link of links){
+            setTimeout(_=>targetWindow.webContents.send('new-tab', webContents.id, link),0)
+          }
+        }})
+      menuItems.push({t: 'downloadSelection', label: locale.translation('downloadSelection'), click: (item,win)=> startDownloadSelector(win,webContents,props,true)})
+    }
+    menuItems.push({type: 'separator'})
+  }
+
+  if(isNoAction) {
+    menuItems.push({
+      t: 'savePageAs', label: locale.translation('savePageAs'), click: (item, win) => {
+        console.log('down1',webContents.getURL())
+        ipcMain.emit('need-set-save-filename',null,webContents.getURL())
+        ipcMain.emit('save-page-as',null,webContents.getURL())
+        targetWindow.webContents.downloadURL(webContents.getURL(), true)
       }
+    })
 
+    menuItems.push({
+      t: 'bookmarkPage', label: locale.translation('bookmarkPage'), click: (item, win) => {
+        targetWindow.webContents.send('add-favorite', webContents.id)
+      }
+    })
+    menuItems.push({t: 'print', label: locale.translation('print'), click: () => webContents.print()})
+    menuItems.push({t: '2473195200299095979', label: syncReplaceName, click: (item, win) => targetWindow.webContents.send('sync-replace-from-menu', webContents.id)})
+    menuItems.push({type: 'separator'})
 
-      menuItems.forEach((x,i)=>x.num = -i + parseInt(mainState.priorityContextMenus[x.t || x.label] || 0) * 100)
-      menuItems = menuItems.sort((a,b)=> b.num - a.num)
+    menuItems.push({t: 'downloadAll', label: locale.translation('downloadAll'), click: (item,win)=> startDownloadSelector(win,webContents,props)})
+    menuItems.push({type: 'separator'})
 
-      menuItems = menuItems.filter(x=>!disableContextMenus.has(x.t || x.label))
+    menuItems.push({
+      t: 'syncScrollLeftToRight', label: locale.translation('syncScrollLeftToRight'), click: (item, win) => {
+        targetWindow.webContents.send('open-panel', {url: webContents.getURL(), sync: uuid.v4(), id: webContents.id})
+      }
+    })
+    menuItems.push({
+      t: 'syncScrollRightToLeft', label: locale.translation('syncScrollRightToLeft'), click: (item, win) => {
+        targetWindow.webContents.send('open-panel', {
+          url: webContents.getURL(),
+          sync: uuid.v4(),
+          id: webContents.id,
+          dirc: -1
+        })
+      }
+    })
+    menuItems.push({type: 'separator'})
 
-      const menuItems2 = []
-      menuItems.forEach((x,i)=>{
-        menuItems2.push(x)
-        if(menuItems[i+1] && parseInt(x.num / 100) != parseInt(menuItems[i+1].num / 100)){
-          menuItems2.push({ type: 'separator' })
-        }
-      })
-      menuItems = menuItems2
-
-      menuItems = menuItems.filter((x,i)=>{
-        if(i==0) return x.type != 'separator'
-        return !(menuItems[i-1].type == 'separator' && x.type == 'separator')
-      })
-
-      const menu = Menu.buildFromTemplate(menuItems)
-      if(isWin){
-        menu.popup(targetWindow)
+    menuItems.push({
+      t: 'viewPageSource', label: locale.translation('viewPageSource'), click: (item, win) => {
+        targetWindow.webContents.send('new-tab', webContents.id, `view-source:${webContents.getURL()}`)
+      }
+    })
+  }
+  menuItems.push({
+    t: 'inspectElement', label: locale.translation('inspectElement'), click: async item => {
+      if(webContents.devToolsWebContents){
+        webContents.inspectElement(props.x, props.y)
+        if (webContents.isDevToolsOpened())
+          webContents.devToolsWebContents.focus()
       }
       else{
-        let isMove = false
-        ipcMain.once('context-menu-move',e => isMove = true)
-        ipcMain.once('context-menu-up',e => {
-          console.log(11113)
-          if(!isMove){
-            console.log(11114)
-            menu.popup(targetWindow)
+        const cont = webContents
+        cont && cont.hostWebContents2.send('menu-or-key-events', 'toggleDeveloperTools', cont.id)
+        let devToolsWebContents
+        for(let i=0;i<100;i++){
+          await new Promise(r=>{
+            setTimeout(_=>{
+              devToolsWebContents = cont.devToolsWebContents
+              r()
+            },100)
+          })
+          if(devToolsWebContents){
+            webContents.inspectElement(props.x, props.y)
+            if (webContents.isDevToolsOpened())
+              webContents.devToolsWebContents.focus()
+            break
           }
-        })
-        ;webContents.send('start-mouseup-handler')
+        }
       }
-    }catch(e){
-      console.log(e)
     }
   })
+
+  if(Object.keys(extensionMenu).length){
+    for(let [extensionId, propertiesList] of Object.entries(extensionMenu)){
+      const menuList = []
+      // console.log(propertiesList)
+      for(let {properties, menuItemId, icon} of propertiesList){
+        let contextsPassed = false
+        const info = {}
+        if(!properties.contexts || !properties.contexts.length) properties.contexts = ['all']
+        for(let context of properties.contexts){
+          if (isTextSelected && (context === 'selection' || context === 'all')) {
+            info.selectionText = props.selectionText
+            contextsPassed = true
+          }
+          else if (isLink && (context === 'link' || context === 'all')) {
+            info.linkUrl = props.linkURL
+            contextsPassed = true
+          }
+          else if (isImage && (context === 'image' || context === 'all')) {
+            info.mediaType = 'image'
+            contextsPassed = true
+          }
+          else if (isInputField && (context === 'editable' || context === 'all')) {
+            info.editable = true
+            contextsPassed = true
+          }
+          else if (props.pageURL && (context === 'page' || context === 'all')) {
+            info.pageUrl = props.pageURL
+            contextsPassed = true
+          }
+          else if (isVideo && (context === 'video' || context === 'all')) {
+            info.mediaType = 'video'
+            contextsPassed = true
+          }
+          else if (isAudio && (context === 'audio' || context === 'all')) {
+            info.mediaType = 'audio'
+            contextsPassed = true
+          }
+          else if (props.frameURL && (context === 'frame' || context === 'all')) {
+            info.frameUrl = props.frameURL
+            contextsPassed = true
+          }
+        }
+        // TODO (Anthony): Browser Action context menu
+        if(!contextsPassed || properties.contexts[0] === 'browser_action') continue
+
+        if(props.srcURL) info.srcUrl = props.srcURL
+        if(props.pageURL) info.pageUrl = props.pageURL
+        info.menuItemId = menuItemId
+
+        const item = {
+          label: properties.title,
+          click(){
+            ipcMain.emit('chrome-context-menus-clicked',null, extensionId, webContents.id, info)}
+        }
+        if(menuItemId) item.menuItemId = menuItemId
+        if(properties.checked !== void 0) item.checked = properties.checked
+        if(properties.enabled !== void 0) item.enabled = properties.enabled
+        if(properties.documentUrlPatterns !== void 0){
+          const url = props.pageURL || props.frameURL
+          // console.log('documentUrlPatterns',url,properties.documentUrlPatterns)
+          if(url && !nm.some(url, properties.documentUrlPatterns.map(x=>x=='<all_urls>' ? "**" : x.replace(/\*/,'**')))){
+            item.hide = true
+          }
+        }
+        if(properties.targetUrlPatterns !== void 0){
+          const url = props.linkURL
+          // console.log('targetUrlPatterns',url,properties.targetUrlPatterns.map(x=>x=='<all_urls>' ? "**" : x.replace(/\*/,'**')))
+          if(url && !nm.some(url, properties.targetUrlPatterns.map(x=>x=='<all_urls>' ? "**" : x.replace(/\*/,'**')))){
+            item.hide = true
+          }
+        }
+        if(!item.hide){
+          const addItem = properties.type == "separator" ? {type: 'separator'} : item
+          let parent
+          if(properties.parentId && (parent = menuList.find(m=>m.menuItemId == properties.parentId))){
+            if(properties.icons) addItem.icon = path.join(extensionInfos[extensionId].base_path,Object.values(properties.icons)[0].replace(/\.svg$/,'.png'))
+            if(parent.submenu === void 0){
+              parent.submenu = [addItem]
+            }
+            else{
+              parent.submenu.push(addItem)
+            }
+          }
+          else{
+            if(icon) addItem.icon = path.join(extensionInfos[extensionId].base_path,icon)
+            if(properties.icons) addItem.icon2 = path.join(extensionInfos[extensionId].base_path,Object.values(properties.icons)[0].replace(/\.svg$/,'.png'))
+            menuList.push(addItem)
+          }
+        }
+      }
+      if(menuList.length == 1 || menuList.length == 2){
+        menuItems.push({type: 'separator'})
+        for(let menu of menuList){
+          if(menu.icon2){
+            menu.icon = menu.icon2
+            delete menu.icon2
+          }
+          menuItems.push(menu)
+        }
+      }
+      else if(menuList.length > 2){
+        menuItems.push({type: 'separator'})
+        menuItems.push({
+          label: extensionInfos[extensionId].name,
+          icon: menuList[0].icon && menuList[0].icon.replace(/\.svg$/,'.png'),
+          submenu: menuList
+        })
+        menuList.forEach(menu=>{
+          delete menu.icon
+          if(menu.icon2){
+            menu.icon = menu.icon2
+            delete menu.icon2
+          }
+        })
+      }
+    }
+  }
+
+  // show menu
+  try{
+    if(isIndex){
+      console.log(menuItems,baseSet)
+      menuItems = menuItems.filter(x=>baseSet.has(x.label))
+      if(!menuItems.length) return
+    }
+
+
+    menuItems.forEach((x,i)=>x.num = -i + parseInt(mainState.priorityContextMenus[x.t || x.label] || 0) * 100)
+    menuItems = menuItems.sort((a,b)=> b.num - a.num)
+
+    menuItems = menuItems.filter(x=>!disableContextMenus.has(x.t || x.label))
+
+    const menuItems2 = []
+    menuItems.forEach((x,i)=>{
+      menuItems2.push(x)
+      if(menuItems[i+1] && parseInt(x.num / 100) != parseInt(menuItems[i+1].num / 100)){
+        menuItems2.push({ type: 'separator' })
+      }
+    })
+    menuItems = menuItems2
+
+    menuItems = menuItems.filter((x,i)=>{
+      if(i==0) return x.type != 'separator'
+      return !(menuItems[i-1].type == 'separator' && x.type == 'separator')
+    })
+
+    const menu = Menu.buildFromTemplate(menuItems)
+    if(isWin){
+      const closeHandler = () =>  menu.closePopup(targetWindow)
+      ipcMain.once('contextmenu-webContents-close', closeHandler)
+      webContents.once('did-start-loading', closeHandler)
+
+      menu.popup({window: targetWindow},()=> {
+        ipcMain.removeListener('contextmenu-webContents-close', closeHandler)
+        webContents.removeListener('did-start-loading', closeHandler)
+        webContents.focus()
+      })
+      console.log(targetWindow.getTitle())
+    }
+    else{
+      let isMove = false
+      ipcMain.once('context-menu-move',e => isMove = true)
+      ipcMain.once('context-menu-up',e => {
+        console.log(11113)
+        if(!isMove){
+          console.log(11114)
+          menu.popup(targetWindow)
+        }
+      })
+      ;webContents.send('start-mouseup-handler')
+    }
+  }catch(e){
+    console.log(e)
+  }
 };
+
+
+ipcMain.on('contextmenu-webContents', async (e, props) => {
+  console.log('contextmenu-webContents', props)
+  if(!props.pageURL) props.pageURL = await e.sender.getURL()
+  contextMenu(e.sender, props)
+})

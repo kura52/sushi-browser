@@ -40,15 +40,6 @@ ipc.on('chrome-browser-action-set-ipc-all',(e,extensionId,name,val) => {
 
 const defaults = {}
 
-// const waitForFrame = () => new Promise(resolve => window.requestAnimationFrame(resolve))
-//
-// async function forceDrawWebview (webview) {
-//   await waitForFrame()
-//   webview.style.visibility = 'hidden'
-//   await waitForFrame()
-//   webview.style.visibility = ''
-//   await waitForFrame()
-// }
 
 
 class BrowserActionWebView extends Component {
@@ -67,9 +58,17 @@ class BrowserActionWebView extends Component {
 
 
   componentDidUpdate(prevProps, prevState) {
-    if(this.close != this.preClose){
-      setTimeout(()=>this.componentDidMount(),1)
-    }
+    const preClose = this.preClose, close = this.close
+    setTimeout(()=>{
+      if(close == preClose){
+        if(!this.refs || !this.refs.div || !this.webview) return
+        const r = this.refs.div ? ReactDOM.findDOMNode(this.refs.div).getBoundingClientRect() : {left:0,top:0,width:0,height:0}
+        ipc.send('set-overlap-component', 'extension-popup', this.props.k, this.props.tab.key,
+          r.left , r.top, r.width, r.height)
+        return
+      }
+      this.componentDidMount()
+    },1)
     this.preClose = this.close
   }
 
@@ -106,7 +105,8 @@ class BrowserActionWebView extends Component {
         }
         if((!widthRetry && !heightRetry) || retry > 10){
           this.props.setClassName("")
-          ReactDOM.findDOMNode(this).parentNode.parentNode.querySelector(':not(.opacity001).browser-action.nav-menu').style.left = `${200 - width}px`
+          // ReactDOM.findDOMNode(this).parentNode.parentNode
+          //   .querySelector(':not(.opacity001).browser-action.nav-menu').style.left = `${200 - width}px`
           this.result = JSON.stringify(result)
           this.checkSize()
         }
@@ -118,33 +118,36 @@ class BrowserActionWebView extends Component {
   }
 
   checkSize(){
-    const webview = this.refs && this.refs.webview
-    if(!webview) return
+    if(!this.webview) return
     this.intervalId = setInterval(()=>{
-      webview.executeJavaScript(`(function(){
+      this.webview.executeJavaScript(`(function(){
       const ele = document.scrollingElement
       return [ele.clientWidth, ele.scrollWidth, ele.clientHeight, ele.scrollHeight]
     })()`,(result)=>{
         if(JSON.stringify(result) != this.result){
           clearInterval(this.intervalId)
-          this.setPreferredSize(webview, result[1], result[3], 0)
+          this.setPreferredSize(this.webview, result[1], result[3], 0)
         }
       })
     },1000)
   }
 
   componentDidMount() {
-    const webview = this.refs && this.refs.webview
-    if(webview){
+    if(this.close){
+      ipc.send('set-overlap-component', 'extension-popup', this.props.k, this.props.tab.key, 0,-1,0,0)
+    }
+    else{
+      const r = this.refs.div ? ReactDOM.findDOMNode(this.refs.div).getBoundingClientRect() : {left:0,top:0,width:0,height:0}
+      this.tabId = ipc.sendSync('set-overlap-component', 'extension-popup', this.props.k, this.props.tab.key,
+        r.left , r.top, r.width, r.height, this.props.url)
+      this.webview = remote.require('./remoted-chrome/BrowserView').webContents.fromId(this.tabId)
+    }
+
+    if(this.webview){
       ipc.on('send-to-host',this.ipcEvent) //@TODO ELECTRON
-      webview.disablewebsecurity  = true
-      // webview.partition = 'persist:__chrome_extension'
-      if(this.props.url) webview.setAttribute('src', this.props.url)
-      // webview.addEventListener('did-attach',this.didAttachEvent );
-      // webview.addEventListener('preferred-size-changed',this.preferredSizeEvent)
       setTimeout(()=>{
-        this.setPreferredSize(webview, 200, 100, 0)
-        ipc.send('chrome-extension-popup-id', webview.getWebContents().id)
+        this.setPreferredSize(this.webview, 200, 100, 0)
+        ipc.send('chrome-extension-popup-id', this.tabId)
       },10)
     }
   }
@@ -163,7 +166,7 @@ class BrowserActionWebView extends Component {
   }
 
   render(){
-    return this.close ? null : <webview ref="webview" name="browserAction" onClick={e=>{
+    return this.close ? null : <div ref="div" name="browserAction" onClick={e=>{
       e.stopPropagation()
       e.preventDefault()
       return false
@@ -183,7 +186,11 @@ export default class BrowserActionMenu extends Component{
   }
 
   shouldComponentUpdate(nextProps, nextState) {
-    return nextProps.selected
+    return this.props.selected || nextProps.selected
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if(this.props.selected && !nextProps.selected) this.close()
   }
 
   componentDidMount(){
@@ -356,7 +363,7 @@ export default class BrowserActionMenu extends Component{
     if(values.optionPage) menuItems.push(({label: locale.translation('9147392381910171771'), click: _=>cont.hostWebContents2.send('new-tab', tabId, `chrome-extension://${extensionId}/${values.optionPage}`)}))
     if(values.background) menuItems.push(({label: locale.translation("4989966318180235467"), click: _=>{
         const url = `chrome-extension://${extensionId}/${values.background}`
-        remote.webContents.getAllWebContents().find(x=>x.getURL().startsWith(url)).openDevTools()
+        remote.require('./remoted-chrome/BrowserView').webContents.getAllWebContents().find(x=>x.getURL().startsWith(url)).openDevTools()
       }}))
     menuItems.push({label: locale.translation("6326175484149238433").replace('Chrome','Sushi Browser'),click: _=>ipc.send('delete-extension',extensionId,values.orgId)})
     const menu = Menu.buildFromTemplate(menuItems)
@@ -390,7 +397,7 @@ export default class BrowserActionMenu extends Component{
       {text ? <div className="browserActionBadge" style={{backgroundColor: color}}>{text}</div> : null}
     </a>} icon={null}>
       <Dropdown.Menu className={`browser-action nav-menu ${this.state.className}`} >
-        {popup ? <BrowserActionWebView ref="popupView" close={this.close} url={popup} setClassName={::this.setClassName}/>: ""}
+        {popup ? <BrowserActionWebView ref="popupView" k={this.props.k} tab={this.props.tab} close={this.close} url={popup} setClassName={::this.setClassName}/>: ""}
       </Dropdown.Menu>
     </Dropdown>
   }

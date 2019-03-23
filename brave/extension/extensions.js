@@ -120,6 +120,7 @@ module.exports.init = (verChange) => {
   }
 
   const loadExtension = (extensionPath, admin) => {
+    return
     if(!extensionPath) return
     extensionPath = extensionPath.replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
     const manifestPath = path.join(extensionPath, 'manifest.json')
@@ -179,6 +180,7 @@ module.exports.init = (verChange) => {
 
   const disableExtension = (extensionId) => {
     BrowserWindow.removeExtension(extensionId)
+    delete extInfos[extensionId]
 
     const wins = BrowserWindow.getAllWindows()
     if(!wins) return

@@ -1,6 +1,126 @@
+// content scripts
+chrome.ipcRenderer = {
+  on: (channel, listener) => {
+    chrome.runtime.onMessage.addListener((message, sender) => {
+      if(!message.ipc || channel != message.channel) return
+
+      listener({}, ...message.args)
+    })
+  },
+  once: (channel, listener) => {
+    const handler = (message, sender) => {
+      if(!message.ipc || channel != message.channel) return
+
+      listener({}, ...message.args)
+      chrome.runtime.onMessage.removeListener(handler)
+    }
+    chrome.runtime.onMessage.addListener(handler)
+  },
+  send: (channel, ...args) => {
+    chrome.runtime.sendMessage({ipcToBg: true, channel, args})
+  }
+}
+
+
 window.__started_ = window.__started_ ? void 0 : 1
 var ipc = chrome.ipcRenderer
 if(window.__started_){
+
+  document.addEventListener('fullscreenchange', e => {
+    console.log(333,e,document.fullscreenElement !== null)
+    ipc.send('fullscreen-change',document.fullscreenElement !== null)
+  })
+
+  setTimeout(()=>{
+    document.addEventListener('contextmenu', e => {
+      e.preventDefault()
+      e.stopImmediatePropagation()
+      console.log(5555,e)
+      const target = e.target
+      const linkURL = (target.closest('a') || target).href
+      const isFrame = window.top != window
+      const selectionText = document.getSelection().toString()
+
+      let mediaFlags = {}, mediaType = 'none', isEditable = false, inputFieldType = 'none', editFlags = {
+        canUndo: false,
+        canRedo: false,
+        canCut: false,
+        canCopy: !!selectionText,
+        canPaste: false,
+        canDelete: false,
+        canSelectAll : false,
+      }
+
+      const mediaTarget = target.closest('img,video,audio') || target
+
+
+      if(mediaTarget.tagName == 'AUDIO' || mediaTarget.tagName == 'VIDEO'){
+        mediaType = mediaTarget.tagName.toLowerCase()
+        mediaFlags = {
+          inError: mediaTarget.error,
+          isPaused: mediaTarget.paused,
+          isMuted: mediaTarget.muted,
+          hasAudio: !!mediaTarget.webkitAudioDecodedByteCount,
+          isLooping: mediaTarget.loop,
+          isControlsVisible: mediaTarget.controls,
+          canToggleControls: true,
+          canRotate: true
+        }
+      }
+      else if(target.tagName == 'CANVAS'){
+        mediaType = target.tagName.toLowerCase()
+      }
+      else if(mediaTarget.tagName == 'IMG'){
+        mediaType = 'image'
+      }
+      if(target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable){
+        const type = target.type && target.type.toLowerCase()
+        if(target.tagName == 'INPUT' && (type == 'checkbox' || type == 'radio' ||
+          type == 'submit' || type == 'hidden' || type == 'reset' || type == 'button' || type == 'image')){
+
+        }
+        else{
+          isEditable = true
+          editFlags = {
+            canUndo: true,
+            canRedo: true,
+            canCut: !!selectionText,
+            canCopy: !!selectionText,
+            canPaste: true,
+            canDelete: true,
+            canSelectAll : true,
+          }
+
+          if(type == 'password'){
+            inputFieldType = type
+          }
+          else{
+            inputFieldType = 'plainText'
+          }
+        }
+      }
+
+      document.addEventListener('mousedown',e =>{
+        ipc.send('contextmenu-webContents-close')
+      },{once: true})
+
+      ipc.send('contextmenu-webContents', {
+        srcURL: target.src,
+        linkURL,
+        pageURL: isFrame ? void 0 : location.href,
+        frameURL: isFrame ? location.href : void 0,
+        linkText: linkURL ? target.innerText : void 0,
+        mediaType,
+        mediaFlags,
+        editFlags,
+        isEditable ,
+        inputFieldType,
+        x: e.x,
+        y: e.y,
+        selectionText
+      })
+    })
+  },100)
 
   let preAElemsLength = 0
 
@@ -42,7 +162,7 @@ if(window.__started_){
 
   const openTime = Date.now()
   if(location.href.match(/^(http|chrome\-extension)/) && window == window.parent){
-    require('./passwordEvents')
+    // require('./passwordEvents')
     require('./webviewEvents')
     require('./syncButton')
     require('./inputPopupContentScript.js')
@@ -64,10 +184,6 @@ if(window.__started_){
       }
     },{passive: true, capture: true})
 
-    document.addEventListener('keydown',e=>{
-      ipc.send('send-to-host', 'webview-keydown',{key: e.key, keyCode: e.keyCode, which: e.which, button: e.button, ctrlKey: e.ctrlKey, metaKey: e.metaKey,altKey: e.altKey})
-    },{passive: true, capture: true})
-
     let preClientY = -1
     document.addEventListener('mousemove',e=>{
       // console.log('mousemove')
@@ -80,6 +196,7 @@ if(window.__started_){
 
     window.addEventListener("beforeunload", e=>{
       ipc.send('send-to-host', 'scroll-position',{x:window.scrollX ,y:window.scrollY})
+      ipc.send('contextmenu-webContents-close')
     });
 
     document.addEventListener("DOMContentLoaded",_=>{
@@ -195,6 +312,28 @@ if(window.__started_){
     }
   })
 
+  let mainState
+  const codeSet = new Set([8,9,13,16,17,18,33,34,37,38,39,40,45,46,48,49,50,51,52,53,54,55,56,57,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,96,97,98,99,100,101,102,103,104,105,186,187,188,189,190,191,192,219,220,221,222])
+  document.addEventListener('keydown',e=>{
+    if(mainState){
+      const addInput = {}
+      if(e.ctrlKey) addInput.ctrlKey = true
+      if(e.metaKey) addInput.metaKey = true
+      if(e.shiftKey) addInput.shiftKey = true
+      if(e.altKey) addInput.altKey = true
+      if(Object.keys(addInput).length || !codeSet.has(e.keyCode)){
+        const name = mainState[JSON.stringify({code: e.code.toLowerCase().replace('arrow','').replace('escape','esc'),...addInput})] || mainState[JSON.stringify({key: e.key.toLowerCase().replace('arrow','').replace('escape','esc'),...addInput})]
+        if(name){
+          ipc.send('menu-or-key-events',name)
+          console.log(name)
+          e.preventDefault()
+          e.stopImmediatePropagation()
+        }
+      }
+    }
+    ipc.send('send-to-host', 'webview-keydown',{key: e.key, keyCode: e.keyCode, which: e.which, button: e.button, ctrlKey: e.ctrlKey, metaKey: e.metaKey,altKey: e.altKey})
+    },{capture: true})
+
   function streamFunc(val){
     window._mediaElements_ = window._mediaElements_ || {}
     if(window._mediaIntervalId) clearInterval(window._mediaIntervalId)
@@ -218,8 +357,9 @@ if(window.__started_){
   const key = Math.random().toString()
   ipc.send("get-main-state",key,['tripleClick','alwaysOpenLinkNewTab','themeColorChange','isRecording','isVolumeControl',
     'keepAudioSeekValueVideo','rectangularSelection','fullscreenTransitionKeep','fullScreen','rockerGestureLeft','rockerGestureRight',
-    'inputHistory','inputHistoryMaxChar','hoverStatusBar','hoverBookmarkBar'])
+    'inputHistory','inputHistoryMaxChar','hoverStatusBar','hoverBookmarkBar','ALL_KEYS2'])
   ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
+    mainState = data
     if(data.fullscreenTransitionKeep){
       let full = data.fullScreen ? true : false
       let preV = "_"
@@ -512,7 +652,7 @@ if(window.__started_){
     }
 
     let nothing
-    const eventHandler = (e,name,target)=>{
+    const eventHandler = async (e,name,target)=>{
       const v = target || e.target
       if(name == 'playOrPause'){
         v.paused ? v.play() : v.pause()
@@ -528,7 +668,11 @@ if(window.__started_){
           css.insertRule(".ytp-popup.ytp-generic-popup { display: none; }", idx)
         }
         const isFullscreen = v.scrollWidth == window.innerWidth || v.scrollHeight == window.innerHeight
-        const isFull = ipc.sendSync('toggle-fullscreen-sync')
+        const isFull = await new Promise(r=>{
+          const key = Math.random().toString()
+          ipc.send('toggle-fullscreen2',void 0, key)
+          ipc.once(`toggle-fullscreen2-reply_${key}`, (e,result) => r(result))
+        })
         console.log(isFullscreen,isFull,v.offsetWidth, window.innerWidth,v.offsetHeight, window.innerHeight)
         if(isFullscreen == isFull){
           e.preventDefault()
@@ -550,7 +694,11 @@ if(window.__started_){
         }
       }
       else if(name == 'exitFullscreen'){
-        const isFull = ipc.send('toggle-fullscreen-sync',1)
+        const isFull = await new Promise(r=>{
+          const key = Math.random().toString()
+          ipc.send('toggle-fullscreen2',1, key)
+          ipc.once(`toggle-fullscreen2-reply_${key}`, (e,result) => r(result))
+        })
         const isFullscreen = v.offsetWidth == window.innerWidth || v.offsetHeight == window.innerHeight
         if(isFullscreen == isFull) return
         const fullscreenButton = document.querySelector('.ytp-fullscreen-button,.fullscreenButton,.button-bvuiFullScreenOn,.fullscreen-icon,.full-screen-button,.np_ButtonFullscreen,.vjs-fullscreen-control,.qa-fullscreen-button,[data-testid="fullscreen_control"],.vjs-fullscreen-control,.EnableFullScreenButton,.DisableFullScreenButton,.mhp1138_fullscreen,button.fullscreenh,.screenFullBtn,.player-fullscreenbutton')
@@ -775,9 +923,13 @@ if(window.__started_){
   }
 
   let retry = 0
-  let receivedVideoEvent = setInterval(_=>{
+  let receivedVideoEvent = setInterval(async _=>{
     if(document.querySelector('video,audio')){
-      const [inputs] = ipc.sendSync('get-sync-main-states',['inputsVideo'])
+      const [inputs] = await new Promise(r=>{
+        const key = Math.random().toString()
+        ipc.send('get-sync-main-states',['inputsVideo'],key)
+        ipc.once(`get-sync-main-states-reply_${key}`, (e,result) => r(result))
+      })
       chrome.runtime.sendMessage({ event: "video-event",inputs })
       clearInterval(receivedVideoEvent)
     }
@@ -796,8 +948,8 @@ if(window.__started_){
     if(inputs.stream){
       streamFunc(inputs.val)
     }
-    else{
-      videoFunc({},inputs)
+    else if(inputs.video){
+      videoFunc({},inputs.val)
     }
     return false
   })

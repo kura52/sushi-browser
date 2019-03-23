@@ -62,7 +62,7 @@ function changePortable(folder){
   }
   else{
     global.originalUserDataPath = app.getPath('userData')
-    app.setPath('userData', app.getPath('userData').replace('Electron','sushiBrowser').replace('sushi-browser','sushiBrowser').replace('sushiBrowser', 'sushiBrowserElectron'))
+    app.setPath('userData', app.getPath('userData').replace('Electron','sushiBrowser').replace('sushi-browser','sushiBrowser').replace('sushiBrowser', 'sushiBrowserChrome'))
     changePortable('data')
     console.log(7773477,process.argv)
 

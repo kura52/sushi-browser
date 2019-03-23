@@ -40,7 +40,7 @@ ${sharedState.theme.tints && sharedState.theme.tints.buttons ? `.browser-navbar 
     border-image: ${getTheme('images','theme_toolbar') || getTheme('images','theme_frame')} 15 round;
 }
 .ui.horizontal.segments {
-    ${getTheme('colors','toolbar') ? `background-color: ${getTheme('colors','toolbar')}` : ''};
+    ${getTheme('colors','toolbar') ? `background-colospr: ${getTheme('colors','toolbar')}` : ''};
     ${getTheme('colors','bookmark_text') ? `color: ${getTheme('colors','bookmark_text')}` : ''};
 }
 .ui.blue.segment>.folder-open, .ui.blue.segment>.folder {
@@ -238,7 +238,7 @@ export default class SplitWindows extends Component{
         else{
           if(attach.type == 'new-win'){
             // console.log(3333,{key: getUuid(),tabs: attach.urls.map(({url,privateMode})=>{return {pin:false,tabKey:uuid.v4(),url,privateMode}})})
-            winState = this.parseRestoreDate({dirc: "v",size: '100%',l: {key: getUuid(),tabs: attach.urls.map(({url,tabKey,privateMode})=>{return {forceKeep:true,pin:false,tabKey:tabKey || uuid.v4(),url,privateMode}})},
+            winState = this.parseRestoreDate({dirc: "v",size: '100%',l: {key: getUuid(),tabs: attach.urls.map(({url,tabKey,privateMode,guestInstanceId})=>{return {forceKeep:true,pin:false,tabKey:tabKey || uuid.v4(),url,privateMode,guestInstanceId}})},
               r: null,key:uuid.v4(),toggleNav: ipc.sendSync('get-sync-main-state','toggleNav') || 0},{})
             console.log(88888,winState)
           }
@@ -1079,37 +1079,37 @@ export default class SplitWindows extends Component{
     return obj
   }
 
-  allKeysAndTabs(node=this.state.root,arr,order){ // probably nouse
-    this._allKeysAndTabs(node,arr,order)
+  async allKeysAndTabs(node=this.state.root,arr,order){ // probably nouse
+    await this._allKeysAndTabs(node,arr,order)
     for (var [key, value] of this.state.floatPanels.entries()) {
       order[0] = order[0]+1
-      const tabs = this.refs2[key].getTabsInfo()
+      const tabs = await this.refs2[key].getTabsInfo()
       arr.push({order:order[0],key,tabs})
     }
 
   }
-  _allKeysAndTabs(node=this.state.root,arr,order){
+  async _allKeysAndTabs(node=this.state.root,arr,order){
     if (!Array.isArray(node.l) && node.l instanceof Object) {
       order[0] = order[0]+1
-      this._allKeysAndTabs(node.l,arr,order)
+      await this._allKeysAndTabs(node.l,arr,order)
     }
     else{
       if(node.l){
         order[0] = order[0]+1
         const key = node.l[0]
-        const tabs = this.refs2[key].getTabsInfo()
+        const tabs = await this.refs2[key].getTabsInfo()
         arr.push({order:order[0],key,tabs})
       }
     }
     if (!Array.isArray(node.r) && node.r instanceof Object) {
       order[0] = order[0]+1
-      this._allKeysAndTabs(node.r,arr,order)
+      await this._allKeysAndTabs(node.r,arr,order)
     }
     else{
       if(node.r){
         order[0] = order[0]+1
         const key = node.r[0]
-        const tabs = this.refs2[key].getTabsInfo()
+        const tabs = await this.refs2[key].getTabsInfo()
         arr.push({order:order[0],key,tabs})
       }
     }

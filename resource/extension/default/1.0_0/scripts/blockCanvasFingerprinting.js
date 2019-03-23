@@ -187,7 +187,7 @@ function blockWebRTC () {
   })
 }
 
-if (chrome.contentSettings.canvasFingerprinting == 'block') {
+if (chrome.contentSettings && chrome.contentSettings.canvasFingerprinting == 'block') {
   var methods = []
   var canvasMethods = ['getImageData', 'getLineDash', 'measureText', 'isPointInPath']
   canvasMethods.forEach(function (method) {
@@ -269,7 +269,7 @@ if (chrome.contentSettings.canvasFingerprinting == 'block') {
 
 
 function isTorTab () {
-  return chrome.contentSettings.torEnabled != 'allow'
+  return chrome.contentSettings && chrome.contentSettings.torEnabled != 'allow'
 }
 
 

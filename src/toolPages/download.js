@@ -1,15 +1,16 @@
 window.debug = require('debug')('info')
 // require('debug').enable("info")
 import process from './process'
-import {ipcRenderer as ipc} from 'electron';
+import {ipcRenderer as ipc} from './ipcRenderer'
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {Progress, Segment, Container, List, Menu, Input, Icon, Button} from 'semantic-ui-react';
 import {StickyContainer, Sticky} from 'react-sticky';
 import moment from 'moment';
-import l10n from '../../brave/js/l10n';
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
-l10n.init()
+import '../defaultExtension/contentscript'
+import l10n from '../../brave/js/l10n';
+const initPromise = l10n.init()
 
 
 function downloadingItemReply(callback){
@@ -282,4 +283,7 @@ const App = () => (
     <TopMenu/>
 )
 
-ReactDOM.render(<App />,  document.getElementById('app'))
+;(async ()=>{
+  await initPromise
+  ReactDOM.render(<App />,  document.getElementById('app'))
+})()

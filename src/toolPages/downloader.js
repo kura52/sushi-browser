@@ -1,7 +1,7 @@
 window.debug = require('debug')('info')
 // require('debug').enable("info")
 import process from './process'
-import {ipcRenderer as ipc} from 'electron';
+import {ipcRenderer as ipc} from './ipcRenderer'
 import React from 'react';
 import ReactDOM from 'react-dom';
 import uuid from 'node-uuid';
@@ -12,8 +12,9 @@ import ReactTable from 'react-table';
 import LRUCache from 'lru-cache'
 const cache = new LRUCache(200)
 
-const l10n = require('../../brave/js/l10n')
-l10n.init()
+import '../defaultExtension/contentscript'
+import l10n from '../../brave/js/l10n';
+const initPromise = l10n.init()
 
 
 const expand = require('brace-expansion');
@@ -145,7 +146,7 @@ function calcSpeed(item){
     cache.get(item.key).push({receivedBytes: item.receivedBytes, now: item.now})
   }
   else{
-    speed = this.calcSpeedSec(item)
+    speed = calcSpeedSec(item)
   }
   const restTime = (item.totalBytes - item.receivedBytes) / speed
 
@@ -169,8 +170,8 @@ function PercentCompleteFormatter(props){
   </div>
 }
 
-let debounceInterval = 500, debounceTimer
-let [concurrentDownload,downloadNum] = ipc.sendSync('get-sync-main-states',['concurrentDownload','downloadNum'])
+let debounceInterval = 500, debounceTimer, concurrentDownload,downloadNum
+
 global.multiSelection = false
 class Downloader extends React.Component {
   static defaultProps = { rowKey: 'id' };
@@ -644,4 +645,12 @@ class Downloader extends React.Component {
 }
 require('./themeForPage')('themeDownloader').then(data=> global.enableDownloadList = data.enableDownloadList)
 
-ReactDOM.render(<Downloader/>,  document.getElementById('app'))
+;(async ()=>{
+  ;[concurrentDownload,downloadNum] = await new Promise(r=>{
+    const key = Math.random().toString()
+    ipc.send('get-sync-main-states',['concurrentDownload','downloadNum'],key)
+    ipc.once(`get-sync-main-states-reply_${key}`, (e,result) => r(result))
+  })
+  await initPromise
+  ReactDOM.render(<Downloader/>,  document.getElementById('app'))
+})()

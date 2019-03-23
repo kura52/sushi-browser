@@ -1,5 +1,5 @@
 import process from './process'
-import {ipcRenderer as ipc} from 'electron';
+import {ipcRenderer as ipc} from './ipcRenderer'
 import localForage from "../LocalForage";
 import uuid from 'node-uuid';
 import React from 'react';
@@ -14,7 +14,7 @@ import removeMarkdown from './removeMarkdown'
 import $ from 'jquery';
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
 import l10n from '../../brave/js/l10n';
-l10n.init()
+const initPromise = l10n.init()
 
 const Editor = require('./tui-editor/dist/tui-editor-Editor-all.min');
 
@@ -378,6 +378,7 @@ export default class App extends React.Component {
   }
 
   async componentDidMount() {
+    await initPromise
     ReactDOM.findDOMNode(this.refs.stickey).style.height = "100%"
     const isAuto = this.props.favoritePage
 

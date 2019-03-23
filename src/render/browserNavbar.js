@@ -264,6 +264,7 @@ class BrowserNavbar extends Component{
       this.props.isTopRight === nextProps.isTopRight &&
       this.props.isTopLeft === nextProps.isTopLeft &&
       this.props.fullscreen === nextProps.fullscreen &&
+      this.props.parent.state.selectedTab == this.props.tab.key &&
       (this.richContents||[]).length === (nextProps.tab.page.richContents||[]).length &&
       (this.caches||[]).length === (nextState.caches||[]).length &&
       this.state.currentIndex === nextState.currentIndex &&
@@ -648,7 +649,7 @@ class BrowserNavbar extends Component{
     const dis = ['dckpbojndfoinamcdamhkjhnjnmjkfjd','jdbefljfgobbmcidnmpjamcbhnbphjnb',...this.state.disableExtensions]
     for(let [id,values] of browserActionMap) {
       if(dis.includes(values.orgId) || dis.includes(id)) continue
-      ret[id] = <BrowserActionMenu key={id} id={id} values={values} tab={tab} cont={cont} parent={this} selected={selected}/>
+      ret[id] = <BrowserActionMenu key={id} k={this.props.k}  id={id} values={values} tab={tab} cont={cont} parent={this} selected={selected}/>
     }
     return ret
   }
@@ -995,10 +996,12 @@ class BrowserNavbar extends Component{
                      const win = remote.getCurrentWindow()
                      if(win.isFullScreen()){}
                      else if(win.isMaximized()){
-                       win.unmaximize()
+                       // win.unmaximize()
+                       win.nativeWindow.showWindow(9)
                      }
                      else{
-                       win.maximize()
+                       // win.maximize()
+                       win.nativeWindow.showWindow(3)
                      }
                    }: null}></div>,
 

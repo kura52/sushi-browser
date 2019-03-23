@@ -1,4 +1,5 @@
-import { app, Menu, clipboard, BrowserWindow, ipcMain, session,webContents } from 'electron'
+import { app, Menu, clipboard, BrowserWindow, ipcMain, session } from 'electron'
+import {webContents} from './remoted-chrome/BrowserView'
 const uuid = require("node-uuid")
 const sharedState = require('./sharedStateMain')
 
@@ -8,10 +9,11 @@ function getCurrentWindow(){
   return BrowserWindow.getAllWindows().find(w=>w.getTitle().includes('Sushi Browser'))
 }
 
-function getFocusedWebContents(needSelectedText,skipBuildInSearch,callback,retry=0){
+async function getFocusedWebContents(needSelectedText,skipBuildInSearch,callback,retry=0){
   let cont
   if(!skipBuildInSearch){
-    const tmp = webContents.getFocusedWebContents()
+    console.log(2222,webContents.getFocusedWebContents)
+    const tmp = await webContents.getFocusedWebContents()
     if(tmp && !tmp.isDestroyed() /*&& !tmp.isBackgroundPage()*/ && !(/*tmp.tabValue().openerTabId == -1 && */ tmp.getURL().match(/^(chrome\-extension|chrome\-devtools)/))) { //@TODO ELECTRON
       if(tmp.hostWebContents2){
         return new Promise(resolve=>resolve(tmp))

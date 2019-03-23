@@ -66,7 +66,7 @@ export default class MobilePanel extends Component {
         ipc.send('mobile-panel-operation',{type: 'resize', key, tabId,x:window.screenX + r.left,y:window.screenY + r.top,width:r.width,height:r.height})
       }
     })
-    this.wv = this.props.parent.refs.webview
+    this.wv = this.props.parent.refs2.webview
     this.ro.observe(this.wv)
 
     return r

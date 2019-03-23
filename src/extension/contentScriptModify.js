@@ -1,6 +1,6 @@
-history.back = function(){ chrome.runtime.back() }
-history.forward = function(){ chrome.runtime.forward() }
-history.go = function(ind){ chrome.runtime.go(ind) }
+// history.back = function(){ chrome.runtime.back() }
+// history.forward = function(){ chrome.runtime.forward() }
+// history.go = function(ind){ chrome.runtime.go(ind) }
 
 ;(function(elmProto){
     if (elmProto.hasOwnProperty('scrollTopMax')) {

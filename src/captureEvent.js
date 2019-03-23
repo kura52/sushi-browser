@@ -1,4 +1,5 @@
-import {webContents, ipcMain, app, BrowserView, BrowserWindow} from 'electron'
+import {ipcMain, app, BrowserWindow} from 'electron'
+import {webContents, BrowserView} from './remoted-chrome/BrowserView'
 import fs from 'fs'
 import path from 'path'
 import { favicon,history,image,sock } from './databaseFork'
@@ -32,7 +33,7 @@ async function captureCurrentPage(_id,pageUrl,loc,base64,sender,tabId){
     console.log(tabId,url,pageUrl,loc)
     if(url != pageUrl && url != loc) return
 
-    const title = cont.getTitle()
+    const title = await cont.getTitle()
     const doc = await image.findOne({url:pageUrl})
     const d = Date.now()
 
@@ -94,29 +95,33 @@ ipcMain.on('take-capture', async (event,{id,url,loc,base64,tabId,tabIds}) => {
     captures[url] = true
   }
   if(tabIds){
-    const promises = []
+    const results = []
     for(let tabId of tabIds){
       const cont = webContents.fromId(tabId)
+      if(!cont || cont.isDestroyed()) continue
       const view = BrowserView.getAllViews().find(x=>x.webContents.id == cont.id)
+      if(!cont || cont.isDestroyed()) continue
+
       const win = BrowserWindow.fromWebContents(event.sender)
-      const winId = win.id
-      const viewId = view.id
-      if(global.winViewMap[winId] != viewId){
-        const seq = viewId + 100000
-        win.insertBrowserView(view, seq)
-        global.viewCache[seq] = winId
-        win.reorderBrowserView(seq, 0)
-      }
-      if(!cont) continue
-      promises.push(new Promise(r=>{
+      // const winId = win.id
+      // const viewId = view.id
+      // if(global.winViewMap[winId] != viewId){
+      //   const seq = viewId + 100000
+      //   win.insertBrowserView(view, seq)
+      //   global.viewCache[seq] = winId
+      //   win.reorderBrowserView(seq, 0)
+      // }
+      results.push(await new Promise(r=>{
         cont.capturePage((imageBuffer)=>{
           r([tabId,imageBuffer,imageBuffer.getSize(), Math.random().toString(),imageBuffer.resize({width:100,quality: 'good'}).toJPEG(parseInt(mainState.tabPreviewQuality))])
         })
+        // setTimeout(()=>r(null),500)
       }))
     }
-    const results = await Promise.all(promises)
+    // const results = await Promise.all(promises)
     const reply = []
     for(let result of results){
+      if(!result) continue
       const prevImg = imgCache.get(result[0])
       if(prevImg && Buffer.compare(prevImg[4],result[4]) === 0){
         reply.push([result[0],true,result[2],prevImg[3]])

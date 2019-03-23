@@ -1,4 +1,5 @@
-const {webContents} = require('electron')
+import {webContents} from './remoted-chrome/BrowserView'
+
 export default function(isPrivate){
   if(isPrivate){
     for(let cont of webContents.getAllWebContents()){

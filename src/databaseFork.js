@@ -5,7 +5,8 @@ const {ipcMain} = require('electron')
 const sock = require('axon').socket('req')
 const fs = require('fs')
 const emptyPort = require('./emptyPort')
-import { webContents,app } from 'electron'
+import { app } from 'electron'
+import {webContents} from './remoted-chrome/BrowserView'
 const isDarwin = process.platform === 'darwin'
 
 emptyPort((err,ports)=>{
@@ -94,7 +95,7 @@ const db = new Proxy({
   get downloader(){return new Proxy(dummy, handler('downloader'))},
   get state(){return new Proxy(dummy, handler('state'))},
   get syncReplace(){return new Proxy(dummy, handler('syncReplace'))},
-  // get crypto(){return new Proxy(dummy, handler('crypto'))},
+  get crypto(){return new Proxy(dummy, handler('crypto'))},
   get image(){return new Proxy(dummy, handler('image'))},
   get favicon(){return new Proxy(dummy, handler('favicon'))},
   get token(){return new Proxy(dummy, handler('token'))},

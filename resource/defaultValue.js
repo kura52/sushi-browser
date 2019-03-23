@@ -206,18 +206,18 @@ const settingDefault =  {
   keyCloseOtherTabs: 'Shift+CmdOrCtrl+O',
   keyCloseTabsToLeft: '',
   keyCloseTabsToRight: '',
-  keySavePageAs: 'CmdOrCtrl+S',
-  keyPrint: 'CmdOrCtrl+P',
-
-  keyUndo: 'CmdOrCtrl+Z',
-  keyRedo: 'CmdOrCtrl+Y',
-  keyCut: 'CmdOrCtrl+X',
-  keyCopy: 'CmdOrCtrl+C',
-  keyPaste: 'CmdOrCtrl+V',
-  keyPasteWithoutFormatting: 'Shift+CmdOrCtrl+V',
-  keySelectAll: 'CmdOrCtrl+A',
-
-  keyFindOnPage: 'CmdOrCtrl+F',
+  // keySavePageAs: 'CmdOrCtrl+S',
+  // keyPrint: 'CmdOrCtrl+P',
+  //
+  // keyUndo: 'CmdOrCtrl+Z',
+  // keyRedo: 'CmdOrCtrl+Y',
+  // keyCut: 'CmdOrCtrl+X',
+  // keyCopy: 'CmdOrCtrl+C',
+  // keyPaste: 'CmdOrCtrl+V',
+  // keyPasteWithoutFormatting: 'Shift+CmdOrCtrl+V',
+  // keySelectAll: 'CmdOrCtrl+A',
+  //
+  // keyFindOnPage: 'CmdOrCtrl+F',
   keyFindAll: 'CmdOrCtrl+Shift+F',
   keyToggleFindOnPage: '',
 

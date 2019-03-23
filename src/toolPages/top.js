@@ -1,7 +1,7 @@
 window.debug = require('debug')('info')
 // require('debug').enable("info")
 import process from './process';
-import {ipcRenderer as ipc} from 'electron'
+import {ipcRenderer as ipc} from './ipcRenderer'
 import localForage from "../LocalForage";
 import path from 'path';
 import React from 'react';
@@ -11,8 +11,9 @@ import uuid from 'node-uuid';
 import { Container, Card, Menu, Input, Button } from 'semantic-ui-react';
 import {StickyContainer, Sticky} from 'react-sticky';
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd';
+import '../defaultExtension/contentscript'
 import l10n from '../../brave/js/l10n';
-l10n.init()
+const initPromise = l10n.init()
 
 
 const convertUrlMap = new Map([
@@ -89,9 +90,9 @@ localForage.getItem('favicon-set').then(setTime=>{
   })
 })
 
-let accessKey
+let accessKey, accessPort
 async function faviconGet(h){
-  return h.favicon ? (await localForage.getItem(h.favicon)) || `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/?key=${accessKey}&file=${resourcePath}/file.svg` : `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/?key=${accessKey}&file=${resourcePath}/file.svg`
+  return h.favicon ? (await localForage.getItem(h.favicon)) || `http://localhost:${accessPort}/?key=${accessKey}&file=${resourcePath}/file.svg` : `http://localhost:${accessPort}/?key=${accessKey}&file=${resourcePath}/file.svg`
 }
 
 ipc.send("get-resource-path",{})
@@ -219,7 +220,6 @@ class TopMenu extends React.Component {
 class TopSearch extends React.Component {
 
   componentDidMount() {
-    accessKey = ipc.sendSync('get-access-key')
     ipc.send('send-to-host', "navbar-search",{})
     console.log("mount")
   }
@@ -416,7 +416,7 @@ class TopList extends React.Component {
       <Card.Description>
         {!h.title ? "" : <Card.Header as='a' href={h.location}><img src={favicon} style={{width: 16, height: 16, verticalAlign: "text-top"}}/>{multiByteSlice(h.title,32)} {h.count ? `(${h.count}pv)` : ''}</Card.Header>}
       </Card.Description>
-      {h.path ? <a href={h.location} style={{textAlign:"center"}}><img className="capture" style={{width:160,height:100,objectFit: "contain"}} src={`chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/?key=${accessKey}&file=${resourcePath}/capture/${h.path}`}/></a> : null}
+      {h.path ? <a href={h.location} style={{textAlign:"center"}}><img className="capture" style={{width:160,height:100,objectFit: "contain"}} src={`http://localhost:${accessPort}/?key=${accessKey}&file=${resourcePath}/capture/${h.path}`}/></a> : null}
     </Card>;
   }
 }
@@ -430,4 +430,11 @@ const App = () => (
 
 require('./themeForPage')('themeTopPage')
 
-ReactDOM.render(<App />,  document.getElementById('app'))
+;(async ()=>{
+  [accessKey, accessPort] = await new Promise(r=>{
+    ipc.send('get-access-key-and-port')
+    ipc.once('get-access-key-and-port-reply',(e,data)=>r(data))
+  })
+  await initPromise
+  ReactDOM.render(<App />,  document.getElementById('app'))
+})()

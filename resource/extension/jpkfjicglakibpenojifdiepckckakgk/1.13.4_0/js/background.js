@@ -1,7 +1,3 @@
-chrome.ipcRenderer.on('disable-mouse-gesture',(e,msg)=>{
-  localStorage.setItem('disable', msg ? 'true' : 'false')
-})
-
 this.GesturesInfo = {
   name: 'Chrome Gestures',
   version: '',

@@ -1,6 +1,6 @@
 window.debug = require('debug')('info')
 // require('debug').enable("info")
-import {ipcRenderer as ipc} from 'electron';
+import {ipcRenderer as ipc} from './ipcRenderer'
 import React from 'react';
 import ReactDOM from 'react-dom';
 import uuid from 'node-uuid';
@@ -9,7 +9,6 @@ import path from 'path';
 const PubSub = require('pubsub-js')
 const { Form, TextArea, Grid, Sidebar, Segment, Container, Menu, Input, Divider, Button, Checkbox, Icon, Table, Dropdown,Popup } = require('semantic-ui-react');
 const { StickyContainer, Sticky } = require('react-sticky');
-const l10n = require('../../brave/js/l10n')
 const SplitPane = require('../render/split_pane/SplitPane')
 const Commands = require('./automationInfinite')
 const MenuList = require('./automationMenuList')
@@ -23,7 +22,10 @@ const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
 const isWin = navigator.userAgent.includes('Windows')
 const TOP_URL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html'
 const CHROME_TOP_URL = 'chrome-search://local-ntp/local-ntp.html'
-l10n.init()
+
+import '../defaultExtension/contentscript'
+import l10n from '../../brave/js/l10n';
+const initPromise = l10n.init()
 
 
 const opColumns = [
@@ -184,11 +186,21 @@ class ReactTable extends React.Component {
 let defaultData
 const key = Math.random().toString()
 
+let initData
+const initDataWaitPromise = new Promise(r=>{
+  const key = Math.random().toString()
+  ipc.send('get-automation-order',key)
+  ipc.once(`get-automation-order-reply_${key}`,(e, x) =>{
+    initData = x
+    r()
+  })
+})
+
+
 class Automation extends React.Component {
   constructor(props) {
     super(props)
     this.state = defaultData
-    const initData = ipc.sendSync('get-automation-order')
     this.state.menuItems = initData.datas
     this.state.selectedMenu = initData.menuKey
 
@@ -862,7 +874,9 @@ class Automation extends React.Component {
 }
 
 ipc.send("get-main-state",key,['autoMousedown','autoMouseup','autoClick','autoDblclick','autoKeydown','autoInput','autoChange','autoSelect','autoSubmit','autoScroll','autoMousemove','autoFocusin','autoFocusout','autoCut','autoCopy','autoPaste','autoBack','autoForward','autoGoIndex','autoNavigate','autoTabCreate','autoTabRemoved','autoTabSelected','autoMousemoveTime','autoHighlight','autoPlaySpeed'])
-ipc.once(`get-main-state-reply_${key}`,(e,data)=>{
+ipc.once(`get-main-state-reply_${key}`,async (e,data)=>{
   defaultData = data
+  await initPromise
+  await initDataWaitPromise
   ReactDOM.render(<Automation />,  document.getElementById('app'))
 })

@@ -110,9 +110,11 @@ async function saveAllWindowsStateHandler(e,key){
 ipcMain.on('save-all-windows-state',saveAllWindowsStateHandler)
 
 
+
 function create(args){
   // console.log(44421,args)
   startAutoSaveAllWindowsState()
+
   let bw = new BrowserWindow(args)
   if(args.maximize){
     normalSize[bw.id] = {x: args.x, y: args.y, width: args.width, height: args.height}
@@ -209,10 +211,10 @@ function create(args){
         ipcMain.once('get-window-state-reply',async (e,ret)=>{
 
           await clearDatas()
-          await new Promise(r=>{session.defaultSession.cookies.get({}, (e,cookies)=>{
-            fs.writeFileSync(path.join(app.getPath('userData'), 'cookie.txt'),JSON.stringify(cookies)) //@TODO ELECTRON
-            r()
-          })})
+          // await new Promise(r=>{session.defaultSession.cookies.get({}, (e,cookies)=>{
+          //   fs.writeFileSync(path.join(app.getPath('userData'), 'cookie.txt'),JSON.stringify(cookies)) //@TODO ELECTRON
+          //   r()
+          // })})
 
           try{
             const saveState = {}
@@ -272,21 +274,58 @@ function create(args){
     }
   })
 
+  bw.on('move', ()=>{
+    ipcMain.emit('move-window', bw.id)
+  })
+
   bw.on('blur', ()=> {
     PubSub.publish('chrome-windows-onFocusChanged',bw.id)
     bw.webContents.send('visit-state-update','blur')
+    // const id = setTimeout(()=>bw.isAlwaysOnTop() && bw.setAlwaysOnTop(false),50)
+    // ipcMain.once(`browserPanel-focused_${bw.id}`, ()=> clearTimeout(id))
+    // console.log('blur', new Date().getTime())
   })
   bw.on('focus', ()=> {
+    // console.log('focus', new Date().getTime())
+    // if(bw.tmpFocus){
+    //   const func = bw.tmpFocus
+    //   bw.tmpFocus = false
+    //   setTimeout(()=>{
+    //     console.log('bw.blur()')
+    //     func()
+    //   },10)
+    //
+    //   return
+    // }
+    // if(bw.focusFlag){
+    //   bw.focusFlag = false
+    //   return
+    // }
     PubSub.publish('chrome-windows-onFocusChanged',bw.id)
     bw.webContents.send('visit-state-update','focus')
+    // ipcMain.once(`browserPanel-focused_${bw.id}`, ()=> clearTimeout(id))
+    // bw.setAlwaysOnTop(true)
+    ipcMain.emit('state-change-window', bw.id, 'focus')
+    // bw.focus()
+    // bw.focusFlag = true
   })
 
   bw.on('maximize',_=>{
     bw.webContents.send('maximize',true)
+    // ipcMain.emit('state-change-window', bw.id, 'maximize')
   })
 
   bw.on('unmaximize',_=>{
     bw.webContents.send('maximize',false)
+    ipcMain.emit('state-change-window', bw.id, 'unmaximize')
+  })
+
+  bw.on('minimize',_=>{
+    ipcMain.emit('state-change-window', bw.id, 'minimize')
+  })
+
+  bw.on('restore',_=>{
+    ipcMain.emit('state-change-window', bw.id, 'restore')
   })
 
   if(isDarwin){
@@ -448,7 +487,10 @@ export default {
       // resize: false,
       frame: isDarwin,
       show: false,
-      enableLargerThanScreen: true,
+      // enableLargerThanScreen: true,
+      transparent: true,
+      // clickThrough: 'pointer-events',
+      // alwaysOnTop: true,
       webPreferences: {
         plugins: true,
         sharedWorker: true,
@@ -459,7 +501,7 @@ export default {
         ...fontOpt
       }
     }
-    if(mainState.windowCustomIcon && fs.existsSync(mainState.windowCustomIcon)) winArg.icon = mainState.windowCustomIcon
+    if(mainState.windowCustomIcon && fs.existsSync(mainState.windowCustomIcodn)) winArg.icon = mainState.windowCustomIcon
 
     console.log(444,winArg)
 
@@ -516,20 +558,23 @@ export default {
     // }
 
     console.log(1111, `file://${path.join(__dirname, '../index.html').replace(/\\/g, "/")}${getParam}`)
-    initWindow.webContents.isRoot = true
     initWindow.loadURL(`file://${path.join(__dirname, '../index.html').replace(/\\/g, "/")}${getParam}`)
     // initWindow.webContents.toggleDevTools()
 
-    initWindow.webContents.once('did-finish-load', () => {
-      initWindow.show()
-      if (!initWindow.isMaximized()) {
-        normalSize[initWindow.id] = initWindow.getBounds()
-      }
-      if (winArg.maximize) initWindow.maximize()
-      initWindow.setAlwaysOnTop(!!winArg.alwaysOnTop)
-    })
+    // await new Promise(r=>{
+      initWindow.webContents.once('did-finish-load', () => {
+        initWindow.show()
+        if (!initWindow.isMaximized()) {
+          normalSize[initWindow.id] = initWindow.getBounds()
+        }
+        if (winArg.maximize) initWindow.maximize()
+        initWindow.setAlwaysOnTop(!!winArg.alwaysOnTop)
+        // r()
+      })
+    // })
 
     PubSub.publish('chrome-windows-onCreated',initWindow.id)
+    // initWindow.setIgnoreMouseEvents(true)
     return initWindow
   },
   saveState(bw,callback){

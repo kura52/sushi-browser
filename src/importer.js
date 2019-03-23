@@ -6,11 +6,59 @@ import {ipcMain,dialog,BrowserWindow,importer,session, app} from 'electron'
 import {getCurrentWindow} from './util'
 const uuid = require('node-uuid')
 import {favorite,history,favicon} from './databaseFork'
+import sqlite from 'sqlite'
 
 var isImportingBookmarks = false
 var hasBookmarks
 var importedSites
 let sender,key,type
+
+const profileDatas = {
+  chrome: {
+    get win32(){ return path.join(app.getPath('home'),'AppData\\Local\\Google\\Chrome\\User Data\\Default')},
+    get darwin(){ return path.join(app.getPath('home'),'Library/Application Support/Google/Chrome/Default')},
+    get linux(){ return path.join(app.getPath('home'),'.config/google-chrome/default')},
+  },
+  firefox: {
+    get win32(){ return require("glob").sync(path.join(app.getPath('home'),'AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\*.default'))[0] },
+    get darwin(){ return require("glob").sync(path.join(app.getPath('home'),'Library/Application Support/Firefox/Profiles/*.default'))[0]},
+    get linux(){ return require("glob").sync(path.join(app.getPath('home'),'.mozilla/firefox/*.default'))[0]},
+  }
+}
+
+class ChromeImporter{
+  constructor(){
+
+  }
+
+  getDB(name){
+    return sqlite.open(path.join(profileDatas.chrome[process.platform],name))
+  }
+
+  async getBookmark(){
+  }
+
+  async getFavicon(){
+    const db = await this.getDB('Cookies')
+    for(let data of await db.all('SELECT host_key, name, value, path, expires_utc, secure, httponly, encrypted_value FROM cookies')){
+
+    }
+
+  }
+
+  async getHistory(){
+
+  }
+
+  async getCookie(){
+
+  }
+
+  async getPassword(){
+
+  }
+
+}
 
 ipcMain.on("import-browser-data",e=>{
   sender = (e.sender.hostWebContents2 || e.sender)

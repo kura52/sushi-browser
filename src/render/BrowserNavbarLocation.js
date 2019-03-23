@@ -94,6 +94,7 @@ export default class BrowserNavbarLocation extends Component {
 
   keyEvent(e, msg, ...args){
     if (msg == 'navbar-search') {
+      ipc.send('focus-browser-window')
       const input = (this.input || ReactDOM.findDOMNode(this.refs.input).querySelector("input"))
       input.focus()
     }

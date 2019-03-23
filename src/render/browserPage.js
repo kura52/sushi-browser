@@ -53,7 +53,7 @@ function webviewHandler (self, fnName) {
 
 const webviewEvents = {
   // 'guest-ready': 'onGuestReady',
-  // 'will-attach-webview': 'onTabIdChanged', //@TODO ELECTRON
+  'did-start-loading': 'onTabIdChanged', //@TODO ELECTRON
   'load-commit': 'onLoadCommit',
   // 'did-start-loading': 'onDidStartLoading',
   'did-stop-loading': 'onDidStopLoading',
@@ -65,7 +65,7 @@ const webviewEvents = {
   'dom-ready': 'onDomReady',
   // 'page-title-updated': 'onPageTitleSet',
   // 'close': 'onClose',
-  // 'destroyed': 'onDestroyed',
+  'destroyed': 'onDestroyed',
   // 'ipc-message': 'onIpcMessage',
   // 'console-message': 'onConsoleMessage',
   'page-favicon-updated': 'onFaviconUpdate',
@@ -101,7 +101,7 @@ class BrowserPage extends Component {
       prevProps.pos.width != style.width ||
       prevProps.pos.height != style.height ||
       prevProps.pos.zIndex != style.zIndex)){
-      ipc.send('set-bound-browser-view', this.props.k2, this.props.k, style.left, style.top, style.width, style.height, style.zIndex)
+      ipc.send('set-bound-browser-view', this.props.k2, this.props.k, this.props.tab.wvId, style.left, style.top, style.width, style.height, style.zIndex)
     }
   }
 
@@ -112,18 +112,21 @@ class BrowserPage extends Component {
 
     // const webview = this.refs2.webview
     const style = this.props.pos
-    let tabId
-    if(this.props.tab.guestInstanceId){
-      tabId = this.props.tab.guestInstanceId
-      ipc.send('move-browser-view', this.props.k2, this.props.k, 'attach', tabId,
-        style.left, style.top, style.width, style.height, style.zIndex, true)
-    }
-    else{
-      tabId = ipc.sendSync('create-browser-view', this.props.k2, this.props.k, style.left, style.top,
+    const tabId = this.props.tab.guestInstanceId ||
+      ipc.sendSync('create-browser-view', this.props.k2, this.props.k, style.left, style.top,
         style.width, style.height, style.zIndex, this.props.tab.privateMode ? (void 0) : this.state.src)
-    }
-    const webview = remote.webContents.fromId(tabId)
+
+    const tab = remote.require('./remoted-chrome/BrowserView').webContents.fromId(tabId)
+    global.currentWebContents[tabId] = tab
+    const webview = tab
+    this.props.tab.returnWebView(webview, tabId, this.refs2.webview)
     this.webview = webview
+
+    if(this.props.tab.guestInstanceId){
+      ipc.send('move-browser-view', this.props.k2, this.props.k,  'attach', tabId,
+        style.left, style.top, style.width, style.height, style.zIndex, this.props.index)
+    }
+
     // const shadow = webview.shadowRoot.querySelector('object') //@TODO ELECTRON
 
     // webview.plugins = true
@@ -141,51 +144,51 @@ class BrowserPage extends Component {
     console.log(this.props.tab.privateMode)
 
     for (var k in webviewEvents)
-      webview.on(k, webviewHandler(this, webviewEvents[k]),{passive:true})
+      webview.on(k, webviewHandler(this, webviewEvents[k]))
 
-    // const supportedWebViewEvents = [
-    //   'load-commit',
-    //   'did-attach',
-    //   'did-finish-load',
-    //   'did-fail-load',
-    //   // 'did-frame-finish-load',
-    //   'did-start-loading',
-    //   'did-stop-loading',
-    //   'dom-ready',
-    //   // 'console-message',
-    //   'context-menu',
-    //   'devtools-opened',
-    //   'devtools-closed',
-    //   'devtools-focused',
-    //   'new-window',
-    //   'will-navigate',
-    //   'did-start-navigation',
-    //   'did-navigate',
-    //   // 'did-frame-navigate',
-    //   'did-navigate-in-page',
-    //   'focus-change',
-    //   'close',
-    //   'crashed',
-    //   'gpu-crashed',
-    //   'plugin-crashed',
-    //   'destroyed',
-    //   'page-title-updated',
-    //   'page-favicon-updated',
-    //   'enter-html-full-screen',
-    //   'leave-html-full-screen',
-    //   'media-started-playing',
-    //   'media-paused',
-    //   'found-in-page',
-    //   'did-change-theme-color',
-    //   'update-target-url',
-    //   'cursor-changed'
-    // ]
-    //
-    // for(let name of supportedWebViewEvents){
-    //   webview.on(name, (e,...args)=>{
-    //     console.log(54555531,name,e,...args)
-    //   })
-    // }
+    const supportedWebViewEvents = [
+      // 'load-commit',
+      // 'did-attach',
+      'did-finish-load',
+      'did-fail-load',
+      // 'did-frame-finish-load',
+      'did-start-loading',
+      'did-stop-loading',
+      'dom-ready',
+      // 'console-message',
+      // 'context-menu',
+      // 'devtools-opened',
+      // 'devtools-closed',
+      // 'devtools-focused',
+      'new-window',
+      // 'will-navigate',
+      'did-start-navigation',
+      'did-navigate',
+      // 'did-frame-navigate',
+      // 'did-navigate-in-page',
+      // 'focus-change',
+      // 'close',
+      // 'crashed',
+      // 'gpu-crashed',
+      // 'plugin-crashed',
+      'destroyed',
+      'page-title-updated',
+      'page-favicon-updated',
+      // 'enter-html-full-screen',
+      // 'leave-html-full-screen',
+      'media-started-playing',
+      'media-paused',
+      // 'found-in-page',
+      // 'did-change-theme-color',
+      // 'update-target-url',
+      // 'cursor-changed'
+    ]
+
+    for(let name of supportedWebViewEvents){
+      webview.on(name, (e,...args)=>{
+        console.log(54555531,name,e,...args)
+      })
+    }
 
     this.wvEvents[`send-to-host_${tabId}`] = (e, msg, ...args) =>{
       if(msg == 'webview-scroll'){
@@ -250,6 +253,14 @@ class BrowserPage extends Component {
 
     webview.on('found-in-page',this.wvEvents['found-in-page'])
 
+
+    this.tokenResize = PubSub.subscribe("resize",(msg)=>{
+      if(this.props.isActive) {
+        const style = this.props.pos
+        ipc.send('set-bound-browser-view', this.props.k2, this.props.k, this.props.tab.wvId, style.left, style.top, style.width, style.height, style.zIndex)
+      }
+    })
+
     this.tokenDidNavigate = PubSub.subscribe(`did-navigate_${this.props.tab.key}`,_=>{
       this.setState({isSearching: false})
     })
@@ -259,9 +270,6 @@ class BrowserPage extends Component {
     })
 
     console.log("returnWebView",webview, tabId, this.refs2.webview)
-    const tab = remote.webContents.fromId(tabId)
-    global.currentWebContents[tabId] = tab
-    this.props.tab.returnWebView(webview, tabId, this.refs2.webview)
     this.props.tab.guestInstanceId = (void 0)
 
     PubSub.publish(`regist-webview_${this.props.k}`,this.props.tab)
@@ -327,6 +335,7 @@ class BrowserPage extends Component {
 
     PubSub.unsubscribe(this.tokenWebviewKeydown)
     PubSub.unsubscribe(this.tokenDidNavigate)
+    PubSub.unsubscribe(this.tokenResize)
 
     if(this.searchEvent) ipc.removeListener('menu-or-key-events', this.searchEvent)
     if(this.changeSizeEvent) ipc.removeListener('webview-size-change', this.changeSizeEvent)

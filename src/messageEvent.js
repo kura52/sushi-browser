@@ -1,4 +1,5 @@
-import {ipcMain,dialog,BrowserWindow,webContents } from 'electron'
+import {ipcMain,dialog,BrowserWindow } from 'electron'
+import {webContents} from './remoted-chrome/BrowserView'
 import {getCurrentWindow } from './util'
 import uuid from 'node-uuid'
 import mainState from "./mainState";

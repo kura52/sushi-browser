@@ -1,5 +1,3 @@
-import l10n from "../../brave/js/l10n";
-
 const React = require('react')
 const {Component} = React
 const {remote} = require('electron');
@@ -631,6 +629,27 @@ export default class TabPanel extends Component {
     }
     ipc.on('focus-input',eventFocusInput)
 
+    const eventMoveTabFromMoved = (e, tabId, toIndex)=>{
+      const ind = this.state.tabs.findIndex(t=>t.wvId == tabId)
+      if(ind != -1){
+        const array_move = (arr, old_index, new_index) => {
+          if (new_index >= arr.length) {
+            let k = new_index - arr.length + 1;
+            while (k--) {
+              arr.push(void 0);
+            }
+          }
+          arr.splice(new_index, 0, arr.splice(old_index, 1)[0]);
+          return arr
+        }
+        const tabs = array_move(this.state.tabs, ind, toIndex)
+        this.setState({tabs})
+      }
+    }
+    ipc.on('move-tab-from-moved',eventMoveTabFromMoved)
+
+
+
 
     return [
       {'show-notification': eventNotification},
@@ -638,7 +657,8 @@ export default class TabPanel extends Component {
       {'close-sync-tab': eventCloseSyncTab},
       {'chrome-windows-create-from-tabId': eventChromeWindowsCreateFromTabId},
       {'restore-tabs-from-tabKey': eventRestoreTabs},
-      {'focus-input': eventFocusInput}
+      {'focus-input': eventFocusInput},
+      {'move-tab-from-moved': eventMoveTabFromMoved}
     ]
   }
 
@@ -1275,6 +1295,9 @@ export default class TabPanel extends Component {
 
   pageHandlers(navigateTo, tab, self, newPage) {
     return {
+      onDestroyed(e, page){
+        self.handleTabClose({}, tab.key)
+      },
       onUpdateTargetUrl(e, page, url) {
         if (!self.mounted) return
         if(page.statusText!==url){
@@ -1441,7 +1464,11 @@ export default class TabPanel extends Component {
           }
         }
       },
-      onLoadStart(e, page, url, isInPlace, isMainFrame) {
+      async onTabIdChanged(e, page, tabId){
+        if (!self.mounted) return
+        self.onTabIdChanged(tabId, tab, true)
+      },
+      async onLoadStart(e, page, url, isInPlace, isMainFrame) {
         console.log('onLoadStart',e,Date.now() - ttime,Date.now())
         if (!self.mounted || !isMainFrame) return
 
@@ -1450,7 +1477,7 @@ export default class TabPanel extends Component {
             navigator.userAgent.includes('Mac OS X') ? 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:61.0) Gecko/20100101 Firefox/61.0' :
               'Mozilla/5.0 (X11; Linux i686; rv:61.0) Gecko/20100101 Firefox/61.0'
           const cont = self.getWebContents(tab)
-          tab.firefoxAddon = cont.getUserAgent()
+          tab.firefoxAddon = await cont.getUserAgent()
           cont.setUserAgent(ua)
           if(!tab.firefoxAddon) self.navigateTo(tab.page, url, tab)
         }
@@ -1469,7 +1496,6 @@ export default class TabPanel extends Component {
           timeStamp: Date.now()
         })
 
-        page.navUrl = url
         let location = page.navUrl
         try{
           location = decodeURIComponent(location)
@@ -1524,8 +1550,8 @@ export default class TabPanel extends Component {
         ipc.send('get-on-dom-ready',tab.wvId,tab.key,tab.rSession,closingPos[tab.key])
         ipc.once(`get-on-dom-ready-reply_${tab.wvId}`,(e,c)=>{
           if(!c) return
-          const domLoadedTime = Date.now()
-          tab.domLoadedTime = domLoadedTime
+          // const domLoadedTime = Date.now()
+          // tab.domLoadedTime = domLoadedTime
           if(c.rSession) tab.rSession = c.rSession
           const pre = {
             canGoBack: c.currentEntryIndex !== 0,
@@ -1542,6 +1568,7 @@ export default class TabPanel extends Component {
             ipc.send("change-title",title)
           }
           page.title = title
+          page.domLoaded = true
           // cont.toggleDevTools()
 
           // self.setState({})
@@ -2231,6 +2258,7 @@ export default class TabPanel extends Component {
         // if(!tab.fields) tab.fields = {}
         const cont = this.getWebContents(tab)
         if(true || !cont.setDevToolsWebContents){
+          console.log(' cont.toggleDevTools()')
           cont.toggleDevTools() //@TODO ELECTRON
           return
         }
@@ -2584,6 +2612,7 @@ export default class TabPanel extends Component {
           this.handleTabUpdated(tab,changeInfo)
           break
         case 'removed':
+          if(changeInfo && changeInfo.panelKey != this.props.k) return
           if(this.state.tabs.find((x)=> x.key == tab.key)){
             this.handleTabClose({}, tab.key)
           }
@@ -2609,7 +2638,7 @@ export default class TabPanel extends Component {
   loadURL(tab, url){
     if(!tab.wv) return
     if(url.startsWith('chrome-extension') && !tab.wv.hostWebContents && !tab.wv.hostWebContents2){
-      remote.webContents.getAllWebContents().find(x=>x.getURL().startsWith(url)).openDevTools()
+      remote.require('./remoted-chrome/BrowserView').webContents.getAllWebContents().find(x=>x.getURL().startsWith(url)).openDevTools()
       return
     }
     tab.wv.loadURL(url)
@@ -2659,7 +2688,14 @@ export default class TabPanel extends Component {
           })
         }
       }
-      newPage.navUrl = l
+      if(newPage.navUrl != l){
+        newPage.navUrl = l
+        this.webViewCreate()
+        this.setState({})
+      }
+      else{
+        newPage.navUrl = l
+      }
       newPage.richContents = []
       // this.setState({})
       this.setStatePartical(tab)
@@ -2678,7 +2714,7 @@ export default class TabPanel extends Component {
     return {
       location,
       navUrl: loc,
-      title: loc == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? 'Top Page' : (loc || 'Loading'),
+      title: loc == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? 'Top Page' : (loc || 'Loading...'),
       statusText: false,
       isLoading: false,
       canGoBack: false,
@@ -2690,10 +2726,10 @@ export default class TabPanel extends Component {
     }
   }
 
-  async onTabIdChanged(tabId,tab){
+  async onTabIdChanged(tabId, tab, isStart){
     const page = tab.page
     // guestIds[tab.key] = e
-    ipc.send('create-web-contents-reply',tabId, Object.keys(this.props.currentWebContents).map(x=>parseInt(x)))
+    ipc.send('create-web-contents-reply',tabId, this.props.k, tab.key, Object.keys(this.props.currentWebContents).map(x=>parseInt(x)))
     tab.wvId = tabId
     console.log(999,tabId)
     // tab._guestInstanceId = e.guestInstanceId
@@ -2709,28 +2745,29 @@ export default class TabPanel extends Component {
     }
 
     const navigateTo = l=>this.navigateTo(page, l, tab)
-    this.startProcess(this, page, navigateTo, tab)
+    this.startProcess(this, page, navigateTo, tab, isStart)
 
     console.log('onTabIdChanged', tabId,page)
 
     const cont = this.getWebContents(tab)
 
-    ipc.send('get-did-start-loading',tab.wvId)
-    const didStart = (e,c)=> {
-      console.log('onDidStartLoading',e,Date.now())
-      if(!c || !this.mounted) return
-      if(c=='destroy'){
-        ipc.removeListener(`get-did-start-loading-reply_${tab.wvId}`,didStart)
-        return
-      }
-      tab.videoEvent = false
-    }
-    ipc.on(`get-did-start-loading-reply_${tab.wvId}`,didStart)
+    // ipc.send('get-did-start-loading',tab.wvId)
+    // const didStart = (e,c)=> {
+    //   console.log('onDidStartLoading',e,Date.now())
+    //   if(!c || !this.mounted) return
+    //   if(c=='destroy'){
+    //     ipc.removeListener(`get-did-start-loading-reply_${tab.wvId}`,didStart)
+    //     return
+    //   }
+    //   tab.videoEvent = false
+    // }
+    // ipc.on(`get-did-start-loading-reply_${tab.wvId}`,didStart)
+    tab.videoEvent = false
   }
 
 
   createTab({default_url,c_page=null,c_wv=null,c_div=null,c_key=null,hist=null,privateMode=false,pin=false,protect=false,lock=false,mute=false,fields,reloadInterval=false,guestInstanceId,tabPreview,initPos,rest} = {}){
-    default_url = default_url || (isFixedVerticalPanel(this.props.k) ? sidebarURL : topURL)
+    default_url = default_url == void 0 ? (isFixedVerticalPanel(this.props.k) ? sidebarURL : topURL) : default_url
     if(default_url) default_url = convertURL(default_url)
     const tab = {events:{},ext:{}}
     if(c_wv) tab.wv = c_wv
@@ -2783,9 +2820,21 @@ export default class TabPanel extends Component {
       // ipc.send('chrome-webNavigation-onCreatedNavigationTarget', this.createChromeWebNavDetails(tab,newPage.location))
     }
     if(c_wv){
-      ipc.send('move-browser-view', this.props.k, key, 'attach', tab.wvId)
+      setTimeout(()=>ipc.send('move-browser-view', this.props.k, key, 'attach', tab.wvId, void 0, void 0, void 0, void 0, void 0, this.state.tabs.findIndex(t=>tab.key == t.key)),0)
       this.registWebView(tab, c_wv, c_div)
     }
+
+    tab.events['get-panel-and-tab-info'] = (e, id, key)=>{
+      if (!this.mounted )
+        return
+
+      if (!tab.wvId || tab.wvId !== id)
+        return
+
+      ipc.send(`get-panel-and-tab-info-reply_${key}`, this.props.k, tab.key)
+
+    }
+    ipc.on('get-panel-and-tab-info',tab.events['get-panel-and-tab-info'])
 
     tab.events['create-web-contents'] = (e,{id,targetUrl,disposition,guestInstanceId})=>{
       console.log('0create-web-contents',id,targetUrl,disposition,guestInstanceId,tab,this)
@@ -2955,18 +3004,21 @@ export default class TabPanel extends Component {
   }
 
   webViewCreate(){
+    console.log('webview-create1', this.state.tabs.map((tab, index)=>tab.page.navUrl))
     if(this.mounted===false) return
     const div = this.refs[`div-${this.state.selectedTab}`] || document.querySelector(`div.div-back.db${this.state.selectedTab}`)
     if(!div) return
 
+    console.log('webview-create2', this.state.tabs.map((tab, index)=>tab.page.navUrl))
     const dom = document.querySelector(`.s${this.props.k}`)
     const isMaximize = dom && dom.style.width == '100vw'
     const ref = div.getBoundingClientRect()
     const navbar = ReactDOM.findDOMNode(refs2[`navbar-${this.state.selectedTab}`])
     PubSub.publish('webview-create', {key: this.props.k,
-      val: this.state.tabs.map((tab)=> {return  {
+      val: this.state.tabs.map((tab, index)=> {return  {
           key: tab.key,
           tab,
+          index,
           toggleNav: this.props.toggleNav,
           privateMode: tab.privateMode,
           isActive: this.state.selectedTab == tab.key,
@@ -3705,8 +3757,11 @@ export default class TabPanel extends Component {
       tab.mute = changeInfo.muted
       this.setState({})
     }
-    else if(changeInfo.url !== (void 0)){
+    if(changeInfo.url !== (void 0)){
       this.navigateTo(tab.page, changeInfo.url, tab)
+    }
+    if(changeInfo.title !== (void 0)){
+      this.updateTitle(tab.wvId)
     }
   }
 
@@ -4401,9 +4456,11 @@ export default class TabPanel extends Component {
         return
       }
       const t = tab.wv
-      if (!t || tab.page.isLoading || !this.getWebContents(tab)) return
+      console.log(33311,!t,tab.page.isLoading,!this.getWebContents(tab),tab.page)
+      if (!t || (tab.page.isLoading && !tab.page.domLoaded) || !this.getWebContents(tab)) return
       clearInterval(id)
       const active = document.activeElement
+      console.log(33300,active)
       if((flag || active.className != 'prompt')|| active.tagName == 'BODY'){
         if(locationBar){
           ipc.emit('focus-location-bar',null,tab.wvId)
@@ -4438,7 +4495,16 @@ export default class TabPanel extends Component {
           }
           tab.page.title = title
 
-          tab.page.navUrl = url
+
+          if(tab.page.navUrl != url){
+            tab.page.navUrl = url
+            this.webViewCreate()
+            this.setState({})
+          }
+          else{
+            tab.page.navUrl = url
+          }
+
           tab.prevSyncNav = url //@TOOD arrage navurl,location,sync panel
           try {
             tab.page.location = decodeURIComponent(url)
@@ -4569,21 +4635,23 @@ export default class TabPanel extends Component {
     return this.state.tabs.find(x=>x.wvId === id)
   }
 
-  getTabsInfo(){
-    return this.state.tabs.map(tab=>{
+  async getTabsInfo(){
+    const results = []
+    for(let tab of this.state.tabs){
       const historyList = []
       let cont, currentIndex
       if((cont = this.getWebContents(tab))){
-        let histNum = cont.length()
-        currentIndex = histNum - cont.getActiveIndex() - 1
+        let histNum = await cont.length()
+        currentIndex = histNum - (await cont.getActiveIndex()) - 1
         for(let i=histNum -1;i>=0;i--){
-          const url = cont.getURLAtIndex(i)
+          const url = await cont.getURLAtIndex(i)
           const datas = historyMap.get(url)
           historyList.push({title:datas && datas[0],url,favicon: datas && datas[1]}) //tabsPanel Fix
         }
       }
-      return {currentIndex,historyList,selectedTab: tab.key == this.state.selectedTab}
-    })
+      results.push({currentIndex,historyList,selectedTab: tab.key == this.state.selectedTab})
+    }
+    return results
   }
 
   screenShot(full,type,tab){
@@ -4800,7 +4868,7 @@ export default class TabPanel extends Component {
                 }
               }) : null}
               <BookmarkBar webViewCreate={this.webViewCreate} tab={tab} refs2={refs2} topURL={topURL} navigateTo={this.navigateTo} toggleNav={toggle} k={this.props.k} currentWebContents={this.props.currentWebContents}/>
-              <BrowserPageStatus tab={tab} k={this.props.k}/>
+              {/*<BrowserPageStatus tab={tab} k={this.props.k}/>*/}
               {this.state.inputPopup && this.state.inputPopup.key == tab.key ? <InputPopup {...this.state.inputPopup} tab={tab} focus_webview={this.focus_webview}/>: null}
             </div>
           </Tab>)

@@ -42,22 +42,22 @@ sharedState._tabBarMarginTop = parseInt(tabBarMarginTop)
 sharedState.tabBarMarginTop = (removeTabBarMarginTop && remote.getCurrentWindow().isMaximized()) ? 0 : sharedState._tabBarMarginTop
 sharedState.multistageTabs = multistageTabs
 
-if(removeTabBarMarginTop){
-  ipc.on('maximize',(e,val)=>{
-    let nextVal
-    if(val){
-      nextVal = 0
-    }
-    else{
-      nextVal = sharedState._tabBarMarginTop
-    }
-    if(nextVal != sharedState.tabBarMarginTop){
-      sharedState.tabBarMarginTop = nextVal
-      PubSub.publish('set-state-split-window')
-      PubSub.publish('set-state-split-window')
-    }
-  })
-}
+// if(removeTabBarMarginTop){
+//   ipc.on('maximize',(e,val)=>{
+//     let nextVal
+//     if(val){
+//       nextVal = sharedState._tabBarMarginTop
+//     }
+//     else{
+//       nextVal = sharedState._tabBarMarginTop
+//     }
+//     if(nextVal != sharedState.tabBarMarginTop){
+//       sharedState.tabBarMarginTop = nextVal
+//       PubSub.publish('set-state-split-window')
+//       PubSub.publish('set-state-split-window')
+//     }
+//   })
+// }
 
 ;(function(){
   const s = document.createElement('style');
@@ -579,7 +579,7 @@ class Tabs extends React.Component {
         }
         beforeTitle.push(<span className="tab-number" style={{color:titleColor}}>{tabNumber}</span>)
       }
-      beforeTitle.push(<img className='favi-tab' src={notLoadTabUntilSelected && !allSelectedkeys.has(tab.key) ? 'resource/file.svg' : page.title && page.favicon !== 'loading' ? page.favicon : 'resource/l.svg'} onError={(e)=>{e.target.src = 'resource/file.svg'}}/>)
+      beforeTitle.push(<img className='favi-tab' src={notLoadTabUntilSelected && !allSelectedkeys.has(tab.key) ? 'resource/file.svg' : page.title && page.favicon !== 'loading' && !page.isLoading ? page.favicon : 'resource/l.svg'} onError={(e)=>{e.target.src = 'resource/file.svg'}}/>)
 
       const title = page.favicon !== 'loading' || page.titleSet  || page.location == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? page.title : page.location
 
@@ -1468,10 +1468,12 @@ class Tabs extends React.Component {
                 const win = remote.getCurrentWindow()
                 if(win.isFullScreen()){}
                 else if(win.isMaximized()){
-                  win.unmaximize()
+                  // win.unmaximize()
+                  win.nativeWindow.showWindow(9)
                 }
                 else{
-                  win.maximize()
+                  // win.maximize()
+                  win.nativeWindow.showWindow(3)
                 }
               }: null}
             // onMouseDown={e=>{

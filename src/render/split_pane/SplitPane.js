@@ -374,7 +374,12 @@ class SplitPane extends Component {
     }
 
     if(this.props.order===0 && !this.windowIsMaximized()){
-      Object.assign(style, {border: "1px solid rgb(148, 148, 148)"})
+      Object.assign(style, {
+        border: "2px solid rgb(183, 183, 183)",
+        // padding: 1,
+        // backgroundColor: "rgb(212, 212, 212)"
+        // border: "1px solid rgb(148, 148, 148)"
+      })
     }
 
     const children = this.props.children;

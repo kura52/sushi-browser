@@ -844,9 +844,14 @@ exports.init = function (language) {
   // If this is in the main process
   if (ipcMain) {
     // Respond to requests for translations from the renderer process
-    ipcMain.on('translations', function (event, arg) {
+    ipcMain.on('translations', function (event, noSync) {
       // Return the entire set of translations synchronously
-      event.returnValue = translations
+      if(noSync){
+        event.sender.send(`translations-reply_${noSync}`, translations)
+      }
+      else{
+        event.returnValue = translations
+      }
     })
 
     // TODO: There shouldn't need to be a REQUEST_LANGUAGE event at all

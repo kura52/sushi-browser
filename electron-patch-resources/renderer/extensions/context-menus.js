@@ -1,5 +1,5 @@
 const {Event} = require('./event')
-const {getIpcNameFunc, ipcFuncRenderer, shortId} = require('./util')
+const {ipcFuncRenderer, shortId} = require('./util')
 const {ipcRenderer} = require('electron')
 
 class ContextMenus {

@@ -2,16 +2,17 @@ import uuid from "node-uuid";
 
 window.debug = require('debug')('info')
 import process from './process'
-const ipc = require('electron').ipcRenderer
+import {ipcRenderer as ipc} from './ipcRenderer'
 const path = require('path')
 const React = require('react')
 const ReactDOM = require('react-dom')
 const isAccelerator = require("electron-is-accelerator")
 const {  Form, TextArea, Grid, Sidebar, Segment, Container, Menu, Input,Divider, Button, Checkbox, Icon, Table, Dropdown } = require('semantic-ui-react');
 const { StickyContainer, Sticky } = require('react-sticky');
-const l10n = require('../../brave/js/l10n')
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
-l10n.init()
+import '../defaultExtension/contentscript'
+import l10n from '../../brave/js/l10n';
+const initPromise = l10n.init()
 
 const isDarwin = navigator.userAgent.includes('Mac OS X')
 const isWin = navigator.userAgent.includes('Windows')
@@ -2378,12 +2379,11 @@ class VideoSetting extends React.Component {
   }
 }
 
-let extensionDefault
+let extensionDefault, accessKey, accessPort
 class ExtensionSetting extends React.Component {
   constructor(props) {
     super(props)
     this.state = {extensions:extensionDefault.extensions}
-    this.accessKey = ipc.sendSync('get-access-key')
   }
 
 
@@ -2415,7 +2415,7 @@ class ExtensionSetting extends React.Component {
     const icon = v.icons ? v.icons[Math.max(...Object.keys(v.icons))] : ""
     const iconUrl = `file://${v.basePath}/${icon}`
     return <tr key={`tr${i}`}>
-      <td key={`icon${i}`}><img style={{width:32,height:32,margin:'auto'}} src={`chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/?key=${this.accessKey}&file=${iconUrl}`}/></td>
+      <td key={`icon${i}`}><img style={{width:32,height:32,margin:'auto'}} src={`http://localhost:${accessPort}/?key=${accessKey}&file=${iconUrl}`}/></td>
       <td key={`name${i}`}><a target="_blank" href={`https://chrome.google.com/webstore/detail/${orgId}`}>{v.name}</a></td>
       <td key={`description${i}`} >{v.description}</td>
       <td key={`version${i}`} style={{width: 40}}>{v.version}</td>
@@ -2859,7 +2859,7 @@ ipc.send("get-main-state",key,['startsWith','newTabMode','myHomepage','searchPro
   'regexClickVideo','regexDbClickVideo','regexWheelMinusVideo','regexShiftWheelMinusVideo','regexCtrlWheelMinusVideo','regexShiftCtrlWheelMinusVideo','regexKeyVideoPlayOrPause',
   'regexKeyVideoFrameStep','regexKeyVideoFrameBackStep','regexKeyVideoRewind1','regexKeyVideoRewind2','regexKeyVideoRewind3','regexKeyVideoForward1','regexKeyVideoForward2','regexKeyVideoForward3','regexKeyVideoNormalSpeed','regexKeyVideoHalveSpeed','regexKeyVideoDoubleSpeed',
   'regexKeyVideoDecSpeed','regexKeyVideoIncSpeed','regexKeyVideoFullscreen','regexKeyVideoExitFullscreen','regexKeyVideoMute','regexKeyVideoDecreaseVolume','regexKeyVideoIncreaseVolume','regexKeyVideoPlRepeat'])
-ipc.once(`get-main-state-reply_${key}`,(e,data)=>{
+ipc.once(`get-main-state-reply_${key}`,async (e,data)=>{
   generalDefault = data
   keyboardDefault = data
   TabDefault = data
@@ -2874,5 +2874,10 @@ ipc.once(`get-main-state-reply_${key}`,(e,data)=>{
   }
   searchDefault = {searchProviders: arr.filter(x=>x),default: searchEngine,contextMenuSearchEngines,searchEngineDisplayType}
 
+  ;[accessKey, accessPort] = await new Promise(r=>{
+    ipc.send('get-access-key-and-port')
+    ipc.once('get-access-key-and-port-reply',(e,data)=>r(data))
+  })
+  await initPromise
   ReactDOM.render(<App />,  document.getElementById('app'))
 })

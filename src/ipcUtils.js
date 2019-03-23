@@ -1,4 +1,5 @@
-import {ipcMain, app, dialog, BrowserWindow, shell, webContents, session, clipboard, nativeImage, Menu, BrowserView, screen} from 'electron'
+import {ipcMain, app, dialog, BrowserWindow, shell, session, clipboard, nativeImage, Menu, screen} from 'electron'
+import {BrowserPanel, BrowserView, webContents} from './remoted-chrome/BrowserView'
 const BrowserWindowPlus = require('./BrowserWindowPlus')
 import fs from 'fs-extra'
 import sh from 'shelljs'
@@ -7,6 +8,7 @@ import PubSub from './render/pubsub'
 import {toKeyEvent} from 'keyboardevent-from-electron-accelerator'
 import https from 'https'
 import URL from 'url'
+import robot from 'robotjs'
 
 const os = require('os')
 const seq = require('./sequence')
@@ -497,11 +499,11 @@ ipcMain.on('toggle-fullscreen',(event,cancel)=> {
 })
 
 
-ipcMain.on('toggle-fullscreen-sync',(event,val)=> {
+ipcMain.on('toggle-fullscreen2',(event,val,key)=> {
   const win = BrowserWindow.fromWebContents(event.sender.hostWebContents2 || event.sender)
   const isFullScreen = win.isFullScreen()
   if(val === 1 && !isFullScreen){
-    event.returnValue = isFullScreen
+    event.sender.send(`toggle-fullscreen2-reply_${key}`, isFullScreen)
     return
   }
 
@@ -511,7 +513,7 @@ ipcMain.on('toggle-fullscreen-sync',(event,val)=> {
   win.setFullScreen(!isFullScreen)
   win.setMenuBarVisibility(menubar)
   win.setFullScreenable(false)
-  event.returnValue = !isFullScreen
+  event.sender.send(`toggle-fullscreen2-reply_${key}`, !isFullScreen)
 })
 
 function getYoutubeFileSize(url){
@@ -639,11 +641,11 @@ ipcMain.on("change-title",(e,title)=>{
     const cont = bw.webContents
     const key = uuid.v4()
     return new Promise((resolve,reject)=>{
-      ipcMain.once(`get-focused-webContent-reply_${key}`,(e,tabId)=>{
+      ipcMain.once(`get-focused-webContent-reply_${key}`,async (e,tabId)=>{
         if(!tabId) return
         const focusedCont = (sharedState[tabId] || webContents.fromId(tabId))
         if(focusedCont){
-          if(!bw.isDestroyed()) bw.setTitle(`${focusedCont.getTitle()} - Sushi Browser`)
+          if(!bw.isDestroyed()) bw.setTitle(`${await focusedCont.getTitle()} - Sushi Browser`)
         }
       })
       cont.send('get-focused-webContent',key)
@@ -715,13 +717,33 @@ ipcMain.on('record-op',(e,val)=>{
 })
 
 const extInfos = require('./extensionInfos')
+const keyCache = {}
 ipcMain.on('get-main-state',(e,key,names)=>{
   const ret = {}
   names.forEach(name=>{
     if(name == "ALL_KEYS"){
       for(let [key,val] of Object.entries(mainState)){
-        if(key.startsWith("key") || key.endsWith("Video")){
+        if(key.startsWith("key") && key.endsWith("Video")){
           ret[key] = val
+        }
+      }
+    }
+    else if(name == "ALL_KEYS2"){
+      for(let [key,val] of Object.entries(mainState)){
+        if(key.startsWith("key") && !key.startsWith("keyVideo")){
+          let cache = keyCache[val]
+          if(!cache){
+            const e = toKeyEvent(val)
+            const val2 = e.key ? {key: e.key} : {code: e.code}
+            if(e.ctrlKey) val2.ctrlKey = true
+            if(e.metaKey) val2.metaKey = true
+            if(e.shiftKey) val2.shiftKey = true
+            if(e.altKey) val2.altKey = true
+            let key2 = key.slice(3)
+            keyCache[val] = [JSON.stringify(val2), `${key2.charAt(0).toLowerCase()}${key2.slice(1)}`]
+            cache = keyCache[val]
+          }
+          ret[cache[0]] = cache[1]
         }
       }
     }
@@ -931,7 +953,7 @@ ipcMain.on('set-pos-window',async (e,{id,hwnd,key,x,y,width,height,top,active,ta
         e.sender.send(`set-pos-window-reply_${key}`,(void 0))
         return
       }
-      win.setWindowLongPtr()
+      win.setWindowLongPtr(0x800000)
       console.log('setWindowPos1')
       win.setWindowPos(0,0,0,0,0,39+1024)
       bindMap[key] = win.getHwnd()
@@ -939,7 +961,7 @@ ipcMain.on('set-pos-window',async (e,{id,hwnd,key,x,y,width,height,top,active,ta
 
     if(restoredMap[key] !== (void 0)){
       clearTimeout(restoredMap[key])
-      win.setWindowLongPtr()
+      win.setWindowLongPtr(0x800000)
       console.log('setWindowPos2')
       win.setWindowPos(0,0,0,0,0,39+1024);
       delete restoredMap[key]
@@ -947,7 +969,7 @@ ipcMain.on('set-pos-window',async (e,{id,hwnd,key,x,y,width,height,top,active,ta
 
     if(restore){
       // console.log(32322,styleMap[key])
-      win.setWindowLongPtrRestore()
+      win.setWindowLongPtrRestore(0x800000)
       console.log('setWindowPos3')
       win.setWindowPos(0,0,0,0,0,39+1024);
       console.log('setWindowPos51',win.getTitle())
@@ -1359,48 +1381,49 @@ ipcMain.on('sync-mobile-scroll',(e,optSelector,selector,move)=>{
   }
 })
 
-// let timer,timers={}
-// ipcMain.on('change-tab-infos',(e,changeTabInfos)=> { @TODO ELECTRON
-//   const f = function (cont,c) {
-//     if (c.index !== (void 0)) {
-//       // if(timers[c.tabId]) clearTimeout(timers[c.tabId])
-//       // timers[c.tabId] = setTimeout(()=>{
-//       console.log('change-tab-infos', c)
-//       // cont.setTabIndex(c.index)
-//       ipcMain.emit('update-tab-index-org', null, c.tabId, c.index)
-//       // delete timers[c.tabId]
-//       // }, 10)
-//     }
-//     if (c.active) {
-//       if (timer) clearTimeout(timer)
-//       timer = setTimeout(() => {
-//         console.log('change-tab-infos', c)
-//         // if (!cont.isDestroyed()) cont.setActive(c.active) @TODO ELECTRON
-//         timer = void 0
-//       }, 10)
-//     }
-//   };
-//   for(let c of changeTabInfos){
-//     let cont = sharedState[c.tabId] || webContents.fromId(c.tabId)
-//     if(cont) {
-//       f(cont,c)
-//     }
-//     else{
-//       let retry = 0
-//       const id = setInterval(_=>{
-//         if(retry++ > 100){
-//           clearInterval(id)
-//           return
-//         }
-//         cont = sharedState[c.tabId] || webContents.fromId(c.tabId)
-//         if(cont){
-//           f(cont,c)
-//           clearInterval(id)
-//         }
-//       },10)
-//     }
-//   }
-// })
+let timer,timers={}
+ipcMain.on('change-tab-infos',(e,changeTabInfos)=> {
+  const f = function (cont,c) {
+    // if (c.index !== (void 0)) {
+    //   // if(timers[c.tabId]) clearTimeout(timers[c.tabId])
+    //   // timers[c.tabId] = setTimeout(()=>{
+    //   console.log('change-tab-infos', c)
+    //   // cont.setTabIndex(c.index)
+    //   ipcMain.emit('update-tab', null, c.tabId)
+    //   // delete timers[c.tabId]
+    //   // }, 10)
+    // }
+    if (c.active) {
+      if (timer) clearTimeout(timer)
+      timer = setTimeout(() => {
+        console.log('change-tab-infos', c)
+        ipcMain.emit('update-tab', null, c.tabId)
+        timer = void 0
+      }, 10)
+    }
+  };
+  for(let c of changeTabInfos){
+    if(!c.tabId) continue
+    let cont = sharedState[c.tabId] || webContents.fromId(c.tabId)
+    if(cont) {
+      f(cont,c)
+    }
+    else{
+      let retry = 0
+      const id = setInterval(_=>{
+        if(retry++ > 100){
+          clearInterval(id)
+          return
+        }
+        cont = sharedState[c.tabId] || webContents.fromId(c.tabId)
+        if(cont){
+          f(cont,c)
+          clearInterval(id)
+        }
+      },10)
+    }
+  }
+})
 
 // ipcMain.on('need-get-inner-text',(e,key)=>{
 // if(mainState.historyFull){
@@ -1520,16 +1543,16 @@ ipcMain.on('get-country-names',e=>{
 })
 
 let prevCount = {}
-ipcMain.on('get-on-dom-ready',(e,tabId,tabKey,rSession,closingPos)=>{
+ipcMain.on('get-on-dom-ready',async (e,tabId,tabKey,rSession,closingPos)=>{
   const cont = (sharedState[tabId] || webContents.fromId(tabId))
   if(!cont || cont.isDestroyed()){
     e.sender.send(`get-on-dom-ready-reply_${tabId}`,null)
     return
   }
-  saveTabState(cont, rSession, tabKey, void 0, closingPos)
+  await saveTabState(cont, rSession, tabKey, void 0, closingPos)
   //if(mainState.flash) cont.authorizePlugin(mainState.flash) @TODO ELECTRON
 
-  let currentEntryIndex,entryCount = cont.length()
+  let currentEntryIndex,entryCount = await cont.length()
   if(rSession){
     if(entryCount > (prevCount[tabKey] || 1)){
       currentEntryIndex = rSession.currentIndex + 1
@@ -1541,10 +1564,10 @@ ipcMain.on('get-on-dom-ready',(e,tabId,tabKey,rSession,closingPos)=>{
     }
   }
   else{
-    currentEntryIndex = cont.getActiveIndex()
+    currentEntryIndex = await cont.getActiveIndex()
   }
 
-  e.sender.send(`get-on-dom-ready-reply_${tabId}`,{currentEntryIndex,entryCount,title: cont.getTitle(),rSession})
+  e.sender.send(`get-on-dom-ready-reply_${tabId}`,{currentEntryIndex,entryCount,title: await cont.getTitle(),rSession})
 })
 
 ipcMain.on('tab-close-handler',(e,tabId,tabKey,rSession,closingPos)=>{
@@ -1553,15 +1576,15 @@ ipcMain.on('tab-close-handler',(e,tabId,tabKey,rSession,closingPos)=>{
   saveTabState(cont, rSession, tabKey, void 0, closingPos, 1)
 })
 
-ipcMain.on('get-update-title',(e,tabId,tabKey,rSession,closingPos)=>{
+ipcMain.on('get-update-title',async (e,tabId,tabKey,rSession,closingPos)=>{
   const cont = (sharedState[tabId] || webContents.fromId(tabId))
   if(!cont || cont.isDestroyed()){
     e.sender.send(`get-update-title-reply_${tabId}`,null)
     return
   }
-  saveTabState(cont, rSession, tabKey, void 0, closingPos)
+  await saveTabState(cont, rSession, tabKey, void 0, closingPos)
 
-  let currentEntryIndex,entryCount = cont.length()
+  let currentEntryIndex,entryCount = await cont.length()
   if(rSession){
     if(entryCount > (prevCount[tabKey] || 1)){
       currentEntryIndex = rSession.currentIndex + 1
@@ -1573,12 +1596,12 @@ ipcMain.on('get-update-title',(e,tabId,tabKey,rSession,closingPos)=>{
     }
   }
   else{
-    currentEntryIndex = cont.getActiveIndex()
+    currentEntryIndex = await cont.getActiveIndex()
   }
 
   const url = cont.getURL()
   const ret = cont ? {
-    title: cont.getTitle(),
+    title: await cont.getTitle(),
     currentEntryIndex,
     entryCount,
     url,
@@ -1589,14 +1612,14 @@ ipcMain.on('get-update-title',(e,tabId,tabKey,rSession,closingPos)=>{
   visit.insert({url,created_at:Date.now()})
 })
 
-ipcMain.on('get-did-finish-load',(e,tabId,tabKey,rSession)=>{
+ipcMain.on('get-did-finish-load',async (e,tabId,tabKey,rSession)=>{
   const cont = (sharedState[tabId] || webContents.fromId(tabId))
   if(!cont || cont.isDestroyed()){
     e.sender.send(`get-did-finish-load-reply_${tabId}`,null)
     return
   }
 
-  let currentEntryIndex,entryCount = cont.length()
+  let currentEntryIndex,entryCount = await cont.length()
   if(rSession){
     if(entryCount > (prevCount[tabKey] || 1)){
       currentEntryIndex = rSession.currentIndex + 1
@@ -1610,14 +1633,14 @@ ipcMain.on('get-did-finish-load',(e,tabId,tabKey,rSession)=>{
     }
   }
   else{
-    currentEntryIndex = cont.getActiveIndex()
+    currentEntryIndex = await cont.getActiveIndex()
   }
 
   const ret = cont ? {
     currentEntryIndex,
     entryCount,
     url: cont.getURL(),
-    title: cont.getTitle()
+    title: await cont.getTitle()
   } : null
 
   e.sender.send(`get-did-finish-load-reply_${tabId}`,ret)
@@ -1633,7 +1656,7 @@ function addDestroyedFunc(cont,tabId,sender,msg){
     destroyedMap.set(tabId,[[sender,msg]])
     cont.once('destroyed',_=>{
       for(let [sender,msg] of destroyedMap.get(tabId)){
-        sender.send(msg,'destroy')
+        if(!sender.isDestroyed()) sender.send(msg,'destroy')
       }
     })
   }
@@ -1742,17 +1765,17 @@ function setTabState(cont,cb){
   ipcMain.emit('get-tab-opener',null,tabId)
 }
 
-function saveTabState(cont, rSession, tabKey, noUpdate, closingPos, close) {
+async function saveTabState(cont, rSession, tabKey, noUpdate, closingPos, close) {
   closingPos = closingPos || {}
 
-  let histNum = cont.length(),
-    currentIndex = cont.getActiveIndex(),
+  let histNum = await cont.length(),
+    currentIndex = await cont.getActiveIndex(),
     historyList = []
   const urls = [], titles = [], positions = []
   if (!rSession) {
     for (let i = 0; i < histNum; i++) {
-      const url = cont.getURLAtIndex(i)
-      const title = cont.getTitleAtIndex(i)
+      const url = await cont.getURLAtIndex(i)
+      const title = await cont.getTitleAtIndex(i)
       const pos = closingPos[url] || ""
       urls.push(url)
       titles.push(title)
@@ -1766,8 +1789,8 @@ function saveTabState(cont, rSession, tabKey, noUpdate, closingPos, close) {
   else {
     console.log(998,histNum > (prevCount[tabKey] || 1),currentIndex == histNum - 1,rSession.urls)
     if (histNum > (prevCount[tabKey] || 1) && currentIndex == histNum - 1) {
-      const url = cont.getURLAtIndex(currentIndex)
-      const title = cont.getTitleAtIndex(currentIndex)
+      const url = await cont.getURLAtIndex(currentIndex)
+      const title = await cont.getTitleAtIndex(currentIndex)
       const pos = closingPos[url] || ""
       rSession.urls = rSession.urls.slice(0, rSession.currentIndex + 1)
       rSession.titles = rSession.titles.slice(0, rSession.currentIndex + 1)
@@ -1792,13 +1815,13 @@ function saveTabState(cont, rSession, tabKey, noUpdate, closingPos, close) {
   return {currentIndex, historyList}
 }
 
-ipcMain.on('get-cont-history',(e,tabId,tabKey,rSession)=>{
+ipcMain.on('get-cont-history',async (e,tabId,tabKey,rSession)=>{
   const cont = (sharedState[tabId] || webContents.fromId(tabId))
   if(!cont || cont.isDestroyed()){
     e.sender.send(`get-cont-history-reply_${tabId}`)
     return
   }
-  let {currentIndex, historyList} = saveTabState(cont, rSession, tabKey, true);
+  let {currentIndex, historyList} = await saveTabState(cont, rSession, tabKey, true);
   e.sender.send(`get-cont-history-reply_${tabId}`,currentIndex,historyList,rSession,mainState.disableExtensions,mainState.adBlockEnable,mainState.pdfMode,mainState.navbarItems)
 })
 ipcMain.on('get-session-sequence',(e,isPrivate)=> {
@@ -1820,8 +1843,8 @@ ipcMain.on('get-extension-info',(e,key)=>{
   e.sender.send(`get-extension-info-reply_${key}`,extInfos)
 })
 
-ipcMain.on('get-sync-main-states',(e,keys)=>{
-  e.returnValue = keys.map(key=>{
+ipcMain.on('get-sync-main-states',(e,keys,noSync)=>{
+  const result = keys.map(key=>{
     if(key == 'inputsVideo'){
       const ret = {}
       for(let [key,val] of Object.entries(mainState)){
@@ -1878,6 +1901,14 @@ ipcMain.on('get-sync-main-states',(e,keys)=>{
       return mainState[key]
     }
   })
+
+  if(noSync){
+    e.sender.send(`get-sync-main-states-reply_${noSync}`, result)
+  }
+  else{
+    e.returnValue = result
+  }
+
 })
 
 ipcMain.on('get-sync-main-state',(e,key)=>{
@@ -1895,7 +1926,12 @@ ipcMain.on('set-clipboard',(e,data)=>{
 })
 
 
-ipcMain.on('download-start',(e,url)=>{
+ipcMain.on('download-start',(e, url, fileName)=>{
+  if(fileName){
+    ipcMain.emit('noneed-set-save-filename',null,url)
+    ipcMain.emit('set-save-path', null, url,fileName,true)
+  }
+
   try{
     e.sender.hostWebContents2.downloadURL(url,true)
   }
@@ -2046,9 +2082,9 @@ ipcMain.on('update-automation-order',async (e,datas,menuKey)=>{
   automationOrder.update({key},{key, datas, menuKey, updated_at: Date.now()}, { upsert: true }).then(_=>_)
 })
 
-ipcMain.on('get-automation-order',async (e,datas)=>{
+ipcMain.on('get-automation-order',async (e,key)=>{
   const rec = await automationOrder.findOne({})
-  e.returnValue = rec ? {datas:rec.datas, menuKey:rec.menuKey} : {datas:[]}
+  e.sender.send(`get-automation-order-reply_${key}`, rec ? {datas:rec.datas, menuKey:rec.menuKey} : {datas:[]})
 })
 
 ipcMain.on('delete-automation',async (e,key)=>{
@@ -2346,41 +2382,27 @@ ipcMain.on('main-state-op',(e,op,name,key,val)=>{
   }
 })
 
-
-let bvMap = {}, nowBvMap = {}, seqMap = {}, viewAttributeMap = {}, winViewMap = {}
-global.winViewMap = winViewMap
-global.seqBv = 0
-const bvZindexMap = {}
-ipcMain.on('create-browser-view', (e, panelKey, tabKey, x, y, width, height, zIndex, src)=>{
-  console.log('create-browser-view', panelKey, tabKey, x, y, width, height, zIndex, src)
-  const view = new BrowserView({ webPreferences: {
-      plugins: true,
-      nodeIntegration: false,
-      navigateOnDragDrop: true,
-      // contextIsolation: true,
-      enableLargerThanScreen: true,
-      sandbox: true,
-      enableRemoteModule: false,
-      allowFileAccessFromFileUrls: true,
-      allowUniversalAccessFromFileUrls: true,
-      preload: path.join(__dirname, '../resource/preload-content-scripts.js'),
-    } })
-  view.webContents.hostWebContents2 = e.sender
-  view.setAutoResize({width: false, height: false})
-  if(!seqMap[panelKey]) seqMap[panelKey] = ++global.seqBv
+ipcMain.on('create-browser-view', async (e, panelKey, tabKey, x, y, width, height, zIndex, src, webContents)=>{
+  console.log('create-browser-view', panelKey, tabKey, x, y, width, height, zIndex, src, webContents)
+  let view
+  if(panelKey){
+    view = await BrowserView.createNewTab(BrowserWindow.fromWebContents(e.sender), panelKey, tabKey, void 0, src)
+  }
+  else{
+    view = await BrowserView.newTab(webContents)
+  }
+  // console.log(99944,view)
+  // view.webContents.hostWebContents2 = e.sender
   if(zIndex > 0){
     const win = BrowserWindow.fromWebContents(e.sender)
     if(!win || win.isDestroyed()) return
 
-    win.insertBrowserView(view, seqMap[panelKey])
-    winViewMap[win.id] = view.id
-    delete bvZindexMap[win.id]
-    viewAttributeMap[view.id] = { x: Math.round(x), y:Math.round(y), width: Math.round(width), height: Math.round(height), zIndex }
-    view.setBounds(viewAttributeMap[view.id])
-    nowBvMap[panelKey] = tabKey
+
+    const winPos = win.getPosition()
+    // console.log(443434,x,winPos)
+    view.setBounds({ x: Math.round(x) + winPos[0], y:Math.round(y) + winPos[1], width: Math.round(width), height: Math.round(height), zIndex })
   }
   if(src) view.webContents.loadURL(src)
-  bvMap[`${panelKey}\t${tabKey}`] = view
   // ipcMain.emit('web-contents-created', {},view.webContents)
   e.returnValue = view.webContents.id
 })
@@ -2394,241 +2416,310 @@ ipcMain.on('no-attach-browser-view', (e, panelKey, tabKeys)=>{
   }
 })
 
-const detachs = {}
-ipcMain.on('move-browser-view', (e, panelKey, tabKey, type, tabId, x, y, width, height, zIndex, remove)=>{
-  console.log('move-browser-view', panelKey, tabKey, type, tabId, x, y, width, height, zIndex)
+let moveingTab
+ipcMain.on('move-browser-view', async (e, panelKey, tabKey, type, tabId, x, y, width, height, zIndex, index)=>{
   const win = BrowserWindow.fromWebContents(e.sender)
   if(!win || win.isDestroyed()) return
 
-  if(type == 'detach'){
-    const view = bvMap[`${panelKey}\t${tabKey}`]
-    detachs[view.webContents.id] = [view, e.sender]
-    delete bvMap[`${panelKey}\t${tabKey}`]
-    if(nowBvMap[panelKey] == tabKey){
-      win.eraseBrowserView(seqMap[panelKey])
-      delete winViewMap[win.id]
-      delete nowBvMap[panelKey]
-    }
-  }
-  else if(type == 'attach'){
+  console.log('move-browser-view', panelKey, tabKey, type, tabId, x, y, width, height, zIndex, index)
+
+  if(type == 'attach'){
     if(noAttachs[`${panelKey}\t${tabKey}`]){
       delete noAttachs[`${panelKey}\t${tabKey}`]
       return
     }
-    const data = detachs[tabId]
-    let view = data && data[0]
-    let sender = data && data[1]
-    if(!view){
-      for(let [panelAndTabKey,_view] of Object.entries(bvMap)){
-        const [_panelKey, _tabKey] = panelAndTabKey.split("\t")
-        if(panelKey != _panelKey && _tabKey == tabKey){
-          view = _view
-          delete bvMap[`${_panelKey}\t${tabKey}`]
-          if(nowBvMap[_panelKey] == tabKey){
-            win.eraseBrowserView(seqMap[_panelKey])
-            delete winViewMap[win.id]
-            delete nowBvMap[_panelKey]
-          }
-        }
-      }
-    }
-    if(!view) return
-    delete detachs[tabId]
-    if(!seqMap[panelKey]){
-      seqMap[panelKey] = ++global.seqBv
-    }
 
-    view.webContents.hostWebContents2 = e.sender
-    bvMap[`${panelKey}\t${tabKey}`] = view
-    if(x !== void 0){
-      ipcMain.emit('set-bound-browser-view', e, panelKey, tabKey, x, y, width, height, zIndex)
+    //panelがなかったら作る
+    //webContentsは存在確認？
+    //windows.createでtabId渡して、moveする。
+    //onAttachedイベントが出るので、newTabで紐づけて、古いのを消す？(create-web-contentsをやると変になるからviewだけ作りたい）
+
+    // const panel = BrowserPanel.getBrowserPanel(panelKey)
+    // let view
+    // console.log(3334,panel)
+    // if(!panel){
+    //   console.log(3335,view)
+    //   view = await BrowserView.newTab(new webContents(tabId))
+    // }
+    // else{
+    //   view = panel.getBrowserView({tabKey})
+    //   console.log(33365,view)
+    //   if(!view){
+    //     console.log(3337,view)
+    //     view = await BrowserView.newTab(new webContents(tabId))
+    //   }
+    // }
+    // console.log(33368,view)
+    // if(!view.webContents.isDestroyed()){
+    //   // view.webContents.hostWebContents2 = e.sender
+    //   BrowserPanel.moveTabs([tabId], panelKey, {tabKey})
+    // }
+
+    // moveingTab = true
+    await BrowserPanel.moveTabs([tabId], panelKey, {index, tabKey}, win)
+    // moveingTab = false
+    console.log([tabId], panelKey, {index, tabKey})
+    if(x != null){
+      ipcMain.emit('set-bound-browser-view', e, panelKey, tabKey, tabId, x, y, width, height, zIndex)
       // viewAttributeMap[view.id] = { x: Math.round(x), y:Math.round(y), width: Math.round(width), height: Math.round(height), zIndex }
       // view.setBounds(viewAttributeMap[view.id])
     }
-    if(remove && sender){
-      sender.send('chrome-tabs-event',{tabId}, 'removed')
+    else if(zIndex > 0){
+      webContents.fromId(tabId).focus()
     }
   }
-  delete bvZindexMap[win.id]
 })
 
-ipcMain.on('set-bound-browser-view', (e, panelKey, tabKey, x, y, width, height, zIndex)=>{
-  console.log('set-bound-browser-view', panelKey, tabKey, x, y, width, height, zIndex)
-  const view = bvMap[`${panelKey}\t${tabKey}`]
-  if(!view) return
-  // if(!view){
-  //   for(let [_panelKey,_tabKey] of Object.entries(nowBvMap)){
-  //     if(_tabKey == tabKey){
-  //       view = bvMap[`${_panelKey}\t${tabKey}`]
-  //       delete bvMap[`${_panelKey}\t${tabKey}`]
-  //       const win = BrowserWindow.fromWebContents(e.sender)
-  //       win.eraseBrowserView(seqMap[_panelKey])
-  //       bvMap[`${panelKey}\t${tabKey}`] = view
-  //     }
-  //   }
-  // }
-  if(nowBvMap[panelKey] != tabKey){
-    const win = BrowserWindow.fromWebContents(e.sender)
-    if(!win || win.isDestroyed()) return
+const posCache = {}, setBoundClearIds = {},dateCache = {}
+ipcMain.on('set-bound-browser-view', async (e, panelKey, tabKey, tabId, x, y, width, height, zIndex, date=new Date())=>{
+  if(dateCache[panelKey] && dateCache[panelKey] > date) return
 
-    if (zIndex) {
-      const winAttachView = win.getAddtionalBrowserView(seqMap[panelKey])
-      if(!winAttachView || view.id != winAttachView.id){
-        win.insertBrowserView(view, seqMap[panelKey])
-        winViewMap[win.id] = view.id
-      }
-    }
-    delete bvZindexMap[win.id]
-    nowBvMap[panelKey] = tabKey
+  console.log('set-bound-browser-view', panelKey, tabKey, x, y, width, height, zIndex)
+
+  const panel = BrowserPanel.getBrowserPanel(panelKey)
+  if(!panel){
+    await new Promise(r=>setTimeout(r,20))
+    ipcMain.emit('set-bound-browser-view', e, panelKey, tabKey, tabId, x, y, width, height, zIndex, date)
+    return
   }
-  viewAttributeMap[view.id] = { x: Math.round(x), y:Math.round(y), width: Math.round(width), height: Math.round(height), zIndex }
-  view.setBounds(viewAttributeMap[view.id])
+
+  if(zIndex > 0) webContents.fromId(tabId).focus()
+
+  // for(let i=0;i<1000;i++){
+  //   if(!moveingTab) break
+  //   // if(!panel) panel = BrowserPanel.getBrowserPanel(panelKey)
+  //   await new Promise(r=>setTimeout(r,10))
+  // }
+  const view = panel.getBrowserView({tabKey})
+  if(!view) return
+
+  const win = BrowserWindow.fromWebContents(e.sender)
+  if(!win || win.isDestroyed()) return
+
+  dateCache[panelKey] = date
+
+  const winBounds = win.getBounds()
+
+  let bounds = {
+    x: Math.round(x) + (winBounds.x < 0 ? 0 : winBounds.x),
+    y:Math.round(y) + (winBounds.y < 0 ? 0 : winBounds.y),
+    width: Math.round(width), height: Math.round(height), zIndex }
+  console.log(11,bounds, winBounds)
+  const id = setTimeout(()=>{
+    for(let [_bounds, id] of setBoundClearIds[panelKey] || []){
+      bounds = _bounds
+      clearTimeout(id)
+    }
+    delete setBoundClearIds[panelKey]
+    view.setBounds(bounds)
+  },10)
+
+  if(setBoundClearIds[panelKey]){
+    setBoundClearIds[panelKey].push([bounds, id])
+  }
+  else{
+    setBoundClearIds[panelKey] = [[bounds, id]]
+  }
+  posCache[panelKey] = { x: Math.round(x), y:Math.round(y)}
+})
+
+ipcMain.on('set-position-browser-view', (e, panelKey) => {
+  const panel = BrowserPanel.getBrowserPanel(panelKey)
+  if(!panel) return
+
+  const win = BrowserWindow.fromWebContents(e.sender)
+  if(!win || win.isDestroyed()) return
+
+
+  const pos = posCache[panelKey]
+  if(!pos) return
+
+  const winPos = win.getPosition()
+  panel.setBounds({ x: pos.x + winPos[0], y:pos.y + winPos[1] })
 })
 
 ipcMain.on('delete-browser-view', (e, panelKey, tabKey)=>{
   console.log('delete-browser-view',panelKey,tabKey)
-  const view = bvMap[`${panelKey}\t${tabKey}`]
-
-  delete bvMap[`${panelKey}\t${tabKey}`]
-  if(nowBvMap[panelKey] == tabKey) delete nowBvMap[panelKey]
 
   const win = BrowserWindow.fromWebContents(e.sender)
   if(!win || win.isDestroyed()) return
 
-  delete bvZindexMap[win.id]
+  console.log('delete-browser-view1',panelKey,tabKey)
+  const panel = BrowserPanel.getBrowserPanel(panelKey)
+  if(!panel) return
+  console.log('delete-browser-view2',panelKey,tabKey)
 
-  if(view){
-    delete viewAttributeMap[view.id]
-    if(!Object.keys(bvMap).some(key=>key.startsWith(panelKey))){
-      win.eraseBrowserView(seqMap[panelKey])
-      delete winViewMap[win.id]
-      delete seqMap[panelKey]
-    }
-    if(!view.isDestroyed()) view.destroy()
-  }
+  const view = panel.getBrowserView({tabKey})
+  console.log('delete-browser-view3',view)
+  if(view && !view.isDestroyed()) view.destroy()
+
 })
 
-const compMap = {}
-ipcMain.on('operation-overlap-component', (e, opType, panelKey) => {
-  console.log('operation-overlap-component', opType, panelKey)
+// const compMap = {}
+// ipcMain.on('operation-overlap-component', (e, opType, panelKey) => {
+//   console.log('operation-overlap-component', opType, panelKey)
+//   const win = BrowserWindow.fromWebContents(e.sender)
+//   if(!win || win.isDestroyed()) return
+//
+//   for(let type of ['page-status','page-search']){
+//     if(type == 'page-status' && opType == 'create' && !compMap[`${type}\t${panelKey}`]){
+//       const view = new BrowserView({ webPreferences: {
+//           nodeIntegration: false,
+//           sandbox: true,
+//           preload: type == 'page-search' ? path.join(__dirname, '../page-search-preload.js') : void 0,
+//           allowFileAccessFromFileUrls: true,
+//           allowUniversalAccessFromFileUrls: true,
+//         } })
+//       view.setAutoResize({width: false, height: false})
+//       const seq = ++global.seqBv
+//       win.insertBrowserView(view, seq)
+//       win.reorderBrowserView(seq, 0)
+//       view.webContents.loadURL(`file://${path.join(__dirname, `../${type}.html`)}`)
+//
+//       compMap[`${type}\t${panelKey}`] = [seq, view, false]
+//     }
+//     else if(opType == 'delete' && compMap[`${type}\t${panelKey}`]){
+//       win.eraseBrowserView(compMap[`${type}\t${panelKey}`][0])
+//       compMap[`${type}\t${panelKey}`][1].destroy()
+//       delete compMap[`${type}\t${panelKey}`]
+//     }
+//   }
+// })
+//
+// let wait = false
+// ipcMain.on('set-overlap-component', async (e, type, panelKey, tabKey, x, y, width, height, ...args) => {
+//   // console.log('set-overlap-component', type, panelKey, tabKey, x, y, width, height, ...args)
+//   if(wait){
+//     for(let i=0;i< 1000;i++){
+//       await new Promise(r=> setTimeout(r,10))
+//       if(!wait) break
+//     }
+//   }
+//   wait = true
+//   const win = BrowserWindow.fromWebContents(e.sender)
+//   let data = compMap[`${type}\t${panelKey}`]
+//   if(!data && y == -1 || (!win || win.isDestroyed())){
+//     wait = false
+//     return
+//   }
+//   if(!data){
+//     const view = new BrowserView({ webPreferences: {
+//         nodeIntegration: false,
+//         sandbox: true,
+//         enableRemoteModule: false,
+//         preload: type == 'extension-popup' ? path.join(__dirname, '../resource/preload-content-scripts.js') :
+//           type == 'page-search' ? path.join(__dirname, '../page-search-preload.js') : void 0,
+//         allowFileAccessFromFileUrls: true,
+//         allowUniversalAccessFromFileUrls: true,
+//         webSecurity: type != 'extension-popup',
+//       } })
+//     view.setAutoResize({width: false, height: false})
+//     const seq = ++global.seqBv
+//     win.insertBrowserView(view, seq)
+//     win.reorderBrowserView(seq, 0)
+//     view.webContents.loadURL(`file://${path.join(__dirname, `../${type}.html`)}`)
+//
+//     await new Promise(r=>view.webContents.once('did-finish-load', r))
+//
+//     compMap[`${type}\t${panelKey}`] = [seq, view, false]
+//     data = compMap[`${type}\t${panelKey}`]
+//   }
+//   const [seq, view, isOnTop] = data
+//
+//   if(type == 'page-status'){
+//     const [status, style] = args
+//     if(width > 0){
+//       win.reorderBrowserView(seq, -1)
+//       view.webContents.executeJavaScript(`
+//       var ele = document.querySelector('#browser-page-status')
+//       if(${!!style.color}) ele.style.color = '${style.color}'
+//       if(${!!style.backgroundColor}) ele.style.backgroundColor = '${style.backgroundColor}'
+//       ele.innerHTML = '${status}'
+//       `)
+//       view.setBounds({ x: Math.round(x), y:Math.round(y), width: Math.round(width), height: Math.round(height) })
+//       compMap[`${type}\t${panelKey}`] = [seq, view, true]
+//     }
+//     else{
+//       win.reorderBrowserView(seq, 0)
+//       view.setBounds({ x: 0, y:0, width: 0, height: 0 })
+//       compMap[`${type}\t${panelKey}`] = [seq, view, false]
+//     }
+//   }
+//   else if(type == 'page-search'){
+//     // const [progress, state] = args
+//     if(y !== -1){
+//       setTimeout(()=>{
+//       win.reorderBrowserView(seq, -1)
+//       if(args[1].focus) view.webContents.focus()
+//       view.webContents.send('page-search-data', panelKey, tabKey, ...args)
+//       view.setBounds({ x: Math.round(x), y:Math.round(y), width: Math.round(width), height: Math.round(height) })
+//       compMap[`${type}\t${panelKey}`] = [seq, view, true]
+//       },0)
+//     }
+//     else{
+//       win.reorderBrowserView(seq, 0)
+//       view.setBounds({ x: 0, y:0, width: 0, height: 0 })
+//       compMap[`${type}\t${panelKey}`] = [seq, view, false]
+//     }
+//   }
+//   else if(type == 'extension-popup'){
+//     const url = args[0]
+//     if(y !== -1){
+//       win.reorderBrowserView(seq, -1)
+//       if(url){
+//         view.webContents.hostWebContents2 = e.sender
+//         view.webContents.loadURL(url)
+//       }
+//       view.setBounds({ x: Math.round(x), y:Math.round(y), width: Math.round(width), height: Math.round(height) })
+//       compMap[`${type}\t${panelKey}`] = [seq, view, true]
+//     }
+//     else{
+//       win.reorderBrowserView(seq, 0)
+//       view.setBounds({ x: 0, y:0, width: 0, height: 0 })
+//       compMap[`${type}\t${panelKey}`] = [seq, view, false]
+//     }
+//      e.returnValue = view.webContents.id
+//   }
+//
+//   wait = false
+// })
+//
+ipcMain.on('change-browser-view-z-index', (e, isFrame) =>{
   const win = BrowserWindow.fromWebContents(e.sender)
   if(!win || win.isDestroyed()) return
 
-  for(let type of ['page-status','page-search']){
-    if(type == 'page-status' && opType == 'create' && !compMap[`${type}\t${panelKey}`]){
-      const view = new BrowserView({ webPreferences: {
-          nodeIntegration: false,
-          sandbox: true,
-          preload: type == 'page-search' ? path.join(__dirname, '../page-search-preload.js') : void 0,
-          allowFileAccessFromFileUrls: true,
-          allowUniversalAccessFromFileUrls: true
-        } })
-      view.setAutoResize({width: false, height: false})
-      const seq = ++global.seqBv
-      win.insertBrowserView(view, seq)
-      win.reorderBrowserView(seq, 0)
-      view.webContents.loadURL(`file://${path.join(__dirname, `../${type}.html`)}`)
-
-      compMap[`${type}\t${panelKey}`] = [seq, view, false]
-    }
-    else if(opType == 'delete' && compMap[`${type}\t${panelKey}`]){
-      win.eraseBrowserView(compMap[`${type}\t${panelKey}`][0])
-      compMap[`${type}\t${panelKey}`][1].destroy()
-      delete compMap[`${type}\t${panelKey}`]
-    }
+  // console.log('change-browser-view-z-index', isFrame, bvZindexMap[win])
+  if(isFrame){
+    ipcMain.emit('top-to-browser-window', win.id)
   }
+  // win.setAlwaysOnTop(!isFrame)
 })
 
-let wait = false
-ipcMain.on('set-overlap-component', async (e, type, panelKey, tabKey, x, y, width, height, ...args) => {
-  // console.log('set-overlap-component', type, panelKey, tabKey, x, y, width, height, ...args)
-  if(wait){
-    for(let i=0;i< 1000;i++){
-      await new Promise(r=> setTimeout(r,10))
-      if(!wait) break
-    }
-  }
-  wait = true
-  const win = BrowserWindow.fromWebContents(e.sender)
-  let data = compMap[`${type}\t${panelKey}`]
-  if(!data && y == -1 || (!win || win.isDestroyed())){
-    wait = false
-    return
-  }
-  if(!data){
-    const view = new BrowserView({ webPreferences: {
-        nodeIntegration: false,
-        sandbox: true,
-        preload: type == 'page-search' ? path.join(__dirname, '../page-search-preload.js') : void 0,
-        allowFileAccessFromFileUrls: true,
-        allowUniversalAccessFromFileUrls: true
-      } })
-    view.setAutoResize({width: false, height: false})
-    const seq = ++global.seqBv
-    win.insertBrowserView(view, seq)
-    win.reorderBrowserView(seq, 0)
-    view.webContents.loadURL(`file://${path.join(__dirname, `../${type}.html`)}`)
-
-    await new Promise(r=>view.webContents.once('did-finish-load', r))
-
-    compMap[`${type}\t${panelKey}`] = [seq, view, false]
-    data = compMap[`${type}\t${panelKey}`]
-  }
-  const [seq, view, isOnTop] = data
-
-  if(type == 'page-status'){
-    const [status, style] = args
-    if(width > 0){
-      win.reorderBrowserView(seq, -1)
-      view.webContents.executeJavaScript(`
-      var ele = document.querySelector('#browser-page-status')
-      if(${!!style.color}) ele.style.color = '${style.color}'
-      if(${!!style.backgroundColor}) ele.style.backgroundColor = '${style.backgroundColor}'
-      ele.innerHTML = '${status}'
-      `)
-      view.setBounds({ x: Math.round(x), y:Math.round(y), width: Math.round(width), height: Math.round(height) })
-      compMap[`${type}\t${panelKey}`] = [seq, view, true]
-    }
-    else{
-      win.reorderBrowserView(seq, 0)
-      view.setBounds({ x: 0, y:0, width: 0, height: 0 })
-      compMap[`${type}\t${panelKey}`] = [seq, view, false]
-    }
-  }
-  else if(type == 'page-search'){
-    // const [progress, state] = args
-    if(y !== -1){
-      setTimeout(()=>{
-      win.reorderBrowserView(seq, -1)
-      if(args[1].focus) view.webContents.focus()
-      view.webContents.send('page-search-data', panelKey, tabKey, ...args)
-      view.setBounds({ x: Math.round(x), y:Math.round(y), width: Math.round(width), height: Math.round(height) })
-      compMap[`${type}\t${panelKey}`] = [seq, view, true]
-      },0)
-    }
-    else{
-      win.reorderBrowserView(seq, 0)
-      view.setBounds({ x: 0, y:0, width: 0, height: 0 })
-      compMap[`${type}\t${panelKey}`] = [seq, view, false]
-    }
-  }
-  wait = false
-})
+// ipcMain.on('change-browser-view-z-index', (e, isFrame) =>{
+//   // BrowserWindow.fromWebContents(e.sender).setIgnoreMouseEvents(!isFrame, !isFrame ? {forward: true} : void 0)
+// })
 
 ipcMain.on('get-browser-window-from-web-contents', (e, tabId) =>{
   e.returnValue = (BrowserWindow.fromWebContents(webContents.fromId(tabId)) || BrowserWindow.fromWebContents(webContents.fromId(tabId).hostWebContents2)).id
 })
 
-ipcMain.on('get-message-sender-info', (e,tabId) => {
+ipcMain.on('get-message-sender-info', async (e,tabId) => {
   const contents = webContents.fromId(tabId)
+  if(!contents){
+    return e.returnValue = null
+  }
 
-  e.returnValue = contents ? {
-    mutedInfo: {muted: contents.isAudioMuted()},
+  const hostWebContents = contents.hostWebContents2
+  let window = hostWebContents && BrowserWindow.fromWebContents(hostWebContents)
+  if(!window) window = getCurrentWindow()
+
+  e.returnValue = {
+    mutedInfo: {muted: await contents.isAudioMuted()},
     status: contents.isLoading ? 'loading' : 'complete',
-    title: contents.getTitle(),
+    title: await contents.getTitle(),
     url: contents.getURL(),
-    windowId: contents.hostWebContents2 && BrowserWindow.fromWebContents(webContents.fromId(contents.hostWebContents2.id)).id
-  } : null
+    windowId: window.id
+  }
 })
 
 ipcMain.on('get-process-info', (e) => {
@@ -2638,36 +2729,19 @@ ipcMain.on('get-process-info', (e) => {
   }
 })
 
-ipcMain.on('change-browser-view-z-index', (e, isFrame) =>{
-  const win = BrowserWindow.fromWebContents(e.sender)
-  if(!win || win.isDestroyed()) return
-
-  // console.log('change-browser-view-z-index', isFrame, bvZindexMap[win])
-  if(isFrame && !bvZindexMap[win.id]){
-    for(let panelKey of Object.keys(nowBvMap)){
-      win.reorderBrowserView(seqMap[panelKey], 0)
-    }
-    bvZindexMap[win.id] = true
-  }
-  else if(!isFrame && bvZindexMap[win.id]){
-    for(let panelKey of Object.keys(nowBvMap)){
-      win.reorderBrowserView(seqMap[panelKey], -1)
-    }
-    delete bvZindexMap[win.id]
-  }
-
-  for(let [seq, view, isOnTop] of Object.values(compMap)){
-    if(isOnTop) win.reorderBrowserView(seq, -1)
-  }
-})
-
 // ipcMain.on('webview-mousemove', e => {
 //   ipcMain.emit('change-browser-view-z-index',{sender: e.sender.hostWebContents2}, false)
 // })
 
 ipcMain.on('send-to-host', (e, ...args)=>{
+  // console.log('send-to-host',e,...args)
   // console.log(`send-to-host_${e.sender.id}`,e.sender.hostWebContents2.getURL(), ...args)
-  e.sender.hostWebContents2.send(`send-to-host_${e.sender.id}`, ...args)
+  const hostCont = e.sender.hostWebContents2 || e.sender.hostWebContents
+  if(!hostCont){
+    console.log('send-to-host',...args)
+    return
+  }
+  hostCont.send(`send-to-host_${e.sender.id}`, ...args)
 })
 
 ipcMain.on('get-visited-links', (e, key, urls) => {
@@ -2683,6 +2757,28 @@ ipcMain.on('page-search-event', (e, panelKey, tabKey, type, ...args) => {
     }
   }
 })
+
+ipcMain.on('did-get-response-details-main', (e, record) =>{
+  console.log('did-get-response-details-main', e, record)
+  const cont = webContents.fromId(record.tabId)
+  if(cont && cont.hostWebContents2) cont.hostWebContents2.send('did-get-response-details',record)
+})
+
+// ipcMain.on('focus-browser-window', e => {
+//   const bw = BrowserWindow.fromWebContents(e.sender)
+//   const [x,y] = bw.getPosition()
+//   robot.moveMouse(x+10, y+10)
+//   bw.focus()
+//   if(bw.ignoreMouseEvents){
+//     bw.setIgnoreMouseEvents(false)
+//     robot.mouseClick()
+//     bw.setIgnoreMouseEvents(true)
+//   }
+//   else{
+//     robot.mouseClick()
+//   }
+// })
+
 // let dragPos = {}, noMove = false
 // ipcMain.on('drag-window', (e, pos) =>{
 //   if(pos.start) dragPos = pos
