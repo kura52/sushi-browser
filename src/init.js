@@ -433,7 +433,7 @@ ipcMain.on('web-contents-created', (e, tab) => {
       console.log('create-web-contents-reply',[id,newTabId], tabIds)
       if(tabIds.includes(id)){
         const cont = webContents.fromId(newTabId)
-        ipcMain.emit('set-tab-opener', null, newTabId, id)
+        // ipcMain.emit('set-tab-opener', null, newTabId, id)
         cont.hostWebContents2.send('tab-create', {id: newTabId, url: cont.getURL(), openerTabId: id})
 
         ipcMain.emit('chrome-webNavigation-onCreatedNavigationTarget',null,{

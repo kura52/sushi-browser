@@ -1752,17 +1752,15 @@ ipcMain.on('get-navbar-menu-order',e=>{
   e.returnValue = mainState.navbarItems
 })
 
-function setTabState(cont,cb){
+async function setTabState(cont,cb){
   const tabId = cont.id
-  ipcMain.once(`get-tab-opener-reply_${tabId}`,(e,openerTabId)=>{
-    const requestId = Math.random().toString()
-    const hostWebContents = cont.hostWebContents2
-    hostWebContents.send('CHROME_TABS_TAB_VALUE', requestId, tabId)
-    ipcMain.once(`CHROME_TABS_TAB_VALUE_RESULT_${requestId}`,(event, tabValue)=>{
-      cb({id:tabId, openerTabId, index:tabValue.index, windowId:BrowserWindow.fromWebContents(hostWebContents).id,active:tabValue.active,pinned:tabValue.pinned})
-    })
+  const openerTabId = (await new webContents(tabId)._getTabInfo()).openerTabId
+  const requestId = Math.random().toString()
+  const hostWebContents = cont.hostWebContents2
+  hostWebContents.send('CHROME_TABS_TAB_VALUE', requestId, tabId)
+  ipcMain.once(`CHROME_TABS_TAB_VALUE_RESULT_${requestId}`,(event, tabValue)=>{
+    cb({id:tabId, openerTabId, index:tabValue.index, windowId:BrowserWindow.fromWebContents(hostWebContents).id,active:tabValue.active,pinned:tabValue.pinned})
   })
-  ipcMain.emit('get-tab-opener',null,tabId)
 }
 
 async function saveTabState(cont, rSession, tabKey, noUpdate, closingPos, close) {
@@ -2204,11 +2202,6 @@ ipcMain.on("full-screen-html",(e,val)=>{
   mainState.fullScreenIds[e.sender.id] = val
 })
 
-
-ipcMain.on("full-screen-html",(e,val)=>{
-  mainState.fullScreenIds[e.sender.id] = val
-})
-
 ipcMain.on("login-sync",async (e,{key,type,email,password})=>{
   const firebaseUtils = require('./FirebaseUtils')
   let errMsg,msg
@@ -2483,7 +2476,7 @@ ipcMain.on('set-bound-browser-view', async (e, panelKey, tabKey, tabId, x, y, wi
     return
   }
 
-  if(zIndex > 0) webContents.fromId(tabId).setForegroundWindow() //怪しい
+  if(zIndex > 0) webContents.fromId(tabId).moveTop() //怪しい
 
   // for(let i=0;i<1000;i++){
   //   if(!moveingTab) break
@@ -2544,13 +2537,10 @@ ipcMain.on('delete-browser-view', (e, panelKey, tabKey)=>{
   const win = BrowserWindow.fromWebContents(e.sender)
   if(!win || win.isDestroyed()) return
 
-  console.log('delete-browser-view1',panelKey,tabKey)
   const panel = BrowserPanel.getBrowserPanel(panelKey)
   if(!panel) return
-  console.log('delete-browser-view2',panelKey,tabKey)
 
   const view = panel.getBrowserView({tabKey})
-  console.log('delete-browser-view3',view)
   if(view && !view.isDestroyed()) view.destroy()
 
 })
@@ -2675,12 +2665,12 @@ ipcMain.on('get-process-info', (e) => {
 //   ipcMain.emit('change-browser-view-z-index',{sender: e.sender.hostWebContents2}, false)
 // })
 
-ipcMain.on('send-to-host', (e, ...args)=>{
+ipcMain.on('send-to-host', async (e, ...args)=>{
   // console.log('send-to-host',e,...args)
   // console.log(`send-to-host_${e.sender.id}`,e.sender.hostWebContents2.getURL(), ...args)
   const hostCont = e.sender.hostWebContents2 || e.sender.hostWebContents
   if(!hostCont){
-    console.log('send-to-host',...args)
+    console.log('send-to-host',e.sender.id,await e.sender.getURL(),...args)
     return
   }
   hostCont.send(`send-to-host_${e.sender.id}`, ...args)
@@ -2721,6 +2711,13 @@ ipcMain.on('send-keys', async (event, e, cont) => {
     cont._sendKey(e.key)
   }
 })
+
+
+ipcMain.on('get-tab-opener',async (e,tabId)=>{
+  const tab = await new webContents(tabId)._getTabInfo()
+  e.returnValue = tab.openerTabId
+})
+
 // ipcMain.on('focus-browser-window', e => {
 //   const bw = BrowserWindow.fromWebContents(e.sender)
 //   const [x,y] = bw.getPosition()

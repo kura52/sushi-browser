@@ -1,5 +1,6 @@
 import path from 'path'
 import fs from 'fs'
+import os from 'os'
 import puppeteer from '../../resource/puppeteer'
 import {EventEmitter} from 'events'
 import extensionServer from './extensionServer'
@@ -42,7 +43,8 @@ class Browser{
       args: [
         '--no-first-run', '--enable-automation', '--disable-infobars',
         `--user-data-dir=${this.userDataDir}`,
-        `--load-extension=${path.resolve(__dirname, '../../resource/extension/default/1.0_0/')},${path.resolve(__dirname, '../../resource/extension/jpkfjicglakibpenojifdiepckckakgk/1.13.4_0/')}`,
+        // `--lang=en`,
+        `--load-extension=${path.resolve(__dirname, '../../resource/extension/default/1.0_0/')}`,
         'about:blank'
       ]})
 
@@ -96,8 +98,10 @@ class Browser{
     ipcMain.on('top-to-browser-window', bwWinId => {
       for(const browserPanel of Object.values(BrowserPanel.panelKeys)){
         if(browserPanel.browserWindow.id == bwWinId){
-          browserPanel.cpWin.nativeWindowBw.setWindowPos(winctl.HWND.TOPMOST,0,0,0,0,83)
-          browserPanel.cpWin.nativeWindowBw.setWindowPos(winctl.HWND.NOTOPMOST,0,0,0,0,83)
+          if(winctl.GetActiveWindow().getHwnd() == browserPanel.cpWin.nativeWindow.getHwnd()){
+            browserPanel.cpWin.nativeWindowBw.setWindowPos(winctl.HWND.TOPMOST,0,0,0,0,83)
+            browserPanel.cpWin.nativeWindowBw.setWindowPos(winctl.HWND.NOTOPMOST,0,0,0,0,83)
+          }
           return
         }
       }
@@ -215,13 +219,14 @@ class Browser{
     })
 
     evem.on('ipc.send', (channel, tabId, ...args)=>{
-      console.log(channel, tabId)
+      // console.log(channel, tabId)
       ipcMain.emit(channel, {sender: Number.isInteger(tabId) ? new webContents(tabId): new BackgroundPage(tabId)}, ...args)
     })
   }
 
   static initExtension(){
     require('./browser/browser-action-main')
+    require('./browser/commands-main')
     require('./browser/context-menus-main')
   }
 
@@ -656,6 +661,17 @@ class Browser{
       }
       transInfos(installInfo)
       extensions.push(installInfo)
+
+      const commands = installInfo.manifest.commands
+      if(commands){
+        const plat = os.platform() == 'win32' ? 'windows' : os.platform() == 'darwin' ? 'mac' : 'linux'
+        for(let [command,val] of Object.entries(commands)){
+          if(val.suggested_key){
+            PubSub.publish('add-shortcut',{id:installInfo.id,key:val.suggested_key[plat] || val.suggested_key.default,command})
+          }
+        }
+
+      }
     }
     return extensions
   }
@@ -827,7 +843,7 @@ class BrowserPanel{
         if(!BrowserPanel._isNotFirst){
           BrowserPanel._isNotFirst = true
           console.log(4343444, win.width ,win.tabWidth, win.height ,win.tabHeight)
-          BrowserPanel.topMargin = win.height - win.tabHeight - 8 - 38
+          BrowserPanel.topMargin = win.height - win.tabHeight - 8 //- 38
           BrowserPanel.sideMargin = (win.width - win.tabWidth) / 2
         }
 
@@ -926,7 +942,8 @@ class BrowserPanel{
 
     // nativeWindow.setParent(nativeWindowBw.getHwnd())
     chromeNativeWindow.setParent(nativeWindow.getHwnd())
-    chromeNativeWindow.move(...getChromeWindowBoundArray(cWin.width, cWin.height))
+    // chromeNativeWindow.move(...getChromeWindowBoundArray(cWin.width, cWin.height))
+    chromeNativeWindow.move(...getChromeWindowBoundArray(0,0))
     chromeNativeWindow.setWindowPos(winctl.HWND.TOPMOST,0,0,0,0,83)
     chromeNativeWindow.setWindowPos(winctl.HWND.NOTOPMOST,0,0,0,0,83)
 
@@ -1562,6 +1579,13 @@ class webContents extends EventEmitter {
   setForegroundWindow(){
     if(!this._getBrowserPanel()) return
     this._getBrowserPanel().cpWin.chromeNativeWindow.setForegroundWindow(true)
+  }
+
+  moveTop(){
+    const panel = this._getBrowserPanel()
+    if(!panel) return
+    panel.cpWin.nativeWindowBw.setWindowPos(winctl.HWND.TOPMOST,0,0,0,0,83)
+    panel.cpWin.nativeWindowBw.setWindowPos(winctl.HWND.NOTOPMOST,0,0,0,0,83)
   }
 
   async isFocused(){

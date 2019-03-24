@@ -4,9 +4,9 @@ import {app} from 'electron'
 const extInfos = require('./extensionInfos')
 
 const extensionPath = path.join(app.getPath('userData'),'Chrome/Default/Extensions')
-if (!fs.existsSync(extensionPath)) {
-  fs.mkdirSync(extensionPath)
-}
+// if (!fs.existsSync(extensionPath)) {
+//   fs.mkdirSync(extensionPath)
+// }
 
 const proxyPath = path.join(app.getPath('userData'),'proxy')
 if (!fs.existsSync(proxyPath)) {

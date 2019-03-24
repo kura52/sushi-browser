@@ -1051,13 +1051,13 @@ export default class TabPanel extends Component {
     }
     else if(closeTabBehavior == 'focusTabOpenerTab'){
       if(!closeTab) return rightTab()
-      const openerTabId = ipc.sendSync('get-tab-opener-sync',closeTab.wvId)
+      const openerTabId = ipc.sendSync('get-tab-opener',closeTab.wvId)
       const key2 = (this.state.tabs.find(t=>t.wvId == openerTabId)||{}).key
       return key2 || rightTab()
     }
     else if(closeTabBehavior == 'focusTabOpenerTabRtl'){
       if(!closeTab) return leftTab()
-      const openerTabId = ipc.sendSync('get-tab-opener-sync',closeTab.wvId)
+      const openerTabId = ipc.sendSync('get-tab-opener',closeTab.wvId)
       const key2 = (this.state.tabs.find(t=>t.wvId == openerTabId)||{}).key
       return key2 || leftTab()
     }

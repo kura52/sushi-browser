@@ -506,7 +506,7 @@ class Automation extends React.Component {
     return {funcs,codes}
   }
 
-  eval(code){
+  evaluate(code){
     eval(code)
   }
 
@@ -868,7 +868,7 @@ class Automation extends React.Component {
           </div>
         </div>
       </SplitPane>
-      {this.state.dialog ? <AutomationExportDialog fname={this.state.menuItems.find(x=>x.key == this.state.selectedMenu).name.replace(/ /g,'_').toLowerCase() + '.js'} code={this.getCodes('export')} onClose={_=>this.setState({dialog:false})} eval={::this.eval}/> : null}
+      {this.state.dialog ? <AutomationExportDialog fname={this.state.menuItems.find(x=>x.key == this.state.selectedMenu).name.replace(/ /g,'_').toLowerCase() + '.js'} code={this.getCodes('export')} onClose={_=>this.setState({dialog:false})} eval={::this.evaluate}/> : null}
     </div>
   }
 }

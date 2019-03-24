@@ -646,7 +646,7 @@ class BrowserNavbar extends Component{
 
   browserAction(cont,tab,selected){
     const ret = {}
-    const dis = ['dckpbojndfoinamcdamhkjhnjnmjkfjd','jdbefljfgobbmcidnmpjamcbhnbphjnb',...this.state.disableExtensions]
+    const dis = ['jdbefljfgobbmcidnmpjamcbhnbphjnb',...this.state.disableExtensions]
     for(let [id,values] of browserActionMap) {
       if(dis.includes(values.orgId) || dis.includes(id)) continue
       ret[id] = <BrowserActionMenu key={id} k={this.props.k}  id={id} values={values} tab={tab} cont={cont} parent={this} selected={selected}/>

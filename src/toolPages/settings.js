@@ -2402,7 +2402,7 @@ class ExtensionSetting extends React.Component {
     const ret = []
     let i = 0
     for(let [id,v] of Object.entries(this.state.extensions)){
-      if(['dckpbojndfoinamcdamhkjhnjnmjkfjd','jdbefljfgobbmcidnmpjamcbhnbphjnb'].includes(id) || v.theme) continue
+      if(['jdbefljfgobbmcidnmpjamcbhnbphjnb'].includes(id) || v.theme) continue
       ret.push(this.buildExtensionColumn(i++,id,v))
     }
     return ret
