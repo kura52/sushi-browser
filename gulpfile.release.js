@@ -12,7 +12,7 @@ gulp.task('main-process', function() {
 
 
 gulp.task('main-process2', function() {
-  return gulp.src(['./src/extension/chromeExtensionPath.js'])
+  return gulp.src(['./src/extension/chromeExtensionPath.js','./src/extension/extensions.js','./src/extension/browserAction.js'])
     .pipe(babel({}))
     .pipe(gulp.dest('./lib/extension'))
 });

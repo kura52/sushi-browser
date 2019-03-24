@@ -1,6 +1,5 @@
 .Resizer {
-    background: #000;
-    opacity: .2;
+    background: rgb(183, 183, 183);
     z-index: 3;
     -moz-box-sizing: border-box;
     -webkit-box-sizing: border-box;
@@ -38,8 +37,8 @@
 }
 
 .Resizer.vertical:hover {
-    border-left: 5px solid rgba(0, 0, 0, 0.5);
-    border-right: 5px solid rgba(0, 0, 0, 0.5);
+    border-left: 5px solid rgba(183, 183, 183, 0.35);
+    border-right: 5px solid rgba(183, 183, 183, 0.35);
 }
 Resizer.disabled {
     cursor: not-allowed;

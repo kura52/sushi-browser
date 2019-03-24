@@ -193,9 +193,9 @@ export default class MainContent extends Component{
 
     document.addEventListener('mousemove',this.handleMouseMove,{passive: true})
     // if(sharedState.hoverBookmarkBar || sharedState.hoverStatusBar) {
-      this.tokenMouseMove = PubSub.subscribe('webview-mousemove',(msg,e)=>{
-        this.handleMouseMove(e)
-      })
+    this.tokenMouseMove = PubSub.subscribe('webview-mousemove',(msg,e)=>{
+      this.handleMouseMove(e)
+    })
     // }
 
     const handleMouseDown = e=>{
@@ -254,46 +254,54 @@ export default class MainContent extends Component{
       handleMouseUp(e)
     })
 
+    const isForSecondaryAction = (e) =>
+      (e.ctrlKey && !isDarwin) ||
+      (e.metaKey && isDarwin) ||
+      e.button === 1
 
     // For window level shortcuts that don't work as local shortcuts
-    const handleKeyDown = (e) => {
-      const isForSecondaryAction = (e) =>
-        (e.ctrlKey && !isDarwin) ||
-        (e.metaKey && isDarwin) ||
-        e.button === 1
+    const handleKeyDown = (e, isWebview) => {
       if (e.key === 'F4' && e.altKey && isWin) {
         ipc.send('menu-or-key-events','zoomOut')
         return
       }
-      switch (e.which) {
-        case 27: //ESC
-          if(remote.getCurrentWindow().isFullScreen()) ipc.send('toggle-fullscreen')
-          break
-        // case 123: //F12
-        //   ipc.send('menu-or-key-events','toggleDeveloperTools')
-        //   break
-        case 107: //NUMPAD_PLUS
-          if (isForSecondaryAction(e)) {
-            ipc.send('menu-or-key-events','zoomIn')
-          }
-          break
-        case 109: //NUMPAD_MINUS
-          if (isForSecondaryAction(e)) {
-            ipc.send('menu-or-key-events','zoomOut')
-          }
-          break
+      else if(!isWebview && document.activeElement.tagName != 'INPUT' &&
+        !e.shiftKey && !e.altKey && !e.ctrlKey &&
+        (e.key == 'end' ||e.key == 'home' || e.key == 'pagedown' || e.key == 'pageup' ||
+          e.key == 'space' || e.key == 'tab')){
+        ipc.send('send-keys', {key: e.key})
+      }
+      else{
+        switch (e.which) {
+          case 27: //ESC
+            if(remote.getCurrentWindow().isFullScreen()) ipc.send('toggle-fullscreen')
+            break
+          // case 123: //F12
+          //   ipc.send('menu-or-key-events','toggleDeveloperTools')
+          //   break
+          case 107: //NUMPAD_PLUS
+            if (isForSecondaryAction(e)) {
+              ipc.send('menu-or-key-events','zoomIn')
+            }
+            break
+          case 109: //NUMPAD_MINUS
+            if (isForSecondaryAction(e)) {
+              ipc.send('menu-or-key-events','zoomOut')
+            }
+            break
+        }
       }
     }
 
     document.addEventListener('keydown', handleKeyDown, { passive: true })
     PubSub.subscribe('webview-keydown',(msg,e)=>{
-      handleKeyDown(e)
+      handleKeyDown(e, true)
     })
 
 
     document.addEventListener('wheel',e=>{
       if(e.ctrlKey || e.metaKey) e.preventDefault()
-    })
+    }, {passive: false})
     // window.addEventListener('drop', function (event) {
     //   // allow webviews to handle dnd
     //   if (event.target.tagName === 'WEBVIEW') {

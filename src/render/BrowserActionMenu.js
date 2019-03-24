@@ -73,7 +73,7 @@ class BrowserActionWebView extends Component {
   }
 
   setPreferredSize(webview, width,height,retry){
-    console.log('setPreferredSize',width, height, retry)
+    console.log('setPreferredSize',webview, width, height, retry)
     this.setState({style:{width,height, userSelect: 'none'}},()=>{
       webview.executeJavaScript(`(function(){
       const ele = document.scrollingElement

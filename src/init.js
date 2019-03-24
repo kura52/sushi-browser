@@ -17,22 +17,19 @@ const isDarwin = process.platform == 'darwin'
 const isLinux = process.platform === 'linux'
 const isWin = process.platform == 'win32'
 const LRUCache = require('lru-cache')
-import url from 'url'
 const {getUrlFromCommandLine,getNewWindowURL} = require('./cmdLine')
 import {getFocusedWebContents, getCurrentWindow} from './util'
-import robot from "robotjs";
 const open = require('./open')
 const sharedState = require('./sharedStateMain')
 const defaultConf = require('./defaultConf')
 const urlutil = require('./render/urlutil')
 const tor = require('../brave/app/tor')
 require('./chromeEvents')
+
 let adblock,httpsEverywhere,trackingProtection,extensions,videoProcessList = []
 ipcMain.setMaxListeners(0)
 
-let extensionMenu = {}
-ipcMain.emit('get-extension-menu')
-ipcMain.once('get-extension-menu-reply',(e, menu)=> extensionMenu = menu)
+sharedState.extensionMenu = {}
 
 // process.on('unhandledRejection', console.dir);
 
@@ -224,7 +221,7 @@ app.on('ready', async ()=>{
     require('./menuSetting')
     process.emit('app-initialized')
 
-    extensions = require('../brave/extension/extensions')
+    extensions = require('./extension/extensions')
     // extensions.init(setting.ver !== fs.readFileSync(path.join(__dirname, '../VERSION.txt')).toString())
     extensions.init(true)
 
@@ -1538,8 +1535,10 @@ async function contextMenu(webContents, props) {
     }
   })
 
-  if(Object.keys(extensionMenu).length){
-    for(let [extensionId, propertiesList] of Object.entries(extensionMenu)){
+  console.log(99999988,sharedState.extensionMenu)
+
+  if(Object.keys(sharedState.extensionMenu).length){
+    for(let [extensionId, propertiesList] of Object.entries(sharedState.extensionMenu)){
       const menuList = []
       // console.log(propertiesList)
       for(let {properties, menuItemId, icon} of propertiesList){

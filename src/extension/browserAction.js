@@ -1,6 +1,7 @@
-const {webContents,ipcMain} = require('electron')
-const {getFocusedWebContents, getCurrentWindow} = require('../../lib/util')
-const mainState = require('../../lib/mainState')
+const {ipcMain} = require('electron')
+import {webContents} from '../remoted-chrome/BrowserView'
+const {getFocusedWebContents, getCurrentWindow} = require('../util')
+const mainState = require('../mainState')
 
 mainState.browserActionDefaultIcons = {}
 mainState.browserActionPopups = {}
@@ -43,7 +44,7 @@ for(let [eventName,name] of [
 ]){
 
   ipcMain.on(eventName, (e, extensionId, details) => {
-    console.log(eventName, extensionId, details)
+    console.log(33,eventName, extensionId, details)
     const tabId = details.tabId
     if(tabId){
       const cont = webContents.fromId(tabId)

@@ -396,14 +396,14 @@ class BrowserNavbar extends Component{
       }
       webContents.getZoomFactor(factor=>{
         const percent = factor * 100
-        if(!this.refs['main-menu'].state.visible){
-          this.state.zoomDisplay = `${percent}%`
-          clearTimeout(this.zoomTimeout)
-          this.zoomTimeout = setTimeout(_=>{
-            this.forceUpdates = true
-            this.setState({zoomDisplay:''})
-          },1500)
-        }
+        // if(!this.refs['main-menu'].state.visible){
+        //   this.state.zoomDisplay = `${percent}%`
+        //   clearTimeout(this.zoomTimeout)
+        //   this.zoomTimeout = setTimeout(_=>{
+        //     this.forceUpdates = true
+        //     this.setState({zoomDisplay:''})
+        //   },1500)
+        // }
         this.publishZoom(percent)
         this.setState({zoom:percent})
         // if(this.props.tab.sync) this.props.parent.syncZoom(percent,this.props.tab.sync)
@@ -420,14 +420,14 @@ class BrowserNavbar extends Component{
   noZoom(){
     const webContents = this.getWebContents(this.props.tab)
     if(webContents) webContents.setZoomFactor(1)
-    if(!this.refs['main-menu'].state.visible){
-      this.state.zoomDisplay = '100%'
-      clearTimeout(this.zoomTimeout)
-      this.zoomTimeout = setTimeout(_=>{
-        this.forceUpdates = true
-        this.setState({zoomDisplay:''})
-      },1500)
-    }
+    // if(!this.refs['main-menu'].state.visible){
+    //   this.state.zoomDisplay = '100%'
+    //   clearTimeout(this.zoomTimeout)
+    //   this.zoomTimeout = setTimeout(_=>{
+    //     this.forceUpdates = true
+    //     this.setState({zoomDisplay:''})
+    //   },1500)
+    // }
     this.publishZoom(100)
     this.setState({zoom:100})
     // if(this.props.tab.sync) this.props.parent.syncZoom(100,this.props.tab.sync)
@@ -1235,16 +1235,16 @@ class BrowserNavbar extends Component{
         <span className="typcn typcn-media-stop-outline" onClick={()=>PubSub.publish(`maximize-float-panel_${this.props.k}`)}></span>
         <span className="typcn typcn-times" onClick={()=>PubSub.publish(`close-panel_${this.props.k}`)}></span>
       </div> : null}
-      {this.state.zoomDisplay ?
-        <div className="ui dropdown zoom-menu" style={{top: 50, right: 30}}>
-          <div className="menu visible transition left nav-menu" style={{overflowX: 'visible', left: 'auto',paddingBottom:3}}>
-            <div className="item zoom-out" role="option" onClick={::this.onZoomOut}><i className="zoom out icon" aria-hidden="true"/><span
-              className="text"></span></div>
-            <div className="item zoom-in" role="option" onClick={::this.onZoomIn}><i className="zoom in icon" aria-hidden="true"/><span
-              className="text"></span></div>
-            <div className="item zoom-setting" role="option" onClick={::this.noZoom}><span className="text">{this.state.zoomDisplay}</span></div>
-          </div>
-        </div>: null}
+      {/*{this.state.zoomDisplay ?*/}
+        {/*<div className="ui dropdown zoom-menu" style={{top: 50, right: 30}}>*/}
+          {/*<div className="menu visible transition left nav-menu" style={{overflowX: 'visible', left: 'auto',paddingBottom:3}}>*/}
+            {/*<div className="item zoom-out" role="option" onClick={::this.onZoomOut}><i className="zoom out icon" aria-hidden="true"/><span*/}
+              {/*className="text"></span></div>*/}
+            {/*<div className="item zoom-in" role="option" onClick={::this.onZoomIn}><i className="zoom in icon" aria-hidden="true"/><span*/}
+              {/*className="text"></span></div>*/}
+            {/*<div className="item zoom-setting" role="option" onClick={::this.noZoom}><span className="text">{this.state.zoomDisplay}</span></div>*/}
+          {/*</div>*/}
+        {/*</div>: null}*/}
 
       {this.state.bindWindow ? <Modal basic size='small' open={true}>
         <Modal.Content>

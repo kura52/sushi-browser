@@ -2464,7 +2464,7 @@ ipcMain.on('move-browser-view', async (e, panelKey, tabKey, type, tabId, x, y, w
       // viewAttributeMap[view.id] = { x: Math.round(x), y:Math.round(y), width: Math.round(width), height: Math.round(height), zIndex }
       // view.setBounds(viewAttributeMap[view.id])
     }
-    else if(zIndex > 0){
+    if(zIndex > 0){
       webContents.fromId(tabId).focus()
     }
   }
@@ -2483,7 +2483,7 @@ ipcMain.on('set-bound-browser-view', async (e, panelKey, tabKey, tabId, x, y, wi
     return
   }
 
-  if(zIndex > 0) webContents.fromId(tabId).focus()
+  if(zIndex > 0) webContents.fromId(tabId).setForegroundWindow() //怪しい
 
   // for(let i=0;i<1000;i++){
   //   if(!moveingTab) break
@@ -2586,104 +2586,46 @@ ipcMain.on('delete-browser-view', (e, panelKey, tabKey)=>{
 //   }
 // })
 //
-// let wait = false
-// ipcMain.on('set-overlap-component', async (e, type, panelKey, tabKey, x, y, width, height, ...args) => {
-//   // console.log('set-overlap-component', type, panelKey, tabKey, x, y, width, height, ...args)
-//   if(wait){
-//     for(let i=0;i< 1000;i++){
-//       await new Promise(r=> setTimeout(r,10))
-//       if(!wait) break
-//     }
-//   }
-//   wait = true
-//   const win = BrowserWindow.fromWebContents(e.sender)
-//   let data = compMap[`${type}\t${panelKey}`]
-//   if(!data && y == -1 || (!win || win.isDestroyed())){
-//     wait = false
-//     return
-//   }
-//   if(!data){
-//     const view = new BrowserView({ webPreferences: {
-//         nodeIntegration: false,
-//         sandbox: true,
-//         enableRemoteModule: false,
-//         preload: type == 'extension-popup' ? path.join(__dirname, '../resource/preload-content-scripts.js') :
-//           type == 'page-search' ? path.join(__dirname, '../page-search-preload.js') : void 0,
-//         allowFileAccessFromFileUrls: true,
-//         allowUniversalAccessFromFileUrls: true,
-//         webSecurity: type != 'extension-popup',
-//       } })
-//     view.setAutoResize({width: false, height: false})
-//     const seq = ++global.seqBv
-//     win.insertBrowserView(view, seq)
-//     win.reorderBrowserView(seq, 0)
-//     view.webContents.loadURL(`file://${path.join(__dirname, `../${type}.html`)}`)
-//
-//     await new Promise(r=>view.webContents.once('did-finish-load', r))
-//
-//     compMap[`${type}\t${panelKey}`] = [seq, view, false]
-//     data = compMap[`${type}\t${panelKey}`]
-//   }
-//   const [seq, view, isOnTop] = data
-//
-//   if(type == 'page-status'){
-//     const [status, style] = args
-//     if(width > 0){
-//       win.reorderBrowserView(seq, -1)
-//       view.webContents.executeJavaScript(`
-//       var ele = document.querySelector('#browser-page-status')
-//       if(${!!style.color}) ele.style.color = '${style.color}'
-//       if(${!!style.backgroundColor}) ele.style.backgroundColor = '${style.backgroundColor}'
-//       ele.innerHTML = '${status}'
-//       `)
-//       view.setBounds({ x: Math.round(x), y:Math.round(y), width: Math.round(width), height: Math.round(height) })
-//       compMap[`${type}\t${panelKey}`] = [seq, view, true]
-//     }
-//     else{
-//       win.reorderBrowserView(seq, 0)
-//       view.setBounds({ x: 0, y:0, width: 0, height: 0 })
-//       compMap[`${type}\t${panelKey}`] = [seq, view, false]
-//     }
-//   }
-//   else if(type == 'page-search'){
-//     // const [progress, state] = args
-//     if(y !== -1){
-//       setTimeout(()=>{
-//       win.reorderBrowserView(seq, -1)
-//       if(args[1].focus) view.webContents.focus()
-//       view.webContents.send('page-search-data', panelKey, tabKey, ...args)
-//       view.setBounds({ x: Math.round(x), y:Math.round(y), width: Math.round(width), height: Math.round(height) })
-//       compMap[`${type}\t${panelKey}`] = [seq, view, true]
-//       },0)
-//     }
-//     else{
-//       win.reorderBrowserView(seq, 0)
-//       view.setBounds({ x: 0, y:0, width: 0, height: 0 })
-//       compMap[`${type}\t${panelKey}`] = [seq, view, false]
-//     }
-//   }
-//   else if(type == 'extension-popup'){
-//     const url = args[0]
-//     if(y !== -1){
-//       win.reorderBrowserView(seq, -1)
-//       if(url){
-//         view.webContents.hostWebContents2 = e.sender
-//         view.webContents.loadURL(url)
-//       }
-//       view.setBounds({ x: Math.round(x), y:Math.round(y), width: Math.round(width), height: Math.round(height) })
-//       compMap[`${type}\t${panelKey}`] = [seq, view, true]
-//     }
-//     else{
-//       win.reorderBrowserView(seq, 0)
-//       view.setBounds({ x: 0, y:0, width: 0, height: 0 })
-//       compMap[`${type}\t${panelKey}`] = [seq, view, false]
-//     }
-//      e.returnValue = view.webContents.id
-//   }
-//
-//   wait = false
-// })
-//
+let wait = false
+ipcMain.on('set-overlap-component', async (e, type, panelKey, tabKey, x, y, width, height, ...args) => {
+  panelKey = 'ext'
+  tabKey = `${tabKey}_ext`
+  // console.log('set-overlap-component', type, panelKey, tabKey, x, y, width, height, ...args)
+  if(wait){
+    for(let i=0;i< 1000;i++){
+      await new Promise(r=> setTimeout(r,10))
+      if(!wait) break
+    }
+  }
+
+  let view
+  const panel = BrowserPanel.getBrowserPanel(panelKey)
+  if(panel) view = panel.getBrowserView({tabKey})
+
+  const win = BrowserWindow.fromWebContents(e.sender)
+  if(!win || win.isDestroyed()) return
+
+  wait = true
+
+  if(!view){
+    if(y != -1) view = await BrowserView.createNewTab(win, panelKey, tabKey, void 0, args[0], true)
+  }
+  else{
+    if(y == -1){
+      if(!view.isDestroyed()) view.destroy()
+    }
+    else{
+      const winBounds = win.getBounds()
+      view.setBounds({
+        x: Math.round(x) + (winBounds.x < 0 ? 0 : winBounds.x),
+        y:Math.round(y) + (winBounds.y < 0 ? 0 : winBounds.y),
+        width: Math.round(width), height: Math.round(height)})
+    }
+  }
+  wait = false
+  e.returnValue = view && view.webContents.id
+})
+
 ipcMain.on('change-browser-view-z-index', (e, isFrame) =>{
   const win = BrowserWindow.fromWebContents(e.sender)
   if(!win || win.isDestroyed()) return
@@ -2764,6 +2706,21 @@ ipcMain.on('did-get-response-details-main', (e, record) =>{
   if(cont && cont.hostWebContents2) cont.hostWebContents2.send('did-get-response-details',record)
 })
 
+ipcMain.on('send-keys', async (event, e, cont) => {
+  cont = cont || await getFocusedWebContents()
+  if(e.key == 'esc') e.key = 'escape'
+  let modify = []
+  if(e.altKey) modify.push('alt')
+  if(e.shiftKey) modify.push('shift')
+  if(e.ctrlKey) modify.push('control')
+
+  if(modify.length){
+    cont._sendKey(e.key, modify)
+  }
+  else{
+    cont._sendKey(e.key)
+  }
+})
 // ipcMain.on('focus-browser-window', e => {
 //   const bw = BrowserWindow.fromWebContents(e.sender)
 //   const [x,y] = bw.getPosition()

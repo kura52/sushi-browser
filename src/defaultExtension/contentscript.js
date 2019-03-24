@@ -223,7 +223,7 @@ if(window.__started_){
               const parent = button.parentNode
               parent.innerHTML = `<div role="button" class="dd-Va g-c-wb g-eg-ua-Kb-c-za g-c-Oc-td-jb-oa g-c" aria-label="add to chrome" tabindex="0" style="user-select: none;"><div class="g-c-Hf"><div class="g-c-x"><div class="g-c-R webstore-test-button-label">add to chrome</div></div></div></div>`
               parent.querySelector(".dd-Va.g-c-wb.g-eg-ua-Kb-c-za.g-c-Oc-td-jb-oa.g-c").addEventListener('click',e=>{
-                e.stopPropagation()
+                e.stopImmediatePropagation()
                 e.preventDefault()
                 ipc.send('add-extension',{id:loc})},true)
             }
@@ -278,13 +278,13 @@ if(window.__started_){
   //   console.log("favorite")
   //   document.addEventListener("drop", e=>{
   //     e.preventDefault()
-  //     e.stopPropagation()
+  //     e.stopImmediatePropagation()
   //     console.log('drop',e)
   //   }, false)
   //
   //   document.addEventListener("dragend", function( event ) {
   //     event.preventDefault();
-  //     event.stopPropagation()
+  //     event.stopImmediatePropagation()
   //     console.log('dragend',event)
   //   }, false);
   // }
@@ -310,7 +310,7 @@ if(window.__started_){
       e.preventDefault()
       ipc.send('menu-or-key-events',e.deltaY > 0 ? 'zoomOut' : 'zoomIn')
     }
-  })
+  }, {passive: false})
 
   let mainState
   const codeSet = new Set([8,9,13,16,17,18,33,34,37,38,39,40,45,46,48,49,50,51,52,53,54,55,56,57,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,96,97,98,99,100,101,102,103,104,105,186,187,188,189,190,191,192,219,220,221,222])
@@ -371,7 +371,7 @@ if(window.__started_){
             const fullscreenButton = document.querySelector('.ytp-fullscreen-button,.fullscreenButton,.button-bvuiFullScreenOn,.fullscreen-icon,.full-screen-button,.np_ButtonFullscreen,.vjs-fullscreen-control,.qa-fullscreen-button,[data-testid="fullscreen_control"],.vjs-fullscreen-control,.EnableFullScreenButton,.DisableFullScreenButton,.mhp1138_fullscreen,button.fullscreenh,.screenFullBtn,.player-fullscreenbutton')
             if(fullscreenButton){
               const callback = e => {
-                e.stopPropagation()
+                e.stopImmediatePropagation()
                 e.preventDefault()
                 document.removeEventListener('mouseup',callback ,true)
                 fullscreenButton.click()
@@ -394,7 +394,7 @@ if(window.__started_){
             }
             else{
               const callback = e => {
-                e.stopPropagation()
+                e.stopImmediatePropagation()
                 e.preventDefault()
                 document.removeEventListener('mouseup',callback ,true)
                 v.webkitRequestFullscreen()
@@ -554,7 +554,7 @@ if(window.__started_){
 
       document.addEventListener('contextmenu',e=>{
         if(!downRight || downRight == "send"){
-          e.stopPropagation()
+          e.stopImmediatePropagation()
           e.preventDefault()
         }
         downRight = void 0
@@ -563,7 +563,7 @@ if(window.__started_){
       document.addEventListener('mousedown',e=>{
         if(e.button === 0 && e.buttons == 3 && data.rockerGestureLeft != 'none'){
           ipc.send('menu-command',data.rockerGestureLeft)
-          e.stopPropagation()
+          e.stopImmediatePropagation()
           e.preventDefault()
           downRight = 'send'
           return false
@@ -572,7 +572,7 @@ if(window.__started_){
           downRight = 'on'
           if(e.buttons == 3 && data.rockerGestureRight != 'none'){
             ipc.send('menu-command',data.rockerGestureRight)
-            e.stopPropagation()
+            e.stopImmediatePropagation()
             e.preventDefault()
             downRight = 'send'
             return false
@@ -676,7 +676,7 @@ if(window.__started_){
         console.log(isFullscreen,isFull,v.offsetWidth, window.innerWidth,v.offsetHeight, window.innerHeight)
         if(isFullscreen == isFull){
           e.preventDefault()
-          e.stopPropagation()
+          e.stopImmediatePropagation()
           return
         }
         const fullscreenButton = document.querySelector('.ytp-fullscreen-button,.fullscreenButton,.button-bvuiFullScreenOn,.fullscreen-icon,.full-screen-button,.np_ButtonFullscreen,.vjs-fullscreen-control,.qa-fullscreen-button,[data-testid="fullscreen_control"],.vjs-fullscreen-control,.EnableFullScreenButton,.DisableFullScreenButton,.mhp1138_fullscreen,button.fullscreenh,.screenFullBtn,.player-fullscreenbutton')
@@ -787,7 +787,7 @@ if(window.__started_){
       }
       if(!nothing){
         e.preventDefault()
-        e.stopPropagation()
+        e.stopImmediatePropagation()
         return false
       }
     }
@@ -890,7 +890,7 @@ if(window.__started_){
         else{
           eventHandler(e,e.deltaY * modify > 0 ? minusToPlus[inputs.wheelMinus] : inputs.wheelMinus,target)
         }
-      },true)
+      },{capture: true, passive: false})
     }
 
     if(inputs.enableKeyDown){

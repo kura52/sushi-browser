@@ -3,7 +3,7 @@ import path from 'path'
 import {app} from 'electron'
 const extInfos = require('./extensionInfos')
 
-const extensionPath = path.join(app.getPath('userData'),'resource/extension')
+const extensionPath = path.join(app.getPath('userData'),'Chrome/Default/Extensions')
 if (!fs.existsSync(extensionPath)) {
   fs.mkdirSync(extensionPath)
 }
@@ -19,10 +19,12 @@ function getId(appId){
 
 export default {
   getPath1(appId){
+    if(appId == 'dckpbojndfoinamcdamhkjhnjnmjkfjd') appId = 'default'
+
     const extRootPath = path.join(__dirname,'../resource/extension').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
     let appPath = path.join(extRootPath,appId)
     if(!fs.existsSync(appPath)){
-      appId = getId(appId)
+      // appId = getId(appId)
       appPath = path.join(extRootPath,appId)
       if(!fs.existsSync(appPath)) return null
     }
@@ -33,7 +35,7 @@ export default {
   getPath2(appId){
     let appPath = path.join(extensionPath,appId)
     if(!fs.existsSync(appPath)){
-      appId = getId(appId)
+      // appId = getId(appId)
       appPath = path.join(extensionPath,appId)
       if(!fs.existsSync(appPath)) return null
     }

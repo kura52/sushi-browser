@@ -10,7 +10,7 @@ const {state,favorite,history,visit,downloader,tabState,windowState,savedState} 
 const db = require('./databaseFork')
 const franc = require('franc')
 const chromeManifestModify = require('./chromeManifestModify')
-const extensions = require('../brave/extension/extensions')
+const extensions = require('./extension/extensions')
 const defaultConf = require('./defaultConf')
 const merge = require('deepmerge')
 import nm from 'nanomatch'

@@ -14,7 +14,7 @@ async function getFocusedWebContents(needSelectedText,skipBuildInSearch,callback
   if(!skipBuildInSearch){
     console.log(2222,webContents.getFocusedWebContents)
     const tmp = await webContents.getFocusedWebContents()
-    if(tmp && !tmp.isDestroyed() /*&& !tmp.isBackgroundPage()*/ && !(/*tmp.tabValue().openerTabId == -1 && */ tmp.getURL().match(/^(chrome\-extension|chrome\-devtools)/))) { //@TODO ELECTRON
+    if(tmp && !tmp.isDestroyed() /*&& !tmp.isBackgroundPage()*/ && !(/*tmp.tabValue().openerTabId == -1 && */ tmp.getURL().match(/^(chrome\-devtools)/))) { //@TODO ELECTRON
       if(tmp.hostWebContents2){
         return new Promise(resolve=>resolve(tmp))
       }
