@@ -1,9 +1,9 @@
 chrome.ipcRenderer = new Proxy({}, {
   get: (target, name) => {
-    if(window.ipcRenderer) return window.ipcRenderer[name]
+    if(window.ipcRenderer && window.ipcRenderer.port) return window.ipcRenderer[name]
     return (...args) => {
       const id = setInterval(()=>{
-        if(window.ipcRenderer){
+        if(window.ipcRenderer && window.ipcRenderer.port){
           window.ipcRenderer[name](...args)
           clearInterval(id)
         }

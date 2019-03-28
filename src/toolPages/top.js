@@ -80,19 +80,20 @@ function getAppropriateTimeUnit(time){
 
 let theme
 let resourcePath
-localForage.getItem('favicon-set').then(setTime=>{
-  ipc.send("favicon-get",setTime ? parseInt(setTime) : null)
-  ipc.once("favicon-get-reply",(e,ret)=>{
-    localForage.setItem('favicon-set',Date.now().toString())
-    for(let [k,v] of Object.entries(ret)){
-      localForage.setItem(k,v)
-    }
-  })
-})
+// localForage.getItem('favicon-set').then(setTime=>{
+//   ipc.send("favicon-get",setTime ? parseInt(setTime) : null)
+//   ipc.once("favicon-get-reply",(e,ret)=>{
+//     localForage.setItem('favicon-set',Date.now().toString())
+//     for(let [k,v] of Object.entries(ret)){
+//       localForage.setItem(k,v)
+//     }
+//   })
+// })
 
 let accessKey, accessPort
 async function faviconGet(h){
-  return h.favicon ? (await localForage.getItem(h.favicon)) || `http://localhost:${accessPort}/?key=${accessKey}&file=${resourcePath}/file.svg` : `http://localhost:${accessPort}/?key=${accessKey}&file=${resourcePath}/file.svg`
+  console.log(99887766,h.favicon)
+  return (!h.favicon || h.favicon == 'loading') ? `http://localhost:${accessPort}/?key=${accessKey}&file=${resourcePath}/file.svg` : `chrome://favicon/${h.location}`
 }
 
 ipc.send("get-resource-path",{})

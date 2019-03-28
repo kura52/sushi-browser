@@ -13,35 +13,8 @@
          "all_frames": true,
          "js": [ "js/contentscript.js" ],
          "matches": ["<all_urls>"],
-         "include_globs": [
-            "http://*/*", "https://*/*", "file://*", "data:*", "about:srcdoc",
-            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/*",
-            "chrome-extension://jdbefljfgobbmcidnmpjamcbhnbphjnb/*"
-         ],
          "run_at": "document_end"
       },
-      {
-         "all_frames": true,
-         "exclude_globs": [
-            "chrome://brave/*"
-         ],
-         "include_globs": [
-            "http://*/*",
-            "https://*/*",
-            "file://*",
-            "data:*"
-         ],
-         "match_about_blank": true,
-         "js": [
-            "scripts/blockCanvasFingerprinting.js"
-         ],
-         "match_about_blank": true,
-         "matches": [
-            "<all_urls>"
-         ],
-         "run_at": "document_start"
-      },
-
       {
          "all_frames": true,
          "js": [
@@ -111,7 +84,7 @@
    "name": "Gestures for Google Chrome™",
    "permissions": [
       "idle", "externally_connectable.all_urls", "contentSettings", "webRequest", "webRequestBlocking", "\u003Call_urls>", "tabs", "windows", "sessions", "webNavigation", "storage", "cookies",
-      "debugger","contentSettings", "downloads", "management"
+      "debugger","contentSettings", "downloads", "management", "history"
    ],
    "chrome_url_overrides" : {
       "newtab": "top.html"

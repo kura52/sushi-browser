@@ -24,14 +24,14 @@ export default {
       ipc.send('toggle-fullscreen')
     }
     else{
-      if(win.isMaximized()){
-        // win.unmaximize()
-        win.nativeWindow.showWindow(9)
-      }
-      else{
-        // win.maximize()
-        win.nativeWindow.showWindow(3)
-      }
+      win.maximize()
+      //   // win.unmaximize()
+      //   win.nativeWindow.showWindow(9)
+      // }
+      // else{
+      //   // win.maximize()
+      //   win.nativeWindow.showWindow(3)
+      // }
     }
   },
   windowClose(){

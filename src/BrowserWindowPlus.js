@@ -274,7 +274,22 @@ function create(args){
     }
   })
 
-  bw.on('move', ()=>{
+  bw.on('will-move', e=>{
+    // e.preventDefault()
+    // bw.setSize(300,300)
+    if(bw.isMaximized()){
+      e.preventDefault()
+      const bounds = bw._isVirtualMaximized
+      const point = electron.screen.getCursorScreenPoint()
+      // const maxBounds = bw.getBounds()
+
+      bounds.x = Math.round(Math.max(0, point.x - bounds.width / 2))
+      bounds.y = 0
+
+      bw.setBounds(bounds)
+      bw.webContents.send('maximize',false)
+      bw._isVirtualMaximized = false
+    }
     ipcMain.emit('move-window', bw.id)
   })
 
@@ -310,8 +325,24 @@ function create(args){
     // bw.focusFlag = true
   })
 
-  bw.on('maximize',_=>{
-    bw.webContents.send('maximize',true)
+  bw.on('maximize',e=>{
+    if(bw._isVirtualMaximized){
+      const bounds = bw._isVirtualMaximized
+      console.log(568879,bw.isMaximized(),bw._isVirtualMaximized)
+      setTimeout(()=>bw.setBounds(bounds),0)
+      bw.webContents.send('maximize',false)
+      bw._isVirtualMaximized = false
+    }
+    else{
+      bw._isVirtualMaximized = bw.getNormalBounds()
+
+      const b = bw.getBounds()
+      // bw.normal()
+      setTimeout(()=>bw.setBounds({x: b.x+7, y: b.y+7, width: b.width - 14, height: b.height - 14}),0)
+      // bw.setBounds(b)
+      bw.webContents.send('maximize',true)
+    }
+    // console.log(bw.getBounds())
     // ipcMain.emit('state-change-window', bw.id, 'maximize')
   })
 
@@ -481,7 +512,7 @@ export default {
       title: 'Sushi Browser',
       fullscreenable: isDarwin,
       // A frame but no title bar and windows buttons in titlebar 10.10 OSX and up only?
-      titleBarStyle: 'hidden',
+      // titleBarStyle: 'hidden',
       autoHideMenuBar: true,
       // toolbar: false,
       // resize: false,
@@ -489,6 +520,7 @@ export default {
       show: false,
       // enableLargerThanScreen: true,
       transparent: true,
+      // opacity: 0.01,
       // clickThrough: 'pointer-events',
       // alwaysOnTop: true,
       webPreferences: {
@@ -547,6 +579,8 @@ export default {
       initWindow = create(winArg)
       localShortcuts.register(initWindow)
       initWindow.setMenuBarVisibility(true)
+
+      initWindow.isMaximized = function(){ return this._isVirtualMaximized }
 
       new (require('./Download'))(initWindow)
     // }

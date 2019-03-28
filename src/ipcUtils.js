@@ -2492,10 +2492,14 @@ ipcMain.on('set-bound-browser-view', async (e, panelKey, tabKey, tabId, x, y, wi
   dateCache[panelKey] = date
 
   const winBounds = win.getBounds()
+  if(winBounds.x == -7 && winBounds.y == -7){
+    winBounds.x = 0
+    winBounds.y = 0
+  }
 
   let bounds = {
-    x: Math.round(x) + (winBounds.x < 0 ? 0 : winBounds.x),
-    y:Math.round(y) + (winBounds.y < 0 ? 0 : winBounds.y),
+    x: Math.round(x) + winBounds.x,
+    y:Math.round(y) + winBounds.y,
     width: Math.round(width), height: Math.round(height), zIndex }
   console.log(11,bounds, winBounds)
   const id = setTimeout(()=>{

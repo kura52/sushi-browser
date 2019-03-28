@@ -6,6 +6,8 @@ const path = require('path')
 import uuid from 'node-uuid'
 import mainState from './mainState'
 import {downloader} from './databaseFork'
+import {Browser} from './remoted-chrome/BrowserView'
+import {getFocusedWebContents} from './util'
 
 const binaryPath = path.join(__dirname, '../resource/bin/aria2',
   process.platform == 'win32' ? 'win/aria2c.exe' :
@@ -13,22 +15,18 @@ const binaryPath = path.join(__dirname, '../resource/bin/aria2',
 
 
 
-function getCookieStr(url){
+async function getCookieStr(url){
   const now = moment().unix()
-  return new Promise((resolve,reject)=>{
-    session.defaultSession.cookies.get({url}, (error, cookies) => {
-      const cookieArray = []
-      if(error){
-        reject()
-        return
-      }
+  const cookies = await Browser.getCookies(url)
 
-      if(!error && cookies.expirationDate >= now){
-        cookieArray.push(`${cookies.name}=${cookies.value}`)
-      }
-      resolve(cookieArray.join('; '))
-    })
-  })
+  const cookieArray = []
+  for(const cookie of cookies){
+    if(cookie.expirationDate >= now){
+      cookieArray.push(`${cookie.name}=${cookie.value}`)
+    }
+  }
+  console.log(777, cookieArray.join('; '))
+  return cookieArray.join('; ')
 }
 
 function getByte(str){
@@ -193,6 +191,9 @@ export default class Aria2cWrapper{
     params = [...params,`-x${this.downloadNum}`,'--check-certificate=false','--summary-interval=1','--file-allocation=none','--bt-metadata-only=true',
       `--user-agent=${process.userAgent}`,`--dir=${path.dirname(this.savePath)}`,`--out=${path.basename(this.savePath)}`,`${this.url}`]
 
+    params.push(`--referer=${await (await getFocusedWebContents()).getURL()}`)
+
+
     if(!resume && this.overwrite){
       params.push('--auto-file-renaming=false','--allow-overwrite=true')
     }
@@ -282,8 +283,8 @@ export default class Aria2cWrapper{
   cancel(){
     this.status = 'CANCEL'
     if(this.aria2c){
-     this.aria2c.stdin.pause()
-     this.aria2c.kill()
+      this.aria2c.stdin.pause()
+      this.aria2c.kill()
     }
     console.log(this.savePath)
     fs.unlink(this.savePath,e=> {

@@ -74,7 +74,6 @@
     "clusterize.js": "^0.17.6",
     "codemirror": "^5.41.0",
     "command-line-args": "^4.0.2",
-    "deasync": "^0.1.14",
     "debug": "^3.1.0",
     "deepmerge": "^2.0.1",
     "electron-is-accelerator": "^0.1.2",

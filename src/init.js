@@ -83,11 +83,11 @@ const players = [
 
 app.setName('Sushi Browser')
 app.commandLine.appendSwitch('touch-events', 'enabled');
-protocol.registerStandardSchemes(['chrome-extension'], { secure: true })
 
-if(isLinux){
+// if(isLinux){
   app.disableHardwareAcceleration()
-}
+// app.disableDomainBlockingFor3DAPIs()
+// }
 
 // ipcMain.setMaxListeners(0)
 
@@ -207,7 +207,7 @@ app.on('ready', async ()=>{
     console.log(332,process.argv,getUrlFromCommandLine(process.argv))
     await createWindow(true,isDarwin ? getNewWindowURL() : getUrlFromCommandLine(process.argv))
 
-    httpsEverywhere = require('../brave/httpsEverywhere') //@TODO ELECTRON
+    // httpsEverywhere = require('../brave/httpsEverywhere') //@TODO ELECTRON
     // trackingProtection = require('../brave/trackingProtection') @TODO ELECTRON
 
 
@@ -217,7 +217,7 @@ app.on('ready', async ()=>{
     require('./tabContextMenu')
     require('./syncLoop')
 
-    adblock = require('../brave/adBlock') //@TODO ELECTRON
+    // adblock = require('../brave/adBlock') //@TODO ELECTRON
     require('./menuSetting')
     process.emit('app-initialized')
 
@@ -919,9 +919,9 @@ ipcMain.on('init-private-mode',(e,key,partition)=>{
   ses.userPrefs.setBooleanPref('profile.password_manager_enabled', true)
   ses.userPrefs.setBooleanPref('credentials_enable_service', true)
   ses.userPrefs.setBooleanPref('credentials_enable_autosignin', true)
-  adblock.adBlock(ses)
-  httpsEverywhere(ses)
-  trackingProtection(ses)
+  // adblock.adBlock(ses)
+  // httpsEverywhere(ses)
+  // trackingProtection(ses)
   extensions.loadAll(ses)
   setTimeout(_=>e.sender.send(`init-private-mode-reply_${key}`,1),1000)
 })
@@ -1012,7 +1012,7 @@ function getLinks(webContents,props,selection){
 }
 
 function makeDownloadSelectorUrl(props,[links,imgs]){
-  const resources = adblock.cache.get(props.pageURL) || {}
+  const resources = {}//adblock.cache.get(props.pageURL) || {} //@TODO
   for(let [url,name] of imgs){
     const contType = resources[url]
     if(contType){
@@ -1158,8 +1158,8 @@ async function contextMenu(webContents, props) {
   const isNoAction = !(isTextSelected || isInputField || props.mediaType != 'none' || props.linkURL)
 
   if(isNoAction){
-    menuItems.push({t: 'back', label: locale.translation('back'),enabled:webContents.canGoBack(),  click: (item, win)=>win.webContents.send('go-navigate', webContents.id, 'back')})
-    menuItems.push({t: 'forward', label: locale.translation('forward'),enabled: webContents.canGoForward(), click: (item, win)=>win.webContents.send('go-navigate', webContents.id, 'forward')})
+    menuItems.push({t: 'back', label: locale.translation('back'),enabled:await webContents.canGoBack(),  click: (item, win)=>win.webContents.send('go-navigate', webContents.id, 'back')})
+    menuItems.push({t: 'forward', label: locale.translation('forward'),enabled: await webContents.canGoForward(), click: (item, win)=>win.webContents.send('go-navigate', webContents.id, 'forward')})
     menuItems.push({t: 'reload', label: locale.translation('reload'),enabled: !webContents.isLoading(), click: (item, win)=>win.webContents.send('go-navigate', webContents.id, 'reload')})
     menuItems.push({type: 'separator'})
   }

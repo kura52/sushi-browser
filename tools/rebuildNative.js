@@ -2,7 +2,10 @@ const sh = require('shelljs')
 const fs = require("fs")
 const path = require("path")
 
-const libs = ['../node_modules/ad-block','../node_modules/node-pty','../node_modules/winctl','../node_modules/robotjs','../node_modules/deasync']
+const libs = [
+  '../node_modules/node-pty',
+  '../node_modules/winctl',
+  '../node_modules/robotjs']
 
 for(let lib of libs){
   rebuild(path.join(__dirname,lib))

@@ -123,7 +123,7 @@ class Browser{
         // const dim = browserPanel.cpWin.nativeWindow.dimensions()
         // console.log(dim)
         // browserPanel.cpWin.chromeNativeWindow.setWindowPos(0,0,0, dim.right - dim.left + BrowserPanel.sideMargin * 2, dim.bottom - dim.top + BrowserPanel.topMargin + 8,4)
-        // browserPanel.cpWin.chromeNativeWindow.setWindowLongPtrRestore(val)
+        // browserPanel.cpWin.chromeNativeWindow.setWindowLongPtrRestore(0x00040000)
         // browserPanel.cpWin.chromeNativeWindow.setWindowPos(0,0,0,0,0,39)
       }
       else{
@@ -444,7 +444,7 @@ class Browser{
       window.ipcRenderer = {
         port,
         serverKey,
-        events: {},
+        events: window.ipcRenderer ? window.ipcRenderer.events : {},
         send(channel, ...args) {
           fetch(`http://localhost:${this.port}?key=${this.serverKey}&data=${encodeURIComponent(JSON.stringify({
             api: 'ipc',
@@ -674,6 +674,14 @@ class Browser{
       }
     }
     return extensions
+  }
+
+  static getCookies(url){
+    return Browser.bg.evaluate(url => {
+      return new Promise(resolve => {
+        chrome.cookies.getAll({url}, cookies => resolve(cookies))
+      })
+    }, url)
   }
 
 }
@@ -947,6 +955,9 @@ class BrowserPanel{
     chromeNativeWindow.setWindowPos(winctl.HWND.TOPMOST,0,0,0,0,83)
     chromeNativeWindow.setWindowPos(winctl.HWND.NOTOPMOST,0,0,0,0,83)
 
+
+    nativeWindowBw.setWindowLongPtrRestore(0x00040000)
+
     return {chromeNativeWindow, nativeWindow, nativeWindowBw}
     // return {chromeNativeWindow, nativeWindow, nativeWindowBw, childBrowserWindow}
   }
@@ -958,6 +969,7 @@ class BrowserPanel{
     console.log(5555555,Object.keys(this.tabKeys).length)
     if(!Object.keys(this.tabKeys).length){
       delete BrowserPanel.panelKeys[this.panelKey]
+      // chromeNativeWindow.setWindowPos(winctl.HWND.BOTTOM,0,0,0,0,83)
       this.cpWin.nativeWindow.destroyWindow()
     }
   }
@@ -2061,7 +2073,7 @@ class BackgroundPage{
 
   send(channel, ...args){
     Browser.bg.evaluate((channel, ...args) => {
-      window.ipcRenderer.events[channel]({},...args)
+      if(window.ipcRenderer.events[channel]) window.ipcRenderer.events[channel]({},...args)
     }, channel, ...args)
   }
 }
