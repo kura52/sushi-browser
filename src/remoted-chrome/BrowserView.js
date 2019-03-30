@@ -770,7 +770,7 @@ class BrowserPanel{
     browserWindow.webContents.send('move-tab-from-moved', tabId, toIndex)
   }
 
-  static async moveTabs(moveTabIds, destPanelKey, {index, tabKey}, browserWindow){
+  static async moveTabs(moveTabIds, destPanelKey, {index, tabKey}, browserWindow, bounds){
     let browserPanel = this.getBrowserPanel(destPanelKey)
 
     if(!browserPanel &&　this.destKeySet.has(destPanelKey)){
@@ -816,7 +816,7 @@ class BrowserPanel{
       if(destPanelKey != panel.panelKey) bv.webContents.hostWebContents2.send('chrome-tabs-event',{tabId: moveTabIds[0], changeInfo: {panelKey:panel.panelKey}}, 'removed')
       bv.destroy(false)
       console.log(2224)
-      const destPanel = await new BrowserPanel({ browserWindow, panelKey: destPanelKey, tabKey, tabId: moveTabIds[0] })
+      const destPanel = await new BrowserPanel({ browserWindow, panelKey: destPanelKey, tabKey, tabId: moveTabIds[0], bounds })
       console.log(2225)
 
       if(moveTabIds.length > 1){
@@ -834,8 +834,8 @@ class BrowserPanel{
     }
   }
 
-  constructor({browserWindow, panelKey, tabKey, webContents, windowId, url, tabId}) {
-    console.log(999777,{panelKey, tabKey, windowId, url, tabId, browserWindow: browserWindow && browserWindow.id})
+  constructor({browserWindow, panelKey, tabKey, webContents, windowId, url, tabId, bounds}) {
+    console.log(999777,{panelKey, tabKey, windowId, url, tabId, browserWindow: browserWindow && browserWindow.id, bounds})
     return (async ()=>{
       await BrowserPanel._initializer()
 
@@ -844,11 +844,13 @@ class BrowserPanel{
         this.browserWindow.once('closed', ()=>this.destroy())
         let win
         if(tabId){
-          win = await Browser.bg.evaluate((tabId) => {
+          win = await Browser.bg.evaluate((tabId, bounds, sideMargin, topMargin) => {
             return new Promise(resolve => {
-              chrome.windows.create({tabId}, window => resolve(window))
+              const createData = bounds ? {tabId, left: bounds.x - sideMargin, top: bounds.y - topMargin,
+                width: bounds.width + sideMargin * 2, height: bounds.height + topMargin + 8} : {tabId}
+              chrome.windows.create(createData, window => resolve(window))
             })
-          }, tabId)
+          }, tabId, bounds, BrowserPanel.sideMargin, BrowserPanel.topMargin)
         }
         else{
           if(!BrowserPanel._isNotFirst){
@@ -894,9 +896,11 @@ class BrowserPanel{
 
           }
           else{
-            win = await Browser.bg.evaluate((url) => {
-              return new Promise(resolve => chrome.windows.create({url}, window => resolve(window)))
-            }, url)
+            win = await Browser.bg.evaluate((url, bounds, sideMargin, topMargin) => {
+              const createData = bounds ? {url, left: bounds.x - sideMargin, top: bounds.y - topMargin,
+                width: bounds.width + sideMargin * 2, height: bounds.height + topMargin + 8} : {url}
+              return new Promise(resolve => chrome.windows.create(createData, window => resolve(window)))
+            }, url, bounds, BrowserPanel.sideMargin, BrowserPanel.topMargin)
           }
         }
 
@@ -979,6 +983,7 @@ class BrowserPanel{
         return cWin.left == dim.left && cWin.top == dim.top && cWin.width == (dim.right - dim.left)  && cWin.height == (dim.bottom - dim.top)
       }))[0]
     }
+    chromeNativeWindow.moveRelative(9999,9999,0,0)
     const title = Math.random().toString()
     const _title = this.browserWindow.getTitle()
 
@@ -1632,19 +1637,22 @@ class webContents extends EventEmitter {
   }
 
   focus(){
-    this._updateTab({active: true, highlighted: true})
+    const panel = this._getBrowserPanel()
+    if(!panel) return
+
+    if(require('../util').getCurrentWindow().id == panel.browserWindow.id){
+      panel.cpWin.nativeWindow.setWindowPos(winctl.HWND.TOPMOST,0,0,0,0,83)
+      panel.cpWin.nativeWindow.setWindowPos(winctl.HWND.NOTOPMOST,0,0,0,0,83)
+    }
+  }
+
+  setActive(){
+    this._updateTab({active: true})
   }
 
   setForegroundWindow(){
     if(!this._getBrowserPanel()) return
     this._getBrowserPanel().cpWin.chromeNativeWindow.setForegroundWindow(true)
-  }
-
-  moveTop(){
-    const panel = this._getBrowserPanel()
-    if(!panel) return
-    panel.cpWin.nativeWindowBw.setWindowPos(winctl.HWND.TOPMOST,0,0,0,0,83)
-    panel.cpWin.nativeWindowBw.setWindowPos(winctl.HWND.NOTOPMOST,0,0,0,0,83)
   }
 
   async isFocused(){

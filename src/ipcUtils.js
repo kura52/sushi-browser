@@ -1397,7 +1397,9 @@ ipcMain.on('change-tab-infos',(e,changeTabInfos)=> {
       if (timer) clearTimeout(timer)
       timer = setTimeout(() => {
         console.log('change-tab-infos', c)
-        ipcMain.emit('update-tab', null, c.tabId)
+        // ipcMain.emit('update-tab', null, c.tabId)
+        webContents.fromId(c.tabId).focus()
+        webContents.fromId(c.tabId).setActive()
         timer = void 0
       }, 10)
     }
@@ -2449,7 +2451,24 @@ ipcMain.on('move-browser-view', async (e, panelKey, tabKey, type, tabId, x, y, w
     // }
 
     // moveingTab = true
-    await BrowserPanel.moveTabs([tabId], panelKey, {index, tabKey}, win)
+
+    let bounds
+    const win = BrowserWindow.fromWebContents(e.sender)
+    if(win && !win.isDestroyed()){
+      const winBounds = win.getBounds()
+      if(winBounds.x == -7 && winBounds.y == -7){
+        winBounds.x = 0
+        winBounds.y = 0
+      }
+
+      bounds = {
+        x: Math.round(x) + winBounds.x, y:Math.round(y) + winBounds.y,
+        width: Math.round(width), height: Math.round(height), zIndex
+      }
+    }
+
+
+    await BrowserPanel.moveTabs([tabId], panelKey, {index, tabKey}, win, bounds)
     // moveingTab = false
     console.log([tabId], panelKey, {index, tabKey})
     if(x != null){
@@ -2459,6 +2478,7 @@ ipcMain.on('move-browser-view', async (e, panelKey, tabKey, type, tabId, x, y, w
     }
     if(zIndex > 0){
       webContents.fromId(tabId).focus()
+      webContents.fromId(tabId).setActive()
     }
   }
 })
@@ -2476,7 +2496,9 @@ ipcMain.on('set-bound-browser-view', async (e, panelKey, tabKey, tabId, x, y, wi
     return
   }
 
-  if(zIndex > 0) webContents.fromId(tabId).moveTop() //怪しい
+  if(zIndex > 0){
+    webContents.fromId(tabId).focus()
+  }
 
   // for(let i=0;i<1000;i++){
   //   if(!moveingTab) break
@@ -2498,9 +2520,9 @@ ipcMain.on('set-bound-browser-view', async (e, panelKey, tabKey, tabId, x, y, wi
   }
 
   let bounds = {
-    x: Math.round(x) + winBounds.x,
-    y:Math.round(y) + winBounds.y,
-    width: Math.round(width), height: Math.round(height), zIndex }
+    x: Math.round(x) + winBounds.x, y:Math.round(y) + winBounds.y,
+    width: Math.round(width), height: Math.round(height), zIndex
+  }
   console.log(11,bounds, winBounds)
   const id = setTimeout(()=>{
     for(let [_bounds, id] of setBoundClearIds[panelKey] || []){
