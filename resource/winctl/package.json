@@ -1,0 +1,99 @@
+{
+  "_args": [
+    [
+      {
+        "raw": "winctl",
+        "scope": null,
+        "escapedName": "winctl",
+        "name": "winctl",
+        "rawSpec": "",
+        "spec": "latest",
+        "type": "tag"
+      },
+      "C:\\Users\\kura\\RubymineProjects\\sushi-browser2"
+    ]
+  ],
+  "_from": "winctl@latest",
+  "_id": "winctl@1.0.2",
+  "_inCache": true,
+  "_location": "/winctl",
+  "_nodeVersion": "5.1.0",
+  "_npmOperationalInternal": {
+    "host": "packages-13-west.internal.npmjs.com",
+    "tmp": "tmp/winctl-1.0.2.tgz_1457639535530_0.21166757168248296"
+  },
+  "_npmUser": {
+    "name": "davenonymous",
+    "email": "david.hilberath@gmail.com"
+  },
+  "_npmVersion": "3.3.12",
+  "_phantomChildren": {},
+  "_requested": {
+    "raw": "winctl",
+    "scope": null,
+    "escapedName": "winctl",
+    "name": "winctl",
+    "rawSpec": "",
+    "spec": "latest",
+    "type": "tag"
+  },
+  "_requiredBy": [
+    "#USER",
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/winctl/-/winctl-1.0.2.tgz",
+  "_shasum": "2f7b8dec5bba381ca7e5febcbfdfa40e3255bc95",
+  "_shrinkwrap": null,
+  "_spec": "winctl",
+  "_where": "C:\\Users\\kura\\RubymineProjects\\sushi-browser2",
+  "author": "",
+  "bugs": {
+    "url": "https://github.com/thraaawn/winctl/issues"
+  },
+  "dependencies": {
+    "bindings": "^1.2.1"
+  },
+  "description": "> Windows window manipulation for node.js",
+  "devDependencies": {
+    "nan": "^2.2.0",
+    "node-gyp": "^3.2.1"
+  },
+  "directories": {},
+  "dist": {
+    "shasum": "2f7b8dec5bba381ca7e5febcbfdfa40e3255bc95",
+    "tarball": "https://registry.npmjs.org/winctl/-/winctl-1.0.2.tgz"
+  },
+  "gitHead": "8d960be224b8e0c5aa8ad7c09be04b39c68b4291",
+  "gypfile": true,
+  "homepage": "https://github.com/thraaawn/winctl",
+  "keywords": [
+    "windows",
+    "window",
+    "autohotkey",
+    "desktop"
+  ],
+  "license": "ISC",
+  "main": "index.js",
+  "maintainers": [
+    {
+      "name": "davenonymous",
+      "email": "david.hilberath@gmail.com"
+    }
+  ],
+  "name": "winctl",
+  "optionalDependencies": {},
+  "os": [
+    "win32"
+  ],
+  "readme": "ERROR: No README data found!",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thraaawn/winctl.git"
+  },
+  "scripts": {
+    "build": "node-gyp build",
+    "configure": "node-gyp configure",
+    "install": "node-gyp rebuild"
+  },
+  "version": "1.0.2"
+}

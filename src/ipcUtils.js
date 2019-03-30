@@ -909,13 +909,13 @@ ipcMain.on('menu-or-key-events',(e,name,...args)=>{
 
 if(isWin) {
   ipcMain.on('get-win-hwnd', async (e, key) => {
-    const winctl = require('winctl')
+    const winctl = require('../resource/winctl')
     e.sender.send(`get-win-hwnd-reply_${key}`, winctl.GetActiveWindow().getHwnd())
   })
 
 
   ipcMain.on('set-active', async (e, key, hwnd) => {
-    const winctl = require('winctl')
+    const winctl = require('../resource/winctl')
     const aWin = winctl.GetActiveWindow()
     const aWinHwnd = aWin.getHwnd()
     if(bindMap[key] === aWinHwnd){
@@ -945,7 +945,7 @@ ipcMain.on('set-pos-window',async (e,{id,hwnd,key,x,y,width,height,top,active,ta
     if(hwnd){
       hwndMap[key] = hwnd
     }
-    const winctl = require('winctl')
+    const winctl = require('../resource/winctl')
     const win = id ? (await winctl.FindWindows(win => id == win.getHwnd()))[0] : winctl.GetActiveWindow()
     if(!id){
       const cn = win.getClassName()
@@ -953,7 +953,7 @@ ipcMain.on('set-pos-window',async (e,{id,hwnd,key,x,y,width,height,top,active,ta
         e.sender.send(`set-pos-window-reply_${key}`,(void 0))
         return
       }
-      win.setWindowLongPtr(0x800000)
+      win.setWindowLongPtrRestore(0x800000)
       console.log('setWindowPos1')
       win.setWindowPos(0,0,0,0,0,39+1024)
       bindMap[key] = win.getHwnd()
@@ -961,7 +961,7 @@ ipcMain.on('set-pos-window',async (e,{id,hwnd,key,x,y,width,height,top,active,ta
 
     if(restoredMap[key] !== (void 0)){
       clearTimeout(restoredMap[key])
-      win.setWindowLongPtr(0x800000)
+      win.setWindowLongPtrRestore(0x800000)
       console.log('setWindowPos2')
       win.setWindowPos(0,0,0,0,0,39+1024);
       delete restoredMap[key]
@@ -969,7 +969,7 @@ ipcMain.on('set-pos-window',async (e,{id,hwnd,key,x,y,width,height,top,active,ta
 
     if(restore){
       // console.log(32322,styleMap[key])
-      win.setWindowLongPtrRestore(0x800000)
+      win.setWindowLongPtr(0x800000)
       console.log('setWindowPos3')
       win.setWindowPos(0,0,0,0,0,39+1024);
       console.log('setWindowPos51',win.getTitle())
@@ -1169,7 +1169,7 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
     //   const win =  winctl.GetActiveWindow()
     //   winMap[key] = win
     //   if(!detach){
-    //     win.setWindowLongPtr()
+    //     win.setWindowLongPtrRestore()
     //     win.setWindowPos(0,0,0,0,0,39+1024)
     //     win.setWindowPos(winctl.HWND.TOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
     //   }
@@ -1349,10 +1349,10 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
       // if(isWin){
       //   const win = winMap[key]
       //   if(detach){
-      //     win.setWindowLongPtrRestore()
+      //     win.setWindowLongPtr()
       //   }
       //   else{
-      //     win.setWindowLongPtr()
+      //     win.setWindowLongPtrRestore()
       //     win.setWindowPos(0,0,0,0,0,39+1024);
       //   }
       // }
@@ -2304,19 +2304,19 @@ ipcMain.on('get-vpn-list',(e,key)=> {
 })
 
 
-ipcMain.on('fetch-style',(e, key, url)=> {
-  visitedStyle.findOne({url}).then(result => {
-    if(result){
-      e.sender.send(`fetch-style-reply_${key}`, result.text)
-    }
-    else{
-      request({url}, (err, response, text) => {
-        e.sender.send(`fetch-style-reply_${key}`, text)
-        visitedStyle.insert({url, text})
-      })
-    }
-  })
-})
+// ipcMain.on('fetch-style',(e, key, url)=> {
+//   visitedStyle.findOne({url}).then(result => {
+//     if(result){
+//       e.sender.send(`fetch-style-reply_${key}`, result.text)
+//     }
+//     else{
+//       request({url}, (err, response, text) => {
+//         e.sender.send(`fetch-style-reply_${key}`, text)
+//         visitedStyle.insert({url, text})
+//       })
+//     }
+//   })
+// })
 
 ipcMain.on('get-selector-code',(e,key)=>{
   const code = fs.readFileSync(path.join(__dirname,"../resource/extension/default/1.0_0/js/mobilePanel.js").replace(/app.asar([\/\\])/,'app.asar.unpacked$1')).toString()
@@ -2680,11 +2680,11 @@ ipcMain.on('send-to-host', async (e, ...args)=>{
   hostCont.send(`send-to-host_${e.sender.id}`, ...args)
 })
 
-ipcMain.on('get-visited-links', (e, key, urls) => {
-  history.find({location: {$in: urls}}).then(hists => {
-    e.sender.send(`get-visited-links-reply_${key}`, hists.map(h => h.location))
-  })
-})
+// ipcMain.on('get-visited-links', (e, key, urls) => {
+//   history.find({location: {$in: urls}}).then(hists => {
+//     e.sender.send(`get-visited-links-reply_${key}`, hists.map(h => h.location))
+//   })
+// })
 
 ipcMain.on('page-search-event', (e, panelKey, tabKey, type, ...args) => {
   for(let win of BrowserWindow.getAllWindows()) {

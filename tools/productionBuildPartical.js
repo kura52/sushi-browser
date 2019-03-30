@@ -17,12 +17,7 @@ console.log(buildDir)
 let appIcon
 if (isWindows) {
   appIcon = 'res/app.ico'
-} else if (isDarwin) {
-  appIcon = 'res/app.icns'
-} else {
-  appIcon = 'res/app.png'
 }
-
 
 function escapeRegExp(string){
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
@@ -68,12 +63,7 @@ function build(){
   }
 
   const pwd = sh.pwd().toString()
-  if(isDarwin){
-    sh.cd(`${buildDir}/sushi-browser.app/Contents/Resources`)
-  }
-  else{
-    sh.cd(`${buildDir}/resources`)
-  }
+  sh.cd(`${buildDir}/resources`)
   if(sh.exec('asar e app.asar app').code !== 0) {
     console.log("ERROR5")
     process.exit()
@@ -89,10 +79,8 @@ function build(){
   sh.mv('app/resource/css/semantic-ui/themes/default/assets','app/resource/css/semantic-ui/themes/default/assets2')
   sh.mv('app.asar.unpacked/resource/extension/default/1.0_0/css/semantic-ui/themes/default/assets',
     'app.asar.unpacked/resource/extension/default/1.0_0/css/semantic-ui/themes/default/assets2')
-  if(isDarwin){
-    sh.exec(`~/go/bin/node-prune ${pwd}/${buildDir}`)
-  }
-  else{
+
+
     sh.mv(`${pwd}/${buildDir}/LICENSE`,`${pwd}/${buildDir}/_LICENSE`)
     sh.exec(`C:/Users/kura5/go/bin/node-prune ${pwd}/${buildDir}`)
     sh.mv(`${pwd}/${buildDir}/_LICENSE`,`${pwd}/${buildDir}/LICENSE`)
@@ -161,7 +149,6 @@ reg add "HKEY_LOCAL_MACHINE\\Software\\Classes\\SushiURL\\shell\\open\\command" 
 
 pause`)
 
-  }
 
   sh.mv('app.asar.unpacked/resource/extension/default/1.0_0/css/semantic-ui/themes/default/assets2',
     'app.asar.unpacked/resource/extension/default/1.0_0/css/semantic-ui/themes/default/assets')
@@ -194,65 +181,7 @@ pause`)
       // sh.mv(`${outDir}/Setup.exe`,`${outDir}/sushi-browser-setup-${arch}.exe`)
     }, (e) => console.log(`No dice: ${e.message}`))
   }
-  else if (isDarwin) {
-    const identifier = fs.readFileSync(path.join(pwd,'../identifier.txt'))
-    if (!identifier) {
-      console.error('IDENTIFIER needs to be set to the certificate organization')
-      process.exit(1)
-    }
 
-    if(sh.exec(`rm -f ${outDir}/sushi-browser.dmg`).code !== 0) {
-      console.log("ERROR1")
-      process.exit()
-    }
-    sh.cd(`${buildDir}/sushi-browser.app/Contents/Frameworks`)
-
-    console.log(`codesign --deep --force --strict --verbose --sign ${identifier} *`)
-    if(sh.exec(`codesign --deep --force --strict --verbose --sign ${identifier} *`).code !== 0) {
-      console.log("ERROR2")
-      process.exit()
-    }
-    sh.cd('../../..')
-
-    if(sh.exec(`codesign --deep --force --strict --verbose --sign ${identifier} sushi-browser.app/`).code !== 0) {
-      console.log("ERROR3")
-      process.exit()
-    }
-    sh.cd('..')
-
-    sh.mkdir('dist')
-    console.log(`./node_modules/.bin/build --prepackaged="${buildDir}/sushi-browser.app" --mac=dmg --config=res/builderConfig.json`)
-    if(sh.exec(`./node_modules/.bin/build --prepackaged="${buildDir}/sushi-browser.app" --mac=dmg --config=res/builderConfig.json`).code !== 0) {
-      console.log("ERROR4")
-      process.exit()
-    }
-
-    sh.cd(`${buildDir}/sushi-browser.app/Contents/Resources`)
-    sh.mkdir('-p', `app.asar.unpacked/resource`);
-    fs.writeFileSync(`${pwd}/${buildDir}/sushi-browser.app/Contents/Resources/app.asar.unpacked/resource/portable.txt`,'true')
-
-    if(sh.exec(`${isWindows ? '"C:/Program Files/7-Zip/7z.exe"' : '7z'} a -t7z -mx=9 app.asar.unpacked.7z app.asar.unpacked`).code !== 0) {
-      console.log("ERROR1")
-      process.exit()
-    }
-    sh.rm('-rf','app.asar.unpacked')
-    sh.cd('../../../..')
-
-    if(sh.exec(`ditto -c -k --sequesterRsrc --keepParent ${buildDir}/sushi-browser.app ${outDir}/sushi-browser-${APP_VERSION}.zip`).code !== 0) {
-      console.log("ERROR6")
-      process.exit()
-    }
-
-
-  }
-  else if(isLinux){
-    [`./node_modules/.bin/electron-installer-debian --src ${buildDir}/ --dest ${outDir}/ --arch amd64 --config res/linuxPackaging.json`,
-      `./node_modules/.bin/electron-installer-redhat --src ${buildDir}/ --dest ${outDir}/ --arch x86_64 --config res/linuxPackaging.json`,
-      `cp -R ./${buildDir} ./sushi-browser-portable;echo true > ./sushi-browser-portable/resources/app.asar.unpacked/resource/portable.txt;tar -jcvf ${outDir}/sushi-browser.tar.bz2 ./sushi-browser-portable`].forEach(cmd=>{
-      sh.exec(cmd, {async:true}, (code, stdout, stderr) => {
-      })
-    })
-  }
 }
 
 function muonModify(){
@@ -362,13 +291,6 @@ filesContentsReplace(`${pwd}/node_modules/youtube-dl/lib/youtube-dl.js`,"(detail
 
 build()
 
-
-
-if(isDarwin){
-  glob.sync(`${pwd}/${outDir}/sushi-browser*.zip`).forEach(file=>{
-    sh.mv(file,`${outDir}/sushi-browser-${APP_VERSION}-mac-x64.zip`)
-  })
-}
 
 if(isWindows){
   sh.mv(`${outDir}/sushi-browser-setup-x64.exe`,`${outDir}/sushi-browser-${APP_VERSION}-setup-x64.exe`)

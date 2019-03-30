@@ -276,7 +276,7 @@ app.on('before-quit', (e) => {
 })
 
 
-app.on('window-all-closed', function () {
+app.on('window-all-closed', async function () {
   console.log('window-all-closed',2221)
   // require('./databaseFork')._kill()
   if (!isDarwin || beforeQuit) {
@@ -302,8 +302,11 @@ app.on('window-all-closed', function () {
       }
     }
 
-    BrowserView.getAllViews().map(v=> !v.isDestroyed() && v.destroy())
-    webContents.getAllWebContents().map(w=> !w.isDestroyed() && w.getURL().startsWith('chrome-extension:') && w.destroy())
+    // BrowserView.getAllViews().map(v=> !v.isDestroyed() && v.destroy())
+    // webContents.getAllWebContents().map(w=> !w.isDestroyed() && w.getURL().startsWith('chrome-extension:') && w.destroy())
+    // await Browser.close()
+    console.log(2220099)
+    await new Promise(r=>setTimeout(r,100))
     app.quit()
   }
   else{

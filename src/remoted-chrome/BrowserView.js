@@ -6,8 +6,8 @@ import {EventEmitter} from 'events'
 import extensionServer from './extensionServer'
 import emptyPort from './emptyPort'
 import robot from 'robotjs'
-import winctl from 'winctl'
-import {app, ipcMain, BrowserWindow, nativeImage, webContents as _webContents, screen} from 'electron'
+import winctl from '../../resource/winctl'
+import {app, BrowserWindow, ipcMain, nativeImage, webContents as _webContents} from 'electron'
 import mainState from '../mainState'
 import util from 'util'
 import {exec as _exec} from 'child_process'
@@ -35,16 +35,30 @@ class Browser{
   static async _initializer(){
     if(this._browser != null) return
 
+    let executablePath
+    if(fs.existsSync(executablePath = 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe')){}
+    else if(fs.existsSync(executablePath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe')){}
+    else if(fs.existsSync(executablePath = path.join(app.getPath('home'),'AppData\\Local\\Google\\Chrome\\Application\\chrome.exe'))){}
+    else{}
 
     this._browser = await puppeteer.launch({
       ignoreDefaultArgs: true,
       defaultViewport: null,
-      executablePath: 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome',
+      executablePath,
       args: [
-        '--no-first-run', '--enable-automation', '--disable-infobars',
+        // '--no-first-run',
+        //    '--enable-automation',
+        '--metrics-recording-only',
+        '--disable-infobars',
+        // '--enable-prompt-on-repost',
+        // '--disable-breakpad',
+        '--remote-debugging-pipe',
+        // '--silent-debugger-extension-api',
+        '--disable-default-apps',
+        '--disable-features=site-per-process',
         `--user-data-dir=${this.userDataDir}`,
         // `--lang=en`,
-        `--load-extension=${path.resolve(__dirname, '../../resource/extension/default/1.0_0/')}`,
+        `--load-extension=${path.resolve(__dirname, '../../resource/extension/default/1.0_0/').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')}`,
         'about:blank'
       ]})
 
@@ -116,14 +130,14 @@ class Browser{
         // setTimeout(()=>{
         //   console.log(browserPanel.cpWin.chromeNativeWindow.getHwnd(),dim)
         //   browserPanel.cpWin.chromeNativeWindow.move2(dim.left, dim.top, dim.right - dim.left, dim.bottom - dim.top)
-        //   browserPanel.cpWin.chromeNativeWindow.setWindowLongPtrRestore(val)
+        //   browserPanel.cpWin.chromeNativeWindow.setWindowLongPtr(val)
         // },0)
 
         // await new Promise(r=>setTimeout(r,3000))
         // const dim = browserPanel.cpWin.nativeWindow.dimensions()
         // console.log(dim)
         // browserPanel.cpWin.chromeNativeWindow.setWindowPos(0,0,0, dim.right - dim.left + BrowserPanel.sideMargin * 2, dim.bottom - dim.top + BrowserPanel.topMargin + 8,4)
-        // browserPanel.cpWin.chromeNativeWindow.setWindowLongPtrRestore(0x00040000)
+        // browserPanel.cpWin.chromeNativeWindow.setWindowLongPtr(0x00040000)
         // browserPanel.cpWin.chromeNativeWindow.setWindowPos(0,0,0,0,0,39)
       }
       else{
@@ -222,6 +236,11 @@ class Browser{
       // console.log(channel, tabId)
       ipcMain.emit(channel, {sender: Number.isInteger(tabId) ? new webContents(tabId): new BackgroundPage(tabId)}, ...args)
     })
+  }
+
+  static close(){
+    this._browser.close()
+    this.closed = true
   }
 
   static initExtension(){
@@ -676,7 +695,14 @@ class Browser{
     return extensions
   }
 
-  static getCookies(url){
+  static async getCookies(url){
+    if(!Browser.bg){
+      for(let i=0;i<1000;i++){
+        await new Promise(r=>setTimeout(r,10))
+        if(Browser.bg) break
+      }
+    }
+
     return Browser.bg.evaluate(url => {
       return new Promise(resolve => {
         chrome.cookies.getAll({url}, cookies => resolve(cookies))
@@ -825,35 +851,56 @@ class BrowserPanel{
           }, tabId)
         }
         else{
-          win = await Browser.bg.evaluate((url, isNotFirst) => {
-            return new Promise(resolve => {
-              if(isNotFirst){
-                chrome.windows.create({url}, window => resolve(window))
-              }
-              else{
+          if(!BrowserPanel._isNotFirst){
+            const tmpWin = await Browser.bg.evaluate(() => {
+              return new Promise(resolve => {
                 chrome.windows.getAll({populate: true}, windows => {
-                  const windowId = windows[0].id
-                  chrome.tabs.update(windows[0].tabs[0].id, { url, active: true }, tab => {
-                    chrome.windows.get(windowId, {populate: true}, window =>{
-                      window.tabWidth = tab.width
-                      window.tabHeight = tab.height
-                      resolve(window)
-                    })
+                  const window = windows[0]
+                  const tab = window.tabs[0]
+                  window.tabWidth = tab.width
+                  window.tabHeight = tab.height
+                  resolve(window)
+                })
+              })
+            })
+            console.log(4343444, tmpWin.width ,tmpWin.tabWidth, tmpWin.height ,tmpWin.tabHeight)
+            BrowserPanel.topMargin = tmpWin.height - tmpWin.tabHeight - 8 //- 38
+            BrowserPanel.sideMargin = (tmpWin.width - tmpWin.tabWidth) / 2
+
+            let chromeNativeWindow = winctl.GetActiveWindow()
+            const dim = chromeNativeWindow.dimensions()
+            if(!chromeNativeWindow.getTitle().includes('Google Chrome') || !(tmpWin.left == dim.left && tmpWin.top == dim.top && tmpWin.width == (dim.right - dim.left)  && tmpWin.height == (dim.bottom - dim.top))){
+              chromeNativeWindow = (await winctl.FindWindows(win => {
+                if(!win.getTitle().includes('Google Chrome')) return false
+                const dim = win.dimensions()
+                return tmpWin.left == dim.left && tmpWin.top == dim.top && tmpWin.width == (dim.right - dim.left)  && tmpWin.height == (dim.bottom - dim.top)
+              }))[0]
+            }
+
+            console.log(2243344,chromeNativeWindow.getTitle())
+            chromeNativeWindow.setWindowLongPtrEx(0x00000080)
+
+            win = await Browser.bg.evaluate((url, windowId) => {
+              return new Promise(resolve => {
+                chrome.windows.update(windowId, { state: 'minimized' }, () => {
+                  setTimeout(()=>chrome.windows.remove(windowId),5000)
+                  chrome.windows.create({url, focused: true}, window => {
+                    resolve(window)
                   })
                 })
-              }
-            })
-          }, url, BrowserPanel._isNotFirst)
+              })
+            }, url, tmpWin.id)
+            BrowserPanel._isNotFirst = true
+
+          }
+          else{
+            win = await Browser.bg.evaluate((url) => {
+              return new Promise(resolve => chrome.windows.create({url}, window => resolve(window)))
+            }, url)
+          }
         }
 
         this.cpWin = await this.createChromeParentWindow(win)
-
-        if(!BrowserPanel._isNotFirst){
-          BrowserPanel._isNotFirst = true
-          console.log(4343444, win.width ,win.tabWidth, win.height ,win.tabHeight)
-          BrowserPanel.topMargin = win.height - win.tabHeight - 8 //- 38
-          BrowserPanel.sideMargin = (win.width - win.tabWidth) / 2
-        }
 
         this.panelKey = panelKey
         this.windowId = win.id
@@ -956,7 +1003,7 @@ class BrowserPanel{
     chromeNativeWindow.setWindowPos(winctl.HWND.NOTOPMOST,0,0,0,0,83)
 
 
-    nativeWindowBw.setWindowLongPtrRestore(0x00040000)
+    nativeWindowBw.setWindowLongPtr(0x00040000)
 
     return {chromeNativeWindow, nativeWindow, nativeWindowBw}
     // return {chromeNativeWindow, nativeWindow, nativeWindowBw, childBrowserWindow}

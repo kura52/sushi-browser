@@ -32383,7 +32383,7 @@ module.exports = exports['default'];
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-const mapValuesByKeys = __webpack_require__(880).mapValuesByKeys;
+const mapValuesByKeys = __webpack_require__(879).mapValuesByKeys;
 
 const _ = null;
 
@@ -32572,13 +32572,13 @@ var _reactSticky = __webpack_require__(864);
 
 __webpack_require__(867);
 
-var _l10n = __webpack_require__(874);
+var _l10n = __webpack_require__(873);
 
 var _l10n2 = _interopRequireDefault(_l10n);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-window.debug = __webpack_require__(881)('info');
+window.debug = __webpack_require__(880)('info');
 // require('debug').enable("info")
 
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd';
@@ -33035,7 +33035,7 @@ const App = () => _infernoCompat2.default.createElement(
   _infernoCompat2.default.createElement(TopMenu, null)
 );
 
-__webpack_require__(884)('themeTopPage');(async () => {
+__webpack_require__(883)('themeTopPage');(async () => {
   [accessKey, accessPort] = await new Promise(r => {
     _ipcRenderer.ipcRenderer.send('get-access-key-and-port');
     _ipcRenderer.ipcRenderer.once('get-access-key-and-port-reply', (e, data) => r(data));
@@ -72470,40 +72470,41 @@ if (window.__started_) {
 
   let preAElemsLength = 0;
 
-  const visitedLinkName = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
-
-  const setVisitedLinkColor = force => {
-    const aElems = document.getElementsByTagName('a');
-    const length = aElems.length;
-    if (!force && preAElemsLength == length) return;
-    preAElemsLength = length;
-    const checkElems = {};
-    for (let i = 0; i < length; i++) {
-      const ele = aElems[i];
-      if (ele.classList.contains(visitedLinkName)) continue;
-      const url = ele.href;
-      if (url.startsWith('http')) {
-        let arr = checkElems[url];
-        if (arr) {
-          arr.push(ele);
-        } else {
-          checkElems[url] = [ele];
-        }
-      }
-    }
-    const urls = Object.keys(checkElems);
-    if (!urls.length) return;
-
-    const key = Math.random().toString();
-    ipc.send('get-visited-links', key, urls);
-    ipc.on(`get-visited-links-reply_${key}`, (e, urls) => {
-      for (let url of urls) {
-        for (let ele of checkElems[url]) {
-          ele.classList.add(visitedLinkName);
-        }
-      }
-    });
-  };
+  // const visitedLinkName = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
+  //
+  // const setVisitedLinkColor = (force) => {
+  //   const aElems = document.getElementsByTagName('a')
+  //   const length = aElems.length
+  //   if(!force && preAElemsLength == length) return
+  //   preAElemsLength = length
+  //   const checkElems = {}
+  //   for (let i = 0; i < length; i++) {
+  //     const ele = aElems[i]
+  //     if(ele.classList.contains(visitedLinkName)) continue
+  //     const url = ele.href
+  //     if (url.startsWith('http')) {
+  //       let arr = checkElems[url]
+  //       if(arr){
+  //         arr.push(ele)
+  //       }
+  //       else{
+  //         checkElems[url] = [ele]
+  //       }
+  //     }
+  //   }
+  //   const urls = Object.keys(checkElems)
+  //   if(!urls.length) return
+  //
+  //   const key = Math.random().toString()
+  //   ipc.send('get-visited-links', key, urls)
+  //   ipc.on(`get-visited-links-reply_${key}`, (e, urls) => {
+  //     for (let url of urls) {
+  //       for(let ele of checkElems[url]){
+  //         ele.classList.add(visitedLinkName)
+  //       }
+  //     }
+  //   })
+  // }
 
   const openTime = Date.now();
   if (location.href.match(/^(http|chrome\-extension)/) && window == window.parent) {
@@ -72520,12 +72521,13 @@ if (window.__started_) {
 
     document.addEventListener('mouseup', e => {
       ipc.send('send-to-host', 'webview-mouseup', e.button);
-      if (mdownEvent && e.target == mdownEvent.target && e.button == mdownEvent.button && (e.button == 0 || e.button == 1)) {
-        const ele = e.target.closest('a');
-        if (ele && ele.href.startsWith('http')) {
-          setTimeout(() => setVisitedLinkColor(true), 200);
-        }
-      }
+      // if(mdownEvent && e.target == mdownEvent.target &&
+      //   e.button == mdownEvent.button && (e.button == 0 || e.button == 1)){
+      //   const ele = e.target.closest('a')
+      //   if(ele && ele.href.startsWith('http')){
+      //     setTimeout(()=>setVisitedLinkColor(true),200)
+      //   }
+      // }
     }, { passive: true, capture: true });
 
     let preClientY = -1;
@@ -72544,10 +72546,10 @@ if (window.__started_) {
     });
 
     document.addEventListener("DOMContentLoaded", _ => {
-      const visitedStyle = __webpack_require__(871);
-      setTimeout(() => visitedStyle(`.${visitedLinkName}`), 0);
-      setVisitedLinkColor();
-      setInterval(() => setVisitedLinkColor(), 1000);
+      // const visitedStyle = require('./visitedStyle')
+      // setTimeout(()=> visitedStyle(`.${visitedLinkName}`), 0)
+      // setVisitedLinkColor()
+      // setInterval(()=>setVisitedLinkColor(),1000)
       // const key = Math.random().toString()
       // ipc.send('need-get-inner-text',key)
       // ipc.once(`need-get-inner-text-reply_${key}`,(e,result)=>{
@@ -72588,7 +72590,7 @@ if (window.__started_) {
         }, 1000);
       }
     });
-    setInterval(() => setVisitedLinkColor(), 1000);
+    // setInterval(()=>setVisitedLinkColor(),1000)
   }
 
   // function handleDragEnd(evt) {
@@ -72877,7 +72879,7 @@ if (window.__started_) {
       }, 100);
     }
     if (data.rectangularSelection) {
-      const RectangularSelection = __webpack_require__(872);
+      const RectangularSelection = __webpack_require__(871);
       new RectangularSelection();
     }
 
@@ -72913,7 +72915,7 @@ if (window.__started_) {
     }
 
     if (data.inputHistory && !location.href.startsWith('chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd')) {
-      __webpack_require__(873)(data.inputHistoryMaxChar);
+      __webpack_require__(872)(data.inputHistoryMaxChar);
     }
     // if(data.hoverStatusBar || data.hoverBookmarkBar){
     //   document.addEventListener('mousemove',e=>{
@@ -73533,105 +73535,6 @@ ipc.on('input-popup', (e, isStart, style) => {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.default = getVisitedStyle;
-const ipc = chrome.ipcRenderer;
-
-function getStyle(rule, styles, i, validStyle) {
-  if (rule.cssRules) {
-    for (let rule2 of rule.cssRules) {
-      getStyle(rule2, styles, i, validStyle);
-    }
-    return;
-  }
-  if (rule.selectorText && rule.selectorText.includes(':visited')) {
-    const selector = rule.selectorText.split(", ").filter(x => x.includes(':visited')).join(", ");
-    const selectorValues = [];
-    for (let [key, values] of rule.styleMap) {
-      if (validStyle.has(key)) {
-        selectorValues.push(`${key}:${values.join(' ')}`);
-      }
-    }
-    if (!selectorValues.length) return;
-    const cssText = `${selector}{${selectorValues.join(';')};}`;
-    if (styles[i]) {
-      styles[i].push(cssText);
-    } else {
-      styles[i] = [cssText];
-    }
-  }
-}
-
-function getVisitedStyle(name) {
-  const _cssText = localStorage.getItem('__cssText__');
-  if (_cssText) {
-    const s = document.createElement('style');
-    s.setAttribute('type', 'text/css');
-    s.appendChild(document.createTextNode(_cssText.replace(/:visited/g, name)));
-    document.head.appendChild(s);
-    return;
-  }
-
-  let i = 1;
-  const styles = [];
-  const promises = [];
-  const validStyle = new Set(['color', 'background-color', 'border-color', 'border-bottom-color', 'border-left-color', 'border-right-color', 'border-top-color', 'column-rule-color', 'outline-color']);
-  for (let styleSheet of document.styleSheets) {
-    try {
-      for (let rule of styleSheet.rules) {
-        getStyle(rule, styles, i, validStyle);
-      }
-    } catch (e) {
-      console.log(e, styleSheet);
-      const _i = i;
-      const promise = new Promise(r => {
-        const key = Math.random().toString();
-        ipc.send('fetch-style', key, styleSheet.href);
-        ipc.once(`fetch-style-reply_${key}`, (e, text) => {
-          r([_i, text]);
-        });
-      });
-      promises.push(promise);
-    }
-    i++;
-  }
-
-  Promise.all(promises).then(data => {
-    for (let [i, text] of data) {
-      if (!text) continue;
-      const iframe = document.createElement('iframe');
-      iframe.srcdoc = `<style type="text/css">${text}</style>`;
-      iframe.style = "display: none;";
-      document.body.appendChild(iframe);
-      const styleSheet = iframe.contentDocument.styleSheets;
-      try {
-        for (let rule of styleSheet.rules) {
-          getStyle(rule, styles, i, name, validStyle);
-        }
-      } catch (e) {}
-      document.body.removeChild(iframe);
-    }
-
-    const cssText = styles.flat().join("");
-    localStorage.setItem('__cssText__', cssText);
-    const s = document.createElement('style');
-    s.setAttribute('type', 'text/css');
-    s.appendChild(document.createTextNode(cssText.replace(/:visited/g, name)));
-    document.head.appendChild(s);
-    console.log(8, styles.flat().join(""));
-  });
-}
-module.exports = exports['default'];
-
-/***/ }),
-/* 872 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
 const ipc = chrome.ipcRenderer;
 const isWin = navigator.userAgent.includes('Windows');
 const EOL = isWin ? "\r\n" : "\n";
@@ -73873,7 +73776,7 @@ exports.default = RectangularSelection;
 module.exports = exports["default"];
 
 /***/ }),
-/* 873 */
+/* 872 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -74029,7 +73932,7 @@ exports.default = function (inputHistoryMaxChar) {
 module.exports = exports['default'];
 
 /***/ }),
-/* 874 */
+/* 873 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -74040,7 +73943,7 @@ module.exports = exports['default'];
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 const ipcRenderer = __webpack_require__(142).ipcRenderer;
-const locale = __webpack_require__(875);
+const locale = __webpack_require__(874);
 const { LANGUAGE, REQUEST_LANGUAGE } = __webpack_require__(434);
 
 // rendererTranslationCache stores a hash containing the entire set of menu translations
@@ -74083,7 +73986,7 @@ exports.init = () => {
 };
 
 /***/ }),
-/* 875 */
+/* 874 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -74093,7 +73996,7 @@ exports.init = () => {
 
 
 
-const L20n = __webpack_require__(876);
+const L20n = __webpack_require__(875);
 const path = __webpack_require__(228);
 const ipcMain = __webpack_require__(143).ipcMain;
 const electron = __webpack_require__(143);
@@ -74246,15 +74149,15 @@ exports.init = function (language) {
 /* WEBPACK VAR INJECTION */}.call(exports, "brave\\app"))
 
 /***/ }),
-/* 876 */
+/* 875 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var string_prototype_startswith = __webpack_require__(877);
-var string_prototype_endswith = __webpack_require__(878);
-var fs = __webpack_require__(879);
+var string_prototype_startswith = __webpack_require__(876);
+var string_prototype_endswith = __webpack_require__(877);
+var fs = __webpack_require__(878);
 
 function L10nError(message, id, lang) {
   this.name = 'L10nError';
@@ -76052,7 +75955,7 @@ exports.fetchResource = fetchResource$1;
 exports.Env = Env$1;
 
 /***/ }),
-/* 877 */
+/* 876 */
 /***/ (function(module, exports) {
 
 /*! http://mths.be/startswith v0.2.0 by @mathias */
@@ -76113,7 +76016,7 @@ if (!String.prototype.startsWith) {
 
 
 /***/ }),
-/* 878 */
+/* 877 */
 /***/ (function(module, exports) {
 
 /*! http://mths.be/endswith v0.2.0 by @mathias */
@@ -76179,13 +76082,13 @@ if (!String.prototype.endsWith) {
 
 
 /***/ }),
-/* 879 */
+/* 878 */
 /***/ (function(module, exports) {
 
 
 
 /***/ }),
-/* 880 */
+/* 879 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -76212,7 +76115,7 @@ module.exports.firstDefinedValue = (...arr) => {
 };
 
 /***/ }),
-/* 881 */
+/* 880 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -76221,7 +76124,7 @@ module.exports.firstDefinedValue = (...arr) => {
  * Expose `debug()` as the module.
  */
 
-exports = module.exports = __webpack_require__(882);
+exports = module.exports = __webpack_require__(881);
 exports.log = log;
 exports.formatArgs = formatArgs;
 exports.save = save;
@@ -76413,7 +76316,7 @@ function localstorage() {
 
 
 /***/ }),
-/* 882 */
+/* 881 */
 /***/ (function(module, exports, __webpack_require__) {
 
 
@@ -76429,7 +76332,7 @@ exports.coerce = coerce;
 exports.disable = disable;
 exports.enable = enable;
 exports.enabled = enabled;
-exports.humanize = __webpack_require__(883);
+exports.humanize = __webpack_require__(882);
 
 /**
  * Active `debug` instances.
@@ -76644,7 +76547,7 @@ function coerce(val) {
 
 
 /***/ }),
-/* 883 */
+/* 882 */
 /***/ (function(module, exports) {
 
 /**
@@ -76802,7 +76705,7 @@ function plural(ms, n, name) {
 
 
 /***/ }),
-/* 884 */
+/* 883 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";

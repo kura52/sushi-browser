@@ -124,41 +124,41 @@ if(window.__started_){
 
   let preAElemsLength = 0
 
-  const visitedLinkName = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
-
-  const setVisitedLinkColor = (force) => {
-    const aElems = document.getElementsByTagName('a')
-    const length = aElems.length
-    if(!force && preAElemsLength == length) return
-    preAElemsLength = length
-    const checkElems = {}
-    for (let i = 0; i < length; i++) {
-      const ele = aElems[i]
-      if(ele.classList.contains(visitedLinkName)) continue
-      const url = ele.href
-      if (url.startsWith('http')) {
-        let arr = checkElems[url]
-        if(arr){
-          arr.push(ele)
-        }
-        else{
-          checkElems[url] = [ele]
-        }
-      }
-    }
-    const urls = Object.keys(checkElems)
-    if(!urls.length) return
-
-    const key = Math.random().toString()
-    ipc.send('get-visited-links', key, urls)
-    ipc.on(`get-visited-links-reply_${key}`, (e, urls) => {
-      for (let url of urls) {
-        for(let ele of checkElems[url]){
-          ele.classList.add(visitedLinkName)
-        }
-      }
-    })
-  }
+  // const visitedLinkName = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
+  //
+  // const setVisitedLinkColor = (force) => {
+  //   const aElems = document.getElementsByTagName('a')
+  //   const length = aElems.length
+  //   if(!force && preAElemsLength == length) return
+  //   preAElemsLength = length
+  //   const checkElems = {}
+  //   for (let i = 0; i < length; i++) {
+  //     const ele = aElems[i]
+  //     if(ele.classList.contains(visitedLinkName)) continue
+  //     const url = ele.href
+  //     if (url.startsWith('http')) {
+  //       let arr = checkElems[url]
+  //       if(arr){
+  //         arr.push(ele)
+  //       }
+  //       else{
+  //         checkElems[url] = [ele]
+  //       }
+  //     }
+  //   }
+  //   const urls = Object.keys(checkElems)
+  //   if(!urls.length) return
+  //
+  //   const key = Math.random().toString()
+  //   ipc.send('get-visited-links', key, urls)
+  //   ipc.on(`get-visited-links-reply_${key}`, (e, urls) => {
+  //     for (let url of urls) {
+  //       for(let ele of checkElems[url]){
+  //         ele.classList.add(visitedLinkName)
+  //       }
+  //     }
+  //   })
+  // }
 
   const openTime = Date.now()
   if(location.href.match(/^(http|chrome\-extension)/) && window == window.parent){
@@ -175,13 +175,13 @@ if(window.__started_){
 
     document.addEventListener('mouseup',e=>{
       ipc.send('send-to-host', 'webview-mouseup',e.button)
-      if(mdownEvent && e.target == mdownEvent.target &&
-        e.button == mdownEvent.button && (e.button == 0 || e.button == 1)){
-        const ele = e.target.closest('a')
-        if(ele && ele.href.startsWith('http')){
-          setTimeout(()=>setVisitedLinkColor(true),200)
-        }
-      }
+      // if(mdownEvent && e.target == mdownEvent.target &&
+      //   e.button == mdownEvent.button && (e.button == 0 || e.button == 1)){
+      //   const ele = e.target.closest('a')
+      //   if(ele && ele.href.startsWith('http')){
+      //     setTimeout(()=>setVisitedLinkColor(true),200)
+      //   }
+      // }
     },{passive: true, capture: true})
 
     let preClientY = -1
@@ -200,10 +200,10 @@ if(window.__started_){
     });
 
     document.addEventListener("DOMContentLoaded",_=>{
-      const visitedStyle = require('./visitedStyle')
-      setTimeout(()=> visitedStyle(`.${visitedLinkName}`), 0)
-      setVisitedLinkColor()
-      setInterval(()=>setVisitedLinkColor(),1000)
+      // const visitedStyle = require('./visitedStyle')
+      // setTimeout(()=> visitedStyle(`.${visitedLinkName}`), 0)
+      // setVisitedLinkColor()
+      // setInterval(()=>setVisitedLinkColor(),1000)
       // const key = Math.random().toString()
       // ipc.send('need-get-inner-text',key)
       // ipc.once(`need-get-inner-text-reply_${key}`,(e,result)=>{
@@ -244,7 +244,7 @@ if(window.__started_){
         },1000)
       }
     })
-    setInterval(()=>setVisitedLinkColor(),1000)
+    // setInterval(()=>setVisitedLinkColor(),1000)
   }
 
   // function handleDragEnd(evt) {
