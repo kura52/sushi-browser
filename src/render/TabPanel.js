@@ -1465,7 +1465,9 @@ export default class TabPanel extends Component {
         }
       },
       async onTabIdChanged(e, page, tabId){
+        console.log('onTabIdChanged',  page, tabId)
         if (!self.mounted) return
+
         self.onTabIdChanged(tabId, tab, true)
       },
       async onLoadStart(e, page, url, isInPlace, isMainFrame) {
@@ -2745,7 +2747,7 @@ export default class TabPanel extends Component {
     }
 
     const navigateTo = l=>this.navigateTo(page, l, tab)
-    this.startProcess(this, page, navigateTo, tab, isStart)
+    if(!isStart) this.startProcess(this, page, navigateTo, tab, isStart)
 
     console.log('onTabIdChanged', tabId,page)
 

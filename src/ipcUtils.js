@@ -2453,20 +2453,21 @@ ipcMain.on('move-browser-view', async (e, panelKey, tabKey, type, tabId, x, y, w
     // moveingTab = true
 
     let bounds
-    const win = BrowserWindow.fromWebContents(e.sender)
-    if(win && !win.isDestroyed()){
-      const winBounds = win.getBounds()
-      if(winBounds.x == -7 && winBounds.y == -7){
-        winBounds.x = 0
-        winBounds.y = 0
-      }
+    if(width){
+      const win = BrowserWindow.fromWebContents(e.sender)
+      if(win && !win.isDestroyed()){
+        const winBounds = win.getBounds()
+        if(winBounds.x == -7 && winBounds.y == -7){
+          winBounds.x = 0
+          winBounds.y = 0
+        }
 
-      bounds = {
-        x: Math.round(x) + winBounds.x, y:Math.round(y) + winBounds.y,
-        width: Math.round(width), height: Math.round(height), zIndex
+        bounds = {
+          x: Math.round(x) + winBounds.x, y:Math.round(y) + winBounds.y,
+          width: Math.round(width), height: Math.round(height), zIndex
+        }
       }
     }
-
 
     await BrowserPanel.moveTabs([tabId], panelKey, {index, tabKey}, win, bounds)
     // moveingTab = false
@@ -2487,7 +2488,9 @@ const posCache = {}, setBoundClearIds = {},dateCache = {}
 ipcMain.on('set-bound-browser-view', async (e, panelKey, tabKey, tabId, x, y, width, height, zIndex, date=new Date())=>{
   if(dateCache[panelKey] && dateCache[panelKey] > date) return
 
-  console.log('set-bound-browser-view', panelKey, tabKey, x, y, width, height, zIndex)
+  dateCache[panelKey] = date
+
+  console.trace('set-bound-browser-view', panelKey, tabKey, x, y, width, height, zIndex, date)
 
   const panel = BrowserPanel.getBrowserPanel(panelKey)
   if(!panel){

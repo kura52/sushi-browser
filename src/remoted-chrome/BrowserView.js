@@ -185,7 +185,10 @@ class Browser{
     this.addListener('tabs', 'onUpdated', (tabId, changeInfo, tab)=>{
       evem.emit(`tabs-onUpdated_${tabId}`, changeInfo)
       const cont = webContents.fromId(tabId)
-      changeInfo.url = void 0
+      if(changeInfo.url){
+        cont.emit('did-navigate', {sender: this} ,changeInfo.url)
+        changeInfo.url = void 0
+      }
       if(cont && cont.hostWebContents2) cont.hostWebContents2.send('chrome-tabs-event',{tabId, changeInfo}, 'updated')
     })
 
@@ -846,7 +849,7 @@ class BrowserPanel{
         if(tabId){
           win = await Browser.bg.evaluate((tabId, bounds, sideMargin, topMargin) => {
             return new Promise(resolve => {
-              const createData = bounds ? {tabId, left: bounds.x - sideMargin, top: bounds.y - topMargin,
+              const createData = bounds ? {tabId, focused: true, left: bounds.x - sideMargin, top: bounds.y - topMargin,
                 width: bounds.width + sideMargin * 2, height: bounds.height + topMargin + 8} : {tabId}
               chrome.windows.create(createData, window => resolve(window))
             })
@@ -897,7 +900,7 @@ class BrowserPanel{
           }
           else{
             win = await Browser.bg.evaluate((url, bounds, sideMargin, topMargin) => {
-              const createData = bounds ? {url, left: bounds.x - sideMargin, top: bounds.y - topMargin,
+              const createData = bounds ? {url, focused: true, left: bounds.x - sideMargin, top: bounds.y - topMargin,
                 width: bounds.width + sideMargin * 2, height: bounds.height + topMargin + 8} : {url}
               return new Promise(resolve => chrome.windows.create(createData, window => resolve(window)))
             }, url, bounds, BrowserPanel.sideMargin, BrowserPanel.topMargin)
@@ -980,6 +983,7 @@ class BrowserPanel{
       chromeNativeWindow = (await winctl.FindWindows(win => {
         if(!win.getTitle().includes('Google Chrome')) return false
         const dim = win.dimensions()
+        console.log(win.getTitle(), cWin.left , dim.left , cWin.top , dim.top , cWin.width , (dim.right - dim.left)  , cWin.height, (dim.bottom - dim.top))
         return cWin.left == dim.left && cWin.top == dim.top && cWin.width == (dim.right - dim.left)  && cWin.height == (dim.bottom - dim.top)
       }))[0]
     }
