@@ -1317,7 +1317,7 @@ class Tabs extends React.Component {
     ReactDOM.findDOMNode(this.refs.ttab).style['-webkit-app-region'] = 'no-drag'
     const dragData = ipc.sendSync('get-sync-main-state','dragData')
     if(!dragData) return
-    console.log(134,dragData.windowId == this.props.windowId,this.props.k == dragData.k,dragData.tabs,dragData)
+    // console.log(134,dragData.windowId == this.props.windowId,this.props.k == dragData.k,dragData.tabs,dragData)
     if(dragData.windowId == this.props.windowId){
       if(dragData.tabs) return
     }

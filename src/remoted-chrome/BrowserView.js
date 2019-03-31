@@ -104,19 +104,24 @@ class Browser{
       }
     })
 
-    ipcMain.on('tab-moved', (e, {tabId,fromIndex,toIndex,before}) => {
+    ipcMain.on('tab-moved', (e, {tabId,fromIndex,toIndex,before,next,other}) => {
+      if(other) return
+      console.log(11,'tab-moved', tabId,fromIndex,toIndex)
+      // const [panelKey, tabKey, browserPanel, browserView] = BrowserPanel.getBrowserPanelByTabId(toIndex == 0 ? next.wvId : before.wvId)
+
       const [panelKey, tabKey, browserPanel, browserView] = BrowserPanel.getBrowserPanelByTabId(tabId)
       BrowserPanel.moveTabs([tabId], panelKey, {index: toIndex, tabKey})
     })
 
     ipcMain.on('top-to-browser-window', bwWinId => {
+      const hwnd = winctl.GetActiveWindow().getHwnd()
       for(const browserPanel of Object.values(BrowserPanel.panelKeys)){
         if(browserPanel.browserWindow.id == bwWinId){
-          if(winctl.GetActiveWindow().getHwnd() == browserPanel.cpWin.nativeWindow.getHwnd()){
+          if(browserPanel.cpWin.nativeWindowBw.getHwnd() == hwnd || browserPanel.cpWin.chromeNativeWindow.getHwnd() == hwnd){
             browserPanel.cpWin.nativeWindowBw.setWindowPos(winctl.HWND.TOPMOST,0,0,0,0,83)
             browserPanel.cpWin.nativeWindowBw.setWindowPos(winctl.HWND.NOTOPMOST,0,0,0,0,83)
+            return
           }
-          return
         }
       }
     })
@@ -180,6 +185,7 @@ class Browser{
       // BrowserView.movedTab(cont, newWindowId, null, newPosition)
       // const [panelKey, tabKey, panel, bv] = BrowserPanel.getBrowserPanelByTabId(tabId)
       // BrowserPanel.moveTabs([tabId], panelKey, {index: newPosition, tabKey}, void 0, false)
+      BrowserPanel.MovedTabs(tabId, {windowId: newWindowId, fromIndex: -1, toIndex: newPosition})
     })
 
     this.addListener('tabs', 'onUpdated', (tabId, changeInfo, tab)=>{
@@ -203,9 +209,10 @@ class Browser{
       const cont = webContents.fromId(removedTabId)
       if(cont && cont.hostWebContents2) cont.hostWebContents2.send('chrome-tabs-event',{tabId: removedTabId}, 'removed')
 
+      console.log(99977,removedTabId)
+
       for(const [panelKey, browserPanel] of Object.entries(BrowserPanel.panelKeys)){
         for(const [tabKey, [tabId, browserView]] of Object.entries(browserPanel.tabKeys)){
-          console.log(99977,browserView)
           if(tabId != removedTabId) continue
           if(!browserView.isDestroyed()) browserView.destroy()
           if(!Object.keys(browserPanel.tabKeys).length){
@@ -216,6 +223,17 @@ class Browser{
         }
       }
     })
+
+    const {history} = require('../databaseFork')
+    this.addListener('history', 'onVisited', async (h)=>{
+      const item =  await history.findOne({location: h.url})
+      if(item){
+        await history.update({_id:item._id}, {$set: {location:h.url, updated_at: h.lastVisitTime, count: h.visitCount}})
+      }
+      else{
+        await history.insert({location:h.url ,title: h.title, created_at: h.lastVisitTime ,updated_at: h.lastVisitTime,count: h.visitCount})
+      }
+   }, void 0, (h) => new Promise(r => chrome.history.search({text: h.url, startTime: h.lastVisitTime}, result=> r(result))))
 
     // this.addListener('windows', 'onCreated', window => {
     //   console.log(9992,window)
@@ -672,7 +690,7 @@ class Browser{
       // e.options_page = e.optionsUrl
       e.base_path = extensionPath
 
-      console.log(845677,e)
+      // console.log(845677,e)
 
       const installInfo = {
         id: e.id,
@@ -766,23 +784,35 @@ class BrowserPanel{
   }
 
   static async MovedTabs(tabId, {windowId, fromIndex, toIndex}){
-
-    const [_1, _2, panel, bv] = BrowserPanel.getBrowserPanelByTabId(tabId)
+    let [_1, _2, panel, bv] = BrowserPanel.getBrowserPanelByTabId(tabId)
+    if(!panel){
+      for(let i=0;i<100;i++){
+        await new Promise(r=>setTimeout(r,20))
+        ;[_1, _2, panel, bv] = BrowserPanel.getBrowserPanelByTabId(tabId)
+        if(panel) break
+      }
+    }
     const browserWindow = panel.browserWindow
 
+
+    console.log('move-tab-from-moved', tabId, toIndex)
     browserWindow.webContents.send('move-tab-from-moved', tabId, toIndex)
   }
 
   static async moveTabs(moveTabIds, destPanelKey, {index, tabKey}, browserWindow, bounds){
+    console.log(moveTabIds, destPanelKey, {index, tabKey}, browserWindow, bounds)
     let browserPanel = this.getBrowserPanel(destPanelKey)
 
     if(!browserPanel &&　this.destKeySet.has(destPanelKey)){
-      await new Promise(r=>setTimeout(r,500))
-      browserPanel = this.getBrowserPanel(destPanelKey)
+      for(let i=0;i<100;i++){
+        await new Promise(r=>setTimeout(r,20))
+        browserPanel = this.getBrowserPanel(destPanelKey)
+        if(browserPanel) break
+      }
     }
     this.destKeySet.add(destPanelKey)
 
-    console.log(index,2222)
+    console.trace(index,2222)
 
     if(browserPanel){
       // if(index == null){
@@ -804,6 +834,7 @@ class BrowserPanel{
           chrome.tabs.move(tabIds, moveProperties, tabs => resolve(tabs))
         })
       }, moveTabIds, {windowId: browserPanel.windowId, index})
+      console.log('chrome-tabs-move', moveTabIds, { windowId: browserPanel.windowId, index })
 
       for(let tabId of moveTabIds) {
         browserPanel.attachBrowserView(tabId, tabKey)
@@ -833,6 +864,7 @@ class BrowserPanel{
             chrome.tabs.move(tabIds, moveProperties, tabs => resolve(tabs))
           })
         }, moveTabIds.slice(1), {windowId: browserPanel.windowId, index: 1})
+        console.log('chrome-tabs-move', moveTabIds, { windowId: browserPanel.windowId, index })
       }
     }
   }
@@ -869,7 +901,7 @@ class BrowserPanel{
               })
             })
             console.log(4343444, tmpWin.width ,tmpWin.tabWidth, tmpWin.height ,tmpWin.tabHeight)
-            BrowserPanel.topMargin = tmpWin.height - tmpWin.tabHeight - 8 //- 38
+            BrowserPanel.topMargin = tmpWin.height - tmpWin.tabHeight - 8 - 78
             BrowserPanel.sideMargin = (tmpWin.width - tmpWin.tabWidth) / 2
 
             let chromeNativeWindow = winctl.GetActiveWindow()
@@ -1074,6 +1106,7 @@ class BrowserPanel{
   }
 
   setBounds(bounds){
+    console.log('setBounds',bounds, this)
     if(bounds.width){
       this.cpWin.nativeWindow.move(bounds.x, bounds.y, bounds.width, bounds.height)
       this.cpWin.chromeNativeWindow.move(...getChromeWindowBoundArray(bounds.width, bounds.height))
@@ -1143,7 +1176,7 @@ class BrowserView{
 
     let [_1, _2, panel, bv] = BrowserPanel.getBrowserPanelByTabId(cont.id)
     if(bv) return bv
-    console.log(44445, cont.id)
+    console.trace(44445, cont.id)
 
     this.newTabCreateing = true
 
@@ -1386,6 +1419,16 @@ class webContents extends EventEmitter {
     return this.webContentsMap.get(id) || _webContents.fromId(id)
   }
 
+  static async reopenLastClosedTab(){
+    return Browser.bg.evaluate(() => {
+      return new Promise(resolve => {
+        chrome.sessions.getRecentlyClosed((sessions) => {
+          chrome.sessions.restore((sessions[0].tab || sessions[0].window).sessionId, () => resolve())
+        })
+      })
+    })
+  }
+
   constructor(tabId) {
     super()
     webContents._initializer()
@@ -1597,7 +1640,7 @@ class webContents extends EventEmitter {
   }
 
   destroy(){
-    console.log('2222sclose', this)
+    console.log('2222sclose', this.id)
     const page = this._getPage()
     if(page.constructor.name == 'Promise'){
       page.then(page=> !page.isClosed() && page.close())
@@ -2122,6 +2165,15 @@ class webContents extends EventEmitter {
     const history = (await this.getNavigationHistory())
     return history.entries[index].title
   }
+
+  async duplicate(){
+    return Browser.bg.evaluate((tabId) => {
+      return new Promise(resolve => {
+        chrome.tabs.duplicate(tabId, () => resolve())
+      })
+    }, this.id)
+  }
+
 }
 
 

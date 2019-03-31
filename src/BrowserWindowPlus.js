@@ -280,6 +280,7 @@ function create(args){
     if(bw.isMaximized()){
       e.preventDefault()
       const bounds = bw._isVirtualMaximized
+      console.log('will-move', bounds)
       const point = electron.screen.getCursorScreenPoint()
       // const maxBounds = bw.getBounds()
 
@@ -287,8 +288,9 @@ function create(args){
       bounds.y = 0
 
       bw.setBounds(bounds)
-      bw.webContents.send('maximize',false)
       bw._isVirtualMaximized = false
+      bw.webContents.send('maximize',false)
+      bw.webContents.send('re-render')
     }
     ipcMain.emit('move-window', bw.id)
   })
@@ -326,15 +328,16 @@ function create(args){
   })
 
   bw.on('maximize',e=>{
+    console.log('maximize',bw._isVirtualMaximized)
     if(bw._isVirtualMaximized){
       const bounds = bw._isVirtualMaximized
-      console.log(568879,bw.isMaximized(),bw._isVirtualMaximized)
       setTimeout(()=>bw.setBounds(bounds),0)
       bw.webContents.send('maximize',false)
       bw._isVirtualMaximized = false
     }
     else{
-      bw._isVirtualMaximized = bw.getNormalBounds()
+      bw._isVirtualMaximized = bw._initVirtualMaximized || bw.getNormalBounds()
+      bw._initVirtualMaximized = void 0
 
       const b = bw.getBounds()
       // bw.normal()
@@ -517,7 +520,7 @@ export default {
       // toolbar: false,
       // resize: false,
       frame: isDarwin,
-      show: false,
+      show: true,
       // enableLargerThanScreen: true,
       transparent: true,
       // opacity: 0.01,
@@ -573,16 +576,20 @@ export default {
 
     // const win = BrowserWindow.getAllWindows().find(w=>w.getTitle().includes('Closed')) //@TODO ELECTRON
     // if(!win) {
-      winArg.width = winArg.width || setting.width
-      winArg.height = winArg.height || setting.height
-      // await new Promise(r=>setTimeout(r,1000))
-      initWindow = create(winArg)
-      localShortcuts.register(initWindow)
-      initWindow.setMenuBarVisibility(true)
+    winArg.width = winArg.width || setting.width
+    winArg.height = winArg.height || setting.height
+    // await new Promise(r=>setTimeout(r,1000))
+    initWindow = create(winArg)
+    if(winArg.maximize){
+      initWindow._initVirtualMaximized = winArg.maximize
+    }
 
-      initWindow.isMaximized = function(){ return this._isVirtualMaximized }
+    localShortcuts.register(initWindow)
+    initWindow.setMenuBarVisibility(true)
 
-      new (require('./Download'))(initWindow)
+    initWindow.isMaximized = function(){ return this._isVirtualMaximized }
+
+    new (require('./Download'))(initWindow)
     // }
     // else{
     //   initWindow = win
@@ -596,15 +603,15 @@ export default {
     // initWindow.webContents.toggleDevTools()
 
     // await new Promise(r=>{
-      initWindow.webContents.once('did-finish-load', () => {
-        initWindow.show()
-        if (!initWindow.isMaximized()) {
-          normalSize[initWindow.id] = initWindow.getBounds()
-        }
-        if (winArg.maximize) initWindow.maximize()
-        initWindow.setAlwaysOnTop(!!winArg.alwaysOnTop)
-        // r()
-      })
+    initWindow.webContents.once('did-finish-load', () => {
+      initWindow.show()
+      if (!initWindow.isMaximized()) {
+        normalSize[initWindow.id] = initWindow.getBounds()
+      }
+      if (winArg.maximize) initWindow.maximize()
+      initWindow.setAlwaysOnTop(!!winArg.alwaysOnTop)
+      // r()
+    })
     // })
 
     PubSub.publish('chrome-windows-onCreated',initWindow.id)

@@ -382,7 +382,7 @@ NAN_METHOD(Window::dimensions) {
 NAN_METHOD(Window::createWindow) {
     HINSTANCE hInstance = GetModuleHandle( NULL );
     HWND hWnd = CreateWindowEx(
-                   WS_EX_TOOLWINDOW, TEXT("STATIC"), TEXT(""),
+                   0, TEXT("STATIC"), TEXT(""),
                    WS_POPUP | WS_VISIBLE ,
                    0, 0, 0, 0,
                    NULL, NULL, hInstance, NULL

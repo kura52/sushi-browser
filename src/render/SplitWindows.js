@@ -575,6 +575,10 @@ export default class SplitWindows extends Component{
     ipc.on('enter-full-screen',this.fullScreenState)
     ipc.on('leave-full-screen',this.fullScreenState)
 
+    this.reRender = (e)=>{
+      this.setState({})
+    }
+    ipc.on('re-render',this.reRender)
 
     this.eventChromeTabsMoveInner = async (e,sendKey,tabIds,indexOrKey,isBack,selectedTab)=>{
       const isIndex = Number.isFinite(indexOrKey)
@@ -631,12 +635,12 @@ export default class SplitWindows extends Component{
           others.push([n_tab,ele[1],ele[0]])
         }
         funcs[key] =_=>{
-          for(let ele of others.slice(0).reverse()){
-            // this.refs2[key].handleTabClose({},ele[0].key)
-            if(ele[2].events) removeEvents(ipc,ele[2].events)
-            const closeTab = tabs.splice(ele[1],1)[0]
-            this.refs2[key].state.selectedTab = this.refs2[key].getNextSelectedTab(ele[0],closeTab,ele[1])
-          }
+          // for(let ele of others.slice(0).reverse()){
+          //   // this.refs2[key].handleTabClose({},ele[0].key)
+          //   if(ele[2].events) removeEvents(ipc,ele[2].events)
+          //   const closeTab = tabs.splice(ele[1],1)[0]
+          //   this.refs2[key].state.selectedTab = this.refs2[key].getNextSelectedTab(ele[0],closeTab,ele[1])
+          // }
         }
       }
 
@@ -681,22 +685,23 @@ export default class SplitWindows extends Component{
       const newIndexes = {}
       // order = 0
       let before
+      const allTabs = []
       for(let key of keys){
-        let i = 0
-        for(let tab of this.refs2[key].state.tabs){
-          const order = tabIds.findIndex(t=>t == tab.wvId)
-          if(order != -1){
-            newIndexes[tab.wvId] = [order,before]
-          }
-          before = tab
-          //order++
+        allTabs.push(...this.refs2[key].state.tabs)
+      }
+      for(let j=0;j<allTabs.length;j++){
+        const tab = allTabs[j]
+        const order = tabIds.findIndex(t=>t == tab.wvId)
+        if(order != -1){
+          newIndexes[tab.wvId] = [order,allTabs[j-1],allTabs[j+1]]
         }
+        //order++
       }
 
       for(let [tabId,toIndexes] of Object.entries(newIndexes)){
         tabId = parseInt(tabId)
         ipc.send('chrome-tabs-onMoved-to-main',tabId,{fromIndex:oldIndexes[tabId],toIndex: toIndexes[0]})
-        PubSub.publish('tab-moved',{tabId,fromIndex:oldIndexes[tabId],toIndex: toIndexes[0],before: toIndexes[1]})
+        PubSub.publish('tab-moved',{tabId,fromIndex:oldIndexes[tabId],toIndex: toIndexes[0],before: toIndexes[1],next: toIndexes[2],other:true})
       }
       // }
     }
@@ -1026,6 +1031,7 @@ export default class SplitWindows extends Component{
     ipc.removeListener("get-focused-webContent",this.getFocusedWebContent)
     ipc.removeListener("enter-full-screen",this.fullScreenState)
     ipc.removeListener("leave-full-screen",this.fullScreenState)
+    ipc.removeListener('re-render',this.reRender)
     ipc.removeListener("page-title-updated",this.pageUpdate)
     ipc.removeListener("did-get-response-details",this.getResponseDetails)
     ipc.removeListener('chorme-tabs-move-inner',this.eventChromeTabsMoveInner)

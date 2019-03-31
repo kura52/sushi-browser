@@ -174,8 +174,9 @@ export default class MainContent extends Component{
     //   }
     // })
 
-    PubSub.subscribe('tab-moved',(msg, {tabId,fromIndex,toIndex,before})=>{
-      ipc.send('tab-moved', {tabId,fromIndex,toIndex,before})
+    PubSub.subscribe('tab-moved',(msg, {tabId,fromIndex,toIndex,before,next,other})=>{
+      console.log(10,'tab-moved', tabId,fromIndex,toIndex,before,next,other)
+      ipc.send('tab-moved', {tabId,fromIndex,toIndex,before,next,other})
     })
 
     PubSub.subscribe('mouseleave-status-bar',()=>{

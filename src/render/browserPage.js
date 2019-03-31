@@ -94,7 +94,7 @@ class BrowserPage extends Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    console.log('componentDidUpdate',prevProps, this.props)
+    // console.log('componentDidUpdate',prevProps, this.props)
     const style = this.props.pos
     if(style.zIndex > 0 && (prevProps.pos.top != style.top ||
       prevProps.pos.left != style.left ||

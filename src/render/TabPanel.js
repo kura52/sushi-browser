@@ -676,7 +676,6 @@ export default class TabPanel extends Component {
       console.log('change-visit-state-focus',this.props.k)
       const activeTab = activeTabs[this.props.k]
       if(activeTab && val != activeTab[0].wvId){
-        history.update({location: activeTab[1]}, {$inc:{time: Date.now() - activeTab[2]}})
         delete activeTabs[this.props.k]
       }
       else if(!activeTab){
@@ -1277,15 +1276,13 @@ export default class TabPanel extends Component {
         if(page.hid) return
       }
       console.log(7778885,page.navUrl)
-      await history.update({location:navUrl},{location:navUrl ,title: page.title,favicon: page.favicon, created_at: Date.now(),updated_at: Date.now(),count: 1,type: 1},{upsert: true})
-    }
+     }
   }
 
   updateActive(tab){
     const now = Date.now()
     const activeTab = activeTabs[this.props.k]
     if(activeTab && activeTab[0].key == tab.key){
-      history.update({location: activeTab[1]}, {$inc:{time: now - activeTab[2]}})
       activeTabs[this.props.k] = [tab,tab.page.navUrl,now]
     }
     else if(!activeTab && tab.key == this.state.selectedTab && global.lastMouseDown[2] == this.props.k){
@@ -1661,8 +1658,7 @@ export default class TabPanel extends Component {
                 }
               }
               console.log(7778882,newPage.navUrl)
-              await history.update({location:navUrl},{location:navUrl ,title: newPage.title,favicon: newPage.favicon, created_at: Date.now(),updated_at: Date.now(),count: 1,type: 1},{upsert: true})
-              // console.log('insert_favicon')
+             // console.log('insert_favicon')
             }
             const favi = await favicon.findOne({url: newPage.favicon})
             if(!(favi)){
@@ -1789,12 +1785,6 @@ export default class TabPanel extends Component {
           const histUpdateTime = Date.now()
           if(histUpdateTime - tab.histUpdateTime < 20) return
           tab.histUpdateTime = histUpdateTime
-          const result = (await history.update({location: navUrl},{
-            location: navUrl,
-            created_at: histUpdateTime,
-            updated_at: histUpdateTime,
-            count: 1,type: 2
-          }, { upsert: true }))
           // console.log('insert_start')
         }
       })()
@@ -2625,13 +2615,7 @@ export default class TabPanel extends Component {
 
     tab.events['chrome-tabs-duplicate'] = (e,key,tabId)=> {
       if(tab.wvId === tabId) {
-        // ipc.send("set-recent-url", tab.page.navUrl)
-        this.addScrollPosition(tab)
-        setTimeout(()=>{
-          this.restoreTabFromTabKey(tab.key,void 0,void 0, (newTabId) => {
-            ipc.send(`chrome-tabs-duplicate-reply_${key}`,newTabId)
-          })
-        },200)
+        tab.wv.duplicate()
       }
     }
     ipc.on('chrome-tabs-duplicate', tab.events['chrome-tabs-duplicate'])
@@ -2822,7 +2806,8 @@ export default class TabPanel extends Component {
       // ipc.send('chrome-webNavigation-onCreatedNavigationTarget', this.createChromeWebNavDetails(tab,newPage.location))
     }
     if(c_wv){
-      setTimeout(()=>ipc.send('move-browser-view', this.props.k, key, 'attach', tab.wvId, void 0, void 0, void 0, void 0, void 0, this.state.tabs.findIndex(t=>tab.key == t.key)),0)
+      console.trace()
+      setTimeout(()=>ipc.send('move-browser-view', this.props.k, key, 'attach', tab.wvId, void 0, void 0, void 0, void 0, this.state.selectedTab == tab.key ? 1 : 0, this.state.tabs.findIndex(t=>tab.key == t.key)),0)
       this.registWebView(tab, c_wv, c_div)
     }
 
@@ -3304,6 +3289,7 @@ export default class TabPanel extends Component {
 
       const isChangeSelected = !sameSelected
       if(isChangeSelected) {
+        ipc.send('change-tab-infos',[{}])
         if(this.state.inputPopup && this.state.inputPopup.key != this.state.selectedTab) this.setState({inputPopup: null})
         this.state.selectedKeys = this.state.selectedKeys.filter(key => key != this.state.selectedTab && this.state.tabs.some(tab => tab.key == key))
         this.state.selectedKeys.push(this.state.selectedTab)
@@ -3369,7 +3355,6 @@ export default class TabPanel extends Component {
     const activeTab = activeTabs[this.props.k]
     if(isIdle && activeTab){
       const now = Date.now()
-      history.update({location: activeTab[1]}, {$inc:{time: now - activeTab[2]}})
       const tab = this.state.tabs.find(t=>t.key == this.state.selectedTab)
       delete activeTabs[this.props.k]
     }
@@ -3387,7 +3372,6 @@ export default class TabPanel extends Component {
     console.log('change-visit-state',this.props.k)
     if(activeTab){
       const now = Date.now()
-      history.update({location: activeTab[1]}, {$inc:{time: now - activeTab[2]}})
       const tab = this.state.tabs.find(t=>t.key == this.state.selectedTab)
       if(tab){
         activeTabs[this.props.k] = [tab,tab.page.navUrl,now]
@@ -3488,7 +3472,6 @@ export default class TabPanel extends Component {
 
     const activeTab = activeTabs[this.props.k]
     if(activeTab && activeTab[0].key == key){
-      history.update({location: activeTab[1]}, {$inc:{time: Date.now() - activeTab[2]}})
       delete activeTabs[this.props.k]
     }
 
@@ -3622,9 +3605,10 @@ export default class TabPanel extends Component {
 
   reopenLastClosedTab(){
     if(this.state.history.length > 0) {
-      const [tabKey,ind] = this.state.history.pop()
-      const index = ind - 1 < this.state.tabs.length ? ind - 1 : this.state.tabs.length - 2
-      this.restoreTabFromTabKey(tabKey,index)
+      // const [tabKey,ind] = this.state.history.pop()
+      //       // const index = ind - 1 < this.state.tabs.length ? ind - 1 : this.state.tabs.length - 2
+      //       // this.restoreTabFromTabKey(tabKey,index)
+      remote.require('./remoted-chrome/BrowserView').webContents.reopenLastClosedTab()
     }
   }
 
@@ -4526,38 +4510,8 @@ export default class TabPanel extends Component {
           }
 
           if (!tab.privateMode || tab.privateMode.match(/^persist:\d/)) {
-            ;(async () => {
-              // console.log('his-update',tab.page.location)
-              let navUrl = tab.page.navUrl
-              if (tab.page.hid || (tab.page.hid = await history.findOne({location: navUrl}))) {
-                const now = Date.now()
-                const inc = now - tab.page.hid.updated_at > 400 ? {$inc: {count: 1}} : {}
-                await history.update({_id: tab.page.hid._id}, {
-                  $set: { title: tab.page.title, updated_at: now }, ...inc
-                })
-              }
-              else {
-                while(navUrl != tab.page.navUrl){
-                  navUrl = tab.page.navUrl
-                  tab.page.hid = await history.findOne({location: navUrl})
-                  if(tab.page.hid){
-                    const now = Date.now()
-                    const inc = now - tab.page.hid.updated_at > 400 ? {$inc: {count: 1}} : {}
-                    await history.update({_id: tab.page.hid._id}, {
-                      $set: { title: tab.page.title, updated_at: now }, ...inc
-                    })
-                    return
-                  }
-                }
-                await history.update({location: navUrl},{
-                  location: navUrl,
-                  title: tab.page.title,
-                  created_at: Date.now(),
-                  updated_at: Date.now(),
-                  count: 1,type: 3
-                },{upsert: true})
-              }
-            })()
+            history.update({location: c.url}, {
+              $set: { title: tab.page.title, updated_at: Date.now() }})
           }
           try {
             refs2[`navbar-${tab.key}`].refs['loc'].canUpdate = true

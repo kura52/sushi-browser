@@ -2,7 +2,6 @@ const React = require('react')
 const {Component} = React
 const ReactDOM = require('react-dom')
 const ipc = require('electron').ipcRenderer
-const {webContents} = require('electron').remote
 const path = require('path')
 const sharedState = require('./sharedState')
 const LRUCache = require('lru-cache')
@@ -223,7 +222,7 @@ export default class DownloadList extends Component{
             this.setState({visible: false})
           }} />
           <i className="download icon download-list-bottom" onClick={()=>{
-            const conts = webContents.getAllWebContents()
+            const conts = remote.require('./remoted-chrome/BrowserView').webContents.getAllWebContents()
             let cont = null
             for(let c of conts){
               if(!c.hostWebContents2 || c.getURL().startsWith("chrome-devtools://") || c.isDestroyed() || c.isCrashed()) continue

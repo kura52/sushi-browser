@@ -2421,6 +2421,11 @@ ipcMain.on('move-browser-view', async (e, panelKey, tabKey, type, tabId, x, y, w
   if(type == 'attach'){
     if(noAttachs[`${panelKey}\t${tabKey}`]){
       delete noAttachs[`${panelKey}\t${tabKey}`]
+
+      if(x != null){
+        ipcMain.emit('set-bound-browser-view', e, panelKey, tabKey, tabId, x, y, width, height, zIndex)
+      }
+
       return
     }
 
@@ -2490,14 +2495,14 @@ ipcMain.on('set-bound-browser-view', async (e, panelKey, tabKey, tabId, x, y, wi
 
   dateCache[panelKey] = date
 
-  console.trace('set-bound-browser-view', panelKey, tabKey, x, y, width, height, zIndex, date)
-
   const panel = BrowserPanel.getBrowserPanel(panelKey)
   if(!panel){
     await new Promise(r=>setTimeout(r,20))
     ipcMain.emit('set-bound-browser-view', e, panelKey, tabKey, tabId, x, y, width, height, zIndex, date)
     return
   }
+
+  console.log('set-bound-browser-view1', panelKey, tabKey, tabId, x, y, width, height, zIndex, date)
 
   if(zIndex > 0){
     webContents.fromId(tabId).focus()
@@ -2508,12 +2513,14 @@ ipcMain.on('set-bound-browser-view', async (e, panelKey, tabKey, tabId, x, y, wi
   //   // if(!panel) panel = BrowserPanel.getBrowserPanel(panelKey)
   //   await new Promise(r=>setTimeout(r,10))
   // }
-  const view = panel.getBrowserView({tabKey})
-  if(!view) return
+
+  console.log('set-bound-browser-view2', panelKey, tabKey, tabId, x, y, width, height, zIndex, date)
+
 
   const win = BrowserWindow.fromWebContents(e.sender)
   if(!win || win.isDestroyed()) return
 
+  console.log('set-bound-browser-view3', panelKey, tabKey, tabId, x, y, width, height, zIndex, date)
   dateCache[panelKey] = date
 
   const winBounds = win.getBounds()
@@ -2526,14 +2533,14 @@ ipcMain.on('set-bound-browser-view', async (e, panelKey, tabKey, tabId, x, y, wi
     x: Math.round(x) + winBounds.x, y:Math.round(y) + winBounds.y,
     width: Math.round(width), height: Math.round(height), zIndex
   }
-  console.log(11,bounds, winBounds)
+  // console.log(11,bounds, winBounds)
   const id = setTimeout(()=>{
     for(let [_bounds, id] of setBoundClearIds[panelKey] || []){
       bounds = _bounds
       clearTimeout(id)
     }
     delete setBoundClearIds[panelKey]
-    view.setBounds(bounds)
+    panel.setBounds(bounds)
   },10)
 
   if(setBoundClearIds[panelKey]){
@@ -2561,7 +2568,7 @@ ipcMain.on('set-position-browser-view', (e, panelKey) => {
 })
 
 ipcMain.on('delete-browser-view', (e, panelKey, tabKey)=>{
-  console.log('delete-browser-view',panelKey,tabKey)
+  console.trace('delete-browser-view',panelKey,tabKey)
 
   const win = BrowserWindow.fromWebContents(e.sender)
   if(!win || win.isDestroyed()) return
