@@ -1065,8 +1065,7 @@ class BrowserPanel{
     chromeNativeWindow.setParent(nativeWindow.getHwnd())
     // chromeNativeWindow.move(...getChromeWindowBoundArray(cWin.width, cWin.height))
     chromeNativeWindow.move(...getChromeWindowBoundArray(0,0))
-    chromeNativeWindow.setWindowPos(winctl.HWND.TOPMOST,0,0,0,0,83)
-    chromeNativeWindow.setWindowPos(winctl.HWND.NOTOPMOST,0,0,0,0,83)
+    chromeNativeWindow.moveTop()
 
 
     nativeWindowBw.setWindowLongPtr(0x00040000)
@@ -1161,14 +1160,12 @@ class BrowserPanel{
 
   moveTopNativeWindow(){
     if(BrowserPanel.contextMenuShowing) return
-    this.cpWin.nativeWindow.setWindowPos(winctl.HWND.TOPMOST,0,0,0,0,83)
-    this.cpWin.nativeWindow.setWindowPos(winctl.HWND.NOTOPMOST,0,0,0,0,83)
+    this.cpWin.nativeWindow.moveTop()
   }
 
   moveTopNativeWindowBw(){
     if(BrowserPanel.contextMenuShowing) return
-    this.cpWin.nativeWindowBw.setWindowPos(winctl.HWND.TOPMOST,0,0,0,0,83)
-    this.cpWin.nativeWindowBw.setWindowPos(winctl.HWND.NOTOPMOST,0,0,0,0,83)
+    this.cpWin.nativeWindowBw.moveTop()
   }
 
   // async getTabs(queryInfo){

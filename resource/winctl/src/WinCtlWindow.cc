@@ -28,6 +28,7 @@ NAN_MODULE_INIT(Window::Init) {
 	Nan::SetPrototypeMethod(tpl, "setForegroundWindowEx", setForegroundWindowEx);
 	Nan::SetPrototypeMethod(tpl, "setActiveWindow", setActiveWindow);
 	Nan::SetPrototypeMethod(tpl, "setWindowPos", setWindowPos);
+	Nan::SetPrototypeMethod(tpl, "moveTop", moveTop);
 	Nan::SetPrototypeMethod(tpl, "setWindowLongPtr", setWindowLongPtr);
 	Nan::SetPrototypeMethod(tpl, "setWindowLongPtrRestore", setWindowLongPtrRestore);
 	Nan::SetPrototypeMethod(tpl, "setWindowLongPtrEx", setWindowLongPtrEx);
@@ -284,6 +285,13 @@ NAN_METHOD(Window::setWindowPos) {
 	int uFlags = info[5]->Int32Value();
 
 	SetWindowPos(obj->windowHandle, hWndInsertAfter, X, Y, cx, cy, uFlags);
+}
+
+
+NAN_METHOD(Window::moveTop) {
+	Window* obj = Nan::ObjectWrap::Unwrap<Window>(info.This());
+	SetWindowPos(obj->windowHandle, (HWND)-1, 0, 0, 0, 0, 83);
+	SetWindowPos(obj->windowHandle, (HWND)-2, 0, 0, 0, 0, 83);
 }
 
 NAN_METHOD(Window::setWindowLongPtr) {

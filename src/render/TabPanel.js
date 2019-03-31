@@ -2625,7 +2625,7 @@ export default class TabPanel extends Component {
   loadURL(tab, url){
     if(!tab.wv) return
     if(url.startsWith('chrome-extension') && !tab.wv.hostWebContents && !tab.wv.hostWebContents2){
-      remote.require('./remoted-chrome/BrowserView').webContents.getAllWebContents().find(x=>x.getURL().startsWith(url)).openDevTools()
+      require('./remoteWebContents').getAllWebContents().find(x=>x.getURL().startsWith(url)).openDevTools()
       return
     }
     tab.wv.loadURL(url)
@@ -3609,7 +3609,7 @@ export default class TabPanel extends Component {
       // const [tabKey,ind] = this.state.history.pop()
       //       // const index = ind - 1 < this.state.tabs.length ? ind - 1 : this.state.tabs.length - 2
       //       // this.restoreTabFromTabKey(tabKey,index)
-      remote.require('./remoted-chrome/BrowserView').webContents.reopenLastClosedTab()
+      require('./remoteWebContents').reopenLastClosedTab()
     }
   }
 

@@ -140,7 +140,7 @@ class BrowserActionWebView extends Component {
       const r = this.refs.div ? ReactDOM.findDOMNode(this.refs.div).getBoundingClientRect() : {left:0,top:0,width:0,height:0}
       this.tabId = ipc.sendSync('set-overlap-component', 'extension-popup', this.props.k, this.props.tab.key,
         r.left , r.top, r.width, r.height, this.props.url)
-      this.webview = remote.require('./remoted-chrome/BrowserView').webContents.fromId(this.tabId)
+      this.webview = require('./remoteWebContents').fromId(this.tabId)
     }
 
     if(this.webview){
@@ -363,7 +363,7 @@ export default class BrowserActionMenu extends Component{
     if(values.optionPage) menuItems.push(({label: locale.translation('9147392381910171771'), click: _=>cont.hostWebContents2.send('new-tab', tabId, `chrome-extension://${extensionId}/${values.optionPage}`)}))
     if(values.background) menuItems.push(({label: locale.translation("4989966318180235467"), click: _=>{
         const url = `chrome-extension://${extensionId}/${values.background}`
-        remote.require('./remoted-chrome/BrowserView').webContents.getAllWebContents().find(x=>x.getURL().startsWith(url)).openDevTools()
+        require('./remoteWebContents').getAllWebContents().find(x=>x.getURL().startsWith(url)).openDevTools()
       }}))
     menuItems.push({label: locale.translation("6326175484149238433").replace('Chrome','Sushi Browser'),click: _=>ipc.send('delete-extension',extensionId,values.orgId)})
     const menu = Menu.buildFromTemplate(menuItems)

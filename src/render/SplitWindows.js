@@ -863,13 +863,13 @@ export default class SplitWindows extends Component{
       const prev = this.focused && this.actived
       if(type == 'focus'){
         this.focused = true
-        sharedState.inActive = false
-        this.setState({})
+        // sharedState.inActive = false
+        // this.setState({}) //@TODO
       }
       else if(type == 'blur'){
         this.focused = false
-        sharedState.inActive = true
-        this.setState({})
+        // sharedState.inActive = true
+        // this.setState({}) //@TODO
       }
       else if(type == 'idle'){
         this.actived = false

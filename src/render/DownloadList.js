@@ -222,7 +222,7 @@ export default class DownloadList extends Component{
             this.setState({visible: false})
           }} />
           <i className="download icon download-list-bottom" onClick={()=>{
-            const conts = remote.require('./remoted-chrome/BrowserView').webContents.getAllWebContents()
+            const conts = require('./remoteWebContents').getAllWebContents()
             let cont = null
             for(let c of conts){
               if(!c.hostWebContents2 || c.getURL().startsWith("chrome-devtools://") || c.isDestroyed() || c.isCrashed()) continue

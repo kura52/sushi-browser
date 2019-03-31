@@ -39,6 +39,7 @@ private:
 	static NAN_METHOD(setForegroundWindowEx);
 	static NAN_METHOD(setActiveWindow);
 	static NAN_METHOD(setWindowPos);
+	static NAN_METHOD(moveTop);
 	static NAN_METHOD(setWindowLongPtr);
 	static NAN_METHOD(setWindowLongPtrRestore);
 	static NAN_METHOD(setWindowLongPtrEx);

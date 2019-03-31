@@ -105,18 +105,24 @@ class BrowserPage extends Component {
     }
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     this.refs2.browserPage = this.$LI.dom
     this.refs2.bps = this.$LI.children[0].children
     this.refs2.webview = this.$LI.dom.querySelector(`.w${this.props.k2}`)
 
     // const webview = this.refs2.webview
     const style = this.props.pos
-    const tabId = this.props.tab.guestInstanceId ||
-      ipc.sendSync('create-browser-view', this.props.k2, this.props.k, style.left, style.top,
-        style.width, style.height, style.zIndex, this.props.tab.privateMode ? (void 0) : this.state.src)
+    let tabId = this.props.tab.guestInstanceId
 
-    const tab = remote.require('./remoted-chrome/BrowserView').webContents.fromId(tabId)
+    if(!tabId){
+      tabId = await new Promise(r =>{
+        ipc.send('create-browser-view', this.props.k2, this.props.k, style.left, style.top,
+          style.width, style.height, style.zIndex, this.props.tab.privateMode ? (void 0) : this.state.src)
+        ipc.once(`create-browser-view_${this.props.k2}_${this.props.k}`, (e, tabId) => r(tabId))
+      })
+    }
+
+    const tab = require('./remoteWebContents').fromId(tabId)
     global.currentWebContents[tabId] = tab
     const webview = tab
     this.props.tab.returnWebView(webview, tabId, this.refs2.webview)
