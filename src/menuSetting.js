@@ -502,27 +502,27 @@ const createViewSubmenu = () => {
       }
     },
     { type: 'separator' },
-    {
-      label: locale.translation('toggleFullScreenView'),
-      accelerator: mainState.keyToggleFullScreenView,
-      click(item, focusedWindow) {
-        if (focusedWindow) {
-          if(isDarwin){
-            focusedWindow.setFullScreen(!focusedWindow.isFullScreen())
-          }
-          else{
-            const isFullScreen = focusedWindow.isFullScreen()
-            focusedWindow.webContents.send('switch-fullscreen',!isFullScreen)
-            focusedWindow.setFullScreenable(true)
-            const menubar = focusedWindow.isMenuBarVisible()
-            focusedWindow.setFullScreen(!isFullScreen)
-            focusedWindow.setMenuBarVisibility(menubar)
-            focusedWindow.setFullScreenable(false)
-          }
-        }
-      }
-    },
-    { type: 'separator' },
+    // {
+    //   label: locale.translation('toggleFullScreenView'),
+    //   accelerator: mainState.keyToggleFullScreenView,
+    //   click(item, focusedWindow) {
+    //     if (focusedWindow) {
+    //       if(isDarwin){
+    //         focusedWindow.setFullScreen(!focusedWindow.isFullScreen())
+    //       }
+    //       else{
+    //         const isFullScreen = focusedWindow.isFullScreen()
+    //         focusedWindow.webContents.send('switch-fullscreen',!isFullScreen)
+    //         focusedWindow.setFullScreenable(true)
+    //         const menubar = focusedWindow.isMenuBarVisible()
+    //         focusedWindow.setFullScreen(!isFullScreen)
+    //         focusedWindow.setMenuBarVisibility(menubar)
+    //         focusedWindow.setFullScreenable(false)
+    //       }
+    //     }
+    //   }
+    // },
+    // { type: 'separator' },
     {
       t: 'fullPageCaptureToClipboard', label: locale.translation('fullPageCaptureToClipboard'),
       accelerator: mainState.keyScreenShotFullClipBoard,

@@ -486,35 +486,35 @@ ipcMain.on('send-input-event',(e,{type,tabId,x,y,button,deltaY,keyCode,modifiers
 
 })
 
-ipcMain.on('toggle-fullscreen',(event,cancel)=> {
-  const win = BrowserWindow.fromWebContents(event.sender.hostWebContents2 || event.sender)
-  const isFullScreen = win.isFullScreen()
-  if(cancel && !isFullScreen) return
-  win.webContents.send('switch-fullscreen',!isFullScreen)
-  win.setFullScreenable(true)
-  const menubar = win.isMenuBarVisible()
-  win.setFullScreen(!isFullScreen)
-  win.setMenuBarVisibility(menubar)
-  win.setFullScreenable(false)
-})
+// ipcMain.on('toggle-fullscreen',(event,cancel)=> {
+//   const win = BrowserWindow.fromWebContents(event.sender.hostWebContents2 || event.sender)
+//   const isFullScreen = win.isFullScreen()
+//   if(cancel && !isFullScreen) return
+//   win.webContents.send('switch-fullscreen',!isFullScreen)
+//   win.setFullScreenable(true)
+//   const menubar = win.isMenuBarVisible()
+//   win.setFullScreen(!isFullScreen)
+//   win.setMenuBarVisibility(menubar)
+//   win.setFullScreenable(false)
+// })
 
 
-ipcMain.on('toggle-fullscreen2',(event,val,key)=> {
-  const win = BrowserWindow.fromWebContents(event.sender.hostWebContents2 || event.sender)
-  const isFullScreen = win.isFullScreen()
-  if(val === 1 && !isFullScreen){
-    event.sender.send(`toggle-fullscreen2-reply_${key}`, isFullScreen)
-    return
-  }
-
-  win.webContents.send('switch-fullscreen',!isFullScreen)
-  win.setFullScreenable(true)
-  const menubar = win.isMenuBarVisible()
-  win.setFullScreen(!isFullScreen)
-  win.setMenuBarVisibility(menubar)
-  win.setFullScreenable(false)
-  event.sender.send(`toggle-fullscreen2-reply_${key}`, !isFullScreen)
-})
+// ipcMain.on('toggle-fullscreen2',(event,val,key)=> {
+//   const win = BrowserWindow.fromWebContents(event.sender.hostWebContents2 || event.sender)
+//   const isFullScreen = win.isFullScreen()
+//   if(val === 1 && !isFullScreen){
+//     event.sender.send(`toggle-fullscreen2-reply_${key}`, isFullScreen)
+//     return
+//   }
+//
+//   win.webContents.send('switch-fullscreen',!isFullScreen)
+//   win.setFullScreenable(true)
+//   const menubar = win.isMenuBarVisible()
+//   win.setFullScreen(!isFullScreen)
+//   win.setMenuBarVisibility(menubar)
+//   win.setFullScreenable(false)
+//   event.sender.send(`toggle-fullscreen2-reply_${key}`, !isFullScreen)
+// })
 
 function getYoutubeFileSize(url){
   const u = URL.parse(url)
@@ -2489,7 +2489,7 @@ ipcMain.on('move-browser-view', async (e, panelKey, tabKey, type, tabId, x, y, w
   }
 })
 
-const posCache = {}, setBoundClearIds = {},dateCache = {}
+const setBoundClearIds = {},dateCache = {}
 ipcMain.on('set-bound-browser-view', async (e, panelKey, tabKey, tabId, x, y, width, height, zIndex, date=new Date())=>{
   if(dateCache[panelKey] && dateCache[panelKey] > date) return
 
@@ -2514,14 +2514,8 @@ ipcMain.on('set-bound-browser-view', async (e, panelKey, tabKey, tabId, x, y, wi
   //   await new Promise(r=>setTimeout(r,10))
   // }
 
-  console.log('set-bound-browser-view2', panelKey, tabKey, tabId, x, y, width, height, zIndex, date)
-
-
   const win = BrowserWindow.fromWebContents(e.sender)
   if(!win || win.isDestroyed()) return
-
-  console.log('set-bound-browser-view3', panelKey, tabKey, tabId, x, y, width, height, zIndex, date)
-  dateCache[panelKey] = date
 
   const winBounds = win.getBounds()
   if(winBounds.x == -7 && winBounds.y == -7){
@@ -2530,13 +2524,16 @@ ipcMain.on('set-bound-browser-view', async (e, panelKey, tabKey, tabId, x, y, wi
   }
 
   let bounds = {
-    x: Math.round(x) + winBounds.x, y:Math.round(y) + winBounds.y,
+    x: Math.round(x + winBounds.x), y:Math.round(y + winBounds.y),
     width: Math.round(width), height: Math.round(height), zIndex
   }
   // console.log(11,bounds, winBounds)
   const id = setTimeout(()=>{
-    for(let [_bounds, id] of setBoundClearIds[panelKey] || []){
-      bounds = _bounds
+    for(let [_bounds, id, _date] of setBoundClearIds[panelKey] || []){
+      if(date < _date){
+        bounds = _bounds
+        date = _date
+      }
       clearTimeout(id)
     }
     delete setBoundClearIds[panelKey]
@@ -2544,27 +2541,27 @@ ipcMain.on('set-bound-browser-view', async (e, panelKey, tabKey, tabId, x, y, wi
   },10)
 
   if(setBoundClearIds[panelKey]){
-    setBoundClearIds[panelKey].push([bounds, id])
+    setBoundClearIds[panelKey].push([bounds, id, date, { x, y }])
   }
   else{
-    setBoundClearIds[panelKey] = [[bounds, id]]
+    setBoundClearIds[panelKey] = [[bounds, id, date, { x, y }]]
   }
-  posCache[panelKey] = { x: Math.round(x), y:Math.round(y)}
 })
 
-ipcMain.on('set-position-browser-view', (e, panelKey) => {
+ipcMain.on('set-position-browser-view', async (e, panelKey) => {
   const panel = BrowserPanel.getBrowserPanel(panelKey)
   if(!panel) return
 
   const win = BrowserWindow.fromWebContents(e.sender)
   if(!win || win.isDestroyed()) return
 
-
-  const pos = posCache[panelKey]
-  if(!pos) return
+  const pos = await new Promise(r => {
+    ipcMain.once(`get-webview-pos-${panelKey}-reply`, (e, pos) => r(pos))
+    panel.browserWindow.webContents.send(`get-webview-pos-${panelKey}`)
+  })
 
   const winPos = win.getPosition()
-  panel.setBounds({ x: pos.x + winPos[0], y:pos.y + winPos[1] })
+  panel.setBounds({ x:  Math.round(pos.left + winPos[0]), y: Math.round(pos.top + winPos[1]) })
 })
 
 ipcMain.on('delete-browser-view', (e, panelKey, tabKey)=>{
@@ -2753,6 +2750,20 @@ ipcMain.on('get-tab-opener',async (e,tabId)=>{
   const tab = await new webContents(tabId)._getTabInfo()
   e.returnValue = tab.openerTabId
 })
+
+ipcMain.on('menu-popup',(e)=>{
+  const bw = BrowserWindow.fromWebContents(e.sender.webContents)
+  const panel = BrowserPanel.getBrowserPanelsFromBrowserWindow(bw)[0]
+  BrowserPanel.contextMenuShowing = true
+  panel.moveTopNativeWindowBw()
+  e.sender.send('menu-popup-reply')
+  setTimeout(()=>BrowserPanel.contextMenuShowing = false,500)
+})
+
+ipcMain.on('menu-popup-end',(e)=>{
+  BrowserPanel.contextMenuShowing = false
+})
+
 
 // ipcMain.on('focus-browser-window', e => {
 //   const bw = BrowserWindow.fromWebContents(e.sender)

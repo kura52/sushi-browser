@@ -274,9 +274,9 @@ export default class MainContent extends Component{
       }
       else{
         switch (e.which) {
-          case 27: //ESC
-            if(remote.getCurrentWindow().isFullScreen()) ipc.send('toggle-fullscreen')
-            break
+          // case 27: //ESC
+          //   if(remote.getCurrentWindow().isFullScreen()) ipc.send('toggle-fullscreen')
+          //   break
           // case 123: //F12
           //   ipc.send('menu-or-key-events','toggleDeveloperTools')
           //   break

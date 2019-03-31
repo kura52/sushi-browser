@@ -1163,7 +1163,8 @@ export default class TabPanel extends Component {
       }
     }))
     const menu = Menu.buildFromTemplate(menuItems)
-    menu.popup(remote.getCurrentWindow())
+    ipc.send('menu-popup')
+    ipc.once('menu-popup-reply', ()=> menu.popup(remote.getCurrentWindow(), () => ipc.send('menu-popup-end')))
   }
 
 
@@ -4247,7 +4248,8 @@ export default class TabPanel extends Component {
     menuItems.push(...items)
     let menu = Menu.buildFromTemplate(menuItems)
     console.log('context-time4',Date.now(),menuItems)
-    menu.popup({})
+    ipc.send('menu-popup')
+    ipc.once('menu-popup-reply', ()=> menu.popup({}, () => ipc.send('menu-popup-end')))
 
   }
 

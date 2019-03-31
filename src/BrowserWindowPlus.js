@@ -303,6 +303,9 @@ function create(args){
     // console.log('blur', new Date().getTime())
   })
   bw.on('focus', ()=> {
+    if(bw._fullscreen)　bw._fullscreen._sendKey('escape')
+
+    console.log('focus')
     // console.log('focus', new Date().getTime())
     // if(bw.tmpFocus){
     //   const func = bw.tmpFocus
@@ -331,7 +334,7 @@ function create(args){
     console.log('maximize',bw._isVirtualMaximized)
     if(bw._isVirtualMaximized){
       const bounds = bw._isVirtualMaximized
-      setTimeout(()=>bw.setBounds(bounds),0)
+      setTimeout(()=>bw.setBounds(bounds),50)
       bw.webContents.send('maximize',false)
       bw._isVirtualMaximized = false
     }
@@ -341,7 +344,7 @@ function create(args){
 
       const b = bw.getBounds()
       // bw.normal()
-      setTimeout(()=>bw.setBounds({x: b.x+7, y: b.y+7, width: b.width - 14, height: b.height - 14}),0)
+      setTimeout(()=>bw.setBounds({x: b.x+7, y: b.y+7, width: b.width - 14, height: b.height - 14}),50)
       // bw.setBounds(b)
       bw.webContents.send('maximize',true)
     }

@@ -26,10 +26,13 @@ window.__started_ = window.__started_ ? void 0 : 1
 var ipc = chrome.ipcRenderer
 if(window.__started_){
 
-  document.addEventListener('fullscreenchange', e => {
-    console.log(333,e,document.fullscreenElement !== null)
+  const fullscreenListener = e => {
+    console.log(3313,e,document.fullscreenElement !== null)
     ipc.send('fullscreen-change',document.fullscreenElement !== null)
-  })
+  }
+
+  document.addEventListener('fullscreenchange', fullscreenListener)
+  document.addEventListener('webkitfullscreenchange', fullscreenListener)
 
   setTimeout(()=>{
     document.addEventListener('contextmenu', e => {
@@ -184,7 +187,7 @@ if(window.__started_){
       // }
     },{passive: true, capture: true})
 
-    let preClientY = -1
+    let preClientY = -1, firstVideoEvent = {}, beforeRemoveIds = {}
     document.addEventListener('mousemove',e=>{
       // console.log('mousemove')
       if(preClientY != e.clientY){
@@ -192,6 +195,53 @@ if(window.__started_){
         // console.log('webview-mousemove', e.clientY)
         preClientY = e.clientY
       }
+
+      if(e.target.tagName == 'VIDEO' && !firstVideoEvent[e.target]){
+        firstVideoEvent[e.target] = true
+        const v = e.target
+        const func = ()=>{
+          const rect = v.getBoundingClientRect()
+          const rStyle = `left:${Math.round(rect.left) + 10}px;top:${Math.round(rect.top) + 10}px`
+
+          const span = document.createElement("span")
+          span.innerHTML = v._olds_ ? 'Normal' : 'Maximize'
+          span.style.cssText = `${rStyle};z-index: 2147483647;position: absolute;overflow: hidden;border-radius: 8px;background: rgba(50,50,50,0.9);text-shadow: 0 0 2px rgba(0,0,0,.5);transition: opacity .1s cubic-bezier(0.0,0.0,0.2,1);margin: 0;border: 0;font-size: 14px;color: white;padding: 4px 7px;`;
+          span.setAttribute("id", "maximize-org-video")
+
+          const existElement = document.querySelector("#maximize-org-video")
+          if(existElement){
+            clearTimeout(beforeRemoveIds[e.target])
+            document.body.removeChild(existElement)
+          }
+          document.body.appendChild(span)
+
+          span.addEventListener('click', ()=> {
+            maximizeInPanel(v)
+            const rect = v.getBoundingClientRect()
+            span.style.left = `${Math.round(rect.left) + 10}px`
+            span.style.top = `${Math.round(rect.top) + 10}px`
+            span.innerText = v._olds_ ? 'Normal' : 'Maximize'
+            clearTimeout(beforeRemoveIds[e.target])
+            document.body.removeChild(span)
+          })
+
+          span.addEventListener('mouseenter', () => span.style.background = 'rgba(80,80,80,0.9)')
+          span.addEventListener('mouseleave', () => span.style.background = 'rgba(50,50,50,0.9)')
+
+          beforeRemoveIds[e.target] = setTimeout(_=>document.body.removeChild(span),2000)
+        }
+
+        v.addEventListener('mousemove', func)
+        v.addEventListener('mouseleave', e2 =>{
+          const existElement = document.querySelector("#maximize-org-video")
+          if(existElement && e2.toElement != existElement){
+            clearTimeout(beforeRemoveIds[e.target])
+            document.body.removeChild(existElement)
+          }
+        })
+        func()
+      }
+
     },{passive: true, capture: true})
 
     window.addEventListener("beforeunload", e=>{
@@ -293,6 +343,74 @@ if(window.__started_){
   // }
 
 
+  function maximizeInPanel(v, enable){
+    if(enable == null){
+      enable = !v._olds_
+    }
+    if(enable){
+      v._olds_ = {}
+
+      v._olds_.controls = v.controls
+      v._olds_.bodyOverflow = document.body.style.overflow
+      v._olds_.width = v.style.width
+      v._olds_.height = v.style.height
+      v._olds_.position = v.style.position
+      v._olds_.zIndex = v.style.zIndex
+      v._olds_.backgroundColor = v.style.backgroundColor
+      v._olds_.display = v.style.display
+      v._olds_.left = v.style.left
+      v._olds_.margin = v.style.margin
+      v._olds_.padding = v.style.padding
+      v._olds_.border = v.style.border
+      v._olds_.outline = v.style.outline
+
+
+      v.setAttribute('controls', true)
+      document.body.style.setProperty('overflow','hidden' ,'important')
+
+      v.style.setProperty('width','100vw' ,'important')
+      v.style.setProperty('height','100vh' ,'important')
+      v.style.setProperty('position','fixed' ,'important')
+      v.style.setProperty('z-index','21474836476' ,'important')
+      v.style.setProperty('background-color','black' ,'important')
+      v.style.setProperty('display','block' ,'important')
+      v.style.setProperty('left','0' ,'important')
+      v.style.setProperty('top','0' ,'important')
+      v.style.setProperty('margin','0' ,'important')
+      v.style.setProperty('padding','0' ,'important')
+      v.style.setProperty('border','0' ,'important')
+      v.style.setProperty('outline','0' ,'important')
+
+      v._olds_.parentNode = v.parentNode
+
+      const replaceNode = document.createElement('span')
+      v.parentNode.insertBefore(replaceNode, v)
+
+      v._olds_.replaceNode = replaceNode
+
+      document.documentElement.insertBefore(v, document.body)
+
+    }
+    else{
+      v.controls = v._olds_.controls
+      document.body.style.overflow = v._olds_.bodyOverflow
+      v.style.width = v._olds_.width
+      v.style.height = v._olds_.height
+      v.style.position = v._olds_.position
+      v.style.zIndex = v._olds_.zIndex
+      v.style.backgroundColor = v._olds_.backgroundColor
+      v.style.display = v._olds_.display
+      v.style.left = v._olds_.left
+      v.style.margin = v._olds_.margin
+      v.style.padding = v._olds_.padding
+      v.style.border = v._olds_.border
+      v.style.outline = v._olds_.outline
+
+      v._olds_.parentNode.replaceChild(v, v._olds_.replaceNode)
+
+      delete v._olds_
+    }
+  }
 
   let timer
   window.addEventListener('scroll', (e)=>{
@@ -658,27 +776,27 @@ if(window.__started_){
         v.paused ? v.play() : v.pause()
       }
       else if(name == 'fullscreen'){
-        if(location.href.startsWith('https://www.youtube.com')){
-          const newStyle = document.createElement('style')
-          newStyle.type = "text/css"
-          document.head.appendChild(newStyle)
-          const css = document.styleSheets[0]
-
-          const idx = document.styleSheets[0].cssRules.length;
-          css.insertRule(".ytp-popup.ytp-generic-popup { display: none; }", idx)
-        }
-        const isFullscreen = v.scrollWidth == window.innerWidth || v.scrollHeight == window.innerHeight
-        const isFull = await new Promise(r=>{
-          const key = Math.random().toString()
-          ipc.send('toggle-fullscreen2',void 0, key)
-          ipc.once(`toggle-fullscreen2-reply_${key}`, (e,result) => r(result))
-        })
-        console.log(isFullscreen,isFull,v.offsetWidth, window.innerWidth,v.offsetHeight, window.innerHeight)
-        if(isFullscreen == isFull){
-          e.preventDefault()
-          e.stopImmediatePropagation()
-          return
-        }
+        // if(location.href.startsWith('https://www.youtube.com')){
+        //   const newStyle = document.createElement('style')
+        //   newStyle.type = "text/css"
+        //   document.head.appendChild(newStyle)
+        //   const css = document.styleSheets[0]
+        //
+        //   const idx = document.styleSheets[0].cssRules.length;
+        //   css.insertRule(".ytp-popup.ytp-generic-popup { display: none; }", idx)
+        // }
+        // const isFullscreen = v.scrollWidth == window.innerWidth || v.scrollHeight == window.innerHeight
+        // const isFull = await new Promise(r=>{
+        //   const key = Math.random().toString()
+        //   ipc.send('toggle-fullscreen2',void 0, key)
+        //   ipc.once(`toggle-fullscreen2-reply_${key}`, (e,result) => r(result))
+        // })
+        // console.log(isFullscreen,isFull,v.offsetWidth, window.innerWidth,v.offsetHeight, window.innerHeight)
+        // if(isFullscreen == isFull){
+        //   e.preventDefault()
+        //   e.stopImmediatePropagation()
+        //   return
+        // }
         const fullscreenButton = document.querySelector('.ytp-fullscreen-button,.fullscreenButton,.button-bvuiFullScreenOn,.fullscreen-icon,.full-screen-button,.np_ButtonFullscreen,.vjs-fullscreen-control,.qa-fullscreen-button,[data-testid="fullscreen_control"],.vjs-fullscreen-control,.EnableFullScreenButton,.DisableFullScreenButton,.mhp1138_fullscreen,button.fullscreenh,.screenFullBtn,.player-fullscreenbutton')
         console.log(fullscreenButton,v.webkitDisplayingFullscreen)
         if(fullscreenButton){
@@ -692,15 +810,16 @@ if(window.__started_){
             v.webkitRequestFullscreen()
           }
         }
+        // maximizeInPanel(v)
       }
       else if(name == 'exitFullscreen'){
-        const isFull = await new Promise(r=>{
-          const key = Math.random().toString()
-          ipc.send('toggle-fullscreen2',1, key)
-          ipc.once(`toggle-fullscreen2-reply_${key}`, (e,result) => r(result))
-        })
-        const isFullscreen = v.offsetWidth == window.innerWidth || v.offsetHeight == window.innerHeight
-        if(isFullscreen == isFull) return
+        // const isFull = await new Promise(r=>{
+        //   const key = Math.random().toString()
+        //   ipc.send('toggle-fullscreen2',1, key)
+        //   ipc.once(`toggle-fullscreen2-reply_${key}`, (e,result) => r(result))
+        // })
+        // const isFullscreen = v.offsetWidth == window.innerWidth || v.offsetHeight == window.innerHeight
+        // if(isFullscreen == isFull) return
         const fullscreenButton = document.querySelector('.ytp-fullscreen-button,.fullscreenButton,.button-bvuiFullScreenOn,.fullscreen-icon,.full-screen-button,.np_ButtonFullscreen,.vjs-fullscreen-control,.qa-fullscreen-button,[data-testid="fullscreen_control"],.vjs-fullscreen-control,.EnableFullScreenButton,.DisableFullScreenButton,.mhp1138_fullscreen,button.fullscreenh,.screenFullBtn,.player-fullscreenbutton')
         if(fullscreenButton){
           fullscreenButton.click()
@@ -713,6 +832,8 @@ if(window.__started_){
             v.webkitRequestFullscreen()
           }
         }
+
+        // maximizeInPanel(v)
       }
       else if(name == 'mute'){
         v.muted = !v.muted

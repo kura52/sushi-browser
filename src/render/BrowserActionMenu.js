@@ -367,7 +367,8 @@ export default class BrowserActionMenu extends Component{
       }}))
     menuItems.push({label: locale.translation("6326175484149238433").replace('Chrome','Sushi Browser'),click: _=>ipc.send('delete-extension',extensionId,values.orgId)})
     const menu = Menu.buildFromTemplate(menuItems)
-    menu.popup(remote.getCurrentWindow())
+    ipc.send('menu-popup')
+    ipc.once('menu-popup-reply', ()=> menu.popup({}, () => ipc.send('menu-popup-end')))
   }
 
   close(){

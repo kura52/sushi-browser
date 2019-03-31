@@ -1,5 +1,5 @@
 import {app, Menu, clipboard, BrowserWindow, ipcMain, session, shell, protocol, screen} from 'electron'
-import {Browser, BrowserView, webContents} from './remoted-chrome/BrowserView'
+import {Browser, BrowserPanel, BrowserView, webContents} from './remoted-chrome/BrowserView'
 // import ExtensionsMain from './extension/ExtensionsMain'
 import PubSub from './render/pubsub'
 import mainState from './mainState'
@@ -1692,11 +1692,15 @@ async function contextMenu(webContents, props) {
       ipcMain.once('contextmenu-webContents-close', closeHandler)
       webContents.once('did-start-loading', closeHandler)
 
+      // panel.moveTopNativeWindowBw()
+      BrowserPanel.contextMenuShowing = true
       menu.popup({window: targetWindow},()=> {
+        BrowserPanel.contextMenuShowing = false
         ipcMain.removeListener('contextmenu-webContents-close', closeHandler)
         webContents.removeListener('did-start-loading', closeHandler)
         webContents.focus()
       })
+      setTimeout(()=>BrowserPanel.contextMenuShowing = false,500)
       console.log(targetWindow.getTitle())
     }
     else{

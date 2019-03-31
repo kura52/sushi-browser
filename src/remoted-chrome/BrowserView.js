@@ -85,20 +85,29 @@ class Browser{
       }
     })
 
-    ipcMain.on('state-change-window', (browserWindowId, eventName) => {
+    ipcMain.on('state-change-window', async (browserWindowId, eventName) => {
       for(const browserPanel of Object.values(BrowserPanel.panelKeys)){
         if(browserPanel.browserWindow && browserPanel.browserWindow.id == browserWindowId){
           if(eventName == 'focus'){
-            browserPanel.cpWin.nativeWindow.setWindowPos(winctl.HWND.TOPMOST,0,0,0,0,83)
-            browserPanel.cpWin.nativeWindow.setWindowPos(winctl.HWND.NOTOPMOST,0,0,0,0,83)
-            browserPanel.cpWin.nativeWindowBw.setWindowPos(winctl.HWND.TOPMOST,0,0,0,0,83)
-            browserPanel.cpWin.nativeWindowBw.setWindowPos(winctl.HWND.NOTOPMOST,0,0,0,0,83)
+            browserPanel.moveTopNativeWindow()
+            browserPanel.moveTopNativeWindowBw()
           }
           else if(eventName == 'minimize'){
             browserPanel.cpWin.nativeWindow.showWindow(6)
           }
           else if(eventName == 'restore'){
+            console.log('restore')
+            // browserPanel.cpWin.chromeNativeWindow.showWindow(9)
+            // await new Promise(r=>setTimeout(()=>{
+            //   browserPanel.cpWin.nativeWindow.showWindow(9)
+            //   browserPanel.moveTopNativeWindow()
+            //   browserPanel.cpWin.nativeWindow.setForegroundWindow()
+            //   r()
+            // },0))
+
             browserPanel.cpWin.nativeWindow.showWindow(9)
+            browserPanel.moveTopNativeWindow()
+            browserPanel.cpWin.nativeWindow.setForegroundWindow()
           }
         }
       }
@@ -118,8 +127,7 @@ class Browser{
       for(const browserPanel of Object.values(BrowserPanel.panelKeys)){
         if(browserPanel.browserWindow.id == bwWinId){
           if(browserPanel.cpWin.nativeWindowBw.getHwnd() == hwnd || browserPanel.cpWin.chromeNativeWindow.getHwnd() == hwnd){
-            browserPanel.cpWin.nativeWindowBw.setWindowPos(winctl.HWND.TOPMOST,0,0,0,0,83)
-            browserPanel.cpWin.nativeWindowBw.setWindowPos(winctl.HWND.NOTOPMOST,0,0,0,0,83)
+            browserPanel.moveTopNativeWindowBw()
             return
           }
         }
@@ -128,9 +136,10 @@ class Browser{
 
     ipcMain.on('fullscreen-change', async (e, enabled) => {
       console.log('fullscreen-change', e, enabled)
-      const [_1, _2, browserPanel, _3] = BrowserPanel.getBrowserPanelByTabId(e.sender.id)
+      const [_1, _2, browserPanel, browserView] = BrowserPanel.getBrowserPanelByTabId(e.sender.id)
       if(enabled){
         browserPanel.cpWin.chromeNativeWindow.setParent(null)
+        browserPanel.browserWindow._fullscreen = browserView.webContents
         // const dim = browserPanel.cpWin.nativeWindow.dimensions()
         // setTimeout(()=>{
         //   console.log(browserPanel.cpWin.chromeNativeWindow.getHwnd(),dim)
@@ -149,8 +158,10 @@ class Browser{
         browserPanel.cpWin.chromeNativeWindow.setParent(browserPanel.cpWin.nativeWindow.getHwnd())
         const dim = browserPanel.cpWin.nativeWindow.dimensions()
         browserPanel.cpWin.chromeNativeWindow.move(...getChromeWindowBoundArray(dim.right - dim.left, dim.bottom - dim.top))
+        browserPanel.browserWindow._fullscreen = false
       }
     })
+
 
     ipcMain.on('get-access-key-and-port', e => {
       e.sender.send('get-access-key-and-port-reply', [this.serverKey, this.port])
@@ -231,9 +242,9 @@ class Browser{
         await history.update({_id:item._id}, {$set: {location:h.url, updated_at: h.lastVisitTime, count: h.visitCount}})
       }
       else{
-        await history.insert({location:h.url ,title: h.title, created_at: h.lastVisitTime ,updated_at: h.lastVisitTime,count: h.visitCount})
+        await history.insert({location:h.url ,title: h.title || h.url, created_at: h.lastVisitTime ,updated_at: h.lastVisitTime,count: h.visitCount})
       }
-   }, void 0, (h) => new Promise(r => chrome.history.search({text: h.url, startTime: h.lastVisitTime}, result=> r(result))))
+   })
 
     // this.addListener('windows', 'onCreated', window => {
     //   console.log(9992,window)
@@ -411,7 +422,9 @@ class Browser{
     // })
     //
     evem.on('windows.focusChanged', async windowId => {
-      console.log(windowId)
+      console.log('windows.focusChanged', windowId)
+      if(windowId == -1) return
+
       // if(windowId == -1){
       //   console.log('onFocusChanged', windowId, new Date().getTime())
       //   const focusedWinId = (await exec(`wmctrl -v -a :ACTIVE: 2>&1`)).stdout.match(/: *(0x[0-9a-f]+)/)[1]
@@ -431,12 +444,16 @@ class Browser{
       //
       //   return
       // }
+
       for(const browserPanel of Object.values(BrowserPanel.panelKeys)){
-        if(browserPanel.windowId == windowId){
-          browserPanel.cpWin.nativeWindowBw.setWindowPos(winctl.HWND.TOPMOST,0,0,0,0,83)
-          browserPanel.cpWin.nativeWindow.setWindowPos(winctl.HWND.TOPMOST,0,0,0,0,83)
-          browserPanel.cpWin.nativeWindowBw.setWindowPos(winctl.HWND.NOTOPMOST,0,0,0,0,83)
-          browserPanel.cpWin.nativeWindow.setWindowPos(winctl.HWND.NOTOPMOST,0,0,0,0,83)
+        if(browserPanel.windowId != windowId){
+          for(const browserPanel2 of Object.values(BrowserPanel.panelKeys)){
+            if(browserPanel != browserPanel2 && browserPanel.browserWindow.id == browserPanel2.browserWindow.id){
+              browserPanel2.moveTopNativeWindow()
+            }
+          }
+          browserPanel.moveTopNativeWindowBw()
+          browserPanel.moveTopNativeWindow()
           return
         }
       }
@@ -748,6 +765,14 @@ class BrowserPanel{
     return this.panelKeys && this.panelKeys[panelKey]
   }
 
+  static getBrowserPanelsFromBrowserWindow(browserWindow){
+    const result = []
+    for(const browserPanel of Object.values(this.panelKeys)){
+      if(browserPanel.browserWindow == browserWindow) result.push(browserPanel)
+    }
+    return result
+  }
+
   static getBrowserPanelByTabId(tabId){
     for(const [panelKey, browserPanel] of Object.entries(this.panelKeys)){
       // if(rejectPanelKey && panelKey == rejectPanelKey) continue
@@ -901,7 +926,7 @@ class BrowserPanel{
               })
             })
             console.log(4343444, tmpWin.width ,tmpWin.tabWidth, tmpWin.height ,tmpWin.tabHeight)
-            BrowserPanel.topMargin = tmpWin.height - tmpWin.tabHeight - 8 - 78
+            BrowserPanel.topMargin = tmpWin.height - tmpWin.tabHeight - 8 //- 78
             BrowserPanel.sideMargin = (tmpWin.width - tmpWin.tabWidth) / 2
 
             let chromeNativeWindow = winctl.GetActiveWindow()
@@ -1083,6 +1108,16 @@ class BrowserPanel{
     return bv
   }
 
+
+  getAllBrowserView(){
+    const result = []
+
+    for(const val of Object.values(this.tabKeys)){
+      result.push(val[1])
+    }
+    return result
+  }
+
   getBrowserView({tabId, tabKey}){
     if(tabId){
       const obj = Object.values(this.tabKeys).find(x => x[0] == tabId)
@@ -1106,7 +1141,6 @@ class BrowserPanel{
   }
 
   setBounds(bounds){
-    console.log('setBounds',bounds, this)
     if(bounds.width){
       this.cpWin.nativeWindow.move(bounds.x, bounds.y, bounds.width, bounds.height)
       this.cpWin.chromeNativeWindow.move(...getChromeWindowBoundArray(bounds.width, bounds.height))
@@ -1123,6 +1157,18 @@ class BrowserPanel{
     //   focused: bounds.zIndex > 0 ? true : void 0,
     //   state: 'normal'
     // })
+  }
+
+  moveTopNativeWindow(){
+    if(BrowserPanel.contextMenuShowing) return
+    this.cpWin.nativeWindow.setWindowPos(winctl.HWND.TOPMOST,0,0,0,0,83)
+    this.cpWin.nativeWindow.setWindowPos(winctl.HWND.NOTOPMOST,0,0,0,0,83)
+  }
+
+  moveTopNativeWindowBw(){
+    if(BrowserPanel.contextMenuShowing) return
+    this.cpWin.nativeWindowBw.setWindowPos(winctl.HWND.TOPMOST,0,0,0,0,83)
+    this.cpWin.nativeWindowBw.setWindowPos(winctl.HWND.NOTOPMOST,0,0,0,0,83)
   }
 
   // async getTabs(queryInfo){
@@ -1688,8 +1734,7 @@ class webContents extends EventEmitter {
     if(!panel) return
 
     if(require('../util').getCurrentWindow().id == panel.browserWindow.id){
-      panel.cpWin.nativeWindow.setWindowPos(winctl.HWND.TOPMOST,0,0,0,0,83)
-      panel.cpWin.nativeWindow.setWindowPos(winctl.HWND.NOTOPMOST,0,0,0,0,83)
+      panel.moveTopNativeWindow()
     }
   }
 

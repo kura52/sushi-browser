@@ -320,6 +320,14 @@ class BrowserPage extends Component {
     }
     ipc.on('webview-size-change', this.changeSizeEvent)
 
+
+    this.getWebviewPosEvent = (e)=>{
+      if(this.props.isActive){
+        ipc.send(`get-webview-pos-${this.props.k2}-reply`, this.props.pos)
+      }
+    }
+    ipc.on(`get-webview-pos-${this.props.k2}`, this.getWebviewPosEvent)
+
     console.log("BrowserPage componentDidMount(",webview,this.props)
   }
 
@@ -339,6 +347,7 @@ class BrowserPage extends Component {
 
     if(this.searchEvent) ipc.removeListener('menu-or-key-events', this.searchEvent)
     if(this.changeSizeEvent) ipc.removeListener('webview-size-change', this.changeSizeEvent)
+    if(this.getWebviewPosEvent) ipc.removeListener(`get-webview-pos-${this.props.k2}`, this.getWebviewPosEvent)
 
     ipc.send('delete-browser-view', this.props.k2, this.props.k)
     // this.getWebContents(this.props.tab).destroy()
