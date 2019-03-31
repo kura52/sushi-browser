@@ -7,7 +7,12 @@ this.GesturesInfo = {
     "UD": {"name": "reload", args: []},
     "UDU": {"name": "cacheless reload", args: []},
     "UL": {"name": "go to parent dir", args: []},
-    "D": {"name": "open new tab", args: []},
+    "D": {
+      "name": "open #1 in new tab",
+      args: [
+        "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html",
+        "Top"
+      ]},
     "DR": {"name": "close this tab", args: []},
     "RU": {"name": "select right tab", args: []},
     "LU": {"name": "select left tab", args: []},

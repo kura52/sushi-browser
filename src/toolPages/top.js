@@ -221,7 +221,7 @@ class TopMenu extends React.Component {
 class TopSearch extends React.Component {
 
   componentDidMount() {
-    ipc.send('send-to-host', "navbar-search",{})
+    setTimeout(()=>ipc.send('send-to-host', "navbar-search",{}),30)
     console.log("mount")
   }
 

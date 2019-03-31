@@ -4432,6 +4432,7 @@ export default class TabPanel extends Component {
   }
 
   focus_webview(tab,flag=true,locationBar) {
+    if(locationBar) return //@TODO
     let retry = 0
     const id = window.setInterval(()=> {
       retry++

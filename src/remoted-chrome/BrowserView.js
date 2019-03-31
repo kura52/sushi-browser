@@ -106,8 +106,8 @@ class Browser{
             // },0))
 
             browserPanel.cpWin.nativeWindow.showWindow(9)
-            browserPanel.moveTopNativeWindow()
-            browserPanel.cpWin.nativeWindow.setForegroundWindow()
+            // browserPanel.moveTopNativeWindow()
+            browserPanel.cpWin.nativeWindow.setForegroundWindowEx()
           }
         }
       }
@@ -1671,7 +1671,7 @@ class webContents extends EventEmitter {
 
   async _sendKey(key, modifier){
     if(!this._getBrowserPanel()) return
-    this._getBrowserPanel().cpWin.chromeNativeWindow.setForegroundWindow(true)
+    this._getBrowserPanel().cpWin.chromeNativeWindow.setForegroundWindowEx()
     if(modifier){
       robot.keyTap(key, modifier)
     }
@@ -1744,7 +1744,7 @@ class webContents extends EventEmitter {
 
   setForegroundWindow(){
     if(!this._getBrowserPanel()) return
-    this._getBrowserPanel().cpWin.chromeNativeWindow.setForegroundWindow(true)
+    this._getBrowserPanel().cpWin.chromeNativeWindow.setForegroundWindowEx()
   }
 
   async isFocused(){

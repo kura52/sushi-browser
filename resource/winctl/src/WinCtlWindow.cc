@@ -25,6 +25,7 @@ NAN_MODULE_INIT(Window::Init) {
 
 	Nan::SetPrototypeMethod(tpl, "bringWindowToTop", bringWindowToTop);
 	Nan::SetPrototypeMethod(tpl, "setForegroundWindow", setForegroundWindow);
+	Nan::SetPrototypeMethod(tpl, "setForegroundWindowEx", setForegroundWindowEx);
 	Nan::SetPrototypeMethod(tpl, "setActiveWindow", setActiveWindow);
 	Nan::SetPrototypeMethod(tpl, "setWindowPos", setWindowPos);
 	Nan::SetPrototypeMethod(tpl, "setWindowLongPtr", setWindowLongPtr);
@@ -251,6 +252,18 @@ NAN_METHOD(Window::bringWindowToTop) {
 	Window* obj = Nan::ObjectWrap::Unwrap<Window>(info.This());
 
 	BringWindowToTop(obj->windowHandle);
+}
+
+NAN_METHOD(Window::setForegroundWindowEx) {
+	Window* obj = Nan::ObjectWrap::Unwrap<Window>(info.This());
+
+    int targetThread = GetWindowThreadProcessId(GetForegroundWindow(), NULL);
+    int selfThread = GetCurrentThreadId();
+    AttachThreadInput(selfThread, targetThread, TRUE );
+
+    SetForegroundWindow(obj->windowHandle);
+
+    AttachThreadInput(selfThread, targetThread, FALSE );
 }
 
 

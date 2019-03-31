@@ -81,8 +81,9 @@ export default class BrowserNavbarLocation extends Component {
   constructor(props) {
     super(props)
     this.keyEvent2 = (e,id)=>{
+      console.log('keyEvent2', id,this.props.tab.wvId)
       if (!this.props.tab.wvId || id !== this.props.tab.wvId) return
-      this.keyEvent({channel: 'navbar-search'})
+      this.keyEvent(e, 'navbar-search')
     }
     this.keyEvent = ::this.keyEvent
     this.torEvent = ::this.torEvent
@@ -92,11 +93,21 @@ export default class BrowserNavbarLocation extends Component {
     this.isFloat = isFloatPanel(props.k)
   }
 
-  keyEvent(e, msg, ...args){
+  async keyEvent(e, msg, ...args){
     if (msg == 'navbar-search') {
-      ipc.send('focus-browser-window')
       const input = (this.input || ReactDOM.findDOMNode(this.refs.input).querySelector("input"))
-      input.focus()
+      console.log(5644, 'focus-browser-window')
+      for(let i=0;i<5;i++){
+        await new Promise(r=>setTimeout(r,100))
+        const key = Math.random().toString()
+        ipc.send('focus-browser-window', key)
+        await new Promise(r=>{
+          ipc.once(`focus-browser-window-reply_${key}`, r)
+        })
+        input.focus()
+        await new Promise(r=>setTimeout(r,50))
+        if(input == document.activeElement) return
+      }
     }
   }
 
@@ -270,6 +281,7 @@ export default class BrowserNavbarLocation extends Component {
   }
 
   handleSelectionChange(e,value){
+    if(!value.result) return
     if(value.result.description){
       e.target.value = value.result.description.children[0].children.children
     }

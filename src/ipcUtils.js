@@ -29,6 +29,7 @@ import mainState from './mainState'
 import extensionInfos from "./extensionInfos";
 import {history, token, visitedStyle} from "./databaseFork";
 import importData from "./bookmarksExporter";
+import winctl from "../resource/winctl";
 const open = require('./open')
 const {readMacro,readMacroOff,readTargetSelector,readTargetSelectorOff,readComplexSearch,readFindAll} = require('./readMacro')
 const sharedState = require('./sharedStateMain')
@@ -2700,7 +2701,7 @@ ipcMain.on('get-process-info', (e) => {
 
 ipcMain.on('send-to-host', async (e, ...args)=>{
   // console.log('send-to-host',e,...args)
-  // console.log(`send-to-host_${e.sender.id}`,e.sender.hostWebContents2.getURL(), ...args)
+  // console.log(`send-to-host_${e.sender.id}`,await e.sender.getURL(), args[0])
   const hostCont = e.sender.hostWebContents2 || e.sender.hostWebContents
   if(!hostCont){
     console.log('send-to-host',e.sender.id,await e.sender.getURL(),...args)
@@ -2764,21 +2765,30 @@ ipcMain.on('menu-popup-end',(e)=>{
   BrowserPanel.contextMenuShowing = false
 })
 
+// let incFbw = 0
+ipcMain.on('focus-browser-window', async (e, key) => {
+  BrowserPanel.contextMenuShowing = true
+  // ++incFbw
+  console.log(78788)
+  // if(bw.ignoreMouseEvents){
+  //   bw.setIgnoreMouseEvents(false)
+  //   robot.mouseClick()
+  //   bw.setIgnoreMouseEvents(true)
+  // }
+  // else{
+  const bw = BrowserWindow.fromWebContents(e.sender)
+  // const [x,y] = bw.getPosition()
+  // robot.moveMouse(x+bounds.x+10, y+bounds.y+10)
+  // robot.mouseClick()
 
-// ipcMain.on('focus-browser-window', e => {
-//   const bw = BrowserWindow.fromWebContents(e.sender)
-//   const [x,y] = bw.getPosition()
-//   robot.moveMouse(x+10, y+10)
-//   bw.focus()
-//   if(bw.ignoreMouseEvents){
-//     bw.setIgnoreMouseEvents(false)
-//     robot.mouseClick()
-//     bw.setIgnoreMouseEvents(true)
-//   }
-//   else{
-//     robot.mouseClick()
-//   }
-// })
+  const panel = BrowserPanel.getBrowserPanelsFromBrowserWindow(bw)[0]
+  panel.cpWin.nativeWindowBw.setForegroundWindowEx()
+
+  BrowserPanel.contextMenuShowing = false
+  e.sender.send(`focus-browser-window-reply_${key}`)
+  // bw.focus()
+  // }
+})
 
 // let dragPos = {}, noMove = false
 // ipcMain.on('drag-window', (e, pos) =>{
