@@ -594,9 +594,9 @@ chrome.webRequest.onHeadersReceived.addListener((details)=>{
   ['responseHeaders'])
 
 chrome.downloads.onCreated.addListener((item)=>{
-  ipc.send('download-start', item.finalUrl, item.filename)
-  chrome.downloads.cancel(item.id)
-  chrome.downloads.erase({id: item.id})
+  // ipc.send('download-start', item.finalUrl, item.filename)
+  // chrome.downloads.cancel(item.id)
+  // chrome.downloads.erase({id: item.id})
 })
 
 //chrome.tabs,move,create,focus,close,detach,attach,widows系,back,forward,reload,go,domreadyとか

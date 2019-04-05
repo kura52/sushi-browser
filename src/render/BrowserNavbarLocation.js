@@ -144,6 +144,7 @@ export default class BrowserNavbarLocation extends Component {
   componentWillUnmount() {
     PubSub.unsubscribe(this.token)
     if(this.props.tab.privateMode == 'persist:tor') ipc.removeListener('focus-location-bar',this.keyEvent2)
+    ipc.removeListener('focus-location-bar',this.keyEvent2)
     ipc.removeListener('tor-progress',this.torEvent)
     ipc.removeListener(`send-to-host_${this.props.tab.wvId}`,this.keyEvent)
     this.input.removeEventListener('focus', this.onFocus)

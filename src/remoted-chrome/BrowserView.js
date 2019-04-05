@@ -1417,12 +1417,12 @@ class BrowserView{
   }
 
   destroy(webContentsDestroy = true){
-    delete this._browserPanel.tabKeys[this.tabKey]
     this.destroyed = true
     for(const [cont, view] of BrowserView.webContentsMap.entries()){
       if(view == this){
-        BrowserView.webContentsMap.delete(cont)
         if(webContentsDestroy && !this.webContents.isDestroyed()) this.webContents.destroy()
+        BrowserView.webContentsMap.delete(cont)
+        delete this._browserPanel.tabKeys[this.tabKey]
         return
       }
     }
@@ -1686,10 +1686,20 @@ class webContents extends EventEmitter {
     console.log('2222sclose', this.id)
     const page = this._getPage()
     if(page.constructor.name == 'Promise'){
-      page.then(page=> !page.isClosed() && page.close())
+      page.then(page=>{
+        if(!page.isClosed()){
+          // const bp = this._getBrowserPanel()
+          // if(Object.keys(bp.tabKeys).length == 1) bp.cpWin.chromeNativeWindow.setParent(null)
+          page.close()
+        }
+      })
     }
     else{
-      if(!page.isClosed()) page.close()
+      if(!page.isClosed()){
+        // const bp = this._getBrowserPanel()
+        // if(Object.keys(bp.tabKeys).length == 1)  bp.cpWin.chromeNativeWindow.setParent(null)
+        page.close()
+      }
     }
   }
 

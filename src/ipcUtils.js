@@ -2505,9 +2505,6 @@ ipcMain.on('set-bound-browser-view', async (e, panelKey, tabKey, tabId, x, y, wi
 
   console.log('set-bound-browser-view1', panelKey, tabKey, tabId, x, y, width, height, zIndex, date)
 
-  if(zIndex > 0){
-    webContents.fromId(tabId).focus()
-  }
 
   // for(let i=0;i<1000;i++){
   //   if(!moveingTab) break
@@ -2530,26 +2527,32 @@ ipcMain.on('set-bound-browser-view', async (e, panelKey, tabKey, tabId, x, y, wi
   }
   // console.log(11,bounds, winBounds)
   const id = setTimeout(()=>{
-    for(let [_bounds, id, _date] of setBoundClearIds[panelKey] || []){
+    for(let [_bounds, id, _date, _zIndex] of setBoundClearIds[panelKey] || []){
       if(date < _date){
         bounds = _bounds
         date = _date
+        zIndex = _zIndex
       }
       clearTimeout(id)
     }
     delete setBoundClearIds[panelKey]
     panel.setBounds(bounds)
+
+    if(zIndex > 0){
+      webContents.fromId(tabId).focus()
+    }
   },10)
 
   if(setBoundClearIds[panelKey]){
-    setBoundClearIds[panelKey].push([bounds, id, date, { x, y }])
+    setBoundClearIds[panelKey].push([bounds, id, date, zIndex])
   }
   else{
-    setBoundClearIds[panelKey] = [[bounds, id, date, { x, y }]]
+    setBoundClearIds[panelKey] = [[bounds, id, date, zIndex]]
   }
 })
 
 ipcMain.on('set-position-browser-view', async (e, panelKey) => {
+  // console.log('set-position-browser-view1', panelKey)
   const panel = BrowserPanel.getBrowserPanel(panelKey)
   if(!panel) return
 
@@ -2558,7 +2561,7 @@ ipcMain.on('set-position-browser-view', async (e, panelKey) => {
 
   const pos = await new Promise(r => {
     ipcMain.once(`get-webview-pos-${panelKey}-reply`, (e, pos) => r(pos))
-    panel.browserWindow.webContents.send(`get-webview-pos-${panelKey}`)
+    panel.browserWindow.webContents.send('get-webview-pos', panelKey)
   })
 
   const winPos = win.getPosition()

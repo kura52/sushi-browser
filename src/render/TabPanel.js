@@ -3290,7 +3290,6 @@ export default class TabPanel extends Component {
 
       const isChangeSelected = !sameSelected
       if(isChangeSelected) {
-        ipc.send('change-tab-infos',[{}])
         if(this.state.inputPopup && this.state.inputPopup.key != this.state.selectedTab) this.setState({inputPopup: null})
         this.state.selectedKeys = this.state.selectedKeys.filter(key => key != this.state.selectedTab && this.state.tabs.some(tab => tab.key == key))
         this.state.selectedKeys.push(this.state.selectedTab)
@@ -3325,7 +3324,7 @@ export default class TabPanel extends Component {
         const cont = this.getWebContents(tab)
         let isActive
         if(isChangeSelected){
-          isActive = tab.key == this.state.selectedTab && global.lastMouseDown[2] == this.props.k
+          isActive = tab.key == this.state.selectedTab //&& global.lastMouseDown[2] == this.props.k
           if(isActive && !this.isFixed){
             console.log("change-title",tab.page.title)
             ipc.send("change-title",tab.page.title)

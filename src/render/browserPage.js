@@ -327,12 +327,12 @@ class BrowserPage extends Component {
     ipc.on('webview-size-change', this.changeSizeEvent)
 
 
-    this.getWebviewPosEvent = (e)=>{
-      if(this.props.isActive){
-        ipc.send(`get-webview-pos-${this.props.k2}-reply`, this.props.pos)
+    this.getWebviewPosEvent = (e, panelKey)=>{
+      if(this.props.isActive && this.props.k2 == panelKey){
+        ipc.send(`get-webview-pos-${panelKey}-reply`, this.props.pos)
       }
     }
-    ipc.on(`get-webview-pos-${this.props.k2}`, this.getWebviewPosEvent)
+    ipc.on('get-webview-pos', this.getWebviewPosEvent)
 
     console.log("BrowserPage componentDidMount(",webview,this.props)
   }
