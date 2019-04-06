@@ -353,7 +353,7 @@ class BrowserPage extends Component {
 
     if(this.searchEvent) ipc.removeListener('menu-or-key-events', this.searchEvent)
     if(this.changeSizeEvent) ipc.removeListener('webview-size-change', this.changeSizeEvent)
-    if(this.getWebviewPosEvent) ipc.removeListener(`get-webview-pos-${this.props.k2}`, this.getWebviewPosEvent)
+    if(this.getWebviewPosEvent) ipc.removeListener('get-webview-pos', this.getWebviewPosEvent)
 
     ipc.send('delete-browser-view', this.props.k2, this.props.k)
     // this.getWebContents(this.props.tab).destroy()

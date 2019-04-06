@@ -244,7 +244,7 @@ class Browser{
       else{
         await history.insert({location:h.url ,title: h.title || h.url, created_at: h.lastVisitTime ,updated_at: h.lastVisitTime,count: h.visitCount})
       }
-   })
+    })
 
     // this.addListener('windows', 'onCreated', window => {
     //   console.log(9992,window)
@@ -262,6 +262,10 @@ class Browser{
           return
         }
       }
+    })
+
+    this.addListener('downloads', 'onChanged', downloadDelta => {
+      ipcMain.emit(`chrome-downloads-onChanged-${downloadDelta.id}`, downloadDelta)
     })
 
     evem.on('ipc.send', (channel, tabId, ...args)=>{
@@ -748,6 +752,53 @@ class Browser{
     }, url)
   }
 
+  static getUserAgent(){
+    return new Promise(async r => {
+      for(let i=0;i<1000;i++){
+        if(Browser._browser) break
+        await new Promise(r=>setTimeout(r,10))
+      }
+      r(Browser._browser.userAgent())
+    })
+  }
+
+  static downloadURL(url, cont, referer){
+    Browser.bg.evaluate((url, tabId, referer) => {
+      return new Promise(async resolve => {
+        const options = {
+          url,
+          conflictAction: 'uniquify',
+        }
+        if(referer){
+          options.headers = [{name: 'Referrer', value: referer}]
+        }
+        else if(tabId){
+          const referer = (await new Promise(r => chrome.tabs.get(tabId, tab => r(tab)))).url
+          options.headers = [{name: 'Referrer', value: referer}]
+        }
+        chrome.downloads.download(options,
+          downloadId => {console.log(downloadId);chrome.downloads.search({id: downloadId}, results => {console.log(results);resolve(results[0])})})
+
+      })
+    }, url, cont && cont.id, referer).then(item => {
+      ipcMain.emit('chrome-download-start', null, item, url, cont)
+    })
+  }
+
+  static getFocusedWindow(){
+    console.log('getFocusedWindow')
+    const win = BrowserWindow.getFocusedWindow()
+    if(win) return win
+
+    const hwnd = winctl.GetActiveWindow().getHwnd()
+    console.log(winctl.GetActiveWindow().getTitle())
+    for(const browserPanel of Object.values(BrowserPanel.panelKeys)){
+      if(browserPanel.cpWin.chromeNativeWindow.hwnd == hwnd){
+        return browserPanel.browserWindow
+      }
+    }
+  }
+
 }
 
 class BrowserPanel{
@@ -1045,6 +1096,7 @@ class BrowserPanel{
       }))[0]
     }
     chromeNativeWindow.moveRelative(9999,9999,0,0)
+    chromeNativeWindow.hwnd = chromeNativeWindow.getHwnd()
     const title = Math.random().toString()
     const _title = this.browserWindow.getTitle()
 
@@ -1715,8 +1767,8 @@ class webContents extends EventEmitter {
     this.loadURL(`file://${filePath}`, options)
   }
 
-  downloadURL(url){
-    this.hostWebContents.downloadURL(url)
+  downloadURL(url, referer){
+    Browser.downloadURL(url, this, referer)
   }
 
   getURL(){
@@ -1832,7 +1884,7 @@ class webContents extends EventEmitter {
   }
 
   async getUserAgent(){
-    return this.userAgent || await Browser._browser.userAgent()
+    return this.userAgent || await Browser.getUserAgent()
   }
 
   async insertCSS(css){

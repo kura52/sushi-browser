@@ -8,6 +8,7 @@ const path = require('path')
 const moment = require('moment')
 const fs = require('fs')
 const {dialog,app,BrowserWindow,ipcMain,nativeImage,session} = require('electron')
+import {Browser} from './remoted-chrome/BrowserView'
 import {
   state,
   searchEngine,
@@ -52,7 +53,7 @@ function setOptionVal(key,dVal,val){
 
 
 ipcMain.on('export-bookmark',_=>{
-  const focusedWindow = BrowserWindow.getFocusedWindow()
+  const focusedWindow = Browser.getFocusedWindow()
   const fileName = moment().format('DD_MM_YYYY') + '.html'
   const defaultPath = path.join(app.getPath('downloads'), fileName)
 
@@ -71,7 +72,7 @@ ipcMain.on('export-bookmark',_=>{
 })
 
 ipcMain.on('export-setting', (e,exports) => {
-  const focusedWindow = BrowserWindow.getFocusedWindow();
+  const focusedWindow = Browser.getFocusedWindow();
   const fileName = moment().format('DD_MM_YYYY') + '.json'
   const defaultPath = path.join(app.getPath('downloads'), fileName)
 
@@ -408,7 +409,7 @@ async function importData(imports, restoreDatas, all, ignoreToken) {
 export default importData
 
 ipcMain.on('import-setting', (e,imports,all) => {
-  const focusedWindow = BrowserWindow.getFocusedWindow();
+  const focusedWindow = Browser.getFocusedWindow();
   const fileName = moment().format('DD_MM_YYYY') + '.json'
   const defaultPath = path.join(app.getPath('downloads'), fileName)
 

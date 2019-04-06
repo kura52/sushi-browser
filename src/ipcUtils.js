@@ -178,7 +178,7 @@ ipcMain.on('show-dialog-exploler',(event,key,info,tabId)=>{
         {name: 'All Files', extensions: ['*']}
       ]
     }
-    dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), option, (selected) => {
+    dialog.showOpenDialog(Browser.getFocusedWindow(), option, (selected) => {
       if (selected && selected.length > 0) {
         event.sender.send(`show-dialog-exploler-reply_${key}`,info.needVideo ? selected : selected[0])
       }
@@ -1501,7 +1501,7 @@ ipcMain.on('vpn-event',async (e,key,address)=>{
 })
 
 ipcMain.on('audio-extract',e=>{
-  const focusedWindow = BrowserWindow.getFocusedWindow()
+  const focusedWindow = Browser.getFocusedWindow()
   dialog.showOpenDialog(focusedWindow,{
     properties: ['openFile', 'multiSelections'],
     name: 'Select Video Files',
@@ -1934,10 +1934,10 @@ ipcMain.on('download-start',(e, url, fileName)=>{
   }
 
   try{
-    e.sender.hostWebContents2.downloadURL(url,true)
+    e.sender.downloadURL(url)
   }
   catch(e){
-    getCurrentWindow().webContents.downloadURL(url,true)
+    Browser.downloadURL(url)
   }
 })
 
@@ -2028,7 +2028,7 @@ ipcMain.on('screen-shot',(e,{full,type,rect,tabId,tabKey,quality=92,savePath,aut
 
 ipcMain.on('save-and-play-video',(e,url,win)=>{
   win = win || BrowserWindow.fromWebContents(e.sender)
-  win.webContents.downloadURL(url,true)
+  Browser.downloadURL(url)
   let retry = 0
   const id = setInterval(_=>{
     if(retry++ > 1000){

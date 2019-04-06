@@ -593,7 +593,11 @@ chrome.webRequest.onHeadersReceived.addListener((details)=>{
   {urls: ['<all_urls>']},
   ['responseHeaders'])
 
+chrome.downloads.setShelfEnabled(false)
+
 chrome.downloads.onCreated.addListener((item)=>{
+  chrome.downloads.pause(item.id)
+  ipc.send('chrome-download-start', item)
   // ipc.send('download-start', item.finalUrl, item.filename)
   // chrome.downloads.cancel(item.id)
   // chrome.downloads.erase({id: item.id})

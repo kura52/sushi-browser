@@ -1,5 +1,6 @@
 const electron = require('electron')
 const {BrowserWindow,BrowserView,app,ipcMain,session} = electron
+import {Browser} from './remoted-chrome/BrowserView'
 const url = require('url')
 const path = require('path')
 const fs = require('fs')
@@ -606,13 +607,14 @@ export default {
     // initWindow.webContents.toggleDevTools()
 
     // await new Promise(r=>{
-    initWindow.webContents.once('did-finish-load', () => {
+    initWindow.webContents.once('did-finish-load', async () => {
       initWindow.show()
       if (!initWindow.isMaximized()) {
         normalSize[initWindow.id] = initWindow.getBounds()
       }
       if (winArg.maximize) initWindow.maximize()
       initWindow.setAlwaysOnTop(!!winArg.alwaysOnTop)
+      initWindow.webContents.setUserAgent(await Browser.getUserAgent())
       // r()
     })
     // })

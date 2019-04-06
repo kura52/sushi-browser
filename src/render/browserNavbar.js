@@ -215,6 +215,7 @@ class BrowserNavbar extends Component{
   componentWillMount(){
     console.log('navbar','componentWillMount',this.props.tabkey)
     this.props.refs2[`navbar-${this.props.tabkey}`] = this
+    this.props.refs2[`navbar-panel-${this.props.tabkey}`] = this.props.k
   }
 
   componentDidMount() {
@@ -234,8 +235,9 @@ class BrowserNavbar extends Component{
     PubSub.unsubscribe(this.tokenMenuSort)
     PubSub.unsubscribe(this.tokenMultistageTabs)
     tabs.add(this.props.tab.wvId)
-    if(this.props.refs2[`navbar-${this.props.tabkey}`] == this){
+    if(this.props.refs2[`navbar-${this.props.tabkey}`] == this && this.props.refs2[`navbar-panel-${this.props.tabkey}`] == this.props.k){
       delete this.props.refs2[`navbar-${this.props.tabkey}`]
+      delete this.props.refs2[`navbar-panel-${this.props.tabkey}`]
       delete sharedState[`color-${this.props.tabkey}`]
     }
   }
@@ -461,7 +463,7 @@ class BrowserNavbar extends Component{
     if(needInput) ipc.send('need-set-save-filename',url)
     if(convert) ipc.send('set-video-convert',url,convert)
     const cont = this.getWebContents(this.props.tab)
-    cont.hostWebContents2.downloadURL(url,true)
+    cont.downloadURL(url)
   }
 
 

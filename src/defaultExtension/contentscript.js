@@ -187,7 +187,7 @@ if(window.__started_){
       // }
     },{passive: true, capture: true})
 
-    let preClientY = -1, firstVideoEvent = {}, beforeRemoveIds = {}
+    let preClientY = -1, checkVideoEvent = {}, beforeRemoveIds = {}
     document.addEventListener('mousemove',e=>{
       // console.log('mousemove')
       if(preClientY != e.clientY){
@@ -196,9 +196,52 @@ if(window.__started_){
         preClientY = e.clientY
       }
 
-      if(e.target.tagName == 'VIDEO' && !firstVideoEvent[e.target]){
-        firstVideoEvent[e.target] = true
-        const v = e.target
+      if(!checkVideoEvent[e.target] && document.querySelector('video')){
+        checkVideoEvent[e.target] = true
+        let target
+        if(e.target.tagName !== 'VIDEO'){
+          const children = [...e.target.children]
+          for(const x of children){
+            checkVideoEvent[x] = true
+            if(x.tagName == "VIDEO"){
+              target = x
+              console.log(11,target)
+              break
+            }
+          }
+          if(!target){
+            for(let c of children){
+              if(c.children){
+                for(const x of [...c.children]){
+                  checkVideoEvent[x] = true
+                  if(x.tagName == "VIDEO"){
+                    target = x
+                    console.log(12,target)
+                    break
+                  }
+                }
+              }
+              if(target) break
+            }
+            if(!target){
+              for(let ele of document.querySelectorAll('video')){
+                const r =  ele.getBoundingClientRect()
+                if(pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)){
+                  target = ele
+                  console.log(13,target)
+                  break
+                }
+              }
+              if(!target) return
+            }
+          }
+        }
+        else{
+          target = e.target
+        }
+
+        console.log(553,target)
+        const v = target
         const func = ()=>{
           const rect = v.getBoundingClientRect()
           const rStyle = `left:${Math.round(rect.left) + 10}px;top:${Math.round(rect.top) + 10}px`
@@ -210,7 +253,7 @@ if(window.__started_){
 
           const existElement = document.querySelector("#maximize-org-video")
           if(existElement){
-            clearTimeout(beforeRemoveIds[e.target])
+            clearTimeout(beforeRemoveIds[target])
             document.body.removeChild(existElement)
           }
           document.body.appendChild(span)
@@ -221,22 +264,30 @@ if(window.__started_){
             span.style.left = `${Math.round(rect.left) + 10}px`
             span.style.top = `${Math.round(rect.top) + 10}px`
             span.innerText = v._olds_ ? 'Normal' : 'Maximize'
-            clearTimeout(beforeRemoveIds[e.target])
+            clearTimeout(beforeRemoveIds[target])
             document.body.removeChild(span)
           })
 
           span.addEventListener('mouseenter', () => span.style.background = 'rgba(80,80,80,0.9)')
           span.addEventListener('mouseleave', () => span.style.background = 'rgba(50,50,50,0.9)')
 
-          beforeRemoveIds[e.target] = setTimeout(_=>document.body.removeChild(span),2000)
+          beforeRemoveIds[target] = setTimeout(_=>document.body.removeChild(span),2000)
         }
 
-        v.addEventListener('mousemove', func)
-        v.addEventListener('mouseleave', e2 =>{
-          const existElement = document.querySelector("#maximize-org-video")
-          if(existElement && e2.toElement != existElement){
-            clearTimeout(beforeRemoveIds[e.target])
-            document.body.removeChild(existElement)
+        document.addEventListener('mousemove', e => {
+          const r =  v.getBoundingClientRect()
+          if(pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)){
+            func()
+          }
+        })
+        document.addEventListener('mouseleave', e2 =>{
+          const r =  v.getBoundingClientRect()
+          if(pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)){
+            const existElement = document.querySelector("#maximize-org-video")
+            if(existElement && e2.toElement != existElement){
+              clearTimeout(beforeRemoveIds[target])
+              document.body.removeChild(existElement)
+            }
           }
         })
         func()
@@ -342,6 +393,8 @@ if(window.__started_){
   // document.addEventListener('dragend', handleDragEnd, false)
   // }
 
+  const gaiseki = (ax,ay,bx,by) => ax*by-bx*ay
+  const pointInCheck = (X,Y,W,H,PX,PY) => gaiseki(-W,0,PX-W-X,PY-Y) < 0 && gaiseki(0,H,PX-X,PY-Y) < 0 && gaiseki(W,0,PX-X,PY-Y-H) < 0 && gaiseki(0,-H,PX-W-X,PY-H-Y) < 0
 
   function maximizeInPanel(v, enable){
     if(enable == null){
@@ -353,7 +406,11 @@ if(window.__started_){
       v._olds_.controls = v.controls
       v._olds_.bodyOverflow = document.body.style.overflow
       v._olds_.width = v.style.width
+      v._olds_.minWidth = v.style.minWidth
+      v._olds_.maxWidth = v.style.maxWidth
       v._olds_.height = v.style.height
+      v._olds_.minHeight = v.style.minHeight
+      v._olds_.maxHeight = v.style.maxHeight
       v._olds_.position = v.style.position
       v._olds_.zIndex = v.style.zIndex
       v._olds_.backgroundColor = v.style.backgroundColor
@@ -369,7 +426,11 @@ if(window.__started_){
       document.body.style.setProperty('overflow','hidden' ,'important')
 
       v.style.setProperty('width','100vw' ,'important')
+      v.style.setProperty('min-width','100vw' ,'important')
+      v.style.setProperty('max-width','100vw' ,'important')
       v.style.setProperty('height','100vh' ,'important')
+      v.style.setProperty('min-height','100vh' ,'important')
+      v.style.setProperty('max-height','100vh' ,'important')
       v.style.setProperty('position','fixed' ,'important')
       v.style.setProperty('z-index','21474836476' ,'important')
       v.style.setProperty('background-color','black' ,'important')
@@ -395,7 +456,11 @@ if(window.__started_){
       v.controls = v._olds_.controls
       document.body.style.overflow = v._olds_.bodyOverflow
       v.style.width = v._olds_.width
+      v.style.minWidth = v._olds_.minWidth
+      v.style.maxWidth = v._olds_.maxWidth
       v.style.height = v._olds_.height
+      v.style.minHeight = v._olds_.minHeight
+      v.style.maxWidth = v._olds_.maxWidth
       v.style.position = v._olds_.position
       v.style.zIndex = v._olds_.zIndex
       v.style.backgroundColor = v._olds_.backgroundColor
@@ -750,8 +815,6 @@ if(window.__started_){
       if(url && location.href.startsWith(url)) return
     }
 
-    const gaiseki = (ax,ay,bx,by) => ax*by-bx*ay
-    const pointInCheck = (X,Y,W,H,PX,PY) => gaiseki(-W,0,PX-W-X,PY-Y) < 0 && gaiseki(0,H,PX-X,PY-Y) < 0 && gaiseki(W,0,PX-X,PY-Y-H) < 0 && gaiseki(0,-H,PX-W-X,PY-H-Y) < 0
 
     const popUp = (v,text)=>{
       const rect = v.getBoundingClientRect()

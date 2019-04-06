@@ -72,12 +72,13 @@ const downloadItems = new Set()
 let count = 0
 const waitQueue = []
 export default class Aria2cWrapper{
-  constructor({url,orgUrl,mimeType,savePath,downloadNum=1,overwrite,timeMap,aria2cKey,downloadId}){
+  constructor({url,orgUrl,mimeType,referer,savePath,downloadNum=1,overwrite,timeMap,aria2cKey,downloadId}){
     this.key = downloadId
     this.resumeFlg = !!aria2cKey
     this.url = url
     this.orgUrl = orgUrl
     this.mimeType = mimeType
+    this.referer = referer
     this.savePath = savePath
     this.overwrite = overwrite
     this.timeMap = timeMap
@@ -138,6 +139,7 @@ export default class Aria2cWrapper{
       isPaused: item.isPaused(),
       url: item.getURL(),
       orgUrl: item.orgUrl,
+      referer: this.referer,
       filename: path.basename(item.getSavePath()),
       receivedBytes: item.getReceivedBytes(),
       totalBytes: item.getTotalBytes(),
@@ -187,11 +189,15 @@ export default class Aria2cWrapper{
     }
     if(!resume && !this.overwrite) this.savePath = this.getUniqFileName(this.savePath)
 
+    const cont = await getFocusedWebContents()
+
     let params = cookie ? [`--header=Cookie:${cookie}`] : []
     params = [...params,`-x${this.downloadNum}`,'--check-certificate=false','--summary-interval=1','--file-allocation=none','--bt-metadata-only=true',
-      `--user-agent=${process.userAgent}`,`--dir=${path.dirname(this.savePath)}`,`--out=${path.basename(this.savePath)}`,`${this.url}`]
+      `--user-agent=${await cont.getUserAgent()}`,`--dir=${path.dirname(this.savePath)}`,`--out=${path.basename(this.savePath)}`,`${this.url}`]
 
-    params.push(`--referer=${await (await getFocusedWebContents()).getURL()}`)
+    if(this.referer !== null){
+      params.push(`--referer=${this.referer || (await cont.getURL())}`)
+    }
 
 
     if(!resume && this.overwrite){
@@ -213,6 +219,7 @@ export default class Aria2cWrapper{
       if(msg.includes('Status Legend:')){
         if(msg.includes('(OK)')){
           this.status = 'COMPLETE'
+          this.cancelChromeDownload()
         }
         else if(msg.includes('(ERR)') && this.status != 'PAUSE' && this.status != 'CANCEL' ){
           this.status = 'ERROR'
@@ -255,6 +262,9 @@ export default class Aria2cWrapper{
   getURL(){
     return this.url
   }
+  getReferer(){
+    return this.referer
+  }
   getSavePath(){
     return this.savePath
   }
@@ -280,8 +290,13 @@ export default class Aria2cWrapper{
     }
     this.stdoutCallback()
   }
+  cancelChromeDownload(){
+    Browser.bg.evaluate(downloadId => chrome.downloads.cancel(downloadId), this.key)
+  }
+
   cancel(){
     this.status = 'CANCEL'
+    this.cancelChromeDownload()
     if(this.aria2c){
       this.aria2c.stdin.pause()
       this.aria2c.kill()
@@ -297,6 +312,7 @@ export default class Aria2cWrapper{
   }
   kill(){
     this.pause()
+    this.cancelChromeDownload()
     this.stdoutCallbacks = []
     this.closeCallbacks = []
     this.errorCallbacks = []

@@ -1,10 +1,10 @@
 import { app, Menu, clipboard, BrowserWindow, ipcMain, session } from 'electron'
-import {webContents} from './remoted-chrome/BrowserView'
+import {Browser ,webContents} from './remoted-chrome/BrowserView'
 const uuid = require("node-uuid")
 const sharedState = require('./sharedStateMain')
 
 function getCurrentWindow(){
-  const focus = BrowserWindow.getFocusedWindow()
+  const focus = Browser.getFocusedWindow()
   if(focus && focus.getTitle().includes('Sushi Browser')) return focus
   return BrowserWindow.getAllWindows().find(w=>w.getTitle().includes('Sushi Browser'))
 }

@@ -1,4 +1,5 @@
 const {app,Menu,shell,ipcMain,BrowserWindow,session,clipboard} = require('electron')
+import {Browser} from './remoted-chrome/BrowserView'
 const BrowserWindowPlus = require('./BrowserWindowPlus')
 const seq = require('./sequence')
 const locale = require('../brave/app/locale')
@@ -137,7 +138,7 @@ const createFileSubmenu = () => {
         getFocusedWebContents().then(cont=>{
           if(cont){
             ipcMain.emit('need-set-save-filename',null,cont.getURL())
-            cont.downloadURL(cont.getURL(), true)
+            cont.downloadURL(cont.getURL())
           }
         })
       }

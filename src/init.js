@@ -24,7 +24,7 @@ const sharedState = require('./sharedStateMain')
 const defaultConf = require('./defaultConf')
 const urlutil = require('./render/urlutil')
 const tor = require('../brave/app/tor')
-require('./chromeEvents')
+// require('./chromeEvents')
 
 let adblock,httpsEverywhere,trackingProtection,extensions,videoProcessList = []
 ipcMain.setMaxListeners(0)
@@ -1062,7 +1062,7 @@ async function contextMenu(webContents, props) {
 
   const downloadPrompt = (item, win) => {
     ipcMain.emit('need-set-save-filename',null,props.srcURL)
-    win.webContents.downloadURL(props.srcURL,true)
+    webContents.downloadURL(props.srcURL)
   }
 
   const targetWindow = BrowserWindow.fromWebContents(webContents.hostWebContents2 || webContents)
@@ -1219,14 +1219,14 @@ async function contextMenu(webContents, props) {
     menuItems.push({
       t: '5317780077021120954', label: locale.translation('5317780077021120954'), click: (item, win) => {
         ipcMain.emit('noneed-set-save-filename',null,props.linkURL)
-        targetWindow.webContents.downloadURL(props.linkURL,true)
+        webContents.downloadURL(props.linkURL)
       }
     })
     menuItems.push({
       t: 'saveLinkAs', label: locale.translation('saveLinkAs'), click: (item, win) => {
         ipcMain.emit('need-set-save-filename',null,props.linkURL)
         console.log("Save Link",props.linkURL)
-        targetWindow.webContents.downloadURL(props.linkURL,true)
+        webContents.downloadURL(props.linkURL)
       }
     })
 
@@ -1470,7 +1470,7 @@ async function contextMenu(webContents, props) {
         console.log('down1',webContents.getURL())
         ipcMain.emit('need-set-save-filename',null,webContents.getURL())
         ipcMain.emit('save-page-as',null,webContents.getURL())
-        targetWindow.webContents.downloadURL(webContents.getURL(), true)
+        webContents.downloadURL(webContents.getURL())
       }
     })
 
