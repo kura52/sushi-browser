@@ -595,9 +595,20 @@ chrome.webRequest.onHeadersReceived.addListener((details)=>{
 
 chrome.downloads.setShelfEnabled(false)
 
-chrome.downloads.onCreated.addListener((item)=>{
+chrome.downloads.onCreated.addListener(async (item)=>{
   chrome.downloads.pause(item.id)
-  ipc.send('chrome-download-start', item)
+
+  for(let i=0;i<100;i++){
+    await new Promise(r=>setTimeout(r,1))
+    const sended = await new Promise(r => {
+      chrome.downloads.search({id: item.id}, results => {
+        const item = results[0]
+        if (item.filename) ipc.send('chrome-download-start', item)
+        r(item.filename)
+      })
+    })
+    if(sended) return
+  }
   // ipc.send('download-start', item.finalUrl, item.filename)
   // chrome.downloads.cancel(item.id)
   // chrome.downloads.erase({id: item.id})

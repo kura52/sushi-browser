@@ -2408,7 +2408,7 @@ ipcMain.on('no-attach-browser-view', (e, panelKey, tabKeys)=>{
   console.log('no-attach-browser-view', panelKey, tabKeys)
   for(let tabKey of tabKeys){
     noAttachs[`${panelKey}\t${tabKey}`] = true
-    setTimeout(()=> delete noAttachs[`${panelKey}_${tabKey}`],100)
+    setTimeout(()=> delete noAttachs[`${panelKey}\t${tabKey}`],100)
   }
 })
 
@@ -2421,6 +2421,7 @@ ipcMain.on('move-browser-view', async (e, panelKey, tabKey, type, tabId, x, y, w
 
   if(type == 'attach'){
     if(noAttachs[`${panelKey}\t${tabKey}`]){
+      console.log('no-attach')
       delete noAttachs[`${panelKey}\t${tabKey}`]
 
       if(x != null){

@@ -175,7 +175,7 @@ export default class Download {
       let active = true
       let url = item.finalUrl
       let mimeType = item.mime
-      let fname = item.filename
+      let fname = path.basename(item.filename)
 
       // let focusedWebContent
       // if(cont && !cont.isDestroyed()) focusedWebContent = cont.session.partition || ""
@@ -216,7 +216,7 @@ export default class Download {
       console.log(4)
       if(!savePath){
         autoSetSavePath = true
-        savePath = path.join(saveDirectory || app.getPath('downloads'), fname || path.basename(url))
+        savePath = path.join(saveDirectory || app.getPath('downloads'), fname || URL.parse(url).pathname)
         console.log(5,savePath)
       }
 
@@ -383,6 +383,7 @@ export default class Download {
     ipcMain.on('download-cancel', eventCancel)
 
     item.on('updated', (event, state) => {
+      console.log('updated',2333)
       const buildedItem = this.buildItem(item)
 
       if(buildedItem.state == 'interrupted'){

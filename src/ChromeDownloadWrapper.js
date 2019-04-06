@@ -1,6 +1,7 @@
 import {downloader} from './databaseFork'
 import {Browser} from './remoted-chrome/BrowserView'
 import {EventEmitter} from 'events'
+import path from 'path'
 import {ipcMain} from "electron";
 
 export default class ChromeDownloadWrapper extends EventEmitter {
@@ -9,12 +10,54 @@ export default class ChromeDownloadWrapper extends EventEmitter {
     this.item = item
     this.key = item.id
 
-    ipcMain.on(`chrome-downloads-onChanged-${item.id}`, downloadDelta => {
-      this.emit('updated')
-      if(item.error) this.emit('error')
-      if(item.state == 'complete') this.emit('done')
-    })
+    this.startObserve()
+  }
 
+  startObserve(){
+    if(this.intervalId) return
+    this.intervalId = setInterval(async ()=>{
+      await this.updateState()
+
+      if(item.error){
+        clearInterval(this.intervalId)
+        this.emit('error')
+      }
+      if(item.state == 'complete'){
+        clearInterval(this.intervalId)
+        this.emit('done')
+      }
+    },1000)
+  }
+
+  async updateState(){
+    const item = await Browser.bg.evaluate(downloadId => {
+      return new Promise(resolve => {
+        chrome.downloads.search({id: downloadId}, results => resolve(results[0]))
+      })
+    }, this.item.id)
+    this.item = item
+
+    downloader.update({key:item.id},{
+      key: item.id,
+      idForExtension: item.idForExtension,
+      isPaused: item.paused,
+      url: item.finalUrl,
+      orgUrl: item.url,
+      referer: this.referer,
+      filename: path.basename(item.filename),
+      receivedBytes: item.bytesReceived,
+      totalBytes: item.totalBytes,
+      state: this.getState(),
+      speed: void 0,
+      est_end: new Date(item.estimatedEndTime).getTime(),
+      savePath: item.filename,
+      mimeType: item.mime,
+      created_at: new Date(item.startTime).getTime(),
+      ended: item.state == 'complete' ? Date.now() : null,
+      now: Date.now()
+    },{ upsert: true })
+
+    this.emit('updated')
   }
 
   getURL(){
@@ -39,22 +82,31 @@ export default class ChromeDownloadWrapper extends EventEmitter {
         chrome.downloads.resume(downloadId, () => resolve())
       })
     }, this.item.id)
+    this.startObserve()
   }
 
   async pause(){
+    clearInterval(this.intervalId)
+    this.intervalId = void 0
     await Browser.bg.evaluate(downloadId => {
       return new Promise(resolve => {
         chrome.downloads.pause(downloadId, () => resolve())
       })
     }, this.item.id)
+    await this.updateState()
   }
 
   async cancel(){
+    clearInterval(this.intervalId)
+    this.intervalId = void 0
     await Browser.bg.evaluate(downloadId => {
       return new Promise(resolve => {
         chrome.downloads.cancel(downloadId, () => resolve())
       })
     }, this.item.id)
+    await this.updateState()
+    this.emit('done')
+
   }
 
   async kill(){
@@ -69,8 +121,11 @@ export default class ChromeDownloadWrapper extends EventEmitter {
     if(this.item.state == 'in_progress'){
       return 'progressing'
     }
-    else if(this.item.state == 'interrupted' || this.item.state == 'complete'){
-      return this.item.state
+    else if(this.item.state == 'interrupted'){
+      return 'interrupted'
+    }
+    else if(this.item.state == 'complete'){
+      return 'completed'
     }
     return 'cancelled'
   }
@@ -81,11 +136,6 @@ export default class ChromeDownloadWrapper extends EventEmitter {
 
   getTotalBytes(){
     return this.item.totalBytes
-  }
-
-  on(name, callback){
-  }
-  once(name, callback){
   }
 
 }

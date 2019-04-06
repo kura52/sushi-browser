@@ -264,10 +264,6 @@ class Browser{
       }
     })
 
-    this.addListener('downloads', 'onChanged', downloadDelta => {
-      ipcMain.emit(`chrome-downloads-onChanged-${downloadDelta.id}`, downloadDelta)
-    })
-
     evem.on('ipc.send', (channel, tabId, ...args)=>{
       // console.log(channel, tabId)
       ipcMain.emit(channel, {sender: Number.isInteger(tabId) ? new webContents(tabId): new BackgroundPage(tabId)}, ...args)
@@ -777,7 +773,7 @@ class Browser{
           options.headers = [{name: 'Referrer', value: referer}]
         }
         chrome.downloads.download(options,
-          downloadId => {console.log(downloadId);chrome.downloads.search({id: downloadId}, results => {console.log(results);resolve(results[0])})})
+          downloadId => chrome.downloads.search({id: downloadId}, results => resolve(results[0])))
 
       })
     }, url, cont && cont.id, referer).then(item => {
