@@ -1,5 +1,5 @@
 import { app, Menu, clipboard, BrowserWindow, ipcMain, session } from 'electron'
-import {Browser ,webContents} from './remoted-chrome/BrowserView'
+import {Browser ,webContents} from './remoted-chrome/Browser'
 const uuid = require("node-uuid")
 const sharedState = require('./sharedStateMain')
 

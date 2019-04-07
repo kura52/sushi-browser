@@ -1,0 +1,804 @@
+import robot from 'robotjs'
+import {nativeImage, webContents as _webContents} from 'electron'
+import {EventEmitter} from 'events'
+import evem from './evem'
+import fs from 'fs'
+
+let Browser = new Proxy({},  { get: function(target, name){ Browser = require('./Browser').Browser; return typeof Browser[name] == 'function' ? Browser[name].bind(Browser) : Browser[name]}})
+let BrowserPanel = new Proxy({},  { get: function(target, name){ BrowserPanel = require('./BrowserPanel'); return typeof BrowserPanel[name] == 'function' ? BrowserPanel[name].bind(BrowserPanel) : BrowserPanel[name]}})
+let BrowserView = new Proxy({},  { get: function(target, name){ BrowserView = require('./BrowserView'); return typeof BrowserView[name] == 'function' ? BrowserView[name].bind(BrowserView) : BrowserView[name]}})
+
+export default class webContents extends EventEmitter {
+
+  static _initializer() {
+    if (this.isInit) return
+    this.isInit = true
+
+    this.webContentsMap = new Map()
+  }
+
+  static getAllWebContents(){
+    return [...this.webContentsMap.values(), ..._webContents.getAllWebContents()]
+  }
+
+  static async getFocusedWebContents(){
+    const hostCont = await _webContents.getFocusedWebContents()
+    if(hostCont) return hostCont
+    const tab = await Browser.bg.evaluate(() => {
+      return new Promise(resolve => {
+        chrome.windows.getLastFocused({populate: true}, window => resolve(window.tabs.find(t=>t.active)))
+      })
+    })
+
+    return this.webContentsMap.get(tab.id)
+  }
+
+  static fromId(id){
+    return this.webContentsMap.get(id) || _webContents.fromId(id)
+  }
+
+  static async reopenLastClosedTab(){
+    return Browser.bg.evaluate(() => {
+      return new Promise(resolve => {
+        chrome.sessions.getRecentlyClosed((sessions) => {
+          chrome.sessions.restore((sessions[0].tab || sessions[0].window).sessionId, () => resolve())
+        })
+      })
+    })
+  }
+
+  constructor(tabId) {
+    super()
+    webContents._initializer()
+
+    // console.trace()
+
+    const cont = webContents.webContentsMap.get(tabId)
+    if(cont) return cont
+
+    this.id = tabId
+    this._evEvents = {}
+    this._pEvents = {}
+
+    webContents.webContentsMap.set(this.id, this)
+
+    this._initEvent()
+
+    // this.session
+    // this.hostWebContents
+    // this.devToolsWebContents
+    // this.debugger
+  }
+
+  async _initEvent(){
+    const page = await this._getPage()
+
+    this._evEvents[`webNavigation-onCompleted_${this.id}`] = (extFrameId) =>{
+      // console.log('did-finish-load', extFrameId == 0 ? 'main' : 'sub')
+      this.emit('did-finish-load', {sender: this})
+    }
+
+    this._evEvents[`webNavigation-onCommitted_${this.id}`] = (details) =>{
+      if(details.frameId == 0){
+        this.emit('did-fail-load', {sender: this}, -3, void 0, details.url)
+      }
+    }
+
+    this._evEvents[`webNavigation-onErrorOccurred_${this.id}`] = (details) =>{
+      if(details.frameId == 0){
+        this.emit('did-fail-load', {sender: this}, details.error, void 0, details.url)
+      }
+    }
+
+    //'did-fail-load'
+
+    this._pEvents['frameStartedLoading'] = frame => {
+      if(!frame.parentFrame()){
+        console.log('did-start-loading', !frame.parentFrame(),this.id)
+        this.emit('did-start-loading', {sender: this} ,this.id)
+        // this.emit('did-start-navigation', {sender: this}, frame.url(), true, !frame.parentFrame())
+      }
+    }
+    this._pEvents['frameStoppedLoading'] = frame => {
+      // console.log('did-stop-loading', !frame.parentFrame())
+      if(!frame.parentFrame()){
+        this.emit('did-stop-loading', {sender: this})
+      }
+    }
+    this._pEvents['domcontentloaded'] = () => {
+      // console.log('dom-ready')
+      this.emit('dom-ready', {sender: this})
+    }
+
+    this._evEvents[`tabs-onUpdated_${this.id}`] = (changeInfo) =>{
+      console.log('updated',changeInfo)
+      if(changeInfo.favIconUrl != null){
+        // console.log('page-favicon-updated')
+        this.emit('page-favicon-updated', {sender: this}, [changeInfo.favIconUrl])
+      }
+      if(changeInfo.audible != null){
+        if(changeInfo.audible){
+          // console.log('media-started-playing')
+          this.emit('media-started-playing', {sender: this})
+        }
+        else{
+          // console.log('media-paused')
+          this.emit('media-paused', {sender: this})
+        }
+      }
+      // if(changeInfo.status == 'loading'){
+      //   console.log('did-start-loading2',)
+      //   this.emit('did-start-loading', {sender: this})
+      // }
+      // else if(changeInfo.status == 'complete'){
+      //   console.log('did-finish-load2')
+      //   this.emit('did-finish-load', {sender: this})
+      // }
+      // if(changeInfo.url != null){
+      //   console.log('update-target-url')
+      //   this.emit('update-target-url')
+      // }
+      if(changeInfo.title != null){
+        // console.log('page-title-updated')
+        this.emit('page-title-updated', {sender: this}, changeInfo.title)
+      }
+    }
+
+    // 'new-window'
+
+    this._pEvents['framenavigated'] = frame => {
+      // console.log('did-start-navigation', !frame.parentFrame())
+      this.emit('did-start-navigation', {sender: this}, frame.url(), true, !frame.parentFrame())
+    }
+
+    // did-navigate
+
+    this._pEvents['close'] = event => {
+      console.log('destroyed')
+      const data = BrowserPanel.getBrowserPanelByTabId(this.id)
+      if(data[3]) data[3].destroy(false)
+
+      this.destroyed = true
+      for(let event of Object.entries(this._evEvents)) evem.removeListener(...event)
+      for(let event of Object.entries(this._pEvents)) page.removeListener(...event)
+      webContents.webContentsMap.delete(this.id)
+      this.emit('destroyed')
+    }
+
+    // 'devtools-opened'
+    // 'found-in-page'
+    // 'cursor-changed'
+    // 'context-menu'
+
+    for(let event of Object.entries(this._evEvents)) evem.on(...event)
+    for(let event of Object.entries(this._pEvents)) page.on(...event)
+
+  }
+
+  _getPage(){
+    if(this.page) return this.page
+
+    return (async () => {
+      if(!Browser._pagePromises[this.id]) {
+        let targetInfo
+        for(let i=0;i<100;i++){
+          targetInfo = await (Browser.bg.evaluate((tabId) => {
+            return new Promise(resolve => {
+              chrome.debugger.getTargets(targetInfos => resolve(targetInfos.find(t => t.tabId == tabId)))
+            })
+          }, this.id))
+          if(targetInfo) break
+          await new Promise(r=>setTimeout(r,20))
+        }
+        if(!targetInfo) return null
+
+        let target
+        for(let i=0;i<100;i++){
+          target = Browser._browser.targets().find(t=>t._targetId == targetInfo.id)
+          if(target) break
+          await new Promise(r=>setTimeout(r,20))
+        }
+        console.log(3)
+
+        Browser._pagePromises[this.id] = target.page()
+      }
+
+      if(this.page || (this.page = await (Browser._pagePromises[this.id]))) return this.page
+
+      for(let i=0;i<100;i++){
+        await (new Promise(r=>setTimeout(r,50)))
+        if(Browser._pagePromises[this.id]){
+          this.page = await (Browser._pagePromises[this.id])
+          if(this.page) return this.page
+        }
+      }
+    })()
+
+  }
+
+  _getTabInfo(){
+    return Browser.bg.evaluate((tabId) => {
+      return new Promise(resolve => {
+        chrome.tabs.get(tabId, tab => resolve(tab))
+      })
+    }, this.id)
+  }
+
+  _updateTab(updateProperties){
+    return Browser.bg.evaluate((tabId, updateProperties) => {
+      return new Promise(resolve => {
+        chrome.tabs.update(tabId, updateProperties, tab => resolve(tab))
+      })
+    }, this.id, updateProperties)
+  }
+
+  _getBrowserView(){
+    return BrowserView.webContentsMap && BrowserView.webContentsMap.get(this)
+  }
+
+  _getBrowserPanel(){
+    const bv = this._getBrowserView()
+    return bv && bv._browserPanel
+  }
+
+  async _sendKey(key, modifier){
+    if(!this._getBrowserPanel()) return
+    this._getBrowserPanel().cpWin.chromeNativeWindow.setForegroundWindowEx()
+    if(modifier){
+      robot.keyTap(key, modifier)
+    }
+    else{
+      robot.keyTap(key)
+    }
+  }
+
+  get hostWebContents2(){
+    const bp = this._getBrowserPanel()
+    return bp && bp.browserWindow.webContents
+  }
+
+  destroy(){
+    console.log('2222sclose', this.id)
+    const page = this._getPage()
+    if(page.constructor.name == 'Promise'){
+      page.then(page=>{
+        if(!page.isClosed()){
+          // const bp = this._getBrowserPanel()
+          // if(Object.keys(bp.tabKeys).length == 1) bp.cpWin.chromeNativeWindow.setParent(null)
+          page.close()
+        }
+      })
+    }
+    else{
+      if(!page.isClosed()){
+        // const bp = this._getBrowserPanel()
+        // if(Object.keys(bp.tabKeys).length == 1)  bp.cpWin.chromeNativeWindow.setParent(null)
+        page.close()
+      }
+    }
+  }
+
+  loadURL(url, options){
+    Browser.bg.evaluate((tabId, url) => {
+      return new Promise(resolve => {
+        chrome.tabs.update(tabId, {url}, tab => resolve(tab))
+      })
+    }, this.id, url)
+  }
+
+  loadFile(filePath, options){
+    this.loadURL(`file://${filePath}`, options)
+  }
+
+  downloadURL(url, referer){
+    Browser.downloadURL(url, this, referer)
+  }
+
+  getURL(){
+    const page = this._getPage()
+    return page.constructor.name == 'Promise' ? '' : page.url() || ""
+  }
+
+  async getURLAsync(){
+    return (await this._getPage()).url() || ''
+  }
+
+  async getTitle(){
+    return (await this._getTabInfo()).title
+  }
+
+  isDestroyed(){
+    return !!this.destroyed
+  }
+
+  focus(){
+    const panel = this._getBrowserPanel()
+    if(!panel) return
+
+    if(require('../util').getCurrentWindow().id == panel.browserWindow.id){
+      panel.moveTopNativeWindow()
+    }
+  }
+
+  setActive(){
+    this._updateTab({active: true})
+  }
+
+  setForegroundWindow(){
+    if(!this._getBrowserPanel()) return
+    this._getBrowserPanel().cpWin.chromeNativeWindow.setForegroundWindowEx()
+  }
+
+  async isFocused(){
+    return (await this._getTabInfo()).active
+  }
+
+  async isLoading(){
+    return (await this._getTabInfo()).status == 'loading'
+  }
+
+  isLoadingMainFrame(){
+    return this.isLoading() //@TODO
+  }
+
+  isWaitingForResponse(){
+    //@TODO
+  }
+
+  stop(){
+    //@TODO
+  }
+
+  reload(){
+    return Browser.bg.evaluate((tabId) => {
+      return new Promise(resolve => {
+        chrome.tabs.reload(tabId, {bypassCache: false}, () => resolve())
+      })
+    }, this.id)
+  }
+
+  reloadIgnoringCache(){
+    return Browser.bg.evaluate((tabId) => {
+      return new Promise(resolve => {
+        chrome.tabs.reload(tabId, {bypassCache: true}, () => resolve())
+      })
+    }, this.id)
+  }
+
+  canGoBack(){
+    return this._getPage().canGo(-1)
+  }
+
+  canGoForward(){
+    return this._getPage().canGo(1)
+  }
+
+  canGoToOffset(offset){
+    return this._getPage().canGo(offset)
+  }
+
+  clearHistory(){
+    //@TODO
+  }
+
+  goBack(){
+    this._getPage().goBack()
+  }
+
+  goForward(){
+    this._getPage().goForward()
+  }
+
+  goToIndex(index){
+    this._getPage().goToIndex(index)
+  }
+
+  goToOffset(offset){
+    this._getPage()._go(offset)
+  }
+
+  isCrashed(){
+    //@TODO
+  }
+
+  setUserAgent(userAgent){
+    this._getPage().setUserAgent(userAgent)
+    this.userAgent = userAgent
+  }
+
+  async getUserAgent(){
+    return this.userAgent || await Browser.getUserAgent()
+  }
+
+  async insertCSS(css){
+    (await this._getPage()).addStyleTag({content: css})
+  }
+
+  async executeJavaScript(code, userGesture, callback){
+    if(typeof userGesture === 'function') [userGesture, callback] = [null, userGesture]
+
+    ;(await this._getPage()).evaluate(code).then(value=>callback && callback(value), reason=>callback && callback(null))
+  }
+
+  executeJavaScriptInIsolate(code, userGesture, callback){
+    Browser.bg.evaluate((tabId, code) => {
+      return new Promise(resolve => {
+        chrome.tabs.executeScript(tabId, {code}, (result) => resolve(result))
+      })
+    }, this.id, code).then(result=>callback && callback(result[0]))
+  }
+
+  setIgnoreMenuShortcuts(ignore){
+    //@TODO
+  }
+
+  setAudioMuted(muted){
+    this._updateTab({muted})
+  }
+
+  async isAudioMuted(){
+    return (await this._getTabInfo()).mutedInfo.muted
+  }
+
+  isCurrentlyAudible(){
+    //@TODO
+  }
+
+  setZoomFactor(factor){
+    Browser.bg.evaluate((tabId, factor) => {
+      return new Promise(resolve => {
+        chrome.tabs.setZoom(tabId, factor, () => resolve())
+      })
+    }, this.id, factor)
+  }
+
+  getZoomFactor(callback){
+    Browser.bg.evaluate((tabId) => {
+      return new Promise(resolve => {
+        chrome.tabs.getZoom(tabId, zoomFactor => resolve(zoomFactor))
+      })
+    }, this.id).then(callback)
+  }
+
+  setZoomLevel(level){
+    //@TODO
+  }
+
+  getZoomLevel(callback){
+    //@TODO
+  }
+
+  setVisualZoomLevelLimits(minimumLevel, maximumLevel){
+    //@TODO
+  }
+
+  setLayoutZoomLevelLimits(minimumLevel, maximumLevel){
+    //@TODO
+  }
+
+  undo(){
+    //@TODO
+  }
+
+  redo(){
+    //@TODO
+  }
+
+  cut(){
+    this.executeJavaScriptInIsolate("document.execCommand('cut')")
+  }
+
+  copy(){
+    this.executeJavaScriptInIsolate("document.execCommand('copy')")
+  }
+
+  copyImageAt(x, y){
+    //@TODO
+  }
+
+  paste(){
+    this.executeJavaScriptInIsolate("document.execCommand('paste')")
+  }
+
+  pasteAndMatchStyle(){
+    //@TODO
+  }
+
+  delete(){
+    //@TODO
+  }
+
+  selectAll(){
+    //@TODO
+  }
+
+  unselect(){
+    //@TODO
+  }
+
+  replace(text){
+    //@TODO
+  }
+
+  replaceMisspelling(text){
+    //@TODO
+  }
+
+  insertText(text){
+    //@TODO
+  }
+
+  findInPage(text, options){
+    this._sendKey('f', 'control')
+  }
+
+  async stopFindInPage(action){
+    await this._sendKey('f', 'control')
+    robot.keyTap('escape')
+  }
+
+  capturePage(rect, callback){
+    if(callback == void 0){
+      [callback, rect] = [rect, void 0]
+    }
+    this._getPage().screenshot({clip: rect, encoding: 'png'}).then(image=>callback(nativeImage.createFromBuffer(image)))
+
+
+    // this._getPage().screenshot({clip: rect, encoding: 'base64'}).then(image=>{
+    //   console.log(22)
+    //   callback(nativeImage.createFromDataURL("data:image/png;base64,"+ image))
+    // })
+  }
+
+  hasServiceWorker(callback){
+    //@TODO
+  }
+
+  unregisterServiceWorker(callback){
+    //@TODO
+  }
+
+  getPrinters(){
+    //@TODO
+  }
+
+  print(options, callback){
+    this.executeJavaScript('window.print()')
+  }
+
+  printToPDF(options, callback){
+    //@TODO
+    this._getPage().pdf().then(value=> callback(void 0, value), reason => callback(reason))
+  }
+
+  addWorkSpace(path){
+    //@TODO
+  }
+
+  removeWorkSpace(path){
+    //@TODO
+  }
+
+  setDevToolsWebContents(devToolsWebContents){
+    //@TODO
+  }
+
+  openDevTools(options){
+    this._sendKey('f12')
+  }
+
+  closeDevTools(){
+    this._sendKey('f12')
+  }
+
+  isDevToolsOpened(){
+    //@TODO
+  }
+
+  isDevToolsFocused(){
+    //@TODO
+  }
+
+  toggleDevTools(){
+    this._sendKey('f12')
+  }
+
+  inspectElement(x, y){
+    //@TODO
+  }
+
+  inspectServiceWorker(){
+    //@TODO
+  }
+
+  send(channel, ...args){
+    //@TODO
+    Browser.bg.evaluate((tabId, channel, ...args) => {
+      chrome.tabs.sendMessage(tabId, {ipc: true, channel, args})
+    }, this.id, channel, ...args)
+  }
+
+  enableDeviceEmulation(parameters){
+    //@TODO
+  }
+
+  disableDeviceEmulation(){
+    //@TODO
+  }
+
+  async _modifiers(event, callback){
+    if(event.modifiers && event.modifiers.length){
+      for(const modifier of event.modifiers){
+        await this._getPage().keyboard.down(modifier);
+      }
+    }
+    if(callback) await callback()
+    if(event.modifiers && event.modifiers.length){
+      for(const modifier of event.modifiers){
+        await this._getPage().keyboard.up(modifier);
+      }
+    }
+  }
+
+  async sendInputEvent(event){
+    const mouse = this._getPage().mouse
+    const keyboard = this._getPage().keyboard
+    if(event.type == 'mouseDown'){
+      await this._modifiers(async ()=>{
+        await mouse.move(event.x, event.y)
+        await mouse.down({button: event.button, clickCount: event.clickCount})
+      })
+    }
+    else if(event.type == 'mouseUp'){
+      await this._modifiers(async ()=>{
+        await mouse.move(event.x, event.y)
+        await mouse.up({button: event.button, clickCount: event.clickCount})
+      })
+    }
+    else if(event.type == 'click'){
+      await this._modifiers(async ()=>{
+        await mouse.click({x: event.x, y: event.y})
+      })
+    }
+    else if(event.type == 'mouseWheel'){
+      await this._modifiers(async ()=>{
+        await mouse.move(event.x, event.y)
+        await mouse.wheel({deltaX: event.deltaX, deltaY: event.deltaY})
+      })
+    }
+    else if(event.type == 'mouseMove'){
+      await mouse.move(event.x, event.y)
+    }
+    else if(event.type == 'mouseEnter'){
+      //@TODO
+    }
+    else if(event.type == 'mouseLeave'){
+      //@TODO
+    }
+    else if(event.type == 'keyDown'){
+      await this._modifiers(async ()=>{
+        //@TODO
+        await keyboard.down(event.keyCode)
+      })
+    }
+    else if(event.type == 'keyUp'){
+      await this._modifiers(async ()=>{
+        //@TODO
+        await keyboard.up(event.keyCode)
+      })
+    }
+    else if(event.type == 'char'){
+      await this._modifiers(async ()=>{
+        //@TODO
+        await keyboard.press(event.keyCode)
+      })
+    }
+  }
+
+  beginFrameSubscription(onlyDirty ,callback){
+    //@TODO
+  }
+
+  endFrameSubscription(){
+    //@TODO
+  }
+
+  startDrag(item){
+    //@TODO
+  }
+
+  async savePage(fullPath, saveType, callback){
+    //@TODO
+    if(saveType == 'MHTML'){
+      const session = await this._getPage().target().createCDPSession()
+      await session.send('Page.enable')
+      const {data} = await session.send('Page.captureSnapshot')
+      fs.writeFileSync(fullPath, data)
+      callback()
+    }
+  }
+
+
+  isOffscreen(){
+    //@TODO
+  }
+
+  startPainting(){
+    //@TODO
+  }
+
+  stopPainting(){
+    //@TODO
+  }
+
+  isPainting(){
+    //@TODO
+  }
+
+  setFrameRate(fps){
+    //@TODO
+  }
+
+  getFrameRate(){
+    //@TODO
+  }
+
+  invalidate(){
+    //@TODO
+  }
+
+  getWebRTCIPHandlingPolicy(){
+    //@TODO
+  }
+
+  setWebRTCIPHandlingPolicy(policy){
+    //@TODO
+  }
+
+  getOSProcessId(){
+    //@TODO
+  }
+
+  getProcessId(){
+    //@TODO
+  }
+
+  takeHeapSnapshot(filePath){
+    //@TODO
+  }
+
+  setBackgroundThrottling(allowed){
+    //@TODO
+  }
+
+  async getNavigationHistory(){
+    return (await this._getPage()).getNavigationHistory()
+  }
+
+  async length(){
+    return (await this.getNavigationHistory()).entries.length
+  }
+
+  async getActiveIndex(){
+    return (await this.getNavigationHistory()).currentIndex
+  }
+
+  async getURLAtIndex(index){
+    const history = (await this.getNavigationHistory())
+    return history.entries[index].url
+  }
+
+  async getTitleAtIndex(index){
+    const history = (await this.getNavigationHistory())
+    return history.entries[index].title
+  }
+
+  async duplicate(){
+    return Browser.bg.evaluate((tabId) => {
+      return new Promise(resolve => {
+        chrome.tabs.duplicate(tabId, () => resolve())
+      })
+    }, this.id)
+  }
+
+}

@@ -3,7 +3,7 @@ const path = require('path')
 import {download,downloader} from './databaseFork'
 import {getCurrentWindow} from './util'
 import fs from 'fs'
-import {Browser} from './remoted-chrome/BrowserView'
+import {Browser} from './remoted-chrome/Browser'
 
 export default class DownloadEvent {
   constructor(){

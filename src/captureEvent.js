@@ -1,5 +1,5 @@
 import {ipcMain, app, BrowserWindow} from 'electron'
-import {webContents, BrowserView} from './remoted-chrome/BrowserView'
+import {webContents, BrowserView} from './remoted-chrome/Browser'
 import fs from 'fs'
 import path from 'path'
 import { favicon,history,image,sock } from './databaseFork'

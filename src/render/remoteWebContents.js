@@ -1,1 +1,1 @@
-export default require('electron').remote.require('./remoted-chrome/BrowserView').webContents
+export default require('electron').remote.require('./remoted-chrome/Browser').webContents

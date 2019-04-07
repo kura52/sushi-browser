@@ -1,5 +1,5 @@
 import {app, Menu, clipboard, BrowserWindow, ipcMain, session, shell, protocol, screen} from 'electron'
-import {Browser, BrowserPanel, BrowserView, webContents} from './remoted-chrome/BrowserView'
+import {Browser, BrowserPanel, BrowserView, webContents} from './remoted-chrome/Browser'
 // import ExtensionsMain from './extension/ExtensionsMain'
 import PubSub from './render/pubsub'
 import mainState from './mainState'

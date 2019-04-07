@@ -1,6 +1,6 @@
 const electron = require('electron')
 const {BrowserWindow,BrowserView,app,ipcMain,session} = electron
-import {Browser} from './remoted-chrome/BrowserView'
+import {Browser} from './remoted-chrome/Browser'
 const url = require('url')
 const path = require('path')
 const fs = require('fs')

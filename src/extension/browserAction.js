@@ -1,5 +1,5 @@
 const {ipcMain} = require('electron')
-import {webContents} from '../remoted-chrome/BrowserView'
+import {webContents} from '../remoted-chrome/Browser'
 const {getFocusedWebContents, getCurrentWindow} = require('../util')
 const mainState = require('../mainState')
 

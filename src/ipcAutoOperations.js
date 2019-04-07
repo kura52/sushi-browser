@@ -1,5 +1,5 @@
 import {ipcMain,session} from 'electron'
-import {webContents} from './remoted-chrome/BrowserView'
+import {webContents} from './remoted-chrome/Browser'
 import fs from 'fs'
 import uuid from 'node-uuid'
 import PubSub from './render/pubsub'

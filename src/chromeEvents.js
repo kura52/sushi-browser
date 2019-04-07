@@ -1,5 +1,5 @@
 import {ipcMain,app,dialog,BrowserWindow,shell,session,clipboard,nativeImage} from 'electron'
-import {webContents} from './remoted-chrome/BrowserView'
+import {webContents} from './remoted-chrome/Browser'
 const BrowserWindowPlus = require('./BrowserWindowPlus')
 import fs from 'fs-extra'
 import sh from 'shelljs'

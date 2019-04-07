@@ -1,4 +1,4 @@
-import {webContents} from './remoted-chrome/BrowserView'
+import {webContents} from './remoted-chrome/Browser'
 
 export default function(isPrivate){
   if(isPrivate){

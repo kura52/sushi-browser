@@ -6,7 +6,7 @@ const sock = require('axon').socket('req')
 const fs = require('fs')
 const emptyPort = require('./emptyPort')
 import { app } from 'electron'
-import {webContents} from './remoted-chrome/BrowserView'
+import {webContents} from './remoted-chrome/Browser'
 const isDarwin = process.platform === 'darwin'
 
 emptyPort((err,ports)=>{

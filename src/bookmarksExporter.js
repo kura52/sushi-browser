@@ -8,7 +8,7 @@ const path = require('path')
 const moment = require('moment')
 const fs = require('fs')
 const {dialog,app,BrowserWindow,ipcMain,nativeImage,session} = require('electron')
-import {Browser} from './remoted-chrome/BrowserView'
+import {Browser} from './remoted-chrome/Browser'
 import {
   state,
   searchEngine,

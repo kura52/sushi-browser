@@ -6,7 +6,7 @@ const path = require('path')
 import uuid from 'node-uuid'
 import mainState from './mainState'
 import {downloader} from './databaseFork'
-import {Browser} from './remoted-chrome/BrowserView'
+import {Browser} from './remoted-chrome/Browser'
 import {getFocusedWebContents} from './util'
 
 const binaryPath = path.join(__dirname, '../resource/bin/aria2',

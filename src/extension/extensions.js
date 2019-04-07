@@ -1,4 +1,4 @@
-const {Browser} = require('../remoted-chrome/BrowserView')
+const {Browser} = require('../remoted-chrome/Browser')
 const extInfos = require('../extensionInfos')
 
 

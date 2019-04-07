@@ -1,5 +1,5 @@
 const {app,Menu,shell,ipcMain,BrowserWindow,session,clipboard} = require('electron')
-import {Browser} from './remoted-chrome/BrowserView'
+import {Browser} from './remoted-chrome/Browser'
 const BrowserWindowPlus = require('./BrowserWindowPlus')
 const seq = require('./sequence')
 const locale = require('../brave/app/locale')

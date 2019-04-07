@@ -1,5 +1,5 @@
 import {downloader} from './databaseFork'
-import {Browser} from './remoted-chrome/BrowserView'
+import {Browser} from './remoted-chrome/Browser'
 import {EventEmitter} from 'events'
 import path from 'path'
 import {ipcMain} from "electron";

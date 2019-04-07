@@ -1,7 +1,7 @@
 import {getFocusedWebContents} from "./util";
 
 const {BrowserWindow, dialog,ipcMain,app,shell} = require('electron')
-import {Browser, webContents} from './remoted-chrome/BrowserView'
+import {Browser, webContents} from './remoted-chrome/Browser'
 const _webContents = webContents
 import mainState from './mainState'
 const Aria2cWrapper = require('./Aria2cWrapper')
