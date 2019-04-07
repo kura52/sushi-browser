@@ -1362,16 +1362,9 @@ async function contextMenu(webContents, props) {
 
   // clipboard
   if (props.isEditable) {
-    menuItems.push({t: 'cut', label: locale.translation("cut"), role: 'cut', enabled: can('Cut')})
-    if (isDarwin) {
-      menuItems.push({t: 'copy', label: locale.translation("copy"), enabled: can('Copy'),
-        click(item, focusedWindow) { getFocusedWebContents().then(cont =>cont && cont.copy())}
-      })
-    }
-    else{
-      menuItems.push({t: 'copy', label: locale.translation("copy"), role: 'copy', enabled: can('Copy')})
-    }
-    menuItems.push({t: 'paste', label: locale.translation("paste"), role: 'paste', enabled: editFlags.canPaste})
+    menuItems.push({t: 'cut', label: locale.translation("cut"),  enabled: can('Cut'), click(item, focusedWindow) { webContents.cut() }})
+    menuItems.push({t: 'copy', label: locale.translation("copy"), enabled: can('Copy'), click(item, focusedWindow) { webContents.copy() } })
+    menuItems.push({t: 'paste', label: locale.translation("paste"),  enabled: editFlags.canPaste, click(item, focusedWindow) { webContents.paste() }})
     menuItems.push({type: 'separator'})
   }
   else if (hasText) {
@@ -1387,7 +1380,7 @@ async function contextMenu(webContents, props) {
         }})
     }
     else{
-      menuItems.push({t: 'copy', label: locale.translation("copy"), role: 'copy', enabled: can('Copy')})
+      menuItems.push({t: 'copy', label: locale.translation("copy"), enabled: can('Copy'), click(item, focusedWindow) { webContents.copy() } })
     }
     // }
     if(mainState.contextMenuSearchEngines.length == 0){

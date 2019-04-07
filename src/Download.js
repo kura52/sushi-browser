@@ -150,13 +150,11 @@ export default class Download {
     const itemMap = {}
     ipcMain.on('chrome-download-start', async (event, item, _url, webContents) => {
       if(!webContents){
-        itemMap[item.id] = true
-        for(let i=0;i<10;i++){
-          await new Promise(r => setTimeout(r,10))
-          if(!itemMap[item.id]) return
-        }
+        itemMap[item.id] = webContents
+        return
       }
-      else{
+      else if(itemMap[item.id]){
+        webContents = itemMap[item.id]
         delete itemMap[item.id]
       }
 

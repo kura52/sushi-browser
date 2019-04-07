@@ -243,6 +243,14 @@ if(window.__started_){
         console.log(553,target)
         const v = target
         const func = ()=>{
+
+          const existElement = document.querySelector("#maximize-org-video")
+          if(existElement){
+            clearTimeout(beforeRemoveIds[target])
+            beforeRemoveIds[target] = setTimeout(_=>document.body.removeChild(existElement),2000)
+            return
+          }
+
           const rect = v.getBoundingClientRect()
           const rStyle = `left:${Math.round(rect.left) + 10}px;top:${Math.round(rect.top) + 10}px`
 
@@ -251,11 +259,6 @@ if(window.__started_){
           span.style.cssText = `${rStyle};z-index: 2147483647;position: absolute;overflow: hidden;border-radius: 8px;background: rgba(50,50,50,0.9);text-shadow: 0 0 2px rgba(0,0,0,.5);transition: opacity .1s cubic-bezier(0.0,0.0,0.2,1);margin: 0;border: 0;font-size: 14px;color: white;padding: 4px 7px;`;
           span.setAttribute("id", "maximize-org-video")
 
-          const existElement = document.querySelector("#maximize-org-video")
-          if(existElement){
-            clearTimeout(beforeRemoveIds[target])
-            document.body.removeChild(existElement)
-          }
           document.body.appendChild(span)
 
           span.addEventListener('click', ()=> {

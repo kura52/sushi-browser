@@ -446,7 +446,7 @@ class Browser{
       // }
 
       for(const browserPanel of Object.values(BrowserPanel.panelKeys)){
-        if(browserPanel.windowId != windowId){
+        if(browserPanel.windowId == windowId){
           for(const browserPanel2 of Object.values(BrowserPanel.panelKeys)){
             if(browserPanel != browserPanel2 && browserPanel.browserWindow.id == browserPanel2.browserWindow.id){
               browserPanel2.moveTopNativeWindow()
@@ -1138,13 +1138,13 @@ class BrowserPanel{
     this.getBrowserView({tabId}).destroy()
   }
 
-  async addBrowserView(tabKey, url, index){
+  async addBrowserView(tabKey, url, index, topZOrder){
     const tab = await Browser.bg.evaluate((windowId, index, url) => {
       return new Promise(resolve => {
         chrome.tabs.create({windowId, index, url}, tab => resolve(tab))
       })
     }, this.windowId, index, url)
-    const bv = new BrowserView(this, tabKey, tab.id)
+    const bv = new BrowserView(this, tabKey, tab.id, topZOrder)
     this.tabKeys[tabKey] = [tab.id, bv]
     return bv
   }
@@ -1236,17 +1236,15 @@ class BrowserView{
     this.webContentsMap = new Map()
   }
 
-  static async createNewTab(browserWindow, panelKey, tabKey, tabIndex, url, alwaysOnTop){
+  static async createNewTab(browserWindow, panelKey, tabKey, tabIndex, url, topZOrder){
     // console.log('createNewTab',(panelKey, tabKey, tabIndex, url))
     if(panelKey){
       const panel = BrowserPanel.getBrowserPanel(panelKey)
       if(panel){
-        if(alwaysOnTop) panel.setAlwaysOnTop(true)
-        return panel.addBrowserView(tabKey, url, tabIndex)
+        return panel.addBrowserView(tabKey, url, tabIndex, topZOrder)
       }
       else{
         const panel = await new BrowserPanel({browserWindow, panelKey, tabKey, url})
-        if(alwaysOnTop) panel.setAlwaysOnTop(true)
         return panel.tabKeys[tabKey][1]
       }
     }
@@ -1406,7 +1404,7 @@ class BrowserView{
     return this.webContentsMap.get(webContents)
   }
 
-  constructor(_browserPanel, tabKey, tabId) {
+  constructor(_browserPanel, tabKey, tabId, topZOrder) {
     BrowserView._initializer()
 
     this._browserPanel = _browserPanel
@@ -1896,9 +1894,9 @@ class webContents extends EventEmitter {
   executeJavaScriptInIsolate(code, userGesture, callback){
     Browser.bg.evaluate((tabId, code) => {
       return new Promise(resolve => {
-        chrome.tabs.reload(tabId, {code}, (result) => resolve(result))
+        chrome.tabs.executeScript(tabId, {code}, (result) => resolve(result))
       })
-    }, this.id, code).then(result=>callback(result[0]))
+    }, this.id, code).then(result=>callback && callback(result[0]))
   }
 
   setIgnoreMenuShortcuts(ignore){
@@ -1958,11 +1956,11 @@ class webContents extends EventEmitter {
   }
 
   cut(){
-    //@TODO
+    this.executeJavaScriptInIsolate("document.execCommand('cut')")
   }
 
   copy(){
-    //@TODO
+    this.executeJavaScriptInIsolate("document.execCommand('copy')")
   }
 
   copyImageAt(x, y){
@@ -1970,7 +1968,7 @@ class webContents extends EventEmitter {
   }
 
   paste(){
-    //@TODO
+    this.executeJavaScriptInIsolate("document.execCommand('paste')")
   }
 
   pasteAndMatchStyle(){

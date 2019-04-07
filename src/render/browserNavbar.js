@@ -129,6 +129,7 @@ class BrowserNavbar extends Component{
   }
 
   initEvents(){
+    console.log(`zoom_${this.props.tabkey}`)
     this.tokenZoom = PubSub.subscribe(`zoom_${this.props.tabkey}`,(msg,percent)=>{
       this.setState({zoom:percent})
       if(this.props.tab.sync) this.props.parent.syncZoom(percent,this.props.tab.sync)
@@ -213,19 +214,18 @@ class BrowserNavbar extends Component{
   }
 
   componentWillMount(){
-    console.log('navbar','componentWillMount',this.props.tabkey)
+    console.log('navbar','componentWillMount',this.props.tabkey,this.props.k)
     this.props.refs2[`navbar-${this.props.tabkey}`] = this
-    this.props.refs2[`navbar-panel-${this.props.tabkey}`] = this.props.k
   }
 
   componentDidMount() {
-    console.log('navbar','componentDidMount',this.props.tabkey)
+    console.log('navbar','componentDidMount',this.props.tabkey,this.props.k)
     this.updateStates()
     this.initEvents()
   }
 
   componentWillUnmount() {
-    console.log('navbar','componentWillUnmount',this.props.tabkey)
+    console.log('navbar','componentWillUnmount',this.props.tabkey,this.props.k)
     PubSub.unsubscribe(this.tokenZoom)
     PubSub.unsubscribe(this.tokenReplaceInfo)
     // PubSub.unsubscribe(this.tokenAdblockGlobal)
@@ -235,9 +235,8 @@ class BrowserNavbar extends Component{
     PubSub.unsubscribe(this.tokenMenuSort)
     PubSub.unsubscribe(this.tokenMultistageTabs)
     tabs.add(this.props.tab.wvId)
-    if(this.props.refs2[`navbar-${this.props.tabkey}`] == this && this.props.refs2[`navbar-panel-${this.props.tabkey}`] == this.props.k){
+    if(this.props.refs2[`navbar-${this.props.tabkey}`] == this){
       delete this.props.refs2[`navbar-${this.props.tabkey}`]
-      delete this.props.refs2[`navbar-panel-${this.props.tabkey}`]
       delete sharedState[`color-${this.props.tabkey}`]
     }
   }
