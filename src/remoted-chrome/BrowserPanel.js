@@ -2,8 +2,8 @@ import winctl from "../../resource/winctl";
 import {BrowserWindow, ipcMain} from "electron";
 
 let Browser = new Proxy({},  { get: function(target, name){ Browser = require('./Browser').Browser; return typeof Browser[name] == 'function' ? Browser[name].bind(Browser) : Browser[name]}})
+let PopupPanel = new Proxy({},  { get: function(target, name){ PopupPanel = require('./Browser').PopupPanel; return typeof PopupPanel[name] == 'function' ? PopupPanel[name].bind(PopupPanel) : PopupPanel[name]}})
 let BrowserView = require('./BrowserView')
-let webContents = require('./webContents')
 
 export default class BrowserPanel {
   static async _initializer() {
@@ -451,6 +451,7 @@ export default class BrowserPanel {
   moveTopNativeWindow() {
     if (BrowserPanel.contextMenuShowing) return
     this.cpWin.nativeWindow.moveTop()
+    if(this.panelKey == PopupPanel.instance.panelKey) PopupPanel.instance.moveTop()
   }
 
   moveTopNativeWindowBw() {

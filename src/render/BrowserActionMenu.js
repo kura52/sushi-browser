@@ -61,7 +61,7 @@ class BrowserActionWebView extends Component {
     const preClose = this.preClose, close = this.close
     setTimeout(()=>{
       if(close == preClose){
-        if(!this.refs || !this.refs.div || !this.webview) return
+        if(!this.refs || !this.refs.div || !this.popupPanel) return
         const r = this.refs.div ? ReactDOM.findDOMNode(this.refs.div).getBoundingClientRect() : {left:0,top:0,width:0,height:0}
         ipc.send('set-overlap-component', 'extension-popup', this.props.k, this.props.tab.key,
           r.left , r.top, r.width, r.height)
@@ -72,10 +72,10 @@ class BrowserActionWebView extends Component {
     this.preClose = this.close
   }
 
-  setPreferredSize(webview, width,height,retry){
-    console.log('setPreferredSize',webview, width, height, retry)
+  setPreferredSize(popupPanel, width,height,retry){
+    console.log('setPreferredSize',popupPanel, width, height, retry)
     this.setState({style:{width,height, userSelect: 'none'}},()=>{
-      webview.executeJavaScript(`(function(){
+      popupPanel.executeJavaScript(`(function(){
       const ele = document.scrollingElement
       return [ele.clientWidth, ele.scrollWidth, ele.clientHeight, ele.scrollHeight]
     })()`,(result)=>{
@@ -111,22 +111,22 @@ class BrowserActionWebView extends Component {
           this.checkSize()
         }
         else{
-          this.setPreferredSize(webview, widthRetry, heightRetry, ++retry)
+          this.setPreferredSize(popupPanel, widthRetry, heightRetry, ++retry)
         }
       })
     })
   }
 
   checkSize(){
-    if(!this.webview) return
+    if(!this.popupPanel) return
     this.intervalId = setInterval(()=>{
-      this.webview.executeJavaScript(`(function(){
+      this.popupPanel.executeJavaScript(`(function(){
       const ele = document.scrollingElement
       return [ele.clientWidth, ele.scrollWidth, ele.clientHeight, ele.scrollHeight]
     })()`,(result)=>{
         if(JSON.stringify(result) != this.result){
           clearInterval(this.intervalId)
-          this.setPreferredSize(this.webview, result[1], result[3], 0)
+          this.setPreferredSize(this.popupPanel, result[1], result[3], 0)
         }
       })
     },1000)
@@ -138,16 +138,15 @@ class BrowserActionWebView extends Component {
     }
     else{
       const r = this.refs.div ? ReactDOM.findDOMNode(this.refs.div).getBoundingClientRect() : {left:0,top:0,width:0,height:0}
-      this.tabId = ipc.sendSync('set-overlap-component', 'extension-popup', this.props.k, this.props.tab.key,
-        r.left , r.top, r.width, r.height, this.props.url)
-      this.webview = require('./remoteWebContents').fromId(this.tabId)
+      const id = ipc.sendSync('set-overlap-component', 'extension-popup', this.props.k, this.props.tab.key,
+        r.left , r.top, 200, 200, this.props.url)
+      this.popupPanel = remote.require('./remoted-chrome/Browser').PopupPanel.instance
     }
 
-    if(this.webview){
+    if(this.popupPanel){
       ipc.on('send-to-host',this.ipcEvent) //@TODO ELECTRON
       setTimeout(()=>{
-        this.setPreferredSize(this.webview, 200, 100, 0)
-        ipc.send('chrome-extension-popup-id', this.tabId)
+        this.setPreferredSize(this.popupPanel, 200, 100, 0)
       },10)
     }
   }

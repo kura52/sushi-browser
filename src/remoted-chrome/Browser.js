@@ -47,8 +47,6 @@ class Browser{
         'about:blank'
       ]})
 
-    console.log(this._browser ,executablePath)
-
     this.listeners = {}
     this._pagePromises = {}
 
@@ -167,7 +165,12 @@ class Browser{
     })
 
     this.addListener('tabs', 'onCreated', tab=>{
+      console.log('tab', 'created', tab.url)
       if(webContents.webContentsMap && webContents.webContentsMap.has(tab.id)) return
+      if(tab.url == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/popup_prepare.html'){
+        PopupPanel.tabId = tab.id
+        return
+      }
       const cont = new webContents(tab.id)
       BrowserView.newTab(cont, tab)
     })
@@ -783,6 +786,24 @@ class Browser{
     }
   }
 
+  static async showPopupPanel(panelKey, tabKey, bounds, url){
+    if(!this.popupPanel) this.popupPanel = await PopupPanel.newPanel(bounds)
+    if(url) this.popupPanel.loadURL(url)
+
+    this.popupPanel.setKeys(panelKey, tabKey)
+    if(bounds) this.popupPanel.setBounds(bounds)
+
+    return this.popupPanel
+  }
+
+  static hidePopupPanel(panelKey, tabKey){
+    if(!this.popupPanel) return
+
+    this.popupPanel.hide(panelKey, tabKey)
+
+    return this.popupPanel
+  }
+
 }
 
 
@@ -790,6 +811,103 @@ const BrowserPanel = require("./BrowserPanel")
 const BrowserView = require("./BrowserView")
 const webContents = require("./webContents")
 
+class PopupPanel{
+
+  static async newPanel(bounds){
+    const cWin = await Browser.bg.evaluate((bounds, sideMargin, topMargin) => {
+      return new Promise(resolve => {
+        chrome.windows.create({
+          url: 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/popup_prepare.html',
+          focused: true, //type: 'popup',
+          left: bounds.x - sideMargin, top: bounds.y - topMargin,
+          width: bounds.width + sideMargin * 2, height: bounds.height + topMargin + 8
+        }, window => resolve(window))
+      })
+    }, bounds, BrowserPanel.sideMargin, BrowserPanel.topMargin)
+
+    await new Promise(r=>setTimeout(r,20))
+
+    let chromeNativeWindow = winctl.GetActiveWindow()
+    if (!chromeNativeWindow.getTitle().includes('Sushi Browser Popup Prepare')) {
+      chromeNativeWindow = (await winctl.FindWindows(win => {
+        // console.log(666,win.getTitle())
+        return win.getTitle().includes('Sushi Browser Popup Prepare')
+      }))[0]
+    }
+
+    chromeNativeWindow.setWindowLongPtrEx(0x00000080)
+    chromeNativeWindow.moveRelative(9999, 9999, 0, 0)
+
+    const hwnd = chromeNativeWindow.createWindow()
+    const nativeWindow = (await winctl.FindWindows(win => win.getHwnd() == hwnd))[0]
+
+    chromeNativeWindow.setParent(nativeWindow.getHwnd())
+    chromeNativeWindow.move(...BrowserPanel.getChromeWindowBoundArray(0, 0))
+
+    return new PopupPanel({chromeWindow: cWin, nativeWindow, chromeNativeWindow})
+  }
+
+  constructor({chromeWindow, nativeWindow, chromeNativeWindow}){
+    this.id = chromeWindow.id
+    this.chromeWindow = chromeWindow
+    this.nativeWindow = nativeWindow
+    this.chromeNativeWindow = chromeNativeWindow
+
+    PopupPanel.instance = this
+  }
+
+  setKeys(panelKey, tabKey){
+    this.panelKey = panelKey
+    this.tabKey = tabKey
+  }
+
+  setBounds(bounds){
+    console.log(22233, bounds)
+    if(this.minimized){
+      this.nativeWindow.showWindow(9)
+      this.minimized = false
+    }
+    if (bounds.width) {
+      this.nativeWindow.move(bounds.x, bounds.y, bounds.width, bounds.height)
+      this.chromeNativeWindow.move(...BrowserPanel.getChromeWindowBoundArray(bounds.width, bounds.height))
+    }
+    else {
+      const dim = this.nativeWindow.dimensions()
+      this.nativeWindow.move(bounds.x, bounds.y, dim.right - dim.left, dim.bottom - dim.top)
+    }
+  }
+
+  hide(panelKey, tabKey){
+    if(panelKey != this.panelKey || tabKey != this.tabKey) return
+
+    this.loadURL('about:blank')
+    this.nativeWindow.showWindow(6)
+    this.minimized = true
+  }
+
+  moveTop(){
+    this.nativeWindow.moveTop()
+  }
+
+  loadURL(url){
+    this.moveTop()
+    Browser.bg.evaluate((tabId, url) => {
+      return new Promise(resolve => {
+          chrome.tabs.update(tabId, {url}, tab => resolve(tab))
+      })
+    }, PopupPanel.tabId, url)
+  }
+
+  async executeJavaScript(code, userGesture, callback){
+    if(typeof userGesture === 'function') [userGesture, callback] = [null, userGesture]
+    const page = await (Browser._pagePromises[PopupPanel.tabId])
+    console.log(331,code)
+    page.evaluate(code).then(value=>callback && callback(value), reason=>callback && callback(null))
+  }
+
+}
+
+PopupPanel.instance = {}
 
 class BackgroundPage{
   constructor(extensionId){
@@ -812,5 +930,6 @@ export default {
   Browser,
   BrowserPanel,
   BrowserView,
-  webContents
+  webContents,
+  PopupPanel
 }

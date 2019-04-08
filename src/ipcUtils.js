@@ -1,5 +1,5 @@
 import {ipcMain, app, dialog, BrowserWindow, shell, session, clipboard, nativeImage, Menu, screen} from 'electron'
-import {BrowserPanel, BrowserView, webContents} from './remoted-chrome/Browser'
+import {Browser, BrowserPanel, BrowserView, webContents} from './remoted-chrome/Browser'
 const BrowserWindowPlus = require('./BrowserWindowPlus')
 import fs from 'fs-extra'
 import sh from 'shelljs'
@@ -2615,43 +2615,27 @@ ipcMain.on('delete-browser-view', (e, panelKey, tabKey)=>{
 // })
 //
 let wait = false
-ipcMain.on('set-overlap-component', async (e, type, panelKey, tabKey, x, y, width, height, ...args) => {
-  panelKey = 'ext'
-  tabKey = `${tabKey}_ext`
-  // console.log('set-overlap-component', type, panelKey, tabKey, x, y, width, height, ...args)
-  if(wait){
-    for(let i=0;i< 1000;i++){
-      await new Promise(r=> setTimeout(r,10))
-      if(!wait) break
+ipcMain.on('set-overlap-component', async (e, type, panelKey, tabKey, x, y, width, height, url) => {
+  if(type != 'extension-popup') return
+
+
+  if(y != -1){
+    const win = BrowserWindow.fromWebContents(e.sender)
+    if(!win || win.isDestroyed()) return
+
+    const winBounds = win.getBounds()
+    const bounds = {
+      x: Math.round(x) + (winBounds.x < 0 ? 0 : winBounds.x),
+      y:Math.round(y) + (winBounds.y < 0 ? 0 : winBounds.y),
+      width: Math.round(width), height: Math.round(height)
     }
-  }
+    const popupPanel = await Browser.showPopupPanel(panelKey, tabKey, bounds, url)
 
-  let view
-  const panel = BrowserPanel.getBrowserPanel(panelKey)
-  if(panel) view = panel.getBrowserView({tabKey})
-
-  const win = BrowserWindow.fromWebContents(e.sender)
-  if(!win || win.isDestroyed()) return
-
-  wait = true
-
-  if(!view){
-    if(y != -1) view = await BrowserView.createNewTab(win, panelKey, tabKey, void 0, args[0], true)
+    e.returnValue = popupPanel && popupPanel.id
   }
   else{
-    if(y == -1){
-      if(!view.isDestroyed()) view.destroy()
-    }
-    else{
-      const winBounds = win.getBounds()
-      view.setBounds({
-        x: Math.round(x) + (winBounds.x < 0 ? 0 : winBounds.x),
-        y:Math.round(y) + (winBounds.y < 0 ? 0 : winBounds.y),
-        width: Math.round(width), height: Math.round(height)})
-    }
+    Browser.hidePopupPanel(panelKey, tabKey)
   }
-  wait = false
-  e.returnValue = view && view.webContents.id
 })
 
 ipcMain.on('change-browser-view-z-index', (e, isFrame) =>{

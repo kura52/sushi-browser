@@ -372,7 +372,7 @@ app.on('activate', function () {
 //   }
 // })
 
-const popupCache = new LRUCache(100)
+// const popupCache = new LRUCache(100)
 ipcMain.on('chrome-extension-popup-id', (e,tabId)=>{
   popupCache.set(tabId,true)
 })

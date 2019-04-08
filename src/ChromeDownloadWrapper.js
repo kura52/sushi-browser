@@ -18,11 +18,11 @@ export default class ChromeDownloadWrapper extends EventEmitter {
     this.intervalId = setInterval(async ()=>{
       await this.updateState()
 
-      if(item.error){
+      if(this.item.error){
         clearInterval(this.intervalId)
         this.emit('error')
       }
-      if(item.state == 'complete'){
+      if(this.item.state == 'complete'){
         clearInterval(this.intervalId)
         this.emit('done')
       }
