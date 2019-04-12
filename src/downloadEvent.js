@@ -70,7 +70,15 @@ export default class DownloadEvent {
     })
 
     ipcMain.on('download-open',(event,data)=>{
-      shell.openItem(data.savePath)
+      try{
+        shell.openItem(data.savePath)
+      }
+      catch(e){
+        try{
+          shell.openItem(data.savePath + '.crdownload')
+        }
+        catch(e){}
+      }
     })
   }
 

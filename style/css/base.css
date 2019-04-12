@@ -1395,3 +1395,11 @@ a.zoom-change:hover,a.zoom-reset:hover{
     min-width: max-content !important;
     overflow: hidden !important;
 }
+
+.browser-action.nav-menu{
+    opacity: 0;
+}
+
+.menu.transition.visible.browser-action.nav-menu {
+    top: 30px !important;
+}

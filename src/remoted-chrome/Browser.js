@@ -12,6 +12,61 @@ import backgroundPageModify from './backgroundPageModify'
 import hjson from 'hjson'
 import evem from './evem'
 
+function search(obj,messages){
+  if(Array.isArray(obj)){
+    let i = 0
+    for(let v of obj){
+      if(Array.isArray(v) || v instanceof Object){
+        search(v,messages)
+      }
+      else if((typeof (v) == "string" || v instanceof String) && v.startsWith('__MSG_')){
+        const msg = messages[v.slice(6,-2)]
+        if(msg && msg.message){
+          obj[i] = msg.message
+        }
+      }
+      ++i
+    }
+  }
+  else if(obj instanceof Object){
+    for(let [k,v] of Object.entries(obj)){
+      if(Array.isArray(v) || v instanceof Object){
+        search(v,messages)
+      }
+      else if((typeof (v) == "string" || v instanceof String) && v.startsWith('__MSG_')){
+        const msg = messages[v.slice(6,-2)]
+        if(msg && msg.message){
+          obj[k] = msg.message
+        }
+      }
+    }
+  }
+}
+
+function transInfos(installInfo){
+  const locale = app.getLocale().replace('-', "_")
+  const basePath = installInfo.base_path
+
+  if(!basePath) return
+  let localePath = path.join(basePath, `_locales/${locale.split("_")[0]}/messages.json`)
+  console.log(661,localePath)
+  if (!fs.existsSync(localePath)) {
+    localePath = path.join(basePath, `_locales/${locale}/messages.json`)
+    console.log(662,localePath)
+    if (!fs.existsSync(localePath)) {
+      const default_locale = installInfo.manifest.default_locale || installInfo.default_locale
+      localePath = path.join(basePath, `_locales/${default_locale}/messages.json`)
+      console.log(663,localePath)
+      if (!default_locale || !fs.existsSync(localePath)) {
+        return
+      }
+    }
+  }
+  console.log(552,localePath)
+  const messages = hjson.parse(removeBom(fs.readFileSync(localePath).toString()))
+  search(installInfo,messages)
+}
+
 class Browser{
   static setUserDataDir(userDataDir){
     this.userDataDir = userDataDir
@@ -164,6 +219,8 @@ class Browser{
       // console.log(`webNavigation-onErrorOccurred_${details.tabId}`, details)
     })
 
+    this.windowCache = {}
+    this.popUpCache = {}
     this.addListener('tabs', 'onCreated', tab=>{
       console.log('tab', 'created', tab.url)
       if(webContents.webContentsMap && webContents.webContentsMap.has(tab.id)) return
@@ -171,17 +228,23 @@ class Browser{
         PopupPanel.tabId = tab.id
         return
       }
+      if(this.windowCache[tab.windowId] == 'popup'){
+        this.popUpCache[tab.id] = true
+        return
+      }
       const cont = new webContents(tab.id)
       BrowserView.newTab(cont, tab)
     })
 
     this.addListener('tabs', 'onMoved', (tabId, {windowId, fromIndex, toIndex})=>{
+      if(PopupPanel.tabId == tabId || this.popUpCache[tabId]) return
       // const cont = new webContents(tabId)
       // BrowserView.movedTab(cont, windowId, fromIndex, toIndex)
       BrowserPanel.MovedTabs(tabId, {windowId, fromIndex, toIndex})
     })
 
     this.addListener('tabs', 'onAttached', (tabId, {newWindowId, newPosition})=>{
+      if(PopupPanel.tabId == tabId || this.popUpCache[tabId]) return
       // const cont = new webContents(tabId)
       // BrowserView.movedTab(cont, newWindowId, null, newPosition)
       // const [panelKey, tabKey, panel, bv] = BrowserPanel.getBrowserPanelByTabId(tabId)
@@ -190,6 +253,8 @@ class Browser{
     })
 
     this.addListener('tabs', 'onUpdated', (tabId, changeInfo, tab)=>{
+      if(PopupPanel.tabId == tabId || this.popUpCache[tabId]) return
+
       evem.emit(`tabs-onUpdated_${tabId}`, changeInfo)
       const cont = webContents.fromId(tabId)
       if(changeInfo.url){
@@ -200,12 +265,16 @@ class Browser{
     })
 
     this.addListener('tabs', 'onActivated', (activeInfo)=>{
+      if(PopupPanel.tabId == activeInfo.tabId || this.popUpCache[activeInfo.tabId]) return
+
       const cont = webContents.fromId(activeInfo.tabId)
       // console.log(activeInfo, cont.hostWebContents2)
       if(cont && cont.hostWebContents2) cont.hostWebContents2.send('chrome-tabs-event',{tabId: activeInfo.tabId, changeInfo: {active: true}}, 'updated')
     })
 
     this.addListener('tabs', 'onRemoved', removedTabId => {
+      if(PopupPanel.tabId == removedTabId || this.popUpCache[removedTabId]) return
+
       evem.emit(`close-tab_${removedTabId}`)
       const cont = webContents.fromId(removedTabId)
       if(cont && cont.hostWebContents2) cont.hostWebContents2.send('chrome-tabs-event',{tabId: removedTabId}, 'removed')
@@ -236,22 +305,38 @@ class Browser{
       }
     })
 
-    // this.addListener('windows', 'onCreated', window => {
-    //   console.log(9992,window)
-    //   for(const tab of window.tabs){
-    //     if(webContents.webContentsMap && webContents.webContentsMap.has(tab.id)) continue
-    //     const cont = new webContents(tab.id)
-    //     BrowserView.newTab(cont)
-    //   }
-    // }, void 0, (window) => new Promise(r=> chrome.windows.get(window.id, {populate: true}, window => r([window]))))
+    this.addListener('windows', 'onCreated', window => {
+      console.log(9992,window)
+      this.windowCache[window.id] = window.type
+    })
 
     this.addListener('windows', 'onRemoved', removedWinId => {
+      if(PopupPanel.instance.id == removedWinId){
+        Browser.initPopupPanel()
+        return
+      }
       for(const [panelKey, browserPanel] of Object.entries(BrowserPanel.panelKeys)){
         if(browserPanel.windowId == removedWinId){
           browserPanel.destroy()
           return
         }
       }
+    })
+
+    this.addListener('management', 'onInstalled', details => {
+      this.updateExtensionInfo(details.id)
+    })
+
+    this.addListener('management', 'onUninstalled', id => {
+      delete extInfos[id]
+    })
+
+    this.addListener('management', 'onEnabled', info => {
+      this.updateExtensionInfo(info.id)
+    })
+
+    this.addListener('management', 'onDisabled', info => {
+      delete extInfos[info.id]
     })
 
     evem.on('ipc.send', (channel, tabId, ...args)=>{
@@ -478,7 +563,7 @@ class Browser{
     this.cachedBgTarget = new Map([[bgTarget._targetId,[bgTarget, this.bg]]])
     await this.modifyBackgroundPage(this.bg)
 
-    const extensions = await this.getExtensionInfo()
+    const extensions = await this.getExtensionInfos()
     extensions.forEach(e => extInfos.setInfo(e))
     for(let win of BrowserWindow.getAllWindows().filter(w=>w.getTitle().includes('Sushi Browser'))){
       if(!win.webContents.isDestroyed()){
@@ -622,106 +707,51 @@ class Browser{
     }, api, method, this.serverKey, this.port, validateFunc, modifyPromisedFunc && `return ${modifyPromisedFunc.toString()}`)
   }
 
-  static async getExtensionInfo(){
+  static _getExtensionInfo(e){
+    const {getPath1,getPath2,_} =　require('../chromeExtensionUtil')
 
-    function search(obj,messages){
-      if(Array.isArray(obj)){
-        let i = 0
-        for(let v of obj){
-          if(Array.isArray(v) || v instanceof Object){
-            search(v,messages)
-          }
-          else if((typeof (v) == "string" || v instanceof String) && v.startsWith('__MSG_')){
-            const msg = messages[v.slice(6,-2)]
-            if(msg && msg.message){
-              obj[i] = msg.message
-            }
-          }
-          ++i
-        }
-      }
-      else if(obj instanceof Object){
-        for(let [k,v] of Object.entries(obj)){
-          if(Array.isArray(v) || v instanceof Object){
-            search(v,messages)
-          }
-          else if((typeof (v) == "string" || v instanceof String) && v.startsWith('__MSG_')){
-            const msg = messages[v.slice(6,-2)]
-            if(msg && msg.message){
-              obj[k] = msg.message
-            }
-          }
-        }
-      }
+    let extensionPath = getPath2(e.id) || getPath1(e.id)
+    extensionPath = extensionPath.replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
+    const manifestPath = path.join(extensionPath, 'manifest.json')
+    const manifestContents = hjson.parse(removeBom(fs.readFileSync(manifestPath).toString()))
+    delete e.icons
+    e = {...manifestContents, ...e}
+    e.url = e.homepageUrl
+    // e.options_page = e.optionsUrl
+    e.base_path = extensionPath
+
+    // console.log(845677,e)
+
+    const installInfo = {
+      id: e.id,
+      name: e.name,
+      url: e.url,
+      base_path: e.base_path,
+      manifest: e
     }
+    transInfos(installInfo)
 
-    function transInfos(installInfo){
-      const locale = app.getLocale().replace('-', "_")
-      const basePath = installInfo.base_path
-
-      if(!basePath) return
-      let localePath = path.join(basePath, `_locales/${locale.split("_")[0]}/messages.json`)
-      console.log(661,localePath)
-      if (!fs.existsSync(localePath)) {
-        localePath = path.join(basePath, `_locales/${locale}/messages.json`)
-        console.log(662,localePath)
-        if (!fs.existsSync(localePath)) {
-          const default_locale = installInfo.manifest.default_locale || installInfo.default_locale
-          localePath = path.join(basePath, `_locales/${default_locale}/messages.json`)
-          console.log(663,localePath)
-          if (!default_locale || !fs.existsSync(localePath)) {
-            return
-          }
+    const commands = installInfo.manifest.commands
+    if(commands){
+      const plat = os.platform() == 'win32' ? 'windows' : os.platform() == 'darwin' ? 'mac' : 'linux'
+      for(let [command,val] of Object.entries(commands)){
+        if(val.suggested_key){
+          PubSub.publish('add-shortcut',{id:installInfo.id,key:val.suggested_key[plat] || val.suggested_key.default,command})
         }
       }
-      console.log(552,localePath)
-      const messages = hjson.parse(removeBom(fs.readFileSync(localePath).toString()))
-      search(installInfo,messages)
-    }
 
-    const {getPath1,getPath2,extensionPath} =　require('../chromeExtensionUtil')
+    }
+    return installInfo
+  }
+
+  static async getExtensionInfos(){
     const result = await this.bg.evaluate(() => {
       return new Promise(resolve => {
         chrome.management.getAll(result => resolve(result.filter(x=>!x.isApp && x.id != 'ghbmnnjooekpmoecnnnilnnbdlolhkhi')))
       })
     })
 
-    const extensions = []
-    for(let e of result){
-      let extensionPath = getPath2(e.id) || getPath1(e.id)
-      extensionPath = extensionPath.replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
-      const manifestPath = path.join(extensionPath, 'manifest.json')
-      const manifestContents = hjson.parse(removeBom(fs.readFileSync(manifestPath).toString()))
-      delete e.icons
-      e = {...manifestContents, ...e}
-      e.url = e.homepageUrl
-      // e.options_page = e.optionsUrl
-      e.base_path = extensionPath
-
-      // console.log(845677,e)
-
-      const installInfo = {
-        id: e.id,
-        name: e.name,
-        url: e.url,
-        base_path: e.base_path,
-        manifest: e
-      }
-      transInfos(installInfo)
-      extensions.push(installInfo)
-
-      const commands = installInfo.manifest.commands
-      if(commands){
-        const plat = os.platform() == 'win32' ? 'windows' : os.platform() == 'darwin' ? 'mac' : 'linux'
-        for(let [command,val] of Object.entries(commands)){
-          if(val.suggested_key){
-            PubSub.publish('add-shortcut',{id:installInfo.id,key:val.suggested_key[plat] || val.suggested_key.default,command})
-          }
-        }
-
-      }
-    }
-    return extensions
+    return result.map(e => this._getExtensionInfo(e))
   }
 
   static async getCookies(url){
@@ -737,6 +767,24 @@ class Browser{
         chrome.cookies.getAll({url}, cookies => resolve(cookies))
       })
     }, url)
+  }
+
+  static async updateExtensionInfo(id){
+    const e = await this.bg.evaluate((id) => {
+      return new Promise(resolve => {
+        chrome.management.get(id, result => resolve(result))
+      })
+    }, id)
+
+    const installInfo = this._getExtensionInfo(e)
+    extInfos.setInfo(installInfo)
+    for(let win of BrowserWindow.getAllWindows().filter(w=>w.getTitle().includes('Sushi Browser'))){
+      if(!win.webContents.isDestroyed()){
+        for(const installInfo of extensions){
+          win.webContents.send('extension-ready',{[installInfo.id]:{...installInfo}})
+        }
+      }
+    }
   }
 
   static getUserAgent(){
@@ -786,11 +834,19 @@ class Browser{
     }
   }
 
-  static async showPopupPanel(panelKey, tabKey, bounds, url){
-    if(!this.popupPanel) this.popupPanel = await PopupPanel.newPanel(bounds)
-    if(url) this.popupPanel.loadURL(url)
+  static async initPopupPanel(){
+    this.popupPanel = await PopupPanel.newPanel();
+  }
 
+  static async showPopupPanel(panelKey, tabKey, bounds, url){
+    if(!this.popupPanel) this.popupPanel = await PopupPanel.newPanel()
     this.popupPanel.setKeys(panelKey, tabKey)
+
+    if(url){
+      await this.popupPanel.setActiveCurrentTab()
+      this.popupPanel.loadURL(url)
+    }
+
     if(bounds) this.popupPanel.setBounds(bounds)
 
     return this.popupPanel
@@ -813,36 +869,30 @@ const webContents = require("./webContents")
 
 class PopupPanel{
 
-  static async newPanel(bounds){
-    const cWin = await Browser.bg.evaluate((bounds, sideMargin, topMargin) => {
+  static async newPanel(){
+    const cWin = await Browser.bg.evaluate(() => {
       return new Promise(resolve => {
         chrome.windows.create({
           url: 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/popup_prepare.html',
-          focused: true, //type: 'popup',
-          left: bounds.x - sideMargin, top: bounds.y - topMargin,
-          width: bounds.width + sideMargin * 2, height: bounds.height + topMargin + 8
+          type: 'popup'
         }, window => resolve(window))
       })
-    }, bounds, BrowserPanel.sideMargin, BrowserPanel.topMargin)
+    })
 
-    await new Promise(r=>setTimeout(r,20))
+    await new Promise(r=>setTimeout(r,200))
 
-    let chromeNativeWindow = winctl.GetActiveWindow()
-    if (!chromeNativeWindow.getTitle().includes('Sushi Browser Popup Prepare')) {
-      chromeNativeWindow = (await winctl.FindWindows(win => {
-        // console.log(666,win.getTitle())
-        return win.getTitle().includes('Sushi Browser Popup Prepare')
-      }))[0]
-    }
+    const chromeNativeWindow = (await winctl.FindWindows(win => {
+      // console.log(666,win.getTitle())
+      return win.getTitle().includes('Sushi Browser Popup Prepare')
+    }))[0]
 
     chromeNativeWindow.setWindowLongPtrEx(0x00000080)
-    chromeNativeWindow.moveRelative(9999, 9999, 0, 0)
 
     const hwnd = chromeNativeWindow.createWindow()
     const nativeWindow = (await winctl.FindWindows(win => win.getHwnd() == hwnd))[0]
 
     chromeNativeWindow.setParent(nativeWindow.getHwnd())
-    chromeNativeWindow.move(...BrowserPanel.getChromeWindowBoundArray(0, 0))
+    chromeNativeWindow.move(0, 0, 0, 0)
 
     return new PopupPanel({chromeWindow: cWin, nativeWindow, chromeNativeWindow})
   }
@@ -853,12 +903,23 @@ class PopupPanel{
     this.nativeWindow = nativeWindow
     this.chromeNativeWindow = chromeNativeWindow
 
+    nativeWindow.showWindow(6);
+    this.minimized = true;
+
     PopupPanel.instance = this
+  }
+
+  destroy(){
+    this.nativeWindow.destroyWindow()
   }
 
   setKeys(panelKey, tabKey){
     this.panelKey = panelKey
     this.tabKey = tabKey
+  }
+
+  getChromeWindowBoundArray(width, height){
+    return [- BrowserPanel.sideMargin, - 30, width + BrowserPanel.sideMargin * 2, height + 30 + 8]
   }
 
   setBounds(bounds){
@@ -869,7 +930,11 @@ class PopupPanel{
     }
     if (bounds.width) {
       this.nativeWindow.move(bounds.x, bounds.y, bounds.width, bounds.height)
-      this.chromeNativeWindow.move(...BrowserPanel.getChromeWindowBoundArray(bounds.width, bounds.height))
+      this.chromeNativeWindow.move(...this.getChromeWindowBoundArray(bounds.width, bounds.height))
+
+      clearTimeout(this.alwaysOnTopTimer)
+      this.alwaysOnTopTimer = setTimeout(()=>this.nativeWindow.setWindowPos(winctl.HWND.NOTOPMOST, 0, 0, 0, 0, 83),1000)
+      this.nativeWindow.setWindowPos(winctl.HWND.TOPMOST, 0, 0, 0, 0, 83)
     }
     else {
       const dim = this.nativeWindow.dimensions()
@@ -880,6 +945,7 @@ class PopupPanel{
   hide(panelKey, tabKey){
     if(panelKey != this.panelKey || tabKey != this.tabKey) return
 
+    this.setKeys(null, null)
     this.loadURL('about:blank')
     this.nativeWindow.showWindow(6)
     this.minimized = true
@@ -889,20 +955,42 @@ class PopupPanel{
     this.nativeWindow.moveTop()
   }
 
+  setActiveCurrentTab(){
+    const panel = BrowserPanel.getBrowserPanel(this.panelKey)
+    return panel.getBrowserView({tabKey: this.tabKey}).webContents.focus()
+  }
+
   loadURL(url){
     this.moveTop()
     Browser.bg.evaluate((tabId, url) => {
       return new Promise(resolve => {
-          chrome.tabs.update(tabId, {url}, tab => resolve(tab))
+        chrome.tabs.update(tabId, {url}, tab => resolve(tab))
       })
     }, PopupPanel.tabId, url)
   }
 
-  async executeJavaScript(code, userGesture, callback){
-    if(typeof userGesture === 'function') [userGesture, callback] = [null, userGesture]
+  async executeJavaScript(code, userGesture, callback, retry){
+    if(retry == null){
+      if(typeof userGesture === 'function') [userGesture, callback, retry] = [null, userGesture, callback]
+      if(retry == null) retry = 0
+    }
+    else{
+      if(typeof userGesture === 'function') [userGesture, callback] = [null, userGesture]
+    }
     const page = await (Browser._pagePromises[PopupPanel.tabId])
-    console.log(331,code)
-    page.evaluate(code).then(value=>callback && callback(value), reason=>callback && callback(null))
+    // console.log(331,code)
+    page.evaluate(code).then(value=>{
+      // console.log(332,value)
+      callback && callback(value)
+    }, reason=>{
+      // console.log(333,reason)
+      if(retry < 10){
+        setTimeout(()=>this.executeJavaScript(code, userGesture, callback, retry+1),200)
+      }
+      else if(callback){
+        callback(null)
+      }
+    })
   }
 
 }

@@ -183,6 +183,7 @@ export default class BrowserPanel {
       if (panelKey) {
         this.browserWindow = browserWindow
         this.browserWindow.once('closed', () => this.destroy())
+        const isNotFirst = BrowserPanel._isNotFirst
         let win
         if (tabId) {
           win = await Browser.bg.evaluate((tabId, bounds, sideMargin, topMargin) => {
@@ -194,8 +195,9 @@ export default class BrowserPanel {
               chrome.windows.create(createData, window => resolve(window))
             })
           }, tabId, bounds, BrowserPanel.sideMargin, BrowserPanel.topMargin)
-        } else {
-          if (!BrowserPanel._isNotFirst) {
+        }
+        else {
+          if (!isNotFirst) {
             const tmpWin = await Browser.bg.evaluate(() => {
               return new Promise(resolve => {
                 chrome.windows.getAll({populate: true}, windows => {
@@ -236,7 +238,8 @@ export default class BrowserPanel {
             }, url, tmpWin.id)
             BrowserPanel._isNotFirst = true
 
-          } else {
+          }
+          else {
             win = await Browser.bg.evaluate((url, bounds, sideMargin, topMargin) => {
               const createData = bounds ? {
                 url, focused: true, left: bounds.x - sideMargin, top: bounds.y - topMargin,
@@ -254,8 +257,10 @@ export default class BrowserPanel {
         BrowserPanel.panelKeys[panelKey] = this
         this.tabKeys = {[tabKey]: [win.tabs[0].id, new BrowserView(this, tabKey, win.tabs[0].id)]}
 
+        if(!isNotFirst) await Browser.initPopupPanel()
         return this
-      } else {
+      }
+      else {
         this.windowId = windowId
 
         const win = await Browser.bg.evaluate((windowId, isNotFirst) => {
@@ -286,11 +291,7 @@ export default class BrowserPanel {
           require('../util').getCurrentWindow()
 
         this.browserWindow = await require('../BrowserWindowPlus').load({
-          id: bw.id,
-          x,
-          y,
-          width,
-          height,
+          id: bw.id, x, y, width, height,
           tabParam: JSON.stringify({
             urls: [{url: void 0, guestInstanceId: webContents && webContents.id}],
             type: 'new-win'
@@ -400,9 +401,8 @@ export default class BrowserPanel {
   }
 
 
-  getAllBrowserView() {
+  getAllBrowserViews() {
     const result = []
-
     for (const val of Object.values(this.tabKeys)) {
       result.push(val[1])
     }
@@ -410,10 +410,11 @@ export default class BrowserPanel {
   }
 
   getBrowserView({tabId, tabKey}) {
-    if (tabId) {
+    if(tabId){
       const obj = Object.values(this.tabKeys).find(x => x[0] == tabId)
       return obj && obj[1]
-    } else {
+    }
+    else{
       return this.tabKeys[tabKey] && this.tabKeys[tabKey][1]
     }
   }
@@ -451,7 +452,13 @@ export default class BrowserPanel {
   moveTopNativeWindow() {
     if (BrowserPanel.contextMenuShowing) return
     this.cpWin.nativeWindow.moveTop()
-    if(this.panelKey == PopupPanel.instance.panelKey) PopupPanel.instance.moveTop()
+    if(this.panelKey == PopupPanel.instance.panelKey){
+      PopupPanel.instance.moveTop()
+
+      // console.log('moveTopNativeWindow')
+      // PopupPanel.instance.nativeWindow.setWindowPos(winctl.HWND.TOPMOST, 0, 0, 0, 0, 83)
+      // PopupPanel.instance.nativeWindow.setWindowPos(winctl.HWND.TOP, 0, 0, 0, 0, 83)
+    }
   }
 
   moveTopNativeWindowBw() {

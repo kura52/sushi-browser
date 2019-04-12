@@ -17,6 +17,7 @@ const db = require('./databaseFork')
 const FfmpegWrapper = require('./FfmpegWrapper')
 const defaultConf = require('./defaultConf')
 const locale = require('../brave/app/locale')
+const extensions = require('./extension/extensions')
 
 import path from 'path'
 const ytdl = require('ytdl-core')
@@ -807,30 +808,10 @@ ipcMain.on('save-state',async (e,{tableName,key,val})=>{
       console.log(val,mainState[key],Object.values(extInfos))
       for(let orgId of diffArray(val,mainState[key])){
         console.log(orgId,Object.values(extInfos))
-        const ext = Object.values(extInfos).find(x=>x.base_path && x.base_path.includes(orgId))
-        if(ext){
-          if(orgId == "jpkfjicglakibpenojifdiepckckakgk"){
-            for(let cont of webContents.getAllWebContents()){
-              if(!cont.isDestroyed() /*&& cont.isBackgroundPage()*/) cont.send('disable-mouse-gesture',true)
-            }
-          }
-          else{
-            BrowserWindow.removeExtension(ext.id)
-          }
-        }
+        extensions.enableExtension(orgId, false)
       }
       for(let orgId of diffArray(mainState[key],val)){
-        const ext = Object.values(extInfos).find(x=>x.base_path && x.base_path.includes(orgId))
-        if(ext) {
-          if (orgId == "jpkfjicglakibpenojifdiepckckakgk") {
-            for(let cont of webContents.getAllWebContents()){
-              if(!cont.isDestroyed() /*&& cont.isBackgroundPage()*/) cont.send('disable-mouse-gesture',false)
-            }
-          }
-          else {
-            BrowserWindow.addExtensionWebview(ext.base_path)
-          }
-        }
+        extensions.enableExtension(orgId, true)
       }
     }
     else if(key == 'httpsEverywhereEnable'){
@@ -1399,7 +1380,7 @@ ipcMain.on('change-tab-infos',(e,changeTabInfos)=> {
       timer = setTimeout(() => {
         console.log('change-tab-infos', c)
         // ipcMain.emit('update-tab', null, c.tabId)
-        webContents.fromId(c.tabId).focus()
+        // webContents.fromId(c.tabId).focus()
         webContents.fromId(c.tabId).setActive()
         timer = void 0
       }, 10)
@@ -2540,7 +2521,7 @@ ipcMain.on('set-bound-browser-view', async (e, panelKey, tabKey, tabId, x, y, wi
     panel.setBounds(bounds)
 
     if(zIndex > 0){
-      webContents.fromId(tabId).focus()
+      webContents.fromId(tabId).moveTop()
     }
   },10)
 
@@ -2618,15 +2599,25 @@ let wait = false
 ipcMain.on('set-overlap-component', async (e, type, panelKey, tabKey, x, y, width, height, url) => {
   if(type != 'extension-popup') return
 
+  console.log('set-overlap-component', x, y, width, height)
 
   if(y != -1){
+
+    for(let bw of BrowserWindow.getAllWindows()){
+      if(!bw.getTitle().includes('Sushi Browser')) continue
+      bw.webContents.send('set-overlap-component-open',panelKey, tabKey)
+    }
+
     const win = BrowserWindow.fromWebContents(e.sender)
     if(!win || win.isDestroyed()) return
 
     const winBounds = win.getBounds()
+    if(winBounds.x == -7 && winBounds.y == -7){
+      winBounds.x = 0
+      winBounds.y = 0
+    }
     const bounds = {
-      x: Math.round(x) + (winBounds.x < 0 ? 0 : winBounds.x),
-      y:Math.round(y) + (winBounds.y < 0 ? 0 : winBounds.y),
+      x: Math.round(x + winBounds.x), y:Math.round(y + winBounds.y),
       width: Math.round(width), height: Math.round(height)
     }
     const popupPanel = await Browser.showPopupPanel(panelKey, tabKey, bounds, url)

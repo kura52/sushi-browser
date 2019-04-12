@@ -102,6 +102,7 @@ class BrowserPage extends Component {
       prevProps.pos.height != style.height ||
       prevProps.pos.zIndex != style.zIndex)){
       ipc.send('set-bound-browser-view', this.props.k2, this.props.k, this.props.tab.wvId, style.left, style.top, style.width, style.height, style.zIndex)
+      ipc.emit('set-bound-browser-view', this.props.k2, this.props.k, this.props.tab.wvId, style.left, style.top, style.width, style.height, style.zIndex)
     }
   }
 
@@ -264,6 +265,7 @@ class BrowserPage extends Component {
       if(this.props.isActive) {
         const style = this.props.pos
         ipc.send('set-bound-browser-view', this.props.k2, this.props.k, this.props.tab.wvId, style.left, style.top, style.width, style.height, style.zIndex)
+        ipc.emit('set-bound-browser-view', this.props.k2, this.props.k, this.props.tab.wvId, style.left, style.top, style.width, style.height, style.zIndex)
       }
     })
 

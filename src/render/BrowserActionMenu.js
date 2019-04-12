@@ -1,3 +1,5 @@
+import {ipcMain} from "electron";
+
 const React = require('react')
 const ReactDOM = require('react-dom');
 const {Component} = React
@@ -10,6 +12,7 @@ let [defaultIcons,popups,bgs,titles,texts] = ipc.sendSync('get-sync-main-states'
 const LRUCache = require('lru-cache')
 const sharedState = require('./sharedState')
 
+const sizeMap = {}
 ipc.on('chrome-browser-action-set-ipc-all',(e,extensionId,name,val) => {
   if(val.path !== void 0){
     let _icon = typeof val.path === "object" ? Object.values(val.path)[0] : val.path
@@ -45,7 +48,7 @@ const defaults = {}
 class BrowserActionWebView extends Component {
   constructor(props) {
     super(props)
-    this.state = {style:{opacity: 0.01, userSelect: 'none', ...this.props.style}}
+    this.state = {style:{opacity: 0, userSelect: 'none', ...this.props.style}}
     this.close = true
     this.preClose = true
 
@@ -63,8 +66,9 @@ class BrowserActionWebView extends Component {
       if(close == preClose){
         if(!this.refs || !this.refs.div || !this.popupPanel) return
         const r = this.refs.div ? ReactDOM.findDOMNode(this.refs.div).getBoundingClientRect() : {left:0,top:0,width:0,height:0}
+        const [width, height] = sizeMap[this.props.url] || [r.width, r.height]
         ipc.send('set-overlap-component', 'extension-popup', this.props.k, this.props.tab.key,
-          r.left , r.top, r.width, r.height)
+          r.left , r.top, width, height)
         return
       }
       this.componentDidMount()
@@ -72,14 +76,15 @@ class BrowserActionWebView extends Component {
     this.preClose = this.close
   }
 
-  setPreferredSize(popupPanel, width,height,retry){
-    console.log('setPreferredSize',popupPanel, width, height, retry)
-    this.setState({style:{width,height, userSelect: 'none'}},()=>{
-      popupPanel.executeJavaScript(`(function(){
-      const ele = document.scrollingElement
+  setPreferredSize(width,height,retry){
+    console.log('setPreferredSize',this.popupPanel, width, height, retry)
+    this.setState({style:{width,height, opacity: 0, userSelect: 'none'}},()=>{
+      this.popupPanel.executeJavaScript(`(function(){
+      const ele = document.body
       return [ele.clientWidth, ele.scrollWidth, ele.clientHeight, ele.scrollHeight]
     })()`,(result)=>{
         console.log('setPreferredSize2', result)
+        if(!this.close) sizeMap[this.props.url] = [result[1], result[3]]
         let widthRetry, heightRetry
         if(result[0] == result[1]){
           if(width == result[1] || (width == 800 && result[1] > 800)){
@@ -104,14 +109,28 @@ class BrowserActionWebView extends Component {
           heightRetry = result[3]
         }
         if((!widthRetry && !heightRetry) || retry > 10){
-          this.props.setClassName("")
+          setTimeout(_=>{
+            this.props.setClassName("")
+
+            const div = this.refs.div.parentNode
+            if(!div) return
+            const rect = div.parentNode.getBoundingClientRect()
+            if(rect.x + width > window.innerWidth){
+              div.style.setProperty("left", `${36 -width}px`, "important")
+            }
+            div.style.overflowY = 'hidden'
+            div.style.setProperty("min-width", 'fit-content', "important")
+
+          },200)
+
+
           // ReactDOM.findDOMNode(this).parentNode.parentNode
           //   .querySelector(':not(.opacity001).browser-action.nav-menu').style.left = `${200 - width}px`
           this.result = JSON.stringify(result)
           this.checkSize()
         }
         else{
-          this.setPreferredSize(popupPanel, widthRetry, heightRetry, ++retry)
+          this.setPreferredSize(widthRetry, heightRetry, ++retry)
         }
       })
     })
@@ -120,43 +139,68 @@ class BrowserActionWebView extends Component {
   checkSize(){
     if(!this.popupPanel) return
     this.intervalId = setInterval(()=>{
+      if(this.close) return
       this.popupPanel.executeJavaScript(`(function(){
-      const ele = document.scrollingElement
+      const ele = document.body
       return [ele.clientWidth, ele.scrollWidth, ele.clientHeight, ele.scrollHeight]
     })()`,(result)=>{
+        if(!this.close) sizeMap[this.props.url] = [result[1], result[3]]
+        console.log('setPreferredSize0', result)
         if(JSON.stringify(result) != this.result){
           clearInterval(this.intervalId)
-          this.setPreferredSize(this.popupPanel, result[1], result[3], 0)
+          this.setPreferredSize(result[1], result[3], 0)
         }
       })
     },1000)
   }
 
   componentDidMount() {
-    if(this.close){
+    this.changePos = (e, panelKey) => {
+      if(this.props.k != panelKey || this.close) return
+
+      const r = this.refs.div ? ReactDOM.findDOMNode(this.refs.div).getBoundingClientRect() : {left:0,top:0,width:0,height:0}
+      ipc.send('set-overlap-component', 'extension-popup', this.props.k, this.props.tab.key,
+        r.left , r.top, r.width, r.height)
+    }
+    ipc.on('get-webview-pos',this.changePos)
+
+    this.changePos2 = this.changePos.bind(this,{})
+    ipc.on('set-bound-browser-view', this.changePos2)
+
+
+      if(this.close){
       ipc.send('set-overlap-component', 'extension-popup', this.props.k, this.props.tab.key, 0,-1,0,0)
     }
     else{
       const r = this.refs.div ? ReactDOM.findDOMNode(this.refs.div).getBoundingClientRect() : {left:0,top:0,width:0,height:0}
+      const [width, height] = sizeMap[this.props.url] || [200, 100]
+
       const id = ipc.sendSync('set-overlap-component', 'extension-popup', this.props.k, this.props.tab.key,
-        r.left , r.top, 200, 200, this.props.url)
+        r.left , r.top, width, height, this.props.url)
       this.popupPanel = remote.require('./remoted-chrome/Browser').PopupPanel.instance
     }
 
     if(this.popupPanel){
       ipc.on('send-to-host',this.ipcEvent) //@TODO ELECTRON
       setTimeout(()=>{
-        this.setPreferredSize(this.popupPanel, 200, 100, 0)
+        const [width, height] = sizeMap[this.props.url] || [200, 100]
+        this.setPreferredSize(width, height, 0)
       },10)
     }
   }
 
   componentWillUnmount() {
     clearInterval(this.intervalId)
+    ipc.removeListener('get-webview-pos',this.changePos)
+    ipc.removeListener('set-bound-browser-view', this.changePos2)
   }
 
   onClose = ()=>{
     this.close = true
+    this.componentWillUnmount()
+    console.log(7733,'onClose')
+    ipc.send('set-overlap-component', 'extension-popup', this.props.k, this.props.tab.key, 0,-1,0,0)
+    this.setState({})
   }
 
   reload = ()=>{
@@ -178,7 +222,7 @@ export default class BrowserActionMenu extends Component{
     super(props)
     const values = props.values
     const icon = `${values.basePath}/${defaultIcons[props.id] ? defaultIcons[props.id] : values.default_icon ? (typeof values.default_icon === "object" ? Object.values(values.default_icon)[0] : values.default_icon) : values.icons ? Object.values(values.icons)[0] : ""}`;
-    this.state = {icon,className: 'opacity001', enable: true}
+    this.state = {icon, enable: true}
     this.close = ::this.close
     this.updateDates = {}
     this.cache = new LRUCache(100)
@@ -193,6 +237,7 @@ export default class BrowserActionMenu extends Component{
   }
 
   componentDidMount(){
+
     this.outerClick = e=>{
       if(!e.srcElement.closest(`.sort-${this.props.id}`)){
         this.close()
@@ -278,6 +323,13 @@ export default class BrowserActionMenu extends Component{
     }
     ipc.on(`chrome-browser-action-enable-${this.props.id}`,this.enable)
 
+
+    this.otherOpen = (e, panelKey, tabKey) => {
+      if(this.props.k == panelKey && this.props.tab.key == tabKey) return
+      this.close()
+    }
+    ipc.on('set-overlap-component-open', this.otherOpen)
+
     this.tokenStartLoading = PubSub.subscribe(`on-load-start_${this.props.tab.key}`,(msg,url)=>{
       const newState = []
       let needUpdate = false
@@ -316,6 +368,7 @@ export default class BrowserActionMenu extends Component{
     ipc.removeListener(`chrome-browser-action-set-popup-ipc-${this.props.id}`,this.popupSet)
     ipc.removeListener(`chrome-browser-action-get-info-${this.props.id}`,this.getInfo)
     ipc.removeListener(`chrome-browser-action-enable-${this.props.id}`,this.enable)
+    ipc.removeListener('set-overlap-component-open', this.otherOpen)
     PubSub.unsubscribe(this.tokenStartLoading)
     PubSub.unsubscribe(this.tokenDidNavigate)
   }

@@ -148,18 +148,7 @@ ipcMain.on('add-extension',(e,{id,url})=>{
 })
 
 ipcMain.on('delete-extension',(e,extensionId,orgId)=>{
-  const basePath = getPath2(orgId) || getPath1(orgId)
-  extensions.disableExtension(extensionId)
-  console.log(55454,extensionId,orgId)
-  setTimeout(_=>{
-    if(basePath){
-      const delPath = path.join(basePath,'..')
-      if(delPath.includes(orgId)){
-        sh.rm('-rf',delPath)
-      }
-    }
-  },1000)
-
+  extensions.uninstallExtension(extensionId)
 })
 
 //#app

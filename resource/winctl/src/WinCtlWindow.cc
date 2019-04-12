@@ -264,7 +264,7 @@ NAN_METHOD(Window::setForegroundWindowEx) {
 
     SetForegroundWindow(obj->windowHandle);
 
-    AttachThreadInput(selfThread, targetThread, FALSE );
+    AttachThreadInput(selfThread, targetThread, FALSE );ff
 }
 
 

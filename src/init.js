@@ -1637,7 +1637,7 @@ async function contextMenu(webContents, props) {
         menuItems.push({type: 'separator'})
         menuItems.push({
           label: extensionInfos[extensionId].name,
-          icon: menuList[0].icon && menuList[0].icon.replace(/\.svg$/,'.png'),
+          icon: menuList[0].icon && menuList[0].icon.match(/\.svg$/) && menuList[0].icon ,
           submenu: menuList
         })
         menuList.forEach(menu=>{

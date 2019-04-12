@@ -316,6 +316,17 @@ export default class webContents extends EventEmitter {
     if(!panel) return
 
     if(require('../util').getCurrentWindow().id == panel.browserWindow.id){
+      this.setForegroundWindow()
+      // panel.moveTopNativeWindow()
+      // console.trace('focus')
+    }
+  }
+
+  moveTop(){
+    const panel = this._getBrowserPanel()
+    if(!panel) return
+
+    if(require('../util').getCurrentWindow().id == panel.browserWindow.id){
       panel.moveTopNativeWindow()
     }
   }
