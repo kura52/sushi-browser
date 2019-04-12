@@ -116,12 +116,11 @@ sharedState.statusBar = statusBar
 sharedState.mobilePanelSyncScroll = mobilePanelSyncScroll
 
 
-let staticDisableExtensions = []
 class BrowserNavbar extends Component{
   constructor(props) {
     super(props)
     this.state = {userAgent: DEFAULT_USERAGENT,
-      pdfMode:'normal',currentIndex:0,historyList:[],disableExtensions:staticDisableExtensions,left,right,backSide}
+      pdfMode:'normal',currentIndex:0,historyList:[],left,right,backSide}
     this.canRefresh = this.props.page.canRefresh
     this.location = this.props.page.location
     this.richContents = this.props.richContents
@@ -270,7 +269,6 @@ class BrowserNavbar extends Component{
       (this.caches||[]).length === (nextState.caches||[]).length &&
       this.state.currentIndex === nextState.currentIndex &&
       equalArray2(this.state.historyList,nextState.historyList) &&
-      equalArray(this.state.disableExtensions,nextState.disableExtensions) &&
       equalArray(this.state.left,nextState.left) &&
       equalArray(this.state.right,nextState.right) &&
       equalArray(this.state.backSide,nextState.backSide) &&
@@ -333,12 +331,11 @@ class BrowserNavbar extends Component{
 
   updateStates(){
     if(!this.props.tab.wvId) return
-    ipc.once(`get-cont-history-reply_${this.props.tab.wvId}`,(e,currentIndex,historyList,rSession,disableExtensions,adBlockGlobal,pdfMode,navbarItems)=>{
+    ipc.once(`get-cont-history-reply_${this.props.tab.wvId}`,(e,currentIndex,historyList,rSession,adBlockGlobal,pdfMode,navbarItems)=>{
       left = navbarItems.left
       right = navbarItems.right
       backSide = navbarItems.backSide
       if(currentIndex === (void 0)) return
-      staticDisableExtensions = disableExtensions
       console.log(9995,this.props.tab.rSession)
       if(rSession){
         console.log(9996,rSession)
@@ -348,16 +345,15 @@ class BrowserNavbar extends Component{
         this.props.tab.rSession.currentIndex = currentIndex
       }
       if(this.props.adBlockEnable != adBlockGlobal) PubSub.publish('set-adblock-enable',adBlockGlobal)
-      this.setState({currentIndex,historyList,disableExtensions,pdfMode,...navbarItems})
+      this.setState({currentIndex,historyList,pdfMode,...navbarItems})
     })
     ipc.send('get-cont-history',this.props.tab.wvId,this.props.tab.key,this.props.tab.rSession)
   }
 
   componentWillUpdate(prevProps, prevState) {
     if(!this.props.tab.wvId) return
-    ipc.once(`get-cont-history-reply_${this.props.tab.wvId}`,(e,currentIndex,historyList,rSession,disableExtensions,adBlockGlobal,pdfMode,navbarItems)=>{
+    ipc.once(`get-cont-history-reply_${this.props.tab.wvId}`,(e,currentIndex,historyList,rSession,adBlockGlobal,pdfMode,navbarItems)=>{
       if(currentIndex === (void 0)) return
-      staticDisableExtensions = disableExtensions
       console.log(rSession,this.props.tab)
       console.log(9997,this.props.tab.rSession)
       if(rSession){
@@ -369,9 +365,8 @@ class BrowserNavbar extends Component{
       }
       if(!(this.state.currentIndex === currentIndex &&
         equalArray2(this.state.historyList,historyList) &&
-        equalArray(this.state.disableExtensions,disableExtensions) &&
         this.state.pdfMode == pdfMode)){
-        this.setState({currentIndex,historyList,disableExtensions,pdfMode})
+        this.setState({currentIndex,historyList,pdfMode})
       }
       if(this.props.adBlockEnable != adBlockGlobal) PubSub.publish('set-adblock-enable',adBlockGlobal)
 
@@ -647,9 +642,9 @@ class BrowserNavbar extends Component{
 
   browserAction(cont,tab,selected){
     const ret = {}
-    const dis = ['jdbefljfgobbmcidnmpjamcbhnbphjnb',...this.state.disableExtensions]
+    const dis = ['jdbefljfgobbmcidnmpjamcbhnbphjnb']
     for(let [id,values] of browserActionMap) {
-      if(dis.includes(values.orgId) || dis.includes(id)) continue
+      if(dis.includes(values.orgId) || dis.includes(id) || !values.enabled) continue
       ret[id] = <BrowserActionMenu key={id} k={this.props.k}  id={id} values={values} tab={tab} cont={cont} parent={this} selected={selected}/>
     }
     return ret

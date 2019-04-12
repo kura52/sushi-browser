@@ -11,6 +11,7 @@ import extInfos from '../extensionInfos'
 import backgroundPageModify from './backgroundPageModify'
 import hjson from 'hjson'
 import evem from './evem'
+import mainState from "../mainState";
 
 function search(obj,messages){
   if(Array.isArray(obj)){
@@ -255,7 +256,7 @@ class Browser{
     this.addListener('tabs', 'onUpdated', (tabId, changeInfo, tab)=>{
       if(PopupPanel.tabId == tabId || this.popUpCache[tabId]) return
 
-      evem.emit(`tabs-onUpdated_${tabId}`, changeInfo)
+      evem.queueEmit(`tabs-onUpdated_${tabId}`, changeInfo)
       const cont = webContents.fromId(tabId)
       if(changeInfo.url){
         cont.emit('did-navigate', {sender: this} ,changeInfo.url)
@@ -328,7 +329,7 @@ class Browser{
     })
 
     this.addListener('management', 'onUninstalled', id => {
-      delete extInfos[id]
+      this.disableExtension(id)
     })
 
     this.addListener('management', 'onEnabled', info => {
@@ -336,7 +337,7 @@ class Browser{
     })
 
     this.addListener('management', 'onDisabled', info => {
-      delete extInfos[info.id]
+      this.disableExtension(info.id)
     })
 
     evem.on('ipc.send', (channel, tabId, ...args)=>{
@@ -780,10 +781,16 @@ class Browser{
     extInfos.setInfo(installInfo)
     for(let win of BrowserWindow.getAllWindows().filter(w=>w.getTitle().includes('Sushi Browser'))){
       if(!win.webContents.isDestroyed()){
-        for(const installInfo of extensions){
           win.webContents.send('extension-ready',{[installInfo.id]:{...installInfo}})
-        }
       }
+    }
+  }
+
+  static disableExtension(id){
+    delete extInfos[id]
+    for(let bw of BrowserWindow.getAllWindows()){
+      if(bw.getTitle().includes('Sushi Browser'))
+        bw.webContents.send('extension-disable', id)
     }
   }
 
@@ -919,7 +926,7 @@ class PopupPanel{
   }
 
   getChromeWindowBoundArray(width, height){
-    return [- BrowserPanel.sideMargin, - 30, width + BrowserPanel.sideMargin * 2, height + 30 + 8]
+    return [- BrowserPanel.sideMargin, - 27, width + BrowserPanel.sideMargin * 2, height + 27 + 8]
   }
 
   setBounds(bounds){

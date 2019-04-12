@@ -760,14 +760,13 @@ ipcMain.on('get-main-state',(e,key,names)=>{
     }
     else if(name == "extensions"){
       const extensions = {}
-      const disableExtensions = mainState.disableExtensions
       for (let [k,v] of Object.entries(extInfos)) {
         if(!('url' in v) || v.name == "brave") continue
         const orgId = v.base_path.split(/[\/\\]/).slice(-2,-1)[0]
         extensions[k] = {name:v.name,url:v.url,basePath:v.base_path,version: (v.manifest.version || v.version),theme:v.theme,
           optionPage: v.manifest.options_page || (v.manifest.options_ui && v.manifest.options_ui.page),
           background: v.manifest.background && v.manifest.background.page,icons:v.manifest.icons,
-          description: (v.manifest.description || v.description),enabled: !disableExtensions.includes(orgId) }
+          description: (v.manifest.description || v.description),enabled: v.manifest.enabled }
       }
       ret[name] = extensions
     }
@@ -803,18 +802,7 @@ ipcMain.on('get-main-state',(e,key,names)=>{
 
 
 ipcMain.on('save-state',async (e,{tableName,key,val})=>{
-  if(tableName == 'state'){
-    if(key == 'disableExtensions'){
-      console.log(val,mainState[key],Object.values(extInfos))
-      for(let orgId of diffArray(val,mainState[key])){
-        console.log(orgId,Object.values(extInfos))
-        extensions.enableExtension(orgId, false)
-      }
-      for(let orgId of diffArray(mainState[key],val)){
-        extensions.enableExtension(orgId, true)
-      }
-    }
-    else if(key == 'httpsEverywhereEnable'){
+  if(tableName == 'state'){if(key == 'httpsEverywhereEnable'){
       require('../brave/httpsEverywhere')()
     }
     else if(key == 'trackingProtectionEnable'){
@@ -1804,7 +1792,7 @@ ipcMain.on('get-cont-history',async (e,tabId,tabKey,rSession)=>{
     return
   }
   let {currentIndex, historyList} = await saveTabState(cont, rSession, tabKey, true);
-  e.sender.send(`get-cont-history-reply_${tabId}`,currentIndex,historyList,rSession,mainState.disableExtensions,mainState.adBlockEnable,mainState.pdfMode,mainState.navbarItems)
+  e.sender.send(`get-cont-history-reply_${tabId}`,currentIndex,historyList,rSession,mainState.adBlockEnable,mainState.pdfMode,mainState.navbarItems)
 })
 ipcMain.on('get-session-sequence',(e,isPrivate)=> {
   e.returnValue = seq(isPrivate)

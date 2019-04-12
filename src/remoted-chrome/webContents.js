@@ -62,6 +62,7 @@ export default class webContents extends EventEmitter {
 
     webContents.webContentsMap.set(this.id, this)
 
+    this.setMaxListeners(0)
     this._initEvent()
 
     // this.session
@@ -71,6 +72,7 @@ export default class webContents extends EventEmitter {
   }
 
   async _initEvent(){
+    
     const page = await this._getPage()
 
     this._evEvents[`webNavigation-onCompleted_${this.id}`] = (extFrameId) =>{
@@ -158,11 +160,11 @@ export default class webContents extends EventEmitter {
       const data = BrowserPanel.getBrowserPanelByTabId(this.id)
       if(data[3]) data[3].destroy(false)
 
-      this.destroyed = true
       for(let event of Object.entries(this._evEvents)) evem.removeListener(...event)
       for(let event of Object.entries(this._pEvents)) page.removeListener(...event)
       webContents.webContentsMap.delete(this.id)
       this.emit('destroyed')
+      this.destroyed = true
     }
 
     // 'devtools-opened'

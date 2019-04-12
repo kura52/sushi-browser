@@ -2389,12 +2389,7 @@ class ExtensionSetting extends React.Component {
 
   changeCheck(id,data){
     this.state.extensions[id].enabled = data.checked
-    const val = []
-    for(let [id,values] of Object.entries(this.state.extensions)){
-      const orgId = values.basePath.split(/[\/\\]/).slice(-2,-1)[0]
-      if(!values.enabled) val.push(orgId)
-    }
-    ipc.send('save-state',{tableName:'state',key:'disableExtensions',val})
+    ipc.send("enable-extension",id,data.checked)
     this.setState({})
   }
 

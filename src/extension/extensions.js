@@ -1,4 +1,5 @@
 import {ipcMain} from "electron";
+import mainState from "../mainState";
 
 const {Browser} = require('../remoted-chrome/Browser')
 const extInfos = require('../extensionInfos')
@@ -14,7 +15,7 @@ module.exports.init = (verChange) => {
       })
     },extensionId,val)
 
-    delete extInfos[extensionId]
+    // if(!val) delete extInfos[extensionId]
   }
 
   const uninstallExtension = async (extensionId) => {
@@ -26,7 +27,7 @@ module.exports.init = (verChange) => {
       })
     },extensionId)
 
-    delete extInfos[extensionId]
+    // delete extInfos[extensionId]
   }
 
   module.exports.enableExtension = enableExtension
@@ -35,6 +36,11 @@ module.exports.init = (verChange) => {
   ipcMain.on('delete-extension',(e,extensionId)=>{
     uninstallExtension(extensionId)
   })
+
+  ipcMain.on('enable-extension',(e,extensionId,val)=>{
+    enableExtension(extensionId, val)
+  })
+
 
   require('./browserAction')
 
