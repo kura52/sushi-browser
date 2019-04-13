@@ -149,7 +149,7 @@ export default class Download {
 
     const itemMap = {}
     ipcMain.on('chrome-download-start', async (event, item, _url, webContents) => {
-      if(!webContents){
+      if(webContents){
         itemMap[item.id] = webContents
         return
       }

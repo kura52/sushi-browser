@@ -10,6 +10,7 @@ export default class BrowserPanel {
     if (this.isInit) return
     this.isInit = true
     this.destKeySet = new Set()
+    this.bindedWindows = new Set()
 
     await Browser._initializer()
 
@@ -168,169 +169,172 @@ export default class BrowserPanel {
   }
 
   constructor({browserWindow, panelKey, tabKey, webContents, windowId, url, tabId, bounds}) {
-    console.log(999777, {
-      panelKey,
-      tabKey,
-      windowId,
-      url,
-      tabId,
-      browserWindow: browserWindow && browserWindow.id,
-      bounds
-    })
-    return (async () => {
-      await BrowserPanel._initializer()
+    console.log(999777, {panelKey, tabKey, windowId, url, tabId, browserWindow: browserWindow && browserWindow.id, bounds })
+    return this.init(browserWindow, panelKey, tabKey, webContents, windowId, url, tabId, bounds)
+  }
 
-      if (panelKey) {
-        this.browserWindow = browserWindow
-        this.browserWindow.once('closed', () => this.destroy())
-        const isNotFirst = BrowserPanel._isNotFirst
-        let win
-        if (tabId) {
-          win = await Browser.bg.evaluate((tabId, bounds, sideMargin, topMargin) => {
+  async init(browserWindow, panelKey, tabKey, webContents, windowId, url, tabId, bounds, retry=0){
+    if(BrowserPanel.initing){
+      await new Promise(r=>setTimeout(r,(++retry)*10))
+      if(retry < 20){
+        return await this.init(browserWindow, panelKey, tabKey, webContents, windowId, url, tabId, bounds, retry)
+      }
+    }
+    BrowserPanel.initing = true
+
+    await BrowserPanel._initializer()
+
+    if (panelKey) {
+      this.browserWindow = browserWindow
+      this.browserWindow.once('closed', () => this.destroy())
+      const isNotFirst = BrowserPanel._isNotFirst
+      let win
+      if (tabId) {
+        win = await Browser.bg.evaluate((tabId, bounds, sideMargin, topMargin) => {
+          return new Promise(resolve => {
+            const createData = bounds ? {
+              tabId, focused: true, left: bounds.x - sideMargin, top: bounds.y - topMargin,
+              width: bounds.width + sideMargin * 2, height: bounds.height + topMargin + 8
+            } : {tabId}
+            chrome.windows.create(createData, window => resolve(window))
+          })
+        }, tabId, bounds, BrowserPanel.sideMargin, BrowserPanel.topMargin)
+      }
+      else {
+        if (!isNotFirst) {
+          const tmpWin = await Browser.bg.evaluate(() => {
             return new Promise(resolve => {
-              const createData = bounds ? {
-                tabId, focused: true, left: bounds.x - sideMargin, top: bounds.y - topMargin,
-                width: bounds.width + sideMargin * 2, height: bounds.height + topMargin + 8
-              } : {tabId}
-              chrome.windows.create(createData, window => resolve(window))
+              chrome.windows.getAll({populate: true}, windows => {
+                const window = windows[0]
+                const tab = window.tabs[0]
+                window.tabWidth = tab.width
+                window.tabHeight = tab.height
+                resolve(window)
+              })
             })
-          }, tabId, bounds, BrowserPanel.sideMargin, BrowserPanel.topMargin)
-        }
-        else {
-          if (!isNotFirst) {
-            const tmpWin = await Browser.bg.evaluate(() => {
-              return new Promise(resolve => {
-                chrome.windows.getAll({populate: true}, windows => {
-                  const window = windows[0]
-                  const tab = window.tabs[0]
-                  window.tabWidth = tab.width
-                  window.tabHeight = tab.height
+          })
+          console.log(4343444, tmpWin.width, tmpWin.tabWidth, tmpWin.height, tmpWin.tabHeight)
+          BrowserPanel.topMargin = tmpWin.height - tmpWin.tabHeight - 8 //- 78
+          BrowserPanel.sideMargin = (tmpWin.width - tmpWin.tabWidth) / 2
+
+          let chromeNativeWindow = winctl.GetActiveWindow()
+          const dim = chromeNativeWindow.dimensions()
+          if (!chromeNativeWindow.getTitle().includes('Google Chrome') || !(tmpWin.left == dim.left && tmpWin.top == dim.top && tmpWin.width == (dim.right - dim.left) && tmpWin.height == (dim.bottom - dim.top))) {
+            chromeNativeWindow = (await winctl.FindWindows(win => {
+              if (!win.getTitle().includes('Google Chrome')) return false
+              const dim = win.dimensions()
+              return tmpWin.left == dim.left && tmpWin.top == dim.top && tmpWin.width == (dim.right - dim.left) && tmpWin.height == (dim.bottom - dim.top)
+            }))[0]
+          }
+
+          console.log(2243344, chromeNativeWindow.getTitle())
+          chromeNativeWindow.setWindowLongPtrEx(0x00000080)
+
+          win = await Browser.bg.evaluate((url, windowId) => {
+            return new Promise(resolve => {
+              chrome.windows.update(windowId, {state: 'minimized'}, () => {
+                setTimeout(() => chrome.windows.remove(windowId), 5000)
+                chrome.windows.create({url, focused: true}, window => {
                   resolve(window)
                 })
               })
             })
-            console.log(4343444, tmpWin.width, tmpWin.tabWidth, tmpWin.height, tmpWin.tabHeight)
-            BrowserPanel.topMargin = tmpWin.height - tmpWin.tabHeight - 8 - 78
-            BrowserPanel.sideMargin = (tmpWin.width - tmpWin.tabWidth) / 2
-
-            let chromeNativeWindow = winctl.GetActiveWindow()
-            const dim = chromeNativeWindow.dimensions()
-            if (!chromeNativeWindow.getTitle().includes('Google Chrome') || !(tmpWin.left == dim.left && tmpWin.top == dim.top && tmpWin.width == (dim.right - dim.left) && tmpWin.height == (dim.bottom - dim.top))) {
-              chromeNativeWindow = (await winctl.FindWindows(win => {
-                if (!win.getTitle().includes('Google Chrome')) return false
-                const dim = win.dimensions()
-                return tmpWin.left == dim.left && tmpWin.top == dim.top && tmpWin.width == (dim.right - dim.left) && tmpWin.height == (dim.bottom - dim.top)
-              }))[0]
-            }
-
-            console.log(2243344, chromeNativeWindow.getTitle())
-            chromeNativeWindow.setWindowLongPtrEx(0x00000080)
-
-            win = await Browser.bg.evaluate((url, windowId) => {
-              return new Promise(resolve => {
-                chrome.windows.update(windowId, {state: 'minimized'}, () => {
-                  setTimeout(() => chrome.windows.remove(windowId), 5000)
-                  chrome.windows.create({url, focused: true}, window => {
-                    resolve(window)
-                  })
-                })
-              })
-            }, url, tmpWin.id)
-            BrowserPanel._isNotFirst = true
-
-          }
-          else {
-            win = await Browser.bg.evaluate((url, bounds, sideMargin, topMargin) => {
-              const createData = bounds ? {
-                url, focused: true, left: bounds.x - sideMargin, top: bounds.y - topMargin,
-                width: bounds.width + sideMargin * 2, height: bounds.height + topMargin + 8
-              } : {url}
-              return new Promise(resolve => chrome.windows.create(createData, window => resolve(window)))
-            }, url, bounds, BrowserPanel.sideMargin, BrowserPanel.topMargin)
-          }
-        }
-
-        this.cpWin = await this.createChromeParentWindow(win)
-
-        this.panelKey = panelKey
-        this.windowId = win.id
-        BrowserPanel.panelKeys[panelKey] = this
-        this.tabKeys = {[tabKey]: [win.tabs[0].id, new BrowserView(this, tabKey, win.tabs[0].id)]}
-
-        if(!isNotFirst) await Browser.initPopupPanel()
-        return this
-      }
-      else {
-        this.windowId = windowId
-
-        const win = await Browser.bg.evaluate((windowId, isNotFirst) => {
-          return new Promise(resolve => {
-            chrome.windows.get(windowId, {populate: !isNotFirst}, window => {
-              if (!isNotFirst) {
-                window.tabWidth = window.tabs[0].width
-                window.tabHeight = window.tabs[0].height
-              }
-              resolve(window)
-            })
-          })
-        }, windowId, BrowserPanel._isNotFirst)
-
-
-        if (!BrowserPanel._isNotFirst) {
+          }, url, tmpWin.id)
           BrowserPanel._isNotFirst = true
-          BrowserPanel.topMargin = win.height - win.tabHeight - 8
-          BrowserPanel.sideMargin = (win.width - win.tabWidth) / 2
+
         }
-
-        const x = win.left + BrowserPanel.sideMargin,
-          y = win.top + BrowserPanel.topMargin,
-          width = win.width,
-          height = getWinHeight(win.height)
-
-        const bw = webContents.hostWebContents2 ? BrowserWindow.fromWebContents(webContents.hostWebContents2) :
-          require('../util').getCurrentWindow()
-
-        this.browserWindow = await require('../BrowserWindowPlus').load({
-          id: bw.id, x, y, width, height,
-          tabParam: JSON.stringify({
-            urls: [{url: void 0, guestInstanceId: webContents && webContents.id}],
-            type: 'new-win'
-          })
-        })
-        this.browserWindow.on('closed', () => this.destroy())
-
-        this.cpWin = await this.createChromeParentWindow(win)
-
-        return new Promise(r => {
-          const key = Math.random().toString()
-          const id = webContents.id
-          const intervalId = setInterval(() => this.browserWindow.webContents.send('get-panel-and-tab-info', id, key), 10)
-
-          ipcMain.once(`get-panel-and-tab-info-reply_${key}`, async (e, panelKey, tabKey) => {
-            clearInterval(intervalId)
-            console.log(`get-panel-and-tab-info-reply_${key}`, panelKey, tabKey)
-            this.panelKey = panelKey
-            BrowserPanel.panelKeys[panelKey] = this
-            this.tabKeys = {[tabKey]: [id, new BrowserView(this, tabKey, id)]}
-            const bv = BrowserPanel.getBrowserPanel(panelKey).attachBrowserView(id, tabKey)
-
-            // webContents.hostWebContents2.send('tab-create', {id: newTabId, url: (await webContents.getURLAsync()), openerTabId: tab.openerTabId})
-
-            r([this, this.tabKeys[tabKey][1]])
-          })
-
-        })
+        else {
+          win = await Browser.bg.evaluate((url, bounds, sideMargin, topMargin) => {
+            const createData = bounds ? {
+              url, focused: true, left: bounds.x - sideMargin, top: bounds.y - topMargin,
+              width: bounds.width + sideMargin * 2, height: bounds.height + topMargin + 8
+            } : {url}
+            return new Promise(resolve => chrome.windows.create(createData, window => resolve(window)))
+          }, url, bounds, BrowserPanel.sideMargin, BrowserPanel.topMargin)
+        }
       }
 
-    })()
+      this.cpWin = await this.createChromeParentWindow(win)
+
+      this.panelKey = panelKey
+      this.windowId = win.id
+      BrowserPanel.panelKeys[panelKey] = this
+      this.tabKeys = {[tabKey]: [win.tabs[0].id, new BrowserView(this, tabKey, win.tabs[0].id)]}
+
+      if(!isNotFirst) await Browser.initPopupPanel()
+
+      BrowserPanel.initing = false
+      return this
+    }
+    else {
+      this.windowId = windowId
+
+      const win = await Browser.bg.evaluate((windowId, isNotFirst) => {
+        return new Promise(resolve => {
+          chrome.windows.get(windowId, {populate: !isNotFirst}, window => {
+            if (!isNotFirst) {
+              window.tabWidth = window.tabs[0].width
+              window.tabHeight = window.tabs[0].height
+            }
+            resolve(window)
+          })
+        })
+      }, windowId, BrowserPanel._isNotFirst)
+
+
+      if (!BrowserPanel._isNotFirst) {
+        BrowserPanel._isNotFirst = true
+        BrowserPanel.topMargin = win.height - win.tabHeight - 8
+        BrowserPanel.sideMargin = (win.width - win.tabWidth) / 2
+      }
+
+      const x = win.left + BrowserPanel.sideMargin,
+        y = win.top + BrowserPanel.topMargin,
+        width = win.width,
+        height = getWinHeight(win.height)
+
+      const bw = webContents.hostWebContents2 ? BrowserWindow.fromWebContents(webContents.hostWebContents2) :
+        require('../util').getCurrentWindow()
+
+      this.browserWindow = await require('../BrowserWindowPlus').load({
+        id: bw.id, x, y, width, height,
+        tabParam: JSON.stringify({
+          urls: [{url: void 0, guestInstanceId: webContents && webContents.id}],
+          type: 'new-win'
+        })
+      })
+      this.browserWindow.on('closed', () => this.destroy())
+
+      this.cpWin = await this.createChromeParentWindow(win)
+
+      return new Promise(r => {
+        const key = Math.random().toString()
+        const id = webContents.id
+        const intervalId = setInterval(() => this.browserWindow.webContents.send('get-panel-and-tab-info', id, key), 10)
+
+        ipcMain.once(`get-panel-and-tab-info-reply_${key}`, async (e, panelKey, tabKey) => {
+          clearInterval(intervalId)
+          console.log(`get-panel-and-tab-info-reply_${key}`, panelKey, tabKey)
+          this.panelKey = panelKey
+          BrowserPanel.panelKeys[panelKey] = this
+          this.tabKeys = {[tabKey]: [id, new BrowserView(this, tabKey, id)]}
+          const bv = BrowserPanel.getBrowserPanel(panelKey).attachBrowserView(id, tabKey)
+
+          // webContents.hostWebContents2.send('tab-create', {id: newTabId, url: (await webContents.getURLAsync()), openerTabId: tab.openerTabId})
+
+          r([this, this.tabKeys[tabKey][1]])
+        })
+
+      })
+    }
   }
 
   async createChromeParentWindow(cWin) {
     let chromeNativeWindow = winctl.GetActiveWindow()
     const dim = chromeNativeWindow.dimensions()
-    if (!chromeNativeWindow.getTitle().includes('Google Chrome') || !(cWin.left == dim.left && cWin.top == dim.top && cWin.width == (dim.right - dim.left) && cWin.height == (dim.bottom - dim.top))) {
+    if (BrowserPanel.bindedWindows.has(chromeNativeWindow.getHwnd()) || !chromeNativeWindow.getTitle().includes('Google Chrome') || !(cWin.left == dim.left && cWin.top == dim.top && cWin.width == (dim.right - dim.left) && cWin.height == (dim.bottom - dim.top))) {
       chromeNativeWindow = (await winctl.FindWindows(win => {
-        if (!win.getTitle().includes('Google Chrome')) return false
+        if (BrowserPanel.bindedWindows.has(chromeNativeWindow.getHwnd()) || !win.getTitle().includes('Google Chrome')) return false
         const dim = win.dimensions()
         console.log(win.getTitle(), cWin.left, dim.left, cWin.top, dim.top, cWin.width, (dim.right - dim.left), cWin.height, (dim.bottom - dim.top))
         return cWin.left == dim.left && cWin.top == dim.top && cWin.width == (dim.right - dim.left) && cWin.height == (dim.bottom - dim.top)
@@ -338,6 +342,7 @@ export default class BrowserPanel {
     }
     chromeNativeWindow.moveRelative(9999, 9999, 0, 0)
     chromeNativeWindow.hwnd = chromeNativeWindow.getHwnd()
+    BrowserPanel.bindedWindows.add(chromeNativeWindow.hwnd)
     const title = Math.random().toString()
     const _title = this.browserWindow.getTitle()
 

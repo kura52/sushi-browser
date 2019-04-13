@@ -598,8 +598,8 @@ chrome.downloads.setShelfEnabled(false)
 chrome.downloads.onCreated.addListener(async (item)=>{
   chrome.downloads.pause(item.id)
 
-  for(let i=0;i<100;i++){
-    await new Promise(r=>setTimeout(r,1))
+  for(let i=0;i<200;i++){
+    await new Promise(r=>setTimeout(r,i+1))
     const sended = await new Promise(r => {
       chrome.downloads.search({id: item.id}, results => {
         const item = results[0]

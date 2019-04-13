@@ -145,10 +145,12 @@ class Browser{
             //   browserPanel.cpWin.nativeWindow.setForegroundWindow()
             //   r()
             // },0))
+            setTimeout(()=>{
 
-            browserPanel.cpWin.nativeWindow.showWindow(9)
-            // browserPanel.moveTopNativeWindow()
-            browserPanel.cpWin.nativeWindow.setForegroundWindowEx()
+              browserPanel.cpWin.nativeWindow.showWindow(9)
+              // browserPanel.moveTopNativeWindow()
+              browserPanel.cpWin.nativeWindow.setForegroundWindowEx()
+            },0)
           }
         }
       }
@@ -175,10 +177,10 @@ class Browser{
       }
     })
 
-    ipcMain.on('fullscreen-change', async (e, enabled) => {
+    ipcMain.on('fullscreen-change', async (e, enabled, delay) => {
       console.log('fullscreen-change', e, enabled)
       const [_1, _2, browserPanel, browserView] = BrowserPanel.getBrowserPanelByTabId(e.sender.id)
-      if(enabled){
+      if(enabled && !browserPanel.browserWindow._fullscreen){
         browserPanel.cpWin.chromeNativeWindow.setParent(null)
         browserPanel.browserWindow._fullscreen = browserView.webContents
         // const dim = browserPanel.cpWin.nativeWindow.dimensions()
@@ -195,7 +197,8 @@ class Browser{
         // browserPanel.cpWin.chromeNativeWindow.setWindowLongPtr(0x00040000)
         // browserPanel.cpWin.chromeNativeWindow.setWindowPos(0,0,0,0,0,39)
       }
-      else{
+      else if(!enabled && browserPanel.browserWindow._fullscreen){
+        if(delay > 0) await new Promise(r=>setTimeout(r,delay))
         browserPanel.cpWin.chromeNativeWindow.setParent(browserPanel.cpWin.nativeWindow.getHwnd())
         const dim = browserPanel.cpWin.nativeWindow.dimensions()
         browserPanel.cpWin.chromeNativeWindow.move(...BrowserPanel.getChromeWindowBoundArray(dim.right - dim.left, dim.bottom - dim.top))

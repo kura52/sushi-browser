@@ -45,7 +45,7 @@ export default class BrowserView {
 
     let [_1, _2, panel, bv] = BrowserPanel.getBrowserPanelByTabId(cont.id)
     if (bv) return bv
-    console.trace(44445, cont.id)
+    // console.trace(44445, cont.id)
 
     this.newTabCreateing = true
 

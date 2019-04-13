@@ -27,6 +27,7 @@ const sharedState = require('./sharedState')
 const BrowserPageStatus = require('./BrowserPageStatus')
 const autoHighLightInjection = require('./autoHighLightInjection')
 const InputPopup = require('./InputPopup')
+const browserActionMap = require('./browserActionDatas')
 
 let searchProviders,spAliasMap,autocompleteUrl
 updateSearchEngine();
@@ -1635,7 +1636,13 @@ export default class TabPanel extends Component {
       onFaviconUpdate(e, page, favicons) {
         if(newPage.navUrl.match(/^https:\/\/www\.google\.([a-z.]+)\/url\?sa=t&/)) return //Google Redirect
         console.log(newPage.navUrl,"onFaviconUpdate", e)
-        newPage.favicon = favicons[0]
+        if(favicons[0].startsWith('chrome-extension:')){
+          const id = favicons[0].split('/')[2]
+          newPage.favicon = `file://${browserActionMap.get(id).basePath}/${favicons[0].split('/').splice(3).join('/')}`
+        }
+        else{
+          newPage.favicon = favicons[0]
+        }
         // self.setState({})
         self.setStatePartical(tab)
 
