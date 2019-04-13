@@ -11,9 +11,10 @@ import uuid from 'node-uuid';
 import { Container, Card, Menu, Input, Button } from 'semantic-ui-react';
 import {StickyContainer, Sticky} from 'react-sticky';
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd';
-import '../defaultExtension/contentscript'
+
 import l10n from '../../brave/js/l10n';
 const initPromise = l10n.init()
+import '../defaultExtension/contentscript'
 
 
 const convertUrlMap = new Map([

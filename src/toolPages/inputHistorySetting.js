@@ -9,9 +9,9 @@ import path from 'path';
 
 import ReactTable from 'react-table';
 
-import '../defaultExtension/contentscript'
 import l10n from '../../brave/js/l10n';
 const initPromise = l10n.init()
+import '../defaultExtension/contentscript'
 
 function showDialog(input,id){
   return new Promise((resolve,reject)=>{

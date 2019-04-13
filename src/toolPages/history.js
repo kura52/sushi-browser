@@ -12,9 +12,9 @@ import moment from 'moment';
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
 import Clusterize from 'clusterize.js';
 
-import '../defaultExtension/contentscript'
 import l10n from '../../brave/js/l10n';
 const initPromise = l10n.init()
+import '../defaultExtension/contentscript'
 
 
 

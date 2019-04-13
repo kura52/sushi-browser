@@ -34,7 +34,7 @@ export default class webContents extends EventEmitter {
   }
 
   static fromId(id){
-    return this.webContentsMap.get(id) || _webContents.fromId(id)
+    return id ? this.webContentsMap.get(id) || _webContents.fromId(id) : null
   }
 
   static async reopenLastClosedTab(){

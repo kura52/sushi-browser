@@ -23,9 +23,9 @@ const isWin = navigator.userAgent.includes('Windows')
 const TOP_URL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html'
 const CHROME_TOP_URL = 'chrome-search://local-ntp/local-ntp.html'
 
-import '../defaultExtension/contentscript'
 import l10n from '../../brave/js/l10n';
 const initPromise = l10n.init()
+import '../defaultExtension/contentscript'
 
 
 const opColumns = [

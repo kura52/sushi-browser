@@ -784,7 +784,7 @@ class Browser{
     extInfos.setInfo(installInfo)
     for(let win of BrowserWindow.getAllWindows().filter(w=>w.getTitle().includes('Sushi Browser'))){
       if(!win.webContents.isDestroyed()){
-          win.webContents.send('extension-ready',{[installInfo.id]:{...installInfo}})
+        win.webContents.send('extension-ready',{[installInfo.id]:{...installInfo}})
       }
     }
   }
@@ -807,27 +807,36 @@ class Browser{
     })
   }
 
-  static downloadURL(url, cont, referer){
-    Browser.bg.evaluate((url, tabId, referer) => {
-      return new Promise(async resolve => {
-        const options = {
-          url,
-          conflictAction: 'uniquify',
-        }
-        if(referer){
-          options.headers = [{name: 'Referrer', value: referer}]
-        }
-        else if(tabId){
-          const referer = (await new Promise(r => chrome.tabs.get(tabId, tab => r(tab)))).url
-          options.headers = [{name: 'Referrer', value: referer}]
-        }
-        chrome.downloads.download(options,
-          downloadId => chrome.downloads.search({id: downloadId}, results => resolve(results[0])))
+  static async downloadURL(url, cont, referer, retryKey){
+    let item
+    if(retryKey){
+      item = await Browser.bg.evaluate((retryKey) => {
+        return new Promise(async resolve => {
+          chrome.downloads.search({id: retryKey}, results => resolve(results[0]))
+        })
+      }, retryKey)
+    }
+    else{
+      item = await Browser.bg.evaluate((url, tabId, referer) => {
+        return new Promise(async resolve => {
+          const options = {
+            url,
+            conflictAction: 'uniquify',
+          }
+          if(referer){
+            options.headers = [{name: 'Referrer', value: referer}]
+          }
+          else if(tabId){
+            const referer = (await new Promise(r => chrome.tabs.get(tabId, tab => r(tab)))).url
+            options.headers = [{name: 'Referrer', value: referer}]
+          }
+          chrome.downloads.download(options,
+            downloadId => chrome.downloads.search({id: downloadId}, results => resolve(results[0])))
 
-      })
-    }, url, cont && cont.id, referer).then(item => {
-      ipcMain.emit('chrome-download-start', null, item, url, cont)
-    })
+        })
+      }, url, cont && cont.id, referer)
+    }
+    ipcMain.emit('chrome-download-start', null, item, url, cont, retryKey)
   }
 
   static getFocusedWindow(){

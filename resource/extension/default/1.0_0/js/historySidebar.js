@@ -113,395 +113,395 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 
 
-var NO_OP = '$NO_OP';
-var isBrowser = !!(typeof window !== 'undefined' && window.document);
-var isArray = Array.isArray;
-function isNullOrUndef(o) {
-    return isUndefined(o) || isNull(o);
-}
-function isInvalid(o) {
-    return isNull(o) || o === false || isTrue(o) || isUndefined(o);
-}
-function isFunction(o) {
-    return typeof o === 'function';
-}
-function isString(o) {
-    return typeof o === 'string';
-}
-function isNull(o) {
-    return o === null;
-}
-function isTrue(o) {
-    return o === true;
-}
-function isUndefined(o) {
-    return o === void 0;
-}
-function isObject(o) {
-    return typeof o === 'object';
+var NO_OP = '$NO_OP';
+var isBrowser = !!(typeof window !== 'undefined' && window.document);
+var isArray = Array.isArray;
+function isNullOrUndef(o) {
+    return isUndefined(o) || isNull(o);
+}
+function isInvalid(o) {
+    return isNull(o) || o === false || isTrue(o) || isUndefined(o);
+}
+function isFunction(o) {
+    return typeof o === 'function';
+}
+function isString(o) {
+    return typeof o === 'string';
+}
+function isNull(o) {
+    return o === null;
+}
+function isTrue(o) {
+    return o === true;
+}
+function isUndefined(o) {
+    return o === void 0;
+}
+function isObject(o) {
+    return typeof o === 'object';
 }
 
-function isValidElement(obj) {
-    var isNotANullObject = isObject(obj) && isNull(obj) === false;
-    if (isNotANullObject === false) {
-        return false;
-    }
-    var flags = obj.flags;
-    return (flags & (14 /* Component */ | 481 /* Element */)) > 0;
+function isValidElement(obj) {
+    var isNotANullObject = isObject(obj) && isNull(obj) === false;
+    if (isNotANullObject === false) {
+        return false;
+    }
+    var flags = obj.flags;
+    return (flags & (14 /* Component */ | 481 /* Element */)) > 0;
 }
 
-/**
- * @module Inferno-Compat
- */
-/**
- * Inlined PropTypes, there is propType checking ATM.
- */
-// tslint:disable-next-line:no-empty
-function proptype() { }
-proptype.isRequired = proptype;
-var getProptype = function () { return proptype; };
-var PropTypes = {
-    any: getProptype,
-    array: proptype,
-    arrayOf: getProptype,
-    bool: proptype,
-    checkPropTypes: function () { return null; },
-    element: getProptype,
-    func: proptype,
-    instanceOf: getProptype,
-    node: getProptype,
-    number: proptype,
-    object: proptype,
-    objectOf: getProptype,
-    oneOf: getProptype,
-    oneOfType: getProptype,
-    shape: getProptype,
-    string: proptype,
-    symbol: proptype
+/**
+ * @module Inferno-Compat
+ */
+/**
+ * Inlined PropTypes, there is propType checking ATM.
+ */
+// tslint:disable-next-line:no-empty
+function proptype() { }
+proptype.isRequired = proptype;
+var getProptype = function () { return proptype; };
+var PropTypes = {
+    any: getProptype,
+    array: proptype,
+    arrayOf: getProptype,
+    bool: proptype,
+    checkPropTypes: function () { return null; },
+    element: getProptype,
+    func: proptype,
+    instanceOf: getProptype,
+    node: getProptype,
+    number: proptype,
+    object: proptype,
+    objectOf: getProptype,
+    oneOf: getProptype,
+    oneOfType: getProptype,
+    shape: getProptype,
+    string: proptype,
+    symbol: proptype
 };
 
-/**
- * This is a list of all SVG attributes that need special casing,
- * namespacing, or boolean value assignment.
- *
- * When adding attributes to this list, be sure to also add them to
- * the `possibleStandardNames` module to ensure casing and incorrect
- * name warnings.
- *
- * SVG Attributes List:
- * https://www.w3.org/TR/SVG/attindex.html
- * SMIL Spec:
- * https://www.w3.org/TR/smil
- */
-var ATTRS = [
-    'accent-height',
-    'alignment-baseline',
-    'arabic-form',
-    'baseline-shift',
-    'cap-height',
-    'clip-path',
-    'clip-rule',
-    'color-interpolation',
-    'color-interpolation-filters',
-    'color-profile',
-    'color-rendering',
-    'dominant-baseline',
-    'enable-background',
-    'fill-opacity',
-    'fill-rule',
-    'flood-color',
-    'flood-opacity',
-    'font-family',
-    'font-size',
-    'font-size-adjust',
-    'font-stretch',
-    'font-style',
-    'font-constiant',
-    'font-weight',
-    'glyph-name',
-    'glyph-orientation-horizontal',
-    'glyph-orientation-vertical',
-    'horiz-adv-x',
-    'horiz-origin-x',
-    'image-rendering',
-    'letter-spacing',
-    'lighting-color',
-    'marker-end',
-    'marker-mid',
-    'marker-start',
-    'overline-position',
-    'overline-thickness',
-    'paint-order',
-    'panose-1',
-    'pointer-events',
-    'rendering-intent',
-    'shape-rendering',
-    'stop-color',
-    'stop-opacity',
-    'strikethrough-position',
-    'strikethrough-thickness',
-    'stroke-dasharray',
-    'stroke-dashoffset',
-    'stroke-linecap',
-    'stroke-linejoin',
-    'stroke-miterlimit',
-    'stroke-opacity',
-    'stroke-width',
-    'text-anchor',
-    'text-decoration',
-    'text-rendering',
-    'underline-position',
-    'underline-thickness',
-    'unicode-bidi',
-    'unicode-range',
-    'units-per-em',
-    'v-alphabetic',
-    'v-hanging',
-    'v-ideographic',
-    'v-mathematical',
-    'vector-effect',
-    'vert-adv-y',
-    'vert-origin-x',
-    'vert-origin-y',
-    'word-spacing',
-    'writing-mode',
-    'x-height',
-    'xlink:actuate',
-    'xlink:arcrole',
-    'xlink:href',
-    'xlink:role',
-    'xlink:show',
-    'xlink:title',
-    'xlink:type',
-    'xml:base',
-    'xmlns:xlink',
-    'xml:lang',
-    'xml:space'
-];
-var SVGDOMPropertyConfig = {};
-var CAMELIZE = /[\-\:]([a-z])/g;
-var capitalize = function (token) { return token[1].toUpperCase(); };
-ATTRS.forEach(function (original) {
-    var reactName = original.replace(CAMELIZE, capitalize);
-    SVGDOMPropertyConfig[reactName] = original;
+/**
+ * This is a list of all SVG attributes that need special casing,
+ * namespacing, or boolean value assignment.
+ *
+ * When adding attributes to this list, be sure to also add them to
+ * the `possibleStandardNames` module to ensure casing and incorrect
+ * name warnings.
+ *
+ * SVG Attributes List:
+ * https://www.w3.org/TR/SVG/attindex.html
+ * SMIL Spec:
+ * https://www.w3.org/TR/smil
+ */
+var ATTRS = [
+    'accent-height',
+    'alignment-baseline',
+    'arabic-form',
+    'baseline-shift',
+    'cap-height',
+    'clip-path',
+    'clip-rule',
+    'color-interpolation',
+    'color-interpolation-filters',
+    'color-profile',
+    'color-rendering',
+    'dominant-baseline',
+    'enable-background',
+    'fill-opacity',
+    'fill-rule',
+    'flood-color',
+    'flood-opacity',
+    'font-family',
+    'font-size',
+    'font-size-adjust',
+    'font-stretch',
+    'font-style',
+    'font-constiant',
+    'font-weight',
+    'glyph-name',
+    'glyph-orientation-horizontal',
+    'glyph-orientation-vertical',
+    'horiz-adv-x',
+    'horiz-origin-x',
+    'image-rendering',
+    'letter-spacing',
+    'lighting-color',
+    'marker-end',
+    'marker-mid',
+    'marker-start',
+    'overline-position',
+    'overline-thickness',
+    'paint-order',
+    'panose-1',
+    'pointer-events',
+    'rendering-intent',
+    'shape-rendering',
+    'stop-color',
+    'stop-opacity',
+    'strikethrough-position',
+    'strikethrough-thickness',
+    'stroke-dasharray',
+    'stroke-dashoffset',
+    'stroke-linecap',
+    'stroke-linejoin',
+    'stroke-miterlimit',
+    'stroke-opacity',
+    'stroke-width',
+    'text-anchor',
+    'text-decoration',
+    'text-rendering',
+    'underline-position',
+    'underline-thickness',
+    'unicode-bidi',
+    'unicode-range',
+    'units-per-em',
+    'v-alphabetic',
+    'v-hanging',
+    'v-ideographic',
+    'v-mathematical',
+    'vector-effect',
+    'vert-adv-y',
+    'vert-origin-x',
+    'vert-origin-y',
+    'word-spacing',
+    'writing-mode',
+    'x-height',
+    'xlink:actuate',
+    'xlink:arcrole',
+    'xlink:href',
+    'xlink:role',
+    'xlink:show',
+    'xlink:title',
+    'xlink:type',
+    'xml:base',
+    'xmlns:xlink',
+    'xml:lang',
+    'xml:space'
+];
+var SVGDOMPropertyConfig = {};
+var CAMELIZE = /[\-\:]([a-z])/g;
+var capitalize = function (token) { return token[1].toUpperCase(); };
+ATTRS.forEach(function (original) {
+    var reactName = original.replace(CAMELIZE, capitalize);
+    SVGDOMPropertyConfig[reactName] = original;
 });
 
-function unmountComponentAtNode(container) {
-    Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["o" /* render */])(null, container);
-    return true;
-}
+function unmountComponentAtNode(container) {
+    Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["o" /* render */])(null, container);
+    return true;
+}
 function extend(base, props) {
     var arguments$1 = arguments;
-
-    for (var i = 1, obj = (void 0); i < arguments.length; i++) {
-        if ((obj = arguments$1[i])) {
-            for (var key in obj) {
-                if (obj.hasOwnProperty(key)) {
-                    base[key] = obj[key];
-                }
-            }
-        }
-    }
-    return base;
-}
-function flatten(arr, result) {
-    for (var i = 0, len = arr.length; i < len; i++) {
-        var value = arr[i];
-        if (isArray(value)) {
-            flatten(value, result);
-        }
-        else {
-            result.push(value);
-        }
-    }
-    return result;
-}
-var ARR = [];
-var Children = {
-    map: function map(children, fn, ctx) {
-        if (isNullOrUndef(children)) {
-            return children;
-        }
-        children = Children.toArray(children);
-        if (ctx && ctx !== children) {
-            fn = fn.bind(ctx);
-        }
-        return children.map(fn);
-    },
-    forEach: function forEach(children, fn, ctx) {
-        if (isNullOrUndef(children)) {
-            return;
-        }
-        children = Children.toArray(children);
-        if (ctx && ctx !== children) {
-            fn = fn.bind(ctx);
-        }
-        for (var i = 0, len = children.length; i < len; i++) {
-            var child = isInvalid(children[i]) ? null : children[i];
-            fn(child, i, children);
-        }
-    },
-    count: function count(children) {
-        children = Children.toArray(children);
-        return children.length;
-    },
-    only: function only(children) {
-        children = Children.toArray(children);
-        if (children.length !== 1) {
-            throw new Error('Children.only() expects only one child.');
-        }
-        return children[0];
-    },
-    toArray: function toArray(children) {
-        if (isNullOrUndef(children)) {
-            return [];
-        }
-        // We need to flatten arrays here,
-        // because React does it also and application level code might depend on that behavior
-        if (isArray(children)) {
-            var result = [];
-            flatten(children, result);
-            return result;
-        }
-        return ARR.concat(children);
-    }
-};
-__WEBPACK_IMPORTED_MODULE_0_inferno__["a" /* Component */].prototype.isReactComponent = {};
-var currentComponent = null;
-__WEBPACK_IMPORTED_MODULE_0_inferno__["n" /* options */].beforeRender = function (component) {
-    currentComponent = component;
-};
-__WEBPACK_IMPORTED_MODULE_0_inferno__["n" /* options */].afterRender = function () {
-    currentComponent = null;
-};
-var version = '15.4.2';
-function normalizeGenericProps(props) {
-    for (var prop in props) {
-        if (prop === 'onDoubleClick') {
-            props.onDblClick = props[prop];
-            props[prop] = void 0;
-        }
-        if (prop === 'htmlFor') {
-            props.for = props[prop];
-            props[prop] = void 0;
-        }
-        var mappedProp = SVGDOMPropertyConfig[prop];
-        if (mappedProp && props[prop] && mappedProp !== prop) {
-            props[mappedProp] = props[prop];
-            props[prop] = void 0;
-        }
-    }
-}
-function normalizeFormProps(name, props) {
-    if ((name === 'input' || name === 'textarea') && props.type !== 'radio' && props.onChange) {
-        var type = props.type;
-        var eventName;
-        if (!type || type === 'text') {
-            eventName = 'oninput';
-        }
-        else if (type === 'file') {
-            eventName = 'onchange';
-        }
-        if (eventName && !props[eventName]) {
-            props[eventName] = props.onChange;
-            props.onChange = void 0;
-        }
-    }
-}
-// we need to add persist() to Event (as React has it for synthetic events)
-// this is a hack and we really shouldn't be modifying a global object this way,
-// but there isn't a performant way of doing this apart from trying to proxy
-// every prop event that starts with "on", i.e. onClick or onKeyPress
-// but in reality devs use onSomething for many things, not only for
-// input events
-if (typeof Event !== 'undefined') {
-    var eventProtoType = Event.prototype;
-    if (!eventProtoType.persist) {
-        // tslint:disable-next-line:no-empty
-        eventProtoType.persist = function () { };
-    }
-    if (!eventProtoType.isDefaultPrevented) {
-        eventProtoType.isDefaultPrevented = function () {
-            return this.defaultPrevented;
-        };
-    }
-    if (!eventProtoType.isPropagationStopped) {
-        eventProtoType.isPropagationStopped = function () {
-            return this.cancelBubble;
-        };
-    }
-}
-function iterableToArray(iterable) {
-    var iterStep;
-    var tmpArr = [];
-    do {
-        iterStep = iterable.next();
-        tmpArr.push(iterStep.value);
-    } while (!iterStep.done);
-    return tmpArr;
-}
-var g = typeof window === 'undefined' ? global : window;
-var hasSymbolSupport = typeof g.Symbol !== 'undefined';
-var symbolIterator = hasSymbolSupport ? g.Symbol.iterator : '';
-var oldCreateVNode = __WEBPACK_IMPORTED_MODULE_0_inferno__["n" /* options */].createVNode;
-__WEBPACK_IMPORTED_MODULE_0_inferno__["n" /* options */].createVNode = function (vNode) {
-    var children = vNode.children;
-    var ref = vNode.ref;
-    var props = vNode.props;
-    if (isNullOrUndef(props)) {
-        props = vNode.props = {};
-    }
-    // React supports iterable children, in addition to Array-like
-    if (hasSymbolSupport && !isNull(children) && !isArray(children) && typeof children === 'object' && isFunction(children[symbolIterator])) {
-        vNode.children = iterableToArray(children[symbolIterator]());
-    }
-    if (typeof ref === 'string' && !isNull(currentComponent)) {
-        if (!currentComponent.refs) {
-            currentComponent.refs = {};
-        }
-        vNode.ref = function (val) {
-            this.refs[ref] = val;
-        }.bind(currentComponent);
-    }
-    if (vNode.className) {
-        props.className = vNode.className;
-    }
-    if (!isNullOrUndef(children) && isNullOrUndef(props.children)) {
-        props.children = children;
-    }
-    if (vNode.flags & 14 /* Component */) {
-        if (isString(vNode.type)) {
-            vNode.flags = Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["i" /* getFlagsForElementVnode */])(vNode.type);
-            if (props) {
-                Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["m" /* normalizeProps */])(vNode);
-            }
-        }
-    }
-    var flags = vNode.flags;
-    if (flags & 448 /* FormElement */) {
-        normalizeFormProps(vNode.type, props);
-    }
-    if (flags & 481 /* Element */) {
-        normalizeGenericProps(props);
-    }
-    if (oldCreateVNode) {
-        oldCreateVNode(vNode);
-    }
-};
-// Credit: preact-compat - https://github.com/developit/preact-compat :)
-function shallowDiffers(a, b) {
-    for (var i in a) {
-        if (!(i in b)) {
-            return true;
-        }
-    }
-    for (var i$1 in b) {
-        if (a[i$1] !== b[i$1]) {
-            return true;
-        }
-    }
-    return false;
-}
+
+    for (var i = 1, obj = (void 0); i < arguments.length; i++) {
+        if ((obj = arguments$1[i])) {
+            for (var key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                    base[key] = obj[key];
+                }
+            }
+        }
+    }
+    return base;
+}
+function flatten(arr, result) {
+    for (var i = 0, len = arr.length; i < len; i++) {
+        var value = arr[i];
+        if (isArray(value)) {
+            flatten(value, result);
+        }
+        else {
+            result.push(value);
+        }
+    }
+    return result;
+}
+var ARR = [];
+var Children = {
+    map: function map(children, fn, ctx) {
+        if (isNullOrUndef(children)) {
+            return children;
+        }
+        children = Children.toArray(children);
+        if (ctx && ctx !== children) {
+            fn = fn.bind(ctx);
+        }
+        return children.map(fn);
+    },
+    forEach: function forEach(children, fn, ctx) {
+        if (isNullOrUndef(children)) {
+            return;
+        }
+        children = Children.toArray(children);
+        if (ctx && ctx !== children) {
+            fn = fn.bind(ctx);
+        }
+        for (var i = 0, len = children.length; i < len; i++) {
+            var child = isInvalid(children[i]) ? null : children[i];
+            fn(child, i, children);
+        }
+    },
+    count: function count(children) {
+        children = Children.toArray(children);
+        return children.length;
+    },
+    only: function only(children) {
+        children = Children.toArray(children);
+        if (children.length !== 1) {
+            throw new Error('Children.only() expects only one child.');
+        }
+        return children[0];
+    },
+    toArray: function toArray(children) {
+        if (isNullOrUndef(children)) {
+            return [];
+        }
+        // We need to flatten arrays here,
+        // because React does it also and application level code might depend on that behavior
+        if (isArray(children)) {
+            var result = [];
+            flatten(children, result);
+            return result;
+        }
+        return ARR.concat(children);
+    }
+};
+__WEBPACK_IMPORTED_MODULE_0_inferno__["a" /* Component */].prototype.isReactComponent = {};
+var currentComponent = null;
+__WEBPACK_IMPORTED_MODULE_0_inferno__["n" /* options */].beforeRender = function (component) {
+    currentComponent = component;
+};
+__WEBPACK_IMPORTED_MODULE_0_inferno__["n" /* options */].afterRender = function () {
+    currentComponent = null;
+};
+var version = '15.4.2';
+function normalizeGenericProps(props) {
+    for (var prop in props) {
+        if (prop === 'onDoubleClick') {
+            props.onDblClick = props[prop];
+            props[prop] = void 0;
+        }
+        if (prop === 'htmlFor') {
+            props.for = props[prop];
+            props[prop] = void 0;
+        }
+        var mappedProp = SVGDOMPropertyConfig[prop];
+        if (mappedProp && props[prop] && mappedProp !== prop) {
+            props[mappedProp] = props[prop];
+            props[prop] = void 0;
+        }
+    }
+}
+function normalizeFormProps(name, props) {
+    if ((name === 'input' || name === 'textarea') && props.type !== 'radio' && props.onChange) {
+        var type = props.type;
+        var eventName;
+        if (!type || type === 'text') {
+            eventName = 'oninput';
+        }
+        else if (type === 'file') {
+            eventName = 'onchange';
+        }
+        if (eventName && !props[eventName]) {
+            props[eventName] = props.onChange;
+            props.onChange = void 0;
+        }
+    }
+}
+// we need to add persist() to Event (as React has it for synthetic events)
+// this is a hack and we really shouldn't be modifying a global object this way,
+// but there isn't a performant way of doing this apart from trying to proxy
+// every prop event that starts with "on", i.e. onClick or onKeyPress
+// but in reality devs use onSomething for many things, not only for
+// input events
+if (typeof Event !== 'undefined') {
+    var eventProtoType = Event.prototype;
+    if (!eventProtoType.persist) {
+        // tslint:disable-next-line:no-empty
+        eventProtoType.persist = function () { };
+    }
+    if (!eventProtoType.isDefaultPrevented) {
+        eventProtoType.isDefaultPrevented = function () {
+            return this.defaultPrevented;
+        };
+    }
+    if (!eventProtoType.isPropagationStopped) {
+        eventProtoType.isPropagationStopped = function () {
+            return this.cancelBubble;
+        };
+    }
+}
+function iterableToArray(iterable) {
+    var iterStep;
+    var tmpArr = [];
+    do {
+        iterStep = iterable.next();
+        tmpArr.push(iterStep.value);
+    } while (!iterStep.done);
+    return tmpArr;
+}
+var g = typeof window === 'undefined' ? global : window;
+var hasSymbolSupport = typeof g.Symbol !== 'undefined';
+var symbolIterator = hasSymbolSupport ? g.Symbol.iterator : '';
+var oldCreateVNode = __WEBPACK_IMPORTED_MODULE_0_inferno__["n" /* options */].createVNode;
+__WEBPACK_IMPORTED_MODULE_0_inferno__["n" /* options */].createVNode = function (vNode) {
+    var children = vNode.children;
+    var ref = vNode.ref;
+    var props = vNode.props;
+    if (isNullOrUndef(props)) {
+        props = vNode.props = {};
+    }
+    // React supports iterable children, in addition to Array-like
+    if (hasSymbolSupport && !isNull(children) && !isArray(children) && typeof children === 'object' && isFunction(children[symbolIterator])) {
+        vNode.children = iterableToArray(children[symbolIterator]());
+    }
+    if (typeof ref === 'string' && !isNull(currentComponent)) {
+        if (!currentComponent.refs) {
+            currentComponent.refs = {};
+        }
+        vNode.ref = function (val) {
+            this.refs[ref] = val;
+        }.bind(currentComponent);
+    }
+    if (vNode.className) {
+        props.className = vNode.className;
+    }
+    if (!isNullOrUndef(children) && isNullOrUndef(props.children)) {
+        props.children = children;
+    }
+    if (vNode.flags & 14 /* Component */) {
+        if (isString(vNode.type)) {
+            vNode.flags = Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["i" /* getFlagsForElementVnode */])(vNode.type);
+            if (props) {
+                Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["m" /* normalizeProps */])(vNode);
+            }
+        }
+    }
+    var flags = vNode.flags;
+    if (flags & 448 /* FormElement */) {
+        normalizeFormProps(vNode.type, props);
+    }
+    if (flags & 481 /* Element */) {
+        normalizeGenericProps(props);
+    }
+    if (oldCreateVNode) {
+        oldCreateVNode(vNode);
+    }
+};
+// Credit: preact-compat - https://github.com/developit/preact-compat :)
+function shallowDiffers(a, b) {
+    for (var i in a) {
+        if (!(i in b)) {
+            return true;
+        }
+    }
+    for (var i$1 in b) {
+        if (a[i$1] !== b[i$1]) {
+            return true;
+        }
+    }
+    return false;
+}
 var PureComponent = (function (Component$$1) {
     function PureComponent () {
         Component$$1.apply(this, arguments);
@@ -511,12 +511,12 @@ var PureComponent = (function (Component$$1) {
     PureComponent.prototype = Object.create( Component$$1 && Component$$1.prototype );
     PureComponent.prototype.constructor = PureComponent;
 
-    PureComponent.prototype.shouldComponentUpdate = function shouldComponentUpdate (props, state) {
-        return shallowDiffers(this.props, props) || shallowDiffers(this.state, state);
+    PureComponent.prototype.shouldComponentUpdate = function shouldComponentUpdate (props, state) {
+        return shallowDiffers(this.props, props) || shallowDiffers(this.state, state);
     };
 
     return PureComponent;
-}(__WEBPACK_IMPORTED_MODULE_0_inferno__["a" /* Component */]));
+}(__WEBPACK_IMPORTED_MODULE_0_inferno__["a" /* Component */]));
 var WrapperComponent = (function (Component$$1) {
     function WrapperComponent () {
         Component$$1.apply(this, arguments);
@@ -526,120 +526,120 @@ var WrapperComponent = (function (Component$$1) {
     WrapperComponent.prototype = Object.create( Component$$1 && Component$$1.prototype );
     WrapperComponent.prototype.constructor = WrapperComponent;
 
-    WrapperComponent.prototype.getChildContext = function getChildContext () {
-        // tslint:disable-next-line
-        return this.props.context;
-    };
-    WrapperComponent.prototype.render = function render$$1 (props) {
-        return props.children;
+    WrapperComponent.prototype.getChildContext = function getChildContext () {
+        // tslint:disable-next-line
+        return this.props.context;
+    };
+    WrapperComponent.prototype.render = function render$$1 (props) {
+        return props.children;
     };
 
     return WrapperComponent;
-}(__WEBPACK_IMPORTED_MODULE_0_inferno__["a" /* Component */]));
-function unstable_renderSubtreeIntoContainer(parentComponent, vNode, container, callback) {
-    var wrapperVNode = Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["c" /* createComponentVNode */])(4 /* ComponentClass */, WrapperComponent, {
-        children: vNode,
-        context: parentComponent.context
-    });
-    Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["o" /* render */])(wrapperVNode, container);
-    var component = vNode.children;
-    if (callback) {
-        // callback gets the component as context, no other argument.
-        callback.call(component);
-    }
-    return component;
-}
-// Credit: preact-compat - https://github.com/developit/preact-compat
-var ELEMENTS = 'a abbr address area article aside audio b base bdi bdo big blockquote body br button canvas caption cite code col colgroup data datalist dd del details dfn dialog div dl dt em embed fieldset figcaption figure footer form h1 h2 h3 h4 h5 h6 head header hgroup hr html i iframe img input ins kbd keygen label legend li link main map mark menu menuitem meta meter nav noscript object ol optgroup option output p param picture pre progress q rp rt ruby s samp script section select small source span strong style sub summary sup table tbody td textarea tfoot th thead time title tr track u ul var video wbr circle clipPath defs ellipse g image line linearGradient mask path pattern polygon polyline radialGradient rect stop svg text tspan'.split(' ');
-function createFactory(type) {
-    return __WEBPACK_IMPORTED_MODULE_3_inferno_create_element__["a" /* createElement */].bind(null, type);
-}
-var DOM = {};
-for (var i = ELEMENTS.length; i--;) {
-    DOM[ELEMENTS[i]] = createFactory(ELEMENTS[i]);
-}
-function findDOMNode(ref) {
-    if (ref && ref.nodeType) {
-        return ref;
-    }
-    if (!ref || ref.$UN) {
-        return null;
-    }
-    if (ref.$LI) {
-        return ref.$LI.dom;
-    }
-    return null;
-}
-// Mask React global in browser enviornments when React is not used.
-if (isBrowser && typeof window.React === 'undefined') {
-    var exports$1 = {
-        Children: Children,
-        Component: __WEBPACK_IMPORTED_MODULE_0_inferno__["a" /* Component */],
-        DOM: DOM,
-        EMPTY_OBJ: __WEBPACK_IMPORTED_MODULE_0_inferno__["b" /* EMPTY_OBJ */],
-        NO_OP: NO_OP,
-        PropTypes: PropTypes,
-        PureComponent: PureComponent,
-        __spread: extend,
-        cloneElement: __WEBPACK_IMPORTED_MODULE_1_inferno_clone_vnode__["a" /* cloneVNode */],
-        cloneVNode: __WEBPACK_IMPORTED_MODULE_1_inferno_clone_vnode__["a" /* cloneVNode */],
-        createClass: __WEBPACK_IMPORTED_MODULE_2_inferno_create_class__["a" /* createClass */],
-        createComponentVNode: __WEBPACK_IMPORTED_MODULE_0_inferno__["c" /* createComponentVNode */],
-        createElement: __WEBPACK_IMPORTED_MODULE_3_inferno_create_element__["a" /* createElement */],
-        createFactory: createFactory,
-        createPortal: __WEBPACK_IMPORTED_MODULE_0_inferno__["d" /* createPortal */],
-        createRenderer: __WEBPACK_IMPORTED_MODULE_0_inferno__["e" /* createRenderer */],
-        createTextVNode: __WEBPACK_IMPORTED_MODULE_0_inferno__["f" /* createTextVNode */],
-        createVNode: __WEBPACK_IMPORTED_MODULE_0_inferno__["g" /* createVNode */],
-        directClone: __WEBPACK_IMPORTED_MODULE_0_inferno__["h" /* directClone */],
-        findDOMNode: findDOMNode,
-        getFlagsForElementVnode: __WEBPACK_IMPORTED_MODULE_0_inferno__["i" /* getFlagsForElementVnode */],
-        getNumberStyleValue: __WEBPACK_IMPORTED_MODULE_0_inferno__["j" /* getNumberStyleValue */],
-        hydrate: __WEBPACK_IMPORTED_MODULE_0_inferno__["k" /* hydrate */],
-        isValidElement: isValidElement,
-        linkEvent: __WEBPACK_IMPORTED_MODULE_0_inferno__["l" /* linkEvent */],
-        normalizeProps: __WEBPACK_IMPORTED_MODULE_0_inferno__["m" /* normalizeProps */],
-        options: __WEBPACK_IMPORTED_MODULE_0_inferno__["n" /* options */],
-        render: __WEBPACK_IMPORTED_MODULE_0_inferno__["o" /* render */],
-        unmountComponentAtNode: unmountComponentAtNode,
-        unstable_renderSubtreeIntoContainer: unstable_renderSubtreeIntoContainer,
-        version: version
-    };
-    window.React = exports$1;
-    window.ReactDOM = exports$1;
-}
-var index = {
-    Children: Children,
-    Component: __WEBPACK_IMPORTED_MODULE_0_inferno__["a" /* Component */],
-    DOM: DOM,
-    EMPTY_OBJ: __WEBPACK_IMPORTED_MODULE_0_inferno__["b" /* EMPTY_OBJ */],
-    NO_OP: NO_OP,
-    PropTypes: PropTypes,
-    PureComponent: PureComponent,
-    __spread: extend,
-    cloneElement: __WEBPACK_IMPORTED_MODULE_1_inferno_clone_vnode__["a" /* cloneVNode */],
-    cloneVNode: __WEBPACK_IMPORTED_MODULE_1_inferno_clone_vnode__["a" /* cloneVNode */],
-    createClass: __WEBPACK_IMPORTED_MODULE_2_inferno_create_class__["a" /* createClass */],
-    createComponentVNode: __WEBPACK_IMPORTED_MODULE_0_inferno__["c" /* createComponentVNode */],
-    createElement: __WEBPACK_IMPORTED_MODULE_3_inferno_create_element__["a" /* createElement */],
-    createFactory: createFactory,
-    createPortal: __WEBPACK_IMPORTED_MODULE_0_inferno__["d" /* createPortal */],
-    createRenderer: __WEBPACK_IMPORTED_MODULE_0_inferno__["e" /* createRenderer */],
-    createTextVNode: __WEBPACK_IMPORTED_MODULE_0_inferno__["f" /* createTextVNode */],
-    createVNode: __WEBPACK_IMPORTED_MODULE_0_inferno__["g" /* createVNode */],
-    directClone: __WEBPACK_IMPORTED_MODULE_0_inferno__["h" /* directClone */],
-    findDOMNode: findDOMNode,
-    getFlagsForElementVnode: __WEBPACK_IMPORTED_MODULE_0_inferno__["i" /* getFlagsForElementVnode */],
-    getNumberStyleValue: __WEBPACK_IMPORTED_MODULE_0_inferno__["j" /* getNumberStyleValue */],
-    hydrate: __WEBPACK_IMPORTED_MODULE_0_inferno__["k" /* hydrate */],
-    isValidElement: isValidElement,
-    linkEvent: __WEBPACK_IMPORTED_MODULE_0_inferno__["l" /* linkEvent */],
-    normalizeProps: __WEBPACK_IMPORTED_MODULE_0_inferno__["m" /* normalizeProps */],
-    options: __WEBPACK_IMPORTED_MODULE_0_inferno__["n" /* options */],
-    render: __WEBPACK_IMPORTED_MODULE_0_inferno__["o" /* render */],
-    unmountComponentAtNode: unmountComponentAtNode,
-    unstable_renderSubtreeIntoContainer: unstable_renderSubtreeIntoContainer,
-    version: version
+}(__WEBPACK_IMPORTED_MODULE_0_inferno__["a" /* Component */]));
+function unstable_renderSubtreeIntoContainer(parentComponent, vNode, container, callback) {
+    var wrapperVNode = Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["c" /* createComponentVNode */])(4 /* ComponentClass */, WrapperComponent, {
+        children: vNode,
+        context: parentComponent.context
+    });
+    Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["o" /* render */])(wrapperVNode, container);
+    var component = vNode.children;
+    if (callback) {
+        // callback gets the component as context, no other argument.
+        callback.call(component);
+    }
+    return component;
+}
+// Credit: preact-compat - https://github.com/developit/preact-compat
+var ELEMENTS = 'a abbr address area article aside audio b base bdi bdo big blockquote body br button canvas caption cite code col colgroup data datalist dd del details dfn dialog div dl dt em embed fieldset figcaption figure footer form h1 h2 h3 h4 h5 h6 head header hgroup hr html i iframe img input ins kbd keygen label legend li link main map mark menu menuitem meta meter nav noscript object ol optgroup option output p param picture pre progress q rp rt ruby s samp script section select small source span strong style sub summary sup table tbody td textarea tfoot th thead time title tr track u ul var video wbr circle clipPath defs ellipse g image line linearGradient mask path pattern polygon polyline radialGradient rect stop svg text tspan'.split(' ');
+function createFactory(type) {
+    return __WEBPACK_IMPORTED_MODULE_3_inferno_create_element__["a" /* createElement */].bind(null, type);
+}
+var DOM = {};
+for (var i = ELEMENTS.length; i--;) {
+    DOM[ELEMENTS[i]] = createFactory(ELEMENTS[i]);
+}
+function findDOMNode(ref) {
+    if (ref && ref.nodeType) {
+        return ref;
+    }
+    if (!ref || ref.$UN) {
+        return null;
+    }
+    if (ref.$LI) {
+        return ref.$LI.dom;
+    }
+    return null;
+}
+// Mask React global in browser enviornments when React is not used.
+if (isBrowser && typeof window.React === 'undefined') {
+    var exports$1 = {
+        Children: Children,
+        Component: __WEBPACK_IMPORTED_MODULE_0_inferno__["a" /* Component */],
+        DOM: DOM,
+        EMPTY_OBJ: __WEBPACK_IMPORTED_MODULE_0_inferno__["b" /* EMPTY_OBJ */],
+        NO_OP: NO_OP,
+        PropTypes: PropTypes,
+        PureComponent: PureComponent,
+        __spread: extend,
+        cloneElement: __WEBPACK_IMPORTED_MODULE_1_inferno_clone_vnode__["a" /* cloneVNode */],
+        cloneVNode: __WEBPACK_IMPORTED_MODULE_1_inferno_clone_vnode__["a" /* cloneVNode */],
+        createClass: __WEBPACK_IMPORTED_MODULE_2_inferno_create_class__["a" /* createClass */],
+        createComponentVNode: __WEBPACK_IMPORTED_MODULE_0_inferno__["c" /* createComponentVNode */],
+        createElement: __WEBPACK_IMPORTED_MODULE_3_inferno_create_element__["a" /* createElement */],
+        createFactory: createFactory,
+        createPortal: __WEBPACK_IMPORTED_MODULE_0_inferno__["d" /* createPortal */],
+        createRenderer: __WEBPACK_IMPORTED_MODULE_0_inferno__["e" /* createRenderer */],
+        createTextVNode: __WEBPACK_IMPORTED_MODULE_0_inferno__["f" /* createTextVNode */],
+        createVNode: __WEBPACK_IMPORTED_MODULE_0_inferno__["g" /* createVNode */],
+        directClone: __WEBPACK_IMPORTED_MODULE_0_inferno__["h" /* directClone */],
+        findDOMNode: findDOMNode,
+        getFlagsForElementVnode: __WEBPACK_IMPORTED_MODULE_0_inferno__["i" /* getFlagsForElementVnode */],
+        getNumberStyleValue: __WEBPACK_IMPORTED_MODULE_0_inferno__["j" /* getNumberStyleValue */],
+        hydrate: __WEBPACK_IMPORTED_MODULE_0_inferno__["k" /* hydrate */],
+        isValidElement: isValidElement,
+        linkEvent: __WEBPACK_IMPORTED_MODULE_0_inferno__["l" /* linkEvent */],
+        normalizeProps: __WEBPACK_IMPORTED_MODULE_0_inferno__["m" /* normalizeProps */],
+        options: __WEBPACK_IMPORTED_MODULE_0_inferno__["n" /* options */],
+        render: __WEBPACK_IMPORTED_MODULE_0_inferno__["o" /* render */],
+        unmountComponentAtNode: unmountComponentAtNode,
+        unstable_renderSubtreeIntoContainer: unstable_renderSubtreeIntoContainer,
+        version: version
+    };
+    window.React = exports$1;
+    window.ReactDOM = exports$1;
+}
+var index = {
+    Children: Children,
+    Component: __WEBPACK_IMPORTED_MODULE_0_inferno__["a" /* Component */],
+    DOM: DOM,
+    EMPTY_OBJ: __WEBPACK_IMPORTED_MODULE_0_inferno__["b" /* EMPTY_OBJ */],
+    NO_OP: NO_OP,
+    PropTypes: PropTypes,
+    PureComponent: PureComponent,
+    __spread: extend,
+    cloneElement: __WEBPACK_IMPORTED_MODULE_1_inferno_clone_vnode__["a" /* cloneVNode */],
+    cloneVNode: __WEBPACK_IMPORTED_MODULE_1_inferno_clone_vnode__["a" /* cloneVNode */],
+    createClass: __WEBPACK_IMPORTED_MODULE_2_inferno_create_class__["a" /* createClass */],
+    createComponentVNode: __WEBPACK_IMPORTED_MODULE_0_inferno__["c" /* createComponentVNode */],
+    createElement: __WEBPACK_IMPORTED_MODULE_3_inferno_create_element__["a" /* createElement */],
+    createFactory: createFactory,
+    createPortal: __WEBPACK_IMPORTED_MODULE_0_inferno__["d" /* createPortal */],
+    createRenderer: __WEBPACK_IMPORTED_MODULE_0_inferno__["e" /* createRenderer */],
+    createTextVNode: __WEBPACK_IMPORTED_MODULE_0_inferno__["f" /* createTextVNode */],
+    createVNode: __WEBPACK_IMPORTED_MODULE_0_inferno__["g" /* createVNode */],
+    directClone: __WEBPACK_IMPORTED_MODULE_0_inferno__["h" /* directClone */],
+    findDOMNode: findDOMNode,
+    getFlagsForElementVnode: __WEBPACK_IMPORTED_MODULE_0_inferno__["i" /* getFlagsForElementVnode */],
+    getNumberStyleValue: __WEBPACK_IMPORTED_MODULE_0_inferno__["j" /* getNumberStyleValue */],
+    hydrate: __WEBPACK_IMPORTED_MODULE_0_inferno__["k" /* hydrate */],
+    isValidElement: isValidElement,
+    linkEvent: __WEBPACK_IMPORTED_MODULE_0_inferno__["l" /* linkEvent */],
+    normalizeProps: __WEBPACK_IMPORTED_MODULE_0_inferno__["m" /* normalizeProps */],
+    options: __WEBPACK_IMPORTED_MODULE_0_inferno__["n" /* options */],
+    render: __WEBPACK_IMPORTED_MODULE_0_inferno__["o" /* render */],
+    unmountComponentAtNode: unmountComponentAtNode,
+    unstable_renderSubtreeIntoContainer: unstable_renderSubtreeIntoContainer,
+    version: version
 };
 
 /* harmony default export */ __webpack_exports__["default"] = (index);
@@ -6859,27 +6859,27 @@ module.exports = isArrayLike;
 /* 32 */
 /***/ (function(module, exports) {
 
-var g;
-
-// This works in non-strict mode
-g = (function() {
-	return this;
-})();
-
-try {
-	// This works if eval is allowed (see CSP)
-	g = g || Function("return this")() || (1,eval)("this");
-} catch(e) {
-	// This works if the window reference is available
-	if(typeof window === "object")
-		g = window;
-}
-
-// g can still be undefined, but nothing to do about it...
-// We return undefined, instead of nothing here, so it's
-// easier to handle this case. if(!global) { ...}
-
-module.exports = g;
+var g;
+
+// This works in non-strict mode
+g = (function() {
+	return this;
+})();
+
+try {
+	// This works if eval is allowed (see CSP)
+	g = g || Function("return this")() || (1,eval)("this");
+} catch(e) {
+	// This works if the window reference is available
+	if(typeof window === "object")
+		g = window;
+}
+
+// g can still be undefined, but nothing to do about it...
+// We return undefined, instead of nothing here, so it's
+// easier to handle this case. if(!global) { ...}
+
+module.exports = g;
 
 
 /***/ }),
@@ -8863,28 +8863,28 @@ function objectToString(o) {
 /* 75 */
 /***/ (function(module, exports) {
 
-module.exports = function(module) {
-	if(!module.webpackPolyfill) {
-		module.deprecate = function() {};
-		module.paths = [];
-		// module.parent = undefined by default
-		if(!module.children) module.children = [];
-		Object.defineProperty(module, "loaded", {
-			enumerable: true,
-			get: function() {
-				return module.l;
-			}
-		});
-		Object.defineProperty(module, "id", {
-			enumerable: true,
-			get: function() {
-				return module.i;
-			}
-		});
-		module.webpackPolyfill = 1;
-	}
-	return module;
-};
+module.exports = function(module) {
+	if(!module.webpackPolyfill) {
+		module.deprecate = function() {};
+		module.paths = [];
+		// module.parent = undefined by default
+		if(!module.children) module.children = [];
+		Object.defineProperty(module, "loaded", {
+			enumerable: true,
+			get: function() {
+				return module.l;
+			}
+		});
+		Object.defineProperty(module, "id", {
+			enumerable: true,
+			get: function() {
+				return module.i;
+			}
+		});
+		module.webpackPolyfill = 1;
+	}
+	return module;
+};
 
 
 /***/ }),
@@ -16815,129 +16815,129 @@ window.process = {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_inferno__ = __webpack_require__(60);
 
 
-var isBrowser = !!(typeof window !== 'undefined' && window.document);
-var isArray = Array.isArray;
-function isStringOrNumber(o) {
-    var type = typeof o;
-    return type === 'string' || type === 'number';
-}
-function isInvalid(o) {
-    return isNull(o) || o === false || isTrue(o) || isUndefined(o);
-}
-function isNull(o) {
-    return o === null;
-}
-function isTrue(o) {
-    return o === true;
-}
-function isUndefined(o) {
-    return o === void 0;
-}
-function combineFrom(first, second) {
-    var out = {};
-    if (first) {
-        for (var key in first) {
-            out[key] = first[key];
-        }
-    }
-    if (second) {
-        for (var key$1 in second) {
-            out[key$1] = second[key$1];
-        }
-    }
-    return out;
+var isBrowser = !!(typeof window !== 'undefined' && window.document);
+var isArray = Array.isArray;
+function isStringOrNumber(o) {
+    var type = typeof o;
+    return type === 'string' || type === 'number';
+}
+function isInvalid(o) {
+    return isNull(o) || o === false || isTrue(o) || isUndefined(o);
+}
+function isNull(o) {
+    return o === null;
+}
+function isTrue(o) {
+    return o === true;
+}
+function isUndefined(o) {
+    return o === void 0;
+}
+function combineFrom(first, second) {
+    var out = {};
+    if (first) {
+        for (var key in first) {
+            out[key] = first[key];
+        }
+    }
+    if (second) {
+        for (var key$1 in second) {
+            out[key$1] = second[key$1];
+        }
+    }
+    return out;
 }
 
-/*
- directClone is preferred over cloneVNode and used internally also.
- This function makes Inferno backwards compatible.
- And can be tree-shaked by modern bundlers
+/*
+ directClone is preferred over cloneVNode and used internally also.
+ This function makes Inferno backwards compatible.
+ And can be tree-shaked by modern bundlers
 
- Would be nice to combine this with directClone but could not do it without breaking change
-*/
-/**
- * Clones given virtual node by creating new instance of it
- * @param {VNode} vNodeToClone virtual node to be cloned
- * @param {Props=} props additional props for new virtual node
- * @param {...*} _children new children for new virtual node
- * @returns {VNode} new virtual node
- */
+ Would be nice to combine this with directClone but could not do it without breaking change
+*/
+/**
+ * Clones given virtual node by creating new instance of it
+ * @param {VNode} vNodeToClone virtual node to be cloned
+ * @param {Props=} props additional props for new virtual node
+ * @param {...*} _children new children for new virtual node
+ * @returns {VNode} new virtual node
+ */
 function cloneVNode(vNodeToClone, props) {
     var _children = [], len$1 = arguments.length - 2;
     while ( len$1-- > 0 ) _children[ len$1 ] = arguments[ len$1 + 2 ];
-
-    if (arguments.length === 3) {
-        if (!props) {
-            props = {};
-        }
-        props.children = _children[0];
-    }
-    else {
-        var childrenLen = _children.length;
-        if (childrenLen > 0) {
-            if (!props) {
-                props = {};
-            }
-            props.children = _children;
-        }
-    }
-    var newVNode;
-    var flags = vNodeToClone.flags;
-    var className = vNodeToClone.className;
-    var key = vNodeToClone.key;
-    var ref = vNodeToClone.ref;
-    if (props) {
-        if (props.className !== void 0) {
-            className = props.className;
-        }
-        if (props.ref !== void 0) {
-            ref = props.ref;
-        }
-        if (props.key !== void 0) {
-            key = props.key;
-        }
-    }
-    if (flags & 14 /* Component */) {
-        newVNode = Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["c" /* createComponentVNode */])(flags, vNodeToClone.type, !vNodeToClone.props && !props ? __WEBPACK_IMPORTED_MODULE_0_inferno__["b" /* EMPTY_OBJ */] : combineFrom(vNodeToClone.props, props), key, ref);
-        var newProps = newVNode.props;
-        var newChildren = newProps.children;
-        // we need to also clone component children that are in props
-        // as the children may also have been hoisted
-        if (newChildren) {
-            if (isArray(newChildren)) {
-                var len = newChildren.length;
-                if (len > 0) {
-                    var tmpArray = [];
-                    for (var i = 0; i < len; i++) {
-                        var child = newChildren[i];
-                        if (isStringOrNumber(child)) {
-                            tmpArray.push(child);
-                        }
-                        else if (!isInvalid(child) && child.flags) {
-                            tmpArray.push(Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["h" /* directClone */])(child));
-                        }
-                    }
-                    newProps.children = tmpArray;
-                }
-            }
-            else if (newChildren.flags) {
-                newProps.children = Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["h" /* directClone */])(newChildren);
-            }
-        }
-        newVNode.children = null;
-    }
-    else if (flags & 481 /* Element */) {
-        if (!props) {
-            props = {
-                children: vNodeToClone.children
-            };
-        }
-        newVNode = Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["g" /* createVNode */])(flags, vNodeToClone.type, className, null, 1 /* HasInvalidChildren */, combineFrom(vNodeToClone.props, props), key, ref);
-    }
-    else if (flags & 16 /* Text */) {
-        return Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["f" /* createTextVNode */])(props ? props.children : vNodeToClone.children);
-    }
-    return Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["m" /* normalizeProps */])(newVNode);
+
+    if (arguments.length === 3) {
+        if (!props) {
+            props = {};
+        }
+        props.children = _children[0];
+    }
+    else {
+        var childrenLen = _children.length;
+        if (childrenLen > 0) {
+            if (!props) {
+                props = {};
+            }
+            props.children = _children;
+        }
+    }
+    var newVNode;
+    var flags = vNodeToClone.flags;
+    var className = vNodeToClone.className;
+    var key = vNodeToClone.key;
+    var ref = vNodeToClone.ref;
+    if (props) {
+        if (props.className !== void 0) {
+            className = props.className;
+        }
+        if (props.ref !== void 0) {
+            ref = props.ref;
+        }
+        if (props.key !== void 0) {
+            key = props.key;
+        }
+    }
+    if (flags & 14 /* Component */) {
+        newVNode = Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["c" /* createComponentVNode */])(flags, vNodeToClone.type, !vNodeToClone.props && !props ? __WEBPACK_IMPORTED_MODULE_0_inferno__["b" /* EMPTY_OBJ */] : combineFrom(vNodeToClone.props, props), key, ref);
+        var newProps = newVNode.props;
+        var newChildren = newProps.children;
+        // we need to also clone component children that are in props
+        // as the children may also have been hoisted
+        if (newChildren) {
+            if (isArray(newChildren)) {
+                var len = newChildren.length;
+                if (len > 0) {
+                    var tmpArray = [];
+                    for (var i = 0; i < len; i++) {
+                        var child = newChildren[i];
+                        if (isStringOrNumber(child)) {
+                            tmpArray.push(child);
+                        }
+                        else if (!isInvalid(child) && child.flags) {
+                            tmpArray.push(Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["h" /* directClone */])(child));
+                        }
+                    }
+                    newProps.children = tmpArray;
+                }
+            }
+            else if (newChildren.flags) {
+                newProps.children = Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["h" /* directClone */])(newChildren);
+            }
+        }
+        newVNode.children = null;
+    }
+    else if (flags & 481 /* Element */) {
+        if (!props) {
+            props = {
+                children: vNodeToClone.children
+            };
+        }
+        newVNode = Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["g" /* createVNode */])(flags, vNodeToClone.type, className, null, 1 /* HasInvalidChildren */, combineFrom(vNodeToClone.props, props), key, ref);
+    }
+    else if (flags & 16 /* Text */) {
+        return Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["f" /* createTextVNode */])(props ? props.children : vNodeToClone.children);
+    }
+    return Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["m" /* normalizeProps */])(newVNode);
 }
 
 
@@ -16952,171 +16952,171 @@ function cloneVNode(vNodeToClone, props) {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_inferno__ = __webpack_require__(60);
 
 
-var ERROR_MSG = 'a runtime error occured! Use Inferno in development environment to find the error.';
-var isBrowser = !!(typeof window !== 'undefined' && window.document);
-function isFunction(o) {
-    return typeof o === 'function';
-}
-function isObject(o) {
-    return typeof o === 'object';
-}
-function throwError(message) {
-    if (!message) {
-        message = ERROR_MSG;
-    }
-    throw new Error(("Inferno Error: " + message));
+var ERROR_MSG = 'a runtime error occured! Use Inferno in development environment to find the error.';
+var isBrowser = !!(typeof window !== 'undefined' && window.document);
+function isFunction(o) {
+    return typeof o === 'function';
+}
+function isObject(o) {
+    return typeof o === 'object';
+}
+function throwError(message) {
+    if (!message) {
+        message = ERROR_MSG;
+    }
+    throw new Error(("Inferno Error: " + message));
 }
 
-// don't autobind these methods since they already have guaranteed context.
-var AUTOBIND_BLACKLIST = {
-    componentDidMount: 1,
-    componentDidUnmount: 1,
-    componentDidUpdate: 1,
-    componentWillMount: 1,
-    componentWillUnmount: 1,
-    componentWillUpdate: 1,
-    constructor: 1,
-    render: 1,
-    shouldComponentUpdate: 1
-};
-function extend(base, props) {
-    for (var key in props) {
-        if (props.hasOwnProperty(key)) {
-            base[key] = props[key];
-        }
-    }
-    return base;
-}
-function bindAll(ctx) {
-    for (var i in ctx) {
-        var v = ctx[i];
-        if (typeof v === 'function' && !v.__bound && !AUTOBIND_BLACKLIST[i]) {
-            (ctx[i] = v.bind(ctx)).__bound = true;
-        }
-    }
-}
+// don't autobind these methods since they already have guaranteed context.
+var AUTOBIND_BLACKLIST = {
+    componentDidMount: 1,
+    componentDidUnmount: 1,
+    componentDidUpdate: 1,
+    componentWillMount: 1,
+    componentWillUnmount: 1,
+    componentWillUpdate: 1,
+    constructor: 1,
+    render: 1,
+    shouldComponentUpdate: 1
+};
+function extend(base, props) {
+    for (var key in props) {
+        if (props.hasOwnProperty(key)) {
+            base[key] = props[key];
+        }
+    }
+    return base;
+}
+function bindAll(ctx) {
+    for (var i in ctx) {
+        var v = ctx[i];
+        if (typeof v === 'function' && !v.__bound && !AUTOBIND_BLACKLIST[i]) {
+            (ctx[i] = v.bind(ctx)).__bound = true;
+        }
+    }
+}
 function collateMixins(mixins, keyed) {
     if ( keyed === void 0 ) keyed = {};
-
-    for (var i = 0, len = mixins.length; i < len; i++) {
-        var mixin = mixins[i];
-        // Surprise: Mixins can have mixins
-        if (mixin.mixins) {
-            // Recursively collate sub-mixins
-            collateMixins(mixin.mixins, keyed);
-        }
-        for (var key in mixin) {
-            if (mixin.hasOwnProperty(key) && typeof mixin[key] === 'function') {
-                (keyed[key] || (keyed[key] = [])).push(mixin[key]);
-            }
-        }
-    }
-    return keyed;
-}
-function multihook(hooks, mergeFn) {
+
+    for (var i = 0, len = mixins.length; i < len; i++) {
+        var mixin = mixins[i];
+        // Surprise: Mixins can have mixins
+        if (mixin.mixins) {
+            // Recursively collate sub-mixins
+            collateMixins(mixin.mixins, keyed);
+        }
+        for (var key in mixin) {
+            if (mixin.hasOwnProperty(key) && typeof mixin[key] === 'function') {
+                (keyed[key] || (keyed[key] = [])).push(mixin[key]);
+            }
+        }
+    }
+    return keyed;
+}
+function multihook(hooks, mergeFn) {
     return function () {
         var arguments$1 = arguments;
         var this$1 = this;
-
-        var ret;
-        for (var i = 0, len = hooks.length; i < len; i++) {
-            var hook = hooks[i];
-            var r = hook.apply(this$1, arguments$1);
-            if (mergeFn) {
-                ret = mergeFn(ret, r);
-            }
-            else if (r) {
-                ret = r;
-            }
-        }
-        return ret;
-    };
-}
-function mergeNoDupes(previous, current) {
-    if (current) {
-        if (!isObject(current)) {
-            throwError('Expected Mixin to return value to be an object or null.');
-        }
-        if (!previous) {
-            previous = {};
-        }
-        for (var key in current) {
-            if (current.hasOwnProperty(key)) {
-                if (previous.hasOwnProperty(key)) {
-                    throwError(("Mixins return duplicate key " + key + " in their return values"));
-                }
-                previous[key] = current[key];
-            }
-        }
-    }
-    return previous;
-}
-function applyMixin(key, inst, mixin) {
-    var hooks = inst[key] !== void 0 ? mixin.concat(inst[key]) : mixin;
-    if (key === 'getDefaultProps' || key === 'getInitialState' || key === 'getChildContext') {
-        inst[key] = multihook(hooks, mergeNoDupes);
-    }
-    else {
-        inst[key] = multihook(hooks);
-    }
-}
-function applyMixins(Cl, mixins) {
-    for (var key in mixins) {
-        if (mixins.hasOwnProperty(key)) {
-            var mixin = mixins[key];
-            var inst = (void 0);
-            if (key === 'getDefaultProps') {
-                inst = Cl;
-            }
-            else {
-                inst = Cl.prototype;
-            }
-            if (isFunction(mixin[0])) {
-                applyMixin(key, inst, mixin);
-            }
-            else {
-                inst[key] = mixin;
-            }
-        }
-    }
-}
-function createClass(obj) {
+
+        var ret;
+        for (var i = 0, len = hooks.length; i < len; i++) {
+            var hook = hooks[i];
+            var r = hook.apply(this$1, arguments$1);
+            if (mergeFn) {
+                ret = mergeFn(ret, r);
+            }
+            else if (r) {
+                ret = r;
+            }
+        }
+        return ret;
+    };
+}
+function mergeNoDupes(previous, current) {
+    if (current) {
+        if (!isObject(current)) {
+            throwError('Expected Mixin to return value to be an object or null.');
+        }
+        if (!previous) {
+            previous = {};
+        }
+        for (var key in current) {
+            if (current.hasOwnProperty(key)) {
+                if (previous.hasOwnProperty(key)) {
+                    throwError(("Mixins return duplicate key " + key + " in their return values"));
+                }
+                previous[key] = current[key];
+            }
+        }
+    }
+    return previous;
+}
+function applyMixin(key, inst, mixin) {
+    var hooks = inst[key] !== void 0 ? mixin.concat(inst[key]) : mixin;
+    if (key === 'getDefaultProps' || key === 'getInitialState' || key === 'getChildContext') {
+        inst[key] = multihook(hooks, mergeNoDupes);
+    }
+    else {
+        inst[key] = multihook(hooks);
+    }
+}
+function applyMixins(Cl, mixins) {
+    for (var key in mixins) {
+        if (mixins.hasOwnProperty(key)) {
+            var mixin = mixins[key];
+            var inst = (void 0);
+            if (key === 'getDefaultProps') {
+                inst = Cl;
+            }
+            else {
+                inst = Cl.prototype;
+            }
+            if (isFunction(mixin[0])) {
+                applyMixin(key, inst, mixin);
+            }
+            else {
+                inst[key] = mixin;
+            }
+        }
+    }
+}
+function createClass(obj) {
     var Cl = (function (Component$$1) {
-        function Cl(props, context) {
-            Component$$1.call(this, props, context);
-            bindAll(this);
-            if (this.getInitialState) {
-                this.state = this.getInitialState();
-            }
+        function Cl(props, context) {
+            Component$$1.call(this, props, context);
+            bindAll(this);
+            if (this.getInitialState) {
+                this.state = this.getInitialState();
+            }
         }
 
         if ( Component$$1 ) Cl.__proto__ = Component$$1;
         Cl.prototype = Object.create( Component$$1 && Component$$1.prototype );
-        Cl.prototype.constructor = Cl;
-        Cl.prototype.replaceState = function replaceState (nextState, callback) {
-            this.setState(nextState, callback);
-        };
-        Cl.prototype.isMounted = function isMounted () {
-            return this.$LI !== null && !this.$UN;
+        Cl.prototype.constructor = Cl;
+        Cl.prototype.replaceState = function replaceState (nextState, callback) {
+            this.setState(nextState, callback);
+        };
+        Cl.prototype.isMounted = function isMounted () {
+            return this.$LI !== null && !this.$UN;
         };
 
         return Cl;
-    }(__WEBPACK_IMPORTED_MODULE_0_inferno__["a" /* Component */]));
-    Cl.displayName = obj.name || obj.displayName || 'Component';
-    Cl.propTypes = obj.propTypes;
-    Cl.mixins = obj.mixins && collateMixins(obj.mixins);
-    Cl.getDefaultProps = obj.getDefaultProps;
-    extend(Cl.prototype, obj);
-    if (obj.statics) {
-        extend(Cl, obj.statics);
-    }
-    if (obj.mixins) {
-        applyMixins(Cl, collateMixins(obj.mixins));
-    }
-    if (Cl.getDefaultProps) {
-        Cl.defaultProps = Cl.getDefaultProps();
-    }
-    return Cl;
+    }(__WEBPACK_IMPORTED_MODULE_0_inferno__["a" /* Component */]));
+    Cl.displayName = obj.name || obj.displayName || 'Component';
+    Cl.propTypes = obj.propTypes;
+    Cl.mixins = obj.mixins && collateMixins(obj.mixins);
+    Cl.getDefaultProps = obj.getDefaultProps;
+    extend(Cl.prototype, obj);
+    if (obj.statics) {
+        extend(Cl, obj.statics);
+    }
+    if (obj.mixins) {
+        applyMixins(Cl, collateMixins(obj.mixins));
+    }
+    if (Cl.getDefaultProps) {
+        Cl.defaultProps = Cl.getDefaultProps();
+    }
+    return Cl;
 }
 
 
@@ -17131,123 +17131,123 @@ function createClass(obj) {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_inferno__ = __webpack_require__(60);
 
 
-var isBrowser = !!(typeof window !== 'undefined' && window.document);
-function isNullOrUndef(o) {
-    return isUndefined(o) || isNull(o);
-}
-function isInvalid(o) {
-    return isNull(o) || o === false || isTrue(o) || isUndefined(o);
-}
-function isString(o) {
-    return typeof o === 'string';
-}
-function isNull(o) {
-    return o === null;
-}
-function isTrue(o) {
-    return o === true;
-}
-function isUndefined(o) {
-    return o === void 0;
-}
-function isObject(o) {
-    return typeof o === 'object';
+var isBrowser = !!(typeof window !== 'undefined' && window.document);
+function isNullOrUndef(o) {
+    return isUndefined(o) || isNull(o);
+}
+function isInvalid(o) {
+    return isNull(o) || o === false || isTrue(o) || isUndefined(o);
+}
+function isString(o) {
+    return typeof o === 'string';
+}
+function isNull(o) {
+    return o === null;
+}
+function isTrue(o) {
+    return o === true;
+}
+function isUndefined(o) {
+    return o === void 0;
+}
+function isObject(o) {
+    return typeof o === 'object';
 }
 
-var componentHooks = {
-    onComponentDidMount: 1,
-    onComponentDidUpdate: 1,
-    onComponentShouldUpdate: 1,
-    onComponentWillMount: 1,
-    onComponentWillUnmount: 1,
-    onComponentWillUpdate: 1
-};
-/**
- * Creates virtual node
- * @param {string|Function|Component<any, any>} type Type of node
- * @param {object=} props Optional props for virtual node
- * @param {...{object}=} _children Optional children for virtual node
- * @returns {VNode} new virtual ndoe
- */
+var componentHooks = {
+    onComponentDidMount: 1,
+    onComponentDidUpdate: 1,
+    onComponentShouldUpdate: 1,
+    onComponentWillMount: 1,
+    onComponentWillUnmount: 1,
+    onComponentWillUpdate: 1
+};
+/**
+ * Creates virtual node
+ * @param {string|Function|Component<any, any>} type Type of node
+ * @param {object=} props Optional props for virtual node
+ * @param {...{object}=} _children Optional children for virtual node
+ * @returns {VNode} new virtual ndoe
+ */
 function createElement(type, props) {
     var _children = [], len = arguments.length - 2;
     while ( len-- > 0 ) _children[ len ] = arguments[ len + 2 ];
-
-    if (isInvalid(type) || isObject(type)) {
-        throw new Error('Inferno Error: createElement() name parameter cannot be undefined, null, false or true, It must be a string, class or function.');
-    }
-    var children = _children;
-    var ref = null;
-    var key = null;
-    var className = null;
-    var flags = 0;
-    var newProps;
-    if (_children) {
-        if (_children.length === 1) {
-            children = _children[0];
-        }
-        else if (_children.length === 0) {
-            children = void 0;
-        }
-    }
-    if (isString(type)) {
-        flags = Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["i" /* getFlagsForElementVnode */])(type);
-        if (!isNullOrUndef(props)) {
-            newProps = {};
-            for (var prop in props) {
-                if (prop === 'className' || prop === 'class') {
-                    className = props[prop];
-                }
-                else if (prop === 'key') {
-                    key = props.key;
-                }
-                else if (prop === 'children' && isUndefined(children)) {
-                    children = props.children; // always favour children args, default to props
-                }
-                else if (prop === 'ref') {
-                    ref = props.ref;
-                }
-                else {
-                    if (prop === 'contenteditable') {
-                        flags |= 4096 /* ContentEditable */;
-                    }
-                    newProps[prop] = props[prop];
-                }
-            }
-        }
-    }
-    else {
-        flags = 2 /* ComponentUnknown */;
-        if (!isUndefined(children)) {
-            if (!props) {
-                props = {};
-            }
-            props.children = children;
-            children = null;
-        }
-        if (!isNullOrUndef(props)) {
-            newProps = {};
-            for (var prop$1 in props) {
-                if (componentHooks[prop$1] !== void 0) {
-                    if (!ref) {
-                        ref = {};
-                    }
-                    ref[prop$1] = props[prop$1];
-                }
-                else if (prop$1 === 'key') {
-                    key = props.key;
-                }
-                else if (prop$1 === 'ref') {
-                    ref = props.ref;
-                }
-                else {
-                    newProps[prop$1] = props[prop$1];
-                }
-            }
-        }
-        return Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["c" /* createComponentVNode */])(flags, type, newProps, key, ref);
-    }
-    return Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["g" /* createVNode */])(flags, type, className, children, 0 /* UnknownChildren */, newProps, key, ref);
+
+    if (isInvalid(type) || isObject(type)) {
+        throw new Error('Inferno Error: createElement() name parameter cannot be undefined, null, false or true, It must be a string, class or function.');
+    }
+    var children = _children;
+    var ref = null;
+    var key = null;
+    var className = null;
+    var flags = 0;
+    var newProps;
+    if (_children) {
+        if (_children.length === 1) {
+            children = _children[0];
+        }
+        else if (_children.length === 0) {
+            children = void 0;
+        }
+    }
+    if (isString(type)) {
+        flags = Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["i" /* getFlagsForElementVnode */])(type);
+        if (!isNullOrUndef(props)) {
+            newProps = {};
+            for (var prop in props) {
+                if (prop === 'className' || prop === 'class') {
+                    className = props[prop];
+                }
+                else if (prop === 'key') {
+                    key = props.key;
+                }
+                else if (prop === 'children' && isUndefined(children)) {
+                    children = props.children; // always favour children args, default to props
+                }
+                else if (prop === 'ref') {
+                    ref = props.ref;
+                }
+                else {
+                    if (prop === 'contenteditable') {
+                        flags |= 4096 /* ContentEditable */;
+                    }
+                    newProps[prop] = props[prop];
+                }
+            }
+        }
+    }
+    else {
+        flags = 2 /* ComponentUnknown */;
+        if (!isUndefined(children)) {
+            if (!props) {
+                props = {};
+            }
+            props.children = children;
+            children = null;
+        }
+        if (!isNullOrUndef(props)) {
+            newProps = {};
+            for (var prop$1 in props) {
+                if (componentHooks[prop$1] !== void 0) {
+                    if (!ref) {
+                        ref = {};
+                    }
+                    ref[prop$1] = props[prop$1];
+                }
+                else if (prop$1 === 'key') {
+                    key = props.key;
+                }
+                else if (prop$1 === 'ref') {
+                    ref = props.ref;
+                }
+                else {
+                    newProps[prop$1] = props[prop$1];
+                }
+            }
+        }
+        return Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["c" /* createComponentVNode */])(flags, type, newProps, key, ref);
+    }
+    return Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["g" /* createVNode */])(flags, type, className, children, 0 /* UnknownChildren */, newProps, key, ref);
 }
 
 
@@ -32428,12 +32428,14 @@ var _historyBase = __webpack_require__(438);
 
 var _historyBase2 = _interopRequireDefault(_historyBase);
 
+__webpack_require__(885);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-window.debug = __webpack_require__(885)('info');
+window.debug = __webpack_require__(891)('info');
 
 
-__webpack_require__(888)('themeHistorySidebar');
+__webpack_require__(894)('themeHistorySidebar');
 
 _infernoCompat2.default.render(_infernoCompat2.default.createElement(_historyBase2.default, { sidebar: true }), document.querySelector('#classic'));
 
@@ -32460,2128 +32462,2128 @@ _infernoCompat2.default.render(_infernoCompat2.default.createElement(_historyBas
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "o", function() { return render; });
 /* unused harmony export version */
 /* unused harmony export JSX */
-var NO_OP = '$NO_OP';
-var ERROR_MSG = 'a runtime error occured! Use Inferno in development environment to find the error.';
-var isBrowser = !!(typeof window !== 'undefined' && window.document);
-var isArray = Array.isArray;
-function isStringOrNumber(o) {
-    var type = typeof o;
-    return type === 'string' || type === 'number';
-}
-function isNullOrUndef(o) {
-    return isUndefined(o) || isNull(o);
-}
-function isInvalid(o) {
-    return isNull(o) || o === false || isTrue(o) || isUndefined(o);
-}
-function isFunction(o) {
-    return typeof o === 'function';
-}
-function isString(o) {
-    return typeof o === 'string';
-}
-function isNumber(o) {
-    return typeof o === 'number';
-}
-function isNull(o) {
-    return o === null;
-}
-function isTrue(o) {
-    return o === true;
-}
-function isUndefined(o) {
-    return o === void 0;
-}
-function throwError(message) {
-    if (!message) {
-        message = ERROR_MSG;
-    }
-    throw new Error(("Inferno Error: " + message));
-}
-function combineFrom(first, second) {
-    var out = {};
-    if (first) {
-        for (var key in first) {
-            out[key] = first[key];
-        }
-    }
-    if (second) {
-        for (var key$1 in second) {
-            out[key$1] = second[key$1];
-        }
-    }
-    return out;
+var NO_OP = '$NO_OP';
+var ERROR_MSG = 'a runtime error occured! Use Inferno in development environment to find the error.';
+var isBrowser = !!(typeof window !== 'undefined' && window.document);
+var isArray = Array.isArray;
+function isStringOrNumber(o) {
+    var type = typeof o;
+    return type === 'string' || type === 'number';
+}
+function isNullOrUndef(o) {
+    return isUndefined(o) || isNull(o);
+}
+function isInvalid(o) {
+    return isNull(o) || o === false || isTrue(o) || isUndefined(o);
+}
+function isFunction(o) {
+    return typeof o === 'function';
+}
+function isString(o) {
+    return typeof o === 'string';
+}
+function isNumber(o) {
+    return typeof o === 'number';
+}
+function isNull(o) {
+    return o === null;
+}
+function isTrue(o) {
+    return o === true;
+}
+function isUndefined(o) {
+    return o === void 0;
+}
+function throwError(message) {
+    if (!message) {
+        message = ERROR_MSG;
+    }
+    throw new Error(("Inferno Error: " + message));
+}
+function combineFrom(first, second) {
+    var out = {};
+    if (first) {
+        for (var key in first) {
+            out[key] = first[key];
+        }
+    }
+    if (second) {
+        for (var key$1 in second) {
+            out[key$1] = second[key$1];
+        }
+    }
+    return out;
 }
 
-var keyPrefix = '$';
-function getVNode(childFlags, children, className, flags, key, props, ref, type) {
-    return {
-        childFlags: childFlags,
-        children: children,
-        className: className,
-        dom: null,
-        flags: flags,
-        key: key === void 0 ? null : key,
-        parentVNode: null,
-        props: props === void 0 ? null : props,
-        ref: ref === void 0 ? null : ref,
-        type: type
-    };
-}
-function createVNode(flags, type, className, children, childFlags, props, key, ref) {
-    var childFlag = childFlags === void 0 ? 1 /* HasInvalidChildren */ : childFlags;
-    var vNode = getVNode(childFlag, children, className, flags, key, props, ref, type);
-    var optsVNode = options.createVNode;
-    if (typeof optsVNode === 'function') {
-        optsVNode(vNode);
-    }
-    if (childFlag === 0 /* UnknownChildren */) {
-        normalizeChildren(vNode, vNode.children);
-    }
-    return vNode;
-}
-function createComponentVNode(flags, type, props, key, ref) {
-    if ((flags & 2 /* ComponentUnknown */) > 0) {
-        flags = type.prototype && isFunction(type.prototype.render) ? 4 /* ComponentClass */ : 8 /* ComponentFunction */;
-    }
-    // set default props
-    var defaultProps = type.defaultProps;
-    if (!isNullOrUndef(defaultProps)) {
-        if (!props) {
-            props = {}; // Props can be referenced and modified at application level so always create new object
-        }
-        for (var prop in defaultProps) {
-            if (isUndefined(props[prop])) {
-                props[prop] = defaultProps[prop];
-            }
-        }
-    }
-    if ((flags & 8 /* ComponentFunction */) > 0) {
-        var defaultHooks = type.defaultHooks;
-        if (!isNullOrUndef(defaultHooks)) {
-            if (!ref) {
-                // As ref cannot be referenced from application level, we can use the same refs object
-                ref = defaultHooks;
-            }
-            else {
-                for (var prop$1 in defaultHooks) {
-                    if (isUndefined(ref[prop$1])) {
-                        ref[prop$1] = defaultHooks[prop$1];
-                    }
-                }
-            }
-        }
-    }
-    var vNode = getVNode(1 /* HasInvalidChildren */, null, null, flags, key, props, ref, type);
-    var optsVNode = options.createVNode;
-    if (isFunction(optsVNode)) {
-        optsVNode(vNode);
-    }
-    return vNode;
-}
-function createTextVNode(text, key) {
-    return getVNode(1 /* HasInvalidChildren */, isNullOrUndef(text) ? '' : text, null, 16 /* Text */, key, null, null, null);
-}
-function normalizeProps(vNode) {
-    var props = vNode.props;
-    if (props) {
-        var flags = vNode.flags;
-        if (flags & 481 /* Element */) {
-            if (props.children !== void 0 && isNullOrUndef(vNode.children)) {
-                normalizeChildren(vNode, props.children);
-            }
-            if (props.className !== void 0) {
-                vNode.className = props.className || null;
-                props.className = undefined;
-            }
-        }
-        if (props.key !== void 0) {
-            vNode.key = props.key;
-            props.key = undefined;
-        }
-        if (props.ref !== void 0) {
-            if (flags & 8 /* ComponentFunction */) {
-                vNode.ref = combineFrom(vNode.ref, props.ref);
-            }
-            else {
-                vNode.ref = props.ref;
-            }
-            props.ref = undefined;
-        }
-    }
-    return vNode;
-}
-function directClone(vNodeToClone) {
-    var newVNode;
-    var flags = vNodeToClone.flags;
-    if (flags & 14 /* Component */) {
-        var props;
-        var propsToClone = vNodeToClone.props;
-        if (!isNull(propsToClone)) {
-            props = {};
-            for (var key in propsToClone) {
-                props[key] = propsToClone[key];
-            }
-        }
-        newVNode = createComponentVNode(flags, vNodeToClone.type, props, vNodeToClone.key, vNodeToClone.ref);
-    }
-    else if (flags & 481 /* Element */) {
-        newVNode = createVNode(flags, vNodeToClone.type, vNodeToClone.className, vNodeToClone.children, vNodeToClone.childFlags, vNodeToClone.props, vNodeToClone.key, vNodeToClone.ref);
-    }
-    else if (flags & 16 /* Text */) {
-        newVNode = createTextVNode(vNodeToClone.children, vNodeToClone.key);
-    }
-    else if (flags & 1024 /* Portal */) {
-        newVNode = vNodeToClone;
-    }
-    return newVNode;
-}
-function createVoidVNode() {
-    return createTextVNode('', null);
-}
-function _normalizeVNodes(nodes, result, index, currentKey) {
-    for (var len = nodes.length; index < len; index++) {
-        var n = nodes[index];
-        if (!isInvalid(n)) {
-            var newKey = currentKey + keyPrefix + index;
-            if (isArray(n)) {
-                _normalizeVNodes(n, result, 0, newKey);
-            }
-            else {
-                if (isStringOrNumber(n)) {
-                    n = createTextVNode(n, newKey);
-                }
-                else {
-                    var oldKey = n.key;
-                    var isPrefixedKey = isString(oldKey) && oldKey[0] === keyPrefix;
-                    if (!isNull(n.dom) || isPrefixedKey) {
-                        n = directClone(n);
-                    }
-                    if (isNull(oldKey) || isPrefixedKey) {
-                        n.key = newKey;
-                    }
-                    else {
-                        n.key = currentKey + oldKey;
-                    }
-                }
-                result.push(n);
-            }
-        }
-    }
-}
-function getFlagsForElementVnode(type) {
-    if (type === 'svg') {
-        return 32 /* SvgElement */;
-    }
-    if (type === 'input') {
-        return 64 /* InputElement */;
-    }
-    if (type === 'select') {
-        return 256 /* SelectElement */;
-    }
-    if (type === 'textarea') {
-        return 128 /* TextareaElement */;
-    }
-    return 1 /* HtmlElement */;
-}
-function normalizeChildren(vNode, children) {
-    var newChildren;
-    var newChildFlags = 1 /* HasInvalidChildren */;
-    // Don't change children to match strict equal (===) true in patching
-    if (isInvalid(children)) {
-        newChildren = children;
-    }
-    else if (isString(children)) {
-        newChildFlags = 2 /* HasVNodeChildren */;
-        newChildren = createTextVNode(children);
-    }
-    else if (isNumber(children)) {
-        newChildFlags = 2 /* HasVNodeChildren */;
-        newChildren = createTextVNode(children + '');
-    }
-    else if (isArray(children)) {
-        var len = children.length;
-        if (len === 0) {
-            newChildren = null;
-            newChildFlags = 1 /* HasInvalidChildren */;
-        }
-        else {
-            // we assign $ which basically means we've flagged this array for future note
-            // if it comes back again, we need to clone it, as people are using it
-            // in an immutable way
-            // tslint:disable-next-line
-            if (Object.isFrozen(children) || children['$'] === true) {
-                children = children.slice();
-            }
-            newChildFlags = 8 /* HasKeyedChildren */;
-            for (var i = 0; i < len; i++) {
-                var n = children[i];
-                if (isInvalid(n) || isArray(n)) {
-                    newChildren = newChildren || children.slice(0, i);
-                    _normalizeVNodes(children, newChildren, i, '');
-                    break;
-                }
-                else if (isStringOrNumber(n)) {
-                    newChildren = newChildren || children.slice(0, i);
-                    newChildren.push(createTextVNode(n, keyPrefix + i));
-                }
-                else {
-                    var key = n.key;
-                    var isNullDom = isNull(n.dom);
-                    var isNullKey = isNull(key);
-                    var isPrefixed = !isNullKey && key[0] === keyPrefix;
-                    if (!isNullDom || isNullKey || isPrefixed) {
-                        newChildren = newChildren || children.slice(0, i);
-                        if (!isNullDom || isPrefixed) {
-                            n = directClone(n);
-                        }
-                        if (isNullKey || isPrefixed) {
-                            n.key = keyPrefix + i;
-                        }
-                        newChildren.push(n);
-                    }
-                    else if (newChildren) {
-                        newChildren.push(n);
-                    }
-                }
-            }
-            newChildren = newChildren || children;
-            newChildren.$ = true;
-        }
-    }
-    else {
-        newChildren = children;
-        if (!isNull(children.dom)) {
-            newChildren = directClone(children);
-        }
-        newChildFlags = 2 /* HasVNodeChildren */;
-    }
-    vNode.children = newChildren;
-    vNode.childFlags = newChildFlags;
-    return vNode;
-}
-var options = {
-    afterRender: null,
-    beforeRender: null,
-    createVNode: null,
-    renderComplete: null
+var keyPrefix = '$';
+function getVNode(childFlags, children, className, flags, key, props, ref, type) {
+    return {
+        childFlags: childFlags,
+        children: children,
+        className: className,
+        dom: null,
+        flags: flags,
+        key: key === void 0 ? null : key,
+        parentVNode: null,
+        props: props === void 0 ? null : props,
+        ref: ref === void 0 ? null : ref,
+        type: type
+    };
+}
+function createVNode(flags, type, className, children, childFlags, props, key, ref) {
+    var childFlag = childFlags === void 0 ? 1 /* HasInvalidChildren */ : childFlags;
+    var vNode = getVNode(childFlag, children, className, flags, key, props, ref, type);
+    var optsVNode = options.createVNode;
+    if (typeof optsVNode === 'function') {
+        optsVNode(vNode);
+    }
+    if (childFlag === 0 /* UnknownChildren */) {
+        normalizeChildren(vNode, vNode.children);
+    }
+    return vNode;
+}
+function createComponentVNode(flags, type, props, key, ref) {
+    if ((flags & 2 /* ComponentUnknown */) > 0) {
+        flags = type.prototype && isFunction(type.prototype.render) ? 4 /* ComponentClass */ : 8 /* ComponentFunction */;
+    }
+    // set default props
+    var defaultProps = type.defaultProps;
+    if (!isNullOrUndef(defaultProps)) {
+        if (!props) {
+            props = {}; // Props can be referenced and modified at application level so always create new object
+        }
+        for (var prop in defaultProps) {
+            if (isUndefined(props[prop])) {
+                props[prop] = defaultProps[prop];
+            }
+        }
+    }
+    if ((flags & 8 /* ComponentFunction */) > 0) {
+        var defaultHooks = type.defaultHooks;
+        if (!isNullOrUndef(defaultHooks)) {
+            if (!ref) {
+                // As ref cannot be referenced from application level, we can use the same refs object
+                ref = defaultHooks;
+            }
+            else {
+                for (var prop$1 in defaultHooks) {
+                    if (isUndefined(ref[prop$1])) {
+                        ref[prop$1] = defaultHooks[prop$1];
+                    }
+                }
+            }
+        }
+    }
+    var vNode = getVNode(1 /* HasInvalidChildren */, null, null, flags, key, props, ref, type);
+    var optsVNode = options.createVNode;
+    if (isFunction(optsVNode)) {
+        optsVNode(vNode);
+    }
+    return vNode;
+}
+function createTextVNode(text, key) {
+    return getVNode(1 /* HasInvalidChildren */, isNullOrUndef(text) ? '' : text, null, 16 /* Text */, key, null, null, null);
+}
+function normalizeProps(vNode) {
+    var props = vNode.props;
+    if (props) {
+        var flags = vNode.flags;
+        if (flags & 481 /* Element */) {
+            if (props.children !== void 0 && isNullOrUndef(vNode.children)) {
+                normalizeChildren(vNode, props.children);
+            }
+            if (props.className !== void 0) {
+                vNode.className = props.className || null;
+                props.className = undefined;
+            }
+        }
+        if (props.key !== void 0) {
+            vNode.key = props.key;
+            props.key = undefined;
+        }
+        if (props.ref !== void 0) {
+            if (flags & 8 /* ComponentFunction */) {
+                vNode.ref = combineFrom(vNode.ref, props.ref);
+            }
+            else {
+                vNode.ref = props.ref;
+            }
+            props.ref = undefined;
+        }
+    }
+    return vNode;
+}
+function directClone(vNodeToClone) {
+    var newVNode;
+    var flags = vNodeToClone.flags;
+    if (flags & 14 /* Component */) {
+        var props;
+        var propsToClone = vNodeToClone.props;
+        if (!isNull(propsToClone)) {
+            props = {};
+            for (var key in propsToClone) {
+                props[key] = propsToClone[key];
+            }
+        }
+        newVNode = createComponentVNode(flags, vNodeToClone.type, props, vNodeToClone.key, vNodeToClone.ref);
+    }
+    else if (flags & 481 /* Element */) {
+        newVNode = createVNode(flags, vNodeToClone.type, vNodeToClone.className, vNodeToClone.children, vNodeToClone.childFlags, vNodeToClone.props, vNodeToClone.key, vNodeToClone.ref);
+    }
+    else if (flags & 16 /* Text */) {
+        newVNode = createTextVNode(vNodeToClone.children, vNodeToClone.key);
+    }
+    else if (flags & 1024 /* Portal */) {
+        newVNode = vNodeToClone;
+    }
+    return newVNode;
+}
+function createVoidVNode() {
+    return createTextVNode('', null);
+}
+function _normalizeVNodes(nodes, result, index, currentKey) {
+    for (var len = nodes.length; index < len; index++) {
+        var n = nodes[index];
+        if (!isInvalid(n)) {
+            var newKey = currentKey + keyPrefix + index;
+            if (isArray(n)) {
+                _normalizeVNodes(n, result, 0, newKey);
+            }
+            else {
+                if (isStringOrNumber(n)) {
+                    n = createTextVNode(n, newKey);
+                }
+                else {
+                    var oldKey = n.key;
+                    var isPrefixedKey = isString(oldKey) && oldKey[0] === keyPrefix;
+                    if (!isNull(n.dom) || isPrefixedKey) {
+                        n = directClone(n);
+                    }
+                    if (isNull(oldKey) || isPrefixedKey) {
+                        n.key = newKey;
+                    }
+                    else {
+                        n.key = currentKey + oldKey;
+                    }
+                }
+                result.push(n);
+            }
+        }
+    }
+}
+function getFlagsForElementVnode(type) {
+    if (type === 'svg') {
+        return 32 /* SvgElement */;
+    }
+    if (type === 'input') {
+        return 64 /* InputElement */;
+    }
+    if (type === 'select') {
+        return 256 /* SelectElement */;
+    }
+    if (type === 'textarea') {
+        return 128 /* TextareaElement */;
+    }
+    return 1 /* HtmlElement */;
+}
+function normalizeChildren(vNode, children) {
+    var newChildren;
+    var newChildFlags = 1 /* HasInvalidChildren */;
+    // Don't change children to match strict equal (===) true in patching
+    if (isInvalid(children)) {
+        newChildren = children;
+    }
+    else if (isString(children)) {
+        newChildFlags = 2 /* HasVNodeChildren */;
+        newChildren = createTextVNode(children);
+    }
+    else if (isNumber(children)) {
+        newChildFlags = 2 /* HasVNodeChildren */;
+        newChildren = createTextVNode(children + '');
+    }
+    else if (isArray(children)) {
+        var len = children.length;
+        if (len === 0) {
+            newChildren = null;
+            newChildFlags = 1 /* HasInvalidChildren */;
+        }
+        else {
+            // we assign $ which basically means we've flagged this array for future note
+            // if it comes back again, we need to clone it, as people are using it
+            // in an immutable way
+            // tslint:disable-next-line
+            if (Object.isFrozen(children) || children['$'] === true) {
+                children = children.slice();
+            }
+            newChildFlags = 8 /* HasKeyedChildren */;
+            for (var i = 0; i < len; i++) {
+                var n = children[i];
+                if (isInvalid(n) || isArray(n)) {
+                    newChildren = newChildren || children.slice(0, i);
+                    _normalizeVNodes(children, newChildren, i, '');
+                    break;
+                }
+                else if (isStringOrNumber(n)) {
+                    newChildren = newChildren || children.slice(0, i);
+                    newChildren.push(createTextVNode(n, keyPrefix + i));
+                }
+                else {
+                    var key = n.key;
+                    var isNullDom = isNull(n.dom);
+                    var isNullKey = isNull(key);
+                    var isPrefixed = !isNullKey && key[0] === keyPrefix;
+                    if (!isNullDom || isNullKey || isPrefixed) {
+                        newChildren = newChildren || children.slice(0, i);
+                        if (!isNullDom || isPrefixed) {
+                            n = directClone(n);
+                        }
+                        if (isNullKey || isPrefixed) {
+                            n.key = keyPrefix + i;
+                        }
+                        newChildren.push(n);
+                    }
+                    else if (newChildren) {
+                        newChildren.push(n);
+                    }
+                }
+            }
+            newChildren = newChildren || children;
+            newChildren.$ = true;
+        }
+    }
+    else {
+        newChildren = children;
+        if (!isNull(children.dom)) {
+            newChildren = directClone(children);
+        }
+        newChildFlags = 2 /* HasVNodeChildren */;
+    }
+    vNode.children = newChildren;
+    vNode.childFlags = newChildFlags;
+    return vNode;
+}
+var options = {
+    afterRender: null,
+    beforeRender: null,
+    createVNode: null,
+    renderComplete: null
 };
 
-/**
- * Links given data to event as first parameter
- * @param {*} data data to be linked, it will be available in function as first parameter
- * @param {Function} event Function to be called when event occurs
- * @returns {{data: *, event: Function}}
- */
-function linkEvent(data, event) {
-    if (isFunction(event)) {
-        return { data: data, event: event };
-    }
-    return null; // Return null when event is invalid, to avoid creating unnecessary event handlers
+/**
+ * Links given data to event as first parameter
+ * @param {*} data data to be linked, it will be available in function as first parameter
+ * @param {Function} event Function to be called when event occurs
+ * @returns {{data: *, event: Function}}
+ */
+function linkEvent(data, event) {
+    if (isFunction(event)) {
+        return { data: data, event: event };
+    }
+    return null; // Return null when event is invalid, to avoid creating unnecessary event handlers
 }
 
-var xlinkNS = 'http://www.w3.org/1999/xlink';
-var xmlNS = 'http://www.w3.org/XML/1998/namespace';
-var svgNS = 'http://www.w3.org/2000/svg';
-var namespaces = {
-    'xlink:actuate': xlinkNS,
-    'xlink:arcrole': xlinkNS,
-    'xlink:href': xlinkNS,
-    'xlink:role': xlinkNS,
-    'xlink:show': xlinkNS,
-    'xlink:title': xlinkNS,
-    'xlink:type': xlinkNS,
-    'xml:base': xmlNS,
-    'xml:lang': xmlNS,
-    'xml:space': xmlNS
+var xlinkNS = 'http://www.w3.org/1999/xlink';
+var xmlNS = 'http://www.w3.org/XML/1998/namespace';
+var svgNS = 'http://www.w3.org/2000/svg';
+var namespaces = {
+    'xlink:actuate': xlinkNS,
+    'xlink:arcrole': xlinkNS,
+    'xlink:href': xlinkNS,
+    'xlink:role': xlinkNS,
+    'xlink:show': xlinkNS,
+    'xlink:title': xlinkNS,
+    'xlink:type': xlinkNS,
+    'xml:base': xmlNS,
+    'xml:lang': xmlNS,
+    'xml:space': xmlNS
 };
 
-// We need EMPTY_OBJ defined in one place.
-// Its used for comparison so we cant inline it into shared
-var EMPTY_OBJ = {};
-var LIFECYCLE = [];
-function appendChild(parentDom, dom) {
-    parentDom.appendChild(dom);
-}
-function insertOrAppend(parentDom, newNode, nextNode) {
-    if (isNullOrUndef(nextNode)) {
-        appendChild(parentDom, newNode);
-    }
-    else {
-        parentDom.insertBefore(newNode, nextNode);
-    }
-}
-function documentCreateElement(tag, isSVG) {
-    if (isSVG) {
-        return document.createElementNS(svgNS, tag);
-    }
-    return document.createElement(tag);
-}
-function replaceChild(parentDom, newDom, lastDom) {
-    parentDom.replaceChild(newDom, lastDom);
-}
-function removeChild(parentDom, dom) {
-    parentDom.removeChild(dom);
-}
-function callAll(arrayFn) {
-    var listener;
-    while ((listener = arrayFn.shift()) !== undefined) {
-        listener();
-    }
+// We need EMPTY_OBJ defined in one place.
+// Its used for comparison so we cant inline it into shared
+var EMPTY_OBJ = {};
+var LIFECYCLE = [];
+function appendChild(parentDom, dom) {
+    parentDom.appendChild(dom);
+}
+function insertOrAppend(parentDom, newNode, nextNode) {
+    if (isNullOrUndef(nextNode)) {
+        appendChild(parentDom, newNode);
+    }
+    else {
+        parentDom.insertBefore(newNode, nextNode);
+    }
+}
+function documentCreateElement(tag, isSVG) {
+    if (isSVG) {
+        return document.createElementNS(svgNS, tag);
+    }
+    return document.createElement(tag);
+}
+function replaceChild(parentDom, newDom, lastDom) {
+    parentDom.replaceChild(newDom, lastDom);
+}
+function removeChild(parentDom, dom) {
+    parentDom.removeChild(dom);
+}
+function callAll(arrayFn) {
+    var listener;
+    while ((listener = arrayFn.shift()) !== undefined) {
+        listener();
+    }
 }
 
-var attachedEventCounts = {};
-var attachedEvents = {};
-function handleEvent(name, nextEvent, dom) {
-    var eventsLeft = attachedEventCounts[name];
-    var eventsObject = dom.$EV;
-    if (nextEvent) {
-        if (!eventsLeft) {
-            attachedEvents[name] = attachEventToDocument(name);
-            attachedEventCounts[name] = 0;
-        }
-        if (!eventsObject) {
-            eventsObject = dom.$EV = {};
-        }
-        if (!eventsObject[name]) {
-            attachedEventCounts[name]++;
-        }
-        eventsObject[name] = nextEvent;
-    }
-    else if (eventsObject && eventsObject[name]) {
-        attachedEventCounts[name]--;
-        if (eventsLeft === 1) {
-            document.removeEventListener(normalizeEventName(name), attachedEvents[name]);
-            attachedEvents[name] = null;
-        }
-        eventsObject[name] = nextEvent;
-    }
-}
-function dispatchEvents(event, target, isClick, name, eventData) {
-    var dom = target;
-    while (!isNull(dom)) {
-        // Html Nodes can be nested fe: span inside button in that scenario browser does not handle disabled attribute on parent,
-        // because the event listener is on document.body
-        // Don't process clicks on disabled elements
-        if (isClick && dom.disabled) {
-            return;
-        }
-        var eventsObject = dom.$EV;
-        if (eventsObject) {
-            var currentEvent = eventsObject[name];
-            if (currentEvent) {
-                // linkEvent object
-                eventData.dom = dom;
-                if (currentEvent.event) {
-                    currentEvent.event(currentEvent.data, event);
-                }
-                else {
-                    currentEvent(event);
-                }
-                if (event.cancelBubble) {
-                    return;
-                }
-            }
-        }
-        dom = dom.parentNode;
-    }
-}
-function normalizeEventName(name) {
-    return name.substr(2).toLowerCase();
-}
-function stopPropagation() {
-    this.cancelBubble = true;
-    if (!this.immediatePropagationStopped) {
-        this.stopImmediatePropagation();
-    }
-}
-function attachEventToDocument(name) {
-    var docEvent = function (event) {
-        var type = event.type;
-        var isClick = type === 'click' || type === 'dblclick';
-        if (isClick && event.button !== 0) {
-            // Firefox incorrectly triggers click event for mid/right mouse buttons.
-            // This bug has been active for 12 years.
-            // https://bugzilla.mozilla.org/show_bug.cgi?id=184051
-            event.stopPropagation();
-            return false;
-        }
-        event.stopPropagation = stopPropagation;
-        // Event data needs to be object to save reference to currentTarget getter
-        var eventData = {
-            dom: document
-        };
-        Object.defineProperty(event, 'currentTarget', {
-            configurable: true,
-            get: function get() {
-                return eventData.dom;
-            }
-        });
-        dispatchEvents(event, event.target, isClick, name, eventData);
-        return;
-    };
-    document.addEventListener(normalizeEventName(name), docEvent);
-    return docEvent;
+var attachedEventCounts = {};
+var attachedEvents = {};
+function handleEvent(name, nextEvent, dom) {
+    var eventsLeft = attachedEventCounts[name];
+    var eventsObject = dom.$EV;
+    if (nextEvent) {
+        if (!eventsLeft) {
+            attachedEvents[name] = attachEventToDocument(name);
+            attachedEventCounts[name] = 0;
+        }
+        if (!eventsObject) {
+            eventsObject = dom.$EV = {};
+        }
+        if (!eventsObject[name]) {
+            attachedEventCounts[name]++;
+        }
+        eventsObject[name] = nextEvent;
+    }
+    else if (eventsObject && eventsObject[name]) {
+        attachedEventCounts[name]--;
+        if (eventsLeft === 1) {
+            document.removeEventListener(normalizeEventName(name), attachedEvents[name]);
+            attachedEvents[name] = null;
+        }
+        eventsObject[name] = nextEvent;
+    }
+}
+function dispatchEvents(event, target, isClick, name, eventData) {
+    var dom = target;
+    while (!isNull(dom)) {
+        // Html Nodes can be nested fe: span inside button in that scenario browser does not handle disabled attribute on parent,
+        // because the event listener is on document.body
+        // Don't process clicks on disabled elements
+        if (isClick && dom.disabled) {
+            return;
+        }
+        var eventsObject = dom.$EV;
+        if (eventsObject) {
+            var currentEvent = eventsObject[name];
+            if (currentEvent) {
+                // linkEvent object
+                eventData.dom = dom;
+                if (currentEvent.event) {
+                    currentEvent.event(currentEvent.data, event);
+                }
+                else {
+                    currentEvent(event);
+                }
+                if (event.cancelBubble) {
+                    return;
+                }
+            }
+        }
+        dom = dom.parentNode;
+    }
+}
+function normalizeEventName(name) {
+    return name.substr(2).toLowerCase();
+}
+function stopPropagation() {
+    this.cancelBubble = true;
+    if (!this.immediatePropagationStopped) {
+        this.stopImmediatePropagation();
+    }
+}
+function attachEventToDocument(name) {
+    var docEvent = function (event) {
+        var type = event.type;
+        var isClick = type === 'click' || type === 'dblclick';
+        if (isClick && event.button !== 0) {
+            // Firefox incorrectly triggers click event for mid/right mouse buttons.
+            // This bug has been active for 12 years.
+            // https://bugzilla.mozilla.org/show_bug.cgi?id=184051
+            event.stopPropagation();
+            return false;
+        }
+        event.stopPropagation = stopPropagation;
+        // Event data needs to be object to save reference to currentTarget getter
+        var eventData = {
+            dom: document
+        };
+        Object.defineProperty(event, 'currentTarget', {
+            configurable: true,
+            get: function get() {
+                return eventData.dom;
+            }
+        });
+        dispatchEvents(event, event.target, isClick, name, eventData);
+        return;
+    };
+    document.addEventListener(normalizeEventName(name), docEvent);
+    return docEvent;
 }
 
-function isSameInnerHTML(dom, innerHTML) {
-    var tempdom = document.createElement('i');
-    tempdom.innerHTML = innerHTML;
-    return tempdom.innerHTML === dom.innerHTML;
-}
-function isSamePropsInnerHTML(dom, props) {
-    return Boolean(props && props.dangerouslySetInnerHTML && props.dangerouslySetInnerHTML.__html && isSameInnerHTML(dom, props.dangerouslySetInnerHTML.__html));
+function isSameInnerHTML(dom, innerHTML) {
+    var tempdom = document.createElement('i');
+    tempdom.innerHTML = innerHTML;
+    return tempdom.innerHTML === dom.innerHTML;
+}
+function isSamePropsInnerHTML(dom, props) {
+    return Boolean(props && props.dangerouslySetInnerHTML && props.dangerouslySetInnerHTML.__html && isSameInnerHTML(dom, props.dangerouslySetInnerHTML.__html));
 }
 
-function triggerEventListener(props, methodName, e) {
-    if (props[methodName]) {
-        var listener = props[methodName];
-        if (listener.event) {
-            listener.event(listener.data, e);
-        }
-        else {
-            listener(e);
-        }
-    }
-    else {
-        var nativeListenerName = methodName.toLowerCase();
-        if (props[nativeListenerName]) {
-            props[nativeListenerName](e);
-        }
-    }
-}
-function createWrappedFunction(methodName, applyValue) {
-    var fnMethod = function (e) {
-        e.stopPropagation();
-        var vNode = this.$V;
-        // If vNode is gone by the time event fires, no-op
-        if (!vNode) {
-            return;
-        }
-        var props = vNode.props || EMPTY_OBJ;
-        var dom = vNode.dom;
-        if (isString(methodName)) {
-            triggerEventListener(props, methodName, e);
-        }
-        else {
-            for (var i = 0; i < methodName.length; i++) {
-                triggerEventListener(props, methodName[i], e);
-            }
-        }
-        if (isFunction(applyValue)) {
-            var newVNode = this.$V;
-            var newProps = newVNode.props || EMPTY_OBJ;
-            applyValue(newProps, dom, false, newVNode);
-        }
-    };
-    Object.defineProperty(fnMethod, 'wrapped', {
-        configurable: false,
-        enumerable: false,
-        value: true,
-        writable: false
-    });
-    return fnMethod;
+function triggerEventListener(props, methodName, e) {
+    if (props[methodName]) {
+        var listener = props[methodName];
+        if (listener.event) {
+            listener.event(listener.data, e);
+        }
+        else {
+            listener(e);
+        }
+    }
+    else {
+        var nativeListenerName = methodName.toLowerCase();
+        if (props[nativeListenerName]) {
+            props[nativeListenerName](e);
+        }
+    }
+}
+function createWrappedFunction(methodName, applyValue) {
+    var fnMethod = function (e) {
+        e.stopPropagation();
+        var vNode = this.$V;
+        // If vNode is gone by the time event fires, no-op
+        if (!vNode) {
+            return;
+        }
+        var props = vNode.props || EMPTY_OBJ;
+        var dom = vNode.dom;
+        if (isString(methodName)) {
+            triggerEventListener(props, methodName, e);
+        }
+        else {
+            for (var i = 0; i < methodName.length; i++) {
+                triggerEventListener(props, methodName[i], e);
+            }
+        }
+        if (isFunction(applyValue)) {
+            var newVNode = this.$V;
+            var newProps = newVNode.props || EMPTY_OBJ;
+            applyValue(newProps, dom, false, newVNode);
+        }
+    };
+    Object.defineProperty(fnMethod, 'wrapped', {
+        configurable: false,
+        enumerable: false,
+        value: true,
+        writable: false
+    });
+    return fnMethod;
 }
 
-function isCheckedType(type) {
-    return type === 'checkbox' || type === 'radio';
-}
-var onTextInputChange = createWrappedFunction('onInput', applyValueInput);
-var wrappedOnChange = createWrappedFunction(['onClick', 'onChange'], applyValueInput);
-/* tslint:disable-next-line:no-empty */
-function emptywrapper(event) {
-    event.stopPropagation();
-}
-emptywrapper.wrapped = true;
-function inputEvents(dom, nextPropsOrEmpty) {
-    if (isCheckedType(nextPropsOrEmpty.type)) {
-        dom.onchange = wrappedOnChange;
-        dom.onclick = emptywrapper;
-    }
-    else {
-        dom.oninput = onTextInputChange;
-    }
-}
-function applyValueInput(nextPropsOrEmpty, dom) {
-    var type = nextPropsOrEmpty.type;
-    var value = nextPropsOrEmpty.value;
-    var checked = nextPropsOrEmpty.checked;
-    var multiple = nextPropsOrEmpty.multiple;
-    var defaultValue = nextPropsOrEmpty.defaultValue;
-    var hasValue = !isNullOrUndef(value);
-    if (type && type !== dom.type) {
-        dom.setAttribute('type', type);
-    }
-    if (!isNullOrUndef(multiple) && multiple !== dom.multiple) {
-        dom.multiple = multiple;
-    }
-    if (!isNullOrUndef(defaultValue) && !hasValue) {
-        dom.defaultValue = defaultValue + '';
-    }
-    if (isCheckedType(type)) {
-        if (hasValue) {
-            dom.value = value;
-        }
-        if (!isNullOrUndef(checked)) {
-            dom.checked = checked;
-        }
-    }
-    else {
-        if (hasValue && dom.value !== value) {
-            dom.defaultValue = value;
-            dom.value = value;
-        }
-        else if (!isNullOrUndef(checked)) {
-            dom.checked = checked;
-        }
-    }
+function isCheckedType(type) {
+    return type === 'checkbox' || type === 'radio';
+}
+var onTextInputChange = createWrappedFunction('onInput', applyValueInput);
+var wrappedOnChange = createWrappedFunction(['onClick', 'onChange'], applyValueInput);
+/* tslint:disable-next-line:no-empty */
+function emptywrapper(event) {
+    event.stopPropagation();
+}
+emptywrapper.wrapped = true;
+function inputEvents(dom, nextPropsOrEmpty) {
+    if (isCheckedType(nextPropsOrEmpty.type)) {
+        dom.onchange = wrappedOnChange;
+        dom.onclick = emptywrapper;
+    }
+    else {
+        dom.oninput = onTextInputChange;
+    }
+}
+function applyValueInput(nextPropsOrEmpty, dom) {
+    var type = nextPropsOrEmpty.type;
+    var value = nextPropsOrEmpty.value;
+    var checked = nextPropsOrEmpty.checked;
+    var multiple = nextPropsOrEmpty.multiple;
+    var defaultValue = nextPropsOrEmpty.defaultValue;
+    var hasValue = !isNullOrUndef(value);
+    if (type && type !== dom.type) {
+        dom.setAttribute('type', type);
+    }
+    if (!isNullOrUndef(multiple) && multiple !== dom.multiple) {
+        dom.multiple = multiple;
+    }
+    if (!isNullOrUndef(defaultValue) && !hasValue) {
+        dom.defaultValue = defaultValue + '';
+    }
+    if (isCheckedType(type)) {
+        if (hasValue) {
+            dom.value = value;
+        }
+        if (!isNullOrUndef(checked)) {
+            dom.checked = checked;
+        }
+    }
+    else {
+        if (hasValue && dom.value !== value) {
+            dom.defaultValue = value;
+            dom.value = value;
+        }
+        else if (!isNullOrUndef(checked)) {
+            dom.checked = checked;
+        }
+    }
 }
 
-function updateChildOptionGroup(vNode, value) {
-    var type = vNode.type;
-    if (type === 'optgroup') {
-        var children = vNode.children;
-        var childFlags = vNode.childFlags;
-        if (childFlags & 12 /* MultipleChildren */) {
-            for (var i = 0, len = children.length; i < len; i++) {
-                updateChildOption(children[i], value);
-            }
-        }
-        else if (childFlags === 2 /* HasVNodeChildren */) {
-            updateChildOption(children, value);
-        }
-    }
-    else {
-        updateChildOption(vNode, value);
-    }
-}
-function updateChildOption(vNode, value) {
-    var props = vNode.props || EMPTY_OBJ;
-    var dom = vNode.dom;
-    // we do this as multiple may have changed
-    dom.value = props.value;
-    if ((isArray(value) && value.indexOf(props.value) !== -1) || props.value === value) {
-        dom.selected = true;
-    }
-    else if (!isNullOrUndef(value) || !isNullOrUndef(props.selected)) {
-        dom.selected = props.selected || false;
-    }
-}
-var onSelectChange = createWrappedFunction('onChange', applyValueSelect);
-function selectEvents(dom) {
-    dom.onchange = onSelectChange;
-}
-function applyValueSelect(nextPropsOrEmpty, dom, mounting, vNode) {
-    var multiplePropInBoolean = Boolean(nextPropsOrEmpty.multiple);
-    if (!isNullOrUndef(nextPropsOrEmpty.multiple) && multiplePropInBoolean !== dom.multiple) {
-        dom.multiple = multiplePropInBoolean;
-    }
-    var childFlags = vNode.childFlags;
-    if ((childFlags & 1 /* HasInvalidChildren */) === 0) {
-        var children = vNode.children;
-        var value = nextPropsOrEmpty.value;
-        if (mounting && isNullOrUndef(value)) {
-            value = nextPropsOrEmpty.defaultValue;
-        }
-        if (childFlags & 12 /* MultipleChildren */) {
-            for (var i = 0, len = children.length; i < len; i++) {
-                updateChildOptionGroup(children[i], value);
-            }
-        }
-        else if (childFlags === 2 /* HasVNodeChildren */) {
-            updateChildOptionGroup(children, value);
-        }
-    }
+function updateChildOptionGroup(vNode, value) {
+    var type = vNode.type;
+    if (type === 'optgroup') {
+        var children = vNode.children;
+        var childFlags = vNode.childFlags;
+        if (childFlags & 12 /* MultipleChildren */) {
+            for (var i = 0, len = children.length; i < len; i++) {
+                updateChildOption(children[i], value);
+            }
+        }
+        else if (childFlags === 2 /* HasVNodeChildren */) {
+            updateChildOption(children, value);
+        }
+    }
+    else {
+        updateChildOption(vNode, value);
+    }
+}
+function updateChildOption(vNode, value) {
+    var props = vNode.props || EMPTY_OBJ;
+    var dom = vNode.dom;
+    // we do this as multiple may have changed
+    dom.value = props.value;
+    if ((isArray(value) && value.indexOf(props.value) !== -1) || props.value === value) {
+        dom.selected = true;
+    }
+    else if (!isNullOrUndef(value) || !isNullOrUndef(props.selected)) {
+        dom.selected = props.selected || false;
+    }
+}
+var onSelectChange = createWrappedFunction('onChange', applyValueSelect);
+function selectEvents(dom) {
+    dom.onchange = onSelectChange;
+}
+function applyValueSelect(nextPropsOrEmpty, dom, mounting, vNode) {
+    var multiplePropInBoolean = Boolean(nextPropsOrEmpty.multiple);
+    if (!isNullOrUndef(nextPropsOrEmpty.multiple) && multiplePropInBoolean !== dom.multiple) {
+        dom.multiple = multiplePropInBoolean;
+    }
+    var childFlags = vNode.childFlags;
+    if ((childFlags & 1 /* HasInvalidChildren */) === 0) {
+        var children = vNode.children;
+        var value = nextPropsOrEmpty.value;
+        if (mounting && isNullOrUndef(value)) {
+            value = nextPropsOrEmpty.defaultValue;
+        }
+        if (childFlags & 12 /* MultipleChildren */) {
+            for (var i = 0, len = children.length; i < len; i++) {
+                updateChildOptionGroup(children[i], value);
+            }
+        }
+        else if (childFlags === 2 /* HasVNodeChildren */) {
+            updateChildOptionGroup(children, value);
+        }
+    }
 }
 
-var onTextareaInputChange = createWrappedFunction('onInput', applyValueTextArea);
-var wrappedOnChange$1 = createWrappedFunction('onChange');
-function textAreaEvents(dom, nextPropsOrEmpty) {
-    dom.oninput = onTextareaInputChange;
-    if (nextPropsOrEmpty.onChange) {
-        dom.onchange = wrappedOnChange$1;
-    }
-}
-function applyValueTextArea(nextPropsOrEmpty, dom, mounting) {
-    var value = nextPropsOrEmpty.value;
-    var domValue = dom.value;
-    if (isNullOrUndef(value)) {
-        if (mounting) {
-            var defaultValue = nextPropsOrEmpty.defaultValue;
-            if (!isNullOrUndef(defaultValue) && defaultValue !== domValue) {
-                dom.defaultValue = defaultValue;
-                dom.value = defaultValue;
-            }
-        }
-    }
-    else if (domValue !== value) {
-        /* There is value so keep it controlled */
-        dom.defaultValue = value;
-        dom.value = value;
-    }
+var onTextareaInputChange = createWrappedFunction('onInput', applyValueTextArea);
+var wrappedOnChange$1 = createWrappedFunction('onChange');
+function textAreaEvents(dom, nextPropsOrEmpty) {
+    dom.oninput = onTextareaInputChange;
+    if (nextPropsOrEmpty.onChange) {
+        dom.onchange = wrappedOnChange$1;
+    }
+}
+function applyValueTextArea(nextPropsOrEmpty, dom, mounting) {
+    var value = nextPropsOrEmpty.value;
+    var domValue = dom.value;
+    if (isNullOrUndef(value)) {
+        if (mounting) {
+            var defaultValue = nextPropsOrEmpty.defaultValue;
+            if (!isNullOrUndef(defaultValue) && defaultValue !== domValue) {
+                dom.defaultValue = defaultValue;
+                dom.value = defaultValue;
+            }
+        }
+    }
+    else if (domValue !== value) {
+        /* There is value so keep it controlled */
+        dom.defaultValue = value;
+        dom.value = value;
+    }
 }
 
-/**
- * There is currently no support for switching same input between controlled and nonControlled
- * If that ever becomes a real issue, then re design controlled elements
- * Currently user must choose either controlled or non-controlled and stick with that
- */
-function processElement(flags, vNode, dom, nextPropsOrEmpty, mounting, isControlled) {
-    if (flags & 64 /* InputElement */) {
-        applyValueInput(nextPropsOrEmpty, dom);
-    }
-    else if (flags & 256 /* SelectElement */) {
-        applyValueSelect(nextPropsOrEmpty, dom, mounting, vNode);
-    }
-    else if (flags & 128 /* TextareaElement */) {
-        applyValueTextArea(nextPropsOrEmpty, dom, mounting);
-    }
-    if (isControlled) {
-        dom.$V = vNode;
-    }
-}
-function addFormElementEventHandlers(flags, dom, nextPropsOrEmpty) {
-    if (flags & 64 /* InputElement */) {
-        inputEvents(dom, nextPropsOrEmpty);
-    }
-    else if (flags & 256 /* SelectElement */) {
-        selectEvents(dom);
-    }
-    else if (flags & 128 /* TextareaElement */) {
-        textAreaEvents(dom, nextPropsOrEmpty);
-    }
-}
-function isControlledFormElement(nextPropsOrEmpty) {
-    return nextPropsOrEmpty.type && isCheckedType(nextPropsOrEmpty.type) ? !isNullOrUndef(nextPropsOrEmpty.checked) : !isNullOrUndef(nextPropsOrEmpty.value);
+/**
+ * There is currently no support for switching same input between controlled and nonControlled
+ * If that ever becomes a real issue, then re design controlled elements
+ * Currently user must choose either controlled or non-controlled and stick with that
+ */
+function processElement(flags, vNode, dom, nextPropsOrEmpty, mounting, isControlled) {
+    if (flags & 64 /* InputElement */) {
+        applyValueInput(nextPropsOrEmpty, dom);
+    }
+    else if (flags & 256 /* SelectElement */) {
+        applyValueSelect(nextPropsOrEmpty, dom, mounting, vNode);
+    }
+    else if (flags & 128 /* TextareaElement */) {
+        applyValueTextArea(nextPropsOrEmpty, dom, mounting);
+    }
+    if (isControlled) {
+        dom.$V = vNode;
+    }
+}
+function addFormElementEventHandlers(flags, dom, nextPropsOrEmpty) {
+    if (flags & 64 /* InputElement */) {
+        inputEvents(dom, nextPropsOrEmpty);
+    }
+    else if (flags & 256 /* SelectElement */) {
+        selectEvents(dom);
+    }
+    else if (flags & 128 /* TextareaElement */) {
+        textAreaEvents(dom, nextPropsOrEmpty);
+    }
+}
+function isControlledFormElement(nextPropsOrEmpty) {
+    return nextPropsOrEmpty.type && isCheckedType(nextPropsOrEmpty.type) ? !isNullOrUndef(nextPropsOrEmpty.checked) : !isNullOrUndef(nextPropsOrEmpty.value);
 }
 
-function remove(vNode, parentDom) {
-    unmount(vNode);
-    if (parentDom && vNode.dom) {
-        removeChild(parentDom, vNode.dom);
-        // Let carbage collector free memory
-        vNode.dom = null;
-    }
-}
-function unmount(vNode) {
-    var flags = vNode.flags;
-    if (flags & 481 /* Element */) {
-        var ref = vNode.ref;
-        var props = vNode.props;
-        if (isFunction(ref)) {
-            ref(null);
-        }
-        var children = vNode.children;
-        var childFlags = vNode.childFlags;
-        if (childFlags & 12 /* MultipleChildren */) {
-            unmountAllChildren(children);
-        }
-        else if (childFlags === 2 /* HasVNodeChildren */) {
-            unmount(children);
-        }
-        if (!isNull(props)) {
-            for (var name in props) {
-                switch (name) {
-                    case 'onClick':
-                    case 'onDblClick':
-                    case 'onFocusIn':
-                    case 'onFocusOut':
-                    case 'onKeyDown':
-                    case 'onKeyPress':
-                    case 'onKeyUp':
-                    case 'onMouseDown':
-                    case 'onMouseMove':
-                    case 'onMouseUp':
-                    case 'onSubmit':
-                    case 'onTouchEnd':
-                    case 'onTouchMove':
-                    case 'onTouchStart':
-                        handleEvent(name, null, vNode.dom);
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
-    }
-    else {
-        var children$1 = vNode.children;
-        // Safe guard for crashed VNode
-        if (children$1) {
-            if (flags & 14 /* Component */) {
-                var ref$1 = vNode.ref;
-                if (flags & 4 /* ComponentClass */) {
-                    if (isFunction(children$1.componentWillUnmount)) {
-                        children$1.componentWillUnmount();
-                    }
-                    if (isFunction(ref$1)) {
-                        ref$1(null);
-                    }
-                    children$1.$UN = true;
-                    if (children$1.$LI) {
-                        unmount(children$1.$LI);
-                    }
-                }
-                else {
-                    if (!isNullOrUndef(ref$1) && isFunction(ref$1.onComponentWillUnmount)) {
-                        ref$1.onComponentWillUnmount(vNode.dom, vNode.props || EMPTY_OBJ);
-                    }
-                    unmount(children$1);
-                }
-            }
-            else if (flags & 1024 /* Portal */) {
-                remove(children$1, vNode.type);
-            }
-        }
-    }
-}
-function unmountAllChildren(children) {
-    for (var i = 0, len = children.length; i < len; i++) {
-        unmount(children[i]);
-    }
-}
-function removeAllChildren(dom, children) {
-    unmountAllChildren(children);
-    dom.textContent = '';
+function remove(vNode, parentDom) {
+    unmount(vNode);
+    if (parentDom && vNode.dom) {
+        removeChild(parentDom, vNode.dom);
+        // Let carbage collector free memory
+        vNode.dom = null;
+    }
+}
+function unmount(vNode) {
+    var flags = vNode.flags;
+    if (flags & 481 /* Element */) {
+        var ref = vNode.ref;
+        var props = vNode.props;
+        if (isFunction(ref)) {
+            ref(null);
+        }
+        var children = vNode.children;
+        var childFlags = vNode.childFlags;
+        if (childFlags & 12 /* MultipleChildren */) {
+            unmountAllChildren(children);
+        }
+        else if (childFlags === 2 /* HasVNodeChildren */) {
+            unmount(children);
+        }
+        if (!isNull(props)) {
+            for (var name in props) {
+                switch (name) {
+                    case 'onClick':
+                    case 'onDblClick':
+                    case 'onFocusIn':
+                    case 'onFocusOut':
+                    case 'onKeyDown':
+                    case 'onKeyPress':
+                    case 'onKeyUp':
+                    case 'onMouseDown':
+                    case 'onMouseMove':
+                    case 'onMouseUp':
+                    case 'onSubmit':
+                    case 'onTouchEnd':
+                    case 'onTouchMove':
+                    case 'onTouchStart':
+                        handleEvent(name, null, vNode.dom);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    }
+    else {
+        var children$1 = vNode.children;
+        // Safe guard for crashed VNode
+        if (children$1) {
+            if (flags & 14 /* Component */) {
+                var ref$1 = vNode.ref;
+                if (flags & 4 /* ComponentClass */) {
+                    if (isFunction(children$1.componentWillUnmount)) {
+                        children$1.componentWillUnmount();
+                    }
+                    if (isFunction(ref$1)) {
+                        ref$1(null);
+                    }
+                    children$1.$UN = true;
+                    if (children$1.$LI) {
+                        unmount(children$1.$LI);
+                    }
+                }
+                else {
+                    if (!isNullOrUndef(ref$1) && isFunction(ref$1.onComponentWillUnmount)) {
+                        ref$1.onComponentWillUnmount(vNode.dom, vNode.props || EMPTY_OBJ);
+                    }
+                    unmount(children$1);
+                }
+            }
+            else if (flags & 1024 /* Portal */) {
+                remove(children$1, vNode.type);
+            }
+        }
+    }
+}
+function unmountAllChildren(children) {
+    for (var i = 0, len = children.length; i < len; i++) {
+        unmount(children[i]);
+    }
+}
+function removeAllChildren(dom, children) {
+    unmountAllChildren(children);
+    dom.textContent = '';
 }
 
-function createLinkEvent(linkEvent, nextValue) {
-    return function (e) {
-        linkEvent(nextValue.data, e);
-    };
-}
-function patchEvent(name, lastValue, nextValue, dom) {
-    var nameLowerCase = name.toLowerCase();
-    if (!isFunction(nextValue) && !isNullOrUndef(nextValue)) {
-        var linkEvent = nextValue.event;
-        if (linkEvent && isFunction(linkEvent)) {
-            dom[nameLowerCase] = createLinkEvent(linkEvent, nextValue);
-        }
-    }
-    else {
-        var domEvent = dom[nameLowerCase];
-        // if the function is wrapped, that means it's been controlled by a wrapper
-        if (!domEvent || !domEvent.wrapped) {
-            dom[nameLowerCase] = nextValue;
-        }
-    }
-}
-function getNumberStyleValue(style, value) {
-    switch (style) {
-        case 'animationIterationCount':
-        case 'borderImageOutset':
-        case 'borderImageSlice':
-        case 'borderImageWidth':
-        case 'boxFlex':
-        case 'boxFlexGroup':
-        case 'boxOrdinalGroup':
-        case 'columnCount':
-        case 'fillOpacity':
-        case 'flex':
-        case 'flexGrow':
-        case 'flexNegative':
-        case 'flexOrder':
-        case 'flexPositive':
-        case 'flexShrink':
-        case 'floodOpacity':
-        case 'fontWeight':
-        case 'gridColumn':
-        case 'gridRow':
-        case 'lineClamp':
-        case 'lineHeight':
-        case 'opacity':
-        case 'order':
-        case 'orphans':
-        case 'stopOpacity':
-        case 'strokeDasharray':
-        case 'strokeDashoffset':
-        case 'strokeMiterlimit':
-        case 'strokeOpacity':
-        case 'strokeWidth':
-        case 'tabSize':
-        case 'widows':
-        case 'zIndex':
-        case 'zoom':
-            return value;
-        default:
-            return value + 'px';
-    }
-}
-// We are assuming here that we come from patchProp routine
-// -nextAttrValue cannot be null or undefined
-function patchStyle(lastAttrValue, nextAttrValue, dom) {
-    var domStyle = dom.style;
-    var style;
-    var value;
-    if (isString(nextAttrValue)) {
-        domStyle.cssText = nextAttrValue;
-        return;
-    }
-    if (!isNullOrUndef(lastAttrValue) && !isString(lastAttrValue)) {
-        for (style in nextAttrValue) {
-            // do not add a hasOwnProperty check here, it affects performance
-            value = nextAttrValue[style];
-            if (value !== lastAttrValue[style]) {
-                domStyle[style] = isNumber(value) ? getNumberStyleValue(style, value) : value;
-            }
-        }
-        for (style in lastAttrValue) {
-            if (isNullOrUndef(nextAttrValue[style])) {
-                domStyle[style] = '';
-            }
-        }
-    }
-    else {
-        for (style in nextAttrValue) {
-            value = nextAttrValue[style];
-            domStyle[style] = isNumber(value) ? getNumberStyleValue(style, value) : value;
-        }
-    }
-}
-function patchProp(prop, lastValue, nextValue, dom, isSVG, hasControlledValue, lastVNode) {
-    switch (prop) {
-        case 'onClick':
-        case 'onDblClick':
-        case 'onFocusIn':
-        case 'onFocusOut':
-        case 'onKeyDown':
-        case 'onKeyPress':
-        case 'onKeyUp':
-        case 'onMouseDown':
-        case 'onMouseMove':
-        case 'onMouseUp':
-        case 'onSubmit':
-        case 'onTouchEnd':
-        case 'onTouchMove':
-        case 'onTouchStart':
-            handleEvent(prop, nextValue, dom);
-            break;
-        case 'children':
-        case 'childrenType':
-        case 'className':
-        case 'defaultValue':
-        case 'key':
-        case 'multiple':
-        case 'ref':
-            break;
-        case 'autoFocus':
-            dom.autofocus = !!nextValue;
-            break;
-        case 'allowfullscreen':
-        case 'autoplay':
-        case 'capture':
-        case 'checked':
-        case 'controls':
-        case 'default':
-        case 'disabled':
-        case 'hidden':
-        case 'indeterminate':
-        case 'loop':
-        case 'muted':
-        case 'novalidate':
-        case 'open':
-        case 'readOnly':
-        case 'required':
-        case 'reversed':
-        case 'scoped':
-        case 'seamless':
-        case 'selected':
-            dom[prop] = !!nextValue;
-            break;
-        case 'defaultChecked':
-        case 'value':
-        case 'volume':
-            if (hasControlledValue && prop === 'value') {
-                return;
-            }
-            var value = isNullOrUndef(nextValue) ? '' : nextValue;
-            if (dom[prop] !== value) {
-                dom[prop] = value;
-            }
-            break;
-        case 'dangerouslySetInnerHTML':
-            var lastHtml = (lastValue && lastValue.__html) || '';
-            var nextHtml = (nextValue && nextValue.__html) || '';
-            if (lastHtml !== nextHtml) {
-                if (!isNullOrUndef(nextHtml) && !isSameInnerHTML(dom, nextHtml)) {
-                    if (!isNull(lastVNode)) {
-                        if (lastVNode.childFlags & 12 /* MultipleChildren */) {
-                            unmountAllChildren(lastVNode.children);
-                        }
-                        else if (lastVNode.childFlags === 2 /* HasVNodeChildren */) {
-                            unmount(lastVNode.children);
-                        }
-                        lastVNode.children = null;
-                        lastVNode.childFlags = 1 /* HasInvalidChildren */;
-                    }
-                    dom.innerHTML = nextHtml;
-                }
-            }
-            break;
-        default:
-            if (prop[0] === 'o' && prop[1] === 'n') {
-                patchEvent(prop, lastValue, nextValue, dom);
-            }
-            else if (isNullOrUndef(nextValue)) {
-                dom.removeAttribute(prop);
-            }
-            else if (prop === 'style') {
-                patchStyle(lastValue, nextValue, dom);
-            }
-            else if (isSVG && namespaces[prop]) {
-                // We optimize for isSVG being false
-                // If we end up in this path we can read property again
-                dom.setAttributeNS(namespaces[prop], prop, nextValue);
-            }
-            else {
-                dom.setAttribute(prop, nextValue);
-            }
-            break;
-    }
-}
-function mountProps(vNode, flags, props, dom, isSVG) {
-    var hasControlledValue = false;
-    var isFormElement = (flags & 448 /* FormElement */) > 0;
-    if (isFormElement) {
-        hasControlledValue = isControlledFormElement(props);
-        if (hasControlledValue) {
-            addFormElementEventHandlers(flags, dom, props);
-        }
-    }
-    for (var prop in props) {
-        // do not add a hasOwnProperty check here, it affects performance
-        patchProp(prop, null, props[prop], dom, isSVG, hasControlledValue, null);
-    }
-    if (isFormElement) {
-        processElement(flags, vNode, dom, props, true, hasControlledValue);
-    }
+function createLinkEvent(linkEvent, nextValue) {
+    return function (e) {
+        linkEvent(nextValue.data, e);
+    };
+}
+function patchEvent(name, lastValue, nextValue, dom) {
+    var nameLowerCase = name.toLowerCase();
+    if (!isFunction(nextValue) && !isNullOrUndef(nextValue)) {
+        var linkEvent = nextValue.event;
+        if (linkEvent && isFunction(linkEvent)) {
+            dom[nameLowerCase] = createLinkEvent(linkEvent, nextValue);
+        }
+    }
+    else {
+        var domEvent = dom[nameLowerCase];
+        // if the function is wrapped, that means it's been controlled by a wrapper
+        if (!domEvent || !domEvent.wrapped) {
+            dom[nameLowerCase] = nextValue;
+        }
+    }
+}
+function getNumberStyleValue(style, value) {
+    switch (style) {
+        case 'animationIterationCount':
+        case 'borderImageOutset':
+        case 'borderImageSlice':
+        case 'borderImageWidth':
+        case 'boxFlex':
+        case 'boxFlexGroup':
+        case 'boxOrdinalGroup':
+        case 'columnCount':
+        case 'fillOpacity':
+        case 'flex':
+        case 'flexGrow':
+        case 'flexNegative':
+        case 'flexOrder':
+        case 'flexPositive':
+        case 'flexShrink':
+        case 'floodOpacity':
+        case 'fontWeight':
+        case 'gridColumn':
+        case 'gridRow':
+        case 'lineClamp':
+        case 'lineHeight':
+        case 'opacity':
+        case 'order':
+        case 'orphans':
+        case 'stopOpacity':
+        case 'strokeDasharray':
+        case 'strokeDashoffset':
+        case 'strokeMiterlimit':
+        case 'strokeOpacity':
+        case 'strokeWidth':
+        case 'tabSize':
+        case 'widows':
+        case 'zIndex':
+        case 'zoom':
+            return value;
+        default:
+            return value + 'px';
+    }
+}
+// We are assuming here that we come from patchProp routine
+// -nextAttrValue cannot be null or undefined
+function patchStyle(lastAttrValue, nextAttrValue, dom) {
+    var domStyle = dom.style;
+    var style;
+    var value;
+    if (isString(nextAttrValue)) {
+        domStyle.cssText = nextAttrValue;
+        return;
+    }
+    if (!isNullOrUndef(lastAttrValue) && !isString(lastAttrValue)) {
+        for (style in nextAttrValue) {
+            // do not add a hasOwnProperty check here, it affects performance
+            value = nextAttrValue[style];
+            if (value !== lastAttrValue[style]) {
+                domStyle[style] = isNumber(value) ? getNumberStyleValue(style, value) : value;
+            }
+        }
+        for (style in lastAttrValue) {
+            if (isNullOrUndef(nextAttrValue[style])) {
+                domStyle[style] = '';
+            }
+        }
+    }
+    else {
+        for (style in nextAttrValue) {
+            value = nextAttrValue[style];
+            domStyle[style] = isNumber(value) ? getNumberStyleValue(style, value) : value;
+        }
+    }
+}
+function patchProp(prop, lastValue, nextValue, dom, isSVG, hasControlledValue, lastVNode) {
+    switch (prop) {
+        case 'onClick':
+        case 'onDblClick':
+        case 'onFocusIn':
+        case 'onFocusOut':
+        case 'onKeyDown':
+        case 'onKeyPress':
+        case 'onKeyUp':
+        case 'onMouseDown':
+        case 'onMouseMove':
+        case 'onMouseUp':
+        case 'onSubmit':
+        case 'onTouchEnd':
+        case 'onTouchMove':
+        case 'onTouchStart':
+            handleEvent(prop, nextValue, dom);
+            break;
+        case 'children':
+        case 'childrenType':
+        case 'className':
+        case 'defaultValue':
+        case 'key':
+        case 'multiple':
+        case 'ref':
+            break;
+        case 'autoFocus':
+            dom.autofocus = !!nextValue;
+            break;
+        case 'allowfullscreen':
+        case 'autoplay':
+        case 'capture':
+        case 'checked':
+        case 'controls':
+        case 'default':
+        case 'disabled':
+        case 'hidden':
+        case 'indeterminate':
+        case 'loop':
+        case 'muted':
+        case 'novalidate':
+        case 'open':
+        case 'readOnly':
+        case 'required':
+        case 'reversed':
+        case 'scoped':
+        case 'seamless':
+        case 'selected':
+            dom[prop] = !!nextValue;
+            break;
+        case 'defaultChecked':
+        case 'value':
+        case 'volume':
+            if (hasControlledValue && prop === 'value') {
+                return;
+            }
+            var value = isNullOrUndef(nextValue) ? '' : nextValue;
+            if (dom[prop] !== value) {
+                dom[prop] = value;
+            }
+            break;
+        case 'dangerouslySetInnerHTML':
+            var lastHtml = (lastValue && lastValue.__html) || '';
+            var nextHtml = (nextValue && nextValue.__html) || '';
+            if (lastHtml !== nextHtml) {
+                if (!isNullOrUndef(nextHtml) && !isSameInnerHTML(dom, nextHtml)) {
+                    if (!isNull(lastVNode)) {
+                        if (lastVNode.childFlags & 12 /* MultipleChildren */) {
+                            unmountAllChildren(lastVNode.children);
+                        }
+                        else if (lastVNode.childFlags === 2 /* HasVNodeChildren */) {
+                            unmount(lastVNode.children);
+                        }
+                        lastVNode.children = null;
+                        lastVNode.childFlags = 1 /* HasInvalidChildren */;
+                    }
+                    dom.innerHTML = nextHtml;
+                }
+            }
+            break;
+        default:
+            if (prop[0] === 'o' && prop[1] === 'n') {
+                patchEvent(prop, lastValue, nextValue, dom);
+            }
+            else if (isNullOrUndef(nextValue)) {
+                dom.removeAttribute(prop);
+            }
+            else if (prop === 'style') {
+                patchStyle(lastValue, nextValue, dom);
+            }
+            else if (isSVG && namespaces[prop]) {
+                // We optimize for isSVG being false
+                // If we end up in this path we can read property again
+                dom.setAttributeNS(namespaces[prop], prop, nextValue);
+            }
+            else {
+                dom.setAttribute(prop, nextValue);
+            }
+            break;
+    }
+}
+function mountProps(vNode, flags, props, dom, isSVG) {
+    var hasControlledValue = false;
+    var isFormElement = (flags & 448 /* FormElement */) > 0;
+    if (isFormElement) {
+        hasControlledValue = isControlledFormElement(props);
+        if (hasControlledValue) {
+            addFormElementEventHandlers(flags, dom, props);
+        }
+    }
+    for (var prop in props) {
+        // do not add a hasOwnProperty check here, it affects performance
+        patchProp(prop, null, props[prop], dom, isSVG, hasControlledValue, null);
+    }
+    if (isFormElement) {
+        processElement(flags, vNode, dom, props, true, hasControlledValue);
+    }
 }
 
-function createClassComponentInstance(vNode, Component, props, context) {
-    var instance = new Component(props, context);
-    vNode.children = instance;
-    instance.$V = vNode;
-    instance.$BS = false;
-    instance.context = context;
-    if (instance.props === EMPTY_OBJ) {
-        instance.props = props;
-    }
-    instance.$UN = false;
-    if (isFunction(instance.componentWillMount)) {
-        instance.$BR = true;
-        instance.componentWillMount();
-        if (instance.$PSS) {
-            var state = instance.state;
-            var pending = instance.$PS;
-            if (isNull(state)) {
-                instance.state = pending;
-            }
-            else {
-                for (var key in pending) {
-                    state[key] = pending[key];
-                }
-            }
-            instance.$PSS = false;
-            instance.$PS = null;
-        }
-        instance.$BR = false;
-    }
-    if (isFunction(options.beforeRender)) {
-        options.beforeRender(instance);
-    }
-    var input = handleComponentInput(instance.render(props, instance.state, context), vNode);
-    var childContext;
-    if (isFunction(instance.getChildContext)) {
-        childContext = instance.getChildContext();
-    }
-    if (isNullOrUndef(childContext)) {
-        instance.$CX = context;
-    }
-    else {
-        instance.$CX = combineFrom(context, childContext);
-    }
-    if (isFunction(options.afterRender)) {
-        options.afterRender(instance);
-    }
-    instance.$LI = input;
-    return instance;
-}
-function handleComponentInput(input, componentVNode) {
-    if (isInvalid(input)) {
-        input = createVoidVNode();
-    }
-    else if (isStringOrNumber(input)) {
-        input = createTextVNode(input, null);
-    }
-    else {
-        if (input.dom) {
-            input = directClone(input);
-        }
-        if (input.flags & 14 /* Component */) {
-            // if we have an input that is also a component, we run into a tricky situation
-            // where the root vNode needs to always have the correct DOM entry
-            // we can optimise this in the future, but this gets us out of a lot of issues
-            input.parentVNode = componentVNode;
-        }
-    }
-    return input;
+function createClassComponentInstance(vNode, Component, props, context) {
+    var instance = new Component(props, context);
+    vNode.children = instance;
+    instance.$V = vNode;
+    instance.$BS = false;
+    instance.context = context;
+    if (instance.props === EMPTY_OBJ) {
+        instance.props = props;
+    }
+    instance.$UN = false;
+    if (isFunction(instance.componentWillMount)) {
+        instance.$BR = true;
+        instance.componentWillMount();
+        if (instance.$PSS) {
+            var state = instance.state;
+            var pending = instance.$PS;
+            if (isNull(state)) {
+                instance.state = pending;
+            }
+            else {
+                for (var key in pending) {
+                    state[key] = pending[key];
+                }
+            }
+            instance.$PSS = false;
+            instance.$PS = null;
+        }
+        instance.$BR = false;
+    }
+    if (isFunction(options.beforeRender)) {
+        options.beforeRender(instance);
+    }
+    var input = handleComponentInput(instance.render(props, instance.state, context), vNode);
+    var childContext;
+    if (isFunction(instance.getChildContext)) {
+        childContext = instance.getChildContext();
+    }
+    if (isNullOrUndef(childContext)) {
+        instance.$CX = context;
+    }
+    else {
+        instance.$CX = combineFrom(context, childContext);
+    }
+    if (isFunction(options.afterRender)) {
+        options.afterRender(instance);
+    }
+    instance.$LI = input;
+    return instance;
+}
+function handleComponentInput(input, componentVNode) {
+    if (isInvalid(input)) {
+        input = createVoidVNode();
+    }
+    else if (isStringOrNumber(input)) {
+        input = createTextVNode(input, null);
+    }
+    else {
+        if (input.dom) {
+            input = directClone(input);
+        }
+        if (input.flags & 14 /* Component */) {
+            // if we have an input that is also a component, we run into a tricky situation
+            // where the root vNode needs to always have the correct DOM entry
+            // we can optimise this in the future, but this gets us out of a lot of issues
+            input.parentVNode = componentVNode;
+        }
+    }
+    return input;
 }
 
-function mount(vNode, parentDom, context, isSVG) {
-    var flags = vNode.flags;
-    if (flags & 481 /* Element */) {
-        return mountElement(vNode, parentDom, context, isSVG);
-    }
-    if (flags & 14 /* Component */) {
-        return mountComponent(vNode, parentDom, context, isSVG, (flags & 4 /* ComponentClass */) > 0);
-    }
-    if (flags & 512 /* Void */ || flags & 16 /* Text */) {
-        return mountText(vNode, parentDom);
-    }
-    if (flags & 1024 /* Portal */) {
-        mount(vNode.children, vNode.type, context, false);
-        return (vNode.dom = mountText(createVoidVNode(), parentDom));
-    }
-}
-function mountText(vNode, parentDom) {
-    var dom = (vNode.dom = document.createTextNode(vNode.children));
-    if (!isNull(parentDom)) {
-        appendChild(parentDom, dom);
-    }
-    return dom;
-}
-function mountElement(vNode, parentDom, context, isSVG) {
-    var flags = vNode.flags;
-    var children = vNode.children;
-    var props = vNode.props;
-    var className = vNode.className;
-    var ref = vNode.ref;
-    var childFlags = vNode.childFlags;
-    isSVG = isSVG || (flags & 32 /* SvgElement */) > 0;
-    var dom = documentCreateElement(vNode.type, isSVG);
-    vNode.dom = dom;
-    if (!isNullOrUndef(className) && className !== '') {
-        if (isSVG) {
-            dom.setAttribute('class', className);
-        }
-        else {
-            dom.className = className;
-        }
-    }
-    if (!isNull(parentDom)) {
-        appendChild(parentDom, dom);
-    }
-    if ((childFlags & 1 /* HasInvalidChildren */) === 0) {
-        var childrenIsSVG = isSVG === true && vNode.type !== 'foreignObject';
-        if (childFlags === 2 /* HasVNodeChildren */) {
-            mount(children, dom, context, childrenIsSVG);
-        }
-        else if (childFlags & 12 /* MultipleChildren */) {
-            mountArrayChildren(children, dom, context, childrenIsSVG);
-        }
-    }
-    if (!isNull(props)) {
-        mountProps(vNode, flags, props, dom, isSVG);
-    }
-    if (isFunction(ref)) {
-        mountRef(dom, ref);
-    }
-    return dom;
-}
-function mountArrayChildren(children, dom, context, isSVG) {
-    for (var i = 0, len = children.length; i < len; i++) {
-        var child = children[i];
-        if (!isNull(child.dom)) {
-            children[i] = child = directClone(child);
-        }
-        mount(child, dom, context, isSVG);
-    }
-}
-function mountComponent(vNode, parentDom, context, isSVG, isClass) {
-    var dom;
-    var type = vNode.type;
-    var props = vNode.props || EMPTY_OBJ;
-    var ref = vNode.ref;
-    if (isClass) {
-        var instance = createClassComponentInstance(vNode, type, props, context);
-        vNode.dom = dom = mount(instance.$LI, null, instance.$CX, isSVG);
-        mountClassComponentCallbacks(vNode, ref, instance);
-        instance.$UPD = false;
-    }
-    else {
-        var input = handleComponentInput(type(props, context), vNode);
-        vNode.children = input;
-        vNode.dom = dom = mount(input, null, context, isSVG);
-        mountFunctionalComponentCallbacks(props, ref, dom);
-    }
-    if (!isNull(parentDom)) {
-        appendChild(parentDom, dom);
-    }
-    return dom;
-}
-function createClassMountCallback(instance) {
-    return function () {
-        instance.$UPD = true;
-        instance.componentDidMount();
-        instance.$UPD = false;
-    };
-}
-function mountClassComponentCallbacks(vNode, ref, instance) {
-    if (isFunction(ref)) {
-        ref(instance);
-    }
-    if (isFunction(instance.componentDidMount)) {
-        LIFECYCLE.push(createClassMountCallback(instance));
-    }
-}
-function createOnMountCallback(ref, dom, props) {
-    return function () { return ref.onComponentDidMount(dom, props); };
-}
-function mountFunctionalComponentCallbacks(props, ref, dom) {
-    if (!isNullOrUndef(ref)) {
-        if (isFunction(ref.onComponentWillMount)) {
-            ref.onComponentWillMount(props);
-        }
-        if (isFunction(ref.onComponentDidMount)) {
-            LIFECYCLE.push(createOnMountCallback(ref, dom, props));
-        }
-    }
-}
-function mountRef(dom, value) {
-    LIFECYCLE.push(function () { return value(dom); });
+function mount(vNode, parentDom, context, isSVG) {
+    var flags = vNode.flags;
+    if (flags & 481 /* Element */) {
+        return mountElement(vNode, parentDom, context, isSVG);
+    }
+    if (flags & 14 /* Component */) {
+        return mountComponent(vNode, parentDom, context, isSVG, (flags & 4 /* ComponentClass */) > 0);
+    }
+    if (flags & 512 /* Void */ || flags & 16 /* Text */) {
+        return mountText(vNode, parentDom);
+    }
+    if (flags & 1024 /* Portal */) {
+        mount(vNode.children, vNode.type, context, false);
+        return (vNode.dom = mountText(createVoidVNode(), parentDom));
+    }
+}
+function mountText(vNode, parentDom) {
+    var dom = (vNode.dom = document.createTextNode(vNode.children));
+    if (!isNull(parentDom)) {
+        appendChild(parentDom, dom);
+    }
+    return dom;
+}
+function mountElement(vNode, parentDom, context, isSVG) {
+    var flags = vNode.flags;
+    var children = vNode.children;
+    var props = vNode.props;
+    var className = vNode.className;
+    var ref = vNode.ref;
+    var childFlags = vNode.childFlags;
+    isSVG = isSVG || (flags & 32 /* SvgElement */) > 0;
+    var dom = documentCreateElement(vNode.type, isSVG);
+    vNode.dom = dom;
+    if (!isNullOrUndef(className) && className !== '') {
+        if (isSVG) {
+            dom.setAttribute('class', className);
+        }
+        else {
+            dom.className = className;
+        }
+    }
+    if (!isNull(parentDom)) {
+        appendChild(parentDom, dom);
+    }
+    if ((childFlags & 1 /* HasInvalidChildren */) === 0) {
+        var childrenIsSVG = isSVG === true && vNode.type !== 'foreignObject';
+        if (childFlags === 2 /* HasVNodeChildren */) {
+            mount(children, dom, context, childrenIsSVG);
+        }
+        else if (childFlags & 12 /* MultipleChildren */) {
+            mountArrayChildren(children, dom, context, childrenIsSVG);
+        }
+    }
+    if (!isNull(props)) {
+        mountProps(vNode, flags, props, dom, isSVG);
+    }
+    if (isFunction(ref)) {
+        mountRef(dom, ref);
+    }
+    return dom;
+}
+function mountArrayChildren(children, dom, context, isSVG) {
+    for (var i = 0, len = children.length; i < len; i++) {
+        var child = children[i];
+        if (!isNull(child.dom)) {
+            children[i] = child = directClone(child);
+        }
+        mount(child, dom, context, isSVG);
+    }
+}
+function mountComponent(vNode, parentDom, context, isSVG, isClass) {
+    var dom;
+    var type = vNode.type;
+    var props = vNode.props || EMPTY_OBJ;
+    var ref = vNode.ref;
+    if (isClass) {
+        var instance = createClassComponentInstance(vNode, type, props, context);
+        vNode.dom = dom = mount(instance.$LI, null, instance.$CX, isSVG);
+        mountClassComponentCallbacks(vNode, ref, instance);
+        instance.$UPD = false;
+    }
+    else {
+        var input = handleComponentInput(type(props, context), vNode);
+        vNode.children = input;
+        vNode.dom = dom = mount(input, null, context, isSVG);
+        mountFunctionalComponentCallbacks(props, ref, dom);
+    }
+    if (!isNull(parentDom)) {
+        appendChild(parentDom, dom);
+    }
+    return dom;
+}
+function createClassMountCallback(instance) {
+    return function () {
+        instance.$UPD = true;
+        instance.componentDidMount();
+        instance.$UPD = false;
+    };
+}
+function mountClassComponentCallbacks(vNode, ref, instance) {
+    if (isFunction(ref)) {
+        ref(instance);
+    }
+    if (isFunction(instance.componentDidMount)) {
+        LIFECYCLE.push(createClassMountCallback(instance));
+    }
+}
+function createOnMountCallback(ref, dom, props) {
+    return function () { return ref.onComponentDidMount(dom, props); };
+}
+function mountFunctionalComponentCallbacks(props, ref, dom) {
+    if (!isNullOrUndef(ref)) {
+        if (isFunction(ref.onComponentWillMount)) {
+            ref.onComponentWillMount(props);
+        }
+        if (isFunction(ref.onComponentDidMount)) {
+            LIFECYCLE.push(createOnMountCallback(ref, dom, props));
+        }
+    }
+}
+function mountRef(dom, value) {
+    LIFECYCLE.push(function () { return value(dom); });
 }
 
-function hydrateComponent(vNode, dom, context, isSVG, isClass) {
-    var type = vNode.type;
-    var ref = vNode.ref;
-    var props = vNode.props || EMPTY_OBJ;
-    if (isClass) {
-        var instance = createClassComponentInstance(vNode, type, props, context);
-        var input = instance.$LI;
-        hydrateVNode(input, dom, instance.$CX, isSVG);
-        vNode.dom = input.dom;
-        mountClassComponentCallbacks(vNode, ref, instance);
-        instance.$UPD = false; // Mount finished allow going sync
-    }
-    else {
-        var input$1 = handleComponentInput(type(props, context), vNode);
-        hydrateVNode(input$1, dom, context, isSVG);
-        vNode.children = input$1;
-        vNode.dom = input$1.dom;
-        mountFunctionalComponentCallbacks(props, ref, dom);
-    }
-}
-function hydrateElement(vNode, dom, context, isSVG) {
-    var children = vNode.children;
-    var props = vNode.props;
-    var className = vNode.className;
-    var flags = vNode.flags;
-    var ref = vNode.ref;
-    isSVG = isSVG || (flags & 32 /* SvgElement */) > 0;
-    if (dom.nodeType !== 1 || dom.tagName.toLowerCase() !== vNode.type) {
-        var newDom = mountElement(vNode, null, context, isSVG);
-        vNode.dom = newDom;
-        replaceChild(dom.parentNode, newDom, dom);
-    }
-    else {
-        vNode.dom = dom;
-        var childNode = dom.firstChild;
-        var childFlags = vNode.childFlags;
-        if ((childFlags & 1 /* HasInvalidChildren */) === 0) {
-            var nextSibling = null;
-            while (childNode) {
-                nextSibling = childNode.nextSibling;
-                if (childNode.nodeType === 8) {
-                    if (childNode.data === '!') {
-                        dom.replaceChild(document.createTextNode(''), childNode);
-                    }
-                    else {
-                        dom.removeChild(childNode);
-                    }
-                }
-                childNode = nextSibling;
-            }
-            childNode = dom.firstChild;
-            if (childFlags === 2 /* HasVNodeChildren */) {
-                if (isNull(childNode)) {
-                    mount(children, dom, context, isSVG);
-                }
-                else {
-                    nextSibling = childNode.nextSibling;
-                    hydrateVNode(children, childNode, context, isSVG);
-                    childNode = nextSibling;
-                }
-            }
-            else if (childFlags & 12 /* MultipleChildren */) {
-                for (var i = 0, len = children.length; i < len; i++) {
-                    var child = children[i];
-                    if (isNull(childNode)) {
-                        mount(child, dom, context, isSVG);
-                    }
-                    else {
-                        nextSibling = childNode.nextSibling;
-                        hydrateVNode(child, childNode, context, isSVG);
-                        childNode = nextSibling;
-                    }
-                }
-            }
-            // clear any other DOM nodes, there should be only a single entry for the root
-            while (childNode) {
-                nextSibling = childNode.nextSibling;
-                dom.removeChild(childNode);
-                childNode = nextSibling;
-            }
-        }
-        else if (!isNull(dom.firstChild) && !isSamePropsInnerHTML(dom, props)) {
-            dom.textContent = ''; // dom has content, but VNode has no children remove everything from DOM
-            if (flags & 448 /* FormElement */) {
-                // If element is form element, we need to clear defaultValue also
-                dom.defaultValue = '';
-            }
-        }
-        if (!isNull(props)) {
-            mountProps(vNode, flags, props, dom, isSVG);
-        }
-        if (isNullOrUndef(className)) {
-            if (dom.className !== '') {
-                dom.removeAttribute('class');
-            }
-        }
-        else if (isSVG) {
-            dom.setAttribute('class', className);
-        }
-        else {
-            dom.className = className;
-        }
-        if (isFunction(ref)) {
-            mountRef(dom, ref);
-        }
-    }
-}
-function hydrateText(vNode, dom) {
-    if (dom.nodeType !== 3) {
-        var newDom = mountText(vNode, null);
-        vNode.dom = newDom;
-        replaceChild(dom.parentNode, newDom, dom);
-    }
-    else {
-        var text = vNode.children;
-        if (dom.nodeValue !== text) {
-            dom.nodeValue = text;
-        }
-        vNode.dom = dom;
-    }
-}
-function hydrateVNode(vNode, dom, context, isSVG) {
-    var flags = vNode.flags;
-    if (flags & 14 /* Component */) {
-        hydrateComponent(vNode, dom, context, isSVG, (flags & 4 /* ComponentClass */) > 0);
-    }
-    else if (flags & 481 /* Element */) {
-        hydrateElement(vNode, dom, context, isSVG);
-    }
-    else if (flags & 16 /* Text */) {
-        hydrateText(vNode, dom);
-    }
-    else if (flags & 512 /* Void */) {
-        vNode.dom = dom;
-    }
-    else {
-        throwError();
-    }
-}
-function hydrate(input, parentDom, callback) {
-    var dom = parentDom.firstChild;
-    if (!isNull(dom)) {
-        if (!isInvalid(input)) {
-            hydrateVNode(input, dom, EMPTY_OBJ, false);
-        }
-        dom = parentDom.firstChild;
-        // clear any other DOM nodes, there should be only a single entry for the root
-        while ((dom = dom.nextSibling)) {
-            parentDom.removeChild(dom);
-        }
-    }
-    if (LIFECYCLE.length > 0) {
-        callAll(LIFECYCLE);
-    }
-    parentDom.$V = input;
-    if (isFunction(callback)) {
-        callback();
-    }
+function hydrateComponent(vNode, dom, context, isSVG, isClass) {
+    var type = vNode.type;
+    var ref = vNode.ref;
+    var props = vNode.props || EMPTY_OBJ;
+    if (isClass) {
+        var instance = createClassComponentInstance(vNode, type, props, context);
+        var input = instance.$LI;
+        hydrateVNode(input, dom, instance.$CX, isSVG);
+        vNode.dom = input.dom;
+        mountClassComponentCallbacks(vNode, ref, instance);
+        instance.$UPD = false; // Mount finished allow going sync
+    }
+    else {
+        var input$1 = handleComponentInput(type(props, context), vNode);
+        hydrateVNode(input$1, dom, context, isSVG);
+        vNode.children = input$1;
+        vNode.dom = input$1.dom;
+        mountFunctionalComponentCallbacks(props, ref, dom);
+    }
+}
+function hydrateElement(vNode, dom, context, isSVG) {
+    var children = vNode.children;
+    var props = vNode.props;
+    var className = vNode.className;
+    var flags = vNode.flags;
+    var ref = vNode.ref;
+    isSVG = isSVG || (flags & 32 /* SvgElement */) > 0;
+    if (dom.nodeType !== 1 || dom.tagName.toLowerCase() !== vNode.type) {
+        var newDom = mountElement(vNode, null, context, isSVG);
+        vNode.dom = newDom;
+        replaceChild(dom.parentNode, newDom, dom);
+    }
+    else {
+        vNode.dom = dom;
+        var childNode = dom.firstChild;
+        var childFlags = vNode.childFlags;
+        if ((childFlags & 1 /* HasInvalidChildren */) === 0) {
+            var nextSibling = null;
+            while (childNode) {
+                nextSibling = childNode.nextSibling;
+                if (childNode.nodeType === 8) {
+                    if (childNode.data === '!') {
+                        dom.replaceChild(document.createTextNode(''), childNode);
+                    }
+                    else {
+                        dom.removeChild(childNode);
+                    }
+                }
+                childNode = nextSibling;
+            }
+            childNode = dom.firstChild;
+            if (childFlags === 2 /* HasVNodeChildren */) {
+                if (isNull(childNode)) {
+                    mount(children, dom, context, isSVG);
+                }
+                else {
+                    nextSibling = childNode.nextSibling;
+                    hydrateVNode(children, childNode, context, isSVG);
+                    childNode = nextSibling;
+                }
+            }
+            else if (childFlags & 12 /* MultipleChildren */) {
+                for (var i = 0, len = children.length; i < len; i++) {
+                    var child = children[i];
+                    if (isNull(childNode)) {
+                        mount(child, dom, context, isSVG);
+                    }
+                    else {
+                        nextSibling = childNode.nextSibling;
+                        hydrateVNode(child, childNode, context, isSVG);
+                        childNode = nextSibling;
+                    }
+                }
+            }
+            // clear any other DOM nodes, there should be only a single entry for the root
+            while (childNode) {
+                nextSibling = childNode.nextSibling;
+                dom.removeChild(childNode);
+                childNode = nextSibling;
+            }
+        }
+        else if (!isNull(dom.firstChild) && !isSamePropsInnerHTML(dom, props)) {
+            dom.textContent = ''; // dom has content, but VNode has no children remove everything from DOM
+            if (flags & 448 /* FormElement */) {
+                // If element is form element, we need to clear defaultValue also
+                dom.defaultValue = '';
+            }
+        }
+        if (!isNull(props)) {
+            mountProps(vNode, flags, props, dom, isSVG);
+        }
+        if (isNullOrUndef(className)) {
+            if (dom.className !== '') {
+                dom.removeAttribute('class');
+            }
+        }
+        else if (isSVG) {
+            dom.setAttribute('class', className);
+        }
+        else {
+            dom.className = className;
+        }
+        if (isFunction(ref)) {
+            mountRef(dom, ref);
+        }
+    }
+}
+function hydrateText(vNode, dom) {
+    if (dom.nodeType !== 3) {
+        var newDom = mountText(vNode, null);
+        vNode.dom = newDom;
+        replaceChild(dom.parentNode, newDom, dom);
+    }
+    else {
+        var text = vNode.children;
+        if (dom.nodeValue !== text) {
+            dom.nodeValue = text;
+        }
+        vNode.dom = dom;
+    }
+}
+function hydrateVNode(vNode, dom, context, isSVG) {
+    var flags = vNode.flags;
+    if (flags & 14 /* Component */) {
+        hydrateComponent(vNode, dom, context, isSVG, (flags & 4 /* ComponentClass */) > 0);
+    }
+    else if (flags & 481 /* Element */) {
+        hydrateElement(vNode, dom, context, isSVG);
+    }
+    else if (flags & 16 /* Text */) {
+        hydrateText(vNode, dom);
+    }
+    else if (flags & 512 /* Void */) {
+        vNode.dom = dom;
+    }
+    else {
+        throwError();
+    }
+}
+function hydrate(input, parentDom, callback) {
+    var dom = parentDom.firstChild;
+    if (!isNull(dom)) {
+        if (!isInvalid(input)) {
+            hydrateVNode(input, dom, EMPTY_OBJ, false);
+        }
+        dom = parentDom.firstChild;
+        // clear any other DOM nodes, there should be only a single entry for the root
+        while ((dom = dom.nextSibling)) {
+            parentDom.removeChild(dom);
+        }
+    }
+    if (LIFECYCLE.length > 0) {
+        callAll(LIFECYCLE);
+    }
+    parentDom.$V = input;
+    if (isFunction(callback)) {
+        callback();
+    }
 }
 
-function replaceWithNewNode(lastNode, nextNode, parentDom, context, isSVG) {
-    unmount(lastNode);
-    replaceChild(parentDom, mount(nextNode, null, context, isSVG), lastNode.dom);
-}
-function patch(lastVNode, nextVNode, parentDom, context, isSVG) {
-    var nextFlags = nextVNode.flags | 0;
-    if (lastVNode.flags !== nextFlags || nextFlags & 2048 /* ReCreate */) {
-        replaceWithNewNode(lastVNode, nextVNode, parentDom, context, isSVG);
-    }
-    else if (nextFlags & 481 /* Element */) {
-        patchElement(lastVNode, nextVNode, parentDom, context, isSVG, nextFlags);
-    }
-    else if (nextFlags & 14 /* Component */) {
-        patchComponent(lastVNode, nextVNode, parentDom, context, isSVG, (nextFlags & 4 /* ComponentClass */) > 0);
-    }
-    else if (nextFlags & 16 /* Text */) {
-        patchText(lastVNode, nextVNode);
-    }
-    else if (nextFlags & 512 /* Void */) {
-        nextVNode.dom = lastVNode.dom;
-    }
-    else {
-        patchPortal(lastVNode, nextVNode, context);
-    }
-}
-function patchContentEditableChildren(dom, nextVNode) {
-    if (dom.textContent !== nextVNode.children) {
-        dom.textContent = nextVNode.children;
-    }
-}
-function patchPortal(lastVNode, nextVNode, context) {
-    var lastContainer = lastVNode.type;
-    var nextContainer = nextVNode.type;
-    var nextChildren = nextVNode.children;
-    patchChildren(lastVNode.childFlags, nextVNode.childFlags, lastVNode.children, nextChildren, lastContainer, context, false);
-    nextVNode.dom = lastVNode.dom;
-    if (lastContainer !== nextContainer && !isInvalid(nextChildren)) {
-        var node = nextChildren.dom;
-        lastContainer.removeChild(node);
-        nextContainer.appendChild(node);
-    }
-}
-function patchElement(lastVNode, nextVNode, parentDom, context, isSVG, nextFlags) {
-    var nextTag = nextVNode.type;
-    if (lastVNode.type !== nextTag) {
-        replaceWithNewNode(lastVNode, nextVNode, parentDom, context, isSVG);
-    }
-    else {
-        var dom = lastVNode.dom;
-        var lastProps = lastVNode.props;
-        var nextProps = nextVNode.props;
-        var isFormElement = false;
-        var hasControlledValue = false;
-        var nextPropsOrEmpty;
-        nextVNode.dom = dom;
-        isSVG = isSVG || (nextFlags & 32 /* SvgElement */) > 0;
-        // inlined patchProps  -- starts --
-        if (lastProps !== nextProps) {
-            var lastPropsOrEmpty = lastProps || EMPTY_OBJ;
-            nextPropsOrEmpty = nextProps || EMPTY_OBJ;
-            if (nextPropsOrEmpty !== EMPTY_OBJ) {
-                isFormElement = (nextFlags & 448 /* FormElement */) > 0;
-                if (isFormElement) {
-                    hasControlledValue = isControlledFormElement(nextPropsOrEmpty);
-                }
-                for (var prop in nextPropsOrEmpty) {
-                    var lastValue = lastPropsOrEmpty[prop];
-                    var nextValue = nextPropsOrEmpty[prop];
-                    if (lastValue !== nextValue) {
-                        patchProp(prop, lastValue, nextValue, dom, isSVG, hasControlledValue, lastVNode);
-                    }
-                }
-            }
-            if (lastPropsOrEmpty !== EMPTY_OBJ) {
-                for (var prop$1 in lastPropsOrEmpty) {
-                    if (!nextPropsOrEmpty.hasOwnProperty(prop$1) && !isNullOrUndef(lastPropsOrEmpty[prop$1])) {
-                        patchProp(prop$1, lastPropsOrEmpty[prop$1], null, dom, isSVG, hasControlledValue, lastVNode);
-                    }
-                }
-            }
-        }
-        var lastChildren = lastVNode.children;
-        var nextChildren = nextVNode.children;
-        var nextRef = nextVNode.ref;
-        var lastClassName = lastVNode.className;
-        var nextClassName = nextVNode.className;
-        if (nextFlags & 4096 /* ContentEditable */) {
-            patchContentEditableChildren(dom, nextChildren);
-        }
-        else {
-            patchChildren(lastVNode.childFlags, nextVNode.childFlags, lastChildren, nextChildren, dom, context, isSVG && nextTag !== 'foreignObject');
-        }
-        if (isFormElement) {
-            processElement(nextFlags, nextVNode, dom, nextPropsOrEmpty, false, hasControlledValue);
-        }
-        // inlined patchProps  -- ends --
-        if (lastClassName !== nextClassName) {
-            if (isNullOrUndef(nextClassName)) {
-                dom.removeAttribute('class');
-            }
-            else if (isSVG) {
-                dom.setAttribute('class', nextClassName);
-            }
-            else {
-                dom.className = nextClassName;
-            }
-        }
-        if (isFunction(nextRef) && lastVNode.ref !== nextRef) {
-            mountRef(dom, nextRef);
-        }
-    }
-}
-function patchChildren(lastChildFlags, nextChildFlags, lastChildren, nextChildren, parentDOM, context, isSVG) {
-    switch (lastChildFlags) {
-        case 2 /* HasVNodeChildren */:
-            switch (nextChildFlags) {
-                case 2 /* HasVNodeChildren */:
-                    patch(lastChildren, nextChildren, parentDOM, context, isSVG);
-                    break;
-                case 1 /* HasInvalidChildren */:
-                    remove(lastChildren, parentDOM);
-                    break;
-                default:
-                    remove(lastChildren, parentDOM);
-                    mountArrayChildren(nextChildren, parentDOM, context, isSVG);
-                    break;
-            }
-            break;
-        case 1 /* HasInvalidChildren */:
-            switch (nextChildFlags) {
-                case 2 /* HasVNodeChildren */:
-                    mount(nextChildren, parentDOM, context, isSVG);
-                    break;
-                case 1 /* HasInvalidChildren */:
-                    break;
-                default:
-                    mountArrayChildren(nextChildren, parentDOM, context, isSVG);
-                    break;
-            }
-            break;
-        default:
-            if (nextChildFlags & 12 /* MultipleChildren */) {
-                var lastLength = lastChildren.length;
-                var nextLength = nextChildren.length;
-                // Fast path's for both algorithms
-                if (lastLength === 0) {
-                    if (nextLength > 0) {
-                        mountArrayChildren(nextChildren, parentDOM, context, isSVG);
-                    }
-                }
-                else if (nextLength === 0) {
-                    removeAllChildren(parentDOM, lastChildren);
-                }
-                else if (nextChildFlags === 8 /* HasKeyedChildren */ && lastChildFlags === 8 /* HasKeyedChildren */) {
-                    patchKeyedChildren(lastChildren, nextChildren, parentDOM, context, isSVG, lastLength, nextLength);
-                }
-                else {
-                    patchNonKeyedChildren(lastChildren, nextChildren, parentDOM, context, isSVG, lastLength, nextLength);
-                }
-            }
-            else if (nextChildFlags === 1 /* HasInvalidChildren */) {
-                removeAllChildren(parentDOM, lastChildren);
-            }
-            else if (nextChildFlags === 2 /* HasVNodeChildren */) {
-                removeAllChildren(parentDOM, lastChildren);
-                mount(nextChildren, parentDOM, context, isSVG);
-            }
-            break;
-    }
-}
-function updateClassComponent(instance, nextState, nextVNode, nextProps, parentDom, context, isSVG, force, fromSetState) {
-    var lastState = instance.state;
-    var lastProps = instance.props;
-    nextVNode.children = instance;
-    var renderOutput;
-    if (instance.$UN) {
-        return;
-    }
-    if (lastProps !== nextProps || nextProps === EMPTY_OBJ) {
-        if (!fromSetState && isFunction(instance.componentWillReceiveProps)) {
-            instance.$BR = true;
-            instance.componentWillReceiveProps(nextProps, context);
-            // If instance component was removed during its own update do nothing...
-            if (instance.$UN) {
-                return;
-            }
-            instance.$BR = false;
-        }
-        if (instance.$PSS) {
-            nextState = combineFrom(nextState, instance.$PS);
-            instance.$PSS = false;
-            instance.$PS = null;
-        }
-    }
-    /* Update if scu is not defined, or it returns truthy value or force */
-    var hasSCU = Boolean(instance.shouldComponentUpdate);
-    if (force || !hasSCU || (hasSCU && instance.shouldComponentUpdate(nextProps, nextState, context))) {
-        if (isFunction(instance.componentWillUpdate)) {
-            instance.$BS = true;
-            instance.componentWillUpdate(nextProps, nextState, context);
-            instance.$BS = false;
-        }
-        instance.props = nextProps;
-        instance.state = nextState;
-        instance.context = context;
-        if (isFunction(options.beforeRender)) {
-            options.beforeRender(instance);
-        }
-        renderOutput = instance.render(nextProps, nextState, context);
-        if (isFunction(options.afterRender)) {
-            options.afterRender(instance);
-        }
-        var didUpdate = renderOutput !== NO_OP;
-        var childContext;
-        if (isFunction(instance.getChildContext)) {
-            childContext = instance.getChildContext();
-        }
-        if (isNullOrUndef(childContext)) {
-            childContext = context;
-        }
-        else {
-            childContext = combineFrom(context, childContext);
-        }
-        instance.$CX = childContext;
-        if (didUpdate) {
-            var lastInput = instance.$LI;
-            var nextInput = handleComponentInput(renderOutput, nextVNode);
-            patch(lastInput, nextInput, parentDom, childContext, isSVG);
-            instance.$LI = nextInput;
-            if (isFunction(instance.componentDidUpdate)) {
-                instance.componentDidUpdate(lastProps, lastState);
-            }
-        }
-    }
-    else {
-        instance.props = nextProps;
-        instance.state = nextState;
-        instance.context = context;
-    }
-    nextVNode.dom = instance.$LI.dom;
-}
-function patchComponent(lastVNode, nextVNode, parentDom, context, isSVG, isClass) {
-    var nextType = nextVNode.type;
-    var lastKey = lastVNode.key;
-    var nextKey = nextVNode.key;
-    if (lastVNode.type !== nextType || lastKey !== nextKey) {
-        replaceWithNewNode(lastVNode, nextVNode, parentDom, context, isSVG);
-    }
-    else {
-        var nextProps = nextVNode.props || EMPTY_OBJ;
-        if (isClass) {
-            var instance = lastVNode.children;
-            instance.$UPD = true;
-            instance.$V = nextVNode;
-            updateClassComponent(instance, instance.state, nextVNode, nextProps, parentDom, context, isSVG, false, false);
-            instance.$UPD = false;
-        }
-        else {
-            var shouldUpdate = true;
-            var lastProps = lastVNode.props;
-            var nextHooks = nextVNode.ref;
-            var nextHooksDefined = !isNullOrUndef(nextHooks);
-            var lastInput = lastVNode.children;
-            nextVNode.dom = lastVNode.dom;
-            nextVNode.children = lastInput;
-            if (nextHooksDefined && isFunction(nextHooks.onComponentShouldUpdate)) {
-                shouldUpdate = nextHooks.onComponentShouldUpdate(lastProps, nextProps);
-            }
-            if (shouldUpdate !== false) {
-                if (nextHooksDefined && isFunction(nextHooks.onComponentWillUpdate)) {
-                    nextHooks.onComponentWillUpdate(lastProps, nextProps);
-                }
-                var nextInput = nextType(nextProps, context);
-                if (nextInput !== NO_OP) {
-                    nextInput = handleComponentInput(nextInput, nextVNode);
-                    patch(lastInput, nextInput, parentDom, context, isSVG);
-                    nextVNode.children = nextInput;
-                    nextVNode.dom = nextInput.dom;
-                    if (nextHooksDefined && isFunction(nextHooks.onComponentDidUpdate)) {
-                        nextHooks.onComponentDidUpdate(lastProps, nextProps);
-                    }
-                }
-            }
-            else if (lastInput.flags & 14 /* Component */) {
-                lastInput.parentVNode = nextVNode;
-            }
-        }
-    }
-}
-function patchText(lastVNode, nextVNode) {
-    var nextText = nextVNode.children;
-    var dom = lastVNode.dom;
-    if (nextText !== lastVNode.children) {
-        dom.nodeValue = nextText;
-    }
-    nextVNode.dom = dom;
-}
-function patchNonKeyedChildren(lastChildren, nextChildren, dom, context, isSVG, lastChildrenLength, nextChildrenLength) {
-    var commonLength = lastChildrenLength > nextChildrenLength ? nextChildrenLength : lastChildrenLength;
-    var i = 0;
-    var nextChild;
-    var lastChild;
-    for (; i < commonLength; i++) {
-        nextChild = nextChildren[i];
-        lastChild = lastChildren[i];
-        if (nextChild.dom) {
-            nextChild = nextChildren[i] = directClone(nextChild);
-        }
-        patch(lastChild, nextChild, dom, context, isSVG);
-        lastChildren[i] = nextChild;
-    }
-    if (lastChildrenLength < nextChildrenLength) {
-        for (i = commonLength; i < nextChildrenLength; i++) {
-            nextChild = nextChildren[i];
-            if (nextChild.dom) {
-                nextChild = nextChildren[i] = directClone(nextChild);
-            }
-            mount(nextChild, dom, context, isSVG);
-        }
-    }
-    else if (lastChildrenLength > nextChildrenLength) {
-        for (i = commonLength; i < lastChildrenLength; i++) {
-            remove(lastChildren[i], dom);
-        }
-    }
-}
-function patchKeyedChildren(a, b, dom, context, isSVG, aLength, bLength) {
-    var aEnd = aLength - 1;
-    var bEnd = bLength - 1;
-    var i;
-    var j = 0;
-    var aNode = a[j];
-    var bNode = b[j];
-    var nextPos;
-    // Step 1
-    // tslint:disable-next-line
-    outer: {
-        // Sync nodes with the same key at the beginning.
-        while (aNode.key === bNode.key) {
-            if (bNode.dom) {
-                b[j] = bNode = directClone(bNode);
-            }
-            patch(aNode, bNode, dom, context, isSVG);
-            a[j] = bNode;
-            j++;
-            if (j > aEnd || j > bEnd) {
-                break outer;
-            }
-            aNode = a[j];
-            bNode = b[j];
-        }
-        aNode = a[aEnd];
-        bNode = b[bEnd];
-        // Sync nodes with the same key at the end.
-        while (aNode.key === bNode.key) {
-            if (bNode.dom) {
-                b[bEnd] = bNode = directClone(bNode);
-            }
-            patch(aNode, bNode, dom, context, isSVG);
-            a[aEnd] = bNode;
-            aEnd--;
-            bEnd--;
-            if (j > aEnd || j > bEnd) {
-                break outer;
-            }
-            aNode = a[aEnd];
-            bNode = b[bEnd];
-        }
-    }
-    if (j > aEnd) {
-        if (j <= bEnd) {
-            nextPos = bEnd + 1;
-            var nextNode = nextPos < bLength ? b[nextPos].dom : null;
-            while (j <= bEnd) {
-                bNode = b[j];
-                if (bNode.dom) {
-                    b[j] = bNode = directClone(bNode);
-                }
-                j++;
-                insertOrAppend(dom, mount(bNode, null, context, isSVG), nextNode);
-            }
-        }
-    }
-    else if (j > bEnd) {
-        while (j <= aEnd) {
-            remove(a[j++], dom);
-        }
-    }
-    else {
-        var aStart = j;
-        var bStart = j;
-        var aLeft = aEnd - j + 1;
-        var bLeft = bEnd - j + 1;
-        var sources = [];
-        for (i = 0; i < bLeft; i++) {
-            sources.push(0);
-        }
-        // Keep track if its possible to remove whole DOM using textContent = '';
-        var canRemoveWholeContent = aLeft === aLength;
-        var moved = false;
-        var pos = 0;
-        var patched = 0;
-        // When sizes are small, just loop them through
-        if (bLength < 4 || (aLeft | bLeft) < 32) {
-            for (i = aStart; i <= aEnd; i++) {
-                aNode = a[i];
-                if (patched < bLeft) {
-                    for (j = bStart; j <= bEnd; j++) {
-                        bNode = b[j];
-                        if (aNode.key === bNode.key) {
-                            sources[j - bStart] = i + 1;
-                            if (canRemoveWholeContent) {
-                                canRemoveWholeContent = false;
-                                while (i > aStart) {
-                                    remove(a[aStart++], dom);
-                                }
-                            }
-                            if (pos > j) {
-                                moved = true;
-                            }
-                            else {
-                                pos = j;
-                            }
-                            if (bNode.dom) {
-                                b[j] = bNode = directClone(bNode);
-                            }
-                            patch(aNode, bNode, dom, context, isSVG);
-                            patched++;
-                            break;
-                        }
-                    }
-                    if (!canRemoveWholeContent && j > bEnd) {
-                        remove(aNode, dom);
-                    }
-                }
-                else if (!canRemoveWholeContent) {
-                    remove(aNode, dom);
-                }
-            }
-        }
-        else {
-            var keyIndex = {};
-            // Map keys by their index
-            for (i = bStart; i <= bEnd; i++) {
-                keyIndex[b[i].key] = i;
-            }
-            // Try to patch same keys
-            for (i = aStart; i <= aEnd; i++) {
-                aNode = a[i];
-                if (patched < bLeft) {
-                    j = keyIndex[aNode.key];
-                    if (j !== void 0) {
-                        if (canRemoveWholeContent) {
-                            canRemoveWholeContent = false;
-                            while (i > aStart) {
-                                remove(a[aStart++], dom);
-                            }
-                        }
-                        bNode = b[j];
-                        sources[j - bStart] = i + 1;
-                        if (pos > j) {
-                            moved = true;
-                        }
-                        else {
-                            pos = j;
-                        }
-                        if (bNode.dom) {
-                            b[j] = bNode = directClone(bNode);
-                        }
-                        patch(aNode, bNode, dom, context, isSVG);
-                        patched++;
-                    }
-                    else if (!canRemoveWholeContent) {
-                        remove(aNode, dom);
-                    }
-                }
-                else if (!canRemoveWholeContent) {
-                    remove(aNode, dom);
-                }
-            }
-        }
-        // fast-path: if nothing patched remove all old and add all new
-        if (canRemoveWholeContent) {
-            removeAllChildren(dom, a);
-            mountArrayChildren(b, dom, context, isSVG);
-        }
-        else {
-            if (moved) {
-                var seq = lis_algorithm(sources);
-                j = seq.length - 1;
-                for (i = bLeft - 1; i >= 0; i--) {
-                    if (sources[i] === 0) {
-                        pos = i + bStart;
-                        bNode = b[pos];
-                        if (bNode.dom) {
-                            b[pos] = bNode = directClone(bNode);
-                        }
-                        nextPos = pos + 1;
-                        insertOrAppend(dom, mount(bNode, null, context, isSVG), nextPos < bLength ? b[nextPos].dom : null);
-                    }
-                    else if (j < 0 || i !== seq[j]) {
-                        pos = i + bStart;
-                        bNode = b[pos];
-                        nextPos = pos + 1;
-                        insertOrAppend(dom, bNode.dom, nextPos < bLength ? b[nextPos].dom : null);
-                    }
-                    else {
-                        j--;
-                    }
-                }
-            }
-            else if (patched !== bLeft) {
-                // when patched count doesn't match b length we need to insert those new ones
-                // loop backwards so we can use insertBefore
-                for (i = bLeft - 1; i >= 0; i--) {
-                    if (sources[i] === 0) {
-                        pos = i + bStart;
-                        bNode = b[pos];
-                        if (bNode.dom) {
-                            b[pos] = bNode = directClone(bNode);
-                        }
-                        nextPos = pos + 1;
-                        insertOrAppend(dom, mount(bNode, null, context, isSVG), nextPos < bLength ? b[nextPos].dom : null);
-                    }
-                }
-            }
-        }
-    }
-}
-// https://en.wikipedia.org/wiki/Longest_increasing_subsequence
-function lis_algorithm(arr) {
-    var p = arr.slice();
-    var result = [0];
-    var i;
-    var j;
-    var u;
-    var v;
-    var c;
-    var len = arr.length;
-    for (i = 0; i < len; i++) {
-        var arrI = arr[i];
-        if (arrI !== 0) {
-            j = result[result.length - 1];
-            if (arr[j] < arrI) {
-                p[i] = j;
-                result.push(i);
-                continue;
-            }
-            u = 0;
-            v = result.length - 1;
-            while (u < v) {
-                c = ((u + v) / 2) | 0;
-                if (arr[result[c]] < arrI) {
-                    u = c + 1;
-                }
-                else {
-                    v = c;
-                }
-            }
-            if (arrI < arr[result[u]]) {
-                if (u > 0) {
-                    p[i] = result[u - 1];
-                }
-                result[u] = i;
-            }
-        }
-    }
-    u = result.length;
-    v = result[u - 1];
-    while (u-- > 0) {
-        result[u] = v;
-        v = p[v];
-    }
-    return result;
+function replaceWithNewNode(lastNode, nextNode, parentDom, context, isSVG) {
+    unmount(lastNode);
+    replaceChild(parentDom, mount(nextNode, null, context, isSVG), lastNode.dom);
+}
+function patch(lastVNode, nextVNode, parentDom, context, isSVG) {
+    var nextFlags = nextVNode.flags | 0;
+    if (lastVNode.flags !== nextFlags || nextFlags & 2048 /* ReCreate */) {
+        replaceWithNewNode(lastVNode, nextVNode, parentDom, context, isSVG);
+    }
+    else if (nextFlags & 481 /* Element */) {
+        patchElement(lastVNode, nextVNode, parentDom, context, isSVG, nextFlags);
+    }
+    else if (nextFlags & 14 /* Component */) {
+        patchComponent(lastVNode, nextVNode, parentDom, context, isSVG, (nextFlags & 4 /* ComponentClass */) > 0);
+    }
+    else if (nextFlags & 16 /* Text */) {
+        patchText(lastVNode, nextVNode);
+    }
+    else if (nextFlags & 512 /* Void */) {
+        nextVNode.dom = lastVNode.dom;
+    }
+    else {
+        patchPortal(lastVNode, nextVNode, context);
+    }
+}
+function patchContentEditableChildren(dom, nextVNode) {
+    if (dom.textContent !== nextVNode.children) {
+        dom.textContent = nextVNode.children;
+    }
+}
+function patchPortal(lastVNode, nextVNode, context) {
+    var lastContainer = lastVNode.type;
+    var nextContainer = nextVNode.type;
+    var nextChildren = nextVNode.children;
+    patchChildren(lastVNode.childFlags, nextVNode.childFlags, lastVNode.children, nextChildren, lastContainer, context, false);
+    nextVNode.dom = lastVNode.dom;
+    if (lastContainer !== nextContainer && !isInvalid(nextChildren)) {
+        var node = nextChildren.dom;
+        lastContainer.removeChild(node);
+        nextContainer.appendChild(node);
+    }
+}
+function patchElement(lastVNode, nextVNode, parentDom, context, isSVG, nextFlags) {
+    var nextTag = nextVNode.type;
+    if (lastVNode.type !== nextTag) {
+        replaceWithNewNode(lastVNode, nextVNode, parentDom, context, isSVG);
+    }
+    else {
+        var dom = lastVNode.dom;
+        var lastProps = lastVNode.props;
+        var nextProps = nextVNode.props;
+        var isFormElement = false;
+        var hasControlledValue = false;
+        var nextPropsOrEmpty;
+        nextVNode.dom = dom;
+        isSVG = isSVG || (nextFlags & 32 /* SvgElement */) > 0;
+        // inlined patchProps  -- starts --
+        if (lastProps !== nextProps) {
+            var lastPropsOrEmpty = lastProps || EMPTY_OBJ;
+            nextPropsOrEmpty = nextProps || EMPTY_OBJ;
+            if (nextPropsOrEmpty !== EMPTY_OBJ) {
+                isFormElement = (nextFlags & 448 /* FormElement */) > 0;
+                if (isFormElement) {
+                    hasControlledValue = isControlledFormElement(nextPropsOrEmpty);
+                }
+                for (var prop in nextPropsOrEmpty) {
+                    var lastValue = lastPropsOrEmpty[prop];
+                    var nextValue = nextPropsOrEmpty[prop];
+                    if (lastValue !== nextValue) {
+                        patchProp(prop, lastValue, nextValue, dom, isSVG, hasControlledValue, lastVNode);
+                    }
+                }
+            }
+            if (lastPropsOrEmpty !== EMPTY_OBJ) {
+                for (var prop$1 in lastPropsOrEmpty) {
+                    if (!nextPropsOrEmpty.hasOwnProperty(prop$1) && !isNullOrUndef(lastPropsOrEmpty[prop$1])) {
+                        patchProp(prop$1, lastPropsOrEmpty[prop$1], null, dom, isSVG, hasControlledValue, lastVNode);
+                    }
+                }
+            }
+        }
+        var lastChildren = lastVNode.children;
+        var nextChildren = nextVNode.children;
+        var nextRef = nextVNode.ref;
+        var lastClassName = lastVNode.className;
+        var nextClassName = nextVNode.className;
+        if (nextFlags & 4096 /* ContentEditable */) {
+            patchContentEditableChildren(dom, nextChildren);
+        }
+        else {
+            patchChildren(lastVNode.childFlags, nextVNode.childFlags, lastChildren, nextChildren, dom, context, isSVG && nextTag !== 'foreignObject');
+        }
+        if (isFormElement) {
+            processElement(nextFlags, nextVNode, dom, nextPropsOrEmpty, false, hasControlledValue);
+        }
+        // inlined patchProps  -- ends --
+        if (lastClassName !== nextClassName) {
+            if (isNullOrUndef(nextClassName)) {
+                dom.removeAttribute('class');
+            }
+            else if (isSVG) {
+                dom.setAttribute('class', nextClassName);
+            }
+            else {
+                dom.className = nextClassName;
+            }
+        }
+        if (isFunction(nextRef) && lastVNode.ref !== nextRef) {
+            mountRef(dom, nextRef);
+        }
+    }
+}
+function patchChildren(lastChildFlags, nextChildFlags, lastChildren, nextChildren, parentDOM, context, isSVG) {
+    switch (lastChildFlags) {
+        case 2 /* HasVNodeChildren */:
+            switch (nextChildFlags) {
+                case 2 /* HasVNodeChildren */:
+                    patch(lastChildren, nextChildren, parentDOM, context, isSVG);
+                    break;
+                case 1 /* HasInvalidChildren */:
+                    remove(lastChildren, parentDOM);
+                    break;
+                default:
+                    remove(lastChildren, parentDOM);
+                    mountArrayChildren(nextChildren, parentDOM, context, isSVG);
+                    break;
+            }
+            break;
+        case 1 /* HasInvalidChildren */:
+            switch (nextChildFlags) {
+                case 2 /* HasVNodeChildren */:
+                    mount(nextChildren, parentDOM, context, isSVG);
+                    break;
+                case 1 /* HasInvalidChildren */:
+                    break;
+                default:
+                    mountArrayChildren(nextChildren, parentDOM, context, isSVG);
+                    break;
+            }
+            break;
+        default:
+            if (nextChildFlags & 12 /* MultipleChildren */) {
+                var lastLength = lastChildren.length;
+                var nextLength = nextChildren.length;
+                // Fast path's for both algorithms
+                if (lastLength === 0) {
+                    if (nextLength > 0) {
+                        mountArrayChildren(nextChildren, parentDOM, context, isSVG);
+                    }
+                }
+                else if (nextLength === 0) {
+                    removeAllChildren(parentDOM, lastChildren);
+                }
+                else if (nextChildFlags === 8 /* HasKeyedChildren */ && lastChildFlags === 8 /* HasKeyedChildren */) {
+                    patchKeyedChildren(lastChildren, nextChildren, parentDOM, context, isSVG, lastLength, nextLength);
+                }
+                else {
+                    patchNonKeyedChildren(lastChildren, nextChildren, parentDOM, context, isSVG, lastLength, nextLength);
+                }
+            }
+            else if (nextChildFlags === 1 /* HasInvalidChildren */) {
+                removeAllChildren(parentDOM, lastChildren);
+            }
+            else if (nextChildFlags === 2 /* HasVNodeChildren */) {
+                removeAllChildren(parentDOM, lastChildren);
+                mount(nextChildren, parentDOM, context, isSVG);
+            }
+            break;
+    }
+}
+function updateClassComponent(instance, nextState, nextVNode, nextProps, parentDom, context, isSVG, force, fromSetState) {
+    var lastState = instance.state;
+    var lastProps = instance.props;
+    nextVNode.children = instance;
+    var renderOutput;
+    if (instance.$UN) {
+        return;
+    }
+    if (lastProps !== nextProps || nextProps === EMPTY_OBJ) {
+        if (!fromSetState && isFunction(instance.componentWillReceiveProps)) {
+            instance.$BR = true;
+            instance.componentWillReceiveProps(nextProps, context);
+            // If instance component was removed during its own update do nothing...
+            if (instance.$UN) {
+                return;
+            }
+            instance.$BR = false;
+        }
+        if (instance.$PSS) {
+            nextState = combineFrom(nextState, instance.$PS);
+            instance.$PSS = false;
+            instance.$PS = null;
+        }
+    }
+    /* Update if scu is not defined, or it returns truthy value or force */
+    var hasSCU = Boolean(instance.shouldComponentUpdate);
+    if (force || !hasSCU || (hasSCU && instance.shouldComponentUpdate(nextProps, nextState, context))) {
+        if (isFunction(instance.componentWillUpdate)) {
+            instance.$BS = true;
+            instance.componentWillUpdate(nextProps, nextState, context);
+            instance.$BS = false;
+        }
+        instance.props = nextProps;
+        instance.state = nextState;
+        instance.context = context;
+        if (isFunction(options.beforeRender)) {
+            options.beforeRender(instance);
+        }
+        renderOutput = instance.render(nextProps, nextState, context);
+        if (isFunction(options.afterRender)) {
+            options.afterRender(instance);
+        }
+        var didUpdate = renderOutput !== NO_OP;
+        var childContext;
+        if (isFunction(instance.getChildContext)) {
+            childContext = instance.getChildContext();
+        }
+        if (isNullOrUndef(childContext)) {
+            childContext = context;
+        }
+        else {
+            childContext = combineFrom(context, childContext);
+        }
+        instance.$CX = childContext;
+        if (didUpdate) {
+            var lastInput = instance.$LI;
+            var nextInput = handleComponentInput(renderOutput, nextVNode);
+            patch(lastInput, nextInput, parentDom, childContext, isSVG);
+            instance.$LI = nextInput;
+            if (isFunction(instance.componentDidUpdate)) {
+                instance.componentDidUpdate(lastProps, lastState);
+            }
+        }
+    }
+    else {
+        instance.props = nextProps;
+        instance.state = nextState;
+        instance.context = context;
+    }
+    nextVNode.dom = instance.$LI.dom;
+}
+function patchComponent(lastVNode, nextVNode, parentDom, context, isSVG, isClass) {
+    var nextType = nextVNode.type;
+    var lastKey = lastVNode.key;
+    var nextKey = nextVNode.key;
+    if (lastVNode.type !== nextType || lastKey !== nextKey) {
+        replaceWithNewNode(lastVNode, nextVNode, parentDom, context, isSVG);
+    }
+    else {
+        var nextProps = nextVNode.props || EMPTY_OBJ;
+        if (isClass) {
+            var instance = lastVNode.children;
+            instance.$UPD = true;
+            instance.$V = nextVNode;
+            updateClassComponent(instance, instance.state, nextVNode, nextProps, parentDom, context, isSVG, false, false);
+            instance.$UPD = false;
+        }
+        else {
+            var shouldUpdate = true;
+            var lastProps = lastVNode.props;
+            var nextHooks = nextVNode.ref;
+            var nextHooksDefined = !isNullOrUndef(nextHooks);
+            var lastInput = lastVNode.children;
+            nextVNode.dom = lastVNode.dom;
+            nextVNode.children = lastInput;
+            if (nextHooksDefined && isFunction(nextHooks.onComponentShouldUpdate)) {
+                shouldUpdate = nextHooks.onComponentShouldUpdate(lastProps, nextProps);
+            }
+            if (shouldUpdate !== false) {
+                if (nextHooksDefined && isFunction(nextHooks.onComponentWillUpdate)) {
+                    nextHooks.onComponentWillUpdate(lastProps, nextProps);
+                }
+                var nextInput = nextType(nextProps, context);
+                if (nextInput !== NO_OP) {
+                    nextInput = handleComponentInput(nextInput, nextVNode);
+                    patch(lastInput, nextInput, parentDom, context, isSVG);
+                    nextVNode.children = nextInput;
+                    nextVNode.dom = nextInput.dom;
+                    if (nextHooksDefined && isFunction(nextHooks.onComponentDidUpdate)) {
+                        nextHooks.onComponentDidUpdate(lastProps, nextProps);
+                    }
+                }
+            }
+            else if (lastInput.flags & 14 /* Component */) {
+                lastInput.parentVNode = nextVNode;
+            }
+        }
+    }
+}
+function patchText(lastVNode, nextVNode) {
+    var nextText = nextVNode.children;
+    var dom = lastVNode.dom;
+    if (nextText !== lastVNode.children) {
+        dom.nodeValue = nextText;
+    }
+    nextVNode.dom = dom;
+}
+function patchNonKeyedChildren(lastChildren, nextChildren, dom, context, isSVG, lastChildrenLength, nextChildrenLength) {
+    var commonLength = lastChildrenLength > nextChildrenLength ? nextChildrenLength : lastChildrenLength;
+    var i = 0;
+    var nextChild;
+    var lastChild;
+    for (; i < commonLength; i++) {
+        nextChild = nextChildren[i];
+        lastChild = lastChildren[i];
+        if (nextChild.dom) {
+            nextChild = nextChildren[i] = directClone(nextChild);
+        }
+        patch(lastChild, nextChild, dom, context, isSVG);
+        lastChildren[i] = nextChild;
+    }
+    if (lastChildrenLength < nextChildrenLength) {
+        for (i = commonLength; i < nextChildrenLength; i++) {
+            nextChild = nextChildren[i];
+            if (nextChild.dom) {
+                nextChild = nextChildren[i] = directClone(nextChild);
+            }
+            mount(nextChild, dom, context, isSVG);
+        }
+    }
+    else if (lastChildrenLength > nextChildrenLength) {
+        for (i = commonLength; i < lastChildrenLength; i++) {
+            remove(lastChildren[i], dom);
+        }
+    }
+}
+function patchKeyedChildren(a, b, dom, context, isSVG, aLength, bLength) {
+    var aEnd = aLength - 1;
+    var bEnd = bLength - 1;
+    var i;
+    var j = 0;
+    var aNode = a[j];
+    var bNode = b[j];
+    var nextPos;
+    // Step 1
+    // tslint:disable-next-line
+    outer: {
+        // Sync nodes with the same key at the beginning.
+        while (aNode.key === bNode.key) {
+            if (bNode.dom) {
+                b[j] = bNode = directClone(bNode);
+            }
+            patch(aNode, bNode, dom, context, isSVG);
+            a[j] = bNode;
+            j++;
+            if (j > aEnd || j > bEnd) {
+                break outer;
+            }
+            aNode = a[j];
+            bNode = b[j];
+        }
+        aNode = a[aEnd];
+        bNode = b[bEnd];
+        // Sync nodes with the same key at the end.
+        while (aNode.key === bNode.key) {
+            if (bNode.dom) {
+                b[bEnd] = bNode = directClone(bNode);
+            }
+            patch(aNode, bNode, dom, context, isSVG);
+            a[aEnd] = bNode;
+            aEnd--;
+            bEnd--;
+            if (j > aEnd || j > bEnd) {
+                break outer;
+            }
+            aNode = a[aEnd];
+            bNode = b[bEnd];
+        }
+    }
+    if (j > aEnd) {
+        if (j <= bEnd) {
+            nextPos = bEnd + 1;
+            var nextNode = nextPos < bLength ? b[nextPos].dom : null;
+            while (j <= bEnd) {
+                bNode = b[j];
+                if (bNode.dom) {
+                    b[j] = bNode = directClone(bNode);
+                }
+                j++;
+                insertOrAppend(dom, mount(bNode, null, context, isSVG), nextNode);
+            }
+        }
+    }
+    else if (j > bEnd) {
+        while (j <= aEnd) {
+            remove(a[j++], dom);
+        }
+    }
+    else {
+        var aStart = j;
+        var bStart = j;
+        var aLeft = aEnd - j + 1;
+        var bLeft = bEnd - j + 1;
+        var sources = [];
+        for (i = 0; i < bLeft; i++) {
+            sources.push(0);
+        }
+        // Keep track if its possible to remove whole DOM using textContent = '';
+        var canRemoveWholeContent = aLeft === aLength;
+        var moved = false;
+        var pos = 0;
+        var patched = 0;
+        // When sizes are small, just loop them through
+        if (bLength < 4 || (aLeft | bLeft) < 32) {
+            for (i = aStart; i <= aEnd; i++) {
+                aNode = a[i];
+                if (patched < bLeft) {
+                    for (j = bStart; j <= bEnd; j++) {
+                        bNode = b[j];
+                        if (aNode.key === bNode.key) {
+                            sources[j - bStart] = i + 1;
+                            if (canRemoveWholeContent) {
+                                canRemoveWholeContent = false;
+                                while (i > aStart) {
+                                    remove(a[aStart++], dom);
+                                }
+                            }
+                            if (pos > j) {
+                                moved = true;
+                            }
+                            else {
+                                pos = j;
+                            }
+                            if (bNode.dom) {
+                                b[j] = bNode = directClone(bNode);
+                            }
+                            patch(aNode, bNode, dom, context, isSVG);
+                            patched++;
+                            break;
+                        }
+                    }
+                    if (!canRemoveWholeContent && j > bEnd) {
+                        remove(aNode, dom);
+                    }
+                }
+                else if (!canRemoveWholeContent) {
+                    remove(aNode, dom);
+                }
+            }
+        }
+        else {
+            var keyIndex = {};
+            // Map keys by their index
+            for (i = bStart; i <= bEnd; i++) {
+                keyIndex[b[i].key] = i;
+            }
+            // Try to patch same keys
+            for (i = aStart; i <= aEnd; i++) {
+                aNode = a[i];
+                if (patched < bLeft) {
+                    j = keyIndex[aNode.key];
+                    if (j !== void 0) {
+                        if (canRemoveWholeContent) {
+                            canRemoveWholeContent = false;
+                            while (i > aStart) {
+                                remove(a[aStart++], dom);
+                            }
+                        }
+                        bNode = b[j];
+                        sources[j - bStart] = i + 1;
+                        if (pos > j) {
+                            moved = true;
+                        }
+                        else {
+                            pos = j;
+                        }
+                        if (bNode.dom) {
+                            b[j] = bNode = directClone(bNode);
+                        }
+                        patch(aNode, bNode, dom, context, isSVG);
+                        patched++;
+                    }
+                    else if (!canRemoveWholeContent) {
+                        remove(aNode, dom);
+                    }
+                }
+                else if (!canRemoveWholeContent) {
+                    remove(aNode, dom);
+                }
+            }
+        }
+        // fast-path: if nothing patched remove all old and add all new
+        if (canRemoveWholeContent) {
+            removeAllChildren(dom, a);
+            mountArrayChildren(b, dom, context, isSVG);
+        }
+        else {
+            if (moved) {
+                var seq = lis_algorithm(sources);
+                j = seq.length - 1;
+                for (i = bLeft - 1; i >= 0; i--) {
+                    if (sources[i] === 0) {
+                        pos = i + bStart;
+                        bNode = b[pos];
+                        if (bNode.dom) {
+                            b[pos] = bNode = directClone(bNode);
+                        }
+                        nextPos = pos + 1;
+                        insertOrAppend(dom, mount(bNode, null, context, isSVG), nextPos < bLength ? b[nextPos].dom : null);
+                    }
+                    else if (j < 0 || i !== seq[j]) {
+                        pos = i + bStart;
+                        bNode = b[pos];
+                        nextPos = pos + 1;
+                        insertOrAppend(dom, bNode.dom, nextPos < bLength ? b[nextPos].dom : null);
+                    }
+                    else {
+                        j--;
+                    }
+                }
+            }
+            else if (patched !== bLeft) {
+                // when patched count doesn't match b length we need to insert those new ones
+                // loop backwards so we can use insertBefore
+                for (i = bLeft - 1; i >= 0; i--) {
+                    if (sources[i] === 0) {
+                        pos = i + bStart;
+                        bNode = b[pos];
+                        if (bNode.dom) {
+                            b[pos] = bNode = directClone(bNode);
+                        }
+                        nextPos = pos + 1;
+                        insertOrAppend(dom, mount(bNode, null, context, isSVG), nextPos < bLength ? b[nextPos].dom : null);
+                    }
+                }
+            }
+        }
+    }
+}
+// https://en.wikipedia.org/wiki/Longest_increasing_subsequence
+function lis_algorithm(arr) {
+    var p = arr.slice();
+    var result = [0];
+    var i;
+    var j;
+    var u;
+    var v;
+    var c;
+    var len = arr.length;
+    for (i = 0; i < len; i++) {
+        var arrI = arr[i];
+        if (arrI !== 0) {
+            j = result[result.length - 1];
+            if (arr[j] < arrI) {
+                p[i] = j;
+                result.push(i);
+                continue;
+            }
+            u = 0;
+            v = result.length - 1;
+            while (u < v) {
+                c = ((u + v) / 2) | 0;
+                if (arr[result[c]] < arrI) {
+                    u = c + 1;
+                }
+                else {
+                    v = c;
+                }
+            }
+            if (arrI < arr[result[u]]) {
+                if (u > 0) {
+                    p[i] = result[u - 1];
+                }
+                result[u] = i;
+            }
+        }
+    }
+    u = result.length;
+    v = result[u - 1];
+    while (u-- > 0) {
+        result[u] = v;
+        v = p[v];
+    }
+    return result;
 }
 
-var documentBody = isBrowser ? document.body : null;
-function render(input, parentDom, callback) {
-    if (input === NO_OP) {
-        return;
-    }
-    var rootInput = parentDom.$V;
-    if (isNullOrUndef(rootInput)) {
-        if (!isInvalid(input)) {
-            if (input.dom) {
-                input = directClone(input);
-            }
-            if (isNull(parentDom.firstChild)) {
-                mount(input, parentDom, EMPTY_OBJ, false);
-                parentDom.$V = input;
-            }
-            else {
-                hydrate(input, parentDom);
-            }
-            rootInput = input;
-        }
-    }
-    else {
-        if (isNullOrUndef(input)) {
-            remove(rootInput, parentDom);
-            parentDom.$V = null;
-        }
-        else {
-            if (input.dom) {
-                input = directClone(input);
-            }
-            patch(rootInput, input, parentDom, EMPTY_OBJ, false);
-            rootInput = parentDom.$V = input;
-        }
-    }
-    if (LIFECYCLE.length > 0) {
-        callAll(LIFECYCLE);
-    }
-    if (isFunction(callback)) {
-        callback();
-    }
-    if (isFunction(options.renderComplete)) {
-        options.renderComplete(rootInput);
-    }
-    if (rootInput && rootInput.flags & 14 /* Component */) {
-        return rootInput.children;
-    }
-}
-function createRenderer(parentDom) {
-    return function renderer(lastInput, nextInput) {
-        if (!parentDom) {
-            parentDom = lastInput;
-        }
-        render(nextInput, parentDom);
-    };
-}
-function createPortal(children, container) {
-    return createVNode(1024 /* Portal */, container, null, children, 0 /* UnknownChildren */, null, isInvalid(children) ? null : children.key, null);
+var documentBody = isBrowser ? document.body : null;
+function render(input, parentDom, callback) {
+    if (input === NO_OP) {
+        return;
+    }
+    var rootInput = parentDom.$V;
+    if (isNullOrUndef(rootInput)) {
+        if (!isInvalid(input)) {
+            if (input.dom) {
+                input = directClone(input);
+            }
+            if (isNull(parentDom.firstChild)) {
+                mount(input, parentDom, EMPTY_OBJ, false);
+                parentDom.$V = input;
+            }
+            else {
+                hydrate(input, parentDom);
+            }
+            rootInput = input;
+        }
+    }
+    else {
+        if (isNullOrUndef(input)) {
+            remove(rootInput, parentDom);
+            parentDom.$V = null;
+        }
+        else {
+            if (input.dom) {
+                input = directClone(input);
+            }
+            patch(rootInput, input, parentDom, EMPTY_OBJ, false);
+            rootInput = parentDom.$V = input;
+        }
+    }
+    if (LIFECYCLE.length > 0) {
+        callAll(LIFECYCLE);
+    }
+    if (isFunction(callback)) {
+        callback();
+    }
+    if (isFunction(options.renderComplete)) {
+        options.renderComplete(rootInput);
+    }
+    if (rootInput && rootInput.flags & 14 /* Component */) {
+        return rootInput.children;
+    }
+}
+function createRenderer(parentDom) {
+    return function renderer(lastInput, nextInput) {
+        if (!parentDom) {
+            parentDom = lastInput;
+        }
+        render(nextInput, parentDom);
+    };
+}
+function createPortal(children, container) {
+    return createVNode(1024 /* Portal */, container, null, children, 0 /* UnknownChildren */, null, isInvalid(children) ? null : children.key, null);
 }
 
-var resolvedPromise = typeof Promise === 'undefined' ? null : Promise.resolve();
-// raf.bind(window) is needed to work around bug in IE10-IE11 strict mode (TypeError: Invalid calling object)
-var fallbackMethod = typeof requestAnimationFrame === 'undefined' ? setTimeout : requestAnimationFrame.bind(window);
-function nextTick(fn) {
-    if (resolvedPromise) {
-        return resolvedPromise.then(fn);
-    }
-    return fallbackMethod(fn);
-}
-function queueStateChanges(component, newState, callback, force) {
-    if (isFunction(newState)) {
-        newState = newState(component.state, component.props, component.context);
-    }
-    var pending = component.$PS;
-    if (isNullOrUndef(pending)) {
-        component.$PS = newState;
-    }
-    else {
-        for (var stateKey in newState) {
-            pending[stateKey] = newState[stateKey];
-        }
-    }
-    if (!component.$PSS && !component.$BR) {
-        if (!component.$UPD) {
-            component.$PSS = true;
-            component.$UPD = true;
-            applyState(component, force, callback);
-            component.$UPD = false;
-        }
-        else {
-            // Async
-            var queue = component.$QU;
-            if (isNull(queue)) {
-                queue = component.$QU = [];
-                nextTick(promiseCallback(component, queue));
-            }
-            if (isFunction(callback)) {
-                queue.push(callback);
-            }
-        }
-    }
-    else {
-        component.$PSS = true;
-        if (component.$BR && isFunction(callback)) {
-            LIFECYCLE.push(callback.bind(component));
-        }
-    }
-}
-function promiseCallback(component, queue) {
-    return function () {
-        component.$QU = null;
-        component.$UPD = true;
-        applyState(component, false, function () {
-            for (var i = 0, len = queue.length; i < len; i++) {
-                queue[i].call(component);
-            }
-        });
-        component.$UPD = false;
-    };
-}
-function applyState(component, force, callback) {
-    if (component.$UN) {
-        return;
-    }
-    if (force || !component.$BR) {
-        component.$PSS = false;
-        var pendingState = component.$PS;
-        var prevState = component.state;
-        var nextState = combineFrom(prevState, pendingState);
-        var props = component.props;
-        var context = component.context;
-        component.$PS = null;
-        var vNode = component.$V;
-        var lastInput = component.$LI;
-        var parentDom = lastInput.dom && lastInput.dom.parentNode;
-        updateClassComponent(component, nextState, vNode, props, parentDom, context, (vNode.flags & 32 /* SvgElement */) > 0, force, true);
-        if (component.$UN) {
-            return;
-        }
-        if ((component.$LI.flags & 1024 /* Portal */) === 0) {
-            var dom = component.$LI.dom;
-            while (!isNull((vNode = vNode.parentVNode))) {
-                if ((vNode.flags & 14 /* Component */) > 0) {
-                    vNode.dom = dom;
-                }
-            }
-        }
-        if (LIFECYCLE.length > 0) {
-            callAll(LIFECYCLE);
-        }
-    }
-    else {
-        component.state = component.$PS;
-        component.$PS = null;
-    }
-    if (isFunction(callback)) {
-        callback.call(component);
-    }
-}
-var Component = function Component(props, context) {
-    this.state = null;
-    // Internal properties
-    this.$BR = false; // BLOCK RENDER
-    this.$BS = true; // BLOCK STATE
-    this.$PSS = false; // PENDING SET STATE
-    this.$PS = null; // PENDING STATE (PARTIAL or FULL)
-    this.$LI = null; // LAST INPUT
-    this.$V = null; // VNODE
-    this.$UN = false; // UNMOUNTED
-    this.$CX = null; // CHILDCONTEXT
-    this.$UPD = true; // UPDATING
-    this.$QU = null; // QUEUE
-    /** @type {object} */
-    this.props = props || EMPTY_OBJ;
-    /** @type {object} */
-    this.context = context || EMPTY_OBJ; // context should not be mutable
-};
-Component.prototype.forceUpdate = function forceUpdate (callback) {
-    if (this.$UN) {
-        return;
-    }
-    // Do not allow double render during force update
-    queueStateChanges(this, {}, callback, true);
-};
-Component.prototype.setState = function setState (newState, callback) {
-    if (this.$UN) {
-        return;
-    }
-    if (!this.$BS) {
-        queueStateChanges(this, newState, callback, false);
-    }
-    else {
-        return;
-    }
-};
-// tslint:disable-next-line:no-empty
+var resolvedPromise = typeof Promise === 'undefined' ? null : Promise.resolve();
+// raf.bind(window) is needed to work around bug in IE10-IE11 strict mode (TypeError: Invalid calling object)
+var fallbackMethod = typeof requestAnimationFrame === 'undefined' ? setTimeout : requestAnimationFrame.bind(window);
+function nextTick(fn) {
+    if (resolvedPromise) {
+        return resolvedPromise.then(fn);
+    }
+    return fallbackMethod(fn);
+}
+function queueStateChanges(component, newState, callback, force) {
+    if (isFunction(newState)) {
+        newState = newState(component.state, component.props, component.context);
+    }
+    var pending = component.$PS;
+    if (isNullOrUndef(pending)) {
+        component.$PS = newState;
+    }
+    else {
+        for (var stateKey in newState) {
+            pending[stateKey] = newState[stateKey];
+        }
+    }
+    if (!component.$PSS && !component.$BR) {
+        if (!component.$UPD) {
+            component.$PSS = true;
+            component.$UPD = true;
+            applyState(component, force, callback);
+            component.$UPD = false;
+        }
+        else {
+            // Async
+            var queue = component.$QU;
+            if (isNull(queue)) {
+                queue = component.$QU = [];
+                nextTick(promiseCallback(component, queue));
+            }
+            if (isFunction(callback)) {
+                queue.push(callback);
+            }
+        }
+    }
+    else {
+        component.$PSS = true;
+        if (component.$BR && isFunction(callback)) {
+            LIFECYCLE.push(callback.bind(component));
+        }
+    }
+}
+function promiseCallback(component, queue) {
+    return function () {
+        component.$QU = null;
+        component.$UPD = true;
+        applyState(component, false, function () {
+            for (var i = 0, len = queue.length; i < len; i++) {
+                queue[i].call(component);
+            }
+        });
+        component.$UPD = false;
+    };
+}
+function applyState(component, force, callback) {
+    if (component.$UN) {
+        return;
+    }
+    if (force || !component.$BR) {
+        component.$PSS = false;
+        var pendingState = component.$PS;
+        var prevState = component.state;
+        var nextState = combineFrom(prevState, pendingState);
+        var props = component.props;
+        var context = component.context;
+        component.$PS = null;
+        var vNode = component.$V;
+        var lastInput = component.$LI;
+        var parentDom = lastInput.dom && lastInput.dom.parentNode;
+        updateClassComponent(component, nextState, vNode, props, parentDom, context, (vNode.flags & 32 /* SvgElement */) > 0, force, true);
+        if (component.$UN) {
+            return;
+        }
+        if ((component.$LI.flags & 1024 /* Portal */) === 0) {
+            var dom = component.$LI.dom;
+            while (!isNull((vNode = vNode.parentVNode))) {
+                if ((vNode.flags & 14 /* Component */) > 0) {
+                    vNode.dom = dom;
+                }
+            }
+        }
+        if (LIFECYCLE.length > 0) {
+            callAll(LIFECYCLE);
+        }
+    }
+    else {
+        component.state = component.$PS;
+        component.$PS = null;
+    }
+    if (isFunction(callback)) {
+        callback.call(component);
+    }
+}
+var Component = function Component(props, context) {
+    this.state = null;
+    // Internal properties
+    this.$BR = false; // BLOCK RENDER
+    this.$BS = true; // BLOCK STATE
+    this.$PSS = false; // PENDING SET STATE
+    this.$PS = null; // PENDING STATE (PARTIAL or FULL)
+    this.$LI = null; // LAST INPUT
+    this.$V = null; // VNODE
+    this.$UN = false; // UNMOUNTED
+    this.$CX = null; // CHILDCONTEXT
+    this.$UPD = true; // UPDATING
+    this.$QU = null; // QUEUE
+    /** @type {object} */
+    this.props = props || EMPTY_OBJ;
+    /** @type {object} */
+    this.context = context || EMPTY_OBJ; // context should not be mutable
+};
+Component.prototype.forceUpdate = function forceUpdate (callback) {
+    if (this.$UN) {
+        return;
+    }
+    // Do not allow double render during force update
+    queueStateChanges(this, {}, callback, true);
+};
+Component.prototype.setState = function setState (newState, callback) {
+    if (this.$UN) {
+        return;
+    }
+    if (!this.$BS) {
+        queueStateChanges(this, newState, callback, false);
+    }
+    else {
+        return;
+    }
+};
+// tslint:disable-next-line:no-empty
 Component.prototype.render = function render (nextProps, nextState, nextContext) { };
 
 
@@ -75018,816 +75020,816 @@ if (false) {
 
 
 
-var ERROR_MSG = 'a runtime error occured! Use Inferno in development environment to find the error.';
-var isBrowser = !!(typeof window !== 'undefined' && window.document);
-function isNullOrUndef(o) {
-    return isUndefined(o) || isNull(o);
-}
-function isInvalid(o) {
-    return isNull(o) || o === false || isTrue(o) || isUndefined(o);
-}
-function isFunction(o) {
-    return typeof o === 'function';
-}
-function isString(o) {
-    return typeof o === 'string';
-}
-function isNumber(o) {
-    return typeof o === 'number';
-}
-function isNull(o) {
-    return o === null;
-}
-function isTrue(o) {
-    return o === true;
-}
-function isUndefined(o) {
-    return o === void 0;
-}
-function throwError(message) {
-    if (!message) {
-        message = ERROR_MSG;
-    }
-    throw new Error(("Inferno Error: " + message));
-}
-function combineFrom(first, second) {
-    var out = {};
-    if (first) {
-        for (var key in first) {
-            out[key] = first[key];
-        }
-    }
-    if (second) {
-        for (var key$1 in second) {
-            out[key$1] = second[key$1];
-        }
-    }
-    return out;
+var ERROR_MSG = 'a runtime error occured! Use Inferno in development environment to find the error.';
+var isBrowser = !!(typeof window !== 'undefined' && window.document);
+function isNullOrUndef(o) {
+    return isUndefined(o) || isNull(o);
+}
+function isInvalid(o) {
+    return isNull(o) || o === false || isTrue(o) || isUndefined(o);
+}
+function isFunction(o) {
+    return typeof o === 'function';
+}
+function isString(o) {
+    return typeof o === 'string';
+}
+function isNumber(o) {
+    return typeof o === 'number';
+}
+function isNull(o) {
+    return o === null;
+}
+function isTrue(o) {
+    return o === true;
+}
+function isUndefined(o) {
+    return o === void 0;
+}
+function throwError(message) {
+    if (!message) {
+        message = ERROR_MSG;
+    }
+    throw new Error(("Inferno Error: " + message));
+}
+function combineFrom(first, second) {
+    var out = {};
+    if (first) {
+        for (var key in first) {
+            out[key] = first[key];
+        }
+    }
+    if (second) {
+        for (var key$1 in second) {
+            out[key$1] = second[key$1];
+        }
+    }
+    return out;
 }
 
-var rxUnescaped = new RegExp(/["'&<>]/);
-function escapeText(text) {
-    /* Much faster when there is no unescaped characters */
-    if (!rxUnescaped.test(text)) {
-        return text;
-    }
-    var result = '';
-    var escape = '';
-    var start = 0;
-    var i;
-    for (i = 0; i < text.length; i++) {
-        switch (text.charCodeAt(i)) {
-            case 34: // "
-                escape = '&quot;';
-                break;
-            case 39: // '
-                escape = '&#039;';
-                break;
-            case 38: // &
-                escape = '&amp;';
-                break;
-            case 60: // <
-                escape = '&lt;';
-                break;
-            case 62: // >
-                escape = '&gt;';
-                break;
-            default:
-                continue;
-        }
-        if (i > start) {
-            result += text.slice(start, i);
-        }
-        result += escape;
-        start = i + 1;
-    }
-    return result + text.slice(start, i);
-}
-var uppercasePattern = /[A-Z]/g;
-var CssPropCache = {};
-function getCssPropertyName(str) {
-    if (CssPropCache[str] !== void 0) {
-        return CssPropCache[str];
-    }
-    return (CssPropCache[str] = str.replace(uppercasePattern, '-$&').toLowerCase() + ':');
-}
-var ATTRIBUTE_NAME_START_CHAR = ':A-Z_a-z\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u02FF\\u0370-\\u037D\\u037F-\\u1FFF\\u200C-\\u200D\\u2070-\\u218F\\u2C00-\\u2FEF\\u3001-\\uD7FF\\uF900-\\uFDCF\\uFDF0-\\uFFFD';
-var ATTRIBUTE_NAME_CHAR = ATTRIBUTE_NAME_START_CHAR + '\\-.0-9\\u00B7\\u0300-\\u036F\\u203F-\\u2040';
-var VALID_ATTRIBUTE_NAME_REGEX = new RegExp('^[' + ATTRIBUTE_NAME_START_CHAR + '][' + ATTRIBUTE_NAME_CHAR + ']*$');
-var illegalAttributeNameCache = {};
-var validatedAttributeNameCache = {};
-function isAttributeNameSafe(attributeName) {
-    if (validatedAttributeNameCache[attributeName] !== void 0) {
-        return true;
-    }
-    if (illegalAttributeNameCache[attributeName] !== void 0) {
-        return false;
-    }
-    if (VALID_ATTRIBUTE_NAME_REGEX.test(attributeName)) {
-        validatedAttributeNameCache[attributeName] = true;
-        return true;
-    }
-    illegalAttributeNameCache[attributeName] = true;
-    return false;
-}
-var voidElements = new Set([
-    'area',
-    'base',
-    'br',
-    'col',
-    'command',
-    'embed',
-    'hr',
-    'img',
-    'input',
-    'keygen',
-    'link',
-    'meta',
-    'param',
-    'source',
-    'track',
-    'wbr'
+var rxUnescaped = new RegExp(/["'&<>]/);
+function escapeText(text) {
+    /* Much faster when there is no unescaped characters */
+    if (!rxUnescaped.test(text)) {
+        return text;
+    }
+    var result = '';
+    var escape = '';
+    var start = 0;
+    var i;
+    for (i = 0; i < text.length; i++) {
+        switch (text.charCodeAt(i)) {
+            case 34: // "
+                escape = '&quot;';
+                break;
+            case 39: // '
+                escape = '&#039;';
+                break;
+            case 38: // &
+                escape = '&amp;';
+                break;
+            case 60: // <
+                escape = '&lt;';
+                break;
+            case 62: // >
+                escape = '&gt;';
+                break;
+            default:
+                continue;
+        }
+        if (i > start) {
+            result += text.slice(start, i);
+        }
+        result += escape;
+        start = i + 1;
+    }
+    return result + text.slice(start, i);
+}
+var uppercasePattern = /[A-Z]/g;
+var CssPropCache = {};
+function getCssPropertyName(str) {
+    if (CssPropCache[str] !== void 0) {
+        return CssPropCache[str];
+    }
+    return (CssPropCache[str] = str.replace(uppercasePattern, '-$&').toLowerCase() + ':');
+}
+var ATTRIBUTE_NAME_START_CHAR = ':A-Z_a-z\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u02FF\\u0370-\\u037D\\u037F-\\u1FFF\\u200C-\\u200D\\u2070-\\u218F\\u2C00-\\u2FEF\\u3001-\\uD7FF\\uF900-\\uFDCF\\uFDF0-\\uFFFD';
+var ATTRIBUTE_NAME_CHAR = ATTRIBUTE_NAME_START_CHAR + '\\-.0-9\\u00B7\\u0300-\\u036F\\u203F-\\u2040';
+var VALID_ATTRIBUTE_NAME_REGEX = new RegExp('^[' + ATTRIBUTE_NAME_START_CHAR + '][' + ATTRIBUTE_NAME_CHAR + ']*$');
+var illegalAttributeNameCache = {};
+var validatedAttributeNameCache = {};
+function isAttributeNameSafe(attributeName) {
+    if (validatedAttributeNameCache[attributeName] !== void 0) {
+        return true;
+    }
+    if (illegalAttributeNameCache[attributeName] !== void 0) {
+        return false;
+    }
+    if (VALID_ATTRIBUTE_NAME_REGEX.test(attributeName)) {
+        validatedAttributeNameCache[attributeName] = true;
+        return true;
+    }
+    illegalAttributeNameCache[attributeName] = true;
+    return false;
+}
+var voidElements = new Set([
+    'area',
+    'base',
+    'br',
+    'col',
+    'command',
+    'embed',
+    'hr',
+    'img',
+    'input',
+    'keygen',
+    'link',
+    'meta',
+    'param',
+    'source',
+    'track',
+    'wbr'
 ]);
 
-function renderStylesToString(styles) {
-    if (isString(styles)) {
-        return styles;
-    }
-    else {
-        var renderedString = '';
-        for (var styleName in styles) {
-            var value = styles[styleName];
-            if (isString(value)) {
-                renderedString += "" + (getCssPropertyName(styleName)) + value + ";";
-            }
-            else if (isNumber(value)) {
-                renderedString += "" + (getCssPropertyName(styleName)) + (Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["j" /* getNumberStyleValue */])(styleName, value)) + ";";
-            }
-        }
-        return renderedString;
-    }
+function renderStylesToString(styles) {
+    if (isString(styles)) {
+        return styles;
+    }
+    else {
+        var renderedString = '';
+        for (var styleName in styles) {
+            var value = styles[styleName];
+            if (isString(value)) {
+                renderedString += "" + (getCssPropertyName(styleName)) + value + ";";
+            }
+            else if (isNumber(value)) {
+                renderedString += "" + (getCssPropertyName(styleName)) + (Object(__WEBPACK_IMPORTED_MODULE_0_inferno__["j" /* getNumberStyleValue */])(styleName, value)) + ";";
+            }
+        }
+        return renderedString;
+    }
 }
 
-function renderVNodeToString(vNode, parent, context, firstChild) {
-    var flags = vNode.flags;
-    var type = vNode.type;
-    var props = vNode.props || __WEBPACK_IMPORTED_MODULE_0_inferno__["b" /* EMPTY_OBJ */];
-    var children = vNode.children;
-    if ((flags & 14 /* Component */) > 0) {
-        var isClass = flags & 4 /* ComponentClass */;
-        if (isClass) {
-            var instance = new type(props, context);
-            instance.$BS = false;
-            var childContext;
-            if (isFunction(instance.getChildContext)) {
-                childContext = instance.getChildContext();
-            }
-            if (isNullOrUndef(childContext)) {
-                childContext = context;
-            }
-            else {
-                childContext = combineFrom(context, childContext);
-            }
-            if (instance.props === __WEBPACK_IMPORTED_MODULE_0_inferno__["b" /* EMPTY_OBJ */]) {
-                instance.props = props;
-            }
-            instance.context = context;
-            instance.$UN = false;
-            if (isFunction(instance.componentWillMount)) {
-                instance.$BR = true;
-                instance.componentWillMount();
-                instance.$BR = false;
-            }
-            if (instance.$PSS) {
-                var state = instance.state;
-                var pending = instance.$PS;
-                if (state === null) {
-                    instance.state = pending;
-                }
-                else {
-                    for (var key in pending) {
-                        state[key] = pending[key];
-                    }
-                }
-                instance.$PSS = false;
-                instance.$PS = null;
-            }
-            var renderOutput = instance.render(props, instance.state, instance.context);
-            // In case render returns invalid stuff
-            if (isInvalid(renderOutput)) {
-                return '<!--!-->';
-            }
-            if (isString(renderOutput)) {
-                return escapeText(renderOutput);
-            }
-            if (isNumber(renderOutput)) {
-                return renderOutput + '';
-            }
-            return renderVNodeToString(renderOutput, vNode, childContext, true);
-        }
-        else {
-            var renderOutput$1 = type(props, context);
-            if (isInvalid(renderOutput$1)) {
-                return '<!--!-->';
-            }
-            if (isString(renderOutput$1)) {
-                return escapeText(renderOutput$1);
-            }
-            if (isNumber(renderOutput$1)) {
-                return renderOutput$1 + '';
-            }
-            return renderVNodeToString(renderOutput$1, vNode, context, true);
-        }
-    }
-    else if ((flags & 481 /* Element */) > 0) {
-        var renderedString = "<" + type;
-        var html;
-        var isVoidElement = voidElements.has(type);
-        var className = vNode.className;
-        if (isString(className)) {
-            renderedString += " class=\"" + (escapeText(className)) + "\"";
-        }
-        else if (isNumber(className)) {
-            renderedString += " class=\"" + className + "\"";
-        }
-        if (!isNull(props)) {
-            for (var prop in props) {
-                var value = props[prop];
-                switch (prop) {
-                    case 'dangerouslySetInnerHTML':
-                        html = value.__html;
-                        break;
-                    case 'style':
-                        if (!isNullOrUndef(props.style)) {
-                            renderedString += " style=\"" + (renderStylesToString(props.style)) + "\"";
-                        }
-                        break;
-                    case 'children':
-                    case 'className':
-                        // Ignore
-                        break;
-                    case 'defaultValue':
-                        // Use default values if normal values are not present
-                        if (!props.value) {
-                            renderedString += " value=\"" + (isString(value) ? escapeText(value) : value) + "\"";
-                        }
-                        break;
-                    case 'defaultChecked':
-                        // Use default values if normal values are not present
-                        if (!props.checked) {
-                            renderedString += " checked=\"" + value + "\"";
-                        }
-                        break;
-                    default:
-                        if (isAttributeNameSafe(prop)) {
-                            if (isString(value)) {
-                                renderedString += " " + prop + "=\"" + (escapeText(value)) + "\"";
-                            }
-                            else if (isNumber(value)) {
-                                renderedString += " " + prop + "=\"" + value + "\"";
-                            }
-                            else if (isTrue(value)) {
-                                renderedString += " " + prop;
-                            }
-                        }
-                        break;
-                }
-            }
-            if (type === 'option' && typeof props.value !== 'undefined' && props.value === parent.props.value) {
-                // Parent value sets children value
-                renderedString += " selected";
-            }
-        }
-        if (isVoidElement) {
-            renderedString += ">";
-        }
-        else {
-            renderedString += ">";
-            var childFlags = vNode.childFlags;
-            if (childFlags & 2 /* HasVNodeChildren */) {
-                renderedString += renderVNodeToString(children, vNode, context, true);
-            }
-            else if (childFlags & 12 /* MultipleChildren */) {
-                for (var i = 0, len = children.length; i < len; i++) {
-                    renderedString += renderVNodeToString(children[i], vNode, context, i === 0);
-                }
-            }
-            else if (html) {
-                renderedString += html;
-            }
-            if (!isVoidElement) {
-                renderedString += "</" + type + ">";
-            }
-        }
-        if (String(type).match(/[\s\n\/='"\0<>]/)) {
-            throw renderedString;
-        }
-        return renderedString;
-    }
-    else if ((flags & 16 /* Text */) > 0) {
-        return (firstChild ? '' : '<!---->') + (children === '' ? ' ' : escapeText(children));
-    }
-    else {
-        throwError();
-    }
-    return '';
-}
-function renderToString(input) {
-    return renderVNodeToString(input, {}, {}, true);
+function renderVNodeToString(vNode, parent, context, firstChild) {
+    var flags = vNode.flags;
+    var type = vNode.type;
+    var props = vNode.props || __WEBPACK_IMPORTED_MODULE_0_inferno__["b" /* EMPTY_OBJ */];
+    var children = vNode.children;
+    if ((flags & 14 /* Component */) > 0) {
+        var isClass = flags & 4 /* ComponentClass */;
+        if (isClass) {
+            var instance = new type(props, context);
+            instance.$BS = false;
+            var childContext;
+            if (isFunction(instance.getChildContext)) {
+                childContext = instance.getChildContext();
+            }
+            if (isNullOrUndef(childContext)) {
+                childContext = context;
+            }
+            else {
+                childContext = combineFrom(context, childContext);
+            }
+            if (instance.props === __WEBPACK_IMPORTED_MODULE_0_inferno__["b" /* EMPTY_OBJ */]) {
+                instance.props = props;
+            }
+            instance.context = context;
+            instance.$UN = false;
+            if (isFunction(instance.componentWillMount)) {
+                instance.$BR = true;
+                instance.componentWillMount();
+                instance.$BR = false;
+            }
+            if (instance.$PSS) {
+                var state = instance.state;
+                var pending = instance.$PS;
+                if (state === null) {
+                    instance.state = pending;
+                }
+                else {
+                    for (var key in pending) {
+                        state[key] = pending[key];
+                    }
+                }
+                instance.$PSS = false;
+                instance.$PS = null;
+            }
+            var renderOutput = instance.render(props, instance.state, instance.context);
+            // In case render returns invalid stuff
+            if (isInvalid(renderOutput)) {
+                return '<!--!-->';
+            }
+            if (isString(renderOutput)) {
+                return escapeText(renderOutput);
+            }
+            if (isNumber(renderOutput)) {
+                return renderOutput + '';
+            }
+            return renderVNodeToString(renderOutput, vNode, childContext, true);
+        }
+        else {
+            var renderOutput$1 = type(props, context);
+            if (isInvalid(renderOutput$1)) {
+                return '<!--!-->';
+            }
+            if (isString(renderOutput$1)) {
+                return escapeText(renderOutput$1);
+            }
+            if (isNumber(renderOutput$1)) {
+                return renderOutput$1 + '';
+            }
+            return renderVNodeToString(renderOutput$1, vNode, context, true);
+        }
+    }
+    else if ((flags & 481 /* Element */) > 0) {
+        var renderedString = "<" + type;
+        var html;
+        var isVoidElement = voidElements.has(type);
+        var className = vNode.className;
+        if (isString(className)) {
+            renderedString += " class=\"" + (escapeText(className)) + "\"";
+        }
+        else if (isNumber(className)) {
+            renderedString += " class=\"" + className + "\"";
+        }
+        if (!isNull(props)) {
+            for (var prop in props) {
+                var value = props[prop];
+                switch (prop) {
+                    case 'dangerouslySetInnerHTML':
+                        html = value.__html;
+                        break;
+                    case 'style':
+                        if (!isNullOrUndef(props.style)) {
+                            renderedString += " style=\"" + (renderStylesToString(props.style)) + "\"";
+                        }
+                        break;
+                    case 'children':
+                    case 'className':
+                        // Ignore
+                        break;
+                    case 'defaultValue':
+                        // Use default values if normal values are not present
+                        if (!props.value) {
+                            renderedString += " value=\"" + (isString(value) ? escapeText(value) : value) + "\"";
+                        }
+                        break;
+                    case 'defaultChecked':
+                        // Use default values if normal values are not present
+                        if (!props.checked) {
+                            renderedString += " checked=\"" + value + "\"";
+                        }
+                        break;
+                    default:
+                        if (isAttributeNameSafe(prop)) {
+                            if (isString(value)) {
+                                renderedString += " " + prop + "=\"" + (escapeText(value)) + "\"";
+                            }
+                            else if (isNumber(value)) {
+                                renderedString += " " + prop + "=\"" + value + "\"";
+                            }
+                            else if (isTrue(value)) {
+                                renderedString += " " + prop;
+                            }
+                        }
+                        break;
+                }
+            }
+            if (type === 'option' && typeof props.value !== 'undefined' && props.value === parent.props.value) {
+                // Parent value sets children value
+                renderedString += " selected";
+            }
+        }
+        if (isVoidElement) {
+            renderedString += ">";
+        }
+        else {
+            renderedString += ">";
+            var childFlags = vNode.childFlags;
+            if (childFlags & 2 /* HasVNodeChildren */) {
+                renderedString += renderVNodeToString(children, vNode, context, true);
+            }
+            else if (childFlags & 12 /* MultipleChildren */) {
+                for (var i = 0, len = children.length; i < len; i++) {
+                    renderedString += renderVNodeToString(children[i], vNode, context, i === 0);
+                }
+            }
+            else if (html) {
+                renderedString += html;
+            }
+            if (!isVoidElement) {
+                renderedString += "</" + type + ">";
+            }
+        }
+        if (String(type).match(/[\s\n\/='"\0<>]/)) {
+            throw renderedString;
+        }
+        return renderedString;
+    }
+    else if ((flags & 16 /* Text */) > 0) {
+        return (firstChild ? '' : '<!---->') + (children === '' ? ' ' : escapeText(children));
+    }
+    else {
+        throwError();
+    }
+    return '';
+}
+function renderToString(input) {
+    return renderVNodeToString(input, {}, {}, true);
 }
 
 var RenderQueueStream = (function (Readable$$1) {
-    function RenderQueueStream(initNode) {
-        Readable$$1.call(this);
-        this.collector = [Infinity]; // Infinity marks the end of the stream
-        this.promises = [];
-        this.pushQueue = this.pushQueue.bind(this);
-        if (initNode) {
-            this.renderVNodeToQueue(initNode, null, false, null);
-        }
+    function RenderQueueStream(initNode) {
+        Readable$$1.call(this);
+        this.collector = [Infinity]; // Infinity marks the end of the stream
+        this.promises = [];
+        this.pushQueue = this.pushQueue.bind(this);
+        if (initNode) {
+            this.renderVNodeToQueue(initNode, null, false, null);
+        }
     }
 
     if ( Readable$$1 ) RenderQueueStream.__proto__ = Readable$$1;
     RenderQueueStream.prototype = Object.create( Readable$$1 && Readable$$1.prototype );
-    RenderQueueStream.prototype.constructor = RenderQueueStream;
-    RenderQueueStream.prototype._read = function _read () {
-        setTimeout(this.pushQueue, 0);
-    };
-    RenderQueueStream.prototype.addToQueue = function addToQueue (node, position) {
-        // Positioning defined, stack it
-        if (!isNullOrUndef(position)) {
-            var lastSlot = this.promises[position].length - 1;
-            // Combine as array or push into promise collector
-            if (typeof this.promises[position][lastSlot] === 'string' && typeof node === 'string') {
-                this.promises[position][lastSlot] += node;
-            }
-            else {
-                this.promises[position].push(node);
-            }
-            // Collector is empty push to stream
-        }
-        else if (typeof node === 'string' && this.collector.length - 1 === 0) {
-            this.push(node);
-            // Last element in collector and incoming are same then concat
-        }
-        else if (typeof node === 'string' && typeof this.collector[this.collector.length - 2] === 'string') {
-            this.collector[this.collector.length - 2] += node;
-            // Push the element to collector (before Infinity)
-        }
-        else {
-            this.collector.splice(-1, 0, node);
-        }
-    };
-    RenderQueueStream.prototype.pushQueue = function pushQueue () {
-        var chunk = this.collector[0];
-        // Output strings directly
-        if (typeof chunk === 'string') {
-            this.push(chunk);
-            this.collector.shift();
-            // For fulfilled promises, merge into collector
-        }
-        else if (!!chunk && (typeof chunk === 'object' || isFunction(chunk)) && isFunction(chunk.then)) {
-            var self = this;
+    RenderQueueStream.prototype.constructor = RenderQueueStream;
+    RenderQueueStream.prototype._read = function _read () {
+        setTimeout(this.pushQueue, 0);
+    };
+    RenderQueueStream.prototype.addToQueue = function addToQueue (node, position) {
+        // Positioning defined, stack it
+        if (!isNullOrUndef(position)) {
+            var lastSlot = this.promises[position].length - 1;
+            // Combine as array or push into promise collector
+            if (typeof this.promises[position][lastSlot] === 'string' && typeof node === 'string') {
+                this.promises[position][lastSlot] += node;
+            }
+            else {
+                this.promises[position].push(node);
+            }
+            // Collector is empty push to stream
+        }
+        else if (typeof node === 'string' && this.collector.length - 1 === 0) {
+            this.push(node);
+            // Last element in collector and incoming are same then concat
+        }
+        else if (typeof node === 'string' && typeof this.collector[this.collector.length - 2] === 'string') {
+            this.collector[this.collector.length - 2] += node;
+            // Push the element to collector (before Infinity)
+        }
+        else {
+            this.collector.splice(-1, 0, node);
+        }
+    };
+    RenderQueueStream.prototype.pushQueue = function pushQueue () {
+        var chunk = this.collector[0];
+        // Output strings directly
+        if (typeof chunk === 'string') {
+            this.push(chunk);
+            this.collector.shift();
+            // For fulfilled promises, merge into collector
+        }
+        else if (!!chunk && (typeof chunk === 'object' || isFunction(chunk)) && isFunction(chunk.then)) {
+            var self = this;
             chunk.then(function (index) {
                 var ref;
-
-                (ref = self.collector).splice.apply(ref, [ 0, 1 ].concat( self.promises[index] ));
-                self.promises[index] = null;
-                setTimeout(self.pushQueue, 0);
-            });
-            this.collector[0] = null;
-            // End of content
-        }
-        else if (chunk === Infinity) {
-            this.emit('end');
-        }
-    };
+
+                (ref = self.collector).splice.apply(ref, [ 0, 1 ].concat( self.promises[index] ));
+                self.promises[index] = null;
+                setTimeout(self.pushQueue, 0);
+            });
+            this.collector[0] = null;
+            // End of content
+        }
+        else if (chunk === Infinity) {
+            this.emit('end');
+        }
+    };
     RenderQueueStream.prototype.renderVNodeToQueue = function renderVNodeToQueue (vNode, context, firstChild, position) {
         var this$1 = this;
-
-        var flags = vNode.flags;
-        var type = vNode.type;
-        var props = vNode.props || __WEBPACK_IMPORTED_MODULE_0_inferno__["b" /* EMPTY_OBJ */];
-        var children = vNode.children;
-        // Handles a component render
-        if ((flags & 14 /* Component */) > 0) {
-            var isClass = flags & 4 /* ComponentClass */;
-            // Render the
-            if (isClass) {
-                var instance = new type(props, context);
-                instance.$BS = false;
-                var childContext;
-                if (!isUndefined(instance.getChildContext)) {
-                    childContext = instance.getChildContext();
-                }
-                if (!isNullOrUndef(childContext)) {
-                    context = combineFrom(context, childContext);
-                }
-                if (instance.props === __WEBPACK_IMPORTED_MODULE_0_inferno__["b" /* EMPTY_OBJ */]) {
-                    instance.props = props;
-                }
-                instance.context = context;
-                instance.$UN = false;
-                // Trigger lifecycle hook
-                if (isFunction(instance.componentWillMount)) {
-                    instance.$BR = true;
-                    instance.componentWillMount();
-                    if (instance.$PSS) {
-                        var state = instance.state;
-                        var pending = instance.$PS;
-                        if (state === null) {
-                            instance.state = pending;
-                        }
-                        else {
-                            for (var key in pending) {
-                                state[key] = pending[key];
-                            }
-                        }
-                        instance.$PSS = false;
-                        instance.$PS = null;
-                    }
-                    instance.$BR = false;
-                }
-                // Trigger extra promise-based lifecycle hook
-                if (isFunction(instance.getInitialProps)) {
-                    var initialProps = instance.getInitialProps(instance.props, instance.context);
-                    if (initialProps) {
-                        if (Promise.resolve(initialProps) === initialProps) {
-                            var promisePosition = this.promises.push([]) - 1;
-                            this.addToQueue(initialProps.then(function (dataForContext) {
-                                instance.$PSS = false;
-                                if (typeof dataForContext === 'object') {
-                                    instance.props = combineFrom(instance.props, dataForContext);
-                                }
-                                var renderOut = instance.render(instance.props, instance.state, instance.context);
-                                if (isInvalid(renderOut)) {
-                                    this$1.addToQueue('<!--!-->', promisePosition);
-                                }
-                                else if (isString(renderOut)) {
-                                    this$1.addToQueue(escapeText(renderOut), promisePosition);
-                                }
-                                else if (isNumber(renderOut)) {
-                                    this$1.addToQueue(renderOut + '', promisePosition);
-                                }
-                                else {
-                                    this$1.renderVNodeToQueue(renderOut, instance.context, true, promisePosition);
-                                }
-                                setTimeout(this$1.pushQueue, 0);
-                                return promisePosition;
-                            }), position);
-                            return;
-                        }
-                        else {
-                            instance.props = combineFrom(instance.props, initialProps);
-                        }
-                    }
-                }
-                var renderOutput = instance.render(instance.props, instance.state, instance.context);
-                instance.$PSS = false;
-                if (isInvalid(renderOutput)) {
-                    this.addToQueue('<!--!-->', position);
-                }
-                else if (isString(renderOutput)) {
-                    this.addToQueue(escapeText(renderOutput), position);
-                }
-                else if (isNumber(renderOutput)) {
-                    this.addToQueue(renderOutput + '', position);
-                }
-                else {
-                    this.renderVNodeToQueue(renderOutput, context, true, position);
-                }
-            }
-            else {
-                var renderOutput$1 = type(props, context);
-                if (isInvalid(renderOutput$1)) {
-                    this.addToQueue('<!--!-->', position);
-                }
-                else if (isString(renderOutput$1)) {
-                    this.addToQueue(escapeText(renderOutput$1), position);
-                }
-                else if (isNumber(renderOutput$1)) {
-                    this.addToQueue(renderOutput$1 + '', position);
-                }
-                else {
-                    this.renderVNodeToQueue(renderOutput$1, context, true, position);
-                }
-            }
-            // If an element
-        }
-        else if ((flags & 481 /* Element */) > 0) {
-            var renderedString = "<" + type;
-            var html;
-            var isVoidElement = voidElements.has(type);
-            var className = vNode.className;
-            if (isString(className)) {
-                renderedString += " class=\"" + (escapeText(className)) + "\"";
-            }
-            else if (isNumber(className)) {
-                renderedString += " class=\"" + className + "\"";
-            }
-            if (!isNull(props)) {
-                for (var prop in props) {
-                    var value = props[prop];
-                    switch (prop) {
-                        case 'dangerouslySetInnerHTML':
-                            html = value.__html;
-                            break;
-                        case 'style':
-                            if (!isNullOrUndef(props.style)) {
-                                renderedString += " style=\"" + (renderStylesToString(props.style)) + "\"";
-                            }
-                            break;
-                        case 'children':
-                        case 'className':
-                            // Ignore
-                            break;
-                        case 'defaultValue':
-                            // Use default values if normal values are not present
-                            if (!props.value) {
-                                renderedString += " value=\"" + (isString(value) ? escapeText(value) : value) + "\"";
-                            }
-                            break;
-                        case 'defaultChecked':
-                            // Use default values if normal values are not present
-                            if (!props.checked) {
-                                renderedString += " checked=\"" + value + "\"";
-                            }
-                            break;
-                        default:
-                            if (isAttributeNameSafe(prop)) {
-                                if (isString(value)) {
-                                    renderedString += " " + prop + "=\"" + (escapeText(value)) + "\"";
-                                }
-                                else if (isNumber(value)) {
-                                    renderedString += " " + prop + "=\"" + value + "\"";
-                                }
-                                else if (isTrue(value)) {
-                                    renderedString += " " + prop;
-                                }
-                            }
-                            break;
-                    }
-                }
-            }
-            renderedString += ">";
-            if (String(type).match(/[\s\n\/='"\0<>]/)) {
-                throw renderedString;
-            }
-            // Voided element, push directly to queue
-            if (isVoidElement) {
-                this.addToQueue(renderedString, position);
-                // Regular element with content
-            }
-            else {
-                // Element has children, build them in
-                var childFlags = vNode.childFlags;
-                if (childFlags & 2 /* HasVNodeChildren */) {
-                    this.addToQueue(renderedString, position);
-                    this.renderVNodeToQueue(children, context, true, position);
-                    this.addToQueue('</' + type + '>', position);
-                    return;
-                }
-                else if (childFlags & 12 /* MultipleChildren */) {
-                    this.addToQueue(renderedString, position);
-                    renderedString = '';
-                    for (var i = 0, len = children.length; i < len; i++) {
-                        this$1.renderVNodeToQueue(children[i], context, i === 0, position);
-                    }
-                }
-                if (html) {
-                    this.addToQueue(renderedString + html + '</' + type + '>', position);
-                    return;
-                }
-                // Close element if it's not void
-                if (!isVoidElement) {
-                    this.addToQueue(renderedString + '</' + type + '>', position);
-                }
-            }
-            // Push text directly to queue
-        }
-        else if ((flags & 16 /* Text */) > 0) {
-            this.addToQueue((firstChild ? '' : '<!---->') + (children === '' ? ' ' : escapeText(children)), position);
-            // Handle errors
-        }
-        else {
-            throwError();
-        }
+
+        var flags = vNode.flags;
+        var type = vNode.type;
+        var props = vNode.props || __WEBPACK_IMPORTED_MODULE_0_inferno__["b" /* EMPTY_OBJ */];
+        var children = vNode.children;
+        // Handles a component render
+        if ((flags & 14 /* Component */) > 0) {
+            var isClass = flags & 4 /* ComponentClass */;
+            // Render the
+            if (isClass) {
+                var instance = new type(props, context);
+                instance.$BS = false;
+                var childContext;
+                if (!isUndefined(instance.getChildContext)) {
+                    childContext = instance.getChildContext();
+                }
+                if (!isNullOrUndef(childContext)) {
+                    context = combineFrom(context, childContext);
+                }
+                if (instance.props === __WEBPACK_IMPORTED_MODULE_0_inferno__["b" /* EMPTY_OBJ */]) {
+                    instance.props = props;
+                }
+                instance.context = context;
+                instance.$UN = false;
+                // Trigger lifecycle hook
+                if (isFunction(instance.componentWillMount)) {
+                    instance.$BR = true;
+                    instance.componentWillMount();
+                    if (instance.$PSS) {
+                        var state = instance.state;
+                        var pending = instance.$PS;
+                        if (state === null) {
+                            instance.state = pending;
+                        }
+                        else {
+                            for (var key in pending) {
+                                state[key] = pending[key];
+                            }
+                        }
+                        instance.$PSS = false;
+                        instance.$PS = null;
+                    }
+                    instance.$BR = false;
+                }
+                // Trigger extra promise-based lifecycle hook
+                if (isFunction(instance.getInitialProps)) {
+                    var initialProps = instance.getInitialProps(instance.props, instance.context);
+                    if (initialProps) {
+                        if (Promise.resolve(initialProps) === initialProps) {
+                            var promisePosition = this.promises.push([]) - 1;
+                            this.addToQueue(initialProps.then(function (dataForContext) {
+                                instance.$PSS = false;
+                                if (typeof dataForContext === 'object') {
+                                    instance.props = combineFrom(instance.props, dataForContext);
+                                }
+                                var renderOut = instance.render(instance.props, instance.state, instance.context);
+                                if (isInvalid(renderOut)) {
+                                    this$1.addToQueue('<!--!-->', promisePosition);
+                                }
+                                else if (isString(renderOut)) {
+                                    this$1.addToQueue(escapeText(renderOut), promisePosition);
+                                }
+                                else if (isNumber(renderOut)) {
+                                    this$1.addToQueue(renderOut + '', promisePosition);
+                                }
+                                else {
+                                    this$1.renderVNodeToQueue(renderOut, instance.context, true, promisePosition);
+                                }
+                                setTimeout(this$1.pushQueue, 0);
+                                return promisePosition;
+                            }), position);
+                            return;
+                        }
+                        else {
+                            instance.props = combineFrom(instance.props, initialProps);
+                        }
+                    }
+                }
+                var renderOutput = instance.render(instance.props, instance.state, instance.context);
+                instance.$PSS = false;
+                if (isInvalid(renderOutput)) {
+                    this.addToQueue('<!--!-->', position);
+                }
+                else if (isString(renderOutput)) {
+                    this.addToQueue(escapeText(renderOutput), position);
+                }
+                else if (isNumber(renderOutput)) {
+                    this.addToQueue(renderOutput + '', position);
+                }
+                else {
+                    this.renderVNodeToQueue(renderOutput, context, true, position);
+                }
+            }
+            else {
+                var renderOutput$1 = type(props, context);
+                if (isInvalid(renderOutput$1)) {
+                    this.addToQueue('<!--!-->', position);
+                }
+                else if (isString(renderOutput$1)) {
+                    this.addToQueue(escapeText(renderOutput$1), position);
+                }
+                else if (isNumber(renderOutput$1)) {
+                    this.addToQueue(renderOutput$1 + '', position);
+                }
+                else {
+                    this.renderVNodeToQueue(renderOutput$1, context, true, position);
+                }
+            }
+            // If an element
+        }
+        else if ((flags & 481 /* Element */) > 0) {
+            var renderedString = "<" + type;
+            var html;
+            var isVoidElement = voidElements.has(type);
+            var className = vNode.className;
+            if (isString(className)) {
+                renderedString += " class=\"" + (escapeText(className)) + "\"";
+            }
+            else if (isNumber(className)) {
+                renderedString += " class=\"" + className + "\"";
+            }
+            if (!isNull(props)) {
+                for (var prop in props) {
+                    var value = props[prop];
+                    switch (prop) {
+                        case 'dangerouslySetInnerHTML':
+                            html = value.__html;
+                            break;
+                        case 'style':
+                            if (!isNullOrUndef(props.style)) {
+                                renderedString += " style=\"" + (renderStylesToString(props.style)) + "\"";
+                            }
+                            break;
+                        case 'children':
+                        case 'className':
+                            // Ignore
+                            break;
+                        case 'defaultValue':
+                            // Use default values if normal values are not present
+                            if (!props.value) {
+                                renderedString += " value=\"" + (isString(value) ? escapeText(value) : value) + "\"";
+                            }
+                            break;
+                        case 'defaultChecked':
+                            // Use default values if normal values are not present
+                            if (!props.checked) {
+                                renderedString += " checked=\"" + value + "\"";
+                            }
+                            break;
+                        default:
+                            if (isAttributeNameSafe(prop)) {
+                                if (isString(value)) {
+                                    renderedString += " " + prop + "=\"" + (escapeText(value)) + "\"";
+                                }
+                                else if (isNumber(value)) {
+                                    renderedString += " " + prop + "=\"" + value + "\"";
+                                }
+                                else if (isTrue(value)) {
+                                    renderedString += " " + prop;
+                                }
+                            }
+                            break;
+                    }
+                }
+            }
+            renderedString += ">";
+            if (String(type).match(/[\s\n\/='"\0<>]/)) {
+                throw renderedString;
+            }
+            // Voided element, push directly to queue
+            if (isVoidElement) {
+                this.addToQueue(renderedString, position);
+                // Regular element with content
+            }
+            else {
+                // Element has children, build them in
+                var childFlags = vNode.childFlags;
+                if (childFlags & 2 /* HasVNodeChildren */) {
+                    this.addToQueue(renderedString, position);
+                    this.renderVNodeToQueue(children, context, true, position);
+                    this.addToQueue('</' + type + '>', position);
+                    return;
+                }
+                else if (childFlags & 12 /* MultipleChildren */) {
+                    this.addToQueue(renderedString, position);
+                    renderedString = '';
+                    for (var i = 0, len = children.length; i < len; i++) {
+                        this$1.renderVNodeToQueue(children[i], context, i === 0, position);
+                    }
+                }
+                if (html) {
+                    this.addToQueue(renderedString + html + '</' + type + '>', position);
+                    return;
+                }
+                // Close element if it's not void
+                if (!isVoidElement) {
+                    this.addToQueue(renderedString + '</' + type + '>', position);
+                }
+            }
+            // Push text directly to queue
+        }
+        else if ((flags & 16 /* Text */) > 0) {
+            this.addToQueue((firstChild ? '' : '<!---->') + (children === '' ? ' ' : escapeText(children)), position);
+            // Handle errors
+        }
+        else {
+            throwError();
+        }
     };
 
     return RenderQueueStream;
-}(__WEBPACK_IMPORTED_MODULE_1_stream__["Readable"]));
-function streamQueueAsString(node) {
-    return new RenderQueueStream(node);
+}(__WEBPACK_IMPORTED_MODULE_1_stream__["Readable"]));
+function streamQueueAsString(node) {
+    return new RenderQueueStream(node);
 }
 
-var resolvedPromise = Promise.resolve();
+var resolvedPromise = Promise.resolve();
 var RenderStream = (function (Readable$$1) {
-    function RenderStream(initNode) {
-        Readable$$1.call(this);
-        this.started = false;
-        this.initNode = initNode;
+    function RenderStream(initNode) {
+        Readable$$1.call(this);
+        this.started = false;
+        this.initNode = initNode;
     }
 
     if ( Readable$$1 ) RenderStream.__proto__ = Readable$$1;
     RenderStream.prototype = Object.create( Readable$$1 && Readable$$1.prototype );
-    RenderStream.prototype.constructor = RenderStream;
+    RenderStream.prototype.constructor = RenderStream;
     RenderStream.prototype._read = function _read () {
         var this$1 = this;
-
-        if (this.started) {
-            return;
-        }
-        this.started = true;
-        resolvedPromise
-            .then(function () {
-            return this$1.renderNode(this$1.initNode, null, false);
-        })
-            .then(function () {
-            this$1.push(null);
-        })
-            .catch(function (err) {
-            this$1.emit('error', err);
-        });
-    };
-    RenderStream.prototype.renderNode = function renderNode (vNode, context, insertComment) {
-        var flags = vNode.flags;
-        if ((flags & 14 /* Component */) > 0) {
-            return this.renderComponent(vNode, context, flags & 4 /* ComponentClass */);
-        }
-        if ((flags & 481 /* Element */) > 0) {
-            return this.renderElement(vNode, context);
-        }
-        return this.renderText(vNode, insertComment);
-    };
+
+        if (this.started) {
+            return;
+        }
+        this.started = true;
+        resolvedPromise
+            .then(function () {
+            return this$1.renderNode(this$1.initNode, null, false);
+        })
+            .then(function () {
+            this$1.push(null);
+        })
+            .catch(function (err) {
+            this$1.emit('error', err);
+        });
+    };
+    RenderStream.prototype.renderNode = function renderNode (vNode, context, insertComment) {
+        var flags = vNode.flags;
+        if ((flags & 14 /* Component */) > 0) {
+            return this.renderComponent(vNode, context, flags & 4 /* ComponentClass */);
+        }
+        if ((flags & 481 /* Element */) > 0) {
+            return this.renderElement(vNode, context);
+        }
+        return this.renderText(vNode, insertComment);
+    };
     RenderStream.prototype.renderComponent = function renderComponent (vComponent, context, isClass) {
         var this$1 = this;
-
-        var type = vComponent.type;
-        var props = vComponent.props;
-        if (!isClass) {
-            var renderOutput = type(props, context);
-            if (isInvalid(renderOutput)) {
-                return this.push('<!--!-->');
-            }
-            if (isString(renderOutput)) {
-                return this.push(escapeText(renderOutput));
-            }
-            if (isNumber(renderOutput)) {
-                return this.push(renderOutput + '');
-            }
-            return this.renderNode(renderOutput, context, false);
-        }
-        var instance = new type(props, context);
-        instance.$BS = false;
-        var childContext;
-        if (isFunction(instance.getChildContext)) {
-            childContext = instance.getChildContext();
-        }
-        if (!isNullOrUndef(childContext)) {
-            context = combineFrom(context, childContext);
-        }
-        instance.context = context;
-        instance.$BR = true;
-        return Promise.resolve(instance.componentWillMount && instance.componentWillMount()).then(function () {
-            if (instance.$PSS) {
-                var state = instance.state;
-                var pending = instance.$PS;
-                if (state === null) {
-                    instance.state = pending;
-                }
-                else {
-                    for (var key in pending) {
-                        state[key] = pending[key];
-                    }
-                }
-                instance.$PSS = false;
-                instance.$PS = null;
-            }
-            instance.$BR = false;
-            var renderOutput = instance.render(instance.props, instance.state, instance.context);
-            instance.$PSS = false;
-            if (isInvalid(renderOutput)) {
-                return this$1.push('<!--!-->');
-            }
-            if (isString(renderOutput)) {
-                return this$1.push(escapeText(renderOutput));
-            }
-            if (isNumber(renderOutput)) {
-                return this$1.push(renderOutput + '');
-            }
-            return this$1.renderNode(renderOutput, context, false);
-        });
-    };
+
+        var type = vComponent.type;
+        var props = vComponent.props;
+        if (!isClass) {
+            var renderOutput = type(props, context);
+            if (isInvalid(renderOutput)) {
+                return this.push('<!--!-->');
+            }
+            if (isString(renderOutput)) {
+                return this.push(escapeText(renderOutput));
+            }
+            if (isNumber(renderOutput)) {
+                return this.push(renderOutput + '');
+            }
+            return this.renderNode(renderOutput, context, false);
+        }
+        var instance = new type(props, context);
+        instance.$BS = false;
+        var childContext;
+        if (isFunction(instance.getChildContext)) {
+            childContext = instance.getChildContext();
+        }
+        if (!isNullOrUndef(childContext)) {
+            context = combineFrom(context, childContext);
+        }
+        instance.context = context;
+        instance.$BR = true;
+        return Promise.resolve(instance.componentWillMount && instance.componentWillMount()).then(function () {
+            if (instance.$PSS) {
+                var state = instance.state;
+                var pending = instance.$PS;
+                if (state === null) {
+                    instance.state = pending;
+                }
+                else {
+                    for (var key in pending) {
+                        state[key] = pending[key];
+                    }
+                }
+                instance.$PSS = false;
+                instance.$PS = null;
+            }
+            instance.$BR = false;
+            var renderOutput = instance.render(instance.props, instance.state, instance.context);
+            instance.$PSS = false;
+            if (isInvalid(renderOutput)) {
+                return this$1.push('<!--!-->');
+            }
+            if (isString(renderOutput)) {
+                return this$1.push(escapeText(renderOutput));
+            }
+            if (isNumber(renderOutput)) {
+                return this$1.push(renderOutput + '');
+            }
+            return this$1.renderNode(renderOutput, context, false);
+        });
+    };
     RenderStream.prototype.renderChildren = function renderChildren (children, context, childFlags) {
         var this$1 = this;
-
-        if (childFlags & 2 /* HasVNodeChildren */) {
-            return this.renderNode(children, context, false);
-        }
-        if (childFlags & 12 /* MultipleChildren */) {
-            return children.reduce(function (p, child) {
-                return p.then(function (insertComment) {
-                    if ((child.flags & 16 /* Text */) > 0) {
-                        if (insertComment) {
-                            this$1.push('<!---->');
-                        }
-                    }
-                    return Promise.resolve(this$1.renderNode(child, context, false)).then(function () { return !!(child.flags & 16 /* Text */); });
-                });
-            }, Promise.resolve(false));
-        }
-    };
-    RenderStream.prototype.renderText = function renderText (vNode, insertComment) {
-        this.push((insertComment ? '<!---->' : '') + (vNode.children === '' ? ' ' : escapeText(vNode.children)));
-    };
+
+        if (childFlags & 2 /* HasVNodeChildren */) {
+            return this.renderNode(children, context, false);
+        }
+        if (childFlags & 12 /* MultipleChildren */) {
+            return children.reduce(function (p, child) {
+                return p.then(function (insertComment) {
+                    if ((child.flags & 16 /* Text */) > 0) {
+                        if (insertComment) {
+                            this$1.push('<!---->');
+                        }
+                    }
+                    return Promise.resolve(this$1.renderNode(child, context, false)).then(function () { return !!(child.flags & 16 /* Text */); });
+                });
+            }, Promise.resolve(false));
+        }
+    };
+    RenderStream.prototype.renderText = function renderText (vNode, insertComment) {
+        this.push((insertComment ? '<!---->' : '') + (vNode.children === '' ? ' ' : escapeText(vNode.children)));
+    };
     RenderStream.prototype.renderElement = function renderElement (vNode, context) {
         var this$1 = this;
-
-        var type = vNode.type;
-        var props = vNode.props;
-        var renderedString = "<" + type;
-        var html;
-        var isVoidElement = voidElements.has(type);
-        var className = vNode.className;
-        if (isString(className)) {
-            renderedString += " class=\"" + (escapeText(className)) + "\"";
-        }
-        else if (isNumber(className)) {
-            renderedString += " class=\"" + className + "\"";
-        }
-        if (!isNull(props)) {
-            for (var prop in props) {
-                var value = props[prop];
-                switch (prop) {
-                    case 'dangerouslySetInnerHTML':
-                        html = value.__html;
-                        break;
-                    case 'style':
-                        if (!isNullOrUndef(props.style)) {
-                            renderedString += " style=\"" + (renderStylesToString(props.style)) + "\"";
-                        }
-                        break;
-                    case 'children':
-                    case 'className':
-                        // Ignore
-                        break;
-                    case 'defaultValue':
-                        // Use default values if normal values are not present
-                        if (!props.value) {
-                            renderedString += " value=\"" + (isString(value) ? escapeText(value) : value) + "\"";
-                        }
-                        break;
-                    case 'defaultChecked':
-                        // Use default values if normal values are not present
-                        if (!props.checked) {
-                            renderedString += " checked=\"" + value + "\"";
-                        }
-                        break;
-                    default:
-                        if (isAttributeNameSafe(prop)) {
-                            if (isString(value)) {
-                                renderedString += " " + prop + "=\"" + (escapeText(value)) + "\"";
-                            }
-                            else if (isNumber(value)) {
-                                renderedString += " " + prop + "=\"" + value + "\"";
-                            }
-                            else if (isTrue(value)) {
-                                renderedString += " " + prop;
-                            }
-                            break;
-                        }
-                }
-            }
-        }
-        renderedString += ">";
-        this.push(renderedString);
-        if (String(type).match(/[\s\n\/='"\0<>]/)) {
-            throw renderedString;
-        }
-        if (isVoidElement) {
-            return;
-        }
-        else {
-            if (html) {
-                this.push(html);
-                this.push(("</" + type + ">"));
-                return;
-            }
-        }
-        var childFlags = vNode.childFlags;
-        if (childFlags & 1 /* HasInvalidChildren */) {
-            this.push(("</" + type + ">"));
-            return;
-        }
-        return Promise.resolve(this.renderChildren(vNode.children, context, childFlags)).then(function () {
-            this$1.push(("</" + type + ">"));
-        });
+
+        var type = vNode.type;
+        var props = vNode.props;
+        var renderedString = "<" + type;
+        var html;
+        var isVoidElement = voidElements.has(type);
+        var className = vNode.className;
+        if (isString(className)) {
+            renderedString += " class=\"" + (escapeText(className)) + "\"";
+        }
+        else if (isNumber(className)) {
+            renderedString += " class=\"" + className + "\"";
+        }
+        if (!isNull(props)) {
+            for (var prop in props) {
+                var value = props[prop];
+                switch (prop) {
+                    case 'dangerouslySetInnerHTML':
+                        html = value.__html;
+                        break;
+                    case 'style':
+                        if (!isNullOrUndef(props.style)) {
+                            renderedString += " style=\"" + (renderStylesToString(props.style)) + "\"";
+                        }
+                        break;
+                    case 'children':
+                    case 'className':
+                        // Ignore
+                        break;
+                    case 'defaultValue':
+                        // Use default values if normal values are not present
+                        if (!props.value) {
+                            renderedString += " value=\"" + (isString(value) ? escapeText(value) : value) + "\"";
+                        }
+                        break;
+                    case 'defaultChecked':
+                        // Use default values if normal values are not present
+                        if (!props.checked) {
+                            renderedString += " checked=\"" + value + "\"";
+                        }
+                        break;
+                    default:
+                        if (isAttributeNameSafe(prop)) {
+                            if (isString(value)) {
+                                renderedString += " " + prop + "=\"" + (escapeText(value)) + "\"";
+                            }
+                            else if (isNumber(value)) {
+                                renderedString += " " + prop + "=\"" + value + "\"";
+                            }
+                            else if (isTrue(value)) {
+                                renderedString += " " + prop;
+                            }
+                            break;
+                        }
+                }
+            }
+        }
+        renderedString += ">";
+        this.push(renderedString);
+        if (String(type).match(/[\s\n\/='"\0<>]/)) {
+            throw renderedString;
+        }
+        if (isVoidElement) {
+            return;
+        }
+        else {
+            if (html) {
+                this.push(html);
+                this.push(("</" + type + ">"));
+                return;
+            }
+        }
+        var childFlags = vNode.childFlags;
+        if (childFlags & 1 /* HasInvalidChildren */) {
+            this.push(("</" + type + ">"));
+            return;
+        }
+        return Promise.resolve(this.renderChildren(vNode.children, context, childFlags)).then(function () {
+            this$1.push(("</" + type + ">"));
+        });
     };
 
     return RenderStream;
-}(__WEBPACK_IMPORTED_MODULE_1_stream__["Readable"]));
-function streamAsString(node) {
-    return new RenderStream(node);
+}(__WEBPACK_IMPORTED_MODULE_1_stream__["Readable"]));
+function streamAsString(node) {
+    return new RenderStream(node);
 }
 
 
@@ -75925,13 +75927,1789 @@ module.exports = exports['default'];
 /* 885 */
 /***/ (function(module, exports, __webpack_require__) {
 
+"use strict";
+
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+// content scripts
+chrome.ipcRenderer = {
+  on: (channel, listener) => {
+    chrome.runtime.onMessage.addListener((message, sender) => {
+      if (!message.ipc || channel != message.channel) return;
+
+      listener({}, ...message.args);
+    });
+  },
+  once: (channel, listener) => {
+    const handler = (message, sender) => {
+      if (!message.ipc || channel != message.channel) return;
+
+      listener({}, ...message.args);
+      chrome.runtime.onMessage.removeListener(handler);
+    };
+    chrome.runtime.onMessage.addListener(handler);
+  },
+  send: (channel, ...args) => {
+    chrome.runtime.sendMessage({ ipcToBg: true, channel, args });
+  }
+};
+
+window.__started_ = window.__started_ ? void 0 : 1;
+var ipc = chrome.ipcRenderer;
+if (window.__started_) {
+
+  const fullscreenListener = e => {
+    console.log(3313, e, document.fullscreenElement !== null);
+    ipc.send('fullscreen-change', document.fullscreenElement !== null);
+  };
+
+  document.addEventListener('fullscreenchange', fullscreenListener);
+  document.addEventListener('webkitfullscreenchange', fullscreenListener);
+
+  setTimeout(() => {
+    document.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      console.log(5555, e);
+      const target = e.target;
+      const linkURL = (target.closest('a') || target).href;
+      const isFrame = window.top != window;
+      const selectionText = document.getSelection().toString();
+
+      let mediaFlags = {},
+          mediaType = 'none',
+          isEditable = false,
+          inputFieldType = 'none',
+          editFlags = {
+        canUndo: false,
+        canRedo: false,
+        canCut: false,
+        canCopy: !!selectionText,
+        canPaste: false,
+        canDelete: false,
+        canSelectAll: false
+      };
+
+      const mediaTarget = target.closest('img,video,audio') || target;
+
+      if (mediaTarget.tagName == 'AUDIO' || mediaTarget.tagName == 'VIDEO') {
+        mediaType = mediaTarget.tagName.toLowerCase();
+        mediaFlags = {
+          inError: mediaTarget.error,
+          isPaused: mediaTarget.paused,
+          isMuted: mediaTarget.muted,
+          hasAudio: !!mediaTarget.webkitAudioDecodedByteCount,
+          isLooping: mediaTarget.loop,
+          isControlsVisible: mediaTarget.controls,
+          canToggleControls: true,
+          canRotate: true
+        };
+      } else if (target.tagName == 'CANVAS') {
+        mediaType = target.tagName.toLowerCase();
+      } else if (mediaTarget.tagName == 'IMG') {
+        mediaType = 'image';
+      }
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        const type = target.type && target.type.toLowerCase();
+        if (target.tagName == 'INPUT' && (type == 'checkbox' || type == 'radio' || type == 'submit' || type == 'hidden' || type == 'reset' || type == 'button' || type == 'image')) {} else {
+          isEditable = true;
+          editFlags = {
+            canUndo: true,
+            canRedo: true,
+            canCut: !!selectionText,
+            canCopy: !!selectionText,
+            canPaste: true,
+            canDelete: true,
+            canSelectAll: true
+          };
+
+          if (type == 'password') {
+            inputFieldType = type;
+          } else {
+            inputFieldType = 'plainText';
+          }
+        }
+      }
+
+      document.addEventListener('mousedown', e => {
+        ipc.send('contextmenu-webContents-close');
+      }, { once: true });
+
+      ipc.send('contextmenu-webContents', {
+        srcURL: target.src,
+        linkURL,
+        pageURL: isFrame ? void 0 : location.href,
+        frameURL: isFrame ? location.href : void 0,
+        linkText: linkURL ? target.innerText : void 0,
+        mediaType,
+        mediaFlags,
+        editFlags,
+        isEditable,
+        inputFieldType,
+        x: e.x,
+        y: e.y,
+        selectionText
+      });
+    });
+  }, 100);
+
+  let preAElemsLength = 0;
+
+  // const visitedLinkName = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
+  //
+  // const setVisitedLinkColor = (force) => {
+  //   const aElems = document.getElementsByTagName('a')
+  //   const length = aElems.length
+  //   if(!force && preAElemsLength == length) return
+  //   preAElemsLength = length
+  //   const checkElems = {}
+  //   for (let i = 0; i < length; i++) {
+  //     const ele = aElems[i]
+  //     if(ele.classList.contains(visitedLinkName)) continue
+  //     const url = ele.href
+  //     if (url.startsWith('http')) {
+  //       let arr = checkElems[url]
+  //       if(arr){
+  //         arr.push(ele)
+  //       }
+  //       else{
+  //         checkElems[url] = [ele]
+  //       }
+  //     }
+  //   }
+  //   const urls = Object.keys(checkElems)
+  //   if(!urls.length) return
+  //
+  //   const key = Math.random().toString()
+  //   ipc.send('get-visited-links', key, urls)
+  //   ipc.on(`get-visited-links-reply_${key}`, (e, urls) => {
+  //     for (let url of urls) {
+  //       for(let ele of checkElems[url]){
+  //         ele.classList.add(visitedLinkName)
+  //       }
+  //     }
+  //   })
+  // }
+
+  const openTime = Date.now();
+  if (location.href.match(/^(http|chrome\-extension)/) && window == window.parent) {
+    // require('./passwordEvents')
+    __webpack_require__(886);
+    __webpack_require__(887);
+    __webpack_require__(888);
+
+    let mdownEvent;
+    document.addEventListener('mousedown', e => {
+      mdownEvent = e;
+      ipc.send('send-to-host', 'webview-mousedown', e.button);
+    }, { passive: true, capture: true });
+
+    document.addEventListener('mouseup', e => {
+      ipc.send('send-to-host', 'webview-mouseup', e.button);
+      // if(mdownEvent && e.target == mdownEvent.target &&
+      //   e.button == mdownEvent.button && (e.button == 0 || e.button == 1)){
+      //   const ele = e.target.closest('a')
+      //   if(ele && ele.href.startsWith('http')){
+      //     setTimeout(()=>setVisitedLinkColor(true),200)
+      //   }
+      // }
+    }, { passive: true, capture: true });
+
+    let preClientY = -1,
+        checkVideoEvent = {},
+        beforeRemoveIds = {};
+    document.addEventListener('mousemove', e => {
+      // console.log('mousemove')
+      if (preClientY != e.clientY) {
+        ipc.send('send-to-host', 'webview-mousemove', e.clientY);
+        // console.log('webview-mousemove', e.clientY)
+        preClientY = e.clientY;
+      }
+
+      if (!checkVideoEvent[e.target] && document.querySelector('video')) {
+        checkVideoEvent[e.target] = true;
+        let target;
+        if (e.target.tagName !== 'VIDEO') {
+          const children = [...e.target.children];
+          for (const x of children) {
+            checkVideoEvent[x] = true;
+            if (x.tagName == "VIDEO") {
+              target = x;
+              console.log(11, target);
+              break;
+            }
+          }
+          if (!target) {
+            for (let c of children) {
+              if (c.children) {
+                for (const x of [...c.children]) {
+                  checkVideoEvent[x] = true;
+                  if (x.tagName == "VIDEO") {
+                    target = x;
+                    console.log(12, target);
+                    break;
+                  }
+                }
+              }
+              if (target) break;
+            }
+            if (!target) {
+              for (let ele of document.querySelectorAll('video')) {
+                const r = ele.getBoundingClientRect();
+                if (pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)) {
+                  target = ele;
+                  console.log(13, target);
+                  break;
+                }
+              }
+              if (!target) return;
+            }
+          }
+        } else {
+          target = e.target;
+        }
+
+        console.log(553, target);
+        const v = target;
+        const func = () => {
+
+          const existElement = document.querySelector("#maximize-org-video");
+          if (existElement) {
+            clearTimeout(beforeRemoveIds[target]);
+            beforeRemoveIds[target] = setTimeout(_ => document.body.removeChild(existElement), 2000);
+            return;
+          }
+
+          const rect = v.getBoundingClientRect();
+          const rStyle = `left:${Math.round(rect.left) + 10}px;top:${Math.round(rect.top) + 10}px`;
+
+          const span = document.createElement("span");
+          span.innerHTML = v._olds_ ? 'Normal' : 'Maximize';
+          span.style.cssText = `${rStyle};z-index: 2147483647;position: absolute;overflow: hidden;border-radius: 8px;background: rgba(50,50,50,0.9);text-shadow: 0 0 2px rgba(0,0,0,.5);transition: opacity .1s cubic-bezier(0.0,0.0,0.2,1);margin: 0;border: 0;font-size: 14px;color: white;padding: 4px 7px;`;
+          span.setAttribute("id", "maximize-org-video");
+
+          document.body.appendChild(span);
+
+          span.addEventListener('click', () => {
+            maximizeInPanel(v);
+            const rect = v.getBoundingClientRect();
+            span.style.left = `${Math.round(rect.left) + 10}px`;
+            span.style.top = `${Math.round(rect.top) + 10}px`;
+            span.innerText = v._olds_ ? 'Normal' : 'Maximize';
+            clearTimeout(beforeRemoveIds[target]);
+            document.body.removeChild(span);
+          });
+
+          span.addEventListener('mouseenter', () => span.style.background = 'rgba(80,80,80,0.9)');
+          span.addEventListener('mouseleave', () => span.style.background = 'rgba(50,50,50,0.9)');
+
+          beforeRemoveIds[target] = setTimeout(_ => document.body.removeChild(span), 2000);
+        };
+
+        document.addEventListener('mousemove', e => {
+          const r = v.getBoundingClientRect();
+          if (pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)) {
+            func();
+          }
+        });
+        document.addEventListener('mouseleave', e2 => {
+          const r = v.getBoundingClientRect();
+          if (pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)) {
+            const existElement = document.querySelector("#maximize-org-video");
+            if (existElement && e2.toElement != existElement) {
+              clearTimeout(beforeRemoveIds[target]);
+              document.body.removeChild(existElement);
+            }
+          }
+        });
+        func();
+      }
+    }, { passive: true, capture: true });
+
+    window.addEventListener("beforeunload", e => {
+      ipc.send('send-to-host', 'scroll-position', { x: window.scrollX, y: window.scrollY });
+      ipc.send('contextmenu-webContents-close');
+      ipc.send('fullscreen-change', false, 1000);
+    });
+
+    document.addEventListener("DOMContentLoaded", _ => {
+      // const visitedStyle = require('./visitedStyle')
+      // setTimeout(()=> visitedStyle(`.${visitedLinkName}`), 0)
+      // setVisitedLinkColor()
+      // setInterval(()=>setVisitedLinkColor(),1000)
+      // const key = Math.random().toString()
+      // ipc.send('need-get-inner-text',key)
+      // ipc.once(`need-get-inner-text-reply_${key}`,(e,result)=>{
+      //   if(result) ipc.send('get-inner-text',location.href,document.title,document.documentElement.innerText)
+      // })
+      if (location.href.startsWith('https://chrome.google.com/webstore')) {
+        setInterval(_ => {
+          const ele = document.querySelector(".h-e-f-Ra-c.e-f-oh-Md-zb-k");
+          if (ele && !ele.innerHTML) {
+            ele.innerHTML = `<div role="button" class="dd-Va g-c-wb g-eg-ua-Uc-c-za g-c-Oc-td-jb-oa g-c g-c-Sc-ci" aria-label="add to chrome" tabindex="0" style="user-select: none;"><div class="g-c-Hf"><div class="g-c-x"><div class="g-c-R webstore-test-button-label">add to chrome</div></div></div></div>`;
+            ele.querySelector(".dd-Va.g-c-wb.g-eg-ua-Uc-c-za.g-c-Oc-td-jb-oa.g-c.g-c-Sc-ci").addEventListener('click', _ => ipc.send('add-extension', { id: location.href.split("/").slice(-1)[0].split("?")[0] }));
+          }
+          let buttons = document.querySelectorAll(".dd-Va.g-c-wb.g-eg-ua-Kb-c-za.g-c-Oc-td-jb-oa.g-c");
+          if (buttons && buttons.length) {
+            for (let button of buttons) {
+              const loc = button.parentNode.parentNode.parentNode.parentNode.href.split("/").slice(-1)[0].split("?")[0];
+              const parent = button.parentNode;
+              parent.innerHTML = `<div role="button" class="dd-Va g-c-wb g-eg-ua-Kb-c-za g-c-Oc-td-jb-oa g-c" aria-label="add to chrome" tabindex="0" style="user-select: none;"><div class="g-c-Hf"><div class="g-c-x"><div class="g-c-R webstore-test-button-label">add to chrome</div></div></div></div>`;
+              parent.querySelector(".dd-Va.g-c-wb.g-eg-ua-Kb-c-za.g-c-Oc-td-jb-oa.g-c").addEventListener('click', e => {
+                e.stopImmediatePropagation();
+                e.preventDefault();
+                ipc.send('add-extension', { id: loc });
+              }, true);
+            }
+          }
+        }, 1000);
+      } else if (location.href.match(/^https:\/\/addons\.mozilla\.org\/.+?\/firefox/) && !document.querySelector('.Badge.Badge-not-compatible')) {
+        let url;
+        const func = _ => ipc.send('add-extension', { url });
+        setInterval(_ => {
+          const b = document.querySelector('.Button--action.Button--puffy:not(.Button--disabled)');
+          if (!b) return;
+          if (b.href != 'javascript:void(0)') url = b.href;
+
+          b.innerText = 'Add to Sushi';
+          b.addEventListener('click', func);
+          b.href = 'javascript:void(0)';
+        }, 1000);
+      }
+    });
+    // setInterval(()=>setVisitedLinkColor(),1000)
+  }
+
+  // function handleDragEnd(evt) {
+  //   console.log(evt)
+  //   const target = evt.target
+  //   if(!target) return
+  //
+  //   let url,text
+  //   if(target.href){
+  //     url = target.href
+  //     text = target.innerText
+  //   }
+  //   else if(target.nodeName == "#text"){
+  //     ipc.send('send-to-host', "link-drop",{screenX: evt.screenX, screenY: evt.screenY, text:window.getSelection().toString() || target.data})
+  //   }
+  //   else{
+  //     const parent = target.closest("a")
+  //     if(parent){
+  //       url = parent.href
+  //       text = target.innerText
+  //     }
+  //     else{
+  //       url = target.src
+  //       text = target.getAttribute('alt')
+  //     }
+  //   }
+  //
+  //   ipc.send('send-to-host', "link-drop",{screenX: evt.screenX, screenY: evt.screenY, url,text})
+  // }
+  // if(location.href.match(/^chrome-extension:\/\/dckpbojndfoinamcdamhkjhnjnmjkfjd\/(favorite|favorite_sidebar)\.html/)){
+  //   console.log("favorite")
+  //   document.addEventListener("drop", e=>{
+  //     e.preventDefault()
+  //     e.stopImmediatePropagation()
+  //     console.log('drop',e)
+  //   }, false)
+  //
+  //   document.addEventListener("dragend", function( event ) {
+  //     event.preventDefault();
+  //     event.stopImmediatePropagation()
+  //     console.log('dragend',event)
+  //   }, false);
+  // }
+  // else{
+  // document.addEventListener('dragend', handleDragEnd, false)
+  // }
+
+  const gaiseki = (ax, ay, bx, by) => ax * by - bx * ay;
+  const pointInCheck = (X, Y, W, H, PX, PY) => gaiseki(-W, 0, PX - W - X, PY - Y) < 0 && gaiseki(0, H, PX - X, PY - Y) < 0 && gaiseki(W, 0, PX - X, PY - Y - H) < 0 && gaiseki(0, -H, PX - W - X, PY - H - Y) < 0;
+
+  function maximizeInPanel(v, enable) {
+    if (enable == null) {
+      enable = !v._olds_;
+    }
+    if (enable) {
+      v._olds_ = {};
+
+      v._olds_.controls = v.controls;
+      v._olds_.bodyOverflow = document.body.style.overflow;
+      v._olds_.width = v.style.width;
+      v._olds_.minWidth = v.style.minWidth;
+      v._olds_.maxWidth = v.style.maxWidth;
+      v._olds_.height = v.style.height;
+      v._olds_.minHeight = v.style.minHeight;
+      v._olds_.maxHeight = v.style.maxHeight;
+      v._olds_.position = v.style.position;
+      v._olds_.zIndex = v.style.zIndex;
+      v._olds_.backgroundColor = v.style.backgroundColor;
+      v._olds_.display = v.style.display;
+      v._olds_.left = v.style.left;
+      v._olds_.margin = v.style.margin;
+      v._olds_.padding = v.style.padding;
+      v._olds_.border = v.style.border;
+      v._olds_.outline = v.style.outline;
+
+      v.setAttribute('controls', true);
+      document.body.style.setProperty('overflow', 'hidden', 'important');
+
+      v.style.setProperty('width', '100vw', 'important');
+      v.style.setProperty('min-width', '100vw', 'important');
+      v.style.setProperty('max-width', '100vw', 'important');
+      v.style.setProperty('height', '100vh', 'important');
+      v.style.setProperty('min-height', '100vh', 'important');
+      v.style.setProperty('max-height', '100vh', 'important');
+      v.style.setProperty('position', 'fixed', 'important');
+      v.style.setProperty('z-index', '21474836476', 'important');
+      v.style.setProperty('background-color', 'black', 'important');
+      v.style.setProperty('display', 'block', 'important');
+      v.style.setProperty('left', '0', 'important');
+      v.style.setProperty('top', '0', 'important');
+      v.style.setProperty('margin', '0', 'important');
+      v.style.setProperty('padding', '0', 'important');
+      v.style.setProperty('border', '0', 'important');
+      v.style.setProperty('outline', '0', 'important');
+
+      v._olds_.parentNode = v.parentNode;
+
+      const replaceNode = document.createElement('span');
+      v.parentNode.insertBefore(replaceNode, v);
+
+      v._olds_.replaceNode = replaceNode;
+
+      document.documentElement.insertBefore(v, document.body);
+    } else {
+      v.controls = v._olds_.controls;
+      document.body.style.overflow = v._olds_.bodyOverflow;
+      v.style.width = v._olds_.width;
+      v.style.minWidth = v._olds_.minWidth;
+      v.style.maxWidth = v._olds_.maxWidth;
+      v.style.height = v._olds_.height;
+      v.style.minHeight = v._olds_.minHeight;
+      v.style.maxWidth = v._olds_.maxWidth;
+      v.style.position = v._olds_.position;
+      v.style.zIndex = v._olds_.zIndex;
+      v.style.backgroundColor = v._olds_.backgroundColor;
+      v.style.display = v._olds_.display;
+      v.style.left = v._olds_.left;
+      v.style.margin = v._olds_.margin;
+      v.style.padding = v._olds_.padding;
+      v.style.border = v._olds_.border;
+      v.style.outline = v._olds_.outline;
+
+      v._olds_.parentNode.replaceChild(v, v._olds_.replaceNode);
+
+      delete v._olds_;
+    }
+  }
+
+  let timer;
+  window.addEventListener('scroll', e => {
+    if (window.__scrollSync__ !== 0 || window.__scrollSync__ === void 0) return;
+    ipc.send('send-to-host', "webview-scroll", {
+      top: e.target.scrollingElement ? e.target.scrollingElement.scrollTop : undefined,
+      left: e.target.scrollingElement ? e.target.scrollingElement.scrollLeft : 0,
+      scrollbar: window.innerHeight - document.documentElement.clientHeight
+    });
+  }, { passive: true });
+
+  document.addEventListener('wheel', e => {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      ipc.send('menu-or-key-events', e.deltaY > 0 ? 'zoomOut' : 'zoomIn');
+    }
+  }, { passive: false });
+
+  let mainState;
+  const codeSet = new Set([8, 9, 13, 16, 17, 18, 33, 34, 37, 38, 39, 40, 45, 46, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 186, 187, 188, 189, 190, 191, 192, 219, 220, 221, 222]);
+  document.addEventListener('keydown', e => {
+    if (mainState) {
+      const addInput = {};
+      if (e.ctrlKey) addInput.ctrlKey = true;
+      if (e.metaKey) addInput.metaKey = true;
+      if (e.shiftKey) addInput.shiftKey = true;
+      if (e.altKey) addInput.altKey = true;
+      if (Object.keys(addInput).length || !codeSet.has(e.keyCode)) {
+        const name = mainState[JSON.stringify(_extends({ code: e.code.toLowerCase().replace('arrow', '').replace('escape', 'esc') }, addInput))] || mainState[JSON.stringify(_extends({ key: e.key.toLowerCase().replace('arrow', '').replace('escape', 'esc') }, addInput))];
+        if (name) {
+          ipc.send('menu-or-key-events', name);
+          console.log(name);
+          e.preventDefault();
+          e.stopImmediatePropagation();
+        }
+      }
+    }
+    ipc.send('send-to-host', 'webview-keydown', { key: e.key, keyCode: e.keyCode, which: e.which, button: e.button, ctrlKey: e.ctrlKey, metaKey: e.metaKey, altKey: e.altKey });
+  }, { capture: true });
+
+  function streamFunc(val) {
+    window._mediaElements_ = window._mediaElements_ || {};
+    if (window._mediaIntervalId) clearInterval(window._mediaIntervalId);
+    window._mediaIntervalId = setInterval(_ => {
+      for (let stream of document.querySelectorAll('video,audio')) {
+        const audioCtx = new window.AudioContext();
+        let gainNode = window._mediaElements_[stream];
+        if (!gainNode) {
+          const source = audioCtx.createMediaElementSource(stream);
+          window._mediaElements_[stream] = source;
+          gainNode = audioCtx.createGain();
+          window._mediaElements_[stream] = gainNode;
+          source.connect(gainNode);
+          gainNode.connect(audioCtx.destination);
+        }
+        if (gainNode.gain.value != val / 10.0) gainNode.gain.value = val / 10.0;
+      }
+    }, 500);
+  }
+
+  const key = Math.random().toString();
+  ipc.send("get-main-state", key, ['tripleClick', 'alwaysOpenLinkNewTab', 'themeColorChange', 'isRecording', 'isVolumeControl', 'keepAudioSeekValueVideo', 'rectangularSelection', 'fullscreenTransitionKeep', 'fullScreen', 'rockerGestureLeft', 'rockerGestureRight', 'inputHistory', 'inputHistoryMaxChar', 'hoverStatusBar', 'hoverBookmarkBar', 'ALL_KEYS2']);
+  ipc.once(`get-main-state-reply_${key}`, (e, data) => {
+    mainState = data;
+    if (data.fullscreenTransitionKeep) {
+      let full = data.fullScreen ? true : false;
+      let preV = "_";
+      setInterval(_ => {
+        const v = document.querySelector('video');
+        if (full && v && v.src && v.src != preV) {
+          if (v.scrollWidth == window.innerWidth || v.scrollHeight == window.innerHeight || v.webkitDisplayingFullscreen) {} else {
+            const fullscreenButton = document.querySelector('.ytp-fullscreen-button,.fullscreenButton,.button-bvuiFullScreenOn,.fullscreen-icon,.full-screen-button,.np_ButtonFullscreen,.vjs-fullscreen-control,.qa-fullscreen-button,[data-testid="fullscreen_control"],.vjs-fullscreen-control,.EnableFullScreenButton,.DisableFullScreenButton,.mhp1138_fullscreen,button.fullscreenh,.screenFullBtn,.player-fullscreenbutton');
+            if (fullscreenButton) {
+              const callback = e => {
+                e.stopImmediatePropagation();
+                e.preventDefault();
+                document.removeEventListener('mouseup', callback, true);
+                fullscreenButton.click();
+                if (location.href.startsWith('https://www.youtube.com')) {
+                  let retry = 0;
+                  const id = setInterval(_ => {
+                    if (retry++ > 500) clearInterval(id);
+                    const e = document.querySelector('.html5-video-player').classList;
+                    if (!e.contains('ytp-autohide')) {
+                      // e.add('ytp-autohide')
+                      if (document.querySelector('.ytp-fullscreen-button.ytp-button').getAttribute('aria-expanded') == 'true') {
+                        v.click();
+                      }
+                    }
+                  }, 10);
+                }
+              };
+              document.addEventListener('mouseup', callback, true);
+              setTimeout(_ => ipc.send('send-to-host', 'full-screen-mouseup'), 500);
+            } else {
+              const callback = e => {
+                e.stopImmediatePropagation();
+                e.preventDefault();
+                document.removeEventListener('mouseup', callback, true);
+                v.webkitRequestFullscreen();
+              };
+              let i = 0;
+              const cId = setInterval(_ => {
+                document.addEventListener('mouseup', callback, true);
+                ipc.send('send-to-host', 'full-screen-mouseup');
+                if (i++ == 5) {
+                  clearInterval(cId);
+                }
+              }, 100);
+            }
+          }
+          preV = v.src;
+        }
+
+        if (v && v.src) {
+          const currentFull = v.scrollWidth == window.innerWidth || v.scrollHeight == window.innerHeight || v.webkitDisplayingFullscreen;
+          if (v && full != currentFull) {
+            full = currentFull;
+            if (full) {
+              ipc.send("full-screen-html", true);
+            } else {
+              ipc.send("full-screen-html", false);
+            }
+          }
+        }
+      }, 500);
+    }
+    if (data.tripleClick) {
+      window.addEventListener('click', e => {
+        if (e.detail === 3) {
+          window.scrollTo(e.pageX, window.scrollY);
+        }
+      }, { passive: true });
+    }
+    if (data.alwaysOpenLinkNewTab != 'speLinkNone' || data.themeColorChange) {
+      document.addEventListener("DOMContentLoaded", _ => {
+        if (data.alwaysOpenLinkNewTab != 'speLinkNone') {
+          const href = location.href;
+          const func = _ => {
+            for (let link of document.querySelectorAll('a:not([target="_blank"])')) {
+              if (link.href == "") {} else if (data.alwaysOpenLinkNewTab == 'speLinkAllLinks') {
+                link.target = "_blank";
+                link.dataset.lockTab = "1";
+              } else if (link.origin != "null" && !href.startsWith(link.origin)) {
+                link.target = "_blank";
+                link.dataset.lockTab = "1";
+              }
+            }
+          };
+          func();
+          setInterval(func, 500);
+        }
+        if (data.themeColorChange) {
+          const rgbaFromStr = function (rgba) {
+            if (!rgba) {
+              return undefined;
+            }
+            return rgba.split('(')[1].split(')')[0].split(',');
+          };
+          const distance = function (v1, v2) {
+            let d = 0;
+            for (let i = 0; i < v2.length; i++) {
+              d += (v1[i] - v2[i]) * (v1[i] - v2[i]);
+            }
+            return Math.sqrt(d);
+          };
+          const getElementColor = function (el) {
+            const currentColorRGBA = window.getComputedStyle(el).backgroundColor;
+            const currentColor = rgbaFromStr(currentColorRGBA);
+            // Ensure that the selected color is not too similar to an inactive tab color
+            const threshold = 50;
+            if (currentColor !== undefined && Number(currentColor[3]) !== 0 && distance(currentColor, [199, 199, 199]) > threshold) {
+              return currentColorRGBA;
+            }
+            return undefined;
+          };
+          // Determines a good tab color
+          const computeThemeColor = function () {
+            // Use y = 3 to avoid hitting a border which are often gray
+            const samplePoints = [[3, 3], [window.innerWidth / 2, 3], [window.innerWidth - 3, 3]];
+            const els = [];
+            for (const point of samplePoints) {
+              const el = document.elementFromPoint(point[0], point[1]);
+              if (el) {
+                els.push(el);
+                if (el.parentElement) {
+                  els.push(el.parentElement);
+                }
+              }
+            }
+            els.push(document.body);
+            for (const el of els) {
+              if (el !== document.documentElement && el instanceof window.Element) {
+                const themeColor = getElementColor(el);
+                if (themeColor) {
+                  return themeColor;
+                }
+              }
+            }
+            return undefined;
+          };
+
+          if (window.top == window.self) {
+            ipc.send('send-to-host', 'theme-color-computed', computeThemeColor());
+          }
+        }
+      });
+    }
+    if (data.isRecording) {
+      Function(data.isRecording)();
+    }
+    if (data.isVolumeControl !== void 0) {
+      streamFunc(data.isVolumeControl);
+    }
+
+    if (data.keepAudioSeekValueVideo) {
+      const diffArray = (arr1, arr2) => arr1.filter(e => !arr2.includes(e));
+      let pre = [];
+      const id = setInterval(_ => {
+        try {
+          const volume = localStorage.getItem("vol");
+          if (volume !== null) {
+            const videos = [...document.querySelectorAll('video')];
+            const srcs = videos.map(v => v.src);
+            if (diffArray(pre, srcs).length || diffArray(srcs, pre).length) {
+              pre = srcs;
+              for (let v of videos) {
+                let i = 0;
+                const id2 = setInterval(_ => {
+                  if (i++ > 300) clearInterval(id2);
+                  v.volume = parseFloat(volume);
+                }, 10);
+              }
+            }
+          }
+        } catch (e) {
+          clearInterval(id);
+        }
+      }, 100);
+    }
+    if (data.rectangularSelection) {
+      const RectangularSelection = __webpack_require__(889);
+      new RectangularSelection();
+    }
+
+    if (data.rockerGestureLeft != 'none' || data.rockerGestureRight != 'none') {
+      let downRight;
+
+      document.addEventListener('contextmenu', e => {
+        if (!downRight || downRight == "send") {
+          e.stopImmediatePropagation();
+          e.preventDefault();
+        }
+        downRight = void 0;
+      }, false);
+
+      document.addEventListener('mousedown', e => {
+        if (e.button === 0 && e.buttons == 3 && data.rockerGestureLeft != 'none') {
+          ipc.send('menu-command', data.rockerGestureLeft);
+          e.stopImmediatePropagation();
+          e.preventDefault();
+          downRight = 'send';
+          return false;
+        } else if (e.button === 2) {
+          downRight = 'on';
+          if (e.buttons == 3 && data.rockerGestureRight != 'none') {
+            ipc.send('menu-command', data.rockerGestureRight);
+            e.stopImmediatePropagation();
+            e.preventDefault();
+            downRight = 'send';
+            return false;
+          }
+        }
+      }, false);
+    }
+
+    if (data.inputHistory && !location.href.startsWith('chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd')) {
+      __webpack_require__(890)(data.inputHistoryMaxChar);
+    }
+    // if(data.hoverStatusBar || data.hoverBookmarkBar){
+    //   document.addEventListener('mousemove',e=>{
+    //     ipc.send('send-to-host', 'webview-mousemove',e.clientY)
+    //   },{passive:true})
+    // }
+  });
+
+  //style setting
+  let styleVal;
+  if ((styleVal = localStorage.getItem('meiryo')) !== null) {
+    if (styleVal === "true") {
+      setTimeout(_ => {
+        const css = document.createElement('style');
+        const rule = document.createTextNode('html{ font-family: Arial, "メイリオ", sans-serif}');
+        css.appendChild(rule);
+        const head = document.getElementsByTagName('head');
+        if (head[0]) head[0].appendChild(css);
+      }, 0);
+    }
+  } else {
+    ipc.send('need-meiryo');
+    ipc.once('need-meiryo-reply', (e, styleVal) => {
+      localStorage.setItem('meiryo', styleVal);
+      if (styleVal) {
+        const css = document.createElement('style');
+        const rule = document.createTextNode('html{ font-family: Arial, "メイリオ", sans-serif}');
+        css.appendChild(rule);
+        const head = document.getElementsByTagName('head');
+        if (head[0]) head[0].appendChild(css);
+      }
+    });
+  }
+
+  let isFirst = true;
+  const videoFunc = (e, inputs) => {
+    if (!isFirst) return;
+    isFirst = false;
+
+    const matchReg = key => location.href.match(new RegExp(inputs[`regex${key.charAt(0).toUpperCase()}${key.slice(1)}`], 'i'));
+
+    for (let url of inputs.blackList || []) {
+      if (url && location.href.startsWith(url)) return;
+    }
+
+    const popUp = (v, text) => {
+      const rect = v.getBoundingClientRect();
+      const rStyle = `left:${Math.round(rect.left) + 20}px;top:${Math.round(rect.top) + 20}px`;
+
+      const span = document.createElement("span");
+      span.innerHTML = text;
+      span.style.cssText = `${rStyle};padding: 5px 9px;z-index: 99999999;position: absolute;overflow: hidden;border-radius: 2px;background: rgba(28,28,28,0.9);text-shadow: 0 0 2px rgba(0,0,0,.5);transition: opacity .1s cubic-bezier(0.0,0.0,0.2,1);margin: 0;border: 0;font-size: 20px;color: white;padding: 10px 15px;`;
+      span.setAttribute("id", "popup-org-video");
+      const existElement = document.querySelector("#popup-org-video");
+      if (existElement) {
+        document.body.removeChild(existElement);
+      }
+      document.body.appendChild(span);
+      setTimeout(_ => document.body.removeChild(span), 2000);
+    };
+
+    let nothing;
+    const eventHandler = async (e, name, target) => {
+      const v = target || e.target;
+      if (name == 'playOrPause') {
+        v.paused ? v.play() : v.pause();
+      } else if (name == 'fullscreen') {
+        // if(location.href.startsWith('https://www.youtube.com')){
+        //   const newStyle = document.createElement('style')
+        //   newStyle.type = "text/css"
+        //   document.head.appendChild(newStyle)
+        //   const css = document.styleSheets[0]
+        //
+        //   const idx = document.styleSheets[0].cssRules.length;
+        //   css.insertRule(".ytp-popup.ytp-generic-popup { display: none; }", idx)
+        // }
+        // const isFullscreen = v.scrollWidth == window.innerWidth || v.scrollHeight == window.innerHeight
+        // const isFull = await new Promise(r=>{
+        //   const key = Math.random().toString()
+        //   ipc.send('toggle-fullscreen2',void 0, key)
+        //   ipc.once(`toggle-fullscreen2-reply_${key}`, (e,result) => r(result))
+        // })
+        // console.log(isFullscreen,isFull,v.offsetWidth, window.innerWidth,v.offsetHeight, window.innerHeight)
+        // if(isFullscreen == isFull){
+        //   e.preventDefault()
+        //   e.stopImmediatePropagation()
+        //   return
+        // }
+        const fullscreenButton = document.querySelector('.ytp-fullscreen-button,.fullscreenButton,.button-bvuiFullScreenOn,.fullscreen-icon,.full-screen-button,.np_ButtonFullscreen,.vjs-fullscreen-control,.qa-fullscreen-button,[data-testid="fullscreen_control"],.vjs-fullscreen-control,.EnableFullScreenButton,.DisableFullScreenButton,.mhp1138_fullscreen,button.fullscreenh,.screenFullBtn,.player-fullscreenbutton');
+        console.log(fullscreenButton, v.webkitDisplayingFullscreen);
+        if (fullscreenButton) {
+          fullscreenButton.click();
+        } else {
+          if (v.webkitDisplayingFullscreen) {
+            v.webkitExitFullscreen();
+          } else {
+            v.webkitRequestFullscreen();
+          }
+        }
+        // maximizeInPanel(v)
+      } else if (name == 'exitFullscreen') {
+        // const isFull = await new Promise(r=>{
+        //   const key = Math.random().toString()
+        //   ipc.send('toggle-fullscreen2',1, key)
+        //   ipc.once(`toggle-fullscreen2-reply_${key}`, (e,result) => r(result))
+        // })
+        // const isFullscreen = v.offsetWidth == window.innerWidth || v.offsetHeight == window.innerHeight
+        // if(isFullscreen == isFull) return
+        const fullscreenButton = document.querySelector('.ytp-fullscreen-button,.fullscreenButton,.button-bvuiFullScreenOn,.fullscreen-icon,.full-screen-button,.np_ButtonFullscreen,.vjs-fullscreen-control,.qa-fullscreen-button,[data-testid="fullscreen_control"],.vjs-fullscreen-control,.EnableFullScreenButton,.DisableFullScreenButton,.mhp1138_fullscreen,button.fullscreenh,.screenFullBtn,.player-fullscreenbutton');
+        if (fullscreenButton) {
+          fullscreenButton.click();
+        } else {
+          if (v.webkitDisplayingFullscreen) {
+            v.webkitExitFullscreen();
+          } else {
+            v.webkitRequestFullscreen();
+          }
+        }
+
+        // maximizeInPanel(v)
+      } else if (name == 'mute') {
+        v.muted = !v.muted;
+        popUp(v, `Mute: ${v.muted ? "ON" : "OFF"}`);
+      } else if (name == 'rewind1') {
+        v.currentTime -= parseInt(inputs.mediaSeek1);
+      } else if (name == 'rewind2') {
+        v.currentTime -= parseInt(inputs.mediaSeek2);
+      } else if (name == 'rewind3') {
+        v.currentTime -= parseInt(inputs.mediaSeek3);
+      } else if (name == 'forward1') {
+        v.currentTime += parseInt(inputs.mediaSeek1);
+      } else if (name == 'forward2') {
+        v.currentTime += parseInt(inputs.mediaSeek2);
+      } else if (name == 'forward3') {
+        v.currentTime += parseInt(inputs.mediaSeek3);
+      } else if (name == 'frameStep') {
+        v.currentTime += 1 / 30;
+      } else if (name == 'frameBackStep') {
+        v.currentTime -= 1 / 30;
+      } else if (name == 'decSpeed') {
+        const seek = parseInt(inputs.speedSeek) / 100.0;
+        v.playbackRate -= seek;
+        popUp(v, `Speed: ${Math.round(v.playbackRate * 100)}%`);
+      } else if (name == 'incSpeed') {
+        const seek = parseInt(inputs.speedSeek) / 100.0;
+        v.playbackRate += seek;
+        popUp(v, `Speed: ${Math.round(v.playbackRate * 100)}%`);
+      } else if (name == 'normalSpeed') {
+        v.playbackRate = 1;
+        popUp(v, `Speed: ${Math.round(v.playbackRate * 100)}%`);
+      } else if (name == 'halveSpeed') {
+        v.playbackRate *= 0.5;
+        popUp(v, `Speed: ${Math.round(v.playbackRate * 100)}%`);
+      } else if (name == 'doubleSpeed') {
+        v.playbackRate *= 2;
+        popUp(v, `Speed: ${Math.round(v.playbackRate * 100)}%`);
+      } else if (name == 'decreaseVolume') {
+        const band = parseInt(inputs.audioSeek);
+        const seek = band / 100.0;
+        v.volume = Math.max(Math.round(v.volume * 100 / band) * band / 100 - seek, 0);
+        popUp(v, `Volume: ${Math.round(v.volume * 100)}%`);
+        if (inputs.keepAudioSeekValue) localStorage.setItem("vol", v.volume);
+      } else if (name == 'increaseVolume') {
+        const band = parseInt(inputs.audioSeek);
+        const seek = band / 100.0;
+        v.volume = Math.min(Math.round(v.volume * 100 / band) * band / 100 + seek, 1);
+        popUp(v, `Volume: ${Math.round(v.volume * 100)}%`);
+        if (inputs.keepAudioSeekValue) localStorage.setItem("vol", v.volume);
+      } else if (name == 'plRepeat') {
+        v.loop = !v.loop;
+        popUp(v, `Loop: ${v.loop ? "ON" : "OFF"}`);
+      } else {
+        nothing = true;
+      }
+      if (!nothing) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return false;
+      }
+    };
+
+    if (inputs.click && matchReg('click')) {
+      document.addEventListener('click', e => {
+        let target = e.target;
+        if (e.target.tagName !== 'VIDEO') {
+          const children = [...e.target.children];
+          target = children.find(x => x.tagName == "VIDEO");
+          if (!target) {
+            for (let c of children) {
+              target = c.children && [...c.children].find(x => x.tagName == "VIDEO");
+              if (target) break;
+            }
+            if (!target) {
+              for (let ele of document.querySelectorAll('video')) {
+                const r = ele.getBoundingClientRect();
+                if (pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)) {
+                  target = ele;
+                  break;
+                }
+              }
+              if (!target) return;
+            }
+          }
+        }
+        if (e.which == 1) {
+          eventHandler(e, inputs.click, target);
+        }
+      }, true);
+    }
+
+    if (inputs.dbClick && matchReg('dbClick')) {
+      document.addEventListener('dblclick', e => {
+        let target = e.target;
+        if (e.target.tagName !== 'VIDEO') {
+          const children = [...e.target.children];
+          target = children.find(x => x.tagName == "VIDEO");
+          if (!target) {
+            for (let c of children) {
+              target = c.children && [...c.children].find(x => x.tagName == "VIDEO");
+              if (target) break;
+            }
+            if (!target) {
+              for (let ele of document.querySelectorAll('video')) {
+                const r = ele.getBoundingClientRect();
+                if (pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)) {
+                  target = ele;
+                  break;
+                }
+              }
+              if (!target) return;
+            }
+          }
+        }
+        eventHandler(e, inputs.dbClick, target);
+      }, true);
+    }
+
+    if (inputs.wheelMinus && matchReg('wheelMinus') || inputs.shiftWheelMinus && matchReg('shiftWheelMinus') || inputs.ctrlWheelMinus && matchReg('ctrlWheelMinus') || inputs.shiftCtrlWheelMinus && matchReg('shiftCtrlWheelMinus')) {
+      const minusToPlus = { rewind1: 'forward1', decSpeed: 'incSpeed', decreaseVolume: 'increaseVolume', frameBackStep: 'frameStep' };
+      const modify = inputs.reverseWheel ? -1 : 1;
+      document.addEventListener('wheel', e => {
+        let target = e.target;
+        if (e.target.tagName !== 'VIDEO') {
+          const children = [...e.target.children];
+          target = children.find(x => x.tagName == "VIDEO");
+          if (!target) {
+            for (let c of children) {
+              target = c.children && [...c.children].find(x => x.tagName == "VIDEO");
+              if (target) break;
+            }
+            if (!target) {
+              for (let ele of document.querySelectorAll('video')) {
+                const r = ele.getBoundingClientRect();
+                if (pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)) {
+                  target = ele;
+                  break;
+                }
+              }
+              if (!target) return;
+            }
+          }
+        }
+        if (e.ctrlKey || e.metaKey) {
+          if (e.shiftKey) {
+            eventHandler(e, e.deltaY * modify > 0 ? minusToPlus[inputs.shiftCtrlWheelMinus] : inputs.shiftCtrlWheelMinus, target);
+          } else {
+            eventHandler(e, e.deltaY * modify > 0 ? minusToPlus[inputs.ctrlWheelMinus] : inputs.ctrlWheelMinus, target);
+          }
+        } else if (e.shiftKey) {
+          eventHandler(e, e.deltaY * modify > 0 ? minusToPlus[inputs.shiftWheelMinus] : inputs.shiftWheelMinus, target);
+        } else {
+          eventHandler(e, e.deltaY * modify > 0 ? minusToPlus[inputs.wheelMinus] : inputs.wheelMinus, target);
+        }
+      }, { capture: true, passive: false });
+    }
+
+    if (inputs.enableKeyDown) {
+      document.addEventListener('keydown', e => {
+        let target;
+        if (e.target.tagName !== 'VIDEO') {
+          const children = [...e.target.children];
+          target = children.find(x => x.tagName == "VIDEO");
+          if (!target) {
+            for (let c of children) {
+              target = c.children && [...c.children].find(x => x.tagName == "VIDEO");
+              if (target) break;
+            }
+            if (!target) {
+              target = document.querySelector('video');
+              if (!target) return;
+            }
+          }
+        }
+        const addInput = {};
+        if (e.ctrlKey) addInput.ctrlKey = true;
+        if (e.metaKey) addInput.metaKey = true;
+        if (e.shiftKey) addInput.shiftKey = true;
+        if (e.altKey) addInput.altKey = true;
+        const name = inputs[JSON.stringify(_extends({ code: e.code.toLowerCase().replace('arrow', '').replace('escape', 'esc') }, addInput))] || inputs[JSON.stringify(_extends({ key: e.key.toLowerCase().replace('arrow', '').replace('escape', 'esc') }, addInput))];
+
+        if (matchReg(name)) eventHandler(e, name, target);
+      }, true);
+    }
+  };
+
+  let retry = 0;
+  let receivedVideoEvent = setInterval(async _ => {
+    if (document.querySelector('video,audio')) {
+      const [inputs] = await new Promise(r => {
+        const key = Math.random().toString();
+        ipc.send('get-sync-main-states', ['inputsVideo'], key);
+        ipc.once(`get-sync-main-states-reply_${key}`, (e, result) => r(result));
+      });
+      chrome.runtime.sendMessage({ event: "video-event", inputs });
+      clearInterval(receivedVideoEvent);
+    }
+    if (retry++ > 3) clearInterval(receivedVideoEvent);
+  }, 1000);
+
+  ipc.once('on-video-event', (e, inputs) => {
+    clearInterval(receivedVideoEvent);
+    chrome.runtime.sendMessage({ event: "video-event", inputs });
+  });
+
+  ipc.on('on-stream-event', (e, val) => {
+    chrome.runtime.sendMessage({ event: "stream-event", val });
+  });
+  chrome.runtime.onMessage.addListener(inputs => {
+    if (inputs.stream) {
+      streamFunc(inputs.val);
+    } else if (inputs.video) {
+      videoFunc({}, inputs.val);
+    }
+    return false;
+  });
+
+  ipc.on('mobile-scroll', (e, { type, code, optSelector, selector, move }) => {
+    if (type == 'init') {
+      if (!window.__scroll__) {
+        window.__scroll__ = true;
+
+        Function(code)();
+
+        let pre = 0;
+        document.addEventListener('scroll', e => {
+          if (Date.now() - window.__scroll_time__ < 300) return;
+          const w = window.innerWidth;
+          const h = window.innerHeight;
+          const scrollY = window.scrollY;
+          const ele = document.elementFromPoint(Math.min(300, w / 2), h / 2);
+          console.log(e, ele);
+          chrome.ipcRenderer.send('sync-mobile-scroll', window.__select__(ele), window.__simpleSelect__(ele), (scrollY - pre) / document.body.scrollHeight);
+          pre = scrollY;
+        }, { capture: true, passive: true });
+      }
+    } else if (type == 'scroll') {
+      console.log(4324324);
+      const scrollY = window.scrollY;
+      let ele = document.querySelector(optSelector);
+      window.__scroll_time__ = Date.now();
+      if (ele) {
+        ele.scrollIntoViewIfNeeded();
+      } else {
+        ele = document.querySelector(selector);
+        if (ele) ele.scrollIntoViewIfNeeded();
+      }
+      if (scrollY == window.scrollY) {
+        if (Date.now() - window.__into_view__ > 400) {
+          window.scrollTo(window.scrollX, window.scrollY + move * document.body.scrollHeight);
+        }
+      } else if (ele) {
+        window.__into_view__ = Date.now();
+      }
+    }
+  });
+
+  ipc.on('execute-script-in-isolation-world', (e, key, code) => {
+    ipc.send(`execute-script-in-isolation-world-reply_${key}`, Function(`return ${code}`)());
+  });
+}
+
+/***/ }),
+/* 886 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+const ipc = chrome.ipcRenderer;
+const isWin = navigator.userAgent.includes('Windows');
+
+if (!isWin) {
+  const handleMouseUp = e => {
+    const eventMoveHandler = e2 => {
+      console.log(e2);
+      ipc.send('context-menu-move');
+      document.removeEventListener('mousemove', eventMoveHandler, { passive: true, capture: true });
+    };
+    const eventUpHandler = e2 => {
+      console.log(e2);
+      if (e2.which == 3) {
+        ipc.send('context-menu-up');
+        document.removeEventListener('mouseup', eventUpHandler, { passive: true, capture: true });
+      }
+    };
+    document.addEventListener('mousemove', eventMoveHandler, { passive: true, capture: true });
+    document.addEventListener('mouseup', eventUpHandler, { passive: true, capture: true });
+  };
+  ipc.on('start-mouseup-handler', handleMouseUp);
+}
+
+/***/ }),
+/* 887 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+const ipc = chrome.ipcRenderer;
+let x, y, right, top, left;
+
+class SyncButton {
+  constructor() {
+    this.mup = this.mup.bind(this);
+    this.mdown = this.mdown.bind(this);
+    this.mmove = this.mmove.bind(this);
+  }
+
+  mount() {
+    const div = document.createElement('div');
+    div.style = `height: 0px !important;
+    top: 120px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: 0 !important;
+    z-index: 999999 !important;
+    position: sticky !important;
+    left: 100vw;
+    -webkit-box-sizing: content-box !important;
+    box-sizing: content-box !important;
+    width: 87px !important;
+    `;
+    div.innerHTML = `<div class="drag-and-drop-inject"><a href="javascript:void(0)" class="sync-button-inject" style="margin-right:3px !important;">
+        <svg style="width: 32px;height: 32px;display: inline; fill: #777;" version="1.1" xmlns="http://www.w3.org/2000/svg" width="32"
+             height="32" viewBox="0 0 32 32">
+          <path
+            d="M27.429 16v2.286q0 0.946-0.58 1.616t-1.509 0.67h-12.571l5.232 5.25q0.679 0.643 0.679 1.607t-0.679 1.607l-1.339 1.357q-0.661 0.661-1.607 0.661-0.929 0-1.625-0.661l-11.625-11.643q-0.661-0.661-0.661-1.607 0-0.929 0.661-1.625l11.625-11.607q0.679-0.679 1.625-0.679 0.929 0 1.607 0.679l1.339 1.321q0.679 0.679 0.679 1.625t-0.679 1.625l-5.232 5.232h12.571q0.929 0 1.509 0.67t0.58 1.616z"></path>
+        </svg>
+      </a>
+      <a href="javascript:void(0)" class="sync-button-inject" style="margin-left:3px !important;">
+        <svg style="width: 32px; height: 32px; display: inline; fill: #777;" version="1.1" xmlns="http://www.w3.org/2000/svg" width="32"
+             height="32" viewBox="0 0 32 32">
+          <path
+            d="M26.286 17.143q0 0.964-0.661 1.625l-11.625 11.625q-0.696 0.661-1.625 0.661-0.911 0-1.607-0.661l-1.339-1.339q-0.679-0.679-0.679-1.625t0.679-1.625l5.232-5.232h-12.571q-0.929 0-1.509-0.67t-0.58-1.616v-2.286q0-0.946 0.58-1.616t1.509-0.67h12.571l-5.232-5.25q-0.679-0.643-0.679-1.607t0.679-1.607l1.339-1.339q0.679-0.679 1.607-0.679 0.946 0 1.625 0.679l11.625 11.625q0.661 0.625 0.661 1.607z"></path>
+        </svg>
+      </a></div></div>`;
+    document.body.insertBefore(div, document.body.firstChild);
+    const aList = div.querySelectorAll('a');
+    aList[0].addEventListener('mousedown', () => ipc.send('send-to-host', 'scrollPage', 'back'));
+    aList[1].addEventListener('mousedown', () => ipc.send('send-to-host', 'scrollPage', 'next'));
+
+    this.dad = div;
+    div.addEventListener('mousedown', this.mdown);
+    div.addEventListener('mouseup', this.mup);
+
+    const css = document.createElement('style');
+    const rule = document.createTextNode(`
+div.drag-and-drop-inject {
+    padding: 0 !important;
+    margin: 0 !important;
+    border: 0 !important;
+    padding-bottom: 7px !important; 
+    background: linear-gradient(rgba(120, 120, 120,0.2), rgba(100, 100, 100,0.2)) !important;
+    font-size: 30px !important;
+    padding: 5px 2px !important;
+    margin: 0px !important;
+    right: 15px !important;
+    line-height: 1 !important;
+    cursor: move !important;
+    border-radius: 5px !important;
+    -webkit-box-sizing: content-box !important;
+    box-sizing: content-box !important;
+}
+a.sync-button-inject {
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  padding: 0px !important;
+  margin: 5px !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+  min-width: 0px !important;
+  outline: none !important;
+  -webkit-box-sizing: content-box !important;
+  box-sizing: content-box !important;
+}`);
+    css.appendChild(rule);
+    const head = document.getElementsByTagName('head');
+    if (head[0]) head[0].appendChild(css);
+  }
+
+  unmount() {
+    document.body.removeChild(this.dad);
+  }
+
+  mdown(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    const ele = this.dad;
+    this.drag = true;
+
+    if (e.type === "mousedown") {
+      var event = e;
+    } else {
+      var event = e.changedTouches[0];
+    }
+
+    x = event.pageX - ele.offsetLeft;
+    y = event.pageY - ele.offsetTop;
+
+    document.body.addEventListener("mousemove", this.mmove, false);
+    document.body.addEventListener("touchmove", this.mmove, false);
+    document.body.addEventListener("mouseleave", this.mup, false);
+    document.body.addEventListener("touchleave", this.mup, false);
+  }
+
+  mmove(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    if (!this.drag) return;
+    const drag = this.dad;
+
+    if (e.type === "mousemove") {
+      var event = e;
+    } else {
+      var event = e.changedTouches[0];
+    }
+
+    e.preventDefault();
+
+    ;[right, top, left] = ["auto", event.clientY - y + "px", event.pageX - x + "px"];
+    drag.style.right = right;
+    drag.style.top = top;
+    drag.style.left = left;
+  }
+
+  mup(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    this.drag = false;
+    document.body.removeEventListener("mouseleave", this.mup, false);
+    document.body.removeEventListener("touchleave", this.mup, false);
+    document.body.removeEventListener("mousemove", this.mmove, false);
+    document.body.removeEventListener("touchmove", this.mmove, false);
+  }
+}
+
+const fsb = new SyncButton();
+let started;
+ipc.on('sync-button', (e, isStart, weak) => {
+  if (isStart && (started === void 0 || started === false && !weak)) {
+    fsb.mount();
+    console.log('mount');
+    started = true;
+  } else if (!isStart && started) {
+    fsb.unmount();
+    started = false;
+  }
+});
+
+/***/ }),
+/* 888 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+let x, y, right, top, left;
+const ipc = chrome.ipcRenderer;
+
+let span;
+ipc.on('input-popup', (e, isStart, style) => {
+  if (isStart) {
+    if (!span) {
+      span = document.createElement('span');
+      span.style = `padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  padding: 0px !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+  min-width: 0px !important;
+  outline: none !important;
+  -webkit-box-sizing: content-box !important;
+  box-sizing: content-box !important;
+  position: fixed !important;
+  z-index: 9999999 !important;`;
+      span.innerHTML = `<img style="width: 16px !important; height: 16px !important; opacity: 0.5 !important;" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB0AAAAdCAYAAABWk2cPAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAmhJREFUSEvN1k2ITWEYB/Df7c74LAZhQwn5KAsWLCzIR0KUlYVkUBayUEqKsiKiyEbJSsJGs2AhXyn5SEqSzWAo+YiM6foK95pr8d4zc+bcc++5xij/+tep5/+8//Oc5z3P++ZkI4dhWIypmFLhRzxDB+6jHd2VnH6jGZNwAJ3CguUa7MYlLBdeMKcfGIlD+K6+WRrvYzYG+QPMwE1/bhZnARuEqjMxS+jR3xhG7MZ2DFUHM/HIwBhGLKIVQ6RgHO4YWMOIX7BGCnb7N4YR2zFCDC14qtr0Ex7iW0qsFjsqTNOvFcPqFFEnjmEJTgmfKKlJ8oHQv1bht/mVyLkshsOJ4Hvs09v8MTiBrwldnPewrKKHRbitr74gDBxwIRFsU/1jj8Jx6RXfEkZkEitUaydGwWQ/r2JyFIxhNI7is179DSyIiypoxjbVpksjQSERLAl9TDMehYPCJruC+X3DoAlb8Uq16bpI9Dwl+AunpRu3YBfmJQN6K3yjes0yVkbCazUEJZwVjrMkkj0nVLgDr6WvV8b0SHyyjqiE88L5WQ9N2Im3aq/1U+wA2FhHGBm3Sf/UkMce9Q3Lwr/bg/F4qX5CERdVf+om7MU79fPL2FLJ6cF+2UlFYapEFeeFIdKI4QthyPTBBDyWnVwUNt4mHMGHBnJKWK8GFqJL9iJFoR2NaMvCQBmuBvJCBSWNLdYIr2OsDAwV7jZZt79GeE7tHV+FwZgjnBz9MS5gs5SNk4WcMGfX467GzD8Ix+Q06ROrB1mX4rywwFysEl4k4g9hM3XhCc4IR99P4SVqIss0jlyF0XOEeLX/L34DIpTVLg2frc4AAAAASUVORK5CYII=">`;
+      document.body.appendChild(span);
+      span.addEventListener('click', () => ipc.send('send-to-host', 'input-popup-click'));
+    }
+    span.style.setProperty('top', `${style.top}px`, 'important');
+    span.style.setProperty('left', `${style.left}px`, 'important');
+  } else if (!isStart && span) {
+    document.body.removeChild(span);
+    span = void 0;
+  }
+});
+
+/***/ }),
+/* 889 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+const ipc = chrome.ipcRenderer;
+const isWin = navigator.userAgent.includes('Windows');
+const EOL = isWin ? "\r\n" : "\n";
+
+class RectangularSelection {
+  constructor() {
+    this._replaceNodes = new Map();
+    this.mdown = this.mdown.bind(this);
+    this.mmove = this.mmove.bind(this);
+    this.mup = this.mup.bind(this);
+    this.keyDown = this.keyDown.bind(this);
+    this.getTaskAndExec = this.getTaskAndExec.bind(this);
+
+    document.addEventListener('mousedown', this.mdown, false);
+  }
+
+  rectCrossCheck(ax, ay, aw, ah, bx, by, bw, bh) {
+    return ax < bx + bw && bx < ax + aw && ay < by + bh && by < ay + ah;
+  }
+
+  getTextNode(node) {
+    if (!node || this.set.has(node)) return;
+    this.set.add(node);
+    for (let n of node.childNodes || []) {
+      if (n.constructor.name == 'Text' && !n.data.match(/^[ \t\r\n]+$/) || n.tagName == 'V1_') {
+        this.textNodes.set(n, node);
+      } else {
+        this.getTextNode(n);
+      }
+    }
+  }
+
+  selectRectangular(rect, replaceNodesPre) {
+    this.set = new Set();
+    this.textNodes = new Map();
+
+    for (let n of document.querySelectorAll("v2_")) {
+      if (n.style.color == 'white') {
+        n.style.color = null;
+        n.style.backgroundColor = null;
+      }
+    }
+
+    this.getTextNode(document.body);
+
+    // console.log(textNodes)
+    console.log(rect.left, rect.top, rect.w, rect.h);
+    const replaceNodes = new Map();
+    for (let [text, parent] of this.textNodes) {
+      const pRect = parent.getBoundingClientRect();
+      if (!this.rectCrossCheck(rect.left, rect.top, rect.w, rect.h, pRect.x, pRect.y, pRect.width, pRect.height)) continue;
+
+      let vals;
+      if (vals = replaceNodesPre.get(parent)) {
+        if (replaceNodes.has(parent)) {
+          replaceNodes.get(parent).set(text, vals.get(text));
+        } else {
+          replaceNodes.set(parent, new Map([[text, vals.get(text)]]));
+        }
+        vals.delete(text);
+        if (!vals.size) replaceNodesPre.delete(parent);
+        continue;
+      }
+      console.log(parent, text, replaceNodesPre, replaceNodesPre.get(parent));
+      const virtual = document.createElement("v1_");
+      virtual.style = "padding:0;margin:0;border:0;";
+      virtual.innerHTML = text.data.split("").map(x => `<v2_ style="padding:0;margin:0;border:0;">${x}</v2_>`).join("");
+      parent.replaceChild(virtual, text);
+      if (replaceNodes.has(parent)) {
+        replaceNodes.get(parent).set(virtual, text);
+      } else {
+        replaceNodes.set(parent, new Map([[virtual, text]]));
+      }
+    }
+
+    for (let [parent, vals] of replaceNodesPre) {
+      for (let [virtual, text] of vals) {
+        parent.replaceChild(text, virtual);
+      }
+    }
+    // console.log(replaceNodes)
+
+    for (let n of document.querySelectorAll("v2_")) {
+      const b = n.getBoundingClientRect();
+      const x = b.x + b.width / 2.0;
+      const y = b.y + b.height / 2.0;
+
+      if (x >= rect.left && x <= rect.left + rect.w && y >= rect.top && y <= rect.top + rect.h) {
+        n.style.backgroundColor = "#3390ff";
+        n.style.color = "white";
+      }
+    }
+    console.log(111, replaceNodes);
+    return replaceNodes;
+  }
+
+  getTaskAndExec() {
+    if (this.task && !this.exec) {
+      this.exec = true;
+      const task = this.task;
+      this.task = void 0;
+      task();
+      this.exec = void 0;
+    }
+  }
+
+  mdown(e) {
+    // document.removeEventListener('mousedown',this.mdown,false)
+    if (e.button !== 0) return;
+
+    if (e.altKey) {
+      this.task = void 0;
+      if (!this._clearId) {
+        this._clearId = setInterval(this.getTaskAndExec, 250);
+      }
+      document.addEventListener('mouseup', this.mup, false);
+      document.addEventListener('mousemove', this.mmove, false);
+      this.canvas = document.createElement('canvas');
+      this.canvas.style = 'position:fixed;top:0;left:0;z-index:9999999;cursor:crosshair;';
+      this.canvas.width = document.body.scrollWidth;
+      this.canvas.height = document.body.scrollHeight;
+
+      document.body.appendChild(this.canvas);
+
+      this.ctx = this.canvas.getContext('2d');
+      this.rect = {};
+      this.rect.startX = e.clientX;
+      this.rect.startY = e.clientY;
+      this.rect.scrollX = window.scrollX;
+      this.rect.scrollY = window.scrollY;
+      this.drag = true;
+    } else {
+      this.task = void 0;
+      ipc.send('rectangular-selection', false);
+      document.removeEventListener("keydown", this.keyDown, false);
+      for (let [parent, vals] of this._replaceNodes) {
+        for (let [virtual, text] of vals) {
+          parent.replaceChild(text, virtual);
+        }
+      }
+      this._replaceNodes = new Map();
+    }
+  }
+
+  mmove(e) {
+    if (this.drag) {
+      const diffScrollX = this.rect.scrollX - window.scrollX;
+      const diffScrollY = this.rect.scrollY - window.scrollY;
+      this.rect.w = Math.abs(e.clientX - this.rect.startX) - diffScrollX;
+      this.rect.h = Math.abs(e.clientY - this.rect.startY) - diffScrollY;
+      this.rect.left = Math.min(e.clientX, this.rect.startX) + diffScrollX;
+      this.rect.top = Math.min(e.clientY, this.rect.startY) + diffScrollY;
+
+      // console.log(canvas.width,canvas.height,rect)
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      // ctx.setLineDash([2]);
+      // ctx.fillStyle = "rgba(204,204,204,0.5)"
+      this.ctx.strokeRect(this.rect.left, this.rect.top, this.rect.w, this.rect.h);
+      // ctx.fill()
+      this.task = _ => {
+        this._replaceNodes = this.selectRectangular(this.rect, this._replaceNodes);
+      };
+    }
+  }
+
+  mup(e) {
+    this.drag = false;
+    document.body.removeChild(this.canvas);
+    document.removeEventListener('mousemove', this.mmove, false);
+    document.removeEventListener('mouseup', this.mup, false);
+
+    this.task = _ => {
+      this._replaceNodes = this.selectRectangular(this.rect, this._replaceNodes);
+
+      let i = 0,
+          map = {};
+      for (let n of document.querySelectorAll("v2_")) {
+        if (n.style.color !== 'white' || window.getComputedStyle(n).visibility == 'hidden') continue;
+        const rect = n.getBoundingClientRect();
+        if (map[rect.y]) {
+          map[rect.y].push([i, rect, n]);
+        } else {
+          map[rect.y] = [[i, rect, n]];
+        }
+        i++;
+      }
+
+      const arr = [];
+      for (let [k, v] of Object.entries(map)) {
+        arr.push([v.length, k, v]);
+      }
+      arr.sort((a, b) => b - a);
+
+      let n = 0,
+          skip = new Set(),
+          newArr = [];
+      for (let [len, y, v] of arr) {
+        if (skip.has(n++)) continue;
+
+        let m = n;
+        for (let [len2, y2, v2] of arr.slice(n)) {
+          if (skip.has(m)) continue;
+          if (Math.abs(y - y2) <= 3) {
+            v.push(...v2);
+            skip.add(m);
+          }
+          m++;
+        }
+        newArr.push(v);
+      }
+
+      let data = "",
+          j = 0;
+      for (let v of newArr.sort((a, b) => a[0][1].y - b[0][1].y)) {
+        v.sort((a, b) => a[1].x - b[1].x == 0 ? a[0] - b[0] : a[1].x - b[1].x);
+        data += v.map((x, i) => !v[i + 1] || v[i + 1][1].x - (x[1].x + x[1].width) < 10 ? x[2].innerText : `${x[2].innerText}\t`).join("");
+        data += newArr[j + 1] && newArr[j + 1][0][1].y - (v[0][1].y + v[0][1].height) > 10 ? EOL + EOL : EOL;
+        j++;
+      }
+
+      ipc.send('rectangular-selection', data);
+
+      this.data = data;
+      document.addEventListener("keydown", this.keyDown, false);
+    };
+  }
+
+  keyDown(e) {
+    if (e.ctrlKey && e.keyCode == 67) {
+      e.stopPropagation();
+      e.preventDefault();
+      ipc.send('set-clipboard', [this.data]);
+      return false;
+    }
+  }
+
+}
+exports.default = RectangularSelection;
+module.exports = exports["default"];
+
+/***/ }),
+/* 890 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+exports.default = function (inputHistoryMaxChar) {
+  const ipc = chrome.ipcRenderer;
+  const key = Math.random().toString;
+
+  function isString(o) {
+    return typeof o === 'string';
+  }
+
+  let timeoutId, hasCode, gettingCode;
+  function main(isTmp) {
+    if (!hasCode) return;
+    const value = [];
+    const data = {
+      value,
+      frameUrl: window.location.href,
+      host: window.location.host,
+      now: Date.now()
+    };
+    for (let ele of document.querySelectorAll('input:not([type="submit"]):not([type="hidden"]):not([type="reset"]):not([type="button"]):not([type="image"]):not([type="password"]):not([disabled]),select:not([disabled]),textarea:not([disabled]),[contenteditable="true"]:not([disabled])')) {
+      const val = getValue(ele);
+      if (val) value.push(val);
+    }
+    console.log(5553, data.value);
+    if (value.length) {
+      data.value = JSON.stringify(value);
+      ipc.send('input-history-data', key, data, isTmp);
+    }
+  }
+
+  function exec() {
+    if (timeoutId) return;
+    if (!gettingCode) {
+      gettingCode = true;
+      const key = Math.random().toString();
+      ipc.send('get-selector-code', key);
+      ipc.once(`get-selector-code_${key}`, (e, code) => {
+        Function(code)();
+        hasCode = true;
+      });
+    }
+    timeoutId = setTimeout(_ => {
+      timeoutId = void 0;
+      main(true);
+    }, 3000);
+  }
+
+  function on(eventName) {
+    if (eventName.startsWith('_')) return;
+    const handler = async e => {
+      if (!e.isTrusted) return;
+
+      const target = e.target;
+      const tag = target.tagName && target.tagName.toLowerCase();
+      const type = target.type && target.type.toLowerCase();
+      if (!tag.match(/^(input|textarea)$/) && !target.isContentEditable || tag == 'input' && (type == 'checkbox' || type == 'radio' || type == 'password' || type == 'submit' || type == 'hidden' || type == 'reset' || type == 'button' || type == 'image')) return;
+      if (eventName == 'focusin') {
+        if (!hasCode) {
+          await new Promise(r => {
+            gettingCode = true;
+            const key = Math.random().toString();
+            ipc.send('get-selector-code', key);
+            ipc.once(`get-selector-code_${key}`, (e, code) => {
+              Function(code)();
+              hasCode = true;
+              r();
+            });
+          });
+        }
+        const r = target.getBoundingClientRect();
+        ipc.send('focus-input', 'in', { x: r.x, y: r.y, width: r.width, height: r.height,
+          tag,
+          type,
+          optSelector: window.__select__(target),
+          selector: window.__simpleSelect__(target),
+          frameUrl: window.location.href,
+          host: window.location.host
+        });
+      } else if (eventName == 'focusout') {
+        setTimeout(() => ipc.send('focus-input', 'out', {
+          optSelector: window.__select__(target),
+          selector: window.__simpleSelect__(target),
+          frameUrl: window.location.href,
+          host: window.location.host
+        }), 400);
+      } else {
+        exec();
+      }
+    };
+    window.addEventListener(eventName, handler, { passive: true });
+    // window.addEventListener(eventName, handler, {capture: true,passive: true})
+  }
+
+  function getValue(target) {
+    const tag = target.tagName && target.tagName.toLowerCase();
+    const type = target.type && target.type.toLowerCase();
+
+    const style = window.getComputedStyle(target);
+    if (style.display == 'none' || style.visibility == 'hidden' || target.scrollWidth == 0 && target.scrollHeight == 0) return;
+
+    let value;
+
+    if (tag == 'input' || tag == 'textarea') {
+      if (type == 'checkbox' || type == 'radio') {
+        value = target.checked;
+      } else value = target.value;
+    } else if (tag == 'select') {
+      value = JSON.stringify([...target.selectedOptions].map(x => ({
+        index: x.index,
+        value: x.value,
+        text: x.text
+      })));
+      if (!value.length) return;
+    } else value = target.innerText || '';
+
+    if (isString(value) && tag != 'select') {
+      value = value.slice(0, inputHistoryMaxChar);
+    }
+
+    return value !== 0 && !value ? void 0 : {
+      tag,
+      type,
+      value,
+      optSelector: window.__select__(target),
+      selector: window.__simpleSelect__(target),
+      editable: target.isContentEditable
+    };
+  }
+
+  for (let eventName of ['mousedown', 'select', 'focusin', 'focusout', 'click', 'keydown', 'input', 'change']) {
+    on(eventName);
+  }
+
+  function closeHandler() {
+    main();
+    ipc.send('focus-input', 'out', {
+      frameUrl: window.location.href
+    });
+  }
+
+  ipc.once('record-input-history', closeHandler);
+  window.addEventListener('beforeunload', closeHandler);
+};
+
+module.exports = exports['default'];
+
+/***/ }),
+/* 891 */
+/***/ (function(module, exports, __webpack_require__) {
+
 /**
  * This is the web browser implementation of `debug()`.
  *
  * Expose `debug()` as the module.
  */
 
-exports = module.exports = __webpack_require__(886);
+exports = module.exports = __webpack_require__(892);
 exports.log = log;
 exports.formatArgs = formatArgs;
 exports.save = save;
@@ -76123,7 +77901,7 @@ function localstorage() {
 
 
 /***/ }),
-/* 886 */
+/* 892 */
 /***/ (function(module, exports, __webpack_require__) {
 
 
@@ -76139,7 +77917,7 @@ exports.coerce = coerce;
 exports.disable = disable;
 exports.enable = enable;
 exports.enabled = enabled;
-exports.humanize = __webpack_require__(887);
+exports.humanize = __webpack_require__(893);
 
 /**
  * Active `debug` instances.
@@ -76354,7 +78132,7 @@ function coerce(val) {
 
 
 /***/ }),
-/* 887 */
+/* 893 */
 /***/ (function(module, exports) {
 
 /**
@@ -76512,7 +78290,7 @@ function plural(ms, n, name) {
 
 
 /***/ }),
-/* 888 */
+/* 894 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";

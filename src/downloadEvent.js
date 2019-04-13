@@ -12,7 +12,7 @@ export default class DownloadEvent {
         downloader.remove({key}, {multi: true}).then(_ => {
           ipcMain.emit('set-save-path', null, url, path.basename(savePath))
           ipcMain.emit('set-download-key', null, url, key)
-          Browser.downloadURL(url, void 0, ret.referer)
+          Browser.downloadURL(url, void 0, ret.referer, key)
         })
       })
     })
@@ -71,11 +71,11 @@ export default class DownloadEvent {
 
     ipcMain.on('download-open',(event,data)=>{
       try{
-        shell.openItem(data.savePath)
+        shell.openExternal(`file://${data.savePath}`)
       }
       catch(e){
         try{
-          shell.openItem(data.savePath + '.crdownload')
+          shell.openExternal(`file://${data.savePath}.crdownload`)
         }
         catch(e){}
       }

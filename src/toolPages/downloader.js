@@ -12,9 +12,9 @@ import ReactTable from 'react-table';
 import LRUCache from 'lru-cache'
 const cache = new LRUCache(200)
 
-import '../defaultExtension/contentscript'
 import l10n from '../../brave/js/l10n';
 const initPromise = l10n.init()
+import '../defaultExtension/contentscript'
 
 
 const expand = require('brace-expansion');

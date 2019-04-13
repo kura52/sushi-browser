@@ -36,6 +36,11 @@ if(window.__started_){
 
   setTimeout(()=>{
     document.addEventListener('contextmenu', e => {
+      if(window.__no_skip_context_menu__){
+        window.__no_skip_context_menu__ = false
+        return
+      }
+
       e.preventDefault()
       e.stopImmediatePropagation()
       console.log(5555,e)
@@ -120,6 +125,8 @@ if(window.__started_){
         inputFieldType,
         x: e.x,
         y: e.y,
+        screenX: e.screenX,
+        screenY: e.screenY,
         selectionText
       })
     })
@@ -1189,4 +1196,8 @@ if(window.__started_){
     ipc.send(`execute-script-in-isolation-world-reply_${key}`, Function(`return ${code}`)())
   })
 
+  ipc.on('no-skip-context-menu', (e, key)=>{
+    window.__no_skip_context_menu__ = true
+    ipc.send(`no-skip-context-menu-reply_${key}`)
+  })
 }

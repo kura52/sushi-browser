@@ -148,10 +148,10 @@ export default class Download {
     })
 
     const itemMap = {}
-    ipcMain.on('chrome-download-start', async (event, item, _url, webContents) => {
+    ipcMain.on('chrome-download-start', async (event, item, _url, webContents, force) => {
       if(webContents){
         itemMap[item.id] = webContents
-        return
+        if(!force) return
       }
       else if(itemMap[item.id]){
         webContents = itemMap[item.id]
@@ -165,7 +165,7 @@ export default class Download {
       console.log("will-download",bw,bw === win)
       if(bw !== win) return
 
-      if(!webContents) webContents = await _webContents.getFocusedWebContents()
+      if(!webContents) webContents = await getFocusedWebContents()
 
       let downloadId = item.id
       console.log(item)

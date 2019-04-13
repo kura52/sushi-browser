@@ -413,10 +413,10 @@ export default class BrowserActionMenu extends Component{
     const menuItems = []
     menuItems.push(({label: values.default_title || values.name, click: _=>cont.hostWebContents2.send('new-tab', tabId, `https://chrome.google.com/webstore/detail/${values.orgId}`)}))
     if(values.optionPage) menuItems.push(({label: locale.translation('9147392381910171771'), click: _=>cont.hostWebContents2.send('new-tab', tabId, `chrome-extension://${extensionId}/${values.optionPage}`)}))
-    if(values.background) menuItems.push(({label: locale.translation("4989966318180235467"), click: _=>{
-        const url = `chrome-extension://${extensionId}/${values.background}`
-        require('./remoteWebContents').getAllWebContents().find(x=>x.getURL().startsWith(url)).openDevTools()
-      }}))
+    // if(values.background) menuItems.push(({label: locale.translation("4989966318180235467"), click: _=>{
+    //     const url = `chrome-extension://${extensionId}/${values.background}`
+    //     require('./remoteWebContents').getAllWebContents().find(x=>x.getURL().startsWith(url)).openDevTools()
+    //   }}))
     menuItems.push({label: locale.translation("6326175484149238433").replace('Chrome','Sushi Browser'),click: _=>ipc.send('delete-extension',extensionId,values.orgId)})
     const menu = Menu.buildFromTemplate(menuItems)
     ipc.send('menu-popup')

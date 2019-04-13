@@ -13,6 +13,7 @@ import VerticalTabResizer from '../render/VerticalTabResizer'
 import removeMarkdown from './removeMarkdown'
 import $ from 'jquery';
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
+
 import l10n from '../../brave/js/l10n';
 const initPromise = l10n.init()
 

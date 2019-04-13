@@ -10,9 +10,10 @@ const isAccelerator = require("electron-is-accelerator")
 const {  Form, TextArea, Grid, Sidebar, Segment, Container, Menu, Input,Divider, Button, Checkbox, Icon, Table, Dropdown } = require('semantic-ui-react');
 const { StickyContainer, Sticky } = require('react-sticky');
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
-import '../defaultExtension/contentscript'
+
 import l10n from '../../brave/js/l10n';
 const initPromise = l10n.init()
+import '../defaultExtension/contentscript'
 
 const isDarwin = navigator.userAgent.includes('Mac OS X')
 const isWin = navigator.userAgent.includes('Windows')

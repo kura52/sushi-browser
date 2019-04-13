@@ -15,9 +15,9 @@ const PubSub = require('pubsub-js')
 const { Form, TextArea, Grid, Sidebar, Segment, Container, Menu, Input, Divider, Button, Checkbox, Icon, Table, Dropdown } = require('semantic-ui-react');
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
 
-import '../defaultExtension/contentscript'
 import l10n from '../../brave/js/l10n';
 const initPromise = l10n.init()
+import '../defaultExtension/contentscript'
 
 function aspect(width, height) {
   if(!width || !height) return [1,1]

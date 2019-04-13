@@ -8,9 +8,10 @@ import {Progress, Segment, Container, List, Menu, Input, Icon, Button} from 'sem
 import {StickyContainer, Sticky} from 'react-sticky';
 import moment from 'moment';
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
-import '../defaultExtension/contentscript'
+
 import l10n from '../../brave/js/l10n';
 const initPromise = l10n.init()
+import '../defaultExtension/contentscript'
 
 
 function downloadingItemReply(callback){

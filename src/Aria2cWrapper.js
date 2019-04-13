@@ -192,13 +192,6 @@ export default class Aria2cWrapper{
     const cont = await getFocusedWebContents()
 
     let params = cookie ? [`--header=Cookie:${cookie}`] : []
-    params = [...params,`-x${this.downloadNum}`,'--check-certificate=false','--summary-interval=1','--file-allocation=none','--bt-metadata-only=true',
-      `--user-agent=${await cont.getUserAgent()}`,`--dir=${path.dirname(this.savePath)}`,`--out=${path.basename(this.savePath)}`,`${this.url}`]
-
-    if(this.referer !== null){
-      params.push(`--referer=${this.referer || (await cont.getURL())}`)
-    }
-
 
     if(!resume && this.overwrite){
       params.push('--auto-file-renaming=false','--allow-overwrite=true')
@@ -206,6 +199,14 @@ export default class Aria2cWrapper{
     else{
       params.push('-c')
     }
+
+    params = [...params,`-x${this.downloadNum}`,'--check-certificate=false','--summary-interval=1','--file-allocation=none','--bt-metadata-only=true', '--auto-save-interval=1',
+      `--user-agent=${await cont.getUserAgent()}`,`--dir=${path.dirname(this.savePath)}`,`--out=${path.basename(this.savePath)}`,`${this.url}`]
+
+    if(this.referer !== null){
+      params.push(`--referer=${this.referer || (await cont.getURL())}`)
+    }
+
 
     this.created_at = Date.now()
     this.timeMap.set(this.savePath, this.created_at)
@@ -285,7 +286,7 @@ export default class Aria2cWrapper{
     downloadItems.delete(this)
     this.status = 'PAUSE'
     if(this.aria2c){
-      this.aria2c.stdin.pause()
+      this.aria2c.stdin.end()
       this.aria2c.kill()
     }
     this.stdoutCallback()
@@ -298,7 +299,7 @@ export default class Aria2cWrapper{
     this.status = 'CANCEL'
     this.cancelChromeDownload()
     if(this.aria2c){
-      this.aria2c.stdin.pause()
+      this.aria2c.stdin.end()
       this.aria2c.kill()
     }
     console.log(this.savePath)

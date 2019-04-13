@@ -2007,7 +2007,7 @@ ipcMain.on('save-and-play-video',(e,url,win)=>{
     const item = global.downloadItems.find(x=>x.orgUrl == url)
     if(item && (item.percent > 0 || (item.aria2c && item.aria2c.processed / item.aria2c.total > 0.005))){
       clearInterval(id)
-      shell.openItem(item.savePath)
+      shell.openExternal(`file://${item.savePath}`)
     }
   },100)
 })

@@ -6,6 +6,8 @@ import ReactDOM from 'react-dom';
 import {FileExplorer, getHome} from './explorer';
 import path from 'path';
 
+import '../defaultExtension/contentscript'
+
 ;(async ()=>{
   const homePath = await getHome()
 

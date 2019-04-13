@@ -11,6 +11,7 @@ const seq = require('./sequence')
 import path from 'path'
 import uuid from 'node-uuid'
 import nm from 'nanomatch'
+import robot from 'robotjs'
 const fs = require('fs')
 const os = require('os')
 const isDarwin = process.platform == 'darwin'
@@ -85,7 +86,7 @@ app.setName('Sushi Browser')
 app.commandLine.appendSwitch('touch-events', 'enabled');
 
 // if(isLinux){
-  app.disableHardwareAcceleration()
+app.disableHardwareAcceleration()
 // app.disableDomainBlockingFor3DAPIs()
 // }
 
@@ -1035,7 +1036,7 @@ async function startDownloadSelector(win,webContents,props,selection){
 }
 
 async function contextMenu(webContents, props) {
-  console.log('contextttt',webContents.getURL())
+  console.log('contextttt',webContents.getURL(),props)
 
   const baseSet = new Set([locale.translation('copyLinkAddress'),
     locale.translation('1047431265488717055'),
@@ -1161,9 +1162,9 @@ async function contextMenu(webContents, props) {
   const isNoAction = !(isTextSelected || isInputField || props.mediaType != 'none' || props.linkURL)
 
   if(isNoAction){
-    menuItems.push({t: 'back', label: locale.translation('back'),enabled:await webContents.canGoBack(),  click: (item, win)=>win.webContents.send('go-navigate', webContents.id, 'back')})
-    menuItems.push({t: 'forward', label: locale.translation('forward'),enabled: await webContents.canGoForward(), click: (item, win)=>win.webContents.send('go-navigate', webContents.id, 'forward')})
-    menuItems.push({t: 'reload', label: locale.translation('reload'),enabled: !webContents.isLoading(), click: (item, win)=>win.webContents.send('go-navigate', webContents.id, 'reload')})
+    menuItems.push({t: 'back', label: locale.translation('back'),enabled:await webContents.canGoBack(),  click: (item, win)=>webContents.hostWebContents2.send('go-navigate', webContents.id, 'back')})
+    menuItems.push({t: 'forward', label: locale.translation('forward'),enabled: await webContents.canGoForward(), click: (item, win)=>webContents.hostWebContents2.send('go-navigate', webContents.id, 'forward')})
+    menuItems.push({t: 'reload', label: locale.translation('reload'),enabled: !webContents.isLoading(), click: (item, win)=>webContents.hostWebContents2.send('go-navigate', webContents.id, 'reload')})
     menuItems.push({type: 'separator'})
   }
 
@@ -1179,27 +1180,27 @@ async function contextMenu(webContents, props) {
   if (props.linkURL) {
     menuItems.push({
       t: 'openInNewTab', label: locale.translation('openInNewTab'), click: (item, win) => {
-        targetWindow.webContents.send('new-tab', webContents.id, props.linkURL)
+        webContents.hostWebContents2.send('new-tab', webContents.id, props.linkURL)
       }
     })
     menuItems.push({
       t: 'openLinkInOppositeTab', label: locale.translation('openLinkInOppositeTab'), click: (item, win) => {
-        targetWindow.webContents.send('new-tab-opposite', webContents.id, props.linkURL)
+        webContents.hostWebContents2.send('new-tab-opposite', webContents.id, props.linkURL)
       }
     })
     menuItems.push({
       t: 'openInNewPrivateTab', label: locale.translation('openInNewPrivateTab'), click: (item, win) => {
-        targetWindow.webContents.send('new-tab', webContents.id, props.linkURL,`${seq(true)}`)
+        webContents.hostWebContents2.send('new-tab', webContents.id, props.linkURL,`${seq(true)}`)
       }
     })
     menuItems.push({
       t: 'openLinkInNewTorTab', label: locale.translation('openLinkInNewTorTab'), click: (item, win) => {
-        targetWindow.webContents.send('new-tab', webContents.id, props.linkURL,'persist:tor')
+        webContents.hostWebContents2.send('new-tab', webContents.id, props.linkURL,'persist:tor')
       }
     })
     menuItems.push({
       t: 'openInNewSessionTab', label: locale.translation('openInNewSessionTab'), click: (item, win) => {
-        targetWindow.webContents.send('new-tab', webContents.id, props.linkURL,`persist:${seq()}`)
+        webContents.hostWebContents2.send('new-tab', webContents.id, props.linkURL,`persist:${seq()}`)
       }
     })
     menuItems.push({
@@ -1207,7 +1208,7 @@ async function contextMenu(webContents, props) {
         ipcMain.once('get-private-reply',(e,privateMode)=>{
           BrowserWindowPlus.load({id:win.id,sameSize:true,tabParam:JSON.stringify({urls:[{url:props.linkURL,privateMode}],type:'new-win'})})
         })
-        targetWindow.webContents.send('get-private', webContents.id)
+        webContents.hostWebContents2.send('get-private', webContents.id)
       }
     })
     menuItems.push({type: 'separator'})
@@ -1245,7 +1246,7 @@ async function contextMenu(webContents, props) {
         if(!send.enable) continue
         let handleClick
         if(send.type == 'new' || send.type == 'opposite'){
-          handleClick = (item, win) => targetWindow.webContents.send(send.type == 'new' ? 'new-tab' : 'new-tab-opposite',
+          handleClick = (item, win) => webContents.hostWebContents2.send(send.type == 'new' ? 'new-tab' : 'new-tab-opposite',
             webContents.id, send.sendTo.replace("%s",props.linkURL))
         }
         else if(send.type == 'command' || send.type == 'terminal'){
@@ -1258,7 +1259,7 @@ async function contextMenu(webContents, props) {
             ipcMain.once('start-pty-reply', (e, key) => {
               ipcMain.emit(`send-pty_${key}`, null, `${command}\n`)
             })
-            handleClick = (item, win) => targetWindow.webContents.send('new-tab', webContents.id, 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html')
+            handleClick = (item, win) => webContents.hostWebContents2.send('new-tab', webContents.id, 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html')
           }
         }
 
@@ -1274,7 +1275,7 @@ async function contextMenu(webContents, props) {
         mainState.searchEngineDisplayType == 'o' ? ['(o)'] : mainState.oppositeGlobal ? ['(o)','(c)'] : ['(c)','(o)']){
         menuItems.push({
           t: 'openSearch', label: locale.translation('openSearch').replace(/{{\s*selectedVariable\s*}}/, props.linkText.length > 20 ? `${props.linkText.substr(0, 20)}...` : props.linkText) + suffix,
-          click: (item, win) =>  targetWindow.webContents.send('search-text', webContents.id, props.linkText,suffix == '(o)')
+          click: (item, win) =>  webContents.hostWebContents2.send('search-text', webContents.id, props.linkText,suffix == '(o)')
         })
       }
     }
@@ -1284,7 +1285,7 @@ async function contextMenu(webContents, props) {
   if (isImage) {
     menuItems.push({
       t: 'openImageInNewTab', label: locale.translation('openImageInNewTab'), click: (item, win) => {
-        targetWindow.webContents.send('new-tab', webContents.id, props.srcURL)
+        webContents.hostWebContents2.send('new-tab', webContents.id, props.srcURL)
       }
     })
     menuItems.push({t: 'saveImage', label: locale.translation('saveImage'), click: downloadPrompt})
@@ -1324,16 +1325,16 @@ async function contextMenu(webContents, props) {
   if (isVideo) {
     menuItems.push({
       t: 'playVideoInPopupWindow', label: locale.translation('playVideoInPopupWindow'),
-      click: (item, win) => targetWindow.webContents.send('pin-video', webContents.id, true)
+      click: (item, win) => webContents.hostWebContents2.send('pin-video', webContents.id, true)
     })
     menuItems.push({
       t: 'playVideoInFloatingPanel', label: locale.translation('playVideoInFloatingPanel'),
-      click: (item, win) => targetWindow.webContents.send('pin-video', webContents.id)
+      click: (item, win) => webContents.hostWebContents2.send('pin-video', webContents.id)
     })
     menuItems.push({type: 'separator'})
     menuItems.push({
       t: '4643612240819915418', label:  locale.translation('4643612240819915418'), //'Open Video in New Tab',
-      click: (item, win) => targetWindow.webContents.send('new-tab', webContents.id, props.srcURL)
+      click: (item, win) => webContents.hostWebContents2.send('new-tab', webContents.id, props.srcURL)
     })
     menuItems.push({t: '4256316378292851214', label: locale.translation('4256316378292851214'), //'Save Video As...',
       click: downloadPrompt})
@@ -1351,7 +1352,7 @@ async function contextMenu(webContents, props) {
   if (isAudio) {
     menuItems.push({
       t: '2019718679933488176', label: locale.translation('2019718679933488176'), //'Open Audio in New Tab',
-      click: (item, win) => targetWindow.webContents.send('new-tab', webContents.id, props.srcURL)
+      click: (item, win) => webContents.hostWebContents2.send('new-tab', webContents.id, props.srcURL)
     })
     menuItems.push({t: '5116628073786783676', label: locale.translation('5116628073786783676'), //'Save Audio As...',
       click: downloadPrompt})
@@ -1392,7 +1393,7 @@ async function contextMenu(webContents, props) {
           locale.translation('openSearch').replace(/{{\s*selectedVariable\s*}}/, text.length > 20 ? `${text.substr(0, 20)}...` : text)
         menuItems.push({
           t: 'openSearch', label: label + suffix,
-          click: (item, win) =>  targetWindow.webContents.send(isURLGo ? suffix == '(o)' ? 'new-tab-opposite' : 'new-tab' : 'search-text',
+          click: (item, win) =>  webContents.hostWebContents2.send(isURLGo ? suffix == '(o)' ? 'new-tab-opposite' : 'new-tab' : 'search-text',
             webContents.id, isURLGo ? urlutil.getUrlFromInput(text) : text ,suffix == '(o)')
         })
       }
@@ -1404,7 +1405,7 @@ async function contextMenu(webContents, props) {
           const label = locale.translation('2948300991547862301').replace(/<ph name="PAGE_TITLE">/,text).replace(/<\/ph>/,'')
           menuItems.push({
             t: 'openSearch', label: label + suffix,
-            click: (item, win) =>  targetWindow.webContents.send(suffix == '(o)' ? 'new-tab-opposite' : 'new-tab',
+            click: (item, win) =>  webContents.hostWebContents2.send(suffix == '(o)' ? 'new-tab-opposite' : 'new-tab',
               webContents.id, urlutil.getUrlFromInput(text) ,suffix == '(o)')
           })
         }
@@ -1426,7 +1427,7 @@ async function contextMenu(webContents, props) {
           const label = labelShortcut + locale.translation('openSearch').replace(/{{\s*selectedVariable\s*}}/, text.length > 20 ? `${text.substr(0, 20)}...` : text)
           menuItems.push({
             t: 'openSearch', label: label + suffix,
-            click: (item, win) =>  targetWindow.webContents.send('search-text', webContents.id, `${searchShortcut}${text}` ,suffix == '(o)')
+            click: (item, win) =>  webContents.hostWebContents2.send('search-text', webContents.id, `${searchShortcut}${text}` ,suffix == '(o)')
           })
         }
       }
@@ -1435,7 +1436,7 @@ async function contextMenu(webContents, props) {
     for(let suffix of mainState.searchEngineDisplayType == 'c' ? ['(c)'] :
       mainState.searchEngineDisplayType == 'o' ? ['(o)'] : mainState.oppositeGlobal ? ['(o)','(c)'] : ['(c)','(o)']){
       menuItems.push({ t: 'addToNotes', label: locale.translation('addToNotes') + suffix, click: async (item,win)=>{
-          targetWindow.webContents.send(suffix == '(o)' ? 'new-tab-opposite' : 'new-tab',
+          webContents.hostWebContents2.send(suffix == '(o)' ? 'new-tab-opposite' : 'new-tab',
             webContents.id, `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note.html?content=${encodeURIComponent(rectSelectText ? rectSelectText.replace(/\r?\n/g,"<br/>") :  (await getSelectionHTML(webContents)))}` ,suffix == '(o)')
 
         }})
@@ -1449,7 +1450,7 @@ async function contextMenu(webContents, props) {
       menuItems.push({t: 'copyLinks', label: locale.translation('copyLinks'), click: (item,win)=> clipboard.writeText(links.join(os.EOL))})
       menuItems.push({label: locale.translation('openalllinksLabel'), click: (item,win)=>{
           for(let link of links){
-            setTimeout(_=>targetWindow.webContents.send('new-tab', webContents.id, link),0)
+            setTimeout(_=>webContents.hostWebContents2.send('new-tab', webContents.id, link),0)
           }
         }})
       menuItems.push({t: 'downloadSelection', label: locale.translation('downloadSelection'), click: (item,win)=> startDownloadSelector(win,webContents,props,true)})
@@ -1469,11 +1470,22 @@ async function contextMenu(webContents, props) {
 
     menuItems.push({
       t: 'bookmarkPage', label: locale.translation('bookmarkPage'), click: (item, win) => {
-        targetWindow.webContents.send('add-favorite', webContents.id)
+        webContents.hostWebContents2.send('add-favorite', webContents.id)
       }
     })
     menuItems.push({t: 'print', label: locale.translation('print'), click: () => webContents.print()})
-    menuItems.push({t: '2473195200299095979', label: syncReplaceName, click: (item, win) => targetWindow.webContents.send('sync-replace-from-menu', webContents.id)})
+    menuItems.push({t: '2473195200299095979', label: locale.translation('2473195200299095979'),  click: async (item, win) => {
+        const key = Math.random().toString()
+        webContents.send('no-skip-context-menu', key)
+        const promise = new Promise(r => ipcMain.once(`no-skip-context-menu-reply_${key}`,r))
+
+        webContents.focus()
+        await promise
+        robot.mouseClick('right')
+        await new Promise(r=>setTimeout(r,30))
+        robot.keyTap('t')
+    } })
+    // menuItems.push({t: '2473195200299095979', label: syncReplaceName, click: (item, win) => webContents.hostWebContents2.send('sync-replace-from-menu', webContents.id)})
     menuItems.push({type: 'separator'})
 
     menuItems.push({t: 'downloadAll', label: locale.translation('downloadAll'), click: (item,win)=> startDownloadSelector(win,webContents,props)})
@@ -1481,12 +1493,12 @@ async function contextMenu(webContents, props) {
 
     menuItems.push({
       t: 'syncScrollLeftToRight', label: locale.translation('syncScrollLeftToRight'), click: (item, win) => {
-        targetWindow.webContents.send('open-panel', {url: webContents.getURL(), sync: uuid.v4(), id: webContents.id})
+        webContents.hostWebContents2.send('open-panel', {url: webContents.getURL(), sync: uuid.v4(), id: webContents.id})
       }
     })
     menuItems.push({
       t: 'syncScrollRightToLeft', label: locale.translation('syncScrollRightToLeft'), click: (item, win) => {
-        targetWindow.webContents.send('open-panel', {
+        webContents.hostWebContents2.send('open-panel', {
           url: webContents.getURL(),
           sync: uuid.v4(),
           id: webContents.id,
@@ -1498,36 +1510,53 @@ async function contextMenu(webContents, props) {
 
     menuItems.push({
       t: 'viewPageSource', label: locale.translation('viewPageSource'), click: (item, win) => {
-        targetWindow.webContents.send('new-tab', webContents.id, `view-source:${webContents.getURL()}`)
+        webContents.hostWebContents2.send('new-tab', webContents.id, `view-source:${webContents.getURL()}`)
       }
     })
   }
   menuItems.push({
     t: 'inspectElement', label: locale.translation('inspectElement'), click: async item => {
-      if(webContents.devToolsWebContents){
-        webContents.inspectElement(props.x, props.y)
-        if (webContents.isDevToolsOpened())
-          webContents.devToolsWebContents.focus()
-      }
-      else{
-        const cont = webContents
-        cont && cont.hostWebContents2.send('menu-or-key-events', 'toggleDeveloperTools', cont.id)
-        let devToolsWebContents
-        for(let i=0;i<100;i++){
-          await new Promise(r=>{
-            setTimeout(_=>{
-              devToolsWebContents = cont.devToolsWebContents
-              r()
-            },100)
-          })
-          if(devToolsWebContents){
-            webContents.inspectElement(props.x, props.y)
-            if (webContents.isDevToolsOpened())
-              webContents.devToolsWebContents.focus()
-            break
-          }
-        }
-      }
+      const key = Math.random().toString()
+      webContents.send('no-skip-context-menu', key)
+
+      const promise = new Promise(r => ipcMain.once(`no-skip-context-menu-reply_${key}`,r))
+
+      webContents.focus()
+      console.log(props.screenX, props.screenY)
+
+      await promise
+      robot.moveMouse(props.screenX, props.screenY)
+      robot.mouseClick('right')
+      await new Promise(r=>setTimeout(r,30))
+      robot.keyTap('up')
+      robot.keyTap('enter')
+
+
+
+      // if(webContents.devToolsWebContents){
+      //   webContents.inspectElement(props.x, props.y)
+      //   if (webContents.isDevToolsOpened())
+      //     webContents.devToolsWebContents.focus()
+      // }
+      // else{
+      //   const cont = webContents
+      //   cont && cont.hostWebContents2.send('menu-or-key-events', 'toggleDeveloperTools', cont.id)
+      //   let devToolsWebContents
+      //   for(let i=0;i<100;i++){
+      //     await new Promise(r=>{
+      //       setTimeout(_=>{
+      //         devToolsWebContents = cont.devToolsWebContents
+      //         r()
+      //       },100)
+      //     })
+      //     if(devToolsWebContents){
+      //       webContents.inspectElement(props.x, props.y)
+      //       if (webContents.isDevToolsOpened())
+      //         webContents.devToolsWebContents.focus()
+      //       break
+      //     }
+      //   }
+      // }
     }
   })
 

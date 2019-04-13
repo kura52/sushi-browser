@@ -12,9 +12,9 @@ import {StickyContainer, Sticky} from 'react-sticky';
 import {Menu, Segment} from 'semantic-ui-react';
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
 
-import '../defaultExtension/contentscript'
 import l10n from '../../brave/js/l10n';
 const initPromise = l10n.init()
+import '../defaultExtension/contentscript'
 
 
 const {TreeNode} = Tree

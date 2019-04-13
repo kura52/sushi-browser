@@ -4,6 +4,8 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './tabTrashHistoryBase';
 
+import '../defaultExtension/contentscript'
+
 require('./themeForPage')('themeTabTrashSidebar')
 
 ReactDOM.render(
