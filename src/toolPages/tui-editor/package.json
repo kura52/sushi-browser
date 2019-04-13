@@ -62,8 +62,7 @@
     "tui-jsdoc-template": "^1.2.2",
     "tui-release-notes": "github:nhnent/tui.release-notes#v1.0.0",
     "webpack": "^3.10.0",
-    "webpack-bundle-analyzer": "^2.9.1",
-    "webpack-dev-server": "^2.9.7"
+    "webpack-bundle-analyzer": "^2.9.1"
   },
   "scripts": {
     "lint": "eslint .",

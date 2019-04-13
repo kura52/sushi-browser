@@ -1206,7 +1206,7 @@ async function contextMenu(webContents, props) {
     menuItems.push({
       t: 'openInNewWindow', label: locale.translation('openInNewWindow'), click: (item, win) => {
         ipcMain.once('get-private-reply',(e,privateMode)=>{
-          BrowserWindowPlus.load({id:win.id,sameSize:true,tabParam:JSON.stringify({urls:[{url:props.linkURL,privateMode}],type:'new-win'})})
+          BrowserWindowPlus.load({id:targetWindow.id,sameSize:true,tabParam:JSON.stringify({urls:[{url:props.linkURL,privateMode}],type:'new-win'})})
         })
         webContents.hostWebContents2.send('get-private', webContents.id)
       }
@@ -1237,7 +1237,7 @@ async function contextMenu(webContents, props) {
     }
 
     if(isVideoURL){
-      menuItems.push({t: 'saveAndPlayVideo', label: locale.translation('saveAndPlayVideo'), click: (item, win) => ipcMain.emit('save-and-play-video',null,props.linkURL,win)})
+      menuItems.push({t: 'saveAndPlayVideo', label: locale.translation('saveAndPlayVideo'), click: (item, win) => ipcMain.emit('save-and-play-video',null,props.linkURL,targetWindow)})
       if(!disableContextMenus.has('Send URL to Video Player')) menuItems.push({label: `Send URL to ${players.find(x=>x.value == mainState.sendToVideo).text}`, click: () => videoProcessList.push(open(mainState.sendToVideo,props.linkURL))})
     }
     menuItems.push({type: 'separator'})

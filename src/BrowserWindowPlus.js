@@ -459,10 +459,10 @@ export default {
       if(url && setting.winState) {
         mainState.winState = JSON.stringify({
           dirc: "v",
-          key: "9b069c3c-bb0d-4267-b0ac-28c6ecb1f1b4",
+          key: uuid.v4(),
           l: {
-            key: "1505620587125_747c1b38-bf28-4a0f-a855-7e9839adc2cf_0",
-            tabs: [{ pin: false, tabKey: "1505620587141_bec149c2-e3da-4ba3-a01a-ce876f2204ac",forceKeep:true, url }]
+            key: `${Date.now().toString()}_${uuid.v4()}_0`,
+            tabs: [{ pin: false, tabKey: `${Date.now().toString()}_${uuid.v4()}` ,forceKeep:true, url }]
           },
           r: null,
           size: "100%",

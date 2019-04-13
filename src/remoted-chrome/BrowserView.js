@@ -21,9 +21,10 @@ export default class BrowserView {
     // console.log('createNewTab',(panelKey, tabKey, tabIndex, url))
     if (panelKey) {
       const panel = BrowserPanel.getBrowserPanel(panelKey)
-      if (panel) {
+      if(panel){
         return panel.addBrowserView(tabKey, url, tabIndex, topZOrder)
-      } else {
+      }
+      else{
         const panel = await new BrowserPanel({browserWindow, panelKey, tabKey, url})
         return panel.tabKeys[tabKey][1]
       }
@@ -62,7 +63,8 @@ export default class BrowserView {
           })
         })
       }, id, BrowserPanel.getAllTabIds(), tab.windowId)
-    } else {
+    }
+    else {
       [tab, currentTab] = await Browser.bg.evaluate((tabId, validIds) => {
         return new Promise(resolve => {
           chrome.tabs.get(tabId, tab => {
@@ -143,7 +145,8 @@ export default class BrowserView {
           guestInstanceId: id
         })
       })
-    } else {
+    }
+    else {
       console.log(444452)
       this.newTabCreateing = false
       const [panel, bv] = await new BrowserPanel({webContents: cont, windowId: tab.windowId})
@@ -163,7 +166,8 @@ export default class BrowserView {
 
       const [_, bv] = await new BrowserPanel({webContents: cont, windowId})
       return bv
-    } else {
+    }
+    else {
       const id = cont.id
       await new Promise(async r => {
         const func = (e, newTabId, panelKey, tabKey, tabIds) => {

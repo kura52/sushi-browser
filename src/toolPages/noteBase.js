@@ -602,16 +602,16 @@ export default class App extends React.Component {
               <Button.Group basic>
                 <Button icon='file' onClick={_=>{
                   this.refs.content.menuKey = selectedNodes.length ? selectedNodes : [this.refs.content.refs.iTree.tree.getRootNode().getLastChild()]
-                  ipc.emit('favorite-menu-reply',null,'addBookmark',true)
+                  this.refs.content.event(null,'addBookmark',true)
                 }}/>
                 <Button icon='folder' onClick={_=>{
                   this.refs.content.menuKey = selectedNodes.length ? selectedNodes : [this.refs.content.refs.iTree.tree.getRootNode().getLastChild()]
-                  ipc.emit('favorite-menu-reply',null,'addFolder',true)
+                  this.refs.content.event(null,'addFolder',true)
                 }}/>
                 <Button icon='minus' onClick={_=>{
                   if(selectedNodes.length){
                     this.refs.content.menuKey = selectedNodes
-                    ipc.emit('favorite-menu-reply',null,'delete')
+                    this.refs.content.event(null,'delete')
                   }
                 }}/>
                 <Button icon='save' onClick={_=>{
@@ -646,16 +646,16 @@ export default class App extends React.Component {
                     }} />
                     <Button icon='file' onClick={_=>{
                       this.refs.content.menuKey = selectedNodes.length ? selectedNodes : [this.refs.content.refs.iTree.tree.getRootNode().getLastChild()]
-                      ipc.emit('favorite-menu-reply',null,'addBookmark',true)
+                      this.refs.content.event(null,'addBookmark',true)
                     }} content="New"/>
                     <Button icon='folder' onClick={_=>{
                       this.refs.content.menuKey = selectedNodes.length ? selectedNodes : [this.refs.content.refs.iTree.tree.getRootNode().getLastChild()]
-                      ipc.emit('favorite-menu-reply',null,'addFolder',true)
+                      this.refs.content.event(null,'addFolder',true)
                     }} content="New Folder"/>
                     <Button icon='minus' onClick={_=>{
                       if(selectedNodes.length){
                         this.refs.content.menuKey = selectedNodes
-                        ipc.emit('favorite-menu-reply',null,'delete')
+                        this.refs.content.event(null,'delete')
                       }
                     }} content="Delete"/>
                     <Button icon='save' onClick={_=>{
