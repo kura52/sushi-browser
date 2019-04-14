@@ -2400,34 +2400,6 @@ ipcMain.on('move-browser-view', async (e, panelKey, tabKey, type, tabId, x, y, w
       return
     }
 
-    //panelがなかったら作る
-    //webContentsは存在確認？
-    //windows.createでtabId渡して、moveする。
-    //onAttachedイベントが出るので、newTabで紐づけて、古いのを消す？(create-web-contentsをやると変になるからviewだけ作りたい）
-
-    // const panel = BrowserPanel.getBrowserPanel(panelKey)
-    // let view
-    // console.log(3334,panel)
-    // if(!panel){
-    //   console.log(3335,view)
-    //   view = await BrowserView.newTab(new webContents(tabId))
-    // }
-    // else{
-    //   view = panel.getBrowserView({tabKey})
-    //   console.log(33365,view)
-    //   if(!view){
-    //     console.log(3337,view)
-    //     view = await BrowserView.newTab(new webContents(tabId))
-    //   }
-    // }
-    // console.log(33368,view)
-    // if(!view.webContents.isDestroyed()){
-    //   // view.webContents.hostWebContents2 = e.sender
-    //   BrowserPanel.moveTabs([tabId], panelKey, {tabKey})
-    // }
-
-    // moveingTab = true
-
     let bounds
     if(width){
       const win = BrowserWindow.fromWebContents(e.sender)
@@ -2450,8 +2422,6 @@ ipcMain.on('move-browser-view', async (e, panelKey, tabKey, type, tabId, x, y, w
     console.log([tabId], panelKey, {index, tabKey})
     if(x != null){
       ipcMain.emit('set-bound-browser-view', e, panelKey, tabKey, tabId, x, y, width, height, zIndex)
-      // viewAttributeMap[view.id] = { x: Math.round(x), y:Math.round(y), width: Math.round(width), height: Math.round(height), zIndex }
-      // view.setBounds(viewAttributeMap[view.id])
     }
     if(zIndex > 0){
       webContents.fromId(tabId).focus()
@@ -2476,12 +2446,6 @@ ipcMain.on('set-bound-browser-view', async (e, panelKey, tabKey, tabId, x, y, wi
   console.log('set-bound-browser-view1', panelKey, tabKey, tabId, x, y, width, height, zIndex, date)
 
 
-  // for(let i=0;i<1000;i++){
-  //   if(!moveingTab) break
-  //   // if(!panel) panel = BrowserPanel.getBrowserPanel(panelKey)
-  //   await new Promise(r=>setTimeout(r,10))
-  // }
-
   const win = BrowserWindow.fromWebContents(e.sender)
   if(!win || win.isDestroyed()) return
 
@@ -2497,11 +2461,15 @@ ipcMain.on('set-bound-browser-view', async (e, panelKey, tabKey, tabId, x, y, wi
   }
   // console.log(11,bounds, winBounds)
   const id = setTimeout(()=>{
-    for(let [_bounds, id, _date, _zIndex] of setBoundClearIds[panelKey] || []){
-      if(date < _date){
+    let appearSelf
+    for(let [_bounds, _id, _date, _zIndex] of setBoundClearIds[panelKey] || []){
+      if(date < _date || (appearSelf && date == _date)){
         bounds = _bounds
         date = _date
         zIndex = _zIndex
+      }
+      else if(id == _id){
+        appearSelf = true
       }
       clearTimeout(id)
     }

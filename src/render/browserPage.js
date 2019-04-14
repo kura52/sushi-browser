@@ -93,7 +93,7 @@ class BrowserPage extends Component {
     this.handleMouseLeave = ::this.handleMouseLeave
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  async componentDidUpdate(prevProps, prevState) {
     // console.log('componentDidUpdate',prevProps, this.props)
     const style = this.props.pos
     if(style.zIndex > 0 && (prevProps.pos.top != style.top ||
@@ -101,6 +101,12 @@ class BrowserPage extends Component {
       prevProps.pos.width != style.width ||
       prevProps.pos.height != style.height ||
       prevProps.pos.zIndex != style.zIndex)){
+      if(!this.props.tab.wvId){
+        for(let i=0;i<100;i++){
+          await new Promise(r=>setTimeout(r,30))
+          if(this.props.tab.wvId) break
+        }
+      }
       ipc.send('set-bound-browser-view', this.props.k2, this.props.k, this.props.tab.wvId, style.left, style.top, style.width, style.height, style.zIndex)
       ipc.emit('set-bound-browser-view', this.props.k2, this.props.k, this.props.tab.wvId, style.left, style.top, style.width, style.height, style.zIndex)
     }

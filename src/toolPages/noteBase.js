@@ -17,7 +17,7 @@ const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
 import l10n from '../../brave/js/l10n';
 const initPromise = l10n.init()
 
-const Editor = require('./tui-editor/dist/tui-editor-Editor-all.min');
+const Editor = require('../../resource/tui-editor/dist/tui-editor-Editor-all.min');
 
 Editor.i18n.setLanguage(['ja', 'ja_JP'], {
   'Markdown': 'Markdown',
