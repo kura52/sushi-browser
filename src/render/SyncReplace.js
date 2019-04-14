@@ -3,6 +3,7 @@ const ReactDOM = require('react-dom');
 const {Component} = React
 const ipc = require('electron').ipcRenderer
 import uuid from 'node-uuid'
+const PubSub = require('./pubsub')
 const {syncReplace} = require('./databaseRender')
 
 const SYNC_REPLACE_NUM = 5
@@ -45,11 +46,13 @@ export default class SyncReplace extends Component {
             }
           }
           document.addEventListener('mousedown',this.outerClick)
+          this.tokenMouseDown = PubSub.subscribe('webview-mousedown',(msg,e)=>this.outerClick(e))
           this.setState({})
         })()
       }
       else{
         document.removeEventListener('mousedown',this.outerClick)
+        PubSub.unsubscribe(this.tokenMouseDown)
       }
     }
   }

@@ -271,11 +271,12 @@ function create(args){
 
   bw.on('resize', ()=>{
     if(!bw.isMaximized()){
-      normalSize[bw.id] = bw.getBounds()
+      normalSize[bw.id] = bw.getNormalBounds()
     }
   })
 
   bw.on('will-move', e=>{
+    // console.log('will-move')
     // e.preventDefault()
     // bw.setSize(300,300)
     if(bw.isMaximized()){
@@ -297,7 +298,7 @@ function create(args){
   })
 
   bw.on('blur', ()=> {
-    PubSub.publish('chrome-windows-onFocusChanged',bw.id)
+    // PubSub.publish('chrome-windows-onFocusChanged',bw.id)
     bw.webContents.send('visit-state-update','blur')
     // const id = setTimeout(()=>bw.isAlwaysOnTop() && bw.setAlwaysOnTop(false),50)
     // ipcMain.once(`browserPanel-focused_${bw.id}`, ()=> clearTimeout(id))
@@ -322,7 +323,7 @@ function create(args){
     //   bw.focusFlag = false
     //   return
     // }
-    PubSub.publish('chrome-windows-onFocusChanged',bw.id)
+    // PubSub.publish('chrome-windows-onFocusChanged',bw.id)
     bw.webContents.send('visit-state-update','focus')
     // ipcMain.once(`browserPanel-focused_${bw.id}`, ()=> clearTimeout(id))
     // bw.setAlwaysOnTop(true)
@@ -344,8 +345,10 @@ function create(args){
       bw._initVirtualMaximized = void 0
 
       const b = bw.getBounds()
+      const bounds = {x: b.x+7, y: b.y+7, width: b.width - 14, height: b.height - 14}
+      bw._maximizedSize = bounds
       // bw.normal()
-      setTimeout(()=>bw.setBounds({x: b.x+7, y: b.y+7, width: b.width - 14, height: b.height - 14}),50)
+      setTimeout(()=>bw.setBounds(bounds),50)
       // bw.setBounds(b)
       bw.webContents.send('maximize',true)
     }
@@ -359,10 +362,13 @@ function create(args){
   })
 
   bw.on('minimize',_=>{
+    console.log('minimize')
     ipcMain.emit('state-change-window', bw.id, 'minimize')
   })
 
   bw.on('restore',_=>{
+    if(bw._isVirtualMaximized) bw.setBounds(bw._maximizedSize)
+    console.log('restore')
     ipcMain.emit('state-change-window', bw.id, 'restore')
   })
 

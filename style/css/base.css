@@ -990,6 +990,7 @@ div.org-menu>div.item:hover{
     background: #f6f6f6;
     border-bottom: 1px solid #dfdfdf;
     user-select: none;
+    overflow: hidden;
 }
 
 .bookmark-item{

@@ -146,7 +146,6 @@ class Browser{
             //   r()
             // },0))
             setTimeout(()=>{
-
               browserPanel.cpWin.nativeWindow.showWindow(9)
               // browserPanel.moveTopNativeWindow()
               browserPanel.cpWin.nativeWindow.setForegroundWindowEx()
@@ -1028,6 +1027,9 @@ class BackgroundPage{
   }
 }
 
+class Bookmarks{
+
+}
 
 function removeBom(x){
   return x.charCodeAt(0) === 0xFEFF ? x.slice(1) : x
@@ -1038,5 +1040,6 @@ export default {
   BrowserPanel,
   BrowserView,
   webContents,
-  PopupPanel
+  PopupPanel,
+  Bookmarks: new Bookmarks()
 }

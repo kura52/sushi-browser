@@ -184,6 +184,14 @@ export default class BrowserPanel {
 
     await BrowserPanel._initializer()
 
+    const oldWindows = []
+    winctl.EnumerateWindows(function(win) {
+      if(win.getTitle().includes('Google Chrome')){
+        oldWindows.push(win.getHwnd())
+      }
+      return true
+    })
+
     if (panelKey) {
       this.browserWindow = browserWindow
       this.browserWindow.once('closed', () => this.destroy())
@@ -225,6 +233,13 @@ export default class BrowserPanel {
               const dim = win.dimensions()
               return tmpWin.left == dim.left && tmpWin.top == dim.top && tmpWin.width == (dim.right - dim.left) && tmpWin.height == (dim.bottom - dim.top)
             }))[0]
+
+            if(!chromeNativeWindow){
+              chromeNativeWindow = (await winctl.FindWindows(win => {
+                if(oldWindows.includes(win.getHwnd()) || !win.getTitle().includes('Google Chrome')) return false
+                return true
+              }))[0]
+            }
           }
 
           console.log(2243344, chromeNativeWindow.getTitle())
@@ -254,7 +269,7 @@ export default class BrowserPanel {
         }
       }
 
-      this.cpWin = await this.createChromeParentWindow(win)
+      this.cpWin = await this.createChromeParentWindow(win, oldWindows)
 
       this.panelKey = panelKey
       this.windowId = win.id
@@ -305,7 +320,7 @@ export default class BrowserPanel {
       })
       this.browserWindow.on('closed', () => this.destroy())
 
-      this.cpWin = await this.createChromeParentWindow(win)
+      this.cpWin = await this.createChromeParentWindow(win, oldWindows)
 
       return new Promise(r => {
         const key = Math.random().toString()
@@ -329,17 +344,25 @@ export default class BrowserPanel {
     }
   }
 
-  async createChromeParentWindow(cWin) {
+  async createChromeParentWindow(cWin, oldWindows) {
     let chromeNativeWindow = winctl.GetActiveWindow()
     const dim = chromeNativeWindow.dimensions()
     if (BrowserPanel.bindedWindows.has(chromeNativeWindow.getHwnd()) || !chromeNativeWindow.getTitle().includes('Google Chrome') || !(cWin.left == dim.left && cWin.top == dim.top && cWin.width == (dim.right - dim.left) && cWin.height == (dim.bottom - dim.top))) {
       chromeNativeWindow = (await winctl.FindWindows(win => {
         if (BrowserPanel.bindedWindows.has(chromeNativeWindow.getHwnd()) || !win.getTitle().includes('Google Chrome')) return false
         const dim = win.dimensions()
-        console.log(win.getTitle(), cWin.left, dim.left, cWin.top, dim.top, cWin.width, (dim.right - dim.left), cWin.height, (dim.bottom - dim.top))
+        // console.log(win.getTitle(), cWin.left, dim.left, cWin.top, dim.top, cWin.width, (dim.right - dim.left), cWin.height, (dim.bottom - dim.top))
         return cWin.left == dim.left && cWin.top == dim.top && cWin.width == (dim.right - dim.left) && cWin.height == (dim.bottom - dim.top)
       }))[0]
+
+      if(!chromeNativeWindow){
+        chromeNativeWindow = (await winctl.FindWindows(win => {
+          if(oldWindows.includes(win.getHwnd()) || !win.getTitle().includes('Google Chrome')) return false
+          return true
+        }))[0]
+      }
     }
+
     chromeNativeWindow.moveRelative(9999, 9999, 0, 0)
     chromeNativeWindow.hwnd = chromeNativeWindow.getHwnd()
     BrowserPanel.bindedWindows.add(chromeNativeWindow.hwnd)

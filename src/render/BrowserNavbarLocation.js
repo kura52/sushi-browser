@@ -184,6 +184,7 @@ export default class BrowserNavbarLocation extends Component {
     if(!noBlur && this.input) this.input.blur()
     this.prevValue = void 0
     document.removeEventListener('mousedown',this.outerClick,{once:true})
+    PubSub.unsubscribe(this.tokenMouseDown)
     this.setState({ results: []})
   }
 
@@ -333,6 +334,7 @@ export default class BrowserNavbarLocation extends Component {
         this.props.search(this.props.tab, word, true, this.props.addressBarNewTab)
       }
       document.addEventListener('mousedown',this.outerClick,{once:true})
+      this.tokenMouseDown = PubSub.subscribe('webview-mousedown',(msg,e)=>this.outerClick(e))
     }
     this.mouseDownPos = void 0
   }

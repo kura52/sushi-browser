@@ -191,6 +191,8 @@ export default class Aria2cWrapper{
 
     const cont = await getFocusedWebContents()
 
+    this.cmd = spawn('cmd')
+
     let params = cookie ? [`--header=Cookie:${cookie}`] : []
 
     if(!resume && this.overwrite){
@@ -200,7 +202,8 @@ export default class Aria2cWrapper{
       params.push('-c')
     }
 
-    params = [...params,`-x${this.downloadNum}`,'--check-certificate=false','--summary-interval=1','--file-allocation=none','--bt-metadata-only=true', '--auto-save-interval=1',
+    params = [...params,`-x${this.downloadNum}`,'--check-certificate=false','--summary-interval=1','--file-allocation=none','--bt-metadata-only=true',
+      `--stop-with-process=${this.cmd.pid}`, //'--auto-save-interval=1',
       `--user-agent=${await cont.getUserAgent()}`,`--dir=${path.dirname(this.savePath)}`,`--out=${path.basename(this.savePath)}`,`${this.url}`]
 
     if(this.referer !== null){
@@ -247,6 +250,8 @@ export default class Aria2cWrapper{
     this.aria2c.on('close', (code) => {
       console.log(`*r**${code}`)
       if(code == 7) return
+
+      this.cmd.kill()
       if(this.status != 'PAUSE' && this.status != 'CANCEL' ) this.status = code === 0 ? 'COMPLETE' : 'ERROR'
       if(this.status == 'ERROR'){
         this.errorCallback()
@@ -287,7 +292,7 @@ export default class Aria2cWrapper{
     this.status = 'PAUSE'
     if(this.aria2c){
       this.aria2c.stdin.end()
-      this.aria2c.kill()
+      this.cmd.kill()
     }
     this.stdoutCallback()
   }
@@ -300,7 +305,7 @@ export default class Aria2cWrapper{
     this.cancelChromeDownload()
     if(this.aria2c){
       this.aria2c.stdin.end()
-      this.aria2c.kill()
+      this.cmd.kill()
     }
     console.log(this.savePath)
     fs.unlink(this.savePath,e=> {

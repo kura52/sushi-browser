@@ -258,7 +258,7 @@ class BookmarkBar extends Component {
 
   async updateBookmark(){
     const isFloat = isFloatPanel(this.props.k)
-    const bookmarks = [<NavbarMenu k={this.props.k} isFloat={isFloat} ref={r=>this.refs2.last = r} onClick={_=>_} timeOut={50} style={{float: 'right'}} key={'last'}
+    const bookmarks = [<NavbarMenu k={this.props.k} isFloat={isFloat} ref={r=>this.refs2.last = r} onClick={_=>_} timeOut={50} style={{float: 'right'}} key={'last'} fixed={true}
                                    badget={
                                      <span className="bookmark-right-arrow"><i className="fa fa-angle-double-right"></i></span>}>
       <div className="divider" />
@@ -285,7 +285,7 @@ class BookmarkBar extends Component {
       else{
         const ref = `favoriteMenu${f.key}`
         ele = <NavbarMenu k={this.props.k} isFloat={isFloat} ref={r=>this.refs2[ref] = r}
-                          onClick={_=>_} timeOut={50} alignLeft={true} key={f.key} fixed={this.props.hoverBookmarkBar}
+                          onClick={_=>_} timeOut={50} alignLeft={true} key={f.key} fixed={true}
                           badget={
                             <a className="bookmark-item"
                                onMouseDown={this.handleFileMouseDown.bind(this, f)}>

@@ -232,14 +232,14 @@ class BrowserPage extends Component {
       // }
       else if(msg == 'webview-mousedown' || msg == 'webview-mouseup'){
         const button = args[0]
-        PubSub.publishSync(msg,{target: this.refs2.webview, button})
+        PubSub.publishSync(msg,{target: this.refs2.webview, srcElement: this.refs2.webview, button})
       }
       else if(msg == 'webview-mousemove'){
         const clientY = args[0]
-        PubSub.publishSync(msg,{ target: this.refs2.webview, offsetY: clientY /*+ this.refs2.webview.getBoundingClientRect().y*/})
+        PubSub.publishSync(msg,{ target: this.refs2.webview, srcElement: this.refs2.webview, offsetY: clientY /*+ this.refs2.webview.getBoundingClientRect().y*/})
       }
       else if(msg == 'webview-keydown'){
-        PubSub.publishSync(msg,{ target: this.refs2.webview, ...args[0]})
+        PubSub.publishSync(msg,{ target: this.refs2.webview, srcElement: this.refs2.webview, ...args[0]})
       }
     }
     ipc.on(`send-to-host_${tabId}`,this.wvEvents[`send-to-host_${tabId}`])

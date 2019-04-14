@@ -6,6 +6,7 @@ const {remote} = require('electron')
 const ipc = require('electron').ipcRenderer
 const mainState = require('./mainStateRemote')
 const NavbarMenu = require('./NavbarMenu')
+const PubSub = require('./pubsub')
 const {NavbarMenuItem,NavbarMenuBarItem} = require('./NavbarMenuItem')
 
 export default class VpnList extends Component {
@@ -41,6 +42,7 @@ export default class VpnList extends Component {
   componentWillUnmount() {
     ipc.removeListener('vpn-event-reply',this.event)
     document.removeEventListener('mousedown',this.outerClick)
+    PubSub.unsubscribe(this.tokenMouseDown)
   }
 
 
@@ -49,9 +51,11 @@ export default class VpnList extends Component {
       if(this.state.visible){
         this.event()
         document.addEventListener('mousedown',this.outerClick)
+        this.tokenMouseDown = PubSub.subscribe('webview-mousedown',(msg,e)=>this.outerClick(e))
       }
       else{
         document.removeEventListener('mousedown',this.outerClick)
+        PubSub.unsubscribe(this.tokenMouseDown)
       }
     }
   }
