@@ -558,9 +558,9 @@ class BrowserNavbar extends Component{
     const tab = this.props.tab
     for(let ele of document.querySelectorAll('.browser-page-wrapper.visible')){
       const r =  ele.getBoundingClientRect()
-      const wv = ele.querySelector("webview")
+      const wv = ele.querySelector(`.w${this.props.k}`)
       const elem = ele
-      if(tab.key === wv.dataset.key){
+      if(wv && tab.key === wv.dataset.key){
         setTimeout(_=>{
           ipc.send('set-pos-window',{key:tab.key,id:tab.bind && tab.bind.id
             ,x:window.screenX + r.left,y:window.screenY + r.top,width:r.width,height:r.height,top:'above'})

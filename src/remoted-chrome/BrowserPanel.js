@@ -5,6 +5,10 @@ let Browser = new Proxy({},  { get: function(target, name){ Browser = require('.
 let PopupPanel = new Proxy({},  { get: function(target, name){ PopupPanel = require('./Browser').PopupPanel; return typeof PopupPanel[name] == 'function' ? PopupPanel[name].bind(PopupPanel) : PopupPanel[name]}})
 let BrowserView = require('./BrowserView')
 
+const BROWSER_NAME = 'Google Chrome'
+// const BROWSER_NAME = 'Microsoft Edge'
+// const BROWSER_NAME = 'Brave'
+
 export default class BrowserPanel {
   static async _initializer() {
     if (this.isInit) return
@@ -186,7 +190,7 @@ export default class BrowserPanel {
 
     const oldWindows = []
     winctl.EnumerateWindows(function(win) {
-      if(win.getTitle().includes('Google Chrome')){
+      if(win.getTitle().includes(BROWSER_NAME)){
         oldWindows.push(win.getHwnd())
       }
       return true
@@ -227,16 +231,16 @@ export default class BrowserPanel {
 
           let chromeNativeWindow = winctl.GetActiveWindow()
           const dim = chromeNativeWindow.dimensions()
-          if (!chromeNativeWindow.getTitle().includes('Google Chrome') || !(tmpWin.left == dim.left && tmpWin.top == dim.top && tmpWin.width == (dim.right - dim.left) && tmpWin.height == (dim.bottom - dim.top))) {
+          if (!chromeNativeWindow.getTitle().includes(BROWSER_NAME) || !(tmpWin.left == dim.left && tmpWin.top == dim.top && tmpWin.width == (dim.right - dim.left) && tmpWin.height == (dim.bottom - dim.top))) {
             chromeNativeWindow = (await winctl.FindWindows(win => {
-              if (!win.getTitle().includes('Google Chrome')) return false
+              if (!win.getTitle().includes(BROWSER_NAME)) return false
               const dim = win.dimensions()
               return tmpWin.left == dim.left && tmpWin.top == dim.top && tmpWin.width == (dim.right - dim.left) && tmpWin.height == (dim.bottom - dim.top)
             }))[0]
 
             if(!chromeNativeWindow){
               chromeNativeWindow = (await winctl.FindWindows(win => {
-                if(oldWindows.includes(win.getHwnd()) || !win.getTitle().includes('Google Chrome')) return false
+                if(oldWindows.includes(win.getHwnd()) || !win.getTitle().includes(BROWSER_NAME)) return false
                 return true
               }))[0]
             }
@@ -347,9 +351,9 @@ export default class BrowserPanel {
   async createChromeParentWindow(cWin, oldWindows) {
     let chromeNativeWindow = winctl.GetActiveWindow()
     const dim = chromeNativeWindow.dimensions()
-    if (BrowserPanel.bindedWindows.has(chromeNativeWindow.getHwnd()) || !chromeNativeWindow.getTitle().includes('Google Chrome') || !(cWin.left == dim.left && cWin.top == dim.top && cWin.width == (dim.right - dim.left) && cWin.height == (dim.bottom - dim.top))) {
+    if (BrowserPanel.bindedWindows.has(chromeNativeWindow.getHwnd()) || !chromeNativeWindow.getTitle().includes(BROWSER_NAME) || !(cWin.left == dim.left && cWin.top == dim.top && cWin.width == (dim.right - dim.left) && cWin.height == (dim.bottom - dim.top))) {
       chromeNativeWindow = (await winctl.FindWindows(win => {
-        if (BrowserPanel.bindedWindows.has(chromeNativeWindow.getHwnd()) || !win.getTitle().includes('Google Chrome')) return false
+        if (BrowserPanel.bindedWindows.has(chromeNativeWindow.getHwnd()) || !win.getTitle().includes(BROWSER_NAME)) return false
         const dim = win.dimensions()
         // console.log(win.getTitle(), cWin.left, dim.left, cWin.top, dim.top, cWin.width, (dim.right - dim.left), cWin.height, (dim.bottom - dim.top))
         return cWin.left == dim.left && cWin.top == dim.top && cWin.width == (dim.right - dim.left) && cWin.height == (dim.bottom - dim.top)
@@ -357,7 +361,7 @@ export default class BrowserPanel {
 
       if(!chromeNativeWindow){
         chromeNativeWindow = (await winctl.FindWindows(win => {
-          if(oldWindows.includes(win.getHwnd()) || !win.getTitle().includes('Google Chrome')) return false
+          if(oldWindows.includes(win.getHwnd()) || !win.getTitle().includes(BROWSER_NAME)) return false
           return true
         }))[0]
       }

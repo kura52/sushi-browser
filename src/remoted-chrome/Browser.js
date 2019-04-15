@@ -86,6 +86,8 @@ class Browser{
       ignoreDefaultArgs: true,
       defaultViewport: null,
       executablePath,
+      // executablePath: "C:\\Program Files (x86)\\Microsoft\\Edge Dev\\Application\\msedge.exe",
+      // executablePath: "C:\\Program Files (x86)\\BraveSoftware\\Brave-Browser\\Application\\brave.exe",
       args: [
         // '--no-first-run',
         //    '--enable-automation',
@@ -964,7 +966,7 @@ class PopupPanel{
     if(panelKey != this.panelKey || tabKey != this.tabKey) return
 
     this.setKeys(null, null)
-    this.loadURL('about:blank')
+    this.loadURL('chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/popup_prepare.html')
     this.nativeWindow.showWindow(6)
     this.minimized = true
   }
