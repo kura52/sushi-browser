@@ -14,7 +14,7 @@ for(let lib of libs){
 function rebuild(lib){
   sh.cd(lib)
 
-  if(sh.exec('node-gyp rebuild --target=4.0.6 --arch=x64 --dist-url=https://atom.io/download/electron').code !== 0) {
+  if(sh.exec('node-gyp rebuild --target=5.0.0 --arch=x64 --dist-url=https://atom.io/download/electron').code !== 0) {
     console.log("ERROR")
     process.exit()
   }
