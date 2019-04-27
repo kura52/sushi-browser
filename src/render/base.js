@@ -59,13 +59,11 @@ export default class MainContent extends Component{
   handleMouseMove(e, visibleRepeat){
     // console.log('mousemove',e)
     if(document.getElementsByClassName('visible transition').length){
-      console.log('change-browser-view-z-index', true)
       ipc.send('change-browser-view-z-index', true)
       // if(this.menuVisible) clearInterval(this.menuVisible)
       // this.menuVisible = setInterval(_=>this.handleMouseMove(e, true),10)
     }
     else{
-      console.log('change-browser-view-z-index', false)
       // if(this.menuVisible) clearInterval(this.menuVisible)
       // this.menuVisible = void 0
       ipc.send('change-browser-view-z-index', e.target.className !== 'browser-page' && !e.target.dataset.webview)

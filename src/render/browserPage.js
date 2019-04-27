@@ -100,7 +100,9 @@ class BrowserPage extends Component {
       prevProps.pos.left != style.left ||
       prevProps.pos.width != style.width ||
       prevProps.pos.height != style.height ||
-      prevProps.pos.zIndex != style.zIndex)){
+      prevProps.pos.zIndex != style.zIndex) ||
+      this.props.tab.fields.mobilePanel != this.prevMobilePanel ||
+      sharedState.statusBar != this.prevStatusBar){
       this.bounds = [style.left, style.top, style.width, style.height, style.zIndex]
       if(!this.props.tab.wvId){
         for(let i=0;i<100;i++){
@@ -108,9 +110,19 @@ class BrowserPage extends Component {
           if(this.props.tab.wvId) break
         }
       }
+      if(this.props.tab.fields.mobilePanel){
+        const width = this.props.tab.fields.mobilePanel.width + 1
+        this.bounds[0] = this.bounds[0] + width
+        this.bounds[2] = this.bounds[2] - width
+      }
+      if(sharedState.statusBar){
+        this.bounds[3] = this.bounds[3] - 20
+      }
       ipc.send('set-bound-browser-view', this.props.k2, this.props.k, this.props.tab.wvId, ...this.bounds)
       ipc.emit('set-bound-browser-view', this.props.k2, this.props.k, this.props.tab.wvId, ...this.bounds)
     }
+    this.prevMobilePanel = this.props.tab.fields.mobilePanel
+    this.prevStatusBar = sharedState.statusBar
   }
 
   async componentDidMount() {
@@ -271,8 +283,17 @@ class BrowserPage extends Component {
     this.tokenResize = PubSub.subscribe("resize",(msg)=>{
       if(this.props.isActive) {
         const style = this.props.pos
-        ipc.send('set-bound-browser-view', this.props.k2, this.props.k, this.props.tab.wvId, style.left, style.top, style.width, style.height, style.zIndex)
-        ipc.emit('set-bound-browser-view', this.props.k2, this.props.k, this.props.tab.wvId, style.left, style.top, style.width, style.height, style.zIndex)
+        const bounds = [style.left, style.top, style.width, style.height, style.zIndex]
+        if(this.props.tab.fields.mobilePanel){
+          const width = this.props.tab.fields.mobilePanel.width + 1
+          bounds[0] = bounds[0] + width
+          bounds[2] = bounds[2] - width
+        }
+        if(sharedState.statusBar){
+          bounds[3] = bounds[3] - 20
+        }
+        ipc.send('set-bound-browser-view', this.props.k2, this.props.k, this.props.tab.wvId, ...bounds)
+        ipc.emit('set-bound-browser-view', this.props.k2, this.props.k, this.props.tab.wvId, ...bounds)
       }
     })
 
@@ -299,23 +320,24 @@ class BrowserPage extends Component {
       }
 
       if(name == 'findOnPage'){
-        if(word){
-          this.refs2.bps.setState({value: word})
-          if(type == 'OR') this.refs2.bps.or = true
-        }
-        else{
-          if(toggle && this.state.isSearching){
-            return this.setState({isSearching: false})
-          }
-          await new Promise(r=>{
-            webview.executeJavaScript('window.getSelection().toString()', (result)=>{
-              if(result) this.refs2.bps.setState({value: result})
-              r()
-            })
-          })
-        }
-        this.setState({isSearching: true})
-        this.refs2.bps.setState({focus: true})
+        tab.wv.findInPage()
+        // if(word){
+        //   this.refs2.bps.setState({value: word})
+        //   if(type == 'OR') this.refs2.bps.or = true
+        // }
+        // else{
+        //   if(toggle && this.state.isSearching){
+        //     return this.setState({isSearching: false})
+        //   }
+        //   await new Promise(r=>{
+        //     webview.executeJavaScript('window.getSelection().toString()', (result)=>{
+        //       if(result) this.refs2.bps.setState({value: result})
+        //       r()
+        //     })
+        //   })
+        // }
+        // this.setState({isSearching: true})
+        // this.refs2.bps.setState({focus: true})
       }
       else if(name == 'findNext'){
         if(this.state.isSearching) this.onPageSearch(this.previous_text)
@@ -338,7 +360,12 @@ class BrowserPage extends Component {
 
     this.getWebviewPosEvent = (e, panelKey)=>{
       if(this.props.isActive && this.props.k2 == panelKey){
-        ipc.send(`get-webview-pos-${panelKey}-reply`, this.props.pos)
+        const pos = {...this.props.pos}
+        if(this.props.tab.fields.mobilePanel){
+          const width = this.props.tab.fields.mobilePanel.width + 1
+          pos.left = pos.left + width
+        }
+        ipc.send(`get-webview-pos-${panelKey}-reply`, pos)
       }
     }
     ipc.on('get-webview-pos', this.getWebviewPosEvent)

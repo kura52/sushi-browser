@@ -725,6 +725,7 @@ class BrowserNavbar extends Component{
                           this.props.tab.fields.mobilePanel = {width: mainState.mobilePanelWidth, isPanel: !mainState.mobilePanelDetach}
                         }
                         this.props.parent.setState({})
+                        PubSub.publish('web-view-create')
                       }}/>}
       <div className="divider" />
 

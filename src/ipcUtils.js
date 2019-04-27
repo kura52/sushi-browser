@@ -1127,7 +1127,7 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
     }
 
 
-    bw.webContents.toggleDevTools()
+    // bw.webContents.toggleDevTools()
     // bw.loadURL('data:text/html,<html></html>')
     // await new Promise(r=>{
     //   ipcMain.emit('init-private-mode',{sender: {send: _=>r()}},'','persist:mobile')
