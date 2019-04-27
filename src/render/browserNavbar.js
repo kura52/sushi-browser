@@ -562,7 +562,7 @@ class BrowserNavbar extends Component{
       const elem = ele
       if(wv && tab.key === wv.dataset.key){
         setTimeout(_=>{
-          ipc.send('set-pos-window',{key:tab.key,id:tab.bind && tab.bind.id
+          ipc.send('set-pos-window',{key:tab.key,id:tab.bind && tab.bind.id,tabId:tab.wvId
             ,x:window.screenX + r.left,y:window.screenY + r.top,width:r.width,height:r.height,top:'above'})
           ipc.once(`set-pos-window-reply_${tab.key}`,(e,ret)=>{
             if(!ret) return
@@ -571,7 +571,7 @@ class BrowserNavbar extends Component{
             const ro = new ResizeObserver((entries, observer) => {
               for (const entry of entries) {
                 const r = elem.getBoundingClientRect()
-                ipc.send('set-pos-window',{key:tab.key,id:id,x:window.screenX + r.left,y:window.screenY + r.top,width:r.width,height:r.height})
+                ipc.send('set-pos-window',{key:tab.key,tabId:tab.wvId,id:id,x:window.screenX + r.left,y:window.screenY + r.top,width:r.width,height:r.height})
               }
             });
             const key = uuid.v4()
@@ -593,17 +593,17 @@ class BrowserNavbar extends Component{
                 setTimeout(_=>{
                   console.log('move')
                   const r = elem.getBoundingClientRect()
-                  ipc.send('set-pos-window',{id,x:window.screenX + r.left,y:window.screenY + r.top,width:r.width,height:r.height})
+                  ipc.send('set-pos-window',{id,tabId:tab.wvId,x:window.screenX + r.left,y:window.screenY + r.top,width:r.width,height:r.height})
                 },0)
               },
               blur: e=>{
                 console.log('blur')
-                ipc.send('set-pos-window',{id,top:'not-above',hwnd:tab.bind.hwnd,active:tab.key == this.props.parent.state.selectedTab})
+                // ipc.send('set-pos-window',{id,top:'not-above',hwnd:tab.bind.hwnd,tabId:tab.wvId,active:tab.key == this.props.parent.state.selectedTab})
               },
               focus:e=>{
                 console.log('focus')
                 if(tab.key == this.props.parent.state.selectedTab){
-                  ipc.send('set-pos-window',{id,top:'above'})
+                  ipc.send('set-pos-window',{id,tabId:tab.wvId,top:'above'})
                 }
               },
             }
@@ -674,7 +674,7 @@ class BrowserNavbar extends Component{
                          this.getWebContents(this.props.tab).getZoomFactor(factor=>{
                            PubSub.publishSync(`zoom_${this.props.tabkey}`,factor * 100)
                            if(tab.bind){
-                             ipc.send('set-pos-window',{id:tab.bind.id,hwnd:tab.bind.hwnd,top:'not-above'})
+                             // ipc.send('set-pos-window',{id:tab.bind.id,hwnd:tab.bind.hwnd,tabId:tab.wvId,top:'not-above'})
                            }
                          })
                        }

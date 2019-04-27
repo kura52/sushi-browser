@@ -29,7 +29,7 @@ export default class NavbarMenu extends Component {
 
   closeBind(){
     if(this.props.tab){
-      ipc.send('set-pos-window',{id:this.props.tab.bind.id,top:'above'})
+      ipc.send('set-pos-window',{id:this.props.tab.bind.id,tabId:this.props.tab.wvId,top:'above'})
     }
   }
 

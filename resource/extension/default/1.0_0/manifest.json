@@ -83,8 +83,8 @@
    "default_locale": "en_US",
    "name": "Gestures for Google Chrome™",
    "permissions": [
-      "idle", "externally_connectable.all_urls", "contentSettings", "webRequest", "webRequestBlocking", "\u003Call_urls>", "tabs", "windows", "sessions", "webNavigation", "storage", "cookies",
-      "debugger","contentSettings", "downloads", "downloads.shelf", "management", "history", "clipboardRead", "clipboardWrite", "bookmarks"
+      "idle", "externally_connectable.all_urls", "contentSettings", "webRequest", "webRequestBlocking", "<all_urls>", "tabs", "windows", "sessions", "webNavigation", "storage", "cookies",
+      "debugger","contentSettings", "downloads", "downloads.shelf", "management", "history", "clipboardRead", "clipboardWrite", "bookmarks", "activeTab"
    ],
    "chrome_url_overrides" : {
       "newtab": "top.html"

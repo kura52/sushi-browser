@@ -107,6 +107,7 @@ class Browser{
 
     this.listeners = {}
     this._pagePromises = {}
+    this.disableOnActivated = new Set()
 
     await this.initBgPage()
 
@@ -271,6 +272,9 @@ class Browser{
 
     this.addListener('tabs', 'onActivated', (activeInfo)=>{
       if(PopupPanel.tabId == activeInfo.tabId || this.popUpCache[activeInfo.tabId]) return
+      if (this.disableOnActivated.size && this.disableOnActivated.has(BrowserPanel.getBrowserPanelByTabId(activeInfo.tabId)[2].browserWindow.id)) {
+        return
+      }
 
       const cont = webContents.fromId(activeInfo.tabId)
       const now = Date.now()
@@ -986,6 +990,7 @@ class PopupPanel{
   }
 
   moveTop(){
+    if (webContents.disableFocus) return
     this.nativeWindow.moveTop()
   }
 

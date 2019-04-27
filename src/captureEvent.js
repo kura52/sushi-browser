@@ -99,8 +99,6 @@ ipcMain.on('take-capture', async (event,{id,url,loc,base64,tabId,tabIds}) => {
     for(let tabId of tabIds){
       const cont = webContents.fromId(tabId)
       if(!cont || cont.isDestroyed()) continue
-      const view = BrowserView.getAllViews().find(x=>x.webContents.id == cont.id)
-      if(!cont || cont.isDestroyed()) continue
 
       const win = BrowserWindow.fromWebContents(event.sender)
       // const winId = win.id
@@ -111,12 +109,16 @@ ipcMain.on('take-capture', async (event,{id,url,loc,base64,tabId,tabIds}) => {
       //   global.viewCache[seq] = winId
       //   win.reorderBrowserView(seq, 0)
       // }
-      results.push(await new Promise(r=>{
+      const img = await new Promise(r=>{
         cont.capturePage((imageBuffer)=>{
-          r([tabId,imageBuffer,imageBuffer.getSize(), Math.random().toString(),imageBuffer.resize({width:100,quality: 'good'}).toJPEG(parseInt(mainState.tabPreviewQuality))])
+            r(imageBuffer ?
+              [tabId,imageBuffer,imageBuffer.getSize(), Math.random().toString(),imageBuffer.resize({width:100,quality: 'good'}).toJPEG(parseInt(mainState.tabPreviewQuality))] :
+              void 0
+            )
         })
         // setTimeout(()=>r(null),500)
-      }))
+      })
+      if(img) results.push(img)
     }
     // const results = await Promise.all(promises)
     const reply = []
@@ -132,7 +134,7 @@ ipcMain.on('take-capture', async (event,{id,url,loc,base64,tabId,tabIds}) => {
         console.log(111)
       }
     }
-    event.sender.send(`take-capture-reply_${base64}`,reply)
+    event.sender.send(`take-capture-reply_${base64}`, reply)
   }
   else{
     captureCurrentPage(id,url,loc,base64,event.sender,tabId).then(_=>{

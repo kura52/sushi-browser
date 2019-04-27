@@ -475,10 +475,10 @@ ipcMain.on('send-input-event',(e,{type,tabId,x,y,button,deltaY,keyCode,modifiers
     cont.sendInputEvent({ type, x, y, button, clickCount: 1})
   }
   else if(type == 'mouseWheel'){
-    cont.sendInputEvent({ type, x: x, y: y, deltaX: 0, deltaY, canScroll: true})
+    cont.sendInputEvent({ type, x, y, deltaX: 0, deltaY, canScroll: true})
   }
   else if(type == 'mouseMove'){
-    cont.sendInputEvent({ type, x: x, y: y})
+    cont.sendInputEvent({ type, x, y})
   }
   else if(type == 'keyDown'){
     console.log(999,keyCode, modifiers)
@@ -908,6 +908,9 @@ const restoredMap = {}
 const hwndMap = {}
 const bindMap = {}
 ipcMain.on('set-pos-window',async (e,{id,hwnd,key,x,y,width,height,top,active,tabId,checkClose,restore})=>{
+
+  if(!checkClose) console.log('set-pos-window',{id,hwnd,key,x,y,width,height,top,active,tabId,checkClose,restore})
+
   const FRAME = parseInt(mainState.bindMarginFrame)
   const TITLE_BAR = parseInt(mainState.bindMarginTitle)
   if(isWin){
@@ -944,7 +947,7 @@ ipcMain.on('set-pos-window',async (e,{id,hwnd,key,x,y,width,height,top,active,ta
       win.setWindowPos(0,0,0,0,0,39+1024);
       console.log('setWindowPos51',win.getTitle())
       const tid = setTimeout(_=>{
-        win.setWindowPos(winctl.HWND.NOTOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
+        // win.setWindowPos(winctl.HWND.NOTOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
         // if(winctl.GetActiveWindow().getHwnd() !== id){
         win.setWindowPos(winctl.HWND.BOTTOM,0,0,0,0,19+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
         // }
@@ -973,22 +976,21 @@ ipcMain.on('set-pos-window',async (e,{id,hwnd,key,x,y,width,height,top,active,ta
       // console.log(top == 'above' ? winctl.HWND.TOPMOST : winctl.HWND.BOTTOM,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024)
 
       if(top == 'above'){
+        const cont = webContents.fromId(tabId)
+        cont.bindWindow(true)
         console.log('setWindowPos4',win.getTitle())
-        win.setWindowPos(winctl.HWND.TOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
+        // win.setWindowPos(winctl.HWND.TOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
+        win.moveTop()
       }
       else{
+        const cont = webContents.fromId(tabId)
+        cont.bindWindow(false)
         console.log('setWindowPos5',win.getTitle()) //hatudouriyuu
-        win.setWindowPos(winctl.HWND.NOTOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
+        // win.setWindowPos(winctl.HWND.NOTOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
 
-        // if(winctl.GetActiveWindow().getHwnd() !== id) {
-        //   const eWin = (await winctl.FindWindows(win => (hwnd || hwndMap[key]) == win.getHwnd()))[0]
-        //   eWin.setWindowPos(winctl.HWND.TOPMOST, 0, 0, 0, 0, 19 + 1024)
-        //   eWin.setWindowPos(winctl.HWND.NOTOPMOST, 0, 0, 0, 0, 19 + 1024)
+        // if(winctl.GetActiveWindow().getHwnd() !== id){
+        //   win.setWindowPos(winctl.HWND.BOTTOM,0,0,0,0,19+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
         // }
-
-        if(winctl.GetActiveWindow().getHwnd() !== id){
-          win.setWindowPos(winctl.HWND.BOTTOM,0,0,0,0,19+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
-        }
       }
 
     }
@@ -1000,12 +1002,13 @@ ipcMain.on('set-pos-window',async (e,{id,hwnd,key,x,y,width,height,top,active,ta
       win.move(x,y,width,height)
     }
     if(active) {
-      const win2 = winctl.GetActiveWindow()
-      console.log('setWindowPos6',win.getTitle(),win2.getTitle())
-      win.setWindowPos(winctl.HWND.TOPMOST,0,0,0,0,19+1024)
-      win.setWindowPos(winctl.HWND.NOTOPMOST,0,0,0,0,19+1024)
-      win2.setWindowPos(winctl.HWND.TOPMOST,0,0,0,0,19+1024)
-      win2.setWindowPos(winctl.HWND.NOTOPMOST,0,0,0,0,19+1024)
+      // const win2 = winctl.GetActiveWindow()
+      // console.log('setWindowPos6',win.getTitle(),win2.getTitle())
+      // win.moveTop
+      // win.setWindowPos(winctl.HWND.TOPMOST,0,0,0,0,19+1024)
+      // win.setWindowPos(winctl.HWND.NOTOPMOST,0,0,0,0,19+1024)
+      // win2.setWindowPos(winctl.HWND.TOPMOST,0,0,0,0,19+1024)
+      // win2.setWindowPos(winctl.HWND.NOTOPMOST,0,0,0,0,19+1024)
     }
     if(key) e.sender.send(`set-pos-window-reply_${key}`,[win.getHwnd(),win.getTitle()])
   }

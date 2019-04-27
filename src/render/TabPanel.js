@@ -3357,7 +3357,7 @@ export default class TabPanel extends Component {
           }
           if(tab.bind){
             console.log(88988,'tabchange')
-            ipc.send('set-pos-window',{id:tab.bind.id,hwnd:tab.bind.hwnd,top:isActive ? 'above' : 'not-above'})
+            ipc.send('set-pos-window',{id:tab.bind.id,hwnd:tab.bind.hwnd,tabId:tab.wvId,top:isActive ? 'above' : 'not-above'})
           }
           else if(tab.fields.mobilePanel){
             ipc.send('mobile-panel-operation',{type: isActive ? 'above' : 'below', key: tab.key, tabId: tab.wvId, force: true})
@@ -3454,7 +3454,7 @@ export default class TabPanel extends Component {
         win.removeListener('blur',tab.bind.blur)
         win.removeListener('focus',tab.bind.focus)
         console.log(889889,'close')
-        ipc.send('set-pos-window',{key:tab.key,id:tab.bind.id,hwnd:tab.bind.hwnd,top:'not-above',restore:true})
+        ipc.send('set-pos-window',{key:tab.key,id:tab.bind.id,hwnd:tab.bind.hwnd,tabId:tab.wvId,top:'not-above',restore:true})
 
       }catch(e){
         console.log(2525,e)

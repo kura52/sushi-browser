@@ -4,6 +4,7 @@ import {BrowserWindow, ipcMain} from "electron";
 let Browser = new Proxy({},  { get: function(target, name){ Browser = require('./Browser').Browser; return typeof Browser[name] == 'function' ? Browser[name].bind(Browser) : Browser[name]}})
 let PopupPanel = new Proxy({},  { get: function(target, name){ PopupPanel = require('./Browser').PopupPanel; return typeof PopupPanel[name] == 'function' ? PopupPanel[name].bind(PopupPanel) : PopupPanel[name]}})
 let BrowserView = require('./BrowserView')
+let webContents = require('./webContents')
 
 const BROWSER_NAME = 'Google Chrome'
 // const BROWSER_NAME = 'Microsoft Edge'
@@ -154,8 +155,8 @@ export default class BrowserPanel {
     }
   }
 
-  static getChromeWindowBoundArray(width, height){
-    return [- BrowserPanel.sideMargin, - BrowserPanel.topMargin, width + BrowserPanel.sideMargin * 2, height + BrowserPanel.topMargin + 8]
+  static getChromeWindowBoundArray(width, height, modify=0){
+    return [- BrowserPanel.sideMargin, - BrowserPanel.topMargin + modify, width + BrowserPanel.sideMargin * 2, height + BrowserPanel.topMargin + 8]
   }
 
   constructor({browserWindow, panelKey, tabKey, webContents, windowId, url, tabId, bounds}) {
@@ -443,11 +444,23 @@ export default class BrowserPanel {
     this.cpWin.nativeWindow.setWindowPos(enable ? winctl.HWND.TOPMOST : winctl.HWND.NOTOPMOST, 0, 0, 0, 0, 83)
   }
 
-  setBounds(bounds) {
+  getActiveTab(){
+    return Browser.bg.evaluate((windowId) => {
+      return new Promise(resolve => {
+        chrome.tabs.query({windowId, active: true}, tabs => resolve(tabs[0]))
+      })
+    }, this.windowId)
+  }
+
+  async setBounds(bounds) {
+    const tab = await this.getActiveTab()
+    const modify = tab.url == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? 37 : 0
+
     if (bounds.width) {
       this.cpWin.nativeWindow.move(bounds.x, bounds.y, bounds.width, bounds.height)
-      this.cpWin.chromeNativeWindow.move(...BrowserPanel.getChromeWindowBoundArray(bounds.width, bounds.height))
-    } else {
+      this.cpWin.chromeNativeWindow.move(...BrowserPanel.getChromeWindowBoundArray(bounds.width, bounds.height, modify))
+    }
+    else {
       const dim = this.cpWin.nativeWindow.dimensions()
       this.cpWin.nativeWindow.move(bounds.x, bounds.y, dim.right - dim.left, dim.bottom - dim.top)
     }
@@ -462,7 +475,10 @@ export default class BrowserPanel {
   }
 
   moveTopNativeWindow() {
-    if (BrowserPanel.contextMenuShowing) return
+    if (BrowserPanel.contextMenuShowing ||
+      webContents.disableFocus ||
+      this._bindWindow) return
+
     this.cpWin.nativeWindow.moveTop()
     if(this.panelKey == PopupPanel.instance.panelKey){
       PopupPanel.instance.moveTop()
@@ -476,6 +492,15 @@ export default class BrowserPanel {
   moveTopNativeWindowBw() {
     if (BrowserPanel.contextMenuShowing) return
     this.cpWin.nativeWindowBw.moveTop()
+  }
+
+  bindWindow(val){
+    if(val){
+      this._bindWindow = true
+    }
+    else{
+      delete this._bindWindow
+    }
   }
 
   // async getTabs(queryInfo){

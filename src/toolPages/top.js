@@ -94,7 +94,7 @@ let resourcePath
 let accessKey, accessPort
 async function faviconGet(h){
   console.log(99887766,h.favicon)
-  return (!h.favicon || h.favicon == 'loading') ? `http://localhost:${accessPort}/?key=${accessKey}&file=${resourcePath}/file.svg` : `chrome://favicon/${h.location}`
+  return `chrome://favicon/${h.location}`
 }
 
 ipc.send("get-resource-path",{})

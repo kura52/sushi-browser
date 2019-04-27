@@ -18,18 +18,6 @@ import rowRenderer from '../render/react-infinite-tree/renderer';
 
 const isMain = location.href.startsWith("file://")
 
-if(!isMain){
-  localForage.getItem('favicon-set').then(setTime=>{
-    ipc.send("favicon-get",setTime ? parseInt(setTime) : null)
-    ipc.once("favicon-get-reply",(e,ret)=>{
-      localForage.setItem('favicon-set',Date.now().toString())
-      for(let [k,v] of Object.entries(ret)){
-        localForage.setItem(k,v)
-      }
-    })
-  })
-}
-
 let openType
 const key = uuid.v4()
 ipc.send("get-main-state",key,[isMain ? 'toolbarLink' : 'sidebarLink'])
@@ -38,7 +26,9 @@ ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
 })
 
 async function faviconGet(x){
-  return x.favicon == "resource/file.svg" ? (void 0) : x.favicon && (await localForage.getItem(x.favicon))
+  return x.favicon == "resource/file.svg" ? (void 0) :
+    isMain ? x.favicon && (await localForage.getItem(x.favicon)) :
+      `chrome://favicon/${x.url}`
 }
 
 function escapeRegExp(string){

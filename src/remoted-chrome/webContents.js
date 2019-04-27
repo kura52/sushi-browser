@@ -1,8 +1,9 @@
 import robot from 'robotjs'
-import {ipcMain, nativeImage, webContents as _webContents} from 'electron'
+import {BrowserWindow, ipcMain, nativeImage, webContents as _webContents} from 'electron'
 import {EventEmitter} from 'events'
 import evem from './evem'
 import fs from 'fs'
+import winctl from "../../resource/winctl";
 
 let Browser = new Proxy({},  { get: function(target, name){ Browser = require('./Browser').Browser; return typeof Browser[name] == 'function' ? Browser[name].bind(Browser) : Browser[name]}})
 let BrowserPanel = new Proxy({},  { get: function(target, name){ BrowserPanel = require('./BrowserPanel'); return typeof BrowserPanel[name] == 'function' ? BrowserPanel[name].bind(BrowserPanel) : BrowserPanel[name]}})
@@ -19,6 +20,25 @@ export default class webContents extends EventEmitter {
 
     ipcMain.on('disable-webContents-focus', (e,val)=>{
       webContents.disableFocus = val
+    })
+
+    ipcMain.on('arrange-panels', (e,val)=>{
+      webContents.disableFocus = val
+
+      const bw = BrowserWindow.fromWebContents(e.sender)
+      const panels = BrowserPanel.getBrowserPanelsFromBrowserWindow(bw)
+      if(val){
+        Browser.disableOnActivated.add(bw.id)
+        for(const panel of panels){
+          panel.cpWin.nativeWindowBw.setWindowPos(winctl.HWND.TOPMOST, 0, 0, 0, 0, 83)
+        }
+      }
+      else{
+        Browser.disableOnActivated.delete(bw.id)
+        for(const panel of panels){
+          panel.cpWin.nativeWindowBw.setWindowPos(winctl.HWND.NOTOPMOST, 0, 0, 0, 0, 83)
+        }
+      }
     })
   }
 
@@ -81,7 +101,7 @@ export default class webContents extends EventEmitter {
   }
 
   async _initEvent(){
-    
+
     const page = await this._getPage()
 
     this._evEvents[`webNavigation-onCompleted_${this.id}`] = (extFrameId) =>{
@@ -323,7 +343,7 @@ export default class webContents extends EventEmitter {
   }
 
   focus(){
-    if(webContents.disableFocus) return
+    if(webContents.disableFocus || this._bindWindow) return
 
     const panel = this._getBrowserPanel()
     if(!panel) return
@@ -336,6 +356,8 @@ export default class webContents extends EventEmitter {
   }
 
   moveTop(){
+    if(webContents.disableFocus || this._bindWindow) return
+
     const panel = this._getBrowserPanel()
     if(!panel) return
 
@@ -350,6 +372,8 @@ export default class webContents extends EventEmitter {
   }
 
   setForegroundWindow(){
+    if(webContents.disableFocus || this._bindWindow) return
+
     if(!this._getBrowserPanel()) return
     this._getBrowserPanel().cpWin.chromeNativeWindow.setForegroundWindowEx()
   }
@@ -564,11 +588,48 @@ export default class webContents extends EventEmitter {
     robot.keyTap('escape')
   }
 
-  capturePage(rect, callback){
+  async capturePage(rect, callback){
     if(callback == void 0){
       [callback, rect] = [rect, void 0]
     }
-    this._getPage().screenshot({clip: rect, encoding: 'png'}).then(image=>callback(nativeImage.createFromBuffer(image)))
+
+    const start = Date.now()
+    if(rect){
+      this._getPage().screenshot({clip: rect, encoding: 'png'}).then(image=>{
+        console.log(11,Date.now() - start)
+        const img = nativeImage.createFromBuffer(image)
+        console.log(12,Date.now() - start)
+        callback(img)
+      })
+    }
+    else{
+      const dataUrl = await Browser.bg.evaluate((tabId) => {
+        return new Promise(resolve => {
+          // chrome.tabs.getCurrent(ctab => {
+          chrome.tabs.update(tabId, {active: true},(tab)=>{
+            if(chrome.runtime.lastError) resolve()
+            chrome.tabs.captureVisibleTab(tab.windowId, {format: 'png'}, (dataUrl) => {
+              if(chrome.runtime.lastError) resolve()
+              resolve(dataUrl)
+              // chrome.tabs.update(ctab.id, {active: true})
+            })
+          })
+          // })
+        })
+      },this.id)
+
+      console.log(11,Date.now() - start)
+      if(dataUrl){
+        const img = nativeImage.createFromDataURL(dataUrl)
+        callback(img)
+      }
+      else{
+        callback()
+      }
+      console.log(12,Date.now() - start)
+    }
+
+    // this._getPage().screenshot({clip: rect, encoding: 'png'}).then(image=>callback(nativeImage.createFromBuffer(image)))
 
 
     // this._getPage().screenshot({clip: rect, encoding: 'base64'}).then(image=>{
@@ -671,26 +732,26 @@ export default class webContents extends EventEmitter {
     const mouse = this._getPage().mouse
     const keyboard = this._getPage().keyboard
     if(event.type == 'mouseDown'){
-      await this._modifiers(async ()=>{
+      await this._modifiers(event, async ()=>{
         await mouse.move(event.x, event.y)
         await mouse.down({button: event.button, clickCount: event.clickCount})
       })
     }
     else if(event.type == 'mouseUp'){
-      await this._modifiers(async ()=>{
+      await this._modifiers(event, async ()=>{
         await mouse.move(event.x, event.y)
         await mouse.up({button: event.button, clickCount: event.clickCount})
       })
     }
     else if(event.type == 'click'){
-      await this._modifiers(async ()=>{
+      await this._modifiers(event, async ()=>{
         await mouse.click({x: event.x, y: event.y})
       })
     }
     else if(event.type == 'mouseWheel'){
-      await this._modifiers(async ()=>{
+      await this._modifiers(event, async ()=>{
         await mouse.move(event.x, event.y)
-        await mouse.wheel({deltaX: event.deltaX, deltaY: event.deltaY})
+        await mouse.wheel({deltaX: event.deltaX * -1, deltaY: event.deltaY * -1})
       })
     }
     else if(event.type == 'mouseMove'){
@@ -703,19 +764,19 @@ export default class webContents extends EventEmitter {
       //@TODO
     }
     else if(event.type == 'keyDown'){
-      await this._modifiers(async ()=>{
+      await this._modifiers(event, async ()=>{
         //@TODO
         await keyboard.down(event.keyCode)
       })
     }
     else if(event.type == 'keyUp'){
-      await this._modifiers(async ()=>{
+      await this._modifiers(event, async ()=>{
         //@TODO
         await keyboard.up(event.keyCode)
       })
     }
     else if(event.type == 'char'){
-      await this._modifiers(async ()=>{
+      await this._modifiers(event, async ()=>{
         //@TODO
         await keyboard.press(event.keyCode)
       })
@@ -828,4 +889,9 @@ export default class webContents extends EventEmitter {
     }, this.id)
   }
 
+  bindWindow(val){
+    this._bindWindow = val
+    const [_1, _2, panel, _3] = BrowserPanel.getBrowserPanelByTabId(this.id)
+    panel.bindWindow(val)
+  }
 }

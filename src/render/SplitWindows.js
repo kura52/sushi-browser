@@ -1053,7 +1053,8 @@ export default class SplitWindows extends Component{
 
     document.removeEventListener('keydown',this.arrangePanelKeyDown)
     document.removeEventListener('mousemove',this.arrangePanelMouseMove)
-    clearInterval(this.arrangeId)
+    this.arrangeId = false
+    ipc.send('arrange-panels', false)
   }
 
   notifyChange(date){
@@ -1673,7 +1674,8 @@ export default class SplitWindows extends Component{
     }
     if(this.state.arrange){
       ipc.send('end-arrange-mode')
-      clearInterval(this.arrangeId)
+      this.arrangeId = false
+      ipc.send('disable-webContents-focus', false)
       sharedState.arrange = false
       this.state._arrange = {...this.state.arrange}
       this.setState({arrange: null,renderArrange: null})
@@ -1704,7 +1706,7 @@ export default class SplitWindows extends Component{
 
       let num = 0, doing
       const arrange = []
-      const func = first=>{
+      const func = async first=>{
         if(doing) return
         doing = true
         if(num++ % 2 == 0){
@@ -1723,25 +1725,29 @@ export default class SplitWindows extends Component{
 
         const base64 = uuid.v4()
         ipc.send('take-capture', {base64, tabIds})
-        ipc.once(`take-capture-reply_${base64}`,async (e,data)=>{
-          if(this.state.arrange) {
-            for (let d of data) {
-              if (d[1]) {
-                const prevD = this.state.arrange.data.find(d2 => d2[3] == d[3])
-                d[1] = prevD && prevD[1]
+        await new Promise(r => {
+          ipc.once(`take-capture-reply_${base64}`,async (e,data)=>{
+            if(this.state.arrange) {
+              for (let d of data) {
+                if (d[1]) {
+                  const prevD = this.state.arrange.data.find(d2 => d2[3] == d[3])
+                  d[1] = prevD && prevD[1]
+                }
               }
             }
-          }
-          if(first || this.state.arrange){
-            this.state.arrange = {top,tabIds,wholeWidth,wholeHeight,data}
-            await this.renderArrange()
-          }
-          doing = false
+            if(first || this.state.arrange){
+              this.state.arrange = {top,tabIds,wholeWidth,wholeHeight,data}
+              await this.renderArrange()
+            }
+            doing = false
+            r()
+          })
         })
+        if(this.arrangeId) await func()
       }
+      ipc.send('arrange-panels', true)
+      this.arrangeId = true
       func(true)
-      this.arrangeId = setInterval(_=>func(),300)
-
     }
   }
 
@@ -1866,7 +1872,8 @@ export default class SplitWindows extends Component{
 
   handleSelectTab(tabId){
     sharedState.arrange = false
-    clearInterval(this.arrangeId)
+    this.arrangeId = false
+    ipc.send('arrange-panels', false)
     this.setState({arrange: null})
 
     const arr = []
