@@ -111,10 +111,7 @@ export default class BrowserPanel {
       // }
       for (let tabId of moveTabIds) {
         const [_1, _2, panel, bv] = BrowserPanel.getBrowserPanelByTabId(tabId)
-        if (destPanelKey != panel.panelKey) bv.webContents.hostWebContents2.send('chrome-tabs-event', {
-          tabId,
-          changeInfo: {panelKey: panel.panelKey}
-        }, 'removed')
+        if (destPanelKey != panel.panelKey) bv.webContents.hostWebContents2.send('chrome-tabs-event', { tabId, changeInfo: {panelKey: panel.panelKey}}, 'removed')
         bv.destroy(false)
       }
       const tabs = await Browser.bg.evaluate((tabIds, moveProperties) => {
@@ -127,35 +124,24 @@ export default class BrowserPanel {
       for (let tabId of moveTabIds) {
         browserPanel.attachBrowserView(tabId, tabKey)
       }
-    } else {
+    }
+    else {
       if (!browserWindow) {
         const [_1, _2, panel, bv] = BrowserPanel.getBrowserPanelByTabId(moveTabIds[0])
         browserWindow = panel.browserWindow
       }
       console.log(2223)
       const [_1, _2, panel, bv] = BrowserPanel.getBrowserPanelByTabId(moveTabIds[0])
-      if (destPanelKey != panel.panelKey) bv.webContents.hostWebContents2.send('chrome-tabs-event', {
-        tabId: moveTabIds[0],
-        changeInfo: {panelKey: panel.panelKey}
-      }, 'removed')
+      if (destPanelKey != panel.panelKey) bv.webContents.hostWebContents2.send('chrome-tabs-event', { tabId: moveTabIds[0], changeInfo: {panelKey: panel.panelKey}}, 'removed')
       bv.destroy(false)
       console.log(2224)
-      const destPanel = await new BrowserPanel({
-        browserWindow,
-        panelKey: destPanelKey,
-        tabKey,
-        tabId: moveTabIds[0],
-        bounds
-      })
+      const destPanel = await new BrowserPanel({ browserWindow, panelKey: destPanelKey, tabKey, tabId: moveTabIds[0], bounds })
       console.log(2225)
 
       if (moveTabIds.length > 1) {
         for (let tabId of moveTabIds.slice(1)) {
           const [_1, _2, panel, bv] = BrowserPanel.getBrowserPanelByTabId(tabId, destPanelKey)
-          if (destPanelKey != panel.panelKey) bv.webContents.hostWebContents2.send('chrome-tabs-event', {
-            tabId,
-            changeInfo: {panelKey: panel.panelKey}
-          }, 'removed')
+          if (destPanelKey != panel.panelKey) bv.webContents.hostWebContents2.send('chrome-tabs-event', { tabId, changeInfo: {panelKey: panel.panelKey}}, 'removed')
           bv.destroy(false)
         }
         const tabs = await Browser.bg.evaluate((tabIds, moveProperties) => {
@@ -226,7 +212,7 @@ export default class BrowserPanel {
             })
           })
           console.log(4343444, tmpWin.width, tmpWin.tabWidth, tmpWin.height, tmpWin.tabHeight)
-          BrowserPanel.topMargin = tmpWin.height - tmpWin.tabHeight - 8 //- 78
+          BrowserPanel.topMargin = tmpWin.height - tmpWin.tabHeight - 8 - 78
           BrowserPanel.sideMargin = (tmpWin.width - tmpWin.tabWidth) / 2
 
           let chromeNativeWindow = winctl.GetActiveWindow()
@@ -378,21 +364,15 @@ export default class BrowserPanel {
     this.browserWindow.setTitle(_title)
     this.browserWindow.nativeWindow = nativeWindowBw
 
-    // const childBrowserWindow = new BrowserWindow({x:0, y:0, width:0, height:0, title,movable:false,  minimizable : false, maximizable: false, closable: false, frame: false, titleBarStyle: 'hidden', autoHideMenuBar: true})
-    //
-    // const nativeWindow = await winctl.FindByTitle(title)
-    // childBrowserWindow.setTitle("tmp")
-
     const hwnd = nativeWindowBw.createWindow()
     const nativeWindow = (await winctl.FindWindows(win => win.getHwnd() == hwnd))[0]
+    // const nativeWindow = nativeWindowBw
 
-    // nativeWindow.setParent(nativeWindowBw.getHwnd())
     chromeNativeWindow.setParent(nativeWindow.getHwnd())
-    // chromeNativeWindow.move(...getChromeWindowBoundArray(cWin.width, cWin.height))
     chromeNativeWindow.move(...BrowserPanel.getChromeWindowBoundArray(0, 0))
     chromeNativeWindow.moveTop()
 
-
+    // nativeWindowBw.setWindowLongPtrEx(0x02000000)
     nativeWindowBw.setWindowLongPtr(0x00040000)
 
     return {chromeNativeWindow, nativeWindow, nativeWindowBw}

@@ -417,6 +417,7 @@ function setOptionVal(key,dVal,val){
 
 export default {
   async load(opt,first,url){
+    if(url == 'C:\\Users\\kura5\\RubymineProjects\\web-dev-browser\\lib\\main.js') url = void 0
     let initWindow
     const setting = await InitSetting.val
     let winSetting = opt ? getSize(opt) : {x: setting.x, y: setting.y, width: setting.width, height: setting.height, maximize: setting.maximize}
@@ -597,7 +598,7 @@ export default {
     localShortcuts.register(initWindow)
     initWindow.setMenuBarVisibility(true)
 
-    initWindow.isMaximized = function(){ return this._isVirtualMaximized }
+    initWindow.isMaximized = function(){ return !!this._isVirtualMaximized }
 
     new (require('./Download'))(initWindow)
     // }

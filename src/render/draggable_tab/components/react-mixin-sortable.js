@@ -135,14 +135,17 @@
 
             if (copyOptions.stateHandler) {
               this[copyOptions.stateHandler](newState);
-            } else if(name === 'onAdd'){
-              Object.assign(this.state,newState);
             }
+            // else if(name === 'onAdd'){
+            //   Object.assign(this.state,newState);
+            // }
             else{
               this.setState(newState);
             }
 
-            (this !== _activeComponent) && _activeComponent.setState(remoteState);
+            if(this !== _activeComponent){
+              _activeComponent.setState(remoteState)
+            }
           }
 
           if(name == 'onEnd'){

@@ -54,6 +54,7 @@ class FrameManager extends EventEmitter {
 
     this._client.on('Page.frameStartedLoading', event => this._onFrameStartedLoading(event.frameId, 'frameStartedLoading'));
     this._client.on('Page.frameStoppedLoading', event => this._onFrameStartedLoading(event.frameId, 'frameStoppedLoading'));
+    // this._client.on('Page.frameRequestedNavigation', event => this._onFrameStartedLoading(event.frameId, 'frameRequestedNavigation'));
 
     this._handleFrameTree(frameTree);
   }

@@ -13,7 +13,7 @@ export default class PanelOverlay extends Component{
     super(props)
     this.state = {dragOverElements:[],overlay: {},visible:false}
     this.handleMouseMove = ::this.handleMouseMove
-    PubSub.subscribe('drag-over-overlay',(msg,{x,y})=>{
+    PubSub.subscribe('drag-overlay',(msg,{x,y})=>{
       this.handleMouseMove({clientX:x})
     })
   }
@@ -122,6 +122,7 @@ export default class PanelOverlay extends Component{
       }
     })
     if(flag) e.preventDefault();
+    console.log("z-index", flag, JSON.stringify(this.state.overlay) !== JSON.stringify(ret))
     if(JSON.stringify(this.state.overlay) !== JSON.stringify(ret)){
       setTimeout(_=>this.setState({overlay:ret}),10)
     }

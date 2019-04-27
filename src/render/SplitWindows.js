@@ -207,6 +207,7 @@ export default class SplitWindows extends Component{
     let winState = this.restoreState(param)
     if(!winState){
       const mState = ipc.sendSync('get-sync-main-state','winState')
+      console.log('mState', mState)
       if(mState){
         const _winState = JSON.parse(mState)
         if(_winState.l){
@@ -821,7 +822,7 @@ export default class SplitWindows extends Component{
     ipc.on('chrome-tabs-move-attach',this.eventChromeTabsMoveAttach)
 
     this.eventTabCreate = (e,tabValue)=>{
-      this.tabValues[tabValue.id] = (tabValue.url == 'chrome://newtab/' || tabValue.url == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html') ? void 0 : tabValue.openerTabId
+      this.tabValues[tabValue.id] =  tabValue.openerTabId
     }
     ipc.on('tab-create',this.eventTabCreate)
 
@@ -1164,6 +1165,7 @@ export default class SplitWindows extends Component{
     }
     if(changeTabInfos.length) {
       this.preIndexes = indexes
+      console.log('change-tab-infos1', changeTabInfos)
       ipc.send('change-tab-infos', changeTabInfos)
     }
   }

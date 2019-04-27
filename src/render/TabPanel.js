@@ -1464,9 +1464,9 @@ export default class TabPanel extends Component {
             // })
             page.favicon = 'resource/file.svg'
             PubSub.publish(`change-status-${tab.key}`)
-            self.refs2[`navbar-${tab.key}`].setState({})
-            self.setStatePartical(tab)
           }
+          self.refs2[`navbar-${tab.key}`].setState({})
+          self.setStatePartical(tab)
         }
       },
       async onTabIdChanged(e, page, tabId){
@@ -1692,6 +1692,7 @@ export default class TabPanel extends Component {
   }
 
   startProcess(self, page, navigateTo, tab, isLoadStart) {
+    console.trace('startProcess', 'favicon', isLoadStart)
     const needFavicon = isLoadStart || page.favicon == "loading"
     const skip = needFavicon ? self.filterFromContents(page, navigateTo, tab, self) : false;
     if (!skip) {
@@ -1727,8 +1728,8 @@ export default class TabPanel extends Component {
               })
             }
           }
-        },7000)
-        page.favicon = page.navUrl == '' || page.navUrl.match(/^(file:\/\/|chrome|about)/) ? 'resource/file.svg' : 'loading'
+        },10000)
+        // page.favicon = page.navUrl == '' || page.navUrl.match(/^(file:\/\/|chrome|about)/) ? 'resource/file.svg' : 'loading'
       }
 
       const eventDownloadStartTab = (event) => {
@@ -1816,7 +1817,7 @@ export default class TabPanel extends Component {
     if (t){
       const p = t.querySelector('p')
       const title = `${page.favicon !== 'loading' || page.titleSet || page.location == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? page.title : page.location} `
-      const beforeTitle = <img className='favi-tab' src={page.title && page.favicon !== 'loading' ? page.favicon : 'resource/l.svg'} onError={(e)=>{e.target.src = 'resource/file.svg'}}/>
+      const beforeTitle = <img className='favi-tab' src={page.title && page.favicon !== 'loading' && !page.isLoading ? page.favicon : 'resource/l.svg'} onError={(e)=>{e.target.src = 'resource/file.svg'}}/>
       PubSub.publish(`tab-component-update_${tab.key}`,{title,beforeTitle})
     }
     const n = this.refs2[`navbar-${tab.key}`]
@@ -2749,7 +2750,15 @@ export default class TabPanel extends Component {
     }
 
     const navigateTo = l=>this.navigateTo(page, l, tab)
-    if(!isStart) this.startProcess(this, page, navigateTo, tab, isStart)
+    if(!isStart) {
+      this.startProcess(this, page, navigateTo, tab, isStart)
+    }
+    else{
+      page.favicon = page.navUrl == '' || page.navUrl.match(/^(file:\/\/|chrome|about)/) ? 'resource/file.svg' : 'loading'
+      page.isLoading = true
+      PubSub.publish(`change-status-${tab.key}`)
+      this.setStatePartical(tab)
+    }
 
     console.log('onTabIdChanged', tabId,page)
 
@@ -3319,7 +3328,7 @@ export default class TabPanel extends Component {
       const changeTabInfos = []
       const func = ()=>{
         if(changeTabInfos.length){
-          console.log('change-tab-infos',changeTabInfos)
+          console.log('change-tab-infos2',changeTabInfos)
           ipc.send('change-tab-infos',changeTabInfos)
         }
         if(!allKeySame){
@@ -4549,7 +4558,13 @@ export default class TabPanel extends Component {
     this.setState({tabBar: num})
   }
 
+  showNotification(){
+    ipc.send('disable-webContents-focus', true)
+    ipc.send('change-browser-view-z-index', true)
+  }
+
   deleteNotification(i,pressIndex,value){
+    ipc.send('disable-webContents-focus', false)
     ipc.send(`reply-notification-${this.state.notifications[i].key}`,{pressIndex,value})
     this.state.notifications.splice(i,1)
     this.setState({})
@@ -4830,15 +4845,19 @@ export default class TabPanel extends Component {
                              fullscreen={this.props.fullscreen} bind={tab.bind} screenShot={this.screenShot} searchWordHighlight={this.searchWordHighlight}/>
               {notifications.length ? notifications.map((data,i)=>{
                 if(data.needInput){
+                  this.showNotification()
                   return <InputableDialog data={data} key={i} k={this.props.k} delete={this.deleteNotification.bind(this,i)} />
                 }
                 else if(data.import){
+                  this.showNotification()
                   return <ImportDialog data={data} key={i} k={this.props.k} delete={this.deleteNotification.bind(this,i)} />
                 }
                 else if(data.convert){
+                  this.showNotification()
                   return <ConverterDialog data={data} key={i} k={this.props.k} delete={this.deleteNotification.bind(this,i)} />
                 }
                 else{
+                  this.showNotification()
                   return <Notification data={data} key={i} k={this.props.k} delete={this.deleteNotification.bind(this,i)} />
                 }
               }) : null}

@@ -105,7 +105,7 @@ export default class BrowserView {
 
         const func = async (e, newTabId, panelKey, tabKey, tabIds) => {
           console.log('create-web-contents-reply', [id, newTabId], tabIds)
-          if (tabIds.includes(id)) {
+          if (newTabId == id) {
 
             const data = [id, new BrowserView(panel, tabKey, id)]
             panel.tabKeys[tabKey] = data
@@ -122,7 +122,6 @@ export default class BrowserView {
             // BrowserPanel.getBrowserPanel(panelKey).attachBrowserView(tab.id, tabKey)
             panel.browserWindow.webContents.send('tab-create', {
               id: newTabId,
-              url: (await cont.getURLAsync()),
               openerTabId: tab.openerTabId
             })
 
@@ -155,36 +154,36 @@ export default class BrowserView {
 
   }
 
-  static async movedTab(cont, windowId, fromIndex, toIndex) { //@TODO NEED FIX
-    if (!cont.hostWebContents2) return
-
-    let [_1, _2, panel, bv] = BrowserPanel.getBrowserPanelByTabId(cont.id)
-
-    const toPanel = BrowserPanel.getBrowserPanelByWindowId(windowId)
-    if (!toPanel) {
-      if (panel) panel.removeBrowserView(cont.id)
-
-      const [_, bv] = await new BrowserPanel({webContents: cont, windowId})
-      return bv
-    }
-    else {
-      const id = cont.id
-      await new Promise(async r => {
-        const func = (e, newTabId, panelKey, tabKey, tabIds) => {
-          console.log('create-web-contents-reply', [id, newTabId], tabIds)
-          if (tabIds.includes(id)) {
-            r()
-            ipcMain.removeListener('create-web-contents-reply', func)
-          }
-        }
-        ipcMain.on('create-web-contents-reply', func)
-
-        cont.hostWebContents2.send('create-web-contents', {id, disposition, guestInstanceId: id})
-      })
-
-      cont.hostWebContents2.send('chrome-tabs-event', {tabId: id}, 'removed')
-    }
-  }
+  // static async movedTab(cont, windowId, fromIndex, toIndex) { //@TODO NEED FIX
+  //   if (!cont.hostWebContents2) return
+  //
+  //   let [_1, _2, panel, bv] = BrowserPanel.getBrowserPanelByTabId(cont.id)
+  //
+  //   const toPanel = BrowserPanel.getBrowserPanelByWindowId(windowId)
+  //   if (!toPanel) {
+  //     if (panel) panel.removeBrowserView(cont.id)
+  //
+  //     const [_, bv] = await new BrowserPanel({webContents: cont, windowId})
+  //     return bv
+  //   }
+  //   else {
+  //     const id = cont.id
+  //     await new Promise(async r => {
+  //       const func = (e, newTabId, panelKey, tabKey, tabIds) => {
+  //         console.log('create-web-contents-reply', [id, newTabId], tabIds)
+  //         if (tabIds.includes(id)) {
+  //           r()
+  //           ipcMain.removeListener('create-web-contents-reply', func)
+  //         }
+  //       }
+  //       ipcMain.on('create-web-contents-reply', func)
+  //
+  //       cont.hostWebContents2.send('create-web-contents', {id, disposition, guestInstanceId: id})
+  //     })
+  //
+  //     cont.hostWebContents2.send('chrome-tabs-event', {tabId: id}, 'removed')
+  //   }
+  // }
 
   static getAllViews() {
     return [...this.webContentsMap.values()]

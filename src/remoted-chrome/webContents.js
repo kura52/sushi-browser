@@ -1,5 +1,5 @@
 import robot from 'robotjs'
-import {nativeImage, webContents as _webContents} from 'electron'
+import {ipcMain, nativeImage, webContents as _webContents} from 'electron'
 import {EventEmitter} from 'events'
 import evem from './evem'
 import fs from 'fs'
@@ -15,10 +15,19 @@ export default class webContents extends EventEmitter {
     this.isInit = true
 
     this.webContentsMap = new Map()
+    this.activedIds = []
+
+    ipcMain.on('disable-webContents-focus', (e,val)=>{
+      webContents.disableFocus = val
+    })
   }
 
   static getAllWebContents(){
-    return [...this.webContentsMap.values(), ..._webContents.getAllWebContents()]
+    try{
+      return [...this.webContentsMap.values(), ..._webContents.getAllWebContents()]
+    }catch(e){
+      return [..._webContents.getAllWebContents()]
+    }
   }
 
   static async getFocusedWebContents(){
@@ -314,6 +323,8 @@ export default class webContents extends EventEmitter {
   }
 
   focus(){
+    if(webContents.disableFocus) return
+
     const panel = this._getBrowserPanel()
     if(!panel) return
 
@@ -334,6 +345,7 @@ export default class webContents extends EventEmitter {
   }
 
   setActive(){
+    webContents.activedIds.push([this.id, Date.now()])
     this._updateTab({active: true})
   }
 

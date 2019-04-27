@@ -579,7 +579,7 @@ class Tabs extends React.Component {
         }
         beforeTitle.push(<span className="tab-number" style={{color:titleColor}}>{tabNumber}</span>)
       }
-      beforeTitle.push(<img className='favi-tab' src={notLoadTabUntilSelected && !allSelectedkeys.has(tab.key) ? 'resource/file.svg' : page.title && page.favicon !== 'loading' && !page.isLoading ? page.favicon : 'resource/l.svg'} onError={(e)=>{e.target.src = 'resource/file.svg'}}/>)
+      beforeTitle.push(<img className='favi-tab' src={notLoadTabUntilSelected && !allSelectedkeys.has(tab.key) ? 'resource/file.svg' : page.favicon !== 'loading' && !page.isLoading ? page.favicon : 'resource/l.svg'} onError={(e)=>{e.target.src = 'resource/file.svg'}}/>)
 
       const title = page.favicon !== 'loading' || page.titleSet  || page.location == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? page.title : page.location
 
@@ -932,6 +932,7 @@ class Tabs extends React.Component {
     else{
       ipc.emit('chrome-tabs-move-inner',null,null,[fromTab],this.state.tabs[e.newIndex-1].key,true,key)
     }
+    this.setState({})
   }
 
   handleEnd(e) {
@@ -969,6 +970,7 @@ class Tabs extends React.Component {
   }
 
   handleTabClick(key, e) {
+    ipc.send('disable-webContents-focus', true)
     this.tabPreviewStop = true
     PubSub.publish('tab-preview-update',true)
     console.log(e)
@@ -1060,6 +1062,7 @@ class Tabs extends React.Component {
   }
 
   handleTabMouseUp(e){
+    ipc.send('disable-webContents-focus', false)
     this.tabPreviewStop = false
     setTimeout(_=>{
       const dom = ReactDOM.findDOMNode(this.refs.ttab)
@@ -1172,6 +1175,7 @@ class Tabs extends React.Component {
   }
 
   handleDragEnd(tabs,evt) {
+    ipc.send('disable-webContents-focus', false)
     ReactDOM.findDOMNode(this.refs.ttab).style['-webkit-app-region'] = 'drag'
     console.log("handleDragEnd",Date.now())
     mainState.set('dragData',null)
@@ -1405,6 +1409,7 @@ class Tabs extends React.Component {
   }
 
   render() {
+    console.log('befo3')
     const {_tabClassNames,tabInlineStyles,tabs,content} = this.buildRenderComponent()
     const background = !sharedState.theme ? getTheme('colors','frame') : `${getTheme('images','theme_frame')} ${getTheme('images','theme_frame') ? (getTheme('colors','frame') || 'initial') : ''}`
 

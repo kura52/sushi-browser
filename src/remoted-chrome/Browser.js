@@ -273,8 +273,22 @@ class Browser{
       if(PopupPanel.tabId == activeInfo.tabId || this.popUpCache[activeInfo.tabId]) return
 
       const cont = webContents.fromId(activeInfo.tabId)
+      const now = Date.now()
+      const activedIds = []
+      let shouldChange = true
+
+      for(const x of webContents.activedIds){
+        if(now - x[1] < 120){
+          if(shouldChange && activeInfo.tabId == x[0])
+            shouldChange = false
+          else
+            activedIds.push(x)
+        }
+      }
+      webContents.activedIds = activedIds
+
       // console.log(activeInfo, cont.hostWebContents2)
-      if(cont && cont.hostWebContents2) cont.hostWebContents2.send('chrome-tabs-event',{tabId: activeInfo.tabId, changeInfo: {active: true}}, 'updated')
+      if(shouldChange && cont && cont.hostWebContents2) cont.hostWebContents2.send('chrome-tabs-event',{tabId: activeInfo.tabId, changeInfo: {active: true}}, 'updated')
     })
 
     this.addListener('tabs', 'onRemoved', removedTabId => {
@@ -841,7 +855,7 @@ class Browser{
   }
 
   static getFocusedWindow(){
-    console.log('getFocusedWindow')
+    // console.log('getFocusedWindow')
     const win = BrowserWindow.getFocusedWindow()
     if(win) return win
 
