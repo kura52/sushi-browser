@@ -598,7 +598,7 @@ export default {
     localShortcuts.register(initWindow)
     initWindow.setMenuBarVisibility(true)
 
-    initWindow.isMaximized = function(){ return !!this._isVirtualMaximized }
+    initWindow.isMaximized = function(){ return this._isVirtualMaximized }
 
     new (require('./Download'))(initWindow)
     // }
@@ -622,7 +622,9 @@ export default {
       if (!initWindow.isMaximized()) {
         normalSize[initWindow.id] = initWindow.getBounds()
       }
-      if (winArg.maximize) initWindow.maximize()
+      if (winArg.maximize){
+        setTimeout(()=> initWindow.maximize(),3000)
+      }
       initWindow.setAlwaysOnTop(!!winArg.alwaysOnTop)
       initWindow.webContents.setUserAgent(await Browser.getUserAgent())
       // r()

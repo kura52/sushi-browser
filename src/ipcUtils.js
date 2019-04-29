@@ -909,7 +909,9 @@ const hwndMap = {}
 const bindMap = {}
 ipcMain.on('set-pos-window',async (e,{id,hwnd,key,x,y,width,height,top,active,tabId,checkClose,restore})=>{
 
-  if(!checkClose) console.log('set-pos-window',{id,hwnd,key,x,y,width,height,top,active,tabId,checkClose,restore})
+  if(!checkClose){
+    console.log('set-pos-window',{id,hwnd,key,x,y,width,height,top,active,tabId,checkClose,restore})
+  }
 
   const FRAME = parseInt(mainState.bindMarginFrame)
   const TITLE_BAR = parseInt(mainState.bindMarginTitle)
