@@ -79,64 +79,59 @@ export default class WebPageList extends Component{
     let arr = []
     const list = this.state.l
     // console.log(list)
-    for (var key in list) {
-      if (list.hasOwnProperty(key)) {
-        var value = list[key];
-        for (var key2 in value) {
-          if (value.hasOwnProperty(key2)) {
-            const datas = value[key2];
-            let style={}
-            const tab = datas.tab
-            if(datas.ref){
-              const pos = datas.ref
-              let modify = 30 + datas.modify
-              if(datas.navbar){
-                const style = datas.navbar.style
-                if(style.display == "none" || style.position == "sticky" || style.visibility == "hidden"){
-                  modify = datas.modify
-                }
-              }
-              style = datas.isActive ? {position: "absolute",
-                top: pos.top + modify,
-                left: pos.left,
-                width: pos.width,
-                height: pos.height - modify,
-                // display: "inline-flex",
-                zIndex: datas.isMaximize ? 6 : datas.float ? this.state.floatKey == key ? 6 : 4 : 1
-              } : {
-                // position: "absolute",
-                // // top: `${pos.top + modify}px`,
-                // // left: `${pos.left}px`,
-                // flex: "0 1",
-                // width: "0px",
-                // height: "0px"
-                // // width: `${pos.width}px`,
-                // // height: `${pos.height - modify}px`,
-                zIndex: -1,
-                visibility: sharedState.arrange || (sharedState.tabPreview && (datas.getCapture || sharedState.tabPreviewRecent)) ? "initial" : "hidden",
-                position: "absolute",
-                top: pos.top + modify,
-                left: pos.left,
-                width: pos.width,
-                height: pos.height - modify,
-              }
-            }
-            const notLoadPage = notLoadTabUntilSelected && !allSelectedkeys.has(tab.key) && !tab.wvId
-            arr.push([tab.key,
-              <div className={`browser-page-wrapper ${datas.isActive ? "visible" : "visible"}`} style={style} key={tab.key}>
-                {notLoadPage ? null :<BrowserPage ref={`page-${tab.key}`} k={tab.key} k2={key} {...tab.pageHandlers}
-                                                  index={datas.index} toggleNav={datas.toggleNav} tab={tab} pageIndex={0} isActive={datas.isActive} pos={style}/>}
-              </div>])
-            if(notLoadPage && !tab.recorded){
-              tabState.findOne({tabKey:tab.key}).then(rec=>{
-                if(!rec){
-                  tab.recorded = true
-                  const location = tab.page.location
-                  tabState.insert({tabKey:tab.key,titles:location,urls:location,currentIndex:0,close:1,updated_at: Date.now()}).then(_=>_)
-                }
-              })
+    for (const [key, value] of Object.entries(list)) {
+      let ind = 0
+      for (const [key2, datas] of Object.entries(value)) {
+        let style={}
+        const tab = datas.tab
+        if(datas.ref){
+          const pos = datas.ref
+          let modify = 30 + datas.modify
+          if(datas.navbar){
+            const style = datas.navbar.style
+            if(style.display == "none" || style.position == "sticky" || style.visibility == "hidden"){
+              modify = datas.modify
             }
           }
+          style = datas.isActive ? {position: "absolute",
+            top: pos.top + modify,
+            left: pos.left,
+            width: pos.width,
+            height: pos.height - modify,
+            // display: "inline-flex",
+            zIndex: datas.isMaximize ? 6 : datas.float ? this.state.floatKey == key ? 6 : 4 : 1
+          } : {
+            // position: "absolute",
+            // // top: `${pos.top + modify}px`,
+            // // left: `${pos.left}px`,
+            // flex: "0 1",
+            // width: "0px",
+            // height: "0px"
+            // // width: `${pos.width}px`,
+            // // height: `${pos.height - modify}px`,
+            zIndex: -1,
+            visibility: sharedState.arrange || (sharedState.tabPreview && (datas.getCapture || sharedState.tabPreviewRecent)) ? "initial" : "hidden",
+            position: "absolute",
+            top: pos.top + modify,
+            left: pos.left,
+            width: pos.width,
+            height: pos.height - modify,
+          }
+        }
+        const notLoadPage = notLoadTabUntilSelected && !allSelectedkeys.has(tab.key) && !tab.wvId
+        arr.push([tab.key,
+          <div className={`browser-page-wrapper ${datas.isActive ? "visible" : "visible"}`} style={style} key={tab.key}>
+            {notLoadPage ? null :<BrowserPage ref={`page-${tab.key}`} k={tab.key} k2={key} {...tab.pageHandlers} index={ind++}
+                                              index={datas.index} toggleNav={datas.toggleNav} tab={tab} pageIndex={0} isActive={datas.isActive} pos={style}/>}
+          </div>])
+        if(notLoadPage && !tab.recorded){
+          tabState.findOne({tabKey:tab.key}).then(rec=>{
+            if(!rec){
+              tab.recorded = true
+              const location = tab.page.location
+              tabState.insert({tabKey:tab.key,titles:location,urls:location,currentIndex:0,close:1,updated_at: Date.now()}).then(_=>_)
+            }
+          })
         }
       }
     }

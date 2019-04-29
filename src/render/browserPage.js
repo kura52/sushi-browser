@@ -137,7 +137,7 @@ class BrowserPage extends Component {
     if(!tabId){
       tabId = await new Promise(r =>{
         ipc.send('create-browser-view', this.props.k2, this.props.k, style.left, style.top,
-          style.width, style.height, style.zIndex, this.props.tab.privateMode ? (void 0) : this.state.src)
+          style.width, style.height, style.zIndex, this.props.tab.privateMode ? (void 0) : this.state.src, this.props.index)
         ipc.once(`create-browser-view_${this.props.k2}_${this.props.k}`, (e, tabId) => r(tabId))
       })
     }

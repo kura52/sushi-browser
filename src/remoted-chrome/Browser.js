@@ -95,7 +95,7 @@ class Browser{
         '--disable-infobars',
         // '--enable-prompt-on-repost',
         // '--disable-breakpad',
-        '--remote-debugging-pipe',
+        // '--remote-debugging-pipe',
         // '--silent-debugger-extension-api',
         '--disable-default-apps',
         '--disable-features=site-per-process',
@@ -559,7 +559,6 @@ class Browser{
   }
 
   static async initBgPage() {
-    console.trace()
     await new Promise(r => {
       emptyPort((err, ports) => {
         this.serverKey = Math.random().toString()
@@ -827,6 +826,7 @@ class Browser{
   }
 
   static async downloadURL(url, cont, referer, retryKey){
+    console.log('downloadURL', url)
     let item
     if(retryKey){
       item = await Browser.bg.evaluate((retryKey) => {

@@ -32,12 +32,12 @@ ipcMain.setMaxListeners(0)
 
 sharedState.extensionMenu = {}
 
-// process.on('unhandledRejection', console.dir);
-
-// process.on('unhandledRejection', error => {
-//   // Will print "unhandledRejection err is not defined"
-//   console.log('unhandledRejection', error);
-// });
+// setInterval(()=>{
+//   console.log({
+//     main: process.pid,
+//     render: require('electron').webContents.getAllWebContents().map(w=>w.getOSProcessId())
+//   })
+// },3000)
 
 // require('./chrome-extension')
 
@@ -1453,7 +1453,7 @@ async function contextMenu(webContents, props) {
             setTimeout(_=>webContents.hostWebContents2.send('new-tab', webContents.id, link),0)
           }
         }})
-      menuItems.push({t: 'downloadSelection', label: locale.translation('downloadSelection'), click: (item,win)=> startDownloadSelector(win,webContents,props,true)})
+      menuItems.push({t: 'downloadSelection', label: locale.translation('downloadSelection'), click: (item,win)=> startDownloadSelector(targetWindow,webContents,props,true)})
     }
     menuItems.push({type: 'separator'})
   }
@@ -1488,7 +1488,7 @@ async function contextMenu(webContents, props) {
     // menuItems.push({t: '2473195200299095979', label: syncReplaceName, click: (item, win) => webContents.hostWebContents2.send('sync-replace-from-menu', webContents.id)})
     menuItems.push({type: 'separator'})
 
-    menuItems.push({t: 'downloadAll', label: locale.translation('downloadAll'), click: (item,win)=> startDownloadSelector(win,webContents,props)})
+    menuItems.push({t: 'downloadAll', label: locale.translation('downloadAll'), click: (item,win)=> startDownloadSelector(targetWindow,webContents,props)})
     menuItems.push({type: 'separator'})
 
     menuItems.push({

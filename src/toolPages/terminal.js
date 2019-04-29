@@ -51,6 +51,8 @@ ipc.on(`ping_${key}`, function(event,data){
 });
 
 function handleResize(e) {
+  ipc.send('start-pty',key)
+
   const w = document.getElementsByClassName("xterm-scroll-area")[0].clientWidth
   const h = document.getElementById("terminal").clientHeight
   if(w==window.preW && h==window.preH) return
@@ -66,5 +68,3 @@ function handleResize(e) {
 
 window.addEventListener('resize', handleResize, { passive: true });
 window.onload = handleResize
-
-ipc.send('start-pty',key)

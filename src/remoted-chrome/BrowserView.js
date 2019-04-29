@@ -19,15 +19,26 @@ export default class BrowserView {
 
   static async createNewTab(browserWindow, panelKey, tabKey, tabIndex, url, topZOrder) {
     // console.log('createNewTab',(panelKey, tabKey, tabIndex, url))
+
+    if (this.newPanelCreateing) {
+      await new Promise(r => setTimeout(r, 20))
+      return await this.createNewTab(browserWindow, panelKey, tabKey, tabIndex, url, topZOrder)
+    }
+
+    this.newPanelCreateing = true
+
     if (panelKey) {
       const panel = BrowserPanel.getBrowserPanel(panelKey)
+      let bv
       if(panel){
-        return panel.addBrowserView(tabKey, url, tabIndex, topZOrder)
+        bv = await panel.addBrowserView(tabKey, url, tabIndex, topZOrder)
       }
       else{
         const panel = await new BrowserPanel({browserWindow, panelKey, tabKey, url})
-        return panel.tabKeys[tabKey][1]
+        bv = panel.tabKeys[tabKey][1]
       }
+      this.newPanelCreateing = false
+      return bv
     }
   }
 

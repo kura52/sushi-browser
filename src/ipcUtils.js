@@ -1418,7 +1418,19 @@ ipcMain.on('download-m3u8',(e,url,fname,tabId,userAgent,referer,needInput)=>{
 
   const dl = function () {
     console.log(`${shellEscape(youtubeDl)} --hls-prefer-native --ffmpeg-location=${shellEscape(ffmpeg)} -o ${shellEscape(downloadPath)} ${shellEscape(url)}`)
-    ipcMain.once('start-pty-reply', (e, key) => {
+    ipcMain.once('start-pty-reply', async (e, key) => {
+      let cont
+      for(let i=0;i<100;i++){
+        cont = await getFocusedWebContents()
+        const url = cont.getURL()
+        if(url == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html') break
+        await new Promise(r=>setTimeout(r,30))
+      }
+      await new Promise(r=>setTimeout(r,1000))
+
+      // ipcMain.emit('send-input-event', {} , {type: 'mouseDown',tabId: cont.id,x:100,y:100,button: 'left'})
+      // ipcMain.emit('send-input-event', {} , {type: 'mouseUp',tabId: cont.id,x:100,y:100,button: 'left'})
+      // await new Promise(r=>setTimeout(r,1000))
       ipcMain.emit(`send-pty_${key}`, null, `${isWin ? '& ' : ''}${shellEscape(youtubeDl)} --user-agent ${shellEscape(userAgent)} --referer ${shellEscape(referer)} --hls-prefer-native --ffmpeg-location=${shellEscape(ffmpeg)} -o ${shellEscape(downloadPath)} ${shellEscape(url)}\n`)
     })
     e.sender.send('new-tab', tabId, 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html')
@@ -2350,11 +2362,12 @@ ipcMain.on('main-state-op',(e,op,name,key,val)=>{
   }
 })
 
-ipcMain.on('create-browser-view', async (e, panelKey, tabKey, x, y, width, height, zIndex, src, webContents)=>{
-  console.log('create-browser-view', panelKey, tabKey, x, y, width, height, zIndex, src, webContents)
+ipcMain.on('create-browser-view', async (e, panelKey, tabKey, x, y, width, height, zIndex, src, webContents, index)=>{
+  console.log('create-browser-view', panelKey, tabKey, x, y, width, height, zIndex, src, webContents, index)
+
   let view
   if(panelKey){
-    view = await BrowserView.createNewTab(BrowserWindow.fromWebContents(e.sender), panelKey, tabKey, void 0, src)
+    view = await BrowserView.createNewTab(BrowserWindow.fromWebContents(e.sender), panelKey, tabKey, index, src)
   }
   else{
     view = await BrowserView.newTab(webContents)
@@ -2446,7 +2459,7 @@ ipcMain.on('set-bound-browser-view', async (e, panelKey, tabKey, tabId, x, y, wi
     return
   }
 
-  console.log('set-bound-browser-view1', panelKey, tabKey, tabId, x, y, width, height, zIndex, date)
+  // console.log('set-bound-browser-view1', panelKey, tabKey, tabId, x, y, width, height, zIndex, date)
 
 
   const win = BrowserWindow.fromWebContents(e.sender)
