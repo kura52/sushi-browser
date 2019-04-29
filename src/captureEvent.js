@@ -89,7 +89,7 @@ function faviconUpdate(url) {
 const captures = {}
 let imgCache = new LRUCache(200)
 global.viewCache = {}
-ipcMain.on('take-capture', async (event,{id,url,loc,base64,tabId,tabIds}) => {
+ipcMain.on('take-capture', async (event,{id,url,loc,base64,tabId,tabIds,noActiveSkip}) => {
   if(!base64){
     if(captures[url]) return
     captures[url] = true
@@ -111,11 +111,11 @@ ipcMain.on('take-capture', async (event,{id,url,loc,base64,tabId,tabIds}) => {
       // }
       const img = await new Promise(r=>{
         cont.capturePage((imageBuffer)=>{
-            r(imageBuffer ?
-              [tabId,imageBuffer,imageBuffer.getSize(), Math.random().toString(),imageBuffer.resize({width:100,quality: 'good'}).toJPEG(parseInt(mainState.tabPreviewQuality))] :
-              void 0
-            )
-        })
+          r(imageBuffer ?
+            [tabId,imageBuffer,imageBuffer.getSize(), Math.random().toString(),imageBuffer.resize({width:100,quality: 'good'}).toJPEG(parseInt(mainState.tabPreviewQuality))] :
+            void 0
+          )
+        },noActiveSkip)
         // setTimeout(()=>r(null),500)
       })
       if(img) results.push(img)

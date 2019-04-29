@@ -1675,7 +1675,7 @@ export default class SplitWindows extends Component{
     if(this.state.arrange){
       ipc.send('end-arrange-mode')
       this.arrangeId = false
-      ipc.send('disable-webContents-focus', false)
+      ipc.send('arrange-panels', false)
       sharedState.arrange = false
       this.state._arrange = {...this.state.arrange}
       this.setState({arrange: null,renderArrange: null})

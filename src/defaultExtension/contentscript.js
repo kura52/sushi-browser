@@ -526,7 +526,7 @@ if(window.__started_){
       }
     }
     ipc.send('send-to-host', 'webview-keydown',{key: e.key, keyCode: e.keyCode, which: e.which, button: e.button, ctrlKey: e.ctrlKey, metaKey: e.metaKey,altKey: e.altKey})
-    },{capture: true})
+  },{capture: true})
 
   function streamFunc(val){
     window._mediaElements_ = window._mediaElements_ || {}
@@ -789,7 +789,11 @@ if(window.__started_){
 
 //style setting
   let styleVal
-  if((styleVal = localStorage.getItem('meiryo')) !== null){
+  try{
+    styleVal = localStorage.getItem('meiryo')
+  }catch(e){}
+
+  if(styleVal !== null){
     if(styleVal === "true"){
       setTimeout(_=>{
         const css = document.createElement('style')

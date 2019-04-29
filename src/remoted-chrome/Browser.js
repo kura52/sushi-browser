@@ -90,20 +90,22 @@ class Browser{
       // executablePath: "C:\\Program Files (x86)\\BraveSoftware\\Brave-Browser\\Application\\brave.exe",
       args: [
         // '--no-first-run',
-        //    '--enable-automation',
+        // '--enable-automation',
         '--metrics-recording-only',
         '--disable-infobars',
         // '--enable-prompt-on-repost',
         // '--disable-breakpad',
-        // '--remote-debugging-pipe',
         // '--silent-debugger-extension-api',
+        // `--lang=en`,
         '--disable-default-apps',
+        '--disable-dev-shm-usage',
         '--disable-features=site-per-process',
         `--user-data-dir=${this.userDataDir}`,
-        // `--lang=en`,
         `--load-extension=${path.resolve(__dirname, '../../resource/extension/default/1.0_0/').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')}`,
         'about:blank'
-      ]})
+      ],
+      pipe: true}
+    )
 
     this.listeners = {}
     this._pagePromises = {}

@@ -227,15 +227,15 @@ export default (port, serverKey) => {
       }
 
       return {Event, Event2}
-    })();
+    })(ipcRenderer);
 
 
     // browser-action
     if(chrome.browserAction){
-      const onClicked = new Event()
 
+      chrome.browserAction.onClicked = new Event()
       ipcRenderer.on('CHROME_BROWSERACTION_ONCLICKED',(e, tabId)=>{
-        chrome.tabs.get(tabId, tab => onClicked.emit(tab))
+        chrome.tabs.get(tabId, tab => chrome.browserAction.onClicked.emit(tab))
       })
 
       chrome.browserAction._setTitle = chrome.browserAction.setTitle
@@ -282,11 +282,11 @@ export default (port, serverKey) => {
 
     }
     if(chrome.contextMenus){
-      const onClicked = new Event()
+      chrome.contextMenus.onClicked = new Event()
       const onClickEvents = {}
 
       ipcRenderer.on('CHROME_CONTEXTMENUS_ONCLICKED',(e, info, tabId)=>{
-        chrome.tabs.get(tabId, tab => onClicked.emit(info, tab))
+        chrome.tabs.get(tabId, tab => chrome.contextMenus.onClicked.emit(info, tab))
       })
 
       chrome.contextMenus._create = chrome.contextMenus.create

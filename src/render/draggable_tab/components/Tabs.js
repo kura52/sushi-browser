@@ -710,7 +710,7 @@ class Tabs extends React.Component {
 
             if(sharedState.tabPreviewRecent && (!this.tabPreviewHeight || this.tabPreviewHeight == 27)){
               const base64 = Math.random().toString()
-              ipc.send('take-capture', {base64, tabId: t.wvId})
+              ipc.send('take-capture', {base64, tabId: t.wvId, noActiveSkip: true})
               await new Promise(r=>{
                 ipc.once(`take-capture-reply_${base64}`,(e,dataURL,size)=>{
                   t.tabPreview = {dataURL,...size}

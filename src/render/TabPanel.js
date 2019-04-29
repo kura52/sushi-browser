@@ -1284,7 +1284,7 @@ export default class TabPanel extends Component {
         if(page.hid) return
       }
       console.log(7778885,page.navUrl)
-     }
+    }
   }
 
   updateActive(tab){
@@ -1389,7 +1389,7 @@ export default class TabPanel extends Component {
 
         if(sharedState.tabPreview){
           const base64 = uuid.v4()
-          ipc.send('take-capture', {base64, tabId: tab.wvId})
+          ipc.send('take-capture', {base64, tabId: tab.wvId, noActiveSkip: true})
           ipc.once(`take-capture-reply_${base64}`,(e,dataURL,size)=>{
             tab.tabPreview = {dataURL,...size}
             PubSub.publish('tab-preview-update',{dataURL,...size})
@@ -1433,7 +1433,7 @@ export default class TabPanel extends Component {
             if ((typeof page.hid === 'object' && page.hid !== null ) || (page.hid = await history.findOne({location: page.navUrl}))) {
               console.log(22, page.hid)
               if (page.hid.count > 2 && !page.hid.capture) {
-                ipc.send('take-capture', {id: page.hid._id, url: page.navUrl, loc, tabId: tab.wvId})
+                ipc.send('take-capture', {id: page.hid._id, url: page.navUrl, loc, tabId: tab.wvId, noActiveSkip: true})
               }
             }
           })()
@@ -1600,7 +1600,7 @@ export default class TabPanel extends Component {
 
           if(sharedState.tabPreview){
             const base64 = uuid.v4()
-            ipc.send('take-capture', {url: page.navUrl, loc:page.navUrl, base64, tabId: tab.wvId})
+            ipc.send('take-capture', {url: page.navUrl, loc:page.navUrl, base64, tabId: tab.wvId, noActiveSkip: true})
             ipc.once(`take-capture-reply_${base64}`,(e,dataURL,size)=>{
               tab.tabPreview = {dataURL,...size}
               PubSub.publish('tab-preview-update',{dataURL,...size})
@@ -1672,7 +1672,7 @@ export default class TabPanel extends Component {
                 }
               }
               console.log(7778882,newPage.navUrl)
-             // console.log('insert_favicon')
+              // console.log('insert_favicon')
             }
             const favi = await favicon.findOne({url: newPage.favicon})
             if(!(favi)){
@@ -1721,7 +1721,7 @@ export default class TabPanel extends Component {
 
             if(sharedState.tabPreview){
               const base64 = uuid.v4()
-              ipc.send('take-capture', {url: page.navUrl, loc:page.navUrl, base64, tabId: tab.wvId})
+              ipc.send('take-capture', {url: page.navUrl, loc:page.navUrl, base64, tabId: tab.wvId, noActiveSkip: true})
               ipc.once(`take-capture-reply_${base64}`,(e,dataURL,size)=>{
                 tab.tabPreview = {dataURL,...size}
                 PubSub.publish('tab-preview-update',{dataURL,...size})
@@ -3486,6 +3486,7 @@ export default class TabPanel extends Component {
   }
 
   handleTabClose(e, key,isUpdateState=true) {
+    ipc.send('disable-webContents-focus', false)
     if (!this.mounted) return
     const i = this.state.tabs.findIndex((x)=> x.key == key)
     const tab = this.state.tabs[i]

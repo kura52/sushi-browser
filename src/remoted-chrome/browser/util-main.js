@@ -1,7 +1,7 @@
 const {ipcMain} = require('electron')
 const {getIpcNameFunc, _shortId} = require('../renderer/common-util')
 const {getCurrentWindow, getFocusedWebContents} = require('../../util')
-const {Browser, webContents} = require('../BrowserView')
+const {Browser, webContents} = require('../Browser')
 
 module.exports = {
   getIpcNameFunc,
@@ -28,11 +28,11 @@ module.exports = {
 
     const regist = (event) => {
       registEventList.push(event)
-        // for(let [extensionId, values] of Object.entries(extensionIds)){
-        //   for(let [eventId, args] of Object.entries(values)){
-        //     event(extensionId, eventId, ...args)
-        //   }
-        // }
+      // for(let [extensionId, values] of Object.entries(extensionIds)){
+      //   for(let [eventId, args] of Object.entries(values)){
+      //     event(extensionId, eventId, ...args)
+      //   }
+      // }
     }
 
     const unregist = (event) => {

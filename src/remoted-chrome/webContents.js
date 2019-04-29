@@ -19,10 +19,12 @@ export default class webContents extends EventEmitter {
     this.activedIds = []
 
     ipcMain.on('disable-webContents-focus', (e,val)=>{
+      console.log('webContents.disableFocus1' ,val)
       webContents.disableFocus = val
     })
 
     ipcMain.on('arrange-panels', (e,val)=>{
+      console.log('webContents.disableFocus2' ,val)
       webContents.disableFocus = val
 
       const bw = BrowserWindow.fromWebContents(e.sender)
@@ -588,9 +590,18 @@ export default class webContents extends EventEmitter {
     robot.keyTap('escape')
   }
 
-  async capturePage(rect, callback){
-    if(callback == void 0){
-      [callback, rect] = [rect, void 0]
+  async capturePage(rect, callback, noActiveSkip){
+    if (typeof(rect) == 'function') {
+      [callback, noActiveSkip, rect] = [rect, callback, void 0]
+    }
+
+    if(noActiveSkip){
+      const active = await Browser.bg.evaluate((tabId) => {
+        return new Promise(resolve => {
+          chrome.tabs.get(tabId,tab => resolve(tab.active))
+        })
+      },this.id)
+      if(!active) callback(null)
     }
 
     const start = Date.now()
