@@ -54,7 +54,7 @@ function webviewHandler (self, fnName) {
 const webviewEvents = {
   // 'guest-ready': 'onGuestReady',
   'did-start-loading': 'onTabIdChanged', //@TODO ELECTRON
-  'load-commit': 'onLoadCommit',
+  // 'load-commit': 'onLoadCommit',
   // 'did-start-loading': 'onDidStartLoading',
   'did-stop-loading': 'onDidStopLoading',
   'did-finish-load': 'onDidFinishLoading',
@@ -62,7 +62,7 @@ const webviewEvents = {
   // 'did-fail-provisional-load':'onDidFailLoad',
   // 'did-frame-finish-load': 'onDidFrameFinishLoad',
   // 'did-redirect-navigation': 'onDidGetRedirectRequest',
-  'dom-ready': 'onDomReady',
+  // 'dom-ready': 'onDomReady',
   // 'page-title-updated': 'onPageTitleSet',
   // 'close': 'onClose',
   'destroyed': 'onDestroyed',
@@ -72,10 +72,10 @@ const webviewEvents = {
   // 'new-window': "onNewWindow",
   // 'will-navigate' : "onWillNavigate",
   'did-navigate' : "onDidNavigate",
-  'did-start-navigation' : "onLoadStart", //@TODO ELECTRON
+  'did-start-navigation' : "onLoad-Start", //@TODO ELECTRON
   // 'did-navigate-in-page' : 'onDidNavigateInPage',
-  'update-target-url' : 'onUpdateTargetUrl',
-  'cursor-changed': 'onCursorChanged'
+  // 'update-target-url' : 'onUpdateTargetUrl',
+  // 'cursor-changed': 'onCursorChanged'
 }
 
 class BrowserPage extends Component {
@@ -169,52 +169,53 @@ class BrowserPage extends Component {
     }
     console.log(this.props.tab.privateMode)
 
-    for (var k in webviewEvents)
-      webview.on(k, webviewHandler(this, webviewEvents[k]))
-
-    const supportedWebViewEvents = [
-      // 'load-commit',
-      // 'did-attach',
-      'did-finish-load',
-      'did-fail-load',
-      // 'did-frame-finish-load',
-      'did-start-loading',
-      'did-stop-loading',
-      'dom-ready',
-      // 'console-message',
-      // 'context-menu',
-      // 'devtools-opened',
-      // 'devtools-closed',
-      // 'devtools-focused',
-      'new-window',
-      // 'will-navigate',
-      'did-start-navigation',
-      'did-navigate',
-      // 'did-frame-navigate',
-      // 'did-navigate-in-page',
-      // 'focus-change',
-      // 'close',
-      // 'crashed',
-      // 'gpu-crashed',
-      // 'plugin-crashed',
-      'destroyed',
-      'page-title-updated',
-      'page-favicon-updated',
-      // 'enter-html-full-screen',
-      // 'leave-html-full-screen',
-      'media-started-playing',
-      'media-paused',
-      // 'found-in-page',
-      // 'did-change-theme-color',
-      // 'update-target-url',
-      // 'cursor-changed'
-    ]
-
-    for(let name of supportedWebViewEvents){
-      webview.on(name, (e,...args)=>{
-        console.log(54555531,name,e,...args)
-      })
+    for (const [k,v] of Object.entries(webviewEvents)){
+      ipc.on(`${k}_${this.props.tab.wvId}`, webviewHandler(this, v))
     }
+
+    // const supportedWebViewEvents = [
+    //   // 'load-commit',
+    //   // 'did-attach',
+    //   'did-finish-load',
+    //   'did-fail-load',
+    //   // 'did-frame-finish-load',
+    //   'did-start-loading',
+    //   'did-stop-loading',
+    //   // 'dom-ready',
+    //   // 'console-message',
+    //   // 'context-menu',
+    //   // 'devtools-opened',
+    //   // 'devtools-closed',
+    //   // 'devtools-focused',
+    //   // 'new-window',
+    //   // 'will-navigate',
+    //   'did-start-navigation',
+    //   'did-navigate',
+    //   // 'did-frame-navigate',
+    //   // 'did-navigate-in-page',
+    //   // 'focus-change',
+    //   // 'close',
+    //   // 'crashed',
+    //   // 'gpu-crashed',
+    //   // 'plugin-crashed',
+    //   'destroyed',
+    //   'page-title-updated',
+    //   'page-favicon-updated',
+    //   // 'enter-html-full-screen',
+    //   // 'leave-html-full-screen',
+    //   'media-started-playing',
+    //   'media-paused',
+    //   // 'found-in-page',
+    //   // 'did-change-theme-color',
+    //   // 'update-target-url',
+    //   // 'cursor-changed'
+    // ]
+
+//     for(let name of supportedWebViewEvents){
+//       webview.on(name, (e,...args)=>{
+//         console.log(54555531,name,e,...args)
+//       })
+//     }
 
     this.wvEvents[`send-to-host_${tabId}`] = (e, msg, ...args) =>{
       if(msg == 'webview-scroll'){
@@ -602,7 +603,7 @@ class BrowserPage extends Component {
       <div className={`w${this.props.k2}`} key={this.props.k} data-webview="1" data-key={this.props.k} style={style}/>
       {hasDevToolsPanel ? <DevToolsPanel tab={this.props.tab} devToolsInfo={devToolsInfo} parent={this}
                                          style={style.width ? {width: style.width, display: 'inline-block'} : {}}/> : null}
-      <AutofillPopup key={this.props.k + this.props.k2} k={this.props.k}/>
+      {/*<AutofillPopup key={this.props.k + this.props.k2} k={this.props.k}/>*/}
       <StatusBar key={this.props.k + this.props.k2} toggleNav={this.props.toggleNav} tab={this.props.tab} refs2={refs2}/>
     </div>
   }

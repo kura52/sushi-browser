@@ -213,7 +213,7 @@ export default class BrowserPanel {
             })
           })
           console.log(4343444, tmpWin.width, tmpWin.tabWidth, tmpWin.height, tmpWin.tabHeight)
-          BrowserPanel.topMargin = tmpWin.height - tmpWin.tabHeight - 8 - 78
+          BrowserPanel.topMargin = tmpWin.height - tmpWin.tabHeight - 8 //- 78
           BrowserPanel.sideMargin = (tmpWin.width - tmpWin.tabWidth) / 2
 
           let chromeNativeWindow = winctl.GetActiveWindow()
@@ -491,7 +491,12 @@ export default class BrowserPanel {
 
   moveTopNativeWindowBw() {
     if (BrowserPanel.contextMenuShowing) return
-    this.cpWin.nativeWindowBw.moveTop()
+    const now = Date.now()
+
+    if(!this.moveTopCache || now - this.moveTopCache > 30){
+      this.moveTopCache = now
+      this.cpWin.nativeWindowBw.moveTop()
+    }
   }
 
   bindWindow(val){

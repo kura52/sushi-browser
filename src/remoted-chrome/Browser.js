@@ -95,6 +95,7 @@ class Browser{
         '--disable-infobars',
         // '--enable-prompt-on-repost',
         '--disable-breakpad',
+        '--disable-logging',
         // '--silent-debugger-extension-api',
         // `--lang=en`,
         '--disable-default-apps',
@@ -266,7 +267,7 @@ class Browser{
       evem.queueEmit(`tabs-onUpdated_${tabId}`, changeInfo)
       const cont = webContents.fromId(tabId)
       if(changeInfo.url){
-        cont.emit('did-navigate', {sender: this} ,changeInfo.url)
+        cont.emitAndSend('did-navigate', {sender: this} ,changeInfo.url)
         changeInfo.url = void 0
       }
       if(cont && cont.hostWebContents2) cont.hostWebContents2.send('chrome-tabs-event',{tabId, changeInfo}, 'updated')
@@ -465,7 +466,9 @@ class Browser{
               focused = window.id
               if(preFocused != window.id){
                 preFocused = focused
-                fetch(`http://localhost:${port}?key=${serverKey}&data=${encodeURIComponent(JSON.stringify({api, method: 'focusChanged', result: [focused]}))}`)
+                const xhr = new XMLHttpRequest()
+                xhr.open("GET", `http://localhost:${port}?key=${serverKey}&data=${encodeURIComponent(JSON.stringify({api, method: 'focusChanged', result: [focused]}))}`)
+                xhr.send()
               }
             }
 
@@ -475,7 +478,8 @@ class Browser{
                 && window.width != 0 && preWindow.width != 0){
                 console.log(port, serverKey, api,method,window)
                 // chrome.tabs.query({active:true,windowId: window.id}, tabs => {
-                fetch(`http://localhost:${port}?key=${serverKey}&data=${encodeURIComponent(JSON.stringify({api, method, result: [{
+                const xhr = new XMLHttpRequest()
+                xhr.open("GET", `http://localhost:${port}?key=${serverKey}&data=${encodeURIComponent(JSON.stringify({api, method, result: [{
                     id: window.id,
                     x: window.left - preWindow.left,
                     y: window.top - preWindow.top,
@@ -485,6 +489,7 @@ class Browser{
                     // sideMargin: (window.width - tabs[0].width) / 2
                   }
                   ]}))}`)
+                xhr.send()
                 // })
               }
             }
@@ -492,7 +497,10 @@ class Browser{
           }
           if(!focused && preFocused != -1){
             preFocused = -1
-            fetch(`http://localhost:${port}?key=${serverKey}&data=${encodeURIComponent(JSON.stringify({api, method: 'focusChanged', result: [preFocused]}))}`)
+            const xhr = new XMLHttpRequest()
+            xhr.open("GET", `http://localhost:${port}?key=${serverKey}&data=${encodeURIComponent(JSON.stringify({api, method: 'focusChanged', result: [preFocused]}))}`)
+            xhr.send()
+
           }
         })
       },50)
@@ -603,11 +611,13 @@ class Browser{
         serverKey,
         events: window.ipcRenderer ? window.ipcRenderer.events : {},
         send(channel, ...args) {
-          fetch(`http://localhost:${this.port}?key=${this.serverKey}&data=${encodeURIComponent(JSON.stringify({
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", `http://localhost:${this.port}?key=${this.serverKey}&data=${encodeURIComponent(JSON.stringify({
             api: 'ipc',
             method: 'send',
             result: [channel, chrome.runtime.id, ...args]
-          }))}`)
+          }))}`);
+          xhr.send();
         },
         on(eventName, listener) {
           this.events[eventName] = listener
@@ -621,11 +631,13 @@ class Browser{
       }
       chrome.runtime.onMessage.addListener((message, sender) => {
         if (!message.ipcToBg) return
-        fetch(`http://localhost:${window.ipcRenderer.port}?key=${window.ipcRenderer.serverKey}&data=${encodeURIComponent(JSON.stringify({
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", `http://localhost:${window.ipcRenderer.port}?key=${window.ipcRenderer.serverKey}&data=${encodeURIComponent(JSON.stringify({
           api: 'ipc',
           method: 'send',
           result: [message.channel, sender.tab.id, ...message.args]
-        }))}`)
+        }))}`);
+        xhr.send();
       })
 
 
@@ -725,7 +737,9 @@ class Browser{
       chrome[api][method].addListener(async (...result) => {
         if(!validateFunc || validateFunc(...result)){
           if(modifyPromisedFunc)  result = await modifyPromisedFunc(...result)
-          fetch(`http://localhost:${port}?key=${serverKey}&data=${encodeURIComponent(JSON.stringify({api, method, result}))}`)
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", `http://localhost:${port}?key=${serverKey}&data=${encodeURIComponent(JSON.stringify({api, method, result}))}`);
+          xhr.send();
         }
       })
     }, api, method, this.serverKey, this.port, validateFunc, modifyPromisedFunc && `return ${modifyPromisedFunc.toString()}`)

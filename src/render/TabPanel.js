@@ -1303,37 +1303,37 @@ export default class TabPanel extends Component {
       onDestroyed(e, page){
         self.handleTabClose({}, tab.key)
       },
-      onUpdateTargetUrl(e, page, url) {
-        if (!self.mounted) return
-        if(page.statusText!==url){
-          page.statusText = url
-          PubSub.publish(`change-status-${tab.key}`)
-          // self.setState({})
-        }
-      },
-      onCursorChanged(e, page, cursor) {
-        if (!self.mounted) return
-        tab.div.parentNode.style.cursor = cursor
-      },
-      onLoadCommit(e, page, url, isMainFrame) {
-        // console.log('onCommitted',e,Date.now(),e.isMainFrame)
-        console.log('onLoadCommit',e)
-        if(isMainFrame){
-          if(page.navUrl != url){
-            self.refreshHistory({url, isMainFrame}, page)
-            self.updateActive(tab)
-          }
-
-          self.filterFromContents(page, navigateTo, tab, self);
-          self.sendOpenLink(tab, page);
-          // ipc.send('chrome-webNavigation-onCommitted',{
-          //   tabId:tab.wvId,
-          //   url:e.url,
-          //   frameId: 0,
-          //   timeStamp: Date.now()
-          // })
-        }
-      },
+//       onUpdateTargetUrl(e, page, url) {
+//         if (!self.mounted) return
+//         if(page.statusText!==url){
+//           page.statusText = url
+//           PubSub.publish(`change-status-${tab.key}`)
+//           // self.setState({})
+//         }
+//       },
+//       onCursorChanged(e, page, cursor) {
+//         if (!self.mounted) return
+//         tab.div.parentNode.style.cursor = cursor
+//       },
+//       onLoadCommit(e, page, url, isMainFrame) {
+//         // console.log('onCommitted',e,Date.now(),e.isMainFrame)
+//         console.log('onLoadCommit',e)
+//         if(isMainFrame){
+//           if(page.navUrl != url){
+//             self.refreshHistory({url, isMainFrame}, page)
+//             self.updateActive(tab)
+//           }
+//
+//           self.filterFromContents(page, navigateTo, tab, self);
+//           self.sendOpenLink(tab, page);
+//           // ipc.send('chrome-webNavigation-onCommitted',{
+//           //   tabId:tab.wvId,
+//           //   url:e.url,
+//           //   frameId: 0,
+//           //   timeStamp: Date.now()
+//           // })
+//         }
+//       },
       // onWillNavigate(e, page) {
       //   console.log('onWillNavigate')
       //   // page.navUrl = e.url
@@ -1817,7 +1817,7 @@ export default class TabPanel extends Component {
     if (t){
       const p = t.querySelector('p')
       const title = `${page.favicon !== 'loading' || page.titleSet || page.location == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? page.title : page.location} `
-      const beforeTitle = <img className='favi-tab' src={page.title && page.favicon !== 'loading' && !page.isLoading ? page.favicon : 'resource/l.svg'} onError={(e)=>{e.target.src = 'resource/file.svg'}}/>
+      const beforeTitle = <img className='favi-tab' src={page.title && page.favicon !== 'loading' && !page.isLoading ? page.favicon : 'resource/l.png'} onError={(e)=>{e.target.src = 'resource/file.svg'}}/>
       PubSub.publish(`tab-component-update_${tab.key}`,{title,beforeTitle})
     }
     const n = this.refs2[`navbar-${tab.key}`]

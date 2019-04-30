@@ -42,6 +42,34 @@ export default class webContents extends EventEmitter {
         }
       }
     })
+
+
+    ipcMain.on('webContents_event', async (e, name, tabId, key, ...args)=>{
+      const cont = this.fromId(tabId)
+      if(cont){
+        let val
+        try{
+          val = await cont[name](...args)
+        }catch(e2){
+
+        }finally{
+          if(key){
+            e.sender.send(`webContents_event_${tabId}_${key}`, val)
+          }
+          else{
+            e.returnValue = val
+          }
+        }
+      }
+      else{
+        if(key){
+          e.sender.send(`webContents_event_${tabId}_${key}`, null)
+        }
+        else{
+          e.returnValue = null
+        }
+      }
+    })
   }
 
   static getAllWebContents(){
@@ -108,18 +136,18 @@ export default class webContents extends EventEmitter {
 
     this._evEvents[`webNavigation-onCompleted_${this.id}`] = (extFrameId) =>{
       // console.log('did-finish-load', extFrameId == 0 ? 'main' : 'sub')
-      this.emit('did-finish-load', {sender: this})
+      this.emitAndSend('did-finish-load', {sender: this})
     }
 
     this._evEvents[`webNavigation-onCommitted_${this.id}`] = (details) =>{
       if(details.frameId == 0){
-        this.emit('did-fail-load', {sender: this}, -3, void 0, details.url)
+        this.emitAndSend('did-fail-load', {sender: this}, -3, void 0, details.url)
       }
     }
 
     this._evEvents[`webNavigation-onErrorOccurred_${this.id}`] = (details) =>{
       if(details.frameId == 0){
-        this.emit('did-fail-load', {sender: this}, details.error, void 0, details.url)
+        this.emitAndSend('did-fail-load', {sender: this}, details.error, void 0, details.url)
       }
     }
 
@@ -128,14 +156,14 @@ export default class webContents extends EventEmitter {
     this._pEvents['frameStartedLoading'] = frame => {
       if(!frame.parentFrame()){
         console.log('did-start-loading', !frame.parentFrame(),this.id)
-        this.emit('did-start-loading', {sender: this} ,this.id)
+        this.emitAndSend('did-start-loading', {sender: this} ,this.id)
         // this.emit('did-start-navigation', {sender: this}, frame.url(), true, !frame.parentFrame())
       }
     }
     this._pEvents['frameStoppedLoading'] = frame => {
       // console.log('did-stop-loading', !frame.parentFrame())
       if(!frame.parentFrame()){
-        this.emit('did-stop-loading', {sender: this})
+        this.emitAndSend('did-stop-loading', {sender: this})
       }
     }
     this._pEvents['domcontentloaded'] = () => {
@@ -147,7 +175,7 @@ export default class webContents extends EventEmitter {
       console.log('updated',changeInfo)
       if(changeInfo.favIconUrl != null){
         // console.log('page-favicon-updated')
-        this.emit('page-favicon-updated', {sender: this}, [changeInfo.favIconUrl])
+        this.emitAndSend('page-favicon-updated', {sender: this}, [changeInfo.favIconUrl])
       }
       if(changeInfo.audible != null){
         if(changeInfo.audible){
@@ -173,7 +201,7 @@ export default class webContents extends EventEmitter {
       // }
       if(changeInfo.title != null){
         // console.log('page-title-updated')
-        this.emit('page-title-updated', {sender: this}, changeInfo.title)
+        this.emitAndSend('page-title-updated', {sender: this}, changeInfo.title)
       }
     }
 
@@ -181,7 +209,7 @@ export default class webContents extends EventEmitter {
 
     this._pEvents['framenavigated'] = frame => {
       // console.log('did-start-navigation', !frame.parentFrame())
-      this.emit('did-start-navigation', {sender: this}, frame.url(), true, !frame.parentFrame())
+      this.emitAndSend('did-start-navigation', {sender: this}, frame.url(), true, !frame.parentFrame())
     }
 
     // did-navigate
@@ -193,8 +221,9 @@ export default class webContents extends EventEmitter {
 
       for(let event of Object.entries(this._evEvents)) evem.removeListener(...event)
       for(let event of Object.entries(this._pEvents)) page.removeListener(...event)
+
       webContents.webContentsMap.delete(this.id)
-      this.emit('destroyed')
+      this.emitAndSend('destroyed')
       this.destroyed = true
     }
 
@@ -206,6 +235,17 @@ export default class webContents extends EventEmitter {
     for(let event of Object.entries(this._evEvents)) evem.on(...event)
     for(let event of Object.entries(this._pEvents)) page.on(...event)
 
+  }
+
+  emitAndSend(name, event, ...args){
+    this.emit(name, event, ...args)
+    for (let win of BrowserWindow.getAllWindows()) {
+      if (win.getTitle().includes('Sushi Browser')) {
+        if (!win.webContents.isDestroyed()){
+          win.webContents.send(`${name}_${this.id}`, ...args)
+        }
+      }
+    }
   }
 
   _getPage(){
@@ -871,7 +911,13 @@ export default class webContents extends EventEmitter {
   }
 
   async getNavigationHistory(){
-    return (await this._getPage()).getNavigationHistory()
+    const now = Date.now()
+
+    if(!this.navCache || now - this.navCache[0] > 50){
+      let val = (await this._getPage()).getNavigationHistory()
+      this.navCache = [now, val]
+    }
+    return this.navCache[1]
   }
 
   async length(){

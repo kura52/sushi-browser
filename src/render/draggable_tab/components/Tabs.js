@@ -579,7 +579,7 @@ class Tabs extends React.Component {
         }
         beforeTitle.push(<span className="tab-number" style={{color:titleColor}}>{tabNumber}</span>)
       }
-      beforeTitle.push(<img className='favi-tab' src={notLoadTabUntilSelected && !allSelectedkeys.has(tab.key) ? 'resource/file.svg' : page.favicon !== 'loading' && !page.isLoading ? page.favicon : 'resource/l.svg'} onError={(e)=>{e.target.src = 'resource/file.svg'}}/>)
+      beforeTitle.push(<img className='favi-tab' src={notLoadTabUntilSelected && !allSelectedkeys.has(tab.key) ? 'resource/file.svg' : page.favicon !== 'loading' && !page.isLoading ? page.favicon : 'resource/l.png'} onError={(e)=>{e.target.src = 'resource/file.svg'}}/>)
 
       const title = page.favicon !== 'loading' || page.titleSet  || page.location == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? page.title : page.location
 

@@ -4,11 +4,13 @@ export default (port, serverKey) => {
       port,
       serverKey,
       send(channel, ...args) {
-        fetch(`http://localhost:${this.port}?key=${this.serverKey}&data=${encodeURIComponent(JSON.stringify({
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", `http://localhost:${this.port}?key=${this.serverKey}&data=${encodeURIComponent(JSON.stringify({
           api: 'ipc',
           method: 'send',
           result: [channel, chrome.runtime.id, ...args]
-        }))}`)
+        }))}`);
+        xhr.send();
       },
       on(eventName, listener) {
         window.ipcRenderer.events[eventName] = listener
