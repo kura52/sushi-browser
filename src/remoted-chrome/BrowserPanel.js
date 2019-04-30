@@ -98,7 +98,7 @@ export default class BrowserPanel {
     }
     this.destKeySet.add(destPanelKey)
 
-    console.trace(index, 2222)
+    // console.trace(index, 2222)
 
     if (browserPanel) {
       // if(index == null){

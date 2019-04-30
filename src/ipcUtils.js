@@ -2456,7 +2456,7 @@ ipcMain.on('set-bound-browser-view', async (e, panelKey, tabKey, tabId, x, y, wi
 
   const panel = BrowserPanel.getBrowserPanel(panelKey)
   if(!panel){
-    await new Promise(r=>setTimeout(r,20))
+    await new Promise(r=>setTimeout(r,200))
     ipcMain.emit('set-bound-browser-view', e, panelKey, tabKey, tabId, x, y, width, height, zIndex, date)
     return
   }
@@ -2525,7 +2525,7 @@ ipcMain.on('set-position-browser-view', async (e, panelKey) => {
 })
 
 ipcMain.on('delete-browser-view', (e, panelKey, tabKey)=>{
-  console.trace('delete-browser-view',panelKey,tabKey)
+  // console.trace('delete-browser-view',panelKey,tabKey)
 
   const win = BrowserWindow.fromWebContents(e.sender)
   if(!win || win.isDestroyed()) return

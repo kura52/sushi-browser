@@ -1692,7 +1692,7 @@ export default class TabPanel extends Component {
   }
 
   startProcess(self, page, navigateTo, tab, isLoadStart) {
-    console.trace('startProcess', 'favicon', isLoadStart)
+    // console.trace('startProcess', 'favicon', isLoadStart)
     const needFavicon = isLoadStart || page.favicon == "loading"
     const skip = needFavicon ? self.filterFromContents(page, navigateTo, tab, self) : false;
     if (!skip) {
@@ -2833,7 +2833,7 @@ export default class TabPanel extends Component {
       // ipc.send('chrome-webNavigation-onCreatedNavigationTarget', this.createChromeWebNavDetails(tab,newPage.location))
     }
     if(c_wv){
-      console.trace()
+      // console.trace()
       setTimeout(()=>ipc.send('move-browser-view', this.props.k, key, 'attach', tab.wvId, void 0, void 0, void 0, void 0, this.state.selectedTab == tab.key ? 1 : 0, this.state.tabs.findIndex(t=>tab.key == t.key)),0)
       this.registWebView(tab, c_wv, c_div)
     }

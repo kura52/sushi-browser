@@ -7,8 +7,12 @@ import fs from 'fs-extra'
 import path from 'path'
 const isDarwin = process.platform === 'darwin'
 
-process.on('uncaughtException', r => console.trace('uncaughtException',r))
-process.on('unhandledRejection', r => console.trace('unhandledRejection',r))
+process.on('uncaughtException', r => {
+  console.trace('uncaughtException',r)
+})
+process.on('unhandledRejection', r => {
+  console.trace('unhandledRejection',r)
+})
 
 ;(function(){
   try{

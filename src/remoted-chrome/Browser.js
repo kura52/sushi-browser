@@ -94,7 +94,7 @@ class Browser{
         '--metrics-recording-only',
         '--disable-infobars',
         // '--enable-prompt-on-repost',
-        // '--disable-breakpad',
+        '--disable-breakpad',
         // '--silent-debugger-extension-api',
         // `--lang=en`,
         '--disable-default-apps',
@@ -104,8 +104,8 @@ class Browser{
         `--load-extension=${path.resolve(__dirname, '../../resource/extension/default/1.0_0/').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')}`,
         'about:blank'
       ],
-      pipe: true}
-    )
+      // pipe: true
+    })
 
     this.listeners = {}
     this._pagePromises = {}

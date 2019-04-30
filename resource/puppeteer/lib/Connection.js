@@ -80,6 +80,11 @@ class Connection extends EventEmitter {
   async _onMessage(message) {
     if (this._delay)
       await new Promise(f => setTimeout(f, this._delay));
+    const subMessage = message.substr(127,25)
+    if(subMessage == 'Network.requestWillBeSent' ||
+      subMessage == 'Network.responseReceived\\' ||
+      subMessage == 'Network.loadingFinished\\"' ||
+    subMessage.startsWith('Network.dataReceived')) return
     debugProtocol('◀ RECV ' + message);
     const object = JSON.parse(message);
     if (object.id) {
@@ -173,7 +178,6 @@ class CDPSession extends EventEmitter {
       return Promise.reject(new Error(`Protocol error (${method}): Session closed. Most likely the ${this._targetType} has been closed.`));
     const id = ++this._lastId;
     const message = JSON.stringify({id, method, params});
-    debugSession('SEND ► ' + message);
     this._connection.send('Target.sendMessageToTarget', {sessionId: this._sessionId, message}).catch(e => {
       // The response from target might have been already dispatched.
       if (!this._callbacks.has(id))
