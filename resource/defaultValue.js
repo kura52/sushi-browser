@@ -99,7 +99,7 @@ const settingDefault =  {
   showAddressBarBookmarks: false,
   devToolsMode: 'dock',
   devToolsHeight: 200,
-  mobilePanelWidth: 400,
+  mobilePanelWidth: 450,
   mobilePanelSyncScroll: true,
   mobilePanelDetach: false,
   findPanelHeight: 300,

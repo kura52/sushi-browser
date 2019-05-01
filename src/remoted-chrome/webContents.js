@@ -4,6 +4,7 @@ import {EventEmitter} from 'events'
 import evem from './evem'
 import fs from 'fs'
 import winctl from "../../resource/winctl";
+import puppeteer from '../../resource/puppeteer'
 
 let Browser = new Proxy({},  { get: function(target, name){ Browser = require('./Browser').Browser; return typeof Browser[name] == 'function' ? Browser[name].bind(Browser) : Browser[name]}})
 let BrowserPanel = new Proxy({},  { get: function(target, name){ BrowserPanel = require('./BrowserPanel'); return typeof BrowserPanel[name] == 'function' ? BrowserPanel[name].bind(BrowserPanel) : BrowserPanel[name]}})
@@ -208,8 +209,10 @@ export default class webContents extends EventEmitter {
     // 'new-window'
 
     this._pEvents['framenavigated'] = frame => {
-      // console.log('did-start-navigation', !frame.parentFrame())
-      this.emitAndSend('did-start-navigation', {sender: this}, frame.url(), true, !frame.parentFrame())
+      if(!frame.parentFrame()) {
+        console.log('did-start-navigation', !frame.parentFrame())
+        this.emitAndSend('did-start-navigation', {sender: this}, frame.url(), true, !frame.parentFrame())
+      }
     }
 
     // did-navigate
@@ -950,5 +953,25 @@ export default class webContents extends EventEmitter {
     this._bindWindow = val
     const [_1, _2, panel, _3] = BrowserPanel.getBrowserPanelByTabId(this.id)
     panel.bindWindow(val)
+  }
+
+  async emulate(device){
+    const page = await this._getPage()
+    page.emulate(device);
+    const devtoolsProtocolClient = await page.target().createCDPSession()
+    await devtoolsProtocolClient.send("Emulation.setEmitTouchEventsForMouse", { enabled: true })
+  }
+
+  async viewport(){
+    const page = await this._getPage()
+    return page.viewport()
+  }
+
+  async setViewport(viewport){
+    const page = await this._getPage()
+    const _viewport = page.viewport()
+    if(_viewport.width != viewport.width || _viewport.height != viewport.height){
+      page.setViewport(viewport)
+    }
   }
 }

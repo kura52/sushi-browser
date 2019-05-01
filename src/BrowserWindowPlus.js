@@ -297,6 +297,8 @@ function create(args){
     ipcMain.emit('move-window', bw.id)
   })
 
+  bw.on('move', e=> ipcMain.emit('move-window', bw.id))
+
   bw.on('blur', ()=> {
     // PubSub.publish('chrome-windows-onFocusChanged',bw.id)
     bw.webContents.send('visit-state-update','blur')

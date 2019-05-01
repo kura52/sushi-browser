@@ -456,6 +456,10 @@ export default class BrowserPanel {
     const tab = await this.getActiveTab()
     const modify = tab.url == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? 37 : 0
 
+    const cont = webContents.fromId(tab.id)
+    cont.setViewport({width:Math.round(bounds.width), height: Math.round(bounds.height - modify)})
+    this.bounds = bounds
+
     if (bounds.width) {
       this.cpWin.nativeWindow.move(bounds.x, bounds.y, bounds.width, bounds.height)
       this.cpWin.chromeNativeWindow.move(...BrowserPanel.getChromeWindowBoundArray(bounds.width, bounds.height, modify))

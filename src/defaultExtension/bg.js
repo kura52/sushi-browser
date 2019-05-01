@@ -607,7 +607,7 @@ chrome.downloads.onCreated.addListener(async (item)=>{
         r(item.filename)
       })
     })
-    if(sended) return
+    if(sended) break
   }
   setInterval(()=>chrome.downloads.cancel(item.id),4000)
   // ipc.send('download-start', item.finalUrl, item.filename)

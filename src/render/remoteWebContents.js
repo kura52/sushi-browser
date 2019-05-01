@@ -1,7 +1,7 @@
 const remoteWebContents = require('electron').remote.require('./remoted-chrome/Browser').webContents
 const ipc = require('electron').ipcRenderer
 
-const cont = new Proxy(remoteWebContents, {
+export default new Proxy(remoteWebContents, {
   get: (target, name) => {
     if(name == 'fromId'){
       return (tabId) => {
@@ -9,7 +9,7 @@ const cont = new Proxy(remoteWebContents, {
           get: (target, name) => {
             if(name == 'getURL' ||
               name == 'isDestroyed'){
-              return (...args) => ipc.sendSync('webContents_event', name, false, ...args)
+              return (...args) => ipc.sendSync('webContents_event', name, tabId, false, ...args)
             }
             else if(name == 'getNavigationHistory' ||
               name == 'getActiveIndex' ||
@@ -44,5 +44,4 @@ const cont = new Proxy(remoteWebContents, {
     }
   }
 })
-export default cont
 

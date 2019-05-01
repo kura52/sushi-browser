@@ -72,7 +72,7 @@ const webviewEvents = {
   // 'new-window': "onNewWindow",
   // 'will-navigate' : "onWillNavigate",
   'did-navigate' : "onDidNavigate",
-  'did-start-navigation' : "onLoad-Start", //@TODO ELECTRON
+  'did-start-navigation' : "onLoadStart", //@TODO ELECTRON
   // 'did-navigate-in-page' : 'onDidNavigateInPage',
   // 'update-target-url' : 'onUpdateTargetUrl',
   // 'cursor-changed': 'onCursorChanged'

@@ -803,45 +803,45 @@ ipcMain.on('get-main-state',(e,key,names)=>{
 
 ipcMain.on('save-state',async (e,{tableName,key,val})=>{
   if(tableName == 'state'){if(key == 'httpsEverywhereEnable'){
-      require('../brave/httpsEverywhere')()
+    require('../brave/httpsEverywhere')()
+  }
+  else if(key == 'trackingProtectionEnable'){
+    require('../brave/trackingProtection')()
+  }
+  else if(key == 'noScript'){
+    defaultConf.javascript[0].setting = val ? 'block' : 'allow'
+    session.defaultSession.userPrefs.setDictionaryPref('content_settings', defaultConf)
+  }
+  else if(key == 'blockCanvasFingerprinting'){
+    defaultConf.canvasFingerprinting[0].setting = val ? 'block' : 'allow'
+    session.defaultSession.userPrefs.setDictionaryPref('content_settings', defaultConf)
+  }
+  else if(key == 'downloadPath'){
+    if(fs.existsSync(val)) {
+      app.setPath('downloads',val)
     }
-    else if(key == 'trackingProtectionEnable'){
-      require('../brave/trackingProtection')()
+    else{
+      return
     }
-    else if(key == 'noScript'){
-      defaultConf.javascript[0].setting = val ? 'block' : 'allow'
-      session.defaultSession.userPrefs.setDictionaryPref('content_settings', defaultConf)
-    }
-    else if(key == 'blockCanvasFingerprinting'){
-      defaultConf.canvasFingerprinting[0].setting = val ? 'block' : 'allow'
-      session.defaultSession.userPrefs.setDictionaryPref('content_settings', defaultConf)
-    }
-    else if(key == 'downloadPath'){
-      if(fs.existsSync(val)) {
-        app.setPath('downloads',val)
-      }
-      else{
-        return
-      }
-    }
-    else if(key == 'enableTheme'){
-      const theme = extInfos[val] && extInfos[val].theme
-      if(theme && theme.images){
-        theme.sizes = {}
-        for(let name of ['theme_toolbar','theme_tab_background']){
-          if(!theme.images[name]) continue
-          const file = path.join(theme.base_path,theme.images[name])
-          if(file && fs.existsSync(file)){
-            theme.sizes[name] = nativeImage.createFromPath(file).getSize()
-          }
-        }
-      }
-      for(let win of BrowserWindow.getAllWindows()) {
-        if(win.getTitle().includes('Sushi Browser')){
-          win.webContents.send('update-theme',theme)
+  }
+  else if(key == 'enableTheme'){
+    const theme = extInfos[val] && extInfos[val].theme
+    if(theme && theme.images){
+      theme.sizes = {}
+      for(let name of ['theme_toolbar','theme_tab_background']){
+        if(!theme.images[name]) continue
+        const file = path.join(theme.base_path,theme.images[name])
+        if(file && fs.existsSync(file)){
+          theme.sizes[name] = nativeImage.createFromPath(file).getSize()
         }
       }
     }
+    for(let win of BrowserWindow.getAllWindows()) {
+      if(win.getTitle().includes('Sushi Browser')){
+        win.webContents.send('update-theme',theme)
+      }
+    }
+  }
     mainState[key] = val
     state.update({ key: 1 }, { $set: {[key]: mainState[key], updated_at: Date.now()} }).then(_=>_)
   }
@@ -1080,7 +1080,7 @@ ipcMain.on('set-pos-window',async (e,{id,hwnd,key,x,y,width,height,top,active,ta
   }
 })
 
-const mpoMap = {}, loopMap = {}, bwMap= {},tabMap = {}, loadMap = {}, detachMap = {}, winMap = {}, modifyPos = isLinux ? 25 : 0
+const mpoMap = {}, loopMap = {}, bwMap= {},tabMap = {}, loadMap = {}, detachMap = {}, winMap = {}
 global.bwMap = bwMap
 let mobileInject
 ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, y, width, height, oldKey, show, force})=>{
@@ -1090,76 +1090,63 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
   }
 
   if(type == 'create'){
-    const fontOpt = meiryo ? {
-      defaultFontFamily: {
-        standard: 'Meiryo UI',
-        serif: 'MS PMincho',
-        sansSerif: 'Meiryo UI',
-        monospace: 'MS Gothic'
-      }
-    } : {}
 
-    const bw = new BrowserWindow({
-      x: x - modifyPos, y, width, height: height - modifyPos,
-      title: 'Mobile Panel',
-      fullscreenable: detach,
-      // titleBarStyle: detach ? void 0 : 'hidden',
-      autoHideMenuBar: true,
-      frame: detach || process.platform === 'darwin',
-      show: true,
-      resizable: true,
-      movable: true,
-      webPreferences: {
-        // partition: 'persist:mobile',
-        plugins: true,
-        sharedWorker: true,
-        nodeIntegration: true,
-        webSecurity: false,
-        allowFileAccessFromFileUrls: true,
-        allowUniversalAccessFromFileUrls: true,
-        ...fontOpt
-      }
-    })
-    bw.setMinimizable(detach)
-    bw.setMaximizable(detach)
-    bw.setSkipTaskbar(!detach)
+    //create window
+    Browser.popuped = true
 
-    if(isLinux){
-      setTimeout(_=>bw.setBounds({x: Math.round(x),y: Math.round(y),width: Math.round(width),height: Math.round(height) - modifyPos}),0)
-    }
+    const beforeTargets = await Browser._browser.targets()
+    const targetIds = beforeTargets.map(t=>t._targetId)
+
+    const cWin = await Browser.bg.evaluate((x,y,width,height) => {
+      return new Promise(resolve => {
+        chrome.windows.create({
+          url: 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/popup_prepare.html',
+          left: Math.round(x),top: Math.round(y),width: Math.round(width),height: Math.round(height)
+        }, window => resolve(window))
+      })
+    }, x,y,width,height)
+
+    await new Promise(r=>setTimeout(r,500))
+
+    //bind window
+    const chromeNativeWindow = (await winctl.FindWindows(win => {
+      return win.getTitle().includes('Sushi Browser Popup Prepare')
+    }))[0]
+
+    if(!detach) chromeNativeWindow.setWindowLongPtrEx(0x00000080)
+
+    const hwnd = chromeNativeWindow.createWindow()
+    const nativeWindow = (await winctl.FindWindows(win => win.getHwnd() == hwnd))[0]
+
+    chromeNativeWindow.setParent(nativeWindow.getHwnd())
 
 
-    // bw.webContents.toggleDevTools()
-    // bw.loadURL('data:text/html,<html></html>')
-    // await new Promise(r=>{
-    //   ipcMain.emit('init-private-mode',{sender: {send: _=>r()}},'','persist:mobile')
-    // })
-    // await new Promise(r=>setTimeout(r,300))
-    bw.loadURL(url)
-    mpoMap[key] = bw
+    //get target
+    const tab = cWin.tabs[0]
+
+    const mobileCont = new webContents(tab.id)
+
+    mobileCont.setViewport({width: Math.round(width), height: Math.round(height)})
+
+    nativeWindow.move(Math.round(x), Math.round(y), Math.round(width), Math.round(height))
+    console.log(BrowserPanel.getChromeWindowBoundArray(Math.round(width), Math.round(height)))
+    chromeNativeWindow.move(...BrowserPanel.getChromeWindowBoundArray(Math.round(width), Math.round(height)))
+
+    mobileCont.loadURL(url)
+
+    mpoMap[key] = {chromeWindow: cWin, tab, mobileCont, nativeWindow, chromeNativeWindow}
     detachMap[key] = detach
 
-    // if(isWin){
-    //   const winctl = require('winctl')
-    //   const win =  winctl.GetActiveWindow()
-    //   winMap[key] = win
-    //   if(!detach){
-    //     win.setWindowLongPtrRestore()
-    //     win.setWindowPos(0,0,0,0,0,39+1024)
-    //     win.setWindowPos(winctl.HWND.TOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
-    //   }
-    // }
-    // else{
-    bw.setAlwaysOnTop(!detach)
-    // }
 
-    bw.on('resize', ()=>{
-      const [width,height] = bw.getSize()
-      e.sender.send(`resize-mobile-panel_${key}`,width,height)
-    })
+    //@TODO
+    // bw.on('resize', ()=>{
+    //   const [width,height] = bw.getSize()
+    //   e.sender.send(`resize-mobile-panel_${key}`,width,height)
+    // })
 
-    bw.webContents.on('did-navigate', (e)=>{
-      const url = bw.webContents.getURL()
+    mobileCont.on('did-start-navigation', ()=>{
+
+      const url = mobileCont.getURL()
       const tab = webContents.fromId(tabId)
       if(!tab) return
       if(url != tab.getURL()){
@@ -1171,81 +1158,85 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
       }
     })
 
-    bw.on('closed',_=>{
+    mobileCont.on('destroyed',_=>{
       const tab = webContents.fromId(tabId)
       if(tab && tab.hostWebContents2) tab.hostWebContents2.send(`mobile-panel-close_${key}`)
     })
 
-    bwMap[bw.webContents.id] = tabId
-    tabMap[tabId] = bw.webContents
+    bwMap[mobileCont.id] = tabId
+    tabMap[tabId] = mobileCont
 
     loopMap[key] = setInterval(_=>{
-      if(bw.isDestroyed()) return
-      bw.webContents.send('mobile-scroll',{type:'init' ,code: mobileInject})
+      if(mobileCont.isDestroyed()) return
+      mobileCont.send('mobile-scroll',{type:'init' ,code: mobileInject})
+
       const cont = webContents.fromId(tabId)
       if(cont && !cont.isDestroyed()) cont.send('mobile-scroll',{type:'init' ,code: mobileInject})
     },1000)
 
-    const cont = bw.webContents
-    let devToolsWebContents
-    for(let i=0;i<100;i++){
-      await new Promise(r=>{
-        setTimeout(_=>{
-          try{
-            devToolsWebContents = cont.devToolsWebContents
-          }catch(e){}
-          r()
-        },100)
-      })
-      if(devToolsWebContents){
-        if(!cont.isDestroyed()) cont.executeJavascriptInDevTools(`(async function(){
-  let phoneButton
-  for(let i=0;i<100;i++){
-    await new Promise(r=>{
-      setTimeout(_=>{
-        try{
-          phoneButton = document.querySelector(".insertion-point-main").shadowRoot.querySelector(".tabbed-pane-left-toolbar").shadowRoot.querySelector('.largeicon-phone').parentNode
-        }catch(e){}
-        r()
-      },100)
-    })
-    if(phoneButton){
-      if(phoneButton.classList.contains('toolbar-state-off')) phoneButton.click()
-      phoneButton.parentNode.removeChild(phoneButton)
-      break
-    }
-        Components.dockController.setDockSide('bottom')
-  }
 
-}())`)
-      }
+    chromeNativeWindow.setForegroundWindowEx()
+    robot.keyTap('f12')
+
+    await new Promise(r=> setTimeout(r,2000))
+
+    const targets = await Browser._browser.targets();
+
+    for(const page of await Browser._browser.pages()){
+      console.log(44333,page.url())
     }
+
+    const devTarget = targets.find((target) => target.url().startsWith('chrome-devtools://devtools/bundled/devtools_app.html') && !targetIds.includes(target._targetId))
+    const devPage = await devTarget.page()
+
+    global.devPage = devPage
+
+    devPage.evaluate(async ()=>{
+      let phoneButton
+      for(let i=0;i<100;i++){
+        await new Promise(r=>{
+          setTimeout(_=>{
+            try{
+              phoneButton = document.querySelector('[slot="insertion-point-main"]').shadowRoot.querySelector(".tabbed-pane-left-toolbar").shadowRoot.querySelector('.largeicon-phone').parentNode
+            }catch(e){}
+            r()
+          },100)
+        })
+        if(phoneButton){
+          if(phoneButton.classList.contains('toolbar-state-off')) phoneButton.click()
+          phoneButton.parentNode.removeChild(phoneButton)
+          break
+        }
+        Components.dockController.setDockSide('undocked')
+      }
+    })
 
   }
   else{
-    const bw = mpoMap[key]
+    const {chromeWindow, tab, mobileCont, nativeWindow, chromeNativeWindow} = mpoMap[key]
     const _detach = detachMap[key]
-    if(!bw) return
+    if(!chromeWindow) return
+
     if(type == 'resize'){
       if(_detach) return
-      bw.setBounds({x: Math.round(x),y: Math.round(y),width: Math.round(width),height: Math.round(height) - modifyPos})
+      nativeWindow.move(Math.round(x), Math.round(y), Math.round(width), Math.round(height))
     }
     else if(type == 'url'){
-      const thisUrl = bw.webContents.getURL()
+      const thisUrl = mobileCont.getURL()
       if(url != thisUrl){
         const now = Date.now()
         const time = loadMap[`${key}_tab`]
 
         if(time && now - time < 1000) return
         loadMap[`${key}_bw`] = now
-        bw.loadURL(url)
+        mobileCont.loadURL(url)
       }
     }
     else if(type == 'close'){
       clearInterval(loopMap[key])
-      if(!bw.isDestroyed()){
-        delete bwMap[bw.webContents.id]
-        bw.close()
+      if(!mobileCont.isDestroyed()){
+        delete bwMap[mobileCont.id]
+        mobileCont.close()
       }
       delete tabMap[tabId]
       delete detachMap[key]
@@ -1281,13 +1272,6 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
     else if(type == 'above'){
       if(_detach) return
       if(bw.isMinimized()) return
-      // if(isWin){
-      //   const win = winMap[key]
-      //   win.setWindowPos(require('winctl').HWND.TOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
-      // }
-      // else{
-      bw.setAlwaysOnTop(true)
-      // }
     }
     else if(type == 'minimize'){
       if(_detach) return
@@ -1307,35 +1291,11 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
       bw.setSkipTaskbar(!detach)
       bw.setMinimizable(detach)
       bw.setMaximizable(detach)
-      // if(isWin){
-      //   const win = winMap[key]
-      //   if(detach){
-      //     win.setWindowPos(require('winctl').HWND.NOTOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
-      //   }
-      //   else{
-      //     win.setWindowPos(require('winctl').HWND.TOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
-      //   }
-      // }
-      // else{
-      bw.setAlwaysOnTop(!detach)
-      // }
+
       if(detach) bw.focus()
 
-      // if(isWin){
-      //   const win = winMap[key]
-      //   if(detach){
-      //     win.setWindowLongPtr()
-      //   }
-      //   else{
-      //     win.setWindowLongPtrRestore()
-      //     win.setWindowPos(0,0,0,0,0,39+1024);
-      //   }
-      // }
 
       mainState.mobilePanelDetach = detach
-
-      // titleBarStyle: detach ? void 0 : 'hidden',
-      // frame: detach || process.platform === 'darwin',
     }
   }
 })
@@ -2521,6 +2481,7 @@ ipcMain.on('set-position-browser-view', async (e, panelKey) => {
   })
 
   const winPos = win.getPosition()
+  // console.log(Date.now(),'set-position-browser-view', { x:  Math.round(pos.left + winPos[0]), y: Math.round(pos.top + winPos[1]) })
   panel.setBounds({ x:  Math.round(pos.left + winPos[0]), y: Math.round(pos.top + winPos[1]) })
 })
 
@@ -2657,7 +2618,7 @@ ipcMain.on('send-to-host', async (e, ...args)=>{
   // console.log(`send-to-host_${e.sender.id}`,await e.sender.getURL(), args[0])
   const hostCont = e.sender.hostWebContents2 || e.sender.hostWebContents
   if(!hostCont){
-    console.log('send-to-host',e.sender.id,await e.sender.getURL(),...args)
+    // console.log('send-to-host',e.sender.id,await e.sender.getURL(),...args)
     return
   }
   hostCont.send(`send-to-host_${e.sender.id}`, ...args)

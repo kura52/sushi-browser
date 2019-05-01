@@ -124,12 +124,17 @@ class Browser{
 
     this.onResize()
 
+    let prevMove = Date.now()
     ipcMain.on('move-window', browserWindowId => {
-      for(const browserPanel of Object.values(BrowserPanel.panelKeys)){
-        if(browserPanel.browserWindow && browserPanel.browserWindow.id == browserWindowId){
-          ipcMain.emit('set-position-browser-view', {sender: browserPanel.browserWindow.webContents}, browserPanel.panelKey)
+      const now = Date.now()
+      if(now - prevMove > 1){
+        for(const browserPanel of Object.values(BrowserPanel.panelKeys)){
+          if(browserPanel.browserWindow && browserPanel.browserWindow.id == browserWindowId){
+            ipcMain.emit('set-position-browser-view', {sender: browserPanel.browserWindow.webContents}, browserPanel.panelKey)
+          }
         }
       }
+      prevMove = now
     })
 
     ipcMain.on('state-change-window', async (browserWindowId, eventName) => {
@@ -183,7 +188,7 @@ class Browser{
     })
 
     ipcMain.on('fullscreen-change', async (e, enabled, delay) => {
-      console.log('fullscreen-change', e, enabled)
+      // console.log('fullscreen-change', e, enabled)
       const [_1, _2, browserPanel, browserView] = BrowserPanel.getBrowserPanelByTabId(e.sender.id)
       if(enabled && !browserPanel.browserWindow._fullscreen){
         browserPanel.cpWin.chromeNativeWindow.setParent(null)
@@ -280,6 +285,12 @@ class Browser{
       }
 
       const cont = webContents.fromId(activeInfo.tabId)
+
+      const [_1, _2, panel, _3] = BrowserPanel.getBrowserPanelByTabId(activeInfo.tabId)
+      // console.log(await bv.webContents.viewport())
+      const modify = cont.getURL() == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? 37 : 0
+      cont.setViewport({width:panel.bounds.width, height: panel.bounds.height - modify})
+
       const now = Date.now()
       const activedIds = []
       let shouldChange = true
@@ -333,6 +344,10 @@ class Browser{
 
     this.addListener('windows', 'onCreated', window => {
       console.log(9992,window)
+      if(this.popuped){
+        window.type = 'popup'
+        delete this.popuped
+      }
       this.windowCache[window.id] = window.type
     })
 
@@ -933,10 +948,9 @@ class PopupPanel{
       })
     })
 
-    await new Promise(r=>setTimeout(r,200))
+    await new Promise(r=>setTimeout(r,500))
 
     const chromeNativeWindow = (await winctl.FindWindows(win => {
-      // console.log(666,win.getTitle())
       return win.getTitle().includes('Sushi Browser Popup Prepare')
     }))[0]
 

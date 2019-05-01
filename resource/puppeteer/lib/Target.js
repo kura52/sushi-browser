@@ -38,10 +38,10 @@ class Target {
    * @return {!Promise<?Page>}
    */
   async page() {
-    if ((this._targetInfo.type === 'page' || this._targetInfo.type === 'background_page') && !this._pagePromise) {
+    // if ((this._targetInfo.type === 'page' || this._targetInfo.type === 'background_page') && !this._pagePromise) {
       this._pagePromise = this._sessionFactory()
           .then(client => Page.create(client, this, this._ignoreHTTPSErrors, this._defaultViewport, this._screenshotTaskQueue));
-    }
+    // }
     return this._pagePromise;
   }
 
