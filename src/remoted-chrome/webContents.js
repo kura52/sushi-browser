@@ -972,8 +972,18 @@ export default class webContents extends EventEmitter {
 
   async setViewport(viewport){
     const page = await this._getPage()
+
+    let width
     const _viewport = page.viewport()
-    if(!_viewport || _viewport.width != viewport.width || _viewport.height != viewport.height){
+    if(!_viewport){
+      const [_1, _2, panel, _3] = BrowserPanel.getBrowserPanelByTabId(this.id)
+      const dim = panel.cpWin.nativeWindow.dimensions()
+      width = dim.right - dim.left
+      if(width < 500) page.setViewport(viewport)
+      return
+    }
+
+    if(_viewport.width != viewport.width || _viewport.height != viewport.height){
       page.setViewport(viewport)
     }
   }

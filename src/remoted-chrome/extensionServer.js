@@ -1,6 +1,7 @@
 import mime from 'mime'
 const fs = require('fs')
 const http = require('http')
+const LRUCache = require('lru-cache')
 
 function sendFile(req, res, filePath, fileSize) {
   const mimeType = mime.getType(filePath)
@@ -39,6 +40,8 @@ function sendError(req, res, statusCode) {
   console.log(`ERROR ${statusCode}: ${req.method} ${req.url}`)
 }
 
+
+const cache = new LRUCache(1000)
 export default function createServer(port, key, listener){
   const server = http.createServer(async (req, res) => {
     const parsed = new URL(`http://localhost:${port}${req.url}`)
@@ -59,8 +62,12 @@ export default function createServer(port, key, listener){
     }
 
     if(data){
-      // console.log(555, data)
-      listener(JSON.parse(data))
+      let obj = cache.get(data)
+      if(!obj){
+        obj = JSON.parse(data)
+        cache.set(data, obj)
+      }
+      listener(obj)
       sendSuccess(res)
       // console.log(`http://localhost:${port}${req.url}`, filePath)
     }

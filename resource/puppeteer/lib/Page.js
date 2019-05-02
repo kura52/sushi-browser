@@ -44,15 +44,14 @@ class Page extends EventEmitter {
     await client.send('Page.enable');
     const {frameTree} = await client.send('Page.getFrameTree');
     const page = new Page(client, target, frameTree, ignoreHTTPSErrors, screenshotTaskQueue);
-
     await Promise.all([
       client.send('Target.setAutoAttach', {autoAttach: true, waitForDebuggerOnStart: false}),
       client.send('Page.setLifecycleEventsEnabled', { enabled: true }),
-      client.send('Network.enable', {}),
+      // client.send('Network.enable', {}),
       client.send('Runtime.enable', {}),
-      client.send('Security.enable', {}),
-      client.send('Performance.enable', {}),
-      client.send('Log.enable', {}),
+      // client.send('Security.enable', {}),
+      // client.send('Performance.enable', {}),
+      // client.send('Log.enable', {}),
     ]);
     if (ignoreHTTPSErrors)
       await client.send('Security.setOverrideCertificateErrors', {override: true});

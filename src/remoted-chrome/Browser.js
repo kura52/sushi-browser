@@ -5,7 +5,7 @@ import puppeteer from '../../resource/puppeteer'
 import extensionServer from './extensionServer'
 import emptyPort from './emptyPort'
 import winctl from '../../resource/winctl'
-import {app, BrowserWindow, ipcMain} from 'electron'
+import {app, BrowserWindow, ipcMain, powerMonitor} from 'electron'
 import PubSub from "../render/pubsub"
 import extInfos from '../extensionInfos'
 import backgroundPageModify from './backgroundPageModify'
@@ -84,6 +84,7 @@ class Browser{
 
     this._browser = await puppeteer.launch({
       ignoreDefaultArgs: true,
+      // ignoreHTTPSErrors: true,
       defaultViewport: null,
       executablePath,
       // executablePath: "C:\\Program Files (x86)\\Microsoft\\Edge Dev\\Application\\msedge.exe",
@@ -94,18 +95,23 @@ class Browser{
         '--metrics-recording-only',
         '--disable-infobars',
         // '--enable-prompt-on-repost',
-        // '--disable-breakpad',
+        '--disable-breakpad',
         // '--disable-logging',
         // '--silent-debugger-extension-api',
         // `--lang=en`,
+        // '--disable-gpu',
+        // '--disable-hang-monitor',
+        // '--disable-ipc-flooding-protection',
+        // '--test-type',
         '--disable-default-apps',
         // '--disable-dev-shm-usage',
-        '--disable-features=site-per-process',
+        '--disable-features=BlinkGenPropertyTrees',
+        // '--disable-features=site-per-process',
         `--user-data-dir=${this.userDataDir}`,
         `--load-extension=${path.resolve(__dirname, '../../resource/extension/default/1.0_0/').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')}`,
         'about:blank'
       ],
-      // pipe: true
+      pipe: true
     })
 
     this.listeners = {}
@@ -224,14 +230,19 @@ class Browser{
       e.sender.send('get-access-key-and-port-reply', [this.serverKey, this.port])
     })
 
-    ipcMain.on('reload-extension', ()=>this.reloadExtension())
-
     this.addExtensionEvents()
 
     evem.on('ipc.send', (channel, tabId, ...args)=>{
       // console.log(channel, tabId)
       ipcMain.emit(channel, {sender: Number.isInteger(tabId) ? new webContents(tabId): new BackgroundPage(tabId)}, ...args)
     })
+
+    // setInterval(()=>{
+    //   powerMonitor.querySystemIdleState(60, state => {
+    //     if(state == 'idle') this.reloadExtension()
+    //   })
+    // },30000)
+
   }
 
   static close(){
@@ -246,7 +257,12 @@ class Browser{
   }
 
   static async reloadExtension(){
-    await global.reloadTransport()
+    // this.bg._client.send('Page.disable')
+    // await this.bg._client.send('Page.enable')
+
+    this.bg._client.send('Runtime.disable')
+    await this.bg._client.send('Runtime.enable')
+
     await this.bg.reload()
     this.initExtensionEvent()
     this.onResize()
@@ -949,7 +965,7 @@ class PopupPanel{
       })
     })
 
-    await new Promise(r=>setTimeout(r,500))
+    await new Promise(r=>setTimeout(r,1000))
 
     const chromeNativeWindow = (await winctl.FindWindows(win => {
       return win.getTitle().includes('Sushi Browser Popup Prepare')

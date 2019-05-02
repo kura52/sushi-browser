@@ -81,12 +81,13 @@ class Connection extends EventEmitter {
     if (this._delay)
       await new Promise(f => setTimeout(f, this._delay));
     const subMessage = message.substr(127,25)
-    if(subMessage == 'Network.requestWillBeSent' ||
-      subMessage == 'Network.responseReceived\\' ||
-      subMessage == 'Network.loadingFinished\\"' ||
-      subMessage == 'Network.resourceChangedPr' ||
-      subMessage == 'Runtime.consoleAPICalled\\' ||
-    subMessage.startsWith('Network.dataReceived')) return
+    // if(subMessage == 'Network.requestWillBeSent' ||
+    //   subMessage == 'Network.responseReceived\\' ||
+    //   subMessage == 'Network.loadingFinished\\"' ||
+    //   subMessage == 'Network.resourceChangedPr' ||
+    //   subMessage == 'Runtime.consoleAPICalled\\' ||
+    // subMessage.startsWith('Network.dataReceived')) return
+    if(subMessage == 'Runtime.consoleAPICalled\\' ) return
     const object = JSON.parse(message);
     // console.log(object.method, object.params && object.params.message && JSON.parse(object.params.message));
     if (object.id) {

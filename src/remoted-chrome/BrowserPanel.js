@@ -213,7 +213,7 @@ export default class BrowserPanel {
             })
           })
           console.log(4343444, tmpWin.width, tmpWin.tabWidth, tmpWin.height, tmpWin.tabHeight)
-          BrowserPanel.topMargin = tmpWin.height - tmpWin.tabHeight - 8 - 78
+          BrowserPanel.topMargin = tmpWin.height - tmpWin.tabHeight - 8 //- 78
           BrowserPanel.sideMargin = (tmpWin.width - tmpWin.tabWidth) / 2
 
           let chromeNativeWindow = winctl.GetActiveWindow()
@@ -482,9 +482,6 @@ export default class BrowserPanel {
   }
 
   moveTopNativeWindow() {
-    console.log('moveTopNativeWindow',BrowserPanel.contextMenuShowing,
-      webContents.disableFocus,
-      this._bindWindow)
     if (BrowserPanel.contextMenuShowing ||
       webContents.disableFocus ||
       this._bindWindow) return

@@ -815,8 +815,8 @@ class BrowserNavbar extends Component{
       <div className="divider" />
 
 
-      {/*<NavbarMenuItem text={locale.translation("print").replace('…','')} icon='print' onClick={()=>this.getWebContents(this.props.tab).print()}/>*/}
-      <NavbarMenuItem text={locale.translation("print").replace('…','')} icon='print' onClick={()=>ipc.send('reload-extension')}/>
+      <NavbarMenuItem text={locale.translation("print").replace('…','')} icon='print' onClick={()=>this.getWebContents(this.props.tab).print()}/>
+      {/*<NavbarMenuItem text={locale.translation("print").replace('…','')} icon='print' onClick={()=>ipc.send('reload-extension')}/>*/}
       <NavbarMenuItem text={locale.translation("search")} icon='search' onClick={()=>ipc.emit('menu-or-key-events',null,'findOnPage',this.props.tab.wvId)}/>
       <NavbarMenuItem text={locale.translation("settings").replace('…','')} icon='settings' onClick={()=>this.onCommon("settings")}/>
       <NavbarMenuItem text={locale.translation("toggleDeveloperTools")} icon='bug' onClick={()=>ipc.emit('menu-or-key-events',null,'toggleDeveloperTools',this.props.tab.wvId)}/>
