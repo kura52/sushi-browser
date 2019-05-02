@@ -12,7 +12,6 @@ import {Browser} from './remoted-chrome/Browser'
 import {
   state,
   searchEngine,
-  favorite,
   visit,
   history,
   image,
@@ -28,6 +27,7 @@ import {
   token,
   crypto
 } from './databaseFork'
+import favorite from './remoted-chrome/favorite'
 import {settingDefault} from "../resource/defaultValue";
 const os = require('os')
 const passCrypto = require('./crypto')('sushi-browser-password-key')

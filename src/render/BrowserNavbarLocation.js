@@ -1,4 +1,4 @@
-import {favorite} from "./databaseRender";
+const favorite = require('electron').remote.require('./remoted-chrome/favorite')
 
 const React = require('react')
 const ReactDOM = require('react-dom');
@@ -431,9 +431,8 @@ export default class BrowserNavbarLocation extends Component {
         />
         {sharedState.showAddressBarBookmarks ? <a onClick={async e=>{
           const key = uuid.v4()
-          await favorite.insert({key, url: this.props.page.location, title: this.props.page.title, favicon: this.props.page.favicon,
-            is_file:true, created_at: Date.now(), updated_at: Date.now()})
-          await favorite.update({ key: 'root' }, { $push: { children: key }, $set:{updated_at: Date.now()} })
+          await favorite.create({parentId: 'root', url: this.props.page.location, title: this.props.page.title})
+
           const rect = e.target.getBoundingClientRect()
           const span = document.createElement('span')
           span.innerHTML = `<div class="ui bottom right inverted popup transition visible" style="position: fixed; z-index: 99999; width: 140px; left: ${rect.x - 114}px; top: ${rect.y + 12}px;">

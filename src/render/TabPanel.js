@@ -11,7 +11,8 @@ const uuid = require('node-uuid')
 const ReactDOM = require('react-dom')
 const ipc = require('electron').ipcRenderer
 const path = require('path');
-const {favicon,history,media,favorite,syncReplace,tabState} = require('./databaseRender')
+const {favicon,history,media,syncReplace,tabState} = require('./databaseRender')
+const favorite = require('electron').remote.require('./remoted-chrome/favorite')
 const db = require('./databaseRender')
 const Notification = require('./Notification')
 const InputableDialog = require('./InputableDialog')
@@ -1936,9 +1937,8 @@ export default class TabPanel extends Component {
       if (!this.mounted) return
       if (tab.wvId && id == tab.wvId) {
         ;(async ()=> {
-          const [key,url,title,favicon] = [uuid.v4(),tab.page.location,tab.page.title,tab.page.favicon]
-          await favorite.insert({key, url, title, favicon, is_file:true, created_at: Date.now(), updated_at: Date.now()})
-          await favorite.update({ key: 'root' }, { $push: { children: key }, $set:{updated_at: Date.now()} })
+          const [url,title,favicon] = [tab.page.location,tab.page.title,tab.page.favicon]
+          await favorite.create({parentId: 'root', url, title})
         })()
       }
     }
@@ -3913,20 +3913,17 @@ export default class TabPanel extends Component {
         }
         const key = uuid.v4()
         keys.push(key)
-        return {key, url:page.navUrl, title:page.title, favicon:page.favicon, is_file:true, created_at: Date.now(), updated_at: Date.now()}
+        return {url:page.navUrl, title:page.title}
       })
     ;(async ()=> {
       if(tabKey){
         const key = datas[0].key
-        await favorite.insert(datas)
-        await favorite.update({ key: 'root' }, { $push: { children: key }, $set:{updated_at: Date.now()} })
+        await favorite.create(datas)
       }
       else{
         const dirc = moment().format("YYYY/MM/DD HH:mm:ss")
-        const key = uuid.v4()
-        await favorite.insert(datas)
-        await favorite.insert({key, title:`${head} ${dirc}`, is_file:false, created_at: Date.now(), updated_at: Date.now(),children: keys})
-        await favorite.update({ key: 'root' }, { $push: { children: key }, $set:{updated_at: Date.now()} })
+        const folder = await favorite.create({title:`${head} ${dirc}`})
+        await favorite.create(datas, folder[0].id)
       }
     })()
   }

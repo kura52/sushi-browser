@@ -40,12 +40,24 @@ function sendError(req, res, statusCode) {
 }
 
 export default function createServer(port, key, listener){
-  const server = http.createServer((req, res) => {
+  const server = http.createServer(async (req, res) => {
     const parsed = new URL(`http://localhost:${port}${req.url}`)
     const _key = parsed.searchParams.get('key')
     if(key != _key || req.headers.host != `localhost:${port}`) return sendError(req, res, 403)
 
-    const data = parsed.searchParams.get('data')
+    let data
+    if(req.method == 'POST'){
+      data = ''
+      req.on('data', chunk=>{
+        data += chunk
+      })
+
+      await new Promise(resolve => req.on('end', resolve))
+    }
+    else{
+      data = parsed.searchParams.get('data')
+    }
+
     if(data){
       // console.log(555, data)
       listener(JSON.parse(data))

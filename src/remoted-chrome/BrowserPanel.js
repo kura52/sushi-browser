@@ -213,7 +213,7 @@ export default class BrowserPanel {
             })
           })
           console.log(4343444, tmpWin.width, tmpWin.tabWidth, tmpWin.height, tmpWin.tabHeight)
-          BrowserPanel.topMargin = tmpWin.height - tmpWin.tabHeight - 8 //- 78
+          BrowserPanel.topMargin = tmpWin.height - tmpWin.tabHeight - 8 - 78
           BrowserPanel.sideMargin = (tmpWin.width - tmpWin.tabWidth) / 2
 
           let chromeNativeWindow = winctl.GetActiveWindow()
@@ -456,9 +456,12 @@ export default class BrowserPanel {
     const tab = await this.getActiveTab()
     const modify = tab.url == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? 37 : 0
 
-    const cont = webContents.fromId(tab.id)
-    cont.setViewport({width:Math.round(bounds.width), height: Math.round(bounds.height - modify)})
-    this.bounds = bounds
+
+    if (bounds.width) {
+      const cont = webContents.fromId(tab.id)
+      cont.setViewport({width: Math.round(bounds.width), height: Math.round(bounds.height - modify)})
+      this.bounds = bounds
+    }
 
     if (bounds.width) {
       this.cpWin.nativeWindow.move(bounds.x, bounds.y, bounds.width, bounds.height)
@@ -479,6 +482,9 @@ export default class BrowserPanel {
   }
 
   moveTopNativeWindow() {
+    console.log('moveTopNativeWindow',BrowserPanel.contextMenuShowing,
+      webContents.disableFocus,
+      this._bindWindow)
     if (BrowserPanel.contextMenuShowing ||
       webContents.disableFocus ||
       this._bindWindow) return

@@ -84,9 +84,11 @@ class Connection extends EventEmitter {
     if(subMessage == 'Network.requestWillBeSent' ||
       subMessage == 'Network.responseReceived\\' ||
       subMessage == 'Network.loadingFinished\\"' ||
+      subMessage == 'Network.resourceChangedPr' ||
+      subMessage == 'Runtime.consoleAPICalled\\' ||
     subMessage.startsWith('Network.dataReceived')) return
-    debugProtocol('◀ RECV ' + message);
     const object = JSON.parse(message);
+    // console.log(object.method, object.params && object.params.message && JSON.parse(object.params.message));
     if (object.id) {
       const callback = this._callbacks.get(object.id);
       // Callbacks could be all rejected if someone has called `.dispose()`.

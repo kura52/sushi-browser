@@ -1063,7 +1063,7 @@ export default class SplitWindows extends Component{
 
   parseRestoreDate(node,obj,force=false){
     if(node.l.tabs) {
-      obj.l = [node.l.key,force ? node.l.tabs.map(t=>{t.forceKeep = true; return t}) : node.l.tabs]
+      obj.l = [getUuid(),force ? node.l.tabs.map(t=>{t.forceKeep = true; return t}) : node.l.tabs]
     }
     else{
       obj.l = {}
@@ -1071,7 +1071,7 @@ export default class SplitWindows extends Component{
     }
     if(!node.r){}
     else if (node.r.tabs) {
-      obj.r = [node.r.key,force ? node.r.tabs.map(t=>{t.forceKeep = true; return t}) : node.r.tabs]
+      obj.r = [getUuid(),force ? node.r.tabs.map(t=>{t.forceKeep = true; return t}) : node.r.tabs]
     }
     else{
       obj.r = {}
@@ -1081,7 +1081,7 @@ export default class SplitWindows extends Component{
     obj.dirc = node.dirc
     obj.size = node.size
     obj.pd = node.pd
-    obj.key = node.key
+    obj.key = getUuid()
     obj.toggleNav = node.toggleNav
 
     return obj

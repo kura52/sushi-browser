@@ -94,12 +94,12 @@ class Browser{
         '--metrics-recording-only',
         '--disable-infobars',
         // '--enable-prompt-on-repost',
-        '--disable-breakpad',
-        '--disable-logging',
+        // '--disable-breakpad',
+        // '--disable-logging',
         // '--silent-debugger-extension-api',
         // `--lang=en`,
         '--disable-default-apps',
-        '--disable-dev-shm-usage',
+        // '--disable-dev-shm-usage',
         '--disable-features=site-per-process',
         `--user-data-dir=${this.userDataDir}`,
         `--load-extension=${path.resolve(__dirname, '../../resource/extension/default/1.0_0/').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')}`,
@@ -111,6 +111,8 @@ class Browser{
     this.listeners = {}
     this._pagePromises = {}
     this.disableOnActivated = new Set()
+    this.windowCache = {}
+    this.popUpCache = {}
 
     await this.initBgPage()
 
@@ -120,9 +122,10 @@ class Browser{
 
     await this.backGroundPageObserve()
 
-    this.startObserve()
+    // this.startObserve()
 
     this.onResize()
+    this.onFocusChanged()
 
     let prevMove = Date.now()
     ipcMain.on('move-window', browserWindowId => {
@@ -221,164 +224,9 @@ class Browser{
       e.sender.send('get-access-key-and-port-reply', [this.serverKey, this.port])
     })
 
-    this.addListener('webNavigation', 'onCompleted', details=>{
-      evem.emit(`webNavigation-onCompleted_${details.tabId}`, details.frameId)
-    })
+    ipcMain.on('reload-extension', ()=>this.reloadExtension())
 
-    this.addListener('webNavigation', 'onCommitted', details=>{
-      evem.emit(`webNavigation-onCommitted_${details.tabId}`, details)
-    }, details => details.transitionQualifiers.find(x=>x.endsWith('_redirect')))
-
-    this.addListener('webNavigation', 'onErrorOccurred', details=>{
-      // console.log(`webNavigation-onErrorOccurred_${details.tabId}`, details)
-    })
-
-    this.windowCache = {}
-    this.popUpCache = {}
-    this.addListener('tabs', 'onCreated', tab=>{
-      console.log('tab', 'created', tab.url)
-      if(webContents.webContentsMap && webContents.webContentsMap.has(tab.id)) return
-      if(tab.url == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/popup_prepare.html'){
-        PopupPanel.tabId = tab.id
-        return
-      }
-      if(this.windowCache[tab.windowId] == 'popup'){
-        this.popUpCache[tab.id] = true
-        return
-      }
-      const cont = new webContents(tab.id)
-      BrowserView.newTab(cont, tab)
-    })
-
-    this.addListener('tabs', 'onMoved', (tabId, {windowId, fromIndex, toIndex})=>{
-      if(PopupPanel.tabId == tabId || this.popUpCache[tabId]) return
-      // const cont = new webContents(tabId)
-      // BrowserView.movedTab(cont, windowId, fromIndex, toIndex)
-      BrowserPanel.MovedTabs(tabId, {windowId, fromIndex, toIndex})
-    })
-
-    this.addListener('tabs', 'onAttached', (tabId, {newWindowId, newPosition})=>{
-      if(PopupPanel.tabId == tabId || this.popUpCache[tabId]) return
-      // const cont = new webContents(tabId)
-      // BrowserView.movedTab(cont, newWindowId, null, newPosition)
-      // const [panelKey, tabKey, panel, bv] = BrowserPanel.getBrowserPanelByTabId(tabId)
-      // BrowserPanel.moveTabs([tabId], panelKey, {index: newPosition, tabKey}, void 0, false)
-      BrowserPanel.MovedTabs(tabId, {windowId: newWindowId, fromIndex: -1, toIndex: newPosition})
-    })
-
-    this.addListener('tabs', 'onUpdated', (tabId, changeInfo, tab)=>{
-      if(PopupPanel.tabId == tabId || this.popUpCache[tabId]) return
-
-      evem.queueEmit(`tabs-onUpdated_${tabId}`, changeInfo)
-      const cont = webContents.fromId(tabId)
-      if(changeInfo.url){
-        cont.emitAndSend('did-navigate', {sender: this} ,changeInfo.url)
-        changeInfo.url = void 0
-      }
-      if(cont && cont.hostWebContents2) cont.hostWebContents2.send('chrome-tabs-event',{tabId, changeInfo}, 'updated')
-    })
-
-    this.addListener('tabs', 'onActivated', (activeInfo)=>{
-      if(PopupPanel.tabId == activeInfo.tabId || this.popUpCache[activeInfo.tabId]) return
-      if (this.disableOnActivated.size && this.disableOnActivated.has(BrowserPanel.getBrowserPanelByTabId(activeInfo.tabId)[2].browserWindow.id)) {
-        return
-      }
-
-      const cont = webContents.fromId(activeInfo.tabId)
-
-      const [_1, _2, panel, _3] = BrowserPanel.getBrowserPanelByTabId(activeInfo.tabId)
-      // console.log(await bv.webContents.viewport())
-      const modify = cont.getURL() == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? 37 : 0
-      cont.setViewport({width:panel.bounds.width, height: panel.bounds.height - modify})
-
-      const now = Date.now()
-      const activedIds = []
-      let shouldChange = true
-
-      for(const x of webContents.activedIds){
-        if(now - x[1] < 120){
-          if(shouldChange && activeInfo.tabId == x[0])
-            shouldChange = false
-          else
-            activedIds.push(x)
-        }
-      }
-      webContents.activedIds = activedIds
-
-      // console.log(activeInfo, cont.hostWebContents2)
-      if(shouldChange && cont && cont.hostWebContents2) cont.hostWebContents2.send('chrome-tabs-event',{tabId: activeInfo.tabId, changeInfo: {active: true}}, 'updated')
-    })
-
-    this.addListener('tabs', 'onRemoved', removedTabId => {
-      if(PopupPanel.tabId == removedTabId || this.popUpCache[removedTabId]) return
-
-      evem.emit(`close-tab_${removedTabId}`)
-      const cont = webContents.fromId(removedTabId)
-      if(cont && cont.hostWebContents2) cont.hostWebContents2.send('chrome-tabs-event',{tabId: removedTabId}, 'removed')
-
-      console.log(99977,removedTabId)
-
-      for(const [panelKey, browserPanel] of Object.entries(BrowserPanel.panelKeys)){
-        for(const [tabKey, [tabId, browserView]] of Object.entries(browserPanel.tabKeys)){
-          if(tabId != removedTabId) continue
-          if(!browserView.isDestroyed()) browserView.destroy()
-          if(!Object.keys(browserPanel.tabKeys).length){
-            delete BrowserPanel.panelKeys[panelKey]
-            browserPanel.cpWin.nativeWindow.destroyWindow()
-          }
-          return
-        }
-      }
-    })
-
-    const {history} = require('../databaseFork')
-    this.addListener('history', 'onVisited', async (h)=>{
-      const item =  await history.findOne({location: h.url})
-      if(item){
-        await history.update({_id:item._id}, {$set: {location:h.url, updated_at: h.lastVisitTime, count: h.visitCount}})
-      }
-      else{
-        await history.insert({location:h.url ,title: h.title || h.url, created_at: h.lastVisitTime ,updated_at: h.lastVisitTime,count: h.visitCount})
-      }
-    })
-
-    this.addListener('windows', 'onCreated', window => {
-      console.log(9992,window)
-      if(this.popuped){
-        window.type = 'popup'
-        delete this.popuped
-      }
-      this.windowCache[window.id] = window.type
-    })
-
-    this.addListener('windows', 'onRemoved', removedWinId => {
-      if(PopupPanel.instance.id == removedWinId){
-        Browser.initPopupPanel()
-        return
-      }
-      for(const [panelKey, browserPanel] of Object.entries(BrowserPanel.panelKeys)){
-        if(browserPanel.windowId == removedWinId){
-          browserPanel.destroy()
-          return
-        }
-      }
-    })
-
-    this.addListener('management', 'onInstalled', details => {
-      this.updateExtensionInfo(details.id)
-    })
-
-    this.addListener('management', 'onUninstalled', id => {
-      this.disableExtension(id)
-    })
-
-    this.addListener('management', 'onEnabled', info => {
-      this.updateExtensionInfo(info.id)
-    })
-
-    this.addListener('management', 'onDisabled', info => {
-      this.disableExtension(info.id)
-    })
+    this.addExtensionEvents()
 
     evem.on('ipc.send', (channel, tabId, ...args)=>{
       // console.log(channel, tabId)
@@ -395,6 +243,14 @@ class Browser{
     require('./browser/browser-action-main')
     require('./browser/commands-main')
     require('./browser/context-menus-main')
+  }
+
+  static async reloadExtension(){
+    await global.reloadTransport()
+    await this.bg.reload()
+    this.initExtensionEvent()
+    this.onResize()
+    this.addExtensionEvents()
   }
 
   static startObserve(){
@@ -522,52 +378,12 @@ class Browser{
 
     }, 'windows', 'resize', this.serverKey, this.port)
 
-    // evem.on('windows.resize', window => {
-    //   BrowserPanel.topMargin = window.topMargin
-    //   BrowserPanel.sideMargin = window.sideMargin
-    // })
+  }
 
-    // evem.on('windows.resize', window => {
-    //   const panel = BrowserPanel.getBrowserPanelByWindowId(window.id)
-    //   console.log({
-    //     x: window.x,
-    //     y: window.y,
-    //     width: window.width,
-    //     height: window.height,
-    //   })
-    //   const bounds = panel.browserWindow.getBounds()
-    //   panel.browserWindow.setBounds({
-    //     x: bounds.x + window.x,
-    //     y: bounds.y + window.y,
-    //     width: bounds.width + window.width,
-    //     height: bounds.height + window.height
-    //   })
-    // })
-    //
+  static onFocusChanged(){
     evem.on('windows.focusChanged', async windowId => {
       console.log('windows.focusChanged', windowId)
       if(windowId == -1) return
-
-      // if(windowId == -1){
-      //   console.log('onFocusChanged', windowId, new Date().getTime())
-      //   const focusedWinId = (await exec(`wmctrl -v -a :ACTIVE: 2>&1`)).stdout.match(/: *(0x[0-9a-f]+)/)[1]
-      //   const allBw = BrowserWindow.getAllWindows()
-      //   if(!allBw.some(bw => bw.isFocused())){
-      //     for(const bw of allBw){
-      //       if(bw.isAlwaysOnTop()){
-      //         console.log('bw.setAlwaysOnTop(false)')
-      //         console.log('bw.focus()')
-      //         bw.tmpFocus = ()=> exec(`wmctrl -vi -a ${focusedWinId}`)
-      //         bw.setAlwaysOnTop(false)
-      //         setTimeout(()=>bw.focus(),0)
-      //
-      //       }
-      //     }
-      //   }
-      //
-      //   return
-      // }
-
       for(const browserPanel of Object.values(BrowserPanel.panelKeys)){
         if(browserPanel.windowId == windowId){
           for(const browserPanel2 of Object.values(BrowserPanel.panelKeys)){
@@ -620,43 +436,7 @@ class Browser{
       }
     }
 
-    this.bg.evaluate((serverKey, port) => {
-      window.ipcRenderer = {
-        port,
-        serverKey,
-        events: window.ipcRenderer ? window.ipcRenderer.events : {},
-        send(channel, ...args) {
-          const xhr = new XMLHttpRequest();
-          xhr.open("GET", `http://localhost:${this.port}?key=${this.serverKey}&data=${encodeURIComponent(JSON.stringify({
-            api: 'ipc',
-            method: 'send',
-            result: [channel, chrome.runtime.id, ...args]
-          }))}`);
-          xhr.send();
-        },
-        on(eventName, listener) {
-          this.events[eventName] = listener
-        },
-        once(eventName, listener) {
-          this.events[eventName] = (...args) => {
-            listener(...args)
-            delete this.events[eventName]
-          }
-        },
-      }
-      chrome.runtime.onMessage.addListener((message, sender) => {
-        if (!message.ipcToBg) return
-        const xhr = new XMLHttpRequest();
-        xhr.open("GET", `http://localhost:${window.ipcRenderer.port}?key=${window.ipcRenderer.serverKey}&data=${encodeURIComponent(JSON.stringify({
-          api: 'ipc',
-          method: 'send',
-          result: [message.channel, sender.tab.id, ...message.args]
-        }))}`);
-        xhr.send();
-      })
-
-
-    }, this.serverKey, this.port)
+    this.initExtensionEvent()
   }
 
   static async initTargetCreated() {
@@ -733,12 +513,13 @@ class Browser{
 
   static addListener(api, method, listener, validateFunc, modifyPromisedFunc){
     const key = `${api}.${method}`
-    evem.on(key, listener)
 
     if(this.listeners[key]){
-      this.listeners[key].push(listener)
-      return
+      const prevListener = this.listeners[key][0]
+      evem.off(key, prevListener)
     }
+
+    evem.on(key, listener)
     this.listeners[key] = [listener]
 
     this.bg.evaluate((api, method, serverKey, port, validateFunc, modifyPromisedFunc) => {
@@ -753,11 +534,231 @@ class Browser{
         if(!validateFunc || validateFunc(...result)){
           if(modifyPromisedFunc)  result = await modifyPromisedFunc(...result)
           const xhr = new XMLHttpRequest();
-          xhr.open("GET", `http://localhost:${port}?key=${serverKey}&data=${encodeURIComponent(JSON.stringify({api, method, result}))}`);
-          xhr.send();
+          const data = JSON.stringify({api, method, result})
+          if(data.length < 1000){
+            xhr.open("GET", `http://localhost:${port}?key=${serverKey}&data=${encodeURIComponent(data)}`);
+            xhr.send();
+          }
+          else{
+            xhr.open("POST", `http://localhost:${port}?key=${serverKey}`)
+            xhr.send(data)
+          }
         }
       })
     }, api, method, this.serverKey, this.port, validateFunc, modifyPromisedFunc && `return ${modifyPromisedFunc.toString()}`)
+  }
+
+  static initExtensionEvent(){
+
+    this.bg.evaluate((serverKey, port) => {
+      window.ipcRenderer = {
+        port,
+        serverKey,
+        events: window.ipcRenderer ? window.ipcRenderer.events : {},
+        send(channel, ...args) {
+          const xhr = new XMLHttpRequest();
+          const data = JSON.stringify({
+            api: 'ipc',
+            method: 'send',
+            result: [channel, chrome.runtime.id, ...args]
+          })
+
+          if(data.length < 1000) {
+            xhr.open("GET", `http://localhost:${this.port}?key=${this.serverKey}&data=${encodeURIComponent(data)}`)
+            xhr.send()
+          }
+          else{
+            xhr.open("POST", `http://localhost:${this.port}?key=${this.serverKey}`)
+            xhr.send(data)
+          }
+        },
+        on(eventName, listener) {
+          this.events[eventName] = listener
+        },
+        once(eventName, listener) {
+          this.events[eventName] = (...args) => {
+            listener(...args)
+            delete this.events[eventName]
+          }
+        },
+      }
+      chrome.runtime.onMessage.addListener((message, sender) => {
+        if (!message.ipcToBg) return
+        const xhr = new XMLHttpRequest();
+        const data = JSON.stringify({
+          api: 'ipc',
+          method: 'send',
+          result: [message.channel, sender.tab.id, ...message.args]
+        })
+        if(data.length < 1000){
+          xhr.open("GET", `http://localhost:${window.ipcRenderer.port}?key=${window.ipcRenderer.serverKey}&data=${encodeURIComponent(data)}`);
+          xhr.send()
+        }
+        else{
+          xhr.open("POST", `http://localhost:${window.ipcRenderer.port}?key=${window.ipcRenderer.serverKey}`);
+          xhr.send(data)
+        }
+      })
+    }, this.serverKey, this.port)
+  }
+
+  static addExtensionEvents(){
+    this.addListener('webNavigation', 'onCompleted', details=>{
+      evem.emit(`webNavigation-onCompleted_${details.tabId}`, details.frameId)
+    })
+
+    this.addListener('webNavigation', 'onCommitted', details=>{
+      evem.emit(`webNavigation-onCommitted_${details.tabId}`, details)
+    }, details => details.transitionQualifiers.find(x=>x.endsWith('_redirect')))
+
+    this.addListener('webNavigation', 'onErrorOccurred', details=>{
+      // console.log(`webNavigation-onErrorOccurred_${details.tabId}`, details)
+    })
+
+    this.addListener('tabs', 'onCreated', tab=>{
+      console.log('tab', 'created', tab.url)
+      if(webContents.webContentsMap && webContents.webContentsMap.has(tab.id)) return
+      if(tab.url == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/popup_prepare.html'){
+        PopupPanel.tabId = tab.id
+        return
+      }
+      if(this.windowCache[tab.windowId] == 'popup'){
+        this.popUpCache[tab.id] = true
+        return
+      }
+      const cont = new webContents(tab.id)
+      BrowserView.newTab(cont, tab)
+    })
+
+    this.addListener('tabs', 'onMoved', (tabId, {windowId, fromIndex, toIndex})=>{
+      if(PopupPanel.tabId == tabId || this.popUpCache[tabId]) return
+      // const cont = new webContents(tabId)
+      // BrowserView.movedTab(cont, windowId, fromIndex, toIndex)
+      BrowserPanel.MovedTabs(tabId, {windowId, fromIndex, toIndex})
+    })
+
+    this.addListener('tabs', 'onAttached', (tabId, {newWindowId, newPosition})=>{
+      if(PopupPanel.tabId == tabId || this.popUpCache[tabId]) return
+      // const cont = new webContents(tabId)
+      // BrowserView.movedTab(cont, newWindowId, null, newPosition)
+      // const [panelKey, tabKey, panel, bv] = BrowserPanel.getBrowserPanelByTabId(tabId)
+      // BrowserPanel.moveTabs([tabId], panelKey, {index: newPosition, tabKey}, void 0, false)
+      BrowserPanel.MovedTabs(tabId, {windowId: newWindowId, fromIndex: -1, toIndex: newPosition})
+    })
+
+    this.addListener('tabs', 'onUpdated', (tabId, changeInfo, tab)=>{
+      if(PopupPanel.tabId == tabId || this.popUpCache[tabId]) return
+
+      evem.queueEmit(`tabs-onUpdated_${tabId}`, changeInfo)
+      const cont = webContents.fromId(tabId)
+      if(changeInfo.url){
+        cont.emitAndSend('did-navigate', {sender: this} ,changeInfo.url)
+        changeInfo.url = void 0
+      }
+      if(cont && cont.hostWebContents2) cont.hostWebContents2.send('chrome-tabs-event',{tabId, changeInfo}, 'updated')
+    })
+
+    this.addListener('tabs', 'onActivated', (activeInfo)=>{
+      if(PopupPanel.tabId == activeInfo.tabId || this.popUpCache[activeInfo.tabId]) return
+      if (this.disableOnActivated.size && this.disableOnActivated.has(BrowserPanel.getBrowserPanelByTabId(activeInfo.tabId)[2].browserWindow.id)) {
+        return
+      }
+
+      const cont = webContents.fromId(activeInfo.tabId)
+
+      const [_1, _2, panel, _3] = BrowserPanel.getBrowserPanelByTabId(activeInfo.tabId)
+      // console.log(await bv.webContents.viewport())
+      const modify = cont.getURL() == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? 37 : 0
+      if(panel && panel.bounds) cont.setViewport({width:panel.bounds.width, height: panel.bounds.height - modify})
+
+      const now = Date.now()
+      const activedIds = []
+      let shouldChange = true
+
+      for(const x of webContents.activedIds){
+        if(now - x[1] < 120){
+          if(shouldChange && activeInfo.tabId == x[0])
+            shouldChange = false
+          else
+            activedIds.push(x)
+        }
+      }
+      webContents.activedIds = activedIds
+
+      // console.log(activeInfo, cont.hostWebContents2)
+      if(shouldChange && cont && cont.hostWebContents2) cont.hostWebContents2.send('chrome-tabs-event',{tabId: activeInfo.tabId, changeInfo: {active: true}}, 'updated')
+    })
+
+    this.addListener('tabs', 'onRemoved', removedTabId => {
+      if(PopupPanel.tabId == removedTabId || this.popUpCache[removedTabId]) return
+
+      evem.emit(`close-tab_${removedTabId}`)
+      const cont = webContents.fromId(removedTabId)
+      if(cont && cont.hostWebContents2) cont.hostWebContents2.send('chrome-tabs-event',{tabId: removedTabId}, 'removed')
+
+      console.log(99977,removedTabId)
+
+      for(const [panelKey, browserPanel] of Object.entries(BrowserPanel.panelKeys)){
+        for(const [tabKey, [tabId, browserView]] of Object.entries(browserPanel.tabKeys)){
+          if(tabId != removedTabId) continue
+          if(!browserView.isDestroyed()) browserView.destroy()
+          if(!Object.keys(browserPanel.tabKeys).length){
+            delete BrowserPanel.panelKeys[panelKey]
+            browserPanel.cpWin.nativeWindow.destroyWindow()
+          }
+          return
+        }
+      }
+    })
+
+    const {history} = require('../databaseFork')
+    this.addListener('history', 'onVisited', async (h)=>{
+      const item =  await history.findOne({location: h.url})
+      if(item){
+        await history.update({_id:item._id}, {$set: {location:h.url, updated_at: h.lastVisitTime, count: h.visitCount}})
+      }
+      else{
+        await history.insert({location:h.url ,title: h.title || h.url, created_at: h.lastVisitTime ,updated_at: h.lastVisitTime,count: h.visitCount})
+      }
+    })
+
+    this.addListener('windows', 'onCreated', window => {
+      console.log(9992,window)
+      if(this.popuped){
+        window.type = 'popup'
+        delete this.popuped
+      }
+      this.windowCache[window.id] = window.type
+    })
+
+    this.addListener('windows', 'onRemoved', removedWinId => {
+      if(PopupPanel.instance.id == removedWinId){
+        Browser.initPopupPanel()
+        return
+      }
+      for(const [panelKey, browserPanel] of Object.entries(BrowserPanel.panelKeys)){
+        if(browserPanel.windowId == removedWinId){
+          browserPanel.destroy()
+          return
+        }
+      }
+    })
+
+    this.addListener('management', 'onInstalled', details => {
+      this.updateExtensionInfo(details.id)
+    })
+
+    this.addListener('management', 'onUninstalled', id => {
+      this.disableExtension(id)
+    })
+
+    this.addListener('management', 'onEnabled', info => {
+      this.updateExtensionInfo(info.id)
+    })
+
+    this.addListener('management', 'onDisabled', info => {
+      this.disableExtension(info.id)
+    })
   }
 
   static _getExtensionInfo(e){
@@ -996,6 +997,12 @@ class PopupPanel{
       this.nativeWindow.showWindow(9)
       this.minimized = false
     }
+
+    if (bounds.width) {
+      const pagePromise = Browser._pagePromises[PopupPanel.tabId]
+      pagePromise.then(page=>page.setViewport({width: Math.round(bounds.width), height: Math.round(bounds.height)}))
+    }
+
     if (bounds.width) {
       this.nativeWindow.move(bounds.x, bounds.y, bounds.width, bounds.height)
       this.chromeNativeWindow.move(...this.getChromeWindowBoundArray(bounds.width, bounds.height))
@@ -1078,10 +1085,6 @@ class BackgroundPage{
   }
 }
 
-class Bookmarks{
-
-}
-
 function removeBom(x){
   return x.charCodeAt(0) === 0xFEFF ? x.slice(1) : x
 }
@@ -1091,6 +1094,5 @@ export default {
   BrowserPanel,
   BrowserView,
   webContents,
-  PopupPanel,
-  Bookmarks: new Bookmarks()
+  PopupPanel
 }

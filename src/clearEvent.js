@@ -1,8 +1,9 @@
 import {app,ipcMain,session} from 'electron'
 import {
-  favorite, image, favicon, tabState, history, visit, savedState, download, downloader, state, syncReplace,
+  image, favicon, tabState, history, visit, savedState, download, downloader, state, syncReplace,
   note, automation, automationOrder, windowState, searchEngine, token
 } from './databaseFork'
+import favorite from './remoted-chrome/favorite'
 
 import path from 'path'
 import fs from 'fs'
@@ -146,9 +147,7 @@ const m = {
   },
 
   async clearFavorite(ses,_,opt2){
-    await favorite.remove(opt2||{}, { multi: true })
-    if(!(await favorite.findOne({_id:"zplOMCoNb1BzCt15"})))
-      await favorite.insert({"is_file":false,"title":"root","updated_at":1497713000000,"children":[],"key":"root","_id":"zplOMCoNb1BzCt15"})
+    await favorite.removeAll()
 
     await savedState.remove(opt2 ? {user: true, created_at: opt2.updated_at} : {user: true}, { multi: true })
   }

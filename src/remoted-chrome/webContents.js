@@ -644,7 +644,10 @@ export default class webContents extends EventEmitter {
           chrome.tabs.get(tabId,tab => resolve(tab.active))
         })
       },this.id)
-      if(!active) callback(null)
+      if(!active){
+        callback(null)
+        return
+      }
     }
 
     const start = Date.now()
@@ -970,7 +973,7 @@ export default class webContents extends EventEmitter {
   async setViewport(viewport){
     const page = await this._getPage()
     const _viewport = page.viewport()
-    if(_viewport.width != viewport.width || _viewport.height != viewport.height){
+    if(!_viewport || _viewport.width != viewport.width || _viewport.height != viewport.height){
       page.setViewport(viewport)
     }
   }

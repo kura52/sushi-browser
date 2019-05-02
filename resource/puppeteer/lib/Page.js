@@ -134,14 +134,14 @@ class Page extends EventEmitter {
 
     client.on('Page.domContentEventFired', event => this.emit(Page.Events.DOMContentLoaded));
     client.on('Page.loadEventFired', event => this.emit(Page.Events.Load));
-    client.on('Runtime.consoleAPICalled', event => this._onConsoleAPI(event));
+    // client.on('Runtime.consoleAPICalled', event => this._onConsoleAPI(event));
     client.on('Runtime.bindingCalled', event => this._onBindingCalled(event));
     client.on('Page.javascriptDialogOpening', event => this._onDialog(event));
     client.on('Runtime.exceptionThrown', exception => this._handleException(exception.exceptionDetails));
     client.on('Security.certificateError', event => this._onCertificateError(event));
     client.on('Inspector.targetCrashed', event => this._onTargetCrashed());
-    client.on('Performance.metrics', event => this._emitMetrics(event));
-    client.on('Log.entryAdded', event => this._onLogEntryAdded(event));
+    // client.on('Performance.metrics', event => this._emitMetrics(event));
+    // client.on('Log.entryAdded', event => this._onLogEntryAdded(event));
     this._target._isClosedPromise.then(() => {
       this.emit(Page.Events.Close);
       this._closed = true;

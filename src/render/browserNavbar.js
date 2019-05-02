@@ -10,7 +10,7 @@ const {Menu, webContents} = remote
 // const {searchHistory} = require('./databaseRender')
 const ipc = require('electron').ipcRenderer
 import MenuOperation from './MenuOperation'
-import {favorite} from './databaseRender'
+const favorite = require('electron').remote.require('./remoted-chrome/favorite')
 const browserActionMap = require('./browserActionDatas')
 const BrowserActionMenu = require('./BrowserActionMenu')
 const VpnList = require('./VpnList')
@@ -443,12 +443,9 @@ class BrowserNavbar extends Component{
     // webContents.getAllWebContents().forEach(x=>{console.log(x.id,x.hostWebContents2 && x.hostWebContents2.id)})
   }
 
-  onAddFavorite(url,title,favicon){
-    ;(async ()=> {
-      const key = uuid.v4()
-      await favorite.insert({key, url, title, favicon, is_file:true, created_at: Date.now(), updated_at: Date.now()})
-      await favorite.update({ key: 'root' }, { $push: { children: key }, $set:{updated_at: Date.now()} })
-    })()
+  async onAddFavorite(url,title,favicon){
+    const key = uuid.v4()
+    await favorite.create({url, title})
   }
 
   onMediaDownload(url,fname,audio,needInput,convert){
@@ -818,7 +815,8 @@ class BrowserNavbar extends Component{
       <div className="divider" />
 
 
-      <NavbarMenuItem text={locale.translation("print").replace('…','')} icon='print' onClick={()=>this.getWebContents(this.props.tab).print()}/>
+      {/*<NavbarMenuItem text={locale.translation("print").replace('…','')} icon='print' onClick={()=>this.getWebContents(this.props.tab).print()}/>*/}
+      <NavbarMenuItem text={locale.translation("print").replace('…','')} icon='print' onClick={()=>ipc.send('reload-extension')}/>
       <NavbarMenuItem text={locale.translation("search")} icon='search' onClick={()=>ipc.emit('menu-or-key-events',null,'findOnPage',this.props.tab.wvId)}/>
       <NavbarMenuItem text={locale.translation("settings").replace('…','')} icon='settings' onClick={()=>this.onCommon("settings")}/>
       <NavbarMenuItem text={locale.translation("toggleDeveloperTools")} icon='bug' onClick={()=>ipc.emit('menu-or-key-events',null,'toggleDeveloperTools',this.props.tab.wvId)}/>

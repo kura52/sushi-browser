@@ -1,5 +1,6 @@
 import {ipcMain, app, dialog, BrowserWindow, shell, session, clipboard, nativeImage, Menu, screen} from 'electron'
 import {Browser, BrowserPanel, BrowserView, webContents} from './remoted-chrome/Browser'
+import favorite from './remoted-chrome/favorite'
 const BrowserWindowPlus = require('./BrowserWindowPlus')
 import fs from 'fs-extra'
 import sh from 'shelljs'
@@ -12,7 +13,7 @@ import robot from 'robotjs'
 
 const os = require('os')
 const seq = require('./sequence')
-const {state,favorite,tabState,visit,savedState,automation,automationOrder,note,inputHistory} = require('./databaseFork')
+const {state,tabState,visit,savedState,automation,automationOrder,note,inputHistory} = require('./databaseFork')
 const db = require('./databaseFork')
 const FfmpegWrapper = require('./FfmpegWrapper')
 const defaultConf = require('./defaultConf')
@@ -191,18 +192,23 @@ ipcMain.on('show-dialog-exploler',(event,key,info,tabId)=>{
 })
 
 
-ipcMain.on('get-favorites',(event,key,dbKey)=>{
-  favorite.findOne({key: dbKey}).then(ret=>{
-    favorite.find({key:{$in: ret.children}}).then(ret2=>{
-      event.sender.send(`get-favorites-reply_${key}`,ret2)
-    })
-  })
-})
+// ipcMain.on('get-favorites',(event,key,dbKey)=>{
+//   favorite.findOne({key: dbKey}).then(ret=>{
+//     favorite.find({key:{$in: ret.children}}).then(ret2=>{
+//       event.sender.send(`get-favorites-reply_${key}`,ret2)
+//     })
+//   })
+// })
 
 
 ipcMain.on('insert-favorite',(event,key,writePath,data,isNote)=>{
   console.log("insert",writePath,data)
-  const db = isNote ? note : favorite
+
+  if(!isNote){
+    return favorite.insert(key,writePath,data).then(()=> event.sender.send(`insert-favorite-reply_${key}`,key))
+  }
+
+  const db = note
   db.insert({key,...data,created_at: Date.now(), updated_at: Date.now()}).then(ret=>{
     db.update({ key: writePath }, { $push: { children: key }, $set:{updated_at: Date.now()} }).then(ret2=>{
       if(ret2 == 0 && writePath == 'top-page'){
@@ -221,7 +227,12 @@ ipcMain.on('insert-favorite',(event,key,writePath,data,isNote)=>{
 
 ipcMain.on('insert-favorite2',(event,key,writePath,dbKey,data,isNote)=>{
   console.log("insert",writePath,data)
-  const db = isNote ? note : favorite
+
+  if(!isNote){
+    return favorite.insert(key,writePath,data,dbKey).then(()=> event.sender.send(`insert-favorite-reply_${key}`,key))
+  }
+
+  const db = note
   db.findOne({key:writePath}).then(rec=>{
     const ind = rec.children.findIndex(x=>x == dbKey)
     rec.children.splice(ind+1,0,key)
@@ -235,13 +246,81 @@ ipcMain.on('insert-favorite2',(event,key,writePath,dbKey,data,isNote)=>{
   })
 })
 
+async function recurDelete(keys,list,isNote){
+  const db = note
+  const ret = await db.find({key:{$in: keys}})
+  const nextKeys = Array.prototype.concat.apply([],ret.map(ret=>ret.children)).filter(ret=>ret)
+  list.splice(list.length,0,...nextKeys)
+  if(nextKeys && nextKeys.length > 0) {
+    return (await recurDelete(nextKeys, list,isNote))
+  }
+}
+
+ipcMain.on('delete-favorite',(event,key,dbKeys,parentKeys,isNote)=>{
+  if(!isNote){
+    return favorite.remove(dbKeys).then(()=> event.sender.send(`delete-favorite-reply_${key}`,key))
+  }
+
+  let deleteList = dbKeys
+  const db = note
+  recurDelete(dbKeys,deleteList,isNote).then(ret=>{
+    deleteList = [...new Set(deleteList)]
+    console.log('del',deleteList)
+    db.remove({key: {$in : deleteList}}, { multi: true }).then(ret2=>{
+      Promise.all(parentKeys.map((parentKey,i)=>{
+        const dbKey = dbKeys[i]
+        db.update({ key: parentKey }, { $pull: { children: dbKey }, $set:{updated_at: Date.now()} })
+      })).then(ret3=>{
+        event.sender.send(`delete-favorite-reply_${key}`,key)
+      })
+    })
+  })
+})
+
+ipcMain.on('move-favorite',async (event,key,args,isNote)=>{
+  console.log(99,args)
+
+  if(!isNote){
+    for(let arg of args.reverse()){
+      const [dbKey,oldDirectory,newDirectory,dropKey] = arg
+      await favorite.move(dbKey,newDirectory,dropKey)
+    }
+    return event.sender.send(`move-favorite-reply_${key}`,key)
+  }
+
+  const db = note
+  if(!args[0][3]){
+    for(let arg of args){
+      const [dbKey,oldDirectory,newDirectory,dropKey] = arg
+      await db.update({ key: oldDirectory }, { $pull: { children: dbKey }, $set:{updated_at: Date.now()}})
+      await db.update({ key: newDirectory }, { $push: { children: dbKey }, $set:{updated_at: Date.now()}})
+    }
+  }
+  else{
+    for(let arg of args.reverse()){
+      const [dbKey,oldDirectory,newDirectory,dropKey] = arg
+      await db.update({ key: oldDirectory }, { $pull: { children: dbKey }, $set:{updated_at: Date.now()}})
+      const ret2 = await db.findOne({key: newDirectory})
+      const children = ret2.children
+      const ind = children.findIndex(x=>x == dropKey)
+      children.splice(ind+1,0,dbKey)
+      console.log(88,children)
+      await db.update({ key: newDirectory }, { $set: {children, updated_at: Date.now()}})
+    }
+  }
+  event.sender.send(`move-favorite-reply_${key}`,key)
+})
+
 ipcMain.on('rename-favorite',async (event,key,dbKey,newName,isNote)=>{
   console.log(99,dbKey,newName)
-  const db = isNote ? note : favorite
-  if(isNote){
-    const d = await db.findOne({ key: dbKey })
-    if(d && d.title == newName.title) return
+  if(!isNote){
+    return favorite.update(dbKey, newName).then(()=> event.sender.send(`rename-favorite-reply_${key}`,key))
   }
+
+  const db = note
+  const d = await db.findOne({ key: dbKey })
+  if(d && d.title == newName.title) return
+
   db.update({ key: dbKey }, { $set: {...newName,updated_at: Date.now()}}).then(ret2=>{
     event.sender.send(`rename-favorite-reply_${key}`,key)
   })
@@ -249,7 +328,7 @@ ipcMain.on('rename-favorite',async (event,key,dbKey,newName,isNote)=>{
 
 
 async function recurGet(keys,num,isNote){
-  const db = isNote ? note : favorite
+  const db = note
   const ret = await db.find({key:{$in: keys}})
   const datas = []
   const promises = []
@@ -271,8 +350,9 @@ async function recurGet(keys,num,isNote){
   return datas
 }
 
+
 ipcMain.on('get-all-favorites',async(event,key,dbKeys,num,isNote)=>{
-  const ret = await recurGet(dbKeys,num,isNote)
+  const ret = isNote ? await recurGet(dbKeys,num,isNote) : await favorite.getFavoritesTree(dbKeys,num)
   event.sender.send(`get-all-favorites-reply_${key}`,ret)
 })
 
@@ -288,12 +368,8 @@ ipcMain.on('get-all-states',async(event,key,range)=>{
 })
 
 ipcMain.on('get-favorites-shallow', async(event,key,dbKey,limit)=>{
-  const x = await favorite.findOne({key:dbKey})
-  const result = {key:x.key,title:x.title,url:x.url,favicon:x.favicon,is_file:x.is_file}
-  if(x.children){
-    const ret = await favorite.find({key:{$in: x.children.slice(0,limit)}})
-    result.children = ret.map(x=>({key:x.key,title:x.title,url:x.url,favicon:x.favicon,is_file:x.is_file}))
-  }
+  const result = await favorite.getFavoritesTree([dbKey], limit, true)
+  console.log('get-favorites-shallow',result)
   event.sender.send(`get-favorites-shallow-reply_${key}`,result)
 })
 
@@ -393,58 +469,6 @@ ipcMain.on('rename-savedState',(event,key,dbKey,newName)=>{
   })
 })
 
-
-async function recurDelete(keys,list,isNote){
-  const db = isNote ? note : favorite
-  const ret = await db.find({key:{$in: keys}})
-  const nextKeys = Array.prototype.concat.apply([],ret.map(ret=>ret.children)).filter(ret=>ret)
-  list.splice(list.length,0,...nextKeys)
-  if(nextKeys && nextKeys.length > 0) {
-    return (await recurDelete(nextKeys, list,isNote))
-  }
-}
-
-ipcMain.on('delete-favorite',(event,key,dbKeys,parentKeys,isNote)=>{
-  let deleteList = dbKeys
-  const db = isNote ? note : favorite
-  recurDelete(dbKeys,deleteList,isNote).then(ret=>{
-    deleteList = [...new Set(deleteList)]
-    console.log('del',deleteList)
-    db.remove({key: {$in : deleteList}}, { multi: true }).then(ret2=>{
-      Promise.all(parentKeys.map((parentKey,i)=>{
-        const dbKey = dbKeys[i]
-        db.update({ key: parentKey }, { $pull: { children: dbKey }, $set:{updated_at: Date.now()} })
-      })).then(ret3=>{
-        event.sender.send(`delete-favorite-reply_${key}`,key)
-      })
-    })
-  })
-})
-
-ipcMain.on('move-favorite',async (event,key,args,isNote)=>{
-  console.log(99,args)
-  const db = isNote ? note : favorite
-  if(!args[0][3]){
-    for(let arg of args){
-      const [dbKey,oldDirectory,newDirectory,dropKey] = arg
-      await db.update({ key: oldDirectory }, { $pull: { children: dbKey }, $set:{updated_at: Date.now()}})
-      await db.update({ key: newDirectory }, { $push: { children: dbKey }, $set:{updated_at: Date.now()}})
-    }
-  }
-  else{
-    for(let arg of args.reverse()){
-      const [dbKey,oldDirectory,newDirectory,dropKey] = arg
-      await db.update({ key: oldDirectory }, { $pull: { children: dbKey }, $set:{updated_at: Date.now()}})
-      const ret2 = await db.findOne({key: newDirectory})
-      const children = ret2.children
-      const ind = children.findIndex(x=>x == dropKey)
-      children.splice(ind+1,0,dbKey)
-      console.log(88,children)
-      await db.update({ key: newDirectory }, { $set: {children, updated_at: Date.now()}})
-    }
-  }
-  event.sender.send(`move-favorite-reply_${key}`,key)
-})
 
 const resourcePath = path.join(app.getPath('userData'),'resource')
 

@@ -5,7 +5,8 @@
 import {ipcMain,dialog,BrowserWindow,importer,session, app} from 'electron'
 import {getCurrentWindow} from './util'
 const uuid = require('node-uuid')
-import {favorite,history,favicon} from './databaseFork'
+import {history,favicon} from './databaseFork'
+import favorite from './remoted-chrome/favorite'
 import sqlite from 'sqlite'
 
 var isImportingBookmarks = false

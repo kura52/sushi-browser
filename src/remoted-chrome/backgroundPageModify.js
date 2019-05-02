@@ -5,12 +5,19 @@ export default (port, serverKey) => {
       serverKey,
       send(channel, ...args) {
         const xhr = new XMLHttpRequest();
-        xhr.open("GET", `http://localhost:${this.port}?key=${this.serverKey}&data=${encodeURIComponent(JSON.stringify({
+        const data = JSON.stringify({
           api: 'ipc',
           method: 'send',
           result: [channel, chrome.runtime.id, ...args]
-        }))}`);
-        xhr.send();
+        })
+        if(data.length < 1000){
+          xhr.open("GET", `http://localhost:${this.port}?key=${this.serverKey}&data=${encodeURIComponent(data)}`);
+          xhr.send();
+        }
+        else{
+          xhr.open("POST", `http://localhost:${this.port}?key=${this.serverKey}`)
+          xhr.send(data)
+        }
       },
       on(eventName, listener) {
         window.ipcRenderer.events[eventName] = listener
