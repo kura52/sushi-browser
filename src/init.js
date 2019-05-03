@@ -116,7 +116,10 @@ require('./basicAuth')
 setFlash(app)
 setWidevine(app)
 
-Browser.setUserDataDir(path.join(app.getPath('userData'), 'Chrome'))
+const userDir = path.join(app.getPath('userData'), 'Chrome')
+fs.mkdirSync(userDir,{recursive: true})
+
+Browser.setUserDataDir(userDir)
 
 let ptyProcessSet,passwordManager,extensionInfos,syncReplaceName
 app.on('ready', async ()=>{
@@ -191,7 +194,6 @@ app.on('ready', async ()=>{
   const downloadEvent = require('./downloadEvent')
   new downloadEvent()
   require('./historyEvent')
-  require('./favoriteEvent')
   require('./messageEvent')
   require('./tabMoveEvent')
   require('./saveEvent')

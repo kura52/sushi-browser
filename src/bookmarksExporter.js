@@ -8,7 +8,9 @@ const path = require('path')
 const moment = require('moment')
 const fs = require('fs')
 const {dialog,app,BrowserWindow,ipcMain,nativeImage,session} = require('electron')
-import {Browser} from './remoted-chrome/Browser'
+import {webContents} from './remoted-chrome/Browser'
+import {getFocusedWebContents} from "./util"
+
 import {
   state,
   searchEngine,
@@ -53,22 +55,36 @@ function setOptionVal(key,dVal,val){
 
 
 ipcMain.on('export-bookmark',_=>{
-  const focusedWindow = Browser.getFocusedWindow()
-  const fileName = moment().format('DD_MM_YYYY') + '.html'
-  const defaultPath = path.join(app.getPath('downloads'), fileName)
 
-  dialog.showSaveDialog(focusedWindow, {
-    defaultPath: defaultPath,
-    filters: [
-      {name: 'HTML File', extensions: ['html']},
-    ]
-  }, (fileName) => {
-    if (fileName) {
-      getAllFavorites().then(ret=>{
-        fs.writeFileSync(fileName, createBookmarkHTML(ret))
-      })
+  getFocusedWebContents().then(async cont=>{
+    cont.hostWebContents2.send('new-tab', cont.id, "chrome://bookmarks/")
+    for(let i=0;i<100;i++){
+      await new Promise(r=>setTimeout(r, 100))
+      for(const cont of webContents.getAllWebContents()){
+        if((await cont.getURL()) == 'chrome://bookmarks/'){
+          console.log(cont.getURL())
+          cont.executeJavaScript(()=> chrome.bookmarks.export())
+          return
+        }
+      }
     }
   })
+  // const focusedWindow = Browser.getFocusedWindow()
+  // const fileName = moment().format('DD_MM_YYYY') + '.html'
+  // const defaultPath = path.join(app.getPath('downloads'), fileName)
+  //
+  // dialog.showSaveDialog(focusedWindow, {
+  //   defaultPath: defaultPath,
+  //   filters: [
+  //     {name: 'HTML File', extensions: ['html']},
+  //   ]
+  // }, (fileName) => {
+  //   if (fileName) {
+  //     getAllFavorites().then(ret=>{
+  //       fs.writeFileSync(fileName, createBookmarkHTML(ret))
+  //     })
+  //   }
+  // })
 })
 
 ipcMain.on('export-setting', (e,exports) => {
@@ -90,9 +106,9 @@ ipcMain.on('export-setting', (e,exports) => {
           results.searchEngine = await searchEngine.find({})
           results.token = await token.find({})
         }
-        else if(name == 'bookmarks'){
-          results.favorite = await favorite.find({})
-        }
+        // else if(name == 'bookmarks'){
+        //   results.favorite = await favorite.find({})
+        // }
         else if(name == 'browsingHistory'){
           results.visit = await visit.find({})
           results.history = await history.find({})
@@ -297,14 +313,14 @@ async function importData(imports, restoreDatas, all, ignoreToken) {
         }
       }
     }
-    else if (name == 'bookmarks') {
-      if (all) {
-        deleteInsert(favorite, restoreDatas.favorite)
-      }
-      else {
-        incrementalImportRecur(favorite,restoreDatas.favorite)
-      }
-    }
+    // else if (name == 'bookmarks') {
+    //   if (all) {
+    //     deleteInsert(favorite, restoreDatas.favorite)
+    //   }
+    //   else {
+    //     incrementalImportRecur(favorite,restoreDatas.favorite)
+    //   }
+    // }
     else if (name == 'browsingHistory') {
       if (all) {
         deleteInsert(visit, restoreDatas.visit)

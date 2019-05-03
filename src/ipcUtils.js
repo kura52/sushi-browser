@@ -1130,14 +1130,21 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
       })
     }, x,y,width,height)
 
-    await new Promise(r=>setTimeout(r,500))
+    let chromeNativeWindow
+    for(let i=0;i<100;i++){
+      await new Promise(r=>setTimeout(r,500))
 
-    //bind window
-    const chromeNativeWindow = (await winctl.FindWindows(win => {
-      return win.getTitle().includes('Sushi Browser Popup Prepare')
-    }))[0]
+      //bind window
+      chromeNativeWindow = (await winctl.FindWindows(win => {
+        return win.getTitle().includes('Sushi Browser Popup Prepare')
+      }))[0]
+      if(chromeNativeWindow) break
+    }
 
-    if(!detach) chromeNativeWindow.setWindowLongPtrEx(0x00000080)
+    if(!detach){
+      chromeNativeWindow.setForegroundWindowEx()
+      chromeNativeWindow.setWindowLongPtrEx(0x00000080)
+    }
 
     const hwnd = chromeNativeWindow.createWindow()
     const nativeWindow = (await winctl.FindWindows(win => win.getHwnd() == hwnd))[0]
@@ -2385,6 +2392,7 @@ ipcMain.on('no-attach-browser-view', (e, panelKey, tabKeys)=>{
 
 let moveingTab
 ipcMain.on('move-browser-view', async (e, panelKey, tabKey, type, tabId, x, y, width, height, zIndex, index)=>{
+  height = height - 7 //@TODO
   const win = BrowserWindow.fromWebContents(e.sender)
   if(!win || win.isDestroyed()) return
 
@@ -2506,7 +2514,7 @@ ipcMain.on('set-position-browser-view', async (e, panelKey) => {
 
   const winPos = win.getPosition()
   // console.log(Date.now(),'set-position-browser-view', { x:  Math.round(pos.left + winPos[0]), y: Math.round(pos.top + winPos[1]) })
-  panel.setBounds({ x:  Math.round(pos.left + winPos[0]), y: Math.round(pos.top + winPos[1]) })
+  panel.setBounds({ x:  Math.round(pos.left + winPos[0]), y: Math.round(pos.top + winPos[1]), width: Math.round(pos.width), height: Math.round(pos.height) })
 })
 
 ipcMain.on('delete-browser-view', (e, panelKey, tabKey)=>{

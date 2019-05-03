@@ -39,9 +39,9 @@ class EmulationManager {
 
     await Promise.all([
       this._client.send('Emulation.setDeviceMetricsOverride', { mobile, width, height, deviceScaleFactor, screenOrientation }),
-      this._client.send('Emulation.setTouchEmulationEnabled', {
-        enabled: hasTouch
-      })
+      // this._client.send('Emulation.setTouchEmulationEnabled', {
+      //   enabled: hasTouch
+      // })
     ]);
 
     const reloadNeeded = this._emulatingMobile !== mobile || this._hasTouch !== hasTouch;

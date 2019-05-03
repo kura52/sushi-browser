@@ -77,6 +77,17 @@ NAN_METHOD(Window::GetActiveWindow) {
 	info.GetReturnValue().Set(Nan::NewInstance(cons, argc, argv).ToLocalChecked());
 }
 
+NAN_METHOD(Window::CreateWindow2) {
+    HINSTANCE hInstance = GetModuleHandle( NULL );
+    HWND hWnd = CreateWindowEx(
+                   WS_EX_TOOLWINDOW, TEXT("STATIC"), TEXT(""),
+                   WS_CLIPCHILDREN | WS_POPUP | WS_VISIBLE ,
+                   0, 0, 0, 0,
+                   NULL, NULL, hInstance, NULL
+               );
+	info.GetReturnValue().Set(Nan::New((int)hWnd));
+}
+
 NAN_METHOD(Window::GetWindowByClassName) {
 	v8::Local<v8::Function> cons = Nan::New(constructor);
 

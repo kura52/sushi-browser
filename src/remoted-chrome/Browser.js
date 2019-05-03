@@ -223,6 +223,7 @@ class Browser{
         browserPanel.cpWin.chromeNativeWindow.move(...BrowserPanel.getChromeWindowBoundArray(dim.right - dim.left, dim.bottom - dim.top))
         browserPanel.browserWindow._fullscreen = false
       }
+      if(!delay) browserPanel.setFullscreenBounds(enabled)
     })
 
 
@@ -775,6 +776,20 @@ class Browser{
     this.addListener('management', 'onDisabled', info => {
       this.disableExtension(info.id)
     })
+
+    for(let method of ['onCreated', 'onRemoved', 'onChanged', 'onMoved', 'onChildrenReordered', 'onImportEnded']){
+      this.addListener('bookmarks', method, () => {
+        for(let cont of webContents.getAllWebContents()){
+          if(!cont.isDestroyed() /*&& !cont.isBackgroundPage()*/ && (cont.hostWebContents2 || !cont.hostWebContents2)) {
+            const url = cont.getURL()
+            if(cont.root || url.endsWith(`/favorite_sidebar.html`) ||url.endsWith(`/favorite_sidebar.html`)){
+              cont.send('update-datas')
+            }
+          }
+        }
+      })
+    }
+
   }
 
   static _getExtensionInfo(e){
@@ -965,12 +980,17 @@ class PopupPanel{
       })
     })
 
-    await new Promise(r=>setTimeout(r,1000))
+    let chromeNativeWindow
+    for(let i=0;i<100;i++){
+      await new Promise(r=>setTimeout(r,50))
 
-    const chromeNativeWindow = (await winctl.FindWindows(win => {
-      return win.getTitle().includes('Sushi Browser Popup Prepare')
-    }))[0]
+      chromeNativeWindow = (await winctl.FindWindows(win => {
+        return win.getTitle().includes('Sushi Browser Popup Prepare')
+      }))[0]
+      if(chromeNativeWindow) break
+    }
 
+    chromeNativeWindow.setForegroundWindowEx()
     chromeNativeWindow.setWindowLongPtrEx(0x00000080)
 
     const hwnd = chromeNativeWindow.createWindow()

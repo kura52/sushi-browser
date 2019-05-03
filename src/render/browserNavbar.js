@@ -431,7 +431,7 @@ class BrowserNavbar extends Component{
 
   onCommon(str){
     const cont = this.getWebContents(this.props.tab)
-    const url = str == "history" ? "chrome://history/" : str == "favorite" ? "chrome://bookmarks/" : `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/${str}.html`
+    const url = str == "history" ? "chrome://history/" : str == "favorite" ? "chrome://bookmarks2/" : `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/${str}.html`
     cont.hostWebContents2.send('new-tab', this.props.tab.wvId, url)
     // webContents.getAllWebContents().forEach(x=>{console.log(x.id,x.hostWebContents2 && x.hostWebContents2.id)})
   }
@@ -835,15 +835,6 @@ class BrowserNavbar extends Component{
         <NavbarMenuItem text={`${locale.translation("chromiumVersion")}: ${versions.chrome}`} onClick={_=>this.navigate('https://github.com/chromium/chromium/releases')}/>
       </NavbarMenuSubMenu>
     </NavbarMenu>
-  }
-
-  fetchFavoriteDate(){
-    return new Promise((resolve,reject)=> {
-      ipc.send('fetch-favorite', {})
-      ipc.once('favorite-reply', (event, data) => {
-        resolve(data)
-      })
-    })
   }
 
   // favoriteDataHandle(menuItems,ret){

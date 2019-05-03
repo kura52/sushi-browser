@@ -56,7 +56,7 @@ function handler(table){
                for(let cont of webContents.getAllWebContents()){
                   if(!cont.isDestroyed() /*&& !cont.isBackgroundPage()*/ && (cont.hostWebContents2 || !cont.hostWebContents2)) {
                     const url = cont.getURL()
-                    if(url.startsWith('chrome://brave') || table == "favorite" || url.endsWith(`/${table}_sidebar.html`) ||url.endsWith(`/${table}.html`) || (table == "tabState" && (url.endsWith(`/tab_history_sidebar.html`)||url.endsWith(`/tab_trash_sidebar.html`))) || (table == "savedState" && url.endsWith(`/saved_state_sidebar.html`)) || (table == 'note' && url.includes('note.html?'))){
+                    if(cont.root || table == "favorite" || url.endsWith(`/${table}_sidebar.html`) ||url.endsWith(`/${table}.html`) || (table == "tabState" && (url.endsWith(`/tab_history_sidebar.html`)||url.endsWith(`/tab_trash_sidebar.html`))) || (table == "savedState" && url.endsWith(`/saved_state_sidebar.html`)) || (table == 'note' && url.includes('note.html?'))){
                       if(prop == "update"){
                         if(argumentsList[1].$inc) return
                         db[table].findOne(argumentsList[0]).then(ret=>{

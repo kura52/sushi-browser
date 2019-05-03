@@ -13,7 +13,7 @@
   // }
   // const convertUrlMap = {
   //   // 'chrome://newtab/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html',
-  //   'chrome://bookmarks/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html',
+  //   'chrome://bookmarks2/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html',
   //   'chrome://history/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html',
   //   'about:blank': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html',
   //   'chrome://bookmarks-sidebar/': 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html',

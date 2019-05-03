@@ -208,7 +208,7 @@ class StatusBar extends Component {
       <p className="status-text">{this.getStatusText()}</p>
       <span style={{float: 'right'}}>
         {this.renderButton('home','480990236307250886',sharedState.homeURL)}
-        {this.renderButton('star','bookmarks','chrome://bookmarks/')}
+        {this.renderButton('star','bookmarks','chrome://bookmarks2/')}
         {this.renderButton('history','history','chrome://history/')}
         {this.renderButton('download','downloads','download')}
         {this.renderButton('sticky-note','note','note')}

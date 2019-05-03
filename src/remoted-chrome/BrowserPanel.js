@@ -183,6 +183,13 @@ export default class BrowserPanel {
       return true
     })
 
+    let nativeWindow
+    // if(bounds){
+    //   const nativeWindowHwnd = winctl.CreateWindow2()
+    //   nativeWindow = (await winctl.FindWindows(win => win.getHwnd() == nativeWindowHwnd))[0]
+    //   nativeWindow.move(bounds.x,bounds.y,bounds.width,bounds.height)
+    // }
+
     if (panelKey) {
       this.browserWindow = browserWindow
       this.browserWindow.once('closed', () => this.destroy())
@@ -234,6 +241,7 @@ export default class BrowserPanel {
           }
 
           console.log(2243344, chromeNativeWindow.getTitle())
+          chromeNativeWindow.setForegroundWindowEx()
           chromeNativeWindow.setWindowLongPtrEx(0x00000080)
 
           win = await Browser.bg.evaluate((url, windowId) => {
@@ -260,16 +268,20 @@ export default class BrowserPanel {
         }
       }
 
-      this.cpWin = await this.createChromeParentWindow(win, oldWindows)
+      this.cpWin = await this.createChromeParentWindow(win, oldWindows, nativeWindow)
 
       this.panelKey = panelKey
       this.windowId = win.id
       BrowserPanel.panelKeys[panelKey] = this
       this.tabKeys = {[tabKey]: [win.tabs[0].id, new BrowserView(this, tabKey, win.tabs[0].id)]}
 
-      if(!isNotFirst) await Browser.initPopupPanel()
+      if(!isNotFirst){
+        await new Promise(r=>setTimeout(r,1000))
+        await Browser.initPopupPanel()
+      }
 
       BrowserPanel.initing = false
+      // setTimeout(()=>ipcMain.emit('set-position-browser-view', {sender:this.browserWindow.webContents}, panelKey),100)
       return this
     }
     else {
@@ -335,14 +347,13 @@ export default class BrowserPanel {
     }
   }
 
-  async createChromeParentWindow(cWin, oldWindows) {
+  async createChromeParentWindow(cWin, oldWindows, nativeWindow) {
     let chromeNativeWindow = winctl.GetActiveWindow()
     const dim = chromeNativeWindow.dimensions()
     if (BrowserPanel.bindedWindows.has(chromeNativeWindow.getHwnd()) || !chromeNativeWindow.getTitle().includes(BROWSER_NAME) || !(cWin.left == dim.left && cWin.top == dim.top && cWin.width == (dim.right - dim.left) && cWin.height == (dim.bottom - dim.top))) {
       chromeNativeWindow = (await winctl.FindWindows(win => {
         if (BrowserPanel.bindedWindows.has(chromeNativeWindow.getHwnd()) || !win.getTitle().includes(BROWSER_NAME)) return false
         const dim = win.dimensions()
-        // console.log(win.getTitle(), cWin.left, dim.left, cWin.top, dim.top, cWin.width, (dim.right - dim.left), cWin.height, (dim.bottom - dim.top))
         return cWin.left == dim.left && cWin.top == dim.top && cWin.width == (dim.right - dim.left) && cWin.height == (dim.bottom - dim.top)
       }))[0]
 
@@ -366,7 +377,7 @@ export default class BrowserPanel {
     this.browserWindow.nativeWindow = nativeWindowBw
 
     const hwnd = nativeWindowBw.createWindow()
-    const nativeWindow = (await winctl.FindWindows(win => win.getHwnd() == hwnd))[0]
+    if(!nativeWindow) nativeWindow = (await winctl.FindWindows(win => win.getHwnd() == hwnd))[0]
     // const nativeWindow = nativeWindowBw
 
     chromeNativeWindow.setParent(nativeWindow.getHwnd())
@@ -450,6 +461,20 @@ export default class BrowserPanel {
         chrome.tabs.query({windowId, active: true}, tabs => resolve(tabs[0]))
       })
     }, this.windowId)
+  }
+
+  async setFullscreenBounds(enable){
+    const tab = await this.getActiveTab()
+    const cont = webContents.fromId(tab.id)
+
+    if(enable){
+      cont.setViewport(null)
+      this.beforeViewport = await cont.viewport()
+    }
+    else{
+      if(this.beforeViewport) cont.setViewport(this.beforeViewport)
+      delete this.beforeViewport
+    }
   }
 
   async setBounds(bounds) {

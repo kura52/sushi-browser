@@ -129,7 +129,7 @@ ipc.on("update-search-engine",updateSearchEngine)
 
 function convertURL(url){
   return url == 'chrome://newtab/' ? topURL :
-    url == 'chrome://bookmarks/' ? bookmarksURL :
+    url == 'chrome://bookmarks2/' ? bookmarksURL :
       url == 'chrome://history/' ? historyURL :
         convertUrlMap.has(url) ? convertUrlMap.get(url) : url
 }
@@ -1610,7 +1610,7 @@ export default class TabPanel extends Component {
         }
         console.log('fail',e)
         // if (page.location !== e.validatedURL || e.errorDescription == 'ERR_ABORTED' || e.errorCode == -3 || e.errorCode == 0) return
-        if(["chrome://newtab/","chrome://bookmarks/","chrome://history/"].includes(validatedURL)){
+        if(["chrome://newtab/","chrome://bookmarks2/","chrome://history/"].includes(validatedURL)){
           self.navigateTo(page, convertURL(validatedURL), tab)
           return
         }

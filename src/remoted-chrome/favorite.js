@@ -62,7 +62,7 @@ export default {
       const promises = []
       for(let bookmark of bookmarks){
         if(parentId) bookmark.parentId = parentId
-        else if(!bookmark.parentId || bookmark.parentId == 'root') bookmark.parentId == '1'
+        else if(!bookmark.parentId || bookmark.parentId == 'root') bookmark.parentId = '1'
 
         promises.push(new Promise(resolve => {
           chrome.bookmarks.create(bookmark, resolve)
@@ -171,29 +171,41 @@ export default {
     return this.remove(ids)
   },
 
-  async export(){
-    return (await this.bg()).evaluate(() => {
-      return new Promise(resolve => {
+  async export(id){
+    return (await this.bg()).evaluate((id) => {
+      return new Promise(async resolve => {
 
         const func = (tree, arr)=>{
           const item = {key: tree.id, url: tree.url, title: tree.title, created_at: tree.dateAdded, updated_at: tree.dateGroupModified, is_file: !!tree.url}
           if(tree.children){
             item.children = []
-            for(let item of tree.children){
-              const _item = func(item)
+            for(let x of tree.children){
+              const _item = func(x, arr)
               item.children.push(_item)
             }
           }
           arr.push(item)
         }
 
-        chrome.bookmarks.getSubTree('1', results => {
+        if(id == 'top-page'){
+          id = await new Promise(resolve => chrome.bookmarks.search({title: 'top-page'}, results =>{
+            if(!results.length){
+              resolve(null)
+            }
+            else{
+              resolve(results[0].id)
+            }
+          }))
+        }
+        if(!id) return resolve(null)
+
+        chrome.bookmarks.getSubTree(id, results => {
           const result = results ? results[0] : null
           const arr = []
           func(result, arr)
           resolve(arr)
         })
       })
-    })
+    },id)
   }
 }

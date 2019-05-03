@@ -797,6 +797,9 @@ class Page extends EventEmitter {
    * @param {!Puppeteer.Viewport} viewport
    */
   async setViewport(viewport) {
+    if(!viewport){
+      return this._client.send('Emulation.clearDeviceMetricsOverride',{})
+    }
     const needsReload = await this._emulationManager.emulateViewport(viewport);
     this._viewport = viewport;
     if (needsReload)

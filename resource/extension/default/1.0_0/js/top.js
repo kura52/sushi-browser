@@ -32586,7 +32586,7 @@ const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd';
 const initPromise = _l10n2.default.init();
 
 
-const convertUrlMap = new Map([['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html', ''], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html', 'about:blank'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html', 'chrome://bookmarks/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html', 'chrome://bookmarks-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html', 'chrome://history/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_history_sidebar.html', 'chrome://tab-history-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_trash_sidebar.html', 'chrome://tab-trash-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download_sidebar.html', 'chrome://download-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note_sidebar.html', 'chrome://note-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note.html', 'chrome://note/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/saved_state_sidebar.html', 'chrome://session-manager-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history_sidebar.html', 'chrome://history-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html', 'chrome://explorer/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer_sidebar.html', 'chrome://explorer-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html', 'chrome://download/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html', 'chrome://terminal/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html', 'chrome://converter/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html', 'chrome://automation/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html', 'chrome://settings/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general', 'chrome://settings#general'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search', 'chrome://settings#search'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs', 'chrome://settings#tabs'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#keyboard', 'chrome://settings#keyboard'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extensions', 'chrome://settings#extensions']]);
+const convertUrlMap = new Map([['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html', ''], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html', 'about:blank'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html', 'chrome://bookmarks2/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html', 'chrome://bookmarks-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html', 'chrome://history/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_history_sidebar.html', 'chrome://tab-history-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_trash_sidebar.html', 'chrome://tab-trash-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download_sidebar.html', 'chrome://download-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note_sidebar.html', 'chrome://note-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note.html', 'chrome://note/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/saved_state_sidebar.html', 'chrome://session-manager-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history_sidebar.html', 'chrome://history-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html', 'chrome://explorer/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer_sidebar.html', 'chrome://explorer-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html', 'chrome://download/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html', 'chrome://terminal/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html', 'chrome://converter/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html', 'chrome://automation/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html', 'chrome://settings/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general', 'chrome://settings#general'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search', 'chrome://settings#search'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs', 'chrome://settings#tabs'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#keyboard', 'chrome://settings#keyboard'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extensions', 'chrome://settings#extensions']]);
 
 const convertUrlReg = /^chrome\-extension:\/\/dckpbojndfoinamcdamhkjhnjnmjkfjd\/(video|ace|bind)\.html\?url=([^&]+)/;
 const convertUrlPdfReg = /^chrome\-extension:\/\/jdbefljfgobbmcidnmpjamcbhnbphjnb\/content\/web\/viewer\.html\?file=(.+?)$/;
@@ -75300,31 +75300,37 @@ if (window.__started_) {
     // }
   });
 
-  //style setting
-  let styleVal;
-  if ((styleVal = localStorage.getItem('meiryo')) !== null) {
-    if (styleVal === "true") {
-      setTimeout(_ => {
-        const css = document.createElement('style');
-        const rule = document.createTextNode('html{ font-family: Arial, "メイリオ", sans-serif}');
-        css.appendChild(rule);
-        const head = document.getElementsByTagName('head');
-        if (head[0]) head[0].appendChild(css);
-      }, 0);
-    }
-  } else {
-    ipc.send('need-meiryo');
-    ipc.once('need-meiryo-reply', (e, styleVal) => {
-      localStorage.setItem('meiryo', styleVal);
-      if (styleVal) {
-        const css = document.createElement('style');
-        const rule = document.createTextNode('html{ font-family: Arial, "メイリオ", sans-serif}');
-        css.appendChild(rule);
-        const head = document.getElementsByTagName('head');
-        if (head[0]) head[0].appendChild(css);
-      }
-    });
-  }
+  // //style setting
+  //   let styleVal
+  //   try{
+  //     styleVal = localStorage.getItem('meiryo')
+  //   }catch(e){}
+  //
+  //   if(styleVal !== null){
+  //     if(styleVal === "true"){
+  //       setTimeout(_=>{
+  //         const css = document.createElement('style')
+  //         const rule = document.createTextNode('html{ font-family: Arial, "メイリオ", sans-serif}')
+  //         css.appendChild(rule)
+  //         const head = document.getElementsByTagName('head')
+  //         if(head[0]) head[0].appendChild(css)
+  //       },0)
+  //     }
+  //   }
+  //   else{
+  //     ipc.send('need-meiryo')
+  //     ipc.once('need-meiryo-reply',(e,styleVal)=>{
+  //       localStorage.setItem('meiryo',styleVal)
+  //       if(styleVal){
+  //         const css = document.createElement('style')
+  //         const rule = document.createTextNode('html{ font-family: Arial, "メイリオ", sans-serif}')
+  //         css.appendChild(rule)
+  //         const head = document.getElementsByTagName('head')
+  //         if(head[0]) head[0].appendChild(css)
+  //       }
+  //     })
+  //   }
+
 
   let isFirst = true;
   const videoFunc = (e, inputs) => {

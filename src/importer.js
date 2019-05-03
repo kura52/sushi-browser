@@ -171,91 +171,91 @@ async function recurAddFolder(b,map){
 }
 
 let isImportingBookmark
-importer.on('add-bookmarks', async (e, bookmarks, topLevelFolder) => {
-  isImportingBookmark = true
-  console.log("favorite-start")
-  // if(type == 'html'){
-  //   bookmarks.sort((a,b)=> a.path.join("/") < b.path.join("/") ? -1 : 1)
-  // }
-  let sites = []
-  let map = new Map()
-  for (let i = 0; i < bookmarks.length; ++i) {
-    // console.log(bookmarks[i])
-    let path = bookmarks[i].path
-
-    if(path.length == 1 && !map.has(path.join("/"))){
-      const key = uuid.v4()
-      const folder = {
-        key,
-        title:path[0],
-        is_file:false,
-        children: [],
-        created_at: getTime(bookmarks[i].creation_time),
-        updated_at: getTime(bookmarks[i].creation_time),
-      }
-      await favorite.update({key: 'root'}, { $push: { children: key }, $set:{updated_at: Date.now()}})
-      map.set(path.join("/"),folder)
-    }
-
-    if (bookmarks[i].is_folder) {
-      await recurAddFolder(bookmarks[i],map)
-    }
-    else {
-      const key = uuid.v4()
-      const site = {
-        key,
-        url: bookmarks[i].url,
-        title:bookmarks[i].title,
-        is_file:true,
-        created_at: getTime(bookmarks[i].creation_time),
-        updated_at: getTime(bookmarks[i].creation_time)
-      }
-      if(path.length == 0){
-        await favorite.update({key: 'root'}, { $push: { children: key }, $set:{updated_at: Date.now()}})
-      }
-      else{
-        let folder = map.get(path.join("/"))
-        if(!folder){
-          const k = uuid.v4()
-          const f = {
-            key:k,
-            title:path[path.length - 1],
-            is_file:false,
-            children: [],
-            created_at: getTime(bookmarks[i].creation_time),
-            updated_at: getTime(bookmarks[i].creation_time),
-          }
-          let p_folder = map.get(path.slice(0,path.length - 1).join("/"))
-          console.log(1,p_folder)
-          if(!p_folder){
-            const b = bookmarks[i]
-            const path2 = b.path.slice(0,b.path.length - 1)
-            const parentB = {
-              key : uuid.v4(),
-              title:b.path[b.path.length - 1],
-              is_file:false,
-              path: path2,
-              children: [],
-              created_at: getTime(b.creation_time),
-              updated_at:getTime(b.creation_time),
-            }
-            await recurAddFolder(parentB,map)
-            p_folder = map.get(path.slice(0,path.length - 1).join("/"))
-          }
-          p_folder.children.push(k)
-          map.set(path.join("/"),f)
-          folder = f
-        }
-        folder.children.push(key)
-      }
-      map.set(key,site)
-    }
-  }
-  await favorite.insert([...map.values()])
-  console.log("favorite-end")
-  isImportingBookmark = false
-  // console.log(sites,topLevelFolder)
-})
+// importer.on('add-bookmarks', async (e, bookmarks, topLevelFolder) => {
+//   isImportingBookmark = true
+//   console.log("favorite-start")
+//   // if(type == 'html'){
+//   //   bookmarks.sort((a,b)=> a.path.join("/") < b.path.join("/") ? -1 : 1)
+//   // }
+//   let sites = []
+//   let map = new Map()
+//   for (let i = 0; i < bookmarks.length; ++i) {
+//     // console.log(bookmarks[i])
+//     let path = bookmarks[i].path
+//
+//     if(path.length == 1 && !map.has(path.join("/"))){
+//       const key = uuid.v4()
+//       const folder = {
+//         key,
+//         title:path[0],
+//         is_file:false,
+//         children: [],
+//         created_at: getTime(bookmarks[i].creation_time),
+//         updated_at: getTime(bookmarks[i].creation_time),
+//       }
+//       await favorite.update({key: 'root'}, { $push: { children: key }, $set:{updated_at: Date.now()}})
+//       map.set(path.join("/"),folder)
+//     }
+//
+//     if (bookmarks[i].is_folder) {
+//       await recurAddFolder(bookmarks[i],map)
+//     }
+//     else {
+//       const key = uuid.v4()
+//       const site = {
+//         key,
+//         url: bookmarks[i].url,
+//         title:bookmarks[i].title,
+//         is_file:true,
+//         created_at: getTime(bookmarks[i].creation_time),
+//         updated_at: getTime(bookmarks[i].creation_time)
+//       }
+//       if(path.length == 0){
+//         await favorite.update({key: 'root'}, { $push: { children: key }, $set:{updated_at: Date.now()}})
+//       }
+//       else{
+//         let folder = map.get(path.join("/"))
+//         if(!folder){
+//           const k = uuid.v4()
+//           const f = {
+//             key:k,
+//             title:path[path.length - 1],
+//             is_file:false,
+//             children: [],
+//             created_at: getTime(bookmarks[i].creation_time),
+//             updated_at: getTime(bookmarks[i].creation_time),
+//           }
+//           let p_folder = map.get(path.slice(0,path.length - 1).join("/"))
+//           console.log(1,p_folder)
+//           if(!p_folder){
+//             const b = bookmarks[i]
+//             const path2 = b.path.slice(0,b.path.length - 1)
+//             const parentB = {
+//               key : uuid.v4(),
+//               title:b.path[b.path.length - 1],
+//               is_file:false,
+//               path: path2,
+//               children: [],
+//               created_at: getTime(b.creation_time),
+//               updated_at:getTime(b.creation_time),
+//             }
+//             await recurAddFolder(parentB,map)
+//             p_folder = map.get(path.slice(0,path.length - 1).join("/"))
+//           }
+//           p_folder.children.push(k)
+//           map.set(path.join("/"),f)
+//           folder = f
+//         }
+//         folder.children.push(key)
+//       }
+//       map.set(key,site)
+//     }
+//   }
+//   await favorite.insert([...map.values()])
+//   console.log("favorite-end")
+//   isImportingBookmark = false
+//   // console.log(sites,topLevelFolder)
+// })
 
 importer.on('add-favicons', async (e, detail) => {
   console.log("favicons-start")

@@ -615,7 +615,7 @@ export default {
     initWindow.loadURL(`file://${path.join(__dirname, '../index.html').replace(/\\/g, "/")}${getParam}`)
     // initWindow.webContents.toggleDevTools()
 
-
+    initWindow.webContents.root = true
     initWindow.webContents.on('context-menu', (e, props) => ipcMain.emit('contextmenu-webContents', e, props))
 
     // await new Promise(r=>{
