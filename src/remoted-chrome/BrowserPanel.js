@@ -512,8 +512,11 @@ export default class BrowserPanel {
       this._bindWindow) return
 
     this.cpWin.nativeWindow.moveTop()
+    if(this.browserWindow._alwaysOnTop) this.cpWin.nativeWindow.setWindowPos(winctl.HWND.TOPMOST, 0, 0, 0, 0, 83)
+
     if(this.panelKey == PopupPanel.instance.panelKey){
       PopupPanel.instance.moveTop()
+      if(this.browserWindow._alwaysOnTop) PopupPanel.instance.nativeWindow.setWindowPos(winctl.HWND.TOPMOST, 0, 0, 0, 0, 83)
 
       // console.log('moveTopNativeWindow')
       // PopupPanel.instance.nativeWindow.setWindowPos(winctl.HWND.TOPMOST, 0, 0, 0, 0, 83)
@@ -528,6 +531,7 @@ export default class BrowserPanel {
     if(!this.moveTopCache || now - this.moveTopCache > 30){
       this.moveTopCache = now
       this.cpWin.nativeWindowBw.moveTop()
+      if(this.browserWindow._alwaysOnTop) this.cpWin.nativeWindowBw.setWindowPos(winctl.HWND.TOPMOST, 0, 0, 0, 0, 83)
     }
   }
 

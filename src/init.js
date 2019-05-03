@@ -113,8 +113,8 @@ global.rlog = (...args)=>{
 require('./basicAuth')
 
 
-setFlash(app)
-setWidevine(app)
+// setFlash(app)
+// setWidevine(app)
 
 const userDir = path.join(app.getPath('userData'), 'Chrome')
 fs.mkdirSync(userDir,{recursive: true})
@@ -158,8 +158,8 @@ app.on('ready', async ()=>{
       //   console.log(e)
       // }
     }
-    defaultConf.javascript[0].setting = setting.noScript ? 'block' : 'allow'
-    defaultConf.canvasFingerprinting[0].setting = setting.blockCanvasFingerprinting ? 'block' : 'allow'
+    // defaultConf.javascript[0].setting = setting.noScript ? 'block' : 'allow'
+    // defaultConf.canvasFingerprinting[0].setting = setting.blockCanvasFingerprinting ? 'block' : 'allow'
     // console.log(678,session.defaultSession.userPrefs.getDictionaryPref('content_settings'))
   })
 
@@ -769,72 +769,72 @@ process.on('open-url-from-tab', (e, source, targetUrl, disposition) => {
 // })
 
 
-function setFlash(app){
-  let ppapi_flash_path,flash_path;
-  try {
-    flash_path = app.getPath('pepperFlashSystemPlugin')
-  } catch (e) {
-  }
-
-  if(process.platform  == 'win32'){
-    let path_flash = flash_path ? require("glob").sync(flash_path) : require("glob").sync(process.arch == 'x64' ? "C:\\Windows\\SysWOW64\\Macromed\\Flash\\pepflashplayer*.dll" : "C:\\Windows\\System32\\Macromed\\Flash\\pepflashplayer*.dll")
-
-    if(path_flash.length > 0) {
-      ppapi_flash_path = path_flash[0]
-      app.commandLine.appendSwitch('ppapi-flash-path', ppapi_flash_path);
-    }
-  }
-  else if (process.platform == 'linux') {
-    const path_flash = require("glob").sync(`${process.env["HOME"]}/.config/google-chrome/PepperFlash/**/libpepflashplayer.so`)
-    if (path_flash.length > 0) {
-      console.log('flash',path_flash)
-      ppapi_flash_path = path_flash[0]
-      app.commandLine.appendSwitch('ppapi-flash-path', ppapi_flash_path)
-    }
-  }
-  else{
-    let path_flash = flash_path ? require("glob").sync(flash_path) : require("glob").sync("/Library/Internet Plug-Ins/PepperFlashPlayer/PepperFlashPlayer.plugin")
-    if (path_flash.length > 0) {
-      ppapi_flash_path = path_flash[0]
-      app.commandLine.appendSwitch('ppapi-flash-path', ppapi_flash_path);
-    }
-  }
-  if(ppapi_flash_path){
-    mainState.flashPath = ppapi_flash_path
-    mainState.flash = path.basename(ppapi_flash_path)
-  }
-}
-
-
-function setWidevine(app){
-  let ppapi_widevine_path,widevine_path
-  if(process.platform  == 'win32'){
-    const path_widevine = require("glob").sync(`C:\\Program Files (x86)\\Google\\Chrome\\Application\\*\\WidevineCdm\\_platform_specific\\*\\widevinecdm.dll`)
-    if (path_widevine.length > 0) {
-      ppapi_widevine_path = path_widevine[0]
-      app.commandLine.appendSwitch('widevine-cdm-path', path.join(ppapi_widevine_path, '..'))
-    }
-  }
-  else if (process.platform == 'linux') {
-    const path_widevine = require("glob").sync(`/opt/google/chrome/libwidevinecdm.so`)
-    if (path_widevine.length > 0) {
-      ppapi_widevine_path = path_widevine[0]
-      console.log('widevine', path.join(ppapi_widevine_path, '..'))
-      app.commandLine.appendSwitch('widevine-cdm-path', path.join(ppapi_widevine_path, '..'))
-    }
-  }
-  else{
-    let path_widevine = widevine_path ? require("glob").sync(widevine_path) : require("glob").sync("/Applications/Google Chrome.app/Contents/Versions/*/Google Chrome Framework.framework/Versions/A/Libraries/WidevineCdm/_platform_specific/*/libwidevinecdm.dylib")
-    if (path_widevine.length > 0) {
-      ppapi_widevine_path = path_widevine[0]
-      app.commandLine.appendSwitch('widevine-cdm-path', path.join(ppapi_widevine_path, '..'))
-    }
-  }
-  if(ppapi_widevine_path){
-    mainState.widevinePath = ppapi_widevine_path
-    mainState.widevine = path.basename(ppapi_widevine_path)
-  }
-}
+// function setFlash(app){
+//   let ppapi_flash_path,flash_path;
+//   try {
+//     flash_path = app.getPath('pepperFlashSystemPlugin')
+//   } catch (e) {
+//   }
+//
+//   if(process.platform  == 'win32'){
+//     let path_flash = flash_path ? require("glob").sync(flash_path) : require("glob").sync(process.arch == 'x64' ? "C:\\Windows\\SysWOW64\\Macromed\\Flash\\pepflashplayer*.dll" : "C:\\Windows\\System32\\Macromed\\Flash\\pepflashplayer*.dll")
+//
+//     if(path_flash.length > 0) {
+//       ppapi_flash_path = path_flash[0]
+//       app.commandLine.appendSwitch('ppapi-flash-path', ppapi_flash_path);
+//     }
+//   }
+//   else if (process.platform == 'linux') {
+//     const path_flash = require("glob").sync(`${process.env["HOME"]}/.config/google-chrome/PepperFlash/**/libpepflashplayer.so`)
+//     if (path_flash.length > 0) {
+//       console.log('flash',path_flash)
+//       ppapi_flash_path = path_flash[0]
+//       app.commandLine.appendSwitch('ppapi-flash-path', ppapi_flash_path)
+//     }
+//   }
+//   else{
+//     let path_flash = flash_path ? require("glob").sync(flash_path) : require("glob").sync("/Library/Internet Plug-Ins/PepperFlashPlayer/PepperFlashPlayer.plugin")
+//     if (path_flash.length > 0) {
+//       ppapi_flash_path = path_flash[0]
+//       app.commandLine.appendSwitch('ppapi-flash-path', ppapi_flash_path);
+//     }
+//   }
+//   if(ppapi_flash_path){
+//     mainState.flashPath = ppapi_flash_path
+//     mainState.flash = path.basename(ppapi_flash_path)
+//   }
+// }
+//
+//
+// function setWidevine(app){
+//   let ppapi_widevine_path,widevine_path
+//   if(process.platform  == 'win32'){
+//     const path_widevine = require("glob").sync(`C:\\Program Files (x86)\\Google\\Chrome\\Application\\*\\WidevineCdm\\_platform_specific\\*\\widevinecdm.dll`)
+//     if (path_widevine.length > 0) {
+//       ppapi_widevine_path = path_widevine[0]
+//       app.commandLine.appendSwitch('widevine-cdm-path', path.join(ppapi_widevine_path, '..'))
+//     }
+//   }
+//   else if (process.platform == 'linux') {
+//     const path_widevine = require("glob").sync(`/opt/google/chrome/libwidevinecdm.so`)
+//     if (path_widevine.length > 0) {
+//       ppapi_widevine_path = path_widevine[0]
+//       console.log('widevine', path.join(ppapi_widevine_path, '..'))
+//       app.commandLine.appendSwitch('widevine-cdm-path', path.join(ppapi_widevine_path, '..'))
+//     }
+//   }
+//   else{
+//     let path_widevine = widevine_path ? require("glob").sync(widevine_path) : require("glob").sync("/Applications/Google Chrome.app/Contents/Versions/*/Google Chrome Framework.framework/Versions/A/Libraries/WidevineCdm/_platform_specific/*/libwidevinecdm.dylib")
+//     if (path_widevine.length > 0) {
+//       ppapi_widevine_path = path_widevine[0]
+//       app.commandLine.appendSwitch('widevine-cdm-path', path.join(ppapi_widevine_path, '..'))
+//     }
+//   }
+//   if(ppapi_widevine_path){
+//     mainState.widevinePath = ppapi_widevine_path
+//     mainState.widevine = path.basename(ppapi_widevine_path)
+//   }
+// }
 
 function createWindow (first,url) {
   return BrowserWindowPlus.load((void 0),first,url)
@@ -1080,9 +1080,9 @@ async function contextMenu(webContents, props) {
     const favMenu = favoriteMenu
     if(!favMenu.isNote){
       menuItems.push({label: locale.translation('openInNewTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewTab')}})
-      menuItems.push({label: locale.translation('openInNewPrivateTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewPrivateTab')}})
-      menuItems.push({t: 'openLinkInNewTorTab', label: locale.translation('openLinkInNewTorTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewTorTab')}})
-      menuItems.push({label: locale.translation('openInNewSessionTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewSessionTab')}})
+      // menuItems.push({label: locale.translation('openInNewPrivateTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewPrivateTab')}})
+      // menuItems.push({t: 'openLinkInNewTorTab', label: locale.translation('openLinkInNewTorTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewTorTab')}})
+      // menuItems.push({label: locale.translation('openInNewSessionTab'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewSessionTab')}})
       menuItems.push({label: locale.translation('openInNewWindow'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindow')}})
       menuItems.push({t: 'openLinkInNewWindowWithARow', label: locale.translation('openLinkInNewWindowWithARow'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindowWithOneRow')}})
       menuItems.push({t: 'openLinkInNewWindowWithTwoRows', label: locale.translation('openLinkInNewWindowWithTwoRows'),click: (item,win)=>{favMenu.sender.send(`favorite-menu-reply`,'openInNewWindowWithTwoRow')}})
@@ -1190,21 +1190,21 @@ async function contextMenu(webContents, props) {
         webContents.hostWebContents2.send('new-tab-opposite', webContents.id, props.linkURL)
       }
     })
-    menuItems.push({
-      t: 'openInNewPrivateTab', label: locale.translation('openInNewPrivateTab'), click: (item, win) => {
-        webContents.hostWebContents2.send('new-tab', webContents.id, props.linkURL,`${seq(true)}`)
-      }
-    })
-    menuItems.push({
-      t: 'openLinkInNewTorTab', label: locale.translation('openLinkInNewTorTab'), click: (item, win) => {
-        webContents.hostWebContents2.send('new-tab', webContents.id, props.linkURL,'persist:tor')
-      }
-    })
-    menuItems.push({
-      t: 'openInNewSessionTab', label: locale.translation('openInNewSessionTab'), click: (item, win) => {
-        webContents.hostWebContents2.send('new-tab', webContents.id, props.linkURL,`persist:${seq()}`)
-      }
-    })
+    // menuItems.push({
+    //   t: 'openInNewPrivateTab', label: locale.translation('openInNewPrivateTab'), click: (item, win) => {
+    //     webContents.hostWebContents2.send('new-tab', webContents.id, props.linkURL,`${seq(true)}`)
+    //   }
+    // })
+    // menuItems.push({
+    //   t: 'openLinkInNewTorTab', label: locale.translation('openLinkInNewTorTab'), click: (item, win) => {
+    //     webContents.hostWebContents2.send('new-tab', webContents.id, props.linkURL,'persist:tor')
+    //   }
+    // })
+    // menuItems.push({
+    //   t: 'openInNewSessionTab', label: locale.translation('openInNewSessionTab'), click: (item, win) => {
+    //     webContents.hostWebContents2.send('new-tab', webContents.id, props.linkURL,`persist:${seq()}`)
+    //   }
+    // })
     menuItems.push({
       t: 'openInNewWindow', label: locale.translation('openInNewWindow'), click: (item, win) => {
         ipcMain.once('get-private-reply',(e,privateMode)=>{
@@ -1329,10 +1329,10 @@ async function contextMenu(webContents, props) {
       t: 'playVideoInPopupWindow', label: locale.translation('playVideoInPopupWindow'),
       click: (item, win) => webContents.hostWebContents2.send('pin-video', webContents.id, true)
     })
-    menuItems.push({
-      t: 'playVideoInFloatingPanel', label: locale.translation('playVideoInFloatingPanel'),
-      click: (item, win) => webContents.hostWebContents2.send('pin-video', webContents.id)
-    })
+    // menuItems.push({
+    //   t: 'playVideoInFloatingPanel', label: locale.translation('playVideoInFloatingPanel'),
+    //   click: (item, win) => webContents.hostWebContents2.send('pin-video', webContents.id)
+    // })
     menuItems.push({type: 'separator'})
     menuItems.push({
       t: '4643612240819915418', label:  locale.translation('4643612240819915418'), //'Open Video in New Tab',

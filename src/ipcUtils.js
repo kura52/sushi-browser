@@ -749,7 +749,7 @@ ipcMain.on('get-main-state',(e,key,names)=>{
   names.forEach(name=>{
     if(name == "ALL_KEYS"){
       for(let [key,val] of Object.entries(mainState)){
-        if(key.startsWith("key") && key.endsWith("Video")){
+        if(key.startsWith("key") || key.endsWith("Video")){
           ret[key] = val
         }
       }
@@ -826,21 +826,22 @@ ipcMain.on('get-main-state',(e,key,names)=>{
 
 
 ipcMain.on('save-state',async (e,{tableName,key,val})=>{
-  if(tableName == 'state'){if(key == 'httpsEverywhereEnable'){
-    require('../brave/httpsEverywhere')()
-  }
-  else if(key == 'trackingProtectionEnable'){
-    require('../brave/trackingProtection')()
-  }
-  else if(key == 'noScript'){
-    defaultConf.javascript[0].setting = val ? 'block' : 'allow'
-    session.defaultSession.userPrefs.setDictionaryPref('content_settings', defaultConf)
-  }
-  else if(key == 'blockCanvasFingerprinting'){
-    defaultConf.canvasFingerprinting[0].setting = val ? 'block' : 'allow'
-    session.defaultSession.userPrefs.setDictionaryPref('content_settings', defaultConf)
-  }
-  else if(key == 'downloadPath'){
+  if(tableName == 'state'){
+  //   if(key == 'httpsEverywhereEnable'){
+  //   require('../brave/httpsEverywhere')()
+  // }
+  // else if(key == 'trackingProtectionEnable'){
+  //   require('../brave/trackingProtection')()
+  // }
+  // else if(key == 'noScript'){
+  //   defaultConf.javascript[0].setting = val ? 'block' : 'allow'
+  //   session.defaultSession.userPrefs.setDictionaryPref('content_settings', defaultConf)
+  // }
+  // else if(key == 'blockCanvasFingerprinting'){
+  //   defaultConf.canvasFingerprinting[0].setting = val ? 'block' : 'allow'
+  //   session.defaultSession.userPrefs.setDictionaryPref('content_settings', defaultConf)
+  // }
+  if(key == 'downloadPath'){
     if(fs.existsSync(val)) {
       app.setPath('downloads',val)
     }
@@ -2699,7 +2700,7 @@ ipcMain.on('get-tab-opener',async (e,tabId)=>{
 })
 
 ipcMain.on('menu-popup',(e)=>{
-  const bw = BrowserWindow.fromWebContents(e.sender.webContents)
+  const bw = BrowserWindow.fromWebContents(e.sender)
   const panel = BrowserPanel.getBrowserPanelsFromBrowserWindow(bw)[0]
   BrowserPanel.contextMenuShowing = true
   panel.moveTopNativeWindowBw()
@@ -2734,6 +2735,17 @@ ipcMain.on('focus-browser-window', async (e, key) => {
   e.sender.send(`focus-browser-window-reply_${key}`)
   // bw.focus()
   // }
+})
+
+ipcMain.on('set-alwaysOnTop', (e,enable) => {
+  mainState.set('alwaysOnTop',enable)
+  const bw = BrowserWindow.fromWebContents(e.sender)
+  bw.setAlwaysOnTop(enable)
+  bw._alwaysOnTop = enable
+  for(const panel of BrowserPanel.getBrowserPanelsFromBrowserWindow(bw)){
+    panel.moveTopNativeWindow()
+    panel.moveTopNativeWindowBw()
+  }
 })
 
 // let dragPos = {}, noMove = false

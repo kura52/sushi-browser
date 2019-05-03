@@ -32,33 +32,33 @@ const createFileSubmenu = () => {
         })
       }
     },
-    {
-      label: locale.translation('newPrivateTab'),
-      accelerator: mainState.keyNewPrivateTab,
-      click(item, focusedWindow) {
-        getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents2.send('new-tab',cont.id,"chrome://newtab/",true,!mainState.openTabNextLabel)
-        })
-      }
-    },
-    {
-      label: 'New Tor Tab',
-      accelerator: mainState.keyNewTorTab,
-      click(item, focusedWindow) {
-        getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents2.send('new-tab',cont.id,"chrome://newtab/",'persist:tor',!mainState.openTabNextLabel)
-        })
-      }
-    },
-    {
-      label: locale.translation('newSessionTab'),
-      accelerator: mainState.keyNewSessionTab,
-      click(item, focusedWindow) {
-        getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents2.send('new-tab',cont.id,"chrome://newtab/", `persist:${seq()}`,!mainState.openTabNextLabel)
-        })
-      }
-    },
+    // {
+    //   label: locale.translation('newPrivateTab'),
+    //   accelerator: mainState.keyNewPrivateTab,
+    //   click(item, focusedWindow) {
+    //     getFocusedWebContents().then(cont=>{
+    //       cont && cont.hostWebContents2.send('new-tab',cont.id,"chrome://newtab/",true,!mainState.openTabNextLabel)
+    //     })
+    //   }
+    // },
+    // {
+    //   label: 'New Tor Tab',
+    //   accelerator: mainState.keyNewTorTab,
+    //   click(item, focusedWindow) {
+    //     getFocusedWebContents().then(cont=>{
+    //       cont && cont.hostWebContents2.send('new-tab',cont.id,"chrome://newtab/",'persist:tor',!mainState.openTabNextLabel)
+    //     })
+    //   }
+    // },
+    // {
+    //   label: locale.translation('newSessionTab'),
+    //   accelerator: mainState.keyNewSessionTab,
+    //   click(item, focusedWindow) {
+    //     getFocusedWebContents().then(cont=>{
+    //       cont && cont.hostWebContents2.send('new-tab',cont.id,"chrome://newtab/", `persist:${seq()}`,!mainState.openTabNextLabel)
+    //     })
+    //   }
+    // },
     {
       label: locale.translation('newWindow'),
       accelerator: mainState.keyNewWindow,
@@ -892,15 +892,15 @@ const createWindowSubmenu = () => {
         })
       }
     },
-    {
-      t: 'enableSearchHighlight', label: locale.translation('enableSearchHighlight'),
-      accelerator: mainState.keySearchHighlight,
-      click(item, focusedWindow) {
-        getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents2.send('menu-or-key-events', 'searchHighlight', cont.id)
-        })
-      }
-    },
+    // {
+    //   t: 'enableSearchHighlight', label: locale.translation('enableSearchHighlight'),
+    //   accelerator: mainState.keySearchHighlight,
+    //   click(item, focusedWindow) {
+    //     getFocusedWebContents().then(cont=>{
+    //       cont && cont.hostWebContents2.send('menu-or-key-events', 'searchHighlight', cont.id)
+    //     })
+    //   }
+    // },
     {
       t: 'changeToMobileAgent', label: locale.translation('changeToMobileAgent'),
       accelerator: mainState.keyChangeMobileAgent,
@@ -920,15 +920,15 @@ const createWindowSubmenu = () => {
         })
       }
     },
-    {
-      t: 'floatingPanel', label: locale.translation('floatingPanel'),
-      accelerator: mainState.keyFloatingPanel,
-      click(item, focusedWindow) {
-        getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents2.send('menu-or-key-events', 'floatingPanel', cont.id)
-        })
-      }
-    },
+    // {
+    //   t: 'floatingPanel', label: locale.translation('floatingPanel'),
+    //   accelerator: mainState.keyFloatingPanel,
+    //   click(item, focusedWindow) {
+    //     getFocusedWebContents().then(cont=>{
+    //       cont && cont.hostWebContents2.send('menu-or-key-events', 'floatingPanel', cont.id)
+    //     })
+    //   }
+    // },
     {
       label: 'Maximize Panel',
       accelerator: mainState.keyMaximizePanel,

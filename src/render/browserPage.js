@@ -515,17 +515,17 @@ class BrowserPage extends Component {
   // }
 
   onClose(e,stopAutoHighlight){
-    if(stopAutoHighlight){
-      let tabId = this.props.tab.wvId
-      while(true){
-        if(!tabId) break
-        if(sharedState.searchWords[tabId]){
-          delete sharedState.searchWords[tabId]
-          break
-        }
-        tabId = sharedState.tabValues[tabId]
-      }
-    }
+    // if(stopAutoHighlight){
+    //   let tabId = this.props.tab.wvId
+    //   while(true){
+    //     if(!tabId) break
+    //     if(sharedState.searchWords[tabId]){
+    //       delete sharedState.searchWords[tabId]
+    //       break
+    //     }
+    //     tabId = sharedState.tabValues[tabId]
+    //   }
+    // }
     this.webview.stopFindInPage('clearSelection')
     this.complexReset()
     this.previous_text = ""

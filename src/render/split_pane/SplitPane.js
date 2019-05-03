@@ -61,6 +61,7 @@ class SplitPane extends Component {
       this.webviews.add(document.elementFromPoint(e.clientX+xMod,e.clientY-yMod))
       this.webviews.add(document.elementFromPoint(e.clientX+xMod,e.clientY+yMod))
     }
+    console.log('multi-scroll-webviews1')
     PubSub.publishSync('multi-scroll-webviews',{deltaY: - e.deltaY,
       webviews:this.webviews ? [...this.webviews] : []})
     // webviews:[{wv:this.webview1,x:e.clientX-xMod,y:e.clientY-yMod,c:0},{wv:this.webview2,x:e.clientX+xMod,y:e.clientY+yMod,c:1}]})

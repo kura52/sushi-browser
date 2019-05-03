@@ -458,7 +458,7 @@ export default {
         mainState.rockerGestureRight = isWin ? locale.translation('forward') : 'none'
       }
 
-      if(!mainState.enableSmoothScrolling) app.commandLine.appendSwitch('disable-smooth-scrolling')
+      // if(!mainState.enableSmoothScrolling) app.commandLine.appendSwitch('disable-smooth-scrolling')
 
       mainState.searchProviders = {}
       for(let ele of (await searchEngine.find({}))){
@@ -628,6 +628,7 @@ export default {
         setTimeout(()=> initWindow.maximize(),3000)
       }
       initWindow.setAlwaysOnTop(!!winArg.alwaysOnTop)
+      initWindow._alwaysOnTop = !!winArg.alwaysOnTop
       initWindow.webContents.setUserAgent(await Browser.getUserAgent())
       // r()
     })

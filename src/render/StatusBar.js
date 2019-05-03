@@ -212,7 +212,7 @@ class StatusBar extends Component {
         {this.renderButton('history','history','chrome://history/')}
         {this.renderButton('download','downloads','download')}
         {this.renderButton('sticky-note','note','note')}
-        {this.renderButton('cog','settings','chrome://settings/')}
+        {this.renderButton('cog','settings','chrome://setting/')}
         {/*{this.renderButton('folder','fileExplorer','explorer')}*/}
         {/*{this.renderButton('terminal','4589268276914962177','terminal')}*/}
         <span className="vertical-divider"/>

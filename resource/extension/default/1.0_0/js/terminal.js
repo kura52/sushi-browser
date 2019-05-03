@@ -14978,31 +14978,37 @@ if (window.__started_) {
     // }
   });
 
-  //style setting
-  let styleVal;
-  if ((styleVal = localStorage.getItem('meiryo')) !== null) {
-    if (styleVal === "true") {
-      setTimeout(_ => {
-        const css = document.createElement('style');
-        const rule = document.createTextNode('html{ font-family: Arial, "メイリオ", sans-serif}');
-        css.appendChild(rule);
-        const head = document.getElementsByTagName('head');
-        if (head[0]) head[0].appendChild(css);
-      }, 0);
-    }
-  } else {
-    ipc.send('need-meiryo');
-    ipc.once('need-meiryo-reply', (e, styleVal) => {
-      localStorage.setItem('meiryo', styleVal);
-      if (styleVal) {
-        const css = document.createElement('style');
-        const rule = document.createTextNode('html{ font-family: Arial, "メイリオ", sans-serif}');
-        css.appendChild(rule);
-        const head = document.getElementsByTagName('head');
-        if (head[0]) head[0].appendChild(css);
-      }
-    });
-  }
+  // //style setting
+  //   let styleVal
+  //   try{
+  //     styleVal = localStorage.getItem('meiryo')
+  //   }catch(e){}
+  //
+  //   if(styleVal !== null){
+  //     if(styleVal === "true"){
+  //       setTimeout(_=>{
+  //         const css = document.createElement('style')
+  //         const rule = document.createTextNode('html{ font-family: Arial, "メイリオ", sans-serif}')
+  //         css.appendChild(rule)
+  //         const head = document.getElementsByTagName('head')
+  //         if(head[0]) head[0].appendChild(css)
+  //       },0)
+  //     }
+  //   }
+  //   else{
+  //     ipc.send('need-meiryo')
+  //     ipc.once('need-meiryo-reply',(e,styleVal)=>{
+  //       localStorage.setItem('meiryo',styleVal)
+  //       if(styleVal){
+  //         const css = document.createElement('style')
+  //         const rule = document.createTextNode('html{ font-family: Arial, "メイリオ", sans-serif}')
+  //         css.appendChild(rule)
+  //         const head = document.getElementsByTagName('head')
+  //         if(head[0]) head[0].appendChild(css)
+  //       }
+  //     })
+  //   }
+
 
   let isFirst = true;
   const videoFunc = (e, inputs) => {

@@ -38,5 +38,6 @@ function a(file){
   '../resource/extension/default/1.0_0/js/terminal.js',
   '../resource/extension/default/1.0_0/js/sync.js',
   '../resource/extension/default/1.0_0/js/settings.js',
+  '../resource/extension/default/1.0_0/js/video_main.js',
   '../lib/render/base.js'
 ].forEach(f=>a(f))

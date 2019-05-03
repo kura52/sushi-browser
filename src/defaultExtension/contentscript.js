@@ -518,7 +518,7 @@ if(window.__started_){
       if(Object.keys(addInput).length || !codeSet.has(e.keyCode)){
         const name = mainState[JSON.stringify({code: e.code.toLowerCase().replace('arrow','').replace('escape','esc'),...addInput})] || mainState[JSON.stringify({key: e.key.toLowerCase().replace('arrow','').replace('escape','esc'),...addInput})]
         if(name){
-          ipc.send('menu-or-key-events',name)
+          ipc.send('menu-or-key-events',name.split("_")[0])
           console.log(name)
           e.preventDefault()
           e.stopImmediatePropagation()
@@ -554,72 +554,72 @@ if(window.__started_){
     'inputHistory','inputHistoryMaxChar','hoverStatusBar','hoverBookmarkBar','ALL_KEYS2'])
   ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
     mainState = data
-    if(data.fullscreenTransitionKeep){
-      let full = data.fullScreen ? true : false
-      let preV = "_"
-      setInterval(_=>{
-        const v = document.querySelector('video')
-        if(full && v && v.src && v.src != preV){
-          if(v.scrollWidth == window.innerWidth || v.scrollHeight == window.innerHeight || v.webkitDisplayingFullscreen){}
-          else{
-            const fullscreenButton = document.querySelector('.ytp-fullscreen-button,.fullscreenButton,.button-bvuiFullScreenOn,.fullscreen-icon,.full-screen-button,.np_ButtonFullscreen,.vjs-fullscreen-control,.qa-fullscreen-button,[data-testid="fullscreen_control"],.vjs-fullscreen-control,.EnableFullScreenButton,.DisableFullScreenButton,.mhp1138_fullscreen,button.fullscreenh,.screenFullBtn,.player-fullscreenbutton')
-            if(fullscreenButton){
-              const callback = e => {
-                e.stopImmediatePropagation()
-                e.preventDefault()
-                document.removeEventListener('mouseup',callback ,true)
-                fullscreenButton.click()
-                if(location.href.startsWith('https://www.youtube.com')){
-                  let retry = 0
-                  const id = setInterval(_=>{
-                    if(retry++>500) clearInterval(id)
-                    const e = document.querySelector('.html5-video-player').classList
-                    if(!e.contains('ytp-autohide')){
-                      // e.add('ytp-autohide')
-                      if(document.querySelector('.ytp-fullscreen-button.ytp-button').getAttribute('aria-expanded') == 'true'){
-                        v.click()
-                      }
-                    }
-                  },10)
-                }
-              }
-              document.addEventListener('mouseup',callback ,true);
-              setTimeout(_=>ipc.send('send-to-host', 'full-screen-mouseup'),500)
-            }
-            else{
-              const callback = e => {
-                e.stopImmediatePropagation()
-                e.preventDefault()
-                document.removeEventListener('mouseup',callback ,true)
-                v.webkitRequestFullscreen()
-              }
-              let i = 0
-              const cId = setInterval(_=>{
-                document.addEventListener('mouseup',callback ,true);
-                ipc.send('send-to-host', 'full-screen-mouseup')
-                if(i++ == 5){
-                  clearInterval(cId)
-                }
-              },100)
-            }
-          }
-          preV = v.src
-        }
-
-        if(v && v.src){
-          const currentFull = v.scrollWidth == window.innerWidth || v.scrollHeight == window.innerHeight || v.webkitDisplayingFullscreen
-          if(v && full != currentFull){
-            full = currentFull
-            if(full){
-              ipc.send("full-screen-html",true)
-            }
-            else{
-              ipc.send("full-screen-html",false)
-            }
-          }
-        }
-      },500)
-    }
+    // if(data.fullscreenTransitionKeep){
+    //   let full = data.fullScreen ? true : false
+    //   let preV = "_"
+    //   setInterval(_=>{
+    //     const v = document.querySelector('video')
+    //     if(full && v && v.src && v.src != preV){
+    //       if(v.scrollWidth == window.innerWidth || v.scrollHeight == window.innerHeight || v.webkitDisplayingFullscreen){}
+    //       else{
+    //         const fullscreenButton = document.querySelector('.ytp-fullscreen-button,.fullscreenButton,.button-bvuiFullScreenOn,.fullscreen-icon,.full-screen-button,.np_ButtonFullscreen,.vjs-fullscreen-control,.qa-fullscreen-button,[data-testid="fullscreen_control"],.vjs-fullscreen-control,.EnableFullScreenButton,.DisableFullScreenButton,.mhp1138_fullscreen,button.fullscreenh,.screenFullBtn,.player-fullscreenbutton')
+    //         if(fullscreenButton){
+    //           const callback = e => {
+    //             e.stopImmediatePropagation()
+    //             e.preventDefault()
+    //             document.removeEventListener('mouseup',callback ,true)
+    //             fullscreenButton.click()
+    //             if(location.href.startsWith('https://www.youtube.com')){
+    //               let retry = 0
+    //               const id = setInterval(_=>{
+    //                 if(retry++>500) clearInterval(id)
+    //                 const e = document.querySelector('.html5-video-player').classList
+    //                 if(!e.contains('ytp-autohide')){
+    //                   // e.add('ytp-autohide')
+    //                   if(document.querySelector('.ytp-fullscreen-button.ytp-button').getAttribute('aria-expanded') == 'true'){
+    //                     v.click()
+    //                   }
+    //                 }
+    //               },10)
+    //             }
+    //           }
+    //           document.addEventListener('mouseup',callback ,true);
+    //           setTimeout(_=>ipc.send('send-to-host', 'full-screen-mouseup'),500)
+    //         }
+    //         else{
+    //           const callback = e => {
+    //             e.stopImmediatePropagation()
+    //             e.preventDefault()
+    //             document.removeEventListener('mouseup',callback ,true)
+    //             v.webkitRequestFullscreen()
+    //           }
+    //           let i = 0
+    //           const cId = setInterval(_=>{
+    //             document.addEventListener('mouseup',callback ,true);
+    //             ipc.send('send-to-host', 'full-screen-mouseup')
+    //             if(i++ == 5){
+    //               clearInterval(cId)
+    //             }
+    //           },100)
+    //         }
+    //       }
+    //       preV = v.src
+    //     }
+    //
+    //     if(v && v.src){
+    //       const currentFull = v.scrollWidth == window.innerWidth || v.scrollHeight == window.innerHeight || v.webkitDisplayingFullscreen
+    //       if(v && full != currentFull){
+    //         full = currentFull
+    //         if(full){
+    //           ipc.send("full-screen-html",true)
+    //         }
+    //         else{
+    //           ipc.send("full-screen-html",false)
+    //         }
+    //       }
+    //     }
+    //   },500)
+    // }
     if (data.tripleClick) {
       window.addEventListener('click', e => {
         if (e.detail === 3) {

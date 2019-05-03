@@ -136,7 +136,7 @@ class BrowserNavbar extends Component{
     this.tokenReplaceInfo = PubSub.subscribe(`update-replace-info_${this.props.tabkey}`,(msg,replaceInfo)=>{
       this.refs.syncReplace.setVals(replaceInfo)
     })
-    this.tokenPdfMode = PubSub.subscribe('set-pdfmode-enable',(msg,mode)=>this.setState({pdfMode:mode}))
+    // this.tokenPdfMode = PubSub.subscribe('set-pdfmode-enable',(msg,mode)=>this.setState({pdfMode:mode}))
 
     this.tokenBindWindow = PubSub.subscribe(`bind-window_${this.props.tab.key}`,::this._bindWindow)
 
@@ -228,7 +228,7 @@ class BrowserNavbar extends Component{
     PubSub.unsubscribe(this.tokenZoom)
     PubSub.unsubscribe(this.tokenReplaceInfo)
     // PubSub.unsubscribe(this.tokenAdblockGlobal)
-    PubSub.unsubscribe(this.tokenPdfMode)
+    // PubSub.unsubscribe(this.tokenPdfMode)
     PubSub.unsubscribe(this.tokenBindWindow)
     PubSub.unsubscribe(this.tokenForceUpdate)
     PubSub.unsubscribe(this.tokenMenuSort)
@@ -283,11 +283,11 @@ class BrowserNavbar extends Component{
       this.state.bindWindow == nextState.bindWindow &&
       this.props.adBlockEnable == nextProps.adBlockEnable &&
       this.props.adBlockThis == nextProps.adBlockThis &&
-      this.state.pdfMode == nextState.pdfMode &&
+      // this.state.pdfMode == nextState.pdfMode &&
       this.props.oppositeGlobal == nextProps.oppositeGlobal &&
       this.props.tabKey == this.tabKey &&
-      this.searchWordHighlight == sharedState.searchWordHighlight &&
-      this.searchWordHighlightRecursive == sharedState.searchWordHighlightRecursive &&
+      // this.searchWordHighlight == sharedState.searchWordHighlight &&
+      // this.searchWordHighlightRecursive == sharedState.searchWordHighlightRecursive &&
       this.mobilePanelSyncScroll == sharedState.mobilePanelSyncScroll &&
       this.bookmarkBar == sharedState.bookmarkBar &&
       this.hoverBookmarkBar == sharedState.hoverBookmarkBar &&
@@ -313,8 +313,8 @@ class BrowserNavbar extends Component{
       this.syncReplace = nextProps.tab.syncReplace
       this.oppositeMode = nextProps.tab.oppositeMode
       this.tabKey = nextProps.tabKey
-      this.searchWordHighlight = sharedState.searchWordHighlight
-      this.searchWordHighlightRecursive = sharedState.searchWordHighlightRecursive
+      // this.searchWordHighlight = sharedState.searchWordHighlight
+      // this.searchWordHighlightRecursive = sharedState.searchWordHighlightRecursive
       this.mobilePanelSyncScroll = sharedState.mobilePanelSyncScroll
       this.bookmarkBar = sharedState.bookmarkBar
       this.hoverBookmarkBar = sharedState.hoverBookmarkBar
@@ -517,11 +517,11 @@ class BrowserNavbar extends Component{
     PubSub.publish('set-adblock-enable',val)
   }
 
-  handlePdfMode(){
-    const val = this.state.pdfMode == 'normal' ? 'comic' : 'normal'
-    PubSub.publish('set-pdfmode-enable',val)
-    mainState.set('pdfMode',val)
-  }
+  // handlePdfMode(){
+  //   const val = this.state.pdfMode == 'normal' ? 'comic' : 'normal'
+  //   PubSub.publish('set-pdfmode-enable',val)
+  //   mainState.set('pdfMode',val)
+  // }
 
   handleOppositeGlobal(){
     const val = !this.props.oppositeGlobal
@@ -647,14 +647,14 @@ class BrowserNavbar extends Component{
     return ret
   }
 
-  loadTabSetting(){
-    sharedState.notLoadTabUntilSelected = !sharedState.notLoadTabUntilSelected
-    mainState.set('notLoadTabUntilSelected',sharedState.notLoadTabUntilSelected)
-    sharedState.enableColorOfNoSelect = sharedState.notLoadTabUntilSelected
-    mainState.set('enableColorOfNoSelect',sharedState.notLoadTabUntilSelected)
-    this.forceUpdates = true
-    this.props.parent.setState({})
-  }
+  // loadTabSetting(){
+  //   sharedState.notLoadTabUntilSelected = !sharedState.notLoadTabUntilSelected
+  //   mainState.set('notLoadTabUntilSelected',sharedState.notLoadTabUntilSelected)
+  //   sharedState.enableColorOfNoSelect = sharedState.notLoadTabUntilSelected
+  //   mainState.set('enableColorOfNoSelect',sharedState.notLoadTabUntilSelected)
+  //   this.forceUpdates = true
+  //   this.props.parent.setState({})
+  // }
 
   askDownload(){
     sharedState.askDownload = !sharedState.askDownload
@@ -699,19 +699,18 @@ class BrowserNavbar extends Component{
 
       <NavbarMenuItem text={`[${alwaysOnTop ? '✓' : ' '}] ${locale.translation('alwaysOnTop')}`} icon='level up' onClick={()=>{
         alwaysOnTop = !alwaysOnTop
-        mainState.set('alwaysOnTop',alwaysOnTop)
-        remote.getCurrentWindow().setAlwaysOnTop(alwaysOnTop)
+        ipc.send('set-alwaysOnTop', alwaysOnTop)
         this.forceUpdates = true
         this.setState({})
       }}/>
       {isDarwin ? null :<NavbarMenuItem text={`${locale.translation("bindSelectedWindow")}`} icon='crosshairs' onClick={_=>this.bindWindow()}/>}
-      <NavbarMenuItem text={`[${sharedState.searchWordHighlight ? '✓' : ' '}] ${locale.translation("searchHighlight")}`} icon='asterisk' onClick={_=>{
-        sharedState.searchWordHighlight = !sharedState.searchWordHighlight
-        mainState.set('searchWordHighlight',sharedState.searchWordHighlight)
-        this.props.searchWordHighlight(this.props.tab)
-        this.refs['main-menu'].menuClose()
-        this.setState({})
-      }}/>
+      {/*<NavbarMenuItem text={`[${sharedState.searchWordHighlight ? '✓' : ' '}] ${locale.translation("searchHighlight")}`} icon='asterisk' onClick={_=>{*/}
+        {/*sharedState.searchWordHighlight = !sharedState.searchWordHighlight*/}
+        {/*mainState.set('searchWordHighlight',sharedState.searchWordHighlight)*/}
+        {/*this.props.searchWordHighlight(this.props.tab)*/}
+        {/*this.refs['main-menu'].menuClose()*/}
+        {/*this.setState({})*/}
+      {/*}}/>*/}
       {isDarwin ? null : <NavbarMenuItem text={`[${this.props.tab.fields && this.props.tab.fields.mobilePanel ? '✓' : ' '}] Show Mobile Panel`} icon='mobile'
                       onClick={()=>{
                         // if(!this.props.tab.fields) this.props.tab.fields = {}
@@ -799,18 +798,18 @@ class BrowserNavbar extends Component{
         }
         }/> : null}
         <NavbarMenuItem text={`[${this.props.oppositeGlobal ? '✓' : ' '}] ${locale.translation("openOnOpposite")}`} icon='columns' onClick={_=>{this.handleOppositeGlobal();this.refs['main-menu'].menuClose()}}/>
-        <NavbarMenuItem text={`[${sharedState.searchWordHighlightRecursive ? '✓' : ' '}] ${locale.translation("searchHighlightRecursive")}`} icon='asterisk' onClick={_=>{
-          sharedState.searchWordHighlightRecursive = !sharedState.searchWordHighlightRecursive
-          mainState.set('searchWordHighlightRecursive',sharedState.searchWordHighlightRecursive)
-          this.refs['main-menu'].menuClose()
-          this.setState({})
-        }}/>
+        {/*<NavbarMenuItem text={`[${sharedState.searchWordHighlightRecursive ? '✓' : ' '}] ${locale.translation("searchHighlightRecursive")}`} icon='asterisk' onClick={_=>{*/}
+          {/*sharedState.searchWordHighlightRecursive = !sharedState.searchWordHighlightRecursive*/}
+          {/*mainState.set('searchWordHighlightRecursive',sharedState.searchWordHighlightRecursive)*/}
+          {/*this.refs['main-menu'].menuClose()*/}
+          {/*this.setState({})*/}
+        {/*}}/>*/}
 
-        <NavbarMenuItem text={`[${sharedState.notLoadTabUntilSelected ? '✓' : ' '}] ${locale.translation("donTLoadTabsUntillSelected")}`} onClick={_=>{this.loadTabSetting();this.refs['main-menu'].menuClose()}}/>
+        {/*<NavbarMenuItem text={`[${sharedState.notLoadTabUntilSelected ? '✓' : ' '}] ${locale.translation("donTLoadTabsUntillSelected")}`} onClick={_=>{this.loadTabSetting();this.refs['main-menu'].menuClose()}}/>*/}
         <NavbarMenuItem text={`[${sharedState.askDownload ? '✓' : ' '}] ${locale.translation('7754704193130578113')}`} onClick={_=>{this.askDownload();this.refs['main-menu'].menuClose()}}/>
         <div className="divider" />
         <NavbarMenuItem text={locale.translation("extractAudioFromVideo")} icon='music' onClick={_=>{ipc.send('audio-extract');this.refs['main-menu'].menuClose()}}/>
-        <NavbarMenuItem text={this.state.pdfMode == 'normal' ? locale.translation("changePdfViewToComic") : locale.translation("changePdfViewToNormal")} icon='file pdf outline' onClick={_=>{this.handlePdfMode();this.refs['main-menu'].menuClose()}}/>
+        {/*<NavbarMenuItem text={this.state.pdfMode == 'normal' ? locale.translation("changePdfViewToComic") : locale.translation("changePdfViewToNormal")} icon='file pdf outline' onClick={_=>{this.handlePdfMode();this.refs['main-menu'].menuClose()}}/>*/}
       </NavbarMenuSubMenu>
       <div className="divider" />
 
@@ -1050,8 +1049,8 @@ class BrowserNavbar extends Component{
         <Dropdown.Menu className="nav-menu">
           <div role="option" className="item" onClick={_=>this.props.tab.events['pin-video'](null,this.props.tab.wvId,true)}>{locale.translation('playVideoInPopupWindow')}</div>
           <Divider/>
-          <div role="option" className="item" onClick={_=>this.props.tab.events['pin-video'](null,this.props.tab.wvId)}>{locale.translation('playVideoInFloatingPanel')}</div>
-          <Divider/>
+          {/*<div role="option" className="item" onClick={_=>this.props.tab.events['pin-video'](null,this.props.tab.wvId)}>{locale.translation('playVideoInFloatingPanel')}</div>*/}
+          {/*<Divider/>*/}
           <div className="org-menu">
             {(rich||[]).map((e,i)=>{
               let url = e.url

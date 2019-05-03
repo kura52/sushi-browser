@@ -26,7 +26,7 @@ const {messages,locale} = require('./localAndMessage')
 const isWin = navigator.userAgent.includes('Windows')
 const sharedState = require('./sharedState')
 const BrowserPageStatus = require('./BrowserPageStatus')
-const autoHighLightInjection = require('./autoHighLightInjection')
+// const autoHighLightInjection = require('./autoHighLightInjection')
 const InputPopup = require('./InputPopup')
 const browserActionMap = require('./browserActionDatas')
 
@@ -51,13 +51,13 @@ let [newTabMode,inputsVideo,disableTabContextMenus,priorityTabContextMenus,reloa
 
 sharedState.tabPreview = tabPreview
 sharedState.tabPreviewRecent = tabPreviewRecent
-sharedState.searchWordHighlight = searchWordHighlight
-sharedState.searchWordHighlightRecursive = searchWordHighlightRecursive
+// sharedState.searchWordHighlight = searchWordHighlight
+// sharedState.searchWordHighlightRecursive = searchWordHighlightRecursive
 sharedState.showAddressBarFavicon = showAddressBarFavicon
 sharedState.showAddressBarBookmarks = showAddressBarBookmarks
 
 disableTabContextMenus = new Set(disableTabContextMenus)
-sharedState.searchWords = {}
+// sharedState.searchWords = {}
 
 
 function getNewTabPage(){
@@ -105,7 +105,7 @@ const convertUrlMap = new Map([
   ['chrome://terminal/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html'],
   ['chrome://converter/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html'],
   ['chrome://automation/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html'],
-  ['chrome://settings/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html'],
+  ['chrome://setting/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html'],
   ['chrome://settings#general','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general'],
   ['chrome://settings#search','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search'],
   ['chrome://settings#tabs','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs'],
@@ -509,7 +509,7 @@ export default class TabPanel extends Component {
     this.createTab = ::this.createTab
     this.webViewCreate = ::this.webViewCreate
     this.screenShot = ::this.screenShot
-    this.searchWordHighlight = ::this.searchWordHighlight
+    // this.searchWordHighlight = ::this.searchWordHighlight
     this.navigateTo = ::this.navigateTo
     this.updateIdle = ::this.updateIdle
     this.maximizePanel = ::this.maximizePanel
@@ -755,8 +755,9 @@ export default class TabPanel extends Component {
     })
 
     const tokenMultiScroll = PubSub.subscribe('multi-scroll-webviews',(msg,{deltaY,webviews})=>{
+      console.log('multi-scroll-webviews2')
       let wv,cont
-      const tab = this.state.tabs.find(t =>t.wv && (wv = webviews.find(w=>w == ReactDOM.findDOMNode(t.wv))))
+      const tab = this.state.tabs.find(t =>t.div && (wv = webviews.find(w=>w == t.div.parentNode)))
       if(!tab) return
       cont = this.getWebContents(tab)
       // cont.sendInputEvent({ type: 'mouseWheel', x: wv.x, y: wv.y, deltaX: 0, deltaY, canScroll: true});
@@ -1001,40 +1002,40 @@ export default class TabPanel extends Component {
   filterFromContents(page, navigateTo, tab, self) {
     console.log('filterFromContents',page.navUrl)
 
-    if (page.navUrl.match(/^(chrome|https:\/\/github\.com)/)) {
-      return false
-    }
-    else if (page.navUrl.endsWith('.pdf') || page.navUrl.endsWith('.PDF')) {
-      let fileUrl = page.navUrl
-      if(fileUrl.startsWith('file:')){
-        const accessKey = ipc.sendSync('get-access-key')
-        fileUrl = `chrome-extension://jdbefljfgobbmcidnmpjamcbhnbphjnb/?key=${accessKey}&file=${fileUrl.replace(/^file:\/\//,'')}`
-      }
-      const url = ipc.sendSync('get-sync-main-state','pdfMode') == "normal" ?
-        `chrome-extension://jdbefljfgobbmcidnmpjamcbhnbphjnb/content/web/viewer.html?file=${encodeURIComponent(fileUrl)}` :
-        `chrome-extension://jdbefljfgobbmcidnmpjamcbhnbphjnb/comicbed/index.html#?url=${encodeURIComponent(fileUrl)}`
-      navigateTo(url)
-      return true
-    }
-    else if(page.navUrl.split("?").slice(-2)[0].match(/\.(3gp|3gpp|3gpp2|asf|avi|dv|flv|m2t|m4v|mkv|mov|mp4|mpeg|mpg|mts|oggtheora|ogv|rm|ts|vob|webm|wmv|aac|m4a|mp3|oga|wav)$/)){
+    // if (page.navUrl.match(/^(chrome|https:\/\/github\.com)/)) {
+    //   return false
+    // }
+    // else if (page.navUrl.endsWith('.pdf') || page.navUrl.endsWith('.PDF')) {
+    //   let fileUrl = page.navUrl
+    //   if(fileUrl.startsWith('file:')){
+    //     const accessKey = ipc.sendSync('get-access-key')
+    //     fileUrl = `chrome-extension://jdbefljfgobbmcidnmpjamcbhnbphjnb/?key=${accessKey}&file=${fileUrl.replace(/^file:\/\//,'')}`
+    //   }
+    //   const url = ipc.sendSync('get-sync-main-state','pdfMode') == "normal" ?
+    //     `chrome-extension://jdbefljfgobbmcidnmpjamcbhnbphjnb/content/web/viewer.html?file=${encodeURIComponent(fileUrl)}` :
+    //     `chrome-extension://jdbefljfgobbmcidnmpjamcbhnbphjnb/comicbed/index.html#?url=${encodeURIComponent(fileUrl)}`
+    //   navigateTo(url)
+    //   return true
+    // }
+    if(page.navUrl.split("?").slice(-2)[0].match(/\.(3gp|3gpp|3gpp2|asf|avi|dv|flv|m2t|m4v|mkv|mov|mp4|mpeg|mpg|mts|oggtheora|ogv|rm|ts|vob|webm|wmv|aac|m4a|mp3|oga|wav)$/)){
       navigateTo(`chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/video.html?url=${encodeURIComponent(page.navUrl)}`)
       return true
     }
     else if (this.props.htmlContentSet.has(page.navUrl)){
       return false
     }
-    else if(page.navUrl.match(/^file:.+?\.(zip|rar)$/)){
-      const url = `chrome-extension://jdbefljfgobbmcidnmpjamcbhnbphjnb/comicbed/index.html#?url=${encodeURIComponent(page.navUrl)}`
-      navigateTo(url)
-      return true
-    }
-    else if (page.navUrl.match(/^file:.+?\.(abap|abc|as|ada|adb|htaccess|htgroups|htpasswd|conf|htaccess|htgroups|htpasswd|asciidoc|adoc|asm|a|ahk|bat|cmd|bro|cpp|c|cc|cxx|h|hh|hpp|ino|c9search_results|cirru|cr|clj|cljs|CBL|COB|coffee|cf|cson|Cakefile|cfm|cs|css|curly|d|di|dart|diff|patch|Dockerfile|dot|drl|dummy|dummy|e|ge|ejs|ex|exs|elm|erl|hrl|frt|fs|ldr|fth|4th|f|f90|ftl|gcode|feature|.gitignore|glsl|frag|vert|gbs|go|groovy|haml|hbs|handlebars|tpl|mustache|hs|cabal|hx|htm|html|hjson|xhtml|eex|html.eex|erb|rhtml|html.erb|ini|conf|cfg|prefs|io|jack|jade|pug|java|js|jsm|jsx|json|jq|jsx|jl|kt|kts|tex|latex|ltx|bib|less|liquid|lisp|ls|logic|log|lql|lsl|lua|lp|lucene|Makefile|md|GNUmakefile|makefile|OCamlMakefile|make|markdown|mask|matlab|mz|mel|mc|mush|mysql|nix|nsi|nsh|m|mm|ml|mli|pas|p|pl|pm|pgsql|php|phtml|shtml|php3|php4|php5|phps|phpt|aw|ctp|module|ps1|praat|praatscript|psc|proc|plg|prolog|properties|proto|py|r|cshtml|asp|Rd|Rhtml|rst|rb|ru|gemspec|rake|Guardfile|Rakefile|Gemfile|rs|sass|scad|scala|scm|sm|rkt|oak|scheme|scss|sh|bash|.bashrc|sjs|smarty|tpl|snippets|soy|space|sql|sqlserver|styl|stylus|svg|swift|tcl|tex|txt|textile|toml|tsx|twig|swig|ts|typescript|str|vala|vbs|vb|vm|v|vh|sv|svh|vhd|vhdl|wlk|wpgm|wtest|xml|rdf|rss|wsdl|xslt|atom|mathml|mml|xul|xbl|xaml|xq|yaml|yml)$/) ||
-      page.navUrl.match(/\/[^\?=]+?\.(abap|abc|as|ada|adb|htaccess|htgroups|htpasswd|conf|htaccess|htgroups|htpasswd|asciidoc|adoc|asm|a|ahk|bat|cmd|bro|cpp|c|cxx|h|hh|hpp|ino|c9search_results|cirru|cr|clj|cljs|CBL|COB|coffee|cf|cson|Cakefile|cfm|cs|css|curly|d|di|dart|diff|patch|Dockerfile|dot|drl|dummy|dummy|e|ge|ejs|ex|exs|elm|erl|hrl|frt|fs|ldr|fth|4th|f|f90|ftl|gcode|feature|.gitignore|glsl|frag|vert|gbs|go|groovy|hbs|handlebars|tpl|mustache|hs|cabal|hx|hjson|eex|ini|conf|cfg|prefs|io|jack|jade|pug|java|js|jsm|jsx|json|jq|jsx|jl|kt|kts|tex|latex|ltx|bib|less|liquid|lisp|ls|logic|lql|lsl|lua|lp|lucene|Makefile|md|GNUmakefile|makefile|OCamlMakefile|make|markdown|mask|matlab|mz|mel|mc|mush|mysql|nix|nsi|nsh|m|mm|ml|mli|pas|p|pl|pm|pgsql|phps|phpt|aw|ctp|module|ps1|praat|praatscript|psc|proc|plg|prolog|properties|proto|py|r|cshtml|Rd|Rhtml|rst|rb|gemspec|rake|Guardfile|Rakefile|Gemfile|rs|sass|scad|scala|scm|sm|rkt|oak|scheme|scss|sh|bash|.bashrc|sjs|smarty|tpl|snippets|soy|space|sql|sqlserver|styl|stylus|svg|swift|tcl|tex|txt|textile|toml|tsx|twig|swig|ts|typescript|str|vala|vbs|vb|vm|v|vh|sv|svh|vhd|vhdl|wlk|wpgm|wtest|wsdl|xslt|atom|mathml|mml|xul|xbl|xaml|xq|yaml|yml)$/)) {
-      if(page.navUrl.endsWith('user.js')) return false
-
-      navigateTo(`chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/ace.html?url=${encodeURIComponent(page.navUrl)}`)
-      return true
-    }
+    // else if(page.navUrl.match(/^file:.+?\.(zip|rar)$/)){
+    //   const url = `chrome-extension://jdbefljfgobbmcidnmpjamcbhnbphjnb/comicbed/index.html#?url=${encodeURIComponent(page.navUrl)}`
+    //   navigateTo(url)
+    //   return true
+    // }
+    // else if (page.navUrl.match(/^file:.+?\.(abap|abc|as|ada|adb|htaccess|htgroups|htpasswd|conf|htaccess|htgroups|htpasswd|asciidoc|adoc|asm|a|ahk|bat|cmd|bro|cpp|c|cc|cxx|h|hh|hpp|ino|c9search_results|cirru|cr|clj|cljs|CBL|COB|coffee|cf|cson|Cakefile|cfm|cs|css|curly|d|di|dart|diff|patch|Dockerfile|dot|drl|dummy|dummy|e|ge|ejs|ex|exs|elm|erl|hrl|frt|fs|ldr|fth|4th|f|f90|ftl|gcode|feature|.gitignore|glsl|frag|vert|gbs|go|groovy|haml|hbs|handlebars|tpl|mustache|hs|cabal|hx|htm|html|hjson|xhtml|eex|html.eex|erb|rhtml|html.erb|ini|conf|cfg|prefs|io|jack|jade|pug|java|js|jsm|jsx|json|jq|jsx|jl|kt|kts|tex|latex|ltx|bib|less|liquid|lisp|ls|logic|log|lql|lsl|lua|lp|lucene|Makefile|md|GNUmakefile|makefile|OCamlMakefile|make|markdown|mask|matlab|mz|mel|mc|mush|mysql|nix|nsi|nsh|m|mm|ml|mli|pas|p|pl|pm|pgsql|php|phtml|shtml|php3|php4|php5|phps|phpt|aw|ctp|module|ps1|praat|praatscript|psc|proc|plg|prolog|properties|proto|py|r|cshtml|asp|Rd|Rhtml|rst|rb|ru|gemspec|rake|Guardfile|Rakefile|Gemfile|rs|sass|scad|scala|scm|sm|rkt|oak|scheme|scss|sh|bash|.bashrc|sjs|smarty|tpl|snippets|soy|space|sql|sqlserver|styl|stylus|svg|swift|tcl|tex|txt|textile|toml|tsx|twig|swig|ts|typescript|str|vala|vbs|vb|vm|v|vh|sv|svh|vhd|vhdl|wlk|wpgm|wtest|xml|rdf|rss|wsdl|xslt|atom|mathml|mml|xul|xbl|xaml|xq|yaml|yml)$/) ||
+    //   page.navUrl.match(/\/[^\?=]+?\.(abap|abc|as|ada|adb|htaccess|htgroups|htpasswd|conf|htaccess|htgroups|htpasswd|asciidoc|adoc|asm|a|ahk|bat|cmd|bro|cpp|c|cxx|h|hh|hpp|ino|c9search_results|cirru|cr|clj|cljs|CBL|COB|coffee|cf|cson|Cakefile|cfm|cs|css|curly|d|di|dart|diff|patch|Dockerfile|dot|drl|dummy|dummy|e|ge|ejs|ex|exs|elm|erl|hrl|frt|fs|ldr|fth|4th|f|f90|ftl|gcode|feature|.gitignore|glsl|frag|vert|gbs|go|groovy|hbs|handlebars|tpl|mustache|hs|cabal|hx|hjson|eex|ini|conf|cfg|prefs|io|jack|jade|pug|java|js|jsm|jsx|json|jq|jsx|jl|kt|kts|tex|latex|ltx|bib|less|liquid|lisp|ls|logic|lql|lsl|lua|lp|lucene|Makefile|md|GNUmakefile|makefile|OCamlMakefile|make|markdown|mask|matlab|mz|mel|mc|mush|mysql|nix|nsi|nsh|m|mm|ml|mli|pas|p|pl|pm|pgsql|phps|phpt|aw|ctp|module|ps1|praat|praatscript|psc|proc|plg|prolog|properties|proto|py|r|cshtml|Rd|Rhtml|rst|rb|gemspec|rake|Guardfile|Rakefile|Gemfile|rs|sass|scad|scala|scm|sm|rkt|oak|scheme|scss|sh|bash|.bashrc|sjs|smarty|tpl|snippets|soy|space|sql|sqlserver|styl|stylus|svg|swift|tcl|tex|txt|textile|toml|tsx|twig|swig|ts|typescript|str|vala|vbs|vb|vm|v|vh|sv|svh|vhd|vhdl|wlk|wpgm|wtest|wsdl|xslt|atom|mathml|mml|xul|xbl|xaml|xq|yaml|yml)$/)) {
+    //   if(page.navUrl.endsWith('user.js')) return false
+    //
+    //   navigateTo(`chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/ace.html?url=${encodeURIComponent(page.navUrl)}`)
+    //   return true
+    // }
     return false
   }
 
@@ -1223,48 +1224,48 @@ export default class TabPanel extends Component {
     };
   }
 
-  searchWordHighlight(tab){
-    autoHighLightInjection(this.getWebContents(tab),word=>{
-      if(!word){
-        let tabId = tab.wvId
-        if(sharedState.searchWordHighlightRecursive){
-          while(true){
-            if(!tabId) break
-            if(sharedState.searchWords[tabId]){
-              word = sharedState.searchWords[tabId]
-              break
-            }
-            tabId = sharedState.tabValues[tabId]
-          }
-        }
-        else{
-          if(sharedState.searchWords[tabId]){
-            const navbar = this.refs2[`navbar-${tab.key}`].state
-            const currentUrl = this.getWebContents(tab).getURL()
-            const currentIndex = navbar.historyList[navbar.currentIndex][0] == currentUrl ? navbar.currentIndex : navbar.currentIndex + 1
-            const url = navbar.historyList[currentIndex -1]
-            if(url && url[0].match(REG_HIGHLIGHT_SITES)){
-              word = sharedState.searchWords[tabId]
-            }
-          }
-          else{
-            const tabId2 = sharedState.tabValues[tabId]
-            if(sharedState.searchWords[tabId2] &&
-              this.refs2[`navbar-${tab.key}`].state.currentIndex == 0){
-              const cont = this.props.currentWebContents[tabId2]
-              if(!cont.isDestroyed() && cont.getURL().match(REG_HIGHLIGHT_SITES)){
-                word = sharedState.searchWords[tabId2]
-              }
-            }
-          }
-        }
-      }
-      else{
-        sharedState.searchWords[tab.wvId] = word
-      }
-      if(word) ipc.emit('menu-or-key-events',null,'findOnPage',tab.wvId,word,'OR')
-    })
-  }
+  // searchWordHighlight(tab){
+  //   autoHighLightInjection(this.getWebContents(tab),word=>{
+  //     if(!word){
+  //       let tabId = tab.wvId
+  //       if(sharedState.searchWordHighlightRecursive){
+  //         while(true){
+  //           if(!tabId) break
+  //           if(sharedState.searchWords[tabId]){
+  //             word = sharedState.searchWords[tabId]
+  //             break
+  //           }
+  //           tabId = sharedState.tabValues[tabId]
+  //         }
+  //       }
+  //       else{
+  //         if(sharedState.searchWords[tabId]){
+  //           const navbar = this.refs2[`navbar-${tab.key}`].state
+  //           const currentUrl = this.getWebContents(tab).getURL()
+  //           const currentIndex = navbar.historyList[navbar.currentIndex][0] == currentUrl ? navbar.currentIndex : navbar.currentIndex + 1
+  //           const url = navbar.historyList[currentIndex -1]
+  //           if(url && url[0].match(REG_HIGHLIGHT_SITES)){
+  //             word = sharedState.searchWords[tabId]
+  //           }
+  //         }
+  //         else{
+  //           const tabId2 = sharedState.tabValues[tabId]
+  //           if(sharedState.searchWords[tabId2] &&
+  //             this.refs2[`navbar-${tab.key}`].state.currentIndex == 0){
+  //             const cont = this.props.currentWebContents[tabId2]
+  //             if(!cont.isDestroyed() && cont.getURL().match(REG_HIGHLIGHT_SITES)){
+  //               word = sharedState.searchWords[tabId2]
+  //             }
+  //           }
+  //         }
+  //       }
+  //     }
+  //     else{
+  //       sharedState.searchWords[tab.wvId] = word
+  //     }
+  //     if(word) ipc.emit('menu-or-key-events',null,'findOnPage',tab.wvId,word,'OR')
+  //   })
+  // }
 
   async refreshHistory(e,page){
     page.navUrl = e.url;
@@ -1345,7 +1346,7 @@ export default class TabPanel extends Component {
         console.log('onDidNavigete',e,page)
         // tab.tabPreview = void 0
 
-        if(fullscreenTransition) ipc.send('toggle-fullscreen',true)
+        // if(fullscreenTransition) ipc.send('toggle-fullscreen',true)
 
         if(page.navUrl != url) {
           self.refreshHistory({url}, page)
@@ -1542,9 +1543,9 @@ export default class TabPanel extends Component {
         console.log('onDomReady',e,tab,Date.now())
         if (!self.mounted) return
 
-        if(sharedState.searchWordHighlight){
-          self.searchWordHighlight(tab)
-        }
+        // if(sharedState.searchWordHighlight){
+        //   self.searchWordHighlight(tab)
+        // }
 
         // ipc.send('chrome-webNavigation-onDOMContentLoaded',{
         //   tabId:tab.wvId,
@@ -2215,9 +2216,9 @@ export default class TabPanel extends Component {
       else if(name == 'detachPanel'){
         this.detachPanel()
       }
-      else if(name == 'floatingPanel'){
-        this._handleContextMenu(null,tab.key,null,this.state.tabs,false,true).find(i=>i.t == name).click()
-      }
+      // else if(name == 'floatingPanel'){
+      //   this._handleContextMenu(null,tab.key,null,this.state.tabs,false,true).find(i=>i.t == name).click()
+      // }
       else if(name == 'maximizePanel'){
         this.maximizePanel()
       }
@@ -2238,12 +2239,12 @@ export default class TabPanel extends Component {
         mainState.set('tabPreview',sharedState.tabPreview)
         PubSub.publish('token-preview-change',sharedState.tabPreview)
       }
-      else if(name == 'searchHighlight'){
-        sharedState.searchWordHighlight = !sharedState.searchWordHighlight
-        mainState.set('searchWordHighlight',sharedState.searchWordHighlight)
-        this.searchWordHighlight(tab)
-        this.setState({})
-      }
+      // else if(name == 'searchHighlight'){
+      //   sharedState.searchWordHighlight = !sharedState.searchWordHighlight
+      //   mainState.set('searchWordHighlight',sharedState.searchWordHighlight)
+      //   this.searchWordHighlight(tab)
+      //   this.setState({})
+      // }
       else if(name == 'screenShotFullClipBoard'){
         this.screenShot(true,'clipboard',tab)
       }
@@ -3979,9 +3980,9 @@ export default class TabPanel extends Component {
     }
     // menuItems.push(({ label: 'New Tab', click: ()=>document.querySelector(".rdTabAddButton").click()}))
     menuItems.push(({ t:'newTab',label: locale.translation('newTab'), click: ()=>this.createNewTab(_tabs, i)}))
-    menuItems.push(({ t:'newPrivateTab',label: locale.translation('newPrivateTab'), click: ()=>this.createNewTab(_tabs, i,{default_url:"",privateMode:`${ipc.sendSync('get-session-sequence',true)}`})}))
-    menuItems.push(({ t:'newTorTab',label: 'New Tor Tab', click: ()=>this.createNewTab(_tabs, i,{default_url:"",privateMode:'persist:tor'})}))
-    menuItems.push(({ t:'newSessionTab',label: locale.translation('newSessionTab'), click: ()=>this.createNewTab(_tabs, i,{privateMode:`persist:${ipc.sendSync('get-session-sequence')}`})}))
+    // menuItems.push(({ t:'newPrivateTab',label: locale.translation('newPrivateTab'), click: ()=>this.createNewTab(_tabs, i,{default_url:"",privateMode:`${ipc.sendSync('get-session-sequence',true)}`})}))
+    // menuItems.push(({ t:'newTorTab',label: 'New Tor Tab', click: ()=>this.createNewTab(_tabs, i,{default_url:"",privateMode:'persist:tor'})}))
+    // menuItems.push(({ t:'newSessionTab',label: locale.translation('newSessionTab'), click: ()=>this.createNewTab(_tabs, i,{privateMode:`persist:${ipc.sendSync('get-session-sequence')}`})}))
     menuItems.push(({ type: 'separator' }))
 
     const splitFunc = (dirc,pos)=> {
@@ -4106,7 +4107,7 @@ export default class TabPanel extends Component {
         menuItems.push(({ t: 'splitRightTabsToRight', label: locale.translation('splitRightTabsToRight'), click: splitOtherTabsFunc.bind(this,'v',1) }))
       }
 
-      menuItems.push(({ t: 'floatingPanel', label: locale.translation('floatingPanel'), click: _=>detachToFloatPanel() }))
+      // menuItems.push(({ t: 'floatingPanel', label: locale.translation('floatingPanel'), click: _=>detachToFloatPanel() }))
       menuItems.push(({ t: 'maximizePanel', label: 'Maximize Panel', click: _=>this.maximizePanel()}))
       menuItems.push(({ type: 'separator' }))
       menuItems.push(({ t: 'swapPosition', label: locale.translation('swapPosition'), click: ()=> { PubSub.publish(`swap-position_${this.props.k}`)} }))

@@ -20007,7 +20007,7 @@ const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd';
 const initPromise = _l10n2.default.init();
 
 
-const convertUrlMap = new Map([['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html', ''], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html', 'about:blank'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html', 'chrome://bookmarks2/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html', 'chrome://bookmarks-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html', 'chrome://history/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_history_sidebar.html', 'chrome://tab-history-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_trash_sidebar.html', 'chrome://tab-trash-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download_sidebar.html', 'chrome://download-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note_sidebar.html', 'chrome://note-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note.html', 'chrome://note/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/saved_state_sidebar.html', 'chrome://session-manager-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history_sidebar.html', 'chrome://history-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html', 'chrome://explorer/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer_sidebar.html', 'chrome://explorer-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html', 'chrome://download/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html', 'chrome://terminal/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html', 'chrome://converter/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html', 'chrome://automation/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html', 'chrome://settings/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general', 'chrome://settings#general'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search', 'chrome://settings#search'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs', 'chrome://settings#tabs'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#keyboard', 'chrome://settings#keyboard'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extensions', 'chrome://settings#extensions']]);
+const convertUrlMap = new Map([['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html', ''], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html', 'about:blank'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html', 'chrome://bookmarks2/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html', 'chrome://bookmarks-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html', 'chrome://history/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_history_sidebar.html', 'chrome://tab-history-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_trash_sidebar.html', 'chrome://tab-trash-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download_sidebar.html', 'chrome://download-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note_sidebar.html', 'chrome://note-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note.html', 'chrome://note/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/saved_state_sidebar.html', 'chrome://session-manager-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history_sidebar.html', 'chrome://history-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html', 'chrome://explorer/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer_sidebar.html', 'chrome://explorer-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html', 'chrome://download/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html', 'chrome://terminal/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html', 'chrome://converter/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html', 'chrome://automation/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html', 'chrome://setting/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general', 'chrome://settings#general'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search', 'chrome://settings#search'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs', 'chrome://settings#tabs'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#keyboard', 'chrome://settings#keyboard'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extensions', 'chrome://settings#extensions']]);
 
 const convertUrlReg = /^chrome\-extension:\/\/dckpbojndfoinamcdamhkjhnjnmjkfjd\/(video|ace|bind)\.html\?url=([^&]+)/;
 const convertUrlPdfReg = /^chrome\-extension:\/\/jdbefljfgobbmcidnmpjamcbhnbphjnb\/content\/web\/viewer\.html\?file=(.+?)$/;
@@ -20041,19 +20041,10 @@ function getAppropriateTimeUnit(time) {
 }
 
 let resourcePath;
-_LocalForage2.default.getItem('favicon-set').then(setTime => {
-  _ipcRenderer.ipcRenderer.send("favicon-get", setTime ? parseInt(setTime) : null);
-  _ipcRenderer.ipcRenderer.once("favicon-get-reply", (e, ret) => {
-    _LocalForage2.default.setItem('favicon-set', Date.now().toString());
-    for (let [k, v] of Object.entries(ret)) {
-      _LocalForage2.default.setItem(k, v);
-    }
-  });
-});
 
 let accessKey, accessPort;
 async function faviconGet(h) {
-  return h.favicon ? (await _LocalForage2.default.getItem(h.favicon)) || `http://localhost:${accessPort}/?key=${accessKey}&file=${resourcePath}/file.svg` : `http://localhost:${accessPort}/?key=${accessKey}&file=${resourcePath}/file.svg`;
+  return `chrome://favicon/${h.location}`;
 }
 
 _ipcRenderer.ipcRenderer.send("get-resource-path", {});
@@ -49894,7 +49885,7 @@ var rendererIdentifiers = function () {
   'default', 'name', 'searchEngine', 'searchEngines', 'engineGoKey', 'general', 'generalSettings', 'search', 'tabs', 'extensions', 'myHomepage', 'startsWith', 'startsWithOptionLastTime', 'newTabMode', 'newTabEmpty', 'import', 'bn-BD', 'bn-IN', 'zh-CN', 'cs', 'nl-NL', 'en-US', 'fr-FR', 'de-DE', 'hi-IN', 'id-ID', 'it-IT', 'ja-JP', 'ko-KR', 'ms-MY', 'pl-PL', 'pt-BR', 'ru', 'sl', 'es', 'ta', 'te', 'tr-TR', 'uk', 'requiresRestart', 'enableFlash', 'startsWithOptionHomePage', 'updateAvail', 'notNow', 'makeBraveDefault', 'saveToPocketDesc', 'minimumPageTimeLow', 'paintTabs', 'restoreAll',
 
   //chrome
-  '994289308992179865', '1725149567830788547', '4643612240819915418', '4256316378292851214', '2019718679933488176', '782057141565633384', '5116628073786783676', '1465176863081977902', '3007771295016901659', '5078638979202084724', '4589268276914962177', '3551320343578183772', '2448312741937722512', '1524430321211440688', '42126664696688958', '2663302507110284145', '3635030235490426869', '4888510611625056742', '5860209693144823476', '5846929185714966548', '7955383984025963790', '3128230619496333808', '3391716558283801616', '6606070663386660533', '9011178328451474963', '9065203028668620118', '2473195200299095979', '1047431265488717055', '9218430445555521422', '8926389886865778422', '2893168226686371498', '4289540628985791613', '3095995014811312755', '59174027418879706', '6550675742724504774', '5453029940327926427', '4989966318180235467', '6326175484149238433', '9147392381910171771', '8260864402787962391', '8477384620836102176', '7701040980221191251', '6146563240635539929', '8026334261755873520', '1375321115329958930', '5513242761114685513', '5582839680698949063', '5317780077021120954', '8986267729801483565', '5431318178759467895', '7853747251428735', '2948300991547862301', '8251578425305135684', '2845382757467349449', '8870318296973696995', '480990236307250886', '7754704193130578113', '7791543448312431591', '59174027418879706', '4250229828105606438', '1864111464094315414', '5222676887888702881', '839736845446313156', 'playOrPause', 'frameStep', 'frameBackStep', 'rewind1', 'rewind2', 'forward1', 'forward2', 'rewind3', 'forward3', 'normalSpeed', 'halveSpeed', 'doubleSpeed', 'decSpeed', 'incSpeed', 'fullscreen', 'exitFullscreen', 'mute', 'decreaseVolume', 'increaseVolume', 'incZoom', 'decZoom', 'resetZoom', 'plRepeat', 'mediaSeeking', 'volumeControl', 'changeSpeed', 'mouseWheelFunctions', 'reverseWheelMediaSeeking', 'noScriptPref', 'blockCanvasFingerprinting', 'browsingHistory', 'downloadHistory', 'cachedImagesAndFiles', 'allSiteCookies', 'autocompleteData', 'autofillData', 'clearBrowsingDataNow', 'tabSettings', 'alwaysOnTop', 'neverOnTop', 'privateData', 'privateDataMessage', 'closeAllTabsMenuLabel', 'openalllinksLabel', 'clicktabCopyTabUrl', 'clicktabCopyUrlFromClipboard', 'clicktabReloadtabs', 'clicktabReloadothertabs', 'clicktabReloadlefttabs', 'clicktabReloadrighttabs', 'freezeTabMenuLabel', 'protectTabMenuLabel', 'lockTabMenuLabel', 'autoReloadTabLabel', 'clicktabUcatab', 'secondsLabel', 'minuteLabel', 'minutesLabel', 'generalWindowOpenLabel', 'linkTargetTab', 'linkTargetWindow', 'openDuplicateNextLabel', 'keepWindowLabel31', 'currenttabCaptionLabel', 'focusTabLabelBegin', 'focusTabFirstTab', 'focusTabLeftTab', 'focusTabRightTab', 'focusTabLastTab', 'focusTabLastSelectedTab', 'focusTabOpenerTab', 'focusTabOpenerTabRtl', 'focusTabLastOpenedTab', 'tabbarscrollingInverseLabel', 'minWidthLabel', 'widthToLabel', 'widthPixelsLabel', 'mouseHoverSelectLabelBegin', 'tabFlipLabel', 'clicktabLabel', 'doubleLabel', 'middleLabel', 'altLabel', 'clicktabNothing', 'tabbarscrollingSelectTabLabel', 'tabScrollMultibar', 'millisecondsLabel', 'mouseClickLabel', 'tabFlipDelay', 'tabCloseLabel', 'maxrowLabel', 'newTabButtonLabel', 'ssInterval', 'openTabNextLabel', 'tabbarscrollingCaption', 'showOntabLabel', 'tabFocusLabel', 'unreadTabLabel', 'textcolorLabel', 'bgColorLabel', 'speLinkAllLinks', 'speLinkLabel', 'speLinkNone', 'speLinkExternal', 'currentTabLabel', 'otherTabsLabel', 'oneLineMenuALL', 'multiRowTabs', 'tabPreview', 'searchHighlight', 'bindSelectedWindow', 'adBlockALL', 'adBlockTab', 'adBlockDomain', 'showBookmarkBarOnTopPage', 'showBookmarkBarOnMouseHover', 'oneLineMenu', 'normalScreenMode', 'fullScreenMode', 'detachThisPanel', 'convertPanelsToWindows', 'syncDatas', 'changeVPNMode', 'openOnOpposite', 'searchHighlightRecursive', 'donTLoadTabsUntillSelected', 'extractAudioFromVideo', 'changePdfViewToComic', 'changePdfViewToNormal', 'closeThisPanel', 'restartBrowser', 'browserVersion', 'chromiumVersion', 'muonVersion', 'historyOfTabs', 'trashOfTabs', 'sessionManager', 'switchSyncScroll', 'switchOpenOnOpposite', 'openSidebar', 'changeToMobileUserAgent', 'fileExplorer', 'richMediaList', 'playVideo', 'downloadAndPlayVideo', 'playInExternalVideoPlayer', 'downloadVideo', 'downloadAndConvertVideo', 'downloadVideoAndExtractAudio', 'copyVideoURL', 'fullPage|Clipboard', 'fullPage|Jpeg', 'fullPage|PNG', 'selection|Clipboard', 'selection|Jpeg', 'selection|PNG', 'hideTabs', 'terminal', 'note', 'automation', 'videoConverter', 'openLinkInNewTorTab', 'openLinkInNewWindowWithARow', 'openLinkInNewWindowWithTwoRows', 'copyPath', 'createNewFile', 'createNewDirectory', 'rename', 'delete', 'openLinkInOppositeTab', 'saveAndPlayVideo', 'sendURLToVideoPlayer', 'playVideoInPopupWindow', 'playVideoInFloatingPanel', 'addToNotes', 'copyLinks', 'downloadSelection', 'downloadAll', 'syncScrollLeftToRight', 'syncScrollRightToLeft', 'navigateToTheBookmarkPage', 'addThisPageToTheBookmarks', 'navigateToTheHistoryPage', 'saveCurrentSession', 'confirm', 'areYouSureYouWantToDeleteTheFollowingFiles', 'yes', 'no', 'menu', 'name', 'progress', 'size', 'estTime', 'speed', 'startTime', 'uRL', 'newDownload', 'pleaseEnterURLsAndSaveDirectory', 'uRLs', 'saveDirectory', 'fileName', 'attemptToFindAndDownloadVideo', 'newDL', 'start', 'cancelDL', 'removeRow', 'removeFinished', 'showFolder', 'copyURL', 'enableDownloadList', 'concurrentDownloads', 'downloadsPerServer', 'completed', 'canceled', 'openNote', 'openFileExploler', 'openTerminal', 'openAutomation', 'openVideoConverter', 'toggleMenuBar', 'changeFocusPanel', 'splitLeft', 'splitRight', 'splitTop', 'splitBottom', 'splitLeftTabsToLeft', 'splitRightTabsToRight', 'swapPosition', 'switchDirection', 'alignHorizontal', 'alignVertical', 'enableSearchHighlight', 'changeToMobileAgent', 'detachPanel', 'pasteAndOpen', 'copyTabInfo', 'copyAllTabTitles', 'copyAllTabURLs', 'copyAllTabInfos', 'fullPageCaptureToClipboard', 'fullPageCaptureAsJPEG', 'fullPageCaptureAsPNG', 'selectionCaptureToClipboard', 'selectionCaptureAsJPEG', 'selectionCaptureAsPNG', 'topPage', 'floatingPanel', 'closeThisTree', 'suggestionHistory', 'historySuggestion', 'protection', 'enableHTTPSEverywhere', 'enableTracingProtection', 'orderOfAutoComplete', 'numberOfSuggestions', 'numberOfHistories', 'sortHistoryInDescendingOrderOfPV', 'defaultSidebarPosition', 'leftSide', 'rightSide', 'bottomSide', 'sideBarLink', 'toolBarLink', 'addressBarLink', 'bookmarkBarLink', 'showChromeExtensionIconOnToolbar', 'showFullscreenButton', 'enableMouseGesture', 'enableRectangularSelection', 'maintainFullscreenModeEvenAfterPageTransition', 'cancelFullscreenModeAtPageTransition', 'showBackForwardButtonSBadge', 'showFocusLocationBarOfTopPage', 'enableBottomDownloadList', 'deleteFromDownloadListWhenDownloadIsCompleted', 'enableBehaviorChangeWhenLongPressOfMiddleMouseButton', 'enableHorizontalPositionMoving', 'enableAnythingSearch', 'sendURLToExternalMediaPlayer', 'concurrentDownload', 'maxNumberOfConnectionsPerItem', 'customWindowIcon', 'syncScrollMargin', 'bindWindowFrameMargin', 'bindWindowTitleMargin', 'deleteAllDataAndImportRestoreData', 'favicon', 'allData', 'clearDataGreaterThan30DaysAgoFromNow', 'range', 'clearAllData', 'bookmarksUserSavedSessions', 'rightClickMenuSearchEngines', 'searchMethods', 'multiSearch', 'openInAPanel', 'openIn2Panels', 'openInANewWindow', 'openInANewWindowWithARow', 'openInNewWindowWith2Rows', 'openInANewWindowWith3Rows', 'currentAndOpposite', 'current', 'opposite', 'addSearchEngine', 'almostTheSameAsChrome', 'tabBarTopMargin', 'removeTopMarginWhenMaximizing', 'openNewTabsAt', 'defaultPosition', 'leftEnd', 'rightEnd', 'openNewTabInBackground', 'oppositeMode', 'enableTabPreview', 'delayTime', 'width', 'height', 'slideHeight', 'tabPreviewImageQuality', 'displayCurrentPreview', 'circulateTabSelection', 'dashedLineWhenDragging', 'colorOfMutePinReloadIcon', 'showBottomBorderInCurrentTab', 'defaultTheme', 'darkTheme', 'data', 'sendURL', 'sendType', 'sendURLCommand', 'theme', 'mouseGesture', 'pleaseReferHereForInputMethodOfShortcut', 'mouseClick', 'mouseDoubleClick', 'mouseWheel', 'shiftMouseWheel', 'ctrlMouseWheel', 'shiftCtrlMouseWheel', 'keepValue​​inLocalStorage', 'enableKeyboardShortcut', 'blackListSites', 'rightClick', 'bookmarksSidebar', 'historySidebar', 'sessionManagerSidebar', 'trashOfTabsSidebar', 'historyOfTabsSidebar', 'fileExplorerSidebar', 'default', 'pagesToApply', 'enableSmoothScrolling', 'useSmoothScroll', 'email', 'passwordsPassword'];
+  '994289308992179865', '1725149567830788547', '4643612240819915418', '4256316378292851214', '2019718679933488176', '782057141565633384', '5116628073786783676', '1465176863081977902', '3007771295016901659', '5078638979202084724', '4589268276914962177', '3551320343578183772', '2448312741937722512', '1524430321211440688', '42126664696688958', '2663302507110284145', '3635030235490426869', '4888510611625056742', '5860209693144823476', '5846929185714966548', '7955383984025963790', '3128230619496333808', '3391716558283801616', '6606070663386660533', '9011178328451474963', '9065203028668620118', '2473195200299095979', '1047431265488717055', '9218430445555521422', '8926389886865778422', '2893168226686371498', '4289540628985791613', '3095995014811312755', '59174027418879706', '6550675742724504774', '5453029940327926427', '4989966318180235467', '6326175484149238433', '9147392381910171771', '8260864402787962391', '8477384620836102176', '7701040980221191251', '6146563240635539929', '8026334261755873520', '1375321115329958930', '5513242761114685513', '5582839680698949063', '5317780077021120954', '8986267729801483565', '5431318178759467895', '7853747251428735', '2948300991547862301', '8251578425305135684', '2845382757467349449', '8870318296973696995', '480990236307250886', '7754704193130578113', '7791543448312431591', '59174027418879706', '4250229828105606438', '1864111464094315414', '5222676887888702881', '839736845446313156', '1552752544932680961', 'playOrPause', 'frameStep', 'frameBackStep', 'rewind1', 'rewind2', 'forward1', 'forward2', 'rewind3', 'forward3', 'normalSpeed', 'halveSpeed', 'doubleSpeed', 'decSpeed', 'incSpeed', 'fullscreen', 'exitFullscreen', 'mute', 'decreaseVolume', 'increaseVolume', 'incZoom', 'decZoom', 'resetZoom', 'plRepeat', 'mediaSeeking', 'volumeControl', 'changeSpeed', 'mouseWheelFunctions', 'reverseWheelMediaSeeking', 'noScriptPref', 'blockCanvasFingerprinting', 'browsingHistory', 'downloadHistory', 'cachedImagesAndFiles', 'allSiteCookies', 'autocompleteData', 'autofillData', 'clearBrowsingDataNow', 'tabSettings', 'alwaysOnTop', 'neverOnTop', 'privateData', 'privateDataMessage', 'closeAllTabsMenuLabel', 'openalllinksLabel', 'clicktabCopyTabUrl', 'clicktabCopyUrlFromClipboard', 'clicktabReloadtabs', 'clicktabReloadothertabs', 'clicktabReloadlefttabs', 'clicktabReloadrighttabs', 'freezeTabMenuLabel', 'protectTabMenuLabel', 'lockTabMenuLabel', 'autoReloadTabLabel', 'clicktabUcatab', 'secondsLabel', 'minuteLabel', 'minutesLabel', 'generalWindowOpenLabel', 'linkTargetTab', 'linkTargetWindow', 'openDuplicateNextLabel', 'keepWindowLabel31', 'currenttabCaptionLabel', 'focusTabLabelBegin', 'focusTabFirstTab', 'focusTabLeftTab', 'focusTabRightTab', 'focusTabLastTab', 'focusTabLastSelectedTab', 'focusTabOpenerTab', 'focusTabOpenerTabRtl', 'focusTabLastOpenedTab', 'tabbarscrollingInverseLabel', 'minWidthLabel', 'widthToLabel', 'widthPixelsLabel', 'mouseHoverSelectLabelBegin', 'tabFlipLabel', 'clicktabLabel', 'doubleLabel', 'middleLabel', 'altLabel', 'clicktabNothing', 'tabbarscrollingSelectTabLabel', 'tabScrollMultibar', 'millisecondsLabel', 'mouseClickLabel', 'tabFlipDelay', 'tabCloseLabel', 'maxrowLabel', 'newTabButtonLabel', 'ssInterval', 'openTabNextLabel', 'tabbarscrollingCaption', 'showOntabLabel', 'tabFocusLabel', 'unreadTabLabel', 'textcolorLabel', 'bgColorLabel', 'speLinkAllLinks', 'speLinkLabel', 'speLinkNone', 'speLinkExternal', 'currentTabLabel', 'otherTabsLabel', 'oneLineMenuALL', 'multiRowTabs', 'tabPreview', 'searchHighlight', 'bindSelectedWindow', 'adBlockALL', 'adBlockTab', 'adBlockDomain', 'showBookmarkBarOnTopPage', 'showBookmarkBarOnMouseHover', 'oneLineMenu', 'normalScreenMode', 'fullScreenMode', 'detachThisPanel', 'convertPanelsToWindows', 'syncDatas', 'changeVPNMode', 'openOnOpposite', 'searchHighlightRecursive', 'donTLoadTabsUntillSelected', 'extractAudioFromVideo', 'changePdfViewToComic', 'changePdfViewToNormal', 'closeThisPanel', 'restartBrowser', 'browserVersion', 'chromiumVersion', 'muonVersion', 'historyOfTabs', 'trashOfTabs', 'sessionManager', 'switchSyncScroll', 'switchOpenOnOpposite', 'openSidebar', 'changeToMobileUserAgent', 'fileExplorer', 'richMediaList', 'playVideo', 'downloadAndPlayVideo', 'playInExternalVideoPlayer', 'downloadVideo', 'downloadAndConvertVideo', 'downloadVideoAndExtractAudio', 'copyVideoURL', 'fullPage|Clipboard', 'fullPage|Jpeg', 'fullPage|PNG', 'selection|Clipboard', 'selection|Jpeg', 'selection|PNG', 'hideTabs', 'terminal', 'note', 'automation', 'videoConverter', 'openLinkInNewTorTab', 'openLinkInNewWindowWithARow', 'openLinkInNewWindowWithTwoRows', 'copyPath', 'createNewFile', 'createNewDirectory', 'rename', 'delete', 'openLinkInOppositeTab', 'saveAndPlayVideo', 'sendURLToVideoPlayer', 'playVideoInPopupWindow', 'playVideoInFloatingPanel', 'addToNotes', 'copyLinks', 'downloadSelection', 'downloadAll', 'syncScrollLeftToRight', 'syncScrollRightToLeft', 'navigateToTheBookmarkPage', 'addThisPageToTheBookmarks', 'navigateToTheHistoryPage', 'saveCurrentSession', 'confirm', 'areYouSureYouWantToDeleteTheFollowingFiles', 'yes', 'no', 'menu', 'name', 'progress', 'size', 'estTime', 'speed', 'startTime', 'uRL', 'newDownload', 'pleaseEnterURLsAndSaveDirectory', 'uRLs', 'saveDirectory', 'fileName', 'attemptToFindAndDownloadVideo', 'newDL', 'start', 'cancelDL', 'removeRow', 'removeFinished', 'showFolder', 'copyURL', 'enableDownloadList', 'concurrentDownloads', 'downloadsPerServer', 'completed', 'canceled', 'openNote', 'openFileExploler', 'openTerminal', 'openAutomation', 'openVideoConverter', 'toggleMenuBar', 'changeFocusPanel', 'splitLeft', 'splitRight', 'splitTop', 'splitBottom', 'splitLeftTabsToLeft', 'splitRightTabsToRight', 'swapPosition', 'switchDirection', 'alignHorizontal', 'alignVertical', 'enableSearchHighlight', 'changeToMobileAgent', 'detachPanel', 'pasteAndOpen', 'copyTabInfo', 'copyAllTabTitles', 'copyAllTabURLs', 'copyAllTabInfos', 'fullPageCaptureToClipboard', 'fullPageCaptureAsJPEG', 'fullPageCaptureAsPNG', 'selectionCaptureToClipboard', 'selectionCaptureAsJPEG', 'selectionCaptureAsPNG', 'topPage', 'floatingPanel', 'closeThisTree', 'suggestionHistory', 'historySuggestion', 'protection', 'enableHTTPSEverywhere', 'enableTracingProtection', 'orderOfAutoComplete', 'numberOfSuggestions', 'numberOfHistories', 'sortHistoryInDescendingOrderOfPV', 'defaultSidebarPosition', 'leftSide', 'rightSide', 'bottomSide', 'sideBarLink', 'toolBarLink', 'addressBarLink', 'bookmarkBarLink', 'showChromeExtensionIconOnToolbar', 'showFullscreenButton', 'enableMouseGesture', 'enableRectangularSelection', 'maintainFullscreenModeEvenAfterPageTransition', 'cancelFullscreenModeAtPageTransition', 'showBackForwardButtonSBadge', 'showFocusLocationBarOfTopPage', 'enableBottomDownloadList', 'deleteFromDownloadListWhenDownloadIsCompleted', 'enableBehaviorChangeWhenLongPressOfMiddleMouseButton', 'enableHorizontalPositionMoving', 'enableAnythingSearch', 'sendURLToExternalMediaPlayer', 'concurrentDownload', 'maxNumberOfConnectionsPerItem', 'customWindowIcon', 'syncScrollMargin', 'bindWindowFrameMargin', 'bindWindowTitleMargin', 'deleteAllDataAndImportRestoreData', 'favicon', 'allData', 'clearDataGreaterThan30DaysAgoFromNow', 'range', 'clearAllData', 'bookmarksUserSavedSessions', 'rightClickMenuSearchEngines', 'searchMethods', 'multiSearch', 'openInAPanel', 'openIn2Panels', 'openInANewWindow', 'openInANewWindowWithARow', 'openInNewWindowWith2Rows', 'openInANewWindowWith3Rows', 'currentAndOpposite', 'current', 'opposite', 'addSearchEngine', 'almostTheSameAsChrome', 'tabBarTopMargin', 'removeTopMarginWhenMaximizing', 'openNewTabsAt', 'defaultPosition', 'leftEnd', 'rightEnd', 'openNewTabInBackground', 'oppositeMode', 'enableTabPreview', 'delayTime', 'width', 'height', 'slideHeight', 'tabPreviewImageQuality', 'displayCurrentPreview', 'circulateTabSelection', 'dashedLineWhenDragging', 'colorOfMutePinReloadIcon', 'showBottomBorderInCurrentTab', 'defaultTheme', 'darkTheme', 'data', 'sendURL', 'sendType', 'sendURLCommand', 'theme', 'mouseGesture', 'pleaseReferHereForInputMethodOfShortcut', 'mouseClick', 'mouseDoubleClick', 'mouseWheel', 'shiftMouseWheel', 'ctrlMouseWheel', 'shiftCtrlMouseWheel', 'keepValue​​inLocalStorage', 'enableKeyboardShortcut', 'blackListSites', 'rightClick', 'bookmarksSidebar', 'historySidebar', 'sessionManagerSidebar', 'trashOfTabsSidebar', 'historyOfTabsSidebar', 'fileExplorerSidebar', 'default', 'pagesToApply', 'enableSmoothScrolling', 'useSmoothScroll', 'email', 'passwordsPassword'];
 };
 
 var ctx = null;
@@ -52039,6 +52030,11 @@ if (window.__started_) {
 
   setTimeout(() => {
     document.addEventListener('contextmenu', e => {
+      if (window.__no_skip_context_menu__) {
+        window.__no_skip_context_menu__ = false;
+        return;
+      }
+
       e.preventDefault();
       e.stopImmediatePropagation();
       console.log(5555, e);
@@ -52119,6 +52115,8 @@ if (window.__started_) {
         inputFieldType,
         x: e.x,
         y: e.y,
+        screenX: e.screenX,
+        screenY: e.screenY,
         selectionText
       });
     });
@@ -52762,31 +52760,37 @@ if (window.__started_) {
     // }
   });
 
-  //style setting
-  let styleVal;
-  if ((styleVal = localStorage.getItem('meiryo')) !== null) {
-    if (styleVal === "true") {
-      setTimeout(_ => {
-        const css = document.createElement('style');
-        const rule = document.createTextNode('html{ font-family: Arial, "メイリオ", sans-serif}');
-        css.appendChild(rule);
-        const head = document.getElementsByTagName('head');
-        if (head[0]) head[0].appendChild(css);
-      }, 0);
-    }
-  } else {
-    ipc.send('need-meiryo');
-    ipc.once('need-meiryo-reply', (e, styleVal) => {
-      localStorage.setItem('meiryo', styleVal);
-      if (styleVal) {
-        const css = document.createElement('style');
-        const rule = document.createTextNode('html{ font-family: Arial, "メイリオ", sans-serif}');
-        css.appendChild(rule);
-        const head = document.getElementsByTagName('head');
-        if (head[0]) head[0].appendChild(css);
-      }
-    });
-  }
+  // //style setting
+  //   let styleVal
+  //   try{
+  //     styleVal = localStorage.getItem('meiryo')
+  //   }catch(e){}
+  //
+  //   if(styleVal !== null){
+  //     if(styleVal === "true"){
+  //       setTimeout(_=>{
+  //         const css = document.createElement('style')
+  //         const rule = document.createTextNode('html{ font-family: Arial, "メイリオ", sans-serif}')
+  //         css.appendChild(rule)
+  //         const head = document.getElementsByTagName('head')
+  //         if(head[0]) head[0].appendChild(css)
+  //       },0)
+  //     }
+  //   }
+  //   else{
+  //     ipc.send('need-meiryo')
+  //     ipc.once('need-meiryo-reply',(e,styleVal)=>{
+  //       localStorage.setItem('meiryo',styleVal)
+  //       if(styleVal){
+  //         const css = document.createElement('style')
+  //         const rule = document.createTextNode('html{ font-family: Arial, "メイリオ", sans-serif}')
+  //         css.appendChild(rule)
+  //         const head = document.getElementsByTagName('head')
+  //         if(head[0]) head[0].appendChild(css)
+  //       }
+  //     })
+  //   }
+
 
   let isFirst = true;
   const videoFunc = (e, inputs) => {
@@ -53132,6 +53136,11 @@ if (window.__started_) {
 
   ipc.on('execute-script-in-isolation-world', (e, key, code) => {
     ipc.send(`execute-script-in-isolation-world-reply_${key}`, Function(`return ${code}`)());
+  });
+
+  ipc.on('no-skip-context-menu', (e, key) => {
+    window.__no_skip_context_menu__ = true;
+    ipc.send(`no-skip-context-menu-reply_${key}`);
   });
 }
 

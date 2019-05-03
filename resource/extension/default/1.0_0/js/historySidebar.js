@@ -34652,18 +34652,6 @@ const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd';
 
 const isMain = location.href.startsWith("file://");
 
-if (!isMain) {
-  _LocalForage2.default.getItem('favicon-set').then(setTime => {
-    _ipcRenderer.ipcRenderer.send("favicon-get", setTime ? parseInt(setTime) : null);
-    _ipcRenderer.ipcRenderer.once("favicon-get-reply", (e, ret) => {
-      _LocalForage2.default.setItem('favicon-set', Date.now().toString());
-      for (let [k, v] of Object.entries(ret)) {
-        _LocalForage2.default.setItem(k, v);
-      }
-    });
-  });
-}
-
 let openType;
 const key = _nodeUuid2.default.v4();
 _ipcRenderer.ipcRenderer.send("get-main-state", key, [isMain ? 'toolbarLink' : 'sidebarLink']);
@@ -34672,10 +34660,10 @@ _ipcRenderer.ipcRenderer.once(`get-main-state-reply_${key}`, (e, data) => {
 });
 
 async function faviconGet(x) {
-  return x.favicon == "resource/file.svg" ? void 0 : x.favicon && (await _LocalForage2.default.getItem(x.favicon));
+  return x.favicon == "resource/file.svg" ? void 0 : isMain ? x.favicon && (await _LocalForage2.default.getItem(x.favicon)) : `chrome://favicon/${x.location}`;
 }
 
-const convertUrlMap = new Map([['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html', ''], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html', 'about:blank'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html', 'chrome://bookmarks2/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html', 'chrome://bookmarks-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html', 'chrome://history/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_history_sidebar.html', 'chrome://tab-history-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_trash_sidebar.html', 'chrome://tab-trash-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download_sidebar.html', 'chrome://download-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note_sidebar.html', 'chrome://note-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note.html', 'chrome://note/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/saved_state_sidebar.html', 'chrome://session-manager-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history_sidebar.html', 'chrome://history-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html', 'chrome://explorer/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer_sidebar.html', 'chrome://explorer-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html', 'chrome://download/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html', 'chrome://terminal/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html', 'chrome://converter/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html', 'chrome://automation/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html', 'chrome://settings/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general', 'chrome://settings#general'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search', 'chrome://settings#search'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs', 'chrome://settings#tabs'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#keyboard', 'chrome://settings#keyboard'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extensions', 'chrome://settings#extensions']]);
+const convertUrlMap = new Map([['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html', ''], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html', 'about:blank'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html', 'chrome://bookmarks2/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html', 'chrome://bookmarks-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html', 'chrome://history/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_history_sidebar.html', 'chrome://tab-history-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_trash_sidebar.html', 'chrome://tab-trash-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download_sidebar.html', 'chrome://download-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note_sidebar.html', 'chrome://note-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note.html', 'chrome://note/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/saved_state_sidebar.html', 'chrome://session-manager-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history_sidebar.html', 'chrome://history-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html', 'chrome://explorer/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer_sidebar.html', 'chrome://explorer-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html', 'chrome://download/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html', 'chrome://terminal/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html', 'chrome://converter/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html', 'chrome://automation/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html', 'chrome://setting/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general', 'chrome://settings#general'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search', 'chrome://settings#search'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs', 'chrome://settings#tabs'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#keyboard', 'chrome://settings#keyboard'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extensions', 'chrome://settings#extensions']]);
 
 const convertUrlReg = /^chrome\-extension:\/\/dckpbojndfoinamcdamhkjhnjnmjkfjd\/(video|ace|bind)\.html\?url=([^&]+)/;
 const convertUrlPdfReg = /^chrome\-extension:\/\/jdbefljfgobbmcidnmpjamcbhnbphjnb\/content\/web\/viewer\.html\?file=(.+?)$/;
@@ -75969,6 +75957,11 @@ if (window.__started_) {
 
   setTimeout(() => {
     document.addEventListener('contextmenu', e => {
+      if (window.__no_skip_context_menu__) {
+        window.__no_skip_context_menu__ = false;
+        return;
+      }
+
       e.preventDefault();
       e.stopImmediatePropagation();
       console.log(5555, e);
@@ -76049,6 +76042,8 @@ if (window.__started_) {
         inputFieldType,
         x: e.x,
         y: e.y,
+        screenX: e.screenX,
+        screenY: e.screenY,
         selectionText
       });
     });
@@ -76692,31 +76687,37 @@ if (window.__started_) {
     // }
   });
 
-  //style setting
-  let styleVal;
-  if ((styleVal = localStorage.getItem('meiryo')) !== null) {
-    if (styleVal === "true") {
-      setTimeout(_ => {
-        const css = document.createElement('style');
-        const rule = document.createTextNode('html{ font-family: Arial, "メイリオ", sans-serif}');
-        css.appendChild(rule);
-        const head = document.getElementsByTagName('head');
-        if (head[0]) head[0].appendChild(css);
-      }, 0);
-    }
-  } else {
-    ipc.send('need-meiryo');
-    ipc.once('need-meiryo-reply', (e, styleVal) => {
-      localStorage.setItem('meiryo', styleVal);
-      if (styleVal) {
-        const css = document.createElement('style');
-        const rule = document.createTextNode('html{ font-family: Arial, "メイリオ", sans-serif}');
-        css.appendChild(rule);
-        const head = document.getElementsByTagName('head');
-        if (head[0]) head[0].appendChild(css);
-      }
-    });
-  }
+  // //style setting
+  //   let styleVal
+  //   try{
+  //     styleVal = localStorage.getItem('meiryo')
+  //   }catch(e){}
+  //
+  //   if(styleVal !== null){
+  //     if(styleVal === "true"){
+  //       setTimeout(_=>{
+  //         const css = document.createElement('style')
+  //         const rule = document.createTextNode('html{ font-family: Arial, "メイリオ", sans-serif}')
+  //         css.appendChild(rule)
+  //         const head = document.getElementsByTagName('head')
+  //         if(head[0]) head[0].appendChild(css)
+  //       },0)
+  //     }
+  //   }
+  //   else{
+  //     ipc.send('need-meiryo')
+  //     ipc.once('need-meiryo-reply',(e,styleVal)=>{
+  //       localStorage.setItem('meiryo',styleVal)
+  //       if(styleVal){
+  //         const css = document.createElement('style')
+  //         const rule = document.createTextNode('html{ font-family: Arial, "メイリオ", sans-serif}')
+  //         css.appendChild(rule)
+  //         const head = document.getElementsByTagName('head')
+  //         if(head[0]) head[0].appendChild(css)
+  //       }
+  //     })
+  //   }
+
 
   let isFirst = true;
   const videoFunc = (e, inputs) => {
@@ -77062,6 +77063,11 @@ if (window.__started_) {
 
   ipc.on('execute-script-in-isolation-world', (e, key, code) => {
     ipc.send(`execute-script-in-isolation-world-reply_${key}`, Function(`return ${code}`)());
+  });
+
+  ipc.on('no-skip-context-menu', (e, key) => {
+    window.__no_skip_context_menu__ = true;
+    ipc.send(`no-skip-context-menu-reply_${key}`);
   });
 }
 

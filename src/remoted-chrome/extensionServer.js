@@ -72,7 +72,8 @@ export default function createServer(port, key, listener){
       // console.log(`http://localhost:${port}${req.url}`, filePath)
     }
     else{
-      const filePath = parsed.searchParams.get('file')
+      let filePath = parsed.searchParams.get('file')
+      if(filePath.startsWith('file://')) filePath = filePath.slice(7)
       fs.stat(filePath, (err, stats) => {
         if (err) {
           if ((/ENOENT/).test(err.message)) return sendError(req, res, 404)
