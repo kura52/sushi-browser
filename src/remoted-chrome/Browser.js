@@ -11,7 +11,6 @@ import extInfos from '../extensionInfos'
 import backgroundPageModify from './backgroundPageModify'
 import hjson from 'hjson'
 import evem from './evem'
-import mainState from "../mainState";
 
 function search(obj,messages){
   if(Array.isArray(obj)){
@@ -90,7 +89,7 @@ class Browser{
       // executablePath: "C:\\Program Files (x86)\\Microsoft\\Edge Dev\\Application\\msedge.exe",
       // executablePath: "C:\\Program Files (x86)\\BraveSoftware\\Brave-Browser\\Application\\brave.exe",
       args: [
-        // '--no-first-run',
+        '--no-first-run',
         // '--enable-automation',
         '--metrics-recording-only',
         '--disable-infobars',
@@ -325,6 +324,7 @@ class Browser{
   }
 
   static async modifyBackgroundPage(bgPage){
+    console.log(222144)
     await bgPage.evaluateOnNewDocument(backgroundPageModify, this.port, this.serverKey)
     await bgPage.reload()
   }
@@ -1091,10 +1091,11 @@ class PopupPanel{
     }
     const page = await (Browser._pagePromises[PopupPanel.tabId])
     // console.log(331,code)
-    page.evaluate(code).then(value=>{
-      // console.log(332,value)
+    try{
+      const value = await page.evaluate(code)
       callback && callback(value)
-    }, reason=>{
+      return value
+    }catch(e){
       // console.log(333,reason)
       if(retry < 10){
         setTimeout(()=>this.executeJavaScript(code, userGesture, callback, retry+1),200)
@@ -1102,7 +1103,12 @@ class PopupPanel{
       else if(callback){
         callback(null)
       }
-    })
+    }
+  }
+
+  async getLayoutMetrics(){
+    const page = await (Browser._pagePromises[PopupPanel.tabId])
+    return page._client.send('Page.getLayoutMetrics')
   }
 
 }

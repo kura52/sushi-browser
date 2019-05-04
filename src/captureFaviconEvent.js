@@ -81,10 +81,8 @@ const fetchFavIcon = (url, redirects) => {
 
     console.log(url)
     request({ url: url, encoding: null }, (err, response, blob) => {
-      blob = 'data:' + response.headers['content-type'] + ';base64,' + blob.toString('base64')
-      let matchP, prefix, tail
 
-      if (err) {
+      if (err || ! response.headers) {
         console.log('response error: ' + err.toString() + '\n' + err.stack)
         reject(err.toString())
         return
@@ -101,6 +99,9 @@ const fetchFavIcon = (url, redirects) => {
         return
       }
 
+      blob = 'data:' + response.headers['content-type'] + ';base64,' + blob.toString('base64')
+
+      let matchP, prefix, tail
       tail = blob.indexOf(';base64,')
       if (blob.indexOf('data:image/') !== 0) {
         // NB: for some reason, some sites return an image, but with the wrong content-type...

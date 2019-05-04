@@ -82,6 +82,7 @@ class BrowserActionWebView extends Component {
     this.setState({style:{width,height, opacity: 0, userSelect: 'none'}},()=>{
       this.popupPanel.executeJavaScript(`(function(){
       const ele = document.body
+      ele.style.overflow = 'hidden'
       return [ele.clientWidth, ele.scrollWidth, ele.clientHeight, ele.scrollHeight]
     })()`,(result)=>{
         console.log('setPreferredSize2', result)
@@ -143,6 +144,7 @@ class BrowserActionWebView extends Component {
       if(this.close) return
       this.popupPanel.executeJavaScript(`(function(){
       const ele = document.body
+      ele.style.overflow = 'hidden'
       return [ele.clientWidth, ele.scrollWidth, ele.clientHeight, ele.scrollHeight]
     })()`,(result)=>{
         if(!this.close) sizeMap[this.props.url] = [result[1], result[3]]
@@ -194,13 +196,13 @@ class BrowserActionWebView extends Component {
     clearInterval(this.intervalId)
     ipc.removeListener('get-webview-pos',this.changePos)
     ipc.removeListener('set-bound-browser-view', this.changePos2)
+    ipc.send('set-overlap-component', 'extension-popup', this.props.k, this.props.tab.key, 0,-1,0,0)
   }
 
   onClose = ()=>{
     this.close = true
     this.componentWillUnmount()
     console.log(7733,'onClose')
-    ipc.send('set-overlap-component', 'extension-popup', this.props.k, this.props.tab.key, 0,-1,0,0)
     this.setState({})
   }
 

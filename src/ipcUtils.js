@@ -352,7 +352,7 @@ async function recurGet(keys,num,isNote){
 
 
 ipcMain.on('get-all-favorites',async(event,key,dbKeys,num,isNote)=>{
-  const ret = isNote ? await recurGet(dbKeys,num,isNote) : await favorite.getFavoritesTree(dbKeys,num)
+  const ret = isNote ? await recurGet(dbKeys,num,isNote) : [await favorite.getFavoritesTree(dbKeys,num)]
   event.sender.send(`get-all-favorites-reply_${key}`,ret)
 })
 
@@ -1210,7 +1210,7 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
     chromeNativeWindow.setForegroundWindowEx()
     robot.keyTap('f12')
 
-    await new Promise(r=> setTimeout(r,2000))
+    await new Promise(r=> setTimeout(r,3000))
 
     const targets = await Browser._browser.targets();
 
@@ -1219,11 +1219,10 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
     }
 
     const devTarget = targets.find((target) => target.url().startsWith('chrome-devtools://devtools/bundled/devtools_app.html') && !targetIds.includes(target._targetId))
-    const devPage = await devTarget.page()
 
-    global.devPage = devPage
+    const devPage = await devTarget.pageForce()
 
-    devPage.evaluate(async ()=>{
+    await devPage.evaluate(async ()=>{
       let phoneButton
       for(let i=0;i<100;i++){
         await new Promise(r=>{
@@ -1242,7 +1241,6 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
         Components.dockController.setDockSide('undocked')
       }
     })
-
   }
   else{
     const {chromeWindow, tab, mobileCont, nativeWindow, chromeNativeWindow} = mpoMap[key]

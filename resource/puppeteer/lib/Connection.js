@@ -89,7 +89,7 @@ class Connection extends EventEmitter {
     // subMessage.startsWith('Network.dataReceived')) return
     if(subMessage == 'Runtime.consoleAPICalled\\' ) return
     const object = JSON.parse(message);
-    // console.log(object.method, object.params && object.params.message && JSON.parse(object.params.message));
+    // console.log(object.method, object.params && object.params.message);
     if (object.id) {
       const callback = this._callbacks.get(object.id);
       // Callbacks could be all rejected if someone has called `.dispose()`.

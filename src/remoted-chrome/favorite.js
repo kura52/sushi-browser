@@ -45,6 +45,7 @@ export default {
         if(++i == num) break
       }
       tree.children = children
+      tree.children2 = children
     }
     return tree
   },

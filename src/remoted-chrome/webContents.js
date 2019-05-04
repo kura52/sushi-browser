@@ -10,6 +10,8 @@ let Browser = new Proxy({},  { get: function(target, name){ Browser = require('.
 let BrowserPanel = new Proxy({},  { get: function(target, name){ BrowserPanel = require('./BrowserPanel'); return typeof BrowserPanel[name] == 'function' ? BrowserPanel[name].bind(BrowserPanel) : BrowserPanel[name]}})
 let BrowserView = new Proxy({},  { get: function(target, name){ BrowserView = require('./BrowserView'); return typeof BrowserView[name] == 'function' ? BrowserView[name].bind(BrowserView) : BrowserView[name]}})
 
+let isFirstLoad
+
 export default class webContents extends EventEmitter {
 
   static _initializer() {
@@ -354,7 +356,11 @@ export default class webContents extends EventEmitter {
     }
   }
 
-  loadURL(url, options){
+  async loadURL(url, options){
+    if(isFirstLoad === void 0){
+      isFirstLoad = false
+      if(!(await require('../databaseFork').state.findOne({key: 1}))) url = 'chrome://welcome/'
+    }
     Browser.bg.evaluate((tabId, url) => {
       return new Promise(resolve => {
         chrome.tabs.update(tabId, {url}, tab => resolve(tab))
@@ -511,7 +517,13 @@ export default class webContents extends EventEmitter {
   async executeJavaScript(code, userGesture, callback){
     if(typeof userGesture === 'function') [userGesture, callback] = [null, userGesture]
 
-    ;(await this._getPage()).evaluate(code).then(value=>callback && callback(value), reason=>callback && callback(null))
+    try{
+      const value = await (await this._getPage()).evaluate(code)
+      callback && callback(value)
+      return value
+    }catch(e){
+      callback && callback(null)
+    }
   }
 
   executeJavaScriptInIsolate(code, userGesture, callback){
@@ -1004,4 +1016,7 @@ export default class webContents extends EventEmitter {
     this._sendKey('f11')
   }
 
+  async getLayoutMetrics(){
+    return (await this._getPage())._client.send('Page.getLayoutMetrics')
+  }
 }

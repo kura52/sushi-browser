@@ -24,13 +24,24 @@ async function clearDatas(){
   const targets = []
   if(mainState.clearHistoryOnClose) targets.push('clearHistory')
   if(mainState.clearDownloadOnClose) targets.push('clearDownload')
-  if(mainState.clearCacheOnClose) targets.push('clearCache')
-  if(mainState.clearStorageDataOnClose) targets.push('clearStorageData')
-  if(mainState.clearAutocompleteDataOnClose) targets.push('clearAutocompleteData')
-  if(mainState.clearAutofillDataOnClose) targets.push('clearAutofillData')
-  if(mainState.clearPasswordOnClose) targets.push('clearPassword')
+  if(mainState.clearPasswordOnClose) targets.push('passwords')
   if(mainState.clearGeneralSettingsOnClose) targets.push('clearGeneralSettings')
-  if(mainState.clearFavoriteOnClose) targets.push('clearFavorite')
+  if(mainState.clearSessionManagerOnClose) targets.push('clearSessionManager')
+  if(mainState.clearFaviconOnClose) targets.push('clearFavicon')
+  if(mainState.clearAutomationOnClose) targets.push('clearAutomation')
+  if(mainState.clearNoteOnClose) targets.push('clearNote')
+  if(mainState.clearUserSessionClose) targets.push('clearUserSession')
+
+  if(mainState.clearCookiesClose) targets.push('cookies')
+  if(mainState.clearFormDataClose) targets.push('formData')
+  if(mainState.clearPluginDataClose) targets.push('pluginData')
+  if(mainState.clearAppCacheClose) targets.push('appcache')
+  if(mainState.clearCacheClose) targets.push('cache')
+  if(mainState.clearFileSystemsClose) targets.push('fileSystems')
+  if(mainState.clearLocalStorageClose) targets.push('localStorage')
+  if(mainState.clearIndexedDBClose) targets.push('indexedDB')
+  if(mainState.clearWebSQLClose) targets.push('webSQL')
+
   if(targets.length){
     let opt2
     if(mainState.clearType == 'before'){

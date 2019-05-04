@@ -156,7 +156,7 @@ export default class BrowserPanel {
   }
 
   static getChromeWindowBoundArray(width, height, modify=0){
-    return [- BrowserPanel.sideMargin, - BrowserPanel.topMargin + modify, width + BrowserPanel.sideMargin * 2, height + BrowserPanel.topMargin + 8]
+    return [- BrowserPanel.sideMargin, - BrowserPanel.topMargin + modify, width + BrowserPanel.sideMargin * 2, height + BrowserPanel.topMargin + 8 - modify]
   }
 
   constructor({browserWindow, panelKey, tabKey, webContents, windowId, url, tabId, bounds}) {
