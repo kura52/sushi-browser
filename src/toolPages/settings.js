@@ -2855,6 +2855,9 @@ const isWin = navigator.userAgent.includes('Windows')
           <Menu.Item as="a" href='javascript:void(0)' onClick={_=>ipc.send('open-page','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/input_history.html')} active={false}>
             Input History
           </Menu.Item>
+          <Menu.Item as="a" href='javascript:void(0)' onClick={_=>ipc.send('open-page','chrome://settings')} active={false}>
+            Chrome Settings
+          </Menu.Item>
         </Sidebar>
         <Sidebar.Pusher>
           <Segment basic>

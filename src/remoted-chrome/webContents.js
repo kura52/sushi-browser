@@ -645,7 +645,7 @@ export default class webContents extends EventEmitter {
     robot.keyTap('escape')
   }
 
-  async capturePage(rect, callback, noActiveSkip){
+  async capturePage(rect, callback, noActiveSkip, fullPage ){
     if (typeof(rect) == 'function') {
       [callback, noActiveSkip, rect] = [rect, callback, void 0]
     }
@@ -663,8 +663,8 @@ export default class webContents extends EventEmitter {
     }
 
     const start = Date.now()
-    if(rect){
-      this._getPage().screenshot({clip: rect, encoding: 'png'}).then(image=>{
+    if(rect || fullPage){
+      this._getPage().screenshot({clip: rect, fullPage}).then(image=>{
         console.log(11,Date.now() - start)
         const img = nativeImage.createFromBuffer(image)
         console.log(12,Date.now() - start)

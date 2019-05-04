@@ -640,7 +640,7 @@ const createHistorySubmenu = () => {
       accelerator: mainState.keyShowAllHistory,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents2.send('new-tab',cont.id,'chrome://history/')
+          cont && cont.hostWebContents2.send('new-tab',cont.id,'chrome://history2/')
         })
       }
     }

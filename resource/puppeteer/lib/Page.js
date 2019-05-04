@@ -924,6 +924,9 @@ class Page extends EventEmitter {
     const buffer = options.encoding === 'base64' ? result.data : Buffer.from(result.data, 'base64');
     if (options.path)
       await writeFileAsync(options.path, buffer);
+    if(options.fullPage){
+      this._client.send('Emulation.clearDeviceMetricsOverride',{})
+    }
     return buffer;
   }
 

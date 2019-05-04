@@ -1965,41 +1965,9 @@ ipcMain.on('screen-shot',(e,{full,type,rect,tabId,tabKey,quality=92,savePath,aut
     }
   }
 
-  if(full || (e.sender.hostWebContents2 && rect)){
-    const cont = (sharedState[tabId] || webContents.fromId(tabId))
-    if(cont && !cont.isDestroyed()){
-      cont.executeJavaScript(
-        `(function(){
-          const d = document.body,dd = document.documentElement,
-          width = Math.max(d.scrollWidth, d.offsetWidth, dd.clientWidth, dd.scrollWidth, dd.offsetWidth),
-          height = Math.max(d.scrollHeight, d.offsetHeight, dd.clientHeight, dd.scrollHeight, dd.offsetHeight);
-          if(d.style.overflow) d.dataset.overflow = d.style.overflow
-          d.style.overflow = 'hidden'
-          return {width,height}
-        })()`, (result)=>{
-          const key = Math.random().toString()
-          cont.hostWebContents2.send('webview-size-change',tabKey,key,`${result.width}px`,`${result.height}px`,true)
-          ipcMain.once(`webview-size-change-reply_${key}`,(e)=>{
-            const view = BrowserView.getAllViews().find(x=>x.webContents.id == cont.id)
-            if(full) view.setBounds({x:viewAttributeMap[view.id].x, y:viewAttributeMap[view.id].y, width:scaling(result.width),height:scaling(result.height) })
-            cont.capturePage(rect || {x:0,y:0,width:scaling(result.width),height:scaling(result.height) },capture.bind(this,_=>{
-              if(full) view.setBounds(viewAttributeMap[view.id])
-              cont.hostWebContents2.send('webview-size-change',tabKey,key,'100%','100%')
-              cont.executeJavaScript(
-                `(function(){
-          document.body.style.overflow = document.body.dataset.overflow || null
-        })()`,(result)=>{})
-            }))
-          })
-        })
-    }
-  }
-  else{
-    const args = [capture.bind(this,null)]
-    if(rect) args.unshift(rect)
-    const cont = (e.sender.hostWebContents2 ? (sharedState[tabId] || webContents.fromId(tabId)) : e.sender)
-    if(cont && !cont.isDestroyed()) cont.capturePage(...args)
-  }
+  const cont = (e.sender.hostWebContents2 ?  e.sender : (sharedState[tabId] || webContents.fromId(tabId)))
+  if(cont && !cont.isDestroyed()) cont.capturePage(rect, capture.bind(this,null), void 0, full)
+
 })
 
 ipcMain.on('save-and-play-video',(e,url,win)=>{

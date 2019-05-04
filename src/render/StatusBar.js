@@ -209,7 +209,7 @@ class StatusBar extends Component {
       <span style={{float: 'right'}}>
         {this.renderButton('home','480990236307250886',sharedState.homeURL)}
         {this.renderButton('star','bookmarks','chrome://bookmarks2/')}
-        {this.renderButton('history','history','chrome://history/')}
+        {this.renderButton('history','history','chrome://history2/')}
         {this.renderButton('download','downloads','download')}
         {this.renderButton('sticky-note','note','note')}
         {this.renderButton('cog','settings','chrome://setting/')}

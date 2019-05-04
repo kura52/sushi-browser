@@ -431,7 +431,7 @@ class BrowserNavbar extends Component{
 
   onCommon(str){
     const cont = this.getWebContents(this.props.tab)
-    const url = str == "history" ? "chrome://history/" : str == "favorite" ? "chrome://bookmarks2/" : `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/${str}.html`
+    const url = str == "history" ? "chrome://history2/" : str == "favorite" ? "chrome://bookmarks2/" : `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/${str}.html`
     cont.hostWebContents2.send('new-tab', this.props.tab.wvId, url)
     // webContents.getAllWebContents().forEach(x=>{console.log(x.id,x.hostWebContents2 && x.hostWebContents2.id)})
   }

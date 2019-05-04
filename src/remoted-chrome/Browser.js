@@ -1106,11 +1106,6 @@ class PopupPanel{
     }
   }
 
-  async getLayoutMetrics(){
-    const page = await (Browser._pagePromises[PopupPanel.tabId])
-    return page._client.send('Page.getLayoutMetrics')
-  }
-
 }
 
 PopupPanel.instance = {}
