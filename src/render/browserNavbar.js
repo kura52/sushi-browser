@@ -936,7 +936,16 @@ class BrowserNavbar extends Component{
     return [<BrowserNavbarBtn title={""} icon="link" sync={this.props.tab.fields.mobilePanel.isPanel}
                       onClick={()=>{
                         this.props.tab.fields.mobilePanel.isPanel = !this.props.tab.fields.mobilePanel.isPanel
-                        ipc.send('mobile-panel-operation',{type: 'detach', key: this.props.tab.key, tabId: this.props.tab.wvId, detach: !this.props.tab.fields.mobilePanel.isPanel})
+                        if(this.props.tab.fields.mobilePanel.isPanel){
+                          ipc.send('mobile-panel-operation',
+                            {type: 'detach', key: this.props.tab.key, tabId: this.props.tab.wvId, detach: !this.props.tab.fields.mobilePanel.isPanel})
+                        }
+                        else{
+                          const r = document.querySelector(`.mobile-panel.m${this.props.tab.key}`).getBoundingClientRect()
+                          ipc.send('mobile-panel-operation',
+                            {type: 'detach', key: this.props.tab.key, tabId: this.props.tab.wvId, detach: !this.props.tab.fields.mobilePanel.isPanel,
+                              x:window.screenX + r.left,y:window.screenY + r.top,width:r.width,height:r.height})
+                        }
                         this.props.parent.setState({})
                       }}/>,
       <BrowserNavbarBtn title={""} icon="exchange" sync={sharedState.mobilePanelSyncScroll}

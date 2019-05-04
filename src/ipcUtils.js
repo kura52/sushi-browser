@@ -1142,39 +1142,32 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
       if(chromeNativeWindow) break
     }
 
-    if(!detach){
-      chromeNativeWindow.setForegroundWindowEx()
-      chromeNativeWindow.setWindowLongPtrEx(0x00000080)
-    }
-
-    const hwnd = chromeNativeWindow.createWindow()
-    const nativeWindow = (await winctl.FindWindows(win => win.getHwnd() == hwnd))[0]
-
-    chromeNativeWindow.setParent(nativeWindow.getHwnd())
-
 
     //get target
     const tab = cWin.tabs[0]
 
     const mobileCont = new webContents(tab.id)
+    const mobilePage = await mobileCont._getPage()
 
-    mobileCont.setViewport({width: Math.round(width), height: Math.round(height)})
+    let nativeWindow
+    if(!detach){
+      chromeNativeWindow.setForegroundWindowEx()
+      chromeNativeWindow.setWindowLongPtrEx(0x00000080)
 
-    nativeWindow.move(Math.round(x), Math.round(y), Math.round(width), Math.round(height))
-    console.log(BrowserPanel.getChromeWindowBoundArray(Math.round(width), Math.round(height)))
-    chromeNativeWindow.move(...BrowserPanel.getChromeWindowBoundArray(Math.round(width), Math.round(height)))
+      const hwnd = chromeNativeWindow.createWindow()
+      nativeWindow = (await winctl.FindWindows(win => win.getHwnd() == hwnd))[0]
+
+      chromeNativeWindow.setParent(nativeWindow.getHwnd())
+
+      mobilePage.setViewport({width: Math.round(width), height: Math.round(height)})
+      nativeWindow.move(Math.round(x), Math.round(y), Math.round(width), Math.round(height))
+      chromeNativeWindow.move(...BrowserPanel.getChromeWindowBoundArray(Math.round(width), Math.round(height)))
+    }
 
     mobileCont.loadURL(url)
 
-    mpoMap[key] = {chromeWindow: cWin, tab, mobileCont, nativeWindow, chromeNativeWindow}
+    mpoMap[key] = {tab, mobileCont, mobilePage, nativeWindow, chromeNativeWindow}
     detachMap[key] = detach
-
-
-    //@TODO
-    // bw.on('resize', ()=>{
-    //   const [width,height] = bw.getSize()
-    //   e.sender.send(`resize-mobile-panel_${key}`,width,height)
-    // })
 
     mobileCont.on('did-start-navigation', ()=>{
 
@@ -1206,17 +1199,12 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
       if(cont && !cont.isDestroyed()) cont.send('mobile-scroll',{type:'init' ,code: mobileInject})
     },1000)
 
-
     chromeNativeWindow.setForegroundWindowEx()
     robot.keyTap('f12')
 
     await new Promise(r=> setTimeout(r,3000))
 
     const targets = await Browser._browser.targets();
-
-    for(const page of await Browser._browser.pages()){
-      console.log(44333,page.url())
-    }
 
     const devTarget = targets.find((target) => target.url().startsWith('chrome-devtools://devtools/bundled/devtools_app.html') && !targetIds.includes(target._targetId))
 
@@ -1228,7 +1216,7 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
         await new Promise(r=>{
           setTimeout(_=>{
             try{
-              phoneButton = document.querySelector('[slot="insertion-point-main"]').shadowRoot.querySelector(".tabbed-pane-left-toolbar").shadowRoot.querySelector('.largeicon-phone').parentNode
+              phoneButton = document.querySelector('[slot="insertion-point-main"].vbox.flex-auto.tabbed-pane').shadowRoot.querySelector(".tabbed-pane-left-toolbar").shadowRoot.querySelector('.largeicon-phone').parentNode
             }catch(e){}
             r()
           },100)
@@ -1241,15 +1229,20 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
         Components.dockController.setDockSide('undocked')
       }
     })
+
+    mobilePage.reload()
   }
   else{
-    const {chromeWindow, tab, mobileCont, nativeWindow, chromeNativeWindow} = mpoMap[key]
+    const {tab, mobileCont, mobilePage, nativeWindow, chromeNativeWindow} = mpoMap[key]
     const _detach = detachMap[key]
-    if(!chromeWindow) return
+    if(!tab) return
 
     if(type == 'resize'){
       if(_detach) return
+      console.log(x,y,width,height)
+      mobilePage.setViewport({width: Math.round(width), height: Math.round(height)})
       nativeWindow.move(Math.round(x), Math.round(y), Math.round(width), Math.round(height))
+      chromeNativeWindow.move(...BrowserPanel.getChromeWindowBoundArray(Math.round(width), Math.round(height)))
     }
     else if(type == 'url'){
       const thisUrl = mobileCont.getURL()
@@ -1266,7 +1259,7 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
       clearInterval(loopMap[key])
       if(!mobileCont.isDestroyed()){
         delete bwMap[mobileCont.id]
-        mobileCont.close()
+        mobileCont.destroy()
       }
       delete tabMap[tabId]
       delete detachMap[key]
@@ -1274,42 +1267,46 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
       delete loopMap[key]
       delete winMap[key]
     }
-    else if(type == 'below'){
-      if(_detach) return
-      if(bw.isMinimized()) return
-      // if(isWin){
-      //   const win = winMap[key]
-      //   const winctl = require('winctl')
-      //   win.setWindowPos(winctl.HWND.NOTOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
-      //   if(!bw.isFocused()) win.setWindowPos(winctl.HWND.BOTTOM,0,0,0,0,19+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
-      // }
-      // else{
-      bw.setAlwaysOnTop(false)
-      // }
-      console.log(66665555)
-      if(force){
-        const cont = webContents.fromId(tabId)
-        cont.hostWebContents2.focus()
-        console.log(666655556)
-      }
-      else if(show && !bw.isFocused()){
-        console.log(666655557)
-        bw.hide()
-        bw.showInactive()
-        bw.setSkipTaskbar(true)
-      }
-    }
+    // else if(type == 'below'){
+    //   if(_detach) return
+    //   if(nativeWindow.isMinimized) return
+    //   // if(isWin){
+    //   //   const win = winMap[key]
+    //   //   const winctl = require('winctl')
+    //   //   win.setWindowPos(winctl.HWND.NOTOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
+    //   //   if(!bw.isFocused()) win.setWindowPos(winctl.HWND.BOTTOM,0,0,0,0,19+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
+    //   // }
+    //   // else{
+    //   bw.setAlwaysOnTop(false)
+    //   // }
+    //   console.log(66665555)
+    //   if(force){
+    //     const cont = webContents.fromId(tabId)
+    //     cont.hostWebContents2.focus()
+    //     console.log(666655556)
+    //   }
+    //   else if(show && !bw.isFocused()){
+    //     console.log(666655557)
+    //     bw.hide()
+    //     bw.showInactive()
+    //     bw.setSkipTaskbar(true)
+    //   }
+    // }
     else if(type == 'above'){
       if(_detach) return
-      if(bw.isMinimized()) return
+      if(nativeWindow.isMinimized) return
+      nativeWindow.moveTop()
     }
     else if(type == 'minimize'){
       if(_detach) return
-      bw.minimize()
+      nativeWindow.showWindow(6)
+      nativeWindow.isMinimized = true
     }
     else if(type == 'unminimize'){
       if(_detach) return
-      bw.restore()
+      nativeWindow.showWindow(9)
+      nativeWindow.isMinimized = false
+      nativeWindow.setForegroundWindowEx()
     }
     else if(type == 'key-change'){
       mpoMap[key] = mpoMap[oldKey]
@@ -1317,14 +1314,28 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
     else if(type == 'detach'){
       detachMap[key] = detach
 
-      bw.setFullScreenable(detach)
-      bw.setSkipTaskbar(!detach)
-      bw.setMinimizable(detach)
-      bw.setMaximizable(detach)
+      if(detach){
+        chromeNativeWindow.setParent(null)
+        chromeNativeWindow.setWindowLongPtrExRestore(0x00000080)
+        chromeNativeWindow.move(Math.round(x), Math.round(y), Math.round(width), Math.round(height))
+        nativeWindow.destroyWindow()
+        setTimeout(()=>chromeNativeWindow.moveTop(),100)
+      }
+      else{
+        chromeNativeWindow.setForegroundWindowEx()
+        chromeNativeWindow.setWindowLongPtrEx(0x00000080)
 
-      if(detach) bw.focus()
+        const hwnd = chromeNativeWindow.createWindow()
+        const nativeWindow = (await winctl.FindWindows(win => win.getHwnd() == hwnd))[0]
+        mpoMap[key].nativeWindow = nativeWindow
 
+        chromeNativeWindow.setParent(nativeWindow.getHwnd())
 
+        // mobilePage.setViewport({width: Math.round(width), height: Math.round(height)})
+        // nativeWindow.move(Math.round(x), Math.round(y), Math.round(width), Math.round(height))
+        // chromeNativeWindow.move(...BrowserPanel.getChromeWindowBoundArray(Math.round(width), Math.round(height)))
+
+      }
       mainState.mobilePanelDetach = detach
     }
   }
@@ -2481,7 +2492,7 @@ ipcMain.on('set-position-browser-view', async (e, panelKey) => {
 
   const winPos = win.getPosition()
   // console.log(Date.now(),'set-position-browser-view', { x:  Math.round(pos.left + winPos[0]), y: Math.round(pos.top + winPos[1]) })
-  panel.setBounds({ x:  Math.round(pos.left + winPos[0]), y: Math.round(pos.top + winPos[1]), width: Math.round(pos.width), height: Math.round(pos.height) })
+  panel.setBounds({ x:  Math.round(pos.left + winPos[0]), y: Math.round(pos.top + winPos[1])})
 })
 
 ipcMain.on('delete-browser-view', (e, panelKey, tabKey)=>{

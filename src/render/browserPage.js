@@ -96,12 +96,13 @@ class BrowserPage extends Component {
   async componentDidUpdate(prevProps, prevState) {
     // console.log('componentDidUpdate',prevProps, this.props)
     const style = this.props.pos
+    const mobilePanelWidth = this.props.tab.fields.mobilePanel && this.props.tab.fields.mobilePanel.isPanel && this.props.tab.fields.mobilePanel.width
     if(style.zIndex > 0 && (prevProps.pos.top != style.top ||
       prevProps.pos.left != style.left ||
       prevProps.pos.width != style.width ||
       prevProps.pos.height != style.height ||
       prevProps.pos.zIndex != style.zIndex) ||
-      this.props.tab.fields.mobilePanel != this.prevMobilePanel ||
+      mobilePanelWidth != this.prevMobilePanelWidth ||
       sharedState.statusBar != this.prevStatusBar){
       this.bounds = [style.left, style.top, style.width, style.height, style.zIndex]
       if(!this.props.tab.wvId){
@@ -110,7 +111,7 @@ class BrowserPage extends Component {
           if(this.props.tab.wvId) break
         }
       }
-      if(this.props.tab.fields.mobilePanel){
+      if(this.props.tab.fields.mobilePanel && this.props.tab.fields.mobilePanel.isPanel){
         const width = this.props.tab.fields.mobilePanel.width + 1
         this.bounds[0] = this.bounds[0] + width
         this.bounds[2] = this.bounds[2] - width
@@ -121,7 +122,7 @@ class BrowserPage extends Component {
       ipc.send('set-bound-browser-view', this.props.k2, this.props.k, this.props.tab.wvId, ...this.bounds)
       ipc.emit('set-bound-browser-view', this.props.k2, this.props.k, this.props.tab.wvId, ...this.bounds)
     }
-    this.prevMobilePanel = this.props.tab.fields.mobilePanel
+    this.prevMobilePanelWidth = mobilePanelWidth
     this.prevStatusBar = sharedState.statusBar
   }
 
@@ -285,7 +286,7 @@ class BrowserPage extends Component {
       if(this.props.isActive) {
         const style = this.props.pos
         const bounds = [style.left, style.top, style.width, style.height, style.zIndex]
-        if(this.props.tab.fields.mobilePanel){
+        if(this.props.tab.fields.mobilePanel && this.props.tab.fields.mobilePanel.isPanel){
           const width = this.props.tab.fields.mobilePanel.width + 1
           bounds[0] = bounds[0] + width
           bounds[2] = bounds[2] - width
@@ -362,7 +363,7 @@ class BrowserPage extends Component {
     this.getWebviewPosEvent = (e, panelKey)=>{
       if(this.props.isActive && this.props.k2 == panelKey){
         const pos = {...this.props.pos}
-        if(this.props.tab.fields.mobilePanel){
+        if(this.props.tab.fields.mobilePanel && this.props.tab.fields.mobilePanel.isPanel){
           const width = this.props.tab.fields.mobilePanel.width + 1
           pos.left = pos.left + width
         }

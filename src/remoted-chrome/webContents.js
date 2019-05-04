@@ -171,12 +171,12 @@ export default class webContents extends EventEmitter {
     }
     this._pEvents['domcontentloaded'] = () => {
       // console.log('dom-ready')
-      console.log('dom-ready')
+      console.log(91,'dom-ready')
       this.emit('dom-ready', {sender: this})
     }
 
     this._evEvents[`tabs-onUpdated_${this.id}`] = (changeInfo) =>{
-      console.log('updated',changeInfo)
+      console.log(91,'updated',changeInfo)
       if(changeInfo.favIconUrl != null){
         // console.log('page-favicon-updated')
         this.emitAndSend('page-favicon-updated', {sender: this}, [changeInfo.favIconUrl])
@@ -218,8 +218,6 @@ export default class webContents extends EventEmitter {
       }
     }
 
-    // did-navigate
-
     this._pEvents['close'] = event => {
       console.log('destroyed')
       const data = BrowserPanel.getBrowserPanelByTabId(this.id)
@@ -244,7 +242,6 @@ export default class webContents extends EventEmitter {
   }
 
   emitAndSend(name, event, ...args){
-    console.log(name)
     this.emit(name, event, ...args)
     for (let win of BrowserWindow.getAllWindows()) {
       if (win.getTitle().includes('Sushi Browser')) {

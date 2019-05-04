@@ -180,6 +180,9 @@ export default class MobilePanel extends Component {
     this.props.mobilePanel.width = width
     this.props.parent.setState({})
     if(mouseUp) mainState.set('mobilePanelWidth',width)
+    // const r = this.div.getBoundingClientRect()
+    // ipc.send('mobile-panel-operation',{type: 'resize', key: this.props.tab.key, tabId: this.props.tab.wvId, x:window.screenX + r.left,y:window.screenY + r.top,width:r.width,height:r.height})
+
   }
 
   render() {

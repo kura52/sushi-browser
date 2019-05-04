@@ -1343,6 +1343,7 @@ export default class TabPanel extends Component {
       //   // ipc.send('chrome-webNavigation-onBeforeNavigate',self.createChromeWebNavDetails(tab))
       // },
       onDidNavigate(e, page, url) {
+        page.didNavigate = true
         console.log('onDidNavigete',e,page)
         // tab.tabPreview = void 0
 
@@ -1371,6 +1372,7 @@ export default class TabPanel extends Component {
         console.log('onDidFinishLoading',e)
         if (!self.mounted) return
 
+        page.didNavigate = false
         // if(!sharedState.searchWordHighlightRecursive && sharedState.searchWordHighlight){
         //   self.searchWordHighlight(tab)
         // }
@@ -1452,6 +1454,9 @@ export default class TabPanel extends Component {
 
       },
       onDidStopLoading(e, page){
+        if(page.didNavigate){
+          this.onDidFinishLoading(e,page)
+        }
         if(page.isLoading){
           page.isLoading = false
           if(page.favicon == 'loading'){
