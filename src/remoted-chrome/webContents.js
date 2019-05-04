@@ -171,6 +171,7 @@ export default class webContents extends EventEmitter {
     }
     this._pEvents['domcontentloaded'] = () => {
       // console.log('dom-ready')
+      console.log('dom-ready')
       this.emit('dom-ready', {sender: this})
     }
 
@@ -243,6 +244,7 @@ export default class webContents extends EventEmitter {
   }
 
   emitAndSend(name, event, ...args){
+    console.log(name)
     this.emit(name, event, ...args)
     for (let win of BrowserWindow.getAllWindows()) {
       if (win.getTitle().includes('Sushi Browser')) {
