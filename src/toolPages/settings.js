@@ -1129,23 +1129,23 @@ const isWin = navigator.userAgent.includes('Windows')
             <span className="toggle-label">{l10n.translation('note')}</span>
             <br/>
             <Checkbox toggle onChange={this.onChange2.bind(this,'passwords')}/>
-            <span className="toggle-label">{l10n.translation('1375321115329958930')}&nbsp;({l10n.translation('clearAllData')})</span>
+            <span className="toggle-label">{l10n.translation('1375321115329958930')}</span>
             <br/>
 
             <Checkbox toggle onChange={this.onChange2.bind(this,'cookies')}/>
             <span className="toggle-label">Cookies</span>
-            <br/>
-            <Checkbox toggle onChange={this.onChange2.bind(this,'appcache')}/>
-            <span className="toggle-label">App Cache</span>
-            <br/>
-            <Checkbox toggle onChange={this.onChange2.bind(this,'cache')}/>
-            <span className="toggle-label">Cache</span>
             <br/>
             <Checkbox toggle onChange={this.onChange2.bind(this,'formData')}/>
             <span className="toggle-label">Form Data</span>
             <br/>
             <Checkbox toggle onChange={this.onChange2.bind(this,'pluginData')}/>
             <span className="toggle-label">Plugin Data</span>
+            <br/>
+            <Checkbox toggle onChange={this.onChange2.bind(this,'appcache')}/>
+            <span className="toggle-label">App Cache</span>
+            <br/>
+            <Checkbox toggle onChange={this.onChange2.bind(this,'cache')}/>
+            <span className="toggle-label">Cache</span>
             <br/>
             <Checkbox toggle onChange={this.onChange2.bind(this,'fileSystems')}/>
             <span className="toggle-label">File Systems</span>
@@ -1189,7 +1189,7 @@ const isWin = navigator.userAgent.includes('Windows')
             <Checkbox toggle onChange={this.onChange.bind(this,'clearGeneralSettingsOnClose')} defaultChecked={this.state.clearGeneralSettingsOnClose}/>
             <span className="toggle-label">{l10n.translation('generalSettings')}&nbsp;({l10n.translation('clearAllData')})</span>
             <br/>
-            <Checkbox toggle onChange={this.onChange.bind(this,'clearUserSessionClose')} defaultChecked={this.state.clearUserSessionClose}/>
+            <Checkbox toggle onChange={this.onChange.bind(this,'clearUserSessionOnClose')} defaultChecked={this.state.clearUserSessionOnClose}/>
             <span className="toggle-label">{l10n.translation("bookmarksUserSavedSessions")}</span>
             <br/>
             <Checkbox toggle onChange={this.onChange.bind(this,'clearHistoryOnClose')} defaultChecked={this.state.clearHistoryOnClose}/>
@@ -1211,35 +1211,35 @@ const isWin = navigator.userAgent.includes('Windows')
             <span className="toggle-label">{l10n.translation('note')}</span>
             <br/>
             <Checkbox toggle onChange={this.onChange.bind(this,'clearPasswordOnClose')} defaultChecked={this.state.clearPasswordOnClose}/>
-            <span className="toggle-label">{l10n.translation('1375321115329958930')}&nbsp;({l10n.translation('clearAllData')})</span>
+            <span className="toggle-label">{l10n.translation('1375321115329958930')}</span>
             <br/>
 
 
-            <Checkbox toggle onChange={this.onChange.bind(this,'clearCookiesClose')} defaultChecked={this.state.clearCookiesClose}/>
+            <Checkbox toggle onChange={this.onChange.bind(this,'clearCookiesOnClose')} defaultChecked={this.state.clearCookiesOnClose}/>
             <span className="toggle-label">Cookies</span>
             <br/>
-            <Checkbox toggle onChange={this.onChange.bind(this,'clearAppCacheClose')} defaultChecked={this.state.clearAppCacheClose}/>
-            <span className="toggle-label">App Cache</span>
-            <br/>
-            <Checkbox toggle onChange={this.onChange.bind(this,'clearCacheClose')} defaultChecked={this.state.clearCacheClose}/>
-            <span className="toggle-label">Cache</span>
-            <br/>
-            <Checkbox toggle onChange={this.onChange.bind(this,'clearFormDataClose')} defaultChecked={this.state.clearFormDataClose}/>
+            <Checkbox toggle onChange={this.onChange.bind(this,'clearFormDataOnClose')} defaultChecked={this.state.clearFormDataOnClose}/>
             <span className="toggle-label">Form Data</span>
             <br/>
-            <Checkbox toggle onChange={this.onChange.bind(this,'clearPluginDataClose')} defaultChecked={this.state.clearPluginDataClose}/>
+            <Checkbox toggle onChange={this.onChange.bind(this,'clearPluginDataOnClose')} defaultChecked={this.state.clearPluginDataOnClose}/>
             <span className="toggle-label">Plugin Data</span>
             <br/>
-            <Checkbox toggle onChange={this.onChange.bind(this,'clearFileSystemsClose')} defaultChecked={this.state.clearFileSystemsClose}/>
+            <Checkbox toggle onChange={this.onChange.bind(this,'clearAppCacheOnClose')} defaultChecked={this.state.clearAppCacheOnClose}/>
+            <span className="toggle-label">App Cache</span>
+            <br/>
+            <Checkbox toggle onChange={this.onChange.bind(this,'clearCacheOnClose')} defaultChecked={this.state.clearCacheOnClose}/>
+            <span className="toggle-label">Cache</span>
+            <br/>
+            <Checkbox toggle onChange={this.onChange.bind(this,'clearFileSystemsOnClose')} defaultChecked={this.state.clearFileSystemsOnClose}/>
             <span className="toggle-label">File Systems</span>
             <br/>
-            <Checkbox toggle onChange={this.onChange.bind(this,'clearLocalStorageClose')} defaultChecked={this.state.clearLocalStorageClose}/>
+            <Checkbox toggle onChange={this.onChange.bind(this,'clearLocalStorageOnClose')} defaultChecked={this.state.clearLocalStorageOnClose}/>
             <span className="toggle-label">Local Storage</span>
             <br/>
-            <Checkbox toggle onChange={this.onChange.bind(this,'clearIndexedDBClose')} defaultChecked={this.state.clearIndexedDBClose}/>
+            <Checkbox toggle onChange={this.onChange.bind(this,'clearIndexedDBOnClose')} defaultChecked={this.state.clearIndexedDBOnClose}/>
             <span className="toggle-label">Indexed DB</span>
             <br/>
-            <Checkbox toggle onChange={this.onChange.bind(this,'clearWebSQLClose')} defaultChecked={this.state.clearWebSQLClose}/>
+            <Checkbox toggle onChange={this.onChange.bind(this,'clearWebSQLOnClose')} defaultChecked={this.state.clearWebSQLOnClose}/>
             <span className="toggle-label">WebSQL</span>
             <br/>
           </div>
@@ -2885,9 +2885,9 @@ const isWin = navigator.userAgent.includes('Windows')
     'maxrowLabel','orderOfAutoComplete','numOfSuggestion','numOfHistory','openTabNextLabel','rightClickTabAdd','middleClickTabAdd','altClickTabAdd','displayFullIcon','downloadPath','windowCustomIcon',
     'defaultDownloadPath','alwaysOpenLinkNewTab','openTabPosition','alwaysOpenLinkBackground','addressBarNewTab','oppositeGlobal','colorNormalText','colorNormalBackground','colorActiveText',
     'colorActiveBackground','colorTabDot','colorUnreadText','colorUnreadBackground','enableColorOfNoSelect','themeColorChange','showBorderActiveTab','historyBadget','colorTabMode','enableDownloadList','focusLocationBar',
-    'clearHistoryOnClose','clearDownloadOnClose','clearCacheOnClose','clearPasswordOnClose','clearGeneralSettingsOnClose','clearUserSessionClose',
-    'clearSessionManagerOnClose','clearFaviconOnClose','clearAutomationOnClose','clearNoteOnClose','clearType','clearDays',
-    'enableWidevine','toolbarLink','sidebarLink','bookmarkbarLink','zoomBehavior','tabPreviewSizeWidth','tabPreviewSizeHeight','tabPreviewSlideHeight','tabPreviewWait','searchEngineDisplayType','tabPreviewRecent',
+    'clearHistoryOnClose', 'clearDownloadOnClose', 'clearPasswordOnClose', 'clearGeneralSettingsOnClose', 'clearSessionManagerOnClose', 'clearFaviconOnClose', 'clearAutomationOnClose', 'clearNoteOnClose', 'clearUserSessionOnClose',
+    'clearCookiesOnClose', 'clearFormDataOnClose', 'clearPluginDataOnClose', 'clearAppCacheOnClose', 'clearCacheOnClose', 'clearFileSystemsOnClose', 'clearLocalStorageOnClose', 'clearIndexedDBOnClose', 'clearWebSQLOnClose',
+    'clearType','clearDays', 'enableWidevine','toolbarLink','sidebarLink','bookmarkbarLink','zoomBehavior','tabPreviewSizeWidth','tabPreviewSizeHeight','tabPreviewSlideHeight','tabPreviewWait','searchEngineDisplayType','tabPreviewRecent',
     'sendUrlContextMenus','extensions','tabBarMarginTop','removeTabBarMarginTop','enableTheme','themeTopPage','themeBookmark','themeHistory','themeDownloader','themeExplorer','themeBookmarkSidebar','themeHistorySidebar',
     'themeSessionManagerSidebar','themeTabTrashSidebar','themeTabHistorySidebar','themeExplorerSidebar','searchHistoryOrderCount','rectangularSelection','fullscreenTransitionKeep','enableSmoothScrolling','showAddressBarFavicon','showAddressBarBookmarks'
     ,'emailSync','syncGeneralSettings','syncBookmarks','syncBrowsingHistory','syncSessionTools','syncFavicons','syncDownloadHistory','syncAutomation','syncNote','syncPassword','rockerGestureLeft','rockerGestureRight','inputHistory','inputHistoryMaxChar',

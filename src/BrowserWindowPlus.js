@@ -30,17 +30,17 @@ async function clearDatas(){
   if(mainState.clearFaviconOnClose) targets.push('clearFavicon')
   if(mainState.clearAutomationOnClose) targets.push('clearAutomation')
   if(mainState.clearNoteOnClose) targets.push('clearNote')
-  if(mainState.clearUserSessionClose) targets.push('clearUserSession')
+  if(mainState.clearUserSessionOnClose) targets.push('clearUserSession')
 
-  if(mainState.clearCookiesClose) targets.push('cookies')
-  if(mainState.clearFormDataClose) targets.push('formData')
-  if(mainState.clearPluginDataClose) targets.push('pluginData')
-  if(mainState.clearAppCacheClose) targets.push('appcache')
-  if(mainState.clearCacheClose) targets.push('cache')
-  if(mainState.clearFileSystemsClose) targets.push('fileSystems')
-  if(mainState.clearLocalStorageClose) targets.push('localStorage')
-  if(mainState.clearIndexedDBClose) targets.push('indexedDB')
-  if(mainState.clearWebSQLClose) targets.push('webSQL')
+  if(mainState.clearCookiesOnClose) targets.push('cookies')
+  if(mainState.clearFormDataOnClose) targets.push('formData')
+  if(mainState.clearPluginDataOnClose) targets.push('pluginData')
+  if(mainState.clearAppCacheOnClose) targets.push('appcache')
+  if(mainState.clearCacheOnClose) targets.push('cache')
+  if(mainState.clearFileSystemsOnClose) targets.push('fileSystems')
+  if(mainState.clearLocalStorageOnClose) targets.push('localStorage')
+  if(mainState.clearIndexedDBOnClose) targets.push('indexedDB')
+  if(mainState.clearWebSQLOnClose) targets.push('webSQL')
 
   if(targets.length){
     let opt2

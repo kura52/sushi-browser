@@ -8,7 +8,7 @@ const path = require('path')
 const moment = require('moment')
 const fs = require('fs')
 const {dialog,app,BrowserWindow,ipcMain,nativeImage,session} = require('electron')
-import {webContents} from './remoted-chrome/Browser'
+import {Browser, webContents} from './remoted-chrome/Browser'
 import {getFocusedWebContents} from "./util"
 
 import {
@@ -88,6 +88,7 @@ ipcMain.on('export-bookmark',_=>{
 })
 
 ipcMain.on('export-setting', (e,exports) => {
+  console.log('export-setting')
   const focusedWindow = Browser.getFocusedWindow();
   const fileName = moment().format('DD_MM_YYYY') + '.json'
   const defaultPath = path.join(app.getPath('downloads'), fileName)

@@ -11,12 +11,13 @@ import mainState from "./mainState";
 
 const m = {
   async clearBrowsingData(_,opt2,browserDatas){
-    const opt = opt2 ? {since: opt2.updated_at} : void 0
+    const opt = opt2 ? {since: opt2.updated_at['$lte']} : {}
     const dataToRemove = {}
     for(let browserData of browserDatas){
       dataToRemove[browserData] = true
     }
 
+    console.log(dataToRemove, opt)
     return Browser.bg.evaluate((dataToRemove, opt) => {
       return new Promise(async resolve => {
         chrome.browsingData.remove(opt, dataToRemove, resolve)
@@ -43,7 +44,7 @@ const m = {
         })
       }
     }
-    await this.clearBrowsingData(_,opt2,'history')
+    await this.clearBrowsingData(_,opt2,['history'])
   },
 
   async clearSessionManager(_,opt2){
@@ -79,7 +80,7 @@ const m = {
       await note.insert([{"is_file":false,"title":"root","updated_at":1497713000000,"children":["f1bf9993-3bc4-4874-ac7d-7656054c1850"],"key":"root","_id":"zplOMCoNb1BzCt15"},
         {"key":"f1bf9993-3bc4-4874-ac7d-7656054c1850","title":"example","is_file":true,"created_at":1514732400000,"updated_at":1514732400000,"_id":"00jcpO1hKu0L3MLQ"}])
     }
-   },
+  },
 
   async clearDownload(_,opt2){
     let i = 0
@@ -87,7 +88,7 @@ const m = {
       const opt = (opt2 &&  i++==1) ? {now: opt2.updated_at} : opt2
       await table.remove(opt||{}, { multi: true })
     }
-    await this.clearBrowsingData(_,opt2,'downloads')
+    await this.clearBrowsingData(_,opt2,['downloads'])
   },
 
   async clearGeneralSettings(){
@@ -132,14 +133,24 @@ const m = {
         clearFaviconOnClose: mainState.clearFaviconOnClose,
         clearAutomationOnClose: mainState.clearAutomationOnClose,
         clearNoteOnClose: mainState.clearNoteOnClose,
-        clearUserSessionClose: mainState.clearUserSessionClose,
+        clearUserSessionOnClose: mainState.clearUserSessionOnClose,
+
+        clearCookiesOnClose: mainState.clearCookiesOnClose,
+        clearFormDataOnClose: mainState.clearFormDataOnClose,
+        clearPluginDataOnClose: mainState.clearPluginDataOnClose,
+        clearAppCacheOnClose: mainState.clearAppCacheOnClose,
+        clearCacheOnClose: mainState.clearCacheOnClose,
+        clearFileSystemsOnClose: mainState.clearFileSystemsOnClose,
+        clearLocalStorageOnClose: mainState.clearLocalStorageOnClose,
+        clearIndexedDBOnClose: mainState.clearIndexedDBOnClose,
+        clearWebSQLOnClose: mainState.clearWebSQLOnClose,
       }
     )
   }
 }
 
 async function clearEvent(event, targets, opt, opt2){
-  const set = new Set(['cookies', 'formData', 'pluginData', 'appcache', 'cache', 'fileSystems', 'localStorage', 'indexedDB', 'webSQL'])
+  const set = new Set(['passwords', 'cookies', 'formData', 'pluginData', 'appcache', 'cache', 'fileSystems', 'localStorage', 'indexedDB', 'webSQL'])
 
   console.log(2243,targets,opt2)
   const browserDatas = []
@@ -152,7 +163,10 @@ async function clearEvent(event, targets, opt, opt2){
     }
   }
 
-  await m.clearBrowsingData(opt, opt2, browserDatas)
+  if(browserDatas.length){
+    await m.clearBrowsingData(opt, opt2, browserDatas)
+  }
+
 }
 
 ipcMain.on('clear-browsing-data', (event, targets, range)=>{
