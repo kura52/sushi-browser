@@ -26,18 +26,18 @@ const glob = require("glob")
 const BEFORE_CODE_NAME = 'Kani(Crab)'
 const CODE_NAME = 'Geso(Squid arms)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.23.a1"
+const NEXT_APP_VERSION = "0.24.0-beta1"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Added "Find ALL" function (Ctrl+Shift+F)
-Corrected so that volume operation bar and tab preview do not overlap (issue #34)
-Fixed to not update the address bar automatically while inputting the address bar (issue #35)
-Fixed some bugs.`
+const CHANGE_ENGLISH = `Using Chrome as a pseudo webview solves the Muon-related problem. In addition, the following became possible.  
+・Chrome features such as translation, password management and chrome://flags are now available.
+・Expanded Chrome Extension support.
+・Chrome Sync is now available.`
 
-const CHANGE_JAPANESE = `「Find ALL」機能を追加(Ctrl+Shift+F)
-音量操作バーとタブプレビューが重ならないように修正(issue #34)
-アドレスバー入力中に自動でアドレスバーを更新しないように修正(issue #35)
-いくつかの不具合修正`
+const CHANGE_JAPANESE = `Chromeを擬似的なwebviewとして利用することで、Muon由来の不具合解消した。また、以下が可能となった。  
+・翻訳、パスワード管理、chrome://flagsなど、chromeの機能が利用可能となった。
+・Chrome Extensionの対応範囲が拡大。
+・Chrome Syncが利用可能となった。`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'
@@ -214,25 +214,25 @@ app = `sushi-browser-${NEXT_APP_VERSION}-win-ia32.zip`
 console.log(`- [Windows Portable 32bit v${NEXT_APP_VERSION} (${sizeMap[app]})](https://sushib.me/dl/${app})`)
 sizeAdd(htmls,app,sizeMap[app])
 
-app = `SushiBrowser-${NEXT_APP_VERSION}.dmg`
-console.log(`- [MacOS dmg v${NEXT_APP_VERSION} (${sizeMap[app]})](https://sushib.me/dl/${app})`)
-sizeAdd(htmls,app,sizeMap[app])
-
-app = `sushi-browser-${NEXT_APP_VERSION}-mac-x64.zip`
-console.log(`- [MacOS Portable v${NEXT_APP_VERSION} (${sizeMap[app]})](https://sushib.me/dl/${app})`)
-sizeAdd(htmls,app,sizeMap[app])
-
-app = `sushi-browser-${NEXT_APP_VERSION}.x86_64.rpm`
-console.log(`- [Linux rpm (for Fedora/CentOS) v${NEXT_APP_VERSION} (${sizeMap[app]})](https://sushib.me/dl/${app})`)
-sizeAdd(htmls,app,sizeMap[app])
-
-app = `sushi-browser_${NEXT_APP_VERSION}_amd64.deb`
-console.log(`- [Linux deb (for Debian/Ubuntu) v${NEXT_APP_VERSION} (${sizeMap[app]})](https://sushib.me/dl/${app})`)
-sizeAdd(htmls,app,sizeMap[app])
-
-app = `sushi-browser-${NEXT_APP_VERSION}.tar.bz2`
-console.log(`- [Linux Portable v${NEXT_APP_VERSION} (${sizeMap[app]})](https://sushib.me/dl/${app})`)
-sizeAdd(htmls,app,sizeMap[app])
+// app = `SushiBrowser-${NEXT_APP_VERSION}.dmg`
+// console.log(`- [MacOS dmg v${NEXT_APP_VERSION} (${sizeMap[app]})](https://sushib.me/dl/${app})`)
+// sizeAdd(htmls,app,sizeMap[app])
+//
+// app = `sushi-browser-${NEXT_APP_VERSION}-mac-x64.zip`
+// console.log(`- [MacOS Portable v${NEXT_APP_VERSION} (${sizeMap[app]})](https://sushib.me/dl/${app})`)
+// sizeAdd(htmls,app,sizeMap[app])
+//
+// app = `sushi-browser-${NEXT_APP_VERSION}.x86_64.rpm`
+// console.log(`- [Linux rpm (for Fedora/CentOS) v${NEXT_APP_VERSION} (${sizeMap[app]})](https://sushib.me/dl/${app})`)
+// sizeAdd(htmls,app,sizeMap[app])
+//
+// app = `sushi-browser_${NEXT_APP_VERSION}_amd64.deb`
+// console.log(`- [Linux deb (for Debian/Ubuntu) v${NEXT_APP_VERSION} (${sizeMap[app]})](https://sushib.me/dl/${app})`)
+// sizeAdd(htmls,app,sizeMap[app])
+//
+// app = `sushi-browser-${NEXT_APP_VERSION}.tar.bz2`
+// console.log(`- [Linux Portable v${NEXT_APP_VERSION} (${sizeMap[app]})](https://sushib.me/dl/${app})`)
+// sizeAdd(htmls,app,sizeMap[app])
 
 
 

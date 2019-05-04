@@ -242,6 +242,7 @@ export default class webContents extends EventEmitter {
   }
 
   emitAndSend(name, event, ...args){
+    // console.log(91, name)
     this.emit(name, event, ...args)
     for (let win of BrowserWindow.getAllWindows()) {
       if (win.getTitle().includes('Sushi Browser')) {

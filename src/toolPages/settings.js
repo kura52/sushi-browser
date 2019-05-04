@@ -34,17 +34,17 @@ const isWin = navigator.userAgent.includes('Windows')
     keyCloseOtherTabs: l10n.translation('closeOtherTabs'),
     keyCloseTabsToLeft: l10n.translation('closeTabsToLeft'),
     keyCloseTabsToRight: l10n.translation('closeTabsToRight'),
-    keySavePageAs: l10n.translation('savePageAs'),
+    // keySavePageAs: l10n.translation('savePageAs'),
     keyPrint: l10n.translation('print'),
     keyRestart: l10n.translation("restartBrowser"),
     keyQuit: l10n.translation('quitApp').replace('Brave','Sushi Browser'),
-    keyUndo: l10n.translation('undo'),
-    keyRedo: l10n.translation('redo'),
-    keyCut: l10n.translation('cut'),
-    keyCopy: l10n.translation('copy'),
-    keyPaste: l10n.translation('paste'),
-    keyPasteWithoutFormatting: l10n.translation('pasteWithoutFormatting'),
-    keySelectAll: l10n.translation('selectAll'),
+    // keyUndo: l10n.translation('undo'),
+    // keyRedo: l10n.translation('redo'),
+    // keyCut: l10n.translation('cut'),
+    // keyCopy: l10n.translation('copy'),
+    // keyPaste: l10n.translation('paste'),
+    // keyPasteWithoutFormatting: l10n.translation('pasteWithoutFormatting'),
+    // keySelectAll: l10n.translation('selectAll'),
     keyFindOnPage: l10n.translation('findOnPage'),
     keyToggleFindOnPage: 'Toggle Find in Page',
     keyFindNext:  l10n.translation('findNext'),
@@ -1133,7 +1133,7 @@ const isWin = navigator.userAgent.includes('Windows')
             <br/>
 
             <Checkbox toggle onChange={this.onChange2.bind(this,'cookies')}/>
-            <span className="toggle-label">Cookies</span>
+            <span className="toggle-label">{l10n.translation('cookies')}</span>
             <br/>
             <Checkbox toggle onChange={this.onChange2.bind(this,'formData')}/>
             <span className="toggle-label">Form Data</span>
@@ -1216,7 +1216,7 @@ const isWin = navigator.userAgent.includes('Windows')
 
 
             <Checkbox toggle onChange={this.onChange.bind(this,'clearCookiesOnClose')} defaultChecked={this.state.clearCookiesOnClose}/>
-            <span className="toggle-label">Cookies</span>
+            <span className="toggle-label">{l10n.translation('cookies')}</span>
             <br/>
             <Checkbox toggle onChange={this.onChange.bind(this,'clearFormDataOnClose')} defaultChecked={this.state.clearFormDataOnClose}/>
             <span className="toggle-label">Form Data</span>

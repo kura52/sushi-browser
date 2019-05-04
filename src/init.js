@@ -110,7 +110,7 @@ global.rlog = (...args)=>{
   // setTimeout(_=>global.rlog(...args),3000)
 }
 
-require('./basicAuth')
+// require('./basicAuth')
 
 
 // setFlash(app)

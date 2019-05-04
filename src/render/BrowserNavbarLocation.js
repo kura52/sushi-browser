@@ -86,7 +86,7 @@ export default class BrowserNavbarLocation extends Component {
       this.keyEvent(e, 'navbar-search')
     }
     this.keyEvent = ::this.keyEvent
-    this.torEvent = ::this.torEvent
+    // this.torEvent = ::this.torEvent
     this.outerClick = ::this.outerClick
     this.onFocus = ::this.onFocus
     this.onBlur = ::this.onBlur
@@ -111,16 +111,16 @@ export default class BrowserNavbarLocation extends Component {
     }
   }
 
-  torEvent(e,cond){
-    this.canUpdate = true
-    if(cond.finished){
-      this.props.wv.reload()
-      this.setState({torProgress: void 0})
-    }
-    else{
-      this.setState({torProgress: cond.progress})
-    }
-  }
+  // torEvent(e,cond){
+  //   this.canUpdate = true
+  //   if(cond.finished){
+  //     this.props.wv.reload()
+  //     this.setState({torProgress: void 0})
+  //   }
+  //   else{
+  //     this.setState({torProgress: cond.progress})
+  //   }
+  // }
 
   componentWillMount() {
     this.resetComponent()
@@ -129,7 +129,7 @@ export default class BrowserNavbarLocation extends Component {
   componentDidMount() {
     console.log(55553,this.props.page.navUrl,this.props.page.location)
     ipc.on('focus-location-bar',this.keyEvent2)
-    if(this.props.tab.privateMode == 'persist:tor') ipc.on('tor-progress',this.torEvent)
+    // if(this.props.tab.privateMode == 'persist:tor') ipc.on('tor-progress',this.torEvent)
     if(this.props.wv){
       this.addEvent(this.props)
     }
@@ -145,7 +145,7 @@ export default class BrowserNavbarLocation extends Component {
     PubSub.unsubscribe(this.token)
     if(this.props.tab.privateMode == 'persist:tor') ipc.removeListener('focus-location-bar',this.keyEvent2)
     ipc.removeListener('focus-location-bar',this.keyEvent2)
-    ipc.removeListener('tor-progress',this.torEvent)
+    // ipc.removeListener('tor-progress',this.torEvent)
     ipc.removeListener(`send-to-host_${this.props.tab.wvId}`,this.keyEvent)
     this.input.removeEventListener('focus', this.onFocus)
     this.input.removeEventListener('blur', this.onBlur)
@@ -278,7 +278,7 @@ export default class BrowserNavbarLocation extends Component {
       if(this.isFloat || this.props.isMaximize){
         PubSub.publish(`menu-showed_${this.props.k}`,true)
       }
-      this.setState({ results })
+      if(this.input == document.activeElement) this.setState({ results })
     })
   }
 
@@ -387,8 +387,7 @@ export default class BrowserNavbarLocation extends Component {
   }
 
   getValue(){
-    return this.state.torProgress ? `Connecting to the Tor network: ${this.state.torProgress}%...` :
-      document.activeElement == this.input ? this.input.value :
+    return document.activeElement == this.input ? this.input.value :
     convertURL(this.props.page.location)
   }
 

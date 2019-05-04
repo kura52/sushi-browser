@@ -317,6 +317,7 @@ var rendererIdentifiers = function () {
     'minimumPageTimeLow',
     'paintTabs',
     'restoreAll',
+    'cookies',
 
     //chrome
     '994289308992179865',

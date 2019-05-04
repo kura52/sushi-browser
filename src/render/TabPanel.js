@@ -1457,7 +1457,7 @@ export default class TabPanel extends Component {
         if(page.didNavigate){
           this.onDidFinishLoading(e,page)
         }
-        if(page.isLoading){
+        if(page.isLoading || page.favicon == 'loading'){
           page.isLoading = false
           if(page.favicon == 'loading'){
             // const url = `${new URL(newPage.navUrl).origin}/favicon.ico`
@@ -1706,10 +1706,10 @@ export default class TabPanel extends Component {
       if(needFavicon){
         page.hid = null
         page.titleSet = false
-        if(!page.isLoading){
-          page.isLoading = true
-          PubSub.publish(`change-status-${tab.key}`)
-        }
+        // if(!page.isLoading){
+        //   page.isLoading = true
+        //   PubSub.publish(`change-status-${tab.key}`)
+        // }
         const navUrl = page.navUrl
         setTimeout(_=>{
           if(page.isLoading && self.refs2[`navbar-${tab.key}`] && navUrl == page.navUrl){

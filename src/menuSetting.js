@@ -131,28 +131,28 @@ const createFileSubmenu = () => {
       }
     },
     { type: 'separator' },
-    {
-      label: locale.translation('savePageAs'),
-      accelerator: mainState.keySavePageAs,
-      click(item, focusedWindow) {
-        getFocusedWebContents().then(cont=>{
-          if(cont){
-            ipcMain.emit('need-set-save-filename',null,cont.getURL())
-            cont.downloadURL(cont.getURL())
-          }
-        })
-      }
-    },
-    { type: 'separator' },
-    {
-      label: locale.translation('print'),
-      accelerator: mainState.keyPrint,
-      click(item, focusedWindow) {
-        getFocusedWebContents().then(cont=>{
-          cont && cont.print()
-        })
-      }
-    }
+    // {
+    //   label: locale.translation('savePageAs'),
+    //   accelerator: mainState.keySavePageAs,
+    //   click(item, focusedWindow) {
+    //     getFocusedWebContents().then(cont=>{
+    //       if(cont){
+    //         ipcMain.emit('need-set-save-filename',null,cont.getURL())
+    //         cont.downloadURL(cont.getURL())
+    //       }
+    //     })
+    //   }
+    // },
+    // { type: 'separator' },
+    // {
+    //   label: locale.translation('print'),
+    //   accelerator: mainState.keyPrint,
+    //   click(item, focusedWindow) {
+    //     getFocusedWebContents().then(cont=>{
+    //       cont && cont.print()
+    //     })
+    //   }
+    // }
   ]
 
   if (!isDarwin) {
@@ -175,47 +175,48 @@ const createFileSubmenu = () => {
 
 const createEditSubmenu = () => {
   const submenu = [
-    {
-      label: locale.translation('undo'),
-      accelerator: mainState.keyUndo,
-      role: 'undo'
-    }, {
-      label: locale.translation('redo'),
-      accelerator: mainState.keyRedo,
-      role: 'redo'
-    },
-    { type: 'separator' },
-    {
-      label: locale.translation('cut'),
-      accelerator: mainState.keyCut,
-      role: 'cut'
-    }, {
-      label: locale.translation('copy'),
-      accelerator: mainState.keyCopy,
-      role: 'copy'
-    }, {
-      label: locale.translation('paste'),
-      accelerator: mainState.keyPaste,
-      role: 'paste'
-    }, {
-      label: locale.translation('pasteWithoutFormatting'),
-      accelerator: mainState.keyPasteWithoutFormatting,
-      click(item, focusedWindow) {
-        focusedWindow.webContents.pasteAndMatchStyle()
-      }
-    },
-    { type: 'separator' },
+    // {
+    //   label: locale.translation('undo'),
+    //   accelerator: mainState.keyUndo,
+    //   role: 'undo'
+    // }, {
+    //   label: locale.translation('redo'),
+    //   accelerator: mainState.keyRedo,
+    //   role: 'redo'
+    // },
+    // { type: 'separator' },
+    // {
+    //   label: locale.translation('cut'),
+    //   accelerator: mainState.keyCut,
+    //   role: 'cut'
+    // }, {
+    //   label: locale.translation('copy'),
+    //   accelerator: mainState.keyCopy,
+    //   role: 'copy'
+    // }, {
+    //   label: locale.translation('paste'),
+    //   accelerator: mainState.keyPaste,
+    //   role: 'paste'
+    // }, {
+    //   label: locale.translation('pasteWithoutFormatting'),
+    //   accelerator: mainState.keyPasteWithoutFormatting,
+    //   click(item, focusedWindow) {
+    //     focusedWindow.webContents.pasteAndMatchStyle()
+    //   }
+    // },
+    // { type: 'separator' },
     {
       label: locale.translation('delete'),
       accelerator: 'Delete',
       click(item, focusedWindow) {
         focusedWindow.webContents.delete()
       }
-    }, {
-      label: locale.translation('selectAll'),
-      accelerator: mainState.keySelectAll,
-      role: 'selectall'
     },
+    // {
+    //   label: locale.translation('selectAll'),
+    //   accelerator: mainState.keySelectAll,
+    //   role: 'selectall'
+    // },
     { type: 'separator' },
 
     {
