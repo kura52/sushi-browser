@@ -551,7 +551,7 @@ if(window.__started_){
   const key = Math.random().toString()
   ipc.send("get-main-state",key,['tripleClick','alwaysOpenLinkNewTab','themeColorChange','isRecording','isVolumeControl',
     'keepAudioSeekValueVideo','rectangularSelection','fullscreenTransitionKeep','fullScreen','rockerGestureLeft','rockerGestureRight',
-    'inputHistory','inputHistoryMaxChar','hoverStatusBar','hoverBookmarkBar','ALL_KEYS2'])
+    'inputHistory','inputHistoryMaxChar','hoverStatusBar','hoverBookmarkBar','ALL_KEYS2','protectTab'])
   ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
     mainState = data
     // if(data.fullscreenTransitionKeep){
@@ -706,6 +706,11 @@ if(window.__started_){
         }
       })
     }
+    // if(data.protectTab){
+    //   if(window._unloadEvent_) return
+    //   window._unloadEvent_ = e => e.returnValue = ''
+    //   window.addEventListener("beforeunload", window._unloadEvent_)
+    // }
     if (data.isRecording) {
       Function(data.isRecording)()
     }

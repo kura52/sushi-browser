@@ -1,3 +1,19 @@
+chrome.ipcRenderer = new Proxy({}, {
+  get: (target, name) => {
+    if(window.ipcRenderer && window.ipcRenderer.port) return window.ipcRenderer[name]
+    return (...args) => {
+      const id = setInterval(()=>{
+        if(window.ipcRenderer && window.ipcRenderer.port){
+          window.ipcRenderer[name](...args)
+          clearInterval(id)
+        }
+      },10)
+    }
+  }
+})
+
+const ipc = chrome.ipcRenderer
+
 this.TabUtils = this.TabUtils || {};
 var topURL = 'chrome://newtab/'
 var blankURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html'
@@ -50,7 +66,13 @@ TabUtils.actions = {
   },
   close_tab: function (tab) {
     if (!tab.pinned) {
-      chrome.tabs.remove(tab.id);
+      const key = Math.random().toString()
+      ipc.send("get-main-state",key,['protectTabs'])
+      ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
+        if(!data.protectTabs[tab.id]){
+          chrome.tabs.remove(tab.id)
+        }
+      })
     }
   },
   force_close_tab: function (tab) {
@@ -117,35 +139,46 @@ TabUtils.actions = {
     });
   },
   close_other_tabs: function (tab) {
-    chrome.tabs.getAllInWindow(tab.windowId, function (tabs) {
-      tabs.forEach(function (_t, i) {
-        if (_t.id !== tab.id && !_t.pinned) {
-          chrome.tabs.remove(_t.id);
-        }
+
+    const key = Math.random().toString()
+    ipc.send("get-main-state",key,['protectTabs'])
+    ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
+      chrome.tabs.getAllInWindow(tab.windowId, function (tabs) {
+        tabs.forEach(function (_t, i) {
+          if (_t.id !== tab.id && !_t.pinned && !data.protectTabs[_t.id]) {
+            chrome.tabs.remove(_t.id);
+          }
+        });
       });
-    });
+    })
   },
   close_right_tabs: function (tab) {
-    chrome.tabs.getAllInWindow(tab.windowId, function (tabs) {
-      tabs.reverse().some(function (_t, i) {
-        if (_t.id !== tab.id && !_t.pinned) {
-          chrome.tabs.remove(_t.id);
-        } else {
-          return true;
-        }
+    ipc.send("get-main-state",key,['protectTabs'])
+    ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
+      chrome.tabs.getAllInWindow(tab.windowId, function (tabs) {
+        tabs.reverse().some(function (_t, i) {
+          if (_t.id !== tab.id && !_t.pinned && !data.protectTabs[_t.id]) {
+            chrome.tabs.remove(_t.id);
+          } else {
+            return true;
+          }
+        });
       });
-    });
+    })
   },
   close_left_tabs: function (tab) {
-    chrome.tabs.getAllInWindow(tab.windowId, function (tabs) {
-      tabs.some(function (_t, i) {
-        if (_t.id !== tab.id && !_t.pinned) {
-          chrome.tabs.remove(_t.id);
-        } else {
-          return true;
-        }
+    ipc.send("get-main-state",key,['protectTabs'])
+    ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
+      chrome.tabs.getAllInWindow(tab.windowId, function (tabs) {
+        tabs.some(function (_t, i) {
+          if (_t.id !== tab.id && !_t.pinned && !data.protectTabs[_t.id]) {
+            chrome.tabs.remove(_t.id);
+          } else {
+            return true;
+          }
+        });
       });
-    });
+    })
   },
   clone_tab: function (tab) {
     chrome.tabs.create({
@@ -179,10 +212,20 @@ TabUtils.actions = {
     chrome.tabs.update({pinned: !tab.pinned});
   },
   close_left_tab: function (tab) {
-    chrome.tabs.query({index:tab.index-1}, tabs=>chrome.tabs.remove(tabs[0].id))
+    ipc.send("get-main-state",key,['protectTabs'])
+    ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
+      chrome.tabs.query({index: tab.index - 1}, tabs => {
+        if(!data.protectTabs[tabs[0].id]) chrome.tabs.remove(tabs[0].id)
+      })
+    })
   },
   close_right_tab: function (tab) {
-    chrome.tabs.query({index:tab.index+1}, tabs=>chrome.tabs.remove(tabs[0].id))
+    ipc.send("get-main-state",key,['protectTabs'])
+    ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
+      chrome.tabs.query({index:tab.index+1}, tabs=>{
+        if(!data.protectTabs[tabs[0].id]) chrome.tabs.remove(tabs[0].id)
+      })
+    })
   },
   move_tab_left: function (tab) {
     chrome.tabs.move(tab.id,{index:tab.index-1})

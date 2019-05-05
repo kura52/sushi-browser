@@ -86,8 +86,14 @@ class Browser{
       // ignoreHTTPSErrors: true,
       defaultViewport: null,
       executablePath,
+      // executablePath: `${app.getPath('home')}\\AppData\\Local\\Chromium\\Application\\chrome.exe`,
       // executablePath: "C:\\Program Files (x86)\\Microsoft\\Edge Dev\\Application\\msedge.exe",
       // executablePath: "C:\\Program Files (x86)\\BraveSoftware\\Brave-Browser\\Application\\brave.exe",
+      // executablePath: `${app.getPath('home')}\\AppData\\Local\\CentBrowser\\Application\\chrome.exe`,
+      // executablePath: `${app.getPath('home')}\\AppData\\Local\\Kinza\\Application\\kinza.exe`,
+      // executablePath: "C:\\Program Files (x86)\\SRWare Iron\\chrome.exe",
+      // executablePath: "C:\\Program Files\\SRWare Iron (64-Bit)\\chrome.exe",
+
       args: [
         '--no-first-run',
         // '--enable-automation',
@@ -1119,6 +1125,10 @@ class BackgroundPage{
     Browser.bg.evaluate((channel, ...args) => {
       if(window.ipcRenderer.events[channel]) window.ipcRenderer.events[channel]({},...args)
     }, channel, ...args)
+  }
+
+  isDestroyed(){
+    return false
   }
 }
 

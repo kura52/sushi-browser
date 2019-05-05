@@ -7,8 +7,12 @@ let BrowserView = require('./BrowserView')
 let webContents = require('./webContents')
 
 const BROWSER_NAME = 'Google Chrome'
+// const BROWSER_NAME = 'Chromium'
 // const BROWSER_NAME = 'Microsoft Edge'
 // const BROWSER_NAME = 'Brave'
+// const BROWSER_NAME = 'Cent Browser'
+// const BROWSER_NAME = 'Kinza'
+// const BROWSER_NAME = 'Iron'
 
 export default class BrowserPanel {
   static async _initializer() {
@@ -220,7 +224,7 @@ export default class BrowserPanel {
             })
           })
           console.log(4343444, tmpWin.width, tmpWin.tabWidth, tmpWin.height, tmpWin.tabHeight)
-          BrowserPanel.topMargin = tmpWin.height - tmpWin.tabHeight - 8 //- 78
+          BrowserPanel.topMargin = tmpWin.height - tmpWin.tabHeight - 8 - 78
           BrowserPanel.sideMargin = (tmpWin.width - tmpWin.tabWidth) / 2
 
           let chromeNativeWindow = winctl.GetActiveWindow()

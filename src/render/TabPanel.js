@@ -452,6 +452,19 @@ export default class TabPanel extends Component {
             }
           },300)
         }
+        // if(tab.protect){
+        //   const id = setInterval(_=>{
+        //     if(n_tab.wvId){
+        //       mainState.add('pockTabs',n_tab.wvId,1)
+        //       exeScript(n_tab.wv, void 0, ()=> {
+        //         if(window._unloadEvent_) return
+        //         window._unloadEvent_ = e => e.returnValue = ''
+        //         window.addEventListener("beforeunload", window._unloadEvent_)
+        //       },'')
+        //       clearInterval(id)
+        //     }
+        //   },300)
+        // }
         tabs.push(n_tab)
         if(rSession) tabState.insert({tabKey:n_tab.key,titles:rSession.titles.join("\t"),urls:rSession.urls.join("\t"),positions: JSON.stringify(rSession.positions),currentIndex:rSession.currentIndex, updated_at: Date.now()})
         withWindowCreateTabs.add(n_tab.key)
@@ -1303,7 +1316,7 @@ export default class TabPanel extends Component {
   pageHandlers(navigateTo, tab, self, newPage) {
     return {
       onDestroyed(e, page){
-        self.handleTabClose({}, tab.key)
+        self.handleTabClose({}, tab.key, void 0, true)
       },
 //       onUpdateTargetUrl(e, page, url) {
 //         if (!self.mounted) return
@@ -2122,12 +2135,12 @@ export default class TabPanel extends Component {
       }
       else if(name == 'freezeTabMenuLabel'){
         const val = !(tab.protect && tab.lock)
-        tab.protect = val
+        this.updateProtectTab(tab,val)
         this.updateLockTab(tab,val)
         this.setState({})
       }
       else if(name == 'protectTabMenuLabel'){
-        tab.protect = !tab.protect
+        this.updateProtectTab(tab,!tab.protect)
         this.setState({})
       }
       else if(name == 'lockTabMenuLabel'){
@@ -2631,7 +2644,7 @@ export default class TabPanel extends Component {
         case 'removed':
           if(changeInfo && changeInfo.panelKey != this.props.k) return
           if(this.state.tabs.find((x)=> x.key == tab.key)){
-            this.handleTabClose({}, tab.key)
+            this.handleTabClose({}, tab.key, void 0, true)
           }
           break
       }
@@ -3491,12 +3504,12 @@ export default class TabPanel extends Component {
     return this.state.tabs.find(t=>t.key == this.state.selectedTab) ? this.state.selectedTab : this.getPrevSelectedTab(tab.key,this.state.tabs,closeTab,i)
   }
 
-  handleTabClose(e, key,isUpdateState=true) {
+  handleTabClose(e, key,isUpdateState=true, force) {
     ipc.send('disable-webContents-focus', false)
     if (!this.mounted) return
     const i = this.state.tabs.findIndex((x)=> x.key == key)
     const tab = this.state.tabs[i]
-    if(!tab || tab.protect) return
+    if(!tab || (!force && tab.protect)) return
 
     console.log('tabClosed key:', key,tab.page.navUrl,this.state.tabs.length)
     console.log('change-visit-state-close',this.props.k,tab.page.navUrl)
@@ -3633,6 +3646,25 @@ export default class TabPanel extends Component {
           delete link.dataset.lockTab
         }
       },'')
+    }
+  }
+
+  updateProtectTab(tab,val){
+    tab.protect = val
+    if(val){
+      mainState.add('protectTabs',tab.wvId,1)
+      // exeScript(tab.wv, void 0, ()=> {
+      //   if(window._unloadEvent_) return
+      //   window._unloadEvent_ = e => e.returnValue = ''
+      //   window.addEventListener("beforeunload", window._unloadEvent_)
+      // },'')
+    }
+    else{
+      mainState.del('protectTabs',tab.wvId)
+      // exeScript(tab.wv, void 0, ()=> {
+      //   window.removeEventListener("beforeunload", window._unloadEvent_)
+      //   delete window._unloadEvent_
+      // },'')
     }
   }
 
@@ -4170,14 +4202,14 @@ export default class TabPanel extends Component {
       const allFreezed = selections[0].every(t=>t.protect && t.lock)
       menuItems.push(({ t:'freezeTabMenuLabel',type: 'checkbox',label: locale.translation('freezeTabMenuLabel'), checked: allFreezed,
         click: ()=> {
-          selections[0].forEach(t=>{t.protect = !allFreezed;this.updateLockTab(t,!allFreezed)})
+          selections[0].forEach(t=>{this.updateProtectTab(t,!allFreezed);this.updateLockTab(t,!allFreezed)})
           this.resetSelection()
           this.setState({})
         }}))
       const allProtected = selections[0].every(t=>t.protect)
       menuItems.push(({ t:'protectTabMenuLabel',type: 'checkbox',label: locale.translation('protectTabMenuLabel'), checked: allProtected,
         click: ()=> {
-          selections[0].forEach(t=>t.protect = !allProtected)
+          selections[0].forEach(t=>this.updateProtectTab(t,!allFreezed))
           this.resetSelection()
           this.setState({})
         }}))
@@ -4224,8 +4256,8 @@ export default class TabPanel extends Component {
       menuItems.push(({ t:'unpinTab',label: t.pin ? locale.translation('unpinTab') : locale.translation('pinTab'), click: ()=> {t.pin = !t.pin;this.setState({})}}))
       menuItems.push(({ t:'unmuteTab',label: t.mute ? locale.translation('unmuteTab') : locale.translation('muteTab'), click: ()=> {t.mute = !t.mute;this.getWebContents(t).setAudioMuted(t.mute);this.setState({})}}))
       menuItems.push(({ type: 'separator' }))
-      menuItems.push(({ t:'freezeTabMenuLabel',type: 'checkbox', label: locale.translation('freezeTabMenuLabel'), checked:t.protect && t.lock, click: ()=> {const val = !(t.protect && t.lock);t.protect = val;this.updateLockTab(t,val);this.setState({})}}))
-      menuItems.push(({ t:'protectTabMenuLabel',type: 'checkbox', label: locale.translation('protectTabMenuLabel'), checked:t.protect, click: ()=> {t.protect = !t.protect;this.setState({})}}))
+      menuItems.push(({ t:'freezeTabMenuLabel',type: 'checkbox', label: locale.translation('freezeTabMenuLabel'), checked:t.protect && t.lock, click: ()=> {const val = !(t.protect && t.lock);this.updateProtectTab(t,val);this.updateLockTab(t,val);this.setState({})}}))
+      menuItems.push(({ t:'protectTabMenuLabel',type: 'checkbox', label: locale.translation('protectTabMenuLabel'), checked:t.protect, click: ()=> {this.updateProtectTab(t,!t.protect);this.setState({})}}))
       menuItems.push(({ t:'lockTabMenuLabel', type: 'checkbox', label: locale.translation('lockTabMenuLabel'), checked:t.lock ,click: ()=> {this.updateLockTab(t,!t.lock);this.setState({})}}))
       menuItems.push(({ type: 'separator' }))
       menuItems.push(({ t:'closeTab',label: locale.translation('closeTab'), click: ()=> this.handleTabClose({}, key)}))
