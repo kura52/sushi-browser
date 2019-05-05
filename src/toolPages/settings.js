@@ -2506,11 +2506,6 @@ const isWin = navigator.userAgent.includes('Windows')
           </tfoot>
         </table>
 
-        <br/>
-
-        <Button primary content='Install from local file(.crx)'
-                onClick={_=>ipc.send('install-from-local-file-extension')}/>
-
       </div>
     }
 

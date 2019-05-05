@@ -281,8 +281,8 @@ class BrowserNavbar extends Component{
       this.props.bind == nextProps.bind &&
       this.state.mobile == nextState.mobile &&
       this.state.bindWindow == nextState.bindWindow &&
-      this.props.adBlockEnable == nextProps.adBlockEnable &&
-      this.props.adBlockThis == nextProps.adBlockThis &&
+      // this.props.adBlockEnable == nextProps.adBlockEnable &&
+      // this.props.adBlockThis == nextProps.adBlockThis &&
       // this.state.pdfMode == nextState.pdfMode &&
       this.props.oppositeGlobal == nextProps.oppositeGlobal &&
       this.props.tabKey == this.tabKey &&
@@ -344,7 +344,7 @@ class BrowserNavbar extends Component{
         this.props.tab.rSession.positions = rSession.positions
         this.props.tab.rSession.currentIndex = currentIndex
       }
-      if(this.props.adBlockEnable != adBlockGlobal) PubSub.publish('set-adblock-enable',adBlockGlobal)
+      // if(this.props.adBlockEnable != adBlockGlobal) PubSub.publish('set-adblock-enable',adBlockGlobal)
       this.setState({currentIndex,historyList,pdfMode,...navbarItems})
     })
     ipc.send('get-cont-history',this.props.tab.wvId,this.props.tab.key,this.props.tab.rSession)
@@ -368,7 +368,7 @@ class BrowserNavbar extends Component{
         this.state.pdfMode == pdfMode)){
         this.setState({currentIndex,historyList,pdfMode})
       }
-      if(this.props.adBlockEnable != adBlockGlobal) PubSub.publish('set-adblock-enable',adBlockGlobal)
+      // if(this.props.adBlockEnable != adBlockGlobal) PubSub.publish('set-adblock-enable',adBlockGlobal)
 
     })
     ipc.send('get-cont-history',this.props.tab.wvId,this.props.tab.key,this.props.tab.rSession)
@@ -511,11 +511,11 @@ class BrowserNavbar extends Component{
     cont.reload()
   }
 
-  handleAdBlockGlobal(){
-    const val = !this.props.adBlockEnable
-    mainState.set('adBlockEnable',val)
-    PubSub.publish('set-adblock-enable',val)
-  }
+  // handleAdBlockGlobal(){
+  //   const val = !this.props.adBlockEnable
+  //   mainState.set('adBlockEnable',val)
+  //   PubSub.publish('set-adblock-enable',val)
+  // }
 
   // handlePdfMode(){
   //   const val = this.state.pdfMode == 'normal' ? 'comic' : 'normal'
@@ -530,25 +530,25 @@ class BrowserNavbar extends Component{
     this.setState({})
   }
 
-  handleAdBlockThis(){
-    ipc.send('set-adblock-enable',{tabId:this.props.tab.wvId,global:false})
-    this.props.tab.adBlockThis = !this.props.adBlockThis
-    this.props.parent.setState({})
-  }
+  // handleAdBlockThis(){
+  //   ipc.send('set-adblock-enable',{tabId:this.props.tab.wvId,global:false})
+  //   this.props.tab.adBlockThis = !this.props.adBlockThis
+  //   this.props.parent.setState({})
+  // }
 
-  handleAdBlockDomain(hostname){
-    const cState = global.adBlockDisableSite[hostname]
-    if(cState){
-      mainState.del('adBlockDisableSite',hostname)
-      delete global.adBlockDisableSite[hostname]
-    }
-    else{
-      mainState.add('adBlockDisableSite',hostname,1)
-      global.adBlockDisableSite[hostname] = 1
-    }
-    this.forceUpdates = true
-    this.setState({})
-  }
+  // handleAdBlockDomain(hostname){
+  //   const cState = global.adBlockDisableSite[hostname]
+  //   if(cState){
+  //     mainState.del('adBlockDisableSite',hostname)
+  //     delete global.adBlockDisableSite[hostname]
+  //   }
+  //   else{
+  //     mainState.add('adBlockDisableSite',hostname,1)
+  //     global.adBlockDisableSite[hostname] = 1
+  //   }
+  //   this.forceUpdates = true
+  //   this.setState({})
+  // }
 
   _bindWindow({win,hwnd=false}){
     win = win || remote.getCurrentWindow()
@@ -731,10 +731,10 @@ class BrowserNavbar extends Component{
       <NavbarMenuItem text={`${parseInt(this.state.zoom)}%`} className='zoom-setting' onClick={::this.noZoom} keepVisible={true} />
       <div className="divider" />
 
-      <NavbarMenuItem text={`[${this.props.adBlockEnable ? '✓' : ' '}] ${locale.translation("adBlockALL")}`} icon='hand paper' onClick={::this.handleAdBlockGlobal}/>
-      {this.props.adBlockEnable ? <NavbarMenuItem text={`[${this.props.adBlockThis ? '✓' : ' '}] ${locale.translation("adBlockTab")}`} icon='hand paper' onClick={::this.handleAdBlockThis}/> : null}
-      {this.props.adBlockEnable ? <NavbarMenuItem text={`[${global.adBlockDisableSite[hostname] ? ' ' : '✓'}] ${locale.translation("adBlockDomain")}`} icon='hand paper' onClick={_=>this.handleAdBlockDomain(hostname)}/> : null}
-      <div className="divider" />
+      {/*<NavbarMenuItem text={`[${this.props.adBlockEnable ? '✓' : ' '}] ${locale.translation("adBlockALL")}`} icon='hand paper' onClick={::this.handleAdBlockGlobal}/>*/}
+      {/*{this.props.adBlockEnable ? <NavbarMenuItem text={`[${this.props.adBlockThis ? '✓' : ' '}] ${locale.translation("adBlockTab")}`} icon='hand paper' onClick={::this.handleAdBlockThis}/> : null}*/}
+      {/*{this.props.adBlockEnable ? <NavbarMenuItem text={`[${global.adBlockDisableSite[hostname] ? ' ' : '✓'}] ${locale.translation("adBlockDomain")}`} icon='hand paper' onClick={_=>this.handleAdBlockDomain(hostname)}/> : null}*/}
+      {/*<div className="divider" />*/}
 
       <NavbarMenuSubMenu icon="browser" text="Window SubMenu">
         <NavbarMenuItem text={`[${sharedState.bookmarkBar ? '✓' : ' '}] ${locale.translation('2845382757467349449')}`} icon='bookmark' onClick={_=>{

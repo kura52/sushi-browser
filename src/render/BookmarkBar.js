@@ -274,7 +274,7 @@ class BookmarkBar extends Component {
 
       let ele
       if(f.is_file){
-        ele = <a className="bookmark-item" key={f.key}
+        ele = <a className="bookmark-item infinite-tree-item" key={f.key}
                  onMouseDown={this.handleFileMouseDown.bind(this, f)}
                  onMouseUp={this.handleFileMouseUp.bind(this, f.url)}>
           {favicon ? <img className="favi-favorite" src={favicon}/> :
@@ -287,7 +287,7 @@ class BookmarkBar extends Component {
         ele = <NavbarMenu k={this.props.k} isFloat={isFloat} ref={r=>this.refs2[ref] = r}
                           onClick={_=>_} timeOut={50} alignLeft={true} key={f.key} fixed={true}
                           badget={
-                            <a className="bookmark-item"
+                            <a className="bookmark-item infinite-tree-item"
                                onMouseDown={this.handleFileMouseDown.bind(this, f)}>
                               <i className="infinite-tree-folder-icon folder-icon fa fa-folder folder"/>
                               <span className="infinite-tree-title">{title}</span>

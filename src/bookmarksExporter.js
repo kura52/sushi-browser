@@ -258,13 +258,13 @@ async function importData(imports, restoreDatas, all, ignoreToken) {
     if (name == 'generalSettings' && restoreDatas.startsWith !== void 0) {
       const setting = restoreDatas
       state.update({key: 1}, setting).then(_ => _)
-      try {
-        if (setting && setting.adBlockDisableSite.length) {
-          setting.adBlockDisableSite = JSON.parse(setting.adBlockDisableSite)
-        }
-      } catch (e) {
-        setting.adBlockDisableSite = {}
-      }
+      // try {
+      //   if (setting && setting.adBlockDisableSite.length) {
+      //     setting.adBlockDisableSite = JSON.parse(setting.adBlockDisableSite)
+      //   }
+      // } catch (e) {
+      //   setting.adBlockDisableSite = {}
+      // }
       for (let [key, dVal] of Object.entries(settingDefault)) {
         setOptionVal(key, dVal, setting[key])
       }
@@ -273,13 +273,13 @@ async function importData(imports, restoreDatas, all, ignoreToken) {
       const setting = restoreDatas.state
       if (all) {
         state.update({key: 1}, setting, {upsert: true}).then(_ => _)
-        try {
-          if (setting && setting.adBlockDisableSite.length) {
-            setting.adBlockDisableSite = JSON.parse(setting.adBlockDisableSite)
-          }
-        } catch (e) {
-          setting.adBlockDisableSite = {}
-        }
+        // try {
+        //   if (setting && setting.adBlockDisableSite.length) {
+        //     setting.adBlockDisableSite = JSON.parse(setting.adBlockDisableSite)
+        //   }
+        // } catch (e) {
+        //   setting.adBlockDisableSite = {}
+        // }
         for (let [key, dVal] of Object.entries(settingDefault)) {
           setOptionVal(key, dVal, setting[key])
         }
@@ -297,13 +297,13 @@ async function importData(imports, restoreDatas, all, ignoreToken) {
         const orgState = await state.findOne({key: 1})
         if (orgState.updated_at > setting.updated_at) {
           state.update({key: 1}, setting, {upsert: true}).then(_ => _)
-          try {
-            if (setting && setting.adBlockDisableSite.length) {
-              setting.adBlockDisableSite = JSON.parse(setting.adBlockDisableSite)
-            }
-          } catch (e) {
-            setting.adBlockDisableSite = {}
-          }
+          // try {
+          //   if (setting && setting.adBlockDisableSite.length) {
+          //     setting.adBlockDisableSite = JSON.parse(setting.adBlockDisableSite)
+          //   }
+          // } catch (e) {
+          //   setting.adBlockDisableSite = {}
+          // }
           for (let [key, dVal] of Object.entries(settingDefault)) {
             setOptionVal(key, dVal, setting[key])
           }

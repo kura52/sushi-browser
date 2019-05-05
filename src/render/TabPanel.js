@@ -817,9 +817,9 @@ export default class TabPanel extends Component {
       }
     })
 
-    const tokenAdblock = PubSub.subscribe('set-adblock-enable',(msg,enable)=> {adBlockEnable = enable;this.setState({})} )
+    // const tokenAdblock = PubSub.subscribe('set-adblock-enable',(msg,enable)=> {adBlockEnable = enable;this.setState({})} )
 
-    if(this.isFixed) return [tokenResize,tokenWebViewCreate,tokenDrag,tokenActiveTabChanged,tokenClose,tokenBodyKeydown,tokenIncludeKey,tokenRichMedia,tokenMultiScroll,tokenCloseTab,tokenAdblock]
+    if(this.isFixed) return [tokenResize,tokenWebViewCreate,tokenDrag,tokenActiveTabChanged,tokenClose,tokenBodyKeydown,tokenIncludeKey,tokenRichMedia,tokenMultiScroll,tokenCloseTab]
 
 
     const tokenNewTabFromKey = PubSub.subscribe(`new-tab-from-key_${this.props.k}`, (msg,{url,mobile,adBlockThis,fields,notSelected,privateMode,guestInstanceId,type})=> {
@@ -995,7 +995,7 @@ export default class TabPanel extends Component {
     })
 
     // return [tokenResize,tokenDrag,tokenSplit,tokenClose,tokenToggleDirction,tokenSync,tokenSync2,tokenBodyKeydown,tokenNewTabFromKey]
-    return [tokenResize,tokenWebViewCreate,tokenDrag,tokenActiveTabChanged,tokenClose,tokenToggleDirction,tokenSwapPosition,tokenSync2,tokenCloseSyncTabs,tokenSyncSelectTab,tokenBodyKeydown,tokenAdblock,tokenNewTabFromKey,tokenRestoreTabFromKey,tokenCloseTab,tokenIncludeKey,tokenRichMedia,tokenMultiScroll,tokenOpposite,tokenSplit,tokenSearch,tokenMenuShow]
+    return [tokenResize,tokenWebViewCreate,tokenDrag,tokenActiveTabChanged,tokenClose,tokenToggleDirction,tokenSwapPosition,tokenSync2,tokenCloseSyncTabs,tokenSyncSelectTab,tokenBodyKeydown,tokenNewTabFromKey,tokenRestoreTabFromKey,tokenCloseTab,tokenIncludeKey,tokenRichMedia,tokenMultiScroll,tokenOpposite,tokenSplit,tokenSearch,tokenMenuShow]
   }
 
 
@@ -2796,7 +2796,7 @@ export default class TabPanel extends Component {
     if(tab.oppositeMode === (void 0)){
       tab.oppositeMode = isFloatPanel(this.props.k) ? false : this.state ? this.state.oppositeGlobal : ipc.sendSync('get-sync-main-state','oppositeGlobal')
     }
-    if(tab.adBlockThis === (void 0)) tab.adBlockThis = adBlockEnable
+    // if(tab.adBlockThis === (void 0)) tab.adBlockThis = adBlockEnable
 
     if(guestInstanceId) tab.guestInstanceId = guestInstanceId
     if(initPos) tab.initPos = [default_url, initPos]

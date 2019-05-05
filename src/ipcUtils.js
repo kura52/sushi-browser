@@ -375,15 +375,20 @@ ipcMain.on('get-favorites-shallow', async(event,key,dbKey,limit)=>{
 
 async function recurFind(keys,list,isNote){
   const db = isNote ? note : favorite
-  const ret = await db.find({key:{$in: keys}})
+
+  const ret = []
+  for(let key of keys){
+    const result = await favorite.getSubTreeShallow(key)
+    ret.push(result)
+  }
   const addKey = []
   let children = ret.map(x=>{
-    if(x.is_file){
+    if(x.url){
       addKey.push(x.url)
     }
     return x.children
   })
-  const nextKeys = Array.prototype.concat.apply([],children).filter(ret=>ret)
+  const nextKeys = Array.prototype.concat.apply([],children).filter(ret=>ret).map(x=>x.id)
   list.splice(list.length,0,...addKey)
   if(nextKeys && nextKeys.length > 0) {
     return (await recurFind(nextKeys, list, isNote))
@@ -397,16 +402,15 @@ ipcMain.on('open-favorite',async (event,key,dbKeys,tabId,type,isNote)=>{
   const host = cont ? event.sender : event.sender.hostWebContents2
   if(type == "openInNewTab" || type=='openInNewPrivateTab' || type=='openInNewTorTab' || type=='openInNewSessionTab'){
     for(let url of list){
-      await new Promise((resolve,reject)=>{
-        setTimeout(_=>{
+      await new Promise(async (resolve,reject)=>{
           if(tabId){
             host.send("new-tab",tabId,url,type=='openInNewSessionTab' ? `persist:${seq()}` : type=='openInNewTorTab' ? 'persist:tor' : type=='openInNewPrivateTab' ? `${seq(true)}` : false)
           }
           else{
             host.send("new-tab-opposite", event.sender.id,url,(void 0),type=='openInNewSessionTab' ? `persist:${seq()}` : type=='openInNewTorTab' ? 'persist:tor' : type=='openInNewPrivateTab' ? `${seq(true)}` : false)
           }
+          await new Promise(r=>setTimeout(r,100))
           resolve()
-        },200)
       })
     }
   }

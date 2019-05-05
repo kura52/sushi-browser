@@ -147,7 +147,6 @@ ipcMain.on('sync-datas-to-main',(e,base64,password)=>{
   const decipher = crypto.createDecipher('aes-256-ctr',password);
   zlib.gunzip(decipher.update(Buffer.from(base64, 'base64')), async (err, binary)=>{
     const restoreDatas = JSON.parse(binary.toString('utf-8'))
-    fs.writeFileSync("/home/kura52/a.json",binary.toString('utf-8'))
 
     const imports = []
     if(mainState.syncGeneralSettings) imports.push('generalSettings')
