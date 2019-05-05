@@ -13,6 +13,9 @@ const BROWSER_NAME = 'Google Chrome'
 // const BROWSER_NAME = 'Cent Browser'
 // const BROWSER_NAME = 'Kinza'
 // const BROWSER_NAME = 'Iron'
+// const BROWSER_NAME = 'Vivaldi'
+// const BROWSER_NAME = 'Slimjet'
+// const BROWSER_NAME = 'Comodo Dragon'
 
 export default class BrowserPanel {
   static async _initializer() {
@@ -226,6 +229,11 @@ export default class BrowserPanel {
           console.log(4343444, tmpWin.width, tmpWin.tabWidth, tmpWin.height, tmpWin.tabHeight)
           BrowserPanel.topMargin = tmpWin.height - tmpWin.tabHeight - 8 //- 78
           BrowserPanel.sideMargin = (tmpWin.width - tmpWin.tabWidth) / 2
+
+          if(BrowserPanel.sideMargin > 100){
+            BrowserPanel.topMargin = 0
+            BrowserPanel.sideMargin = 0
+          }
 
           let chromeNativeWindow = winctl.GetActiveWindow()
           const dim = chromeNativeWindow.dimensions()

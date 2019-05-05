@@ -18,14 +18,14 @@ if (!fs.existsSync(capturePath)) {
   fs.mkdirSync(capturePath)
 }
 
-async function captureCurrentPage(_id,pageUrl,loc,base64,sender,tabId){
+async function captureCurrentPage(_id,pageUrl,loc,base64,sender,tabId,noActiveSkip){
   const cont = tabId ? webContents.fromId(tabId) : (await getFocusedWebContents())
   // eval(locus)
   if(cont){
     if(base64){
       cont.capturePage((imageBuffer)=>{
-        sender.send(`take-capture-reply_${base64}`,`data:image/jpeg;base64,${imageBuffer.toJPEG(parseInt(mainState.tabPreviewQuality)).toString("base64")}`,imageBuffer.getSize())
-      })
+        sender.send(`take-capture-reply_${base64}`,`data:image/jpeg;base64,${imageBuffer && imageBuffer.toJPEG(parseInt(mainState.tabPreviewQuality)).toString("base64")}`,imageBuffer && imageBuffer.getSize())
+      },noActiveSkip)
       return
     }
 
@@ -47,6 +47,8 @@ async function captureCurrentPage(_id,pageUrl,loc,base64,sender,tabId){
     console.log(2,id,url,pageUrl,loc)
 
     cont.capturePage((imageBuffer)=>{
+      if(!imageBuffer) return
+
       const filePath = path.join(capturePath,`${id}.jpg`)
       fs.writeFile(filePath, imageBuffer.toJPEG(80), function(err) {
         if (err) {
@@ -65,7 +67,7 @@ async function captureCurrentPage(_id,pageUrl,loc,base64,sender,tabId){
           history.update({_id},{$set:{capture:`${id}.jpg`, updated_at: d}})
         })
       })
-    });
+    },noActiveSkip);
 
   }
 }
@@ -90,6 +92,7 @@ const captures = {}
 let imgCache = new LRUCache(200)
 global.viewCache = {}
 ipcMain.on('take-capture', async (event,{id,url,loc,base64,tabId,tabIds,noActiveSkip}) => {
+  console.log('take-capture',url,noActiveSkip)
   if(!base64){
     if(captures[url]) return
     captures[url] = true
@@ -137,7 +140,7 @@ ipcMain.on('take-capture', async (event,{id,url,loc,base64,tabId,tabIds,noActive
     event.sender.send(`take-capture-reply_${base64}`, reply)
   }
   else{
-    captureCurrentPage(id,url,loc,base64,event.sender,tabId).then(_=>{
+    captureCurrentPage(id,url,loc,base64,event.sender,tabId,noActiveSkip).then(_=>{
       if(!base64) delete captures[url]
     })
   }

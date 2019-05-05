@@ -827,6 +827,11 @@ export default class TabPanel extends Component {
             selectedTab: selectedTab || this.getPrevSelectedTab(key,_tabs,closeTab,i)
           });
         }
+
+        if(this.state.prevAddKeyCount[0] == key){
+          this.state.prevAddKeyCount = [null,[]]
+        }
+        this.state.prevAddKeyCount[1].forEach((x, ind) => x == key && this.state.prevAddKeyCount[1].splice(ind, 1))
       }
     })
 
@@ -1030,7 +1035,7 @@ export default class TabPanel extends Component {
     //   navigateTo(url)
     //   return true
     // }
-    if(page.navUrl.split("?").slice(-2)[0].match(/\.(3gp|3gpp|3gpp2|asf|avi|dv|flv|m2t|m4v|mkv|mov|mp4|mpeg|mpg|mts|oggtheora|ogv|rm|ts|vob|webm|wmv|aac|m4a|mp3|oga|wav)$/)){
+    if(page.navUrl.split("?").slice(-2)[0].match(/\.(3gp|3gpp|3gpp2|asf|avi|dv|flv|m2t|m4v|mkv|mov|mp4|mpeg|mpg|mts|oggtheora|ogv|rm|vob|webm|wmv|aac|m4a|mp3|oga|wav)$/)){
       navigateTo(`chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/video.html?url=${encodeURIComponent(page.navUrl)}`)
       return true
     }
@@ -1104,22 +1109,12 @@ export default class TabPanel extends Component {
     let ind,ret = null
     // console.log(key,this.state.prevAddKeyCount,this.state.selectedKeys)
     if((ind = this.state.prevAddKeyCount[1].findIndex(k=>k==key))!= -1){
-      const compKeys2 = [this.state.prevAddKeyCount[0],...this.state.prevAddKeyCount[1]].sort()
-      const keys = this.state.selectedKeys.slice(this.state.selectedKeys.length - compKeys2.length)
-      const compKeys1 = keys.sort()
-      // console.log(compKeys1,compKeys2)
-      if(compKeys1.every((x,i)=>x == compKeys2[i])){
-        if(this.state.prevAddKeyCount[1].length == 1){
-          ret = this.state.prevAddKeyCount[0]
-        }
-        else if(ind == this.state.prevAddKeyCount[1].length -1){
-          ret = this.state.prevAddKeyCount[1][ind -1]
-        }
-        else{
-          ret = this.state.prevAddKeyCount[1][ind +1]
-        }
+      if(ind == this.state.prevAddKeyCount[1].length -1){
+        ret = [this.state.prevAddKeyCount[0],...this.state.prevAddKeyCount[1]][ind - 1 + 1]
       }
-      this.state.prevAddKeyCount[1].splice(ind,1)
+      else{
+        ret = [this.state.prevAddKeyCount[0],...this.state.prevAddKeyCount[1]][ind + 1 + 1]
+      }
     }
 
     if(ret && !tabs.find(tab=>tab.key == ret)){
@@ -3554,6 +3549,12 @@ export default class TabPanel extends Component {
         // selectedTab: _tabs.length > i ? _tabs[i].key : _tabs.length > 0 ? _tabs[i-1].key : null
       } )
     }
+
+    if(this.state.prevAddKeyCount[0] == key){
+      this.state.prevAddKeyCount = [null,[]]
+    }
+    this.state.prevAddKeyCount[1].forEach((x, ind) => x == key && this.state.prevAddKeyCount[1].splice(ind, 1))
+
   }
 
   closeTabs(keys){

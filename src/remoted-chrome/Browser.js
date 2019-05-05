@@ -81,6 +81,7 @@ class Browser{
     else if(fs.existsSync(executablePath = path.join(app.getPath('home'),'AppData\\Local\\Google\\Chrome\\Application\\chrome.exe'))){}
     else{}
 
+    console.log(`${app.getPath('home')}\\AppData\\Local\\Programs\\Opera\\60.0.3255.70\\opera.exe`)
     this._browser = await puppeteer.launch({
       ignoreDefaultArgs: true,
       // ignoreHTTPSErrors: true,
@@ -93,6 +94,9 @@ class Browser{
       // executablePath: `${app.getPath('home')}\\AppData\\Local\\Kinza\\Application\\kinza.exe`,
       // executablePath: "C:\\Program Files (x86)\\SRWare Iron\\chrome.exe",
       // executablePath: "C:\\Program Files\\SRWare Iron (64-Bit)\\chrome.exe",
+      // executablePath: `${app.getPath('home')}\\AppData\\Local\\Vivaldi\\Application\\vivaldi.exe`,
+      // executablePath: "C:\\Program Files\\Slimjet\\slimjet.exe",
+      // executablePath: "C:\\Program Files\\Comodo\\Dragon\\dragon.exe",
 
       args: [
         '--no-first-run',
@@ -118,6 +122,7 @@ class Browser{
       ],
       pipe: true
     })
+
 
     this.listeners = {}
     this._pagePromises = {}

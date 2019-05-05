@@ -369,7 +369,7 @@ ipcMain.on('get-all-states',async(event,key,range)=>{
 
 ipcMain.on('get-favorites-shallow', async(event,key,dbKey,limit)=>{
   const result = await favorite.getFavoritesTree([dbKey], limit, true)
-  console.log('get-favorites-shallow',result)
+  // console.log('get-favorites-shallow',result)
   event.sender.send(`get-favorites-shallow-reply_${key}`,result)
 })
 
