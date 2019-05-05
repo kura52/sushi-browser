@@ -430,7 +430,7 @@ function setOptionVal(key,dVal,val){
 
 export default {
   async load(opt,first,url){
-    if(url.endsWith('\\web-dev-browser\\lib\\main.js')) url = void 0
+    if(url && url.endsWith('\\web-dev-browser\\lib\\main.js')) url = void 0
     let initWindow
     const setting = await InitSetting.val
     let winSetting = opt ? getSize(opt) : {x: setting.x, y: setting.y, width: setting.width, height: setting.height, maximize: setting.maximize}

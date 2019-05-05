@@ -4069,6 +4069,8 @@ export default class TabPanel extends Component {
         }
       })
 
+      if(!arr.length) return
+
       if(_tabs.length > 1) {
         this.props.split(this.props.k,dirc,pos,_tabs,indexes)
         arr.forEach((key,i)=> {
@@ -4869,11 +4871,15 @@ export default class TabPanel extends Component {
         mouseClickHandles={key=>this._handleContextMenu(null,key,null,this.state.tabs,false,true)}
         isMaximize={isMaximize}
         tabs={this.state.tabs.map((tab,num)=>{
+          const key = tab.key + this.props.k
           const notifications = this.state.notifications.filter(x=>x._key == tab.key)
-          return (<Tab key={tab.key} page={tab.page} orgTab={tab} unread={this.state.selectedTab != tab.key && !allSelectedkeys.has(tab.key)} pin={tab.pin} protect={tab.protect} lock={tab.lock} mute={tab.mute} fields={tab.fields} reloadInterval={tab.reloadInterval} privateMode={tab.privateMode} selection={tab.selection}>
+          return (<Tab key={tab.key} page={tab.page} orgTab={tab}
+                       unread={this.state.selectedTab != tab.key && !allSelectedkeys.has(tab.key)}
+                       pin={tab.pin} protect={tab.protect} lock={tab.lock} mute={tab.mute} fields={tab.fields}
+                       reloadInterval={tab.reloadInterval} privateMode={tab.privateMode} selection={tab.selection}>
             <div style={{height: '100%'}} className={`div-back db${tab.key}`} ref={`div-${tab.key}`} >
               <BrowserNavbar tabkey={tab.key} k={this.props.k} navHandle={tab.navHandlers} parent={this}
-                             privateMode={tab.privateMode} page={tab.page} tab={tab} refs2={this.refs2} key={tab.key + this.props.k} adBlockEnable={adBlockEnable}
+                             privateMode={tab.privateMode} page={tab.page} tab={tab} refs2={this.refs2} key={key} adBlockEnable={adBlockEnable}
                              oppositeGlobal={this.state.oppositeGlobal} toggleNav={toggle} adBlockThis={tab.adBlockThis}
                              historyMap={historyMap} currentWebContents={this.props.currentWebContents} isMaximize={isMaximize} maximizePanel={this.maximizePanel}
                              isTopRight={this.props.isTopRight} isTopLeft={this.props.isTopLeft} fixedPanelOpen={this.props.fixedPanelOpen}
@@ -4897,7 +4903,7 @@ export default class TabPanel extends Component {
                   return <Notification data={data} key={i} k={this.props.k} delete={this.deleteNotification.bind(this,i)} />
                 }
               }) : null}
-              <BookmarkBar webViewCreate={this.webViewCreate} tab={tab} refs2={this.refs2} topURL={topURL} navigateTo={this.navigateTo} toggleNav={toggle} k={this.props.k} currentWebContents={this.props.currentWebContents}/>
+              <BookmarkBar key={key} webViewCreate={this.webViewCreate} tab={tab} refs2={this.refs2} topURL={topURL} navigateTo={this.navigateTo} toggleNav={toggle} k={this.props.k} currentWebContents={this.props.currentWebContents}/>
               {/*<BrowserPageStatus tab={tab} k={this.props.k}/>*/}
               {this.state.inputPopup && this.state.inputPopup.key == tab.key ? <InputPopup {...this.state.inputPopup} tab={tab} focus_webview={this.focus_webview}/>: null}
             </div>
