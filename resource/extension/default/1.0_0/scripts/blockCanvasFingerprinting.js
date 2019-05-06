@@ -159,11 +159,11 @@ function reportBlock (type) {
  * @param item special item objects
  */
 function trapInstanceMethod (item) {
-  if (!item.methodName) {
-    chrome.webFrame.setGlobal(item.objName + ".prototype." + item.propName, reportBlock.bind(null, item.type))
-  } else {
-    chrome.webFrame.setGlobal(item.methodName, reportBlock.bind(null, item.type))
-  }
+  // if (!item.methodName) { @TODO ELECTRON
+  //   chrome.webFrame.setGlobal(item.objName + ".prototype." + item.propName, reportBlock.bind(null, item.type))
+  // } else {
+  //   chrome.webFrame.setGlobal(item.methodName, reportBlock.bind(null, item.type))
+  // }
 }
 
 function blockWebRTC () {
@@ -187,7 +187,7 @@ function blockWebRTC () {
   })
 }
 
-if (chrome.contentSettings.canvasFingerprinting == 'block') {
+if (chrome.contentSettings && chrome.contentSettings.canvasFingerprinting == 'block') {
   var methods = []
   var canvasMethods = ['getImageData', 'getLineDash', 'measureText', 'isPointInPath']
   canvasMethods.forEach(function (method) {
@@ -269,7 +269,7 @@ if (chrome.contentSettings.canvasFingerprinting == 'block') {
 
 
 function isTorTab () {
-  return chrome.contentSettings.torEnabled != 'allow'
+  return chrome.contentSettings && chrome.contentSettings.torEnabled != 'allow'
 }
 
 

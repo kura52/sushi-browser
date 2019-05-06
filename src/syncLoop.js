@@ -22,7 +22,9 @@ import fs from 'fs'
 import zlib from 'zlib'
 import crypto from 'crypto'
 import mainState from "./mainState"
-import passCrypto from './crypto'
+import _passCrypto from './crypto'
+const passCrypto = _passCrypto('sushi-browser-password-key')
+
 import importData from './bookmarksExporter'
 
 
@@ -145,7 +147,6 @@ ipcMain.on('sync-datas-to-main',(e,base64,password)=>{
   const decipher = crypto.createDecipher('aes-256-ctr',password);
   zlib.gunzip(decipher.update(Buffer.from(base64, 'base64')), async (err, binary)=>{
     const restoreDatas = JSON.parse(binary.toString('utf-8'))
-    fs.writeFileSync("/home/kura52/a.json",binary.toString('utf-8'))
 
     const imports = []
     if(mainState.syncGeneralSettings) imports.push('generalSettings')

@@ -28,10 +28,10 @@ export default class StatusBarWrapper extends Component {
       if(!sharedState.statusBar){
         clearTimeout(this.id)
         this.id = setTimeout(_=>{
-          this.getWebContents(this.props.tab).executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd','document.scrollingElement.scrollWidth - document.scrollingElement.clientWidth', {},(err, url, result)=>{
+          this.getWebContents(this.props.tab).executeJavaScript('document.scrollingElement.scrollWidth - document.scrollingElement.clientWidth',(result)=>{
             this.hoverStatusBar = val
-            console.log(543543543,result[0])
-            if(result[0] !== 0){
+            console.log(543543543,result)
+            if(result !== 0){
               this.margin = true
             }
             else{
@@ -108,14 +108,14 @@ class StatusBar extends Component {
     }
     if(cont){
       ipc.on(`get-on-dom-ready-reply_${this.props.tab.wvId}`,this.updateZoom)
-      this.setState({percent: cont.getZoomPercent()})
+      cont.getZoomFactor(factor=>this.setState({percent: factor * 100}))
     }
   }
 
   updateZoom(){
     const cont = this.getWebContents(this.props.tab)
     if(!cont.isDestroyed()){
-      this.setState({percent: this.getWebContents(this.props.tab).getZoomPercent()})
+      cont.getZoomFactor(factor=>this.setState({percent: factor * 100}))
     }
 
   }
@@ -149,7 +149,7 @@ class StatusBar extends Component {
 
   zoomCoomon(type){
     const percent = this.state.percent + parseInt(mainState.zoomBehavior) * (type == 'zoomOut' ? -1 : 1)
-    this.getWebContents(this.props.tab).setZoomLevel(sharedState.zoomMapping.get(percent))
+    this.getWebContents(this.props.tab).setZoomFactor(percent/100.0)
     this.setState({percent})
   }
 
@@ -204,15 +204,15 @@ class StatusBar extends Component {
       style = {overflow: 'hidden',position: 'fixed',zIndex:1000,width:rect.width,bottom:this.props.margin ? 15 : 0,left:rect.left,
         paddingTop: 2,height:25 ,borderBottom: '1px solid rgb(148, 148, 148)',...style}
     }
-    return <div ref="bar" className="status-bar" style={style}>
+    return <div ref="bar" className={`status-bar ${this.props.hoverStatusBar ? 'visible transition' : ''}`} style={style}>
       <p className="status-text">{this.getStatusText()}</p>
       <span style={{float: 'right'}}>
         {this.renderButton('home','480990236307250886',sharedState.homeURL)}
-        {this.renderButton('star','bookmarks','chrome://bookmarks/')}
-        {this.renderButton('history','history','chrome://history/')}
+        {this.renderButton('star','bookmarks','chrome://bookmarks2/')}
+        {this.renderButton('history','history','chrome://history2/')}
         {this.renderButton('download','downloads','download')}
         {this.renderButton('sticky-note','note','note')}
-        {this.renderButton('cog','settings','chrome://settings/')}
+        {this.renderButton('cog','settings','chrome://setting/')}
         {/*{this.renderButton('folder','fileExplorer','explorer')}*/}
         {/*{this.renderButton('terminal','4589268276914962177','terminal')}*/}
         <span className="vertical-divider"/>
@@ -223,7 +223,7 @@ class StatusBar extends Component {
         <span className="vertical-divider"/>
 
         <a className='zoom-reset' onClick={_=>{
-          ipc.send('set-zoom',this.props.tab.wvId,0)
+          ipc.send('set-zoom',this.props.tab.wvId,1)
           PubSub.publish(`zoom_${this.props.tab.key}`,100)
           this.setState({percent: 100})
         }}>Reset</a>
@@ -233,7 +233,7 @@ class StatusBar extends Component {
                   const percent = parseInt(e.target.value)
                   clearTimeout(this.clearId)
                   this.clearId = setTimeout(_=>{
-                    ipc.send('set-zoom',this.props.tab.wvId,sharedState.zoomMapping.get(percent))
+                    ipc.send('set-zoom',this.props.tab.wvId,percent/100.0)
                     PubSub.publish(`zoom_${this.props.tab.key}`,percent)
                   },100)
                   this.setState({percent})

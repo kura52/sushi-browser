@@ -32,6 +32,7 @@ class PtyProcess{
     });
 
     ipcMain.on(`send-pty_${this.key}`, (event,data)=>{
+      console.log(`send-pty_${this.key}`, event,data)
       ptyProcess.write(typeof data === 'string' ? data.replace(/\r?\n/g, os.EOL) : data)
       // if(!this.resize && !this.write){
       //   console.log("send-pty")

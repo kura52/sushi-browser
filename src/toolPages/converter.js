@@ -1,6 +1,6 @@
 window.debug = require('debug')('info')
 // require('debug').enable("info")
-import {ipcRenderer as ipc} from 'electron';
+import {ipcRenderer as ipc} from './ipcRenderer'
 import React from 'react';
 import ReactDOM from 'react-dom';
 import uuid from 'node-uuid';
@@ -10,13 +10,14 @@ import presets from './videoPreset';
 import path from 'path';
 const isWin = navigator.userAgent.includes('Windows')
 
-
 const PubSub = require('pubsub-js')
 
 const { Form, TextArea, Grid, Sidebar, Segment, Container, Menu, Input, Divider, Button, Checkbox, Icon, Table, Dropdown } = require('semantic-ui-react');
-const l10n = require('../../brave/js/l10n')
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
-l10n.init()
+
+import l10n from '../../brave/js/l10n';
+const initPromise = l10n.init()
+import '../defaultExtension/contentscript'
 
 function aspect(width, height) {
   if(!width || !height) return [1,1]
@@ -1277,7 +1278,8 @@ class Converter extends React.Component {
 
 const key = Math.random().toString()
 ipc.send("get-main-state",key,['defaultDownloadPath','defaultVideoPreset'])
-ipc.once(`get-main-state-reply_${key}`,(e,data)=>{
+ipc.once(`get-main-state-reply_${key}`,async (e,data)=>{
   defaultData = data
+  await initPromise
   ReactDOM.render(<Converter />,  document.getElementById('app'))
 })

@@ -138,6 +138,10 @@ export default class BookmarkBarWrapper extends Component {
     })
   }
 
+  componentDidMount() {
+    this.prev = this.isShow()
+  }
+
   _isShow(){
     return sharedState.bookmarkBar ||
       (sharedState.bookmarkBarTopPage && this.props.tab.page.navUrl == this.props.topURL)
@@ -155,6 +159,7 @@ export default class BookmarkBarWrapper extends Component {
       this.prev = val
       this.props.webViewCreate()
     }
+    console.log(9999777,val,cond,this.props.tab.page.navUrl)
     return cond
   }
 
@@ -253,7 +258,7 @@ class BookmarkBar extends Component {
 
   async updateBookmark(){
     const isFloat = isFloatPanel(this.props.k)
-    const bookmarks = [<NavbarMenu k={this.props.k} isFloat={isFloat} ref={r=>this.refs2.last = r} onClick={_=>_} timeOut={50} style={{float: 'right'}} key={'last'}
+    const bookmarks = [<NavbarMenu k={this.props.k} isFloat={isFloat} ref={r=>this.refs2.last = r} onClick={_=>_} timeOut={50} style={{float: 'right'}} key={'last'} fixed={true}
                                    badget={
                                      <span className="bookmark-right-arrow"><i className="fa fa-angle-double-right"></i></span>}>
       <div className="divider" />
@@ -269,7 +274,7 @@ class BookmarkBar extends Component {
 
       let ele
       if(f.is_file){
-        ele = <a className="bookmark-item" key={f.key}
+        ele = <a className="bookmark-item infinite-tree-item" key={f.key}
                  onMouseDown={this.handleFileMouseDown.bind(this, f)}
                  onMouseUp={this.handleFileMouseUp.bind(this, f.url)}>
           {favicon ? <img className="favi-favorite" src={favicon}/> :
@@ -280,9 +285,9 @@ class BookmarkBar extends Component {
       else{
         const ref = `favoriteMenu${f.key}`
         ele = <NavbarMenu k={this.props.k} isFloat={isFloat} ref={r=>this.refs2[ref] = r}
-                          onClick={_=>_} timeOut={50} alignLeft={true} key={f.key} fixed={this.props.hoverBookmarkBar}
+                          onClick={_=>_} timeOut={50} alignLeft={true} key={f.key} fixed={true}
                           badget={
-                            <a className="bookmark-item"
+                            <a className="bookmark-item infinite-tree-item"
                                onMouseDown={this.handleFileMouseDown.bind(this, f)}>
                               <i className="infinite-tree-folder-icon folder-icon fa fa-folder folder"/>
                               <span className="infinite-tree-title">{title}</span>
@@ -398,7 +403,7 @@ class BookmarkBar extends Component {
       const rect = this.props.hoverBookmarkBar.getBoundingClientRect()
       style = {overflow: 'hidden',position: 'fixed',zIndex:1000,width:rect.width,top:rect.top,left:rect.left,...style}
     }
-    return <div ref="bar" className="bookmark-bar" style={style}>
+    return <div ref="bar" className={`bookmark-bar ${this.props.hoverBookmarkBar ? 'visible transition' : ''}`} style={style}>
       {this.state.bookmarks}
     </div>
   }

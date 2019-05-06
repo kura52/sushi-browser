@@ -17,6 +17,7 @@ const path = require('path')
 const {session,webContents} = require('electron')
 const mainState = require('../lib/mainState')
 const {registerForBeforeRequest,beforeRequestFilteringFns} = require('./adBlock')
+const {ipcMain} = require('electron')
 
 
 const filterableProtocols = ['http:', 'https:', 'ws:', 'wss:', 'magnet:', 'file:']
@@ -175,9 +176,13 @@ const getMainFrameUrl = (details) => {
   if (details.resourceType === 'mainFrame') {
     return details.url
   }
-  const tab = webContents.fromTabID(details.tabId)
+  if(!details.webContentsId){
+    return null
+  }
+  const tab = webContents.fromId(details.webContentsId)
   try {
-    return tab.getURL()
+    const url = tab.getURL()
+    return url
   } catch (ex) {}
   return details.firstPartyUrl || null
 }
@@ -195,7 +200,7 @@ function startHttpsEverywhere(ses=session.defaultSession) {
       beforeRequestFilteringFns.push(onBeforeHttpRequest)
       registerForBeforeRequest(ses)
 
-      ses.webRequest.onBeforeRedirect((details) => {
+      ipcMain.emit('add-onBeforeRedirect',(details) => {
         onBeforeRedirect(details)
       })
     })

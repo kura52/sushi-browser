@@ -1,6 +1,6 @@
 import {ipcMain} from 'electron'
 import {getFocusedWebContents, getCurrentWindow} from './util'
-import {request} from './request'
+import request from 'request'
 import {state} from './databaseFork'
 import mainState from './mainState'
 const locale = require('../brave/app/locale')
@@ -44,7 +44,7 @@ function checkUpdate(ver,checkedVersion){
           mainState.checkedVersion = updVer
           if(ret.pressIndex === 0){
             getFocusedWebContents().then(cont=>{
-              if(cont) cont.hostWebContents.send('new-tab', cont.getId(), 'https://sushib.me/download.html')
+              if(cont) cont.hostWebContents2.send('new-tab', cont.id, 'https://sushib.me/download.html')
             })
           }
         })
@@ -53,9 +53,9 @@ function checkUpdate(ver,checkedVersion){
 }
 
 state.findOne({key: 1}).then(rec=>{
-  const {checkedVersion} = rec
+  const {checkedVersion} = rec || {}
   const ver = fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString()
-  setTimeout(_=>checkUpdate(ver,checkedVersion || '0.0.0'),4000)
-
-  setInterval(_=>checkUpdate(ver,checkedVersion || '0.0.0'),1000*3600*5)
+  // setTimeout(_=>checkUpdate(ver,checkedVersion || '0.0.0'),4000) @TODO ELECTRON
+  //
+  // setInterval(_=>checkUpdate(ver,checkedVersion || '0.0.0'),1000*3600*5) @TODO ELECTRON
 })

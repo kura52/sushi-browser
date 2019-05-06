@@ -1,15 +1,19 @@
-import {webContents,ipcMain,app } from 'electron'
 import path from 'path'
 import { favicon } from './database'
-import {request} from './request'
+import request from 'request'
 const underscore = require('underscore')
 const Jimp = require('jimp')
 const ico = require('icojs');
-import {getFocusedWebContents} from './util'
 // require('locus')
 
+let app
+;(function(){
+  try{
+    app = require('electron').app
+  }catch(e){}
+}())
 
-const resourcePath = path.join(app.getPath('userData').replace('brave','sushiBrowser').replace('sushi-browser','sushiBrowser').replace('sushiBrowserDB','sushiBrowser'),'resource')
+const resourcePath = path.join((app ? app.getPath('userData') : process.argv[2]).replace('brave','sushiBrowser').replace('sushi-browser','sushiBrowser'),'resource')
 
 var fileTypes = {
   bmp: new Buffer([ 0x42, 0x4d ]),
@@ -76,10 +80,9 @@ const fetchFavIcon = (url, redirects) => {
   return new Promise((resolve,reject)=>{
 
     console.log(url)
-    request({ url: url, responseType: 'blob' }, (err, response, blob) => {
-      let matchP, prefix, tail
+    request({ url: url, encoding: null }, (err, response, blob) => {
 
-      if (err) {
+      if (err || ! response.headers) {
         console.log('response error: ' + err.toString() + '\n' + err.stack)
         reject(err.toString())
         return
@@ -96,6 +99,9 @@ const fetchFavIcon = (url, redirects) => {
         return
       }
 
+      blob = 'data:' + response.headers['content-type'] + ';base64,' + blob.toString('base64')
+
+      let matchP, prefix, tail
       tail = blob.indexOf(';base64,')
       if (blob.indexOf('data:image/') !== 0) {
         // NB: for some reason, some sites return an image, but with the wrong content-type...

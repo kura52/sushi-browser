@@ -9,6 +9,7 @@ const {getFocusedWebContents, getCurrentWindow} = require('../../lib/util')
 const mainState = require('../../lib/mainState')
 const isAccelerator = require("electron-is-accelerator")
 const PubSub = require('../../lib/render/pubsub')
+const {toKeyEvent} = require('keyboardevent-from-electron-accelerator')
 
 module.exports.register = (win) => {
   // Most of these events will simply be listened to by the app store and acted
@@ -35,7 +36,32 @@ module.exports.register = (win) => {
     [mainState.keyTab6, 'tab6'],
     [mainState.keyTab7, 'tab7'],
     [mainState.keyTab8, 'tab8'],
-    [mainState.keyViewPageSource, 'viewPageSource']
+    [mainState.keyViewPageSource, 'viewPageSource'],
+    ['CmdOrCtrl+Shift+N', 'sendKeys'],
+    ['CmdOrCtrl+Shift+T', 'sendKeys'],
+    ['Alt+Home', 'sendKeys'],
+    ['CmdOrCtrl+Shift+Q', 'sendKeys'],
+    ['Alt+F', 'sendKeys'],
+    ['Alt+E', 'sendKeys'],
+    ['CmdOrCtrl+Shift+B', 'sendKeys'],
+    ['CmdOrCtrl+Shift+O', 'sendKeys'],
+    ['CmdOrCtrl+H', 'sendKeys'],
+    ['Shift+Esc', 'sendKeys'],
+    ['F3', 'sendKeys'],
+    ['CmdOrCtrl+G', 'sendKeys'],
+    ['CmdOrCtrl+Shift+G', 'sendKeys'],
+    ['CmdOrCtrl+Shift+J', 'sendKeys'],
+    ['F12', 'sendKeys'],
+    ['CmdOrCtrl+Shift+Delete', 'sendKeys'],
+    ['F1', 'sendKeys'],
+    ['CmdOrCtrl+P', 'sendKeys'],
+    ['CmdOrCtrl+S', 'sendKeys'],
+    ['Shift+F5', 'sendKeys'],
+    ['Shift+Tab', 'sendKeys'],
+    ['CmdOrCtrl+O', 'sendKeys'],
+    ['CmdOrCtrl+Shift+D', 'sendKeys'],
+    ['Shift+Space', 'sendKeys']
+
   ]
 
   if (!isDarwin) {
@@ -59,7 +85,10 @@ module.exports.register = (win) => {
       getFocusedWebContents().then(cont=>{
         if(!cont) return
 
-        if(name == 'toggleDeveloperTools'){
+        if(name == 'sendKeys'){
+          electron.ipcMain.emit('send-keys', {}, toKeyEvent(shortcutEventName[0]), cont)
+        }
+        else if(name == 'toggleDeveloperTools'){
           cont.openDevTools()
         }
         else if(name == 'zoomIn'){
@@ -75,10 +104,10 @@ module.exports.register = (win) => {
           cont.reloadIgnoringCache()
         }
         else if(name == 'closeWindow'){
-          electron.BrowserWindow.fromWebContents(cont.hostWebContents).close()
+          electron.BrowserWindow.fromWebContents(cont.hostWebContents2).close()
         }
         else if(name == 'openLocation'){
-          cont.hostWebContents.send('focus-location-bar',cont.getId())
+          cont.hostWebContents2.send('focus-location-bar',cont.id)
         }
         else if(name == 'back'){
           cont.goBack()
@@ -87,7 +116,7 @@ module.exports.register = (win) => {
           cont.goForward()
         }
         else{
-          cont.hostWebContents.send('menu-or-key-events',name,cont.getId())
+          cont.hostWebContents2.send('menu-or-key-events',name,cont.id)
         }
       })
     })
@@ -101,7 +130,7 @@ module.exports.register = (win) => {
   PubSub.subscribe('add-shortcut',(msg,{id,key,command}) => {
     console.log(333,key,command)
     electronLocalshortcut.register(win, key.replace('Period','.').replace('Comma',',').replace(',nd','Command').replace(/ /g,""), () => {
-      PubSub.publish('chrome-commands-exec',{id,command})
+      ipcMain.emit('chrome-commands-exec',null,{id,command})
     })
   })
 

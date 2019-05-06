@@ -1,4 +1,4 @@
-import {favorite} from "./databaseRender";
+const favorite = require('electron').remote.require('./remoted-chrome/favorite')
 
 const React = require('react')
 const ReactDOM = require('react-dom');
@@ -13,9 +13,9 @@ const sharedState = require('./sharedState')
 const convertUrlMap = new Map([
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html',''],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html','about:blank'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html','chrome://bookmarks/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html','chrome://bookmarks2/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html','chrome://bookmarks-sidebar/'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html','chrome://history/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html','chrome://history2/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_history_sidebar.html','chrome://tab-history-sidebar/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_trash_sidebar.html','chrome://tab-trash-sidebar/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download_sidebar.html','chrome://download-sidebar/'],
@@ -29,12 +29,12 @@ const convertUrlMap = new Map([
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html','chrome://terminal/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html','chrome://converter/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html','chrome://automation/'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html','chrome://settings/'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general','chrome://settings#general'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search','chrome://settings#search'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs','chrome://settings#tabs'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#keyboard','chrome://settings#keyboard'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extensions','chrome://settings#extensions'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html','chrome://setting/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general','chrome://setting#general'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search','chrome://setting#search'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs','chrome://setting#tabs'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#keyboard','chrome://setting#keyboard'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extensions','chrome://setting#extensions'],
 ])
 
 
@@ -81,32 +81,46 @@ export default class BrowserNavbarLocation extends Component {
   constructor(props) {
     super(props)
     this.keyEvent2 = (e,id)=>{
+      console.log('keyEvent2', id,this.props.tab.wvId)
       if (!this.props.tab.wvId || id !== this.props.tab.wvId) return
-      this.keyEvent({channel: 'navbar-search'})
+      this.keyEvent(e, 'navbar-search')
     }
     this.keyEvent = ::this.keyEvent
-    this.torEvent = ::this.torEvent
+    // this.torEvent = ::this.torEvent
     this.outerClick = ::this.outerClick
+    this.onFocus = ::this.onFocus
+    this.onBlur = ::this.onBlur
     this.isFloat = isFloatPanel(props.k)
   }
 
-  keyEvent(e){
-    if (e.channel == 'navbar-search') {
+  async keyEvent(e, msg, ...args){
+    if (msg == 'navbar-search') {
       const input = (this.input || ReactDOM.findDOMNode(this.refs.input).querySelector("input"))
-      input.focus()
+      console.log(5644, 'focus-browser-window')
+      for(let i=0;i<5;i++){
+        await new Promise(r=>setTimeout(r,100))
+        const key = Math.random().toString()
+        ipc.send('focus-browser-window', key)
+        await new Promise(r=>{
+          ipc.once(`focus-browser-window-reply_${key}`, r)
+        })
+        input.focus()
+        await new Promise(r=>setTimeout(r,50))
+        if(input == document.activeElement) return
+      }
     }
   }
 
-  torEvent(e,cond){
-    this.canUpdate = true
-    if(cond.finished){
-      this.props.wv.reload()
-      this.setState({torProgress: void 0})
-    }
-    else{
-      this.setState({torProgress: cond.progress})
-    }
-  }
+  // torEvent(e,cond){
+  //   this.canUpdate = true
+  //   if(cond.finished){
+  //     this.props.wv.reload()
+  //     this.setState({torProgress: void 0})
+  //   }
+  //   else{
+  //     this.setState({torProgress: cond.progress})
+  //   }
+  // }
 
   componentWillMount() {
     this.resetComponent()
@@ -115,11 +129,13 @@ export default class BrowserNavbarLocation extends Component {
   componentDidMount() {
     console.log(55553,this.props.page.navUrl,this.props.page.location)
     ipc.on('focus-location-bar',this.keyEvent2)
-    if(this.props.tab.privateMode == 'persist:tor') ipc.on('tor-progress',this.torEvent)
+    // if(this.props.tab.privateMode == 'persist:tor') ipc.on('tor-progress',this.torEvent)
     if(this.props.wv){
-      this.input = ReactDOM.findDOMNode(this.refs.input).querySelector("input")
       this.addEvent(this.props)
     }
+    this.input = ReactDOM.findDOMNode(this.refs.input).querySelector("input")
+    this.input.addEventListener('focus', this.onFocus)
+    this.input.addEventListener('blur', this.onBlur)
     // const input = (this.input || ReactDOM.findDOMNode(this.refs.input).querySelector("input"))
     // input.addEventListener('focus',::this.onFocus)
     // input.addEventListener('blur',::this.onBlur)
@@ -128,13 +144,16 @@ export default class BrowserNavbarLocation extends Component {
   componentWillUnmount() {
     PubSub.unsubscribe(this.token)
     if(this.props.tab.privateMode == 'persist:tor') ipc.removeListener('focus-location-bar',this.keyEvent2)
-    ipc.removeListener('tor-progress',this.torEvent)
-    if(this.props.wv) this.props.wv.removeEventListener('ipc-message',this.keyEvent)
+    ipc.removeListener('focus-location-bar',this.keyEvent2)
+    // ipc.removeListener('tor-progress',this.torEvent)
+    ipc.removeListener(`send-to-host_${this.props.tab.wvId}`,this.keyEvent)
+    this.input.removeEventListener('focus', this.onFocus)
+    this.input.removeEventListener('blur', this.onBlur)
   }
 
   addEvent(props) {
-    props.wv.removeEventListener('ipc-message',this.keyEvent)
-    props.wv.addEventListener('ipc-message',this.keyEvent)
+    ipc.removeListener(`send-to-host_${props.tab.wvId}`,this.keyEvent)
+    ipc.on(`send-to-host_${props.tab.wvId}`,this.keyEvent)
   }
 
   componentWillReceiveProps(nextProps) {
@@ -165,6 +184,7 @@ export default class BrowserNavbarLocation extends Component {
     if(!noBlur && this.input) this.input.blur()
     this.prevValue = void 0
     document.removeEventListener('mousedown',this.outerClick,{once:true})
+    PubSub.unsubscribe(this.tokenMouseDown)
     this.setState({ results: []})
   }
 
@@ -202,6 +222,8 @@ export default class BrowserNavbarLocation extends Component {
     // console.log("start",Date.now())
     this.props.onChangeLocation.bind(this)(e.target.value)
     if (this.props.page.location.length < 1) return this.resetComponent(true);
+
+    ipc.send('change-browser-view-z-index', true)
 
     if(this.props.tab.fields && this.props.tab.fields.mobilePanel){
       ipc.send('mobile-panel-operation',{type: 'below', key: this.props.tab.key, tabId: this.props.tab.wvId, force: true})
@@ -256,11 +278,12 @@ export default class BrowserNavbarLocation extends Component {
       if(this.isFloat || this.props.isMaximize){
         PubSub.publish(`menu-showed_${this.props.k}`,true)
       }
-      this.setState({ results })
+      if(this.input == document.activeElement) this.setState({ results })
     })
   }
 
   handleSelectionChange(e,value){
+    if(!value.result) return
     if(value.result.description){
       e.target.value = value.result.description.children[0].children.children
     }
@@ -311,6 +334,7 @@ export default class BrowserNavbarLocation extends Component {
         this.props.search(this.props.tab, word, true, this.props.addressBarNewTab)
       }
       document.addEventListener('mousedown',this.outerClick,{once:true})
+      this.tokenMouseDown = PubSub.subscribe('webview-mousedown',(msg,e)=>this.outerClick(e))
     }
     this.mouseDownPos = void 0
   }
@@ -363,8 +387,7 @@ export default class BrowserNavbarLocation extends Component {
   }
 
   getValue(){
-    return this.state.torProgress ? `Connecting to the Tor network: ${this.state.torProgress}%...` :
-      document.activeElement == this.input ? this.input.value :
+    return document.activeElement == this.input ? this.input.value :
     convertURL(this.props.page.location)
   }
 
@@ -384,8 +407,6 @@ export default class BrowserNavbarLocation extends Component {
         results={results.map(x=>{return {title:x.title,description: x.description}})}
         value={this.getValue()}
         ref="input"
-        onFocus={::this.onFocus}
-        onBlur={::this.onBlur}
         onKeyDown={::this.onKeyDown}
         onContextMenu={this.props.onContextMenu}
       />  :
@@ -404,16 +425,13 @@ export default class BrowserNavbarLocation extends Component {
           results={results.map(x=>{return {title:x.title,description: x.description}})}
           value={this.getValue()}
           ref="input"
-          onFocus={::this.onFocus}
-          onBlur={::this.onBlur}
           onKeyDown={::this.onKeyDown}
           onContextMenu={this.props.onContextMenu}
         />
         {sharedState.showAddressBarBookmarks ? <a onClick={async e=>{
           const key = uuid.v4()
-          await favorite.insert({key, url: this.props.page.location, title: this.props.page.title, favicon: this.props.page.favicon,
-            is_file:true, created_at: Date.now(), updated_at: Date.now()})
-          await favorite.update({ key: 'root' }, { $push: { children: key }, $set:{updated_at: Date.now()} })
+          await favorite.create({parentId: 'root', url: this.props.page.location, title: this.props.page.title})
+
           const rect = e.target.getBoundingClientRect()
           const span = document.createElement('span')
           span.innerHTML = `<div class="ui bottom right inverted popup transition visible" style="position: fixed; z-index: 99999; width: 140px; left: ${rect.x - 114}px; top: ${rect.y + 12}px;">

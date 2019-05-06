@@ -1,5 +1,3 @@
-import l10n from "../../brave/js/l10n";
-
 const React = require('react')
 const {Component} = React
 const {remote} = require('electron');
@@ -13,7 +11,8 @@ const uuid = require('node-uuid')
 const ReactDOM = require('react-dom')
 const ipc = require('electron').ipcRenderer
 const path = require('path');
-const {favicon,history,media,favorite,syncReplace,tabState} = require('./databaseRender')
+const {favicon,history,media,syncReplace,tabState} = require('./databaseRender')
+const favorite = require('electron').remote.require('./remoted-chrome/favorite')
 const db = require('./databaseRender')
 const Notification = require('./Notification')
 const InputableDialog = require('./InputableDialog')
@@ -27,8 +26,9 @@ const {messages,locale} = require('./localAndMessage')
 const isWin = navigator.userAgent.includes('Windows')
 const sharedState = require('./sharedState')
 const BrowserPageStatus = require('./BrowserPageStatus')
-const autoHighLightInjection = require('./autoHighLightInjection')
+// const autoHighLightInjection = require('./autoHighLightInjection')
 const InputPopup = require('./InputPopup')
+const browserActionMap = require('./browserActionDatas')
 
 let searchProviders,spAliasMap,autocompleteUrl
 updateSearchEngine();
@@ -51,13 +51,13 @@ let [newTabMode,inputsVideo,disableTabContextMenus,priorityTabContextMenus,reloa
 
 sharedState.tabPreview = tabPreview
 sharedState.tabPreviewRecent = tabPreviewRecent
-sharedState.searchWordHighlight = searchWordHighlight
-sharedState.searchWordHighlightRecursive = searchWordHighlightRecursive
+// sharedState.searchWordHighlight = searchWordHighlight
+// sharedState.searchWordHighlightRecursive = searchWordHighlightRecursive
 sharedState.showAddressBarFavicon = showAddressBarFavicon
 sharedState.showAddressBarBookmarks = showAddressBarBookmarks
 
 disableTabContextMenus = new Set(disableTabContextMenus)
-sharedState.searchWords = {}
+// sharedState.searchWords = {}
 
 
 function getNewTabPage(){
@@ -105,17 +105,17 @@ const convertUrlMap = new Map([
   ['chrome://terminal/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html'],
   ['chrome://converter/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html'],
   ['chrome://automation/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html'],
-  ['chrome://settings/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html'],
-  ['chrome://settings#general','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general'],
-  ['chrome://settings#search','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search'],
-  ['chrome://settings#tabs','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs'],
-  ['chrome://settings#keyboard','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#keyboard'],
-  ['chrome://settings#extensions','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extensions'],
+  ['chrome://setting/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html'],
+  ['chrome://setting#general','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general'],
+  ['chrome://setting#search','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search'],
+  ['chrome://setting#tabs','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs'],
+  ['chrome://setting#keyboard','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#keyboard'],
+  ['chrome://setting#extensions','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extensions'],
 ])
 
 const firefoxAddonSite = 'https://addons.mozilla.org'
 const allSelectedkeys = sharedState.allSelectedkeys
-const refs2 = {}
+const gRefs2 = {}
 
 function updateSearchEngine(){
   const vals = ipc.sendSync('get-sync-main-states',['searchProviders','searchEngine'])
@@ -129,8 +129,8 @@ ipc.on("update-search-engine",updateSearchEngine)
 
 function convertURL(url){
   return url == 'chrome://newtab/' ? topURL :
-    url == 'chrome://bookmarks/' ? bookmarksURL :
-      url == 'chrome://history/' ? historyURL :
+    url == 'chrome://bookmarks2/' ? bookmarksURL :
+      url == 'chrome://history2/' ? historyURL :
         convertUrlMap.has(url) ? convertUrlMap.get(url) : url
 }
 
@@ -197,12 +197,7 @@ function removeEvents(ipc,events){
   for (var key in events) {
     if (events.hasOwnProperty(key)) {
       const value = events[key]
-      if(key == 'ipc-message'){
-        value[0].removeEventListener('ipc-message',value[1] )
-      }
-      else{
-        ipc.removeListener(key,value)
-      }
+      ipc.removeListener(key,value)
     }
   }
 }
@@ -240,7 +235,16 @@ function exeScript(wv,callback,evalFunc,...args){
   let strs = `(${evalFunc.toString()})()`.split(/___SPLIT___,?/)
   if(strs.length > 1) strs.splice(1,0,...args)
   // console.log(strs.join('\n'))
-  wv.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',strs.join(';\n'),{},callback)
+  wv.executeJavaScript(strs.join(';\n'),callback)
+}
+
+function exeScriptInIsolation(wv,callback,evalFunc,...args){
+  let strs = `(${evalFunc.toString()})()`.split(/___SPLIT___,?/)
+  if(strs.length > 1) strs.splice(1,0,...args)
+  // console.log(strs.join('\n'))
+  const key = uuid.v4()
+  wv.send('execute-script-in-isolation-world', key, strs.join(';\n'))
+  ipc.once(`execute-script-in-isolation-world-reply_${key}`,(e,...args) =>callback(...args))
 }
 
 const tabsClassNames = {
@@ -298,6 +302,10 @@ export default class TabPanel extends Component {
   constructor(props) {
     super(props);
     const self = this
+
+    if(!gRefs2[this.props.k]) gRefs2[this.props.k] = {}
+    this.refs2 = gRefs2[this.props.k]
+
     this.initFunction()
     const tokens = {pubsub:this.initEventListener(),ipc:this.initIpcEvents()}
     this.uuid = uuid.v4().replace(/\-/g,"")
@@ -340,7 +348,7 @@ export default class TabPanel extends Component {
       const fromTabs = this.props.node.pop()
       const tabs = indexes.map(i=>{
         const tab = fromTabs[i]
-        return this.createTab({c_page:tab.page,c_wv:tab.wv,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,fields:tab.fields,reloadInterval:tab.reloadInterval,guestInstanceId: tab.guestInstanceId
+        return this.createTab({c_page:tab.page,c_wv:tab.wv,c_div:tab.div,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,fields:tab.fields,reloadInterval:tab.reloadInterval,guestInstanceId: tab.guestInstanceId
           ,rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis}})
       })
       this.state = {tokens,
@@ -393,7 +401,7 @@ export default class TabPanel extends Component {
       state.tokens.ipc.forEach(x=>removeEvents(ipc,x))
       this.state = {tokens,
         oppositeGlobal: ipc.sendSync('get-sync-main-state','oppositeGlobal'),
-        tabs: state.tabs.map(tab=>this.createTab({c_page:tab.page,c_wv:tab.wv,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,fields:tab.fields,reloadInterval:tab.reloadInterval,guestInstanceId: tab.guestInstanceId,
+        tabs: state.tabs.map(tab=>this.createTab({c_page:tab.page,c_wv:tab.wv,c_div:tab.div,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,fields:tab.fields,reloadInterval:tab.reloadInterval,guestInstanceId: tab.guestInstanceId,
           rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis}})),
         tabBar:state.tabBar,
         prevAddKeyCount: state.prevAddKeyCount.slice(0),
@@ -444,6 +452,19 @@ export default class TabPanel extends Component {
             }
           },300)
         }
+        // if(tab.protect){
+        //   const id = setInterval(_=>{
+        //     if(n_tab.wvId){
+        //       mainState.add('pockTabs',n_tab.wvId,1)
+        //       exeScript(n_tab.wv, void 0, ()=> {
+        //         if(window._unloadEvent_) return
+        //         window._unloadEvent_ = e => e.returnValue = ''
+        //         window.addEventListener("beforeunload", window._unloadEvent_)
+        //       },'')
+        //       clearInterval(id)
+        //     }
+        //   },300)
+        // }
         tabs.push(n_tab)
         if(rSession) tabState.insert({tabKey:n_tab.key,titles:rSession.titles.join("\t"),urls:rSession.urls.join("\t"),positions: JSON.stringify(rSession.positions),currentIndex:rSession.currentIndex, updated_at: Date.now()})
         withWindowCreateTabs.add(n_tab.key)
@@ -501,7 +522,7 @@ export default class TabPanel extends Component {
     this.createTab = ::this.createTab
     this.webViewCreate = ::this.webViewCreate
     this.screenShot = ::this.screenShot
-    this.searchWordHighlight = ::this.searchWordHighlight
+    // this.searchWordHighlight = ::this.searchWordHighlight
     this.navigateTo = ::this.navigateTo
     this.updateIdle = ::this.updateIdle
     this.maximizePanel = ::this.maximizePanel
@@ -510,7 +531,7 @@ export default class TabPanel extends Component {
     if((multistageTabs && maxrowLabel != 0) || openTabPosition != 'default'){
       this.componentWillUpdate = (prevProps, prevState)=>{
         if(multistageTabs && maxrowLabel != 0 && this.state.tabKeys.length !== this.state.tabs.length){
-          refs2[`tabs-${this.props.k}`].updateWidth()
+          this.refs2[`tabs-${this.props.k}`].updateWidth()
         }
         if(openTabPosition != 'default'){
           const adds = [],rests = []
@@ -552,34 +573,20 @@ export default class TabPanel extends Component {
       const _tabs = this.state.tabs
       let i = 0
       console.log(data,_tabs)
-      const vals = [],conts = []
+      const vals = []
       for(let tab of _tabs){
         if(data.keySet.includes(tab.key)){
           const cont = this.getWebContents(tab)
           ipc.send('chrome-tabs-onDetached-to-main',tab.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==tab.key)})
           const d = {wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,fields:tab.fields,reloadInterval:tab.reloadInterval,
-            rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab._guestInstanceId || cont.guestInstanceId}
+            rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab.wvId}
           vals.push(d)
-          conts.push([tab,cont])
-          cont.moveTo(0, data.newWindowId)
+          ipc.send('move-browser-view', this.props.k, tab.key, 'detach')
         }
         i++
       }
 
       if(vals.length == 0) return
-      for(let [tab,cont] of conts){
-        const tabId = tab.wvId
-        PubSub.publishSync(`detach-tab`,true)
-        await new Promise(r=>setTimeout(r,100))
-        ipc.send('detach-tab',tabId)
-        await new Promise(r=>{
-          ipc.once(`detach-tab_${tabId}`,(e,_guestInstanceId)=>{
-            tab.wv.attachGuest(_guestInstanceId)
-            PubSub.publishSync(`detach-tab`,false)
-            r()
-          })
-        })
-      }
       ipc.send("detach-tab-to-main",vals)
       ipc.once('detach-tab-from-other-window-finish-from-main',_=>{
       })
@@ -602,24 +609,14 @@ export default class TabPanel extends Component {
       const tab = this.state.tabs.find(t=>t.wvId == createData.tabId)
       if(!tab) return
 
-      const cont = this.getWebContents(tab)
-      const guestInstanceId = tab._guestInstanceId || cont.guestInstanceId
-      const tabId = tab.wvId
-      ipc.send('detach-tab',tabId)
-      await new Promise(r=>{
-        ipc.once(`detach-tab_${tabId}`,(e,_guestInstanceId)=>{
-          tab.wv.attachGuest(_guestInstanceId)
-          r()
-        })
-      })
+      ipc.send('move-browser-view', this.props.k, tab.key, 'detach')
 
-      const d = {wvId:tabId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,fields:tab.fields,reloadInterval:tab.reloadInterval,
-        rest:{rSession:tab.rSession,wvId:tabId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId}
+      const d = {wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,fields:tab.fields,reloadInterval:tab.reloadInterval,
+        rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab.wvId}
       ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
 
       const winId = ipc.sendSync('browser-load',{id:remote.getCurrentWindow().id,x:createData.left,y:createData.top,
         height:createData.height,width:createData.width,tabParam:JSON.stringify([d])})
-      cont.moveTo(0, winId)
 
     }
     ipc.on('chrome-windows-create-from-tabId',eventChromeWindowsCreateFromTabId)
@@ -637,9 +634,10 @@ export default class TabPanel extends Component {
       if(tab){
         if(data.mode == 'in'){
           if(!this.state.tabs.find(t=>tab.key == this.state.selectedTab)) return
-          const rect = ReactDOM.findDOMNode(tab.wv).getBoundingClientRect()
+          const rect = ReactDOM.findDOMNode(tab.div).getBoundingClientRect()
           const inputPopup = {tabId: data.tabId, key:tab.key,
             left: rect.left + data.x + data.width - 25, top: rect.top + data.y + data.height / 2 - 17,
+            modLeft: rect.left, modTop: rect.top, tab, parent: this,
             selector: data.selector, optSelector: data.optSelector, inHistory: data.inHistory}
           this.setState({inputPopup})
         }
@@ -650,13 +648,36 @@ export default class TabPanel extends Component {
     }
     ipc.on('focus-input',eventFocusInput)
 
+    const eventMoveTabFromMoved = (e, tabId, toIndex)=>{
+      const ind = this.state.tabs.findIndex(t=>t.wvId == tabId)
+      if(ind != -1){
+        const array_move = (arr, old_index, new_index) => {
+          if (new_index >= arr.length) {
+            let k = new_index - arr.length + 1;
+            while (k--) {
+              arr.push(void 0);
+            }
+          }
+          arr.splice(new_index, 0, arr.splice(old_index, 1)[0]);
+          return arr
+        }
+        const tabs = array_move(this.state.tabs, ind, toIndex)
+        this.setState({tabs})
+      }
+    }
+    ipc.on('move-tab-from-moved',eventMoveTabFromMoved)
+
+
+
+
     return [
       {'show-notification': eventNotification},
       {'close-tab-from-other-window': closeTabFromOtherWindow},
       {'close-sync-tab': eventCloseSyncTab},
       {'chrome-windows-create-from-tabId': eventChromeWindowsCreateFromTabId},
       {'restore-tabs-from-tabKey': eventRestoreTabs},
-      {'focus-input': eventFocusInput}
+      {'focus-input': eventFocusInput},
+      {'move-tab-from-moved': eventMoveTabFromMoved}
     ]
   }
 
@@ -674,7 +695,6 @@ export default class TabPanel extends Component {
       console.log('change-visit-state-focus',this.props.k)
       const activeTab = activeTabs[this.props.k]
       if(activeTab && val != activeTab[0].wvId){
-        history.update({location: activeTab[1]}, {$inc:{time: Date.now() - activeTab[2]}})
         delete activeTabs[this.props.k]
       }
       else if(!activeTab){
@@ -727,7 +747,7 @@ export default class TabPanel extends Component {
               tab.page.richContents.unshift({url:f.url,type:'video',fname,size: f.filesize})
             }
           }
-          refs2[`navbar-${tab.key}`].setState({})
+          this.refs2[`navbar-${tab.key}`].setState({})
         })
         return
       }
@@ -741,19 +761,20 @@ export default class TabPanel extends Component {
       //   }
       // })
       // ;(async ()=>{await media.insert({...record, updated_at: Date.now()}) })()
-      if(refs2[`navbar-${tab.key}`]) refs2[`navbar-${tab.key}`].setState({})
+      if(this.refs2[`navbar-${tab.key}`]) this.refs2[`navbar-${tab.key}`].setState({})
       if(record.url == tab.page.navUrl){
         this.navigateTo(tab.page, `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/video.html?url=${encodeURIComponent(record.url)}${record.contType ? `&type=${encodeURIComponent(record.contType)}` : ''}`, tab)
       }
     })
 
     const tokenMultiScroll = PubSub.subscribe('multi-scroll-webviews',(msg,{deltaY,webviews})=>{
+      console.log('multi-scroll-webviews2')
       let wv,cont
-      const tab = this.state.tabs.find(t =>t.wv && (wv = webviews.find(w=>w == ReactDOM.findDOMNode(t.wv))))
+      const tab = this.state.tabs.find(t =>t.div && (wv = webviews.find(w=>w == t.div.parentNode)))
       if(!tab) return
       cont = this.getWebContents(tab)
       // cont.sendInputEvent({ type: 'mouseWheel', x: wv.x, y: wv.y, deltaX: 0, deltaY, canScroll: true});
-      exeScript(tab.wv,(void 0), ()=> {
+      exeScriptInIsolation(tab.wv,(void 0), ()=> {
         ___SPLIT___
         ;
         const c = window.scrollTo(window.scrollX, window.scrollY + y)
@@ -806,12 +827,17 @@ export default class TabPanel extends Component {
             selectedTab: selectedTab || this.getPrevSelectedTab(key,_tabs,closeTab,i)
           });
         }
+
+        if(this.state.prevAddKeyCount[0] == key){
+          this.state.prevAddKeyCount = [null,[]]
+        }
+        this.state.prevAddKeyCount[1].forEach((x, ind) => x == key && this.state.prevAddKeyCount[1].splice(ind, 1))
       }
     })
 
-    const tokenAdblock = PubSub.subscribe('set-adblock-enable',(msg,enable)=> {adBlockEnable = enable;this.setState({})} )
+    // const tokenAdblock = PubSub.subscribe('set-adblock-enable',(msg,enable)=> {adBlockEnable = enable;this.setState({})} )
 
-    if(this.isFixed) return [tokenResize,tokenWebViewCreate,tokenDrag,tokenActiveTabChanged,tokenClose,tokenBodyKeydown,tokenIncludeKey,tokenRichMedia,tokenMultiScroll,tokenCloseTab,tokenAdblock]
+    if(this.isFixed) return [tokenResize,tokenWebViewCreate,tokenDrag,tokenActiveTabChanged,tokenClose,tokenBodyKeydown,tokenIncludeKey,tokenRichMedia,tokenMultiScroll,tokenCloseTab]
 
 
     const tokenNewTabFromKey = PubSub.subscribe(`new-tab-from-key_${this.props.k}`, (msg,{url,mobile,adBlockThis,fields,notSelected,privateMode,guestInstanceId,type})=> {
@@ -846,7 +872,7 @@ export default class TabPanel extends Component {
     })
 
     const scrollSync = (tab, left, winInfo, top, id)=> {
-      exeScript(tab.wv,id ? ()=>clearInterval(id) : (void 0), ()=> {
+      exeScriptInIsolation(tab.wv,id ? ()=>clearInterval(id) : (void 0), ()=> {
         ___SPLIT___
         ;
         const a = 0
@@ -893,7 +919,7 @@ export default class TabPanel extends Component {
       if(tab){
         if(tab.syncReplace){
           Array.from(new Array(5)).map((_,n)=>{
-            refs2[`navbar-${tab.key}`].refs.syncReplace.setVal(n,0,false)
+            this.refs2[`navbar-${tab.key}`].refs.syncReplace.setVal(n,0,false)
           })
           tab.syncReplace = void 0
           tab.sync = void 0
@@ -951,7 +977,7 @@ export default class TabPanel extends Component {
         this.props.split(droppedKey, dirc, pos * -1)
       }
 
-      if(refs2[`tabs-${this.props.k}`]) refs2[`tabs-${this.props.k}`].unmountMount()
+      if(this.refs2[`tabs-${this.props.k}`]) this.refs2[`tabs-${this.props.k}`].unmountMount()
     })
 
     const tokenSearch = PubSub.subscribe(`drag-search_${this.props.k}`,(msg,{key,text,url})=>{
@@ -987,42 +1013,47 @@ export default class TabPanel extends Component {
     })
 
     // return [tokenResize,tokenDrag,tokenSplit,tokenClose,tokenToggleDirction,tokenSync,tokenSync2,tokenBodyKeydown,tokenNewTabFromKey]
-    return [tokenResize,tokenWebViewCreate,tokenDrag,tokenActiveTabChanged,tokenClose,tokenToggleDirction,tokenSwapPosition,tokenSync2,tokenCloseSyncTabs,tokenSyncSelectTab,tokenBodyKeydown,tokenAdblock,tokenNewTabFromKey,tokenRestoreTabFromKey,tokenCloseTab,tokenIncludeKey,tokenRichMedia,tokenMultiScroll,tokenOpposite,tokenSplit,tokenSearch,tokenMenuShow]
+    return [tokenResize,tokenWebViewCreate,tokenDrag,tokenActiveTabChanged,tokenClose,tokenToggleDirction,tokenSwapPosition,tokenSync2,tokenCloseSyncTabs,tokenSyncSelectTab,tokenBodyKeydown,tokenNewTabFromKey,tokenRestoreTabFromKey,tokenCloseTab,tokenIncludeKey,tokenRichMedia,tokenMultiScroll,tokenOpposite,tokenSplit,tokenSearch,tokenMenuShow]
   }
 
 
   filterFromContents(page, navigateTo, tab, self) {
     console.log('filterFromContents',page.navUrl)
 
-    if (page.navUrl.match(/^(chrome|https:\/\/github\.com)/)) {
-      return false
-    }
-    else if (page.navUrl.endsWith('.pdf') || page.navUrl.endsWith('.PDF')) {
-      const url = ipc.sendSync('get-sync-main-state','pdfMode') == "normal" ?
-        `chrome-extension://jdbefljfgobbmcidnmpjamcbhnbphjnb/content/web/viewer.html?file=${encodeURIComponent(page.navUrl)}` :
-        `chrome-extension://jdbefljfgobbmcidnmpjamcbhnbphjnb/comicbed/index.html#?url=${encodeURIComponent(page.navUrl)}`
-      navigateTo(url)
-      return true
-    }
-    else if(page.navUrl.split("?").slice(-2)[0].match(/\.(3gp|3gpp|3gpp2|asf|avi|dv|flv|m2t|m4v|mkv|mov|mp4|mpeg|mpg|mts|oggtheora|ogv|rm|ts|vob|webm|wmv|aac|m4a|mp3|oga|wav)$/)){
+    // if (page.navUrl.match(/^(chrome|https:\/\/github\.com)/)) {
+    //   return false
+    // }
+    // else if (page.navUrl.endsWith('.pdf') || page.navUrl.endsWith('.PDF')) {
+    //   let fileUrl = page.navUrl
+    //   if(fileUrl.startsWith('file:')){
+    //     const accessKey = ipc.sendSync('get-access-key')
+    //     fileUrl = `chrome-extension://jdbefljfgobbmcidnmpjamcbhnbphjnb/?key=${accessKey}&file=${fileUrl.replace(/^file:\/\//,'')}`
+    //   }
+    //   const url = ipc.sendSync('get-sync-main-state','pdfMode') == "normal" ?
+    //     `chrome-extension://jdbefljfgobbmcidnmpjamcbhnbphjnb/content/web/viewer.html?file=${encodeURIComponent(fileUrl)}` :
+    //     `chrome-extension://jdbefljfgobbmcidnmpjamcbhnbphjnb/comicbed/index.html#?url=${encodeURIComponent(fileUrl)}`
+    //   navigateTo(url)
+    //   return true
+    // }
+    if(page.navUrl.split("?").slice(-2)[0].match(/\.(3gp|3gpp|3gpp2|asf|avi|dv|flv|m2t|m4v|mkv|mov|mp4|mpeg|mpg|mts|oggtheora|ogv|rm|vob|webm|wmv|aac|m4a|mp3|oga|wav)$/)){
       navigateTo(`chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/video.html?url=${encodeURIComponent(page.navUrl)}`)
       return true
     }
     else if (this.props.htmlContentSet.has(page.navUrl)){
       return false
     }
-    else if(page.navUrl.match(/^file:.+?\.(zip|rar)$/)){
-      const url = `chrome-extension://jdbefljfgobbmcidnmpjamcbhnbphjnb/comicbed/index.html#?url=${encodeURIComponent(page.navUrl)}`
-      navigateTo(url)
-      return true
-    }
-    else if (page.navUrl.match(/^file:.+?\.(abap|abc|as|ada|adb|htaccess|htgroups|htpasswd|conf|htaccess|htgroups|htpasswd|asciidoc|adoc|asm|a|ahk|bat|cmd|bro|cpp|c|cc|cxx|h|hh|hpp|ino|c9search_results|cirru|cr|clj|cljs|CBL|COB|coffee|cf|cson|Cakefile|cfm|cs|css|curly|d|di|dart|diff|patch|Dockerfile|dot|drl|dummy|dummy|e|ge|ejs|ex|exs|elm|erl|hrl|frt|fs|ldr|fth|4th|f|f90|ftl|gcode|feature|.gitignore|glsl|frag|vert|gbs|go|groovy|haml|hbs|handlebars|tpl|mustache|hs|cabal|hx|htm|html|hjson|xhtml|eex|html.eex|erb|rhtml|html.erb|ini|conf|cfg|prefs|io|jack|jade|pug|java|js|jsm|jsx|json|jq|jsx|jl|kt|kts|tex|latex|ltx|bib|less|liquid|lisp|ls|logic|log|lql|lsl|lua|lp|lucene|Makefile|md|GNUmakefile|makefile|OCamlMakefile|make|markdown|mask|matlab|mz|mel|mc|mush|mysql|nix|nsi|nsh|m|mm|ml|mli|pas|p|pl|pm|pgsql|php|phtml|shtml|php3|php4|php5|phps|phpt|aw|ctp|module|ps1|praat|praatscript|psc|proc|plg|prolog|properties|proto|py|r|cshtml|asp|Rd|Rhtml|rst|rb|ru|gemspec|rake|Guardfile|Rakefile|Gemfile|rs|sass|scad|scala|scm|sm|rkt|oak|scheme|scss|sh|bash|.bashrc|sjs|smarty|tpl|snippets|soy|space|sql|sqlserver|styl|stylus|svg|swift|tcl|tex|txt|textile|toml|tsx|twig|swig|ts|typescript|str|vala|vbs|vb|vm|v|vh|sv|svh|vhd|vhdl|wlk|wpgm|wtest|xml|rdf|rss|wsdl|xslt|atom|mathml|mml|xul|xbl|xaml|xq|yaml|yml)$/) ||
-      page.navUrl.match(/\/[^\?=]+?\.(abap|abc|as|ada|adb|htaccess|htgroups|htpasswd|conf|htaccess|htgroups|htpasswd|asciidoc|adoc|asm|a|ahk|bat|cmd|bro|cpp|c|cxx|h|hh|hpp|ino|c9search_results|cirru|cr|clj|cljs|CBL|COB|coffee|cf|cson|Cakefile|cfm|cs|css|curly|d|di|dart|diff|patch|Dockerfile|dot|drl|dummy|dummy|e|ge|ejs|ex|exs|elm|erl|hrl|frt|fs|ldr|fth|4th|f|f90|ftl|gcode|feature|.gitignore|glsl|frag|vert|gbs|go|groovy|hbs|handlebars|tpl|mustache|hs|cabal|hx|hjson|eex|ini|conf|cfg|prefs|io|jack|jade|pug|java|js|jsm|jsx|json|jq|jsx|jl|kt|kts|tex|latex|ltx|bib|less|liquid|lisp|ls|logic|lql|lsl|lua|lp|lucene|Makefile|md|GNUmakefile|makefile|OCamlMakefile|make|markdown|mask|matlab|mz|mel|mc|mush|mysql|nix|nsi|nsh|m|mm|ml|mli|pas|p|pl|pm|pgsql|phps|phpt|aw|ctp|module|ps1|praat|praatscript|psc|proc|plg|prolog|properties|proto|py|r|cshtml|Rd|Rhtml|rst|rb|gemspec|rake|Guardfile|Rakefile|Gemfile|rs|sass|scad|scala|scm|sm|rkt|oak|scheme|scss|sh|bash|.bashrc|sjs|smarty|tpl|snippets|soy|space|sql|sqlserver|styl|stylus|svg|swift|tcl|tex|txt|textile|toml|tsx|twig|swig|ts|typescript|str|vala|vbs|vb|vm|v|vh|sv|svh|vhd|vhdl|wlk|wpgm|wtest|wsdl|xslt|atom|mathml|mml|xul|xbl|xaml|xq|yaml|yml)$/)) {
-      if(page.navUrl.endsWith('user.js')) return false
-
-      navigateTo(`chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/ace.html?url=${encodeURIComponent(page.navUrl)}`)
-      return true
-    }
+    // else if(page.navUrl.match(/^file:.+?\.(zip|rar)$/)){
+    //   const url = `chrome-extension://jdbefljfgobbmcidnmpjamcbhnbphjnb/comicbed/index.html#?url=${encodeURIComponent(page.navUrl)}`
+    //   navigateTo(url)
+    //   return true
+    // }
+    // else if (page.navUrl.match(/^file:.+?\.(abap|abc|as|ada|adb|htaccess|htgroups|htpasswd|conf|htaccess|htgroups|htpasswd|asciidoc|adoc|asm|a|ahk|bat|cmd|bro|cpp|c|cc|cxx|h|hh|hpp|ino|c9search_results|cirru|cr|clj|cljs|CBL|COB|coffee|cf|cson|Cakefile|cfm|cs|css|curly|d|di|dart|diff|patch|Dockerfile|dot|drl|dummy|dummy|e|ge|ejs|ex|exs|elm|erl|hrl|frt|fs|ldr|fth|4th|f|f90|ftl|gcode|feature|.gitignore|glsl|frag|vert|gbs|go|groovy|haml|hbs|handlebars|tpl|mustache|hs|cabal|hx|htm|html|hjson|xhtml|eex|html.eex|erb|rhtml|html.erb|ini|conf|cfg|prefs|io|jack|jade|pug|java|js|jsm|jsx|json|jq|jsx|jl|kt|kts|tex|latex|ltx|bib|less|liquid|lisp|ls|logic|log|lql|lsl|lua|lp|lucene|Makefile|md|GNUmakefile|makefile|OCamlMakefile|make|markdown|mask|matlab|mz|mel|mc|mush|mysql|nix|nsi|nsh|m|mm|ml|mli|pas|p|pl|pm|pgsql|php|phtml|shtml|php3|php4|php5|phps|phpt|aw|ctp|module|ps1|praat|praatscript|psc|proc|plg|prolog|properties|proto|py|r|cshtml|asp|Rd|Rhtml|rst|rb|ru|gemspec|rake|Guardfile|Rakefile|Gemfile|rs|sass|scad|scala|scm|sm|rkt|oak|scheme|scss|sh|bash|.bashrc|sjs|smarty|tpl|snippets|soy|space|sql|sqlserver|styl|stylus|svg|swift|tcl|tex|txt|textile|toml|tsx|twig|swig|ts|typescript|str|vala|vbs|vb|vm|v|vh|sv|svh|vhd|vhdl|wlk|wpgm|wtest|xml|rdf|rss|wsdl|xslt|atom|mathml|mml|xul|xbl|xaml|xq|yaml|yml)$/) ||
+    //   page.navUrl.match(/\/[^\?=]+?\.(abap|abc|as|ada|adb|htaccess|htgroups|htpasswd|conf|htaccess|htgroups|htpasswd|asciidoc|adoc|asm|a|ahk|bat|cmd|bro|cpp|c|cxx|h|hh|hpp|ino|c9search_results|cirru|cr|clj|cljs|CBL|COB|coffee|cf|cson|Cakefile|cfm|cs|css|curly|d|di|dart|diff|patch|Dockerfile|dot|drl|dummy|dummy|e|ge|ejs|ex|exs|elm|erl|hrl|frt|fs|ldr|fth|4th|f|f90|ftl|gcode|feature|.gitignore|glsl|frag|vert|gbs|go|groovy|hbs|handlebars|tpl|mustache|hs|cabal|hx|hjson|eex|ini|conf|cfg|prefs|io|jack|jade|pug|java|js|jsm|jsx|json|jq|jsx|jl|kt|kts|tex|latex|ltx|bib|less|liquid|lisp|ls|logic|lql|lsl|lua|lp|lucene|Makefile|md|GNUmakefile|makefile|OCamlMakefile|make|markdown|mask|matlab|mz|mel|mc|mush|mysql|nix|nsi|nsh|m|mm|ml|mli|pas|p|pl|pm|pgsql|phps|phpt|aw|ctp|module|ps1|praat|praatscript|psc|proc|plg|prolog|properties|proto|py|r|cshtml|Rd|Rhtml|rst|rb|gemspec|rake|Guardfile|Rakefile|Gemfile|rs|sass|scad|scala|scm|sm|rkt|oak|scheme|scss|sh|bash|.bashrc|sjs|smarty|tpl|snippets|soy|space|sql|sqlserver|styl|stylus|svg|swift|tcl|tex|txt|textile|toml|tsx|twig|swig|ts|typescript|str|vala|vbs|vb|vm|v|vh|sv|svh|vhd|vhdl|wlk|wpgm|wtest|wsdl|xslt|atom|mathml|mml|xul|xbl|xaml|xq|yaml|yml)$/)) {
+    //   if(page.navUrl.endsWith('user.js')) return false
+    //
+    //   navigateTo(`chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/ace.html?url=${encodeURIComponent(page.navUrl)}`)
+    //   return true
+    // }
     return false
   }
 
@@ -1044,13 +1075,13 @@ export default class TabPanel extends Component {
     }
     else if(closeTabBehavior == 'focusTabOpenerTab'){
       if(!closeTab) return rightTab()
-      const openerTabId = ipc.sendSync('get-tab-opener-sync',closeTab.wvId)
+      const openerTabId = ipc.sendSync('get-tab-opener',closeTab.wvId)
       const key2 = (this.state.tabs.find(t=>t.wvId == openerTabId)||{}).key
       return key2 || rightTab()
     }
     else if(closeTabBehavior == 'focusTabOpenerTabRtl'){
       if(!closeTab) return leftTab()
-      const openerTabId = ipc.sendSync('get-tab-opener-sync',closeTab.wvId)
+      const openerTabId = ipc.sendSync('get-tab-opener',closeTab.wvId)
       const key2 = (this.state.tabs.find(t=>t.wvId == openerTabId)||{}).key
       return key2 || leftTab()
     }
@@ -1078,22 +1109,12 @@ export default class TabPanel extends Component {
     let ind,ret = null
     // console.log(key,this.state.prevAddKeyCount,this.state.selectedKeys)
     if((ind = this.state.prevAddKeyCount[1].findIndex(k=>k==key))!= -1){
-      const compKeys2 = [this.state.prevAddKeyCount[0],...this.state.prevAddKeyCount[1]].sort()
-      const keys = this.state.selectedKeys.slice(this.state.selectedKeys.length - compKeys2.length)
-      const compKeys1 = keys.sort()
-      // console.log(compKeys1,compKeys2)
-      if(compKeys1.every((x,i)=>x == compKeys2[i])){
-        if(this.state.prevAddKeyCount[1].length == 1){
-          ret = this.state.prevAddKeyCount[0]
-        }
-        else if(ind == this.state.prevAddKeyCount[1].length -1){
-          ret = this.state.prevAddKeyCount[1][ind -1]
-        }
-        else{
-          ret = this.state.prevAddKeyCount[1][ind +1]
-        }
+      if(ind == this.state.prevAddKeyCount[1].length -1){
+        ret = [this.state.prevAddKeyCount[0],...this.state.prevAddKeyCount[1]][ind - 1 + 1]
       }
-      this.state.prevAddKeyCount[1].splice(ind,1)
+      else{
+        ret = [this.state.prevAddKeyCount[0],...this.state.prevAddKeyCount[1]][ind + 1 + 1]
+      }
     }
 
     if(ret && !tabs.find(tab=>tab.key == ret)){
@@ -1154,10 +1175,13 @@ export default class TabPanel extends Component {
         else{
           self.search(tab, location,false, newTab)
         }
+        document.activeElement.blur()
+        // tab.wv.setForegroundWindow()
       }
     }))
     const menu = Menu.buildFromTemplate(menuItems)
-    menu.popup(remote.getCurrentWindow())
+    ipc.send('menu-popup')
+    ipc.once('menu-popup-reply', ()=> menu.popup(remote.getCurrentWindow(), () => ipc.send('menu-popup-end')))
   }
 
 
@@ -1208,48 +1232,48 @@ export default class TabPanel extends Component {
     };
   }
 
-  searchWordHighlight(tab){
-    autoHighLightInjection(this.getWebContents(tab),word=>{
-      if(!word){
-        let tabId = tab.wvId
-        if(sharedState.searchWordHighlightRecursive){
-          while(true){
-            if(!tabId) break
-            if(sharedState.searchWords[tabId]){
-              word = sharedState.searchWords[tabId]
-              break
-            }
-            tabId = sharedState.tabValues[tabId]
-          }
-        }
-        else{
-          if(sharedState.searchWords[tabId]){
-            const navbar = refs2[`navbar-${tab.key}`].state
-            const currentUrl = this.getWebContents(tab).getURL()
-            const currentIndex = navbar.historyList[navbar.currentIndex][0] == currentUrl ? navbar.currentIndex : navbar.currentIndex + 1
-            const url = navbar.historyList[currentIndex -1]
-            if(url && url[0].match(REG_HIGHLIGHT_SITES)){
-              word = sharedState.searchWords[tabId]
-            }
-          }
-          else{
-            const tabId2 = sharedState.tabValues[tabId]
-            if(sharedState.searchWords[tabId2] &&
-              refs2[`navbar-${tab.key}`].state.currentIndex == 0){
-              const cont = this.props.currentWebContents[tabId2]
-              if(!cont.isDestroyed() && cont.getURL().match(REG_HIGHLIGHT_SITES)){
-                word = sharedState.searchWords[tabId2]
-              }
-            }
-          }
-        }
-      }
-      else{
-        sharedState.searchWords[tab.wvId] = word
-      }
-      if(word) ipc.emit('menu-or-key-events',null,'findOnPage',tab.wvId,word,'OR')
-    })
-  }
+  // searchWordHighlight(tab){
+  //   autoHighLightInjection(this.getWebContents(tab),word=>{
+  //     if(!word){
+  //       let tabId = tab.wvId
+  //       if(sharedState.searchWordHighlightRecursive){
+  //         while(true){
+  //           if(!tabId) break
+  //           if(sharedState.searchWords[tabId]){
+  //             word = sharedState.searchWords[tabId]
+  //             break
+  //           }
+  //           tabId = sharedState.tabValues[tabId]
+  //         }
+  //       }
+  //       else{
+  //         if(sharedState.searchWords[tabId]){
+  //           const navbar = this.refs2[`navbar-${tab.key}`].state
+  //           const currentUrl = this.getWebContents(tab).getURL()
+  //           const currentIndex = navbar.historyList[navbar.currentIndex][0] == currentUrl ? navbar.currentIndex : navbar.currentIndex + 1
+  //           const url = navbar.historyList[currentIndex -1]
+  //           if(url && url[0].match(REG_HIGHLIGHT_SITES)){
+  //             word = sharedState.searchWords[tabId]
+  //           }
+  //         }
+  //         else{
+  //           const tabId2 = sharedState.tabValues[tabId]
+  //           if(sharedState.searchWords[tabId2] &&
+  //             this.refs2[`navbar-${tab.key}`].state.currentIndex == 0){
+  //             const cont = this.props.currentWebContents[tabId2]
+  //             if(!cont.isDestroyed() && cont.getURL().match(REG_HIGHLIGHT_SITES)){
+  //               word = sharedState.searchWords[tabId2]
+  //             }
+  //           }
+  //         }
+  //       }
+  //     }
+  //     else{
+  //       sharedState.searchWords[tab.wvId] = word
+  //     }
+  //     if(word) ipc.emit('menu-or-key-events',null,'findOnPage',tab.wvId,word,'OR')
+  //   })
+  // }
 
   async refreshHistory(e,page){
     page.navUrl = e.url;
@@ -1270,7 +1294,6 @@ export default class TabPanel extends Component {
         if(page.hid) return
       }
       console.log(7778885,page.navUrl)
-      await history.update({location:navUrl},{location:navUrl ,title: page.title,favicon: page.favicon, created_at: Date.now(),updated_at: Date.now(),count: 1,type: 1},{upsert: true})
     }
   }
 
@@ -1278,7 +1301,6 @@ export default class TabPanel extends Component {
     const now = Date.now()
     const activeTab = activeTabs[this.props.k]
     if(activeTab && activeTab[0].key == tab.key){
-      history.update({location: activeTab[1]}, {$inc:{time: now - activeTab[2]}})
       activeTabs[this.props.k] = [tab,tab.page.navUrl,now]
     }
     else if(!activeTab && tab.key == this.state.selectedTab && global.lastMouseDown[2] == this.props.k){
@@ -1288,102 +1310,77 @@ export default class TabPanel extends Component {
 
   pageHandlers(navigateTo, tab, self, newPage) {
     return {
-      onUpdateTargetUrl(e, page) {
-        if (!self.mounted) return
-        if(page.statusText!==e.url){
-          page.statusText = e.url
-          PubSub.publish(`change-status-${tab.key}`)
-          // self.setState({})
-        }
+      onDestroyed(e, page){
+        self.handleTabClose({}, tab.key, void 0, true)
       },
-      onLoadCommit(e, page) {
-        // console.log('onCommitted',e,Date.now(),e.isMainFrame)
-        console.log('onLoadCommit',e)
-        if(e.isMainFrame){
-          if(page.navUrl != e.url){
-            self.refreshHistory(e,page)
-            self.updateActive(tab)
-          }
-
-          self.filterFromContents(page, navigateTo, tab, self);
-          self.sendOpenLink(tab, page);
-          ipc.send('chrome-webNavigation-onCommitted',{
-            tabId:tab.wvId,
-            url:e.url,
-            frameId: 0,
-            timeStamp: Date.now()
-          })
-        }
-      },
+//       onUpdateTargetUrl(e, page, url) {
+//         if (!self.mounted) return
+//         if(page.statusText!==url){
+//           page.statusText = url
+//           PubSub.publish(`change-status-${tab.key}`)
+//           // self.setState({})
+//         }
+//       },
+//       onCursorChanged(e, page, cursor) {
+//         if (!self.mounted) return
+//         tab.div.parentNode.style.cursor = cursor
+//       },
+//       onLoadCommit(e, page, url, isMainFrame) {
+//         // console.log('onCommitted',e,Date.now(),e.isMainFrame)
+//         console.log('onLoadCommit',e)
+//         if(isMainFrame){
+//           if(page.navUrl != url){
+//             self.refreshHistory({url, isMainFrame}, page)
+//             self.updateActive(tab)
+//           }
+//
+//           self.filterFromContents(page, navigateTo, tab, self);
+//           self.sendOpenLink(tab, page);
+//           // ipc.send('chrome-webNavigation-onCommitted',{
+//           //   tabId:tab.wvId,
+//           //   url:e.url,
+//           //   frameId: 0,
+//           //   timeStamp: Date.now()
+//           // })
+//         }
+//       },
       // onWillNavigate(e, page) {
       //   console.log('onWillNavigate')
       //   // page.navUrl = e.url
       //   // self.sendOpenLink(tab, page);
       //   // ipc.send('chrome-webNavigation-onBeforeNavigate',self.createChromeWebNavDetails(tab))
       // },
-      onDidNavigate(e, page) {
+      onDidNavigate(e, page, url) {
+        page.didNavigate = true
         console.log('onDidNavigete',e,page)
         // tab.tabPreview = void 0
 
-        if(fullscreenTransition) ipc.send('toggle-fullscreen',true)
+        // if(fullscreenTransition) ipc.send('toggle-fullscreen',true)
 
-        if(page.navUrl != e.url) {
-          self.refreshHistory(e, page)
+        if(page.navUrl != url) {
+          self.refreshHistory({url}, page)
         }
         console.log('change-visit-state-navigate',self.props.k,page.navUrl)
         self.updateActive(tab)
 
-        PubSub.publish(`did-navigate_${tab.key}`,e.url)
+        PubSub.publish(`did-navigate_${tab.key}`,url)
         PubSub.publish('change-tabs')
 
-        setTimeout(_=>refs2[`bookmarkbar-${tab.key}`] && refs2[`bookmarkbar-${tab.key}`].setState({}),100)
-        // page.navUrl = e.url
+        setTimeout(_=>self.refs2[`bookmarkbar-${tab.key}`] && self.refs2[`bookmarkbar-${tab.key}`].setState({}),100)
+        // page.navUrl = url
         // self.sendOpenLink(tab, page);
         // ipc.send('chrome-webNavigation-onBeforeNavigate',self.createChromeWebNavDetails(tab))
-      },
-      onTabIdChanged(e, page) {
-        guestIds[tab.key] = e
-        tab.wvId = e.tabID
-        tab._guestInstanceId = e.guestInstanceId
-
-        if(withWindowCreateTabs.has(tab.key)){
-          ipc.send(`new-window-tabs-created_${tab.wvId}`,self.state.tabs.findIndex(t=>t.key==tab.key))
-          withWindowCreateTabs.delete(tab.key)
-        }
-
-        if(tab.readyAttach){
-          delete tab.readyAttach
-          ipc.send('chrome-tabs-onAttached-to-main',tab.wvId,{newPosition: self.state.tabs.findIndex(t=>t.key==tab.key)})
-        }
-
-        self.startProcess(self, page, navigateTo, tab)
-
-        console.log('onTabIdChanged', e.tabID,page)
-
-        const cont = self.getWebContents(tab)
-
-        ipc.send('get-did-start-loading',tab.wvId)
-        const didStart = (e,c)=> {
-          console.log('onDidStartLoading',e,Date.now())
-          if(!c || !self.mounted) return
-          if(c=='destroy'){
-            ipc.removeListener(`get-did-start-loading-reply_${tab.wvId}`,didStart)
-            return
-          }
-          tab.videoEvent = false
-        }
-        ipc.on(`get-did-start-loading-reply_${tab.wvId}`,didStart)
-
       },
       // onDidNavigateInPage(e, page) {
       //   console.log('onDidNavigateInPage')
       //   self.sendOpenLink(tab, page);
-      //   page.navUrl = e.url
+      //   page.navUrl = url
       // },
       onDidFinishLoading(e, page) {
         console.log('onDidFinishLoading',e)
         if (!self.mounted) return
 
+        page.didNavigate = false
         // if(!sharedState.searchWordHighlightRecursive && sharedState.searchWordHighlight){
         //   self.searchWordHighlight(tab)
         // }
@@ -1397,14 +1394,14 @@ export default class TabPanel extends Component {
 
         if(tab.initPos){
           if(tab.initPos[0] == page.navUrl){
-            tab.wv.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',`window.scrollTo(${tab.initPos[1].x},${tab.initPos[1].y})`,{},()=>{})
+            tab.wv.executeJavaScript(`window.scrollTo(${tab.initPos[1].x},${tab.initPos[1].y})`,()=>{})
           }
           delete tab.initPos
         }
 
         if(sharedState.tabPreview){
           const base64 = uuid.v4()
-          ipc.send('take-capture', {base64, tabId: tab.wvId})
+          ipc.send('take-capture', {base64, tabId: tab.wvId, noActiveSkip: true})
           ipc.once(`take-capture-reply_${base64}`,(e,dataURL,size)=>{
             tab.tabPreview = {dataURL,...size}
             PubSub.publish('tab-preview-update',{dataURL,...size})
@@ -1438,11 +1435,6 @@ export default class TabPanel extends Component {
             page.title = page.location
             if (tab.key == self.state.selectedTab && !this.isFixed) ipc.send("change-title", page.title)
           }
-          if(page.isLoading){
-            page.isLoading = false
-            if(page.favicon == 'loading')page.favicon = 'resource/file.svg'
-            PubSub.publish(`change-status-${tab.key}`)
-          }
           if (page.eventDownloadStartTab) ipc.removeListener(`download-start-tab_${tab.wvId}`, page.eventDownloadStartTab)
           clearTimeout(page.downloadTimer)
           // console.log(self.refs)
@@ -1453,7 +1445,7 @@ export default class TabPanel extends Component {
             if ((typeof page.hid === 'object' && page.hid !== null ) || (page.hid = await history.findOne({location: page.navUrl}))) {
               console.log(22, page.hid)
               if (page.hid.count > 2 && !page.hid.capture) {
-                ipc.send('take-capture', {id: page.hid._id, url: page.navUrl, loc, tabId: tab.wvId})
+                ipc.send('take-capture', {id: page.hid._id, url: page.navUrl, loc, tabId: tab.wvId, noActiveSkip: true})
               }
             }
           })()
@@ -1461,7 +1453,7 @@ export default class TabPanel extends Component {
         })
 
       },
-      onDidGetRedirectRequest(e, page) {
+      onDidGetRedirectRequest(e, page) { //@TODO ELECTRON webRequest.onBeforeRedirect([filter, ]listener)
         console.log('redirect',e)
         if(page.navUrl != e.url){
           self.refreshHistory(e,page)
@@ -1469,30 +1461,63 @@ export default class TabPanel extends Component {
         }
 
       },
-      onLoadStart(e, page) {
-        console.log('onLoadStart',e,Date.now() - ttime,Date.now())
-        if (!self.mounted || !e.isMainFrame) return
+      onDidStopLoading(e, page){
+        if(page.didNavigate){
+          this.onDidFinishLoading(e,page)
+        }
+        if(page.isLoading || page.favicon == 'loading'){
+          page.isLoading = false
+          if(page.favicon == 'loading'){
+            // const url = `${new URL(newPage.navUrl).origin}/favicon.ico`
+            // fetch(url,{method: 'HEAD'}).then(res=>{
+            //   if(res.status == 200){
+            //     this.onFaviconUpdate(null, page, [url])
+            //   }
+            //   else{
+            //     page.favicon = 'resource/file.svg'
+            //   }
+            // })
+            page.favicon = 'resource/file.svg'
+            PubSub.publish(`change-status-${tab.key}`)
+          }
+          self.refs2[`navbar-${tab.key}`].setState({})
+          self.setStatePartical(tab)
+        }
+      },
+      async onTabIdChanged(e, page, tabId){
+        console.log('onTabIdChanged',  page, tabId)
+        if (!self.mounted) return
 
-        if(e.url.startsWith(firefoxAddonSite)){
+        self.onTabIdChanged(tabId, tab, true)
+      },
+      async onLoadStart(e, page, url, isInPlace, isMainFrame) {
+        console.log('onLoadStart',e,Date.now() - ttime,Date.now())
+        if (!self.mounted || !isMainFrame) return
+
+        if(url.startsWith(firefoxAddonSite)){
           const ua = navigator.userAgent.includes('Windows') ? 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:61.0) Gecko/20100101 Firefox/61.0' :
             navigator.userAgent.includes('Mac OS X') ? 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:61.0) Gecko/20100101 Firefox/61.0' :
               'Mozilla/5.0 (X11; Linux i686; rv:61.0) Gecko/20100101 Firefox/61.0'
-          ipc.send('user-agent-change',{tabId:tab.wvId,ua,domain: firefoxAddonSite})
-          if(!tab.firefoxAddon) self.navigateTo(tab.page, e.url, tab)
-          tab.firefoxAddon = true
+          const cont = self.getWebContents(tab)
+          tab.firefoxAddon = await cont.getUserAgent()
+          cont.setUserAgent(ua)
+          if(!tab.firefoxAddon) self.navigateTo(tab.page, url, tab)
+        }
+        else if(tab.firefoxAddon){
+          self.getWebContents(tab).setUserAgent(tab.firefoxAddon)
+          delete tab.firefoxAddon
         }
 
-        PubSub.publishSync(`on-load-start_${tab.key}`,e.url)
+        PubSub.publishSync(`on-load-start_${tab.key}`,url)
         ipc.send('chrome-webNavigation-onBeforeNavigate',{
           tabId:tab.wvId,
-          url:e.url,
+          url:url,
           frameId: 0,
           parentFrameId: -1,
           processId: -1,
           timeStamp: Date.now()
         })
 
-        page.navUrl = e.url;
         let location = page.navUrl
         try{
           location = decodeURIComponent(location)
@@ -1501,10 +1526,10 @@ export default class TabPanel extends Component {
         console.log('location-onLoadStart',tab.page.location)
 
         let match
-        if(e.url.match(REG_VIDEO)){
-          ipc.send('video-infos',{url:e.url})
-          ipc.once(`video-infos-reply_${e.url}`,(e,{title,formats,error})=>{
-            console.log(`video-infos-reply_${e.url}`,e,{title,formats,error})
+        if(url.match(REG_VIDEO)){
+          ipc.send('video-infos',{url})
+          ipc.once(`video-infos-reply_${url}`,(e,{title,formats,error})=>{
+            console.log(`video-infos-reply_${url}`,e,{title,formats,error})
             if(error) return
             const arr = [],arr2 = []
             for(let f of formats){
@@ -1515,7 +1540,7 @@ export default class TabPanel extends Component {
             }
             tab.page.richContents.unshift(...arr.slice(0).reverse(),...arr2.slice(0).reverse())
             console.log(99875556,tab.page)
-            refs2[`navbar-${tab.key}`].setState({})
+            self.refs2[`navbar-${tab.key}`].setState({})
           })
         }
 
@@ -1525,30 +1550,30 @@ export default class TabPanel extends Component {
 
         // ipc.send('chrome-tab-updated',parseInt(tab.key), e, self.getChromeTab(tab))
         console.log('onLoadStartEnd',Date.now())
-        // tab.wv.openDevTools();
+        // tab.wv.toggleDevTools();
       },
       onDomReady(e, page, pageIndex) {
         console.log('onDomReady',e,tab,Date.now())
         if (!self.mounted) return
 
-        if(sharedState.searchWordHighlight){
-          self.searchWordHighlight(tab)
-        }
+        // if(sharedState.searchWordHighlight){
+        //   self.searchWordHighlight(tab)
+        // }
 
-        ipc.send('chrome-webNavigation-onDOMContentLoaded',{
-          tabId:tab.wvId,
-          url:page.navUrl,
-          frameId: 0,
-          timeStamp: Date.now()
-        })
+        // ipc.send('chrome-webNavigation-onDOMContentLoaded',{
+        //   tabId:tab.wvId,
+        //   url:page.navUrl,
+        //   frameId: 0,
+        //   timeStamp: Date.now()
+        // })
 
         console.log(tab.wv,tab.wvId,guestIds.tabId,tab.e&&tab.e.tabId,tab.e,e)
 
         ipc.send('get-on-dom-ready',tab.wvId,tab.key,tab.rSession,closingPos[tab.key])
         ipc.once(`get-on-dom-ready-reply_${tab.wvId}`,(e,c)=>{
           if(!c) return
-          const domLoadedTime = Date.now()
-          tab.domLoadedTime = domLoadedTime
+          // const domLoadedTime = Date.now()
+          // tab.domLoadedTime = domLoadedTime
           if(c.rSession) tab.rSession = c.rSession
           const pre = {
             canGoBack: c.currentEntryIndex !== 0,
@@ -1565,26 +1590,32 @@ export default class TabPanel extends Component {
             ipc.send("change-title",title)
           }
           page.title = title
-          // cont.openDevTools()
+          page.domLoaded = true
+          // cont.toggleDevTools()
 
           // self.setState({})
           self.setStatePartical(tab)
         })
 
+
       },
-      onDidFailLoad(e, page, pageIndex) {
-        if(!e.isMainFrame) return
+      onDidFailLoad(e, page, errorCode, errorDescription, validatedURL, isMainFrame) {
+        if(!isMainFrame) return
+        if(errorCode == -3){
+          this.onDidGetRedirectRequest({url: validatedURL}, page)
+          return
+        }
         if(page.isLoading){
           page.isLoading = false
           if(page.favicon == 'loading') page.favicon = 'resource/file.svg'
           PubSub.publish(`change-status-${tab.key}`)
-          if(!refs2[`navbar-${tab.key}`]) return
-          refs2[`navbar-${tab.key}`].setState({})
+          if(!this.refs2[`navbar-${tab.key}`]) return
+          this.refs2[`navbar-${tab.key}`].setState({})
           self.setStatePartical(tab)
 
           if(sharedState.tabPreview){
             const base64 = uuid.v4()
-            ipc.send('take-capture', {url: page.navUrl, loc:page.navUrl, base64, tabId: tab.wvId})
+            ipc.send('take-capture', {url: page.navUrl, loc:page.navUrl, base64, tabId: tab.wvId, noActiveSkip: true})
             ipc.once(`take-capture-reply_${base64}`,(e,dataURL,size)=>{
               tab.tabPreview = {dataURL,...size}
               PubSub.publish('tab-preview-update',{dataURL,...size})
@@ -1593,19 +1624,19 @@ export default class TabPanel extends Component {
         }
         console.log('fail',e)
         // if (page.location !== e.validatedURL || e.errorDescription == 'ERR_ABORTED' || e.errorCode == -3 || e.errorCode == 0) return
-        if(["chrome://newtab/","chrome://bookmarks/","chrome://history/"].includes(e.validatedURL)){
-          self.navigateTo(page, convertURL(e.validatedURL), tab)
+        if(["chrome://newtab/","chrome://bookmarks2/","chrome://history2/"].includes(validatedURL)){
+          self.navigateTo(page, convertURL(validatedURL), tab)
           return
         }
 
-        ipc.send('chrome-webNavigation-onErrorOccurred',{
-          tabId:tab.wvId,
-          url:page.navUrl,
-          frameId: 0,
-          processId: -1,
-          error: e.errorDescription,
-          timeStamp: Date.now()
-        })
+        // ipc.send('chrome-webNavigation-onErrorOccurred',{
+        //   tabId:tab.wvId,
+        //   url:page.navUrl,
+        //   frameId: 0,
+        //   processId: -1,
+        //   error: e.errorDescription,
+        //   timeStamp: Date.now()
+        // })
         // else if(e.validatedURL == "about:blank"){
         //   self.navigateTo(page, blankURL, tab)
         // }
@@ -1617,10 +1648,16 @@ export default class TabPanel extends Component {
       onDidFrameFinishLoad(e, page, pageIndex) {
         // console.log(e,"onDidFrameFinishLoad")
       },
-      onFaviconUpdate(e) {
+      onFaviconUpdate(e, page, favicons) {
         if(newPage.navUrl.match(/^https:\/\/www\.google\.([a-z.]+)\/url\?sa=t&/)) return //Google Redirect
-        console.log(newPage.navUrl,"onFaviconUpdate")
-        newPage.favicon = e.favicons[0]
+        console.log(newPage.navUrl,"onFaviconUpdate", e)
+        if(favicons[0].startsWith('chrome-extension:')){
+          const id = favicons[0].split('/')[2]
+          newPage.favicon = `file://${browserActionMap.get(id).basePath}/${favicons[0].split('/').splice(3).join('/')}`
+        }
+        else{
+          newPage.favicon = favicons[0]
+        }
         // self.setState({})
         self.setStatePartical(tab)
 
@@ -1650,7 +1687,6 @@ export default class TabPanel extends Component {
                 }
               }
               console.log(7778882,newPage.navUrl)
-              await history.update({location:navUrl},{location:navUrl ,title: newPage.title,favicon: newPage.favicon, created_at: Date.now(),updated_at: Date.now(),count: 1,type: 1},{upsert: true})
               // console.log('insert_favicon')
             }
             const favi = await favicon.findOne({url: newPage.favicon})
@@ -1671,43 +1707,44 @@ export default class TabPanel extends Component {
   }
 
   startProcess(self, page, navigateTo, tab, isLoadStart) {
+    // console.trace('startProcess', 'favicon', isLoadStart)
     const needFavicon = isLoadStart || page.favicon == "loading"
     const skip = needFavicon ? self.filterFromContents(page, navigateTo, tab, self) : false;
     if (!skip) {
       if(needFavicon){
         page.hid = null
         page.titleSet = false
-        if(!page.isLoading){
-          page.isLoading = true
-          PubSub.publish(`change-status-${tab.key}`)
-        }
+        // if(!page.isLoading){
+        //   page.isLoading = true
+        //   PubSub.publish(`change-status-${tab.key}`)
+        // }
         const navUrl = page.navUrl
         setTimeout(_=>{
-          if(page.isLoading && refs2[`navbar-${tab.key}`] && navUrl == page.navUrl){
+          if(page.isLoading && self.refs2[`navbar-${tab.key}`] && navUrl == page.navUrl){
             page.isLoading = false
             if(page.favicon == 'loading') page.favicon = 'resource/file.svg'
             PubSub.publish(`change-status-${tab.key}`)
-            refs2[`navbar-${tab.key}`].setState({})
+            self.refs2[`navbar-${tab.key}`].setState({})
             self.setStatePartical(tab)
 
             if(tab.initPos){
               if(tab.initPos[0] == page.navUrl){
-                tab.wv.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',`window.scrollTo(${tab.initPos[1].x},${tab.initPos[1].y})`,{},()=>{})
+                tab.wv.executeJavaScript(`window.scrollTo(${tab.initPos[1].x},${tab.initPos[1].y})`,()=>{})
               }
               delete tab.initPos
             }
 
             if(sharedState.tabPreview){
               const base64 = uuid.v4()
-              ipc.send('take-capture', {url: page.navUrl, loc:page.navUrl, base64, tabId: tab.wvId})
+              ipc.send('take-capture', {url: page.navUrl, loc:page.navUrl, base64, tabId: tab.wvId, noActiveSkip: true})
               ipc.once(`take-capture-reply_${base64}`,(e,dataURL,size)=>{
                 tab.tabPreview = {dataURL,...size}
                 PubSub.publish('tab-preview-update',{dataURL,...size})
               })
             }
           }
-        },7000)
-        page.favicon = page.navUrl == '' || page.navUrl.match(/^(file:\/\/|chrome|about)/) ? 'resource/file.svg' : 'loading'
+        },10000)
+        // page.favicon = page.navUrl == '' || page.navUrl.match(/^(file:\/\/|chrome|about)/) ? 'resource/file.svg' : 'loading'
       }
 
       const eventDownloadStartTab = (event) => {
@@ -1718,8 +1755,12 @@ export default class TabPanel extends Component {
           title: page.title,
           canGoBack: page.canGoBack
         }
-        const controller = this.getWebContents(tab).controller()
-        if (controller && controller.isValid() && controller.isInitialNavigation() && self.state.tabs.length > 1) {
+        // const controller = this.getWebContents(tab).controller()
+        // if (controller && controller.isValid() && controller.isInitialNavigation() && self.state.tabs.length > 1) {
+        //   self.handleTabClose({noHistory: true, noSync: true}, tab.key)
+        // }
+
+        if (!pre.titleSet && !pre.canGoBack && self.state.tabs.length > 1) {
           self.handleTabClose({noHistory: true, noSync: true}, tab.key)
         }
         page.hid = pre.hid
@@ -1778,12 +1819,6 @@ export default class TabPanel extends Component {
           const histUpdateTime = Date.now()
           if(histUpdateTime - tab.histUpdateTime < 20) return
           tab.histUpdateTime = histUpdateTime
-          const result = (await history.update({location: navUrl},{
-            location: navUrl,
-            created_at: histUpdateTime,
-            updated_at: histUpdateTime,
-            count: 1,type: 2
-          }, { upsert: true }))
           // console.log('insert_start')
         }
       })()
@@ -1792,16 +1827,17 @@ export default class TabPanel extends Component {
 
   setStatePartical(tab){
     const page = tab.page
-    const _t = refs2[`tabs-${this.props.k}`] && ReactDOM.findDOMNode(refs2[`tabs-${this.props.k}`])
+    const _t = this.refs2[`tabs-${this.props.k}`] && ReactDOM.findDOMNode(this.refs2[`tabs-${this.props.k}`])
     const t = _t && _t.querySelector(`#draggable_tabs_${tab.key}`)
     if (t){
       const p = t.querySelector('p')
       const title = `${page.favicon !== 'loading' || page.titleSet || page.location == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? page.title : page.location} `
-      const beforeTitle = <img className='favi-tab' src={page.title && page.favicon !== 'loading' ? page.favicon : 'resource/l.svg'} onError={(e)=>{e.target.src = 'resource/file.svg'}}/>
+      const beforeTitle = <img className='favi-tab' src={page.title && page.favicon !== 'loading' && !page.isLoading ? page.favicon : 'resource/l.png'} onError={(e)=>{e.target.src = 'resource/file.svg'}}/>
       PubSub.publish(`tab-component-update_${tab.key}`,{title,beforeTitle})
     }
-    const n = refs2[`navbar-${tab.key}`]
+    const n = this.refs2[`navbar-${tab.key}`]
     if(n) n.setState({})
+    // console.log('setStatePartical',t,n)
   }
 
   updateOpenLink(openLink){
@@ -1831,7 +1867,7 @@ export default class TabPanel extends Component {
         if (!tab.wv || !this.getWebContents(tab)) return
         clearInterval(id)
         const cont = this.getWebContents(tab)
-        cont.hostWebContents.send('open-link', {url:page.navUrl, sync:tab.sync, id:tab.wvId, dirc:tab.dirc})
+        cont.hostWebContents2.send('open-link', {url:page.navUrl, sync:tab.sync, id:tab.wvId, dirc:tab.dirc})
       }, 100)
     }
     // else if (tab.openLink && tab.openLink.length > 3 && tab.openLink[tab.openLink.length-1] - tab.openLink[0] < 1500) {
@@ -1839,8 +1875,9 @@ export default class TabPanel extends Component {
     // }
   }
 
-  registWebView(tab, wv) {
+  registWebView(tab, wv, div) {
     tab.wv = wv
+    tab.div = div
 
     let retry = 0
     const id = window.setInterval(()=> {
@@ -1914,9 +1951,8 @@ export default class TabPanel extends Component {
       if (!this.mounted) return
       if (tab.wvId && id == tab.wvId) {
         ;(async ()=> {
-          const [key,url,title,favicon] = [uuid.v4(),tab.page.location,tab.page.title,tab.page.favicon]
-          await favorite.insert({key, url, title, favicon, is_file:true, created_at: Date.now(), updated_at: Date.now()})
-          await favorite.update({ key: 'root' }, { $push: { children: key }, $set:{updated_at: Date.now()} })
+          const [url,title,favicon] = [tab.page.location,tab.page.title,tab.page.favicon]
+          await favorite.create({parentId: 'root', url, title})
         })()
       }
     }
@@ -1954,7 +1990,7 @@ export default class TabPanel extends Component {
             const cont = this.getWebContents(t)
             if (!cont) return
             clearInterval(id)
-            cont.hostWebContents.send('open-panel', {url,sync:t.sync,id:tab.wvId,dirc:t.dirc,replaceInfo: tab.syncReplace,mobile: tab.mobile, adBlockThis: tab.adBlockThis, fields: tab.fields})
+            cont.hostWebContents2.send('open-panel', {url,sync:t.sync,id:tab.wvId,dirc:t.dirc,replaceInfo: tab.syncReplace,mobile: tab.mobile, adBlockThis: tab.adBlockThis, fields: tab.fields})
           }, 100)
         }
       }
@@ -2094,12 +2130,12 @@ export default class TabPanel extends Component {
       }
       else if(name == 'freezeTabMenuLabel'){
         const val = !(tab.protect && tab.lock)
-        tab.protect = val
+        this.updateProtectTab(tab,val)
         this.updateLockTab(tab,val)
         this.setState({})
       }
       else if(name == 'protectTabMenuLabel'){
-        tab.protect = !tab.protect
+        this.updateProtectTab(tab,!tab.protect)
         this.setState({})
       }
       else if(name == 'lockTabMenuLabel'){
@@ -2188,22 +2224,22 @@ export default class TabPanel extends Component {
         this.props.fixedPanelOpen({dirc:ipc.sendSync('get-sync-main-state','sideBarDirection')})
       }
       else if(name == 'changeMobileAgent'){
-        refs2[`navbar-${tab.key}`].handleUserAgent()
+        this.refs2[`navbar-${tab.key}`].handleUserAgent()
       }
       else if(name == 'detachPanel'){
         this.detachPanel()
       }
-      else if(name == 'floatingPanel'){
-        this._handleContextMenu(null,tab.key,null,this.state.tabs,false,true).find(i=>i.t == name).click()
-      }
+      // else if(name == 'floatingPanel'){
+      //   this._handleContextMenu(null,tab.key,null,this.state.tabs,false,true).find(i=>i.t == name).click()
+      // }
       else if(name == 'maximizePanel'){
         this.maximizePanel()
       }
       else if(name == 'zoomIn'){
-        refs2[`navbar-${tab.key}`].onZoomIn()
+        this.refs2[`navbar-${tab.key}`].onZoomIn()
       }
       else if(name == 'zoomOut'){
-        refs2[`navbar-${tab.key}`].onZoomOut()
+        this.refs2[`navbar-${tab.key}`].onZoomOut()
       }
       else if(name == 'multiRowTabs'){
         sharedState.multistageTabs = !sharedState.multistageTabs
@@ -2216,12 +2252,12 @@ export default class TabPanel extends Component {
         mainState.set('tabPreview',sharedState.tabPreview)
         PubSub.publish('token-preview-change',sharedState.tabPreview)
       }
-      else if(name == 'searchHighlight'){
-        sharedState.searchWordHighlight = !sharedState.searchWordHighlight
-        mainState.set('searchWordHighlight',sharedState.searchWordHighlight)
-        this.searchWordHighlight(tab)
-        this.setState({})
-      }
+      // else if(name == 'searchHighlight'){
+      //   sharedState.searchWordHighlight = !sharedState.searchWordHighlight
+      //   mainState.set('searchWordHighlight',sharedState.searchWordHighlight)
+      //   this.searchWordHighlight(tab)
+      //   this.setState({})
+      // }
       else if(name == 'screenShotFullClipBoard'){
         this.screenShot(true,'clipboard',tab)
       }
@@ -2246,8 +2282,9 @@ export default class TabPanel extends Component {
       else if(name == 'toggleDeveloperTools'){
         // if(!tab.fields) tab.fields = {}
         const cont = this.getWebContents(tab)
-        if(!cont.setDevToolsWebContents){
-          cont.toggleDevTools()
+        if(true || !cont.setDevToolsWebContents){
+          console.log(' cont.toggleDevTools()')
+          cont.toggleDevTools() //@TODO ELECTRON
           return
         }
         if(cont.devToolsWebContents){
@@ -2288,42 +2325,42 @@ export default class TabPanel extends Component {
     //   return ret
     // }
 
-    tab.events['ipc-message'] = [tab.wv,(e) => {
-      if (e.channel == 'open-tab-opposite') {
-        const url = e.args[1] ? e.args[0] : `file://${e.args[0]}`,
+    tab.events[`send-to-host_${tab.wvId}`] = (e, msg, ...args) => {
+      if (msg == 'open-tab-opposite') {
+        const url = args[1] ? args[0] : `file://${args[0]}`,
           id = tab.wvId
-        const type = e.args[2]
+        const type = args[2]
         tab.events['new-tab-opposite'](e, id, url,void 0,void 0, type)
       }
-      else if (e.channel == 'open-tab') {
-        const url = e.args[1] ? e.args[0] : `file://${e.args[0]}`,
+      else if (msg == 'open-tab') {
+        const url = args[1] ? args[0] : `file://${args[0]}`,
           id = tab.wvId
         tab.events['new-tab'](e, id, url)
       }
-      if (e.channel == 'restore-tab-opposite') {
+      if (msg == 'restore-tab-opposite') {
         const id = tab.wvId
-        tab.events['restore-tab-opposite'](e, id, ...e.args)
+        tab.events['restore-tab-opposite'](e, id, ...args)
       }
-      else if(e.channel == 'load-url'){
-        this.getWebContents(tab).loadURL(e.args[0])
-        this.navigateTo(tab.page,e.args[0],tab)
+      else if(msg == 'load-url'){
+        // this.getWebContents(tab).loadURL(args[0])
+        this.navigateTo(tab.page,args[0],tab)
       }
-      else if(e.channel == 'html-content'){
-        this.props.htmlContentSet.add(e.args[0])
-        this.navigateTo(tab.page,e.args[0],tab)
+      else if(msg == 'html-content'){
+        this.props.htmlContentSet.add(args[0])
+        this.navigateTo(tab.page,args[0],tab)
       }
-      else if(e.channel == 'get-tabs-state'){
-        const key = e.args[0]
+      else if(msg == 'get-tabs-state'){
+        const key = args[0]
         const arr = []
         console.log(key)
         this.props.parent.allKeysAndTabs((void 0),arr,[0])
         this.getWebContents(tab).send(`get-tabs-state-reply_${key}`,arr)
       }
-      else if(e.channel == 'history'){
-        console.log(222222222,e.args)
-        if(this.historyKeys[e.args[1]]) return
-        this.historyKeys[e.args[1]] = 1
-        switch(e.args[0]){
+      else if(msg == 'history'){
+        console.log(222222222,args)
+        if(this.historyKeys[args[1]]) return
+        this.historyKeys[args[1]] = 1
+        switch(args[0]){
           case 'back':
             this.historyBack(this.getWebContents(tab),tab)
             break
@@ -2331,29 +2368,29 @@ export default class TabPanel extends Component {
             this.historyForward(this.getWebContents(tab),tab)
             break
           case 'go':
-            this.historyGo(this.getWebContents(tab),tab,e.args[2])
+            this.historyGo(this.getWebContents(tab),tab,args[2])
         }
       }
-      else if(e.channel == 'theme-color-computed'){
-        sharedState[`color-${tab.key}`] = e.args[0]
-        refs2[`tabs-${this.props.k}`].setState({})
+      else if(msg == 'theme-color-computed'){
+        sharedState[`color-${tab.key}`] = args[0]
+        this.refs2[`tabs-${this.props.k}`].setState({})
       }
-      else if(e.channel == 'scroll-position'){
+      else if(msg == 'scroll-position'){
         if(closingPos[tab.key]){
-          closingPos[tab.key][tab.page.navUrl] = e.args[0]
+          closingPos[tab.key][tab.page.navUrl] = args[0]
         }
         else{
-          closingPos[tab.key] = {[tab.page.navUrl]: e.args[0]}
+          closingPos[tab.key] = {[tab.page.navUrl]: args[0]}
         }
       }
-      else if(e.channel == 'full-screen-mouseup'){
-        const rect = tab.wv.getBoundingClientRect()
+      else if(msg == 'full-screen-mouseup'){
+        const rect = tab.div.getBoundingClientRect()
         ipc.send('force-mouse-up',{x: Math.round(rect.x+10),y:Math.round(rect.y+10)})
       }
-      else if(e.channel == 'devTools-close'){
+      else if(msg == 'devTools-close'){
         ipc.emit('menu-or-key-events',null,'toggleDeveloperTools',tab.wvId)
       }
-      else if(e.channel == 'devTools-dock'){
+      else if(msg == 'devTools-dock'){
         const cont = this.getWebContents(tab)
         if(cont.devToolsWebContents){
           if(cont.devToolsWebContents.isGuest()){
@@ -2382,8 +2419,14 @@ export default class TabPanel extends Component {
           }
         }
       }
-    }];
-    tab.wv.addEventListener('ipc-message',tab.events['ipc-message'][1] )
+      else if(msg == 'scrollPage'){
+        this.scrollPage(args[0])
+      }
+      else if(msg == 'window-close'){
+        this.handleTabClose({},tab.key)
+      }
+    }
+    ipc.on(`send-to-host_${tab.wvId}`,tab.events[`send-to-host_${tab.wvId}`])
 
     tab.events['search-text'] = (e, id, text, opposite)=> {
       if (!this.mounted) return
@@ -2399,7 +2442,7 @@ export default class TabPanel extends Component {
         const rec = await syncReplace.findOne({key: 'syncReplace_0'})
         if(rec){
           console.log(777666,tab.syncReplace,(rec.val.split("\t")))
-          refs2[`navbar-${tab.key}`].refs.syncReplace.setVal(0,0,!tab.syncReplace)
+          this.refs2[`navbar-${tab.key}`].refs.syncReplace.setVal(0,0,!tab.syncReplace)
         }
       }
     }
@@ -2432,7 +2475,7 @@ export default class TabPanel extends Component {
     tab.events['pin-video'] = (e, id, popup)=> {
       if (!this.mounted || id != tab.wvId) return
 
-      tab.wv.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',`
+      tab.wv.executeJavaScript(`
       if(location.href.startsWith('https://www.youtube.com')){
         var newStyle = document.createElement('style')
         newStyle.type = "text/css"
@@ -2495,9 +2538,9 @@ export default class TabPanel extends Component {
         }
       }
       __return_val
-    `,{}, (err, url, result) => {
-        if(result[0]){
-          const rect = tab.wv.getBoundingClientRect()
+    `,(result) => {
+        if(result){
+          const rect = tab.div.getBoundingClientRect()
           ipc.send('force-mouse-up',{x: Math.round(rect.x+10),y:Math.round(rect.y+10)})
         }
 
@@ -2532,9 +2575,14 @@ export default class TabPanel extends Component {
     const url = tab.rSession.urls[newIndex]
     if(!url) return
     tab.rSession.currentIndex = newIndex
-    tab.wv.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',`location.replace("${url}")`,{},()=>{})
+    tab.wv.executeJavaScript(`location.replace("${url}")`,()=>{})
+    // const conttent = this.getWebContents(tab)
+    // conttent.history = [url, tab.page.navUrl]
+    // conttent.currentIndex = 1
+    // conttent.goBack()
+
     tab.initPos = [url, tab.rSession.positions[newIndex]]
-    refs2[`navbar-${tab.key}`].setState({})
+    this.refs2[`navbar-${tab.key}`].setState({})
   }
 
   addOp(name,tab,value){
@@ -2582,30 +2630,37 @@ export default class TabPanel extends Component {
   }
 
   registChromeEvent(tab) {
-    tab.events[`chrome-tabs-event`] = (e,{tabId,changeInfo},type)=> {
+    tab.events['chrome-tabs-event'] = (e,{tabId,changeInfo},type)=> {
       if (!this.mounted || tab.wvId !== tabId) return
       switch (type) {
         case 'updated':
           this.handleTabUpdated(tab,changeInfo)
           break
         case 'removed':
+          if(changeInfo && changeInfo.panelKey != this.props.k) return
           if(this.state.tabs.find((x)=> x.key == tab.key)){
-            setTimeout(_=>this.handleTabClose({}, tab.key),200)
+            this.handleTabClose({}, tab.key, void 0, true)
           }
           break
       }
     }
-    ipc.on(`chrome-tabs-event`, tab.events[`chrome-tabs-event`])
+    ipc.on('chrome-tabs-event', tab.events['chrome-tabs-event'])
 
-    tab.events[`chrome-tabs-duplicate`] = (e,key,tabId)=> {
+    tab.events['chrome-tabs-duplicate'] = (e,key,tabId)=> {
       if(tab.wvId === tabId) {
-        ipc.send("set-recent-url", tab.page.navUrl)
-        this.getWebContents(tab).clone({}, (newTab) => {
-          ipc.send(`chrome-tabs-duplicate-reply_${key}`,newTab.getId())
-        })
+        tab.wv.duplicate()
       }
     }
-    ipc.on(`chrome-tabs-duplicate`, tab.events[`chrome-tabs-duplicate`])
+    ipc.on('chrome-tabs-duplicate', tab.events['chrome-tabs-duplicate'])
+  }
+
+  loadURL(tab, url){
+    if(!tab.wv) return
+    if(url.startsWith('chrome-extension') && !tab.wv.hostWebContents && !tab.wv.hostWebContents2){
+      require('./remoteWebContents').getAllWebContents().find(x=>x.getURL().startsWith(url)).openDevTools()
+      return
+    }
+    tab.wv.loadURL(url)
   }
 
   navigateTo(newPage, l, tab, guestInstanceId) {
@@ -2624,22 +2679,12 @@ export default class TabPanel extends Component {
       }
       console.log('location-navigateTo',newPage.location)
       if(!tab.guestInstanceId){
-        let cont
-        if(tab.wvId && (cont = this.getWebContents(tab))){
-          // tab.wv.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd',
-          //   `var a_=document.createElement('a');a_.setAttribute('rel','noreferrer');a_.setAttribute('href','${convertURL(l)}');a_.click()`
-          //   ,{})
-          cont.loadURL(convertURL(l))
+        if(tab.wv){
+          this.loadURL(tab, convertURL(l))
         }
         else{
           setTimeout(_=>{
-            const cont = this.getWebContents(tab)
-            if(cont){
-              cont.loadURL(convertURL(l))
-            }
-            else{
-              tab.wv.setAttribute('src', convertURL(l))
-            }
+            this.loadURL(tab, convertURL(l))
           },1000)
         }
       }
@@ -2662,7 +2707,14 @@ export default class TabPanel extends Component {
           })
         }
       }
-      newPage.navUrl = l
+      if(newPage.navUrl != l){
+        newPage.navUrl = l
+        this.webViewCreate()
+        this.setState({})
+      }
+      else{
+        newPage.navUrl = l
+      }
       newPage.richContents = []
       // this.setState({})
       this.setStatePartical(tab)
@@ -2681,7 +2733,7 @@ export default class TabPanel extends Component {
     return {
       location,
       navUrl: loc,
-      title: loc == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? 'Top Page' : (loc || 'Loading'),
+      title: loc == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? 'Top Page' : (loc || 'Loading...'),
       statusText: false,
       isLoading: false,
       canGoBack: false,
@@ -2693,17 +2745,66 @@ export default class TabPanel extends Component {
     }
   }
 
-  createTab({default_url,c_page=null,c_wv=null,c_key=null,hist=null,privateMode=false,pin=false,protect=false,lock=false,mute=false,fields,reloadInterval=false,guestInstanceId,tabPreview,initPos,rest} = {}){
-    default_url = default_url || (isFixedVerticalPanel(this.props.k) ? sidebarURL : topURL)
+  async onTabIdChanged(tabId, tab, isStart){
+    const page = tab.page
+    // guestIds[tab.key] = e
+    ipc.send('create-web-contents-reply',tabId, this.props.k, tab.key, Object.keys(this.props.currentWebContents).map(x=>parseInt(x)))
+    tab.wvId = tabId
+    console.log(999,tabId)
+    // tab._guestInstanceId = e.guestInstanceId
+
+    if(withWindowCreateTabs.has(tab.key)){
+      ipc.send(`new-window-tabs-created_${tab.wvId}`,this.state.tabs.findIndex(t=>t.key==tab.key))
+      withWindowCreateTabs.delete(tab.key)
+    }
+
+    if(tab.readyAttach){
+      delete tab.readyAttach
+      ipc.send('chrome-tabs-onAttached-to-main',tab.wvId,{newPosition: this.state.tabs.findIndex(t=>t.key==tab.key)})
+    }
+
+    const navigateTo = l=>this.navigateTo(page, l, tab)
+    if(!isStart) {
+      this.startProcess(this, page, navigateTo, tab, isStart)
+    }
+    else{
+      page.favicon = page.navUrl == '' || page.navUrl.match(/^(file:\/\/|chrome|about)/) ? 'resource/file.svg' : 'loading'
+      page.isLoading = true
+      PubSub.publish(`change-status-${tab.key}`)
+      this.setStatePartical(tab)
+    }
+
+    console.log('onTabIdChanged', tabId,page)
+
+    const cont = this.getWebContents(tab)
+
+    // ipc.send('get-did-start-loading',tab.wvId)
+    // const didStart = (e,c)=> {
+    //   console.log('onDidStartLoading',e,Date.now())
+    //   if(!c || !this.mounted) return
+    //   if(c=='destroy'){
+    //     ipc.removeListener(`get-did-start-loading-reply_${tab.wvId}`,didStart)
+    //     return
+    //   }
+    //   tab.videoEvent = false
+    // }
+    // ipc.on(`get-did-start-loading-reply_${tab.wvId}`,didStart)
+    tab.videoEvent = false
+  }
+
+
+  createTab({default_url,c_page=null,c_wv=null,c_div=null,c_key=null,hist=null,privateMode=false,pin=false,protect=false,lock=false,mute=false,fields,reloadInterval=false,guestInstanceId,tabPreview,initPos,rest} = {}){
+    default_url = default_url == void 0 ? (isFixedVerticalPanel(this.props.k) ? sidebarURL : topURL) : default_url
     if(default_url) default_url = convertURL(default_url)
     const tab = {events:{},ext:{}}
     if(c_wv) tab.wv = c_wv
+    if(c_div) tab.div = c_div
     // if(hist) tab.history = hist
     if(rest) Object.assign(tab,rest)
     if(tab.oppositeMode === (void 0)){
       tab.oppositeMode = isFloatPanel(this.props.k) ? false : this.state ? this.state.oppositeGlobal : ipc.sendSync('get-sync-main-state','oppositeGlobal')
     }
-    if(tab.adBlockThis === (void 0)) tab.adBlockThis = adBlockEnable
+    // if(tab.adBlockThis === (void 0)) tab.adBlockThis = adBlockEnable
 
     if(guestInstanceId) tab.guestInstanceId = guestInstanceId
     if(initPos) tab.initPos = [default_url, initPos]
@@ -2712,14 +2813,16 @@ export default class TabPanel extends Component {
     else{
       fields = recursiveDeepCopy(fields)
     }
+    const key = c_key || `${Date.now().toString()}_${uuid.v4()}`
 
     const newPage = c_page || this.createPageObject(default_url)
     const navigateTo = (l)=> this.navigateTo(newPage, l, tab)
     const locationContextMenu = (el)=> this.locationContextMenu(el, tab, newPage, this, navigateTo)
 
-    const returnWebView = (wv)=>{
+    const returnWebView = (wv, tabId, div)=>{
+      this.onTabIdChanged(tabId,tab)
       console.log("returnWebview")
-      this.registWebView(tab, wv)
+      this.registWebView(tab, wv, div)
       // navigateTo(newPage.location)
       // if(hist){
       // let retry = 0
@@ -2744,8 +2847,22 @@ export default class TabPanel extends Component {
       // ipc.send('chrome-webNavigation-onCreatedNavigationTarget', this.createChromeWebNavDetails(tab,newPage.location))
     }
     if(c_wv){
-      this.registWebView(tab, c_wv)
+      // console.trace()
+      setTimeout(()=>ipc.send('move-browser-view', this.props.k, key, 'attach', tab.wvId, void 0, void 0, void 0, void 0, this.state.selectedTab == tab.key ? 1 : 0, this.state.tabs.findIndex(t=>tab.key == t.key)),0)
+      this.registWebView(tab, c_wv, c_div)
     }
+
+    tab.events['get-panel-and-tab-info'] = (e, id, key)=>{
+      if (!this.mounted )
+        return
+
+      if (!tab.wvId || tab.wvId !== id)
+        return
+
+      ipc.send(`get-panel-and-tab-info-reply_${key}`, this.props.k, tab.key)
+
+    }
+    ipc.on('get-panel-and-tab-info',tab.events['get-panel-and-tab-info'])
 
     tab.events['create-web-contents'] = (e,{id,targetUrl,disposition,guestInstanceId})=>{
       console.log('0create-web-contents',id,targetUrl,disposition,guestInstanceId,tab,this)
@@ -2759,7 +2876,8 @@ export default class TabPanel extends Component {
 
       const url = targetUrl
 
-      if(url === void 0 && tab.privateMode && Date.now() - tab.page.createdAt < 3000 && this.state.tabs.filter(t=>t.privateMode === tab.privateMode).length == 1){
+      if(url === void 0 && tab.privateMode && Date.now() - tab.page.createdAt < 3000 &&
+        this.state.tabs.filter(t=>t.privateMode === tab.privateMode).length == 1){
         return
       }
 
@@ -2798,7 +2916,7 @@ export default class TabPanel extends Component {
           if (!t.wv || !t.wvId) return
           const cont = this.getWebContents(t)
           clearInterval(id)
-          cont.hostWebContents.send('open-panel', {url,sync:t.sync,id:t.wvId,dirc:t.dirc,fore:disposition === 'foreground-tab',replaceInfo: tab.syncReplace,mobile: tab.mobile, adBlockThis: tab.adBlockThis,fields: tab.fields,privateMode:tab.privateMode})
+          cont.hostWebContents2.send('open-panel', {url,sync:t.sync,id:t.wvId,dirc:t.dirc,fore:disposition === 'foreground-tab',replaceInfo: tab.syncReplace,mobile: tab.mobile, adBlockThis: tab.adBlockThis,fields: tab.fields,privateMode:tab.privateMode})
         }, 100)
       }
     }
@@ -2811,14 +2929,14 @@ export default class TabPanel extends Component {
       let winInfo = winInfos[index]
       console.log('sync-mode', url,dirc,sync,replaceInfo)
 
-      const idParent = window.setInterval(()=> {
+      const idParent = setInterval(()=> {
         if(retryNum++ > 3){
           clearInterval(idParent)
         }
         tab.dirc = dirc || 1
 
         let retry = 0
-        const id = window.setInterval(()=> {
+        const id = setInterval(()=> {
           retry++
           if(retry > 200) {
             clearInterval(id)
@@ -2832,10 +2950,11 @@ export default class TabPanel extends Component {
             winInfo = winInfos[index];
           }
 
-          exeScript(tab.wv,()=>clearInterval(id), ()=> {
+          exeScriptInIsolation(tab.wv,()=>clearInterval(id), ()=> {
             ___SPLIT___
+            console.log(i,y,s,r)
             let retry = 0
-            const id = window.setInterval(()=> {
+            const id = setInterval(()=> {
               retry++
               if(retry > 200) {
                 clearInterval(id)
@@ -2846,7 +2965,9 @@ export default class TabPanel extends Component {
               clearInterval(id)
 
               const loadedEvent = _=>{
+                console.log(1)
                 if(!window.__blankLast__){
+                  console.log(3)
                   const ele = document.createElement('div')
                   ele.id = '__blank-last__'
                   ele.style.height = `${100 * i}vh`
@@ -2856,6 +2977,7 @@ export default class TabPanel extends Component {
                 }
                 let min = 200 > y ? y : 200
                 if (!r && window.scrollY < min && y !== window.scrollY){
+                  console.log(2)
                   window.scrollTo(window.scrollX, y)
                   const evt = document.createEvent('HTMLEvents')
                   evt.initEvent('scroll', true, true)
@@ -2865,9 +2987,11 @@ export default class TabPanel extends Component {
 
               if(document.readyState == "loading"){
                 document.addEventListener("DOMContentLoaded",loadedEvent)
+                console.log(4)
               }
               else{
                 loadedEvent()
+                console.log(5)
               }
 
 
@@ -2877,11 +3001,13 @@ export default class TabPanel extends Component {
               }
             }, 50)
           }, `const i = ${index}`, `const y = ${winInfo[2]}`,`const s = '${sync}'`,`const r = ${(replaceInfo || tab.syncReplace) ? "true" : "false"}`)
+          if(index == 0){
+            tab.wv.send('sync-button', true, true)
+          }
         }, 500)
       },1000)
     }
 
-    const key = c_key || `${Date.now().toString()}_${uuid.v4()}`
     if(rest && rest.bind){
       setTimeout(_=>PubSub.publish(`bind-window_${key}`),200)
     }
@@ -2906,18 +3032,21 @@ export default class TabPanel extends Component {
   }
 
   webViewCreate(){
+    console.log('webview-create1', this.state.tabs.map((tab, index)=>tab.page.navUrl))
     if(this.mounted===false) return
     const div = this.refs[`div-${this.state.selectedTab}`] || document.querySelector(`div.div-back.db${this.state.selectedTab}`)
     if(!div) return
 
+    console.log('webview-create2', this.state.tabs.map((tab, index)=>tab.page.navUrl))
     const dom = document.querySelector(`.s${this.props.k}`)
     const isMaximize = dom && dom.style.width == '100vw'
     const ref = div.getBoundingClientRect()
-    const navbar = ReactDOM.findDOMNode(refs2[`navbar-${this.state.selectedTab}`])
+    const navbar = ReactDOM.findDOMNode(this.refs2[`navbar-${this.state.selectedTab}`])
     PubSub.publish('webview-create', {key: this.props.k,
-      val: this.state.tabs.map((tab)=> {return  {
+      val: this.state.tabs.map((tab, index)=> {return  {
           key: tab.key,
           tab,
+          index,
           toggleNav: this.props.toggleNav,
           privateMode: tab.privateMode,
           isActive: this.state.selectedTab == tab.key,
@@ -2942,6 +3071,8 @@ export default class TabPanel extends Component {
 
   TabPanelClose(key,time,keepWindow){
     console.log('TabPanelClose',this.state.tabs)
+    ipc.send('operation-overlap-component', 'delete', this.props.k)
+
     for(let tab of this.state.tabs){
       this._closeBind(tab)
     }
@@ -3014,6 +3145,7 @@ export default class TabPanel extends Component {
 
   componentDidMount() {
     console.log('componentDidMount')
+    ipc.send('operation-overlap-component', 'create', this.props.k)
     this.mounted = true
     this.isFixed = isFixedPanel(this.props.k)
 
@@ -3041,7 +3173,7 @@ export default class TabPanel extends Component {
                 console.log(url)
                 this.props.split(this.props.k,'v',1,(void 0),(void 0),{url:this.syncUrl(url,orgReplaceInfo,dirc,(void 0),true),mobile:tab.mobile,adBlockThis:tab.adBlockThis,fields:tab.fields,privateMode:tab.privateMode})
                 setTimeout(()=>{
-                  cont.hostWebContents.send('open-panel',{url,sync,id,dirc,replaceInfo:tab.syncReplace,needCloseTab:true,mobile:tab.mobile,adBlockThis:tab.adBlockThis,fields:tab.fields,privateMode:tab.privateMode})
+                  cont.hostWebContents2.send('open-panel',{url,sync,id,dirc,replaceInfo:tab.syncReplace,needCloseTab:true,mobile:tab.mobile,adBlockThis:tab.adBlockThis,fields:tab.fields,privateMode:tab.privateMode})
                 },0)
                 return
               }
@@ -3072,7 +3204,7 @@ export default class TabPanel extends Component {
               console.log(url)
               this.props.split(this.props.k,'v',1,(void 0),(void 0),{url:this.syncUrl(url,replaceInfo,dirc),mobile:tab.mobile,adBlockThis:tab.adBlockThis,fields:tab.fields,privateMode:tab.privateMode})
               setTimeout(()=>{
-                cont.hostWebContents.send('open-panel',{url,sync,id:tab.wvId,dirc,replaceInfo:tab.syncReplace,needCloseTab:true,mobile:tab.mobile,adBlockThis:tab.adBlockThis,fields:tab.fields,privateMode:tab.privateMode})
+                cont.hostWebContents2.send('open-panel',{url,sync,id:tab.wvId,dirc,replaceInfo:tab.syncReplace,needCloseTab:true,mobile:tab.mobile,adBlockThis:tab.adBlockThis,fields:tab.fields,privateMode:tab.privateMode})
               },0)
               this.setState({})
               // },100)
@@ -3210,7 +3342,7 @@ export default class TabPanel extends Component {
       const changeTabInfos = []
       const func = ()=>{
         if(changeTabInfos.length){
-          console.log('change-tab-infos',changeTabInfos)
+          console.log('change-tab-infos2',changeTabInfos)
           ipc.send('change-tab-infos',changeTabInfos)
         }
         if(!allKeySame){
@@ -3232,14 +3364,14 @@ export default class TabPanel extends Component {
         const cont = this.getWebContents(tab)
         let isActive
         if(isChangeSelected){
-          isActive = tab.key == this.state.selectedTab && global.lastMouseDown[2] == this.props.k
+          isActive = tab.key == this.state.selectedTab //&& global.lastMouseDown[2] == this.props.k
           if(isActive && !this.isFixed){
             console.log("change-title",tab.page.title)
             ipc.send("change-title",tab.page.title)
           }
           if(tab.bind){
             console.log(88988,'tabchange')
-            ipc.send('set-pos-window',{id:tab.bind.id,hwnd:tab.bind.hwnd,top:isActive ? 'above' : 'not-above'})
+            ipc.send('set-pos-window',{id:tab.bind.id,hwnd:tab.bind.hwnd,tabId:tab.wvId,top:isActive ? 'above' : 'not-above'})
           }
           else if(tab.fields.mobilePanel){
             ipc.send('mobile-panel-operation',{type: isActive ? 'above' : 'below', key: tab.key, tabId: tab.wvId, force: true})
@@ -3263,7 +3395,6 @@ export default class TabPanel extends Component {
     const activeTab = activeTabs[this.props.k]
     if(isIdle && activeTab){
       const now = Date.now()
-      history.update({location: activeTab[1]}, {$inc:{time: now - activeTab[2]}})
       const tab = this.state.tabs.find(t=>t.key == this.state.selectedTab)
       delete activeTabs[this.props.k]
     }
@@ -3281,7 +3412,6 @@ export default class TabPanel extends Component {
     console.log('change-visit-state',this.props.k)
     if(activeTab){
       const now = Date.now()
-      history.update({location: activeTab[1]}, {$inc:{time: now - activeTab[2]}})
       const tab = this.state.tabs.find(t=>t.key == this.state.selectedTab)
       if(tab){
         activeTabs[this.props.k] = [tab,tab.page.navUrl,now]
@@ -3338,7 +3468,7 @@ export default class TabPanel extends Component {
         win.removeListener('blur',tab.bind.blur)
         win.removeListener('focus',tab.bind.focus)
         console.log(889889,'close')
-        ipc.send('set-pos-window',{key:tab.key,id:tab.bind.id,hwnd:tab.bind.hwnd,top:'not-above',restore:true})
+        ipc.send('set-pos-window',{key:tab.key,id:tab.bind.id,hwnd:tab.bind.hwnd,tabId:tab.wvId,top:'not-above',restore:true})
 
       }catch(e){
         console.log(2525,e)
@@ -3369,11 +3499,12 @@ export default class TabPanel extends Component {
     return this.state.tabs.find(t=>t.key == this.state.selectedTab) ? this.state.selectedTab : this.getPrevSelectedTab(tab.key,this.state.tabs,closeTab,i)
   }
 
-  handleTabClose(e, key,isUpdateState=true) {
+  handleTabClose(e, key,isUpdateState=true, force) {
+    ipc.send('disable-webContents-focus', false)
     if (!this.mounted) return
     const i = this.state.tabs.findIndex((x)=> x.key == key)
     const tab = this.state.tabs[i]
-    if(!tab || tab.protect) return
+    if(!tab || (!force && tab.protect)) return
 
     console.log('tabClosed key:', key,tab.page.navUrl,this.state.tabs.length)
     console.log('change-visit-state-close',this.props.k,tab.page.navUrl)
@@ -3382,7 +3513,6 @@ export default class TabPanel extends Component {
 
     const activeTab = activeTabs[this.props.k]
     if(activeTab && activeTab[0].key == key){
-      history.update({location: activeTab[1]}, {$inc:{time: Date.now() - activeTab[2]}})
       delete activeTabs[this.props.k]
     }
 
@@ -3419,6 +3549,12 @@ export default class TabPanel extends Component {
         // selectedTab: _tabs.length > i ? _tabs[i].key : _tabs.length > 0 ? _tabs[i-1].key : null
       } )
     }
+
+    if(this.state.prevAddKeyCount[0] == key){
+      this.state.prevAddKeyCount = [null,[]]
+    }
+    this.state.prevAddKeyCount[1].forEach((x, ind) => x == key && this.state.prevAddKeyCount[1].splice(ind, 1))
+
   }
 
   closeTabs(keys){
@@ -3514,11 +3650,31 @@ export default class TabPanel extends Component {
     }
   }
 
+  updateProtectTab(tab,val){
+    tab.protect = val
+    if(val){
+      mainState.add('protectTabs',tab.wvId,1)
+      // exeScript(tab.wv, void 0, ()=> {
+      //   if(window._unloadEvent_) return
+      //   window._unloadEvent_ = e => e.returnValue = ''
+      //   window.addEventListener("beforeunload", window._unloadEvent_)
+      // },'')
+    }
+    else{
+      mainState.del('protectTabs',tab.wvId)
+      // exeScript(tab.wv, void 0, ()=> {
+      //   window.removeEventListener("beforeunload", window._unloadEvent_)
+      //   delete window._unloadEvent_
+      // },'')
+    }
+  }
+
   reopenLastClosedTab(){
     if(this.state.history.length > 0) {
-      const [tabKey,ind] = this.state.history.pop()
-      const index = ind - 1 < this.state.tabs.length ? ind - 1 : this.state.tabs.length - 2
-      this.restoreTabFromTabKey(tabKey,index)
+      // const [tabKey,ind] = this.state.history.pop()
+      //       // const index = ind - 1 < this.state.tabs.length ? ind - 1 : this.state.tabs.length - 2
+      //       // this.restoreTabFromTabKey(tabKey,index)
+      require('./remoteWebContents').reopenLastClosedTab()
     }
   }
 
@@ -3610,6 +3766,23 @@ export default class TabPanel extends Component {
     return {label, type: 'checkbox', checked, click }
   }
 
+
+  addScrollPosition(tab){
+    tab.wv.executeJavaScript('({x:window.scrollX ,y:window.scrollY})',
+      (result) => {
+        if(result){
+          if(closingPos[tab.key]){
+            closingPos[tab.key][tab.page.navUrl] = result
+          }
+          else{
+            closingPos[tab.key] = {[tab.page.navUrl]: result}
+          }
+        }
+        ipc.send('tab-close-handler',tab.wvId,tab.key,tab.rSession,closingPos[tab.key])
+        delete closingPos[tab.key]
+      })
+  }
+
   addCloseTabHistory(e, i) {
     if (!e.noHistory && (!this.state.tabs[i].privateMode || this.state.tabs[i].privateMode.match(/^persist:\d/))) {
       const tab = this.state.tabs[i]
@@ -3618,19 +3791,7 @@ export default class TabPanel extends Component {
 
       const cont = this.getWebContents(tab)
       if(cont && !cont.isDestroyed()) cont.send('record-input-history')
-      tab.wv.executeScriptInTab('dckpbojndfoinamcdamhkjhnjnmjkfjd','({x:window.scrollX ,y:window.scrollY})',{},
-        (err, url, result) => {
-          if(result[0]){
-            if(closingPos[tab.key]){
-              closingPos[tab.key][tab.page.navUrl] = result[0]
-            }
-            else{
-              closingPos[tab.key] = {[tab.page.navUrl]: result[0]}
-            }
-          }
-          ipc.send('tab-close-handler',tab.wvId,tab.key,tab.rSession,closingPos[tab.key])
-          delete closingPos[tab.key]
-        })
+      this.addScrollPosition(tab)
     }
   }
 
@@ -3647,6 +3808,12 @@ export default class TabPanel extends Component {
     if(changeInfo.muted != (void 0)){
       tab.mute = changeInfo.muted
       this.setState({})
+    }
+    if(changeInfo.url !== (void 0)){
+      this.navigateTo(tab.page, changeInfo.url, tab)
+    }
+    if(changeInfo.title !== (void 0)){
+      this.updateTitle(tab.wvId)
     }
   }
 
@@ -3785,20 +3952,17 @@ export default class TabPanel extends Component {
         }
         const key = uuid.v4()
         keys.push(key)
-        return {key, url:page.navUrl, title:page.title, favicon:page.favicon, is_file:true, created_at: Date.now(), updated_at: Date.now()}
+        return {url:page.navUrl, title:page.title}
       })
     ;(async ()=> {
       if(tabKey){
         const key = datas[0].key
-        await favorite.insert(datas)
-        await favorite.update({ key: 'root' }, { $push: { children: key }, $set:{updated_at: Date.now()} })
+        await favorite.create(datas)
       }
       else{
         const dirc = moment().format("YYYY/MM/DD HH:mm:ss")
-        const key = uuid.v4()
-        await favorite.insert(datas)
-        await favorite.insert({key, title:`${head} ${dirc}`, is_file:false, created_at: Date.now(), updated_at: Date.now(),children: keys})
-        await favorite.update({ key: 'root' }, { $push: { children: key }, $set:{updated_at: Date.now()} })
+        const folder = await favorite.create({title:`${head} ${dirc}`})
+        await favorite.create(datas, folder[0].id)
       }
     })()
   }
@@ -3838,6 +4002,7 @@ export default class TabPanel extends Component {
   }
 
   _handleContextMenu(e,key,currentTabs,tabs,tree,notPopup){
+    if(e) e.preventDefault()
     console.log('context-time1',Date.now())
     const _tabs = this.state.tabs
     const i = _tabs.findIndex((x)=>x.key===key)
@@ -3853,9 +4018,9 @@ export default class TabPanel extends Component {
     }
     // menuItems.push(({ label: 'New Tab', click: ()=>document.querySelector(".rdTabAddButton").click()}))
     menuItems.push(({ t:'newTab',label: locale.translation('newTab'), click: ()=>this.createNewTab(_tabs, i)}))
-    menuItems.push(({ t:'newPrivateTab',label: locale.translation('newPrivateTab'), click: ()=>this.createNewTab(_tabs, i,{default_url:"",privateMode:`${ipc.sendSync('get-session-sequence',true)}`})}))
-    menuItems.push(({ t:'newTorTab',label: 'New Tor Tab', click: ()=>this.createNewTab(_tabs, i,{default_url:"",privateMode:'persist:tor'})}))
-    menuItems.push(({ t:'newSessionTab',label: locale.translation('newSessionTab'), click: ()=>this.createNewTab(_tabs, i,{privateMode:`persist:${ipc.sendSync('get-session-sequence')}`})}))
+    // menuItems.push(({ t:'newPrivateTab',label: locale.translation('newPrivateTab'), click: ()=>this.createNewTab(_tabs, i,{default_url:"",privateMode:`${ipc.sendSync('get-session-sequence',true)}`})}))
+    // menuItems.push(({ t:'newTorTab',label: 'New Tor Tab', click: ()=>this.createNewTab(_tabs, i,{default_url:"",privateMode:'persist:tor'})}))
+    // menuItems.push(({ t:'newSessionTab',label: locale.translation('newSessionTab'), click: ()=>this.createNewTab(_tabs, i,{privateMode:`persist:${ipc.sendSync('get-session-sequence')}`})}))
     menuItems.push(({ type: 'separator' }))
 
     const splitFunc = (dirc,pos)=> {
@@ -3888,7 +4053,7 @@ export default class TabPanel extends Component {
           this.props.split(this.props.k, dirc, pos * -1)
         }
       }
-      if(refs2[`tabs-${this.props.k}`]) refs2[`tabs-${this.props.k}`].unmountMount()
+      if(this.refs2[`tabs-${this.props.k}`]) this.refs2[`tabs-${this.props.k}`].unmountMount()
     }
 
     const splitOtherTabsFunc = (dirc,pos)=> {
@@ -3905,13 +4070,15 @@ export default class TabPanel extends Component {
         }
       })
 
+      if(!arr.length) return
+
       if(_tabs.length > 1) {
         this.props.split(this.props.k,dirc,pos,_tabs,indexes)
         arr.forEach((key,i)=> {
           PubSub.publish(`close_tab_${this.props.k}`,{key,isUpdateState:i == arr.length - 1})
         })
       }
-      if(refs2[`tabs-${this.props.k}`]) refs2[`tabs-${this.props.k}`].unmountMount()
+      if(this.refs2[`tabs-${this.props.k}`]) this.refs2[`tabs-${this.props.k}`].unmountMount()
     }
 
     const detachToFloatPanel = _=>{
@@ -3980,7 +4147,7 @@ export default class TabPanel extends Component {
         menuItems.push(({ t: 'splitRightTabsToRight', label: locale.translation('splitRightTabsToRight'), click: splitOtherTabsFunc.bind(this,'v',1) }))
       }
 
-      menuItems.push(({ t: 'floatingPanel', label: locale.translation('floatingPanel'), click: _=>detachToFloatPanel() }))
+      // menuItems.push(({ t: 'floatingPanel', label: locale.translation('floatingPanel'), click: _=>detachToFloatPanel() }))
       menuItems.push(({ t: 'maximizePanel', label: 'Maximize Panel', click: _=>this.maximizePanel()}))
       menuItems.push(({ type: 'separator' }))
       menuItems.push(({ t: 'swapPosition', label: locale.translation('swapPosition'), click: ()=> { PubSub.publish(`swap-position_${this.props.k}`)} }))
@@ -4010,8 +4177,11 @@ export default class TabPanel extends Component {
       menuItems.push(({ t:'3007771295016901659',label: locale.translation('3007771295016901659'), //'Duplicate',
         click: ()=> {
           for(let t of selections[0]){
-            ipc.send("set-recent-url",t.page.navUrl)
-            this.getWebContents(t).clone()
+            // ipc.send("set-recent-url",t.page.navUrl)
+            this.addScrollPosition(t)
+            setTimeout(()=>{
+              this.restoreTabFromTabKey(t.key)
+            },200)
           }
           this.resetSelection()
         } }))
@@ -4035,14 +4205,14 @@ export default class TabPanel extends Component {
       const allFreezed = selections[0].every(t=>t.protect && t.lock)
       menuItems.push(({ t:'freezeTabMenuLabel',type: 'checkbox',label: locale.translation('freezeTabMenuLabel'), checked: allFreezed,
         click: ()=> {
-          selections[0].forEach(t=>{t.protect = !allFreezed;this.updateLockTab(t,!allFreezed)})
+          selections[0].forEach(t=>{this.updateProtectTab(t,!allFreezed);this.updateLockTab(t,!allFreezed)})
           this.resetSelection()
           this.setState({})
         }}))
       const allProtected = selections[0].every(t=>t.protect)
       menuItems.push(({ t:'protectTabMenuLabel',type: 'checkbox',label: locale.translation('protectTabMenuLabel'), checked: allProtected,
         click: ()=> {
-          selections[0].forEach(t=>t.protect = !allProtected)
+          selections[0].forEach(t=>this.updateProtectTab(t,!allFreezed))
           this.resetSelection()
           this.setState({})
         }}))
@@ -4079,15 +4249,18 @@ export default class TabPanel extends Component {
       menuItems.push(({ t:'autoReloadTabLabel',label: locale.translation('autoReloadTabLabel'), submenu: reloadIntervals.map(sec=>this.buildReloadInterval(t,sec))}))
       menuItems.push(({ t:'3007771295016901659',label: locale.translation('3007771295016901659'), //'Duplicate',
         click: ()=> {
-          ipc.send("set-recent-url",t.page.navUrl)
-          this.getWebContents(t).clone()
+          // ipc.send("set-recent-url",t.page.navUrl)
+          this.addScrollPosition(t)
+          setTimeout(()=>{
+            this.restoreTabFromTabKey(t.key)
+          },200)
         } }))
 
       menuItems.push(({ t:'unpinTab',label: t.pin ? locale.translation('unpinTab') : locale.translation('pinTab'), click: ()=> {t.pin = !t.pin;this.setState({})}}))
       menuItems.push(({ t:'unmuteTab',label: t.mute ? locale.translation('unmuteTab') : locale.translation('muteTab'), click: ()=> {t.mute = !t.mute;this.getWebContents(t).setAudioMuted(t.mute);this.setState({})}}))
       menuItems.push(({ type: 'separator' }))
-      menuItems.push(({ t:'freezeTabMenuLabel',type: 'checkbox', label: locale.translation('freezeTabMenuLabel'), checked:t.protect && t.lock, click: ()=> {const val = !(t.protect && t.lock);t.protect = val;this.updateLockTab(t,val);this.setState({})}}))
-      menuItems.push(({ t:'protectTabMenuLabel',type: 'checkbox', label: locale.translation('protectTabMenuLabel'), checked:t.protect, click: ()=> {t.protect = !t.protect;this.setState({})}}))
+      menuItems.push(({ t:'freezeTabMenuLabel',type: 'checkbox', label: locale.translation('freezeTabMenuLabel'), checked:t.protect && t.lock, click: ()=> {const val = !(t.protect && t.lock);this.updateProtectTab(t,val);this.updateLockTab(t,val);this.setState({})}}))
+      menuItems.push(({ t:'protectTabMenuLabel',type: 'checkbox', label: locale.translation('protectTabMenuLabel'), checked:t.protect, click: ()=> {this.updateProtectTab(t,!t.protect);this.setState({})}}))
       menuItems.push(({ t:'lockTabMenuLabel', type: 'checkbox', label: locale.translation('lockTabMenuLabel'), checked:t.lock ,click: ()=> {this.updateLockTab(t,!t.lock);this.setState({})}}))
       menuItems.push(({ type: 'separator' }))
       menuItems.push(({ t:'closeTab',label: locale.translation('closeTab'), click: ()=> this.handleTabClose({}, key)}))
@@ -4139,7 +4312,8 @@ export default class TabPanel extends Component {
     menuItems.push(...items)
     let menu = Menu.buildFromTemplate(menuItems)
     console.log('context-time4',Date.now(),menuItems)
-    menu.popup(remote.getCurrentWindow())
+    ipc.send('menu-popup')
+    ipc.once('menu-popup-reply', ()=> menu.popup({}, () => ipc.send('menu-popup-end')))
 
   }
 
@@ -4180,7 +4354,7 @@ export default class TabPanel extends Component {
 
   handleKeyDown(e) {
     // if(e.stopPropagation) e.stopPropagation()
-    PubSub.publish('webview-keydown',{event:{...e},wv:this.state.tabs.find(x => x.key == this.state.selectedTab).wv})
+    PubSub.publish('webview-keydown',e)
   }
 
   scrollPage(dirc){
@@ -4191,7 +4365,7 @@ export default class TabPanel extends Component {
 
     console.log(winInfo)
 
-    exeScript(tab.wv,void 0, ()=> {
+    exeScriptInIsolation(tab.wv,void 0, ()=> {
       ___SPLIT___
       ;
       // console.log((window.__scrollSync__ === 0 ? y2 : y1 ) + window.scrollY)
@@ -4211,7 +4385,8 @@ export default class TabPanel extends Component {
       tab.syncReplace = void 0
       tab.openLink = void 0
       tab.dirc = void 0
-      exeScript(tab.wv, void 0, ()=> {
+      exeScriptInIsolation(tab.wv, void 0, ()=> {
+        console.log(2222)
         const ele = document.getElementById('__blank-last__')
         if(ele) ele.parentNode.removeChild(ele)
 
@@ -4229,7 +4404,7 @@ export default class TabPanel extends Component {
         val.dirc = this.props.getKeyPosition(this.props.k).dirc == 'l' ? 1 : -1
       }
       console.log(69000,val)
-      cont.hostWebContents.send('open-panel', val);
+      cont.hostWebContents2.send('open-panel', val);
     }
   }
 
@@ -4309,17 +4484,19 @@ export default class TabPanel extends Component {
 
   getWebContents(tab){
     if(!tab.wv || !tab.wvId){
-      let e
-      if(!(e = guestIds[tab.key])){
-        return
-      }
-      tab.wvId = e.tabId
-      console.log(111,tab.wvId,e)
+      // let e
+      // if(!(e = guestIds[tab.key])){
+      //   return
+      // }
+      // tab.wvId = e.tabId
+      // console.log(111,tab.wvId,e)
+      return
     }
     return this.props.currentWebContents[tab.wvId]
   }
 
   focus_webview(tab,flag=true,locationBar) {
+    if(locationBar) return //@TODO
     let retry = 0
     const id = window.setInterval(()=> {
       retry++
@@ -4332,9 +4509,11 @@ export default class TabPanel extends Component {
         return
       }
       const t = tab.wv
-      if (!t || tab.page.isLoading || !this.getWebContents(tab)) return
+      console.log(33311,!t,tab.page.isLoading,!this.getWebContents(tab),tab.page)
+      if (!t || (tab.page.isLoading && !tab.page.domLoaded) || !this.getWebContents(tab)) return
       clearInterval(id)
       const active = document.activeElement
+      console.log(33300,active)
       if((flag || active.className != 'prompt')|| active.tagName == 'BODY'){
         if(locationBar){
           ipc.emit('focus-location-bar',null,tab.wvId)
@@ -4369,7 +4548,16 @@ export default class TabPanel extends Component {
           }
           tab.page.title = title
 
-          tab.page.navUrl = url
+
+          if(tab.page.navUrl != url){
+            tab.page.navUrl = url
+            this.webViewCreate()
+            this.setState({})
+          }
+          else{
+            tab.page.navUrl = url
+          }
+
           tab.prevSyncNav = url //@TOOD arrage navurl,location,sync panel
           try {
             tab.page.location = decodeURIComponent(url)
@@ -4389,41 +4577,11 @@ export default class TabPanel extends Component {
           }
 
           if (!tab.privateMode || tab.privateMode.match(/^persist:\d/)) {
-            ;(async () => {
-              // console.log('his-update',tab.page.location)
-              let navUrl = tab.page.navUrl
-              if (tab.page.hid || (tab.page.hid = await history.findOne({location: navUrl}))) {
-                const now = Date.now()
-                const inc = now - tab.page.hid.updated_at > 400 ? {$inc: {count: 1}} : {}
-                await history.update({_id: tab.page.hid._id}, {
-                  $set: { title: tab.page.title, updated_at: now }, ...inc
-                })
-              }
-              else {
-                while(navUrl != tab.page.navUrl){
-                  navUrl = tab.page.navUrl
-                  tab.page.hid = await history.findOne({location: navUrl})
-                  if(tab.page.hid){
-                    const now = Date.now()
-                    const inc = now - tab.page.hid.updated_at > 400 ? {$inc: {count: 1}} : {}
-                    await history.update({_id: tab.page.hid._id}, {
-                      $set: { title: tab.page.title, updated_at: now }, ...inc
-                    })
-                    return
-                  }
-                }
-                await history.update({location: navUrl},{
-                  location: navUrl,
-                  title: tab.page.title,
-                  created_at: Date.now(),
-                  updated_at: Date.now(),
-                  count: 1,type: 3
-                },{upsert: true})
-              }
-            })()
+            history.update({location: c.url}, {
+              $set: { title: tab.page.title, updated_at: Date.now() }})
           }
           try {
-            refs2[`navbar-${tab.key}`].refs['loc'].canUpdate = true
+            this.refs2[`navbar-${tab.key}`].refs['loc'].canUpdate = true
           } catch (e) {
             console.log(e)
           }
@@ -4439,7 +4597,13 @@ export default class TabPanel extends Component {
     this.setState({tabBar: num})
   }
 
+  showNotification(){
+    ipc.send('disable-webContents-focus', true)
+    ipc.send('change-browser-view-z-index', true)
+  }
+
   deleteNotification(i,pressIndex,value){
+    ipc.send('disable-webContents-focus', false)
     ipc.send(`reply-notification-${this.state.notifications[i].key}`,{pressIndex,value})
     this.state.notifications.splice(i,1)
     this.setState({})
@@ -4448,66 +4612,33 @@ export default class TabPanel extends Component {
 
   detachPanel(bounds={}) {
     if(!this.props.parent.state.root.r) return
-    const promises = this.state.tabs.map(tab=>{
-      return new Promise(r=>{
-        const cont = this.getWebContents(tab)
-        const guestInstanceId = tab._guestInstanceId || cont.guestInstanceId
-        const tabId = tab.wvId
-        ipc.send('detach-tab',tabId)
-        ipc.once(`detach-tab_${tabId}`,(e,_guestInstanceId)=>{
-          tab.wv.attachGuest(_guestInstanceId)
-          const d = {wvId:tabId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,fields:tab.fields,reloadInterval:tab.reloadInterval,
-            rest:{rSession:tab.rSession,wvId:tabId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId}
-          ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
-          r([d,cont])
-        })
-      })
+    const vals = this.state.tabs.map(tab=>{
+      ipc.send('move-browser-view', this.props.k, tab.key, 'detach')
+      const d = {wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,fields:tab.fields,reloadInterval:tab.reloadInterval,
+        rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab.wvId}
+      ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
+      return d
     })
-    Promise.all(promises).then(vals=> {
-      const winId = ipc.sendSync('browser-load',{id:remote.getCurrentWindow().id,...bounds,tabParam:JSON.stringify(vals.map(x=>x[0]))})
-      for(let x of vals){
-        x[1].moveTo(0, winId)
-      }
-    })
+    const winId = ipc.sendSync('browser-load',{id:remote.getCurrentWindow().id,...bounds,tabParam:JSON.stringify(vals)})
   }
 
   async detachTab(tab,bounds={}) {
     const _tabs = this.state.tabs
     if(_tabs.length > 1) {
-      const i = _tabs.findIndex((x)=>x.key === tab.key)
-      const cont = this.getWebContents(tab)
-      const guestInstanceId = tab._guestInstanceId || cont.guestInstanceId
-      ipc.send('detach-tab',tab.wvId)
-      await new Promise(r=>{
-        ipc.once(`detach-tab_${tab.wvId}`,(e,_guestInstanceId)=>{
-          tab.wv.attachGuest(_guestInstanceId)
-          r()
-        })
-      })
+      ipc.send('move-browser-view', this.props.k, tab.key, 'detach')
       const d = {wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,fields:tab.fields,reloadInterval:tab.reloadInterval,
-        rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId}
+        rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab.wvId}
       ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
       const winId = ipc.sendSync('browser-load',{id:remote.getCurrentWindow().id,...bounds,_alwaysOnTop:true,toggle:1,tabParam:JSON.stringify([d])})
-      cont.moveTo(0, winId)
     }
     else{
       const t = this.handleTabAddButtonClick()
       setTimeout(async _=> {
-        const i = _tabs.findIndex((x)=>x.key === tab.key)
-        const cont = this.getWebContents(tab)
-        const guestInstanceId = tab._guestInstanceId || cont.guestInstanceId
-        ipc.send('detach-tab',tab.wvId)
-        await new Promise(r=>{
-          ipc.once(`detach-tab_${tab.wvId}`,(e,_guestInstanceId)=>{
-            tab.wv.attachGuest(_guestInstanceId)
-            r()
-          })
-        })
+        ipc.send('move-browser-view', this.props.k, tab.key, 'detach')
         const d = {wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,fields:tab.fields,reloadInterval:tab.reloadInterval,
-          rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId}
+          rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab.wvId}
         ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
         const winId = ipc.sendSync('browser-load',{id:remote.getCurrentWindow().id,...bounds,_alwaysOnTop:true,toggle:1,tabParam:JSON.stringify([d])})
-        cont.moveTo(0, winId)
       },100)
     }
 
@@ -4533,21 +4664,23 @@ export default class TabPanel extends Component {
     return this.state.tabs.find(x=>x.wvId === id)
   }
 
-  getTabsInfo(){
-    return this.state.tabs.map(tab=>{
+  async getTabsInfo(){
+    const results = []
+    for(let tab of this.state.tabs){
       const historyList = []
       let cont, currentIndex
       if((cont = this.getWebContents(tab))){
-        let histNum = cont.getEntryCount()
-        currentIndex = histNum - cont.getCurrentEntryIndex() - 1
+        let histNum = await cont.length()
+        currentIndex = histNum - (await cont.getActiveIndex()) - 1
         for(let i=histNum -1;i>=0;i--){
-          const url = cont.getURLAtIndex(i)
+          const url = await cont.getURLAtIndex(i)
           const datas = historyMap.get(url)
           historyList.push({title:datas && datas[0],url,favicon: datas && datas[1]}) //tabsPanel Fix
         }
       }
-      return {currentIndex,historyList,selectedTab: tab.key == this.state.selectedTab}
-    })
+      results.push({currentIndex,historyList,selectedTab: tab.key == this.state.selectedTab})
+    }
+    return results
   }
 
   screenShot(full,type,tab){
@@ -4593,7 +4726,7 @@ export default class TabPanel extends Component {
         document.body.removeChild(canvas)
         document.removeEventListener('mousemove',mmove,false)
         document.removeEventListener('mouseup',mup,false)
-        setTimeout(_=>ipc.send('screen-shot',{full,type,rect:{x:rect.left,y:rect.top,width:rect.w,height:rect.h}}),100)
+        setTimeout(_=>ipc.send('screen-shot',{full,type,rect:{x:rect.left,y:rect.top,width:rect.w,height:rect.h},tabId:tab.wvId,tabKey:tab.key}),100)
       }
       document.addEventListener('mousedown',mdown,false)
     }
@@ -4683,7 +4816,7 @@ export default class TabPanel extends Component {
               const cont = this.getWebContents(t)
               if (!cont) return
               clearInterval(id)
-              cont.hostWebContents.send('open-panel', {
+              cont.hostWebContents2.send('open-panel', {
                 url,
                 sync: t.sync,
                 id: tab.wvId,
@@ -4735,15 +4868,19 @@ export default class TabPanel extends Component {
         isOnlyPanel={!this.props.parent.state.root.r}
         windowId={this.props.windowId}
         k={this.props.k}
-        refs2={refs2}
+        refs2={this.refs2}
         mouseClickHandles={key=>this._handleContextMenu(null,key,null,this.state.tabs,false,true)}
         isMaximize={isMaximize}
         tabs={this.state.tabs.map((tab,num)=>{
+          const key = tab.key + this.props.k
           const notifications = this.state.notifications.filter(x=>x._key == tab.key)
-          return (<Tab key={tab.key} page={tab.page} orgTab={tab} unread={this.state.selectedTab != tab.key && !allSelectedkeys.has(tab.key)} pin={tab.pin} protect={tab.protect} lock={tab.lock} mute={tab.mute} fields={tab.fields} reloadInterval={tab.reloadInterval} privateMode={tab.privateMode} selection={tab.selection}>
+          return (<Tab key={tab.key} page={tab.page} orgTab={tab}
+                       unread={this.state.selectedTab != tab.key && !allSelectedkeys.has(tab.key)}
+                       pin={tab.pin} protect={tab.protect} lock={tab.lock} mute={tab.mute} fields={tab.fields}
+                       reloadInterval={tab.reloadInterval} privateMode={tab.privateMode} selection={tab.selection}>
             <div style={{height: '100%'}} className={`div-back db${tab.key}`} ref={`div-${tab.key}`} >
               <BrowserNavbar tabkey={tab.key} k={this.props.k} navHandle={tab.navHandlers} parent={this}
-                             privateMode={tab.privateMode} page={tab.page} tab={tab} refs2={refs2} key={tab.key} adBlockEnable={adBlockEnable}
+                             privateMode={tab.privateMode} page={tab.page} tab={tab} refs2={this.refs2} key={key} adBlockEnable={adBlockEnable}
                              oppositeGlobal={this.state.oppositeGlobal} toggleNav={toggle} adBlockThis={tab.adBlockThis}
                              historyMap={historyMap} currentWebContents={this.props.currentWebContents} isMaximize={isMaximize} maximizePanel={this.maximizePanel}
                              isTopRight={this.props.isTopRight} isTopLeft={this.props.isTopLeft} fixedPanelOpen={this.props.fixedPanelOpen}
@@ -4751,20 +4888,24 @@ export default class TabPanel extends Component {
                              fullscreen={this.props.fullscreen} bind={tab.bind} screenShot={this.screenShot} searchWordHighlight={this.searchWordHighlight}/>
               {notifications.length ? notifications.map((data,i)=>{
                 if(data.needInput){
+                  this.showNotification()
                   return <InputableDialog data={data} key={i} k={this.props.k} delete={this.deleteNotification.bind(this,i)} />
                 }
                 else if(data.import){
+                  this.showNotification()
                   return <ImportDialog data={data} key={i} k={this.props.k} delete={this.deleteNotification.bind(this,i)} />
                 }
                 else if(data.convert){
+                  this.showNotification()
                   return <ConverterDialog data={data} key={i} k={this.props.k} delete={this.deleteNotification.bind(this,i)} />
                 }
                 else{
+                  this.showNotification()
                   return <Notification data={data} key={i} k={this.props.k} delete={this.deleteNotification.bind(this,i)} />
                 }
               }) : null}
-              <BookmarkBar webViewCreate={this.webViewCreate} tab={tab} refs2={refs2} topURL={topURL} navigateTo={this.navigateTo} toggleNav={toggle} k={this.props.k} currentWebContents={this.props.currentWebContents}/>
-              <BrowserPageStatus tab={tab}/>
+              <BookmarkBar key={key} webViewCreate={this.webViewCreate} tab={tab} refs2={this.refs2} topURL={topURL} navigateTo={this.navigateTo} toggleNav={toggle} k={this.props.k} currentWebContents={this.props.currentWebContents}/>
+              {/*<BrowserPageStatus tab={tab} k={this.props.k}/>*/}
               {this.state.inputPopup && this.state.inputPopup.key == tab.key ? <InputPopup {...this.state.inputPopup} tab={tab} focus_webview={this.focus_webview}/>: null}
             </div>
           </Tab>)

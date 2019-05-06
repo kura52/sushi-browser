@@ -38,7 +38,7 @@ export default class MobilePanel extends Component {
       if(devWebContents){
         const webContents = this.getWebContents(this.props.tab)
         webContents.setDevToolsWebContents(devWebContents)
-        webContents.toggleDevTools()
+        webContents.toggleDevTools() //@TODO ELECTRON
         break
       }
     }
@@ -66,7 +66,7 @@ export default class MobilePanel extends Component {
         ipc.send('mobile-panel-operation',{type: 'resize', key, tabId,x:window.screenX + r.left,y:window.screenY + r.top,width:r.width,height:r.height})
       }
     })
-    this.wv = this.props.parent.refs.webview
+    this.wv = this.props.parent.refs2.webview
     this.ro.observe(this.wv)
 
     return r
@@ -180,6 +180,9 @@ export default class MobilePanel extends Component {
     this.props.mobilePanel.width = width
     this.props.parent.setState({})
     if(mouseUp) mainState.set('mobilePanelWidth',width)
+    // const r = this.div.getBoundingClientRect()
+    // ipc.send('mobile-panel-operation',{type: 'resize', key: this.props.tab.key, tabId: this.props.tab.wvId, x:window.screenX + r.left,y:window.screenY + r.top,width:r.width,height:r.height})
+
   }
 
   render() {
@@ -187,7 +190,7 @@ export default class MobilePanel extends Component {
     return !mobilePanel.isPanel ? null : <span style={{float: 'left', height: '100%', display: 'flex'}}>
       <div ref="div" className={`mobile-panel m${this.props.tab.key}`} style={{width: mobilePanel.width}} >
       </div>
-      <div className="vertical-divider" style={{margin: 0}} />
+      <VerticalTabResizer width={mobilePanel.width} setWidth={(width)=>this.setWidth(width, true)} direction='left' />
     </span>
   }
 }

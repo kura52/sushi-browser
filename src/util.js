@@ -1,22 +1,24 @@
-import { app, Menu, clipboard, BrowserWindow, ipcMain, session,webContents } from 'electron'
+import { app, Menu, clipboard, BrowserWindow, ipcMain, session } from 'electron'
+import {Browser ,webContents} from './remoted-chrome/Browser'
 const uuid = require("node-uuid")
 const sharedState = require('./sharedStateMain')
 
 function getCurrentWindow(){
-  const focus = BrowserWindow.getFocusedWindow()
+  const focus = Browser.getFocusedWindow()
   if(focus && focus.getTitle().includes('Sushi Browser')) return focus
   return BrowserWindow.getAllWindows().find(w=>w.getTitle().includes('Sushi Browser'))
 }
 
-function getFocusedWebContents(needSelectedText,skipBuildInSearch,callback,retry=0){
+async function getFocusedWebContents(needSelectedText,skipBuildInSearch,callback,retry=0){
   let cont
   if(!skipBuildInSearch){
-    const tmp = webContents.getFocusedWebContents()
-    if(tmp && !tmp.isDestroyed() && !tmp.isBackgroundPage() && !(tmp.tabValue().openerTabId == -1 && tmp.getURL().match(/^(chrome\-extension|chrome\-devtools)/))) {
-      if(tmp.isGuest()){
+    console.log(2222,webContents.getFocusedWebContents)
+    const tmp = await webContents.getFocusedWebContents()
+    if(tmp && !tmp.isDestroyed() /*&& !tmp.isBackgroundPage()*/ && !(/*tmp.tabValue().openerTabId == -1 && */ tmp.getURL().match(/^(chrome\-devtools)/))) { //@TODO ELECTRON
+      if(tmp.hostWebContents2){
         return new Promise(resolve=>resolve(tmp))
       }
-      else if(tmp.getURL().startsWith("chrome://brave/")){
+      else if(tmp.isRoot){
         cont = tmp
       }
     }
@@ -45,7 +47,7 @@ function getFocusedWebContents(needSelectedText,skipBuildInSearch,callback,retry
         setTimeout(_=>getFocusedWebContents(needSelectedText,skipBuildInSearch,callback,++retry),300)
       }
       else{
-        callback((sharedState[tabId] || webContents.fromTabID(tabId)))
+        callback((sharedState[tabId] || webContents.fromId(tabId)))
       }
     })
     cont.send('get-focused-webContent',key,void 0,needSelectedText,void 0,retry)
@@ -58,7 +60,7 @@ function getFocusedWebContents(needSelectedText,skipBuildInSearch,callback,retry
           setTimeout(_=>getFocusedWebContents(needSelectedText,skipBuildInSearch,resolve,++retry),300)
         }
         else{
-          const cont = (sharedState[tabId] || webContents.fromTabID(tabId))
+          const cont = (sharedState[tabId] || webContents.fromId(tabId))
           resolve(cont)
         }
       })

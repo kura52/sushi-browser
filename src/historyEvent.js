@@ -1,5 +1,6 @@
 import { ipcMain } from 'electron'
-import {tabState,history,image,favorite} from './databaseFork'
+import {tabState,history,image} from './databaseFork'
+import favorite from './remoted-chrome/favorite'
 
 ipcMain.on('fetch-history', async (event, range, tab=false,limit,tabTrash) => {
   console.log(range)
@@ -43,18 +44,18 @@ ipcMain.on('fetch-history', async (event, range, tab=false,limit,tabTrash) => {
 ipcMain.on('fetch-frequently-history', async (event, range) => {
   console.log(1,Date.now())
   console.log(range)
-  const ret = await favorite.findOne({key: 'top-page'})
+  const ret = await favorite.export('top-page')
   console.log(2,Date.now())
   let favorites = []
   if(ret && ret.children){
     const locs = []
-    ;(await favorite.find({key:{$in: ret.children}})).forEach(x=>{
+    for(let x of ret.children){
       if(x.is_file){
         favorites.push({fav:1,location:x.url,title:x.title,favicon:x.favicon,created_at:x.created_at,updated_at:x.updated_at})
         locs.push(x.url)
       }
       console.log(3,Date.now())
-    })
+    }
     if(locs.length > 0){
       const hists = await history.find({location: {$in: locs}})
       console.log(4,Date.now())

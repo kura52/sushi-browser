@@ -1,8 +1,9 @@
 window.debug = require('debug')('info')
 // require('debug').enable("info")
 import process from './process'
-const ipc = require('electron').ipcRenderer
+import {ipcRenderer as ipc} from './ipcRenderer'
 const uuid = require('node-uuid')
+import '../defaultExtension/contentscript'
 import { Terminal } from 'xterm';
 import * as fit from 'xterm/lib/addons/fit/fit'
 import * as webLinks from 'xterm/lib/addons/webLinks/webLinks'
@@ -50,6 +51,8 @@ ipc.on(`ping_${key}`, function(event,data){
 });
 
 function handleResize(e) {
+  ipc.send('start-pty',key)
+
   const w = document.getElementsByClassName("xterm-scroll-area")[0].clientWidth
   const h = document.getElementById("terminal").clientHeight
   if(w==window.preW && h==window.preH) return
@@ -65,5 +68,3 @@ function handleResize(e) {
 
 window.addEventListener('resize', handleResize, { passive: true });
 window.onload = handleResize
-
-ipc.send('start-pty',key)

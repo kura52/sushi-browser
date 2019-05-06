@@ -7,58 +7,94 @@
          "all_frames": true,
          "js": [ "js/contentscript.js"],
          "matches": ["<all_urls>"],
-         "include_globs": [
-            "http://*/*", "https://*/*", "file://*", "data:*", "about:srcdoc",
-            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/*",
-            "chrome-extension://jdbefljfgobbmcidnmpjamcbhnbphjnb/*"
-         ],
          "run_at": "document_start"
       },
       {
          "all_frames": true,
          "js": [ "js/contentscript.js" ],
          "matches": ["<all_urls>"],
-         "include_globs": [
-            "http://*/*", "https://*/*", "file://*", "data:*", "about:srcdoc",
-            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/*",
-            "chrome-extension://jdbefljfgobbmcidnmpjamcbhnbphjnb/*"
-         ],
          "run_at": "document_end"
       },
       {
          "all_frames": true,
-         "exclude_globs": [
-            "chrome://brave/*"
+         "js": [
+            "js/chrome_gestures.js"
+         ],
+         "matches": [
+            "<all_urls>"
          ],
          "include_globs": [
             "http://*/*",
             "https://*/*",
             "file://*",
-            "data:*"
+            "data:*",
+            "about:srcdoc",
+            "chrome-extension://*"
          ],
-         "match_about_blank": true,
+         "exclude_globs": [
+            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/*_sidebar.html",
+            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html",
+            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html",
+            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html",
+            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html",
+            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/selector.html*"
+         ],
+         "run_at": "document_start"
+      },
+      {
+         "all_frames": true,
          "js": [
-            "scripts/blockCanvasFingerprinting.js"
+            "js/chrome_gestures.js"
          ],
-         "match_about_blank": true,
          "matches": [
             "<all_urls>"
          ],
-         "run_at": "document_start"
+         "include_globs": [
+            "http://*/*",
+            "https://*/*",
+            "file://*",
+            "data:*",
+            "about:srcdoc",
+            "chrome-extension://*"
+         ],
+         "exclude_globs": [
+            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/*_sidebar.html",
+            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html",
+            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html",
+            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html",
+            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html",
+            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/selector.html*",
+            "chrome://brave/*"
+         ],
+         "run_at": "document_end"
       }
    ],
    "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
-   "description": "myExt",
-   "incognito": "split",
+   "description": "Mouse Gestures for Google Chrome™",
+   "icons": {
+      "16": "gm_icon_16.png",
+      "32": "gm_icon_32.png",
+      "64": "gm_icon_64.png",
+      "128": "gm_icon_128.png"
+   },
+   "incognito": "spanning",
    "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmCzHckqlPMeMMtljAWwqLRFNlvPlWwUqkX5yrLb82o3sgDxq+EKqdvey27+3QpNJYMoXOl69RXRjuO6FqmqAT+uz0t59WHXGpJq0lKOJCRq1vfv/6x9dH/qcjFBRfC2NnUE7+T43TVSAv27zGBmm06wRrEUKtRqZ7PW/FFAxEUf/TWNYYcKwFoGienJ3+TI4oN2lyX5nXUZ0c0R9kFTtYL1UU6yaq0Z9H2VfK+4wjDJTtdM3jYAfotRVne47UKS6nyNb5TeHNr/5+xaVzucmI8IKo4UoZ9mwDW51iOl7ncLeIXotFE3ExiyaDgOtqnLQ/jj4GWvi6guwacJg/vMCkwIDAQAB",
    "manifest_version": 2,
-   "name": "my Ext",
-   "permissions": ["idle", "externally_connectable.all_urls", "contentSettings", "webRequest", "webRequestBlocking", "\u003Call_urls>", "tabs", "windows", "sessions", "webNavigation", "storage", "cookies" ],
+   "default_locale": "en_US",
+   "name": "Gestures for Google Chrome™",
+   "permissions": [
+      "idle", "externally_connectable.all_urls", "contentSettings", "webRequest", "webRequestBlocking", "<all_urls>", "tabs", "windows", "sessions", "webNavigation", "storage", "cookies",
+      "debugger","contentSettings", "downloads", "downloads.shelf", "management", "history", "clipboardRead", "clipboardWrite", "bookmarks","browsingData"
+   ],
+   "chrome_url_overrides" : {
+      "newtab": "top.html"
+   },
    "externally_connectable": {
       "matches": [
          "<all_urls>"
       ]
    },
-   "version": "0.0.1",
-   "web_accessible_resources": ["video.html","ace.html", "automation.html", "http:/*", "https:/*", "ftp:/*", "file:/*", "chrome-extension:/*", "filesystem:/*", "drive:*" ]
+   "version": "1.13.4",
+   "web_accessible_resources": ["up.png","right.png","left.png","down.png","video.html","ace.html", "automation.html", "http:/*", "https:/*", "ftp:/*", "file:/*", "chrome-extension:/*", "filesystem:/*", "drive:*" ],
+   "options_page": "options_page.html"
 }

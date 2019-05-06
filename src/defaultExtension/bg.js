@@ -1,3 +1,17 @@
+chrome.ipcRenderer = new Proxy({}, {
+  get: (target, name) => {
+    if(window.ipcRenderer && window.ipcRenderer.port) return window.ipcRenderer[name]
+    return (...args) => {
+      const id = setInterval(()=>{
+        if(window.ipcRenderer && window.ipcRenderer.port){
+          window.ipcRenderer[name](...args)
+          clearInterval(id)
+        }
+      },10)
+    }
+  }
+})
+
 const ipc = chrome.ipcRenderer
 const OP_THRESHOLD = 300
 const automationURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html'
@@ -429,7 +443,7 @@ let isStart,senderId,allMap = {},
   changeTime = 0,sendTime = -1
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   if(request.event == "video-event"){
-    chrome.tabs.sendMessage(sender.tab.id, request.inputs);
+    chrome.tabs.sendMessage(sender.tab.id, {video: true,val: request.inputs});
   }
   else if(request.event == "stream-event"){
     chrome.tabs.sendMessage(sender.tab.id, {stream:true, val:request.val});
@@ -512,11 +526,94 @@ ipc.on('add-op',(e,op)=>{
 
 ipc.send('get-automation')
 ipc.once('get-automation-reply',(e,datas)=>{
+  console.log(e,datas)
   for(let data of datas){
     allMap[data.key] = data.ops
   }
 })
 
+
+const RegNormal = /^(application\/(font|javascript|json|x-javascript|xml)|text\/(css|html|javascript|plain))/
+const RegRichMedia = /^(video|audio|application\/x\-mpegurl|application\/vnd\.apple\.mpegurl)/
+const mime = require('mime')
+
+chrome.webRequest.onHeadersReceived.addListener((details)=>{
+  const headers = details.responseHeaders, newURL = details.url
+  const contType = headers.find(x=>x.name == 'Content-Type' || x.name == 'content-type' || x.name == 'CONTENT-TYPE')
+  if(!contType) return
+
+  // console.log(contType[0])
+
+  const matchNormal = contType && contType.value.match(RegNormal)
+  // if(!matchNormal && ((contType && contType[0].match(RegForDL)) || newURL.match(RegForDLExt))){
+    // console.log(6755,contType && contType[0],newURL,tab.getURL())
+    // const url = details.firstPartyUrl
+    // const map = cache.get(url)
+    // if(map){
+    //   map[newURL] = contType && contType[0]
+    // }
+    // else{
+    //   cache.set(url,{[newURL]:contType && contType[0]})
+    // }
+  // }
+
+  const urlMatch = newURL.match(/\.(mp4|webm|avi|3gp|m3u8)$/)
+  if((!contType || matchNormal || contType.value.startsWith('image')) && !urlMatch) return
+
+  let record,ret,parseUrl
+  if(ret = (contType.value.match(RegRichMedia))){
+    let len = headers.find(x=>x.name == 'Content-Length' || x.name == 'content-length' || x.name == 'CONTENT-LENGTH')
+    len = len ? len.value : null
+    parseUrl = new URL(newURL)
+    const pathname = parseUrl.pathname
+    const ind = pathname.lastIndexOf('/')
+    record = {tabId:details.tabId,type:ret[0],contType,size:len,url:newURL,fname: pathname.slice(ind+1)}
+  }
+  else{
+    let len = headers.find(x=>x.name == 'Content-Length' || x.name == 'content-length' || x.name == 'CONTENT-LENGTH')
+    len = len ? len.value : null
+    parseUrl = new URL(newURL)
+    const pathname = parseUrl.pathname
+    let type
+    if(ret = (pathname && (type = mime.getType(pathname)) && type.match(RegRichMedia))){
+      const ind = pathname.lastIndexOf('/')
+      record = {tabId:details.tabId,type:ret[0],contType,size:len,url:newURL,fname: pathname.slice(ind+1)}
+    }
+    else if(urlMatch){
+      const ind = pathname.lastIndexOf('/')
+      record = {tabId:details.tabId,contType,size:len,url:newURL,fname: pathname.slice(ind+1)}
+    }
+  }
+
+
+  if(record){
+    ipc.send("did-get-response-details-main", record)
+  }
+},
+  {urls: ['<all_urls>']},
+  ['responseHeaders'])
+
+chrome.downloads.setShelfEnabled(false)
+
+chrome.downloads.onCreated.addListener(async (item)=>{
+  chrome.downloads.pause(item.id)
+
+  for(let i=0;i<200;i++){
+    await new Promise(r=>setTimeout(r,i+1))
+    const sended = await new Promise(r => {
+      chrome.downloads.search({id: item.id}, results => {
+        const item = results[0]
+        if (item.filename) ipc.send('chrome-download-start', item)
+        r(item.filename)
+      })
+    })
+    if(sended) break
+  }
+  setInterval(()=>chrome.downloads.cancel(item.id),4000)
+  // ipc.send('download-start', item.finalUrl, item.filename)
+  // chrome.downloads.cancel(item.id)
+  // chrome.downloads.erase({id: item.id})
+})
 
 //chrome.tabs,move,create,focus,close,detach,attach,widows系,back,forward,reload,go,domreadyとか
 

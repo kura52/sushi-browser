@@ -1,16 +1,18 @@
 import {getFocusedWebContents} from "./util";
 
-const {BrowserWindow, webContents,dialog,ipcMain,app,shell} = require('electron')
+const {BrowserWindow, dialog,ipcMain,app,shell} = require('electron')
+import {Browser, webContents} from './remoted-chrome/Browser'
 const _webContents = webContents
 import mainState from './mainState'
 const Aria2cWrapper = require('./Aria2cWrapper')
 const FfmpegWrapper = require('./FfmpegWrapper')
-const {redirectUrlsCache} = require('../brave/adBlock')
+const {redirectUrlsCache} = {} //require('../brave/adBlock') @TODO ELECTRON
 const sanitizeFilename = require('./sanitizeFilename')
 
 const path = require('path')
 import {download,downloader} from './databaseFork'
 import PubSub from './render/pubsub'
+import ChromeDownloadWrapper from './ChromeDownloadWrapper'
 import fs from 'fs'
 import uuid from 'node-uuid'
 const URL = require('url')
@@ -81,18 +83,11 @@ function replaceFileName(savePath,url,fname){
 
 export default class Download {
   getData(map,url){
-    if(map[url] === void 0){
-      const rUrl = redirectUrlsCache.get(url)
-      if(rUrl){
-        return this.getData(map,rUrl)
-      }
-    }
-    else{
-      const shifted = map[url].shift()
-      if(!map[url].length) delete map[url]
-      if(shifted !== void 0) this.orgUrl = url
-      return shifted
-    }
+    if(map[url] === void 0) return
+    const shifted = map[url].shift()
+    if (!map[url].length) delete map[url]
+    return shifted
+
   }
 
   constructor(win){
@@ -147,67 +142,60 @@ export default class Download {
     // ipcMain.on('need-set-save-filename',eventSetSaveFilename)
 
     const ses = win.webContents.session
-    ses.on('will-download', (event, item, webContents) => {
-      console.log("will-download0")
-      if (!webContents || webContents.isDestroyed()) {
-        event.preventDefault()
-        return
+    ses.on('will-download', async (event, item, webContents) => {
+      event.preventDefault()
+      if(!item.isDestroyed()) item.destroy()
+    })
+
+    const itemMap = {}
+    ipcMain.on('chrome-download-start', async (event, item, _url, webContents, force) => {
+      console.log('chrome-download-start')
+      if(webContents){
+        itemMap[item.id] = webContents
+        if(!force) return
+      }
+      else if(itemMap[item.id]){
+        webContents = itemMap[item.id]
+        delete itemMap[item.id]
       }
 
-      const bw = (!webContents.isDestroyed() && BrowserWindow.fromWebContents(webContents)) || BrowserWindow.getFocusedWindow()
-      console.log("will-download",bw === win)
+      console.log('chrome-download-start', item.id, Date.now(), item.url, _url, webContents)
+
+      const bw = (webContents && !webContents.isDestroyed() && BrowserWindow.fromWebContents(webContents.hostWebContents2)) ||
+        Browser.getFocusedWindow()
+      console.log("will-download",bw,bw === win)
       if(bw !== win) return
 
+      if(!webContents) webContents = await getFocusedWebContents()
 
-      let downloadId = item.getGuid()
-      // let initialNav = false
-      // const controller = webContents.controller()
-      // if (controller && controller.isValid() && controller.isInitialNavigation()) {
-      //   console.log('webContents.forceClose()',webContents.getURL())
-      //   webContents.forceClose()
-      //   initialNav = true
-      // }
-
+      let downloadId = item.id
       console.log(item)
 
-      // item.setSavePath(path.join(app.getPath('temp'),Math.random().toString()))
-      // item.pause()
-      // item.setPrompt(false)
+      let active = true
+      let url = item.finalUrl
+      let mimeType = item.mime
+      let fname = path.basename(item.filename)
 
-      let active = true,
-        url,fname,mimeType
-      try{
-        url = item.getURL()
-        this.orgUrl = url
-        mimeType = item.getMimeType()
-        fname = item.getFilename()
-      }catch(e){
-        console.log(e)
-        return
-      }
-
-      const cont = _webContents.getFocusedWebContents()
-      let focusedWebContent
-      if(cont && !cont.isDestroyed()) focusedWebContent = cont.session.partition || ""
-      const cond = focusedWebContent == void 0 ? true : focusedWebContent != 'persist:tor' && !focusedWebContent.match(/^[\d\.]+$/)
+      // let focusedWebContent
+      // if(cont && !cont.isDestroyed()) focusedWebContent = cont.session.partition || ""
+      // const cond = focusedWebContent == void 0 ? true : focusedWebContent != 'persist:tor' && !focusedWebContent.match(/^[\d\.]+$/)
+      const cond = true
       if(cond && !(retry.has(url) || url.startsWith('data:') || url.startsWith('blob:') || url.startsWith('chrome-extension:'))){
         console.log('cancel')
-        item.destroy()
-        // const _item = item
-        // setTimeout(_=>{if(!_item.isDestroyed())_item.cancel(),1000})
+        // item.destroy()
         active = false
       }
 
-      let savePath = this.getData(this.savePath,url),
-        audioExtract = this.getData(this.audioExtract,url),
-        videoConvert = this.getData(this.videoConvert,url),
-      overwrite = false
+      let savePath = this.getData(this.savePath,item.url),
+        audioExtract = this.getData(this.audioExtract,item.url),
+        videoConvert = this.getData(this.videoConvert,item.url),
+        overwrite = false
 
       console.log(1,savePath)
       if(url.startsWith("file://")){
-        if(active){
-          item.destroy()
-        }
+        // if(active){
+        //   item.destroy()
+        // }
         console.log(2)
         return
       }
@@ -216,34 +204,36 @@ export default class Download {
       savePath = replaceFileName(savePath,url,fname)
 
       console.log(3,savePath)
-      if(!win.webContents.isDestroyed()) win.webContents.send(`download-start-tab_${webContents.getId()}`)
+      if(!win.webContents.isDestroyed()) win.webContents.send(`download-start-tab_${webContents.id}`)
 
-      const needSavePath = this.getData(this.needSavePath,url)
+      const needSavePath = this.getData(this.needSavePath,item.url)
       console.log('down2',url)
-      const noNeedSavePath = this.getData(this.noNeedSavePath,url)
+      const noNeedSavePath = this.getData(this.noNeedSavePath,item.url)
 
-      const saveDirectory = this.getData(this.saveDirectory,url)
+      const saveDirectory = this.getData(this.saveDirectory,item.url)
       let autoSetSavePath
       console.log(4)
       if(!savePath){
         autoSetSavePath = true
-        savePath = path.join(saveDirectory || app.getPath('downloads'), fname || path.basename(url))
+        savePath = path.join(saveDirectory || app.getPath('downloads'), fname || URL.parse(url).pathname)
         console.log(5,savePath)
       }
 
-      if((mainState.askDownload && !noNeedSavePath) || needSavePath || (this.getData(this.prompt,url) && fs.existsSync(savePath))){
+      if((mainState.askDownload && !noNeedSavePath) || needSavePath || (this.getData(this.prompt,item.url) && fs.existsSync(savePath))){
         console.log("needSavePath")
-        const isSavePageAs = this.getData(this.savePageAs,url)
-        const opt = isSavePageAs ? {defaultPath: savePath,type: 'select-saveas-file', extensions: [['html'],['mht']], includeAllFiles:false } :
-          {defaultPath: savePath,type: 'select-saveas-file',includeAllFiles:true }
-        dialog.showDialog(win,opt,filepaths=>{
-          if(!filepaths || filepaths.length > 1){
-            if(active) item.destroy()
+        const isSavePageAs = this.getData(this.savePageAs,item.url)
+        const opt = isSavePageAs ? {defaultPath: savePath, filters: [
+            {name: 'HTML File', extensions: ['html']},
+            {name: 'MHTML File', extensions: ['mht']}
+          ] } : {defaultPath: savePath }
+        dialog.showSaveDialog(win,opt,filepath=>{
+          if(!filepath){
+            // if(active) item.destroy()
             return
           }
 
           console.log(6)
-          savePath = filepaths[0]
+          savePath = filepath
           if(savePath.endsWith(".mht") || savePath.endsWith(".mhtml")){
             console.log(43432,savePath,cont.getURL())
             cont.savePage(savePath, 'MHTML', (error) => {
@@ -259,10 +249,10 @@ export default class Download {
                 savePath,
                 startTime: Date.now(),
                 now: Date.now() }
-                for (let wc of this.getDownloadPage()) {
-                  wc.send('download-progress', buildedItem)
-                }
-                if(!win.webContents.isDestroyed()) win.webContents.send('download-progress', buildedItem)
+              for (let wc of this.getDownloadPage()) {
+                wc.send('download-progress', buildedItem)
+              }
+              if(!win.webContents.isDestroyed()) win.webContents.send('download-progress', buildedItem)
             })
             return
           }
@@ -274,9 +264,9 @@ export default class Download {
       }
       else if(autoSetSavePath){
         if(url.endsWith(".pdf") || url.endsWith(".PDF") ){
-          if(active){
-            item.destroy()
-          }
+          // if(active){
+          //   item.destroy()
+          // }
           return
         }
         console.log(7)
@@ -289,18 +279,19 @@ export default class Download {
   process(url, overwrite, savePath, item, webContents, win, mimeType, audioExtract, videoConvert, cond, downloadId) {
     console.log('downloadId1',downloadId)
     if (!cond || retry.has(url) || url.startsWith('data:') || url.startsWith('blob:') || url.startsWith('chrome-extension:')) {
-      item.setPrompt(false)
       console.log('retry')
       downloadId = retry.get(url)
       console.log('downloadId2',downloadId)
       retry.delete(url)
-      if (!this.getData(this.overwrite, url)) {
-        savePath = this.getUniqFileName(savePath)
-      }
-      item.setSavePath(savePath)
-      timeMap.set(savePath, Date.now())
+      // if (!this.getData(this.overwrite, url,urlChain)) {
+      //   savePath = this.getUniqFileName(savePath)
+      // }
+      // item.setSavePath(savePath)
+      // timeMap.set(savePath, Date.now())
+      timeMap.set(item.filename, Date.now())
+
       item.key = downloadId
-      this.downloadReady(item, url, webContents, win, void 0, void 0)
+      this.downloadReady(new ChromeDownloadWrapper(item), url, webContents, win, void 0, void 0)
     }
     else {
       console.log(8, savePath)
@@ -314,12 +305,13 @@ export default class Download {
       // }
       let id, updated, ended, isError
 
-      const aria2cKey = this.getData(this.dlKey, url)
+      const aria2cKey = this.getData(this.dlKey, item.url)
       if(aria2cKey) downloadId = aria2cKey
       const dl = new Aria2cWrapper({
         url,
-        orgUrl: this.orgUrl,
+        orgUrl: item.url,
         mimeType,
+        referer: item.referrer || webContents.getURL(),
         savePath,
         downloadNum: mainState.downloadNum,
         overwrite,
@@ -328,13 +320,13 @@ export default class Download {
         downloadId
       })
 
-      console.log(9)
+      const time = new Date(item.startTime).getTime()
       dl.download().then(_ => {
         console.log(10)
         dl.once('error', (_) => {
           console.log('error')
           if (!win.webContents.isDestroyed()) win.webContents.send('download-progress', this.buildItem(dl));
-          if (!isError) {
+          if (!isError && Date.now() - time < 10000) {
             isError = true
             retry.set(url,downloadId)
             global.downloadItems = global.downloadItems.filter(i => i !== dl)
@@ -342,7 +334,9 @@ export default class Download {
             set(this.audioExtract, url, audioExtract)
             set(this.videoConvert, url, videoConvert)
             if (overwrite) set(this.overwrite, url, true)
-            webContents.downloadURL(url, true)
+            // webContents.downloadURL(url, true)
+            Browser.bg.evaluate(downloadId => chrome.downloads.resume(downloadId), item.id)
+            ipcMain.emit('chrome-download-start', null, item, void 0, webContents)
           }
           else{
             global.downloadItems = global.downloadItems.filter(i => i !== dl)
@@ -388,6 +382,7 @@ export default class Download {
     ipcMain.on('download-cancel', eventCancel)
 
     item.on('updated', (event, state) => {
+      console.log('updated',2333)
       const buildedItem = this.buildItem(item)
 
       if(buildedItem.state == 'interrupted'){
@@ -419,8 +414,8 @@ export default class Download {
       }
       if(videoConvert){
         getFocusedWebContents().then(cont=>{
-          console.log(cont.getId(),cont.getURL())
-          cont.hostWebContents.send('new-tab',cont.getId(),
+          console.log(cont.id,cont.getURL())
+          cont.hostWebContents2.send('new-tab',cont.id,
             `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html?data=${encodeURIComponent(JSON.stringify({path:item.getSavePath(),info:videoConvert}))}`,
             void 0, void 0, void 0, true)
         })
@@ -437,6 +432,7 @@ export default class Download {
         savePath: item.getSavePath(),
         filename: path.basename(item.getSavePath()),
         url: url,
+        referer: item.getReferer(),
         totalBytes: item.getTotalBytes(),
         now: Date.now(),
         created_at: Date.now(),

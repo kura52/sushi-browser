@@ -1,7 +1,7 @@
 export default {
   autoplay:
     [
-      { setting: 'block', primaryPattern: '*' }
+      { setting: 'allow', primaryPattern: '*' }
       // { setting: 'block', primaryPattern: '*' },
       // { setting: 'allow', primaryPattern: '[*.]www.youtube.com', secondaryPattern: '*', resourceId: undefined },
       // { setting: 'allow', primaryPattern: '[*.]vimeo.com', secondaryPattern: '*', resourceId: undefined },

@@ -11,11 +11,12 @@ function getUrlVars(){
   return vars;
 }
 
+const accessKey = chrome.ipcRenderer.sendSync('get-access-key')
 const url = getUrlVars().url
 let editorLoaded,xhrRes
 
 var xhr = new XMLHttpRequest();
-xhr.open('GET', url, true);
+xhr.open('GET', `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/?key=${accessKey}&file=${url}`, true);
 xhr.responseType = 'text';
 xhr.onreadystatechange = function(e) {
   console.log(this.readyState,this.status)

@@ -3,14 +3,17 @@ const path = require('path')
 import {download,downloader} from './databaseFork'
 import {getCurrentWindow} from './util'
 import fs from 'fs'
+import {Browser} from './remoted-chrome/Browser'
 
 export default class DownloadEvent {
   constructor(){
     ipcMain.on('download-retry',(event,url,savePath,key)=>{
-      downloader.remove({key}, { multi: true }).then(ret=>{
-        ipcMain.emit('set-save-path', null, url, path.basename(savePath))
-        ipcMain.emit('set-download-key', null, url, key)
-        getCurrentWindow().webContents.downloadURL(url,true)
+      downloader.findOne({key}).then(ret=> {
+        downloader.remove({key}, {multi: true}).then(_ => {
+          ipcMain.emit('set-save-path', null, url, path.basename(savePath))
+          ipcMain.emit('set-download-key', null, url, key)
+          Browser.downloadURL(url, void 0, ret.referer, key)
+        })
       })
     })
 
@@ -67,7 +70,15 @@ export default class DownloadEvent {
     })
 
     ipcMain.on('download-open',(event,data)=>{
-      shell.openItem(data.savePath)
+      try{
+        shell.openExternal(`file://${data.savePath}`)
+      }
+      catch(e){
+        try{
+          shell.openExternal(`file://${data.savePath}.crdownload`)
+        }
+        catch(e){}
+      }
     })
   }
 

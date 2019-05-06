@@ -1,4 +1,5 @@
-const {app,Menu,shell,ipcMain,BrowserWindow,session,webContents,clipboard} = require('electron')
+const {app,Menu,shell,ipcMain,BrowserWindow,session,clipboard} = require('electron')
+import {Browser} from './remoted-chrome/Browser'
 const BrowserWindowPlus = require('./BrowserWindowPlus')
 const seq = require('./sequence')
 const locale = require('../brave/app/locale')
@@ -14,7 +15,7 @@ const preferencesMenuItem = () => {
     accelerator: mainState.keySettings,
     click: (item, focusedWindow) => {
       getFocusedWebContents().then(cont=>{
-        cont && cont.hostWebContents.send('new-tab',cont.getId(),'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html')
+        cont && cont.hostWebContents2.send('new-tab',cont.id,'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html')
       })
     }
   }
@@ -27,37 +28,37 @@ const createFileSubmenu = () => {
       accelerator: mainState.keyNewTab,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('new-tab',cont.getId(),"chrome://newtab/",void 0,!mainState.openTabNextLabel)
+          cont && cont.hostWebContents2.send('new-tab',cont.id,"chrome://newtab/",void 0,!mainState.openTabNextLabel)
         })
       }
     },
-    {
-      label: locale.translation('newPrivateTab'),
-      accelerator: mainState.keyNewPrivateTab,
-      click(item, focusedWindow) {
-        getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('new-tab',cont.getId(),"chrome://newtab/",true,!mainState.openTabNextLabel)
-        })
-      }
-    },
-    {
-      label: 'New Tor Tab',
-      accelerator: mainState.keyNewTorTab,
-      click(item, focusedWindow) {
-        getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('new-tab',cont.getId(),"chrome://newtab/",'persist:tor',!mainState.openTabNextLabel)
-        })
-      }
-    },
-    {
-      label: locale.translation('newSessionTab'),
-      accelerator: mainState.keyNewSessionTab,
-      click(item, focusedWindow) {
-        getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('new-tab',cont.getId(),"chrome://newtab/", `persist:${seq()}`,!mainState.openTabNextLabel)
-        })
-      }
-    },
+    // {
+    //   label: locale.translation('newPrivateTab'),
+    //   accelerator: mainState.keyNewPrivateTab,
+    //   click(item, focusedWindow) {
+    //     getFocusedWebContents().then(cont=>{
+    //       cont && cont.hostWebContents2.send('new-tab',cont.id,"chrome://newtab/",true,!mainState.openTabNextLabel)
+    //     })
+    //   }
+    // },
+    // {
+    //   label: 'New Tor Tab',
+    //   accelerator: mainState.keyNewTorTab,
+    //   click(item, focusedWindow) {
+    //     getFocusedWebContents().then(cont=>{
+    //       cont && cont.hostWebContents2.send('new-tab',cont.id,"chrome://newtab/",'persist:tor',!mainState.openTabNextLabel)
+    //     })
+    //   }
+    // },
+    // {
+    //   label: locale.translation('newSessionTab'),
+    //   accelerator: mainState.keyNewSessionTab,
+    //   click(item, focusedWindow) {
+    //     getFocusedWebContents().then(cont=>{
+    //       cont && cont.hostWebContents2.send('new-tab',cont.id,"chrome://newtab/", `persist:${seq()}`,!mainState.openTabNextLabel)
+    //     })
+    //   }
+    // },
     {
       label: locale.translation('newWindow'),
       accelerator: mainState.keyNewWindow,
@@ -71,7 +72,7 @@ const createFileSubmenu = () => {
       accelerator: mainState.keyOpenLocation,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('focus-location-bar',cont.getId())
+          cont && cont.hostWebContents2.send('focus-location-bar',cont.id)
         })
       }
     },
@@ -81,7 +82,7 @@ const createFileSubmenu = () => {
       accelerator: mainState.keyCloseTab,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events','closeTab',cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events','closeTab',cont.id)
         })
       }
     },
@@ -98,7 +99,7 @@ const createFileSubmenu = () => {
       accelerator: mainState.keyClosePanel,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'closePanel', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'closePanel', cont.id)
         })
       }
     },
@@ -107,7 +108,7 @@ const createFileSubmenu = () => {
       accelerator: mainState.keyCloseOtherTabs,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events','closeOtherTabs',cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events','closeOtherTabs',cont.id)
         })
       }
     },
@@ -116,7 +117,7 @@ const createFileSubmenu = () => {
       accelerator: mainState.keyCloseTabsToLeft,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events','closeTabsToLeft',cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events','closeTabsToLeft',cont.id)
         })
       }
     },
@@ -125,33 +126,33 @@ const createFileSubmenu = () => {
       accelerator: mainState.keyCloseTabsToRight,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events','closeTabsToRight',cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events','closeTabsToRight',cont.id)
         })
       }
     },
     { type: 'separator' },
-    {
-      label: locale.translation('savePageAs'),
-      accelerator: mainState.keySavePageAs,
-      click(item, focusedWindow) {
-        getFocusedWebContents().then(cont=>{
-          if(cont){
-            ipcMain.emit('need-set-save-filename',null,cont.getURL())
-            cont.downloadURL(cont.getURL(), true)
-          }
-        })
-      }
-    },
-    { type: 'separator' },
-    {
-      label: locale.translation('print'),
-      accelerator: mainState.keyPrint,
-      click(item, focusedWindow) {
-        getFocusedWebContents().then(cont=>{
-          cont && cont.print()
-        })
-      }
-    }
+    // {
+    //   label: locale.translation('savePageAs'),
+    //   accelerator: mainState.keySavePageAs,
+    //   click(item, focusedWindow) {
+    //     getFocusedWebContents().then(cont=>{
+    //       if(cont){
+    //         ipcMain.emit('need-set-save-filename',null,cont.getURL())
+    //         cont.downloadURL(cont.getURL())
+    //       }
+    //     })
+    //   }
+    // },
+    // { type: 'separator' },
+    // {
+    //   label: locale.translation('print'),
+    //   accelerator: mainState.keyPrint,
+    //   click(item, focusedWindow) {
+    //     getFocusedWebContents().then(cont=>{
+    //       cont && cont.print()
+    //     })
+    //   }
+    // }
   ]
 
   if (!isDarwin) {
@@ -174,47 +175,48 @@ const createFileSubmenu = () => {
 
 const createEditSubmenu = () => {
   const submenu = [
-    {
-      label: locale.translation('undo'),
-      accelerator: mainState.keyUndo,
-      role: 'undo'
-    }, {
-      label: locale.translation('redo'),
-      accelerator: mainState.keyRedo,
-      role: 'redo'
-    },
-    { type: 'separator' },
-    {
-      label: locale.translation('cut'),
-      accelerator: mainState.keyCut,
-      role: 'cut'
-    }, {
-      label: locale.translation('copy'),
-      accelerator: mainState.keyCopy,
-      role: 'copy'
-    }, {
-      label: locale.translation('paste'),
-      accelerator: mainState.keyPaste,
-      role: 'paste'
-    }, {
-      label: locale.translation('pasteWithoutFormatting'),
-      accelerator: mainState.keyPasteWithoutFormatting,
-      click(item, focusedWindow) {
-        focusedWindow.webContents.pasteAndMatchStyle()
-      }
-    },
-    { type: 'separator' },
+    // {
+    //   label: locale.translation('undo'),
+    //   accelerator: mainState.keyUndo,
+    //   role: 'undo'
+    // }, {
+    //   label: locale.translation('redo'),
+    //   accelerator: mainState.keyRedo,
+    //   role: 'redo'
+    // },
+    // { type: 'separator' },
+    // {
+    //   label: locale.translation('cut'),
+    //   accelerator: mainState.keyCut,
+    //   role: 'cut'
+    // }, {
+    //   label: locale.translation('copy'),
+    //   accelerator: mainState.keyCopy,
+    //   role: 'copy'
+    // }, {
+    //   label: locale.translation('paste'),
+    //   accelerator: mainState.keyPaste,
+    //   role: 'paste'
+    // }, {
+    //   label: locale.translation('pasteWithoutFormatting'),
+    //   accelerator: mainState.keyPasteWithoutFormatting,
+    //   click(item, focusedWindow) {
+    //     focusedWindow.webContents.pasteAndMatchStyle()
+    //   }
+    // },
+    // { type: 'separator' },
     {
       label: locale.translation('delete'),
       accelerator: 'Delete',
       click(item, focusedWindow) {
         focusedWindow.webContents.delete()
       }
-    }, {
-      label: locale.translation('selectAll'),
-      accelerator: mainState.keySelectAll,
-      role: 'selectall'
     },
+    // {
+    //   label: locale.translation('selectAll'),
+    //   accelerator: mainState.keySelectAll,
+    //   role: 'selectall'
+    // },
     { type: 'separator' },
 
     {
@@ -222,7 +224,7 @@ const createEditSubmenu = () => {
       accelerator: mainState.keyFindOnPage,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events','findOnPage',cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events','findOnPage',cont.id)
         })
       }
     },
@@ -231,7 +233,7 @@ const createEditSubmenu = () => {
       accelerator: mainState.keyToggleFindOnPage,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events','toggleFindOnPage',cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events','toggleFindOnPage',cont.id)
         })
       }
     },
@@ -240,7 +242,7 @@ const createEditSubmenu = () => {
       accelerator: mainState.keyFindAll,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events','findAll',cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events','findAll',cont.id)
         })
       }
     },
@@ -250,7 +252,7 @@ const createEditSubmenu = () => {
       accelerator: mainState.keyClicktabCopyTabUrl,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'clicktabCopyTabUrl', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'clicktabCopyTabUrl', cont.id)
         })
       }
     },
@@ -259,7 +261,7 @@ const createEditSubmenu = () => {
       accelerator: mainState.keyClicktabCopyUrlFromClipboard,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'clicktabCopyUrlFromClipboard', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'clicktabCopyUrlFromClipboard', cont.id)
         })
       }
     },
@@ -268,7 +270,7 @@ const createEditSubmenu = () => {
       accelerator: mainState.keyPasteAndOpen,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'pasteAndOpen', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'pasteAndOpen', cont.id)
         })
       }
     },
@@ -277,7 +279,7 @@ const createEditSubmenu = () => {
       accelerator: mainState.keyCopyTabInfo,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'copyTabInfo', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'copyTabInfo', cont.id)
         })
       }
     },
@@ -286,7 +288,7 @@ const createEditSubmenu = () => {
       accelerator: mainState.keyCopyAllTabTitles,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'copyAllTabTitles', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'copyAllTabTitles', cont.id)
         })
       }
     },
@@ -295,7 +297,7 @@ const createEditSubmenu = () => {
       accelerator: mainState.keyCopyAllTabUrls,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'copyAllTabUrls', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'copyAllTabUrls', cont.id)
         })
       }
     },
@@ -304,7 +306,7 @@ const createEditSubmenu = () => {
       accelerator: mainState.keyCopyAllTabInfos,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'copyAllTabInfos', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'copyAllTabInfos', cont.id)
         })
       }
     },
@@ -318,7 +320,7 @@ const createEditSubmenu = () => {
     submenu[4].click = function(item, focusedWindow) {
         getFocusedWebContents(true).then(cont=>{
           if(cont){
-            if(cont.getId() == mainState.rectSelection[0].getId()){
+            if(cont.id == mainState.rectSelection[0].id){
               clipboard.writeText(mainState.rectSelection[1])
             }
             else{
@@ -353,7 +355,7 @@ const createViewSubmenu = () => {
       accelerator: mainState.keyActualSize,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.zoomReset()
+          cont && cont.setZoomFactor(1)
         })
       }
     }, {
@@ -361,7 +363,7 @@ const createViewSubmenu = () => {
       accelerator: mainState.keyZoomIn,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'zoomIn', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'zoomIn', cont.id)
         })
       }
     }, {
@@ -369,7 +371,7 @@ const createViewSubmenu = () => {
       accelerator: mainState.keyZoomOut,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'zoomOut', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'zoomOut', cont.id)
         })
       }
     },
@@ -406,7 +408,7 @@ const createViewSubmenu = () => {
       accelerator: mainState.keyClicktabReloadtabs,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'clicktabReloadtabs', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'clicktabReloadtabs', cont.id)
         })
       }
     },
@@ -415,7 +417,7 @@ const createViewSubmenu = () => {
       accelerator: mainState.keyClicktabReloadothertabs,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'clicktabReloadothertabs', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'clicktabReloadothertabs', cont.id)
         })
       }
     },
@@ -424,7 +426,7 @@ const createViewSubmenu = () => {
       accelerator: mainState.keyClicktabReloadlefttabs,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'clicktabReloadlefttabs', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'clicktabReloadlefttabs', cont.id)
         })
       }
     },
@@ -433,7 +435,7 @@ const createViewSubmenu = () => {
       accelerator: mainState.keyClicktabReloadrighttabs,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'clicktabReloadrighttabs', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'clicktabReloadrighttabs', cont.id)
         })
       }
     },
@@ -443,7 +445,7 @@ const createViewSubmenu = () => {
       accelerator: mainState.keyDuplicateTab,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'duplicateTab', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'duplicateTab', cont.id)
         })
       }
     },
@@ -452,7 +454,7 @@ const createViewSubmenu = () => {
       accelerator: mainState.keyUnpinTab,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'unpinTab', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'unpinTab', cont.id)
         })
       }
     },
@@ -461,7 +463,7 @@ const createViewSubmenu = () => {
       accelerator: mainState.keyUnmuteTab,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'unmuteTab', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'unmuteTab', cont.id)
         })
       }
     },    {
@@ -469,7 +471,7 @@ const createViewSubmenu = () => {
       accelerator: mainState.keyFreezeTabMenuLabel,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'freezeTabMenuLabel', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'freezeTabMenuLabel', cont.id)
         })
       }
     },
@@ -478,7 +480,7 @@ const createViewSubmenu = () => {
       accelerator: mainState.keyProtectTabMenuLabel,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'protectTabMenuLabel', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'protectTabMenuLabel', cont.id)
         })
       }
     },
@@ -487,7 +489,7 @@ const createViewSubmenu = () => {
       accelerator: mainState.keyLockTabMenuLabel,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'lockTabMenuLabel', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'lockTabMenuLabel', cont.id)
         })
       }
     },
@@ -497,7 +499,7 @@ const createViewSubmenu = () => {
       accelerator: mainState.keyToggleDeveloperTools,
       click(item) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'toggleDeveloperTools', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'toggleDeveloperTools', cont.id)
         })
       }
     },
@@ -511,13 +513,17 @@ const createViewSubmenu = () => {
             focusedWindow.setFullScreen(!focusedWindow.isFullScreen())
           }
           else{
-            const isFullScreen = focusedWindow.isFullScreen()
-            focusedWindow.webContents.send('switch-fullscreen',!isFullScreen)
-            focusedWindow.setFullScreenable(true)
-            const menubar = focusedWindow.isMenuBarVisible()
-            focusedWindow.setFullScreen(!isFullScreen)
-            focusedWindow.setMenuBarVisibility(menubar)
-            focusedWindow.setFullScreenable(false)
+            // const isFullScreen = focusedWindow.isFullScreen()
+            // focusedWindow.webContents.send('switch-fullscreen',!isFullScreen)
+            // focusedWindow.setFullScreenable(true)
+            // const menubar = focusedWindow.isMenuBarVisible()
+            // focusedWindow.setFullScreen(!isFullScreen)
+            // focusedWindow.setMenuBarVisibility(menubar)
+            // focusedWindow.setFullScreenable(false)
+
+            getFocusedWebContents().then(cont=>{
+              cont.toggleFullscreen()
+            })
           }
         }
       }
@@ -528,7 +534,7 @@ const createViewSubmenu = () => {
       accelerator: mainState.keyScreenShotFullClipBoard,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'screenShotFullClipBoard', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'screenShotFullClipBoard', cont.id)
         })
       }
     },
@@ -537,7 +543,7 @@ const createViewSubmenu = () => {
       accelerator: mainState.keyScreenShotFullJpeg,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'screenShotFullJpeg', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'screenShotFullJpeg', cont.id)
         })
       }
     },
@@ -546,7 +552,7 @@ const createViewSubmenu = () => {
       accelerator: mainState.keyScreenShotFullPng,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'screenShotFullPng', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'screenShotFullPng', cont.id)
         })
       }
     },
@@ -555,7 +561,7 @@ const createViewSubmenu = () => {
       accelerator: mainState.keyScreenShotSelectionClipBoard,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'screenShotSelectionClipBoard', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'screenShotSelectionClipBoard', cont.id)
         })
       }
     },
@@ -564,7 +570,7 @@ const createViewSubmenu = () => {
       accelerator: mainState.keyScreenShotSelectionJpeg,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'screenShotSelectionJpeg', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'screenShotSelectionJpeg', cont.id)
         })
       }
     },
@@ -573,7 +579,7 @@ const createViewSubmenu = () => {
       accelerator: mainState.keyScreenShotSelectionPng,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'screenShotSelectionPng', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'screenShotSelectionPng', cont.id)
         })
       }
     },
@@ -588,7 +594,7 @@ const createHistorySubmenu = () => {
       accelerator: mainState.keyHome,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=> {
-          cont && cont.hostWebContents.send('menu-or-key-events', 'navigatePage', cont.getId(), "chrome://newtab/")
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'navigatePage', cont.id, "chrome://newtab/")
         })
       }
     },
@@ -597,7 +603,7 @@ const createHistorySubmenu = () => {
       accelerator: mainState.keyBack,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=> {
-          cont && cont.hostWebContents.send('go-navigate', cont.getId(), 'back')
+          cont && cont.hostWebContents2.send('go-navigate', cont.id, 'back')
         })
       }
     },
@@ -606,7 +612,7 @@ const createHistorySubmenu = () => {
       accelerator: mainState.keyForward,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=> {
-          cont && cont.hostWebContents.send('go-navigate', cont.getId(), 'forward')
+          cont && cont.hostWebContents2.send('go-navigate', cont.id, 'forward')
         })
       }
     },
@@ -616,7 +622,7 @@ const createHistorySubmenu = () => {
       accelerator: mainState.keyReopenLastClosedTab,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'reopenLastClosedTab', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'reopenLastClosedTab', cont.id)
         })
       }
     },
@@ -625,7 +631,7 @@ const createHistorySubmenu = () => {
       accelerator: mainState.keyClicktabUcatab,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'clicktabUcatab', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'clicktabUcatab', cont.id)
         })
       }
     },
@@ -635,7 +641,7 @@ const createHistorySubmenu = () => {
       accelerator: mainState.keyShowAllHistory,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('new-tab',cont.getId(),'chrome://history/')
+          cont && cont.hostWebContents2.send('new-tab',cont.id,'chrome://history2/')
         })
       }
     }
@@ -651,7 +657,7 @@ const createBookmarksSubmenu = () => {
       accelerator: mainState.keyBookmarkPage,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('add-favorite',cont.getId())
+          cont && cont.hostWebContents2.send('add-favorite',cont.id)
         })
       }
     },
@@ -660,7 +666,7 @@ const createBookmarksSubmenu = () => {
       accelerator: mainState.keyAddBookmarkAll,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'addBookmarkAll', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'addBookmarkAll', cont.id)
         })
       }
     },
@@ -670,7 +676,7 @@ const createBookmarksSubmenu = () => {
       accelerator: mainState.keyBookmarksManager,
       click: (item, focusedWindow) => {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('new-tab',cont.getId(),'chrome://bookmarks/')
+          cont && cont.hostWebContents2.send('new-tab',cont.id,'chrome://bookmarks2/')
         })
       }
     },
@@ -708,7 +714,7 @@ const createWindowSubmenu = () => {
       accelerator: mainState.keySelectNextTab,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'selectNextTab', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'selectNextTab', cont.id)
         })
       }
     },
@@ -717,7 +723,7 @@ const createWindowSubmenu = () => {
       accelerator: mainState.keySelectPreviousTab,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'selectPreviousTab', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'selectPreviousTab', cont.id)
         })
       }
     },
@@ -727,7 +733,7 @@ const createWindowSubmenu = () => {
       accelerator: mainState.keyMultiRowTabs,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'multiRowTabs', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'multiRowTabs', cont.id)
         })
       }
     },
@@ -736,7 +742,7 @@ const createWindowSubmenu = () => {
       accelerator: mainState.keyTabPreview,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'tabPreview', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'tabPreview', cont.id)
         })
       }
     },
@@ -752,7 +758,7 @@ const createWindowSubmenu = () => {
       accelerator: mainState.keyChangeFocusPanel,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'changeFocusPanel', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'changeFocusPanel', cont.id)
         })
       }
     },
@@ -762,7 +768,7 @@ const createWindowSubmenu = () => {
       accelerator: mainState.keySplitLeft,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'splitLeft', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'splitLeft', cont.id)
         })
       }
     },
@@ -771,7 +777,7 @@ const createWindowSubmenu = () => {
       accelerator: mainState.keySplitRight,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'splitRight', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'splitRight', cont.id)
         })
       }
     },
@@ -780,7 +786,7 @@ const createWindowSubmenu = () => {
       accelerator: mainState.keySplitTop,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'splitTop', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'splitTop', cont.id)
         })
       }
     },
@@ -789,7 +795,7 @@ const createWindowSubmenu = () => {
       accelerator: mainState.keySplitBottom,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'splitBottom', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'splitBottom', cont.id)
         })
       }
     },
@@ -798,7 +804,7 @@ const createWindowSubmenu = () => {
       accelerator: mainState.keySplitLeftTabs,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'splitLeftTabs', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'splitLeftTabs', cont.id)
         })
       }
     },
@@ -807,7 +813,7 @@ const createWindowSubmenu = () => {
       accelerator: mainState.keySplitRightTabs,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'splitRightTabs', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'splitRightTabs', cont.id)
         })
       }
     },
@@ -817,7 +823,7 @@ const createWindowSubmenu = () => {
       accelerator: mainState.keySwapPosition,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'swapPosition', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'swapPosition', cont.id)
         })
       }
     },
@@ -826,7 +832,7 @@ const createWindowSubmenu = () => {
       accelerator: mainState.keySwitchDirection,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'switchDirection', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'switchDirection', cont.id)
         })
       }
     },
@@ -835,7 +841,7 @@ const createWindowSubmenu = () => {
       accelerator: mainState.keyAlignHorizontal,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'alignHorizontal', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'alignHorizontal', cont.id)
         })
       }
     },
@@ -844,7 +850,7 @@ const createWindowSubmenu = () => {
       accelerator: mainState.keyAlignVertical,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'alignVertical', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'alignVertical', cont.id)
         })
       }
     },
@@ -854,7 +860,7 @@ const createWindowSubmenu = () => {
       accelerator: mainState.keyArrangePanel,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'arrangePanel', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'arrangePanel', cont.id)
         })
       }
     },
@@ -864,7 +870,7 @@ const createWindowSubmenu = () => {
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
           console.log('arrangePanelEach')
-          cont && cont.hostWebContents.send('menu-or-key-events', 'arrangePanelEach', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'arrangePanelEach', cont.id)
         })
       }
     },
@@ -874,7 +880,7 @@ const createWindowSubmenu = () => {
       accelerator: mainState.keySwitchSyncScroll,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'switchSyncScroll', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'switchSyncScroll', cont.id)
         })
       }
     },
@@ -883,25 +889,25 @@ const createWindowSubmenu = () => {
       accelerator: mainState.keyOpenSidebar,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'openSidebar', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'openSidebar', cont.id)
         })
       }
     },
-    {
-      t: 'enableSearchHighlight', label: locale.translation('enableSearchHighlight'),
-      accelerator: mainState.keySearchHighlight,
-      click(item, focusedWindow) {
-        getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'searchHighlight', cont.getId())
-        })
-      }
-    },
+    // {
+    //   t: 'enableSearchHighlight', label: locale.translation('enableSearchHighlight'),
+    //   accelerator: mainState.keySearchHighlight,
+    //   click(item, focusedWindow) {
+    //     getFocusedWebContents().then(cont=>{
+    //       cont && cont.hostWebContents2.send('menu-or-key-events', 'searchHighlight', cont.id)
+    //     })
+    //   }
+    // },
     {
       t: 'changeToMobileAgent', label: locale.translation('changeToMobileAgent'),
       accelerator: mainState.keyChangeMobileAgent,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'changeMobileAgent', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'changeMobileAgent', cont.id)
         })
       }
     },
@@ -911,25 +917,25 @@ const createWindowSubmenu = () => {
       accelerator: mainState.keyDetachPanel,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'detachPanel', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'detachPanel', cont.id)
         })
       }
     },
-    {
-      t: 'floatingPanel', label: locale.translation('floatingPanel'),
-      accelerator: mainState.keyFloatingPanel,
-      click(item, focusedWindow) {
-        getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'floatingPanel', cont.getId())
-        })
-      }
-    },
+    // {
+    //   t: 'floatingPanel', label: locale.translation('floatingPanel'),
+    //   accelerator: mainState.keyFloatingPanel,
+    //   click(item, focusedWindow) {
+    //     getFocusedWebContents().then(cont=>{
+    //       cont && cont.hostWebContents2.send('menu-or-key-events', 'floatingPanel', cont.id)
+    //     })
+    //   }
+    // },
     {
       label: 'Maximize Panel',
       accelerator: mainState.keyMaximizePanel,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('menu-or-key-events', 'maximizePanel', cont.getId())
+          cont && cont.hostWebContents2.send('menu-or-key-events', 'maximizePanel', cont.id)
         })
       }
     },
@@ -938,7 +944,7 @@ const createWindowSubmenu = () => {
     //   accelerator: mainState.keyDownloadAll,
     //   click(item, focusedWindow) {
     //     getFocusedWebContents().then(cont=>{
-    //       cont && cont.hostWebContents.send('menu-or-key-events', 'downloadAll', cont.getId())
+    //       cont && cont.hostWebContents2.send('menu-or-key-events', 'downloadAll', cont.id)
     //     })
     //   }
     // },
@@ -947,7 +953,7 @@ const createWindowSubmenu = () => {
     //   accelerator: mainState.keyPageTranslate,
     //   click(item, focusedWindow) {
     //     getFocusedWebContents().then(cont=>{
-    //       cont && cont.hostWebContents.send('menu-or-key-events', 'pageTranslate', cont.getId())
+    //       cont && cont.hostWebContents2.send('menu-or-key-events', 'pageTranslate', cont.id)
     //     })
     //   }
     // },
@@ -957,7 +963,7 @@ const createWindowSubmenu = () => {
       accelerator: mainState.keyDownloadsManager,
       click(item, focusedWindow){
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('new-tab',cont.getId(),'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html')
+          cont && cont.hostWebContents2.send('new-tab',cont.id,'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html')
         })
       }
     },
@@ -966,7 +972,7 @@ const createWindowSubmenu = () => {
       accelerator: mainState.keyNote,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('new-tab',cont.getId(),'chrome://note/')
+          cont && cont.hostWebContents2.send('new-tab',cont.id,'chrome://note/')
         })
       }
     },
@@ -975,7 +981,7 @@ const createWindowSubmenu = () => {
       accelerator: mainState.keyFileExploler,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('new-tab',cont.getId(),'chrome://explorer/')
+          cont && cont.hostWebContents2.send('new-tab',cont.id,'chrome://explorer/')
         })
       }
     },
@@ -984,7 +990,7 @@ const createWindowSubmenu = () => {
       accelerator: mainState.keyTerminal,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('new-tab',cont.getId(),'chrome://terminal/')
+          cont && cont.hostWebContents2.send('new-tab',cont.id,'chrome://terminal/')
         })
       }
     },
@@ -993,7 +999,7 @@ const createWindowSubmenu = () => {
       accelerator: mainState.keyAutomation,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('new-tab',cont.getId(),'chrome://automation/')
+          cont && cont.hostWebContents2.send('new-tab',cont.id,'chrome://automation/')
         })
       }
     },
@@ -1002,7 +1008,7 @@ const createWindowSubmenu = () => {
       accelerator: mainState.keyVideoConverter,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents.send('new-tab',cont.getId(),'chrome://converter/')
+          cont && cont.hostWebContents2.send('new-tab',cont.id,'chrome://converter/')
         })
       }
     }

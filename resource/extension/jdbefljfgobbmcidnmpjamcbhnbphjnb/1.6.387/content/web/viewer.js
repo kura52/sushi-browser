@@ -7206,32 +7206,33 @@ var pdfjsWebLibs;
    }
    var port;
    function setReferer(url, callback) {
-    if (!port) {
-     port = chrome.runtime.connect({ name: 'chromecom-referrer' });
-    }
-    port.onDisconnect.addListener(onDisconnect);
-    port.onMessage.addListener(onMessage);
-    port.postMessage({
-     referer: window.history.state && window.history.state.chromecomState,
-     requestUrl: url
-    });
-    function onMessage(referer) {
-     if (referer) {
-      var state = window.history.state || {};
-      state.chromecomState = referer;
-      window.history.replaceState(state, '');
-     }
-     onCompleted();
-    }
-    function onDisconnect() {
-     port = null;
-     callback();
-    }
-    function onCompleted() {
-     port.onDisconnect.removeListener(onDisconnect);
-     port.onMessage.removeListener(onMessage);
-     callback();
-    }
+     callback()
+    // if (!port) {
+    //  port = chrome.runtime.connect({ name: 'chromecom-referrer' });
+    // }
+    // port.onDisconnect.addListener(onDisconnect);
+    // port.onMessage.addListener(onMessage);
+    // port.postMessage({
+    //  referer: window.history.state && window.history.state.chromecomState,
+    //  requestUrl: url
+    // });
+    // function onMessage(referer) {
+    //  if (referer) {
+    //   var state = window.history.state || {};
+    //   state.chromecomState = referer;
+    //   window.history.replaceState(state, '');
+    //  }
+    //  onCompleted();
+    // }
+    // function onDisconnect() {
+    //  port = null;
+    //  callback();
+    // }
+    // function onCompleted() {
+    //  port.onDisconnect.removeListener(onDisconnect);
+    //  port.onMessage.removeListener(onMessage);
+    //  callback();
+    // }
    }
    var storageArea = chrome.storage.sync || chrome.storage.local;
    Preferences._writeToStorage = function (prefObj) {

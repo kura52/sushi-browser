@@ -3,12 +3,18 @@ import process from './process'
 import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './favoriteBase';
+
 import l10n from '../../brave/js/l10n';
-l10n.init()
+const initPromise = l10n.init()
+import '../defaultExtension/contentscript'
 
 require('./themeForPage')('themeBookmark')
 
-ReactDOM.render(
-  <App favoritePage={true}/>,
-  document.querySelector('#classic')
-);
+
+;(async ()=>{
+  await initPromise
+  ReactDOM.render(
+    <App favoritePage={true}/>,
+    document.querySelector('#classic')
+  );
+})()

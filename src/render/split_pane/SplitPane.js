@@ -61,6 +61,7 @@ class SplitPane extends Component {
       this.webviews.add(document.elementFromPoint(e.clientX+xMod,e.clientY-yMod))
       this.webviews.add(document.elementFromPoint(e.clientX+xMod,e.clientY+yMod))
     }
+    console.log('multi-scroll-webviews1')
     PubSub.publishSync('multi-scroll-webviews',{deltaY: - e.deltaY,
       webviews:this.webviews ? [...this.webviews] : []})
     // webviews:[{wv:this.webview1,x:e.clientX-xMod,y:e.clientY-yMod,c:0},{wv:this.webview2,x:e.clientX+xMod,y:e.clientY+yMod,c:1}]})
@@ -374,7 +375,12 @@ class SplitPane extends Component {
     }
 
     if(this.props.order===0 && !this.windowIsMaximized()){
-      Object.assign(style, {border: "1px solid rgb(148, 148, 148)"})
+      Object.assign(style, {
+        border: "2px solid rgb(183, 183, 183)",
+        // padding: 1,
+        // backgroundColor: "rgb(212, 212, 212)"
+        // border: "1px solid rgb(148, 148, 148)"
+      })
     }
 
     const children = this.props.children;

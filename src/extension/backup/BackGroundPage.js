@@ -33,7 +33,7 @@ export default class BackGroundPage {
       // this.bgWin.hide();
       this.page = page
       // this.bgWin.loadURL();
-      // this.bgWin.webContents.openDevTools()
+      // this.bgWin.webContents.toggleDevTools()
     }
   }
   getWebviewTag(){

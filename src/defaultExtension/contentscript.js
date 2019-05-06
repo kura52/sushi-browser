@@ -1,14 +1,321 @@
+// content scripts
+chrome.ipcRenderer = {
+  on: (channel, listener) => {
+    chrome.runtime.onMessage.addListener((message, sender) => {
+      if(!message.ipc || channel != message.channel) return
+
+      listener({}, ...message.args)
+    })
+  },
+  once: (channel, listener) => {
+    const handler = (message, sender) => {
+      if(!message.ipc || channel != message.channel) return
+
+      listener({}, ...message.args)
+      chrome.runtime.onMessage.removeListener(handler)
+    }
+    chrome.runtime.onMessage.addListener(handler)
+  },
+  send: (channel, ...args) => {
+    chrome.runtime.sendMessage({ipcToBg: true, channel, args})
+  }
+}
+
+
 window.__started_ = window.__started_ ? void 0 : 1
 var ipc = chrome.ipcRenderer
 if(window.__started_){
-  const openTime = Date.now()
 
-  if(location.href.startsWith('http') && window == window.parent){
+  const fullscreenListener = e => {
+    console.log(3313,e,document.fullscreenElement !== null)
+    ipc.send('fullscreen-change',document.fullscreenElement !== null)
+  }
+
+  document.addEventListener('fullscreenchange', fullscreenListener)
+  document.addEventListener('webkitfullscreenchange', fullscreenListener)
+
+  setTimeout(()=>{
+    document.addEventListener('contextmenu', e => {
+      if(window.__no_skip_context_menu__){
+        window.__no_skip_context_menu__ = false
+        return
+      }
+
+      e.preventDefault()
+      e.stopImmediatePropagation()
+      console.log(5555,e)
+      const target = e.target
+      const linkURL = (target.closest('a') || target).href
+      const isFrame = window.top != window
+      const selectionText = document.getSelection().toString()
+
+      let mediaFlags = {}, mediaType = 'none', isEditable = false, inputFieldType = 'none', editFlags = {
+        canUndo: false,
+        canRedo: false,
+        canCut: false,
+        canCopy: !!selectionText,
+        canPaste: false,
+        canDelete: false,
+        canSelectAll : false,
+      }
+
+      const mediaTarget = target.closest('img,video,audio') || target
+
+
+      if(mediaTarget.tagName == 'AUDIO' || mediaTarget.tagName == 'VIDEO'){
+        mediaType = mediaTarget.tagName.toLowerCase()
+        mediaFlags = {
+          inError: mediaTarget.error,
+          isPaused: mediaTarget.paused,
+          isMuted: mediaTarget.muted,
+          hasAudio: !!mediaTarget.webkitAudioDecodedByteCount,
+          isLooping: mediaTarget.loop,
+          isControlsVisible: mediaTarget.controls,
+          canToggleControls: true,
+          canRotate: true
+        }
+      }
+      else if(target.tagName == 'CANVAS'){
+        mediaType = target.tagName.toLowerCase()
+      }
+      else if(mediaTarget.tagName == 'IMG'){
+        mediaType = 'image'
+      }
+      if(target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable){
+        const type = target.type && target.type.toLowerCase()
+        if(target.tagName == 'INPUT' && (type == 'checkbox' || type == 'radio' ||
+          type == 'submit' || type == 'hidden' || type == 'reset' || type == 'button' || type == 'image')){
+
+        }
+        else{
+          isEditable = true
+          editFlags = {
+            canUndo: true,
+            canRedo: true,
+            canCut: !!selectionText,
+            canCopy: !!selectionText,
+            canPaste: true,
+            canDelete: true,
+            canSelectAll : true,
+          }
+
+          if(type == 'password'){
+            inputFieldType = type
+          }
+          else{
+            inputFieldType = 'plainText'
+          }
+        }
+      }
+
+      document.addEventListener('mousedown',e =>{
+        ipc.send('contextmenu-webContents-close')
+      },{once: true})
+
+      ipc.send('contextmenu-webContents', {
+        srcURL: target.src,
+        linkURL,
+        pageURL: isFrame ? void 0 : location.href,
+        frameURL: isFrame ? location.href : void 0,
+        linkText: linkURL ? target.innerText : void 0,
+        mediaType,
+        mediaFlags,
+        editFlags,
+        isEditable ,
+        inputFieldType,
+        x: e.x,
+        y: e.y,
+        screenX: e.screenX,
+        screenY: e.screenY,
+        selectionText
+      })
+    })
+  },100)
+
+  let preAElemsLength = 0
+
+  // const visitedLinkName = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
+  //
+  // const setVisitedLinkColor = (force) => {
+  //   const aElems = document.getElementsByTagName('a')
+  //   const length = aElems.length
+  //   if(!force && preAElemsLength == length) return
+  //   preAElemsLength = length
+  //   const checkElems = {}
+  //   for (let i = 0; i < length; i++) {
+  //     const ele = aElems[i]
+  //     if(ele.classList.contains(visitedLinkName)) continue
+  //     const url = ele.href
+  //     if (url.startsWith('http')) {
+  //       let arr = checkElems[url]
+  //       if(arr){
+  //         arr.push(ele)
+  //       }
+  //       else{
+  //         checkElems[url] = [ele]
+  //       }
+  //     }
+  //   }
+  //   const urls = Object.keys(checkElems)
+  //   if(!urls.length) return
+  //
+  //   const key = Math.random().toString()
+  //   ipc.send('get-visited-links', key, urls)
+  //   ipc.on(`get-visited-links-reply_${key}`, (e, urls) => {
+  //     for (let url of urls) {
+  //       for(let ele of checkElems[url]){
+  //         ele.classList.add(visitedLinkName)
+  //       }
+  //     }
+  //   })
+  // }
+
+  const openTime = Date.now()
+  if(location.href.match(/^(http|chrome\-extension)/) && window == window.parent){
+    // require('./passwordEvents')
+    require('./webviewEvents')
+    require('./syncButton')
+    require('./inputPopupContentScript.js')
+
+    let mdownEvent
+    document.addEventListener('mousedown',e=>{
+      mdownEvent = e
+      ipc.send('send-to-host', 'webview-mousedown',e.button)
+    },{passive: true, capture: true})
+
+    document.addEventListener('mouseup',e=>{
+      ipc.send('send-to-host', 'webview-mouseup',e.button)
+      // if(mdownEvent && e.target == mdownEvent.target &&
+      //   e.button == mdownEvent.button && (e.button == 0 || e.button == 1)){
+      //   const ele = e.target.closest('a')
+      //   if(ele && ele.href.startsWith('http')){
+      //     setTimeout(()=>setVisitedLinkColor(true),200)
+      //   }
+      // }
+    },{passive: true, capture: true})
+
+    let preClientY = -1, checkVideoEvent = {}, beforeRemoveIds = {}
+    document.addEventListener('mousemove',e=>{
+      // console.log('mousemove')
+      if(preClientY != e.clientY){
+        ipc.send('send-to-host', 'webview-mousemove', e.clientY)
+        // console.log('webview-mousemove', e.clientY)
+        preClientY = e.clientY
+      }
+
+      if(!checkVideoEvent[e.target] && document.querySelector('video')){
+        checkVideoEvent[e.target] = true
+        let target
+        if(e.target.tagName !== 'VIDEO'){
+          const children = [...e.target.children]
+          for(const x of children){
+            checkVideoEvent[x] = true
+            if(x.tagName == "VIDEO"){
+              target = x
+              console.log(11,target)
+              break
+            }
+          }
+          if(!target){
+            for(let c of children){
+              if(c.children){
+                for(const x of [...c.children]){
+                  checkVideoEvent[x] = true
+                  if(x.tagName == "VIDEO"){
+                    target = x
+                    console.log(12,target)
+                    break
+                  }
+                }
+              }
+              if(target) break
+            }
+            if(!target){
+              for(let ele of document.querySelectorAll('video')){
+                const r =  ele.getBoundingClientRect()
+                if(pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)){
+                  target = ele
+                  console.log(13,target)
+                  break
+                }
+              }
+              if(!target) return
+            }
+          }
+        }
+        else{
+          target = e.target
+        }
+
+        console.log(553,target)
+        const v = target
+        const func = ()=>{
+
+          const existElement = document.querySelector("#maximize-org-video")
+          if(existElement){
+            clearTimeout(beforeRemoveIds[target])
+            beforeRemoveIds[target] = setTimeout(_=>document.body.removeChild(existElement),2000)
+            return
+          }
+
+          const rect = v.getBoundingClientRect()
+          const rStyle = `left:${Math.round(rect.left) + 10}px;top:${Math.round(rect.top) + 10}px`
+
+          const span = document.createElement("span")
+          span.innerHTML = v._olds_ ? 'Normal' : 'Maximize'
+          span.style.cssText = `${rStyle};z-index: 2147483647;position: absolute;overflow: hidden;border-radius: 8px;background: rgba(50,50,50,0.9);text-shadow: 0 0 2px rgba(0,0,0,.5);transition: opacity .1s cubic-bezier(0.0,0.0,0.2,1);margin: 0;border: 0;font-size: 14px;color: white;padding: 4px 7px;`;
+          span.setAttribute("id", "maximize-org-video")
+
+          document.body.appendChild(span)
+
+          span.addEventListener('click', ()=> {
+            maximizeInPanel(v)
+            const rect = v.getBoundingClientRect()
+            span.style.left = `${Math.round(rect.left) + 10}px`
+            span.style.top = `${Math.round(rect.top) + 10}px`
+            span.innerText = v._olds_ ? 'Normal' : 'Maximize'
+            clearTimeout(beforeRemoveIds[target])
+            document.body.removeChild(span)
+          })
+
+          span.addEventListener('mouseenter', () => span.style.background = 'rgba(80,80,80,0.9)')
+          span.addEventListener('mouseleave', () => span.style.background = 'rgba(50,50,50,0.9)')
+
+          beforeRemoveIds[target] = setTimeout(_=>document.body.removeChild(span),2000)
+        }
+
+        document.addEventListener('mousemove', e => {
+          const r =  v.getBoundingClientRect()
+          if(pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)){
+            func()
+          }
+        })
+        document.addEventListener('mouseleave', e2 =>{
+          const r =  v.getBoundingClientRect()
+          if(pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)){
+            const existElement = document.querySelector("#maximize-org-video")
+            if(existElement && e2.toElement != existElement){
+              clearTimeout(beforeRemoveIds[target])
+              document.body.removeChild(existElement)
+            }
+          }
+        })
+        func()
+      }
+
+    },{passive: true, capture: true})
+
     window.addEventListener("beforeunload", e=>{
-      ipc.sendToHost('scroll-position',{x:window.scrollX ,y:window.scrollY})
+      ipc.send('send-to-host', 'scroll-position',{x:window.scrollX ,y:window.scrollY})
+      ipc.send('contextmenu-webContents-close')
+      ipc.send('fullscreen-change', false, 1000)
     });
 
     document.addEventListener("DOMContentLoaded",_=>{
+      // const visitedStyle = require('./visitedStyle')
+      // setTimeout(()=> visitedStyle(`.${visitedLinkName}`), 0)
+      // setVisitedLinkColor()
+      // setInterval(()=>setVisitedLinkColor(),1000)
       // const key = Math.random().toString()
       // ipc.send('need-get-inner-text',key)
       // ipc.once(`need-get-inner-text-reply_${key}`,(e,result)=>{
@@ -28,7 +335,7 @@ if(window.__started_){
               const parent = button.parentNode
               parent.innerHTML = `<div role="button" class="dd-Va g-c-wb g-eg-ua-Kb-c-za g-c-Oc-td-jb-oa g-c" aria-label="add to chrome" tabindex="0" style="user-select: none;"><div class="g-c-Hf"><div class="g-c-x"><div class="g-c-R webstore-test-button-label">add to chrome</div></div></div></div>`
               parent.querySelector(".dd-Va.g-c-wb.g-eg-ua-Kb-c-za.g-c-Oc-td-jb-oa.g-c").addEventListener('click',e=>{
-                e.stopPropagation()
+                e.stopImmediatePropagation()
                 e.preventDefault()
                 ipc.send('add-extension',{id:loc})},true)
             }
@@ -49,59 +356,142 @@ if(window.__started_){
         },1000)
       }
     })
+    // setInterval(()=>setVisitedLinkColor(),1000)
   }
 
-  function handleDragEnd(evt) {
-    console.log(evt)
-    const target = evt.target
-    if(!target) return
-
-    let url,text
-    if(target.href){
-      url = target.href
-      text = target.innerText
-    }
-    else if(target.nodeName == "#text"){
-      ipc.sendToHost("link-drop",{screenX: evt.screenX, screenY: evt.screenY, text:window.getSelection().toString() || target.data})
-    }
-    else{
-      const parent = target.closest("a")
-      if(parent){
-        url = parent.href
-        text = target.innerText
-      }
-      else{
-        url = target.src
-        text = target.getAttribute('alt')
-      }
-    }
-
-    ipc.sendToHost("link-drop",{screenX: evt.screenX, screenY: evt.screenY, url,text})
-  }
+  // function handleDragEnd(evt) {
+  //   console.log(evt)
+  //   const target = evt.target
+  //   if(!target) return
+  //
+  //   let url,text
+  //   if(target.href){
+  //     url = target.href
+  //     text = target.innerText
+  //   }
+  //   else if(target.nodeName == "#text"){
+  //     ipc.send('send-to-host', "link-drop",{screenX: evt.screenX, screenY: evt.screenY, text:window.getSelection().toString() || target.data})
+  //   }
+  //   else{
+  //     const parent = target.closest("a")
+  //     if(parent){
+  //       url = parent.href
+  //       text = target.innerText
+  //     }
+  //     else{
+  //       url = target.src
+  //       text = target.getAttribute('alt')
+  //     }
+  //   }
+  //
+  //   ipc.send('send-to-host', "link-drop",{screenX: evt.screenX, screenY: evt.screenY, url,text})
+  // }
   // if(location.href.match(/^chrome-extension:\/\/dckpbojndfoinamcdamhkjhnjnmjkfjd\/(favorite|favorite_sidebar)\.html/)){
   //   console.log("favorite")
   //   document.addEventListener("drop", e=>{
   //     e.preventDefault()
-  //     e.stopPropagation()
+  //     e.stopImmediatePropagation()
   //     console.log('drop',e)
   //   }, false)
   //
   //   document.addEventListener("dragend", function( event ) {
   //     event.preventDefault();
-  //     event.stopPropagation()
+  //     event.stopImmediatePropagation()
   //     console.log('dragend',event)
   //   }, false);
   // }
   // else{
-  document.addEventListener('dragend', handleDragEnd, false)
+  // document.addEventListener('dragend', handleDragEnd, false)
   // }
 
+  const gaiseki = (ax,ay,bx,by) => ax*by-bx*ay
+  const pointInCheck = (X,Y,W,H,PX,PY) => gaiseki(-W,0,PX-W-X,PY-Y) < 0 && gaiseki(0,H,PX-X,PY-Y) < 0 && gaiseki(W,0,PX-X,PY-Y-H) < 0 && gaiseki(0,-H,PX-W-X,PY-H-Y) < 0
 
+  function maximizeInPanel(v, enable){
+    if(enable == null){
+      enable = !v._olds_
+    }
+    if(enable){
+      v._olds_ = {}
+
+      v._olds_.controls = v.controls
+      v._olds_.bodyOverflow = document.body.style.overflow
+      v._olds_.width = v.style.width
+      v._olds_.minWidth = v.style.minWidth
+      v._olds_.maxWidth = v.style.maxWidth
+      v._olds_.height = v.style.height
+      v._olds_.minHeight = v.style.minHeight
+      v._olds_.maxHeight = v.style.maxHeight
+      v._olds_.position = v.style.position
+      v._olds_.zIndex = v.style.zIndex
+      v._olds_.backgroundColor = v.style.backgroundColor
+      v._olds_.display = v.style.display
+      v._olds_.left = v.style.left
+      v._olds_.margin = v.style.margin
+      v._olds_.padding = v.style.padding
+      v._olds_.border = v.style.border
+      v._olds_.outline = v.style.outline
+
+
+      v.setAttribute('controls', true)
+      document.body.style.setProperty('overflow','hidden' ,'important')
+
+      v.style.setProperty('width','100vw' ,'important')
+      v.style.setProperty('min-width','100vw' ,'important')
+      v.style.setProperty('max-width','100vw' ,'important')
+      v.style.setProperty('height','100vh' ,'important')
+      v.style.setProperty('min-height','100vh' ,'important')
+      v.style.setProperty('max-height','100vh' ,'important')
+      v.style.setProperty('position','fixed' ,'important')
+      v.style.setProperty('z-index','21474836476' ,'important')
+      v.style.setProperty('background-color','black' ,'important')
+      v.style.setProperty('display','block' ,'important')
+      v.style.setProperty('left','0' ,'important')
+      v.style.setProperty('top','0' ,'important')
+      v.style.setProperty('margin','0' ,'important')
+      v.style.setProperty('padding','0' ,'important')
+      v.style.setProperty('border','0' ,'important')
+      v.style.setProperty('outline','0' ,'important')
+
+      v._olds_.parentNode = v.parentNode
+
+      const replaceNode = document.createElement('span')
+      v.parentNode.insertBefore(replaceNode, v)
+
+      v._olds_.replaceNode = replaceNode
+
+      document.documentElement.insertBefore(v, document.body)
+
+    }
+    else{
+      v.controls = v._olds_.controls
+      document.body.style.overflow = v._olds_.bodyOverflow
+      v.style.width = v._olds_.width
+      v.style.minWidth = v._olds_.minWidth
+      v.style.maxWidth = v._olds_.maxWidth
+      v.style.height = v._olds_.height
+      v.style.minHeight = v._olds_.minHeight
+      v.style.maxWidth = v._olds_.maxWidth
+      v.style.position = v._olds_.position
+      v.style.zIndex = v._olds_.zIndex
+      v.style.backgroundColor = v._olds_.backgroundColor
+      v.style.display = v._olds_.display
+      v.style.left = v._olds_.left
+      v.style.margin = v._olds_.margin
+      v.style.padding = v._olds_.padding
+      v.style.border = v._olds_.border
+      v.style.outline = v._olds_.outline
+
+      v._olds_.parentNode.replaceChild(v, v._olds_.replaceNode)
+
+      delete v._olds_
+    }
+  }
 
   let timer
   window.addEventListener('scroll', (e)=>{
     if(window.__scrollSync__ !== 0 || window.__scrollSync__ === (void 0)) return
-    ipc.sendToHost("webview-scroll",{
+    ipc.send('send-to-host', "webview-scroll",{
       top: e.target.scrollingElement ? e.target.scrollingElement.scrollTop : undefined,
       left: e.target.scrollingElement ? e.target.scrollingElement.scrollLeft : 0,
       scrollbar: window.innerHeight - document.documentElement.clientHeight
@@ -114,7 +504,29 @@ if(window.__started_){
       e.preventDefault()
       ipc.send('menu-or-key-events',e.deltaY > 0 ? 'zoomOut' : 'zoomIn')
     }
-  })
+  }, {passive: false})
+
+  let mainState
+  const codeSet = new Set([8,9,13,16,17,18,33,34,37,38,39,40,45,46,48,49,50,51,52,53,54,55,56,57,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,96,97,98,99,100,101,102,103,104,105,186,187,188,189,190,191,192,219,220,221,222])
+  document.addEventListener('keydown',e=>{
+    if(mainState){
+      const addInput = {}
+      if(e.ctrlKey) addInput.ctrlKey = true
+      if(e.metaKey) addInput.metaKey = true
+      if(e.shiftKey) addInput.shiftKey = true
+      if(e.altKey) addInput.altKey = true
+      if(Object.keys(addInput).length || !codeSet.has(e.keyCode)){
+        const name = mainState[JSON.stringify({code: e.code.toLowerCase().replace('arrow','').replace('escape','esc'),...addInput})] || mainState[JSON.stringify({key: e.key.toLowerCase().replace('arrow','').replace('escape','esc'),...addInput})]
+        if(name){
+          ipc.send('menu-or-key-events',name.split("_")[0])
+          console.log(name)
+          e.preventDefault()
+          e.stopImmediatePropagation()
+        }
+      }
+    }
+    ipc.send('send-to-host', 'webview-keydown',{key: e.key, keyCode: e.keyCode, which: e.which, button: e.button, ctrlKey: e.ctrlKey, metaKey: e.metaKey,altKey: e.altKey})
+  },{capture: true})
 
   function streamFunc(val){
     window._mediaElements_ = window._mediaElements_ || {}
@@ -139,74 +551,75 @@ if(window.__started_){
   const key = Math.random().toString()
   ipc.send("get-main-state",key,['tripleClick','alwaysOpenLinkNewTab','themeColorChange','isRecording','isVolumeControl',
     'keepAudioSeekValueVideo','rectangularSelection','fullscreenTransitionKeep','fullScreen','rockerGestureLeft','rockerGestureRight',
-    'inputHistory','inputHistoryMaxChar'])
+    'inputHistory','inputHistoryMaxChar','hoverStatusBar','hoverBookmarkBar','ALL_KEYS2','protectTab'])
   ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
-    if(data.fullscreenTransitionKeep){
-      let full = data.fullScreen ? true : false
-      let preV = "_"
-      setInterval(_=>{
-        const v = document.querySelector('video')
-        if(full && v && v.src && v.src != preV){
-          if(v.scrollWidth == window.innerWidth || v.scrollHeight == window.innerHeight || v.webkitDisplayingFullscreen){}
-          else{
-            const fullscreenButton = document.querySelector('.ytp-fullscreen-button,.fullscreenButton,.button-bvuiFullScreenOn,.fullscreen-icon,.full-screen-button,.np_ButtonFullscreen,.vjs-fullscreen-control,.qa-fullscreen-button,[data-testid="fullscreen_control"],.vjs-fullscreen-control,.EnableFullScreenButton,.DisableFullScreenButton,.mhp1138_fullscreen,button.fullscreenh,.screenFullBtn,.player-fullscreenbutton')
-            if(fullscreenButton){
-              const callback = e => {
-                e.stopPropagation()
-                e.preventDefault()
-                document.removeEventListener('mouseup',callback ,true)
-                fullscreenButton.click()
-                if(location.href.startsWith('https://www.youtube.com')){
-                  let retry = 0
-                  const id = setInterval(_=>{
-                    if(retry++>500) clearInterval(id)
-                    const e = document.querySelector('.html5-video-player').classList
-                    if(!e.contains('ytp-autohide')){
-                      // e.add('ytp-autohide')
-                      if(document.querySelector('.ytp-fullscreen-button.ytp-button').getAttribute('aria-expanded') == 'true'){
-                        v.click()
-                      }
-                    }
-                  },10)
-                }
-              }
-              document.addEventListener('mouseup',callback ,true);
-              setTimeout(_=>ipc.sendToHost('full-screen-mouseup'),500)
-            }
-            else{
-              const callback = e => {
-                e.stopPropagation()
-                e.preventDefault()
-                document.removeEventListener('mouseup',callback ,true)
-                v.webkitRequestFullscreen()
-              }
-              let i = 0
-              const cId = setInterval(_=>{
-                document.addEventListener('mouseup',callback ,true);
-                ipc.sendToHost('full-screen-mouseup')
-                if(i++ == 5){
-                  clearInterval(cId)
-                }
-              },100)
-            }
-          }
-          preV = v.src
-        }
-
-        if(v && v.src){
-          const currentFull = v.scrollWidth == window.innerWidth || v.scrollHeight == window.innerHeight || v.webkitDisplayingFullscreen
-          if(v && full != currentFull){
-            full = currentFull
-            if(full){
-              ipc.send("full-screen-html",true)
-            }
-            else{
-              ipc.send("full-screen-html",false)
-            }
-          }
-        }
-      },500)
-    }
+    mainState = data
+    // if(data.fullscreenTransitionKeep){
+    //   let full = data.fullScreen ? true : false
+    //   let preV = "_"
+    //   setInterval(_=>{
+    //     const v = document.querySelector('video')
+    //     if(full && v && v.src && v.src != preV){
+    //       if(v.scrollWidth == window.innerWidth || v.scrollHeight == window.innerHeight || v.webkitDisplayingFullscreen){}
+    //       else{
+    //         const fullscreenButton = document.querySelector('.ytp-fullscreen-button,.fullscreenButton,.button-bvuiFullScreenOn,.fullscreen-icon,.full-screen-button,.np_ButtonFullscreen,.vjs-fullscreen-control,.qa-fullscreen-button,[data-testid="fullscreen_control"],.vjs-fullscreen-control,.EnableFullScreenButton,.DisableFullScreenButton,.mhp1138_fullscreen,button.fullscreenh,.screenFullBtn,.player-fullscreenbutton')
+    //         if(fullscreenButton){
+    //           const callback = e => {
+    //             e.stopImmediatePropagation()
+    //             e.preventDefault()
+    //             document.removeEventListener('mouseup',callback ,true)
+    //             fullscreenButton.click()
+    //             if(location.href.startsWith('https://www.youtube.com')){
+    //               let retry = 0
+    //               const id = setInterval(_=>{
+    //                 if(retry++>500) clearInterval(id)
+    //                 const e = document.querySelector('.html5-video-player').classList
+    //                 if(!e.contains('ytp-autohide')){
+    //                   // e.add('ytp-autohide')
+    //                   if(document.querySelector('.ytp-fullscreen-button.ytp-button').getAttribute('aria-expanded') == 'true'){
+    //                     v.click()
+    //                   }
+    //                 }
+    //               },10)
+    //             }
+    //           }
+    //           document.addEventListener('mouseup',callback ,true);
+    //           setTimeout(_=>ipc.send('send-to-host', 'full-screen-mouseup'),500)
+    //         }
+    //         else{
+    //           const callback = e => {
+    //             e.stopImmediatePropagation()
+    //             e.preventDefault()
+    //             document.removeEventListener('mouseup',callback ,true)
+    //             v.webkitRequestFullscreen()
+    //           }
+    //           let i = 0
+    //           const cId = setInterval(_=>{
+    //             document.addEventListener('mouseup',callback ,true);
+    //             ipc.send('send-to-host', 'full-screen-mouseup')
+    //             if(i++ == 5){
+    //               clearInterval(cId)
+    //             }
+    //           },100)
+    //         }
+    //       }
+    //       preV = v.src
+    //     }
+    //
+    //     if(v && v.src){
+    //       const currentFull = v.scrollWidth == window.innerWidth || v.scrollHeight == window.innerHeight || v.webkitDisplayingFullscreen
+    //       if(v && full != currentFull){
+    //         full = currentFull
+    //         if(full){
+    //           ipc.send("full-screen-html",true)
+    //         }
+    //         else{
+    //           ipc.send("full-screen-html",false)
+    //         }
+    //       }
+    //     }
+    //   },500)
+    // }
     if (data.tripleClick) {
       window.addEventListener('click', e => {
         if (e.detail === 3) {
@@ -288,11 +701,16 @@ if(window.__started_){
           }
 
           if(window.top == window.self) {
-            ipc.sendToHost('theme-color-computed', computeThemeColor())
+            ipc.send('send-to-host', 'theme-color-computed', computeThemeColor())
           }
         }
       })
     }
+    // if(data.protectTab){
+    //   if(window._unloadEvent_) return
+    //   window._unloadEvent_ = e => e.returnValue = ''
+    //   window.addEventListener("beforeunload", window._unloadEvent_)
+    // }
     if (data.isRecording) {
       Function(data.isRecording)()
     }
@@ -333,18 +751,18 @@ if(window.__started_){
     if(data.rockerGestureLeft != 'none' || data.rockerGestureRight != 'none'){
       let downRight
 
-        document.addEventListener('contextmenu',e=>{
-          if(!downRight || downRight == "send"){
-            e.stopPropagation()
-            e.preventDefault()
-          }
-          downRight = void 0
-        },false)
+      document.addEventListener('contextmenu',e=>{
+        if(!downRight || downRight == "send"){
+          e.stopImmediatePropagation()
+          e.preventDefault()
+        }
+        downRight = void 0
+      },false)
 
       document.addEventListener('mousedown',e=>{
         if(e.button === 0 && e.buttons == 3 && data.rockerGestureLeft != 'none'){
           ipc.send('menu-command',data.rockerGestureLeft)
-          e.stopPropagation()
+          e.stopImmediatePropagation()
           e.preventDefault()
           downRight = 'send'
           return false
@@ -353,7 +771,7 @@ if(window.__started_){
           downRight = 'on'
           if(e.buttons == 3 && data.rockerGestureRight != 'none'){
             ipc.send('menu-command',data.rockerGestureRight)
-            e.stopPropagation()
+            e.stopImmediatePropagation()
             e.preventDefault()
             downRight = 'send'
             return false
@@ -365,36 +783,45 @@ if(window.__started_){
     if(data.inputHistory && !location.href.startsWith('chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd')){
       require('./inputHistory')(data.inputHistoryMaxChar)
     }
+    // if(data.hoverStatusBar || data.hoverBookmarkBar){
+    //   document.addEventListener('mousemove',e=>{
+    //     ipc.send('send-to-host', 'webview-mousemove',e.clientY)
+    //   },{passive:true})
+    // }
 
   })
 
 
-//style setting
-  let styleVal
-  if((styleVal = localStorage.getItem('meiryo')) !== null){
-    if(styleVal === "true"){
-      setTimeout(_=>{
-        const css = document.createElement('style')
-        const rule = document.createTextNode('html{ font-family: Arial, "メイリオ", sans-serif}')
-        css.appendChild(rule)
-        const head = document.getElementsByTagName('head')
-        if(head[0]) head[0].appendChild(css)
-      },0)
-    }
-  }
-  else{
-    ipc.send('need-meiryo')
-    ipc.once('need-meiryo-reply',(e,styleVal)=>{
-      localStorage.setItem('meiryo',styleVal)
-      if(styleVal){
-        const css = document.createElement('style')
-        const rule = document.createTextNode('html{ font-family: Arial, "メイリオ", sans-serif}')
-        css.appendChild(rule)
-        const head = document.getElementsByTagName('head')
-        if(head[0]) head[0].appendChild(css)
-      }
-    })
-  }
+// //style setting
+//   let styleVal
+//   try{
+//     styleVal = localStorage.getItem('meiryo')
+//   }catch(e){}
+//
+//   if(styleVal !== null){
+//     if(styleVal === "true"){
+//       setTimeout(_=>{
+//         const css = document.createElement('style')
+//         const rule = document.createTextNode('html{ font-family: Arial, "メイリオ", sans-serif}')
+//         css.appendChild(rule)
+//         const head = document.getElementsByTagName('head')
+//         if(head[0]) head[0].appendChild(css)
+//       },0)
+//     }
+//   }
+//   else{
+//     ipc.send('need-meiryo')
+//     ipc.once('need-meiryo-reply',(e,styleVal)=>{
+//       localStorage.setItem('meiryo',styleVal)
+//       if(styleVal){
+//         const css = document.createElement('style')
+//         const rule = document.createTextNode('html{ font-family: Arial, "メイリオ", sans-serif}')
+//         css.appendChild(rule)
+//         const head = document.getElementsByTagName('head')
+//         if(head[0]) head[0].appendChild(css)
+//       }
+//     })
+//   }
 
 
   let isFirst = true
@@ -408,8 +835,6 @@ if(window.__started_){
       if(url && location.href.startsWith(url)) return
     }
 
-    const gaiseki = (ax,ay,bx,by) => ax*by-bx*ay
-    const pointInCheck = (X,Y,W,H,PX,PY) => gaiseki(-W,0,PX-W-X,PY-Y) < 0 && gaiseki(0,H,PX-X,PY-Y) < 0 && gaiseki(W,0,PX-X,PY-Y-H) < 0 && gaiseki(0,-H,PX-W-X,PY-H-Y) < 0
 
     const popUp = (v,text)=>{
       const rect = v.getBoundingClientRect()
@@ -428,29 +853,33 @@ if(window.__started_){
     }
 
     let nothing
-    const eventHandler = (e,name,target)=>{
+    const eventHandler = async (e,name,target)=>{
       const v = target || e.target
       if(name == 'playOrPause'){
         v.paused ? v.play() : v.pause()
       }
       else if(name == 'fullscreen'){
-        if(location.href.startsWith('https://www.youtube.com')){
-          const newStyle = document.createElement('style')
-          newStyle.type = "text/css"
-          document.head.appendChild(newStyle)
-          const css = document.styleSheets[0]
-
-          const idx = document.styleSheets[0].cssRules.length;
-          css.insertRule(".ytp-popup.ytp-generic-popup { display: none; }", idx)
-        }
-        const isFullscreen = v.scrollWidth == window.innerWidth || v.scrollHeight == window.innerHeight
-        const isFull = ipc.sendSync('toggle-fullscreen-sync')
-        console.log(isFullscreen,isFull,v.offsetWidth, window.innerWidth,v.offsetHeight, window.innerHeight)
-        if(isFullscreen == isFull){
-          e.preventDefault()
-          e.stopPropagation()
-          return
-        }
+        // if(location.href.startsWith('https://www.youtube.com')){
+        //   const newStyle = document.createElement('style')
+        //   newStyle.type = "text/css"
+        //   document.head.appendChild(newStyle)
+        //   const css = document.styleSheets[0]
+        //
+        //   const idx = document.styleSheets[0].cssRules.length;
+        //   css.insertRule(".ytp-popup.ytp-generic-popup { display: none; }", idx)
+        // }
+        // const isFullscreen = v.scrollWidth == window.innerWidth || v.scrollHeight == window.innerHeight
+        // const isFull = await new Promise(r=>{
+        //   const key = Math.random().toString()
+        //   ipc.send('toggle-fullscreen2',void 0, key)
+        //   ipc.once(`toggle-fullscreen2-reply_${key}`, (e,result) => r(result))
+        // })
+        // console.log(isFullscreen,isFull,v.offsetWidth, window.innerWidth,v.offsetHeight, window.innerHeight)
+        // if(isFullscreen == isFull){
+        //   e.preventDefault()
+        //   e.stopImmediatePropagation()
+        //   return
+        // }
         const fullscreenButton = document.querySelector('.ytp-fullscreen-button,.fullscreenButton,.button-bvuiFullScreenOn,.fullscreen-icon,.full-screen-button,.np_ButtonFullscreen,.vjs-fullscreen-control,.qa-fullscreen-button,[data-testid="fullscreen_control"],.vjs-fullscreen-control,.EnableFullScreenButton,.DisableFullScreenButton,.mhp1138_fullscreen,button.fullscreenh,.screenFullBtn,.player-fullscreenbutton')
         console.log(fullscreenButton,v.webkitDisplayingFullscreen)
         if(fullscreenButton){
@@ -464,11 +893,16 @@ if(window.__started_){
             v.webkitRequestFullscreen()
           }
         }
+        // maximizeInPanel(v)
       }
       else if(name == 'exitFullscreen'){
-        const isFull = ipc.send('toggle-fullscreen-sync',1)
-        const isFullscreen = v.offsetWidth == window.innerWidth || v.offsetHeight == window.innerHeight
-        if(isFullscreen == isFull) return
+        // const isFull = await new Promise(r=>{
+        //   const key = Math.random().toString()
+        //   ipc.send('toggle-fullscreen2',1, key)
+        //   ipc.once(`toggle-fullscreen2-reply_${key}`, (e,result) => r(result))
+        // })
+        // const isFullscreen = v.offsetWidth == window.innerWidth || v.offsetHeight == window.innerHeight
+        // if(isFullscreen == isFull) return
         const fullscreenButton = document.querySelector('.ytp-fullscreen-button,.fullscreenButton,.button-bvuiFullScreenOn,.fullscreen-icon,.full-screen-button,.np_ButtonFullscreen,.vjs-fullscreen-control,.qa-fullscreen-button,[data-testid="fullscreen_control"],.vjs-fullscreen-control,.EnableFullScreenButton,.DisableFullScreenButton,.mhp1138_fullscreen,button.fullscreenh,.screenFullBtn,.player-fullscreenbutton')
         if(fullscreenButton){
           fullscreenButton.click()
@@ -481,6 +915,8 @@ if(window.__started_){
             v.webkitRequestFullscreen()
           }
         }
+
+        // maximizeInPanel(v)
       }
       else if(name == 'mute'){
         v.muted = !v.muted
@@ -555,7 +991,7 @@ if(window.__started_){
       }
       if(!nothing){
         e.preventDefault()
-        e.stopPropagation()
+        e.stopImmediatePropagation()
         return false
       }
     }
@@ -658,7 +1094,7 @@ if(window.__started_){
         else{
           eventHandler(e,e.deltaY * modify > 0 ? minusToPlus[inputs.wheelMinus] : inputs.wheelMinus,target)
         }
-      },true)
+      },{capture: true, passive: false})
     }
 
     if(inputs.enableKeyDown){
@@ -691,9 +1127,13 @@ if(window.__started_){
   }
 
   let retry = 0
-  let receivedVideoEvent = setInterval(_=>{
+  let receivedVideoEvent = setInterval(async _=>{
     if(document.querySelector('video,audio')){
-      const [inputs] = ipc.sendSync('get-sync-main-states',['inputsVideo'])
+      const [inputs] = await new Promise(r=>{
+        const key = Math.random().toString()
+        ipc.send('get-sync-main-states',['inputsVideo'],key)
+        ipc.once(`get-sync-main-states-reply_${key}`, (e,result) => r(result))
+      })
       chrome.runtime.sendMessage({ event: "video-event",inputs })
       clearInterval(receivedVideoEvent)
     }
@@ -712,8 +1152,8 @@ if(window.__started_){
     if(inputs.stream){
       streamFunc(inputs.val)
     }
-    else{
-      videoFunc({},inputs)
+    else if(inputs.video){
+      videoFunc({},inputs.val)
     }
     return false
   })
@@ -761,4 +1201,12 @@ if(window.__started_){
     }
   })
 
+  ipc.on('execute-script-in-isolation-world', (e, key, code) => {
+    ipc.send(`execute-script-in-isolation-world-reply_${key}`, Function(`return ${code}`)())
+  })
+
+  ipc.on('no-skip-context-menu', (e, key)=>{
+    window.__no_skip_context_menu__ = true
+    ipc.send(`no-skip-context-menu-reply_${key}`)
+  })
 }

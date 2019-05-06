@@ -4,6 +4,8 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './savedStateBase';
 
+import '../defaultExtension/contentscript'
+
 require('./themeForPage')('themeSessionManagerSidebar')
 
 ReactDOM.render(

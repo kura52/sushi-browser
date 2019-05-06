@@ -1,5 +1,5 @@
 import process from './process'
-import {ipcRenderer as ipc} from 'electron';
+import {ipcRenderer as ipc} from './ipcRenderer'
 import localForage from "../LocalForage";
 import uuid from 'node-uuid';
 import React from 'react';
@@ -13,10 +13,11 @@ import VerticalTabResizer from '../render/VerticalTabResizer'
 import removeMarkdown from './removeMarkdown'
 import $ from 'jquery';
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
-import l10n from '../../brave/js/l10n';
-l10n.init()
 
-const Editor = require('./tui-editor/dist/tui-editor-Editor-all.min');
+import l10n from '../../brave/js/l10n';
+const initPromise = l10n.init()
+
+const Editor = require('../../resource/tui-editor/dist/tui-editor-Editor-all.min');
 
 Editor.i18n.setLanguage(['ja', 'ja_JP'], {
   'Markdown': 'Markdown',
@@ -69,7 +70,7 @@ Editor.i18n.setLanguage(['ja', 'ja_JP'], {
 import InfiniteTree from '../render/react-infinite-tree';
 import rowRenderer from '../render/react-infinite-tree/rendererNote';
 
-const isMain = location.href.startsWith("chrome://brave/")
+const isMain = location.href.startsWith("file://")
 
 // if(!isMain){
 //   localForage.getItem('favicon-set').then(setTime=>{
@@ -378,6 +379,7 @@ export default class App extends React.Component {
   }
 
   async componentDidMount() {
+    await initPromise
     ReactDOM.findDOMNode(this.refs.stickey).style.height = "100%"
     const isAuto = this.props.favoritePage
 
@@ -600,16 +602,16 @@ export default class App extends React.Component {
               <Button.Group basic>
                 <Button icon='file' onClick={_=>{
                   this.refs.content.menuKey = selectedNodes.length ? selectedNodes : [this.refs.content.refs.iTree.tree.getRootNode().getLastChild()]
-                  ipc.emit('favorite-menu-reply',null,'addBookmark',true)
+                  this.refs.content.event(null,'addBookmark',true)
                 }}/>
                 <Button icon='folder' onClick={_=>{
                   this.refs.content.menuKey = selectedNodes.length ? selectedNodes : [this.refs.content.refs.iTree.tree.getRootNode().getLastChild()]
-                  ipc.emit('favorite-menu-reply',null,'addFolder',true)
+                  this.refs.content.event(null,'addFolder',true)
                 }}/>
                 <Button icon='minus' onClick={_=>{
                   if(selectedNodes.length){
                     this.refs.content.menuKey = selectedNodes
-                    ipc.emit('favorite-menu-reply',null,'delete')
+                    this.refs.content.event(null,'delete')
                   }
                 }}/>
                 <Button icon='save' onClick={_=>{
@@ -644,16 +646,16 @@ export default class App extends React.Component {
                     }} />
                     <Button icon='file' onClick={_=>{
                       this.refs.content.menuKey = selectedNodes.length ? selectedNodes : [this.refs.content.refs.iTree.tree.getRootNode().getLastChild()]
-                      ipc.emit('favorite-menu-reply',null,'addBookmark',true)
+                      this.refs.content.event(null,'addBookmark',true)
                     }} content="New"/>
                     <Button icon='folder' onClick={_=>{
                       this.refs.content.menuKey = selectedNodes.length ? selectedNodes : [this.refs.content.refs.iTree.tree.getRootNode().getLastChild()]
-                      ipc.emit('favorite-menu-reply',null,'addFolder',true)
+                      this.refs.content.event(null,'addFolder',true)
                     }} content="New Folder"/>
                     <Button icon='minus' onClick={_=>{
                       if(selectedNodes.length){
                         this.refs.content.menuKey = selectedNodes
-                        ipc.emit('favorite-menu-reply',null,'delete')
+                        this.refs.content.event(null,'delete')
                       }
                     }} content="Delete"/>
                     <Button icon='save' onClick={_=>{
@@ -777,7 +779,7 @@ class Contents extends React.Component {
         return
       }
       if(event.target.closest('.hover-external')){
-        ipc.sendToHost("open-tab-opposite", `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note.html?id=${currentNode.id}`
+        ipc.send('send-to-host', "open-tab-opposite", `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note.html?id=${currentNode.id}`
           ,true,event.button == 1 ? 'create-web-contents' : openType ? 'new-tab' : 'load-url')
         return
       }
@@ -803,7 +805,7 @@ class Contents extends React.Component {
       if(cmd == "openInNewTab" || cmd == "openInNewPrivateTab" || cmd == "openInNewTorTab" || cmd == "openInNewSessionTab" || cmd == "openInNewWindow" || cmd == "openInNewWindowWithOneRow" || cmd == "openInNewWindowWithTwoRow") {
         const nodes = this.menuKey
         this.menuKey = (void 0)
-        openFavorite(nodes.map(n=>this.getKey(n)),this.props.cont ? this.props.cont.getId() : (void 0),cmd).then(_=>{
+        openFavorite(nodes.map(n=>this.getKey(n)),this.props.cont ? this.props.cont.id : (void 0),cmd).then(_=>{
           console.log(324234235346545)
           this.props.onClick && this.props.onClick()
         })
@@ -834,7 +836,7 @@ class Contents extends React.Component {
           text: `Enter a new Name`,
           initValue:  [nodes[0].name],
           needInput:  ["Title"]
-        },this.props.cont ? this.props.cont.getId() : (void 0)).then(value => {
+        },this.props.cont ? this.props.cont.id : (void 0)).then(value => {
           if (!value) return
           const data =  {title:value[0]}
           console.log(this.getKey(nodes[0]),data)
@@ -889,7 +891,7 @@ class Contents extends React.Component {
           inputable: true, title: 'New Directory',
           text: `Enter a new Directory name`,
           needInput: [""]
-        },this.props.cont ? this.props.cont.getId() : (void 0)).then(value => {
+        },this.props.cont ? this.props.cont.id : (void 0)).then(value => {
           if (!value) return
           const data =  {title:value[0], is_file:false,children:[]}
           if(nodes[0].type == 'file' || forceFile){
@@ -1189,10 +1191,10 @@ class Contents extends React.Component {
                 // else{
                 if(this.props.cont){
                   // if(event.button == 1){
-                  //   this.props.cont.hostWebContents.send('create-web-contents',{id:this.props.cont.getId(),targetUrl:currentNode.url,disposition:'background-tab'})
+                  //   this.props.cont.hostWebContents2.send('create-web-contents',{id:this.props.cont.id,targetUrl:currentNode.url,disposition:'background-tab'})
                   // }
                   // else{
-                  //   this.props.cont.hostWebContents.send(openType2 ? 'new-tab' : 'load-url',this.props.cont.getId(),currentNode.url)
+                  //   this.props.cont.hostWebContents2.send(openType2 ? 'new-tab' : 'load-url',this.props.cont.id,currentNode.url)
                   // }
                   // if(this.props.onClick) this.props.onClick()
                 }
@@ -1200,7 +1202,7 @@ class Contents extends React.Component {
                   this.props.parent.handleClickFile(currentNode)
                   selectedNodes.push(currentNode)
                   localForage.setItem("note-sidebar-select-node",selectedNodes.map(node=>node.id))
-                  // ipc.sendToHost("open-tab-opposite",currentNode.url,true,event.button == 1 ? 'create-web-contents' : openType2 ? 'new-tab' : 'load-url')
+                  // ipc.send('send-to-host', "open-tab-opposite",currentNode.url,true,event.button == 1 ? 'create-web-contents' : openType2 ? 'new-tab' : 'load-url')
                 }
                 return;
                 // }

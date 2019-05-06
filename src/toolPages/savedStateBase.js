@@ -1,5 +1,5 @@
 import process from './process'
-import {ipcRenderer as ipc} from 'electron';
+import {ipcRenderer as ipc} from './ipcRenderer'
 import localForage from "../LocalForage";
 import uuid from 'node-uuid';
 import React from 'react';
@@ -14,7 +14,7 @@ import InfiniteTree from '../render/react-infinite-tree';
 import rowRenderer from '../render/react-infinite-tree/renderer';
 import moment from "moment/moment";
 
-const isMain = location.href.startsWith("chrome://brave/")
+const isMain = location.href.startsWith("file://")
 
 let openType
 const key = uuid.v4()
@@ -26,9 +26,9 @@ ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
 const convertUrlMap = new Map([
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html',''],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html','about:blank'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html','chrome://bookmarks/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html','chrome://bookmarks2/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html','chrome://bookmarks-sidebar/'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html','chrome://history/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html','chrome://history2/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_history_sidebar.html','chrome://tab-history-sidebar/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_trash_sidebar.html','chrome://tab-trash-sidebar/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download_sidebar.html','chrome://download-sidebar/'],
@@ -42,12 +42,12 @@ const convertUrlMap = new Map([
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html','chrome://terminal/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html','chrome://converter/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html','chrome://automation/'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html','chrome://settings/'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general','chrome://settings#general'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search','chrome://settings#search'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs','chrome://settings#tabs'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#keyboard','chrome://settings#keyboard'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extensions','chrome://settings#extensions'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html','chrome://setting/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general','chrome://setting#general'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search','chrome://setting#search'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs','chrome://setting#tabs'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#keyboard','chrome://setting#keyboard'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extensions','chrome://setting#extensions'],
 ])
 
 const convertUrlReg = /^chrome\-extension:\/\/dckpbojndfoinamcdamhkjhnjnmjkfjd\/(video|ace|bind)\.html\?url=([^&]+)/
@@ -470,7 +470,7 @@ class Contents extends React.Component {
       if(cmd == "openInNewWindow") {
         const currentNode = this.menuKey
         this.menuKey = (void 0)
-        openState(this.props.cont ? this.props.cont.getId() : (void 0),currentNode.datas || currentNode.id).then(_=>{
+        openState(this.props.cont ? this.props.cont.id : (void 0),currentNode.datas || currentNode.id).then(_=>{
           this.props.onClick && this.props.onClick()
         })
       }
@@ -509,7 +509,7 @@ class Contents extends React.Component {
           text: `Enter a new Name`,
           initValue: [currentNode.name],
           needInput: ["Title"]
-        },this.props.cont ? this.props.cont.getId() : (void 0)).then(value => {
+        },this.props.cont ? this.props.cont.id : (void 0)).then(value => {
           if (!value) return
           const data = {name:value[0]}
           renameState(currentNode.id,data).then(_=>_)
@@ -555,11 +555,11 @@ class Contents extends React.Component {
             if(currentNode.type == 'file'){
               const type = event.button == 1 ? 'create-web-contents' : openType ? 'new-tab' : 'load-url'
               if(this.props.cont) {
-                this.props.cont.hostWebContents.send('restore-tab', this.props.cont.getId(), currentNode.id, void 0, [] ,type)
+                this.props.cont.hostWebContents2.send('restore-tab', this.props.cont.id, currentNode.id, void 0, [] ,type)
                 if (this.props.onClick) this.props.onClick()
               }
               else{
-                ipc.sendToHost("restore-tab-opposite", currentNode.id, void 0, [],type)
+                ipc.send('send-to-host', "restore-tab-opposite", currentNode.id, void 0, [],type)
               }
               return
             }

@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style type="text/css">
+    @font-face {
+      font-family: 'FontAwesome';
+      src: url('./style/fonts/fontawesome-webfont.eot?v=4.4.0');
+      font-weight: normal;
+      font-style: normal;
+    }
+    .fa {
+      display: inline-block;
+      font: normal normal normal 14px/1 FontAwesome;
+      font-size: inherit;
+      text-rendering: auto;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    .fa-angle-up:before {
+      content: "\f106";
+    }
+    .fa-angle-down:before {
+      content: "\f107";
+    }
+    @font-face {
+      font-family: 'Lato';
+      font-style: normal;
+      font-weight: 400;
+      src: local('Lato Regular'), local('Lato-Regular'), url(https://fonts.gstatic.com/s/lato/v11/UyBMtLsHKBKXelqf4x7VRQ.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+1E00-1EFF, U+20A0-20AB, U+20AD-20CF, U+2C60-2C7F, U+A720-A7FF;
+    }
+    /* latin */
+    @font-face {
+      font-family: 'Lato';
+      font-style: normal;
+      font-weight: 400;
+      src: local('Lato Regular'), local('Lato-Regular'), url(https://fonts.gstatic.com/s/lato/v11/1YwB1sO8YE1Lyjf12WNiUA.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2212, U+2215, U+E0FF, U+EFFD, U+F000;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      min-width: 320px;
+      background: #FFF;
+      font-family: Lato,'Helvetica Neue',Arial,Helvetica,sans-serif;
+      font-size: 14px;
+      line-height: 1.4285em;
+      color: rgba(0,0,0,.87);
+      font-smoothing: antialiased;
+    }
+
+    .ui.checkbox .box:before, .ui.checkbox label:before {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 17px;
+      height: 17px;
+      content: '';
+      background: #FFF;
+      border-radius: .21428571rem;
+      -webkit-transition: border .1s ease,opacity .1s ease,box-shadow .1s ease,-webkit-transform .1s ease;
+      transition: border .1s ease,opacity .1s ease,box-shadow .1s ease,-webkit-transform .1s ease;
+      transition: border .1s ease,opacity .1s ease,transform .1s ease,box-shadow .1s ease;
+      transition: border .1s ease,opacity .1s ease,transform .1s ease,box-shadow .1s ease,-webkit-transform .1s ease;
+      border: 1px solid #D4D4D5;
+    }
+    .ui.checkbox .box:after, .ui.checkbox label:after {
+      position: absolute;
+      font-size: 14px;
+      top: 0;
+      left: 0;
+      width: 17px;
+      height: 17px;
+      text-align: center;
+      opacity: 0;
+      color: rgba(0,0,0,.87);
+      -webkit-transition: border .1s ease,opacity .1s ease,box-shadow .1s ease,-webkit-transform .1s ease;
+      transition: border .1s ease,opacity .1s ease,box-shadow .1s ease,-webkit-transform .1s ease;
+      transition: border .1s ease,opacity .1s ease,transform .1s ease,box-shadow .1s ease;
+      transition: border .1s ease,opacity .1s ease,transform .1s ease,box-shadow .1s ease,-webkit-transform .1s ease;
+      font-family: Checkbox;
+    }
+
+    body {
+      margin: 0;
+      height: 100%;
+      display: flex;
+      background: #0000;
+    }
+    body, html {
+      height: 100%;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    html {
+      height: 100%;
+      font-size: 14px;
+      line-height: 1.5;
+      overflow: hidden;
+      color: var(--color);
+      background: #0000;
+    }
+    html {
+      font-size: 14px;
+    }
+    html {
+      box-sizing: border-box;
+      font-family: sans-serif;
+      -ms-text-size-adjust: 100%;
+      -webkit-text-size-adjust: 100%;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+    }
+    ::selection {
+      background-color: #CCE2FF;
+      color: rgba(0,0,0,.87);
+    }
+
+    .browser-page-search {
+      /* position: absolute; */
+      /* right: 14px; */
+      /* width: 300px; */
+      height: 30px;
+      z-index: 1000;
+      background-color: #fff;
+      display: flex;
+      border-top-left-radius: 0.285714rem;
+      border-bottom-left-radius: 0.285714rem;
+      border-top-right-radius: 0.285714rem;
+      border-bottom-right-radius: 0.285714rem;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    .browser-page-search input:focus {
+      border-color: #85B7D9;
+      outline: 0;
+    }
+
+    input[type=text], input[type=email], input[type=search], input[type=password] {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+    }
+    .search-text {
+      border: 1px solid #aaa;
+      border-top-left-radius: 0.285714rem;
+      border-bottom-left-radius: 0.285714rem;
+    }
+    input {
+      line-height: normal;
+    }
+    button, input, optgroup, select, textarea {
+      color: inherit;
+      font: inherit;
+      margin: 0;
+    }
+
+    a.search-button {
+      text-decoration: none;
+      cursor: pointer;
+      color: #808080;
+    }
+    a {
+      color: red;
+    }
+    a {
+      color: var(--color-link);
+    }
+    a {
+      background: 0 0;
+      color: #4183C4;
+      text-decoration: none;
+    }
+
+    .search-next {
+      width: 25px;
+      border-color: #aaa;
+      border-style: solid;
+      border-width: 1px 0px 1px 0px;
+      text-align: center;
+    }
+
+
+    .search-num {
+      position: absolute;
+      right: 253px;
+      z-index: 1001;
+      top: 0px;
+      color: #909090;
+      line-height: 2.2;
+    }
+
+    .browser-page-search>.ui.checkbox {
+      border-top: 1px solid #aaa;
+      border-bottom: 1px solid #aaa;
+    }
+    .ui.checkbox {
+      position: relative;
+      display: inline-block;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      outline: 0;
+      vertical-align: baseline;
+      font-style: normal;
+      min-height: 17px;
+      font-size: 1rem;
+      line-height: 17px;
+      min-width: 17px;
+    }
+
+    .ui.checkbox input.hidden {
+      z-index: -1;
+    }
+    .ui.checkbox input[type=checkbox], .ui.checkbox input[type=radio] {
+      cursor: pointer;
+      position: absolute;
+      top: 0;
+      left: 0;
+      opacity: 0!important;
+      outline: 0;
+      z-index: 3;
+      width: 17px;
+      height: 17px;
+    }
+    .browser-page-search input {
+      display: block;
+      width: 200px;
+      font-size: 14px;
+      padding-bottom: 3px;
+      padding-left: 8px;
+    }
+    input[type=checkbox], input[type=radio] {
+      box-sizing: border-box;
+      padding: 0;
+    }
+    .hidden {
+      display: none !important;
+    }
+    input {
+      line-height: normal;
+    }
+    button, input, optgroup, select, textarea {
+      color: inherit;
+      font: inherit;
+      margin: 0;
+    }
+
+    ui.checkbox input.hidden+label {
+      cursor: pointer;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+    .browser-page-search>.ui.checkbox>label {
+      top: 4px;
+      padding-left: 1.35714em;
+      padding-right: 6px;
+      font-size: 12px;
+    }
+    .ui.checkbox label, .ui.checkbox+label {
+      color: rgba(0,0,0,.87);
+      -webkit-transition: color .1s ease;
+      transition: color .1s ease;
+    }
+    .ui.checkbox .box, .ui.checkbox label {
+      cursor: auto;
+      position: relative;
+      display: block;
+      padding-left: 1.85714em;
+      outline: 0;
+      font-size: 1em;
+    }
+
+    .ui.checkbox input:checked~.box:before, .ui.checkbox input:checked~label:before {
+      background: #FFF;
+      border-color: rgba(34,36,38,.35);
+    }
+    .browser-page-search>.ui.checkbox .box:before, .ui.checkbox label:before {
+      width: 12px;
+      height: 12px;
+      top: 2px;
+    }
+
+    .ui.checkbox input:checked~.box:after, .ui.checkbox input:checked~label:after {
+      content: '\e800';
+    }
+    .ui.checkbox input:checked~.box:after, .ui.checkbox input:checked~label:after {
+      opacity: 1;
+      color: rgba(0,0,0,.95);
+    }
+    .browser-page-search>.ui.checkbox .box:after, .ui.checkbox label:after {
+      font-size: 13px;
+      width: 12px;
+      height: 12px;
+    }
+
+    .search-close {
+      font-size: 1.3em;
+      width: 25px;
+      border-color: #aaa;
+      border-style: solid;
+      border-width: 1px 1px 1px 0px;
+      text-align: center;
+      line-height: 1.3;
+      border-top-right-radius: 0.285714rem;
+      border-bottom-right-radius: 0.285714rem;
+    }
+    .search-prev {
+      width: 25px;
+      border-color: #aaa;
+      border-style: solid;
+      border-width: 1px 0px 1px 0px;
+      text-align: center;
+    }
+
+    .ui.checkbox input.hidden+label {
+      cursor: pointer;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+  </style>
+</head>
+<body>
+<div class="visible browser-page-search">
+  <input class="search-text" id="text" type="text" placeholder="Search...">
+  <a class="search-button" id="back" href="javascript:void(0)">
+    <i class="search-next fa fa-angle-up" style="font-size: 1.5em; line-height: 1.2; height: 30px;"></i>
+  </a>
+  <a class="search-button" id="forward" href="javascript:void(0)">
+    <i class="search-prev fa fa-angle-down" style="font-size: 1.5em; line-height: 1.3; height: 30px;"></i>
+  </a>
+  <span class="search-num"></span>
+  <div class="ui checkbox" style="padding-left: 4px; border-left: 1px solid rgb(170, 170, 170);">
+    <input class="hidden" readonly="" tabindex="0" type="checkbox">
+    <label id="case">Case</label>
+  </div>
+  <div class="ui checkbox">
+    <input class="hidden" readonly="" tabindex="0" type="checkbox">
+    <label id="or">OR</label>
+  </div>
+  <div class="ui checkbox">
+    <input class="hidden" readonly="" tabindex="0" type="checkbox">
+    <label id="reg">Reg</label>
+  </div>
+  <div class="ui checkbox">
+    <input class="hidden" readonly="" tabindex="0" type="checkbox">
+    <label id="all">All</label>
+  </div>
+  <a class="search-button" id="close" href="javascript:void(0)">
+    <div class="search-close" style="line-height: 1.5; height: 30px;">☓</div>
+  </a>
+</div>
+</body>
+</html>

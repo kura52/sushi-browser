@@ -42,22 +42,22 @@ sharedState._tabBarMarginTop = parseInt(tabBarMarginTop)
 sharedState.tabBarMarginTop = (removeTabBarMarginTop && remote.getCurrentWindow().isMaximized()) ? 0 : sharedState._tabBarMarginTop
 sharedState.multistageTabs = multistageTabs
 
-if(removeTabBarMarginTop){
-  ipc.on('maximize',(e,val)=>{
-    let nextVal
-    if(val){
-      nextVal = 0
-    }
-    else{
-      nextVal = sharedState._tabBarMarginTop
-    }
-    if(nextVal != sharedState.tabBarMarginTop){
-      sharedState.tabBarMarginTop = nextVal
-      PubSub.publish('set-state-split-window')
-      PubSub.publish('set-state-split-window')
-    }
-  })
-}
+// if(removeTabBarMarginTop){
+//   ipc.on('maximize',(e,val)=>{
+//     let nextVal
+//     if(val){
+//       nextVal = sharedState._tabBarMarginTop
+//     }
+//     else{
+//       nextVal = sharedState._tabBarMarginTop
+//     }
+//     if(nextVal != sharedState.tabBarMarginTop){
+//       sharedState.tabBarMarginTop = nextVal
+//       PubSub.publish('set-state-split-window')
+//       PubSub.publish('set-state-split-window')
+//     }
+//   })
+// }
 
 ;(function(){
   const s = document.createElement('style');
@@ -135,13 +135,16 @@ class Title extends React.Component {
 
   mediaMenu(){
     return <NavbarMenu className="sort-sidebar" k={this.props.datas.k} mouseOver={true} isFloat={isFloatPanel(this.props.datas.k)} onClick={::this.handleClick}
-                       onMouseOver={_=>{document.querySelector('.hol-resizer').style.display = 'none';this.props.parent.setState({})}}
-                       onMouseLeave={_=>{document.querySelector('.hol-resizer').style.display = 'inherit'}}
+                       onMouseOver={_=>{
+                         if(document.querySelector('.hol-resizer')) document.querySelector('.hol-resizer').style.display = 'none'
+                         this.props.parent.setState({})
+                       }}
+                       onMouseLeave={_=>{if(document.querySelector('.hol-resizer')) document.querySelector('.hol-resizer').style.display = 'inherit'}}
                        audio={true} icon="volume-up" className="play-mode playing" style={{lineHeight: 'inherit',pointerEvents: 'initial', float: 'left','-webkit-app-region': 'no-drag'}} keepVisible={true}>
 
-      <div className="ui input" style={{ margin: '4px 5px 0px 10px', display: 'inline-block'}}>
-        <input onMouseDown={e=>e.target.closest('li').setAttribute('draggable',false)}
-               style={{padding: '.5em 0', width: 180}} type="range" min="0" max="80" name="vol" step="1" value={this.audioVolume} onInput={::this.audioControl}/>
+      <div className="ui input preview-img-input" style={{ margin: '4px 5px 0px 10px', display: 'inline-block'}}>
+        <input  className="preview-img-input" onMouseDown={e=>e.target.closest('li').setAttribute('draggable',false)}
+                style={{padding: '.5em 0', width: 180}} type="range" min="0" max="80" name="vol" step="1" value={this.audioVolume} onInput={::this.audioControl}/>
       </div>
       <label style={{verticalAlign: '13px', paddingRight: 10}}>{parseInt(this.audioVolume) * 10}%</label>
     </NavbarMenu>
@@ -576,7 +579,7 @@ class Tabs extends React.Component {
         }
         beforeTitle.push(<span className="tab-number" style={{color:titleColor}}>{tabNumber}</span>)
       }
-      beforeTitle.push(<img className='favi-tab' src={notLoadTabUntilSelected && !allSelectedkeys.has(tab.key) ? 'resource/file.svg' : page.title && page.favicon !== 'loading' ? page.favicon : 'resource/l.svg'} onError={(e)=>{e.target.src = 'resource/file.svg'}}/>)
+      beforeTitle.push(<img className='favi-tab' src={notLoadTabUntilSelected && !allSelectedkeys.has(tab.key) ? 'resource/file.svg' : page.favicon !== 'loading' && !page.isLoading ? page.favicon : 'resource/l.png'} onError={(e)=>{e.target.src = 'resource/file.svg'}}/>)
 
       const title = page.favicon !== 'loading' || page.titleSet  || page.location == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? page.title : page.location
 
@@ -707,7 +710,7 @@ class Tabs extends React.Component {
 
             if(sharedState.tabPreviewRecent && (!this.tabPreviewHeight || this.tabPreviewHeight == 27)){
               const base64 = Math.random().toString()
-              ipc.send('take-capture', {base64, tabId: t.wvId})
+              ipc.send('take-capture', {base64, tabId: t.wvId, noActiveSkip: true})
               await new Promise(r=>{
                 ipc.once(`take-capture-reply_${base64}`,(e,dataURL,size)=>{
                   t.tabPreview = {dataURL,...size}
@@ -929,6 +932,7 @@ class Tabs extends React.Component {
     else{
       ipc.emit('chrome-tabs-move-inner',null,null,[fromTab],this.state.tabs[e.newIndex-1].key,true,key)
     }
+    this.setState({})
   }
 
   handleEnd(e) {
@@ -966,6 +970,7 @@ class Tabs extends React.Component {
   }
 
   handleTabClick(key, e) {
+    ipc.send('disable-webContents-focus', true)
     this.tabPreviewStop = true
     PubSub.publish('tab-preview-update',true)
     console.log(e)
@@ -1057,6 +1062,7 @@ class Tabs extends React.Component {
   }
 
   handleTabMouseUp(e){
+    ipc.send('disable-webContents-focus', false)
     this.tabPreviewStop = false
     setTimeout(_=>{
       const dom = ReactDOM.findDOMNode(this.refs.ttab)
@@ -1169,6 +1175,7 @@ class Tabs extends React.Component {
   }
 
   handleDragEnd(tabs,evt) {
+    ipc.send('disable-webContents-focus', false)
     ReactDOM.findDOMNode(this.refs.ttab).style['-webkit-app-region'] = 'drag'
     console.log("handleDragEnd",Date.now())
     mainState.set('dragData',null)
@@ -1242,27 +1249,14 @@ class Tabs extends React.Component {
         if(this.state.tabs.length == tabs.length && this.props.isOnlyPanel) return
         console.log(evt,tabs,this.state.tabs)
         if(evt.dataTransfer.dropEffect == "move") return
-        const promises = tabs.map(tab=>{
-          return new Promise(r=>{
-            const cont = getWebContents(tab)
-            const guestInstanceId = tab._guestInstanceId || cont.guestInstanceId
-            const tabId = tab.wvId
-            ipc.send('detach-tab',tabId)
-            ipc.once(`detach-tab_${tabId}`,(e,_guestInstanceId)=>{
-              tab.wv.attachGuest(_guestInstanceId)
-              const d = {wvId:tabId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,fields:tab.fields,reloadInterval:tab.reloadInterval,
-                rest:{rSession:tab.rSession,wvId:tabId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId}
-              ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
-              r([d,cont])
-            })
-          })
+        const vals = tabs.map(tab=>{
+          ipc.send('move-browser-view', this.props.k, tab.key, 'detach')
+          const d = {wvId:tab.wvId,c_page:tab.page,c_key:tab.key,privateMode:tab.privateMode,tabPreview:tab.tabPreview,pin:tab.pin,protect:tab.protect,lock:tab.lock,mute:tab.mute,fields:tab.fields,reloadInterval:tab.reloadInterval,
+            rest:{rSession:tab.rSession,wvId:tab.wvId,openlink: tab.openlink,sync:tab.sync,syncReplace:tab.syncReplace,dirc:tab.dirc,ext:tab.ext,oppositeMode:tab.oppositeMode,bind:tab.bind,mobile:tab.mobile,adBlockThis:tab.adBlockThis},guestInstanceId: tab.wvId}
+          ipc.send('chrome-tabs-onDetached-to-main',d.wvId,{oldPosition: this.state.tabs.findIndex(t=>t.key==d.c_key)})
+          return d
         })
-        Promise.all(promises).then(vals=> {
-          const winId = ipc.sendSync('browser-load',{id:remote.getCurrentWindow().id,x:evt.screenX,y:evt.screenY,tabParam:JSON.stringify(vals.map(x=>x[0]))})
-          for(let x of vals){
-            x[1].moveTo(0, winId)
-          }
-        })
+        const winId = ipc.sendSync('browser-load',{id:remote.getCurrentWindow().id,x:evt.screenX,y:evt.screenY,tabParam:JSON.stringify(vals)})
       }
       ,100)
 
@@ -1327,7 +1321,7 @@ class Tabs extends React.Component {
     ReactDOM.findDOMNode(this.refs.ttab).style['-webkit-app-region'] = 'no-drag'
     const dragData = ipc.sendSync('get-sync-main-state','dragData')
     if(!dragData) return
-    console.log(134,dragData.windowId == this.props.windowId,this.props.k == dragData.k,dragData.tabs,dragData)
+    // console.log(134,dragData.windowId == this.props.windowId,this.props.k == dragData.k,dragData.tabs,dragData)
     if(dragData.windowId == this.props.windowId){
       if(dragData.tabs) return
     }
@@ -1415,6 +1409,7 @@ class Tabs extends React.Component {
   }
 
   render() {
+    console.log('befo3')
     const {_tabClassNames,tabInlineStyles,tabs,content} = this.buildRenderComponent()
     const background = !sharedState.theme ? getTheme('colors','frame') : `${getTheme('images','theme_frame')} ${getTheme('images','theme_frame') ? (getTheme('colors','frame') || 'initial') : ''}`
 
@@ -1466,24 +1461,34 @@ class Tabs extends React.Component {
           height: preview.tabPreview ? Math.round((tabPreviewSizeWidth || preview.tabPreview.width) * (tabPreviewSizeHeight || preview.tabPreview.height / preview.tabPreview.width)) : tabPreviewSlideHeight,
           left: preview.left + (tabPreviewSizeWidth || preview.tabPreview.width) > window.innerWidth ? (void 0) : preview.left,
           right: preview.left + (tabPreviewSizeWidth || preview.tabPreview.width) > window.innerWidth ? 0 : (void 0),
-          top: preview.top + 27 + (document.elementFromPoint(preview.left + (tabPreviewSizeWidth || preview.tabPreview.width) > window.innerWidth ? (void 0) : preview.left,preview.top + 27).className == 'hol-resizer' ? 0 : 38),
+          top: preview.top + 27 + (document.elementFromPoint(preview.left + 40, preview.top + 25).className.includes("preview-img-input") ? 38 : 0),
           backgroundImage: preview.tabPreview ? `url(${preview.tabPreview.dataURL})` : 'none',
           backgroundColor: '#fbfbfb',
           backgroundSize: `${tabPreviewSizeWidth || preview.tabPreview.width}px ${preview.tabPreview ? Math.round((tabPreviewSizeWidth || preview.tabPreview.width) * (tabPreviewSizeHeight || preview.tabPreview.height / preview.tabPreview.width)) : tabPreviewSlideHeight}px`,
           backgroundRepeat: 'no-repeat'
         }}/> : null}
-        <div className={`tab-base${this.props.toggleNav == 3 ? ' full-screen' : ''}`} style={tabBaseStyle}>
+        <div className={`tab-base${this.props.toggleNav == 3 ? ' full-screen visible transition' : ''}`} style={tabBaseStyle}>
           <ul tabIndex="-1" style={tabInlineStyles.tabBar} className={_tabClassNames.tabBar} ref="ttab"
               onDoubleClick={isDarwin ? _=>{
                 const win = remote.getCurrentWindow()
                 if(win.isFullScreen()){}
                 else if(win.isMaximized()){
-                  win.unmaximize()
+                  // win.unmaximize()
+                  win.nativeWindow.showWindow(9)
                 }
                 else{
-                  win.maximize()
+                  // win.maximize()
+                  win.nativeWindow.showWindow(3)
                 }
               }: null}
+            // onMouseDown={e=>{
+            //   if(e.button != 0) return
+            //   const mup = e =>{
+            //     if(e.button != 0) return
+            //     ipc.send('drag-window', false)
+            //   }
+            //   document.addEventListener('mouseup',mup,{once: true})
+            // }}
               onScroll={e=>{e.preventDefault();e.target.scrollTo(0,0)}}>
             {isDarwin && this.props.isTopRight && this.props.toggleNav != 1 && !document.querySelector('.vertical-tab.left') ? <div style={{width: this.props.fullscreen ? 0 : 62}}/>  : ""}
             {tabs}
@@ -1496,7 +1501,7 @@ class Tabs extends React.Component {
             </span>
             {this.props.isMaximize && this.props.toggleNav != 1 ? <div className="title-button-set" style={{lineHeight: 0.9}}>
                 {isDarwin ? null : <span className={`fa fa-th ${sharedState.arrange == 'all' ? 'active-arrange' : ''}`} onClick={_=>PubSub.publish('toggle-arrange')}></span>}
-                {displayFullIcon ? <span className={this.props.toggleNav == 3 ? "typcn typcn-arrow-minimise" : "typcn typcn-arrow-maximise"} onClick={_=>ipc.send('toggle-fullscreen')}></span> : null}
+                {/*{displayFullIcon ? <span className={this.props.toggleNav == 3 ? "typcn typcn-arrow-minimise" : "typcn typcn-arrow-maximise"} onClick={_=>ipc.send('toggle-fullscreen')}></span> : null}*/}
                 <span className="typcn typcn-media-stop-outline" onClick={()=>this.props.parent.maximizePanel()}></span>
               </div>
               : null}

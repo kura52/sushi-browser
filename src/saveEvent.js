@@ -28,10 +28,10 @@ function makePath(basePath,index){
 
 ipcMain.on('save-file', (event, {savePath,content,fname,isDesktop}) => {
   if(!savePath){
-    dialog.showDialog(getCurrentWindow(),
-      {defaultPath: getUniqFileName(path.join(app.getPath(isDesktop ? 'desktop' : 'downloads'),fname)),type: 'select-saveas-file',includeAllFiles:true},
-      (savePaths) => {
-        if(savePaths && savePaths.length == 1) saveFile(event,savePaths[0],content)
+    dialog.showSaveDialog(getCurrentWindow(),
+      { defaultPath: getUniqFileName(path.join(app.getPath(isDesktop ? 'desktop' : 'downloads'),fname)) },
+      (savePath) => {
+        if(savePath) saveFile(event,savePath,content)
     })
   }
   else{

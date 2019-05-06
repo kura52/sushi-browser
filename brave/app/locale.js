@@ -4,7 +4,7 @@
 
 'use strict'
 
-const L20n = require('l20n')
+const L20n = require('./l20n')
 const path = require('path')
 const ipcMain = require('electron').ipcMain
 const electron = require('electron')
@@ -317,6 +317,7 @@ var rendererIdentifiers = function () {
     'minimumPageTimeLow',
     'paintTabs',
     'restoreAll',
+    'cookies',
 
     //chrome
     '994289308992179865',
@@ -382,6 +383,7 @@ var rendererIdentifiers = function () {
     '1864111464094315414',
     '5222676887888702881',
     '839736845446313156',
+    '1552752544932680961',
 
     'playOrPause',
     'frameStep',
@@ -844,9 +846,14 @@ exports.init = function (language) {
   // If this is in the main process
   if (ipcMain) {
     // Respond to requests for translations from the renderer process
-    ipcMain.on('translations', function (event, arg) {
+    ipcMain.on('translations', function (event, noSync) {
       // Return the entire set of translations synchronously
-      event.returnValue = translations
+      if(noSync){
+        event.sender.send(`translations-reply_${noSync}`, translations)
+      }
+      else{
+        event.returnValue = translations
+      }
     })
 
     // TODO: There shouldn't need to be a REQUEST_LANGUAGE event at all

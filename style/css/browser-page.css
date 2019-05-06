@@ -4,8 +4,8 @@
 }
 
 .browser-page-search {
-  position: absolute;
-  right: 14px;
+  /*position: absolute;*/
+  /*right: 14px;*/
   /*width: 300px;*/
   height: 30px;
   z-index: 1000;

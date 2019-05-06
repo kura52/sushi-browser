@@ -8,10 +8,12 @@ const path = require('path')
 const moment = require('moment')
 const fs = require('fs')
 const {dialog,app,BrowserWindow,ipcMain,nativeImage,session} = require('electron')
+import {Browser, webContents} from './remoted-chrome/Browser'
+import {getFocusedWebContents} from "./util"
+
 import {
   state,
   searchEngine,
-  favorite,
   visit,
   history,
   image,
@@ -24,11 +26,13 @@ import {
   automation,
   automationOrder,
   note,
-  token
+  token,
+  crypto
 } from './databaseFork'
+import favorite from './remoted-chrome/favorite'
 import {settingDefault} from "../resource/defaultValue";
 const os = require('os')
-const passCrypto = require('./crypto')
+const passCrypto = require('./crypto')('sushi-browser-password-key')
 
 function createBookmarkHTML(ret) {
   const breakTag = os.EOL
@@ -51,34 +55,51 @@ function setOptionVal(key,dVal,val){
 
 
 ipcMain.on('export-bookmark',_=>{
-  const focusedWindow = BrowserWindow.getFocusedWindow()
-  const fileName = moment().format('DD_MM_YYYY') + '.html'
-  const defaultPath = path.join(app.getPath('downloads'), fileName)
 
-  dialog.showDialog(focusedWindow, {
-    defaultPath: defaultPath,
-    type: 'select-saveas-file',
-    extensions: [['html']]
-  }, (fileNames) => {
-    if (fileNames && fileNames.length == 1) {
-      getAllFavorites().then(ret=>{
-        fs.writeFileSync(fileNames[0], createBookmarkHTML(ret))
-      })
+  getFocusedWebContents().then(async cont=>{
+    cont.hostWebContents2.send('new-tab', cont.id, "chrome://bookmarks/")
+    for(let i=0;i<100;i++){
+      await new Promise(r=>setTimeout(r, 100))
+      for(const cont of webContents.getAllWebContents()){
+        if((await cont.getURL()) == 'chrome://bookmarks/'){
+          console.log(cont.getURL())
+          cont.executeJavaScript(()=> chrome.bookmarks.export())
+          return
+        }
+      }
     }
   })
+  // const focusedWindow = Browser.getFocusedWindow()
+  // const fileName = moment().format('DD_MM_YYYY') + '.html'
+  // const defaultPath = path.join(app.getPath('downloads'), fileName)
+  //
+  // dialog.showSaveDialog(focusedWindow, {
+  //   defaultPath: defaultPath,
+  //   filters: [
+  //     {name: 'HTML File', extensions: ['html']},
+  //   ]
+  // }, (fileName) => {
+  //   if (fileName) {
+  //     getAllFavorites().then(ret=>{
+  //       fs.writeFileSync(fileName, createBookmarkHTML(ret))
+  //     })
+  //   }
+  // })
 })
 
 ipcMain.on('export-setting', (e,exports) => {
-  const focusedWindow = BrowserWindow.getFocusedWindow();
+  console.log('export-setting')
+  const focusedWindow = Browser.getFocusedWindow();
   const fileName = moment().format('DD_MM_YYYY') + '.json'
   const defaultPath = path.join(app.getPath('downloads'), fileName)
 
-  dialog.showDialog(focusedWindow, {
+  dialog.showSaveDialog(focusedWindow, {
     defaultPath: defaultPath,
-    type: 'select-saveas-file',
-    extensions: [['json']]
-  }, async fileNames => {
-    if (fileNames && fileNames.length == 1) {
+    filters: [
+      {name: 'JSON File', extensions: ['json']},
+    ]
+  }, async fileName => {
+    if (fileName) {
       const results = {}
       for(let name of exports){
         if(name == 'generalSettings'){
@@ -86,9 +107,9 @@ ipcMain.on('export-setting', (e,exports) => {
           results.searchEngine = await searchEngine.find({})
           results.token = await token.find({})
         }
-        else if(name == 'bookmarks'){
-          results.favorite = await favorite.find({})
-        }
+        // else if(name == 'bookmarks'){
+        //   results.favorite = await favorite.find({})
+        // }
         else if(name == 'browsingHistory'){
           results.visit = await visit.find({})
           results.history = await history.find({})
@@ -127,16 +148,10 @@ ipcMain.on('export-setting', (e,exports) => {
           results.note = await note.find({})
         }
         else if(name == 'password'){
-          const password = await new Promise(r=>{
-            session.defaultSession.autofill.getAutofillableLogins(r)
-          })
-          results.password = password.map(x=>{
-            x.password = passCrypto.encrypt(x.password)
-            return x
-          })
+          results.password = await crypto.find({})
         }
       }
-      fs.writeFileSync(fileNames[0], JSON.stringify(results))
+      fs.writeFileSync(fileName, JSON.stringify(results))
     }
   })
 })
@@ -243,13 +258,13 @@ async function importData(imports, restoreDatas, all, ignoreToken) {
     if (name == 'generalSettings' && restoreDatas.startsWith !== void 0) {
       const setting = restoreDatas
       state.update({key: 1}, setting).then(_ => _)
-      try {
-        if (setting && setting.adBlockDisableSite.length) {
-          setting.adBlockDisableSite = JSON.parse(setting.adBlockDisableSite)
-        }
-      } catch (e) {
-        setting.adBlockDisableSite = {}
-      }
+      // try {
+      //   if (setting && setting.adBlockDisableSite.length) {
+      //     setting.adBlockDisableSite = JSON.parse(setting.adBlockDisableSite)
+      //   }
+      // } catch (e) {
+      //   setting.adBlockDisableSite = {}
+      // }
       for (let [key, dVal] of Object.entries(settingDefault)) {
         setOptionVal(key, dVal, setting[key])
       }
@@ -258,13 +273,13 @@ async function importData(imports, restoreDatas, all, ignoreToken) {
       const setting = restoreDatas.state
       if (all) {
         state.update({key: 1}, setting, {upsert: true}).then(_ => _)
-        try {
-          if (setting && setting.adBlockDisableSite.length) {
-            setting.adBlockDisableSite = JSON.parse(setting.adBlockDisableSite)
-          }
-        } catch (e) {
-          setting.adBlockDisableSite = {}
-        }
+        // try {
+        //   if (setting && setting.adBlockDisableSite.length) {
+        //     setting.adBlockDisableSite = JSON.parse(setting.adBlockDisableSite)
+        //   }
+        // } catch (e) {
+        //   setting.adBlockDisableSite = {}
+        // }
         for (let [key, dVal] of Object.entries(settingDefault)) {
           setOptionVal(key, dVal, setting[key])
         }
@@ -282,13 +297,13 @@ async function importData(imports, restoreDatas, all, ignoreToken) {
         const orgState = await state.findOne({key: 1})
         if (orgState.updated_at > setting.updated_at) {
           state.update({key: 1}, setting, {upsert: true}).then(_ => _)
-          try {
-            if (setting && setting.adBlockDisableSite.length) {
-              setting.adBlockDisableSite = JSON.parse(setting.adBlockDisableSite)
-            }
-          } catch (e) {
-            setting.adBlockDisableSite = {}
-          }
+          // try {
+          //   if (setting && setting.adBlockDisableSite.length) {
+          //     setting.adBlockDisableSite = JSON.parse(setting.adBlockDisableSite)
+          //   }
+          // } catch (e) {
+          //   setting.adBlockDisableSite = {}
+          // }
           for (let [key, dVal] of Object.entries(settingDefault)) {
             setOptionVal(key, dVal, setting[key])
           }
@@ -299,14 +314,14 @@ async function importData(imports, restoreDatas, all, ignoreToken) {
         }
       }
     }
-    else if (name == 'bookmarks') {
-      if (all) {
-        deleteInsert(favorite, restoreDatas.favorite)
-      }
-      else {
-        incrementalImportRecur(favorite,restoreDatas.favorite)
-      }
-    }
+    // else if (name == 'bookmarks') {
+    //   if (all) {
+    //     deleteInsert(favorite, restoreDatas.favorite)
+    //   }
+    //   else {
+    //     incrementalImportRecur(favorite,restoreDatas.favorite)
+    //   }
+    // }
     else if (name == 'browsingHistory') {
       if (all) {
         deleteInsert(visit, restoreDatas.visit)
@@ -411,14 +426,17 @@ async function importData(imports, restoreDatas, all, ignoreToken) {
 export default importData
 
 ipcMain.on('import-setting', (e,imports,all) => {
-  const focusedWindow = BrowserWindow.getFocusedWindow();
+  const focusedWindow = Browser.getFocusedWindow();
   const fileName = moment().format('DD_MM_YYYY') + '.json'
   const defaultPath = path.join(app.getPath('downloads'), fileName)
 
-  dialog.showDialog(focusedWindow, {
+  dialog.showOpenDialog(focusedWindow, {
     defaultPath: defaultPath,
-    type: 'select-open-file',
-    extensions: [['json']]
+    properties: ['openFile'],
+    filters: [
+      {name: 'JSON File', extensions: ['json']},
+      {name: 'All Files', extensions: ['*']}
+    ]
   }, async fileNames => {
     if (fileNames && fileNames.length == 1) {
       const restoreDatas = JSON.parse(fs.readFileSync(fileNames[0]).toString())

@@ -1,21 +1,37 @@
-import {app,ipcMain,session} from 'electron'
+import {app,ipcMain} from 'electron'
 import {
-  favorite, image, favicon, tabState, history, visit, savedState, download, downloader, state, syncReplace,
+  image, favicon, tabState, history, visit, savedState, download, downloader, state, syncReplace,
   note, automation, automationOrder, windowState, searchEngine, token
 } from './databaseFork'
+import {Browser} from './remoted-chrome/Browser'
 
 import path from 'path'
 import fs from 'fs'
 import mainState from "./mainState";
 
 const m = {
-  async clearHistory(ses,_,opt2){
+  async clearBrowsingData(_,opt2,browserDatas){
+    const opt = opt2 ? {since: opt2.updated_at['$lte']} : {}
+    const dataToRemove = {}
+    for(let browserData of browserDatas){
+      dataToRemove[browserData] = true
+    }
+
+    console.log(dataToRemove, opt)
+    return Browser.bg.evaluate((dataToRemove, opt) => {
+      return new Promise(async resolve => {
+        chrome.browsingData.remove(opt, dataToRemove, resolve)
+      })
+    }, dataToRemove, opt)
+  },
+
+  async clearHistory(_,opt2){
     let i = 0
     for(let table of [image,history,visit]){
       const opt = (opt2 && i++==2) ? {created_at: opt2.updated_at} : opt2
       await table.remove(opt||{}, { multi: true })
     }
-    ses.clearHistory()
+    // ses.clearHistory()
 
     if(!opt2){
       const resourcePath = path.join(app.getPath('userData'),'resource')
@@ -28,9 +44,10 @@ const m = {
         })
       }
     }
+    await this.clearBrowsingData(_,opt2,['history'])
   },
 
-  async clearSessionManager(ses,_,opt2){
+  async clearSessionManager(_,opt2){
     const optBack = {user: true}
     const userSavedState = await savedState.find(optBack)
     const arr = JSON.stringify(userSavedState).match(/"tabKey":"(.+?)"/g)
@@ -47,51 +64,31 @@ const m = {
     await savedState.remove(opt||{}, { multi: true })
   },
 
-  async clearFavicon(ses,_,opt2){
+  async clearFavicon(_,opt2){
     await favicon.remove(opt2||{}, { multi: true })
   },
 
-  async clearAutomation(ses,_,opt2){
+  async clearAutomation(_,opt2){
     for(let table of [automation,automationOrder]){
       await table.remove(opt2||{}, { multi: true })
     }
   },
 
-  async clearNote(ses,_,opt2){
+  async clearNote(_,opt2){
     await note.remove(opt2||{}, { multi: true })
     if(!(await note.findOne({_id:"zplOMCoNb1BzCt15"}))){
       await note.insert([{"is_file":false,"title":"root","updated_at":1497713000000,"children":["f1bf9993-3bc4-4874-ac7d-7656054c1850"],"key":"root","_id":"zplOMCoNb1BzCt15"},
         {"key":"f1bf9993-3bc4-4874-ac7d-7656054c1850","title":"example","is_file":true,"created_at":1514732400000,"updated_at":1514732400000,"_id":"00jcpO1hKu0L3MLQ"}])
     }
-   },
+  },
 
-  async clearDownload(ses,_,opt2){
+  async clearDownload(_,opt2){
     let i = 0
     for(let table of [download,downloader]){
       const opt = (opt2 &&  i++==1) ? {now: opt2.updated_at} : opt2
       await table.remove(opt||{}, { multi: true })
     }
-  },
-
-  clearStorageData(ses,opt){
-    const args = opt ? [opt,()=>{}] : [()=>{}]
-    ses.clearStorageData(...args)
-  },
-
-  clearCache(ses){
-    ses.clearCache(() => {})
-  },
-
-  clearAutocompleteData(ses){
-    ses.autofill.clearAutocompleteData()
-  },
-
-  clearAutofillData(ses){
-    ses.autofill.clearAutofillData()
-  },
-
-  clearPassword(ses){
-    ses.autofill.clearLogins()
+    await this.clearBrowsingData(_,opt2,['downloads'])
   },
 
   async clearGeneralSettings(){
@@ -130,35 +127,46 @@ const m = {
         key: 1,
         clearHistoryOnClose: mainState.clearHistoryOnClose,
         clearDownloadOnClose: mainState.clearDownloadOnClose,
-        clearCacheOnClose: mainState.clearCacheOnClose,
-        clearStorageDataOnClose: mainState.clearStorageDataOnClose,
-        clearAutocompleteDataOnClose: mainState.clearAutocompleteDataOnClose,
-        clearAutofillDataOnClose: mainState.clearAutofillDataOnClose,
         clearPasswordOnClose: mainState.clearPasswordOnClose,
         clearGeneralSettingsOnClose: mainState.clearGeneralSettingsOnClose,
-        clearFavoriteOnClose: mainState.clearFavoriteOnClose,
         clearSessionManagerOnClose: mainState.clearSessionManagerOnClose,
         clearFaviconOnClose: mainState.clearFaviconOnClose,
         clearAutomationOnClose: mainState.clearAutomationOnClose,
         clearNoteOnClose: mainState.clearNoteOnClose,
+        clearUserSessionOnClose: mainState.clearUserSessionOnClose,
+
+        clearCookiesOnClose: mainState.clearCookiesOnClose,
+        clearFormDataOnClose: mainState.clearFormDataOnClose,
+        clearPluginDataOnClose: mainState.clearPluginDataOnClose,
+        clearAppCacheOnClose: mainState.clearAppCacheOnClose,
+        clearCacheOnClose: mainState.clearCacheOnClose,
+        clearFileSystemsOnClose: mainState.clearFileSystemsOnClose,
+        clearLocalStorageOnClose: mainState.clearLocalStorageOnClose,
+        clearIndexedDBOnClose: mainState.clearIndexedDBOnClose,
+        clearWebSQLOnClose: mainState.clearWebSQLOnClose,
       }
     )
-  },
-
-  async clearFavorite(ses,_,opt2){
-    await favorite.remove(opt2||{}, { multi: true })
-    if(!(await favorite.findOne({_id:"zplOMCoNb1BzCt15"})))
-      await favorite.insert({"is_file":false,"title":"root","updated_at":1497713000000,"children":[],"key":"root","_id":"zplOMCoNb1BzCt15"})
-
-    await savedState.remove(opt2 ? {user: true, created_at: opt2.updated_at} : {user: true}, { multi: true })
   }
 }
 
 async function clearEvent(event, targets, opt, opt2){
+  const set = new Set(['passwords', 'cookies', 'formData', 'pluginData', 'appcache', 'cache', 'fileSystems', 'localStorage', 'indexedDB', 'webSQL'])
+
   console.log(2243,targets,opt2)
+  const browserDatas = []
   for(let target of targets){
-    await m[target](session.defaultSession, opt, opt2)
+    if(set.has(target)){
+      browserDatas.push(target)
+    }
+    else{
+      await m[target](opt, opt2)
+    }
   }
+
+  if(browserDatas.length){
+    await m.clearBrowsingData(opt, opt2, browserDatas)
+  }
+
 }
 
 ipcMain.on('clear-browsing-data', (event, targets, range)=>{
@@ -168,13 +176,13 @@ ipcMain.on('clear-browsing-data', (event, targets, range)=>{
     if(range.clearType == 'before'){
       opt2 = { updated_at: { $lte: Date.now() - parseInt(range.clearDays) * 24 * 60 * 60 * 1000 }}
     }
-    else if(range.clearType == 'range'){
-      opt2 = { updated_at: (
-          range.clearStart === void 0 ? { $lte: Date.parse(`${range.clearEnd} 00:00:00`) + 24 * 60 * 60 * 1000 } :
-            range.clearEnd === void 0 ? { $gte: Date.parse(`${range.clearStart} 00:00:00`) } :
-              { $gte: Date.parse(`${range.clearStart} 00:00:00`), $lte: Date.parse(`${range.clearEnd} 00:00:00`) + 24 * 60 * 60 * 1000 }
-        )}
-    }
+    // else if(range.clearType == 'range'){
+    //   opt2 = { updated_at: (
+    //       range.clearStart === void 0 ? { $lte: Date.parse(`${range.clearEnd} 00:00:00`) + 24 * 60 * 60 * 1000 } :
+    //         range.clearEnd === void 0 ? { $gte: Date.parse(`${range.clearStart} 00:00:00`) } :
+    //           { $gte: Date.parse(`${range.clearStart} 00:00:00`), $lte: Date.parse(`${range.clearEnd} 00:00:00`) + 24 * 60 * 60 * 1000 }
+    //     )}
+    // }
   }
   clearEvent(event, targets, void 0, opt2)
 })

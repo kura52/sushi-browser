@@ -2,22 +2,62 @@ const path = require('path')
 const childProcess = require('child_process');
 const uuid = require('node-uuid')
 const {ipcMain} = require('electron')
-const sock = require('axon').socket('req')
+let sock = require('axon').socket('req')
 const fs = require('fs')
 const emptyPort = require('./emptyPort')
-import { webContents,app } from 'electron'
+import { app } from 'electron'
+import {webContents} from './remoted-chrome/Browser'
 const isDarwin = process.platform === 'darwin'
 
-emptyPort((err,port)=>{
-  sock.bind(port,'127.0.0.1')
-  fs.writeFileSync(path.join(app.getPath('userData'),'resource/fork.txt').replace(/\\/g,"/"),`${Date.now()}\t${port}`);
+if (!isDarwin) {
+  global.__CHILD__ = {
+    async send(...args){
+      for(let i=0;i<1000;i++){
+        await new Promise(r=>setTimeout(r,20))
+        if(global.__CHILD__.on){
+          global.__CHILD__.send(...args)
+          break
+        }
+      }
+    }
+  }
+  sock = {
+    send(msg, callback) {
+      if (callback) this.callbacks[msg.key] = callback
+      global.__CHILD__.send(msg)
+    },
+    callbacks: {}
+  };
+}
+
+function fork(){
+  // sock.bind(ports[0],'127.0.0.1')
+  global.__CHILD__ = childProcess.fork(path.join(__dirname,'main.js'),[app.getPath('userData')])
+  global.__CHILD__.on('message', msg => {
+    const callback = sock.callbacks[msg.key]
+    if(callback){
+      callback(msg)
+      delete sock.callbacks[msg.key]
+    }
+  })
+  global.__CHILD__.once('exit', () => {
+    if(!global.__CHILD__.normalKill) fork()
+  })
+}
+
+emptyPort((err,ports)=>{
+  const key = `${Date.now()}${Math.random()}`
+  fs.writeFileSync(path.join(app.getPath('userData'),'resource/fork.txt').replace(/\\/g,"/"),`${Date.now()}\t${key}\t${ports.join("\t")}`)
+  ipcMain.once('get-port',()=>ipcMain.emit('get-port-reply', null, ports[1], key))
+
   if(isDarwin){
+    sock.bind(ports[0],'127.0.0.1')
     global.__CHILD__ = childProcess.exec(path.join(__dirname,'../../../MacOS/sushi-browser'))
   }
   else{
-    global.__CHILD__ = childProcess.fork(path.join(__dirname,'main.js'))
+    fork()
   }
-})
+},2)
 
 function regToStr(obj){
   if(Array.isArray(obj)){
@@ -47,12 +87,14 @@ function handler(table){
           const methods = table ? [table,prop] : [prop]
           return new Promise((resolve,reject)=>{
             sock.send({key,methods,args: regToStr(argumentsList)},msg=>{
+              // var hrTime = process.hrtime()
+              // console.log('ggg', hrTime[0] * 1000000 + hrTime[1] / 1000 - resp[key])
               if(msg.key !== key) return
               if((table == "history" || table == "favorite" || table == "note" || table == "tabState" || table == "savedState") && (prop == "insert" || prop == "update" || prop == "remove")){
                for(let cont of webContents.getAllWebContents()){
-                  if(!cont.isDestroyed() && !cont.isBackgroundPage() && (cont.isGuest() || !cont.hostWebContents)) {
+                  if(!cont.isDestroyed() /*&& !cont.isBackgroundPage()*/ && (cont.hostWebContents2 || !cont.hostWebContents2)) {
                     const url = cont.getURL()
-                    if(url.startsWith('chrome://brave') || table == "favorite" || url.endsWith(`/${table}_sidebar.html`) ||url.endsWith(`/${table}.html`) || (table == "tabState" && (url.endsWith(`/tab_history_sidebar.html`)||url.endsWith(`/tab_trash_sidebar.html`))) || (table == "savedState" && url.endsWith(`/saved_state_sidebar.html`)) || (table == 'note' && url.includes('note.html?'))){
+                    if(cont.root || table == "favorite" || url.endsWith(`/${table}_sidebar.html`) ||url.endsWith(`/${table}.html`) || (table == "tabState" && (url.endsWith(`/tab_history_sidebar.html`)||url.endsWith(`/tab_trash_sidebar.html`))) || (table == "savedState" && url.endsWith(`/saved_state_sidebar.html`)) || (table == 'note' && url.includes('note.html?'))){
                       if(prop == "update"){
                         if(argumentsList[1].$inc) return
                         db[table].findOne(argumentsList[0]).then(ret=>{
@@ -91,7 +133,7 @@ const db = new Proxy({
   get downloader(){return new Proxy(dummy, handler('downloader'))},
   get state(){return new Proxy(dummy, handler('state'))},
   get syncReplace(){return new Proxy(dummy, handler('syncReplace'))},
-  // get crypto(){return new Proxy(dummy, handler('crypto'))},
+  get crypto(){return new Proxy(dummy, handler('crypto'))},
   get image(){return new Proxy(dummy, handler('image'))},
   get favicon(){return new Proxy(dummy, handler('favicon'))},
   get token(){return new Proxy(dummy, handler('token'))},
@@ -100,6 +142,7 @@ const db = new Proxy({
   get automation(){return new Proxy(dummy, handler('automation'))},
   get automationOrder(){return new Proxy(dummy, handler('automationOrder'))},
   get inputHistory(){return new Proxy(dummy, handler('inputHistory'))},
+  get visitedStyle(){return new Proxy(dummy, handler('visitedStyle'))},
   get sock(){ return sock},
   _kill(){child.kill('SIGINT')}
 },handler())
@@ -119,7 +162,7 @@ ipcMain.on('db-rend',(event,datas)=>{
     const {table,prop,argumentsList} = datas
     if((table == "history" || table == "favorite" || table == "note" || table == "tabState" || table == "savedState") && (prop == "insert" || prop == "update" || prop == "remove")){
       for(let cont of webContents.getAllWebContents()){
-        if(!cont.isDestroyed() && !cont.isBackgroundPage() && (cont.isGuest() || !cont.hostWebContents)) {
+        if(!cont.isDestroyed() /*&& !cont.isBackgroundPage()*/ && (cont.hostWebContents2 || !cont.hostWebContents2)) {
           const url = cont.getURL()
           if(url.startsWith('chrome://brave') || table == "favorite" || url.endsWith(`/${table}_sidebar.html`) ||url.endsWith(`/${table}.html`) || (table == "tabState" && (url.endsWith(`/tab_history_sidebar.html`)||url.endsWith(`/tab_trash_sidebar.html`))) || (table == "savedState" && url.endsWith(`/saved_state_sidebar.html`)) || (table == 'note' && url.includes('note.html?'))){
             if(prop == "update"){

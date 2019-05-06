@@ -92,7 +92,7 @@ export default class AutofillPopup extends Component {
       this.hideAutoFill =  (e) => {
         if(this.state.datas.suggestions) {
           this.setState({datas:{},active:-1})
-          wv.removeEventListener("keypress", this.keyEnter)
+          wv.removeListener("keypress", this.keyEnter)
           document.removeEventListener("keydown", this.keyDown)
           document.removeEventListener("keyup",this.keyUp)
           this.keyPageUp = void 0
@@ -102,8 +102,8 @@ export default class AutofillPopup extends Component {
           this.keyEnter= void 0
         }
       }
-      wv.addEventListener('show-autofill-popup',this.showAutoFill)
-      wv.addEventListener('hide-autofill-popup',this.hideAutoFill)
+      wv.on('show-autofill-popup',this.showAutoFill)
+      wv.on('hide-autofill-popup',this.hideAutoFill)
 
       this.tokenDidNavigate = PubSub.subscribe(`did-navigate_${tab.key}`,(msg,url)=>{
         this.hideAutoFill()
@@ -115,8 +115,8 @@ export default class AutofillPopup extends Component {
   componentWillUnmount() {
     PubSub.unsubscribe(this.tokenRegistWebview)
     PubSub.unsubscribe(this.tokenDidNavigate)
-    if(this.showAutoFill) this.state.wv.removeEventListener('show-autofill-popup',this.showAutoFill)
-    if(this.hideAutoFill) this.state.wv.removeEventListener('hide-autofill-popup',this.hideAutoFill)
+    if(this.showAutoFill) this.state.wv.removeListener('show-autofill-popup',this.showAutoFill)
+    if(this.hideAutoFill) this.state.wv.removeListener('hide-autofill-popup',this.hideAutoFill)
   }
 
   componentWillUpdate(nextProps, nextState){
@@ -127,7 +127,7 @@ export default class AutofillPopup extends Component {
           e.preventDefault()
         }
       }
-      this.state.wv.addEventListener("keypress",this.keyEnter)
+      this.state.wv.on("keypress",this.keyEnter)
     }
   }
 

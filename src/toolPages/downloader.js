@@ -1,7 +1,7 @@
 window.debug = require('debug')('info')
 // require('debug').enable("info")
 import process from './process'
-import {ipcRenderer as ipc} from 'electron';
+import {ipcRenderer as ipc} from './ipcRenderer'
 import React from 'react';
 import ReactDOM from 'react-dom';
 import uuid from 'node-uuid';
@@ -9,9 +9,12 @@ import Selection from '../render/react-selection/indexTable';
 import path from 'path';
 
 import ReactTable from 'react-table';
+import LRUCache from 'lru-cache'
+const cache = new LRUCache(200)
 
-const l10n = require('../../brave/js/l10n')
-l10n.init()
+import l10n from '../../brave/js/l10n';
+const initPromise = l10n.init()
+import '../defaultExtension/contentscript'
 
 
 const expand = require('brace-expansion');
@@ -121,7 +124,30 @@ function calcSpeedSec(item){
 function calcSpeed(item){
   const diff =item.now - item.created_at
   const percent = round(item.receivedBytes / item.totalBytes * 100,1)
-  const speed = item.speed ? calcSpeedSec(item) : item.receivedBytes / diff * 1000
+
+  let speed = item.receivedBytes / diff * 1000
+  if(!item.speed){
+    const preList = cache.get(item.key)
+    if(preList){
+      const preList2 = []
+      for(let i=preList.length - 1; i>= 0; i--){
+        const pre = preList[i]
+        preList2.push(pre)
+        if(item.now - pre.now > 3000){
+          speed = (item.receivedBytes - pre.receivedBytes) / (item.now - pre.now) * 1000
+          cache.set(item.key,preList2.reverse())
+          break
+        }
+      }
+    }
+    else{
+      cache.set(item.key, [])
+    }
+    cache.get(item.key).push({receivedBytes: item.receivedBytes, now: item.now})
+  }
+  else{
+    speed = calcSpeedSec(item)
+  }
   const restTime = (item.totalBytes - item.receivedBytes) / speed
 
   return {diff,percent,speed,restTime}
@@ -144,8 +170,8 @@ function PercentCompleteFormatter(props){
   </div>
 }
 
-let debounceInterval = 500, debounceTimer
-let [concurrentDownload,downloadNum] = ipc.sendSync('get-sync-main-states',['concurrentDownload','downloadNum'])
+let debounceInterval = 500, debounceTimer, concurrentDownload,downloadNum
+
 global.multiSelection = false
 class Downloader extends React.Component {
   static defaultProps = { rowKey: 'id' };
@@ -619,4 +645,12 @@ class Downloader extends React.Component {
 }
 require('./themeForPage')('themeDownloader').then(data=> global.enableDownloadList = data.enableDownloadList)
 
-ReactDOM.render(<Downloader/>,  document.getElementById('app'))
+;(async ()=>{
+  ;[concurrentDownload,downloadNum] = await new Promise(r=>{
+    const key = Math.random().toString()
+    ipc.send('get-sync-main-states',['concurrentDownload','downloadNum'],key)
+    ipc.once(`get-sync-main-states-reply_${key}`, (e,result) => r(result))
+  })
+  await initPromise
+  ReactDOM.render(<Downloader/>,  document.getElementById('app'))
+})()

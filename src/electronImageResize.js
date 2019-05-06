@@ -16,7 +16,11 @@ export default class ElectronImageResize{
       frame: false,
       enableLargerThanScreen: true,
       webPreferences: {
-        nodeIntegration: false
+        nodeIntegration: false,
+        sandbox: true,
+        allowFileAccessFromFileUrls: true,
+        allowUniversalAccessFromFileUrls: true,
+        enableRemoteModule: false,
       }
     });
 

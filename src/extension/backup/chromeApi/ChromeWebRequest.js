@@ -1,5 +1,5 @@
-import {webContents, ipcMain} from 'electron'
-import uuid from "node-uuid"
+import {ipcMain} from 'electron'
+import {webContents} from './remoted-chrome/Browser'
 
 const methods = ['onBeforeRequest','onBeforeSendHeaders','onSendHeaders','onHeadersReceived','onResponseStarted','onBeforeRedirect','onCompleted','onErrorOccurred']
 

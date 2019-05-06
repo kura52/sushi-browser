@@ -15,7 +15,7 @@
 //
 
 (function() {
-
+console.log(2)
 var DEBUG = false
 var BASE_REMAIN_HEIGHT = 400
 var MIN_REQUEST_INTERVAL = 2000
@@ -169,6 +169,7 @@ AutoPager.prototype.initMessageBar = function() {
 }
 
 AutoPager.prototype.onScroll = function() {
+  console.log(333, [1, 2, 3, 4, 5].copyWithin(-2))
     var scrollHeight = Math.max(document.documentElement.scrollHeight,
                                 document.body.scrollHeight)
     var remain = scrollHeight - window.innerHeight - window.scrollY

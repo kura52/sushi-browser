@@ -1,4 +1,4 @@
-import {ipcRenderer as ipc} from 'electron'
+import {ipcRenderer as ipc} from './ipcRenderer'
 
 function getTheme(theme,entity,name){
   if(!theme || !theme[entity] || !theme[entity][name]){

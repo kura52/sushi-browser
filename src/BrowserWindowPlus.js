@@ -1,5 +1,6 @@
 const electron = require('electron')
-const {BrowserWindow,app,ipcMain,session} = electron
+const {BrowserWindow,BrowserView,app,ipcMain,session} = electron
+import {Browser} from './remoted-chrome/Browser'
 const url = require('url')
 const path = require('path')
 const fs = require('fs')
@@ -18,6 +19,39 @@ const localShortcuts = require('../brave/app/localShortcuts')
 const normalSize = {}
 let saved = false
 let unmouted
+
+async function clearDatas(){
+  const targets = []
+  if(mainState.clearHistoryOnClose) targets.push('clearHistory')
+  if(mainState.clearDownloadOnClose) targets.push('clearDownload')
+  if(mainState.clearPasswordOnClose) targets.push('passwords')
+  if(mainState.clearGeneralSettingsOnClose) targets.push('clearGeneralSettings')
+  if(mainState.clearSessionManagerOnClose) targets.push('clearSessionManager')
+  if(mainState.clearFaviconOnClose) targets.push('clearFavicon')
+  if(mainState.clearAutomationOnClose) targets.push('clearAutomation')
+  if(mainState.clearNoteOnClose) targets.push('clearNote')
+  if(mainState.clearUserSessionOnClose) targets.push('clearUserSession')
+
+  if(mainState.clearCookiesOnClose) targets.push('cookies')
+  if(mainState.clearFormDataOnClose) targets.push('formData')
+  if(mainState.clearPluginDataOnClose) targets.push('pluginData')
+  if(mainState.clearAppCacheOnClose) targets.push('appcache')
+  if(mainState.clearCacheOnClose) targets.push('cache')
+  if(mainState.clearFileSystemsOnClose) targets.push('fileSystems')
+  if(mainState.clearLocalStorageOnClose) targets.push('localStorage')
+  if(mainState.clearIndexedDBOnClose) targets.push('indexedDB')
+  if(mainState.clearWebSQLOnClose) targets.push('webSQL')
+
+  if(targets.length){
+    let opt2
+    if(mainState.clearType == 'before'){
+      opt2 = { updated_at: { $lte: Date.now() - parseInt(mainState.clearDays) * 24 * 60 * 60 * 1000 }}
+    }
+    const clearEvent = require('./clearEvent')
+    await clearEvent(null,targets,void 0, opt2)
+  }
+}
+
 
 async function savedStateUpdate(states,closeKey){
   const doc = await savedState.insert(states)
@@ -88,9 +122,11 @@ async function saveAllWindowsStateHandler(e,key){
 ipcMain.on('save-all-windows-state',saveAllWindowsStateHandler)
 
 
+
 function create(args){
   // console.log(44421,args)
   startAutoSaveAllWindowsState()
+
   let bw = new BrowserWindow(args)
   if(args.maximize){
     normalSize[bw.id] = {x: args.x, y: args.y, width: args.width, height: args.height}
@@ -98,110 +134,140 @@ function create(args){
 
   bw.on('closed', function (e) {
     console.log("closed!")
-    // const win = BrowserWindow.getAllWindows().find(w=>w.getTitle().includes('Sushi Browser'))
-    // if(!win){
-    //   console.log(4442)
-    //   BrowserWindow.getAllWindows().forEach(win=>{
-    //     win.close()
-    //   })
-    // }
+    const win = BrowserWindow.getAllWindows().find(w=>w.getTitle().includes('Sushi Browser')) //@TODO ELECTRON
+    if(!win){
+      console.log(4442)
+      BrowserWindow.getAllWindows().forEach(win=>{
+        win.close()
+      })
+    }
   })
 
   bw.on('close', function (e) {
     console.log('close',e.sender.getTitle())
     localShortcuts.unregister(bw)
-    // const sendTitle = e.sender.getTitle()
-    // if(sendTitle.includes('Closed')){
-    //   if(!saved){
-    //     e.preventDefault()
-    //   }
-    //   return
-    // }
-    // else if(sendTitle.includes('Sushi Browser')){
-    const wins = BrowserWindow.getAllWindows().filter(w=>w.getTitle().includes('Sushi Browser'))
-    console.log(wins.length,BrowserWindow.getAllWindows().filter(w=>w.getTitle().includes('Sushi Browser')))
-    if(wins.length > 1){
+    const sendTitle = e.sender.getTitle()
+    if(sendTitle.includes('Closed')){ //@TODO ELECTRON
+      if(!saved){
+        e.preventDefault()
+      }
       return
     }
-    else if(mainState.keepOpen){
-      mainState.keepOpen -= 1
-      e.preventDefault()
-      setTimeout(_=>{
-        try{
-          e.sender.close()
-        }catch(ex){
-          console.log(ex)
-        }
-      },2000)
-      return
-    }
-    else if(global.downloadItems && global.downloadItems.some(item=>{return (item.getState() == 'progressing' || item.getState() == 'interrupted')})){
-      const key = uuid.v4()
-      console.log(global.downloadItems, global.downloadItems.forEach(item=>console.log(item.getURL(),item.isAria2c())))
-      bw.webContents.send('show-notification',{key,text:'Do you want to close the browser and cancel all downloads?', buttons:['Yes','No']})
-
-      ipcMain.once(`reply-notification-${key}`,(e,ret)=>{
-        if(ret.pressIndex !== 0) return
-        for(let item of global.downloadItems){
-          if(item.aria2c) item.kill()
-        }
-        global.downloadItems = []
-        bw.close()
-      })
-      e.preventDefault()
-      return
-    }
-    // bw = null
-    const maximize = bw.isMaximized()
-    console.log(maximize)
-    const bounds = maximize ? normalSize[bw.id] : bw.getBounds()
-    const maxBounds = bw.getBounds()
-
-    if(!saved){
-      bw.webContents.send('get-window-state')
-      let flag = false
-
-      ipcMain.once('get-window-state-reply',(e,ret)=>{
-        try{
-          const saveState = {}
-          for(let key of Object.keys(settingDefault)){
-            if(key == "toggleNav") continue
-            if(key == "adBlockDisableSite"){
-              saveState[key] = JSON.stringify(mainState[key])
-            }
-            else{
-              saveState[key] = mainState[key]
-            }
+    else if(sendTitle.includes('Sushi Browser')){ //@TODO ELECTRON
+      const wins = BrowserWindow.getAllWindows().filter(w=>w.getTitle().includes('Sushi Browser'))
+      console.log(wins.length,BrowserWindow.getAllWindows().filter(w=>w.getTitle().includes('Sushi Browser')))
+      if(wins.length > 1){ //@TODO close event hang out other windows
+        // bw.setSkipTaskbar(true)
+        // bw.setTitle('Closed')
+        // bw.webContents.send('unmount-components',{})
+        // bw.loadURL(`file://${path.join(__dirname, '../blank.html').replace(/\\/g,"/")}`)
+        // bw.hide()
+        //
+        // e.preventDefault()
+        for(let i = 0;i<=global.seqBv;i++){
+          const view = bw.getAddtionalBrowserView(i)
+          if(view){
+            bw.eraseBrowserView(i)
+            if(!view.isDestroyed()) view.destroy()
           }
-          state.update({ key: 1 }, { $set: {key: 1, ver:fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString(), ...bounds, maximize,maxBounds,
-              toggleNav:mainState.toggleNav==2 || mainState.toggleNav==3 ? 0 :mainState.toggleNav,...saveState,winState:ret, updated_at: Date.now()} }, { upsert: true }).then(_=>{
-            InitSetting.reload()
-          })
+        }
+        for(let seq of Object.keys(global.viewCache)){
+          const i = parseInt(seq)
+          const view = bw.getAddtionalBrowserView(i)
+          if(view){
+            bw.eraseBrowserView(i)
+            if(!view.isDestroyed()) view.destroy()
+          }
+        }
+        PubSub.publish('chrome-windows-onRemoved',bw.id)
+        return
+      }
+      else if(mainState.keepOpen){
+        mainState.keepOpen -= 1
+        e.preventDefault()
+        setTimeout(_=>{
+          try{
+            e.sender.close()
+          }catch(ex){
+            console.log(ex)
+          }
+        },2000)
+        return
+      }
+      else if(global.downloadItems && global.downloadItems.some(item=>{return (item.getState() == 'progressing' || item.getState() == 'interrupted')})){
+        const key = uuid.v4()
+        console.log(global.downloadItems, global.downloadItems.forEach(item=>console.log(item.getURL(),item.isAria2c())))
+        bw.webContents.send('show-notification',{key,text:'Do you want to close the browser and cancel all downloads?', buttons:['Yes','No']})
 
-          saved = true
-          console.log("getState")
-          if(!flag) bw.close()
-        }catch(e){
-          saved = true
-        }
-      })
-      setTimeout(_=>{
-        if(!flag){
-          flag = true
-          saved = true
-          if(!bw.isDestroyed()) bw.close()
-        }
-      },2000)
-      e.preventDefault()
+        ipcMain.once(`reply-notification-${key}`,(e,ret)=>{
+          if(ret.pressIndex !== 0) return
+          for(let item of global.downloadItems){
+            if(item.aria2c) item.kill()
+          }
+          global.downloadItems = []
+          bw.close()
+        })
+        e.preventDefault()
+        return
+      }
+      // bw = null
+      const maximize = bw.isMaximized()
+      console.log(maximize)
+      const bounds = maximize ? normalSize[bw.id] : bw.getBounds()
+      const maxBounds = bw.getBounds()
+
+      if(!saved){
+        bw.webContents.send('get-window-state')
+        let flag = false
+
+        ipcMain.once('get-window-state-reply',async (e,ret)=>{
+
+          await clearDatas()
+          // await new Promise(r=>{session.defaultSession.cookies.get({}, (e,cookies)=>{
+          //   fs.writeFileSync(path.join(app.getPath('userData'), 'cookie.txt'),JSON.stringify(cookies)) //@TODO ELECTRON
+          //   r()
+          // })})
+
+          try{
+            const saveState = {}
+            for(let key of Object.keys(settingDefault)){
+              if(key == "toggleNav") continue
+              // if(key == "adBlockDisableSite"){
+              //   saveState[key] = JSON.stringify(mainState[key])
+              // }
+              else{
+                saveState[key] = mainState[key]
+              }
+            }
+            state.update({ key: 1 }, { $set: {key: 1, ver:fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString(), ...bounds, maximize,maxBounds,
+                toggleNav:mainState.toggleNav==2 || mainState.toggleNav==3 ? 0 :mainState.toggleNav,...saveState,winState:ret, updated_at: Date.now()} }, { upsert: true }).then(_=>{
+              InitSetting.reload()
+            })
+
+            saved = true
+            console.log("getState")
+            if(!flag) bw.close()
+          }catch(e){
+            saved = true
+          }
+        })
+        setTimeout(_=>{
+          if(!flag){
+            flag = true
+            saved = true
+            if(!bw.isDestroyed()) bw.close()
+          }
+        },2000)
+        e.preventDefault()
+      }
+      else{
+        console.log("closing")
+        if(!bw.isDestroyed()) PubSub.publish('chrome-windows-onRemoved',bw.id)
+        BrowserWindow.getAllWindows().forEach(win=>{
+          if(bw!=win) win.close()
+        })
+      }
     }
-    else{
-      console.log("closing")
-      BrowserWindow.getAllWindows().forEach(win=>{
-        if(bw!=win) win.close()
-      })
-      PubSub.publish('chrome-windows-onRemoved',bw.id)
-    }
-    // }
   })
 
   // bw.once('ready-to-show', () => {
@@ -216,25 +282,107 @@ function create(args){
 
   bw.on('resize', ()=>{
     if(!bw.isMaximized()){
-      normalSize[bw.id] = bw.getBounds()
+      normalSize[bw.id] = bw.getNormalBounds()
     }
   })
 
-  bw.on('blur', ()=> {
-    PubSub.publish('chrome-windows-onFocusChanged',bw.id)
-    bw.webContents.send('visit-state-update','blur')
-  })
-  bw.on('focus', ()=> {
-    PubSub.publish('chrome-windows-onFocusChanged',bw.id)
-    bw.webContents.send('visit-state-update','focus')
+  bw.on('will-move', e=>{
+    // console.log('will-move')
+    // e.preventDefault()
+    // bw.setSize(300,300)
+    if(bw.isMaximized()){
+      e.preventDefault()
+      const bounds = bw._isVirtualMaximized
+      console.log('will-move', bounds)
+      const point = electron.screen.getCursorScreenPoint()
+      // const maxBounds = bw.getBounds()
+
+      bounds.x = Math.round(Math.max(0, point.x - bounds.width / 2))
+      bounds.y = 0
+
+      bw.setBounds(bounds)
+      bw._isVirtualMaximized = false
+      bw.webContents.send('maximize',false)
+      bw.webContents.send('re-render')
+    }
+    ipcMain.emit('move-window', bw.id)
   })
 
-  bw.on('maximize',_=>{
-    bw.webContents.send('maximize',true)
+  bw.on('move', e=> ipcMain.emit('move-window', bw.id))
+
+  bw.on('blur', ()=> {
+    // PubSub.publish('chrome-windows-onFocusChanged',bw.id)
+    bw.webContents.send('visit-state-update','blur')
+    // const id = setTimeout(()=>bw.isAlwaysOnTop() && bw.setAlwaysOnTop(false),50)
+    // ipcMain.once(`browserPanel-focused_${bw.id}`, ()=> clearTimeout(id))
+    // console.log('blur', new Date().getTime())
+  })
+  bw.on('focus', ()=> {
+    if(bw._fullscreen)　bw._fullscreen._sendKey('escape')
+
+    console.log('focus')
+    // console.log('focus', new Date().getTime())
+    // if(bw.tmpFocus){
+    //   const func = bw.tmpFocus
+    //   bw.tmpFocus = false
+    //   setTimeout(()=>{
+    //     console.log('bw.blur()')
+    //     func()
+    //   },10)
+    //
+    //   return
+    // }
+    // if(bw.focusFlag){
+    //   bw.focusFlag = false
+    //   return
+    // }
+    // PubSub.publish('chrome-windows-onFocusChanged',bw.id)
+    bw.webContents.send('visit-state-update','focus')
+    // ipcMain.once(`browserPanel-focused_${bw.id}`, ()=> clearTimeout(id))
+    // bw.setAlwaysOnTop(true)
+    ipcMain.emit('state-change-window', bw.id, 'focus')
+    // bw.focus()
+    // bw.focusFlag = true
+  })
+
+  bw.on('maximize',e=>{
+    console.log('maximize',bw._isVirtualMaximized)
+    if(bw._isVirtualMaximized){
+      const bounds = bw._isVirtualMaximized
+      setTimeout(()=>bw.setBounds(bounds),50)
+      bw.webContents.send('maximize',false)
+      bw._isVirtualMaximized = false
+    }
+    else{
+      bw._isVirtualMaximized = bw._initVirtualMaximized || bw.getNormalBounds()
+      bw._initVirtualMaximized = void 0
+
+      const b = bw.getBounds()
+      const bounds = {x: b.x+7, y: b.y+7, width: b.width - 14, height: b.height - 14}
+      bw._maximizedSize = bounds
+      // bw.normal()
+      setTimeout(()=>bw.setBounds(bounds),50)
+      // bw.setBounds(b)
+      bw.webContents.send('maximize',true)
+    }
+    // console.log(bw.getBounds())
+    // ipcMain.emit('state-change-window', bw.id, 'maximize')
   })
 
   bw.on('unmaximize',_=>{
     bw.webContents.send('maximize',false)
+    ipcMain.emit('state-change-window', bw.id, 'unmaximize')
+  })
+
+  bw.on('minimize',_=>{
+    console.log('minimize')
+    ipcMain.emit('state-change-window', bw.id, 'minimize')
+  })
+
+  bw.on('restore',_=>{
+    if(bw._isVirtualMaximized) bw.setBounds(bw._maximizedSize)
+    console.log('restore')
+    ipcMain.emit('state-change-window', bw.id, 'restore')
   })
 
   if(isDarwin){
@@ -282,6 +430,7 @@ function setOptionVal(key,dVal,val){
 
 export default {
   async load(opt,first,url){
+    if(url && url.endsWith('\\web-dev-browser\\lib\\main.js')) url = void 0
     let initWindow
     const setting = await InitSetting.val
     let winSetting = opt ? getSize(opt) : {x: setting.x, y: setting.y, width: setting.width, height: setting.height, maximize: setting.maximize}
@@ -306,11 +455,12 @@ export default {
         mainState.language = locale.defaultLocale()
       }
       const lang = await locale.init(mainState.language)
-      app.setLocale(lang)
+      // app.setLocale(lang) @TODO ELECTRON
       mainState.lang = lang == 'zh-CN' ? lang : lang.slice(0,2)
 
       mainState.dragData = null
       mainState.lockTabs = {}
+      mainState.protectTabs = {}
       mainState.versions = {...process.versions,browser: fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString()}
       mainState.mediaPlaying = {}
       mainState.isVolumeControl = {}
@@ -320,8 +470,6 @@ export default {
         mainState.rockerGestureRight = isWin ? locale.translation('forward') : 'none'
       }
 
-      if(!mainState.enableSmoothScrolling) app.commandLine.appendSwitch('disable-smooth-scrolling')
-
       mainState.searchProviders = {}
       for(let ele of (await searchEngine.find({}))){
         mainState.searchProviders[ele.name] = ele
@@ -330,10 +478,10 @@ export default {
       if(url && setting.winState) {
         mainState.winState = JSON.stringify({
           dirc: "v",
-          key: "9b069c3c-bb0d-4267-b0ac-28c6ecb1f1b4",
+          key: uuid.v4(),
           l: {
-            key: "1505620587125_747c1b38-bf28-4a0f-a855-7e9839adc2cf_0",
-            tabs: [{ pin: false, tabKey: "1505620587141_bec149c2-e3da-4ba3-a01a-ce876f2204ac",forceKeep:true, url }]
+            key: `${Date.now().toString()}_${uuid.v4()}_0`,
+            tabs: [{ pin: false, tabKey: `${Date.now().toString()}_${uuid.v4()}` ,forceKeep:true, url }]
           },
           r: null,
           size: "100%",
@@ -390,22 +538,28 @@ export default {
       title: 'Sushi Browser',
       fullscreenable: isDarwin,
       // A frame but no title bar and windows buttons in titlebar 10.10 OSX and up only?
-      titleBarStyle: 'hidden',
+      // titleBarStyle: 'hidden',
       autoHideMenuBar: true,
+      // toolbar: false,
+      // resize: false,
       frame: isDarwin,
-      show: false,
+      show: true,
+      // enableLargerThanScreen: true,
+      transparent: true,
+      // opacity: 0.01,
+      // clickThrough: 'pointer-events',
+      // alwaysOnTop: true,
       webPreferences: {
         plugins: true,
         sharedWorker: true,
-        nodeIntegration: false,
+        nodeIntegration: true,
         webSecurity: false,
         allowFileAccessFromFileUrls: true,
         allowUniversalAccessFromFileUrls: true,
-        // blinkFeatures:'ResizeObserver',
         ...fontOpt
       }
     }
-    if(mainState.windowCustomIcon && fs.existsSync(mainState.windowCustomIcon)) winArg.icon = mainState.windowCustomIcon
+    if(mainState.windowCustomIcon && fs.existsSync(mainState.windowCustomIcodn)) winArg.icon = mainState.windowCustomIcon
 
     console.log(444,winArg)
 
@@ -442,25 +596,56 @@ export default {
 
 
     console.log(909,winArg)
+
+    // const win = BrowserWindow.getAllWindows().find(w=>w.getTitle().includes('Closed')) //@TODO ELECTRON
+    // if(!win) {
     winArg.width = winArg.width || setting.width
     winArg.height = winArg.height || setting.height
+    // await new Promise(r=>setTimeout(r,1000))
     initWindow = create(winArg)
+    if(winArg.maximize){
+      initWindow._initVirtualMaximized = winArg.maximize
+    }
+
     localShortcuts.register(initWindow)
     initWindow.setMenuBarVisibility(true)
-    initWindow.loadURL(`chrome://brave/${path.join(__dirname, '../index.html').replace(/\\/g,"/")}${getParam}`)
-    initWindow.webContents.once('did-finish-load', () => {
-      // initWindow.webContents.toggleDevTools()
-      initWindow.show()
-      if(!initWindow.isMaximized()){
-        normalSize[initWindow.id] = initWindow.getBounds()
-      }
-      if(winArg.maximize) initWindow.maximize()
-      initWindow.setAlwaysOnTop(!!winArg.alwaysOnTop)
-    })
+
+    initWindow.isMaximized = function(){ return this._isVirtualMaximized }
 
     new (require('./Download'))(initWindow)
+    // }
+    // else{
+    //   initWindow = win
+    //   initWindow.setBounds({x: winArg.x, y: winArg.y, width: winArg.width || setting.width, height: winArg.height || setting.height})
+    //   initWindow.setSkipTaskbar(false)
+    //   initWindow.setTitle('Sushi Browser')
+    // }
+
+    console.log(1111, `file://${path.join(__dirname, '../index.html').replace(/\\/g, "/")}${getParam}`)
+    initWindow.loadURL(`file://${path.join(__dirname, '../index.html').replace(/\\/g, "/")}${getParam}`)
+    // initWindow.webContents.toggleDevTools()
+
+    initWindow.webContents.root = true
+    initWindow.webContents.on('context-menu', (e, props) => ipcMain.emit('contextmenu-webContents', e, props))
+
+    // await new Promise(r=>{
+    initWindow.webContents.once('did-finish-load', async () => {
+      initWindow.show()
+      if (!initWindow.isMaximized()) {
+        normalSize[initWindow.id] = initWindow.getBounds()
+      }
+      if (winArg.maximize){
+        setTimeout(()=> initWindow.maximize(),3000)
+      }
+      initWindow.setAlwaysOnTop(!!winArg.alwaysOnTop)
+      initWindow._alwaysOnTop = !!winArg.alwaysOnTop
+      initWindow.webContents.setUserAgent(await Browser.getUserAgent())
+      // r()
+    })
+    // })
 
     PubSub.publish('chrome-windows-onCreated',initWindow.id)
+    // initWindow.setIgnoreMouseEvents(true)
     return initWindow
   },
   saveState(bw,callback){
@@ -474,9 +659,9 @@ export default {
         const saveState = {}
         for(let key of Object.keys(settingDefault)){
           if(key == "toggleNav") continue
-          if(key == "adBlockDisableSite"){
-            saveState[key] = JSON.stringify(mainState[key])
-          }
+          // if(key == "adBlockDisableSite"){
+          //   saveState[key] = JSON.stringify(mainState[key])
+          // }
           else{
             saveState[key] = mainState[key]
           }

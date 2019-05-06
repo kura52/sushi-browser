@@ -21,13 +21,14 @@ html {
     line-height: 1.5;
     overflow: hidden; /* Prevents rubber-band scrolling of the whole "page" */
     color: var(--color);
-    background-color: #fff; /* To cover OSes with no default background color */
+    background: #0000; /* To cover OSes with no default background color */
 }
 
 body {
     margin: 0;
     height: 100%;
     display: flex;
+    background: #0000;
 }
 
 a {
@@ -191,8 +192,7 @@ div.vertical-tab{
 }
 
 .vertical-resizer {
-    background: #000;
-    opacity: .2;
+    background: rgb(183, 183, 183);
     z-index: 3;
     box-sizing: border-box;
     background-clip: padding-box;
@@ -208,8 +208,8 @@ div.vertical-tab{
     -webkit-app-region: no-drag;
 }
 .vertical-resizer:hover {
-    border-left: 5px solid rgba(0, 0, 0, 0.5);
-    border-right: 5px solid rgba(0, 0, 0, 0.5);
+    border-left: 5px solid rgba(183, 183, 183, 0.35);
+    border-right: 5px solid rgba(183, 183, 183, 0.35);
     transition: all 2s ease;
 }
 
@@ -230,7 +230,7 @@ img.favi-tab{
 
 .search-num{
     position: absolute;
-    right: 215px;
+    right: 253px;
     z-index: 1001;
     top: 0px;
     color: #909090;
@@ -421,13 +421,13 @@ body::before {
 }
 
 .ui.horizontal.segments {
-    position: absolute;
-    bottom: 5px;
+    position: initial;
     max-width: calc(100% - 100px);
     height: 45px;
     z-index: 4;
     margin: auto;
-    left: 40px;
+    width: fit-content;
+    margin-left: 5px;
 }
 .ui.blue.segment {
     width: 200px;
@@ -989,6 +989,7 @@ div.org-menu>div.item:hover{
     background: #f6f6f6;
     border-bottom: 1px solid #dfdfdf;
     user-select: none;
+    overflow: hidden;
 }
 
 .bookmark-item{
@@ -1064,7 +1065,14 @@ i.mute-mode{
 }
 
 #dllist{
-    z-index: 10001;
+    width: 100%;
+    height: 50px;
+    padding-top: 2px;
+    background-color: #f2f2f2;
+    overflow: hidden;
+    border-bottom: 2px solid rgb(183, 183, 183);
+    border-left: 2px solid rgb(183, 183, 183);
+    border-right: 2px solid rgb(183, 183, 183);
 }
 
 span.additional-info{
@@ -1377,4 +1385,21 @@ a.zoom-change:hover,a.zoom-reset:hover{
 
 .find-panel .tr-selected-tab{
     color: darkblue;
+}
+
+.fa.fa-chevron-circle-down{
+    visibility: hidden;
+}
+
+.ui.scrolling.dropdown .menu.browser-action{
+    min-width: max-content !important;
+    overflow: hidden !important;
+}
+
+.browser-action.nav-menu{
+    opacity: 0;
+}
+
+.menu.transition.visible.browser-action.nav-menu {
+    top: 30px !important;
 }

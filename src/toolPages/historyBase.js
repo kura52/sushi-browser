@@ -1,5 +1,5 @@
 import process from './process'
-import {ipcRenderer as ipc} from 'electron';
+import {ipcRenderer as ipc} from './ipcRenderer'
 import localForage from "../LocalForage";
 import uuid from 'node-uuid';
 import React from 'react';
@@ -13,19 +13,7 @@ const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
 import InfiniteTree from '../render/react-infinite-tree';
 import rowRenderer from '../render/react-infinite-tree/renderer';
 
-const isMain = location.href.startsWith("chrome://brave/")
-
-if(!isMain){
-  localForage.getItem('favicon-set').then(setTime=>{
-    ipc.send("favicon-get",setTime ? parseInt(setTime) : null)
-    ipc.once("favicon-get-reply",(e,ret)=>{
-      localForage.setItem('favicon-set',Date.now().toString())
-      for(let [k,v] of Object.entries(ret)){
-        localForage.setItem(k,v)
-      }
-    })
-  })
-}
+const isMain = location.href.startsWith("file://")
 
 let openType
 const key = uuid.v4()
@@ -35,16 +23,18 @@ ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
 })
 
 async function faviconGet(x){
-  return x.favicon == "resource/file.svg" ? (void 0) : x.favicon && (await localForage.getItem(x.favicon))
+  return x.favicon == "resource/file.svg" ? (void 0) :
+    isMain ? x.favicon && (await localForage.getItem(x.favicon)) :
+      `chrome://favicon/${x.location}`
 }
 
 
 const convertUrlMap = new Map([
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html',''],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html','about:blank'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html','chrome://bookmarks/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html','chrome://bookmarks2/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html','chrome://bookmarks-sidebar/'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html','chrome://history/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html','chrome://history2/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_history_sidebar.html','chrome://tab-history-sidebar/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_trash_sidebar.html','chrome://tab-trash-sidebar/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download_sidebar.html','chrome://download-sidebar/'],
@@ -58,12 +48,12 @@ const convertUrlMap = new Map([
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html','chrome://terminal/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html','chrome://converter/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html','chrome://automation/'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html','chrome://settings/'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general','chrome://settings#general'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search','chrome://settings#search'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs','chrome://settings#tabs'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#keyboard','chrome://settings#keyboard'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extensions','chrome://settings#extensions'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html','chrome://setting/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general','chrome://setting#general'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search','chrome://setting#search'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs','chrome://setting#tabs'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#keyboard','chrome://setting#keyboard'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extensions','chrome://setting#extensions'],
 ])
 
 const convertUrlReg = /^chrome\-extension:\/\/dckpbojndfoinamcdamhkjhnjnmjkfjd\/(video|ace|bind)\.html\?url=([^&]+)/
@@ -485,15 +475,15 @@ class Contents extends React.Component {
               if(currentNode.type == 'file' && currentNode.favicon != "empty"){
                 if(this.props.cont){
                   if(event.button == 1){
-                    this.props.cont.hostWebContents.send('create-web-contents',{id:this.props.cont.getId(),targetUrl:currentNode.url,disposition:'background-tab'})
+                    this.props.cont.hostWebContents2.send('create-web-contents',{id:this.props.cont.id,targetUrl:currentNode.url,disposition:'background-tab'})
                   }
                   else{
-                    this.props.cont.hostWebContents.send(openType ? 'new-tab' : 'load-url',this.props.cont.getId(),currentNode.url)
+                    this.props.cont.hostWebContents2.send(openType ? 'new-tab' : 'load-url',this.props.cont.id,currentNode.url)
                   }
                   if(this.props.onClick) this.props.onClick()
                 }
                 else{
-                  ipc.sendToHost("open-tab-opposite",currentNode.url,true,event.button == 1 ? 'create-web-contents' : openType ? 'new-tab' : 'load-url')
+                  ipc.send('send-to-host', "open-tab-opposite",currentNode.url,true,event.button == 1 ? 'create-web-contents' : openType ? 'new-tab' : 'load-url')
                 }
               }
               else{

@@ -1,5 +1,5 @@
 import process from './process'
-import {ipcRenderer as ipc} from 'electron';
+import {ipcRenderer as ipc} from './ipcRenderer'
 import localForage from "../LocalForage";
 import uuid from 'node-uuid';
 import React from 'react';
@@ -13,19 +13,7 @@ const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
 import InfiniteTree from '../render/react-infinite-tree';
 import rowRenderer from '../render/react-infinite-tree/renderer';
 
-const isMain = location.href.startsWith("chrome://brave/")
-
-if(!isMain){
-  localForage.getItem('favicon-set').then(setTime=>{
-    ipc.send("favicon-get",setTime ? parseInt(setTime) : null)
-    ipc.once("favicon-get-reply",(e,ret)=>{
-      localForage.setItem('favicon-set',Date.now().toString())
-      for(let [k,v] of Object.entries(ret)){
-        localForage.setItem(k,v)
-      }
-    })
-  })
-}
+const isMain = location.href.startsWith("file://")
 
 let openType
 const key = uuid.v4()
@@ -37,16 +25,18 @@ ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
 let favicons = {}
 async function faviconGet(url){
   const favicon = favicons[url]
-  return favicon == "resource/file.svg" ? (void 0) : favicon && (await localForage.getItem(favicon))
+  return favicon == "resource/file.svg" ? (void 0) :
+    isMain ? favicon && (await localForage.getItem(favicon)) :
+      `chrome://favicon/${url}`
 }
 
 
 const convertUrlMap = new Map([
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html',''],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html','about:blank'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html','chrome://bookmarks/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html','chrome://bookmarks2/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html','chrome://bookmarks-sidebar/'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html','chrome://history/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html','chrome://history2/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_history_sidebar.html','chrome://tab-history-sidebar/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_trash_sidebar.html','chrome://tab-trash-sidebar/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download_sidebar.html','chrome://download-sidebar/'],
@@ -60,12 +50,12 @@ const convertUrlMap = new Map([
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html','chrome://terminal/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html','chrome://converter/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html','chrome://automation/'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html','chrome://settings/'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general','chrome://settings#general'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search','chrome://settings#search'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs','chrome://settings#tabs'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#keyboard','chrome://settings#keyboard'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extensions','chrome://settings#extensions'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html','chrome://setting/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general','chrome://setting#general'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search','chrome://setting#search'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs','chrome://setting#tabs'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#keyboard','chrome://setting#keyboard'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extensions','chrome://setting#extensions'],
 ])
 
 const convertUrlReg = /^chrome\-extension:\/\/dckpbojndfoinamcdamhkjhnjnmjkfjd\/(video|ace|bind)\.html\?url=([^&]+)/
@@ -500,13 +490,13 @@ class Contents extends React.Component {
                 if(this.props.cont){
                   const args = currentNode.id.split("/")
                   const favicons = currentNode.refs.map(x=>[x._url,x.favicon])
-                  this.props.cont.hostWebContents.send('restore-tab',this.props.cont.getId(),args[1],parseInt(args[2]),favicons,type)
+                  this.props.cont.hostWebContents2.send('restore-tab',this.props.cont.id,args[1],parseInt(args[2]),favicons,type)
                   if(this.props.onClick) this.props.onClick()
                 }
                 else{
                   const args = currentNode.id.split("/")
                   const favicons = currentNode.refs.map(x=>[x._url,x.favicon])
-                  ipc.sendToHost("restore-tab-opposite",args[1],parseInt(args[2]),favicons,type)
+                  ipc.send('send-to-host', "restore-tab-opposite",args[1],parseInt(args[2]),favicons,type)
                 }
               }
               else{

@@ -3,7 +3,7 @@ const path = require('path')
 const fs = require('fs')
 const glob = require("glob")
 
-const MUON_VERSION = fs.readFileSync('../MUON_VERSION.txt').toString()
+const ELECTRON_VERSION = fs.readFileSync('../ELECTRON_VERSION.txt').toString()
 const APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
 
 const isWindows = process.platform === 'win32'
@@ -55,17 +55,17 @@ function filesContentsReplace(files,reg,after){
 
 function build(){
   const platform = isLinux ? 'darwin,linux' : isWindows ? 'win32' : isDarwin ? 'darwin' : 'mas'
-  const ret = sh.exec(`node ./node_modules/electron-packager/cli.js . ${isWindows ? 'brave' : 'sushi-browser'} --platform=${platform} --arch=${arch} --overwrite --icon=${appIcon} --version=${MUON_VERSION}  --asar=true --app-version=${APP_VERSION} --build-version=${MUON_VERSION} --protocol="http" --protocol-name="HTTP Handler" --protocol="https" --protocol-name="HTTPS Handler" --version-string.ProductName="Sushi Browser" --version-string.Copyright="Copyright 2017, Sushi Browser" --version-string.FileDescription="Sushi" --asar-unpack-dir="{node_modules/{node-pty,youtube-dl/bin},node_modules/node-pty/**/*,resource/{bin,extension}/**/*}" --ignore="\\.(cache|babelrc|gitattributes|githug|gitignore|gitattributes|gitignore|gitkeep|gitmodules)|node_modules/(electron-installer-squirrel-windows|electron-installer-debian|node-gyp|electron-download|electron-rebuild|electron-packager|electron-builder|electron-prebuilt|electron-rebuild|electron-winstaller-fixed|muon-winstaller|electron-installer-redhat|react-addons-perf|babel-polyfill|infinite-tree|babel-register|jsx-to-string|happypack|es5-ext|browser-sync-ui|gulp-uglify|devtron|electron$|deasync|webpack|babel-runtime|uglify-es|babel-plugin|7zip-bin|webdriverio|semantic-ui-react/(node_modules|src)|semantic-ui-react/dist/(commonjs|umd)|babili|babel-helper|react-dom|react|@types|@gulp-sourcemaps|js-beautify)|tools|sushi-browser-|release-packed|cppunitlite|happypack|es3ify"`)
+  const ret = sh.exec(`electron-packager . sushi-browser --electronVersion=${ELECTRON_VERSION} --platform=${platform} --arch=${arch} --overwrite --icon=${appIcon} --protocol="http" --protocol-name="HTTP Handler" --protocol="https" --protocol-name="HTTPS Handler" --appCopyright="Copyright 2017, Sushi Browser" --asar.unpackDir="{node_modules/{node-pty,youtube-dl/bin},node_modules/node-pty/**/*,resource/{bin,extension}/**/*}" --ignore="\\.(cache|babelrc|gitattributes|githug|gitignore|gitattributes|gitignore|gitkeep|gitmodules)|node_modules/(electron-installer-squirrel-windows|electron-installer-debian|node-gyp|electron-download|electron-rebuild|electron-packager|electron-builder|electron-prebuilt|electron-rebuild|electron-winstaller-fixed|muon-winstaller|electron-installer-redhat|react-addons-perf|babel-polyfill|infinite-tree|babel-register|jsx-to-string|happypack|es5-ext|browser-sync-ui|gulp-uglify|devtron|electron$|deasync|webpack|babel-runtime|uglify-es|babel-plugin|7zip-bin|webdriverio|semantic-ui-react/(node_modules|src)|semantic-ui-react/dist/(commonjs|umd)|babili|babel-helper|react-dom|react|@types|@gulp-sourcemaps|js-beautify)|tools|sushi-browser-|release-packed|cppunitlite|happypack|es3ify"`)
 
   if(ret.code !== 0) {
     console.log("ERROR2")
     process.exit()
   }
 
-  if (isWindows) {
-    sh.mv(`brave-${process.platform}-${arch}`, buildDir)
-    sh.mv(`${buildDir}/brave.exe`, `${buildDir}/sushi.exe`)
-  }
+  // if (isWindows) {
+  //   sh.mv(`brave-${process.platform}-${arch}`, buildDir)
+  //   sh.mv(`${buildDir}/brave.exe`, `${buildDir}/sushi.exe`)
+  // }
 
   const pwd = sh.pwd().toString()
   if(isDarwin){
@@ -98,7 +98,7 @@ function build(){
     sh.mv(`${pwd}/${buildDir}/_LICENSE`,`${pwd}/${buildDir}/LICENSE`)
     sh.rm(`${pwd}/${buildDir}/LICENSES.chromium.html`)
     sh.cp(`app/VERSION.txt`,`${pwd}/${buildDir}/VERSION.txt`)
-    sh.cp('-Rf',`${pwd}/../WidevineCdm`,`${pwd}/${buildDir}/.`)
+    // sh.cp('-Rf',`${pwd}/../WidevineCdm`,`${pwd}/${buildDir}/.`)
     fs.writeFileSync(`${pwd}/${buildDir}/update.cmd`,`@echo off
 cd /d %~dp0
 for /f "tokens=1" %%i in (VERSION.txt) do (
@@ -122,7 +122,7 @@ if not "%ver%"=="%newver%" (
   if exist sushi-browser-%newver%-win-ia32.zip (
     del /Q sushi-browser-%newver%-win-ia32.zip
   
-    taskkill /F /IM sushi.exe
+    taskkill /F /IM sushi-browser.exe
     copy /Y resources\\app.asar.unpacked\\resource\\portable.txt resources\\portable.txt
     rd /s /q resources\\_app
     rd /s /q resources\\app.asar.unpacked
@@ -131,13 +131,13 @@ if not "%ver%"=="%newver%" (
     cd _update_%newver%\\sushi-browser-portable
     xcopy /S /E /Y . ..\\..
     cd ..\\..
-    powershell Start-Process sushi.exe --update-delete
+    powershell Start-Process sushi-browser.exe --update-delete
   )
 )`)
     fs.writeFileSync(`${pwd}/${buildDir}/add_to_default_browser.cmd`,`powershell start-process __add_to_default_browser.cmd -verb runas`)
     fs.writeFileSync(`${pwd}/${buildDir}/__add_to_default_browser.cmd`,`reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Sushi\\Capabilities" /v ApplicationDescription /t REG_SZ /d "Sushi Browser" /f
 reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Sushi\\Capabilities" /v ApplicationName /t REG_SZ /d "Sushi" /f
-reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Sushi\\Capabilities" /v ApplicationIcon /t REG_SZ /d "%~dp0sushi.exe,0" /f
+reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Sushi\\Capabilities" /v ApplicationIcon /t REG_SZ /d "%~dp0sushi-browser.exe,0" /f
 
 reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Sushi\\Capabilities\\FileAssociations" /v .htm /t REG_SZ /d "SushiURL" /f
 reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Sushi\\Capabilities\\FileAssociations" /v .html /t REG_SZ /d "SushiURL" /f
@@ -156,7 +156,7 @@ reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\RegisteredApplications" /v Sushi /t REG_S
 reg add "HKEY_LOCAL_MACHINE\\Software\\Classes\\SushiURL" /t REG_SZ /d "Sushi Document" /f
 reg add "HKEY_LOCAL_MACHINE\\Software\\Classes\\SushiURL" /v FriendlyTypeName /t REG_SZ /d "Sushi Document" /f
 
-reg add "HKEY_LOCAL_MACHINE\\Software\\Classes\\SushiURL\\shell\\open\\command" /t REG_SZ /d "\\"%~dp0sushi.exe\\" -- \\"%%1\\"" /f
+reg add "HKEY_LOCAL_MACHINE\\Software\\Classes\\SushiURL\\shell\\open\\command" /t REG_SZ /d "\\"%~dp0sushi-browser.exe\\" -- \\"%%1\\"" /f
 
 pause`)
   }
@@ -174,8 +174,8 @@ pause`)
   muonModify()
 
   if (isWindows) {
-    const muonInstaller = require('muon-winstaller')
-    const resultPromise = muonInstaller.createWindowsInstaller({
+    const electronInstaller = require('electron-winstaller')
+    const resultPromise = electronInstaller.createWindowsInstaller({
       appDirectory: buildDir,
       outputDirectory: outDir,
       title: 'Sushi Browser',
@@ -186,7 +186,7 @@ pause`)
       iconUrl: 'https://sushib.me/favicon.ico',
       // signWithParams: format('-a -fd sha256 -f "%s" -p "%s" -t http://timestamp.verisign.com/scripts/timstamp.dll', path.resolve(cert), certPassword),
       noMsi: true,
-      exe: 'sushi.exe'
+      exe: 'sushi-browser.exe'
     })
     resultPromise.then(() => {
       // sh.mv(`${outDir}/Setup.exe`,`${outDir}/sushi-browser-setup-${arch}.exe`)
@@ -209,234 +209,6 @@ function muonModify(){
         console.log("ERROR3")
         process.exit()
       }
-
-      const file = path.join(sh.pwd().toString(),sh.ls('electron/browser/api/extensions.js')[0])
-
-      const contents = fs.readFileSync(file).toString()
-      const result = contents
-      // .replace(/getInfo\.populate/g,'{}')
-        .replace('tabContents.close(tabContents)',"tabContents.hostWebContents && tabContents.hostWebContents.send('menu-or-key-events','closeTab',tabId)")
-        .replace("evt.sender.send('chrome-tabs-create-response-' + responseId, tab.tabValue(), error)","evt.sender.send('chrome-tabs-create-response-' + responseId, tab && tab.tabValue(), error)")
-        .replace('  if (updateProperties.active || updateProperties.selected || updateProperties.highlighted) {',
-          `  if (updateProperties.active || updateProperties.selected || updateProperties.highlighted) {
-    process.emit('chrome-tabs-updated-from-extension', tabId)`)
-        .replace('chromeTabsRemoved(tabId)',`chromeTabsRemoved(tabId)
-  delete tabIndexMap[tabId]`)
-        .replace('return result','return result.sort(function(a, b){ return a.index - b.index })')
-
-        .replace('var getTabValue = function (tabId) {',`const tabIndexMap = {},tabOpenerMap = {}
-ipcMain.on('set-tab-opener',(e,tabId,openerTabId)=>{
-  if(openerTabId) tabOpenerMap[tabId] = openerTabId
-})
-ipcMain.on('get-tab-opener',(e,tabId)=>{
-  ipcMain.emit(\`get-tab-opener-reply_\${tabId}\`,null,tabOpenerMap[tabId])
-})
-ipcMain.on('get-tab-opener-sync',(e,tabId)=>{
-  e.returnValue = tabOpenerMap[tabId]
-})
-ipcMain.on('get-tab-value-sync',(e,tabId)=>{
-  e.returnValue = getTabValue(tabId) || null
-})
-ipcMain.on('new-tab-mode',(e,val)=>{
-  newTabMode = val
-})
-ipcMain.on('update-tab-index-org',(e,tabId,index)=>tabIndexMap[tabId] = index)
-var getTabValue = function (tabId) {`)
-
-        .replace("sendToBackgroundPages('all', getSessionForTab(tabId), 'chrome-tabs-created', tabs[tabId].tabValue)",`const val = tabs[tabId].tabValue
-  if(val.url=='chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html'){
-    val.url = newTabMode
-  }
-  const opener = tabOpenerMap[tabId]
-  if(val.windowId == -1){
-    if(opener){
-      val.windowId = BrowserWindow.fromWebContents(webContents.fromTabID(opener).hostWebContents).id
-    }
-    else{
-      ipcMain.once(\`new-window-tabs-created_\${tabId}\`,(e,index)=>{
-        tabIndexMap[tabId] = index
-        tabOpenerMap[tabId] = null
-        delete val.openerTabId
-        val.index = index
-        val.windowId = BrowserWindow.fromWebContents(e.sender.hostWebContents).id
-        sendToBackgroundPages('all', getSessionForTab(tabId), 'chrome-tabs-created', val)
-        sendToBackgroundPages('all', getSessionForTab(tabId), 'chrome-tabs-updated', tabId, {status:'loading'}, val)
-      })
-      return tabId
-    }
-  }
-
-  if(opener){
-    val.openerTabId = opener
-    sendToBackgroundPages('all', getSessionForTab(tabId), 'chrome-tabs-created', val)
-    sendToBackgroundPages('all', getSessionForTab(tabId), 'chrome-tabs-updated', tabId, {status:'loading'}, val)
-  }
-  else{
-    let win = BrowserWindow.fromId(val.windowId)
-    if(!win || !win.getTitle().includes('Sushi Browser')){
-      const focus = BrowserWindow.getFocusedWindow()
-      if(focus && focus.getTitle().includes('Sushi Browser')){
-        win = focus
-      }
-      else{
-        win = BrowserWindow.getAllWindows().find(w=>w.getTitle().includes('Sushi Browser'))
-      }
-    }
-    const cont = win.webContents
-    const key = Math.random().toString()
-    ipcMain.once(\`get-focused-webContent-reply_\${key}\`,(e,openerTabId)=>{
-      tabOpenerMap[tabId] = openerTabId
-      val.openerTabId = openerTabId
-      sendToBackgroundPages('all', getSessionForTab(tabId), 'chrome-tabs-created', val)
-      sendToBackgroundPages('all', getSessionForTab(tabId), 'chrome-tabs-updated', tabId, {status:'loading'}, val)
-    })
-    cont.send('get-focused-webContent',key,void 0,void 0,true)
-  }`)
-
-        .replace('return tabContents && tabContents.tabValue()',`const ret = tabContents && !tabContents.isDestroyed() && tabContents.tabValue()
-  let index,opener
-  if(ret) {
-    if((index = tabIndexMap[ret.id]) !== (void 0)) ret.index = index
-    if(!ret.status) ret.status ="loading"
-    if(ret.openerTabId == -1 && (opener = tabOpenerMap[ret.id])){
-      ret.openerTabId = opener
-    }
-    else{
-      delete ret.openerTabId
-    }
-  }
-  return ret`)
-
-        .replace('  if (!error && createProperties.partition) {',`  if(!createProperties.url || createProperties.url == 'chrome://newtab/'){
-    createProperties.url = newTabMode
-  }
-  if(!createProperties.openerTabId || createProperties.openerTabId == -1){
-    if(!win){
-      const focus = BrowserWindow.getFocusedWindow()
-      if(focus && focus.getTitle().includes('Sushi Browser')){
-        win = focus
-      }
-      else{
-        win = BrowserWindow.getAllWindows().find(w=>w.getTitle().includes('Sushi Browser'))  
-      }
-    }
-    const cont = win.webContents
-    const key = Math.random().toString()
-    ipcMain.once(\`get-focused-webContent-reply_\${key}\`,(e,tabId)=>{
-      const opener = webContents.fromTabID(tabId)
-      ses = opener && opener.session
-      if (!error && createProperties.partition) {
-        // createProperties.partition always takes precendence
-        ses = session.fromPartition(createProperties.partition, {
-          parent_partition: createProperties.parent_partition
-        })
-        // don't pass the partition info through
-        delete createProperties.partition
-        delete createProperties.parent_partition
-      }
-
-      if (error) {
-        console.error(error)
-        return cb(null, error)
-      }
-
-      createProperties.userGesture = true
-
-      try {
-        // handle url, active, index and pinned in browser-laptop
-        webContents.createTab(
-          win.webContents,
-          ses,
-          createProperties,
-          (tab) => {
-            if (tab) {
-              cb(tab)
-            } else {
-              cb(null, 'An unexpected error occurred')
-            }
-          }
-        )
-      } catch (e) {
-        console.error(e)
-        cb(null, 'An unexpected error occurred: ' + e.message)
-      }
-    })
-    cont.send('get-focused-webContent',key,void 0)
-    return
-  }
-
-  if (!error && createProperties.partition) {`)
-        .replace("tabValues[tabId].url.startsWith('chrome://brave')","tabValues[tabId].url && tabValues[tabId].url.startsWith('chrome://brave')")
-
-        .replace(`evt.sender.send('chrome-tabs-update-response-' + responseId, response)`,"evt.sender.send('chrome-tabs-update-response-' + responseId, getTabValue(tabId))")
-
-        .replace(`tabs[tabId].tabValue = tabValue
-  let changeInfo = {}
-
-  for (var key in tabValue) {
-    if (!deepEqual(tabValue[key], oldTabInfo[key])) {
-      changeInfo[key] = tabValue[key]
-    }
-  }
-
-  if (Object.keys(changeInfo).length > 0) {
-    if (changeInfo.active) {
-      sendToBackgroundPages('all', getSessionForTab(tabId), 'chrome-tabs-activated', tabId, {tabId: tabId, windowId: tabValue.windowId})
-      process.emit('chrome-tabs-activated', tabId, {tabId: tabId, windowId: tabValue.windowId})
-    }
-    sendToBackgroundPages('all', getSessionForTab(tabId), 'chrome-tabs-updated', tabId, changeInfo, tabValue)
-    process.emit('chrome-tabs-updated', tabId, changeInfo, tabValue)
-  }
-}
-`,`const func = ()=>{
-    let changeInfo = {}
-
-    for (var key in tabValue) {
-      if (!deepEqual(tabValue[key], oldTabInfo[key])) {
-        changeInfo[key] = tabValue[key]
-      }
-    }
-    if (Object.keys(changeInfo).length > 0) {
-      if (changeInfo.active) {
-        sendToBackgroundPages('all', getSessionForTab(tabId), 'chrome-tabs-activated', tabId, {tabId: tabId, windowId: tabValue.windowId})
-        process.emit('chrome-tabs-activated', tabId, {tabId: tabId, windowId: tabValue.windowId})
-      }
-      sendToBackgroundPages('all', getSessionForTab(tabId), 'chrome-tabs-updated', tabId, changeInfo, tabValue)
-      process.emit('chrome-tabs-updated', tabId, changeInfo, tabValue)
-    }
-    tabs[tabId].tabValue = tabValue
-  }
-
-  if(tabValue.windowId == -1 || tabOpenerMap[tabId]  === void 0 || tabIndexMap[tabId] === void 0){
-    if(tabValue.url.startsWith('chrome://brave/')) return
-    let retry = 0
-    const id = setInterval(_=>{
-      tabValue = getTabValue(tabId)
-      if(!tabValue || retry++ > 40){
-        clearInterval(id)
-        return
-      }
-      if(tabValue.windowId == -1 || tabOpenerMap[tabId]  === void 0 || tabIndexMap[tabId] === void 0) return
-
-      func()
-      clearInterval(id)
-    },50)
-  }
-  else{
-    func()
-  }
-}`)
-        .replace('var sendToBackgroundPages = function (extensionId, session, event) {',`var sendToBackgroundPages = function (extensionId, session, event, arg1) {
-  if(event == 'chrome-tabs-created'){
-    BrowserWindow.getAllWindows().forEach(win=>{
-      if(win.getTitle().includes('Sushi Browser')){
-        win.webContents.send('tab-create',arg1)
-      }
-    })
-  }`)
-        .replace('if (tabs[tabId]) {','if (tabs[tabId] || (tab && tab.tabValue && tab.tabValue.url && tab.tabValue.url.startsWith("chrome-devtools://"))) {')
-
-      fs.writeFileSync(file,result)
 
       const initFile = path.join(sh.pwd().toString(),sh.ls('electron/browser/init.js')[0])
       const contents2 = fs.readFileSync(initFile).toString()
@@ -484,13 +256,6 @@ if(fs.existsSync(path.join(basePath,'app.asar.7z'))){
       sh.mkdir('app')
       sh.cp('../../package.json','app/.')
 
-      const file3 = path.join(sh.pwd().toString(),sh.ls('electron/browser/rpc-server.js')[0])
-
-      const contents3 = fs.readFileSync(file3).toString()
-      const result3 = contents3.replace('throw new Error(`Attempting','// throw new Error(`Attempting')
-
-      fs.writeFileSync(file3,result3)
-
       if(sh.exec('asar pack electron electron.asar').code !== 0) {
         console.log("ERROR")
         process.exit()
@@ -516,27 +281,21 @@ glob.sync(`${pwd}/**/*.js.map`).forEach(file=>{
   fs.unlinkSync(file)
 })
 
-sh.rm('-rf','resource/bin/7zip/linux')
-sh.rm('-rf','resource/bin/aria2/linux')
-sh.rm('-rf','resource/bin/ffmpeg/linux')
-sh.rm('-rf','resource/bin/handbrake/linux')
-sh.rm('-rf','resource/bin/tor/linux')
+sh.rm('-rf','resource/bin/7zip/win')
+sh.rm('-rf','resource/bin/aria2/win')
+sh.rm('-rf','resource/bin/ffmpeg/win')
+sh.rm('-rf','resource/bin/handbrake/win')
 
 const plat = isWindows ? 'win32' : isDarwin ? 'mac' : 'linux'
-sh.cp('-Rf',`../bin/7zip/${plat}`,'resource/bin/7zip/.')
-sh.cp('-Rf',`../bin/aria2/${plat}`,'resource/bin/aria2/.')
-sh.cp('-Rf',`../bin/ffmpeg/${plat}`,'resource/bin/ffmpeg/.')
-sh.cp('-Rf',`../bin/handbrake/${plat}`,'resource/bin/handbrake/.')
-sh.cp('-Rf',`../bin/tor/${plat}`,'resource/bin/tor/.')
-sh.mkdir('-p', 'resource/bin/widevine');
-sh.cp('-Rf',`../bin/widevine/${plat}`,'resource/bin/widevine/.')
+sh.cp('-Rf',`../web-dev-browser/resource/bin/7zip/${plat}`,'resource/bin/7zip/.')
+sh.cp('-Rf',`../web-dev-browser/resource/bin/aria2/${plat}`,'resource/bin/aria2/.')
+sh.cp('-Rf',`../web-dev-browser/resource/bin/ffmpeg/${plat}`,'resource/bin/ffmpeg/.')
+sh.cp('-Rf',`../web-dev-browser/resource/bin/handbrake/${plat}`,'resource/bin/handbrake/.')
 
 sh.mv('resource/bin/7zip/win32','resource/bin/7zip/win')
 sh.mv('resource/bin/aria2/win32','resource/bin/aria2/win')
 sh.mv('resource/bin/ffmpeg/win32','resource/bin/ffmpeg/win')
 sh.mv('resource/bin/handbrake/win32','resource/bin/handbrake/win')
-sh.mv('resource/bin/widevine/win32','resource/bin/widevine/win')
-sh.mv('resource/bin/tor/win32','resource/bin/tor/win')
 
 filesContentsReplace(`${pwd}/node_modules/youtube-dl/lib/youtube-dl.js`,"path.join(__dirname, '..', 'bin/details')","path.join(__dirname, '..', 'bin/details').replace(/app.asar([\\/\\\\])/,'app.asar.unpacked$1')")
 filesContentsReplace(`${pwd}/node_modules/youtube-dl/lib/youtube-dl.js`,"(details.path) ? details.path : path.resolve(__dirname, '..', 'bin', details.exec)","((details.path) ? details.path : path.resolve(__dirname, '..', 'bin', details.exec)).replace(/app.asar([\\/\\\\])/,'app.asar.unpacked$1')")
@@ -545,7 +304,7 @@ filesContentsReplace(`${pwd}/node_modules/youtube-dl/lib/youtube-dl.js`,"(detail
 build()
 
 if(isWindows){
-  sh.mv(`${outDir}/sushi-browser-setup-ia32.exe`,`${outDir}/sushi-browser-${APP_VERSION}-setup-ia32.exe`)
+  // sh.mv(`${outDir}/sushi-browser-setup-ia32.exe`,`${outDir}/sushi-browser-${APP_VERSION}-setup-ia32.exe`)
   sh.cp('-Rf',`./${buildDir}`,`./sushi-browser-portable`)
   sh.mkdir('-p', `sushi-browser-portable/resources/app.asar.unpacked/resource`);
   fs.writeFileSync(`${pwd}/sushi-browser-portable/resources/app.asar.unpacked/resource/portable.txt`,'true')

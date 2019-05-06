@@ -4,9 +4,14 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './favoriteBase';
 
+import '../defaultExtension/contentscript'
+
 require('./themeForPage')('themeBookmarkSidebar')
 
-ReactDOM.render(
-  <App sidebar={true}/>,
-  document.querySelector('#classic')
-);
+;(async ()=>{
+  // await initPromise
+  ReactDOM.render(
+    <App sidebar={true}/>,
+    document.querySelector('#classic')
+  );
+})()

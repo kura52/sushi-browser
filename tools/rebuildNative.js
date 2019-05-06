@@ -1,16 +1,20 @@
 const sh = require('shelljs')
 const fs = require("fs")
+const path = require("path")
 
-const libs = ['../node_modules/node-pty','../node_modules/winctl']
+const libs = [
+  '../node_modules/node-pty',
+  '../node_modules/winctl',
+  'cd ']
 
 for(let lib of libs){
-  rebuild(lib)
+  rebuild(path.join(__dirname,lib))
 }
 
 function rebuild(lib){
   sh.cd(lib)
 
-  if(sh.exec('node-gyp rebuild --target=8.0.8 --arch=x64 --dist-url=http://brave-laptop-binaries.s3.amazonaws.com/atom-shell/dist').code !== 0) {
+  if(sh.exec('node-gyp rebuild --target=5.0.1 --arch=x64 --dist-url=https://atom.io/download/electron').code !== 0) {
     console.log("ERROR")
     process.exit()
   }

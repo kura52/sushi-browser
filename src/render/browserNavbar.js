@@ -10,7 +10,7 @@ const {Menu, webContents} = remote
 // const {searchHistory} = require('./databaseRender')
 const ipc = require('electron').ipcRenderer
 import MenuOperation from './MenuOperation'
-import {favorite} from './databaseRender'
+const favorite = require('electron').remote.require('./remoted-chrome/favorite')
 const browserActionMap = require('./browserActionDatas')
 const BrowserActionMenu = require('./BrowserActionMenu')
 const VpnList = require('./VpnList')
@@ -116,12 +116,11 @@ sharedState.statusBar = statusBar
 sharedState.mobilePanelSyncScroll = mobilePanelSyncScroll
 
 
-let staticDisableExtensions = []
 class BrowserNavbar extends Component{
   constructor(props) {
     super(props)
     this.state = {userAgent: DEFAULT_USERAGENT,
-      pdfMode:'normal',currentIndex:0,historyList:[],disableExtensions:staticDisableExtensions,left,right,backSide}
+      pdfMode:'normal',currentIndex:0,historyList:[],left,right,backSide}
     this.canRefresh = this.props.page.canRefresh
     this.location = this.props.page.location
     this.richContents = this.props.richContents
@@ -129,6 +128,7 @@ class BrowserNavbar extends Component{
   }
 
   initEvents(){
+    console.log(`zoom_${this.props.tabkey}`)
     this.tokenZoom = PubSub.subscribe(`zoom_${this.props.tabkey}`,(msg,percent)=>{
       this.setState({zoom:percent})
       if(this.props.tab.sync) this.props.parent.syncZoom(percent,this.props.tab.sync)
@@ -136,7 +136,7 @@ class BrowserNavbar extends Component{
     this.tokenReplaceInfo = PubSub.subscribe(`update-replace-info_${this.props.tabkey}`,(msg,replaceInfo)=>{
       this.refs.syncReplace.setVals(replaceInfo)
     })
-    this.tokenPdfMode = PubSub.subscribe('set-pdfmode-enable',(msg,mode)=>this.setState({pdfMode:mode}))
+    // this.tokenPdfMode = PubSub.subscribe('set-pdfmode-enable',(msg,mode)=>this.setState({pdfMode:mode}))
 
     this.tokenBindWindow = PubSub.subscribe(`bind-window_${this.props.tab.key}`,::this._bindWindow)
 
@@ -194,8 +194,9 @@ class BrowserNavbar extends Component{
         this.setState({mobile: this.props.tab.mobile})
         const tabId = this.props.tab.wvId
         if(!tabs.has(tabId)){
-          ipc.send('user-agent-change',{tabId,ua:this.state.userAgent})
-          this.getWebContents(this.props.tab).reload()
+          const cont = this.getWebContents(this.props.tab)
+          cont.setUserAgent(this.state.userAgent)
+          cont.reload()
         }
       },500)
     }
@@ -212,22 +213,22 @@ class BrowserNavbar extends Component{
   }
 
   componentWillMount(){
-    console.log('navbar','componentWillMount',this.props.tabkey)
+    console.log('navbar','componentWillMount',this.props.tabkey,this.props.k)
     this.props.refs2[`navbar-${this.props.tabkey}`] = this
   }
 
   componentDidMount() {
-    console.log('navbar','componentDidMount',this.props.tabkey)
+    console.log('navbar','componentDidMount',this.props.tabkey,this.props.k)
     this.updateStates()
     this.initEvents()
   }
 
   componentWillUnmount() {
-    console.log('navbar','componentWillUnmount',this.props.tabkey)
+    console.log('navbar','componentWillUnmount',this.props.tabkey,this.props.k)
     PubSub.unsubscribe(this.tokenZoom)
     PubSub.unsubscribe(this.tokenReplaceInfo)
     // PubSub.unsubscribe(this.tokenAdblockGlobal)
-    PubSub.unsubscribe(this.tokenPdfMode)
+    // PubSub.unsubscribe(this.tokenPdfMode)
     PubSub.unsubscribe(this.tokenBindWindow)
     PubSub.unsubscribe(this.tokenForceUpdate)
     PubSub.unsubscribe(this.tokenMenuSort)
@@ -263,11 +264,11 @@ class BrowserNavbar extends Component{
       this.props.isTopRight === nextProps.isTopRight &&
       this.props.isTopLeft === nextProps.isTopLeft &&
       this.props.fullscreen === nextProps.fullscreen &&
+      this.props.parent.state.selectedTab == this.props.tab.key &&
       (this.richContents||[]).length === (nextProps.tab.page.richContents||[]).length &&
       (this.caches||[]).length === (nextState.caches||[]).length &&
       this.state.currentIndex === nextState.currentIndex &&
       equalArray2(this.state.historyList,nextState.historyList) &&
-      equalArray(this.state.disableExtensions,nextState.disableExtensions) &&
       equalArray(this.state.left,nextState.left) &&
       equalArray(this.state.right,nextState.right) &&
       equalArray(this.state.backSide,nextState.backSide) &&
@@ -280,13 +281,13 @@ class BrowserNavbar extends Component{
       this.props.bind == nextProps.bind &&
       this.state.mobile == nextState.mobile &&
       this.state.bindWindow == nextState.bindWindow &&
-      this.props.adBlockEnable == nextProps.adBlockEnable &&
-      this.props.adBlockThis == nextProps.adBlockThis &&
-      this.state.pdfMode == nextState.pdfMode &&
+      // this.props.adBlockEnable == nextProps.adBlockEnable &&
+      // this.props.adBlockThis == nextProps.adBlockThis &&
+      // this.state.pdfMode == nextState.pdfMode &&
       this.props.oppositeGlobal == nextProps.oppositeGlobal &&
       this.props.tabKey == this.tabKey &&
-      this.searchWordHighlight == sharedState.searchWordHighlight &&
-      this.searchWordHighlightRecursive == sharedState.searchWordHighlightRecursive &&
+      // this.searchWordHighlight == sharedState.searchWordHighlight &&
+      // this.searchWordHighlightRecursive == sharedState.searchWordHighlightRecursive &&
       this.mobilePanelSyncScroll == sharedState.mobilePanelSyncScroll &&
       this.bookmarkBar == sharedState.bookmarkBar &&
       this.hoverBookmarkBar == sharedState.hoverBookmarkBar &&
@@ -312,8 +313,8 @@ class BrowserNavbar extends Component{
       this.syncReplace = nextProps.tab.syncReplace
       this.oppositeMode = nextProps.tab.oppositeMode
       this.tabKey = nextProps.tabKey
-      this.searchWordHighlight = sharedState.searchWordHighlight
-      this.searchWordHighlightRecursive = sharedState.searchWordHighlightRecursive
+      // this.searchWordHighlight = sharedState.searchWordHighlight
+      // this.searchWordHighlightRecursive = sharedState.searchWordHighlightRecursive
       this.mobilePanelSyncScroll = sharedState.mobilePanelSyncScroll
       this.bookmarkBar = sharedState.bookmarkBar
       this.hoverBookmarkBar = sharedState.hoverBookmarkBar
@@ -330,12 +331,11 @@ class BrowserNavbar extends Component{
 
   updateStates(){
     if(!this.props.tab.wvId) return
-    ipc.once(`get-cont-history-reply_${this.props.tab.wvId}`,(e,currentIndex,historyList,rSession,disableExtensions,adBlockGlobal,pdfMode,navbarItems)=>{
+    ipc.once(`get-cont-history-reply_${this.props.tab.wvId}`,(e,currentIndex,historyList,rSession,adBlockGlobal,pdfMode,navbarItems)=>{
       left = navbarItems.left
       right = navbarItems.right
       backSide = navbarItems.backSide
       if(currentIndex === (void 0)) return
-      staticDisableExtensions = disableExtensions
       console.log(9995,this.props.tab.rSession)
       if(rSession){
         console.log(9996,rSession)
@@ -344,17 +344,16 @@ class BrowserNavbar extends Component{
         this.props.tab.rSession.positions = rSession.positions
         this.props.tab.rSession.currentIndex = currentIndex
       }
-      if(this.props.adBlockEnable != adBlockGlobal) PubSub.publish('set-adblock-enable',adBlockGlobal)
-      this.setState({currentIndex,historyList,disableExtensions,pdfMode,...navbarItems})
+      // if(this.props.adBlockEnable != adBlockGlobal) PubSub.publish('set-adblock-enable',adBlockGlobal)
+      this.setState({currentIndex,historyList,pdfMode,...navbarItems})
     })
     ipc.send('get-cont-history',this.props.tab.wvId,this.props.tab.key,this.props.tab.rSession)
   }
 
   componentWillUpdate(prevProps, prevState) {
     if(!this.props.tab.wvId) return
-    ipc.once(`get-cont-history-reply_${this.props.tab.wvId}`,(e,currentIndex,historyList,rSession,disableExtensions,adBlockGlobal,pdfMode,navbarItems)=>{
+    ipc.once(`get-cont-history-reply_${this.props.tab.wvId}`,(e,currentIndex,historyList,rSession,adBlockGlobal,pdfMode,navbarItems)=>{
       if(currentIndex === (void 0)) return
-      staticDisableExtensions = disableExtensions
       console.log(rSession,this.props.tab)
       console.log(9997,this.props.tab.rSession)
       if(rSession){
@@ -366,11 +365,10 @@ class BrowserNavbar extends Component{
       }
       if(!(this.state.currentIndex === currentIndex &&
         equalArray2(this.state.historyList,historyList) &&
-        equalArray(this.state.disableExtensions,disableExtensions) &&
         this.state.pdfMode == pdfMode)){
-        this.setState({currentIndex,historyList,disableExtensions,pdfMode})
+        this.setState({currentIndex,historyList,pdfMode})
       }
-      if(this.props.adBlockEnable != adBlockGlobal) PubSub.publish('set-adblock-enable',adBlockGlobal)
+      // if(this.props.adBlockEnable != adBlockGlobal) PubSub.publish('set-adblock-enable',adBlockGlobal)
 
     })
     ipc.send('get-cont-history',this.props.tab.wvId,this.props.tab.key,this.props.tab.rSession)
@@ -381,7 +379,7 @@ class BrowserNavbar extends Component{
       PubSub.publish(`zoom-change_${this.props.tab.key}`,percent)
   }
 
-  onZoomCommon(type){
+  async onZoomCommon(type){
     const webContents = this.getWebContents(this.props.tab)
     if(webContents){
       const zoomBehavior = mainState.zoomBehavior
@@ -389,20 +387,23 @@ class BrowserNavbar extends Component{
         webContents[type]()
       }
       else{
-        webContents.setZoomLevel(sharedState.zoomMapping.get(webContents.getZoomPercent() + parseInt(zoomBehavior) * (type == 'zoomOut' ? -1 : 1)))
+        const factor = await new Promise(r=>webContents.getZoomFactor(r))
+        webContents.setZoomFactor(factor + (parseInt(zoomBehavior) * (type == 'zoomOut' ? -1 : 1)/100.0))
       }
-      const percent = webContents.getZoomPercent()
-      if(!this.refs['main-menu'].state.visible){
-        this.state.zoomDisplay = `${percent}%`
-        clearTimeout(this.zoomTimeout)
-        this.zoomTimeout = setTimeout(_=>{
-          this.forceUpdates = true
-          this.setState({zoomDisplay:''})
-        },1500)
-      }
-      this.publishZoom(percent)
-      this.setState({zoom:percent})
-      // if(this.props.tab.sync) this.props.parent.syncZoom(percent,this.props.tab.sync)
+      webContents.getZoomFactor(factor=>{
+        const percent = factor * 100
+        // if(!this.refs['main-menu'].state.visible){
+        //   this.state.zoomDisplay = `${percent}%`
+        //   clearTimeout(this.zoomTimeout)
+        //   this.zoomTimeout = setTimeout(_=>{
+        //     this.forceUpdates = true
+        //     this.setState({zoomDisplay:''})
+        //   },1500)
+        // }
+        this.publishZoom(percent)
+        this.setState({zoom:percent})
+        // if(this.props.tab.sync) this.props.parent.syncZoom(percent,this.props.tab.sync)
+      })
     }
   }
 
@@ -414,15 +415,15 @@ class BrowserNavbar extends Component{
   }
   noZoom(){
     const webContents = this.getWebContents(this.props.tab)
-    if(webContents) webContents.zoomReset()
-    if(!this.refs['main-menu'].state.visible){
-      this.state.zoomDisplay = '100%'
-      clearTimeout(this.zoomTimeout)
-      this.zoomTimeout = setTimeout(_=>{
-        this.forceUpdates = true
-        this.setState({zoomDisplay:''})
-      },1500)
-    }
+    if(webContents) webContents.setZoomFactor(1)
+    // if(!this.refs['main-menu'].state.visible){
+    //   this.state.zoomDisplay = '100%'
+    //   clearTimeout(this.zoomTimeout)
+    //   this.zoomTimeout = setTimeout(_=>{
+    //     this.forceUpdates = true
+    //     this.setState({zoomDisplay:''})
+    //   },1500)
+    // }
     this.publishZoom(100)
     this.setState({zoom:100})
     // if(this.props.tab.sync) this.props.parent.syncZoom(100,this.props.tab.sync)
@@ -430,24 +431,21 @@ class BrowserNavbar extends Component{
 
   onCommon(str){
     const cont = this.getWebContents(this.props.tab)
-    const url = str == "history" ? "chrome://history/" : str == "favorite" ? "chrome://bookmarks/" : `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/${str}.html`
-    cont.hostWebContents.send('new-tab', this.props.tab.wvId, url)
-    // webContents.getAllWebContents().forEach(x=>{console.log(x.getId(),x.hostWebContents && x.hostWebContents.getId())})
+    const url = str == "history" ? "chrome://history2/" : str == "favorite" ? "chrome://bookmarks2/" : `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/${str}.html`
+    cont.hostWebContents2.send('new-tab', this.props.tab.wvId, url)
+    // webContents.getAllWebContents().forEach(x=>{console.log(x.id,x.hostWebContents2 && x.hostWebContents2.id)})
   }
 
 
   navigate(url){
     const cont = this.getWebContents(this.props.tab)
-    cont.hostWebContents.send('new-tab', this.props.tab.wvId, url)
-    // webContents.getAllWebContents().forEach(x=>{console.log(x.getId(),x.hostWebContents && x.hostWebContents.getId())})
+    cont.hostWebContents2.send('new-tab', this.props.tab.wvId, url)
+    // webContents.getAllWebContents().forEach(x=>{console.log(x.id,x.hostWebContents2 && x.hostWebContents2.id)})
   }
 
-  onAddFavorite(url,title,favicon){
-    ;(async ()=> {
-      const key = uuid.v4()
-      await favorite.insert({key, url, title, favicon, is_file:true, created_at: Date.now(), updated_at: Date.now()})
-      await favorite.update({ key: 'root' }, { $push: { children: key }, $set:{updated_at: Date.now()} })
-    })()
+  async onAddFavorite(url,title,favicon){
+    const key = uuid.v4()
+    await favorite.create({url, title})
   }
 
   onMediaDownload(url,fname,audio,needInput,convert){
@@ -456,7 +454,7 @@ class BrowserNavbar extends Component{
     if(needInput) ipc.send('need-set-save-filename',url)
     if(convert) ipc.send('set-video-convert',url,convert)
     const cont = this.getWebContents(this.props.tab)
-    cont.hostWebContents.downloadURL(url,true)
+    cont.downloadURL(url)
   }
 
 
@@ -478,7 +476,7 @@ class BrowserNavbar extends Component{
   //                           icon={e.type == "audio" ? "music" : e.type }
   //                           onClick={()=>{
   //                             const cont = this.getWebContents(this.props.tab)
-  //                             cont.hostWebContents.send('new-tab', this.props.tab.wvId, `file://${path.join(e.path,e.addr)}`)
+  //                             cont.hostWebContents2.send('new-tab', this.props.tab.wvId, `file://${path.join(e.path,e.addr)}`)
   //                           }}/>
   //   })
   // }
@@ -506,23 +504,24 @@ class BrowserNavbar extends Component{
       newUserAgent = this.props.tab.mobile ? DEFAULT_USERAGENT : NEXUS_USERAGENT
     }
     this.state.userAgent = newUserAgent
-    ipc.send('user-agent-change',{tabId:this.props.tab.wvId,ua:this.state.userAgent})
+    const cont = this.getWebContents(this.props.tab)
+    cont.setUserAgent(this.state.userAgent)
     this.props.tab.mobile = newUserAgent == DEFAULT_USERAGENT ? void 0 : newUserAgent
     this.setState({mobile: this.props.tab.mobile})
-    this.getWebContents(this.props.tab).reload()
+    cont.reload()
   }
 
-  handleAdBlockGlobal(){
-    const val = !this.props.adBlockEnable
-    mainState.set('adBlockEnable',val)
-    PubSub.publish('set-adblock-enable',val)
-  }
+  // handleAdBlockGlobal(){
+  //   const val = !this.props.adBlockEnable
+  //   mainState.set('adBlockEnable',val)
+  //   PubSub.publish('set-adblock-enable',val)
+  // }
 
-  handlePdfMode(){
-    const val = this.state.pdfMode == 'normal' ? 'comic' : 'normal'
-    PubSub.publish('set-pdfmode-enable',val)
-    mainState.set('pdfMode',val)
-  }
+  // handlePdfMode(){
+  //   const val = this.state.pdfMode == 'normal' ? 'comic' : 'normal'
+  //   PubSub.publish('set-pdfmode-enable',val)
+  //   mainState.set('pdfMode',val)
+  // }
 
   handleOppositeGlobal(){
     const val = !this.props.oppositeGlobal
@@ -531,36 +530,36 @@ class BrowserNavbar extends Component{
     this.setState({})
   }
 
-  handleAdBlockThis(){
-    ipc.send('set-adblock-enable',{tabId:this.props.tab.wvId,global:false})
-    this.props.tab.adBlockThis = !this.props.adBlockThis
-    this.props.parent.setState({})
-  }
+  // handleAdBlockThis(){
+  //   ipc.send('set-adblock-enable',{tabId:this.props.tab.wvId,global:false})
+  //   this.props.tab.adBlockThis = !this.props.adBlockThis
+  //   this.props.parent.setState({})
+  // }
 
-  handleAdBlockDomain(hostname){
-    const cState = global.adBlockDisableSite[hostname]
-    if(cState){
-      mainState.del('adBlockDisableSite',hostname)
-      delete global.adBlockDisableSite[hostname]
-    }
-    else{
-      mainState.add('adBlockDisableSite',hostname,1)
-      global.adBlockDisableSite[hostname] = 1
-    }
-    this.forceUpdates = true
-    this.setState({})
-  }
+  // handleAdBlockDomain(hostname){
+  //   const cState = global.adBlockDisableSite[hostname]
+  //   if(cState){
+  //     mainState.del('adBlockDisableSite',hostname)
+  //     delete global.adBlockDisableSite[hostname]
+  //   }
+  //   else{
+  //     mainState.add('adBlockDisableSite',hostname,1)
+  //     global.adBlockDisableSite[hostname] = 1
+  //   }
+  //   this.forceUpdates = true
+  //   this.setState({})
+  // }
 
   _bindWindow({win,hwnd=false}){
     win = win || remote.getCurrentWindow()
     const tab = this.props.tab
     for(let ele of document.querySelectorAll('.browser-page-wrapper.visible')){
       const r =  ele.getBoundingClientRect()
-      const wv = ele.querySelector("webview")
+      const wv = ele.querySelector(`.w${this.props.k}`)
       const elem = ele
-      if(tab.key === wv.dataset.key){
+      if(wv && tab.key === wv.dataset.key){
         setTimeout(_=>{
-          ipc.send('set-pos-window',{key:tab.key,id:tab.bind && tab.bind.id
+          ipc.send('set-pos-window',{key:tab.key,id:tab.bind && tab.bind.id,tabId:tab.wvId
             ,x:window.screenX + r.left,y:window.screenY + r.top,width:r.width,height:r.height,top:'above'})
           ipc.once(`set-pos-window-reply_${tab.key}`,(e,ret)=>{
             if(!ret) return
@@ -569,7 +568,7 @@ class BrowserNavbar extends Component{
             const ro = new ResizeObserver((entries, observer) => {
               for (const entry of entries) {
                 const r = elem.getBoundingClientRect()
-                ipc.send('set-pos-window',{key:tab.key,id:id,x:window.screenX + r.left,y:window.screenY + r.top,width:r.width,height:r.height})
+                ipc.send('set-pos-window',{key:tab.key,tabId:tab.wvId,id:id,x:window.screenX + r.left,y:window.screenY + r.top,width:r.width,height:r.height})
               }
             });
             const key = uuid.v4()
@@ -591,17 +590,17 @@ class BrowserNavbar extends Component{
                 setTimeout(_=>{
                   console.log('move')
                   const r = elem.getBoundingClientRect()
-                  ipc.send('set-pos-window',{id,x:window.screenX + r.left,y:window.screenY + r.top,width:r.width,height:r.height})
+                  ipc.send('set-pos-window',{id,tabId:tab.wvId,x:window.screenX + r.left,y:window.screenY + r.top,width:r.width,height:r.height})
                 },0)
               },
               blur: e=>{
                 console.log('blur')
-                ipc.send('set-pos-window',{id,top:'not-above',hwnd:tab.bind.hwnd,active:tab.key == this.props.parent.state.selectedTab})
+                // ipc.send('set-pos-window',{id,top:'not-above',hwnd:tab.bind.hwnd,tabId:tab.wvId,active:tab.key == this.props.parent.state.selectedTab})
               },
               focus:e=>{
                 console.log('focus')
                 if(tab.key == this.props.parent.state.selectedTab){
-                  ipc.send('set-pos-window',{id,top:'above'})
+                  ipc.send('set-pos-window',{id,tabId:tab.wvId,top:'above'})
                 }
               },
             }
@@ -640,22 +639,22 @@ class BrowserNavbar extends Component{
 
   browserAction(cont,tab,selected){
     const ret = {}
-    const dis = ['dckpbojndfoinamcdamhkjhnjnmjkfjd','jdbefljfgobbmcidnmpjamcbhnbphjnb',...this.state.disableExtensions]
+    const dis = ['jdbefljfgobbmcidnmpjamcbhnbphjnb']
     for(let [id,values] of browserActionMap) {
-      if(dis.includes(values.orgId) || dis.includes(id)) continue
-      ret[id] = <BrowserActionMenu key={id} id={id} values={values} tab={tab} cont={cont} parent={this} selected={selected}/>
+      if(dis.includes(values.orgId) || dis.includes(id) || !values.enabled) continue
+      ret[id] = <BrowserActionMenu key={id} k={this.props.k}  id={id} values={values} tab={tab} cont={cont} parent={this} selected={selected}/>
     }
     return ret
   }
 
-  loadTabSetting(){
-    sharedState.notLoadTabUntilSelected = !sharedState.notLoadTabUntilSelected
-    mainState.set('notLoadTabUntilSelected',sharedState.notLoadTabUntilSelected)
-    sharedState.enableColorOfNoSelect = sharedState.notLoadTabUntilSelected
-    mainState.set('enableColorOfNoSelect',sharedState.notLoadTabUntilSelected)
-    this.forceUpdates = true
-    this.props.parent.setState({})
-  }
+  // loadTabSetting(){
+  //   sharedState.notLoadTabUntilSelected = !sharedState.notLoadTabUntilSelected
+  //   mainState.set('notLoadTabUntilSelected',sharedState.notLoadTabUntilSelected)
+  //   sharedState.enableColorOfNoSelect = sharedState.notLoadTabUntilSelected
+  //   mainState.set('enableColorOfNoSelect',sharedState.notLoadTabUntilSelected)
+  //   this.forceUpdates = true
+  //   this.props.parent.setState({})
+  // }
 
   askDownload(){
     sharedState.askDownload = !sharedState.askDownload
@@ -669,10 +668,12 @@ class BrowserNavbar extends Component{
     return <NavbarMenu ref="main-menu" className="main-menu" alwaysView={true} k={this.props.k} isFloat={isFloatPanel(this.props.k) || this.props.isMaximize} style={{overflowX: 'visible'}}
                        title={locale.translation('settings')} icon="bars" tab={tab.bind && tab}
                        onClick={_=>{
-                         PubSub.publishSync(`zoom_${this.props.tabkey}`,this.getWebContents(this.props.tab).getZoomPercent())
-                         if(tab.bind){
-                           ipc.send('set-pos-window',{id:tab.bind.id,hwnd:tab.bind.hwnd,top:'not-above'})
-                         }
+                         this.getWebContents(this.props.tab).getZoomFactor(factor=>{
+                           PubSub.publishSync(`zoom_${this.props.tabkey}`,factor * 100)
+                           if(tab.bind){
+                             // ipc.send('set-pos-window',{id:tab.bind.id,hwnd:tab.bind.hwnd,tabId:tab.wvId,top:'not-above'})
+                           }
+                         })
                        }
                        }>
       <NavbarMenuBarItem>
@@ -698,19 +699,18 @@ class BrowserNavbar extends Component{
 
       <NavbarMenuItem text={`[${alwaysOnTop ? '✓' : ' '}] ${locale.translation('alwaysOnTop')}`} icon='level up' onClick={()=>{
         alwaysOnTop = !alwaysOnTop
-        mainState.set('alwaysOnTop',alwaysOnTop)
-        remote.getCurrentWindow().setAlwaysOnTop(alwaysOnTop)
+        ipc.send('set-alwaysOnTop', alwaysOnTop)
         this.forceUpdates = true
         this.setState({})
       }}/>
       {isDarwin ? null :<NavbarMenuItem text={`${locale.translation("bindSelectedWindow")}`} icon='crosshairs' onClick={_=>this.bindWindow()}/>}
-      <NavbarMenuItem text={`[${sharedState.searchWordHighlight ? '✓' : ' '}] ${locale.translation("searchHighlight")}`} icon='asterisk' onClick={_=>{
-        sharedState.searchWordHighlight = !sharedState.searchWordHighlight
-        mainState.set('searchWordHighlight',sharedState.searchWordHighlight)
-        this.props.searchWordHighlight(this.props.tab)
-        this.refs['main-menu'].menuClose()
-        this.setState({})
-      }}/>
+      {/*<NavbarMenuItem text={`[${sharedState.searchWordHighlight ? '✓' : ' '}] ${locale.translation("searchHighlight")}`} icon='asterisk' onClick={_=>{*/}
+        {/*sharedState.searchWordHighlight = !sharedState.searchWordHighlight*/}
+        {/*mainState.set('searchWordHighlight',sharedState.searchWordHighlight)*/}
+        {/*this.props.searchWordHighlight(this.props.tab)*/}
+        {/*this.refs['main-menu'].menuClose()*/}
+        {/*this.setState({})*/}
+      {/*}}/>*/}
       {isDarwin ? null : <NavbarMenuItem text={`[${this.props.tab.fields && this.props.tab.fields.mobilePanel ? '✓' : ' '}] Show Mobile Panel`} icon='mobile'
                       onClick={()=>{
                         // if(!this.props.tab.fields) this.props.tab.fields = {}
@@ -721,6 +721,7 @@ class BrowserNavbar extends Component{
                           this.props.tab.fields.mobilePanel = {width: mainState.mobilePanelWidth, isPanel: !mainState.mobilePanelDetach}
                         }
                         this.props.parent.setState({})
+                        PubSub.publish('web-view-create')
                       }}/>}
       <div className="divider" />
 
@@ -730,10 +731,10 @@ class BrowserNavbar extends Component{
       <NavbarMenuItem text={`${parseInt(this.state.zoom)}%`} className='zoom-setting' onClick={::this.noZoom} keepVisible={true} />
       <div className="divider" />
 
-      <NavbarMenuItem text={`[${this.props.adBlockEnable ? '✓' : ' '}] ${locale.translation("adBlockALL")}`} icon='hand paper' onClick={::this.handleAdBlockGlobal}/>
-      {this.props.adBlockEnable ? <NavbarMenuItem text={`[${this.props.adBlockThis ? '✓' : ' '}] ${locale.translation("adBlockTab")}`} icon='hand paper' onClick={::this.handleAdBlockThis}/> : null}
-      {this.props.adBlockEnable ? <NavbarMenuItem text={`[${global.adBlockDisableSite[hostname] ? ' ' : '✓'}] ${locale.translation("adBlockDomain")}`} icon='hand paper' onClick={_=>this.handleAdBlockDomain(hostname)}/> : null}
-      <div className="divider" />
+      {/*<NavbarMenuItem text={`[${this.props.adBlockEnable ? '✓' : ' '}] ${locale.translation("adBlockALL")}`} icon='hand paper' onClick={::this.handleAdBlockGlobal}/>*/}
+      {/*{this.props.adBlockEnable ? <NavbarMenuItem text={`[${this.props.adBlockThis ? '✓' : ' '}] ${locale.translation("adBlockTab")}`} icon='hand paper' onClick={::this.handleAdBlockThis}/> : null}*/}
+      {/*{this.props.adBlockEnable ? <NavbarMenuItem text={`[${global.adBlockDisableSite[hostname] ? ' ' : '✓'}] ${locale.translation("adBlockDomain")}`} icon='hand paper' onClick={_=>this.handleAdBlockDomain(hostname)}/> : null}*/}
+      {/*<div className="divider" />*/}
 
       <NavbarMenuSubMenu icon="browser" text="Window SubMenu">
         <NavbarMenuItem text={`[${sharedState.bookmarkBar ? '✓' : ' '}] ${locale.translation('2845382757467349449')}`} icon='bookmark' onClick={_=>{
@@ -756,7 +757,7 @@ class BrowserNavbar extends Component{
           sharedState.hoverBookmarkBar = !sharedState.hoverBookmarkBar
           mainState.set('hoverBookmarkBar',sharedState.hoverBookmarkBar)
           this.refs['main-menu'].menuClose()
-          PubSub.publish('hover-bookmark-or-status-bar')
+          // PubSub.publish('hover-bookmark-or-status-bar')
           this.props.parent.setState({})
         }}/>
         <div className="divider" />
@@ -774,7 +775,7 @@ class BrowserNavbar extends Component{
           sharedState.hoverStatusBar = !sharedState.hoverStatusBar
           mainState.set('hoverStatusBar',sharedState.hoverStatusBar)
           this.refs['main-menu'].menuClose()
-          PubSub.publish('hover-bookmark-or-status-bar')
+          // PubSub.publish('hover-bookmark-or-status-bar')
           this.props.parent.setState({})
         }}/>
         <div className="divider" />
@@ -787,8 +788,8 @@ class BrowserNavbar extends Component{
         <div className="divider" />
         <NavbarMenuItem text={`${locale.translation("detachThisPanel")}`} icon='space shuttle' onClick={_=>{this.props.parent.detachPanel();this.refs['main-menu'].menuClose()}}/>
         <NavbarMenuItem text={`${locale.translation("convertPanelsToWindows")}`} icon='cubes' onClick={_=>{PubSub.publish('all-detach');this.refs['main-menu'].menuClose()}}/>
-        {isDarwin ? null :<NavbarMenuItem text={this.props.toggleNav == 3 ? locale.translation('normalScreenMode') : locale.translation('fullScreenMode')} icon={this.props.toggleNav == 3 ? 'compress' : 'expand'}
-                                          onClick={()=>{ipc.send('toggle-fullscreen');this.refs['main-menu'].menuClose()}}/>}
+        {/*{isDarwin ? null :<NavbarMenuItem text={this.props.toggleNav == 3 ? locale.translation('normalScreenMode') : locale.translation('fullScreenMode')} icon={this.props.toggleNav == 3 ? 'compress' : 'expand'}*/}
+                                          {/*onClick={()=>{ipc.send('toggle-fullscreen');this.refs['main-menu'].menuClose()}}/>}*/}
       </NavbarMenuSubMenu>
       <NavbarMenuSubMenu icon="hashtag" text={locale.translation('7853747251428735')}>
         {isWin  ? <NavbarMenuItem text={`${locale.translation("changeVPNMode")}`} icon='plug' onClick={_=>{
@@ -797,23 +798,24 @@ class BrowserNavbar extends Component{
         }
         }/> : null}
         <NavbarMenuItem text={`[${this.props.oppositeGlobal ? '✓' : ' '}] ${locale.translation("openOnOpposite")}`} icon='columns' onClick={_=>{this.handleOppositeGlobal();this.refs['main-menu'].menuClose()}}/>
-        <NavbarMenuItem text={`[${sharedState.searchWordHighlightRecursive ? '✓' : ' '}] ${locale.translation("searchHighlightRecursive")}`} icon='asterisk' onClick={_=>{
-          sharedState.searchWordHighlightRecursive = !sharedState.searchWordHighlightRecursive
-          mainState.set('searchWordHighlightRecursive',sharedState.searchWordHighlightRecursive)
-          this.refs['main-menu'].menuClose()
-          this.setState({})
-        }}/>
+        {/*<NavbarMenuItem text={`[${sharedState.searchWordHighlightRecursive ? '✓' : ' '}] ${locale.translation("searchHighlightRecursive")}`} icon='asterisk' onClick={_=>{*/}
+          {/*sharedState.searchWordHighlightRecursive = !sharedState.searchWordHighlightRecursive*/}
+          {/*mainState.set('searchWordHighlightRecursive',sharedState.searchWordHighlightRecursive)*/}
+          {/*this.refs['main-menu'].menuClose()*/}
+          {/*this.setState({})*/}
+        {/*}}/>*/}
 
-        <NavbarMenuItem text={`[${sharedState.notLoadTabUntilSelected ? '✓' : ' '}] ${locale.translation("donTLoadTabsUntillSelected")}`} onClick={_=>{this.loadTabSetting();this.refs['main-menu'].menuClose()}}/>
+        {/*<NavbarMenuItem text={`[${sharedState.notLoadTabUntilSelected ? '✓' : ' '}] ${locale.translation("donTLoadTabsUntillSelected")}`} onClick={_=>{this.loadTabSetting();this.refs['main-menu'].menuClose()}}/>*/}
         <NavbarMenuItem text={`[${sharedState.askDownload ? '✓' : ' '}] ${locale.translation('7754704193130578113')}`} onClick={_=>{this.askDownload();this.refs['main-menu'].menuClose()}}/>
         <div className="divider" />
         <NavbarMenuItem text={locale.translation("extractAudioFromVideo")} icon='music' onClick={_=>{ipc.send('audio-extract');this.refs['main-menu'].menuClose()}}/>
-        <NavbarMenuItem text={this.state.pdfMode == 'normal' ? locale.translation("changePdfViewToComic") : locale.translation("changePdfViewToNormal")} icon='file pdf outline' onClick={_=>{this.handlePdfMode();this.refs['main-menu'].menuClose()}}/>
+        {/*<NavbarMenuItem text={this.state.pdfMode == 'normal' ? locale.translation("changePdfViewToComic") : locale.translation("changePdfViewToNormal")} icon='file pdf outline' onClick={_=>{this.handlePdfMode();this.refs['main-menu'].menuClose()}}/>*/}
       </NavbarMenuSubMenu>
       <div className="divider" />
 
 
       <NavbarMenuItem text={locale.translation("print").replace('…','')} icon='print' onClick={()=>this.getWebContents(this.props.tab).print()}/>
+      {/*<NavbarMenuItem text={locale.translation("print").replace('…','')} icon='print' onClick={()=>ipc.send('reload-extension')}/>*/}
       <NavbarMenuItem text={locale.translation("search")} icon='search' onClick={()=>ipc.emit('menu-or-key-events',null,'findOnPage',this.props.tab.wvId)}/>
       <NavbarMenuItem text={locale.translation("settings").replace('…','')} icon='settings' onClick={()=>this.onCommon("settings")}/>
       <NavbarMenuItem text={locale.translation("toggleDeveloperTools")} icon='bug' onClick={()=>ipc.emit('menu-or-key-events',null,'toggleDeveloperTools',this.props.tab.wvId)}/>
@@ -830,18 +832,8 @@ class BrowserNavbar extends Component{
       <NavbarMenuSubMenu text="About">
         <NavbarMenuItem text={`${locale.translation("browserVersion")}: ${versions.browser}`} onClick={_=>this.navigate('https://sushib.me/download.html')}/>
         <NavbarMenuItem text={`${locale.translation("chromiumVersion")}: ${versions.chrome}`} onClick={_=>this.navigate('https://github.com/chromium/chromium/releases')}/>
-        <NavbarMenuItem text={`${locale.translation("muonVersion")}: ${versions.Brave}`} onClick={_=>this.navigate('https://sushib.me/download.html')}/>
       </NavbarMenuSubMenu>
     </NavbarMenu>
-  }
-
-  fetchFavoriteDate(){
-    return new Promise((resolve,reject)=> {
-      ipc.send('fetch-favorite', {})
-      ipc.once('favorite-reply', (event, data) => {
-        resolve(data)
-      })
-    })
   }
 
   // favoriteDataHandle(menuItems,ret){
@@ -937,14 +929,23 @@ class BrowserNavbar extends Component{
   getTitle(x,historyMap){
     console.log(997,historyMap.get(x[0]))
     const datas = historyMap.get(x[0])
-    return datas ? <div className="favi-wrap"><img src={datas[1]} className="favi"/>{x[1]}</div> :  x[1] || x[0]
+    return datas ? <div className="favi-wrap"><img src={datas[1]} className="favi"/>{datas[0]}</div> :  x[1] || x[0]
   }
 
   mobilePanelButton(){
     return [<BrowserNavbarBtn title={""} icon="link" sync={this.props.tab.fields.mobilePanel.isPanel}
                       onClick={()=>{
                         this.props.tab.fields.mobilePanel.isPanel = !this.props.tab.fields.mobilePanel.isPanel
-                        ipc.send('mobile-panel-operation',{type: 'detach', key: this.props.tab.key, tabId: this.props.tab.wvId, detach: !this.props.tab.fields.mobilePanel.isPanel})
+                        if(this.props.tab.fields.mobilePanel.isPanel){
+                          ipc.send('mobile-panel-operation',
+                            {type: 'detach', key: this.props.tab.key, tabId: this.props.tab.wvId, detach: !this.props.tab.fields.mobilePanel.isPanel})
+                        }
+                        else{
+                          const r = document.querySelector(`.mobile-panel.m${this.props.tab.key}`).getBoundingClientRect()
+                          ipc.send('mobile-panel-operation',
+                            {type: 'detach', key: this.props.tab.key, tabId: this.props.tab.wvId, detach: !this.props.tab.fields.mobilePanel.isPanel,
+                              x:window.screenX + r.left,y:window.screenY + r.top,width:r.width,height:r.height})
+                        }
                         this.props.parent.setState({})
                       }}/>,
       <BrowserNavbarBtn title={""} icon="exchange" sync={sharedState.mobilePanelSyncScroll}
@@ -989,10 +990,12 @@ class BrowserNavbar extends Component{
                      const win = remote.getCurrentWindow()
                      if(win.isFullScreen()){}
                      else if(win.isMaximized()){
-                       win.unmaximize()
+                       // win.unmaximize()
+                       win.nativeWindow.showWindow(9)
                      }
                      else{
-                       win.maximize()
+                       // win.maximize()
+                       win.nativeWindow.showWindow(3)
                      }
                    }: null}></div>,
 
@@ -1004,7 +1007,7 @@ class BrowserNavbar extends Component{
       arrange:  isDarwin ? null : <BrowserNavbarBtn className="sort-arrange" title="Arrange Panels" icon="th" sync={sharedState.arrange == this.props.k}
                                                onContextMenu={onContextMenu} onClick={()=>{this.props.parent.props.parent.arrangePanels(this.props.k)}}/>,
 
-      float:   isFixed || !this.props.tab.sync || this.props.tab.syncReplace || !this.props.isTopLeft ? null : <FloatSyncScrollButton  onContextMenu={onContextMenu}toggleNav={this.props.toggleNav} scrollPage={this.props.parent.scrollPage}/>,
+      float:   isFixed || !this.props.tab.sync || this.props.tab.syncReplace || !this.props.isTopLeft ? null : <FloatSyncScrollButton wv={this.props.tab.wv}/>,
 
       opposite: isFloat ? null: <BrowserNavbarBtn className="sort-opposite" title={locale.translation("switchOpenOnOpposite")} icon="external-link-square" sync={this.props.tab.oppositeMode} onContextMenu={onContextMenu} onClick={()=>{this.props.parent.changeOppositeMode()}}/>,
 
@@ -1055,8 +1058,8 @@ class BrowserNavbar extends Component{
         <Dropdown.Menu className="nav-menu">
           <div role="option" className="item" onClick={_=>this.props.tab.events['pin-video'](null,this.props.tab.wvId,true)}>{locale.translation('playVideoInPopupWindow')}</div>
           <Divider/>
-          <div role="option" className="item" onClick={_=>this.props.tab.events['pin-video'](null,this.props.tab.wvId)}>{locale.translation('playVideoInFloatingPanel')}</div>
-          <Divider/>
+          {/*<div role="option" className="item" onClick={_=>this.props.tab.events['pin-video'](null,this.props.tab.wvId)}>{locale.translation('playVideoInFloatingPanel')}</div>*/}
+          {/*<Divider/>*/}
           <div className="org-menu">
             {(rich||[]).map((e,i)=>{
               let url = e.url
@@ -1074,7 +1077,7 @@ class BrowserNavbar extends Component{
                 {m3u8 ? null : <button className="play-btn" title={locale.translation("playVideo")} onClick={e=>{
                   e.stopPropagation()
                   const p = e.target.parentNode.parentNode;(e.target.tagName == "I" ? p.parentNode : p).classList.remove("visible")
-                  cont.hostWebContents.send('new-tab', this.props.tab.wvId, url)
+                  cont.hostWebContents2.send('new-tab', this.props.tab.wvId, url)
                 }}>
                   <i className="fa fa-play" aria-hidden="true"></i>
                 </button>}
@@ -1217,7 +1220,7 @@ class BrowserNavbar extends Component{
       {this.props.isMaximize && this.props.toggleNav == 1 ? <div className="title-button-set" style={{lineHeight: 0.9, transform: 'translateX(6px)'}}>
         {isDarwin ? null : <span className={`fa fa-th ${sharedState.arrange == 'all' ? 'active-arrange' : ''}`} onClick={_=>PubSub.publish('toggle-arrange')}></span>}
 
-        {displayFullIcon ? <span className={this.props.toggleNav == 3 ? "typcn typcn-arrow-minimise" : "typcn typcn-arrow-maximise"} onClick={_=>ipc.send('toggle-fullscreen')}></span> : null}
+        {/*{displayFullIcon ? <span className={this.props.toggleNav == 3 ? "typcn typcn-arrow-minimise" : "typcn typcn-arrow-maximise"} onClick={_=>ipc.send('toggle-fullscreen')}></span> : null}*/}
         <span className="typcn typcn-media-stop-outline" onClick={()=>this.props.maximizePanel()}></span>
       </div> : null}
 
@@ -1226,16 +1229,16 @@ class BrowserNavbar extends Component{
         <span className="typcn typcn-media-stop-outline" onClick={()=>PubSub.publish(`maximize-float-panel_${this.props.k}`)}></span>
         <span className="typcn typcn-times" onClick={()=>PubSub.publish(`close-panel_${this.props.k}`)}></span>
       </div> : null}
-      {this.state.zoomDisplay ?
-        <div className="ui dropdown zoom-menu" style={{top: 50, right: 30}}>
-          <div className="menu visible transition left nav-menu" style={{overflowX: 'visible', left: 'auto',paddingBottom:3}}>
-            <div className="item zoom-out" role="option" onClick={::this.onZoomOut}><i className="zoom out icon" aria-hidden="true"/><span
-              className="text"></span></div>
-            <div className="item zoom-in" role="option" onClick={::this.onZoomIn}><i className="zoom in icon" aria-hidden="true"/><span
-              className="text"></span></div>
-            <div className="item zoom-setting" role="option" onClick={::this.noZoom}><span className="text">{this.state.zoomDisplay}</span></div>
-          </div>
-        </div>: null}
+      {/*{this.state.zoomDisplay ?*/}
+        {/*<div className="ui dropdown zoom-menu" style={{top: 50, right: 30}}>*/}
+          {/*<div className="menu visible transition left nav-menu" style={{overflowX: 'visible', left: 'auto',paddingBottom:3}}>*/}
+            {/*<div className="item zoom-out" role="option" onClick={::this.onZoomOut}><i className="zoom out icon" aria-hidden="true"/><span*/}
+              {/*className="text"></span></div>*/}
+            {/*<div className="item zoom-in" role="option" onClick={::this.onZoomIn}><i className="zoom in icon" aria-hidden="true"/><span*/}
+              {/*className="text"></span></div>*/}
+            {/*<div className="item zoom-setting" role="option" onClick={::this.noZoom}><span className="text">{this.state.zoomDisplay}</span></div>*/}
+          {/*</div>*/}
+        {/*</div>: null}*/}
 
       {this.state.bindWindow ? <Modal basic size='small' open={true}>
         <Modal.Content>

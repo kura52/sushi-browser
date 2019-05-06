@@ -1,7 +1,7 @@
 window.debug = require('debug')('info')
 // require('debug').enable("info")
 import process from './process';
-import {ipcRenderer as ipc} from 'electron'
+import {ipcRenderer as ipc} from './ipcRenderer'
 import localForage from "../LocalForage";
 import path from 'path';
 import React from 'react';
@@ -11,16 +11,18 @@ import uuid from 'node-uuid';
 import { Container, Card, Menu, Input, Button } from 'semantic-ui-react';
 import {StickyContainer, Sticky} from 'react-sticky';
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd';
+
 import l10n from '../../brave/js/l10n';
-l10n.init()
+const initPromise = l10n.init()
+import '../defaultExtension/contentscript'
 
 
 const convertUrlMap = new Map([
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html',''],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html','about:blank'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html','chrome://bookmarks/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html','chrome://bookmarks2/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html','chrome://bookmarks-sidebar/'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html','chrome://history/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html','chrome://history2/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_history_sidebar.html','chrome://tab-history-sidebar/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_trash_sidebar.html','chrome://tab-trash-sidebar/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download_sidebar.html','chrome://download-sidebar/'],
@@ -34,12 +36,12 @@ const convertUrlMap = new Map([
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html','chrome://terminal/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html','chrome://converter/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html','chrome://automation/'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html','chrome://settings/'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general','chrome://settings#general'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search','chrome://settings#search'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs','chrome://settings#tabs'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#keyboard','chrome://settings#keyboard'],
-  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extensions','chrome://settings#extensions'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html','chrome://setting/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general','chrome://setting#general'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search','chrome://setting#search'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs','chrome://setting#tabs'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#keyboard','chrome://setting#keyboard'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extensions','chrome://setting#extensions'],
 ])
 
 const convertUrlReg = /^chrome\-extension:\/\/dckpbojndfoinamcdamhkjhnjnmjkfjd\/(video|ace|bind)\.html\?url=([^&]+)/
@@ -79,18 +81,20 @@ function getAppropriateTimeUnit(time){
 
 let theme
 let resourcePath
-localForage.getItem('favicon-set').then(setTime=>{
-  ipc.send("favicon-get",setTime ? parseInt(setTime) : null)
-  ipc.once("favicon-get-reply",(e,ret)=>{
-    localForage.setItem('favicon-set',Date.now().toString())
-    for(let [k,v] of Object.entries(ret)){
-      localForage.setItem(k,v)
-    }
-  })
-})
+// localForage.getItem('favicon-set').then(setTime=>{
+//   ipc.send("favicon-get",setTime ? parseInt(setTime) : null)
+//   ipc.once("favicon-get-reply",(e,ret)=>{
+//     localForage.setItem('favicon-set',Date.now().toString())
+//     for(let [k,v] of Object.entries(ret)){
+//       localForage.setItem(k,v)
+//     }
+//   })
+// })
 
+let accessKey, accessPort
 async function faviconGet(h){
-  return h.favicon ? (await localForage.getItem(h.favicon)) || `file://${resourcePath}/file.svg` : `file://${resourcePath}/file.svg`
+  console.log(99887766,h.favicon)
+  return `chrome://favicon/${h.location}`
 }
 
 ipc.send("get-resource-path",{})
@@ -218,14 +222,14 @@ class TopMenu extends React.Component {
 class TopSearch extends React.Component {
 
   componentDidMount() {
-    ipc.sendToHost("navbar-search",{})
+    setTimeout(()=>ipc.send('send-to-host', "navbar-search",{}),30)
     console.log("mount")
   }
 
 
   sendHost(e){
     console.log(222222)
-    ipc.sendToHost("navbar-search",{})
+    ipc.send('send-to-host', "navbar-search",{})
     e.target.value = ""
     e.target.blur()
     e.preventDefault()
@@ -414,7 +418,7 @@ class TopList extends React.Component {
       <Card.Description>
         {!h.title ? "" : <Card.Header as='a' href={h.location}><img src={favicon} style={{width: 16, height: 16, verticalAlign: "text-top"}}/>{multiByteSlice(h.title,32)} {h.count ? `(${h.count}pv)` : ''}</Card.Header>}
       </Card.Description>
-      {h.path ? <a href={h.location} style={{textAlign:"center"}}><img className="capture" style={{width:160,height:100,objectFit: "contain"}} src={`file://${resourcePath}/capture/${h.path}`}/></a> : null}
+      {h.path ? <a href={h.location} style={{textAlign:"center"}}><img className="capture" style={{width:160,height:100,objectFit: "contain"}} src={`http://localhost:${accessPort}/?key=${accessKey}&file=${resourcePath}/capture/${h.path}`}/></a> : null}
     </Card>;
   }
 }
@@ -428,4 +432,11 @@ const App = () => (
 
 require('./themeForPage')('themeTopPage')
 
-ReactDOM.render(<App />,  document.getElementById('app'))
+;(async ()=>{
+  [accessKey, accessPort] = await new Promise(r=>{
+    ipc.send('get-access-key-and-port')
+    ipc.once('get-access-key-and-port-reply',(e,data)=>r(data))
+  })
+  await initPromise
+  ReactDOM.render(<App />,  document.getElementById('app'))
+})()

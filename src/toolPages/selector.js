@@ -1,7 +1,7 @@
 window.debug = require('debug')('info')
 // require('debug').enable("info")
 import process from './process'
-import {ipcRenderer as ipc} from 'electron';
+import {ipcRenderer as ipc} from './ipcRenderer'
 import React from 'react';
 import ReactDOM from 'react-dom';
 import uuid from 'node-uuid';
@@ -10,8 +10,9 @@ import path from 'path';
 
 import ReactTable from 'react-table'
 
-const l10n = require('../../brave/js/l10n')
-l10n.init()
+import l10n from '../../brave/js/l10n';
+const initPromise = l10n.init()
+import '../defaultExtension/contentscript'
 
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
 
@@ -320,7 +321,7 @@ class Selector extends React.Component {
       else{
         for(let url of urls) func(url,fname)
       }
-      ipc.sendToHost("open-tab",'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html',true)
+      ipc.send('send-to-host', "open-tab",'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html',true)
     })
   }
 
@@ -466,4 +467,7 @@ class Selector extends React.Component {
   }
 }
 
-ReactDOM.render(<Selector/>,  document.getElementById('app'))
+;(async ()=>{
+  await initPromise
+  ReactDOM.render(<Selector/>,  document.getElementById('app'))
+})()

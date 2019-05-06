@@ -1,7 +1,7 @@
 window.debug = require('debug')('info')
 // require('debug').enable("info")
 import process from './process'
-import {ipcRenderer as ipc} from 'electron';
+import {ipcRenderer as ipc} from './ipcRenderer'
 import React from 'react';
 import ReactDOM from 'react-dom';
 import uuid from 'node-uuid';
@@ -9,8 +9,9 @@ import path from 'path';
 
 import ReactTable from 'react-table';
 
-const l10n = require('../../brave/js/l10n')
-l10n.init()
+import l10n from '../../brave/js/l10n';
+const initPromise = l10n.init()
+import '../defaultExtension/contentscript'
 
 function showDialog(input,id){
   return new Promise((resolve,reject)=>{
@@ -147,4 +148,7 @@ class InputHistorySetting extends React.Component {
   }
 }
 
-ReactDOM.render(<InputHistorySetting/>,  document.getElementById('app'))
+;(async ()=>{
+  await initPromise
+  ReactDOM.render(<InputHistorySetting/>,  document.getElementById('app'))
+})()

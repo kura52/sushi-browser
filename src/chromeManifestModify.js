@@ -1,6 +1,5 @@
 import fs from 'fs'
 import path from 'path'
-import ElectronImageResize from "./electronImageResize";
 const Jimp = require('jimp')
 const hjson = require('hjson')
 const electronImageResize = require('./electronImageResize')
@@ -295,7 +294,7 @@ export default async function modify(extensionId,verPath){
 </html>`)
           const img = await imageResize.capture({url: `file://${url}`, width: 16, height: 16})
 
-          Jimp.read(img.toPng(), function (err, image) {
+          Jimp.read(img.toPNG(), function (err, image) {
             if(image.bitmap.width > image.bitmap.height){
               image = image.resize(16,Jimp.AUTO,Jimp.RESIZE_BICUBIC)
             }

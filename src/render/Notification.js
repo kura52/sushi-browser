@@ -3,6 +3,8 @@ const ReactDOM = require('react-dom')
 const ipc = require('electron').ipcRenderer
 
 export default function Notification(props){
+  ipc.send('change-browser-view-z-index', true)
+
   let style = {position:'fixed', display: 'inline-block',width:600, margin:'auto',left:0, right:0,zIndex:11}
   console.log(props)
   if(props.data.style) style = Object.assign(style,props.data.style)
@@ -16,7 +18,7 @@ export default function Notification(props){
     const style = {top : rect.y + 10, left: rect.x + ((rect.width - 480)/2 > 0 ? (rect.width - 480)/2 : 10)}
     const func = (e,i)=>{document.querySelector(`.alert-button${i}`).click()}
     ipc.once('auto-play-notification',func)
-    return <div className="alertDialog"　style={style}>
+    return <div className="alertDialog visible transition"　style={style}>
       <div className="alertDialogTitle">{props.data.title}</div>
       <div className="alertDialogBody">{message}</div>
       <div>
@@ -28,7 +30,7 @@ export default function Notification(props){
     </div>
   }
   else{
-    return <div className="ui bottom attached warning message" style={style}>
+    return <div className="ui bottom attached warning message visible transition" style={style}>
       <div className="content">
         <div className="header">{message}</div>
         <p style={{float: 'right'}}>

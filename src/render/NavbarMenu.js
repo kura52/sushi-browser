@@ -29,7 +29,7 @@ export default class NavbarMenu extends Component {
 
   closeBind(){
     if(this.props.tab){
-      ipc.send('set-pos-window',{id:this.props.tab.bind.id,top:'above'})
+      ipc.send('set-pos-window',{id:this.props.tab.bind.id,tabId:this.props.tab.wvId,top:'above'})
     }
   }
 
@@ -74,6 +74,7 @@ export default class NavbarMenu extends Component {
     // this.mount = false
     // this.state.tokens.forEach(x => PubSub.unsubscribe(x));
     document.removeEventListener('mousedown',this.outerClick)
+    PubSub.unsubscribe(this.tokenMouseDown)
     if(this.props.mouseOver){
       document.removeEventListener('mouseover',this.mouseOver)
     }
@@ -83,12 +84,14 @@ export default class NavbarMenu extends Component {
     if(this.state.visible != prevState.visible && !this.props.mouseOver){
       if(this.state.visible){
         document.addEventListener('mousedown',this.outerClick)
+        this.tokenMouseDown = PubSub.subscribe('webview-mousedown',(msg,e)=>this.outerClick(e))
         if(this.props.isFloat){
           PubSub.publish(`menu-showed_${this.props.k}`,true)
         }
       }
       else{
         document.removeEventListener('mousedown',this.outerClick)
+        PubSub.unsubscribe(this.tokenMouseDown)
         if(this.props.isFloat){
           PubSub.publish(`menu-showed_${this.props.k}`,false)
         }
@@ -104,8 +107,20 @@ export default class NavbarMenu extends Component {
           this.refs.menu.style.position = 'fixed'
           this.refs.menu.style.zIndex = 1001
           this.refs.menu.style.width = 'max-content'
+
+          const left = parseInt(this.refs.div.getBoundingClientRect().x)
+          const width = parseInt(this.refs.menu.offsetWidth)
+          const totalWidth = parseInt(window.innerWidth)
+
           this.refs.menu.style.setProperty('top', `${rect.top + 10}px`, 'important')
-          this.refs.menu.style.setProperty('left', `${rect.left}px`, 'important')
+          if(totalWidth < left + width){
+            this.refs.menu.style.setProperty('left', `${rect.left + rect.width + 5 - width}px`, 'important')
+            this.refs.menu.style.setProperty('right', 'auto', 'important')
+          }
+          else{
+            this.refs.menu.style.setProperty('left', `${rect.left}px`, 'important')
+            this.refs.menu.style.right = null
+          }
         }
         else{
           if(!this.refs.menu) return
@@ -127,7 +142,7 @@ export default class NavbarMenu extends Component {
           }
           else{
             if(left - width < 0){
-              this.refs.menu.style.setProperty('left', `${5 -left}px`, 'important')
+              this.refs.menu.style.setProperty('left', `${5 -width}px`, 'important')
               this.refs.menu.style.setProperty('right', 'auto', 'important')
             }
             else{

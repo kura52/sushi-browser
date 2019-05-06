@@ -1,7 +1,7 @@
 window.debug = require('debug')('info')
 // require('debug').enable("info")
 import process from './process'
-import {ipcRenderer as ipc} from 'electron';
+import {ipcRenderer as ipc} from './ipcRenderer'
 import uuid from 'node-uuid';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -10,9 +10,11 @@ import Selection from '../render/react-selection/index'
 import Tree from '../render/rc-tree/index';
 import {StickyContainer, Sticky} from 'react-sticky';
 import {Menu, Segment} from 'semantic-ui-react';
-import l10n from '../../brave/js/l10n';
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
-l10n.init()
+
+import l10n from '../../brave/js/l10n';
+const initPromise = l10n.init()
+import '../defaultExtension/contentscript'
 
 
 const {TreeNode} = Tree
@@ -22,7 +24,7 @@ let homePath
 
 function clickFile(node){
   if(node.props.isLeaf){
-    ipc.sendToHost("open-tab-opposite",node.props.eventKey.replace(/\\/g,'/'))
+    ipc.send('send-to-host', "open-tab-opposite",node.props.eventKey.replace(/\\/g,'/'))
   }
   else{
     node.onExpand()
@@ -114,7 +116,8 @@ class FileExplorer extends React.Component{
     this.state = {items: props.items,treeItems:this.renderFolder(props.items),multiple:false}
   }
 
-  componentDidMount(){
+  async componentDidMount(){
+    await initPromise
     document.querySelector(".fa.fa-caret-right.caret").click()
     document.addEventListener("keydown",this.keyDown)
     document.addEventListener("keyup",this.keyUp)

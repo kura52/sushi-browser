@@ -15,10 +15,12 @@ export default function get(entity,name,org){
       let val
       if(entity == 'colors'){
         if(name2 == 'frame_inactive'){
-          return 'rgb(245, 245, 245)'
+          // return 'rgb(245, 245, 245)'
+          return 'rgb(221, 221, 221)'
         }
         else if(name == 'frame_inactive'){
-          return 'rgb(245, 245, 245)'
+          // return 'rgb(245, 245, 245)'
+          return 'rgb(221, 221, 221)'
         }
         else if(name == 'frame'){
           return 'rgb(221, 221, 221)'

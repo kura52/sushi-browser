@@ -1,20 +1,30 @@
-require('v8-compile-cache')
-
+// require('v8-compile-cache')
 global.debug = require('debug')('info')
 const databaseForked = require('./databaseForked')
-import { app } from 'electron'
+let app
 import fs from 'fs-extra'
 import path from 'path'
 const isDarwin = process.platform === 'darwin'
 
-process.on('unhandledRejection', r => console.error(r));
+process.on('uncaughtException', r => {
+  console.trace('uncaughtException',r)
+})
+process.on('unhandledRejection', r => {
+  console.trace('unhandledRejection',r)
+})
+
+;(function(){
+  try{
+    app = require('electron').app
+  }catch(e){}
+}())
 
 function getPortable(){
   if(!global.portable){
     const file = path.join(__dirname,'../resource/portable.txt').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
     global.portable = {
       state: fs.existsSync(file) && fs.readFileSync(file).toString().replace(/[ \r\n]/g,''),
-      default: path.dirname(app.getPath('userData')),
+      default: path.dirname(app ? app.getPath('userData'): process.argv[2]),
       portable: path.join(__dirname,`../../../${isDarwin ? '../../' : ''}`),
       file
     }
@@ -35,7 +45,7 @@ function changePortable(folder){
     //     fs.copySync(noPortablePath,portablePath)
     //   }
     // }
-    app.setPath('userData', portablePath)
+    if(app) app.setPath('userData', portablePath)
   }
 }
 
@@ -45,19 +55,18 @@ function changePortable(folder){
     if(isDarwin){
       app.dock.hide()
     }
-    app.setPath('userData', app.getPath('userData').replace('brave','sushiBrowserDB').replace('sushi-browser','sushiBrowserDB'))
-    changePortable('db')
-    const appPath = app.getPath('userData')
+    // app.setPath('userData', app.getPath('userData').replace('Electron','sushiBrowserDB').replace('sushi-browser','sushiBrowserDB'))
+    // changePortable('db')
+    const appPath = process.argv[2]
     if (!fs.existsSync(appPath)) {
       fs.mkdirSync(appPath)
     }
 
-    console.log(111,app.getPath('userData'),app.getPath('temp'))
     databaseForked()
   }
   else{
     global.originalUserDataPath = app.getPath('userData')
-    app.setPath('userData', app.getPath('userData').replace('brave','sushiBrowser').replace('sushi-browser','sushiBrowser'))
+    app.setPath('userData', app.getPath('userData').replace('Electron','sushiBrowser').replace('sushi-browser','sushiBrowser').replace('sushiBrowser', 'sushiBrowserChrome'))
     changePortable('data')
     console.log(7773477,process.argv)
 

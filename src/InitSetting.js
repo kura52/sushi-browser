@@ -2,15 +2,15 @@ import { state,token } from './databaseFork'
 
 async function getState(){
   const datas = await state.findOne({key: 1})
-  try{
-    if(datas && datas.adBlockDisableSite.length){
-      datas.adBlockDisableSite = JSON.parse(datas.adBlockDisableSite)
-    }
-  }catch(e){
-    datas.adBlockDisableSite = {}
-  }
-  const tokenData = await token.findOne({login: true})
-  if(tokenData) datas.emailSync = tokenData.email
+  // try{
+  //   if(datas && datas.adBlockDisableSite.length){
+  //     datas.adBlockDisableSite = JSON.parse(datas.adBlockDisableSite)
+  //   }
+  // }catch(e){
+  //   datas.adBlockDisableSite = {}
+  // }
+  // const tokenData = await token.findOne({login: true})
+  // if(tokenData) datas.emailSync = tokenData.email
   return datas
 }
 

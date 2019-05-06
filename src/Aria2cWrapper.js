@@ -6,6 +6,8 @@ const path = require('path')
 import uuid from 'node-uuid'
 import mainState from './mainState'
 import {downloader} from './databaseFork'
+import {Browser} from './remoted-chrome/Browser'
+import {getFocusedWebContents} from './util'
 
 const binaryPath = path.join(__dirname, '../resource/bin/aria2',
   process.platform == 'win32' ? 'win/aria2c.exe' :
@@ -13,22 +15,18 @@ const binaryPath = path.join(__dirname, '../resource/bin/aria2',
 
 
 
-function getCookieStr(url){
+async function getCookieStr(url){
   const now = moment().unix()
-  return new Promise((resolve,reject)=>{
-    session.defaultSession.cookies.get({url}, (error, cookies) => {
-      const cookieArray = []
-      if(error){
-        reject()
-        return
-      }
+  const cookies = await Browser.getCookies(url)
 
-      if(!error && cookies.expirationDate >= now){
-        cookieArray.push(`${cookies.name}=${cookies.value}`)
-      }
-      resolve(cookieArray.join('; '))
-    })
-  })
+  const cookieArray = []
+  for(const cookie of cookies){
+    if(cookie.expirationDate >= now){
+      cookieArray.push(`${cookie.name}=${cookie.value}`)
+    }
+  }
+  console.log(777, cookieArray.join('; '))
+  return cookieArray.join('; ')
 }
 
 function getByte(str){
@@ -74,12 +72,13 @@ const downloadItems = new Set()
 let count = 0
 const waitQueue = []
 export default class Aria2cWrapper{
-  constructor({url,orgUrl,mimeType,savePath,downloadNum=1,overwrite,timeMap,aria2cKey,downloadId}){
+  constructor({url,orgUrl,mimeType,referer,savePath,downloadNum=1,overwrite,timeMap,aria2cKey,downloadId}){
     this.key = downloadId
     this.resumeFlg = !!aria2cKey
     this.url = url
     this.orgUrl = orgUrl
     this.mimeType = mimeType
+    this.referer = referer
     this.savePath = savePath
     this.overwrite = overwrite
     this.timeMap = timeMap
@@ -140,6 +139,7 @@ export default class Aria2cWrapper{
       isPaused: item.isPaused(),
       url: item.getURL(),
       orgUrl: item.orgUrl,
+      referer: this.referer,
       filename: path.basename(item.getSavePath()),
       receivedBytes: item.getReceivedBytes(),
       totalBytes: item.getTotalBytes(),
@@ -189,9 +189,11 @@ export default class Aria2cWrapper{
     }
     if(!resume && !this.overwrite) this.savePath = this.getUniqFileName(this.savePath)
 
+    const cont = await getFocusedWebContents()
+
+    this.cmd = spawn('cmd')
+
     let params = cookie ? [`--header=Cookie:${cookie}`] : []
-    params = [...params,`-x${this.downloadNum}`,'--check-certificate=false','--summary-interval=1','--file-allocation=none','--bt-metadata-only=true',
-      `--user-agent=${process.userAgent}`,`--dir=${path.dirname(this.savePath)}`,`--out=${path.basename(this.savePath)}`,`${this.url}`]
 
     if(!resume && this.overwrite){
       params.push('--auto-file-renaming=false','--allow-overwrite=true')
@@ -199,6 +201,15 @@ export default class Aria2cWrapper{
     else{
       params.push('-c')
     }
+
+    params = [...params,`-x${this.downloadNum}`,'--check-certificate=false','--summary-interval=1','--file-allocation=none','--bt-metadata-only=true',
+      `--stop-with-process=${this.cmd.pid}`, //'--auto-save-interval=1',
+      `--user-agent=${await cont.getUserAgent()}`,`--dir=${path.dirname(this.savePath)}`,`--out=${path.basename(this.savePath)}`,`${this.url}`]
+
+    if(this.referer !== null){
+      params.push(`--referer=${this.referer || (await cont.getURL())}`)
+    }
+
 
     this.created_at = Date.now()
     this.timeMap.set(this.savePath, this.created_at)
@@ -212,6 +223,7 @@ export default class Aria2cWrapper{
       if(msg.includes('Status Legend:')){
         if(msg.includes('(OK)')){
           this.status = 'COMPLETE'
+          this.cancelChromeDownload()
         }
         else if(msg.includes('(ERR)') && this.status != 'PAUSE' && this.status != 'CANCEL' ){
           this.status = 'ERROR'
@@ -238,6 +250,8 @@ export default class Aria2cWrapper{
     this.aria2c.on('close', (code) => {
       console.log(`*r**${code}`)
       if(code == 7) return
+
+      this.cmd.kill()
       if(this.status != 'PAUSE' && this.status != 'CANCEL' ) this.status = code === 0 ? 'COMPLETE' : 'ERROR'
       if(this.status == 'ERROR'){
         this.errorCallback()
@@ -253,6 +267,9 @@ export default class Aria2cWrapper{
 
   getURL(){
     return this.url
+  }
+  getReferer(){
+    return this.referer
   }
   getSavePath(){
     return this.savePath
@@ -274,16 +291,21 @@ export default class Aria2cWrapper{
     downloadItems.delete(this)
     this.status = 'PAUSE'
     if(this.aria2c){
-      this.aria2c.stdin.pause()
-      this.aria2c.kill()
+      this.aria2c.stdin.end()
+      this.cmd.kill()
     }
     this.stdoutCallback()
   }
+  cancelChromeDownload(){
+    Browser.bg.evaluate(downloadId => chrome.downloads.cancel(downloadId), this.key)
+  }
+
   cancel(){
     this.status = 'CANCEL'
+    this.cancelChromeDownload()
     if(this.aria2c){
-     this.aria2c.stdin.pause()
-     this.aria2c.kill()
+      this.aria2c.stdin.end()
+      this.cmd.kill()
     }
     console.log(this.savePath)
     fs.unlink(this.savePath,e=> {
@@ -296,6 +318,7 @@ export default class Aria2cWrapper{
   }
   kill(){
     this.pause()
+    this.cancelChromeDownload()
     this.stdoutCallbacks = []
     this.closeCallbacks = []
     this.errorCallbacks = []

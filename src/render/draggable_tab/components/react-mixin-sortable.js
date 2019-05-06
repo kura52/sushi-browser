@@ -135,11 +135,17 @@
 
             if (copyOptions.stateHandler) {
               this[copyOptions.stateHandler](newState);
-            } else {
+            }
+            // else if(name === 'onAdd'){
+            //   Object.assign(this.state,newState);
+            // }
+            else{
               this.setState(newState);
             }
 
-            (this !== _activeComponent) && _activeComponent.setState(remoteState);
+            if(this !== _activeComponent){
+              _activeComponent.setState(remoteState)
+            }
           }
 
           if(name == 'onEnd'){
@@ -173,7 +179,7 @@
 
     componentWillUnmount: function () {
       console.log("unmountTabs",this)
-      this._sortableInstance.destroy();
+      if(this._sortableInstance) this._sortableInstance.destroy();
       this._sortableInstance = null;
     },
 

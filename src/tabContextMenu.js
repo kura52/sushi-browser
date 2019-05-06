@@ -1,7 +1,10 @@
 import {ipcMain} from 'electron'
-const {extensionMenu} = require('./chromeEvents')
 const extensionInfos = require('./extensionInfos')
 import path from 'path'
+
+let extensionMenu = {}
+ipcMain.emit('get-extension-menu')
+ipcMain.once('get-extension-menu-reply',(e, menu)=> extensionMenu = menu)
 
 function onContextMenu(pageURL, tabId) {
   const menuItems = []
@@ -93,5 +96,5 @@ ipcMain.on('get-tab-contextMenu',(e,key,pageURL,tabId)=>{
 })
 
 ipcMain.on('tab-contextMenu-clicked',(e,data)=>{
-  process.emit('chrome-context-menus-clicked', ...data)
+  process.emit('chrome-context-menus-clicked', ...data) //@TODO ELECTRON ipcMain.emitとか色々
 })

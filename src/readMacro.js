@@ -19,16 +19,16 @@ export default {
     if(!isNaN(mainState.autoMousemoveTime)){
       data = data.replace('3000',`parseFloat(${mainState.autoMousemoveTime}) * 1000`)
     }
-    if(mainState.autoHighlight){
-      data += `;\n${fs.readFileSync(path.join(__dirname,"../resource/extension/default/1.0_0/js/TargetSelector2.js").replace(/app.asar([\/\\])/,'app.asar.unpacked$1')).toString()}`
-    }
+    // if(mainState.autoHighlight){
+    //   data += `;\n${fs.readFileSync(path.join(__dirname,"../resource/extension/default/1.0_0/js/TargetSelector2.js").replace(/app.asar([\/\\])/,'app.asar.unpacked$1')).toString()}`
+    // }
     return data
   },
   readMacroOff() {
     let data = fs.readFileSync(path.join(__dirname,"../resource/extension/default/1.0_0/js/macroOff.js").replace(/app.asar([\/\\])/,'app.asar.unpacked$1')).toString()
-    if(mainState.autoHighlight){
-      data += `;\n${fs.readFileSync(path.join(__dirname,"../resource/extension/default/1.0_0/js/TargetSelectorOff2.js").replace(/app.asar([\/\\])/,'app.asar.unpacked$1')).toString()}`
-    }
+    // if(mainState.autoHighlight){
+    //   data += `;\n${fs.readFileSync(path.join(__dirname,"../resource/extension/default/1.0_0/js/TargetSelectorOff2.js").replace(/app.asar([\/\\])/,'app.asar.unpacked$1')).toString()}`
+    // }
     return data
   },
   readTargetSelector(){
