@@ -137,9 +137,18 @@ export default class webContents extends EventEmitter {
 
     const page = await this._getPage()
 
-    this._evEvents[`webNavigation-onCompleted_${this.id}`] = (extFrameId) =>{
+    this._evEvents[`webNavigation-onBeforeNavigate_${this.id}`] = (details) =>{
       // console.log('did-finish-load', extFrameId == 0 ? 'main' : 'sub')
-      this.emitAndSend('did-finish-load', {sender: this})
+      if(details.frameId == 0){
+        this.emitAndSend('did-start-loading', {sender: this} ,this.id)
+      }
+    }
+
+    this._evEvents[`webNavigation-onCompleted_${this.id}`] = (details) =>{
+      // console.log('did-finish-load', extFrameId == 0 ? 'main' : 'sub')
+      if(details.frameId == 0){
+        this.emitAndSend('did-finish-load', {sender: this})
+      }
     }
 
     this._evEvents[`webNavigation-onCommitted_${this.id}`] = (details) =>{

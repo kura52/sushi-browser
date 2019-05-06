@@ -640,8 +640,12 @@ class Browser{
   }
 
   static addExtensionEvents(){
+    this.addListener('webNavigation', 'onBeforeNavigate', details=>{
+      evem.emit(`webNavigation-onBeforeNavigate_${details.tabId}`, details)
+    })
+
     this.addListener('webNavigation', 'onCompleted', details=>{
-      evem.emit(`webNavigation-onCompleted_${details.tabId}`, details.frameId)
+      evem.emit(`webNavigation-onCompleted_${details.tabId}`, details)
     })
 
     this.addListener('webNavigation', 'onCommitted', details=>{

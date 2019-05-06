@@ -297,7 +297,7 @@ let historyMap = new Map([
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note.html',[locale.translation('note'),'resource/file.svg']],
 ])
 
-const withWindowCreateTabs = new Set()
+// const withWindowCreateTabs = new Set()
 export default class TabPanel extends Component {
   constructor(props) {
     super(props);
@@ -377,7 +377,7 @@ export default class TabPanel extends Component {
       console.log('TabCreate')
       const tab = this.createTab(params && {default_url:params.url,privateMode: params.privateMode,guestInstanceId: params.guestInstanceId, fields: params.fields,
         rest:{bind:params.bind,mobile:params.mobile,adBlockThis:params.adBlockThis,tabPreview:params.tabPreview}})
-      withWindowCreateTabs.add(tab.key)
+      // withWindowCreateTabs.add(tab.key)
 
       this.state = {tokens,
         oppositeGlobal: ipc.sendSync('get-sync-main-state','oppositeGlobal'),
@@ -467,14 +467,14 @@ export default class TabPanel extends Component {
         // }
         tabs.push(n_tab)
         if(rSession) tabState.insert({tabKey:n_tab.key,titles:rSession.titles.join("\t"),urls:rSession.urls.join("\t"),positions: JSON.stringify(rSession.positions),currentIndex:rSession.currentIndex, updated_at: Date.now()})
-        withWindowCreateTabs.add(n_tab.key)
+        // withWindowCreateTabs.add(n_tab.key)
         if(tab.active) selectedTab = n_tab.key
         i++
       }
       if(tabs.length == 0){
         const n_tab = this.createTab()
         tabs.push(n_tab)
-        withWindowCreateTabs.add(n_tab.key)
+        // withWindowCreateTabs.add(n_tab.key)
       }
 
       this.state = {tokens,
@@ -2753,18 +2753,18 @@ export default class TabPanel extends Component {
     console.log(999,tabId)
     // tab._guestInstanceId = e.guestInstanceId
 
-    if(withWindowCreateTabs.has(tab.key)){
-      ipc.send(`new-window-tabs-created_${tab.wvId}`,this.state.tabs.findIndex(t=>t.key==tab.key))
-      withWindowCreateTabs.delete(tab.key)
-    }
+    // if(withWindowCreateTabs.has(tab.key)){
+    //   ipc.send(`new-window-tabs-created_${tab.wvId}`,this.state.tabs.findIndex(t=>t.key==tab.key))
+    //   withWindowCreateTabs.delete(tab.key)
+    // }
 
-    if(tab.readyAttach){
-      delete tab.readyAttach
-      ipc.send('chrome-tabs-onAttached-to-main',tab.wvId,{newPosition: this.state.tabs.findIndex(t=>t.key==tab.key)})
-    }
+    // if(tab.readyAttach){
+    //   delete tab.readyAttach
+    //   ipc.send('chrome-tabs-onAttached-to-main',tab.wvId,{newPosition: this.state.tabs.findIndex(t=>t.key==tab.key)})
+    // }
 
-    const navigateTo = l=>this.navigateTo(page, l, tab)
     if(!isStart) {
+      const navigateTo = l=>this.navigateTo(page, l, tab)
       this.startProcess(this, page, navigateTo, tab, isStart)
     }
     else{
@@ -2776,8 +2776,8 @@ export default class TabPanel extends Component {
 
     console.log('onTabIdChanged', tabId,page)
 
-    const cont = this.getWebContents(tab)
-
+    // const cont = this.getWebContents(tab)
+    //
     // ipc.send('get-did-start-loading',tab.wvId)
     // const didStart = (e,c)=> {
     //   console.log('onDidStartLoading',e,Date.now())
