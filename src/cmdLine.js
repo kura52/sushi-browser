@@ -65,7 +65,7 @@ const focusOrOpenWindow = function (url) {
 // Checks an array of arguments if it can find a url
 const getUrlFromCommandLine = (argv) => {
   if (argv) {
-    console.log(argv)
+    console.log(552,argv)
     if (argv.length === 2 && !argv[1].startsWith('-')) {
       const parsedUrl = urlParse(argv[1])
       if (isProtocolHandled(parsedUrl.protocol)) {

@@ -1,5 +1,4 @@
 // require('v8-compile-cache')
-console.log(process.argv)
 global.debug = require('debug')('info')
 const databaseForked = require('./databaseForked')
 let app

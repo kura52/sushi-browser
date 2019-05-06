@@ -10,10 +10,8 @@ Webブラウジングの際、画面の一部しか利用できず、勿体無�
 
 「ドラッグアンドドロップでのパネル分割機能、同期スクロール、サイドバー、パネル整列・入替え」などのギミックを搭載しています。   
 
-上記に加え、「動画支援機能、タブ操作機能、セッションマネージャ、プライバシー機能、ダウンローダ」など
+上記に加え、「動画支援機能、タブ操作機能、セッションマネージャ、ダウンローダ」など
 20個を超える強力な便利機能も有しています。  
-
-また、Electron([Brave's Fork](https://github.com/brave/muon))で構築されているため、マルチプラットフォーム(Windows, macOS, Linux)で利用できます。  
 
 [ダウンロード](#ダウンロード)
 
@@ -25,14 +23,10 @@ Webブラウジングの際、画面の一部しか利用できず、勿体無�
   * [マルチパネル機能](#マルチパネル機能)
   * [動画支援機能](#動画支援機能)
   * [タブ機能](#タブ機能)
-  * [プライバシー、セキュリティ](#プライバシー、セキュリティ)
-  * <a href="#muonelectron-fork機能">Muon(Electron Fork)機能</a>
   * [便利機能](#便利機能)
   * [Webテクノロジー](#webテクノロジー)
 
 * [ダウンロード](#ダウンロード)
-
-* [Flashの利用](#flashの利用)
 
 * [新機能](#新機能)
 
@@ -77,7 +71,6 @@ Webブラウジングの際、画面の一部しか利用できず、勿体無�
 
 #### 5. その他
 - パネル移動： タブ追加ボタンをドラッグ＆ドロップすることで、１パネルの全タブを他のパネルやウインドウへ移動することができます。
-- Floatパネルモード： タブの右クリックメニューからFloating Panelを選択することで、ウインドウ内で移動可能なパネルに分離することができます。  
 - パネルの入れ替え： ２つのパネルの位置を入れ替えることができます。
 - パネルの整列： 水平、垂直方向それぞれに対し、等幅に整列することができます。
 - 方向の転換： 横方向に並んでいるパネルを縦方向に、縦方向に並んでいるパネルを横方向に並び直すことができます。
@@ -133,40 +126,6 @@ Sushi Browserでは縦タブを利用でき、メニューバーのサイドバ�
 - マウスホイールによるタブ選択： タブバー上でマウスホイールを動かすことで、スクロールによりタブを選択できます。  
 - 多彩な設定： 設定ページからTab Mix Plusを参考にした多くの設定ができます。
 
-
-## プライバシー、セキュリティ
-
-Sushi BrowserではBrave Browserの機能を参考にプライバシーやセキュリティに関する機能を搭載しています。  
-
-詳細は、[こちら](https://sushib.me/ja/tips/#privacy-and-security/)をご確認ください。
-
-![privacy](https://sushib.me/myimg/privacy.gif)
-
-### 1. Adblock	
-ネイティブ実装の高速な広告ブロックです。メインメニューから、全ページ、タブごと、ドメインごとの有効無効を設定できます。
-
-#### 2. Torタブ	
-匿名通信システム「Tor」を利用したタブになります。高い匿名性での通信を可能とします。
-
-#### 3. VPN (Windowsのみ)
-VPN Gateサービスを利用した、MS-SSTP VPNによるVPN接続を行います。  
-※擬似的なVPNではなく、Windows上に実際のVPNネットワーク接続を作成・接続しますので、ネットワークプロファイリングが作成されます。  
-
-#### 4.その他
-- Private, Sesisonタブ： 他のブラウザと同様に、プライバシーを強化したPrivateタブや、別セッションでの操作が可能なSessionタブ機能があります。  
-- HTTPS Everywhere： http通信を可能な限りhttps通信に置き換える機能
-- Tracking Protection： Google Analyticsのようなトラッキングサービスからの保護機能
-- スクリプトをブロック： Javascriptを無効にする機能（ほとんどのサイトが動作しなくなります）
-- フィンガープリンティングの保護： フィンガープリンティングによる情報読み込みを保護する機能
-
-## Muon(Electron Fork)機能
-本ブラウザは、ブラウザ機能として[Muon](https://github.com/brave/muon)を利用してます。  
-Muonは[Brave browser](https://github.com/brave/browser-laptop)で使用されているElectronのforkで、高速なブラウザ用のフレームワークです。
-
-1. AdBlock： ネイティブ実装の高速な広告ブロックを搭載しています。
-2. Chromiun： エンジンにChromeのオープンソース実装であるChromiumが利用されており、最新かつ高速な動作が可能です。
-3. 部分的なChrome拡張機能のサポート： 一部のChrome拡張機能が利用可能です。
-
 ## 便利機能
 
 ### 1. セッションマネージャ
@@ -211,30 +170,26 @@ Sushi Browserはインストール版とポータブル版の2つを選択でき
 ページ全体のスクリーンショットと選択範囲のスクリーンショットが利用できます。
 
 
-### 9. ページ内検索
-Chromeの検索機能に加え、OR検索と正規表現による検索が行えます。また、ハイライト検索機能も備えています。
-
-
-### 10. 表示切り替え、ウインドウ固定
-「フルスクリーンモード」や「常に手前に表示」をはじめとした機能があります。  
+### 9. 表示切り替え、ウインドウ固定
+「フルスクリーンモード」」をはじめとした機能があります。  
 - ウインドウをパネルに固定： 他アプリケーションのウインドウをブラウザのタブに対して固定化し、1つのタブ内のアプリケーションのように制御する機能。 
 - モバイル表示(ユーザエージェント変更)： ユーザエージェントを変更し、モバイルや別のブラウザとしてページ表示が可能です。
-- AutoPagerize： 複数ページに渡るWebサイトの自動先読み機能が利用できます。(Chrome拡張)
 
 
-### 11. Automation
+### 10. Automation
 iMacrosやSelenium IDEのような自動操作補助機能で、
 Puppeteer(ヘッドレスChromeでの自動化) APIと互換性のあるAPIを実装しています。
 
 
-### 12. その他
+### 11. その他
 他の機能については、[こちら](https://sushib.me/ja/tips/)をご確認ください。
 
 
 ## Webテクノロジー
 
 本ブラウザーは以下を始めとした素晴らしいwebテクノロジーを利用しています。
-- [Muon](https://github.com/brave/muon) ([Brave browser](https://github.com/brave/browser-laptop)で使用されているElectronのforkで、高速なブラウザ用のフレームワーク)
+- [Electron](https://github.com/electron/electron)
+- [puppeteer](https://github.com/GoogleChrome/puppeteer)
 - [Inferno](https://github.com/infernojs/inferno) (An extremely fast, React-like library)
 - [xterm.js](https://github.com/sourcelair/xterm.js/) (visual studio codeなどで使用されているTerminal)
 - [Tor](https://www.torproject.org/)
@@ -247,24 +202,8 @@ Puppeteer(ヘッドレスChromeでの自動化) APIと互換性のあるAPIを�
 
 各プラットフォームに対し、インストーラとポータブル版の両方がダウンロードできます。
 
-- [Windows Installer v0.23.a1](https://sushib.me/dl/sushi-browser-0.23.a1-setup-x64.exe)
-- [Windows Portable v0.23.a1(自己解凍)](https://sushib.me/dl/sushi-browser-0.23.a1-win-x64.exe)
-- [Windows Portable v0.23.a1](https://sushib.me/dl/sushi-browser-0.23.a1-win-x64.zip)
-- [MacOS dmg v0.23.a1](https://sushib.me/dl/SushiBrowser-0.23.a1.dmg)
-- [MacOS Portable v0.23.a1](https://sushib.me/dl/sushi-browser-0.23.a1-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.23.a1](https://sushib.me/dl/sushi-browser-0.23.a1.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.23.a1](https://sushib.me/dl/sushi-browser_0.23.a1_amd64.deb)
-- [Linux Portable v0.23.a1](https://sushib.me/dl/sushi-browser-0.23.a1.tar.bz2)
+- [Windows Installer v0.24.0](https://sushib.me/dl/sushi-browser-0.24.0-setup-x64.exe)
+- [Windows Portable v0.24.0(自己解凍)](https://sushib.me/dl/sushi-browser-0.24.0-win-x64.exe)
+- [Windows Portable v0.24.0](https://sushib.me/dl/sushi-browser-0.24.0-win-x64.zip)
 
 ポータブル版の利用は、解凍後にWindowsはsushi.exeを、Mac/Linuxはsushi-browserを実行ください。
-
-# Flashの利用
-
-Flashが動かない場合、以下のサイトでFlashをインストールして実行ください。
-- [Adobe Flash Player](https://get.adobe.com/flashplayer/)
-
-また、Linuxの場合は上記インストール後も動作しない場合があります。  
-セキュリティレベルが低下しますが、以下のコマンドで動作する可能性があります。  
-```
-sushi-browser --no-sandbox
-```

@@ -98,7 +98,7 @@ function build(){
     sh.mv(`${pwd}/${buildDir}/_LICENSE`,`${pwd}/${buildDir}/LICENSE`)
     sh.rm(`${pwd}/${buildDir}/LICENSES.chromium.html`)
     sh.cp(`app/VERSION.txt`,`${pwd}/${buildDir}/VERSION.txt`)
-    sh.cp('-Rf',`${pwd}/../WidevineCdm`,`${pwd}/${buildDir}/.`)
+    // sh.cp('-Rf',`${pwd}/../WidevineCdm`,`${pwd}/${buildDir}/.`)
     fs.writeFileSync(`${pwd}/${buildDir}/update.cmd`,`@echo off
 cd /d %~dp0
 for /f "tokens=1" %%i in (VERSION.txt) do (
@@ -171,6 +171,8 @@ pause`)
   sh.rm('-rf','app')
   sh.cd(pwd)
 
+  muonModify()
+
   if (isWindows) {
     const electronInstaller = require('electron-winstaller')
     const resultPromise = electronInstaller.createWindowsInstaller({
@@ -193,6 +195,79 @@ pause`)
 
 }
 
+function muonModify(){
+  const dircs = []
+  const pwd = sh.pwd().toString()
+  dircs.push(buildDir)
+  for(let dirc of dircs){
+    const paths = glob.sync(`${pwd}/${dirc}/**/electron.asar`)
+    console.log(paths)
+    if(paths.length == 1){
+      const base = paths[0].split("/").slice(0,-1).join("/")
+      sh.cd(`${base}`)
+      if(sh.exec('asar e electron.asar electron').code !== 0) {
+        console.log("ERROR3")
+        process.exit()
+      }
+
+      const initFile = path.join(sh.pwd().toString(),sh.ls('electron/browser/init.js')[0])
+      const contents2 = fs.readFileSync(initFile).toString()
+      const result2 = contents2
+        .replace('let packagePath = null',`let packagePath
+const basePath = path.join(__dirname,'../..')
+if(fs.existsSync(path.join(basePath,'app.asar.7z'))){
+  const binPath = path.join(basePath,\`7zip/\${process.platform === 'win32' ? 'win' : process.platform === 'darwin' ? 'mac' : 'linux'}/7za\`)
+  const execSync = require('child_process').execSync
+  const dataPath = path.join(basePath,'app.asar.unpacked.7z')
+  const result =  execSync(\`"\${binPath}" x -y -o"\${basePath}" "\${dataPath}"\`)
+  fs.unlinkSync(dataPath)
+  
+  const dataPath2 = path.join(basePath,'app.asar.7z')
+  const result2 =  execSync(\`"\${binPath}" x -y -o"\${basePath}" "\${dataPath2}"\`)
+  fs.unlinkSync(dataPath2)
+  
+  if(process.argv[1] == '--update-delete'){
+    const portablePath = path.join(basePath, 'app.asar.unpacked/resource', 'portable.txt')
+    fs.unlinkSync(portablePath)
+    
+    const portablePath2 = path.join(basePath,'portable.txt')
+    if(fs.existsSync(portablePath2)){
+      fs.renameSync(portablePath2,portablePath)
+    }
+  }
+  
+  fs.renameSync(path.join(basePath,'app'),path.join(basePath,'_app'))
+}`)
+      fs.writeFileSync(initFile,result2)
+      sh.mv('app.asar.unpacked/resource/bin/7zip','.')
+
+      if(sh.exec(`${isWindows ? '"C:/Program Files/7-Zip/7z.exe"' : '7z'} a -t7z -mx=9 app.asar.unpacked.7z app.asar.unpacked`).code !== 0) {
+        console.log("ERROR1")
+        process.exit()
+      }
+      sh.rm('-rf','app.asar.unpacked')
+
+      if(sh.exec(`${isWindows ? '"C:/Program Files/7-Zip/7z.exe"' : '7z'} a -t7z -mx=9 app.asar.7z app.asar`).code !== 0) {
+        console.log("ERROR2")
+        process.exit()
+      }
+      sh.rm('-rf','app.asar')
+
+      sh.mkdir('app')
+      sh.cp('../../package.json','app/.')
+
+      if(sh.exec('asar pack electron electron.asar').code !== 0) {
+        console.log("ERROR")
+        process.exit()
+      }
+      sh.rm('-rf','electron')
+
+    }
+
+  }
+  sh.cd(pwd)
+}
+
 const RELEASE_DIRECTORY = 'sushi-browser-release32'
 const start = Date.now()
 sh.cd('../../')
@@ -206,27 +281,21 @@ glob.sync(`${pwd}/**/*.js.map`).forEach(file=>{
   fs.unlinkSync(file)
 })
 
-sh.rm('-rf','resource/bin/7zip/linux')
-sh.rm('-rf','resource/bin/aria2/linux')
-sh.rm('-rf','resource/bin/ffmpeg/linux')
-sh.rm('-rf','resource/bin/handbrake/linux')
-sh.rm('-rf','resource/bin/tor/linux')
+sh.rm('-rf','resource/bin/7zip/win')
+sh.rm('-rf','resource/bin/aria2/win')
+sh.rm('-rf','resource/bin/ffmpeg/win')
+sh.rm('-rf','resource/bin/handbrake/win')
 
 const plat = isWindows ? 'win32' : isDarwin ? 'mac' : 'linux'
-sh.cp('-Rf',`../bin/7zip/${plat}`,'resource/bin/7zip/.')
-sh.cp('-Rf',`../bin/aria2/${plat}`,'resource/bin/aria2/.')
-sh.cp('-Rf',`../bin/ffmpeg/${plat}`,'resource/bin/ffmpeg/.')
-sh.cp('-Rf',`../bin/handbrake/${plat}`,'resource/bin/handbrake/.')
-sh.cp('-Rf',`../bin/tor/${plat}`,'resource/bin/tor/.')
-sh.mkdir('-p', 'resource/bin/widevine');
-sh.cp('-Rf',`../bin/widevine/${plat}`,'resource/bin/widevine/.')
+sh.cp('-Rf',`../web-dev-browser/resource/bin/7zip/${plat}`,'resource/bin/7zip/.')
+sh.cp('-Rf',`../web-dev-browser/resource/bin/aria2/${plat}`,'resource/bin/aria2/.')
+sh.cp('-Rf',`../web-dev-browser/resource/bin/ffmpeg/${plat}`,'resource/bin/ffmpeg/.')
+sh.cp('-Rf',`../web-dev-browser/resource/bin/handbrake/${plat}`,'resource/bin/handbrake/.')
 
 sh.mv('resource/bin/7zip/win32','resource/bin/7zip/win')
 sh.mv('resource/bin/aria2/win32','resource/bin/aria2/win')
 sh.mv('resource/bin/ffmpeg/win32','resource/bin/ffmpeg/win')
 sh.mv('resource/bin/handbrake/win32','resource/bin/handbrake/win')
-sh.mv('resource/bin/widevine/win32','resource/bin/widevine/win')
-sh.mv('resource/bin/tor/win32','resource/bin/tor/win')
 
 filesContentsReplace(`${pwd}/node_modules/youtube-dl/lib/youtube-dl.js`,"path.join(__dirname, '..', 'bin/details')","path.join(__dirname, '..', 'bin/details').replace(/app.asar([\\/\\\\])/,'app.asar.unpacked$1')")
 filesContentsReplace(`${pwd}/node_modules/youtube-dl/lib/youtube-dl.js`,"(details.path) ? details.path : path.resolve(__dirname, '..', 'bin', details.exec)","((details.path) ? details.path : path.resolve(__dirname, '..', 'bin', details.exec)).replace(/app.asar([\\/\\\\])/,'app.asar.unpacked$1')")
@@ -235,7 +304,7 @@ filesContentsReplace(`${pwd}/node_modules/youtube-dl/lib/youtube-dl.js`,"(detail
 build()
 
 if(isWindows){
-  sh.mv(`${outDir}/sushi-browser-setup-ia32.exe`,`${outDir}/sushi-browser-${APP_VERSION}-setup-ia32.exe`)
+  // sh.mv(`${outDir}/sushi-browser-setup-ia32.exe`,`${outDir}/sushi-browser-${APP_VERSION}-setup-ia32.exe`)
   sh.cp('-Rf',`./${buildDir}`,`./sushi-browser-portable`)
   sh.mkdir('-p', `sushi-browser-portable/resources/app.asar.unpacked/resource`);
   fs.writeFileSync(`${pwd}/sushi-browser-portable/resources/app.asar.unpacked/resource/portable.txt`,'true')

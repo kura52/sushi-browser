@@ -2,24 +2,60 @@ const path = require('path')
 const childProcess = require('child_process');
 const uuid = require('node-uuid')
 const {ipcMain} = require('electron')
-const sock = require('axon').socket('req')
+let sock = require('axon').socket('req')
 const fs = require('fs')
 const emptyPort = require('./emptyPort')
 import { app } from 'electron'
 import {webContents} from './remoted-chrome/Browser'
 const isDarwin = process.platform === 'darwin'
 
+if (!isDarwin) {
+  global.__CHILD__ = {
+    async send(...args){
+      for(let i=0;i<1000;i++){
+        await new Promise(r=>setTimeout(r,20))
+        if(global.__CHILD__.on){
+          global.__CHILD__.send(...args)
+          break
+        }
+      }
+    }
+  }
+  sock = {
+    send(msg, callback) {
+      if (callback) this.callbacks[msg.key] = callback
+      global.__CHILD__.send(msg)
+    },
+    callbacks: {}
+  };
+}
+
+function fork(){
+  // sock.bind(ports[0],'127.0.0.1')
+  global.__CHILD__ = childProcess.fork(path.join(__dirname,'main.js'),[app.getPath('userData')])
+  global.__CHILD__.on('message', msg => {
+    const callback = sock.callbacks[msg.key]
+    if(callback){
+      callback(msg)
+      delete sock.callbacks[msg.key]
+    }
+  })
+  global.__CHILD__.once('exit', () => {
+    if(!global.__CHILD__.normalKill) fork()
+  })
+}
+
 emptyPort((err,ports)=>{
-  sock.bind(ports[0],'127.0.0.1')
   const key = `${Date.now()}${Math.random()}`
   fs.writeFileSync(path.join(app.getPath('userData'),'resource/fork.txt').replace(/\\/g,"/"),`${Date.now()}\t${key}\t${ports.join("\t")}`)
   ipcMain.once('get-port',()=>ipcMain.emit('get-port-reply', null, ports[1], key))
 
   if(isDarwin){
+    sock.bind(ports[0],'127.0.0.1')
     global.__CHILD__ = childProcess.exec(path.join(__dirname,'../../../MacOS/sushi-browser'))
   }
   else{
-    global.__CHILD__ = childProcess.fork(path.join(__dirname,'main.js'),[app.getPath('userData')])
+    fork()
   }
 },2)
 
@@ -51,6 +87,8 @@ function handler(table){
           const methods = table ? [table,prop] : [prop]
           return new Promise((resolve,reject)=>{
             sock.send({key,methods,args: regToStr(argumentsList)},msg=>{
+              // var hrTime = process.hrtime()
+              // console.log('ggg', hrTime[0] * 1000000 + hrTime[1] / 1000 - resp[key])
               if(msg.key !== key) return
               if((table == "history" || table == "favorite" || table == "note" || table == "tabState" || table == "savedState") && (prop == "insert" || prop == "update" || prop == "remove")){
                for(let cont of webContents.getAllWebContents()){

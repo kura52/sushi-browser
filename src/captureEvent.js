@@ -55,7 +55,7 @@ async function captureCurrentPage(_id,pageUrl,loc,base64,sender,tabId,noActiveSk
           console.log("ERROR Failed to save file", err);
         }
 
-        sock.send({path: filePath},msg=>{
+        sock.send({key:id, path: filePath},msg=>{
           if(doc){
             image.update({url:pageUrl}, {$set:{path:`${id}.jpg`, title: title, updated_at: d}})
             console.log(4)

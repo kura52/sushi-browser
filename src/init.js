@@ -293,6 +293,7 @@ app.on('window-all-closed', async function () {
       }catch(e){}
     }
     ipcMain.emit('handbrake-stop',null)
+    global.__CHILD__.normalKill = true
     global.__CHILD__.kill()
 
     for(let win of BrowserWindow.getAllWindows()){
@@ -337,6 +338,7 @@ app.on('will-quit',  (e) => {
       }catch(e){}
     }
     ipcMain.emit('handbrake-stop',null)
+    global.__CHILD__.normalKill = true
     global.__CHILD__.kill()
   }
   console.log(22222)

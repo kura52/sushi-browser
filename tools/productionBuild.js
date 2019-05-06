@@ -535,7 +535,7 @@ Promise.all(promises).then(_=>{
     build()
 
     if(isWindows){
-      sh.mv(`${outDir}/sushi-browser-setup-x64.exe`,`${outDir}/sushi-browser-${APP_VERSION}-setup-x64.exe`)
+      // sh.mv(`${outDir}/sushi-browser-setup-x64.exe`,`${outDir}/sushi-browser-${APP_VERSION}-setup-x64.exe`)
       sh.cp('-Rf',`./${buildDir}`,`./sushi-browser-portable`)
       sh.mkdir('-p', `sushi-browser-portable/resources/app.asar.unpacked/resource`);
       fs.writeFileSync(`${pwd}/sushi-browser-portable/resources/app.asar.unpacked/resource/portable.txt`,'true')

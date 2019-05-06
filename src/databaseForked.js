@@ -1,4 +1,4 @@
-const sock = require('axon').socket('rep')
+let sock = require('axon').socket('rep')
 const fs = require('fs')
 const path = require('path')
 const url = require('url')
@@ -10,9 +10,21 @@ let app
   }catch(e){}
 }())
 // import extensionServer from './extensionServer'
-console.log(7776666,app)
+console.log(7776666,app, process.platform === 'darwin')
 const isDarwin = process.platform === 'darwin'
 const resizeFile = require('./resizeFile')
+
+if(!isDarwin){
+  const reply = function(data){process.send(data)}
+  sock = {
+    on(name, callback){
+      process.on(name, (msg) => {
+        callback(msg, reply)
+      });
+    },
+    connect(){}
+  }
+}
 
 function getPortable(){
   const file = path.join(__dirname,'../resource/portable.txt').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
