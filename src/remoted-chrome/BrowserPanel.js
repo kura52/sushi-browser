@@ -6,7 +6,8 @@ let PopupPanel = new Proxy({},  { get: function(target, name){ PopupPanel = requ
 let BrowserView = require('./BrowserView')
 let webContents = require('./webContents')
 
-const BROWSER_NAME = 'Google Chrome'
+console.log('argvvvvv',require('../minimist')(process.argv.slice(1)))
+const BROWSER_NAME = require('../minimist')(process.argv.slice(1))['browser-name'] || 'Google Chrome'
 // const BROWSER_NAME = 'Chromium'
 // const BROWSER_NAME = 'Microsoft Edge'
 // const BROWSER_NAME = 'Brave'

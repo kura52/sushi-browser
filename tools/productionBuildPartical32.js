@@ -122,7 +122,7 @@ if not "%ver%"=="%newver%" (
   if exist sushi-browser-%newver%-win-ia32.zip (
     del /Q sushi-browser-%newver%-win-ia32.zip
   
-    taskkill /F /IM sushi.exe
+    taskkill /F /IM sushi-browser.exe
     copy /Y resources\\app.asar.unpacked\\resource\\portable.txt resources\\portable.txt
     rd /s /q resources\\_app
     rd /s /q resources\\app.asar.unpacked
@@ -131,13 +131,13 @@ if not "%ver%"=="%newver%" (
     cd _update_%newver%\\sushi-browser-portable
     xcopy /S /E /Y . ..\\..
     cd ..\\..
-    powershell Start-Process sushi.exe --update-delete
+    powershell Start-Process sushi-browser.exe --update-delete
   )
 )`)
     fs.writeFileSync(`${pwd}/${buildDir}/add_to_default_browser.cmd`,`powershell start-process __add_to_default_browser.cmd -verb runas`)
     fs.writeFileSync(`${pwd}/${buildDir}/__add_to_default_browser.cmd`,`reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Sushi\\Capabilities" /v ApplicationDescription /t REG_SZ /d "Sushi Browser" /f
 reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Sushi\\Capabilities" /v ApplicationName /t REG_SZ /d "Sushi" /f
-reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Sushi\\Capabilities" /v ApplicationIcon /t REG_SZ /d "%~dp0sushi.exe,0" /f
+reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Sushi\\Capabilities" /v ApplicationIcon /t REG_SZ /d "%~dp0sushi-browser.exe,0" /f
 
 reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Sushi\\Capabilities\\FileAssociations" /v .htm /t REG_SZ /d "SushiURL" /f
 reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Sushi\\Capabilities\\FileAssociations" /v .html /t REG_SZ /d "SushiURL" /f
@@ -156,7 +156,7 @@ reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\RegisteredApplications" /v Sushi /t REG_S
 reg add "HKEY_LOCAL_MACHINE\\Software\\Classes\\SushiURL" /t REG_SZ /d "Sushi Document" /f
 reg add "HKEY_LOCAL_MACHINE\\Software\\Classes\\SushiURL" /v FriendlyTypeName /t REG_SZ /d "Sushi Document" /f
 
-reg add "HKEY_LOCAL_MACHINE\\Software\\Classes\\SushiURL\\shell\\open\\command" /t REG_SZ /d "\\"%~dp0sushi.exe\\" -- \\"%%1\\"" /f
+reg add "HKEY_LOCAL_MACHINE\\Software\\Classes\\SushiURL\\shell\\open\\command" /t REG_SZ /d "\\"%~dp0sushi-browser.exe\\" -- \\"%%1\\"" /f
 
 pause`)
   }
@@ -184,7 +184,7 @@ pause`)
       iconUrl: 'https://sushib.me/favicon.ico',
       // signWithParams: format('-a -fd sha256 -f "%s" -p "%s" -t http://timestamp.verisign.com/scripts/timstamp.dll', path.resolve(cert), certPassword),
       noMsi: true,
-      exe: 'sushi.exe'
+      exe: 'sushi-browser.exe'
     })
     resultPromise.then(() => {
       // sh.mv(`${outDir}/Setup.exe`,`${outDir}/sushi-browser-setup-${arch}.exe`)

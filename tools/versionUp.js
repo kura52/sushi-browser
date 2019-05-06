@@ -26,18 +26,20 @@ const glob = require("glob")
 const BEFORE_CODE_NAME = 'Kani(Crab)'
 const CODE_NAME = 'Geso(Squid arms)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.24.0-beta1"
+const NEXT_APP_VERSION = "0.24.0-beta2"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Using Chrome as a pseudo webview solves the Muon-related problem. In addition, the following became possible.  
-・Chrome features such as translation, password management and chrome://flags are now available.
-・Expanded Chrome Extension support.
-・Chrome Sync is now available.`
+const CHANGE_ENGLISH = `Added browser-name and browser-path to command-line option.
+Fixed protect tab bug.
+Fixed favorite bug.
+Fixed bookmark bar bug.
+Fixed tab close behavior.
+Fixed panel split function.
+Fixed tab focus.
+Removed adblock function.
+Updated to Electron 5.0.1.`
 
-const CHANGE_JAPANESE = `Chromeを擬似的なwebviewとして利用することで、Muon由来の不具合解消した。また、以下が可能となった。  
-・翻訳、パスワード管理、chrome://flagsなど、chromeの機能が利用可能となった。
-・Chrome Extensionの対応範囲が拡大。
-・Chrome Syncが利用可能となった。`
+const CHANGE_JAPANESE = ``
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

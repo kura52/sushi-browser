@@ -1483,6 +1483,7 @@ async function contextMenu(webContents, props) {
 
         webContents.focus()
         await promise
+        robot.moveMouse(props.screenX, props.screenY)
         robot.mouseClick('right')
         await new Promise(r=>setTimeout(r,30))
         robot.keyTap('t')

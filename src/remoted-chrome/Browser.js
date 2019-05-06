@@ -5,7 +5,7 @@ import puppeteer from '../../resource/puppeteer'
 import extensionServer from './extensionServer'
 import emptyPort from './emptyPort'
 import winctl from '../../resource/winctl'
-import {app, BrowserWindow, ipcMain, powerMonitor} from 'electron'
+import {app, BrowserWindow, ipcMain, dialog} from 'electron'
 import PubSub from "../render/pubsub"
 import extInfos from '../extensionInfos'
 import backgroundPageModify from './backgroundPageModify'
@@ -75,13 +75,22 @@ class Browser{
   static async _initializer(){
     if(this._browser != null) return
 
-    let executablePath
-    if(fs.existsSync(executablePath = 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe')){}
+    let executablePath = require('../minimist')(process.argv.slice(1))['browser-path']
+
+    if(executablePath){ if(!fs.existsSync(executablePath)) executablePath = void 0 }
+    else if(fs.existsSync(executablePath = 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe')){}
     else if(fs.existsSync(executablePath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe')){}
     else if(fs.existsSync(executablePath = path.join(app.getPath('home'),'AppData\\Local\\Google\\Chrome\\Application\\chrome.exe'))){}
-    else{}
 
-    console.log(`${app.getPath('home')}\\AppData\\Local\\Programs\\Opera\\60.0.3255.70\\opera.exe`)
+    if(!executablePath){
+      await new Promise(r=> dialog.showMessageBox({
+        type: 'info',
+        buttons: ['OK'],
+        message: 'Chrome not found.'
+      },()=>r()))
+      return app.quit()
+    }
+
     this._browser = await puppeteer.launch({
       ignoreDefaultArgs: true,
       // ignoreHTTPSErrors: true,

@@ -470,8 +470,6 @@ export default {
         mainState.rockerGestureRight = isWin ? locale.translation('forward') : 'none'
       }
 
-      // if(!mainState.enableSmoothScrolling) app.commandLine.appendSwitch('disable-smooth-scrolling')
-
       mainState.searchProviders = {}
       for(let ele of (await searchEngine.find({}))){
         mainState.searchProviders[ele.name] = ele
