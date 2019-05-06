@@ -254,15 +254,24 @@ export default class BrowserPanel {
           }
 
           console.log(2243344, chromeNativeWindow.getTitle())
-          chromeNativeWindow.setForegroundWindowEx()
-          chromeNativeWindow.setWindowLongPtrEx(0x00000080)
+          for(let i=0;i<5;i++){
+            chromeNativeWindow.setForegroundWindowEx()
+            chromeNativeWindow.setWindowLongPtrEx(0x00000080)
+            await new Promise(r=>setTimeout(r,50))
+          }
+
+          setTimeout(()=> chromeNativeWindow.destroyWindow(),5000)
 
           win = await Browser.bg.evaluate((url, windowId) => {
             return new Promise(resolve => {
-              chrome.windows.update(windowId, {state: 'minimized'}, () => {
-                setTimeout(() => chrome.windows.remove(windowId), 5000)
-                chrome.windows.create({url, focused: true}, window => {
-                  resolve(window)
+              chrome.tabs.query({windowId}, tabs => {
+                chrome.tabs.update(tabs[0].id, {url: 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html'},()=>{
+                  chrome.windows.update(windowId, {state: 'minimized'}, () => {
+                    setTimeout(() => chrome.windows.remove(windowId), 5000)
+                    chrome.windows.create({url, focused: true}, window => {
+                      resolve(window)
+                    })
+                  })
                 })
               })
             })
@@ -288,10 +297,10 @@ export default class BrowserPanel {
       BrowserPanel.panelKeys[panelKey] = this
       this.tabKeys = {[tabKey]: [win.tabs[0].id, new BrowserView(this, tabKey, win.tabs[0].id)]}
 
-      if(!isNotFirst){
-        await new Promise(r=>setTimeout(r,1000))
-        await Browser.initPopupPanel()
-      }
+      // if(!isNotFirst){
+      //   await new Promise(r=>setTimeout(r,1000))
+      //   await Browser.initPopupPanel()
+      // }
 
       BrowserPanel.initing = false
       // setTimeout(()=>ipcMain.emit('set-position-browser-view', {sender:this.browserWindow.webContents}, panelKey),100)

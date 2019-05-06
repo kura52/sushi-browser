@@ -995,23 +995,26 @@ class PopupPanel{
       return new Promise(resolve => {
         chrome.windows.create({
           url: 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/popup_prepare.html',
-          type: 'popup'
+          type: 'popup',
+          state: 'minimized'
         }, window => resolve(window))
       })
     })
 
     let chromeNativeWindow
-    for(let i=0;i<100;i++){
-      await new Promise(r=>setTimeout(r,50))
-
+    for(let i=0;i<200;i++){
       chromeNativeWindow = (await winctl.FindWindows(win => {
         return win.getTitle().includes('Sushi Browser Popup Prepare')
       }))[0]
       if(chromeNativeWindow) break
+      await new Promise(r=>setTimeout(r,50))
     }
 
-    chromeNativeWindow.setForegroundWindowEx()
-    chromeNativeWindow.setWindowLongPtrEx(0x00000080)
+    for(let i=0;i<5;i++){
+      chromeNativeWindow.setForegroundWindowEx()
+      chromeNativeWindow.setWindowLongPtrEx(0x00000080)
+      await new Promise(r=>setTimeout(r,50))
+    }
 
     const hwnd = chromeNativeWindow.createWindow()
     const nativeWindow = (await winctl.FindWindows(win => win.getHwnd() == hwnd))[0]
