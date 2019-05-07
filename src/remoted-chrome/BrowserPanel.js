@@ -370,21 +370,28 @@ export default class BrowserPanel {
   }
 
   async createChromeParentWindow(cWin, oldWindows, nativeWindow) {
-    let chromeNativeWindow = winctl.GetActiveWindow()
-    const dim = chromeNativeWindow.dimensions()
-    if (BrowserPanel.bindedWindows.has(chromeNativeWindow.getHwnd()) || !chromeNativeWindow.getTitle().includes(BROWSER_NAME) || !(cWin.left == dim.left && cWin.top == dim.top && cWin.width == (dim.right - dim.left) && cWin.height == (dim.bottom - dim.top))) {
-      chromeNativeWindow = (await winctl.FindWindows(win => {
-        if (BrowserPanel.bindedWindows.has(chromeNativeWindow.getHwnd()) || !win.getTitle().includes(BROWSER_NAME)) return false
-        const dim = win.dimensions()
-        return cWin.left == dim.left && cWin.top == dim.top && cWin.width == (dim.right - dim.left) && cWin.height == (dim.bottom - dim.top)
-      }))[0]
+    let chromeNativeWindow
 
-      if(!chromeNativeWindow){
+    for(let i=0;i<100;i++){
+      chromeNativeWindow = winctl.GetActiveWindow()
+      const dim = chromeNativeWindow.dimensions()
+      if (BrowserPanel.bindedWindows.has(chromeNativeWindow.getHwnd()) || !chromeNativeWindow.getTitle().includes(BROWSER_NAME) ||
+        !(cWin.left == dim.left && cWin.top == dim.top && cWin.width == (dim.right - dim.left) && cWin.height == (dim.bottom - dim.top))) {
         chromeNativeWindow = (await winctl.FindWindows(win => {
-          if(oldWindows.includes(win.getHwnd()) || !win.getTitle().includes(BROWSER_NAME)) return false
-          return true
+          if (BrowserPanel.bindedWindows.has(chromeNativeWindow.getHwnd()) || !win.getTitle().includes(BROWSER_NAME)) return false
+          const dim = win.dimensions()
+          return cWin.left == dim.left && cWin.top == dim.top && cWin.width == (dim.right - dim.left) && cWin.height == (dim.bottom - dim.top)
         }))[0]
+
+        if(!chromeNativeWindow){
+          chromeNativeWindow = (await winctl.FindWindows(win => {
+            if(oldWindows.includes(win.getHwnd()) || !win.getTitle().includes(BROWSER_NAME)) return false
+            return true
+          }))[0]
+        }
       }
+      if(chromeNativeWindow) break
+      await new Promise(r=>setTimeout(r,300))
     }
 
     chromeNativeWindow.moveRelative(9999, 9999, 0, 0)

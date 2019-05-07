@@ -210,7 +210,18 @@ function muonModify(){
       const initFile = path.join(sh.pwd().toString(),sh.ls('electron/browser/init.js')[0])
       const contents2 = fs.readFileSync(initFile).toString()
       const result2 = contents2
-        .replace('let packagePath = null',`let packagePath
+        .replace('let packagePath = null',`if(process.platform === 'win32' && process.argv[1] == '--squirrel-install'){
+  var run = function(args, done) {
+    var updateExe = path.resolve(path.dirname(process.execPath), '..', 'Update.exe');
+    var spawn = require('child_process').spawn;
+    spawn(updateExe, args, {
+      detached: true
+    }).on('close', done);
+  };
+  var target = path.basename(process.execPath);
+  run(['--createShortcut=' + target + ''], app.quit);
+}
+let packagePath
 const basePath = path.join(__dirname,'../..')
 if(fs.existsSync(path.join(basePath,'app.asar.7z'))){
   const binPath = path.join(basePath,\`7zip/\${process.platform === 'win32' ? 'win' : process.platform === 'darwin' ? 'mac' : 'linux'}/7za\`)

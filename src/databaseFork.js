@@ -34,10 +34,12 @@ function fork(){
   // sock.bind(ports[0],'127.0.0.1')
   global.__CHILD__ = childProcess.fork(path.join(__dirname,'main.js'),[app.getPath('userData')])
   global.__CHILD__.on('message', msg => {
-    const callback = sock.callbacks[msg.key]
-    if(callback){
-      callback(msg)
-      delete sock.callbacks[msg.key]
+    if(msg){
+      const callback = sock.callbacks[msg.key]
+      if(callback){
+        callback(msg)
+        delete sock.callbacks[msg.key]
+      }
     }
   })
   global.__CHILD__.once('exit', () => {

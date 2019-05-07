@@ -348,6 +348,8 @@ function create(args){
   bw.on('maximize',e=>{
     console.log('maximize',bw._isVirtualMaximized)
     if(bw._isVirtualMaximized){
+      if(bw.isMaximized()) bw.unmaximize()
+
       const bounds = bw._isVirtualMaximized
       setTimeout(()=>bw.setBounds(bounds),50)
       bw.webContents.send('maximize',false)
@@ -358,6 +360,8 @@ function create(args){
       bw._initVirtualMaximized = void 0
 
       const b = bw.getBounds()
+      if(bw.isMaximized()) bw.unmaximize()
+
       const bounds = {x: b.x+7, y: b.y+7, width: b.width - 14, height: b.height - 14}
       bw._maximizedSize = bounds
       // bw.normal()

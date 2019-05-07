@@ -15,7 +15,9 @@ const isDarwin = process.platform === 'darwin'
 const resizeFile = require('./resizeFile')
 
 if(!isDarwin){
-  const reply = function(data){process.send(data)}
+  const reply = function(data){
+    process.send(data == void 0 ? null : data)
+  }
   sock = {
     on(name, callback){
       process.on(name, (msg) => {

@@ -306,9 +306,9 @@ if(window.__started_){
     },{passive: true, capture: true})
 
     window.addEventListener("beforeunload", e=>{
+      ipc.send('fullscreen-change', false, 1000)
       ipc.send('send-to-host', 'scroll-position',{x:window.scrollX ,y:window.scrollY})
       ipc.send('contextmenu-webContents-close')
-      ipc.send('fullscreen-change', false, 1000)
     });
 
     document.addEventListener("DOMContentLoaded",_=>{

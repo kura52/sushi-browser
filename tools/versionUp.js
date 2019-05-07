@@ -26,20 +26,17 @@ const glob = require("glob")
 const BEFORE_CODE_NAME = 'Kani(Crab)'
 const CODE_NAME = 'Geso(Squid arms)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.24.0"
+const NEXT_APP_VERSION = "0.24.1"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Added browser-name and browser-path to command-line option.
-Fixed protect tab bug.
-Fixed favorite bug.
-Fixed bookmark bar bug.
-Fixed tab close behavior.
-Fixed panel split function.
-Fixed tab focus.
-Removed adblock function.
-Updated to Electron 5.0.1.`
+const CHANGE_ENGLISH = `Fixed loading timing.
+Added search retry process for chrome window.
+Fixed a bug in the installation process.
+Improved French translation. (Pull Request #45, #46, #47, #48, #49, #50, #51, #52)`
 
-const CHANGE_JAPANESE = ``
+const CHANGE_JAPANESE = `ローディングアイコンの表示タイミングを修正。
+Chromeのウインドウを探すリトライ処理を追加。
+インストール時の不具合を修正`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'
