@@ -141,11 +141,11 @@ export default class Download {
 
     // ipcMain.on('need-set-save-filename',eventSetSaveFilename)
 
-    const ses = win.webContents.session
-    ses.on('will-download', async (event, item, webContents) => {
-      event.preventDefault()
-      if(!item.isDestroyed()) item.destroy()
-    })
+    // const ses = win.webContents.session
+    // ses.on('will-download', async (event, item, webContents) => {
+    //   event.preventDefault()
+    //   if(!item.isDestroyed()) item.destroy()
+    // })
 
     const itemMap = {}
     ipcMain.on('chrome-download-start', async (event, item, _url, webContents, force) => {

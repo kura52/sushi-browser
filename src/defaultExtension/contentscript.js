@@ -518,7 +518,7 @@ if(window.__started_){
       if(Object.keys(addInput).length || !codeSet.has(e.keyCode)){
         const name = mainState[JSON.stringify({code: e.code.toLowerCase().replace('arrow','').replace('escape','esc'),...addInput})] || mainState[JSON.stringify({key: e.key.toLowerCase().replace('arrow','').replace('escape','esc'),...addInput})]
         if(name){
-          ipc.send('menu-or-key-events',name.split("_")[0])
+          ipc.send('menu-command',name.split("_")[0])
           console.log(name)
           e.preventDefault()
           e.stopImmediatePropagation()

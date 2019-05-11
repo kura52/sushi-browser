@@ -18,7 +18,7 @@ async function getFocusedWebContents(needSelectedText,skipBuildInSearch,callback
       if(tmp.hostWebContents2){
         return new Promise(resolve=>resolve(tmp))
       }
-      else if(tmp.isRoot){
+      else if(tmp.root){
         cont = tmp
       }
     }

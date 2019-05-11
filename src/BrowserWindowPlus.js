@@ -547,7 +547,7 @@ export default {
       // toolbar: false,
       // resize: false,
       frame: isDarwin,
-      show: true,
+      show: false,
       // enableLargerThanScreen: true,
       transparent: true,
       // opacity: 0.01,

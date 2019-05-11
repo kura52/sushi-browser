@@ -45,6 +45,7 @@ export default class BrowserView {
   static async newTab(cont, tab) {
     if (tab && tab.openerTabId && !BrowserPanel.hasTabId(tab.openerTabId)) {
       await new Promise(r => setTimeout(r, 20))
+      console.log(998, cont.id)
       return await this.newTab(cont, tab)
     }
     if (this.newTabCreateing) {
@@ -63,7 +64,7 @@ export default class BrowserView {
 
     const id = cont.id
     let currentTab
-    if (tab) {
+    if(tab){
       currentTab = await Browser.bg.evaluate((tabId, validIds, windowId) => {
         return new Promise(resolve => {
           chrome.tabs.query({windowId}, tabs => {
@@ -75,7 +76,7 @@ export default class BrowserView {
         })
       }, id, BrowserPanel.getAllTabIds(), tab.windowId)
     }
-    else {
+    else{
       [tab, currentTab] = await Browser.bg.evaluate((tabId, validIds) => {
         return new Promise(resolve => {
           chrome.tabs.get(tabId, tab => {
@@ -93,14 +94,14 @@ export default class BrowserView {
     console.log(2233, tab, currentTab)
 
     panel = BrowserPanel.getBrowserPanelByWindowId(tab.windowId)
-    if (!panel) {
+    if(!panel){
       await new Promise(r => setTimeout(r, 30))
       panel = BrowserPanel.getBrowserPanelByWindowId(tab.windowId)
     }
-    if (panel) {
+    if(panel){
       const bv = panel.getBrowserView({tabId: tab.id})
       // console.log(77777,bv)
-      if (bv) {
+      if(bv){
         this.newTabCreateing = false
         return bv
       }

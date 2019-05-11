@@ -14,19 +14,19 @@ console.log(7776666,app, process.platform === 'darwin')
 const isDarwin = process.platform === 'darwin'
 const resizeFile = require('./resizeFile')
 
-if(!isDarwin){
-  const reply = function(data){
-    process.send(data == void 0 ? null : data)
-  }
-  sock = {
-    on(name, callback){
-      process.on(name, (msg) => {
-        callback(msg, reply)
-      });
-    },
-    connect(){}
-  }
-}
+// if(!isDarwin){
+//   const reply = function(data){
+//     process.send(data == void 0 ? null : data)
+//   }
+//   sock = {
+//     on(name, callback){
+//       process.on(name, (msg) => {
+//         callback(msg, reply)
+//       });
+//     },
+//     connect(){}
+//   }
+// }
 
 function getPortable(){
   const file = path.join(__dirname,'../resource/portable.txt').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')

@@ -2279,31 +2279,31 @@ export default class TabPanel extends Component {
       else if(name == 'openLocation'){
         ipc.emit('focus-location-bar',null,tab.wvId)
       }
-      else if(name == 'toggleDeveloperTools'){
-        // if(!tab.fields) tab.fields = {}
-        const cont = this.getWebContents(tab)
-        if(true || !cont.setDevToolsWebContents){
-          console.log(' cont.toggleDevTools()')
-          cont.toggleDevTools() //@TODO ELECTRON
-          return
-        }
-        if(cont.devToolsWebContents){
-          if(!cont.devToolsWebContents.isGuest()){
-            cont.toggleDevTools()
-          }
-          delete tab.fields.devToolsInfo
-          this.setState({})
-        }
-        else{
-          if(mainState.devToolsMode == 'dock'){
-            tab.fields.devToolsInfo = {height: mainState.devToolsHeight, isPanel: true}
-            this.setState({})
-          }
-          else if(mainState.devToolsMode == 'separate'){
-            cont.toggleDevTools()
-          }
-        }
-      }
+      // else if(name == 'toggleDeveloperTools'){
+      //   // if(!tab.fields) tab.fields = {}
+      //   const cont = this.getWebContents(tab)
+      //   if(true || !cont.setDevToolsWebContents){
+      //     console.log(' cont.toggleDevTools()')
+      //     cont.toggleDevTools() //@TODO ELECTRON
+      //     return
+      //   }
+      //   if(cont.devToolsWebContents){
+      //     if(!cont.devToolsWebContents.isGuest()){
+      //       cont.toggleDevTools()
+      //     }
+      //     delete tab.fields.devToolsInfo
+      //     this.setState({})
+      //   }
+      //   else{
+      //     if(mainState.devToolsMode == 'dock'){
+      //       tab.fields.devToolsInfo = {height: mainState.devToolsHeight, isPanel: true}
+      //       this.setState({})
+      //     }
+      //     else if(mainState.devToolsMode == 'separate'){
+      //       cont.toggleDevTools()
+      //     }
+      //   }
+      // }
       else if(name == 'arrangePanel'){
         this.props.parent.arrangePanels('all')
       }

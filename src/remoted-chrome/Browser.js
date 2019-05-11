@@ -81,12 +81,16 @@ class Browser{
     else if(fs.existsSync(executablePath = 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe')){}
     else if(fs.existsSync(executablePath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe')){}
     else if(fs.existsSync(executablePath = path.join(app.getPath('home'),'AppData\\Local\\Google\\Chrome\\Application\\chrome.exe'))){}
+    else{
+      executablePath = void 0
+    }
 
     if(!executablePath){
       await new Promise(r=> dialog.showMessageBox({
         type: 'info',
         buttons: ['OK'],
-        message: 'Chrome not found.'
+        message: `Sushi browser requires Chrome.
+Please install Chrome from https://www.google.com/chrome/`
       },()=>r()))
       return app.quit()
     }
@@ -245,9 +249,18 @@ class Browser{
       if(!delay) browserPanel.setFullscreenBounds(enabled)
     })
 
-
     ipcMain.on('get-access-key-and-port', e => {
       e.sender.send('get-access-key-and-port-reply', [this.serverKey, this.port])
+    })
+
+    ipcMain.on('hide-browser-panel', (e, panelKey, hide) => {
+      const panel = BrowserPanel.getBrowserPanel(panelKey)
+      if(hide){
+        panel.cpWin.nativeWindow.showWindow(6)
+      }
+      else{
+        panel.cpWin.nativeWindow.showWindow(9)
+      }
     })
 
     this.addExtensionEvents()

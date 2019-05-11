@@ -86,6 +86,7 @@ app.setName('Sushi Browser')
 app.commandLine.appendSwitch('touch-events', 'enabled');
 
 // if(isLinux){
+app.commandLine.appendArgument("disable-gpu")
 app.disableHardwareAcceleration()
 // app.disableDomainBlockingFor3DAPIs()
 // }
@@ -1168,7 +1169,7 @@ async function contextMenu(webContents, props) {
   if(isNoAction){
     menuItems.push({t: 'back', label: locale.translation('back'),enabled:await webContents.canGoBack(),  click: (item, win)=>webContents.hostWebContents2.send('go-navigate', webContents.id, 'back')})
     menuItems.push({t: 'forward', label: locale.translation('forward'),enabled: await webContents.canGoForward(), click: (item, win)=>webContents.hostWebContents2.send('go-navigate', webContents.id, 'forward')})
-    menuItems.push({t: 'reload', label: locale.translation('reload'),enabled: !webContents.isLoading(), click: (item, win)=>webContents.hostWebContents2.send('go-navigate', webContents.id, 'reload')})
+    menuItems.push({t: 'reload', label: locale.translation('reload'), click: (item, win)=>webContents.hostWebContents2.send('go-navigate', webContents.id, 'reload')})
     menuItems.push({type: 'separator'})
   }
 

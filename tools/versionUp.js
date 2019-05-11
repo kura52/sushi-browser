@@ -26,17 +26,25 @@ const glob = require("glob")
 const BEFORE_CODE_NAME = 'Kani(Crab)'
 const CODE_NAME = 'Geso(Squid arms)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.24.1"
+const NEXT_APP_VERSION = "0.24.2"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Fixed loading timing.
-Added search retry process for chrome window.
-Fixed a bug in the installation process.
-Improved French translation. (Pull Request #45, #46, #47, #48, #49, #50, #51, #52)`
+const CHANGE_ENGLISH = `Fixed a bug where you won't get a warning if Chrome is not installed.
+Changed to use --disable-gpu option.
+Fixed a bug in db access.
+Fixed behavior of "Ctrl + N new window shortcut".(#59)
+Fixed behavior when hiding the sidebar.(#59)
+Fixed the behavior of shortcut keys such as Ctrl + Shift + I and Ctrl + R.(#59)
+Updated to youtube-dl 2019.05.11.
+`
 
-const CHANGE_JAPANESE = `ローディングアイコンの表示タイミングを修正。
-Chromeのウインドウを探すリトライ処理を追加。
-インストール時の不具合を修正`
+const CHANGE_JAPANESE = `Chromeがインストールされていない場合に、出る警告が表示されない不具合を修正
+--disable-gpuオプションを使用するように変更
+dbアクセスの不具合を修正
+"新しいウィンドウショートカット(Ctrl + N)"実行時の挙動を修正
+サイドバーを隠したときに挙動を修正
+Ctrl + Shift + Iや Ctrl + Rなどのショートカットキー実行時の挙動を修正
+youtube-dlを2019.05.11に更新`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

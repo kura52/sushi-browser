@@ -2217,10 +2217,11 @@ ipcMain.on("devTools-contextMenu-open",(e,template,x,y)=>{
 
 ipcMain.on("menu-command",(e,name)=>{
   const templates = require('./menuSetting').getTemplate()
+  let flag
   for(let template of templates){
     for(let menu of template.submenu){
       console.log(222,menu,name)
-      if(name == menu.label){
+      if(name == menu.label || locale.translation(name) == menu.label ){
         console.log(menu,name)
         if(menu.click){
           menu.click(null,getCurrentWindow())
@@ -2231,9 +2232,11 @@ ipcMain.on("menu-command",(e,name)=>{
             cont && cont[menu.role]()
           })
         }
+        flag = true
         break
       }
     }
+    if(flag) break
   }
 })
 

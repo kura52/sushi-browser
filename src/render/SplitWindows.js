@@ -2014,6 +2014,7 @@ export default class SplitWindows extends Component{
         localForage.removeItem(key)
         delete this.hidePanels[key]
         this.setState({})
+        ipc.send('hide-browser-panel',key,false)
       }
       else{
         size = key.match(/^fixed-left/) ? panel.state.size : wholeSize - panel.state.size
@@ -2024,6 +2025,7 @@ export default class SplitWindows extends Component{
         panel.sizeChange(ret.dirc == "l" ? 0 : 100,true)
         PubSub.publishSync("resizeWindow",direction == "v" ? {old_w:wholeSize - size,new_w:wholeSize,old_h:otherSize,new_h:otherSize} :
           {old_w:otherSize,new_w:otherSize,old_h:wholeSize - size,new_h:wholeSize})
+        ipc.send('hide-browser-panel',key,true)
       }
     })
   }
@@ -2063,7 +2065,7 @@ export default class SplitWindows extends Component{
             isFindIsTopLeft.val = isTopLeft = !isFixedPanel(x[0])
             if(isTopLeft) this.isTopLeft = x[0]
           }
-          return <div className={`split-window s${x[0]}`} key={x[0]}>
+          return <div className={`split-window s${x[0]} ${this.hidePanels[x[0]] ? 'no-display' : ''}`} key={x[0]}>
             <TabPanel isTopRight={this.checkTopRight(obj,i)  ? isTopRight : false}
                       isTopLeft={isTopLeft} k={x[0]} ref={x[0]}
                       key={x[0]} node={x} split={this.split} close={this.close}

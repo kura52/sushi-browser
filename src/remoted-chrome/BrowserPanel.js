@@ -6,8 +6,6 @@ let PopupPanel = new Proxy({},  { get: function(target, name){ PopupPanel = requ
 let BrowserView = require('./BrowserView')
 let webContents = require('./webContents')
 
-console.log('argvvvvv',require('../minimist')(process.argv.slice(1)))
-const BROWSER_NAME = require('../minimist')(process.argv.slice(1))['browser-name'] || 'Google Chrome'
 // const BROWSER_NAME = 'Chromium'
 // const BROWSER_NAME = 'Microsoft Edge'
 // const BROWSER_NAME = 'Brave'
@@ -24,6 +22,9 @@ export default class BrowserPanel {
     this.isInit = true
     this.destKeySet = new Set()
     this.bindedWindows = new Set()
+
+    this.BROWSER_NAME = require('../minimist')(process.argv.slice(1))['browser-name'] || 'Google Chrome'
+
 
     await Browser._initializer()
 
@@ -185,7 +186,7 @@ export default class BrowserPanel {
 
     const oldWindows = []
     winctl.EnumerateWindows(function(win) {
-      if(win.getTitle().includes(BROWSER_NAME)){
+      if(win.getTitle().includes(BrowserPanel.BROWSER_NAME)){
         oldWindows.push(win.getHwnd())
       }
       return true
@@ -238,16 +239,16 @@ export default class BrowserPanel {
 
           let chromeNativeWindow = winctl.GetActiveWindow()
           const dim = chromeNativeWindow.dimensions()
-          if (!chromeNativeWindow.getTitle().includes(BROWSER_NAME) || !(tmpWin.left == dim.left && tmpWin.top == dim.top && tmpWin.width == (dim.right - dim.left) && tmpWin.height == (dim.bottom - dim.top))) {
+          if (!chromeNativeWindow.getTitle().includes(BrowserPanel.BROWSER_NAME) || !(tmpWin.left == dim.left && tmpWin.top == dim.top && tmpWin.width == (dim.right - dim.left) && tmpWin.height == (dim.bottom - dim.top))) {
             chromeNativeWindow = (await winctl.FindWindows(win => {
-              if (!win.getTitle().includes(BROWSER_NAME)) return false
+              if (!win.getTitle().includes(BrowserPanel.BROWSER_NAME)) return false
               const dim = win.dimensions()
               return tmpWin.left == dim.left && tmpWin.top == dim.top && tmpWin.width == (dim.right - dim.left) && tmpWin.height == (dim.bottom - dim.top)
             }))[0]
 
             if(!chromeNativeWindow){
               chromeNativeWindow = (await winctl.FindWindows(win => {
-                if(oldWindows.includes(win.getHwnd()) || !win.getTitle().includes(BROWSER_NAME)) return false
+                if(oldWindows.includes(win.getHwnd()) || !win.getTitle().includes(BrowserPanel.BROWSER_NAME)) return false
                 return true
               }))[0]
             }
@@ -375,17 +376,17 @@ export default class BrowserPanel {
     for(let i=0;i<100;i++){
       chromeNativeWindow = winctl.GetActiveWindow()
       const dim = chromeNativeWindow.dimensions()
-      if (BrowserPanel.bindedWindows.has(chromeNativeWindow.getHwnd()) || !chromeNativeWindow.getTitle().includes(BROWSER_NAME) ||
+      if (BrowserPanel.bindedWindows.has(chromeNativeWindow.getHwnd()) || !chromeNativeWindow.getTitle().includes(BrowserPanel.BROWSER_NAME) ||
         !(cWin.left == dim.left && cWin.top == dim.top && cWin.width == (dim.right - dim.left) && cWin.height == (dim.bottom - dim.top))) {
         chromeNativeWindow = (await winctl.FindWindows(win => {
-          if (BrowserPanel.bindedWindows.has(chromeNativeWindow.getHwnd()) || !win.getTitle().includes(BROWSER_NAME)) return false
+          if (BrowserPanel.bindedWindows.has(chromeNativeWindow.getHwnd()) || !win.getTitle().includes(BrowserPanel.BROWSER_NAME)) return false
           const dim = win.dimensions()
           return cWin.left == dim.left && cWin.top == dim.top && cWin.width == (dim.right - dim.left) && cWin.height == (dim.bottom - dim.top)
         }))[0]
 
         if(!chromeNativeWindow){
           chromeNativeWindow = (await winctl.FindWindows(win => {
-            if(oldWindows.includes(win.getHwnd()) || !win.getTitle().includes(BROWSER_NAME)) return false
+            if(oldWindows.includes(win.getHwnd()) || !win.getTitle().includes(BrowserPanel.BROWSER_NAME)) return false
             return true
           }))[0]
         }

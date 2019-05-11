@@ -750,11 +750,11 @@ export default class webContents extends EventEmitter {
   }
 
   openDevTools(options){
-    this._sendKey('f12')
+    this._sendKey('j',['control','shift'])
   }
 
   closeDevTools(){
-    this._sendKey('f12')
+    this._sendKey('j',['control','shift'])
   }
 
   isDevToolsOpened(){
@@ -766,7 +766,7 @@ export default class webContents extends EventEmitter {
   }
 
   toggleDevTools(){
-    this._sendKey('f12')
+    this._sendKey('j',['control','shift'])
   }
 
   inspectElement(x, y){

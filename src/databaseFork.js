@@ -9,39 +9,38 @@ import { app } from 'electron'
 import {webContents} from './remoted-chrome/Browser'
 const isDarwin = process.platform === 'darwin'
 
-if (!isDarwin) {
-  global.__CHILD__ = {
-    async send(...args){
-      for(let i=0;i<1000;i++){
-        await new Promise(r=>setTimeout(r,20))
-        if(global.__CHILD__.on){
-          global.__CHILD__.send(...args)
-          break
-        }
-      }
-    }
-  }
-  sock = {
-    send(msg, callback) {
-      if (callback) this.callbacks[msg.key] = callback
-      global.__CHILD__.send(msg)
-    },
-    callbacks: {}
-  };
-}
+// if (!isDarwin) {
+//   global.__CHILD__ = {
+//     async send(...args){
+//       for(let i=0;i<1000;i++){
+//         await new Promise(r=>setTimeout(r,20))
+//         if(global.__CHILD__.on){
+//           global.__CHILD__.send(...args)
+//           break
+//         }
+//       }
+//     }
+//   }
+//   sock = {
+//     send(msg, callback) {
+//       if (callback) this.callbacks[msg.key] = callback
+//       global.__CHILD__.send(msg)
+//     },
+//     callbacks: {}
+//   };
+// }
 
 function fork(){
-  // sock.bind(ports[0],'127.0.0.1')
   global.__CHILD__ = childProcess.fork(path.join(__dirname,'main.js'),[app.getPath('userData')])
-  global.__CHILD__.on('message', msg => {
-    if(msg){
-      const callback = sock.callbacks[msg.key]
-      if(callback){
-        callback(msg)
-        delete sock.callbacks[msg.key]
-      }
-    }
-  })
+  // global.__CHILD__.on('message', msg => {
+  //   if(msg){
+  //     const callback = sock.callbacks[msg.key]
+  //     if(callback){
+  //       callback(msg)
+  //       delete sock.callbacks[msg.key]
+  //     }
+  //   }
+  // })
   global.__CHILD__.once('exit', () => {
     if(!global.__CHILD__.normalKill) fork()
   })
@@ -52,8 +51,8 @@ emptyPort((err,ports)=>{
   fs.writeFileSync(path.join(app.getPath('userData'),'resource/fork.txt').replace(/\\/g,"/"),`${Date.now()}\t${key}\t${ports.join("\t")}`)
   ipcMain.once('get-port',()=>ipcMain.emit('get-port-reply', null, ports[1], key))
 
+  sock.bind(ports[0],'127.0.0.1')
   if(isDarwin){
-    sock.bind(ports[0],'127.0.0.1')
     global.__CHILD__ = childProcess.exec(path.join(__dirname,'../../../MacOS/sushi-browser'))
   }
   else{
