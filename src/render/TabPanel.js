@@ -1385,12 +1385,12 @@ export default class TabPanel extends Component {
         //   self.searchWordHighlight(tab)
         // }
 
-        ipc.send('chrome-webNavigation-onCompleted',{
-          tabId:tab.wvId,
-          url:page.navUrl,
-          frameId: 0,
-          timeStamp: Date.now()
-        })
+        // ipc.send('chrome-webNavigation-onCompleted',{
+        //   tabId:tab.wvId,
+        //   url:page.navUrl,
+        //   frameId: 0,
+        //   timeStamp: Date.now()
+        // })
 
         if(tab.initPos){
           if(tab.initPos[0] == page.navUrl){
@@ -1465,6 +1465,7 @@ export default class TabPanel extends Component {
         if(page.didNavigate){
           this.onDidFinishLoading(e,page)
         }
+
         if(page.isLoading || page.favicon == 'loading'){
           page.isLoading = false
           if(page.favicon == 'loading'){
@@ -1509,14 +1510,14 @@ export default class TabPanel extends Component {
         }
 
         PubSub.publishSync(`on-load-start_${tab.key}`,url)
-        ipc.send('chrome-webNavigation-onBeforeNavigate',{
-          tabId:tab.wvId,
-          url:url,
-          frameId: 0,
-          parentFrameId: -1,
-          processId: -1,
-          timeStamp: Date.now()
-        })
+        // ipc.send('chrome-webNavigation-onBeforeNavigate',{
+        //   tabId:tab.wvId,
+        //   url:url,
+        //   frameId: 0,
+        //   parentFrameId: -1,
+        //   processId: -1,
+        //   timeStamp: Date.now()
+        // })
 
         let location = page.navUrl
         try{
@@ -2745,7 +2746,7 @@ export default class TabPanel extends Component {
     }
   }
 
-  async onTabIdChanged(tabId, tab, isStart){
+  onTabIdChanged(tabId, tab, isStart){
     const page = tab.page
     // guestIds[tab.key] = e
     ipc.send('create-web-contents-reply',tabId, this.props.k, tab.key, Object.keys(this.props.currentWebContents).map(x=>parseInt(x)))
@@ -2822,6 +2823,15 @@ export default class TabPanel extends Component {
     const returnWebView = (wv, tabId, div)=>{
       this.onTabIdChanged(tabId,tab)
       console.log("returnWebview")
+
+      wv.isComplete().then(val => {
+        if(val){
+          // tab.pageHandlers.onDidNavigate({},tab.page, default_url)
+          this.updateTitle(tab.wvId)
+          tab.pageHandlers.onDidStopLoading({},tab.page)
+        }
+      })
+
       this.registWebView(tab, wv, div)
       // navigateTo(newPage.location)
       // if(hist){
@@ -3812,8 +3822,16 @@ export default class TabPanel extends Component {
     if(changeInfo.url !== (void 0)){
       this.navigateTo(tab.page, changeInfo.url, tab)
     }
-    if(changeInfo.title !== (void 0)){
-      this.updateTitle(tab.wvId)
+    // if(changeInfo.title !== (void 0)){
+    //   this.updateTitle(tab.wvId)
+    // }
+    if(changeInfo.status == 'loading'){
+      tab.page.updateTitle = true
+    }
+    else if(changeInfo.status == 'complete'){
+      if(tab.page.updateTitle){
+        this.updateTitle(tab.wvId)
+      }
     }
   }
 
@@ -4528,6 +4546,7 @@ export default class TabPanel extends Component {
   updateTitle(id){
     this.state.tabs.forEach(tab=> {
       if (tab.wvId && tab.wvId === id) {
+        tab.page.updateTitle = false
         ipc.send('get-update-title',tab.wvId,tab.key,tab.rSession,closingPos[tab.key])
         ipc.once(`get-update-title-reply_${tab.wvId}`,(e,c)=> {
           if(!c) return

@@ -23,7 +23,7 @@ export default class BrowserPanel {
     this.destKeySet = new Set()
     this.bindedWindows = new Set()
 
-    this.BROWSER_NAME = require('../minimist')(process.argv.slice(1))['browser-name'] || 'Google Chrome'
+    this.BROWSER_NAME = this.BROWSER_NAME || require('../minimist')(process.argv.slice(1))['browser-name'] || 'Google Chrome'
 
 
     await Browser._initializer()

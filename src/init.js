@@ -445,15 +445,15 @@ ipcMain.on('web-contents-created', (e, tab) => {
         // ipcMain.emit('set-tab-opener', null, newTabId, id)
         cont.hostWebContents2.send('tab-create', {id: newTabId, url: cont.getURL(), openerTabId: id})
 
-        ipcMain.emit('chrome-webNavigation-onCreatedNavigationTarget',null,{
-          tabId: newTabId,
-          url: targetUrl,
-          processId: -1,
-          sourceTabId: id,
-          sourceFrameId: 0,
-          sourceProcessId: -1,
-          timeStamp: Date.now()
-        })
+        // ipcMain.emit('chrome-webNavigation-onCreatedNavigationTarget',null,{
+        //   tabId: newTabId,
+        //   url: targetUrl,
+        //   processId: -1,
+        //   sourceTabId: id,
+        //   sourceFrameId: 0,
+        //   sourceProcessId: -1,
+        //   timeStamp: Date.now()
+        // })
         ipcMain.removeListener('create-web-contents-reply',func)
       }
     }

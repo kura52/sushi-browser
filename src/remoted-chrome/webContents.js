@@ -446,6 +446,10 @@ export default class webContents extends EventEmitter {
     return (await this._getTabInfo()).status == 'loading'
   }
 
+  async isComplete() {
+    return (await this._getTabInfo()).status == 'complete';
+  }
+
   isLoadingMainFrame(){
     return this.isLoading() //@TODO
   }
@@ -672,7 +676,7 @@ export default class webContents extends EventEmitter {
     }
 
     const start = Date.now()
-    if(rect || fullPage){
+    if(rect || fullPage || this.getURL().startsWith('chrome')){
       this._getPage().screenshot({clip: rect, fullPage}).then(image=>{
         console.log(11,Date.now() - start)
         const img = nativeImage.createFromBuffer(image)

@@ -77,7 +77,20 @@ class Browser{
 
     let executablePath = require('../minimist')(process.argv.slice(1))['browser-path']
 
-    if(executablePath){ if(!fs.existsSync(executablePath)) executablePath = void 0 }
+    if(executablePath){
+      if(!fs.existsSync(executablePath)){
+        await new Promise(r=> dialog.showMessageBox({
+          type: 'info',
+          buttons: ['OK'],
+          message: `The path specified by --browser-path does not exist.
+Please enter the correct path of the executable file.`
+        },()=>r()))
+        return app.quit()
+      }
+    }
+    else if(fs.existsSync(executablePath = path.join(__dirname, '../../../../chromium/chrome.exe'))){
+      BrowserPanel.BROWSER_NAME = 'Chromium'
+    }
     else if(fs.existsSync(executablePath = 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe')){}
     else if(fs.existsSync(executablePath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe')){}
     else if(fs.existsSync(executablePath = path.join(app.getPath('home'),'AppData\\Local\\Google\\Chrome\\Application\\chrome.exe'))){}
@@ -90,7 +103,8 @@ class Browser{
         type: 'info',
         buttons: ['OK'],
         message: `Sushi browser requires Chrome.
-Please install Chrome from https://www.google.com/chrome/`
+Please install Chrome from https://www.google.com/chrome/
+Or, please use the Chromium bundled version.`
       },()=>r()))
       return app.quit()
     }
