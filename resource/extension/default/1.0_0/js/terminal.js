@@ -14130,7 +14130,6 @@ _ipcRenderer.ipcRenderer.on(`ping_${key}`, function (event, data) {
 });
 
 function handleResize(e) {
-  _ipcRenderer.ipcRenderer.send('start-pty', key);
 
   const w = document.getElementsByClassName("xterm-scroll-area")[0].clientWidth;
   const h = document.getElementById("terminal").clientHeight;
@@ -14147,6 +14146,8 @@ function handleResize(e) {
 
 window.addEventListener('resize', handleResize, { passive: true });
 window.onload = handleResize;
+
+_ipcRenderer.ipcRenderer.send('start-pty', key);
 
 /***/ }),
 /* 86 */
@@ -14514,9 +14515,9 @@ if (window.__started_) {
     }, { passive: true, capture: true });
 
     window.addEventListener("beforeunload", e => {
+      ipc.send('fullscreen-change', false, 1000);
       ipc.send('send-to-host', 'scroll-position', { x: window.scrollX, y: window.scrollY });
       ipc.send('contextmenu-webContents-close');
-      ipc.send('fullscreen-change', false, 1000);
     });
 
     document.addEventListener("DOMContentLoaded", _ => {
@@ -14722,7 +14723,7 @@ if (window.__started_) {
       if (Object.keys(addInput).length || !codeSet.has(e.keyCode)) {
         const name = mainState[JSON.stringify(_extends({ code: e.code.toLowerCase().replace('arrow', '').replace('escape', 'esc') }, addInput))] || mainState[JSON.stringify(_extends({ key: e.key.toLowerCase().replace('arrow', '').replace('escape', 'esc') }, addInput))];
         if (name) {
-          ipc.send('menu-or-key-events', name);
+          ipc.send('menu-command', name.split("_")[0]);
           console.log(name);
           e.preventDefault();
           e.stopImmediatePropagation();
@@ -14753,72 +14754,75 @@ if (window.__started_) {
   }
 
   const key = Math.random().toString();
-  ipc.send("get-main-state", key, ['tripleClick', 'alwaysOpenLinkNewTab', 'themeColorChange', 'isRecording', 'isVolumeControl', 'keepAudioSeekValueVideo', 'rectangularSelection', 'fullscreenTransitionKeep', 'fullScreen', 'rockerGestureLeft', 'rockerGestureRight', 'inputHistory', 'inputHistoryMaxChar', 'hoverStatusBar', 'hoverBookmarkBar', 'ALL_KEYS2']);
+  ipc.send("get-main-state", key, ['tripleClick', 'alwaysOpenLinkNewTab', 'themeColorChange', 'isRecording', 'isVolumeControl', 'keepAudioSeekValueVideo', 'rectangularSelection', 'fullscreenTransitionKeep', 'fullScreen', 'rockerGestureLeft', 'rockerGestureRight', 'inputHistory', 'inputHistoryMaxChar', 'hoverStatusBar', 'hoverBookmarkBar', 'ALL_KEYS2', 'protectTab']);
   ipc.once(`get-main-state-reply_${key}`, (e, data) => {
     mainState = data;
-    if (data.fullscreenTransitionKeep) {
-      let full = data.fullScreen ? true : false;
-      let preV = "_";
-      setInterval(_ => {
-        const v = document.querySelector('video');
-        if (full && v && v.src && v.src != preV) {
-          if (v.scrollWidth == window.innerWidth || v.scrollHeight == window.innerHeight || v.webkitDisplayingFullscreen) {} else {
-            const fullscreenButton = document.querySelector('.ytp-fullscreen-button,.fullscreenButton,.button-bvuiFullScreenOn,.fullscreen-icon,.full-screen-button,.np_ButtonFullscreen,.vjs-fullscreen-control,.qa-fullscreen-button,[data-testid="fullscreen_control"],.vjs-fullscreen-control,.EnableFullScreenButton,.DisableFullScreenButton,.mhp1138_fullscreen,button.fullscreenh,.screenFullBtn,.player-fullscreenbutton');
-            if (fullscreenButton) {
-              const callback = e => {
-                e.stopImmediatePropagation();
-                e.preventDefault();
-                document.removeEventListener('mouseup', callback, true);
-                fullscreenButton.click();
-                if (location.href.startsWith('https://www.youtube.com')) {
-                  let retry = 0;
-                  const id = setInterval(_ => {
-                    if (retry++ > 500) clearInterval(id);
-                    const e = document.querySelector('.html5-video-player').classList;
-                    if (!e.contains('ytp-autohide')) {
-                      // e.add('ytp-autohide')
-                      if (document.querySelector('.ytp-fullscreen-button.ytp-button').getAttribute('aria-expanded') == 'true') {
-                        v.click();
-                      }
-                    }
-                  }, 10);
-                }
-              };
-              document.addEventListener('mouseup', callback, true);
-              setTimeout(_ => ipc.send('send-to-host', 'full-screen-mouseup'), 500);
-            } else {
-              const callback = e => {
-                e.stopImmediatePropagation();
-                e.preventDefault();
-                document.removeEventListener('mouseup', callback, true);
-                v.webkitRequestFullscreen();
-              };
-              let i = 0;
-              const cId = setInterval(_ => {
-                document.addEventListener('mouseup', callback, true);
-                ipc.send('send-to-host', 'full-screen-mouseup');
-                if (i++ == 5) {
-                  clearInterval(cId);
-                }
-              }, 100);
-            }
-          }
-          preV = v.src;
-        }
-
-        if (v && v.src) {
-          const currentFull = v.scrollWidth == window.innerWidth || v.scrollHeight == window.innerHeight || v.webkitDisplayingFullscreen;
-          if (v && full != currentFull) {
-            full = currentFull;
-            if (full) {
-              ipc.send("full-screen-html", true);
-            } else {
-              ipc.send("full-screen-html", false);
-            }
-          }
-        }
-      }, 500);
-    }
+    // if(data.fullscreenTransitionKeep){
+    //   let full = data.fullScreen ? true : false
+    //   let preV = "_"
+    //   setInterval(_=>{
+    //     const v = document.querySelector('video')
+    //     if(full && v && v.src && v.src != preV){
+    //       if(v.scrollWidth == window.innerWidth || v.scrollHeight == window.innerHeight || v.webkitDisplayingFullscreen){}
+    //       else{
+    //         const fullscreenButton = document.querySelector('.ytp-fullscreen-button,.fullscreenButton,.button-bvuiFullScreenOn,.fullscreen-icon,.full-screen-button,.np_ButtonFullscreen,.vjs-fullscreen-control,.qa-fullscreen-button,[data-testid="fullscreen_control"],.vjs-fullscreen-control,.EnableFullScreenButton,.DisableFullScreenButton,.mhp1138_fullscreen,button.fullscreenh,.screenFullBtn,.player-fullscreenbutton')
+    //         if(fullscreenButton){
+    //           const callback = e => {
+    //             e.stopImmediatePropagation()
+    //             e.preventDefault()
+    //             document.removeEventListener('mouseup',callback ,true)
+    //             fullscreenButton.click()
+    //             if(location.href.startsWith('https://www.youtube.com')){
+    //               let retry = 0
+    //               const id = setInterval(_=>{
+    //                 if(retry++>500) clearInterval(id)
+    //                 const e = document.querySelector('.html5-video-player').classList
+    //                 if(!e.contains('ytp-autohide')){
+    //                   // e.add('ytp-autohide')
+    //                   if(document.querySelector('.ytp-fullscreen-button.ytp-button').getAttribute('aria-expanded') == 'true'){
+    //                     v.click()
+    //                   }
+    //                 }
+    //               },10)
+    //             }
+    //           }
+    //           document.addEventListener('mouseup',callback ,true);
+    //           setTimeout(_=>ipc.send('send-to-host', 'full-screen-mouseup'),500)
+    //         }
+    //         else{
+    //           const callback = e => {
+    //             e.stopImmediatePropagation()
+    //             e.preventDefault()
+    //             document.removeEventListener('mouseup',callback ,true)
+    //             v.webkitRequestFullscreen()
+    //           }
+    //           let i = 0
+    //           const cId = setInterval(_=>{
+    //             document.addEventListener('mouseup',callback ,true);
+    //             ipc.send('send-to-host', 'full-screen-mouseup')
+    //             if(i++ == 5){
+    //               clearInterval(cId)
+    //             }
+    //           },100)
+    //         }
+    //       }
+    //       preV = v.src
+    //     }
+    //
+    //     if(v && v.src){
+    //       const currentFull = v.scrollWidth == window.innerWidth || v.scrollHeight == window.innerHeight || v.webkitDisplayingFullscreen
+    //       if(v && full != currentFull){
+    //         full = currentFull
+    //         if(full){
+    //           ipc.send("full-screen-html",true)
+    //         }
+    //         else{
+    //           ipc.send("full-screen-html",false)
+    //         }
+    //       }
+    //     }
+    //   },500)
+    // }
     if (data.tripleClick) {
       window.addEventListener('click', e => {
         if (e.detail === 3) {
@@ -14900,6 +14904,11 @@ if (window.__started_) {
         }
       });
     }
+    // if(data.protectTab){
+    //   if(window._unloadEvent_) return
+    //   window._unloadEvent_ = e => e.returnValue = ''
+    //   window.addEventListener("beforeunload", window._unloadEvent_)
+    // }
     if (data.isRecording) {
       Function(data.isRecording)();
     }

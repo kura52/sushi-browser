@@ -1381,6 +1381,7 @@ export default class TabPanel extends Component {
         if (!self.mounted) return
 
         page.didNavigate = false
+
         // if(!sharedState.searchWordHighlightRecursive && sharedState.searchWordHighlight){
         //   self.searchWordHighlight(tab)
         // }
@@ -1610,8 +1611,8 @@ export default class TabPanel extends Component {
           page.isLoading = false
           if(page.favicon == 'loading') page.favicon = 'resource/file.svg'
           PubSub.publish(`change-status-${tab.key}`)
-          if(!this.refs2[`navbar-${tab.key}`]) return
-          this.refs2[`navbar-${tab.key}`].setState({})
+          if(!self.refs2[`navbar-${tab.key}`]) return
+          self.refs2[`navbar-${tab.key}`].setState({})
           self.setStatePartical(tab)
 
           if(sharedState.tabPreview){
@@ -2824,8 +2825,8 @@ export default class TabPanel extends Component {
       this.onTabIdChanged(tabId,tab)
       console.log("returnWebview")
 
-      wv.isComplete().then(val => {
-        if(val){
+      wv.isLoading().then(val => {
+        if(!val){
           // tab.pageHandlers.onDidNavigate({},tab.page, default_url)
           this.updateTitle(tab.wvId)
           tab.pageHandlers.onDidStopLoading({},tab.page)
@@ -4544,70 +4545,77 @@ export default class TabPanel extends Component {
   }
 
   updateTitle(id){
-    this.state.tabs.forEach(tab=> {
-      if (tab.wvId && tab.wvId === id) {
-        tab.page.updateTitle = false
-        ipc.send('get-update-title',tab.wvId,tab.key,tab.rSession,closingPos[tab.key])
-        ipc.once(`get-update-title-reply_${tab.wvId}`,(e,c)=> {
-          if(!c) return
+    const tab = this.state.tabs.find(tab => tab.wvId && tab.wvId === id)
+    if(!tab) return
 
-          if(c.rSession) tab.rSession = c.rSession
-          tab.page.canGoBack = c.currentEntryIndex !== 0
-          tab.page.canGoForward = c.currentEntryIndex + 1 !== c.entryCount
-          tab.page.canRefresh = true
-          console.log('onPageTitleSet')
-          console.log(c.url)
+    tab.page.updateTitle = false
+    ipc.send('get-update-title',tab.wvId,tab.key,tab.rSession,closingPos[tab.key])
+    ipc.once(`get-update-title-reply_${tab.wvId}`,(e,c)=> {
+      if(!c) return
 
-          if (!this.mounted) return
-          const url = c.url
-
-          const title = c.title
-          if (tab.key == this.state.selectedTab && !this.isFixed && global.lastMouseDown[2] == this.props.k && title != tab.page.title) {
-            ipc.send("change-title", title)
-          }
-          tab.page.title = title
+      if(c.rSession) tab.rSession = c.rSession
+      tab.page.canGoBack = c.currentEntryIndex !== 0
+      tab.page.canGoForward = c.currentEntryIndex + 1 !== c.entryCount
+      tab.page.canRefresh = true
+      console.log('onPageTitleSet')
+      console.log(c.url)
 
 
-          if(tab.page.navUrl != url){
-            tab.page.navUrl = url
-            this.webViewCreate()
-            this.setState({})
-          }
-          else{
-            tab.page.navUrl = url
-          }
-
-          tab.prevSyncNav = url //@TOOD arrage navurl,location,sync panel
-          try {
-            tab.page.location = decodeURIComponent(url)
-          } catch (e) {
-            tab.page.location = url
-          }
-          console.log('location-get-update-title2',tab.page.location)
-          tab.page.titleSet = true
-
-          // console.log(1444,cont.getURL(),tab.page.title)
-          let hist
-          if ((hist = historyMap.get(url))) {
-            if (!hist[0]) hist[0] = tab.page.title
-          }
-          else {
-            historyMap.set(url, [tab.page.title])
-          }
-
-          if (!tab.privateMode || tab.privateMode.match(/^persist:\d/)) {
-            history.update({location: c.url}, {
-              $set: { title: tab.page.title, updated_at: Date.now() }})
-          }
-          try {
-            this.refs2[`navbar-${tab.key}`].refs['loc'].canUpdate = true
-          } catch (e) {
-            console.log(e)
-          }
-          this.setStatePartical(tab)
-          // ipc.send('chrome-tab-updated',parseInt(tab.key), cont, this.getChromeTab(tab))
-        })
+      if(c.url.startsWith('chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd')){
+        tab.page.isLoading = false
+        tab.page.favicon = 'resource/file.svg'
+        this.refs2[`navbar-${tab.key}`].setState({})
+        this.setStatePartical(tab)
       }
+
+      if (!this.mounted) return
+      const url = c.url
+
+      const title = c.title
+      if (tab.key == this.state.selectedTab && !this.isFixed && global.lastMouseDown[2] == this.props.k && title != tab.page.title) {
+        ipc.send("change-title", title)
+      }
+      tab.page.title = title
+
+
+      if(tab.page.navUrl != url){
+        tab.page.navUrl = url
+        this.webViewCreate()
+        this.setState({})
+      }
+      else{
+        tab.page.navUrl = url
+      }
+
+      tab.prevSyncNav = url //@TOOD arrage navurl,location,sync panel
+      try {
+        tab.page.location = decodeURIComponent(url)
+      } catch (e) {
+        tab.page.location = url
+      }
+      console.log('location-get-update-title2',tab.page.location)
+      tab.page.titleSet = true
+
+      // console.log(1444,cont.getURL(),tab.page.title)
+      let hist
+      if ((hist = historyMap.get(url))) {
+        if (!hist[0]) hist[0] = tab.page.title
+      }
+      else {
+        historyMap.set(url, [tab.page.title])
+      }
+
+      if (!tab.privateMode || tab.privateMode.match(/^persist:\d/)) {
+        history.update({location: c.url}, {
+          $set: { title: tab.page.title, updated_at: Date.now() }})
+      }
+      try {
+        this.refs2[`navbar-${tab.key}`].refs['loc'].canUpdate = true
+      } catch (e) {
+        console.log(e)
+      }
+      this.setStatePartical(tab)
+      // ipc.send('chrome-tab-updated',parseInt(tab.key), cont, this.getChromeTab(tab))
     })
   }
 

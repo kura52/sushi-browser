@@ -1008,20 +1008,37 @@ export default class webContents extends EventEmitter {
     const dim = panel.cpWin.nativeWindow.dimensions()
     const width = dim.right - dim.left
 
+    const url = page.url()
+
+    if(this.viewPortUrl && this.viewPortUrl != url && !url.startsWith('chrome') && this.viewPortUrl.startsWith('chrome')){
+      await page.setViewport(null)
+      await Browser.bg.evaluate((windowId) => {
+        return new Promise(resolve => {
+          chrome.windows.update(windowId,{width: 600},window => resolve())
+        })
+      },panel.windowId)
+      delete this.viewPortUrl
+      console.log('reset',this.viewPortUrl, url)
+    }
+
     const _viewport = page.viewport()
 
-
     if(!_viewport){
-      if( width < 500) page.setViewport(viewport)
+      if(width < 500){
+        await page.setViewport(viewport)
+        this.viewPortUrl = url
+      }
       return
     }
     else if(width > 500){
-      page.setViewport(null)
+      await page.setViewport(null)
+      delete this.viewPortUrl
       return
     }
 
     if(_viewport.width != viewport.width || _viewport.height != viewport.height){
-      page.setViewport(viewport)
+      await page.setViewport(viewport)
+      this.viewPortUrl = url
     }
   }
 

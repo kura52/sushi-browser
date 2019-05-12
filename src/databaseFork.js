@@ -30,8 +30,8 @@ const isDarwin = process.platform === 'darwin'
 //   };
 // }
 
-function fork(){
-  global.__CHILD__ = childProcess.fork(path.join(__dirname,'main.js'),[app.getPath('userData')])
+function fork(userDataPath){
+  global.__CHILD__ = childProcess.fork(path.join(__dirname,'main.js'),[userDataPath])
   // global.__CHILD__.on('message', msg => {
   //   if(msg){
   //     const callback = sock.callbacks[msg.key]
@@ -56,7 +56,7 @@ emptyPort((err,ports)=>{
     global.__CHILD__ = childProcess.exec(path.join(__dirname,'../../../MacOS/sushi-browser'))
   }
   else{
-    fork()
+    fork(app.getPath('userData'))
   }
 },2)
 

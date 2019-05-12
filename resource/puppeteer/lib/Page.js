@@ -798,6 +798,7 @@ class Page extends EventEmitter {
    */
   async setViewport(viewport) {
     if(!viewport){
+      this._viewport = null
       return this._client.send('Emulation.clearDeviceMetricsOverride',{})
     }
     const needsReload = await this._emulationManager.emulateViewport(viewport);
