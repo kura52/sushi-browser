@@ -92,7 +92,7 @@ class WindowEventsEmitter extends EventEmitter {
 	constructor() {
 		super();
 
-		this.activeWindow = winctl.GetActiveWindow();
+		this.activeWindow = winctl.GetActiveWindow2();
 		this.existingWindows = null;
 
 		this.eventLoops = {

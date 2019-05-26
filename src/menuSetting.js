@@ -28,7 +28,7 @@ const createFileSubmenu = () => {
       accelerator: mainState.keyNewTab,
       click(item, focusedWindow) {
         getFocusedWebContents().then(cont=>{
-          cont && cont.hostWebContents2.send('new-tab',cont.id,"chrome://newtab/",void 0,!mainState.openTabNextLabel)
+          cont && cont.hostWebContents2.send('new-tab',cont.id,"chrome://newtab/",void 0,mainState.openTabNextLabel ? 'next' : false)
         })
       }
     },

@@ -70,7 +70,7 @@ const settingDefault =  {
   vpnNames: [],
   navbarItems: {
     left: ['back','forward','reload','home'],
-    right: ['sync','arrange','sidebar','mobile','screenshot','favorite','history','savedState','video'],
+    right: ['sync','sidebar','mobile','screenshot','favorite','history','savedState','video'],
     backSide: ['syncReplace','tabTrash','tabHistory','opposite','download','folder','terminal'],
   },
   verticalTab: false,

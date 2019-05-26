@@ -1,5 +1,6 @@
 import winctl from "../../resource/winctl";
 import {BrowserWindow, ipcMain} from "electron";
+import DpiUtils from './DpiUtils'
 
 let Browser = new Proxy({},  { get: function(target, name){ Browser = require('./Browser').Browser; return typeof Browser[name] == 'function' ? Browser[name].bind(Browser) : Browser[name]}})
 let PopupPanel = new Proxy({},  { get: function(target, name){ PopupPanel = require('./Browser').PopupPanel; return typeof PopupPanel[name] == 'function' ? PopupPanel[name].bind(PopupPanel) : PopupPanel[name]}})
@@ -237,18 +238,19 @@ export default class BrowserPanel {
             BrowserPanel.sideMargin = 0
           }
 
-          let chromeNativeWindow = winctl.GetActiveWindow()
-          const dim = chromeNativeWindow.dimensions()
+          let chromeNativeWindow = winctl.GetActiveWindow2()
+          const dim = DpiUtils.dimensions(chromeNativeWindow)
+          console.log(9933,tmpWin, dim)
           if (!chromeNativeWindow.getTitle().includes(BrowserPanel.BROWSER_NAME) || !(tmpWin.left == dim.left && tmpWin.top == dim.top && tmpWin.width == (dim.right - dim.left) && tmpWin.height == (dim.bottom - dim.top))) {
             chromeNativeWindow = (await winctl.FindWindows(win => {
               if (!win.getTitle().includes(BrowserPanel.BROWSER_NAME)) return false
-              const dim = win.dimensions()
+              const dim = DpiUtils.dimensions(win)
               return tmpWin.left == dim.left && tmpWin.top == dim.top && tmpWin.width == (dim.right - dim.left) && tmpWin.height == (dim.bottom - dim.top)
             }))[0]
 
             if(!chromeNativeWindow){
               chromeNativeWindow = (await winctl.FindWindows(win => {
-                if(oldWindows.includes(win.getHwnd()) || !win.getTitle().includes(BrowserPanel.BROWSER_NAME)) return false
+                if(!win.getTitle('about:blank') || !win.getTitle().includes(BrowserPanel.BROWSER_NAME)) return false
                 return true
               }))[0]
             }
@@ -374,13 +376,13 @@ export default class BrowserPanel {
     let chromeNativeWindow
 
     for(let i=0;i<100;i++){
-      chromeNativeWindow = winctl.GetActiveWindow()
-      const dim = chromeNativeWindow.dimensions()
+      chromeNativeWindow = winctl.GetActiveWindow2()
+      const dim = DpiUtils.dimensions(chromeNativeWindow)
       if (BrowserPanel.bindedWindows.has(chromeNativeWindow.getHwnd()) || !chromeNativeWindow.getTitle().includes(BrowserPanel.BROWSER_NAME) ||
         !(cWin.left == dim.left && cWin.top == dim.top && cWin.width == (dim.right - dim.left) && cWin.height == (dim.bottom - dim.top))) {
         chromeNativeWindow = (await winctl.FindWindows(win => {
           if (BrowserPanel.bindedWindows.has(chromeNativeWindow.getHwnd()) || !win.getTitle().includes(BrowserPanel.BROWSER_NAME)) return false
-          const dim = win.dimensions()
+          const dim = DpiUtils.dimensions(win)
           return cWin.left == dim.left && cWin.top == dim.top && cWin.width == (dim.right - dim.left) && cWin.height == (dim.bottom - dim.top)
         }))[0]
 
@@ -407,12 +409,22 @@ export default class BrowserPanel {
     this.browserWindow.nativeWindow = nativeWindowBw
 
     const hwnd = nativeWindowBw.createWindow()
-    if(!nativeWindow) nativeWindow = (await winctl.FindWindows(win => win.getHwnd() == hwnd))[0]
+
+    if(!nativeWindow){
+      if(Browser.CUSTOM_CHROMIUM){
+        nativeWindow = chromeNativeWindow
+      }
+      else{
+        nativeWindow = (await winctl.FindWindows(win => win.getHwnd() == hwnd))[0]
+      }
+    }
     // const nativeWindow = nativeWindowBw
 
-    chromeNativeWindow.setParent(nativeWindow.getHwnd())
-    chromeNativeWindow.move(...BrowserPanel.getChromeWindowBoundArray(0, 0))
-    chromeNativeWindow.moveTop()
+    if(!Browser.CUSTOM_CHROMIUM){
+      chromeNativeWindow.setParent(nativeWindow.getHwnd())
+      DpiUtils.move(chromeNativeWindow,...BrowserPanel.getChromeWindowBoundArray(0, 0))
+      chromeNativeWindow.moveTop()
+    }
 
     // nativeWindowBw.setWindowLongPtrEx(0x02000000)
     nativeWindowBw.setWindowLongPtr(0x00040000)
@@ -519,12 +531,16 @@ export default class BrowserPanel {
     }
 
     if (bounds.width) {
-      this.cpWin.nativeWindow.move(bounds.x, bounds.y, bounds.width, bounds.height)
-      this.cpWin.chromeNativeWindow.move(...BrowserPanel.getChromeWindowBoundArray(bounds.width, bounds.height, modify))
+      DpiUtils.move(this.cpWin.nativeWindow,bounds.x, bounds.y, bounds.width, bounds.height)
+      if(!Browser.CUSTOM_CHROMIUM){
+        DpiUtils.moveForChildWindow(this.cpWin.chromeNativeWindow,...BrowserPanel.getChromeWindowBoundArray(bounds.width, bounds.height, modify),bounds.x, bounds.y)
+      }
     }
     else {
       const dim = this.cpWin.nativeWindow.dimensions()
-      this.cpWin.nativeWindow.move(bounds.x, bounds.y, dim.right - dim.left, dim.bottom - dim.top)
+      const {x,y} = DpiUtils.dipToScreenPoint(bounds.x, bounds.y)
+      this.cpWin.nativeWindow.move(x, y, dim.right - dim.left, dim.bottom - dim.top)
+      // console.log({bx:bounds.x, by:bounds.y,x, y, w:dim.right - dim.left, h:dim.bottom - dim.top})
     }
     // this._updateWindow({
     //   left: bounds.x ? bounds.x : void 0,

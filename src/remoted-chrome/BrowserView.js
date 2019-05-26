@@ -105,9 +105,9 @@ export default class BrowserView {
         this.newTabCreateing = false
         return bv
       }
-
       console.log(444451)
-      return new Promise(r => {
+
+      return new Promise(async r => {
 
         const closingFunc = () => {
           this.newTabCreateing = false
@@ -146,7 +146,6 @@ export default class BrowserView {
         }
         ipcMain.on('create-web-contents-reply', func)
 
-
         const disposition = !mainState.alwaysOpenLinkBackground && tab.active ? 'foreground-tab' : 'background-tab'
         console.log(444453, panel.browserWindow.webContents.getURL(), id)
         panel.browserWindow.webContents.send('create-web-contents', {
@@ -155,6 +154,7 @@ export default class BrowserView {
           disposition,
           guestInstanceId: id
         })
+
       })
     }
     else {

@@ -69,13 +69,25 @@ NAN_METHOD(Window::New) {
 	}
 }
 
-NAN_METHOD(Window::GetActiveWindow) {
+//NAN_METHOD(Window::GetActiveWindow) {
+//	v8::Local<v8::Function> cons = Nan::New(constructor);
+//	const int argc = 1;
+//	HWND fgWin = GetForegroundWindow();
+//	v8::Local<v8::Value> argv[1] = {Nan::New((int)fgWin)};
+//	info.GetReturnValue().Set(Nan::NewInstance(cons, argc, argv).ToLocalChecked());
+//}
+
+NAN_METHOD(Window::GetActiveWindow2) {
 	v8::Local<v8::Function> cons = Nan::New(constructor);
 	const int argc = 1;
 	HWND fgWin = GetForegroundWindow();
+	if(fgWin == 0){
+	  fgWin = GetActiveWindow();
+	}
 	v8::Local<v8::Value> argv[1] = {Nan::New((int)fgWin)};
 	info.GetReturnValue().Set(Nan::NewInstance(cons, argc, argv).ToLocalChecked());
 }
+
 
 NAN_METHOD(Window::CreateWindow2) {
     HINSTANCE hInstance = GetModuleHandle( NULL );
@@ -158,6 +170,8 @@ NAN_METHOD(Window::getDimensions) {
 
 	RECT dim;
 	GetWindowRect(obj->windowHandle, &dim);
+
+    int iDpi = GetDpiForWindow((int)obj->windowHandle));
 
 	v8::Local<v8::Object> result = Nan::New<v8::Object>();
 	Nan::Set(result, Nan::New("left").ToLocalChecked(), Nan::New(dim.left));

@@ -11,6 +11,8 @@ import extInfos from '../extensionInfos'
 import backgroundPageModify from './backgroundPageModify'
 import hjson from 'hjson'
 import evem from './evem'
+import mainState from "../mainState";
+import DpiUtils from './DpiUtils'
 
 function search(obj,messages){
   if(Array.isArray(obj)){
@@ -66,6 +68,9 @@ function transInfos(installInfo){
   const messages = hjson.parse(removeBom(fs.readFileSync(localePath).toString()))
   search(installInfo,messages)
 }
+function diffArray(arr1, arr2) {
+  return arr1.filter(e=>!arr2.includes(e))
+}
 
 class Browser{
   static setUserDataDir(userDataDir){
@@ -73,6 +78,7 @@ class Browser{
   }
 
   static async _initializer(){
+    console.log(4444,path.join(__dirname, '../../../..'))
     if(this._browser != null) return
 
     let executablePath = require('../minimist')(process.argv.slice(1))['browser-path']
@@ -90,6 +96,10 @@ Please enter the correct path of the executable file.`
     }
     else if(fs.existsSync(executablePath = path.join(__dirname, '../../../../chromium/chrome.exe'))){
       BrowserPanel.BROWSER_NAME = 'Chromium'
+    }
+    else if(fs.existsSync(executablePath = path.join(__dirname, '../../../../custom_chromium/chrome.exe'))){
+      BrowserPanel.BROWSER_NAME = 'Chromium'
+      Browser.CUSTOM_CHROMIUM = true
     }
     else if(fs.existsSync(executablePath = 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe')){}
     else if(fs.existsSync(executablePath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe')){}
@@ -222,7 +232,7 @@ Or, please use the Chromium bundled version.`
     })
 
     ipcMain.on('top-to-browser-window', bwWinId => {
-      const hwnd = winctl.GetActiveWindow().getHwnd()
+      const hwnd = winctl.GetActiveWindow2().getHwnd()
       for(const browserPanel of Object.values(BrowserPanel.panelKeys)){
         if(browserPanel.browserWindow.id == bwWinId){
           if(browserPanel.cpWin.nativeWindowBw.getHwnd() == hwnd || browserPanel.cpWin.chromeNativeWindow.getHwnd() == hwnd){
@@ -234,6 +244,7 @@ Or, please use the Chromium bundled version.`
     })
 
     ipcMain.on('fullscreen-change', async (e, enabled, delay) => {
+      if(Browser.CUSTOM_CHROMIUM) return
       // console.log('fullscreen-change', e, enabled)
       const [_1, _2, browserPanel, browserView] = BrowserPanel.getBrowserPanelByTabId(e.sender.id)
       if(enabled && !browserPanel.browserWindow._fullscreen){
@@ -256,8 +267,8 @@ Or, please use the Chromium bundled version.`
       else if(!enabled && browserPanel.browserWindow._fullscreen){
         if(delay > 0) await new Promise(r=>setTimeout(r,delay))
         browserPanel.cpWin.chromeNativeWindow.setParent(browserPanel.cpWin.nativeWindow.getHwnd())
-        const dim = browserPanel.cpWin.nativeWindow.dimensions()
-        browserPanel.cpWin.chromeNativeWindow.move(...BrowserPanel.getChromeWindowBoundArray(dim.right - dim.left, dim.bottom - dim.top))
+        const dim = DpiUtils.dimensions(browserPanel.cpWin.nativeWindow)
+        DpiUtils.moveForChildWindow(browserPanel.cpWin.chromeNativeWindow,...BrowserPanel.getChromeWindowBoundArray(dim.right - dim.left, dim.bottom - dim.top),dim.left,dim.top)
         browserPanel.browserWindow._fullscreen = false
       }
       if(!delay) browserPanel.setFullscreenBounds(enabled)
@@ -593,6 +604,7 @@ Or, please use the Chromium bundled version.`
       }
 
       if(modifyPromisedFunc) modifyPromisedFunc = Function(modifyPromisedFunc)()
+      if(validateFunc) validateFunc = Function(validateFunc)()
 
       chrome[api][method].addListener(async (...result) => {
         if(!validateFunc || validateFunc(...result)){
@@ -609,7 +621,7 @@ Or, please use the Chromium bundled version.`
           }
         }
       })
-    }, api, method, this.serverKey, this.port, validateFunc, modifyPromisedFunc && `return ${modifyPromisedFunc.toString()}`)
+    }, api, method, this.serverKey, this.port, validateFunc && `return ${validateFunc.toString()}`, modifyPromisedFunc && `return ${modifyPromisedFunc.toString()}`)
   }
 
   static initExtensionEvent(){
@@ -683,8 +695,8 @@ Or, please use the Chromium bundled version.`
       // console.log(`webNavigation-onErrorOccurred_${details.tabId}`, details)
     })
 
-    this.addListener('tabs', 'onCreated', tab=>{
-      console.log('tab', 'created', tab.url)
+    this.addListener('tabs', 'onCreated', async tab=>{
+      console.log('tab', 'created', tab.url, tab.openerTabId)
       if(webContents.webContentsMap && webContents.webContentsMap.has(tab.id)) return
       if(tab.url == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/popup_prepare.html'){
         PopupPanel.tabId = tab.id
@@ -694,9 +706,24 @@ Or, please use the Chromium bundled version.`
         this.popUpCache[tab.id] = true
         return
       }
+
+      // if(mainState.alwaysOpenLinkBackground){
+      //   Browser.bg.evaluate((tabId) => {
+      //     return new Promise(resolve => {
+      //       chrome.tabs.update(tabId, {active: true}, () => resolve())
+      //     })
+      //   }, (await require('../util').getFocusedWebContents()).id)
+      // }
+
       const cont = new webContents(tab.id)
-      BrowserView.newTab(cont, tab)
-    })
+      const bv = await BrowserView.newTab(cont, tab)
+
+      this.syncTabPosition(bv._browserPanel.panelKey)
+
+    }, mainState.alwaysOpenLinkBackground ? tab => {
+      chrome.tabs.update(tab.openerTabId,{active:true})
+      return true
+    } : void 0)
 
     this.addListener('tabs', 'onMoved', (tabId, {windowId, fromIndex, toIndex})=>{
       if(PopupPanel.tabId == tabId || this.popUpCache[tabId]) return
@@ -977,12 +1004,16 @@ Or, please use the Chromium bundled version.`
     const win = BrowserWindow.getFocusedWindow()
     if(win) return win
 
-    const hwnd = winctl.GetActiveWindow().getHwnd()
-    console.log(winctl.GetActiveWindow().getTitle())
-    for(const browserPanel of Object.values(BrowserPanel.panelKeys)){
-      if(browserPanel.cpWin.chromeNativeWindow.hwnd == hwnd){
-        return browserPanel.browserWindow
+    const hwnd = winctl.GetActiveWindow2().getHwnd()
+    console.log(winctl.GetActiveWindow2().getTitle())
+    try{
+      for(const browserPanel of Object.values(BrowserPanel.panelKeys)){
+        if(browserPanel.cpWin.chromeNativeWindow.hwnd == hwnd){
+          return browserPanel.browserWindow
+        }
       }
+    }catch(e){
+      return BrowserWindow.getAllWindows()[0]
     }
   }
 
@@ -1010,6 +1041,74 @@ Or, please use the Chromium bundled version.`
     this.popupPanel.hide(panelKey, tabKey)
 
     return this.popupPanel
+  }
+
+  static getTabIds(panelKey){
+    return new Promise(r=>{
+      const cont = BrowserPanel.getBrowserPanel(panelKey).browserWindow.webContents
+      const key = Math.random().toString()
+      cont.send(`get-tab-ids-${panelKey}`, key)
+      ipcMain.once(`get-tab-ids-reply_${key}`,(e, myTabIds, selectedTabKey) => {
+        r({myTabIds, selectedTabKey})
+      })
+    })
+  }
+
+  static getChromeTabIds(panelKey){
+    const panel = BrowserPanel.getBrowserPanel(panelKey)
+    return Browser.bg.evaluate((windowId) => {
+      return new Promise(resolve => {
+        chrome.windows.get(windowId,{populate: true}, window => resolve(window.tabs.map(tab=>tab.id)))
+      })
+    },panel.windowId)
+  }
+
+  static async syncTabPosition(panelKey){
+    let {myTabIds, selectedTabKey} = await this.getTabIds(panelKey)
+    let chromeTabIds = await this.getChromeTabIds(panelKey)
+
+    // const shouldRemoveTabIdsFromMy = diffArray(myTabIds, chromeTabIds)
+    // const shouldRemoveTabIdsFromChrome = diffArray(chromeTabIds, myTabIds)
+    //
+    // if(shouldRemoveTabIdsFromMy.length + shouldRemoveTabIdsFromChrome.length){
+    //   for(const tabId of shouldRemoveTabIdsFromMy){
+    //     panel.browserWindow.webContents.send('menu-or-key-events','closeTab',tabId)
+    //     await new Promise(r=>setTimeout(r,10))
+    //   }
+    //
+    //   if(shouldRemoveTabIdsFromChrome.length){
+    //     await Browser.bg.evaluate(tabIds => new Promise(r=>chrome.tabs.remove(tabIds,()=>r())),shouldRemoveTabIdsFromChrome)
+    //   }
+    //   return await this.syncTabPosition(panelKey)
+    // }
+
+    const panel = BrowserPanel.getBrowserPanel(panelKey)
+
+    console.log('syncTabPosition', myTabIds, chromeTabIds, mainState.openTabNextLabel)
+
+    // if(mainState.openTabNextLabel){
+    //   const key = Math.random().toString()
+    //   panel.browserWindow.webContents.send('chrome-tabs-move-inner',key,[newTabId],selectedTabKey,true)
+    //   await new Promise(r=>ipcMain.once(`chrome-tabs-move-finished_${key}`,r))
+    //
+    //   myTabIds = (await this.getTabIds(panelKey)).myTabIds
+    //   chromeTabIds = await this.getChromeTabIds(panelKey)
+    // }
+
+    let i = 0
+    for(const tabId of myTabIds){
+      if(tabId != chromeTabIds[i++]){
+        // if(mainState.openTabNextLabel){
+        //   panel.browserWindow.webContents.send('arrange-tabs',chromeTabIds)
+        // }
+        // else{
+          await Browser.bg.evaluate((tabIds, windowId) => {
+            return new Promise(resolve => chrome.tabs.move(tabIds,{index: 0, windowId}, () => resolve()))
+          },myTabIds, panel.windowId)
+        // }
+        break
+      }
+    }
   }
 
 }
@@ -1048,10 +1147,18 @@ class PopupPanel{
     }
 
     const hwnd = chromeNativeWindow.createWindow()
-    const nativeWindow = (await winctl.FindWindows(win => win.getHwnd() == hwnd))[0]
+    let nativeWindow
+    if(Browser.CUSTOM_CHROMIUM){
+      nativeWindow = chromeNativeWindow
+    }
+    else{
+      nativeWindow = (await winctl.FindWindows(win => win.getHwnd() == hwnd))[0]
+    }
 
-    chromeNativeWindow.setParent(nativeWindow.getHwnd())
-    chromeNativeWindow.move(0, 0, 0, 0)
+    if(!Browser.CUSTOM_CHROMIUM){
+      chromeNativeWindow.setParent(nativeWindow.getHwnd())
+      DpiUtils.move(chromeNativeWindow,0, 0, 0, 0)
+    }
 
     return new PopupPanel({chromeWindow: cWin, nativeWindow, chromeNativeWindow})
   }
@@ -1094,16 +1201,18 @@ class PopupPanel{
     }
 
     if (bounds.width) {
-      this.nativeWindow.move(bounds.x, bounds.y, bounds.width, bounds.height)
-      this.chromeNativeWindow.move(...this.getChromeWindowBoundArray(bounds.width, bounds.height))
+      DpiUtils.move(this.nativeWindow,bounds.x, bounds.y, bounds.width, bounds.height)
+      if(!Browser.CUSTOM_CHROMIUM) {
+        DpiUtils.moveForChildWindow(this.chromeNativeWindow, ...this.getChromeWindowBoundArray(bounds.width, bounds.height), bounds.x, bounds.y)
+      }
 
       clearTimeout(this.alwaysOnTopTimer)
       this.alwaysOnTopTimer = setTimeout(()=>this.nativeWindow.setWindowPos(winctl.HWND.NOTOPMOST, 0, 0, 0, 0, 83),1000)
       this.nativeWindow.setWindowPos(winctl.HWND.TOPMOST, 0, 0, 0, 0, 83)
     }
     else {
-      const dim = this.nativeWindow.dimensions()
-      this.nativeWindow.move(bounds.x, bounds.y, dim.right - dim.left, dim.bottom - dim.top)
+      const dim = DpiUtils.dimensions(this.nativeWindow)
+      DpiUtils.move(this.nativeWindow,bounds.x, bounds.y, dim.right - dim.left, dim.bottom - dim.top)
     }
   }
 

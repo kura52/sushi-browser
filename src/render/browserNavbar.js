@@ -1004,8 +1004,8 @@ class BrowserNavbar extends Component{
       sync: isFixed ? null : <BrowserNavbarBtn className="sort-sync" title={locale.translation("switchSyncScroll")} icon="circle-o" sync={this.props.tab.sync && !this.props.tab.syncReplace}
                                                onContextMenu={onContextMenu} onClick={()=>{this.props.parent.changeSyncMode();this.refs.syncReplace.clearAllCheck()}}/>,
 
-      arrange:  isDarwin ? null : <BrowserNavbarBtn className="sort-arrange" title="Arrange Panels" icon="th" sync={sharedState.arrange == this.props.k}
-                                               onContextMenu={onContextMenu} onClick={()=>{this.props.parent.props.parent.arrangePanels(this.props.k)}}/>,
+      // arrange:  isDarwin ? null : <BrowserNavbarBtn className="sort-arrange" title="Arrange Panels" icon="th" sync={sharedState.arrange == this.props.k}
+      //                                          onContextMenu={onContextMenu} onClick={()=>{this.props.parent.props.parent.arrangePanels(this.props.k)}}/>,
 
       float:   isFixed || !this.props.tab.sync || this.props.tab.syncReplace || !this.props.isTopLeft ? null : <FloatSyncScrollButton wv={this.props.tab.wv}/>,
 
@@ -1212,6 +1212,9 @@ class BrowserNavbar extends Component{
 
       {this.props.tab.fields.mobilePanel ? this.mobilePanelButton() : null}
       {navBarMenus}
+
+      <BrowserNavbarBtn className="chrome-menu" title={"Chrome Menu"} icon="chrome" onClick={()=>cont.openChromeMenu()}/>
+
       {this.mainMenu(cont, this.props.tab, backSideMenus)}
       {this.state.vpnList ? <VpnList onClick={_=>this.setState({vpnList:false})}/> : null}
       {isFixed && !isFloat ? <BrowserNavbarBtn style={{fontSize:18}} title="Hide Sidebar" icon={`angle-double-${isFixed == 'bottom' ? 'down' : isFixed}`} onClick={()=>this.props.fixedPanelOpen({dirc:isFixed})}/> : null}

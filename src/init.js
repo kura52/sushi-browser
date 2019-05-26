@@ -123,7 +123,7 @@ fs.mkdirSync(userDir,{recursive: true})
 Browser.setUserDataDir(userDir)
 
 let ptyProcessSet,passwordManager,extensionInfos,syncReplaceName
-app.on('ready', async ()=>{
+app.once('ready', async ()=>{
   // webFrame.registerURLSchemeAsBypassingCSP('chrome-extension')
 
   // const cookieFile = path.join(app.getPath('userData'), 'cookie.txt') //@TODO ELECTRON

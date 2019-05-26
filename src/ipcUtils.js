@@ -10,6 +10,7 @@ import {toKeyEvent} from 'keyboardevent-from-electron-accelerator'
 import https from 'https'
 import URL from 'url'
 import robot from 'robotjs'
+import DpiUtils from './remoted-chrome/DpiUtils'
 
 const os = require('os')
 const seq = require('./sequence')
@@ -912,13 +913,13 @@ ipcMain.on('menu-or-key-events',(e,name,...args)=>{
 if(isWin) {
   ipcMain.on('get-win-hwnd', async (e, key) => {
     const winctl = require('../resource/winctl')
-    e.sender.send(`get-win-hwnd-reply_${key}`, winctl.GetActiveWindow().getHwnd())
+    e.sender.send(`get-win-hwnd-reply_${key}`, winctl.GetActiveWindow2().getHwnd())
   })
 
 
   ipcMain.on('set-active', async (e, key, hwnd) => {
     const winctl = require('../resource/winctl')
-    const aWin = winctl.GetActiveWindow()
+    const aWin = winctl.GetActiveWindow2()
     const aWinHwnd = aWin.getHwnd()
     if(bindMap[key] === aWinHwnd){
       setTimeout(_=>{
@@ -953,7 +954,7 @@ ipcMain.on('set-pos-window',async (e,{id,hwnd,key,x,y,width,height,top,active,ta
       hwndMap[key] = hwnd
     }
     const winctl = require('../resource/winctl')
-    const win = id ? (await winctl.FindWindows(win => id == win.getHwnd()))[0] : winctl.GetActiveWindow()
+    const win = id ? (await winctl.FindWindows(win => id == win.getHwnd()))[0] : winctl.GetActiveWindow2()
     if(!id){
       const cn = win.getClassName()
       if(cn == 'Shell_TrayWnd' || cn == 'TaskManagerWindow' || cn == 'Progman' || cn == 'MultitaskingViewFrame' || win.getTitle().includes(' - Sushi Browser')){
@@ -982,7 +983,7 @@ ipcMain.on('set-pos-window',async (e,{id,hwnd,key,x,y,width,height,top,active,ta
       console.log('setWindowPos51',win.getTitle())
       const tid = setTimeout(_=>{
         // win.setWindowPos(winctl.HWND.NOTOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
-        // if(winctl.GetActiveWindow().getHwnd() !== id){
+        // if(winctl.GetActiveWindow2().getHwnd() !== id){
         win.setWindowPos(winctl.HWND.BOTTOM,0,0,0,0,19+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
         // }
       },100)
@@ -1022,7 +1023,7 @@ ipcMain.on('set-pos-window',async (e,{id,hwnd,key,x,y,width,height,top,active,ta
         console.log('setWindowPos5',win.getTitle()) //hatudouriyuu
         // win.setWindowPos(winctl.HWND.NOTOPMOST,x||0,y||0,width||0,height||0,(x !== (void 0) ? 16 : 19)+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
 
-        // if(winctl.GetActiveWindow().getHwnd() !== id){
+        // if(winctl.GetActiveWindow2().getHwnd() !== id){
         //   win.setWindowPos(winctl.HWND.BOTTOM,0,0,0,0,19+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
         // }
       }
@@ -1033,10 +1034,10 @@ ipcMain.on('set-pos-window',async (e,{id,hwnd,key,x,y,width,height,top,active,ta
       y = scaling(y + TITLE_BAR + FRAME / 2)
       width = scaling(Math.max(0,width - FRAME))
       height = scaling(Math.max(0,height - (TITLE_BAR + FRAME)))
-      win.move(x,y,width,height)
+      DpiUtils.move(win,x,y,width,height)
     }
     if(active) {
-      // const win2 = winctl.GetActiveWindow()
+      // const win2 = winctl.GetActiveWindow2()
       // console.log('setWindowPos6',win.getTitle(),win2.getTitle())
       // win.moveTop
       // win.setWindowPos(winctl.HWND.TOPMOST,0,0,0,0,19+1024)
@@ -1167,8 +1168,8 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
       chromeNativeWindow.setParent(nativeWindow.getHwnd())
 
       mobilePage.setViewport({width: Math.round(width), height: Math.round(height)})
-      nativeWindow.move(Math.round(x), Math.round(y), Math.round(width), Math.round(height))
-      chromeNativeWindow.move(...BrowserPanel.getChromeWindowBoundArray(Math.round(width), Math.round(height)))
+      DpiUtils.move(nativeWindow,Math.round(x), Math.round(y), Math.round(width), Math.round(height))
+      DpiUtils.move(chromeNativeWindow,...BrowserPanel.getChromeWindowBoundArray(Math.round(width), Math.round(height)))
     }
 
     mobileCont.loadURL(url)
@@ -1248,8 +1249,8 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
       if(_detach) return
       console.log(x,y,width,height)
       mobilePage.setViewport({width: Math.round(width), height: Math.round(height)})
-      nativeWindow.move(Math.round(x), Math.round(y), Math.round(width), Math.round(height))
-      chromeNativeWindow.move(...BrowserPanel.getChromeWindowBoundArray(Math.round(width), Math.round(height)))
+      DpiUtils.move(nativeWindow,Math.round(x), Math.round(y), Math.round(width), Math.round(height))
+      DpiUtils.move(chromeNativeWindow,...BrowserPanel.getChromeWindowBoundArray(Math.round(width), Math.round(height)))
     }
     else if(type == 'url'){
       const thisUrl = mobileCont.getURL()
@@ -1324,7 +1325,7 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
       if(detach){
         chromeNativeWindow.setParent(null)
         chromeNativeWindow.setWindowLongPtrExRestore(0x00000080)
-        chromeNativeWindow.move(Math.round(x), Math.round(y), Math.round(width), Math.round(height))
+        DpiUtils.move(chromeNativeWindow,Math.round(x), Math.round(y), Math.round(width), Math.round(height))
         nativeWindow.destroyWindow()
         setTimeout(()=>chromeNativeWindow.moveTop(),100)
       }
@@ -2415,7 +2416,9 @@ ipcMain.on('move-browser-view', async (e, panelKey, tabKey, type, tabId, x, y, w
       }
     }
 
-    await BrowserPanel.moveTabs([tabId], panelKey, {index, tabKey}, win, bounds)
+    // if(!mainState.openTabNextLabel){
+      await BrowserPanel.moveTabs([tabId], panelKey, {index, tabKey}, win, bounds)
+    // }
     // moveingTab = false
     console.log([tabId], panelKey, {index, tabKey})
     if(x != null){

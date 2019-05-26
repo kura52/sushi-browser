@@ -7,7 +7,7 @@
 class Window : public Nan::ObjectWrap {
 public:
 	static NAN_MODULE_INIT(Init);
-	static NAN_METHOD(GetActiveWindow);
+	static NAN_METHOD(GetActiveWindow2);
 	static NAN_METHOD(CreateWindow2);
 	static NAN_METHOD(GetWindowByClassName);
 	static NAN_METHOD(GetWindowByTitleExact);

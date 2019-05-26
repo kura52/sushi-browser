@@ -5,6 +5,7 @@ import evem from './evem'
 import fs from 'fs'
 import winctl from "../../resource/winctl";
 import puppeteer from '../../resource/puppeteer'
+import DpiUtils from './DpiUtils'
 
 let Browser = new Proxy({},  { get: function(target, name){ Browser = require('./Browser').Browser; return typeof Browser[name] == 'function' ? Browser[name].bind(Browser) : Browser[name]}})
 let BrowserPanel = new Proxy({},  { get: function(target, name){ BrowserPanel = require('./BrowserPanel'); return typeof BrowserPanel[name] == 'function' ? BrowserPanel[name].bind(BrowserPanel) : BrowserPanel[name]}})
@@ -1005,7 +1006,7 @@ export default class webContents extends EventEmitter {
       return
     }
 
-    const dim = panel.cpWin.nativeWindow.dimensions()
+    const dim = DpiUtils.dimensions(panel.cpWin.nativeWindow)
     const width = dim.right - dim.left
 
     const url = page.url()
@@ -1048,5 +1049,9 @@ export default class webContents extends EventEmitter {
 
   async getLayoutMetrics(){
     return (await this._getPage())._client.send('Page.getLayoutMetrics')
+  }
+
+  openChromeMenu(){
+    this._sendKey('f', 'alt')
   }
 }

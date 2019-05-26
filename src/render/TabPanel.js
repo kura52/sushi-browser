@@ -46,8 +46,8 @@ const REG_VIDEO = /^https:\/\/www\.(youtube)\.com\/watch\?v=(.+)&?|^http:\/\/www
 const REG_HIGHLIGHT_SITES = /www\.google\..+?q=|search\.yahoo\.c.+?p=|www\.baidu\.com.+?wd|\.baidu\.com.+?word=|www\.ask\.com.+?q=|\.bing\.com.+?q=|www\.youdao\.com.+?q=/
 sharedState.homeURL = topURL
 
-let [newTabMode,inputsVideo,disableTabContextMenus,priorityTabContextMenus,reloadIntervals,closeTabBehavior,keepWindowLabel31,multistageTabs,maxrowLabel,addressBarNewTab,alwaysOpenLinkBackground,adBlockEnable,searchWordHighlight,searchWordHighlightRecursive,openTabPosition,tabPreview,tabPreviewRecent,fullscreenTransition,showAddressBarFavicon,showAddressBarBookmarks] =
-  ipc.sendSync('get-sync-main-states',['newTabMode','inputsVideo','disableTabContextMenus','priorityTabContextMenus','reloadIntervals','closeTabBehavior','keepWindowLabel31','multistageTabs','maxrowLabel','addressBarNewTab','alwaysOpenLinkBackground','adBlockEnable','searchWordHighlight','searchWordHighlightRecursive','openTabPosition','tabPreview','tabPreviewRecent','fullscreenTransition','showAddressBarFavicon','showAddressBarBookmarks'])
+let [newTabMode,inputsVideo,disableTabContextMenus,priorityTabContextMenus,reloadIntervals,closeTabBehavior,keepWindowLabel31,multistageTabs,maxrowLabel,addressBarNewTab,alwaysOpenLinkBackground,adBlockEnable,searchWordHighlight,searchWordHighlightRecursive,openTabPosition,tabPreview,tabPreviewRecent,fullscreenTransition,showAddressBarFavicon,showAddressBarBookmarks,openTabNextLabel] =
+  ipc.sendSync('get-sync-main-states',['newTabMode','inputsVideo','disableTabContextMenus','priorityTabContextMenus','reloadIntervals','closeTabBehavior','keepWindowLabel31','multistageTabs','maxrowLabel','addressBarNewTab','alwaysOpenLinkBackground','adBlockEnable','searchWordHighlight','searchWordHighlightRecursive','openTabPosition','tabPreview','tabPreviewRecent','fullscreenTransition','showAddressBarFavicon','showAddressBarBookmarks','openTabNextLabel'])
 
 sharedState.tabPreview = tabPreview
 sharedState.tabPreviewRecent = tabPreviewRecent
@@ -207,7 +207,10 @@ function tabAdd(self, url, isSelect=true,privateMode = false,guestInstanceId,mob
   const key = t.key
 
 
-  if(last){
+  if(openTabNextLabel || last == 'next'){
+    self.state.tabs.splice(self.state.tabs.findIndex(t=>t.key == self.state.selectedTab) + 1, 0, t)
+  }
+  else if(last){
     self.state.tabs.push(t)
   }
   else{
@@ -648,7 +651,7 @@ export default class TabPanel extends Component {
     }
     ipc.on('focus-input',eventFocusInput)
 
-    const eventMoveTabFromMoved = (e, tabId, toIndex)=>{
+    const eventMoveTabFromMoved = (e, tabId, toIndex, key)=>{
       const ind = this.state.tabs.findIndex(t=>t.wvId == tabId)
       if(ind != -1){
         const array_move = (arr, old_index, new_index) => {
@@ -667,7 +670,23 @@ export default class TabPanel extends Component {
     }
     ipc.on('move-tab-from-moved',eventMoveTabFromMoved)
 
+    const eventArrangeTabs = (e, tabIds)=>{
+      for(const tabId of tabIds){
+        const ind = this.state.tabs.findIndex(t=>t.wvId == tabId)
+        this.state.tabs.splice(0,0,...this.state.tabs.splice(ind, 1))
+      }
 
+      this.setState({})
+      // ipc.send(`arrage-tab-reply_${key}`)
+    }
+    ipc.on('arrange-tabs',eventArrangeTabs)
+
+    const eventGetTabsInfo = (e, key)=>{
+
+      ipc.send(`get-tab-ids-reply_${key}`, this.state.tabs.map(tab => (tab.wvId || tab.wv.id)), this.state.selectedTab)
+
+    }
+    ipc.on(`get-tab-ids-${this.props.k}`,eventGetTabsInfo)
 
 
     return [
@@ -677,7 +696,9 @@ export default class TabPanel extends Component {
       {'chrome-windows-create-from-tabId': eventChromeWindowsCreateFromTabId},
       {'restore-tabs-from-tabKey': eventRestoreTabs},
       {'focus-input': eventFocusInput},
-      {'move-tab-from-moved': eventMoveTabFromMoved}
+      {'move-tab-from-moved': eventMoveTabFromMoved},
+      {'arrange-tabs': eventArrangeTabs},
+      {[`get-tab-ids-${this.props.k}`]: eventGetTabsInfo}
     ]
   }
 
@@ -3879,7 +3900,7 @@ export default class TabPanel extends Component {
     else{
       this.state.tabs.push(t)
     }
-    console.log("selected11",key)
+    console.log("selected11",key, selected, this.state.tabs.findIndex(t=>t.key == this.state.selectedTab))
     this.setState({selectedTab: key})
     this.focus_webview(t,t.page.location != topURL,t.page.location == topURL)
     return t
