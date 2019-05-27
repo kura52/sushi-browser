@@ -94,12 +94,12 @@ Please enter the correct path of the executable file.`
         return app.quit()
       }
     }
-    else if(fs.existsSync(executablePath = path.join(__dirname, '../../../../chromium/chrome.exe'))){
-      BrowserPanel.BROWSER_NAME = 'Chromium'
-    }
     else if(fs.existsSync(executablePath = path.join(__dirname, '../../../../custom_chromium/chrome.exe'))){
       BrowserPanel.BROWSER_NAME = 'Chromium'
       Browser.CUSTOM_CHROMIUM = true
+    }
+    else if(fs.existsSync(executablePath = path.join(__dirname, '../../../../chromium/chrome.exe'))){
+      BrowserPanel.BROWSER_NAME = 'Chromium'
     }
     else if(fs.existsSync(executablePath = 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe')){}
     else if(fs.existsSync(executablePath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe')){}
@@ -1113,6 +1113,9 @@ Or, please use the Chromium bundled version.`
 
 }
 
+Browser.CUSTOM_CHROMIUM = !require('../minimist')(process.argv.slice(1))['browser-path'] || !fs.existsSync(require('../minimist')(process.argv.slice(1))['browser-path']) && fs.existsSync(path.join(__dirname, '../../../../custom_chromium/chrome.exe'))
+
+
 
 const BrowserPanel = require("./BrowserPanel")
 const BrowserView = require("./BrowserView")
@@ -1140,10 +1143,12 @@ class PopupPanel{
       await new Promise(r=>setTimeout(r,50))
     }
 
-    for(let i=0;i<5;i++){
-      chromeNativeWindow.setForegroundWindowEx()
-      chromeNativeWindow.setWindowLongPtrEx(0x00000080)
-      await new Promise(r=>setTimeout(r,50))
+    if(!Browser.CUSTOM_CHROMIUM) {
+      for (let i = 0; i < 5; i++) {
+        chromeNativeWindow.setForegroundWindowEx()
+        chromeNativeWindow.setWindowLongPtrEx(0x00000080)
+        await new Promise(r => setTimeout(r, 50))
+      }
     }
 
     const hwnd = chromeNativeWindow.createWindow()

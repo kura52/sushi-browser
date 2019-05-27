@@ -522,7 +522,8 @@ const createViewSubmenu = () => {
             // focusedWindow.setFullScreenable(false)
 
             getFocusedWebContents().then(cont=>{
-              cont.toggleFullscreen()
+              // cont.toggleFullscreen()
+              ipcMain.emit('toggle-fullscreen',{sender: cont})
             })
           }
         }

@@ -1,8 +1,9 @@
-let screen
-let isHighDpi
+let screen, isHighDpi, Browser, BrowserPanel
 
 require('electron').app.once('ready', ()=>{
   screen = require('electron').screen
+  Browser = require('./Browser').Browser
+  BrowserPanel = require('./Browser').BrowserPanel
   const func = ()=>{
     let _isHighDpi = false
     for(const display of screen.getAllDisplays()){
@@ -14,6 +15,21 @@ require('electron').app.once('ready', ()=>{
   setInterval(func,5000)
 })
 
+let first
+
+async function move(win,x,y,width,height){
+  // if(Browser.CUSTOM_CHROMIUM){
+  //   const windowId = BrowserPanel.getBrowserPanelFromNativeWindow(win).windowId
+  //   return Browser.bg.evaluate((windowId, left,top,width,height) => {
+  //     return new Promise(resolve => {
+  //       chrome.windows.update(windowId, {left,top,width,height}, () => resolve())
+  //     })
+  //   }, windowId, x,y,width,height)
+  // }
+  // else{
+    return win.move(x,y,width,height)
+  // }
+}
 
 export default {
   dimensions(win){
@@ -25,7 +41,7 @@ export default {
     return {left:rect.x, top:rect.y, right: rect.x + rect.width, bottom: rect.y + rect.height}
   },
   move(win,x,y,width,height){
-    if(!isHighDpi) return win.move(x,y,width,height)
+    if(!isHighDpi) return move(win,x,y,width,height)
 
     x = Math.round(x)
     y = Math.round(y)
@@ -36,7 +52,10 @@ export default {
     const rect = screen.dipToScreenRect(null, {x,y,width,height})
     // console.log('ffff',rect.x ,_rect.y,_rect.width,_rect.height)
 
-    win.move(rect.x ,_rect.y,_rect.width,_rect.height)
+    move(win,rect.x ,_rect.y,_rect.width,_rect.height)
+  },
+  moveJust(win,x,y,width,height){
+    move(win,x,y,width,height)
   },
   moveForChildWindow(win,x,y,width,height,parentX,parentY){
     if(!isHighDpi) return win.move(x,y,width,height)

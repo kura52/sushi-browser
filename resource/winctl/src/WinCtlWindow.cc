@@ -171,8 +171,6 @@ NAN_METHOD(Window::getDimensions) {
 	RECT dim;
 	GetWindowRect(obj->windowHandle, &dim);
 
-    int iDpi = GetDpiForWindow((int)obj->windowHandle));
-
 	v8::Local<v8::Object> result = Nan::New<v8::Object>();
 	Nan::Set(result, Nan::New("left").ToLocalChecked(), Nan::New(dim.left));
 	Nan::Set(result, Nan::New("top").ToLocalChecked(), Nan::New(dim.top));
@@ -378,6 +376,7 @@ NAN_METHOD(Window::move) {
 	const size_t w = info[2]->Int32Value();
 	const size_t h = info[3]->Int32Value();
 
+//    SetWindowPos(obj->windowHandle, NULL, x, y, w, h, SWP_NOZORDER|SWP_NOOWNERZORDER|SWP_FRAMECHANGED);
 	MoveWindow(obj->windowHandle, x, y, w, h, true);
 }
 
@@ -408,6 +407,7 @@ NAN_METHOD(Window::moveRelative) {
 	const size_t w = (dim.right - dim.left) + dw;
 	const size_t h = (dim.bottom - dim.top) + dh;
 
+//    SetWindowPos(obj->windowHandle, NULL, x, y, w, h, SWP_NOZORDER|SWP_NOOWNERZORDER|SWP_FRAMECHANGED);
 	MoveWindow(obj->windowHandle, x, y, w, h, true);
 }
 

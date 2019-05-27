@@ -517,17 +517,20 @@ ipcMain.on('send-input-event',(e,{type,tabId,x,y,button,deltaY,keyCode,modifiers
 
 })
 
-// ipcMain.on('toggle-fullscreen',(event,cancel)=> {
-//   const win = BrowserWindow.fromWebContents(event.sender.hostWebContents2 || event.sender)
-//   const isFullScreen = win.isFullScreen()
-//   if(cancel && !isFullScreen) return
-//   win.webContents.send('switch-fullscreen',!isFullScreen)
-//   win.setFullScreenable(true)
-//   const menubar = win.isMenuBarVisible()
-//   win.setFullScreen(!isFullScreen)
-//   win.setMenuBarVisibility(menubar)
-//   win.setFullScreenable(false)
-// })
+ipcMain.on('toggle-fullscreen',(event,cancel)=> {
+  if(!Browser.CUSTOM_CHROMIUM) return
+
+  const win = BrowserWindow.fromWebContents(event.sender.hostWebContents2 || event.sender)
+  const isFullScreen = win._isFullScreen
+  if(cancel && !isFullScreen) return
+  win.webContents.send('switch-fullscreen',!isFullScreen)
+  win.setFullScreenable(true)
+  const menubar = win.isMenuBarVisible()
+  win.setFullScreen(!isFullScreen)
+  win._isFullScreen = !isFullScreen
+  win.setMenuBarVisibility(menubar)
+  win.setFullScreenable(false)
+})
 
 
 // ipcMain.on('toggle-fullscreen2',(event,val,key)=> {
@@ -1892,6 +1895,10 @@ ipcMain.on('get-sync-main-states',(e,keys,noSync)=>{
         }
       }
       return theme
+    }
+    else if(key == 'displayFullIcon'){
+      console.log(key,Browser.CUSTOM_CHROMIUM)
+      return Browser.CUSTOM_CHROMIUM
     }
     else{
       return mainState[key]

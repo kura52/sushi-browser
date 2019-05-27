@@ -36,6 +36,12 @@ export default class BrowserPanel {
     return this.panelKeys && this.panelKeys[panelKey]
   }
 
+  static getBrowserPanelFromNativeWindow(nativeWindow){
+    for (const browserPanel of Object.values(this.panelKeys)) {
+      if (browserPanel.cpWin.nativeWindow == nativeWindow) return browserPanel
+    }
+  }
+
   static getBrowserPanelsFromBrowserWindow(browserWindow) {
     const result = []
     for (const browserPanel of Object.values(this.panelKeys)) {
@@ -257,10 +263,12 @@ export default class BrowserPanel {
           }
 
           console.log(2243344, chromeNativeWindow.getTitle())
-          for(let i=0;i<5;i++){
-            chromeNativeWindow.setForegroundWindowEx()
-            chromeNativeWindow.setWindowLongPtrEx(0x00000080)
-            await new Promise(r=>setTimeout(r,50))
+          if(!Browser.CUSTOM_CHROMIUM){
+            for(let i=0;i<5;i++){
+              chromeNativeWindow.setForegroundWindowEx()
+              chromeNativeWindow.setWindowLongPtrEx(0x00000080)
+              await new Promise(r=>setTimeout(r,50))
+            }
           }
 
           setTimeout(()=> chromeNativeWindow.destroyWindow(),5000)
@@ -397,7 +405,9 @@ export default class BrowserPanel {
       await new Promise(r=>setTimeout(r,300))
     }
 
-    chromeNativeWindow.moveRelative(9999, 9999, 0, 0)
+    if(!Browser.CUSTOM_CHROMIUM){
+      chromeNativeWindow.moveRelative(9999, 9999, 0, 0)
+    }
     chromeNativeWindow.hwnd = chromeNativeWindow.getHwnd()
     BrowserPanel.bindedWindows.add(chromeNativeWindow.hwnd)
     const title = Math.random().toString()
@@ -521,12 +531,12 @@ export default class BrowserPanel {
 
   async setBounds(bounds) {
     const tab = await this.getActiveTab()
-    const modify = tab.url == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? 37 : 0
+    const modify = Browser.CUSTOM_CHROMIUM ? 0 : tab.url == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? 37 : 0
 
 
     if (bounds.width) {
       const cont = webContents.fromId(tab.id)
-      cont.setViewport({width: Math.round(bounds.width), height: Math.round(bounds.height - modify)})
+      // cont.setViewport({width: Math.round(bounds.width), height: Math.round(bounds.height - modify)})
       this.bounds = bounds
     }
 
@@ -539,7 +549,7 @@ export default class BrowserPanel {
     else {
       const dim = this.cpWin.nativeWindow.dimensions()
       const {x,y} = DpiUtils.dipToScreenPoint(bounds.x, bounds.y)
-      this.cpWin.nativeWindow.move(x, y, dim.right - dim.left, dim.bottom - dim.top)
+      DpiUtils.moveJust(this.cpWin.nativeWindow, x, y, dim.right - dim.left, dim.bottom - dim.top)
       // console.log({bx:bounds.x, by:bounds.y,x, y, w:dim.right - dim.left, h:dim.bottom - dim.top})
     }
     // this._updateWindow({
