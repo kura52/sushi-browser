@@ -4,8 +4,8 @@ const path = require("path")
 
 const libs = [
   '../node_modules/node-pty',
-  '../node_modules/winctl',
-  'cd ']
+  '../resource/winctl',
+  '../node_modules/robotjs']
 
 for(let lib of libs){
   rebuild(path.join(__dirname,lib))

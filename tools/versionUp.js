@@ -23,28 +23,26 @@ const glob = require("glob")
 // Engawa(Flounder Fin)
 // Amaebi(Sweet Shrimp)
 
-const BEFORE_CODE_NAME = 'Kani(Crab)'
-const CODE_NAME = 'Geso(Squid arms)'
+const BEFORE_CODE_NAME = 'Geso(Squid arms)'
+const CODE_NAME = 'Fugu(Blowfish)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.24.2"
+const NEXT_APP_VERSION = "0.25.0"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Fixed a bug where you won't get a warning if Chrome is not installed.
-Changed to use --disable-gpu option.
-Fixed a bug in db access.
-Fixed behavior of "Ctrl + N new window shortcut".(#59)
-Fixed behavior when hiding the sidebar.(#59)
-Fixed the behavior of shortcut keys such as Ctrl + Shift + I and Ctrl + R.(#59)
-Updated to youtube-dl 2019.05.11.
+const CHANGE_ENGLISH = `Implemented high dpi support.(issue #61)
+Fixed tab position bugs.(issue #59)
+Added chrome menu icon to toolbar.
+Added custome chrome edition. Custom Chromium is a build with all Chromium UI removed.
+Adedd fullscreen feature to custom chrome edition.
+Updated to youtube-dl 2019.05.20.
 `
 
-const CHANGE_JAPANESE = `Chromeがインストールされていない場合に、出る警告が表示されない不具合を修正
---disable-gpuオプションを使用するように変更
-dbアクセスの不具合を修正
-"新しいウィンドウショートカット(Ctrl + N)"実行時の挙動を修正
-サイドバーを隠したときに挙動を修正
-Ctrl + Shift + Iや Ctrl + Rなどのショートカットキー実行時の挙動を修正
-youtube-dlを2019.05.11に更新`
+const CHANGE_JAPANESE = `高DPI環境で起動しない不具合を修正。
+タブ位置の不具合を修正。
+Chromeのメニューを表示するiconをtoolbarに追加。
+カスタムChromium版を追加。カスタムChromiumは本ブラウザ専用に、ChrmiumからUI部分を全て除いたものです。
+カスタムChromium版に、fullscreen機能を追加。
+youtube-dlを2019.05.20に更新`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'
@@ -205,8 +203,8 @@ let app = `sushi-browser-${NEXT_APP_VERSION}-setup-x64.exe`
 console.log(`- [Windows Installer v${NEXT_APP_VERSION} (${sizeMap[app]})](https://sushib.me/dl/${app})`)
 sizeAdd(htmls,app,sizeMap[app])
 
-app = `sushi-browser-${NEXT_APP_VERSION}-win-x64.exe`
-console.log(`- [Windows Portable v${NEXT_APP_VERSION}(self-extract) (${sizeMap[app]})](https://sushib.me/dl/${app})`)
+app = `sushi-browser-${NEXT_APP_VERSION}-win-x64-chromium.zip`
+console.log(`- [Windows Portable v${NEXT_APP_VERSION} with Chromium (${sizeMap[app]})](https://sushib.me/dl/${app})`)
 sizeAdd(htmls,app,sizeMap[app])
 
 app = `sushi-browser-${NEXT_APP_VERSION}-win-x64.zip`

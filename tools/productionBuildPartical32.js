@@ -248,6 +248,14 @@ if(fs.existsSync(path.join(basePath,'app.asar.7z'))){
   }
   
   fs.renameSync(path.join(basePath,'app'),path.join(basePath,'_app'))
+}
+const basePath2 = path.join(__dirname,'../../..')
+if(fs.existsSync(path.join(basePath2,'custom_chromium.7z'))){
+  const binPath = path.join(basePath,\`7zip/\${process.platform === 'win32' ? 'win' : process.platform === 'darwin' ? 'mac' : 'linux'}/7za\`)
+  const execSync = require('child_process').execSync
+  const dataPath = path.join(basePath2,'custom_chromium.7z')
+  const result =  execSync(\`"\${binPath}" x -y -o"\${basePath2}" "\${dataPath}"\`)
+  fs.unlinkSync(dataPath)
 }`)
       fs.writeFileSync(initFile,result2)
       sh.mv('app.asar.unpacked/resource/bin/7zip','.')
