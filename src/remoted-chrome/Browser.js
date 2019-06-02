@@ -302,18 +302,18 @@ Or, please use the Chromium bundled version.`
     //   })
     // },30000)
 
-    setInterval(async ()=>{
-      for (const [panelKey, panel] of Object.entries(BrowserPanel.panelKeys)) {
-        const pos = await new Promise(r => {
-          ipcMain.once(`get-webview-pos-${panelKey}-reply`, (e, pos) => r(pos))
-          panel.browserWindow.webContents.send('get-webview-pos', panelKey)
-        })
-
-        const win = panel.browserWindow
-        const winPos = win.getPosition()
-        panel.setBounds({ x:  Math.round(pos.left + winPos[0]), y: Math.round(pos.top + winPos[1]), width: pos.width, height: pos.height}, true)
-      }
-    },3000)
+    // setInterval(async ()=>{
+    //   for (const [panelKey, panel] of Object.entries(BrowserPanel.panelKeys)) {
+    //     const pos = await new Promise(r => {
+    //       ipcMain.once(`get-webview-pos-${panelKey}-reply`, (e, pos) => r(pos))
+    //       panel.browserWindow.webContents.send('get-webview-pos', panelKey)
+    //     })
+    //
+    //     const win = panel.browserWindow
+    //     const winPos = win.getPosition()
+    //     panel.setBounds({ x:  Math.round(pos.left + winPos[0]), y: Math.round(pos.top + winPos[1]), width: pos.width, height: pos.height}, true)
+    //   }
+    // },3000)
 
 
 
