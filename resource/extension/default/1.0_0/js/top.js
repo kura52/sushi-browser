@@ -32586,7 +32586,7 @@ const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd';
 const initPromise = _l10n2.default.init();
 
 
-const convertUrlMap = new Map([['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html', ''], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html', 'about:blank'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html', 'chrome://bookmarks2/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html', 'chrome://bookmarks-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html', 'chrome://history2/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_history_sidebar.html', 'chrome://tab-history-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_trash_sidebar.html', 'chrome://tab-trash-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download_sidebar.html', 'chrome://download-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note_sidebar.html', 'chrome://note-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note.html', 'chrome://note/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/saved_state_sidebar.html', 'chrome://session-manager-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history_sidebar.html', 'chrome://history-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html', 'chrome://explorer/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer_sidebar.html', 'chrome://explorer-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html', 'chrome://download/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html', 'chrome://terminal/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html', 'chrome://converter/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html', 'chrome://automation/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html', 'chrome://setting/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general', 'chrome://settings#general'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search', 'chrome://settings#search'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs', 'chrome://settings#tabs'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#keyboard', 'chrome://settings#keyboard'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extensions', 'chrome://settings#extensions']]);
+const convertUrlMap = new Map([['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html', ''], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html', 'about:blank'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html', 'chrome://bookmarks2/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html', 'chrome://bookmarks-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html', 'chrome://history2/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_history_sidebar.html', 'chrome://tab-history-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_trash_sidebar.html', 'chrome://tab-trash-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download_sidebar.html', 'chrome://download-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note_sidebar.html', 'chrome://note-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note.html', 'chrome://note/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/saved_state_sidebar.html', 'chrome://session-manager-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history_sidebar.html', 'chrome://history-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html', 'chrome://explorer/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer_sidebar.html', 'chrome://explorer-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html', 'chrome://download/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html', 'chrome://terminal/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html', 'chrome://converter/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html', 'chrome://automation/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html', 'chrome://setting/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general', 'chrome://setting#general'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search', 'chrome://setting#search'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs', 'chrome://setting#tabs'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#keyboard', 'chrome://setting#keyboard'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extensions', 'chrome://setting#extensions']]);
 
 const convertUrlReg = /^chrome\-extension:\/\/dckpbojndfoinamcdamhkjhnjnmjkfjd\/(video|ace|bind)\.html\?url=([^&]+)/;
 const convertUrlPdfReg = /^chrome\-extension:\/\/jdbefljfgobbmcidnmpjamcbhnbphjnb\/content\/web\/viewer\.html\?file=(.+?)$/;
@@ -72422,7 +72422,7 @@ var rendererIdentifiers = function () {
   'windowCaptionButtonMinimize', 'windowCaptionButtonMaximize', 'windowCaptionButtonRestore', 'windowCaptionButtonClose', 'closeFirefoxWarning', 'importSuccess', 'licenseTextOk', 'closeFirefoxWarningOk', 'importSuccessOk', 'connectionError', 'unknownError', 'allowAutoplay', 'basicAuthRequired', 'basicAuthMessage', 'basicAuthUsernameLabel', 'basicAuthPasswordLabel',
 
   //Add
-  'default', 'name', 'searchEngine', 'searchEngines', 'engineGoKey', 'general', 'generalSettings', 'search', 'tabs', 'extensions', 'myHomepage', 'startsWith', 'startsWithOptionLastTime', 'newTabMode', 'newTabEmpty', 'import', 'bn-BD', 'bn-IN', 'zh-CN', 'cs', 'nl-NL', 'en-US', 'fr-FR', 'de-DE', 'hi-IN', 'id-ID', 'it-IT', 'ja-JP', 'ko-KR', 'ms-MY', 'pl-PL', 'pt-BR', 'ru', 'sl', 'es', 'ta', 'te', 'tr-TR', 'uk', 'requiresRestart', 'enableFlash', 'startsWithOptionHomePage', 'updateAvail', 'notNow', 'makeBraveDefault', 'saveToPocketDesc', 'minimumPageTimeLow', 'paintTabs', 'restoreAll',
+  'default', 'name', 'searchEngine', 'searchEngines', 'engineGoKey', 'general', 'generalSettings', 'search', 'tabs', 'extensions', 'myHomepage', 'startsWith', 'startsWithOptionLastTime', 'newTabMode', 'newTabEmpty', 'import', 'bn-BD', 'bn-IN', 'zh-CN', 'cs', 'nl-NL', 'en-US', 'fr-FR', 'de-DE', 'hi-IN', 'id-ID', 'it-IT', 'ja-JP', 'ko-KR', 'ms-MY', 'pl-PL', 'pt-BR', 'ru', 'sl', 'es', 'ta', 'te', 'tr-TR', 'uk', 'requiresRestart', 'enableFlash', 'startsWithOptionHomePage', 'updateAvail', 'notNow', 'makeBraveDefault', 'saveToPocketDesc', 'minimumPageTimeLow', 'paintTabs', 'restoreAll', 'cookies',
 
   //chrome
   '994289308992179865', '1725149567830788547', '4643612240819915418', '4256316378292851214', '2019718679933488176', '782057141565633384', '5116628073786783676', '1465176863081977902', '3007771295016901659', '5078638979202084724', '4589268276914962177', '3551320343578183772', '2448312741937722512', '1524430321211440688', '42126664696688958', '2663302507110284145', '3635030235490426869', '4888510611625056742', '5860209693144823476', '5846929185714966548', '7955383984025963790', '3128230619496333808', '3391716558283801616', '6606070663386660533', '9011178328451474963', '9065203028668620118', '2473195200299095979', '1047431265488717055', '9218430445555521422', '8926389886865778422', '2893168226686371498', '4289540628985791613', '3095995014811312755', '59174027418879706', '6550675742724504774', '5453029940327926427', '4989966318180235467', '6326175484149238433', '9147392381910171771', '8260864402787962391', '8477384620836102176', '7701040980221191251', '6146563240635539929', '8026334261755873520', '1375321115329958930', '5513242761114685513', '5582839680698949063', '5317780077021120954', '8986267729801483565', '5431318178759467895', '7853747251428735', '2948300991547862301', '8251578425305135684', '2845382757467349449', '8870318296973696995', '480990236307250886', '7754704193130578113', '7791543448312431591', '59174027418879706', '4250229828105606438', '1864111464094315414', '5222676887888702881', '839736845446313156', '1552752544932680961', 'playOrPause', 'frameStep', 'frameBackStep', 'rewind1', 'rewind2', 'forward1', 'forward2', 'rewind3', 'forward3', 'normalSpeed', 'halveSpeed', 'doubleSpeed', 'decSpeed', 'incSpeed', 'fullscreen', 'exitFullscreen', 'mute', 'decreaseVolume', 'increaseVolume', 'incZoom', 'decZoom', 'resetZoom', 'plRepeat', 'mediaSeeking', 'volumeControl', 'changeSpeed', 'mouseWheelFunctions', 'reverseWheelMediaSeeking', 'noScriptPref', 'blockCanvasFingerprinting', 'browsingHistory', 'downloadHistory', 'cachedImagesAndFiles', 'allSiteCookies', 'autocompleteData', 'autofillData', 'clearBrowsingDataNow', 'tabSettings', 'alwaysOnTop', 'neverOnTop', 'privateData', 'privateDataMessage', 'closeAllTabsMenuLabel', 'openalllinksLabel', 'clicktabCopyTabUrl', 'clicktabCopyUrlFromClipboard', 'clicktabReloadtabs', 'clicktabReloadothertabs', 'clicktabReloadlefttabs', 'clicktabReloadrighttabs', 'freezeTabMenuLabel', 'protectTabMenuLabel', 'lockTabMenuLabel', 'autoReloadTabLabel', 'clicktabUcatab', 'secondsLabel', 'minuteLabel', 'minutesLabel', 'generalWindowOpenLabel', 'linkTargetTab', 'linkTargetWindow', 'openDuplicateNextLabel', 'keepWindowLabel31', 'currenttabCaptionLabel', 'focusTabLabelBegin', 'focusTabFirstTab', 'focusTabLeftTab', 'focusTabRightTab', 'focusTabLastTab', 'focusTabLastSelectedTab', 'focusTabOpenerTab', 'focusTabOpenerTabRtl', 'focusTabLastOpenedTab', 'tabbarscrollingInverseLabel', 'minWidthLabel', 'widthToLabel', 'widthPixelsLabel', 'mouseHoverSelectLabelBegin', 'tabFlipLabel', 'clicktabLabel', 'doubleLabel', 'middleLabel', 'altLabel', 'clicktabNothing', 'tabbarscrollingSelectTabLabel', 'tabScrollMultibar', 'millisecondsLabel', 'mouseClickLabel', 'tabFlipDelay', 'tabCloseLabel', 'maxrowLabel', 'newTabButtonLabel', 'ssInterval', 'openTabNextLabel', 'tabbarscrollingCaption', 'showOntabLabel', 'tabFocusLabel', 'unreadTabLabel', 'textcolorLabel', 'bgColorLabel', 'speLinkAllLinks', 'speLinkLabel', 'speLinkNone', 'speLinkExternal', 'currentTabLabel', 'otherTabsLabel', 'oneLineMenuALL', 'multiRowTabs', 'tabPreview', 'searchHighlight', 'bindSelectedWindow', 'adBlockALL', 'adBlockTab', 'adBlockDomain', 'showBookmarkBarOnTopPage', 'showBookmarkBarOnMouseHover', 'oneLineMenu', 'normalScreenMode', 'fullScreenMode', 'detachThisPanel', 'convertPanelsToWindows', 'syncDatas', 'changeVPNMode', 'openOnOpposite', 'searchHighlightRecursive', 'donTLoadTabsUntillSelected', 'extractAudioFromVideo', 'changePdfViewToComic', 'changePdfViewToNormal', 'closeThisPanel', 'restartBrowser', 'browserVersion', 'chromiumVersion', 'muonVersion', 'historyOfTabs', 'trashOfTabs', 'sessionManager', 'switchSyncScroll', 'switchOpenOnOpposite', 'openSidebar', 'changeToMobileUserAgent', 'fileExplorer', 'richMediaList', 'playVideo', 'downloadAndPlayVideo', 'playInExternalVideoPlayer', 'downloadVideo', 'downloadAndConvertVideo', 'downloadVideoAndExtractAudio', 'copyVideoURL', 'fullPage|Clipboard', 'fullPage|Jpeg', 'fullPage|PNG', 'selection|Clipboard', 'selection|Jpeg', 'selection|PNG', 'hideTabs', 'terminal', 'note', 'automation', 'videoConverter', 'openLinkInNewTorTab', 'openLinkInNewWindowWithARow', 'openLinkInNewWindowWithTwoRows', 'copyPath', 'createNewFile', 'createNewDirectory', 'rename', 'delete', 'openLinkInOppositeTab', 'saveAndPlayVideo', 'sendURLToVideoPlayer', 'playVideoInPopupWindow', 'playVideoInFloatingPanel', 'addToNotes', 'copyLinks', 'downloadSelection', 'downloadAll', 'syncScrollLeftToRight', 'syncScrollRightToLeft', 'navigateToTheBookmarkPage', 'addThisPageToTheBookmarks', 'navigateToTheHistoryPage', 'saveCurrentSession', 'confirm', 'areYouSureYouWantToDeleteTheFollowingFiles', 'yes', 'no', 'menu', 'name', 'progress', 'size', 'estTime', 'speed', 'startTime', 'uRL', 'newDownload', 'pleaseEnterURLsAndSaveDirectory', 'uRLs', 'saveDirectory', 'fileName', 'attemptToFindAndDownloadVideo', 'newDL', 'start', 'cancelDL', 'removeRow', 'removeFinished', 'showFolder', 'copyURL', 'enableDownloadList', 'concurrentDownloads', 'downloadsPerServer', 'completed', 'canceled', 'openNote', 'openFileExploler', 'openTerminal', 'openAutomation', 'openVideoConverter', 'toggleMenuBar', 'changeFocusPanel', 'splitLeft', 'splitRight', 'splitTop', 'splitBottom', 'splitLeftTabsToLeft', 'splitRightTabsToRight', 'swapPosition', 'switchDirection', 'alignHorizontal', 'alignVertical', 'enableSearchHighlight', 'changeToMobileAgent', 'detachPanel', 'pasteAndOpen', 'copyTabInfo', 'copyAllTabTitles', 'copyAllTabURLs', 'copyAllTabInfos', 'fullPageCaptureToClipboard', 'fullPageCaptureAsJPEG', 'fullPageCaptureAsPNG', 'selectionCaptureToClipboard', 'selectionCaptureAsJPEG', 'selectionCaptureAsPNG', 'topPage', 'floatingPanel', 'closeThisTree', 'suggestionHistory', 'historySuggestion', 'protection', 'enableHTTPSEverywhere', 'enableTracingProtection', 'orderOfAutoComplete', 'numberOfSuggestions', 'numberOfHistories', 'sortHistoryInDescendingOrderOfPV', 'defaultSidebarPosition', 'leftSide', 'rightSide', 'bottomSide', 'sideBarLink', 'toolBarLink', 'addressBarLink', 'bookmarkBarLink', 'showChromeExtensionIconOnToolbar', 'showFullscreenButton', 'enableMouseGesture', 'enableRectangularSelection', 'maintainFullscreenModeEvenAfterPageTransition', 'cancelFullscreenModeAtPageTransition', 'showBackForwardButtonSBadge', 'showFocusLocationBarOfTopPage', 'enableBottomDownloadList', 'deleteFromDownloadListWhenDownloadIsCompleted', 'enableBehaviorChangeWhenLongPressOfMiddleMouseButton', 'enableHorizontalPositionMoving', 'enableAnythingSearch', 'sendURLToExternalMediaPlayer', 'concurrentDownload', 'maxNumberOfConnectionsPerItem', 'customWindowIcon', 'syncScrollMargin', 'bindWindowFrameMargin', 'bindWindowTitleMargin', 'deleteAllDataAndImportRestoreData', 'favicon', 'allData', 'clearDataGreaterThan30DaysAgoFromNow', 'range', 'clearAllData', 'bookmarksUserSavedSessions', 'rightClickMenuSearchEngines', 'searchMethods', 'multiSearch', 'openInAPanel', 'openIn2Panels', 'openInANewWindow', 'openInANewWindowWithARow', 'openInNewWindowWith2Rows', 'openInANewWindowWith3Rows', 'currentAndOpposite', 'current', 'opposite', 'addSearchEngine', 'almostTheSameAsChrome', 'tabBarTopMargin', 'removeTopMarginWhenMaximizing', 'openNewTabsAt', 'defaultPosition', 'leftEnd', 'rightEnd', 'openNewTabInBackground', 'oppositeMode', 'enableTabPreview', 'delayTime', 'width', 'height', 'slideHeight', 'tabPreviewImageQuality', 'displayCurrentPreview', 'circulateTabSelection', 'dashedLineWhenDragging', 'colorOfMutePinReloadIcon', 'showBottomBorderInCurrentTab', 'defaultTheme', 'darkTheme', 'data', 'sendURL', 'sendType', 'sendURLCommand', 'theme', 'mouseGesture', 'pleaseReferHereForInputMethodOfShortcut', 'mouseClick', 'mouseDoubleClick', 'mouseWheel', 'shiftMouseWheel', 'ctrlMouseWheel', 'shiftCtrlMouseWheel', 'keepValue​​inLocalStorage', 'enableKeyboardShortcut', 'blackListSites', 'rightClick', 'bookmarksSidebar', 'historySidebar', 'sessionManagerSidebar', 'trashOfTabsSidebar', 'historyOfTabsSidebar', 'fileExplorerSidebar', 'default', 'pagesToApply', 'enableSmoothScrolling', 'useSmoothScroll', 'email', 'passwordsPassword'];
@@ -74724,13 +74724,17 @@ if (window.__started_) {
       // }
     }, { passive: true, capture: true });
 
+    document.addEventListener('mouseleave', e => {
+      ipc.send('send-to-host', 'webview-mousemove', { clientY: e.clientY, screenY: e.screenY });
+    });
+
     let preClientY = -1,
         checkVideoEvent = {},
         beforeRemoveIds = {};
     document.addEventListener('mousemove', e => {
       // console.log('mousemove')
       if (preClientY != e.clientY) {
-        ipc.send('send-to-host', 'webview-mousemove', e.clientY);
+        ipc.send('send-to-host', 'webview-mousemove', { clientY: e.clientY, screenY: e.screenY });
         // console.log('webview-mousemove', e.clientY)
         preClientY = e.clientY;
       }
@@ -74836,9 +74840,9 @@ if (window.__started_) {
     }, { passive: true, capture: true });
 
     window.addEventListener("beforeunload", e => {
+      ipc.send('fullscreen-change', false, 1000);
       ipc.send('send-to-host', 'scroll-position', { x: window.scrollX, y: window.scrollY });
       ipc.send('contextmenu-webContents-close');
-      ipc.send('fullscreen-change', false, 1000);
     });
 
     document.addEventListener("DOMContentLoaded", _ => {
@@ -75044,7 +75048,7 @@ if (window.__started_) {
       if (Object.keys(addInput).length || !codeSet.has(e.keyCode)) {
         const name = mainState[JSON.stringify(_extends({ code: e.code.toLowerCase().replace('arrow', '').replace('escape', 'esc') }, addInput))] || mainState[JSON.stringify(_extends({ key: e.key.toLowerCase().replace('arrow', '').replace('escape', 'esc') }, addInput))];
         if (name) {
-          ipc.send('menu-or-key-events', name);
+          ipc.send('menu-command', name.split("_")[0]);
           console.log(name);
           e.preventDefault();
           e.stopImmediatePropagation();
@@ -75075,72 +75079,75 @@ if (window.__started_) {
   }
 
   const key = Math.random().toString();
-  ipc.send("get-main-state", key, ['tripleClick', 'alwaysOpenLinkNewTab', 'themeColorChange', 'isRecording', 'isVolumeControl', 'keepAudioSeekValueVideo', 'rectangularSelection', 'fullscreenTransitionKeep', 'fullScreen', 'rockerGestureLeft', 'rockerGestureRight', 'inputHistory', 'inputHistoryMaxChar', 'hoverStatusBar', 'hoverBookmarkBar', 'ALL_KEYS2']);
+  ipc.send("get-main-state", key, ['tripleClick', 'alwaysOpenLinkNewTab', 'themeColorChange', 'isRecording', 'isVolumeControl', 'keepAudioSeekValueVideo', 'rectangularSelection', 'fullscreenTransitionKeep', 'fullScreen', 'rockerGestureLeft', 'rockerGestureRight', 'inputHistory', 'inputHistoryMaxChar', 'hoverStatusBar', 'hoverBookmarkBar', 'ALL_KEYS2', 'protectTab']);
   ipc.once(`get-main-state-reply_${key}`, (e, data) => {
     mainState = data;
-    if (data.fullscreenTransitionKeep) {
-      let full = data.fullScreen ? true : false;
-      let preV = "_";
-      setInterval(_ => {
-        const v = document.querySelector('video');
-        if (full && v && v.src && v.src != preV) {
-          if (v.scrollWidth == window.innerWidth || v.scrollHeight == window.innerHeight || v.webkitDisplayingFullscreen) {} else {
-            const fullscreenButton = document.querySelector('.ytp-fullscreen-button,.fullscreenButton,.button-bvuiFullScreenOn,.fullscreen-icon,.full-screen-button,.np_ButtonFullscreen,.vjs-fullscreen-control,.qa-fullscreen-button,[data-testid="fullscreen_control"],.vjs-fullscreen-control,.EnableFullScreenButton,.DisableFullScreenButton,.mhp1138_fullscreen,button.fullscreenh,.screenFullBtn,.player-fullscreenbutton');
-            if (fullscreenButton) {
-              const callback = e => {
-                e.stopImmediatePropagation();
-                e.preventDefault();
-                document.removeEventListener('mouseup', callback, true);
-                fullscreenButton.click();
-                if (location.href.startsWith('https://www.youtube.com')) {
-                  let retry = 0;
-                  const id = setInterval(_ => {
-                    if (retry++ > 500) clearInterval(id);
-                    const e = document.querySelector('.html5-video-player').classList;
-                    if (!e.contains('ytp-autohide')) {
-                      // e.add('ytp-autohide')
-                      if (document.querySelector('.ytp-fullscreen-button.ytp-button').getAttribute('aria-expanded') == 'true') {
-                        v.click();
-                      }
-                    }
-                  }, 10);
-                }
-              };
-              document.addEventListener('mouseup', callback, true);
-              setTimeout(_ => ipc.send('send-to-host', 'full-screen-mouseup'), 500);
-            } else {
-              const callback = e => {
-                e.stopImmediatePropagation();
-                e.preventDefault();
-                document.removeEventListener('mouseup', callback, true);
-                v.webkitRequestFullscreen();
-              };
-              let i = 0;
-              const cId = setInterval(_ => {
-                document.addEventListener('mouseup', callback, true);
-                ipc.send('send-to-host', 'full-screen-mouseup');
-                if (i++ == 5) {
-                  clearInterval(cId);
-                }
-              }, 100);
-            }
-          }
-          preV = v.src;
-        }
-
-        if (v && v.src) {
-          const currentFull = v.scrollWidth == window.innerWidth || v.scrollHeight == window.innerHeight || v.webkitDisplayingFullscreen;
-          if (v && full != currentFull) {
-            full = currentFull;
-            if (full) {
-              ipc.send("full-screen-html", true);
-            } else {
-              ipc.send("full-screen-html", false);
-            }
-          }
-        }
-      }, 500);
-    }
+    // if(data.fullscreenTransitionKeep){
+    //   let full = data.fullScreen ? true : false
+    //   let preV = "_"
+    //   setInterval(_=>{
+    //     const v = document.querySelector('video')
+    //     if(full && v && v.src && v.src != preV){
+    //       if(v.scrollWidth == window.innerWidth || v.scrollHeight == window.innerHeight || v.webkitDisplayingFullscreen){}
+    //       else{
+    //         const fullscreenButton = document.querySelector('.ytp-fullscreen-button,.fullscreenButton,.button-bvuiFullScreenOn,.fullscreen-icon,.full-screen-button,.np_ButtonFullscreen,.vjs-fullscreen-control,.qa-fullscreen-button,[data-testid="fullscreen_control"],.vjs-fullscreen-control,.EnableFullScreenButton,.DisableFullScreenButton,.mhp1138_fullscreen,button.fullscreenh,.screenFullBtn,.player-fullscreenbutton')
+    //         if(fullscreenButton){
+    //           const callback = e => {
+    //             e.stopImmediatePropagation()
+    //             e.preventDefault()
+    //             document.removeEventListener('mouseup',callback ,true)
+    //             fullscreenButton.click()
+    //             if(location.href.startsWith('https://www.youtube.com')){
+    //               let retry = 0
+    //               const id = setInterval(_=>{
+    //                 if(retry++>500) clearInterval(id)
+    //                 const e = document.querySelector('.html5-video-player').classList
+    //                 if(!e.contains('ytp-autohide')){
+    //                   // e.add('ytp-autohide')
+    //                   if(document.querySelector('.ytp-fullscreen-button.ytp-button').getAttribute('aria-expanded') == 'true'){
+    //                     v.click()
+    //                   }
+    //                 }
+    //               },10)
+    //             }
+    //           }
+    //           document.addEventListener('mouseup',callback ,true);
+    //           setTimeout(_=>ipc.send('send-to-host', 'full-screen-mouseup'),500)
+    //         }
+    //         else{
+    //           const callback = e => {
+    //             e.stopImmediatePropagation()
+    //             e.preventDefault()
+    //             document.removeEventListener('mouseup',callback ,true)
+    //             v.webkitRequestFullscreen()
+    //           }
+    //           let i = 0
+    //           const cId = setInterval(_=>{
+    //             document.addEventListener('mouseup',callback ,true);
+    //             ipc.send('send-to-host', 'full-screen-mouseup')
+    //             if(i++ == 5){
+    //               clearInterval(cId)
+    //             }
+    //           },100)
+    //         }
+    //       }
+    //       preV = v.src
+    //     }
+    //
+    //     if(v && v.src){
+    //       const currentFull = v.scrollWidth == window.innerWidth || v.scrollHeight == window.innerHeight || v.webkitDisplayingFullscreen
+    //       if(v && full != currentFull){
+    //         full = currentFull
+    //         if(full){
+    //           ipc.send("full-screen-html",true)
+    //         }
+    //         else{
+    //           ipc.send("full-screen-html",false)
+    //         }
+    //       }
+    //     }
+    //   },500)
+    // }
     if (data.tripleClick) {
       window.addEventListener('click', e => {
         if (e.detail === 3) {
@@ -75222,6 +75229,11 @@ if (window.__started_) {
         }
       });
     }
+    // if(data.protectTab){
+    //   if(window._unloadEvent_) return
+    //   window._unloadEvent_ = e => e.returnValue = ''
+    //   window.addEventListener("beforeunload", window._unloadEvent_)
+    // }
     if (data.isRecording) {
       Function(data.isRecording)();
     }

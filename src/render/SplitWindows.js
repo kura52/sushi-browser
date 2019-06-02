@@ -444,6 +444,7 @@ export default class SplitWindows extends Component{
     ipc.on('toggle-nav',this.toggleNavEvent)
 
     this.menuSticky = (e)=>{
+      // console.log(222,this.menuStickyFlag,e.offsetY)
       if(!this.menuStickyFlag && e.offsetY < 5){
         this.menuStickyFlag = true
         this.state.root.toggleNav = 3
@@ -465,8 +466,13 @@ export default class SplitWindows extends Component{
         this._toggleNav = this.state.root.toggleNav
         this.state.root.toggleNav = 2
         // mainState.set('toggleNav',2)
+        document.addEventListener('mousemove',this.menuSticky,{passive: true})
         this.tokenMouseMove = PubSub.subscribe('webview-mousemove',(msg,e)=>{
           this.menuSticky(e)
+          setTimeout(()=>{
+            const offsetY = ipc.sendSync('get-mouse-pos',e.offsetY, e.screenY)
+            if(offsetY < 5) this.menuSticky({offsetY})
+          },100)
         })
       }
       else{
@@ -474,6 +480,7 @@ export default class SplitWindows extends Component{
         // mainState.set('toggleNav',this._toggleNav)
         this._toggleNav = void 0
         PubSub.unsubscribe(this.tokenMouseMove)
+        document.removeEventListener('mousemove',this.menuSticky,{passive: true})
       }
       this.setState({})
     }

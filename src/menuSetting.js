@@ -510,7 +510,7 @@ const createViewSubmenu = () => {
       click(item, focusedWindow) {
         if (focusedWindow) {
           if(isDarwin){
-            focusedWindow.setFullScreen(!focusedWindow.isFullScreen())
+            focusedWindow.setFullScreen(!focusedWindow._isFullScreen)
           }
           else{
             // const isFullScreen = focusedWindow.isFullScreen()

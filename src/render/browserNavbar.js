@@ -107,8 +107,8 @@ function BrowserNavbarBtn(props){
   return <a href="javascript:void(0)" onContextMenu={props.onContextMenu} style={props.style} className={`${props.className||''} draggable-source ${props.disabled?'disabled':''} ${props.sync ? 'sync' : ''}`} title={props.title} onClick={props.onClick}><i style={props.styleFont} className={`fa fa-${props.icon}`}/>{props.children}</a>
 }
 
-let [alwaysOnTop,multistageTabs,verticalTab,{left,right,backSide},orderOfAutoComplete,numOfSuggestion,numOfHistory,displayFullIcon,addressBarNewTab,historyBadget,versions,bookmarkBar,bookmarkBarTopPage,extensionOnToolbar,statusBar,mobilePanelSyncScroll] =
-  ipc.sendSync('get-sync-main-states',['alwaysOnTop','multistageTabs','verticalTab','navbarItems','orderOfAutoComplete','numOfSuggestion','numOfHistory','displayFullIcon','addressBarNewTab','historyBadget','versions','bookmarkBar','bookmarkBarTopPage','extensionOnToolbar','statusBar','mobilePanelSyncScroll'])
+let [alwaysOnTop,multistageTabs,verticalTab,{left,right,backSide},orderOfAutoComplete,numOfSuggestion,numOfHistory,isCustomChromium,addressBarNewTab,historyBadget,versions,bookmarkBar,bookmarkBarTopPage,extensionOnToolbar,statusBar,mobilePanelSyncScroll] =
+  ipc.sendSync('get-sync-main-states',['alwaysOnTop','multistageTabs','verticalTab','navbarItems','orderOfAutoComplete','numOfSuggestion','numOfHistory','isCustomChromium','addressBarNewTab','historyBadget','versions','bookmarkBar','bookmarkBarTopPage','extensionOnToolbar','statusBar','mobilePanelSyncScroll'])
 numOfSuggestion = parseInt(numOfSuggestion), numOfHistory = parseInt(numOfHistory)
 sharedState.bookmarkBar = bookmarkBar
 sharedState.bookmarkBarTopPage = bookmarkBarTopPage
@@ -160,6 +160,10 @@ class BrowserNavbar extends Component{
     let marginEle = ReactDOM.findDOMNode(this).querySelector(".navbar-margin")
     let rdTabBar = marginEle.parentNode.parentNode.parentNode.parentNode.querySelector(".rdTabBar")
     console.log(marginEle,rdTabBar)
+
+    this.tokenWebViewMouseDown = PubSub.subscribe('webview-mousedown',(msg,e)=>{
+      this.refs.video && this.refs.video.close()
+    })
 
     const self = this
 
@@ -233,6 +237,7 @@ class BrowserNavbar extends Component{
     PubSub.unsubscribe(this.tokenForceUpdate)
     PubSub.unsubscribe(this.tokenMenuSort)
     PubSub.unsubscribe(this.tokenMultistageTabs)
+    PubSub.unsubscribe(this.tokenWebViewMouseDown)
     tabs.add(this.props.tab.wvId)
     if(this.props.refs2[`navbar-${this.props.tabkey}`] == this){
       delete this.props.refs2[`navbar-${this.props.tabkey}`]
@@ -988,8 +993,8 @@ class BrowserNavbar extends Component{
       }}
                    onDoubleClick={isDarwin ? _=>{
                      const win = remote.getCurrentWindow()
-                     if(win.isFullScreen()){}
-                     else if(win.isMaximized()){
+                     if(win._isFullScreen){}
+                     else if(require('./MenuOperation').windowIsMaximized()){
                        // win.unmaximize()
                        win.nativeWindow.showWindow(9)
                      }
@@ -1054,7 +1059,7 @@ class BrowserNavbar extends Component{
       terminal: <BrowserNavbarBtn className="sort-terminal" title={locale.translation('4589268276914962177')} icon="terminal" onClick={this.onCommon.bind(this,"terminal")}/>,
       video: <Dropdown scrolling className="sort-video draggable-source nav-button" onContextMenu={onContextMenu} style={{minWidth:0}}
                        trigger={<BrowserNavbarBtn title={locale.translation("richMediaList")} icon="film">{rich && rich.length ? <div className="browserActionBadge video" >{rich.length}</div> : null}</BrowserNavbarBtn>}
-                       pointing='top right' icon={null} disabled={!rich || !rich.length}>
+                       pointing='top right' icon={null} disabled={!rich || !rich.length} ref="video">
         <Dropdown.Menu className="nav-menu">
           <div role="option" className="item" onClick={_=>this.props.tab.events['pin-video'](null,this.props.tab.wvId,true)}>{locale.translation('playVideoInPopupWindow')}</div>
           <Divider/>
@@ -1218,12 +1223,12 @@ class BrowserNavbar extends Component{
       {this.mainMenu(cont, this.props.tab, backSideMenus)}
       {this.state.vpnList ? <VpnList onClick={_=>this.setState({vpnList:false})}/> : null}
       {isFixed && !isFloat ? <BrowserNavbarBtn style={{fontSize:18}} title="Hide Sidebar" icon={`angle-double-${isFixed == 'bottom' ? 'down' : isFixed}`} onClick={()=>this.props.fixedPanelOpen({dirc:isFixed})}/> : null}
-      {!this.props.isMaximize && !isDarwin && this.props.isTopRight && (this.props.toggleNav == 1 || verticalTab) ? <RightTopBottonSet displayFullIcon={displayFullIcon} style={{lineHeight: 0.9, transform: 'translateX(6px)',paddingTop: 1}}/> : null }
+      {!this.props.isMaximize && !isDarwin && this.props.isTopRight && (this.props.toggleNav == 1 || verticalTab) ? <RightTopBottonSet displayFullIcon={isCustomChromium} style={{lineHeight: 0.9, transform: 'translateX(6px)',paddingTop: 1}}/> : null }
 
       {this.props.isMaximize && this.props.toggleNav == 1 ? <div className="title-button-set" style={{lineHeight: 0.9, transform: 'translateX(6px)'}}>
         {isDarwin ? null : <span className={`fa fa-th ${sharedState.arrange == 'all' ? 'active-arrange' : ''}`} onClick={_=>PubSub.publish('toggle-arrange')}></span>}
 
-        {displayFullIcon ? <span className={this.props.toggleNav == 3 ? "typcn typcn-arrow-minimise" : "typcn typcn-arrow-maximise"} onClick={_=>ipc.send('toggle-fullscreen')}></span> : null}
+        {isCustomChromium ? <span className={this.props.toggleNav == 3 ? "typcn typcn-arrow-minimise" : "typcn typcn-arrow-maximise"} onClick={_=>ipc.send('toggle-fullscreen')}></span> : null}
         <span className="typcn typcn-media-stop-outline" onClick={()=>this.props.maximizePanel()}></span>
       </div> : null}
 

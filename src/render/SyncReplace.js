@@ -164,7 +164,7 @@ export default class SyncReplace extends Component {
         <div style={{position:'fixed',top:-5,right:0,zIndex:3000}}>
           <a href="javascript:void(0)" className="sync-replace" onClick={e=>this.setState({visible:false})}><i aria-hidden="true" className="fa fa-times"></i></a>
         </div>
-        {this.buildSyncMenu()}
+        {this.state.visible ? this.buildSyncMenu() : null}
       </div>
     </div>
   }

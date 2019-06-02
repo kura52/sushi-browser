@@ -1,6 +1,11 @@
 import winctl from "../../resource/winctl";
 import {BrowserWindow, ipcMain} from "electron";
 import DpiUtils from './DpiUtils'
+import os from 'os'
+
+const isWin7 = os.platform() == 'win32' && os.release().startsWith('6.1')
+
+console.log(77888,os.release())
 
 let Browser = new Proxy({},  { get: function(target, name){ Browser = require('./Browser').Browser; return typeof Browser[name] == 'function' ? Browser[name].bind(Browser) : Browser[name]}})
 let PopupPanel = new Proxy({},  { get: function(target, name){ PopupPanel = require('./Browser').PopupPanel; return typeof PopupPanel[name] == 'function' ? PopupPanel[name].bind(PopupPanel) : PopupPanel[name]}})
@@ -145,10 +150,25 @@ export default class BrowserPanel {
     else {
       if (!browserWindow) {
         const [_1, _2, panel, bv] = BrowserPanel.getBrowserPanelByTabId(moveTabIds[0])
+        if(!panel){
+          for(let i=0;i<100;i++){
+            await new Promise(r=>setTimeout(r,30))
+            ;[_1, _2, panel, bv] = BrowserPanel.getBrowserPanelByTabId(moveTabIds[0])
+            if(panel) break
+          }
+        }
         browserWindow = panel.browserWindow
       }
       console.log(2223)
-      const [_1, _2, panel, bv] = BrowserPanel.getBrowserPanelByTabId(moveTabIds[0])
+      let [_1, _2, panel, bv] = BrowserPanel.getBrowserPanelByTabId(moveTabIds[0])
+      if(!panel){
+        for(let i=0;i<100;i++){
+          console.log(2223)
+          await new Promise(r=>setTimeout(r,30))
+          ;[_1, _2, panel, bv] = BrowserPanel.getBrowserPanelByTabId(moveTabIds[0])
+          if(panel) break
+        }
+      }
       if (destPanelKey != panel.panelKey) bv.webContents.hostWebContents2.send('chrome-tabs-event', { tabId: moveTabIds[0], changeInfo: {panelKey: panel.panelKey}}, 'removed')
       bv.destroy(false)
       console.log(2224)
@@ -263,13 +283,19 @@ export default class BrowserPanel {
           }
 
           console.log(2243344, chromeNativeWindow.getTitle())
-          if(!Browser.CUSTOM_CHROMIUM){
-            for(let i=0;i<5;i++){
-              chromeNativeWindow.setForegroundWindowEx()
-              chromeNativeWindow.setWindowLongPtrEx(0x00000080)
-              await new Promise(r=>setTimeout(r,50))
+          // if(!Browser.CUSTOM_CHROMIUM){
+          for(let i=0;i<5;i++){
+            chromeNativeWindow.setForegroundWindowEx()
+            chromeNativeWindow.showWindow(0)
+            if(isWin7){
+              chromeNativeWindow.setWindowLongPtrRestore(0x00800000)
+              chromeNativeWindow.setWindowLongPtrRestore(0x00040000)
             }
+            chromeNativeWindow.setWindowLongPtrEx(0x00000080)
+            chromeNativeWindow.showWindow(5)
+            await new Promise(r=>setTimeout(r,50))
           }
+          // }
 
           setTimeout(()=> chromeNativeWindow.destroyWindow(),5000)
 
@@ -383,30 +409,40 @@ export default class BrowserPanel {
   async createChromeParentWindow(cWin, oldWindows, nativeWindow) {
     let chromeNativeWindow
 
-    for(let i=0;i<100;i++){
-      chromeNativeWindow = winctl.GetActiveWindow2()
-      const dim = DpiUtils.dimensions(chromeNativeWindow)
-      if (BrowserPanel.bindedWindows.has(chromeNativeWindow.getHwnd()) || !chromeNativeWindow.getTitle().includes(BrowserPanel.BROWSER_NAME) ||
-        !(cWin.left == dim.left && cWin.top == dim.top && cWin.width == (dim.right - dim.left) && cWin.height == (dim.bottom - dim.top))) {
-        chromeNativeWindow = (await winctl.FindWindows(win => {
-          if (BrowserPanel.bindedWindows.has(chromeNativeWindow.getHwnd()) || !win.getTitle().includes(BrowserPanel.BROWSER_NAME)) return false
-          const dim = DpiUtils.dimensions(win)
-          return cWin.left == dim.left && cWin.top == dim.top && cWin.width == (dim.right - dim.left) && cWin.height == (dim.bottom - dim.top)
-        }))[0]
-
-        if(!chromeNativeWindow){
+    for(let i=0;i<300;i++){
+      chromeNativeWindow = (await winctl.FindWindows(win => {
+        if(oldWindows.includes(win.getHwnd()) || !win.getTitle().includes(BrowserPanel.BROWSER_NAME)) return false
+        return true
+      }))[0]
+      if(!chromeNativeWindow){
+        chromeNativeWindow = winctl.GetActiveWindow2()
+        const dim = DpiUtils.dimensions(chromeNativeWindow)
+        if (BrowserPanel.bindedWindows.has(chromeNativeWindow.getHwnd()) || !chromeNativeWindow.getTitle().includes(BrowserPanel.BROWSER_NAME) ||
+          !(cWin.left == dim.left && cWin.top == dim.top && cWin.width == (dim.right - dim.left) && cWin.height == (dim.bottom - dim.top))) {
           chromeNativeWindow = (await winctl.FindWindows(win => {
-            if(oldWindows.includes(win.getHwnd()) || !win.getTitle().includes(BrowserPanel.BROWSER_NAME)) return false
-            return true
+            if (BrowserPanel.bindedWindows.has(chromeNativeWindow.getHwnd()) || !win.getTitle().includes(BrowserPanel.BROWSER_NAME)) return false
+            const dim = DpiUtils.dimensions(win)
+            return cWin.left == dim.left && cWin.top == dim.top && cWin.width == (dim.right - dim.left) && cWin.height == (dim.bottom - dim.top)
           }))[0]
         }
       }
       if(chromeNativeWindow) break
-      await new Promise(r=>setTimeout(r,300))
+      await new Promise(r=>setTimeout(r,100))
     }
 
     if(!Browser.CUSTOM_CHROMIUM){
       chromeNativeWindow.moveRelative(9999, 9999, 0, 0)
+    }
+    else{
+      chromeNativeWindow.setForegroundWindowEx()
+      chromeNativeWindow.showWindow(0)
+      if(isWin7){
+        chromeNativeWindow.setWindowLongPtrRestore(0x00800000)
+        chromeNativeWindow.setWindowLongPtrRestore(0x00040000)
+      }
+      chromeNativeWindow.setWindowLongPtrEx(0x00000080)
+
+      chromeNativeWindow.showWindow(5)
     }
     chromeNativeWindow.hwnd = chromeNativeWindow.getHwnd()
     BrowserPanel.bindedWindows.add(chromeNativeWindow.hwnd)
@@ -536,7 +572,7 @@ export default class BrowserPanel {
 
     if (bounds.width) {
       const cont = webContents.fromId(tab.id)
-      // cont.setViewport({width: Math.round(bounds.width), height: Math.round(bounds.height - modify)})
+      if(!Browser.CUSTOM_CHROMIUM) cont.setViewport({width: Math.round(bounds.width), height: Math.round(bounds.height - modify)})
       this.bounds = bounds
     }
 

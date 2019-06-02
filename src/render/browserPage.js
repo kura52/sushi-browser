@@ -250,8 +250,8 @@ class BrowserPage extends Component {
         PubSub.publishSync(msg,{target: this.refs2.webview, srcElement: this.refs2.webview, button})
       }
       else if(msg == 'webview-mousemove'){
-        const clientY = args[0]
-        PubSub.publishSync(msg,{ target: this.refs2.webview, srcElement: this.refs2.webview, offsetY: clientY /*+ this.refs2.webview.getBoundingClientRect().y*/})
+        const {clientY, screenY} = args[0]
+        PubSub.publishSync(msg,{ target: this.refs2.webview, srcElement: this.refs2.webview, offsetY: clientY, screenY /*+ this.refs2.webview.getBoundingClientRect().y*/})
       }
       else if(msg == 'webview-keydown'){
         PubSub.publishSync(msg,{ target: this.refs2.webview, srcElement: this.refs2.webview, ...args[0]})

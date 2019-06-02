@@ -411,7 +411,7 @@ export default class VerticalTabPanel extends Component{
       background: 'rgb(247, 247, 247)',
       border: '1px solid rgb(148, 148, 148)',
     }
-    if(!MenuOperation.windowIsMaximized()){
+    if(!require('./MenuOperation').windowIsMaximized()){
       verticalTabStyle.border = '1px solid rgb(148, 148, 148)'
       if(this.props.direction == "right"){
         verticalTabStyle.borderLeft =  'none'

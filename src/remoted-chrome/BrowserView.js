@@ -20,12 +20,12 @@ export default class BrowserView {
   static async createNewTab(browserWindow, panelKey, tabKey, tabIndex, url, topZOrder) {
     // console.log('createNewTab',(panelKey, tabKey, tabIndex, url))
 
-    if (this.newPanelCreateing) {
+    if (this.newTabCreateing) {
       await new Promise(r => setTimeout(r, 20))
       return await this.createNewTab(browserWindow, panelKey, tabKey, tabIndex, url, topZOrder)
     }
 
-    this.newPanelCreateing = true
+    this.newTabCreateing = true
 
     if (panelKey) {
       const panel = BrowserPanel.getBrowserPanel(panelKey)
@@ -37,7 +37,7 @@ export default class BrowserView {
         const panel = await new BrowserPanel({browserWindow, panelKey, tabKey, url})
         bv = panel.tabKeys[tabKey][1]
       }
-      this.newPanelCreateing = false
+      this.newTabCreateing = false
       return bv
     }
   }
@@ -109,14 +109,8 @@ export default class BrowserView {
 
       return new Promise(async r => {
 
-        const closingFunc = () => {
-          this.newTabCreateing = false
-          ipcMain.removeListener('create-web-contents-reply', func)
-        }
-        evem.once(`close-tab_${id}`, closingFunc)
-
-        const func = async (e, newTabId, panelKey, tabKey, tabIds) => {
-          console.log('create-web-contents-reply', [id, newTabId], tabIds)
+        const func = async (e, newTabId, panelKey, tabKey) => {
+          console.log('create-web-contents-reply', [id, newTabId])
           if (newTabId == id) {
 
             const data = [id, new BrowserView(panel, tabKey, id)]
@@ -141,10 +135,17 @@ export default class BrowserView {
 
             this.newTabCreateing = false
             evem.removeListener(`close-tab_${id}`, closingFunc)
-            ipcMain.removeListener('create-web-contents-reply', func)
+            ipcMain.removeListener('create-web-contents-reply2', func)
           }
         }
-        ipcMain.on('create-web-contents-reply', func)
+
+        const closingFunc = () => {
+          this.newTabCreateing = false
+          ipcMain.removeListener('create-web-contents-reply2', func)
+        }
+        evem.once(`close-tab_${id}`, closingFunc)
+
+        ipcMain.on('create-web-contents-reply2', func)
 
         const disposition = !mainState.alwaysOpenLinkBackground && tab.active ? 'foreground-tab' : 'background-tab'
         console.log(444453, panel.browserWindow.webContents.getURL(), id)

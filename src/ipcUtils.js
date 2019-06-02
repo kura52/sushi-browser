@@ -11,8 +11,9 @@ import https from 'https'
 import URL from 'url'
 import robot from 'robotjs'
 import DpiUtils from './remoted-chrome/DpiUtils'
+import os from 'os'
+const isWin7 = os.platform() == 'win32' && os.release().startsWith('6.1')
 
-const os = require('os')
 const seq = require('./sequence')
 const {state,tabState,visit,savedState,automation,automationOrder,note,inputHistory} = require('./databaseFork')
 const db = require('./databaseFork')
@@ -522,6 +523,7 @@ ipcMain.on('toggle-fullscreen',(event,cancel)=> {
 
   const win = BrowserWindow.fromWebContents(event.sender.hostWebContents2 || event.sender)
   const isFullScreen = win._isFullScreen
+  if(isFullScreen) win.setResizable(true)
   if(cancel && !isFullScreen) return
   win.webContents.send('switch-fullscreen',!isFullScreen)
   win.setFullScreenable(true)
@@ -530,6 +532,7 @@ ipcMain.on('toggle-fullscreen',(event,cancel)=> {
   win._isFullScreen = !isFullScreen
   win.setMenuBarVisibility(menubar)
   win.setFullScreenable(false)
+  if(!isFullScreen) win.setResizable(false)
 })
 
 
@@ -826,6 +829,9 @@ ipcMain.on('get-main-state',(e,key,names)=>{
     }
     else if(name == 'fullScreen'){
       ret[name] = mainState.fullScreenIds[e.sender.id]
+    }
+    else if(name == 'isCustomChromium'){
+      ret[name] = Browser.CUSTOM_CHROMIUM
     }
     else{
       ret[name] = mainState[name]
@@ -1163,7 +1169,13 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
     let nativeWindow
     if(!detach){
       chromeNativeWindow.setForegroundWindowEx()
+      chromeNativeWindow.showWindow(0)
+      if(isWin7){
+        chromeNativeWindow.setWindowLongPtrRestore(0x00800000)
+        chromeNativeWindow.setWindowLongPtrRestore(0x00040000)
+      }
       chromeNativeWindow.setWindowLongPtrEx(0x00000080)
+      chromeNativeWindow.showWindow(5)
 
       const hwnd = chromeNativeWindow.createWindow()
       nativeWindow = (await winctl.FindWindows(win => win.getHwnd() == hwnd))[0]
@@ -1310,7 +1322,7 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
     }
     else if(type == 'minimize'){
       if(_detach) return
-      nativeWindow.showWindow(6)
+      nativeWindow.showWindow(0)
       nativeWindow.isMinimized = true
     }
     else if(type == 'unminimize'){
@@ -1334,7 +1346,13 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
       }
       else{
         chromeNativeWindow.setForegroundWindowEx()
+        chromeNativeWindow.showWindow(0)
+        if(isWin7){
+          chromeNativeWindow.setWindowLongPtrRestore(0x00800000)
+          chromeNativeWindow.setWindowLongPtrRestore(0x00040000)
+        }
         chromeNativeWindow.setWindowLongPtrEx(0x00000080)
+        chromeNativeWindow.showWindow(5)
 
         const hwnd = chromeNativeWindow.createWindow()
         const nativeWindow = (await winctl.FindWindows(win => win.getHwnd() == hwnd))[0]
@@ -1896,7 +1914,7 @@ ipcMain.on('get-sync-main-states',(e,keys,noSync)=>{
       }
       return theme
     }
-    else if(key == 'displayFullIcon'){
+    else if(key == 'isCustomChromium'){
       console.log(key,Browser.CUSTOM_CHROMIUM)
       return Browser.CUSTOM_CHROMIUM
     }
@@ -2021,7 +2039,7 @@ ipcMain.on('execCommand-copy',e=>{
 
 ipcMain.on('get-isMaximized',e=>{
   const win = BrowserWindow.fromWebContents(e.sender)
-  e.returnValue = win && !win.isDestroyed() ? (win.isMaximized() || win.isFullScreen()) : void 0
+  e.returnValue = win && !win.isDestroyed() ? (win.isMaximized() || win._isFullScreen) : void 0
 })
 
 ipcMain.on('set-audio-muted',(e,tabId,val,changeTabPanel)=>{
@@ -2454,7 +2472,7 @@ ipcMain.on('set-bound-browser-view', async (e, panelKey, tabKey, tabId, x, y, wi
   // console.log('set-bound-browser-view1', panelKey, tabKey, tabId, x, y, width, height, zIndex, date)
 
 
-  const win = BrowserWindow.fromWebContents(e.sender)
+  const win = panel.browserWindow
   if(!win || win.isDestroyed()) return
 
   const winBounds = win.getBounds()
@@ -2502,7 +2520,7 @@ ipcMain.on('set-position-browser-view', async (e, panelKey) => {
   const panel = BrowserPanel.getBrowserPanel(panelKey)
   if(!panel) return
 
-  const win = BrowserWindow.fromWebContents(e.sender)
+  const win = panel.browserWindow
   if(!win || win.isDestroyed()) return
 
   const pos = await new Promise(r => {
@@ -2743,6 +2761,10 @@ ipcMain.on('set-alwaysOnTop', (e,enable) => {
     panel.moveTopNativeWindow()
     panel.moveTopNativeWindowBw()
   }
+})
+
+ipcMain.on('get-mouse-pos', (e,offsetY,screenY)=>{
+  e.returnValue = screen.getCursorScreenPoint().y - screenY + offsetY
 })
 
 // let dragPos = {}, noMove = false

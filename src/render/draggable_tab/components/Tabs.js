@@ -32,32 +32,32 @@ const getTheme = require('../../theme')
 
 const isDarwin = navigator.userAgent.includes('Mac OS X')
 const isWin = navigator.userAgent.includes('Windows')
-let [scrollTab,reverseScrollTab,multistageTabs,verticalTabWidth,tabBarHide,tabMinWidth,tabMaxWidth,tabFlipLabel,mouseHoverSelectLabelBeginDelay,mouseHoverSelectLabelBegin,doubleClickTab,middleClickTab,altClickTab,maxrowLabel,openTabNextLabel,rightClickTabAdd,middleClickTabAdd,altClickTabAdd,displayFullIcon,mediaPlaying,tabPreviewSizeWidth,tabPreviewSizeHeight,tabPreviewSlideHeight,tabPreviewWait,tabCirculateSelection,tabBarMarginTop,removeTabBarMarginTop] = ipc.sendSync('get-sync-main-states',['scrollTab','reverseScrollTab','multistageTabs','verticalTabWidth','tabBarHide','tabMinWidth','tabMaxWidth','tabFlipLabel','mouseHoverSelectLabelBeginDelay','mouseHoverSelectLabelBegin','doubleClickTab','middleClickTab','altClickTab','maxrowLabel','openTabNextLabel','rightClickTabAdd','middleClickTabAdd','altClickTabAdd','displayFullIcon','mediaPlaying','tabPreviewSizeWidth','tabPreviewSizeHeight','tabPreviewSlideHeight','tabPreviewWait','tabCirculateSelection','tabBarMarginTop','removeTabBarMarginTop'])
+let [scrollTab,reverseScrollTab,multistageTabs,verticalTabWidth,tabBarHide,tabMinWidth,tabMaxWidth,tabFlipLabel,mouseHoverSelectLabelBeginDelay,mouseHoverSelectLabelBegin,doubleClickTab,middleClickTab,altClickTab,maxrowLabel,openTabNextLabel,rightClickTabAdd,middleClickTabAdd,altClickTabAdd,isCustomChromium,mediaPlaying,tabPreviewSizeWidth,tabPreviewSizeHeight,tabPreviewSlideHeight,tabPreviewWait,tabCirculateSelection,tabBarMarginTop,removeTabBarMarginTop] = ipc.sendSync('get-sync-main-states',['scrollTab','reverseScrollTab','multistageTabs','verticalTabWidth','tabBarHide','tabMinWidth','tabMaxWidth','tabFlipLabel','mouseHoverSelectLabelBeginDelay','mouseHoverSelectLabelBegin','doubleClickTab','middleClickTab','altClickTab','maxrowLabel','openTabNextLabel','rightClickTabAdd','middleClickTabAdd','altClickTabAdd','isCustomChromium','mediaPlaying','tabPreviewSizeWidth','tabPreviewSizeHeight','tabPreviewSlideHeight','tabPreviewWait','tabCirculateSelection','tabBarMarginTop','removeTabBarMarginTop'])
 maxrowLabel = parseInt(maxrowLabel)
 tabPreviewSizeWidth = tabPreviewSizeWidth ? parseInt(tabPreviewSizeWidth) : null
 tabPreviewSizeHeight = tabPreviewSizeHeight ? parseInt(tabPreviewSizeHeight) : null
 tabPreviewSlideHeight = tabPreviewSlideHeight ? parseInt(tabPreviewSlideHeight) : 140
 tabPreviewWait = tabPreviewWait ? parseInt(tabPreviewWait) : 0
 sharedState._tabBarMarginTop = parseInt(tabBarMarginTop)
-sharedState.tabBarMarginTop = (removeTabBarMarginTop && remote.getCurrentWindow().isMaximized()) ? 0 : sharedState._tabBarMarginTop
+sharedState.tabBarMarginTop = isCustomChromium && (removeTabBarMarginTop && require('../../MenuOperation').windowIsMaximized()) ? 0 : sharedState._tabBarMarginTop
 sharedState.multistageTabs = multistageTabs
 
-// if(removeTabBarMarginTop){
-//   ipc.on('maximize',(e,val)=>{
-//     let nextVal
-//     if(val){
-//       nextVal = sharedState._tabBarMarginTop
-//     }
-//     else{
-//       nextVal = sharedState._tabBarMarginTop
-//     }
-//     if(nextVal != sharedState.tabBarMarginTop){
-//       sharedState.tabBarMarginTop = nextVal
-//       PubSub.publish('set-state-split-window')
-//       PubSub.publish('set-state-split-window')
-//     }
-//   })
-// }
+if(isCustomChromium && removeTabBarMarginTop){
+  ipc.on('maximize',(e,val)=>{
+    let nextVal
+    if(val){
+      nextVal = 0
+    }
+    else{
+      nextVal = sharedState._tabBarMarginTop
+    }
+    if(nextVal != sharedState.tabBarMarginTop){
+      sharedState.tabBarMarginTop = nextVal
+      PubSub.publish('set-state-split-window')
+      PubSub.publish('set-state-split-window')
+    }
+  })
+}
 
 ;(function(){
   const s = document.createElement('style');
@@ -976,6 +976,7 @@ class Tabs extends React.Component {
     console.log(e)
     if(!e.nativeEvent) e.nativeEvent = e
     if(e.nativeEvent.which == 3){
+      ipc.send('disable-webContents-focus', false)
       this.handleContextMenu(key, e)
       return
     }
@@ -1021,9 +1022,8 @@ class Tabs extends React.Component {
               if(key != key2 && this.props.parent.state.tabs.find(t=>t.key == key2)){
                 if(this.mouseUp){
                   this.mouseUp = false
-                  this.setState({ selectedTab: key2 }, () => {
-                    this.props.onTabSelect(e, key2, this._getCurrentOpenTabs());
-                  })
+                  this.state.selectedTab = key2
+                  this.props.onTabSelect(e, key2, this._getCurrentOpenTabs());
                 }
                 else{
                   this.mouseUpSelect = key2
@@ -1055,9 +1055,8 @@ class Tabs extends React.Component {
         }
       }
 
-      this.setState({ selectedTab: key }, () => {
-        this.props.onTabSelect(e, key, this._getCurrentOpenTabs());
-      })
+      this.state.selectedTab = key
+      this.props.onTabSelect(e, key, this._getCurrentOpenTabs());
     }
   }
 
@@ -1471,8 +1470,8 @@ class Tabs extends React.Component {
           <ul tabIndex="-1" style={tabInlineStyles.tabBar} className={_tabClassNames.tabBar} ref="ttab"
               onDoubleClick={isDarwin ? _=>{
                 const win = remote.getCurrentWindow()
-                if(win.isFullScreen()){}
-                else if(win.isMaximized()){
+                if(win._isFullScreen){}
+                else if(require('../../MenuOperation').windowIsMaximized()){
                   // win.unmaximize()
                   win.nativeWindow.showWindow(9)
                 }
@@ -1501,7 +1500,7 @@ class Tabs extends React.Component {
             </span>
             {this.props.isMaximize && this.props.toggleNav != 1 ? <div className="title-button-set" style={{lineHeight: 0.9}}>
                 {isDarwin ? null : <span className={`fa fa-th ${sharedState.arrange == 'all' ? 'active-arrange' : ''}`} onClick={_=>PubSub.publish('toggle-arrange')}></span>}
-                {displayFullIcon ? <span className={this.props.toggleNav == 3 ? "typcn typcn-arrow-minimise" : "typcn typcn-arrow-maximise"} onClick={_=>ipc.send('toggle-fullscreen')}></span> : null}
+                {isCustomChromium ? <span className={this.props.toggleNav == 3 ? "typcn typcn-arrow-minimise" : "typcn typcn-arrow-maximise"} onClick={_=>ipc.send('toggle-fullscreen')}></span> : null}
                 <span className="typcn typcn-media-stop-outline" onClick={()=>this.props.parent.maximizePanel()}></span>
               </div>
               : null}
@@ -1509,7 +1508,7 @@ class Tabs extends React.Component {
               <span className="typcn typcn-media-stop-outline" onClick={()=>PubSub.publish(`maximize-float-panel_${this.props.k}`)}></span>
               <span className="typcn typcn-times" onClick={()=>PubSub.publish(`close-panel_${this.props.k}`)}></span>
             </div> : null}
-            {!isDarwin && !this.props.isMaximize && this.props.isTopRight && this.props.toggleNav != 1 ? <RightTopBottonSet displayFullIcon={displayFullIcon} toggleNav={this.props.toggleNav} style={{
+            {!isDarwin && !this.props.isMaximize && this.props.isTopRight && this.props.toggleNav != 1 ? <RightTopBottonSet displayFullIcon={isCustomChromium} toggleNav={this.props.toggleNav} style={{
               marginTop: (this.props.verticalTabPanel ||this.props.toggleNav == 3 || this.isMultistageTabsMode()) ? void 0 : sharedState.tabBarMarginTop * -1, transform: `translateX(${this.isMultistageTabsMode() ? 1 : - this.state.tabs.length * 13 + 6}px)`}}/>: ""}
           </ul>
         </div>

@@ -1651,20 +1651,20 @@ const isWin = navigator.userAgent.includes('Windows')
           <Input style={{width: 40,paddingRight:32}} onChange={this.onChange3.bind(this,'reloadIntervals',4)} defaultValue={this.state.reloadIntervals[4]}/>
         </div>
 
-        {/*<div className='spacer2'/>*/}
+        {this.state.isCustomChromium ? <div className='spacer2'/> : null}
 
-        {/*<div className="field">*/}
-          {/*<label>{l10n.translation("tabBarTopMargin")}:&nbsp;</label>*/}
-          {/*<Input onChange={this.onChange.bind(this,'tabBarMarginTop')} defaultValue={this.state.tabBarMarginTop}/>*/}
-          {/*<label>px</label>*/}
-        {/*</div>*/}
+        {this.state.isCustomChromium ? <div className="field">
+          <label>{l10n.translation("tabBarTopMargin")}:&nbsp;</label>
+          <Input onChange={this.onChange.bind(this,'tabBarMarginTop')} defaultValue={this.state.tabBarMarginTop}/>
+          <label>px</label>
+        </div> : null}
 
-        {/*<div className='spacer2'/>*/}
+        {this.state.isCustomChromium ? <div className='spacer2'/> : null}
 
-        {/*<div className="field">*/}
-          {/*<Checkbox defaultChecked={this.state.removeTabBarMarginTop} toggle onChange={this.onChange.bind(this,'removeTabBarMarginTop')}/>*/}
-          {/*<span className="toggle-label">{l10n.translation("removeTopMarginWhenMaximizing")}</span>*/}
-        {/*</div>*/}
+        {this.state.isCustomChromium ? <div className="field">
+          <Checkbox defaultChecked={this.state.removeTabBarMarginTop} toggle onChange={this.onChange.bind(this,'removeTabBarMarginTop')}/>
+          <span className="toggle-label">{l10n.translation("removeTopMarginWhenMaximizing")}</span>
+        </div> : null}
 
         <Divider/>
 
@@ -2888,7 +2888,7 @@ const isWin = navigator.userAgent.includes('Windows')
     ,'emailSync','syncGeneralSettings','syncBookmarks','syncBrowsingHistory','syncSessionTools','syncFavicons','syncDownloadHistory','syncAutomation','syncNote','syncPassword','rockerGestureLeft','rockerGestureRight','inputHistory','inputHistoryMaxChar',
     'regexClickVideo','regexDbClickVideo','regexWheelMinusVideo','regexShiftWheelMinusVideo','regexCtrlWheelMinusVideo','regexShiftCtrlWheelMinusVideo','regexKeyVideoPlayOrPause',
     'regexKeyVideoFrameStep','regexKeyVideoFrameBackStep','regexKeyVideoRewind1','regexKeyVideoRewind2','regexKeyVideoRewind3','regexKeyVideoForward1','regexKeyVideoForward2','regexKeyVideoForward3','regexKeyVideoNormalSpeed','regexKeyVideoHalveSpeed','regexKeyVideoDoubleSpeed',
-    'regexKeyVideoDecSpeed','regexKeyVideoIncSpeed','regexKeyVideoFullscreen','regexKeyVideoExitFullscreen','regexKeyVideoMute','regexKeyVideoDecreaseVolume','regexKeyVideoIncreaseVolume','regexKeyVideoPlRepeat'])
+    'regexKeyVideoDecSpeed','regexKeyVideoIncSpeed','regexKeyVideoFullscreen','regexKeyVideoExitFullscreen','regexKeyVideoMute','regexKeyVideoDecreaseVolume','regexKeyVideoIncreaseVolume','regexKeyVideoPlRepeat', 'isCustomChromium'])
   ipc.once(`get-main-state-reply_${key}`,async (e,data)=>{
     generalDefault = data
     keyboardDefault = data

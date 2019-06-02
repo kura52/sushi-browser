@@ -100,6 +100,15 @@ NAN_METHOD(Window::CreateWindow2) {
 	info.GetReturnValue().Set(Nan::New((int)hWnd));
 }
 
+NAN_METHOD(Window::WindowFromPoint2) {
+    HINSTANCE hInstance = GetModuleHandle( NULL );
+
+    POINT pt;
+	GetCursorPos(&pt);
+    HWND hWnd = WindowFromPoint(pt);
+	info.GetReturnValue().Set(Nan::New((int)hWnd));
+}
+
 NAN_METHOD(Window::GetWindowByClassName) {
 	v8::Local<v8::Function> cons = Nan::New(constructor);
 
@@ -376,6 +385,7 @@ NAN_METHOD(Window::move) {
 	const size_t w = info[2]->Int32Value();
 	const size_t h = info[3]->Int32Value();
 
+//	SetWindowPos(obj->windowHandle, NULL, x, y, w, h, 0x0004 | 0x0010);
 //    SetWindowPos(obj->windowHandle, NULL, x, y, w, h, SWP_NOZORDER|SWP_NOOWNERZORDER|SWP_FRAMECHANGED);
 	MoveWindow(obj->windowHandle, x, y, w, h, true);
 }

@@ -73,6 +73,9 @@ function getNewTabPage(){
   sharedState.topURL = topURL
 }
 
+function diffArray(arr1, arr2) {
+  return arr1.filter(e=>!arr2.includes(e))
+}
 
 ipc.on('update-mainstate',(e,key,val)=>{
   if(key == 'myHomepage' || key == 'newTabMode'){
@@ -382,6 +385,8 @@ export default class TabPanel extends Component {
         rest:{bind:params.bind,mobile:params.mobile,adBlockThis:params.adBlockThis,tabPreview:params.tabPreview}})
       // withWindowCreateTabs.add(tab.key)
 
+      if(params && params.guestInstanceId)ipc.send('create-web-contents-reply2',params.guestInstanceId, this.props.k, tab.key)
+
       this.state = {tokens,
         oppositeGlobal: ipc.sendSync('get-sync-main-state','oppositeGlobal'),
         tabs:[tab],
@@ -665,7 +670,7 @@ export default class TabPanel extends Component {
           return arr
         }
         const tabs = array_move(this.state.tabs, ind, toIndex)
-        this.setState({tabs})
+        if(diffArray(this.state.tabs, tabs).length) this.setState({tabs})
       }
     }
     ipc.on('move-tab-from-moved',eventMoveTabFromMoved)
@@ -683,7 +688,7 @@ export default class TabPanel extends Component {
 
     const eventGetTabsInfo = (e, key)=>{
 
-      ipc.send(`get-tab-ids-reply_${key}`, this.state.tabs.map(tab => (tab.wvId || tab.wv.id)), this.state.selectedTab)
+      ipc.send(`get-tab-ids-reply_${key}`, this.state.tabs.map(tab => (tab.wvId || (tab.wv && tab.wv.id))), this.state.selectedTab)
 
     }
     ipc.on(`get-tab-ids-${this.props.k}`,eventGetTabsInfo)
@@ -865,7 +870,8 @@ export default class TabPanel extends Component {
       if (!this.mounted) return
       console.log(`new-tab-from-key_${this.props.k}`,this)
       if(!type || type == 'new-tab'){
-        tabAdd(this, url, !notSelected,privateMode,guestInstanceId,mobile,adBlockThis,fields)
+        const t = tabAdd(this, url, !notSelected,privateMode,guestInstanceId,mobile,adBlockThis,fields)
+        ipc.send('create-web-contents-reply2',guestInstanceId, this.props.k, t.key)
       }
       else if(type == 'load-url'){
         const tab = this.state.tabs.find(x=>x.key==this.state.selectedTab)
@@ -2930,6 +2936,7 @@ export default class TabPanel extends Component {
       }
 
       const t = tabAdd(this, url, disposition === 'foreground-tab',tab.privateMode,guestInstanceId,tab.mobile,tab.adBlockThis,tab.fields)
+      ipc.send('create-web-contents-reply2',guestInstanceId, this.props.k, t.key)
 
       if(tab.sync){
         t.sync = uuid.v4()
@@ -3484,7 +3491,9 @@ export default class TabPanel extends Component {
 
     // this.webViewCreate()
     console.log("selected04",key)
-    this.setState({selectedTab: key})
+    if(this.state.selectedTab != key){
+      this.setState({selectedTab: key})
+    }
     this.focus_webview(tab)
   }
 
@@ -3955,6 +3964,7 @@ export default class TabPanel extends Component {
     const enableMulti = e.ctrlKey || e.metaKey || e.shiftKey
     const i = this.state.tabs.findIndex((x)=>x.key===key)
     const tab = this.state.tabs[i]
+    const tabSelections = this.state.tabs.map(x=>x.selection)
 
     let prevSelectTab,ind
     if(!(e.ctrlKey || e.metaKey)){
@@ -3977,7 +3987,9 @@ export default class TabPanel extends Component {
       this.reverseSelection(ind,i)
 
     }
-    this.setState({})
+    const tabSelectionsAfter = this.state.tabs.map(x=>x.selection)
+
+    if(diffArray(tabSelections,tabSelectionsAfter).length) this.setState({})
     return enableMulti
   }
 
@@ -4917,6 +4929,7 @@ export default class TabPanel extends Component {
         windowId={this.props.windowId}
         k={this.props.k}
         refs2={this.refs2}
+        key={this.props.k}
         mouseClickHandles={key=>this._handleContextMenu(null,key,null,this.state.tabs,false,true)}
         isMaximize={isMaximize}
         tabs={this.state.tabs.map((tab,num)=>{

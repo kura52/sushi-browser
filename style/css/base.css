@@ -29,6 +29,7 @@ body {
     height: 100%;
     display: flex;
     background: #0000;
+    min-width: 46px !important;
 }
 
 a {

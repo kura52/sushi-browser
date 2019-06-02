@@ -292,6 +292,7 @@ function create(args){
     // bw.setSize(300,300)
     if(bw.isMaximized()){
       e.preventDefault()
+      bw.setResizable(true)
       const bounds = bw._isVirtualMaximized
       console.log('will-move', bounds)
       const point = electron.screen.getCursorScreenPoint()
@@ -348,6 +349,7 @@ function create(args){
   bw.on('maximize',e=>{
     console.log('maximize',bw._isVirtualMaximized)
     if(bw._isVirtualMaximized){
+      bw.setResizable(true)
       if(bw.isMaximized()) bw.unmaximize()
 
       const bounds = bw._isVirtualMaximized
@@ -359,13 +361,17 @@ function create(args){
       bw._isVirtualMaximized = bw._initVirtualMaximized || bw.getNormalBounds()
       bw._initVirtualMaximized = void 0
 
+      console.log('mmax',bw.getBounds(),bw._isMaximized())
       const b = bw.getBounds()
       if(bw.isMaximized()) bw.unmaximize()
 
       const bounds = {x: b.x+7, y: b.y+7, width: b.width - 14, height: b.height - 14}
       bw._maximizedSize = bounds
       // bw.normal()
-      setTimeout(()=>bw.setBounds(bounds),50)
+      setTimeout(()=>{
+        bw.setBounds(bounds)
+        bw.setResizable(false)
+      },50)
       // bw.setBounds(b)
       bw.webContents.send('maximize',true)
     }
@@ -373,10 +379,10 @@ function create(args){
     // ipcMain.emit('state-change-window', bw.id, 'maximize')
   })
 
-  bw.on('unmaximize',_=>{
-    bw.webContents.send('maximize',false)
-    ipcMain.emit('state-change-window', bw.id, 'unmaximize')
-  })
+  // bw.on('unmaximize',_=>{
+  //   bw.webContents.send('maximize',false)
+  //   ipcMain.emit('state-change-window', bw.id, 'unmaximize')
+  // })
 
   bw.on('minimize',_=>{
     console.log('minimize')
@@ -384,6 +390,7 @@ function create(args){
   })
 
   bw.on('restore',_=>{
+    bw.setResizable(true)
     if(bw._isVirtualMaximized) bw.setBounds(bw._maximizedSize)
     console.log('restore')
     ipcMain.emit('state-change-window', bw.id, 'restore')
@@ -554,8 +561,8 @@ export default {
       // clickThrough: 'pointer-events',
       // alwaysOnTop: true,
       webPreferences: {
-        plugins: true,
-        sharedWorker: true,
+        // plugins: true,
+        // sharedWorker: true,
         nodeIntegration: true,
         webSecurity: false,
         allowFileAccessFromFileUrls: true,
@@ -614,6 +621,7 @@ export default {
     localShortcuts.register(initWindow)
     initWindow.setMenuBarVisibility(true)
 
+    initWindow._isMaximized = initWindow.isMaximized
     initWindow.isMaximized = function(){ return this._isVirtualMaximized }
 
     new (require('./Download'))(initWindow)

@@ -18,9 +18,9 @@ export default {
     const win = remote.getCurrentWindow()
     // console.log(1111,mainState.toggleNav)
     if(isDarwin){
-      win.setFullScreen(!win.isFullScreen())
+      win.setFullScreen(!win._isFullScreen)
     }
-    else if(win.isFullScreen()){
+    else if(win._isFullScreen){
       ipc.send('toggle-fullscreen')
     }
     else{
@@ -44,9 +44,9 @@ export default {
   windowResizeForSplit(){
     const win = remote.getCurrentWindow()
 
-    if(win.isFullScreen()){
+    if(win._isFullScreen){
       if(isDarwin){
-        win.setFullScreen(!win.isFullScreen())
+        win.setFullScreen(!win._isFullScreen)
       }
       else{
         ipc.send('toggle-fullscreen')

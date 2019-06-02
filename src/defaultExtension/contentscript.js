@@ -194,11 +194,16 @@ if(window.__started_){
       // }
     },{passive: true, capture: true})
 
+
+    document.addEventListener('mouseleave',e=>{
+      ipc.send('send-to-host', 'webview-mousemove', {clientY: e.clientY, screenY: e.screenY})
+    })
+
     let preClientY = -1, checkVideoEvent = {}, beforeRemoveIds = {}
     document.addEventListener('mousemove',e=>{
       // console.log('mousemove')
       if(preClientY != e.clientY){
-        ipc.send('send-to-host', 'webview-mousemove', e.clientY)
+        ipc.send('send-to-host', 'webview-mousemove', {clientY: e.clientY, screenY: e.screenY})
         // console.log('webview-mousemove', e.clientY)
         preClientY = e.clientY
       }
