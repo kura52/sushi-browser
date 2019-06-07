@@ -7,7 +7,7 @@
     "include_dirs": [],
     "libraries": [],
     "msbuild_toolset": "v141",
-    "msvs_windows_target_platform_version": "10.0.17763.0"
+    "msvs_windows_target_platform_version": "10.0.17134.0"
   },
   "variables": {
     "asan": 0,
@@ -15,8 +15,6 @@
     "coverage": "false",
     "debug_nghttp2": "false",
     "enable_lto": "false",
-    "enable_pgo_generate": "false",
-    "enable_pgo_use": "false",
     "force_dynamic_crt": 0,
     "host_arch": "x64",
     "icu_data_in": "..\\..\\deps/icu-small\\source/data/in\\icudt62l.dat",
@@ -48,7 +46,6 @@
     "node_use_bundled_v8": "true",
     "node_use_dtrace": "false",
     "node_use_etw": "true",
-    "node_use_large_pages": "false",
     "node_use_openssl": "true",
     "node_use_pch": "false",
     "node_use_perfctr": "true",

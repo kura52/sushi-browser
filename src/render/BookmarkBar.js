@@ -159,7 +159,7 @@ export default class BookmarkBarWrapper extends Component {
       this.prev = val
       this.props.webViewCreate()
     }
-    console.log(9999777,val,cond,this.props.tab.page.navUrl)
+    // console.log(9999777,val,cond,this.props.tab.page.navUrl)
     return cond
   }
 

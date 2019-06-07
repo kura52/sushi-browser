@@ -2379,6 +2379,7 @@ ipcMain.on('create-browser-view', async (e, panelKey, tabKey, x, y, width, heigh
   else{
     view = await BrowserView.newTab(webContents)
   }
+  e.sender.send(`create-browser-view_${panelKey}_${tabKey}`,view.webContents.id)
   // console.log(99944,view)
   // view.webContents.hostWebContents2 = e.sender
   if(zIndex > 0){
@@ -2392,7 +2393,6 @@ ipcMain.on('create-browser-view', async (e, panelKey, tabKey, x, y, width, heigh
   }
   if(src) view.webContents.loadURL(src)
   // ipcMain.emit('web-contents-created', {},view.webContents)
-  e.sender.send(`create-browser-view_${panelKey}_${tabKey}`,view.webContents.id)
 })
 
 const noAttachs = {}

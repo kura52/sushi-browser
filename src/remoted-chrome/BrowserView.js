@@ -44,12 +44,12 @@ export default class BrowserView {
 
   static async newTab(cont, tab) {
     if (tab && tab.openerTabId && !BrowserPanel.hasTabId(tab.openerTabId)) {
-      await new Promise(r => setTimeout(r, 20))
+      await new Promise(r => setTimeout(r, 50))
       console.log(998, cont.id)
       return await this.newTab(cont, tab)
     }
     if (this.newTabCreateing) {
-      await new Promise(r => setTimeout(r, 20))
+      await new Promise(r => setTimeout(r, 50))
       console.log(999, cont.id)
       return await this.newTab(cont, tab)
     }
@@ -107,12 +107,27 @@ export default class BrowserView {
       }
       console.log(444451)
 
+      const disposition = !mainState.alwaysOpenLinkBackground && tab.active ? 'foreground-tab' : 'background-tab'
+
+      const createFunc = () => {
+        console.log('createFunc', id)
+        panel.browserWindow.webContents.send('create-web-contents', {
+          id: tab.openerTabId || currentTab.id,
+          targetUrl: tab.url,
+          disposition,
+          guestInstanceId: id
+        })
+      }
+
       return new Promise(async r => {
+
+        const interval = setInterval(createFunc,100)
 
         const func = async (e, newTabId, panelKey, tabKey) => {
           console.log('create-web-contents-reply', [id, newTabId])
           if (newTabId == id) {
 
+            clearInterval(interval)
             const data = [id, new BrowserView(panel, tabKey, id)]
             panel.tabKeys[tabKey] = data
 
@@ -140,6 +155,7 @@ export default class BrowserView {
         }
 
         const closingFunc = () => {
+          clearInterval(interval)
           this.newTabCreateing = false
           ipcMain.removeListener('create-web-contents-reply2', func)
         }
@@ -147,14 +163,9 @@ export default class BrowserView {
 
         ipcMain.on('create-web-contents-reply2', func)
 
-        const disposition = !mainState.alwaysOpenLinkBackground && tab.active ? 'foreground-tab' : 'background-tab'
+        createFunc()
         console.log(444453, panel.browserWindow.webContents.getURL(), id)
-        panel.browserWindow.webContents.send('create-web-contents', {
-          id: tab.openerTabId || currentTab.id,
-          targetUrl: tab.url,
-          disposition,
-          guestInstanceId: id
-        })
+
 
       })
     }

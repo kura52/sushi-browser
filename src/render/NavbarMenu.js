@@ -214,7 +214,7 @@ export default class NavbarMenu extends Component {
         {this.props.icon ? <i className={`fa fa-${this.props.icon}`} /> : null}
         {this.props.badget || null}
       </a>
-      {!this.state.visible && !this.props.alwaysView ? null :
+      {!this.state.visible ? null :
         <div ref="menu" style={{...styleMenu,...this.props.style}}
              className={`menu${this.state.visible || this.state.forceOpen ? " visible" : ""} transition left ${this.props.audio ? 'nav-menu-audio' : this.props.rightDisplay ? 'nav3-menu' : this.props.mouseOver ? 'nav2-menu' : 'nav-menu'}`} >
         {(list || []).map((child) => {

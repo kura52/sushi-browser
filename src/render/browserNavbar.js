@@ -269,7 +269,7 @@ class BrowserNavbar extends Component{
       this.props.isTopRight === nextProps.isTopRight &&
       this.props.isTopLeft === nextProps.isTopLeft &&
       this.props.fullscreen === nextProps.fullscreen &&
-      this.props.parent.state.selectedTab == this.props.tab.key &&
+      this.selected == (nextProps.parent.state.selectedTab == nextProps.tab.key) &&
       (this.richContents||[]).length === (nextProps.tab.page.richContents||[]).length &&
       (this.caches||[]).length === (nextState.caches||[]).length &&
       this.state.currentIndex === nextState.currentIndex &&
@@ -330,6 +330,7 @@ class BrowserNavbar extends Component{
       this.themeBasePath = (sharedState.theme && sharedState.theme.base_path)
       this.mobilePanelIsPanel = nextProps.tab.fields.mobilePanel && nextProps.tab.fields.mobilePanel.isPanel
       this.arrange = this.props.parent.props.parent.state.arrange
+      this.selected = (nextProps.parent.state.selectedTab == nextProps.tab.key)
     }
     return ret
   }
@@ -670,7 +671,7 @@ class BrowserNavbar extends Component{
 
   mainMenu(cont,tab,menuActions){
     const hostname = this.props.page.navUrl ? urlParse(this.props.page.navUrl).hostname : ""
-    return <NavbarMenu ref="main-menu" className="main-menu" alwaysView={true} k={this.props.k} isFloat={isFloatPanel(this.props.k) || this.props.isMaximize} style={{overflowX: 'visible'}}
+    return <NavbarMenu ref="main-menu" className="main-menu" k={this.props.k} isFloat={isFloatPanel(this.props.k) || this.props.isMaximize} style={{overflowX: 'visible'}}
                        title={locale.translation('settings')} icon="bars" tab={tab.bind && tab}
                        onClick={_=>{
                          this.getWebContents(this.props.tab).getZoomFactor(factor=>{

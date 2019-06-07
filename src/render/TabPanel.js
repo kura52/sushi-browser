@@ -211,7 +211,13 @@ function tabAdd(self, url, isSelect=true,privateMode = false,guestInstanceId,mob
 
 
   if(openTabNextLabel || last == 'next'){
-    self.state.tabs.splice(self.state.tabs.findIndex(t=>t.key == self.state.selectedTab) + 1, 0, t)
+    const index = self.state.tabs.findIndex(t=>t.key == self.state.selectedTab)
+    if(index != null){
+      self.state.tabs.splice(index + 1, 0, t)
+    }
+    else{
+      self.state.tabs.push(t)
+    }
   }
   else if(last){
     self.state.tabs.push(t)
@@ -688,10 +694,82 @@ export default class TabPanel extends Component {
 
     const eventGetTabsInfo = (e, key)=>{
 
-      ipc.send(`get-tab-ids-reply_${key}`, this.state.tabs.map(tab => (tab.wvId || (tab.wv && tab.wv.id))), this.state.selectedTab)
+      const tabIds = []
+      for(let tab of this.state.tabs){
+        const tabId = tab.wvId || (tab.wv && tab.wv.id)
+        if(tabId == null){
+          return setTimeout(()=>ipc.emit(`get-tab-ids-${this.props.k}`, null, key),50)
+        }
+        tabIds.push(tabId)
+      }
+
+      ipc.send(`get-tab-ids-reply_${key}`, tabIds, this.state.selectedTab)
 
     }
     ipc.on(`get-tab-ids-${this.props.k}`,eventGetTabsInfo)
+
+    const cacheGuestInstanceId = {}
+    const eventCreateWebContents = (e,{id,targetUrl,disposition,guestInstanceId})=>{
+      console.log('0create-web-contents',id,targetUrl,disposition,guestInstanceId,this)
+      if (!this.mounted || cacheGuestInstanceId[guestInstanceId])
+        return
+
+      const tab = this.state.tabs.find(t=>t.wvId === id)
+
+      if (!tab) return
+
+      if(guestInstanceId) cacheGuestInstanceId[guestInstanceId] = true
+
+      console.log('create-web-contents',tab.page.navUrl,this, id)
+
+      const url = targetUrl
+
+      if(url === void 0 && tab.privateMode && Date.now() - tab.page.createdAt < 3000 &&
+        this.state.tabs.filter(t=>t.privateMode === tab.privateMode).length == 1){
+        return
+      }
+
+      const opposite = (tab.oppositeMode && !global.middleButtonLongPressing) || (!tab.oppositeMode && global.middleButtonLongPressing)
+
+      global.middleButtonLongPressing = (void 0)
+
+      if(!tab.sync && !isFloatPanel(this.props.k) && opposite && disposition !== 'foreground-tab'){
+        const oppositeKey = this.props.getOpposite(this.props.k)
+        if (oppositeKey && !isFixedPanel(oppositeKey)){
+          PubSub.publish(`new-tab-from-key_${oppositeKey}`, {url,mobile:tab.mobile, adBlockThis: tab.adBlockThis,fields: tab.fields,privateMode:tab.privateMode,guestInstanceId})
+          return
+        }
+        else{
+          this.props.split(this.props.k, 'v',1, (void 0), (void 0), {url,mobile:tab.mobile,adBlockThis:tab.adBlockThis,fields: tab.fields,privateMode:tab.privateMode,guestInstanceId})
+          return
+        }
+      }
+
+      const t = tabAdd(this, url, disposition === 'foreground-tab',tab.privateMode,guestInstanceId,tab.mobile,tab.adBlockThis,tab.fields)
+      ipc.send('create-web-contents-reply2',guestInstanceId, this.props.k, t.key)
+
+      if(tab.sync){
+        t.sync = uuid.v4()
+        t.dirc = tab.dirc
+        let retry = 0
+        const id = window.setInterval(()=> {
+          retry++
+          if (!t) {
+            clearInterval(id)
+            return
+          }
+          if (retry > 1000) {
+            clearInterval(id)
+            return
+          }
+          if (!t.wv || !t.wvId) return
+          const cont = this.getWebContents(t)
+          clearInterval(id)
+          cont.hostWebContents2.send('open-panel', {url,sync:t.sync,id:t.wvId,dirc:t.dirc,fore:disposition === 'foreground-tab',replaceInfo: tab.syncReplace,mobile: tab.mobile, adBlockThis: tab.adBlockThis,fields: tab.fields,privateMode:tab.privateMode})
+        }, 100)
+      }
+    }
+    ipc.on('create-web-contents',eventCreateWebContents)
 
 
     return [
@@ -703,7 +781,8 @@ export default class TabPanel extends Component {
       {'focus-input': eventFocusInput},
       {'move-tab-from-moved': eventMoveTabFromMoved},
       {'arrange-tabs': eventArrangeTabs},
-      {[`get-tab-ids-${this.props.k}`]: eventGetTabsInfo}
+      {[`get-tab-ids-${this.props.k}`]: eventGetTabsInfo},
+      {'create-web-contents': eventCreateWebContents}
     ]
   }
 
@@ -879,7 +958,7 @@ export default class TabPanel extends Component {
       }
       else if(type == 'create-web-contents'){
         const tab = this.state.tabs.find(x=>x.key==this.state.selectedTab)
-        tab.events['create-web-contents'](null, {id:tab.wvId,targetUrl:url,disposition:'background-tab'})
+        ipc.emit('create-web-contents', null, {id:tab.wvId,targetUrl:url,disposition:'background-tab'})
       }
     })
 
@@ -2777,8 +2856,8 @@ export default class TabPanel extends Component {
   onTabIdChanged(tabId, tab, isStart){
     const page = tab.page
     // guestIds[tab.key] = e
-    ipc.send('create-web-contents-reply',tabId, this.props.k, tab.key, Object.keys(this.props.currentWebContents).map(x=>parseInt(x)))
-    tab.wvId = tabId
+    ipc.send('create-web-contents-reply2',tabId, this.props.k, tab.key, Object.keys(this.props.currentWebContents).map(x=>parseInt(x)))
+    if(tabId) tab.wvId = tabId
     console.log(999,tabId)
     // tab._guestInstanceId = e.guestInstanceId
 
@@ -2835,7 +2914,7 @@ export default class TabPanel extends Component {
     }
     // if(tab.adBlockThis === (void 0)) tab.adBlockThis = adBlockEnable
 
-    if(guestInstanceId) tab.guestInstanceId = guestInstanceId
+    if(guestInstanceId) tab.wvId = tab.guestInstanceId = guestInstanceId
     if(initPos) tab.initPos = [default_url, initPos]
 
     if(!fields) fields = {}
@@ -2902,64 +2981,6 @@ export default class TabPanel extends Component {
     }
     ipc.on('get-panel-and-tab-info',tab.events['get-panel-and-tab-info'])
 
-    tab.events['create-web-contents'] = (e,{id,targetUrl,disposition,guestInstanceId})=>{
-      console.log('0create-web-contents',id,targetUrl,disposition,guestInstanceId,tab,this)
-      if (!this.mounted )
-        return
-
-      if (!tab.wvId || tab.wvId !== id)
-        return
-
-      console.log('create-web-contents',tab.page.navUrl,this)
-
-      const url = targetUrl
-
-      if(url === void 0 && tab.privateMode && Date.now() - tab.page.createdAt < 3000 &&
-        this.state.tabs.filter(t=>t.privateMode === tab.privateMode).length == 1){
-        return
-      }
-
-      const opposite = (tab.oppositeMode && !global.middleButtonLongPressing) || (!tab.oppositeMode && global.middleButtonLongPressing)
-
-      global.middleButtonLongPressing = (void 0)
-
-      if(!tab.sync && !isFloatPanel(this.props.k) && opposite && disposition !== 'foreground-tab'){
-        const oppositeKey = this.props.getOpposite(this.props.k)
-        if (oppositeKey && !isFixedPanel(oppositeKey)){
-          PubSub.publish(`new-tab-from-key_${oppositeKey}`, {url,mobile:tab.mobile, adBlockThis: tab.adBlockThis,fields: tab.fields,privateMode:tab.privateMode,guestInstanceId})
-          return
-        }
-        else{
-          this.props.split(this.props.k, 'v',1, (void 0), (void 0), {url,mobile:tab.mobile,adBlockThis:tab.adBlockThis,fields: tab.fields,privateMode:tab.privateMode,guestInstanceId})
-          return
-        }
-      }
-
-      const t = tabAdd(this, url, disposition === 'foreground-tab',tab.privateMode,guestInstanceId,tab.mobile,tab.adBlockThis,tab.fields)
-      ipc.send('create-web-contents-reply2',guestInstanceId, this.props.k, t.key)
-
-      if(tab.sync){
-        t.sync = uuid.v4()
-        t.dirc = tab.dirc
-        let retry = 0
-        const id = window.setInterval(()=> {
-          retry++
-          if (!t) {
-            clearInterval(id)
-            return
-          }
-          if (retry > 1000) {
-            clearInterval(id)
-            return
-          }
-          if (!t.wv || !t.wvId) return
-          const cont = this.getWebContents(t)
-          clearInterval(id)
-          cont.hostWebContents2.send('open-panel', {url,sync:t.sync,id:t.wvId,dirc:t.dirc,fore:disposition === 'foreground-tab',replaceInfo: tab.syncReplace,mobile: tab.mobile, adBlockThis: tab.adBlockThis,fields: tab.fields,privateMode:tab.privateMode})
-        }, 100)
-      }
-    }
-    ipc.on('create-web-contents',tab.events['create-web-contents'])
 
     tab.syncMode = ({url,dirc,sync,replaceInfo})=> {
       let retryNum = 0
@@ -3394,7 +3415,7 @@ export default class TabPanel extends Component {
         console.log(tab.wvId,i)
         if(tab.wvId === (void 0)){
           if(retry < 50){
-            setTimeout(_=>this.componentDidUpdate(prevProps, prevState,retry++),100)
+            return setTimeout(_=>this.componentDidUpdate(prevProps, prevState,retry++),100)
           }
           func()
           return
@@ -3840,7 +3861,7 @@ export default class TabPanel extends Component {
     console.log(changeInfo)
     if(changeInfo.active && tab.key != this.state.selectedTab){
       console.log("selected07",tab.key)
-      this.setState({selectedTab: tab.key}) //@TODO
+      // this.setState({selectedTab: tab.key}) //@TODO
     }
     if(changeInfo.pinned != (void 0)){
       tab.pin = changeInfo.pinned
