@@ -1406,10 +1406,10 @@ ipcMain.on('change-tab-infos', (e,changeTabInfos, panelKey)=> {
         // webContents.fromId(c.tabId).focus()
         if(panelKey){
           const [_1, _2, panel, _3] = BrowserPanel.getBrowserPanelByTabId(c.tabId)
-          if(panel.panelKey != panelKey){
+          if(!panel || panel.panelKey != panelKey){
             await new Promise(r=>setTimeout(r,100))
             const [_1, _2, panel, _3] = BrowserPanel.getBrowserPanelByTabId(c.tabId)
-            if(panel.panelKey != panelKey) return
+            if(!panel || panel.panelKey != panelKey) return
           }
         }
         webContents.fromId(c.tabId).setActive()

@@ -3093,6 +3093,14 @@ export default class TabPanel extends Component {
   }
 
   webViewCreate(){
+    if(this.webViewCreateId) return
+    this.webViewCreateId = setTimeout(()=>{
+      this._webViewCreate()
+      this.webViewCreateId = void 0
+    },30)
+  }
+
+  _webViewCreate(){
     console.log('webview-create1', this.state.tabs.map((tab, index)=>tab.page.navUrl))
     if(this.mounted===false) return
     const div = this.refs[`div-${this.state.selectedTab}`] || document.querySelector(`div.div-back.db${this.state.selectedTab}`)

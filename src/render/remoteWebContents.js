@@ -5,7 +5,8 @@ export default new Proxy(remoteWebContents, {
   get: (target, name) => {
     if(name == 'fromId'){
       return (tabId) => {
-        return new Proxy(remoteWebContents.fromId(tabId), {
+        let rWebContents
+        return new Proxy({}, {
           get: (target, name) => {
             if(name == 'getURL' ||
               name == 'isDestroyed'){
@@ -32,8 +33,20 @@ export default new Proxy(remoteWebContents, {
                 })
               }
             }
+            else if(name == 'executeJavaScript'){
+              const key = Math.random().toString()
+              return (...args) => {
+                const callback = args[args.length - 1]
+                ipc.send('webContents_event', name, tabId, key, ...args.slice(0, args.length - 1))
+                ipc.once(`webContents_event_${tabId}_${key}`, (e, result) =>{
+                  callback(result)
+                })
+              }
+
+            }
             else{
-              return target[name]
+              if(!rWebContents) rWebContents = remoteWebContents.fromId(tabId)
+              return rWebContents[name]
             }
           }
         })

@@ -270,16 +270,16 @@ class BrowserPage extends Component {
     //   }
     // }
 
-    this.wvEvents['found-in-page'] = (e, result) => {
-      if (result.activeMatchOrdinal) {
-        this.setState({result_string: `${result.activeMatchOrdinal}/${result.matches}`})
-      }
-      else{
-        this.setState({result_string: "0/0"})
-      }
-    }
-
-    webview.on('found-in-page',this.wvEvents['found-in-page'])
+    // this.wvEvents['found-in-page'] = (e, result) => {
+    //   if (result.activeMatchOrdinal) {
+    //     this.setState({result_string: `${result.activeMatchOrdinal}/${result.matches}`})
+    //   }
+    //   else{
+    //     this.setState({result_string: "0/0"})
+    //   }
+    // }
+    //
+    // webview.on('found-in-page',this.wvEvents['found-in-page'])
 
 
     this.tokenResize = PubSub.subscribe("resize",(msg)=>{
@@ -378,10 +378,10 @@ class BrowserPage extends Component {
   componentWillUnmount() {
     console.log('delete-browser-view', this.props.k2, this.props.k)
     for (let k in webviewEvents)
-      this.webview.removeListener(k, webviewHandler(this, webviewEvents[k]))
+      ipc.removeListener(k, webviewHandler(this, webviewEvents[k]))
 
     for(let [k,v] of Object.entries(this.wvEvents)){
-      this.webview.removeListener(k, v)
+      ipc.removeListener(k, v)
     }
     this.refs2.webview = null
 

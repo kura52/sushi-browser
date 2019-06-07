@@ -95,9 +95,9 @@ Please enter the correct path of the executable file.`
         return app.quit()
       }
     }
-    else if(fs.existsSync(executablePath = 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe') ||
+    else if(fs.existsSync(executablePath = path.join(__dirname, '../../../../custom_chromium/chrome.exe')) ||
       fs.existsSync(executablePath = path.join(__dirname, '../../../../chromium/chrome.exe'))){
-      BrowserPanel.BROWSER_NAME = 'Chrome'
+      BrowserPanel.BROWSER_NAME = 'Chromium'
     }
     else if(fs.existsSync(executablePath = 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe')){}
     else if(fs.existsSync(executablePath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe')){}
@@ -1147,7 +1147,7 @@ Or, please use the Chromium bundled version.`
 
 }
 
-Browser.CUSTOM_CHROMIUM = (!require('../minimist')(process.argv.slice(1))['browser-path'] || !fs.existsSync(require('../minimist')(process.argv.slice(1))['browser-path'])) && fs.existsSync('C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe')
+Browser.CUSTOM_CHROMIUM = (!require('../minimist')(process.argv.slice(1))['browser-path'] || !fs.existsSync(require('../minimist')(process.argv.slice(1))['browser-path'])) && fs.existsSync(path.join(__dirname, '../../../../custom_chromium/chrome.exe'))
 
 
 

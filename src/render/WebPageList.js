@@ -15,6 +15,7 @@ export default class WebPageList extends Component{
   }
 
 
+
   componentDidMount() {
     this.mount = true
     const tokenCreate = PubSub.subscribe("webview-create",(msg,x)=>{
