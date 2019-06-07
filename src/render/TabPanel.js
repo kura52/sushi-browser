@@ -3140,7 +3140,7 @@ export default class TabPanel extends Component {
 
   TabPanelClose(key,time,keepWindow){
     console.log('TabPanelClose',this.state.tabs)
-    ipc.send('operation-overlap-component', 'delete', this.props.k)
+    // ipc.send('operation-overlap-component', 'delete', this.props.k)
 
     for(let tab of this.state.tabs){
       this._closeBind(tab)
@@ -3169,6 +3169,7 @@ export default class TabPanel extends Component {
       else{
         PubSub.publish('tab-close', {key: this.props.k})
       }
+      ipc.send('tab-panel-close',this.props.k)
     }
   }
 

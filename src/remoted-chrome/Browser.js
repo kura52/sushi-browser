@@ -290,6 +290,13 @@ Or, please use the Chromium bundled version.`
       }
     })
 
+    ipcMain.on('tab-panel-close', (e, panelKey) => {
+      const panel = BrowserPanel.getBrowserPanel(panelKey)
+      if(panel){
+        Browser.bg.evaluate((windowId) => chrome.windows.remove(windowId), panel.windowId)
+      }
+    })
+
     this.addExtensionEvents()
 
     evem.on('ipc.send', (channel, tabId, ...args)=>{

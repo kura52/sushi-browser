@@ -26,34 +26,14 @@ const glob = require("glob")
 const BEFORE_CODE_NAME = 'Geso(Squid arms)'
 const CODE_NAME = 'Fugu(Blowfish)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.25.1"
+const NEXT_APP_VERSION = "0.25.2"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Fixed the problem that windows are not linked to the correct panel.
-Fixed the bug of z-order of window.
-Some performance improvement.
-Fixed the bug that the window of the smallest size remains when it is minimized.
-Fixed a bug that media list popup doesn't close by click.
-Fixed the bug that youtube-dl does not work on Windows 8 and does not start.
-Fixed a bug that custom chrome edition of widevine doesn't work.
-Fixed custom chromium edition of side by side configuration error.
-Revive the margin function on the tab bar on the custom chromium edition.
-In the custom chromium edition, the minimum window size can be set to 0.
-Fixed a bug in hover screen display of fullscreen tab bar in custom chromium edition.
-Fixed a bug that is not displayed in the task bar in custom chromium edition.`
+const CHANGE_ENGLISH = `Fixed fatal performance issues with tab's operation.
+Fixed a hang when creating a new tab.`
 
-const CHANGE_JAPANESE = `ウインドウが正しいパネルに紐付かない不具合を修正。
-windowのz-orderの不具合修正。
-若干の性能改善。
-最小化したときに最小サイズのウインドウがが残る不具合を修正。
-media list popupがクリックで閉じない不具合を修正。
-Windows8でyoutube-dlが動作せず、起動しない不具合を修正。
-custom chromium版のwidevineが動作しない不具合を修正。
-custom chromium版のside by side configuration errorを修正。
-custom chromium版の上のタブバー上のマージン機能を復活。
-custom chromium版における、ウインドウの最小サイズが0にできるよう修正。
-custom chromium版における、fullscreenのタブバーのホバー表示の不具合を修正。
-custom chromium版における、タスクバーに表示されない不具合を修正。`
+const CHANGE_JAPANESE = `タブ操作に関する致命的な性能問題を修正。
+新規タブ作成時にハングする問題を修正。`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

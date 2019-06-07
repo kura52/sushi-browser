@@ -54,7 +54,7 @@ export default class webContents extends EventEmitter {
         let val
         try{
           if(name == 'executeJavaScript'){
-            val = await new Promise(r=>cont[name](...args,(result)=>resolve(result)))
+            val = await new Promise(r=>cont[name](...args,(result)=>r(result)))
           }
           else{
             val = await cont[name](...args)
