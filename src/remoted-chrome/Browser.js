@@ -95,9 +95,9 @@ Please enter the correct path of the executable file.`
         return app.quit()
       }
     }
-    else if(fs.existsSync(executablePath = path.join(__dirname, '../../../../custom_chromium/chrome.exe')) ||
+    else if(fs.existsSync(executablePath = 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe') ||
       fs.existsSync(executablePath = path.join(__dirname, '../../../../chromium/chrome.exe'))){
-      BrowserPanel.BROWSER_NAME = 'Chromium'
+      BrowserPanel.BROWSER_NAME = 'Chrome'
     }
     else if(fs.existsSync(executablePath = 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe')){}
     else if(fs.existsSync(executablePath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe')){}
@@ -164,6 +164,7 @@ Or, please use the Chromium bundled version.`
     this.disableOnActivated = new Set()
     this.windowCache = {}
     this.popUpCache = {}
+    this.tabCreatedTimeCache = {}
 
     await this.initBgPage()
 
@@ -195,7 +196,7 @@ Or, please use the Chromium bundled version.`
       for(const browserPanel of Object.values(BrowserPanel.panelKeys)){
         if(browserPanel.browserWindow && browserPanel.browserWindow.id == browserWindowId){
           if(eventName == 'focus'){
-            console.log('moveTopNativeWindow+bW1')
+            // console.log('moveTopNativeWindow+bW1')
             browserPanel.moveTopNativeWindow()
             browserPanel.moveTopNativeWindowBw()
           }
@@ -237,7 +238,7 @@ Or, please use the Chromium bundled version.`
         if(browserPanel.browserWindow.id == bwWinId){
           if(browserPanel.cpWin.nativeWindowBw.getHwnd() == hwnd || browserPanel.cpWin.chromeNativeWindow.getHwnd() == hwnd || winctl.WindowFromPoint2() == hwnd){
             browserPanel.moveTopNativeWindowBw()
-            console.log('moveTopNativeWindowBW2',Date.now())
+            // console.log('moveTopNativeWindowBW2',Date.now())
             return
           }
         }
@@ -480,11 +481,11 @@ Or, please use the Chromium bundled version.`
         if(browserPanel.windowId == windowId){
           for(const browserPanel2 of Object.values(BrowserPanel.panelKeys)){
             if(browserPanel != browserPanel2 && browserPanel.browserWindow.id == browserPanel2.browserWindow.id){
-              console.log('moveTopNativeWindow3')
+              // console.log('moveTopNativeWindow3')
               browserPanel2.moveTopNativeWindow()
             }
           }
-          console.log('moveTopNativeWindow+bW4')
+          // console.log('moveTopNativeWindow+bW4')
           browserPanel.moveTopNativeWindowBw()
           browserPanel.moveTopNativeWindow()
           return
@@ -715,6 +716,9 @@ Or, please use the Chromium bundled version.`
     })
 
     this.addListener('tabs', 'onCreated', async tab=>{
+
+      this.tabCreatedTimeCache[tab.id] = Date.now()
+
       console.log('tab', 'created', tab.url, tab.openerTabId)
       if(webContents.webContentsMap && webContents.webContentsMap.has(tab.id)) return
       if(tab.url == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/popup_prepare.html'){
@@ -803,9 +807,10 @@ Or, please use the Chromium bundled version.`
       if(shouldChange && cont && cont.hostWebContents2) cont.hostWebContents2.send('chrome-tabs-event',{tabId: activeInfo.tabId, changeInfo: {active: true}}, 'updated')
     })
 
-    this.addListener('tabs', 'onRemoved', removedTabId => {
+    this.addListener('tabs', 'onRemoved', (removedTabId, removeInfo) => {
       if(PopupPanel.tabId == removedTabId || this.popUpCache[removedTabId]) return
 
+      BrowserView.closedTabs[removedTabId] = removeInfo.windowId
       evem.emit(`close-tab_${removedTabId}`)
       const cont = webContents.fromId(removedTabId)
       if(cont && cont.hostWebContents2) cont.hostWebContents2.send('chrome-tabs-event',{tabId: removedTabId}, 'removed')
@@ -1087,7 +1092,7 @@ Or, please use the Chromium bundled version.`
     let chromeTabIds = await this.getChromeTabIds(panelKey)
 
     // const shouldRemoveTabIdsFromMy = diffArray(myTabIds, chromeTabIds)
-    // const shouldRemoveTabIdsFromChrome = diffArray(chromeTabIds, myTabIds)
+    const shouldRemoveTabIdsFromChrome = diffArray(chromeTabIds, myTabIds)
     //
     // if(shouldRemoveTabIdsFromMy.length + shouldRemoveTabIdsFromChrome.length){
     //   for(const tabId of shouldRemoveTabIdsFromMy){
@@ -1095,15 +1100,25 @@ Or, please use the Chromium bundled version.`
     //     await new Promise(r=>setTimeout(r,10))
     //   }
     //
-    //   if(shouldRemoveTabIdsFromChrome.length){
-    //     await Browser.bg.evaluate(tabIds => new Promise(r=>chrome.tabs.remove(tabIds,()=>r())),shouldRemoveTabIdsFromChrome)
-    //   }
-    //   return await this.syncTabPosition(panelKey)
+    if(shouldRemoveTabIdsFromChrome.length){
+      let flag = true
+      for(const tabId of shouldRemoveTabIdsFromChrome){
+        if(!this.tabCreatedTimeCache[tabId] || (Date.now() - this.tabCreatedTimeCache[tabId] < 5000)){
+          flag = false
+          break
+        }
+      }
+      if(flag){
+        await Browser.bg.evaluate(tabIds => new Promise(r=>chrome.tabs.remove(tabIds,()=>r())),shouldRemoveTabIdsFromChrome)
+        return await this.syncTabPosition(panelKey)
+      }
+      return await new Promise(r=>setTimeout(()=>this.syncTabPosition(panelKey),1700))
+    }
     // }
 
     const panel = BrowserPanel.getBrowserPanel(panelKey)
 
-    console.log('syncTabPosition', myTabIds, chromeTabIds, mainState.openTabNextLabel)
+    console.log('syncTabPosition', myTabIds.join(", "), chromeTabIds.join(", "), mainState.openTabNextLabel)
 
     // if(mainState.openTabNextLabel){
     //   const key = Math.random().toString()
@@ -1132,7 +1147,7 @@ Or, please use the Chromium bundled version.`
 
 }
 
-Browser.CUSTOM_CHROMIUM = (!require('../minimist')(process.argv.slice(1))['browser-path'] || !fs.existsSync(require('../minimist')(process.argv.slice(1))['browser-path'])) && fs.existsSync(path.join(__dirname, '../../../../custom_chromium/chrome.exe'))
+Browser.CUSTOM_CHROMIUM = (!require('../minimist')(process.argv.slice(1))['browser-path'] || !fs.existsSync(require('../minimist')(process.argv.slice(1))['browser-path'])) && fs.existsSync('C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe')
 
 
 

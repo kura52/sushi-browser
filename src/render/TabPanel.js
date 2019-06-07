@@ -675,7 +675,7 @@ export default class TabPanel extends Component {
           arr.splice(new_index, 0, arr.splice(old_index, 1)[0]);
           return arr
         }
-        const tabs = array_move(this.state.tabs, ind, toIndex)
+        const tabs = array_move(this.state.tabs, ind, toIndex).filter(x=>x)
         if(diffArray(this.state.tabs, tabs).length) this.setState({tabs})
       }
     }
@@ -2901,7 +2901,8 @@ export default class TabPanel extends Component {
   }
 
 
-  createTab({default_url,c_page=null,c_wv=null,c_div=null,c_key=null,hist=null,privateMode=false,pin=false,protect=false,lock=false,mute=false,fields,reloadInterval=false,guestInstanceId,tabPreview,initPos,rest} = {}){
+  createTab({default_url,c_page=null,c_wv=null,c_div=null,c_key=null,hist=null,privateMode=false,pin=false,protect=false,lock=false,
+              mute=false,fields,reloadInterval=false,guestInstanceId,tabPreview,initPos,rest} = {}){
     default_url = default_url == void 0 ? (isFixedVerticalPanel(this.props.k) ? sidebarURL : topURL) : default_url
     if(default_url) default_url = convertURL(default_url)
     const tab = {events:{},ext:{}}
@@ -3403,7 +3404,7 @@ export default class TabPanel extends Component {
       const func = ()=>{
         if(changeTabInfos.length){
           console.log('change-tab-infos2',changeTabInfos)
-          ipc.send('change-tab-infos',changeTabInfos)
+          ipc.send('change-tab-infos',changeTabInfos, this.props.k)
         }
         if(!allKeySame){
           this.props.parent.orderingIndexes()

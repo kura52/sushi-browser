@@ -15,17 +15,17 @@ export default class BrowserView {
     this.isInit = true
 
     this.webContentsMap = new Map()
+    this.closedTabs = {}
   }
 
   static async createNewTab(browserWindow, panelKey, tabKey, tabIndex, url, topZOrder) {
     // console.log('createNewTab',(panelKey, tabKey, tabIndex, url))
 
-    if (this.newTabCreateing) {
+    if (this.newPanelCreateing) {
       await new Promise(r => setTimeout(r, 20))
       return await this.createNewTab(browserWindow, panelKey, tabKey, tabIndex, url, topZOrder)
     }
 
-    this.newTabCreateing = true
 
     if (panelKey) {
       const panel = BrowserPanel.getBrowserPanel(panelKey)
@@ -34,22 +34,23 @@ export default class BrowserView {
         bv = await panel.addBrowserView(tabKey, url, tabIndex, topZOrder)
       }
       else{
+        this.newPanelCreateing = true
         const panel = await new BrowserPanel({browserWindow, panelKey, tabKey, url})
         bv = panel.tabKeys[tabKey][1]
       }
-      this.newTabCreateing = false
+      this.newPanelCreateing = false
       return bv
     }
   }
 
   static async newTab(cont, tab) {
-    if (tab && tab.openerTabId && !BrowserPanel.hasTabId(tab.openerTabId)) {
-      await new Promise(r => setTimeout(r, 50))
+    if (tab && tab.openerTabId && !BrowserPanel.hasTabId(tab.openerTabId) && !BrowserView.closedTabs[tab.openerTabId]) {
+      await new Promise(r => setTimeout(r, 30))
       console.log(998, cont.id)
       return await this.newTab(cont, tab)
     }
-    if (this.newTabCreateing) {
-      await new Promise(r => setTimeout(r, 50))
+    if (this.newPanelCreateing || this.newTabCreateing) {
+      await new Promise(r => setTimeout(r, 30))
       console.log(999, cont.id)
       return await this.newTab(cont, tab)
     }
@@ -91,28 +92,43 @@ export default class BrowserView {
       }, id, BrowserPanel.getAllTabIds())
     }
 
+    this.newTabCreateing = false
     console.log(2233, tab, currentTab)
 
     panel = BrowserPanel.getBrowserPanelByWindowId(tab.windowId)
     if(!panel){
+      this.newPanelCreateing = true
       await new Promise(r => setTimeout(r, 30))
       panel = BrowserPanel.getBrowserPanelByWindowId(tab.windowId)
     }
     if(panel){
+      this.newPanelCreateing = false
       const bv = panel.getBrowserView({tabId: tab.id})
       // console.log(77777,bv)
       if(bv){
-        this.newTabCreateing = false
         return bv
       }
       console.log(444451)
 
       const disposition = !mainState.alwaysOpenLinkBackground && tab.active ? 'foreground-tab' : 'background-tab'
 
-      const createFunc = () => {
+      const createFunc = async (retry) => {
+        let newTabId = tab.openerTabId || currentTab.id
+        const originWindowId = BrowserView.closedTabs[newTabId]
+        if(originWindowId){
+          newTabId = await Browser.bg.evaluate((windowId) => {
+            return new Promise(resolve => {
+              chrome.windows.getAll({populate: true}, (windows)=>{
+                const window = windows.find(w=> w.id == windowId ) || windows[0]
+                resolve(window.tabs[window.tabs.length - 1].id)
+              })
+            })
+          }, originWindowId)
+        }
+
         console.log('createFunc', id)
         panel.browserWindow.webContents.send('create-web-contents', {
-          id: tab.openerTabId || currentTab.id,
+          id: newTabId,
           targetUrl: tab.url,
           disposition,
           guestInstanceId: id
@@ -121,7 +137,7 @@ export default class BrowserView {
 
       return new Promise(async r => {
 
-        const interval = setInterval(createFunc,100)
+        const interval = setInterval(()=>createFunc(true),100)
 
         const func = async (e, newTabId, panelKey, tabKey) => {
           console.log('create-web-contents-reply', [id, newTabId])
@@ -148,7 +164,6 @@ export default class BrowserView {
 
             r(data[1])
 
-            this.newTabCreateing = false
             evem.removeListener(`close-tab_${id}`, closingFunc)
             ipcMain.removeListener('create-web-contents-reply2', func)
           }
@@ -171,8 +186,8 @@ export default class BrowserView {
     }
     else {
       console.log(444452)
-      this.newTabCreateing = false
       const [panel, bv] = await new BrowserPanel({webContents: cont, windowId: tab.windowId})
+      this.newPanelCreateing = false
       return bv
     }
 

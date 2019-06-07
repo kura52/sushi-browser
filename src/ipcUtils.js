@@ -1387,7 +1387,7 @@ ipcMain.on('sync-mobile-scroll',(e,optSelector,selector,move)=>{
 })
 
 let timer,timers={}
-ipcMain.on('change-tab-infos',(e,changeTabInfos)=> {
+ipcMain.on('change-tab-infos', (e,changeTabInfos, panelKey)=> {
   const f = function (cont,c) {
     // if (c.index !== (void 0)) {
     //   // if(timers[c.tabId]) clearTimeout(timers[c.tabId])
@@ -1400,10 +1400,18 @@ ipcMain.on('change-tab-infos',(e,changeTabInfos)=> {
     // }
     if (c.active) {
       if (timer) clearTimeout(timer)
-      timer = setTimeout(() => {
+      timer = setTimeout(async() => {
         console.log('change-tab-infos', c)
         // ipcMain.emit('update-tab', null, c.tabId)
         // webContents.fromId(c.tabId).focus()
+        if(panelKey){
+          const [_1, _2, panel, _3] = BrowserPanel.getBrowserPanelByTabId(c.tabId)
+          if(panel.panelKey != panelKey){
+            await new Promise(r=>setTimeout(r,100))
+            const [_1, _2, panel, _3] = BrowserPanel.getBrowserPanelByTabId(c.tabId)
+            if(panel.panelKey != panelKey) return
+          }
+        }
         webContents.fromId(c.tabId).setActive()
         timer = void 0
       }, 10)
@@ -2406,7 +2414,7 @@ ipcMain.on('no-attach-browser-view', (e, panelKey, tabKeys)=>{
 
 let moveingTab
 ipcMain.on('move-browser-view', async (e, panelKey, tabKey, type, tabId, x, y, width, height, zIndex, index)=>{
-  height = height - 7 //@TODO
+  // height = height - 7 //@TODO
   const win = BrowserWindow.fromWebContents(e.sender)
   if(!win || win.isDestroyed()) return
 

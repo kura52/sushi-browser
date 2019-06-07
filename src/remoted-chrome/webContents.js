@@ -423,7 +423,7 @@ export default class webContents extends EventEmitter {
     if(!panel) return
 
     if(require('../util').getCurrentWindow().id == panel.browserWindow.id){
-      console.log('moveTopNativeWindow5')
+      // console.log('moveTopNativeWindow5')
       panel.moveTopNativeWindow()
     }
   }

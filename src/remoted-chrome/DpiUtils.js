@@ -41,6 +41,7 @@ export default {
     return {left:rect.x, top:rect.y, right: rect.x + rect.width, bottom: rect.y + rect.height}
   },
   move(win,x,y,width,height){
+    // console.log('move', x,y,width,height)
     if(!isHighDpi) return move(win,x,y,width,height)
 
     x = Math.round(x)
@@ -55,6 +56,7 @@ export default {
     move(win,rect.x ,_rect.y,_rect.width,_rect.height)
   },
   moveJust(win,x,y,width,height){
+    // console.log('moveJust', x,y,width,height)
     move(win,x,y,width,height)
   },
   moveForChildWindow(win,x,y,width,height,parentX,parentY){
