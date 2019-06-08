@@ -72,6 +72,8 @@ function build(){
 
   const pwd = sh.pwd().toString()
   sh.cd(`${buildDir}/resources`)
+  sh.rm('-rf','inspector')
+
   if(sh.exec('asar e app.asar app').code !== 0) {
     console.log("ERROR5")
     process.exit()
@@ -79,9 +81,13 @@ function build(){
   sh.rm('app.asar')
   sh.rm('-rf','app/resource/bin')
   sh.rm('-rf','app/resource/extension')
-  sh.rm('-rf','app/node_modules/node-pty')
+  sh.rm('-rf','app/resource/winctl/build/**/*.{obj,tlog,ilk,pdb}')
+  sh.rm('-rf','app/resource/tui-editor/node_modules')
+  sh.rm('-rf','app/node_modules/**/*.{obj,tlog,ilk,pdb}')
   sh.rm('-rf','app/node_modules/youtube-dl/bin')
+  sh.rm('-rf','app/node_modules/jpeg-js/test')
   // sh.cp(`${pwd}/resource/extensions.txt`, `app.asar.unpacked/resource/.`)
+  sh.rm('-rf','app.asar.unpacked/node_modules/**/*.{obj,tlog,ilk,pdb}')
 
 
   sh.mv('app/resource/css/semantic-ui/themes/default/assets','app/resource/css/semantic-ui/themes/default/assets2')
@@ -483,7 +489,7 @@ const compiledJsFiles = ['resource/extension/default/1.0_0/js/top.js',
   'resource/extension/default/1.0_0/js/favoriteInit.js',
   'resource/extension/default/1.0_0/js/favoriteSidebar.js',
   'resource/extension/default/1.0_0/js/terminal.js',
-  'resource/extension/default/1.0_0/js/sync.js',
+  // 'resource/extension/default/1.0_0/js/sync.js',
   'resource/extension/default/1.0_0/js/settings.js',
   'resource/extension/default/1.0_0/js/inputHistorySetting.js',
   'resource/extension/default/1.0_0/js/macro.js',

@@ -23,7 +23,7 @@ const locale = require('../brave/app/locale')
 const extensions = require('./extension/extensions')
 
 import path from 'path'
-const ytdl = require('ytdl-core')
+// const ytdl = require('ytdl-core')
 const youtubedl = require('youtube-dl')
 import {getFocusedWebContents,getCurrentWindow} from './util'
 const isWin = process.platform == 'win32'
@@ -599,18 +599,18 @@ ipcMain.on('video-infos',(event,{url})=>{
     // console.log(info)
     if(!info){
       if(url.includes("youtube.com/")){
-        ytdl.getInfo(url, (err, info)=> {
-          if (err){
-            videoUrlsCache.set(url,{error:err})
-            event.sender.send(`video-infos-reply_${url}`,{error:'error2'})
-          }
-          else{
-            const title = info.title
-            const formats = info.formats
-            videoUrlsCache.set(url,{title,formats})
-            event.sender.send(`video-infos-reply_${url}`,{title,formats})
-          }
-        })
+        // ytdl.getInfo(url, (err, info)=> {
+        //   if (err){
+        //     videoUrlsCache.set(url,{error:err})
+        //     event.sender.send(`video-infos-reply_${url}`,{error:'error2'})
+        //   }
+        //   else{
+        //     const title = info.title
+        //     const formats = info.formats
+        //     videoUrlsCache.set(url,{title,formats})
+        //     event.sender.send(`video-infos-reply_${url}`,{title,formats})
+        //   }
+        // })
       }
       else{
         videoUrlsCache.set(url,{error:'error'})
@@ -2201,23 +2201,23 @@ ipcMain.on("full-screen-html",(e,val)=>{
   mainState.fullScreenIds[e.sender.id] = val
 })
 
-ipcMain.on("login-sync",async (e,{key,type,email,password})=>{
-  const firebaseUtils = require('./FirebaseUtils')
-  let errMsg,msg
-  if(type == 'login'){
-    msg = 'Login'
-    errMsg = await firebaseUtils.login(email,password)
-  }
-  else if(type == 'logout'){
-    msg = 'Logout'
-    errMsg = await firebaseUtils.logout(email)
-  }
-  else if(type == 'regist'){
-    msg = 'User registration'
-    errMsg = await firebaseUtils.regist(email,password)
-  }
-  e.sender.send(`login-sync-reply_${key}`,!errMsg, errMsg || `${msg} succeeded!`)
-})
+// ipcMain.on("login-sync",async (e,{key,type,email,password})=>{
+//   const firebaseUtils = require('./FirebaseUtils')
+//   let errMsg,msg
+//   if(type == 'login'){
+//     msg = 'Login'
+//     errMsg = await firebaseUtils.login(email,password)
+//   }
+//   else if(type == 'logout'){
+//     msg = 'Logout'
+//     errMsg = await firebaseUtils.logout(email)
+//   }
+//   else if(type == 'regist'){
+//     msg = 'User registration'
+//     errMsg = await firebaseUtils.regist(email,password)
+//   }
+//   e.sender.send(`login-sync-reply_${key}`,!errMsg, errMsg || `${msg} succeeded!`)
+// })
 
 function recurMenu(template,cont){
   for(let item of template){

@@ -18,7 +18,7 @@ const FindPanel = require('./FindPanel')
 const {token} = require('./databaseRender')
 const PanelOverlay = require('./PanelOverlay')
 const DownloadList = require("./DownloadList")
-import firebase,{storage,auth,database} from 'firebase'
+// import firebase,{storage,auth,database} from 'firebase'
 const sharedState = require('./sharedState')
 const getTheme = require('./theme')
 let [MARGIN,verticalTabPosition,themeInfo,autoDeleteDownloadList,enableDownloadList] = ipc.sendSync('get-sync-main-states',['syncScrollMargin','verticalTabPosition','themeInfo','autoDeleteDownloadList','enableDownloadList'])
@@ -61,16 +61,16 @@ const isDarwin = navigator.userAgent.includes('Mac OS X')
 
 const baseTime = new Date("2017/01/01").getTime()
 
-const config = {
-  apiKey: "AIzaSyCZFJ_UVwezRCWS3IMfGusPMZqmZsN6zdE",
-  authDomain: "browser-b2ecd.firebaseapp.com",
-  databaseURL: "https://browser-b2ecd.firebaseio.com",
-  projectId: "browser-b2ecd",
-  storageBucket: "browser-b2ecd.appspot.com",
-  messagingSenderId: "427711452647"
-}
-
-firebase.initializeApp(config)
+// const config = {
+//   apiKey: "AIzaSyCZFJ_UVwezRCWS3IMfGusPMZqmZsN6zdE",
+//   authDomain: "browser-b2ecd.firebaseapp.com",
+//   databaseURL: "https://browser-b2ecd.firebaseio.com",
+//   projectId: "browser-b2ecd",
+//   storageBucket: "browser-b2ecd.appspot.com",
+//   messagingSenderId: "427711452647"
+// }
+//
+// firebase.initializeApp(config)
 
 function insertCss(colors){
   const s = document.createElement('style');
@@ -385,55 +385,55 @@ export default class SplitWindows extends Component{
     ipc.on('did-get-response-details', this.getResponseDetails)
 
 
-    this.syncDatasEvent = async (e,{sync_at,email,password,base64})=>{
-      console.log(666,{email,password,base64})
-      let uid
-      const user = auth().currentUser
-      if (!user) {
-        const result = await auth().signInWithEmailAndPassword(email, password)
-        uid = result.uid
-      }
-      else{
-        uid = user.uid
-      }
-
-      const bTime = (sync_at == 0 ? sync_at : sync_at - baseTime).toString(36)
-      const storageRef = storage().ref(`users/${uid}`)
-      const dbRef = database().ref(`users/${uid}/s`)
-      let vals = (await dbRef.orderByKey().limitToLast(20).once('value')).val()
-      if(vals && Object.keys(vals)[0] > bTime){
-        vals = (await dbRef.orderByKey().once('value')).val()
-      }
-
-      for(let key of Object.keys(vals || {})){
-        console.log(33343,key,bTime)
-        if(key > bTime){
-          const url = await storageRef.child(`${key}.gz`).getDownloadURL()
-          fetch(url).then(response=>{
-            return response.blob();
-          }).then(blob=>{
-            const reader = new FileReader();
-            reader.onload = _=>{ipc.send('sync-datas-to-main',reader.result.split(',')[1], password)}
-            reader.readAsDataURL(blob)
-          })
-        }
-      }
-
-      const now = Date.now()
-      const setTime = (now - baseTime).toString(36)
-      const ref = storageRef.child(`${setTime}.gz`)
-      ref.put(toBlob(base64)).then((snapshot)=>{
-        dbRef.update({
-          [setTime]: ""
-        });
-        console.log(email,now)
-        token.update({email},{$set: {sync_at: now}}).then(_=>_)
-      });
-
-
-    }
-
-    ipc.on('sync-datas',this.syncDatasEvent)
+    // this.syncDatasEvent = async (e,{sync_at,email,password,base64})=>{
+    //   console.log(666,{email,password,base64})
+    //   let uid
+    //   const user = auth().currentUser
+    //   if (!user) {
+    //     const result = await auth().signInWithEmailAndPassword(email, password)
+    //     uid = result.uid
+    //   }
+    //   else{
+    //     uid = user.uid
+    //   }
+    //
+    //   const bTime = (sync_at == 0 ? sync_at : sync_at - baseTime).toString(36)
+    //   const storageRef = storage().ref(`users/${uid}`)
+    //   const dbRef = database().ref(`users/${uid}/s`)
+    //   let vals = (await dbRef.orderByKey().limitToLast(20).once('value')).val()
+    //   if(vals && Object.keys(vals)[0] > bTime){
+    //     vals = (await dbRef.orderByKey().once('value')).val()
+    //   }
+    //
+    //   for(let key of Object.keys(vals || {})){
+    //     console.log(33343,key,bTime)
+    //     if(key > bTime){
+    //       const url = await storageRef.child(`${key}.gz`).getDownloadURL()
+    //       fetch(url).then(response=>{
+    //         return response.blob();
+    //       }).then(blob=>{
+    //         const reader = new FileReader();
+    //         reader.onload = _=>{ipc.send('sync-datas-to-main',reader.result.split(',')[1], password)}
+    //         reader.readAsDataURL(blob)
+    //       })
+    //     }
+    //   }
+    //
+    //   const now = Date.now()
+    //   const setTime = (now - baseTime).toString(36)
+    //   const ref = storageRef.child(`${setTime}.gz`)
+    //   ref.put(toBlob(base64)).then((snapshot)=>{
+    //     dbRef.update({
+    //       [setTime]: ""
+    //     });
+    //     console.log(email,now)
+    //     token.update({email},{$set: {sync_at: now}}).then(_=>_)
+    //   });
+    //
+    //
+    // }
+    //
+    // ipc.on('sync-datas',this.syncDatasEvent)
 
 
     this.toggleNavEvent = (e,num)=>{

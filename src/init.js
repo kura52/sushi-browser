@@ -219,7 +219,7 @@ app.once('ready', async ()=>{
     require('./ipcAutoOperations')
     require('./VideoConverter')
     require('./tabContextMenu')
-    require('./syncLoop')
+    // require('./syncLoop')
 
     // adblock = require('../brave/adBlock') //@TODO ELECTRON
     require('./menuSetting')

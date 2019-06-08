@@ -30,10 +30,14 @@ const NEXT_APP_VERSION = "0.25.2"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
 const CHANGE_ENGLISH = `Fixed fatal performance issues with tab's operation.
-Fixed a hang when creating a new tab.`
+Fixed a hang when creating a new tab.
+Some performace tuning.
+Reduced file size.`
 
 const CHANGE_JAPANESE = `タブ操作に関する致命的な性能問題を修正。
-新規タブ作成時にハングする問題を修正。`
+新規タブ作成時にハングする問題を修正。
+いくつかの性能改善。
+ファイルサイズを削減`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'
