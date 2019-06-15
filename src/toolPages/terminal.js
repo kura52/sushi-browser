@@ -9,6 +9,19 @@ import * as fit from 'xterm/lib/addons/fit/fit'
 import * as webLinks from 'xterm/lib/addons/webLinks/webLinks'
 import * as winptyCompat from 'xterm/lib/addons/winptyCompat/winptyCompat'
 
+function getUrlVars(){
+  const vars = {}
+  const param = location.search.substring(1).split('&')
+  for(let i = 0; i < param.length; i++) {
+    const keySearch = param[i].search(/=/)
+    let key = ''
+    if(keySearch != -1) key = param[i].slice(0, keySearch)
+    const val = param[i].slice(param[i].indexOf('=', 0) + 1)
+    if(key != '') vars[key] = decodeURIComponent(val)
+  }
+  return vars
+}
+
 const isWin = navigator.userAgent.includes('Windows')
 const isDarwin = navigator.userAgent.includes('Mac OS X')
 const DEFAULT_WINDOWS_FONT_FAMILY = 'Consolas, \'Courier New\', monospace';
@@ -68,4 +81,4 @@ function handleResize(e) {
 window.addEventListener('resize', handleResize, { passive: true });
 window.onload = handleResize
 
-ipc.send('start-pty',key)
+ipc.send('start-pty',key,getUrlVars().cmd)

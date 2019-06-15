@@ -1450,7 +1450,7 @@ class Tabs extends React.Component {
     const bgImage = getTheme('images','theme_tab_background' ) || void 0
 
     return (
-      <div style={tabInlineStyles.tabWrapper} className={_tabClassNames.tabWrapper} ref="div"
+      <div style={tabInlineStyles.tabWrapper} className={_tabClassNames.tabWrapper} key="div" ref="div"
            onDragOver={(e)=>{e.preventDefault();return false}} onDrop={(e)=>{e.preventDefault();return false}}
            onKeyDown={this.props.onKeyDown}>
         {(!this.tabPreviewHeight || this.tabPreviewHeight == 27) && preview ? <div style={{
@@ -1467,7 +1467,7 @@ class Tabs extends React.Component {
           backgroundRepeat: 'no-repeat'
         }}/> : null}
         <div className={`tab-base${this.props.toggleNav == 3 ? ' full-screen visible transition' : ''}`} style={tabBaseStyle}>
-          <ul tabIndex="-1" style={tabInlineStyles.tabBar} className={_tabClassNames.tabBar} ref="ttab"
+          <ul tabIndex="-1" style={tabInlineStyles.tabBar} className={_tabClassNames.tabBar} key="ttab" ref="ttab"
               onDoubleClick={isDarwin ? _=>{
                 const win = remote.getCurrentWindow()
                 if(win._isFullScreen){}

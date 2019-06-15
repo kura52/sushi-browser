@@ -26,18 +26,30 @@ const glob = require("glob")
 const BEFORE_CODE_NAME = 'Geso(Squid arms)'
 const CODE_NAME = 'Fugu(Blowfish)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.25.2"
+const NEXT_APP_VERSION = "0.25.3"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Fixed fatal performance issues with tab's operation.
-Fixed a hang when creating a new tab.
-Some performace tuning.
-Reduced file size.`
+const CHANGE_ENGLISH = `Changed WebContents Occlusion to disabled. (Fix the bug that rendering of the browser web page is not performed)
+Fixed: Scrolling works properly if "Scroll inactive windows when I hover over them" is disabled.
+Modified Developer Tools window to be resizable.
+Fixed a bug that the menu on the toolbar does not close after clicking.
+Fixed the judgment error of whether it is the top window or not.
+Fixed a bug in Chrome version display.
+Updated Electron to 5.0.4.
+Updated youtube-dl to 2019.06.08.
+Fixed crash when opening drop-down menu in custom chromium edition. (issue #62)
+Updated custom chromium to 75.0.3770.90.`
 
-const CHANGE_JAPANESE = `タブ操作に関する致命的な性能問題を修正。
-新規タブ作成時にハングする問題を修正。
-いくつかの性能改善。
-ファイルサイズを削減`
+const CHANGE_JAPANESE = `WebContents Occlusionを無効と設定するよう変更。(ブラウザの描写が行われない不具合を修正)
+Windowsの「ポイントしたときに非アクティブ ウインドウをスクロールする」が無効になっている場合に、スクロールが正しく動作するように修正
+Developer Toolsのウインドウがリサイズできるように修正
+ツールバー上のメニューがクリック後に閉じない不具合を修正
+最上位ウインドウ判定の不具合を修正
+Chromeのバージョン表示の誤りを修正
+Electronを5.0.4に更新
+youtube-dlを2019.06.08に更新
+custom chromium版でドロップダウンメニューを開いた際にクラッシュする不具合を修正 (issue #62)
+custom chromiumを75.0.3770.90に更新`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

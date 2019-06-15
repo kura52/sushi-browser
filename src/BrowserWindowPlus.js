@@ -472,7 +472,7 @@ export default {
       mainState.dragData = null
       mainState.lockTabs = {}
       mainState.protectTabs = {}
-      mainState.versions = {...process.versions,browser: fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString()}
+      mainState.versions = {...process.versions,browser: fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString(), chrome: null}
       mainState.mediaPlaying = {}
       mainState.isVolumeControl = {}
       mainState.fullScreenIds = {}

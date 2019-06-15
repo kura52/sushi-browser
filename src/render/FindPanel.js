@@ -333,7 +333,7 @@ export default class FindPanel extends Component {
         right: 0,
         marginRight: 0,
         marginLeft: 'auto'}}>
-        <input style={{borderRadius: 'unset', borderTop: 0, width: 350}} className="search-text" ref="input" type="text" placeholder="Search..." onKeyDown={::this.onKeyDown}/>
+        <input style={{borderRadius: 'unset', borderTop: 0, width: 350}} className="search-text" key="input" ref="input" type="text" placeholder="Search..." onKeyDown={::this.onKeyDown}/>
         <a className="search-button" href="javascript:void(0)">
           <i className="search-next fa fa-angle-up" style={{fontSize: "1.5em",lineHeight: "1.2",height:"30px"}} onClick={::this.onPrev}></i>
         </a>

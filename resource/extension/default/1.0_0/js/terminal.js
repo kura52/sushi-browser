@@ -14089,6 +14089,19 @@ window.debug = __webpack_require__(132)('info');
 const uuid = __webpack_require__(135);
 
 
+function getUrlVars() {
+  const vars = {};
+  const param = location.search.substring(1).split('&');
+  for (let i = 0; i < param.length; i++) {
+    const keySearch = param[i].search(/=/);
+    let key = '';
+    if (keySearch != -1) key = param[i].slice(0, keySearch);
+    const val = param[i].slice(param[i].indexOf('=', 0) + 1);
+    if (key != '') vars[key] = decodeURIComponent(val);
+  }
+  return vars;
+}
+
 const isWin = navigator.userAgent.includes('Windows');
 const isDarwin = navigator.userAgent.includes('Mac OS X');
 const DEFAULT_WINDOWS_FONT_FAMILY = 'Consolas, \'Courier New\', monospace';
@@ -14147,7 +14160,7 @@ function handleResize(e) {
 window.addEventListener('resize', handleResize, { passive: true });
 window.onload = handleResize;
 
-_ipcRenderer.ipcRenderer.send('start-pty', key);
+_ipcRenderer.ipcRenderer.send('start-pty', key, getUrlVars().cmd);
 
 /***/ }),
 /* 86 */
@@ -14403,13 +14416,17 @@ if (window.__started_) {
       // }
     }, { passive: true, capture: true });
 
+    document.addEventListener('mouseleave', e => {
+      ipc.send('send-to-host', 'webview-mousemove', { clientY: e.clientY, screenY: e.screenY });
+    });
+
     let preClientY = -1,
         checkVideoEvent = {},
         beforeRemoveIds = {};
     document.addEventListener('mousemove', e => {
       // console.log('mousemove')
       if (preClientY != e.clientY) {
-        ipc.send('send-to-host', 'webview-mousemove', e.clientY);
+        ipc.send('send-to-host', 'webview-mousemove', { clientY: e.clientY, screenY: e.screenY });
         // console.log('webview-mousemove', e.clientY)
         preClientY = e.clientY;
       }

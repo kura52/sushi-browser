@@ -207,7 +207,12 @@ export default class Aria2cWrapper{
       `--user-agent=${await cont.getUserAgent()}`,`--dir=${path.dirname(this.savePath)}`,`--out=${path.basename(this.savePath)}`,`${this.url}`]
 
     if(this.referer !== null){
-      params.push(`--referer=${this.referer || (await cont.getURL())}`)
+      const referer = this.referer || (await cont.getURL())
+      if((this.url.startsWith('https') && (referer.startsWith('http') || referer.startsWith('ftp'))) ||
+        (referer.startsWith('https') && (this.url.startsWith('http') || this.url.startsWith('ftp')))){}
+      else{
+        params.push(`--referer=${referer}`)
+      }
     }
 
 

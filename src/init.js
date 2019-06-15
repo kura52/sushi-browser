@@ -1264,7 +1264,7 @@ async function contextMenu(webContents, props) {
             ipcMain.once('start-pty-reply', (e, key) => {
               ipcMain.emit(`send-pty_${key}`, null, `${command}\n`)
             })
-            handleClick = (item, win) => webContents.hostWebContents2.send('new-tab', webContents.id, 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html')
+            handleClick = (item, win) => webContents.hostWebContents2.send('new-tab', webContents.id, 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html?cmd=1')
           }
         }
 

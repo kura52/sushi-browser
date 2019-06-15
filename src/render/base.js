@@ -319,7 +319,7 @@ export default class MainContent extends Component{
   }
 
   render() {
-    return <SplitWindows ref="splitWindow"/>
+    return <SplitWindows key="splitWindow" ref="splitWindow"/>
   }
 }
 

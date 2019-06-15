@@ -149,7 +149,7 @@ Or, please use the Chromium bundled version.`
         // '--test-type',
         '--disable-default-apps',
         // '--disable-dev-shm-usage',
-        '--disable-features=site-per-process,BlinkGenPropertyTrees',
+        '--disable-features=site-per-process,BlinkGenPropertyTrees,WebContentsOcclusion',
         // '--disable-features=site-per-process',
         `--user-data-dir=${this.userDataDir}`,
         `--load-extension=${path.resolve(__dirname, '../../resource/extension/default/1.0_0/').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')}`,
@@ -165,6 +165,8 @@ Or, please use the Chromium bundled version.`
     this.windowCache = {}
     this.popUpCache = {}
     this.tabCreatedTimeCache = {}
+
+    mainState.versions.chrome = (await this._browser.version()).split("/")[1]
 
     await this.initBgPage()
 
@@ -304,6 +306,8 @@ Or, please use the Chromium bundled version.`
       ipcMain.emit(channel, {sender: Number.isInteger(tabId) ? new webContents(tabId): new BackgroundPage(tabId)}, ...args)
     })
 
+    this.winScollEventHandler()
+
     // setInterval(()=>{
     //   powerMonitor.querySystemIdleState(60, state => {
     //     if(state == 'idle') this.reloadExtension()
@@ -322,9 +326,52 @@ Or, please use the Chromium bundled version.`
     //     panel.setBounds({ x:  Math.round(pos.left + winPos[0]), y: Math.round(pos.top + winPos[1]), width: pos.width, height: pos.height}, true)
     //   }
     // },3000)
+  }
+
+  static async winScollEventHandler(){
+    const Registry = require('winreg')
+    const regKey = new Registry({hive: Registry.HKCU, key: '\\Control Panel\\Desktop'}) //HKEY_CURRENT_USER
+    let mouseWheelRouting = await new Promise(resolve => {
+      regKey.get('MouseWheelRouting', (err, item) => {
+        if(err) return resolve(false)
+        resolve(parseInt(item.value, 16) == 2)
+      })
+    })
+
+    if(mouseWheelRouting) return
 
 
+    const doWheel = (e, browserPanel) => {
+      const pos = browserPanel.browserWindow.getPosition()
+      const p = DpiUtils.screenToDipPoint(e.x, e.y)
+      browserPanel.browserWindow.webContents.sendInputEvent({
+        type: 'mouseWheel', x: p.x - pos[0], y: p.y - pos[1], deltaX: 0, deltaY: e.rotation * -1 * 100, canScroll: true
+      })
+    }
 
+    const ioHook = require('iohook')
+    ioHook.start(false)
+    ioHook.on('mousewheel', async e => {
+      const hwnd = winctl.NonActiveWindowFromPoint()
+      if(!hwnd) return
+      // const win = (await winctl.FindWindows(win => win.getHwnd() == hwnd))[0]
+      // console.log(hwnd,win && win.getTitle()); // { amount: 3,  clicks: 1,  direction: 3,  rotation: 1,  type: 'mousewheel',  x: 776,  y: 850 }
+
+      for (const browserPanel of Object.values(BrowserPanel.panelKeys)) {
+        if(browserPanel.cpWin.nativeWindowBw.getHwnd() == hwnd ){
+          return doWheel(e, browserPanel)
+        }
+        else if(browserPanel.cpWin.nativeWindow.getHwnd() == hwnd){
+          const activeHwnd = winctl.GetActiveWindow2().getHwnd()
+          for (const browserPanel2 of Object.values(BrowserPanel.panelKeys)) {
+            if(browserPanel != browserPanel2 &&
+              browserPanel.browserWindow == browserPanel2.browserWindow &&
+              browserPanel2.cpWin.nativeWindow.getHwnd() == activeHwnd) return
+          }
+          return doWheel(e, browserPanel)
+        }
+      }
+    })
   }
 
   static close(){

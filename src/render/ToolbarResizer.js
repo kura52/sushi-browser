@@ -69,6 +69,6 @@ export default class ToolbarResizer extends Component{
   }
 
   render(){
-    return <div ref="dad" onMouseDown={this.mdown} className="hol-resizer" style={this.props.style}/>
+    return <div key="dad" ref="dad" onMouseDown={this.mdown} className="hol-resizer" style={this.props.style}/>
   }
 }

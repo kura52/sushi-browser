@@ -1463,17 +1463,16 @@ ipcMain.on('download-m3u8',(e,url,fname,tabId,userAgent,referer,needInput)=>{
       for(let i=0;i<100;i++){
         cont = await getFocusedWebContents()
         const url = cont.getURL()
-        if(url == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html') break
+        if(url.startsWith('chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html')) break
         await new Promise(r=>setTimeout(r,30))
       }
-      await new Promise(r=>setTimeout(r,1000))
 
-      // ipcMain.emit('send-input-event', {} , {type: 'mouseDown',tabId: cont.id,x:100,y:100,button: 'left'})
-      // ipcMain.emit('send-input-event', {} , {type: 'mouseUp',tabId: cont.id,x:100,y:100,button: 'left'})
-      // await new Promise(r=>setTimeout(r,1000))
-      ipcMain.emit(`send-pty_${key}`, null, `${isWin ? '& ' : ''}${shellEscape(youtubeDl)} --user-agent ${shellEscape(userAgent)} --referer ${shellEscape(referer)} --hls-prefer-native --ffmpeg-location=${shellEscape(ffmpeg)} -o ${shellEscape(downloadPath)} ${shellEscape(url)}\n`)
+      ipcMain.emit('send-input-event', {} , {type: 'mouseDown',tabId: cont.id,x:100,y:100,button: 'left'})
+      ipcMain.emit('send-input-event', {} , {type: 'mouseUp',tabId: cont.id,x:100,y:100,button: 'left'})
+      await new Promise(r=>setTimeout(r,100))
+      ipcMain.emit(`send-pty_${key}`, null, `${shellEscape(youtubeDl)} --user-agent ${shellEscape(userAgent)} --referer ${shellEscape(referer)} --hls-prefer-native --ffmpeg-location=${shellEscape(ffmpeg)} -o ${shellEscape(downloadPath)} ${shellEscape(url)}\n`)
     })
-    e.sender.send('new-tab', tabId, 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html')
+    e.sender.send('new-tab', tabId, 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html?cmd=1')
   }
 
   if(needInput){
@@ -2093,7 +2092,7 @@ ipcMain.on('run-puppeteer',(e, dir, file)=> {
   ipcMain.once('start-pty-reply', (e, key) => {
     ipcMain.emit(`send-pty_${key}`, null, `cd ${dir}\nnode ${file}\n`)
   })
-  e.sender.hostWebContents2.send('new-tab', e.sender.id, 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html')
+  e.sender.hostWebContents2.send('new-tab', e.sender.id, 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html?cmd=1')
 })
 
 ipcMain.on('start-complex-search',(e,key,tabId,operation,noMacro)=>{

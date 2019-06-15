@@ -671,7 +671,7 @@ class BrowserNavbar extends Component{
 
   mainMenu(cont,tab,menuActions){
     const hostname = this.props.page.navUrl ? urlParse(this.props.page.navUrl).hostname : ""
-    return <NavbarMenu ref="main-menu" className="main-menu" k={this.props.k} isFloat={isFloatPanel(this.props.k) || this.props.isMaximize} style={{overflowX: 'visible'}}
+    return <NavbarMenu key="main-menu" ref="main-menu" className="main-menu" k={this.props.k} isFloat={isFloatPanel(this.props.k) || this.props.isMaximize} style={{overflowX: 'visible'}}
                        title={locale.translation('settings')} icon="bars" tab={tab.bind && tab}
                        onClick={_=>{
                          this.getWebContents(this.props.tab).getZoomFactor(factor=>{
@@ -837,7 +837,8 @@ class BrowserNavbar extends Component{
       <div className="divider" />
       <NavbarMenuSubMenu text="About">
         <NavbarMenuItem text={`${locale.translation("browserVersion")}: ${versions.browser}`} onClick={_=>this.navigate('https://sushib.me/download.html')}/>
-        <NavbarMenuItem text={`${locale.translation("chromiumVersion")}: ${versions.chrome}`} onClick={_=>this.navigate('https://github.com/chromium/chromium/releases')}/>
+        <NavbarMenuItem text={`${locale.translation("chromiumVersion")}: ${versions.chrome || (versions.chrome = ipc.sendSync('get-sync-main-states',['versions'])[0].chrome) }`}
+                        onClick={_=>this.navigate('https://github.com/chromium/chromium/releases')}/>
       </NavbarMenuSubMenu>
     </NavbarMenu>
   }
@@ -855,7 +856,7 @@ class BrowserNavbar extends Component{
 
   favoriteMenu(cont,onContextMenu){
     const menuItems = []
-    return <NavbarMenu className="sort-favorite" k={this.props.k} isFloat={isFloatPanel(this.props.k) || this.props.isMaximize} ref="favoriteMenu" title={locale.translation('bookmarks')} icon="star" onClick={_=>_} onContextMenu={onContextMenu} timeOut={50}>
+    return <NavbarMenu className="sort-favorite" k={this.props.k} isFloat={isFloatPanel(this.props.k) || this.props.isMaximize} key="favoriteMenu" ref="favoriteMenu" title={locale.translation('bookmarks')} icon="star" onClick={_=>_} onContextMenu={onContextMenu} timeOut={50}>
       <NavbarMenuItem bold={true} text={locale.translation("navigateToTheBookmarkPage")} onClick={_=>this.onCommon("favorite")} />
       <div className="divider" />
       <NavbarMenuItem bold={true} text={locale.translation("addThisPageToTheBookmarks")} onClick={_=>this.onAddFavorite(this.props.page.location,this.props.page.title,this.props.page.favicon)} />
@@ -889,18 +890,22 @@ class BrowserNavbar extends Component{
 
   historyMenu(cont,onContextMenu){
     const menuItems = []
-    return <NavbarMenu className="sort-history" k={this.props.k} isFloat={isFloatPanel(this.props.k) || this.props.isMaximize} ref="historyMenu" title={locale.translation('history')} icon="history" onClick={_=>_} onContextMenu={onContextMenu} timeOut={50}>
+    return <NavbarMenu className="sort-history" k={this.props.k} isFloat={isFloatPanel(this.props.k) || this.props.isMaximize} key="historyMenu"  ref="historyMenu" title={locale.translation('history')} icon="history" onClick={_=>_} onContextMenu={onContextMenu} timeOut={50}>
       <NavbarMenuItem bold={true} text={locale.translation("navigateToTheHistoryPage")} onClick={_=>this.onCommon("history")} />
       <div className="divider" />
       <div role="option" className="item favorite infinite-classic">
-        <HistoryExplorer cont={cont} onClick={_=> this.refs.historyMenu.setState({visible:false})}/>
+        <HistoryExplorer cont={cont} onClick={_=> {
+          this.refs.historyMenu.setState({visible:false})
+          console.log('hist21111')
+
+        }}/>
       </div>
     </NavbarMenu>
   }
 
   tabHistoryMenu(cont,onContextMenu){
     const menuItems = []
-    return <NavbarMenu className="sort-tabHistory" k={this.props.k} isFloat={isFloatPanel(this.props.k) || this.props.isMaximize} ref="tabHistoryMenu" title={locale.translation("historyOfTabs")} icon="tags" onClick={_=>_} onContextMenu={onContextMenu} timeOut={50}>
+    return <NavbarMenu className="sort-tabHistory" k={this.props.k} isFloat={isFloatPanel(this.props.k) || this.props.isMaximize} key="tabHistoryMenu" ref="tabHistoryMenu" title={locale.translation("historyOfTabs")} icon="tags" onClick={_=>_} onContextMenu={onContextMenu} timeOut={50}>
       {/*<NavbarMenuItem bold={true} text={locale.translation("navigateToTheHistoryPage")} onClick={_=>this.onCommon("history")} />*/}
       <div className="divider" />
       <div role="option" className="item favorite infinite-classic">
@@ -911,7 +916,7 @@ class BrowserNavbar extends Component{
 
   tabTrashMenu(cont,onContextMenu){
     const menuItems = []
-    return <NavbarMenu className="sort-tabTrash" k={this.props.k} isFloat={isFloatPanel(this.props.k) || this.props.isMaximize} ref="tabTrashMenu" title={locale.translation("trashOfTabs")} icon="trash" onClick={_=>_} onContextMenu={onContextMenu} timeOut={50}>
+    return <NavbarMenu className="sort-tabTrash" k={this.props.k} isFloat={isFloatPanel(this.props.k) || this.props.isMaximize} key="tabTrashMenu" ref="tabTrashMenu" title={locale.translation("trashOfTabs")} icon="trash" onClick={_=>_} onContextMenu={onContextMenu} timeOut={50}>
       {/*<NavbarMenuItem bold={true} text={locale.translation("navigateToTheHistoryPage")} onClick={_=>this.onCommon("history")} />*/}
       <div className="divider" />
       <div role="option" className="item favorite infinite-classic">
@@ -923,7 +928,7 @@ class BrowserNavbar extends Component{
 
   savedStateMenu(cont,onContextMenu){
     const menuItems = []
-    return <NavbarMenu className="sort-savedState" k={this.props.k} isFloat={isFloatPanel(this.props.k) || this.props.isMaximize} ref="savedStateMenu" title={locale.translation("sessionManager")} icon="database" onClick={_=>_} onContextMenu={onContextMenu} timeOut={50}>
+    return <NavbarMenu className="sort-savedState" k={this.props.k} isFloat={isFloatPanel(this.props.k) || this.props.isMaximize} key="savedStateMenu" ref="savedStateMenu" title={locale.translation("sessionManager")} icon="database" onClick={_=>_} onContextMenu={onContextMenu} timeOut={50}>
       <NavbarMenuItem bold={true} text={locale.translation("saveCurrentSession")} onClick={_=>ipc.send('save-all-windows-state')} />
       <div className="divider" />
       <div role="option" className="item favorite infinite-classic">
@@ -967,12 +972,12 @@ class BrowserNavbar extends Component{
     const backItems = this.state.historyList.slice(0,this.state.currentIndex)
     const nextItems = this.state.historyList.slice(this.state.currentIndex+1)
     const items = {
-      back: <NavbarMenu k={this.props.k} onContextMenu={onContextMenu} mouseOver={true} isFloat={isFloatPanel(this.props.k) || this.props.isMaximize} className={`sort-back draggable-source back-next ${backItems.length ? "" : " disabled"}`} title={locale.translation('back')} icon="angle-left fa-lg" onClick={e=>{this.props.navHandle.onClickBack(e);this.forceUpdates=true}} badget={historyBadget && backItems.length ? <div className="browserActionBadge back" >{backItems.length}</div> : null}>
+      back: <NavbarMenu key="back" k={this.props.k} onContextMenu={onContextMenu} mouseOver={true} isFloat={isFloatPanel(this.props.k) || this.props.isMaximize} className={`sort-back draggable-source back-next ${backItems.length ? "" : " disabled"}`} title={locale.translation('back')} icon="angle-left fa-lg" onClick={e=>{this.props.navHandle.onClickBack(e);this.forceUpdates=true}} badget={historyBadget && backItems.length ? <div className="browserActionBadge back" >{backItems.length}</div> : null}>
         {(cont ? backItems.reverse().map(
           (x,i)=><NavbarMenuItem key={i} text={this.getTitle(x,this.props.historyMap)} onClick={()=>{this.props.navHandle.onClickIndex(this.state.currentIndex -i -1);this.forceUpdates=true}}/>) : "")}
       </NavbarMenu>,
 
-      forward: <NavbarMenu k={this.props.k} onContextMenu={onContextMenu} mouseOver={true} isFloat={isFloatPanel(this.props.k) || this.props.isMaximize} className={`sort-forward draggable-source back-next ${nextItems.length ? "" : " disabled"}`} title={locale.translation('forward')} icon="angle-right fa-lg" onClick={e=>{this.props.navHandle.onClickForward(e);this.forceUpdates=true}} badget={historyBadget && nextItems.length ? <div className="browserActionBadge next" >{nextItems.length}</div> : null} >
+      forward: <NavbarMenu key="forward" k={this.props.k} onContextMenu={onContextMenu} mouseOver={true} isFloat={isFloatPanel(this.props.k) || this.props.isMaximize} className={`sort-forward draggable-source back-next ${nextItems.length ? "" : " disabled"}`} title={locale.translation('forward')} icon="angle-right fa-lg" onClick={e=>{this.props.navHandle.onClickForward(e);this.forceUpdates=true}} badget={historyBadget && nextItems.length ? <div className="browserActionBadge next" >{nextItems.length}</div> : null} >
         {(cont ? nextItems.map(
           (x,i)=><NavbarMenuItem key={i} text={this.getTitle(x,this.props.historyMap)} onClick={()=>{this.props.navHandle.onClickIndex(this.state.currentIndex +i +1);this.forceUpdates=true}}/>) : "")}
       </NavbarMenu>,
@@ -1005,7 +1010,7 @@ class BrowserNavbar extends Component{
                      }
                    }: null}></div>,
 
-      syncReplace: isFixed ? null : <SyncReplace ref="syncReplace" onContextMenu={onContextMenu} changeSyncMode={this.props.parent.changeSyncMode} replaceInfo={this.props.tab.syncReplace} updateReplaceInfo={this.props.parent.updateReplaceInfo}/>,
+      syncReplace: isFixed ? null : <SyncReplace key="syncReplace" ref="syncReplace" onContextMenu={onContextMenu} changeSyncMode={this.props.parent.changeSyncMode} replaceInfo={this.props.tab.syncReplace} updateReplaceInfo={this.props.parent.updateReplaceInfo}/>,
 
       sync: isFixed ? null : <BrowserNavbarBtn className="sort-sync" title={locale.translation("switchSyncScroll")} icon="circle-o" sync={this.props.tab.sync && !this.props.tab.syncReplace}
                                                onContextMenu={onContextMenu} onClick={()=>{this.props.parent.changeSyncMode();this.refs.syncReplace.clearAllCheck()}}/>,
@@ -1017,7 +1022,7 @@ class BrowserNavbar extends Component{
 
       opposite: isFloat ? null: <BrowserNavbarBtn className="sort-opposite" title={locale.translation("switchOpenOnOpposite")} icon="external-link-square" sync={this.props.tab.oppositeMode} onContextMenu={onContextMenu} onClick={()=>{this.props.parent.changeOppositeMode()}}/>,
 
-      sidebar: isFixed ? null : <NavbarMenu className="sort-sidebar" k={this.props.k} mouseOver={true} isFloat={isFloatPanel(this.props.k) || this.props.isMaximize}
+      sidebar: isFixed ? null : <NavbarMenu key="sidebar" className="sort-sidebar" k={this.props.k} mouseOver={true} isFloat={isFloatPanel(this.props.k) || this.props.isMaximize}
                                             title={locale.translation("openSidebar")} icon="list-ul" onContextMenu={onContextMenu} onClick={()=>this.props.fixedPanelOpen({dirc:mainState.sideBarDirection})}>
         <NavbarMenuItem key="Left" text={locale.translation("leftSide")} icon="caret left" onClick={()=>this.props.fixedPanelOpen({dirc:"left"})}/>
         <NavbarMenuItem key="Right" text={locale.translation("rightSide")} icon="caret right" onClick={()=>this.props.fixedPanelOpen({dirc:"right"})}/>
@@ -1027,7 +1032,7 @@ class BrowserNavbar extends Component{
         <NavbarMenuItem key="verticalRight" text="Vertical Tabs Right" icon="caret right" onClick={()=>PubSub.publish('set-vertical-tab-state',"right")}/>
       </NavbarMenu>,
 
-      mobile: <NavbarMenu className="sort-mobile" k={this.props.k} mouseOver={true} isFloat={isFloatPanel(this.props.k) || this.props.isMaximize}  sync={this.state.mobile} style={{fontSize: 20, lineHeight: 1.4 }}
+      mobile: <NavbarMenu key="mobile" className="sort-mobile" k={this.props.k} mouseOver={true} isFloat={isFloatPanel(this.props.k) || this.props.isMaximize}  sync={this.state.mobile} style={{fontSize: 20, lineHeight: 1.4 }}
                           title={locale.translation("changeToMobileUserAgent")} icon="mobile" onContextMenu={onContextMenu} onClick={()=>this.handleUserAgent(this.state.mobile ? DEFAULT_USERAGENT : NEXUS_USERAGENT)}>
         <NavbarMenuItem key="default" text={`${this.state.userAgent == DEFAULT_USERAGENT ? '✓ ' : ''}Default`} onClick={()=>this.handleUserAgent(DEFAULT_USERAGENT)}/>
         <div className="divider" />
@@ -1060,7 +1065,7 @@ class BrowserNavbar extends Component{
       terminal: <BrowserNavbarBtn className="sort-terminal" title={locale.translation('4589268276914962177')} icon="terminal" onClick={this.onCommon.bind(this,"terminal")}/>,
       video: <Dropdown scrolling className="sort-video draggable-source nav-button" onContextMenu={onContextMenu} style={{minWidth:0}}
                        trigger={<BrowserNavbarBtn title={locale.translation("richMediaList")} icon="film">{rich && rich.length ? <div className="browserActionBadge video" >{rich.length}</div> : null}</BrowserNavbarBtn>}
-                       pointing='top right' icon={null} disabled={!rich || !rich.length} ref="video">
+                       pointing='top right' icon={null} disabled={!rich || !rich.length} key="video" ref="video">
         <Dropdown.Menu className="nav-menu">
           <div role="option" className="item" onClick={_=>this.props.tab.events['pin-video'](null,this.props.tab.wvId,true)}>{locale.translation('playVideoInPopupWindow')}</div>
           <Divider/>
@@ -1143,7 +1148,7 @@ class BrowserNavbar extends Component{
           </div>
         </Dropdown.Menu>
       </Dropdown>,
-      screenshot: <NavbarMenu className="sort-screenshot" k={this.props.k} mouseOver={true} isFloat={isFloatPanel(this.props.k) || this.props.isMaximize}
+      screenshot: <NavbarMenu key="screenshot" className="sort-screenshot" k={this.props.k} mouseOver={true} isFloat={isFloatPanel(this.props.k) || this.props.isMaximize}
                               title={locale.translation("4250229828105606438")} icon="camera" onContextMenu={onContextMenu} onClick={_=>_}>
         <NavbarMenuItem key="full-clip" text={locale.translation("fullPage|Clipboard")} onClick={()=>this.props.screenShot(true,'clipboard',this.props.tab)}/>
         <NavbarMenuItem key="full-jpeg" text={locale.translation("fullPage|Jpeg")}  onClick={()=>this.props.screenShot(true,'JPEG',this.props.tab)}/>

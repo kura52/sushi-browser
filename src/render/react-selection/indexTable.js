@@ -263,7 +263,7 @@ class Selection extends React.Component {
     return (
       <div {...props} className="react-selection" onMouseDown={this.mousedown} onClick={this.onClick}>
         {children}
-        <div ref="rect" className="react-selection-rectangle"/>
+        <div ref="rect" key="rect" className="react-selection-rectangle"/>
       </div>
     )
   }

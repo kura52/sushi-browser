@@ -3,19 +3,19 @@ const path = require('path')
 const pty = require(path.join(__dirname,'../node_modules/node-pty').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'))
 const os = require('os')
 
-var shell = os.platform() === 'win32' ? 'powershell.exe' : 'bash';
+const shell = os.platform() === 'win32' ? 'powershell.exe' : 'bash';
 
 const processes = new Set()
 
 class PtyProcess{
-  constructor(key,sender){
+  constructor(key,sender,cmd){
     this.key = key
     this.sender = sender
     this.resize = false
     this.write = false
     this.pingReplyTime = Date.now()
 
-    const ptyProcess = pty.fork(shell, [], {
+    const ptyProcess = pty.fork(cmd && os.platform() === 'win32' ? 'cmd.exe' : shell, [], {
       name: 'xterm-color',
       cwd: process.env.HOME,
       env: process.env
@@ -116,8 +116,8 @@ class PtyProcess{
   }
 }
 
-ipcMain.on('start-pty',(event, key) => {
-  const process = new PtyProcess(key,event.sender)
+ipcMain.on('start-pty',(event, key, cmd) => {
+  const process = new PtyProcess(key, event.sender, cmd)
   processes.add(process)
   ipcMain.emit('start-pty-reply',null,key)
 })

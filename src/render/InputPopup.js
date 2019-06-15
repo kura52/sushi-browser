@@ -253,7 +253,7 @@ export default class InputPopup extends Component {
     console.log(this.props)
 
     return <span className='input-popup-wrapper' style={{left: this.props.left, top: this.props.top}}>
-        <NavbarMenu ref="navMenu" className="input-popup" icon="chevron-circle-down" onClick={_=>this.updateResult(true)} rightDisplay={true}>
+        <NavbarMenu key="navMenu" ref="navMenu" className="input-popup" icon="chevron-circle-down" onClick={_=>this.updateResult(true)} rightDisplay={true}>
           <Search
             icon={null}
             showNoResults={false}
@@ -265,6 +265,7 @@ export default class InputPopup extends Component {
             onMouseUp={::this.onMouseUp}
             results={this.state.results}
             value={this.state.value}
+            key="input"
             ref="input"
             minCharacters={0}
             // onFocus={::this.onFocus}

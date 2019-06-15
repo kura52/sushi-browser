@@ -406,6 +406,7 @@ export default class BrowserNavbarLocation extends Component {
         onMouseUp={::this.onMouseUp}
         results={results.map(x=>{return {title:x.title,description: x.description}})}
         value={this.getValue()}
+        key="input"
         ref="input"
         onKeyDown={::this.onKeyDown}
         onContextMenu={this.props.onContextMenu}
@@ -424,6 +425,7 @@ export default class BrowserNavbarLocation extends Component {
           onMouseUp={::this.onMouseUp}
           results={results.map(x=>{return {title:x.title,description: x.description}})}
           value={this.getValue()}
+          key="input"
           ref="input"
           onKeyDown={::this.onKeyDown}
           onContextMenu={this.props.onContextMenu}

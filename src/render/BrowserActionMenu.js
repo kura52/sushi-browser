@@ -212,7 +212,7 @@ class BrowserActionWebView extends Component {
   }
 
   render(){
-    return this.close ? null : <div ref="div" name="browserAction" onClick={e=>{
+    return this.close ? null : <div key="div" ref="div" name="browserAction" onClick={e=>{
       e.stopPropagation()
       e.preventDefault()
       return false
@@ -462,7 +462,7 @@ export default class BrowserActionMenu extends Component{
                        PubSub.unsubscribe(this.tokenMouseDown)
                      }}
       // onDragStart={e=>console.log(4342355,e)} onDragEnter={e=>{console.log(4342344,e)}}
-                     scrolling className={`draggable-source nav-button sort-${id}`} ref="dd" key={id} trigger={<a href="javascript:void(0)"  title={title} tabIndex="-1">
+                     scrolling className={`draggable-source nav-button sort-${id}`} key="dd" ref="dd" key={id} trigger={<a href="javascript:void(0)"  title={title} tabIndex="-1">
       <img style={{width:16,height:16,verticalAlign:'middle'}} src={this.state.icon ? `file://${this.state.icon}` : `file://${values.basePath}/${values.default_icon ? (typeof values.default_icon === "object" ? Object.values(values.default_icon)[0] : values.default_icon) : Object.values(values.icons)[0]}`} onError={(e)=>{
         console.log(99854,this.state.icon)
         if(retry++ > 10) return
@@ -471,7 +471,7 @@ export default class BrowserActionMenu extends Component{
       {text ? <div className="browserActionBadge" style={{backgroundColor: color}}>{text}</div> : null}
     </a>} icon={null}>
       <Dropdown.Menu className={`browser-action nav-menu ${this.state.className}`} >
-        {popup ? <BrowserActionWebView ref="popupView" k={this.props.k} tab={this.props.tab} close={this.close} url={popup} setClassName={::this.setClassName}/>: ""}
+        {popup ? <BrowserActionWebView key="popupView" ref="popupView" k={this.props.k} tab={this.props.tab} close={this.close} url={popup} setClassName={::this.setClassName}/>: ""}
       </Dropdown.Menu>
     </Dropdown>
   }

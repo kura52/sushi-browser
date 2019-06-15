@@ -87,5 +87,13 @@ export default {
     y = Math.round(y)
     const point = screen.dipToScreenPoint({x,y})
     return {x: point.x , y: point.y}
+  },
+  screenToDipPoint(x,y){
+    if(!isHighDpi) return {x, y}
+
+    x = Math.round(x)
+    y = Math.round(y)
+    const point = screen.screenToDipPoint({x,y})
+    return {x: point.x , y: point.y}
   }
 }

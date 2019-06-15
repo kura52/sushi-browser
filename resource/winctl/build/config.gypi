@@ -6,8 +6,8 @@
     "defines": [],
     "include_dirs": [],
     "libraries": [],
-    "msbuild_toolset": "v141",
-    "msvs_windows_target_platform_version": "10.0.17134.0"
+    "msbuild_toolset": "v142",
+    "msvs_windows_target_platform_version": "10.0.18362.0"
   },
   "variables": {
     "asan": 0,
@@ -15,16 +15,18 @@
     "coverage": "false",
     "debug_nghttp2": "false",
     "enable_lto": "false",
+    "enable_pgo_generate": "false",
+    "enable_pgo_use": "false",
     "force_dynamic_crt": 0,
     "host_arch": "x64",
-    "icu_data_in": "..\\..\\deps/icu-small\\source/data/in\\icudt62l.dat",
+    "icu_data_in": "..\\..\\deps/icu-small\\source/data/in\\icudt64l.dat",
     "icu_endianness": "l",
     "icu_gyp_path": "tools/icu/icu-generic.gyp",
     "icu_locales": "en,root",
     "icu_path": "deps/icu-small",
     "icu_small": "true",
-    "icu_ver_major": "62",
-    "nasm_version": "2.13",
+    "icu_ver_major": "64",
+    "nasm_version": "2.14",
     "node_byteorder": "little",
     "node_debug_lib": "false",
     "node_enable_d8": "false",
@@ -46,6 +48,7 @@
     "node_use_bundled_v8": "true",
     "node_use_dtrace": "false",
     "node_use_etw": "true",
+    "node_use_large_pages": "false",
     "node_use_openssl": "true",
     "node_use_pch": "false",
     "node_use_perfctr": "true",
@@ -67,9 +70,9 @@
     "v8_typed_array_max_size_in_heap": 0,
     "v8_use_snapshot": "true",
     "want_separate_host_toolset": 0,
-    "nodedir": "C:\\Users\\kura5\\.node-gyp\\5.0.1",
+    "nodedir": "C:\\Users\\kura5\\AppData\\Local\\node-gyp\\Cache\\5.0.1",
     "standalone_static_library": 1,
-    "msbuild_path": "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\MSBuild\\15.0\\Bin\\MSBuild.exe",
+    "msbuild_path": "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe",
     "target": "5.0.1"
   }
 }

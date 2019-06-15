@@ -75,6 +75,6 @@ export default class VerticalTabResizer extends Component{
   }
 
   render(){
-    return  <div ref="dad" onMouseDown={this.mdown} className="vertical-resizer" />
+    return  <div key="dad" ref="dad" onMouseDown={this.mdown} className="vertical-resizer" />
   }
 }

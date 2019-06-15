@@ -193,6 +193,7 @@ export default class NavbarMenu extends Component {
   }
 
   render(){
+    console.log(888888888888888,this.props.title,this.state.visible)
     const self = this
     let style = {lineHeight: '1.9',minWidth:0}
     if(this.props.style) style = {...style,...this.props.style}
@@ -207,7 +208,7 @@ export default class NavbarMenu extends Component {
     let list = this.state.dataList ? this.props.children.concat(this.state.dataList) : this.props.children
     if(list && !Array.isArray(list)) list = [list]
     return <div onContextMenu={this.props.onContextMenu} onMouseOver={this.props.mouseOver ? this.onMouseOver : (void 0)}
-                onMouseLeave={this.props.mouseOver ? this.onMouseLeave : (void 0)} id={this.uuid} ref="div" role="listbox"
+                onMouseLeave={this.props.mouseOver ? this.onMouseLeave : (void 0)} id={this.uuid} key="div" ref="div" role="listbox"
                 aria-expanded="false" className={`${this.props.className != 'main-menu' ? 'draggable-source' : ''} ui top${this.props.mouseOver || this.props.rightDisplay ? '' : ' right pointing'} nav-button dropdown ${this.props.className}`}
                 tabIndex={1} style={style}>
       <a ref="button" tabIndex="-1" href="javascript:void(0)" className={this.props.sync ? 'sync' : void 0} title={this.props.title} onClick={this.props.mouseOver ? e=>this.props.onClick(e) : ::this.handleClick} style={{outline: 'none'}}>
@@ -215,7 +216,7 @@ export default class NavbarMenu extends Component {
         {this.props.badget || null}
       </a>
       {!this.state.visible ? null :
-        <div ref="menu" style={{...styleMenu,...this.props.style}}
+        <div key="menu" ref="menu" style={{...styleMenu,...this.props.style}}
              className={`menu${this.state.visible || this.state.forceOpen ? " visible" : ""} transition left ${this.props.audio ? 'nav-menu-audio' : this.props.rightDisplay ? 'nav3-menu' : this.props.mouseOver ? 'nav2-menu' : 'nav-menu'}`} >
         {(list || []).map((child) => {
             if(child && (child.type == NavbarMenuBarItem || child.type == NavbarMenuItem)){

@@ -72,7 +72,7 @@ export default class DevToolsPanel extends Component {
       <ToolbarResizer height={devToolsInfo.height} setHeight={this.setHeight} minus={true}
                       style={{position: 'relative', height: 5, margin: '-2px 0' ,backgroundColor: '#a2a2a2', backgroundClip: 'padding-box',
                         borderTop: '2px solid rgba(255, 255, 255, 0)', borderBottom: '2px solid rgba(255, 255, 255, 0)' }}/>
-      <webview className="dev-tool" ref="devWebview" style={{height: devToolsInfo.height - 1}} src='chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html'/>
+      <webview className="dev-tool" key="devWebview" ref="devWebview" style={{height: devToolsInfo.height - 1}} src='chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html'/>
     </span>
   }
 }

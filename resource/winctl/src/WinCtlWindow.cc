@@ -106,7 +106,29 @@ NAN_METHOD(Window::WindowFromPoint2) {
     POINT pt;
 	GetCursorPos(&pt);
     HWND hWnd = WindowFromPoint(pt);
+    HWND parentHWnd;
+	while((parentHWnd = GetParent(hWnd)) != NULL){
+      hWnd = parentHWnd;
+	}
+
 	info.GetReturnValue().Set(Nan::New((int)hWnd));
+}
+
+NAN_METHOD(Window::NonActiveWindowFromPoint) {
+    HINSTANCE hInstance = GetModuleHandle( NULL );
+
+    POINT pt;
+	GetCursorPos(&pt);
+    HWND hWnd = WindowFromPoint(pt);
+	HWND fgWin = GetForegroundWindow();
+
+	if(hWnd != fgWin){
+      HWND parentHWnd;
+	  while((parentHWnd = GetParent(hWnd)) != NULL){
+        hWnd = parentHWnd;
+	  }
+	}
+	info.GetReturnValue().Set(Nan::New(hWnd == fgWin ? -1 : (int)hWnd));
 }
 
 NAN_METHOD(Window::GetWindowByClassName) {

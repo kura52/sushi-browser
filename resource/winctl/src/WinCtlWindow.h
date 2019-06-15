@@ -13,6 +13,7 @@ public:
 	static NAN_METHOD(GetWindowByTitleExact);
 	static NAN_METHOD(EnumerateWindows);
 	static NAN_METHOD(WindowFromPoint2);
+	static NAN_METHOD(NonActiveWindowFromPoint);
 
 	static Nan::Persistent<v8::Function> constructor;
 

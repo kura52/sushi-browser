@@ -188,7 +188,7 @@ export default class MobilePanel extends Component {
   render() {
     const mobilePanel = this.props.mobilePanel
     return !mobilePanel.isPanel ? null : <span style={{float: 'left', height: '100%', display: 'flex'}}>
-      <div ref="div" className={`mobile-panel m${this.props.tab.key}`} style={{width: mobilePanel.width}} >
+      <div key="div" ref="div" className={`mobile-panel m${this.props.tab.key}`} style={{width: mobilePanel.width}} >
       </div>
       <VerticalTabResizer width={mobilePanel.width} setWidth={(width)=>this.setWidth(width, true)} direction='left' />
     </span>
