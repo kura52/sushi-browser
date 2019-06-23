@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-const {helper, assert} = require('./helper');
+const {assert} = require('./helper');
 const keyDefinitions = require('./USKeyboardLayout');
 
 /**
@@ -224,11 +224,20 @@ class Mouse {
    */
   async click(x, y, options = {}) {
     const {delay = null} = options;
-    this.move(x, y);
-    this.down(options);
-    if (delay !== null)
+    if (delay !== null) {
+      await Promise.all([
+        this.move(x, y),
+        this.down(options),
+      ]);
       await new Promise(f => setTimeout(f, delay));
-    await this.up(options);
+      await this.up(options);
+    } else {
+      await Promise.all([
+        this.move(x, y),
+        this.down(options),
+        this.up(options),
+      ]);
+    }
   }
 
   /**
@@ -315,6 +324,3 @@ class Touchscreen {
 }
 
 module.exports = { Keyboard, Mouse, Touchscreen};
-helper.tracePublicAPI(Keyboard);
-helper.tracePublicAPI(Mouse);
-helper.tracePublicAPI(Touchscreen);

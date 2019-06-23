@@ -406,7 +406,7 @@ ipcMain.on('open-favorite',async (event,key,dbKeys,tabId,type,isNote)=>{
     for(let url of list){
       await new Promise(async (resolve,reject)=>{
           if(tabId){
-            host.send("new-tab",tabId,url,type=='openInNewSessionTab' ? `persist:${seq()}` : type=='openInNewTorTab' ? 'persist:tor' : type=='openInNewPrivateTab' ? `${seq(true)}` : false)
+            host.send("new-tab",tabId == -1 ? event.sender.id : tabId,url,type=='openInNewSessionTab' ? `persist:${seq()}` : type=='openInNewTorTab' ? 'persist:tor' : type=='openInNewPrivateTab' ? `${seq(true)}` : false)
           }
           else{
             host.send("new-tab-opposite", event.sender.id,url,(void 0),type=='openInNewSessionTab' ? `persist:${seq()}` : type=='openInNewTorTab' ? 'persist:tor' : type=='openInNewPrivateTab' ? `${seq(true)}` : false)

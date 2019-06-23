@@ -17,7 +17,8 @@
 const fs = require('fs');
 const EventEmitter = require('events');
 const mime = require('mime');
-const {NetworkManager} = require('./NetworkManager');
+const {Events} = require('./Events');
+const {Connection} = require('./Connection');
 const {Dialog} = require('./Dialog');
 const {EmulationManager} = require('./EmulationManager');
 const {FrameManager} = require('./FrameManager');
@@ -26,8 +27,9 @@ const Tracing = require('./Tracing');
 const {helper, debugError, assert} = require('./helper');
 const {Coverage} = require('./Coverage');
 const {Worker} = require('./Worker');
-const {createJSHandle} = require('./ExecutionContext');
+const {createJSHandle} = require('./JSHandle');
 const {Accessibility} = require('./Accessibility');
+const {TimeoutSettings} = require('./TimeoutSettings');
 const writeFileAsync = helper.promisify(fs.writeFile);
 
 class Page extends EventEmitter {
@@ -40,53 +42,40 @@ class Page extends EventEmitter {
    * @return {!Promise<!Page>}
    */
   static async create(client, target, ignoreHTTPSErrors, defaultViewport, screenshotTaskQueue) {
-
-    await client.send('Page.enable');
-    const {frameTree} = await client.send('Page.getFrameTree');
-    const page = new Page(client, target, frameTree, ignoreHTTPSErrors, screenshotTaskQueue);
+    const page = new Page(client, target, ignoreHTTPSErrors, screenshotTaskQueue);
     await Promise.all([
-      client.send('Target.setAutoAttach', {autoAttach: true, waitForDebuggerOnStart: false}),
-      client.send('Page.setLifecycleEventsEnabled', { enabled: true }),
-      // client.send('Network.enable', {}),
-      client.send('Runtime.enable', {}),
-      // client.send('Security.enable', {}),
+      page._frameManager.initialize(),
+      client.send('Target.setAutoAttach', {autoAttach: true, waitForDebuggerOnStart: false, flatten: true}),
       // client.send('Performance.enable', {}),
       // client.send('Log.enable', {}),
     ]);
-    if (ignoreHTTPSErrors)
-      await client.send('Security.setOverrideCertificateErrors', {override: true});
-    // Initialize default page size.
     if (defaultViewport)
       await page.setViewport(defaultViewport);
-
     return page;
   }
 
   /**
    * @param {!Puppeteer.CDPSession} client
    * @param {!Puppeteer.Target} target
-   * @param {!Protocol.Page.FrameTree} frameTree
    * @param {boolean} ignoreHTTPSErrors
    * @param {!Puppeteer.TaskQueue} screenshotTaskQueue
    */
-  constructor(client, target, frameTree, ignoreHTTPSErrors, screenshotTaskQueue) {
+  constructor(client, target, ignoreHTTPSErrors, screenshotTaskQueue) {
     super();
     this._closed = false;
     this._client = client;
     this._target = target;
     this._keyboard = new Keyboard(client);
     this._mouse = new Mouse(client, this._keyboard);
+    this._timeoutSettings = new TimeoutSettings();
     this._touchscreen = new Touchscreen(client, this._keyboard);
     this._accessibility = new Accessibility(client);
-    this._networkManager = new NetworkManager(client);
     /** @type {!FrameManager} */
-    this._frameManager = new FrameManager(client, frameTree, this, this._networkManager);
-    this._networkManager.setFrameManager(this._frameManager);
+    this._frameManager = new FrameManager(client, this, ignoreHTTPSErrors, this._timeoutSettings);
     this._emulationManager = new EmulationManager(client);
     this._tracing = new Tracing(client);
     /** @type {!Map<string, Function>} */
     this._pageBindings = new Map();
-    this._ignoreHTTPSErrors = ignoreHTTPSErrors;
     this._coverage = new Coverage(client);
     this._javascriptEnabled = true;
     /** @type {?Puppeteer.Viewport} */
@@ -104,45 +93,44 @@ class Page extends EventEmitter {
         }).catch(debugError);
         return;
       }
-      const session = client._createSession(event.targetInfo.type, event.sessionId);
+      const session = Connection.fromSession(client).session(event.sessionId);
       const worker = new Worker(session, event.targetInfo.url, this._addConsoleMessage.bind(this), this._handleException.bind(this));
       this._workers.set(event.sessionId, worker);
-      this.emit(Page.Events.WorkerCreated, worker);
-
+      this.emit(Events.Page.WorkerCreated, worker);
     });
     client.on('Target.detachedFromTarget', event => {
       const worker = this._workers.get(event.sessionId);
       if (!worker)
         return;
-      this.emit(Page.Events.WorkerDestroyed, worker);
+      this.emit(Events.Page.WorkerDestroyed, worker);
       this._workers.delete(event.sessionId);
     });
 
-    this._frameManager.on(FrameManager.Events.FrameAttached, event => this.emit(Page.Events.FrameAttached, event));
-    this._frameManager.on(FrameManager.Events.FrameDetached, event => this.emit(Page.Events.FrameDetached, event));
-    this._frameManager.on(FrameManager.Events.FrameNavigated, event => this.emit(Page.Events.FrameNavigated, event));
+    this._frameManager.on(Events.FrameManager.FrameAttached, event => this.emit(Events.Page.FrameAttached, event));
+    this._frameManager.on(Events.FrameManager.FrameDetached, event => this.emit(Events.Page.FrameDetached, event));
+    this._frameManager.on(Events.FrameManager.FrameNavigated, event => this.emit(Events.Page.FrameNavigated, event));
 
     for(let name of ['frameStartedLoading', 'frameStoppedLoading']){
       this._frameManager.on(name, event => this.emit(name, event))
     }
 
-    this._networkManager.on(NetworkManager.Events.Request, event => this.emit(Page.Events.Request, event));
-    this._networkManager.on(NetworkManager.Events.Response, event => this.emit(Page.Events.Response, event));
-    this._networkManager.on(NetworkManager.Events.RequestFailed, event => this.emit(Page.Events.RequestFailed, event));
-    this._networkManager.on(NetworkManager.Events.RequestFinished, event => this.emit(Page.Events.RequestFinished, event));
+    const networkManager = this._frameManager.networkManager();
+    networkManager.on(Events.NetworkManager.Request, event => this.emit(Events.Page.Request, event));
+    networkManager.on(Events.NetworkManager.Response, event => this.emit(Events.Page.Response, event));
+    networkManager.on(Events.NetworkManager.RequestFailed, event => this.emit(Events.Page.RequestFailed, event));
+    networkManager.on(Events.NetworkManager.RequestFinished, event => this.emit(Events.Page.RequestFinished, event));
 
-    client.on('Page.domContentEventFired', event => this.emit(Page.Events.DOMContentLoaded));
-    client.on('Page.loadEventFired', event => this.emit(Page.Events.Load));
+    client.on('Page.domContentEventFired', event => this.emit(Events.Page.DOMContentLoaded));
+    client.on('Page.loadEventFired', event => this.emit(Events.Page.Load));
     // client.on('Runtime.consoleAPICalled', event => this._onConsoleAPI(event));
     client.on('Runtime.bindingCalled', event => this._onBindingCalled(event));
     client.on('Page.javascriptDialogOpening', event => this._onDialog(event));
     client.on('Runtime.exceptionThrown', exception => this._handleException(exception.exceptionDetails));
-    client.on('Security.certificateError', event => this._onCertificateError(event));
     client.on('Inspector.targetCrashed', event => this._onTargetCrashed());
     // client.on('Performance.metrics', event => this._emitMetrics(event));
     // client.on('Log.entryAdded', event => this._onLogEntryAdded(event));
     this._target._isClosedPromise.then(() => {
-      this.emit(Page.Events.Close);
+      this.emit(Events.Page.Close);
       this._closed = true;
     });
   }
@@ -175,6 +163,13 @@ class Page extends EventEmitter {
     return this._target.browser();
   }
 
+  /**
+   * @return {!Puppeteer.BrowserContext}
+   */
+  browserContext() {
+    return this._target.browserContext();
+  }
+
   _onTargetCrashed() {
     this.emit('error', new Error('Page crashed!'));
   }
@@ -183,11 +178,11 @@ class Page extends EventEmitter {
    * @param {!Protocol.Log.entryAddedPayload} event
    */
   _onLogEntryAdded(event) {
-    const {level, text, args, source} = event.entry;
+    const {level, text, args, source, url, lineNumber} = event.entry;
     if (args)
       args.map(arg => helper.releaseObject(this._client, arg));
     if (source !== 'worker')
-      this.emit(Page.Events.Console, new ConsoleMessage(level, text));
+      this.emit(Events.Page.Console, new ConsoleMessage(level, text, [], {url, lineNumber}));
   }
 
   /**
@@ -250,33 +245,28 @@ class Page extends EventEmitter {
    * @param {boolean} value
    */
   async setRequestInterception(value) {
-    return this._networkManager.setRequestInterception(value);
+    return this._frameManager.networkManager().setRequestInterception(value);
   }
 
   /**
    * @param {boolean} enabled
    */
   setOfflineMode(enabled) {
-    return this._networkManager.setOfflineMode(enabled);
+    return this._frameManager.networkManager().setOfflineMode(enabled);
   }
 
   /**
    * @param {number} timeout
    */
   setDefaultNavigationTimeout(timeout) {
-    this._frameManager.setDefaultNavigationTimeout(timeout);
+    this._timeoutSettings.setDefaultNavigationTimeout(timeout);
   }
 
   /**
-   * @param {!Protocol.Security.certificateErrorPayload} event
+   * @param {number} timeout
    */
-  _onCertificateError(event) {
-    if (!this._ignoreHTTPSErrors)
-      return;
-    this._client.send('Security.handleCertificateError', {
-      eventId: event.eventId,
-      action: 'continue'
-    }).catch(debugError);
+  setDefaultTimeout(timeout) {
+    this._timeoutSettings.setDefaultTimeout(timeout);
   }
 
   /**
@@ -288,22 +278,13 @@ class Page extends EventEmitter {
   }
 
   /**
-   * @param {function()|string} pageFunction
+   * @param {Function|string} pageFunction
    * @param {!Array<*>} args
    * @return {!Promise<!Puppeteer.JSHandle>}
    */
   async evaluateHandle(pageFunction, ...args) {
     const context = await this.mainFrame().executionContext();
     return context.evaluateHandle(pageFunction, ...args);
-  }
-
-  /**
-   * @param {function()|string} pageFunction
-   * @param {!Array<*>} args
-   * @return {!Promise<!Puppeteer.JSHandle>}
-   */
-  async evaluateHandleByOrigin(origin, pageFunction, ...args) {
-    return this._frameManager.mainFrame().evaluateHandleByOrigin(origin, pageFunction, ...args);
   }
 
   /**
@@ -317,7 +298,7 @@ class Page extends EventEmitter {
 
   /**
    * @param {string} selector
-   * @param {function()|string} pageFunction
+   * @param {Function|string} pageFunction
    * @param {!Array<*>} args
    * @return {!Promise<(!Object|undefined)>}
    */
@@ -384,14 +365,8 @@ class Page extends EventEmitter {
       const item = Object.assign({}, cookie);
       if (!item.url && startsWithHTTP)
         item.url = pageURL;
-      assert(
-          item.url !== 'about:blank',
-          `Blank page can not have cookie "${item.name}"`
-      );
-      assert(
-          !String.prototype.startsWith.call(item.url || '', 'data:'),
-          `Data URL page can not have cookie "${item.name}"`
-      );
+      assert(item.url !== 'about:blank', `Blank page can not have cookie "${item.name}"`);
+      assert(!String.prototype.startsWith.call(item.url || '', 'data:'), `Data URL page can not have cookie "${item.name}"`);
       return item;
     });
     await this.deleteCookie(...items);
@@ -417,7 +392,7 @@ class Page extends EventEmitter {
 
   /**
    * @param {string} name
-   * @param {function(?)} puppeteerFunction
+   * @param {Function} puppeteerFunction
    */
   async exposeFunction(name, puppeteerFunction) {
     if (this._pageBindings.has(name))
@@ -431,7 +406,7 @@ class Page extends EventEmitter {
 
     function addPageBinding(bindingName) {
       const binding = window[bindingName];
-      window[bindingName] = async(...args) => {
+      window[bindingName] = (...args) => {
         const me = window[bindingName];
         let callbacks = me['callbacks'];
         if (!callbacks) {
@@ -451,21 +426,21 @@ class Page extends EventEmitter {
    * @param {?{username: string, password: string}} credentials
    */
   async authenticate(credentials) {
-    return this._networkManager.authenticate(credentials);
+    return this._frameManager.networkManager().authenticate(credentials);
   }
 
   /**
    * @param {!Object<string, string>} headers
    */
   async setExtraHTTPHeaders(headers) {
-    return this._networkManager.setExtraHTTPHeaders(headers);
+    return this._frameManager.networkManager().setExtraHTTPHeaders(headers);
   }
 
   /**
    * @param {string} userAgent
    */
   async setUserAgent(userAgent) {
-    return this._networkManager.setUserAgent(userAgent);
+    return this._frameManager.networkManager().setUserAgent(userAgent);
   }
 
   /**
@@ -480,7 +455,7 @@ class Page extends EventEmitter {
    * @param {!Protocol.Performance.metricsPayload} event
    */
   _emitMetrics(event) {
-    this.emit(Page.Events.Metrics, {
+    this.emit(Events.Page.Metrics, {
       title: event.title,
       metrics: this._buildMetricsObject(event.metrics)
     });
@@ -506,16 +481,32 @@ class Page extends EventEmitter {
     const message = helper.getExceptionMessage(exceptionDetails);
     const err = new Error(message);
     err.stack = ''; // Don't report clientside error with a node stack attached
-    this.emit(Page.Events.PageError, err);
+    this.emit(Events.Page.PageError, err);
   }
 
   /**
    * @param {!Protocol.Runtime.consoleAPICalledPayload} event
    */
   async _onConsoleAPI(event) {
+    if (event.executionContextId === 0) {
+      // DevTools protocol stores the last 1000 console messages. These
+      // messages are always reported even for removed execution contexts. In
+      // this case, they are marked with executionContextId = 0 and are
+      // reported upon enabling Runtime agent.
+      //
+      // Ignore these messages since:
+      // - there's no execution context we can use to operate with message
+      //   arguments
+      // - these messages are reported before Puppeteer clients can subscribe
+      //   to the 'console'
+      //   page event.
+      //
+      // @see https://github.com/GoogleChrome/puppeteer/issues/3865
+      return;
+    }
     const context = this._frameManager.executionContextById(event.executionContextId);
     const values = event.args.map(arg => createJSHandle(context, arg));
-    this._addConsoleMessage(event.type, values);
+    this._addConsoleMessage(event.type, values, event.stackTrace);
   }
 
   /**
@@ -572,9 +563,10 @@ class Page extends EventEmitter {
   /**
    * @param {string} type
    * @param {!Array<!Puppeteer.JSHandle>} args
+   * @param {Protocol.Runtime.StackTrace=} stackTrace
    */
-  _addConsoleMessage(type, args) {
-    if (!this.listenerCount(Page.Events.Console)) {
+  _addConsoleMessage(type, args, stackTrace) {
+    if (!this.listenerCount(Events.Page.Console)) {
       args.forEach(arg => arg.dispose());
       return;
     }
@@ -586,8 +578,13 @@ class Page extends EventEmitter {
       else
         textTokens.push(helper.valueFromRemoteObject(remoteObject));
     }
-    const message = new ConsoleMessage(type, textTokens.join(' '), args);
-    this.emit(Page.Events.Console, message);
+    const location = stackTrace && stackTrace.callFrames.length ? {
+      url: stackTrace.callFrames[0].url,
+      lineNumber: stackTrace.callFrames[0].lineNumber,
+      columnNumber: stackTrace.callFrames[0].columnNumber,
+    } : {};
+    const message = new ConsoleMessage(type, textTokens.join(' '), args, location);
+    this.emit(Events.Page.Console, message);
   }
 
   _onDialog(event) {
@@ -602,7 +599,7 @@ class Page extends EventEmitter {
       dialogType = Dialog.Type.BeforeUnload;
     assert(dialogType, 'Unknown javascript dialog type: ' + event.type);
     const dialog = new Dialog(this._client, dialogType, event.message, event.defaultPrompt);
-    this.emit(Page.Events.Dialog, dialog);
+    this.emit(Events.Page.Dialog, dialog);
   }
 
   /**
@@ -663,9 +660,9 @@ class Page extends EventEmitter {
    */
   async waitForRequest(urlOrPredicate, options = {}) {
     const {
-      timeout = 30000
+      timeout = this._timeoutSettings.timeout(),
     } = options;
-    return helper.waitForEvent(this._networkManager, NetworkManager.Events.Request, request => {
+    return helper.waitForEvent(this._frameManager.networkManager(), Events.NetworkManager.Request, request => {
       if (helper.isString(urlOrPredicate))
         return (urlOrPredicate === request.url());
       if (typeof urlOrPredicate === 'function')
@@ -681,9 +678,9 @@ class Page extends EventEmitter {
    */
   async waitForResponse(urlOrPredicate, options = {}) {
     const {
-      timeout = 30000
+      timeout = this._timeoutSettings.timeout(),
     } = options;
-    return helper.waitForEvent(this._networkManager, NetworkManager.Events.Response, response => {
+    return helper.waitForEvent(this._frameManager.networkManager(), Events.NetworkManager.Response, response => {
       if (helper.isString(urlOrPredicate))
         return (urlOrPredicate === response.url());
       if (typeof urlOrPredicate === 'function')
@@ -815,7 +812,7 @@ class Page extends EventEmitter {
   }
 
   /**
-   * @param {function()|string} pageFunction
+   * @param {Function|string} pageFunction
    * @param {!Array<*>} args
    * @return {!Promise<*>}
    */
@@ -824,16 +821,7 @@ class Page extends EventEmitter {
   }
 
   /**
-   * @param {function()|string} pageFunction
-   * @param {!Array<*>} args
-   * @return {!Promise<*>}
-   */
-  async evaluateByOrigin(origin, pageFunction, ...args) {
-    return this._frameManager.mainFrame().evaluateByOrigin(origin, pageFunction, ...args);
-  }
-
-  /**
-   * @param {function()|string} pageFunction
+   * @param {Function|string} pageFunction
    * @param {!Array<*>} args
    */
   async evaluateOnNewDocument(pageFunction, ...args) {
@@ -845,7 +833,7 @@ class Page extends EventEmitter {
    * @param {boolean} enabled
    */
   async setCacheEnabled(enabled = true) {
-    await this._client.send('Network.setCacheDisabled', {cacheDisabled: !enabled});
+    await this._frameManager.networkManager().setCacheEnabled(enabled);
   }
 
   /**
@@ -883,6 +871,8 @@ class Page extends EventEmitter {
       assert(typeof options.clip.y === 'number', 'Expected options.clip.y to be a number but found ' + (typeof options.clip.y));
       assert(typeof options.clip.width === 'number', 'Expected options.clip.width to be a number but found ' + (typeof options.clip.width));
       assert(typeof options.clip.height === 'number', 'Expected options.clip.height to be a number but found ' + (typeof options.clip.height));
+      assert(options.clip.width !== 0, 'Expected options.clip.width not to be 0.');
+      assert(options.clip.height !== 0, 'Expected options.clip.width not to be 0.');
     }
     return this._screenshotTaskQueue.postTask(this._screenshotTask.bind(this, screenshotType, options));
   }
@@ -894,7 +884,7 @@ class Page extends EventEmitter {
    */
   async _screenshotTask(format, options) {
     await this._client.send('Target.activateTarget', {targetId: this._target._targetId});
-    let clip = options.clip ? Object.assign({}, options['clip'], {scale: 1}) : undefined;
+    let clip = options.clip ? processClip(options.clip) : undefined;
 
     if (options.fullPage) {
       const metrics = await this._client.send('Page.getLayoutMetrics');
@@ -929,6 +919,14 @@ class Page extends EventEmitter {
       this._client.send('Emulation.clearDeviceMetricsOverride',{})
     }
     return buffer;
+
+    function processClip(clip) {
+      const x = Math.round(clip.x);
+      const y = Math.round(clip.y);
+      const width = Math.round(clip.width + clip.x - x);
+      const height = Math.round(clip.height + clip.y - y);
+      return {x, y, width, height, scale: 1};
+    }
   }
 
   /**
@@ -967,6 +965,7 @@ class Page extends EventEmitter {
     const marginRight = convertPrintParameterToInches(margin.right) || 0;
 
     const result = await this._client.send('Page.printToPDF', {
+      transferMode: 'ReturnAsStream',
       landscape,
       displayHeaderFooter,
       headerTemplate,
@@ -982,10 +981,7 @@ class Page extends EventEmitter {
       pageRanges,
       preferCSSPageSize
     });
-    const buffer = Buffer.from(result.data, 'base64');
-    if (path !== null)
-      await writeFileAsync(path, buffer);
-    return buffer;
+    return await helper.readProtocolStream(this._client, result.stream, path);
   }
 
   /**
@@ -1083,7 +1079,7 @@ class Page extends EventEmitter {
   /**
    * @param {string} selector
    * @param {!{visible?: boolean, hidden?: boolean, timeout?: number}=} options
-   * @return {!Promise<!Puppeteer.ElementHandle>}
+   * @return {!Promise<?Puppeteer.ElementHandle>}
    */
   waitForSelector(selector, options = {}) {
     return this.mainFrame().waitForSelector(selector, options);
@@ -1092,14 +1088,14 @@ class Page extends EventEmitter {
   /**
    * @param {string} xpath
    * @param {!{visible?: boolean, hidden?: boolean, timeout?: number}=} options
-   * @return {!Promise<!Puppeteer.ElementHandle>}
+   * @return {!Promise<?Puppeteer.ElementHandle>}
    */
   waitForXPath(xpath, options = {}) {
     return this.mainFrame().waitForXPath(xpath, options);
   }
 
   /**
-   * @param {function()} pageFunction
+   * @param {Function} pageFunction
    * @param {!{polling?: string|number, timeout?: number}=} options
    * @param {!Array<*>} args
    * @return {!Promise<!Puppeteer.JSHandle>}
@@ -1179,8 +1175,8 @@ Page.PaperFormats = {
   ledger: {width: 17, height: 11},
   a0: {width: 33.1, height: 46.8 },
   a1: {width: 23.4, height: 33.1 },
-  a2: {width: 16.5, height: 23.4 },
-  a3: {width: 11.7, height: 16.5 },
+  a2: {width: 16.54, height: 23.4 },
+  a3: {width: 11.7, height: 16.54 },
   a4: {width: 8.27, height: 11.7 },
   a5: {width: 5.83, height: 8.27 },
   a6: {width: 4.13, height: 5.83 },
@@ -1225,29 +1221,6 @@ function convertPrintParameterToInches(parameter) {
   return pixels / 96;
 }
 
-Page.Events = {
-  Close: 'close',
-  Console: 'console',
-  Dialog: 'dialog',
-  DOMContentLoaded: 'domcontentloaded',
-  Error: 'error',
-  // Can't use just 'error' due to node.js special treatment of error events.
-  // @see https://nodejs.org/api/events.html#events_error_events
-  PageError: 'pageerror',
-  Request: 'request',
-  Response: 'response',
-  RequestFailed: 'requestfailed',
-  RequestFinished: 'requestfinished',
-  FrameAttached: 'frameattached',
-  FrameDetached: 'framedetached',
-  FrameNavigated: 'framenavigated',
-  Load: 'load',
-  Metrics: 'metrics',
-  WorkerCreated: 'workercreated',
-  WorkerDestroyed: 'workerdestroyed',
-};
-
-
 /**
  * @typedef {Object} Network.Cookie
  * @property {string} name
@@ -1259,7 +1232,7 @@ Page.Events = {
  * @property {boolean} httpOnly
  * @property {boolean} secure
  * @property {boolean} session
- * @property {("Strict"|"Lax")=} sameSite
+ * @property {("Strict"|"Lax"|"Extended"|"None")=} sameSite
  */
 
 
@@ -1276,16 +1249,25 @@ Page.Events = {
  * @property {("Strict"|"Lax")=} sameSite
  */
 
+/**
+ * @typedef {Object} ConsoleMessage.Location
+ * @property {string=} url
+ * @property {number=} lineNumber
+ * @property {number=} columnNumber
+ */
+
 class ConsoleMessage {
   /**
    * @param {string} type
    * @param {string} text
    * @param {!Array<!Puppeteer.JSHandle>} args
+   * @param {ConsoleMessage.Location} location
    */
-  constructor(type, text, args = []) {
+  constructor(type, text, args, location = {}) {
     this._type = type;
     this._text = text;
     this._args = args;
+    this._location = location;
   }
 
   /**
@@ -1308,8 +1290,14 @@ class ConsoleMessage {
   args() {
     return this._args;
   }
+
+  /**
+   * @return {Object}
+   */
+  location() {
+    return this._location;
+  }
 }
 
 
-module.exports = {Page};
-helper.tracePublicAPI(Page);
+module.exports = {Page, ConsoleMessage};

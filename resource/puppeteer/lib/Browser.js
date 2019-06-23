@@ -18,9 +18,23 @@ const { helper, assert } = require('./helper');
 const {Target} = require('./Target');
 const EventEmitter = require('events');
 const {TaskQueue} = require('./TaskQueue');
-const {Connection} = require('./Connection');
+const {Events} = require('./Events');
 
 class Browser extends EventEmitter {
+  /**
+   * @param {!Puppeteer.Connection} connection
+   * @param {!Array<string>} contextIds
+   * @param {boolean} ignoreHTTPSErrors
+   * @param {?Puppeteer.Viewport} defaultViewport
+   * @param {?Puppeteer.ChildProcess} process
+   * @param {function()=} closeCallback
+   */
+  static async create(connection, contextIds, ignoreHTTPSErrors, defaultViewport, process, closeCallback) {
+    const browser = new Browser(connection, contextIds, ignoreHTTPSErrors, defaultViewport, process, closeCallback);
+    await connection.send('Target.setDiscoverTargets', {discover: true});
+    return browser;
+  }
+
   /**
    * @param {!Puppeteer.Connection} connection
    * @param {!Array<string>} contextIds
@@ -46,7 +60,7 @@ class Browser extends EventEmitter {
 
     /** @type {Map<string, Target>} */
     this._targets = new Map();
-    this._connection.on(Connection.Events.Disconnected, () => this.emit(Browser.Events.Disconnected));
+    this._connection.on(Events.Connection.Disconnected, () => this.emit(Events.Browser.Disconnected));
     this._connection.on('Target.targetCreated', this._targetCreated.bind(this));
     this._connection.on('Target.targetDestroyed', this._targetDestroyed.bind(this));
     this._connection.on('Target.targetInfoChanged', this._targetInfoChanged.bind(this));
@@ -92,20 +106,6 @@ class Browser extends EventEmitter {
   }
 
   /**
-   * @param {!Puppeteer.Connection} connection
-   * @param {!Array<string>} contextIds
-   * @param {boolean} ignoreHTTPSErrors
-   * @param {?Puppeteer.Viewport} defaultViewport
-   * @param {?Puppeteer.ChildProcess} process
-   * @param {function()=} closeCallback
-   */
-  static async create(connection, contextIds, ignoreHTTPSErrors, defaultViewport, process, closeCallback) {
-    const browser = new Browser(connection, contextIds, ignoreHTTPSErrors, defaultViewport, process, closeCallback);
-    await connection.send('Target.setDiscoverTargets', {discover: true});
-    return browser;
-  }
-
-  /**
    * @param {!Protocol.Target.targetCreatedPayload} event
    */
   async _targetCreated(event) {
@@ -118,8 +118,8 @@ class Browser extends EventEmitter {
     this._targets.set(event.targetInfo.targetId, target);
 
     if (await target._initializedPromise) {
-      this.emit(Browser.Events.TargetCreated, target);
-      context.emit(BrowserContext.Events.TargetCreated, target);
+      this.emit(Events.Browser.TargetCreated, target);
+      context.emit(Events.BrowserContext.TargetCreated, target);
     }
   }
 
@@ -132,8 +132,8 @@ class Browser extends EventEmitter {
     this._targets.delete(event.targetId);
     target._closedCallback();
     if (await target._initializedPromise) {
-      this.emit(Browser.Events.TargetDestroyed, target);
-      target.browserContext().emit(BrowserContext.Events.TargetDestroyed, target);
+      this.emit(Events.Browser.TargetDestroyed, target);
+      target.browserContext().emit(Events.BrowserContext.TargetDestroyed, target);
     }
   }
 
@@ -147,8 +147,8 @@ class Browser extends EventEmitter {
     const wasInitialized = target._isInitialized;
     target._targetInfoChanged(event.targetInfo);
     if (wasInitialized && previousURL !== target.url()) {
-      this.emit(Browser.Events.TargetChanged, target);
-      target.browserContext().emit(BrowserContext.Events.TargetChanged, target);
+      this.emit(Events.Browser.TargetChanged, target);
+      target.browserContext().emit(Events.BrowserContext.TargetChanged, target);
     }
   }
 
@@ -206,15 +206,15 @@ class Browser extends EventEmitter {
       return existingTarget;
     let resolve;
     const targetPromise = new Promise(x => resolve = x);
-    this.on(Browser.Events.TargetCreated, check);
-    this.on(Browser.Events.TargetChanged, check);
+    this.on(Events.Browser.TargetCreated, check);
+    this.on(Events.Browser.TargetChanged, check);
     try {
       if (!timeout)
         return await targetPromise;
       return await helper.waitWithTimeout(targetPromise, 'target', timeout);
     } finally {
-      this.removeListener(Browser.Events.TargetCreated, check);
-      this.removeListener(Browser.Events.TargetChanged, check);
+      this.removeListener(Events.Browser.TargetCreated, check);
+      this.removeListener(Events.Browser.TargetChanged, check);
     }
 
     /**
@@ -261,20 +261,19 @@ class Browser extends EventEmitter {
   }
 
   /**
+   * @return {boolean}
+   */
+  isConnected() {
+    return !this._connection._closed;
+  }
+
+  /**
    * @return {!Promise<!Object>}
    */
   _getVersion() {
     return this._connection.send('Browser.getVersion');
   }
 }
-
-/** @enum {string} */
-Browser.Events = {
-  TargetCreated: 'targetcreated',
-  TargetDestroyed: 'targetdestroyed',
-  TargetChanged: 'targetchanged',
-  Disconnected: 'disconnected'
-};
 
 class BrowserContext extends EventEmitter {
   /**
@@ -380,15 +379,5 @@ class BrowserContext extends EventEmitter {
     await this._browser._disposeContext(this._id);
   }
 }
-
-/** @enum {string} */
-BrowserContext.Events = {
-  TargetCreated: 'targetcreated',
-  TargetDestroyed: 'targetdestroyed',
-  TargetChanged: 'targetchanged',
-};
-
-helper.tracePublicAPI(BrowserContext);
-helper.tracePublicAPI(Browser);
 
 module.exports = {Browser, BrowserContext};

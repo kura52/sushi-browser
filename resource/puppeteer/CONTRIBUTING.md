@@ -1,3 +1,21 @@
+<!-- gen:toc -->
+- [How to Contribute](#how-to-contribute)
+  * [Contributor License Agreement](#contributor-license-agreement)
+  * [Getting setup](#getting-setup)
+  * [Code reviews](#code-reviews)
+  * [Code Style](#code-style)
+  * [API guidelines](#api-guidelines)
+  * [Commit Messages](#commit-messages)
+  * [Writing Documentation](#writing-documentation)
+  * [Adding New Dependencies](#adding-new-dependencies)
+  * [Writing Tests](#writing-tests)
+  * [Public API Coverage](#public-api-coverage)
+  * [Debugging Puppeteer](#debugging-puppeteer)
+- [For Project Maintainers](#for-project-maintainers)
+  * [Releasing to NPM](#releasing-to-npm)
+  * [Updating NPM dist tags](#updating-npm-dist-tags)
+<!-- gen:stop -->
+
 # How to Contribute
 
 First of all, thank you for your interest in Puppeteer!
@@ -77,7 +95,7 @@ footer
     - `test` - changes to puppeteer tests infrastructure.
     - `style` - puppeteer code style: spaces/alignment/wrapping etc.
     - `chore` - build-related work, e.g. doclint changes / travis / appveyor.
-2. *namespace* is put in parenthesis after label and is optional.
+2. *namespace* is put in parenthesis after label and is optional. Must be lowercase.
 3. *title* is a brief summary of changes.
 4. *description* is **optional**, new-line separated from title and is in present tense.
 5. *footer* is **optional**, new-line separated from *description* and contains "fixes" / "references" attribution to github issues.
@@ -86,7 +104,7 @@ footer
 Example:
 
 ```
-fix(Page): fix page.pizza method
+fix(page): fix page.pizza method
 
 This patch fixes page.pizza so that it works with iframes.
 
@@ -199,7 +217,9 @@ npm run coverage
 
 See [Debugging Tips](README.md#debugging-tips) in the readme.
 
-## [For Project Maintainers] Releasing to NPM
+# For Project Maintainers
+
+## Releasing to NPM
 
 Releasing to NPM consists of 3 phases:
 1. Source Code: mark a release.
@@ -224,3 +244,23 @@ Releasing to NPM consists of 3 phases:
         - **NOTE**: make sure to update the "released APIs" section in the top of `docs/api.md`.
         - **NOTE**: no other commits should be landed in-between release commit and bump commit.
 
+## Updating NPM dist tags
+
+For both `puppeteer` and `puppeteer-firefox` we maintain the following NPM Tags:
+- `chrome-*` tags, e.g. `chrome-75` and so on. These tags match Puppeteer version that corresponds to the `chrome-*` release.
+- `chrome-stable` tag. This tag points to the Puppeteer version that works with current Chrome stable.
+
+These tags are updated on every Puppeteer release.
+
+> **NOTE**: due to Chrome's rolling release, we take [omahaproxy's linux stable version](https://omahaproxy.appspot.com/) as *stable*.
+
+Manging tags 101:
+
+```bash
+# list tags
+$ npm dist-tag ls puppeteer
+# Removing a tag
+$ npm dist-tag rm puppeteer-core chrome-stable
+# Adding a tag
+$ npm dist-tag add puppeteer-core@1.13.0 chrome-stable
+```

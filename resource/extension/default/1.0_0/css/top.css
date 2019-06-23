@@ -126,3 +126,348 @@ div.content:hover i.cancel{
     color: #4183C4;
     display: initial;
 }
+
+
+.bookmark-bar{
+    height: 28px;
+    padding: 0 5px;
+    background: #f6f6f6;
+    border-bottom: 1px solid #dfdfdf;
+    user-select: none;
+    overflow: hidden;
+    position: sticky;
+    top: 0;
+    z-index: 10001;
+}
+
+.bookmark-item{
+    margin: auto 0;
+    padding-left: 6px;
+    padding-right: 6px;
+    border-radius: 2px;
+    cursor: pointer;
+    display: inline-block;
+    line-height: 2.0 !important;
+    color: black;
+}
+
+.bookmark-bar a:hover{
+    color: inherit;
+}
+
+.bookmark-item:hover{
+    background-color: rgba(0,0,0,0.1);
+    color: inherit;
+}
+
+.bookmark-item>.infinite-tree-folder-icon {
+    width: 17px;
+}
+
+.bookmark-item>img.favi-favorite {
+    margin-left: 0px;
+}
+
+.bookmark-bar>.ui.dropdown{
+    line-height: 2.0 !important;
+}
+
+.bookmark-bar>.ui.top.right.pointing.dropdown>.menu{
+    left: 0;
+}
+
+.bookmark-bar .ui.dropdown .menu>.divider{
+    margin: 0;
+    border-top: none;
+}
+
+.bookmark-right-arrow{
+    font-size: 16px;
+    cursor: pointer;
+    padding-left: 6px;
+    padding-right: 6px;
+    border-radius: 2px;
+    vertical-align: top;
+    padding-top: 3px;
+}
+
+.bookmark-right-arrow:hover{
+    background-color: rgba(0,0,0,0.1);
+}
+
+.ui.top.right.pointing.dropdown>.menu {
+    max-width: 1000px;
+    overflow-x: auto;
+}
+.ui.top.right.pointing.dropdown>.menu {
+    top: 100%;
+    bottom: auto;
+    right: 0;
+    left: auto;
+    margin: 1em 0 0;
+}
+.ui.right.pointing.dropdown>.menu {
+    top: 0;
+    left: auto;
+    right: 100%;
+    margin: 0 1em 0 0;
+}
+.ui.pointing.dropdown>.menu {
+    top: 100%;
+    margin-top: .78571429rem;
+    border-radius: .28571429rem;
+}
+.ui.pointing.dropdown>.menu {
+    top: 100%;
+    margin-top: .78571429rem;
+    border-radius: .28571429rem;
+}
+.ui.dropdown .menu {
+    left: 0;
+    z-index: 2000;
+}
+
+.react-selection{
+    user-select:none;
+    -webkit-user-select:none;
+    -moz-user-select:none;
+    position:relative;
+}
+
+.react-selection-rectangle{
+    pointer-events:none;
+    transition: opacity .4s;
+    position: absolute;
+    background-color: rgba(204,204,204,.2);
+    border: 1px solid #ccc;
+    opacity: 0;
+}
+
+.infinite-tree-scroll {
+    overflow: auto;
+}
+.infinite-tree-table {
+    width: 100%;
+}
+.infinite-tree-content {
+    outline: 0;
+    position: relative;
+}
+.infinite-tree-content .infinite-tree-selected.infinite-tree-item,
+.infinite-tree-content .infinite-tree-selected.infinite-tree-item:hover {
+    background: #deecfd;
+    /*border: 1px solid #06c;*/
+}
+.infinite-tree-content .selection-selected.infinite-tree-item,
+.infinite-tree-content .selection-selected.infinite-tree-item:hover {
+    background: #deecfd;
+    /*border: 1px solid #06c;*/
+}
+.infinite-tree-content .infinite-tree-item {
+    border: 1px solid transparent;
+    cursor: default;
+    line-height: 1.2em;
+    white-space: nowrap;
+}
+.infinite-tree-content .infinite-tree-item:hover {
+    background: #f2fdff;
+}
+.infinite-tree-content .infinite-tree-item:disabled,
+.infinite-tree-content .infinite-tree-item[disabled] {
+    cursor: not-allowed;
+    opacity: 0.5;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
+    filter: alpha(opacity=50);
+}
+.infinite-tree-content .infinite-tree-node {
+    position: relative;
+}
+.infinite-tree-content .infinite-tree-toggler {
+    color: #666;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+.infinite-tree-content .infinite-tree-toggler:hover {
+    color: #333;
+    text-decoration: none;
+}
+.infinite-tree-content .infinite-tree-title {
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+.infinite-tree-no-data {
+    text-align: center;
+}
+
+.infinite-classic .preview {
+    font-family: Consolas;
+    font-size: 14px;
+    font-weight: bold;
+    white-space: pre-wrap;
+    background-color: #282c34;
+    border: solid 1px #ccc;
+    color: #9197a3;
+    padding: 20px;
+}
+.infinite-classic .progress-bar {
+    -webkit-transition: none;
+    -moz-transition: none;
+    -ms-transition: none;
+    -o-transition: none;
+    transition: none;
+}
+.infinite-classic .dropped-result {
+    font-size: 16px;
+    line-height: 42px;
+}
+.infinite-classic .tree {
+    border: 1px solid #ccc;
+    background-color: #fff;
+}
+.infinite-classic .infinite-tree-toggler {
+    text-align: center;
+    margin-right: 5px;
+}
+.infinite-classic .infinite-tree-folder-icon {
+    width: 17px;
+}
+.infinite-classic .infinite-tree-folder-icon:first-child {
+    margin-left: 14px;
+}
+.infinite-classic .infinite-tree-folder-icon:before {
+    margin-right: 5px;
+}
+.infinite-classic .infinite-tree-node .count {
+    position: absolute;
+    right: 2px;
+    padding: 0 8px;
+    height: 17px;
+    line-height: 18px;
+    background-color: rgba(216, 223, 234, 0.5);
+    color: #3B5998;
+    font-style: normal;
+    font-weight: bold;
+    text-align: center;
+    border-radius: 2px;
+}
+.infinite-classic .infinite-tree-scroll {
+    overflow: auto;
+    height: calc(100vh - 190px);
+}
+
+
+.infinite-classic .infinite-tree-overlay {
+    position: absolute;
+    background-color: rgba(255, 0, 0, 0.5);
+    border: 1px solid red;
+    font-size: 20px;
+    font-weight: bold;
+    width: 100%;
+    text-align: center;
+}
+
+.infinite-classic .infinite-tree-overlay.hover {
+    background-color: rgba(255, 0, 0, 0.6);
+}
+
+@-webkit-keyframes rotating /* Safari and Chrome */ {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+@keyframes rotating {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+.rotating {
+    animation: rotating 2s linear infinite;
+}
+
+
+img.favi-favorite {
+    width: auto;
+    height: 16px;
+    vertical-align: sub;
+    padding-right: 3px;
+    margin-left: 11px;
+}
+
+.folder-open,.folder {
+    color: #3498db;
+}
+
+
+.sticky {
+    z-index: 1;
+    background-color: white;
+}
+
+.ui.menu .icon.item>.icon {
+    color: black;
+}
+
+.caret {
+    color: #222;
+    width: 8px;
+}
+
+.fa-file.doc{
+    font-size:13px;
+    vertical-align: 1px;
+}
+
+html, body { height:100%; margin:0; }
+
+.ui.secondary.pointing.menu {
+    margin-bottom: 8px;
+}
+
+.ui.icon.input input {
+    margin-left: 12px;
+}
+
+
+.infinite-classic .infinite-tree-item.top-overlap:not(.middle),
+.infinite-classic .infinite-tree-item.top-overlap.middle:not(.folder-item),
+.infinite-classic .infinite-tree-item.top-next-sibling-overlap{
+    border-top-color: blue;
+}
+
+
+.infinite-classic .infinite-tree-item.bottom-overlap.middle:not(.folder-item),
+.infinite-classic .infinite-tree-item.bottom-overlap:not(.middle),
+.infinite-classic .infinite-tree-item.bottom-previous-sibling-overlap{
+    border-bottom-color: blue;
+}
+
+
+.infinite-classic .infinite-tree-item.folder-item {
+    background-color: #bfdaf5;
+}
+
+canvas.drag-image{
+    position:absolute;
+    left:-100%;
+}
+
+
+.ui.dropdown .menu>.item.favorite:hover,
+.ui.dropdown .menu>.item.history:hover{
+    background: none;
+}
+
+.bookmark-right-arrow {
+    color: black;
+}

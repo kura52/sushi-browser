@@ -26,30 +26,22 @@ const glob = require("glob")
 const BEFORE_CODE_NAME = 'Geso(Squid arms)'
 const CODE_NAME = 'Fugu(Blowfish)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.25.3"
+const NEXT_APP_VERSION = "0.25.4"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Changed WebContents Occlusion to disabled. (Fix the bug that rendering of the browser web page is not performed)
-Fixed: Scrolling works properly if "Scroll inactive windows when I hover over them" is disabled.
-Modified Developer Tools window to be resizable.
-Fixed a bug that the menu on the toolbar does not close after clicking.
-Fixed the judgment error of whether it is the top window or not.
-Fixed a bug in Chrome version display.
-Updated Electron to 5.0.4.
-Updated youtube-dl to 2019.06.08.
-Fixed crash when opening drop-down menu in custom chromium edition. (issue #62)
-Updated custom chromium to 75.0.3770.90.`
+const CHANGE_ENGLISH = `Moved top page bookmark bar from browser UI to web page.
+Fixed TabCapture API to work with Custom Chromium version.
+Fixed to kill if there are remaining processes.
+Updated puppeteer to 1.17.0.
+Fixed the suppression function at double startup.
+Fixed a bug that the window size does not follow.`
 
-const CHANGE_JAPANESE = `WebContents Occlusionを無効と設定するよう変更。(ブラウザの描写が行われない不具合を修正)
-Windowsの「ポイントしたときに非アクティブ ウインドウをスクロールする」が無効になっている場合に、スクロールが正しく動作するように修正
-Developer Toolsのウインドウがリサイズできるように修正
-ツールバー上のメニューがクリック後に閉じない不具合を修正
-最上位ウインドウ判定の不具合を修正
-Chromeのバージョン表示の誤りを修正
-Electronを5.0.4に更新
-youtube-dlを2019.06.08に更新
-custom chromium版でドロップダウンメニューを開いた際にクラッシュする不具合を修正 (issue #62)
-custom chromiumを75.0.3770.90に更新`
+const CHANGE_JAPANESE = `Top Pageのbookmark barをブラウザUIからWebページ内に移動
+Custom Chromium版で、TabCapture APIが動作するように修正
+残存プロセスが存在する場合、killするように修正
+puppeteerを1.17.0にバージョンアップ
+二重起動時の抑止機能を修正
+ウインドウサイズが追従しない不具合を修正`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

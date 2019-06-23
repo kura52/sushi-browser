@@ -841,7 +841,7 @@ Or, please use the Chromium bundled version.`
       const [_1, _2, panel, _3] = BrowserPanel.getBrowserPanelByTabId(activeInfo.tabId)
       // console.log(await bv.webContents.viewport())
       const modify = cont.getURL() == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? 37 : 0
-      if(panel && panel.bounds) cont.setViewport({width:panel.bounds.width, height: panel.bounds.height - modify})
+      if(!Browser.CUSTOM_CHROMIUM && panel && panel.bounds) cont.setViewport({width:panel.bounds.width, height: panel.bounds.height - modify})
 
       const now = Date.now()
       const activedIds = []

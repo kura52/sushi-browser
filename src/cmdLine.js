@@ -146,7 +146,8 @@ process.on('app-initialized', () => { appInitialized = true })
 
 export default {
   getUrlFromCommandLine,
-  getNewWindowURL
+  getNewWindowURL,
+  focusOrOpenWindow
 }
 
 // module.exports.newWindowURL = () => {

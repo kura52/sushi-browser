@@ -14,33 +14,36 @@
  * limitations under the License.
  */
 
-const fs = require('fs');
 const EventEmitter = require('events');
 const {helper, assert} = require('./helper');
-const {ExecutionContext} = require('./ExecutionContext');
-const {TimeoutError} = require('./Errors');
+const {Events} = require('./Events');
+const {ExecutionContext, EVALUATION_SCRIPT_URL} = require('./ExecutionContext');
+const {LifecycleWatcher} = require('./LifecycleWatcher');
+const {DOMWorld} = require('./DOMWorld');
 const {NetworkManager} = require('./NetworkManager');
-const {CDPSession} = require('./Connection');
 
-const readFileAsync = helper.promisify(fs.readFile);
+const UTILITY_WORLD_NAME = '__puppeteer_utility_world__';
 
 class FrameManager extends EventEmitter {
   /**
    * @param {!Puppeteer.CDPSession} client
-   * @param {!Protocol.Page.FrameTree} frameTree
    * @param {!Puppeteer.Page} page
-   * @param {!Puppeteer.NetworkManager} networkManager
+   * @param {boolean} ignoreHTTPSErrors
+   * @param {!Puppeteer.TimeoutSettings} timeoutSettings
    */
-  constructor(client, frameTree, page, networkManager) {
+  constructor(client, page, ignoreHTTPSErrors, timeoutSettings) {
     super();
     this._client = client;
     this._page = page;
-    this._networkManager = networkManager;
-    this._defaultNavigationTimeout = 30000;
+    this._networkManager = new NetworkManager(client, ignoreHTTPSErrors);
+    this._networkManager.setFrameManager(this);
+    this._timeoutSettings = timeoutSettings;
     /** @type {!Map<string, !Frame>} */
     this._frames = new Map();
     /** @type {!Map<number, !ExecutionContext>} */
     this._contextIdToContext = new Map();
+    /** @type {!Set<string>} */
+    this._isolatedWorlds = new Set();
 
     this._client.on('Page.frameAttached', event => this._onFrameAttached(event.frameId, event.parentFrameId));
     this._client.on('Page.frameNavigated', event => this._onFrameNavigated(event.frame));
@@ -54,16 +57,26 @@ class FrameManager extends EventEmitter {
 
     this._client.on('Page.frameStartedLoading', event => this._onFrameStartedLoading(event.frameId, 'frameStartedLoading'));
     this._client.on('Page.frameStoppedLoading', event => this._onFrameStartedLoading(event.frameId, 'frameStoppedLoading'));
-    // this._client.on('Page.frameRequestedNavigation', event => this._onFrameStartedLoading(event.frameId, 'frameRequestedNavigation'));
+  }
 
+  async initialize() {
+    const [,{frameTree}] = await Promise.all([
+      this._client.send('Page.enable'),
+      this._client.send('Page.getFrameTree'),
+    ]);
     this._handleFrameTree(frameTree);
+    await Promise.all([
+      this._client.send('Page.setLifecycleEventsEnabled', { enabled: true }),
+      this._client.send('Runtime.enable', {}).then(() => this._ensureIsolatedWorld(UTILITY_WORLD_NAME)),
+      this._networkManager.initialize(),
+    ]);
   }
 
   /**
-   * @param {number} timeout
+   * @return {!NetworkManager}
    */
-  setDefaultNavigationTimeout(timeout) {
-    this._defaultNavigationTimeout = timeout;
+  networkManager() {
+    return this._networkManager;
   }
 
   /**
@@ -77,7 +90,7 @@ class FrameManager extends EventEmitter {
     const {
       referer = this._networkManager.extraHTTPHeaders()['referer'],
       waitUntil = ['load'],
-      timeout = this._defaultNavigationTimeout,
+      timeout = this._timeoutSettings.navigationTimeout(),
     } = options;
 
     const watcher = new LifecycleWatcher(this, frame, waitUntil, timeout);
@@ -124,7 +137,7 @@ class FrameManager extends EventEmitter {
     assertNoLegacyNavigationOptions(options);
     const {
       waitUntil = ['load'],
-      timeout = this._defaultNavigationTimeout,
+      timeout = this._timeoutSettings.navigationTimeout(),
     } = options;
     const watcher = new LifecycleWatcher(this, frame, waitUntil, timeout);
     const error = await Promise.race([
@@ -146,7 +159,7 @@ class FrameManager extends EventEmitter {
     if (!frame)
       return;
     frame._onLifecycleEvent(event.loaderId, event.name);
-    this.emit(FrameManager.Events.LifecycleEvent, frame);
+    this.emit(Events.FrameManager.LifecycleEvent, frame);
   }
 
   /**
@@ -157,7 +170,7 @@ class FrameManager extends EventEmitter {
     if (!frame)
       return;
     frame._onLoadingStopped();
-    this.emit(FrameManager.Events.LifecycleEvent, frame);
+    this.emit(Events.FrameManager.LifecycleEvent, frame);
   }
 
   /**
@@ -214,7 +227,7 @@ class FrameManager extends EventEmitter {
     const parentFrame = this._frames.get(parentFrameId);
     const frame = new Frame(this, this._client, parentFrame, frameId);
     this._frames.set(frame._id, frame);
-    this.emit(FrameManager.Events.FrameAttached, frame);
+    this.emit(Events.FrameManager.FrameAttached, frame);
   }
 
   /**
@@ -248,7 +261,25 @@ class FrameManager extends EventEmitter {
     // Update frame payload.
     frame._navigated(framePayload);
 
-    this.emit(FrameManager.Events.FrameNavigated, frame);
+    this.emit(Events.FrameManager.FrameNavigated, frame);
+  }
+
+  /**
+   * @param {string} name
+   */
+  async _ensureIsolatedWorld(name) {
+    if (this._isolatedWorlds.has(name))
+      return;
+    this._isolatedWorlds.add(name);
+    await this._client.send('Page.addScriptToEvaluateOnNewDocument', {
+      source: `//# sourceURL=${EVALUATION_SCRIPT_URL}`,
+      worldName: name,
+    }),
+    await Promise.all(this.frames().map(frame => this._client.send('Page.createIsolatedWorld', {
+      frameId: frame._id,
+      grantUniveralAccess: true,
+      worldName: name,
+    })));
   }
 
   /**
@@ -260,8 +291,8 @@ class FrameManager extends EventEmitter {
     if (!frame)
       return;
     frame._navigatedWithinDocument(url);
-    this.emit(FrameManager.Events.FrameNavigatedWithinDocument, frame);
-    this.emit(FrameManager.Events.FrameNavigated, frame);
+    this.emit(Events.FrameManager.FrameNavigatedWithinDocument, frame);
+    this.emit(Events.FrameManager.FrameNavigated, frame);
   }
 
   /**
@@ -276,13 +307,24 @@ class FrameManager extends EventEmitter {
   _onExecutionContextCreated(contextPayload) {
     const frameId = contextPayload.auxData ? contextPayload.auxData.frameId : null;
     const frame = this._frames.get(frameId) || null;
-    // console.log(22,!!frame,contextPayload)
+    let world = null;
+    if (frame) {
+      if (contextPayload.auxData && !!contextPayload.auxData['isDefault']) {
+        world = frame._mainWorld;
+      } else if (contextPayload.name === UTILITY_WORLD_NAME && !frame._secondaryWorld._hasContext()) {
+        // In case of multiple sessions to the same target, there's a race between
+        // connections so we might end up creating multiple isolated worlds.
+        // We can use either.
+        world = frame._secondaryWorld;
+      }
+    }
+    if (contextPayload.auxData && contextPayload.auxData['type'] === 'isolated')
+      this._isolatedWorlds.add(contextPayload.name);
     /** @type {!ExecutionContext} */
-    const context = new ExecutionContext(this._client, contextPayload, frame);
+    const context = new ExecutionContext(this._client, contextPayload, world);
+    if (world)
+      world._setContext(context);
     this._contextIdToContext.set(contextPayload.id, context);
-    // console.log(33,!!frame,context._isDefault,contextPayload)
-    if (frame)
-      frame._addExecutionContext(context, contextPayload);
   }
 
   /**
@@ -293,14 +335,14 @@ class FrameManager extends EventEmitter {
     if (!context)
       return;
     this._contextIdToContext.delete(executionContextId);
-    if (context.frame())
-      context.frame()._removeExecutionContext(context);
+    if (context._world)
+      context._world._setContext(null);
   }
 
   _onExecutionContextsCleared() {
     for (const context of this._contextIdToContext.values()) {
-      if (context.frame())
-        context.frame()._removeExecutionContext(context);
+      if (context._world)
+        context._world._setContext(null);
     }
     this._contextIdToContext.clear();
   }
@@ -310,7 +352,7 @@ class FrameManager extends EventEmitter {
 
     this.emit(eventName, frame);
   }
-
+  
   /**
    * @param {number} contextId
    * @return {!ExecutionContext}
@@ -329,20 +371,9 @@ class FrameManager extends EventEmitter {
       this._removeFramesRecursively(child);
     frame._detach();
     this._frames.delete(frame._id);
-    this.emit(FrameManager.Events.FrameDetached, frame);
+    this.emit(Events.FrameManager.FrameDetached, frame);
   }
 }
-
-/** @enum {string} */
-FrameManager.Events = {
-  FrameAttached: 'frameattached',
-  FrameNavigated: 'framenavigated',
-  FrameDetached: 'framedetached',
-  LifecycleEvent: 'lifecycleevent',
-  FrameNavigatedWithinDocument: 'framenavigatedwithindocument',
-  ExecutionContextCreated: 'executioncontextcreated',
-  ExecutionContextDestroyed: 'executioncontextdestroyed',
-};
 
 /**
  * @unrestricted
@@ -361,76 +392,19 @@ class Frame {
     this._url = '';
     this._id = frameId;
     this._detached = false;
-    this._otherExecutionContexts = {}
 
-    /** @type {?Promise<!Puppeteer.ElementHandle>} */
-    this._documentPromise = null;
-    /** @type {!Promise<!ExecutionContext>} */
-    this._contextPromise;
-    this._contextResolveCallback = null;
-    this._setDefaultContext(null);
-
-
-    /** @type {!Set<!WaitTask>} */
-    this._waitTasks = new Set();
     this._loaderId = '';
     /** @type {!Set<string>} */
     this._lifecycleEvents = new Set();
+    /** @type {!DOMWorld} */
+    this._mainWorld = new DOMWorld(frameManager, this, frameManager._timeoutSettings);
+    /** @type {!DOMWorld} */
+    this._secondaryWorld = new DOMWorld(frameManager, this, frameManager._timeoutSettings);
 
     /** @type {!Set<!Frame>} */
     this._childFrames = new Set();
     if (this._parentFrame)
       this._parentFrame._childFrames.add(this);
-  }
-
-  /**
-   * @param {!ExecutionContext} context
-   * @param {!Protocol.Runtime.ExecutionContextDescription} contextPayload
-   */
-  _addExecutionContext(context, contextPayload) {
-    if (context._isDefault){
-      this._setDefaultContext(context);
-    }
-    else{
-      // console.log(44,contextPayload)
-      this._addOtherContext(context, contextPayload);
-    }
-
-  }
-
-  /**
-   * @param {!ExecutionContext} context
-   */
-  _removeExecutionContext(context) {
-    if (context._isDefault)
-      this._setDefaultContext(null);
-  }
-
-  /**
-   * @param {?ExecutionContext} context
-   */
-  _setDefaultContext(context) {
-    if (context) {
-      this._contextResolveCallback.call(null, context);
-      this._contextResolveCallback = null;
-      for (const waitTask of this._waitTasks)
-        waitTask.rerun();
-    } else {
-      this._documentPromise = null;
-      this._contextPromise = new Promise(fulfill => {
-        this._contextResolveCallback = fulfill;
-      });
-    }
-  }
-
-  /**
-   * @param {?ExecutionContext} context
-   * @param {!Protocol.Runtime.ExecutionContextDescription} contextPayload
-   */
-  _addOtherContext(context, contextPayload) {
-    if (context) {
-      this._otherExecutionContexts[contextPayload.origin] = context
-    }
   }
 
   /**
@@ -454,17 +428,16 @@ class Frame {
    * @return {!Promise<!ExecutionContext>}
    */
   executionContext() {
-    return this._contextPromise;
+    return this._mainWorld.executionContext();
   }
 
   /**
-   * @param {function()|string} pageFunction
+   * @param {Function|string} pageFunction
    * @param {!Array<*>} args
    * @return {!Promise<!Puppeteer.JSHandle>}
    */
   async evaluateHandle(pageFunction, ...args) {
-    const context = await this._contextPromise;
-    return context.evaluateHandle(pageFunction, ...args);
+    return this._mainWorld.evaluateHandle(pageFunction, ...args);
   }
 
   /**
@@ -473,65 +446,15 @@ class Frame {
    * @return {!Promise<*>}
    */
   async evaluate(pageFunction, ...args) {
-    const context = await this._contextPromise;
-    return context.evaluate(pageFunction, ...args);
+    return this._mainWorld.evaluate(pageFunction, ...args);
   }
 
-  /**
-   * @param {function()|string} pageFunction
-   * @param {!Array<*>} args
-   * @return {!Promise<!Puppeteer.JSHandle>}
-   */
-  async evaluateHandleByOrigin(origin, pageFunction, ...args) {
-    let context = this._otherExecutionContexts[origin];
-    if(!context){
-      for(let i=0;i< 2000; i++){
-        await new Promise(r=> setTimeout(r,30))
-        context = this._otherExecutionContexts[origin];
-        if(context) break
-      }
-    }
-    return context.evaluateHandle(pageFunction, ...args);
-  }
-
-  /**
-   * @param {Function|string} pageFunction
-   * @param {!Array<*>} args
-   * @return {!Promise<*>}
-   */
-  async evaluateByOrigin(origin, pageFunction, ...args) {
-    let context = this._otherExecutionContexts[origin];
-    if(!context){
-      for(let i=0;i< 2000; i++){
-        await new Promise(r=> setTimeout(r,30))
-        context = this._otherExecutionContexts[origin];
-        if(context) break
-      }
-    }
-    return context.evaluate(pageFunction, ...args);
-  }
-  
   /**
    * @param {string} selector
    * @return {!Promise<?Puppeteer.ElementHandle>}
    */
   async $(selector) {
-    const document = await this._document();
-    const value = await document.$(selector);
-    return value;
-  }
-
-  /**
-   * @return {!Promise<!Puppeteer.ElementHandle>}
-   */
-  async _document() {
-    if (this._documentPromise)
-      return this._documentPromise;
-    this._documentPromise = this._contextPromise.then(async context => {
-      const document = await context.evaluateHandle('document');
-      return document.asElement();
-    });
-    return this._documentPromise;
+    return this._mainWorld.$(selector);
   }
 
   /**
@@ -539,9 +462,7 @@ class Frame {
    * @return {!Promise<!Array<!Puppeteer.ElementHandle>>}
    */
   async $x(expression) {
-    const document = await this._document();
-    const value = await document.$x(expression);
-    return value;
+    return this._mainWorld.$x(expression);
   }
 
   /**
@@ -551,8 +472,7 @@ class Frame {
    * @return {!Promise<(!Object|undefined)>}
    */
   async $eval(selector, pageFunction, ...args) {
-    const document = await this._document();
-    return document.$eval(selector, pageFunction, ...args);
+    return this._mainWorld.$eval(selector, pageFunction, ...args);
   }
 
   /**
@@ -562,9 +482,7 @@ class Frame {
    * @return {!Promise<(!Object|undefined)>}
    */
   async $$eval(selector, pageFunction, ...args) {
-    const document = await this._document();
-    const value = await document.$$eval(selector, pageFunction, ...args);
-    return value;
+    return this._mainWorld.$$eval(selector, pageFunction, ...args);
   }
 
   /**
@@ -572,23 +490,14 @@ class Frame {
    * @return {!Promise<!Array<!Puppeteer.ElementHandle>>}
    */
   async $$(selector) {
-    const document = await this._document();
-    const value = await document.$$(selector);
-    return value;
+    return this._mainWorld.$$(selector);
   }
 
   /**
    * @return {!Promise<String>}
    */
   async content() {
-    return await this.evaluate(() => {
-      let retVal = '';
-      if (document.doctype)
-        retVal = new XMLSerializer().serializeToString(document.doctype);
-      if (document.documentElement)
-        retVal += document.documentElement.outerHTML;
-      return retVal;
-    });
+    return this._secondaryWorld.content();
   }
 
   /**
@@ -596,25 +505,7 @@ class Frame {
    * @param {!{timeout?: number, waitUntil?: string|!Array<string>}=} options
    */
   async setContent(html, options = {}) {
-    const {
-      waitUntil = ['load'],
-      timeout = 30000,
-    } = options;
-    // We rely upon the fact that document.open() will reset frame lifecycle with "init"
-    // lifecycle event. @see https://crrev.com/608658
-    await this.evaluate(html => {
-      document.open();
-      document.write(html);
-      document.close();
-    }, html);
-    const watcher = new LifecycleWatcher(this._frameManager, this, waitUntil, timeout);
-    const error = await Promise.race([
-      watcher.timeoutOrTerminationPromise(),
-      watcher.lifecyclePromise(),
-    ]);
-    watcher.dispose();
-    if (error)
-      throw error;
+    return this._secondaryWorld.setContent(html, options);
   }
 
   /**
@@ -657,70 +548,7 @@ class Frame {
    * @return {!Promise<!Puppeteer.ElementHandle>}
    */
   async addScriptTag(options) {
-    const {
-      url = null,
-      path = null,
-      content = null,
-      type = ''
-    } = options;
-    if (url !== null) {
-      try {
-        const context = await this._contextPromise;
-        return (await context.evaluateHandle(addScriptUrl, url, type)).asElement();
-      } catch (error) {
-        throw new Error(`Loading script from ${url} failed`);
-      }
-    }
-
-    if (path !== null) {
-      let contents = await readFileAsync(path, 'utf8');
-      contents += '//# sourceURL=' + path.replace(/\n/g, '');
-      const context = await this._contextPromise;
-      return (await context.evaluateHandle(addScriptContent, contents, type)).asElement();
-    }
-
-    if (content !== null) {
-      const context = await this._contextPromise;
-      return (await context.evaluateHandle(addScriptContent, content, type)).asElement();
-    }
-
-    throw new Error('Provide an object with a `url`, `path` or `content` property');
-
-    /**
-     * @param {string} url
-     * @param {string} type
-     * @return {!Promise<!HTMLElement>}
-     */
-    async function addScriptUrl(url, type) {
-      const script = document.createElement('script');
-      script.src = url;
-      if (type)
-        script.type = type;
-      const promise = new Promise((res, rej) => {
-        script.onload = res;
-        script.onerror = rej;
-      });
-      document.head.appendChild(script);
-      await promise;
-      return script;
-    }
-
-    /**
-     * @param {string} content
-     * @param {string} type
-     * @return {!HTMLElement}
-     */
-    function addScriptContent(content, type = 'text/javascript') {
-      const script = document.createElement('script');
-      script.type = type;
-      script.text = content;
-      let error = null;
-      script.onerror = e => error = e;
-      document.head.appendChild(script);
-      if (error)
-        throw error;
-      return script;
-    }
+    return this._mainWorld.addScriptTag(options);
   }
 
   /**
@@ -728,67 +556,7 @@ class Frame {
    * @return {!Promise<!Puppeteer.ElementHandle>}
    */
   async addStyleTag(options) {
-    const {
-      url = null,
-      path = null,
-      content = null
-    } = options;
-    if (url !== null) {
-      try {
-        const context = await this._contextPromise;
-        return (await context.evaluateHandle(addStyleUrl, url)).asElement();
-      } catch (error) {
-        throw new Error(`Loading style from ${url} failed`);
-      }
-    }
-
-    if (path !== null) {
-      let contents = await readFileAsync(path, 'utf8');
-      contents += '/*# sourceURL=' + path.replace(/\n/g, '') + '*/';
-      const context = await this._contextPromise;
-      return (await context.evaluateHandle(addStyleContent, contents)).asElement();
-    }
-
-    if (content !== null) {
-      const context = await this._contextPromise;
-      return (await context.evaluateHandle(addStyleContent, content)).asElement();
-    }
-
-    throw new Error('Provide an object with a `url`, `path` or `content` property');
-
-    /**
-     * @param {string} url
-     * @return {!Promise<!HTMLElement>}
-     */
-    async function addStyleUrl(url) {
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = url;
-      const promise = new Promise((res, rej) => {
-        link.onload = res;
-        link.onerror = rej;
-      });
-      document.head.appendChild(link);
-      await promise;
-      return link;
-    }
-
-    /**
-     * @param {string} content
-     * @return {!Promise<!HTMLElement>}
-     */
-    async function addStyleContent(content) {
-      const style = document.createElement('style');
-      style.type = 'text/css';
-      style.appendChild(document.createTextNode(content));
-      const promise = new Promise((res, rej) => {
-        style.onload = res;
-        style.onerror = rej;
-      });
-      document.head.appendChild(style);
-      await promise;
-      return style;
-    }
+    return this._mainWorld.addStyleTag(options);
   }
 
   /**
@@ -796,30 +564,21 @@ class Frame {
    * @param {!{delay?: number, button?: "left"|"right"|"middle", clickCount?: number}=} options
    */
   async click(selector, options) {
-    const handle = await this.$(selector);
-    assert(handle, 'No node found for selector: ' + selector);
-    await handle.click(options);
-    await handle.dispose();
+    return this._secondaryWorld.click(selector, options);
   }
 
   /**
    * @param {string} selector
    */
   async focus(selector) {
-    const handle = await this.$(selector);
-    assert(handle, 'No node found for selector: ' + selector);
-    await handle.focus();
-    await handle.dispose();
+    return this._secondaryWorld.focus(selector);
   }
 
   /**
    * @param {string} selector
    */
   async hover(selector) {
-    const handle = await this.$(selector);
-    assert(handle, 'No node found for selector: ' + selector);
-    await handle.hover();
-    await handle.dispose();
+    return this._secondaryWorld.hover(selector);
   }
 
   /**
@@ -828,33 +587,14 @@ class Frame {
   * @return {!Promise<!Array<string>>}
   */
   select(selector, ...values){
-    for (const value of values)
-      assert(helper.isString(value), 'Values must be strings. Found value "' + value + '" of type "' + (typeof value) + '"');
-    return this.$eval(selector, (element, values) => {
-      if (element.nodeName.toLowerCase() !== 'select')
-        throw new Error('Element is not a <select> element.');
-
-      const options = Array.from(element.options);
-      element.value = undefined;
-      for (const option of options) {
-        option.selected = values.includes(option.value);
-        if (option.selected && !element.multiple)
-          break;
-      }
-      element.dispatchEvent(new Event('input', { 'bubbles': true }));
-      element.dispatchEvent(new Event('change', { 'bubbles': true }));
-      return options.filter(option => option.selected).map(option => option.value);
-    }, values);
+    return this._secondaryWorld.select(selector, ...values);
   }
 
   /**
    * @param {string} selector
    */
   async tap(selector) {
-    const handle = await this.$(selector);
-    assert(handle, 'No node found for selector: ' + selector);
-    await handle.tap();
-    await handle.dispose();
+    return this._secondaryWorld.tap(selector);
   }
 
   /**
@@ -863,17 +603,14 @@ class Frame {
    * @param {{delay: (number|undefined)}=} options
    */
   async type(selector, text, options) {
-    const handle = await this.$(selector);
-    assert(handle, 'No node found for selector: ' + selector);
-    await handle.type(text, options);
-    await handle.dispose();
+    return this._mainWorld.type(selector, text, options);
   }
 
   /**
    * @param {(string|number|Function)} selectorOrFunctionOrTimeout
    * @param {!Object=} options
    * @param {!Array<*>} args
-   * @return {!Promise<!Puppeteer.JSHandle>}
+   * @return {!Promise<?Puppeteer.JSHandle>}
    */
   waitFor(selectorOrFunctionOrTimeout, options = {}, ...args) {
     const xPathPattern = '//';
@@ -894,19 +631,31 @@ class Frame {
   /**
    * @param {string} selector
    * @param {!{visible?: boolean, hidden?: boolean, timeout?: number}=} options
-   * @return {!Promise<!Puppeteer.ElementHandle>}
+   * @return {!Promise<?Puppeteer.ElementHandle>}
    */
-  waitForSelector(selector, options) {
-    return this._waitForSelectorOrXPath(selector, false, options);
+  async waitForSelector(selector, options) {
+    const handle = await this._secondaryWorld.waitForSelector(selector, options);
+    if (!handle)
+      return null;
+    const mainExecutionContext = await this._mainWorld.executionContext();
+    const result = await mainExecutionContext._adoptElementHandle(handle);
+    await handle.dispose();
+    return result;
   }
 
   /**
    * @param {string} xpath
    * @param {!{visible?: boolean, hidden?: boolean, timeout?: number}=} options
-   * @return {!Promise<!Puppeteer.ElementHandle>}
+   * @return {!Promise<?Puppeteer.ElementHandle>}
    */
-  waitForXPath(xpath, options) {
-    return this._waitForSelectorOrXPath(xpath, true, options);
+  async waitForXPath(xpath, options) {
+    const handle = await this._secondaryWorld.waitForXPath(xpath, options);
+    if (!handle)
+      return null;
+    const mainExecutionContext = await this._mainWorld.executionContext();
+    const result = await mainExecutionContext._adoptElementHandle(handle);
+    await handle.dispose();
+    return result;
   }
 
   /**
@@ -915,66 +664,14 @@ class Frame {
    * @return {!Promise<!Puppeteer.JSHandle>}
    */
   waitForFunction(pageFunction, options = {}, ...args) {
-    const {
-      polling = 'raf',
-      timeout = 30000
-    } = options;
-    return new WaitTask(this, pageFunction, 'function', polling, timeout, ...args).promise;
+    return this._mainWorld.waitForFunction(pageFunction, options, ...args);
   }
 
   /**
    * @return {!Promise<string>}
    */
   async title() {
-    return this.evaluate(() => document.title);
-  }
-
-  /**
-   * @param {string} selectorOrXPath
-   * @param {boolean} isXPath
-   * @param {!{visible?: boolean, hidden?: boolean, timeout?: number}=} options
-   * @return {!Promise<!Puppeteer.ElementHandle>}
-   */
-  _waitForSelectorOrXPath(selectorOrXPath, isXPath, options = {}) {
-    const {
-      visible: waitForVisible = false,
-      hidden: waitForHidden = false,
-      timeout = 30000,
-    } = options;
-    const polling = waitForVisible || waitForHidden ? 'raf' : 'mutation';
-    const title = `${isXPath ? 'XPath' : 'selector'} "${selectorOrXPath}"${waitForHidden ? ' to be hidden' : ''}`;
-    return new WaitTask(this, predicate, title, polling, timeout, selectorOrXPath, isXPath, waitForVisible, waitForHidden).promise;
-
-    /**
-     * @param {string} selectorOrXPath
-     * @param {boolean} isXPath
-     * @param {boolean} waitForVisible
-     * @param {boolean} waitForHidden
-     * @return {?Node|boolean}
-     */
-    function predicate(selectorOrXPath, isXPath, waitForVisible, waitForHidden) {
-      const node = isXPath
-        ? document.evaluate(selectorOrXPath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue
-        : document.querySelector(selectorOrXPath);
-      if (!node)
-        return waitForHidden;
-      if (!waitForVisible && !waitForHidden)
-        return node;
-      const element = /** @type {Element} */ (node.nodeType === Node.TEXT_NODE ? node.parentElement : node);
-
-      const style = window.getComputedStyle(element);
-      const isVisible = style && style.visibility !== 'hidden' && hasVisibleBoundingBox();
-      const success = (waitForVisible === isVisible || waitForHidden === !isVisible);
-      return success ? node : null;
-
-      /**
-       * @return {boolean}
-       */
-      function hasVisibleBoundingBox() {
-        const rect = element.getBoundingClientRect();
-        return !!(rect.top || rect.bottom || rect.width || rect.height);
-      }
-    }
+    return this._secondaryWorld.title();
   }
 
   /**
@@ -1012,201 +709,12 @@ class Frame {
   }
 
   _detach() {
-    for (const waitTask of this._waitTasks)
-      waitTask.terminate(new Error('waitForFunction failed: frame got detached.'));
     this._detached = true;
+    this._mainWorld._detach();
+    this._secondaryWorld._detach();
     if (this._parentFrame)
       this._parentFrame._childFrames.delete(this);
     this._parentFrame = null;
-  }
-}
-helper.tracePublicAPI(Frame);
-
-class WaitTask {
-  /**
-   * @param {!Frame} frame
-   * @param {Function|string} predicateBody
-   * @param {string|number} polling
-   * @param {number} timeout
-   * @param {!Array<*>} args
-   */
-  constructor(frame, predicateBody, title, polling, timeout, ...args) {
-    if (helper.isString(polling))
-      assert(polling === 'raf' || polling === 'mutation', 'Unknown polling option: ' + polling);
-    else if (helper.isNumber(polling))
-      assert(polling > 0, 'Cannot poll with non-positive interval: ' + polling);
-    else
-      throw new Error('Unknown polling options: ' + polling);
-
-    this._frame = frame;
-    this._polling = polling;
-    this._timeout = timeout;
-    this._predicateBody = helper.isString(predicateBody) ? 'return ' + predicateBody : 'return (' + predicateBody + ')(...args)';
-    this._args = args;
-    this._runCount = 0;
-    frame._waitTasks.add(this);
-    this.promise = new Promise((resolve, reject) => {
-      this._resolve = resolve;
-      this._reject = reject;
-    });
-    // Since page navigation requires us to re-install the pageScript, we should track
-    // timeout on our end.
-    if (timeout) {
-      const timeoutError = new TimeoutError(`waiting for ${title} failed: timeout ${timeout}ms exceeded`);
-      this._timeoutTimer = setTimeout(() => this.terminate(timeoutError), timeout);
-    }
-    this.rerun();
-  }
-
-  /**
-   * @param {!Error} error
-   */
-  terminate(error) {
-    this._terminated = true;
-    this._reject(error);
-    this._cleanup();
-  }
-
-  async rerun() {
-    const runCount = ++this._runCount;
-    /** @type {?Puppeteer.JSHandle} */
-    let success = null;
-    let error = null;
-    try {
-      success = await (await this._frame.executionContext()).evaluateHandle(waitForPredicatePageFunction, this._predicateBody, this._polling, this._timeout, ...this._args);
-    } catch (e) {
-      error = e;
-    }
-
-    if (this._terminated || runCount !== this._runCount) {
-      if (success)
-        await success.dispose();
-      return;
-    }
-
-    // Ignore timeouts in pageScript - we track timeouts ourselves.
-    // If the frame's execution context has already changed, `frame.evaluate` will
-    // throw an error - ignore this predicate run altogether.
-    if (!error && await this._frame.evaluate(s => !s, success).catch(e => true)) {
-      await success.dispose();
-      return;
-    }
-
-    // When the page is navigated, the promise is rejected.
-    // We will try again in the new execution context.
-    if (error && error.message.includes('Execution context was destroyed'))
-      return;
-
-    // We could have tried to evaluate in a context which was already
-    // destroyed.
-    if (error && error.message.includes('Cannot find context with specified id'))
-      return;
-
-    if (error)
-      this._reject(error);
-    else
-      this._resolve(success);
-
-    this._cleanup();
-  }
-
-  _cleanup() {
-    clearTimeout(this._timeoutTimer);
-    this._frame._waitTasks.delete(this);
-    this._runningTask = null;
-  }
-}
-
-/**
- * @param {string} predicateBody
- * @param {string} polling
- * @param {number} timeout
- * @return {!Promise<*>}
- */
-async function waitForPredicatePageFunction(predicateBody, polling, timeout, ...args) {
-  const predicate = new Function('...args', predicateBody);
-  let timedOut = false;
-  if (timeout)
-    setTimeout(() => timedOut = true, timeout);
-  if (polling === 'raf')
-    return await pollRaf();
-  if (polling === 'mutation')
-    return await pollMutation();
-  if (typeof polling === 'number')
-    return await pollInterval(polling);
-
-  /**
-   * @return {!Promise<*>}
-   */
-  function pollMutation() {
-    const success = predicate.apply(null, args);
-    if (success)
-      return Promise.resolve(success);
-
-    let fulfill;
-    const result = new Promise(x => fulfill = x);
-    const observer = new MutationObserver(mutations => {
-      if (timedOut) {
-        observer.disconnect();
-        fulfill();
-      }
-      const success = predicate.apply(null, args);
-      if (success) {
-        observer.disconnect();
-        fulfill(success);
-      }
-    });
-    observer.observe(document, {
-      childList: true,
-      subtree: true,
-      attributes: true
-    });
-    return result;
-  }
-
-  /**
-   * @return {!Promise<*>}
-   */
-  function pollRaf() {
-    let fulfill;
-    const result = new Promise(x => fulfill = x);
-    onRaf();
-    return result;
-
-    function onRaf() {
-      if (timedOut) {
-        fulfill();
-        return;
-      }
-      const success = predicate.apply(null, args);
-      if (success)
-        fulfill(success);
-      else
-        requestAnimationFrame(onRaf);
-    }
-  }
-
-  /**
-   * @param {number} pollInterval
-   * @return {!Promise<*>}
-   */
-  function pollInterval(pollInterval) {
-    let fulfill;
-    const result = new Promise(x => fulfill = x);
-    onTimeout();
-    return result;
-
-    function onTimeout() {
-      if (timedOut) {
-        fulfill();
-        return;
-      }
-      const success = predicate.apply(null, args);
-      if (success)
-        fulfill(success);
-      else
-        setTimeout(onTimeout, pollInterval);
-    }
   }
 }
 
@@ -1215,182 +723,5 @@ function assertNoLegacyNavigationOptions(options) {
   assert(options['networkIdleInflight'] === undefined, 'ERROR: networkIdleInflight option is no longer supported.');
   assert(options.waitUntil !== 'networkidle', 'ERROR: "networkidle" option is no longer supported. Use "networkidle2" instead');
 }
-
-class LifecycleWatcher {
-  /**
-   * @param {!FrameManager} frameManager
-   * @param {!Puppeteer.Frame} frame
-   * @param {string|!Array<string>} waitUntil
-   * @param {number} timeout
-   */
-  constructor(frameManager, frame, waitUntil, timeout) {
-    if (Array.isArray(waitUntil))
-      waitUntil = waitUntil.slice();
-    else if (typeof waitUntil === 'string')
-      waitUntil = [waitUntil];
-    this._expectedLifecycle = waitUntil.map(value => {
-      const protocolEvent = puppeteerToProtocolLifecycle[value];
-      assert(protocolEvent, 'Unknown value for options.waitUntil: ' + value);
-      return protocolEvent;
-    });
-
-    this._frameManager = frameManager;
-    this._networkManager = frameManager._networkManager;
-    this._frame = frame;
-    this._initialLoaderId = frame._loaderId;
-    this._timeout = timeout;
-    /** @type {?Puppeteer.Request} */
-    this._navigationRequest = null;
-    this._eventListeners = [
-      helper.addEventListener(frameManager._client, CDPSession.Events.Disconnected, () => this._terminate(new Error('Navigation failed because browser has disconnected!'))),
-      helper.addEventListener(this._frameManager, FrameManager.Events.LifecycleEvent, this._checkLifecycleComplete.bind(this)),
-      helper.addEventListener(this._frameManager, FrameManager.Events.FrameNavigatedWithinDocument, this._navigatedWithinDocument.bind(this)),
-      helper.addEventListener(this._frameManager, FrameManager.Events.FrameDetached, this._onFrameDetached.bind(this)),
-      helper.addEventListener(this._networkManager, NetworkManager.Events.Request, this._onRequest.bind(this)),
-    ];
-
-    this._sameDocumentNavigationPromise = new Promise(fulfill => {
-      this._sameDocumentNavigationCompleteCallback = fulfill;
-    });
-
-    this._lifecyclePromise = new Promise(fulfill => {
-      this._lifecycleCallback = fulfill;
-    });
-
-    this._newDocumentNavigationPromise = new Promise(fulfill => {
-      this._newDocumentNavigationCompleteCallback = fulfill;
-    });
-
-    this._timeoutPromise = this._createTimeoutPromise();
-    this._terminationPromise = new Promise(fulfill => {
-      this._terminationCallback = fulfill;
-    });
-  }
-
-  /**
-   * @param {!Puppeteer.Request} request
-   */
-  _onRequest(request) {
-    if (request.frame() !== this._frame || !request.isNavigationRequest())
-      return;
-    this._navigationRequest = request;
-  }
-
-  /**
-   * @param {!Puppeteer.Frame} frame
-   */
-  _onFrameDetached(frame) {
-    if (this._frame === frame) {
-      this._terminationCallback.call(null, new Error('Navigating frame was detached'));
-      return;
-    }
-    this._checkLifecycleComplete();
-  }
-
-  /**
-   * @return {?Puppeteer.Response}
-   */
-  navigationResponse() {
-    return this._navigationRequest ? this._navigationRequest.response() : null;
-  }
-
-  /**
-   * @param {!Error} error
-   */
-  _terminate(error) {
-    this._terminationCallback.call(null, error);
-  }
-
-  /**
-   * @return {!Promise<?Error>}
-   */
-  sameDocumentNavigationPromise() {
-    return this._sameDocumentNavigationPromise;
-  }
-
-  /**
-   * @return {!Promise<?Error>}
-   */
-  newDocumentNavigationPromise() {
-    return this._newDocumentNavigationPromise;
-  }
-
-  /**
-   * @return {!Promise}
-   */
-  lifecyclePromise() {
-    return this._lifecyclePromise;
-  }
-
-  /**
-   * @return {!Promise<?Error>}
-   */
-  timeoutOrTerminationPromise() {
-    return Promise.race([this._timeoutPromise, this._terminationPromise]);
-  }
-
-  /**
-   * @return {!Promise<?Error>}
-   */
-  _createTimeoutPromise() {
-    if (!this._timeout)
-      return new Promise(() => {});
-    const errorMessage = 'Navigation Timeout Exceeded: ' + this._timeout + 'ms exceeded';
-    return new Promise(fulfill => this._maximumTimer = setTimeout(fulfill, this._timeout))
-        .then(() => new TimeoutError(errorMessage));
-  }
-
-  /**
-   * @param {!Puppeteer.Frame} frame
-   */
-  _navigatedWithinDocument(frame) {
-    if (frame !== this._frame)
-      return;
-    this._hasSameDocumentNavigation = true;
-    this._checkLifecycleComplete();
-  }
-
-  _checkLifecycleComplete() {
-    // We expect navigation to commit.
-    if (!checkLifecycle(this._frame, this._expectedLifecycle))
-      return;
-    this._lifecycleCallback();
-    if (this._frame._loaderId === this._initialLoaderId && !this._hasSameDocumentNavigation)
-      return;
-    if (this._hasSameDocumentNavigation)
-      this._sameDocumentNavigationCompleteCallback();
-    if (this._frame._loaderId !== this._initialLoaderId)
-      this._newDocumentNavigationCompleteCallback();
-
-    /**
-     * @param {!Puppeteer.Frame} frame
-     * @param {!Array<string>} expectedLifecycle
-     * @return {boolean}
-     */
-    function checkLifecycle(frame, expectedLifecycle) {
-      for (const event of expectedLifecycle) {
-        if (!frame._lifecycleEvents.has(event))
-          return false;
-      }
-      for (const child of frame.childFrames()) {
-        if (!checkLifecycle(child, expectedLifecycle))
-          return false;
-      }
-      return true;
-    }
-  }
-
-  dispose() {
-    helper.removeEventListeners(this._eventListeners);
-    clearTimeout(this._maximumTimer);
-  }
-}
-
-const puppeteerToProtocolLifecycle = {
-  'load': 'load',
-  'domcontentloaded': 'DOMContentLoaded',
-  'networkidle0': 'networkIdle',
-  'networkidle2': 'networkAlmostIdle',
-};
 
 module.exports = {FrameManager, Frame};

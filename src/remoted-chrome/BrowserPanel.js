@@ -292,6 +292,7 @@ export default class BrowserPanel {
               chromeNativeWindow.setWindowLongPtrRestore(0x00040000)
             }
             chromeNativeWindow.setWindowLongPtrEx(0x00000080)
+            chromeNativeWindow.setWindowPos(0,0,0,0,0,39+1024)
             chromeNativeWindow.showWindow(5)
             await new Promise(r=>setTimeout(r,50))
           }
@@ -441,6 +442,7 @@ export default class BrowserPanel {
         chromeNativeWindow.setWindowLongPtrRestore(0x00040000)
       }
       chromeNativeWindow.setWindowLongPtrEx(0x00000080)
+      chromeNativeWindow.setWindowPos(0,0,0,0,0,39+1024)
 
       chromeNativeWindow.showWindow(5)
     }
@@ -567,7 +569,7 @@ export default class BrowserPanel {
 
   async setBounds(bounds) {
     const tab = await this.getActiveTab()
-    const modify = Browser.CUSTOM_CHROMIUM ? 0 : tab.url == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? 37 : 0
+    const modify = 0 //Browser.CUSTOM_CHROMIUM ? 0 : tab.url == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? 37 : 0
 
 
     if (bounds.width) {

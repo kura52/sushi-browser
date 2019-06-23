@@ -18,7 +18,7 @@ const isDarwin = process.platform == 'darwin'
 const isLinux = process.platform === 'linux'
 const isWin = process.platform == 'win32'
 const LRUCache = require('lru-cache')
-const {getUrlFromCommandLine,getNewWindowURL} = require('./cmdLine')
+const {getUrlFromCommandLine,getNewWindowURL,focusOrOpenWindow} = require('./cmdLine')
 import {getFocusedWebContents, getCurrentWindow} from './util'
 const open = require('./open')
 const sharedState = require('./sharedStateMain')
@@ -46,11 +46,52 @@ function exec(command) {
   return new Promise(function(resolve, reject) {
     require('child_process').exec(command, function(error, stdout, stderr) {
       if (error) {
-        return reject(error);
+        return reject(error)
       }
-      resolve({stdout, stderr});
-    });
-  });
+      resolve({stdout, stderr})
+    })
+  })
+}
+
+
+async function killRemainProcess(){
+  const findProcess  = require('find-process')
+  const func = async ()=>{
+    const list = await findProcess('name', 'sushi-browser')
+    const map = {}
+    for(const p of list){
+      if(p.name != 'sushi-browser.exe') continue
+      map[p.pid] = p.ppid
+    }
+    const map2 = {}
+    for(const [pid,ppid] of Object.entries(map)){
+      const id = map[ppid] ? ppid :  pid
+      if(map2[id]){
+        map2[id].push(pid)
+      }
+      else{
+        map2[id] = [pid]
+      }
+    }
+    for(const [ppid, pidList] of Object.entries(map2)){
+      console.log(map2)
+      if(pidList.length <= 2){
+        const fkill = require('fkill')
+        console.log(ppid)
+        await fkill(parseInt(ppid), {force: true})
+        for(const pid of pidList){
+          if(pid == ppid) continue
+          const isFind = await findProcess('pid', parseInt(pid))
+          console.log(pid, isFind)
+          if(isFind.length) await fkill(parseInt(pid), {force: true})
+        }
+        return true
+      }
+    }
+    return false
+  }
+  setInterval(func,5000)
+  return await func()
 }
 
 
@@ -122,136 +163,110 @@ fs.mkdirSync(userDir,{recursive: true})
 
 Browser.setUserDataDir(userDir)
 
+
 let ptyProcessSet,passwordManager,extensionInfos,syncReplaceName
-app.once('ready', async ()=>{
-  // webFrame.registerURLSchemeAsBypassingCSP('chrome-extension')
-
-  // const cookieFile = path.join(app.getPath('userData'), 'cookie.txt') //@TODO ELECTRON
-  // if(fs.existsSync(cookieFile)){
-  //   for(let cookie of JSON.parse(fs.readFileSync(cookieFile))){
-  //     session.defaultSession.cookies.set({url:`https://${cookie.domain}`,...cookie},()=>{})
-  //   }
-  // }
-
-  // session.defaultSession.setPreloads([path.join(__dirname, '../resource/preload-content-scripts.js')])
-
-  InitSetting.val.then(setting=>{
-    // if(setting.enableFlash){
-    //   setFlash(app)
-    // }
-    // else{
-    // }
-
-    // app.commandLine.appendSwitch('widevine-cdm-path', '/opt/google/chrome/libwidevinecdmadapter.so')
-    //https://imfly.gitbooks.io/electron-docs-gitbook/jp/tutorial/using-widevine-cdm-plugin.html
-    if(!setting.enableWidevine){
-      defaultConf.plugins =  []
-    }
-    else{
-      // try{
-      //   const widevinePath = path.join(global.originalUserDataPath,'Extensions/WidevineCdm')
-      //   if(require("glob").sync(path.join(widevinePath,"*")).length == 0){
-      //     const src = path.join(__dirname, '../resource/bin/widevine',
-      //       isWin ? 'win/WidevineCdm' : isDarwin ? 'mac/WidevineCdm' : '').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
-      //     require('fs-extra').copySync(src,widevinePath)
-      //   }
-      // }catch(e){
-      //   console.log(e)
-      // }
-    }
-    // defaultConf.javascript[0].setting = setting.noScript ? 'block' : 'allow'
-    // defaultConf.canvasFingerprinting[0].setting = setting.blockCanvasFingerprinting ? 'block' : 'allow'
-    // console.log(678,session.defaultSession.userPrefs.getDictionaryPref('content_settings'))
-  })
-
-  console.log(1)
-  require('./captureEvent')
-
-  const ses = session.defaultSession
-  // ses.setEnableBrotli(true)
-  // ses.contentSettings.set("*","*","plugins",mainState.flashPath,"allow")
-  // ses.userPrefs.setDictionaryPref('content_settings', defaultConf)
-  // ses.userPrefs.setBooleanPref('autofill.enabled', true)
-  // ses.userPrefs.setBooleanPref('profile.password_manager_enabled', true)
-  // ses.userPrefs.setBooleanPref('credentials_enable_service', true)
-  // ses.userPrefs.setBooleanPref('credentials_enable_autosignin', true)
-  // ses.userPrefs.setStringPref('download.default_directory', app.getPath('downloads'))
-
-
-  // ses.autofill.getAutofillableLogins((result) => {
-  //   // console.log(1,result)
-  // })
-  // ses.autofill.getBlackedlistLogins((result) => {
-  //   // console.log(2,result)
-  // })
-
-  // loadDevtool(loadDevtool.REACT_DEVELOPER_TOOLS);
-  //console.log(app.getPath('pepperFlashSystemPlugin'))
-  extensionInfos = require('./extensionInfos')
-  console.log({arch: process.arch,platform: process.platform},process.versions)
-
-
-  // console.log(app.getPath('userData'))
-  const downloadEvent = require('./downloadEvent')
-  new downloadEvent()
-  require('./historyEvent')
-  require('./messageEvent')
-  require('./tabMoveEvent')
-  require('./saveEvent')
-  // require('./userAgentChangeEvent')
-  require('./clearEvent')
-
-
-  ptyProcessSet = require('./ptyProcess')
-  // ptyProcessSet = new Set()
-  // require('./importer')
-  require('./bookmarksExporter')
-  const setting = await InitSetting.val
-  require('./faviconsEvent')(async _ => {
-    console.log(332,process.argv,getUrlFromCommandLine(process.argv))
-    await createWindow(true,isDarwin ? getNewWindowURL() : getUrlFromCommandLine(process.argv))
-
-    // httpsEverywhere = require('../brave/httpsEverywhere') //@TODO ELECTRON
-    // trackingProtection = require('../brave/trackingProtection') @TODO ELECTRON
-
-
-    require('./ipcUtils')
-    require('./ipcAutoOperations')
-    require('./VideoConverter')
-    require('./tabContextMenu')
-    // require('./syncLoop')
-
-    // adblock = require('../brave/adBlock') //@TODO ELECTRON
-    require('./menuSetting')
-    process.emit('app-initialized')
-
-    extensions = require('./extension/extensions')
-    // extensions.init(setting.ver !== fs.readFileSync(path.join(__dirname, '../VERSION.txt')).toString())
-    extensions.init(true)
-
-    ipcMain.emit('new-tab-mode',{},(mainState.newTabMode == 'myHomepage' ? mainState.myHomepage :
-      mainState.newTabMode == 'topPage' ? mainState.topPage :
-        mainState.newTabMode == 'favorite' ? mainState.bookmarksPage :
-          mainState.newTabMode == 'history' ? mainState.historyPage : "") || `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/${mainState.newTabMode}.html`
-    )
-
-    require('./checkUpdate')
-    require('./portablePathSelector')
-    // require('./checkDefault')
-    const {syncReplace} = require('./databaseFork')
-    let rec
-    if (rec = await syncReplace.findOne({key: 'syncReplace_0'})) {
-      syncReplaceName = rec.val.split("\t")[0]
+const appReady = ()=>{
+  app.on('second-instance', (event, commandLine, workingDirectory) => {
+    if (isDarwin) {
+      focusOrOpenWindow()
     }
     else {
-      syncReplace.insert({
-        key: 'syncReplace_0',
-        val: `${locale.translation('2473195200299095979')}\t(.+)\thttps://translate.google.co.jp/translate?sl=auto&tl=${mainState.lang}&hl=${mainState.lang}&ie=UTF-8&u=$$1`
-      })
-      syncReplaceName = locale.translation('2473195200299095979')
+      console.log(33334,commandLine,getUrlFromCommandLine(commandLine))
+      focusOrOpenWindow(getUrlFromCommandLine(commandLine))
     }
   })
-})
+  app.once('ready', async ()=>{
+
+    InitSetting.val.then(()=>{})
+
+    console.log(1)
+    require('./captureEvent')
+
+    const ses = session.defaultSession
+
+    extensionInfos = require('./extensionInfos')
+    console.log({arch: process.arch,platform: process.platform},process.versions)
+
+    // console.log(app.getPath('userData'))
+    const downloadEvent = require('./downloadEvent')
+    new downloadEvent()
+    require('./historyEvent')
+    require('./messageEvent')
+    require('./tabMoveEvent')
+    require('./saveEvent')
+    // require('./userAgentChangeEvent')
+    require('./clearEvent')
+
+
+    ptyProcessSet = require('./ptyProcess')
+    // ptyProcessSet = new Set()
+    // require('./importer')
+    require('./bookmarksExporter')
+    const setting = await InitSetting.val
+    require('./faviconsEvent')(async _ => {
+      console.log(332,process.argv,getUrlFromCommandLine(process.argv))
+      await createWindow(true,isDarwin ? getNewWindowURL() : getUrlFromCommandLine(process.argv))
+
+      // httpsEverywhere = require('../brave/httpsEverywhere') //@TODO ELECTRON
+      // trackingProtection = require('../brave/trackingProtection') @TODO ELECTRON
+
+
+      require('./ipcUtils')
+      require('./ipcAutoOperations')
+      require('./VideoConverter')
+      require('./tabContextMenu')
+      // require('./syncLoop')
+
+      // adblock = require('../brave/adBlock') //@TODO ELECTRON
+      require('./menuSetting')
+      process.emit('app-initialized')
+
+      extensions = require('./extension/extensions')
+      // extensions.init(setting.ver !== fs.readFileSync(path.join(__dirname, '../VERSION.txt')).toString())
+      extensions.init(true)
+
+      ipcMain.emit('new-tab-mode',{},(mainState.newTabMode == 'myHomepage' ? mainState.myHomepage :
+        mainState.newTabMode == 'topPage' ? mainState.topPage :
+          mainState.newTabMode == 'favorite' ? mainState.bookmarksPage :
+            mainState.newTabMode == 'history' ? mainState.historyPage : "") || `chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/${mainState.newTabMode}.html`
+      )
+
+      require('./checkUpdate')
+      require('./portablePathSelector')
+      // require('./checkDefault')
+      const {syncReplace} = require('./databaseFork')
+      let rec
+      if (rec = await syncReplace.findOne({key: 'syncReplace_0'})) {
+        syncReplaceName = rec.val.split("\t")[0]
+      }
+      else {
+        syncReplace.insert({
+          key: 'syncReplace_0',
+          val: `${locale.translation('2473195200299095979')}\t(.+)\thttps://translate.google.co.jp/translate?sl=auto&tl=${mainState.lang}&hl=${mainState.lang}&ie=UTF-8&u=$$1`
+        })
+        syncReplaceName = locale.translation('2473195200299095979')
+      }
+    })
+  })
+}
+
+
+const gotTheLock = app.requestSingleInstanceLock()
+const killPromise = killRemainProcess()
+
+if (!gotTheLock) {
+  killPromise.then(isKilled => {
+    if(isKilled){
+      appReady()
+    }
+    else{
+      app.quit()
+    }
+  })
+}
+else{
+  appReady()
+}
 
 let beforeQuitFirst = false
 let beforeQuit = false
@@ -771,73 +786,6 @@ process.on('open-url-from-tab', (e, source, targetUrl, disposition) => {
 //   // e.preventDefault()
 // })
 
-
-// function setFlash(app){
-//   let ppapi_flash_path,flash_path;
-//   try {
-//     flash_path = app.getPath('pepperFlashSystemPlugin')
-//   } catch (e) {
-//   }
-//
-//   if(process.platform  == 'win32'){
-//     let path_flash = flash_path ? require("glob").sync(flash_path) : require("glob").sync(process.arch == 'x64' ? "C:\\Windows\\SysWOW64\\Macromed\\Flash\\pepflashplayer*.dll" : "C:\\Windows\\System32\\Macromed\\Flash\\pepflashplayer*.dll")
-//
-//     if(path_flash.length > 0) {
-//       ppapi_flash_path = path_flash[0]
-//       app.commandLine.appendSwitch('ppapi-flash-path', ppapi_flash_path);
-//     }
-//   }
-//   else if (process.platform == 'linux') {
-//     const path_flash = require("glob").sync(`${process.env["HOME"]}/.config/google-chrome/PepperFlash/**/libpepflashplayer.so`)
-//     if (path_flash.length > 0) {
-//       console.log('flash',path_flash)
-//       ppapi_flash_path = path_flash[0]
-//       app.commandLine.appendSwitch('ppapi-flash-path', ppapi_flash_path)
-//     }
-//   }
-//   else{
-//     let path_flash = flash_path ? require("glob").sync(flash_path) : require("glob").sync("/Library/Internet Plug-Ins/PepperFlashPlayer/PepperFlashPlayer.plugin")
-//     if (path_flash.length > 0) {
-//       ppapi_flash_path = path_flash[0]
-//       app.commandLine.appendSwitch('ppapi-flash-path', ppapi_flash_path);
-//     }
-//   }
-//   if(ppapi_flash_path){
-//     mainState.flashPath = ppapi_flash_path
-//     mainState.flash = path.basename(ppapi_flash_path)
-//   }
-// }
-//
-//
-// function setWidevine(app){
-//   let ppapi_widevine_path,widevine_path
-//   if(process.platform  == 'win32'){
-//     const path_widevine = require("glob").sync(`C:\\Program Files (x86)\\Google\\Chrome\\Application\\*\\WidevineCdm\\_platform_specific\\*\\widevinecdm.dll`)
-//     if (path_widevine.length > 0) {
-//       ppapi_widevine_path = path_widevine[0]
-//       app.commandLine.appendSwitch('widevine-cdm-path', path.join(ppapi_widevine_path, '..'))
-//     }
-//   }
-//   else if (process.platform == 'linux') {
-//     const path_widevine = require("glob").sync(`/opt/google/chrome/libwidevinecdm.so`)
-//     if (path_widevine.length > 0) {
-//       ppapi_widevine_path = path_widevine[0]
-//       console.log('widevine', path.join(ppapi_widevine_path, '..'))
-//       app.commandLine.appendSwitch('widevine-cdm-path', path.join(ppapi_widevine_path, '..'))
-//     }
-//   }
-//   else{
-//     let path_widevine = widevine_path ? require("glob").sync(widevine_path) : require("glob").sync("/Applications/Google Chrome.app/Contents/Versions/*/Google Chrome Framework.framework/Versions/A/Libraries/WidevineCdm/_platform_specific/*/libwidevinecdm.dylib")
-//     if (path_widevine.length > 0) {
-//       ppapi_widevine_path = path_widevine[0]
-//       app.commandLine.appendSwitch('widevine-cdm-path', path.join(ppapi_widevine_path, '..'))
-//     }
-//   }
-//   if(ppapi_widevine_path){
-//     mainState.widevinePath = ppapi_widevine_path
-//     mainState.widevine = path.basename(ppapi_widevine_path)
-//   }
-// }
 
 function createWindow (first,url) {
   return BrowserWindowPlus.load((void 0),first,url)

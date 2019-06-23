@@ -2815,14 +2815,7 @@ export default class TabPanel extends Component {
           })
         }
       }
-      if(newPage.navUrl != l){
-        newPage.navUrl = l
-        this.webViewCreate()
-        this.setState({})
-      }
-      else{
-        newPage.navUrl = l
-      }
+      newPage.navUrl = l
       newPage.richContents = []
       // this.setState({})
       this.setStatePartical(tab)
@@ -3121,7 +3114,7 @@ export default class TabPanel extends Component {
           isActive: this.state.selectedTab == tab.key,
           ref: ref,
           navbar: navbar,
-          modify: this.props.toggleNav != 2 && this.props.toggleNav != 3 && (sharedState.bookmarkBar || (sharedState.bookmarkBarTopPage && tab.page.navUrl == topURL)) ? 28 : 0,
+          modify: this.props.toggleNav != 2 && this.props.toggleNav != 3 && sharedState.bookmarkBar ? 28 : 0,
           float:this.props.float,
           getCapture: !tab.tabPreview,
           isMaximize
@@ -4641,15 +4634,7 @@ export default class TabPanel extends Component {
       }
       tab.page.title = title
 
-
-      if(tab.page.navUrl != url){
-        tab.page.navUrl = url
-        this.webViewCreate()
-        this.setState({})
-      }
-      else{
-        tab.page.navUrl = url
-      }
+      tab.page.navUrl = url
 
       tab.prevSyncNav = url //@TOOD arrage navurl,location,sync panel
       try {

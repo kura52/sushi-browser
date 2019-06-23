@@ -4,21 +4,13 @@ const React = require('react')
 const {Component} = React
 const ReactDOM = require('react-dom')
 
-const {remote} = require('electron');
-const {app,Menu,clipboard} = remote
-
-const PubSub = require('./pubsub')
 const uuid = require('node-uuid')
-const mainState = require('./mainStateRemote')
-const NavbarMenu = require('./NavbarMenu')
-const {NavbarMenuItem,NavbarMenuBarItem,NavbarMenuSubMenu} = require('./NavbarMenuItem')
-const FavoriteExplorer = require('../toolPages/favoriteBase')
+const NavbarMenu = require('./NavbarMenuToolPage')
+const FavoriteExplorer = require('./favoriteBase')
 
-const ipc = require('electron').ipcRenderer
-const {favorite} = require('./databaseRender')
-const sharedState = require('./sharedState')
-const getTheme = require('./theme')
+import {ipcRenderer as ipc} from './ipcRenderer'
 
+const isMain = location.href.startsWith("file://")
 
 let _result,_update,bookmarkbarLink
 
@@ -49,15 +41,13 @@ function multiByteSlice(str,end) {
 }
 
 async function faviconGet(x){
-  return x.favicon == "resource/file.svg" ? (void 0) : x.favicon && (await localForage.getItem(x.favicon))
+  return x.favicon == "resource/file.svg" ? (void 0) :
+    isMain ? x.favicon && (await localForage.getItem(x.favicon)) :
+      `chrome://favicon/${x.url}`
 }
 
 function escapeRegExp(string){
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
-}
-
-function isFloatPanel(key){
-  return key.startsWith('fixed-float')
 }
 
 function insertFavorite(writePath,data){
@@ -120,72 +110,15 @@ function showDialog(input,id){
   })
 }
 
-export default class BookmarkBarWrapper extends Component {
-  constructor(props){
-    super(props)
-    this.prev = void 0
-  }
-
-  componentWillMount() {
-    this.props.refs2[`bookmarkbar-${this.props.tab.key}`] = this
-    console.log(68888,`hover-bookmarkbar-${this.props.tab.key}`)
-    this.token = PubSub.subscribe(`hover-bookmarkbar-${this.props.tab.key}`,(e,val)=>{
-      if(this.hoverBookmarkBar == val) return
-      if(!this._isShow()){
-        this.hoverBookmarkBar = val
-        this.setState({})
-      }
-    })
-  }
-
-  componentDidMount() {
-    this.prev = this.isShow()
-  }
-
-  _isShow(){
-    return sharedState.bookmarkBar
-  }
-
-  isShow(){
-    return this.props.toggleNav != 2 && this.props.toggleNav != 3 && (this._isShow() || this.hoverBookmarkBar)
- }
-
-  shouldComponentUpdate(nextProps, nextState) {
-    let val = this.isShow()
-    if(!val) val = void 0
-    const cond = this.prev !== val
-    if(cond){
-      this.prev = val
-      this.props.webViewCreate()
-    }
-    // console.log(9999777,val,cond,this.props.tab.page.navUrl)
-    return cond
-  }
-
-  componentWillUnmount() {
-    PubSub.unsubscribe(this.token)
-    if(this.props.refs2[`bookmarkbar-${this.props.tab.key}`] == this){
-      delete this.props.refs2[`bookmarkbar-${this.props.tab.key}`]
-    }
-  }
-
-  render(){
-    return this.isShow() ? <BookmarkBar {...this.props} hoverBookmarkBar={this.hoverBookmarkBar}/> : null
-  }
-}
-
-class BookmarkBar extends Component {
+export default class BookmarkBar extends Component {
   constructor(props) {
     super(props)
     this.state = {bookmarks:[]}
     this.refs2 = {}
     this.calcNum= ::this.calcNum
-    if(bookmarkbarLink === void 0) bookmarkbarLink = mainState.bookmarkbarLink
-  }
-
-  getWebContents(tab){
-    if(!tab.wv || !tab.wvId) return
-    return this.props.currentWebContents[tab.wvId]
+    if(bookmarkbarLink === void 0) bookmarkbarLink = this.props.bookmarkbarLink
+    this.openType = 'toolbarLink'
+    this.openType2 = this.props.bookmarkbarLink !== void 0 ? this.props.bookmarkbarLink : this.openType
   }
 
   getKey(node,ind=1){
@@ -207,18 +140,11 @@ class BookmarkBar extends Component {
     if(this.mouseDown !== e.target || this.button !== e.button) return
     this.mouseDown = void 0
     this.button = void 0
-
-    const tab = this.props.tab
     if(e.button == 0){
-      if(bookmarkbarLink){
-        tab.events['new-tab']({}, tab.wvId, url)
-      }
-      else{
-        this.props.navigateTo(tab.page, url, tab)
-      }
+      location.href = url
     }
     else if(e.button == 1){
-      tab.events['create-web-contents'](null, {id:tab.wvId,targetUrl:url,disposition:'background-tab'})
+      ipc.send('send-to-host', "open-tab-opposite",url,true)
     }
   }
 
@@ -227,7 +153,8 @@ class BookmarkBar extends Component {
 
     const tab = this.props.tab
     if(e.button == 0 || e.button == 1){
-      this.props.navigateTo(tab.page, url, tab)
+      location.href = url
+      // this.props.navigateTo(tab.page, url, tab)
     }
     else{
     }
@@ -256,14 +183,12 @@ class BookmarkBar extends Component {
   }
 
   async updateBookmark(){
-    const isFloat = isFloatPanel(this.props.k)
-    const bookmarks = [<NavbarMenu k={this.props.k} isFloat={isFloat} ref={r=>this.refs2.last = r} onClick={_=>_} timeOut={50} style={{float: 'right'}} key={'last'} fixed={true}
+    const bookmarks = [<NavbarMenu isFloat={false} ref={r=>this.refs2.last = r} onClick={_=>_} timeOut={50} style={{float: 'right'}} key={'last'} fixed={true}
                                    badget={
                                      <span className="bookmark-right-arrow"><i className="fa fa-angle-double-right"></i></span>}>
       <div className="divider" />
       <div role="option" className="item favorite infinite-classic">
-        <FavoriteExplorer bookmarkbarLink={bookmarkbarLink} cont={_=>this.getWebContents(this.props.tab)} searchNum={this.calcNum}
-                          onClick={_=> {this.refs2.last.setState({visible:false})}}/>
+        <FavoriteExplorer searchNum={this.calcNum} onClick={_=> {this.refs2.last.setState({visible:false})}} topPage={true}/>
       </div>
     </NavbarMenu>]
 
@@ -283,7 +208,7 @@ class BookmarkBar extends Component {
       }
       else{
         const ref = `favoriteMenu${f.key}`
-        ele = <NavbarMenu k={this.props.k} isFloat={isFloat} ref={r=>this.refs2[ref] = r}
+        ele = <NavbarMenu isFloat={false} ref={r=>this.refs2[ref] = r}
                           onClick={_=>_} timeOut={50} alignLeft={true} key={f.key} fixed={true}
                           badget={
                             <a className="bookmark-item infinite-tree-item"
@@ -293,8 +218,7 @@ class BookmarkBar extends Component {
                             </a>}>
           <div className="divider" />
           <div role="option" className="item favorite infinite-classic">
-            <FavoriteExplorer bookmarkbarLink={bookmarkbarLink} cont={_=>this.getWebContents(this.props.tab)} searchKey={f.key}
-                              onClick={_=> {this.refs2[ref].setState({visible:false})}}/>
+            <FavoriteExplorer searchKey={f.key} onClick={_=> {this.refs2[ref].setState({visible:false})}} topPage={true}/>
           </div>
         </NavbarMenu>
       }
@@ -340,33 +264,44 @@ class BookmarkBar extends Component {
 
   initEvents() {
     this.event = (e, cmd) => {
-      if(!this.menuKey) return
       if(cmd == "openInNewTab" || cmd == "openInNewPrivateTab" || cmd == "openInNewTorTab" || cmd == "openInNewSessionTab" || cmd == "openInNewWindow" || cmd == "openInNewWindowWithOneRow" || cmd == "openInNewWindowWithTwoRow") {
         const nodes = this.menuKey
         this.menuKey = (void 0)
-        openFavorite(nodes.map(n=>n.key),this.props.tab.wvId,cmd).then(_=>{
+        openFavorite(nodes.map(n=>this.getKey(n)),-1,cmd).then(_=>{
           console.log(324234235346545)
           this.props.onClick && this.props.onClick()
         })
       }
       else if(cmd == "delete") {
+        // const tree = this.refs.iTree.tree
+        // const nodeIndex = tree.getSelectedIndex()
+
         const nodes = this.menuKey
         this.menuKey = (void 0)
-        deleteFavorite(nodes.map(n=>n.key),nodes.map(parent=>'root')).then(_=>{})
+        const parentNodes = nodes.map(n => n.getParent())
+        deleteFavorite(nodes.map(n=>this.getKey(n)),parentNodes.map(parent=>this.getKey(parent))).then(_ => {
+          if(isMain) this.eventUpdateDatas()
+          // if(nodeIndex !== -1){
+          // const nextNode = tree.nodes[nodeIndex + 1] || tree.nodes[nodeIndex - 1]
+          //   selectedNodes.splice(0,selectedNodes.length,nextNode)
+          //   setTimeout(_=>tree.selectNode(nextNode),10)
+          // }
+        })
       }
       else if(cmd == "edit"){
+        if (this.props.onClick) this.props.onClick()
         const nodes = this.menuKey
         this.menuKey = (void 0)
         showDialog({
           inputable: true, title: 'Rename',
           text: `Enter a new Name`,
-          initValue: nodes[0].is_file ? [nodes[0].title,nodes[0].url] : [nodes[0].title],
-          needInput: nodes[0].is_file ? ["Title","URL"] : ["Title"]
-        },this.props.tab.wvId).then(value => {
+          initValue: nodes[0].type == 'file' ? [nodes[0].name,nodes[0].url] : [nodes[0].name],
+          needInput: nodes[0].type == 'file' ? ["Title","URL"] : ["Title"]
+        },this.props.cont ? this.props.cont.id : (void 0)).then(value => {
           if (!value) return
-          const data = nodes[0].is_file ? {title:value[0], url:value[1]} : {title:value[0]}
-          console.log(nodes[0].key,data)
-          renameFavorite(nodes[0].key,data).then(_=>_)
+          const data = nodes[0].type == 'file' ? {title:value[0], url:value[1]} : {title:value[0]}
+          console.log(this.getKey(nodes[0]),data)
+          renameFavorite(this.getKey(nodes[0]),data).then(_=>_)
         })
       }
       else if(cmd == "addBookmark" || cmd == "addFolder") {
@@ -377,15 +312,14 @@ class BookmarkBar extends Component {
           inputable: true, title: `New ${isPage ? 'Page' : 'Directory'}`,
           text: `Enter a new ${isPage ? 'page title and URL' : 'directory name'}`,
           needInput: isPage ? ["Title","URL"] : [""]
-        },this.props.tab.wvId).then(value => {
+        },this.props.cont ? this.props.cont.id : (void 0)).then(value => {
           if (!value) return
           const data = isPage ? {title:value[0], url:value[1], is_file:true} : {title:value[0], is_file:false,children:[]}
-
-          if(nodes[0].is_file){
-            insertFavorite2('root',nodes[0].key,data).then(_=>_)
+          if(nodes[0].type == 'file'){
+            insertFavorite2(this.getKey(nodes[0].getParent()),this.getKey(nodes[0]),data).then(_=>_)
           }
           else{
-            insertFavorite(nodes[0].key,data).then(_=>_)
+            insertFavorite(this.getKey(nodes[0]),data).then(_=>_)
           }
         })
       }
@@ -393,16 +327,12 @@ class BookmarkBar extends Component {
     ipc.on('favorite-menu-reply', this.event)
   }
   render(){
-    const bgImage = getTheme('images','theme_toolbar')|| void 0
+    const bgImage = void 0
     let style = {backgroundImage: bgImage,
       backgroundColor: bgImage ? 'initial' : void 0,
       backgroundPositionY: bgImage ? -57 : void 0,
-      color: (getTheme('colors','bookmark_text') || void 0)}
-    if(this.props.hoverBookmarkBar){
-      const rect = this.props.hoverBookmarkBar.getBoundingClientRect()
-      style = {overflow: 'hidden',position: 'fixed',zIndex:1000,width:rect.width,top:rect.top,left:rect.left,...style}
-    }
-    return <div key="bar" ref="bar" className={`bookmark-bar ${this.props.hoverBookmarkBar ? 'visible transition' : ''}`} style={style}>
+      color: (void 0)}
+    return <div key="bar" ref="bar" className={`bookmark-bar`} style={style}>
       {this.state.bookmarks}
     </div>
   }

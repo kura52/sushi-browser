@@ -314,7 +314,7 @@ export default class App extends React.Component {
                                     cont={(typeof this.props.cont) == 'function' ? this.props.cont() : this.props.cont} searchNum={this.props.searchNum} searchKey={this.props.searchKey}/>:
         <Selection ref="select" target=".infinite-tree-item" selectedClass="selection-selected"
                    afterSelect={::this.afterSelect} clearSelect={::this.clearSelect}>
-          <Contents ref="content" favoritePage={this.props.favoritePage}/>
+          <Contents ref="content" topPage={this.props.topPage} favoritePage={this.props.favoritePage} searchNum={this.props.searchNum} searchKey={this.props.searchKey}/>
         </Selection>}
     </StickyContainer>
   }
@@ -416,7 +416,7 @@ class Contents extends React.Component {
       if(cmd == "openInNewTab" || cmd == "openInNewPrivateTab" || cmd == "openInNewTorTab" || cmd == "openInNewSessionTab" || cmd == "openInNewWindow" || cmd == "openInNewWindowWithOneRow" || cmd == "openInNewWindowWithTwoRow") {
         const nodes = this.menuKey
         this.menuKey = (void 0)
-        openFavorite(nodes.map(n=>this.getKey(n)),this.props.cont ? this.props.cont.id : (void 0),cmd).then(_=>{
+        openFavorite(nodes.map(n=>this.getKey(n)),this.props.cont ? this.props.cont.id : this.props.topPage ? -1 : (void 0),cmd).then(_=>{
           console.log(324234235346545)
           this.props.onClick && this.props.onClick()
         })
@@ -703,7 +703,7 @@ class Contents extends React.Component {
   render() {
     const self = this
     return (
-      <div style={{paddingLeft:4,paddingTop:4,width:this.props.cont ? '600px' : this.props.favoritePage ? (void 0) :'calc(100vw - 4px)'}}>
+      <div style={{paddingLeft:4,paddingTop:4,width:(this.props.cont || this.props.topPage) ? '600px' : this.props.favoritePage ? (void 0) :'calc(100vw - 4px)'}}>
         <InfiniteTree
           ref="iTree"
           noDataText=""
@@ -785,6 +785,14 @@ class Contents extends React.Component {
                       this.props.cont.hostWebContents2.send(openType2 ? 'new-tab' : 'load-url',this.props.cont.id,currentNode.url)
                     }
                     if(this.props.onClick) this.props.onClick()
+                  }
+                  else if(this.props.topPage){
+                    if(event.button == 0){
+                      location.href = currentNode.url
+                    }
+                    else if(event.button == 1){
+                      ipc.send('send-to-host', "open-tab-opposite",currentNode.url,true)
+                    }
                   }
                   else{
                     ipc.send('send-to-host', "open-tab-opposite",currentNode.url,true,event.button == 1 ? 'create-web-contents' : openType2 ? 'new-tab' : 'load-url')

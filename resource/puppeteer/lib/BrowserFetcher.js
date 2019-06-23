@@ -125,7 +125,7 @@ class BrowserFetcher {
 
   /**
    * @param {string} revision
-   * @param {?function(number, number)} progressCallback
+   * @param {?function(number, number):void} progressCallback
    * @return {!Promise<!BrowserFetcher.RevisionInfo>}
    */
   async download(revision, progressCallback) {
@@ -217,7 +217,7 @@ function parseFolderPath(folderPath) {
 /**
  * @param {string} url
  * @param {string} destinationPath
- * @param {?function(number, number)} progressCallback
+ * @param {?function(number, number):void} progressCallback
  * @return {!Promise}
  */
 function downloadFile(url, destinationPath, progressCallback) {
@@ -268,17 +268,26 @@ function extractZip(zipPath, folderPath) {
 
 function httpRequest(url, method, response) {
   /** @type {Object} */
-  const options = URL.parse(url);
+  let options = URL.parse(url);
   options.method = method;
 
   const proxyURL = getProxyForUrl(url);
   if (proxyURL) {
-    /** @type {Object} */
-    const parsedProxyURL = URL.parse(proxyURL);
-    parsedProxyURL.secureProxy = parsedProxyURL.protocol === 'https:';
+    if (url.startsWith('http:')) {
+      const proxy = URL.parse(proxyURL);
+      options = {
+        path: options.href,
+        host: proxy.hostname,
+        port: proxy.port,
+      };
+    } else {
+      /** @type {Object} */
+      const parsedProxyURL = URL.parse(proxyURL);
+      parsedProxyURL.secureProxy = parsedProxyURL.protocol === 'https:';
 
-    options.agent = new ProxyAgent(parsedProxyURL);
-    options.rejectUnauthorized = false;
+      options.agent = new ProxyAgent(parsedProxyURL);
+      options.rejectUnauthorized = false;
+    }
   }
 
   const requestCallback = res => {

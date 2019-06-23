@@ -1,12 +1,12 @@
 # Puppeteer
 
 <!-- [START badges] -->
-[![Linux Build Status](https://img.shields.io/travis/GoogleChrome/puppeteer/master.svg)](https://travis-ci.org/GoogleChrome/puppeteer) [![Windows Build Status](https://img.shields.io/appveyor/ci/aslushnikov/puppeteer/master.svg?logo=appveyor)](https://ci.appveyor.com/project/aslushnikov/puppeteer/branch/master) [![Build Status](https://api.cirrus-ci.com/github/GoogleChrome/puppeteer.svg)](https://cirrus-ci.com/github/GoogleChrome/puppeteer) [![NPM puppeteer package](https://img.shields.io/npm/v/puppeteer.svg)](https://npmjs.org/package/puppeteer)
+[![Linux Build Status](https://img.shields.io/travis/com/GoogleChrome/puppeteer/master.svg)](https://travis-ci.com/GoogleChrome/puppeteer) [![Windows Build Status](https://img.shields.io/appveyor/ci/aslushnikov/puppeteer/master.svg?logo=appveyor)](https://ci.appveyor.com/project/aslushnikov/puppeteer/branch/master) [![Build Status](https://api.cirrus-ci.com/github/GoogleChrome/puppeteer.svg)](https://cirrus-ci.com/github/GoogleChrome/puppeteer) [![NPM puppeteer package](https://img.shields.io/npm/v/puppeteer.svg)](https://npmjs.org/package/puppeteer)
 <!-- [END badges] -->
 
 <img src="https://user-images.githubusercontent.com/10379601/29446482-04f7036a-841f-11e7-9872-91d1fc2ea683.png" height="200" align="right">
 
-###### [API](https://github.com/GoogleChrome/puppeteer/blob/v1.11.0/docs/api.md) | [FAQ](#faq) | [Contributing](https://github.com/GoogleChrome/puppeteer/blob/master/CONTRIBUTING.md) | [Troubleshooting](https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md)
+###### [API](https://github.com/GoogleChrome/puppeteer/blob/v1.17.0/docs/api.md) | [FAQ](#faq) | [Contributing](https://github.com/GoogleChrome/puppeteer/blob/master/CONTRIBUTING.md) | [Troubleshooting](https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md)
 
 > Puppeteer is a Node library which provides a high-level API to control Chrome or Chromium over the [DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/). Puppeteer runs [headless](https://developers.google.com/web/updates/2017/04/headless-chrome) by default, but can be configured to run full (non-headless) Chrome or Chromium.
 
@@ -37,7 +37,7 @@ npm i puppeteer
 # or "yarn add puppeteer"
 ```
 
-Note: When you install Puppeteer, it downloads a recent version of Chromium (~170MB Mac, ~282MB Linux, ~280MB Win) that is guaranteed to work with the API. To skip the download, see [Environment variables](https://github.com/GoogleChrome/puppeteer/blob/v1.11.0/docs/api.md#environment-variables).
+Note: When you install Puppeteer, it downloads a recent version of Chromium (~170MB Mac, ~282MB Linux, ~280MB Win) that is guaranteed to work with the API. To skip the download, see [Environment variables](https://github.com/GoogleChrome/puppeteer/blob/v1.17.0/docs/api.md#environment-variables).
 
 
 ### puppeteer-core
@@ -50,7 +50,8 @@ npm i puppeteer-core
 # or "yarn add puppeteer-core"
 ```
 
-`puppeteer-core` is intended to be a lightweight version of Puppeteer for launching an existing browser installation or for connecting to a remote one.
+`puppeteer-core` is intended to be a lightweight version of Puppeteer for launching an existing browser installation or for connecting to a remote one. Be sure that the version of puppeteer-core you install is compatible with the
+browser you intend to connect to.
 
 See [puppeteer vs puppeteer-core](https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#puppeteer-vs-puppeteer-core).
 
@@ -59,7 +60,7 @@ See [puppeteer vs puppeteer-core](https://github.com/GoogleChrome/puppeteer/blob
 Note: Puppeteer requires at least Node v6.4.0, but the examples below use async/await which is only supported in Node v7.6.0 or greater.
 
 Puppeteer will be familiar to people using other browser testing frameworks. You create an instance
-of `Browser`, open pages, and then manipulate them with [Puppeteer's API](https://github.com/GoogleChrome/puppeteer/blob/v1.11.0/docs/api.md#).
+of `Browser`, open pages, and then manipulate them with [Puppeteer's API](https://github.com/GoogleChrome/puppeteer/blob/v1.17.0/docs/api.md#).
 
 **Example** - navigating to https://example.com and saving a screenshot as *example.png*:
 
@@ -84,7 +85,7 @@ Execute script on the command line
 node example.js
 ```
 
-Puppeteer sets an initial page size to 800px x 600px, which defines the screenshot size. The page size can be customized  with [`Page.setViewport()`](https://github.com/GoogleChrome/puppeteer/blob/v1.11.0/docs/api.md#pagesetviewportviewport).
+Puppeteer sets an initial page size to 800px x 600px, which defines the screenshot size. The page size can be customized  with [`Page.setViewport()`](https://github.com/GoogleChrome/puppeteer/blob/v1.17.0/docs/api.md#pagesetviewportviewport).
 
 **Example** - create a PDF.
 
@@ -109,7 +110,7 @@ Execute script on the command line
 node hn.js
 ```
 
-See [`Page.pdf()`](https://github.com/GoogleChrome/puppeteer/blob/v1.11.0/docs/api.md#pagepdfoptions) for more information about creating pdfs.
+See [`Page.pdf()`](https://github.com/GoogleChrome/puppeteer/blob/v1.17.0/docs/api.md#pagepdfoptions) for more information about creating pdfs.
 
 **Example** - evaluate script in the context of the page
 
@@ -144,7 +145,7 @@ Execute script on the command line
 node get-dimensions.js
 ```
 
-See [`Page.evaluate()`](https://github.com/GoogleChrome/puppeteer/blob/v1.11.0/docs/api.md#pageevaluatepagefunction-args) for more information on `evaluate` and related methods like `evaluateOnNewDocument` and `exposeFunction`.
+See [`Page.evaluate()`](https://github.com/GoogleChrome/puppeteer/blob/v1.17.0/docs/api.md#pageevaluatepagefunction-args) for more information on `evaluate` and related methods like `evaluateOnNewDocument` and `exposeFunction`.
 
 <!-- [END getstarted] -->
 
@@ -153,7 +154,7 @@ See [`Page.evaluate()`](https://github.com/GoogleChrome/puppeteer/blob/v1.11.0/d
 
 **1. Uses Headless mode**
 
-Puppeteer launches Chromium in [headless mode](https://developers.google.com/web/updates/2017/04/headless-chrome). To launch a full version of Chromium, set the ['headless' option](https://github.com/GoogleChrome/puppeteer/blob/v1.11.0/docs/api.md#puppeteerlaunchoptions) when launching a browser:
+Puppeteer launches Chromium in [headless mode](https://developers.google.com/web/updates/2017/04/headless-chrome). To launch a full version of Chromium, set the ['headless' option](https://github.com/GoogleChrome/puppeteer/blob/v1.17.0/docs/api.md#puppeteerlaunchoptions) when launching a browser:
 
 ```js
 const browser = await puppeteer.launch({headless: false}); // default is true
@@ -169,7 +170,7 @@ pass in the executable's path when creating a `Browser` instance:
 const browser = await puppeteer.launch({executablePath: '/path/to/Chrome'});
 ```
 
-See [`Puppeteer.launch()`](https://github.com/GoogleChrome/puppeteer/blob/v1.11.0/docs/api.md#puppeteerlaunchoptions) for more information.
+See [`Puppeteer.launch()`](https://github.com/GoogleChrome/puppeteer/blob/v1.17.0/docs/api.md#puppeteerlaunchoptions) for more information.
 
 See [`this article`](https://www.howtogeek.com/202825/what%E2%80%99s-the-difference-between-chromium-and-chrome/) for a description of the differences between Chromium and Chrome. [`This article`](https://chromium.googlesource.com/chromium/src/+/master/docs/chromium_browser_vs_google_chrome.md) describes some differences for Linux users.
 
@@ -181,7 +182,7 @@ Puppeteer creates its own Chromium user profile which it **cleans up on every ru
 
 ## Resources
 
-- [API Documentation](https://github.com/GoogleChrome/puppeteer/blob/v1.11.0/docs/api.md)
+- [API Documentation](https://github.com/GoogleChrome/puppeteer/blob/v1.17.0/docs/api.md)
 - [Examples](https://github.com/GoogleChrome/puppeteer/tree/master/examples/)
 - [Community list of Puppeteer resources](https://github.com/transitive-bullshit/awesome-puppeteer)
 
@@ -211,40 +212,60 @@ Puppeteer creates its own Chromium user profile which it **cleans up on every ru
 
         await page.evaluate(() => console.log(`url is ${location.href}`));
 
-4. Stop test execution and use a debugger in browser
+4. Use debugger in application code browser
 
-  - Use `{devtools: true}` when launching Puppeteer:
+    There are two execution context: node.js that is running test code, and the browser
+    running application code being tested. This lets you debug code in the
+    application code browser; ie code inside `evaluate()`.
 
-      `const browser = await puppeteer.launch({devtools: true});`
+    - Use `{devtools: true}` when launching Puppeteer:
 
-  - Change default test timeout:
+        `const browser = await puppeteer.launch({devtools: true});`
 
-      jest: `jest.setTimeout(100000);`
+    - Change default test timeout:
 
-      jasmine: `jasmine.DEFAULT_TIMEOUT_INTERVAL = 100000;`
+        jest: `jest.setTimeout(100000);`
 
-      mocha: `this.timeout(100000);` (don't forget to change test to use [function and not '=>'](https://stackoverflow.com/a/23492442))
+        jasmine: `jasmine.DEFAULT_TIMEOUT_INTERVAL = 100000;`
 
-  - Add an evaluate statement with `debugger` inside / add  `debugger` to an existing evaluate statement:
+        mocha: `this.timeout(100000);` (don't forget to change test to use [function and not '=>'](https://stackoverflow.com/a/23492442))
 
-    `await page.evaluate(() => {debugger;});`
+    - Add an evaluate statement with `debugger` inside / add  `debugger` to an existing evaluate statement:
 
-     The test will now stop executing in the above evaluate statement, and chromium will stop in debug mode.
+      `await page.evaluate(() => {debugger;});`
 
-5. Enable verbose logging - internal DevTools protocol traffic
+       The test will now stop executing in the above evaluate statement, and chromium will stop in debug mode.
+
+5. Use debugger in node.js
+
+    This will let you debug test code. For example, you can step over `await page.click()` in the node.js script and see the click happen in the application code browser.
+
+    Note that you won't be able to run `await page.click()` in
+    DevTools console due to this [Chromium bug](https://bugs.chromium.org/p/chromium/issues/detail?id=833928). So if
+    you want to try something out, you have to add it to your test file.
+
+    - Add `debugger;` to your test, eg:
+      ```
+      debugger;
+      await page.click('a[target=_blank]');
+      ```
+    - Set `headless` to `false`
+    - Run `node --inspect-brk`, eg `node --inspect-brk node_modules/.bin/jest tests`
+    - In Chrome open `chrome://inspect/#devices` and click `inspect`
+    - In the newly opened test browser, type `F8` to resume test execution
+    - Now your `debugger` will be hit and you can debug in the test browser
+
+
+6. Enable verbose logging - internal DevTools protocol traffic
    will be logged via the [`debug`](https://github.com/visionmedia/debug) module under the `puppeteer` namespace.
 
         # Basic verbose logging
         env DEBUG="puppeteer:*" node script.js
 
-        # Debug output can be enabled/disabled by namespace
-        env DEBUG="puppeteer:protocol" node script.js # protocol connection messages
-        env DEBUG="puppeteer:session" node script.js # protocol session messages (protocol messages to targets)
-
         # Protocol traffic can be rather noisy. This example filters out all Network domain messages
-        env DEBUG="puppeteer:session" env DEBUG_COLORS=true node script.js 2>&1 | grep -v '"Network'
+        env DEBUG="puppeteer:*" env DEBUG_COLORS=true node script.js 2>&1 | grep -v '"Network'
 
-6. Debug your Puppeteer (node) code easily, using [ndb](https://github.com/GoogleChromeLabs/ndb)
+7. Debug your Puppeteer (node) code easily, using [ndb](https://github.com/GoogleChromeLabs/ndb)
 
   - `npm install -g ndb` (or even better, use [npx](https://github.com/zkat/npx)!)
 
@@ -310,7 +331,12 @@ This is not an artificial constraint: A lot of work on Puppeteer is actually tak
 - It turned out this is an issue with the DevTools protocol, so we’re fixing it in Chromium: https://chromium-review.googlesource.com/c/chromium/src/+/1102154
 - Once the upstream fix is landed, we roll updated Chromium into Puppeteer: https://github.com/GoogleChrome/puppeteer/pull/2769
 
-However, oftentimes it is desirable to use Puppeteer with the official Google Chrome rather than Chromium. For this to work, you should pick the version of Puppeteer that uses the Chromium version close enough to Chrome.
+However, oftentimes it is desirable to use Puppeteer with the official Google Chrome rather than Chromium. For this to work, you should install a `puppeteer-core` version that corresponds to the Chrome version.
+
+For example, in order to drive Chrome 71 with puppeteer-core, use `chrome-71` npm tag:
+```bash
+npm install puppeteer-core@chrome-71
+```
 
 #### Q: Which Chromium version does Puppeteer use?
 
@@ -346,10 +372,10 @@ await page.evaluate(() => {
 
 You may find that Puppeteer does not behave as expected when controlling pages that incorporate audio and video. (For example, [video playback/screenshots is likely to fail](https://github.com/GoogleChrome/puppeteer/issues/291).) There are two reasons for this:
 
-* Puppeteer is bundled with Chromium--not Chrome--and so by default, it inherits all of [Chromium's media-related limitations](https://www.chromium.org/audio-video). This means that Puppeteer does not support licensed formats such as AAC or H.264. (However, it is possible to force Puppeteer to use a separately-installed version Chrome instead of Chromium via the [`executablePath` option to `puppeteer.launch`](https://github.com/GoogleChrome/puppeteer/blob/v1.11.0/docs/api.md#puppeteerlaunchoptions). You should only use this configuration if you need an official release of Chrome that supports these media formats.)
+* Puppeteer is bundled with Chromium--not Chrome--and so by default, it inherits all of [Chromium's media-related limitations](https://www.chromium.org/audio-video). This means that Puppeteer does not support licensed formats such as AAC or H.264. (However, it is possible to force Puppeteer to use a separately-installed version Chrome instead of Chromium via the [`executablePath` option to `puppeteer.launch`](https://github.com/GoogleChrome/puppeteer/blob/v1.17.0/docs/api.md#puppeteerlaunchoptions). You should only use this configuration if you need an official release of Chrome that supports these media formats.)
 * Since Puppeteer (in all configurations) controls a desktop version of Chromium/Chrome, features that are only supported by the mobile version of Chrome are not supported. This means that Puppeteer [does not support HTTP Live Streaming (HLS)](https://caniuse.com/#feat=http-live-streaming).
 
-#### Q: I am having trouble installing / running Puppeteer in my test environment?
+#### Q: I am having trouble installing / running Puppeteer in my test environment. Where should I look for help?
 We have a [troubleshooting](https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md) guide for various operating systems that lists the required dependencies.
 
 #### Q: How do I try/test a prerelease version of Puppeteer?
@@ -366,7 +392,7 @@ Please note that prerelease may be unstable and contain bugs.
 
 There are many ways to get help on Puppeteer:
 - [bugtracker](https://github.com/GoogleChrome/puppeteer/issues)
-- [stackoverflow](https://stackoverflow.com/questions/tagged/puppeteer)
+- [Stack Overflow](https://stackoverflow.com/questions/tagged/puppeteer)
 - [slack channel](https://join.slack.com/t/puppeteer/shared_invite/enQtMzU4MjIyMDA5NTM4LTM1OTdkNDhlM2Y4ZGUzZDdjYjM5ZWZlZGFiZjc4MTkyYTVlYzIzYjU5NDIyNzgyMmFiNDFjN2UzNWU0N2ZhZDc)
 
 Make sure to search these channels before posting your question.

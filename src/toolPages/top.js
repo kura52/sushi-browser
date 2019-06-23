@@ -1,3 +1,5 @@
+import BookmarkBar from "./BookmarkBarTopPage";
+
 window.debug = require('debug')('info')
 // require('debug').enable("info")
 import process from './process';
@@ -195,9 +197,13 @@ class TopMenu extends React.Component {
 
   render() {
     return (
-      <StickyContainer>
-        <Sticky>
-          <div>
+      <div>
+          <div style={{
+            position: 'sticky',
+            top: this.props.showBookmarkBar ? 29 : 0,
+            zIndex: 10000,
+            background: 'white'
+          }}>
             <Menu pointing secondary >
               <Menu.Item key="top" name="Top" active={true}/>
               <Menu.Item as='a' href='chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html' id='bookmark-link' key="favorite" name={l10n.translation('bookmarks')}/>
@@ -211,10 +217,9 @@ class TopMenu extends React.Component {
               <Menu.Item as='a' href={`${baseURL}/converter.html`} key="converter" name={l10n.translation('videoConverter')}/>
             </Menu>
           </div>
-        </Sticky>
         <TopSearch/>
         <TopList setToken={::this.setToken}/>
-      </StickyContainer>
+      </div>
     )
   }
 }
@@ -423,20 +428,28 @@ class TopList extends React.Component {
   }
 }
 
-const App = () => (
-  <Container>
-    <TopMenu/>
-  </Container>
-)
+const App = (props) => {
+  const showBookmarkBar = !props.data.bookmarkBar && props.data.bookmarkBarTopPage
+  return <div>
+    {showBookmarkBar ? <BookmarkBar bookmarkbarLink={props.data.bookmarkbarLink}/> : null}
+    <Container>
+      <TopMenu showBookmarkBar={showBookmarkBar}/>
+    </Container>
+  </div>
+}
 
 
 require('./themeForPage')('themeTopPage')
 
-;(async ()=>{
-  [accessKey, accessPort] = await new Promise(r=>{
-    ipc.send('get-access-key-and-port')
-    ipc.once('get-access-key-and-port-reply',(e,data)=>r(data))
-  })
-  await initPromise
-  ReactDOM.render(<App />,  document.getElementById('app'))
-})()
+const key = Math.random().toString()
+ipc.send("get-main-state",key,['bookmarkbarLink','bookmarkBar','bookmarkBarTopPage'])
+ipc.once(`get-main-state-reply_${key}`,async (e,data)=>{
+  ;(async ()=>{
+    [accessKey, accessPort] = await new Promise(r=>{
+      ipc.send('get-access-key-and-port')
+      ipc.once('get-access-key-and-port-reply',(e,data)=>r(data))
+    })
+    await initPromise
+    ReactDOM.render(<App data={data}/>,  document.getElementById('app'))
+  })()
+})

@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const {helper} = require('./helper');
 const Launcher = require('./Launcher');
 const BrowserFetcher = require('./BrowserFetcher');
+const Errors = require('./Errors');
+const DeviceDescriptors = require('./DeviceDescriptors');
 
 module.exports = class {
   /**
@@ -37,7 +38,7 @@ module.exports = class {
   }
 
   /**
-   * @param {!(Launcher.BrowserOptions & {browserWSEndpoint: string, transport?: !Puppeteer.ConnectionTransport})} options
+   * @param {!(Launcher.BrowserOptions & {browserWSEndpoint?: string, browserURL?: string, transport?: !Puppeteer.ConnectionTransport})} options
    * @return {!Promise<!Puppeteer.Browser>}
    */
   connect(options) {
@@ -49,6 +50,20 @@ module.exports = class {
    */
   executablePath() {
     return this._launcher.executablePath();
+  }
+
+  /**
+   * @return {Object}
+   */
+  get devices() {
+    return DeviceDescriptors;
+  }
+
+  /**
+   * @return {Object}
+   */
+  get errors() {
+    return Errors;
   }
 
   /**
@@ -68,4 +83,3 @@ module.exports = class {
   }
 };
 
-helper.tracePublicAPI(module.exports, 'Puppeteer');

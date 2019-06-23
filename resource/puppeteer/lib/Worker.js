@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 const EventEmitter = require('events');
-const {helper, debugError} = require('./helper');
-const {ExecutionContext, JSHandle} = require('./ExecutionContext');
+const {debugError} = require('./helper');
+const {ExecutionContext} = require('./ExecutionContext');
+const {JSHandle} = require('./JSHandle');
 
 class Worker extends EventEmitter {
   /**
    * @param {Puppeteer.CDPSession} client
    * @param {string} url
-   * @param {function(!string, !Array<!JSHandle>)} consoleAPICalled
-   * @param {function(!Protocol.Runtime.ExceptionDetails)} exceptionThrown
+   * @param {function(string, !Array<!JSHandle>, Protocol.Runtime.StackTrace=):void} consoleAPICalled
+   * @param {function(!Protocol.Runtime.ExceptionDetails):void} exceptionThrown
    */
   constructor(client, url, consoleAPICalled, exceptionThrown) {
     super();
@@ -39,7 +40,7 @@ class Worker extends EventEmitter {
     // This might fail if the target is closed before we recieve all execution contexts.
     this._client.send('Runtime.enable', {}).catch(debugError);
 
-    this._client.on('Runtime.consoleAPICalled', event => consoleAPICalled(event.type, event.args.map(jsHandleFactory)));
+    this._client.on('Runtime.consoleAPICalled', event => consoleAPICalled(event.type, event.args.map(jsHandleFactory), event.stackTrace));
     this._client.on('Runtime.exceptionThrown', exception => exceptionThrown(exception.exceptionDetails));
   }
 
@@ -58,7 +59,7 @@ class Worker extends EventEmitter {
   }
 
   /**
-   * @param {function()|string} pageFunction
+   * @param {Function|string} pageFunction
    * @param {!Array<*>} args
    * @return {!Promise<*>}
    */
@@ -67,7 +68,7 @@ class Worker extends EventEmitter {
   }
 
   /**
-   * @param {function()|string} pageFunction
+   * @param {Function|string} pageFunction
    * @param {!Array<*>} args
    * @return {!Promise<!JSHandle>}
    */
@@ -77,4 +78,3 @@ class Worker extends EventEmitter {
 }
 
 module.exports = {Worker};
-helper.tracePublicAPI(Worker);

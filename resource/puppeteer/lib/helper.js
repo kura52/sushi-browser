@@ -14,43 +14,8 @@
  * limitations under the License.
  */
 const {TimeoutError} = require('./Errors');
-
 const debugError = require('debug')(`puppeteer:error`);
-/** @type {?Map<string, boolean>} */
-let apiCoverage = null;
-
-/**
- * @param {!Object} classType
- * @param {string=} publicName
- */
-function traceAPICoverage(classType, publicName) {
-  if (!apiCoverage)
-    return;
-
-  let className = publicName || classType.prototype.constructor.name;
-  className = className.substring(0, 1).toLowerCase() + className.substring(1);
-  for (const methodName of Reflect.ownKeys(classType.prototype)) {
-    const method = Reflect.get(classType.prototype, methodName);
-    if (methodName === 'constructor' || typeof methodName !== 'string' || methodName.startsWith('_') || typeof method !== 'function')
-      continue;
-    apiCoverage.set(`${className}.${methodName}`, false);
-    Reflect.set(classType.prototype, methodName, function(...args) {
-      apiCoverage.set(`${className}.${methodName}`, true);
-      return method.call(this, ...args);
-    });
-  }
-
-  if (classType.Events) {
-    for (const event of Object.values(classType.Events))
-      apiCoverage.set(`${className}.emit(${JSON.stringify(event)})`, false);
-    const method = Reflect.get(classType.prototype, 'emit');
-    Reflect.set(classType.prototype, 'emit', function(event, ...args) {
-      if (this.listenerCount(event))
-        apiCoverage.set(`${className}.emit(${JSON.stringify(event)})`, true);
-      return method.call(this, event, ...args);
-    });
-  }
-}
+const fs = require('fs');
 
 class Helper {
   /**
@@ -101,6 +66,8 @@ class Helper {
   static valueFromRemoteObject(remoteObject) {
     assert(!remoteObject.objectId, 'Cannot extract value when objectId is given');
     if (remoteObject.unserializableValue) {
+      if (remoteObject.type === 'bigint' && typeof BigInt !== 'undefined')
+        return BigInt(remoteObject.unserializableValue.replace('n', ''));
       switch (remoteObject.unserializableValue) {
         case '-0':
           return -0;
@@ -133,32 +100,30 @@ class Helper {
 
   /**
    * @param {!Object} classType
-   * @param {string=} publicName
    */
-  static tracePublicAPI(classType, publicName) {
+  static installAsyncStackHooks(classType) {
     for (const methodName of Reflect.ownKeys(classType.prototype)) {
       const method = Reflect.get(classType.prototype, methodName);
       if (methodName === 'constructor' || typeof methodName !== 'string' || methodName.startsWith('_') || typeof method !== 'function' || method.constructor.name !== 'AsyncFunction')
         continue;
       Reflect.set(classType.prototype, methodName, function(...args) {
-        const syncStack = new Error();
+        const syncStack = {};
+        Error.captureStackTrace(syncStack);
         return method.call(this, ...args).catch(e => {
           const stack = syncStack.stack.substring(syncStack.stack.indexOf('\n') + 1);
           const clientStack = stack.substring(stack.indexOf('\n'));
-          if (!e.stack.includes(clientStack))
+          if (e instanceof Error && e.stack && !e.stack.includes(clientStack))
             e.stack += '\n  -- ASYNC --\n' + stack;
           throw e;
         });
       });
     }
-
-    traceAPICoverage(classType, publicName);
   }
 
   /**
    * @param {!NodeJS.EventEmitter} emitter
    * @param {(string|symbol)} eventName
-   * @param {function(?)} handler
+   * @param {function(?):void} handler
    * @return {{emitter: !NodeJS.EventEmitter, eventName: (string|symbol), handler: function(?)}}
    */
   static addEventListener(emitter, eventName, handler) {
@@ -167,23 +132,12 @@ class Helper {
   }
 
   /**
-   * @param {!Array<{emitter: !NodeJS.EventEmitter, eventName: (string|symbol), handler: function(?)}>} listeners
+   * @param {!Array<{emitter: !NodeJS.EventEmitter, eventName: (string|symbol), handler: function(?):void}>} listeners
    */
   static removeEventListeners(listeners) {
     for (const listener of listeners)
       listener.emitter.removeListener(listener.eventName, listener.handler);
     listeners.splice(0, listeners.length);
-  }
-
-  /**
-   * @return {?Map<string, boolean>}
-   */
-  static publicAPICoverage() {
-    return apiCoverage;
-  }
-
-  static recordPublicAPICoverage() {
-    apiCoverage = new Map();
   }
 
   /**
@@ -220,7 +174,7 @@ class Helper {
 
   /**
    * @param {!NodeJS.EventEmitter} emitter
-   * @param {string} eventName
+   * @param {(string|symbol)} eventName
    * @param {function} predicate
    * @return {!Promise}
    */
@@ -267,7 +221,42 @@ class Helper {
       clearTimeout(timeoutTimer);
     }
   }
+
+  /**
+   * @param {!Puppeteer.CDPSession} client
+   * @param {string} handle
+   * @param {?string} path
+   * @return {!Promise<!Buffer>}
+   */
+  static async readProtocolStream(client, handle, path) {
+    let eof = false;
+    let file;
+    if (path)
+      file = await openAsync(path, 'w');
+    const bufs = [];
+    while (!eof) {
+      const response = await client.send('IO.read', {handle});
+      eof = response.eof;
+      const buf = Buffer.from(response.data, response.base64Encoded ? 'base64' : undefined);
+      bufs.push(buf);
+      if (path)
+        await writeAsync(file, buf);
+    }
+    if (path)
+      await closeAsync(file);
+    await client.send('IO.close', {handle});
+    let resultBuffer = null;
+    try {
+      resultBuffer = Buffer.concat(bufs);
+    } finally {
+      return resultBuffer;
+    }
+  }
 }
+
+const openAsync = Helper.promisify(fs.open);
+const writeAsync = Helper.promisify(fs.write);
+const closeAsync = Helper.promisify(fs.close);
 
 /**
  * @param {*} value
