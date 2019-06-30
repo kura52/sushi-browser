@@ -1002,6 +1002,7 @@ class BrowserNavbar extends Component{
                      if(win._isFullScreen){}
                      else if(require('./MenuOperation').windowIsMaximized()){
                        // win.unmaximize()
+                       if(win.nativeWindow.hidePanel) return
                        win.nativeWindow.showWindow(9)
                      }
                      else{

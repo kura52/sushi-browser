@@ -5,8 +5,7 @@ const path = require("path")
 const libs = [
   '../node_modules/node-pty',
   '../resource/winctl',
-  '../node_modules/robotjs',
-  '../node_modules/iohook']
+  '../node_modules/robotjs']
 
 for(let lib of libs){
   rebuild(path.join(__dirname,lib))

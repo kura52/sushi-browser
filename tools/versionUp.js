@@ -26,22 +26,28 @@ const glob = require("glob")
 const BEFORE_CODE_NAME = 'Geso(Squid arms)'
 const CODE_NAME = 'Fugu(Blowfish)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.25.4"
+const NEXT_APP_VERSION = "0.25.5"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Moved top page bookmark bar from browser UI to web page.
-Fixed TabCapture API to work with Custom Chromium version.
-Fixed to kill if there are remaining processes.
-Updated puppeteer to 1.17.0.
-Fixed the suppression function at double startup.
-Fixed a bug that the window size does not follow.`
+const CHANGE_ENGLISH = `Fixed a bug that setting value is not set when setting value is 0 on setting page. (issue #64)
+Fixed not to register unnecessary URL such as redirect URL in history (issue #64)
+Fixed a bug that the upper 7px click is invalidated when maximized.
+Fixed a bug that tab does not close when invalid URL is entered.
+Fixed a bug that the tab bar is hidden when scrolling on a tab at full screen.
+Fixed the bug that the title bar is displayed on top of custom chromium on Windows 7.
+Fixed a bug that does not work correctly when specifying a URL as an argument.
+Fixed a bug that the sidebar does not hide.
+Improved startup stability.`
 
-const CHANGE_JAPANESE = `Top Pageのbookmark barをブラウザUIからWebページ内に移動
-Custom Chromium版で、TabCapture APIが動作するように修正
-残存プロセスが存在する場合、killするように修正
-puppeteerを1.17.0にバージョンアップ
-二重起動時の抑止機能を修正
-ウインドウサイズが追従しない不具合を修正`
+const CHANGE_JAPANESE = `設定ページで、設定値が数値の0となる場合に、値がセットされない不具合を修正 (issue #64)
+リダイレクトURLなどの不要なURLを履歴に登録しないように修正 (issue #64)
+最大化した際に上部7pxのクリックが無効になる不具合を修正
+無効なURLが入力された場合に、タブが閉じない不具合を修正
+フルスクリーン時にタブ上でスクロールした場合に、タブバーが非表示になる不具合を修正
+Windows7でcustom chromium上部にタイトルバーが表示される不具合を修正
+引数にURLを指定した場合、正しく動作しない不具合を修正
+サイドバーが非表示にならない不具合を修正
+起動時の安定性向上`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

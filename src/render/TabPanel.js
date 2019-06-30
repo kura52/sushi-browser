@@ -3833,7 +3833,7 @@ export default class TabPanel extends Component {
 
 
   addScrollPosition(tab){
-    tab.wv.executeJavaScript('({x:window.scrollX ,y:window.scrollY})',
+    tab.wv && tab.wv.executeJavaScript('({x:window.scrollX ,y:window.scrollY})',
       (result) => {
         if(result){
           if(closingPos[tab.key]){

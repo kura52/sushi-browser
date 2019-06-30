@@ -26,6 +26,7 @@ export default class BrowserView {
       return await this.createNewTab(browserWindow, panelKey, tabKey, tabIndex, url, topZOrder)
     }
 
+    if(url) try{ new URL(url) }catch(e){ url = mainState.searchProviders[mainState.searchEngine].search.replace('%s',url) }
 
     if (panelKey) {
       const panel = BrowserPanel.getBrowserPanel(panelKey)

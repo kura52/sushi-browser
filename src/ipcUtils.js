@@ -523,7 +523,7 @@ ipcMain.on('toggle-fullscreen',(event,cancel)=> {
 
   const win = BrowserWindow.fromWebContents(event.sender.hostWebContents2 || event.sender)
   const isFullScreen = win._isFullScreen
-  if(isFullScreen) win.setResizable(true)
+  win.setResizable(true)
   if(cancel && !isFullScreen) return
   win.webContents.send('switch-fullscreen',!isFullScreen)
   win.setFullScreenable(true)
@@ -532,7 +532,13 @@ ipcMain.on('toggle-fullscreen',(event,cancel)=> {
   win._isFullScreen = !isFullScreen
   win.setMenuBarVisibility(menubar)
   win.setFullScreenable(false)
-  if(!isFullScreen) win.setResizable(false)
+  if(!isFullScreen){
+    if(win.isMaximized()) win.webContents.send('adjust-maxmize-size', false)
+    win.setResizable(false)
+  }
+  else if(win.isMaximized()){
+    win.webContents.send('adjust-maxmize-size', true)
+  }
 })
 
 
@@ -1173,6 +1179,7 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
       if(isWin7){
         chromeNativeWindow.setWindowLongPtrRestore(0x00800000)
         chromeNativeWindow.setWindowLongPtrRestore(0x00040000)
+        chromeNativeWindow.setWindowLongPtrRestore(0x00400000)
       }
       chromeNativeWindow.setWindowLongPtrEx(0x00000080)
       chromeNativeWindow.showWindow(5)
@@ -1326,7 +1333,7 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
       nativeWindow.isMinimized = true
     }
     else if(type == 'unminimize'){
-      if(_detach) return
+      if(_detach || nativeWindow.hidePanel) return
       nativeWindow.showWindow(9)
       nativeWindow.isMinimized = false
       nativeWindow.setForegroundWindowEx()
@@ -1350,6 +1357,7 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
         if(isWin7){
           chromeNativeWindow.setWindowLongPtrRestore(0x00800000)
           chromeNativeWindow.setWindowLongPtrRestore(0x00040000)
+          chromeNativeWindow.setWindowLongPtrRestore(0x00400000)
         }
         chromeNativeWindow.setWindowLongPtrEx(0x00000080)
         chromeNativeWindow.showWindow(5)
@@ -2436,10 +2444,10 @@ ipcMain.on('move-browser-view', async (e, panelKey, tabKey, type, tabId, x, y, w
       const win = BrowserWindow.fromWebContents(e.sender)
       if(win && !win.isDestroyed()){
         const winBounds = win.getBounds()
-        if(winBounds.x == -7 && winBounds.y == -7){
-          winBounds.x = 0
-          winBounds.y = 0
-        }
+        // if(winBounds.x == -7 && winBounds.y == -7){
+        //   winBounds.x = 0
+        //   winBounds.y = 0
+        // }
 
         bounds = {
           x: Math.round(x) + winBounds.x, y:Math.round(y) + winBounds.y,
@@ -2483,10 +2491,11 @@ ipcMain.on('set-bound-browser-view', async (e, panelKey, tabKey, tabId, x, y, wi
   if(!win || win.isDestroyed()) return
 
   const winBounds = win.getBounds()
-  if(winBounds.x == -7 && winBounds.y == -7){
-    winBounds.x = 0
-    winBounds.y = 0
-  }
+  // console.log('winBounds',winBounds)
+  // if(winBounds.x == -7 && winBounds.y == -7){
+  //   winBounds.x = 0
+  //   winBounds.y = 0
+  // }
 
   let bounds = {
     x: Math.round(x + winBounds.x), y:Math.round(y + winBounds.y),
@@ -2602,10 +2611,10 @@ ipcMain.on('set-overlap-component', async (e, type, panelKey, tabKey, x, y, widt
     if(!win || win.isDestroyed()) return
 
     const winBounds = win.getBounds()
-    if(winBounds.x == -7 && winBounds.y == -7){
-      winBounds.x = 0
-      winBounds.y = 0
-    }
+    // if(winBounds.x == -7 && winBounds.y == -7){
+    //   winBounds.x = 0
+    //   winBounds.y = 0
+    // }
     const bounds = {
       x: Math.round(x + winBounds.x), y:Math.round(y + winBounds.y),
       width: Math.round(width), height: Math.round(height)

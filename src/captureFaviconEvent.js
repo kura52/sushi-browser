@@ -1,10 +1,12 @@
 import path from 'path'
-import { favicon } from './database'
+import db from './database'
 import request from 'request'
 const underscore = require('underscore')
 const Jimp = require('jimp')
 const ico = require('icojs');
 // require('locus')
+
+let favicon
 
 let app
 ;(function(){
@@ -220,7 +222,11 @@ const fetchFavIcon = (url, redirects) => {
   })
 }
 
-export default function faviconUpdate(url) {
+export default async function faviconUpdate(url) {
+  if(!favicon){
+    favicon = (await db).favicon
+  }
+
   fetchFavIcon(url).then(ret => {
     console.log(1,url)
     if (ret) {

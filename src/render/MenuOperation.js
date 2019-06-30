@@ -54,6 +54,7 @@ export default {
     }
     else if(win.isMaximized()){
       // win.unmaximize()
+      if(win.nativeWindow.hidePanel) return
       win.nativeWindow.showWindow(9)
     }
   }

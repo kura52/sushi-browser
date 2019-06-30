@@ -53,44 +53,65 @@ function exec(command) {
   })
 }
 
-
+const skippedProcess = new Set()
 async function killRemainProcess(){
   const findProcess  = require('find-process')
   const func = async ()=>{
     const list = await findProcess('name', 'sushi-browser')
-    const map = {}
+    const map = new Map()
     for(const p of list){
       if(p.name != 'sushi-browser.exe') continue
-      map[p.pid] = p.ppid
+      map.set(p.pid, p.ppid)
     }
-    const map2 = {}
-    for(const [pid,ppid] of Object.entries(map)){
-      const id = map[ppid] ? ppid :  pid
-      if(map2[id]){
-        map2[id].push(pid)
+    const map2 = new Map()
+    for(const [pid,ppid] of map){
+      const id = map.has(ppid) ? ppid :  pid
+      if(map2.has(id)){
+        map2.get(id).push(pid)
       }
       else{
-        map2[id] = [pid]
+        map2.set(id, [pid])
       }
     }
-    for(const [ppid, pidList] of Object.entries(map2)){
+    for(const [ppid, pidList] of map2){
       console.log(map2)
-      if(pidList.length <= 2){
+      if(pidList.length == 2){
+        const pCmd = list.find(x=>x.pid == ppid).cmd
+        const cmd = list.find(x=>x.pid != ppid && pidList.includes(x.pid)).cmd
+
+        if(pCmd.includes("--type=") || !cmd.includes("--type=gpu-process")) return
+
+
         const fkill = require('fkill')
         console.log(ppid)
-        await fkill(parseInt(ppid), {force: true})
+        if(!skippedProcess.has(ppid)){
+          try{
+            await fkill(ppid, {force: true})
+          }catch(e){
+            console.log(e)
+            skippedProcess.add(ppid)
+          }
+        }
         for(const pid of pidList){
+          if(skippedProcess.has(pid)) continue
           if(pid == ppid) continue
-          const isFind = await findProcess('pid', parseInt(pid))
+          const isFind = await findProcess('pid', pid)
           console.log(pid, isFind)
-          if(isFind.length) await fkill(parseInt(pid), {force: true})
+          if(isFind.length){
+            try{
+              await fkill(pid, {force: true})
+            }catch(e){
+              console.log(e)
+              skippedProcess.add(pid)
+            }
+          }
         }
         return true
       }
     }
     return false
   }
-  setInterval(func,5000)
+  // setInterval(func,5000)
   return await func()
 }
 
@@ -254,15 +275,18 @@ const appReady = ()=>{
 const gotTheLock = app.requestSingleInstanceLock()
 const killPromise = killRemainProcess()
 
+console.log('gotTheLock', gotTheLock)
 if (!gotTheLock) {
-  killPromise.then(isKilled => {
+  ;(async ()=>{
+  const isKilled = await killPromise
+    console.log('isKilled', isKilled)
     if(isKilled){
       appReady()
     }
     else{
       app.quit()
     }
-  })
+  })()
 }
 else{
   appReady()
@@ -1438,7 +1462,7 @@ async function contextMenu(webContents, props) {
         robot.mouseClick('right')
         await new Promise(r=>setTimeout(r,30))
         robot.keyTap('t')
-    } })
+      } })
     // menuItems.push({t: '2473195200299095979', label: syncReplaceName, click: (item, win) => webContents.hostWebContents2.send('sync-replace-from-menu', webContents.id)})
     menuItems.push({type: 'separator'})
 

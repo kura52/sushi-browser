@@ -580,7 +580,7 @@ const isWin = navigator.userAgent.includes('Windows')
     }
 
     onChange(name,e,data){
-      ipc.send('save-state',{tableName:'state',key:name,val:data.value || data.checked})
+      ipc.send('save-state',{tableName:'state',key:name,val:data.value != null ? data.value : data.checked})
     }
 
     onChange2(name,e,data){
@@ -592,7 +592,7 @@ const isWin = navigator.userAgent.includes('Windows')
     }
 
     onChangeClear(name,e,data){
-      this.clearRange[name] = data.value || data.checked
+      this.clearRange[name] = data.value != null ? data.value : data.checked
       this.setState({})
     }
 
@@ -919,7 +919,7 @@ const isWin = navigator.userAgent.includes('Windows')
     }
 
     onChange(name,e,data){
-      ipc.send('save-state',{tableName:'state',key:name,val:data.value || data.checked})
+      ipc.send('save-state',{tableName:'state',key:name,val:data.value != null ? data.value : data.checked})
     }
 
     onChange2(name,e,data){
@@ -931,7 +931,7 @@ const isWin = navigator.userAgent.includes('Windows')
     }
 
     onChangeClear(name,e,data){
-      this.clearRange[name] = data.value || data.checked
+      this.clearRange[name] = data.value != null ? data.value : data.checked
       this.setState({})
     }
 
@@ -1262,7 +1262,7 @@ const isWin = navigator.userAgent.includes('Windows')
     }
 
     onChange(name,e,data){
-      ipc.send('save-state',{tableName:'state',key:name,val:data.value || data.checked})
+      ipc.send('save-state',{tableName:'state',key:name,val:data.value != null ? data.value : data.checked})
     }
 
     changeCheck(e,i,name,data){
@@ -2564,7 +2564,7 @@ const isWin = navigator.userAgent.includes('Windows')
     }
 
     onChange(name,e,data){
-      ipc.send('save-state',{tableName:'state',key:name,val:data.value || data.checked})
+      ipc.send('save-state',{tableName:'state',key:name,val:data.value != null ? data.value : data.checked})
     }
 
     render() {

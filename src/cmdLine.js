@@ -78,6 +78,7 @@ const getUrlFromCommandLine = (argv) => {
     }
     let index = argv.indexOf('--')
     if(index === -1) index = argv.length - 2
+    if(argv[index + 1] == 'disable-gpu') index--
     if (index !== -1 && index + 1 < argv.length && !argv[index + 1].startsWith('-')) {
       const parsedUrl = urlParse(argv[index + 1])
       if (isProtocolHandled(parsedUrl.protocol)) {

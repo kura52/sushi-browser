@@ -4,8 +4,8 @@ import {EventEmitter} from 'events'
 import evem from './evem'
 import fs from 'fs'
 import winctl from "../../resource/winctl";
-import puppeteer from '../../resource/puppeteer'
 import DpiUtils from './DpiUtils'
+import mainState from "../mainState";
 
 let Browser = new Proxy({},  { get: function(target, name){ Browser = require('./Browser').Browser; return typeof Browser[name] == 'function' ? Browser[name].bind(Browser) : Browser[name]}})
 let BrowserPanel = new Proxy({},  { get: function(target, name){ BrowserPanel = require('./BrowserPanel'); return typeof BrowserPanel[name] == 'function' ? BrowserPanel[name].bind(BrowserPanel) : BrowserPanel[name]}})
@@ -376,6 +376,8 @@ export default class webContents extends EventEmitter {
       isFirstLoad = false
       if(!(await require('../databaseFork').state.findOne({key: 1}))) url = 'chrome://welcome/'
     }
+
+    try{ new URL(url) }catch(e){ url = mainState.searchProviders[mainState.searchEngine].search.replace('%s',url) }
     Browser.bg.evaluate((tabId, url) => {
       return new Promise(resolve => {
         chrome.tabs.update(tabId, {url}, tab => resolve(tab))
@@ -412,7 +414,7 @@ export default class webContents extends EventEmitter {
     if(webContents.disableFocus || this._bindWindow) return
 
     const panel = this._getBrowserPanel()
-    if(!panel) return
+    if(!panel || panel.cpWin.nativeWindow.hidePanel) return
 
     if(require('../util').getCurrentWindow().id == panel.browserWindow.id){
       this.setForegroundWindow()
@@ -425,7 +427,7 @@ export default class webContents extends EventEmitter {
     if(webContents.disableFocus || this._bindWindow) return
 
     const panel = this._getBrowserPanel()
-    if(!panel) return
+    if(!panel || panel.cpWin.nativeWindow.hidePanel) return
 
     if(require('../util').getCurrentWindow().id == panel.browserWindow.id){
       // console.log('moveTopNativeWindow5')
@@ -441,8 +443,9 @@ export default class webContents extends EventEmitter {
   setForegroundWindow(){
     if(webContents.disableFocus || this._bindWindow) return
 
-    if(!this._getBrowserPanel()) return
-    this._getBrowserPanel().cpWin.chromeNativeWindow.setForegroundWindowEx()
+    const panel = this._getBrowserPanel()
+    if(!panel || panel.cpWin.nativeWindow.hidePanel) return
+    panel.cpWin.chromeNativeWindow.setForegroundWindowEx()
   }
 
   async isFocused(){

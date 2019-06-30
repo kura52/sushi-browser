@@ -217,11 +217,12 @@ function create(args){
       const maxBounds = bw.getBounds()
 
       if(!saved){
-        bw.webContents.send('get-window-state')
+        bw.webContents.send('get-window-state', true)
         let flag = false
 
         ipcMain.once('get-window-state-reply',async (e,ret)=>{
 
+          console.log('close-save')
           await clearDatas()
           // await new Promise(r=>{session.defaultSession.cookies.get({}, (e,cookies)=>{
           //   fs.writeFileSync(path.join(app.getPath('userData'), 'cookie.txt'),JSON.stringify(cookies)) //@TODO ELECTRON
@@ -293,6 +294,7 @@ function create(args){
     if(bw.isMaximized()){
       e.preventDefault()
       bw.setResizable(true)
+      bw.webContents.send('adjust-maxmize-size', false)
       const bounds = bw._isVirtualMaximized
       console.log('will-move', bounds)
       const point = electron.screen.getCursorScreenPoint()
@@ -349,6 +351,7 @@ function create(args){
   bw.on('maximize',e=>{
     console.log('maximize',bw._isVirtualMaximized)
     if(bw._isVirtualMaximized){
+      bw.webContents.send('adjust-maxmize-size', false)
       bw.setResizable(true)
       if(bw.isMaximized()) bw.unmaximize()
 
@@ -365,10 +368,11 @@ function create(args){
       const b = bw.getBounds()
       if(bw.isMaximized()) bw.unmaximize()
 
-      const bounds = {x: b.x+7, y: b.y+7, width: b.width - 14, height: b.height - 14}
+      const bounds = {x: b.x, y: b.y, width: b.width, height: b.height}
       bw._maximizedSize = bounds
       // bw.normal()
       setTimeout(()=>{
+        bw.webContents.send('adjust-maxmize-size', true)
         bw.setBounds(bounds)
         bw.setResizable(false)
       },50)
@@ -391,7 +395,13 @@ function create(args){
 
   bw.on('restore',_=>{
     bw.setResizable(true)
-    if(bw._isVirtualMaximized) bw.setBounds(bw._maximizedSize)
+    if(bw._isVirtualMaximized){
+      bw.webContents.send('adjust-maxmize-size', true)
+      bw.setBounds(bw._maximizedSize)
+    }
+    else{
+      bw.webContents.send('adjust-maxmize-size', false)
+    }
     console.log('restore')
     ipcMain.emit('state-change-window', bw.id, 'restore')
   })

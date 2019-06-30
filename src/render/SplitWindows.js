@@ -450,12 +450,14 @@ export default class SplitWindows extends Component{
         this.state.root.toggleNav = 3
         this.setState({})
         ipc.send('change-browser-view-z-index', true)
+        ipc.send('disable-webContents-focus', true)
       }
       else if(this.menuStickyFlag && e.offsetY > 80 && !e.target.closest(".navbar-main")){
         this.menuStickyFlag = false
         this.state.root.toggleNav = 2
         this.setState({})
         ipc.send('change-browser-view-z-index', false)
+        ipc.send('disable-webContents-focus', false)
       }
     }
     this.menuSticky = ::this.menuSticky
@@ -486,7 +488,14 @@ export default class SplitWindows extends Component{
     }
     ipc.on('switch-fullscreen',this.switchFullscreenEvent)
 
-    this.getWinStateEvent = _=>{
+    this.getWinStateEvent = beforeClose=>{
+      if(beforeClose){
+        for(let key of Object.keys(this.hidePanels)){
+          this.close(key)
+          this.refs2[key].TabPanelClose()
+        }
+      }
+
       const keys = this.getAllKey()
       for(let key of keys){
         if(this.refs2[key]){
@@ -943,6 +952,17 @@ export default class SplitWindows extends Component{
     }
     ipc.on('CHROME_TABS_TAB_VALUE', this.eventChromeTabsTabValue)
 
+    this.eventMaxmize = (e, enable) => {
+      document.documentElement.style.padding = enable ? '7px' : null
+      const arr = []
+      let tabIds = []
+      this.setKeys(arr)
+      for(let key of arr){
+        this.refs2[key] && this.refs2[key].webViewCreate()
+      }
+      e.returnValue = 1
+    }
+    ipc.on('adjust-maxmize-size', this.eventMaxmize)
 
     this.tokenAlign = PubSub.subscribe("align",(_,e)=>{
       if(!this.state.root.r) return
@@ -1051,7 +1071,7 @@ export default class SplitWindows extends Component{
     ipc.removeListener('visit-state-update', this.eventVisitStateUpdate)
     ipc.removeListener('update-theme', this.eventUpdateTheme)
     ipc.removeListener('CHROME_TABS_TAB_VALUE', this.eventChromeTabsTabValue)
-    ipc.removeListener('CHROME_TABS_TAB_VALUE', this.eventChromeTabsTabValue)
+    ipc.removeListener('adjust-maxmize-size', this.eventMaxmize)
 
     PubSub.unsubscribe(this.tokenAlign)
     PubSub.unsubscribe(this.tokenAllDetach)
@@ -1068,9 +1088,18 @@ export default class SplitWindows extends Component{
     this.nc = date
   }
 
+  getRestoredKey(key){
+    if(isFixedPanel(key)){
+      return this.getFixedPanelKey(key.split("-")[1]) + `-${Math.random().toString().replace(".","")}_${count++}`
+    }
+    else{
+      return getUuid()
+    }
+  }
+
   parseRestoreDate(node,obj,force=false){
     if(node.l.tabs) {
-      obj.l = [getUuid(),force ? node.l.tabs.map(t=>{t.forceKeep = true; return t}) : node.l.tabs]
+      obj.l = [this.getRestoredKey(node.l.key),force ? node.l.tabs.map(t=>{t.forceKeep = true; return t}) : node.l.tabs]
     }
     else{
       obj.l = {}
@@ -1078,7 +1107,7 @@ export default class SplitWindows extends Component{
     }
     if(!node.r){}
     else if (node.r.tabs) {
-      obj.r = [getUuid(),force ? node.r.tabs.map(t=>{t.forceKeep = true; return t}) : node.r.tabs]
+      obj.r = [this.getRestoredKey(node.r.key),force ? node.r.tabs.map(t=>{t.forceKeep = true; return t}) : node.r.tabs]
     }
     else{
       obj.r = {}
@@ -1088,7 +1117,7 @@ export default class SplitWindows extends Component{
     obj.dirc = node.dirc
     obj.size = node.size
     obj.pd = node.pd
-    obj.key = getUuid()
+    obj.key = this.getRestoredKey(node.key)
     obj.toggleNav = node.toggleNav
 
     return obj

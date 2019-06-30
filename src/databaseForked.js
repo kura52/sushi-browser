@@ -36,7 +36,7 @@ function getPortable(){
 let port,port2,key,pingTime
 
 let result = _=>{
-  const db = require('./database')
+  const dbPromise = require('./database')
   const getFavicon = require('./captureFaviconEvent')
   // extensionServer(port2, key)
 
@@ -56,49 +56,51 @@ let result = _=>{
     return obj
   }
 
-  sock.connect(port,'127.0.0.1')
-  sock.on('message', function(msg,reply) {
-    // if(msg.ping){
-    //   pingTime = Date.now()
-    //   return
-    // }
-    try{
-      if(msg.path){
-        resizeFile(msg.path,reply)
-        return
-      }
-      else if(msg.favicon){
-        if(msg.favicon != 'resource/file.svg') getFavicon(msg.favicon)
-        return
-      }
+  dbPromise.then(db => {
+    sock.connect(port,'127.0.0.1')
+    sock.on('message', function(msg,reply) {
+      // if(msg.ping){
+      //   pingTime = Date.now()
+      //   return
+      // }
+      try{
+        if(msg.path){
+          resizeFile(msg.path,reply)
+          return
+        }
+        else if(msg.favicon){
+          if(msg.favicon != 'resource/file.svg') getFavicon(msg.favicon)
+          return
+        }
 
-      if(msg.methods[1] != 'insert' && msg.methods[1] != 'delete' && msg.methods[1] != 'update') msg.args = strToReg(msg.args)
-      // console.log(msg)
-      let me = db
-      const exeMethods = msg.methods[msg.methods.length - 1].split("_",-1)
-      for(let method of msg.methods.slice(0,msg.methods.length - 1)){
-        me = me[method]
-      }
+        if(msg.methods[1] != 'insert' && msg.methods[1] != 'delete' && msg.methods[1] != 'update') msg.args = strToReg(msg.args)
+        // console.log(msg)
+        let me = db
+        const exeMethods = msg.methods[msg.methods.length - 1].split("_",-1)
+        for(let method of msg.methods.slice(0,msg.methods.length - 1)){
+          me = me[method]
+        }
 
-      let ret = me
-      if(exeMethods.length > 1 && Array.isArray(msg.args[0]) && msg.args.length == exeMethods.length){
-        exeMethods.map((method,i)=>{
-          ret = ret[method](...msg.args[i])
+        let ret = me
+        if(exeMethods.length > 1 && Array.isArray(msg.args[0]) && msg.args.length == exeMethods.length){
+          exeMethods.map((method,i)=>{
+            ret = ret[method](...msg.args[i])
+          })
+        }
+        else{
+          // console.log(43344,msg.methods.slice(0,msg.methods.length - 1)[0],exeMethods[0],msg.args)
+          ret = ret[exeMethods[0]](...msg.args)
+        }
+
+        ;(ret.exec ? ret.exec() : ret).then(ret => {
+          reply({ key: msg.key, result: ret })
         })
+      }catch(e){
+        console.error(msg)
+        reply({ key: msg && msg.key, result: null })
       }
-      else{
-        // console.log(43344,msg.methods.slice(0,msg.methods.length - 1)[0],exeMethods[0],msg.args)
-        ret = ret[exeMethods[0]](...msg.args)
-      }
-
-      ;(ret.exec ? ret.exec() : ret).then(ret => {
-        reply({ key: msg.key, result: ret })
-      })
-    }catch(e){
-      console.error(msg)
-      reply({ key: msg && msg.key, result: null })
-    }
-  });
+    })
+  })
 }
 
 const portableData = getPortable()
@@ -114,12 +116,16 @@ if(fs.existsSync(filePath)){
   key = content[1]
   port = parseInt(content[2])
   port2 = parseInt(content[3])
-  if(Date.now() - date > 15 * 1000){
+  if(Date.now() - date > 60 * 1000){
     result = false
   }
-  // fs.unlink(filePath, function (err) {
-  //   console.log(err)
-  // })
+  const movePath = filePath.replace(/fork\.txt$/,"_fork.txt")
+  if(fs.existsSync(movePath)){
+    fs.unlinkSync(movePath)
+  }
+  fs.rename(filePath, movePath, function (err) {
+    console.log(err)
+  })
 }
 else{
   result = false

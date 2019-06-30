@@ -42,7 +42,8 @@ function fork(userDataPath){
   //   }
   // })
   global.__CHILD__.once('exit', () => {
-    if(!global.__CHILD__.normalKill) fork()
+    // if(!global.__CHILD__.normalKill) fork()
+    app.quit()
   })
 }
 

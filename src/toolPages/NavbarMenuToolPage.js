@@ -181,7 +181,6 @@ export default class NavbarMenu extends Component {
   }
 
   render(){
-    console.log(888888888888888,this.props.title,this.state.visible)
     const self = this
     let style = {lineHeight: '1.9',minWidth:0}
     if(this.props.style) style = {...style,...this.props.style}

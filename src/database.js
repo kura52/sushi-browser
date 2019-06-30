@@ -13,7 +13,7 @@ const db = {};
 const historyPath = path.join(resourcePath,'history.db')
 const history2Path = path.join(resourcePath,'history2.db')
 if (!fs.existsSync(history2Path) && fs.existsSync(historyPath)) {
-  const history = new Datastore({filename: path.join(resourcePath,'history.db'), autoload: true})
+  const history = new Datastore({filename: path.join(resourcePath,'history.db'), corruptAlertThreshold: 1})
   const datas = {}
   history.find({}).exec().then(rets=>{
     for(let r of rets){
@@ -45,32 +45,45 @@ if (!fs.existsSync(history2Path) && fs.existsSync(historyPath)) {
 //     `{"is_file":false,"title":"root","updated_at":1497713000000,"children":[],"key":"root","_id":"zplOMCoNb1BzCt15"}`)
 // }
 
-db.history = new Datastore({filename: path.join(resourcePath,'history2.db'), autoload: true})
-db.visit = new Datastore({filename: path.join(resourcePath,'visit.db'), autoload: true})
-db.tabState = new Datastore({filename: path.join(resourcePath,'tabState.db'), autoload: true})
-// db.historyFull = new Datastore({filename: path.join(resourcePath,'historyFull.db'), autoload: true})
-// db.searchHistory = new Datastore({filename: path.join(resourcePath,'searchHistory.db'), autoload: true})
-db.searchEngine = new Datastore({filename: path.join(resourcePath,'searchEngine.db'), autoload: true})
-db.favorite = new Datastore({filename: path.join(resourcePath,'favorite.db'), autoload: true})
-db.note = new Datastore({filename: path.join(resourcePath,'note.db'), autoload: true})
-db.download = new Datastore({filename: path.join(resourcePath,'download.db'), autoload: true})
-db.downloader = new Datastore({filename: path.join(resourcePath,'downloader.db'), autoload: true})
-db.state = new Datastore({filename: path.join(resourcePath,'state.db'), autoload: true})
-// db.media = new Datastore({filename: path.join(resourcePath,'media.db'), autoload: true})
-db.syncReplace = new Datastore({filename: path.join(resourcePath,'syncReplace.db'), autoload: true})
-db.crypto = new Datastore({filename: path.join(resourcePath,'crypto.db'), autoload: true})
-db.image = new Datastore({filename: path.join(resourcePath,'image.db'), autoload: true})
-db.favicon = new Datastore({filename: path.join(resourcePath,'favicon.db'), autoload: true})
-db.token = new Datastore({filename: path.join(resourcePath,'token2.db'), autoload: true})
-db.savedState = new Datastore({filename: path.join(resourcePath,'savedState.db'), autoload: true})
-db.windowState = new Datastore({filename: path.join(resourcePath,'windowState.db'), autoload: true})
-db.automation = new Datastore({filename: path.join(resourcePath,'automation.db'), autoload: true})
-db.automationOrder = new Datastore({filename: path.join(resourcePath,'automationOrder.db'), autoload: true})
-db.inputHistory = new Datastore({filename: path.join(resourcePath,'inputHistory.db'), autoload: true})
-db.visitedStyle = new Datastore({filename: path.join(resourcePath,'visitedStyle.db'), autoload: true})
+async function loadDB(_filename, retry=0){
+  const filename = path.join(resourcePath, _filename)
+  let db = new Datastore({filename, corruptAlertThreshold: 1})
+  try{
+    await db.loadDatabase()
+  }catch(e){
+    if(retry<3){
+      fs.renameSync(filename, path.join(resourcePath, `${_filename}.${Date.now()}`))
+      db = await loadDB(_filename, ++retry)
+    }
+  }
+  return db
+}
 
+const dbPromise = (async ()=>{
+  db.history = await loadDB('history2.db')
+  db.visit = await loadDB('visit.db')
+  db.tabState = await loadDB('tabState.db')
+// db.historyFull = await loadDB('historyFull.db')
+// db.searchHistory = await loadDB('searchHistory.db')
+  db.searchEngine = await loadDB('searchEngine.db')
+  db.favorite = await loadDB('favorite.db')
+  db.note = await loadDB('note.db')
+  db.download = await loadDB('download.db')
+  db.downloader = await loadDB('downloader.db')
+  db.state = await loadDB('state.db')
+// db.media = await loadDB('media.db')
+  db.syncReplace = await loadDB('syncReplace.db')
+  db.crypto = await loadDB('crypto.db')
+  db.image = await loadDB('image.db')
+  db.favicon = await loadDB('favicon.db')
+  db.token = await loadDB('token2.db')
+  db.savedState = await loadDB('savedState.db')
+  db.windowState = await loadDB('windowState.db')
+  db.automation = await loadDB('automation.db')
+  db.automationOrder = await loadDB('automationOrder.db')
+  db.inputHistory = await loadDB('inputHistory.db')
+  db.visitedStyle = await loadDB('visitedStyle.db')
 
-;(async ()=>{
   await db.history.ensureIndex({ fieldName: 'location' })
   await db.history.ensureIndex({ fieldName: 'title' })
   await db.history.ensureIndex({ fieldName: 'updated_at' })
@@ -132,6 +145,7 @@ db.visitedStyle = new Datastore({filename: path.join(resourcePath,'visitedStyle.
 
   // await db.searchHistory.ensureIndex({ fieldName: 'text' }).exec()
   // await db.searchHistory.ensureIndex({ fieldName: 'created_at' }).exec()
+  return db
 })()
 
 db.searchHistories = async (regText,limit,searchHistoryOrderCount) =>{
@@ -159,4 +173,4 @@ db.searchHistories = async (regText,limit,searchHistoryOrderCount) =>{
 //   return await db.media.find().sort({created_at: -1}).limit(limit).exec()
 // }
 
-export default db
+export default dbPromise

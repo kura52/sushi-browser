@@ -213,7 +213,7 @@ export default class BrowserPanel {
 
     const oldWindows = []
     winctl.EnumerateWindows(function(win) {
-      if(win.getTitle().includes(BrowserPanel.BROWSER_NAME)){
+      if(win.getTitle().endsWith(` - ${BrowserPanel.BROWSER_NAME}`)){
         oldWindows.push(win.getHwnd())
       }
       return true
@@ -267,16 +267,16 @@ export default class BrowserPanel {
           let chromeNativeWindow = winctl.GetActiveWindow2()
           const dim = DpiUtils.dimensions(chromeNativeWindow)
           console.log(9933,tmpWin, dim)
-          if (!chromeNativeWindow.getTitle().includes(BrowserPanel.BROWSER_NAME) || !(tmpWin.left == dim.left && tmpWin.top == dim.top && tmpWin.width == (dim.right - dim.left) && tmpWin.height == (dim.bottom - dim.top))) {
+          if (!chromeNativeWindow.getTitle().endsWith(` - ${BrowserPanel.BROWSER_NAME}`) || !(tmpWin.left == dim.left && tmpWin.top == dim.top && tmpWin.width == (dim.right - dim.left) && tmpWin.height == (dim.bottom - dim.top))) {
             chromeNativeWindow = (await winctl.FindWindows(win => {
-              if (!win.getTitle().includes(BrowserPanel.BROWSER_NAME)) return false
+              if (!win.getTitle().endsWith(` - ${BrowserPanel.BROWSER_NAME}`)) return false
               const dim = DpiUtils.dimensions(win)
               return tmpWin.left == dim.left && tmpWin.top == dim.top && tmpWin.width == (dim.right - dim.left) && tmpWin.height == (dim.bottom - dim.top)
             }))[0]
 
             if(!chromeNativeWindow){
               chromeNativeWindow = (await winctl.FindWindows(win => {
-                if(!win.getTitle('about:blank') || !win.getTitle().includes(BrowserPanel.BROWSER_NAME)) return false
+                if(!win.getTitle('about:blank') || !win.getTitle().endsWith(` - ${BrowserPanel.BROWSER_NAME}`)) return false
                 return true
               }))[0]
             }
@@ -290,6 +290,7 @@ export default class BrowserPanel {
             if(isWin7){
               chromeNativeWindow.setWindowLongPtrRestore(0x00800000)
               chromeNativeWindow.setWindowLongPtrRestore(0x00040000)
+              chromeNativeWindow.setWindowLongPtrRestore(0x00400000)
             }
             chromeNativeWindow.setWindowLongPtrEx(0x00000080)
             chromeNativeWindow.setWindowPos(0,0,0,0,0,39+1024)
@@ -412,16 +413,16 @@ export default class BrowserPanel {
 
     for(let i=0;i<300;i++){
       chromeNativeWindow = (await winctl.FindWindows(win => {
-        if(oldWindows.includes(win.getHwnd()) || !win.getTitle().includes(BrowserPanel.BROWSER_NAME)) return false
+        if(oldWindows.includes(win.getHwnd()) || !win.getTitle().endsWith(` - ${BrowserPanel.BROWSER_NAME}`)) return false
         return true
       }))[0]
       if(!chromeNativeWindow){
         chromeNativeWindow = winctl.GetActiveWindow2()
         const dim = DpiUtils.dimensions(chromeNativeWindow)
-        if (BrowserPanel.bindedWindows.has(chromeNativeWindow.getHwnd()) || !chromeNativeWindow.getTitle().includes(BrowserPanel.BROWSER_NAME) ||
+        if (BrowserPanel.bindedWindows.has(chromeNativeWindow.getHwnd()) || !chromeNativeWindow.getTitle().endsWith(` - ${BrowserPanel.BROWSER_NAME}`) ||
           !(cWin.left == dim.left && cWin.top == dim.top && cWin.width == (dim.right - dim.left) && cWin.height == (dim.bottom - dim.top))) {
           chromeNativeWindow = (await winctl.FindWindows(win => {
-            if (BrowserPanel.bindedWindows.has(chromeNativeWindow.getHwnd()) || !win.getTitle().includes(BrowserPanel.BROWSER_NAME)) return false
+            if (BrowserPanel.bindedWindows.has(chromeNativeWindow.getHwnd()) || !win.getTitle().endsWith(` - ${BrowserPanel.BROWSER_NAME}`)) return false
             const dim = DpiUtils.dimensions(win)
             return cWin.left == dim.left && cWin.top == dim.top && cWin.width == (dim.right - dim.left) && cWin.height == (dim.bottom - dim.top)
           }))[0]
@@ -440,6 +441,7 @@ export default class BrowserPanel {
       if(isWin7){
         chromeNativeWindow.setWindowLongPtrRestore(0x00800000)
         chromeNativeWindow.setWindowLongPtrRestore(0x00040000)
+        chromeNativeWindow.setWindowLongPtrRestore(0x00400000)
       }
       chromeNativeWindow.setWindowLongPtrEx(0x00000080)
       chromeNativeWindow.setWindowPos(0,0,0,0,0,39+1024)
@@ -568,9 +570,10 @@ export default class BrowserPanel {
   }
 
   async setBounds(bounds) {
+    if(this.cpWin.nativeWindow.hidePanel) return
+
     const tab = await this.getActiveTab()
     const modify = 0 //Browser.CUSTOM_CHROMIUM ? 0 : tab.url == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? 37 : 0
-
 
     if (bounds.width) {
       const cont = webContents.fromId(tab.id)
@@ -603,7 +606,8 @@ export default class BrowserPanel {
   moveTopNativeWindow() {
     if (BrowserPanel.contextMenuShowing ||
       webContents.disableFocus ||
-      this._bindWindow) return
+      this._bindWindow ||
+      this.cpWin.nativeWindow.hidePanel) return
 
     this.cpWin.nativeWindow.moveTop()
     if(this.browserWindow._alwaysOnTop) this.cpWin.nativeWindow.setWindowPos(winctl.HWND.TOPMOST, 0, 0, 0, 0, 83)

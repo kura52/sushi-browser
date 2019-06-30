@@ -216,6 +216,7 @@ Or, please use the Chromium bundled version.`
             // },0))
             setTimeout(()=>{
               console.log('SHOW')
+              if(browserPanel.cpWin.nativeWindow.hidePanel) return
               browserPanel.cpWin.nativeWindow.showWindow(9)
               // browserPanel.moveTopNativeWindow()
               browserPanel.cpWin.nativeWindow.setForegroundWindowEx()
@@ -282,13 +283,17 @@ Or, please use the Chromium bundled version.`
       e.sender.send('get-access-key-and-port-reply', [this.serverKey, this.port])
     })
 
-    ipcMain.on('hide-browser-panel', (e, panelKey, hide) => {
+    ipcMain.on('hide-browser-panel', async (e, panelKey, hide) => {
       const panel = BrowserPanel.getBrowserPanel(panelKey)
       if(hide){
+        console.log('hide-browser-panel1', panelKey, hide)
         panel.cpWin.nativeWindow.showWindow(0)
+        panel.cpWin.nativeWindow.hidePanel = true
       }
       else{
+        console.log('hide-browser-panel2', panelKey, hide)
         panel.cpWin.nativeWindow.showWindow(9)
+        delete panel.cpWin.nativeWindow.hidePanel
       }
     })
 
@@ -349,7 +354,7 @@ Or, please use the Chromium bundled version.`
       })
     }
 
-    const ioHook = require('iohook')
+    const ioHook = require(path.join(__dirname,'../../node_modules/iohook').replace(/app.asar([\/\\])/,'app.asar.unpacked$1'))
     ioHook.start(false)
     ioHook.on('mousewheel', async e => {
       const hwnd = winctl.NonActiveWindowFromPoint()
@@ -885,15 +890,22 @@ Or, please use the Chromium bundled version.`
     })
 
     const {history} = require('../databaseFork')
-    this.addListener('history', 'onVisited', async (h)=>{
+    this.addListener('history', 'onVisited', async (valid, h)=>{
       const item =  await history.findOne({location: h.url})
       if(item){
-        await history.update({_id:item._id}, {$set: {location:h.url, updated_at: h.lastVisitTime, count: h.visitCount}})
+        if(valid){
+          await history.update({_id:item._id}, {$set: {location:h.url, updated_at: h.lastVisitTime, count: h.visitCount}})
+        }
+        else{
+          await history.remove({_id:item._id}, { multi: true })
+        }
       }
-      else{
+      else if(valid){
         await history.insert({location:h.url ,title: h.title || h.url, created_at: h.lastVisitTime ,updated_at: h.lastVisitTime,count: h.visitCount})
       }
-    })
+    }, void 0, (result) => new Promise(resolve => {
+      chrome.history.search({text: result.url},results => resolve([!!results.find(r=>r.url == result.url), result]))
+    }))
 
     this.addListener('windows', 'onCreated', window => {
       console.log(9992,window)
@@ -1238,6 +1250,7 @@ class PopupPanel{
       if(isWin7){
         chromeNativeWindow.setWindowLongPtrRestore(0x00800000)
         chromeNativeWindow.setWindowLongPtrRestore(0x00040000)
+        chromeNativeWindow.setWindowLongPtrRestore(0x00400000)
       }
       chromeNativeWindow.setWindowLongPtrEx(0x00000080)
       chromeNativeWindow.showWindow(5)
@@ -1268,7 +1281,7 @@ class PopupPanel{
     this.nativeWindow = nativeWindow
     this.chromeNativeWindow = chromeNativeWindow
 
-    nativeWindow.showWindow(0);
+    nativeWindow.showWindow(0)
     this.minimized = true;
 
     PopupPanel.instance = this
