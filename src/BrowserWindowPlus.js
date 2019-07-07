@@ -657,7 +657,7 @@ export default {
         normalSize[initWindow.id] = initWindow.getBounds()
       }
       if (winArg.maximize){
-        setTimeout(()=> initWindow.maximize(),3000)
+        setTimeout(()=> initWindow.maximize(),1000)
       }
       initWindow.setAlwaysOnTop(!!winArg.alwaysOnTop)
       initWindow._alwaysOnTop = !!winArg.alwaysOnTop

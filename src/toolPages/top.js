@@ -226,15 +226,27 @@ class TopMenu extends React.Component {
 
 class TopSearch extends React.Component {
 
+  async recurNavbarSearch(){
+    const key = Math.random().toString()
+    let stopFlag = false
+    ipc.once(`navbar-search-reply_${key}`, e => stopFlag = true)
+
+    for(let i=0;i<50;i++){
+      ipc.send('send-to-host', "navbar-search",{},key)
+      await new Promise(r=>setTimeout(r,30))
+      if(stopFlag) return
+    }
+  }
+
   componentDidMount() {
-    setTimeout(()=>ipc.send('send-to-host', "navbar-search",{}),30)
+    this.recurNavbarSearch()
     console.log("mount")
   }
 
 
   sendHost(e){
     console.log(222222)
-    ipc.send('send-to-host', "navbar-search",{})
+    this.recurNavbarSearch()
     e.target.value = ""
     e.target.blur()
     e.preventDefault()

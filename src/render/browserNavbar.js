@@ -798,6 +798,14 @@ class BrowserNavbar extends Component{
                                           {/*onClick={()=>{ipc.send('toggle-fullscreen');this.refs['main-menu'].menuClose()}}/>}*/}
       </NavbarMenuSubMenu>
       <NavbarMenuSubMenu icon="hashtag" text={locale.translation('7853747251428735')}>
+        <NavbarMenuItem text={`[${mainState.enableMouseGesture ? '✓' : ' '}] ${locale.translation("enableMouseGesture")}`} onClick={_=>{
+          mainState.set('enableMouseGesture',!mainState.enableMouseGesture)
+          ipc.send('get-enableMouseGesture')
+          this.refs['main-menu'].menuClose()
+          this.forceUpdates=true
+          this.props.parent.setState({})
+        }}/>
+        <div className="divider" />
         {isWin  ? <NavbarMenuItem text={`${locale.translation("changeVPNMode")}`} icon='plug' onClick={_=>{
           this.refs['main-menu'].menuClose()
           this.setState({vpnList:!this.state.vpnList})

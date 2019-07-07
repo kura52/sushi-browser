@@ -25,6 +25,7 @@ const sharedState = require('./sharedStateMain')
 const defaultConf = require('./defaultConf')
 const urlutil = require('./render/urlutil')
 const tor = require('../brave/app/tor')
+import winctl from '../resource/winctl'
 // require('./chromeEvents')
 
 let adblock,httpsEverywhere,trackingProtection,extensions,videoProcessList = []
@@ -55,13 +56,15 @@ function exec(command) {
 
 const skippedProcess = new Set()
 async function killRemainProcess(){
+  const selfPid = process.pid
   const findProcess  = require('find-process')
   const func = async ()=>{
     const list = await findProcess('name', 'sushi-browser')
     const map = new Map()
     for(const p of list){
-      if(p.name != 'sushi-browser.exe') continue
+      if(p.name != 'sushi-browser.exe' || p.pid == selfPid || p.ppid == selfPid) continue
       map.set(p.pid, p.ppid)
+      console.log(selfPid, p.pid, p.ppid,p.name)
     }
     const map2 = new Map()
     for(const [pid,ppid] of map){
@@ -73,6 +76,35 @@ async function killRemainProcess(){
         map2.set(id, [pid])
       }
     }
+
+    const kill = async(ppid, pidList)=>{
+      const fkill = require('fkill')
+      console.log(ppid)
+      if (!skippedProcess.has(ppid)) {
+        try {
+          await fkill(ppid, {force: true})
+        } catch (e) {
+          console.log(e)
+          skippedProcess.add(ppid)
+        }
+      }
+      for (const pid of pidList) {
+        if (skippedProcess.has(pid)) continue
+        if (pid == ppid) continue
+        const isFind = await findProcess('pid', pid)
+        console.log(pid, isFind)
+        if (isFind.length) {
+          try {
+            await fkill(pid, {force: true})
+          } catch (e) {
+            console.log(e)
+            skippedProcess.add(pid)
+          }
+        }
+      }
+    }
+
+    let killed = false
     for(const [ppid, pidList] of map2){
       console.log(map2)
       if(pidList.length == 2){
@@ -81,35 +113,28 @@ async function killRemainProcess(){
 
         if(pCmd.includes("--type=") || !cmd.includes("--type=gpu-process")) return
 
-
-        const fkill = require('fkill')
-        console.log(ppid)
-        if(!skippedProcess.has(ppid)){
-          try{
-            await fkill(ppid, {force: true})
-          }catch(e){
-            console.log(e)
-            skippedProcess.add(ppid)
-          }
-        }
-        for(const pid of pidList){
-          if(skippedProcess.has(pid)) continue
-          if(pid == ppid) continue
-          const isFind = await findProcess('pid', pid)
-          console.log(pid, isFind)
-          if(isFind.length){
-            try{
-              await fkill(pid, {force: true})
-            }catch(e){
-              console.log(e)
-              skippedProcess.add(pid)
-            }
-          }
-        }
-        return true
+        await kill(ppid, pidList)
+        killed = true
+        break
       }
     }
-    return false
+
+    if(map2.size){
+      const winList = await winctl.FindWindows(win => {
+        return win.getTitle().endsWith(' - Sushi Browser') && win.getWindowModuleFileName().endsWith('sushi-browser.exe')
+      })
+      for(const win of winList){
+        console.log(win.getTitle(), win.getWindowModuleFileName())
+      }
+      if(!winList.length){
+        for (const [ppid, pidList] of map2) {
+          await kill(ppid, pidList)
+        }
+        killed = true
+      }
+    }
+
+    return killed
   }
   // setInterval(func,5000)
   return await func()

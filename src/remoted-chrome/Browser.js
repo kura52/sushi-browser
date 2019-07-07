@@ -918,7 +918,8 @@ Or, please use the Chromium bundled version.`
 
     this.addListener('windows', 'onRemoved', removedWinId => {
       if(PopupPanel.instance.id == removedWinId){
-        Browser.initPopupPanel()
+        PopupPanel.instancePre = PopupPanel.instance
+        PopupPanel.instance = {}
         return
       }
       for(const [panelKey, browserPanel] of Object.entries(BrowserPanel.panelKeys)){
@@ -1108,11 +1109,19 @@ Or, please use the Chromium bundled version.`
   }
 
   static async initPopupPanel(){
-    this.popupPanel = await PopupPanel.newPanel();
+    this.popupPanel = await PopupPanel.newPanel()
+    console.log('initPopupPanel')
   }
 
   static async showPopupPanel(panelKey, tabKey, bounds, url){
-    if(!this.popupPanel) this.popupPanel = await PopupPanel.newPanel()
+    console.log('showPopupPanel')
+    if(!this.popupPanel || !PopupPanel.instance.id){
+      this.popupPanel = await PopupPanel.newPanel()
+      if(PopupPanel.instancePre){
+        const bounds = PopupPanel.instancePre.getBounds()
+        if(bounds.width != null) this.popupPanel.setBounds(bounds)
+      }
+    }
     this.popupPanel.setKeys(panelKey, tabKey)
 
     if(url){
@@ -1126,6 +1135,7 @@ Or, please use the Chromium bundled version.`
   }
 
   static hidePopupPanel(panelKey, tabKey){
+    console.log('hidePopupPanel')
     if(!this.popupPanel) return
 
     this.popupPanel.hide(panelKey, tabKey)
@@ -1134,6 +1144,7 @@ Or, please use the Chromium bundled version.`
   }
 
   static getTabIds(panelKey){
+    console.log('getTabIds')
     return new Promise(r=>{
       const cont = BrowserPanel.getBrowserPanel(panelKey).browserWindow.webContents
       const key = Math.random().toString()
@@ -1145,6 +1156,7 @@ Or, please use the Chromium bundled version.`
   }
 
   static getChromeTabIds(panelKey){
+    console.log('getChromeTabIds')
     const panel = BrowserPanel.getBrowserPanel(panelKey)
     return Browser.bg.evaluate((windowId) => {
       return new Promise(resolve => {
@@ -1154,6 +1166,7 @@ Or, please use the Chromium bundled version.`
   }
 
   static async syncTabPosition(panelKey){
+    console.log('syncTabPosition')
     let {myTabIds, selectedTabKey} = await this.getTabIds(panelKey)
     let chromeTabIds = await this.getChromeTabIds(panelKey)
 
@@ -1224,6 +1237,7 @@ const webContents = require("./webContents")
 class PopupPanel{
 
   static async newPanel(){
+    console.log('newPanel')
     const cWin = await Browser.bg.evaluate(() => {
       return new Promise(resolve => {
         chrome.windows.create({
@@ -1276,31 +1290,38 @@ class PopupPanel{
   }
 
   constructor({chromeWindow, nativeWindow, chromeNativeWindow}){
+    console.log('constructor')
     this.id = chromeWindow.id
     this.chromeWindow = chromeWindow
     this.nativeWindow = nativeWindow
     this.chromeNativeWindow = chromeNativeWindow
 
     nativeWindow.showWindow(0)
-    this.minimized = true;
+    this.minimized = true
+
+    this._bounds = {}
 
     PopupPanel.instance = this
   }
 
   destroy(){
+    console.log('destroy')
     this.nativeWindow.destroyWindow()
   }
 
   setKeys(panelKey, tabKey){
+    console.log('setKeys')
     this.panelKey = panelKey
     this.tabKey = tabKey
   }
 
   getChromeWindowBoundArray(width, height){
+    console.log('getChromeWindowBoundArray')
     return [- BrowserPanel.sideMargin, - 27, width + BrowserPanel.sideMargin * 2, height + 27 + 8]
   }
 
   setBounds(bounds, noMove){
+    console.log('setBounds')
     console.log(22233, bounds)
     if(this.minimized){
       this.nativeWindow.showWindow(9)
@@ -1308,6 +1329,11 @@ class PopupPanel{
     }
 
     if (bounds.width) {
+      if(Browser.CUSTOM_CHROMIUM){
+        bounds.width = bounds.width + 16
+        bounds.height = bounds.height + 36
+      }
+      this._bounds = bounds
       const pagePromise = Browser._pagePromises[PopupPanel.tabId]
       if(!Browser.CUSTOM_CHROMIUM) pagePromise.then(page=>page.setViewport({width: Math.round(bounds.width), height: Math.round(bounds.height)}))
     }
@@ -1318,38 +1344,51 @@ class PopupPanel{
         DpiUtils.moveForChildWindow(this.chromeNativeWindow, ...this.getChromeWindowBoundArray(bounds.width, bounds.height), bounds.x, bounds.y)
       }
 
-      if(!noMove){
+      if(!noMove && this.panelKey){
         clearTimeout(this.alwaysOnTopTimer)
-        this.alwaysOnTopTimer = setTimeout(()=>this.nativeWindow.setWindowPos(winctl.HWND.NOTOPMOST, 0, 0, 0, 0, 83),1000)
+        this.alwaysOnTopTimer = setTimeout(()=>this.panelKey && this.nativeWindow.setWindowPos(winctl.HWND.NOTOPMOST, 0, 0, 0, 0, 83),1000)
         this.nativeWindow.setWindowPos(winctl.HWND.TOPMOST, 0, 0, 0, 0, 83)
       }
     }
     else {
+      this._bounds.x = bounds.x
+      this._bounds.y = bounds.y
       const dim = DpiUtils.dimensions(this.nativeWindow)
       DpiUtils.move(this.nativeWindow,bounds.x, bounds.y, dim.right - dim.left, dim.bottom - dim.top)
     }
   }
 
+  getBounds(){
+    console.log('setBounds')
+    return this._bounds
+  }
+
   hide(panelKey, tabKey){
+    console.log('hide')
     if(panelKey != this.panelKey || tabKey != this.tabKey) return
 
     this.setKeys(null, null)
     this.loadURL('chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/popup_prepare.html')
     this.nativeWindow.showWindow(0)
+    // this.nativeWindow.showWindow(6)
     this.minimized = true
   }
 
   moveTop(){
-    if (webContents.disableFocus) return
+    console.log('moveTop')
+    if (webContents.disableFocus || !this.panelKey) return
     this.nativeWindow.moveTop()
   }
 
   setActiveCurrentTab(){
+    console.log('setActiveCurrentTab')
     const panel = BrowserPanel.getBrowserPanel(this.panelKey)
     return panel.getBrowserView({tabKey: this.tabKey}).webContents.focus()
   }
 
   loadURL(url){
+    if (!this.panelKey) return
+    console.log('loadURL')
     this.moveTop()
     Browser.bg.evaluate((tabId, url) => {
       return new Promise(resolve => {
@@ -1359,6 +1398,8 @@ class PopupPanel{
   }
 
   async executeJavaScript(code, userGesture, callback, retry){
+    if (!this.panelKey) return
+    console.log('executeJavaScript')
     if(retry == null){
       if(typeof userGesture === 'function') [userGesture, callback, retry] = [null, userGesture, callback]
       if(retry == null) retry = 0

@@ -1790,7 +1790,7 @@ async function setTabState(cont,cb){
   const tabId = cont.id
   const openerTabId = (await new webContents(tabId)._getTabInfo()).openerTabId
   const requestId = Math.random().toString()
-  const hostWebContents = cont.hostWebContents2
+  const hostWebContents = await cont.getHostWebContents2Aasync()
   hostWebContents.send('CHROME_TABS_TAB_VALUE', requestId, tabId)
   ipcMain.once(`CHROME_TABS_TAB_VALUE_RESULT_${requestId}`,(event, tabValue)=>{
     cb({id:tabId, openerTabId, index:tabValue.index, windowId:BrowserWindow.fromWebContents(hostWebContents).id,active:tabValue.active,pinned:tabValue.pinned})
@@ -2370,6 +2370,7 @@ ipcMain.on('delete-input-history',async (e,cond)=>{
 })
 
 ipcMain.on('main-state-op',(e,op,name,key,val)=>{
+  console.log('main-state-op',op,name,key,val)
   if(op == 'get'){
     e.returnValue = mainState[name]
   }
@@ -2677,7 +2678,7 @@ ipcMain.on('get-process-info', (e) => {
 //   ipcMain.emit('change-browser-view-z-index',{sender: e.sender.hostWebContents2}, false)
 // })
 
-ipcMain.on('send-to-host', async (e, ...args)=>{
+ipcMain.on('send-to-host', (e, ...args)=>{
   // console.log('send-to-host',e,...args)
   // console.log(`send-to-host_${e.sender.id}`,await e.sender.getURL(), args[0])
   const hostCont = e.sender.hostWebContents2 || e.sender.hostWebContents
@@ -2686,6 +2687,11 @@ ipcMain.on('send-to-host', async (e, ...args)=>{
     return
   }
   hostCont.send(`send-to-host_${e.sender.id}`, ...args)
+})
+
+ipcMain.on('send-to-webContents', (e, tabId, name,...args)=>{
+  const cont = webContents.fromId(tabId)
+  cont && cont.send(name, ...args)
 })
 
 // ipcMain.on('get-visited-links', (e, key, urls) => {
@@ -2781,6 +2787,12 @@ ipcMain.on('set-alwaysOnTop', (e,enable) => {
 
 ipcMain.on('get-mouse-pos', (e,offsetY,screenY)=>{
   e.returnValue = screen.getCursorScreenPoint().y - screenY + offsetY
+})
+
+let mouseGestureBgPage
+ipcMain.on('get-enableMouseGesture', (e, type) =>{
+  if(type == 'bg') mouseGestureBgPage = e.sender
+  mouseGestureBgPage.send('set-enableMouseGesture', mainState.enableMouseGesture)
 })
 
 // let dragPos = {}, noMove = false

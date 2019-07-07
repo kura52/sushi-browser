@@ -95,8 +95,11 @@ export default class BrowserNavbarLocation extends Component {
 
   async keyEvent(e, msg, ...args){
     if (msg == 'navbar-search') {
+      if(args[1]){
+        ipc.send('send-to-webContents',this.props.tab.wvId,`navbar-search-reply_${args[1]}`)
+      }
       const input = (this.input || ReactDOM.findDOMNode(this.refs.input).querySelector("input"))
-      console.log(5644, 'focus-browser-window')
+      console.log(5644, 'focus-browser-window', input)
       for(let i=0;i<5;i++){
         await new Promise(r=>setTimeout(r,100))
         const key = Math.random().toString()
@@ -106,6 +109,7 @@ export default class BrowserNavbarLocation extends Component {
         })
         input.focus()
         await new Promise(r=>setTimeout(r,50))
+        console.log(56441, input == document.activeElement)
         if(input == document.activeElement) return
       }
     }
@@ -130,9 +134,8 @@ export default class BrowserNavbarLocation extends Component {
     console.log(55553,this.props.page.navUrl,this.props.page.location)
     ipc.on('focus-location-bar',this.keyEvent2)
     // if(this.props.tab.privateMode == 'persist:tor') ipc.on('tor-progress',this.torEvent)
-    if(this.props.wv){
-      this.addEvent(this.props)
-    }
+    this.addEvent(this.props)
+
     this.input = ReactDOM.findDOMNode(this.refs.input).querySelector("input")
     this.input.addEventListener('focus', this.onFocus)
     this.input.addEventListener('blur', this.onBlur)

@@ -40,6 +40,7 @@ private:
 	static NAN_METHOD(bringWindowToTop);
 	static NAN_METHOD(setForegroundWindow);
 	static NAN_METHOD(setForegroundWindowEx);
+	static NAN_METHOD(getWindowModuleFileName);
 	static NAN_METHOD(setActiveWindow);
 	static NAN_METHOD(setWindowPos);
 	static NAN_METHOD(moveTop);

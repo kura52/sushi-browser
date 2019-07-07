@@ -1,3 +1,25 @@
+chrome.ipcRenderer = new Proxy({}, {
+  get: (target, name) => {
+    if(window.ipcRenderer && window.ipcRenderer.port) return window.ipcRenderer[name]
+    return (...args) => {
+      const id = setInterval(()=>{
+        if(window.ipcRenderer && window.ipcRenderer.port){
+          window.ipcRenderer[name](...args)
+          clearInterval(id)
+        }
+      },10)
+    }
+  }
+})
+
+let enableMouseGesture = true
+
+chrome.ipcRenderer.send('get-enableMouseGesture', 'bg')
+chrome.ipcRenderer.on('set-enableMouseGesture', (e, enable) => {
+  enableMouseGesture = enable
+  console.log('enableMouseGesture', enable)
+})
+
 this.GesturesInfo = {
   name: 'Chrome Gestures',
   version: '',
@@ -468,7 +490,8 @@ chrome.extension.onMessage.addListener(RequestHandler);
 function RequestHandler(message, con, sender) {
   var tab = con.tab;
   if (message.init) {
-    sender({conf: GesturesInfo, disable: localStorage.getItem('disable')});
+    const disable = !enableMouseGesture ? 'true' : localStorage.getItem('disable')
+    sender({conf: GesturesInfo, disable: disable});
     return true;
   }
   if (message.action === 'copy') {

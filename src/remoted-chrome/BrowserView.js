@@ -25,6 +25,7 @@ export default class BrowserView {
       await new Promise(r => setTimeout(r, 20))
       return await this.createNewTab(browserWindow, panelKey, tabKey, tabIndex, url, topZOrder)
     }
+    this.newPanelCreateing = true
 
     if(url) try{ new URL(url) }catch(e){ url = mainState.searchProviders[mainState.searchEngine].search.replace('%s',url) }
 
@@ -35,7 +36,6 @@ export default class BrowserView {
         bv = await panel.addBrowserView(tabKey, url, tabIndex, topZOrder)
       }
       else{
-        this.newPanelCreateing = true
         const panel = await new BrowserPanel({browserWindow, panelKey, tabKey, url})
         bv = panel.tabKeys[tabKey][1]
       }

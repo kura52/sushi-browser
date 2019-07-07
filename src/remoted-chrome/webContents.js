@@ -350,6 +350,16 @@ export default class webContents extends EventEmitter {
     return bp && bp.browserWindow.webContents
   }
 
+  async getHostWebContents2Aasync(){
+    for(let i=0;i<100;i++){
+      const bp = this._getBrowserPanel()
+      const ret = bp && bp.browserWindow.webContents
+      if(ret) return ret
+      await new Promise(r=>setTimeout(r,100))
+    }
+  }
+
+
   destroy(){
     console.log('2222sclose', this.id)
     const page = this._getPage()

@@ -55,7 +55,7 @@ function checkUpdate(ver,checkedVersion){
 state.findOne({key: 1}).then(rec=>{
   const {checkedVersion} = rec || {}
   const ver = fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString()
-  // setTimeout(_=>checkUpdate(ver,checkedVersion || '0.0.0'),4000) @TODO ELECTRON
+  setTimeout(_=>checkUpdate(ver,checkedVersion || '0.0.0'),4000)
   //
-  // setInterval(_=>checkUpdate(ver,checkedVersion || '0.0.0'),1000*3600*5) @TODO ELECTRON
+  setInterval(_=>checkUpdate(ver,checkedVersion || '0.0.0'),1000*3600*5)
 })

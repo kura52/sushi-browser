@@ -1,6 +1,9 @@
 #include "WinCtlWindow.h"
 #include "windows.h"
 
+#include <psapi.h>
+#pragma comment(lib, "psapi.lib")
+
 #pragma warning ( disable:4311 )
 #pragma warning ( disable:4302 )
 
@@ -26,6 +29,7 @@ NAN_MODULE_INIT(Window::Init) {
 	Nan::SetPrototypeMethod(tpl, "bringWindowToTop", bringWindowToTop);
 	Nan::SetPrototypeMethod(tpl, "setForegroundWindow", setForegroundWindow);
 	Nan::SetPrototypeMethod(tpl, "setForegroundWindowEx", setForegroundWindowEx);
+	Nan::SetPrototypeMethod(tpl, "getWindowModuleFileName", getWindowModuleFileName);
 	Nan::SetPrototypeMethod(tpl, "setActiveWindow", setActiveWindow);
 	Nan::SetPrototypeMethod(tpl, "setWindowPos", setWindowPos);
 	Nan::SetPrototypeMethod(tpl, "moveTop", moveTop);
@@ -319,6 +323,31 @@ NAN_METHOD(Window::setForegroundWindowEx) {
     SetForegroundWindow(obj->windowHandle);
 
     AttachThreadInput(selfThread, targetThread, FALSE );
+}
+
+NAN_METHOD(Window::getWindowModuleFileName) {
+	Window* obj = Nan::ObjectWrap::Unwrap<Window>(info.This());
+
+    char fileName[1024];
+    DWORD processID;
+    GetWindowThreadProcessId(obj->windowHandle, &processID);
+    HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processID);
+    bool ret = false;
+    if(hProcess){
+        HMODULE hModule;
+        DWORD cbReturned;
+        if(EnumProcessModules(hProcess, &hModule, sizeof(hModule), &cbReturned)){
+           ret = 0 != GetModuleFileNameEx(hProcess, hModule, fileName, sizeof(fileName));
+        }
+        CloseHandle(hProcess);
+    }
+
+	char fileName_utf8[2048];
+    wchar_t bufUnicode[2048];
+    int lenUnicode = MultiByteToWideChar(CP_ACP, 0, fileName, strlen(fileName)+1, bufUnicode, 2048);
+    WideCharToMultiByte(CP_UTF8, 0, bufUnicode, lenUnicode, fileName_utf8, 2048, NULL, NULL);
+
+    info.GetReturnValue().Set(Nan::New(fileName_utf8).ToLocalChecked());
 }
 
 

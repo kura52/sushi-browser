@@ -2047,7 +2047,15 @@ export default class TabPanel extends Component {
       else{
         this.state.tabs.splice(i + 1, 0, n_tab)
       }
-      if(openType == 'load-url') this.handleTabClose({}, this.state.selectedTab)
+      const closeTab = this.state.selectedTab
+      if(openType == 'load-url'){
+        if(this.state.tabs.length == 2){
+          setTimeout(()=>this.handleTabClose({}, closeTab),50)
+        }
+        else{
+          this.handleTabClose({}, closeTab)
+        }
+      }
       console.log("selected20", n_tab.key)
       this.setState(openType == 'create-web-contents' ? {} : {selectedTab: n_tab.key})
       this.focus_webview(n_tab,n_tab.page.location != topURL)

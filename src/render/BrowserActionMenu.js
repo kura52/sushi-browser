@@ -85,7 +85,7 @@ class BrowserActionWebView extends Component {
       ele.style.overflow = 'hidden'
       return [ele.clientWidth, ele.scrollWidth, ele.clientHeight, ele.scrollHeight]
     })()`,(result)=>{
-        console.log('setPreferredSize2', result)
+        console.log('setPreferredSize2', result, width)
         if(!this.close) sizeMap[this.props.url] = [result[1], result[3]]
         let widthRetry, heightRetry
         if(result[0] == result[1]){
@@ -171,7 +171,7 @@ class BrowserActionWebView extends Component {
     ipc.on('set-bound-browser-view', this.changePos2)
 
 
-      if(this.close){
+    if(this.close){
       ipc.send('set-overlap-component', 'extension-popup', this.props.k, this.props.tab.key, 0,-1,0,0)
     }
     else{

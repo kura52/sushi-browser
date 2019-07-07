@@ -613,6 +613,7 @@ export default class BrowserPanel {
     if(this.browserWindow._alwaysOnTop) this.cpWin.nativeWindow.setWindowPos(winctl.HWND.TOPMOST, 0, 0, 0, 0, 83)
 
     if(this.panelKey == PopupPanel.instance.panelKey){
+      console.log('PopupPanel.instance.moveTop()')
       PopupPanel.instance.moveTop()
       if(this.browserWindow._alwaysOnTop) PopupPanel.instance.nativeWindow.setWindowPos(winctl.HWND.TOPMOST, 0, 0, 0, 0, 83)
 

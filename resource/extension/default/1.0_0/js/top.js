@@ -34023,14 +34023,26 @@ class TopMenu extends _infernoCompat2.default.Component {
 
 class TopSearch extends _infernoCompat2.default.Component {
 
+  async recurNavbarSearch() {
+    const key = Math.random().toString();
+    let stopFlag = false;
+    _ipcRenderer.ipcRenderer.once(`navbar-search-reply_${key}`, e => stopFlag = true);
+
+    for (let i = 0; i < 50; i++) {
+      _ipcRenderer.ipcRenderer.send('send-to-host', "navbar-search", {}, key);
+      await new Promise(r => setTimeout(r, 30));
+      if (stopFlag) return;
+    }
+  }
+
   componentDidMount() {
-    setTimeout(() => _ipcRenderer.ipcRenderer.send('send-to-host', "navbar-search", {}), 30);
+    this.recurNavbarSearch();
     console.log("mount");
   }
 
   sendHost(e) {
     console.log(222222);
-    _ipcRenderer.ipcRenderer.send('send-to-host', "navbar-search", {});
+    this.recurNavbarSearch();
     e.target.value = "";
     e.target.blur();
     e.preventDefault();
@@ -49180,7 +49192,6 @@ class NavbarMenu extends Component {
   }
 
   render() {
-    console.log(888888888888888, this.props.title, this.state.visible);
     const self = this;
     let style = { lineHeight: '1.9', minWidth: 0 };
     if (this.props.style) style = _extends({}, style, this.props.style);

@@ -922,7 +922,7 @@ export default class SplitWindows extends Component{
     }
     ipc.on('update-theme', this.eventUpdateTheme)
 
-    this.eventChromeTabsTabValue = (e, requestId, tabId)=>{
+    this.eventChromeTabsTabValue = async (e, requestId, tabId, retry = 0)=>{
       const keys = []
       this.allKeys(this.state.root,keys)
       let order = 0
@@ -932,6 +932,10 @@ export default class SplitWindows extends Component{
         const tab = tabs[index]
         if(tab){
           const active = this.refs2[key].state.selectedTab == tab.key
+          if(!tab.div && retry < 30){
+            await new Promise(r=>setTimeout(r,100))
+            return this.eventChromeTabsTabValue(e, requestId, tabId, retry++)
+          }
           const bound = tab.div.getBoundingClientRect()
           e.sender.send(`CHROME_TABS_TAB_VALUE_RESULT_${requestId}`, {
             active,
