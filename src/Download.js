@@ -346,7 +346,7 @@ export default class Download {
       })
 
     }
-    return savePath;
+    return savePath
   }
 
   downloadReady(item, url, webContents,win,audioExtract,videoConvert) {
@@ -409,6 +409,9 @@ export default class Download {
 
     item.once('done', async (event, state) => {
       console.log(111,audioExtract,videoConvert)
+
+      Browser.bg.evaluate(downloadId => chrome.downloads.erase({id: downloadId}), item.key)
+
       if(audioExtract){
         new FfmpegWrapper(item.getSavePath()).exe(_=>_)
       }

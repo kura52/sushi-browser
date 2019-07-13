@@ -65,21 +65,21 @@ async function savedStateUpdate(states,closeKey){
 }
 
 let autoSaveStarted
+let prevStates = ""
+const _startAutoSaveAllWindowsState = async _=>{
+  const states = await saveAllWindowsState()
+  if(!states.wins.length) return
+
+  const statesStr = JSON.stringify(states.wins.map(state=>state.winState))
+  if(prevStates == statesStr) return
+  states.created_at = Date.now()
+  prevStates = statesStr
+  await savedStateUpdate(states)
+}
+
 function startAutoSaveAllWindowsState(){
   if(autoSaveStarted) return
-
-  let prevStates = ""
-  setInterval(async _=>{
-    const states = await saveAllWindowsState()
-    if(!states.wins.length) return
-
-    const statesStr = JSON.stringify(states.wins.map(state=>state.winState))
-    if(prevStates == statesStr) return
-    states.created_at = Date.now()
-    savedStateUpdate(states)
-    prevStates = statesStr
-  },(parseInt(mainState.autoSaveInterval)||60) * 1000)
-
+  setInterval(_startAutoSaveAllWindowsState,(parseInt(mainState.autoSaveInterval)||60) * 1000)
   autoSaveStarted = true
 }
 
@@ -221,40 +221,42 @@ function create(args){
         bw.webContents.send('get-window-state', true)
         let flag = false
 
-        ipcMain.once('get-window-state-reply',async (e,ret)=>{
+        _startAutoSaveAllWindowsState().then(()=>{
+          ipcMain.once('get-window-state-reply',async (e,ret)=>{
 
-          console.log('close-save')
-          await clearDatas()
-          // await new Promise(r=>{session.defaultSession.cookies.get({}, (e,cookies)=>{
-          //   fs.writeFileSync(path.join(app.getPath('userData'), 'cookie.txt'),JSON.stringify(cookies)) //@TODO ELECTRON
-          //   r()
-          // })})
+            console.log('close-save')
+            await clearDatas()
+            // await new Promise(r=>{session.defaultSession.cookies.get({}, (e,cookies)=>{
+            //   fs.writeFileSync(path.join(app.getPath('userData'), 'cookie.txt'),JSON.stringify(cookies)) //@TODO ELECTRON
+            //   r()
+            // })})
 
-          try{
-            const saveState = {}
-            for(let key of Object.keys(settingDefault)){
-              if(key == "toggleNav") continue
-              // if(key == "adBlockDisableSite"){
-              //   saveState[key] = JSON.stringify(mainState[key])
-              // }
-              else{
-                saveState[key] = mainState[key]
+            try{
+              const saveState = {}
+              for(let key of Object.keys(settingDefault)){
+                if(key == "toggleNav") continue
+                // if(key == "adBlockDisableSite"){
+                //   saveState[key] = JSON.stringify(mainState[key])
+                // }
+                else{
+                  saveState[key] = mainState[key]
+                }
               }
+
+              console.log(331,ret)
+
+              state.update({ key: 1 }, { $set: {key: 1, ver:fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString(), ...bounds, maximize,maxBounds,
+                  toggleNav:mainState.toggleNav==2 || mainState.toggleNav==3 ? 0 :mainState.toggleNav,...saveState,winState:ret, updated_at: Date.now()} }, { upsert: true }).then(_=>{
+                InitSetting.reload()
+              })
+
+              saved = true
+              console.log("getState")
+              if(!flag) bw.close()
+            }catch(e){
+              saved = true
             }
-
-            console.log(331,ret)
-
-            state.update({ key: 1 }, { $set: {key: 1, ver:fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString(), ...bounds, maximize,maxBounds,
-                toggleNav:mainState.toggleNav==2 || mainState.toggleNav==3 ? 0 :mainState.toggleNav,...saveState,winState:ret, updated_at: Date.now()} }, { upsert: true }).then(_=>{
-              InitSetting.reload()
-            })
-
-            saved = true
-            console.log("getState")
-            if(!flag) bw.close()
-          }catch(e){
-            saved = true
-          }
+          })
         })
         setTimeout(_=>{
           if(!flag){

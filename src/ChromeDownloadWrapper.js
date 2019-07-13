@@ -101,12 +101,13 @@ export default class ChromeDownloadWrapper extends EventEmitter {
     this.intervalId = void 0
     await Browser.bg.evaluate(downloadId => {
       return new Promise(resolve => {
-        chrome.downloads.cancel(downloadId, () => resolve())
+        chrome.downloads.cancel(downloadId, () => {
+          chrome.downloads.erase({id: downloadId}, () => resolve())
+        })
       })
     }, this.item.id)
     await this.updateState()
     this.emit('done')
-
   }
 
   async kill(){
