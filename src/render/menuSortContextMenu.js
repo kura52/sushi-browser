@@ -107,8 +107,8 @@ export default (tabId,navbar,e)=>{
         sharedState.menuSort = false
         sortable.destroy()
         sortable2.destroy()
-        mainMenu.forceClose()
         updateState(node,current)
+        mainMenu.forceClose()
       })
     }
   }]).popup(remote.getCurrentWindow())

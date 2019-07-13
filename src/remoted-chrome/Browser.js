@@ -159,6 +159,8 @@ Or, please use the Chromium bundled version.`
     })
 
 
+    this.tabMoving = 0
+    this.prevSyncTabPositionTime = Date.now()
     this.listeners = {}
     this._pagePromises = {}
     this.disableOnActivated = new Set()
@@ -811,6 +813,8 @@ Or, please use the Chromium bundled version.`
       if(PopupPanel.tabId == tabId || this.popUpCache[tabId]) return
       // const cont = new webContents(tabId)
       // BrowserView.movedTab(cont, windowId, fromIndex, toIndex)
+      console.log(999999,Date.now())
+      if(this.tabMoveStart || Date.now() - this.tabMoving < 1500) return
       BrowserPanel.MovedTabs(tabId, {windowId, fromIndex, toIndex})
     })
 
@@ -1166,6 +1170,14 @@ Or, please use the Chromium bundled version.`
   }
 
   static async syncTabPosition(panelKey){
+    const now = Date.now()
+    const diff = now - this.prevSyncTabPositionTime
+    this.prevSyncTabPositionTime = now
+    console.log(999999994,diff,now)
+    if(diff < 100){
+      return
+    }
+
     console.log('syncTabPosition')
     let {myTabIds, selectedTabKey} = await this.getTabIds(panelKey)
     let chromeTabIds = await this.getChromeTabIds(panelKey)
@@ -1188,7 +1200,7 @@ Or, please use the Chromium bundled version.`
         }
       }
       if(flag){
-        await Browser.bg.evaluate(tabIds => new Promise(r=>chrome.tabs.remove(tabIds,()=>r())),shouldRemoveTabIdsFromChrome)
+        await this.bg.evaluate(tabIds => new Promise(r=>chrome.tabs.remove(tabIds,()=>r())),shouldRemoveTabIdsFromChrome)
         return await this.syncTabPosition(panelKey)
       }
       return await new Promise(r=>setTimeout(()=>this.syncTabPosition(panelKey),1700))
@@ -1215,9 +1227,15 @@ Or, please use the Chromium bundled version.`
         //   panel.browserWindow.webContents.send('arrange-tabs',chromeTabIds)
         // }
         // else{
-        await Browser.bg.evaluate((tabIds, windowId) => {
+        console.log(9999991,Date.now())
+        const key = Math.random().toString()
+        this.tabMoveStart = key
+        await this.bg.evaluate((tabIds, windowId) => {
           return new Promise(resolve => chrome.tabs.move(tabIds,{index: 0, windowId}, () => resolve()))
         },myTabIds, panel.windowId)
+        console.log(9999992,Date.now())
+        if(this.tabMoveStart == key) this.tabMoveStart = void 0
+        this.tabMoving = Date.now()
         // }
         break
       }
@@ -1330,7 +1348,7 @@ class PopupPanel{
 
     if (bounds.width) {
       if(Browser.CUSTOM_CHROMIUM){
-        bounds.width = bounds.width + 16
+        // bounds.width = bounds.width + 8
         bounds.height = bounds.height + 36
       }
       this._bounds = bounds

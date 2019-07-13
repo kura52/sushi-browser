@@ -116,6 +116,7 @@ async function saveAllWindowsStateHandler(e,key){
   }
   if(!key) states.user = true
   await savedStateUpdate(states,key)
+  console.log('saveAllWindowsStateHandler')
   ipcMain.emit('wait-saveState-on-quit')
 }
 
@@ -240,6 +241,9 @@ function create(args){
                 saveState[key] = mainState[key]
               }
             }
+
+            console.log(331,ret)
+
             state.update({ key: 1 }, { $set: {key: 1, ver:fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString(), ...bounds, maximize,maxBounds,
                 toggleNav:mainState.toggleNav==2 || mainState.toggleNav==3 ? 0 :mainState.toggleNav,...saveState,winState:ret, updated_at: Date.now()} }, { upsert: true }).then(_=>{
               InitSetting.reload()
@@ -349,7 +353,7 @@ function create(args){
   })
 
   bw.on('maximize',e=>{
-    console.log('maximize',bw._isVirtualMaximized)
+    console.log('maximize1',bw._isVirtualMaximized)
     if(bw._isVirtualMaximized){
       bw.webContents.send('adjust-maxmize-size', false)
       bw.setResizable(true)
@@ -454,7 +458,7 @@ export default {
     if(url && url.endsWith('\\web-dev-browser\\lib\\main.js')) url = void 0
     let initWindow
     const setting = await InitSetting.val
-    let winSetting = opt ? getSize(opt) : {x: setting.x, y: setting.y, width: setting.width, height: setting.height, maximize: setting.maximize}
+    let winSetting = opt ? getSize(opt) : {x: setting.x, y: setting.y, width: setting.width, height: setting.height, maximize: setting.maximize, maxBounds: setting.maxBounds}
 
     mainState.scaleFactor = electron.screen.getPrimaryDisplay().scaleFactor
 
@@ -657,7 +661,11 @@ export default {
         normalSize[initWindow.id] = initWindow.getBounds()
       }
       if (winArg.maximize){
-        setTimeout(()=> initWindow.maximize(),1000)
+        // setTimeout(()=> {
+          console.log(777771,winArg.maxBounds)
+          initWindow.setBounds(winArg.maxBounds)
+          initWindow.emit('maximize')
+        // },1000)
       }
       initWindow.setAlwaysOnTop(!!winArg.alwaysOnTop)
       initWindow._alwaysOnTop = !!winArg.alwaysOnTop
