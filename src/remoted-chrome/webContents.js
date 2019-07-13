@@ -1,5 +1,5 @@
 import robot from 'robotjs'
-import {BrowserWindow, ipcMain, nativeImage, webContents as _webContents} from 'electron'
+import {app, BrowserWindow, ipcMain, nativeImage, webContents as _webContents} from 'electron'
 import {EventEmitter} from 'events'
 import evem from './evem'
 import fs from 'fs'
@@ -384,7 +384,12 @@ export default class webContents extends EventEmitter {
   async loadURL(url, options){
     if(isFirstLoad === void 0){
       isFirstLoad = false
-      if(!(await require('../databaseFork').state.findOne({key: 1}))) url = 'chrome://welcome/'
+      if(!(await require('../databaseFork').state.findOne({key: 1}))){
+        try{
+          require('../BrowserWindowPlus').saveState(this._getBrowserPanel().browserWindow,_=>{})
+        }catch(e){}
+        url = 'chrome://welcome/'
+      }
     }
 
     try{ new URL(url) }catch(e){ url = mainState.searchProviders[mainState.searchEngine].search.replace('%s',url) }

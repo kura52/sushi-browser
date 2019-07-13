@@ -898,8 +898,10 @@ Or, please use the Chromium bundled version.`
       }
     })
 
+    let historyOnVisitedProcessing = 0
     const {history} = require('../databaseFork')
     this.addListener('history', 'onVisited', async (valid, h)=>{
+      ++historyOnVisitedProcessing
       const item =  await history.findOne({location: h.url})
       if(item){
         if(valid){
@@ -910,11 +912,32 @@ Or, please use the Chromium bundled version.`
         }
       }
       else if(valid){
+        console.log('history', 'onVisited', valid, h)
         await history.insert({location:h.url ,title: h.title || h.url, created_at: h.lastVisitTime ,updated_at: h.lastVisitTime,count: h.visitCount})
       }
+      --historyOnVisitedProcessing
     }, void 0, (result) => new Promise(resolve => {
       chrome.history.search({text: result.url},results => resolve([!!results.find(r=>r.url == result.url), result]))
     }))
+
+    this.addListener('history', 'onVisitRemoved', async removed=>{
+      for(let i=0;historyOnVisitedProcessing && i<100;i++){
+        await new Promise(r=>setTimeout(r,30))
+        console.log('history', 'onVisitRemoved','wait')
+      }
+      if(removed.allHistory){
+        history.remove({}, { multi: true })
+      }
+      else{
+        if(typeof removed.urls === 'string'){
+          history.remove({location: removed.urls})
+        }
+        else{
+          console.log('history', 'onVisitRemoved', removed)
+          history.remove({location: {$in: removed.urls}}, { multi: true })
+        }
+      }
+    })
 
     this.addListener('windows', 'onCreated', window => {
       console.log(9992,window)
@@ -927,6 +950,9 @@ Or, please use the Chromium bundled version.`
 
     this.addListener('windows', 'onRemoved', removedWinId => {
       if(PopupPanel.instance.id == removedWinId){
+        for (const win of BrowserWindow.getAllWindows()) {
+          win.getTitle().includes('Sushi Browser') && win.webContents.send('close-browser-action')
+        }
         PopupPanel.instancePre = PopupPanel.instance
         PopupPanel.instance = {}
         return

@@ -26,26 +26,28 @@ const glob = require("glob")
 const BEFORE_CODE_NAME = 'Geso(Squid arms)'
 const CODE_NAME = 'Fugu(Blowfish)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.25.6"
+const NEXT_APP_VERSION = "0.25.7"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Bug fix display of popup window of Chrome extension.
-Added "Main Menu > More tools > Enable Mouse Gesture".
-Added processing to open tabs in correct panel when restoring session.
-Startup stability improvement (If the browser process remains in an incorrect state, added the process to stop the process at startup).
-Fixed Sort Menu.
-Fixed the problem that the address bar is not focused by timing when creating a new tab.
-Removed processing to delay startup maximization.
-Enabled browser update check function.`
+const CHANGE_ENGLISH = `Fixed the problem that the order is not saved after executing "Sort Menu".
+Fixed the bug that the order of tabs is incorrect when creating many tabs.
+Changed to save session when exiting application.
+Changed to delete Chrome download history after download.
+Fixed window maximization process at startup.
+Fixed to reflect Chrome history deletion. (issue #64)
+Increased timeout value of current state save process at application end from 2 seconds to 1 minute.
+Fixed a bug related to the frequency of acquiring page thumbnails.
+Updated youtube-dl to 2019.07.12`
 
-const CHANGE_JAPANESE = `Chrome拡張のポップアップウインドウの表示不具合修正
-「メインメニュー＞その他のツール＞マウスジェスチャーを有効にする」を追加。
-セッション復元時に、正しいパネルにタブを開くように履いた処理を追加
-起動の安定性向上（不正な状態でブラウザのプロセスが残っていた場合、起動時にそのプロセスを停止する処理を追加した）
-Sort Menuの動作不具合を修正
-新規タブ作成時に、タイミングによってアドレスバーにフォーカスされない不具合を修正
-起動時の最大化遅延処理を削除
-ブラウザの更新チェック機能を有効化`
+const CHANGE_JAPANESE = `「Sort Menu」実行後に、順序が保存されない不具合を修正
+多数のタブを作成した場合に、タブの順序が変わってしまう不具合を修正
+アプリケーション終了時にセッションを保存するように変更
+ダウンロード終了後にChromeのダウンロード履歴を削除するように変更
+起動時のウインドウ最大化処理を修正
+Chromeの履歴削除を反映するように修正
+アプリケーション終了時の現在状態保存処理のタイムアウト値を2秒から1分に増加
+ページサムネイルを取得する頻度に関する不具合の修正
+youtube-dlを2019.07.12にバージョンアップ`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

@@ -170,7 +170,6 @@ class BrowserActionWebView extends Component {
     this.changePos2 = this.changePos.bind(this,{})
     ipc.on('set-bound-browser-view', this.changePos2)
 
-
     if(this.close){
       ipc.send('set-overlap-component', 'extension-popup', this.props.k, this.props.tab.key, 0,-1,0,0)
     }
@@ -197,6 +196,7 @@ class BrowserActionWebView extends Component {
     ipc.removeListener('get-webview-pos',this.changePos)
     ipc.removeListener('set-bound-browser-view', this.changePos2)
     ipc.send('set-overlap-component', 'extension-popup', this.props.k, this.props.tab.key, 0,-1,0,0)
+    ipc.removeListener('send-to-host',this.ipcEvent)
   }
 
   onClose = ()=>{
@@ -333,6 +333,9 @@ export default class BrowserActionMenu extends Component{
     }
     ipc.on('set-overlap-component-open', this.otherOpen)
 
+    this.closeBrowserAction = e => this.close()
+    ipc.on('close-browser-action',this.closeBrowserAction)
+
     this.tokenStartLoading = PubSub.subscribe(`on-load-start_${this.props.tab.key}`,(msg,url)=>{
       const newState = []
       let needUpdate = false
@@ -372,6 +375,7 @@ export default class BrowserActionMenu extends Component{
     ipc.removeListener(`chrome-browser-action-get-info-${this.props.id}`,this.getInfo)
     ipc.removeListener(`chrome-browser-action-enable-${this.props.id}`,this.enable)
     ipc.removeListener('set-overlap-component-open', this.otherOpen)
+    ipc.removeListener('close-browser-action',this.closeBrowserAction)
     PubSub.unsubscribe(this.tokenStartLoading)
     PubSub.unsubscribe(this.tokenDidNavigate)
   }

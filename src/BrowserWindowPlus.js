@@ -218,11 +218,13 @@ function create(args){
       const maxBounds = bw.getBounds()
 
       if(!saved){
-        bw.webContents.send('get-window-state', true)
+        console.log(88811)
         let flag = false
-
-        _startAutoSaveAllWindowsState().then(()=>{
-          ipcMain.once('get-window-state-reply',async (e,ret)=>{
+        bw.webContents.send('get-window-state', true)
+        ipcMain.once('get-window-state-reply',(e,ret)=>{
+        _startAutoSaveAllWindowsState().then(async ()=>{
+          console.log(888112)
+            console.log(888113)
 
             console.log('close-save')
             await clearDatas()
@@ -264,7 +266,7 @@ function create(args){
             saved = true
             if(!bw.isDestroyed()) bw.close()
           }
-        },2000)
+        },60000)
         e.preventDefault()
       }
       else{

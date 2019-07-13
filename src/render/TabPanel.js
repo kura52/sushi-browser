@@ -1482,8 +1482,8 @@ export default class TabPanel extends Component {
       //   self.sendOpenLink(tab, page);
       //   page.navUrl = url
       // },
-      onDidFinishLoading(e, page) {
-        console.log('onDidFinishLoading',e)
+      onDidFinishLoading(e, page, call) {
+        console.log(22009,'onDidFinishLoading',call)
         if (!self.mounted) return
 
         page.didNavigate = false
@@ -1517,7 +1517,7 @@ export default class TabPanel extends Component {
 
         ipc.send('get-did-finish-load',tab.wvId,tab.key,tab.rSession)
         ipc.once(`get-did-finish-load-reply_${tab.wvId}`,(e,c)=> {
-          console.log(`get-did-finish-load-reply_${tab.wvId}`,c)
+          console.log(22009,`get-did-finish-load-reply_${tab.wvId}`,c)
           if(!c || !self.mounted) return
           const loc = c.url
           const entryIndex = c.currentEntryIndex
@@ -1548,14 +1548,18 @@ export default class TabPanel extends Component {
           // self.setState({})
           self.setStatePartical(tab)
           PubSub.publish(`change-status-${tab.key}`)
-          ;(async () => {
-            if ((typeof page.hid === 'object' && page.hid !== null ) || (page.hid = await history.findOne({location: page.navUrl}))) {
-              console.log(22, page.hid)
-              if (page.hid.count > 2 && !page.hid.capture) {
-                ipc.send('take-capture', {id: page.hid._id, url: page.navUrl, loc, tabId: tab.wvId, noActiveSkip: true})
+          if(!call){
+            ;(async () => {
+              const isExists = typeof page.hid === 'object'  && page.hid !== null
+              if(isExists) ++page.hid.count
+              if (isExists || (page.hid = await history.findOne({location: page.navUrl}))) {
+                console.log(22009, loc, page.hid)
+                if (page.hid.count > 2 && !page.hid.capture) {
+                  ipc.send('take-capture', {id: page.hid._id, url: page.navUrl, loc, tabId: tab.wvId, noActiveSkip: true})
+                }
               }
-            }
-          })()
+            })()
+          }
           // ipc.send('chrome-tab-updated',parseInt(tab.key), e, self.getChromeTab(tab))
         })
 
@@ -1570,7 +1574,7 @@ export default class TabPanel extends Component {
       },
       onDidStopLoading(e, page){
         if(page.didNavigate){
-          this.onDidFinishLoading(e,page)
+          this.onDidFinishLoading(e,page, 'onDidStopLoading')
         }
 
         if(page.isLoading || page.favicon == 'loading'){
