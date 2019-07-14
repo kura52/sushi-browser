@@ -80667,6 +80667,14 @@ if (window.__started_) {
       v._olds_.border = v.style.border;
       v._olds_.outline = v.style.outline;
 
+      v._clickCallback_ = async () => {
+        for (let i = 0; i < 10; i++) {
+          v.setAttribute('controls', true);
+          await new Promise(r => setTimeout(r, 100));
+        }
+      };
+      v.addEventListener('click', v._clickCallback_);
+
       v.setAttribute('controls', true);
       document.body.style.setProperty('overflow', 'hidden', 'important');
 
@@ -80696,6 +80704,8 @@ if (window.__started_) {
 
       document.documentElement.insertBefore(v, document.body);
     } else {
+      v.removeEventListener('click', v._clickCallback_);
+
       v.controls = v._olds_.controls;
       document.body.style.overflow = v._olds_.bodyOverflow;
       v.style.width = v._olds_.width;
@@ -80717,6 +80727,7 @@ if (window.__started_) {
       v._olds_.parentNode.replaceChild(v, v._olds_.replaceNode);
 
       delete v._olds_;
+      delete v._clickCallback_;
     }
   }
 

@@ -64,7 +64,9 @@ async function captureCurrentPage(_id,pageUrl,loc,base64,sender,tabId,noActiveSk
             image.insert({url:pageUrl, path:`${id}.jpg`, title: title, created_at: d, updated_at: d})
             console.log(5)
           }
-          history.update({_id},{$set:{capture:`${id}.jpg`, updated_at: d}})
+          history.update({_id},{$set:{capture:`${id}.jpg`, updated_at: d}}).then(()=>{
+            if(typeof noActiveSkip === 'string') sender.send(`take-capture-reply_${noActiveSkip}`)
+          })
         })
       })
     },noActiveSkip);

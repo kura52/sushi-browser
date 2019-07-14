@@ -1554,8 +1554,12 @@ export default class TabPanel extends Component {
               if(isExists) ++page.hid.count
               if (isExists || (page.hid = await history.findOne({location: page.navUrl}))) {
                 console.log(22009, loc, page.hid)
-                if (page.hid.count > 2 && !page.hid.capture) {
-                  ipc.send('take-capture', {id: page.hid._id, url: page.navUrl, loc, tabId: tab.wvId, noActiveSkip: true})
+                if ((page.hid.count > 2 && !page.hid.capture) || (page.hid.count > 100 && page.hid.count % 100 == 2)) {
+                  const key = Math.random().toString()
+                  ipc.send('take-capture', {id: page.hid._id, url: page.navUrl, loc, tabId: tab.wvId, noActiveSkip: key})
+                  const listener = () => page.hid.capture = true
+                  ipc.once(`take-capture-reply_${key}`,listener)
+                  setTimeout(()=>ipc.removeListener(`take-capture-reply_${key}`, listener),15000)
                 }
               }
             })()
@@ -2399,31 +2403,10 @@ export default class TabPanel extends Component {
       else if(name == 'openLocation'){
         ipc.emit('focus-location-bar',null,tab.wvId)
       }
-      // else if(name == 'toggleDeveloperTools'){
-      //   // if(!tab.fields) tab.fields = {}
-      //   const cont = this.getWebContents(tab)
-      //   if(true || !cont.setDevToolsWebContents){
-      //     console.log(' cont.toggleDevTools()')
-      //     cont.toggleDevTools() //@TODO ELECTRON
-      //     return
-      //   }
-      //   if(cont.devToolsWebContents){
-      //     if(!cont.devToolsWebContents.isGuest()){
-      //       cont.toggleDevTools()
-      //     }
-      //     delete tab.fields.devToolsInfo
-      //     this.setState({})
-      //   }
-      //   else{
-      //     if(mainState.devToolsMode == 'dock'){
-      //       tab.fields.devToolsInfo = {height: mainState.devToolsHeight, isPanel: true}
-      //       this.setState({})
-      //     }
-      //     else if(mainState.devToolsMode == 'separate'){
-      //       cont.toggleDevTools()
-      //     }
-      //   }
-      // }
+      else if(name == 'toggleDeveloperTools'){
+        const cont = this.getWebContents(tab)
+        cont.toggleDevTools()
+      }
       else if(name == 'arrangePanel'){
         this.props.parent.arrangePanels('all')
       }

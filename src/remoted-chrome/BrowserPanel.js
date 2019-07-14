@@ -436,6 +436,8 @@ export default class BrowserPanel {
       chromeNativeWindow.moveRelative(9999, 9999, 0, 0)
     }
     else{
+      if(cWin.type == 'normal') chromeNativeWindow.setWindowLongPtrEx(0x00001000)
+
       chromeNativeWindow.setForegroundWindowEx()
       chromeNativeWindow.showWindow(0)
       if(isWin7){

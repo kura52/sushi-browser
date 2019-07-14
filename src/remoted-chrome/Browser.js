@@ -1302,6 +1302,7 @@ class PopupPanel{
       await new Promise(r=>setTimeout(r,50))
     }
 
+    chromeNativeWindow.setWindowLongPtrEx(0x00001000)
     // if(!Browser.CUSTOM_CHROMIUM) {
     for (let i = 0; i < 5; i++) {
       chromeNativeWindow.setForegroundWindowEx()
@@ -1375,7 +1376,7 @@ class PopupPanel{
 
     if (bounds.width) {
       if(Browser.CUSTOM_CHROMIUM){
-        bounds.width = bounds.width + 16
+        // bounds.width = bounds.width + 16
         bounds.height = bounds.height + 36
       }
       this._bounds = bounds

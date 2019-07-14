@@ -27,6 +27,8 @@ class SplitPane extends Component {
     super(...args);
 
     this.onMouseDown = this.onMouseDown.bind(this);
+    this.onMouseOver = this.onMouseOver.bind(this);
+    this.onMouseOut = this.onMouseOut.bind(this);
     this.onTouchStart = this.onTouchStart.bind(this);
     this.onMouseMove = this.onMouseMove.bind(this);
     this.onTouchMove = this.onTouchMove.bind(this);
@@ -133,6 +135,22 @@ class SplitPane extends Component {
       { touches: [{ clientX: event.clientX, clientY: event.clientY }] },
     );
     this.onTouchStart(eventWithTouches);
+  }
+
+  onMouseOver(event) {
+    // console.log('onMouseOver(event)', event)
+    // event.target.style.borderLeft = '5px solid rgba(255, 255, 255, 0.1)'
+    // event.target.style.borderRight = '5px solid rgba(255, 255, 255, 0.1)'
+    // ipc.send('change-browser-view-z-index', true)
+  }
+
+  onMouseOut(event) {
+    // console.log('onMouseOut(event)', event)
+    // setTimeout(()=>{
+    //   event.target.style.borderLeft = '5px solid rgba(255, 255, 255, 0)'
+    //   event.target.style.borderRight = '5px solid rgba(255, 255, 255, 0)'
+    // },1000)
+    // ipc.send('change-browser-view-z-index', true)
   }
 
   onTouchStart(event) {
@@ -421,6 +439,8 @@ class SplitPane extends Component {
           className={`${size == "100%" || size == "0%" ? " hide" : ""} r${this.props.k}`}
           resizerClassName={this.props.resizerClassName}
           onMouseDown={this.onMouseDown}
+          onMouseOver={this.onMouseOver}
+          onMouseOut={this.onMouseOut}
           onTouchStart={this.onTouchStart}
           onTouchEnd={this.onMouseUp}
           style={this.props.resizerStyle || {}}

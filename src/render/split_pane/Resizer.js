@@ -13,9 +13,15 @@ export default function Resizer(props){
     <span
       className={classes.join(' ')}
       style={(props.prefixer || defaultPrefixer).prefix(props.style) || {}}
-      onMouseDown={(event) => {
+      onMouseDown={props.onMouseDown ? (event) => {
         props.onMouseDown(event);
-      }}
+      }: null}
+      onMouseOver={props.onMouseOver ? (event) => {
+        props.onMouseOver(event);
+      } : null}
+      onMouseOut={props.onMouseOut ? (event) => {
+        props.onMouseOut(event);
+      } : null}
       onTouchStart={(event) => {
         event.preventDefault();
         props.onTouchStart(event);

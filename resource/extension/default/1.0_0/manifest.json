@@ -29,15 +29,11 @@
             "file://*",
             "data:*",
             "about:srcdoc",
+            "chrome://*",
             "chrome-extension://*"
          ],
          "exclude_globs": [
-            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/*_sidebar.html",
-            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html",
-            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html",
-            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html",
-            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html",
-            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/selector.html*"
+            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/*"
          ],
          "run_at": "document_start"
       },
@@ -55,15 +51,11 @@
             "file://*",
             "data:*",
             "about:srcdoc",
+            "chrome://*",
             "chrome-extension://*"
          ],
          "exclude_globs": [
-            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/*_sidebar.html",
-            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html",
-            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html",
-            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html",
-            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html",
-            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/selector.html*",
+            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/*",
             "chrome://brave/*"
          ],
          "run_at": "document_end"

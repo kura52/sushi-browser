@@ -3,9 +3,9 @@ index cbeaa34fdf32..b34be614cbed 100644
 --- a/chrome/browser/extensions/api/tab_capture/tab_capture_api.cc
 +++ b/chrome/browser/extensions/api/tab_capture/tab_capture_api.cc
 @@ -244,18 +244,6 @@ ExtensionFunction::ResponseAction TabCaptureCaptureFunction::Run() {
-
+ 
    const std::string& extension_id = extension()->id();
-
+ 
 -  // Make sure either we have been granted permission to capture through an
 -  // extension icon click or our extension is whitelisted.
 -  if (!extension()->permissions_data()->HasAPIPermissionForTab(
@@ -20,7 +20,7 @@ index cbeaa34fdf32..b34be614cbed 100644
 -
    if (!OptionsSpecifyAudioOrVideo(params->options))
      return RespondNow(Error(kNoAudioOrVideo));
-
+ 
 diff --git a/chrome/browser/ui/browser.cc b/chrome/browser/ui/browser.cc
 index d4e1c21bc21f..c0b066e09879 100644
 --- a/chrome/browser/ui/browser.cc
@@ -28,31 +28,39 @@ index d4e1c21bc21f..c0b066e09879 100644
 @@ -2599,6 +2599,8 @@ bool Browser::SupportsWindowFeatureImpl(WindowFeature feature,
        features |= FEATURE_LOCATIONBAR;
    }
-
+ 
 +  if (is_type_tabbed())
 +    features |= FEATURE_TABSTRIP;
    // Web apps should always support the toolbar, so the title/origin of the
    // current page can be shown when browsing a url that is not inside the app.
    // Note: Final determination of whether or not the toolbar is shown is made by
 diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
-index dd1e7d067136..84a54e90729f 100644
+index dd1e7d067136..88a37da2c4a9 100644
 --- a/chrome/browser/ui/views/frame/browser_view.cc
 +++ b/chrome/browser/ui/views/frame/browser_view.cc
-@@ -1037,11 +1037,8 @@ void BrowserView::OnExclusiveAccessUserInput() {
+@@ -1037,11 +1037,16 @@ void BrowserView::OnExclusiveAccessUserInput() {
  }
-
+ 
  bool BrowserView::ShouldHideUIForFullscreen() const {
-+  return true;
-   // Immersive mode needs UI for the slide-down top panel.
+-  // Immersive mode needs UI for the slide-down top panel.
 -  if (immersive_mode_controller_->IsEnabled())
 -    return false;
--
++  if(IsIncognito()){
++    // Immersive mode needs UI for the slide-down top panel.
++    if (immersive_mode_controller_->IsEnabled())
++      return false;
+ 
 -  return frame_->GetFrameView()->ShouldHideTopUIForFullscreen();
++    return frame_->GetFrameView()->ShouldHideTopUIForFullscreen();
++  }
++  else{
++    return true;
++  }
  }
-
+ 
  bool BrowserView::IsFullscreen() const {
 diff --git a/chrome/browser/ui/views/frame/browser_view_layout.cc b/chrome/browser/ui/views/frame/browser_view_layout.cc
-index 454eabdd400f..1c804675e350 100644
+index 454eabdd400f..2988eac6b0e2 100644
 --- a/chrome/browser/ui/views/frame/browser_view_layout.cc
 +++ b/chrome/browser/ui/views/frame/browser_view_layout.cc
 @@ -183,7 +183,7 @@ gfx::Size BrowserViewLayout::GetMinimumSize(const views::View* host) const {
@@ -61,36 +69,69 @@ index 454eabdd400f..1c804675e350 100644
    // value is used for the main browser window only, not for popups.
 -  constexpr gfx::Size kMainBrowserContentsMinimumSize(500, 1);
 +  constexpr gfx::Size kMainBrowserContentsMinimumSize(1, 1);
-
+ 
    const bool has_tabstrip =
        browser()->SupportsWindowFeature(Browser::FEATURE_TABSTRIP);
-@@ -396,13 +396,11 @@ int BrowserViewLayout::LayoutTabStripRegion(int top) {
+@@ -396,14 +396,24 @@ int BrowserViewLayout::LayoutTabStripRegion(int top) {
    }
    // This retrieves the bounds for the tab strip based on whether or not we show
    // anything to the left of it, like the incognito avatar.
 -  gfx::Rect tab_strip_region_bounds(
 -      delegate_->GetBoundsForTabStripRegionInBrowserView());
-
+ 
 -  tab_strip_region_view_->SetVisible(true);
 -  tab_strip_region_view_->SetBoundsRect(tab_strip_region_bounds);
-+  tab_strip_region_view_->SetVisible(false);
-+  tab_strip_region_view_->SetBounds(0, 0, 0, 0);
-
++  if(browser_->profile()->GetProfileType() == Profile::INCOGNITO_PROFILE){
++    gfx::Rect tab_strip_region_bounds(
++        delegate_->GetBoundsForTabStripRegionInBrowserView());
+ 
 -  return tab_strip_region_bounds.bottom() -
-+  return 0 -
-          GetLayoutConstant(TABSTRIP_TOOLBAR_OVERLAP);
+-         GetLayoutConstant(TABSTRIP_TOOLBAR_OVERLAP);
++    tab_strip_region_view_->SetVisible(true);
++    tab_strip_region_view_->SetBoundsRect(tab_strip_region_bounds);
++
++    return tab_strip_region_bounds.bottom() -
++          GetLayoutConstant(TABSTRIP_TOOLBAR_OVERLAP);
++  }
++  else{
++    tab_strip_region_view_->SetVisible(false);
++    tab_strip_region_view_->SetBounds(0, 0, 0, 0);
++
++    return 0 -
++          GetLayoutConstant(TABSTRIP_TOOLBAR_OVERLAP);
++  }
  }
-
+ 
+ int BrowserViewLayout::LayoutToolbar(int top) {
 diff --git a/chrome/browser/ui/views/frame/glass_browser_frame_view.cc b/chrome/browser/ui/views/frame/glass_browser_frame_view.cc
-index 25e86d829b92..06768ca3cf99 100644
+index 25e86d829b92..cdd2f239a72e 100644
 --- a/chrome/browser/ui/views/frame/glass_browser_frame_view.cc
 +++ b/chrome/browser/ui/views/frame/glass_browser_frame_view.cc
-@@ -465,22 +465,7 @@ int GlassBrowserFrameView::FrameTopBorderThicknessPx(bool restored) const {
+@@ -465,22 +465,27 @@ int GlassBrowserFrameView::FrameTopBorderThicknessPx(bool restored) const {
  }
-
+ 
  int GlassBrowserFrameView::TopAreaHeight(bool restored) const {
 -  if (frame()->IsFullscreen() && !restored)
--    return 0;
++  if(browser_view()->IsIncognito()){
++    if (frame()->IsFullscreen() && !restored)
++      return 0;
++
++    int top = FrameTopBorderThickness(restored);
++    if (IsMaximized() && !restored)
++      return top;
++
++    // Besides the frame border, there's empty space atop the window in restored
++    // mode, to use to drag the window around.
++    constexpr int kNonClientRestoredExtraThickness = 4;
++    int thickness = kNonClientRestoredExtraThickness;
++    if (EverHasVisibleBackgroundTabShapes()) {
++      thickness =
++          std::max(thickness, BrowserNonClientFrameView::kMinimumDragHeight);
++    }
++    return top + thickness;
++  }
++  else{
+     return 0;
 -
 -  int top = FrameTopBorderThickness(restored);
 -  if (IsMaximized() && !restored)
@@ -103,11 +144,10 @@ index 25e86d829b92..06768ca3cf99 100644
 -  if (EverHasVisibleBackgroundTabShapes()) {
 -    thickness =
 -        std::max(thickness, BrowserNonClientFrameView::kMinimumDragHeight);
--  }
+   }
 -  return top + thickness;
-+  return 0;
  }
-
+ 
  int GlassBrowserFrameView::TitlebarMaximizedVisualHeight() const {
 diff --git a/chrome/browser/ui/views/frame/opaque_browser_frame_view_layout.cc b/chrome/browser/ui/views/frame/opaque_browser_frame_view_layout.cc
 index 519f94900381..bf86f99e002f 100644
@@ -115,47 +155,47 @@ index 519f94900381..bf86f99e002f 100644
 +++ b/chrome/browser/ui/views/frame/opaque_browser_frame_view_layout.cc
 @@ -33,31 +33,31 @@ constexpr int kCaptionButtonHeight = 18;
  // statics
-
+ 
  // The content edge images have a shadow built into them.
 -const int OpaqueBrowserFrameViewLayout::kContentEdgeShadowThickness = 2;
 +const int OpaqueBrowserFrameViewLayout::kContentEdgeShadowThickness = 0;
-
+ 
  // The frame border is only visible in restored mode and is hardcoded to 4 px on
  // each side regardless of the system window border size.
 -const int OpaqueBrowserFrameViewLayout::kFrameBorderThickness = 4;
 +const int OpaqueBrowserFrameViewLayout::kFrameBorderThickness = 0;
-
+ 
  // The frame has a 2 px 3D edge along the top.
 -const int OpaqueBrowserFrameViewLayout::kTopFrameEdgeThickness = 2;
 +const int OpaqueBrowserFrameViewLayout::kTopFrameEdgeThickness = 0;
-
+ 
  // The frame has a 1 px 3D edge along the top.
 -const int OpaqueBrowserFrameViewLayout::kSideFrameEdgeThickness = 1;
 +const int OpaqueBrowserFrameViewLayout::kSideFrameEdgeThickness = 0;
-
+ 
  // The icon is inset 1 px from the left frame border.
 -const int OpaqueBrowserFrameViewLayout::kIconLeftSpacing = 1;
 +const int OpaqueBrowserFrameViewLayout::kIconLeftSpacing = 0;
-
+ 
  // There is a 4 px gap between the icon and the title text.
 -const int OpaqueBrowserFrameViewLayout::kIconTitleSpacing = 4;
 +const int OpaqueBrowserFrameViewLayout::kIconTitleSpacing = 0;
-
+ 
  // The horizontal spacing to use in most cases when laying out things near the
  // caption button area.
 -const int OpaqueBrowserFrameViewLayout::kCaptionSpacing = 5;
 +const int OpaqueBrowserFrameViewLayout::kCaptionSpacing = 0;
-
+ 
  // The minimum vertical padding between the bottom of the caption buttons and
  // the top of the content shadow.
 -const int OpaqueBrowserFrameViewLayout::kCaptionButtonBottomPadding = 3;
 +const int OpaqueBrowserFrameViewLayout::kCaptionButtonBottomPadding = 0;
-
+ 
  OpaqueBrowserFrameViewLayout::OpaqueBrowserFrameViewLayout()
      : available_space_leading_x_(0),
 @@ -128,10 +128,11 @@ int OpaqueBrowserFrameViewLayout::FrameBorderThickness(bool restored) const {
  }
-
+ 
  int OpaqueBrowserFrameViewLayout::FrameTopBorderThickness(bool restored) const {
 -  int thickness = FrameBorderThickness(restored);
 -  if (restored || !delegate_->IsFrameCondensed())
@@ -167,44 +207,70 @@ index 519f94900381..bf86f99e002f 100644
 +  //   thickness += kNonClientExtraTopThickness;
 +  // return thickness;
  }
-
+ 
  int OpaqueBrowserFrameViewLayout::NonClientTopHeight(bool restored) const {
+diff --git a/chrome/common/extensions/chrome_extensions_client.cc b/chrome/common/extensions/chrome_extensions_client.cc
+index a338dc285f6c..3e075c5ec570 100644
+--- a/chrome/common/extensions/chrome_extensions_client.cc
++++ b/chrome/common/extensions/chrome_extensions_client.cc
+@@ -98,6 +98,7 @@ void ChromeExtensionsClient::Initialize() {
+   // TODO(dmazzoni): remove this once we have an extension API that
+   // allows any extension to request read-only access to webui pages.
+   scripting_whitelist_.push_back(extension_misc::kChromeVoxExtensionId);
++  scripting_whitelist_.push_back("dckpbojndfoinamcdamhkjhnjnmjkfjd");
+   InitializeWebStoreUrls(base::CommandLine::ForCurrentProcess());
+ }
+ 
 diff --git a/extensions/browser/app_window/app_window.cc b/extensions/browser/app_window/app_window.cc
 index 3804502b1d2f..dd22fa4e9185 100644
 --- a/extensions/browser/app_window/app_window.cc
 +++ b/extensions/browser/app_window/app_window.cc
 @@ -838,9 +838,9 @@ void AppWindow::DidDownloadFavicon(
  }
-
+ 
  void AppWindow::SetNativeWindowFullscreen() {
 -  native_app_window_->SetFullscreen(fullscreen_types_);
 +  // native_app_window_->SetFullscreen(fullscreen_types_);
-
+ 
 -  RestoreAlwaysOnTop();
 +  // RestoreAlwaysOnTop();
  }
-
+ 
  bool AppWindow::IntersectsWithTaskbar() const {
+diff --git a/extensions/common/permissions/permissions_data.cc b/extensions/common/permissions/permissions_data.cc
+index b09be07c0db0..4a5273e3c5f2 100644
+--- a/extensions/common/permissions/permissions_data.cc
++++ b/extensions/common/permissions/permissions_data.cc
+@@ -135,7 +135,8 @@ bool PermissionsData::IsRestrictedUrl(const GURL& document_url,
+ // static
+ bool PermissionsData::AllUrlsIncludesChromeUrls(
+     const std::string& extension_id) {
+-  return extension_id == extension_misc::kChromeVoxExtensionId;
++  return extension_id == extension_misc::kChromeVoxExtensionId ||
++  extension_id == "dckpbojndfoinamcdamhkjhnjnmjkfjd";
+ }
+ 
+ bool PermissionsData::UsesDefaultPolicyHostRestrictions() const {
 diff --git a/ui/gfx/win/window_impl.cc b/ui/gfx/win/window_impl.cc
 index b235cf3cc598..4e18c8963784 100644
 --- a/ui/gfx/win/window_impl.cc
 +++ b/ui/gfx/win/window_impl.cc
 @@ -5,6 +5,7 @@
  #include "ui/gfx/win/window_impl.h"
-
+ 
  #include <list>
 +#include <dwmapi.h>
-
+ 
  #include "base/bind.h"
  #include "base/debug/alias.h"
 @@ -20,7 +21,7 @@ namespace gfx {
-
+ 
  static const DWORD kWindowDefaultChildStyle =
      WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 -static const DWORD kWindowDefaultStyle = WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN;
 +static const DWORD kWindowDefaultStyle = WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CAPTION | WS_POPUP;
  static const DWORD kWindowDefaultExStyle = 0;
-
+ 
  ///////////////////////////////////////////////////////////////////////////////
 @@ -241,6 +242,13 @@ void WindowImpl::Init(HWND parent, const Rect& bounds) {
      base::debug::Alias(&procs_match);
@@ -219,24 +285,24 @@ index b235cf3cc598..4e18c8963784 100644
 +
    if (!destroyed)
      destroyed_ = NULL;
-
+ 
 diff --git a/ui/platform_window/x11/x11_window_base.cc b/ui/platform_window/x11/x11_window_base.cc
 index bcbd46cf382e..86e530129976 100644
 --- a/ui/platform_window/x11/x11_window_base.cc
 +++ b/ui/platform_window/x11/x11_window_base.cc
 @@ -230,8 +230,8 @@ bool X11WindowBase::HasCapture() const {
  }
-
+ 
  void X11WindowBase::ToggleFullscreen() {
 -  ui::SetWMSpecState(xwindow_, !IsFullscreen(),
 -                     gfx::GetAtom("_NET_WM_STATE_FULLSCREEN"), x11::None);
 +  // ui::SetWMSpecState(xwindow_, !IsFullscreen(),
 +  //                    gfx::GetAtom("_NET_WM_STATE_FULLSCREEN"), x11::None);
  }
-
+ 
  void X11WindowBase::Maximize() {
 diff --git a/ui/views/win/hwnd_message_handler.cc b/ui/views/win/hwnd_message_handler.cc
-index 443003518ef8..5eee3afeb0e6 100644
+index 443003518ef8..58533722f149 100644
 --- a/ui/views/win/hwnd_message_handler.cc
 +++ b/ui/views/win/hwnd_message_handler.cc
 @@ -19,6 +19,7 @@
@@ -265,7 +331,7 @@ index 443003518ef8..5eee3afeb0e6 100644
 +  minmax_info->ptMinTrackSize.y = 0;
    SetMsgHandled(FALSE);
  }
-
+ 
 @@ -2038,6 +2042,16 @@ LRESULT HWNDMessageHandler::OnNCCalcSize(BOOL mode, LPARAM l_param) {
    // so it updates its internal structures (specifically caption-present)
    // Without this Tile & Cascade windows won't work.
@@ -274,8 +340,8 @@ index 443003518ef8..5eee3afeb0e6 100644
 +    wchar_t window_title[256];
 +    GetWindowText(hwnd(), window_title, base::size(window_title));
 +
-+    if(wcsstr(window_title, L"- Chromium") != NULL){
-+      SetWindowLong(hwnd(), 0, 0 );
++    if((GetWindowLong(hwnd(), GWL_EXSTYLE) & WS_EX_RIGHT)){
++      SetWindowLong(hwnd(), 0, 0 ); 
 +      return TRUE;
 +    }
 +  }
