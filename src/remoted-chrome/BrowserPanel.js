@@ -492,7 +492,6 @@ export default class BrowserPanel {
     console.log(5555555, Object.keys(this.tabKeys).length)
     if (!Object.keys(this.tabKeys).length) {
       delete BrowserPanel.panelKeys[this.panelKey]
-      // chromeNativeWindow.setWindowPos(winctl.HWND.BOTTOM,0,0,0,0,83)
       this.cpWin.nativeWindow.destroyWindow()
     }
   }
@@ -619,9 +618,6 @@ export default class BrowserPanel {
       PopupPanel.instance.moveTop()
       if(this.browserWindow._alwaysOnTop) PopupPanel.instance.nativeWindow.setWindowPos(winctl.HWND.TOPMOST, 0, 0, 0, 0, 83)
 
-      // console.log('moveTopNativeWindow')
-      // PopupPanel.instance.nativeWindow.setWindowPos(winctl.HWND.TOPMOST, 0, 0, 0, 0, 83)
-      // PopupPanel.instance.nativeWindow.setWindowPos(winctl.HWND.TOP, 0, 0, 0, 0, 83)
     }
   }
 

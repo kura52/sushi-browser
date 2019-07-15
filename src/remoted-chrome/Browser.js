@@ -741,7 +741,7 @@ Or, please use the Chromium bundled version.`
         },
       }
       chrome.runtime.onMessage.addListener((message, sender) => {
-        if (!message.ipcToBg) return
+        if (!message.ipcToBg) return false
         const xhr = new XMLHttpRequest();
         const data = JSON.stringify({
           api: 'ipc',

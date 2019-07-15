@@ -15,18 +15,11 @@ NAN_MODULE_INIT(Window::Init) {
 	tpl->SetClassName(Nan::New("Window").ToLocalChecked());
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-	Nan::SetPrototypeMethod(tpl, "isVisible", isVisible);
-	Nan::SetPrototypeMethod(tpl, "getDimensions", getDimensions);
 	Nan::SetPrototypeMethod(tpl, "getTitle", getTitle);
 	Nan::SetPrototypeMethod(tpl, "getHwnd", getHwnd);
 	Nan::SetPrototypeMethod(tpl, "getClassName", getClassName);
-	Nan::SetPrototypeMethod(tpl, "getPid", getPid);
-	Nan::SetPrototypeMethod(tpl, "getParent", getParent);
-	Nan::SetPrototypeMethod(tpl, "getAncestor", getAncestor);
-	Nan::SetPrototypeMethod(tpl, "getMonitor", getMonitor);
 	Nan::SetPrototypeMethod(tpl, "getWindowLongPtr", getWindowLongPtr);
 
-	Nan::SetPrototypeMethod(tpl, "bringWindowToTop", bringWindowToTop);
 	Nan::SetPrototypeMethod(tpl, "setForegroundWindow", setForegroundWindow);
 	Nan::SetPrototypeMethod(tpl, "setForegroundWindowEx", setForegroundWindowEx);
 	Nan::SetPrototypeMethod(tpl, "getWindowModuleFileName", getWindowModuleFileName);
@@ -92,18 +85,6 @@ NAN_METHOD(Window::GetActiveWindow2) {
 	info.GetReturnValue().Set(Nan::NewInstance(cons, argc, argv).ToLocalChecked());
 }
 
-
-NAN_METHOD(Window::CreateWindow2) {
-    HINSTANCE hInstance = GetModuleHandle( NULL );
-    HWND hWnd = CreateWindowEx(
-                   WS_EX_TOOLWINDOW, TEXT("STATIC"), TEXT(""),
-                   WS_CLIPCHILDREN | WS_POPUP | WS_VISIBLE ,
-                   0, 0, 0, 0,
-                   NULL, NULL, hInstance, NULL
-               );
-	info.GetReturnValue().Set(Nan::New((int)hWnd));
-}
-
 NAN_METHOD(Window::WindowFromPoint2) {
     HINSTANCE hInstance = GetModuleHandle( NULL );
 
@@ -135,32 +116,6 @@ NAN_METHOD(Window::NonActiveWindowFromPoint) {
 	info.GetReturnValue().Set(Nan::New(hWnd == fgWin ? -1 : (int)hWnd));
 }
 
-NAN_METHOD(Window::GetWindowByClassName) {
-	v8::Local<v8::Function> cons = Nan::New(constructor);
-
-	v8::String::Utf8Value className(info[0]);
-	std::string sClassName = std::string(*className);
-
-	HWND fgWin = FindWindowEx(0, 0, sClassName.c_str(), 0);
-
-	const int argc = 1;
-	v8::Local<v8::Value> argv[1] = {Nan::New((int)fgWin)};
-	info.GetReturnValue().Set(Nan::NewInstance(cons, argc, argv).ToLocalChecked());
-}
-
-NAN_METHOD(Window::GetWindowByTitleExact) {
-	v8::Local<v8::Function> cons = Nan::New(constructor);
-
-	v8::String::Utf8Value exactTitle(info[0]);
-	std::string sExactTitle = std::string(*exactTitle);
-
-	HWND fgWin = FindWindow(NULL, sExactTitle.c_str());
-
-	const int argc = 1;
-	v8::Local<v8::Value> argv[1] = {Nan::New((int)fgWin)};
-	info.GetReturnValue().Set(Nan::NewInstance(cons, argc, argv).ToLocalChecked());
-}
-
 v8::Local<v8::Function> enumCallback;
 BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 {
@@ -184,35 +139,6 @@ NAN_METHOD(Window::EnumerateWindows) {
 	EnumWindows(EnumWindowsProc, 0);
 }
 
-
-
-
-
-NAN_METHOD(Window::exists) {
-	Window* obj = Nan::ObjectWrap::Unwrap<Window>(info.This());
-
-	info.GetReturnValue().Set(Nan::New(IsWindow(obj->windowHandle)));
-}
-
-NAN_METHOD(Window::isVisible) {
-	Window* obj = Nan::ObjectWrap::Unwrap<Window>(info.This());
-
-	info.GetReturnValue().Set(Nan::New(IsWindowVisible(obj->windowHandle)));
-}
-
-NAN_METHOD(Window::getDimensions) {
-	Window* obj = Nan::ObjectWrap::Unwrap<Window>(info.This());
-
-	RECT dim;
-	GetWindowRect(obj->windowHandle, &dim);
-
-	v8::Local<v8::Object> result = Nan::New<v8::Object>();
-	Nan::Set(result, Nan::New("left").ToLocalChecked(), Nan::New(dim.left));
-	Nan::Set(result, Nan::New("top").ToLocalChecked(), Nan::New(dim.top));
-	Nan::Set(result, Nan::New("right").ToLocalChecked(), Nan::New(dim.right));
-	Nan::Set(result, Nan::New("bottom").ToLocalChecked(), Nan::New(dim.bottom));
-	info.GetReturnValue().Set(result);
-}
 
 NAN_METHOD(Window::getTitle) {
 	Window* obj = Nan::ObjectWrap::Unwrap<Window>(info.This());
@@ -244,53 +170,6 @@ NAN_METHOD(Window::getClassName) {
 	info.GetReturnValue().Set(Nan::New(wnd_cn).ToLocalChecked());
 }
 
-NAN_METHOD(Window::getPid) {
-	Window* obj = Nan::ObjectWrap::Unwrap<Window>(info.This());
-	DWORD lpdwProcessId;
-	GetWindowThreadProcessId(obj->windowHandle, &lpdwProcessId);
-
-	info.GetReturnValue().Set(Nan::New((int)lpdwProcessId));
-}
-
-NAN_METHOD(Window::getParent) {
-	Window* obj = Nan::ObjectWrap::Unwrap<Window>(info.This());
-	HWND parentHwnd = GetParent(obj->windowHandle);
-	if(parentHwnd != NULL) {
-		info.GetReturnValue().Set(Nan::New((int)parentHwnd));
-	}
-}
-
-NAN_METHOD(Window::getAncestor) {
-	Window* obj = Nan::ObjectWrap::Unwrap<Window>(info.This());
-	HWND ancestorHwnd = GetAncestor(obj->windowHandle, info[0]->Int32Value());
-	if(ancestorHwnd != NULL) {
-		info.GetReturnValue().Set(Nan::New((int)ancestorHwnd));
-	}
-}
-
-NAN_METHOD(Window::getMonitor) {
-	Window* obj = Nan::ObjectWrap::Unwrap<Window>(info.This());
-	HMONITOR hMonitor = MonitorFromWindow(obj->windowHandle, MONITOR_DEFAULTTONEAREST);
-	MONITORINFOEX mi;
-	mi.cbSize = sizeof(mi);
-	GetMonitorInfo(hMonitor, &mi);
-
-	v8::Local<v8::Object> result = Nan::New<v8::Object>();
-	bool isPrimary = mi.dwFlags & MONITORINFOF_PRIMARY;
-	Nan::Set(result, Nan::New("name").ToLocalChecked(), Nan::New(mi.szDevice).ToLocalChecked());
-	Nan::Set(result, Nan::New("primary").ToLocalChecked(), Nan::New(isPrimary));
-
-	v8::Local<v8::Object> dim = Nan::New<v8::Object>();
-	Nan::Set(dim, Nan::New("left").ToLocalChecked(), Nan::New(mi.rcMonitor.left));
-	Nan::Set(dim, Nan::New("top").ToLocalChecked(), Nan::New(mi.rcMonitor.top));
-	Nan::Set(dim, Nan::New("right").ToLocalChecked(), Nan::New(mi.rcMonitor.right));
-	Nan::Set(dim, Nan::New("bottom").ToLocalChecked(), Nan::New(mi.rcMonitor.bottom));
-
-	Nan::Set(result, Nan::New("dimensions").ToLocalChecked(), dim);
-
-	info.GetReturnValue().Set(result);
-}
-
 
 NAN_METHOD(Window::getWindowLongPtr) {
 	Window* obj = Nan::ObjectWrap::Unwrap<Window>(info.This());
@@ -305,12 +184,6 @@ NAN_METHOD(Window::setForegroundWindow) {
 	Window* obj = Nan::ObjectWrap::Unwrap<Window>(info.This());
 
 	SetForegroundWindow(obj->windowHandle);
-}
-
-NAN_METHOD(Window::bringWindowToTop) {
-	Window* obj = Nan::ObjectWrap::Unwrap<Window>(info.This());
-
-	BringWindowToTop(obj->windowHandle);
 }
 
 NAN_METHOD(Window::setForegroundWindowEx) {

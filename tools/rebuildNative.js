@@ -20,3 +20,14 @@ function rebuild(lib){
     process.exit()
   }
 }
+
+`
+D:
+cd D:\\sushi-browser-release32\\resource\\winctl
+node-gyp rebuild --target=5.0.4 --arch=ia32 --dist-url=https://atom.io/download/electron
+cd D:\\sushi-browser-release32\\node_modules\\robotjs
+node-gyp rebuild --target=5.0.4 --arch=ia32 --dist-url=https://atom.io/download/electron
+cd D:\\sushi-browser-release32\\node_modules\\node-pty
+node-gyp rebuild --target=5.0.4 --arch=ia32 --dist-url=https://atom.io/download/electron
+
+`

@@ -36,9 +36,9 @@ chrome.ipcRenderer = {
   var connection = {
     postMessage: function (message, response) {
       if (response) {
-        chrome.extension.sendMessage(message, response);
+        chrome.extension.sendRequest(message, response);
       } else {
-        chrome.extension.sendMessage(message);
+        chrome.extension.sendRequest(message);
       }
     }
   }

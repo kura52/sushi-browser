@@ -8,9 +8,6 @@ class Window : public Nan::ObjectWrap {
 public:
 	static NAN_MODULE_INIT(Init);
 	static NAN_METHOD(GetActiveWindow2);
-	static NAN_METHOD(CreateWindow2);
-	static NAN_METHOD(GetWindowByClassName);
-	static NAN_METHOD(GetWindowByTitleExact);
 	static NAN_METHOD(EnumerateWindows);
 	static NAN_METHOD(WindowFromPoint2);
 	static NAN_METHOD(NonActiveWindowFromPoint);
@@ -23,21 +20,12 @@ private:
 
 	static NAN_METHOD(New);
 
-	static NAN_METHOD(exists);
-	static NAN_METHOD(isVisible);
-	static NAN_METHOD(getDimensions);
 	static NAN_METHOD(getTitle);
 	static NAN_METHOD(getHwnd);
 	static NAN_METHOD(getClassName);
-	static NAN_METHOD(getPid);
 
-	static NAN_METHOD(getParent);
-	static NAN_METHOD(getAncestor);
-	static NAN_METHOD(getMonitor);
 	static NAN_METHOD(getWindowLongPtr);
 
-
-	static NAN_METHOD(bringWindowToTop);
 	static NAN_METHOD(setForegroundWindow);
 	static NAN_METHOD(setForegroundWindowEx);
 	static NAN_METHOD(getWindowModuleFileName);

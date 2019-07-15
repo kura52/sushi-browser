@@ -485,7 +485,7 @@ function ConnectionHandler(port) {
   } else {
   }
 }
-chrome.extension.onMessage.addListener(RequestHandler);
+chrome.extension.onRequest.addListener(RequestHandler);
 
 function RequestHandler(message, con, sender) {
   var tab = con.tab;

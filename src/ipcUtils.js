@@ -946,12 +946,6 @@ if(isWin) {
         aWin.setWindowPos(winctl.HWND.BOTTOM,0,0,0,0,19+1024) // 19 = winctl.SWP.NOMOVE|winctl.SWP.NOSIZE|winctl.SWP.NOACTIVATE
       },100)
     }
-    // const win = (await winctl.FindWindows(win => (hwnd || hwndMap[key]) == win.getHwnd()))[0]
-    // setTimeout(_=>{
-    //   console.log('set-active')
-    //   win.setWindowPos(winctl.HWND.TOPMOST,0,0,0,0,19+1024)
-    //   win.setWindowPos(winctl.HWND.NOTOPMOST,0,0,0,0,19+1024)
-    // },100)
   })
 
 }

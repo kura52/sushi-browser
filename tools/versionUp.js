@@ -26,14 +26,16 @@ const glob = require("glob")
 const BEFORE_CODE_NAME = 'Geso(Squid arms)'
 const CODE_NAME = 'Fugu(Blowfish)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.25.8"
+const NEXT_APP_VERSION = "0.25.9"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
 const CHANGE_ENGLISH = `Changed the sizing logic of popup window of Chrome extension.
+Fixed a bug that mouse gestures rarely work.
 Added feature to show bookmarks in address bar auto-completion. (issue #64)
 Fixed a bug that downloader display is not updated.`
 
 const CHANGE_JAPANESE = `Chrome拡張のpopup windowのサイズ設定ロジックを変更
+マウスジェスチャーが稀に動作しない不具合を修正
 アドレスバーのオートコンプリートにブックマークが表示されるように機能を追加 (issue #64)
 ダウンローダの表示更新が行われない不具合を修正`
 
