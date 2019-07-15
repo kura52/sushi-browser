@@ -12,6 +12,7 @@ let [defaultIcons,popups,bgs,titles,texts] = ipc.sendSync('get-sync-main-states'
 const LRUCache = require('lru-cache')
 const sharedState = require('./sharedState')
 const PubSub = require('./pubsub')
+const mainState = require('./mainStateRemote')
 
 const sizeMap = {}
 ipc.on('chrome-browser-action-set-ipc-all',(e,extensionId,name,val) => {
@@ -81,35 +82,25 @@ class BrowserActionWebView extends Component {
     console.log('setPreferredSize',this.popupPanel, width, height, retry)
     this.setState({style:{width,height, opacity: 0, userSelect: 'none'}},()=>{
       this.popupPanel.executeJavaScript(`(function(){
+      document.documentElement.style.setProperty('display','-webkit-inline-box','important')
       const ele = document.body
-      ele.style.overflow = 'hidden'
-      return [ele.clientWidth, ele.scrollWidth, ele.clientHeight, ele.scrollHeight]
+      return [ele.scrollWidth, ele.scrollHeight]
     })()`,(result)=>{
         console.log('setPreferredSize2', result, width)
-        if(!this.close) sizeMap[this.props.url] = [result[1], result[3]]
+        if(!this.close) sizeMap[this.props.url] = [result[0], result[1]]
         let widthRetry, heightRetry
-        if(result[0] == result[1]){
-          if(width == result[1] || (width == 800 && result[1] > 800)){
-            widthRetry = false
-          }
-          else{
-            widthRetry = result[1]
-          }
-        }
-        else{
-          widthRetry = result[1]
-        }
-        if(result[2] == result[3]){
-          if(height == result[3] || (height == 600 && result[3] > 600)){
-            heightRetry = false
-          }
-          else{
-            heightRetry = result[3]
-          }
-        }
-        else{
-          heightRetry = result[3]
-        }
+        // if(width == result[0] || (width == 800 && result[0] > 800)){
+        //   widthRetry = false
+        // }
+        // else{
+        //   widthRetry = result[0]
+        // }
+        // if(height == result[1] || (height == 600 && result[1] > 600)){
+        //   heightRetry = false
+        // }
+        // else{
+        //   heightRetry = result[1]
+        // }
         if((!widthRetry && !heightRetry) || retry > 10){
           setTimeout(_=>{
             this.props.setClassName("")
@@ -138,23 +129,29 @@ class BrowserActionWebView extends Component {
     })
   }
 
-  checkSize(){
+  async checkSize(){
     if(!this.popupPanel) return
-    this.intervalId = setInterval(()=>{
+    const func = ()=>{
       if(this.close) return
       this.popupPanel.executeJavaScript(`(function(){
+      document.documentElement.style.setProperty('display','-webkit-inline-box','important')
       const ele = document.body
-      ele.style.overflow = 'hidden'
-      return [ele.clientWidth, ele.scrollWidth, ele.clientHeight, ele.scrollHeight]
+      return [ele.scrollWidth, ele.scrollHeight]
     })()`,(result)=>{
-        if(!this.close) sizeMap[this.props.url] = [result[1], result[3]]
+        if(!this.close) sizeMap[this.props.url] = [result[0], result[1]]
         console.log('setPreferredSize0', result)
         if(JSON.stringify(result) != this.result){
-          clearInterval(this.intervalId)
-          this.setPreferredSize(result[1], result[3], 0)
+          this.intervalId = false
+          this.setPreferredSize(result[0], result[1], 0)
         }
       })
-    },1000)
+    }
+    let i=0
+    this.intervalId = true
+    while(this.intervalId){
+      await new Promise(r=>setTimeout(r,i++ < 5 ? 100 : 1000))
+      func()
+    }
   }
 
   componentDidMount() {
@@ -175,7 +172,7 @@ class BrowserActionWebView extends Component {
     }
     else{
       const r = this.refs.div ? ReactDOM.findDOMNode(this.refs.div).getBoundingClientRect() : {left:0,top:0,width:0,height:0}
-      const [width, height] = sizeMap[this.props.url] || [200, 100]
+      const [width, height] = sizeMap[this.props.url] || [100, 100]
 
       const id = ipc.sendSync('set-overlap-component', 'extension-popup', this.props.k, this.props.tab.key,
         r.left , r.top, width, height, this.props.url)
@@ -185,14 +182,14 @@ class BrowserActionWebView extends Component {
     if(this.popupPanel){
       ipc.on('send-to-host',this.ipcEvent) //@TODO ELECTRON
       setTimeout(()=>{
-        const [width, height] = sizeMap[this.props.url] || [200, 100]
+        const [width, height] = sizeMap[this.props.url] || [100, 100]
         this.setPreferredSize(width, height, 0)
       },10)
     }
   }
 
   componentWillUnmount() {
-    clearInterval(this.intervalId)
+    this.intervalId = false
     ipc.removeListener('get-webview-pos',this.changePos)
     ipc.removeListener('set-bound-browser-view', this.changePos2)
     ipc.send('set-overlap-component', 'extension-popup', this.props.k, this.props.tab.key, 0,-1,0,0)
@@ -422,6 +419,10 @@ export default class BrowserActionMenu extends Component{
     }
 
     const menuItems = []
+    if(this.isDefaultExtension(extensionId)) menuItems.push(({label: `[${mainState.enableMouseGesture ? '✓' : ' '}] ${locale.translation("enableMouseGesture")}`, click: _=>{
+        mainState.set('enableMouseGesture',!mainState.enableMouseGesture)
+        ipc.send('get-enableMouseGesture')
+      }}))
     if(!this.isDefaultExtension(extensionId)) menuItems.push(({label: values.default_title || values.name, click: _=>cont.hostWebContents2.send('new-tab', tabId, `https://chrome.google.com/webstore/detail/${values.orgId}`)}))
     if(values.optionPage) menuItems.push(({label: locale.translation('9147392381910171771'), click: _=>cont.hostWebContents2.send('new-tab', tabId, `chrome-extension://${extensionId}/${values.optionPage}`)}))
     // if(values.background) menuItems.push(({label: locale.translation("4989966318180235467"), click: _=>{

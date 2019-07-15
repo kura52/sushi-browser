@@ -9,6 +9,14 @@ export default {
     }
   },
 
+  async search(query){
+    return (await this.bg()).evaluate((query) => {
+      return new Promise(resolve => {
+        chrome.bookmarks.search(query, results => resolve(results.map(x=>({title: x.title, location: x.url}))))
+      })
+    }, query)
+  },
+
   async getSubTree(id){
     return (await this.bg()).evaluate((id) => {
       return new Promise(resolve => {

@@ -14,6 +14,7 @@ import evem from './evem'
 import mainState from "../mainState";
 import DpiUtils from './DpiUtils'
 const isWin7 = os.platform() == 'win32' && os.release().startsWith('6.1')
+const isWin10 = os.platform() == 'win32' && os.release().startsWith('10')
 
 function search(obj,messages){
   if(Array.isArray(obj)){
@@ -1375,9 +1376,9 @@ class PopupPanel{
     }
 
     if (bounds.width) {
-      if(Browser.CUSTOM_CHROMIUM){
+      if(Browser.CUSTOM_CHROMIUM && isWin10){
         // bounds.width = bounds.width + 16
-        bounds.height = bounds.height + 36
+        bounds.height = bounds.height + 28
       }
       this._bounds = bounds
       const pagePromise = Browser._pagePromises[PopupPanel.tabId]

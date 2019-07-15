@@ -107,11 +107,15 @@ class DownloadList extends React.Component {
   }
 
   debounceSetState = (newState) => {
+    const now = Date.now()
+    if(this.processing && now - this.processing < 5000) return
     for(let [k,v] of Object.entries(newState)){
       this.state[k] = v
     }
-    clearTimeout(debounceTimer)
-    debounceTimer = setTimeout(()=>this.setState({}),debounceInterval)
+    debounceTimer = setTimeout(()=>{
+      this.setState({})
+      this.processing = false
+    },debounceInterval)
   }
 
   componentDidMount() {

@@ -702,8 +702,12 @@ const isWin = navigator.userAgent.includes('Windows')
               <Grid.Column width={3}><label>{l10n.translation("orderOfAutoComplete")}</label></Grid.Column>
               <Grid.Column width={8}><Dropdown onChange={this.onChange.bind(this,'orderOfAutoComplete')} selection
                                                options={[
-                                                 {key:'suggestionToHistory',value:'suggestionToHistory',text: l10n.translation("suggestionHistory")},
-                                                 {key:'historyToSuggestion',value:'historyToSuggestion',text: l10n.translation("historySuggestion")},
+                                                 {key:'suggestionToBookmarkToHistory',value:'suggestionToBookmarkToHistory',text:'Suggestion -> Bookmark -> History'},
+                                                 {key:'suggestionToHistoryToBookmark',value:'suggestionToHistoryToBookmark',text:'Suggestion -> History -> Bookmark' },
+                                                 {key:'bookmarkToSuggestionToHistory',value:'bookmarkToSuggestionToHistory',text:'Bookmark -> Suggestion -> History' },
+                                                 {key:'bookmarkToHistoryToSuggestion',value:'bookmarkToHistoryToSuggestion',text:'Bookmark -> History -> Suggestion' },
+                                                 {key:'historyToSuggestionToBookmark',value:'historyToSuggestionToBookmark',text:'History -> Suggestion -> Bookmark' },
+                                                 {key:'historyToBookmarkToSuggestion',value:'historyToBookmarkToSuggestion',text:'History -> Bookmark -> Suggestion' }
                                                ]}
                                                defaultValue={this.state.orderOfAutoComplete}/></Grid.Column>
             </Grid.Row>
@@ -711,6 +715,11 @@ const isWin = navigator.userAgent.includes('Windows')
               <Grid.Column width={3}><label>{l10n.translation("numberOfSuggestions")}</label></Grid.Column>
               <Grid.Column width={8}><Dropdown onChange={this.onChange.bind(this,'numOfSuggestion')} selection
                                                options={concurrentDownloadOptions} defaultValue={this.state.numOfSuggestion}/></Grid.Column>
+            </Grid.Row>
+            <Grid.Row>
+              <Grid.Column width={3}><label>{"Number of Bookmarks"}</label></Grid.Column>
+              <Grid.Column width={8}><Dropdown onChange={this.onChange.bind(this,'numOfBookmark')} selection
+                                               options={historySuggestionOptions} defaultValue={this.state.numOfBookmark}/></Grid.Column>
             </Grid.Row>
             <Grid.Row>
               <Grid.Column width={3}><label>{l10n.translation("numberOfHistories")}</label></Grid.Column>
@@ -2877,7 +2886,7 @@ const isWin = navigator.userAgent.includes('Windows')
     'multistageTabs','tabMinWidth','httpsEverywhereEnable','trackingProtectionEnable','autoSaveInterval','noScript','blockCanvasFingerprinting','browsingHistory', 'downloadHistory',
     'disableContextMenus','disableTabContextMenus','priorityContextMenus','priorityTabContextMenus','reloadIntervals','generalWindowOpenLabel','keepWindowLabel31','tabPreview','tabPreviewQuality',
     'closeTabBehavior','reverseScrollTab','tabCirculateSelection','tabMaxWidth','mouseHoverSelectLabelBegin','mouseHoverSelectLabelBeginDelay','tabFlipLabel','doubleClickTab','middleClickTab','altClickTab',
-    'maxrowLabel','orderOfAutoComplete','numOfSuggestion','numOfHistory','openTabNextLabel','rightClickTabAdd','middleClickTabAdd','altClickTabAdd','displayFullIcon','downloadPath','windowCustomIcon',
+    'maxrowLabel','orderOfAutoComplete','numOfSuggestion','numOfBookmark','numOfHistory','openTabNextLabel','rightClickTabAdd','middleClickTabAdd','altClickTabAdd','displayFullIcon','downloadPath','windowCustomIcon',
     'defaultDownloadPath','alwaysOpenLinkNewTab','openTabPosition','alwaysOpenLinkBackground','addressBarNewTab','oppositeGlobal','colorNormalText','colorNormalBackground','colorActiveText',
     'colorActiveBackground','colorTabDot','colorUnreadText','colorUnreadBackground','enableColorOfNoSelect','themeColorChange','showBorderActiveTab','historyBadget','colorTabMode','enableDownloadList','focusLocationBar',
     'clearHistoryOnClose', 'clearDownloadOnClose', 'clearPasswordOnClose', 'clearGeneralSettingsOnClose', 'clearSessionManagerOnClose', 'clearFaviconOnClose', 'clearAutomationOnClose', 'clearNoteOnClose', 'clearUserSessionOnClose',

@@ -170,7 +170,7 @@ function PercentCompleteFormatter(props){
   </div>
 }
 
-let debounceInterval = 500, debounceTimer, concurrentDownload,downloadNum
+let debounceInterval = 300, debounceTimer, concurrentDownload,downloadNum
 
 global.multiSelection = false
 class Downloader extends React.Component {
@@ -192,8 +192,13 @@ class Downloader extends React.Component {
   }
 
   debounceSetState = (newState) => {
-    clearTimeout(debounceTimer)
-    debounceTimer = setTimeout(()=>this.setState(newState),debounceInterval)
+    const now = Date.now()
+    if(this.processing && now - this.processing < 5000) return
+    this.processing = now
+    setTimeout(()=>{
+      this.setState(newState)
+      this.processing = false
+    },debounceInterval)
   }
 
   componentDidMount(){

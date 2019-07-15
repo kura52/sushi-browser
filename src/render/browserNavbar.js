@@ -107,9 +107,9 @@ function BrowserNavbarBtn(props){
   return <a href="javascript:void(0)" onContextMenu={props.onContextMenu} style={props.style} className={`${props.className||''} draggable-source ${props.disabled?'disabled':''} ${props.sync ? 'sync' : ''}`} title={props.title} onClick={props.onClick}><i style={props.styleFont} className={`fa fa-${props.icon}`}/>{props.children}</a>
 }
 
-let [alwaysOnTop,multistageTabs,verticalTab,{left,right,backSide},orderOfAutoComplete,numOfSuggestion,numOfHistory,isCustomChromium,addressBarNewTab,historyBadget,versions,bookmarkBar,bookmarkBarTopPage,extensionOnToolbar,statusBar,mobilePanelSyncScroll] =
-  ipc.sendSync('get-sync-main-states',['alwaysOnTop','multistageTabs','verticalTab','navbarItems','orderOfAutoComplete','numOfSuggestion','numOfHistory','isCustomChromium','addressBarNewTab','historyBadget','versions','bookmarkBar','bookmarkBarTopPage','extensionOnToolbar','statusBar','mobilePanelSyncScroll'])
-numOfSuggestion = parseInt(numOfSuggestion), numOfHistory = parseInt(numOfHistory)
+let [alwaysOnTop,multistageTabs,verticalTab,{left,right,backSide},orderOfAutoComplete,numOfSuggestion,numOfBookmark,numOfHistory,isCustomChromium,addressBarNewTab,historyBadget,versions,bookmarkBar,bookmarkBarTopPage,extensionOnToolbar,statusBar,mobilePanelSyncScroll] =
+  ipc.sendSync('get-sync-main-states',['alwaysOnTop','multistageTabs','verticalTab','navbarItems','orderOfAutoComplete','numOfSuggestion','numOfBookmark','numOfHistory','isCustomChromium','addressBarNewTab','historyBadget','versions','bookmarkBar','bookmarkBarTopPage','extensionOnToolbar','statusBar','mobilePanelSyncScroll'])
+numOfSuggestion = parseInt(numOfSuggestion), numOfBookmark = parseInt(numOfBookmark), numOfHistory = parseInt(numOfHistory)
 sharedState.bookmarkBar = bookmarkBar
 sharedState.bookmarkBarTopPage = bookmarkBarTopPage
 sharedState.statusBar = statusBar
@@ -996,7 +996,7 @@ class BrowserNavbar extends Component{
 
       addressBar: <div className="input-group">
         <BrowserNavbarLocation ref="loc" wv={this.props.tab.wv} navbar={this} onEnterLocation={this.props.navHandle.onEnterLocation}
-                               onChangeLocation={this.props.navHandle.onChangeLocation} addressBarNewTab={addressBarNewTab} autoCompleteInfos={{url:this.props.autocompleteUrl,orderOfAutoComplete,numOfSuggestion,numOfHistory}}
+                               onChangeLocation={this.props.navHandle.onChangeLocation} addressBarNewTab={addressBarNewTab} autoCompleteInfos={{url:this.props.autocompleteUrl,orderOfAutoComplete,numOfSuggestion,numOfBookmark,numOfHistory}}
                                isMaximize={this.props.isMaximize} k={this.props.k} onContextMenu={this.props.navHandle.onLocationContextMenu} tab={this.props.tab} page={this.props.page} privateMode={this.props.privateMode} search={this.props.parent.search}/>
       </div>,
 

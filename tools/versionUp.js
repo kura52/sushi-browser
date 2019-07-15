@@ -29,19 +29,13 @@ const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
 const NEXT_APP_VERSION = "0.25.8"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Fixed custom chrome edition to allow mouse gestures and system operation on chrome extension page.
-In the custom chromium edition, the private window is modified to display the normal Chromium UI.
-Fixed an issue that the size of popup window of Chrome extension continues to expand in custom chromium edition and Windows 7.
-Added the handling logic when the video controller is turned off when pausing after maximizing with the video maximize button.
-Fixed a bug about thumbnail capture frequency.
-Changed the judgment method of the panel resizer.`
+const CHANGE_ENGLISH = `Changed the sizing logic of popup window of Chrome extension.
+Added feature to show bookmarks in address bar auto-completion. (issue #64)
+Fixed a bug that downloader display is not updated.`
 
-const CHANGE_JAPANESE = `custom chromium版で、chrome拡張ページでマウスジェスチャーおよびシステム操作が可能なように修正
-custom chromium版で、シークレットウインドウが通常のChromiumのUIを表示するように修正
-custom chromium版かつWindows7でChrome拡張のpopup windowのサイズが拡大し続ける問題を修正
-videoのmaximizeボタンで最大化した後に、一時停止すると、ビデオコントローラがoffとなる場合の対処ロジックを追加
-サムネイルのキャプチャ実行頻度についての不具合を修正
-パネルのリサイザーの判定方法を変更。`
+const CHANGE_JAPANESE = `Chrome拡張のpopup windowのサイズ設定ロジックを変更
+アドレスバーのオートコンプリートにブックマークが表示されるように機能を追加 (issue #64)
+ダウンローダの表示更新が行われない不具合を修正`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

@@ -266,9 +266,15 @@ div.content:hover i.cancel{
 .infinite-tree-content .infinite-tree-item {
     border: 1px solid transparent;
     cursor: default;
-    line-height: 1.2em;
+    /*line-height: 1.2em;*/
+    line-height: 1.5;
     white-space: nowrap;
 }
+
+.ui.dropdown .menu>.item.favorite.infinite-classic {
+    padding-top: 0px !important;
+}
+
 .infinite-tree-content .infinite-tree-item:hover {
     background: #f2fdff;
 }

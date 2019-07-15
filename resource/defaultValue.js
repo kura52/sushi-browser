@@ -81,6 +81,7 @@ const settingDefault =  {
   autoSaveInterval: 60,
   orderOfAutoComplete: 'suggestionToHistory',
   numOfSuggestion: 0,
+  numOfBookmark: 0,
   numOfHistory: 50,
   displayFullIcon: true,
   notLoadTabUntilSelected: false,

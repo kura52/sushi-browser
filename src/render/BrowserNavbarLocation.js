@@ -221,6 +221,11 @@ export default class BrowserNavbarLocation extends Component {
     this.resetComponent()
   }
 
+  removeDuplication(a, b){
+    if(!a.length || !b.length) return b
+    return b.filter(x=>!a.find(y=>y.url == x.url))
+  }
+
   handleSearchChange(e, value){
     // console.log("start",Date.now())
     this.props.onChangeLocation.bind(this)(e.target.value)
@@ -252,10 +257,26 @@ export default class BrowserNavbarLocation extends Component {
         try{
           let results = json[1].map(x=>({ title: x, url: x }))
           console.log(json[1])
-          return results.slice(0, this.props.autoCompleteInfos.numOfSuggestion)
+          return {suggestion: results.slice(0, this.props.autoCompleteInfos.numOfSuggestion)}
         }catch(e){
-          return []
+          return {suggestion: []}
         }
+      }))
+    }
+
+    if(this.props.autoCompleteInfos.numOfBookmark > 0) {
+      promises.push(new Promise(resolve => {
+        ipc.once(`search-favorite-reply_${key}`, (e, ret) => {
+          if (cLoc != this.props.page.location) return
+
+          const results = ret.map(x => ({
+            title: x.title || (x.location.length > 75 ? `${x.location.substr(0, 75)}...` : x.location),
+            description: <span><span>{x.location.length > 90 ? `${x.location.substr(0, 90)}...` : convertURL(x.location)}</span><span className="suggestion-visit">[Bookmark]</span></span>,
+            url: x.location
+          }))
+          resolve({bookmark: results})
+        })
+        ipc.send('search-favorite', key, this.props.page.location, this.props.autoCompleteInfos.numOfBookmark)
       }))
     }
 
@@ -263,21 +284,56 @@ export default class BrowserNavbarLocation extends Component {
       promises.push(new Promise(resolve => {
         ipc.once(`search-history-loc-reply_${key}`, (e, ret) => {
           if (cLoc != this.props.page.location) return
-          // console.log("end", Date.now())
-          let results = ret.history.map(x => ({
+
+          const results = ret.history.map(x => ({
             title: x.title || (x.location.length > 75 ? `${x.location.substr(0, 75)}...` : x.location),
             description: <span><span>{x.location.length > 90 ? `${x.location.substr(0, 90)}...` : convertURL(x.location)}</span><span className="suggestion-visit">[{x.count}pv{x.time ? `, ${getAppropriateTimeUnit(x.time / 1000)}` : ''}]</span></span>,
             url: x.location
           }))
-          resolve(_.uniqBy(results.filter(x => x.title), x => x.title).slice(0, this.props.autoCompleteInfos.numOfHistory));
+          resolve({history: _.uniqBy(results.filter(x => x.title), x => x.title).slice(0, this.props.autoCompleteInfos.numOfHistory)})
         })
         ipc.send('search-history-loc', key, _.escapeRegExp(this.props.page.location), 100)
       }))
     }
 
     Promise.all(promises).then(values=>{
-      if(this.props.autoCompleteInfos.orderOfAutoComplete == 'historyToSuggestion') values.reverse()
-      const results = [...values[0],...(values[1]||[])]
+      const order = this.props.autoCompleteInfos.orderOfAutoComplete
+
+      let suggestion = values.find(x=>x.suggestion)
+      suggestion = suggestion ? suggestion.suggestion : []
+
+      let bookmark = values.find(x=>x.bookmark)
+      bookmark = bookmark ? bookmark.bookmark : []
+
+      let history = values.find(x=>x.history)
+      history = history ? history.history : []
+
+      let results
+      if(order == 'suggestionToBookmarkToHistory' || order == 'suggestionToHistory'){
+        history = this.removeDuplication(bookmark, history)
+        results = [...suggestion, ...bookmark, ...history]
+      }
+      else if(order == 'suggestionToHistoryToBookmark'){
+        bookmark = this.removeDuplication(history, bookmark)
+        results = [...suggestion, ...history, ...bookmark]
+      }
+      else if(order == 'bookmarkToSuggestionToHistory'){
+        history = this.removeDuplication(bookmark, history)
+        results = [...bookmark, ...suggestion, ...history]
+      }
+      else if(order == 'bookmarkToHistoryToSuggestion'){
+        history = this.removeDuplication(bookmark, history)
+        results = [...bookmark, ...history, ...suggestion]
+      }
+      else if(order == 'historyToSuggestionToBookmark'){
+        bookmark = this.removeDuplication(history, bookmark)
+        results = [...history, ...suggestion, ...bookmark]
+      }
+      else if(order == 'historyToBookmarkToSuggestion' || order == 'historyToSuggestion'){
+        bookmark = this.removeDuplication(history, bookmark)
+        results = [...history, ...bookmark, ...suggestion]
+      }
+
       if(this.isFloat || this.props.isMaximize){
         PubSub.publish(`menu-showed_${this.props.k}`,true)
       }

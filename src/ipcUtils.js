@@ -431,6 +431,10 @@ ipcMain.on('open-favorite',async (event,key,dbKeys,tabId,type,isNote)=>{
 })
 
 
+ipcMain.on('search-favorite',async (event,key,location,limit)=>{
+  event.sender.send(`search-favorite-reply_${key}`, (await favorite.search(location)).filter(x=>x.location).slice(0, limit))
+})
+
 ipcMain.on('open-savedState',async (event,key,tabId,datas)=>{
   let list = []
   const cont = tabId !== 0 && (sharedState[tabId] || webContents.fromId(tabId))
