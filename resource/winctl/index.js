@@ -1,5 +1,10 @@
 'use strict';
 
+if(process.platform == 'linux'){
+	module.exports = require('./linux')
+	return
+}
+
 var winctl = require('bindings')('winctl');
 
 winctl.FindWindows = function(validateFunc) {

@@ -436,6 +436,8 @@ export default class BrowserPanel {
       chromeNativeWindow.moveRelative(9999, 9999, 0, 0)
     }
     else{
+      if(chromeNativeWindow.setChromeWindowId) chromeNativeWindow.setChromeWindowId(cWin.id)
+
       if(cWin.type == 'normal') chromeNativeWindow.setWindowLongPtrEx(0x00001000)
 
       chromeNativeWindow.setForegroundWindowEx()
@@ -456,17 +458,21 @@ export default class BrowserPanel {
     const _title = this.browserWindow.getTitle()
 
     this.browserWindow.setTitle(title)
+    await new Promise(r=>setTimeout(r,10))
     const nativeWindowBw = await winctl.FindByTitle(title)
     this.browserWindow.setTitle(_title)
     this.browserWindow.nativeWindow = nativeWindowBw
 
-    const hwnd = nativeWindowBw.createWindow()
+    if(nativeWindowBw.setBrowserWindow) nativeWindowBw.setBrowserWindow(this.browserWindow)
+
+
 
     if(!nativeWindow){
       if(Browser.CUSTOM_CHROMIUM){
         nativeWindow = chromeNativeWindow
       }
       else{
+        const hwnd = nativeWindowBw.createWindow()
         nativeWindow = (await winctl.FindWindows(win => win.getHwnd() == hwnd))[0]
       }
     }

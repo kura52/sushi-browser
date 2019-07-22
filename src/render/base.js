@@ -59,14 +59,44 @@ export default class MainContent extends Component{
   handleMouseMove(e, visibleRepeat){
     // console.log('mousemove',e)
     if(document.getElementsByClassName('visible transition').length){
+      clearTimeout(this.changeViewZIndexId)
       ipc.send('change-browser-view-z-index', true)
       // if(this.menuVisible) clearInterval(this.menuVisible)
       // this.menuVisible = setInterval(_=>this.handleMouseMove(e, true),10)
     }
+    else if(document.activeElement.tagName == 'INPUT' && document.activeElement.type == 'text'){
+
+    }
     else{
       // if(this.menuVisible) clearInterval(this.menuVisible)
       // this.menuVisible = void 0
-      ipc.send('change-browser-view-z-index', e.target.className !== 'browser-page' && !e.target.dataset.webview)
+
+      //@TODO CAUTION
+      let target = e.target
+      if(target.className == 'browser-page') target = target.children[0]
+      if(target.dataset.webview){
+        if(Date.now() - this.changeViewZIndexTime < 100){
+          if(this.changeViewZIndexId == null){
+            this.changeViewZIndexId = setTimeout(()=>{
+              this.changeViewZIndexId = null
+              console.log('change-browser-view-z-index',e.target.className)
+              ipc.send('change-browser-view-z-index', false, target.className.slice(1))
+              this.changeViewZIndexTime = Date.now()
+            },100)
+          }
+        }
+        else{
+          console.log('change-browser-view-z-index',e.target.className)
+          ipc.send('change-browser-view-z-index', false, target.className.slice(1))
+          this.changeViewZIndexTime = Date.now()
+        }
+      }
+      else{
+        clearTimeout(this.changeViewZIndexId)
+      }
+
+      // ipc.send('change-browser-view-z-index', e.target.className !== 'browser-page' && !e.target.dataset.webview)
+
     }
     if(visibleRepeat) return
 
@@ -123,7 +153,7 @@ export default class MainContent extends Component{
 
   handleMouseUp(e){
     const eventMoveHandler = e2=>{
-      e.sender.send('context-menu-move')
+      e.sender.send('context-menu-move',{x:e2.x,y:e2.y})
       document.removeEventListener('mousemove',eventMoveHandler)
     }
     const eventUpHandler = e2=>{

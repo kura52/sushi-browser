@@ -8,9 +8,10 @@ import mainState from './mainState'
 import {downloader} from './databaseFork'
 import {Browser} from './remoted-chrome/Browser'
 import {getFocusedWebContents} from './util'
+const isWin = process.platform == 'win32'
 
 const binaryPath = path.join(__dirname, '../resource/bin/aria2',
-  process.platform == 'win32' ? 'win/aria2c.exe' :
+  isWin ? 'win/aria2c.exe' :
     process.platform == 'darwin' ? 'mac/bin/aria2c' : 'linux/aria2c').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
 
 
@@ -191,7 +192,7 @@ export default class Aria2cWrapper{
 
     const cont = await getFocusedWebContents()
 
-    this.cmd = spawn('cmd')
+    this.cmd = spawn(isWin ? 'cmd' : 'sh')
 
     let params = cookie ? [`--header=Cookie:${cookie}`] : []
 

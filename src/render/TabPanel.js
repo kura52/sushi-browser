@@ -24,6 +24,7 @@ const moment = require('moment')
 const urlutil = require('./urlutil')
 const {messages,locale} = require('./localAndMessage')
 const isWin = navigator.userAgent.includes('Windows')
+const isLinux = navigator.userAgent.includes('Linux')
 const sharedState = require('./sharedState')
 const BrowserPageStatus = require('./BrowserPageStatus')
 // const autoHighLightInjection = require('./autoHighLightInjection')
@@ -4567,6 +4568,8 @@ export default class TabPanel extends Component {
   }
 
   focus_webview(tab,flag=true,locationBar) {
+    // if(isLinux) return
+
     if(locationBar) return //@TODO
     let retry = 0
     const id = window.setInterval(()=> {

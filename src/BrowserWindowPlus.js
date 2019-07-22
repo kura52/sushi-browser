@@ -299,7 +299,7 @@ function create(args){
     // console.log('will-move')
     // e.preventDefault()
     // bw.setSize(300,300)
-    if(bw.isMaximized()){
+    if(isWin && bw.isMaximized()){
       e.preventDefault()
       bw.setResizable(true)
       bw.webContents.send('adjust-maxmize-size', false)
@@ -357,44 +357,51 @@ function create(args){
   })
 
   bw.on('maximize',e=>{
-    console.log('maximize1',bw._isVirtualMaximized)
-    if(bw._isVirtualMaximized){
-      bw.webContents.send('adjust-maxmize-size', false)
-      bw.setResizable(true)
-      if(bw.isMaximized()) bw.unmaximize()
+    if(isWin){
+      console.log('maximize1',bw._isVirtualMaximized)
+      if(bw._isVirtualMaximized){
+        bw.webContents.send('adjust-maxmize-size', false)
+        bw.setResizable(true)
+        if(bw.isMaximized()) bw.unmaximize()
 
-      const bounds = bw._isVirtualMaximized
-      setTimeout(()=>bw.setBounds(bounds),50)
-      bw.webContents.send('maximize',false)
-      bw._isVirtualMaximized = false
+        const bounds = bw._isVirtualMaximized
+        setTimeout(()=>bw.setBounds(bounds),50)
+        bw.webContents.send('maximize',false)
+        bw._isVirtualMaximized = false
+      }
+      else{
+        bw._isVirtualMaximized = bw._initVirtualMaximized || bw.getNormalBounds()
+        bw._initVirtualMaximized = void 0
+
+        console.log('mmax',bw.getBounds(),bw._isMaximized())
+        const b = bw.getBounds()
+        if(bw.isMaximized()) bw.unmaximize()
+
+        const bounds = {x: b.x, y: b.y, width: b.width, height: b.height}
+        bw._maximizedSize = bounds
+        // bw.normal()
+        setTimeout(()=>{
+          bw.webContents.send('adjust-maxmize-size', true)
+          bw.setBounds(bounds)
+          bw.setResizable(false)
+        },50)
+        // bw.setBounds(b)
+        bw.webContents.send('maximize',true)
+      }
     }
     else{
-      bw._isVirtualMaximized = bw._initVirtualMaximized || bw.getNormalBounds()
-      bw._initVirtualMaximized = void 0
-
-      console.log('mmax',bw.getBounds(),bw._isMaximized())
-      const b = bw.getBounds()
-      if(bw.isMaximized()) bw.unmaximize()
-
-      const bounds = {x: b.x, y: b.y, width: b.width, height: b.height}
-      bw._maximizedSize = bounds
-      // bw.normal()
-      setTimeout(()=>{
-        bw.webContents.send('adjust-maxmize-size', true)
-        bw.setBounds(bounds)
-        bw.setResizable(false)
-      },50)
-      // bw.setBounds(b)
       bw.webContents.send('maximize',true)
     }
     // console.log(bw.getBounds())
     // ipcMain.emit('state-change-window', bw.id, 'maximize')
   })
 
-  // bw.on('unmaximize',_=>{
-  //   bw.webContents.send('maximize',false)
-  //   ipcMain.emit('state-change-window', bw.id, 'unmaximize')
-  // })
+  if(!isWin){
+    bw.on('unmaximize',_=>{
+      bw.webContents.send('maximize',false)
+      ipcMain.emit('state-change-window', bw.id, 'unmaximize')
+    })
+  }
 
   bw.on('minimize',_=>{
     console.log('minimize')
@@ -403,12 +410,14 @@ function create(args){
 
   bw.on('restore',_=>{
     bw.setResizable(true)
-    if(bw._isVirtualMaximized){
-      bw.webContents.send('adjust-maxmize-size', true)
-      bw.setBounds(bw._maximizedSize)
-    }
-    else{
-      bw.webContents.send('adjust-maxmize-size', false)
+    if(isWin){
+      if(bw._isVirtualMaximized){
+        bw.webContents.send('adjust-maxmize-size', true)
+        bw.setBounds(bw._maximizedSize)
+      }
+      else{
+        bw.webContents.send('adjust-maxmize-size', false)
+      }
     }
     console.log('restore')
     ipcMain.emit('state-change-window', bw.id, 'restore')
@@ -632,15 +641,17 @@ export default {
     winArg.height = winArg.height || setting.height
     // await new Promise(r=>setTimeout(r,1000))
     initWindow = create(winArg)
-    if(winArg.maximize){
+    if(isWin && winArg.maximize){
       initWindow._initVirtualMaximized = winArg.maximize
     }
 
     localShortcuts.register(initWindow)
     initWindow.setMenuBarVisibility(true)
 
-    initWindow._isMaximized = initWindow.isMaximized
-    initWindow.isMaximized = function(){ return this._isVirtualMaximized }
+    if(isWin){
+      initWindow._isMaximized = initWindow.isMaximized
+      initWindow.isMaximized = function(){ return this._isVirtualMaximized }
+    }
 
     new (require('./Download'))(initWindow)
     // }

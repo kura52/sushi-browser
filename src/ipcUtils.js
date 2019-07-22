@@ -539,9 +539,17 @@ ipcMain.on('toggle-fullscreen',(event,cancel)=> {
   if(!isFullScreen){
     if(win.isMaximized()) win.webContents.send('adjust-maxmize-size', false)
     win.setResizable(false)
+    for(const browserPanel of Object.values(BrowserPanel.panelKeys)){
+      browserPanel.setAlwaysOnTop(true)
+    }
   }
-  else if(win.isMaximized()){
-    win.webContents.send('adjust-maxmize-size', true)
+  else{
+    for(const browserPanel of Object.values(BrowserPanel.panelKeys)){
+      browserPanel.setAlwaysOnTop(false)
+    }
+    if(win.isMaximized()){
+      win.webContents.send('adjust-maxmize-size', true)
+    }
   }
 })
 
@@ -2517,7 +2525,7 @@ ipcMain.on('set-bound-browser-view', async (e, panelKey, tabKey, tabId, x, y, wi
     delete setBoundClearIds[panelKey]
     panel.setBounds(bounds)
 
-    if(zIndex > 0){
+    if(zIndex > 0 && !isLinux){
       webContents.fromId(tabId).moveTop()
     }
   },10)
@@ -2627,13 +2635,17 @@ ipcMain.on('set-overlap-component', async (e, type, panelKey, tabKey, x, y, widt
   }
 })
 
-ipcMain.on('change-browser-view-z-index', (e, isFrame) =>{
+ipcMain.on('change-browser-view-z-index', (e, isFrame, panelKey) =>{
   const win = BrowserWindow.fromWebContents(e.sender)
   if(!win || win.isDestroyed()) return
 
   // console.log('change-browser-view-z-index', isFrame, bvZindexMap[win])
   if(isFrame){
     ipcMain.emit('top-to-browser-window', win.id)
+  }
+  else if(isLinux && panelKey){
+    const panel = BrowserPanel.getBrowserPanel(panelKey)
+    if(panel.browserWindow.isFocused()) panel.cpWin.nativeWindow.setForegroundWindowEx()
   }
   // win.setAlwaysOnTop(!isFrame)
 })
@@ -2749,16 +2761,18 @@ ipcMain.on('menu-popup-end',(e)=>{
 
 // let incFbw = 0
 ipcMain.on('focus-browser-window', async (e, key) => {
+  winctl.moveTopTime = Date.now()
   BrowserPanel.contextMenuShowing = true
   // ++incFbw
   console.log(78788)
-  // if(bw.ignoreMouseEvents){
+  const bw = BrowserWindow.fromWebContents(e.sender)
+
+  // if(isLinux && bw.ignoreMouseEvents){
   //   bw.setIgnoreMouseEvents(false)
   //   robot.mouseClick()
   //   bw.setIgnoreMouseEvents(true)
   // }
   // else{
-  const bw = BrowserWindow.fromWebContents(e.sender)
   // const [x,y] = bw.getPosition()
   // robot.moveMouse(x+bounds.x+10, y+bounds.y+10)
   // robot.mouseClick()

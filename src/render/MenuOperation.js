@@ -1,5 +1,6 @@
 const {remote} = require('electron')
 const isDarwin = navigator.userAgent.includes('Mac OS X')
+const isWin = navigator.userAgent.includes('Windows')
 const mainState = require('./mainStateRemote')
 const ipc = require('electron').ipcRenderer
 
@@ -24,14 +25,15 @@ export default {
       ipc.send('toggle-fullscreen')
     }
     else{
-      win.maximize()
-      //   // win.unmaximize()
-      //   win.nativeWindow.showWindow(9)
-      // }
-      // else{
-      //   // win.maximize()
-      //   win.nativeWindow.showWindow(3)
-      // }
+      if(isWin){
+        win.maximize()
+      }
+      else{
+        if(win.isMaximized())
+          win.unmaximize()
+        else
+          win.maximize()
+      }
     }
   },
   windowClose(){

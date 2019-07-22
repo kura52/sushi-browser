@@ -5,7 +5,7 @@ import puppeteer from '../../resource/puppeteer'
 import extensionServer from './extensionServer'
 import emptyPort from './emptyPort'
 import winctl from '../../resource/winctl'
-import {app, BrowserWindow, ipcMain, dialog} from 'electron'
+import electron, {app, BrowserWindow, ipcMain, dialog} from 'electron'
 import PubSub from "../render/pubsub"
 import extInfos from '../extensionInfos'
 import backgroundPageModify from './backgroundPageModify'
@@ -13,8 +13,14 @@ import hjson from 'hjson'
 import evem from './evem'
 import mainState from "../mainState";
 import DpiUtils from './DpiUtils'
+const isWin = process.platform == 'win32'
+const isLinux = process.platform === 'linux'
 const isWin7 = os.platform() == 'win32' && os.release().startsWith('6.1')
 const isWin10 = os.platform() == 'win32' && os.release().startsWith('10')
+
+const CUSTOM_CHROMIUM_PATH = isLinux ?
+  path.join(__dirname, '../../../../custom_chromium/chrome') :
+  path.join(__dirname, '../../../../custom_chromium/chrome.exe')
 
 function search(obj,messages){
   if(Array.isArray(obj)){
@@ -96,8 +102,8 @@ Please enter the correct path of the executable file.`
         return app.quit()
       }
     }
-    else if(fs.existsSync(executablePath = path.join(__dirname, '../../../../custom_chromium/chrome.exe')) ||
-      fs.existsSync(executablePath = path.join(__dirname, '../../../../chromium/chrome.exe'))){
+    else if(fs.existsSync(executablePath = CUSTOM_CHROMIUM_PATH) ||
+      fs.existsSync(executablePath = CUSTOM_CHROMIUM_PATH)){
       BrowserPanel.BROWSER_NAME = 'Chromium'
     }
     else if(fs.existsSync(executablePath = 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe')){}
@@ -179,7 +185,7 @@ Or, please use the Chromium bundled version.`
 
     await this.backGroundPageObserve()
 
-    // this.startObserve()
+    if(isLinux) this.startObserve()
 
     this.onResize()
     this.onFocusChanged()
@@ -198,10 +204,11 @@ Or, please use the Chromium bundled version.`
     })
 
     ipcMain.on('state-change-window', async (browserWindowId, eventName) => {
+      if(eventName == 'focus' && winctl.moveTopTime && Date.now() - winctl.moveTopTime < 500) return
       for(const browserPanel of Object.values(BrowserPanel.panelKeys)){
         if(browserPanel.browserWindow && browserPanel.browserWindow.id == browserWindowId){
           if(eventName == 'focus'){
-            // console.log('moveTopNativeWindow+bW1')
+            console.log('moveTopNativeWindow+bW1')
             browserPanel.moveTopNativeWindow()
             browserPanel.moveTopNativeWindowBw()
           }
@@ -239,12 +246,18 @@ Or, please use the Chromium bundled version.`
     })
 
     ipcMain.on('top-to-browser-window', bwWinId => {
+      // if(winctl.moveTopTime && Date.now() - winctl.moveTopTime < 500) return
       const hwnd = winctl.GetActiveWindow2().getHwnd()
       for(const browserPanel of Object.values(BrowserPanel.panelKeys)){
         if(browserPanel.browserWindow.id == bwWinId){
           if(browserPanel.cpWin.nativeWindowBw.getHwnd() == hwnd || browserPanel.cpWin.chromeNativeWindow.getHwnd() == hwnd || winctl.WindowFromPoint2() == hwnd){
-            browserPanel.moveTopNativeWindowBw()
-            // console.log('moveTopNativeWindowBW2',Date.now())
+            if(isLinux){
+              browserPanel.browserWindow.focus()
+            }
+            else{
+              browserPanel.moveTopNativeWindowBw()
+            }
+            console.log('moveTopNativeWindowBW2',Date.now())
             return
           }
         }
@@ -314,7 +327,7 @@ Or, please use the Chromium bundled version.`
       ipcMain.emit(channel, {sender: Number.isInteger(tabId) ? new webContents(tabId): new BackgroundPage(tabId)}, ...args)
     })
 
-    this.winScollEventHandler()
+    if(isWin) this.winScollEventHandler()
 
     // setInterval(()=>{
     //   powerMonitor.querySystemIdleState(60, state => {
@@ -407,57 +420,57 @@ Or, please use the Chromium bundled version.`
   }
 
   static startObserve(){
-    // let prevMousePos = {},  prevStates = {}
-    // setInterval(()=>{
-    //   const mousePos = screen.getCursorScreenPoint()
-    //   if(mousePos.x === prevMousePos.x && mousePos.y === prevMousePos.y) return
-    //   prevMousePos = mousePos
-    //
-    //   for(let win of BrowserWindow.getAllWindows()){
-    //     if(win.forceNotIgnoreMouse) continue
-    //     const bounds = win.getBounds()
-    //     const out = (mousePos.x < bounds.x ||	mousePos.x > bounds.x + bounds.width
-    //       ||	mousePos.y < bounds.y ||	mousePos.y > bounds.y + bounds.height)
-    //
-    //     const realPos = { x: mousePos.x - bounds.x, y: mousePos.y - bounds.y }
-    //
-    //
-    //     if(realPos.x < 4 || realPos.y < 4 || bounds.width - realPos.x < 4  || bounds.height - realPos.y < 4){
-    //       // console.log(bounds, mousePos, realPos)
-    //
-    //       win.setIgnoreMouseEvents(false)
-    //       win.ignoreMouseEvents = false
-    //       prevStates[win.id] = 'out'
-    //       continue
-    //     }
-    //
-    //     if(out){
-    //       if(prevStates[win.id] == 'in') {
-    //         win.setIgnoreMouseEvents(false)
-    //         win.ignoreMouseEvents = false
-    //       }
-    //       prevStates[win.id] = 'out'
-    //       continue
-    //     }
-    //
-    //     win.webContents.executeJavaScript(`var _ce_ = document.elementFromPoint(${realPos.x}, ${realPos.y}); _ce_ && _ce_.className`,(result)=>{
-    //       if(result == 'browser-page'){
-    //         if(prevStates[win.id] == 'out') {
-    //           win.setIgnoreMouseEvents(true)
-    //           win.ignoreMouseEvents = true
-    //         }
-    //         prevStates[win.id] = 'in'
-    //       }
-    //       else{
-    //         if(prevStates[win.id] == 'in') {
-    //           win.setIgnoreMouseEvents(false)
-    //           win.ignoreMouseEvents = false
-    //         }
-    //         prevStates[win.id] = 'out'
-    //       }
-    //     })
-    //   }
-    // },20)
+    let prevMousePos = {},  prevStates = {}
+    setInterval(()=>{
+      const mousePos = electron.screen.getCursorScreenPoint()
+      if(mousePos.x === prevMousePos.x && mousePos.y === prevMousePos.y) return
+      prevMousePos = mousePos
+
+      for(let win of BrowserWindow.getAllWindows()){
+        if(win.forceNotIgnoreMouse) continue
+        const bounds = win.getBounds()
+        const out = (mousePos.x < bounds.x ||	mousePos.x > bounds.x + bounds.width
+          ||	mousePos.y < bounds.y ||	mousePos.y > bounds.y + bounds.height)
+
+        const realPos = { x: mousePos.x - bounds.x, y: mousePos.y - bounds.y }
+
+
+        if(realPos.x < 4 || realPos.y < 4 || bounds.width - realPos.x < 4  || bounds.height - realPos.y < 4){
+          // console.log(bounds, mousePos, realPos)
+
+          win.setIgnoreMouseEvents(false)
+          win.ignoreMouseEvents = false
+          prevStates[win.id] = 'out'
+          continue
+        }
+
+        if(out){
+          if(prevStates[win.id] == 'in') {
+            win.setIgnoreMouseEvents(false)
+            win.ignoreMouseEvents = false
+          }
+          prevStates[win.id] = 'out'
+          continue
+        }
+
+        win.webContents.executeJavaScript(`var _ce_ = document.elementFromPoint(${realPos.x}, ${realPos.y}); _ce_ && _ce_.className`,(result)=>{
+          if(result == 'browser-page'){
+            if(prevStates[win.id] == 'out') {
+              win.setIgnoreMouseEvents(true)
+              win.ignoreMouseEvents = true
+            }
+            prevStates[win.id] = 'in'
+          }
+          else{
+            if(prevStates[win.id] == 'in') {
+              win.setIgnoreMouseEvents(false)
+              win.ignoreMouseEvents = false
+            }
+            prevStates[win.id] = 'out'
+          }
+        })
+      }
+    },20)
   }
 
   static async modifyBackgroundPage(bgPage){
@@ -536,6 +549,7 @@ Or, please use the Chromium bundled version.`
 
   static onFocusChanged(){
     evem.on('windows.focusChanged', async windowId => {
+      if(winctl.moveTopTime && Date.now() - winctl.moveTopTime < 500) return
       console.log('windows.focusChanged', windowId)
       if(windowId == -1) return
       for(const browserPanel of Object.values(BrowserPanel.panelKeys)){
@@ -543,11 +557,11 @@ Or, please use the Chromium bundled version.`
         if(browserPanel.windowId == windowId){
           for(const browserPanel2 of Object.values(BrowserPanel.panelKeys)){
             if(browserPanel != browserPanel2 && browserPanel.browserWindow.id == browserPanel2.browserWindow.id){
-              // console.log('moveTopNativeWindow3')
+              console.log('moveTopNativeWindow3')
               browserPanel2.moveTopNativeWindow()
             }
           }
-          // console.log('moveTopNativeWindow+bW4')
+          console.log('moveTopNativeWindow+bW4')
           browserPanel.moveTopNativeWindowBw()
           browserPanel.moveTopNativeWindow()
           return
@@ -1272,7 +1286,9 @@ Or, please use the Chromium bundled version.`
 
 }
 
-Browser.CUSTOM_CHROMIUM = (!require('../minimist')(process.argv.slice(1))['browser-path'] || !fs.existsSync(require('../minimist')(process.argv.slice(1))['browser-path'])) && fs.existsSync(path.join(__dirname, '../../../../custom_chromium/chrome.exe'))
+Browser.CUSTOM_CHROMIUM = (!require('../minimist')(process.argv.slice(1))['browser-path'] ||
+  !fs.existsSync(require('../minimist')(process.argv.slice(1))['browser-path'])) &&
+  fs.existsSync(CUSTOM_CHROMIUM_PATH)
 
 
 

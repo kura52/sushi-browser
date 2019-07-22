@@ -1712,7 +1712,7 @@ async function contextMenu(webContents, props) {
     })
 
     const menu = Menu.buildFromTemplate(menuItems)
-    if(isWin){
+    const contextMenuFunc = ()=>{
       const closeHandler = () =>  menu.closePopup(targetWindow)
       ipcMain.once('contextmenu-webContents-close', closeHandler)
       webContents.once('did-start-loading', closeHandler)
@@ -1726,6 +1726,9 @@ async function contextMenu(webContents, props) {
         webContents.focus()
       })
       setTimeout(()=>BrowserPanel.contextMenuShowing = false,500)
+    }
+    if(isWin){
+      contextMenuFunc()
       console.log(targetWindow.getTitle())
     }
     else{
@@ -1735,10 +1738,10 @@ async function contextMenu(webContents, props) {
         console.log(11113)
         if(!isMove){
           console.log(11114)
-          menu.popup(targetWindow)
+          contextMenuFunc()
         }
       })
-      ;webContents.send('start-mouseup-handler')
+      ;webContents.send('start-mouseup-handler',{x: props.x, y: props.y})
     }
   }catch(e){
     console.log(e)

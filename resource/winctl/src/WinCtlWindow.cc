@@ -113,7 +113,7 @@ NAN_METHOD(Window::NonActiveWindowFromPoint) {
         hWnd = parentHWnd;
 	  }
 	}
-	info.GetReturnValue().Set(Nan::New(hWnd == fgWin ? -1 : (int)hWnd));
+	info.GetReturnValue().Set(Nan::New(hWnd == fgWin ? 0 : (int)hWnd));
 }
 
 v8::Local<v8::Function> enumCallback;
