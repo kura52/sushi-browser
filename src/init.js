@@ -1343,7 +1343,7 @@ async function contextMenu(webContents, props) {
     menuItems.push({t: '782057141565633384', label: locale.translation('782057141565633384'), //'Copy Video URL',
       click: () => clipboard.writeText(props.srcURL)})
 
-    menuItems.push({t: 'saveAndPlayVideo', label: locale.translation('saveAndPlayVideo'), click: (item, win) => ipcMain.emit('save-and-play-video',null,props.srcURL,win)})
+    menuItems.push({t: 'saveAndPlayVideo', label: locale.translation('saveAndPlayVideo'), click: (item, win) => ipcMain.emit('save-and-play-video',null,props.srcURL,targetWindow)})
 
     const player = players.find(x=>x.value == mainState.sendToVideo)
     if(player) menuItems.push({t: 'Send URL to Video Player', label: `${locale.translation('sendURL')} to ${player.text}`, click: () => videoProcessList.push(open(mainState.sendToVideo,props.srcURL))})

@@ -642,8 +642,15 @@ Or, please use the Chromium bundled version.`
       const tabId = targetMap[target._targetId]
 
       if (tabId) {
-        this._pagePromises[tabId] = target.page()
-      } else {
+        for (let i = 0; i < 50; i++) {
+          try{
+            this._pagePromises[tabId] = target.page()
+          }catch(e){}
+          if(this._pagePromises[tabId]) break
+          await new Promise(r => setTimeout(r, 100))
+        }
+      }
+      else {
         for (let i = 0; i < 50; i++) {
           await new Promise(r => setTimeout(r, 100))
 

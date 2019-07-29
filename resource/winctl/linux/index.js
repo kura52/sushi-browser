@@ -152,6 +152,19 @@ class WinCtl{
     return FindByTitlePromise
   }
 
+  static conflictAboveWindow(){
+    execSync(`xwininfo -root -tree | grep -E "^           0x"`).toString().split("\n", -1)
+    //自分のIDをすべて取得し、
+
+    // 一番下のIDより上のやつを抽出して、
+
+    // 重複していれば、true、そうでなければ false
+  }
+
+  static conflictRect(a,b){
+     return (a.x < b.x + b.width && b.x < a.x + a.width) && (a.y < b.y + b.height && b.y < a.y + a.height);
+  }
+
   constructor(id){
     this.id = id
   }

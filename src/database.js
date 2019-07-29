@@ -111,6 +111,7 @@ const dbPromise = (async ()=>{
       {"key":"f1bf9993-3bc4-4874-ac7d-7656054c1850","title":"example","is_file":true,"created_at":1514732400000,"updated_at":1514732400000,"_id":"00jcpO1hKu0L3MLQ"}
     ])
   }
+
   if(!(await db.searchEngine.findOne({}).exec())){
     await db.searchEngine.insert([
       {"name":"Amazon","base":"https://www.amazon.com","image":"https://www.amazon.com/favicon.ico","search":"https://www.amazon.com/exec/obidos/external-search/?field-keywords=%s&mode=blended","autocomplete":"https://completion.amazon.com/search/complete?method=completion&q=%s&search-alias=aps&client=amazon-search-ui&mkt=1","shortcut":"a","ind":0,"updated_at":1502539595508,"_id":"oBpB1LbmeM1a0Dma"},

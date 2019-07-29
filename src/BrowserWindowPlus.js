@@ -1,5 +1,5 @@
 const electron = require('electron')
-const {BrowserWindow,BrowserView,app,ipcMain,session} = electron
+const {BrowserWindow,BrowserView,app,ipcMain,Menu} = electron
 import {Browser} from './remoted-chrome/Browser'
 const url = require('url')
 const path = require('path')
@@ -12,6 +12,7 @@ import PubSub from './render/pubsub'
 const uuid = require("node-uuid")
 const isDarwin = process.platform === 'darwin'
 const isWin = process.platform == 'win32';
+const isLinux = process.platform == 'linux';
 const lang = Intl.NumberFormat().resolvedOptions().locale
 const locale = require('../brave/app/locale')
 const localShortcuts = require('../brave/app/localShortcuts')
@@ -221,7 +222,7 @@ function create(args){
         console.log(88811)
         let flag = false
         bw.webContents.send('get-window-state', true)
-        ipcMain.once('get-window-state-reply',(e,ret)=>{
+        // ipcMain.once('get-window-state-reply',(e,ret)=>{
         _startAutoSaveAllWindowsState().then(async ()=>{
           console.log(888112)
             console.log(888113)
@@ -245,10 +246,8 @@ function create(args){
                 }
               }
 
-              console.log(331,ret)
-
               state.update({ key: 1 }, { $set: {key: 1, ver:fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString(), ...bounds, maximize,maxBounds,
-                  toggleNav:mainState.toggleNav==2 || mainState.toggleNav==3 ? 0 :mainState.toggleNav,...saveState,winState:ret, updated_at: Date.now()} }, { upsert: true }).then(_=>{
+                  toggleNav:mainState.toggleNav==2 || mainState.toggleNav==3 ? 0 :mainState.toggleNav,...saveState, updated_at: Date.now()} }, { upsert: true }).then(_=>{
                 InitSetting.reload()
               })
 
@@ -259,7 +258,7 @@ function create(args){
               saved = true
             }
           })
-        })
+        // })
         setTimeout(_=>{
           if(!flag){
             flag = true
@@ -446,6 +445,14 @@ function getNewPopBounds(bw){
 
 function getSize(opt){
   if(opt.x !== (void 0)){
+    if(opt.width === void 0){
+      const bw = BrowserWindow.fromId(opt.id)
+      const maximize = bw.isMaximized()
+      let bounds = maximize ? normalSize[bw.id] : getNewPopBounds(bw)
+      opt.width = bounds.width
+      opt.height = bounds.height
+      opt.maximize = maximize
+    }
     return {x:opt.x,y:opt.y,width:opt.width,height:opt.height, maximize: opt.maximize || false}
   }
   else{
@@ -468,10 +475,25 @@ function setOptionVal(key,dVal,val){
 
 export default {
   async load(opt,first,url){
-    if(url && url.endsWith('\\web-dev-browser\\lib\\main.js')) url = void 0
+    console.trace(opt,first,url)
+
+    if(url && (url.endsWith('\\web-dev-browser\\lib\\main.js') || url.endsWith('/web-dev-browser/lib/main.js'))) url = void 0
     let initWindow
-    const setting = await InitSetting.val
-    let winSetting = opt ? getSize(opt) : {x: setting.x, y: setting.y, width: setting.width, height: setting.height, maximize: setting.maximize, maxBounds: setting.maxBounds}
+    let setting = await InitSetting.val
+    let winSetting
+
+    let saveState
+    if(opt){
+      winSetting = getSize(opt)
+    }
+    else{
+      saveState = (await savedState.find_sort_limit([{}],[{ created_at: -1 }],[1]))[0]
+      console.log(222112122,saveState)
+      if(saveState && first){
+        setting = {...setting, ...saveState.wins[0]}
+      }
+      winSetting = {x: setting.x, y: setting.y, width: setting.width, height: setting.height, maximize: setting.maximize, maxBounds: setting.maxBounds}
+    }
 
     mainState.scaleFactor = electron.screen.getPrimaryDisplay().scaleFactor
 
@@ -546,7 +568,6 @@ export default {
           if(saveState.wins.length) return
         }
       }
-
     }
     else if(opt.id){
       const newState = Object.assign({...setting.winState},{key:uuid.v4(),dirc: 'v',pd:'l',l:{key: uuid.v4(),tabs: []},size:'100%'})
@@ -672,15 +693,23 @@ export default {
     // await new Promise(r=>{
     initWindow.webContents.once('did-finish-load', async () => {
       initWindow.show()
+      if(first && isLinux){
+        const menu = new Menu()
+        menu.popup()
+        menu.closePopup()
+      }
       if (!initWindow.isMaximized()) {
         normalSize[initWindow.id] = initWindow.getBounds()
       }
       if (winArg.maximize){
-        // setTimeout(()=> {
+        if(isWin){
           console.log(777771,winArg.maxBounds)
           initWindow.setBounds(winArg.maxBounds)
           initWindow.emit('maximize')
-        // },1000)
+        }
+        else{
+          initWindow.maximize()
+        }
       }
       initWindow.setAlwaysOnTop(!!winArg.alwaysOnTop)
       initWindow._alwaysOnTop = !!winArg.alwaysOnTop
