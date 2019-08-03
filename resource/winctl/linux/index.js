@@ -221,7 +221,7 @@ class WinCtl{
       return this.bw.getTitle()
     }
     else{
-      for(let i=0;i<100;i++){
+      for(let i=0;i<1000;i++){
         try{
           return execSync(`${wmctrl} -l | grep "${this.id}" 2>&1`).toString().match(/^([^ ]+) +([^ ]+) +([^ ]+) +(.+)/)[4]
         }catch(e){

@@ -17,6 +17,10 @@ console.log(buildDir)
 let appIcon
 if (isWindows) {
   appIcon = 'res/app.ico'
+} else if (isDarwin) {
+  appIcon = 'res/app.icns'
+} else {
+  appIcon = 'res/app.png'
 }
 
 function escapeRegExp(string){
@@ -56,7 +60,7 @@ function fixForInferno(file){
 }
 
 function build(){
-  const platform = isLinux ? 'darwin,linux' : isWindows ? 'win32' : isDarwin ? 'darwin' : 'mas'
+  const platform = isLinux ? 'linux' : isWindows ? 'win32' : isDarwin ? 'darwin' : 'mas'
   const ret = sh.exec(`electron-packager . sushi-browser --electronVersion=${ELECTRON_VERSION} --platform=${platform} --arch=${arch} --overwrite --icon=${appIcon} --protocol="http" --protocol-name="HTTP Handler" --protocol="https" --protocol-name="HTTPS Handler" --appCopyright="Copyright 2017, Sushi Browser" --asar.unpackDir="{node_modules/{node-pty,iohook,youtube-dl/bin},node_modules/node-pty/**/*,node_modules/iohook/**/*,resource/{bin,extension}/**/*}" --ignore="\\.(cache|babelrc|gitattributes|githug|gitignore|gitattributes|gitignore|gitkeep|gitmodules)|node_modules/(electron-installer-squirrel-windows|electron-installer-debian|node-gyp|electron-download|electron-rebuild|electron-packager|electron-builder|electron-prebuilt|electron-rebuild|electron-winstaller-fixed|muon-winstaller|electron-installer-redhat|react-addons-perf|babel-polyfill|infinite-tree|babel-register|jsx-to-string|happypack|es5-ext|browser-sync-ui|gulp-uglify|devtron|electron$|deasync|webpack|babel-runtime|uglify-es|babel-plugin|7zip-bin|webdriverio|semantic-ui-react/(node_modules|src)|semantic-ui-react/dist/(commonjs|umd)|babili|babel-helper|react-dom|react|@types|@gulp-sourcemaps|js-beautify)|tools|sushi-browser-|release-packed|cppunitlite|happypack|es3ify"`)
 
   if(ret.code !== 0) {
@@ -96,7 +100,7 @@ function build(){
 
 
   sh.mv(`${pwd}/${buildDir}/LICENSE`,`${pwd}/${buildDir}/_LICENSE`)
-  sh.exec(`C:/Users/kura5/go/bin/node-prune ${pwd}/${buildDir}`)
+  sh.exec(`node-prune ${pwd}/${buildDir}`)
   sh.mv(`${pwd}/${buildDir}/_LICENSE`,`${pwd}/${buildDir}/LICENSE`)
   sh.rm(`${pwd}/${buildDir}/LICENSES.chromium.html`)
   sh.cp(`app/VERSION.txt`,`${pwd}/${buildDir}/VERSION.txt`)
@@ -195,6 +199,43 @@ pause`)
       // sh.mv(`${outDir}/Setup.exe`,`${outDir}/sushi-browser-setup-${arch}.exe`)
     }, (e) => console.log(`No dice: ${e.message}`))
   }
+  else if(isLinux){
+    sh.cp('../custom_chromium.7z', `${pwd}/${buildDir}`)
+    fs.writeFileSync(`${pwd}/${buildDir}/version`, 'v5.0.4')
+
+    if(sh.exec(`cp -R ./${buildDir} ./sushi-browser-portable;echo true > ./sushi-browser-portable/resources/app.asar.unpacked/resource/portable.txt`).code !== 0) {
+      console.log("ERROR7")
+      process.exit()
+    }
+    sh.cd('./sushi-browser-portable/resources')
+
+    if(sh.exec(`7z a -t7z -mx=9 app.asar.unpacked.7z app.asar.unpacked`).code !== 0) {
+      console.log("ERROR1")
+      process.exit()
+    }
+    sh.rm('-rf','app.asar.unpacked')
+
+    if(sh.exec(`7z a -t7z -mx=9 app.asar.7z app.asar`).code !== 0) {
+      console.log("ERROR2")
+      process.exit()
+    }
+    sh.rm('-rf','app.asar')
+
+    sh.mkdir('app')
+    sh.cp('../../package.json','app/.')
+    sh.cd('../..')
+
+    if(sh.exec(`tar -jcvf ${outDir}/sushi-browser-${APP_VERSION}.tar.bz2 ./sushi-browser-portable`).code !== 0) {
+      console.log("ERROR2")
+      process.exit()
+    }
+
+    ;[`node ./node_modules/.bin/electron-installer-debian --src ${buildDir}/ --dest ${outDir}/ --arch amd64 --config res/linuxPackaging.json`,
+      `node ./node_modules/.bin/electron-installer-redhat --src ${buildDir}/ --dest ${outDir}/ --arch x86_64 --config res/linuxPackaging.json`].forEach(cmd=>{
+      sh.exec(cmd, {async:true}, (code, stdout, stderr) => {
+      })
+    })
+  }
 
 }
 
@@ -263,20 +304,22 @@ if(fs.existsSync(path.join(basePath2,'custom_chromium.7z'))){
       fs.writeFileSync(initFile,result2)
       sh.mv('app.asar.unpacked/resource/bin/7zip','.')
 
-      if(sh.exec(`${isWindows ? '"C:/Program Files/7-Zip/7z.exe"' : '7z'} a -t7z -mx=9 app.asar.unpacked.7z app.asar.unpacked`).code !== 0) {
-        console.log("ERROR1")
-        process.exit()
-      }
-      sh.rm('-rf','app.asar.unpacked')
+      if(isWindows){
+        if(sh.exec(`${isWindows ? '"C:/Program Files/7-Zip/7z.exe"' : '7z'} a -t7z -mx=9 app.asar.unpacked.7z app.asar.unpacked`).code !== 0) {
+          console.log("ERROR1")
+          process.exit()
+        }
+        sh.rm('-rf','app.asar.unpacked')
 
-      if(sh.exec(`${isWindows ? '"C:/Program Files/7-Zip/7z.exe"' : '7z'} a -t7z -mx=9 app.asar.7z app.asar`).code !== 0) {
-        console.log("ERROR2")
-        process.exit()
-      }
-      sh.rm('-rf','app.asar')
+        if(sh.exec(`${isWindows ? '"C:/Program Files/7-Zip/7z.exe"' : '7z'} a -t7z -mx=9 app.asar.7z app.asar`).code !== 0) {
+          console.log("ERROR2")
+          process.exit()
+        }
+        sh.rm('-rf','app.asar')
 
-      sh.mkdir('app')
-      sh.cp('../../package.json','app/.')
+        sh.mkdir('app')
+        sh.cp('../../package.json','app/.')
+      }
 
       if(sh.exec('asar pack electron electron.asar').code !== 0) {
         console.log("ERROR")
@@ -320,25 +363,16 @@ sh.rm('-rf', 'ja')
 sh.rm('-rf', 'README.md')
 sh.rm('resource/extension/default/1.0_0/js/vendor.dll.js')
 
-sh.rm('-rf','resource/bin/aria2/mac')
-// sh.rm('-rf','resource/bin/aria2/win')
-sh.rm('-rf','resource/bin/aria2/win32')
-sh.rm('-rf','resource/bin/aria2/linux')
-
-sh.rm('-rf','resource/bin/ffmpeg/mac')
-// sh.rm('-rf','resource/bin/ffmpeg/win')
-sh.rm('-rf','resource/bin/ffmpeg/win32')
-sh.rm('-rf','resource/bin/ffmpeg/linux')
-
-sh.rm('-rf','resource/bin/handbrake/mac')
-// sh.rm('-rf','resource/bin/handbrake/win')
-sh.rm('-rf','resource/bin/handbrake/win32')
-sh.rm('-rf','resource/bin/handbrake/linux')
-
-sh.rm('-rf','resource/bin/7zip/mac')
-// sh.rm('-rf','resource/bin/7zip/win')
-sh.rm('-rf','resource/bin/7zip/win32')
-sh.rm('-rf','resource/bin/7zip/linux')
+for(const bin of ['aria2', 'ffmpeg', 'handbrake', '7zip']){
+  sh.rm('-rf',`resource/bin/${bin}/mac`)
+  if(isLinux){
+    sh.rm('-rf',`resource/bin/${bin}/win`)
+  }
+  else{
+    sh.rm('-rf',`resource/bin/${bin}/linux`)
+  }
+  sh.rm('-rf',`resource/bin/${bin}/win32`)
+}
 
 glob.sync(`${pwd}/**/*.js.map`).forEach(file=>{
   fs.unlinkSync(file)
@@ -455,12 +489,18 @@ glob.sync(`${pwd}/**/.directory`).forEach(file=>{
 // Replace console.log
 const jsFiles = glob.sync(`${pwd}/src/**/*.js`)
 filesContentsReplace(jsFiles,/console\.log\(/,'//debug(')
+filesContentsReplace(jsFiles,/console\.trace\(/,'//debug(')
 filesContentsReplace(jsFiles,/window.debug = require\('debug'\)\('info'\)/,"// window.debug = require('debug')('info')")
 filesContentsReplace(jsFiles,/global.debug = require\('debug'\)\('info'\)/,"// global.debug = require('debug')('info')")
 filesContentsReplace(jsFiles,/extensions.init\(true\)/,"extensions.init(setting.ver !== fs.readFileSync(path.join(__dirname, '../VERSION.txt')).toString())")
 
 const jsFiles2 = glob.sync(`${pwd}/brave/**/*.js`)
 filesContentsReplace(jsFiles2,/console\.log\(/,'//debug(')
+
+if(isLinux){
+  const jsFiles3 = glob.sync(`${pwd}/resource/winctl/linux/index.js`)
+  filesContentsReplace(jsFiles3,/console\.log\(/,'//debug(')
+}
 
 // Babel Use babili
 // filesContentsReplace(`${pwd}/.babelrc`,/"react"\]/,'"react","babili"]')

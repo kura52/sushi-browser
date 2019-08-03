@@ -34,13 +34,47 @@ index d4e1c21bc21f..c0b066e09879 100644
    // Web apps should always support the toolbar, so the title/origin of the
    // current page can be shown when browsing a url that is not inside the app.
    // Note: Final determination of whether or not the toolbar is shown is made by
+diff --git a/chrome/browser/ui/browser_view_prefs.cc b/chrome/browser/ui/browser_view_prefs.cc
+index 95f077ae8ffd..a73a44d95fd5 100644
+--- a/chrome/browser/ui/browser_view_prefs.cc
++++ b/chrome/browser/ui/browser_view_prefs.cc
+@@ -34,18 +34,18 @@ void RegisterBrowserViewLocalPrefs(PrefRegistrySimple* registry) {
+
+ void RegisterBrowserViewProfilePrefs(
+     user_prefs::PrefRegistrySyncable* registry) {
+-#if defined(OS_LINUX) && !defined(OS_CHROMEOS)
+-  bool custom_frame_pref_default = false;
+-#if defined(USE_X11)
+-  custom_frame_pref_default = ui::GetCustomFramePrefDefault();
+-#elif defined(USE_OZONE)
+-  custom_frame_pref_default = ui::OzonePlatform::GetInstance()
+-                                  ->GetPlatformProperties()
+-                                  .custom_frame_pref_default;
+-#endif
++// #if defined(OS_LINUX) && !defined(OS_CHROMEOS)
++//   bool custom_frame_pref_default = false;
++// #if defined(USE_X11)
++//   custom_frame_pref_default = ui::GetCustomFramePrefDefault();
++// #elif defined(USE_OZONE)
++//   custom_frame_pref_default = ui::OzonePlatform::GetInstance()
++//                                   ->GetPlatformProperties()
++//                                   .custom_frame_pref_default;
++// #endif
+   registry->RegisterBooleanPref(prefs::kUseCustomChromeFrame,
+-                                custom_frame_pref_default);
+-#endif  // OS_LINUX && !OS_CHROMEOS
++                                true);
++// #endif  // OS_LINUX && !OS_CHROMEOS
+ }
+
+ void MigrateBrowserTabStripPrefs(PrefService* prefs) {
 diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
 index dd1e7d067136..88a37da2c4a9 100644
 --- a/chrome/browser/ui/views/frame/browser_view.cc
 +++ b/chrome/browser/ui/views/frame/browser_view.cc
 @@ -1037,11 +1037,16 @@ void BrowserView::OnExclusiveAccessUserInput() {
  }
- 
+
  bool BrowserView::ShouldHideUIForFullscreen() const {
 -  // Immersive mode needs UI for the slide-down top panel.
 -  if (immersive_mode_controller_->IsEnabled())
@@ -49,7 +83,7 @@ index dd1e7d067136..88a37da2c4a9 100644
 +    // Immersive mode needs UI for the slide-down top panel.
 +    if (immersive_mode_controller_->IsEnabled())
 +      return false;
- 
+
 -  return frame_->GetFrameView()->ShouldHideTopUIForFullscreen();
 +    return frame_->GetFrameView()->ShouldHideTopUIForFullscreen();
 +  }
@@ -57,7 +91,7 @@ index dd1e7d067136..88a37da2c4a9 100644
 +    return true;
 +  }
  }
- 
+
  bool BrowserView::IsFullscreen() const {
 diff --git a/chrome/browser/ui/views/frame/browser_view_layout.cc b/chrome/browser/ui/views/frame/browser_view_layout.cc
 index 454eabdd400f..2988eac6b0e2 100644
@@ -69,7 +103,7 @@ index 454eabdd400f..2988eac6b0e2 100644
    // value is used for the main browser window only, not for popups.
 -  constexpr gfx::Size kMainBrowserContentsMinimumSize(500, 1);
 +  constexpr gfx::Size kMainBrowserContentsMinimumSize(1, 1);
- 
+
    const bool has_tabstrip =
        browser()->SupportsWindowFeature(Browser::FEATURE_TABSTRIP);
 @@ -396,14 +396,24 @@ int BrowserViewLayout::LayoutTabStripRegion(int top) {
@@ -78,13 +112,13 @@ index 454eabdd400f..2988eac6b0e2 100644
    // anything to the left of it, like the incognito avatar.
 -  gfx::Rect tab_strip_region_bounds(
 -      delegate_->GetBoundsForTabStripRegionInBrowserView());
- 
+
 -  tab_strip_region_view_->SetVisible(true);
 -  tab_strip_region_view_->SetBoundsRect(tab_strip_region_bounds);
 +  if(browser_->profile()->GetProfileType() == Profile::INCOGNITO_PROFILE){
 +    gfx::Rect tab_strip_region_bounds(
 +        delegate_->GetBoundsForTabStripRegionInBrowserView());
- 
+
 -  return tab_strip_region_bounds.bottom() -
 -         GetLayoutConstant(TABSTRIP_TOOLBAR_OVERLAP);
 +    tab_strip_region_view_->SetVisible(true);
@@ -101,7 +135,7 @@ index 454eabdd400f..2988eac6b0e2 100644
 +          GetLayoutConstant(TABSTRIP_TOOLBAR_OVERLAP);
 +  }
  }
- 
+
  int BrowserViewLayout::LayoutToolbar(int top) {
 diff --git a/chrome/browser/ui/views/frame/glass_browser_frame_view.cc b/chrome/browser/ui/views/frame/glass_browser_frame_view.cc
 index 25e86d829b92..cdd2f239a72e 100644
@@ -109,7 +143,7 @@ index 25e86d829b92..cdd2f239a72e 100644
 +++ b/chrome/browser/ui/views/frame/glass_browser_frame_view.cc
 @@ -465,22 +465,27 @@ int GlassBrowserFrameView::FrameTopBorderThicknessPx(bool restored) const {
  }
- 
+
  int GlassBrowserFrameView::TopAreaHeight(bool restored) const {
 -  if (frame()->IsFullscreen() && !restored)
 +  if(browser_view()->IsIncognito()){
@@ -147,55 +181,75 @@ index 25e86d829b92..cdd2f239a72e 100644
    }
 -  return top + thickness;
  }
- 
+
  int GlassBrowserFrameView::TitlebarMaximizedVisualHeight() const {
+diff --git a/chrome/browser/ui/views/frame/opaque_browser_frame_view.cc b/chrome/browser/ui/views/frame/opaque_browser_frame_view.cc
+index cad8e71227a2..70db3b2a7cf1 100644
+--- a/chrome/browser/ui/views/frame/opaque_browser_frame_view.cc
++++ b/chrome/browser/ui/views/frame/opaque_browser_frame_view.cc
+@@ -294,11 +294,11 @@ void OpaqueBrowserFrameView::GetWindowMask(const gfx::Size& size,
+                                            SkPath* window_mask) {
+   DCHECK(window_mask);
+
+-  if (IsFrameCondensed())
+-    return;
++  // if (IsFrameCondensed())
++  //   return;
+
+-  views::GetDefaultWindowMask(
+-      size, frame()->GetCompositor()->device_scale_factor(), window_mask);
++  // views::GetDefaultWindowMask(
++  //     size, frame()->GetCompositor()->device_scale_factor(), window_mask);
+ }
+
+ void OpaqueBrowserFrameView::ResetWindowControls() {
 diff --git a/chrome/browser/ui/views/frame/opaque_browser_frame_view_layout.cc b/chrome/browser/ui/views/frame/opaque_browser_frame_view_layout.cc
 index 519f94900381..bf86f99e002f 100644
 --- a/chrome/browser/ui/views/frame/opaque_browser_frame_view_layout.cc
 +++ b/chrome/browser/ui/views/frame/opaque_browser_frame_view_layout.cc
 @@ -33,31 +33,31 @@ constexpr int kCaptionButtonHeight = 18;
  // statics
- 
+
  // The content edge images have a shadow built into them.
 -const int OpaqueBrowserFrameViewLayout::kContentEdgeShadowThickness = 2;
 +const int OpaqueBrowserFrameViewLayout::kContentEdgeShadowThickness = 0;
- 
+
  // The frame border is only visible in restored mode and is hardcoded to 4 px on
  // each side regardless of the system window border size.
 -const int OpaqueBrowserFrameViewLayout::kFrameBorderThickness = 4;
 +const int OpaqueBrowserFrameViewLayout::kFrameBorderThickness = 0;
- 
+
  // The frame has a 2 px 3D edge along the top.
 -const int OpaqueBrowserFrameViewLayout::kTopFrameEdgeThickness = 2;
 +const int OpaqueBrowserFrameViewLayout::kTopFrameEdgeThickness = 0;
- 
+
  // The frame has a 1 px 3D edge along the top.
 -const int OpaqueBrowserFrameViewLayout::kSideFrameEdgeThickness = 1;
 +const int OpaqueBrowserFrameViewLayout::kSideFrameEdgeThickness = 0;
- 
+
  // The icon is inset 1 px from the left frame border.
 -const int OpaqueBrowserFrameViewLayout::kIconLeftSpacing = 1;
 +const int OpaqueBrowserFrameViewLayout::kIconLeftSpacing = 0;
- 
+
  // There is a 4 px gap between the icon and the title text.
 -const int OpaqueBrowserFrameViewLayout::kIconTitleSpacing = 4;
 +const int OpaqueBrowserFrameViewLayout::kIconTitleSpacing = 0;
- 
+
  // The horizontal spacing to use in most cases when laying out things near the
  // caption button area.
 -const int OpaqueBrowserFrameViewLayout::kCaptionSpacing = 5;
 +const int OpaqueBrowserFrameViewLayout::kCaptionSpacing = 0;
- 
+
  // The minimum vertical padding between the bottom of the caption buttons and
  // the top of the content shadow.
 -const int OpaqueBrowserFrameViewLayout::kCaptionButtonBottomPadding = 3;
 +const int OpaqueBrowserFrameViewLayout::kCaptionButtonBottomPadding = 0;
- 
+
  OpaqueBrowserFrameViewLayout::OpaqueBrowserFrameViewLayout()
      : available_space_leading_x_(0),
 @@ -128,10 +128,11 @@ int OpaqueBrowserFrameViewLayout::FrameBorderThickness(bool restored) const {
  }
- 
+
  int OpaqueBrowserFrameViewLayout::FrameTopBorderThickness(bool restored) const {
 -  int thickness = FrameBorderThickness(restored);
 -  if (restored || !delegate_->IsFrameCondensed())
@@ -207,7 +261,7 @@ index 519f94900381..bf86f99e002f 100644
 +  //   thickness += kNonClientExtraTopThickness;
 +  // return thickness;
  }
- 
+
  int OpaqueBrowserFrameViewLayout::NonClientTopHeight(bool restored) const {
 diff --git a/chrome/common/extensions/chrome_extensions_client.cc b/chrome/common/extensions/chrome_extensions_client.cc
 index a338dc285f6c..3e075c5ec570 100644
@@ -220,22 +274,22 @@ index a338dc285f6c..3e075c5ec570 100644
 +  scripting_whitelist_.push_back("dckpbojndfoinamcdamhkjhnjnmjkfjd");
    InitializeWebStoreUrls(base::CommandLine::ForCurrentProcess());
  }
- 
+
 diff --git a/extensions/browser/app_window/app_window.cc b/extensions/browser/app_window/app_window.cc
 index 3804502b1d2f..dd22fa4e9185 100644
 --- a/extensions/browser/app_window/app_window.cc
 +++ b/extensions/browser/app_window/app_window.cc
 @@ -838,9 +838,9 @@ void AppWindow::DidDownloadFavicon(
  }
- 
+
  void AppWindow::SetNativeWindowFullscreen() {
 -  native_app_window_->SetFullscreen(fullscreen_types_);
 +  // native_app_window_->SetFullscreen(fullscreen_types_);
- 
+
 -  RestoreAlwaysOnTop();
 +  // RestoreAlwaysOnTop();
  }
- 
+
  bool AppWindow::IntersectsWithTaskbar() const {
 diff --git a/extensions/common/permissions/permissions_data.cc b/extensions/common/permissions/permissions_data.cc
 index b09be07c0db0..4a5273e3c5f2 100644
@@ -249,8 +303,30 @@ index b09be07c0db0..4a5273e3c5f2 100644
 +  return extension_id == extension_misc::kChromeVoxExtensionId ||
 +  extension_id == "dckpbojndfoinamcdamhkjhnjnmjkfjd";
  }
- 
+
  bool PermissionsData::UsesDefaultPolicyHostRestrictions() const {
+diff --git a/media/blink/multibuffer_data_source.cc b/media/blink/multibuffer_data_source.cc
+index f5e776f90dc0..3095fdef28fa 100644
+--- a/media/blink/multibuffer_data_source.cc
++++ b/media/blink/multibuffer_data_source.cc
+@@ -22,7 +22,7 @@ namespace {
+ // Minimum preload buffer.
+ const int64_t kMinBufferPreload = 2 << 20;  // 2 Mb
+ // Maxmimum preload buffer.
+-const int64_t kMaxBufferPreload = 50 << 20;  // 50 Mb
++const int64_t kMaxBufferPreload = (50 * 20) << 20;  // 50 Mb
+
+ // If preload_ == METADATA, preloading size will be
+ // shifted down this many bits. This shift turns
+@@ -50,7 +50,7 @@ const int64_t kMaxBitrate = 20 * 8 << 20;  // 20 Mbps.
+ const double kMaxPlaybackRate = 25.0;
+
+ // Preload this many seconds of data by default.
+-const int64_t kTargetSecondsBufferedAhead = 10;
++const int64_t kTargetSecondsBufferedAhead = 10 * 2000;
+
+ // Keep this many seconds of data for going back by default.
+ const int64_t kTargetSecondsBufferedBehind = 2;
 diff --git a/ui/gfx/win/window_impl.cc b/ui/gfx/win/window_impl.cc
 index b235cf3cc598..4e18c8963784 100644
 --- a/ui/gfx/win/window_impl.cc
