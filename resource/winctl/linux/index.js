@@ -8,6 +8,13 @@ const exec = util.promisify(childProcess.exec)
 
 let Browser = new Proxy({},  { get: function(target, name){ Browser = require('../../../lib/remoted-chrome/Browser').Browser; return typeof Browser[name] == 'function' ? Browser[name].bind(Browser) : Browser[name]}})
 
+let wmctrl
+try{
+  execSync('wmctrl -l')
+  wmctrl = 'wmctrl'
+}catch(e){
+  wmctrl = path.join(__dirname, '../../bin/wmctrl/linux/wmctrl').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
+}
 
 function scaling(num){
   return Math.round(num * mainState.scaleFactor)
@@ -39,14 +46,14 @@ class WinCtl{
     this.moveTopTime = Date.now()
     try{
       if(ids.length == 1){
-        console.log(`wmctrl -v -a :ACTIVE: 2>&1 | grep -oE 0x[0-9a-z]+ | xargs -I_ sh -c "test _ != ${ids[0]} && wmctrl -vi -a ${ids[0]} 2>&1 && wmctrl -vi -a '_' 2>&1"`)
-        execSync(`wmctrl -v -a :ACTIVE: 2>&1 | grep -oE 0x[0-9a-z]+ | xargs -I_ sh -c "test _ != ${ids[0]} && wmctrl -vi -a ${ids[0]} 2>&1 && wmctrl -vi -a '_' 2>&1"`)
+        console.log(`${wmctrl} -v -a :ACTIVE: 2>&1 | grep -oE 0x[0-9a-z]+ | xargs -I_ sh -c "test _ != ${ids[0]} && ${wmctrl} -vi -a ${ids[0]} 2>&1 && ${wmctrl} -vi -a '_' 2>&1"`)
+        execSync(`${wmctrl} -v -a :ACTIVE: 2>&1 | grep -oE 0x[0-9a-z]+ | xargs -I_ sh -c "test _ != ${ids[0]} && ${wmctrl} -vi -a ${ids[0]} 2>&1 && ${wmctrl} -vi -a '_' 2>&1"`)
       }
       else{
         const id = this.GetActiveWindow2().id
-        const command = ids.filter(i=>i != id).map(id => `wmctrl -vi -a ${id} 2>&1`).join(' && ')
-        console.log(`wmctrl -v -a :ACTIVE: 2>&1 | grep -oE 0x[0-9a-z]+ | xargs -I_ sh -c " ${command} && wmctrl -vi -a '_' 2>&1"`)
-        execSync(`wmctrl -v -a :ACTIVE: 2>&1 | grep -oE 0x[0-9a-z]+ | xargs -I_ sh -c " ${command} && wmctrl -vi -a '_' 2>&1"`)
+        const command = ids.filter(i=>i != id).map(id => `${wmctrl} -vi -a ${id} 2>&1`).join(' && ')
+        console.log(`${wmctrl} -v -a :ACTIVE: 2>&1 | grep -oE 0x[0-9a-z]+ | xargs -I_ sh -c " ${command} && ${wmctrl} -vi -a '_' 2>&1"`)
+        execSync(`${wmctrl} -v -a :ACTIVE: 2>&1 | grep -oE 0x[0-9a-z]+ | xargs -I_ sh -c " ${command} && ${wmctrl} -vi -a '_' 2>&1"`)
       }
     }catch(e){
       console.log(e.message, e.stdout.toString())
@@ -67,14 +74,14 @@ class WinCtl{
   }
 
   static GetActiveWindow2() {
-    const [_, id, level] = execSync(`wmctrl -v -a :ACTIVE: 2>&1 | grep -oE 0x[0-9a-z]+ | xargs -I_ sh -c "wmctrl -l | grep '_'  2>&1"`).toString().match(/^([^ ]+) +([^ ]+)/)
+    const [_, id, level] = execSync(`${wmctrl} -v -a :ACTIVE: 2>&1 | grep -oE 0x[0-9a-z]+ | xargs -I_ sh -c "${wmctrl} -l | grep '_'  2>&1"`).toString().match(/^([^ ]+) +([^ ]+)/)
     if(level == '-1') return null
 
     return new WinCtl(id)
   }
 
   static _listWindow(){
-    const stdout = execSync(`wmctrl -l 2>&1`).toString().split("\n",-1)
+    const stdout = execSync(`${wmctrl} -l 2>&1`).toString().split("\n",-1)
 
     return stdout.slice(0,stdout.length - 1).map(x=>{
       const id = x.match(/^([^ ]+)/)[0]
@@ -90,7 +97,7 @@ class WinCtl{
 
   static WindowFromPoint2() {
     const point = electron.screen.getCursorScreenPoint()
-    const stdouts = execSync(`wmctrl -lG 2>&1`).toString().split("\n",-1)
+    const stdouts = execSync(`${wmctrl} -lG 2>&1`).toString().split("\n",-1)
 
     const ret = []
     for(const stdout of stdouts.slice(0,stdouts.length - 1)){
@@ -216,7 +223,7 @@ class WinCtl{
     else{
       for(let i=0;i<100;i++){
         try{
-          return execSync(`wmctrl -l | grep "${this.id}" 2>&1`).toString().match(/^([^ ]+) +([^ ]+) +([^ ]+) +(.+)/)[4]
+          return execSync(`${wmctrl} -l | grep "${this.id}" 2>&1`).toString().match(/^([^ ]+) +([^ ]+) +([^ ]+) +(.+)/)[4]
         }catch(e){
           console.log(e)
         }
@@ -237,12 +244,12 @@ class WinCtl{
       return this.bw.focus()
     }
     else{
-      execSync(`wmctrl -vi -a ${this.id} 2>&1`)
+      execSync(`${wmctrl} -vi -a ${this.id} 2>&1`)
     }
   }
 
   getWindowModuleFileName(){
-    const pid = execSync(`wmctrl -lp | grep "${this.id}" 2>&1`).toString().match(/^([^ ]+) +([^ ]+) +([^ ]+)/)[3]
+    const pid = execSync(`${wmctrl} -lp | grep "${this.id}" 2>&1`).toString().match(/^([^ ]+) +([^ ]+) +([^ ]+)/)[3]
     return execSync(`ps h o command p ${pid}`).toString().replace("\n","")
   }
 
@@ -258,11 +265,11 @@ class WinCtl{
     }
     else{
       if(type == WinCtl.HWND.TOPMOST){
-        console.log(`wmctrl -vi -r ${this.id} -b 'add,above' 2>&1`)
-        execSync(`wmctrl -vi -r ${this.id} -b 'add,above' 2>&1`)
+        console.log(`${wmctrl} -vi -r ${this.id} -b 'add,above' 2>&1`)
+        execSync(`${wmctrl} -vi -r ${this.id} -b 'add,above' 2>&1`)
       }
       else if(type == WinCtl.HWND.NOTOPMOST){
-        execSync(`wmctrl -vi -r ${this.id} -b 'remove,above' 2>&1`)
+        execSync(`${wmctrl} -vi -r ${this.id} -b 'remove,above' 2>&1`)
       }
     }
     // else if(type == WinCtl.HWND.BOTTOM){
@@ -282,13 +289,13 @@ class WinCtl{
     // const aWin = WinCtl.GetActiveWindow2()
     // if(aWin && aWin.id != this.id){
       try{
-        // console.log(execSync(`wmctrl -v -a :ACTIVE: 2>&1`).toString())
-        exec(`wmctrl -v -a :ACTIVE: 2>&1 | grep -oE 0x[0-9a-z]+ | xargs -I_ sh -c "test _ != ${this.id} && wmctrl -vi -a ${this.id} 2>&1 && wmctrl -vi -a '_' 2>&1"`)
+        // console.log(execSync(`${wmctrl} -v -a :ACTIVE: 2>&1`).toString())
+        exec(`${wmctrl} -v -a :ACTIVE: 2>&1 | grep -oE 0x[0-9a-z]+ | xargs -I_ sh -c "test _ != ${this.id} && ${wmctrl} -vi -a ${this.id} 2>&1 && ${wmctrl} -vi -a '_' 2>&1"`)
       }catch(e){
         console.log(e.message, e.stdout.toString())
       }
     // }
-    // console.log(`wmctrl -v -a :ACTIVE: 2>&1 | grep -oE 0x[0-9]+ | xargs -I_ sh -c "wmctrl -vi -a ${this.id} 2>&1 && wmctrl -vi -a '_' 2>&1"`)
+    // console.log(`${wmctrl} -v -a :ACTIVE: 2>&1 | grep -oE 0x[0-9]+ | xargs -I_ sh -c "${wmctrl} -vi -a ${this.id} 2>&1 && ${wmctrl} -vi -a '_' 2>&1"`)
   }
 
   moveTop(){
@@ -305,13 +312,13 @@ class WinCtl{
 
   setWindowLongPtrEx(val){
     if(val == 0x00000080){
-      execSync(`wmctrl -vi -r ${this.id} -b 'add,skip_taskbar' 2>&1`)
+      execSync(`${wmctrl} -vi -r ${this.id} -b 'add,skip_taskbar' 2>&1`)
     }
   }
 
   setWindowLongPtrExRestore(){
     if(val == 0x00000080){
-      execSync(`wmctrl -vi -r ${this.id} -b 'remove,skip_taskbar' 2>&1`)
+      execSync(`${wmctrl} -vi -r ${this.id} -b 'remove,skip_taskbar' 2>&1`)
     }
   }
 
@@ -348,7 +355,7 @@ class WinCtl{
     //   }, this.windowId, x,y,width,height)
     // }
     // else{
-      await exec(`wmctrl -vi -r ${this.id} -e 0,${x},${y},${width},${height} 2>&1`)
+      await exec(`${wmctrl} -vi -r ${this.id} -e 0,${x},${y},${width},${height} 2>&1`)
     // }
   }
 
@@ -357,12 +364,12 @@ class WinCtl{
   }
 
   dimensions(){
-    const mat = execSync(`wmctrl -lG | grep "${this.id}" 2>&1`).toString().match(/^([^ ]+) +([^ ]+) +([^ ]+) +([^ ]+) +([^ ]+) +([^ ]+)/)
+    const mat = execSync(`${wmctrl} -lG | grep "${this.id}" 2>&1`).toString().match(/^([^ ]+) +([^ ]+) +([^ ]+) +([^ ]+) +([^ ]+) +([^ ]+)/)
     return {left: parseInt(mat[3]), top: parseInt(mat[4]), right: parseInt(mat[3]) + parseInt(mat[5]), bottom: parseInt(mat[4]) + parseInt(mat[6])}
   }
 
   destroyWindow(){
-    execSync(`wmctrl -vi -c ${this.id} 2>&1`)
+    execSync(`${wmctrl} -vi -c ${this.id} 2>&1`)
   }
 
 }
