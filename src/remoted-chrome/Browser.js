@@ -209,8 +209,10 @@ Or, please use the Chromium bundled version.`
         if(browserPanel.browserWindow && browserPanel.browserWindow.id == browserWindowId){
           if(eventName == 'focus'){
             console.log('moveTopNativeWindow+bW1')
-            browserPanel.moveTopNativeWindow()
-            browserPanel.moveTopNativeWindowBw()
+            setTimeout(()=>{
+              browserPanel.moveTopNativeWindow()
+              browserPanel.moveTopNativeWindowBw()
+            },0)
           }
           else if(eventName == 'minimize'){
             browserPanel.cpWin.nativeWindow.showWindow(0)

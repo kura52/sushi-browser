@@ -55,6 +55,10 @@ async function clearDatas(){
 
 
 async function savedStateUpdate(states,closeKey){
+  for(const win of states.wins){
+    if(!win.winState.l) return
+  }
+
   const doc = await savedState.insert(states)
   const updated_at = Date.now()
   for(let win of doc.wins){
@@ -488,7 +492,7 @@ export default {
     }
     else{
       saveState = (await savedState.find_sort_limit([{}],[{ created_at: -1 }],[1]))[0]
-      console.log(222112122,saveState)
+      console.log(222112122,first, saveState && saveState.wins[0])
       if(saveState && first){
         setting = {...setting, ...saveState.wins[0]}
       }

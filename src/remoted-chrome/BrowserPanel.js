@@ -4,6 +4,7 @@ import DpiUtils from './DpiUtils'
 import os from 'os'
 
 const isWin7 = os.platform() == 'win32' && os.release().startsWith('6.1')
+const isLinux = process.platform === 'linux'
 
 console.log(77888,os.release())
 
@@ -454,13 +455,24 @@ export default class BrowserPanel {
     }
     chromeNativeWindow.hwnd = chromeNativeWindow.getHwnd()
     BrowserPanel.bindedWindows.add(chromeNativeWindow.hwnd)
-    const title = Math.random().toString()
-    const _title = this.browserWindow.getTitle()
 
-    this.browserWindow.setTitle(title)
-    await new Promise(r=>setTimeout(r,10))
-    const nativeWindowBw = await winctl.FindByTitle(title)
-    this.browserWindow.setTitle(_title)
+
+    let nativeWindowBw
+    for(let i=0;i<100;i++){
+      try{
+        const title = Math.random().toString()
+        const _title = this.browserWindow.getTitle()
+
+        this.browserWindow.setTitle(title)
+        await new Promise(r=>setTimeout(r,10))
+        nativeWindowBw = await winctl.FindByTitle(title)
+        this.browserWindow.setTitle(_title)
+        break
+      }catch(e){}
+
+      await new Promise(r=>setTimeout(r,10))
+    }
+
     this.browserWindow.nativeWindow = nativeWindowBw
 
     if(nativeWindowBw.setBrowserWindow) nativeWindowBw.setBrowserWindow(this.browserWindow)
@@ -597,6 +609,12 @@ export default class BrowserPanel {
     else {
       const dim = this.cpWin.nativeWindow.dimensions()
       const {x,y} = DpiUtils.dipToScreenPoint(bounds.x, bounds.y)
+
+      const needMoveTopPanel = this.checkNeedMoveTop()
+      if(needMoveTopPanel){
+        for(const panel of needMoveTopPanel) panel.moveTopNativeWindow()
+      }
+
       DpiUtils.moveJust(this.cpWin.nativeWindow, x, y, dim.right - dim.left, dim.bottom - dim.top)
       // console.log({bx:bounds.x, by:bounds.y,x, y, w:dim.right - dim.left, h:dim.bottom - dim.top})
     }
@@ -614,7 +632,10 @@ export default class BrowserPanel {
     if (BrowserPanel.contextMenuShowing ||
       webContents.disableFocus ||
       this._bindWindow ||
-      this.cpWin.nativeWindow.hidePanel) return
+      this.cpWin.nativeWindow.hidePanel ||
+      !this.checkNeedMoveTop()) return
+
+    console.log('moveTopNativeWindow()')
 
     this.cpWin.nativeWindow.moveTop()
     if(this.browserWindow._alwaysOnTop) this.cpWin.nativeWindow.setWindowPos(winctl.HWND.TOPMOST, 0, 0, 0, 0, 83)
@@ -628,14 +649,27 @@ export default class BrowserPanel {
   }
 
   moveTopNativeWindowBw() {
-    if (BrowserPanel.contextMenuShowing) return
-    const now = Date.now()
+    if (BrowserPanel.contextMenuShowing || !this.checkNeedMoveTop()) return
+    // const now = Date.now()
 
-    if(!this.moveTopCache || now - this.moveTopCache > 30){
-      this.moveTopCache = now
+    console.log('moveTopNativeWindowBW()')
+
+    // if(!this.moveTopCache || now - this.moveTopCache > 30){
+    //   this.moveTopCache = now
       this.cpWin.nativeWindowBw.moveTop()
       if(this.browserWindow._alwaysOnTop) this.cpWin.nativeWindowBw.setWindowPos(winctl.HWND.TOPMOST, 0, 0, 0, 0, 83)
-    }
+    // }
+  }
+
+  checkNeedMoveTop(){
+    if(!isLinux) return true
+
+    const panels = BrowserPanel.getBrowserPanelsFromBrowserWindow(this.browserWindow)
+
+    const ids = [this.cpWin.nativeWindowBw.id]
+    for(const panel of panels) ids.push(panel.cpWin.nativeWindow.id)
+    return winctl.conflictAboveWindow(ids) ? panels : null
+
   }
 
   bindWindow(val){

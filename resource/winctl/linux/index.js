@@ -96,13 +96,13 @@ class WinCtl{
     for(const stdout of stdouts.slice(0,stdouts.length - 1)){
       const mat = stdout.match(/^([^ ]+) +([^ ]+) +([^ ]+) +([^ ]+) +([^ ]+) +([^ ]+)/)
       if(pointInCheck(parseInt(mat[3]), parseInt(mat[4]), parseInt(mat[5]), parseInt(mat[6]), point.x, point.y)){
-        ret.push(mat[1])
+        ret.push(mat[1].replace(/^0x0/, '0x'))
       }
     }
 
     const id = execSync(`xwininfo -root -tree | grep -oE "${ret.join("|")}"`).toString().split("\n", 1)[0]
 
-    return id
+    return id.replace(/^0x/, '0x0')
   }
 
   static NonActiveWindowFromPoint() {
@@ -152,14 +152,46 @@ class WinCtl{
     return FindByTitlePromise
   }
 
-  static conflictAboveWindow(){
-    execSync(`xwininfo -root -tree | grep -E "^           0x"`).toString().split("\n", -1)
-    //自分のIDをすべて取得し、
+  static conflictAboveWindow(winIds){
+    const activeId = this.GetActiveWindow2().id
 
-    // 一番下のIDより上のやつを抽出して、
+    const lines = execSync(`xwininfo -root -tree | grep -E "^           0x"`).toString().split("\n", -1)
 
-    // 重複していれば、true、そうでなければ false
-  }
+    // console.log(7788999,winIds)
+
+    const selfs = []
+    const others = []
+    let activeAppear = false
+
+    let order = 0
+    for(const line of lines){
+      const match = line.match(/0x([0-9a-z]+) .+?(\d+)x(\d+)\+0\+0  \+(\d+)\+(\d+)/)
+      if(match == null) continue
+
+      const id = `0x0${match[1]}`
+
+      if(activeId == id) activeAppear = true
+      if(!activeAppear) continue
+
+      const include = winIds.includes(id)
+
+      ;(include ? selfs : others).push({order: order++, id,
+        x: parseInt(match[4]), y: parseInt(match[5]), width: parseInt(match[2]), height: parseInt(match[3])})
+    }
+
+    // console.log('selfs', selfs)
+    // console.log('others', others)
+
+    for(const self of selfs){
+      for(const other of others){
+        if(self.order < other.order) break
+
+        if(this.conflictRect(self, other)) return true
+      }
+    }
+
+    return false
+}
 
   static conflictRect(a,b){
      return (a.x < b.x + b.width && b.x < a.x + a.width) && (a.y < b.y + b.height && b.y < a.y + a.height);
@@ -182,7 +214,13 @@ class WinCtl{
       return this.bw.getTitle()
     }
     else{
-      return execSync(`wmctrl -l | grep "${this.id}" 2>&1`).toString().match(/^([^ ]+) +([^ ]+) +([^ ]+) +(.+)/)[4]
+      for(let i=0;i<100;i++){
+        try{
+          return execSync(`wmctrl -l | grep "${this.id}" 2>&1`).toString().match(/^([^ ]+) +([^ ]+) +([^ ]+) +(.+)/)[4]
+        }catch(e){
+          console.log(e)
+        }
+      }
     }
   }
 
@@ -240,7 +278,7 @@ class WinCtl{
     // else{
     //   WinCtl.moveTopTime = now
     // }
-    console.trace()
+    // console.trace()
     // const aWin = WinCtl.GetActiveWindow2()
     // if(aWin && aWin.id != this.id){
       try{
@@ -267,13 +305,13 @@ class WinCtl{
 
   setWindowLongPtrEx(val){
     if(val == 0x00000080){
-      // execSync(`wmctrl -vi -r ${this.id} -b 'add,skip_taskbar' 2>&1`)
+      execSync(`wmctrl -vi -r ${this.id} -b 'add,skip_taskbar' 2>&1`)
     }
   }
 
   setWindowLongPtrExRestore(){
     if(val == 0x00000080){
-      // execSync(`wmctrl -vi -r ${this.id} -b 'remove,skip_taskbar' 2>&1`)
+      execSync(`wmctrl -vi -r ${this.id} -b 'remove,skip_taskbar' 2>&1`)
     }
   }
 
@@ -296,7 +334,7 @@ class WinCtl{
   }
 
   async move(x, y, width, height){
-    console.log(x,y,width,height)
+    // console.trace(x,y,width,height)
     x = scaling(x)
     y = scaling(y)
     width = scaling(width)
