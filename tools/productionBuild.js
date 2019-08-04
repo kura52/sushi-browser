@@ -204,19 +204,19 @@ pause`)
     fs.writeFileSync(`${pwd}/${buildDir}/version`, 'v5.0.4')
 
     if(sh.exec(`cp -R ./${buildDir} ./sushi-browser-portable;echo true > ./sushi-browser-portable/resources/app.asar.unpacked/resource/portable.txt`).code !== 0) {
-      console.log("ERROR7")
+      console.log("ERROR71")
       process.exit()
     }
     sh.cd('./sushi-browser-portable/resources')
 
     if(sh.exec(`7z a -t7z -mx=9 app.asar.unpacked.7z app.asar.unpacked`).code !== 0) {
-      console.log("ERROR1")
+      console.log("ERROR11")
       process.exit()
     }
     sh.rm('-rf','app.asar.unpacked')
 
     if(sh.exec(`7z a -t7z -mx=9 app.asar.7z app.asar`).code !== 0) {
-      console.log("ERROR2")
+      console.log("ERROR21")
       process.exit()
     }
     sh.rm('-rf','app.asar')
@@ -226,9 +226,16 @@ pause`)
     sh.cd('../..')
 
     if(sh.exec(`tar -jcvf ${outDir}/sushi-browser-${APP_VERSION}.tar.bz2 ./sushi-browser-portable`).code !== 0) {
-      console.log("ERROR2")
+      console.log("ERROR22")
       process.exit()
     }
+
+    if(sh.exec(`7z x -y -o"${buildDir}" ${buildDir}/custom_chromium.7z`).code !== 0){
+      console.log("ERROR23")
+      process.exit()
+    }
+
+    sh.rm(`${buildDir}/custom_chromium.7z`)
 
     ;[`node ./node_modules/.bin/electron-installer-debian --src ${buildDir}/ --dest ${outDir}/ --arch amd64 --config res/linuxPackaging.json`,
       `node ./node_modules/.bin/electron-installer-redhat --src ${buildDir}/ --dest ${outDir}/ --arch x86_64 --config res/linuxPackaging.json`].forEach(cmd=>{
