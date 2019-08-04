@@ -3,6 +3,7 @@ const electron = require('electron')
 const winctl = require("../index")
 const childProcess = require('child_process')
 const util = require('util')
+const path = require("path")
 const {execSync} = childProcess
 const exec = util.promisify(childProcess.exec)
 
