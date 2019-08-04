@@ -1,11 +1,40 @@
+diff --git a/chrome/browser/extensions/api/extension_action/extension_action_api.cc b/chrome/browser/extensions/api/extension_action/extension_action_api.cc
+index 1f2c8aa8225e..e7a52717f1f1 100644
+--- a/chrome/browser/extensions/api/extension_action/extension_action_api.cc
++++ b/chrome/browser/extensions/api/extension_action/extension_action_api.cc
+@@ -175,8 +175,8 @@ bool ExtensionActionAPI::ShowExtensionActionPopup(
+     return false;
+
+   // Don't support showing action popups in a popup window.
+-  if (!browser->SupportsWindowFeature(Browser::FEATURE_TOOLBAR))
+-    return false;
++  // if (!browser->SupportsWindowFeature(Browser::FEATURE_TOOLBAR))
++  //   return false;
+
+   ToolbarActionsBar* toolbar_actions_bar =
+       browser->window()->GetToolbarActionsBar();
+@@ -558,8 +558,11 @@ ExtensionFunction::ResponseAction BrowserActionOpenPopupFunction::Run() {
+   // Otherwise, try to open a popup in the active browser.
+   // TODO(justinlin): Remove toolbar check when http://crbug.com/308645 is
+   // fixed.
+-  if (!browser || !browser->window()->IsActive() ||
+-      !browser->window()->IsToolbarVisible() ||
++  if (
++    !browser
++    // || !browser->window()->IsActive()
++     ||
++      // !browser->window()->IsToolbarVisible() ||
+       !ExtensionActionAPI::Get(profile)->ShowExtensionActionPopup(
+           extension_.get(), browser, false)) {
+     return RespondNow(Error(kOpenPopupError));
 diff --git a/chrome/browser/extensions/api/tab_capture/tab_capture_api.cc b/chrome/browser/extensions/api/tab_capture/tab_capture_api.cc
 index cbeaa34fdf32..b34be614cbed 100644
 --- a/chrome/browser/extensions/api/tab_capture/tab_capture_api.cc
 +++ b/chrome/browser/extensions/api/tab_capture/tab_capture_api.cc
 @@ -244,18 +244,6 @@ ExtensionFunction::ResponseAction TabCaptureCaptureFunction::Run() {
- 
+
    const std::string& extension_id = extension()->id();
- 
+
 -  // Make sure either we have been granted permission to capture through an
 -  // extension icon click or our extension is whitelisted.
 -  if (!extension()->permissions_data()->HasAPIPermissionForTab(
@@ -20,7 +49,7 @@ index cbeaa34fdf32..b34be614cbed 100644
 -
    if (!OptionsSpecifyAudioOrVideo(params->options))
      return RespondNow(Error(kNoAudioOrVideo));
- 
+
 diff --git a/chrome/browser/ui/browser.cc b/chrome/browser/ui/browser.cc
 index bac1e524636c..43a6b72dc26a 100644
 --- a/chrome/browser/ui/browser.cc
@@ -35,14 +64,13 @@ index bac1e524636c..43a6b72dc26a 100644
    // current page can be shown when browsing a url that is not inside the app.
    // Note: Final determination of whether or not the toolbar is shown is made by
 diff --git a/chrome/browser/ui/browser_view_prefs.cc b/chrome/browser/ui/browser_view_prefs.cc
-index 95f077ae8ffd..a73a44d95fd5 100644
+index 95f077ae8ffd..0fa556219d1c 100644
 --- a/chrome/browser/ui/browser_view_prefs.cc
 +++ b/chrome/browser/ui/browser_view_prefs.cc
-@@ -34,18 +34,18 @@ void RegisterBrowserViewLocalPrefs(PrefRegistrySimple* registry) {
-
+@@ -35,16 +35,16 @@ void RegisterBrowserViewLocalPrefs(PrefRegistrySimple* registry) {
  void RegisterBrowserViewProfilePrefs(
      user_prefs::PrefRegistrySyncable* registry) {
--#if defined(OS_LINUX) && !defined(OS_CHROMEOS)
+ #if defined(OS_LINUX) && !defined(OS_CHROMEOS)
 -  bool custom_frame_pref_default = false;
 -#if defined(USE_X11)
 -  custom_frame_pref_default = ui::GetCustomFramePrefDefault();
@@ -51,7 +79,6 @@ index 95f077ae8ffd..a73a44d95fd5 100644
 -                                  ->GetPlatformProperties()
 -                                  .custom_frame_pref_default;
 -#endif
-+// #if defined(OS_LINUX) && !defined(OS_CHROMEOS)
 +//   bool custom_frame_pref_default = false;
 +// #if defined(USE_X11)
 +//   custom_frame_pref_default = ui::GetCustomFramePrefDefault();
@@ -62,12 +89,25 @@ index 95f077ae8ffd..a73a44d95fd5 100644
 +// #endif
    registry->RegisterBooleanPref(prefs::kUseCustomChromeFrame,
 -                                custom_frame_pref_default);
--#endif  // OS_LINUX && !OS_CHROMEOS
 +                                true);
-+// #endif  // OS_LINUX && !OS_CHROMEOS
+ #endif  // OS_LINUX && !OS_CHROMEOS
  }
 
- void MigrateBrowserTabStripPrefs(PrefService* prefs) {
+diff --git a/chrome/browser/ui/toolbar/toolbar_actions_bar.cc b/chrome/browser/ui/toolbar/toolbar_actions_bar.cc
+index 0aaa2e7367f1..4dc1deb7a659 100644
+--- a/chrome/browser/ui/toolbar/toolbar_actions_bar.cc
++++ b/chrome/browser/ui/toolbar/toolbar_actions_bar.cc
+@@ -377,7 +377,9 @@ void ToolbarActionsBar::Update() {
+ bool ToolbarActionsBar::ShowToolbarActionPopup(const std::string& action_id,
+                                                bool grant_active_tab) {
+   // Don't override another popup, and only show in the active window.
+-  if (popup_owner() || !browser_->window()->IsActive())
++  if (popup_owner()
++  // || !browser_->window()->IsActive()
++  )
+     return false;
+
+   ToolbarActionViewController* action = GetActionForId(action_id);
 diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
 index b7960cea1378..339aaca3be54 100644
 --- a/chrome/browser/ui/views/frame/browser_view.cc
@@ -306,7 +346,7 @@ index b09be07c0db0..4a5273e3c5f2 100644
 
  bool PermissionsData::UsesDefaultPolicyHostRestrictions() const {
 diff --git a/media/blink/multibuffer_data_source.cc b/media/blink/multibuffer_data_source.cc
-index f489e211c513..e5a82bfe3b4f 100644
+index f489e211c513..af861f59ca16 100644
 --- a/media/blink/multibuffer_data_source.cc
 +++ b/media/blink/multibuffer_data_source.cc
 @@ -22,7 +22,7 @@ namespace {
@@ -318,7 +358,7 @@ index f489e211c513..e5a82bfe3b4f 100644
 
  // If preload_ == METADATA, preloading size will be
  // shifted down this many bits. This shift turns
-@@ -50,7 +50,7 @@ const int64_t kMaxBitrate = 20 * 8 << 20;  // 20 Mbps.
+@@ -50,13 +50,13 @@ const int64_t kMaxBitrate = 20 * 8 << 20;  // 20 Mbps.
  const double kMaxPlaybackRate = 25.0;
 
  // Preload this many seconds of data by default.
@@ -326,7 +366,15 @@ index f489e211c513..e5a82bfe3b4f 100644
 +const int64_t kTargetSecondsBufferedAhead = 10 * 2000;
 
  // Keep this many seconds of data for going back by default.
- const int64_t kTargetSecondsBufferedBehind = 2;
+-const int64_t kTargetSecondsBufferedBehind = 2;
++const int64_t kTargetSecondsBufferedBehind = 2 * 5;
+
+ // Extra buffer accumulation speed, in terms of download buffer.
+-const int kSlowPreloadPercentage = 10;
++const int kSlowPreloadPercentage = 100;
+
+ // Update buffer sizes every 32 progress updates.
+ const int kUpdateBufferSizeFrequency = 32;
 diff --git a/ui/gfx/win/window_impl.cc b/ui/gfx/win/window_impl.cc
 index ed3ca9603bab..4375df5ff945 100644
 --- a/ui/gfx/win/window_impl.cc
@@ -417,7 +465,7 @@ index abde4d03cb3b..9b4e2ec4d20b 100644
 +    GetWindowText(hwnd(), window_title, base::size(window_title));
 +
 +    if((GetWindowLong(hwnd(), GWL_EXSTYLE) & WS_EX_RIGHT)){
-+      SetWindowLong(hwnd(), 0, 0 ); 
++      SetWindowLong(hwnd(), 0, 0 );
 +      return TRUE;
 +    }
 +  }

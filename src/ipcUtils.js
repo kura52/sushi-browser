@@ -2602,36 +2602,63 @@ ipcMain.on('delete-browser-view', (e, panelKey, tabKey)=>{
 // })
 //
 let wait = false
+const extUrlMapping = {}
 ipcMain.on('set-overlap-component', async (e, type, panelKey, tabKey, x, y, width, height, url) => {
   if(type != 'extension-popup') return
 
   console.log('set-overlap-component', x, y, width, height)
 
-  if(y != -1){
+  if(Browser.CUSTOM_CHROMIUM){
+    if(y != -1){
+      if(!url) return
 
-    for(let bw of BrowserWindow.getAllWindows()){
-      if(!bw.getTitle().includes('Sushi Browser')) continue
-      bw.webContents.send('set-overlap-component-open',panelKey, tabKey)
+      const panel = BrowserPanel.getBrowserPanel(panelKey)
+      panel.getBrowserView({tabKey}).webContents.focus()
+
+      const extId = url.split("/")[2]
+      extUrlMapping[panelKey + tabKey] = extId
+
+      Browser.cachedBgTargetUrl.get(extId).evaluate(()=>{
+        chrome.browserAction.openPopup(win => window.__popup_window__ = win)
+      })
+      e.returnValue = Math.random().toString()
     }
-
-    const win = BrowserWindow.fromWebContents(e.sender)
-    if(!win || win.isDestroyed()) return
-
-    const winBounds = win.getBounds()
-    // if(winBounds.x == -7 && winBounds.y == -7){
-    //   winBounds.x = 0
-    //   winBounds.y = 0
-    // }
-    const bounds = {
-      x: Math.round(x + winBounds.x), y:Math.round(y + winBounds.y),
-      width: Math.round(width), height: Math.round(height)
+    else{
+      const extId = extUrlMapping[panelKey + tabKey]
+      if(!extId) return
+      delete extUrlMapping[panelKey + tabKey]
+      Browser.cachedBgTargetUrl.get(extId).evaluate(()=>{
+        window.__popup_window__.window.close()
+      })
     }
-    const popupPanel = await Browser.showPopupPanel(panelKey, tabKey, bounds, url)
-
-    e.returnValue = popupPanel && popupPanel.id
   }
   else{
-    Browser.hidePopupPanel(panelKey, tabKey)
+    if(y != -1){
+
+      for(let bw of BrowserWindow.getAllWindows()){
+        if(!bw.getTitle().includes('Sushi Browser')) continue
+        bw.webContents.send('set-overlap-component-open',panelKey, tabKey)
+      }
+
+      const win = BrowserWindow.fromWebContents(e.sender)
+      if(!win || win.isDestroyed()) return
+
+      const winBounds = win.getBounds()
+      // if(winBounds.x == -7 && winBounds.y == -7){
+      //   winBounds.x = 0
+      //   winBounds.y = 0
+      // }
+      const bounds = {
+        x: Math.round(x + winBounds.x), y:Math.round(y + winBounds.y),
+        width: Math.round(width), height: Math.round(height)
+      }
+      const popupPanel = await Browser.showPopupPanel(panelKey, tabKey, bounds, url)
+
+      e.returnValue = popupPanel && popupPanel.id
+    }
+    else{
+      Browser.hidePopupPanel(panelKey, tabKey)
+    }
   }
 })
 

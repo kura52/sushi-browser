@@ -12,7 +12,7 @@ function getCurrentWindow(){
 async function getFocusedWebContents(needSelectedText,skipBuildInSearch,callback,retry=0){
   let cont
   if(!skipBuildInSearch){
-    console.log(2222,await webContents.getFocusedWebContents)
+    // console.log(2222,await webContents.getFocusedWebContents)
     const tmp = await webContents.getFocusedWebContents()
     if(tmp && !tmp.isDestroyed() /*&& !tmp.isBackgroundPage()*/ && !(/*tmp.tabValue().openerTabId == -1 && */ tmp.getURL().match(/^(chrome\-devtools)/))) { //@TODO ELECTRON
       if(tmp.hostWebContents2){

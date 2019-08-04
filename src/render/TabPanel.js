@@ -78,6 +78,14 @@ function diffArray(arr1, arr2) {
   return arr1.filter(e=>!arr2.includes(e))
 }
 
+function sameArray(arr1, arr2) {
+  if(arr1.length != arr2.length) return false
+  for(let i=0;i<arr1.length;i++){
+    if(arr1[i] != arr2[i]) return false
+  }
+  return true
+}
+
 ipc.on('update-mainstate',(e,key,val)=>{
   if(key == 'myHomepage' || key == 'newTabMode'){
     getNewTabPage()
@@ -676,8 +684,8 @@ export default class TabPanel extends Component {
           arr.splice(new_index, 0, arr.splice(old_index, 1)[0]);
           return arr
         }
-        const tabs = array_move(this.state.tabs, ind, toIndex).filter(x=>x)
-        if(diffArray(this.state.tabs, tabs).length) this.setState({tabs})
+        const tabs = array_move(this.state.tabs.slice(), ind, toIndex).filter(x=>x)
+        if(!sameArray(this.state.tabs, tabs)) this.setState({tabs})
       }
     }
     ipc.on('move-tab-from-moved',eventMoveTabFromMoved)
@@ -3860,7 +3868,7 @@ export default class TabPanel extends Component {
     console.log(changeInfo)
     if(changeInfo.active && tab.key != this.state.selectedTab){
       console.log("selected07",tab.key)
-      // this.setState({selectedTab: tab.key}) //@TODO
+      this.setState({selectedTab: tab.key}) //@TODO
     }
     if(changeInfo.pinned != (void 0)){
       tab.pin = changeInfo.pinned

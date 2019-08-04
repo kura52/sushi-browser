@@ -35,6 +35,12 @@ if(window.__started_){
   document.addEventListener('webkitfullscreenchange', fullscreenListener)
 
   setTimeout(()=>{
+
+    let mouseDowned = false;
+    document.addEventListener('mousedown',e=>{
+      if(e.button == 2) mouseDowned = true
+    },{passive: true, capture: true})
+
     document.addEventListener('contextmenu', e => {
       if(window.__no_skip_context_menu__){
         window.__no_skip_context_menu__ = false
@@ -44,6 +50,10 @@ if(window.__started_){
       e.preventDefault()
       e.stopImmediatePropagation()
       console.log(5555,e)
+
+      if(!mouseDowned) return
+      mouseDowned = true
+
       const target = e.target
       const linkURL = (target.closest('a') || target).href
       const isFrame = window.top != window

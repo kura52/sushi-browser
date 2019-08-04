@@ -22,22 +22,32 @@ const glob = require("glob")
 // Iwashi(Sardine)
 // Engawa(Flounder Fin)
 // Amaebi(Sweet Shrimp)
+// Geso(Squid arms)
+// Fugu(Blowfish)
+// Akamutsu(Rosy seabass)
 
-const BEFORE_CODE_NAME = 'Geso(Squid arms)'
-const CODE_NAME = 'Fugu(Blowfish)'
+const BEFORE_CODE_NAME = 'Fugu(Blowfish)'
+const CODE_NAME = 'Akamutsu(Rosy seabass)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.25.9"
+const NEXT_APP_VERSION = "0.26.0"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH = `Changed the sizing logic of popup window of Chrome extension.
-Fixed a bug that mouse gestures rarely work.
-Added feature to show bookmarks in address bar auto-completion. (issue #64)
-Fixed a bug that downloader display is not updated.`
+const CHANGE_ENGLISH =`Released Linux edition.
+Changed to pre-read videos until the end in custom chromium version. (except for stream videos)
+In custom chromium version, changed the chrome extension to display popup window of standard chrome.
+Update custom chromium to v76.
+Change session acquisition source at the time of first session restore.
+Fixed the bug of move and onActivated of chrome extension.
+Updated youtube-dl to 2019.08.02.`
 
-const CHANGE_JAPANESE = `Chrome拡張のpopup windowのサイズ設定ロジックを変更
-マウスジェスチャーが稀に動作しない不具合を修正
-アドレスバーのオートコンプリートにブックマークが表示されるように機能を追加 (issue #64)
-ダウンローダの表示更新が行われない不具合を修正`
+const CHANGE_JAPANESE = `Linux版をリリース
+custom chromium版でstream動画を除き、最後まで動画を先読みするように変更
+custom chromium版のchrome拡張のpopup windowをchrome標準のものを表示するように変更
+custom chromiumをv76に更新
+初回session復帰時のsession取得元を変更
+chrome拡張のmove,onActivatedの不具合を修正
+youtube-dlを2019.08.02にバージョンアップ
+`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

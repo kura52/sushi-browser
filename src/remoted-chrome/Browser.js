@@ -489,7 +489,8 @@ Or, please use the Chromium bundled version.`
       if(this.cachedBgTarget.has(target._targetId)) continue
 
       await this.modifyBackgroundPage(bgPage)
-      this.cachedBgTarget.set(target._targetId, [target, bgPage])
+      this.cachedBgTarget.add(target._targetId)
+      this.cachedBgTargetUrl.set(target.url().split("/")[2], bgPage)
     }
     setTimeout(()=>this.backGroundPageObserve(),5000)
   }
@@ -596,7 +597,8 @@ Or, please use the Chromium bundled version.`
     }
     this.bg = await bgTarget.page()
 
-    this.cachedBgTarget = new Map([[bgTarget._targetId,[bgTarget, this.bg]]])
+    this.cachedBgTarget = new Set([bgTarget._targetId])
+    this.cachedBgTargetUrl = new Map([[bgTarget.url().split("/")[2],this.bg]])
     await this.modifyBackgroundPage(this.bg)
 
     const extensions = await this.getExtensionInfos()
@@ -621,6 +623,7 @@ Or, please use the Chromium bundled version.`
 
         await this.modifyBackgroundPage(bgPage)
         this.cachedBgTarget.add(bgPage._targetId)
+        this.cachedBgTargetUrl.set(target.url().split("/")[2], bgPage)
         return
       }
 
@@ -649,7 +652,7 @@ Or, please use the Chromium bundled version.`
             this._pagePromises[tabId] = target.page()
           }catch(e){}
           if(this._pagePromises[tabId]) break
-          await new Promise(r => setTimeout(r, 100))
+          await new Promise(r => setTimeout(r, 300))
         }
       }
       else {

@@ -610,9 +610,11 @@ export default class BrowserPanel {
       const dim = this.cpWin.nativeWindow.dimensions()
       const {x,y} = DpiUtils.dipToScreenPoint(bounds.x, bounds.y)
 
-      const needMoveTopPanel = this.checkNeedMoveTop()
-      if(needMoveTopPanel){
-        for(const panel of needMoveTopPanel) panel.moveTopNativeWindow()
+      if(isLinux){
+        const needMoveTopPanel = this.checkNeedMoveTop()
+        if(needMoveTopPanel){
+          for(const panel of needMoveTopPanel) panel.moveTopNativeWindow()
+        }
       }
 
       DpiUtils.moveJust(this.cpWin.nativeWindow, x, y, dim.right - dim.left, dim.bottom - dim.top)

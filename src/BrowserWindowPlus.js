@@ -491,7 +491,13 @@ export default {
       winSetting = getSize(opt)
     }
     else{
-      saveState = (await savedState.find_sort_limit([{}],[{ created_at: -1 }],[1]))[0]
+      const saveStates = (await savedState.find_sort_limit([{}],[{ created_at: -1 }],[10]))
+      for(const ss of saveStates){
+        if(ss.wins[0].winState.left){
+          saveState = ss
+          break
+        }
+      }
       console.log(222112122,first, saveState && saveState.wins[0])
       if(saveState && first){
         setting = {...setting, ...saveState.wins[0]}
