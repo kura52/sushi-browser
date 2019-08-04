@@ -346,7 +346,7 @@ index b09be07c0db0..4a5273e3c5f2 100644
 
  bool PermissionsData::UsesDefaultPolicyHostRestrictions() const {
 diff --git a/media/blink/multibuffer_data_source.cc b/media/blink/multibuffer_data_source.cc
-index f489e211c513..af861f59ca16 100644
+index f489e211c513..7504ed1cfc20 100644
 --- a/media/blink/multibuffer_data_source.cc
 +++ b/media/blink/multibuffer_data_source.cc
 @@ -22,7 +22,7 @@ namespace {
@@ -354,27 +354,84 @@ index f489e211c513..af861f59ca16 100644
  const int64_t kMinBufferPreload = 2 << 20;  // 2 Mb
  // Maxmimum preload buffer.
 -const int64_t kMaxBufferPreload = 50 << 20;  // 50 Mb
-+const int64_t kMaxBufferPreload = (50 * 20) << 20;  // 50 Mb
++const int64_t kMaxBufferPreload = (50 * 21) << 20;  // 50 Mb
 
  // If preload_ == METADATA, preloading size will be
  // shifted down this many bits. This shift turns
-@@ -50,13 +50,13 @@ const int64_t kMaxBitrate = 20 * 8 << 20;  // 20 Mbps.
- const double kMaxPlaybackRate = 25.0;
+@@ -34,7 +34,7 @@ const int64_t kMetadataShift = 6;
 
- // Preload this many seconds of data by default.
--const int64_t kTargetSecondsBufferedAhead = 10;
-+const int64_t kTargetSecondsBufferedAhead = 10 * 2000;
+ // Preload this much extra, then stop preloading until we fall below the
+ // kTargetSecondsBufferedAhead.
+-const int64_t kPreloadHighExtra = 1 << 20;  // 1 Mb
++const int64_t kPreloadHighExtra = (1 * 1000) << 20;  // 1 Mb
 
- // Keep this many seconds of data for going back by default.
--const int64_t kTargetSecondsBufferedBehind = 2;
-+const int64_t kTargetSecondsBufferedBehind = 2 * 5;
+ // Default pin region size.
+ // Note that we go over this if preload is calculated high enough.
+@@ -142,6 +142,7 @@ MultibufferDataSource::MultibufferDataSource(
+       downloading_cb_(downloading_cb),
+       weak_factory_(this) {
+   weak_ptr_ = weak_factory_.GetWeakPtr();
++  fixed_preload_ = false;
+   DCHECK(host_);
+   DCHECK(downloading_cb_);
+   DCHECK(render_task_runner_->BelongsToCurrentThread());
+@@ -274,7 +275,8 @@ void MultibufferDataSource::OnRedirect(
+ void MultibufferDataSource::SetPreload(Preload preload) {
+   DVLOG(1) << __func__ << "(" << preload << ")";
+   DCHECK(render_task_runner_->BelongsToCurrentThread());
+-  preload_ = preload;
++  if(!fixed_preload_)
++    preload_ = preload;
+   UpdateBufferSizes();
+ }
 
- // Extra buffer accumulation speed, in terms of download buffer.
--const int kSlowPreloadPercentage = 10;
-+const int kSlowPreloadPercentage = 100;
+@@ -315,6 +317,7 @@ void MultibufferDataSource::MediaIsPlaying() {
+   media_has_played_ = true;
+   cancel_on_defer_ = false;
+   // Once we start playing, we need preloading.
++  fixed_preload_ = true;
+   preload_ = AUTO;
+   UpdateBufferSizes();
+ }
+@@ -747,21 +750,10 @@ void MultibufferDataSource::UpdateBufferSizes() {
+   // to be thrown away. Most of the time we pin a region that is larger than
+   // |buffer_size|, which only makes sense because most of the time, some of
+   // the data in pinned region is not present in the cache.
+-  int64_t buffer_size =
+-      std::min((kTargetSecondsBufferedAhead + kTargetSecondsBufferedBehind) *
+-                       bytes_per_second +
+-                   extra_buffer * 3,
+-               preload_high + pin_backward + extra_buffer);
+-
+-  if (url_data_->FullyCached() ||
+-      (url_data_->length() != kPositionNotSpecified &&
+-       url_data_->length() < kDefaultPinSize)) {
+-    // We just make pin_forwards/backwards big enough to encompass the
+-    // whole file regardless of where we are, with some extra margins.
+-    pin_forward = std::max(pin_forward, url_data_->length() * 2);
+-    pin_backward = std::max(pin_backward, url_data_->length() * 2);
+-    buffer_size = url_data_->length();
+-  }
++  int64_t buffer_size = url_data_->length();
++
++  pin_forward = std::max(pin_forward, url_data_->length() * 2);
++   pin_backward = std::max(pin_backward, url_data_->length() * 2);
 
- // Update buffer sizes every 32 progress updates.
- const int kUpdateBufferSizeFrequency = 32;
+   reader_->SetMaxBuffer(buffer_size);
+   reader_->SetPinRange(pin_backward, pin_forward);
+diff --git a/media/blink/multibuffer_data_source.h b/media/blink/multibuffer_data_source.h
+index 3befff25db30..96c1728efa81 100644
+--- a/media/blink/multibuffer_data_source.h
++++ b/media/blink/multibuffer_data_source.h
+@@ -250,6 +250,8 @@ class MEDIA_BLINK_EXPORT MultibufferDataSource : public DataSource {
+   // element.
+   Preload preload_;
+
++  bool fixed_preload_;
++
+   // Bitrate of the content, 0 if unknown.
+   int bitrate_;
+
 diff --git a/ui/gfx/win/window_impl.cc b/ui/gfx/win/window_impl.cc
 index ed3ca9603bab..4375df5ff945 100644
 --- a/ui/gfx/win/window_impl.cc
