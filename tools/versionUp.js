@@ -232,17 +232,17 @@ sizeAdd(htmls,app,sizeMap[app])
 // console.log(`- [MacOS Portable v${NEXT_APP_VERSION} (${sizeMap[app]})](https://sushib.me/dl/${app})`)
 // sizeAdd(htmls,app,sizeMap[app])
 //
-// app = `sushi-browser-${NEXT_APP_VERSION}.x86_64.rpm`
-// console.log(`- [Linux rpm (for Fedora/CentOS) v${NEXT_APP_VERSION} (${sizeMap[app]})](https://sushib.me/dl/${app})`)
-// sizeAdd(htmls,app,sizeMap[app])
-//
-// app = `sushi-browser_${NEXT_APP_VERSION}_amd64.deb`
-// console.log(`- [Linux deb (for Debian/Ubuntu) v${NEXT_APP_VERSION} (${sizeMap[app]})](https://sushib.me/dl/${app})`)
-// sizeAdd(htmls,app,sizeMap[app])
-//
-// app = `sushi-browser-${NEXT_APP_VERSION}.tar.bz2`
-// console.log(`- [Linux Portable v${NEXT_APP_VERSION} (${sizeMap[app]})](https://sushib.me/dl/${app})`)
-// sizeAdd(htmls,app,sizeMap[app])
+app = `sushi-browser-${NEXT_APP_VERSION}-1.x86_64.rpm`
+console.log(`- [Linux rpm (for Fedora/CentOS) v${NEXT_APP_VERSION} (${sizeMap[app]})](https://sushib.me/dl/${app})`)
+sizeAdd(htmls,app,sizeMap[app])
+
+app = `sushi-browser_${NEXT_APP_VERSION}_amd64.deb`
+console.log(`- [Linux deb (for Debian/Ubuntu) v${NEXT_APP_VERSION} (${sizeMap[app]})](https://sushib.me/dl/${app})`)
+sizeAdd(htmls,app,sizeMap[app])
+
+app = `sushi-browser-${NEXT_APP_VERSION}.tar.bz2`
+console.log(`- [Linux Portable v${NEXT_APP_VERSION} (${sizeMap[app]})](https://sushib.me/dl/${app})`)
+sizeAdd(htmls,app,sizeMap[app])
 
 
 

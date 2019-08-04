@@ -202,8 +202,11 @@ Puppeteer(ヘッドレスChromeでの自動化) APIと互換性のあるAPIを�
 
 各プラットフォームに対し、インストーラとポータブル版の両方がダウンロードできます。
 
-- [Windows Installer v0.25.9](https://sushib.me/dl/sushi-browser-0.25.9-setup-x64.exe)
-- [Windows Portable v0.25.9(Chromium同梱)](https://sushib.me/dl/sushi-browser-0.25.9-win-x64-chromium.zip)
-- [Windows Portable v0.25.9](https://sushib.me/dl/sushi-browser-0.25.9-win-x64.zip)
+- [Windows Installer v0.26.0](https://sushib.me/dl/sushi-browser-0.26.0-setup-x64.exe)
+- [Windows Portable v0.26.0(Chromium同梱)](https://sushib.me/dl/sushi-browser-0.26.0-win-x64-chromium.zip)
+- [Windows Portable v0.26.0](https://sushib.me/dl/sushi-browser-0.26.0-win-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.26.0](https://sushib.me/dl/sushi-browser-0.26.0-1.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.26.0](https://sushib.me/dl/sushi-browser_0.26.0_amd64.deb)
+- [Linux Portable v0.26.0](https://sushib.me/dl/sushi-browser-0.26.0.tar.bz2)
 
 ポータブル版の利用は、解凍後にWindowsはsushi.exeを、Mac/Linuxはsushi-browserを実行ください。
