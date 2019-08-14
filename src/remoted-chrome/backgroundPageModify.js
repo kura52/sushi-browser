@@ -238,6 +238,24 @@ export default (port, serverKey) => {
       return {Event, Event2}
     })(ipcRenderer);
 
+    // tabs
+    if(chrome.tabs){
+      chrome.tabs._update = chrome.tabs.update
+      chrome.tabs.update = (tabId, updateProperties, callback) => {
+        chrome.tabs._update(tabId, updateProperties, callback)
+        if(tabId == null) updateProperties = tabId
+        if(updateProperties.active || updateProperties.highlighted || updateProperties.selected){
+          if(tabId){
+            ipcRenderer.send('chrome-tabs-update-active', tabId)
+          }
+          else{
+            chrome.tabs.query({active:true, windowId: -2},(tabs) => {
+              ipcRenderer.send('chrome-tabs-update-active', tabs[0].id)
+            })
+          }
+        }
+      }
+    }
 
     // browser-action
     if(chrome.browserAction){

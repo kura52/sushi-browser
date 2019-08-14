@@ -206,14 +206,16 @@ if(window.__started_){
 
 
     document.addEventListener('mouseleave',e=>{
-      ipc.send('send-to-host', 'webview-mousemove', {clientY: e.clientY, screenY: e.screenY})
+      ipc.send('send-to-host', 'webview-mousemove', {clientY: e.clientY, screenY: e.screenY,
+        activeText: document.activeElement.tagName == 'INPUT' && document.activeElement.type == 'text'})
     })
 
     let preClientY = -1, checkVideoEvent = {}, beforeRemoveIds = {}
     document.addEventListener('mousemove',e=>{
       // console.log('mousemove')
       if(preClientY != e.clientY){
-        ipc.send('send-to-host', 'webview-mousemove', {clientY: e.clientY, screenY: e.screenY})
+        ipc.send('send-to-host', 'webview-mousemove', {clientY: e.clientY, screenY: e.screenY,
+          activeText: document.activeElement.tagName == 'INPUT' && document.activeElement.type == 'text'})
         // console.log('webview-mousemove', e.clientY)
         preClientY = e.clientY
       }

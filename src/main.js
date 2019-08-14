@@ -53,7 +53,7 @@ function changePortable(folder){
 
   if(databaseForked){
     if(isDarwin){
-      app.dock.hide()
+      app && app.dock.hide()
     }
     // app.setPath('userData', app.getPath('userData').replace('Electron','sushiBrowserDB').replace('sushi-browser','sushiBrowserDB'))
     // changePortable('db')

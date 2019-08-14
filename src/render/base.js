@@ -56,9 +56,14 @@ export default class MainContent extends Component{
     this.h = h
   }
 
-  handleMouseMove(e, visibleRepeat){
+  handleMouseMove(e, isHost){
     // console.log('mousemove',e)
-    if(document.getElementsByClassName('visible transition').length){
+    if(isDarwin && isHost && ! this.activeText && e.target.className != 'browser-page'){
+      clearTimeout(this.changeViewZIndexId)
+      console.log(e.target.className)
+      ipc.send('change-browser-view-z-index', true)
+    }
+    else if(document.getElementsByClassName('visible transition').length){
       clearTimeout(this.changeViewZIndexId)
       ipc.send('change-browser-view-z-index', true)
       // if(this.menuVisible) clearInterval(this.menuVisible)
@@ -98,7 +103,6 @@ export default class MainContent extends Component{
       // ipc.send('change-browser-view-z-index', e.target.className !== 'browser-page' && !e.target.dataset.webview)
 
     }
-    if(visibleRepeat) return
 
     // if(e.target.classList.contains('rdTabBar')){
     //   ipc.send('drag-window', {flag: true, x:e.clientX, y:e.clientY})
@@ -221,11 +225,11 @@ export default class MainContent extends Component{
 
     window.addEventListener('resize', ::this.handleResize,{ passive: true })
 
-
-    document.addEventListener('mousemove',this.handleMouseMove,{passive: true})
+    document.addEventListener('mousemove',e=> this.handleMouseMove(e, true),{passive: true})
     // if(sharedState.hoverBookmarkBar || sharedState.hoverStatusBar) {
     this.tokenMouseMove = PubSub.subscribe('webview-mousemove',(msg,e)=>{
-      this.handleMouseMove(e)
+      this.activeText = e.activeText
+      this.handleMouseMove(e, false)
     })
     // }
 

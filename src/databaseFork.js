@@ -53,12 +53,12 @@ emptyPort((err,ports)=>{
   ipcMain.once('get-port',()=>ipcMain.emit('get-port-reply', null, ports[1], key))
 
   sock.bind(ports[0],'127.0.0.1')
-  if(isDarwin){
-    global.__CHILD__ = childProcess.exec(path.join(__dirname,'../../../MacOS/sushi-browser'))
-  }
-  else{
-    fork(app.getPath('userData'))
-  }
+  // if(isDarwin){
+  //   global.__CHILD__ = childProcess.exec(path.join(__dirname,'../../../MacOS/sushi-browser'))
+  // }
+  // else{
+     fork(app.getPath('userData'))
+  // }
 },2)
 
 function regToStr(obj){

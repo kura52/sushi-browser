@@ -1472,12 +1472,12 @@ class Tabs extends React.Component {
                 const win = remote.getCurrentWindow()
                 if(win._isFullScreen){}
                 else if(require('../../MenuOperation').windowIsMaximized()){
-                  // win.unmaximize()
-                  if(win.nativeWindow.hidePanel) return
+                  win.unmaximize()
+                  // if(win.nativeWindow.hidePanel) return
                   win.nativeWindow.showWindow(9)
                 }
                 else{
-                  // win.maximize()
+                  win.maximize()
                   win.nativeWindow.showWindow(3)
                 }
               }: null}

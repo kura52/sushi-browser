@@ -1820,6 +1820,13 @@ const isWin = navigator.userAgent.includes('Windows')
           <span className="toggle-label">{l10n.translation("circulateTabSelection")}</span>
         </div>
 
+        <div className='spacer2'/>
+
+        {isWin ? <div className="field">
+          <Checkbox defaultChecked={this.state.scrollInactiveWindows} toggle onChange={this.onChange.bind(this,'scrollInactiveWindows')}/>
+          <span className="toggle-label">Enable inactive window scrolling even when "scroll inactive windows when hovering over them" is disabled.</span>
+        </div> : null}
+
         <Divider/>
 
         <h4 style={{marginTop:0, marginBottom: 20}}>{l10n.translation('tabFocusLabel')}</h4>
@@ -2897,7 +2904,7 @@ const isWin = navigator.userAgent.includes('Windows')
     ,'emailSync','syncGeneralSettings','syncBookmarks','syncBrowsingHistory','syncSessionTools','syncFavicons','syncDownloadHistory','syncAutomation','syncNote','syncPassword','rockerGestureLeft','rockerGestureRight','inputHistory','inputHistoryMaxChar',
     'regexClickVideo','regexDbClickVideo','regexWheelMinusVideo','regexShiftWheelMinusVideo','regexCtrlWheelMinusVideo','regexShiftCtrlWheelMinusVideo','regexKeyVideoPlayOrPause',
     'regexKeyVideoFrameStep','regexKeyVideoFrameBackStep','regexKeyVideoRewind1','regexKeyVideoRewind2','regexKeyVideoRewind3','regexKeyVideoForward1','regexKeyVideoForward2','regexKeyVideoForward3','regexKeyVideoNormalSpeed','regexKeyVideoHalveSpeed','regexKeyVideoDoubleSpeed',
-    'regexKeyVideoDecSpeed','regexKeyVideoIncSpeed','regexKeyVideoFullscreen','regexKeyVideoExitFullscreen','regexKeyVideoMute','regexKeyVideoDecreaseVolume','regexKeyVideoIncreaseVolume','regexKeyVideoPlRepeat', 'isCustomChromium'])
+    'regexKeyVideoDecSpeed','regexKeyVideoIncSpeed','regexKeyVideoFullscreen','regexKeyVideoExitFullscreen','regexKeyVideoMute','regexKeyVideoDecreaseVolume','regexKeyVideoIncreaseVolume','regexKeyVideoPlRepeat', 'isCustomChromium', 'scrollInactiveWindows'])
   ipc.once(`get-main-state-reply_${key}`,async (e,data)=>{
     generalDefault = data
     keyboardDefault = data

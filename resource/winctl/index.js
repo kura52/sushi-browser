@@ -1,9 +1,7 @@
 'use strict';
 
-if(process.platform == 'linux'){
-	module.exports = require('./linux')
-	return
-}
+if(process.platform == 'linux') return module.exports = require('./linux')
+if(process.platform == 'darwin') return module.exports = require('./mac')
 
 var winctl = require('bindings')('winctl');
 

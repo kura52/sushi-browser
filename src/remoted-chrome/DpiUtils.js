@@ -1,3 +1,4 @@
+const isDarwin = process.platform === 'darwin'
 let screen, isHighDpi, Browser, BrowserPanel
 
 require('electron').app.once('ready', ()=>{
@@ -33,12 +34,25 @@ async function move(win,x,y,width,height){
 
 export default {
   dimensions(win){
-    const dim = win.dimensions()
-    if(!isHighDpi) return dim
+    if(isDarwin){
+      return (async ()=>{
+        const dim = await win.dimensions()
+        return dim
+        // if(!isHighDpi) return dim
+        //
+        // const rect = screen.screenToDipRect(null,
+        //   {x:dim.left,y:dim.top,width:dim.right - dim.left,height:dim.bottom - dim.top})
+        // return {left:rect.x, top:rect.y, right: rect.x + rect.width, bottom: rect.y + rect.height}
+      })()
+    }
+    else{
+      const dim = win.dimensions()
+      if(!isHighDpi) return dim
 
-    const rect = screen.screenToDipRect(null,
-      {x:dim.left,y:dim.top,width:dim.right - dim.left,height:dim.bottom - dim.top})
-    return {left:rect.x, top:rect.y, right: rect.x + rect.width, bottom: rect.y + rect.height}
+      const rect = screen.screenToDipRect(null,
+        {x:dim.left,y:dim.top,width:dim.right - dim.left,height:dim.bottom - dim.top})
+      return {left:rect.x, top:rect.y, right: rect.x + rect.width, bottom: rect.y + rect.height}
+    }
   },
   move(win,x,y,width,height){
     // console.log('move', x,y,width,height)

@@ -28,6 +28,7 @@ const youtubedl = require('youtube-dl')
 import {getFocusedWebContents,getCurrentWindow} from './util'
 const isWin = process.platform == 'win32'
 const isLinux = process.platform === 'linux'
+const isDarwin = process.platform === 'darwin'
 const meiryo = isWin && Intl.NumberFormat().resolvedOptions().locale == 'ja'
 import mainState from './mainState'
 import extensionInfos from "./extensionInfos";
@@ -2391,12 +2392,12 @@ ipcMain.on('main-state-op',(e,op,name,key,val)=>{
   }
 })
 
-ipcMain.on('create-browser-view', async (e, panelKey, tabKey, x, y, width, height, zIndex, src, webContents, index)=>{
-  console.log('create-browser-view', panelKey, tabKey, x, y, width, height, zIndex, src, webContents, index)
+ipcMain.on('create-browser-view', async (e, panelKey, tabKey, x, y, width, height, zIndex, src, webContents, index, acitve)=>{
+  console.log('create-browser-view', panelKey, tabKey, x, y, width, height, zIndex, src, webContents, index, acitve)
 
   let view
   if(panelKey){
-    view = await BrowserView.createNewTab(BrowserWindow.fromWebContents(e.sender), panelKey, tabKey, index, src)
+    view = await BrowserView.createNewTab(BrowserWindow.fromWebContents(e.sender), panelKey, tabKey, index, src, acitve)
   }
   else{
     view = await BrowserView.newTab(webContents)
@@ -2670,7 +2671,7 @@ ipcMain.on('change-browser-view-z-index', (e, isFrame, panelKey) =>{
   if(isFrame){
     ipcMain.emit('top-to-browser-window', win.id)
   }
-  else if(isLinux && panelKey){
+  else if(!isWin && panelKey){
     const panel = BrowserPanel.getBrowserPanel(panelKey)
     if(panel.browserWindow.isFocused()) panel.cpWin.nativeWindow.setForegroundWindowEx()
   }
@@ -2724,6 +2725,17 @@ ipcMain.on('send-to-host', (e, ...args)=>{
     return
   }
   hostCont.send(`send-to-host_${e.sender.id}`, ...args)
+  if(isDarwin && args[0] == 'webview-mousedown'){
+    const datas = BrowserPanel.getBrowserPanelByTabId(e.sender.id)
+    if(datas[2]){
+      const panel = datas[2]
+      Browser.bg.evaluate((windowId) => {
+        return new Promise(resolve => {
+          chrome.windows.update(windowId, {focused: true}, () => resolve())
+        })
+      }, panel.windowId)
+    }
+  }
 })
 
 ipcMain.on('send-to-webContents', (e, tabId, name,...args)=>{

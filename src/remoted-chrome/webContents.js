@@ -1030,7 +1030,7 @@ export default class webContents extends EventEmitter {
       return
     }
 
-    const dim = DpiUtils.dimensions(panel.cpWin.nativeWindow)
+    const dim = await DpiUtils.dimensions(panel.cpWin.nativeWindow)
     const width = dim.right - dim.left
 
     const url = page.url()

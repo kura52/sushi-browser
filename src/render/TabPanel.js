@@ -381,9 +381,17 @@ export default class TabPanel extends Component {
         history: [],
         tabKeys: []
       }
-      this.state.selectedTab = this.state.tabs[0].key
+      const selectedTab = this.state.tabs[0]
+      this.state.selectedTab = selectedTab.key
       this.state.selectedKeys = [this.state.selectedTab]
       sharedState.allSelectedkeys.add(this.state.selectedTab)
+
+
+      if(selectedTab.wvId == global.lastMouseDown[1]){
+        global.lastMouseDown = [[...document.querySelectorAll('.split-window')].find(e=>e.classList.length == 1),
+          selectedTab.wvId, this.props.k]
+        console.log(888,global.lastMouseDown)
+      }
 
       this.focus_webview(this.state.tabs[0],false)
       this.props.child[0] = this

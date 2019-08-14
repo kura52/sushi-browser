@@ -15,12 +15,16 @@ import mainState from "../mainState";
 import DpiUtils from './DpiUtils'
 const isWin = process.platform == 'win32'
 const isLinux = process.platform === 'linux'
+const isDarwin = process.platform === 'darwin'
 const isWin7 = os.platform() == 'win32' && os.release().startsWith('6.1')
 const isWin10 = os.platform() == 'win32' && os.release().startsWith('10')
 
 const CUSTOM_CHROMIUM_PATH = isLinux ?
-  path.join(__dirname, '../../../../custom_chromium/chrome') :
-  path.join(__dirname, '../../../../custom_chromium/chrome.exe')
+    path.join(__dirname, '../../../../custom_chromium/chrome') :
+    isWin ? path.join(__dirname, '../../../../custom_chromium/chrome.exe'):
+        path.join(__dirname, '../../../../custom_chromium/Chromium.app/Contents/MacOS/Chromium')
+
+console.log(CUSTOM_CHROMIUM_PATH,990)
 
 function search(obj,messages){
   if(Array.isArray(obj)){
@@ -208,7 +212,8 @@ Or, please use the Chromium bundled version.`
       for(const browserPanel of Object.values(BrowserPanel.panelKeys)){
         if(browserPanel.browserWindow && browserPanel.browserWindow.id == browserWindowId){
           if(eventName == 'focus'){
-            console.log('moveTopNativeWindow+bW1')
+            console.log('moveTopNativeWindow+bW1',this.focusedWindowId,this.focusedWindowIdPre)
+            if(!isWin && this.focusedWindowIdPre && this.focusedWindowIdPre != -1) return
             setTimeout(()=>{
               browserPanel.moveTopNativeWindow()
               browserPanel.moveTopNativeWindowBw()
@@ -253,7 +258,7 @@ Or, please use the Chromium bundled version.`
       for(const browserPanel of Object.values(BrowserPanel.panelKeys)){
         if(browserPanel.browserWindow.id == bwWinId){
           if(browserPanel.cpWin.nativeWindowBw.getHwnd() == hwnd || browserPanel.cpWin.chromeNativeWindow.getHwnd() == hwnd || winctl.WindowFromPoint2() == hwnd){
-            if(isLinux){
+            if(!isWin){
               browserPanel.browserWindow.focus()
             }
             else{
@@ -290,7 +295,7 @@ Or, please use the Chromium bundled version.`
       else if(!enabled && browserPanel.browserWindow._fullscreen){
         if(delay > 0) await new Promise(r=>setTimeout(r,delay))
         browserPanel.cpWin.chromeNativeWindow.setParent(browserPanel.cpWin.nativeWindow.getHwnd())
-        const dim = DpiUtils.dimensions(browserPanel.cpWin.nativeWindow)
+        const dim = await DpiUtils.dimensions(browserPanel.cpWin.nativeWindow)
         DpiUtils.moveForChildWindow(browserPanel.cpWin.chromeNativeWindow,...BrowserPanel.getChromeWindowBoundArray(dim.right - dim.left, dim.bottom - dim.top),dim.left,dim.top)
         browserPanel.browserWindow._fullscreen = false
       }
@@ -320,6 +325,11 @@ Or, please use the Chromium bundled version.`
       if(panel){
         Browser.bg.evaluate((windowId) => chrome.windows.remove(windowId), panel.windowId)
       }
+    })
+
+    ipcMain.on('chrome-tabs-update-active', (e,tabId) => {
+      const cont = webContents.fromId(tabId)
+      if(cont && cont.hostWebContents2) cont.hostWebContents2.send('chrome-tabs-event',{tabId, changeInfo: {active: true}}, 'updated')
     })
 
     this.addExtensionEvents()
@@ -352,6 +362,8 @@ Or, please use the Chromium bundled version.`
   }
 
   static async winScollEventHandler(){
+    if(!mainState.scrollInactiveWindows) return
+
     const Registry = require('winreg')
     const regKey = new Registry({hive: Registry.HKCU, key: '\\Control Panel\\Desktop'}) //HKEY_CURRENT_USER
     let mouseWheelRouting = await new Promise(resolve => {
@@ -552,6 +564,8 @@ Or, please use the Chromium bundled version.`
 
   static onFocusChanged(){
     evem.on('windows.focusChanged', async windowId => {
+      this.focusedWindowId = windowId
+      setTimeout(()=>this.focusedWindowIdPre = windowId,100)
       if(winctl.moveTopTime && Date.now() - winctl.moveTopTime < 500) return
       console.log('windows.focusChanged', windowId)
       if(windowId == -1) return
@@ -871,36 +885,36 @@ Or, please use the Chromium bundled version.`
       if(cont && cont.hostWebContents2) cont.hostWebContents2.send('chrome-tabs-event',{tabId, changeInfo}, 'updated')
     })
 
-    this.addListener('tabs', 'onActivated', (activeInfo)=>{
-      if(PopupPanel.tabId == activeInfo.tabId || this.popUpCache[activeInfo.tabId]) return
-      if (this.disableOnActivated.size && this.disableOnActivated.has(BrowserPanel.getBrowserPanelByTabId(activeInfo.tabId)[2].browserWindow.id)) {
-        return
-      }
-
-      const cont = webContents.fromId(activeInfo.tabId)
-
-      const [_1, _2, panel, _3] = BrowserPanel.getBrowserPanelByTabId(activeInfo.tabId)
-      // console.log(await bv.webContents.viewport())
-      const modify = cont.getURL() == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? 37 : 0
-      if(!Browser.CUSTOM_CHROMIUM && panel && panel.bounds) cont.setViewport({width:panel.bounds.width, height: panel.bounds.height - modify})
-
-      const now = Date.now()
-      const activedIds = []
-      let shouldChange = true
-
-      for(const x of webContents.activedIds){
-        if(now - x[1] < 120){
-          if(shouldChange && activeInfo.tabId == x[0])
-            shouldChange = false
-          else
-            activedIds.push(x)
-        }
-      }
-      webContents.activedIds = activedIds
-
-      // console.log(activeInfo, cont.hostWebContents2)
-      if(shouldChange && cont && cont.hostWebContents2) cont.hostWebContents2.send('chrome-tabs-event',{tabId: activeInfo.tabId, changeInfo: {active: true}}, 'updated')
-    })
+    // this.addListener('tabs', 'onActivated', (activeInfo)=>{
+    //   if(PopupPanel.tabId == activeInfo.tabId || this.popUpCache[activeInfo.tabId]) return
+    //   if (this.disableOnActivated.size && this.disableOnActivated.has(BrowserPanel.getBrowserPanelByTabId(activeInfo.tabId)[2].browserWindow.id)) {
+    //     return
+    //   }
+    //
+    //   const cont = webContents.fromId(activeInfo.tabId)
+    //
+    //   const [_1, _2, panel, _3] = BrowserPanel.getBrowserPanelByTabId(activeInfo.tabId)
+    //   // console.log(await bv.webContents.viewport())
+    //   const modify = cont.getURL() == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? 37 : 0
+    //   if(!Browser.CUSTOM_CHROMIUM && panel && panel.bounds) cont.setViewport({width:panel.bounds.width, height: panel.bounds.height - modify})
+    //
+    //   const now = Date.now()
+    //   const activedIds = []
+    //   let shouldChange = true
+    //
+    //   for(const x of webContents.activedIds){
+    //     if(now - x[1] < 120){
+    //       if(shouldChange && activeInfo.tabId == x[0])
+    //         shouldChange = false
+    //       else
+    //         activedIds.push(x)
+    //     }
+    //   }
+    //   webContents.activedIds = activedIds
+    //
+    //   // console.log(activeInfo, cont.hostWebContents2)
+    //   if(shouldChange && cont && cont.hostWebContents2) cont.hostWebContents2.send('chrome-tabs-event',{tabId: activeInfo.tabId, changeInfo: {active: true}}, 'updated')
+    // })
 
     this.addListener('tabs', 'onRemoved', (removedTabId, removeInfo) => {
       if(PopupPanel.tabId == removedTabId || this.popUpCache[removedTabId]) return
@@ -1428,8 +1442,10 @@ class PopupPanel{
     else {
       this._bounds.x = bounds.x
       this._bounds.y = bounds.y
-      const dim = DpiUtils.dimensions(this.nativeWindow)
-      DpiUtils.move(this.nativeWindow,bounds.x, bounds.y, dim.right - dim.left, dim.bottom - dim.top)
+      ;(async ()=>{
+        const dim = await DpiUtils.dimensions(this.nativeWindow)
+        DpiUtils.move(this.nativeWindow,bounds.x, bounds.y, dim.right - dim.left, dim.bottom - dim.top)
+      })()
     }
   }
 

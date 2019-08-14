@@ -33,13 +33,6 @@ ipcMain.setMaxListeners(0)
 
 sharedState.extensionMenu = {}
 
-// setInterval(()=>{
-//   console.log({
-//     main: process.pid,
-//     render: require('electron').webContents.getAllWebContents().map(w=>w.getOSProcessId())
-//   })
-// },3000)
-
 // require('./chrome-extension')
 
 function exec(command) {
@@ -298,7 +291,13 @@ const appReady = ()=>{
 
 
 const gotTheLock = app.requestSingleInstanceLock()
-const killPromise = killRemainProcess()
+let killPromise
+if(isDarwin){
+  killPromise = Promise.resolve(false)
+}
+else{
+  killPromise = killRemainProcess()
+}
 
 console.log('gotTheLock', gotTheLock)
 if (!gotTheLock) {
@@ -526,96 +525,6 @@ ipcMain.on('web-contents-created', (e, tab) => {
       source.hostWebContents2.send('create-web-contents', { id, targetUrl, disposition, guestInstanceId: _webContents && _webContents.id})
   })
 
-  // tab.on('will-attach-webview',(e, cont)=>{
-  //   debugger
-  //   e.sender.send('will-attach-webview')
-  // })
-
-  tab.on('devtools-opened', ()=>{
-    if(!tab.executeJavascriptInDevTools) return
-    tab.executeJavascriptInDevTools(`(async function(){
-  window.InspectorFrontendHost.showContextMenuAtPoint = (x, y, items)=>{
-    const convertToMenuTemplate = function (items) {
-      return items.map(function (item) {
-        const transformed = item.type === 'subMenu' ? {
-          type: 'submenu',
-          label: item.label,
-          enabled: item.enabled,
-          submenu: convertToMenuTemplate(item.subItems)
-        } : item.type === 'separator' ? {
-          type: 'separator'
-        } : item.type === 'checkbox' ? {
-          type: 'checkbox',
-          label: item.label,
-          enabled: item.enabled,
-          checked: item.checked
-        } : {
-          type: 'normal',
-          label: item.label,
-          enabled: item.enabled
-        }
-        if(item.id) transformed.id = item.id
-        return transformed
-      })
-    }
-
-    const useEditMenuItems = function (x, y, items) {
-      return items.length === 0 && document.elementsFromPoint(x, y).some(function (element) {
-        return element.nodeName === 'INPUT' || element.nodeName === 'TEXTAREA' || element.isContentEditable
-      })
-    }
-
-    let template = convertToMenuTemplate(items)
-    if (useEditMenuItems(x, y, template)) {
-      template = []
-    }
-    else if(!items.length){
-      return window.DevToolsAPI.contextMenuCleared()
-    }
-    let context = UI.context.flavor(SDK.ExecutionContext)
-    if(context.origin != "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd" && context.origin != "chrome://brave"){
-      context = [...context.runtimeModel._executionContextById].sort((a,b)=> a[0] - b[0]).find(x=>x[1].origin == "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd")[1]
-    }
-    context.evaluate({expression: \`chrome.ipcRenderer.send('devTools-contextMenu-open',\${JSON.stringify(template)},\${x},\${y})\`},false)
-  }
-  
-  let closeButton
-  for(let i=0;i<100;i++){
-    await new Promise(r=>{
-      setTimeout(_=>{
-        closeButton = document.querySelector(".insertion-point-main").shadowRoot.querySelector(".tabbed-pane-right-toolbar").shadowRoot.querySelector('.toolbar-button.toolbar-item.toolbar-has-glyph.hidden')
-        r()
-      },100)
-    })
-    if(closeButton){
-      closeButton.classList.remove('hidden')
-      closeButton.addEventListener('mousedown',e=>{
-        let context = UI.context.flavor(SDK.ExecutionContext)
-        if(context.origin != "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd" && context.origin != "chrome://brave"){
-          context = [...context.runtimeModel._executionContextById].sort((a,b)=> a[0] - b[0]).find(x=>x[1].origin == "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd")[1]
-        }
-        context.evaluate({expression: "chrome.ipcRenderer.send('send-to-host', 'devTools-close')"},false)
-      })
-
-      const dockButton = document.createElement('button')
-      dockButton.className = 'toolbar-button toolbar-item toolbar-has-glyph toolbar-state-off'
-      dockButton.setAttribute('aria-label','Undock into separate window')
-      dockButton.innerHTML = \`<span is="ui-icon" class="toolbar-glyph spritesheet-largeicons largeicon-undock icon-mask" style="--spritesheet-position:-168px 24px; width: 28px; height: 24px;"></span><div is="" class="toolbar-text hidden"></div>\`
-      closeButton.parentElement.insertBefore(dockButton,closeButton)
-
-      dockButton.addEventListener('mousedown',e=>{
-        let context = UI.context.flavor(SDK.ExecutionContext)
-        if(context.origin != "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd" && context.origin != "chrome://brave"){
-          context = [...context.runtimeModel._executionContextById].sort((a,b)=> a[0] - b[0]).find(x=>x[1].origin == "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd")[1]
-        }
-        context.evaluate({expression: "chrome.ipcRenderer.send('send-to-host', 'devTools-dock')"},false)
-      })
-
-      break
-    }
-  }
-}());`)
-  })
 
   setTimeout(()=>{
 
@@ -670,57 +579,6 @@ ipcMain.on('web-contents-created', (e, tab) => {
   },0)
 
 
-  // tab.on('did-get-response-details', (e, status, newURL, originalURL, httpResponseCode, requestMethod, referrer, headers, resourceType) => {
-  //   const contType = headers['content-type']
-  //   console.log(contType[0])
-  //
-  //   const matchNormal = contType && contType[0].match(RegNormal)
-  //   if(!matchNormal && ((contType && contType[0].match(RegForDL)) || newURL.match(RegForDLExt))){
-  //     // console.log(6755,contType && contType[0],newURL,tab.getURL())
-  //     const url = tab.getURL()
-  //     const map = cache.get(url)
-  //     if(map){
-  //       map[newURL] = contType && contType[0]
-  //     }
-  //     else{
-  //       cache.set(url,{[newURL]:contType && contType[0]})
-  //     }
-  //   }
-  //
-  //   if(!contType || matchNormal || contType[0].startsWith('image')) return
-  //
-  //   let record,ret,parseUrl
-  //   if(ret = (contType[0].match(RegRichMedia))){
-  //     let len = headers['content-length']
-  //     len = len ? len[0] : null
-  //     parseUrl = url.parse(newURL)
-  //     const pathname = parseUrl.pathname
-  //     const ind = pathname.lastIndexOf('/')
-  //     record = {tabId,type:ret[0],contType,size:len,url:newURL,fname: pathname.slice(ind+1)}
-  //   }
-  //   else{
-  //     let len = headers['content-length']
-  //     len = len ? len[0] : null
-  //     parseUrl = url.parse(newURL)
-  //     const pathname = parseUrl.pathname
-  //     let type
-  //     if(ret = (pathname && (type = mime.getType(pathname)) && type.match(RegRichMedia))){
-  //       const ind = pathname.lastIndexOf('/')
-  //       record = {tabId,type:ret[0],contType,size:len,url:newURL,fname: pathname.slice(ind+1)}
-  //     }
-  //   }
-  //
-  //   if(record){
-  //     let cont
-  //     for(let w of BrowserWindow.getAllWindows()){
-  //       if(w.getTitle().includes('Sushi Browser')){
-  //         cont = w.webContents
-  //         cont.send("did-get-response-details",record)
-  //       }
-  //     }
-  //   }
-  // })
-
 })
 
 // app.on('certificate-error', function(event, webContents, url, error, certificate, callback) {
@@ -736,104 +594,6 @@ process.on('open-url-from-tab', (e, source, targetUrl, disposition) => {
   source.hostWebContents2 && source.hostWebContents2.send('create-web-contents',{id:source.id,targetUrl,disposition})
 })
 
-// let recentUrl = []
-// let addContents
-// ipcMain.on("set-recent-url",(e,url)=>recentUrl.push(url))
-
-// process.on("should-create-web-contents",(e,source, windowContainerType, frameName, targetUrl, partitionId)=>{
-//   console.log("should-create-web-contents", windowContainerType, frameName, targetUrl, partitionId)
-//   recentUrl.push(targetUrl)
-// })
-//
-// process.on('add-new-contents', async (e, source, newTab, disposition, size, userGesture) => {
-//   if(mainState.alwaysOpenLinkBackground) disposition = 'background-tab'
-//   console.log('add-new-contents', e, source.getURL(), newTab.guestInstanceId, newTab.getURL(), disposition, size, userGesture)
-//   // if (newTab.isBackgroundPage()) { @TODO ELECTRON
-//   //   if (newTab.isDevToolsOpened()) {
-//   //     newTab.devToolsWebContents.focus()
-//   //   } else {
-//   //     newTab.toggleDevTools()
-//   //   }
-//   //   return
-//   // }
-//
-//   const targetUrl = recentUrl.shift()
-//   console.log('add-new-contents', newTab.guestInstanceId);
-//   // eval(locus)
-//   // console.log(tabEvent)
-//   // if(newTab.guestInstanceId && tabEvent.windowId !== -1){
-//   //   const win = BrowserWindow.fromId(tabEvent.windowId)
-//   //   // win.webContents.send("close-tab-from-other-window-clone",{key:tabEvent.key, id:source.id,targetUrl,disposition,guestInstanceId: newTab.guestInstanceId})
-//   //   tabEvent.windowId = -1
-//   //   return
-//   // }
-//
-//   ipcMain.emit('chrome-webNavigation-onCreatedNavigationTarget',null,{
-//     tabId: newTab.id,
-//     url: targetUrl,
-//     processId: -1,
-//     sourceTabId: source.id,
-//     sourceFrameId: 0,
-//     sourceProcessId: -1,
-//     timeStamp: Date.now()
-//   })
-//
-//   console.log(disposition)
-//   if ((disposition === 'new-window' || disposition === 'new-popup') && mainState.generalWindowOpenLabel == 'linkTargetWindow') {
-//     const currentWindow = getCurrentWindow()
-//     ipcMain.once('get-private-reply',(e,privateMode)=>{
-//       BrowserWindowPlus.load({id:currentWindow.id,x:size.x,y:size.y,width:size.width,height:size.height,disposition,
-//         tabParam:JSON.stringify([{wvId:newTab.webContents.id,guestInstanceId: newTab.guestInstanceId,privateMode}])})
-//     })
-//     currentWindow.webContents.send('get-private', source.id)
-//
-//   }
-//   else{
-//     let cont = source.hostWebContents2
-//     // console.log(3333,cont)
-//     if(!cont){
-//       console.log(11)
-//       let host,_url
-//       if((_url = source.getURL()) && _url.startsWith('chrome://brave')){
-//         host = source
-//       }
-//       else{
-//         console.log(115)
-//         const tabId = global.bwMap[source.id]
-//         source = webContents.fromId(tabId)
-//         source.hostWebContents2.send('create-web-contents', { id: source.id, targetUrl, disposition})
-//         return
-//       }
-//       source = await getFocusedWebContents()
-//
-//       console.log(22)
-//       if(!source){
-//         setTimeout(async _=>{
-//
-//           console.log(33)
-//           source = await getFocusedWebContents()
-//           ipcMain.emit('set-tab-opener',null,newTab.id,source.id)
-//           (host || source.hostWebContents2).send('create-web-contents', { id: source.id, targetUrl, disposition, guestInstanceId: newTab.guestInstanceId })
-//         },3000)
-//         return
-//       }
-//       cont = host || source.hostWebContents2
-//     }
-//     console.log('set-tab-opener',null,newTab.id,source.id)
-//     ipcMain.emit('set-tab-opener',null,newTab.id,source.id)
-//
-//     if(source.getURL().startsWith('chrome-extension')){
-//       getFocusedWebContents(false,true).then(source=>{
-//         console.log(cont.getURL(),source.getURL());
-//         cont.send('create-web-contents', { id: source.id, targetUrl, disposition, guestInstanceId: newTab.guestInstanceId })
-//       })
-//       return
-//     }
-//     console.log(22249)
-//     cont.send('create-web-contents',{id:source.id,targetUrl,disposition,guestInstanceId: newTab.guestInstanceId})
-//   }
-//   // e.preventDefault()
-// })
 
 
 function createWindow (first,url) {

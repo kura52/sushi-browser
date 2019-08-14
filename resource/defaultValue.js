@@ -109,6 +109,7 @@ const settingDefault =  {
   inputHistory: true,
   inputHistoryAll: false,
   inputHistoryMaxChar: 10000,
+  scrollInactiveWindows: true,
 
   //privacy
   clearHistoryOnClose: false,

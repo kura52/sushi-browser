@@ -18,12 +18,12 @@ export default class BrowserView {
     this.closedTabs = {}
   }
 
-  static async createNewTab(browserWindow, panelKey, tabKey, tabIndex, url, topZOrder) {
+  static async createNewTab(browserWindow, panelKey, tabKey, tabIndex, url, active) {
     // console.log('createNewTab',(panelKey, tabKey, tabIndex, url))
 
     if (this.newPanelCreateing) {
       await new Promise(r => setTimeout(r, 20))
-      return await this.createNewTab(browserWindow, panelKey, tabKey, tabIndex, url, topZOrder)
+      return await this.createNewTab(browserWindow, panelKey, tabKey, tabIndex, url, active)
     }
     this.newPanelCreateing = true
 
@@ -34,7 +34,7 @@ export default class BrowserView {
       let bv
       if(panel){
         console.log(99998411)
-        bv = await panel.addBrowserView(tabKey, url, tabIndex, topZOrder)
+        bv = await panel.addBrowserView(tabKey, url, tabIndex, active)
         console.log(99998412)
       }
       else{

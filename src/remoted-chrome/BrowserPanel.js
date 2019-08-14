@@ -5,6 +5,7 @@ import os from 'os'
 
 const isWin7 = os.platform() == 'win32' && os.release().startsWith('6.1')
 const isLinux = process.platform === 'linux'
+const isDarwin = process.platform === 'darwin'
 
 console.log(77888,os.release())
 
@@ -213,12 +214,14 @@ export default class BrowserPanel {
     await BrowserPanel._initializer()
 
     const oldWindows = []
-    winctl.EnumerateWindows(function(win) {
-      if(win.getTitle().endsWith(` - ${BrowserPanel.BROWSER_NAME}`)){
-        oldWindows.push(win.getHwnd())
-      }
-      return true
-    })
+    if(!isDarwin){
+      winctl.EnumerateWindows(function(win) {
+        if(win.getTitle().endsWith(` - ${BrowserPanel.BROWSER_NAME}`)){
+          oldWindows.push(win.getHwnd())
+        }
+        return true
+      })
+    }
 
     let nativeWindow
     // if(bounds){
@@ -265,21 +268,27 @@ export default class BrowserPanel {
             BrowserPanel.sideMargin = 0
           }
 
-          let chromeNativeWindow = winctl.GetActiveWindow2()
-          const dim = DpiUtils.dimensions(chromeNativeWindow)
-          console.log(9933,tmpWin, dim)
-          if (!chromeNativeWindow.getTitle().endsWith(` - ${BrowserPanel.BROWSER_NAME}`) || !(tmpWin.left == dim.left && tmpWin.top == dim.top && tmpWin.width == (dim.right - dim.left) && tmpWin.height == (dim.bottom - dim.top))) {
-            chromeNativeWindow = (await winctl.FindWindows(win => {
-              if (!win.getTitle().endsWith(` - ${BrowserPanel.BROWSER_NAME}`)) return false
-              const dim = DpiUtils.dimensions(win)
-              return tmpWin.left == dim.left && tmpWin.top == dim.top && tmpWin.width == (dim.right - dim.left) && tmpWin.height == (dim.bottom - dim.top)
-            }))[0]
-
-            if(!chromeNativeWindow){
+          let chromeNativeWindow
+          if(isDarwin){
+            chromeNativeWindow = new winctl()
+          }
+          else{
+            chromeNativeWindow = winctl.GetActiveWindow2()
+            const dim = await DpiUtils.dimensions(chromeNativeWindow)
+            console.log(9933,tmpWin, dim)
+            if (!chromeNativeWindow.getTitle().endsWith(` - ${BrowserPanel.BROWSER_NAME}`) || !(tmpWin.left == dim.left && tmpWin.top == dim.top && tmpWin.width == (dim.right - dim.left) && tmpWin.height == (dim.bottom - dim.top))) {
               chromeNativeWindow = (await winctl.FindWindows(win => {
-                if(!win.getTitle('about:blank') || !win.getTitle().endsWith(` - ${BrowserPanel.BROWSER_NAME}`)) return false
-                return true
+                if (!win.getTitle().endsWith(` - ${BrowserPanel.BROWSER_NAME}`)) return false
+                const dim = DpiUtils.dimensions(win)
+                return tmpWin.left == dim.left && tmpWin.top == dim.top && tmpWin.width == (dim.right - dim.left) && tmpWin.height == (dim.bottom - dim.top)
               }))[0]
+
+              if(!chromeNativeWindow){
+                chromeNativeWindow = (await winctl.FindWindows(win => {
+                  if(!win.getTitle('about:blank') || !win.getTitle().endsWith(` - ${BrowserPanel.BROWSER_NAME}`)) return false
+                  return true
+                }))[0]
+              }
             }
           }
 
@@ -413,13 +422,18 @@ export default class BrowserPanel {
     let chromeNativeWindow
 
     for(let i=0;i<300;i++){
-      chromeNativeWindow = (await winctl.FindWindows(win => {
-        if(oldWindows.includes(win.getHwnd()) || !win.getTitle().endsWith(` - ${BrowserPanel.BROWSER_NAME}`)) return false
-        return true
-      }))[0]
+      if(isDarwin){
+        chromeNativeWindow = new winctl()
+      }
+      else{
+        chromeNativeWindow = (await winctl.FindWindows(win => {
+          if(oldWindows.includes(win.getHwnd()) || !win.getTitle().endsWith(` - ${BrowserPanel.BROWSER_NAME}`)) return false
+          return true
+        }))[0]
+      }
       if(!chromeNativeWindow){
         chromeNativeWindow = winctl.GetActiveWindow2()
-        const dim = DpiUtils.dimensions(chromeNativeWindow)
+        const dim = await DpiUtils.dimensions(chromeNativeWindow)
         if (BrowserPanel.bindedWindows.has(chromeNativeWindow.getHwnd()) || !chromeNativeWindow.getTitle().endsWith(` - ${BrowserPanel.BROWSER_NAME}`) ||
           !(cWin.left == dim.left && cWin.top == dim.top && cWin.width == (dim.right - dim.left) && cWin.height == (dim.bottom - dim.top))) {
           chromeNativeWindow = (await winctl.FindWindows(win => {
@@ -465,7 +479,12 @@ export default class BrowserPanel {
 
         this.browserWindow.setTitle(title)
         await new Promise(r=>setTimeout(r,10))
-        nativeWindowBw = await winctl.FindByTitle(title)
+        if(isDarwin){
+          nativeWindowBw = new winctl()
+        }
+        else{
+          nativeWindowBw = await winctl.FindByTitle(title)
+        }
         this.browserWindow.setTitle(_title)
         break
       }catch(e){}
@@ -518,13 +537,14 @@ export default class BrowserPanel {
     this.getBrowserView({tabId}).destroy()
   }
 
-  async addBrowserView(tabKey, url, index, topZOrder) {
-    const tab = await Browser.bg.evaluate((windowId, index, url) => {
+  async addBrowserView(tabKey, url, index, active) {
+    console.log(66644,this.windowId, index, url, !(active === false))
+    const tab = await Browser.bg.evaluate((windowId, index, url, active) => {
       return new Promise(resolve => {
-        chrome.tabs.create({windowId, index, url}, tab => resolve(tab))
+        chrome.tabs.create({windowId, index, url, active}, tab => resolve(tab))
       })
-    }, this.windowId, index, url)
-    const bv = new BrowserView(this, tabKey, tab.id, topZOrder)
+    }, this.windowId, index, url, !(active === false))
+    const bv = new BrowserView(this, tabKey, tab.id)
     this.tabKeys[tabKey] = [tab.id, bv]
     return bv
   }
@@ -607,7 +627,7 @@ export default class BrowserPanel {
       }
     }
     else {
-      const dim = this.cpWin.nativeWindow.dimensions()
+      const dim = await this.cpWin.nativeWindow.dimensions()
       const {x,y} = DpiUtils.dipToScreenPoint(bounds.x, bounds.y)
 
       if(isLinux){

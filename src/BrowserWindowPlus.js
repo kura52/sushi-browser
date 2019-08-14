@@ -456,6 +456,7 @@ function getSize(opt){
       opt.width = bounds.width
       opt.height = bounds.height
       opt.maximize = maximize
+      if(maximize) opt.maxBounds = bw.getBounds()
     }
     return {x:opt.x,y:opt.y,width:opt.width,height:opt.height, maximize: opt.maximize || false}
   }
@@ -492,8 +493,9 @@ export default {
     }
     else{
       const saveStates = (await savedState.find_sort_limit([{}],[{ created_at: -1 }],[10]))
+      console.log(2221121223, saveStates.length)
       for(const ss of saveStates){
-        if(ss.wins[0].winState.left){
+        if(ss.wins[0].winState.l){
           saveState = ss
           break
         }
@@ -605,12 +607,13 @@ export default {
     const winArg = {...opt,
       ...winSetting,
       title: 'Sushi Browser',
-      fullscreenable: isDarwin,
+      fullscreenable: false,
       // A frame but no title bar and windows buttons in titlebar 10.10 OSX and up only?
-      // titleBarStyle: 'hidden',
+      titleBarStyle: 'hidden',
       autoHideMenuBar: true,
       // toolbar: false,
       // resize: false,
+      hasShadow :false,
       frame: isDarwin,
       show: false,
       // enableLargerThanScreen: true,

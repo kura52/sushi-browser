@@ -138,7 +138,7 @@ class BrowserPage extends Component {
     if(!tabId){
       tabId = await new Promise(r =>{
         ipc.send('create-browser-view', this.props.k2, this.props.k, style.left, style.top,
-          style.width, style.height, style.zIndex, this.props.tab.privateMode ? (void 0) : this.state.src, this.props.index)
+          style.width, style.height, style.zIndex, this.props.tab.privateMode ? (void 0) : this.state.src, void 0, this.props.index, this.props.isActive)
         ipc.once(`create-browser-view_${this.props.k2}_${this.props.k}`, (e, tabId) => r(tabId))
       })
     }
@@ -250,8 +250,8 @@ class BrowserPage extends Component {
         PubSub.publishSync(msg,{target: this.refs2.webview, srcElement: this.refs2.webview, button})
       }
       else if(msg == 'webview-mousemove'){
-        const {clientY, screenY} = args[0]
-        PubSub.publishSync(msg,{ target: this.refs2.webview, srcElement: this.refs2.webview, offsetY: clientY, screenY /*+ this.refs2.webview.getBoundingClientRect().y*/})
+        const {clientY, screenY, activeText} = args[0]
+        PubSub.publishSync(msg,{ target: this.refs2.webview, srcElement: this.refs2.webview, offsetY: clientY, screenY, activeText /*+ this.refs2.webview.getBoundingClientRect().y*/})
       }
       else if(msg == 'webview-keydown'){
         PubSub.publishSync(msg,{ target: this.refs2.webview, srcElement: this.refs2.webview, ...args[0]})

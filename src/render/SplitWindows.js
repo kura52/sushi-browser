@@ -580,6 +580,7 @@ export default class SplitWindows extends Component{
         }
       }
       else{
+        console.log(`get-focused-webContent-reply2_${key}`,tabId)
         ipc.send(`get-focused-webContent-reply_${key}`,tabId)
       }
     }

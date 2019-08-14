@@ -1,5 +1,5 @@
 import { app, Menu, clipboard, BrowserWindow, ipcMain, session } from 'electron'
-import {Browser ,webContents} from './remoted-chrome/Browser'
+import {Browser, BrowserPanel ,webContents} from './remoted-chrome/Browser'
 const uuid = require("node-uuid")
 const sharedState = require('./sharedStateMain')
 
@@ -41,18 +41,35 @@ async function getFocusedWebContents(needSelectedText,skipBuildInSearch,callback
   }
   const key = uuid.v4()
 
+  const bw = BrowserWindow.fromWebContents(cont)
+  if(bw){
+    const panels = BrowserPanel.getBrowserPanelsFromBrowserWindow(bw)
+    if(panels && panels.length == 1){
+      const panel = panels[0]
+      const tab = await panel.getActiveTab()
+      if(tab){
+        return callback ? callback(sharedState[tab.id] || webContents.fromId(tab.id)) :
+          Promise.resolve(sharedState[tab.id] || webContents.fromId(tab.id))
+      }
+    }
+  }
+
+  console.log('getFocusedWebContents2')
   if(callback){
+    console.log('getFocusedWebContents3')
     ipcMain.once(`get-focused-webContent-reply_${key}`,(e,tabId)=>{
       if(tabId < 1){
+        console.log('tabId',tabId,retry)
         setTimeout(_=>getFocusedWebContents(needSelectedText,skipBuildInSearch,callback,++retry),300)
       }
       else{
-        callback((sharedState[tabId] || webContents.fromId(tabId)))
+        callback(sharedState[tabId] || webContents.fromId(tabId))
       }
     })
     cont.send('get-focused-webContent',key,void 0,needSelectedText,void 0,retry)
   }
   else{
+    console.log('getFocusedWebContents4')
     return new Promise((resolve,reject)=>{
       ipcMain.once(`get-focused-webContent-reply_${key}`,(e,tabId)=>{
         if(tabId < 1){
