@@ -211,7 +211,7 @@ pause`)
   }
   else if(isLinux){
     sh.cp('../custom_chromium.7z', `${pwd}/${buildDir}`)
-    fs.writeFileSync(`${pwd}/${buildDir}/version`, 'v5.0.4')
+    fs.writeFileSync(`${pwd}/${buildDir}/version`, 'v6.0.6')
 
     if(sh.exec(`cp -R ./${buildDir} ./sushi-browser-portable;echo true > ./sushi-browser-portable/resources/app.asar.unpacked/resource/portable.txt`).code !== 0) {
       console.log("ERROR71")
