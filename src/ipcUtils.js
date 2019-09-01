@@ -528,7 +528,10 @@ ipcMain.on('toggle-fullscreen',(event,cancel)=> {
 
   const win = BrowserWindow.fromWebContents(event.sender.hostWebContents2 || event.sender)
   const isFullScreen = win._isFullScreen
-  win.setResizable(true)
+
+  console.log('toggle-fullscreen', isFullScreen, cancel)
+
+  // win.setResizable(true)
   if(cancel && !isFullScreen) return
   win.webContents.send('switch-fullscreen',!isFullScreen)
   win.setFullScreenable(true)
@@ -539,7 +542,7 @@ ipcMain.on('toggle-fullscreen',(event,cancel)=> {
   win.setFullScreenable(false)
   if(!isFullScreen){
     if(win.isMaximized()) win.webContents.send('adjust-maxmize-size', false)
-    win.setResizable(false)
+    // win.setResizable(false)
     for(const browserPanel of Object.values(BrowserPanel.panelKeys)){
       browserPanel.setAlwaysOnTop(true)
     }
@@ -2482,7 +2485,7 @@ ipcMain.on('move-browser-view', async (e, panelKey, tabKey, type, tabId, x, y, w
 })
 
 const setBoundClearIds = {},dateCache = {}
-ipcMain.on('set-bound-browser-view', async (e, panelKey, tabKey, tabId, x, y, width, height, zIndex, date=new Date())=>{
+ipcMain.on('set-bound-browser-view', async (e, panelKey, tabKey, tabId, x, y, width, height, zIndex, date=Date.now())=>{
   if(dateCache[panelKey] && dateCache[panelKey] > date) return
 
   dateCache[panelKey] = date
@@ -2511,10 +2514,13 @@ ipcMain.on('set-bound-browser-view', async (e, panelKey, tabKey, tabId, x, y, wi
     x: Math.round(x + winBounds.x), y:Math.round(y + winBounds.y),
     width: Math.round(width), height: Math.round(height), zIndex
   }
+
   // console.log(11,bounds, winBounds)
   const id = setTimeout(()=>{
     const ids = setBoundClearIds[panelKey]
     delete setBoundClearIds[panelKey]
+
+    console.log(ids)
 
     if(!ids) return
 

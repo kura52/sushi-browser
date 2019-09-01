@@ -207,7 +207,10 @@ Or, please use the Chromium bundled version.`
       prevMove = now
     })
 
+    let minimizedTime = Date.now()
     ipcMain.on('state-change-window', async (browserWindowId, eventName) => {
+      if(Date.now() - minimizedTime < 100) return
+
       if(eventName == 'focus'){
         console.log('state-change-window', 'focus', browserWindowId)
         setTimeout(()=>this.focusedBwWindowIdPre = browserWindowId,100)
@@ -226,6 +229,7 @@ Or, please use the Chromium bundled version.`
           }
           else if(eventName == 'minimize'){
             browserPanel.cpWin.nativeWindow.showWindow(0)
+            minimizedTime = Date.now()
           }
           else if(eventName == 'restore'){
             console.log('restore')

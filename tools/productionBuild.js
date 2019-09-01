@@ -247,8 +247,8 @@ pause`)
 
     sh.rm(`${buildDir}/custom_chromium.7z`)
 
-    ;[`node ./node_modules/.bin/electron-installer-debian --src ${buildDir}/ --dest ${outDir}/ --arch amd64 --config res/linuxPackaging.json`,
-      `node ./node_modules/.bin/electron-installer-redhat --src ${buildDir}/ --dest ${outDir}/ --arch x86_64 --config res/linuxPackaging.json`].forEach(cmd=>{
+    ;[`electron-installer-debian --src ${buildDir}/ --dest ${outDir}/ --arch amd64 --config res/linuxPackaging.json`,
+      `electron-installer-redhat --src ${buildDir}/ --dest ${outDir}/ --arch x86_64 --config res/linuxPackaging.json`].forEach(cmd=>{
       sh.exec(cmd, {async:true}, (code, stdout, stderr) => {
       })
     })

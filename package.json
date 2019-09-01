@@ -114,7 +114,7 @@
     "nedb-party": "^0.1.1",
     "nedb-promise": "^2.0.0",
     "node-gyp": "^5.0.0",
-    "node-pty": "^0.7.4",
+    "node-pty": "^0.9.0-beta24",
     "node-uuid": "^1.4.7",
     "promisify-me": "^0.1.1",
     "pubsub-js": "^1.5.4",
