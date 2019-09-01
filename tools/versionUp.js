@@ -200,43 +200,43 @@ console.log(`Sushi Browser v${NEXT_APP_VERSION} ${CODE_NAME}
 
 ## Applications`)
 let app = `sushi-browser-${NEXT_APP_VERSION}-setup-x64.exe`
-console.log(`- [Windows Installer v${NEXT_APP_VERSION} (${sizeMap[app]})](https://sushib.me/dl/${app})`)
+console.log(`- [Windows Installer v${NEXT_APP_VERSION} (${sizeMap[app]})](https://github.com/kura52/sushi-browser/releases/download/${NEXT_APP_VERSION}/${app})`)
 sizeAdd(htmls,app,sizeMap[app])
 
 app = `sushi-browser-${NEXT_APP_VERSION}-win-x64-chromium.zip`
-console.log(`- [Windows Portable v${NEXT_APP_VERSION} with Chromium (${sizeMap[app]})](https://sushib.me/dl/${app})`)
+console.log(`- [Windows Portable v${NEXT_APP_VERSION} with Chromium (${sizeMap[app]})](https://github.com/kura52/sushi-browser/releases/download/${NEXT_APP_VERSION}/${app})`)
 sizeAdd(htmls,app,sizeMap[app])
 
 app = `sushi-browser-${NEXT_APP_VERSION}-win-x64.zip`
-console.log(`- [Windows Portable v${NEXT_APP_VERSION} (${sizeMap[app]})](https://sushib.me/dl/${app})`)
+console.log(`- [Windows Portable v${NEXT_APP_VERSION} (${sizeMap[app]})](https://github.com/kura52/sushi-browser/releases/download/${NEXT_APP_VERSION}/${app})`)
 sizeAdd(htmls,app,sizeMap[app])
 
 app = `sushi-browser-${NEXT_APP_VERSION}-setup-ia32.exe`
-console.log(`- [Windows Installer 32bit v${NEXT_APP_VERSION} (${sizeMap[app]})](https://sushib.me/dl/${app})`)
+console.log(`- [Windows Installer 32bit v${NEXT_APP_VERSION} (${sizeMap[app]})](https://github.com/kura52/sushi-browser/releases/download/${NEXT_APP_VERSION}/${app})`)
 sizeAdd(htmls,app,sizeMap[app])
 
 app = `sushi-browser-${NEXT_APP_VERSION}-win-ia32.zip`
-console.log(`- [Windows Portable 32bit v${NEXT_APP_VERSION} (${sizeMap[app]})](https://sushib.me/dl/${app})`)
+console.log(`- [Windows Portable 32bit v${NEXT_APP_VERSION} (${sizeMap[app]})](https://github.com/kura52/sushi-browser/releases/download/${NEXT_APP_VERSION}/${app})`)
 sizeAdd(htmls,app,sizeMap[app])
 
-// app = `SushiBrowser-${NEXT_APP_VERSION}.dmg`
-// console.log(`- [MacOS dmg v${NEXT_APP_VERSION} (${sizeMap[app]})](https://sushib.me/dl/${app})`)
-// sizeAdd(htmls,app,sizeMap[app])
-//
-// app = `sushi-browser-${NEXT_APP_VERSION}-mac-x64.zip`
-// console.log(`- [MacOS Portable v${NEXT_APP_VERSION} (${sizeMap[app]})](https://sushib.me/dl/${app})`)
-// sizeAdd(htmls,app,sizeMap[app])
+app = `SushiBrowser-${NEXT_APP_VERSION}.dmg`
+console.log(`- [MacOS dmg v${NEXT_APP_VERSION} (${sizeMap[app]})](https://github.com/kura52/sushi-browser/releases/download/${NEXT_APP_VERSION}/${app})`)
+sizeAdd(htmls,app,sizeMap[app])
+
+app = `sushi-browser-${NEXT_APP_VERSION}-mac-x64.zip`
+console.log(`- [MacOS Portable v${NEXT_APP_VERSION} (${sizeMap[app]})](https://github.com/kura52/sushi-browser/releases/download/${NEXT_APP_VERSION}/${app})`)
+sizeAdd(htmls,app,sizeMap[app])
 //
 app = `sushi-browser-${NEXT_APP_VERSION}-1.x86_64.rpm`
-console.log(`- [Linux rpm (for Fedora/CentOS) v${NEXT_APP_VERSION} (${sizeMap[app]})](https://sushib.me/dl/${app})`)
+console.log(`- [Linux rpm (for Fedora/CentOS) v${NEXT_APP_VERSION} (${sizeMap[app]})](https://github.com/kura52/sushi-browser/releases/download/${NEXT_APP_VERSION}/${app})`)
 sizeAdd(htmls,app,sizeMap[app])
 
 app = `sushi-browser_${NEXT_APP_VERSION}_amd64.deb`
-console.log(`- [Linux deb (for Debian/Ubuntu) v${NEXT_APP_VERSION} (${sizeMap[app]})](https://sushib.me/dl/${app})`)
+console.log(`- [Linux deb (for Debian/Ubuntu) v${NEXT_APP_VERSION} (${sizeMap[app]})](https://github.com/kura52/sushi-browser/releases/download/${NEXT_APP_VERSION}/${app})`)
 sizeAdd(htmls,app,sizeMap[app])
 
 app = `sushi-browser-${NEXT_APP_VERSION}.tar.bz2`
-console.log(`- [Linux Portable v${NEXT_APP_VERSION} (${sizeMap[app]})](https://sushib.me/dl/${app})`)
+console.log(`- [Linux Portable v${NEXT_APP_VERSION} (${sizeMap[app]})](https://github.com/kura52/sushi-browser/releases/download/${NEXT_APP_VERSION}/${app})`)
 sizeAdd(htmls,app,sizeMap[app])
 
 

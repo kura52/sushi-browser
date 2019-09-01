@@ -122,7 +122,7 @@ if not "%ver%"=="%newver%" (
     echo Custom Chromium Edition
   )
   
-  resources\\app.asar.unpacked\\resource\\bin\\aria2\\win\\aria2c.exe --check-certificate=false --auto-file-renaming=false --allow-overwrite=true https://sushib.me/dl/sushi-browser-%newver%-win-x64%has_chromium%.zip
+  resources\\app.asar.unpacked\\resource\\bin\\aria2\\win\\aria2c.exe --check-certificate=false --auto-file-renaming=false --allow-overwrite=true https://github.com/kura52/sushi-browser/releases/download/%newver%/sushi-browser-%newver%-win-x64%has_chromium%.zip
   resources\\7zip\\win\\7za.exe x -y -o"_update_%newver%" "sushi-browser-%newver%-win-x64%has_chromium%.zip"
   
   if exist sushi-browser-%newver%-win-x64%has_chromium%.zip (
