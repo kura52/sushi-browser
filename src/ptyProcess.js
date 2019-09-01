@@ -16,6 +16,7 @@ class PtyProcess{
     this.pingReplyTime = Date.now()
 
     const ptyProcess = pty.fork(cmd && os.platform() === 'win32' ? 'cmd.exe' : shell, [], {
+      experimentalUseConpty: false,
       name: 'xterm-color',
       cwd: process.env.HOME,
       env: process.env

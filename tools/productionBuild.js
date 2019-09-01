@@ -507,8 +507,8 @@ glob.sync(`${pwd}/**/.directory`).forEach(file=>{
 
 // Replace console.log
 const jsFiles = glob.sync(`${pwd}/src/**/*.js`)
-// filesContentsReplace(jsFiles,/console\.log\(/,'//debug(')
-// filesContentsReplace(jsFiles,/console\.trace\(/,'//debug(')
+filesContentsReplace(jsFiles,/console\.log\(/,'//debug(')
+filesContentsReplace(jsFiles,/console\.trace\(/,'//debug(')
 filesContentsReplace(jsFiles,/window.debug = require\('debug'\)\('info'\)/,"// window.debug = require('debug')('info')")
 filesContentsReplace(jsFiles,/global.debug = require\('debug'\)\('info'\)/,"// global.debug = require('debug')('info')")
 filesContentsReplace(jsFiles,/extensions.init\(true\)/,"extensions.init(setting.ver !== fs.readFileSync(path.join(__dirname, '../VERSION.txt')).toString())")
