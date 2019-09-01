@@ -2354,6 +2354,8 @@ ipcMain.on('input-history-data',async (e,key,data,isTmp)=>{
 })
 
 ipcMain.on('focus-input',async (e,mode,data)=>{
+  if(!isWin) return
+
   const hostWebContents = e.sender.hostWebContents2
   if(!hostWebContents) return
   if(mode == 'in'){
@@ -2511,22 +2513,28 @@ ipcMain.on('set-bound-browser-view', async (e, panelKey, tabKey, tabId, x, y, wi
   }
   // console.log(11,bounds, winBounds)
   const id = setTimeout(()=>{
+    const ids = setBoundClearIds[panelKey]
+    delete setBoundClearIds[panelKey]
+
+    if(!ids) return
+
     let appearSelf
-    for(let [_bounds, _id, _date, _zIndex] of setBoundClearIds[panelKey] || []){
-      if(date < _date || (appearSelf && date == _date)){
-        bounds = _bounds
-        date = _date
-        zIndex = _zIndex
-      }
-      else if(id == _id){
+    for(let [_bounds, _id, _date, _zIndex] of ids || []){
+      if(id == _id){
         appearSelf = true
       }
-      clearTimeout(id)
+      else{
+        clearTimeout(_id)
+        if(date < _date || (appearSelf && date == _date)){
+          bounds = _bounds
+          date = _date
+          zIndex = _zIndex
+        }
+      }
     }
-    delete setBoundClearIds[panelKey]
     panel.setBounds(bounds)
 
-    if(zIndex > 0 && !isLinux){
+    if(zIndex > 0 && isWin){
       webContents.fromId(tabId).moveTop()
     }
   },10)
@@ -2537,6 +2545,7 @@ ipcMain.on('set-bound-browser-view', async (e, panelKey, tabKey, tabId, x, y, wi
   else{
     setBoundClearIds[panelKey] = [[bounds, id, date, zIndex]]
   }
+
 })
 
 ipcMain.on('set-position-browser-view', async (e, panelKey) => {

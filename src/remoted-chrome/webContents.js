@@ -11,6 +11,8 @@ let Browser = new Proxy({},  { get: function(target, name){ Browser = require('.
 let BrowserPanel = new Proxy({},  { get: function(target, name){ BrowserPanel = require('./BrowserPanel'); return typeof BrowserPanel[name] == 'function' ? BrowserPanel[name].bind(BrowserPanel) : BrowserPanel[name]}})
 let BrowserView = new Proxy({},  { get: function(target, name){ BrowserView = require('./BrowserView'); return typeof BrowserView[name] == 'function' ? BrowserView[name].bind(BrowserView) : BrowserView[name]}})
 
+const isDarwin = process.platform === 'darwin'
+
 let isFirstLoad
 
 export default class webContents extends EventEmitter {
@@ -336,7 +338,17 @@ export default class webContents extends EventEmitter {
 
   async _sendKey(key, modifier){
     if(!this._getBrowserPanel()) return
-    this._getBrowserPanel().cpWin.chromeNativeWindow.setForegroundWindowEx()
+    if(isDarwin){
+      await Browser.bg.evaluate((windowId) => {
+        return new Promise(resolve => {
+          chrome.windows.update(windowId, {focused: true}, () => resolve())
+        })
+      }, this._getBrowserPanel().windowId)
+    }
+    else{
+      this._getBrowserPanel().cpWin.chromeNativeWindow.setForegroundWindowEx()
+    }
+
     if(modifier){
       robot.keyTap(key, modifier)
     }
@@ -460,7 +472,17 @@ export default class webContents extends EventEmitter {
 
     const panel = this._getBrowserPanel()
     if(!panel || panel.cpWin.nativeWindow.hidePanel) return
-    panel.cpWin.chromeNativeWindow.setForegroundWindowEx()
+
+    if(isDarwin){
+      Browser.bg.evaluate((windowId) => {
+        return new Promise(resolve => {
+          chrome.windows.update(windowId, {focused: true}, () => resolve())
+        })
+      }, panel.windowId)
+    }
+    else {
+      panel.cpWin.chromeNativeWindow.setForegroundWindowEx()
+    }
   }
 
   async isFocused(){
@@ -675,11 +697,11 @@ export default class webContents extends EventEmitter {
   }
 
   findInPage(text, options){
-    this._sendKey('f', 'control')
+    this._sendKey('f', isDarwin ? 'command' : 'control')
   }
 
   async stopFindInPage(action){
-    await this._sendKey('f', 'control')
+    await this._sendKey('f', isDarwin ? 'command' : 'control')
     robot.keyTap('escape')
   }
 
@@ -795,7 +817,13 @@ export default class webContents extends EventEmitter {
   }
 
   toggleDevTools(){
-    this._sendKey('j',['control','shift'])
+    if(isDarwin){
+      this._sendKey('i',['command','alt'])
+    }
+    else{
+      this._sendKey('j',['control','shift'])
+    }
+
   }
 
   inspectElement(x, y){

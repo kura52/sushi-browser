@@ -122,12 +122,23 @@ set newver=%ver2:~8,6%
 echo old:%ver% new:%newver%
 
 if not "%ver%"=="%newver%" (
-  resources\\app.asar.unpacked\\resource\\bin\\aria2\\win\\aria2c.exe --check-certificate=false --auto-file-renaming=false --allow-overwrite=true https://sushib.me/dl/sushi-browser-%newver%-win-x64.zip
-  resources\\7zip\\win\\7za.exe x -y -o"_update_%newver%" "sushi-browser-%newver%-win-x64.zip"
+
+  set has_chromium=""
+  if exist custom_chromium (
+    set has_chromium="-chromium"
+    echo Custom Chromium Edition
+  )
   
-  if exist sushi-browser-%newver%-win-x64.zip (
-    del /Q sushi-browser-%newver%-win-x64.zip
+  resources\\app.asar.unpacked\\resource\\bin\\aria2\\win\\aria2c.exe --check-certificate=false --auto-file-renaming=false --allow-overwrite=true https://sushib.me/dl/sushi-browser-%newver%-win-x64%has_chromium%.zip
+  resources\\7zip\\win\\7za.exe x -y -o"_update_%newver%" "sushi-browser-%newver%-win-x64%has_chromium%.zip"
   
+  if exist sushi-browser-%newver%-win-x64%has_chromium%.zip (
+    del /Q sushi-browser-%newver%-win-x64%has_chromium%.zip
+  
+    if exist custom_chromium (
+      del /Q custom_chromium
+    )
+    
     taskkill /F /IM sushi-browser.exe
     copy /Y resources\\app.asar.unpacked\\resource\\portable.txt resources\\portable.txt
     rd /s /q resources\\_app
@@ -140,7 +151,6 @@ if not "%ver%"=="%newver%" (
     powershell Start-Process sushi-browser.exe --update-delete
   )
 )`)
-
   fs.writeFileSync(`${pwd}/${buildDir}/add_to_default_browser.cmd`,`powershell start-process __add_to_default_browser.cmd -verb runas`)
   fs.writeFileSync(`${pwd}/${buildDir}/__add_to_default_browser.cmd`,`reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Sushi\\Capabilities" /v ApplicationDescription /t REG_SZ /d "Sushi Browser" /f
 reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Sushi\\Capabilities" /v ApplicationName /t REG_SZ /d "Sushi" /f
@@ -298,7 +308,9 @@ if(fs.existsSync(path.join(basePath,'app.asar.7z'))){
     }
   }
   
-  fs.renameSync(path.join(basePath,'app'),path.join(basePath,'_app'))
+  if(fs.existsSync(path.join(basePath,'app'))){
+    fs.renameSync(path.join(basePath,'app'),path.join(basePath,'_app'))
+  }
 }
 const basePath2 = path.join(__dirname,'../../..')
 if(fs.existsSync(path.join(basePath2,'custom_chromium.7z'))){
@@ -495,8 +507,8 @@ glob.sync(`${pwd}/**/.directory`).forEach(file=>{
 
 // Replace console.log
 const jsFiles = glob.sync(`${pwd}/src/**/*.js`)
-filesContentsReplace(jsFiles,/console\.log\(/,'//debug(')
-filesContentsReplace(jsFiles,/console\.trace\(/,'//debug(')
+// filesContentsReplace(jsFiles,/console\.log\(/,'//debug(')
+// filesContentsReplace(jsFiles,/console\.trace\(/,'//debug(')
 filesContentsReplace(jsFiles,/window.debug = require\('debug'\)\('info'\)/,"// window.debug = require('debug')('info')")
 filesContentsReplace(jsFiles,/global.debug = require\('debug'\)\('info'\)/,"// global.debug = require('debug')('info')")
 filesContentsReplace(jsFiles,/extensions.init\(true\)/,"extensions.init(setting.ver !== fs.readFileSync(path.join(__dirname, '../VERSION.txt')).toString())")

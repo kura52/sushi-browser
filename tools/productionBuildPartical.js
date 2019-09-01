@@ -67,7 +67,6 @@ function build(){
   //   sh.mv(`${buildDir}/brave.exe`, `${buildDir}/sushi.exe`)
   // }
 
-  const pwd = sh.pwd().toString()
   if(isDarwin){
     sh.cd(`${buildDir}/sushi-browser.app/Contents/Resources`)
   }
@@ -116,12 +115,23 @@ set newver=%ver2:~8,6%
 echo old:%ver% new:%newver%
 
 if not "%ver%"=="%newver%" (
-  resources\\app.asar.unpacked\\resource\\bin\\aria2\\win\\aria2c.exe --check-certificate=false --auto-file-renaming=false --allow-overwrite=true https://sushib.me/dl/sushi-browser-%newver%-win-x64.zip
-  resources\\7zip\\win\\7za.exe x -y -o"_update_%newver%" "sushi-browser-%newver%-win-x64.zip"
+
+  set has_chromium=""
+  if exist custom_chromium (
+    set has_chromium="-chromium"
+    echo Custom Chromium Edition
+  )
   
-  if exist sushi-browser-%newver%-win-x64.zip (
-    del /Q sushi-browser-%newver%-win-x64.zip
+  resources\\app.asar.unpacked\\resource\\bin\\aria2\\win\\aria2c.exe --check-certificate=false --auto-file-renaming=false --allow-overwrite=true https://sushib.me/dl/sushi-browser-%newver%-win-x64%has_chromium%.zip
+  resources\\7zip\\win\\7za.exe x -y -o"_update_%newver%" "sushi-browser-%newver%-win-x64%has_chromium%.zip"
   
+  if exist sushi-browser-%newver%-win-x64%has_chromium%.zip (
+    del /Q sushi-browser-%newver%-win-x64%has_chromium%.zip
+  
+    if exist custom_chromium (
+      del /Q custom_chromium
+    )
+    
     taskkill /F /IM sushi-browser.exe
     copy /Y resources\\app.asar.unpacked\\resource\\portable.txt resources\\portable.txt
     rd /s /q resources\\_app
@@ -192,6 +202,50 @@ pause`)
       // sh.mv(`${outDir}/Setup.exe`,`${outDir}/sushi-browser-setup-${arch}.exe`)
     }, (e) => console.log(`No dice: ${e.message}`))
   }
+  else if (isDarwin) {
+    const identifier = fs.readFileSync(path.join(pwd, '../identifier.txt'))
+    if (!identifier) {
+      console.error('IDENTIFIER needs to be set to the certificate organization')
+      process.exit(1)
+    }
+
+    if (sh.exec(`rm -f ${outDir}/sushi-browser.dmg`).code !== 0) {
+      console.log("ERROR1")
+      process.exit()
+    }
+
+    if(sh.exec(`electron-osx-sign ${buildDir}/sushi-browser.app`).code !== 0) {
+      console.log("ERROR9")
+      process.exit()
+    }
+
+    sh.cd(`${buildDir}/sushi-browser.app/Contents/Resources`)
+    sh.mkdir('-p', `app.asar.unpacked/resource`);
+    fs.writeFileSync(`${pwd}/${buildDir}/sushi-browser.app/Contents/Resources/app.asar.unpacked/resource/portable.txt`, 'true')
+
+    sh.mkdir('-p', 'custom_chromium')
+    sh.cp('-Rf',`${pwd}/../custom_chromium/Chromium.app`, 'custom_chromium')
+
+    if (sh.exec(`${isWindows ? '"C:/Program Files/7-Zip/7z.exe"' : '7z'} a -t7z -mx=9 app.asar.unpacked.7z app.asar.unpacked`).code !== 0) {
+      console.log("ERROR1")
+      process.exit()
+    }
+    sh.rm('-rf', 'app.asar.unpacked')
+    sh.cd('../../../..')
+
+
+    sh.mkdir('dist')
+    console.log(`./node_modules/.bin/build --prepackaged="${buildDir}/sushi-browser.app" --mac=dmg --config=res/builderConfig.json`)
+    if (sh.exec(`./node_modules/.bin/build --prepackaged="${buildDir}/sushi-browser.app" --mac=dmg --config=res/builderConfig.json`).code !== 0) {
+      console.log("ERROR4")
+      process.exit()
+    }
+
+    if (sh.exec(`ditto -c -k --sequesterRsrc --keepParent ${buildDir}/sushi-browser.app ${outDir}/sushi-browser-${APP_VERSION}.zip`).code !== 0) {
+      console.log("ERROR6")
+      process.exit()
+    }
+  }
 
 }
 
@@ -247,7 +301,9 @@ if(fs.existsSync(path.join(basePath,'app.asar.7z'))){
     }
   }
   
-  fs.renameSync(path.join(basePath,'app'),path.join(basePath,'_app'))
+  if(fs.existsSync(path.join(basePath,'app'))){
+    fs.renameSync(path.join(basePath,'app'),path.join(basePath,'_app'))
+  }
 }
 const basePath2 = path.join(__dirname,'../../..')
 if(fs.existsSync(path.join(basePath2,'custom_chromium.7z'))){
@@ -272,8 +328,8 @@ if(fs.existsSync(path.join(basePath2,'custom_chromium.7z'))){
       }
       sh.rm('-rf','app.asar')
 
-      sh.mkdir('app')
-      sh.cp('../../package.json','app/.')
+      // sh.mkdir('app')
+      // sh.cp('../../package.json','app/.')
 
       if(sh.exec('asar pack electron electron.asar').code !== 0) {
         console.log("ERROR")
@@ -318,6 +374,13 @@ filesContentsReplace(`${pwd}/node_modules/youtube-dl/lib/youtube-dl.js`,"(detail
 
 build()
 
+
+
+if(isDarwin){
+  glob.sync(`${pwd}/${outDir}/sushi-browser*.zip`).forEach(file=>{
+    sh.mv(file,`${outDir}/sushi-browser-${APP_VERSION}-mac-x64.zip`)
+  })
+}
 
 if(isWindows){
   //sh.mv(`${outDir}/sushi-browser-setup-x64.exe`,`${outDir}/sushi-browser-${APP_VERSION}-setup-x64.exe`)

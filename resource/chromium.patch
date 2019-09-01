@@ -1,5 +1,5 @@
 diff --git a/chrome/browser/extensions/api/extension_action/extension_action_api.cc b/chrome/browser/extensions/api/extension_action/extension_action_api.cc
-index 1f2c8aa8225e..e7a52717f1f1 100644
+index 1f2c8aa8225e..ded550f1d4d9 100644
 --- a/chrome/browser/extensions/api/extension_action/extension_action_api.cc
 +++ b/chrome/browser/extensions/api/extension_action/extension_action_api.cc
 @@ -175,8 +175,8 @@ bool ExtensionActionAPI::ShowExtensionActionPopup(
@@ -94,7 +94,7 @@ index 95f077ae8ffd..0fa556219d1c 100644
  }
 
 diff --git a/chrome/browser/ui/toolbar/toolbar_actions_bar.cc b/chrome/browser/ui/toolbar/toolbar_actions_bar.cc
-index 0aaa2e7367f1..4dc1deb7a659 100644
+index 0aaa2e7367f1..525923f4307f 100644
 --- a/chrome/browser/ui/toolbar/toolbar_actions_bar.cc
 +++ b/chrome/browser/ui/toolbar/toolbar_actions_bar.cc
 @@ -377,7 +377,9 @@ void ToolbarActionsBar::Update() {
@@ -315,6 +315,25 @@ index 6827e128ca67..d46e888a50ab 100644
    InitializeWebStoreUrls(base::CommandLine::ForCurrentProcess());
  }
 
+diff --git a/components/remote_cocoa/app_shim/bridged_native_widget_impl.mm b/components/remote_cocoa/app_shim/bridged_native_widget_impl.mm
+index a9f2b8af7dee..fb10257334fc 100644
+--- a/components/remote_cocoa/app_shim/bridged_native_widget_impl.mm
++++ b/components/remote_cocoa/app_shim/bridged_native_widget_impl.mm
+@@ -446,7 +446,13 @@ void BridgedNativeWidgetImpl::InitWindow(
+                               NSWindowCollectionBehaviorParticipatesInCycle];
+   }
+
+-  [window_ setHasShadow:params->has_window_server_shadow];
++  NSUInteger styleMask = NSWindowStyleMaskFullSizeContentView | NSTexturedBackgroundWindowMask | NSBorderlessWindowMask;
++  [window_ setStyleMask: styleMask];
++
++  [window_ setHasShadow:NO];
++  [window_ setCanHide:NO];
++  ProcessSerialNumber psn = {0, kCurrentProcess};
++  TransformProcessType(&psn, kProcessTransformToUIElementApplication);
+ }
+
+ void BridgedNativeWidgetImpl::SetInitialBounds(
 diff --git a/extensions/browser/app_window/app_window.cc b/extensions/browser/app_window/app_window.cc
 index 4d49aaad6745..fdd6597cd900 100644
 --- a/extensions/browser/app_window/app_window.cc
@@ -346,7 +365,7 @@ index b09be07c0db0..4a5273e3c5f2 100644
 
  bool PermissionsData::UsesDefaultPolicyHostRestrictions() const {
 diff --git a/media/blink/multibuffer_data_source.cc b/media/blink/multibuffer_data_source.cc
-index f489e211c513..7504ed1cfc20 100644
+index f489e211c513..51fc32cd21ab 100644
 --- a/media/blink/multibuffer_data_source.cc
 +++ b/media/blink/multibuffer_data_source.cc
 @@ -22,7 +22,7 @@ namespace {
@@ -483,7 +502,7 @@ index bcbd46cf382e..86e530129976 100644
 
  void X11WindowBase::Maximize() {
 diff --git a/ui/views/win/hwnd_message_handler.cc b/ui/views/win/hwnd_message_handler.cc
-index abde4d03cb3b..9b4e2ec4d20b 100644
+index abde4d03cb3b..4da3d282f25c 100644
 --- a/ui/views/win/hwnd_message_handler.cc
 +++ b/ui/views/win/hwnd_message_handler.cc
 @@ -19,6 +19,7 @@

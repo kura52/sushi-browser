@@ -1233,7 +1233,7 @@ class BrowserNavbar extends Component{
       {this.props.tab.fields.mobilePanel ? this.mobilePanelButton() : null}
       {navBarMenus}
 
-      <BrowserNavbarBtn className="chrome-menu" title={"Chrome Menu"} icon="chrome" onClick={()=>cont.openChromeMenu()}/>
+      {isDarwin ? null :<BrowserNavbarBtn className="chrome-menu" title={"Chrome Menu"} icon="chrome" onClick={()=>cont.openChromeMenu()}/>}
 
       {this.mainMenu(cont, this.props.tab, backSideMenus)}
       {this.state.vpnList ? <VpnList onClick={_=>this.setState({vpnList:false})}/> : null}

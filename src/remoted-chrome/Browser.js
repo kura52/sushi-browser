@@ -22,7 +22,7 @@ const isWin10 = os.platform() == 'win32' && os.release().startsWith('10')
 const CUSTOM_CHROMIUM_PATH = isLinux ?
     path.join(__dirname, '../../../../custom_chromium/chrome') :
     isWin ? path.join(__dirname, '../../../../custom_chromium/chrome.exe'):
-        path.join(__dirname, '../../../../custom_chromium/Chromium.app/Contents/MacOS/Chromium')
+        path.join(__dirname, '../../../custom_chromium/Chromium.app/Contents/MacOS/Chromium')
 
 console.log(CUSTOM_CHROMIUM_PATH,990)
 
@@ -208,7 +208,12 @@ Or, please use the Chromium bundled version.`
     })
 
     ipcMain.on('state-change-window', async (browserWindowId, eventName) => {
-      if(eventName == 'focus' && winctl.moveTopTime && Date.now() - winctl.moveTopTime < 500) return
+      if(eventName == 'focus'){
+        console.log('state-change-window', 'focus', browserWindowId)
+        setTimeout(()=>this.focusedBwWindowIdPre = browserWindowId,100)
+        if(browserWindowId == -1) return
+        if(winctl.moveTopTime && Date.now() - winctl.moveTopTime < 500) return
+      }
       for(const browserPanel of Object.values(BrowserPanel.panelKeys)){
         if(browserPanel.browserWindow && browserPanel.browserWindow.id == browserWindowId){
           if(eventName == 'focus'){
@@ -568,7 +573,11 @@ Or, please use the Chromium bundled version.`
       setTimeout(()=>this.focusedWindowIdPre = windowId,100)
       if(winctl.moveTopTime && Date.now() - winctl.moveTopTime < 500) return
       console.log('windows.focusChanged', windowId)
+
       if(windowId == -1) return
+      if(!isWin && this.focusedWindowIdPre && this.focusedWindowIdPre != -1) return
+      if(!isWin && this.focusedBwWindowIdPre && this.focusedBwWindowIdPre != -1) return
+
       for(const browserPanel of Object.values(BrowserPanel.panelKeys)){
         console.log(browserPanel.windowId , windowId)
         if(browserPanel.windowId == windowId){

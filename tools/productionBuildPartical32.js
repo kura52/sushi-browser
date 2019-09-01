@@ -121,12 +121,23 @@ set newver=%ver2:~8,6%
 echo old:%ver% new:%newver%
 
 if not "%ver%"=="%newver%" (
-  resources\\app.asar.unpacked\\resource\\bin\\aria2\\win\\aria2c.exe --check-certificate=false --auto-file-renaming=false --allow-overwrite=true https://sushib.me/dl/sushi-browser-%newver%-win-ia32.zip
-  resources\\7zip\\win\\7za.exe x -y -o"_update_%newver%" "sushi-browser-%newver%-win-ia32.zip"
 
-  if exist sushi-browser-%newver%-win-ia32.zip (
-    del /Q sushi-browser-%newver%-win-ia32.zip
+  set has_chromium=""
+  if exist custom_chromium (
+    set has_chromium="-chromium"
+    echo Custom Chromium Edition
+  )
   
+  resources\\app.asar.unpacked\\resource\\bin\\aria2\\win\\aria2c.exe --check-certificate=false --auto-file-renaming=false --allow-overwrite=true https://sushib.me/dl/sushi-browser-%newver%-win-x64%has_chromium%.zip
+  resources\\7zip\\win\\7za.exe x -y -o"_update_%newver%" "sushi-browser-%newver%-win-x64%has_chromium%.zip"
+  
+  if exist sushi-browser-%newver%-win-x64%has_chromium%.zip (
+    del /Q sushi-browser-%newver%-win-x64%has_chromium%.zip
+  
+    if exist custom_chromium (
+      del /Q custom_chromium
+    )
+    
     taskkill /F /IM sushi-browser.exe
     copy /Y resources\\app.asar.unpacked\\resource\\portable.txt resources\\portable.txt
     rd /s /q resources\\_app
@@ -252,7 +263,9 @@ if(fs.existsSync(path.join(basePath,'app.asar.7z'))){
     }
   }
   
-  fs.renameSync(path.join(basePath,'app'),path.join(basePath,'_app'))
+  if(fs.existsSync(path.join(basePath,'app'))){
+    fs.renameSync(path.join(basePath,'app'),path.join(basePath,'_app'))
+  }
 }
 const basePath2 = path.join(__dirname,'../../..')
 if(fs.existsSync(path.join(basePath2,'custom_chromium.7z'))){

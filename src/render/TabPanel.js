@@ -2478,8 +2478,8 @@ export default class TabPanel extends Component {
       }
       else if(msg == 'history'){
         console.log(222222222,args)
-        if(this.historyKeys[args[1]]) return
-        this.historyKeys[args[1]] = 1
+        // if(this.historyKeys[args[1]]) return
+        // this.historyKeys[args[1]] = 1
         switch(args[0]){
           case 'back':
             this.historyBack(this.getWebContents(tab),tab)

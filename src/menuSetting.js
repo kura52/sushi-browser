@@ -349,7 +349,7 @@ const createEditSubmenu = () => {
 }
 
 const createViewSubmenu = () => {
-  return [
+  let submenu = [
     {
       label: locale.translation('actualSize'),
       accelerator: mainState.keyActualSize,
@@ -505,7 +505,7 @@ const createViewSubmenu = () => {
     },
     { type: 'separator' },
     {
-      label: locale.translation('toggleFullScreenView'),
+      t: 'toggleFullScreenView', label: locale.translation('toggleFullScreenView'),
       accelerator: mainState.keyToggleFullScreenView,
       click(item, focusedWindow) {
         if (focusedWindow) {
@@ -585,6 +585,11 @@ const createViewSubmenu = () => {
       }
     },
   ]
+
+  if(isDarwin){
+    submenu = submenu.filter(x=>!(x.t && x.t == 'toggleFullScreenView'))
+  }
+  return submenu
 }
 
 

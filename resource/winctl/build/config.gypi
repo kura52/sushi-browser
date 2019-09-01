@@ -70,9 +70,10 @@
     "v8_typed_array_max_size_in_heap": 0,
     "v8_use_snapshot": "true",
     "want_separate_host_toolset": 0,
-    "nodedir": "C:\\Users\\kura5\\AppData\\Local\\node-gyp\\Cache\\5.0.4",
+    "nodedir": "C:\\Users\\kura5\\AppData\\Local\\node-gyp\\Cache\\6.0.6",
     "standalone_static_library": 1,
     "msbuild_path": "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe",
-    "target": "5.0.4"
+    "target": "6.0.6",
+    "color": "always"
   }
 }

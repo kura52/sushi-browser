@@ -47,13 +47,13 @@ chrome.ipcRenderer = {
 
   var ACTION = {
     "back": function () {
-      history.back();
+      chrome.ipcRenderer.send('send-to-host', 'history', 'back')
     },
     "fastback": function () {
       history.go(-history.length + 1);
     },
     "forward": function () {
-      history.forward();
+      chrome.ipcRenderer.send('send-to-host', 'history', 'forward')
     },
     "reload": function () {
       location.reload();

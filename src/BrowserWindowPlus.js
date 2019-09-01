@@ -322,11 +322,17 @@ function create(args){
     ipcMain.emit('move-window', bw.id)
   })
 
-  bw.on('move', e=> ipcMain.emit('move-window', bw.id))
+  bw.on('move', e=> {
+    if(isDarwin){
+      bw.webContents.send('maximize',false)
+    }
+    ipcMain.emit('move-window', bw.id)
+  })
 
   bw.on('blur', ()=> {
     // PubSub.publish('chrome-windows-onFocusChanged',bw.id)
     bw.webContents.send('visit-state-update','blur')
+    ipcMain.emit('state-change-window', -1, 'focus')
     // const id = setTimeout(()=>bw.isAlwaysOnTop() && bw.setAlwaysOnTop(false),50)
     // ipcMain.once(`browserPanel-focused_${bw.id}`, ()=> clearTimeout(id))
     // console.log('blur', new Date().getTime())
@@ -359,8 +365,13 @@ function create(args){
     // bw.focusFlag = true
   })
 
+  let maximizeTimer = Date.now()
   bw.on('maximize',e=>{
     if(isWin){
+      const _maximizeTimer = maximizeTimer
+      maximizeTimer = Date.now()
+      if(maximizeTimer - _maximizeTimer < 100) return
+
       console.log('maximize1',bw._isVirtualMaximized)
       if(bw._isVirtualMaximized){
         bw.webContents.send('adjust-maxmize-size', false)
