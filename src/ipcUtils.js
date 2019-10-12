@@ -2445,9 +2445,9 @@ ipcMain.on('move-browser-view', async (e, panelKey, tabKey, type, tabId, x, y, w
       console.log('no-attach')
       delete noAttachs[`${panelKey}\t${tabKey}`]
 
-      if(x != null){
-        ipcMain.emit('set-bound-browser-view', e, panelKey, tabKey, tabId, x, y, width, height, zIndex)
-      }
+      // if(x != null){
+      //   ipcMain.emit('set-bound-browser-view', e, panelKey, tabKey, tabId, x, y, width, height, zIndex)
+      // }
 
       return
     }
@@ -2474,9 +2474,9 @@ ipcMain.on('move-browser-view', async (e, panelKey, tabKey, type, tabId, x, y, w
     // }
     // moveingTab = false
     console.log([tabId], panelKey, {index, tabKey})
-    if(x != null){
-      ipcMain.emit('set-bound-browser-view', e, panelKey, tabKey, tabId, x, y, width, height, zIndex)
-    }
+    // if(x != null){
+      // ipcMain.emit('set-bound-browser-view', e, panelKey, tabKey, tabId, x, y, width, height, zIndex)
+    // }
     if(zIndex > 0){
       webContents.fromId(tabId).focus()
       webContents.fromId(tabId).setActive()
@@ -2497,7 +2497,7 @@ ipcMain.on('set-bound-browser-view', async (e, panelKey, tabKey, tabId, x, y, wi
     return
   }
 
-  // console.log('set-bound-browser-view1', panelKey, tabKey, tabId, x, y, width, height, zIndex, date)
+  console.trace('set-bound-browser-view1', panelKey, tabKey, tabId, x, y, width, height, zIndex, date)
 
 
   const win = panel.browserWindow
@@ -2520,7 +2520,7 @@ ipcMain.on('set-bound-browser-view', async (e, panelKey, tabKey, tabId, x, y, wi
     const ids = setBoundClearIds[panelKey]
     delete setBoundClearIds[panelKey]
 
-    console.log(ids)
+    // console.log(ids)
 
     if(!ids) return
 
@@ -2551,6 +2551,11 @@ ipcMain.on('set-bound-browser-view', async (e, panelKey, tabKey, tabId, x, y, wi
   else{
     setBoundClearIds[panelKey] = [[bounds, id, date, zIndex]]
   }
+
+  // panel.setBounds(bounds)
+  // if(zIndex > 0 && isWin){
+  //   webContents.fromId(tabId).moveTop()
+  // }
 
 })
 

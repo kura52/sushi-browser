@@ -517,6 +517,10 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     chrome.tabs.sendMessage(sender.tab.id,{event:'send-op', menuKey:request.menuKey, opList: JSON.stringify(fixedOpList)})
     saveOperations(request.menuKey)
   }
+  else if(request.event == 'maximizeInPanel-fromIframe'){
+    chrome.tabs.sendMessage(sender.tab.id,{maximizeInPanel: true,
+      enable: request.enable, href: request.href, width: request.width, height: request.height})
+  }
   return false
 });
 

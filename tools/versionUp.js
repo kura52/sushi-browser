@@ -27,22 +27,27 @@ const glob = require("glob")
 // Akamutsu(Rosy seabass)
 
 const BEFORE_CODE_NAME = 'Akamutsu(Rosy seabass)'
-const CODE_NAME = 'Akamutsu(Rosy seabass)'
+const CODE_NAME = 'Yariika(Spear squid)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.26.1"
+const NEXT_APP_VERSION = "0.27.0"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH =`Released MacOS version.
-Updated Custom Chromium to 76.0.3809.132.
-Electron updated to v6.0.6.
-Youtube-dl updated to 2019.09.01.
-Many other bug fixes.`
+const CHANGE_ENGLISH =`
+Updated Custom Chromium to 77.0.3865.120.
+Electron updated to v6.0.12.
+Youtube-dl updated to 2019.09.28.
+Fixed a bug that Maximize button is not displayed in iframe video.
+Fixed a bug that does not work when Linux version of wmctrl does not exist.
+Fixed bug that affects info-bar size when browser is specified.
+Fixed a bug that the extension itself is not displayed when reloading after disabling the Chrome extension from the settings page.`
 
-const CHANGE_JAPANESE = `MacOS版をリリース
-Custom Chromiumを76.0.3809.132に更新
-Electronをv6.0.6に更新
-youtube-dlを2019.09.01に更新
-その他多数の不具合修正`
+const CHANGE_JAPANESE = `Custom Chromiumを77.0.3865.120に更新
+Electronをv6.0.12に更新
+youtube-dlを2019.09.28に更新
+iframeの動画にMaximizeボタンが表示されない不具合を修正
+Linux版のwmctrlが存在しない場合に動作しない不具合を修正
+ブラウザを指定した場合に、info-barのサイズ影響を受ける不具合を修正
+設定ページからChrome拡張を無効にしたあとに、リロードすると拡張自体が表示されなくなる不具合を修正`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

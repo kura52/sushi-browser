@@ -148,7 +148,7 @@ Or, please use the Chromium bundled version.`
         '--no-first-run',
         // '--enable-automation',
         '--metrics-recording-only',
-        '--disable-infobars',
+        '---no-startup-window',
         // '--enable-prompt-on-repost',
         '--disable-breakpad',
         // '--disable-logging',
@@ -1024,7 +1024,7 @@ Or, please use the Chromium bundled version.`
     })
 
     this.addListener('management', 'onUninstalled', id => {
-      this.disableExtension(id)
+      this.disableExtension(id, true)
     })
 
     this.addListener('management', 'onEnabled', info => {
@@ -1128,8 +1128,8 @@ Or, please use the Chromium bundled version.`
     }
   }
 
-  static disableExtension(id){
-    delete extInfos[id]
+  static disableExtension(id, uninstall){
+    if(uninstall) delete extInfos[id]
     for(let bw of BrowserWindow.getAllWindows()){
       if(bw.getTitle().includes('Sushi Browser'))
         bw.webContents.send('extension-disable', id)

@@ -143,77 +143,96 @@ if(window.__started_){
   },100)
 
   let preAElemsLength = 0
-
-  // const visitedLinkName = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
-  //
-  // const setVisitedLinkColor = (force) => {
-  //   const aElems = document.getElementsByTagName('a')
-  //   const length = aElems.length
-  //   if(!force && preAElemsLength == length) return
-  //   preAElemsLength = length
-  //   const checkElems = {}
-  //   for (let i = 0; i < length; i++) {
-  //     const ele = aElems[i]
-  //     if(ele.classList.contains(visitedLinkName)) continue
-  //     const url = ele.href
-  //     if (url.startsWith('http')) {
-  //       let arr = checkElems[url]
-  //       if(arr){
-  //         arr.push(ele)
-  //       }
-  //       else{
-  //         checkElems[url] = [ele]
-  //       }
-  //     }
-  //   }
-  //   const urls = Object.keys(checkElems)
-  //   if(!urls.length) return
-  //
-  //   const key = Math.random().toString()
-  //   ipc.send('get-visited-links', key, urls)
-  //   ipc.on(`get-visited-links-reply_${key}`, (e, urls) => {
-  //     for (let url of urls) {
-  //       for(let ele of checkElems[url]){
-  //         ele.classList.add(visitedLinkName)
-  //       }
-  //     }
-  //   })
-  // }
-
   const openTime = Date.now()
-  if(location.href.match(/^(http|chrome\-extension)/) && window == window.parent){
-    // require('./passwordEvents')
-    require('./webviewEvents')
-    require('./syncButton')
-    require('./inputPopupContentScript.js')
+  if(location.href.match(/^(http|chrome\-extension)/)){
 
-    let mdownEvent
-    document.addEventListener('mousedown',e=>{
-      mdownEvent = e
-      ipc.send('send-to-host', 'webview-mousedown',e.button)
-    },{passive: true, capture: true})
+    if(window == window.parent){
+      // require('./passwordEvents')
+      require('./webviewEvents')
+      require('./syncButton')
+      require('./inputPopupContentScript.js')
 
-    document.addEventListener('mouseup',e=>{
-      ipc.send('send-to-host', 'webview-mouseup',e.button)
-      // if(mdownEvent && e.target == mdownEvent.target &&
-      //   e.button == mdownEvent.button && (e.button == 0 || e.button == 1)){
-      //   const ele = e.target.closest('a')
-      //   if(ele && ele.href.startsWith('http')){
-      //     setTimeout(()=>setVisitedLinkColor(true),200)
-      //   }
-      // }
-    },{passive: true, capture: true})
+      let mdownEvent
+      document.addEventListener('mousedown',e=>{
+        mdownEvent = e
+        ipc.send('send-to-host', 'webview-mousedown',e.button)
+      },{passive: true, capture: true})
+
+      document.addEventListener('mouseup',e=>{
+        ipc.send('send-to-host', 'webview-mouseup',e.button)
+        // if(mdownEvent && e.target == mdownEvent.target &&
+        //   e.button == mdownEvent.button && (e.button == 0 || e.button == 1)){
+        //   const ele = e.target.closest('a')
+        //   if(ele && ele.href.startsWith('http')){
+        //     setTimeout(()=>setVisitedLinkColor(true),200)
+        //   }
+        // }
+      },{passive: true, capture: true})
 
 
-    document.addEventListener('mouseleave',e=>{
-      ipc.send('send-to-host', 'webview-mousemove', {clientY: e.clientY, screenY: e.screenY,
-        activeText: document.activeElement.tagName == 'INPUT' && document.activeElement.type == 'text'})
-    })
+      document.addEventListener('mouseleave',e=>{
+        ipc.send('send-to-host', 'webview-mousemove', {clientY: e.clientY, screenY: e.screenY,
+          activeText: document.activeElement.tagName == 'INPUT' && document.activeElement.type == 'text'})
+      })
+
+      window.addEventListener("beforeunload", e=>{
+        ipc.send('fullscreen-change', false, 1000)
+        ipc.send('send-to-host', 'scroll-position',{x:window.scrollX ,y:window.scrollY})
+        ipc.send('contextmenu-webContents-close')
+      });
+
+      document.addEventListener("DOMContentLoaded",_=>{
+        // const visitedStyle = require('./visitedStyle')
+        // setTimeout(()=> visitedStyle(`.${visitedLinkName}`), 0)
+        // setVisitedLinkColor()
+        // setInterval(()=>setVisitedLinkColor(),1000)
+        // const key = Math.random().toString()
+        // ipc.send('need-get-inner-text',key)
+        // ipc.once(`need-get-inner-text-reply_${key}`,(e,result)=>{
+        //   if(result) ipc.send('get-inner-text',location.href,document.title,document.documentElement.innerText)
+        // })
+        if(location.href.startsWith('https://chrome.google.com/webstore')){
+          setInterval(_=>{
+            const ele = document.querySelector(".h-e-f-Ra-c.e-f-oh-Md-zb-k")
+            if(ele && !ele.innerHTML){
+              ele.innerHTML = `<div role="button" class="dd-Va g-c-wb g-eg-ua-Uc-c-za g-c-Oc-td-jb-oa g-c g-c-Sc-ci" aria-label="add to chrome" tabindex="0" style="user-select: none;"><div class="g-c-Hf"><div class="g-c-x"><div class="g-c-R webstore-test-button-label">add to chrome</div></div></div></div>`
+              ele.querySelector(".dd-Va.g-c-wb.g-eg-ua-Uc-c-za.g-c-Oc-td-jb-oa.g-c.g-c-Sc-ci").addEventListener('click',_=>ipc.send('add-extension',{id:location.href.split("/").slice(-1)[0].split("?")[0]}))
+            }
+            let buttons = document.querySelectorAll(".dd-Va.g-c-wb.g-eg-ua-Kb-c-za.g-c-Oc-td-jb-oa.g-c")
+            if(buttons && buttons.length){
+              for(let button of buttons){
+                const loc = button.parentNode.parentNode.parentNode.parentNode.href.split("/").slice(-1)[0].split("?")[0]
+                const parent = button.parentNode
+                parent.innerHTML = `<div role="button" class="dd-Va g-c-wb g-eg-ua-Kb-c-za g-c-Oc-td-jb-oa g-c" aria-label="add to chrome" tabindex="0" style="user-select: none;"><div class="g-c-Hf"><div class="g-c-x"><div class="g-c-R webstore-test-button-label">add to chrome</div></div></div></div>`
+                parent.querySelector(".dd-Va.g-c-wb.g-eg-ua-Kb-c-za.g-c-Oc-td-jb-oa.g-c").addEventListener('click',e=>{
+                  e.stopImmediatePropagation()
+                  e.preventDefault()
+                  ipc.send('add-extension',{id:loc})},true)
+              }
+            }
+          },1000)
+        }
+        else if(location.href.match(/^https:\/\/addons\.mozilla\.org\/.+?\/firefox/) && !document.querySelector('.Badge.Badge-not-compatible')){
+          let url
+          const func = _=>ipc.send('add-extension',{url})
+          setInterval(_=>{
+            const b = document.querySelector('.Button--action.Button--puffy:not(.Button--disabled)')
+            if(!b) return
+            if(b.href != 'javascript:void(0)') url = b.href
+
+            b.innerText = 'Add to Sushi'
+            b.addEventListener('click',func)
+            b.href = 'javascript:void(0)'
+          },1000)
+        }
+      })
+    }
+
 
     let preClientY = -1, checkVideoEvent = {}, beforeRemoveIds = {}
     document.addEventListener('mousemove',e=>{
       // console.log('mousemove')
-      if(preClientY != e.clientY){
+      if(window == window.parent && preClientY != e.clientY){
         ipc.send('send-to-host', 'webview-mousemove', {clientY: e.clientY, screenY: e.screenY,
           activeText: document.activeElement.tagName == 'INPUT' && document.activeElement.type == 'text'})
         // console.log('webview-mousemove', e.clientY)
@@ -268,6 +287,7 @@ if(window.__started_){
         const v = target
         const func = ()=>{
 
+          console.log('func')
           const existElement = document.querySelector("#maximize-org-video")
           if(existElement){
             clearTimeout(beforeRemoveIds[target])
@@ -285,8 +305,8 @@ if(window.__started_){
 
           document.body.appendChild(span)
 
-          span.addEventListener('click', ()=> {
-            maximizeInPanel(v)
+          span.addEventListener('click', async ()=> {
+            await maximizeInPanel(v)
             const rect = v.getBoundingClientRect()
             span.style.left = `${Math.round(rect.left) + 10}px`
             span.style.top = `${Math.round(rect.top) + 10}px`
@@ -303,12 +323,14 @@ if(window.__started_){
 
         document.addEventListener('mousemove', e => {
           const r =  v.getBoundingClientRect()
+          console.log(r.left, r.top, r.width, r.height, e.clientX, e.clientY)
           if(pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)){
             func()
           }
         })
         document.addEventListener('mouseleave', e2 =>{
           const r =  v.getBoundingClientRect()
+          console.log(r.left, r.top, r.width, r.height, e.clientX, e.clientY)
           if(pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)){
             const existElement = document.querySelector("#maximize-org-video")
             if(existElement && e2.toElement != existElement){
@@ -321,110 +343,19 @@ if(window.__started_){
       }
 
     },{passive: true, capture: true})
-
-    window.addEventListener("beforeunload", e=>{
-      ipc.send('fullscreen-change', false, 1000)
-      ipc.send('send-to-host', 'scroll-position',{x:window.scrollX ,y:window.scrollY})
-      ipc.send('contextmenu-webContents-close')
-    });
-
-    document.addEventListener("DOMContentLoaded",_=>{
-      // const visitedStyle = require('./visitedStyle')
-      // setTimeout(()=> visitedStyle(`.${visitedLinkName}`), 0)
-      // setVisitedLinkColor()
-      // setInterval(()=>setVisitedLinkColor(),1000)
-      // const key = Math.random().toString()
-      // ipc.send('need-get-inner-text',key)
-      // ipc.once(`need-get-inner-text-reply_${key}`,(e,result)=>{
-      //   if(result) ipc.send('get-inner-text',location.href,document.title,document.documentElement.innerText)
-      // })
-      if(location.href.startsWith('https://chrome.google.com/webstore')){
-        setInterval(_=>{
-          const ele = document.querySelector(".h-e-f-Ra-c.e-f-oh-Md-zb-k")
-          if(ele && !ele.innerHTML){
-            ele.innerHTML = `<div role="button" class="dd-Va g-c-wb g-eg-ua-Uc-c-za g-c-Oc-td-jb-oa g-c g-c-Sc-ci" aria-label="add to chrome" tabindex="0" style="user-select: none;"><div class="g-c-Hf"><div class="g-c-x"><div class="g-c-R webstore-test-button-label">add to chrome</div></div></div></div>`
-            ele.querySelector(".dd-Va.g-c-wb.g-eg-ua-Uc-c-za.g-c-Oc-td-jb-oa.g-c.g-c-Sc-ci").addEventListener('click',_=>ipc.send('add-extension',{id:location.href.split("/").slice(-1)[0].split("?")[0]}))
-          }
-          let buttons = document.querySelectorAll(".dd-Va.g-c-wb.g-eg-ua-Kb-c-za.g-c-Oc-td-jb-oa.g-c")
-          if(buttons && buttons.length){
-            for(let button of buttons){
-              const loc = button.parentNode.parentNode.parentNode.parentNode.href.split("/").slice(-1)[0].split("?")[0]
-              const parent = button.parentNode
-              parent.innerHTML = `<div role="button" class="dd-Va g-c-wb g-eg-ua-Kb-c-za g-c-Oc-td-jb-oa g-c" aria-label="add to chrome" tabindex="0" style="user-select: none;"><div class="g-c-Hf"><div class="g-c-x"><div class="g-c-R webstore-test-button-label">add to chrome</div></div></div></div>`
-              parent.querySelector(".dd-Va.g-c-wb.g-eg-ua-Kb-c-za.g-c-Oc-td-jb-oa.g-c").addEventListener('click',e=>{
-                e.stopImmediatePropagation()
-                e.preventDefault()
-                ipc.send('add-extension',{id:loc})},true)
-            }
-          }
-        },1000)
-      }
-      else if(location.href.match(/^https:\/\/addons\.mozilla\.org\/.+?\/firefox/) && !document.querySelector('.Badge.Badge-not-compatible')){
-        let url
-        const func = _=>ipc.send('add-extension',{url})
-        setInterval(_=>{
-          const b = document.querySelector('.Button--action.Button--puffy:not(.Button--disabled)')
-          if(!b) return
-          if(b.href != 'javascript:void(0)') url = b.href
-
-          b.innerText = 'Add to Sushi'
-          b.addEventListener('click',func)
-          b.href = 'javascript:void(0)'
-        },1000)
-      }
-    })
     // setInterval(()=>setVisitedLinkColor(),1000)
   }
 
-  // function handleDragEnd(evt) {
-  //   console.log(evt)
-  //   const target = evt.target
-  //   if(!target) return
-  //
-  //   let url,text
-  //   if(target.href){
-  //     url = target.href
-  //     text = target.innerText
-  //   }
-  //   else if(target.nodeName == "#text"){
-  //     ipc.send('send-to-host', "link-drop",{screenX: evt.screenX, screenY: evt.screenY, text:window.getSelection().toString() || target.data})
-  //   }
-  //   else{
-  //     const parent = target.closest("a")
-  //     if(parent){
-  //       url = parent.href
-  //       text = target.innerText
-  //     }
-  //     else{
-  //       url = target.src
-  //       text = target.getAttribute('alt')
-  //     }
-  //   }
-  //
-  //   ipc.send('send-to-host', "link-drop",{screenX: evt.screenX, screenY: evt.screenY, url,text})
-  // }
-  // if(location.href.match(/^chrome-extension:\/\/dckpbojndfoinamcdamhkjhnjnmjkfjd\/(favorite|favorite_sidebar)\.html/)){
-  //   console.log("favorite")
-  //   document.addEventListener("drop", e=>{
-  //     e.preventDefault()
-  //     e.stopImmediatePropagation()
-  //     console.log('drop',e)
-  //   }, false)
-  //
-  //   document.addEventListener("dragend", function( event ) {
-  //     event.preventDefault();
-  //     event.stopImmediatePropagation()
-  //     console.log('dragend',event)
-  //   }, false);
-  // }
-  // else{
-  // document.addEventListener('dragend', handleDragEnd, false)
-  // }
 
   const gaiseki = (ax,ay,bx,by) => ax*by-bx*ay
   const pointInCheck = (X,Y,W,H,PX,PY) => gaiseki(-W,0,PX-W-X,PY-Y) < 0 && gaiseki(0,H,PX-X,PY-Y) < 0 && gaiseki(W,0,PX-X,PY-Y-H) < 0 && gaiseki(0,-H,PX-W-X,PY-H-Y) < 0
 
-  function maximizeInPanel(v, enable){
+  async function maximizeInPanel(v, enable, isIframe){
+    if(window != window.parent){
+      chrome.runtime.sendMessage({event: 'maximizeInPanel-fromIframe', enable, href: location.href, width: window.innerWidth, height: window.innerHeight })
+      // await new Promise(r=>setTimeout(r,500))
+    }
+
     if(enable == null){
       enable = !v._olds_
     }
@@ -449,15 +380,21 @@ if(window.__started_){
       v._olds_.border = v.style.border
       v._olds_.outline = v.style.outline
 
-      v._clickCallback_ = async () => {
-        for(let i=0;i<10;i++){
-          v.setAttribute('controls', true)
-          await new Promise(r=>setTimeout(r,100))
+      if(!isIframe){
+        v._clickCallback_ = async () => {
+          for(let i=0;i<10;i++){
+            v.setAttribute('controls', true)
+            await new Promise(r=>setTimeout(r,100))
+          }
         }
-      }
-      v.addEventListener('click', v._clickCallback_)
+        v.addEventListener('click', v._clickCallback_)
 
-      v.setAttribute('controls', true)
+        v.setAttribute('controls', true)
+      }
+      else{
+        v.setAttribute('_key_', 'video')
+      }
+
       document.body.style.setProperty('overflow','hidden' ,'important')
 
       v.style.setProperty('width','100vw' ,'important')
@@ -477,14 +414,16 @@ if(window.__started_){
       v.style.setProperty('border','0' ,'important')
       v.style.setProperty('outline','0' ,'important')
 
-      v._olds_.parentNode = v.parentNode
+      if(!isIframe) {
+        v._olds_.parentNode = v.parentNode
 
-      const replaceNode = document.createElement('span')
-      v.parentNode.insertBefore(replaceNode, v)
+        const replaceNode = document.createElement('span')
+        v.parentNode.insertBefore(replaceNode, v)
 
-      v._olds_.replaceNode = replaceNode
+        v._olds_.replaceNode = replaceNode
 
-      document.documentElement.insertBefore(v, document.body)
+        document.documentElement.insertBefore(v, document.body)
+      }
 
     }
     else{
@@ -508,7 +447,9 @@ if(window.__started_){
       v.style.border = v._olds_.border
       v.style.outline = v._olds_.outline
 
-      v._olds_.parentNode.replaceChild(v, v._olds_.replaceNode)
+      if(!isIframe) {
+        v._olds_.parentNode.replaceChild(v, v._olds_.replaceNode)
+      }
 
       delete v._olds_
       delete v._clickCallback_
@@ -581,72 +522,7 @@ if(window.__started_){
     'inputHistory','inputHistoryMaxChar','hoverStatusBar','hoverBookmarkBar','ALL_KEYS2','protectTab'])
   ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
     mainState = data
-    // if(data.fullscreenTransitionKeep){
-    //   let full = data.fullScreen ? true : false
-    //   let preV = "_"
-    //   setInterval(_=>{
-    //     const v = document.querySelector('video')
-    //     if(full && v && v.src && v.src != preV){
-    //       if(v.scrollWidth == window.innerWidth || v.scrollHeight == window.innerHeight || v.webkitDisplayingFullscreen){}
-    //       else{
-    //         const fullscreenButton = document.querySelector('.ytp-fullscreen-button,.fullscreenButton,.button-bvuiFullScreenOn,.fullscreen-icon,.full-screen-button,.np_ButtonFullscreen,.vjs-fullscreen-control,.qa-fullscreen-button,[data-testid="fullscreen_control"],.vjs-fullscreen-control,.EnableFullScreenButton,.DisableFullScreenButton,.mhp1138_fullscreen,button.fullscreenh,.screenFullBtn,.player-fullscreenbutton')
-    //         if(fullscreenButton){
-    //           const callback = e => {
-    //             e.stopImmediatePropagation()
-    //             e.preventDefault()
-    //             document.removeEventListener('mouseup',callback ,true)
-    //             fullscreenButton.click()
-    //             if(location.href.startsWith('https://www.youtube.com')){
-    //               let retry = 0
-    //               const id = setInterval(_=>{
-    //                 if(retry++>500) clearInterval(id)
-    //                 const e = document.querySelector('.html5-video-player').classList
-    //                 if(!e.contains('ytp-autohide')){
-    //                   // e.add('ytp-autohide')
-    //                   if(document.querySelector('.ytp-fullscreen-button.ytp-button').getAttribute('aria-expanded') == 'true'){
-    //                     v.click()
-    //                   }
-    //                 }
-    //               },10)
-    //             }
-    //           }
-    //           document.addEventListener('mouseup',callback ,true);
-    //           setTimeout(_=>ipc.send('send-to-host', 'full-screen-mouseup'),500)
-    //         }
-    //         else{
-    //           const callback = e => {
-    //             e.stopImmediatePropagation()
-    //             e.preventDefault()
-    //             document.removeEventListener('mouseup',callback ,true)
-    //             v.webkitRequestFullscreen()
-    //           }
-    //           let i = 0
-    //           const cId = setInterval(_=>{
-    //             document.addEventListener('mouseup',callback ,true);
-    //             ipc.send('send-to-host', 'full-screen-mouseup')
-    //             if(i++ == 5){
-    //               clearInterval(cId)
-    //             }
-    //           },100)
-    //         }
-    //       }
-    //       preV = v.src
-    //     }
-    //
-    //     if(v && v.src){
-    //       const currentFull = v.scrollWidth == window.innerWidth || v.scrollHeight == window.innerHeight || v.webkitDisplayingFullscreen
-    //       if(v && full != currentFull){
-    //         full = currentFull
-    //         if(full){
-    //           ipc.send("full-screen-html",true)
-    //         }
-    //         else{
-    //           ipc.send("full-screen-html",false)
-    //         }
-    //       }
-    //     }
-    //   },500)
-    // }
+
     if (data.tripleClick) {
       window.addEventListener('click', e => {
         if (e.detail === 3) {
@@ -1181,6 +1057,24 @@ if(window.__started_){
     }
     else if(inputs.video){
       videoFunc({},inputs.val)
+    }
+    else if(inputs.maximizeInPanel){
+      if(window == window.parent){
+        const iframes = document.querySelectorAll('iframe')
+        for(const iframe of iframes){
+          if(iframe._key_ == 'video' || iframe.src == inputs.href){
+            maximizeInPanel(iframe, inputs.enable, true)
+            return false
+          }
+        }
+        for(const iframe of iframes){
+          const rect = iframe.getBoundingClientRect()
+          if(Math.round(rect.width) == inputs.width || Math.round(rect.height) == inputs.height){
+            maximizeInPanel(iframe, inputs.enable, true)
+            return false
+          }
+        }
+      }
     }
     return false
   })

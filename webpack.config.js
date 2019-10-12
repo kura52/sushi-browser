@@ -130,7 +130,7 @@ module.exports = [
   // merge({fileName:"sync.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
   // merge({fileName:"video_main.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
 
-  merge({fileName:"settings.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
+  // merge({fileName:"settings.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
 
   // merge({fileName:"converter.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
   // merge({fileName:"automation.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
@@ -138,6 +138,6 @@ module.exports = [
   // merge({fileName:"macro.js",src:path.join(__dirname,"./src/defaultExtension/"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfigExt),
   // merge({fileName:"mobilePanel.js",src:path.join(__dirname,"./src/defaultExtension/"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfigExt),
   merge({fileName:"contentscript.js",src:path.join(__dirname,"./src/defaultExtension/"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfigExt),
-  // merge({fileName:"bg.js",src:path.join(__dirname,"./src/defaultExtension/"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfigExt),
+  merge({fileName:"bg.js",src:path.join(__dirname,"./src/defaultExtension/"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfigExt),
 ]
 
