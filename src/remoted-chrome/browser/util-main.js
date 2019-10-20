@@ -60,8 +60,8 @@ module.exports = {
   },
   sendToBackgroundPage(extensionId, ...args) {
     let success = false
-    for(const [target, bgPage] of Browser.cachedBgTarget.values()){
-      if(target.url().startsWith(`chrome-extension://${extensionId}`)){
+    for(const [id, bgPage] of Browser.cachedBgTargetUrl){
+      if(id == extensionId){
         bgPage.evaluate((channel, ...args) => {
           window.ipcRenderer.events[channel]({},...args)
         }, ...args)

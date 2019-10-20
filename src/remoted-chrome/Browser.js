@@ -13,6 +13,8 @@ import hjson from 'hjson'
 import evem from './evem'
 import mainState from "../mainState";
 import DpiUtils from './DpiUtils'
+import BraveExtensionsManifest from './BraveExtensionsManifest'
+
 const isWin = process.platform == 'win32'
 const isLinux = process.platform === 'linux'
 const isDarwin = process.platform === 'darwin'
@@ -649,19 +651,21 @@ Or, please use the Chromium bundled version.`
   static async initTargetCreated() {
     this._browser.on('targetcreated', async target => {
 
+      console.log('targetcreated', target.url())
+
       if(target.type() == 'background_page'){
         const bgPage = await target.page()
         if(this.cachedBgTarget.has(bgPage._targetId)) return
 
         await this.modifyBackgroundPage(bgPage)
         this.cachedBgTarget.add(bgPage._targetId)
+        console.log(9998111,target.url().split("/")[2])
         this.cachedBgTargetUrl.set(target.url().split("/")[2], bgPage)
         return
       }
 
       if (target.type() != 'page' || target.url().startsWith('chrome-devtools:')) return
 
-      console.log('targetcreated', target.url())
 
       const targetMap = await this.bg.evaluate(() => {
         return new Promise(resolve => {
@@ -1099,6 +1103,8 @@ Or, please use the Chromium bundled version.`
       })
     })
 
+    result.push(...Object.values(BraveExtensionsManifest))
+
     return result.map(e => this._getExtensionInfo(e))
   }
 
@@ -1118,6 +1124,8 @@ Or, please use the Chromium bundled version.`
   }
 
   static async updateExtensionInfo(id){
+    if(BraveExtensionsManifest[id]) return BraveExtensionsManifest[id]
+
     const e = await this.bg.evaluate((id) => {
       return new Promise(resolve => {
         chrome.management.get(id, result => resolve(result))

@@ -202,13 +202,13 @@ Puppeteer(ヘッドレスChromeでの自動化) APIと互換性のあるAPIを�
 
 各プラットフォームに対し、インストーラとポータブル版の両方がダウンロードできます。
 
-- [Windows Installer v0.26.1](https://github.com/kura52/sushi-browser/releases/download/0.26.1/sushi-browser-0.26.1-setup-x64.exe)
-- [Windows Portable v0.26.1(Chromium同梱)](https://github.com/kura52/sushi-browser/releases/download/0.26.1/sushi-browser-0.26.1-win-x64-chromium.zip)
-- [Windows Portable v0.26.1](https://github.com/kura52/sushi-browser/releases/download/0.26.1/sushi-browser-0.26.1-win-x64.zip)
-- [MacOS dmg v0.26.1](https://github.com/kura52/sushi-browser/releases/download/0.26.1/SushiBrowser-0.26.1.dmg)
-- [MacOS Portable v0.26.1](https://github.com/kura52/sushi-browser/releases/download/0.26.1/sushi-browser-0.26.1-mac-x64.zip)
-- [Linux rpm (for Fedora/CentOS) v0.26.1](https://github.com/kura52/sushi-browser/releases/download/0.26.1/sushi-browser-0.26.1-1.x86_64.rpm)
-- [Linux deb (for Debian/Ubuntu) v0.26.1](https://github.com/kura52/sushi-browser/releases/download/0.26.1/sushi-browser_0.26.1_amd64.deb)
-- [Linux Portable v0.26.1](https://github.com/kura52/sushi-browser/releases/download/0.26.1/sushi-browser-0.26.1.tar.bz2)
+- [Windows Installer v0.27.0](https://github.com/kura52/sushi-browser/releases/download/0.27.0/sushi-browser-0.27.0-setup-x64.exe)
+- [Windows Portable v0.27.0(Chromium同梱)](https://github.com/kura52/sushi-browser/releases/download/0.27.0/sushi-browser-0.27.0-win-x64-chromium.zip)
+- [Windows Portable v0.27.0](https://github.com/kura52/sushi-browser/releases/download/0.27.0/sushi-browser-0.27.0-win-x64.zip)
+- [MacOS dmg v0.27.0](https://github.com/kura52/sushi-browser/releases/download/0.27.0/SushiBrowser-0.27.0.dmg)
+- [MacOS Portable v0.27.0](https://github.com/kura52/sushi-browser/releases/download/0.27.0/sushi-browser-0.27.0-mac-x64.zip)
+- [Linux rpm (for Fedora/CentOS) v0.27.0](https://github.com/kura52/sushi-browser/releases/download/0.27.0/sushi-browser-0.27.0-1.x86_64.rpm)
+- [Linux deb (for Debian/Ubuntu) v0.27.0](https://github.com/kura52/sushi-browser/releases/download/0.27.0/sushi-browser_0.27.0_amd64.deb)
+- [Linux Portable v0.27.0](https://github.com/kura52/sushi-browser/releases/download/0.27.0/sushi-browser-0.27.0.tar.bz2)
 
 ポータブル版の利用は、解凍後にWindowsはsushi.exeを、Mac/Linuxはsushi-browserを実行ください。

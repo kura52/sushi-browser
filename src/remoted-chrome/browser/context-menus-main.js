@@ -11,12 +11,14 @@ ipcMain.on('chrome-context-menus-clicked', async (e, extensionId, tabId, info)=>
 })
 
 ipcFuncMainCb('contextMenus', 'create', (e, extensionId, createProperties, cb)=> {
+  console.log('contextMenu', 'create', extensionId, createProperties)
   const manifest = extInfos[extensionId].manifest
   const icon = Object.values(manifest.icons)[0]
   const menuItemId = createProperties.id
 
   if(!sharedState.extensionMenu[extensionId]) sharedState.extensionMenu[extensionId] = []
   sharedState.extensionMenu[extensionId].push({properties: createProperties, menuItemId, icon})
+  sharedState.extensionMenu[extensionId].sort((a,b) => (a.properties.count || 99) - (b.properties.count || 99))
   //TODO onClick
   cb()
 })

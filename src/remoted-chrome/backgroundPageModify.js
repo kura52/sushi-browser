@@ -266,33 +266,33 @@ export default (port, serverKey) => {
       })
 
       chrome.browserAction._setTitle = chrome.browserAction.setTitle
-      chrome.browserAction.setTitle = (detalis, callback) => {
-        chrome.browserAction._setTitle(detalis, callback)
-        ipcRenderer.send('chrome-browser-action-set-title', chrome.runtime.id, detalis)
+      chrome.browserAction.setTitle = (details, callback) => {
+        chrome.browserAction._setTitle(details, callback)
+        ipcRenderer.send('chrome-browser-action-set-title', chrome.runtime.id, details)
       }
 
       chrome.browserAction._setIcon = chrome.browserAction.setIcon
-      chrome.browserAction.setIcon = (detalis, callback) => {
-        chrome.browserAction._setIcon(detalis, callback)
-        ipcRenderer.send('chrome-browser-action-set-icon', chrome.runtime.id, detalis)
+      chrome.browserAction.setIcon = (details, callback) => {
+        chrome.browserAction._setIcon(details, callback)
+        ipcRenderer.send('chrome-browser-action-set-icon', chrome.runtime.id, details)
       }
 
       chrome.browserAction._setPopup = chrome.browserAction.setPopup
-      chrome.browserAction.setPopup = (detalis, callback) => {
-        chrome.browserAction._setPopup(detalis, callback)
-        ipcRenderer.send('chrome-browser-action-set-popup', chrome.runtime.id, detalis)
+      chrome.browserAction.setPopup = (details, callback) => {
+        chrome.browserAction._setPopup(details, callback)
+        ipcRenderer.send('chrome-browser-action-set-popup', chrome.runtime.id, details)
       }
 
       chrome.browserAction._setBadgeText = chrome.browserAction.setBadgeText
-      chrome.browserAction.setBadgeText = (detalis, callback) => {
-        chrome.browserAction._setBadgeText(detalis, callback)
-        ipcRenderer.send('chrome-browser-action-set-badge-text', chrome.runtime.id, detalis)
+      chrome.browserAction.setBadgeText = (details, callback) => {
+        chrome.browserAction._setBadgeText(details, callback)
+        ipcRenderer.send('chrome-browser-action-set-badge-text', chrome.runtime.id, details)
       }
 
       chrome.browserAction._setBadgeBackgroundColor = chrome.browserAction.setBadgeBackgroundColor
-      chrome.browserAction.setBadgeBackgroundColor = (detalis, callback) => {
-        chrome.browserAction._setBadgeBackgroundColor(detalis, callback)
-        ipcRenderer.send('chrome-browser-action-set-badge-background-color', chrome.runtime.id, detalis)
+      chrome.browserAction.setBadgeBackgroundColor = (details, callback) => {
+        chrome.browserAction._setBadgeBackgroundColor(details, callback)
+        ipcRenderer.send('chrome-browser-action-set-badge-background-color', chrome.runtime.id, details)
       }
 
       chrome.browserAction._enable = chrome.browserAction.enable
@@ -309,6 +309,7 @@ export default (port, serverKey) => {
 
     }
     if(chrome.contextMenus){
+      let count = 0
       chrome.contextMenus.onClicked = new Event()
       const onClickEvents = {}
 
@@ -326,6 +327,7 @@ export default (port, serverKey) => {
           onClickEvents[createProperties.id] = createProperties.onclick
           delete createProperties.onclick
         }
+      createProperties.count = ++count
         console.log('chrome.contextMenus.create', createProperties, callback)
         ipcFuncRenderer('ContextMenus', 'create', callback, chrome.runtime.id, createProperties)
       }
