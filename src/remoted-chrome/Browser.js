@@ -24,6 +24,8 @@ const CUSTOM_CHROMIUM_PATH = isLinux ?
     isWin ? path.join(__dirname, '../../../../custom_chromium/chrome.exe'):
         path.join(__dirname, '../../../custom_chromium/Chromium.app/Contents/MacOS/Chromium')
 
+const CUSTOM_BRAVE_PATH = path.join(__dirname, '../../../../custom_chromium/brave.exe')
+
 console.log(CUSTOM_CHROMIUM_PATH,990)
 
 function search(obj,messages){
@@ -109,6 +111,9 @@ Please enter the correct path of the executable file.`
     else if(fs.existsSync(executablePath = CUSTOM_CHROMIUM_PATH) ||
       fs.existsSync(executablePath = CUSTOM_CHROMIUM_PATH)){
       BrowserPanel.BROWSER_NAME = 'Chromium'
+    }
+    else if(fs.existsSync(executablePath = CUSTOM_BRAVE_PATH)){
+      BrowserPanel.BROWSER_NAME = 'Brave'
     }
     else if(fs.existsSync(executablePath = 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe')){}
     else if(fs.existsSync(executablePath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe')){}
@@ -1327,7 +1332,7 @@ Or, please use the Chromium bundled version.`
 
 Browser.CUSTOM_CHROMIUM = (!require('../minimist')(process.argv.slice(1))['browser-path'] ||
   !fs.existsSync(require('../minimist')(process.argv.slice(1))['browser-path'])) &&
-  fs.existsSync(CUSTOM_CHROMIUM_PATH)
+  (fs.existsSync(CUSTOM_CHROMIUM_PATH) || fs.existsSync(CUSTOM_BRAVE_PATH))
 
 
 
