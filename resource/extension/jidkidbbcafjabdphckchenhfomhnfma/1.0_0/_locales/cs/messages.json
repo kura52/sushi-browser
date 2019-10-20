@@ -1,0 +1,536 @@
+{
+  "braveRewards": {
+    "message": "Odměny Brave",
+    "description": "Title in welcome screen for the panel"
+  },
+  "welcomeButtonTextOne": {
+    "message": "Začněte vydělávat nyní! ",
+    "description": "CTA on welcome screen in the panel, existing users"
+  },
+  "welcomeButtonTextTwo": {
+    "message": "Přidat se k Rewards ",
+    "description": "CTA on welcome screen in the panel, new users"
+  },
+  "welcomeDescOne": {
+    "message": "Dostávejte zaplaceno zobrazováním reklam a posílejte tyto peníze vašim oblíbeným tvůrcům obsahu. ",
+    "description": "Entry text for welcome screen in the panel, existing user"
+  },
+  "welcomeDescTwo": {
+    "message": "Nyní můžete získávat tokeny za sledování reklam o respektování soukromí. ",
+    "description": "Entry text for welcome screen in the panel, new user"
+  },
+  "welcomeFooterTextOne": {
+    "message": "Podívejte se, co jsme vylepšili ",
+    "description": "Link in the footer (takes you to rewards settings page) for welcome screen in the panel, existing user"
+  },
+  "welcomeFooterTextTwo": {
+    "message": "Zjistit více",
+    "description": "Link in the footer (takes you to rewards settings page) for welcome screen in the panel, new user"
+  },
+  "welcomeHeaderOne": {
+    "message": "Brave Rewards se dočkaly důkladné aktualizace.",
+    "description": "Main header title for welcome screen in the panel, existing user"
+  },
+  "welcomeHeaderTwo": {
+    "message": "Připravte se na zážitek z nového internetu. ",
+    "description": "Main header title for welcome screen in the panel, new user"
+  },
+  "yourWallet": {
+    "message": "Vaše peněženka",
+    "description": "Title of wallet section where we display data about wallet"
+  },
+  "grants": {
+    "message": "Granty",
+    "description": "Title for grant section in wallet summary"
+  },
+  "on": {
+    "message": "zapnuto ",
+    "description": "The whole string is 'Enable tips on YouTube for like.'"
+  },
+  "verifiedPublisher": {
+    "message": "Ověřený tvůrce Brave",
+    "description": "Tells user that this particular publisher is a Brave Verified Creator"
+  },
+  "rewardsContributeAttentionScore": {
+    "message": "Pozor ",
+    "description": "Label for auto contribute table attention for the publisher"
+  },
+  "donateMonthly": {
+    "message": "Měsíční příspěvek",
+    "description": "Label for drop down menu where user select amount for monthly contribution for particular publisher"
+  },
+  "includeInAuto": {
+    "message": "Zahrnout automatický příspěvek ",
+    "description": "Label for checkbox that allows user to exclude publishers from auto contribute"
+  },
+  "donateNow": {
+    "message": "Poslat příspěvek... ",
+    "description": "CTA for sending tip form site banner"
+  },
+  "enableTips": {
+    "message": "Povolit dary ",
+    "description": "The whole string is 'Enable tips on YouTube for like.'"
+  },
+  "for": {
+    "message": "pro",
+    "description": "The whole string is 'Enable tips on YouTube for like.'"
+  },
+  "rewardsSummary": {
+    "message": "Přehled odměn ",
+    "description": "Section title in wallet panel, which contains monthly rewards summary"
+  },
+  "monthApr": {
+    "message": "Duben ",
+    "description": "Month"
+  },
+  "monthAug": {
+    "message": "Srpen ",
+    "description": "Month"
+  },
+  "monthDec": {
+    "message": "Prosinec",
+    "description": "Month"
+  },
+  "monthFeb": {
+    "message": "Únor",
+    "description": "Month"
+  },
+  "monthJan": {
+    "message": "Leden",
+    "description": "Month"
+  },
+  "monthJul": {
+    "message": "Červenec ",
+    "description": "Month"
+  },
+  "monthJun": {
+    "message": "Červen",
+    "description": "Month"
+  },
+  "monthMar": {
+    "message": "Březen",
+    "description": "Month"
+  },
+  "monthMay": {
+    "message": "Květen ",
+    "description": "Month"
+  },
+  "monthNov": {
+    "message": "Listopad",
+    "description": "Month"
+  },
+  "monthOct": {
+    "message": "Říjen",
+    "description": "Month"
+  },
+  "monthSep": {
+    "message": "Září",
+    "description": "Month"
+  },
+  "tokenGrant": {
+    "message": "Tokenové granty",
+    "description": "Title for grant notification"
+  },
+  "tokenGrantClaimed": {
+    "message": "Nárokovaných grantů",
+    "description": "Title for grant section in wallet summary"
+  },
+  "earningsAds": {
+    "message": "Zisky z reklam ",
+    "description": "Title for ads section in wallet summary"
+  },
+  "rewardsContribute": {
+    "message": "Automaticky přispívat ",
+    "description": "Title for auto contribute section in wallet summary"
+  },
+  "oneTimeDonation": {
+    "message": "Jednorázové příspěvky ",
+    "description": "Title for one time tips section in wallet summary"
+  },
+  "expiresOn": {
+    "message": "platnost vyprší ",
+    "description": "Used for grant representation. Whole string is '30.0 BAT expires on 08/05/2022'"
+  },
+  "recurringDonations": {
+    "message": "Měsíční příspěvky ",
+    "description": "Title for monthly tips section in wallet summary"
+  },
+  "off": {
+    "message": "Vypnuto ",
+    "description": "Label used in toggle indicating that toggle is off"
+  },
+  "ok": {
+    "message": "ok ",
+    "description": "Used in notification to dismiss notification"
+  },
+  "braveAdsLaunchMsg": {
+    "message": "Nyní si můžete vydělávat sledováním reklam.",
+    "description": "Message for ads launch notification"
+  },
+  "braveAdsLaunchTitle": {
+    "message": "Reklamy Brave jsou tu!",
+    "description": "Message used in notification to let users know Ads is available"
+  },
+  "braveAdsTitle": {
+    "message": "Reklamy Brave ",
+    "description": "Notification title when we display info about ads"
+  },
+  "braveContributeTitle": {
+    "message": "Automatický příspěvek ",
+    "description": "Notification title when we display info about auto contribution"
+  },
+  "contributeNotificationSuccess": {
+    "message": "Přispěli jste částkou $amount$ BAT",
+    "description": "We show this string in the notification when contribution is successful",
+    "placeholders": {
+      "amount": {
+        "content": "$1",
+        "example": "10.0"
+      }
+    }
+  },
+  "grantNotification": {
+    "message": "Čeká na vás grant. ",
+    "description": "Description for new grant notification"
+  },
+  "backupNow": {
+    "message": "Zálohovat hned",
+    "description": "Notification button text when we ask user to backup wallet"
+  },
+  "backupWalletTitle": {
+    "message": "Záložní peněženka",
+    "description": "Notification title when we ask user to backup wallet"
+  },
+  "backupWalletNotification": {
+    "message": "Zálohujte prosím svoji Brave peněženku.",
+    "description": "Description for backup wallet notification"
+  },
+  "insufficientFundsNotification": {
+    "message": "Váš účet Brave Rewards čeká na převod prostředků.",
+    "description": "Description for new insufficient funds notification"
+  },
+  "insufficientFunds": {
+    "message": "Nedostatečné finance ",
+    "description": "Title for insufficient funds notification"
+  },
+  "braveRewardsCreatingText": {
+    "message": "Vytváření peněženky ",
+    "description": "Used in a button displaying wallet creation process"
+  },
+  "contributeNotificationError": {
+    "message": "Při zpracování vašeho příspěvku došlo k problému. ",
+    "description": "We show this string in notification when contribution fails"
+  },
+  "contributeNotificationNotEnoughFunds": {
+    "message": "Vaše naplánované měsíční automatické příspěvky a měsíční spropitné nemohly být odeslány kvůli nedostatečnému zůstatku na účtu. Zkusíme to znovu za 30 dní. ",
+    "description": "We show this string in the notification when you don't have enough funds for contribution"
+  },
+  "contributeNotificationTipError": {
+    "message": "Nemohli jsme odeslat váš příspěvek. Zkuste to prosím později.",
+    "description": "We show this string in notification when tip fails"
+  },
+  "noActivity": {
+    "message": "Žádné aktivity. Zatím.",
+    "description": "Allows the user to see that there have been no transactions or other activity in their wallet"
+  },
+  "captchaDrag": {
+    "message": "Přetáhnout ikonu BAT na ",
+    "description": "Directs the user to drag the BAT icon"
+  },
+  "captchaProveHuman": {
+    "message": "Potvrďte, že jste člověk!",
+    "description": "Cosmetic text for captcha prompt"
+  },
+  "captchaTarget": {
+    "message": "cíl.",
+    "description": "Captcha Target"
+  },
+  "captchaMissedTarget": {
+    "message": "Hmm… To nesedí. Zkuste to znova.",
+    "description": "Message upon failing captcha"
+  },
+  "claim": {
+    "message": "Nárokovat",
+    "description": "Claim text"
+  },
+  "newTokenGrant": {
+    "message": "Volný grant k dispozici",
+    "description": "Token grant label"
+  },
+  "grantExpire": {
+    "message": "Datum vypršení grantu",
+    "description": "Grant expiry label"
+  },
+  "grantAlreadyClaimedText": {
+    "message": "Je nám líto, tento grant byl zjevně již nárokován.",
+    "description": "Description of the error when grant is already claimed."
+  },
+  "grantGeneralErrorButton": {
+    "message": "OK",
+    "description": "Button text for clearing the error."
+  },
+  "grantGeneralErrorText": {
+    "message": "Odměny Brave se setkaly s problémem. Zkuste to prosím později znovu.",
+    "description": "Error text when user is having problems claiming a grant."
+  },
+  "grantGeneralErrorTitle": {
+    "message": "Jejda, něco se pokazilo. Zkuste to prosím později.",
+    "description": "Error title when user is having problems claiming a grant."
+  },
+  "grantGoneButton": {
+    "message": "OK",
+    "description": "Button text for clearing the error."
+  },
+  "grantGoneText": {
+    "message": "Je nám líto, zdá se, že tento grant již vypršel.",
+    "description": "Error text when user missed a grant."
+  },
+  "grantGoneTitle": {
+    "message": "Tento grant již není dostupný.",
+    "description": "Error title when user missed a grant."
+  },
+  "unVerifiedCheck": {
+    "message": "Obnovit status",
+    "description": "Text of link that allows to check verified status of unverified publisher"
+  },
+  "unVerifiedPublisher": {
+    "message": "Dosud neověřeno",
+    "description": "Status of the publisher shown in the panel"
+  },
+  "unVerifiedText": {
+    "message": "Tento tvůrce se dosud nepřihlásil k přijímání příspěvků od uživatelů Brave. Veškeré zaslané příspěvky zůstanou ve vaší peněžence, dokud nedojde k ověření.",
+    "description": "Notice about unverified publisher."
+  },
+  "unVerifiedTextMore": {
+    "message": "Dozvědět se více.",
+    "description": "Text for the link that explains more about reserved amount"
+  },
+  "reservedAmountText": {
+    "message": "Vyhradili jste {{reservedAmount}} BAT pro tvůrce, kteří se ještě nepřihlásili k přijímání příspěvků. Váš prohlížeč se bude snažit realizovat příspěvek, dokud jimi nebude potvrzen nebo dokud neuplyne doba 90 dní.  ",
+    "description": "Notification about how much BAT do you have reserved"
+  },
+  "reservedMoreLink": {
+    "message": "Dozvědět se více.",
+    "description": "Text for the link that explains more about reserved amount"
+  },
+  "disabledPanelOff": {
+    "message": "Vypnuté",
+    "description": "Off state text for Panel's disabled state"
+  },
+  "disabledPanelSettings": {
+    "message": "Nastavení",
+    "description": "Settings Link for Panel's disabled state"
+  },
+  "disabledPanelText": {
+    "message": "Momentálně při prohlížení nezískáváte žádné výhody Odměn. Zapněte Odměny znovu",
+    "description": "Text for Panel's disabled state"
+  },
+  "disabledPanelTitle": {
+    "message": "Odměny Brave jsou",
+    "description": "Title for Panel's disabled state"
+  },
+  "walletFailedTitle": {
+    "message": "Tvorba peněženky se nezdařila ",
+    "description": "Failure title for wallet creation"
+  },
+  "walletFailedButton": {
+    "message": "Zkusit znovu",
+    "description": "Button for re-try after wallet creation failed"
+  },
+  "addFunds": {
+    "message": "Přidat prostředky",
+    "description": "Button for adding funds"
+  },
+  "rewardsSettings": {
+    "message": "Nastavení odměn",
+    "description": "Button for opening settings page"
+  },
+  "earningsClaimDefault": {
+    "message": "Vaše odměny z Reklam jsou tady!",
+    "description": "Panel notification text for Ads grant"
+  },
+  "and": {
+    "message": "a",
+    "description": "The word 'and'"
+  },
+  "braveRewardsSubTitle": {
+    "message": "Získávejte odměny za prohlížení!",
+    "description": "Subtitle for wallet disabled panel"
+  },
+  "disabledPanelTextTwo": {
+    "message": "Získejte je sledováním reklam respektujících soukromí a udělujte je na podporu tvůrcům obsahu, který se vám líbí.",
+    "description": "Text block for wallet disabled panel"
+  },
+  "enableRewards": {
+    "message": "Povolit Brave Rewards",
+    "description": "Subtitle for wallet disabled panel"
+  },
+  "privacyPolicy": {
+    "message": "Zásady ochrany osobních údajů",
+    "description": "Privacy Policy"
+  },
+  "serviceText": {
+    "message": "Kliknutím na 'Povolit Brave Rewards' potvrzujete, že jste si přečetli a souhlasili s",
+    "description": "Terms of service main text"
+  },
+  "termsOfService": {
+    "message": "Smluvní podmínky",
+    "description": "Terms of Service"
+  },
+  "welcomeBack": {
+    "message": "Vítejte zpět!",
+    "description": "Title message for wallet disabled panel"
+  },
+  "tipsProcessedNotification": {
+    "message": "Vaše měsíční příspěvky byly zpracovány! ",
+    "description": "Message for monthly tips processed notification"
+  },
+  "contributionTips": {
+    "message": "Příspěvky a dary. ",
+    "description": "Title for monthly tips processed notification"
+  },
+  "serviceTextPanelWelcome": {
+    "message": "Kliknutím na „Připojit se k Rewards“ prohlašujete, že jste si přečetli a souhlasíte s ",
+    "description": "Terms of service panel opt-in text"
+  },
+  "bat": {
+    "message": "BAT",
+    "description": "BAT text for displaying converted tip amount."
+  },
+  "turnOnAds": {
+    "message": "Zapnout reklamy ",
+    "description": "Prompt to turn on Ads via notification"
+  },
+  "adsEarnings": {
+    "message": "výdělek z reklam",
+    "description": "Description text for ad grants in grant details"
+  },
+  "twitterTipsHoverText": {
+    "message": "Přispět na tento tweet ",
+    "description": "Hover text for Twitter tips action"
+  },
+  "twitterTipsIconLabel": {
+    "message": "Příspěvek ",
+    "description": "Icon label for Twitter tips"
+  },
+  "redditTipsHoverText": {
+    "message": "Dát tomuto příspěvku spropitné",
+    "description": "Hover text for Reddit tips action"
+  },
+  "redditTipsIconLabel": {
+    "message": "Příspěvek ",
+    "description": "Icon label for Reddit tips"
+  },
+  "githubTipsHoverText": {
+    "message": "Odeslat spropitné",
+    "description": "Hover text for GitHub tips action"
+  },
+  "githubTipsIconLabel": {
+    "message": "Příspěvek ",
+    "description": "Icon label for GitHub tips"
+  },
+  "verifiedPublisherNotification": {
+    "message": "Tvůrce $name$ byl nedávno ověřen",
+    "description": "Notification text that tells user which publisher just verified",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "brave.com"
+      }
+    }
+  },
+  "pendingNotEnoughFundsNotification": {
+    "message": "Vzhledem k nedostatečnému zůstatku máte nevyřízená spropitná",
+    "description": "Notification text that tells user his wallet is under funded for pending contribution to complete"
+  },
+  "pendingContributionTitle": {
+    "message": "Nevyřízený příspěvek",
+    "description": "Notification title for pending contribution type"
+  },
+  "grantFinishTitleUGP": {
+    "message": "Dnes máte šťastný den!",
+    "description": "Cosmetic text upon captcha success"
+  },
+  "grantFinishTextUGP": {
+    "message": "Váš grant je na cestě. ",
+    "description": "Cosmetic text indicating grant funds are on the way"
+  },
+  "grantFinishTokenTitleUGP": {
+    "message": "Volný grant k dispozici",
+    "description": "Token title on success screen"
+  },
+  "grantFinishTitleAds": {
+    "message": "Odměny Reklam Brave!",
+    "description": "Cosmetic text upon captcha success for ads"
+  },
+  "grantFinishTextAds": {
+    "message": "Vaše odměna z Reklam Brave je na cestě.",
+    "description": "Cosmetic text indicating ads funds are on the way"
+  },
+  "grantFinishTokenTitleAds": {
+    "message": "Vaše odměna z Reklam Brave",
+    "description": "Token title on success screen for ads"
+  },
+  "rewardsPanelTextVerify":  {
+    "message": "Ověřit",
+    "description": "CTA in the footer to verify"
+  },
+  "walletButtonDisconnected":  {
+    "message": "Odpojeno",
+    "description": "CTA status button"
+  },
+  "walletButtonUnverified":  {
+    "message": "Ověřit peněženku",
+    "description": "CTA to verify wallet in the wallet "
+  },
+  "walletButtonVerified":  {
+    "message": "Ověřená peněženka",
+    "description": "Displayed in wallet that tells users that he is verified"
+  },
+  "walletGoToUphold":  {
+    "message": "Přejít na můj Uphold účet",
+    "description": "CTA to open uphold account"
+  },
+  "walletDisconnect":  {
+    "message": "Odpojit od Brave Rewards",
+    "description": "CTA to disconnect user wallet from rewards"
+  },
+  "walletVerified":  {
+    "message": "Ověřeno",
+    "description": "Status button that tells user that he is verified"
+  },
+  "walletVerifiedNotification":  {
+    "message": "Vaše peněženka je ověřená!",
+    "description": "Title for notification when wallet becomes verified"
+  },
+  "walletVerifiedTextNotification":  {
+    "message": "Gratulujeme! Vaše peněženka $name$ byla úspěšně ověřena a je připravena k ukládání i vybírání prostředků.",
+    "description": "Title for notification when wallet becomes verified",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Uphold"
+      }
+    }
+  },
+  "walletDisconnectedNotification":  {
+    "message": "Jejda. Nelze se spojit s vaší peněženkou.",
+    "description": "Title for notification when wallet is disconnected."
+  },
+  "walletDisconnectedTextNotification":  {
+    "message": "Žádné strachy. Toto se může stát ze všemožných bezpečnostních důvodů. Znovupřipojení vaší peněženky tento problém vyřeší.",
+    "description": "Title for notification when wallet is disconnected"
+  },
+  "connectedText":  {
+    "message": "Tento ověřený tvůrce Brave si ještě nenastavil svůj účet pro příjem příspěvků od uživatelů Brave. Všechny odeslané prostředky zůstanou ve vaší peněžence, dokud tvůrce tento proces nedokončí.",
+    "description": "Text shown for connected publishers that are not fully verified in the panel"
+  },
+  "walletGoToVerifyPage":  {
+    "message": "Dokončit ověření peněženky",
+    "description": "CTA for completing wallet verification"
+  },
+  "set": {
+    "message": "Nastavit...",
+    "description": "Button text for setting monthly contribution"
+  }
+}

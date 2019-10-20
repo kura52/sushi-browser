@@ -1,0 +1,536 @@
+{
+  "braveRewards": {
+    "message": "„Brave Rewards“",
+    "description": "Title in welcome screen for the panel"
+  },
+  "welcomeButtonTextOne": {
+    "message": "Pradėkite uždirbti jau dabar!",
+    "description": "CTA on welcome screen in the panel, existing users"
+  },
+  "welcomeButtonTextTwo": {
+    "message": "Prisijungti prie „Rewards“",
+    "description": "CTA on welcome screen in the panel, new users"
+  },
+  "welcomeDescOne": {
+    "message": "Gaukite užmokestį už peržiūrėtas reklamas ir perveskite šiuos pinigus, kad paremtumėte mėgstamo turinio kūrėjus.",
+    "description": "Entry text for welcome screen in the panel, existing user"
+  },
+  "welcomeDescTwo": {
+    "message": "Dabar už privatumo nepažeidžiančių reklamų peržiūrą galite gauti žetonų",
+    "description": "Entry text for welcome screen in the panel, new user"
+  },
+  "welcomeFooterTextOne": {
+    "message": "Pamatykite, kas buvo patobulinta",
+    "description": "Link in the footer (takes you to rewards settings page) for welcome screen in the panel, existing user"
+  },
+  "welcomeFooterTextTwo": {
+    "message": "Sužinokite daugiau",
+    "description": "Link in the footer (takes you to rewards settings page) for welcome screen in the panel, new user"
+  },
+  "welcomeHeaderOne": {
+    "message": "Iš esmės atnaujinome „Brave Rewards“.",
+    "description": "Main header title for welcome screen in the panel, existing user"
+  },
+  "welcomeHeaderTwo": {
+    "message": "Pasirenkite išbandyti naująjį internetą.",
+    "description": "Main header title for welcome screen in the panel, new user"
+  },
+  "yourWallet": {
+    "message": "Jūsų piniginė",
+    "description": "Title of wallet section where we display data about wallet"
+  },
+  "grants": {
+    "message": "Išmokos",
+    "description": "Title for grant section in wallet summary"
+  },
+  "on": {
+    "message": "–",
+    "description": "The whole string is 'Enable tips on YouTube for like.'"
+  },
+  "verifiedPublisher": {
+    "message": "„Brave“ patvirtintas kūrėjas",
+    "description": "Tells user that this particular publisher is a Brave Verified Creator"
+  },
+  "rewardsContributeAttentionScore": {
+    "message": "Dėmesys",
+    "description": "Label for auto contribute table attention for the publisher"
+  },
+  "donateMonthly": {
+    "message": "Mėnesinis indėlis",
+    "description": "Label for drop down menu where user select amount for monthly contribution for particular publisher"
+  },
+  "includeInAuto": {
+    "message": "Įtraukti į automatinį indėlį",
+    "description": "Label for checkbox that allows user to exclude publishers from auto contribute"
+  },
+  "donateNow": {
+    "message": "Siųsti arbatpinigių...",
+    "description": "CTA for sending tip form site banner"
+  },
+  "enableTips": {
+    "message": "Aktyvinti arbatpinigius",
+    "description": "The whole string is 'Enable tips on YouTube for like.'"
+  },
+  "for": {
+    "message": "skirta",
+    "description": "The whole string is 'Enable tips on YouTube for like.'"
+  },
+  "rewardsSummary": {
+    "message": "„Rewards“ suvestinė",
+    "description": "Section title in wallet panel, which contains monthly rewards summary"
+  },
+  "monthApr": {
+    "message": "Balandis",
+    "description": "Month"
+  },
+  "monthAug": {
+    "message": "Rugpjūtis",
+    "description": "Month"
+  },
+  "monthDec": {
+    "message": "Gruodis",
+    "description": "Month"
+  },
+  "monthFeb": {
+    "message": "Vasaris",
+    "description": "Month"
+  },
+  "monthJan": {
+    "message": "Sausis",
+    "description": "Month"
+  },
+  "monthJul": {
+    "message": "Liepa",
+    "description": "Month"
+  },
+  "monthJun": {
+    "message": "Birželis",
+    "description": "Month"
+  },
+  "monthMar": {
+    "message": "Kovas",
+    "description": "Month"
+  },
+  "monthMay": {
+    "message": "Gegužė",
+    "description": "Month"
+  },
+  "monthNov": {
+    "message": "Lapkritis",
+    "description": "Month"
+  },
+  "monthOct": {
+    "message": "Spalis",
+    "description": "Month"
+  },
+  "monthSep": {
+    "message": "Rugsėjis",
+    "description": "Month"
+  },
+  "tokenGrant": {
+    "message": "Atpažinimo ženklo suteikimas",
+    "description": "Title for grant notification"
+  },
+  "tokenGrantClaimed": {
+    "message": "Atsiimtos žetonų išmokos",
+    "description": "Title for grant section in wallet summary"
+  },
+  "earningsAds": {
+    "message": "Uždarbis iš reklamos",
+    "description": "Title for ads section in wallet summary"
+  },
+  "rewardsContribute": {
+    "message": "Automatinis indėlis",
+    "description": "Title for auto contribute section in wallet summary"
+  },
+  "oneTimeDonation": {
+    "message": "Vienkartiniai arbatpinigiai",
+    "description": "Title for one time tips section in wallet summary"
+  },
+  "expiresOn": {
+    "message": "galiojimo laikas baigiasi",
+    "description": "Used for grant representation. Whole string is '30.0 BAT expires on 08/05/2022'"
+  },
+  "recurringDonations": {
+    "message": "Mėnesiniai arbatpinigiai",
+    "description": "Title for monthly tips section in wallet summary"
+  },
+  "off": {
+    "message": "Išjungta",
+    "description": "Label used in toggle indicating that toggle is off"
+  },
+  "ok": {
+    "message": "gerai",
+    "description": "Used in notification to dismiss notification"
+  },
+  "braveAdsLaunchMsg": {
+    "message": "Dabar galite užsidirbti už reklamos peržiūrą.",
+    "description": "Message for ads launch notification"
+  },
+  "braveAdsLaunchTitle": {
+    "message": "„Brave Ads“ jau čia!",
+    "description": "Message used in notification to let users know Ads is available"
+  },
+  "braveAdsTitle": {
+    "message": "„Brave“ reklamos",
+    "description": "Notification title when we display info about ads"
+  },
+  "braveContributeTitle": {
+    "message": "Automatinis indėlis",
+    "description": "Notification title when we display info about auto contribution"
+  },
+  "contributeNotificationSuccess": {
+    "message": "Paskyrėte $amount$ BAT",
+    "description": "We show this string in the notification when contribution is successful",
+    "placeholders": {
+      "amount": {
+        "content": "$1",
+        "example": "10.0"
+      }
+    }
+  },
+  "grantNotification": {
+    "message": "Jūsų laukia išmoka.",
+    "description": "Description for new grant notification"
+  },
+  "backupNow": {
+    "message": "Kurti atsarginę kopiją",
+    "description": "Notification button text when we ask user to backup wallet"
+  },
+  "backupWalletTitle": {
+    "message": "Atsarginė piniginė",
+    "description": "Notification title when we ask user to backup wallet"
+  },
+  "backupWalletNotification": {
+    "message": "Sukurkite savo „Brave“ piniginės atsarginę kopiją.",
+    "description": "Description for backup wallet notification"
+  },
+  "insufficientFundsNotification": {
+    "message": "Jūsų „Brave Rewards“ paskyroje laukiama įnašo.",
+    "description": "Description for new insufficient funds notification"
+  },
+  "insufficientFunds": {
+    "message": "Nepakanka lėšų",
+    "description": "Title for insufficient funds notification"
+  },
+  "braveRewardsCreatingText": {
+    "message": "Kuriama piniginė",
+    "description": "Used in a button displaying wallet creation process"
+  },
+  "contributeNotificationError": {
+    "message": "Apdorojant jūsų indėlį iškilo problema.",
+    "description": "We show this string in notification when contribution fails"
+  },
+  "contributeNotificationNotEnoughFunds": {
+    "message": "Jūsų suplanuotas automatinio indėlio mėnesinis mokėjimas ir mėnesiniai arbatpinigiai nesumokėti, nes nepakako lėšų. Bandysime dar kartą po 30 dienų.",
+    "description": "We show this string in the notification when you don't have enough funds for contribution"
+  },
+  "contributeNotificationTipError": {
+    "message": "Jūsų arbatpinigių išsiųsti nepavyko. Vėliau pabandykite dar kartą.",
+    "description": "We show this string in notification when tip fails"
+  },
+  "noActivity": {
+    "message": "Kol kas veiklos nėra...",
+    "description": "Allows the user to see that there have been no transactions or other activity in their wallet"
+  },
+  "captchaDrag": {
+    "message": "Nuvilkite BAT piktogramą ant",
+    "description": "Directs the user to drag the BAT icon"
+  },
+  "captchaProveHuman": {
+    "message": "Įrodykite, kad esate žmogus!",
+    "description": "Cosmetic text for captcha prompt"
+  },
+  "captchaTarget": {
+    "message": "tikslas.",
+    "description": "Captcha Target"
+  },
+  "captchaMissedTarget": {
+    "message": "Hmm… Ne visai. Bandykite vėl.",
+    "description": "Message upon failing captcha"
+  },
+  "claim": {
+    "message": "Atsiimti",
+    "description": "Claim text"
+  },
+  "newTokenGrant": {
+    "message": "Nemokamų žetonų išmoka",
+    "description": "Token grant label"
+  },
+  "grantExpire": {
+    "message": "Išmokos galiojimo laiko pabaigos data",
+    "description": "Grant expiry label"
+  },
+  "grantAlreadyClaimedText": {
+    "message": "Deja, atrodo, kad ši išmoka jau atsiimta.",
+    "description": "Description of the error when grant is already claimed."
+  },
+  "grantGeneralErrorButton": {
+    "message": "Gerai",
+    "description": "Button text for clearing the error."
+  },
+  "grantGeneralErrorText": {
+    "message": "Kilo problemų su „Brave Rewards“. Bandykite dar kartą vėliau.",
+    "description": "Error text when user is having problems claiming a grant."
+  },
+  "grantGeneralErrorTitle": {
+    "message": "Oi, kažkas negerai. Bandykite dar kartą vėliau.",
+    "description": "Error title when user is having problems claiming a grant."
+  },
+  "grantGoneButton": {
+    "message": "Gerai",
+    "description": "Button text for clearing the error."
+  },
+  "grantGoneText": {
+    "message": "Deja, atrodo, kad šios išmokos galiojimas jau baigėsi.",
+    "description": "Error text when user missed a grant."
+  },
+  "grantGoneTitle": {
+    "message": "Ši išmoka nebepasiekiama.",
+    "description": "Error title when user missed a grant."
+  },
+  "unVerifiedCheck": {
+    "message": "Atnaujinti būseną",
+    "description": "Text of link that allows to check verified status of unverified publisher"
+  },
+  "unVerifiedPublisher": {
+    "message": "Dar nepatvirtinta",
+    "description": "Status of the publisher shown in the panel"
+  },
+  "unVerifiedText": {
+    "message": "Šis kūrėjas dar neužsiregistravo, kad gautų „Brave“ naudotojų aukas. Visi jūsų išsiųsti arbatpinigiai liks jūsų piniginėje, kol galiausiai jie patvirtins.",
+    "description": "Notice about unverified publisher."
+  },
+  "unVerifiedTextMore": {
+    "message": "Sužinokite daugiau.",
+    "description": "Text for the link that explains more about reserved amount"
+  },
+  "reservedAmountText": {
+    "message": "Paskyrėte {{reservedAmount}} BAT kūrėjams, kurie dar neužsiregistravo, kad gautų aukas. Jūsų naršyklė mėgins paaukoti, kol jie patvirtins (ne ilgiau nei 90 dienų).",
+    "description": "Notification about how much BAT do you have reserved"
+  },
+  "reservedMoreLink": {
+    "message": "Sužinokite daugiau.",
+    "description": "Text for the link that explains more about reserved amount"
+  },
+  "disabledPanelOff": {
+    "message": "Išjungta",
+    "description": "Off state text for Panel's disabled state"
+  },
+  "disabledPanelSettings": {
+    "message": "Nuostatos.",
+    "description": "Settings Link for Panel's disabled state"
+  },
+  "disabledPanelText": {
+    "message": "Šiuo metu naršydami negaunate jokių „Rewards“ pranašumų. Iš naujo įjunkite „Rewards“:",
+    "description": "Text for Panel's disabled state"
+  },
+  "disabledPanelTitle": {
+    "message": "„Brave Rewards“ yra",
+    "description": "Title for Panel's disabled state"
+  },
+  "walletFailedTitle": {
+    "message": "Piniginės sukurti nepavyko",
+    "description": "Failure title for wallet creation"
+  },
+  "walletFailedButton": {
+    "message": "Bandyti dar kartą",
+    "description": "Button for re-try after wallet creation failed"
+  },
+  "addFunds": {
+    "message": "Pridėti lėšų",
+    "description": "Button for adding funds"
+  },
+  "rewardsSettings": {
+    "message": "Atlygio nuostatos",
+    "description": "Button for opening settings page"
+  },
+  "earningsClaimDefault": {
+    "message": "Savo atlygius už reklamą rasite čia!",
+    "description": "Panel notification text for Ads grant"
+  },
+  "and": {
+    "message": "ir",
+    "description": "The word 'and'"
+  },
+  "braveRewardsSubTitle": {
+    "message": "Gaukite atlygį už naršymą!",
+    "description": "Subtitle for wallet disabled panel"
+  },
+  "disabledPanelTextTwo": {
+    "message": "Užsidirbkite peržiūrėdami nepažeidžiančias privatumo reklamas ir savo uždarbiu paremkite jums patinkančius turinio kūrėjus.",
+    "description": "Text block for wallet disabled panel"
+  },
+  "enableRewards": {
+    "message": "Aktyvinti „Brave Rewards“",
+    "description": "Subtitle for wallet disabled panel"
+  },
+  "privacyPolicy": {
+    "message": "Privatumo politika",
+    "description": "Privacy Policy"
+  },
+  "serviceText": {
+    "message": "Spustelėdami „Aktyvinti „Brave Rewards“ patvirtinate, kad perskaitėte toliau nurodytą dokumentą ir jam pritariate:",
+    "description": "Terms of service main text"
+  },
+  "termsOfService": {
+    "message": "Paslaugų teikimo sąlygos",
+    "description": "Terms of Service"
+  },
+  "welcomeBack": {
+    "message": "Sveiki sugrįžę!",
+    "description": "Title message for wallet disabled panel"
+  },
+  "tipsProcessedNotification": {
+    "message": "Jūsų mėnesiniai arbatpinigiai apdoroti!",
+    "description": "Message for monthly tips processed notification"
+  },
+  "contributionTips": {
+    "message": "Indėliai ir arbatpinigiai",
+    "description": "Title for monthly tips processed notification"
+  },
+  "serviceTextPanelWelcome": {
+    "message": "Spustelėdami „Prisijungti prie „Rewards“ nurodote, kad susipažinote ir sutinkate su",
+    "description": "Terms of service panel opt-in text"
+  },
+  "bat": {
+    "message": "BAT",
+    "description": "BAT text for displaying converted tip amount."
+  },
+  "turnOnAds": {
+    "message": "Įjungti reklamas",
+    "description": "Prompt to turn on Ads via notification"
+  },
+  "adsEarnings": {
+    "message": "uždirbta iš reklamos",
+    "description": "Description text for ad grants in grant details"
+  },
+  "twitterTipsHoverText": {
+    "message": "Duoti arbatpinigių šiai „Tweet“ žinutei.",
+    "description": "Hover text for Twitter tips action"
+  },
+  "twitterTipsIconLabel": {
+    "message": "Arbatpinigiai",
+    "description": "Icon label for Twitter tips"
+  },
+  "redditTipsHoverText": {
+    "message": "Sumokėti arbatpinigių už šį įrašą",
+    "description": "Hover text for Reddit tips action"
+  },
+  "redditTipsIconLabel": {
+    "message": "Arbatpinigiai",
+    "description": "Icon label for Reddit tips"
+  },
+  "githubTipsHoverText": {
+    "message": "Siųsti arbatpinigių",
+    "description": "Hover text for GitHub tips action"
+  },
+  "githubTipsIconLabel": {
+    "message": "Arbatpinigiai",
+    "description": "Icon label for GitHub tips"
+  },
+  "verifiedPublisherNotification": {
+    "message": "Kūrėjas vardu $name$ neseniai patikrintas",
+    "description": "Notification text that tells user which publisher just verified",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "brave.com"
+      }
+    }
+  },
+  "pendingNotEnoughFundsNotification": {
+    "message": "Turite laukiančių indėlių dėl nepakankamų lėšų",
+    "description": "Notification text that tells user his wallet is under funded for pending contribution to complete"
+  },
+  "pendingContributionTitle": {
+    "message": "Laukiama indėlių",
+    "description": "Notification title for pending contribution type"
+  },
+  "grantFinishTitleUGP": {
+    "message": "Atėjo jūsų laiminga diena!",
+    "description": "Cosmetic text upon captcha success"
+  },
+  "grantFinishTextUGP": {
+    "message": "Jūsų žetonų išmoka pakeliui.",
+    "description": "Cosmetic text indicating grant funds are on the way"
+  },
+  "grantFinishTokenTitleUGP": {
+    "message": "Nemokamų žetonų išmoka",
+    "description": "Token title on success screen"
+  },
+  "grantFinishTitleAds": {
+    "message": "Atlygiai už „Brave“ reklamą!",
+    "description": "Cosmetic text upon captcha success for ads"
+  },
+  "grantFinishTextAds": {
+    "message": "Jūsų atlygių už „Brave“ reklamą išmoka jau pakeliui.",
+    "description": "Cosmetic text indicating ads funds are on the way"
+  },
+  "grantFinishTokenTitleAds": {
+    "message": "Jūsų „Brave“ reklamos žetonų išmoka",
+    "description": "Token title on success screen for ads"
+  },
+  "rewardsPanelTextVerify":  {
+    "message": "patvirtinti",
+    "description": "CTA in the footer to verify"
+  },
+  "walletButtonDisconnected":  {
+    "message": "Atsijungta",
+    "description": "CTA status button"
+  },
+  "walletButtonUnverified":  {
+    "message": "Patvirtinti piniginę",
+    "description": "CTA to verify wallet in the wallet "
+  },
+  "walletButtonVerified":  {
+    "message": "Piniginė patvirtinta",
+    "description": "Displayed in wallet that tells users that he is verified"
+  },
+  "walletGoToUphold":  {
+    "message": "Eiti į mano „Uphold“ paskyrą",
+    "description": "CTA to open uphold account"
+  },
+  "walletDisconnect":  {
+    "message": "Atsijungti nuo „Brave Rewards“",
+    "description": "CTA to disconnect user wallet from rewards"
+  },
+  "walletVerified":  {
+    "message": "Jūsų piniginė patvirtinta",
+    "description": "Status button that tells user that he is verified"
+  },
+  "walletVerifiedNotification":  {
+    "message": "Jūsų piniginė patvirtinta!",
+    "description": "Title for notification when wallet becomes verified"
+  },
+  "walletVerifiedTextNotification":  {
+    "message": "Sveikiname! Jūsų $name$ piniginė sėkmingai patvirtinta, jau galite pridėti ir išsiimti pinigų.",
+    "description": "Title for notification when wallet becomes verified",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Uphold"
+      }
+    }
+  },
+  "walletDisconnectedNotification":  {
+    "message": "Oi! Jūsų piniginė nepasiekiama.",
+    "description": "Title for notification when wallet is disconnected."
+  },
+  "walletDisconnectedTextNotification":  {
+    "message": "Nesirūpinkite. Taip gali nutikti dėl įvairių saugumo priežasčių. Iš naujo prijunkite piniginę ir problema bus išspręsta.",
+    "description": "Title for notification when wallet is disconnected"
+  },
+  "connectedText":  {
+    "message": "Šis „Brave“ patvirtintas kūrėjas dar nesukonfigūravo savo sąskaitos indėliams iš „Brave“ naudotojų gauti. Visi jūsų siunčiami arbatpinigiai liks jūsų piniginėje, kol jis užbaigs šį procesą.",
+    "description": "Text shown for connected publishers that are not fully verified in the panel"
+  },
+  "walletGoToVerifyPage":  {
+    "message": "Baigti piniginės patvirtinimą",
+    "description": "CTA for completing wallet verification"
+  },
+  "set": {
+    "message": "Nustatyti...",
+    "description": "Button text for setting monthly contribution"
+  }
+}

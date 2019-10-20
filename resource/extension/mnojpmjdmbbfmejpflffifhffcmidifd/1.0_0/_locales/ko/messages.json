@@ -1,0 +1,190 @@
+{
+  "appName": {
+    "message": "Brave 확장 프로그램",
+    "description": "The name of the the extension."
+  },
+  "shields": {
+    "message": "보호",
+    "description": "The Shields feature name"
+  },
+  "up": {
+    "message": "위로",
+    "description": "Message for when shields is enabled"
+  },
+  "down": {
+    "message": "아래",
+    "description": "Message for when shields is disabled"
+  },
+  "forThisSite": {
+    "message": "이 사이트를 위한",
+    "description": "Partial string for the phrase `shields is up *for this site*`"
+  },
+  "enabledMessage": {
+    "message": "사이트가 깨져 보이면, 실드를 내려 보세요",
+    "description": "Message telling the user to disable shields if a site appears broken"
+  },
+  "disabledMessage": {
+    "message": "현재 이 사이트를 아무런 개인정보 보호 수단이나 보안 수단 없이 보고 계십니다.",
+    "description": "Message telling the user that shields are disabled"
+  },
+  "itemsBlocked": {
+    "message": "아이템 차단됨",
+    "description": "Message for the main blocked resources text when there is more than one ad/track/script blocked (plural)"
+  },
+  "itemBlocked": {
+    "message": "아이템 차단됨",
+    "description": "Message for the main blocked resources text when there is one ad/track/script blocked (singular)"
+  },
+  "and": {
+    "message": "및",
+    "description": "Message for the `and` conjunction. Used to connect grammatically the `item blocked and connection upgrades` and its variant phrases"
+  },
+  "connectionsUpgraded": {
+    "message": "연결 업그레이됨",
+    "description": "Message for the main blocked resources text when there is at least one ad/track/script blocked and more than one connection upgrade (plural)"
+  },
+  "connectionUpgraded": {
+    "message": "연결 업그레이드됨",
+    "description": "Message for the main blocked resources text when there is at least one ad/track/script blocked and one connection upgrade (singular)"
+  },
+  "thirdPartyTrackersBlocked": {
+    "message": "사이트 간 추적기가 차단됨",
+    "description": "Message for the scripts blocked row label"
+  },
+  "connectionsUpgradedHTTPS": {
+    "message": "HTTPS로 연결 업그레이됨",
+    "description": "Message for the connections upgraded row label and for the main blocked resources text when there is more than one connection upgraded (plural) and no other ads/trackers blocked"
+  },
+  "connectionUpgradedHTTPS": {
+    "message": "연결이 HTTPS로 업그레이되었습니다",
+    "description": "Message for the main blocked resources text when there is one connection upgraded (singular) and no other ads/trackers blocked"
+  },
+  "scriptsBlocked": {
+    "message": "스크립트 차단됨",
+    "description": "Message for the scripts blocked row label"
+  },
+  "thirdPartyCookiesBlocked": {
+    "message": "사이트 간 쿠키가 차단됨",
+    "description": "Message for the option in the cookies select field to block all 3rd party cookies"
+  },
+  "allCookiesBlocked": {
+    "message": "쿠키 차단됨",
+    "description": "Message for the option in the cookies select field to block all cookies"
+  },
+  "allCookiesAllowed": {
+    "message": "모든 쿠키 허용됨",
+    "description": "Message for the option in the cookies select field to allow all cookies"
+  },
+  "thirdPartyFingerprintingBlocked": {
+    "message": "사이트 간 기기 인식이 차단됨",
+    "description": "Message for the option in the device recognition select field to block all 3rd party recognition attempts"
+  },
+  "allFingerprintingBlocked": {
+    "message": "기기 인식 시도가 차단됨",
+    "description": "Message for the option in the device recognition select field to block all device recognition attempts"
+  },
+  "allFingerprintingAllowed": {
+    "message": "모든 기기 인식 시도가 허용됨",
+    "description": "Message for the option in the device recognition select field to allow all device recognition attempts"
+  },
+  "deviceRecognitionAttempts": {
+    "message": "기기 인식 시도",
+    "description": "Message for the device recognition attempts blocked panel"
+  },
+  "scriptsOnThisSite": {
+    "message": "이 사이트상에 있는 스크립트",
+    "description": "Message for the script resources blocked panel"
+  },
+  "blockedScripts": {
+    "message": "차단된 스크립트",
+    "description": "Message for the script resources blocked"
+  },
+  "allowedScripts": {
+    "message": "허용된 스크립트",
+    "description": "Message for the script resources allowed"
+  },
+  "blockAll": {
+    "message": "모두 차단하기",
+    "description": "Message for the resources blocked *block all* option"
+  },
+  "allowAll": {
+    "message": "모두 허용하기",
+    "description": "Message for the resources blocked *allow all* option"
+  },
+  "block": {
+    "message": "차단하기",
+    "description": "Message for the resources blocked *block* option"
+  },
+  "allow": {
+    "message": "허용하기",
+    "description": "Message for the resources blocked *allow* option"
+  },
+  "blockedOnce": {
+    "message": "한 번 차단됨",
+    "description": "Message for the resources blocked *blocked once* option"
+  },
+  "allowedOnce": {
+    "message": "한 번 허용함",
+    "description": "Message for the resources blocked *allowed once* option"
+  },
+  "allowScriptsOnce": {
+    "message": "스크립트 한 번 허용",
+    "description": "Message for the shortcut in the main interface to allow all scripts once"
+  },
+  "cancel": {
+    "message": "취소하기",
+    "description": "Message for the button inside the static list of resources blocked to cancel the operation"
+  },
+  "goBack": {
+    "message": "되돌아가기",
+    "description": "Message for the button inside the static list of resources blocked to go back from the current screen"
+  },
+  "applyOnce": {
+    "message": "한번 적용",
+    "description": "Message for action in dynamic list of resources blocked to *apply once*"
+  },
+  "changeDefaults": {
+    "message": "글로벌 실드 디폴트 변경",
+    "description": "Message for the button action linking to the settings page"
+  },
+  "addBlockElement": {
+    "message": "선택기를 통한 요소 차단",
+    "description": "Message for context menu that adds a filter for the cosmetic filtering"
+  },
+  "resetSiteFilterSettings": {
+    "message": "이 사이트의 CSS 규칙 삭제",
+    "description": "Message for context menu that resets the site filters for cosmetic filtering"
+  },
+  "resetAllFilterSettings": {
+    "message": "모든 사이트의 CSS 규칙 삭제",
+    "description": "Message for context menu that resets all cosmetic filters"
+  },
+  "advancedView": {
+    "message": "고급 뷰",
+    "description": "Message for the advanced view option"
+  },
+  "simpleView": {
+    "message": "심플 뷰",
+    "description": "Message for the simple view option"
+  },
+  "shieldsExplanation": {
+    "message": "사이트들에는 종종 귀하 및 귀하의 기기를 식별하기 위한 쿠키 및 스크립트가 포함되어 있습니다(종종 광고에 삽입되어 있습니다). 그러한 사이트들은 귀하가 누구인지를 알고 싶어 하며, 웹 상의 이동을 파악하여 — 모든 사이트에서 무엇을 하는지 추적합니다. Brave에서는 이러한 기능들을 차단하여 성가신 추적자들 없이 웹 브라우징을 할 수 있게 해드립니다.",
+    "description": "Message in read-only view explaining what Brave Shields do"
+  },
+  "blockedResoucesExplanation": {
+    "message": "크로스사이트 트래커 및 기타 수상한 사항들 차단됨",
+    "description": "Message for the main trackers count in Shields simple view"
+  },
+  "webCompatWarning": {
+    "message": "본 뷰에서 Shield 설정을 변경하면 해당 사이트의 웹 호환성에 영향을 미칠 수 있습니다.",
+    "description": "Message for web compat warning when switching from simple to advanced view"
+  },
+  "gotIt": {
+    "message": "확인",
+    "description": "Message for the button that confirms the advanced view"
+  },
+  "learnMore": {
+    "message": "더 알아보기",
+    "description": "Message inviting the user to learn more about Shields"
+  }
+}

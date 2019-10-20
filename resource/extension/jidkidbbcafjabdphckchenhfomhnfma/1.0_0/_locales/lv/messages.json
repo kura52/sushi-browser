@@ -1,0 +1,536 @@
+{
+  "braveRewards": {
+    "message": "Brave balvas",
+    "description": "Title in welcome screen for the panel"
+  },
+  "welcomeButtonTextOne": {
+    "message": "Sāciet pelnīt tagad!",
+    "description": "CTA on welcome screen in the panel, existing users"
+  },
+  "welcomeButtonTextTwo": {
+    "message": "Pievienoties balvām",
+    "description": "CTA on welcome screen in the panel, new users"
+  },
+  "welcomeDescOne": {
+    "message": "Nopelniet par reklāmu aplūkošanu un maksājiet to tālāk, lai atbalstītu savus iecienītos satura veidotājus.",
+    "description": "Entry text for welcome screen in the panel, existing user"
+  },
+  "welcomeDescTwo": {
+    "message": "Jūs tagad varat nopelnīt marķierus par konfidencialitāti cienošu reklāmu skatīšanos.",
+    "description": "Entry text for welcome screen in the panel, new user"
+  },
+  "welcomeFooterTextOne": {
+    "message": "Apskatiet uzlabojumus",
+    "description": "Link in the footer (takes you to rewards settings page) for welcome screen in the panel, existing user"
+  },
+  "welcomeFooterTextTwo": {
+    "message": "Uzzināt vairāk",
+    "description": "Link in the footer (takes you to rewards settings page) for welcome screen in the panel, new user"
+  },
+  "welcomeHeaderOne": {
+    "message": "Tika veikts liels Brave balvu jauninājums.",
+    "description": "Main header title for welcome screen in the panel, existing user"
+  },
+  "welcomeHeaderTwo": {
+    "message": "Esiet gatavi izbaudīt nākamo internetu.",
+    "description": "Main header title for welcome screen in the panel, new user"
+  },
+  "yourWallet": {
+    "message": "Jūsu maks",
+    "description": "Title of wallet section where we display data about wallet"
+  },
+  "grants": {
+    "message": "Piešķīrumi",
+    "description": "Title for grant section in wallet summary"
+  },
+  "on": {
+    "message": "ieslēgts",
+    "description": "The whole string is 'Enable tips on YouTube for like.'"
+  },
+  "verifiedPublisher": {
+    "message": "Brave apstiprināts izveidotājs",
+    "description": "Tells user that this particular publisher is a Brave Verified Creator"
+  },
+  "rewardsContributeAttentionScore": {
+    "message": "Uzmanību",
+    "description": "Label for auto contribute table attention for the publisher"
+  },
+  "donateMonthly": {
+    "message": "Ikmēneša ieguldījums",
+    "description": "Label for drop down menu where user select amount for monthly contribution for particular publisher"
+  },
+  "includeInAuto": {
+    "message": "Iekļaut automātiskajā ziedošanā",
+    "description": "Label for checkbox that allows user to exclude publishers from auto contribute"
+  },
+  "donateNow": {
+    "message": "Sūtīt dzeramnaudu...",
+    "description": "CTA for sending tip form site banner"
+  },
+  "enableTips": {
+    "message": "Iespējot padomus",
+    "description": "The whole string is 'Enable tips on YouTube for like.'"
+  },
+  "for": {
+    "message": "kam",
+    "description": "The whole string is 'Enable tips on YouTube for like.'"
+  },
+  "rewardsSummary": {
+    "message": "Balvu kopsavilkums",
+    "description": "Section title in wallet panel, which contains monthly rewards summary"
+  },
+  "monthApr": {
+    "message": "Aprīlis",
+    "description": "Month"
+  },
+  "monthAug": {
+    "message": "Augusts",
+    "description": "Month"
+  },
+  "monthDec": {
+    "message": "Decembris",
+    "description": "Month"
+  },
+  "monthFeb": {
+    "message": "Februāris",
+    "description": "Month"
+  },
+  "monthJan": {
+    "message": "Janvāris",
+    "description": "Month"
+  },
+  "monthJul": {
+    "message": "Jūlijs",
+    "description": "Month"
+  },
+  "monthJun": {
+    "message": "Jūnijs",
+    "description": "Month"
+  },
+  "monthMar": {
+    "message": "Marts",
+    "description": "Month"
+  },
+  "monthMay": {
+    "message": "Maijs",
+    "description": "Month"
+  },
+  "monthNov": {
+    "message": "Novembris",
+    "description": "Month"
+  },
+  "monthOct": {
+    "message": "Oktobris",
+    "description": "Month"
+  },
+  "monthSep": {
+    "message": "Septembris",
+    "description": "Month"
+  },
+  "tokenGrant": {
+    "message": "Pilnvaras piešķiršana",
+    "description": "Title for grant notification"
+  },
+  "tokenGrantClaimed": {
+    "message": "Pieprasītie marķieru piešķīrumi",
+    "description": "Title for grant section in wallet summary"
+  },
+  "earningsAds": {
+    "message": "Peļņa no reklāmām",
+    "description": "Title for ads section in wallet summary"
+  },
+  "rewardsContribute": {
+    "message": "Automātiskā ziedošana",
+    "description": "Title for auto contribute section in wallet summary"
+  },
+  "oneTimeDonation": {
+    "message": "Vienreizējās dzeramnaudas",
+    "description": "Title for one time tips section in wallet summary"
+  },
+  "expiresOn": {
+    "message": "derīguma termiņš beidzas",
+    "description": "Used for grant representation. Whole string is '30.0 BAT expires on 08/05/2022'"
+  },
+  "recurringDonations": {
+    "message": "Ikmēneša dzeramnaudas",
+    "description": "Title for monthly tips section in wallet summary"
+  },
+  "off": {
+    "message": "Izsl.",
+    "description": "Label used in toggle indicating that toggle is off"
+  },
+  "ok": {
+    "message": "labi",
+    "description": "Used in notification to dismiss notification"
+  },
+  "braveAdsLaunchMsg": {
+    "message": "Tagad Jūs varat pelnīt, skatoties reklāmas.",
+    "description": "Message for ads launch notification"
+  },
+  "braveAdsLaunchTitle": {
+    "message": "Brave reklāmas ir klāt!",
+    "description": "Message used in notification to let users know Ads is available"
+  },
+  "braveAdsTitle": {
+    "message": "Brave reklāmas",
+    "description": "Notification title when we display info about ads"
+  },
+  "braveContributeTitle": {
+    "message": "Automātiska ziedošana",
+    "description": "Notification title when we display info about auto contribution"
+  },
+  "contributeNotificationSuccess": {
+    "message": "Jūs ieguldījāt $amount$ BAT",
+    "description": "We show this string in the notification when contribution is successful",
+    "placeholders": {
+      "amount": {
+        "content": "$1",
+        "example": "10.0"
+      }
+    }
+  },
+  "grantNotification": {
+    "message": "Jums pieejams viens piešķīrums.",
+    "description": "Description for new grant notification"
+  },
+  "backupNow": {
+    "message": "Dublēt tagad",
+    "description": "Notification button text when we ask user to backup wallet"
+  },
+  "backupWalletTitle": {
+    "message": "Maka dublēšana",
+    "description": "Notification title when we ask user to backup wallet"
+  },
+  "backupWalletNotification": {
+    "message": "Lūdzu, izveidojiet sava Brave maka dublējumkopiju.",
+    "description": "Description for backup wallet notification"
+  },
+  "insufficientFundsNotification": {
+    "message": "Veiciet iemaksu savā Brave balvu kontā.",
+    "description": "Description for new insufficient funds notification"
+  },
+  "insufficientFunds": {
+    "message": "Nepietiek līdzekļu",
+    "description": "Title for insufficient funds notification"
+  },
+  "braveRewardsCreatingText": {
+    "message": "Maka izveide",
+    "description": "Used in a button displaying wallet creation process"
+  },
+  "contributeNotificationError": {
+    "message": "Apstrādājot jūsu ieguldījumu, radās kļūda.",
+    "description": "We show this string in notification when contribution fails"
+  },
+  "contributeNotificationNotEnoughFunds": {
+    "message": "Jūsu ieplānotais ikmēneša maksājums automātiskai ziedošanai un ikmēneša dzeramnauda nevarēja tikt iedota nepietiekamu līdzekļu dēļ. Mēs mēģināsim vēlreiz pēc 30 dienām.",
+    "description": "We show this string in the notification when you don't have enough funds for contribution"
+  },
+  "contributeNotificationTipError": {
+    "message": "Nevar nosūtīt Jūsu dzeramnaudu. Lūdzu, vēlāk mēģiniet vēlreiz.",
+    "description": "We show this string in notification when tip fails"
+  },
+  "noActivity": {
+    "message": "Vēl nav darbību...",
+    "description": "Allows the user to see that there have been no transactions or other activity in their wallet"
+  },
+  "captchaDrag": {
+    "message": "Velciet BAT ikonu uz",
+    "description": "Directs the user to drag the BAT icon"
+  },
+  "captchaProveHuman": {
+    "message": "Pierādiet, ka esat cilvēks!",
+    "description": "Cosmetic text for captcha prompt"
+  },
+  "captchaTarget": {
+    "message": "mērķi.",
+    "description": "Captcha Target"
+  },
+  "captchaMissedTarget": {
+    "message": "Hmm… Ne gluži. Mēģiniet vēlreiz.",
+    "description": "Message upon failing captcha"
+  },
+  "claim": {
+    "message": "Pieprasīt",
+    "description": "Claim text"
+  },
+  "newTokenGrant": {
+    "message": "Bezmaksas marķiera piešķīrums",
+    "description": "Token grant label"
+  },
+  "grantExpire": {
+    "message": "Piešķīruma derīguma beigu termiņš",
+    "description": "Grant expiry label"
+  },
+  "grantAlreadyClaimedText": {
+    "message": "Šķiet, ka šis piešķīrums diemžēl jau ir pieprasīts.",
+    "description": "Description of the error when grant is already claimed."
+  },
+  "grantGeneralErrorButton": {
+    "message": "Labi",
+    "description": "Button text for clearing the error."
+  },
+  "grantGeneralErrorText": {
+    "message": "Radusies kļūda saistībā ar Brave balvām. Lūdzu, mēģiniet vēlreiz vēlāk.",
+    "description": "Error text when user is having problems claiming a grant."
+  },
+  "grantGeneralErrorTitle": {
+    "message": "Ak vai, šķiet, radās kļūda. Lūdzu, mēģiniet vēlreiz vēlāk.",
+    "description": "Error title when user is having problems claiming a grant."
+  },
+  "grantGoneButton": {
+    "message": "Labi",
+    "description": "Button text for clearing the error."
+  },
+  "grantGoneText": {
+    "message": "Šķiet, ka šī piešķīruma derīguma termiņš diemžēl ir beidzies.",
+    "description": "Error text when user missed a grant."
+  },
+  "grantGoneTitle": {
+    "message": "Šis piešķīrums vairs nav pieejams.",
+    "description": "Error title when user missed a grant."
+  },
+  "unVerifiedCheck": {
+    "message": "Pārlādēt stāvokli",
+    "description": "Text of link that allows to check verified status of unverified publisher"
+  },
+  "unVerifiedPublisher": {
+    "message": "Vēl nav verificēts",
+    "description": "Status of the publisher shown in the panel"
+  },
+  "unVerifiedText": {
+    "message": "Šis satura veidotājs vēl nav pierakstījies ziedojumu saņemšanai no Brave lietotājiem. Dzeramnauda, ko nosūtīsiet, paliks jūsu makā līdz brīdim, kad attiecīgais veidotājs to apstiprinās.",
+    "description": "Notice about unverified publisher."
+  },
+  "unVerifiedTextMore": {
+    "message": "Uzzināt vairāk.",
+    "description": "Text for the link that explains more about reserved amount"
+  },
+  "reservedAmountText": {
+    "message": "Jūs atvēlējāt {{reservedAmount}} BAT satura veidotājiem, kuri vēl nav pierakstījušies ziedojumu saņemšanai. Jūsu pārlūkprogramma atkārtoti mēģinās veikt ziedojumu līdz brīdim, kad tas tiks apstiprināts vai būs pagājušas 90 dienas.",
+    "description": "Notification about how much BAT do you have reserved"
+  },
+  "reservedMoreLink": {
+    "message": "Uzzināt vairāk.",
+    "description": "Text for the link that explains more about reserved amount"
+  },
+  "disabledPanelOff": {
+    "message": "Izsl.",
+    "description": "Off state text for Panel's disabled state"
+  },
+  "disabledPanelSettings": {
+    "message": "Iestatījumi.",
+    "description": "Settings Link for Panel's disabled state"
+  },
+  "disabledPanelText": {
+    "message": "Šobrīd jūs pārlūkošanas laikā nesaņemat nekādas balvas. Ieslēdziet balvu saņemšanu",
+    "description": "Text for Panel's disabled state"
+  },
+  "disabledPanelTitle": {
+    "message": "Brave balvas ir",
+    "description": "Title for Panel's disabled state"
+  },
+  "walletFailedTitle": {
+    "message": "Maka izveide neizdevās",
+    "description": "Failure title for wallet creation"
+  },
+  "walletFailedButton": {
+    "message": "Mēģināt vēlreiz",
+    "description": "Button for re-try after wallet creation failed"
+  },
+  "addFunds": {
+    "message": "Pievienot līdzekļus",
+    "description": "Button for adding funds"
+  },
+  "rewardsSettings": {
+    "message": "Balvu iestatījumi",
+    "description": "Button for opening settings page"
+  },
+  "earningsClaimDefault": {
+    "message": "Ir pieejama jūsu peļņa no reklāmām.",
+    "description": "Panel notification text for Ads grant"
+  },
+  "and": {
+    "message": "un",
+    "description": "The word 'and'"
+  },
+  "braveRewardsSubTitle": {
+    "message": "Iegūstiet balvas par pārlūkošanu!",
+    "description": "Subtitle for wallet disabled panel"
+  },
+  "disabledPanelTextTwo": {
+    "message": "Nopelniet, skatoties privātumu cienošas reklāmas, un atbalstiet savus iemīļotos satura veidotājus.",
+    "description": "Text block for wallet disabled panel"
+  },
+  "enableRewards": {
+    "message": "Iespējot Brave balvas",
+    "description": "Subtitle for wallet disabled panel"
+  },
+  "privacyPolicy": {
+    "message": "Privātuma politika",
+    "description": "Privacy Policy"
+  },
+  "serviceText": {
+    "message": "Noklikšķinot uz \"Iespējot Brave balvas\", Jūs norādāt, ka izlasījāt un piekrītat",
+    "description": "Terms of service main text"
+  },
+  "termsOfService": {
+    "message": "Pakalpojuma noteikumi",
+    "description": "Terms of Service"
+  },
+  "welcomeBack": {
+    "message": "Ar atgriešanos!",
+    "description": "Title message for wallet disabled panel"
+  },
+  "tipsProcessedNotification": {
+    "message": "Jūsu ikmēneša dzeramnauda ir apstrādāta!",
+    "description": "Message for monthly tips processed notification"
+  },
+  "contributionTips": {
+    "message": "Ziedojumi un dzeramnaudas",
+    "description": "Title for monthly tips processed notification"
+  },
+  "serviceTextPanelWelcome": {
+    "message": "Noklikšķinot uz \"Pievienoties Brave balvām\", Jūs norādāt, ka izlasījāt un piekrītat",
+    "description": "Terms of service panel opt-in text"
+  },
+  "bat": {
+    "message": "Pamata uzmanības marķieris (BAT)",
+    "description": "BAT text for displaying converted tip amount."
+  },
+  "turnOnAds": {
+    "message": "Ieslēgt reklāmas",
+    "description": "Prompt to turn on Ads via notification"
+  },
+  "adsEarnings": {
+    "message": "nopelnīts no reklāmām",
+    "description": "Description text for ad grants in grant details"
+  },
+  "twitterTipsHoverText": {
+    "message": "Dot dzeramnaudu šim tvītam",
+    "description": "Hover text for Twitter tips action"
+  },
+  "twitterTipsIconLabel": {
+    "message": "Dzeramnauda",
+    "description": "Icon label for Twitter tips"
+  },
+  "redditTipsHoverText": {
+    "message": "Piešķirt šim postam dzeramnaudu",
+    "description": "Hover text for Reddit tips action"
+  },
+  "redditTipsIconLabel": {
+    "message": "Dzeramnauda",
+    "description": "Icon label for Reddit tips"
+  },
+  "githubTipsHoverText": {
+    "message": "Nosūtīt padomu",
+    "description": "Hover text for GitHub tips action"
+  },
+  "githubTipsIconLabel": {
+    "message": "Dzeramnauda",
+    "description": "Icon label for GitHub tips"
+  },
+  "verifiedPublisherNotification": {
+    "message": "Izstrādātājs $name$nesen apstiprināja ",
+    "description": "Notification text that tells user which publisher just verified",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "brave.com"
+      }
+    }
+  },
+  "pendingNotEnoughFundsNotification": {
+    "message": "Jums ir nesamaksātas dzeramnaudas nepietiekamu līdzekļu dēļ",
+    "description": "Notification text that tells user his wallet is under funded for pending contribution to complete"
+  },
+  "pendingContributionTitle": {
+    "message": "Gaidāmais ziedojums",
+    "description": "Notification title for pending contribution type"
+  },
+  "grantFinishTitleUGP": {
+    "message": "Jums šodien veicas!",
+    "description": "Cosmetic text upon captcha success"
+  },
+  "grantFinishTextUGP": {
+    "message": "Drīzumā saņemsiet savu marķiera piešķīrumu.",
+    "description": "Cosmetic text indicating grant funds are on the way"
+  },
+  "grantFinishTokenTitleUGP": {
+    "message": "Bezmaksas marķiera piešķīrums",
+    "description": "Token title on success screen"
+  },
+  "grantFinishTitleAds": {
+    "message": "Brave reklāmu peļņa!",
+    "description": "Cosmetic text upon captcha success for ads"
+  },
+  "grantFinishTextAds": {
+    "message": "Jūsu peļņas piešķīrumi no Brave reklāmām būs drīzumā pieejami.",
+    "description": "Cosmetic text indicating ads funds are on the way"
+  },
+  "grantFinishTokenTitleAds": {
+    "message": "Jūsu Brave reklāmu marķiera piešķīrums",
+    "description": "Token title on success screen for ads"
+  },
+  "rewardsPanelTextVerify":  {
+    "message": "pārbaudīt",
+    "description": "CTA in the footer to verify"
+  },
+  "walletButtonDisconnected":  {
+    "message": "Atvienots",
+    "description": "CTA status button"
+  },
+  "walletButtonUnverified":  {
+    "message": "Verificēt maku",
+    "description": "CTA to verify wallet in the wallet "
+  },
+  "walletButtonVerified":  {
+    "message": "Maks verificēts",
+    "description": "Displayed in wallet that tells users that he is verified"
+  },
+  "walletGoToUphold":  {
+    "message": "Doties uz manu Uphold kontu",
+    "description": "CTA to open uphold account"
+  },
+  "walletDisconnect":  {
+    "message": "Atspējot Brave balvas",
+    "description": "CTA to disconnect user wallet from rewards"
+  },
+  "walletVerified":  {
+    "message": "Pārbaudīts",
+    "description": "Status button that tells user that he is verified"
+  },
+  "walletVerifiedNotification":  {
+    "message": "Jūsu maks ir verificēts!",
+    "description": "Title for notification when wallet becomes verified"
+  },
+  "walletVerifiedTextNotification":  {
+    "message": "Apsveicam! Jūsu $name$ maks tika veiksmīgi verificēts un ir gatavs līdzekļu pievienošanai un izņemšanai.",
+    "description": "Title for notification when wallet becomes verified",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Uphold"
+      }
+    }
+  },
+  "walletDisconnectedNotification":  {
+    "message": "Ak, vai! Jūsu maks nav sasniedzams.",
+    "description": "Title for notification when wallet is disconnected."
+  },
+  "walletDisconnectedTextNotification":  {
+    "message": "Satraukumam nav pamata. Tas var notikt vairāku ar drošību saistītu iemeslu dēļ. Atkārtoti pievienojot maku, šī problēma tiks atrisināta.",
+    "description": "Title for notification when wallet is disconnected"
+  },
+  "connectedText":  {
+    "message": "Šis Brave apstiprinātais veidotājs vēl nav konfigurējis savu kontu, lai saņemtu ieguldījumu no Brave lietotājiem. Jūsu nosūtītā dzeramnauda tiks saglabāta jūsu makā, kamēr lietotājs nebūs pabeidzis šo procesu.",
+    "description": "Text shown for connected publishers that are not fully verified in the panel"
+  },
+  "walletGoToVerifyPage":  {
+    "message": "Pabeigt maka verifikāciju",
+    "description": "CTA for completing wallet verification"
+  },
+  "set": {
+    "message": "Iestatīt...",
+    "description": "Button text for setting monthly contribution"
+  }
+}

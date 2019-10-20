@@ -1,0 +1,536 @@
+{
+  "braveRewards": {
+    "message": "Zawadi za Brave",
+    "description": "Title in welcome screen for the panel"
+  },
+  "welcomeButtonTextOne": {
+    "message": "Anza Kupata Kipato Sasa!",
+    "description": "CTA on welcome screen in the panel, existing users"
+  },
+  "welcomeButtonTextTwo": {
+    "message": "Zawadi za Kujiunga",
+    "description": "CTA on welcome screen in the panel, new users"
+  },
+  "welcomeDescOne": {
+    "message": "Lipwa kwa kutazama matangazo na lipia moja kwa moja kuwasaidia watengenezaji wa maudhui unaowapenda.",
+    "description": "Entry text for welcome screen in the panel, existing user"
+  },
+  "welcomeDescTwo": {
+    "message": "Sasa unaweza kupata vianzio kwa kutazama matangazo yanayoheshimu faragha.",
+    "description": "Entry text for welcome screen in the panel, new user"
+  },
+  "welcomeFooterTextOne": {
+    "message": "Angalia kile kilichoboreshwa",
+    "description": "Link in the footer (takes you to rewards settings page) for welcome screen in the panel, existing user"
+  },
+  "welcomeFooterTextTwo": {
+    "message": "Jifunze Zaidi",
+    "description": "Link in the footer (takes you to rewards settings page) for welcome screen in the panel, new user"
+  },
+  "welcomeHeaderOne": {
+    "message": "Tumeboresha Brave Rewards kwa kiwango cha juu.",
+    "description": "Main header title for welcome screen in the panel, existing user"
+  },
+  "welcomeHeaderTwo": {
+    "message": "Kaa tayari kupata uzoefu wa Intaneti inayokuja.",
+    "description": "Main header title for welcome screen in the panel, new user"
+  },
+  "yourWallet": {
+    "message": "Waleti Yako",
+    "description": "Title of wallet section where we display data about wallet"
+  },
+  "grants": {
+    "message": "Ruzuku",
+    "description": "Title for grant section in wallet summary"
+  },
+  "on": {
+    "message": "katika",
+    "description": "The whole string is 'Enable tips on YouTube for like.'"
+  },
+  "verifiedPublisher": {
+    "message": "Wazalishaji wa Brave Waliothibitishwa",
+    "description": "Tells user that this particular publisher is a Brave Verified Creator"
+  },
+  "rewardsContributeAttentionScore": {
+    "message": "Umakini",
+    "description": "Label for auto contribute table attention for the publisher"
+  },
+  "donateMonthly": {
+    "message": "Mchango wa kila Mwezi",
+    "description": "Label for drop down menu where user select amount for monthly contribution for particular publisher"
+  },
+  "includeInAuto": {
+    "message": "Jumuisha kwenye Auto-Contribute",
+    "description": "Label for checkbox that allows user to exclude publishers from auto contribute"
+  },
+  "donateNow": {
+    "message": "Tuma Kidokeza...",
+    "description": "CTA for sending tip form site banner"
+  },
+  "enableTips": {
+    "message": "Wezesha Vidokezo",
+    "description": "The whole string is 'Enable tips on YouTube for like.'"
+  },
+  "for": {
+    "message": "kwa",
+    "description": "The whole string is 'Enable tips on YouTube for like.'"
+  },
+  "rewardsSummary": {
+    "message": "Muhtasari wa Zawadi",
+    "description": "Section title in wallet panel, which contains monthly rewards summary"
+  },
+  "monthApr": {
+    "message": "Aprili",
+    "description": "Month"
+  },
+  "monthAug": {
+    "message": "Agosti",
+    "description": "Month"
+  },
+  "monthDec": {
+    "message": "Desemba",
+    "description": "Month"
+  },
+  "monthFeb": {
+    "message": "Februari",
+    "description": "Month"
+  },
+  "monthJan": {
+    "message": "Januari",
+    "description": "Month"
+  },
+  "monthJul": {
+    "message": "Julai",
+    "description": "Month"
+  },
+  "monthJun": {
+    "message": "Juni",
+    "description": "Month"
+  },
+  "monthMar": {
+    "message": "Machi",
+    "description": "Month"
+  },
+  "monthMay": {
+    "message": "Mei",
+    "description": "Month"
+  },
+  "monthNov": {
+    "message": "Novemba",
+    "description": "Month"
+  },
+  "monthOct": {
+    "message": "Oktoba",
+    "description": "Month"
+  },
+  "monthSep": {
+    "message": "Septemba",
+    "description": "Month"
+  },
+  "tokenGrant": {
+    "message": "Ruzuku za Kianzio",
+    "description": "Title for grant notification"
+  },
+  "tokenGrantClaimed": {
+    "message": "Ruzuku za Kianzio Zilizoombwa",
+    "description": "Title for grant section in wallet summary"
+  },
+  "earningsAds": {
+    "message": "Mapato kutokana na Matangazo",
+    "description": "Title for ads section in wallet summary"
+  },
+  "rewardsContribute": {
+    "message": "Auto-Contribute",
+    "description": "Title for auto contribute section in wallet summary"
+  },
+  "oneTimeDonation": {
+    "message": "Michango ya Mara Moja",
+    "description": "Title for one time tips section in wallet summary"
+  },
+  "expiresOn": {
+    "message": "huisha muda wake tarehe",
+    "description": "Used for grant representation. Whole string is '30.0 BAT expires on 08/05/2022'"
+  },
+  "recurringDonations": {
+    "message": "Vidokezo vya kila mwezi",
+    "description": "Title for monthly tips section in wallet summary"
+  },
+  "off": {
+    "message": "Zima",
+    "description": "Label used in toggle indicating that toggle is off"
+  },
+  "ok": {
+    "message": "sawa",
+    "description": "Used in notification to dismiss notification"
+  },
+  "braveAdsLaunchMsg": {
+    "message": "Sasa unaweza kupata kipato kwa kutazama matangazo!",
+    "description": "Message for ads launch notification"
+  },
+  "braveAdsLaunchTitle": {
+    "message": "Matangazo ya Brave yamewasili!",
+    "description": "Message used in notification to let users know Ads is available"
+  },
+  "braveAdsTitle": {
+    "message": "Matangazo ya Brave",
+    "description": "Notification title when we display info about ads"
+  },
+  "braveContributeTitle": {
+    "message": "Auto-Contribute",
+    "description": "Notification title when we display info about auto contribution"
+  },
+  "contributeNotificationSuccess": {
+    "message": "Umechangia $amount$ BAT",
+    "description": "We show this string in the notification when contribution is successful",
+    "placeholders": {
+      "amount": {
+        "content": "$1",
+        "example": "10.0"
+      }
+    }
+  },
+  "grantNotification": {
+    "message": "Una ruzuku inayokusubiri.",
+    "description": "Description for new grant notification"
+  },
+  "backupNow": {
+    "message": "Hifadhi kwa njia Mbadala Sasa",
+    "description": "Notification button text when we ask user to backup wallet"
+  },
+  "backupWalletTitle": {
+    "message": "Wallet Mbadala",
+    "description": "Notification title when we ask user to backup wallet"
+  },
+  "backupWalletNotification": {
+    "message": "Tafadhali hifadhi kwa njia mbadala wallet yako ya Brave.",
+    "description": "Description for backup wallet notification"
+  },
+  "insufficientFundsNotification": {
+    "message": "Akaunto yako ya Brave Rewards inasubiri amana.",
+    "description": "Description for new insufficient funds notification"
+  },
+  "insufficientFunds": {
+    "message": "Fedha Hazitoshi",
+    "description": "Title for insufficient funds notification"
+  },
+  "braveRewardsCreatingText": {
+    "message": "Kutengeneza waleti",
+    "description": "Used in a button displaying wallet creation process"
+  },
+  "contributeNotificationError": {
+    "message": "Kulikuwa na tatizo kuchakatata mchango wako.",
+    "description": "We show this string in notification when contribution fails"
+  },
+  "contributeNotificationNotEnoughFunds": {
+    "message": "Malipo yako yaliyopangwa ya kila mwezi ya Auto-Contribute na michango ya kila mwezi haikuweza kukamilishwa kwa sababu fedha hazitoshi. Tutajaribu tena ndani ya siku 30.",
+    "description": "We show this string in the notification when you don't have enough funds for contribution"
+  },
+  "contributeNotificationTipError": {
+    "message": "Imeshindwa kukutumia kidokezo. Tafadhali jaribu tena baadaye.",
+    "description": "We show this string in notification when tip fails"
+  },
+  "noActivity": {
+    "message": "Bado hakuna shughuli...",
+    "description": "Allows the user to see that there have been no transactions or other activity in their wallet"
+  },
+  "captchaDrag": {
+    "message": "Buruza ikoni ya BAT ili kuiweka kwenye",
+    "description": "Directs the user to drag the BAT icon"
+  },
+  "captchaProveHuman": {
+    "message": "Thabitisha kwamba wewe ni binadamu!",
+    "description": "Cosmetic text for captcha prompt"
+  },
+  "captchaTarget": {
+    "message": "lengo.",
+    "description": "Captcha Target"
+  },
+  "captchaMissedTarget": {
+    "message": "Hmm... Si Sahihi. Jaribu Tena.",
+    "description": "Message upon failing captcha"
+  },
+  "claim": {
+    "message": "Dai",
+    "description": "Claim text"
+  },
+  "newTokenGrant": {
+    "message": "Ruzuku ya Bure ya Kianzio",
+    "description": "Token grant label"
+  },
+  "grantExpire": {
+    "message": "Tarehe ya Mwisho ya Kuisha Ruzuku",
+    "description": "Grant expiry label"
+  },
+  "grantAlreadyClaimedText": {
+    "message": "Samahani, inaonekana ruzuku hii imeshadaiwa tayari.",
+    "description": "Description of the error when grant is already claimed."
+  },
+  "grantGeneralErrorButton": {
+    "message": "SAWA",
+    "description": "Button text for clearing the error."
+  },
+  "grantGeneralErrorText": {
+    "message": "Kuna tatizo kwenye Zawadi za Brave. Tafadhali jaribu tena baadaye.",
+    "description": "Error text when user is having problems claiming a grant."
+  },
+  "grantGeneralErrorTitle": {
+    "message": "Ayaa, kuna kitu hakiko sawa. Tafadhali jaribu tena baadaye.",
+    "description": "Error title when user is having problems claiming a grant."
+  },
+  "grantGoneButton": {
+    "message": "SAWA",
+    "description": "Button text for clearing the error."
+  },
+  "grantGoneText": {
+    "message": "Samahani, inaonekana ruzuku hii imekwisha muda wake tayari.",
+    "description": "Error text when user missed a grant."
+  },
+  "grantGoneTitle": {
+    "message": "Ruzuku hii haipo tena.",
+    "description": "Error title when user missed a grant."
+  },
+  "unVerifiedCheck": {
+    "message": "Zimua Hali",
+    "description": "Text of link that allows to check verified status of unverified publisher"
+  },
+  "unVerifiedPublisher": {
+    "message": "Bado hajathibitishwa",
+    "description": "Status of the publisher shown in the panel"
+  },
+  "unVerifiedText": {
+    "message": "Mtengeneza maudhui huyu bado hajajisajili ili kuanza kupokea michango kutoka kwa watumiaji wa Brave. Zawadi yoyote utakayotuma itabaki kwenye wallet yako hadi watakapothibitisha.",
+    "description": "Notice about unverified publisher."
+  },
+  "unVerifiedTextMore": {
+    "message": "Jifunze zaidi.",
+    "description": "Text for the link that explains more about reserved amount"
+  },
+  "reservedAmountText": {
+    "message": "Umepewa kiwango cha BAT {{reservedAmount}} BAT kwa watengenezaji ambao bado hawajajisajili ili kupokea michango. Kisakuzi chako kitaendelea kujaribu kuchangia hadi watakapothibitisha, au hadi siku 90 zitakapokuwa zimepita.",
+    "description": "Notification about how much BAT do you have reserved"
+  },
+  "reservedMoreLink": {
+    "message": "Jifunze zaidi.",
+    "description": "Text for the link that explains more about reserved amount"
+  },
+  "disabledPanelOff": {
+    "message": "Kimezimwa",
+    "description": "Off state text for Panel's disabled state"
+  },
+  "disabledPanelSettings": {
+    "message": "Mipangilio.",
+    "description": "Settings Link for Panel's disabled state"
+  },
+  "disabledPanelText": {
+    "message": "Kwa sasa hupati mafao ya Zawadi huku ukiwa unavinjari. Washa tena Zawadi kwenye",
+    "description": "Text for Panel's disabled state"
+  },
+  "disabledPanelTitle": {
+    "message": "Zawadi za Brave ni",
+    "description": "Title for Panel's disabled state"
+  },
+  "walletFailedTitle": {
+    "message": "Utengenezaji wa waleti haukufaulu",
+    "description": "Failure title for wallet creation"
+  },
+  "walletFailedButton": {
+    "message": "Jaribu tena",
+    "description": "Button for re-try after wallet creation failed"
+  },
+  "addFunds": {
+    "message": "Ongeza Fedha",
+    "description": "Button for adding funds"
+  },
+  "rewardsSettings": {
+    "message": "Mipangilio ya Rewards",
+    "description": "Button for opening settings page"
+  },
+  "earningsClaimDefault": {
+    "message": "Zawadi zako kutoka kwenye Matangazo zipo hapa!",
+    "description": "Panel notification text for Ads grant"
+  },
+  "and": {
+    "message": "na",
+    "description": "The word 'and'"
+  },
+  "braveRewardsSubTitle": {
+    "message": "Pata Zawadi kwa Kuperuzi!",
+    "description": "Subtitle for wallet disabled panel"
+  },
+  "disabledPanelTextTwo": {
+    "message": "Pata kipato kwa kutazama matangazo yanayoheshimu faragha, na yalipie moja kwa moja kuwasaidia watengeneza maudhui unaowapenda.",
+    "description": "Text block for wallet disabled panel"
+  },
+  "enableRewards": {
+    "message": "Wezesha Zawadi za Brave",
+    "description": "Subtitle for wallet disabled panel"
+  },
+  "privacyPolicy": {
+    "message": "Sera ya Faragha",
+    "description": "Privacy Policy"
+  },
+  "serviceText": {
+    "message": "Kwa kubofya 'Wezesha Brave Rewards', unaashiria kwamba umesoma kukubali",
+    "description": "Terms of service main text"
+  },
+  "termsOfService": {
+    "message": "Masharti ya Huduma",
+    "description": "Terms of Service"
+  },
+  "welcomeBack": {
+    "message": "Karibu Tena!",
+    "description": "Title message for wallet disabled panel"
+  },
+  "tipsProcessedNotification": {
+    "message": "Zawadi zako za kila mwezi zimeshatumwa!",
+    "description": "Message for monthly tips processed notification"
+  },
+  "contributionTips": {
+    "message": "Michango na Zawadi",
+    "description": "Title for monthly tips processed notification"
+  },
+  "serviceTextPanelWelcome": {
+    "message": "Kwa kubofya 'Jiunge na Rewards', unaashiria kwamba umesoma na kukubali",
+    "description": "Terms of service panel opt-in text"
+  },
+  "bat": {
+    "message": "BAT",
+    "description": "BAT text for displaying converted tip amount."
+  },
+  "turnOnAds": {
+    "message": "Washa Matangazo",
+    "description": "Prompt to turn on Ads via notification"
+  },
+  "adsEarnings": {
+    "message": "mapato yaliyotokana na matangazo",
+    "description": "Description text for ad grants in grant details"
+  },
+  "twitterTipsHoverText": {
+    "message": "Changia ujumbe huu wa tweet",
+    "description": "Hover text for Twitter tips action"
+  },
+  "twitterTipsIconLabel": {
+    "message": "Mchango",
+    "description": "Icon label for Twitter tips"
+  },
+  "redditTipsHoverText": {
+    "message": "Changia mala hii",
+    "description": "Hover text for Reddit tips action"
+  },
+  "redditTipsIconLabel": {
+    "message": "Mchango",
+    "description": "Icon label for Reddit tips"
+  },
+  "githubTipsHoverText": {
+    "message": "Tuma Kidokezo",
+    "description": "Hover text for GitHub tips action"
+  },
+  "githubTipsIconLabel": {
+    "message": "Mchango",
+    "description": "Icon label for GitHub tips"
+  },
+  "verifiedPublisherNotification": {
+    "message": "Mzalishaji $name$ amethibishwa hivi karibuni",
+    "description": "Notification text that tells user which publisher just verified",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "brave.com"
+      }
+    }
+  },
+  "pendingNotEnoughFundsNotification": {
+    "message": "Una zawadi ambazo hazijatolewa kwa sababu huna fedha za kutosha",
+    "description": "Notification text that tells user his wallet is under funded for pending contribution to complete"
+  },
+  "pendingContributionTitle": {
+    "message": "Mchango ambao bado haujachangwa",
+    "description": "Notification title for pending contribution type"
+  },
+  "grantFinishTitleUGP": {
+    "message": "Ni siku yako ya bahati!",
+    "description": "Cosmetic text upon captcha success"
+  },
+  "grantFinishTextUGP": {
+    "message": "Ruzuku yako ya kianzio ipo njiani.",
+    "description": "Cosmetic text indicating grant funds are on the way"
+  },
+  "grantFinishTokenTitleUGP": {
+    "message": "Ruzuku ya Bure ya Kianzio",
+    "description": "Token title on success screen"
+  },
+  "grantFinishTitleAds": {
+    "message": "Brave Ads Rewards!",
+    "description": "Cosmetic text upon captcha success for ads"
+  },
+  "grantFinishTextAds": {
+    "message": "Ruzuku yako ya zawadi kutoka Brave Ads ipo njiani.",
+    "description": "Cosmetic text indicating ads funds are on the way"
+  },
+  "grantFinishTokenTitleAds": {
+    "message": "Ruzuku yako ya Kianzio ya Brave Ads",
+    "description": "Token title on success screen for ads"
+  },
+  "rewardsPanelTextVerify":  {
+    "message": "thibitisha",
+    "description": "CTA in the footer to verify"
+  },
+  "walletButtonDisconnected":  {
+    "message": "Imeondolewa",
+    "description": "CTA status button"
+  },
+  "walletButtonUnverified":  {
+    "message": "Thibitisha Pochi",
+    "description": "CTA to verify wallet in the wallet "
+  },
+  "walletButtonVerified":  {
+    "message": "Pochi Imethibitishwa",
+    "description": "Displayed in wallet that tells users that he is verified"
+  },
+  "walletGoToUphold":  {
+    "message": "Nenda kwenye akaunti yangu ya Uphold",
+    "description": "CTA to open uphold account"
+  },
+  "walletDisconnect":  {
+    "message": "Ondoa kwenye Brave Rewards",
+    "description": "CTA to disconnect user wallet from rewards"
+  },
+  "walletVerified":  {
+    "message": "Imethibitishwa",
+    "description": "Status button that tells user that he is verified"
+  },
+  "walletVerifiedNotification":  {
+    "message": "Pochi yako imethibitishwa!",
+    "description": "Title for notification when wallet becomes verified"
+  },
+  "walletVerifiedTextNotification":  {
+    "message": "Hongera! Pochi yako ya $name$ ilithibitishwa vizuri na tayari kuongeza na kutoa pesa.",
+    "description": "Title for notification when wallet becomes verified",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Uphold"
+      }
+    }
+  },
+  "walletDisconnectedNotification":  {
+    "message": "Lo! Pochi yako haiwezi kufikiwa.",
+    "description": "Title for notification when wallet is disconnected."
+  },
+  "walletDisconnectedTextNotification":  {
+    "message": "Usiwe na wasiwasi. Hii inaweza kutendeka kwa sababu mbalimbali za usalama. Kuunganisha tena pochi yako kutatua tatizo hili.",
+    "description": "Title for notification when wallet is disconnected"
+  },
+  "connectedText":  {
+    "message": "Mtengeneza maudhui huyu bado hajajisajili ili kuanza kupokea michango kutoka kwa watumiaji wa Brave. Zawadi yoyote utakayotuma itabaki kwenye wallet yako hadi watakapokamilisha mchakato huu.",
+    "description": "Text shown for connected publishers that are not fully verified in the panel"
+  },
+  "walletGoToVerifyPage":  {
+    "message": "Kamilisha uthibitishaji pochi",
+    "description": "CTA for completing wallet verification"
+  },
+  "set": {
+    "message": "Weka...",
+    "description": "Button text for setting monthly contribution"
+  }
+}

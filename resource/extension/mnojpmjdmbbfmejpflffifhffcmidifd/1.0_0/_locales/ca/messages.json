@@ -1,0 +1,190 @@
+{
+  "appName": {
+    "message": "L'Extensió Brave",
+    "description": "The name of the the extension."
+  },
+  "shields": {
+    "message": "Escuts",
+    "description": "The Shields feature name"
+  },
+  "up": {
+    "message": "amunt",
+    "description": "Message for when shields is enabled"
+  },
+  "down": {
+    "message": "avall",
+    "description": "Message for when shields is disabled"
+  },
+  "forThisSite": {
+    "message": "per aquest lloc",
+    "description": "Partial string for the phrase `shields is up *for this site*`"
+  },
+  "enabledMessage": {
+    "message": "Si un lloc sembla trencat, prova a baixar els escuts",
+    "description": "Message telling the user to disable shields if a site appears broken"
+  },
+  "disabledMessage": {
+    "message": "Estàs navegant en aquest lloc sense cap protecció de privadesa i seguretat.",
+    "description": "Message telling the user that shields are disabled"
+  },
+  "itemsBlocked": {
+    "message": "Elements bloquejats",
+    "description": "Message for the main blocked resources text when there is more than one ad/track/script blocked (plural)"
+  },
+  "itemBlocked": {
+    "message": "Element bloquejat",
+    "description": "Message for the main blocked resources text when there is one ad/track/script blocked (singular)"
+  },
+  "and": {
+    "message": "i",
+    "description": "Message for the `and` conjunction. Used to connect grammatically the `item blocked and connection upgrades` and its variant phrases"
+  },
+  "connectionsUpgraded": {
+    "message": "connexions actualitzades",
+    "description": "Message for the main blocked resources text when there is at least one ad/track/script blocked and more than one connection upgrade (plural)"
+  },
+  "connectionUpgraded": {
+    "message": "connexió actualitzada",
+    "description": "Message for the main blocked resources text when there is at least one ad/track/script blocked and one connection upgrade (singular)"
+  },
+  "thirdPartyTrackersBlocked": {
+    "message": "Rastrejadors entre llocs bloquejats",
+    "description": "Message for the scripts blocked row label"
+  },
+  "connectionsUpgradedHTTPS": {
+    "message": "Connexions actualitzades a HTTPS",
+    "description": "Message for the connections upgraded row label and for the main blocked resources text when there is more than one connection upgraded (plural) and no other ads/trackers blocked"
+  },
+  "connectionUpgradedHTTPS": {
+    "message": "Connexió actualitzada a HTTPS",
+    "description": "Message for the main blocked resources text when there is one connection upgraded (singular) and no other ads/trackers blocked"
+  },
+  "scriptsBlocked": {
+    "message": "Totes les seqüències d'ordres estan bloquejades",
+    "description": "Message for the scripts blocked row label"
+  },
+  "thirdPartyCookiesBlocked": {
+    "message": "Galetes entre llocs bloquejades",
+    "description": "Message for the option in the cookies select field to block all 3rd party cookies"
+  },
+  "allCookiesBlocked": {
+    "message": "Galetes bloquejades",
+    "description": "Message for the option in the cookies select field to block all cookies"
+  },
+  "allCookiesAllowed": {
+    "message": "Totes les galetes permeses",
+    "description": "Message for the option in the cookies select field to allow all cookies"
+  },
+  "thirdPartyFingerprintingBlocked": {
+    "message": "Reconeixement de dispositius entre llocs bloquejats",
+    "description": "Message for the option in the device recognition select field to block all 3rd party recognition attempts"
+  },
+  "allFingerprintingBlocked": {
+    "message": "Intents de reconeixement de dispositius bloquejats",
+    "description": "Message for the option in the device recognition select field to block all device recognition attempts"
+  },
+  "allFingerprintingAllowed": {
+    "message": "Tots els intents de reconeixement de dispositius permesos",
+    "description": "Message for the option in the device recognition select field to allow all device recognition attempts"
+  },
+  "deviceRecognitionAttempts": {
+    "message": "Intents de reconeixement de dispositiu",
+    "description": "Message for the device recognition attempts blocked panel"
+  },
+  "scriptsOnThisSite": {
+    "message": "Hi ha seqüències d'ordres en aquest lloc",
+    "description": "Message for the script resources blocked panel"
+  },
+  "blockedScripts": {
+    "message": "Seqüències d'ordres bloquejades",
+    "description": "Message for the script resources blocked"
+  },
+  "allowedScripts": {
+    "message": "Seqüències d'ordres permeses",
+    "description": "Message for the script resources allowed"
+  },
+  "blockAll": {
+    "message": "Bloqueja-ho tot",
+    "description": "Message for the resources blocked *block all* option"
+  },
+  "allowAll": {
+    "message": "Permet tot",
+    "description": "Message for the resources blocked *allow all* option"
+  },
+  "block": {
+    "message": "Bloqueja",
+    "description": "Message for the resources blocked *block* option"
+  },
+  "allow": {
+    "message": "Permet",
+    "description": "Message for the resources blocked *allow* option"
+  },
+  "blockedOnce": {
+    "message": "S'ha bloquejat un cop",
+    "description": "Message for the resources blocked *blocked once* option"
+  },
+  "allowedOnce": {
+    "message": "S'ha permès un cop",
+    "description": "Message for the resources blocked *allowed once* option"
+  },
+  "allowScriptsOnce": {
+    "message": "Permet un cop els scripts",
+    "description": "Message for the shortcut in the main interface to allow all scripts once"
+  },
+  "cancel": {
+    "message": "Cancel·la",
+    "description": "Message for the button inside the static list of resources blocked to cancel the operation"
+  },
+  "goBack": {
+    "message": "Vés enrere",
+    "description": "Message for the button inside the static list of resources blocked to go back from the current screen"
+  },
+  "applyOnce": {
+    "message": "Aplica una vegada",
+    "description": "Message for action in dynamic list of resources blocked to *apply once*"
+  },
+  "changeDefaults": {
+    "message": "Canvia els paràmetres per defecte de l’escut global",
+    "description": "Message for the button action linking to the settings page"
+  },
+  "addBlockElement": {
+    "message": "Bloqueja l'element a través del selector",
+    "description": "Message for context menu that adds a filter for the cosmetic filtering"
+  },
+  "resetSiteFilterSettings": {
+    "message": "Esborra les regles de CSS per a aquest lloc",
+    "description": "Message for context menu that resets the site filters for cosmetic filtering"
+  },
+  "resetAllFilterSettings": {
+    "message": "Esborra les regles de CSS per a tots els llocs",
+    "description": "Message for context menu that resets all cosmetic filters"
+  },
+  "advancedView": {
+    "message": "Vista avançada",
+    "description": "Message for the advanced view option"
+  },
+  "simpleView": {
+    "message": "Vista Simple",
+    "description": "Message for the simple view option"
+  },
+  "shieldsExplanation": {
+    "message": "Sovint els llocs inclouen galetes i scripts que proven d'identificar-te a tu i al teu dispositiu (sovint incrustats en anuncis). Volen esbrinar qui ets i seguir-te a través de la xarxa, rastrejant el que fas a cada lloc. Brave bloca aquestes coses de manera que puguis navegar sense que et segueixin.",
+    "description": "Message in read-only view explaining what Brave Shields do"
+  },
+  "blockedResoucesExplanation": {
+    "message": "Rastrejadors entre dominis i altres coses inquietants blocades",
+    "description": "Message for the main trackers count in Shields simple view"
+  },
+  "webCompatWarning": {
+    "message": "Canviar la configuració de l'Escut en aquesta vista pot afectar a la compatibilitat web d'aquest lloc.",
+    "description": "Message for web compat warning when switching from simple to advanced view"
+  },
+  "gotIt": {
+    "message": "D'acord",
+    "description": "Message for the button that confirms the advanced view"
+  },
+  "learnMore": {
+    "message": "Saber més",
+    "description": "Message inviting the user to learn more about Shields"
+  }
+}

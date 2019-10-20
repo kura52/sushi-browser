@@ -1,0 +1,536 @@
+{
+  "braveRewards": {
+    "message": "የብሬቭ ሽልማት",
+    "description": "Title in welcome screen for the panel"
+  },
+  "welcomeButtonTextOne": {
+    "message": "አሁን ማግኘቶን ይጀምሩ!",
+    "description": "CTA on welcome screen in the panel, existing users"
+  },
+  "welcomeButtonTextTwo": {
+    "message": "ሽልማት ይቀላቀሉ",
+    "description": "CTA on welcome screen in the panel, new users"
+  },
+  "welcomeDescOne": {
+    "message": "ማስታወቅያ በማየቶ ይከፈሎት እንዲሁም የሚፈልግቱን የይዘት ፈጣሪዎች ለመደገፍ ያስተላልፉት፡፡",
+    "description": "Entry text for welcome screen in the panel, existing user"
+  },
+  "welcomeDescTwo": {
+    "message": "ግላዊነት የሚያከብሩ ማስታወቅያዎችን በማየቶ ቶክን ማግኘት ይችላሉ፡፡",
+    "description": "Entry text for welcome screen in the panel, new user"
+  },
+  "welcomeFooterTextOne": {
+    "message": "የተሻሻለውን ይመልከቱ",
+    "description": "Link in the footer (takes you to rewards settings page) for welcome screen in the panel, existing user"
+  },
+  "welcomeFooterTextTwo": {
+    "message": "በተጨማሪ ይወቁ",
+    "description": "Link in the footer (takes you to rewards settings page) for welcome screen in the panel, new user"
+  },
+  "welcomeHeaderOne": {
+    "message": "ለ Brave Rewards ትልቅ ዝመና ሰጥተናል።",
+    "description": "Main header title for welcome screen in the panel, existing user"
+  },
+  "welcomeHeaderTwo": {
+    "message": "ቀጣዩን ኢንተርኔት ለማየት ይዘጋጁ፡፡",
+    "description": "Main header title for welcome screen in the panel, new user"
+  },
+  "yourWallet": {
+    "message": "የእርስዎ ዋሌት",
+    "description": "Title of wallet section where we display data about wallet"
+  },
+  "grants": {
+    "message": "ስጦታ",
+    "description": "Title for grant section in wallet summary"
+  },
+  "on": {
+    "message": "በርቷል",
+    "description": "The whole string is 'Enable tips on YouTube for like.'"
+  },
+  "verifiedPublisher": {
+    "message": "በ Brave የተረጋገጠ ፈጣሪ ",
+    "description": "Tells user that this particular publisher is a Brave Verified Creator"
+  },
+  "rewardsContributeAttentionScore": {
+    "message": "ያስተውሉ",
+    "description": "Label for auto contribute table attention for the publisher"
+  },
+  "donateMonthly": {
+    "message": "ወርሐዊ መዋጮ",
+    "description": "Label for drop down menu where user select amount for monthly contribution for particular publisher"
+  },
+  "includeInAuto": {
+    "message": "አውቶ-አስተዋጽኦ ያካቱ",
+    "description": "Label for checkbox that allows user to exclude publishers from auto contribute"
+  },
+  "donateNow": {
+    "message": "ምክሮች ይላኩ",
+    "description": "CTA for sending tip form site banner"
+  },
+  "enableTips": {
+    "message": "ምክሮችን ያብሩ",
+    "description": "The whole string is 'Enable tips on YouTube for like.'"
+  },
+  "for": {
+    "message": "ለ",
+    "description": "The whole string is 'Enable tips on YouTube for like.'"
+  },
+  "rewardsSummary": {
+    "message": "የሽልማት ማጠቃለያ",
+    "description": "Section title in wallet panel, which contains monthly rewards summary"
+  },
+  "monthApr": {
+    "message": "የካቲት",
+    "description": "Month"
+  },
+  "monthAug": {
+    "message": "ነሐሴ",
+    "description": "Month"
+  },
+  "monthDec": {
+    "message": "ታህሳስ",
+    "description": "Month"
+  },
+  "monthFeb": {
+    "message": "የካቲት",
+    "description": "Month"
+  },
+  "monthJan": {
+    "message": "ጥር",
+    "description": "Month"
+  },
+  "monthJul": {
+    "message": "ሀምሌ",
+    "description": "Month"
+  },
+  "monthJun": {
+    "message": "ሰኔ",
+    "description": "Month"
+  },
+  "monthMar": {
+    "message": "መጋቢት",
+    "description": "Month"
+  },
+  "monthMay": {
+    "message": "ግንቦት",
+    "description": "Month"
+  },
+  "monthNov": {
+    "message": "ሕዳር",
+    "description": "Month"
+  },
+  "monthOct": {
+    "message": "ጥቅምት",
+    "description": "Month"
+  },
+  "monthSep": {
+    "message": "መስከረም",
+    "description": "Month"
+  },
+  "tokenGrant": {
+    "message": "የቶክን ፍቃዶች",
+    "description": "Title for grant notification"
+  },
+  "tokenGrantClaimed": {
+    "message": "የቶክን ብድር ተጠይቋል",
+    "description": "Title for grant section in wallet summary"
+  },
+  "earningsAds": {
+    "message": "ከማስታወቅያ ማትረፍ",
+    "description": "Title for ads section in wallet summary"
+  },
+  "rewardsContribute": {
+    "message": "አውቶ-አስተዋፅኦ",
+    "description": "Title for auto contribute section in wallet summary"
+  },
+  "oneTimeDonation": {
+    "message": "የአንድ ግዜ ምክሮች",
+    "description": "Title for one time tips section in wallet summary"
+  },
+  "expiresOn": {
+    "message": "ቀኑ የሚያልፈው",
+    "description": "Used for grant representation. Whole string is '30.0 BAT expires on 08/05/2022'"
+  },
+  "recurringDonations": {
+    "message": "ወርሀዊ ምክሮች",
+    "description": "Title for monthly tips section in wallet summary"
+  },
+  "off": {
+    "message": "ጠፍቷል",
+    "description": "Label used in toggle indicating that toggle is off"
+  },
+  "ok": {
+    "message": "እሺ",
+    "description": "Used in notification to dismiss notification"
+  },
+  "braveAdsLaunchMsg": {
+    "message": "አሁን ማስታወቂያዎችን በማየት ገቢ ማግኘት ይችላሉ።",
+    "description": "Message for ads launch notification"
+  },
+  "braveAdsLaunchTitle": {
+    "message": "የBrave ማስታወቂያዎች ደርሰዋል!",
+    "description": "Message used in notification to let users know Ads is available"
+  },
+  "braveAdsTitle": {
+    "message": "የብሬቭ ማስታቂያዎች",
+    "description": "Notification title when we display info about ads"
+  },
+  "braveContributeTitle": {
+    "message": "የራስ-አስተዋፅዎ",
+    "description": "Notification title when we display info about auto contribution"
+  },
+  "contributeNotificationSuccess": {
+    "message": "አዋጥተዋል $amount$ BAT",
+    "description": "We show this string in the notification when contribution is successful",
+    "placeholders": {
+      "amount": {
+        "content": "$1",
+        "example": "10.0"
+      }
+    }
+  },
+  "grantNotification": {
+    "message": " እርሶን የሚጠብቅ ስጦታ አሎት",
+    "description": "Description for new grant notification"
+  },
+  "backupNow": {
+    "message": "አሁን ምትክ አዘጋጅ",
+    "description": "Notification button text when we ask user to backup wallet"
+  },
+  "backupWalletTitle": {
+    "message": "የምትኬ ዋሌት",
+    "description": "Notification title when we ask user to backup wallet"
+  },
+  "backupWalletNotification": {
+    "message": "እባክዎትን ለBrave walletዎ ምትኬ ያድርጉ።",
+    "description": "Description for backup wallet notification"
+  },
+  "insufficientFundsNotification": {
+    "message": "የእርስዎ Brave Rewards መለያ ተቀማጭ ገንዘብ በመጠባበቅ ላይ ነው።",
+    "description": "Description for new insufficient funds notification"
+  },
+  "insufficientFunds": {
+    "message": "በቂ ያልሆነ ተቀማጭ",
+    "description": "Title for insufficient funds notification"
+  },
+  "braveRewardsCreatingText": {
+    "message": "ቋት መፍጠር ",
+    "description": "Used in a button displaying wallet creation process"
+  },
+  "contributeNotificationError": {
+    "message": "የእርስዎን አስተዋፅኦ በማካሄድ ላይ ችግር ነበር\n",
+    "description": "We show this string in notification when contribution fails"
+  },
+  "contributeNotificationNotEnoughFunds": {
+    "message": "\nበቂ ገንዘብ ባለመኖሩ ምክንያት የእርስዎ መርሃ ግብር ለራስ-አስተዋፅዖ እና ለወርሃዊ ምክሮች ወርሃዊ ክፍያዎ መጠናቀቅ አልቻለም. በ 30 ቀኖች ውስጥ እንደገና እንሞክራለን::",
+    "description": "We show this string in the notification when you don't have enough funds for contribution"
+  },
+  "contributeNotificationTipError": {
+    "message": "ጉርሻዎን መላክ አልተቻለም፤ እባክዎ ቆየት ብለው ይሞክሩ።",
+    "description": "We show this string in notification when tip fails"
+  },
+  "noActivity": {
+    "message": "እስከ አሁን ምንም አይነት እንቅስቃሴ የለም",
+    "description": "Allows the user to see that there have been no transactions or other activity in their wallet"
+  },
+  "captchaDrag": {
+    "message": "የ BAT ምልክቱን ወደ ፋይሉ ይጎትቱ",
+    "description": "Directs the user to drag the BAT icon"
+  },
+  "captchaProveHuman": {
+    "message": "ሰው መሆንዎን ያረጋግጡ",
+    "description": "Cosmetic text for captcha prompt"
+  },
+  "captchaTarget": {
+    "message": "ኢላማ።",
+    "description": "Captcha Target"
+  },
+  "captchaMissedTarget": {
+    "message": "ህምም....እንዲህ አይደለም። እንደገና ይሞክሩ።",
+    "description": "Message upon failing captcha"
+  },
+  "claim": {
+    "message": "አቤቱታ ",
+    "description": "Claim text"
+  },
+  "newTokenGrant": {
+    "message": "ነፃ የቶክን ብድር",
+    "description": "Token grant label"
+  },
+  "grantExpire": {
+    "message": "ድጋፉ የሚያበቃበት ቀን",
+    "description": "Grant expiry label"
+  },
+  "grantAlreadyClaimedText": {
+    "message": "ይቅርታ፣ ይህ ግራንት በሌለ ሰው ቀድሞ የተያዘ ይመስላል",
+    "description": "Description of the error when grant is already claimed."
+  },
+  "grantGeneralErrorButton": {
+    "message": "እሺ",
+    "description": "Button text for clearing the error."
+  },
+  "grantGeneralErrorText": {
+    "message": "የብሬቭ ሽልማት ችግር አለው፤ እባክዎ እንደገና ይሞክሩ፡፡ ",
+    "description": "Error text when user is having problems claiming a grant."
+  },
+  "grantGeneralErrorTitle": {
+    "message": "ውይ; የሆነ ችግር አለ፤ እባክዎ እንደገና ይሞክሩ::",
+    "description": "Error title when user is having problems claiming a grant."
+  },
+  "grantGoneButton": {
+    "message": "እሺ",
+    "description": "Button text for clearing the error."
+  },
+  "grantGoneText": {
+    "message": "ይቅርታ ይህ ስጦታ ጊዜው አልፎበታል::",
+    "description": "Error text when user missed a grant."
+  },
+  "grantGoneTitle": {
+    "message": "ይህ ስጦታ ከአሁን በኋላ አይገኝም",
+    "description": "Error title when user missed a grant."
+  },
+  "unVerifiedCheck": {
+    "message": "ኩነትን አድስ",
+    "description": "Text of link that allows to check verified status of unverified publisher"
+  },
+  "unVerifiedPublisher": {
+    "message": "ገና አልተረጋገጠም",
+    "description": "Status of the publisher shown in the panel"
+  },
+  "unVerifiedText": {
+    "message": "ይህ ፈጣር ከ Brave ተጠቃሚዎች መዋጮዎችን ለመቀበል ገና አልተመዘገበም። እስከሚያረጋግጥ ድረስ ምንም አይነት መወጮ በእርሶ ዋሌት ውስጥ ይቆያል።",
+    "description": "Notice about unverified publisher."
+  },
+  "unVerifiedTextMore": {
+    "message": "ተጨማሪ ይማሩ",
+    "description": "Text for the link that explains more about reserved amount"
+  },
+  "reservedAmountText": {
+    "message": "{{reservedAmount}} BAT የሚያክል መጠንን መዋጮ ለመቀበል ላልተዘጋጀው ሰው አስቀምጠዋል። አሳሽዎ እነርሱ እስከሚያረጋግጡ ድረስ ለማዋጣት ይሞክራል ወይም 90 ቀናት እስከሚያልፍ ድረስ።",
+    "description": "Notification about how much BAT do you have reserved"
+  },
+  "reservedMoreLink": {
+    "message": "ተጨማሪ ይማሩ",
+    "description": "Text for the link that explains more about reserved amount"
+  },
+  "disabledPanelOff": {
+    "message": "አጥፋ",
+    "description": "Off state text for Panel's disabled state"
+  },
+  "disabledPanelSettings": {
+    "message": "ቅንብሮች።",
+    "description": "Settings Link for Panel's disabled state"
+  },
+  "disabledPanelText": {
+    "message": "በዚህ ሰአት ላይ ምንም አይነት የማሰስ ሽልማት ጥቅሞችን እያከማቹ ኤይደለም። ሽልማቶችን በ ማብራት ይችላሉ",
+    "description": "Text for Panel's disabled state"
+  },
+  "disabledPanelTitle": {
+    "message": "የ Brave ሽልማት ማለት",
+    "description": "Title for Panel's disabled state"
+  },
+  "walletFailedTitle": {
+    "message": "ቋት የመፍጠር ሂደቱ አልተሳካም",
+    "description": "Failure title for wallet creation"
+  },
+  "walletFailedButton": {
+    "message": "እንደገና ሞክር",
+    "description": "Button for re-try after wallet creation failed"
+  },
+  "addFunds": {
+    "message": "ድጎማ ያድርጉ",
+    "description": "Button for adding funds"
+  },
+  "rewardsSettings": {
+    "message": "የሽልማት ቅንብሮች",
+    "description": "Button for opening settings page"
+  },
+  "earningsClaimDefault": {
+    "message": "ከማስታወቂያ የሚሰጡዎት ሽልማቶች እዚህ ናቸው!",
+    "description": "Panel notification text for Ads grant"
+  },
+  "and": {
+    "message": "እና",
+    "description": "The word 'and'"
+  },
+  "braveRewardsSubTitle": {
+    "message": "ብሮዝ ስላደረጉ ይሸለሙ!",
+    "description": "Subtitle for wallet disabled panel"
+  },
+  "disabledPanelTextTwo": {
+    "message": "ግላዊነት የሚያከብሩ ማስታወቂያዎችን በመመልከት ገቢ ያግኙ እንዲሁም እርስዎ የሚወዱዋቸውን የይዘት ፈጣሪዎች ለመደገፍ ወደፊት ይክፈሉ።",
+    "description": "Text block for wallet disabled panel"
+  },
+  "enableRewards": {
+    "message": "የብሬቭ ሽልማት ያብሩ",
+    "description": "Subtitle for wallet disabled panel"
+  },
+  "privacyPolicy": {
+    "message": "የግለኝነት መጠበቂያ ህግ",
+    "description": "Privacy Policy"
+  },
+  "serviceText": {
+    "message": " 'Enable Brave Rewards'ን ጠቅ በማድረግ፤ ማንበብዎን እና መስማማትዎን ያመለክታሉ በ ላይ",
+    "description": "Terms of service main text"
+  },
+  "termsOfService": {
+    "message": "የአገልግሎት ውል",
+    "description": "Terms of Service"
+  },
+  "welcomeBack": {
+    "message": "እንኳን በደህና ተመለሱ",
+    "description": "Title message for wallet disabled panel"
+  },
+  "tipsProcessedNotification": {
+    "message": "የእርስዎ ወርሃዊ ጠቃሚ ምክሮች ተካሂደዋል!",
+    "description": "Message for monthly tips processed notification"
+  },
+  "contributionTips": {
+    "message": "አስተዋጽዖዎች እና ጠቃሚ ምክሮች",
+    "description": "Title for monthly tips processed notification"
+  },
+  "serviceTextPanelWelcome": {
+    "message": "'ሽልማቶችን ተቀላቀል' የሚለውን ጠቅ በማድረግ ማንበብዎን እና መስማማትዎን ይገልፃሉ ለ",
+    "description": "Terms of service panel opt-in text"
+  },
+  "bat": {
+    "message": "BAT",
+    "description": "BAT text for displaying converted tip amount."
+  },
+  "turnOnAds": {
+    "message": "ማስታወቂያዎችን ያብሩ ",
+    "description": "Prompt to turn on Ads via notification"
+  },
+  "adsEarnings": {
+    "message": "ከማስታወቂያዎች የተገኘ",
+    "description": "Description text for ad grants in grant details"
+  },
+  "twitterTipsHoverText": {
+    "message": "ለዚህ ትዊት ጠቃሚ ምክር ይለግሱ",
+    "description": "Hover text for Twitter tips action"
+  },
+  "twitterTipsIconLabel": {
+    "message": "ምክር",
+    "description": "Icon label for Twitter tips"
+  },
+  "redditTipsHoverText": {
+    "message": "ለዚህ ፖስት ፍንጭ ስጥ",
+    "description": "Hover text for Reddit tips action"
+  },
+  "redditTipsIconLabel": {
+    "message": "ምክር",
+    "description": "Icon label for Reddit tips"
+  },
+  "githubTipsHoverText": {
+    "message": "ጠቃሚ ምክር ይላኩ",
+    "description": "Hover text for GitHub tips action"
+  },
+  "githubTipsIconLabel": {
+    "message": "ምክር",
+    "description": "Icon label for GitHub tips"
+  },
+  "verifiedPublisherNotification": {
+    "message": "ፈጣሪ $name$ በቅርቡ ተረጋግጧል ",
+    "description": "Notification text that tells user which publisher just verified",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "brave.com"
+      }
+    }
+  },
+  "pendingNotEnoughFundsNotification": {
+    "message": "ያለዎት ገንዘብ አነስተኛ በመሆኑ ምክንያት በሒደት ላይ ያሉ ፍንጮች አሉዎት ",
+    "description": "Notification text that tells user his wallet is under funded for pending contribution to complete"
+  },
+  "pendingContributionTitle": {
+    "message": "በሒደት ላይ ያለ መዋጮ",
+    "description": "Notification title for pending contribution type"
+  },
+  "grantFinishTitleUGP": {
+    "message": "ይህ እድለኛ የሚሆኑበት ቀን ነው!",
+    "description": "Cosmetic text upon captcha success"
+  },
+  "grantFinishTextUGP": {
+    "message": "የቶክን ግራንትዎ በመንገድ ላይ ነው።",
+    "description": "Cosmetic text indicating grant funds are on the way"
+  },
+  "grantFinishTokenTitleUGP": {
+    "message": "ነፃ የቶክን ብድር",
+    "description": "Token title on success screen"
+  },
+  "grantFinishTitleAds": {
+    "message": "የ Brave ማስታወቂያ ሽልማቶች!",
+    "description": "Cosmetic text upon captcha success for ads"
+  },
+  "grantFinishTextAds": {
+    "message": "ከ Brave ማስታወቂያዎች የተላከልዎ ሽልማት እየመጣ ነው።",
+    "description": "Cosmetic text indicating ads funds are on the way"
+  },
+  "grantFinishTokenTitleAds": {
+    "message": "የ Brave ማስታወቂያዎ የተለዋጭ ስም ግራንት ",
+    "description": "Token title on success screen for ads"
+  },
+  "rewardsPanelTextVerify":  {
+    "message": "ትክክለኛነቱን አጣራ",
+    "description": "CTA in the footer to verify"
+  },
+  "walletButtonDisconnected":  {
+    "message": "ግንኙነቱ ተቋርጧል",
+    "description": "CTA status button"
+  },
+  "walletButtonUnverified":  {
+    "message": "ዋሌትን አረጋግጥ",
+    "description": "CTA to verify wallet in the wallet "
+  },
+  "walletButtonVerified":  {
+    "message": "የኪስ ቦርሳዎት ተረጋግጧል",
+    "description": "Displayed in wallet that tells users that he is verified"
+  },
+  "walletGoToUphold":  {
+    "message": "ወደ የኔ አፕሆልድ መለያ ሂድ ",
+    "description": "CTA to open uphold account"
+  },
+  "walletDisconnect":  {
+    "message": "ከ Brave ሽልማቶች ግንኙነትዎን ያቋርጡ",
+    "description": "CTA to disconnect user wallet from rewards"
+  },
+  "walletVerified":  {
+    "message": "ተረጋግጧል",
+    "description": "Status button that tells user that he is verified"
+  },
+  "walletVerifiedNotification":  {
+    "message": "ዋሌትዎ ተረጋግጧል!",
+    "description": "Title for notification when wallet becomes verified"
+  },
+  "walletVerifiedTextNotification":  {
+    "message": "እንኳን ደስ አለዎት! የእርስዎ $name$ዋሌት ትክክለኛነቱ የተረጋገጠ በመሆኑ ገንዘብ ለማስገባትና ለማስወጣት ዝግጁ ነው።",
+    "description": "Title for notification when wallet becomes verified",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Uphold"
+      }
+    }
+  },
+  "walletDisconnectedNotification":  {
+    "message": "ኦው። ዋሌትዎ ሊደርስበት አይችልም።",
+    "description": "Title for notification when wallet is disconnected."
+  },
+  "walletDisconnectedTextNotification":  {
+    "message": "ምንም አይደለም፡፡ ይህ ለተለያዩ የደህንንነት ምክንያቶች ሊከሰት ይችላል፡፡ የኪስ ቦርሳዎን እንደገና ማገናኘት ይህንን ችግር ይፈታዋል፡፡",
+    "description": "Title for notification when wallet is disconnected"
+  },
+  "connectedText":  {
+    "message": "ይህ የ Brave የተረጋገጠ ፈጣሪ እስካሁን መለያውን ባለማዋቀሩ ምክንያት ከ Brave ተጠቃሚዎች መዋጮ ለመቀበል አይችልም። እነርሱ መለያቸውን እስከሚያረጋግጡ ድረስ ወይም 90 ቀን እስከሚያልፍ ድረስ ማሰሻዎ መዋጮ ለማድረግ መሞከሩን ይቀጥላል።",
+    "description": "Text shown for connected publishers that are not fully verified in the panel"
+  },
+  "walletGoToVerifyPage":  {
+    "message": "የኪስ ቦርሳ ማረጋገጥ ተጠናቋል",
+    "description": "CTA for completing wallet verification"
+  },
+  "set": {
+    "message": "አዘጋጅ...",
+    "description": "Button text for setting monthly contribution"
+  }
+}

@@ -1,0 +1,190 @@
+{
+  "appName": {
+    "message": "Razširitev Brave",
+    "description": "The name of the the extension."
+  },
+  "shields": {
+    "message": "Ščiti",
+    "description": "The Shields feature name"
+  },
+  "up": {
+    "message": "gor",
+    "description": "Message for when shields is enabled"
+  },
+  "down": {
+    "message": "dol",
+    "description": "Message for when shields is disabled"
+  },
+  "forThisSite": {
+    "message": "za to stran",
+    "description": "Partial string for the phrase `shields is up *for this site*`"
+  },
+  "enabledMessage": {
+    "message": "Če je napaka na strani, poskusite funkcijo Shields down.",
+    "description": "Message telling the user to disable shields if a site appears broken"
+  },
+  "disabledMessage": {
+    "message": "Na tej spletni strani brskate brez zaščite zasebnosti in varnosti.",
+    "description": "Message telling the user that shields are disabled"
+  },
+  "itemsBlocked": {
+    "message": "Predmeti blokirani",
+    "description": "Message for the main blocked resources text when there is more than one ad/track/script blocked (plural)"
+  },
+  "itemBlocked": {
+    "message": "Predmet blokiran",
+    "description": "Message for the main blocked resources text when there is one ad/track/script blocked (singular)"
+  },
+  "and": {
+    "message": "in",
+    "description": "Message for the `and` conjunction. Used to connect grammatically the `item blocked and connection upgrades` and its variant phrases"
+  },
+  "connectionsUpgraded": {
+    "message": "povezave posodobljene",
+    "description": "Message for the main blocked resources text when there is at least one ad/track/script blocked and more than one connection upgrade (plural)"
+  },
+  "connectionUpgraded": {
+    "message": "povezava posodobljena",
+    "description": "Message for the main blocked resources text when there is at least one ad/track/script blocked and one connection upgrade (singular)"
+  },
+  "thirdPartyTrackersBlocked": {
+    "message": "Sledilci med mesti so blokirani",
+    "description": "Message for the scripts blocked row label"
+  },
+  "connectionsUpgradedHTTPS": {
+    "message": "Povezave posodobljene na HTTPS",
+    "description": "Message for the connections upgraded row label and for the main blocked resources text when there is more than one connection upgraded (plural) and no other ads/trackers blocked"
+  },
+  "connectionUpgradedHTTPS": {
+    "message": "Povezava posodobljena na HTTPS",
+    "description": "Message for the main blocked resources text when there is one connection upgraded (singular) and no other ads/trackers blocked"
+  },
+  "scriptsBlocked": {
+    "message": "Blokirane skripte",
+    "description": "Message for the scripts blocked row label"
+  },
+  "thirdPartyCookiesBlocked": {
+    "message": "Piškotki med mesti so blokirani",
+    "description": "Message for the option in the cookies select field to block all 3rd party cookies"
+  },
+  "allCookiesBlocked": {
+    "message": "Piškotki blokirani",
+    "description": "Message for the option in the cookies select field to block all cookies"
+  },
+  "allCookiesAllowed": {
+    "message": "Dovoljeni vsi piškotki",
+    "description": "Message for the option in the cookies select field to allow all cookies"
+  },
+  "thirdPartyFingerprintingBlocked": {
+    "message": "Prepoznavanje naprave med mesti blokirano",
+    "description": "Message for the option in the device recognition select field to block all 3rd party recognition attempts"
+  },
+  "allFingerprintingBlocked": {
+    "message": "Poskusi za prepoznavanje naprave blokirani",
+    "description": "Message for the option in the device recognition select field to block all device recognition attempts"
+  },
+  "allFingerprintingAllowed": {
+    "message": "Dovoljeni so vsi poskusi prepoznavanja naprav",
+    "description": "Message for the option in the device recognition select field to allow all device recognition attempts"
+  },
+  "deviceRecognitionAttempts": {
+    "message": "Poskusi za prepoznavanje naprave",
+    "description": "Message for the device recognition attempts blocked panel"
+  },
+  "scriptsOnThisSite": {
+    "message": "Skripte na tej strani",
+    "description": "Message for the script resources blocked panel"
+  },
+  "blockedScripts": {
+    "message": "Blokirane skripte",
+    "description": "Message for the script resources blocked"
+  },
+  "allowedScripts": {
+    "message": "Dovoljene skripte",
+    "description": "Message for the script resources allowed"
+  },
+  "blockAll": {
+    "message": "Blokiraj vse",
+    "description": "Message for the resources blocked *block all* option"
+  },
+  "allowAll": {
+    "message": "Dovoli vse",
+    "description": "Message for the resources blocked *allow all* option"
+  },
+  "block": {
+    "message": "Blokiraj",
+    "description": "Message for the resources blocked *block* option"
+  },
+  "allow": {
+    "message": "Dovoli",
+    "description": "Message for the resources blocked *allow* option"
+  },
+  "blockedOnce": {
+    "message": "Blokirano enkrat",
+    "description": "Message for the resources blocked *blocked once* option"
+  },
+  "allowedOnce": {
+    "message": "Dovoljeno enkrat",
+    "description": "Message for the resources blocked *allowed once* option"
+  },
+  "allowScriptsOnce": {
+    "message": "Dovoli skripto enkrat",
+    "description": "Message for the shortcut in the main interface to allow all scripts once"
+  },
+  "cancel": {
+    "message": "Prekliči",
+    "description": "Message for the button inside the static list of resources blocked to cancel the operation"
+  },
+  "goBack": {
+    "message": "Nazaj",
+    "description": "Message for the button inside the static list of resources blocked to go back from the current screen"
+  },
+  "applyOnce": {
+    "message": "Uporabi enkrat",
+    "description": "Message for action in dynamic list of resources blocked to *apply once*"
+  },
+  "changeDefaults": {
+    "message": "Spremeni globalne privzete nastavitve ščita",
+    "description": "Message for the button action linking to the settings page"
+  },
+  "addBlockElement": {
+    "message": "Blokiraj element prek izbirnika",
+    "description": "Message for context menu that adds a filter for the cosmetic filtering"
+  },
+  "resetSiteFilterSettings": {
+    "message": "Počisti pravila CSS za to spletno mesto",
+    "description": "Message for context menu that resets the site filters for cosmetic filtering"
+  },
+  "resetAllFilterSettings": {
+    "message": "Počisti pravila CSS za vsa spletna mesta",
+    "description": "Message for context menu that resets all cosmetic filters"
+  },
+  "advancedView": {
+    "message": "Napredni pogled",
+    "description": "Message for the advanced view option"
+  },
+  "simpleView": {
+    "message": "Preprost pogled",
+    "description": "Message for the simple view option"
+  },
+  "shieldsExplanation": {
+    "message": "Spletna mesta pogosto vključujejo piškotke in skripte, ki poskušajo prepoznati vas in vašo napravo (pogosto vdelani v oglase). Želijo ugotoviti, kdo ste in vas spremljati po spletu - spremljati, kaj počnete na vsakem spletnem mestu. Brave blokira te stvari, tako da lahko brskate, ne da bi vas spremljali naokoli.",
+    "description": "Message in read-only view explaining what Brave Shields do"
+  },
+  "blockedResoucesExplanation": {
+    "message": "Sledilniki med mesti in druge grozljive stvari so blokirani",
+    "description": "Message for the main trackers count in Shields simple view"
+  },
+  "webCompatWarning": {
+    "message": "Spreminjanje nastavitev Shield v tem pogledu lahko vpliva na združljivost spletnih strani na tem spletnem mestu.",
+    "description": "Message for web compat warning when switching from simple to advanced view"
+  },
+  "gotIt": {
+    "message": "Razumem",
+    "description": "Message for the button that confirms the advanced view"
+  },
+  "learnMore": {
+    "message": "Več o tem",
+    "description": "Message inviting the user to learn more about Shields"
+  }
+}
