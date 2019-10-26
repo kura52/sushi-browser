@@ -323,7 +323,7 @@ export default (port, serverKey) => {
 
         if(!createProperties.id) createProperties.id = shortId()
         if(createProperties.onclick){
-          onClicked.addListener(createProperties.onclick)
+          chrome.contextMenus.onClicked.addListener(createProperties.onclick)
           onClickEvents[createProperties.id] = createProperties.onclick
           delete createProperties.onclick
         }
@@ -336,8 +336,8 @@ export default (port, serverKey) => {
       chrome.contextMenus.update = (id, updateProperties, callback) => {
         chrome.contextMenus._update(id, updateProperties, callback)
         if(updateProperties.onclick){
-          if(onClickEvents[id]) onClicked.removeListener(onClickEvents[id])
-          onClicked.addListener(updateProperties.onclick)
+          if(onClickEvents[id]) chrome.contextMenus.onClicked.removeListener(onClickEvents[id])
+          chrome.contextMenus.onClicked.addListener(updateProperties.onclick)
           onClickEvents[id] = updateProperties.onclick
           delete updateProperties.onclick
         }

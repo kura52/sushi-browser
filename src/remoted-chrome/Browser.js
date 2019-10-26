@@ -177,6 +177,7 @@ Or, please use the Chromium bundled version.`
     })
 
 
+
     this.tabMoving = 0
     this.prevSyncTabPositionTime = Date.now()
     this.listeners = {}
@@ -506,21 +507,31 @@ Or, please use the Chromium bundled version.`
   static async modifyBackgroundPage(bgPage){
     console.log(222144)
     await bgPage.evaluateOnNewDocument(backgroundPageModify, this.port, this.serverKey)
+    await new Promise(r=>setTimeout(r,300))
     await bgPage.reload()
+    await new Promise(r=>setTimeout(r,300))
   }
 
   static async backGroundPageObserve(){
+    const promises = []
+
     for(const target of this._browser.targets()){
       if(target.type() != 'background_page') continue
 
       const bgPage = await target.page()
       if(this.cachedBgTarget.has(target._targetId)) continue
 
-      await this.modifyBackgroundPage(bgPage)
-      this.cachedBgTarget.add(target._targetId)
-      this.cachedBgTargetUrl.set(target.url().split("/")[2], bgPage)
+      const p = new Promise(async r=>{
+        await this.modifyBackgroundPage(bgPage)
+        this.cachedBgTarget.add(target._targetId)
+        this.cachedBgTargetUrl.set(target.url().split("/")[2], bgPage)
+        r()
+      })
+      promises.push(p)
     }
-    setTimeout(()=>this.backGroundPageObserve(),5000)
+
+    await Promise.all(promises)
+    setTimeout(()=>this.backGroundPageObserve(), 5000)
   }
 
   static onResize(){
@@ -1103,7 +1114,9 @@ Or, please use the Chromium bundled version.`
       })
     })
 
-    result.push(...Object.values(BraveExtensionsManifest))
+    if(Browser.CUSTOM_CHROMIUM && BrowserPanel.BROWSER_NAME == 'Brave'){
+      result.push(...Object.values(BraveExtensionsManifest))
+    }
 
     return result.map(e => this._getExtensionInfo(e))
   }
@@ -1326,6 +1339,7 @@ Or, please use the Chromium bundled version.`
         const key = Math.random().toString()
         this.tabMoveStart = key
         await this.bg.evaluate((tabIds, windowId) => {
+          console.log('syncTabPosition, handleTabSelect', tabIds)
           return new Promise(resolve => chrome.tabs.move(tabIds,{index: 0, windowId}, () => resolve()))
         },myTabIds, panel.windowId)
         // console.log(9999992,Date.now())

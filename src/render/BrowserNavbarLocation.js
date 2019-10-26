@@ -90,6 +90,7 @@ export default class BrowserNavbarLocation extends Component {
     this.outerClick = ::this.outerClick
     this.onFocus = ::this.onFocus
     this.onBlur = ::this.onBlur
+    this.getValue = ::this.getValue
     this.isFloat = isFloatPanel(props.k)
   }
 
@@ -446,8 +447,23 @@ export default class BrowserNavbarLocation extends Component {
   }
 
   getValue(){
-    return document.activeElement == this.input ? this.input.value :
-    convertURL(this.props.page.location)
+    const convertUrl = convertURL(this.props.page.location)
+    // console.log(520,{
+    //   prevLocation: this.prevLocation, convertUrl,
+    //   prevInputValue:this.prevInputValue, inputValue: this.input && this.input.value,
+    //   prevLocValue: this.prevLocValue,
+    //   value: document.activeElement == this.input ? this.input.value : convertUrl
+    // })
+    if(this.prevLocation == convertUrl && this.prevInputValue == (this.input && this.input.value)){
+      return this.prevLocValue
+    }
+    const value = document.activeElement == this.input ? this.input.value : convertUrl
+
+    this.prevLocation = convertUrl
+    this.prevInputValue = this.input && this.input.value
+    this.prevLocValue = value
+
+    return value
   }
 
   render() {

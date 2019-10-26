@@ -2497,7 +2497,7 @@ ipcMain.on('set-bound-browser-view', async (e, panelKey, tabKey, tabId, x, y, wi
     return
   }
 
-  console.trace('set-bound-browser-view1', panelKey, tabKey, tabId, x, y, width, height, zIndex, date)
+  console.log('set-bound-browser-view1', panelKey, tabKey, tabId, x, y, width, height, zIndex, date)
 
 
   const win = panel.browserWindow

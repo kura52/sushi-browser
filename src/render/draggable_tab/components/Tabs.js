@@ -964,6 +964,7 @@ class Tabs extends React.Component {
 
   handleWheel(e){
     const moveKey = e.deltaY * (reverseScrollTab ? -1 : 1) > 0 ? this._getNextTabKey(this.state.selectedTab) : this._getPrevTabKey(this.state.selectedTab)
+    console.log('e.deltaY,handleTabSelect ', e.deltaY ,moveKey && this.state.tabs.findIndex(tab=>tab.key == moveKey))
     if(moveKey){
       this.props.onTabSelect(e, moveKey, this.state.tabs,true);
     }

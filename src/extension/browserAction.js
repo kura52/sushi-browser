@@ -44,7 +44,7 @@ for(let [eventName,name] of [
 ]){
 
   ipcMain.on(eventName, (e, extensionId, details) => {
-    console.log(33,eventName, extensionId, details)
+    // console.log(33,eventName, extensionId, details)
     const tabId = details.tabId
     if(tabId){
       const cont = webContents.fromId(tabId)

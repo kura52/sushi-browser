@@ -3527,6 +3527,7 @@ export default class TabPanel extends Component {
 
     // this.webViewCreate()
     console.log("selected04",key)
+    this.selectedTime = Date.now()
     if(this.state.selectedTab != key){
       this.setState({selectedTab: key})
     }
@@ -3875,8 +3876,10 @@ export default class TabPanel extends Component {
   handleTabUpdated(tab,changeInfo){
     console.log(changeInfo)
     if(changeInfo.active && tab.key != this.state.selectedTab){
-      console.log("selected07",tab.key)
-      this.setState({selectedTab: tab.key}) //@TODO
+      if(Date.now() - this.selectedTime > 500){
+        console.log("selected07",tab.key, Date.now() - this.selectedTime)
+        this.setState({selectedTab: tab.key}) //@TODO
+      }
     }
     if(changeInfo.pinned != (void 0)){
       tab.pin = changeInfo.pinned
