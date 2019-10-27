@@ -163,7 +163,7 @@ class WinCtl{
   static conflictAboveWindow(winIds){
     const activeId = this.GetActiveWindow2().id
 
-    const lines = execSync(`xwininfo -root -tree | grep -E "^           0x"`).toString().split("\n", -1)
+    const lines = execSync(`xwininfo -root -tree | grep -E "^ +0x"`).toString().split("\n", -1)
 
     // console.log(7788999,winIds)
 
