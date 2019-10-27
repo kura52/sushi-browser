@@ -2638,14 +2638,19 @@ ipcMain.on('set-overlap-component', async (e, type, panelKey, tabKey, x, y, widt
       if(!url) return
 
       const panel = BrowserPanel.getBrowserPanel(panelKey)
-      panel.getBrowserView({tabKey}).webContents.focus()
+      const cont = panel.getBrowserView({tabKey}).webContents
+      cont.focus()
 
       const extId = url.split("/")[2]
       extUrlMapping[panelKey + tabKey] = extId
 
-      Browser.cachedBgTargetUrl.get(extId).evaluate(()=>{
-        chrome.browserAction.openPopup(win => window.__popup_window__ = win)
-      })
+      const page = Browser.cachedBgTargetUrl.get(extId)
+      if(page){
+        page.evaluate(()=>chrome.browserAction.openPopup(win => window.__popup_window__ = w))
+      }
+      else if(extId == 'jidkidbbcafjabdphckchenhfomhnfma'){
+        cont.hostWebContents2.send('new-tab', cont.id, 'chrome://rewards/')
+      }
       e.returnValue = Math.random().toString()
     }
     else{

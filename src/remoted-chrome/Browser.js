@@ -533,7 +533,7 @@ Or, please use the Chromium bundled version.`
       if(this.cachedBgTarget.has(target._targetId)) continue
 
       const p = new Promise(async r=>{
-        console.log(77788,target._targetId)
+        console.log(77788,target._targetId, target.url())
         await this.modifyBackgroundPage(bgPage)
         this.cachedBgTarget.add(target._targetId)
         this.cachedBgTargetUrl.set(target.url().split("/")[2], bgPage)
