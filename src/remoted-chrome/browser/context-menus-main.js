@@ -41,5 +41,6 @@ ipcFuncMain('contextMenus', 'remove', (e, extensionId, menuItemId) => {
 })
 
 ipcFuncMain('contextMenus', 'removeAll', (e, extensionId) => {
+  console.log('contextMenu', 'removeAll', extensionId)
   delete sharedState.extensionMenu[extensionId]
 })

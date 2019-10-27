@@ -123,11 +123,12 @@ export default {
     return (await this.bg()).evaluate((id, newDirectory, dropKey) => {
       return new Promise(async resolve => {
         if(dropKey){
+          if(dropKey == 'root') dropKey = '1'
           const results = await new Promise(resolve => chrome.bookmarks.get(dropKey, resolve))
           const result = results ? results[0] : null
           if(!result) return resolve(result)
-          console.log(id, {parentId: newDirectory, index: result.index})
-          chrome.bookmarks.move(id, {parentId: newDirectory, index: result.index}, resolve)
+          console.log(id, {parentId: newDirectory, index: newDirectory == dropKey ? 0 : result.index + 1})
+          chrome.bookmarks.move(id, {parentId: newDirectory, index: newDirectory == dropKey ? 0 : result.index + 1}, resolve)
         }
         else{
           console.log(id, {parentId: newDirectory})

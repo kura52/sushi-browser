@@ -3,21 +3,33 @@ export default (port, serverKey) => {
     const ipcRenderer = {
       port,
       serverKey,
+      socket: null,
+      open: false,
+      init() {
+        this.socket = new WebSocket(`ws://localhost:${this.port}/${this.serverKey}`)
+        this.socket.addEventListener('open', (event)=>{
+          this.open = true
+        })
+      },
+      socketSend(data) {
+        if(!this.open){
+          this.socket.addEventListener('open', (event)=>{
+            this.open = true
+            this.socket.send(data)
+          })
+        }
+        else{
+          this.socket.send(data)
+        }
+      },
       send(channel, ...args) {
-        const xhr = new XMLHttpRequest();
         const data = JSON.stringify({
           api: 'ipc',
           method: 'send',
           result: [channel, chrome.runtime.id, ...args]
         })
-        if(data.length < 1000){
-          xhr.open("GET", `http://localhost:${this.port}?key=${this.serverKey}&data=${encodeURIComponent(data)}`);
-          xhr.send();
-        }
-        else{
-          xhr.open("POST", `http://localhost:${this.port}?key=${this.serverKey}`)
-          xhr.send(data)
-        }
+        // console.log(7, 'socketSend')
+        this.socketSend(data)
       },
       on(eventName, listener) {
         window.ipcRenderer.events[eventName] = listener
@@ -29,6 +41,7 @@ export default (port, serverKey) => {
         }
       }
     }
+    ipcRenderer.init()
 
     if(!window.ipcRenderer){
       window.ipcRenderer = { events: {} }
@@ -327,7 +340,7 @@ export default (port, serverKey) => {
           onClickEvents[createProperties.id] = createProperties.onclick
           delete createProperties.onclick
         }
-      createProperties.count = ++count
+        createProperties.count = ++count
         console.log('chrome.contextMenus.create', createProperties, callback)
         ipcFuncRenderer('ContextMenus', 'create', callback, chrome.runtime.id, createProperties)
       }

@@ -189,6 +189,11 @@ Or, please use the Chromium bundled version.`
 
     mainState.versions.chrome = (await this._browser.version()).split("/")[1]
 
+    evem.on('ipc.send', (channel, tabId, ...args)=>{
+      // console.log(channel, tabId)
+      ipcMain.emit(channel, {sender: Number.isInteger(tabId) ? new webContents(tabId): new BackgroundPage(tabId)}, ...args)
+    })
+
     await this.initBgPage()
 
     this.initExtension()
@@ -351,11 +356,6 @@ Or, please use the Chromium bundled version.`
 
     this.addExtensionEvents()
 
-    evem.on('ipc.send', (channel, tabId, ...args)=>{
-      // console.log(channel, tabId)
-      ipcMain.emit(channel, {sender: Number.isInteger(tabId) ? new webContents(tabId): new BackgroundPage(tabId)}, ...args)
-    })
-
     if(isWin) this.winScollEventHandler()
 
     // setInterval(()=>{
@@ -504,12 +504,17 @@ Or, please use the Chromium bundled version.`
     },20)
   }
 
-  static async modifyBackgroundPage(bgPage){
+  static async modifyBackgroundPage(bgPage, isFast){
     console.log(222144)
-    await bgPage.evaluateOnNewDocument(backgroundPageModify, this.port, this.serverKey)
-    await new Promise(r=>setTimeout(r,300))
-    await bgPage.reload()
-    await new Promise(r=>setTimeout(r,300))
+    // if(Browser.CUSTOM_CHROMIUM){
+    //   await bgPage.evaluate((port, serverKey) => window._setPortAndKey_(port, serverKey), this.port, this.serverKey)
+    // }
+    // else{
+      await bgPage.evaluateOnNewDocument(backgroundPageModify, this.port, this.serverKey)
+      if(!isFast) await new Promise(r=>setTimeout(r,300))
+      await bgPage.evaluate(()=>location.reload())
+      await new Promise(r=>setTimeout(r,300))
+    // }
   }
 
   static async backGroundPageObserve(){
@@ -522,6 +527,7 @@ Or, please use the Chromium bundled version.`
       if(this.cachedBgTarget.has(target._targetId)) continue
 
       const p = new Promise(async r=>{
+        console.log(77788,target._targetId)
         await this.modifyBackgroundPage(bgPage)
         this.cachedBgTarget.add(target._targetId)
         this.cachedBgTargetUrl.set(target.url().split("/")[2], bgPage)
@@ -546,9 +552,8 @@ Or, please use the Chromium bundled version.`
               focused = window.id
               if(preFocused != window.id){
                 preFocused = focused
-                const xhr = new XMLHttpRequest()
-                xhr.open("GET", `http://localhost:${port}?key=${serverKey}&data=${encodeURIComponent(JSON.stringify({api, method: 'focusChanged', result: [focused]}))}`)
-                xhr.send()
+                // console.log(1, 'socketSend')
+                chrome.ipcRenderer.socketSend(JSON.stringify({api, method: 'focusChanged', result: [focused]}))
               }
             }
 
@@ -558,8 +563,8 @@ Or, please use the Chromium bundled version.`
                 && window.width != 0 && preWindow.width != 0){
                 console.log(port, serverKey, api,method,window)
                 // chrome.tabs.query({active:true,windowId: window.id}, tabs => {
-                const xhr = new XMLHttpRequest()
-                xhr.open("GET", `http://localhost:${port}?key=${serverKey}&data=${encodeURIComponent(JSON.stringify({api, method, result: [{
+                // console.log(2, 'socketSend')
+                chrome.ipcRenderer.socketSend(JSON.stringify({api, method, result: [{
                     id: window.id,
                     x: window.left - preWindow.left,
                     y: window.top - preWindow.top,
@@ -568,8 +573,7 @@ Or, please use the Chromium bundled version.`
                     // topMargin: window.height - tabs[0].height - 8,
                     // sideMargin: (window.width - tabs[0].width) / 2
                   }
-                  ]}))}`)
-                xhr.send()
+                  ]}))
                 // })
               }
             }
@@ -577,9 +581,8 @@ Or, please use the Chromium bundled version.`
           }
           if(!focused && preFocused != -1){
             preFocused = -1
-            const xhr = new XMLHttpRequest()
-            xhr.open("GET", `http://localhost:${port}?key=${serverKey}&data=${encodeURIComponent(JSON.stringify({api, method: 'focusChanged', result: [preFocused]}))}`)
-            xhr.send()
+            // console.log(3, 'socketSend')
+            chrome.ipcRenderer.socketSend(JSON.stringify({api, method: 'focusChanged', result: [preFocused]}))
 
           }
         })
@@ -621,7 +624,7 @@ Or, please use the Chromium bundled version.`
   static async initBgPage() {
     await new Promise(r => {
       emptyPort((err, ports) => {
-        this.serverKey = Math.random().toString()
+        this.serverKey = Math.random().toString().replace('.', '')
         this.port = ports[0]
         extensionServer(this.port, this.serverKey, d => evem.emit(`${d.api}.${d.method}`, ...d.result))
         r()
@@ -644,7 +647,7 @@ Or, please use the Chromium bundled version.`
 
     this.cachedBgTarget = new Set([bgTarget._targetId])
     this.cachedBgTargetUrl = new Map([[bgTarget.url().split("/")[2],this.bg]])
-    await this.modifyBackgroundPage(this.bg)
+    await this.modifyBackgroundPage(this.bg, true)
 
     const extensions = await this.getExtensionInfos()
     extensions.forEach(e => extInfos.setInfo(e))
@@ -764,16 +767,9 @@ Or, please use the Chromium bundled version.`
       chrome[api][method].addListener(async (...result) => {
         if(!validateFunc || validateFunc(...result)){
           if(modifyPromisedFunc)  result = await modifyPromisedFunc(...result)
-          const xhr = new XMLHttpRequest();
           const data = JSON.stringify({api, method, result})
-          if(data.length < 1000){
-            xhr.open("GET", `http://localhost:${port}?key=${serverKey}&data=${encodeURIComponent(data)}`);
-            xhr.send();
-          }
-          else{
-            xhr.open("POST", `http://localhost:${port}?key=${serverKey}`)
-            xhr.send(data)
-          }
+          // console.log(4, 'socketSend')
+          chrome.ipcRenderer.socketSend(data)
         }
       })
     }, api, method, this.serverKey, this.port, validateFunc && `return ${validateFunc.toString()}`, modifyPromisedFunc && `return ${modifyPromisedFunc.toString()}`)
@@ -785,23 +781,34 @@ Or, please use the Chromium bundled version.`
       window.ipcRenderer = {
         port,
         serverKey,
+        socket: null,
+        open: false,
         events: window.ipcRenderer ? window.ipcRenderer.events : {},
+        init() {
+          this.socket = new WebSocket(`ws://localhost:${this.port}/${this.serverKey}`)
+          this.socket.addEventListener('open', (event)=>{
+            this.open = true
+          })
+        },
+        socketSend(data) {
+          if(!this.open){
+            this.socket.addEventListener('open', (event)=>{
+              this.open = true
+              this.socket.send(data)
+            })
+          }
+          else{
+            this.socket.send(data)
+          }
+        },
         send(channel, ...args) {
-          const xhr = new XMLHttpRequest();
           const data = JSON.stringify({
             api: 'ipc',
             method: 'send',
             result: [channel, chrome.runtime.id, ...args]
           })
-
-          if(data.length < 1000) {
-            xhr.open("GET", `http://localhost:${this.port}?key=${this.serverKey}&data=${encodeURIComponent(data)}`)
-            xhr.send()
-          }
-          else{
-            xhr.open("POST", `http://localhost:${this.port}?key=${this.serverKey}`)
-            xhr.send(data)
-          }
+          // console.log(5, 'socketSend')
+          this.socketSend(data)
         },
         on(eventName, listener) {
           this.events[eventName] = listener
@@ -813,22 +820,19 @@ Or, please use the Chromium bundled version.`
           }
         },
       }
+      window.ipcRenderer.init()
+
       chrome.runtime.onMessage.addListener((message, sender) => {
         if (!message.ipcToBg) return false
-        const xhr = new XMLHttpRequest();
+        // console.log('message', message)
+
         const data = JSON.stringify({
           api: 'ipc',
           method: 'send',
           result: [message.channel, sender.tab.id, ...message.args]
         })
-        if(data.length < 1000){
-          xhr.open("GET", `http://localhost:${window.ipcRenderer.port}?key=${window.ipcRenderer.serverKey}&data=${encodeURIComponent(data)}`);
-          xhr.send()
-        }
-        else{
-          xhr.open("POST", `http://localhost:${window.ipcRenderer.port}?key=${window.ipcRenderer.serverKey}`);
-          xhr.send(data)
-        }
+        // console.log(6, 'socketSend')
+        window.ipcRenderer.socketSend(data)
       })
     }, this.serverKey, this.port)
   }
@@ -1060,7 +1064,7 @@ Or, please use the Chromium bundled version.`
         for(let cont of webContents.getAllWebContents()){
           if(!cont.isDestroyed() /*&& !cont.isBackgroundPage()*/ && (cont.hostWebContents2 || !cont.hostWebContents2)) {
             const url = cont.getURL()
-            if(cont.root || url.endsWith(`/favorite_sidebar.html`) ||url.endsWith(`/favorite_sidebar.html`)){
+            if(cont.root || url.endsWith(`/favorite_sidebar.html`) ||url.endsWith(`/favorite.html`)){
               cont.send('update-datas')
             }
           }
@@ -1074,8 +1078,12 @@ Or, please use the Chromium bundled version.`
     const {getPath1,getPath2,_} =　require('../chromeExtensionUtil')
 
     let extensionPath = getPath2(e.id) || getPath1(e.id)
+    if(!extensionPath) return false
+
     extensionPath = extensionPath.replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
     const manifestPath = path.join(extensionPath, 'manifest.json')
+
+    if(!fs.existsSync(manifestPath)) return false
     const manifestContents = hjson.parse(removeBom(fs.readFileSync(manifestPath).toString()))
     delete e.icons
     e = {...manifestContents, ...e}
@@ -1118,7 +1126,7 @@ Or, please use the Chromium bundled version.`
       result.push(...Object.values(BraveExtensionsManifest))
     }
 
-    return result.map(e => this._getExtensionInfo(e))
+    return result.map(e => this._getExtensionInfo(e)).filter(e => e)
   }
 
   static async getCookies(url){

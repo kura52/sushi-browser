@@ -2,6 +2,7 @@ import mime from 'mime'
 const fs = require('fs')
 const http = require('http')
 const LRUCache = require('lru-cache')
+const WebSocket = require('ws')
 
 function sendFile(req, res, filePath, fileSize) {
   const mimeType = mime.getType(filePath)
@@ -48,6 +49,8 @@ export default function createServer(port, key, listener){
     const _key = parsed.searchParams.get('key')
     if(key != _key || req.headers.host != `localhost:${port}`) return sendError(req, res, 403)
 
+    res.setHeader('Access-Control-Allow-Origin', '*')
+
     let data
     if(req.method == 'POST'){
       data = ''
@@ -84,5 +87,26 @@ export default function createServer(port, key, listener){
       })
     }
   })
+
+  const wss = new WebSocket.Server({ server , path: `/${key}`})
+
+  wss.on('connection', function connection(ws) {
+    ws.on('message', (data) => {
+      try{
+        // console.log(111666,data)
+        if(data){
+          let obj = cache.get(data)
+          if(!obj){
+            obj = JSON.parse(data)
+            cache.set(data, obj)
+          }
+          listener(obj)
+        }
+      }catch(e){
+        console.log(e)
+      }
+    })
+  })
+
   server.listen(port)
 }

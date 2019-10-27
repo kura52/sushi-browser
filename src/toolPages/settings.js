@@ -2476,7 +2476,17 @@ const isWin = navigator.userAgent.includes('Windows')
           <Checkbox checked={v.enabled} disabled={cannotDisable} toggle onChange={(e,data)=>this.changeCheck(id,data)}/>
         </td>
         <td key={`background${i}`} style={{fontSize: 20,textAlign: 'center'}}>
-          {v.enabled && v.background ? <a href="javascript:void(0)" onClick={_=> ipc.send('send-to-host', "load-url", `chrome-extension://${id}/${v.background}`, true)}>
+          {this.state.isCustomChromium && v.enabled && v.background ? <a href="javascript:void(0)" onClick={async _=> {
+            const items = await new Promise(r=>chrome.developerPrivate.getItemsInfo(true, false, r))
+            const item = items.find(x=>x.id == id)
+            const view = item.views.find(x=>x.generatedBackgroundPage || x.render_view_id == 3)
+            chrome.developerPrivate.openDevTools({
+              extensionId: id,
+              renderProcessId: view.render_process_id,
+              renderViewId: view.render_view_id,
+              incognito: view.incognito
+            })
+          }}>
             <i aria-hidden="true" class="bug icon"></i>
           </a> : null}
         </td>
