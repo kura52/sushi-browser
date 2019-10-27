@@ -418,11 +418,11 @@ index 2479523c888d..271db22d09bf 100644
 +
 +  if(content_security_policy_str.find("connect-src") == std::string::npos){
 +     base::ReplaceFirstSubstringAfterOffset(&content_security_policy_str, 0, "default-src",
-+     "default-src http://localhost:*");
++     "default-src http://localhost:* ws://localhost:*");
 +  }
 +  else{
 +     base::ReplaceFirstSubstringAfterOffset(&content_security_policy_str, 0, "connect-src",
-+    "connect-src http://localhost:*");
++    "connect-src http://localhost:* ws://localhost:*");
 +  }
 +
    if (!ContentSecurityPolicyIsLegal(content_security_policy_str)) {

@@ -2436,7 +2436,7 @@ const isWin = navigator.userAgent.includes('Windows')
   class ExtensionSetting extends React.Component {
     constructor(props) {
       super(props)
-      this.state = {extensions:extensionDefault.extensions}
+      this.state = {extensions:extensionDefault.extensions, isCustomChromium: extensionDefault.isCustomChromium}
     }
 
 

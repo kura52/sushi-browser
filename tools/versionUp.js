@@ -227,6 +227,10 @@ app = `sushi-browser-${NEXT_APP_VERSION}-win-x64-chromium.zip`
 console.log(`- [Windows Portable v${NEXT_APP_VERSION} with Chromium (${sizeMap[app]})](https://github.com/kura52/sushi-browser/releases/download/${NEXT_APP_VERSION}/${app})`)
 sizeAdd(htmls,app,sizeMap[app])
 
+app = `sushi-browser-${NEXT_APP_VERSION}-win-x64-brave.zip`
+console.log(`- [Windows Portable v${NEXT_APP_VERSION} with Brave (${sizeMap[app]})](https://github.com/kura52/sushi-browser/releases/download/${NEXT_APP_VERSION}/${app})`)
+sizeAdd(htmls,app,sizeMap[app])
+
 app = `sushi-browser-${NEXT_APP_VERSION}-win-x64.zip`
 console.log(`- [Windows Portable v${NEXT_APP_VERSION} (${sizeMap[app]})](https://github.com/kura52/sushi-browser/releases/download/${NEXT_APP_VERSION}/${app})`)
 sizeAdd(htmls,app,sizeMap[app])

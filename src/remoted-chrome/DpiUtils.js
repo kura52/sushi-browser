@@ -28,7 +28,6 @@ async function move(win,x,y,width,height){
   //   }, windowId, x,y,width,height)
   // }
   // else{
-  console.trace(x,y,width,height)
   if(width !== void 0){
     sizeMap.set(win, {width, height})
   }
