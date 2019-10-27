@@ -652,7 +652,7 @@ export default class BrowserPanel {
         }
       }
 
-      DpiUtils.moveJust(this.cpWin.nativeWindow, x, y, dim.right - dim.left, dim.bottom - dim.top)
+      DpiUtils.moveJust(this.cpWin.nativeWindow, x, y)
       // console.log({bx:bounds.x, by:bounds.y,x, y, w:dim.right - dim.left, h:dim.bottom - dim.top})
     }
     // this._updateWindow({

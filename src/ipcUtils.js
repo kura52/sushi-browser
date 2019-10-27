@@ -2538,6 +2538,7 @@ ipcMain.on('set-bound-browser-view', async (e, panelKey, tabKey, tabId, x, y, wi
         }
       }
     }
+    console.log('set-bound-browser-view2',bounds)
     panel.setBounds(bounds)
 
     if(zIndex > 0 && isWin){
@@ -2573,7 +2574,10 @@ ipcMain.on('set-position-browser-view', async (e, panelKey) => {
   })
 
   const winPos = win.getPosition()
-  // console.log(Date.now(),'set-position-browser-view', { x:  Math.round(pos.left + winPos[0]), y: Math.round(pos.top + winPos[1]) })
+  if(win.isMaximized()){
+    win.emit('maximize', 'restore')
+  }
+  console.log(Date.now(),'set-position-browser-view', { x:  Math.round(pos.left + winPos[0]), y: Math.round(pos.top + winPos[1]) })
   panel.setBounds({ x:  Math.round(pos.left + winPos[0]), y: Math.round(pos.top + winPos[1])})
 })
 

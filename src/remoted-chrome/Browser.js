@@ -511,9 +511,15 @@ Or, please use the Chromium bundled version.`
     // }
     // else{
       await bgPage.evaluateOnNewDocument(backgroundPageModify, this.port, this.serverKey)
-      if(!isFast) await new Promise(r=>setTimeout(r,300))
-      await bgPage.evaluate(()=>location.reload())
-      await new Promise(r=>setTimeout(r,300))
+      if(!isFast){
+        await new Promise(r=>setTimeout(r,300))
+        await bgPage.evaluate(()=>location.reload())
+        await new Promise(r=>setTimeout(r,300))
+      }
+      else{
+        await bgPage.reload()
+        await new Promise(r=>setTimeout(r,200))
+      }
     // }
   }
 

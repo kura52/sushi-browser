@@ -426,14 +426,15 @@ function create(args){
     bw.setResizable(true)
     if(isWin){
       if(bw._isVirtualMaximized){
+        console.log('restore1')
         bw.webContents.send('adjust-maxmize-size', true)
         bw.setBounds(bw._maximizedSize)
       }
       else{
+        console.log('restore2')
         bw.webContents.send('adjust-maxmize-size', false)
       }
     }
-    console.log('restore')
     ipcMain.emit('state-change-window', bw.id, 'restore')
   })
 

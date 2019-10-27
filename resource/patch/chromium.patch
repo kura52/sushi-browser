@@ -1,0 +1,680 @@
+diff --git a/chrome/browser/extensions/api/extension_action/extension_action_api.cc b/chrome/browser/extensions/api/extension_action/extension_action_api.cc
+index 28bdacc39e99..a2960459b21c 100644
+--- a/chrome/browser/extensions/api/extension_action/extension_action_api.cc
++++ b/chrome/browser/extensions/api/extension_action/extension_action_api.cc
+@@ -122,8 +122,8 @@ bool ExtensionActionAPI::ShowExtensionActionPopup(
+     return false;
+
+   // Don't support showing action popups in a popup window.
+-  if (!browser->SupportsWindowFeature(Browser::FEATURE_TOOLBAR))
+-    return false;
++  // if (!browser->SupportsWindowFeature(Browser::FEATURE_TOOLBAR))
++  //   return false;
+
+   ToolbarActionsBar* toolbar_actions_bar =
+       browser->window()->GetToolbarActionsBar();
+@@ -523,8 +523,11 @@ ExtensionFunction::ResponseAction BrowserActionOpenPopupFunction::Run() {
+   // Otherwise, try to open a popup in the active browser.
+   // TODO(justinlin): Remove toolbar check when http://crbug.com/308645 is
+   // fixed.
+-  if (!browser || !browser->window()->IsActive() ||
+-      !browser->window()->IsToolbarVisible() ||
++  if (
++    !browser
++    // || !browser->window()->IsActive()
++     ||
++      // !browser->window()->IsToolbarVisible() ||
+       !ExtensionActionAPI::Get(profile)->ShowExtensionActionPopup(
+           extension_.get(), browser, false)) {
+     return RespondNow(Error(kOpenPopupError));
+diff --git a/chrome/browser/extensions/api/tab_capture/tab_capture_api.cc b/chrome/browser/extensions/api/tab_capture/tab_capture_api.cc
+index 0fdb361b5a2c..057a0db60604 100644
+--- a/chrome/browser/extensions/api/tab_capture/tab_capture_api.cc
++++ b/chrome/browser/extensions/api/tab_capture/tab_capture_api.cc
+@@ -244,18 +244,6 @@ ExtensionFunction::ResponseAction TabCaptureCaptureFunction::Run() {
+
+   const std::string& extension_id = extension()->id();
+
+-  // Make sure either we have been granted permission to capture through an
+-  // extension icon click or our extension is whitelisted.
+-  if (!extension()->permissions_data()->HasAPIPermissionForTab(
+-          SessionTabHelper::IdForTab(target_contents).id(),
+-          APIPermission::kTabCaptureForTab) &&
+-      base::CommandLine::ForCurrentProcess()->GetSwitchValueASCII(
+-          switches::kWhitelistedExtensionID) != extension_id &&
+-      !SimpleFeature::IsIdInArray(extension_id, kMediaRouterExtensionIds,
+-                                  base::size(kMediaRouterExtensionIds))) {
+-    return RespondNow(Error(kGrantError));
+-  }
+-
+   if (!OptionsSpecifyAudioOrVideo(params->options))
+     return RespondNow(Error(kNoAudioOrVideo));
+
+diff --git a/chrome/browser/ui/browser.cc b/chrome/browser/ui/browser.cc
+index 17f2591ac638..d052b89dfef5 100644
+--- a/chrome/browser/ui/browser.cc
++++ b/chrome/browser/ui/browser.cc
+@@ -2611,8 +2611,8 @@ bool Browser::NormalBrowserSupportsWindowFeature(WindowFeature feature,
+     case FEATURE_INFOBAR:
+     case FEATURE_DOWNLOADSHELF:
+     case FEATURE_BOOKMARKBAR:
+-      return true;
+     case FEATURE_TABSTRIP:
++      return true;
+     case FEATURE_TOOLBAR:
+     case FEATURE_LOCATIONBAR:
+       return check_can_support || !fullscreen;
+diff --git a/chrome/browser/ui/browser_view_prefs.cc b/chrome/browser/ui/browser_view_prefs.cc
+index 95f077ae8ffd..0fa556219d1c 100644
+--- a/chrome/browser/ui/browser_view_prefs.cc
++++ b/chrome/browser/ui/browser_view_prefs.cc
+@@ -35,16 +35,16 @@ void RegisterBrowserViewLocalPrefs(PrefRegistrySimple* registry) {
+ void RegisterBrowserViewProfilePrefs(
+     user_prefs::PrefRegistrySyncable* registry) {
+ #if defined(OS_LINUX) && !defined(OS_CHROMEOS)
+-  bool custom_frame_pref_default = false;
+-#if defined(USE_X11)
+-  custom_frame_pref_default = ui::GetCustomFramePrefDefault();
+-#elif defined(USE_OZONE)
+-  custom_frame_pref_default = ui::OzonePlatform::GetInstance()
+-                                  ->GetPlatformProperties()
+-                                  .custom_frame_pref_default;
+-#endif
++//   bool custom_frame_pref_default = false;
++// #if defined(USE_X11)
++//   custom_frame_pref_default = ui::GetCustomFramePrefDefault();
++// #elif defined(USE_OZONE)
++//   custom_frame_pref_default = ui::OzonePlatform::GetInstance()
++//                                   ->GetPlatformProperties()
++//                                   .custom_frame_pref_default;
++// #endif
+   registry->RegisterBooleanPref(prefs::kUseCustomChromeFrame,
+-                                custom_frame_pref_default);
++                                true);
+ #endif  // OS_LINUX && !OS_CHROMEOS
+ }
+
+diff --git a/chrome/browser/ui/extensions/extension_message_bubble_factory.cc b/chrome/browser/ui/extensions/extension_message_bubble_factory.cc
+index f1a603dc6636..018a9cbf277c 100644
+--- a/chrome/browser/ui/extensions/extension_message_bubble_factory.cc
++++ b/chrome/browser/ui/extensions/extension_message_bubble_factory.cc
+@@ -71,17 +71,7 @@ bool EnableDevModeBubble() {
+   // bubble because it interferes with focus. This isn't a security concern
+   // because we'll instead show an (even scarier) infobar. See also
+   // AutomationInfoBarDelegate.
+-  base::CommandLine* command_line = base::CommandLine::ForCurrentProcess();
+-  if (command_line->HasSwitch(switches::kEnableAutomation))
+-    return false;
+-
+-#if defined(OS_WIN)
+-  if (chrome::GetChannel() >= version_info::Channel::BETA)
+-    return true;
+-#endif
+-
+-  return g_override_for_testing ==
+-         ExtensionMessageBubbleFactory::OVERRIDE_ENABLED;
++  return false;
+ }
+
+ }  // namespace
+diff --git a/chrome/browser/ui/toolbar/toolbar_actions_bar.cc b/chrome/browser/ui/toolbar/toolbar_actions_bar.cc
+index cd1329b4fcb1..44f1b182fa09 100644
+--- a/chrome/browser/ui/toolbar/toolbar_actions_bar.cc
++++ b/chrome/browser/ui/toolbar/toolbar_actions_bar.cc
+@@ -380,7 +380,9 @@ void ToolbarActionsBar::Update() {
+ bool ToolbarActionsBar::ShowToolbarActionPopup(const std::string& action_id,
+                                                bool grant_active_tab) {
+   // Don't override another popup, and only show in the active window.
+-  if (popup_owner() || !browser_->window()->IsActive())
++  if (popup_owner()
++  // || !browser_->window()->IsActive()
++  )
+     return false;
+
+   ToolbarActionViewController* action = GetActionForId(action_id);
+diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
+index 2f6dd0835aec..0fa89d81e46f 100644
+--- a/chrome/browser/ui/views/frame/browser_view.cc
++++ b/chrome/browser/ui/views/frame/browser_view.cc
+@@ -1057,11 +1057,16 @@ void BrowserView::OnExclusiveAccessUserInput() {
+ }
+
+ bool BrowserView::ShouldHideUIForFullscreen() const {
+-  // Immersive mode needs UI for the slide-down top panel.
+-  if (immersive_mode_controller_->IsEnabled())
+-    return false;
++  if(IsIncognito()){
++    // Immersive mode needs UI for the slide-down top panel.
++    if (immersive_mode_controller_->IsEnabled())
++      return false;
+
+-  return frame_->GetFrameView()->ShouldHideTopUIForFullscreen();
++    return frame_->GetFrameView()->ShouldHideTopUIForFullscreen();
++  }
++  else{
++    return true;
++  }
+ }
+
+ bool BrowserView::IsFullscreen() const {
+diff --git a/chrome/browser/ui/views/frame/browser_view_layout.cc b/chrome/browser/ui/views/frame/browser_view_layout.cc
+index 96822d7f87d5..72fa449d4e4c 100644
+--- a/chrome/browser/ui/views/frame/browser_view_layout.cc
++++ b/chrome/browser/ui/views/frame/browser_view_layout.cc
+@@ -175,7 +175,7 @@ gfx::Size BrowserViewLayout::GetMinimumSize(const views::View* host) const {
+   // privacy - specifically, the ability to browse in a very small window, even
+   // on large monitors (which is why a minimum height is not specified). This
+   // value is used for the main browser window only, not for popups.
+-  constexpr gfx::Size kMainBrowserContentsMinimumSize(500, 1);
++  constexpr gfx::Size kMainBrowserContentsMinimumSize(1, 1);
+
+   const bool has_tabstrip =
+       browser()->SupportsWindowFeature(Browser::FEATURE_TABSTRIP);
+@@ -402,14 +402,24 @@ int BrowserViewLayout::LayoutTabStripRegion(int top) {
+   }
+   // This retrieves the bounds for the tab strip based on whether or not we show
+   // anything to the left of it, like the incognito avatar.
+-  gfx::Rect tab_strip_region_bounds(
+-      delegate_->GetBoundsForTabStripRegionInBrowserView());
+
+-  tab_strip_region_view_->SetVisible(true);
+-  tab_strip_region_view_->SetBoundsRect(tab_strip_region_bounds);
++  if(browser_->profile()->IsIncognitoProfile()){
++    gfx::Rect tab_strip_region_bounds(
++        delegate_->GetBoundsForTabStripRegionInBrowserView());
+
+-  return tab_strip_region_bounds.bottom() -
+-         GetLayoutConstant(TABSTRIP_TOOLBAR_OVERLAP);
++    tab_strip_region_view_->SetVisible(true);
++    tab_strip_region_view_->SetBoundsRect(tab_strip_region_bounds);
++
++    return tab_strip_region_bounds.bottom() -
++          GetLayoutConstant(TABSTRIP_TOOLBAR_OVERLAP);
++  }
++  else{
++    tab_strip_region_view_->SetVisible(false);
++    tab_strip_region_view_->SetBounds(0, 0, 0, 0);
++
++    return 0 -
++          GetLayoutConstant(TABSTRIP_TOOLBAR_OVERLAP);
++  }
+ }
+
+ int BrowserViewLayout::LayoutWebUITabStrip(int top) {
+diff --git a/chrome/browser/ui/views/frame/glass_browser_frame_view.cc b/chrome/browser/ui/views/frame/glass_browser_frame_view.cc
+index bb5d8b68f25c..0d8ab2ab0ab0 100644
+--- a/chrome/browser/ui/views/frame/glass_browser_frame_view.cc
++++ b/chrome/browser/ui/views/frame/glass_browser_frame_view.cc
+@@ -471,22 +471,27 @@ int GlassBrowserFrameView::FrameTopBorderThicknessPx(bool restored) const {
+ }
+
+ int GlassBrowserFrameView::TopAreaHeight(bool restored) const {
+-  if (frame()->IsFullscreen() && !restored)
++  if(browser_view()->IsIncognito()){
++    if (frame()->IsFullscreen() && !restored)
++      return 0;
++
++    int top = FrameTopBorderThickness(restored);
++    if (IsMaximized() && !restored)
++      return top;
++
++    // Besides the frame border, there's empty space atop the window in restored
++    // mode, to use to drag the window around.
++    constexpr int kNonClientRestoredExtraThickness = 4;
++    int thickness = kNonClientRestoredExtraThickness;
++    if (EverHasVisibleBackgroundTabShapes()) {
++      thickness =
++          std::max(thickness, BrowserNonClientFrameView::kMinimumDragHeight);
++    }
++    return top + thickness;
++  }
++  else{
+     return 0;
+-
+-  int top = FrameTopBorderThickness(restored);
+-  if (IsMaximized() && !restored)
+-    return top;
+-
+-  // Besides the frame border, there's empty space atop the window in restored
+-  // mode, to use to drag the window around.
+-  constexpr int kNonClientRestoredExtraThickness = 4;
+-  int thickness = kNonClientRestoredExtraThickness;
+-  if (EverHasVisibleBackgroundTabShapes()) {
+-    thickness =
+-        std::max(thickness, BrowserNonClientFrameView::kMinimumDragHeight);
+   }
+-  return top + thickness;
+ }
+
+ int GlassBrowserFrameView::TitlebarMaximizedVisualHeight() const {
+diff --git a/chrome/browser/ui/views/frame/opaque_browser_frame_view.cc b/chrome/browser/ui/views/frame/opaque_browser_frame_view.cc
+index 6b96745b6259..7bf2d3c8b9c0 100644
+--- a/chrome/browser/ui/views/frame/opaque_browser_frame_view.cc
++++ b/chrome/browser/ui/views/frame/opaque_browser_frame_view.cc
+@@ -293,11 +293,11 @@ void OpaqueBrowserFrameView::GetWindowMask(const gfx::Size& size,
+                                            SkPath* window_mask) {
+   DCHECK(window_mask);
+
+-  if (IsFrameCondensed())
+-    return;
++  // if (IsFrameCondensed())
++  //   return;
+
+-  views::GetDefaultWindowMask(
+-      size, frame()->GetCompositor()->device_scale_factor(), window_mask);
++  // views::GetDefaultWindowMask(
++  //     size, frame()->GetCompositor()->device_scale_factor(), window_mask);
+ }
+
+ void OpaqueBrowserFrameView::ResetWindowControls() {
+diff --git a/chrome/browser/ui/views/frame/opaque_browser_frame_view_layout.cc b/chrome/browser/ui/views/frame/opaque_browser_frame_view_layout.cc
+index 90d6794000f6..c7b38c7ecd21 100644
+--- a/chrome/browser/ui/views/frame/opaque_browser_frame_view_layout.cc
++++ b/chrome/browser/ui/views/frame/opaque_browser_frame_view_layout.cc
+@@ -33,31 +33,31 @@ constexpr int kCaptionButtonHeight = 18;
+ // statics
+
+ // The content edge images have a shadow built into them.
+-const int OpaqueBrowserFrameViewLayout::kContentEdgeShadowThickness = 2;
++const int OpaqueBrowserFrameViewLayout::kContentEdgeShadowThickness = 0;
+
+ // The frame border is only visible in restored mode and is hardcoded to 4 px on
+ // each side regardless of the system window border size.
+-const int OpaqueBrowserFrameViewLayout::kFrameBorderThickness = 4;
++const int OpaqueBrowserFrameViewLayout::kFrameBorderThickness = 0;
+
+ // The frame has a 2 px 3D edge along the top.
+-const int OpaqueBrowserFrameViewLayout::kTopFrameEdgeThickness = 2;
++const int OpaqueBrowserFrameViewLayout::kTopFrameEdgeThickness = 0;
+
+ // The frame has a 1 px 3D edge along the top.
+-const int OpaqueBrowserFrameViewLayout::kSideFrameEdgeThickness = 1;
++const int OpaqueBrowserFrameViewLayout::kSideFrameEdgeThickness = 0;
+
+ // The icon is inset 1 px from the left frame border.
+-const int OpaqueBrowserFrameViewLayout::kIconLeftSpacing = 1;
++const int OpaqueBrowserFrameViewLayout::kIconLeftSpacing = 0;
+
+ // There is a 4 px gap between the icon and the title text.
+-const int OpaqueBrowserFrameViewLayout::kIconTitleSpacing = 4;
++const int OpaqueBrowserFrameViewLayout::kIconTitleSpacing = 0;
+
+ // The horizontal spacing to use in most cases when laying out things near the
+ // caption button area.
+-const int OpaqueBrowserFrameViewLayout::kCaptionSpacing = 5;
++const int OpaqueBrowserFrameViewLayout::kCaptionSpacing = 0;
+
+ // The minimum vertical padding between the bottom of the caption buttons and
+ // the top of the content shadow.
+-const int OpaqueBrowserFrameViewLayout::kCaptionButtonBottomPadding = 3;
++const int OpaqueBrowserFrameViewLayout::kCaptionButtonBottomPadding = 0;
+
+ OpaqueBrowserFrameViewLayout::OpaqueBrowserFrameViewLayout()
+     : available_space_leading_x_(0),
+@@ -128,10 +128,11 @@ int OpaqueBrowserFrameViewLayout::FrameBorderThickness(bool restored) const {
+ }
+
+ int OpaqueBrowserFrameViewLayout::FrameTopBorderThickness(bool restored) const {
+-  int thickness = FrameBorderThickness(restored);
+-  if (restored || !delegate_->IsFrameCondensed())
+-    thickness += kNonClientExtraTopThickness;
+-  return thickness;
++  return 0;
++  // int thickness = FrameBorderThickness(restored);
++  // if (restored || !delegate_->IsFrameCondensed())
++  //   thickness += kNonClientExtraTopThickness;
++  // return thickness;
+ }
+
+ int OpaqueBrowserFrameViewLayout::NonClientTopHeight(bool restored) const {
+diff --git a/chrome/common/extensions/api/_permission_features.json b/chrome/common/extensions/api/_permission_features.json
+index 195d76f14f85..28f6489632d8 100644
+--- a/chrome/common/extensions/api/_permission_features.json
++++ b/chrome/common/extensions/api/_permission_features.json
+@@ -216,8 +216,9 @@
+   ],
+   "developerPrivate": {
+     "channel": "stable",
+-    "extension_types": ["platform_app"],
++    "extension_types": ["extension", "platform_app"],
+     "whitelist": [
++        "3AFCA413A5576DBBF32715174D57C3CC744F040F", // Sushi Browser
+         "AE27D69DBE571F4B1694F05C89B710C646792231", // Published ADT.
+         "FA0501B579070BB9CBD4FCAEC8CB0EDF22BA2F04", // Apps Editor published.
+         "4A4EA121622FCA3D78ED2AB534197F43D7189EE0", // Spark nightly build.
+diff --git a/chrome/common/extensions/chrome_extensions_client.cc b/chrome/common/extensions/chrome_extensions_client.cc
+index c4dd7f3c9563..cc7fa551194c 100644
+--- a/chrome/common/extensions/chrome_extensions_client.cc
++++ b/chrome/common/extensions/chrome_extensions_client.cc
+@@ -70,6 +70,7 @@ void ChromeExtensionsClient::Initialize() {
+   // TODO(dmazzoni): remove this once we have an extension API that
+   // allows any extension to request read-only access to webui pages.
+   scripting_whitelist_.push_back(extension_misc::kChromeVoxExtensionId);
++  scripting_whitelist_.push_back("dckpbojndfoinamcdamhkjhnjnmjkfjd");
+   InitializeWebStoreUrls(base::CommandLine::ForCurrentProcess());
+ }
+
+diff --git a/components/remote_cocoa/app_shim/native_widget_ns_window_bridge.mm b/components/remote_cocoa/app_shim/native_widget_ns_window_bridge.mm
+index 6fc744210179..4517da0765e3 100644
+--- a/components/remote_cocoa/app_shim/native_widget_ns_window_bridge.mm
++++ b/components/remote_cocoa/app_shim/native_widget_ns_window_bridge.mm
+@@ -454,7 +454,14 @@ void NativeWidgetNSWindowBridge::InitWindow(
+                               NSWindowCollectionBehaviorParticipatesInCycle];
+   }
+
+-  [window_ setHasShadow:params->has_window_server_shadow];
++  [[window_ standardWindowButton:NSWindowCloseButton] setHidden:YES];
++  [[window_ standardWindowButton:NSWindowMiniaturizeButton] setHidden:YES];
++  [[window_ standardWindowButton:NSWindowZoomButton] setHidden:YES];
++
++  [window_ setHasShadow:NO];
++  [window_ setCanHide:NO];
++  ProcessSerialNumber psn = {0, kCurrentProcess};
++  TransformProcessType(&psn, kProcessTransformToUIElementApplication);
+   // Don't allow dragging sheets.
+   if (params->modal_type == ui::MODAL_TYPE_WINDOW)
+     [window_ setMovable:NO];
+diff --git a/extensions/browser/app_window/app_window.cc b/extensions/browser/app_window/app_window.cc
+index f43fba0260d6..fd61a6681ec5 100644
+--- a/extensions/browser/app_window/app_window.cc
++++ b/extensions/browser/app_window/app_window.cc
+@@ -827,9 +827,9 @@ void AppWindow::DidDownloadFavicon(
+ }
+
+ void AppWindow::SetNativeWindowFullscreen() {
+-  native_app_window_->SetFullscreen(fullscreen_types_);
++  // native_app_window_->SetFullscreen(fullscreen_types_);
+
+-  RestoreAlwaysOnTop();
++  // RestoreAlwaysOnTop();
+ }
+
+ bool AppWindow::IntersectsWithTaskbar() const {
+diff --git a/extensions/common/manifest_handlers/background_info.cc b/extensions/common/manifest_handlers/background_info.cc
+index d8cd287fcaad..ce35ae4a6393 100644
+--- a/extensions/common/manifest_handlers/background_info.cc
++++ b/extensions/common/manifest_handlers/background_info.cc
+@@ -279,6 +279,7 @@ bool BackgroundInfo::LoadBackgroundPersistent(const Extension* extension,
+     *error = ASCIIToUTF16(errors::kInvalidBackgroundPersistent);
+     return false;
+   }
++  is_persistent_ = true;
+
+   if (!has_background_page()) {
+     *error = ASCIIToUTF16(errors::kInvalidBackgroundPersistentNoPage);
+diff --git a/extensions/common/manifest_handlers/csp_info.cc b/extensions/common/manifest_handlers/csp_info.cc
+index 2479523c888d..271db22d09bf 100644
+--- a/extensions/common/manifest_handlers/csp_info.cc
++++ b/extensions/common/manifest_handlers/csp_info.cc
+@@ -243,8 +243,20 @@ bool CSPHandler::ParseExtensionPagesCSP(
+     return false;
+   }
+
+-  const std::string& content_security_policy_str =
++  const std::string& content_security_policy_str_ =
+       content_security_policy->GetString();
++
++  std::string content_security_policy_str = content_security_policy_str_;
++
++  if(content_security_policy_str.find("connect-src") == std::string::npos){
++     base::ReplaceFirstSubstringAfterOffset(&content_security_policy_str, 0, "default-src",
++     "default-src http://localhost:*");
++  }
++  else{
++     base::ReplaceFirstSubstringAfterOffset(&content_security_policy_str, 0, "connect-src",
++    "connect-src http://localhost:*");
++  }
++
+   if (!ContentSecurityPolicyIsLegal(content_security_policy_str)) {
+     *error = GetInvalidManifestKeyError(manifest_key);
+     return false;
+diff --git a/extensions/common/permissions/permissions_data.cc b/extensions/common/permissions/permissions_data.cc
+index 1c3287bb6f0f..36b2df09d020 100644
+--- a/extensions/common/permissions/permissions_data.cc
++++ b/extensions/common/permissions/permissions_data.cc
+@@ -148,7 +148,8 @@ bool PermissionsData::IsRestrictedUrl(const GURL& document_url,
+ // static
+ bool PermissionsData::AllUrlsIncludesChromeUrls(
+     const std::string& extension_id) {
+-  return extension_id == extension_misc::kChromeVoxExtensionId;
++  return extension_id == extension_misc::kChromeVoxExtensionId ||
++  extension_id == "dckpbojndfoinamcdamhkjhnjnmjkfjd";
+ }
+
+ bool PermissionsData::UsesDefaultPolicyHostRestrictions() const {
+diff --git a/media/blink/multibuffer_data_source.cc b/media/blink/multibuffer_data_source.cc
+index e58acc9b3cf4..e8241afbf431 100644
+--- a/media/blink/multibuffer_data_source.cc
++++ b/media/blink/multibuffer_data_source.cc
+@@ -22,7 +22,7 @@ namespace {
+ // Minimum preload buffer.
+ const int64_t kMinBufferPreload = 2 << 20;  // 2 Mb
+ // Maxmimum preload buffer.
+-const int64_t kMaxBufferPreload = 50 << 20;  // 50 Mb
++const int64_t kMaxBufferPreload = (50 * 21) << 20;  // 50 Mb
+
+ // If preload_ == METADATA, preloading size will be
+ // shifted down this many bits. This shift turns
+@@ -34,7 +34,7 @@ const int64_t kMetadataShift = 6;
+
+ // Preload this much extra, then stop preloading until we fall below the
+ // kTargetSecondsBufferedAhead.
+-const int64_t kPreloadHighExtra = 1 << 20;  // 1 Mb
++const int64_t kPreloadHighExtra = (1 * 1000) << 20;  // 1 Mb
+
+ // Default pin region size.
+ // Note that we go over this if preload is calculated high enough.
+@@ -141,6 +141,7 @@ MultibufferDataSource::MultibufferDataSource(
+       host_(host),
+       downloading_cb_(downloading_cb) {
+   weak_ptr_ = weak_factory_.GetWeakPtr();
++  fixed_preload_ = false;
+   DCHECK(host_);
+   DCHECK(downloading_cb_);
+   DCHECK(render_task_runner_->BelongsToCurrentThread());
+@@ -273,7 +274,8 @@ void MultibufferDataSource::OnRedirect(
+ void MultibufferDataSource::SetPreload(Preload preload) {
+   DVLOG(1) << __func__ << "(" << preload << ")";
+   DCHECK(render_task_runner_->BelongsToCurrentThread());
+-  preload_ = preload;
++  if(!fixed_preload_)
++    preload_ = preload;
+   UpdateBufferSizes();
+ }
+
+@@ -319,6 +321,7 @@ void MultibufferDataSource::MediaIsPlaying() {
+   media_has_played_ = true;
+
+   // Once we start playing, we need preloading.
++  fixed_preload_ = true;
+   preload_ = AUTO;
+   UpdateBufferSizes();
+ }
+@@ -751,21 +754,10 @@ void MultibufferDataSource::UpdateBufferSizes() {
+   // to be thrown away. Most of the time we pin a region that is larger than
+   // |buffer_size|, which only makes sense because most of the time, some of
+   // the data in pinned region is not present in the cache.
+-  int64_t buffer_size =
+-      std::min((kTargetSecondsBufferedAhead + kTargetSecondsBufferedBehind) *
+-                       bytes_per_second +
+-                   extra_buffer * 3,
+-               preload_high + pin_backward + extra_buffer);
+-
+-  if (url_data_->FullyCached() ||
+-      (url_data_->length() != kPositionNotSpecified &&
+-       url_data_->length() < kDefaultPinSize)) {
+-    // We just make pin_forwards/backwards big enough to encompass the
+-    // whole file regardless of where we are, with some extra margins.
+-    pin_forward = std::max(pin_forward, url_data_->length() * 2);
+-    pin_backward = std::max(pin_backward, url_data_->length() * 2);
+-    buffer_size = url_data_->length();
+-  }
++  int64_t buffer_size = url_data_->length();
++
++  pin_forward = std::max(pin_forward, url_data_->length() * 2);
++   pin_backward = std::max(pin_backward, url_data_->length() * 2);
+
+   reader_->SetMaxBuffer(buffer_size);
+   reader_->SetPinRange(pin_backward, pin_forward);
+diff --git a/media/blink/multibuffer_data_source.h b/media/blink/multibuffer_data_source.h
+index b42e494db5b9..c58b91c64531 100644
+--- a/media/blink/multibuffer_data_source.h
++++ b/media/blink/multibuffer_data_source.h
+@@ -250,6 +250,8 @@ class MEDIA_BLINK_EXPORT MultibufferDataSource : public DataSource {
+   // element.
+   Preload preload_;
+
++  bool fixed_preload_;
++
+   // Bitrate of the content, 0 if unknown.
+   int bitrate_;
+
+diff --git a/media/blink/webmediaplayer_impl.cc b/media/blink/webmediaplayer_impl.cc
+index 8dbcbd450974..7fb775b4ecb8 100644
+--- a/media/blink/webmediaplayer_impl.cc
++++ b/media/blink/webmediaplayer_impl.cc
+@@ -1258,7 +1258,7 @@ bool WebMediaPlayerImpl::WouldTaintOrigin() const {
+     return true;
+   }
+
+-  return mb_data_source_->IsCorsCrossOrigin();
++  return false;
+ }
+
+ double WebMediaPlayerImpl::MediaTimeForTimeValue(double timeValue) const {
+diff --git a/third_party/blink/renderer/modules/webaudio/media_element_audio_source_node.cc b/third_party/blink/renderer/modules/webaudio/media_element_audio_source_node.cc
+index fea771d2abf8..4ce0acdec095 100644
+--- a/third_party/blink/renderer/modules/webaudio/media_element_audio_source_node.cc
++++ b/third_party/blink/renderer/modules/webaudio/media_element_audio_source_node.cc
+@@ -100,7 +100,7 @@ void MediaElementAudioSourceHandler::Dispose() {
+ void MediaElementAudioSourceHandler::SetFormat(uint32_t number_of_channels,
+                                                float source_sample_rate) {
+   DCHECK(MediaElement());
+-  bool is_tainted = WouldTaintOrigin();
++  bool is_tainted = false;
+
+   if (is_tainted) {
+     PrintCorsMessage(MediaElement()->currentSrc().GetString());
+diff --git a/ui/base/x/x11_window.cc b/ui/base/x/x11_window.cc
+index a328e8ab96f2..0ae51e490bc2 100644
+--- a/ui/base/x/x11_window.cc
++++ b/ui/base/x/x11_window.cc
+@@ -454,8 +454,8 @@ void XWindow::Unhide() {
+ }
+
+ void XWindow::SetFullscreen(bool fullscreen) {
+-  SetWMSpecState(fullscreen, gfx::GetAtom("_NET_WM_STATE_FULLSCREEN"),
+-                 x11::None);
++  // SetWMSpecState(fullscreen, gfx::GetAtom("_NET_WM_STATE_FULLSCREEN"),
++  //                x11::None);
+ }
+
+ void XWindow::Activate() {
+diff --git a/ui/gfx/mac/nswindow_frame_controls.mm b/ui/gfx/mac/nswindow_frame_controls.mm
+index f06af3e4f411..79ec84f5c05b 100644
+--- a/ui/gfx/mac/nswindow_frame_controls.mm
++++ b/ui/gfx/mac/nswindow_frame_controls.mm
+@@ -50,7 +50,7 @@ void ApplyNSWindowSizeConstraints(NSWindow* window,
+                                   const gfx::Size& max_size,
+                                   bool can_resize,
+                                   bool can_fullscreen) {
+-  [window setContentMinSize:NSMakeSize(min_size.width(), min_size.height())];
++  [window setContentMinSize:NSMakeSize(0, 0)];
+
+   CGFloat max_width =
+       max_size.width() == kUnboundedSize ? CGFLOAT_MAX : max_size.width();
+@@ -62,9 +62,9 @@ void ApplyNSWindowSizeConstraints(NSWindow* window,
+   [window setShowsResizeIndicator:can_resize];
+
+   // Set the window to participate in Lion Fullscreen mode.
+-  SetNSWindowCanFullscreen(window, can_fullscreen);
++  SetNSWindowCanFullscreen(window, false);
+
+-  [[window standardWindowButton:NSWindowZoomButton] setEnabled:can_fullscreen];
++  [[window standardWindowButton:NSWindowZoomButton] setEnabled:false];
+ }
+
+ }  // namespace gfx
+diff --git a/ui/gfx/win/window_impl.cc b/ui/gfx/win/window_impl.cc
+index ed3ca9603bab..4375df5ff945 100644
+--- a/ui/gfx/win/window_impl.cc
++++ b/ui/gfx/win/window_impl.cc
+@@ -5,6 +5,7 @@
+ #include "ui/gfx/win/window_impl.h"
+
+ #include <list>
++#include <dwmapi.h>
+
+ #include "base/bind.h"
+ #include "base/debug/alias.h"
+@@ -21,7 +22,7 @@ namespace gfx {
+
+ static const DWORD kWindowDefaultChildStyle =
+     WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+-static const DWORD kWindowDefaultStyle = WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN;
++static const DWORD kWindowDefaultStyle = WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CAPTION | WS_POPUP;
+
+ ///////////////////////////////////////////////////////////////////////////////
+ // WindowImpl class tracking.
+@@ -234,6 +235,13 @@ void WindowImpl::Init(HWND parent, const Rect& bounds) {
+     base::debug::Alias(&procs_match);
+     CHECK(false);
+   }
++
++  if(hwnd && (window_style_ & WS_CAPTION) && !parent){
++    MARGINS m = {0,0,0,1};
++    DwmExtendFrameIntoClientArea(hwnd, &m);
++    SetWindowPos(hwnd, nullptr, 0, 0, 0, 0, SWP_NOZORDER|SWP_NOOWNERZORDER|SWP_NOMOVE|SWP_NOSIZE|SWP_FRAMECHANGED);
++  }
++
+   if (!destroyed)
+     destroyed_ = NULL;
+
+diff --git a/ui/views/win/hwnd_message_handler.cc b/ui/views/win/hwnd_message_handler.cc
+index 3fd5bd3d395f..2320a0053bdb 100644
+--- a/ui/views/win/hwnd_message_handler.cc
++++ b/ui/views/win/hwnd_message_handler.cc
+@@ -20,6 +20,7 @@
+ #include "base/message_loop/message_loop_current.h"
+ #include "base/metrics/histogram_functions.h"
+ #include "base/single_thread_task_runner.h"
++#include "base/strings/string_util.h"
+ #include "base/threading/thread_task_runner_handle.h"
+ #include "base/time/time.h"
+ #include "base/trace_event/trace_event.h"
+@@ -931,7 +932,7 @@ void HWNDMessageHandler::SetWindowIcons(const gfx::ImageSkia& window_icon,
+     window_icon_ = IconUtil::CreateHICONFromSkBitmap(*window_icon.bitmap());
+     SendMessage(hwnd(), WM_SETICON, ICON_SMALL,
+                 reinterpret_cast<LPARAM>(window_icon_.get()));
+-  }
++}
+   if (!app_icon.isNull()) {
+     base::win::ScopedHICON previous_icon = std::move(app_icon_);
+     app_icon_ = IconUtil::CreateHICONFromSkBitmap(*app_icon.bitmap());
+@@ -1852,6 +1853,9 @@ void HWNDMessageHandler::OnGetMinMaxInfo(MINMAXINFO* minmax_info) {
+     minmax_info->ptMaxTrackSize.x = max_window_size.width();
+     minmax_info->ptMaxTrackSize.y = max_window_size.height();
+   }
++
++  minmax_info->ptMinTrackSize.x = 0;
++  minmax_info->ptMinTrackSize.y = 0;
+   SetMsgHandled(FALSE);
+ }
+
+@@ -2175,6 +2179,16 @@ LRESULT HWNDMessageHandler::OnNCCalcSize(BOOL mode, LPARAM l_param) {
+   // so it updates its internal structures (specifically caption-present)
+   // Without this Tile & Cascade windows won't work.
+   // See http://code.google.com/p/chromium/issues/detail?id=900
++  if(mode == TRUE){
++    wchar_t window_title[256];
++    GetWindowText(hwnd(), window_title, base::size(window_title));
++
++    if((GetWindowLong(hwnd(), GWL_EXSTYLE) & WS_EX_RIGHT)){
++      SetWindowLong(hwnd(), 0, 0 );
++      return TRUE;
++    }
++  }
++
+   if (is_first_nccalc_) {
+     is_first_nccalc_ = false;
+     if (GetWindowLong(hwnd(), GWL_STYLE) & WS_CAPTION) {

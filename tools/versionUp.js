@@ -26,28 +26,43 @@ const glob = require("glob")
 // Fugu(Blowfish)
 // Akamutsu(Rosy seabass)
 
-const BEFORE_CODE_NAME = 'Akamutsu(Rosy seabass)'
-const CODE_NAME = 'Yariika(Spear squid)'
+const BEFORE_CODE_NAME = 'Yariika(Spear squid)'
+const CODE_NAME = 'Saba(Mackerel)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.27.0"
+const NEXT_APP_VERSION = "0.28.0"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH =`
-Updated Custom Chromium to 77.0.3865.120.
-Electron updated to v6.0.12.
-Youtube-dl updated to 2019.09.28.
-Fixed a bug that Maximize button is not displayed in iframe video.
-Fixed a bug that does not work when Linux version of wmctrl does not exist.
-Fixed bug that affects info-bar size when browser is specified.
-Fixed a bug that the extension itself is not displayed when reloading after disabling the Chrome extension from the settings page.`
+const CHANGE_ENGLISH =`Fixed a bug that bookmarks cannot be sorted.
+Improved startup stability when registering many Chrome extensions.
+Fixed a bug in Context Menu of Chrome extension.
+Fixed window resizing bug.
+Fixed a bug of tab selection by mouse scroll.
+Fixed a bug that URL is updated when focus is removed while typing in the address bar.
+Fixed a malfunction when focusing the address bar.
+Fixed a bug that the tool page is a translation page target.
+Fixed a bug that does not work when Chrome extension CSP is set. (Custom Chromium edition only)
+Fixed a bug that doesn't work when Event Page of Chrome extension is set. (Custom Chromium edition only)
+Fixed a bug that volume cannot be changed on a specific page. (Custom Chromium edition only)
+Fixed bugs related to resizing of Linux edition.
+Added Custom Brave edition to Windows edition.
+Updated Custom Chromium to 78.0.3904.70.
+Updated youtube-dl to 2019.10.22.`
 
-const CHANGE_JAPANESE = `Custom Chromiumを77.0.3865.120に更新
-Electronをv6.0.12に更新
-youtube-dlを2019.09.28に更新
-iframeの動画にMaximizeボタンが表示されない不具合を修正
-Linux版のwmctrlが存在しない場合に動作しない不具合を修正
-ブラウザを指定した場合に、info-barのサイズ影響を受ける不具合を修正
-設定ページからChrome拡張を無効にしたあとに、リロードすると拡張自体が表示されなくなる不具合を修正`
+const CHANGE_JAPANESE = `ブックマークがソートできない不具合を修正。
+Chrome拡張を多数登録した場合の、起動時の安定性を向上。
+Chrome拡張のContext Menuの不具合を修正。
+ウインドウのサイズ変更の不具合を修正。
+マウススクロールによるタブ選択の不具合を修正。
+アドレスバーに入力中にフォーカスを外した際に、URLが更新される不具合を修正。
+アドレスバーのフォーカス時の動作不具合を修正。
+ツールページが翻訳ページ対象になる不具合を修正。
+Chrome拡張のCSP設定がされていると、動作しない不具合を修正。(Custom Chromium版のみ)
+Chrome拡張のEvent Pageが設定されていると、動作しない不具合を修正。(Custom Chromium版のみ)
+音量変更が特定のページでできない不具合を修正。(Custom Chromium版のみ)
+Linux版のサイズ変更に関わる不具合を修正。
+Windows版にCustom Brave版を追加。
+Custom Chromiumを78.0.3904.70に更新。
+youtube-dlを2019.10.22に更新。`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

@@ -1236,20 +1236,23 @@ async function contextMenu(webContents, props) {
       }
     })
     menuItems.push({t: 'print', label: locale.translation('print'), click: () => webContents.print()})
-    menuItems.push({t: '2473195200299095979', label: locale.translation('2473195200299095979'),  click: async (item, win) => {
-        const key = Math.random().toString()
-        webContents.send('no-skip-context-menu', key)
-        const promise = new Promise(r => ipcMain.once(`no-skip-context-menu-reply_${key}`,r))
 
-        webContents.focus()
-        await promise
-        robot.moveMouse(props.screenX, props.screenY)
-        robot.mouseClick('right')
-        await new Promise(r=>setTimeout(r,30))
-        robot.keyTap('t')
-      } })
-    // menuItems.push({t: '2473195200299095979', label: syncReplaceName, click: (item, win) => webContents.hostWebContents2.send('sync-replace-from-menu', webContents.id)})
-    menuItems.push({type: 'separator'})
+    if(!BrowserPanel.BROWSER_NAME == 'Brave'){
+      menuItems.push({t: '2473195200299095979', label: locale.translation('2473195200299095979'),  click: async (item, win) => {
+          const key = Math.random().toString()
+          webContents.send('no-skip-context-menu', key)
+          const promise = new Promise(r => ipcMain.once(`no-skip-context-menu-reply_${key}`,r))
+
+          webContents.focus()
+          await promise
+          robot.moveMouse(props.screenX, props.screenY)
+          robot.mouseClick('right')
+          await new Promise(r=>setTimeout(r,30))
+          robot.keyTap('t')
+        } })
+      // menuItems.push({t: '2473195200299095979', label: syncReplaceName, click: (item, win) => webContents.hostWebContents2.send('sync-replace-from-menu', webContents.id)})
+      menuItems.push({type: 'separator'})
+    }
 
     menuItems.push({t: 'downloadAll', label: locale.translation('downloadAll'), click: (item,win)=> startDownloadSelector(targetWindow,webContents,props)})
     menuItems.push({type: 'separator'})

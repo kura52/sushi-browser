@@ -28,9 +28,20 @@ async function move(win,x,y,width,height){
   //   }, windowId, x,y,width,height)
   // }
   // else{
+  console.trace(x,y,width,height)
+  if(width !== void 0){
+    sizeMap.set(win, {width, height})
+  }
+  else{
+    const val = sizeMap.get(win)
+    width = val.width
+    height = val.height
+  }
     return win.move(x,y,width,height)
   // }
 }
+
+const sizeMap = new Map()
 
 export default {
   dimensions(win){
