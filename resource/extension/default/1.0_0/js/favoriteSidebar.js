@@ -11959,14 +11959,18 @@ FeedDate.propTypes =  false ? {
 
 const isMain = location.href.startsWith("file://");
 
+const events = {};
+
 exports.default = isMain ? __webpack_require__(144) : {
   ipcRenderer: {
     on: (channel, listener) => {
-      chrome.runtime.onMessage.addListener((message, sender) => {
+      const key = channel + listener.toString();
+      events[key] = (message, sender) => {
         if (!message.ipc || channel != message.channel) return;
 
         listener({}, ...message.args);
-      });
+      };
+      chrome.runtime.onMessage.addListener(events[key]);
     },
     once: (channel, listener) => {
       const handler = (message, sender) => {
@@ -11979,6 +11983,11 @@ exports.default = isMain ? __webpack_require__(144) : {
     },
     send: (channel, ...args) => {
       chrome.runtime.sendMessage({ ipcToBg: true, channel, args });
+    },
+    removeListener: (channel, listener) => {
+      const key = channel + listener.toString();
+      chrome.runtime.onMessage.removeListener(events[key]);
+      delete events[key];
     }
   }
 };
@@ -35424,7 +35433,7 @@ class App extends _infernoCompat2.default.Component {
         _index2.default,
         { ref: 'select', target: '.infinite-tree-item', selectedClass: 'selection-selected',
           afterSelect: this.afterSelect.bind(this), clearSelect: this.clearSelect.bind(this) },
-        _infernoCompat2.default.createElement(Contents, { ref: 'content', favoritePage: this.props.favoritePage })
+        _infernoCompat2.default.createElement(Contents, { ref: 'content', topPage: this.props.topPage, favoritePage: this.props.favoritePage, searchNum: this.props.searchNum, searchKey: this.props.searchKey })
       )
     );
   }
@@ -35526,7 +35535,7 @@ class Contents extends _infernoCompat2.default.Component {
       if (cmd == "openInNewTab" || cmd == "openInNewPrivateTab" || cmd == "openInNewTorTab" || cmd == "openInNewSessionTab" || cmd == "openInNewWindow" || cmd == "openInNewWindowWithOneRow" || cmd == "openInNewWindowWithTwoRow") {
         const nodes = this.menuKey;
         this.menuKey = void 0;
-        openFavorite(nodes.map(n => this.getKey(n)), this.props.cont ? this.props.cont.id : void 0, cmd).then(_ => {
+        openFavorite(nodes.map(n => this.getKey(n)), this.props.cont ? this.props.cont.id : this.props.topPage ? -1 : void 0, cmd).then(_ => {
           console.log(324234235346545);
           this.props.onClick && this.props.onClick();
         });
@@ -35795,7 +35804,7 @@ class Contents extends _infernoCompat2.default.Component {
     const self = this;
     return _infernoCompat2.default.createElement(
       'div',
-      { style: { paddingLeft: 4, paddingTop: 4, width: this.props.cont ? '600px' : this.props.favoritePage ? void 0 : 'calc(100vw - 4px)' } },
+      { style: { paddingLeft: 4, paddingTop: 4, width: this.props.cont || this.props.topPage ? '600px' : this.props.favoritePage ? void 0 : 'calc(100vw - 4px)' } },
       _infernoCompat2.default.createElement(_reactInfiniteTree2.default, {
         ref: 'iTree',
         noDataText: '',
@@ -35874,6 +35883,12 @@ class Contents extends _infernoCompat2.default.Component {
                     this.props.cont.hostWebContents2.send(openType2 ? 'new-tab' : 'load-url', this.props.cont.id, currentNode.url);
                   }
                   if (this.props.onClick) this.props.onClick();
+                } else if (this.props.topPage) {
+                  if (event.button == 0) {
+                    location.href = currentNode.url;
+                  } else if (event.button == 1) {
+                    _ipcRenderer.ipcRenderer.send('send-to-host', "open-tab-opposite", currentNode.url, true);
+                  }
                 } else {
                   _ipcRenderer.ipcRenderer.send('send-to-host', "open-tab-opposite", currentNode.url, true, event.button == 1 ? 'create-web-contents' : openType2 ? 'new-tab' : 'load-url');
                 }
@@ -68884,7 +68899,7 @@ class Selection extends _infernoCompat2.default.Component {
       'div',
       _extends({}, props, { className: 'react-selection', onMouseDown: this.mousedown, style: this.props.style }),
       children,
-      _infernoCompat2.default.createElement('div', { ref: 'rect', className: 'react-selection-rectangle' })
+      _infernoCompat2.default.createElement('div', { ref: 'rect', key: 'rect', className: 'react-selection-rectangle' })
     );
   }
 }
@@ -72405,7 +72420,7 @@ var rendererIdentifiers = function () {
   'windowCaptionButtonMinimize', 'windowCaptionButtonMaximize', 'windowCaptionButtonRestore', 'windowCaptionButtonClose', 'closeFirefoxWarning', 'importSuccess', 'licenseTextOk', 'closeFirefoxWarningOk', 'importSuccessOk', 'connectionError', 'unknownError', 'allowAutoplay', 'basicAuthRequired', 'basicAuthMessage', 'basicAuthUsernameLabel', 'basicAuthPasswordLabel',
 
   //Add
-  'default', 'name', 'searchEngine', 'searchEngines', 'engineGoKey', 'general', 'generalSettings', 'search', 'tabs', 'extensions', 'myHomepage', 'startsWith', 'startsWithOptionLastTime', 'newTabMode', 'newTabEmpty', 'import', 'bn-BD', 'bn-IN', 'zh-CN', 'cs', 'nl-NL', 'en-US', 'fr-FR', 'de-DE', 'hi-IN', 'id-ID', 'it-IT', 'ja-JP', 'ko-KR', 'ms-MY', 'pl-PL', 'pt-BR', 'ru', 'sl', 'es', 'ta', 'te', 'tr-TR', 'uk', 'requiresRestart', 'enableFlash', 'startsWithOptionHomePage', 'updateAvail', 'notNow', 'makeBraveDefault', 'saveToPocketDesc', 'minimumPageTimeLow', 'paintTabs', 'restoreAll',
+  'default', 'name', 'searchEngine', 'searchEngines', 'engineGoKey', 'general', 'generalSettings', 'search', 'tabs', 'extensions', 'myHomepage', 'startsWith', 'startsWithOptionLastTime', 'newTabMode', 'newTabEmpty', 'import', 'bn-BD', 'bn-IN', 'zh-CN', 'cs', 'nl-NL', 'en-US', 'fr-FR', 'de-DE', 'hi-IN', 'id-ID', 'it-IT', 'ja-JP', 'ko-KR', 'ms-MY', 'pl-PL', 'pt-BR', 'ru', 'sl', 'es', 'ta', 'te', 'tr-TR', 'uk', 'requiresRestart', 'enableFlash', 'startsWithOptionHomePage', 'updateAvail', 'notNow', 'makeBraveDefault', 'saveToPocketDesc', 'minimumPageTimeLow', 'paintTabs', 'restoreAll', 'cookies',
 
   //chrome
   '994289308992179865', '1725149567830788547', '4643612240819915418', '4256316378292851214', '2019718679933488176', '782057141565633384', '5116628073786783676', '1465176863081977902', '3007771295016901659', '5078638979202084724', '4589268276914962177', '3551320343578183772', '2448312741937722512', '1524430321211440688', '42126664696688958', '2663302507110284145', '3635030235490426869', '4888510611625056742', '5860209693144823476', '5846929185714966548', '7955383984025963790', '3128230619496333808', '3391716558283801616', '6606070663386660533', '9011178328451474963', '9065203028668620118', '2473195200299095979', '1047431265488717055', '9218430445555521422', '8926389886865778422', '2893168226686371498', '4289540628985791613', '3095995014811312755', '59174027418879706', '6550675742724504774', '5453029940327926427', '4989966318180235467', '6326175484149238433', '9147392381910171771', '8260864402787962391', '8477384620836102176', '7701040980221191251', '6146563240635539929', '8026334261755873520', '1375321115329958930', '5513242761114685513', '5582839680698949063', '5317780077021120954', '8986267729801483565', '5431318178759467895', '7853747251428735', '2948300991547862301', '8251578425305135684', '2845382757467349449', '8870318296973696995', '480990236307250886', '7754704193130578113', '7791543448312431591', '59174027418879706', '4250229828105606438', '1864111464094315414', '5222676887888702881', '839736845446313156', '1552752544932680961', 'playOrPause', 'frameStep', 'frameBackStep', 'rewind1', 'rewind2', 'forward1', 'forward2', 'rewind3', 'forward3', 'normalSpeed', 'halveSpeed', 'doubleSpeed', 'decSpeed', 'incSpeed', 'fullscreen', 'exitFullscreen', 'mute', 'decreaseVolume', 'increaseVolume', 'incZoom', 'decZoom', 'resetZoom', 'plRepeat', 'mediaSeeking', 'volumeControl', 'changeSpeed', 'mouseWheelFunctions', 'reverseWheelMediaSeeking', 'noScriptPref', 'blockCanvasFingerprinting', 'browsingHistory', 'downloadHistory', 'cachedImagesAndFiles', 'allSiteCookies', 'autocompleteData', 'autofillData', 'clearBrowsingDataNow', 'tabSettings', 'alwaysOnTop', 'neverOnTop', 'privateData', 'privateDataMessage', 'closeAllTabsMenuLabel', 'openalllinksLabel', 'clicktabCopyTabUrl', 'clicktabCopyUrlFromClipboard', 'clicktabReloadtabs', 'clicktabReloadothertabs', 'clicktabReloadlefttabs', 'clicktabReloadrighttabs', 'freezeTabMenuLabel', 'protectTabMenuLabel', 'lockTabMenuLabel', 'autoReloadTabLabel', 'clicktabUcatab', 'secondsLabel', 'minuteLabel', 'minutesLabel', 'generalWindowOpenLabel', 'linkTargetTab', 'linkTargetWindow', 'openDuplicateNextLabel', 'keepWindowLabel31', 'currenttabCaptionLabel', 'focusTabLabelBegin', 'focusTabFirstTab', 'focusTabLeftTab', 'focusTabRightTab', 'focusTabLastTab', 'focusTabLastSelectedTab', 'focusTabOpenerTab', 'focusTabOpenerTabRtl', 'focusTabLastOpenedTab', 'tabbarscrollingInverseLabel', 'minWidthLabel', 'widthToLabel', 'widthPixelsLabel', 'mouseHoverSelectLabelBegin', 'tabFlipLabel', 'clicktabLabel', 'doubleLabel', 'middleLabel', 'altLabel', 'clicktabNothing', 'tabbarscrollingSelectTabLabel', 'tabScrollMultibar', 'millisecondsLabel', 'mouseClickLabel', 'tabFlipDelay', 'tabCloseLabel', 'maxrowLabel', 'newTabButtonLabel', 'ssInterval', 'openTabNextLabel', 'tabbarscrollingCaption', 'showOntabLabel', 'tabFocusLabel', 'unreadTabLabel', 'textcolorLabel', 'bgColorLabel', 'speLinkAllLinks', 'speLinkLabel', 'speLinkNone', 'speLinkExternal', 'currentTabLabel', 'otherTabsLabel', 'oneLineMenuALL', 'multiRowTabs', 'tabPreview', 'searchHighlight', 'bindSelectedWindow', 'adBlockALL', 'adBlockTab', 'adBlockDomain', 'showBookmarkBarOnTopPage', 'showBookmarkBarOnMouseHover', 'oneLineMenu', 'normalScreenMode', 'fullScreenMode', 'detachThisPanel', 'convertPanelsToWindows', 'syncDatas', 'changeVPNMode', 'openOnOpposite', 'searchHighlightRecursive', 'donTLoadTabsUntillSelected', 'extractAudioFromVideo', 'changePdfViewToComic', 'changePdfViewToNormal', 'closeThisPanel', 'restartBrowser', 'browserVersion', 'chromiumVersion', 'muonVersion', 'historyOfTabs', 'trashOfTabs', 'sessionManager', 'switchSyncScroll', 'switchOpenOnOpposite', 'openSidebar', 'changeToMobileUserAgent', 'fileExplorer', 'richMediaList', 'playVideo', 'downloadAndPlayVideo', 'playInExternalVideoPlayer', 'downloadVideo', 'downloadAndConvertVideo', 'downloadVideoAndExtractAudio', 'copyVideoURL', 'fullPage|Clipboard', 'fullPage|Jpeg', 'fullPage|PNG', 'selection|Clipboard', 'selection|Jpeg', 'selection|PNG', 'hideTabs', 'terminal', 'note', 'automation', 'videoConverter', 'openLinkInNewTorTab', 'openLinkInNewWindowWithARow', 'openLinkInNewWindowWithTwoRows', 'copyPath', 'createNewFile', 'createNewDirectory', 'rename', 'delete', 'openLinkInOppositeTab', 'saveAndPlayVideo', 'sendURLToVideoPlayer', 'playVideoInPopupWindow', 'playVideoInFloatingPanel', 'addToNotes', 'copyLinks', 'downloadSelection', 'downloadAll', 'syncScrollLeftToRight', 'syncScrollRightToLeft', 'navigateToTheBookmarkPage', 'addThisPageToTheBookmarks', 'navigateToTheHistoryPage', 'saveCurrentSession', 'confirm', 'areYouSureYouWantToDeleteTheFollowingFiles', 'yes', 'no', 'menu', 'name', 'progress', 'size', 'estTime', 'speed', 'startTime', 'uRL', 'newDownload', 'pleaseEnterURLsAndSaveDirectory', 'uRLs', 'saveDirectory', 'fileName', 'attemptToFindAndDownloadVideo', 'newDL', 'start', 'cancelDL', 'removeRow', 'removeFinished', 'showFolder', 'copyURL', 'enableDownloadList', 'concurrentDownloads', 'downloadsPerServer', 'completed', 'canceled', 'openNote', 'openFileExploler', 'openTerminal', 'openAutomation', 'openVideoConverter', 'toggleMenuBar', 'changeFocusPanel', 'splitLeft', 'splitRight', 'splitTop', 'splitBottom', 'splitLeftTabsToLeft', 'splitRightTabsToRight', 'swapPosition', 'switchDirection', 'alignHorizontal', 'alignVertical', 'enableSearchHighlight', 'changeToMobileAgent', 'detachPanel', 'pasteAndOpen', 'copyTabInfo', 'copyAllTabTitles', 'copyAllTabURLs', 'copyAllTabInfos', 'fullPageCaptureToClipboard', 'fullPageCaptureAsJPEG', 'fullPageCaptureAsPNG', 'selectionCaptureToClipboard', 'selectionCaptureAsJPEG', 'selectionCaptureAsPNG', 'topPage', 'floatingPanel', 'closeThisTree', 'suggestionHistory', 'historySuggestion', 'protection', 'enableHTTPSEverywhere', 'enableTracingProtection', 'orderOfAutoComplete', 'numberOfSuggestions', 'numberOfHistories', 'sortHistoryInDescendingOrderOfPV', 'defaultSidebarPosition', 'leftSide', 'rightSide', 'bottomSide', 'sideBarLink', 'toolBarLink', 'addressBarLink', 'bookmarkBarLink', 'showChromeExtensionIconOnToolbar', 'showFullscreenButton', 'enableMouseGesture', 'enableRectangularSelection', 'maintainFullscreenModeEvenAfterPageTransition', 'cancelFullscreenModeAtPageTransition', 'showBackForwardButtonSBadge', 'showFocusLocationBarOfTopPage', 'enableBottomDownloadList', 'deleteFromDownloadListWhenDownloadIsCompleted', 'enableBehaviorChangeWhenLongPressOfMiddleMouseButton', 'enableHorizontalPositionMoving', 'enableAnythingSearch', 'sendURLToExternalMediaPlayer', 'concurrentDownload', 'maxNumberOfConnectionsPerItem', 'customWindowIcon', 'syncScrollMargin', 'bindWindowFrameMargin', 'bindWindowTitleMargin', 'deleteAllDataAndImportRestoreData', 'favicon', 'allData', 'clearDataGreaterThan30DaysAgoFromNow', 'range', 'clearAllData', 'bookmarksUserSavedSessions', 'rightClickMenuSearchEngines', 'searchMethods', 'multiSearch', 'openInAPanel', 'openIn2Panels', 'openInANewWindow', 'openInANewWindowWithARow', 'openInNewWindowWith2Rows', 'openInANewWindowWith3Rows', 'currentAndOpposite', 'current', 'opposite', 'addSearchEngine', 'almostTheSameAsChrome', 'tabBarTopMargin', 'removeTopMarginWhenMaximizing', 'openNewTabsAt', 'defaultPosition', 'leftEnd', 'rightEnd', 'openNewTabInBackground', 'oppositeMode', 'enableTabPreview', 'delayTime', 'width', 'height', 'slideHeight', 'tabPreviewImageQuality', 'displayCurrentPreview', 'circulateTabSelection', 'dashedLineWhenDragging', 'colorOfMutePinReloadIcon', 'showBottomBorderInCurrentTab', 'defaultTheme', 'darkTheme', 'data', 'sendURL', 'sendType', 'sendURLCommand', 'theme', 'mouseGesture', 'pleaseReferHereForInputMethodOfShortcut', 'mouseClick', 'mouseDoubleClick', 'mouseWheel', 'shiftMouseWheel', 'ctrlMouseWheel', 'shiftCtrlMouseWheel', 'keepValue​​inLocalStorage', 'enableKeyboardShortcut', 'blackListSites', 'rightClick', 'bookmarksSidebar', 'historySidebar', 'sessionManagerSidebar', 'trashOfTabsSidebar', 'historyOfTabsSidebar', 'fileExplorerSidebar', 'default', 'pagesToApply', 'enableSmoothScrolling', 'useSmoothScroll', 'email', 'passwordsPassword'];
@@ -74552,6 +74567,12 @@ if (window.__started_) {
   document.addEventListener('webkitfullscreenchange', fullscreenListener);
 
   setTimeout(() => {
+
+    let mouseDowned = false;
+    document.addEventListener('mousedown', e => {
+      if (e.button == 2) mouseDowned = true;
+    }, { passive: true, capture: true });
+
     document.addEventListener('contextmenu', e => {
       if (window.__no_skip_context_menu__) {
         window.__no_skip_context_menu__ = false;
@@ -74561,6 +74582,10 @@ if (window.__started_) {
       e.preventDefault();
       e.stopImmediatePropagation();
       console.log(5555, e);
+
+      if (!mouseDowned) return;
+      mouseDowned = true;
+
       const target = e.target;
       const linkURL = (target.closest('a') || target).href;
       const isFrame = window.top != window;
@@ -74646,74 +74671,98 @@ if (window.__started_) {
   }, 100);
 
   let preAElemsLength = 0;
-
-  // const visitedLinkName = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
-  //
-  // const setVisitedLinkColor = (force) => {
-  //   const aElems = document.getElementsByTagName('a')
-  //   const length = aElems.length
-  //   if(!force && preAElemsLength == length) return
-  //   preAElemsLength = length
-  //   const checkElems = {}
-  //   for (let i = 0; i < length; i++) {
-  //     const ele = aElems[i]
-  //     if(ele.classList.contains(visitedLinkName)) continue
-  //     const url = ele.href
-  //     if (url.startsWith('http')) {
-  //       let arr = checkElems[url]
-  //       if(arr){
-  //         arr.push(ele)
-  //       }
-  //       else{
-  //         checkElems[url] = [ele]
-  //       }
-  //     }
-  //   }
-  //   const urls = Object.keys(checkElems)
-  //   if(!urls.length) return
-  //
-  //   const key = Math.random().toString()
-  //   ipc.send('get-visited-links', key, urls)
-  //   ipc.on(`get-visited-links-reply_${key}`, (e, urls) => {
-  //     for (let url of urls) {
-  //       for(let ele of checkElems[url]){
-  //         ele.classList.add(visitedLinkName)
-  //       }
-  //     }
-  //   })
-  // }
-
   const openTime = Date.now();
-  if (location.href.match(/^(http|chrome\-extension)/) && window == window.parent) {
-    // require('./passwordEvents')
-    __webpack_require__(896);
-    __webpack_require__(897);
-    __webpack_require__(898);
+  if (location.href.match(/^(http|chrome\-extension)/)) {
 
-    let mdownEvent;
-    document.addEventListener('mousedown', e => {
-      mdownEvent = e;
-      ipc.send('send-to-host', 'webview-mousedown', e.button);
-    }, { passive: true, capture: true });
+    if (window == window.parent) {
+      // require('./passwordEvents')
+      __webpack_require__(896);
+      __webpack_require__(897);
+      __webpack_require__(898);
 
-    document.addEventListener('mouseup', e => {
-      ipc.send('send-to-host', 'webview-mouseup', e.button);
-      // if(mdownEvent && e.target == mdownEvent.target &&
-      //   e.button == mdownEvent.button && (e.button == 0 || e.button == 1)){
-      //   const ele = e.target.closest('a')
-      //   if(ele && ele.href.startsWith('http')){
-      //     setTimeout(()=>setVisitedLinkColor(true),200)
-      //   }
-      // }
-    }, { passive: true, capture: true });
+      let mdownEvent;
+      document.addEventListener('mousedown', e => {
+        mdownEvent = e;
+        ipc.send('send-to-host', 'webview-mousedown', e.button);
+      }, { passive: true, capture: true });
+
+      document.addEventListener('mouseup', e => {
+        ipc.send('send-to-host', 'webview-mouseup', e.button);
+        // if(mdownEvent && e.target == mdownEvent.target &&
+        //   e.button == mdownEvent.button && (e.button == 0 || e.button == 1)){
+        //   const ele = e.target.closest('a')
+        //   if(ele && ele.href.startsWith('http')){
+        //     setTimeout(()=>setVisitedLinkColor(true),200)
+        //   }
+        // }
+      }, { passive: true, capture: true });
+
+      document.addEventListener('mouseleave', e => {
+        ipc.send('send-to-host', 'webview-mousemove', { clientY: e.clientY, screenY: e.screenY,
+          activeText: document.activeElement.tagName == 'INPUT' && document.activeElement.type == 'text' });
+      });
+
+      window.addEventListener("beforeunload", e => {
+        ipc.send('fullscreen-change', false, 1000);
+        ipc.send('send-to-host', 'scroll-position', { x: window.scrollX, y: window.scrollY });
+        ipc.send('contextmenu-webContents-close');
+      });
+
+      document.addEventListener("DOMContentLoaded", _ => {
+        // const visitedStyle = require('./visitedStyle')
+        // setTimeout(()=> visitedStyle(`.${visitedLinkName}`), 0)
+        // setVisitedLinkColor()
+        // setInterval(()=>setVisitedLinkColor(),1000)
+        // const key = Math.random().toString()
+        // ipc.send('need-get-inner-text',key)
+        // ipc.once(`need-get-inner-text-reply_${key}`,(e,result)=>{
+        //   if(result) ipc.send('get-inner-text',location.href,document.title,document.documentElement.innerText)
+        // })
+        if (location.href.startsWith('https://chrome.google.com/webstore')) {
+          setInterval(_ => {
+            const ele = document.querySelector(".h-e-f-Ra-c.e-f-oh-Md-zb-k");
+            if (ele && !ele.innerHTML) {
+              ele.innerHTML = `<div role="button" class="dd-Va g-c-wb g-eg-ua-Uc-c-za g-c-Oc-td-jb-oa g-c g-c-Sc-ci" aria-label="add to chrome" tabindex="0" style="user-select: none;"><div class="g-c-Hf"><div class="g-c-x"><div class="g-c-R webstore-test-button-label">add to chrome</div></div></div></div>`;
+              ele.querySelector(".dd-Va.g-c-wb.g-eg-ua-Uc-c-za.g-c-Oc-td-jb-oa.g-c.g-c-Sc-ci").addEventListener('click', _ => ipc.send('add-extension', { id: location.href.split("/").slice(-1)[0].split("?")[0] }));
+            }
+            let buttons = document.querySelectorAll(".dd-Va.g-c-wb.g-eg-ua-Kb-c-za.g-c-Oc-td-jb-oa.g-c");
+            if (buttons && buttons.length) {
+              for (let button of buttons) {
+                const loc = button.parentNode.parentNode.parentNode.parentNode.href.split("/").slice(-1)[0].split("?")[0];
+                const parent = button.parentNode;
+                parent.innerHTML = `<div role="button" class="dd-Va g-c-wb g-eg-ua-Kb-c-za g-c-Oc-td-jb-oa g-c" aria-label="add to chrome" tabindex="0" style="user-select: none;"><div class="g-c-Hf"><div class="g-c-x"><div class="g-c-R webstore-test-button-label">add to chrome</div></div></div></div>`;
+                parent.querySelector(".dd-Va.g-c-wb.g-eg-ua-Kb-c-za.g-c-Oc-td-jb-oa.g-c").addEventListener('click', e => {
+                  e.stopImmediatePropagation();
+                  e.preventDefault();
+                  ipc.send('add-extension', { id: loc });
+                }, true);
+              }
+            }
+          }, 1000);
+        } else if (location.href.match(/^https:\/\/addons\.mozilla\.org\/.+?\/firefox/) && !document.querySelector('.Badge.Badge-not-compatible')) {
+          let url;
+          const func = _ => ipc.send('add-extension', { url });
+          setInterval(_ => {
+            const b = document.querySelector('.Button--action.Button--puffy:not(.Button--disabled)');
+            if (!b) return;
+            if (b.href != 'javascript:void(0)') url = b.href;
+
+            b.innerText = 'Add to Sushi';
+            b.addEventListener('click', func);
+            b.href = 'javascript:void(0)';
+          }, 1000);
+        }
+      });
+    }
 
     let preClientY = -1,
         checkVideoEvent = {},
         beforeRemoveIds = {};
     document.addEventListener('mousemove', e => {
       // console.log('mousemove')
-      if (preClientY != e.clientY) {
-        ipc.send('send-to-host', 'webview-mousemove', e.clientY);
+      if (window == window.parent && preClientY != e.clientY) {
+        ipc.send('send-to-host', 'webview-mousemove', { clientY: e.clientY, screenY: e.screenY,
+          activeText: document.activeElement.tagName == 'INPUT' && document.activeElement.type == 'text' });
         // console.log('webview-mousemove', e.clientY)
         preClientY = e.clientY;
       }
@@ -74765,6 +74814,7 @@ if (window.__started_) {
         const v = target;
         const func = () => {
 
+          console.log('func');
           const existElement = document.querySelector("#maximize-org-video");
           if (existElement) {
             clearTimeout(beforeRemoveIds[target]);
@@ -74782,8 +74832,8 @@ if (window.__started_) {
 
           document.body.appendChild(span);
 
-          span.addEventListener('click', () => {
-            maximizeInPanel(v);
+          span.addEventListener('click', async () => {
+            await maximizeInPanel(v);
             const rect = v.getBoundingClientRect();
             span.style.left = `${Math.round(rect.left) + 10}px`;
             span.style.top = `${Math.round(rect.top) + 10}px`;
@@ -74800,12 +74850,14 @@ if (window.__started_) {
 
         document.addEventListener('mousemove', e => {
           const r = v.getBoundingClientRect();
+          console.log(r.left, r.top, r.width, r.height, e.clientX, e.clientY);
           if (pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)) {
             func();
           }
         });
         document.addEventListener('mouseleave', e2 => {
           const r = v.getBoundingClientRect();
+          console.log(r.left, r.top, r.width, r.height, e.clientX, e.clientY);
           if (pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)) {
             const existElement = document.querySelector("#maximize-org-video");
             if (existElement && e2.toElement != existElement) {
@@ -74817,110 +74869,18 @@ if (window.__started_) {
         func();
       }
     }, { passive: true, capture: true });
-
-    window.addEventListener("beforeunload", e => {
-      ipc.send('send-to-host', 'scroll-position', { x: window.scrollX, y: window.scrollY });
-      ipc.send('contextmenu-webContents-close');
-      ipc.send('fullscreen-change', false, 1000);
-    });
-
-    document.addEventListener("DOMContentLoaded", _ => {
-      // const visitedStyle = require('./visitedStyle')
-      // setTimeout(()=> visitedStyle(`.${visitedLinkName}`), 0)
-      // setVisitedLinkColor()
-      // setInterval(()=>setVisitedLinkColor(),1000)
-      // const key = Math.random().toString()
-      // ipc.send('need-get-inner-text',key)
-      // ipc.once(`need-get-inner-text-reply_${key}`,(e,result)=>{
-      //   if(result) ipc.send('get-inner-text',location.href,document.title,document.documentElement.innerText)
-      // })
-      if (location.href.startsWith('https://chrome.google.com/webstore')) {
-        setInterval(_ => {
-          const ele = document.querySelector(".h-e-f-Ra-c.e-f-oh-Md-zb-k");
-          if (ele && !ele.innerHTML) {
-            ele.innerHTML = `<div role="button" class="dd-Va g-c-wb g-eg-ua-Uc-c-za g-c-Oc-td-jb-oa g-c g-c-Sc-ci" aria-label="add to chrome" tabindex="0" style="user-select: none;"><div class="g-c-Hf"><div class="g-c-x"><div class="g-c-R webstore-test-button-label">add to chrome</div></div></div></div>`;
-            ele.querySelector(".dd-Va.g-c-wb.g-eg-ua-Uc-c-za.g-c-Oc-td-jb-oa.g-c.g-c-Sc-ci").addEventListener('click', _ => ipc.send('add-extension', { id: location.href.split("/").slice(-1)[0].split("?")[0] }));
-          }
-          let buttons = document.querySelectorAll(".dd-Va.g-c-wb.g-eg-ua-Kb-c-za.g-c-Oc-td-jb-oa.g-c");
-          if (buttons && buttons.length) {
-            for (let button of buttons) {
-              const loc = button.parentNode.parentNode.parentNode.parentNode.href.split("/").slice(-1)[0].split("?")[0];
-              const parent = button.parentNode;
-              parent.innerHTML = `<div role="button" class="dd-Va g-c-wb g-eg-ua-Kb-c-za g-c-Oc-td-jb-oa g-c" aria-label="add to chrome" tabindex="0" style="user-select: none;"><div class="g-c-Hf"><div class="g-c-x"><div class="g-c-R webstore-test-button-label">add to chrome</div></div></div></div>`;
-              parent.querySelector(".dd-Va.g-c-wb.g-eg-ua-Kb-c-za.g-c-Oc-td-jb-oa.g-c").addEventListener('click', e => {
-                e.stopImmediatePropagation();
-                e.preventDefault();
-                ipc.send('add-extension', { id: loc });
-              }, true);
-            }
-          }
-        }, 1000);
-      } else if (location.href.match(/^https:\/\/addons\.mozilla\.org\/.+?\/firefox/) && !document.querySelector('.Badge.Badge-not-compatible')) {
-        let url;
-        const func = _ => ipc.send('add-extension', { url });
-        setInterval(_ => {
-          const b = document.querySelector('.Button--action.Button--puffy:not(.Button--disabled)');
-          if (!b) return;
-          if (b.href != 'javascript:void(0)') url = b.href;
-
-          b.innerText = 'Add to Sushi';
-          b.addEventListener('click', func);
-          b.href = 'javascript:void(0)';
-        }, 1000);
-      }
-    });
     // setInterval(()=>setVisitedLinkColor(),1000)
   }
-
-  // function handleDragEnd(evt) {
-  //   console.log(evt)
-  //   const target = evt.target
-  //   if(!target) return
-  //
-  //   let url,text
-  //   if(target.href){
-  //     url = target.href
-  //     text = target.innerText
-  //   }
-  //   else if(target.nodeName == "#text"){
-  //     ipc.send('send-to-host', "link-drop",{screenX: evt.screenX, screenY: evt.screenY, text:window.getSelection().toString() || target.data})
-  //   }
-  //   else{
-  //     const parent = target.closest("a")
-  //     if(parent){
-  //       url = parent.href
-  //       text = target.innerText
-  //     }
-  //     else{
-  //       url = target.src
-  //       text = target.getAttribute('alt')
-  //     }
-  //   }
-  //
-  //   ipc.send('send-to-host', "link-drop",{screenX: evt.screenX, screenY: evt.screenY, url,text})
-  // }
-  // if(location.href.match(/^chrome-extension:\/\/dckpbojndfoinamcdamhkjhnjnmjkfjd\/(favorite|favorite_sidebar)\.html/)){
-  //   console.log("favorite")
-  //   document.addEventListener("drop", e=>{
-  //     e.preventDefault()
-  //     e.stopImmediatePropagation()
-  //     console.log('drop',e)
-  //   }, false)
-  //
-  //   document.addEventListener("dragend", function( event ) {
-  //     event.preventDefault();
-  //     event.stopImmediatePropagation()
-  //     console.log('dragend',event)
-  //   }, false);
-  // }
-  // else{
-  // document.addEventListener('dragend', handleDragEnd, false)
-  // }
 
   const gaiseki = (ax, ay, bx, by) => ax * by - bx * ay;
   const pointInCheck = (X, Y, W, H, PX, PY) => gaiseki(-W, 0, PX - W - X, PY - Y) < 0 && gaiseki(0, H, PX - X, PY - Y) < 0 && gaiseki(W, 0, PX - X, PY - Y - H) < 0 && gaiseki(0, -H, PX - W - X, PY - H - Y) < 0;
 
-  function maximizeInPanel(v, enable) {
+  async function maximizeInPanel(v, enable, isIframe) {
+    if (window != window.parent) {
+      chrome.runtime.sendMessage({ event: 'maximizeInPanel-fromIframe', enable, href: location.href, width: window.innerWidth, height: window.innerHeight });
+      // await new Promise(r=>setTimeout(r,500))
+    }
+
     if (enable == null) {
       enable = !v._olds_;
     }
@@ -74945,7 +74905,20 @@ if (window.__started_) {
       v._olds_.border = v.style.border;
       v._olds_.outline = v.style.outline;
 
-      v.setAttribute('controls', true);
+      if (!isIframe) {
+        v._clickCallback_ = async () => {
+          for (let i = 0; i < 10; i++) {
+            v.setAttribute('controls', true);
+            await new Promise(r => setTimeout(r, 100));
+          }
+        };
+        v.addEventListener('click', v._clickCallback_);
+
+        v.setAttribute('controls', true);
+      } else {
+        v.setAttribute('_key_', 'video');
+      }
+
       document.body.style.setProperty('overflow', 'hidden', 'important');
 
       v.style.setProperty('width', '100vw', 'important');
@@ -74965,15 +74938,19 @@ if (window.__started_) {
       v.style.setProperty('border', '0', 'important');
       v.style.setProperty('outline', '0', 'important');
 
-      v._olds_.parentNode = v.parentNode;
+      if (!isIframe) {
+        v._olds_.parentNode = v.parentNode;
 
-      const replaceNode = document.createElement('span');
-      v.parentNode.insertBefore(replaceNode, v);
+        const replaceNode = document.createElement('span');
+        v.parentNode.insertBefore(replaceNode, v);
 
-      v._olds_.replaceNode = replaceNode;
+        v._olds_.replaceNode = replaceNode;
 
-      document.documentElement.insertBefore(v, document.body);
+        document.documentElement.insertBefore(v, document.body);
+      }
     } else {
+      v.removeEventListener('click', v._clickCallback_);
+
       v.controls = v._olds_.controls;
       document.body.style.overflow = v._olds_.bodyOverflow;
       v.style.width = v._olds_.width;
@@ -74992,9 +74969,12 @@ if (window.__started_) {
       v.style.border = v._olds_.border;
       v.style.outline = v._olds_.outline;
 
-      v._olds_.parentNode.replaceChild(v, v._olds_.replaceNode);
+      if (!isIframe) {
+        v._olds_.parentNode.replaceChild(v, v._olds_.replaceNode);
+      }
 
       delete v._olds_;
+      delete v._clickCallback_;
     }
   }
 
@@ -75027,7 +75007,7 @@ if (window.__started_) {
       if (Object.keys(addInput).length || !codeSet.has(e.keyCode)) {
         const name = mainState[JSON.stringify(_extends({ code: e.code.toLowerCase().replace('arrow', '').replace('escape', 'esc') }, addInput))] || mainState[JSON.stringify(_extends({ key: e.key.toLowerCase().replace('arrow', '').replace('escape', 'esc') }, addInput))];
         if (name) {
-          ipc.send('menu-or-key-events', name);
+          ipc.send('menu-command', name.split("_")[0]);
           console.log(name);
           e.preventDefault();
           e.stopImmediatePropagation();
@@ -75058,72 +75038,10 @@ if (window.__started_) {
   }
 
   const key = Math.random().toString();
-  ipc.send("get-main-state", key, ['tripleClick', 'alwaysOpenLinkNewTab', 'themeColorChange', 'isRecording', 'isVolumeControl', 'keepAudioSeekValueVideo', 'rectangularSelection', 'fullscreenTransitionKeep', 'fullScreen', 'rockerGestureLeft', 'rockerGestureRight', 'inputHistory', 'inputHistoryMaxChar', 'hoverStatusBar', 'hoverBookmarkBar', 'ALL_KEYS2']);
+  ipc.send("get-main-state", key, ['tripleClick', 'alwaysOpenLinkNewTab', 'themeColorChange', 'isRecording', 'isVolumeControl', 'keepAudioSeekValueVideo', 'rectangularSelection', 'fullscreenTransitionKeep', 'fullScreen', 'rockerGestureLeft', 'rockerGestureRight', 'inputHistory', 'inputHistoryMaxChar', 'hoverStatusBar', 'hoverBookmarkBar', 'ALL_KEYS2', 'protectTab']);
   ipc.once(`get-main-state-reply_${key}`, (e, data) => {
     mainState = data;
-    if (data.fullscreenTransitionKeep) {
-      let full = data.fullScreen ? true : false;
-      let preV = "_";
-      setInterval(_ => {
-        const v = document.querySelector('video');
-        if (full && v && v.src && v.src != preV) {
-          if (v.scrollWidth == window.innerWidth || v.scrollHeight == window.innerHeight || v.webkitDisplayingFullscreen) {} else {
-            const fullscreenButton = document.querySelector('.ytp-fullscreen-button,.fullscreenButton,.button-bvuiFullScreenOn,.fullscreen-icon,.full-screen-button,.np_ButtonFullscreen,.vjs-fullscreen-control,.qa-fullscreen-button,[data-testid="fullscreen_control"],.vjs-fullscreen-control,.EnableFullScreenButton,.DisableFullScreenButton,.mhp1138_fullscreen,button.fullscreenh,.screenFullBtn,.player-fullscreenbutton');
-            if (fullscreenButton) {
-              const callback = e => {
-                e.stopImmediatePropagation();
-                e.preventDefault();
-                document.removeEventListener('mouseup', callback, true);
-                fullscreenButton.click();
-                if (location.href.startsWith('https://www.youtube.com')) {
-                  let retry = 0;
-                  const id = setInterval(_ => {
-                    if (retry++ > 500) clearInterval(id);
-                    const e = document.querySelector('.html5-video-player').classList;
-                    if (!e.contains('ytp-autohide')) {
-                      // e.add('ytp-autohide')
-                      if (document.querySelector('.ytp-fullscreen-button.ytp-button').getAttribute('aria-expanded') == 'true') {
-                        v.click();
-                      }
-                    }
-                  }, 10);
-                }
-              };
-              document.addEventListener('mouseup', callback, true);
-              setTimeout(_ => ipc.send('send-to-host', 'full-screen-mouseup'), 500);
-            } else {
-              const callback = e => {
-                e.stopImmediatePropagation();
-                e.preventDefault();
-                document.removeEventListener('mouseup', callback, true);
-                v.webkitRequestFullscreen();
-              };
-              let i = 0;
-              const cId = setInterval(_ => {
-                document.addEventListener('mouseup', callback, true);
-                ipc.send('send-to-host', 'full-screen-mouseup');
-                if (i++ == 5) {
-                  clearInterval(cId);
-                }
-              }, 100);
-            }
-          }
-          preV = v.src;
-        }
 
-        if (v && v.src) {
-          const currentFull = v.scrollWidth == window.innerWidth || v.scrollHeight == window.innerHeight || v.webkitDisplayingFullscreen;
-          if (v && full != currentFull) {
-            full = currentFull;
-            if (full) {
-              ipc.send("full-screen-html", true);
-            } else {
-              ipc.send("full-screen-html", false);
-            }
-          }
-        }
-      }, 500);
-    }
     if (data.tripleClick) {
       window.addEventListener('click', e => {
         if (e.detail === 3) {
@@ -75205,6 +75123,11 @@ if (window.__started_) {
         }
       });
     }
+    // if(data.protectTab){
+    //   if(window._unloadEvent_) return
+    //   window._unloadEvent_ = e => e.returnValue = ''
+    //   window.addEventListener("beforeunload", window._unloadEvent_)
+    // }
     if (data.isRecording) {
       Function(data.isRecording)();
     }
@@ -75613,6 +75536,23 @@ if (window.__started_) {
       streamFunc(inputs.val);
     } else if (inputs.video) {
       videoFunc({}, inputs.val);
+    } else if (inputs.maximizeInPanel) {
+      if (window == window.parent) {
+        const iframes = document.querySelectorAll('iframe');
+        for (const iframe of iframes) {
+          if (iframe._key_ == 'video' || iframe.src == inputs.href) {
+            maximizeInPanel(iframe, inputs.enable, true);
+            return false;
+          }
+        }
+        for (const iframe of iframes) {
+          const rect = iframe.getBoundingClientRect();
+          if (Math.round(rect.width) == inputs.width || Math.round(rect.height) == inputs.height) {
+            maximizeInPanel(iframe, inputs.enable, true);
+            return false;
+          }
+        }
+      }
     }
     return false;
   });
@@ -75678,11 +75618,13 @@ const ipc = chrome.ipcRenderer;
 const isWin = navigator.userAgent.includes('Windows');
 
 if (!isWin) {
-  const handleMouseUp = e => {
+  const handleMouseUp = (e, props) => {
     const eventMoveHandler = e2 => {
       console.log(e2);
-      ipc.send('context-menu-move');
-      document.removeEventListener('mousemove', eventMoveHandler, { passive: true, capture: true });
+      if (Math.abs(e2.x - props.x) + Math.abs(e2.y - props.y) > 5) {
+        ipc.send('context-menu-move', { x: e2.x, y: e2.y });
+        document.removeEventListener('mousemove', eventMoveHandler, { passive: true, capture: true });
+      }
     };
     const eventUpHandler = e2 => {
       console.log(e2);

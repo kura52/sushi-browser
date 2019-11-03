@@ -26,43 +26,29 @@ const glob = require("glob")
 // Fugu(Blowfish)
 // Akamutsu(Rosy seabass)
 
-const BEFORE_CODE_NAME = 'Yariika(Spear squid)'
+const BEFORE_CODE_NAME = 'Saba(Mackerel)'
 const CODE_NAME = 'Saba(Mackerel)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.28.0"
+const NEXT_APP_VERSION = "0.28.1"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH =`Fixed a bug that bookmarks cannot be sorted.
-Improved startup stability when registering many Chrome extensions.
-Fixed a bug in Context Menu of Chrome extension.
-Fixed window resizing bug.
-Fixed a bug of tab selection by mouse scroll.
-Fixed a bug that URL is updated when focus is removed while typing in the address bar.
-Fixed a malfunction when focusing the address bar.
-Fixed a bug that the tool page is a translation page target.
-Fixed a bug that does not work when Chrome extension CSP is set. (Custom Chromium edition only)
-Fixed a bug that doesn't work when Event Page of Chrome extension is set. (Custom Chromium edition only)
-Fixed a bug that volume cannot be changed on a specific page. (Custom Chromium edition only)
-Fixed bugs related to resizing of Linux edition.
-Added Custom Brave edition to Windows edition.
-Updated Custom Chromium to 78.0.3904.70.
-Updated youtube-dl to 2019.10.22.`
+const CHANGE_ENGLISH =`Fixed not to forcibly close Chrome when the browser is closed.
+Fixed bugs related to video maximization.
+Fixed a bug when closing a tab at the same time as creating it.
+Fixed a bug related to tab movement.
+Fixed a bug in full screen mode.
+Added Open new tab in background in main menu.
+Fixed a bug in session saving.
+Fixed bugs in custom window icons.`
 
-const CHANGE_JAPANESE = `ブックマークがソートできない不具合を修正。
-Chrome拡張を多数登録した場合の、起動時の安定性を向上。
-Chrome拡張のContext Menuの不具合を修正。
-ウインドウのサイズ変更の不具合を修正。
-マウススクロールによるタブ選択の不具合を修正。
-アドレスバーに入力中にフォーカスを外した際に、URLが更新される不具合を修正。
-アドレスバーのフォーカス時の動作不具合を修正。
-ツールページが翻訳ページ対象になる不具合を修正。
-Chrome拡張のCSP設定がされていると、動作しない不具合を修正。(Custom Chromium版のみ)
-Chrome拡張のEvent Pageが設定されていると、動作しない不具合を修正。(Custom Chromium版のみ)
-音量変更が特定のページでできない不具合を修正。(Custom Chromium版のみ)
-Linux版のサイズ変更に関わる不具合を修正。
-Windows版にCustom Brave版を追加。
-Custom Chromiumを78.0.3904.70に更新。
-youtube-dlを2019.10.22に更新。`
+const CHANGE_JAPANESE = `ブラウザ終了した際に、Chromeを強制的に終了しないように修正。
+videoの最大化に関する不具合の修正。
+タブを作成と同時に閉じた場合の不具合を修正。
+タブ移動に関する不具合を修正。
+フルスクリーンモードの不具合を修正。
+メインメニューにバックグラウンドに新しいタブを開くを追加。
+セッション保存の不具合を修正。
+カスタムウインドウアイコンの不具合を修正。`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'
@@ -162,7 +148,7 @@ if(!fs.readFileSync(path.join(pwd,'ja/README.md')).includes(`v${NEXT_APP_VERSION
 
 if(!fs.readFileSync(path.join(pwd,'../web/index.html')).includes(`v${NEXT_APP_VERSION2}`)){
   fileContentsReplace(path.join(pwd,'../web/index.html'),'<!-- REPLACE -->',`<!-- REPLACE -->
-								<h4 class="features-tittle" style="padding-top: 20px;">New function(v${NEXT_APP_VERSION2})</h4>
+								<h4 class="features-tittle" style="padding-top: 20px;">New function(v${NEXT_APP_VERSION2})&nbsp;[${formatDate(new Date()).replace(/\-/g,'/')}]</h4>
 								<div style="text-align: left;line-height: inherit;width: 75%;margin: auto;border-bottom: 1px solid #dedede;">
 									<p>${orderAdd(CHANGE_ENGLISH).split("\n").join("</p>\n\t\t\t\t\t\t\t\t\t<p>")}</p>
 								</div>`)
@@ -170,7 +156,7 @@ if(!fs.readFileSync(path.join(pwd,'../web/index.html')).includes(`v${NEXT_APP_VE
 
 if(!fs.readFileSync(path.join(pwd,'../web/ja/index.html')).includes(`v${NEXT_APP_VERSION2}`)){
   fileContentsReplace(path.join(pwd,'../web/ja/index.html'),'<!-- REPLACE -->',`<!-- REPLACE -->
-								<h4 class="features-tittle" style="padding-top: 20px;">新機能(v${NEXT_APP_VERSION2})</h4>
+								<h4 class="features-tittle" style="padding-top: 20px;">新機能(v${NEXT_APP_VERSION2})&nbsp;[${formatDate(new Date()).replace(/\-/g, '/')}]</h4>
 								<div style="text-align: left;line-height: inherit;width: 75%;margin: auto;border-bottom: 1px solid #dedede;">
 									<p>${orderAdd(CHANGE_JAPANESE).split("\n").join("</p>\n\t\t\t\t\t\t\t\t\t<p>")}</p>
 								</div>`)
@@ -178,7 +164,7 @@ if(!fs.readFileSync(path.join(pwd,'../web/ja/index.html')).includes(`v${NEXT_APP
 
 if(!fs.readFileSync(path.join(pwd,'../web/download.html')).includes(`v${NEXT_APP_VERSION2}`)){
   fileContentsReplace(path.join(pwd,'../web/download.html'),'<!-- REPLACE -->',`<!-- REPLACE -->
-						<h4 class="features-tittle">New function(v${NEXT_APP_VERSION2})</h4>
+						<h4 class="features-tittle">New function(v${NEXT_APP_VERSION2})&nbsp;[${formatDate(new Date()).replace(/\-/g, '/')}]</h4>
 						<div style="text-align: left;line-height: inherit;width: 75%;margin: auto;border-bottom: 1px solid #dedede;">
 							<p>${orderAdd(CHANGE_ENGLISH).split("\n").join("</p>\n\t\t\t\t\t\t\t<p>")}</p>
 						</div>`)
@@ -186,7 +172,7 @@ if(!fs.readFileSync(path.join(pwd,'../web/download.html')).includes(`v${NEXT_APP
 
 if(!fs.readFileSync(path.join(pwd,'../web/ja/download.html')).includes(`v${NEXT_APP_VERSION2}`)){
   fileContentsReplace(path.join(pwd,'../web/ja/download.html'),'<!-- REPLACE -->',`<!-- REPLACE -->
-						<h4 class="features-tittle">新機能(v${NEXT_APP_VERSION2})</h4>
+						<h4 class="features-tittle">新機能(v${NEXT_APP_VERSION2})&nbsp;[${formatDate(new Date()).replace(/\-/g, '/')}]</h4>
 						<div style="text-align: left;line-height: inherit;width: 75%;margin: auto;">
 							<p>${orderAdd(CHANGE_JAPANESE).split("\n").join("</p>\n\t\t\t\t\t\t\t<p>")}</p>
 						</div>`)
