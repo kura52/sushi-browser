@@ -378,8 +378,8 @@ export default class BrowserNavbarLocation extends Component {
     if(e.button == 2 || !this.mouseDown || this.button !== e.button) return
     this.mouseDown = void 0
     this.button = void 0
-    if(e.button == 0 && this.mouseDownPos > 0 && e.target.selectionStart  == 0 &&  e.target.selectionEnd == 0){
-      console.log(e.button, this.mouseDownPos)
+    if(e.button == 0 && this.mouseDownPos > 0 && e.target.selectionStart  == 0 && e.target.selectionEnd == 0){
+      console.log(865975,e.button, this.mouseDownPos)
       e.target.click()
     }
     else if(e.button == 1){
@@ -398,6 +398,8 @@ export default class BrowserNavbarLocation extends Component {
       this.tokenMouseDown = PubSub.subscribe('webview-mousedown',(msg,e)=>this.outerClick(e))
     }
     this.mouseDownPos = void 0
+
+    e.preventDefault()
   }
 
   outerClick(e){

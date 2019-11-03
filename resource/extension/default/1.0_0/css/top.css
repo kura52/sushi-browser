@@ -477,3 +477,7 @@ canvas.drag-image{
 .bookmark-right-arrow {
     color: black;
 }
+
+.fa-angle-double-right:before {
+    vertical-align: 2px;
+}

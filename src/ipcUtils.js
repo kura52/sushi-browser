@@ -2697,7 +2697,7 @@ ipcMain.on('change-browser-view-z-index', (e, isFrame, panelKey, force) =>{
   const win = BrowserWindow.fromWebContents(e.sender)
   if(!win || win.isDestroyed()) return
 
-  console.log('change-browser-view-z-index', isFrame, panelKey, force)
+  // console.log('change-browser-view-z-index', isFrame, panelKey, force)
   // console.log('change-browser-view-z-index', isFrame, bvZindexMap[win])
   if(force){
     BrowserPanel.getBrowserPanelsFromBrowserWindow(win)[0].setAlwaysOnTop(!isFrame)
