@@ -135,7 +135,7 @@ export default class BrowserPanel {
       // }
       for (let tabId of moveTabIds) {
         const [_1, _2, panel, bv] = BrowserPanel.getBrowserPanelByTabId(tabId)
-        if (destPanelKey != panel.panelKey) bv.webContents.hostWebContents2.send('chrome-tabs-event', { tabId, changeInfo: {panelKey: panel.panelKey}}, 'removed')
+        if (destPanelKey != panel.panelKey) setTimeout(()=>panel.browserWindow.webContents.send('chrome-tabs-event', { tabId, changeInfo: {panelKey: panel.panelKey}}, 'removed'),100)
         bv.destroy(false)
       }
       const tabs = await Browser.bg.evaluate((tabIds, moveProperties) => {
@@ -171,7 +171,7 @@ export default class BrowserPanel {
           if(panel) break
         }
       }
-      if (destPanelKey != panel.panelKey) bv.webContents.hostWebContents2.send('chrome-tabs-event', { tabId: moveTabIds[0], changeInfo: {panelKey: panel.panelKey}}, 'removed')
+      if (destPanelKey != panel.panelKey) setTimeout(()=>panel.browserWindow.webContents.send('chrome-tabs-event', { tabId: moveTabIds[0], changeInfo: {panelKey: panel.panelKey}}, 'removed'),100)
       bv.destroy(false)
       console.log(2224)
       const destPanel = await new BrowserPanel({ browserWindow, panelKey: destPanelKey, tabKey, tabId: moveTabIds[0], bounds })
@@ -180,7 +180,7 @@ export default class BrowserPanel {
       if (moveTabIds.length > 1) {
         for (let tabId of moveTabIds.slice(1)) {
           const [_1, _2, panel, bv] = BrowserPanel.getBrowserPanelByTabId(tabId, destPanelKey)
-          if (destPanelKey != panel.panelKey) bv.webContents.hostWebContents2.send('chrome-tabs-event', { tabId, changeInfo: {panelKey: panel.panelKey}}, 'removed')
+          if (destPanelKey != panel.panelKey) setTimeout(()=>panel.browserWindow.webContents.send('chrome-tabs-event', { tabId, changeInfo: {panelKey: panel.panelKey}}, 'removed'),100)
           bv.destroy(false)
         }
         const tabs = await Browser.bg.evaluate((tabIds, moveProperties) => {
@@ -544,7 +544,7 @@ export default class BrowserPanel {
     console.log(5555555, Object.keys(this.tabKeys).length)
     if (!Object.keys(this.tabKeys).length) {
       delete BrowserPanel.panelKeys[this.panelKey]
-      this.cpWin.nativeWindow.destroyWindow()
+      if(!Browser.CUSTOM_CHROMIUM) this.cpWin.nativeWindow.destroyWindow()
     }
   }
 
@@ -689,12 +689,14 @@ export default class BrowserPanel {
     if (BrowserPanel.contextMenuShowing || !this.checkNeedMoveTop()) return
     // const now = Date.now()
 
-    console.log('moveTopNativeWindowBW()')
+    console.log('moveTopNativeWindowBW()',this.browserWindow._alwaysOnTop)
 
     // if(!this.moveTopCache || now - this.moveTopCache > 30){
     //   this.moveTopCache = now
       this.cpWin.nativeWindowBw.moveTop()
-      if(this.browserWindow._alwaysOnTop) this.cpWin.nativeWindowBw.setWindowPos(winctl.HWND.TOPMOST, 0, 0, 0, 0, 83)
+      if(this.browserWindow._alwaysOnTop){
+        this.cpWin.nativeWindowBw.setWindowPos(winctl.HWND.TOPMOST, 0, 0, 0, 0, 83)
+      }
     // }
   }
 

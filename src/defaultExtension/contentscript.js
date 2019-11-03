@@ -291,19 +291,20 @@ if(window.__started_){
           const existElement = document.querySelector("#maximize-org-video")
           if(existElement){
             clearTimeout(beforeRemoveIds[target])
-            beforeRemoveIds[target] = setTimeout(_=>document.body.removeChild(existElement),2000)
+            beforeRemoveIds[target] = setTimeout(_=>document.documentElement.removeChild(existElement),2000)
             return
           }
 
           const rect = v.getBoundingClientRect()
-          const rStyle = `left:${Math.round(rect.left) + 10}px;top:${Math.round(rect.top) + 10}px`
+          const rStyle = `left:${Math.round(rect.left) + 10 + window.scrollX}px;top:${Math.round(rect.top) + 10 + window.scrollY}px`
 
           const span = document.createElement("span")
           span.innerHTML = v._olds_ ? 'Normal' : 'Maximize'
           span.style.cssText = `${rStyle};z-index: 2147483647;position: absolute;overflow: hidden;border-radius: 8px;background: rgba(50,50,50,0.9);text-shadow: 0 0 2px rgba(0,0,0,.5);transition: opacity .1s cubic-bezier(0.0,0.0,0.2,1);margin: 0;border: 0;font-size: 14px;color: white;padding: 4px 7px;`;
           span.setAttribute("id", "maximize-org-video")
 
-          document.body.appendChild(span)
+          // document.body.appendChild(span)
+          document.documentElement.insertBefore(span, document.body)
 
           span.addEventListener('click', async ()=> {
             await maximizeInPanel(v)
@@ -312,30 +313,32 @@ if(window.__started_){
             span.style.top = `${Math.round(rect.top) + 10}px`
             span.innerText = v._olds_ ? 'Normal' : 'Maximize'
             clearTimeout(beforeRemoveIds[target])
-            document.body.removeChild(span)
+            document.documentElement.removeChild(span)
           })
 
           span.addEventListener('mouseenter', () => span.style.background = 'rgba(80,80,80,0.9)')
           span.addEventListener('mouseleave', () => span.style.background = 'rgba(50,50,50,0.9)')
 
-          beforeRemoveIds[target] = setTimeout(_=>document.body.removeChild(span),2000)
+          beforeRemoveIds[target] = setTimeout(_=>document.documentElement.removeChild(span),2000)
         }
 
         document.addEventListener('mousemove', e => {
           const r =  v.getBoundingClientRect()
-          console.log(r.left, r.top, r.width, r.height, e.clientX, e.clientY)
+          // console.log(r.left, r.top, r.width, r.height, e.clientX, e.clientY)
           if(pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)){
             func()
           }
         })
-        document.addEventListener('mouseleave', e2 =>{
+        document.addEventListener('mouseout', e2 =>{
+          if(e2.target != v) return
+          console.log('mouseout',e2)
           const r =  v.getBoundingClientRect()
           console.log(r.left, r.top, r.width, r.height, e.clientX, e.clientY)
           if(pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)){
             const existElement = document.querySelector("#maximize-org-video")
             if(existElement && e2.toElement != existElement){
               clearTimeout(beforeRemoveIds[target])
-              document.body.removeChild(existElement)
+              document.documentElement.removeChild(existElement)
             }
           }
         })
@@ -741,7 +744,7 @@ if(window.__started_){
 
     const popUp = (v,text)=>{
       const rect = v.getBoundingClientRect()
-      const rStyle = `left:${Math.round(rect.left)+20}px;top:${Math.round(rect.top)+20}px`
+      const rStyle = `left:${Math.round(rect.left)+20+window.scrollX}px;top:${Math.round(rect.top)+20+window.scrollY}px`
 
       const span = document.createElement("span")
       span.innerHTML = text
@@ -749,10 +752,10 @@ if(window.__started_){
       span.setAttribute("id", "popup-org-video")
       const existElement = document.querySelector("#popup-org-video")
       if(existElement){
-        document.body.removeChild(existElement)
+        document.documentElement.removeChild(existElement)
       }
-      document.body.appendChild(span)
-      setTimeout(_=>document.body.removeChild(span),2000)
+      document.documentElement.insertBefore(span, document.body)
+      setTimeout(_=>document.documentElement.removeChild(span),2000)
     }
 
     let nothing
@@ -1042,6 +1045,7 @@ if(window.__started_){
     }
     if(retry++ > 3) clearInterval(receivedVideoEvent)
   },1000)
+  setTimeout(()=>clearInterval(receivedVideoEvent),10000)
 
   ipc.once('on-video-event',(e,inputs)=>{
     clearInterval(receivedVideoEvent)

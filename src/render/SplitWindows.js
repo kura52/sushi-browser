@@ -449,15 +449,15 @@ export default class SplitWindows extends Component{
         this.menuStickyFlag = true
         this.state.root.toggleNav = 3
         this.setState({})
-        ipc.send('change-browser-view-z-index', true)
         ipc.send('disable-webContents-focus', true)
+        ipc.send('change-browser-view-z-index', true, void 0, true)
       }
       else if(this.menuStickyFlag && e.offsetY > 80 && !e.target.closest(".navbar-main")){
         this.menuStickyFlag = false
         this.state.root.toggleNav = 2
         this.setState({})
         ipc.send('change-browser-view-z-index', false)
-        ipc.send('disable-webContents-focus', false)
+        ipc.send('disable-webContents-focus', false, void 0, true)
       }
     }
     this.menuSticky = ::this.menuSticky

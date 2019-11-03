@@ -168,7 +168,8 @@ ipcMain.on('show-dialog-exploler',(event,key,info,tabId)=>{
     })
   }
   else{
-    let option = { defaultPath:info.defaultPath, properties: ['openDirectory'] }
+    let option = { properties: ['openDirectory'] }
+    if(info.defaultPath) option.defaultPath = info.defaultPath
     if(info.needVideo){
       option.properties = ['openFile', 'multiSelections']
       option.filters = [
@@ -523,7 +524,7 @@ ipcMain.on('send-input-event',(e,{type,tabId,x,y,button,deltaY,keyCode,modifiers
 
 })
 
-ipcMain.on('toggle-fullscreen',(event,cancel)=> {
+ipcMain.on('toggle-fullscreen',async (event,cancel)=> {
   if(!Browser.CUSTOM_CHROMIUM) return
 
   const win = BrowserWindow.fromWebContents(event.sender.hostWebContents2 || event.sender)
@@ -2574,10 +2575,10 @@ ipcMain.on('set-position-browser-view', async (e, panelKey) => {
   })
 
   const winPos = win.getPosition()
-  if(win.isMaximized()){
-    win.emit('maximize', 'restore')
-  }
-  console.log(Date.now(),'set-position-browser-view', { x:  Math.round(pos.left + winPos[0]), y: Math.round(pos.top + winPos[1]) })
+  // if(win.isMaximized()){
+  //   win.emit('maximize', 'restore')
+  // }
+  // console.log(Date.now(),'set-position-browser-view', { x:  Math.round(pos.left + winPos[0]), y: Math.round(pos.top + winPos[1]) })
   panel.setBounds({ x:  Math.round(pos.left + winPos[0]), y: Math.round(pos.top + winPos[1])})
 })
 
@@ -2692,11 +2693,15 @@ ipcMain.on('set-overlap-component', async (e, type, panelKey, tabKey, x, y, widt
   }
 })
 
-ipcMain.on('change-browser-view-z-index', (e, isFrame, panelKey) =>{
+ipcMain.on('change-browser-view-z-index', (e, isFrame, panelKey, force) =>{
   const win = BrowserWindow.fromWebContents(e.sender)
   if(!win || win.isDestroyed()) return
 
+  console.log('change-browser-view-z-index', isFrame, panelKey, force)
   // console.log('change-browser-view-z-index', isFrame, bvZindexMap[win])
+  if(force){
+    BrowserPanel.getBrowserPanelsFromBrowserWindow(win)[0].setAlwaysOnTop(!isFrame)
+  }
   if(isFrame){
     ipcMain.emit('top-to-browser-window', win.id)
   }

@@ -426,8 +426,8 @@ Or, please use the Chromium bundled version.`
     })
   }
 
-  static close(){
-    this._browser.close()
+  static async close(){
+    await this._browser.close()
     this.closed = true
   }
 
@@ -829,7 +829,7 @@ Or, please use the Chromium bundled version.`
       window.ipcRenderer.init()
 
       chrome.runtime.onMessage.addListener((message, sender) => {
-        if (!message.ipcToBg) return false
+        if (!message.ipcToBg || !sender.tab) return false
         // console.log('message', message)
 
         const data = JSON.stringify({
@@ -959,13 +959,27 @@ Or, please use the Chromium bundled version.`
     //   if(shouldChange && cont && cont.hostWebContents2) cont.hostWebContents2.send('chrome-tabs-event',{tabId: activeInfo.tabId, changeInfo: {active: true}}, 'updated')
     // })
 
-    this.addListener('tabs', 'onRemoved', (removedTabId, removeInfo) => {
+    this.addListener('tabs', 'onRemoved', async (removedTabId, removeInfo) => {
+      console.log('tab.onRemoved')
       if(PopupPanel.tabId == removedTabId || this.popUpCache[removedTabId]) return
 
       BrowserView.closedTabs[removedTabId] = removeInfo.windowId
-      evem.emit(`close-tab_${removedTabId}`)
-      const cont = webContents.fromId(removedTabId)
-      if(cont && cont.hostWebContents2) cont.hostWebContents2.send('chrome-tabs-event',{tabId: removedTabId}, 'removed')
+
+      for(let i=0;i<5;i++){
+        evem.emit(`close-tab_${removedTabId}`)
+        const cont = webContents.fromId(removedTabId)
+        if(cont && cont.hostWebContents2){
+          cont.hostWebContents2.send('chrome-tabs-event',{tabId: removedTabId}, 'removed')
+          break
+        }
+        else{
+          for (const win of BrowserWindow.getAllWindows()) {
+            win.getTitle().includes('Sushi Browser') && win.webContents.send('chrome-tabs-event',{tabId: removedTabId}, 'removed')
+          }
+        }
+        await new Promise(r=>setTimeout(r,100))
+      }
+
 
       console.log(99977,removedTabId)
 
@@ -975,7 +989,7 @@ Or, please use the Chromium bundled version.`
           if(!browserView.isDestroyed()) browserView.destroy()
           if(!Object.keys(browserPanel.tabKeys).length){
             delete BrowserPanel.panelKeys[panelKey]
-            browserPanel.cpWin.nativeWindow.destroyWindow()
+            if(!Browser.CUSTOM_CHROMIUM) browserPanel.cpWin.nativeWindow.destroyWindow()
           }
           return
         }
@@ -1273,7 +1287,7 @@ Or, please use the Chromium bundled version.`
   }
 
   static getTabIds(panelKey){
-    console.log('getTabIds')
+    // console.log('getTabIds')
     return new Promise(r=>{
       const cont = BrowserPanel.getBrowserPanel(panelKey).browserWindow.webContents
       const key = Math.random().toString()
@@ -1285,7 +1299,7 @@ Or, please use the Chromium bundled version.`
   }
 
   static getChromeTabIds(panelKey){
-    console.log('getChromeTabIds')
+    // console.log('getChromeTabIds')
     const panel = BrowserPanel.getBrowserPanel(panelKey)
     return Browser.bg.evaluate((windowId) => {
       return new Promise(resolve => {
@@ -1298,7 +1312,7 @@ Or, please use the Chromium bundled version.`
     if(this.syncTabPositionProcessing) return
     this.syncTabPositionProcessing = true
 
-    console.log('syncTabPosition')
+    // console.log('syncTabPosition')
     let {myTabIds, selectedTabKey} = await this.getTabIds(panelKey)
     let chromeTabIds = await this.getChromeTabIds(panelKey)
 
@@ -1449,7 +1463,7 @@ class PopupPanel{
 
   destroy(){
     console.log('destroy')
-    this.nativeWindow.destroyWindow()
+    if(!Browser.CUSTOM_CHROMIUM) this.nativeWindow.destroyWindow()
   }
 
   setKeys(panelKey, tabKey){

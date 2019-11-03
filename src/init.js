@@ -319,6 +319,10 @@ else{
 let beforeQuitFirst = false
 let beforeQuit = false
 app.on('before-quit', (e) => {
+  if(!Browser.closed){
+    e.preventDefault()
+    Browser.close().then(()=>app.quit())
+  }
   console.log('before-quit')
   beforeQuit = true
   if(isDarwin){
@@ -360,15 +364,15 @@ app.on('window-all-closed', async function () {
     global.__CHILD__.normalKill = true
     global.__CHILD__.kill()
 
-    for(let win of BrowserWindow.getAllWindows()){
-      for(let i = 0;i<=global.seqBv;i++){
-        if(win.getAddtionalBrowserView(i)) win.eraseBrowserView(i)
-      }
-      for(let seq of Object.keys(global.viewCache)){
-        const i = parseInt(seq)
-        if(win.getAddtionalBrowserView(i)) win.eraseBrowserView(i)
-      }
-    }
+    // for(let win of BrowserWindow.getAllWindows()){
+    //   for(let i = 0;i<=global.seqBv;i++){
+    //     if(win.getAddtionalBrowserView(i)) win.eraseBrowserView(i)
+    //   }
+    //   for(let seq of Object.keys(global.viewCache)){
+    //     const i = parseInt(seq)
+    //     if(win.getAddtionalBrowserView(i)) win.eraseBrowserView(i)
+    //   }
+    // }
 
     // BrowserView.getAllViews().map(v=> !v.isDestroyed() && v.destroy())
     // webContents.getAllWebContents().map(w=> !w.isDestroyed() && w.getURL().startsWith('chrome-extension:') && w.destroy())
@@ -376,9 +380,6 @@ app.on('window-all-closed', async function () {
     console.log(2220099)
     await new Promise(r=>setTimeout(r,100))
     app.quit()
-  }
-  else{
-
   }
 })
 
@@ -1237,7 +1238,7 @@ async function contextMenu(webContents, props) {
     })
     menuItems.push({t: 'print', label: locale.translation('print'), click: () => webContents.print()})
 
-    if(!BrowserPanel.BROWSER_NAME == 'Brave'){
+    if(BrowserPanel.BROWSER_NAME != 'Brave'){
       menuItems.push({t: '2473195200299095979', label: locale.translation('2473195200299095979'),  click: async (item, win) => {
           const key = Math.random().toString()
           webContents.send('no-skip-context-menu', key)
@@ -1403,7 +1404,7 @@ async function contextMenu(webContents, props) {
           const addItem = properties.type == "separator" ? {type: 'separator'} : item
           let parent
           if(properties.parentId && (parent = menuList.find(m=>m.menuItemId == properties.parentId))){
-            if(properties.icons) addItem.icon = path.join(extensionInfos[extensionId].base_path,Object.values(properties.icons)[0].replace(/\.svg$/,'.png'))
+            if(properties.icons && extensionInfos[extensionId].base_path) addItem.icon = path.join(extensionInfos[extensionId].base_path,Object.values(properties.icons)[0].replace(/\.svg$/,'.png'))
             if(parent.submenu === void 0){
               parent.submenu = [addItem]
             }
@@ -1412,8 +1413,8 @@ async function contextMenu(webContents, props) {
             }
           }
           else{
-            if(icon) addItem.icon = path.join(extensionInfos[extensionId].base_path,icon)
-            if(properties.icons) addItem.icon2 = path.join(extensionInfos[extensionId].base_path,Object.values(properties.icons)[0].replace(/\.svg$/,'.png'))
+            if(icon && extensionInfos[extensionId].base_path) addItem.icon = path.join(extensionInfos[extensionId].base_path,icon)
+            if(properties.icons && extensionInfos[extensionId].base_path) addItem.icon2 = path.join(extensionInfos[extensionId].base_path,Object.values(properties.icons)[0].replace(/\.svg$/,'.png'))
             menuList.push(addItem)
           }
         }

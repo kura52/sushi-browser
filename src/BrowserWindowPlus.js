@@ -73,7 +73,7 @@ let autoSaveStarted
 let prevStates = ""
 const _startAutoSaveAllWindowsState = async _=>{
   const states = await saveAllWindowsState()
-  if(!states.wins.length) return
+  if(!states.wins.length || (states.wins.length == 1 && !states.wins[0].winState.l && !states.wins[0].winState.r)) return
 
   const statesStr = JSON.stringify(states.wins.map(state=>state.winState))
   if(prevStates == statesStr) return
@@ -397,7 +397,7 @@ function create(args){
         setTimeout(()=>{
           bw.webContents.send('adjust-maxmize-size', true)
           bw.setBounds(bounds)
-          bw.setResizable(false)
+          // bw.setResizable(false)
         },50)
         // bw.setBounds(b)
         bw.webContents.send('maximize',true)
@@ -643,7 +643,7 @@ export default {
         ...fontOpt
       }
     }
-    if(mainState.windowCustomIcon && fs.existsSync(mainState.windowCustomIcodn)) winArg.icon = mainState.windowCustomIcon
+    if(mainState.windowCustomIcon && fs.existsSync(mainState.windowCustomIcon)) winArg.icon = mainState.windowCustomIcon
 
     console.log(444,winArg)
 

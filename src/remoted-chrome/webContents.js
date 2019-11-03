@@ -400,7 +400,7 @@ export default class webContents extends EventEmitter {
         try{
           require('../BrowserWindowPlus').saveState(this._getBrowserPanel().browserWindow,_=>{})
         }catch(e){}
-        url = 'chrome://welcome/'
+        if(Browser.CUSTOM_CHROMIUM && BrowserPanel.BROWSER_NAME == 'Chromium') url = 'chrome://welcome/'
       }
     }
 
@@ -1104,6 +1104,6 @@ export default class webContents extends EventEmitter {
   }
 
   openChromeMenu(){
-    this._sendKey('f', 'alt')
+    this._sendKey('e', 'alt')
   }
 }

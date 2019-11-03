@@ -56,6 +56,7 @@ sharedState.tabPreviewRecent = tabPreviewRecent
 // sharedState.searchWordHighlightRecursive = searchWordHighlightRecursive
 sharedState.showAddressBarFavicon = showAddressBarFavicon
 sharedState.showAddressBarBookmarks = showAddressBarBookmarks
+sharedState.alwaysOpenLinkBackground = alwaysOpenLinkBackground
 
 disableTabContextMenus = new Set(disableTabContextMenus)
 // sharedState.searchWords = {}
@@ -2112,7 +2113,7 @@ export default class TabPanel extends Component {
       if ((tab.wvId && id == tab.wvId) || (k == this.props.k && tab.key == this.state.selectedTab)) {
         global.openerQueue.push(id || this.state.tabs.find(t=>t.key == this.state.selectedTab).wvId)
         console.log(this)
-        const t = tabAdd(this, url, !alwaysOpenLinkBackground && !openBackground, privateMode || tab.privateMode,(void 0),tab.mobile,tab.adBlockThis,tab.fields,last);
+        const t = tabAdd(this, url, !sharedState.alwaysOpenLinkBackground && !openBackground, privateMode || tab.privateMode,(void 0),tab.mobile,tab.adBlockThis,tab.fields,last);
         if(tab.sync){
           t.sync = uuid.v4()
           t.dirc = tab.dirc
@@ -3577,14 +3578,14 @@ export default class TabPanel extends Component {
     return this.state.tabs.find(t=>t.key == this.state.selectedTab) ? this.state.selectedTab : this.getPrevSelectedTab(tab.key,this.state.tabs,closeTab,i)
   }
 
-  handleTabClose(e, key,isUpdateState=true, force) {
+  async handleTabClose(e, key,isUpdateState=true, force) {
     ipc.send('disable-webContents-focus', false)
     if (!this.mounted) return
     const i = this.state.tabs.findIndex((x)=> x.key == key)
     const tab = this.state.tabs[i]
     if(!tab || (!force && tab.protect)) return
 
-    console.log('tabClosed key:', key,tab.page.navUrl,this.state.tabs.length)
+    console.trace('tabClosed key:', key,tab.page.navUrl,this.state.tabs.length)
     console.log('change-visit-state-close',this.props.k,tab.page.navUrl)
 
     this.addCloseTabHistory(e, i)
@@ -3599,10 +3600,17 @@ export default class TabPanel extends Component {
     this._closeBind(tab)
 
     if(this.state.tabs.length==1){
-      if(!e.noSync) this.closeSyncTabs(key)
-      const keepWindow = keepWindowLabel31 && this.props.getAllKey().filter(key=>!isFixedPanel(key)).length == 1 && !isFixedPanel(this.props.k)
-      if(!keepWindow) this.props.close(this.props.k)
-      this.TabPanelClose(key,void 0,keepWindow)
+      await new Promise(r=>{
+        const ipcKey = this.props.parent.state.root.key
+        ipc.send('save-all-windows-state', ipcKey)
+        ipc.once(`save-all-windows-state-reply_${ipcKey}`,()=>{
+          if(!e.noSync) this.closeSyncTabs(key)
+          const keepWindow = keepWindowLabel31 && this.props.getAllKey().filter(key=>!isFixedPanel(key)).length == 1 && !isFixedPanel(this.props.k)
+          if(!keepWindow) this.props.close(this.props.k)
+          this.TabPanelClose(key,void 0,keepWindow)
+          r()
+        })
+      })
     }
     else{
       if(!e.noSync) this.closeSyncTabs(key)

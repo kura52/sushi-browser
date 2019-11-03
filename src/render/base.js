@@ -84,14 +84,14 @@ export default class MainContent extends Component{
           if(this.changeViewZIndexId == null){
             this.changeViewZIndexId = setTimeout(()=>{
               this.changeViewZIndexId = null
-              console.log('change-browser-view-z-index',e.target.className)
+              // console.log('change-browser-view-z-index',e.target.className)
               ipc.send('change-browser-view-z-index', false, target.className.slice(1))
               this.changeViewZIndexTime = Date.now()
             },100)
           }
         }
         else{
-          console.log('change-browser-view-z-index',e.target.className)
+          // console.log('change-browser-view-z-index',e.target.className)
           ipc.send('change-browser-view-z-index', false, target.className.slice(1))
           this.changeViewZIndexTime = Date.now()
         }

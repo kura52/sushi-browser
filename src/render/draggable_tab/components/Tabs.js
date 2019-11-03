@@ -1065,11 +1065,9 @@ class Tabs extends React.Component {
     ipc.send('disable-webContents-focus', false)
     this.tabPreviewStop = false
     setTimeout(_=>{
-      const dom = ReactDOM.findDOMNode(this.refs.ttab)
-      if(dom){
+      for(const dom of document.querySelectorAll(".rdTabBar")){
         dom.style['-webkit-app-region'] = 'drag'
       }
-
       PubSub.publish('drag-overlay',false)
       if(this.enableMulti) this.props.multiSelectionClick(...this.enableMulti)
       if(this.mouseUpSelect){
@@ -1176,8 +1174,10 @@ class Tabs extends React.Component {
 
   handleDragEnd(tabs,evt) {
     ipc.send('disable-webContents-focus', false)
-    ReactDOM.findDOMNode(this.refs.ttab).style['-webkit-app-region'] = 'drag'
-    console.log("handleDragEnd",Date.now())
+    for(const dom of document.querySelectorAll(".rdTabBar")){
+      dom.style['-webkit-app-region'] = 'drag'
+    }
+    console.log("handleDragEnd",Date.now(),this.props.k)
     mainState.set('dragData',null)
 
     const overlayElement = document.querySelector('.tabs-layout-overlay-wrapper.visible')
@@ -1263,8 +1263,10 @@ class Tabs extends React.Component {
   }
 
   handleDrop(tab,evt) {
-    console.log("handleDrop",Date.now())
-    ReactDOM.findDOMNode(this.refs.ttab).style['-webkit-app-region'] = 'drag'
+    console.log("handleDrop",Date.now(),this.props.k)
+    for(const dom of document.querySelectorAll(".rdTabBar")){
+      dom.style['-webkit-app-region'] = 'drag'
+    }
     mainState.set('stopDragEnd',true)
     evt.stopPropagation()
     evt.preventDefault()
@@ -1319,6 +1321,8 @@ class Tabs extends React.Component {
   handleDragEnter(evt){
     evt.preventDefault()
     ReactDOM.findDOMNode(this.refs.ttab).style['-webkit-app-region'] = 'no-drag'
+    console.trace("handleDragStart",Date.now(),this.props.k,evt)
+    ipc.send('change-browser-view-z-index', true)
     const dragData = ipc.sendSync('get-sync-main-state','dragData')
     if(!dragData) return
     // console.log(134,dragData.windowId == this.props.windowId,this.props.k == dragData.k,dragData.tabs,dragData)

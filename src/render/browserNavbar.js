@@ -812,12 +812,14 @@ class BrowserNavbar extends Component{
         }
         }/> : null}
         <NavbarMenuItem text={`[${this.props.oppositeGlobal ? '✓' : ' '}] ${locale.translation("openOnOpposite")}`} icon='columns' onClick={_=>{this.handleOppositeGlobal();this.refs['main-menu'].menuClose()}}/>
-        {/*<NavbarMenuItem text={`[${sharedState.searchWordHighlightRecursive ? '✓' : ' '}] ${locale.translation("searchHighlightRecursive")}`} icon='asterisk' onClick={_=>{*/}
-          {/*sharedState.searchWordHighlightRecursive = !sharedState.searchWordHighlightRecursive*/}
-          {/*mainState.set('searchWordHighlightRecursive',sharedState.searchWordHighlightRecursive)*/}
-          {/*this.refs['main-menu'].menuClose()*/}
-          {/*this.setState({})*/}
-        {/*}}/>*/}
+
+        <NavbarMenuItem text={`[${sharedState.alwaysOpenLinkBackground ? '✓' : ' '}] ${locale.translation("openNewTabInBackground")}`} onClick={_=>{
+          sharedState.alwaysOpenLinkBackground = !sharedState.alwaysOpenLinkBackground
+          mainState.set('alwaysOpenLinkBackground',sharedState.alwaysOpenLinkBackground)
+          this.refs['main-menu'].menuClose()
+          this.forceUpdates=true
+          this.props.parent.setState({})
+        }}/>
 
         {/*<NavbarMenuItem text={`[${sharedState.notLoadTabUntilSelected ? '✓' : ' '}] ${locale.translation("donTLoadTabsUntillSelected")}`} onClick={_=>{this.loadTabSetting();this.refs['main-menu'].menuClose()}}/>*/}
         <NavbarMenuItem text={`[${sharedState.askDownload ? '✓' : ' '}] ${locale.translation('7754704193130578113')}`} onClick={_=>{this.askDownload();this.refs['main-menu'].menuClose()}}/>

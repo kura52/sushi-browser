@@ -248,6 +248,8 @@ export default class BrowserActionMenu extends Component{
       // console.log("icon-get",e,tabId,val)
       if(tabId !== null && (tab.wvId !== tabId || !val.path)) return
       let path = val.path
+      if(!path) return
+
       if(!path[0]){
         for (let name in path) {
           if (path.hasOwnProperty(name)) {

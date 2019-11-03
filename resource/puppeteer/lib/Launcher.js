@@ -193,7 +193,7 @@ class Launcher {
         // Attempt to close chrome gracefully
         connection.send('Browser.close').catch(error => {
           debugError(error);
-          killChrome();
+          // killChrome();
         });
       }
       return waitForChromeToClose;
