@@ -3600,17 +3600,19 @@ export default class TabPanel extends Component {
     this._closeBind(tab)
 
     if(this.state.tabs.length==1){
-      await new Promise(r=>{
-        const ipcKey = this.props.parent.state.root.key
-        ipc.send('save-all-windows-state', ipcKey)
-        ipc.once(`save-all-windows-state-reply_${ipcKey}`,()=>{
-          if(!e.noSync) this.closeSyncTabs(key)
-          const keepWindow = keepWindowLabel31 && this.props.getAllKey().filter(key=>!isFixedPanel(key)).length == 1 && !isFixedPanel(this.props.k)
-          if(!keepWindow) this.props.close(this.props.k)
-          this.TabPanelClose(key,void 0,keepWindow)
-          r()
+      const arr = []
+      this.props.parent.allKeys(void 0,arr)
+      if(arr.filter(x=>!isFixedPanel(x)).length == 1){
+        await new Promise(r=>{
+          const ipcKey = this.props.parent.state.root.key
+          ipc.send('save-all-windows-state', ipcKey)
+          ipc.once(`save-all-windows-state-reply_${ipcKey}`,r)
         })
-      })
+      }
+      if(!e.noSync) this.closeSyncTabs(key)
+      const keepWindow = keepWindowLabel31 && this.props.getAllKey().filter(key=>!isFixedPanel(key)).length == 1 && !isFixedPanel(this.props.k)
+      if(!keepWindow) this.props.close(this.props.k)
+      this.TabPanelClose(key,void 0,keepWindow)
     }
     else{
       if(!e.noSync) this.closeSyncTabs(key)
