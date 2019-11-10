@@ -407,14 +407,14 @@ ipcMain.on('open-favorite',async (event,key,dbKeys,tabId,type,isNote)=>{
   if(type == "openInNewTab" || type=='openInNewPrivateTab' || type=='openInNewTorTab' || type=='openInNewSessionTab'){
     for(let url of list){
       await new Promise(async (resolve,reject)=>{
-          if(tabId){
-            host.send("new-tab",tabId == -1 ? event.sender.id : tabId,url,type=='openInNewSessionTab' ? `persist:${seq()}` : type=='openInNewTorTab' ? 'persist:tor' : type=='openInNewPrivateTab' ? `${seq(true)}` : false)
-          }
-          else{
-            host.send("new-tab-opposite", event.sender.id,url,(void 0),type=='openInNewSessionTab' ? `persist:${seq()}` : type=='openInNewTorTab' ? 'persist:tor' : type=='openInNewPrivateTab' ? `${seq(true)}` : false)
-          }
-          await new Promise(r=>setTimeout(r,100))
-          resolve()
+        if(tabId){
+          host.send("new-tab",tabId == -1 ? event.sender.id : tabId,url,type=='openInNewSessionTab' ? `persist:${seq()}` : type=='openInNewTorTab' ? 'persist:tor' : type=='openInNewPrivateTab' ? `${seq(true)}` : false)
+        }
+        else{
+          host.send("new-tab-opposite", event.sender.id,url,(void 0),type=='openInNewSessionTab' ? `persist:${seq()}` : type=='openInNewTorTab' ? 'persist:tor' : type=='openInNewPrivateTab' ? `${seq(true)}` : false)
+        }
+        await new Promise(r=>setTimeout(r,100))
+        resolve()
       })
     }
   }
@@ -867,46 +867,46 @@ ipcMain.on('get-main-state',(e,key,names)=>{
 
 ipcMain.on('save-state',async (e,{tableName,key,val})=>{
   if(tableName == 'state'){
-  //   if(key == 'httpsEverywhereEnable'){
-  //   require('../brave/httpsEverywhere')()
-  // }
-  // else if(key == 'trackingProtectionEnable'){
-  //   require('../brave/trackingProtection')()
-  // }
-  // else if(key == 'noScript'){
-  //   defaultConf.javascript[0].setting = val ? 'block' : 'allow'
-  //   session.defaultSession.userPrefs.setDictionaryPref('content_settings', defaultConf)
-  // }
-  // else if(key == 'blockCanvasFingerprinting'){
-  //   defaultConf.canvasFingerprinting[0].setting = val ? 'block' : 'allow'
-  //   session.defaultSession.userPrefs.setDictionaryPref('content_settings', defaultConf)
-  // }
-  if(key == 'downloadPath'){
-    if(fs.existsSync(val)) {
-      app.setPath('downloads',val)
+    //   if(key == 'httpsEverywhereEnable'){
+    //   require('../brave/httpsEverywhere')()
+    // }
+    // else if(key == 'trackingProtectionEnable'){
+    //   require('../brave/trackingProtection')()
+    // }
+    // else if(key == 'noScript'){
+    //   defaultConf.javascript[0].setting = val ? 'block' : 'allow'
+    //   session.defaultSession.userPrefs.setDictionaryPref('content_settings', defaultConf)
+    // }
+    // else if(key == 'blockCanvasFingerprinting'){
+    //   defaultConf.canvasFingerprinting[0].setting = val ? 'block' : 'allow'
+    //   session.defaultSession.userPrefs.setDictionaryPref('content_settings', defaultConf)
+    // }
+    if(key == 'downloadPath'){
+      if(fs.existsSync(val)) {
+        app.setPath('downloads',val)
+      }
+      else{
+        return
+      }
     }
-    else{
-      return
-    }
-  }
-  else if(key == 'enableTheme'){
-    const theme = extInfos[val] && extInfos[val].theme
-    if(theme && theme.images){
-      theme.sizes = {}
-      for(let name of ['theme_toolbar','theme_tab_background']){
-        if(!theme.images[name]) continue
-        const file = path.join(theme.base_path,theme.images[name])
-        if(file && fs.existsSync(file)){
-          theme.sizes[name] = nativeImage.createFromPath(file).getSize()
+    else if(key == 'enableTheme'){
+      const theme = extInfos[val] && extInfos[val].theme
+      if(theme && theme.images){
+        theme.sizes = {}
+        for(let name of ['theme_toolbar','theme_tab_background']){
+          if(!theme.images[name]) continue
+          const file = path.join(theme.base_path,theme.images[name])
+          if(file && fs.existsSync(file)){
+            theme.sizes[name] = nativeImage.createFromPath(file).getSize()
+          }
+        }
+      }
+      for(let win of BrowserWindow.getAllWindows()) {
+        if(win.getTitle().includes('Sushi Browser')){
+          win.webContents.send('update-theme',theme)
         }
       }
     }
-    for(let win of BrowserWindow.getAllWindows()) {
-      if(win.getTitle().includes('Sushi Browser')){
-        win.webContents.send('update-theme',theme)
-      }
-    }
-  }
     mainState[key] = val
     state.update({ key: 1 }, { $set: {[key]: mainState[key], updated_at: Date.now()} }).then(_=>_)
   }
@@ -2471,12 +2471,12 @@ ipcMain.on('move-browser-view', async (e, panelKey, tabKey, type, tabId, x, y, w
     }
 
     // if(!mainState.openTabNextLabel){
-      await BrowserPanel.moveTabs([tabId], panelKey, {index, tabKey}, win, bounds)
+    await BrowserPanel.moveTabs([tabId], panelKey, {index, tabKey}, win, bounds)
     // }
     // moveingTab = false
     console.log([tabId], panelKey, {index, tabKey})
     // if(x != null){
-      // ipcMain.emit('set-bound-browser-view', e, panelKey, tabKey, tabId, x, y, width, height, zIndex)
+    // ipcMain.emit('set-bound-browser-view', e, panelKey, tabKey, tabId, x, y, width, height, zIndex)
     // }
     if(zIndex > 0){
       webContents.fromId(tabId).focus()
@@ -2693,6 +2693,7 @@ ipcMain.on('set-overlap-component', async (e, type, panelKey, tabKey, x, y, widt
   }
 })
 
+const parentState = {}
 ipcMain.on('change-browser-view-z-index', (e, isFrame, panelKey, force) =>{
   const win = BrowserWindow.fromWebContents(e.sender)
   if(!win || win.isDestroyed()) return
@@ -2701,6 +2702,31 @@ ipcMain.on('change-browser-view-z-index', (e, isFrame, panelKey, force) =>{
   // console.log('change-browser-view-z-index', isFrame, bvZindexMap[win])
   if(force){
     BrowserPanel.getBrowserPanelsFromBrowserWindow(win)[0].setAlwaysOnTop(!isFrame)
+  }
+  if(isWin){
+    if(isFrame){
+      if(parentState[win.id]) return
+      let lastPanel
+      parentState[win.id] = true
+      for(const panel of BrowserPanel.getBrowserPanelsFromBrowserWindow(win)){
+        console.log('setWindowLongPtrParentRestore')
+        panel.cpWin.chromeNativeWindow.setWindowLongPtrParentRestore()
+        panel.cpWin.chromeNativeWindow.setWindowPos(0, 0, 0, 0, 0, 19 + 1024)
+        lastPanel =  panel
+      }
+      lastPanel.cpWin.nativeWindowBw.moveTop()
+      // setTimeout(()=>lastPanel.cpWin.nativeWindowBw.moveTop(),50)
+    }
+    else{
+      if(!parentState[win.id]) return
+      parentState[win.id] = false
+      for(const panel of BrowserPanel.getBrowserPanelsFromBrowserWindow(win)){
+        console.log('setWindowLongPtrParent')
+        panel.cpWin.chromeNativeWindow.setWindowLongPtrParent(panel.cpWin.nativeWindowBw.getHwnd())
+        panel.cpWin.chromeNativeWindow.setWindowPos(0, 0, 0, 0, 0, 19 + 1024)
+      }
+    }
+    return
   }
   if(isFrame){
     ipcMain.emit('top-to-browser-window', win.id)

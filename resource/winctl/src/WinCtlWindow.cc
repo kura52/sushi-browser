@@ -28,6 +28,8 @@ NAN_MODULE_INIT(Window::Init) {
 	Nan::SetPrototypeMethod(tpl, "moveTop", moveTop);
 	Nan::SetPrototypeMethod(tpl, "setWindowLongPtr", setWindowLongPtr);
 	Nan::SetPrototypeMethod(tpl, "setWindowLongPtrRestore", setWindowLongPtrRestore);
+	Nan::SetPrototypeMethod(tpl, "setWindowLongPtrParent", setWindowLongPtrParent);
+	Nan::SetPrototypeMethod(tpl, "setWindowLongPtrParentRestore", setWindowLongPtrParentRestore);
 	Nan::SetPrototypeMethod(tpl, "setWindowLongPtrEx", setWindowLongPtrEx);
 	Nan::SetPrototypeMethod(tpl, "setWindowLongPtrExRestore", setWindowLongPtrExRestore);
 	Nan::SetPrototypeMethod(tpl, "setParent", setParent);
@@ -267,6 +269,19 @@ NAN_METHOD(Window::setWindowLongPtrRestore) {
 	SetWindowLongPtr(obj->windowHandle, GWL_STYLE, ((GetWindowLongPtr(obj->windowHandle, GWL_STYLE) & (~value))));
 }
 
+NAN_METHOD(Window::setWindowLongPtrParent) {
+	Window* obj = Nan::ObjectWrap::Unwrap<Window>(info.This());
+
+	LONG_PTR value = (LONG_PTR)info[0]->IntegerValue();
+
+	SetWindowLongPtr(obj->windowHandle, -8, value);
+}
+
+NAN_METHOD(Window::setWindowLongPtrParentRestore) {
+	Window* obj = Nan::ObjectWrap::Unwrap<Window>(info.This());
+
+	SetWindowLongPtr(obj->windowHandle, -8, NULL);
+}
 
 NAN_METHOD(Window::setWindowLongPtrEx) {
 	Window* obj = Nan::ObjectWrap::Unwrap<Window>(info.This());
@@ -362,7 +377,7 @@ NAN_METHOD(Window::dimensions) {
 NAN_METHOD(Window::createWindow) {
     HINSTANCE hInstance = GetModuleHandle( NULL );
     HWND hWnd = CreateWindowEx(
-                   WS_EX_TOOLWINDOW, TEXT("STATIC"), TEXT(""),
+                   NULL, TEXT("STATIC"), TEXT(""),
                    WS_CLIPCHILDREN | WS_POPUP | WS_VISIBLE ,
                    0, 0, 0, 0,
                    NULL, NULL, hInstance, NULL

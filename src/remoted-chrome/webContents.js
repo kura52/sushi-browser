@@ -12,6 +12,7 @@ let BrowserPanel = new Proxy({},  { get: function(target, name){ BrowserPanel = 
 let BrowserView = new Proxy({},  { get: function(target, name){ BrowserView = require('./BrowserView'); return typeof BrowserView[name] == 'function' ? BrowserView[name].bind(BrowserView) : BrowserView[name]}})
 
 const isDarwin = process.platform === 'darwin'
+const isWin = process.platform == 'win32';
 
 let isFirstLoad
 
@@ -32,6 +33,7 @@ export default class webContents extends EventEmitter {
     ipcMain.on('arrange-panels', (e,val)=>{
       console.log('webContents.disableFocus2' ,val)
       webContents.disableFocus = val
+      if(isWin) return
 
       const bw = BrowserWindow.fromWebContents(e.sender)
       const panels = BrowserPanel.getBrowserPanelsFromBrowserWindow(bw)

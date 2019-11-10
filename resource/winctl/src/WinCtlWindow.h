@@ -34,6 +34,8 @@ private:
 	static NAN_METHOD(moveTop);
 	static NAN_METHOD(setWindowLongPtr);
 	static NAN_METHOD(setWindowLongPtrRestore);
+	static NAN_METHOD(setWindowLongPtrParent);
+	static NAN_METHOD(setWindowLongPtrParentRestore);
 	static NAN_METHOD(setWindowLongPtrEx);
 	static NAN_METHOD(setWindowLongPtrExRestore);
 	static NAN_METHOD(setParent);
