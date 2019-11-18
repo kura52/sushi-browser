@@ -145,6 +145,9 @@ if(window.__started_){
   let preAElemsLength = 0
   const openTime = Date.now()
   const ResizeEventMap = new Map()
+  const funcPlay = (e) => !console.log('play') && e.target.pause()
+  const funcPause = (e) => !console.log('pause') && e.target.play()
+
   if(location.href.match(/^(http|chrome\-extension)/)){
 
     if(window == window.parent){
@@ -240,9 +243,8 @@ if(window.__started_){
 
     let checkedVideoSet = new Set(), beforeRemoveIds = new Map(), videoList, isAddedCss = false
 
+
     const resizeEvent = (v) => {
-      const funcPlay = (e) => !console.log('play') && e.target.pause()
-      const funcPause = (e) => !console.log('pause') && e.target.play()
 
       let y, x
       const mmove = e => {
@@ -277,7 +279,6 @@ if(window.__started_){
         v.addEventListener("mouseleave", mup, false)
         v.addEventListener("mouseup", mup, false)
         setTimeout(()=>{
-
           v.removeEventListener('play', funcPlay)
           v.removeEventListener('pause', funcPause)
         },30)
@@ -378,6 +379,8 @@ if(window.__started_){
                 v.style.setProperty('top', '0','important')
                 if(ResizeEventMap.has(v)){
                   v.removeEventListener('mousedown', ResizeEventMap.get(v), false)
+                  v.removeEventListener('play', funcPlay)
+                  v.removeEventListener('pause', funcPause)
                   ResizeEventMap.delete(v)
                 }
               }
@@ -528,6 +531,8 @@ if(window.__started_){
 
       if(ResizeEventMap.has(v)){
         v.removeEventListener('mousedown', ResizeEventMap.get(v), false)
+        v.removeEventListener('play', funcPlay)
+        v.removeEventListener('pause', funcPause)
         ResizeEventMap.delete(v)
       }
 
