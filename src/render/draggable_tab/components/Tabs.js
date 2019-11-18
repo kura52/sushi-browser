@@ -730,16 +730,25 @@ class Tabs extends React.Component {
         }
 
         if(mouseHoverSelectLabelBegin){
-          const handleMouseMove = e => target = e.target
+          let id
+          const handleMouseMove = e =>{
+            if(target != e.target && !e.target.closest(`[data-key='${tab.key}']`)){
+              clearTimeout(id)
+              id = setTimeout(func,parseInt(mouseHoverSelectLabelBeginDelay))
+            }
+            target = e.target
+          }
           document.addEventListener('mousemove',handleMouseMove)
-          setTimeout(_=>{
+          const func = () => {
             document.removeEventListener('mousemove',handleMouseMove)
             if(target.closest(`[data-key='${tab.key}']`)){
+              if(this.state.selectedTab == tab.key) return
               this.setState({ selectedTab: tab.key }, () => {
                 this.props.onTabSelect(e, tab.key, this._getCurrentOpenTabs());
               })
             }
-          },parseInt(mouseHoverSelectLabelBeginDelay))
+          }
+          id = setTimeout(func,parseInt(mouseHoverSelectLabelBeginDelay))
         }
       } : void 0
 

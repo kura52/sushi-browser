@@ -354,7 +354,8 @@ export default class BrowserNavbarLocation extends Component {
 
   onFocus(e){
     const input = this.input || ReactDOM.findDOMNode(this.refs.input).querySelector("input")
-    input.select()
+    setTimeout(()=>input.select(),100)
+
 
     if((this.isFloat || this.props.isMaximize) && input.value != ""){
       PubSub.publish(`menu-showed_${this.props.k}`,true)
@@ -399,7 +400,7 @@ export default class BrowserNavbarLocation extends Component {
     }
     this.mouseDownPos = void 0
 
-    e.preventDefault()
+    // e.preventDefault()
   }
 
   outerClick(e){
@@ -427,6 +428,7 @@ export default class BrowserNavbarLocation extends Component {
         this.canUpdate = true
         if(newTab){
           this.props.tab.events['new-tab'](e, this.props.tab.wvId,url,this.props.tab.privateMode)
+          e.target.value = this.props.page.navUrl
         }
         else{
           this.props.onEnterLocation(url)
@@ -438,6 +440,9 @@ export default class BrowserNavbarLocation extends Component {
         this.props.search(this.props.tab, input, false, newTab)
         this.canUpdate = true
         this.resetComponent()
+      }
+      if(newTab){
+        this.props.onChangeLocation.bind(this)(this.props.page.navUrl)
       }
       this.setState({ results: []})
     }
@@ -457,6 +462,14 @@ export default class BrowserNavbarLocation extends Component {
     //   prevLocValue: this.prevLocValue,
     //   value: document.activeElement == this.input ? this.input.value : convertUrl
     // })
+    console.trace('getValue', {
+      value: document.activeElement == this.input ? this.input.value : convertUrl,
+      prevLocation: this.prevLocation,
+      convertUrl,
+      inputValue: this.input && this.input.value,
+      prevInputValue: this.prevInputValue,
+      prevLocValue: this.prevLocValue
+    })
     if(this.prevLocation == convertUrl && this.prevInputValue == (this.input && this.input.value)){
       return this.prevLocValue
     }
@@ -466,6 +479,7 @@ export default class BrowserNavbarLocation extends Component {
     this.prevInputValue = this.input && this.input.value
     this.prevLocValue = value
 
+    console.log('getValue2', value)
     return value
   }
 

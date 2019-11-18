@@ -144,6 +144,7 @@ if(window.__started_){
 
   let preAElemsLength = 0
   const openTime = Date.now()
+  const ResizeEventMap = new Map()
   if(location.href.match(/^(http|chrome\-extension)/)){
 
     if(window == window.parent){
@@ -182,15 +183,6 @@ if(window.__started_){
       });
 
       document.addEventListener("DOMContentLoaded",_=>{
-        // const visitedStyle = require('./visitedStyle')
-        // setTimeout(()=> visitedStyle(`.${visitedLinkName}`), 0)
-        // setVisitedLinkColor()
-        // setInterval(()=>setVisitedLinkColor(),1000)
-        // const key = Math.random().toString()
-        // ipc.send('need-get-inner-text',key)
-        // ipc.once(`need-get-inner-text-reply_${key}`,(e,result)=>{
-        //   if(result) ipc.send('get-inner-text',location.href,document.title,document.documentElement.innerText)
-        // })
         if(location.href.startsWith('https://chrome.google.com/webstore')){
           setInterval(_=>{
             const ele = document.querySelector(".h-e-f-Ra-c.e-f-oh-Md-zb-k")
@@ -229,7 +221,7 @@ if(window.__started_){
     }
 
 
-    let preClientY = -1, checkVideoEvent = {}, beforeRemoveIds = {}
+    let preClientY = -1
     document.addEventListener('mousemove',e=>{
       // console.log('mousemove')
       if(window == window.parent && preClientY != e.clientY){
@@ -238,115 +230,211 @@ if(window.__started_){
         // console.log('webview-mousemove', e.clientY)
         preClientY = e.clientY
       }
+    },{passive: true, capture: true})
 
-      if(!checkVideoEvent[e.target] && document.querySelector('video')){
-        checkVideoEvent[e.target] = true
-        let target
-        if(e.target.tagName !== 'VIDEO'){
-          const children = [...e.target.children]
-          for(const x of children){
-            checkVideoEvent[x] = true
-            if(x.tagName == "VIDEO"){
-              target = x
-              console.log(11,target)
-              break
-            }
-          }
-          if(!target){
-            for(let c of children){
-              if(c.children){
-                for(const x of [...c.children]){
-                  checkVideoEvent[x] = true
-                  if(x.tagName == "VIDEO"){
-                    target = x
-                    console.log(12,target)
-                    break
-                  }
-                }
-              }
-              if(target) break
-            }
-            if(!target){
-              for(let ele of document.querySelectorAll('video')){
-                const r =  ele.getBoundingClientRect()
-                if(pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)){
-                  target = ele
-                  console.log(13,target)
-                  break
-                }
-              }
-              if(!target) return
-            }
-          }
+    const checkPos = (ele, v) => {
+      const b1 = ele.getBoundingClientRect()
+      const b2 = v.getBoundingClientRect()
+      return b1.x == b2.x && b1.y == b2.y && b1.width == b2.width && b1.height == b2.height
+    }
+
+    let checkedVideoSet = new Set(), beforeRemoveIds = new Map(), videoList, isAddedCss = false
+
+    const resizeEvent = (v) => {
+      const funcPlay = (e) => !console.log('play') && e.target.pause()
+      const funcPause = (e) => !console.log('pause') && e.target.play()
+
+      let y, x
+      const mmove = e => {
+        const moveX = e.pageX - x
+        x = e.pageX
+        const moveY = e.pageY - y
+        y = e.pageY
+
+        const xVal = parseInt(v.style.left) + moveX * 3
+        const yVal = parseInt(v.style.top) + moveY * 3
+
+        if(v.paused){
+          v.addEventListener('play', funcPlay)
         }
         else{
-          target = e.target
+          v.addEventListener('pause', funcPause)
         }
+        v.style.setProperty('left', `${xVal}px`,'important')
+        v.style.setProperty('top', `${yVal}px`,'important')
+      }
 
-        console.log(553,target)
-        const v = target
-        const func = ()=>{
+      const mup = e => {
+        v.removeEventListener("mousemove", mmove, false)
+        v.removeEventListener("mouseleave", mup, false)
+        v.removeEventListener("mouseup", mup, false)
+      }
+
+      const mdown = e =>{
+        x = e.pageX
+        y = e.pageY
+        v.addEventListener("mousemove", mmove, false)
+        v.addEventListener("mouseleave", mup, false)
+        v.addEventListener("mouseup", mup, false)
+        setTimeout(()=>{
+
+          v.removeEventListener('play', funcPlay)
+          v.removeEventListener('pause', funcPause)
+        },30)
+      }
+      v.addEventListener('mousedown', mdown, false)
+
+      return mdown
+    }
+
+    setInterval(()=>{
+      videoList = document.querySelectorAll('video')
+      for(let v of videoList) {
+        if (checkedVideoSet.has(v)) continue
+        checkedVideoSet.add(v)
+        const id = Math.random().toString().substring(2)
+
+        const func = () => {
+
+          if(!isAddedCss){
+            isAddedCss = true
+
+            const s = document.createElement('style')
+            s.setAttribute('type', 'text/css')
+            s.setAttribute('id', 'style_element_')
+            const style = `input[type="range"]._maximize_resizer_ {
+    -webkit-appearance: none;
+    background-color: #cccccc;
+    height: 4px;
+    border-radius: 1px;
+    width: 80px;
+    display: block;
+    margin: 4px 0px;
+    outline: none;
+    }
+  input[type="range"]._maximize_resizer_::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 10px;
+    height: 10px;
+    background: white;
+    border-radius: 50%;
+    }`
+            s.appendChild(document.createTextNode(style));
+            document.head.appendChild(s)
+
+          }
 
           console.log('func')
-          const existElement = document.querySelector("#maximize-org-video")
-          if(existElement){
-            clearTimeout(beforeRemoveIds[target])
-            beforeRemoveIds[target] = setTimeout(_=>document.documentElement.removeChild(existElement),2000)
+          const existElement = document.querySelector(`#maximize-org-video${id}`)
+          if (existElement) {
+            clearTimeout(beforeRemoveIds.get(v))
+            beforeRemoveIds.set(v,setTimeout(_ => document.documentElement.removeChild(existElement), 2000))
             return
           }
 
           const rect = v.getBoundingClientRect()
-          const rStyle = `left:${Math.round(rect.left) + 10 + window.scrollX}px;top:${Math.round(rect.top) + 10 + window.scrollY}px`
+          let xmod = 0, ymod = 0, widthVw = parseInt(v.style.width)
+          if(v._olds_ && widthVw > 100){
+            if(widthVw > 300 || isNaN(widthVw)) widthVw = 100
+            xmod = parseInt(v.style.left) * -1
+            ymod = parseInt(v.style.top) * -1
+          }
+          const rStyle = `left:${Math.round(rect.left) + 10 + window.scrollX + xmod}px;top:${Math.round(rect.top) + 10 + window.scrollY + ymod}px`
 
           const span = document.createElement("span")
-          span.innerHTML = v._olds_ ? 'Normal' : 'Maximize'
-          span.style.cssText = `${rStyle};z-index: 2147483647;position: absolute;overflow: hidden;border-radius: 8px;background: rgba(50,50,50,0.9);text-shadow: 0 0 2px rgba(0,0,0,.5);transition: opacity .1s cubic-bezier(0.0,0.0,0.2,1);margin: 0;border: 0;font-size: 14px;color: white;padding: 4px 7px;`;
-          span.setAttribute("id", "maximize-org-video")
+          span.appendChild(document.createTextNode(v._olds_ ? `Normal${widthVw == 100 ? '' : ` [${widthVw}%]`}` : 'Maximize'))
+
+          if(v._olds_){
+            const input = document.createElement('input')
+            input.type = 'range'
+            input.min = 0.2
+            input.max = 3
+            input.name = 'resizer'
+            input.className = '_maximize_resizer_'
+            input.step = 0.05
+            input.value = `${widthVw / 100.0}`
+            let preVal = 1
+            input.addEventListener('input', e => {
+              const value = parseFloat(e.target.value)
+              const percent = Math.round(value * 100)
+              v.style.setProperty('width',`${percent}vw` ,'important')
+              v.style.setProperty('min-width',`${percent}vw` ,'important')
+              v.style.setProperty('max-width',`${percent}vw` ,'important')
+              v.style.setProperty('height',`${percent}vh` ,'important')
+              v.style.setProperty('min-height',`${percent}vh` ,'important')
+              v.style.setProperty('max-height',`${percent}vh` ,'important')
+              v.style.setProperty('left', `${parseInt(v.style.left) - (window.innerWidth * (value - preVal) / 2)}px`,'important')
+              v.style.setProperty('top', `${parseInt(v.style.top) - (window.innerHeight * (value - preVal) / 2)}px`,'important')
+              preVal = value
+              if(percent != 100){
+                span.firstChild.textContent  = `Normal [${percent}%]`
+                if(!ResizeEventMap.has(v)){
+                  ResizeEventMap.set(v, resizeEvent(v))
+                }
+              }
+              else{
+                span.firstChild.textContent  = 'Normal'
+                v.style.setProperty('left', '0','important')
+                v.style.setProperty('top', '0','important')
+                if(ResizeEventMap.has(v)){
+                  v.removeEventListener('mousedown', ResizeEventMap.get(v), false)
+                  ResizeEventMap.delete(v)
+                }
+              }
+            })
+            span.appendChild(input)
+          }
+
+          span.style.cssText = `${rStyle};z-index: 2147483647;position: absolute;overflow: hidden;border-radius: 8px;background: rgba(50,50,50,0.9);text-shadow: 0 0 2px rgba(0,0,0,.5);transition: opacity .1s cubic-bezier(0.0,0.0,0.2,1);margin: 0;border: 0;font-size: 14px;color: white;padding: 4px 7px;text-align: center;`;
+
+          span.setAttribute("id", `maximize-org-video${id}`)
+          span.className = '_maximize_span_'
 
           // document.body.appendChild(span)
           document.documentElement.insertBefore(span, document.body)
 
-          span.addEventListener('click', async ()=> {
+          span.addEventListener('click', async e => {
+            if(e.target.tagName == 'INPUT') return
             await maximizeInPanel(v)
             const rect = v.getBoundingClientRect()
             span.style.left = `${Math.round(rect.left) + 10}px`
             span.style.top = `${Math.round(rect.top) + 10}px`
             span.innerText = v._olds_ ? 'Normal' : 'Maximize'
-            clearTimeout(beforeRemoveIds[target])
+            clearTimeout(beforeRemoveIds.get(v))
             document.documentElement.removeChild(span)
           })
 
           span.addEventListener('mouseenter', () => span.style.background = 'rgba(80,80,80,0.9)')
           span.addEventListener('mouseleave', () => span.style.background = 'rgba(50,50,50,0.9)')
 
-          beforeRemoveIds[target] = setTimeout(_=>document.documentElement.removeChild(span),2000)
+          beforeRemoveIds.set(v,setTimeout(_ => document.documentElement.removeChild(span), 2000))
         }
 
+        let mouseMoveEvent = {}
         document.addEventListener('mousemove', e => {
-          const r =  v.getBoundingClientRect()
+          mouseMoveEvent = e
+          const r = v.getBoundingClientRect()
           // console.log(r.left, r.top, r.width, r.height, e.clientX, e.clientY)
-          if(pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)){
+          if (pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)) {
             func()
           }
         })
-        document.addEventListener('mouseout', e2 =>{
-          if(e2.target != v) return
-          console.log('mouseout',e2)
-          const r =  v.getBoundingClientRect()
-          console.log(r.left, r.top, r.width, r.height, e.clientX, e.clientY)
-          if(pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)){
-            const existElement = document.querySelector("#maximize-org-video")
-            if(existElement && e2.toElement != existElement){
-              clearTimeout(beforeRemoveIds[target])
+        document.addEventListener('mouseout', e2 => {
+          if (e2.target != v && !checkPos(e2.target, v)) return
+          const r = v.getBoundingClientRect()
+          console.log(r.left, r.top, r.width, r.height, mouseMoveEvent.clientX, mouseMoveEvent.clientY)
+          if (pointInCheck(r.left, r.top, r.width, r.height, mouseMoveEvent.clientX, mouseMoveEvent.clientY)) {
+            const existElement = document.querySelector(`#maximize-org-video${id}`)
+            if (existElement && e2.toElement != existElement) {
+              clearTimeout(beforeRemoveIds.get(v))
               document.documentElement.removeChild(existElement)
             }
           }
         })
         func()
       }
+    },500)
 
-    },{passive: true, capture: true})
-    // setInterval(()=>setVisitedLinkColor(),1000)
   }
 
 
@@ -378,10 +466,13 @@ if(window.__started_){
       v._olds_.backgroundColor = v.style.backgroundColor
       v._olds_.display = v.style.display
       v._olds_.left = v.style.left
+      v._olds_.top = v.style.top
       v._olds_.margin = v.style.margin
       v._olds_.padding = v.style.padding
       v._olds_.border = v.style.border
       v._olds_.outline = v.style.outline
+      v._olds_.transform = v.style.transform
+      v._olds_.opacity = v.style.opacity
 
       if(!isIframe){
         v._clickCallback_ = async () => {
@@ -409,13 +500,16 @@ if(window.__started_){
       v.style.setProperty('position','fixed' ,'important')
       v.style.setProperty('z-index','21474836476' ,'important')
       v.style.setProperty('background-color','black' ,'important')
-      v.style.setProperty('display','block' ,'important')
+      v.style.setProperty('display','inline-block' ,'important')
       v.style.setProperty('left','0' ,'important')
       v.style.setProperty('top','0' ,'important')
       v.style.setProperty('margin','0' ,'important')
       v.style.setProperty('padding','0' ,'important')
       v.style.setProperty('border','0' ,'important')
       v.style.setProperty('outline','0' ,'important')
+      v.style.setProperty('transform','none' ,'important')
+      v.style.setProperty('opacity','1','important')
+      v.classList.add('_maximize-org_')
 
       if(!isIframe) {
         v._olds_.parentNode = v.parentNode
@@ -432,6 +526,11 @@ if(window.__started_){
     else{
       v.removeEventListener('click', v._clickCallback_)
 
+      if(ResizeEventMap.has(v)){
+        v.removeEventListener('mousedown', ResizeEventMap.get(v), false)
+        ResizeEventMap.delete(v)
+      }
+
       v.controls = v._olds_.controls
       document.body.style.overflow = v._olds_.bodyOverflow
       v.style.width = v._olds_.width
@@ -439,16 +538,20 @@ if(window.__started_){
       v.style.maxWidth = v._olds_.maxWidth
       v.style.height = v._olds_.height
       v.style.minHeight = v._olds_.minHeight
-      v.style.maxWidth = v._olds_.maxWidth
+      v.style.maxHeight = v._olds_.maxHeight
       v.style.position = v._olds_.position
       v.style.zIndex = v._olds_.zIndex
       v.style.backgroundColor = v._olds_.backgroundColor
       v.style.display = v._olds_.display
       v.style.left = v._olds_.left
+      v.style.top = v._olds_.top
       v.style.margin = v._olds_.margin
       v.style.padding = v._olds_.padding
       v.style.border = v._olds_.border
       v.style.outline = v._olds_.outline
+      v.style.transform = v._olds_.transform
+      v.style.opacity = v._olds_.opacity
+      v.classList.remove('_maximize-org_')
 
       if(!isIframe) {
         v._olds_.parentNode.replaceChild(v, v._olds_.replaceNode)
@@ -697,39 +800,6 @@ if(window.__started_){
 
   })
 
-
-// //style setting
-//   let styleVal
-//   try{
-//     styleVal = localStorage.getItem('meiryo')
-//   }catch(e){}
-//
-//   if(styleVal !== null){
-//     if(styleVal === "true"){
-//       setTimeout(_=>{
-//         const css = document.createElement('style')
-//         const rule = document.createTextNode('html{ font-family: Arial, "メイリオ", sans-serif}')
-//         css.appendChild(rule)
-//         const head = document.getElementsByTagName('head')
-//         if(head[0]) head[0].appendChild(css)
-//       },0)
-//     }
-//   }
-//   else{
-//     ipc.send('need-meiryo')
-//     ipc.once('need-meiryo-reply',(e,styleVal)=>{
-//       localStorage.setItem('meiryo',styleVal)
-//       if(styleVal){
-//         const css = document.createElement('style')
-//         const rule = document.createTextNode('html{ font-family: Arial, "メイリオ", sans-serif}')
-//         css.appendChild(rule)
-//         const head = document.getElementsByTagName('head')
-//         if(head[0]) head[0].appendChild(css)
-//       }
-//     })
-//   }
-
-
   let isFirst = true
   const videoFunc = (e,inputs)=>{
     if(!isFirst) return
@@ -759,10 +829,21 @@ if(window.__started_){
     }
 
     let nothing
-    const eventHandler = async (e,name,target)=>{
+    const eventHandler = async (e,name,target,isPaused)=>{
+      let i = 0
+      console.log('paused1', isPaused)
       const v = target || e.target
       if(name == 'playOrPause'){
-        v.paused ? v.play() : v.pause()
+        const func = e => {
+          console.log(isPaused)
+          v.removeEventListener(isPaused ? 'pause' : 'play', func)
+          isPaused ? v.play() : v.pause()
+        }
+
+        v.addEventListener(isPaused ? 'pause' : 'play', func)
+
+        isPaused ? v.play() : v.pause()
+
       }
       else if(name == 'fullscreen'){
         // if(location.href.startsWith('https://www.youtube.com')){
@@ -895,7 +976,7 @@ if(window.__started_){
       else{
         nothing = true
       }
-      if(!nothing){
+      if(!nothing && (isPaused === void 0 || v.classList.contains('_maximize-org_'))){
         e.preventDefault()
         e.stopImmediatePropagation()
         return false
@@ -903,56 +984,52 @@ if(window.__started_){
     }
 
     if(inputs.click && matchReg('click')) {
-      document.addEventListener('click', e => {
+      let isPaused = void 0, _target
+      document.addEventListener('mousedown', e=> {
+        console.log('moudedown')
         let target = e.target
         if(e.target.tagName !== 'VIDEO'){
-          const children = [...e.target.children]
-          target = children.find(x=>x.tagName == "VIDEO")
-          if(!target){
-            for(let c of children){
-              target = c.children && [...c.children].find(x=>x.tagName == "VIDEO")
-              if(target) break
-            }
-            if(!target){
-              for(let ele of document.querySelectorAll('video')){
-                const r =  ele.getBoundingClientRect()
-                if(pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)){
-                  target = ele
-                  break
-                }
+          target = null
+          if(!e.target.id.startsWith('maximize-org-video')){
+            for(let ele of document.querySelectorAll('video')){
+              const r =  ele.getBoundingClientRect()
+              if(pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)){
+                const orgBound = e.target.getBoundingClientRect()
+                if(orgBound.width < r.width / 2 || orgBound.height < r.height / 2) continue
+                target = ele
+                break
               }
-              if(!target) return
             }
           }
         }
-        if (e.which == 1) {
-          eventHandler(e, inputs.click,target)
+        isPaused = target ? target.paused : void 0
+        _target = target
+      }, true)
+      document.addEventListener('click', e => {
+        console.log('click')
+        if (isPaused !== void 0 && e.button  == 0 && _target) {
+          eventHandler(e, inputs.click,_target, isPaused)
         }
+        _target = void 0
       }, true)
     }
 
     if(inputs.dbClick && matchReg('dbClick')){
       document.addEventListener('dblclick',e=>{
+        console.log('dblclick')
         let target = e.target
         if(e.target.tagName !== 'VIDEO'){
-          const children = [...e.target.children]
-          target = children.find(x=>x.tagName == "VIDEO")
-          if(!target){
-            for(let c of children){
-              target = c.children && [...c.children].find(x=>x.tagName == "VIDEO")
-              if(target) break
-            }
-            if(!target){
-              for(let ele of document.querySelectorAll('video')){
-                const r =  ele.getBoundingClientRect()
-                if(pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)){
-                  target = ele
-                  break
-                }
-              }
-              if(!target) return
+          target = null
+          for(let ele of document.querySelectorAll('video')){
+            const r =  ele.getBoundingClientRect()
+            if(pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)){
+              const orgBound = e.target.getBoundingClientRect()
+              if(orgBound.width < r.width / 2 || orgBound.height < r.height / 2) continue
+              target = ele
+              break
             }
           }
+          if(!target) return
         }
         eventHandler(e,inputs.dbClick,target)
       },true)
@@ -967,24 +1044,15 @@ if(window.__started_){
       document.addEventListener('wheel',e=>{
         let target = e.target
         if(e.target.tagName !== 'VIDEO'){
-          const children = [...e.target.children]
-          target = children.find(x=>x.tagName == "VIDEO")
-          if(!target){
-            for(let c of children){
-              target = c.children && [...c.children].find(x=>x.tagName == "VIDEO")
-              if(target) break
-            }
-            if(!target){
-              for(let ele of document.querySelectorAll('video')){
-                const r =  ele.getBoundingClientRect()
-                if(pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)){
-                  target = ele
-                  break
-                }
-              }
-              if(!target) return
+          target = null
+          for(let ele of document.querySelectorAll('video')){
+            const r =  ele.getBoundingClientRect()
+            if(pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)){
+              target = ele
+              break
             }
           }
+          if(!target) return
         }
         if(e.ctrlKey || e.metaKey){
           if(e.shiftKey){

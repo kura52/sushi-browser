@@ -1284,6 +1284,7 @@ export default class TabPanel extends Component {
     }))
     menuItems.push(({
       label: locale.translation("pasteAndGo"), click: function () {
+        document.activeElement.blur()
         var location = clipboard.readText()
         const newTab = addressBarNewTab || tab.lock
         if(urlutil.isURL(location)){
@@ -1299,7 +1300,6 @@ export default class TabPanel extends Component {
         else{
           self.search(tab, location,false, newTab)
         }
-        document.activeElement.blur()
         // tab.wv.setForegroundWindow()
       }
     }))
