@@ -38,15 +38,6 @@ if(location.href.endsWith("index.html#")){
 function isFloatPanel(key){
   return key.startsWith('fixed-float')
 }
-if(isWin){
-  let pre
-  setInterval(()=>{
-    const val = !!document.getElementsByClassName('visible transition').length
-    if(pre == val) return
-    ipc.send('change-browser-view-z-index', val)
-    pre = val
-  },100)
-}
 
 export default class MainContent extends Component{
   constructor(props) {

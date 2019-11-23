@@ -4,7 +4,6 @@ import DpiUtils from './DpiUtils'
 import os from 'os'
 
 const isWin7 = os.platform() == 'win32' && os.release().startsWith('6.1')
-const isWin = process.platform === 'win32'
 const isLinux = process.platform === 'linux'
 const isDarwin = process.platform === 'darwin'
 
@@ -531,17 +530,6 @@ export default class BrowserPanel {
       DpiUtils.move(chromeNativeWindow,...BrowserPanel.getChromeWindowBoundArray(0, 0))
       chromeNativeWindow.moveTop()
     }
-    else{
-      chromeNativeWindow.setWindowLongPtrParent(nativeWindowBw.getHwnd())
-      //   chromeNativeWindow.setParent(nativeWindowBw.getHwnd())
-      // const hwnd = nativeWindowBw.createWindow()
-      // const nativeWindow2 = (await winctl.FindWindows(win => win.getHwnd() == hwnd))[0]
-      // nativeWindow2.moveRelative(0, 0, 2000, 2000)
-      // setTimeout(()=>{
-      //   chromeNativeWindow.setParent(nativeWindow2.getHwnd())
-      //   nativeWindowBw.setParent(nativeWindow2.getHwnd())
-      // },5000)
-    }
 
     // nativeWindowBw.setWindowLongPtrEx(0x02000000)
     nativeWindowBw.setWindowLongPtr(0x00040000)
@@ -696,7 +684,6 @@ export default class BrowserPanel {
       this.cpWin.nativeWindow.hidePanel ||
       !this.checkNeedMoveTop()) return
 
-    if(isWin) return
     console.log('moveTopNativeWindow()')
 
     this.cpWin.nativeWindow.moveTop()
@@ -714,7 +701,6 @@ export default class BrowserPanel {
     if (BrowserPanel.contextMenuShowing || !this.checkNeedMoveTop()) return
     // const now = Date.now()
 
-    if(isWin) return
     console.log('moveTopNativeWindowBW()',this.browserWindow._alwaysOnTop)
 
     // if(!this.moveTopCache || now - this.moveTopCache > 30){

@@ -465,14 +465,14 @@ export default class BrowserNavbarLocation extends Component {
     //   prevLocValue: this.prevLocValue,
     //   value: document.activeElement == this.input ? this.input.value : convertUrl
     // })
-    console.trace('getValue', {
-      value: document.activeElement == this.input ? this.input.value : convertUrl,
-      prevLocation: this.prevLocation,
-      convertUrl,
-      inputValue: this.input && this.input.value,
-      prevInputValue: this.prevInputValue,
-      prevLocValue: this.prevLocValue
-    })
+    // console.trace('getValue', {
+    //   value: document.activeElement == this.input ? this.input.value : convertUrl,
+    //   prevLocation: this.prevLocation,
+    //   convertUrl,
+    //   inputValue: this.input && this.input.value,
+    //   prevInputValue: this.prevInputValue,
+    //   prevLocValue: this.prevLocValue
+    // })
     if(this.prevLocation == convertUrl && this.prevInputValue == (this.input && this.input.value)){
       return this.prevLocValue
     }

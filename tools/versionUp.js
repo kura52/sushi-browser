@@ -25,16 +25,18 @@ const glob = require("glob")
 // Geso(Squid arms)
 // Fugu(Blowfish)
 // Akamutsu(Rosy seabass)
+// Yariika(Spear squid)
+// Saba(Mackerel)
 
 const BEFORE_CODE_NAME = 'Saba(Mackerel)'
-const CODE_NAME = 'Saba(Mackerel)'
+const CODE_NAME = 'Hatahata(Sandfish)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.28.1"
+const NEXT_APP_VERSION = "0.29.0"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
 const CHANGE_ENGLISH =`Fixed video maximize function.
-Added a function to set the size of 100% or more when maximizing the video. In addition, it was possible to move by mouse drag when it was over 100%.
-Added a function to change the maximum size with Alt + mouse wheel.
+Added a function to move the window by dragging the mouse when maximizing the movie.
+Added a function to set the size of 100% or more when maximizing the video. In addition, it was possible to move the position by mouse drag when it was over 100%.
 Fixed the pause function by clicking the video and set it to the default action.
 Fixed video page.
 Fixed video pop-up window.
@@ -50,7 +52,8 @@ Updated Custom Brave to 1.0.1.
 Updated youtube-dl to 2019.11.22.`
 
 const CHANGE_JAPANESE = `動画のmaximize機能を修正。
-動画の最大化時に、100%以上のサイズを設定できるように機能を追加。また、100%以上にした際にマウスドラッグによる移動も可能とした。
+動画の最大化時に、マウスドラッグによるウインドウ移動機能を追加。
+動画の最大化時に、100%以上のサイズを設定できるように機能を追加。また、100%以上にした際にマウスドラッグによる位置の移動も可能とした。
 Alt + マウスホイールで最大化時のサイズを変更できるように機能を追加。
 動画クリックによる一時停止機能を修正し、デフォルト動作に設定。
 動画ページを修正。

@@ -245,19 +245,24 @@ if(window.__started_){
 
     const resizeEvent = (v) => {
 
-      let y, x
+      let x, y
       const mmove = e => {
         clickEventCancel = true
-        const moveX = e.pageX - x
-        x = e.pageX
-        const moveY = e.pageY - y
-        y = e.pageY
 
-        const xVal = parseInt(v.style.left) + moveX * 3
-        const yVal = parseInt(v.style.top) + moveY * 3
-
-        v.style.setProperty('left', `${xVal}px`,'important')
-        v.style.setProperty('top', `${yVal}px`,'important')
+        if(parseInt(v.style.width) != 100){
+          const moveX = e.pageX - x
+          x = e.pageX
+          const moveY = e.pageY - y
+          y = e.pageY
+          const xVal = parseInt(v.style.left) + moveX * 3
+          const yVal = parseInt(v.style.top) + moveY * 3
+          v.style.setProperty('left', `${xVal}px`,'important')
+          v.style.setProperty('top', `${yVal}px`,'important')
+        }
+        else{
+          console.log('move-window-from-webview', e.movementX, e.movementY)
+          ipc.send('move-window-from-webview', e.movementX, e.movementY)
+        }
       }
 
       const mup = e => {
@@ -377,25 +382,19 @@ if(window.__started_){
               preVal = value
               if(percent != 100){
                 span.firstChild.textContent  = `Normal [${percent}%]`
-                if(!ResizeEventMap.has(v)){
-                  ResizeEventMap.set(v, resizeEvent(v))
-                }
               }
               else{
                 span.firstChild.textContent  = 'Normal'
                 v.style.setProperty('left', '0','important')
                 v.style.setProperty('top', '0','important')
-                if(ResizeEventMap.has(v)){
-                  v.removeEventListener('mousedown', ResizeEventMap.get(v), false)
-                  v.removeEventListener('play', funcPlay)
-                  v.removeEventListener('pause', funcPause)
-                  ResizeEventMap.delete(v)
-                }
               }
             }
             input.addEventListener('input', onInput)
             v.inputFunc = onInput
             span.appendChild(input)
+            if(!ResizeEventMap.has(v)){
+              ResizeEventMap.set(v, resizeEvent(v))
+            }
           }
 
           span.style.cssText = `${rStyle};z-index: 2147483647;position: absolute;overflow: hidden;border-radius: 8px;background: rgba(50,50,50,0.9);text-shadow: 0 0 2px rgba(0,0,0,.5);transition: opacity .1s cubic-bezier(0.0,0.0,0.2,1);margin: 0;border: 0;font-size: 14px;color: white;padding: 4px 7px;text-align: center;`;

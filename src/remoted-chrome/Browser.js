@@ -285,7 +285,7 @@ Or, please use the Chromium bundled version.`
               browserPanel.browserWindow.focus()
             }
             else{
-              browserPanel.cpWin.nativeWindowBw.moveTop()
+              browserPanel.moveTopNativeWindowBw()
             }
             console.log('moveTopNativeWindowBW2',Date.now())
             return

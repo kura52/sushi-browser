@@ -2485,6 +2485,14 @@ ipcMain.on('move-browser-view', async (e, panelKey, tabKey, type, tabId, x, y, w
   }
 })
 
+ipcMain.on('move-window-from-webview', (e, moveX, moveY) => {
+  const tabId = e.sender.id
+  const [panelKey, tabKey, browserPanel, browserView] = BrowserPanel.getBrowserPanelByTabId(tabId)
+  const [x,y] = browserPanel.browserWindow.getPosition()
+  console.log(x, y, moveX, moveY)
+  browserPanel.browserWindow.setPosition(x + moveX, y + moveY)
+})
+
 const setBoundClearIds = {},dateCache = {}
 ipcMain.on('set-bound-browser-view', async (e, panelKey, tabKey, tabId, x, y, width, height, zIndex, date=Date.now())=>{
   if(dateCache[panelKey] && dateCache[panelKey] > date) return
@@ -2693,7 +2701,6 @@ ipcMain.on('set-overlap-component', async (e, type, panelKey, tabKey, x, y, widt
   }
 })
 
-const parentState = {}
 ipcMain.on('change-browser-view-z-index', (e, isFrame, panelKey, force) =>{
   const win = BrowserWindow.fromWebContents(e.sender)
   if(!win || win.isDestroyed()) return
@@ -2702,31 +2709,6 @@ ipcMain.on('change-browser-view-z-index', (e, isFrame, panelKey, force) =>{
   // console.log('change-browser-view-z-index', isFrame, bvZindexMap[win])
   if(force){
     BrowserPanel.getBrowserPanelsFromBrowserWindow(win)[0].setAlwaysOnTop(!isFrame)
-  }
-  if(isWin){
-    if(isFrame){
-      if(parentState[win.id]) return
-      let lastPanel
-      parentState[win.id] = true
-      for(const panel of BrowserPanel.getBrowserPanelsFromBrowserWindow(win)){
-        console.log('setWindowLongPtrParentRestore')
-        panel.cpWin.chromeNativeWindow.setWindowLongPtrParentRestore()
-        panel.cpWin.chromeNativeWindow.setWindowPos(0, 0, 0, 0, 0, 19 + 1024)
-        lastPanel =  panel
-      }
-      lastPanel.cpWin.nativeWindowBw.moveTop()
-      // setTimeout(()=>lastPanel.cpWin.nativeWindowBw.moveTop(),50)
-    }
-    else{
-      if(!parentState[win.id]) return
-      parentState[win.id] = false
-      for(const panel of BrowserPanel.getBrowserPanelsFromBrowserWindow(win)){
-        console.log('setWindowLongPtrParent')
-        panel.cpWin.chromeNativeWindow.setWindowLongPtrParent(panel.cpWin.nativeWindowBw.getHwnd())
-        panel.cpWin.chromeNativeWindow.setWindowPos(0, 0, 0, 0, 0, 19 + 1024)
-      }
-    }
-    return
   }
   if(isFrame){
     ipcMain.emit('top-to-browser-window', win.id)
