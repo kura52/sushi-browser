@@ -206,7 +206,8 @@ class TopMenu extends React.Component {
           }}>
             <Menu pointing secondary >
               <Menu.Item key="top" name="Top" active={true}/>
-              <Menu.Item as='a' href='chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html' id='bookmark-link' key="favorite" name={l10n.translation('bookmarks')}/>
+              <Menu.Item as='a' id='bookmark-link' key="favorite" name={l10n.translation('bookmarks')}
+                         onMouseDown={e=> e.target.addEventListener('mouseup', e=> ipc.send('send-to-host', e.button == 0 && !e.ctrlKey ? 'load-url' : this.props.oppositeGlobal ? 'open-tab-opposite' : 'open-tab' ,this.props.useChromeBookmarkPage ? 'chrome://bookmarks/' : 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html',true,  !this.props.oppositeGlobal && (e.button == 1 || e.ctrlKey)),{once: true})} />
               <Menu.Item as='a' href='chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html' id='history-link' key="history" name={l10n.translation('history')}/>
               <Menu.Item as='a' href={`${baseURL}/download.html`} key="download" name={l10n.translation('downloads')}/>
               <Menu.Item as='a' href={`${baseURL}/note.html`} key="note" name={l10n.translation('note')}/>
@@ -440,12 +441,12 @@ class TopList extends React.Component {
   }
 }
 
-const App = (props) => {
+const App = props => {
   const showBookmarkBar = !props.data.bookmarkBar && props.data.bookmarkBarTopPage
   return <div>
     {showBookmarkBar ? <BookmarkBar bookmarkbarLink={props.data.bookmarkbarLink}/> : null}
     <Container>
-      <TopMenu showBookmarkBar={showBookmarkBar}/>
+      <TopMenu showBookmarkBar={showBookmarkBar} useChromeBookmarkPage={props.data.useChromeBookmarkPage} oppositeGlobal={props.data.oppositeGlobal}/>
     </Container>
   </div>
 }
@@ -454,7 +455,7 @@ const App = (props) => {
 require('./themeForPage')('themeTopPage')
 
 const key = Math.random().toString()
-ipc.send("get-main-state",key,['bookmarkbarLink','bookmarkBar','bookmarkBarTopPage'])
+ipc.send("get-main-state",key,['bookmarkbarLink','bookmarkBar','bookmarkBarTopPage','useChromeBookmarkPage', 'oppositeGlobal'])
 ipc.once(`get-main-state-reply_${key}`,async (e,data)=>{
   ;(async ()=>{
     [accessKey, accessPort] = await new Promise(r=>{

@@ -19,6 +19,7 @@ module.exports.init = (verChange) => {
   }
 
   const uninstallExtension = async (extensionId) => {
+
     await Browser.bg.evaluate(extensionId => {
       return new Promise(resolve => {
         chrome.management.uninstall(extensionId, () => {

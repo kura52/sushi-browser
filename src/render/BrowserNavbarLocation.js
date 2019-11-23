@@ -272,7 +272,7 @@ export default class BrowserNavbarLocation extends Component {
 
           const results = ret.map(x => ({
             title: x.title || (x.location.length > 75 ? `${x.location.substr(0, 75)}...` : x.location),
-            description: <span><span>{x.location.length > 90 ? `${x.location.substr(0, 90)}...` : convertURL(x.location)}</span><span className="suggestion-visit">[Bookmark]</span></span>,
+            description: <span><span className="no-display">{x.location}</span><span>{x.location.length > 90 ? `${x.location.substr(0, 90)}...` : convertURL(x.location)}</span><span className="suggestion-visit">[Bookmark]</span></span>,
             url: x.location
           }))
           resolve({bookmark: results})
@@ -288,7 +288,7 @@ export default class BrowserNavbarLocation extends Component {
 
           const results = ret.history.map(x => ({
             title: x.title || (x.location.length > 75 ? `${x.location.substr(0, 75)}...` : x.location),
-            description: <span><span>{x.location.length > 90 ? `${x.location.substr(0, 90)}...` : convertURL(x.location)}</span><span className="suggestion-visit">[{x.count}pv{x.time ? `, ${getAppropriateTimeUnit(x.time / 1000)}` : ''}]</span></span>,
+            description: <span><span className="no-display">{x.location}</span><span>{x.location.length > 90 ? `${x.location.substr(0, 90)}...` : convertURL(x.location)}</span><span className="suggestion-visit">[{x.count}pv{x.time ? `, ${getAppropriateTimeUnit(x.time / 1000)}` : ''}]</span></span>,
             url: x.location
           }))
           resolve({history: _.uniqBy(results.filter(x => x.title), x => x.title).slice(0, this.props.autoCompleteInfos.numOfHistory)})
@@ -354,7 +354,7 @@ export default class BrowserNavbarLocation extends Component {
 
   onFocus(e){
     const input = this.input || ReactDOM.findDOMNode(this.refs.input).querySelector("input")
-    setTimeout(()=>input.select(),100)
+    setTimeout(()=>document.activeElement == input && input.select(),100)
 
 
     if((this.isFloat || this.props.isMaximize) && input.value != ""){
@@ -415,6 +415,7 @@ export default class BrowserNavbarLocation extends Component {
       if(select){
         const title = select.innerHTML.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
         const url = this.state.results.find(x=> x.title === title).url
+        this.props.onChangeLocation.bind(this)(url)
         select.click()
         this.canUpdate = true
         this.resetComponent()
@@ -425,6 +426,8 @@ export default class BrowserNavbarLocation extends Component {
       const newTab = e.altKey || this.props.addressBarNewTab || this.props.tab.lock
       if(urlutil.isURL(input)){
         const url = urlutil.getUrlFromInput(input)
+        if(url != input) this.props.onChangeLocation.bind(this)(url)
+
         this.canUpdate = true
         if(newTab){
           this.props.tab.events['new-tab'](e, this.props.tab.wvId,url,this.props.tab.privateMode)

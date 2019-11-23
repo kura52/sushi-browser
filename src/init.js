@@ -1404,7 +1404,7 @@ async function contextMenu(webContents, props) {
           const addItem = properties.type == "separator" ? {type: 'separator'} : item
           let parent
           if(properties.parentId && (parent = menuList.find(m=>m.menuItemId == properties.parentId))){
-            if(properties.icons && extensionInfos[extensionId].base_path) addItem.icon = path.join(extensionInfos[extensionId].base_path,Object.values(properties.icons)[0].replace(/\.svg$/,'.png'))
+            if(properties.icons && extensionInfos[extensionId] && extensionInfos[extensionId].base_path) addItem.icon = path.join(extensionInfos[extensionId].base_path,Object.values(properties.icons)[0].replace(/\.svg$/,'.png'))
             if(parent.submenu === void 0){
               parent.submenu = [addItem]
             }
@@ -1413,8 +1413,8 @@ async function contextMenu(webContents, props) {
             }
           }
           else{
-            if(icon && extensionInfos[extensionId].base_path) addItem.icon = path.join(extensionInfos[extensionId].base_path,icon)
-            if(properties.icons && extensionInfos[extensionId].base_path) addItem.icon2 = path.join(extensionInfos[extensionId].base_path,Object.values(properties.icons)[0].replace(/\.svg$/,'.png'))
+            if(icon && extensionInfos[extensionId]  && extensionInfos[extensionId].base_path) addItem.icon = path.join(extensionInfos[extensionId].base_path,icon)
+            if(properties.icons && extensionInfos[extensionId]  && extensionInfos[extensionId].base_path) addItem.icon2 = path.join(extensionInfos[extensionId].base_path,Object.values(properties.icons)[0].replace(/\.svg$/,'.png'))
             menuList.push(addItem)
           }
         }
@@ -1429,7 +1429,7 @@ async function contextMenu(webContents, props) {
           menuItems.push(menu)
         }
       }
-      else if(menuList.length > 2){
+      else if(menuList.length > 2 && extensionInfos[extensionId]){
         menuItems.push({type: 'separator'})
         menuItems.push({
           label: extensionInfos[extensionId].name,

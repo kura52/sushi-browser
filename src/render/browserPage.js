@@ -119,8 +119,11 @@ class BrowserPage extends Component {
       if(sharedState.statusBar){
         this.bounds[3] = this.bounds[3] - 20
       }
-      ipc.send('set-bound-browser-view', this.props.k2, this.props.k, this.props.tab.wvId, ...this.bounds)
-      ipc.emit('set-bound-browser-view', this.props.k2, this.props.k, this.props.tab.wvId, ...this.bounds)
+      console.log('set-bound-browser-view1', this.props.k2, this.props.k, this.props.tab.wvId, ...this.bounds)
+      if(style.zIndex > 0) {
+        ipc.send('set-bound-browser-view', this.props.k2, this.props.k, this.props.tab.wvId, ...this.bounds)
+        ipc.emit('set-bound-browser-view', this.props.k2, this.props.k, this.props.tab.wvId, ...this.bounds)
+      }
     }
     this.prevMobilePanelWidth = mobilePanelWidth
     this.prevStatusBar = sharedState.statusBar
@@ -294,8 +297,11 @@ class BrowserPage extends Component {
         if(sharedState.statusBar){
           bounds[3] = bounds[3] - 20
         }
-        ipc.send('set-bound-browser-view', this.props.k2, this.props.k, this.props.tab.wvId, ...bounds)
-        ipc.emit('set-bound-browser-view', this.props.k2, this.props.k, this.props.tab.wvId, ...bounds)
+        console.log('set-bound-browser-view2', this.props.k2, this.props.k, this.props.tab.wvId, ...this.bounds)
+        if(style.zIndex > 0){
+          ipc.send('set-bound-browser-view', this.props.k2, this.props.k, this.props.tab.wvId, ...bounds)
+          ipc.emit('set-bound-browser-view', this.props.k2, this.props.k, this.props.tab.wvId, ...bounds)
+        }
       }
     })
 
@@ -373,6 +379,14 @@ class BrowserPage extends Component {
     ipc.on('get-webview-pos', this.getWebviewPosEvent)
 
     console.log("BrowserPage componentDidMount(",webview,this.props)
+
+    this.bounds = [style.left, style.top, style.width, style.height, style.zIndex]
+    console.log('set-bound-browser-view3', this.props.k2, this.props.k, this.props.tab.wvId, ...this.bounds)
+    if(style.zIndex > 0) {
+      ipc.send('set-bound-browser-view', this.props.k2, this.props.k, this.props.tab.wvId, ...this.bounds)
+      ipc.emit('set-bound-browser-view', this.props.k2, this.props.k, this.props.tab.wvId, ...this.bounds)
+    }
+
   }
 
   componentWillUnmount() {

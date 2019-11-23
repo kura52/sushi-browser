@@ -14,6 +14,7 @@ import evem from './evem'
 import mainState from "../mainState";
 import DpiUtils from './DpiUtils'
 import BraveExtensionsManifest from './BraveExtensionsManifest'
+import sharedState from '../sharedStateMain'
 
 const isWin = process.platform == 'win32'
 const isLinux = process.platform === 'linux'
@@ -234,7 +235,7 @@ Or, please use the Chromium bundled version.`
         if(browserPanel.browserWindow && browserPanel.browserWindow.id == browserWindowId){
           if(eventName == 'focus'){
             console.log('moveTopNativeWindow+bW1',this.focusedWindowId,this.focusedWindowIdPre)
-            if(!isWin && this.focusedWindowIdPre && this.focusedWindowIdPre != -1) return
+            if(!isWin && this.focusedWindowIdPre && this.focusedWindowIdPre == browserWindowId) return
             setTimeout(()=>{
               browserPanel.moveTopNativeWindow()
               browserPanel.moveTopNativeWindowBw()
@@ -1183,6 +1184,7 @@ Or, please use the Chromium bundled version.`
   }
 
   static disableExtension(id, uninstall){
+    delete sharedState.extensionMenu[id]
     if(uninstall) delete extInfos[id]
     for(let bw of BrowserWindow.getAllWindows()){
       if(bw.getTitle().includes('Sushi Browser'))

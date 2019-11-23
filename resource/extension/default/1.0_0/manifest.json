@@ -7,13 +7,19 @@
          "all_frames": true,
          "js": [ "js/contentscript.js"],
          "matches": ["<all_urls>"],
-         "run_at": "document_start"
+         "run_at": "document_start",
+         "exclude_globs": [
+            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/*"
+         ]
       },
       {
          "all_frames": true,
          "js": [ "js/contentscript.js" ],
          "matches": ["<all_urls>"],
-         "run_at": "document_end"
+         "run_at": "document_end",
+         "exclude_globs": [
+            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/*"
+         ]
       },
       {
          "all_frames": true,
@@ -55,8 +61,7 @@
             "chrome-extension://*"
          ],
          "exclude_globs": [
-            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/*",
-            "chrome://brave/*"
+            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/*"
          ],
          "run_at": "document_end"
       }

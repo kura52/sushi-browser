@@ -17,6 +17,14 @@ const initPromise = l10n.init()
 import '../defaultExtension/contentscript'
 
 
+let oppositeGlobal, useChromeBookmarkPage
+const key = uuid.v4()
+ipc.send("get-main-state",key,['oppositeGlobal', 'useChromeBookmarkPage'])
+ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
+  oppositeGlobal = data.oppositeGlobal
+  useChromeBookmarkPage = data.useChromeBookmarkPage
+})
+
 const {TreeNode} = Tree
 let homePath
 
@@ -479,7 +487,8 @@ class FileExplorer extends React.Component{
         <Menu.Item key="open" name="Open Directory" active={true} onClick={::this.selectFolder}
                    style={{backgroundColor: 'rgb(228, 242, 255)', borderRadius: '4px 4px 0px 0px'}}/>
         <Menu.Item as='a' href='chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' id='top-link' key="top" name="Top"/>
-        <Menu.Item as='a' href='chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html' id='bookmark-link' key="favorite" name={l10n.translation('bookmarks')}/>
+        <Menu.Item as='a' id='bookmark-link' key="favorite" name={l10n.translation('bookmarks')}
+                   onMouseDown={e=> e.target.addEventListener('mouseup', e=> ipc.send('send-to-host', e.button == 0 && !e.ctrlKey ? 'load-url' : oppositeGlobal ? 'open-tab-opposite' : 'open-tab' ,useChromeBookmarkPage ? 'chrome://bookmarks/' : 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html',true,  !oppositeGlobal && (e.button == 1 || e.ctrlKey)),{once: true})} />
         <Menu.Item as='a' href='chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html' id='history-link' key="history" name={l10n.translation('history')}/>
         <Menu.Item as='a' href={`${baseURL}/download.html`} key="download" name={l10n.translation('downloads')}/>
         <Menu.Item as='a' href={`${baseURL}/note.html`} key="note" name={l10n.translation('note')}/>

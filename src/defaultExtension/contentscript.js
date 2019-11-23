@@ -21,7 +21,7 @@ chrome.ipcRenderer = {
   }
 }
 
-
+console.log('window.__started_', window.__started_)
 window.__started_ = window.__started_ ? void 0 : 1
 var ipc = chrome.ipcRenderer
 if(window.__started_){
@@ -145,8 +145,8 @@ if(window.__started_){
   let preAElemsLength = 0
   const openTime = Date.now()
   const ResizeEventMap = new Map()
-  const funcPlay = (e) => !console.log('play') && e.target.pause()
-  const funcPause = (e) => !console.log('pause') && e.target.play()
+  const funcPlay = (e) => e.target.pause()
+  const funcPause = (e) => e.target.play()
 
   if(location.href.match(/^(http|chrome\-extension)/)){
 
@@ -243,11 +243,11 @@ if(window.__started_){
 
     let checkedVideoSet = new Set(), beforeRemoveIds = new Map(), videoList, isAddedCss = false
 
-
     const resizeEvent = (v) => {
 
       let y, x
       const mmove = e => {
+        clickEventCancel = true
         const moveX = e.pageX - x
         x = e.pageX
         const moveY = e.pageY - y
@@ -256,12 +256,6 @@ if(window.__started_){
         const xVal = parseInt(v.style.left) + moveX * 3
         const yVal = parseInt(v.style.top) + moveY * 3
 
-        if(v.paused){
-          v.addEventListener('play', funcPlay)
-        }
-        else{
-          v.addEventListener('pause', funcPause)
-        }
         v.style.setProperty('left', `${xVal}px`,'important')
         v.style.setProperty('top', `${yVal}px`,'important')
       }
@@ -270,6 +264,7 @@ if(window.__started_){
         v.removeEventListener("mousemove", mmove, false)
         v.removeEventListener("mouseleave", mup, false)
         v.removeEventListener("mouseup", mup, false)
+        setTimeout(()=>clickEventCancel = false,10)
       }
 
       const mdown = e =>{
@@ -278,10 +273,6 @@ if(window.__started_){
         v.addEventListener("mousemove", mmove, false)
         v.addEventListener("mouseleave", mup, false)
         v.addEventListener("mouseup", mup, false)
-        setTimeout(()=>{
-          v.removeEventListener('play', funcPlay)
-          v.removeEventListener('pause', funcPause)
-        },30)
       }
       v.addEventListener('mousedown', mdown, false)
 
@@ -306,23 +297,34 @@ if(window.__started_){
             const style = `input[type="range"]._maximize_resizer_ {
     -webkit-appearance: none;
     background-color: #cccccc;
-    height: 4px;
-    border-radius: 1px;
-    width: 80px;
+    height: 12px;
+    border-radius: 3px;
+    width: 100px;
     display: block;
-    margin: 4px 0px;
+    margin: 4px auto;
     outline: none;
     }
   input[type="range"]._maximize_resizer_::-webkit-slider-thumb {
     -webkit-appearance: none;
     width: 10px;
     height: 10px;
-    background: white;
+    background: #4a4a4a;
     border-radius: 50%;
-    }`
+    }  
+  video._maximize-org_::-webkit-media-controls-enclosure{
+    position: fixed !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    left: 0 !important;
+  }
+    `
             s.appendChild(document.createTextNode(style));
             document.head.appendChild(s)
 
+            const s2 = document.createElement('style')
+            s2.setAttribute('type', 'text/css')
+            s2.setAttribute('id', 'style_element2_')
+            document.head.appendChild(s2)
           }
 
           console.log('func')
@@ -335,8 +337,9 @@ if(window.__started_){
 
           const rect = v.getBoundingClientRect()
           let xmod = 0, ymod = 0, widthVw = parseInt(v.style.width)
+          if(isNaN(widthVw)) widthVw = 100
           if(v._olds_ && widthVw > 100){
-            if(widthVw > 300 || isNaN(widthVw)) widthVw = 100
+            if(widthVw > 300) widthVw = 100
             xmod = parseInt(v.style.left) * -1
             ymod = parseInt(v.style.top) * -1
           }
@@ -354,18 +357,23 @@ if(window.__started_){
             input.className = '_maximize_resizer_'
             input.step = 0.05
             input.value = `${widthVw / 100.0}`
-            let preVal = 1
-            input.addEventListener('input', e => {
-              const value = parseFloat(e.target.value)
-              const percent = Math.round(value * 100)
+            let preVal = input.value
+
+            const onInput = e => {
+              const value = parseFloat(input.value)
+              let percent = Math.round(value * 100)
+              if(percent > 300 || isNaN(percent)) percent = 100
+              const left = parseInt(v.style.left)
+              const top = parseInt(v.style.top)
+
               v.style.setProperty('width',`${percent}vw` ,'important')
               v.style.setProperty('min-width',`${percent}vw` ,'important')
               v.style.setProperty('max-width',`${percent}vw` ,'important')
               v.style.setProperty('height',`${percent}vh` ,'important')
               v.style.setProperty('min-height',`${percent}vh` ,'important')
               v.style.setProperty('max-height',`${percent}vh` ,'important')
-              v.style.setProperty('left', `${parseInt(v.style.left) - (window.innerWidth * (value - preVal) / 2)}px`,'important')
-              v.style.setProperty('top', `${parseInt(v.style.top) - (window.innerHeight * (value - preVal) / 2)}px`,'important')
+              v.style.setProperty('left', `${left - (window.innerWidth * (value - preVal) / 2)}px`,'important')
+              v.style.setProperty('top', `${top - (window.innerHeight * (value - preVal) / 2)}px`,'important')
               preVal = value
               if(percent != 100){
                 span.firstChild.textContent  = `Normal [${percent}%]`
@@ -384,7 +392,9 @@ if(window.__started_){
                   ResizeEventMap.delete(v)
                 }
               }
-            })
+            }
+            input.addEventListener('input', onInput)
+            v.inputFunc = onInput
             span.appendChild(input)
           }
 
@@ -396,8 +406,10 @@ if(window.__started_){
           // document.body.appendChild(span)
           document.documentElement.insertBefore(span, document.body)
 
-          span.addEventListener('click', async e => {
-            if(e.target.tagName == 'INPUT') return
+          const onClick = async e => {
+            if(e && e.target.tagName == 'INPUT') return
+            if(e && e.target.childElementCount > 0 && e.clientY - 2 > e.target.children[0].getBoundingClientRect().y) return
+            if(!e && v._olds_) return
             await maximizeInPanel(v)
             const rect = v.getBoundingClientRect()
             span.style.left = `${Math.round(rect.left) + 10}px`
@@ -405,7 +417,9 @@ if(window.__started_){
             span.innerText = v._olds_ ? 'Normal' : 'Maximize'
             clearTimeout(beforeRemoveIds.get(v))
             document.documentElement.removeChild(span)
-          })
+          }
+          span.addEventListener('click', onClick)
+          v.clickFunc = onClick
 
           span.addEventListener('mouseenter', () => span.style.background = 'rgba(80,80,80,0.9)')
           span.addEventListener('mouseleave', () => span.style.background = 'rgba(50,50,50,0.9)')
@@ -414,14 +428,19 @@ if(window.__started_){
         }
 
         let mouseMoveEvent = {}
-        document.addEventListener('mousemove', e => {
+        const onMouseMove = e => {
+          if(!e) return func()
+
           mouseMoveEvent = e
           const r = v.getBoundingClientRect()
-          // console.log(r.left, r.top, r.width, r.height, e.clientX, e.clientY)
           if (pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)) {
             func()
           }
-        })
+        }
+
+        document.addEventListener('mousemove', onMouseMove)
+        v.mouseMoveFunc = onMouseMove
+
         document.addEventListener('mouseout', e2 => {
           if (e2.target != v && !checkPos(e2.target, v)) return
           const r = v.getBoundingClientRect()
@@ -450,6 +469,12 @@ if(window.__started_){
       // await new Promise(r=>setTimeout(r,500))
     }
 
+    let _v, _vs
+    if(location.href.startsWith('https://www.youtube.com')){
+      _v = v
+      v = v.closest('.html5-video-player')
+    }
+
     if(enable == null){
       enable = !v._olds_
     }
@@ -457,6 +482,7 @@ if(window.__started_){
       v._olds_ = {}
 
       v._olds_.controls = v.controls
+      v._olds_.htmlOverflow = document.documentElement.style.overflow
       v._olds_.bodyOverflow = document.body.style.overflow
       v._olds_.width = v.style.width
       v._olds_.minWidth = v.style.minWidth
@@ -477,21 +503,39 @@ if(window.__started_){
       v._olds_.transform = v.style.transform
       v._olds_.opacity = v.style.opacity
 
+      if(_v){
+        _v._olds_ = {}
+        _v._olds_.width = _v.style.width
+        _v._olds_.minWidth = _v.style.minWidth
+        _v._olds_.maxWidth = _v.style.maxWidth
+        _v._olds_.height = _v.style.height
+        _v._olds_.minHeight = _v.style.minHeight
+        _v._olds_.maxHeight = _v.style.maxHeight
+        _v._olds_.left = _v.style.left
+        _v._olds_.top = _v.style.top
+
+        _v._olds_.theater = !!document.querySelector('#player-theater-container').childElementCount
+        if(!_v._olds_.theater){
+          document.querySelector('.ytp-size-button.ytp-button').click()
+        }
+      }
+
       if(!isIframe){
-        v._clickCallback_ = async () => {
+        ;(_v || v)._clickCallback_ = async () => {
           for(let i=0;i<10;i++){
-            v.setAttribute('controls', true)
+            ;(_v || v).setAttribute('controls', true)
             await new Promise(r=>setTimeout(r,100))
           }
         }
-        v.addEventListener('click', v._clickCallback_)
+        ;(_v || v).addEventListener('click', (_v || v)._clickCallback_)
 
-        v.setAttribute('controls', true)
+        if(!_v) v.setAttribute('controls', true)
       }
       else{
         v.setAttribute('_key_', 'video')
       }
 
+      document.documentElement.style.setProperty('overflow','hidden' ,'important')
       document.body.style.setProperty('overflow','hidden' ,'important')
 
       v.style.setProperty('width','100vw' ,'important')
@@ -512,7 +556,21 @@ if(window.__started_){
       v.style.setProperty('outline','0' ,'important')
       v.style.setProperty('transform','none' ,'important')
       v.style.setProperty('opacity','1','important')
-      v.classList.add('_maximize-org_')
+      ;(_v || v).classList.add('_maximize-org_')
+
+      if(_v){
+        clearInterval(_v.intervalId)
+        _v.intervalId = setInterval(() => {
+          if(!_v.style.getPropertyPriority('top')){
+            _v.style.setProperty('width','100vw' ,'important')
+            _v.style.setProperty('height','100vh' ,'important')
+            _v.style.setProperty('top','0px' ,'important')
+          }
+        },50)
+        _v.style.setProperty('width','100vw' ,'important')
+        _v.style.setProperty('height','100vh' ,'important')
+        _v.style.setProperty('top','0px' ,'important')
+      }
 
       if(!isIframe) {
         v._olds_.parentNode = v.parentNode
@@ -527,16 +585,17 @@ if(window.__started_){
 
     }
     else{
-      v.removeEventListener('click', v._clickCallback_)
+      ;(_v || v).removeEventListener('click', v._clickCallback_)
 
-      if(ResizeEventMap.has(v)){
-        v.removeEventListener('mousedown', ResizeEventMap.get(v), false)
-        v.removeEventListener('play', funcPlay)
-        v.removeEventListener('pause', funcPause)
-        ResizeEventMap.delete(v)
+      if(ResizeEventMap.has(_v || v)){
+        ;(_v || v).removeEventListener('mousedown', ResizeEventMap.get(_v || v), false)
+        ;(_v || v).removeEventListener('play', funcPlay)
+        ;(_v || v).removeEventListener('pause', funcPause)
+        ResizeEventMap.delete(_v || v)
       }
 
       v.controls = v._olds_.controls
+      document.documentElement.style.overflow = v._olds_.htmlOverflow
       document.body.style.overflow = v._olds_.bodyOverflow
       v.style.width = v._olds_.width
       v.style.minWidth = v._olds_.minWidth
@@ -556,14 +615,35 @@ if(window.__started_){
       v.style.outline = v._olds_.outline
       v.style.transform = v._olds_.transform
       v.style.opacity = v._olds_.opacity
-      v.classList.remove('_maximize-org_')
+      ;(_v || v).classList.remove('_maximize-org_')
+
+      if(_v){
+        clearInterval(_v.intervalId)
+
+        _v.style.width = _v._olds_.width
+        _v.style.minWidth = _v._olds_.minWidth
+        _v.style.maxWidth = _v._olds_.maxWidth
+        _v.style.height = _v._olds_.height
+        _v.style.minHeight = _v._olds_.minHeight
+        _v.style.maxHeight = _v._olds_.maxHeight
+        _v.style.left = _v._olds_.left
+        _v.style.top = _v._olds_.top
+        if(!_v._olds_.theater){
+          document.querySelector('.ytp-size-button.ytp-button').click()
+        }
+
+        delete _v._olds_
+      }
+
+      delete (_v || v).mouseMoveFunc
+      delete (_v || v).inputFunc
 
       if(!isIframe) {
         v._olds_.parentNode.replaceChild(v, v._olds_.replaceNode)
       }
 
       delete v._olds_
-      delete v._clickCallback_
+      delete (_v || v)._clickCallback_
     }
   }
 
@@ -805,7 +885,7 @@ if(window.__started_){
 
   })
 
-  let isFirst = true
+  let isFirst = true, clickEventCancel
   const videoFunc = (e,inputs)=>{
     if(!isFirst) return
     isFirst = false
@@ -823,7 +903,7 @@ if(window.__started_){
 
       const span = document.createElement("span")
       span.innerHTML = text
-      span.style.cssText = `${rStyle};padding: 5px 9px;z-index: 99999999;position: absolute;overflow: hidden;border-radius: 2px;background: rgba(28,28,28,0.9);text-shadow: 0 0 2px rgba(0,0,0,.5);transition: opacity .1s cubic-bezier(0.0,0.0,0.2,1);margin: 0;border: 0;font-size: 20px;color: white;padding: 10px 15px;`;
+      span.style.cssText = `${rStyle};padding: 5px 9px;z-index: 2147483648;position: absolute;overflow: hidden;border-radius: 2px;background: rgba(28,28,28,0.9);text-shadow: 0 0 2px rgba(0,0,0,.5);transition: opacity .1s cubic-bezier(0.0,0.0,0.2,1);margin: 0;border: 0;font-size: 20px;color: white;padding: 10px 15px;`;
       span.setAttribute("id", "popup-org-video")
       const existElement = document.querySelector("#popup-org-video")
       if(existElement){
@@ -833,21 +913,51 @@ if(window.__started_){
       setTimeout(_=>document.documentElement.removeChild(span),2000)
     }
 
-    let nothing
-    const eventHandler = async (e,name,target,isPaused)=>{
+    let nothing, playOrPauseMap = new Map()
+    const eventHandler = async (e,name,target,isPaused,prevProcess)=>{
       let i = 0
-      console.log('paused1', isPaused)
       const v = target || e.target
+
+      if(prevProcess){
+        if(name == 'playOrPause'){
+          const funcNoStartPlayOrPauseCancel = () => {
+            console.log('playOrPause1', isPaused)
+            isPaused ? v.pause() : v.play()
+          }
+          const funcPauseOrPauseCancel = () => {
+            console.log('playOrPause2', isPaused)
+            v.removeEventListener(isPaused ? 'pause' : 'play', funcPauseOrPauseCancel)
+            isPaused ? v.play() : v.pause()
+          }
+
+          if(playOrPauseMap.has(v)){
+            const events = playOrPauseMap.get(v)
+            v.removeEventListener('play', events[0])
+            v.removeEventListener('pause', events[0])
+            v.removeEventListener('play', events[1])
+            v.removeEventListener('pause', events[1])
+          }
+          playOrPauseMap.set(v, [funcNoStartPlayOrPauseCancel, funcPauseOrPauseCancel])
+          v.addEventListener(isPaused ? 'play' : 'pause', funcNoStartPlayOrPauseCancel)
+        }
+        return
+      }
+
       if(name == 'playOrPause'){
-        const func = e => {
-          console.log(isPaused)
-          v.removeEventListener(isPaused ? 'pause' : 'play', func)
+        console.log('paused1', isPaused)
+
+        const events = playOrPauseMap.get(v)
+
+        v.addEventListener(isPaused ? 'pause' : 'play', events[1])
+        setTimeout(()=>v.removeEventListener(isPaused ? 'pause' : 'play', events[1]),400)
+
+        if(clickEventCancel){
+          setTimeout(()=>v.removeEventListener(isPaused ? 'play' : 'pause', events[0]),200)
+        }
+        else{
+          v.removeEventListener(isPaused ? 'play' : 'pause', events[0])
           isPaused ? v.play() : v.pause()
         }
-
-        v.addEventListener(isPaused ? 'pause' : 'play', func)
-
-        isPaused ? v.play() : v.pause()
 
       }
       else if(name == 'fullscreen'){
@@ -978,6 +1088,19 @@ if(window.__started_){
         v.loop = !v.loop
         popUp(v,`Loop: ${v.loop ? "ON" : "OFF"}`)
       }
+      else if(name == 'zoomIn' || name == 'zoomOut'){
+        if(v._olds_){
+          let resizer = document.querySelector('._maximize_resizer_')
+          if(!resizer){
+            v.mouseMoveFunc()
+            await new Promise(r=>setTimeout(r,10))
+            resizer = document.querySelector('._maximize_resizer_')
+          }
+          const val = parseInt(v.style.width) / 100.0 + (name == 'zoomIn' ? 0.1 : -0.1)
+          resizer.value = val
+          v.inputFunc()
+        }
+      }
       else{
         nothing = true
       }
@@ -1009,6 +1132,7 @@ if(window.__started_){
         }
         isPaused = target ? target.paused : void 0
         _target = target
+        eventHandler(e, inputs.click,_target, isPaused, true)
       }, true)
       document.addEventListener('click', e => {
         console.log('click')
@@ -1043,8 +1167,9 @@ if(window.__started_){
     if((inputs.wheelMinus && matchReg('wheelMinus')) ||
       (inputs.shiftWheelMinus && matchReg('shiftWheelMinus')) ||
       (inputs.ctrlWheelMinus && matchReg('ctrlWheelMinus')) ||
-      (inputs.shiftCtrlWheelMinus && matchReg('shiftCtrlWheelMinus'))){
-      const minusToPlus = {rewind1: 'forward1', decSpeed: 'incSpeed', decreaseVolume: 'increaseVolume',frameBackStep: 'frameStep'}
+      (inputs.shiftCtrlWheelMinus && matchReg('shiftCtrlWheelMinus')) ||
+      (inputs.altWheelMinus && matchReg('altWheelMinus'))){
+      const minusToPlus = {rewind1: 'forward1', decSpeed: 'incSpeed', decreaseVolume: 'increaseVolume',frameBackStep: 'frameStep',zoomIn: 'zoomOut'}
       const modify = inputs.reverseWheel ? -1 : 1
       document.addEventListener('wheel',e=>{
         let target = e.target
@@ -1069,6 +1194,9 @@ if(window.__started_){
         }
         else if(e.shiftKey){
           eventHandler(e,e.deltaY * modify > 0 ? minusToPlus[inputs.shiftWheelMinus] : inputs.shiftWheelMinus,target)
+        }
+        else if(e.altKey){
+          eventHandler(e,e.deltaY * modify > 0 ? minusToPlus[inputs.altWheelMinus] : inputs.altWheelMinus,target)
         }
         else{
           eventHandler(e,e.deltaY * modify > 0 ? minusToPlus[inputs.wheelMinus] : inputs.wheelMinus,target)

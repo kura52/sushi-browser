@@ -14,8 +14,8 @@ for(let lib of libs){
 function rebuild(lib){
   sh.cd(lib)
 
-  // node-gyp rebuild --target=6.0.12 --arch=ia32 --dist-url=https://atom.io/download/electron
-  if(sh.exec('node-gyp rebuild --target=6.0.12 --arch=x64 --dist-url=https://atom.io/download/electron').code !== 0) {
+  // node-gyp rebuild --target=6.1.5 --arch=ia32 --dist-url=https://atom.io/download/electron
+  if(sh.exec('node-gyp rebuild --target=6.1.5 --arch=x64 --dist-url=https://atom.io/download/electron').code !== 0) {
     console.log("ERROR")
     process.exit()
   }
@@ -24,10 +24,10 @@ function rebuild(lib){
 `
 D:
 cd D:\\sushi-browser-release32\\resource\\winctl
-node-gyp rebuild --target=6.0.12 --arch=ia32 --dist-url=https://atom.io/download/electron
+node-gyp rebuild --target=6.1.5 --arch=ia32 --dist-url=https://atom.io/download/electron
 cd D:\\sushi-browser-release32\\node_modules\\robotjs
-node-gyp rebuild --target=6.0.12 --arch=ia32 --dist-url=https://atom.io/download/electron
+node-gyp rebuild --target=6.1.5 --arch=ia32 --dist-url=https://atom.io/download/electron
 cd D:\\sushi-browser-release32\\node_modules\\node-pty
-node-gyp rebuild --target=6.0.12 --arch=ia32 --dist-url=https://atom.io/download/electron
+node-gyp rebuild --target=6.1.5 --arch=ia32 --dist-url=https://atom.io/download/electron
 
 `

@@ -165,6 +165,8 @@ const isWin = navigator.userAgent.includes('Windows')
     keyVideoDecreaseVolume: l10n.translation('decreaseVolume').replace(/\(.\)/,''),
     keyVideoIncreaseVolume: l10n.translation('increaseVolume').replace(/\(.\)/,''),
     keyVideoPlRepeat: l10n.translation('plRepeat').replace(/\(.\)/,''),
+    keyVideoZoomIn: l10n.translation('zoomIn').replace(/\(.\)/,''),
+    keyVideoZoomOut: l10n.translation('zoomOut').replace(/\(.\)/,''),
   }
 
   const startsWithOptions = [
@@ -306,6 +308,11 @@ const isWin = navigator.userAgent.includes('Windows')
       key: 'frameBackStep',
       value: 'frameBackStep',
       text: `${l10n.translation('frameStep').replace(/\(.\)/,'')} / ${l10n.translation('frameBackStep').replace(/\(.\)/,'')}`,
+    },
+    {
+      key: 'zoomIn',
+      value: 'zoomIn',
+      text: `${l10n.translation('zoomOut').replace(/\(.\)/,'')} / ${l10n.translation('zoomIn').replace(/\(.\)/,'')}`,
     }
   ]
 
@@ -544,7 +551,8 @@ const isWin = navigator.userAgent.includes('Windows')
             <div>
               <Menu pointing secondary >
                 <Menu.Item as='a' href='chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' id='top-link' key="top" name="Top"/>
-                <Menu.Item as='a' href='chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html' id='bookmark-link' key="favorite" name={l10n.translation('bookmarks')}/>
+                <Menu.Item as='a' id='bookmark-link' key="favorite" name={l10n.translation('bookmarks')}
+                           onMouseDown={e=> e.target.addEventListener('mouseup', e=> ipc.send('send-to-host', e.button == 0 && !e.ctrlKey ? 'load-url' : this.props.oppositeGlobal ? 'open-tab-opposite' : 'open-tab' ,this.props.useChromeBookmarkPage ? 'chrome://bookmarks/' : 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html',true,  !this.props.oppositeGlobal && (e.button == 1 || e.ctrlKey)),{once: true})} />
                 <Menu.Item as='a' href='chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html' id='history-link' key="history" name={l10n.translation('history')}/>
                 <Menu.Item as='a' href={`${baseURL}/download.html`} key="download" name={l10n.translation('downloads')}/>
                 <Menu.Item as='a' href={`${baseURL}/note.html`} key="note" name={l10n.translation('note')}/>
@@ -829,6 +837,9 @@ const isWin = navigator.userAgent.includes('Windows')
             <br/>
             <Checkbox defaultChecked={this.state.tripleClick} toggle onChange={this.onChange.bind(this,'tripleClick')}/>
             <span className="toggle-label">{l10n.translation("enableHorizontalPositionMoving")}</span>
+            <br/>
+            <Checkbox defaultChecked={this.state.useChromeBookmarkPage} toggle onChange={this.onChange.bind(this,'useChromeBookmarkPage')}/>
+            <span className="toggle-label">Use the standard Chrome bookmark page</span>
             {/*<br/>*/}
             {/*<Checkbox defaultChecked={this.state.doubleShift} toggle onChange={this.onChange.bind(this,'doubleShift')}/>*/}
             {/*<span className="toggle-label">{l10n.translation("enableAnythingSearch")}  ({l10n.translation('requiresRestart').replace('* ','')})</span>*/}
@@ -2351,6 +2362,13 @@ const isWin = navigator.userAgent.includes('Windows')
             <Grid.Column width={3}><Input onChange={this.onChange.bind(this,'regexShiftCtrlWheelMinusVideo')} defaultValue={this.state.regexShiftCtrlWheelMinusVideo}/></Grid.Column>
           </Grid.Row>
         </Grid>
+        <Grid>
+          <Grid.Row>
+            <Grid.Column width={4}><label>Alt+Moues Wheel</label></Grid.Column>
+            <Grid.Column width={4}><Dropdown onChange={this.onChange.bind(this,'altWheelMinusVideo')} selection options={videoWheelOptions} defaultValue={this.state.altWheelMinusVideo}/></Grid.Column>
+            <Grid.Column width={3}><Input onChange={this.onChange.bind(this,'regexAltWheelMinusVideo')} defaultValue={this.state.regexAltWheelMinusVideo}/></Grid.Column>
+          </Grid.Row>
+        </Grid>
         <br/>
         <br/>
 
@@ -2890,16 +2908,16 @@ const isWin = navigator.userAgent.includes('Windows')
 
   }
 
-  const App = () => (
+  const App = props => (
     <Container>
-      <TopMenu/>
+      <TopMenu useChromeBookmarkPage={props.data.useChromeBookmarkPage} oppositeGlobal={props.data.oppositeGlobal}/>
     </Container>
   )
 
 
   const key = Math.random().toString()
   ipc.send("get-main-state",key,['startsWith','newTabMode','myHomepage','searchProviders','searchEngine','language','enableFlash','concurrentDownload','downloadNum','sideBarDirection','scrollTab',
-    'doubleShift','tripleClick','enableMouseGesture','fullscreenTransition','autoDeleteDownloadList','extensionOnToolbar','syncScrollMargin','contextMenuSearchEngines','ALL_KEYS','bindMarginFrame','bindMarginTitle','longPressMiddle','checkDefaultBrowser','sendToVideo',
+    'doubleShift','tripleClick','enableMouseGesture','fullscreenTransition','autoDeleteDownloadList','useChromeBookmarkPage','extensionOnToolbar','syncScrollMargin','contextMenuSearchEngines','ALL_KEYS','bindMarginFrame','bindMarginTitle','longPressMiddle','checkDefaultBrowser','sendToVideo',
     'multistageTabs','tabMinWidth','httpsEverywhereEnable','trackingProtectionEnable','autoSaveInterval','noScript','blockCanvasFingerprinting','browsingHistory', 'downloadHistory',
     'disableContextMenus','disableTabContextMenus','priorityContextMenus','priorityTabContextMenus','reloadIntervals','generalWindowOpenLabel','keepWindowLabel31','tabPreview','tabPreviewQuality',
     'closeTabBehavior','reverseScrollTab','tabCirculateSelection','tabMaxWidth','mouseHoverSelectLabelBegin','mouseHoverSelectLabelBeginDelay','tabFlipLabel','doubleClickTab','middleClickTab','altClickTab',
@@ -2912,7 +2930,7 @@ const isWin = navigator.userAgent.includes('Windows')
     'sendUrlContextMenus','extensions','tabBarMarginTop','removeTabBarMarginTop','enableTheme','themeTopPage','themeBookmark','themeHistory','themeDownloader','themeExplorer','themeBookmarkSidebar','themeHistorySidebar',
     'themeSessionManagerSidebar','themeTabTrashSidebar','themeTabHistorySidebar','themeExplorerSidebar','searchHistoryOrderCount','rectangularSelection','fullscreenTransitionKeep','enableSmoothScrolling','showAddressBarFavicon','showAddressBarBookmarks'
     ,'emailSync','syncGeneralSettings','syncBookmarks','syncBrowsingHistory','syncSessionTools','syncFavicons','syncDownloadHistory','syncAutomation','syncNote','syncPassword','rockerGestureLeft','rockerGestureRight','inputHistory','inputHistoryMaxChar',
-    'regexClickVideo','regexDbClickVideo','regexWheelMinusVideo','regexShiftWheelMinusVideo','regexCtrlWheelMinusVideo','regexShiftCtrlWheelMinusVideo','regexKeyVideoPlayOrPause',
+    'regexClickVideo','regexDbClickVideo','regexWheelMinusVideo','regexShiftWheelMinusVideo','regexCtrlWheelMinusVideo','regexShiftCtrlWheelMinusVideo','regexAltWheelMinusVideo','regexKeyVideoPlayOrPause',
     'regexKeyVideoFrameStep','regexKeyVideoFrameBackStep','regexKeyVideoRewind1','regexKeyVideoRewind2','regexKeyVideoRewind3','regexKeyVideoForward1','regexKeyVideoForward2','regexKeyVideoForward3','regexKeyVideoNormalSpeed','regexKeyVideoHalveSpeed','regexKeyVideoDoubleSpeed',
     'regexKeyVideoDecSpeed','regexKeyVideoIncSpeed','regexKeyVideoFullscreen','regexKeyVideoExitFullscreen','regexKeyVideoMute','regexKeyVideoDecreaseVolume','regexKeyVideoIncreaseVolume','regexKeyVideoPlRepeat', 'isCustomChromium', 'scrollInactiveWindows'])
   ipc.once(`get-main-state-reply_${key}`,async (e,data)=>{
@@ -2934,6 +2952,6 @@ const isWin = navigator.userAgent.includes('Windows')
       ipc.send('get-access-key-and-port')
       ipc.once('get-access-key-and-port-reply',(e,data)=>r(data))
     })
-    ReactDOM.render(<App />,  document.getElementById('app'))
+    ReactDOM.render(<App data={data}/>,  document.getElementById('app'))
   })
 })()

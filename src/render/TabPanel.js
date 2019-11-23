@@ -2456,7 +2456,7 @@ export default class TabPanel extends Component {
       else if (msg == 'open-tab') {
         const url = args[1] ? args[0] : `file://${args[0]}`,
           id = tab.wvId
-        tab.events['new-tab'](e, id, url)
+        tab.events['new-tab'](e, id, url, void 0, void 0, void 0, args[2])
       }
       if (msg == 'restore-tab-opposite') {
         const id = tab.wvId
@@ -2596,77 +2596,9 @@ export default class TabPanel extends Component {
     tab.events['pin-video'] = (e, id, popup)=> {
       if (!this.mounted || id != tab.wvId) return
 
-      tab.wv.executeJavaScript(`
-      if(location.href.startsWith('https://www.youtube.com')){
-        var newStyle = document.createElement('style')
-        newStyle.type = "text/css"
-        document.head.appendChild(newStyle)
-        var css = document.styleSheets[0]
-
-        var idx = document.styleSheets[0].cssRules.length;
-        css.insertRule(".ytp-popup.ytp-generic-popup { display: none; }", idx)
-      }
-      var __video_ = document.querySelector('video')
-      var __return_val = false
-      if(__video_ && (__video_.scrollWidth == window.innerWidth || __video_.scrollHeight == window.innerHeight || __video_.webkitDisplayingFullscreen)){}
-      else if(__video_){
-        const fullscreenButton = document.querySelector('.ytp-fullscreen-button,.fullscreenButton,.button-bvuiFullScreenOn,.fullscreen-icon,.full-screen-button,.np_ButtonFullscreen,.vjs-fullscreen-control,.qa-fullscreen-button,[data-testid="fullscreen_control"],.vjs-fullscreen-control,.EnableFullScreenButton,.DisableFullScreenButton,.mhp1138_fullscreen,button.fullscreenh,.screenFullBtn,.player-fullscreenbutton')
-        if(fullscreenButton){
-          const callback = e => {
-            e.stopPropagation()
-            e.preventDefault()
-            document.removeEventListener('mouseup',callback ,true)
-            fullscreenButton.click()
-            if(location.href.startsWith('https://www.youtube.com')){
-              let retry = 0
-              const id = setInterval(_=>{
-                if(retry++>500) clearInterval(id)
-                const e = document.querySelector('.html5-video-player').classList
-                if(!e.contains('ytp-autohide')){
-                  e.add('ytp-autohide')
-                    if(document.querySelector('.ytp-fullscreen-button.ytp-button').getAttribute('aria-expanded') == 'true'){
-                      __video_.click()
-                    }
-                }
-              },10)
-            }
-          }
-          document.addEventListener('mouseup',callback ,true);
-          __return_val = true
-        }
-        else{
-          const callback = e => {
-            e.stopPropagation()
-            e.preventDefault()
-            document.removeEventListener('mouseup',callback ,true)
-            __video_.webkitRequestFullscreen()
-          }
-          document.addEventListener('mouseup',callback ,true);
-          __return_val = true
-        }
-      } 
-      else{
-        const iframe = document.querySelector('iframe')
-        if(iframe){
-          const callback = e => {
-          e.stopPropagation()
-          e.preventDefault()
-          document.removeEventListener('mouseup',callback ,true)
-            iframe.webkitRequestFullscreen()
-          }
-          document.addEventListener('mouseup',callback ,true);
-          __return_val = true
-        }
-      }
-      __return_val
-    `,(result) => {
-        if(result){
-          const rect = tab.div.getBoundingClientRect()
-          ipc.send('force-mouse-up',{x: Math.round(rect.x+10),y:Math.round(rect.y+10)})
-        }
+      tab.wv.executeJavaScriptInIsolate(`document.querySelector('video').clickFunc()`,(result) => {
 
         setTimeout(_=>{
-          console.log(11111111,result[0])
           if(popup){
             this.detachTab(tab,{width:720,height:480})
             return

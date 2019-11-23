@@ -17,6 +17,9 @@ export default function Resizer(props){
         props.onMouseDown(event);
       }: null}
       onMouseOver={props.onMouseOver ? (event) => {
+        console.log(event, 'mouse-over')
+        event.target.className += ` visible transition`
+        setTimeout(()=>event.target.className = classes.join(' '),500)
         props.onMouseOver(event);
       } : null}
       onMouseOut={props.onMouseOut ? (event) => {

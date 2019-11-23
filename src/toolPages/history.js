@@ -238,7 +238,8 @@ class TopMenu extends React.Component {
                 marginLeft: 20,
                 paddingLeft: 30
               }}/>
-              <Menu.Item as='a' href='chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html' id='bookmark-link' key="favorite" name={l10n.translation('bookmarks')}/>
+              <Menu.Item as='a' id='bookmark-link' key="favorite" name={l10n.translation('bookmarks')}
+                         onMouseDown={e=> e.target.addEventListener('mouseup', e=> ipc.send('send-to-host', e.button == 0 && !e.ctrlKey ? 'load-url' : this.props.oppositeGlobal ? 'open-tab-opposite' : 'open-tab' ,this.props.useChromeBookmarkPage ? 'chrome://bookmarks/' : 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html',true,  !this.props.oppositeGlobal && (e.button == 1 || e.ctrlKey)),{once: true})} />
               <Menu.Item as='a' href={`${baseURL}/download.html`} key="download" name={l10n.translation('downloads')}/>
               <Menu.Item as='a' href={`${baseURL}/note.html`} key="note" name={l10n.translation('note')}/>
               <Menu.Item as='a' href={`${baseURL}/settings.html`} key="settings" name={l10n.translation('settings')}/>
@@ -295,19 +296,23 @@ class HistoryList{
 
 }
 
-const App = () => (
+const App = (props) => (
   <Container>
-    <TopMenu/>
+    <TopMenu useChromeBookmarkPage={props.data.useChromeBookmarkPage} oppositeGlobal={props.data.oppositeGlobal}/>
   </Container>
 )
 
 require('./themeForPage')('themeHistory')
 
-;(async ()=>{
-  [accessKey, accessPort] = await new Promise(r=>{
-    ipc.send('get-access-key-and-port')
-    ipc.once('get-access-key-and-port-reply',(e,data)=>r(data))
-  })
-  await initPromise
-  ReactDOM.render(<App />,  document.getElementById('app'))
-})()
+const key = Math.random().toString()
+ipc.send("get-main-state",key,['useChromeBookmarkPage', 'oppositeGlobal'])
+ipc.once(`get-main-state-reply_${key}`,async (e,data)=>{
+  ;(async ()=>{
+    [accessKey, accessPort] = await new Promise(r=>{
+      ipc.send('get-access-key-and-port')
+      ipc.once('get-access-key-and-port-reply',(e,data)=>r(data))
+    })
+    await initPromise
+    ReactDOM.render(<App data={data} />,  document.getElementById('app'))
+  })()
+})

@@ -19,6 +19,15 @@ require('electron').app.once('ready', ()=>{
 let first
 
 async function move(win,x,y,width,height){
+  if(width !== void 0){
+    sizeMap.set(win, {x, y, width, height})
+  }
+  else{
+    const val = sizeMap.get(win)
+    width = val.width
+    height = val.height
+  }
+
   // if(Browser.CUSTOM_CHROMIUM){
   //   const windowId = BrowserPanel.getBrowserPanelFromNativeWindow(win).windowId
   //   return Browser.bg.evaluate((windowId, left,top,width,height) => {
@@ -28,16 +37,15 @@ async function move(win,x,y,width,height){
   //   }, windowId, x,y,width,height)
   // }
   // else{
-  if(width !== void 0){
-    sizeMap.set(win, {width, height})
-  }
-  else{
-    const val = sizeMap.get(win)
-    width = val.width
-    height = val.height
-  }
+  //   console.log('move-true', x,y,width,height)
     return win.move(x,y,width,height)
   // }
+}
+
+function moveRetry(win){
+  const {x, y, width, height} = sizeMap.get(win)
+    console.log('move-retry', x,y,width,height)
+  return win.move(x,y,width,height)
 }
 
 const sizeMap = new Map()
@@ -82,6 +90,9 @@ export default {
   moveJust(win,x,y,width,height){
     // console.log('moveJust', x,y,width,height)
     move(win,x,y,width,height)
+  },
+  moveRetry(win){
+    moveRetry(win)
   },
   moveForChildWindow(win,x,y,width,height,parentX,parentY){
     if(!isHighDpi) return win.move(x,y,width,height)

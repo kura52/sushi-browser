@@ -199,6 +199,7 @@ export default class BrowserPanel {
   }
 
   constructor({browserWindow, panelKey, tabKey, webContents, windowId, url, tabId, bounds}) {
+    this.moveQueue = []
     console.log(999777, {panelKey, tabKey, windowId, url, tabId, browserWindow: browserWindow && browserWindow.id, bounds })
     return this.init(browserWindow, panelKey, tabKey, webContents, windowId, url, tabId, bounds)
   }
@@ -550,6 +551,7 @@ export default class BrowserPanel {
   }
 
   destroy() {
+    this.destroyed = true
     for (const [tabKey, [_tabId, browserView]] of Object.entries(this.tabKeys)) {
       browserView.destroy()
     }
@@ -635,46 +637,56 @@ export default class BrowserPanel {
     }
   }
 
-  async setBounds(bounds) {
-    if(this.cpWin.nativeWindow.hidePanel) return
+  async setBounds(bounds, loop) {
+    if(this.cpWin.nativeWindow.hidePanel || this.destroyed) return
 
-    const tab = await this.getActiveTab()
-    const modify = 0 //Browser.CUSTOM_CHROMIUM ? 0 : tab.url == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? 37 : 0
-
-    if (bounds.width) {
-      const cont = webContents.fromId(tab.id)
-      if(!Browser.CUSTOM_CHROMIUM) cont.setViewport({width: Math.round(bounds.width), height: Math.round(bounds.height - modify)})
-      this.bounds = bounds
+    if(loop){
+      this.moveQueue.unshift(bounds)
+    }
+    else{
+      this.moveQueue.push(bounds)
+      if(this.moveQueue.length > 1) return
     }
 
-    if (bounds.width) {
-      DpiUtils.move(this.cpWin.nativeWindow,bounds.x, bounds.y, bounds.width, bounds.height)
-      if(!Browser.CUSTOM_CHROMIUM){
-        DpiUtils.moveForChildWindow(this.cpWin.chromeNativeWindow,...BrowserPanel.getChromeWindowBoundArray(bounds.width, bounds.height, modify),bounds.x, bounds.y)
+    try{
+      const tab = await this.getActiveTab()
+      const modify = 0 //Browser.CUSTOM_CHROMIUM ? 0 : tab.url == 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' ? 37 : 0
+
+      if (bounds.width) {
+        const cont = webContents.fromId(tab.id)
+        if(!Browser.CUSTOM_CHROMIUM) cont.setViewport({width: Math.round(bounds.width), height: Math.round(bounds.height - modify)})
+        this.bounds = bounds
       }
-    }
-    else {
-      const dim = await this.cpWin.nativeWindow.dimensions()
-      const {x,y} = DpiUtils.dipToScreenPoint(bounds.x, bounds.y)
 
-      if(isLinux){
-        const needMoveTopPanel = this.checkNeedMoveTop()
-        if(needMoveTopPanel){
-          for(const panel of needMoveTopPanel) panel.moveTopNativeWindow()
+      if (bounds.width) {
+        DpiUtils.move(this.cpWin.nativeWindow,bounds.x, bounds.y, bounds.width, bounds.height)
+        if(!Browser.CUSTOM_CHROMIUM){
+          DpiUtils.moveForChildWindow(this.cpWin.chromeNativeWindow,...BrowserPanel.getChromeWindowBoundArray(bounds.width, bounds.height, modify),bounds.x, bounds.y)
         }
       }
+      else {
+        const dim = await this.cpWin.nativeWindow.dimensions()
+        const {x,y} = DpiUtils.dipToScreenPoint(bounds.x, bounds.y)
 
-      DpiUtils.moveJust(this.cpWin.nativeWindow, x, y)
-      // console.log({bx:bounds.x, by:bounds.y,x, y, w:dim.right - dim.left, h:dim.bottom - dim.top})
+        if(isLinux){
+          const needMoveTopPanel = this.checkNeedMoveTop()
+          if(needMoveTopPanel){
+            for(const panel of needMoveTopPanel) panel.moveTopNativeWindow()
+          }
+        }
+
+        DpiUtils.moveJust(this.cpWin.nativeWindow, x, y)
+        // console.log({bx:bounds.x, by:bounds.y,x, y, w:dim.right - dim.left, h:dim.bottom - dim.top})
+      }
+      this.moveQueue.shift()
+    }catch(e){
+      console.log(e)
+      await new Promise(r=>setTimeout(r,10))
     }
-    // this._updateWindow({
-    //   left: bounds.x ? bounds.x : void 0,
-    //   top: bounds.y ? bounds.y - BrowserPanel.topMargin : void 0,
-    //   width: bounds.width ? bounds.width : void 0,
-    //   height: bounds.height ? bounds.height + BrowserPanel.topMargin: void 0,
-    //   focused: bounds.zIndex > 0 ? true : void 0,
-    //   state: 'normal'
-    // })
+
+    if(this.moveQueue.length){
+      this.setBounds(this.moveQueue.shift(), true)
+    }
   }
 
   moveTopNativeWindow() {

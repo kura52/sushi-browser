@@ -84,11 +84,13 @@ const isMain = location.href.startsWith("file://")
 //   })
 // }
 
-let openType
+let openType, oppositeGlobal, useChromeBookmarkPage
 const key = uuid.v4()
-ipc.send("get-main-state",key,[isMain ? 'toolbarLink' : 'sidebarLink'])
+ipc.send("get-main-state",key,[isMain ? 'toolbarLink' : 'sidebarLink', 'oppositeGlobal', 'useChromeBookmarkPage'])
 ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
   openType = data[isMain ? 'toolbarLink' : 'sidebarLink']
+  oppositeGlobal = data.oppositeGlobal
+  useChromeBookmarkPage = data.useChromeBookmarkPage
 })
 
 // async function faviconGet(x){
@@ -681,7 +683,8 @@ export default class App extends React.Component {
               <Menu.Item as='a' href='chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html' id='top-link' key="top" name="Top" style={{
                 borderLeft: "2px solid rgba(34,36,38,.15)"
               }}/>
-              <Menu.Item as='a' href='chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html' id='bookmark-link' key="favorite" name={l10n.translation('bookmarks')}/>
+              <Menu.Item as='a' id='bookmark-link' key="favorite" name={l10n.translation('bookmarks')}
+                         onMouseDown={e=> e.target.addEventListener('mouseup', e=> ipc.send('send-to-host', e.button == 0 && !e.ctrlKey ? 'load-url' : oppositeGlobal ? 'open-tab-opposite' : 'open-tab' ,useChromeBookmarkPage ? 'chrome://bookmarks/' : 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html',true,  !oppositeGlobal && (e.button == 1 || e.ctrlKey)),{once: true})} />
               <Menu.Item as='a' href='chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html' id='history-link' key="history" name={l10n.translation('history')}/>
               <Menu.Item as='a' href={`${baseURL}/download.html`} key="download" name={l10n.translation('downloads')}/>
               <Menu.Item key="note" name={l10n.translation('note')} active={true}/>

@@ -1,6 +1,7 @@
 const electron = require('electron')
-const {BrowserWindow,BrowserView,app,ipcMain,Menu} = electron
-import {Browser} from './remoted-chrome/Browser'
+const {BrowserWindow,app,ipcMain,Menu} = electron
+import {Browser, BrowserPanel, BrowserView} from './remoted-chrome/Browser'
+import DpiUtils from './remoted-chrome/DpiUtils'
 const url = require('url')
 const path = require('path')
 const fs = require('fs')
@@ -170,21 +171,21 @@ function create(args){
         // bw.hide()
         //
         // e.preventDefault()
-        for(let i = 0;i<=global.seqBv;i++){
-          const view = bw.getAddtionalBrowserView(i)
-          if(view){
-            bw.eraseBrowserView(i)
-            if(!view.isDestroyed()) view.destroy()
-          }
-        }
-        for(let seq of Object.keys(global.viewCache)){
-          const i = parseInt(seq)
-          const view = bw.getAddtionalBrowserView(i)
-          if(view){
-            bw.eraseBrowserView(i)
-            if(!view.isDestroyed()) view.destroy()
-          }
-        }
+        // for(let i = 0;i<=global.seqBv;i++){
+        //   const view = bw.getAddtionalBrowserView(i)
+        //   if(view){
+        //     bw.eraseBrowserView(i)
+        //     if(!view.isDestroyed()) view.destroy()
+        //   }
+        // }
+        // for(let seq of Object.keys(global.viewCache)){
+        //   const i = parseInt(seq)
+        //   const view = bw.getAddtionalBrowserView(i)
+        //   if(view){
+        //     bw.eraseBrowserView(i)
+        //     if(!view.isDestroyed()) view.destroy()
+        //   }
+        // }
         PubSub.publish('chrome-windows-onRemoved',bw.id)
         return
       }
@@ -715,6 +716,17 @@ export default {
     initWindow.webContents.root = true
     initWindow.webContents.on('context-menu', (e, props) => ipcMain.emit('contextmenu-webContents', e, props))
 
+    const updateWindowState = async () => {
+      initWindow.setAlwaysOnTop(!!winArg.alwaysOnTop)
+      for(const panel of BrowserPanel.getBrowserPanelsFromBrowserWindow(initWindow)){
+        panel.setAlwaysOnTop(!!winArg.alwaysOnTop)
+      }
+      initWindow._alwaysOnTop = !!winArg.alwaysOnTop
+      initWindow.webContents.setUserAgent(await Browser.getUserAgent())
+    }
+
+    updateWindowState()
+
     // await new Promise(r=>{
     initWindow.webContents.once('did-finish-load', async () => {
       initWindow.show()
@@ -729,16 +741,31 @@ export default {
       if (winArg.maximize){
         if(isWin){
           console.log(777771,winArg.maxBounds)
-          initWindow.setBounds(winArg.maxBounds)
-          initWindow.emit('maximize')
+          setTimeout(async ()=>{
+            let count = 0
+            for(let i=0;i<1000;i++){
+              await new Promise(r=>setTimeout(r,10))
+              if(initWindow.nativeWindow && !BrowserView.newPanelCreateing && !BrowserView.newTabCreateing){
+                if(count < 8){
+                  count++
+                  continue
+                }
+                initWindow.maximize()
+                await new Promise(r=>setTimeout(r,500))
+                for(const panel of BrowserPanel.getBrowserPanelsFromBrowserWindow(initWindow)){
+                  DpiUtils.moveRetry(panel.cpWin.nativeWindow)
+                }
+                break
+              }
+              count = 0
+            }
+          },0)
         }
         else{
           initWindow.maximize()
         }
       }
-      initWindow.setAlwaysOnTop(!!winArg.alwaysOnTop)
-      initWindow._alwaysOnTop = !!winArg.alwaysOnTop
-      initWindow.webContents.setUserAgent(await Browser.getUserAgent())
+      updateWindowState()
       // r()
     })
     // })

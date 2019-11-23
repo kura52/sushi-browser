@@ -2492,7 +2492,7 @@ ipcMain.on('set-bound-browser-view', async (e, panelKey, tabKey, tabId, x, y, wi
   dateCache[panelKey] = date
 
   const panel = BrowserPanel.getBrowserPanel(panelKey)
-  if(!panel){
+  if(!panel || !webContents.fromId(tabId)){
     await new Promise(r=>setTimeout(r,200))
     ipcMain.emit('set-bound-browser-view', e, panelKey, tabKey, tabId, x, y, width, height, zIndex, date)
     return
@@ -2893,6 +2893,7 @@ ipcMain.on('set-alwaysOnTop', (e,enable) => {
   for(const panel of BrowserPanel.getBrowserPanelsFromBrowserWindow(bw)){
     panel.moveTopNativeWindow()
     panel.moveTopNativeWindowBw()
+    panel.setAlwaysOnTop(enable)
   }
 })
 

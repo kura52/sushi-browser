@@ -44,6 +44,7 @@ const settingDefault =  {
   fullscreenTransition: false,
   fullscreenTransitionKeep: false,
   autoDeleteDownloadList: false,
+  useChromeBookmarkPage: true,
 
   bindMarginFrame: isLinux ? 6 : 0,
   bindMarginTitle: isLinux ? 24  : 0,
@@ -372,13 +373,14 @@ const settingDefault =  {
   audioSeekVideo: 10,
   keepAudioSeekValueVideo: false,
 
-  clickVideo: '',
+  clickVideo: 'playOrPause',
   dbClickVideo: 'fullscreen',
 
   wheelMinusVideo: 'rewind1',
   shiftWheelMinusVideo:'decSpeed',
   ctrlWheelMinusVideo: 'decreaseVolume',
   shiftCtrlWheelMinusVideo: 'frameBackStep',
+  altWheelMinusVideo: 'zoomIn',
 
   keyVideoPlayOrPause: ['MediaPlayPause','Space','k'],
   keyVideoFrameStep: ['.'],
@@ -402,6 +404,8 @@ const settingDefault =  {
   keyVideoDecreaseVolume: ['/', 'VolumeDown'],
   keyVideoIncreaseVolume: ['*', 'VolumeUp'],
   keyVideoPlRepeat: ['R'],
+  keyVideoZoomIn: ['/'],
+  keyVideoZoomOut: ['\\'],
 
   regexClickVideo:'.+',
   regexDbClickVideo:'.+',
@@ -409,6 +413,7 @@ const settingDefault =  {
   regexShiftWheelMinusVideo:'.+',
   regexCtrlWheelMinusVideo:'.+',
   regexShiftCtrlWheelMinusVideo:'.+',
+  regexAltWheelMinusVideo:'.+',
 
   regexKeyVideoPlayOrPause:'.+',
   regexKeyVideoFrameStep:'.+',
