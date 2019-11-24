@@ -48,8 +48,11 @@ Fixed tab focus by mouse over.
 Fixed a bug in the location bar.
 Updated Electron to v6.1.5.
 Updated Custom Chromium to 78.0.3904.108.
-Updated Custom Brave to 1.0.1.
-Updated youtube-dl to 2019.11.22.`
+Updated Custom Brave to v1.0.1.
+Updated youtube-dl to 2019.11.22.
+Fixed the z-order bug of the window.
+Fixed panel split bug.
+Fixed a bug that failed to start Custom Brave.`
 
 const CHANGE_JAPANESE = `動画のmaximize機能を修正。
 動画の最大化時に、マウスドラッグによるウインドウ移動機能を追加。
@@ -66,8 +69,11 @@ Alt + マウスホイールで最大化時のサイズを変更できるよう�
 ロケーションバーのバグを修正。
 Electronをv6.1.5に更新。
 Custom Chromiumを78.0.3904.108に更新。
-Custom Braveを1.01に更新。
-youtube-dlを2019.11.22に更新`
+Custom Braveをv1.01に更新。
+youtube-dlを2019.11.22に更新
+ウインドウのz-orderの不具合を修正
+パネル分割の不具合を修正
+Custom Braveの起動処理に失敗する不具合を修正`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

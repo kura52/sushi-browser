@@ -29,7 +29,7 @@ function gt(a,b){
 }
 
 function checkUpdate(ver,checkedVersion){
-  request(`https://sushib.me/check.json?a=${Math.floor(Date.now()/1000/3600)}`,(err,res,body)=>{
+  request(`https://sushib.me/check.json?a=${Math.floor(Date.now()/1000/3600)}&b=${ver}`,(err,res,body)=>{
     if(!body) return
     const updVer = JSON.parse(body).ver
       console.log(ver,updVer,checkedVersion,mainState.checkedVersion)

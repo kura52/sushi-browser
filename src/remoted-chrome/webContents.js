@@ -346,7 +346,9 @@ export default class webContents extends EventEmitter {
       }, this._getBrowserPanel().windowId)
     }
     else{
-      this._getBrowserPanel().cpWin.chromeNativeWindow.setForegroundWindowEx()
+      const panel = this._getBrowserPanel()
+      panel.moveTopAll()
+      panel.cpWin.chromeNativeWindow.setForegroundWindowEx();console.log('setForegroundWindow1')
     }
 
     if(modifier){
@@ -444,7 +446,7 @@ export default class webContents extends EventEmitter {
     if(!panel || panel.cpWin.nativeWindow.hidePanel) return
 
     if(require('../util').getCurrentWindow().id == panel.browserWindow.id){
-      this.setForegroundWindow()
+      this.setForegroundWindow();console.log('setForegroundWindow2')
       // panel.moveTopNativeWindow()
       // console.trace('focus')
     }
@@ -481,7 +483,8 @@ export default class webContents extends EventEmitter {
       }, panel.windowId)
     }
     else {
-      panel.cpWin.chromeNativeWindow.setForegroundWindowEx()
+      // panel.moveTopAll()
+      panel.cpWin.chromeNativeWindow.setForegroundWindowEx();console.log('setForegroundWindow3')
     }
   }
 

@@ -1185,7 +1185,7 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
 
     let nativeWindow
     if(!detach){
-      chromeNativeWindow.setForegroundWindowEx()
+      chromeNativeWindow.setForegroundWindowEx();console.log('setForegroundWindow6')
       chromeNativeWindow.showWindow(0)
       if(isWin7){
         chromeNativeWindow.setWindowLongPtrRestore(0x00800000)
@@ -1240,7 +1240,7 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
       if(cont && !cont.isDestroyed()) cont.send('mobile-scroll',{type:'init' ,code: mobileInject})
     },1000)
 
-    chromeNativeWindow.setForegroundWindowEx()
+    chromeNativeWindow.setForegroundWindowEx();console.log('setForegroundWindow7')
     robot.keyTap('f12')
 
     await new Promise(r=> setTimeout(r,3000))
@@ -1347,7 +1347,7 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
       if(_detach || nativeWindow.hidePanel) return
       nativeWindow.showWindow(9)
       nativeWindow.isMinimized = false
-      nativeWindow.setForegroundWindowEx()
+      nativeWindow.setForegroundWindowEx();console.log('setForegroundWindow8')
     }
     else if(type == 'key-change'){
       mpoMap[key] = mpoMap[oldKey]
@@ -1363,7 +1363,7 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
         setTimeout(()=>chromeNativeWindow.moveTop(),100)
       }
       else{
-        chromeNativeWindow.setForegroundWindowEx()
+        chromeNativeWindow.setForegroundWindowEx();console.log('setForegroundWindow9')
         chromeNativeWindow.showWindow(0)
         if(isWin7){
           chromeNativeWindow.setWindowLongPtrRestore(0x00800000)
@@ -2551,7 +2551,8 @@ ipcMain.on('set-bound-browser-view', async (e, panelKey, tabKey, tabId, x, y, wi
     panel.setBounds(bounds)
 
     if(zIndex > 0 && isWin){
-      webContents.fromId(tabId).moveTop()
+      // const [panelKey, tabKey, browserPanel, browserView] = BrowserPanel.getBrowserPanelByTabId(tabId)
+      // browserPanel.moveTopAll()
     }
   },10)
 
@@ -2715,7 +2716,10 @@ ipcMain.on('change-browser-view-z-index', (e, isFrame, panelKey, force) =>{
   }
   else if(!isWin && panelKey){
     const panel = BrowserPanel.getBrowserPanel(panelKey)
-    if(panel.browserWindow.isFocused()) panel.cpWin.nativeWindow.setForegroundWindowEx()
+    if(panel.browserWindow.isFocused()){
+      // panel.moveTopAll()
+      panel.cpWin.nativeWindow.setForegroundWindowEx();console.log('setForegroundWindow10')
+    }
   }
   // win.setAlwaysOnTop(!isFrame)
 })
@@ -2859,7 +2863,10 @@ ipcMain.on('focus-browser-window', async (e, key) => {
   // robot.mouseClick()
 
   const panel = BrowserPanel.getBrowserPanelsFromBrowserWindow(bw)[0]
-  panel.cpWin.nativeWindowBw.setForegroundWindowEx()
+  // panel.moveTopAll()
+  if(panel.checkShouldMoveTop()){
+    panel.cpWin.nativeWindowBw.setForegroundWindowEx();console.log('setForegroundWindow11')
+  }
 
   BrowserPanel.contextMenuShowing = false
   e.sender.send(`focus-browser-window-reply_${key}`)

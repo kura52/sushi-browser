@@ -1092,10 +1092,12 @@ export default class TabPanel extends Component {
         else{
           this.props.split(droppedKey,dirc,pos,[...this.state.tabs,'dummy'],indexes) //@TODO
         }
-        for(let dropTabKey of dropTabKeys){
-          this.handleTabClose({}, dropTabKey)
-          PubSub.publish(`close_tab_${this.props.k}`,{key:dropTabKey})
-        }
+        setTimeout(()=>{
+          for(let dropTabKey of dropTabKeys){
+            this.handleTabClose({}, dropTabKey)
+            PubSub.publish(`close_tab_${this.props.k}`,{key:dropTabKey})
+          }
+        },10)
       }
       else{
         this.props.split(droppedKey, dirc, pos * -1)

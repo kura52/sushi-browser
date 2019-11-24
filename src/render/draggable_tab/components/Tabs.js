@@ -1223,14 +1223,15 @@ class Tabs extends React.Component {
     const selectionTabs = this.state.tabs.filter(t=>t.props.selection)
     if(selectionTabs.length > 0) tabs = null
 
+    if(overlayClassList){
+      console.log(overlayClassList)
+      const [type,droppedKey,droppedTabKey] = [overlayClassList[2],overlayClassList[3].slice(1),overlayClassList[4].slice(1)]
+      console.log({type,dropTabs:this.props.parent.state.tabs,dropTabKey:tabs[0].key,droppedKey,droppedTabKey})
+      PubSub.publishSync('drag-split',{type,dropTabKeys:tabs.map(t=>t.key),droppedKey})
+      return
+    }
+
     setTimeout(_=>{
-        if(overlayClassList){
-          console.log(overlayClassList)
-          const [type,droppedKey,droppedTabKey] = [overlayClassList[2],overlayClassList[3].slice(1),overlayClassList[4].slice(1)]
-          console.log({type,dropTabs:this.props.parent.state.tabs,dropTabKey:tabs[0].key,droppedKey,droppedTabKey})
-          PubSub.publish('drag-split',{type,dropTabKeys:tabs.map(t=>t.key),droppedKey})
-          return
-        }
 
         if(ipc.sendSync('get-sync-main-state','stopDragEnd')){
           mainState.set('stopDragEnd',false)

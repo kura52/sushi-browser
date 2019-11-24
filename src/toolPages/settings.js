@@ -2312,7 +2312,7 @@ const isWin = navigator.userAgent.includes('Windows')
         <Grid>
           <Grid.Row>
             <Grid.Column width={4}><label>{l10n.translation("mouseClick")}</label></Grid.Column>
-            <Grid.Column width={4}><Dropdown onChange={this.onChange.bind(this,'clickVideo')} selection options={videoClickOptions} defaultValue={this.state.clickVideo}/></Grid.Column>
+            <Grid.Column width={4}><Dropdown onChange={this.onChange.bind(this,'click2Video')} selection options={videoClickOptions} defaultValue={this.state.click2Video}/></Grid.Column>
             <Grid.Column width={3}><Input onChange={this.onChange.bind(this,'regexClickVideo')} defaultValue={this.state.regexClickVideo}/></Grid.Column>
           </Grid.Row>
           <Grid.Row>

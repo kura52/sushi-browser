@@ -718,9 +718,9 @@ export default {
 
     const updateWindowState = async () => {
       initWindow.setAlwaysOnTop(!!winArg.alwaysOnTop)
-      for(const panel of BrowserPanel.getBrowserPanelsFromBrowserWindow(initWindow)){
-        panel.setAlwaysOnTop(!!winArg.alwaysOnTop)
-      }
+      // for(const panel of BrowserPanel.getBrowserPanelsFromBrowserWindow(initWindow)){
+      //   panel.setAlwaysOnTop(!!winArg.alwaysOnTop)
+      // }
       initWindow._alwaysOnTop = !!winArg.alwaysOnTop
       initWindow.webContents.setUserAgent(await Browser.getUserAgent())
     }

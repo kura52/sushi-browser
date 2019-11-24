@@ -95,10 +95,17 @@ index 95f077ae8ffd..0fa556219d1c 100644
  }
 
 diff --git a/chrome/browser/ui/extensions/extension_message_bubble_factory.cc b/chrome/browser/ui/extensions/extension_message_bubble_factory.cc
-index f1a603dc6636..018a9cbf277c 100644
+index f1a603dc6636..d80392b9e88d 100644
 --- a/chrome/browser/ui/extensions/extension_message_bubble_factory.cc
 +++ b/chrome/browser/ui/extensions/extension_message_bubble_factory.cc
-@@ -71,17 +71,7 @@ bool EnableDevModeBubble() {
+@@ -64,24 +64,11 @@ bool EnableProxyOverrideBubble() {
+ }
+
+ bool EnableDevModeBubble() {
+-  if (extensions::FeatureSwitch::force_dev_mode_highlighting()->IsEnabled())
+-    return true;
+-
+   // If an automated test is controlling the browser, we don't show the dev mode
    // bubble because it interferes with focus. This isn't a security concern
    // because we'll instead show an (even scarier) infobar. See also
    // AutomationInfoBarDelegate.

@@ -273,6 +273,7 @@ if(window.__started_){
       }
 
       const mdown = e =>{
+        if(e.button != 0) return
         x = e.pageX
         y = e.pageY
         v.addEventListener("mousemove", mmove, false)
@@ -1110,7 +1111,7 @@ if(window.__started_){
       }
     }
 
-    if(inputs.click && matchReg('click')) {
+    if(inputs.click2 && matchReg('click')) {
       let isPaused = void 0, _target
       document.addEventListener('mousedown', e=> {
         console.log('moudedown')
@@ -1131,12 +1132,12 @@ if(window.__started_){
         }
         isPaused = target ? target.paused : void 0
         _target = target
-        eventHandler(e, inputs.click,_target, isPaused, true)
+        eventHandler(e, inputs.click2,_target, isPaused, true)
       }, true)
       document.addEventListener('click', e => {
         console.log('click')
         if (isPaused !== void 0 && e.button  == 0 && _target) {
-          eventHandler(e, inputs.click,_target, isPaused)
+          eventHandler(e, inputs.click2,_target, isPaused)
         }
         _target = void 0
       }, true)

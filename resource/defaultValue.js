@@ -373,7 +373,7 @@ const settingDefault =  {
   audioSeekVideo: 10,
   keepAudioSeekValueVideo: false,
 
-  clickVideo: 'playOrPause',
+  click2Video: 'playOrPause',
   dbClickVideo: 'fullscreen',
 
   wheelMinusVideo: 'rewind1',

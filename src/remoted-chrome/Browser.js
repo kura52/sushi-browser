@@ -153,6 +153,7 @@ Or, please use the Chromium bundled version.`
       // executablePath: "C:\\Program Files\\Comodo\\Dragon\\dragon.exe",
 
       args: [
+        '--show-component-extension-options',
         '--no-first-run',
         // '--enable-automation',
         '--metrics-recording-only',
@@ -259,7 +260,8 @@ Or, please use the Chromium bundled version.`
               if(browserPanel.cpWin.nativeWindow.hidePanel) return
               browserPanel.cpWin.nativeWindow.showWindow(9)
               // browserPanel.moveTopNativeWindow()
-              browserPanel.cpWin.nativeWindow.setForegroundWindowEx()
+              // browserPanel.moveTopAll()
+              browserPanel.cpWin.nativeWindow.setForegroundWindowEx();console.log('setForegroundWindow12')
             },0)
           }
         }
@@ -554,6 +556,7 @@ Or, please use the Chromium bundled version.`
       setInterval(async ()=>{
         let focused
         chrome.windows.getAll(windows => {
+          focused = void 0
           for(const window of windows){
             if(window.focused){
               focused = window.id
@@ -594,8 +597,23 @@ Or, please use the Chromium bundled version.`
           }
         })
       },50)
-
     }, 'windows', 'resize', this.serverKey, this.port)
+
+    let preActiveHwnd = -1
+    setInterval(()=>{
+      if(isWin){
+        const activeHwnd = winctl.GetActiveWindow2().getHwnd()
+        if(preActiveHwnd != -1 && preActiveHwnd != activeHwnd){
+          for (const browserPanel of Object.values(BrowserPanel.panelKeys)) {
+            if (browserPanel.cpWin.nativeWindow.getHwnd() == activeHwnd){
+              evem.emit('windows.focusChanged', browserPanel.windowId)
+              break
+            }
+          }
+        }
+        preActiveHwnd = activeHwnd
+      }
+    },50)
 
   }
 
@@ -639,12 +657,12 @@ Or, please use the Chromium bundled version.`
     })
 
 
-    let bgTarget = await this._browser.targets().find(t => t.url().includes('dckpbojndfoinamcdamhkjhnjnmjkfjd'))
+    let bgTarget = await this._browser.targets().find(t => t.url().startsWith('chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/bg.html'))
     if (!bgTarget) {
       for (let i = 0; i < 1000; i++) {
         bgTarget = await new Promise(r => {
           setTimeout(async () => {
-            r(await this._browser.targets().find(t => t.url().includes('dckpbojndfoinamcdamhkjhnjnmjkfjd')))
+            r(await this._browser.targets().find(t => t.url().startsWith('chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/bg.html')))
           }, 10)
         })
         if (bgTarget) break
@@ -1418,7 +1436,7 @@ class PopupPanel{
     chromeNativeWindow.setWindowLongPtrEx(0x00001000)
     // if(!Browser.CUSTOM_CHROMIUM) {
     for (let i = 0; i < 5; i++) {
-      chromeNativeWindow.setForegroundWindowEx()
+      chromeNativeWindow.setForegroundWindowEx();console.log('setForegroundWindow13')
       chromeNativeWindow.showWindow(0)
       if(isWin7){
         chromeNativeWindow.setWindowLongPtrRestore(0x00800000)

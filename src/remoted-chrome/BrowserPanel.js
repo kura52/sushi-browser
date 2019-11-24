@@ -4,6 +4,7 @@ import DpiUtils from './DpiUtils'
 import os from 'os'
 
 const isWin7 = os.platform() == 'win32' && os.release().startsWith('6.1')
+const isWin = process.platform === 'win32'
 const isLinux = process.platform === 'linux'
 const isDarwin = process.platform === 'darwin'
 
@@ -300,7 +301,7 @@ export default class BrowserPanel {
           console.log(2243344, chromeNativeWindow.getTitle())
           // if(!Browser.CUSTOM_CHROMIUM){
           for(let i=0;i<5;i++){
-            chromeNativeWindow.setForegroundWindowEx()
+            chromeNativeWindow.setForegroundWindowEx();console.log('setForegroundWindow4')
             chromeNativeWindow.showWindow(0)
             if(isWin7){
               chromeNativeWindow.setWindowLongPtrRestore(0x00800000)
@@ -471,7 +472,7 @@ export default class BrowserPanel {
 
       if(cWin.type == 'normal') chromeNativeWindow.setWindowLongPtrEx(0x00001000)
 
-      chromeNativeWindow.setForegroundWindowEx()
+      chromeNativeWindow.setForegroundWindowEx();console.log('setForegroundWindow5')
       chromeNativeWindow.showWindow(0)
       if(isWin7){
         chromeNativeWindow.setWindowLongPtrRestore(0x00800000)
@@ -677,6 +678,40 @@ export default class BrowserPanel {
     }
   }
 
+  checkShouldMoveTop(){
+    if(!isWin) return true
+
+    const activeHwnd = winctl.GetActiveWindow2().getHwnd()
+    if(this.cpWin.nativeWindowBw.getHwnd() == activeHwnd) return true
+
+    const browserWindowId = this.browserWindow.id
+    for(const browserPanel of Object.values(BrowserPanel.panelKeys)){
+      if(browserPanel.browserWindow &&
+        browserPanel.browserWindow.id == browserWindowId &&
+        browserPanel.cpWin.nativeWindow &&
+        browserPanel.cpWin.nativeWindow.getHwnd() == activeHwnd) {
+        return true
+      }
+    }
+    return false
+  }
+
+  moveTopAll(){
+    if(!isWin) return
+
+    console.log('moveTopAll')
+    this.cpWin.nativeWindowBw.moveTop()
+
+    const browserWindowId = this.browserWindow.id
+    for(const browserPanel of Object.values(BrowserPanel.panelKeys)){
+      if(browserPanel.browserWindow &&
+        browserPanel.browserWindow.id == browserWindowId &&
+        browserPanel.cpWin.nativeWindow) {
+        browserPanel.cpWin.nativeWindow.moveTop()
+      }
+    }
+  }
+
   moveTopNativeWindow() {
     if (BrowserPanel.contextMenuShowing ||
       webContents.disableFocus ||
@@ -684,6 +719,8 @@ export default class BrowserPanel {
       this.cpWin.nativeWindow.hidePanel ||
       !this.checkNeedMoveTop()) return
 
+
+    // if(!this.checkShouldMoveTop()) return
     console.log('moveTopNativeWindow()')
 
     this.cpWin.nativeWindow.moveTop()
@@ -701,7 +738,9 @@ export default class BrowserPanel {
     if (BrowserPanel.contextMenuShowing || !this.checkNeedMoveTop()) return
     // const now = Date.now()
 
+    // if(!this.checkShouldMoveTop()) return
     console.log('moveTopNativeWindowBW()',this.browserWindow._alwaysOnTop)
+
 
     // if(!this.moveTopCache || now - this.moveTopCache > 30){
     //   this.moveTopCache = now
