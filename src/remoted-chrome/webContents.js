@@ -26,12 +26,12 @@ export default class webContents extends EventEmitter {
 
     ipcMain.on('disable-webContents-focus', (e,val)=>{
       console.log('webContents.disableFocus1' ,val)
-      webContents.disableFocus = val
+      BrowserWindow.fromWebContents(e.sender).disableFocus = val
     })
 
     ipcMain.on('arrange-panels', (e,val)=>{
       console.log('webContents.disableFocus2' ,val)
-      webContents.disableFocus = val
+      BrowserWindow.fromWebContents(e.sender).disableFocus = val
 
       const bw = BrowserWindow.fromWebContents(e.sender)
       const panels = BrowserPanel.getBrowserPanelsFromBrowserWindow(bw)
@@ -348,7 +348,8 @@ export default class webContents extends EventEmitter {
     else{
       const panel = this._getBrowserPanel()
       panel.moveTopAll()
-      panel.cpWin.chromeNativeWindow.setForegroundWindowEx();console.log('setForegroundWindow1')
+      panel.cpWin.chromeNativeWindow.setForegroundWindowEx()
+      console.log('setForegroundWindow1')
     }
 
     if(modifier){
@@ -418,8 +419,8 @@ export default class webContents extends EventEmitter {
     this.loadURL(`file://${filePath}`, options)
   }
 
-  downloadURL(url, referer){
-    Browser.downloadURL(url, this, referer)
+  downloadURL(url, refererOrRequestHeaders){
+    Browser.downloadURL(url, this, refererOrRequestHeaders)
   }
 
   getURL(){
@@ -440,23 +441,24 @@ export default class webContents extends EventEmitter {
   }
 
   focus(){
-    if(webContents.disableFocus || this._bindWindow) return
+    if(this._bindWindow) return
 
     const panel = this._getBrowserPanel()
-    if(!panel || panel.cpWin.nativeWindow.hidePanel) return
+    if(!panel || panel.cpWin.nativeWindow.hidePanel || panel.browserWindow.disableFocus) return
 
     if(require('../util').getCurrentWindow().id == panel.browserWindow.id){
-      this.setForegroundWindow();console.log('setForegroundWindow2')
+      this.setForegroundWindow()
+      console.log('setForegroundWindow2')
       // panel.moveTopNativeWindow()
       // console.trace('focus')
     }
   }
 
   moveTop(){
-    if(webContents.disableFocus || this._bindWindow) return
+    if(this._bindWindow) return
 
     const panel = this._getBrowserPanel()
-    if(!panel || panel.cpWin.nativeWindow.hidePanel) return
+    if(!panel || panel.cpWin.nativeWindow.hidePanel || panel.browserWindow.disableFocus) return
 
     if(require('../util').getCurrentWindow().id == panel.browserWindow.id){
       // console.log('moveTopNativeWindow5')
@@ -470,10 +472,10 @@ export default class webContents extends EventEmitter {
   }
 
   setForegroundWindow(){
-    if(webContents.disableFocus || this._bindWindow) return
+    if(this._bindWindow) return
 
     const panel = this._getBrowserPanel()
-    if(!panel || panel.cpWin.nativeWindow.hidePanel) return
+    if(!panel || panel.cpWin.nativeWindow.hidePanel || panel.browserWindow.disableFocus) return
 
     if(isDarwin){
       Browser.bg.evaluate((windowId) => {
@@ -484,7 +486,8 @@ export default class webContents extends EventEmitter {
     }
     else {
       // panel.moveTopAll()
-      panel.cpWin.chromeNativeWindow.setForegroundWindowEx();console.log('setForegroundWindow3')
+      panel.cpWin.chromeNativeWindow.setForegroundWindowEx()
+      console.log('setForegroundWindow3')
     }
   }
 
