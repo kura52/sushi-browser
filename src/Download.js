@@ -149,7 +149,6 @@ export default class Download {
 
     const itemMap = {}
     ipcMain.on('chrome-download-start', async (event, item, _url, webContents, force) => {
-      console.log('chrome-download-start')
       if(webContents){
         itemMap[item.id] = webContents
         if(!force) return
@@ -312,6 +311,7 @@ export default class Download {
         orgUrl: item.url,
         mimeType,
         referer: item.referrer || webContents.getURL(),
+        requestHeaders: item.requestHeaders,
         savePath,
         downloadNum: mainState.downloadNum,
         overwrite,
@@ -410,7 +410,9 @@ export default class Download {
     item.once('done', async (event, state) => {
       console.log(111,audioExtract,videoConvert)
 
-      Browser.bg.evaluate(downloadId => chrome.downloads.erase({id: downloadId}), item.key)
+      if(item.status !='CANCEL' && item.status !='ERROR'){
+        Browser.bg.evaluate(downloadId => chrome.downloads.erase({id: downloadId}), item.key)
+      }
 
       if(audioExtract){
         new FfmpegWrapper(item.getSavePath()).exe(_=>_)

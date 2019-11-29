@@ -129,7 +129,7 @@ ipcMain.on('app-method',(event,key,method,arg)=>{
 
 ipcMain.on('move-trash',(event,key,args)=>{
   for(let arg of args){
-    shell.moveItemToTrash(arg)
+    shell.moveItemToTrash(path.join(arg))
   }
   event.sender.send(`move-trash-reply_${key}`,{})
 })
@@ -550,7 +550,7 @@ ipcMain.on('toggle-fullscreen',async (event,cancel)=> {
   }
   else{
     for(const browserPanel of Object.values(BrowserPanel.panelKeys)){
-      browserPanel.setAlwaysOnTop(false)
+      if(!win._alwaysOnTop) browserPanel.setAlwaysOnTop(false)
     }
     if(win.isMaximized()){
       win.webContents.send('adjust-maxmize-size', true)
@@ -1185,7 +1185,8 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
 
     let nativeWindow
     if(!detach){
-      chromeNativeWindow.setForegroundWindowEx();console.log('setForegroundWindow6')
+      chromeNativeWindow.setForegroundWindowEx()
+      console.log('setForegroundWindow6')
       chromeNativeWindow.showWindow(0)
       if(isWin7){
         chromeNativeWindow.setWindowLongPtrRestore(0x00800000)
@@ -1240,7 +1241,8 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
       if(cont && !cont.isDestroyed()) cont.send('mobile-scroll',{type:'init' ,code: mobileInject})
     },1000)
 
-    chromeNativeWindow.setForegroundWindowEx();console.log('setForegroundWindow7')
+    chromeNativeWindow.setForegroundWindowEx()
+    console.log('setForegroundWindow7')
     robot.keyTap('f12')
 
     await new Promise(r=> setTimeout(r,3000))
@@ -1347,7 +1349,8 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
       if(_detach || nativeWindow.hidePanel) return
       nativeWindow.showWindow(9)
       nativeWindow.isMinimized = false
-      nativeWindow.setForegroundWindowEx();console.log('setForegroundWindow8')
+      nativeWindow.setForegroundWindowEx()
+      console.log('setForegroundWindow8')
     }
     else if(type == 'key-change'){
       mpoMap[key] = mpoMap[oldKey]
@@ -1363,7 +1366,8 @@ ipcMain.on('mobile-panel-operation',async (e,{type, key, tabId, detach, url, x, 
         setTimeout(()=>chromeNativeWindow.moveTop(),100)
       }
       else{
-        chromeNativeWindow.setForegroundWindowEx();console.log('setForegroundWindow9')
+        chromeNativeWindow.setForegroundWindowEx()
+        console.log('setForegroundWindow9')
         chromeNativeWindow.showWindow(0)
         if(isWin7){
           chromeNativeWindow.setWindowLongPtrRestore(0x00800000)
@@ -1470,9 +1474,18 @@ ipcMain.on('change-tab-infos', (e,changeTabInfos, panelKey)=> {
 
 ipcMain.on('play-external',(e,url)=> open(mainState.sendToVideo,url))
 
-ipcMain.on('download-m3u8',(e,url,fname,tabId,userAgent,referer,needInput)=>{
+function headers(requestHeaders, userAgent, referer){
+  if(!requestHeaders) return `--user-agent ${shellEscape(userAgent)} --referer ${shellEscape(referer)}`
+  const arr = []
+  for(const h of requestHeaders){
+    arr.push(`--add-header ${h.name}:"${h.value}"`)
+  }
+  return arr.join(" ")
+}
+
+ipcMain.on('download-m3u8',(e,url,fname,tabId,userAgent,referer,needInput,requestHeaders)=>{
   const youtubeDl = path.join(__dirname,'../node_modules/youtube-dl/bin/youtube-dl').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
-  const ffmpeg = path.join(__dirname, `../resource/bin/ffmpeg/${process.platform === 'win32' ? 'win' : process.platform === 'darwin' ? 'mac' : 'linux'}/ffmpeg`).replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
+  const ffmpeg = path.join(__dirname, `../resource/bin/ffmpeg/${process.platform === 'win32' ? 'win' : process.platform === 'darwin' ? 'mac' : 'linux'}/ffmpeg${process.platform === 'win32' ? '.exe' : ''}`).replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
   let downloadPath = path.join(app.getPath('downloads'),`${fname.split(".").slice(0,-1).join(".")}.%(ext)s`)
 
   const dl = function () {
@@ -1489,7 +1502,7 @@ ipcMain.on('download-m3u8',(e,url,fname,tabId,userAgent,referer,needInput)=>{
       ipcMain.emit('send-input-event', {} , {type: 'mouseDown',tabId: cont.id,x:100,y:100,button: 'left'})
       ipcMain.emit('send-input-event', {} , {type: 'mouseUp',tabId: cont.id,x:100,y:100,button: 'left'})
       await new Promise(r=>setTimeout(r,100))
-      ipcMain.emit(`send-pty_${key}`, null, `${shellEscape(youtubeDl)} --user-agent ${shellEscape(userAgent)} --referer ${shellEscape(referer)} --hls-prefer-native --ffmpeg-location=${shellEscape(ffmpeg)} -o ${shellEscape(downloadPath)} ${shellEscape(url)}\n`)
+      ipcMain.emit(`send-pty_${key}`, null, `${shellEscape(youtubeDl)} ${headers(requestHeaders, userAgent, referer)} --hls-prefer-native --ffmpeg-location=${shellEscape(ffmpeg)} -o ${shellEscape(downloadPath)} ${shellEscape(url)}\n`)
     })
     e.sender.send('new-tab', tabId, 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html?cmd=1')
   }
@@ -2040,9 +2053,9 @@ ipcMain.on('screen-shot',(e,{full,type,rect,tabId,tabKey,quality=92,savePath,aut
 
 })
 
-ipcMain.on('save-and-play-video',(e,url,win)=>{
+ipcMain.on('save-and-play-video',(e,url,win,requestHeaders)=>{
   win = win || BrowserWindow.fromWebContents(e.sender)
-  Browser.downloadURL(url)
+  Browser.downloadURL(url, void 0, requestHeaders)
   let retry = 0
   const id = setInterval(_=>{
     if(retry++ > 1000){
@@ -2488,6 +2501,8 @@ ipcMain.on('move-browser-view', async (e, panelKey, tabKey, type, tabId, x, y, w
 ipcMain.on('move-window-from-webview', (e, moveX, moveY) => {
   const tabId = e.sender.id
   const [panelKey, tabKey, browserPanel, browserView] = BrowserPanel.getBrowserPanelByTabId(tabId)
+  if(browserPanel.browserWindow.isMaximized()) return
+
   const [x,y] = browserPanel.browserWindow.getPosition()
   console.log(x, y, moveX, moveY)
   browserPanel.browserWindow.setPosition(x + moveX, y + moveY)
@@ -2656,7 +2671,7 @@ ipcMain.on('set-overlap-component', async (e, type, panelKey, tabKey, x, y, widt
 
       const page = Browser.cachedBgTargetUrl.get(extId)
       if(page){
-        page.evaluate(()=>chrome.browserAction.openPopup(win => window.__popup_window__ = w))
+        page.evaluate(()=>chrome.browserAction.openPopup(win => window.__popup_window__ = win))
       }
       else if(extId == 'jidkidbbcafjabdphckchenhfomhnfma'){
         cont.hostWebContents2.send('new-tab', cont.id, 'chrome://rewards/')
@@ -2708,8 +2723,10 @@ ipcMain.on('change-browser-view-z-index', (e, isFrame, panelKey, force) =>{
 
   // console.log('change-browser-view-z-index', isFrame, panelKey, force)
   // console.log('change-browser-view-z-index', isFrame, bvZindexMap[win])
-  if(force){
-    BrowserPanel.getBrowserPanelsFromBrowserWindow(win)[0].setAlwaysOnTop(!isFrame)
+  if(force && !win._alwaysOnTop){
+    for(const panel of BrowserPanel.getBrowserPanelsFromBrowserWindow(win)){
+      panel.setAlwaysOnTop(!isFrame)
+    }
   }
   if(isFrame){
     ipcMain.emit('top-to-browser-window', win.id)
@@ -2718,7 +2735,8 @@ ipcMain.on('change-browser-view-z-index', (e, isFrame, panelKey, force) =>{
     const panel = BrowserPanel.getBrowserPanel(panelKey)
     if(panel.browserWindow.isFocused()){
       // panel.moveTopAll()
-      panel.cpWin.nativeWindow.setForegroundWindowEx();console.log('setForegroundWindow10')
+      panel.cpWin.nativeWindow.setForegroundWindowEx()
+      console.log('setForegroundWindow10')
     }
   }
   // win.setAlwaysOnTop(!isFrame)
@@ -2865,7 +2883,8 @@ ipcMain.on('focus-browser-window', async (e, key) => {
   const panel = BrowserPanel.getBrowserPanelsFromBrowserWindow(bw)[0]
   // panel.moveTopAll()
   if(panel.checkShouldMoveTop()){
-    panel.cpWin.nativeWindowBw.setForegroundWindowEx();console.log('setForegroundWindow11')
+    panel.cpWin.nativeWindowBw.setForegroundWindowEx()
+    console.log('setForegroundWindow11')
   }
 
   BrowserPanel.contextMenuShowing = false

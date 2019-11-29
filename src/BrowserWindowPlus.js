@@ -722,6 +722,7 @@ export default {
       //   panel.setAlwaysOnTop(!!winArg.alwaysOnTop)
       // }
       initWindow._alwaysOnTop = !!winArg.alwaysOnTop
+      initWindow.webContents.send('set-alwaysOnTop', !!winArg.alwaysOnTop)
       initWindow.webContents.setUserAgent(await Browser.getUserAgent())
     }
 

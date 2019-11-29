@@ -330,9 +330,11 @@ class Contents extends React.Component {
   async loadAllData(){
     const prevState = this.prevState || (await localForage.getItem("favorite-sidebar-open-node"))
     this.prevState = (void 0)
-    getAllChildren(this.props.searchKey || 'root',this.props.searchNum).then(data=>{
+    getAllChildren(this.props.searchKey || 'root').then(data=>{
+      const limit = this.props.searchNum ? this.props.searchNum() : 0
       console.log(data)
-      treeAllData = data
+      data = data.slice(limit)
+      treeAllData = data.slice(limit)
 
       localForage.setItem("favorite-sidebar-open-node",prevState)
       const openNodes = prevState ? prevState.split("\t",-1) : (void 0)

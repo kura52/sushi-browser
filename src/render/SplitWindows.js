@@ -456,14 +456,16 @@ export default class SplitWindows extends Component{
         this.menuStickyFlag = false
         this.state.root.toggleNav = 2
         this.setState({})
-        ipc.send('change-browser-view-z-index', false)
-        ipc.send('disable-webContents-focus', false, void 0, true)
+        ipc.send('change-browser-view-z-index', false, void 0, true)
+        ipc.send('disable-webContents-focus', false)
       }
     }
     this.menuSticky = ::this.menuSticky
 
 
     this.switchFullscreenEvent = (e,flag)=>{
+      ipc.send('disable-webContents-focus', false)
+
       if(flag){
         this._toggleNav = this.state.root.toggleNav
         this.state.root.toggleNav = 2

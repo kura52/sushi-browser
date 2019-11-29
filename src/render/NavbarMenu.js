@@ -144,7 +144,7 @@ export default class NavbarMenu extends Component {
           }
           else{
             if(left - width < 0){
-              this.refs.menu.style.setProperty('left', `${5 -width}px`, 'important')
+              this.refs.menu.style.setProperty('left', `${5 -left}px`, 'important')
               this.refs.menu.style.setProperty('right', 'auto', 'important')
             }
             else{

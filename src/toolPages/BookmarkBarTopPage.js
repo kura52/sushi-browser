@@ -127,10 +127,23 @@ export default class BookmarkBar extends Component {
     return arr[arr.length - ind]
   }
 
+  getNode(node){
+
+  }
+
   handleFileMouseDown(node,e){
     if(e.button == 2){
       ipc.send("favorite-menu",[node.url])
-      this.menuKey = [node]
+      const data = {
+        id: node.id,
+        name: node.title,
+        url: node.url,
+        favicon: node.favicon,
+        // loadOnDemand: !x.is_file,
+        type: node.is_file ? 'file' : 'directory',
+        getParent: () => node.parentId
+      }
+      this.menuKey = [data]
     }
     this.mouseDown = e.target
     this.button = e.button
@@ -278,7 +291,7 @@ export default class BookmarkBar extends Component {
 
         const nodes = this.menuKey
         this.menuKey = (void 0)
-        const parentNodes = nodes.map(n => n.getParent())
+        const parentNodes = nodes.map(n => n.getParent)
         deleteFavorite(nodes.map(n=>this.getKey(n)),parentNodes.map(parent=>this.getKey(parent))).then(_ => {
           if(isMain) this.eventUpdateDatas()
           // if(nodeIndex !== -1){

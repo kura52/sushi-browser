@@ -248,8 +248,8 @@ if(window.__started_){
       let x, y
       const mmove = e => {
         clickEventCancel = true
-
-        if(parseInt(v.style.width) != 100){
+        const val = parseInt(v.style.width)
+        if(val != 100 && !isNaN(val)){
           const moveX = e.pageX - x
           x = e.pageX
           const moveY = e.pageY - y
@@ -274,7 +274,7 @@ if(window.__started_){
 
       const mdown = e =>{
         if(e.button != 0) return
-        x = e.pageX
+        x = e.pageX1
         y = e.pageY
         v.addEventListener("mousemove", mmove, false)
         v.addEventListener("mouseleave", mup, false)

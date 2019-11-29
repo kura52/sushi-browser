@@ -73,13 +73,14 @@ const downloadItems = new Set()
 let count = 0
 const waitQueue = []
 export default class Aria2cWrapper{
-  constructor({url,orgUrl,mimeType,referer,savePath,downloadNum=1,overwrite,timeMap,aria2cKey,downloadId}){
+  constructor({url,orgUrl,mimeType,referer,requestHeaders,savePath,downloadNum=1,overwrite,timeMap,aria2cKey,downloadId}){
     this.key = downloadId
     this.resumeFlg = !!aria2cKey
     this.url = url
     this.orgUrl = orgUrl
     this.mimeType = mimeType
     this.referer = referer
+    this.requestHeaders = requestHeaders || Browser.getRequestHeader(downloadId)
     this.savePath = savePath
     this.overwrite = overwrite
     this.timeMap = timeMap
@@ -141,6 +142,7 @@ export default class Aria2cWrapper{
       url: item.getURL(),
       orgUrl: item.orgUrl,
       referer: this.referer,
+      requestHeaders: this.requestHeaders,
       filename: path.basename(item.getSavePath()),
       receivedBytes: item.getReceivedBytes(),
       totalBytes: item.getTotalBytes(),
@@ -205,15 +207,24 @@ export default class Aria2cWrapper{
 
     params = [...params,`-x${this.downloadNum}`,'--check-certificate=false','--summary-interval=1','--file-allocation=none','--bt-metadata-only=true',
       `--stop-with-process=${this.cmd.pid}`, //'--auto-save-interval=1',
-      `--user-agent=${await cont.getUserAgent()}`,`--dir=${path.dirname(this.savePath)}`,`--out=${path.basename(this.savePath)}`,`${this.url}`]
+      `--dir=${path.dirname(this.savePath)}`,`--out=${path.basename(this.savePath)}`,`${this.url}`]
 
-    if(this.referer !== null){
-      const referer = this.referer || (await cont.getURL())
-      if((this.url.startsWith('https') && (referer.startsWith('http') || referer.startsWith('ftp'))) ||
-        (referer.startsWith('https') && (this.url.startsWith('http') || this.url.startsWith('ftp')))){}
-      else{
-        params.push(`--referer=${referer}`)
+    if(this.requestHeaders != null){
+      for(const h of this.requestHeaders){
+        params.push(`--header=${h.name}: ${h.value}`)
       }
+    }
+    else{
+      if(this.referer !== null){
+        const referer = this.referer || (await cont.getURL());
+        console.log(this.url, referer)
+        if((this.url.startsWith('https:') && (referer.startsWith('http:') || referer.startsWith('ftp:'))) ||
+          (referer.startsWith('https:') && (this.url.startsWith('http:') || this.url.startsWith('ftp:')))){}
+        else{
+          params.push(`--referer=${referer}`)
+        }
+      }
+      params.push(`--user-agent=${await cont.getUserAgent()}`)
     }
 
 

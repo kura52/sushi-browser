@@ -980,13 +980,13 @@ class Tabs extends React.Component {
   }
 
   handleTabClick(key, e) {
-    ipc.send('disable-webContents-focus', true)
+    setTimeout(()=>ipc.send('disable-webContents-focus', true),0)
     this.tabPreviewStop = true
     PubSub.publish('tab-preview-update',true)
     console.log(e)
     if(!e.nativeEvent) e.nativeEvent = e
     if(e.nativeEvent.which == 3){
-      ipc.send('disable-webContents-focus', false)
+      setTimeout(()=>ipc.send('disable-webContents-focus', false),0)
       this.handleContextMenu(key, e)
       return
     }
@@ -1273,6 +1273,7 @@ class Tabs extends React.Component {
   }
 
   handleDrop(tab,evt) {
+    ipc.send('disable-webContents-focus', false)
     console.log("handleDrop",Date.now(),this.props.k)
     for(const dom of document.querySelectorAll(".rdTabBar")){
       dom.style['-webkit-app-region'] = 'drag'

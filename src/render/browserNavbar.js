@@ -165,6 +165,10 @@ class BrowserNavbar extends Component{
       this.refs.video && this.refs.video.close()
     })
 
+
+    this.eventSetAlwaysOnTop = (e,val) => alwaysOnTop = val
+    ipc.on('set-alwaysOnTop', this.eventSetAlwaysOnTop)
+
     const self = this
 
     const ro = new ResizeObserver((entries, observer) => {
@@ -238,6 +242,7 @@ class BrowserNavbar extends Component{
     PubSub.unsubscribe(this.tokenMenuSort)
     PubSub.unsubscribe(this.tokenMultistageTabs)
     PubSub.unsubscribe(this.tokenWebViewMouseDown)
+    ipc.removeListener('set-alwaysOnTop', this.eventSetAlwaysOnTop)
     tabs.add(this.props.tab.wvId)
     if(this.props.refs2[`navbar-${this.props.tabkey}`] == this){
       delete this.props.refs2[`navbar-${this.props.tabkey}`]
@@ -454,13 +459,13 @@ class BrowserNavbar extends Component{
     await favorite.create({url, title})
   }
 
-  onMediaDownload(url,fname,audio,needInput,convert){
+  onMediaDownload(url,fname,audio,needInput,convert,requestHeaders){
     if(fname) ipc.send('set-save-path',url,fname)
     if(audio) ipc.send('set-audio-extract',url)
     if(needInput) ipc.send('need-set-save-filename',url)
     if(convert) ipc.send('set-video-convert',url,convert)
     const cont = this.getWebContents(this.props.tab)
-    cont.downloadURL(url)
+    cont.downloadURL(url, requestHeaders)
   }
 
 
@@ -1085,14 +1090,20 @@ class BrowserNavbar extends Component{
           <div className="org-menu">
             {(rich||[]).map((e,i)=>{
               let url = e.url
+              if(url.match(/playback.[^\/]{1000}/)){
+                e.fname = 'playback.m3u8'
+                e.playback = true
+              }
+
               const m3u8 = e.fname.endsWith('.m3u8')
+              const requestHeaders = e.requestHeaders
               return <div role="option" className="item" key={i} value={i} icon={e.type == "audio" ? "music" : e.type }
                           onClick={()=>{
                             if(m3u8){
-                              ipc.send('download-m3u8',url,e.fname,this.props.tab.wvId,navigator.userAgent,cont.getURL())
+                              ipc.send('download-m3u8',url,e.fname,this.props.tab.wvId,navigator.userAgent,cont.getURL(),void 0,requestHeaders)
                             }
                             else{
-                              this.onMediaDownload(url,e.fname)
+                              this.onMediaDownload(url,e.fname,void 0,void 0, void 0, requestHeaders)
                             }
                           }}>
                 {`${e.fname}  ${e.size ? this.getAppropriateByteUnit(e.size).join("") : ""}`}
@@ -1107,7 +1118,7 @@ class BrowserNavbar extends Component{
                 {m3u8 ? null : <button className="play-btn" title={locale.translation("downloadAndPlayVideo")} onClick={e=>{
                   e.stopPropagation()
                   const p = e.target.parentNode.parentNode;(e.target.tagName == "I" ? p.parentNode : p).classList.remove("visible")
-                  ipc.send('save-and-play-video', url)
+                  ipc.send('save-and-play-video', url, void 0, requestHeaders)
                 }}>
                   <i className="fa fa-play-circle" aria-hidden="true"></i>
                 </button>}
@@ -1124,10 +1135,10 @@ class BrowserNavbar extends Component{
                   e2.stopPropagation()
                   const p = e2.target.parentNode.parentNode;(e2.target.tagName == "I" ? p.parentNode : p).classList.remove("visible")
                   if(m3u8){
-                    ipc.send('download-m3u8',url,e.fname,this.props.tab.wvId,navigator.userAgent,cont.getURL(),true)
+                    ipc.send('download-m3u8',url,e.fname,this.props.tab.wvId,navigator.userAgent,cont.getURL(),true,requestHeaders)
                   }
                   else{
-                    this.onMediaDownload(url,false,false,true)
+                    this.onMediaDownload(url,false,false,true, void 0, e.requestHeaders)
                   }
                 }}>
                   <i className="fa fa-download" aria-hidden="true"></i>
@@ -1138,7 +1149,7 @@ class BrowserNavbar extends Component{
                   const parent = e2.target.parentNode.parentNode
                   const node = e2.target.tagName == "I" ? parent.parentNode : parent
                   node.classList.remove("visible")
-                  showConvertDialog(url, e.fname, this.props.tab.wvId, this.onMediaDownload.bind(this,url,e.fname,false,false))
+                  showConvertDialog(url, e.fname, this.props.tab.wvId, this.onMediaDownload.bind(this,url,e.fname,false,false ,void 0, requestHeaders))
                 }}>
                   <i className="fa fa-industry" aria-hidden="true"></i>
                 </button>}
@@ -1146,7 +1157,7 @@ class BrowserNavbar extends Component{
                 {m3u8 ? null : <button className="play-btn" title={locale.translation("downloadVideoAndExtractAudio")} onClick={e2=>{
                   e2.stopPropagation()
                   const p = e2.target.parentNode.parentNode;(e2.target.tagName == "I" ? p.parentNode : p).classList.remove("visible")
-                  this.onMediaDownload(url,e.fname,true)
+                  this.onMediaDownload(url,e.fname,true, void 0,void 0, requestHeaders)
                 }}>
                   <i className="fa fa-music" aria-hidden="true"></i>
                 </button>}

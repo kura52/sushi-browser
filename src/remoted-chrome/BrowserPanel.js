@@ -301,7 +301,8 @@ export default class BrowserPanel {
           console.log(2243344, chromeNativeWindow.getTitle())
           // if(!Browser.CUSTOM_CHROMIUM){
           for(let i=0;i<5;i++){
-            chromeNativeWindow.setForegroundWindowEx();console.log('setForegroundWindow4')
+            chromeNativeWindow.setForegroundWindowEx()
+            console.log('setForegroundWindow4')
             chromeNativeWindow.showWindow(0)
             if(isWin7){
               chromeNativeWindow.setWindowLongPtrRestore(0x00800000)
@@ -472,7 +473,8 @@ export default class BrowserPanel {
 
       if(cWin.type == 'normal') chromeNativeWindow.setWindowLongPtrEx(0x00001000)
 
-      chromeNativeWindow.setForegroundWindowEx();console.log('setForegroundWindow5')
+      chromeNativeWindow.setForegroundWindowEx()
+      console.log('setForegroundWindow5')
       chromeNativeWindow.showWindow(0)
       if(isWin7){
         chromeNativeWindow.setWindowLongPtrRestore(0x00800000)
@@ -714,7 +716,7 @@ export default class BrowserPanel {
 
   moveTopNativeWindow() {
     if (BrowserPanel.contextMenuShowing ||
-      webContents.disableFocus ||
+      this.browserWindow.disableFocus ||
       this._bindWindow ||
       this.cpWin.nativeWindow.hidePanel ||
       !this.checkNeedMoveTop()) return

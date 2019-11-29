@@ -15,6 +15,7 @@ import mainState from "../mainState";
 import DpiUtils from './DpiUtils'
 import BraveExtensionsManifest from './BraveExtensionsManifest'
 import sharedState from '../sharedStateMain'
+import LRUCache from 'lru-cache'
 
 const isWin = process.platform == 'win32'
 const isLinux = process.platform === 'linux'
@@ -28,6 +29,30 @@ const CUSTOM_CHROMIUM_PATH = isLinux ?
         path.join(__dirname, '../../../custom_chromium/Chromium.app/Contents/MacOS/Chromium')
 
 const CUSTOM_BRAVE_PATH = path.join(__dirname, '../../../../custom_chromium/brave.exe')
+
+const FORBIDDEN_HEADER_FIELDS = new Set([
+  'accept-charset',
+  'accept-encoding',
+  'access-control-request-headers',
+  'access-control-request-method',
+  'connection',
+  'content-length',
+  'cookie',
+  'cookie2',
+  'date',
+  'dnt',
+  'expect',
+  'host',
+  'keep-alive',
+  'origin',
+  'referer',
+  'te',
+  'trailer',
+  'transfer-encoding',
+  'upgrade',
+  'user-agent',
+  'via'
+])
 
 console.log(CUSTOM_CHROMIUM_PATH,990)
 
@@ -188,6 +213,7 @@ Or, please use the Chromium bundled version.`
     this.windowCache = {}
     this.popUpCache = {}
     this.tabCreatedTimeCache = {}
+    this.downloadCache = new LRUCache(2000)
 
     mainState.versions.chrome = (await this._browser.version()).split("/")[1]
 
@@ -230,7 +256,7 @@ Or, please use the Chromium bundled version.`
         console.log('state-change-window', 'focus', browserWindowId)
         setTimeout(()=>this.focusedBwWindowIdPre = browserWindowId,100)
         if(browserWindowId == -1) return
-        if(winctl.moveTopTime && Date.now() - winctl.moveTopTime < 500) return
+        if(!isWin && winctl.moveTopTime && Date.now() - winctl.moveTopTime < 500) return
       }
       for(const browserPanel of Object.values(BrowserPanel.panelKeys)){
         if(browserPanel.browserWindow && browserPanel.browserWindow.id == browserWindowId){
@@ -261,7 +287,8 @@ Or, please use the Chromium bundled version.`
               browserPanel.cpWin.nativeWindow.showWindow(9)
               // browserPanel.moveTopNativeWindow()
               // browserPanel.moveTopAll()
-              browserPanel.cpWin.nativeWindow.setForegroundWindowEx();console.log('setForegroundWindow12')
+              browserPanel.cpWin.nativeWindow.setForegroundWindowEx()
+              console.log('setForegroundWindow12')
             },0)
           }
         }
@@ -346,6 +373,17 @@ Or, please use the Chromium bundled version.`
     })
 
     ipcMain.on('tab-panel-close', (e, panelKey) => {
+      const browserWindow = BrowserWindow.fromWebContents(e.sender)
+      for(const browserPanel of Object.values(BrowserPanel.panelKeys)){
+        if(browserPanel.browserWindow == browserWindow && browserPanel.panelKey != panelKey){
+          console.log('upppp!')
+          browserPanel.cpWin.nativeWindowBw.setForegroundWindowEx()
+          browserPanel.cpWin.nativeWindow.setForegroundWindowEx()
+          browserPanel.moveTopAll()
+          break
+        }
+      }
+
       const panel = BrowserPanel.getBrowserPanel(panelKey)
       if(panel){
         Browser.bg.evaluate((windowId) => chrome.windows.remove(windowId), panel.windowId)
@@ -1074,10 +1112,13 @@ Or, please use the Chromium bundled version.`
         PopupPanel.instance = {}
         return
       }
-      for(const [panelKey, browserPanel] of Object.entries(BrowserPanel.panelKeys)){
+
+      let bw
+      for(const browserPanel of Object.values(BrowserPanel.panelKeys)){
         if(browserPanel.windowId == removedWinId){
+          bw = browserPanel.browserWindow
           browserPanel.destroy()
-          return
+          break
         }
       }
     })
@@ -1220,8 +1261,22 @@ Or, please use the Chromium bundled version.`
     })
   }
 
-  static async downloadURL(url, cont, referer, retryKey){
+  static async downloadURL(url, cont, refererOrRequestHeaders, retryKey){
     console.log('downloadURL', url)
+
+    let requestHeaders
+    if(typeof refererOrRequestHeaders === 'string'){
+      requestHeaders = [{name: 'Referrer', value: refererOrRequestHeaders}]
+    }
+    else if(refererOrRequestHeaders){
+      requestHeaders = []
+      for(const h of refererOrRequestHeaders){
+        if(!FORBIDDEN_HEADER_FIELDS.has(h.name.toLowerCase())){
+          requestHeaders.push(h)
+        }
+      }
+    }
+
     let item
     if(retryKey){
       item = await Browser.bg.evaluate((retryKey) => {
@@ -1230,15 +1285,17 @@ Or, please use the Chromium bundled version.`
         })
       }, retryKey)
     }
-    else{
-      item = await Browser.bg.evaluate((url, tabId, referer) => {
+
+    if(!item){
+      item = await Browser.bg.evaluate((url, tabId, requestHeaders) => {
         return new Promise(async resolve => {
           const options = {
             url,
             conflictAction: 'uniquify',
           }
-          if(referer){
-            options.headers = [{name: 'Referrer', value: referer}]
+          console.log(url, tabId, requestHeaders)
+          if(requestHeaders){
+            options.headers =  requestHeaders
           }
           else if(tabId){
             const referer = (await new Promise(r => chrome.tabs.get(tabId, tab => r(tab)))).url
@@ -1248,9 +1305,15 @@ Or, please use the Chromium bundled version.`
             downloadId => chrome.downloads.search({id: downloadId}, results => resolve(results[0])))
 
         })
-      }, url, cont && cont.id, referer)
+      }, url, cont && cont.id, requestHeaders)
+      item.requestHeaders = refererOrRequestHeaders
+      Browser.downloadCache.set(item.id, refererOrRequestHeaders === 'string' ? requestHeaders : refererOrRequestHeaders)
     }
     ipcMain.emit('chrome-download-start', null, item, url, cont, retryKey)
+  }
+
+  static getRequestHeader(id){
+    return Browser.downloadCache.get(id)
   }
 
   static getFocusedWindow(){
@@ -1436,7 +1499,8 @@ class PopupPanel{
     chromeNativeWindow.setWindowLongPtrEx(0x00001000)
     // if(!Browser.CUSTOM_CHROMIUM) {
     for (let i = 0; i < 5; i++) {
-      chromeNativeWindow.setForegroundWindowEx();console.log('setForegroundWindow13')
+      chromeNativeWindow.setForegroundWindowEx()
+      console.log('setForegroundWindow13')
       chromeNativeWindow.showWindow(0)
       if(isWin7){
         chromeNativeWindow.setWindowLongPtrRestore(0x00800000)
@@ -1555,7 +1619,9 @@ class PopupPanel{
 
   moveTop(){
     console.log('moveTop')
-    if (webContents.disableFocus || !this.panelKey) return
+    if (!this.panelKey ||
+      BrowserPanel.getBrowserPanel(this.panelKey).browserWindow.disableFocus) return
+
     this.nativeWindow.moveTop()
   }
 

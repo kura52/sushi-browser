@@ -44,6 +44,7 @@ export default class ChromeDownloadWrapper extends EventEmitter {
       url: item.finalUrl,
       orgUrl: item.url,
       referer: this.referer,
+      requestHeader: Browser.getRequestHeader(item.id),
       filename: path.basename(item.filename),
       receivedBytes: item.bytesReceived,
       totalBytes: item.totalBytes,
@@ -101,9 +102,11 @@ export default class ChromeDownloadWrapper extends EventEmitter {
     this.intervalId = void 0
     await Browser.bg.evaluate(downloadId => {
       return new Promise(resolve => {
-        chrome.downloads.cancel(downloadId, () => {
-          chrome.downloads.erase({id: downloadId}, () => resolve())
-        })
+        chrome.downloads.cancel(downloadId
+        //   , () => {
+        //   chrome.downloads.erase({id: downloadId}, () => resolve())
+        // }
+        )
       })
     }, this.item.id)
     await this.updateState()

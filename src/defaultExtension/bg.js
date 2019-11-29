@@ -540,13 +540,17 @@ ipc.once('get-automation-reply',(e,datas)=>{
 
 const RegNormal = /^(application\/(font|javascript|json|x-javascript|xml)|text\/(css|html|javascript|plain))/
 const RegRichMedia = /^(video|audio|application\/x\-mpegurl|application\/vnd\.apple\.mpegurl)/
+const regVideoSuffix = /\.(mp4|webm|avi|3gp|m3u8)$|playback.[^\/]{1000}/
 const mime = require('mime')
+const LRUCache = require('lru-cache')
+const cache = new LRUCache(5000)
 
 chrome.webRequest.onHeadersReceived.addListener((details)=>{
   const headers = details.responseHeaders, newURL = details.url
+
+  console.log('url', details.url, details)
   const contType = headers.find(x=>x.name == 'Content-Type' || x.name == 'content-type' || x.name == 'CONTENT-TYPE')
   if(!contType) return
-
   // console.log(contType[0])
 
   const matchNormal = contType && contType.value.match(RegNormal)
@@ -562,7 +566,7 @@ chrome.webRequest.onHeadersReceived.addListener((details)=>{
     // }
   // }
 
-  const urlMatch = newURL.match(/\.(mp4|webm|avi|3gp|m3u8)$/)
+  const urlMatch = newURL.match(regVideoSuffix)
   if((!contType || matchNormal || contType.value.startsWith('image')) && !urlMatch) return
 
   let record,ret,parseUrl
@@ -572,7 +576,7 @@ chrome.webRequest.onHeadersReceived.addListener((details)=>{
     parseUrl = new URL(newURL)
     const pathname = parseUrl.pathname
     const ind = pathname.lastIndexOf('/')
-    record = {tabId:details.tabId,type:ret[0],contType,size:len,url:newURL,fname: pathname.slice(ind+1)}
+    record = {tabId:details.tabId,type:ret[0],contType,size:len,url:newURL,fname: pathname.slice(ind+1), requestHeaders: cache.get(details.requestId)}
   }
   else{
     let len = headers.find(x=>x.name == 'Content-Length' || x.name == 'content-length' || x.name == 'CONTENT-LENGTH')
@@ -582,11 +586,11 @@ chrome.webRequest.onHeadersReceived.addListener((details)=>{
     let type
     if(ret = (pathname && (type = mime.getType(pathname)) && type.match(RegRichMedia))){
       const ind = pathname.lastIndexOf('/')
-      record = {tabId:details.tabId,type:ret[0],contType,size:len,url:newURL,fname: pathname.slice(ind+1)}
+      record = {tabId:details.tabId,type:ret[0],contType,size:len,url:newURL,fname: pathname.slice(ind+1), requestHeaders: cache.get(details.requestId)}
     }
     else if(urlMatch){
       const ind = pathname.lastIndexOf('/')
-      record = {tabId:details.tabId,contType,size:len,url:newURL,fname: pathname.slice(ind+1)}
+      record = {tabId:details.tabId,contType,size:len,url:newURL,fname: pathname.slice(ind+1),requestHeaders: cache.get(details.requestId)}
     }
   }
 
@@ -597,6 +601,15 @@ chrome.webRequest.onHeadersReceived.addListener((details)=>{
 },
   {urls: ['<all_urls>']},
   ['responseHeaders'])
+
+const skipSuffix = /\.(html|json|js|css|php|jpg|png|gif|jpeg|svg)$/
+chrome.webRequest.onBeforeSendHeaders.addListener((details)=>{
+    if(details.url.match(skipSuffix)) return
+    cache.set(details.requestId,details.requestHeaders)
+  },
+  {urls: ['<all_urls>']},
+  ['requestHeaders', 'extraHeaders'])
+
 
 chrome.downloads.setShelfEnabled(false)
 

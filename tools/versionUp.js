@@ -27,53 +27,24 @@ const glob = require("glob")
 // Akamutsu(Rosy seabass)
 // Yariika(Spear squid)
 // Saba(Mackerel)
+// Hatahata(Sandfish)
 
-const BEFORE_CODE_NAME = 'Saba(Mackerel)'
+const BEFORE_CODE_NAME = 'Hatahata(Sandfish)'
 const CODE_NAME = 'Hatahata(Sandfish)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.29.0"
+const NEXT_APP_VERSION = "0.29.1"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH =`Fixed video maximize function.
-Added a function to move the window by dragging the mouse when maximizing the movie.
-Added a function to set the size of 100% or more when maximizing the video. In addition, it was possible to move the position by mouse drag when it was over 100%.
-Fixed the pause function by clicking the video and set it to the default action.
-Fixed video page.
-Fixed video pop-up window.
-Bug fixes when changing the window size.
-Fixed bug when maximizing window.
-Changed the default bookmark page to Chrome standard. And add options to change.
-Fixed a bug that right-click menu does not work when extension is uninstalled.
-Fixed tab focus by mouse over.
-Fixed a bug in the location bar.
-Updated Electron to v6.1.5.
-Updated Custom Chromium to 78.0.3904.108.
-Updated Custom Brave to v1.0.1.
-Updated youtube-dl to 2019.11.22.
-Fixed the z-order bug of the window.
-Fixed panel split bug.
-Fixed a bug that failed to start Custom Brave.`
+const CHANGE_ENGLISH =``
 
-const CHANGE_JAPANESE = `動画のmaximize機能を修正。
-動画の最大化時に、マウスドラッグによるウインドウ移動機能を追加。
-動画の最大化時に、100%以上のサイズを設定できるように機能を追加。また、100%以上にした際にマウスドラッグによる位置の移動も可能とした。
-Alt + マウスホイールで最大化時のサイズを変更できるように機能を追加。
-動画クリックによる一時停止機能を修正し、デフォルト動作に設定。
-動画ページを修正。
-動画のポップアップウインドウを修正。
-ウインドウサイズ変更時の不具合修正。
-ウインドウ最大化時の不具合修正。
-ブックマークページのデフォルトをChrome標準に変更。かつ変更するオプションを追加。
-拡張機能をアンインストールした際に、右クリックメニューが動作しない不具合を修正。
-マウスオーバーによるタブフォーカスを修正。
-ロケーションバーのバグを修正。
-Electronをv6.1.5に更新。
-Custom Chromiumを78.0.3904.108に更新。
-Custom Braveをv1.01に更新。
-youtube-dlを2019.11.22に更新
-ウインドウのz-orderの不具合を修正
-パネル分割の不具合を修正
-Custom Braveの起動処理に失敗する不具合を修正`
+const CHANGE_JAPANESE = `最大化時の動画/ウインドウ移動の不具合を修正。
+ウインドウのz-orderの不具合を修正。
+最前面に表示する機能の不具合を修正。
+ポップアップウインドウを閉じる動作の不具合を修正。
+ツールバーメニューの表示位置の不具合を修正。
+ブックマークの追加/削除の不具合を修正。
+ファイルエクスプローラの不具合を修正。
+`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

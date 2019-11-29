@@ -846,6 +846,17 @@ export default class TabPanel extends Component {
       if(tab) PubSub.publish(`include-key-reply_${key}`,this.props.k)
     })
 
+    const excludeRange = record => {
+      if(record.requestHeaders){
+        for(const h of record.requestHeaders){
+          if(h.name.toLowerCase() == 'range'){
+            h.value = 'bytes=0-'
+          }
+        }
+      }
+      return record
+    }
+
     const tokenRichMedia = PubSub.subscribe('rich-media-insert',(msg,record)=>{
       console.log('rich',record)
       const tab = this.state.tabs.find(t =>t.wvId == record.tabId)
@@ -857,11 +868,12 @@ export default class TabPanel extends Component {
       if(tab.page.navUrl.match(REG_VIDEO)){
         return
       }
-      else if(record.url.endsWith('.ts')){
+      else if(record.fname.endsWith('.ts') || record.fname.endsWith('.m3u8')){
         ipc.send('video-infos',{url:tab.page.navUrl})
         ipc.once(`video-infos-reply_${tab.page.navUrl}`,(e,{title,formats,error,cache})=>{
-          if(error) return
+          record = excludeRange(record)
           console.log(43242342,{title,formats,error,cache})
+          if(error) return
           for(let f of formats){
             // if(f.protocol.includes('m3u8')) continue
             const format = f.format ? f.format.replace(/ /g,'') : `${f.resolution ? `${f.resolution}${f.quality ? `_${f.quality}` : ''}_${f.profile}_${f.audioEncoding || 'nonaudio'}`: 'audioonly'}`
@@ -872,9 +884,11 @@ export default class TabPanel extends Component {
           }
           this.refs2[`navbar-${tab.key}`].setState({})
         })
-        return
+        if(record.url.endsWith('.ts')){
+          return
+        }
       }
-      tab.page.richContents.push(record)
+      tab.page.richContents.push(excludeRange(record))
       // ipc.once('video-infos-additional',(e,{title,formats,error})=>{
       //   if(error) return
       //   for(let f of formats){

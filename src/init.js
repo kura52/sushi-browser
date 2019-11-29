@@ -906,7 +906,7 @@ async function contextMenu(webContents, props) {
   }
   else if(explorerMenu){
     const expMenu = explorerMenu
-    menuItems.push({t: 'copyPath', label: locale.translation('copyPath'),click: (item,win)=>{clipboard.writeText(expMenu.path.join(os.EOL))}})
+    menuItems.push({t: 'copyPath', label: locale.translation('copyPath'),click: (item,win)=>{clipboard.writeText(path.join(expMenu.path.join(os.EOL)))}})
     menuItems.push({t: 'createNewFile', label: locale.translation('createNewFile'),click: (item,win)=>{expMenu.sender.send(`explorer-menu-reply`,'create-file')}})
     menuItems.push({t: 'createNewDirectory', label: locale.translation('createNewDirectory'),click: (item,win)=>{expMenu.sender.send(`explorer-menu-reply`,'create-dirctory')}})
     menuItems.push({t: 'rename', label: locale.translation('rename'),click: (item,win)=>{expMenu.sender.send(`explorer-menu-reply`,'rename')}})

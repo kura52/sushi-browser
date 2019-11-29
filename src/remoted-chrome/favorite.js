@@ -105,14 +105,15 @@ export default {
         }
 
         if(dbKey){
-          const results = new Promise(resolve => chrome.bookmarks.get(dbKey, resolve))
+          const results = await new Promise(resolve => chrome.bookmarks.get(dbKey, resolve))
           const result = results ? results[0] : null
           if(!result) return resolve(result)
-          chrome.bookmarks.create(id, {parentId: writePath, index: result.index, ...data}, resolve)
+          data.index = result.index
         }
         else{
-          chrome.bookmarks.create(id, {parentId: writePath, ...data}, resolve)
         }
+        data.parentId = writePath
+        chrome.bookmarks.create(data, resolve)
       })
     }, id, writePath, dbKey, data)
   },
@@ -139,6 +140,7 @@ export default {
   },
 
   async update(id, changes){
+    if(id == 'root') id = '1'
     return (await this.bg()).evaluate((id, changes) => {
       return new Promise(resolve => {
         chrome.bookmarks.update(id, changes, resolve)
@@ -147,6 +149,7 @@ export default {
   },
 
   async remove(ids){
+    ids = ids.map(id => id == 'root' ? '1' : id)
     return (await this.bg()).evaluate((ids) => {
       const promises = []
       for(let id of ids){
@@ -184,6 +187,7 @@ export default {
   },
 
   async export(id){
+    if(id == 'root') id = '1'
     return (await this.bg()).evaluate((id) => {
       return new Promise(async resolve => {
 

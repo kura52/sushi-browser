@@ -12,7 +12,7 @@ export default class DownloadEvent {
         downloader.remove({key}, {multi: true}).then(_ => {
           ipcMain.emit('set-save-path', null, url, path.basename(savePath))
           ipcMain.emit('set-download-key', null, url, key)
-          Browser.downloadURL(url, void 0, ret && ret.referer, key)
+          Browser.downloadURL(url, void 0, ret && (ret.requestHeaders || ret.referer), key)
         })
       })
     })
