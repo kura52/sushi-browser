@@ -49,8 +49,6 @@ class SyncButton{
     const css = document.createElement('style')
     const rule = document.createTextNode(`
 div.drag-and-drop-inject {
-    padding: 0 !important;
-    margin: 0 !important;
     border: 0 !important;
     padding-bottom: 7px !important; 
     background: linear-gradient(rgba(120, 120, 120,0.2), rgba(100, 100, 100,0.2)) !important;
@@ -63,6 +61,7 @@ div.drag-and-drop-inject {
     border-radius: 5px !important;
     -webkit-box-sizing: content-box !important;
     box-sizing: content-box !important;
+    display: -webkit-box !important;
 }
 a.sync-button-inject {
   padding: 0 !important;

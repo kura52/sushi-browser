@@ -52032,6 +52032,7 @@ chrome.ipcRenderer = {
   }
 };
 
+console.log('window.__started_', window.__started_);
 window.__started_ = window.__started_ ? void 0 : 1;
 var ipc = chrome.ipcRenderer;
 if (window.__started_) {
@@ -52151,8 +52152,8 @@ if (window.__started_) {
   let preAElemsLength = 0;
   const openTime = Date.now();
   const ResizeEventMap = new Map();
-  const funcPlay = e => !console.log('play') && e.target.pause();
-  const funcPause = e => !console.log('pause') && e.target.play();
+  const funcPlay = e => e.target.pause();
+  const funcPause = e => e.target.play();
 
   if (location.href.match(/^(http|chrome\-extension)/)) {
 
@@ -52252,19 +52253,23 @@ if (window.__started_) {
 
     const resizeEvent = v => {
 
-      let y, x;
+      let x, y;
       const mmove = e => {
         clickEventCancel = true;
-        const moveX = e.pageX - x;
-        x = e.pageX;
-        const moveY = e.pageY - y;
-        y = e.pageY;
-
-        const xVal = parseInt(v.style.left) + moveX * 3;
-        const yVal = parseInt(v.style.top) + moveY * 3;
-
-        v.style.setProperty('left', `${xVal}px`, 'important');
-        v.style.setProperty('top', `${yVal}px`, 'important');
+        const val = parseInt(v.style.width);
+        if (val != 100 && !isNaN(val)) {
+          const moveX = e.pageX - x;
+          x = e.pageX;
+          const moveY = e.pageY - y;
+          y = e.pageY;
+          const xVal = parseInt(v.style.left) + moveX * 3;
+          const yVal = parseInt(v.style.top) + moveY * 3;
+          v.style.setProperty('left', `${xVal}px`, 'important');
+          v.style.setProperty('top', `${yVal}px`, 'important');
+        } else {
+          console.log('move-window-from-webview', e.movementX, e.movementY);
+          ipc.send('move-window-from-webview', e.movementX, e.movementY);
+        }
       };
 
       const mup = e => {
@@ -52275,7 +52280,8 @@ if (window.__started_) {
       };
 
       const mdown = e => {
-        x = e.pageX;
+        if (e.button != 0) return;
+        x = e.pageX1;
         y = e.pageY;
         v.addEventListener("mousemove", mmove, false);
         v.addEventListener("mouseleave", mup, false);
@@ -52323,7 +52329,7 @@ if (window.__started_) {
     width: 100vw !important;
     height: 100vh !important;
     left: 0 !important;
-} 
+  }
     `;
             s.appendChild(document.createTextNode(style));
             document.head.appendChild(s);
@@ -52386,24 +52392,18 @@ if (window.__started_) {
               preVal = value;
               if (percent != 100) {
                 span.firstChild.textContent = `Normal [${percent}%]`;
-                if (!ResizeEventMap.has(v)) {
-                  ResizeEventMap.set(v, resizeEvent(v));
-                }
               } else {
                 span.firstChild.textContent = 'Normal';
                 v.style.setProperty('left', '0', 'important');
                 v.style.setProperty('top', '0', 'important');
-                if (ResizeEventMap.has(v)) {
-                  v.removeEventListener('mousedown', ResizeEventMap.get(v), false);
-                  v.removeEventListener('play', funcPlay);
-                  v.removeEventListener('pause', funcPause);
-                  ResizeEventMap.delete(v);
-                }
               }
             };
             input.addEventListener('input', onInput);
             v.inputFunc = onInput;
             span.appendChild(input);
+            if (!ResizeEventMap.has(v)) {
+              ResizeEventMap.set(v, resizeEvent(v));
+            }
           }
 
           span.style.cssText = `${rStyle};z-index: 2147483647;position: absolute;overflow: hidden;border-radius: 8px;background: rgba(50,50,50,0.9);text-shadow: 0 0 2px rgba(0,0,0,.5);transition: opacity .1s cubic-bezier(0.0,0.0,0.2,1);margin: 0;border: 0;font-size: 14px;color: white;padding: 4px 7px;text-align: center;`;
@@ -52414,10 +52414,10 @@ if (window.__started_) {
           // document.body.appendChild(span)
           document.documentElement.insertBefore(span, document.body);
 
-          span.addEventListener('click', async e => {
-            if (e.target.tagName == 'INPUT') return;
-            if (e.target.childElementCount > 0 && e.clientY - 2 > e.target.children[0].getBoundingClientRect().y) return;
-
+          const onClick = async e => {
+            if (e && e.target.tagName == 'INPUT') return;
+            if (e && e.target.childElementCount > 0 && e.clientY - 2 > e.target.children[0].getBoundingClientRect().y) return;
+            if (!e && v._olds_) return;
             await maximizeInPanel(v);
             const rect = v.getBoundingClientRect();
             span.style.left = `${Math.round(rect.left) + 10}px`;
@@ -52425,7 +52425,9 @@ if (window.__started_) {
             span.innerText = v._olds_ ? 'Normal' : 'Maximize';
             clearTimeout(beforeRemoveIds.get(v));
             document.documentElement.removeChild(span);
-          });
+          };
+          span.addEventListener('click', onClick);
+          v.clickFunc = onClick;
 
           span.addEventListener('mouseenter', () => span.style.background = 'rgba(80,80,80,0.9)');
           span.addEventListener('mouseleave', () => span.style.background = 'rgba(50,50,50,0.9)');
@@ -52473,6 +52475,12 @@ if (window.__started_) {
       // await new Promise(r=>setTimeout(r,500))
     }
 
+    let _v, _vs;
+    if (location.href.startsWith('https://www.youtube.com')) {
+      _v = v;
+      v = v.closest('.html5-video-player');
+    }
+
     if (enable == null) {
       enable = !v._olds_;
     }
@@ -52480,6 +52488,7 @@ if (window.__started_) {
       v._olds_ = {};
 
       v._olds_.controls = v.controls;
+      v._olds_.htmlOverflow = document.documentElement.style.overflow;
       v._olds_.bodyOverflow = document.body.style.overflow;
       v._olds_.width = v.style.width;
       v._olds_.minWidth = v.style.minWidth;
@@ -52500,20 +52509,37 @@ if (window.__started_) {
       v._olds_.transform = v.style.transform;
       v._olds_.opacity = v.style.opacity;
 
+      if (_v) {
+        _v._olds_ = {};
+        _v._olds_.width = _v.style.width;
+        _v._olds_.minWidth = _v.style.minWidth;
+        _v._olds_.maxWidth = _v.style.maxWidth;
+        _v._olds_.height = _v.style.height;
+        _v._olds_.minHeight = _v.style.minHeight;
+        _v._olds_.maxHeight = _v.style.maxHeight;
+        _v._olds_.left = _v.style.left;
+        _v._olds_.top = _v.style.top;
+
+        _v._olds_.theater = !!document.querySelector('#player-theater-container').childElementCount;
+        if (!_v._olds_.theater) {
+          document.querySelector('.ytp-size-button.ytp-button').click();
+        }
+      }
+
       if (!isIframe) {
-        v._clickCallback_ = async () => {
+        ;(_v || v)._clickCallback_ = async () => {
           for (let i = 0; i < 10; i++) {
-            v.setAttribute('controls', true);
+            ;(_v || v).setAttribute('controls', true);
             await new Promise(r => setTimeout(r, 100));
           }
-        };
-        v.addEventListener('click', v._clickCallback_);
+        };(_v || v).addEventListener('click', (_v || v)._clickCallback_);
 
-        v.setAttribute('controls', true);
+        if (!_v) v.setAttribute('controls', true);
       } else {
         v.setAttribute('_key_', 'video');
       }
 
+      document.documentElement.style.setProperty('overflow', 'hidden', 'important');
       document.body.style.setProperty('overflow', 'hidden', 'important');
 
       v.style.setProperty('width', '100vw', 'important');
@@ -52533,8 +52559,21 @@ if (window.__started_) {
       v.style.setProperty('border', '0', 'important');
       v.style.setProperty('outline', '0', 'important');
       v.style.setProperty('transform', 'none', 'important');
-      v.style.setProperty('opacity', '1', 'important');
-      v.classList.add('_maximize-org_');
+      v.style.setProperty('opacity', '1', 'important');(_v || v).classList.add('_maximize-org_');
+
+      if (_v) {
+        clearInterval(_v.intervalId);
+        _v.intervalId = setInterval(() => {
+          if (!_v.style.getPropertyPriority('top')) {
+            _v.style.setProperty('width', '100vw', 'important');
+            _v.style.setProperty('height', '100vh', 'important');
+            _v.style.setProperty('top', '0px', 'important');
+          }
+        }, 50);
+        _v.style.setProperty('width', '100vw', 'important');
+        _v.style.setProperty('height', '100vh', 'important');
+        _v.style.setProperty('top', '0px', 'important');
+      }
 
       if (!isIframe) {
         v._olds_.parentNode = v.parentNode;
@@ -52547,16 +52586,15 @@ if (window.__started_) {
         document.documentElement.insertBefore(v, document.body);
       }
     } else {
-      v.removeEventListener('click', v._clickCallback_);
+      ;(_v || v).removeEventListener('click', v._clickCallback_);
 
-      if (ResizeEventMap.has(v)) {
-        v.removeEventListener('mousedown', ResizeEventMap.get(v), false);
-        v.removeEventListener('play', funcPlay);
-        v.removeEventListener('pause', funcPause);
-        ResizeEventMap.delete(v);
+      if (ResizeEventMap.has(_v || v)) {
+        ;(_v || v).removeEventListener('mousedown', ResizeEventMap.get(_v || v), false);(_v || v).removeEventListener('play', funcPlay);(_v || v).removeEventListener('pause', funcPause);
+        ResizeEventMap.delete(_v || v);
       }
 
       v.controls = v._olds_.controls;
+      document.documentElement.style.overflow = v._olds_.htmlOverflow;
       document.body.style.overflow = v._olds_.bodyOverflow;
       v.style.width = v._olds_.width;
       v.style.minWidth = v._olds_.minWidth;
@@ -52575,15 +52613,35 @@ if (window.__started_) {
       v.style.border = v._olds_.border;
       v.style.outline = v._olds_.outline;
       v.style.transform = v._olds_.transform;
-      v.style.opacity = v._olds_.opacity;
-      v.classList.remove('_maximize-org_');
+      v.style.opacity = v._olds_.opacity;(_v || v).classList.remove('_maximize-org_');
+
+      if (_v) {
+        clearInterval(_v.intervalId);
+
+        _v.style.width = _v._olds_.width;
+        _v.style.minWidth = _v._olds_.minWidth;
+        _v.style.maxWidth = _v._olds_.maxWidth;
+        _v.style.height = _v._olds_.height;
+        _v.style.minHeight = _v._olds_.minHeight;
+        _v.style.maxHeight = _v._olds_.maxHeight;
+        _v.style.left = _v._olds_.left;
+        _v.style.top = _v._olds_.top;
+        if (!_v._olds_.theater) {
+          document.querySelector('.ytp-size-button.ytp-button').click();
+        }
+
+        delete _v._olds_;
+      }
+
+      delete (_v || v).mouseMoveFunc;
+      delete (_v || v).inputFunc;
 
       if (!isIframe) {
         v._olds_.parentNode.replaceChild(v, v._olds_.replaceNode);
       }
 
       delete v._olds_;
-      delete v._clickCallback_;
+      delete (_v || v)._clickCallback_;
     }
   }
 
@@ -52833,7 +52891,7 @@ if (window.__started_) {
 
       const span = document.createElement("span");
       span.innerHTML = text;
-      span.style.cssText = `${rStyle};padding: 5px 9px;z-index: 99999999;position: absolute;overflow: hidden;border-radius: 2px;background: rgba(28,28,28,0.9);text-shadow: 0 0 2px rgba(0,0,0,.5);transition: opacity .1s cubic-bezier(0.0,0.0,0.2,1);margin: 0;border: 0;font-size: 20px;color: white;padding: 10px 15px;`;
+      span.style.cssText = `${rStyle};padding: 5px 9px;z-index: 2147483648;position: absolute;overflow: hidden;border-radius: 2px;background: rgba(28,28,28,0.9);text-shadow: 0 0 2px rgba(0,0,0,.5);transition: opacity .1s cubic-bezier(0.0,0.0,0.2,1);margin: 0;border: 0;font-size: 20px;color: white;padding: 10px 15px;`;
       span.setAttribute("id", "popup-org-video");
       const existElement = document.querySelector("#popup-org-video");
       if (existElement) {
@@ -53015,7 +53073,7 @@ if (window.__started_) {
       }
     };
 
-    if (inputs.click && matchReg('click')) {
+    if (inputs.click2 && matchReg('click')) {
       let isPaused = void 0,
           _target;
       document.addEventListener('mousedown', e => {
@@ -53037,12 +53095,12 @@ if (window.__started_) {
         }
         isPaused = target ? target.paused : void 0;
         _target = target;
-        eventHandler(e, inputs.click, _target, isPaused, true);
+        eventHandler(e, inputs.click2, _target, isPaused, true);
       }, true);
       document.addEventListener('click', e => {
         console.log('click');
         if (isPaused !== void 0 && e.button == 0 && _target) {
-          eventHandler(e, inputs.click, _target, isPaused);
+          eventHandler(e, inputs.click2, _target, isPaused);
         }
         _target = void 0;
       }, true);

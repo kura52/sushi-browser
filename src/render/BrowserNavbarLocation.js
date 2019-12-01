@@ -353,8 +353,9 @@ export default class BrowserNavbarLocation extends Component {
   }
 
   onFocus(e){
+    console.log('onFocus1')
     const input = this.input || ReactDOM.findDOMNode(this.refs.input).querySelector("input")
-    setTimeout(()=>document.activeElement == input && input.select(),100)
+    input.select()
 
 
     if((this.isFloat || this.props.isMaximize) && input.value != ""){
@@ -363,7 +364,10 @@ export default class BrowserNavbarLocation extends Component {
   }
 
   onBlur(e){
+    console.log('onBlur1')
     if(this.mouseDown) return
+    const input = this.input || ReactDOM.findDOMNode(this.refs.input).querySelector("input")
+    input.setSelectionRange(0,0)
     this.resetComponent()
   }
 

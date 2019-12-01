@@ -211,7 +211,7 @@ export default class Aria2cWrapper{
 
     if(this.requestHeaders != null){
       for(const h of this.requestHeaders){
-        params.push(`--header=${h.name}: ${h.value}`)
+        params.push(`--header=${h.name}: ${h.value || ''}`)
       }
     }
     else{

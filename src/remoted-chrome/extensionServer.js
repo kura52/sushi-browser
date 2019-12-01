@@ -6,6 +6,7 @@ const WebSocket = require('ws')
 
 function sendFile(req, res, filePath, fileSize) {
   const mimeType = mime.getType(filePath)
+  console.log('mimeType', mimeType)
   const range = req.headers.range
   let file
   if (range) {

@@ -74,11 +74,11 @@ const UrlUtil = {
   },
 
   canParseURL: function (input) {
-    if (typeof window === 'undefined') {
-      return true
-    }
+    // if (typeof window === 'undefined') {
+    //   return true
+    // }
     try {
-      let url = new window.URL(input)
+      let url = urlParse(input)
       return !!url
     } catch (e) {
       return false
@@ -86,11 +86,11 @@ const UrlUtil = {
   },
 
   canParseURL2: function (input) {
-    if (typeof window === 'undefined') {
-      return true
-    }
+    // if (typeof window === 'undefined') {
+    //   return true
+    // }
     try {
-      let url = new window.URL(input)
+      let url = urlParse(input)
       if(!url) return false
       const urlSplit = url.hostname.split(".")
       const topLevelDomain = urlSplit[urlSplit.length-1]
@@ -178,7 +178,7 @@ const UrlUtil = {
     }
 
     try {
-      return new window.URL(input).href
+      return urlParse(input).href
     } catch (e) {
       return input
     }
@@ -283,9 +283,9 @@ const UrlUtil = {
   getHostname: function (input, excludePort) {
     try {
       if (excludePort) {
-        return new window.URL(input).hostname
+        return urlParse(input).hostname
       }
-      return new window.URL(input).host
+      return urlParse(input).host
     } catch (e) {
       return undefined
     }
@@ -412,7 +412,7 @@ const UrlUtil = {
    * @return {string} url The origin of the given URL
    */
   getUrlOrigin: function (url) {
-    return new window.URL(url).origin
+    return urlParse(url).origin
   },
 
   isLocalFile: function (origin) {

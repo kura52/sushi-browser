@@ -14184,14 +14184,18 @@ window.process = {
 
 const isMain = location.href.startsWith("file://");
 
+const events = {};
+
 exports.default = isMain ? __webpack_require__(88) : {
   ipcRenderer: {
     on: (channel, listener) => {
-      chrome.runtime.onMessage.addListener((message, sender) => {
+      const key = channel + listener.toString();
+      events[key] = (message, sender) => {
         if (!message.ipc || channel != message.channel) return;
 
         listener({}, ...message.args);
-      });
+      };
+      chrome.runtime.onMessage.addListener(events[key]);
     },
     once: (channel, listener) => {
       const handler = (message, sender) => {
@@ -14204,6 +14208,11 @@ exports.default = isMain ? __webpack_require__(88) : {
     },
     send: (channel, ...args) => {
       chrome.runtime.sendMessage({ ipcToBg: true, channel, args });
+    },
+    removeListener: (channel, listener) => {
+      const key = channel + listener.toString();
+      chrome.runtime.onMessage.removeListener(events[key]);
+      delete events[key];
     }
   }
 };
@@ -14248,6 +14257,7 @@ chrome.ipcRenderer = {
   }
 };
 
+console.log('window.__started_', window.__started_);
 window.__started_ = window.__started_ ? void 0 : 1;
 var ipc = chrome.ipcRenderer;
 if (window.__started_) {
@@ -14261,6 +14271,12 @@ if (window.__started_) {
   document.addEventListener('webkitfullscreenchange', fullscreenListener);
 
   setTimeout(() => {
+
+    let mouseDowned = false;
+    document.addEventListener('mousedown', e => {
+      if (e.button == 2) mouseDowned = true;
+    }, { passive: true, capture: true });
+
     document.addEventListener('contextmenu', e => {
       if (window.__no_skip_context_menu__) {
         window.__no_skip_context_menu__ = false;
@@ -14270,6 +14286,10 @@ if (window.__started_) {
       e.preventDefault();
       e.stopImmediatePropagation();
       console.log(5555, e);
+
+      if (!mouseDowned) return;
+      mouseDowned = true;
+
       const target = e.target;
       const linkURL = (target.closest('a') || target).href;
       const isFrame = window.top != window;
@@ -14355,285 +14375,337 @@ if (window.__started_) {
   }, 100);
 
   let preAElemsLength = 0;
-
-  // const visitedLinkName = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
-  //
-  // const setVisitedLinkColor = (force) => {
-  //   const aElems = document.getElementsByTagName('a')
-  //   const length = aElems.length
-  //   if(!force && preAElemsLength == length) return
-  //   preAElemsLength = length
-  //   const checkElems = {}
-  //   for (let i = 0; i < length; i++) {
-  //     const ele = aElems[i]
-  //     if(ele.classList.contains(visitedLinkName)) continue
-  //     const url = ele.href
-  //     if (url.startsWith('http')) {
-  //       let arr = checkElems[url]
-  //       if(arr){
-  //         arr.push(ele)
-  //       }
-  //       else{
-  //         checkElems[url] = [ele]
-  //       }
-  //     }
-  //   }
-  //   const urls = Object.keys(checkElems)
-  //   if(!urls.length) return
-  //
-  //   const key = Math.random().toString()
-  //   ipc.send('get-visited-links', key, urls)
-  //   ipc.on(`get-visited-links-reply_${key}`, (e, urls) => {
-  //     for (let url of urls) {
-  //       for(let ele of checkElems[url]){
-  //         ele.classList.add(visitedLinkName)
-  //       }
-  //     }
-  //   })
-  // }
-
   const openTime = Date.now();
-  if (location.href.match(/^(http|chrome\-extension)/) && window == window.parent) {
-    // require('./passwordEvents')
-    __webpack_require__(90);
-    __webpack_require__(91);
-    __webpack_require__(92);
+  const ResizeEventMap = new Map();
+  const funcPlay = e => e.target.pause();
+  const funcPause = e => e.target.play();
 
-    let mdownEvent;
-    document.addEventListener('mousedown', e => {
-      mdownEvent = e;
-      ipc.send('send-to-host', 'webview-mousedown', e.button);
-    }, { passive: true, capture: true });
+  if (location.href.match(/^(http|chrome\-extension)/)) {
 
-    document.addEventListener('mouseup', e => {
-      ipc.send('send-to-host', 'webview-mouseup', e.button);
-      // if(mdownEvent && e.target == mdownEvent.target &&
-      //   e.button == mdownEvent.button && (e.button == 0 || e.button == 1)){
-      //   const ele = e.target.closest('a')
-      //   if(ele && ele.href.startsWith('http')){
-      //     setTimeout(()=>setVisitedLinkColor(true),200)
-      //   }
-      // }
-    }, { passive: true, capture: true });
+    if (window == window.parent) {
+      // require('./passwordEvents')
+      __webpack_require__(90);
+      __webpack_require__(91);
+      __webpack_require__(92);
 
-    document.addEventListener('mouseleave', e => {
-      ipc.send('send-to-host', 'webview-mousemove', { clientY: e.clientY, screenY: e.screenY });
-    });
+      let mdownEvent;
+      document.addEventListener('mousedown', e => {
+        mdownEvent = e;
+        ipc.send('send-to-host', 'webview-mousedown', e.button);
+      }, { passive: true, capture: true });
 
-    let preClientY = -1,
-        checkVideoEvent = {},
-        beforeRemoveIds = {};
+      document.addEventListener('mouseup', e => {
+        ipc.send('send-to-host', 'webview-mouseup', e.button);
+        // if(mdownEvent && e.target == mdownEvent.target &&
+        //   e.button == mdownEvent.button && (e.button == 0 || e.button == 1)){
+        //   const ele = e.target.closest('a')
+        //   if(ele && ele.href.startsWith('http')){
+        //     setTimeout(()=>setVisitedLinkColor(true),200)
+        //   }
+        // }
+      }, { passive: true, capture: true });
+
+      document.addEventListener('mouseleave', e => {
+        ipc.send('send-to-host', 'webview-mousemove', { clientY: e.clientY, screenY: e.screenY,
+          activeText: document.activeElement.tagName == 'INPUT' && document.activeElement.type == 'text' });
+      });
+
+      window.addEventListener("beforeunload", e => {
+        ipc.send('fullscreen-change', false, 1000);
+        ipc.send('send-to-host', 'scroll-position', { x: window.scrollX, y: window.scrollY });
+        ipc.send('contextmenu-webContents-close');
+      });
+
+      document.addEventListener("DOMContentLoaded", _ => {
+        if (location.href.startsWith('https://chrome.google.com/webstore')) {
+          setInterval(_ => {
+            const ele = document.querySelector(".h-e-f-Ra-c.e-f-oh-Md-zb-k");
+            if (ele && !ele.innerHTML) {
+              ele.innerHTML = `<div role="button" class="dd-Va g-c-wb g-eg-ua-Uc-c-za g-c-Oc-td-jb-oa g-c g-c-Sc-ci" aria-label="add to chrome" tabindex="0" style="user-select: none;"><div class="g-c-Hf"><div class="g-c-x"><div class="g-c-R webstore-test-button-label">add to chrome</div></div></div></div>`;
+              ele.querySelector(".dd-Va.g-c-wb.g-eg-ua-Uc-c-za.g-c-Oc-td-jb-oa.g-c.g-c-Sc-ci").addEventListener('click', _ => ipc.send('add-extension', { id: location.href.split("/").slice(-1)[0].split("?")[0] }));
+            }
+            let buttons = document.querySelectorAll(".dd-Va.g-c-wb.g-eg-ua-Kb-c-za.g-c-Oc-td-jb-oa.g-c");
+            if (buttons && buttons.length) {
+              for (let button of buttons) {
+                const loc = button.parentNode.parentNode.parentNode.parentNode.href.split("/").slice(-1)[0].split("?")[0];
+                const parent = button.parentNode;
+                parent.innerHTML = `<div role="button" class="dd-Va g-c-wb g-eg-ua-Kb-c-za g-c-Oc-td-jb-oa g-c" aria-label="add to chrome" tabindex="0" style="user-select: none;"><div class="g-c-Hf"><div class="g-c-x"><div class="g-c-R webstore-test-button-label">add to chrome</div></div></div></div>`;
+                parent.querySelector(".dd-Va.g-c-wb.g-eg-ua-Kb-c-za.g-c-Oc-td-jb-oa.g-c").addEventListener('click', e => {
+                  e.stopImmediatePropagation();
+                  e.preventDefault();
+                  ipc.send('add-extension', { id: loc });
+                }, true);
+              }
+            }
+          }, 1000);
+        } else if (location.href.match(/^https:\/\/addons\.mozilla\.org\/.+?\/firefox/) && !document.querySelector('.Badge.Badge-not-compatible')) {
+          let url;
+          const func = _ => ipc.send('add-extension', { url });
+          setInterval(_ => {
+            const b = document.querySelector('.Button--action.Button--puffy:not(.Button--disabled)');
+            if (!b) return;
+            if (b.href != 'javascript:void(0)') url = b.href;
+
+            b.innerText = 'Add to Sushi';
+            b.addEventListener('click', func);
+            b.href = 'javascript:void(0)';
+          }, 1000);
+        }
+      });
+    }
+
+    let preClientY = -1;
     document.addEventListener('mousemove', e => {
       // console.log('mousemove')
-      if (preClientY != e.clientY) {
-        ipc.send('send-to-host', 'webview-mousemove', { clientY: e.clientY, screenY: e.screenY });
+      if (window == window.parent && preClientY != e.clientY) {
+        ipc.send('send-to-host', 'webview-mousemove', { clientY: e.clientY, screenY: e.screenY,
+          activeText: document.activeElement.tagName == 'INPUT' && document.activeElement.type == 'text' });
         // console.log('webview-mousemove', e.clientY)
         preClientY = e.clientY;
       }
+    }, { passive: true, capture: true });
 
-      if (!checkVideoEvent[e.target] && document.querySelector('video')) {
-        checkVideoEvent[e.target] = true;
-        let target;
-        if (e.target.tagName !== 'VIDEO') {
-          const children = [...e.target.children];
-          for (const x of children) {
-            checkVideoEvent[x] = true;
-            if (x.tagName == "VIDEO") {
-              target = x;
-              console.log(11, target);
-              break;
-            }
-          }
-          if (!target) {
-            for (let c of children) {
-              if (c.children) {
-                for (const x of [...c.children]) {
-                  checkVideoEvent[x] = true;
-                  if (x.tagName == "VIDEO") {
-                    target = x;
-                    console.log(12, target);
-                    break;
-                  }
-                }
-              }
-              if (target) break;
-            }
-            if (!target) {
-              for (let ele of document.querySelectorAll('video')) {
-                const r = ele.getBoundingClientRect();
-                if (pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)) {
-                  target = ele;
-                  console.log(13, target);
-                  break;
-                }
-              }
-              if (!target) return;
-            }
-          }
+    const checkPos = (ele, v) => {
+      const b1 = ele.getBoundingClientRect();
+      const b2 = v.getBoundingClientRect();
+      return b1.x == b2.x && b1.y == b2.y && b1.width == b2.width && b1.height == b2.height;
+    };
+
+    let checkedVideoSet = new Set(),
+        beforeRemoveIds = new Map(),
+        videoList,
+        isAddedCss = false;
+
+    const resizeEvent = v => {
+
+      let x, y;
+      const mmove = e => {
+        clickEventCancel = true;
+        const val = parseInt(v.style.width);
+        if (val != 100 && !isNaN(val)) {
+          const moveX = e.pageX - x;
+          x = e.pageX;
+          const moveY = e.pageY - y;
+          y = e.pageY;
+          const xVal = parseInt(v.style.left) + moveX * 3;
+          const yVal = parseInt(v.style.top) + moveY * 3;
+          v.style.setProperty('left', `${xVal}px`, 'important');
+          v.style.setProperty('top', `${yVal}px`, 'important');
         } else {
-          target = e.target;
+          console.log('move-window-from-webview', e.movementX, e.movementY);
+          ipc.send('move-window-from-webview', e.movementX, e.movementY);
         }
+      };
 
-        console.log(553, target);
-        const v = target;
+      const mup = e => {
+        v.removeEventListener("mousemove", mmove, false);
+        v.removeEventListener("mouseleave", mup, false);
+        v.removeEventListener("mouseup", mup, false);
+        setTimeout(() => clickEventCancel = false, 10);
+      };
+
+      const mdown = e => {
+        if (e.button != 0) return;
+        x = e.pageX1;
+        y = e.pageY;
+        v.addEventListener("mousemove", mmove, false);
+        v.addEventListener("mouseleave", mup, false);
+        v.addEventListener("mouseup", mup, false);
+      };
+      v.addEventListener('mousedown', mdown, false);
+
+      return mdown;
+    };
+
+    setInterval(() => {
+      videoList = document.querySelectorAll('video');
+      for (let v of videoList) {
+        if (checkedVideoSet.has(v)) continue;
+        checkedVideoSet.add(v);
+        const id = Math.random().toString().substring(2);
+
         const func = () => {
 
-          const existElement = document.querySelector("#maximize-org-video");
+          if (!isAddedCss) {
+            isAddedCss = true;
+
+            const s = document.createElement('style');
+            s.setAttribute('type', 'text/css');
+            s.setAttribute('id', 'style_element_');
+            const style = `input[type="range"]._maximize_resizer_ {
+    -webkit-appearance: none;
+    background-color: #cccccc;
+    height: 12px;
+    border-radius: 3px;
+    width: 100px;
+    display: block;
+    margin: 4px auto;
+    outline: none;
+    }
+  input[type="range"]._maximize_resizer_::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 10px;
+    height: 10px;
+    background: #4a4a4a;
+    border-radius: 50%;
+    }  
+  video._maximize-org_::-webkit-media-controls-enclosure{
+    position: fixed !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    left: 0 !important;
+  }
+    `;
+            s.appendChild(document.createTextNode(style));
+            document.head.appendChild(s);
+
+            const s2 = document.createElement('style');
+            s2.setAttribute('type', 'text/css');
+            s2.setAttribute('id', 'style_element2_');
+            document.head.appendChild(s2);
+          }
+
+          console.log('func');
+          const existElement = document.querySelector(`#maximize-org-video${id}`);
           if (existElement) {
-            clearTimeout(beforeRemoveIds[target]);
-            beforeRemoveIds[target] = setTimeout(_ => document.body.removeChild(existElement), 2000);
+            clearTimeout(beforeRemoveIds.get(v));
+            beforeRemoveIds.set(v, setTimeout(_ => document.documentElement.removeChild(existElement), 2000));
             return;
           }
 
           const rect = v.getBoundingClientRect();
-          const rStyle = `left:${Math.round(rect.left) + 10}px;top:${Math.round(rect.top) + 10}px`;
+          let xmod = 0,
+              ymod = 0,
+              widthVw = parseInt(v.style.width);
+          if (isNaN(widthVw)) widthVw = 100;
+          if (v._olds_ && widthVw > 100) {
+            if (widthVw > 300) widthVw = 100;
+            xmod = parseInt(v.style.left) * -1;
+            ymod = parseInt(v.style.top) * -1;
+          }
+          const rStyle = `left:${Math.round(rect.left) + 10 + window.scrollX + xmod}px;top:${Math.round(rect.top) + 10 + window.scrollY + ymod}px`;
 
           const span = document.createElement("span");
-          span.innerHTML = v._olds_ ? 'Normal' : 'Maximize';
-          span.style.cssText = `${rStyle};z-index: 2147483647;position: absolute;overflow: hidden;border-radius: 8px;background: rgba(50,50,50,0.9);text-shadow: 0 0 2px rgba(0,0,0,.5);transition: opacity .1s cubic-bezier(0.0,0.0,0.2,1);margin: 0;border: 0;font-size: 14px;color: white;padding: 4px 7px;`;
-          span.setAttribute("id", "maximize-org-video");
+          span.appendChild(document.createTextNode(v._olds_ ? `Normal${widthVw == 100 ? '' : ` [${widthVw}%]`}` : 'Maximize'));
 
-          document.body.appendChild(span);
+          if (v._olds_) {
+            const input = document.createElement('input');
+            input.type = 'range';
+            input.min = 0.2;
+            input.max = 3;
+            input.name = 'resizer';
+            input.className = '_maximize_resizer_';
+            input.step = 0.05;
+            input.value = `${widthVw / 100.0}`;
+            let preVal = input.value;
 
-          span.addEventListener('click', () => {
-            maximizeInPanel(v);
+            const onInput = e => {
+              const value = parseFloat(input.value);
+              let percent = Math.round(value * 100);
+              if (percent > 300 || isNaN(percent)) percent = 100;
+              const left = parseInt(v.style.left);
+              const top = parseInt(v.style.top);
+
+              v.style.setProperty('width', `${percent}vw`, 'important');
+              v.style.setProperty('min-width', `${percent}vw`, 'important');
+              v.style.setProperty('max-width', `${percent}vw`, 'important');
+              v.style.setProperty('height', `${percent}vh`, 'important');
+              v.style.setProperty('min-height', `${percent}vh`, 'important');
+              v.style.setProperty('max-height', `${percent}vh`, 'important');
+              v.style.setProperty('left', `${left - window.innerWidth * (value - preVal) / 2}px`, 'important');
+              v.style.setProperty('top', `${top - window.innerHeight * (value - preVal) / 2}px`, 'important');
+              preVal = value;
+              if (percent != 100) {
+                span.firstChild.textContent = `Normal [${percent}%]`;
+              } else {
+                span.firstChild.textContent = 'Normal';
+                v.style.setProperty('left', '0', 'important');
+                v.style.setProperty('top', '0', 'important');
+              }
+            };
+            input.addEventListener('input', onInput);
+            v.inputFunc = onInput;
+            span.appendChild(input);
+            if (!ResizeEventMap.has(v)) {
+              ResizeEventMap.set(v, resizeEvent(v));
+            }
+          }
+
+          span.style.cssText = `${rStyle};z-index: 2147483647;position: absolute;overflow: hidden;border-radius: 8px;background: rgba(50,50,50,0.9);text-shadow: 0 0 2px rgba(0,0,0,.5);transition: opacity .1s cubic-bezier(0.0,0.0,0.2,1);margin: 0;border: 0;font-size: 14px;color: white;padding: 4px 7px;text-align: center;`;
+
+          span.setAttribute("id", `maximize-org-video${id}`);
+          span.className = '_maximize_span_';
+
+          // document.body.appendChild(span)
+          document.documentElement.insertBefore(span, document.body);
+
+          const onClick = async e => {
+            if (e && e.target.tagName == 'INPUT') return;
+            if (e && e.target.childElementCount > 0 && e.clientY - 2 > e.target.children[0].getBoundingClientRect().y) return;
+            if (!e && v._olds_) return;
+            await maximizeInPanel(v);
             const rect = v.getBoundingClientRect();
             span.style.left = `${Math.round(rect.left) + 10}px`;
             span.style.top = `${Math.round(rect.top) + 10}px`;
             span.innerText = v._olds_ ? 'Normal' : 'Maximize';
-            clearTimeout(beforeRemoveIds[target]);
-            document.body.removeChild(span);
-          });
+            clearTimeout(beforeRemoveIds.get(v));
+            document.documentElement.removeChild(span);
+          };
+          span.addEventListener('click', onClick);
+          v.clickFunc = onClick;
 
           span.addEventListener('mouseenter', () => span.style.background = 'rgba(80,80,80,0.9)');
           span.addEventListener('mouseleave', () => span.style.background = 'rgba(50,50,50,0.9)');
 
-          beforeRemoveIds[target] = setTimeout(_ => document.body.removeChild(span), 2000);
+          beforeRemoveIds.set(v, setTimeout(_ => document.documentElement.removeChild(span), 2000));
         };
 
-        document.addEventListener('mousemove', e => {
+        let mouseMoveEvent = {};
+        const onMouseMove = e => {
+          if (!e) return func();
+
+          mouseMoveEvent = e;
           const r = v.getBoundingClientRect();
           if (pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)) {
             func();
           }
-        });
-        document.addEventListener('mouseleave', e2 => {
+        };
+
+        document.addEventListener('mousemove', onMouseMove);
+        v.mouseMoveFunc = onMouseMove;
+
+        document.addEventListener('mouseout', e2 => {
+          if (e2.target != v && !checkPos(e2.target, v)) return;
           const r = v.getBoundingClientRect();
-          if (pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)) {
-            const existElement = document.querySelector("#maximize-org-video");
+          console.log(r.left, r.top, r.width, r.height, mouseMoveEvent.clientX, mouseMoveEvent.clientY);
+          if (pointInCheck(r.left, r.top, r.width, r.height, mouseMoveEvent.clientX, mouseMoveEvent.clientY)) {
+            const existElement = document.querySelector(`#maximize-org-video${id}`);
             if (existElement && e2.toElement != existElement) {
-              clearTimeout(beforeRemoveIds[target]);
-              document.body.removeChild(existElement);
+              clearTimeout(beforeRemoveIds.get(v));
+              document.documentElement.removeChild(existElement);
             }
           }
         });
         func();
       }
-    }, { passive: true, capture: true });
-
-    window.addEventListener("beforeunload", e => {
-      ipc.send('fullscreen-change', false, 1000);
-      ipc.send('send-to-host', 'scroll-position', { x: window.scrollX, y: window.scrollY });
-      ipc.send('contextmenu-webContents-close');
-    });
-
-    document.addEventListener("DOMContentLoaded", _ => {
-      // const visitedStyle = require('./visitedStyle')
-      // setTimeout(()=> visitedStyle(`.${visitedLinkName}`), 0)
-      // setVisitedLinkColor()
-      // setInterval(()=>setVisitedLinkColor(),1000)
-      // const key = Math.random().toString()
-      // ipc.send('need-get-inner-text',key)
-      // ipc.once(`need-get-inner-text-reply_${key}`,(e,result)=>{
-      //   if(result) ipc.send('get-inner-text',location.href,document.title,document.documentElement.innerText)
-      // })
-      if (location.href.startsWith('https://chrome.google.com/webstore')) {
-        setInterval(_ => {
-          const ele = document.querySelector(".h-e-f-Ra-c.e-f-oh-Md-zb-k");
-          if (ele && !ele.innerHTML) {
-            ele.innerHTML = `<div role="button" class="dd-Va g-c-wb g-eg-ua-Uc-c-za g-c-Oc-td-jb-oa g-c g-c-Sc-ci" aria-label="add to chrome" tabindex="0" style="user-select: none;"><div class="g-c-Hf"><div class="g-c-x"><div class="g-c-R webstore-test-button-label">add to chrome</div></div></div></div>`;
-            ele.querySelector(".dd-Va.g-c-wb.g-eg-ua-Uc-c-za.g-c-Oc-td-jb-oa.g-c.g-c-Sc-ci").addEventListener('click', _ => ipc.send('add-extension', { id: location.href.split("/").slice(-1)[0].split("?")[0] }));
-          }
-          let buttons = document.querySelectorAll(".dd-Va.g-c-wb.g-eg-ua-Kb-c-za.g-c-Oc-td-jb-oa.g-c");
-          if (buttons && buttons.length) {
-            for (let button of buttons) {
-              const loc = button.parentNode.parentNode.parentNode.parentNode.href.split("/").slice(-1)[0].split("?")[0];
-              const parent = button.parentNode;
-              parent.innerHTML = `<div role="button" class="dd-Va g-c-wb g-eg-ua-Kb-c-za g-c-Oc-td-jb-oa g-c" aria-label="add to chrome" tabindex="0" style="user-select: none;"><div class="g-c-Hf"><div class="g-c-x"><div class="g-c-R webstore-test-button-label">add to chrome</div></div></div></div>`;
-              parent.querySelector(".dd-Va.g-c-wb.g-eg-ua-Kb-c-za.g-c-Oc-td-jb-oa.g-c").addEventListener('click', e => {
-                e.stopImmediatePropagation();
-                e.preventDefault();
-                ipc.send('add-extension', { id: loc });
-              }, true);
-            }
-          }
-        }, 1000);
-      } else if (location.href.match(/^https:\/\/addons\.mozilla\.org\/.+?\/firefox/) && !document.querySelector('.Badge.Badge-not-compatible')) {
-        let url;
-        const func = _ => ipc.send('add-extension', { url });
-        setInterval(_ => {
-          const b = document.querySelector('.Button--action.Button--puffy:not(.Button--disabled)');
-          if (!b) return;
-          if (b.href != 'javascript:void(0)') url = b.href;
-
-          b.innerText = 'Add to Sushi';
-          b.addEventListener('click', func);
-          b.href = 'javascript:void(0)';
-        }, 1000);
-      }
-    });
-    // setInterval(()=>setVisitedLinkColor(),1000)
+    }, 500);
   }
-
-  // function handleDragEnd(evt) {
-  //   console.log(evt)
-  //   const target = evt.target
-  //   if(!target) return
-  //
-  //   let url,text
-  //   if(target.href){
-  //     url = target.href
-  //     text = target.innerText
-  //   }
-  //   else if(target.nodeName == "#text"){
-  //     ipc.send('send-to-host', "link-drop",{screenX: evt.screenX, screenY: evt.screenY, text:window.getSelection().toString() || target.data})
-  //   }
-  //   else{
-  //     const parent = target.closest("a")
-  //     if(parent){
-  //       url = parent.href
-  //       text = target.innerText
-  //     }
-  //     else{
-  //       url = target.src
-  //       text = target.getAttribute('alt')
-  //     }
-  //   }
-  //
-  //   ipc.send('send-to-host', "link-drop",{screenX: evt.screenX, screenY: evt.screenY, url,text})
-  // }
-  // if(location.href.match(/^chrome-extension:\/\/dckpbojndfoinamcdamhkjhnjnmjkfjd\/(favorite|favorite_sidebar)\.html/)){
-  //   console.log("favorite")
-  //   document.addEventListener("drop", e=>{
-  //     e.preventDefault()
-  //     e.stopImmediatePropagation()
-  //     console.log('drop',e)
-  //   }, false)
-  //
-  //   document.addEventListener("dragend", function( event ) {
-  //     event.preventDefault();
-  //     event.stopImmediatePropagation()
-  //     console.log('dragend',event)
-  //   }, false);
-  // }
-  // else{
-  // document.addEventListener('dragend', handleDragEnd, false)
-  // }
 
   const gaiseki = (ax, ay, bx, by) => ax * by - bx * ay;
   const pointInCheck = (X, Y, W, H, PX, PY) => gaiseki(-W, 0, PX - W - X, PY - Y) < 0 && gaiseki(0, H, PX - X, PY - Y) < 0 && gaiseki(W, 0, PX - X, PY - Y - H) < 0 && gaiseki(0, -H, PX - W - X, PY - H - Y) < 0;
 
-  function maximizeInPanel(v, enable) {
+  async function maximizeInPanel(v, enable, isIframe) {
+    if (window != window.parent) {
+      chrome.runtime.sendMessage({ event: 'maximizeInPanel-fromIframe', enable, href: location.href, width: window.innerWidth, height: window.innerHeight });
+      // await new Promise(r=>setTimeout(r,500))
+    }
+
+    let _v, _vs;
+    if (location.href.startsWith('https://www.youtube.com')) {
+      _v = v;
+      v = v.closest('.html5-video-player');
+    }
+
     if (enable == null) {
       enable = !v._olds_;
     }
@@ -14641,6 +14713,7 @@ if (window.__started_) {
       v._olds_ = {};
 
       v._olds_.controls = v.controls;
+      v._olds_.htmlOverflow = document.documentElement.style.overflow;
       v._olds_.bodyOverflow = document.body.style.overflow;
       v._olds_.width = v.style.width;
       v._olds_.minWidth = v.style.minWidth;
@@ -14653,12 +14726,45 @@ if (window.__started_) {
       v._olds_.backgroundColor = v.style.backgroundColor;
       v._olds_.display = v.style.display;
       v._olds_.left = v.style.left;
+      v._olds_.top = v.style.top;
       v._olds_.margin = v.style.margin;
       v._olds_.padding = v.style.padding;
       v._olds_.border = v.style.border;
       v._olds_.outline = v.style.outline;
+      v._olds_.transform = v.style.transform;
+      v._olds_.opacity = v.style.opacity;
 
-      v.setAttribute('controls', true);
+      if (_v) {
+        _v._olds_ = {};
+        _v._olds_.width = _v.style.width;
+        _v._olds_.minWidth = _v.style.minWidth;
+        _v._olds_.maxWidth = _v.style.maxWidth;
+        _v._olds_.height = _v.style.height;
+        _v._olds_.minHeight = _v.style.minHeight;
+        _v._olds_.maxHeight = _v.style.maxHeight;
+        _v._olds_.left = _v.style.left;
+        _v._olds_.top = _v.style.top;
+
+        _v._olds_.theater = !!document.querySelector('#player-theater-container').childElementCount;
+        if (!_v._olds_.theater) {
+          document.querySelector('.ytp-size-button.ytp-button').click();
+        }
+      }
+
+      if (!isIframe) {
+        ;(_v || v)._clickCallback_ = async () => {
+          for (let i = 0; i < 10; i++) {
+            ;(_v || v).setAttribute('controls', true);
+            await new Promise(r => setTimeout(r, 100));
+          }
+        };(_v || v).addEventListener('click', (_v || v)._clickCallback_);
+
+        if (!_v) v.setAttribute('controls', true);
+      } else {
+        v.setAttribute('_key_', 'video');
+      }
+
+      document.documentElement.style.setProperty('overflow', 'hidden', 'important');
       document.body.style.setProperty('overflow', 'hidden', 'important');
 
       v.style.setProperty('width', '100vw', 'important');
@@ -14670,44 +14776,97 @@ if (window.__started_) {
       v.style.setProperty('position', 'fixed', 'important');
       v.style.setProperty('z-index', '21474836476', 'important');
       v.style.setProperty('background-color', 'black', 'important');
-      v.style.setProperty('display', 'block', 'important');
+      v.style.setProperty('display', 'inline-block', 'important');
       v.style.setProperty('left', '0', 'important');
       v.style.setProperty('top', '0', 'important');
       v.style.setProperty('margin', '0', 'important');
       v.style.setProperty('padding', '0', 'important');
       v.style.setProperty('border', '0', 'important');
       v.style.setProperty('outline', '0', 'important');
+      v.style.setProperty('transform', 'none', 'important');
+      v.style.setProperty('opacity', '1', 'important');(_v || v).classList.add('_maximize-org_');
 
-      v._olds_.parentNode = v.parentNode;
+      if (_v) {
+        clearInterval(_v.intervalId);
+        _v.intervalId = setInterval(() => {
+          if (!_v.style.getPropertyPriority('top')) {
+            _v.style.setProperty('width', '100vw', 'important');
+            _v.style.setProperty('height', '100vh', 'important');
+            _v.style.setProperty('top', '0px', 'important');
+          }
+        }, 50);
+        _v.style.setProperty('width', '100vw', 'important');
+        _v.style.setProperty('height', '100vh', 'important');
+        _v.style.setProperty('top', '0px', 'important');
+      }
 
-      const replaceNode = document.createElement('span');
-      v.parentNode.insertBefore(replaceNode, v);
+      if (!isIframe) {
+        v._olds_.parentNode = v.parentNode;
 
-      v._olds_.replaceNode = replaceNode;
+        const replaceNode = document.createElement('span');
+        v.parentNode.insertBefore(replaceNode, v);
 
-      document.documentElement.insertBefore(v, document.body);
+        v._olds_.replaceNode = replaceNode;
+
+        document.documentElement.insertBefore(v, document.body);
+      }
     } else {
+      ;(_v || v).removeEventListener('click', v._clickCallback_);
+
+      if (ResizeEventMap.has(_v || v)) {
+        ;(_v || v).removeEventListener('mousedown', ResizeEventMap.get(_v || v), false);(_v || v).removeEventListener('play', funcPlay);(_v || v).removeEventListener('pause', funcPause);
+        ResizeEventMap.delete(_v || v);
+      }
+
       v.controls = v._olds_.controls;
+      document.documentElement.style.overflow = v._olds_.htmlOverflow;
       document.body.style.overflow = v._olds_.bodyOverflow;
       v.style.width = v._olds_.width;
       v.style.minWidth = v._olds_.minWidth;
       v.style.maxWidth = v._olds_.maxWidth;
       v.style.height = v._olds_.height;
       v.style.minHeight = v._olds_.minHeight;
-      v.style.maxWidth = v._olds_.maxWidth;
+      v.style.maxHeight = v._olds_.maxHeight;
       v.style.position = v._olds_.position;
       v.style.zIndex = v._olds_.zIndex;
       v.style.backgroundColor = v._olds_.backgroundColor;
       v.style.display = v._olds_.display;
       v.style.left = v._olds_.left;
+      v.style.top = v._olds_.top;
       v.style.margin = v._olds_.margin;
       v.style.padding = v._olds_.padding;
       v.style.border = v._olds_.border;
       v.style.outline = v._olds_.outline;
+      v.style.transform = v._olds_.transform;
+      v.style.opacity = v._olds_.opacity;(_v || v).classList.remove('_maximize-org_');
 
-      v._olds_.parentNode.replaceChild(v, v._olds_.replaceNode);
+      if (_v) {
+        clearInterval(_v.intervalId);
+
+        _v.style.width = _v._olds_.width;
+        _v.style.minWidth = _v._olds_.minWidth;
+        _v.style.maxWidth = _v._olds_.maxWidth;
+        _v.style.height = _v._olds_.height;
+        _v.style.minHeight = _v._olds_.minHeight;
+        _v.style.maxHeight = _v._olds_.maxHeight;
+        _v.style.left = _v._olds_.left;
+        _v.style.top = _v._olds_.top;
+        if (!_v._olds_.theater) {
+          document.querySelector('.ytp-size-button.ytp-button').click();
+        }
+
+        delete _v._olds_;
+      }
+
+      delete (_v || v).mouseMoveFunc;
+      delete (_v || v).inputFunc;
+
+      if (!isIframe) {
+        v._olds_.parentNode.replaceChild(v, v._olds_.replaceNode);
+      }
 
       delete v._olds_;
+      delete (_v || v)._clickCallback_;
     }
   }
 
@@ -14774,72 +14933,7 @@ if (window.__started_) {
   ipc.send("get-main-state", key, ['tripleClick', 'alwaysOpenLinkNewTab', 'themeColorChange', 'isRecording', 'isVolumeControl', 'keepAudioSeekValueVideo', 'rectangularSelection', 'fullscreenTransitionKeep', 'fullScreen', 'rockerGestureLeft', 'rockerGestureRight', 'inputHistory', 'inputHistoryMaxChar', 'hoverStatusBar', 'hoverBookmarkBar', 'ALL_KEYS2', 'protectTab']);
   ipc.once(`get-main-state-reply_${key}`, (e, data) => {
     mainState = data;
-    // if(data.fullscreenTransitionKeep){
-    //   let full = data.fullScreen ? true : false
-    //   let preV = "_"
-    //   setInterval(_=>{
-    //     const v = document.querySelector('video')
-    //     if(full && v && v.src && v.src != preV){
-    //       if(v.scrollWidth == window.innerWidth || v.scrollHeight == window.innerHeight || v.webkitDisplayingFullscreen){}
-    //       else{
-    //         const fullscreenButton = document.querySelector('.ytp-fullscreen-button,.fullscreenButton,.button-bvuiFullScreenOn,.fullscreen-icon,.full-screen-button,.np_ButtonFullscreen,.vjs-fullscreen-control,.qa-fullscreen-button,[data-testid="fullscreen_control"],.vjs-fullscreen-control,.EnableFullScreenButton,.DisableFullScreenButton,.mhp1138_fullscreen,button.fullscreenh,.screenFullBtn,.player-fullscreenbutton')
-    //         if(fullscreenButton){
-    //           const callback = e => {
-    //             e.stopImmediatePropagation()
-    //             e.preventDefault()
-    //             document.removeEventListener('mouseup',callback ,true)
-    //             fullscreenButton.click()
-    //             if(location.href.startsWith('https://www.youtube.com')){
-    //               let retry = 0
-    //               const id = setInterval(_=>{
-    //                 if(retry++>500) clearInterval(id)
-    //                 const e = document.querySelector('.html5-video-player').classList
-    //                 if(!e.contains('ytp-autohide')){
-    //                   // e.add('ytp-autohide')
-    //                   if(document.querySelector('.ytp-fullscreen-button.ytp-button').getAttribute('aria-expanded') == 'true'){
-    //                     v.click()
-    //                   }
-    //                 }
-    //               },10)
-    //             }
-    //           }
-    //           document.addEventListener('mouseup',callback ,true);
-    //           setTimeout(_=>ipc.send('send-to-host', 'full-screen-mouseup'),500)
-    //         }
-    //         else{
-    //           const callback = e => {
-    //             e.stopImmediatePropagation()
-    //             e.preventDefault()
-    //             document.removeEventListener('mouseup',callback ,true)
-    //             v.webkitRequestFullscreen()
-    //           }
-    //           let i = 0
-    //           const cId = setInterval(_=>{
-    //             document.addEventListener('mouseup',callback ,true);
-    //             ipc.send('send-to-host', 'full-screen-mouseup')
-    //             if(i++ == 5){
-    //               clearInterval(cId)
-    //             }
-    //           },100)
-    //         }
-    //       }
-    //       preV = v.src
-    //     }
-    //
-    //     if(v && v.src){
-    //       const currentFull = v.scrollWidth == window.innerWidth || v.scrollHeight == window.innerHeight || v.webkitDisplayingFullscreen
-    //       if(v && full != currentFull){
-    //         full = currentFull
-    //         if(full){
-    //           ipc.send("full-screen-html",true)
-    //         }
-    //         else{
-    //           ipc.send("full-screen-html",false)
-    //         }
-    //       }
-    //     }
-    //   },500)
-    // }
+
     if (data.tripleClick) {
       window.addEventListener('click', e => {
         if (e.detail === 3) {
@@ -15004,39 +15098,8 @@ if (window.__started_) {
     // }
   });
 
-  // //style setting
-  //   let styleVal
-  //   try{
-  //     styleVal = localStorage.getItem('meiryo')
-  //   }catch(e){}
-  //
-  //   if(styleVal !== null){
-  //     if(styleVal === "true"){
-  //       setTimeout(_=>{
-  //         const css = document.createElement('style')
-  //         const rule = document.createTextNode('html{ font-family: Arial, "メイリオ", sans-serif}')
-  //         css.appendChild(rule)
-  //         const head = document.getElementsByTagName('head')
-  //         if(head[0]) head[0].appendChild(css)
-  //       },0)
-  //     }
-  //   }
-  //   else{
-  //     ipc.send('need-meiryo')
-  //     ipc.once('need-meiryo-reply',(e,styleVal)=>{
-  //       localStorage.setItem('meiryo',styleVal)
-  //       if(styleVal){
-  //         const css = document.createElement('style')
-  //         const rule = document.createTextNode('html{ font-family: Arial, "メイリオ", sans-serif}')
-  //         css.appendChild(rule)
-  //         const head = document.getElementsByTagName('head')
-  //         if(head[0]) head[0].appendChild(css)
-  //       }
-  //     })
-  //   }
-
-
-  let isFirst = true;
+  let isFirst = true,
+      clickEventCancel;
   const videoFunc = (e, inputs) => {
     if (!isFirst) return;
     isFirst = false;
@@ -15049,25 +15112,65 @@ if (window.__started_) {
 
     const popUp = (v, text) => {
       const rect = v.getBoundingClientRect();
-      const rStyle = `left:${Math.round(rect.left) + 20}px;top:${Math.round(rect.top) + 20}px`;
+      const rStyle = `left:${Math.round(rect.left) + 20 + window.scrollX}px;top:${Math.round(rect.top) + 20 + window.scrollY}px`;
 
       const span = document.createElement("span");
       span.innerHTML = text;
-      span.style.cssText = `${rStyle};padding: 5px 9px;z-index: 99999999;position: absolute;overflow: hidden;border-radius: 2px;background: rgba(28,28,28,0.9);text-shadow: 0 0 2px rgba(0,0,0,.5);transition: opacity .1s cubic-bezier(0.0,0.0,0.2,1);margin: 0;border: 0;font-size: 20px;color: white;padding: 10px 15px;`;
+      span.style.cssText = `${rStyle};padding: 5px 9px;z-index: 2147483648;position: absolute;overflow: hidden;border-radius: 2px;background: rgba(28,28,28,0.9);text-shadow: 0 0 2px rgba(0,0,0,.5);transition: opacity .1s cubic-bezier(0.0,0.0,0.2,1);margin: 0;border: 0;font-size: 20px;color: white;padding: 10px 15px;`;
       span.setAttribute("id", "popup-org-video");
       const existElement = document.querySelector("#popup-org-video");
       if (existElement) {
-        document.body.removeChild(existElement);
+        document.documentElement.removeChild(existElement);
       }
-      document.body.appendChild(span);
-      setTimeout(_ => document.body.removeChild(span), 2000);
+      document.documentElement.insertBefore(span, document.body);
+      setTimeout(_ => document.documentElement.removeChild(span), 2000);
     };
 
-    let nothing;
-    const eventHandler = async (e, name, target) => {
+    let nothing,
+        playOrPauseMap = new Map();
+    const eventHandler = async (e, name, target, isPaused, prevProcess) => {
+      let i = 0;
       const v = target || e.target;
+
+      if (prevProcess) {
+        if (name == 'playOrPause') {
+          const funcNoStartPlayOrPauseCancel = () => {
+            console.log('playOrPause1', isPaused);
+            isPaused ? v.pause() : v.play();
+          };
+          const funcPauseOrPauseCancel = () => {
+            console.log('playOrPause2', isPaused);
+            v.removeEventListener(isPaused ? 'pause' : 'play', funcPauseOrPauseCancel);
+            isPaused ? v.play() : v.pause();
+          };
+
+          if (playOrPauseMap.has(v)) {
+            const events = playOrPauseMap.get(v);
+            v.removeEventListener('play', events[0]);
+            v.removeEventListener('pause', events[0]);
+            v.removeEventListener('play', events[1]);
+            v.removeEventListener('pause', events[1]);
+          }
+          playOrPauseMap.set(v, [funcNoStartPlayOrPauseCancel, funcPauseOrPauseCancel]);
+          v.addEventListener(isPaused ? 'play' : 'pause', funcNoStartPlayOrPauseCancel);
+        }
+        return;
+      }
+
       if (name == 'playOrPause') {
-        v.paused ? v.play() : v.pause();
+        console.log('paused1', isPaused);
+
+        const events = playOrPauseMap.get(v);
+
+        v.addEventListener(isPaused ? 'pause' : 'play', events[1]);
+        setTimeout(() => v.removeEventListener(isPaused ? 'pause' : 'play', events[1]), 400);
+
+        if (clickEventCancel) {
+          setTimeout(() => v.removeEventListener(isPaused ? 'play' : 'pause', events[0]), 200);
+        } else {
+          v.removeEventListener(isPaused ? 'play' : 'pause', events[0]);
+          isPaused ? v.play() : v.pause();
+        }
       } else if (name == 'fullscreen') {
         // if(location.href.startsWith('https://www.youtube.com')){
         //   const newStyle = document.createElement('style')
@@ -15173,96 +15276,97 @@ if (window.__started_) {
       } else if (name == 'plRepeat') {
         v.loop = !v.loop;
         popUp(v, `Loop: ${v.loop ? "ON" : "OFF"}`);
+      } else if (name == 'zoomIn' || name == 'zoomOut') {
+        if (v._olds_) {
+          let resizer = document.querySelector('._maximize_resizer_');
+          if (!resizer) {
+            v.mouseMoveFunc();
+            await new Promise(r => setTimeout(r, 10));
+            resizer = document.querySelector('._maximize_resizer_');
+          }
+          const val = parseInt(v.style.width) / 100.0 + (name == 'zoomIn' ? 0.1 : -0.1);
+          resizer.value = val;
+          v.inputFunc();
+        }
       } else {
         nothing = true;
       }
-      if (!nothing) {
+      if (!nothing && (isPaused === void 0 || v.classList.contains('_maximize-org_'))) {
         e.preventDefault();
         e.stopImmediatePropagation();
         return false;
       }
     };
 
-    if (inputs.click && matchReg('click')) {
-      document.addEventListener('click', e => {
+    if (inputs.click2 && matchReg('click')) {
+      let isPaused = void 0,
+          _target;
+      document.addEventListener('mousedown', e => {
+        console.log('moudedown');
         let target = e.target;
         if (e.target.tagName !== 'VIDEO') {
-          const children = [...e.target.children];
-          target = children.find(x => x.tagName == "VIDEO");
-          if (!target) {
-            for (let c of children) {
-              target = c.children && [...c.children].find(x => x.tagName == "VIDEO");
-              if (target) break;
-            }
-            if (!target) {
-              for (let ele of document.querySelectorAll('video')) {
-                const r = ele.getBoundingClientRect();
-                if (pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)) {
-                  target = ele;
-                  break;
-                }
+          target = null;
+          if (!e.target.id.startsWith('maximize-org-video')) {
+            for (let ele of document.querySelectorAll('video')) {
+              const r = ele.getBoundingClientRect();
+              if (pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)) {
+                const orgBound = e.target.getBoundingClientRect();
+                if (orgBound.width < r.width / 2 || orgBound.height < r.height / 2) continue;
+                target = ele;
+                break;
               }
-              if (!target) return;
             }
           }
         }
-        if (e.which == 1) {
-          eventHandler(e, inputs.click, target);
+        isPaused = target ? target.paused : void 0;
+        _target = target;
+        eventHandler(e, inputs.click2, _target, isPaused, true);
+      }, true);
+      document.addEventListener('click', e => {
+        console.log('click');
+        if (isPaused !== void 0 && e.button == 0 && _target) {
+          eventHandler(e, inputs.click2, _target, isPaused);
         }
+        _target = void 0;
       }, true);
     }
 
     if (inputs.dbClick && matchReg('dbClick')) {
       document.addEventListener('dblclick', e => {
+        console.log('dblclick');
         let target = e.target;
         if (e.target.tagName !== 'VIDEO') {
-          const children = [...e.target.children];
-          target = children.find(x => x.tagName == "VIDEO");
-          if (!target) {
-            for (let c of children) {
-              target = c.children && [...c.children].find(x => x.tagName == "VIDEO");
-              if (target) break;
-            }
-            if (!target) {
-              for (let ele of document.querySelectorAll('video')) {
-                const r = ele.getBoundingClientRect();
-                if (pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)) {
-                  target = ele;
-                  break;
-                }
-              }
-              if (!target) return;
+          target = null;
+          for (let ele of document.querySelectorAll('video')) {
+            const r = ele.getBoundingClientRect();
+            if (pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)) {
+              const orgBound = e.target.getBoundingClientRect();
+              if (orgBound.width < r.width / 2 || orgBound.height < r.height / 2) continue;
+              target = ele;
+              break;
             }
           }
+          if (!target) return;
         }
         eventHandler(e, inputs.dbClick, target);
       }, true);
     }
 
-    if (inputs.wheelMinus && matchReg('wheelMinus') || inputs.shiftWheelMinus && matchReg('shiftWheelMinus') || inputs.ctrlWheelMinus && matchReg('ctrlWheelMinus') || inputs.shiftCtrlWheelMinus && matchReg('shiftCtrlWheelMinus')) {
-      const minusToPlus = { rewind1: 'forward1', decSpeed: 'incSpeed', decreaseVolume: 'increaseVolume', frameBackStep: 'frameStep' };
+    if (inputs.wheelMinus && matchReg('wheelMinus') || inputs.shiftWheelMinus && matchReg('shiftWheelMinus') || inputs.ctrlWheelMinus && matchReg('ctrlWheelMinus') || inputs.shiftCtrlWheelMinus && matchReg('shiftCtrlWheelMinus') || inputs.altWheelMinus && matchReg('altWheelMinus')) {
+      const minusToPlus = { rewind1: 'forward1', decSpeed: 'incSpeed', decreaseVolume: 'increaseVolume', frameBackStep: 'frameStep', zoomIn: 'zoomOut' };
       const modify = inputs.reverseWheel ? -1 : 1;
       document.addEventListener('wheel', e => {
         let target = e.target;
         if (e.target.tagName !== 'VIDEO') {
-          const children = [...e.target.children];
-          target = children.find(x => x.tagName == "VIDEO");
-          if (!target) {
-            for (let c of children) {
-              target = c.children && [...c.children].find(x => x.tagName == "VIDEO");
-              if (target) break;
-            }
-            if (!target) {
-              for (let ele of document.querySelectorAll('video')) {
-                const r = ele.getBoundingClientRect();
-                if (pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)) {
-                  target = ele;
-                  break;
-                }
-              }
-              if (!target) return;
+          target = null;
+          for (let ele of document.querySelectorAll('video')) {
+            const r = ele.getBoundingClientRect();
+            if (pointInCheck(r.left, r.top, r.width, r.height, e.clientX, e.clientY)) {
+              target = ele;
+              break;
             }
           }
+          if (!target) return;
         }
         if (e.ctrlKey || e.metaKey) {
           if (e.shiftKey) {
@@ -15272,6 +15376,8 @@ if (window.__started_) {
           }
         } else if (e.shiftKey) {
           eventHandler(e, e.deltaY * modify > 0 ? minusToPlus[inputs.shiftWheelMinus] : inputs.shiftWheelMinus, target);
+        } else if (e.altKey) {
+          eventHandler(e, e.deltaY * modify > 0 ? minusToPlus[inputs.altWheelMinus] : inputs.altWheelMinus, target);
         } else {
           eventHandler(e, e.deltaY * modify > 0 ? minusToPlus[inputs.wheelMinus] : inputs.wheelMinus, target);
         }
@@ -15320,6 +15426,7 @@ if (window.__started_) {
     }
     if (retry++ > 3) clearInterval(receivedVideoEvent);
   }, 1000);
+  setTimeout(() => clearInterval(receivedVideoEvent), 10000);
 
   ipc.once('on-video-event', (e, inputs) => {
     clearInterval(receivedVideoEvent);
@@ -15334,6 +15441,23 @@ if (window.__started_) {
       streamFunc(inputs.val);
     } else if (inputs.video) {
       videoFunc({}, inputs.val);
+    } else if (inputs.maximizeInPanel) {
+      if (window == window.parent) {
+        const iframes = document.querySelectorAll('iframe');
+        for (const iframe of iframes) {
+          if (iframe._key_ == 'video' || iframe.src == inputs.href) {
+            maximizeInPanel(iframe, inputs.enable, true);
+            return false;
+          }
+        }
+        for (const iframe of iframes) {
+          const rect = iframe.getBoundingClientRect();
+          if (Math.round(rect.width) == inputs.width || Math.round(rect.height) == inputs.height) {
+            maximizeInPanel(iframe, inputs.enable, true);
+            return false;
+          }
+        }
+      }
     }
     return false;
   });
@@ -15399,11 +15523,13 @@ const ipc = chrome.ipcRenderer;
 const isWin = navigator.userAgent.includes('Windows');
 
 if (!isWin) {
-  const handleMouseUp = e => {
+  const handleMouseUp = (e, props) => {
     const eventMoveHandler = e2 => {
       console.log(e2);
-      ipc.send('context-menu-move');
-      document.removeEventListener('mousemove', eventMoveHandler, { passive: true, capture: true });
+      if (Math.abs(e2.x - props.x) + Math.abs(e2.y - props.y) > 5) {
+        ipc.send('context-menu-move', { x: e2.x, y: e2.y });
+        document.removeEventListener('mousemove', eventMoveHandler, { passive: true, capture: true });
+      }
     };
     const eventUpHandler = e2 => {
       console.log(e2);

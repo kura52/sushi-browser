@@ -139,7 +139,6 @@ TabUtils.actions = {
     });
   },
   close_other_tabs: function (tab) {
-
     const key = Math.random().toString()
     ipc.send("get-main-state",key,['protectTabs'])
     ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
@@ -153,6 +152,7 @@ TabUtils.actions = {
     })
   },
   close_right_tabs: function (tab) {
+    const key = Math.random().toString()
     ipc.send("get-main-state",key,['protectTabs'])
     ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
       chrome.tabs.getAllInWindow(tab.windowId, function (tabs) {
@@ -167,6 +167,7 @@ TabUtils.actions = {
     })
   },
   close_left_tabs: function (tab) {
+    const key = Math.random().toString()
     ipc.send("get-main-state",key,['protectTabs'])
     ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
       chrome.tabs.getAllInWindow(tab.windowId, function (tabs) {
@@ -212,6 +213,7 @@ TabUtils.actions = {
     chrome.tabs.update({pinned: !tab.pinned});
   },
   close_left_tab: function (tab) {
+    const key = Math.random().toString()
     ipc.send("get-main-state",key,['protectTabs'])
     ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
       chrome.tabs.query({index: tab.index - 1}, tabs => {
@@ -220,6 +222,7 @@ TabUtils.actions = {
     })
   },
   close_right_tab: function (tab) {
+    const key = Math.random().toString()
     ipc.send("get-main-state",key,['protectTabs'])
     ipc.once(`get-main-state-reply_${key}`,(e,data)=> {
       chrome.tabs.query({index:tab.index+1}, tabs=>{

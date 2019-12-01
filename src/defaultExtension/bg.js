@@ -540,7 +540,7 @@ ipc.once('get-automation-reply',(e,datas)=>{
 
 const RegNormal = /^(application\/(font|javascript|json|x-javascript|xml)|text\/(css|html|javascript|plain))/
 const RegRichMedia = /^(video|audio|application\/x\-mpegurl|application\/vnd\.apple\.mpegurl)/
-const regVideoSuffix = /\.(mp4|webm|avi|3gp|m3u8)$|playback.[^\/]{1000}/
+const regVideoSuffix = /\.(mp4|webm|avi|3gp|m3u8)$|[^a-z]playback.[^\/]{300}/
 const mime = require('mime')
 const LRUCache = require('lru-cache')
 const cache = new LRUCache(5000)

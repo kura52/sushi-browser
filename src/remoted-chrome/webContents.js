@@ -177,6 +177,18 @@ export default class webContents extends EventEmitter {
       if(!frame.parentFrame()){
         console.log('did-start-loading', !frame.parentFrame(),this.id)
         this.emitAndSend('did-start-loading', {sender: this} ,this.id)
+        // this.executeJavaScript(()=>setInterval(()=>{
+        //   for(const v of document.querySelectorAll('video')){
+        //     console.log(v._play)
+        //     console.log(v.play)
+        //     if(!v._play){
+        //       v._play = v.play
+        //       v._pause = v.pause
+        //       v.play = ()=>{}
+        //       v.pause = ()=>{}
+        //     }
+        //   }
+        // },100))
         // this.emit('did-start-navigation', {sender: this}, frame.url(), true, !frame.parentFrame())
       }
     }
@@ -580,11 +592,23 @@ export default class webContents extends EventEmitter {
     (await this._getPage()).addStyleTag({content: css})
   }
 
-  async executeJavaScript(code, userGesture, callback){
+  async executeJavaScript(code, userGesture, callback, param, all){
     if(typeof userGesture === 'function') [userGesture, callback] = [null, userGesture]
 
     try{
-      const value = await (await this._getPage()).evaluate(code)
+      let value
+      if(!all){
+        value = await (await this._getPage()).evaluate(code, param)
+      }
+      else{
+        const page = await this._getPage()
+        for(const frame of page.frames()){
+          try{
+            value = await frame.evaluate(code, param)
+            break
+          }catch(e){}
+        }
+      }
       callback && callback(value)
       return value
     }catch(e){

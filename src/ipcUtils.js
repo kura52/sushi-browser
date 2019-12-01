@@ -3,6 +3,7 @@ import {Browser, BrowserPanel, BrowserView, webContents} from './remoted-chrome/
 import favorite from './remoted-chrome/favorite'
 const BrowserWindowPlus = require('./BrowserWindowPlus')
 import fs from 'fs-extra'
+import path from 'path'
 import sh from 'shelljs'
 import uuid from 'node-uuid'
 import PubSub from './render/pubsub'
@@ -22,8 +23,6 @@ const defaultConf = require('./defaultConf')
 const locale = require('../brave/app/locale')
 const extensions = require('./extension/extensions')
 
-import path from 'path'
-// const ytdl = require('ytdl-core')
 const youtubedl = require('youtube-dl')
 import {getFocusedWebContents,getCurrentWindow} from './util'
 const isWin = process.platform == 'win32'
@@ -33,7 +32,6 @@ const meiryo = isWin && Intl.NumberFormat().resolvedOptions().locale == 'ja'
 import mainState from './mainState'
 import extensionInfos from "./extensionInfos";
 import {history, token, visitedStyle} from "./databaseFork";
-import importData from "./bookmarksExporter";
 import winctl from "../resource/winctl";
 const open = require('./open')
 const {readMacro,readMacroOff,readTargetSelector,readTargetSelectorOff,readComplexSearch,readFindAll} = require('./readMacro')
@@ -1478,44 +1476,78 @@ function headers(requestHeaders, userAgent, referer){
   if(!requestHeaders) return `--user-agent ${shellEscape(userAgent)} --referer ${shellEscape(referer)}`
   const arr = []
   for(const h of requestHeaders){
-    arr.push(`--add-header ${h.name}:"${h.value}"`)
+    arr.push(`--add-header ${h.name}:"${h.value || ''}"`)
   }
   return arr.join(" ")
 }
 
-ipcMain.on('download-m3u8',(e,url,fname,tabId,userAgent,referer,needInput,requestHeaders)=>{
-  const youtubeDl = path.join(__dirname,'../node_modules/youtube-dl/bin/youtube-dl').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
+function makePath(basePath,index){
+  if(index === 0) return basePath
+  const base = path.basename(basePath)
+  const val = base.lastIndexOf('.')
+  if(val == -1){
+    return `${basePath} (${index})`
+  }
+  else{
+    return path.join(path.dirname(basePath),`${base.slice(0,val)} (${index})${base.slice(val)}`)
+  }
+}
+
+function getUniqFileName(basePath,index=0){
+  const savePath = makePath(basePath,index)
+  return fs.existsSync(savePath) ? getUniqFileName(basePath,index+1) : savePath
+}
+
+function dlM3u8(command, tabId, sender) {
+  console.log(command)
+  ipcMain.once('start-pty-reply', async (e, key) => {
+    let cont
+    for(let i=0;i<100;i++){
+      cont = await getFocusedWebContents()
+      const url = cont.getURL()
+      if(url.startsWith('chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html')) break
+      await new Promise(r=>setTimeout(r,30))
+    }
+
+    ipcMain.emit('send-input-event', {} , {type: 'mouseDown',tabId: cont.id,x:100,y:100,button: 'left'})
+    ipcMain.emit('send-input-event', {} , {type: 'mouseUp',tabId: cont.id,x:100,y:100,button: 'left'})
+    await new Promise(r=>setTimeout(r,100))
+    ipcMain.emit(`send-pty_${key}`, null, command)
+  })
+  sender.send('new-tab', tabId, 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html?cmd=1')
+}
+
+ipcMain.on('download-m3u8',async (e,url,fname,tabId,userAgent,referer,needInput,requestHeaders)=>{
   const ffmpeg = path.join(__dirname, `../resource/bin/ffmpeg/${process.platform === 'win32' ? 'win' : process.platform === 'darwin' ? 'mac' : 'linux'}/ffmpeg${process.platform === 'win32' ? '.exe' : ''}`).replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
-  let downloadPath = path.join(app.getPath('downloads'),`${fname.split(".").slice(0,-1).join(".")}.%(ext)s`)
+  const youtubeDl = path.join(__dirname,'../node_modules/youtube-dl/bin/youtube-dl').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
+  const downloadPath = app.getPath('downloads')
+  let saveFileName = `${fname.split(".").slice(0,-1).join(".")}.%(ext)s`
 
-  const dl = function () {
-    console.log(`${shellEscape(youtubeDl)} --hls-prefer-native --ffmpeg-location=${shellEscape(ffmpeg)} -o ${shellEscape(downloadPath)} ${shellEscape(url)}`)
-    ipcMain.once('start-pty-reply', async (e, key) => {
-      let cont
-      for(let i=0;i<100;i++){
-        cont = await getFocusedWebContents()
-        const url = cont.getURL()
-        if(url.startsWith('chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html')) break
-        await new Promise(r=>setTimeout(r,30))
-      }
+  if(fname == 'playback.m3u8' && url.match(/[^a-z]playback.[^\/]{300}/)){
+    const data = await new Promise(r=> new webContents(tabId).executeJavaScript((url) => new Promise(r => fetch(url).then(res=>r(res.text()))), null, r, url))
+    let name = referer ? URL.parse(referer).path.split("/").reverse()[0] : uuid.v4().replace(/\\-/g, '')
+    try { name = decodeURIComponent(name) } catch (e) {}
 
-      ipcMain.emit('send-input-event', {} , {type: 'mouseDown',tabId: cont.id,x:100,y:100,button: 'left'})
-      ipcMain.emit('send-input-event', {} , {type: 'mouseUp',tabId: cont.id,x:100,y:100,button: 'left'})
-      await new Promise(r=>setTimeout(r,100))
-      ipcMain.emit(`send-pty_${key}`, null, `${shellEscape(youtubeDl)} ${headers(requestHeaders, userAgent, referer)} --hls-prefer-native --ffmpeg-location=${shellEscape(ffmpeg)} -o ${shellEscape(downloadPath)} ${shellEscape(url)}\n`)
-    })
-    e.sender.send('new-tab', tabId, 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html?cmd=1')
+    const m3u8Path = getUniqFileName(path.join(downloadPath, `${name}.m3u8`))
+    const m3u8Contents = Buffer.from(data, 'base64').toString('utf-8')
+    fs.writeFileSync(m3u8Path, m3u8Contents)
+
+    url = `http://localhost:${Browser.port}/?key=${Browser.serverKey}&file=${`file://${m3u8Path.replace(/\\/g,'/')}`}`
+    saveFileName = name
   }
 
+  let savePath = path.join(downloadPath,`${saveFileName}.%(ext)s`)
+  const command = `${shellEscape(youtubeDl)} ${headers(requestHeaders, userAgent, referer)} --ffmpeg-location=${shellEscape(ffmpeg)} -o ${shellEscape(savePath)} ${shellEscape(url)}\n`
+
   if(needInput){
-    dialog.showSaveDialog(BrowserWindow.fromWebContents(e.sender),{defaultPath: downloadPath },filepath=>{
+    dialog.showSaveDialog(BrowserWindow.fromWebContents(e.sender),{defaultPath: savePath },filepath=>{
       if (!filepath) return
-      downloadPath = filepath
-      dl()
+      savePath = filepath
+      dlM3u8(command, tabId, e.sender)
     })
   }
   else{
-    dl()
+    dlM3u8(command, tabId, e.sender)
   }
 })
 
@@ -2915,37 +2947,15 @@ ipcMain.on('get-enableMouseGesture', (e, type) =>{
   mouseGestureBgPage.send('set-enableMouseGesture', mainState.enableMouseGesture)
 })
 
-// let dragPos = {}, noMove = false
-// ipcMain.on('drag-window', (e, pos) =>{
-//   if(pos.start) dragPos = pos
-//   else if(!noMove){
-//     const win = BrowserWindow.fromWebContents(e.sender)
-//     if(win.isMaximized()){
-//       if(pos.y - dragPos.y < 30) return
-//       const bBounds = win.getBounds()
-//       win.unmaximize()
-//       noMove = true
-//       setTimeout(()=>{
-//         const [width, height] = win.getSize()
-//         console.log('win',bBounds, width, dragPos.x,dragPos.clientX, dragPos.y,dragPos.clientY)
-//         console.log({x: pos.x - dragPos.clientX * width / bBounds.width, y:pos.y - dragPos.clientY, width, height})
-//         win.setBounds({x: Math.round(pos.x - dragPos.clientX * width / bBounds.width), y:pos.y - dragPos.clientY, width, height})
-//         noMove = false
-//       },100)
-//     }
-//     else if(pos.x !== dragPos.x || pos.y !== dragPos.y){
-//       const [x,y] = win.getPosition()
-//       win.setPosition(x + (pos.x - dragPos.x), y + (pos.y - dragPos.y))
-//     }
-//     pos.clientX = dragPos.clientX
-//     pos.clientY = dragPos.clientY
-//     dragPos = pos
-//   }
-// })
+ipcMain.on('cancel-pause-mode', (e, isPaused) => {
+  new webContents(e.sender.id).executeJavaScript(isPaused =>{
+    const v = document.querySelector('video._mousedowned_')
+    const func = isPaused ? v.pause : v.play
+    v[isPaused ? 'pause' : 'play'] = () => {}
 
-// let dragWindowId
-// ipcMain.on('drag-window', (e, data) =>{
-//   const win = BrowserWindow.fromWebContents(e.sender)
-//   const key = Math.random().toString()
-//   win.webContents.send('drag-switch', data)
-// })
+    v.classList.remove('_mousedowned_')
+    document.addEventListener('mouseup', e=> {
+      setTimeout(()=>v[isPaused ? 'pause' : 'play'] = func,600)
+    }, true)
+  }, void 0, void 0, isPaused, true)
+})

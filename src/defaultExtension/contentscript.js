@@ -142,8 +142,6 @@ if(window.__started_){
     })
   },100)
 
-  let preAElemsLength = 0
-  const openTime = Date.now()
   const ResizeEventMap = new Map()
   const funcPlay = (e) => e.target.pause()
   const funcPause = (e) => e.target.play()
@@ -164,13 +162,6 @@ if(window.__started_){
 
       document.addEventListener('mouseup',e=>{
         ipc.send('send-to-host', 'webview-mouseup',e.button)
-        // if(mdownEvent && e.target == mdownEvent.target &&
-        //   e.button == mdownEvent.button && (e.button == 0 || e.button == 1)){
-        //   const ele = e.target.closest('a')
-        //   if(ele && ele.href.startsWith('http')){
-        //     setTimeout(()=>setVisitedLinkColor(true),200)
-        //   }
-        // }
       },{passive: true, capture: true})
 
 
@@ -184,43 +175,6 @@ if(window.__started_){
         ipc.send('send-to-host', 'scroll-position',{x:window.scrollX ,y:window.scrollY})
         ipc.send('contextmenu-webContents-close')
       });
-
-      document.addEventListener("DOMContentLoaded",_=>{
-        if(location.href.startsWith('https://chrome.google.com/webstore')){
-          setInterval(_=>{
-            const ele = document.querySelector(".h-e-f-Ra-c.e-f-oh-Md-zb-k")
-            if(ele && !ele.innerHTML){
-              ele.innerHTML = `<div role="button" class="dd-Va g-c-wb g-eg-ua-Uc-c-za g-c-Oc-td-jb-oa g-c g-c-Sc-ci" aria-label="add to chrome" tabindex="0" style="user-select: none;"><div class="g-c-Hf"><div class="g-c-x"><div class="g-c-R webstore-test-button-label">add to chrome</div></div></div></div>`
-              ele.querySelector(".dd-Va.g-c-wb.g-eg-ua-Uc-c-za.g-c-Oc-td-jb-oa.g-c.g-c-Sc-ci").addEventListener('click',_=>ipc.send('add-extension',{id:location.href.split("/").slice(-1)[0].split("?")[0]}))
-            }
-            let buttons = document.querySelectorAll(".dd-Va.g-c-wb.g-eg-ua-Kb-c-za.g-c-Oc-td-jb-oa.g-c")
-            if(buttons && buttons.length){
-              for(let button of buttons){
-                const loc = button.parentNode.parentNode.parentNode.parentNode.href.split("/").slice(-1)[0].split("?")[0]
-                const parent = button.parentNode
-                parent.innerHTML = `<div role="button" class="dd-Va g-c-wb g-eg-ua-Kb-c-za g-c-Oc-td-jb-oa g-c" aria-label="add to chrome" tabindex="0" style="user-select: none;"><div class="g-c-Hf"><div class="g-c-x"><div class="g-c-R webstore-test-button-label">add to chrome</div></div></div></div>`
-                parent.querySelector(".dd-Va.g-c-wb.g-eg-ua-Kb-c-za.g-c-Oc-td-jb-oa.g-c").addEventListener('click',e=>{
-                  e.stopImmediatePropagation()
-                  e.preventDefault()
-                  ipc.send('add-extension',{id:loc})},true)
-              }
-            }
-          },1000)
-        }
-        else if(location.href.match(/^https:\/\/addons\.mozilla\.org\/.+?\/firefox/) && !document.querySelector('.Badge.Badge-not-compatible')){
-          let url
-          const func = _=>ipc.send('add-extension',{url})
-          setInterval(_=>{
-            const b = document.querySelector('.Button--action.Button--puffy:not(.Button--disabled)')
-            if(!b) return
-            if(b.href != 'javascript:void(0)') url = b.href
-
-            b.innerText = 'Add to Sushi'
-            b.addEventListener('click',func)
-            b.href = 'javascript:void(0)'
-          },1000)
-        }
-      })
     }
 
 
@@ -247,6 +201,7 @@ if(window.__started_){
 
       let x, y
       const mmove = e => {
+
         clickEventCancel = true
         const val = parseInt(v.style.width)
         if(val != 100 && !isNaN(val)){
@@ -254,7 +209,7 @@ if(window.__started_){
           x = e.pageX
           const moveY = e.pageY - y
           y = e.pageY
-          const xVal = parseInt(v.style.left) + moveX * 3
+          const xVal = v.style.left == 'auto' ? 0 : parseInt(v.style.left) + moveX * 3
           const yVal = parseInt(v.style.top) + moveY * 3
           v.style.setProperty('left', `${xVal}px`,'important')
           v.style.setProperty('top', `${yVal}px`,'important')
@@ -274,13 +229,14 @@ if(window.__started_){
 
       const mdown = e =>{
         if(e.button != 0) return
-        x = e.pageX1
+        x = e.pageX
         y = e.pageY
         v.addEventListener("mousemove", mmove, false)
         v.addEventListener("mouseleave", mup, false)
         v.addEventListener("mouseup", mup, false)
       }
       v.addEventListener('mousedown', mdown, false)
+      v._mdown_ = mdown
 
       return mdown
     }
@@ -305,7 +261,7 @@ if(window.__started_){
     background-color: #cccccc;
     height: 12px;
     border-radius: 3px;
-    width: 100px;
+    width: 110px;
     display: block;
     margin: 4px auto;
     outline: none;
@@ -502,6 +458,7 @@ if(window.__started_){
       v._olds_.outline = v.style.outline
       v._olds_.transform = v.style.transform
       v._olds_.opacity = v.style.opacity
+      v._olds_.objectFit = v.style.objectFit
 
       if(_v){
         _v._olds_ = {}
@@ -521,15 +478,28 @@ if(window.__started_){
       }
 
       if(!isIframe){
-        ;(_v || v)._clickCallback_ = async () => {
-          for(let i=0;i<10;i++){
-            ;(_v || v).setAttribute('controls', true)
-            await new Promise(r=>setTimeout(r,100))
+        if(!_v){
+          v._clickCallback_ = e => {
+            e.preventDefault()
+            ;(async()=>{
+              for(let i=0;i<10;i++){
+                if(v.controls) break
+                v.setAttribute('controls', true)
+                await new Promise(r=>setTimeout(r,100))
+              }
+            })()
           }
+          v.setAttribute('controls', true)
+          v.addEventListener('click', v._clickCallback_)
         }
-        ;(_v || v).addEventListener('click', (_v || v)._clickCallback_)
-
-        if(!_v) v.setAttribute('controls', true)
+        else{
+          v._clickCallback_ = e => {
+            e.preventDefault()
+            e.stopImmediatePropagation()
+            return false
+          }
+          _v.addEventListener('click', v._clickCallback_)
+        }
       }
       else{
         v.setAttribute('_key_', 'video')
@@ -556,6 +526,7 @@ if(window.__started_){
       v.style.setProperty('outline','0' ,'important')
       v.style.setProperty('transform','none' ,'important')
       v.style.setProperty('opacity','1','important')
+      v.style.setProperty('object-fit','contain','important')
       ;(_v || v).classList.add('_maximize-org_')
 
       if(_v){
@@ -564,11 +535,13 @@ if(window.__started_){
           if(!_v.style.getPropertyPriority('top')){
             _v.style.setProperty('width','100vw' ,'important')
             _v.style.setProperty('height','100vh' ,'important')
+            _v.style.setProperty('left','auto' ,'important')
             _v.style.setProperty('top','0px' ,'important')
           }
         },50)
         _v.style.setProperty('width','100vw' ,'important')
         _v.style.setProperty('height','100vh' ,'important')
+        _v.style.setProperty('left','auto' ,'important')
         _v.style.setProperty('top','0px' ,'important')
       }
 
@@ -585,6 +558,7 @@ if(window.__started_){
 
     }
     else{
+      // document.removeEventListener('mousedown', v._mousedownCallback_, false)
       ;(_v || v).removeEventListener('click', v._clickCallback_)
 
       if(ResizeEventMap.has(_v || v)){
@@ -615,6 +589,7 @@ if(window.__started_){
       v.style.outline = v._olds_.outline
       v.style.transform = v._olds_.transform
       v.style.opacity = v._olds_.opacity
+      v.style.objectFit = v._olds_.objectFit
       ;(_v || v).classList.remove('_maximize-org_')
 
       if(_v){
@@ -643,7 +618,8 @@ if(window.__started_){
       }
 
       delete v._olds_
-      delete (_v || v)._clickCallback_
+      delete v._clickCallback_
+      // delete (_v || v)._mousedownCallback_
     }
   }
 
@@ -688,21 +664,20 @@ if(window.__started_){
   },{capture: true})
 
   function streamFunc(val){
-    window._mediaElements_ = window._mediaElements_ || {}
+    window._mediaElements_ = window._mediaElements_ || new Map()
     if(window._mediaIntervalId) clearInterval(window._mediaIntervalId)
     window._mediaIntervalId = setInterval(_=>{
       for(let stream of document.querySelectorAll('video,audio')){
         const audioCtx = new (window.AudioContext)();
-        let gainNode = window._mediaElements_[stream]
+        let gainNode = window._mediaElements_.get(stream)
         if(!gainNode){
-          const source = audioCtx.createMediaElementSource(stream);
-          window._mediaElements_[stream] = source
+          const source = audioCtx.createMediaElementSource(stream)
           gainNode = audioCtx.createGain();
-          window._mediaElements_[stream] = gainNode
-          source.connect(gainNode);
-          gainNode.connect(audioCtx.destination);
+          window._mediaElements_.set(stream,gainNode)
+          source.connect(gainNode)
+          gainNode.connect(audioCtx.destination)
         }
-        if(gainNode.gain.value != val/10.0) gainNode.gain.value = val/10.0;
+        if(gainNode.gain.value != val/10.0) gainNode.gain.value = val/10.0
       }
     },500)
   }
@@ -877,11 +852,6 @@ if(window.__started_){
     if(data.inputHistory && !location.href.startsWith('chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd')){
       require('./inputHistory')(data.inputHistoryMaxChar)
     }
-    // if(data.hoverStatusBar || data.hoverBookmarkBar){
-    //   document.addEventListener('mousemove',e=>{
-    //     ipc.send('send-to-host', 'webview-mousemove',e.clientY)
-    //   },{passive:true})
-    // }
 
   })
 
@@ -913,75 +883,19 @@ if(window.__started_){
       setTimeout(_=>document.documentElement.removeChild(span),2000)
     }
 
-    let nothing, playOrPauseMap = new Map()
-    const eventHandler = async (e,name,target,isPaused,prevProcess)=>{
+    let nothing
+    const eventHandler = async (e,name,target,isPaused)=>{
       let i = 0
       const v = target || e.target
 
-      if(prevProcess){
-        if(name == 'playOrPause'){
-          const funcNoStartPlayOrPauseCancel = () => {
-            console.log('playOrPause1', isPaused)
-            isPaused ? v.pause() : v.play()
-          }
-          const funcPauseOrPauseCancel = () => {
-            console.log('playOrPause2', isPaused)
-            v.removeEventListener(isPaused ? 'pause' : 'play', funcPauseOrPauseCancel)
-            isPaused ? v.play() : v.pause()
-          }
-
-          if(playOrPauseMap.has(v)){
-            const events = playOrPauseMap.get(v)
-            v.removeEventListener('play', events[0])
-            v.removeEventListener('pause', events[0])
-            v.removeEventListener('play', events[1])
-            v.removeEventListener('pause', events[1])
-          }
-          playOrPauseMap.set(v, [funcNoStartPlayOrPauseCancel, funcPauseOrPauseCancel])
-          v.addEventListener(isPaused ? 'play' : 'pause', funcNoStartPlayOrPauseCancel)
+      if(name == 'playOrPause'){
+        console.log('paused1', isPaused)
+        if(!clickEventCancel){
+          isPaused ? v.play() : v.pause()
         }
         return
       }
-
-      if(name == 'playOrPause'){
-        console.log('paused1', isPaused)
-
-        const events = playOrPauseMap.get(v)
-
-        v.addEventListener(isPaused ? 'pause' : 'play', events[1])
-        setTimeout(()=>v.removeEventListener(isPaused ? 'pause' : 'play', events[1]),400)
-
-        if(clickEventCancel){
-          setTimeout(()=>v.removeEventListener(isPaused ? 'play' : 'pause', events[0]),200)
-        }
-        else{
-          v.removeEventListener(isPaused ? 'play' : 'pause', events[0])
-          isPaused ? v.play() : v.pause()
-        }
-
-      }
       else if(name == 'fullscreen'){
-        // if(location.href.startsWith('https://www.youtube.com')){
-        //   const newStyle = document.createElement('style')
-        //   newStyle.type = "text/css"
-        //   document.head.appendChild(newStyle)
-        //   const css = document.styleSheets[0]
-        //
-        //   const idx = document.styleSheets[0].cssRules.length;
-        //   css.insertRule(".ytp-popup.ytp-generic-popup { display: none; }", idx)
-        // }
-        // const isFullscreen = v.scrollWidth == window.innerWidth || v.scrollHeight == window.innerHeight
-        // const isFull = await new Promise(r=>{
-        //   const key = Math.random().toString()
-        //   ipc.send('toggle-fullscreen2',void 0, key)
-        //   ipc.once(`toggle-fullscreen2-reply_${key}`, (e,result) => r(result))
-        // })
-        // console.log(isFullscreen,isFull,v.offsetWidth, window.innerWidth,v.offsetHeight, window.innerHeight)
-        // if(isFullscreen == isFull){
-        //   e.preventDefault()
-        //   e.stopImmediatePropagation()
-        //   return
-        // }
         const fullscreenButton = document.querySelector('.ytp-fullscreen-button,.fullscreenButton,.button-bvuiFullScreenOn,.fullscreen-icon,.full-screen-button,.np_ButtonFullscreen,.vjs-fullscreen-control,.qa-fullscreen-button,[data-testid="fullscreen_control"],.vjs-fullscreen-control,.EnableFullScreenButton,.DisableFullScreenButton,.mhp1138_fullscreen,button.fullscreenh,.screenFullBtn,.player-fullscreenbutton')
         console.log(fullscreenButton,v.webkitDisplayingFullscreen)
         if(fullscreenButton){
@@ -998,13 +912,6 @@ if(window.__started_){
         // maximizeInPanel(v)
       }
       else if(name == 'exitFullscreen'){
-        // const isFull = await new Promise(r=>{
-        //   const key = Math.random().toString()
-        //   ipc.send('toggle-fullscreen2',1, key)
-        //   ipc.once(`toggle-fullscreen2-reply_${key}`, (e,result) => r(result))
-        // })
-        // const isFullscreen = v.offsetWidth == window.innerWidth || v.offsetHeight == window.innerHeight
-        // if(isFullscreen == isFull) return
         const fullscreenButton = document.querySelector('.ytp-fullscreen-button,.fullscreenButton,.button-bvuiFullScreenOn,.fullscreen-icon,.full-screen-button,.np_ButtonFullscreen,.vjs-fullscreen-control,.qa-fullscreen-button,[data-testid="fullscreen_control"],.vjs-fullscreen-control,.EnableFullScreenButton,.DisableFullScreenButton,.mhp1138_fullscreen,button.fullscreenh,.screenFullBtn,.player-fullscreenbutton')
         if(fullscreenButton){
           fullscreenButton.click()
@@ -1113,7 +1020,9 @@ if(window.__started_){
 
     if(inputs.click2 && matchReg('click')) {
       let isPaused = void 0, _target
+
       document.addEventListener('mousedown', e=> {
+        if(e.button != 0) return
         console.log('moudedown')
         let target = e.target
         if(e.target.tagName !== 'VIDEO'){
@@ -1132,19 +1041,28 @@ if(window.__started_){
         }
         isPaused = target ? target.paused : void 0
         _target = target
-        eventHandler(e, inputs.click2,_target, isPaused, true)
+        if(target){
+          target.classList.add('_mousedowned_')
+          ipc.send('cancel-pause-mode', isPaused)
+          if(target.classList.contains('_maximize-org_')){
+            e.preventDefault()
+            e.stopPropagation()
+            target._mdown_(e)
+          }
+        }
       }, true)
       document.addEventListener('click', e => {
-        console.log('click')
-        if (isPaused !== void 0 && e.button  == 0 && _target) {
-          eventHandler(e, inputs.click2,_target, isPaused)
-        }
-        _target = void 0
+          console.log('click')
+          if (isPaused !== void 0 && _target) {
+            eventHandler(e, inputs.click2,_target, isPaused)
+          }
+          _target = void 0
       }, true)
     }
 
     if(inputs.dbClick && matchReg('dbClick')){
       document.addEventListener('dblclick',e=>{
+        if(e.button != 0) return
         console.log('dblclick')
         let target = e.target
         if(e.target.tagName !== 'VIDEO'){

@@ -6,7 +6,6 @@ const _webContents = webContents
 import mainState from './mainState'
 const Aria2cWrapper = require('./Aria2cWrapper')
 const FfmpegWrapper = require('./FfmpegWrapper')
-const {redirectUrlsCache} = {} //require('../brave/adBlock') @TODO ELECTRON
 const sanitizeFilename = require('./sanitizeFilename')
 
 const path = require('path')
@@ -456,24 +455,6 @@ export default class Download {
     console.log(333434,!win.webContents.isDestroyed())
     console.log(333435,this.buildItem(item))
 
-  }
-
-
-  makePath(basePath,index){
-    if(index === 0) return basePath
-    const base = path.basename(basePath)
-    const val = base.lastIndexOf('.')
-    if(val == -1){
-      return `${basePath} (${index})`
-    }
-    else{
-      return path.join(path.dirname(basePath),`${base.slice(0,val)} (${index})${base.slice(val)}`)
-    }
-  }
-
-  getUniqFileName(basePath,index=0){
-    const savePath = this.makePath(basePath,index)
-    return fs.existsSync(savePath) ? this.getUniqFileName(basePath,index+1) : savePath
   }
 
   buildItem(item) {
