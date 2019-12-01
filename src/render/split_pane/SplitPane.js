@@ -225,10 +225,20 @@ class SplitPane extends Component {
     }).find(x=>x)
   }
 
-  onResize(event){
+  async onResize(event){
     console.log("eve",event)
     if(!event.old_w && !this.w){
-      const maxBounds = JSON.parse(ipc.sendSync('get-sync-main-state','maxState'))
+      let maxBounds
+      if(ipc.sendSync){
+        maxBounds = JSON.parse(ipc.sendSync('get-sync-main-state','maxState'))
+      }
+      else{
+       maxBounds = await new Promise(r=>{
+         const key = Math.random().toString()
+         ipc.send('get-sync-main-states',['maxState'],key)
+         ipc.once(`get-sync-main-states-reply_${key}`, (e,result) => r(result[0]))
+        })
+      }
       event.old_w = maxBounds.maximize ? maxBounds.maxWidth : maxBounds.width
       event.old_h = maxBounds.maximize ? maxBounds.maxHeight : maxBounds.height
     }

@@ -35,7 +35,19 @@ const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
 const NEXT_APP_VERSION = "0.29.1"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH =``
+const CHANGE_ENGLISH =`Fixed a bug of moving video / window when maximizing.
+Fixed a bug in the z-order of the window.
+Fixed a bug in the function displayed in the foreground.
+Fixed a bug of closing pop-up window.
+Fixed a bug in the display position of the toolbar menu.
+Fixed a bug of adding / deleting bookmarks.
+Fixed a bug in File Explorer.
+Fixed download function.
+Fixed video download.
+Fixed a bug in video playback.
+Fixed location bar bug.
+Updated UserAgent list.
+Fixed Other bugs.`
 
 const CHANGE_JAPANESE = `最大化時の動画/ウインドウ移動の不具合を修正。
 ウインドウのz-orderの不具合を修正。
@@ -49,7 +61,7 @@ const CHANGE_JAPANESE = `最大化時の動画/ウインドウ移動の不具合
 動画再生の不具合を修正。
 ロケーションバーの不具合修正。
 UserAgentリストを更新。
-`
+その他不具合の修正`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

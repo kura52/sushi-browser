@@ -139,7 +139,7 @@ class Response {
     this._contentPromise = null;
 
     this._status = details.statusCode;
-    this._url = request.url();
+    this._url = details.url;
     this._fromDiskCache = details.fromCache;
     this._headers = {};
     for (let h of details.responseHeaders){

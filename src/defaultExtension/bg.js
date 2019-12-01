@@ -548,23 +548,11 @@ const cache = new LRUCache(5000)
 chrome.webRequest.onHeadersReceived.addListener((details)=>{
   const headers = details.responseHeaders, newURL = details.url
 
-  console.log('url', details.url, details)
+  // console.log('url', details.url, details)
   const contType = headers.find(x=>x.name == 'Content-Type' || x.name == 'content-type' || x.name == 'CONTENT-TYPE')
   if(!contType) return
-  // console.log(contType[0])
 
   const matchNormal = contType && contType.value.match(RegNormal)
-  // if(!matchNormal && ((contType && contType[0].match(RegForDL)) || newURL.match(RegForDLExt))){
-    // console.log(6755,contType && contType[0],newURL,tab.getURL())
-    // const url = details.firstPartyUrl
-    // const map = cache.get(url)
-    // if(map){
-    //   map[newURL] = contType && contType[0]
-    // }
-    // else{
-    //   cache.set(url,{[newURL]:contType && contType[0]})
-    // }
-  // }
 
   const urlMatch = newURL.match(regVideoSuffix)
   if((!contType || matchNormal || contType.value.startsWith('image')) && !urlMatch) return
