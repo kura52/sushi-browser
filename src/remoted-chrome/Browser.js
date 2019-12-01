@@ -852,16 +852,20 @@ Or, please use the Chromium bundled version.`
           this.socket.addEventListener('open', (event)=>{
             this.open = true
           })
+          this.socket.addEventListener('close', (event)=>{
+            this.open = false
+            this.init()
+          })
         },
-        socketSend(data) {
+        socketSend(data, retry) {
           if(!this.open){
             this.socket.addEventListener('open', (event)=>{
               this.open = true
-              this.socket.send(data)
+              this.socket.send(data, retry)
             })
           }
           else{
-            this.socket.send(data)
+            this.socket.send(data, retry)
           }
         },
         send(channel, ...args) {

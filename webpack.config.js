@@ -106,7 +106,7 @@ delete baseConfig2.devtool
 // bpMod.output.libraryTarget = 'commonjs'
 
 module.exports = [
-  merge({fileName:"base.js",src:path.join(__dirname,"./src/render")},baseConfig),
+  // merge({fileName:"base.js",src:path.join(__dirname,"./src/render")},baseConfig),
   // merge({fileName:"top.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
   // merge({fileName:"downloader.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
   // merge({fileName:"download.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
@@ -133,13 +133,13 @@ module.exports = [
   // merge({fileName:"settings.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
 
   // merge({fileName:"converter.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
-  merge({fileName:"automation.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
+  // merge({fileName:"automation.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
   // merge({fileName:"inputHistorySetting.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
   // merge({fileName:"macro.js",src:path.join(__dirname,"./src/defaultExtension/"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfigExt),
   // merge({fileName:"mobilePanel.js",src:path.join(__dirname,"./src/defaultExtension/"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfigExt),
   merge({fileName:"videoPlayer.js",src:path.join(__dirname,"./src/toolPages"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfig2),
 
   // merge({fileName:"contentscript.js",src:path.join(__dirname,"./src/defaultExtension/"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfigExt),
-  merge({fileName:"bg.js",src:path.join(__dirname,"./src/defaultExtension/"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfigExt),
+  // merge({fileName:"bg.js",src:path.join(__dirname,"./src/defaultExtension/"),dest:path.join(__dirname,"./resource/extension/default/1.0_0/js")},baseConfigExt),
 ]
 

@@ -1,0 +1,218 @@
+div.sticky {
+    z-index: 1;
+    background-color: white;
+    width: calc(100% - 10px) !important;
+}
+
+.ui.progress {
+    margin: 2px 0 4px 0;
+ }
+
+.ui.button {
+    padding: .68571429em 1.0em;
+    line-height: 0.7em;
+}
+
+.ui.horizontal.segments {
+    bottom: 5px;
+    height: 45px;
+    margin: auto 0 4px 0;
+}
+.ui.blue.segment {
+    padding: 0 8px 0 8px;
+}
+
+.download-list-above {
+    position: absolute;
+    right: 0px;
+    top: 2px;
+    font-size: 16px !important;
+}
+.folder-open, .folder {
+    color: #3498db;
+}
+
+.download-list-above:hover{
+    color: #b90101;
+}
+
+.download-list-bottom {
+    position: absolute;
+    top: 22px;
+    right: 1px;
+}
+.download-list-bottom:hover {
+    color: #b90101;
+}
+
+a {
+    color: var(--color-link);
+}
+
+a.title {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    /*width: 82vw;*/
+    overflow: hidden;
+    display: block;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    height: 100%;
+    font-family: 'BlinkMacSystemFont', 'Lucida Grande', 'Segoe UI', Ubuntu, Cantarell, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    overflow: hidden;
+    color: var(--color);
+    background-color: #fff;
+}
+/*.ui.horizontal.segments>.segment{*/
+    /*margin-top: 2px;*/
+    /*margin-bottom: 2px;*/
+/*}*/
+
+body{
+    min-width: initial;
+}
+
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+::-webkit-scrollbar-button {
+    width: 0px;
+    height: 0px;
+}
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border: 0px none #ffffff;
+    border-radius: 50px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #d1d0d0;
+}
+::-webkit-scrollbar-thumb:active {
+    background: #d1d0d0;
+}
+::-webkit-scrollbar-track {
+    background: #666666;
+    border: 0px none #ffffff;
+    border-radius: 50px;
+}
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+.ui.secondary.pointing.menu .item {
+    padding: .85714286em 0.58285714em;
+}
+
+.ui.small.input {
+    padding-left: 6px;
+}
+
+.ui.secondary.pointing.menu {
+    margin-bottom: 8px;
+}
+
+.spacer2 {
+    height: 10px;
+}
+
+
+input[type=range],input[type=range]+.thumb {
+    cursor: pointer
+}
+
+input[type=range] {
+    position: relative;
+    background-color: transparent;
+    border: none;
+    outline: none;
+    width: 100%;
+    margin: 15px 0;
+    padding: 0
+}
+
+input[type=range]:focus {
+    outline: none
+}
+
+input[type=range]+.thumb {
+    position: absolute;
+    top: 10px;
+    left: 0;
+    border: none;
+    height: 0;
+    width: 0;
+    border-radius: 50%;
+    background-color: #26a69a;
+    margin-left: 7px;
+    -webkit-transform-origin: 50% 50%;
+    transform-origin: 50% 50%;
+    -webkit-transform: rotate(-45deg);
+    transform: rotate(-45deg)
+}
+
+input[type=range]+.thumb .value {
+    display: block;
+    width: 30px;
+    text-align: center;
+    color: #26a69a;
+    font-size: 0;
+    -webkit-transform: rotate(45deg);
+    transform: rotate(45deg)
+}
+
+input[type=range]+.thumb.active {
+    border-radius: 50% 50% 50% 0
+}
+
+input[type=range]+.thumb.active .value {
+    color: #fff;
+    margin-left: -1px;
+    margin-top: 8px;
+    font-size: 10px
+}
+
+input[type=range] {
+    -webkit-appearance: none
+}
+
+input[type=range]::-webkit-slider-runnable-track {
+    height: 3px;
+    background: #c2c0c2;
+    border: none
+}
+
+input[type=range]::-webkit-slider-thumb {
+    border: none;
+    height: 14px;
+    width: 14px;
+    border-radius: 50%;
+    background: #2185d0;
+    -webkit-transition: -webkit-box-shadow .3s;
+    transition: -webkit-box-shadow .3s;
+    transition: box-shadow .3s;
+    transition: box-shadow .3s, -webkit-box-shadow .3s;
+    -webkit-appearance: none;
+    background-color: #2185d0;
+    -webkit-transform-origin: 50% 50%;
+    transform-origin: 50% 50%;
+    margin: -5px 0 0 0
+}
+
+.keyboard-focused input[type=range]:focus:not(.active)::-webkit-slider-thumb {
+    -webkit-box-shadow: 0 0 0 10px rgba(38,166,154,0.26);
+    box-shadow: 0 0 0 10px rgba(38,166,154,0.26)
+}
+
+.ui.input input[type=range] {
+    border: none;
+}
+
