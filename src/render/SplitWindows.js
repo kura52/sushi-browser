@@ -971,6 +971,19 @@ export default class SplitWindows extends Component{
     }
     ipc.on('adjust-maxmize-size', this.eventMaxmize)
 
+    this.getAllTabStates = (e, key) => {
+      const keys = []
+      this.allKeys(this.state.root,keys)
+      let order = 0
+      const results = keys.map(key => {
+        const tabState = this.refs2[key].state
+        const tabs = tabState.tabs.map((tab, i) => [tab.wvId , tabState.selectedTab == tab.key])
+        return [key, tabs]
+      })
+      e.sender.send(`get-all-tab-states-reply_${key}`, results)
+    }
+    ipc.on('get-all-tab-states', this.getAllTabStates)
+
     this.tokenAlign = PubSub.subscribe("align",(_,e)=>{
       if(!this.state.root.r) return
       const mapDepth = this.getDepth()

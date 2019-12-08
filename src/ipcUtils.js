@@ -1521,7 +1521,7 @@ ipcMain.on('download-m3u8',async (e,url,fname,tabId,userAgent,referer,needInput,
   const ffmpeg = path.join(__dirname, `../resource/bin/ffmpeg/${process.platform === 'win32' ? 'win' : process.platform === 'darwin' ? 'mac' : 'linux'}/ffmpeg${process.platform === 'win32' ? '.exe' : ''}`).replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
   const youtubeDl = path.join(__dirname,'../node_modules/youtube-dl/bin/youtube-dl').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
   const downloadPath = app.getPath('downloads')
-  let saveFileName = `${fname.split(".").slice(0,-1).join(".")}.%(ext)s`
+  let saveFileName = fname.split(".").slice(0,-1).join(".")
 
   if(fname == 'playback.m3u8' && url.match(/[^a-z]playback.[^\/]{300}/)){
     const data = await new Promise(r=> new webContents(tabId).executeJavaScript((url) => new Promise(r => fetch(url).then(res=>r(res.text()))), null, r, url))
@@ -1537,17 +1537,17 @@ ipcMain.on('download-m3u8',async (e,url,fname,tabId,userAgent,referer,needInput,
   }
 
   let savePath = path.join(downloadPath,`${saveFileName}.%(ext)s`)
-  const command = `${shellEscape(youtubeDl)} ${headers(requestHeaders, userAgent, referer)} --ffmpeg-location=${shellEscape(ffmpeg)} -o ${shellEscape(savePath)} ${shellEscape(url)}\n`
+  const getCommand = (savePath) => `${shellEscape(youtubeDl)} ${headers(requestHeaders, userAgent, referer)} --ffmpeg-location=${shellEscape(ffmpeg)} -o ${shellEscape(savePath)} ${shellEscape(url)}\n`
 
   if(needInput){
     dialog.showSaveDialog(BrowserWindow.fromWebContents(e.sender),{defaultPath: savePath },filepath=>{
       if (!filepath) return
       savePath = filepath
-      dlM3u8(command, tabId, e.sender)
+      dlM3u8(getCommand(savePath), tabId, e.sender)
     })
   }
   else{
-    dlM3u8(command, tabId, e.sender)
+    dlM3u8(getCommand(savePath), tabId, e.sender)
   }
 })
 
@@ -2958,4 +2958,94 @@ ipcMain.on('cancel-pause-mode', (e, isPaused) => {
       setTimeout(()=>v[isPaused ? 'pause' : 'play'] = func,600)
     }, true)
   }, void 0, void 0, isPaused, true)
+})
+
+ipcMain.on('get-all-tabs-video-list', async (e, key) => {
+
+  const promises = []
+  for(let bw of BrowserWindow.getAllWindows()){
+    if(!bw.getTitle().includes('Sushi Browser')) continue
+    promises.push(new Promise(r => {
+      const key = Math.random().toString()
+      bw.webContents.send('get-all-tab-states',key)
+      ipcMain.once(`get-all-tab-states-reply_${key}`, (e,results) => r([bw.id, results]))
+    }))
+  }
+
+  const promises2 = []
+  const tabIds = []
+  for(const cont of webContents.webContentsMap.values()){
+    const promise = cont.executeJavaScript(() =>{
+      const videos = document.querySelectorAll('video')
+      if(!videos) throw "error"
+      let isFirst = true, v
+      for(const _v of videos){
+        if(!_v.paused){
+          v = _v
+          break
+        }
+        if(isFirst){
+          v = _v
+          isFirst = false
+        }
+      }
+
+      let size, maximize = false
+      if(v.classList.contains('_maximize-org_')){
+        maximize = true
+        size = parseInt(v.style.width)
+        if(isNaN(size)) size = 100
+      }
+
+      return {
+        duration: v.duration,
+        currentTime: v.currentTime,
+        paused: v.paused,
+        volume: v.volume,
+        muted: v.muted,
+        playbackRate: v.playbackRate,
+        loop: v.loop,
+        sectionRepeat: v.sectionRepeat,
+        equalizer: v.equalizer,
+        maximize,
+        size,
+        filter: getComputedStyle(v).filter,
+        title: document.title
+      }
+
+    }, void 0, void 0, void 0, true)
+    promises2.push(promise)
+    tabIds.push(cont.id)
+  }
+
+  const tabsList = await Promise.all(promises)
+  const conts = {}
+  ;(await Promise.all(promises2)).forEach((x, i) => {
+    if(x) conts[tabIds[i]] = x
+  })
+
+  const result = []
+  for(const [winId, win] of tabsList){
+    for(const [panelKey, tabs] of win){
+      for(const [tabId, active] of tabs){
+        const val = conts[tabId]
+        if(val){
+          val.winId = winId
+          val.panelKey = panelKey
+          val.tabId = tabId
+          val.active = active
+          result.push(val)
+        }
+      }
+    }
+  }
+  // result.sort((x,y)=> (!x.active && !y.active) || (x.active && y.active) ? 0 : x.active ? -1 : 1)
+
+  e.sender.send(`get-all-tabs-video-list-reply_${key}`, result)
+})
+
+ipcMain.on('change-video-value', async (e, tabId, name, val) => {
+  await Browser.bg.evaluate((tabId, name, val) => {
+    chrome.tabs.sendMessage(tabId, {player: true, name, val})
+  },tabId, name, val)
 })

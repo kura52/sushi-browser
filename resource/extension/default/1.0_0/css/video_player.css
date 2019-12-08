@@ -214,5 +214,15 @@ input[type=range]::-webkit-slider-thumb {
 
 .ui.input input[type=range] {
     border: none;
+    padding: 0.2em 0px;
 }
 
+.range-label{
+    vertical-align: -2px;
+    padding-right: 10px;
+}
+
+.range-value{
+    vertical-align: -2px;
+    padding-left: 10px;
+}

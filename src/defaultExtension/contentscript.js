@@ -241,6 +241,18 @@ if(window.__started_){
       return mdown
     }
 
+    const removeSpan = (v, span, beforeRemoveIds) => {
+      beforeRemoveIds.set(v,setTimeout(_ => {
+        if(!document.querySelector('._maximize_span_:hover')){
+          document.documentElement.removeChild(span)
+        }
+        else{
+          clearTimeout(beforeRemoveIds.get(v))
+          removeSpan(v, span, beforeRemoveIds)
+        }
+      }, 2000))
+    }
+
     setInterval(()=>{
       videoList = document.querySelectorAll('video')
       for(let v of videoList) {
@@ -293,7 +305,7 @@ if(window.__started_){
           const existElement = document.querySelector(`#maximize-org-video${id}`)
           if (existElement) {
             clearTimeout(beforeRemoveIds.get(v))
-            beforeRemoveIds.set(v,setTimeout(_ => document.documentElement.removeChild(existElement), 2000))
+            removeSpan(v, existElement, beforeRemoveIds)
             return
           }
 
@@ -380,7 +392,19 @@ if(window.__started_){
           span.addEventListener('mouseenter', () => span.style.background = 'rgba(80,80,80,0.9)')
           span.addEventListener('mouseleave', () => span.style.background = 'rgba(50,50,50,0.9)')
 
-          beforeRemoveIds.set(v,setTimeout(_ => document.documentElement.removeChild(span), 2000))
+          removeSpan(v, span, beforeRemoveIds)
+
+          const func = (v, span, beforeRemoveIds) => {
+            beforeRemoveIds.set(v,setTimeout(_ => {
+              if(!document.querySelector('._maximize_span_:hover')){
+                document.documentElement.removeChild(span)
+              }
+              else{
+                clearTimeout(beforeRemoveIds.get(v))
+                func()
+              }
+            }, 2000))
+          }
         }
 
         let mouseMoveEvent = {}
@@ -1199,6 +1223,13 @@ if(window.__started_){
         }
       }
     }
+    else if(inputs.player){
+      const name = inputs.name
+      const val = inputs.val
+      for(const v of document.querySelectorAll('video')){
+        v[name] = val
+      }
+    }
     return false
   })
 
@@ -1253,4 +1284,66 @@ if(window.__started_){
     window.__no_skip_context_menu__ = true
     ipc.send(`no-skip-context-menu-reply_${key}`)
   })
+}
+
+
+async () => {
+  function getTime(seconds){
+    return `${seconds > 3600 ? Math.floor(seconds / 3600).toString().padStart(2, '0') + ':' : ''}${Math.floor((seconds % 3600) / 60).toString().padStart(2, '0')}:${Math.floor(seconds % 60).toString().padStart(2, '0')}`
+  }
+
+  function fillText(context, text, width, height){
+    const fontSize = 16
+    const margin = 2
+    context.font = `${fontSize}px Arial`
+    const mText = context.measureText(text)
+    context.fillStyle = 'rgba(0,0,0,.6)'
+    context.fillRect(width - mText.width - margin * 3, height - fontSize - margin * 3, mText.width + margin * 2, fontSize + margin * 2)
+
+    context.textBaseline = 'bottom'
+    context.textAlign = 'end'
+    context.fillStyle = '#fff'
+    context.fillText(text, width - margin * 2, height - margin * 2 + 2)
+
+  }
+
+  var SPLIT_NUM = 10
+  var IMAGE_WIDTH = 240
+
+  var video = document.querySelector('video')
+  var vWidth = video.videoWidth
+  var vHeight = video.videoHeight
+
+  var canvas = document.createElement('canvas')
+  canvas.width = IMAGE_WIDTH
+  canvas.height = IMAGE_WIDTH / vWidth * vHeight
+
+  var context = canvas.getContext('2d')
+
+
+  var currentTime = video.currentTime
+  var duration = video.duration
+
+// context.drawImage(video, 0, 0, vWidth, vHeight, 0, 0, canvas.width, canvas.height)
+// document.body.appendChild(canvas)
+// fillText(context, getTime(duration), canvas.width, canvas.height)
+
+  for(let i=0;i<SPLIT_NUM;i++){
+    const imgUrl = await new Promise(r => {
+      var time = (duration / SPLIT_NUM * i) || 5
+      video.currentTime = time
+      video.addEventListener('seeked', ()=>{
+        context.drawImage(video, 0, 0, vWidth, vHeight, 0, 0, canvas.width, canvas.height)
+        fillText(context, getTime(time), canvas.width, canvas.height)
+        r(canvas.toDataURL())
+      })
+    })
+    var img = document.createElement('img')
+    img.src = imgUrl
+    img.style.width = `${IMAGE_WIDTH}px`
+    img.style.height = 'auto'
+    document.body.appendChild(img)
+  }
+
+  video.currentTime = currentTime
 }

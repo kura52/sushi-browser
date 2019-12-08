@@ -104,7 +104,7 @@
     border: 1px solid transparent;
 }
 .noUi-connect {
-    background: #26A69A;
+    background: #2185d0;
     -webkit-transition: background 450ms;
     transition: background 450ms;
 }
@@ -308,7 +308,7 @@
     height: 15px;
     border-radius: 50%;
     box-shadow: none;
-    background-color: #26A69A;
+    background-color: #2185d0;
     border: none;
     left: -5px;
     top: -6px;
@@ -316,6 +316,7 @@
     height .2s cubic-bezier(0.215, 0.610, 0.355, 1.000),
     left .2s cubic-bezier(0.215, 0.610, 0.355, 1.000),
     top .2s cubic-bezier(0.215, 0.610, 0.355, 1.000);
+    cursor: pointer;
 }
 .noUi-handle:before {
     content: none;
@@ -324,25 +325,15 @@
     content: none;
 }
 
-.noUi-target .noUi-active.noUi-handle {
-    width: 3px;
-    height: 3px;
-    left: 0;
-    top: 0;
-}
+/*.noUi-target .noUi-active.noUi-handle {*/
+/*    width: 3px;*/
+/*    height: 3px;*/
+/*    left: 0;*/
+/*    top: 0;*/
+/*}*/
 
 .noUi-target.noUi-horizontal .noUi-tooltip {
-    position: absolute;
-    height: 30px;
-    width: 30px;
-    top: -17px;
-    left: -2px;
-    background-color: #26A69A;
-    border-radius: 50%;
-    transition: border-radius .25s cubic-bezier(0.215, 0.610, 0.355, 1.000),
-    transform .25s cubic-bezier(0.215, 0.610, 0.355, 1.000);
-    transform: scale(.5) rotate(-45deg);
-    transform-origin: 50% 100%;
+    display: none;
 }
 .noUi-target.noUi-horizontal .noUi-active .noUi-tooltip {
     border-radius: 15px 15px 15px 0;
@@ -376,7 +367,7 @@
     width: 30px;
     top: -17px;
     left: -2px;
-    background-color: #26A69A;
+    background-color: #2185d0;
     border-radius: 50%;
     transition: border-radius .25s cubic-bezier(0.215, 0.610, 0.355, 1.000),
     transform .25s cubic-bezier(0.215, 0.610, 0.355, 1.000);
