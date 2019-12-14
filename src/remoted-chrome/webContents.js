@@ -126,6 +126,8 @@ export default class webContents extends EventEmitter {
     const cont = webContents.webContentsMap.get(tabId)
     if(cont) return cont
 
+    if(tabId == -1) return null
+
     this.id = tabId
     this._evEvents = {}
     this._pEvents = {}
@@ -616,14 +618,21 @@ export default class webContents extends EventEmitter {
     }
   }
 
-  executeJavaScriptInIsolate(code, userGesture, callback){
+  executeJavaScriptInIsolate(code, userGesture, callback, allFrames){
     if(typeof userGesture === 'function') [userGesture, callback] = [null, userGesture]
 
-    Browser.bg.evaluate((tabId, code) => {
+    const promise = Browser.bg.evaluate((tabId, code, allFrames) => {
       return new Promise(resolve => {
-        chrome.tabs.executeScript(tabId, {code}, (result) => resolve(result))
+        chrome.tabs.executeScript(tabId, {code, allFrames, frameId: 0}, (result) => resolve(result))
       })
-    }, this.id, code).then(result=>callback && callback(result[0]))
+    }, this.id, code, allFrames)
+
+    if(callback){
+      promise.then(result=>callback(allFrames ? result : result[0]))
+    }
+    else{
+      return promise.then(result=> allFrames ? result : result[0])
+    }
   }
 
   setIgnoreMenuShortcuts(ignore){

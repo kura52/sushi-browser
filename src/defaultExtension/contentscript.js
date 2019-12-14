@@ -280,7 +280,7 @@ if(window.__started_){
     }
   input[type="range"]._maximize_resizer_::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 10px;
+    width: 10px;hange-video-val
     height: 10px;
     background: #4a4a4a;
     border-radius: 50%;
@@ -1076,11 +1076,11 @@ if(window.__started_){
         }
       }, true)
       document.addEventListener('click', e => {
-          console.log('click')
-          if (isPaused !== void 0 && _target) {
-            eventHandler(e, inputs.click2,_target, isPaused)
-          }
-          _target = void 0
+        console.log('click')
+        if (isPaused !== void 0 && _target) {
+          eventHandler(e, inputs.click2,_target, isPaused)
+        }
+        _target = void 0
       }, true)
     }
 
@@ -1223,11 +1223,38 @@ if(window.__started_){
         }
       }
     }
-    else if(inputs.player){
+    else if(inputs.controller){
       const name = inputs.name
       const val = inputs.val
+
+      if(name == 'boost'){
+        return streamFunc(val * 10)
+      }
+
       for(const v of document.querySelectorAll('video')){
-        v[name] = val
+        if(name == 'seek'){
+          const type = val[0]
+          if(type == 'play'){
+            v[v.paused ? 'play' : 'pause']()
+          }
+          else{
+            v.currentTime +=
+              type == 'backward2' ? -parseInt(val[2]) : type == 'backward1' ? -parseInt(val[1]) : type == 'step-backward' ?  - 1 / 30 :
+              type == 'forward2' ? parseInt(val[2]) : type == 'forward1' ? parseInt(val[1]) : 1 / 30
+          }
+        }
+        else if(name == 'mute'){
+          v.muted = !v.muted
+        }
+        else if(name == 'maximize'){
+          maximizeInPanel(v)
+        }
+        else if(name == 'fullscreen'){
+          v.webkitRequestFullscreen()
+        }
+        else{
+          v[name] = val
+        }
       }
     }
     return false

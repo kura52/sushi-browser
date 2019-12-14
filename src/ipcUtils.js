@@ -2961,7 +2961,6 @@ ipcMain.on('cancel-pause-mode', (e, isPaused) => {
 })
 
 ipcMain.on('get-all-tabs-video-list', async (e, key) => {
-
   const promises = []
   for(let bw of BrowserWindow.getAllWindows()){
     if(!bw.getTitle().includes('Sushi Browser')) continue
@@ -2975,9 +2974,13 @@ ipcMain.on('get-all-tabs-video-list', async (e, key) => {
   const promises2 = []
   const tabIds = []
   for(const cont of webContents.webContentsMap.values()){
-    const promise = cont.executeJavaScript(() =>{
+    const url = await cont.getURL()
+    if(url.startsWith('chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd')) continue
+
+    const promise = cont.executeJavaScriptInIsolate("("+ (() =>{
       const videos = document.querySelectorAll('video')
-      if(!videos) throw "error"
+      if(!videos) return null
+
       let isFirst = true, v
       for(const _v of videos){
         if(!_v.paused){
@@ -3003,6 +3006,7 @@ ipcMain.on('get-all-tabs-video-list', async (e, key) => {
         paused: v.paused,
         volume: v.volume,
         muted: v.muted,
+        boost: window._mediaElements_ && window._mediaElements_.get(v) ? window._mediaElements_.get(v).gain.value : 1,
         playbackRate: v.playbackRate,
         loop: v.loop,
         sectionRepeat: v.sectionRepeat,
@@ -3013,15 +3017,17 @@ ipcMain.on('get-all-tabs-video-list', async (e, key) => {
         title: document.title
       }
 
-    }, void 0, void 0, void 0, true)
+    }).toString() + ")()", void 0, void 0, true)
     promises2.push(promise)
     tabIds.push(cont.id)
   }
 
   const tabsList = await Promise.all(promises)
   const conts = {}
-  ;(await Promise.all(promises2)).forEach((x, i) => {
-    if(x) conts[tabIds[i]] = x
+  ;(await Promise.all(promises2)).forEach((results, i) => {
+    for(const x of (results || [])){
+      if(x) conts[tabIds[i]] = x
+    }
   })
 
   const result = []
@@ -3046,6 +3052,6 @@ ipcMain.on('get-all-tabs-video-list', async (e, key) => {
 
 ipcMain.on('change-video-value', async (e, tabId, name, val) => {
   await Browser.bg.evaluate((tabId, name, val) => {
-    chrome.tabs.sendMessage(tabId, {player: true, name, val})
+    chrome.tabs.sendMessage(tabId, {controller: true, name, val})
   },tabId, name, val)
 })
