@@ -81,6 +81,7 @@ if(window.__started_){
         div.style.left = `${ Math.round(rect.left) + window.scrollX }px`
         div.style.top = `${Math.round(rect.top + rect.height) + 60 + window.scrollY}px`
         div.style.position = 'fixed'
+        div.style.maxWidth = '1300px'
         div.style.zIndex = 2147483647;
         div.addEventListener('click', ()=>document.body.removeChild(div))
 
@@ -128,6 +129,7 @@ if(window.__started_){
         div.style.left = `${ Math.round(rect.left) + window.scrollX }px`
         div.style.top = `${Math.round(rect.top + rect.height) + 60 + window.scrollY}px`
         div.style.position = 'fixed'
+        div.style.maxWidth = '1300px'
         div.style.zIndex = 2147483647;
         div.addEventListener('click', ()=>document.body.removeChild(div))
         document.body.insertBefore(div, document.body.firstChild)
