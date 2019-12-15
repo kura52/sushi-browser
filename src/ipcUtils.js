@@ -13,8 +13,10 @@ import URL from 'url'
 import robot from 'robotjs'
 import DpiUtils from './remoted-chrome/DpiUtils'
 import os from 'os'
+
 const isWin7 = os.platform() == 'win32' && os.release().startsWith('6.1')
 
+const sanitizeFilename = require('./sanitizeFilename')
 const seq = require('./sequence')
 const {state,tabState,visit,savedState,automation,automationOrder,note,inputHistory} = require('./databaseFork')
 const db = require('./databaseFork')
@@ -2960,28 +2962,14 @@ ipcMain.on('cancel-pause-mode', (e, isPaused) => {
   }, void 0, void 0, isPaused, true)
 })
 
-ipcMain.on('get-all-tabs-video-list', async (e, key) => {
-  const promises = []
-  for(let bw of BrowserWindow.getAllWindows()){
-    if(!bw.getTitle().includes('Sushi Browser')) continue
-    promises.push(new Promise(r => {
-      const key = Math.random().toString()
-      bw.webContents.send('get-all-tab-states',key)
-      ipcMain.once(`get-all-tab-states-reply_${key}`, (e,results) => r([bw.id, results]))
-    }))
-  }
-
-  const promises2 = []
-  const tabIds = []
-  for(const cont of webContents.webContentsMap.values()){
-    const url = await cont.getURL()
-    if(url.startsWith('chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd')) continue
-
-    const promise = cont.executeJavaScriptInIsolate("("+ (() =>{
+function getVideoControlledElement(cont){
+  return cont.executeJavaScriptInIsolate("("+ (() =>{
+    let v = document.querySelector('video._video-controlled-elem__')
+    if(!v){
       const videos = document.querySelectorAll('video')
-      if(!videos) return null
+      if(!videos.length) return null
 
-      let isFirst = true, v
+      let isFirst = true
       for(const _v of videos){
         if(!_v.paused){
           v = _v
@@ -2992,66 +2980,123 @@ ipcMain.on('get-all-tabs-video-list', async (e, key) => {
           isFirst = false
         }
       }
-
-      let size, maximize = false
-      if(v.classList.contains('_maximize-org_')){
-        maximize = true
-        size = parseInt(v.style.width)
-        if(isNaN(size)) size = 100
-      }
-
-      return {
-        duration: v.duration,
-        currentTime: v.currentTime,
-        paused: v.paused,
-        volume: v.volume,
-        muted: v.muted,
-        boost: window._mediaElements_ && window._mediaElements_.get(v) ? window._mediaElements_.get(v).gain.value : 1,
-        playbackRate: v.playbackRate,
-        loop: v.loop,
-        sectionRepeat: v.sectionRepeat,
-        equalizer: v.equalizer,
-        maximize,
-        size,
-        filter: getComputedStyle(v).filter,
-        title: document.title
-      }
-
-    }).toString() + ")()", void 0, void 0, true)
-    promises2.push(promise)
-    tabIds.push(cont.id)
-  }
-
-  const tabsList = await Promise.all(promises)
-  const conts = {}
-  ;(await Promise.all(promises2)).forEach((results, i) => {
-    for(const x of (results || [])){
-      if(x) conts[tabIds[i]] = x
+      v.classList.add('_video-controlled-elem__')
     }
-  })
 
+    let zoom = 1, maximize = false
+    if(v.classList.contains('_maximize-org_')){
+      maximize = true
+      zoom = parseInt(v.style.width) / 100.0
+      if(isNaN(zoom)) zoom = 1
+    }
+
+    return {
+      duration: v.duration,
+      currentTime: v.currentTime,
+      paused: v.paused,
+      volume: v.volume,
+      muted: v.muted,
+      boost: window._mediaElements_ && window._mediaElements_.get(v) ? window._mediaElements_.get(v).gain.value : 1,
+      playbackRate: v.playbackRate,
+      loop: v.loop,
+      abRepeat: v._abRepeat_,
+      abRepeatRange: v._abRepeatRange_,
+      preset: v._preset_ || 'Default',
+      equalizer: v._equalizer_ || [0,0,0,0,0,0,0,0,0,0],
+      maximize,
+      zoom,
+      filter: getComputedStyle(v).filter,
+      title: document.title
+    }
+
+  }).toString() + ")()", void 0, void 0, true)
+}
+
+ipcMain.on('get-all-tabs-video-list', async (e, key) => {
   const result = []
-  for(const [winId, win] of tabsList){
-    for(const [panelKey, tabs] of win){
-      for(const [tabId, active] of tabs){
-        const val = conts[tabId]
-        if(val){
-          val.winId = winId
-          val.panelKey = panelKey
-          val.tabId = tabId
-          val.active = active
-          result.push(val)
+
+  try{
+    const promises = []
+    for(let bw of BrowserWindow.getAllWindows()){
+      if(!bw.getTitle().includes('Sushi Browser')) continue
+      promises.push(new Promise(r => {
+        const key = Math.random().toString()
+        bw.webContents.send('get-all-tab-states',key)
+        ipcMain.once(`get-all-tab-states-reply_${key}`, (e,results) => r([bw.id, results]))
+      }))
+    }
+
+    const promises2 = []
+    const tabIds = []
+    for(const cont of webContents.webContentsMap.values()){
+      const url = await cont.getURL()
+      if(url.startsWith('chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd')) continue
+      const promise = getVideoControlledElement(cont)
+
+      promises2.push(promise)
+      tabIds.push(cont.id)
+    }
+
+    const tabsList = await Promise.all(promises)
+    const conts = {}
+    ;(await Promise.all(promises2)).forEach((results, i) => {
+      for(const x of (results || [])){
+        if(x) conts[tabIds[i]] = x
+      }
+    })
+
+    for(const [winId, win] of tabsList){
+      for(const [panelKey, tabs] of win){
+        for(const [tabId, active] of tabs){
+          const val = conts[tabId]
+          if(val){
+            val.winId = winId
+            val.panelKey = panelKey
+            val.tabId = tabId
+            val.active = active
+            result.push(val)
+          }
         }
       }
     }
+  }catch (e) {
+    console.log(e)
   }
   // result.sort((x,y)=> (!x.active && !y.active) || (x.active && y.active) ? 0 : x.active ? -1 : 1)
 
   e.sender.send(`get-all-tabs-video-list-reply_${key}`, result)
 })
 
+
+ipcMain.on('get-tab-video', async (e, key, tabId) => {
+  const result = await getVideoControlledElement(webContents.fromId(tabId))
+  e.sender.send(`get-tab-video-reply_${key}`, result.find(x=>x))
+})
+
 ipcMain.on('change-video-value', async (e, tabId, name, val) => {
   await Browser.bg.evaluate((tabId, name, val) => {
-    chrome.tabs.sendMessage(tabId, {controller: true, name, val})
+    if(name == 'active'){
+      chrome.tabs.update(tabId, {active: true})
+    }
+    else{
+      chrome.tabs.sendMessage(tabId, {controller: true, name, val})
+    }
   },tabId, name, val)
+})
+
+
+ipcMain.on('get-thumbnails', async (e, tabId, isCapture, isDownload, imageWidth) => {
+  const key = Math.random().toString()
+  webContents.fromId(tabId).send('get-thumbnails', key, isCapture, isDownload, imageWidth)
+  if(isDownload){
+    ipcMain.once(`get-thumbnails-reply_${key}`, (e, title, result) => {
+      title = sanitizeFilename(title,{replacement:'_'})
+      let writePath
+      for(const imgUrl of result){
+        writePath = path.join(app.getPath('downloads'), `${title}_${Date.now()}.png`)
+        fs.writeFileSync(writePath, imgUrl.substring(22), 'base64')
+      }
+      shell.showItemInFolder(writePath)
+    })
+  }
 })

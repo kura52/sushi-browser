@@ -35,33 +35,19 @@ const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
 const NEXT_APP_VERSION = "0.29.1"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH =`Fixed a bug of moving video / window when maximizing.
-Fixed a bug in the z-order of the window.
-Fixed a bug in the function displayed in the foreground.
-Fixed a bug of closing pop-up window.
-Fixed a bug in the display position of the toolbar menu.
-Fixed a bug of adding / deleting bookmarks.
-Fixed a bug in File Explorer.
-Fixed download function.
-Fixed video download.
-Fixed a bug in video playback.
-Fixed location bar bug.
-Updated UserAgent list.
-Fixed Other bugs.`
+const CHANGE_ENGLISH =`Added video controller function.
+Added A-B repeat function.
+Added video capture function.
+Added thumbnail generation function.
+Added video effect function.
+Added equalizer function.`
 
-const CHANGE_JAPANESE = `最大化時の動画/ウインドウ移動の不具合を修正。
-ウインドウのz-orderの不具合を修正。
-最前面に表示する機能の不具合を修正。
-ポップアップウインドウを閉じる動作の不具合を修正。
-ツールバーメニューの表示位置の不具合を修正。
-ブックマークの追加/削除の不具合を修正。
-ファイルエクスプローラの不具合を修正。
-ダウンロード機能の修正。
-動画ダウンロードの修正。
-動画再生の不具合を修正。
-ロケーションバーの不具合修正。
-UserAgentリストを更新。
-その他不具合の修正`
+const CHANGE_JAPANESE = `ビデオコントローラ機能を追加
+A-Bリピート機能を追加
+動画キャプチャ機能を追加
+サムネイル生成機能を追加
+ビデオエフェクト機能を追加
+イコライザー機能を追加`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

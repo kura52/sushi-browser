@@ -31,6 +31,110 @@ if(window.__started_){
     ipc.send('fullscreen-change',document.fullscreenElement !== null)
   }
 
+  const videoThumbnail = async (isCapture, isDownload, imageWidth) => {
+    function getTime(seconds){
+      return `${seconds > 3600 ? Math.floor(seconds / 3600).toString().padStart(2, '0') + ':' : ''}${Math.floor((seconds % 3600) / 60).toString().padStart(2, '0')}:${Math.floor(seconds % 60).toString().padStart(2, '0')}`
+    }
+
+    function fillText(context, text, width, height){
+      const fontSize = 16
+      const margin = 2
+      context.font = `${fontSize}px Arial`
+      const mText = context.measureText(text)
+      context.fillStyle = 'rgba(0,0,0,.6)'
+      context.fillRect(width - mText.width - margin * 3, height - fontSize - margin * 3, mText.width + margin * 2, fontSize + margin * 2)
+      context.fillRect(width - mText.width - margin * 3, height - fontSize - margin * 3, mText.width + margin * 2, fontSize + margin * 2)
+
+      context.textBaseline = 'bottom'
+      context.textAlign = 'end'
+      context.fillStyle = '#fff'
+      context.fillText(text, width - margin * 2, height - margin * 2 + 2)
+
+    }
+
+    const video = document.querySelector('video._video-controlled-elem__')
+    const vWidth = video.videoWidth
+    const vHeight = video.videoHeight
+
+    if(imageWidth == null) imageWidth = video.videoWidth
+
+    const canvas = document.querySelector('#_thumbnail__') || document.createElement('canvas')
+    canvas.id = '_thumbnail__'
+    canvas.width = imageWidth
+    canvas.height = imageWidth / vWidth * vHeight
+
+    const context = canvas.getContext('2d')
+
+    const currentTime = video.currentTime
+    const duration = video.duration
+
+    if(isCapture){
+      context.drawImage(video, 0, 0, vWidth, vHeight, 0, 0, canvas.width, canvas.height)
+      const imgUrl = canvas.toDataURL()
+
+      if(isDownload){
+        return [imgUrl]
+      }
+      else{
+        const div = document.createElement('div')
+        const rect = video.getBoundingClientRect()
+        div.style.left = `${ Math.round(rect.left) + window.scrollX }px`
+        div.style.top = `${Math.round(rect.top + rect.height) + 60 + window.scrollY}px`
+        div.style.position = 'fixed'
+        div.style.zIndex = 2147483647;
+        div.addEventListener('click', ()=>document.body.removeChild(div))
+
+        const img = document.createElement('img')
+        img.src = imgUrl
+        img.style.width = `${imageWidth}px`
+        img.style.height = 'auto'
+        div.appendChild(img)
+        document.body.insertBefore(div, document.body.firstChild)
+      }
+    }
+    else{
+      const SPLIT_NUM = 10
+      const imgUrls = []
+      const div = document.createElement('div')
+
+      for(let i=0;i<SPLIT_NUM;i++){
+        const imgUrl = await new Promise(r => {
+          const time = (duration / SPLIT_NUM * i) || 1
+          video.currentTime = time
+          video.addEventListener('seeked', ()=>{
+            context.drawImage(video, 0, 0, vWidth, vHeight, 0, 0, canvas.width, canvas.height)
+            fillText(context, getTime(time), canvas.width, canvas.height)
+            r(canvas.toDataURL())
+          })
+        })
+
+        if(isDownload){
+          imgUrls.push(imgUrl)
+        }
+        else{
+          const img = document.createElement('img')
+          img.src = imgUrl
+          img.style.width = `${imageWidth}px`
+          img.style.height = 'auto'
+          div.appendChild(img)
+        }
+      }
+      video.currentTime = currentTime
+      if(isDownload){
+        return imgUrls
+      }
+      else{
+        const rect = video.getBoundingClientRect()
+        div.style.left = `${ Math.round(rect.left) + window.scrollX }px`
+        div.style.top = `${Math.round(rect.top + rect.height) + 60 + window.scrollY}px`
+        div.style.position = 'fixed'
+        div.style.zIndex = 2147483647;
+        div.addEventListener('click', ()=>document.body.removeChild(div))
+        document.body.insertBefore(div, document.body.firstChild)
+      }
+    }
+  }
+
   document.addEventListener('fullscreenchange', fullscreenListener)
   document.addEventListener('webkitfullscreenchange', fullscreenListener)
 
@@ -687,23 +791,27 @@ if(window.__started_){
     ipc.send('send-to-host', 'webview-keydown',{key: e.key, keyCode: e.keyCode, which: e.which, button: e.button, ctrlKey: e.ctrlKey, metaKey: e.metaKey,altKey: e.altKey})
   },{capture: true})
 
-  function streamFunc(val){
+  function streamFunc(val, immediate, v){
     window._mediaElements_ = window._mediaElements_ || new Map()
     if(window._mediaIntervalId) clearInterval(window._mediaIntervalId)
-    window._mediaIntervalId = setInterval(_=>{
-      for(let stream of document.querySelectorAll('video,audio')){
+
+    const func = _=> {
+      const streams = v ? [v] : document.querySelectorAll('video,audio')
+      for (let stream of streams) {
         const audioCtx = new (window.AudioContext)();
         let gainNode = window._mediaElements_.get(stream)
-        if(!gainNode){
+        if (!gainNode) {
           const source = audioCtx.createMediaElementSource(stream)
-          gainNode = audioCtx.createGain();
-          window._mediaElements_.set(stream,gainNode)
+          gainNode = audioCtx.createGain()
+          window._mediaElements_.set(stream, gainNode)
           source.connect(gainNode)
           gainNode.connect(audioCtx.destination)
         }
-        if(gainNode.gain.value != val/10.0) gainNode.gain.value = val/10.0
+        if (gainNode.gain.value != val / 10.0) gainNode.gain.value = val / 10.0
       }
-    },500)
+    }
+    if(immediate) func()
+    window._mediaIntervalId = setInterval(func,500)
   }
 
   const key = Math.random().toString()
@@ -879,6 +987,20 @@ if(window.__started_){
 
   })
 
+  const zoomVideo = async (v, name, value, isIncrement) => {
+    if(v._olds_){
+      let resizer = document.querySelector('._maximize_resizer_')
+      if(!resizer){
+        v.mouseMoveFunc()
+        await new Promise(r=>setTimeout(r,10))
+        resizer = document.querySelector('._maximize_resizer_')
+      }
+      const val = isIncrement ? parseInt(v.style.width) / 100.0 + value : value
+      resizer.value = val
+      v.inputFunc()
+    }
+  }
+
   let isFirst = true, clickEventCancel
   const videoFunc = (e,inputs)=>{
     if(!isFirst) return
@@ -1020,17 +1142,7 @@ if(window.__started_){
         popUp(v,`Loop: ${v.loop ? "ON" : "OFF"}`)
       }
       else if(name == 'zoomIn' || name == 'zoomOut'){
-        if(v._olds_){
-          let resizer = document.querySelector('._maximize_resizer_')
-          if(!resizer){
-            v.mouseMoveFunc()
-            await new Promise(r=>setTimeout(r,10))
-            resizer = document.querySelector('._maximize_resizer_')
-          }
-          const val = parseInt(v.style.width) / 100.0 + (name == 'zoomIn' ? 0.1 : -0.1)
-          resizer.value = val
-          v.inputFunc()
-        }
+        zoomVideo(v, name, name == 'zoomIn' ? 0.1 : -0.1, true)
       }
       else{
         nothing = true
@@ -1198,6 +1310,8 @@ if(window.__started_){
   ipc.on('on-stream-event',(e,val)=>{
     chrome.runtime.sendMessage({ event: "stream-event",val })
   })
+
+  let equalizer
   chrome.runtime.onMessage.addListener(inputs=>{
     if(inputs.stream){
       streamFunc(inputs.val)
@@ -1227,34 +1341,69 @@ if(window.__started_){
       const name = inputs.name
       const val = inputs.val
 
+      const v = document.querySelector('video._video-controlled-elem__')
+
       if(name == 'boost'){
-        return streamFunc(val * 10)
+        return streamFunc(val * 10, true, v)
       }
 
-      for(const v of document.querySelectorAll('video')){
-        if(name == 'seek'){
-          const type = val[0]
-          if(type == 'play'){
-            v[v.paused ? 'play' : 'pause']()
-          }
-          else{
-            v.currentTime +=
-              type == 'backward2' ? -parseInt(val[2]) : type == 'backward1' ? -parseInt(val[1]) : type == 'step-backward' ?  - 1 / 30 :
-              type == 'forward2' ? parseInt(val[2]) : type == 'forward1' ? parseInt(val[1]) : 1 / 30
-          }
+      if(name == 'seek'){
+        const type = val[0]
+        if(type == 'play'){
+          v[v.paused ? 'play' : 'pause']()
         }
-        else if(name == 'mute'){
-          v.muted = !v.muted
-        }
-        else if(name == 'maximize'){
-          maximizeInPanel(v)
-        }
-        else if(name == 'fullscreen'){
-          v.webkitRequestFullscreen()
+        else if(type == 'loop'){
+          v.loop = !v.loop
         }
         else{
-          v[name] = val
+          v.currentTime +=
+            type == 'backward2' ? -parseInt(val[2]) : type == 'backward1' ? -parseInt(val[1]) : type == 'step-backward' ?  - 1 / 30 :
+              type == 'forward2' ? parseInt(val[2]) : type == 'forward1' ? parseInt(val[1]) : 1 / 30
         }
+      }
+      else if(name == 'mute'){
+        v.muted = !v.muted
+      }
+      else if(name == 'maximize'){
+        maximizeInPanel(v)
+      }
+      else if(name == 'fullscreen'){
+        v.webkitRequestFullscreen()
+      }
+      else if(name == 'zoom'){
+        zoomVideo(v, void 0, val)
+      }
+      else if(name == 'filter'){
+        v.style.filter = val
+      }
+      else if(name == 'abRepeat'){
+        console.log(val)
+        v._abRepeat_ = val[0]
+        v._abRepeatRange_ = val[1]
+        v.removeEventListener('timeupdate', v._abRepeatEvent_)
+        v._abRepeatEvent_ = null
+
+        if(v._abRepeat_){
+          v._abRepeatEvent_ = () => {
+            const currentTime = v.currentTime
+            if(currentTime < v._abRepeatRange_[0] || currentTime > v._abRepeatRange_[1]){
+              v.currentTime = v._abRepeatRange_[0]
+            }
+          }
+          v.addEventListener('timeupdate', v._abRepeatEvent_)
+        }
+      }
+      else if(name == 'equalizer'){
+        if(!equalizer){
+          const Equalizer = require('./Equalizer')
+          equalizer = new Equalizer(v)
+        }
+        equalizer.set(val[1])
+        v._preset_= val[0]
+        v._equalizer_ = val[1]
+      }
+      else{
+        v[name] = val
       }
     }
     return false
@@ -1303,9 +1452,16 @@ if(window.__started_){
     }
   })
 
+  ipc.on('get-thumbnails', async (e, key, isCapture, isDownload, imageWidth)=>{
+    const result = await videoThumbnail(isCapture, isDownload, imageWidth)
+    if(isDownload) ipc.send(`get-thumbnails-reply_${key}`, document.title, result)
+  })
+
   ipc.on('execute-script-in-isolation-world', (e, key, code) => {
     ipc.send(`execute-script-in-isolation-world-reply_${key}`, Function(`return ${code}`)())
   })
+
+
 
   ipc.on('no-skip-context-menu', (e, key)=>{
     window.__no_skip_context_menu__ = true
@@ -1313,64 +1469,3 @@ if(window.__started_){
   })
 }
 
-
-async () => {
-  function getTime(seconds){
-    return `${seconds > 3600 ? Math.floor(seconds / 3600).toString().padStart(2, '0') + ':' : ''}${Math.floor((seconds % 3600) / 60).toString().padStart(2, '0')}:${Math.floor(seconds % 60).toString().padStart(2, '0')}`
-  }
-
-  function fillText(context, text, width, height){
-    const fontSize = 16
-    const margin = 2
-    context.font = `${fontSize}px Arial`
-    const mText = context.measureText(text)
-    context.fillStyle = 'rgba(0,0,0,.6)'
-    context.fillRect(width - mText.width - margin * 3, height - fontSize - margin * 3, mText.width + margin * 2, fontSize + margin * 2)
-
-    context.textBaseline = 'bottom'
-    context.textAlign = 'end'
-    context.fillStyle = '#fff'
-    context.fillText(text, width - margin * 2, height - margin * 2 + 2)
-
-  }
-
-  var SPLIT_NUM = 10
-  var IMAGE_WIDTH = 240
-
-  var video = document.querySelector('video')
-  var vWidth = video.videoWidth
-  var vHeight = video.videoHeight
-
-  var canvas = document.createElement('canvas')
-  canvas.width = IMAGE_WIDTH
-  canvas.height = IMAGE_WIDTH / vWidth * vHeight
-
-  var context = canvas.getContext('2d')
-
-
-  var currentTime = video.currentTime
-  var duration = video.duration
-
-// context.drawImage(video, 0, 0, vWidth, vHeight, 0, 0, canvas.width, canvas.height)
-// document.body.appendChild(canvas)
-// fillText(context, getTime(duration), canvas.width, canvas.height)
-
-  for(let i=0;i<SPLIT_NUM;i++){
-    const imgUrl = await new Promise(r => {
-      var time = (duration / SPLIT_NUM * i) || 5
-      video.currentTime = time
-      video.addEventListener('seeked', ()=>{
-        context.drawImage(video, 0, 0, vWidth, vHeight, 0, 0, canvas.width, canvas.height)
-        fillText(context, getTime(time), canvas.width, canvas.height)
-        r(canvas.toDataURL())
-      })
-    })
-    var img = document.createElement('img')
-    img.src = imgUrl
-    img.style.width = `${IMAGE_WIDTH}px`
-    img.style.height = 'auto'
-    document.body.appendChild(img)
-  }
-
-  video.currentTime = currentTime
-}
