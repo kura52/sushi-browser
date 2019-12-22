@@ -37,6 +37,8 @@ const convertUrlMap = new Map([
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html','chrome://terminal/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html','chrome://converter/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html','chrome://automation/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/video_controller_sidebar.html','chrome://video-controller-sidebar/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/video_controller.html','chrome://video-controller/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html','chrome://setting/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general','chrome://setting#general'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search','chrome://setting#search'],
@@ -241,6 +243,7 @@ class TopMenu extends React.Component {
               <Menu.Item as='a' id='bookmark-link' key="favorite" name={l10n.translation('bookmarks')}
                          onMouseDown={e=> e.target.addEventListener('mouseup', e=> ipc.send('send-to-host', e.button == 0 && !e.ctrlKey ? 'load-url' : this.props.oppositeGlobal ? 'open-tab-opposite' : 'open-tab' ,this.props.useChromeBookmarkPage ? 'chrome://bookmarks/' : 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html',true,  !this.props.oppositeGlobal && (e.button == 1 || e.ctrlKey)),{once: true})} />
               <Menu.Item as='a' href={`${baseURL}/download.html`} key="download" name={l10n.translation('downloads')}/>
+              <Menu.Item as='a' href={`${baseURL}/video_controller.html`} key="video-controller" name={'Video Controller'}/>
               <Menu.Item as='a' href={`${baseURL}/note.html`} key="note" name={l10n.translation('note')}/>
               <Menu.Item as='a' href={`${baseURL}/settings.html`} key="settings" name={l10n.translation('settings')}/>
             </Menu>

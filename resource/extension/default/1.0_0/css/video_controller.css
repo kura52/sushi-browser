@@ -85,10 +85,6 @@ body{
     background: transparent;
 }
 
-.ui.secondary.pointing.menu .item {
-    padding: .85714286em 0.58285714em;
-}
-
 .ui.small.input {
     padding-left: 6px;
 }
@@ -192,6 +188,7 @@ input[type=range]::-webkit-slider-thumb {
 .ui.input input[type=range] {
     border: none;
     padding: 0.2em 0px;
+    max-width: 200px;
 }
 
 .range-label{
@@ -253,9 +250,31 @@ span.buttons i:hover {
 }
 
 @media only screen and (max-width: 767px) {
-    .ui.container {
+    .ui.container.video-controller {
          margin-left: 0 !important;
          margin-right: 0 !important;
+    }
+}
+
+@media only screen and (max-width: 991px) and (min-width: 768px){
+    .ui.container.video-controller {
+        width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+}
+@media only screen and (max-width: 1199px) and (min-width: 992px){
+    .ui.container.video-controller {
+        width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+}
+@media only screen and (min-width: 1200px){
+    .ui.container.video-controller {
+        width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
     }
 }
 
@@ -277,4 +296,15 @@ input[type=range] {
 
 .ui.selection.dropdown .menu>.item {
     padding: .2rem 1.14285714rem!important;
+}
+
+.input-time{
+    height: 24px;
+    padding: 0 5px !important;
+}
+
+.ui.basic.segment {
+    max-width: 950px;
+    margin-left: auto;
+    margin-right: auto;
 }

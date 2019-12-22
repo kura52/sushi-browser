@@ -91,6 +91,9 @@ ipc.on('update-mainstate',(e,key,val)=>{
   if(key == 'myHomepage' || key == 'newTabMode'){
     getNewTabPage()
   }
+  else if(key == 'showCurrentTime'){
+    inputsVideo.showCurrentTime = val
+  }
 })
 getNewTabPage()
 
@@ -119,6 +122,8 @@ const convertUrlMap = new Map([
   ['chrome://converter/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html'],
   ['chrome://automation/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html'],
   ['chrome://setting/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html'],
+  ['chrome://video-controller-sidebar/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/video_controller_sidebar.html'],
+  ['chrome://video-controller/','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/video_controller.html'],
   ['chrome://setting#general','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general'],
   ['chrome://setting#search','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search'],
   ['chrome://setting#tabs','chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs'],
@@ -2562,6 +2567,9 @@ export default class TabPanel extends Component {
       else if(msg == 'window-close'){
         this.handleTabClose({},tab.key)
       }
+      else if(msg == 'showCurrentTime'){
+        PubSub.publish(`showCurrentTime_${tab.key}`,args[0])
+      }
     }
     ipc.on(`send-to-host_${tab.wvId}`,tab.events[`send-to-host_${tab.wvId}`])
 
@@ -4096,7 +4104,7 @@ export default class TabPanel extends Component {
           // ipc.send('send-keys',{type:'keyDown',keyCode:'Right',modifiers: ['control','alt']})
           this.props.split(this.props.k,dirc,pos,_tabs,i)
           this.handleTabClose({}, key)
-          PubSub.publish(`close_tab_${this.props.k}`,{key})
+          setTimeout(()=>PubSub.publish(`close_tab_${this.props.k}`,{key}),100)
         }
         else{
           this.props.split(this.props.k, dirc, pos * -1)

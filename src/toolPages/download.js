@@ -83,6 +83,7 @@ class TopMenu extends React.Component {
               <Menu.Item as='a' href={`${baseURL}/favorite_sidebar.html`} key="favorite" icon="star"/>
               <Menu.Item as='a' href={`${baseURL}/history_sidebar.html`} key="history" icon="history"/>
               <Menu.Item as='a' key="download" icon="download" active={true}/>
+              <Menu.Item as='a' href={`${baseURL}/video_controller_sidebar.html`} key="video-controller" icon="play"/>
               <Menu.Item as='a' href={`${baseURL}/note_sidebar.html`} key="note" icon="sticky note"/>
               <Menu.Item as='a' href={`${baseURL}/saved_state_sidebar.html`} key="database" icon="database"/>
               <Menu.Item as='a' href={`${baseURL}/tab_trash_sidebar.html`} key="trash" icon="trash"/>

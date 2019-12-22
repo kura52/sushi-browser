@@ -51,10 +51,10 @@ index 0fdb361b5a2c..057a0db60604 100644
      return RespondNow(Error(kNoAudioOrVideo));
 
 diff --git a/chrome/browser/ui/browser.cc b/chrome/browser/ui/browser.cc
-index 17f2591ac638..d052b89dfef5 100644
+index 923f79e0aa1b..f6054e6869c2 100644
 --- a/chrome/browser/ui/browser.cc
 +++ b/chrome/browser/ui/browser.cc
-@@ -2611,8 +2611,8 @@ bool Browser::NormalBrowserSupportsWindowFeature(WindowFeature feature,
+@@ -2657,8 +2657,8 @@ bool Browser::NormalBrowserSupportsWindowFeature(WindowFeature feature,
      case FEATURE_INFOBAR:
      case FEATURE_DOWNLOADSHELF:
      case FEATURE_BOOKMARKBAR:
@@ -133,10 +133,10 @@ index cd1329b4fcb1..44f1b182fa09 100644
 
    ToolbarActionViewController* action = GetActionForId(action_id);
 diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
-index 2f6dd0835aec..0fa89d81e46f 100644
+index 8c3273722adf..733bc629417c 100644
 --- a/chrome/browser/ui/views/frame/browser_view.cc
 +++ b/chrome/browser/ui/views/frame/browser_view.cc
-@@ -1057,11 +1057,16 @@ void BrowserView::OnExclusiveAccessUserInput() {
+@@ -1058,11 +1058,16 @@ void BrowserView::OnExclusiveAccessUserInput() {
  }
 
  bool BrowserView::ShouldHideUIForFullscreen() const {
@@ -158,19 +158,10 @@ index 2f6dd0835aec..0fa89d81e46f 100644
 
  bool BrowserView::IsFullscreen() const {
 diff --git a/chrome/browser/ui/views/frame/browser_view_layout.cc b/chrome/browser/ui/views/frame/browser_view_layout.cc
-index 96822d7f87d5..72fa449d4e4c 100644
+index c38643ed29c8..db9539c0d3b1 100644
 --- a/chrome/browser/ui/views/frame/browser_view_layout.cc
 +++ b/chrome/browser/ui/views/frame/browser_view_layout.cc
-@@ -175,7 +175,7 @@ gfx::Size BrowserViewLayout::GetMinimumSize(const views::View* host) const {
-   // privacy - specifically, the ability to browse in a very small window, even
-   // on large monitors (which is why a minimum height is not specified). This
-   // value is used for the main browser window only, not for popups.
--  constexpr gfx::Size kMainBrowserContentsMinimumSize(500, 1);
-+  constexpr gfx::Size kMainBrowserContentsMinimumSize(1, 1);
-
-   const bool has_tabstrip =
-       browser()->SupportsWindowFeature(Browser::FEATURE_TABSTRIP);
-@@ -402,14 +402,24 @@ int BrowserViewLayout::LayoutTabStripRegion(int top) {
+@@ -398,14 +398,24 @@ int BrowserViewLayout::LayoutTabStripRegion(int top) {
    }
    // This retrieves the bounds for the tab strip based on whether or not we show
    // anything to the left of it, like the incognito avatar.
@@ -201,11 +192,24 @@ index 96822d7f87d5..72fa449d4e4c 100644
  }
 
  int BrowserViewLayout::LayoutWebUITabStrip(int top) {
+diff --git a/chrome/browser/ui/views/frame/browser_view_layout.h b/chrome/browser/ui/views/frame/browser_view_layout.h
+index e51bd12d0e67..b41ece96cde7 100644
+--- a/chrome/browser/ui/views/frame/browser_view_layout.h
++++ b/chrome/browser/ui/views/frame/browser_view_layout.h
+@@ -45,7 +45,7 @@ class BrowserViewLayout : public views::LayoutManager {
+   // privacy - specifically, the ability to browse in a very small window, even
+   // on large monitors (which is why a minimum height is not specified). This
+   // value is used for the main browser window only, not for popups.
+-  static constexpr int kMainBrowserContentsMinimumWidth = 500;
++  static constexpr int kMainBrowserContentsMinimumWidth = 1;
+
+   // |browser_view| may be null in tests.
+   BrowserViewLayout(std::unique_ptr<BrowserViewLayoutDelegate> delegate,
 diff --git a/chrome/browser/ui/views/frame/glass_browser_frame_view.cc b/chrome/browser/ui/views/frame/glass_browser_frame_view.cc
-index bb5d8b68f25c..0d8ab2ab0ab0 100644
+index 610c668b8fdd..2455184e9ac3 100644
 --- a/chrome/browser/ui/views/frame/glass_browser_frame_view.cc
 +++ b/chrome/browser/ui/views/frame/glass_browser_frame_view.cc
-@@ -471,22 +471,27 @@ int GlassBrowserFrameView::FrameTopBorderThicknessPx(bool restored) const {
+@@ -478,22 +478,27 @@ int GlassBrowserFrameView::FrameTopBorderThicknessPx(bool restored) const {
  }
 
  int GlassBrowserFrameView::TopAreaHeight(bool restored) const {
@@ -248,10 +252,10 @@ index bb5d8b68f25c..0d8ab2ab0ab0 100644
 
  int GlassBrowserFrameView::TitlebarMaximizedVisualHeight() const {
 diff --git a/chrome/browser/ui/views/frame/opaque_browser_frame_view.cc b/chrome/browser/ui/views/frame/opaque_browser_frame_view.cc
-index 6b96745b6259..7bf2d3c8b9c0 100644
+index 020cd3aafca7..f8c65641c8d0 100644
 --- a/chrome/browser/ui/views/frame/opaque_browser_frame_view.cc
 +++ b/chrome/browser/ui/views/frame/opaque_browser_frame_view.cc
-@@ -293,11 +293,11 @@ void OpaqueBrowserFrameView::GetWindowMask(const gfx::Size& size,
+@@ -295,11 +295,11 @@ void OpaqueBrowserFrameView::GetWindowMask(const gfx::Size& size,
                                             SkPath* window_mask) {
    DCHECK(window_mask);
 
@@ -268,7 +272,7 @@ index 6b96745b6259..7bf2d3c8b9c0 100644
 
  void OpaqueBrowserFrameView::ResetWindowControls() {
 diff --git a/chrome/browser/ui/views/frame/opaque_browser_frame_view_layout.cc b/chrome/browser/ui/views/frame/opaque_browser_frame_view_layout.cc
-index 90d6794000f6..c7b38c7ecd21 100644
+index 36001d1d290b..6ac70b97a3a1 100644
 --- a/chrome/browser/ui/views/frame/opaque_browser_frame_view_layout.cc
 +++ b/chrome/browser/ui/views/frame/opaque_browser_frame_view_layout.cc
 @@ -33,31 +33,31 @@ constexpr int kCaptionButtonHeight = 18;
@@ -328,7 +332,7 @@ index 90d6794000f6..c7b38c7ecd21 100644
 
  int OpaqueBrowserFrameViewLayout::NonClientTopHeight(bool restored) const {
 diff --git a/chrome/common/extensions/api/_permission_features.json b/chrome/common/extensions/api/_permission_features.json
-index 195d76f14f85..28f6489632d8 100644
+index edb5db70c5fa..c7cfe5d11deb 100644
 --- a/chrome/common/extensions/api/_permission_features.json
 +++ b/chrome/common/extensions/api/_permission_features.json
 @@ -216,8 +216,9 @@
@@ -343,7 +347,7 @@ index 195d76f14f85..28f6489632d8 100644
          "FA0501B579070BB9CBD4FCAEC8CB0EDF22BA2F04", // Apps Editor published.
          "4A4EA121622FCA3D78ED2AB534197F43D7189EE0", // Spark nightly build.
 diff --git a/chrome/common/extensions/chrome_extensions_client.cc b/chrome/common/extensions/chrome_extensions_client.cc
-index c4dd7f3c9563..cc7fa551194c 100644
+index a57d93fed58d..f69135488ad7 100644
 --- a/chrome/common/extensions/chrome_extensions_client.cc
 +++ b/chrome/common/extensions/chrome_extensions_client.cc
 @@ -70,6 +70,7 @@ void ChromeExtensionsClient::Initialize() {
@@ -355,10 +359,10 @@ index c4dd7f3c9563..cc7fa551194c 100644
  }
 
 diff --git a/components/remote_cocoa/app_shim/native_widget_ns_window_bridge.mm b/components/remote_cocoa/app_shim/native_widget_ns_window_bridge.mm
-index 6fc744210179..4517da0765e3 100644
+index cce1723e723a..d45849e6f200 100644
 --- a/components/remote_cocoa/app_shim/native_widget_ns_window_bridge.mm
 +++ b/components/remote_cocoa/app_shim/native_widget_ns_window_bridge.mm
-@@ -454,7 +454,14 @@ void NativeWidgetNSWindowBridge::InitWindow(
+@@ -457,7 +457,14 @@ void NativeWidgetNSWindowBridge::InitWindow(
                                NSWindowCollectionBehaviorParticipatesInCycle];
    }
 
@@ -375,7 +379,7 @@ index 6fc744210179..4517da0765e3 100644
    if (params->modal_type == ui::MODAL_TYPE_WINDOW)
      [window_ setMovable:NO];
 diff --git a/extensions/browser/app_window/app_window.cc b/extensions/browser/app_window/app_window.cc
-index f43fba0260d6..fd61a6681ec5 100644
+index d4400066f897..fab73e7151c7 100644
 --- a/extensions/browser/app_window/app_window.cc
 +++ b/extensions/browser/app_window/app_window.cc
 @@ -827,9 +827,9 @@ void AppWindow::DidDownloadFavicon(
@@ -391,7 +395,7 @@ index f43fba0260d6..fd61a6681ec5 100644
 
  bool AppWindow::IntersectsWithTaskbar() const {
 diff --git a/extensions/common/manifest_handlers/background_info.cc b/extensions/common/manifest_handlers/background_info.cc
-index d8cd287fcaad..ce35ae4a6393 100644
+index 16ce00b75aa8..b55533b29e94 100644
 --- a/extensions/common/manifest_handlers/background_info.cc
 +++ b/extensions/common/manifest_handlers/background_info.cc
 @@ -279,6 +279,7 @@ bool BackgroundInfo::LoadBackgroundPersistent(const Extension* extension,
@@ -403,10 +407,10 @@ index d8cd287fcaad..ce35ae4a6393 100644
    if (!has_background_page()) {
      *error = ASCIIToUTF16(errors::kInvalidBackgroundPersistentNoPage);
 diff --git a/extensions/common/manifest_handlers/csp_info.cc b/extensions/common/manifest_handlers/csp_info.cc
-index 2479523c888d..271db22d09bf 100644
+index c3da3917eea6..fde24c67b6e5 100644
 --- a/extensions/common/manifest_handlers/csp_info.cc
 +++ b/extensions/common/manifest_handlers/csp_info.cc
-@@ -243,8 +243,20 @@ bool CSPHandler::ParseExtensionPagesCSP(
+@@ -245,8 +245,20 @@ bool CSPHandler::ParseExtensionPagesCSP(
      return false;
    }
 
@@ -443,10 +447,10 @@ index 1c3287bb6f0f..36b2df09d020 100644
 
  bool PermissionsData::UsesDefaultPolicyHostRestrictions() const {
 diff --git a/media/blink/multibuffer_data_source.cc b/media/blink/multibuffer_data_source.cc
-index e58acc9b3cf4..e8241afbf431 100644
+index a8e3ed204e52..6116bde18c61 100644
 --- a/media/blink/multibuffer_data_source.cc
 +++ b/media/blink/multibuffer_data_source.cc
-@@ -22,7 +22,7 @@ namespace {
+@@ -23,7 +23,7 @@ namespace {
  // Minimum preload buffer.
  const int64_t kMinBufferPreload = 2 << 20;  // 2 Mb
  // Maxmimum preload buffer.
@@ -455,7 +459,7 @@ index e58acc9b3cf4..e8241afbf431 100644
 
  // If preload_ == METADATA, preloading size will be
  // shifted down this many bits. This shift turns
-@@ -34,7 +34,7 @@ const int64_t kMetadataShift = 6;
+@@ -35,7 +35,7 @@ const int64_t kMetadataShift = 6;
 
  // Preload this much extra, then stop preloading until we fall below the
  // kTargetSecondsBufferedAhead.
@@ -464,7 +468,7 @@ index e58acc9b3cf4..e8241afbf431 100644
 
  // Default pin region size.
  // Note that we go over this if preload is calculated high enough.
-@@ -141,6 +141,7 @@ MultibufferDataSource::MultibufferDataSource(
+@@ -137,6 +137,7 @@ MultibufferDataSource::MultibufferDataSource(
        host_(host),
        downloading_cb_(downloading_cb) {
    weak_ptr_ = weak_factory_.GetWeakPtr();
@@ -472,7 +476,7 @@ index e58acc9b3cf4..e8241afbf431 100644
    DCHECK(host_);
    DCHECK(downloading_cb_);
    DCHECK(render_task_runner_->BelongsToCurrentThread());
-@@ -273,7 +274,8 @@ void MultibufferDataSource::OnRedirect(
+@@ -269,7 +270,8 @@ void MultibufferDataSource::OnRedirect(
  void MultibufferDataSource::SetPreload(Preload preload) {
    DVLOG(1) << __func__ << "(" << preload << ")";
    DCHECK(render_task_runner_->BelongsToCurrentThread());
@@ -482,7 +486,7 @@ index e58acc9b3cf4..e8241afbf431 100644
    UpdateBufferSizes();
  }
 
-@@ -319,6 +321,7 @@ void MultibufferDataSource::MediaIsPlaying() {
+@@ -315,6 +317,7 @@ void MultibufferDataSource::MediaIsPlaying() {
    media_has_played_ = true;
 
    // Once we start playing, we need preloading.
@@ -490,7 +494,7 @@ index e58acc9b3cf4..e8241afbf431 100644
    preload_ = AUTO;
    UpdateBufferSizes();
  }
-@@ -751,21 +754,10 @@ void MultibufferDataSource::UpdateBufferSizes() {
+@@ -749,21 +752,10 @@ void MultibufferDataSource::UpdateBufferSizes() {
    // to be thrown away. Most of the time we pin a region that is larger than
    // |buffer_size|, which only makes sense because most of the time, some of
    // the data in pinned region is not present in the cache.
@@ -530,10 +534,10 @@ index b42e494db5b9..c58b91c64531 100644
    int bitrate_;
 
 diff --git a/media/blink/webmediaplayer_impl.cc b/media/blink/webmediaplayer_impl.cc
-index 8dbcbd450974..7fb775b4ecb8 100644
+index 9209c0ba2b60..9228991df939 100644
 --- a/media/blink/webmediaplayer_impl.cc
 +++ b/media/blink/webmediaplayer_impl.cc
-@@ -1258,7 +1258,7 @@ bool WebMediaPlayerImpl::WouldTaintOrigin() const {
+@@ -1271,7 +1271,7 @@ bool WebMediaPlayerImpl::WouldTaintOrigin() const {
      return true;
    }
 
@@ -556,10 +560,10 @@ index fea771d2abf8..4ce0acdec095 100644
    if (is_tainted) {
      PrintCorsMessage(MediaElement()->currentSrc().GetString());
 diff --git a/ui/base/x/x11_window.cc b/ui/base/x/x11_window.cc
-index a328e8ab96f2..0ae51e490bc2 100644
+index d679a8e47754..347fc7f69458 100644
 --- a/ui/base/x/x11_window.cc
 +++ b/ui/base/x/x11_window.cc
-@@ -454,8 +454,8 @@ void XWindow::Unhide() {
+@@ -476,8 +476,8 @@ void XWindow::Unhide() {
  }
 
  void XWindow::SetFullscreen(bool fullscreen) {
@@ -596,7 +600,7 @@ index f06af3e4f411..79ec84f5c05b 100644
 
  }  // namespace gfx
 diff --git a/ui/gfx/win/window_impl.cc b/ui/gfx/win/window_impl.cc
-index ed3ca9603bab..4375df5ff945 100644
+index c041be9ce535..140205cf3d48 100644
 --- a/ui/gfx/win/window_impl.cc
 +++ b/ui/gfx/win/window_impl.cc
 @@ -5,6 +5,7 @@
@@ -631,7 +635,7 @@ index ed3ca9603bab..4375df5ff945 100644
      destroyed_ = NULL;
 
 diff --git a/ui/views/win/hwnd_message_handler.cc b/ui/views/win/hwnd_message_handler.cc
-index 3fd5bd3d395f..2320a0053bdb 100644
+index a4649b867642..83ae86f4f8be 100644
 --- a/ui/views/win/hwnd_message_handler.cc
 +++ b/ui/views/win/hwnd_message_handler.cc
 @@ -20,6 +20,7 @@
@@ -642,7 +646,7 @@ index 3fd5bd3d395f..2320a0053bdb 100644
  #include "base/threading/thread_task_runner_handle.h"
  #include "base/time/time.h"
  #include "base/trace_event/trace_event.h"
-@@ -931,7 +932,7 @@ void HWNDMessageHandler::SetWindowIcons(const gfx::ImageSkia& window_icon,
+@@ -933,7 +934,7 @@ void HWNDMessageHandler::SetWindowIcons(const gfx::ImageSkia& window_icon,
      window_icon_ = IconUtil::CreateHICONFromSkBitmap(*window_icon.bitmap());
      SendMessage(hwnd(), WM_SETICON, ICON_SMALL,
                  reinterpret_cast<LPARAM>(window_icon_.get()));
@@ -651,7 +655,7 @@ index 3fd5bd3d395f..2320a0053bdb 100644
    if (!app_icon.isNull()) {
      base::win::ScopedHICON previous_icon = std::move(app_icon_);
      app_icon_ = IconUtil::CreateHICONFromSkBitmap(*app_icon.bitmap());
-@@ -1852,6 +1853,9 @@ void HWNDMessageHandler::OnGetMinMaxInfo(MINMAXINFO* minmax_info) {
+@@ -1850,6 +1851,9 @@ void HWNDMessageHandler::OnGetMinMaxInfo(MINMAXINFO* minmax_info) {
      minmax_info->ptMaxTrackSize.x = max_window_size.width();
      minmax_info->ptMaxTrackSize.y = max_window_size.height();
    }
@@ -661,7 +665,7 @@ index 3fd5bd3d395f..2320a0053bdb 100644
    SetMsgHandled(FALSE);
  }
 
-@@ -2175,6 +2179,16 @@ LRESULT HWNDMessageHandler::OnNCCalcSize(BOOL mode, LPARAM l_param) {
+@@ -2173,6 +2177,16 @@ LRESULT HWNDMessageHandler::OnNCCalcSize(BOOL mode, LPARAM l_param) {
    // so it updates its internal structures (specifically caption-present)
    // Without this Tile & Cascade windows won't work.
    // See http://code.google.com/p/chromium/issues/detail?id=900

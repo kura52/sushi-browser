@@ -1266,7 +1266,7 @@ Or, please use the Chromium bundled version.`
   }
 
   static async downloadURL(url, cont, refererOrRequestHeaders, retryKey){
-    console.log('downloadURL', url)
+    console.log('downloadURL', url, refererOrRequestHeaders)
 
     let requestHeaders
     if(typeof refererOrRequestHeaders === 'string'){
@@ -1275,7 +1275,8 @@ Or, please use the Chromium bundled version.`
     else if(refererOrRequestHeaders){
       requestHeaders = []
       for(const h of refererOrRequestHeaders){
-        if(!FORBIDDEN_HEADER_FIELDS.has(h.name.toLowerCase())){
+        const name = h.name.toLowerCase()
+        if(!FORBIDDEN_HEADER_FIELDS.has(name) && !name.startsWith('proxy-') && !name.startsWith('sec-')){
           requestHeaders.push(h)
         }
       }

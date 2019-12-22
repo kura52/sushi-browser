@@ -1,3 +1,57 @@
+diff --git a/chrome/browser/ui/extensions/extension_message_bubble_factory.cc b/chrome/browser/ui/extensions/extension_message_bubble_factory.cc
+index f1a603dc6636..5ca2c35a333c 100644
+--- a/chrome/browser/ui/extensions/extension_message_bubble_factory.cc
++++ b/chrome/browser/ui/extensions/extension_message_bubble_factory.cc
+@@ -40,9 +40,7 @@ std::set<Profile*>& GetEvaluatedProfiles() {
+ }
+
+ bool EnableSuspiciousExtensionsBubble() {
+-  return g_override_for_testing ==
+-             ExtensionMessageBubbleFactory::OVERRIDE_ENABLED ||
+-         extensions::InstallVerifier::ShouldEnforce();
++  return false;
+ }
+
+ bool EnableSettingsApiBubble() {
+@@ -64,24 +62,7 @@ bool EnableProxyOverrideBubble() {
+ }
+
+ bool EnableDevModeBubble() {
+-  if (extensions::FeatureSwitch::force_dev_mode_highlighting()->IsEnabled())
+-    return true;
+-
+-  // If an automated test is controlling the browser, we don't show the dev mode
+-  // bubble because it interferes with focus. This isn't a security concern
+-  // because we'll instead show an (even scarier) infobar. See also
+-  // AutomationInfoBarDelegate.
+-  base::CommandLine* command_line = base::CommandLine::ForCurrentProcess();
+-  if (command_line->HasSwitch(switches::kEnableAutomation))
+-    return false;
+-
+-#if defined(OS_WIN)
+-  if (chrome::GetChannel() >= version_info::Channel::BETA)
+-    return true;
+-#endif
+-
+-  return g_override_for_testing ==
+-         ExtensionMessageBubbleFactory::OVERRIDE_ENABLED;
++  return false;
+ }
+
+ }  // namespace
+diff --git a/chrome/browser/ui/views/frame/browser_view_layout.h b/chrome/browser/ui/views/frame/browser_view_layout.h
+index e51bd12d0e67..b41ece96cde7 100644
+--- a/chrome/browser/ui/views/frame/browser_view_layout.h
++++ b/chrome/browser/ui/views/frame/browser_view_layout.h
+@@ -45,7 +45,7 @@ class BrowserViewLayout : public views::LayoutManager {
+   // privacy - specifically, the ability to browse in a very small window, even
+   // on large monitors (which is why a minimum height is not specified). This
+   // value is used for the main browser window only, not for popups.
+-  static constexpr int kMainBrowserContentsMinimumWidth = 500;
++  static constexpr int kMainBrowserContentsMinimumWidth = 1;
+
+   // |browser_view| may be null in tests.
+   BrowserViewLayout(std::unique_ptr<BrowserViewLayoutDelegate> delegate,
 diff --git a/chrome/browser/extensions/api/extension_action/extension_action_api.cc b/chrome/browser/extensions/api/extension_action/extension_action_api.cc
 index 28bdacc39e99..a2960459b21c 100644
 --- a/chrome/browser/extensions/api/extension_action/extension_action_api.cc
@@ -166,17 +220,6 @@ index 2f6dd0835aec..0fa89d81e46f 100644
  bool BrowserView::IsFullscreen() const {
 diff --git a/chrome/browser/ui/views/frame/browser_view_layout.cc b/chrome/browser/ui/views/frame/browser_view_layout.cc
 index 96822d7f87d5..72fa449d4e4c 100644
---- a/chrome/browser/ui/views/frame/browser_view_layout.cc
-+++ b/chrome/browser/ui/views/frame/browser_view_layout.cc
-@@ -175,7 +175,7 @@ gfx::Size BrowserViewLayout::GetMinimumSize(const views::View* host) const {
-   // privacy - specifically, the ability to browse in a very small window, even
-   // on large monitors (which is why a minimum height is not specified). This
-   // value is used for the main browser window only, not for popups.
--  constexpr gfx::Size kMainBrowserContentsMinimumSize(500, 1);
-+  constexpr gfx::Size kMainBrowserContentsMinimumSize(1, 1);
-
-   const bool has_tabstrip =
-       browser()->SupportsWindowFeature(Browser::FEATURE_TABSTRIP);
 @@ -402,14 +402,24 @@ int BrowserViewLayout::LayoutTabStripRegion(int top) {
    }
    // This retrieves the bounds for the tab strip based on whether or not we show

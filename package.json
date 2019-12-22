@@ -1,6 +1,6 @@
 {
   "name": "sushi-browser",
-  "version": "0.29.1",
+  "version": "0.30.0",
   "description": "Sushi Browser",
   "main": "./lib/main.js",
   "author": "kura52",

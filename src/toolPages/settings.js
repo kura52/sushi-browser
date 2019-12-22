@@ -555,6 +555,7 @@ const isWin = navigator.userAgent.includes('Windows')
                            onMouseDown={e=> e.target.addEventListener('mouseup', e=> ipc.send('send-to-host', e.button == 0 && !e.ctrlKey ? 'load-url' : this.props.oppositeGlobal ? 'open-tab-opposite' : 'open-tab' ,this.props.useChromeBookmarkPage ? 'chrome://bookmarks/' : 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html',true,  !this.props.oppositeGlobal && (e.button == 1 || e.ctrlKey)),{once: true})} />
                 <Menu.Item as='a' href='chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html' id='history-link' key="history" name={l10n.translation('history')}/>
                 <Menu.Item as='a' href={`${baseURL}/download.html`} key="download" name={l10n.translation('downloads')}/>
+                <Menu.Item as='a' href={`${baseURL}/video_controller.html`} key="video-controller" name={'Video Controller'}/>
                 <Menu.Item as='a' href={`${baseURL}/note.html`} key="note" name={l10n.translation('note')}/>
                 <Menu.Item key="settings" name={l10n.translation('settings')} active={true}/>
                 <Menu.Item as='a' href={`${baseURL}/explorer.html`} key="file-explorer" name={l10n.translation('fileExplorer')}/>

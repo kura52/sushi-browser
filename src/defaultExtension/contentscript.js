@@ -305,10 +305,16 @@ if(window.__started_){
 
     const resizeEvent = (v) => {
 
-      let x, y
+      let x, y, totalMoveX, totalMoveY
       const mmove = e => {
 
-        clickEventCancel = true
+        totalMoveX += Math.abs(e.movementX)
+        totalMoveY += Math.abs(e.movementY)
+
+        if(totalMoveX > 10 || totalMoveY > 10 ){
+          clickEventCancel = true
+        }
+
         const val = parseInt(v.style.width)
         if(val != 100 && !isNaN(val)){
           const moveX = e.pageX - x
@@ -335,6 +341,8 @@ if(window.__started_){
 
       const mdown = e =>{
         if(e.button != 0) return
+        totalMoveX = 0
+        totalMoveY = 0
         x = e.pageX
         y = e.pageY
         v.addEventListener("mousemove", mmove, false)
@@ -386,7 +394,7 @@ if(window.__started_){
     }
   input[type="range"]._maximize_resizer_::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 10px;hange-video-val
+    width: 10px;
     height: 10px;
     background: #4a4a4a;
     border-radius: 50%;
@@ -400,11 +408,6 @@ if(window.__started_){
     `
             s.appendChild(document.createTextNode(style));
             document.head.appendChild(s)
-
-            const s2 = document.createElement('style')
-            s2.setAttribute('type', 'text/css')
-            s2.setAttribute('id', 'style_element2_')
-            document.head.appendChild(s2)
           }
 
           console.log('func')
@@ -1320,6 +1323,19 @@ if(window.__started_){
     }
     else if(inputs.video){
       videoFunc({},inputs.val)
+      if(inputs.val.showCurrentTime){
+        for(const v of document.querySelectorAll('video')){
+          let preTime = 0
+          v.addEventListener('timeupdate', ()=> {
+            const time = Math.floor(v.currentTime)
+            if(time - preTime >= 1){
+              ipc.send('send-to-host', 'showCurrentTime', time)
+              preTime = time
+            }
+          })
+        }
+        window.addEventListener("beforeunload", e=> ipc.send('send-to-host', 'showCurrentTime', null))
+      }
     }
     else if(inputs.maximizeInPanel){
       if(window == window.parent){
@@ -1344,6 +1360,7 @@ if(window.__started_){
       const val = inputs.val
 
       const v = document.querySelector('video._video-controlled-elem__')
+      if(!v) return
 
       if(name == 'boost'){
         return streamFunc(val * 10, true, v)
@@ -1379,7 +1396,6 @@ if(window.__started_){
         v.style.filter = val
       }
       else if(name == 'abRepeat'){
-        console.log(val)
         v._abRepeat_ = val[0]
         v._abRepeatRange_ = val[1]
         v.removeEventListener('timeupdate', v._abRepeatEvent_)

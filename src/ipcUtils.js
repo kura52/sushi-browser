@@ -1957,6 +1957,9 @@ ipcMain.on('get-sync-main-states',(e,keys,noSync)=>{
         else if(key.startsWith('regexKeyVideo')){
           ret[`regex${key.slice(13)}`] = val
         }
+        else if(key == 'showCurrentTime'){
+          ret[key] = val
+        }
       }
       return ret
     }
@@ -3026,20 +3029,20 @@ ipcMain.on('get-all-tabs-video-list', async (e, key) => {
       }))
     }
 
-    const promises2 = []
+    const controlledElements = []
     const tabIds = []
-    for(const cont of webContents.webContentsMap.values()){
+    const webContentsList = webContents.webContentsMap.values()
+    for(const cont of webContentsList){
       const url = await cont.getURL()
       if(url.startsWith('chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd')) continue
-      const promise = getVideoControlledElement(cont)
+      controlledElements.push(await getVideoControlledElement(cont))
 
-      promises2.push(promise)
       tabIds.push(cont.id)
     }
 
     const tabsList = await Promise.all(promises)
     const conts = {}
-    ;(await Promise.all(promises2)).forEach((results, i) => {
+    controlledElements.forEach((results, i) => {
       for(const x of (results || [])){
         if(x) conts[tabIds[i]] = x
       }
@@ -3054,6 +3057,7 @@ ipcMain.on('get-all-tabs-video-list', async (e, key) => {
             val.panelKey = panelKey
             val.tabId = tabId
             val.active = active
+            val.showCurrentTime = mainState.showCurrentTime
             result.push(val)
           }
         }
@@ -3069,11 +3073,27 @@ ipcMain.on('get-all-tabs-video-list', async (e, key) => {
 
 
 ipcMain.on('get-tab-video', async (e, key, tabId) => {
-  const result = await getVideoControlledElement(webContents.fromId(tabId))
-  e.sender.send(`get-tab-video-reply_${key}`, result.find(x=>x))
+  const cont = webContents.fromId(tabId)
+  let result = null
+  if(cont) result = await getVideoControlledElement(cont)
+
+  result = result && result.find(x=>x)
+  if(result) result.showCurrentTime = mainState.showCurrentTime
+
+  e.sender.send(`get-tab-video-reply_${key}`, result)
 })
 
 ipcMain.on('change-video-value', async (e, tabId, name, val) => {
+  if(name == 'showCurrentTime'){
+    mainState[name] = !mainState[name]
+    for(let win of BrowserWindow.getAllWindows()) {
+      if(win.getTitle().includes('Sushi Browser')){
+        if(!win.webContents.isDestroyed()) win.webContents.send("update-mainstate",name,mainState[name])
+      }
+    }
+    return
+  }
+
   await Browser.bg.evaluate((tabId, name, val) => {
     if(name == 'active'){
       chrome.tabs.update(tabId, {active: true})

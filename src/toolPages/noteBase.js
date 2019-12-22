@@ -593,6 +593,7 @@ export default class App extends React.Component {
               <Menu.Item as='a' href={`${baseURL}/favorite_sidebar.html`} key="favorite" icon="star"/>
               <Menu.Item as='a' href={`${baseURL}/history_sidebar.html`} key="history" icon="history"/>
               <Menu.Item as='a' href={`${baseURL}/download_sidebar.html`} key="download" icon="download"/>
+              <Menu.Item as='a' href={`${baseURL}/video_controller_sidebar.html`} key="video-controller" icon="play"/>
               <Menu.Item as='a' key="note" icon="sticky note" active={true}/>
               <Menu.Item as='a' href={`${baseURL}/saved_state_sidebar.html`} key="database" icon="database"/>
               <Menu.Item as='a' href={`${baseURL}/tab_trash_sidebar.html`} key="trash" icon="trash"/>
@@ -687,6 +688,7 @@ export default class App extends React.Component {
                          onMouseDown={e=> e.target.addEventListener('mouseup', e=> ipc.send('send-to-host', e.button == 0 && !e.ctrlKey ? 'load-url' : oppositeGlobal ? 'open-tab-opposite' : 'open-tab' ,useChromeBookmarkPage ? 'chrome://bookmarks/' : 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html',true,  !oppositeGlobal && (e.button == 1 || e.ctrlKey)),{once: true})} />
               <Menu.Item as='a' href='chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html' id='history-link' key="history" name={l10n.translation('history')}/>
               <Menu.Item as='a' href={`${baseURL}/download.html`} key="download" name={l10n.translation('downloads')}/>
+              <Menu.Item as='a' href={`${baseURL}/video_controller.html`} key="video-controller" name={'Video Controller'}/>
               <Menu.Item key="note" name={l10n.translation('note')} active={true}/>
               <Menu.Item as='a' href={`${baseURL}/settings.html`} key="settings" name={l10n.translation('settings')}/>
               <Menu.Item as='a' href={`${baseURL}/explorer.html`} key="file-explorer" name={l10n.translation('fileExplorer')}/>

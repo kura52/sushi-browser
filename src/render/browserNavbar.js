@@ -29,6 +29,7 @@ const HistoryExplorer = require('../toolPages/historyBase')
 const TabHistoryExplorer = require('../toolPages/tabHistoryBase')
 const TabTrashExplorer = require('../toolPages/tabTrashHistoryBase')
 const SavedStateExplorer = require('../toolPages/savedStateBase')
+const VideoControllerExplorer = require('../toolPages/videoControllerBase')
 const {messages,locale} = require('./localAndMessage')
 const urlParse = require('../../brave/urlParse')
 const sharedState = require('./sharedState')
@@ -103,20 +104,25 @@ function showConvertDialog(url,fname,tabId,callback){
   })
 }
 
+function getTime(seconds){
+  if(!seconds) return seconds
+  return `${Math.floor(seconds / 60).toString().padStart(2, '0')}:${Math.floor(seconds % 60).toString().padStart(2, '0')}`
+}
+
 const tabs = new Set()
 
 function BrowserNavbarBtn(props){
   return <a href="javascript:void(0)" onContextMenu={props.onContextMenu} style={props.style} className={`${props.className||''} draggable-source ${props.disabled?'disabled':''} ${props.sync ? 'sync' : ''}`} title={props.title} onClick={props.onClick}><i style={props.styleFont} className={`fa fa-${props.icon}`}/>{props.children}</a>
 }
 
-let [alwaysOnTop,multistageTabs,verticalTab,{left,right,backSide},orderOfAutoComplete,numOfSuggestion,numOfBookmark,numOfHistory,isCustomChromium,addressBarNewTab,historyBadget,versions,bookmarkBar,bookmarkBarTopPage,extensionOnToolbar,statusBar,mobilePanelSyncScroll] =
-  ipc.sendSync('get-sync-main-states',['alwaysOnTop','multistageTabs','verticalTab','navbarItems','orderOfAutoComplete','numOfSuggestion','numOfBookmark','numOfHistory','isCustomChromium','addressBarNewTab','historyBadget','versions','bookmarkBar','bookmarkBarTopPage','extensionOnToolbar','statusBar','mobilePanelSyncScroll'])
+let [alwaysOnTop,multistageTabs,verticalTab,{left,right,backSide},orderOfAutoComplete,numOfSuggestion,numOfBookmark,numOfHistory,isCustomChromium,addressBarNewTab,historyBadget,versions,bookmarkBar,bookmarkBarTopPage,extensionOnToolbar,statusBar,mobilePanelSyncScroll,mediaSeek1Video,mediaSeek3Video,isVolumeControl] =
+  ipc.sendSync('get-sync-main-states',['alwaysOnTop','multistageTabs','verticalTab','navbarItems','orderOfAutoComplete','numOfSuggestion','numOfBookmark','numOfHistory','isCustomChromium','addressBarNewTab','historyBadget','versions','bookmarkBar','bookmarkBarTopPage','extensionOnToolbar','statusBar','mobilePanelSyncScroll','mediaSeek1Video','mediaSeek3Video','isVolumeControl'])
 numOfSuggestion = parseInt(numOfSuggestion), numOfBookmark = parseInt(numOfBookmark), numOfHistory = parseInt(numOfHistory)
 sharedState.bookmarkBar = bookmarkBar
 sharedState.bookmarkBarTopPage = bookmarkBarTopPage
 sharedState.statusBar = statusBar
 sharedState.mobilePanelSyncScroll = mobilePanelSyncScroll
-
+const videoControllerData = {mediaSeek1Video, mediaSeek3Video, isVolumeControl}
 
 class BrowserNavbar extends Component{
   constructor(props) {
@@ -167,6 +173,10 @@ class BrowserNavbar extends Component{
       this.refs.video && this.refs.video.close()
     })
 
+    this.tokenShowCurrentTime = PubSub.subscribe(`showCurrentTime_${this.props.tab.key}`,(msg,val)=>{
+      this.state.currentTime = val
+      this.refs.videoController.setState({})
+    })
 
     this.eventSetAlwaysOnTop = (e,val) => alwaysOnTop = val
     ipc.on('set-alwaysOnTop', this.eventSetAlwaysOnTop)
@@ -244,6 +254,7 @@ class BrowserNavbar extends Component{
     PubSub.unsubscribe(this.tokenMenuSort)
     PubSub.unsubscribe(this.tokenMultistageTabs)
     PubSub.unsubscribe(this.tokenWebViewMouseDown)
+    PubSub.unsubscribe(this.tokenShowCurrentTime)
     ipc.removeListener('set-alwaysOnTop', this.eventSetAlwaysOnTop)
     tabs.add(this.props.tab.wvId)
     if(this.props.refs2[`navbar-${this.props.tabkey}`] == this){
@@ -954,6 +965,15 @@ class BrowserNavbar extends Component{
     </NavbarMenu>
   }
 
+  videoControllerMenu(cont,onContextMenu){
+    return <NavbarMenu className="sort-videoController" k={this.props.k} isFloat={isFloatPanel(this.props.k) || this.props.isMaximize} badge={()=>getTime(this.state.currentTime)}
+                       key="videoController" ref="videoController" title="Video Controller" icon="play" onClick={_=>_} onContextMenu={onContextMenu} timeOut={50}>
+      <div role="option" className="item favorite infinite-classic">
+        <VideoControllerExplorer data={videoControllerData} tabId={this.props.tab.wvId} onClick={_=> this.refs.videoController && this.refs.videoController.setState({visible:false})}/>
+      </div>
+    </NavbarMenu>
+  }
+
   getTitle(x,historyMap){
     console.log(997,historyMap.get(x[0]))
     const datas = historyMap.get(x[0])
@@ -1081,6 +1101,7 @@ class BrowserNavbar extends Component{
       download: <BrowserNavbarBtn className="sort-download" title={locale.translation("downloads")} icon="download" onClick={this.onCommon.bind(this,"download")}/>,
       folder: <BrowserNavbarBtn className="sort-folder" title={locale.translation("fileExplorer")} icon="folder" onClick={this.onCommon.bind(this,"explorer")}/>,
       terminal: <BrowserNavbarBtn className="sort-terminal" title={locale.translation('4589268276914962177')} icon="terminal" onClick={this.onCommon.bind(this,"terminal")}/>,
+      videoController: isFixed && !isFloat ? null : this.videoControllerMenu(cont,onContextMenu),
       video: <Dropdown scrolling className="sort-video draggable-source nav-button" onContextMenu={onContextMenu} style={{minWidth:0}}
                        trigger={<BrowserNavbarBtn title={locale.translation("richMediaList")} icon="film">{rich && rich.length ? <div className="browserActionBadge video" >{rich.length}</div> : null}</BrowserNavbarBtn>}
                        pointing='top right' icon={null} disabled={!rich || !rich.length} key="video" ref="video">

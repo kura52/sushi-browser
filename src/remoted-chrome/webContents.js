@@ -621,11 +621,16 @@ export default class webContents extends EventEmitter {
   executeJavaScriptInIsolate(code, userGesture, callback, allFrames){
     if(typeof userGesture === 'function') [userGesture, callback] = [null, userGesture]
 
-    const promise = Browser.bg.evaluate((tabId, code, allFrames) => {
-      return new Promise(resolve => {
-        chrome.tabs.executeScript(tabId, {code, allFrames, frameId: 0}, (result) => resolve(result))
-      })
-    }, this.id, code, allFrames)
+    let promise
+    try{
+      promise = Browser.bg.evaluate((tabId, code, allFrames) => {
+        return new Promise(resolve => {
+          chrome.tabs.executeScript(tabId, {code, allFrames, frameId: 0}, (result) => resolve(result))
+        })
+      }, this.id, code, allFrames)
+    }catch(e){
+      promise = Promise.resolve(null)
+    }
 
     if(callback){
       promise.then(result=>callback(allFrames ? result : result[0]))

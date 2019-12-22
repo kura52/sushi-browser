@@ -1,4 +1,3 @@
-window.debug = require('debug')('info')
 // require('debug').enable("info")
 import process from './process'
 import {ipcRenderer as ipc} from './ipcRenderer'
@@ -6,25 +5,31 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import {Segment, Container, Menu, Button, Dropdown, Divider, Checkbox} from 'semantic-ui-react';
 import {StickyContainer, Sticky} from 'react-sticky';
+import noUiSlider from './noUiSlider/noUiSlider'
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
 
-import l10n from '../../brave/js/l10n';
-const initPromise = l10n.init()
-import '../defaultExtension/contentscript'
 
+function equalVideos(a,b){
+  const len = a.length
+  if(len != b.length) return false
+  for(let i=0;i<len;i++){
+    if(a[i].tabId !== b[i].tabId) return false
+  }
+  return true
+}
 
 function escapeRegExp(string){
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
 
-
-
 function chart() {
-  let canvas, context
+  let canvas, context, container
+
   const px = (window.devicePixelRatio > 1) ? 2 : 1
   const prepareChart = eq => {
 
-    const scale = Math.min((window.innerWidth - 15) / 330, 2)
+    if(!container) container = document.querySelector('.ui.container.video-controller')
+    const scale = Math.min((container.clientWidth - 15) / 330, 1.5)
     canvas = document.getElementById('chart')
     //330x40
     canvas.style.width = 315 * scale + 'px'
@@ -135,14 +140,16 @@ class TopMenu extends React.Component {
   }
 
   render() {
+    const l10n = this.props.l10n
     return (
       <StickyContainer>
-        <Sticky>
+        {this.props.sidebar ? <Sticky>
           <div>
-            <Menu pointing secondary >
+            <Menu pointing secondary>
               <Menu.Item as='a' href={`${baseURL}/favorite_sidebar.html`} key="favorite" icon="star"/>
               <Menu.Item as='a' href={`${baseURL}/history_sidebar.html`} key="history" icon="history"/>
-              <Menu.Item as='a' key="download" icon="download" active={true}/>
+              <Menu.Item as='a' href={`${baseURL}/download_sidebar.html`} key="download" icon="download"/>
+              <Menu.Item as='a' key="video-controller" icon="play" active={true}/>
               <Menu.Item as='a' href={`${baseURL}/note_sidebar.html`} key="note" icon="sticky note"/>
               <Menu.Item as='a' href={`${baseURL}/saved_state_sidebar.html`} key="database" icon="database"/>
               <Menu.Item as='a' href={`${baseURL}/tab_trash_sidebar.html`} key="trash" icon="trash"/>
@@ -150,8 +157,8 @@ class TopMenu extends React.Component {
               <Menu.Item as='a' href={`${baseURL}/explorer_sidebar.html`} key="file-explorer" icon="folder"/>
             </Menu>
           </div>
-        </Sticky>
-        <VideoController word={this.state.word} videos={this.props.videos} data={this.props.data} setToken={::this.setToken}/>
+        </Sticky> : null}
+        <VideoController word={this.state.word} videos={this.props.videos} data={this.props.data} sidebar={this.props.sidebar} toolPage={this.props.toolPage} tabId={this.props.tabId} setToken={::this.setToken}/>
       </StickyContainer>
     )
   }
@@ -220,21 +227,76 @@ class VideoController extends React.Component {
     this.handleChange = ::this.handleChange
     this.abRepeatOnChange = ::this.abRepeatOnChange
     this.presetChange = ::this.presetChange
+    this.getVideoList = ::this.getVideoList
 
-    let index =  props.videos.length > 0 ? props.videos.findIndex(x=>x.active) : void 0
+    this.intervalIds = []
+
+    if(props.videos == null) this.getVideoList()
+
+    const videos = props.videos || []
+    let index = -1
+
+    if(props.tabId) index = videos.length > 0 ? videos.findIndex(x=>x.tabId == props.tabId) : void 0
+    if(index == -1) index = videos.length > 0 ? videos.findIndex(x=>x.active) : void 0
     if(index == -1) index = 0
-    const selected = index === void 0 ? void 0 : props.videos[index].tabId
+    const selected = index === void 0 ? void 0 : videos[index].tabId
 
     this.prevFilter = [void 0, {}]
 
-    this.state = {videos: props.videos, selected , index}
+    this.state = {videos, selected , index}
   }
 
+  getVideoList(){
+    const key = Math.random().toString()
+    ipc.send('get-all-tabs-video-list', key)
+    ipc.once(`get-all-tabs-video-list-reply_${key}`, (e, videos) => {
+      let newState = { videos }
+      if(!videos.length){
+        newState = {videos, index: void 0, selected: void 0}
+      }
+      else if(!this.state.selected){
+        let index = -1
+        if(this.props.tabId) index =  videos.length > 0 ? videos.findIndex(x=>x.tabId == this.props.tabId) : void 0
+        if(index == -1) index = videos.length > 0 ? videos.findIndex(x=>x.active) : void 0
+        if(index == -1) index = 0
+        const selected = index === void 0 ? void 0 : videos[index].tabId
+        newState = {videos, index}
+        setTimeout(()=>this.setState({selected}),0)
+      }
+      else{
+        if(!equalVideos(videos,this.state.videos)){
+          let index =  videos.length > 0 ? videos.findIndex(x=>this.state.selected) : void 0
+          if(index == -1) videos.findIndex(x=>x.active)
+          if(index == -1) index = 0
+          const selected = index === void 0 ? void 0 : videos[index].tabId
+          newState = {videos, index}
+          setTimeout(()=>this.setState({selected}),0)
+        }
+
+        const tmp = newState.videos[this.state.index]
+        if(tmp && tmp.tabId == this.state.selected){
+          newState.videos[this.state.index] = this.state.videos[this.state.index]
+        }
+        else{
+          const ind = newState.videos.findIndex(v=>v.tabId == this.state.selected)
+          if(ind != -1){
+            newState.videos[ind] = this.state.videos[this.state.index]
+          }
+        }
+      }
+      this.setState(newState)
+    })
+  }
 
   componentDidMount() {
+    if(!this.props.sidebar && !this.props.toolPage){
+      const seg = document.querySelector('.sort-videoController .ui.basic.segment')
+      seg.style.height = `${seg.closest('.div-back').clientHeight - 60}px`
+    }
+
     const slider = document.querySelector('.ab-range-slider')
-    let start = [0, 100]
-    let range =  {'min': 0, 'max': 100}
+    let start = [0, 60]
+    let range =  {'min': 0, 'max': 60}
     let disabled = true
 
     if(this.state.selected){
@@ -268,49 +330,21 @@ class VideoController extends React.Component {
     if(disabled) slider.setAttribute('disabled', true)
 
 
-    const func = () => {
-      const key = Math.random().toString()
-      ipc.send('get-all-tabs-video-list', key)
-      ipc.once(`get-all-tabs-video-list-reply_${key}`, (e, videos) => {
-        let newState = { videos }
-        if(!videos.length){
-          newState = {videos, index: void 0, selected: void 0}
-        }
-        else if(!this.state.selected){
-          let index =  videos.length > 0 ? videos.findIndex(x=>x.active) : void 0
-          if(index == -1) index = 0
-          const selected = index === void 0 ? void 0 : videos[index].tabId
-          newState = {videos, index}
-          setTimeout(()=>this.setState({selected}),0)
-        }
-        else{
-          const tmp = newState.videos[this.state.index]
-          if(tmp && tmp.tabId == this.state.selected){
-            newState.videos[this.state.index] = this.state.videos[this.state.index]
-          }
-          else{
-            const ind = newState.videos.findIndex(v=>v.tabId == this.state.selected)
-            if(ind != -1){
-              newState.videos[ind] = this.state.videos[this.state.index]
-            }
-          }
-        }
-        this.setState(newState)
-      })
-    }
-    func()
-    setInterval(func,2000)
+    this.getVideoList()
+    this.intervalIds.push(setInterval(this.getVideoList,2000))
 
-    setInterval(() => {
+    this.intervalIds.push(setInterval(() => {
       if(this.state.selected){
         const key = Math.random().toString()
         ipc.send('get-tab-video', key, this.state.selected)
         ipc.once(`get-tab-video-reply_${key}`, (e, video) => {
+          if(!video) return
+
           this.state.videos[this.state.index] = {...this.state.videos[this.state.index], ...video }
           this.setState({})
         })
       }
-    },100)
+    },100))
 
     this.chart = chart()
     if(this.state.selected){
@@ -322,24 +356,35 @@ class VideoController extends React.Component {
     }
 
     window.onresize = () => {
-      if(!this.state.selected) return
+      if(!this.state.selected){
+        this.chart.prepareChart([1,0,0,0,0,0,0,0,0,0,0])
+        return
+      }
       const v = this.state.videos[this.state.index]
       this.chart.prepareChart([1, ...v.equalizer])
     }
   }
 
+  componentWillUnmount() {
+    for(const id of this.intervalIds) clearInterval(id)
+  }
+
   componentDidUpdate(prevProps, prevState){
     if(this.state.selected !== prevState.selected){
       if(this.state.selected == null){
-        this.abRangeUpdate(0,100, 0, 100, true)
+        this.abRangeUpdate(0,60, 0, 60, true)
       }
       else{
         const v = this.state.videos[this.state.index]
+        if(this.chart){
+          this.chart.prepareChart([1, ...v.equalizer])
+        }
+
         if(v.abRepeat){
           this.abRangeUpdate(v.abRepeatRange[0], v.abRepeatRange[1], 0, v.duration, v.abRepeat, v)
         }
         else{
-          this.abRangeUpdate(0,v.duration, 0, v.duration, !v.abRepeat, v)
+          this.abRangeUpdate(0,v.duration || 60, 0, v.duration || 60, !v.abRepeat, v)
         }
       }
     }
@@ -405,6 +450,12 @@ class VideoController extends React.Component {
     this.setState({})
   }
 
+  getTimeFull(seconds){
+    if(seconds == null) return '00:00:00'
+
+    return `${Math.floor(seconds / 3600).toString().padStart(2, '0')}:${Math.floor((seconds / 60) % 60).toString().padStart(2, '0')}:${Math.floor(seconds % 60).toString().padStart(2, '0')}`
+  }
+
   getTime(seconds){
     if(seconds == null) return '00:00'
 
@@ -412,7 +463,7 @@ class VideoController extends React.Component {
   }
 
   handleChange(e, { value }){
-    this.setState({ selected: value, index: this.state.videos.findIndex(v=>v.tabId == value) })
+    setTimeout(()=>this.setState({ selected: value, index: this.state.videos.findIndex(v=>v.tabId == value) }),0)
   }
 
   seek(type){
@@ -454,19 +505,25 @@ class VideoController extends React.Component {
   }
 
   getAbRangeTime(){
-    if(!this.abRange) return ''
+    if(!this.abRange) return [0,0]
     const val = this.abRange.noUiSlider.get()
-    return val.map(x=>this.getTime(parseInt(x))).join(' - ')
+    return val.map(x=>parseInt(x))
   }
 
   abRepeatOnChange(){
     const v = this.state.videos[this.state.index]
     if(v.abRepeat){
-      this.abRangeUpdate(0,100, 0, 100, true, v)
+      this.abRangeUpdate(0,v.duration || 60, 0, v.duration || 60, true, v)
     }
     else{
-      this.abRangeUpdate(0, v.duration, 0, v.duration, false, v)
+      this.abRangeUpdate(0, v.duration || 60, 0, v.duration || 60, false, v)
     }
+  }
+
+  abRepeatTimeChange(index, e){
+    const x = e.target.value.split(":").map(x=>parseInt(x))
+    const val = x.length == 2 ? parseInt(x[0]) * 60 * 60 + parseInt(x[1]) * 60 : parseInt(x[0]) * 60 * 60 + parseInt(x[1]) * 60 + parseInt(x[2])
+      this.abRange.noUiSlider.set(index == 0 ? [val, null] : [null, val])
   }
 
   presetChange(e, { value }){
@@ -479,8 +536,7 @@ class VideoController extends React.Component {
   }
 
   render() {
-
-    const options = this.state.videos.map(v => ({key: v.tabId, value: v.tabId, text: v.title}))
+    const options = this.state.videos.map(v => ({key: v.tabId, value: v.tabId, text: v.title.length > 80 ? `${v.title.substr(0, 80)}...` : v.title}))
     let v = this.state.videos[this.state.index]
 
     const volume = v && Math.round(v.volume * 100)
@@ -488,12 +544,13 @@ class VideoController extends React.Component {
     const zoom = v && Math.round(v.zoom * 100)
     const playbackRate = v && Math.round(v.playbackRate * 100)
     const filter = this.extractFilters(v && v.filter)
-    const equalizer = v && v.equalizer
+    const equalizer = (v && v.equalizer) || [0,0,0,0,0,0,0,0,0,0]
     const preset = v && v.preset
+    const abRange = this.getAbRangeTime()
 
     v = v || {}
 
-    return <Container>
+    return <Container className='video-controller'>
       <Segment basic>
         <Dropdown selection options={options} value={this.state.selected}
                   onChange={this.handleChange} />
@@ -513,12 +570,12 @@ class VideoController extends React.Component {
           <i className="fast forward icon" aria-hidden="true" onClick={()=>this.seek('forward2')} />
         </span>
 
-        <div className="spacer2"/>
+        <div className="spacer2" style={{height: 5}}/>
 
         <label className="range-label"></label>
 
         <div className="ui input">
-          <input type="range" min="0" max={v.duration} name="currentTime" step="1" value={v.currentTime} onInput={this.onInput.bind(this, 'currentTime')}
+          <input type="range" min="0" max={v.duration} name="currentTime" step="1" value={v.currentTime} style={{maxWidth: 800}} onInput={this.onInput.bind(this, 'currentTime')}
                  onWheel={e => {
                    e.preventDefault()
                    e.target.value = parseInt(e.target.value) + 5 * e.deltaY / 100
@@ -565,13 +622,24 @@ class VideoController extends React.Component {
 
         <div className="spacer2"/>
 
-        <Checkbox label={v.abRepeat ? `A-B Repeats [${this.getAbRangeTime()}]` : 'A-B Repeats'} checked={!!v.abRepeat}
-                  onChange={this.abRepeatOnChange}/>
+        <Checkbox label='A-B Repeats' checked={!!v.abRepeat} onChange={this.abRepeatOnChange}/>
+        <div className="spacer2"/>
+        <div className="ui input">
+          <input type="time" className="input-time" min="00:00:00" max={this.getTimeFull(abRange[1])} disabled={!v.abRepeat} value={this.getTimeFull(abRange[0])} step="1" onInput={this.abRepeatTimeChange.bind(this,0)} />
+        </div>
+        &nbsp;〜&nbsp;
+        <div className="ui input">
+          <input type="time" className="input-time" min={this.getTimeFull(abRange[0])} max={this.getTimeFull(v.duration)} disabled={!v.abRepeat} value={this.getTimeFull(abRange[1])} step="1" onInput={this.abRepeatTimeChange.bind(this,1)}/>
+        </div>
         <br/>
 
-        <div className="ui input" style={{padding: '15px 0 0 5px'}}>
-          <div className="ab-range-slider" style={{width: 'calc(100vw - 62px)'}}/>
+        <div className="ui input" style={{padding: '15px 0 0 5px', width: '100%'}}>
+          <div className="ab-range-slider" style={{width: 'calc(100% - 20px)'}}/>
         </div>
+
+        <div className="spacer2"/>
+
+        <Checkbox label='Show Current Time Badge' checked={!!v.showCurrentTime} onChange={() => this.onClick('showCurrentTime')}/>
 
         <Divider/>
 
@@ -622,7 +690,7 @@ class VideoController extends React.Component {
               <input type="range" min="0" max={f.max} name={f.name} step={f.step} value={filter[f.name] == null ? f.defaultValue : filter[f.name]} onInput={this.onInput.bind(this, `filter#${f.name}`)} onWheel={this.onWheel}/>
             </div>
             <label className="range-value">{filter[f.name] == null ? f.defaultValue : filter[f.name]}{f.unit}</label>
-            {ind == videoFilters.length - 1 ? null : <div className="spacer2"/>}
+            <div className="spacer2"/>
           </span>
         })}
 
@@ -631,17 +699,6 @@ class VideoController extends React.Component {
   }
 }
 
-const App = (props) => (
-  <TopMenu videos={props.videos} data={props.data}/>
+export default (props) => (
+  <TopMenu videos={props.videos} data={props.data} sidebar={props.sidebar} toolPage={props.toolPage} l10n={props.l10n} tabId={props.tabId}/>
 )
-
-const key = Math.random().toString()
-
-ipc.send("get-main-state",key,['mediaSeek1Video','mediaSeek3Video','isVolumeControl'])
-ipc.once(`get-main-state-reply_${key}`,async (e,data)=>{
-  ipc.send('get-all-tabs-video-list', key)
-  ipc.once(`get-all-tabs-video-list-reply_${key}`, async (e, videos) => {
-    await initPromise
-    ReactDOM.render(<App videos={videos} data={data}/>,  document.getElementById('app'))
-  })
-})

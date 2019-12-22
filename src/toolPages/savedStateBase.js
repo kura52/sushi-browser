@@ -42,6 +42,8 @@ const convertUrlMap = new Map([
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html','chrome://terminal/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html','chrome://converter/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html','chrome://automation/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/video_controller_sidebar.html','chrome://video-controller-sidebar/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/video_controller.html','chrome://video-controller/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html','chrome://setting/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general','chrome://setting#general'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search','chrome://setting#search'],
@@ -360,6 +362,7 @@ export default class App extends React.Component {
               <Menu.Item as='a' href={`${baseURL}/favorite_sidebar.html`} key="favorite" icon="star"/>
               <Menu.Item as='a' href={`${baseURL}/history_sidebar.html`} key="history" icon="history"/>
               <Menu.Item as='a' href={`${baseURL}/download_sidebar.html`} key="download" icon="download"/>
+              <Menu.Item as='a' href={`${baseURL}/video_controller_sidebar.html`} key="video-controller" icon="play"/>
               <Menu.Item as='a' href={`${baseURL}/note_sidebar.html`} key="note" icon="sticky note"/>
               <Menu.Item key="database" icon="database" active={true}/>
               <Menu.Item as='a' href={`${baseURL}/tab_trash_sidebar.html`} key="trash" icon="trash"/>

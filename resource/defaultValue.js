@@ -71,7 +71,7 @@ const settingDefault =  {
   vpnNames: [],
   navbarItems: {
     left: ['back','forward','reload','home'],
-    right: ['sync','sidebar','mobile','screenshot','favorite','history','savedState','video'],
+    right: ['sync','sidebar','mobile','screenshot','favorite','history','savedState','videoController','video'],
     backSide: ['syncReplace','tabTrash','tabHistory','opposite','download','folder','terminal'],
   },
   verticalTab: false,
@@ -111,6 +111,7 @@ const settingDefault =  {
   inputHistoryAll: false,
   inputHistoryMaxChar: 10000,
   scrollInactiveWindows: true,
+  showCurrentTime: true,
 
   //privacy
   clearHistoryOnClose: false,

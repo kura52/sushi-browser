@@ -714,6 +714,13 @@ div.item.favorite>ul>li>div>ul{
     background-color: rgb(72, 72, 72);
 }
 
+.browserActionBadge.video-controller {
+    background-color: #0000;
+    left: -5px !important;
+    color: #000000db !important;
+    top: 17px !important;
+    font-weight: bold !important;
+}
 
 .browserActionBadge.back,.browserActionBadge.next{
     left: calc(50% + 4px) !important;
@@ -1403,4 +1410,210 @@ a.zoom-change:hover,a.zoom-reset:hover{
 
 .menu.transition.visible.browser-action.nav-menu {
     top: 30px !important;
+}
+
+/* video-controller */
+
+.sort-videoController ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+.sort-videoController ::-webkit-scrollbar-button {
+    width: 0px;
+    height: 0px;
+}
+.sort-videoController ::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border: 0px none #fff;
+    border-radius: 50px;
+}
+.sort-videoController ::-webkit-scrollbar-thumb:hover {
+    background: #d1d0d0;
+}
+.sort-videoController ::-webkit-scrollbar-thumb:active {
+    background: #d1d0d0;
+}
+.sort-videoController ::-webkit-scrollbar-track {
+    background: #666;
+    border: 0px none #fff;
+    border-radius: 50px;
+}
+.sort-videoController ::-webkit-scrollbar-corner {
+    background: transparent;
+}
+.sort-videoController .ui.secondary.pointing.menu .item {
+    padding: 0.85714286em 0.58285714em;
+}
+.sort-videoController .ui.small.input {
+    padding-left: 6px;
+}
+.sort-videoController .ui.secondary.pointing.menu {
+    margin-bottom: 8px;
+}
+.sort-videoController .spacer2 {
+    height: 10px;
+}
+.sort-videoController input[type=range],
+.sort-videoController input[type=range]+.thumb {
+    cursor: pointer;
+}
+.sort-videoController input[type=range] {
+    position: relative;
+    background-color: transparent;
+    border: none;
+    outline: none;
+    width: 100%;
+    padding: 0;
+}
+.sort-videoController input[type=range]:focus {
+    outline: none;
+}
+.sort-videoController input[type=range]+.thumb {
+    position: absolute;
+    top: 10px;
+    left: 0;
+    border: none;
+    height: 0;
+    width: 0;
+    border-radius: 50%;
+    background-color: #26a69a;
+    margin-left: 7px;
+    -webkit-transform-origin: 50% 50%;
+    transform-origin: 50% 50%;
+    -webkit-transform: rotate(-45deg);
+    transform: rotate(-45deg);
+}
+.sort-videoController input[type=range]+.thumb .value {
+    display: block;
+    width: 30px;
+    text-align: center;
+    color: #26a69a;
+    font-size: 0;
+    -webkit-transform: rotate(45deg);
+    transform: rotate(45deg);
+}
+.sort-videoController input[type=range]+.thumb.active {
+    border-radius: 50% 50% 50% 0;
+}
+.sort-videoController input[type=range]+.thumb.active .value {
+    color: #fff;
+    margin-left: -1px;
+    margin-top: 8px;
+    font-size: 10px;
+}
+.sort-videoController input[type=range] {
+    -webkit-appearance: none;
+}
+.sort-videoController input[type=range]::-webkit-slider-runnable-track {
+    height: 3px;
+    background: #c2c0c2;
+    border: none;
+}
+.sort-videoController input[type=range]::-webkit-slider-thumb {
+    border: none;
+    height: 14px;
+    width: 14px;
+    border-radius: 50%;
+    background: #2185d0;
+    -webkit-transition: -webkit-box-shadow 0.3s;
+    transition: -webkit-box-shadow 0.3s;
+    transition: box-shadow 0.3s;
+    transition: box-shadow 0.3s, -webkit-box-shadow 0.3s;
+    -webkit-appearance: none;
+    background-color: #2185d0;
+    -webkit-transform-origin: 50% 50%;
+    transform-origin: 50% 50%;
+    margin: -5px 0 0 0;
+}
+.sort-videoController .keyboard-focused input[type=range]:focus:not(.active)::-webkit-slider-thumb {
+    -webkit-box-shadow: 0 0 0 10px rgba(38,166,154,0.26);
+    box-shadow: 0 0 0 10px rgba(38,166,154,0.26);
+}
+.sort-videoController .ui.input input[type=range] {
+    border: none;
+    padding: 0.2em 0px;
+    width: 145px;
+}
+.sort-videoController .range-label {
+    vertical-align: -2px;
+    padding-right: 10px;
+}
+.sort-videoController .range-label.name:hover {
+    color: #2185d0;
+    cursor: pointer;
+}
+.sort-videoController .range-value {
+    vertical-align: -2px;
+    padding-left: 10px;
+}
+.sort-videoController span.buttons i {
+    font-size: 16px;
+    margin: 0px 4px;
+}
+.sort-videoController span.buttons i:hover {
+    color: #2185d0;
+}
+.sort-videoController .ui.compact.button,
+.sort-videoController .ui.compact.buttons .button {
+    padding: 0.45928571em 0.925em;
+}
+.sort-videoController .ui.divider {
+    margin: 0.9rem 0 0.6rem 0;
+}
+.sort-videoController .v-divider {
+    height: 100%;
+    margin: 0 2px;
+    border-left: 1px solid #ccc;
+}
+.sort-videoController [disabled].noUi-target,
+.sort-videoController [disabled].noUi-handle,
+.sort-videoController [disabled] .noUi-handle {
+    pointer-events: none;
+    opacity: 0.45;
+}
+.sort-videoController .ui.checkbox label:hover,
+.sort-videoController .ui.checkbox+label:hover {
+    color: #2185d0 !important;
+    cursor: pointer;
+}
+.sort-videoController .noUi-target {
+    cursor: pointer;
+}
+.sort-videoController .ui.checkbox .box:before,
+.sort-videoController .ui.checkbox label:before,
+.sort-videoController .ui.checkbox input:checked~.box:before,
+.sort-videoController .ui.checkbox input:checked~label:before {
+    width: 15px;
+    height: 15px;
+}
+.sort-videoController .ui.selection.dropdown .menu>.item {
+    padding: 0.2rem 1.14285714rem !important;
+}
+.sort-videoController .input-time {
+    height: 24px;
+    padding: 0 5px !important;
+}
+
+.sort-videoController .ui.input {
+    width: inherit;
+    height: auto;
+}
+
+.sort-videoController .item.favorite.infinite-classic {
+    width: 320px;
+}
+
+.sort-videoController.ui.dropdown .menu>.item {
+    padding: 0.2rem 0.64285714rem!important;
+}
+.sort-videoController, .browser-navbar .sort-videoController div{
+    line-height: 1.4285em;
+}
+
+.sort-videoController.ui.dropdown .menu .left.menu,
+.sort-videoController.ui.dropdown>.left.menu .menu{
+    top: 100% !important;
+    left: 0px !important;
+    right: 0px !important;
+    margin: 0 -1px !important;
 }

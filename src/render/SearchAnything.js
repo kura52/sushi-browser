@@ -23,6 +23,8 @@ const convertUrlMap = new Map([
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html','chrome://terminal/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html','chrome://converter/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html','chrome://automation/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/video_controller_sidebar.html','chrome://video-controller-sidebar/'],
+  ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/video_controller.html','chrome://video-controller/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html','chrome://setting/'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general','chrome://setting#general'],
   ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search','chrome://setting#search'],

@@ -281,6 +281,7 @@ export default class App extends React.Component {
               <Menu.Item key="favorite" icon="star" active={true}/>
               <Menu.Item as='a' href={`${baseURL}/history_sidebar.html`} key="history" icon="history"/>
               <Menu.Item as='a' href={`${baseURL}/download_sidebar.html`} key="download" icon="download"/>
+              <Menu.Item as='a' href={`${baseURL}/video_controller_sidebar.html`} key="video-controller" icon="play"/>
               <Menu.Item as='a' href={`${baseURL}/note_sidebar.html`} key="note" icon="sticky note"/>
               <Menu.Item as='a' href={`${baseURL}/saved_state_sidebar.html`} key="database" icon="database"/>
               <Menu.Item as='a' href={`${baseURL}/tab_trash_sidebar.html`} key="trash" icon="trash"/>
@@ -298,6 +299,7 @@ export default class App extends React.Component {
                 <Menu.Item key="favorite" name={l10n.translation('bookmarks')} active={true}/>
                 <Menu.Item as='a' href='chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html' id='history-link' key="history" name={l10n.translation('history')}/>
                 <Menu.Item as='a' href={`${baseURL}/download.html`} key="download" name={l10n.translation('downloads')}/>
+                <Menu.Item as='a' href={`${baseURL}/video_controller.html`} key="video-controller" name={'Video Controller'}/>
                 <Menu.Item as='a' href={`${baseURL}/note.html`} key="note" name={l10n.translation('note')}/>
                 <Menu.Item as='a' href={`${baseURL}/settings.html`} key="settings" name={l10n.translation('settings')}/>
                 <Menu.Item as='a' href={`${baseURL}/explorer.html`} key="file-explorer" name={l10n.translation('fileExplorer')}/>
