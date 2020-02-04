@@ -202,10 +202,10 @@ Puppeteer(ヘッドレスChromeでの自動化) APIと互換性のあるAPIを�
 
 各プラットフォームに対し、インストーラとポータブル版の両方がダウンロードできます。
 
-- [Windows Installer v0.30.0](https://github.com/kura52/sushi-browser/releases/download/0.30.0/sushi-browser-0.30.0-setup-x64.exe)
-- [Windows Portable v0.30.0(Chromium同梱)](https://github.com/kura52/sushi-browser/releases/download/0.30.0/sushi-browser-0.30.0-win-x64-chromium.zip)
-- [Windows Portable v0.30.0(Brave同梱)](https://github.com/kura52/sushi-browser/releases/download/0.30.0/sushi-browser-0.30.0-win-x64-brave.zip)
-- [Windows Portable v0.30.0](https://github.com/kura52/sushi-browser/releases/download/0.30.0/sushi-browser-0.30.0-win-x64.zip)
+- [Windows Installer v0.30.1](https://github.com/kura52/sushi-browser/releases/download/0.30.1/sushi-browser-0.30.1-setup-x64.exe)
+- [Windows Portable v0.30.1(Chromium同梱)](https://github.com/kura52/sushi-browser/releases/download/0.30.1/sushi-browser-0.30.1-win-x64-chromium.zip)
+- [Windows Portable v0.30.1(Brave同梱)](https://github.com/kura52/sushi-browser/releases/download/0.30.1/sushi-browser-0.30.1-win-x64-brave.zip)
+- [Windows Portable v0.30.1](https://github.com/kura52/sushi-browser/releases/download/0.30.1/sushi-browser-0.30.1-win-x64.zip)
 - [MacOS dmg v0.27.0](https://github.com/kura52/sushi-browser/releases/download/0.27.0/SushiBrowser-0.27.0.dmg)
 - [MacOS Portable v0.27.0](https://github.com/kura52/sushi-browser/releases/download/0.27.0/sushi-browser-0.27.0-mac-x64.zip)
 - [Linux rpm (for Fedora/CentOS) v0.29.1](https://github.com/kura52/sushi-browser/releases/download/0.29.1/sushi-browser-0.29.1-1.x86_64.rpm)

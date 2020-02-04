@@ -3020,10 +3020,11 @@ function getVideoControlledElement(cont){
   }).toString() + ")()", void 0, void 0, true)
 }
 
-ipcMain.on('get-all-tabs-video-list', async (e, key) => {
+ipcMain.on('get-all-tabs-video-list', async (e, key, tabId) => {
   const result = []
 
   try{
+    console.log('video1',Date.now())
     const promises = []
     for(let bw of BrowserWindow.getAllWindows()){
       if(!bw.getTitle().includes('Sushi Browser')) continue
@@ -3033,17 +3034,20 @@ ipcMain.on('get-all-tabs-video-list', async (e, key) => {
         ipcMain.once(`get-all-tab-states-reply_${key}`, (e,results) => r([bw.id, results]))
       }))
     }
+    console.log('video2',Date.now())
 
     const controlledElements = []
     const tabIds = []
     const webContentsList = webContents.webContentsMap.values()
     for(const cont of webContentsList){
+      if(tabId && cont.id != tabId) continue
       const url = await cont.getURL()
       if(url.startsWith('chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd')) continue
       controlledElements.push(await getVideoControlledElement(cont))
 
       tabIds.push(cont.id)
     }
+    console.log('video3',Date.now())
 
     const tabsList = await Promise.all(promises)
     const conts = {}
@@ -3052,6 +3056,7 @@ ipcMain.on('get-all-tabs-video-list', async (e, key) => {
         if(x) conts[tabIds[i]] = x
       }
     })
+    console.log('video4',Date.now())
 
     for(const [winId, win] of tabsList){
       for(const [panelKey, tabs] of win){

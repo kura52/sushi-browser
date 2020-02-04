@@ -23,6 +23,7 @@ export default class webContents extends EventEmitter {
 
     this.webContentsMap = new Map()
     this.activedIds = []
+    this.locks = []
 
     ipcMain.on('disable-webContents-focus', (e,val)=>{
       console.log('webContents.disableFocus1' ,val)
@@ -620,10 +621,25 @@ export default class webContents extends EventEmitter {
     }
   }
 
-  executeJavaScriptInIsolate(code, userGesture, callback, allFrames){
+  async executeJavaScriptInIsolate(code, userGesture, callback, allFrames){
     if(typeof userGesture === 'function') [userGesture, callback] = [null, userGesture]
 
     let promise
+    if(this.lock){
+      const key = Math.random().toString()
+      this.locks.push(key)
+      console.log('lock', key)
+      for(let i=0;i<1000;i++){
+        await new Promise(r=>setTimeout(r,i < 100 ? 1 : i < 300 ? 5 : 10))
+        if(!this.lock && this.locks[0] == key){
+          this.locks.shift()
+          break
+        }
+      }
+      console.log('lock-free', key)
+    }
+
+    this.lock = true
     try{
       promise = Browser.bg.evaluate((tabId, code, allFrames) => {
         return new Promise(resolve => {
@@ -633,6 +649,7 @@ export default class webContents extends EventEmitter {
     }catch(e){
       promise = Promise.resolve(null)
     }
+    this.lock = false
 
     if(callback){
       promise.then(result=>callback(allFrames ? result : result[0]))

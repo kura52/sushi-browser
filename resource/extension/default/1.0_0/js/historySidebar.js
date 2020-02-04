@@ -77166,7 +77166,7 @@ if (window.__started_) {
     if (document.querySelector('video,audio')) {
       const [inputs] = await new Promise(r => {
         const key = Math.random().toString();
-        ipc.send('get-sync-main-states', ['inputsVideo'], key);
+        ipc.send('get-sync-main-states', ['inputsVideo'], key, location.href);
         ipc.once(`get-sync-main-states-reply_${key}`, (e, result) => r(result));
       });
       chrome.runtime.sendMessage({ event: "video-event", inputs });
@@ -77186,24 +77186,106 @@ if (window.__started_) {
   });
 
   let equalizer;
+  const setVideoControllerVal = (v, name, val) => {
+    if (name == 'boost') {
+      return streamFunc(val * 10, true, v);
+    }
+
+    if (name == 'seek') {
+      const type = val[0];
+      if (type == 'play') {
+        v[v.paused ? 'play' : 'pause']();
+      } else if (type == 'loop') {
+        v.loop = !v.loop;
+      } else {
+        v.currentTime += type == 'backward2' ? -parseInt(val[2]) : type == 'backward1' ? -parseInt(val[1]) : type == 'step-backward' ? -1 / 30 : type == 'forward2' ? parseInt(val[2]) : type == 'forward1' ? parseInt(val[1]) : 1 / 30;
+      }
+    } else if (name == 'mute') {
+      v.muted = !v.muted;
+    } else if (name == 'maximize') {
+      maximizeInPanel(v);
+    } else if (name == 'fullscreen') {
+      v.webkitRequestFullscreen();
+    } else if (name == 'zoom') {
+      zoomVideo(v, void 0, val);
+    } else if (name == 'filter') {
+      v.style.filter = val;
+    } else if (name == 'abRepeat') {
+      v._abRepeat_ = val[0];
+      v._abRepeatRange_ = val[1];
+      v.removeEventListener('timeupdate', v._abRepeatEvent_);
+      v._abRepeatEvent_ = null;
+
+      if (v._abRepeat_) {
+        v._abRepeatEvent_ = () => {
+          const currentTime = v.currentTime;
+          if (currentTime < v._abRepeatRange_[0] || currentTime > v._abRepeatRange_[1]) {
+            v.currentTime = v._abRepeatRange_[0];
+          }
+        };
+        v.addEventListener('timeupdate', v._abRepeatEvent_);
+      }
+    } else if (name == 'equalizer') {
+      if (!equalizer) {
+        const Equalizer = __webpack_require__(891);
+        equalizer = new Equalizer(v);
+      }
+      equalizer.set(val[1]);
+      v._preset_ = val[0];
+      v._equalizer_ = val[1];
+    } else {
+      v[name] = val;
+    }
+  };
+
   chrome.runtime.onMessage.addListener(inputs => {
     if (inputs.stream) {
       streamFunc(inputs.val);
     } else if (inputs.video) {
       videoFunc({}, inputs.val);
-      if (inputs.val.showCurrentTime) {
-        for (const v of document.querySelectorAll('video')) {
-          let preTime = 0;
-          v.addEventListener('timeupdate', () => {
-            const time = Math.floor(v.currentTime);
-            if (time - preTime >= 1) {
-              ipc.send('send-to-host', 'showCurrentTime', time);
-              preTime = time;
+
+      const func = () => {
+        let v = document.querySelector('video._video-controlled-elem__');
+        if (!v) {
+          let isFirst = true;
+          for (const _v of document.querySelectorAll('video')) {
+            if (_v.duration < 60 && (_v.clientWidth <= 400 || _v.clientHeight <= 225)) continue;
+
+            if (!_v.paused) {
+              v = _v;
+              break;
             }
-          });
+            if (isFirst) {
+              v = _v;
+              isFirst = false;
+            }
+          }
+          if (v) {
+            v.classList.add('_video-controlled-elem__');
+
+            if (inputs.val.videoController) {
+              for (const [name, val] of Object.entries(inputs.val.videoController.values)) {
+                setVideoControllerVal(v, name, val);
+              }
+            }
+
+            if (inputs.val.showCurrentTime) {
+              let preTime = 0;
+              v.addEventListener('timeupdate', () => {
+                const time = Math.floor(v.currentTime);
+                if (Math.abs(time - preTime) >= 1) {
+                  preTime = time;
+                  ipc.send('send-to-host', 'showCurrentTime', time);
+                }
+              });
+              window.addEventListener("beforeunload", e => ipc.send('send-to-host', 'showCurrentTime', null));
+            }
+          }
         }
-        window.addEventListener("beforeunload", e => ipc.send('send-to-host', 'showCurrentTime', null));
-      }
+        return v;
+      };
+      const v = func();
+      setInterval(func, 2000);
     } else if (inputs.maximizeInPanel) {
       if (window == window.parent) {
         const iframes = document.querySelectorAll('iframe');
@@ -77228,55 +77310,7 @@ if (window.__started_) {
       const v = document.querySelector('video._video-controlled-elem__');
       if (!v) return;
 
-      if (name == 'boost') {
-        return streamFunc(val * 10, true, v);
-      }
-
-      if (name == 'seek') {
-        const type = val[0];
-        if (type == 'play') {
-          v[v.paused ? 'play' : 'pause']();
-        } else if (type == 'loop') {
-          v.loop = !v.loop;
-        } else {
-          v.currentTime += type == 'backward2' ? -parseInt(val[2]) : type == 'backward1' ? -parseInt(val[1]) : type == 'step-backward' ? -1 / 30 : type == 'forward2' ? parseInt(val[2]) : type == 'forward1' ? parseInt(val[1]) : 1 / 30;
-        }
-      } else if (name == 'mute') {
-        v.muted = !v.muted;
-      } else if (name == 'maximize') {
-        maximizeInPanel(v);
-      } else if (name == 'fullscreen') {
-        v.webkitRequestFullscreen();
-      } else if (name == 'zoom') {
-        zoomVideo(v, void 0, val);
-      } else if (name == 'filter') {
-        v.style.filter = val;
-      } else if (name == 'abRepeat') {
-        v._abRepeat_ = val[0];
-        v._abRepeatRange_ = val[1];
-        v.removeEventListener('timeupdate', v._abRepeatEvent_);
-        v._abRepeatEvent_ = null;
-
-        if (v._abRepeat_) {
-          v._abRepeatEvent_ = () => {
-            const currentTime = v.currentTime;
-            if (currentTime < v._abRepeatRange_[0] || currentTime > v._abRepeatRange_[1]) {
-              v.currentTime = v._abRepeatRange_[0];
-            }
-          };
-          v.addEventListener('timeupdate', v._abRepeatEvent_);
-        }
-      } else if (name == 'equalizer') {
-        if (!equalizer) {
-          const Equalizer = __webpack_require__(891);
-          equalizer = new Equalizer(v);
-        }
-        equalizer.set(val[1]);
-        v._preset_ = val[0];
-        v._equalizer_ = val[1];
-      } else {
-        v[name] = val;
-      }
+      setVideoControllerVal(v, name, val);
     }
     return false;
   });

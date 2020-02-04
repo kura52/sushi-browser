@@ -246,7 +246,7 @@ class VideoController extends React.Component {
 
     this.intervalIds = []
 
-    if(props.videos == null) this.getVideoList()
+    if(props.videos == null) this.getVideoList(props.tabId)
 
     const videos = props.videos || []
     let index = -1
@@ -262,10 +262,13 @@ class VideoController extends React.Component {
     this.state = {videos, selected , index, presets}
   }
 
-  getVideoList(){
+  getVideoList(tabId){
+    if(this.start) return
+    this.start = true
     const key = Math.random().toString()
-    ipc.send('get-all-tabs-video-list', key)
+    ipc.send('get-all-tabs-video-list', key, tabId)
     ipc.once(`get-all-tabs-video-list-reply_${key}`, (e, videos, presets) => {
+      this.start = false
       let newState = { videos }
       if(presets) newState.presets = presets
 
@@ -349,7 +352,7 @@ class VideoController extends React.Component {
     if(disabled) slider.setAttribute('disabled', true)
 
 
-    this.getVideoList()
+    // this.getVideoList()
     this.intervalIds.push(setInterval(this.getVideoList,2000))
 
     this.intervalIds.push(setInterval(() => {
