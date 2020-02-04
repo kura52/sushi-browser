@@ -1,7 +1,7 @@
 import {app,ipcMain} from 'electron'
 import {
   image, favicon, tabState, history, visit, savedState, download, downloader, state, syncReplace,
-  note, automation, automationOrder, windowState, searchEngine, token
+  note, automation, automationOrder, windowState, searchEngine, token, videoController
 } from './databaseFork'
 import {Browser} from './remoted-chrome/Browser'
 
@@ -74,6 +74,9 @@ const m = {
     }
   },
 
+  async clearVideoController(_,opt2){
+    await videoController.remove(opt2||{}, { multi: true })
+  },
   async clearNote(_,opt2){
     await note.remove(opt2||{}, { multi: true })
     if(!(await note.findOne({_id:"zplOMCoNb1BzCt15"}))){
@@ -131,6 +134,7 @@ const m = {
         clearGeneralSettingsOnClose: mainState.clearGeneralSettingsOnClose,
         clearSessionManagerOnClose: mainState.clearSessionManagerOnClose,
         clearFaviconOnClose: mainState.clearFaviconOnClose,
+        clearVideoControllerOnClose: mainState.clearVideoControllerOnClose,
         clearAutomationOnClose: mainState.clearAutomationOnClose,
         clearNoteOnClose: mainState.clearNoteOnClose,
         clearUserSessionOnClose: mainState.clearUserSessionOnClose,

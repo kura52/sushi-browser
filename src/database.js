@@ -83,6 +83,7 @@ const dbPromise = (async ()=>{
   db.automationOrder = await loadDB('automationOrder.db')
   db.inputHistory = await loadDB('inputHistory.db')
   db.visitedStyle = await loadDB('visitedStyle.db')
+  db.videoController = await loadDB('videoController.db')
 
   await db.history.ensureIndex({ fieldName: 'location' })
   await db.history.ensureIndex({ fieldName: 'title' })
@@ -101,6 +102,7 @@ const dbPromise = (async ()=>{
   await db.automation.ensureIndex({ fieldName: 'key' })
   await db.inputHistory.ensureIndex({ fieldName: 'host' })
   await db.visitedStyle.ensureIndex({ fieldName: 'url' })
+  await db.videoController.ensureIndex({ fieldName: 'url' })
 
   if(!(await db.favorite.findOne({}).exec())){
     await db.favorite.insert({"is_file":false,"title":"root","updated_at":1497713000000,"children":[],"key":"root","_id":"zplOMCoNb1BzCt15"})

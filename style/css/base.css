@@ -716,10 +716,11 @@ div.item.favorite>ul>li>div>ul{
 
 .browserActionBadge.video-controller {
     background-color: #0000;
-    left: -5px !important;
+    left: -8px !important;
     color: #000000db !important;
     top: 17px !important;
     font-weight: bold !important;
+    font-size: 10.5px !important;
 }
 
 .browserActionBadge.back,.browserActionBadge.next{
@@ -1414,6 +1415,12 @@ a.zoom-change:hover,a.zoom-reset:hover{
 
 /* video-controller */
 
+
+.sort-videoController .ui.button {
+    padding: .68571429em 1.0em;
+    line-height: 0.7em;
+}
+
 .sort-videoController ::-webkit-scrollbar {
     width: 10px;
     height: 10px;
@@ -1532,7 +1539,7 @@ a.zoom-change:hover,a.zoom-reset:hover{
 .sort-videoController .ui.input input[type=range] {
     border: none;
     padding: 0.2em 0px;
-    width: 145px;
+    width: 188px;
 }
 .sort-videoController .range-label {
     vertical-align: -2px;
@@ -1585,6 +1592,7 @@ a.zoom-change:hover,a.zoom-reset:hover{
 .sort-videoController .ui.checkbox input:checked~label:before {
     width: 15px;
     height: 15px;
+    top: 0px;
 }
 .sort-videoController .ui.selection.dropdown .menu>.item {
     padding: 0.2rem 1.14285714rem !important;
@@ -1600,13 +1608,13 @@ a.zoom-change:hover,a.zoom-reset:hover{
 }
 
 .sort-videoController .item.favorite.infinite-classic {
-    width: 320px;
+    width: 358px;
 }
 
 .sort-videoController.ui.dropdown .menu>.item {
     padding: 0.2rem 0.64285714rem!important;
 }
-.sort-videoController, .browser-navbar .sort-videoController div{
+.sort-videoController .browser-navbar .sort-videoController div{
     line-height: 1.4285em;
 }
 
@@ -1616,4 +1624,34 @@ a.zoom-change:hover,a.zoom-reset:hover{
     left: 0px !important;
     right: 0px !important;
     margin: 0 -1px !important;
+}
+.sort-videoController .video.buttons {
+    white-space: pre;
+}
+.sort-videoController .video.buttons.others{
+    vertical-align: -4px;
+    line-height: 32px;
+}
+
+.sort-videoController .ui.checkbox input:checked~.box:after,
+.sort-videoController .ui.checkbox input:checked~label:after {
+    width: 17px;
+    height: 17px;
+    font-size: 14px;
+}
+
+.browser-navbar .sort-videoController div {
+    line-height: 1.4285em;
+}
+
+.sort-videoController .ui.dropdown>.text {
+    line-height: 1em;
+}
+
+.sort-videoController .ui.dropdown>.dropdown.icon:before {
+    content: '\f0d7' !important;
+}
+
+.sort-videoController .ui.selection.dropdown>.dropdown.icon{
+    margin: -.78571429em !important;
 }

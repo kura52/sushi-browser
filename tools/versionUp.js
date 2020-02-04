@@ -35,27 +35,18 @@ const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
 const NEXT_APP_VERSION = "0.30.0"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH =`Added video controller function.
-Added A-B repeat function.
-Added video capture function.
-Added thumbnail generation function.
-Added equalizer function.
-Added video effect function.
-Fixed download bug.
-Fixed panel split bug.
-Updated Custom Chromium to 79.0.3945.88.
-Updated Custom Brave to v1.1.23.`
+const CHANGE_ENGLISH =`
+Updated youtube-dl to 2020.01.01.`
 
-const CHANGE_JAPANESE = `ビデオコントローラ機能を追加
-A-Bリピート機能を追加
-動画キャプチャ機能を追加
-サムネイル生成機能を追加
-イコライザー機能を追加
-ビデオエフェクト機能を追加
-ダウンロードの不具合を修正
-パネル分割の不具合を修正
-Custom Chromiumを79.0.3945.88に更新。
-Custom Braveをv1.1.23に更新。`
+const CHANGE_JAPANESE = `ビデオコントローラの不具合を修正。
+拡張機能のURLを開けない不具合を修正。
+ビデオコントローラに解像度を追加。
+A-Bリピートを0.1秒単位で設定できるように変更。
+A-Bリピートのリセットボタンを追加。
+A-Bリピート、イコライザー、ビデオエフェクトをページごとに記憶するように変更。
+イコライザー、ビデオエフェクトのデフォルトを設定できるように機能追加。
+イコライザーのプリセットの追加・保存・削除機能を追加。
+youtube-dlを2020.01.01に更新。`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

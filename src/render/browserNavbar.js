@@ -105,7 +105,7 @@ function showConvertDialog(url,fname,tabId,callback){
 }
 
 function getTime(seconds){
-  if(!seconds) return seconds
+  if(seconds == null) return seconds
   return `${Math.floor(seconds / 60).toString().padStart(2, '0')}:${Math.floor(seconds % 60).toString().padStart(2, '0')}`
 }
 

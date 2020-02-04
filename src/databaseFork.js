@@ -92,11 +92,15 @@ function handler(table){
               // var hrTime = process.hrtime()
               // console.log('ggg', hrTime[0] * 1000000 + hrTime[1] / 1000 - resp[key])
               if(msg.key !== key) return
-              if((table == "history" || table == "favorite" || table == "note" || table == "tabState" || table == "savedState") && (prop == "insert" || prop == "update" || prop == "remove")){
+              if((table == "history" || table == "favorite" || table == "note" || table == "tabState" || table == "savedState" /* || table == "videoController"*/) && (prop == "insert" || prop == "update" || prop == "remove")){
                for(let cont of webContents.getAllWebContents()){
                   if(!cont.isDestroyed() /*&& !cont.isBackgroundPage()*/ && (cont.hostWebContents2 || !cont.hostWebContents2)) {
                     const url = cont.getURL()
-                    if(cont.root || table == "favorite" || url.endsWith(`/${table}_sidebar.html`) ||url.endsWith(`/${table}.html`) || (table == "tabState" && (url.endsWith(`/tab_history_sidebar.html`)||url.endsWith(`/tab_trash_sidebar.html`))) || (table == "savedState" && url.endsWith(`/saved_state_sidebar.html`)) || (table == 'note' && url.includes('note.html?'))){
+                    if(cont.root || table == "favorite" || url.endsWith(`/${table}_sidebar.html`) ||url.endsWith(`/${table}.html`) ||
+                      (table == "tabState" && (url.endsWith('/tab_history_sidebar.html')||url.endsWith('/tab_trash_sidebar.html'))) ||
+                      (table == "savedState" && url.endsWith('/saved_state_sidebar.html')) ||
+                      // (table == "videoController" && (url.endsWith('/video_controller.html')||url.endsWith('/video_controller_sidebar.html'))) ||
+                      (table == 'note' && url.includes('note.html?'))){
                       if(prop == "update"){
                         if(argumentsList[1].$inc) return
                         db[table].findOne(argumentsList[0]).then(ret=>{
@@ -145,6 +149,7 @@ const db = new Proxy({
   get automationOrder(){return new Proxy(dummy, handler('automationOrder'))},
   get inputHistory(){return new Proxy(dummy, handler('inputHistory'))},
   get visitedStyle(){return new Proxy(dummy, handler('visitedStyle'))},
+  get videoController(){return new Proxy(dummy, handler('videoController'))},
   get sock(){ return sock},
   _kill(){child.kill('SIGINT')}
 },handler())

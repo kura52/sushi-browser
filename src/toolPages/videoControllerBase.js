@@ -6,6 +6,7 @@ import ReactDOM from 'react-dom';
 import {Segment, Container, Menu, Button, Dropdown, Divider, Checkbox} from 'semantic-ui-react';
 import {StickyContainer, Sticky} from 'react-sticky';
 import noUiSlider from './noUiSlider/noUiSlider'
+import uuid from "node-uuid";
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd'
 
 
@@ -20,6 +21,16 @@ function equalVideos(a,b){
 
 function escapeRegExp(string){
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+}
+
+function showDialog(input,id){
+  return new Promise((resolve,reject)=>{
+    const key = Math.random().toString()
+    ipc.send('show-dialog-exploler',key,input,id)
+    ipc.once(`show-dialog-exploler-reply_${key}`,(event,ret)=>{
+      resolve(ret)
+    })
+  })
 }
 
 function chart() {
@@ -216,6 +227,8 @@ PRESETS = PRESETS.map(x=> {
   return x
 })
 
+const DEFAULT_PRESETS = JSON.stringify(PRESETS)
+
 for(const f of videoFilters){
   f.regexp = new RegExp(`${f.name}\\(([\\d+.%]+)`)
 }
@@ -228,6 +241,8 @@ class VideoController extends React.Component {
     this.abRepeatOnChange = ::this.abRepeatOnChange
     this.presetChange = ::this.presetChange
     this.getVideoList = ::this.getVideoList
+    this.resetEffect = ::this.resetEffect
+    this.resetEqualizer = ::this.resetEqualizer
 
     this.intervalIds = []
 
@@ -243,14 +258,17 @@ class VideoController extends React.Component {
 
     this.prevFilter = [void 0, {}]
 
-    this.state = {videos, selected , index}
+    const presets = PRESETS
+    this.state = {videos, selected , index, presets}
   }
 
   getVideoList(){
     const key = Math.random().toString()
     ipc.send('get-all-tabs-video-list', key)
-    ipc.once(`get-all-tabs-video-list-reply_${key}`, (e, videos) => {
+    ipc.once(`get-all-tabs-video-list-reply_${key}`, (e, videos, presets) => {
       let newState = { videos }
+      if(presets) newState.presets = presets
+
       if(!videos.length){
         newState = {videos, index: void 0, selected: void 0}
       }
@@ -311,7 +329,7 @@ class VideoController extends React.Component {
     noUiSlider.create(slider, {
       start,
       connect: true,
-      step: 1,
+      step: 0.1,
       keyboardSupport: true,
       range
     })
@@ -320,9 +338,10 @@ class VideoController extends React.Component {
       if(!this.abRange) return
 
       const v = this.state.videos[this.state.index]
-      v.abRepeatRange = this.abRange.noUiSlider.get().map(m=>parseInt(m))
-      ipc.send('change-video-value', v.tabId, 'abRepeat', [v.abRepeat,v.abRepeatRange])
-
+      v.abRepeatRange = this.abRange.noUiSlider.get().map(m=>parseFloat(m))
+      if(!this.abRangeNoUpdateFlag){
+        ipc.send('change-video-value', v.tabId, v.location, 'abRepeat', [v.abRepeat,v.abRepeatRange])
+      }
       console.log(values, handle)
     })
 
@@ -372,7 +391,7 @@ class VideoController extends React.Component {
   componentDidUpdate(prevProps, prevState){
     if(this.state.selected !== prevState.selected){
       if(this.state.selected == null){
-        this.abRangeUpdate(0,60, 0, 60, true)
+        this.abRangeUpdate(0,60, 0, 60, void 0, true)
       }
       else{
         const v = this.state.videos[this.state.index]
@@ -381,16 +400,18 @@ class VideoController extends React.Component {
         }
 
         if(v.abRepeat){
-          this.abRangeUpdate(v.abRepeatRange[0], v.abRepeatRange[1], 0, v.duration, v.abRepeat, v)
+          this.abRangeUpdate(v.abRepeatRange[0], v.abRepeatRange[1], 0, v.duration, !v.abRepeat, v, true)
         }
         else{
-          this.abRangeUpdate(0,v.duration || 60, 0, v.duration || 60, !v.abRepeat, v)
+          this.abRangeUpdate(0,v.duration || 60, 0, v.duration || 60, !v.abRepeat, v, true)
         }
       }
     }
   }
 
-  abRangeUpdate(start, end, min, max, disabled, v){
+  abRangeUpdate(start, end, min, max, disabled, v, isNoUpdate){
+    if(isNoUpdate) this.abRangeNoUpdateFlag = true
+
     if(disabled != null){
       if(disabled){
         this.abRange.setAttribute('disabled', true)
@@ -402,12 +423,13 @@ class VideoController extends React.Component {
     }
 
     if(min != null || max != null){
-      this.abRange.noUiSlider.updateOptions({range: {'min': start, 'max': end}})
+      this.abRange.noUiSlider.updateOptions({range: {'min': min, 'max': max}})
     }
 
     if(start != null || end != null){
       this.abRange.noUiSlider.set([start, end])
     }
+    if(isNoUpdate) this.abRangeNoUpdateFlag = false
     this.setState({})
   }
 
@@ -446,14 +468,39 @@ class VideoController extends React.Component {
       v[name] = val
     }
 
-    ipc.send('change-video-value', v.tabId, name, val)
+    ipc.send('change-video-value', v.tabId, v.location, name, val)
     this.setState({})
+  }
+
+  resetEqualizer(){
+    const v = this.state.videos[this.state.index]
+    ipc.send('change-video-value', v.tabId, v.location, 'equalizer', ['Default', [0,0,0,0,0,0,0,0,0,0]])
+    this.chart.prepareChart([1,0,0,0,0,0,0,0,0,0,0])
+  }
+
+  resetEffect(){
+    const v = this.state.videos[this.state.index]
+    ipc.send('change-video-value', v.tabId, v.location, 'filter', 'none')
+  }
+
+  setAsDefault(type, isReset){
+    const v = this.state.videos[this.state.index]
+    ipc.send('change-video-value', void 0, '_default_', type, isReset ? void 0 : type == 'equalizer' ? [v.preset, v.equalizer] : v[type])
+
+    if(isReset){
+      if(type == 'equalizer'){
+        this.resetEqualizer()
+      }
+      else if(type == 'filter'){
+        this.resetEffect()
+      }
+    }
   }
 
   getTimeFull(seconds){
     if(seconds == null) return '00:00:00'
 
-    return `${Math.floor(seconds / 3600).toString().padStart(2, '0')}:${Math.floor((seconds / 60) % 60).toString().padStart(2, '0')}:${Math.floor(seconds % 60).toString().padStart(2, '0')}`
+    return `${Math.floor(seconds / 3600).toString().padStart(2, '0')}:${Math.floor((seconds / 60) % 60).toString().padStart(2, '0')}:${Math.floor(seconds % 60).toString().padStart(2, '0')}.${Math.round((seconds % 1) * 1000).toString().padStart(3, '0')}`
   }
 
   getTime(seconds){
@@ -468,12 +515,12 @@ class VideoController extends React.Component {
 
   seek(type){
     const v = this.state.videos[this.state.index]
-    ipc.send('change-video-value', v.tabId, 'seek', [type, this.props.data.mediaSeek1Video, this.props.data.mediaSeek3Video])
+    ipc.send('change-video-value', v.tabId, v.location, 'seek', [type, this.props.data.mediaSeek1Video, this.props.data.mediaSeek3Video])
   }
 
   onClick(type){
     const v = this.state.videos[this.state.index]
-    ipc.send('change-video-value', v.tabId, type)
+    ipc.send('change-video-value', v.tabId, v.location, type)
   }
 
   onWheel(e){
@@ -507,7 +554,7 @@ class VideoController extends React.Component {
   getAbRangeTime(){
     if(!this.abRange) return [0,0]
     const val = this.abRange.noUiSlider.get()
-    return val.map(x=>parseInt(x))
+    return val.map(x=>parseFloat(x))
   }
 
   abRepeatOnChange(){
@@ -521,17 +568,59 @@ class VideoController extends React.Component {
   }
 
   abRepeatTimeChange(index, e){
-    const x = e.target.value.split(":").map(x=>parseInt(x))
-    const val = x.length == 2 ? parseInt(x[0]) * 60 * 60 + parseInt(x[1]) * 60 : parseInt(x[0]) * 60 * 60 + parseInt(x[1]) * 60 + parseInt(x[2])
+    const x = e.target.value.split(":")
+    const val = x.length == 2 ? parseInt(x[0]) * 60 * 60 + parseInt(x[1]) * 60 : parseFloat(x[0]) * 60 * 60 + parseInt(x[1]) * 60 + parseFloat(x[2])
       this.abRange.noUiSlider.set(index == 0 ? [val, null] : [null, val])
+  }
+
+  abRepeatTimeReset(target, e){
+    const v = this.state.videos[this.state.index]
+    this.abRange.noUiSlider.set(target == 'A' ? [0, null] : target == 'B' ? [null, v.duration] : [0, v.duration])
   }
 
   presetChange(e, { value }){
     const v = this.state.videos[this.state.index]
-    const preset = PRESETS.find(x=>x.name == value)
+    const preset = this.state.presets.find(x=>x.name == value)
     v.equalizer = preset.gains
-    ipc.send('change-video-value', v.tabId, 'equalizer', [value, v.equalizer])
+    ipc.send('change-video-value', v.tabId, v.location, 'equalizer', [value, v.equalizer])
     this.chart.prepareChart([1,...v.equalizer])
+    this.setState({})
+  }
+
+  async presetUpdate(type, e){
+    const v = this.state.videos[this.state.index]
+    if(type == 'add'){
+      let name
+      if(this.props.tabId){
+        const value = await showDialog({
+          inputable: true,
+          title: 'Dialog',
+          text: 'New preset name',
+          needInput:  [""]
+        }, this.props.tabId)
+        name = value && value[0]
+      }
+      else{
+        name = window.prompt('New preset name')
+      }
+      if(!name) return
+
+      const preset = { name, key: name, value: name, text: name, default: true, gains: v.equalizer }
+      this.state.presets.push(preset)
+    }
+    else if(type == 'save'){
+      const preset = this.state.presets.find(x=>x.name == v.preset)
+      preset.gains = v.equalizer
+    }
+    else if(type == 'del'){
+      this.state.presets = this.state.presets.filter(x=>x.name != v.preset)
+      this.presetChange(void 0, { value: 'Default' })
+    }
+    else if(type == 'reset'){
+      this.state.presets = JSON.parse(DEFAULT_PRESETS)
+      this.presetChange(void 0, { value: 'Default' })
+    }
+    ipc.send('update-preset', type, type == 'reset' ? void 0 : this.state.presets)
     this.setState({})
   }
 
@@ -539,6 +628,7 @@ class VideoController extends React.Component {
     const options = this.state.videos.map(v => ({key: v.tabId, value: v.tabId, text: v.title.length > 80 ? `${v.title.substr(0, 80)}...` : v.title}))
     let v = this.state.videos[this.state.index]
 
+    const resolution = v && v.resolution
     const volume = v && Math.round(v.volume * 100)
     const boost = v && Math.round(v.boost * 100)
     const zoom = v && Math.round(v.zoom * 100)
@@ -584,19 +674,24 @@ class VideoController extends React.Component {
         </div>
         <label className="range-value">{this.getTime(v.currentTime)} / {this.getTime(v.duration)}</label>
 
+        <div style={{height: 4}} className="spacer2"/>
+
+        <label style={{paddingLeft: 10}} className="range-label">Resolution:{resolution}</label>
+
         <Divider/>
 
-        <label style={{marginRight: 12}} className="range-label name" onClick={()=>this.onInput('volume', {target: {value: 100}})}>Volume</label>
+        <label style={{paddingRight: 0}} className="range-label name" onClick={()=>this.onInput('volume', {target: {value: 100}})}>Volume</label>
+
+        <span className="buttons" style={{verticalAlign: '-4px'}}>
+          <i style={{margin: '0 2px 0 1px'}} className={`${v.muted ? 'volume off' : 'volume up'} icon`} aria-hidden="true" onClick={() => this.onClick('mute')} />
+        </span>
+
         <div className="ui input">
           <input type="range" min="0" max="100" name="boost" step="1" value={volume} onInput={this.onInput.bind(this, 'volume')} onWheel={this.onWheel}/>
         </div>
         <label className="range-value">{volume}%</label>
 
-        <span className="buttons" style={{verticalAlign: '-2px'}}>
-          <i className={`${v.muted ? 'volume off' : 'volume up'} icon`} aria-hidden="true" onClick={() => this.onClick('mute')} />
-        </span>
-
-        <div className="spacer2"/>
+        <div style={{height: 8}} className="spacer2"/>
 
         <label className="range-label name" onClick={()=>this.onInput('boost', {target: {value: 100}})}>Vol Boost</label>
         <div className="ui input">
@@ -620,16 +715,24 @@ class VideoController extends React.Component {
         </div>
         <label className="range-value">{zoom}%</label>
 
-        <div className="spacer2"/>
+        <Divider/>
 
         <Checkbox label='A-B Repeats' checked={!!v.abRepeat} onChange={this.abRepeatOnChange}/>
+        <span style={{paddingLeft: 15, paddingRight: 4}}>Reset:</span>
+        <Button compact primary disabled={!v.abRepeat} style={{padding: '0.35928571em 0.625em'}} onClick={this.abRepeatTimeReset.bind(this, 'A')}>A</Button>
+        <Button compact primary disabled={!v.abRepeat} style={{padding: '0.35928571em 0.625em'}} onClick={this.abRepeatTimeReset.bind(this, 'B')}>B</Button>
+        <Button compact primary disabled={!v.abRepeat} style={{padding: '0.35928571em 0.625em'}} onClick={this.abRepeatTimeReset.bind(this, 'AB')}>AB</Button>
+
         <div className="spacer2"/>
+
         <div className="ui input">
-          <input type="time" className="input-time" min="00:00:00" max={this.getTimeFull(abRange[1])} disabled={!v.abRepeat} value={this.getTimeFull(abRange[0])} step="1" onInput={this.abRepeatTimeChange.bind(this,0)} />
+          <input type="time" className="input-time" step="0.1" min="00:00:00" max={this.getTimeFull(abRange[1])}
+                 disabled={!v.abRepeat} value={this.getTimeFull(abRange[0])} onInput={this.abRepeatTimeChange.bind(this,0)} />
         </div>
         &nbsp;〜&nbsp;
         <div className="ui input">
-          <input type="time" className="input-time" min={this.getTimeFull(abRange[0])} max={this.getTimeFull(v.duration)} disabled={!v.abRepeat} value={this.getTimeFull(abRange[1])} step="1" onInput={this.abRepeatTimeChange.bind(this,1)}/>
+          <input type="time" className="input-time" step="0.1" min={this.getTimeFull(abRange[0])} max={this.getTimeFull(v.duration)}
+                 disabled={!v.abRepeat} value={this.getTimeFull(abRange[1])} onInput={this.abRepeatTimeChange.bind(this,1)}/>
         </div>
         <br/>
 
@@ -637,19 +740,17 @@ class VideoController extends React.Component {
           <div className="ab-range-slider" style={{width: 'calc(100% - 20px)'}}/>
         </div>
 
-        <div className="spacer2"/>
+        <Divider/>
 
-        <Checkbox label='Show Current Time Badge' checked={!!v.showCurrentTime} onChange={() => this.onClick('showCurrentTime')}/>
+        <span className='video buttons'>
+          <Button compact primary onClick={()=>this.onClick('active')}>Focus</Button>
+          <Button compact primary onClick={() => this.onClick('maximize')}>{v.maximize ? 'Normal' : 'Maximize'}</Button>
+          <Button compact primary onClick={() => setTimeout(()=>this.onClick('fullscreen'),100)}>Fullscreen</Button>
+        </span>
 
         <Divider/>
 
-        <Button compact primary onClick={()=>this.onClick('active')}>Focus</Button>
-        <Button compact primary onClick={() => this.onClick('maximize')}>{v.maximize ? 'Normal' : 'Maximize'}</Button>
-        <Button compact primary onClick={() => setTimeout(()=>this.onClick('fullscreen'),100)}>Fullscreen</Button>
-
-        <Divider/>
-
-        <span style={{whiteSpace: 'pre'}}>
+        <span className='video buttons'>
           <Button compact primary onClick={()=>this.getThumbnails(true, true)}>Capture</Button>
           <Button compact primary title="Thumbnails" onClick={()=>this.getThumbnails(false, false, 240)}>Thumb</Button>
           <Button compact primary title="DL Thumbnails" onClick={()=>this.getThumbnails(false, true)}>DL Thumb</Button>
@@ -657,10 +758,27 @@ class VideoController extends React.Component {
 
         <Divider/>
 
-        <label className="range-label">[Equalizer]</label>
-        <div className="spacer2"/>
+        <label className="range-label name" onClick={this.resetEqualizer}>[Equalizer]</label>
+        <span className='video buttons others'>
+          <Button compact primary onClick={this.setAsDefault.bind(this, 'equalizer', false)}>Set as Default</Button>
+          <Button compact primary onClick={this.setAsDefault.bind(this, 'equalizer', true)}>Reset Default</Button>
+        </span>
 
-        <Dropdown onChange={this.presetChange} selection options={PRESETS} value={preset}/>
+        <div style={{marginBottom: '0.4em'}} className="spacer2"/>
+
+        <span style={{paddingRight: 6}}>
+          <Dropdown onChange={this.presetChange} selection options={this.state.presets} value={preset}/>
+        </span>
+        <span style={{display: 'inline-block', verticalAlign: '-20px'}}>
+          <span className='video buttons' style={{lineHeight: '26px'}}>
+            <Button compact primary onClick={this.presetUpdate.bind(this, 'add')}>Add</Button>
+            <Button compact primary onClick={this.presetUpdate.bind(this, 'save')}>Save</Button>
+            <br/>
+            <Button compact primary onClick={this.presetUpdate.bind(this, 'del')}>Del</Button>
+            <Button compact primary onClick={this.presetUpdate.bind(this, 'reset')}>Reset</Button>
+          </span>
+        </span>
+
         <div className="spacer2"/>
 
         <canvas id='chart'/>
@@ -680,7 +798,11 @@ class VideoController extends React.Component {
 
         <Divider/>
 
-        <label className="range-label">[Effect]</label>
+        <label className="range-label name" onClick={this.resetEffect}>[Effect]</label>
+        <span className='video buttons others'>
+          <Button compact primary onClick={this.setAsDefault.bind(this, 'filter', false)}>Set as Default</Button>
+          <Button compact primary onClick={this.setAsDefault.bind(this, 'filter', true)}>Reset Default</Button>
+        </span>
         <div className="spacer2"/>
 
         {videoFilters.map((f,ind) => {
@@ -690,9 +812,19 @@ class VideoController extends React.Component {
               <input type="range" min="0" max={f.max} name={f.name} step={f.step} value={filter[f.name] == null ? f.defaultValue : filter[f.name]} onInput={this.onInput.bind(this, `filter#${f.name}`)} onWheel={this.onWheel}/>
             </div>
             <label className="range-value">{filter[f.name] == null ? f.defaultValue : filter[f.name]}{f.unit}</label>
-            <div className="spacer2"/>
+            {ind == videoFilters.length - 1 ? null : <div className="spacer2"/>}
           </span>
         })}
+
+        <Divider/>
+
+        <label className="range-label">[Options]</label>
+
+        <div className="spacer2"/>
+
+        <Checkbox label='Show Current Time Badge' checked={!!v.showCurrentTime} onChange={() => this.onClick('showCurrentTime')}/>
+
+        <div className="spacer2"/>
 
       </Segment>
     </Container>

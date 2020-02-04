@@ -33835,7 +33835,7 @@ __webpack_require__(899);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-window.debug = __webpack_require__(905)('info');
+window.debug = __webpack_require__(906)('info');
 // require('debug').enable("info")
 
 const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd';
@@ -33843,7 +33843,7 @@ const baseURL = 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd';
 const initPromise = _l10n2.default.init();
 
 
-const convertUrlMap = new Map([['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html', ''], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html', 'about:blank'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html', 'chrome://bookmarks2/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html', 'chrome://bookmarks-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html', 'chrome://history2/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_history_sidebar.html', 'chrome://tab-history-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_trash_sidebar.html', 'chrome://tab-trash-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download_sidebar.html', 'chrome://download-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note_sidebar.html', 'chrome://note-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note.html', 'chrome://note/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/saved_state_sidebar.html', 'chrome://session-manager-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history_sidebar.html', 'chrome://history-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html', 'chrome://explorer/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer_sidebar.html', 'chrome://explorer-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html', 'chrome://download/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html', 'chrome://terminal/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html', 'chrome://converter/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html', 'chrome://automation/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html', 'chrome://setting/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general', 'chrome://setting#general'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search', 'chrome://setting#search'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs', 'chrome://setting#tabs'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#keyboard', 'chrome://setting#keyboard'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extensions', 'chrome://setting#extensions']]);
+const convertUrlMap = new Map([['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/top.html', ''], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/blank.html', 'about:blank'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html', 'chrome://bookmarks2/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite_sidebar.html', 'chrome://bookmarks-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html', 'chrome://history2/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_history_sidebar.html', 'chrome://tab-history-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/tab_trash_sidebar.html', 'chrome://tab-trash-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download_sidebar.html', 'chrome://download-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note_sidebar.html', 'chrome://note-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/note.html', 'chrome://note/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/saved_state_sidebar.html', 'chrome://session-manager-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history_sidebar.html', 'chrome://history-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer.html', 'chrome://explorer/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/explorer_sidebar.html', 'chrome://explorer-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/download.html', 'chrome://download/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/terminal.html', 'chrome://terminal/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/converter.html', 'chrome://converter/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/automation.html', 'chrome://automation/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/video_controller_sidebar.html', 'chrome://video-controller-sidebar/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/video_controller.html', 'chrome://video-controller/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html', 'chrome://setting/'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#general', 'chrome://setting#general'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#search', 'chrome://setting#search'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#tabs', 'chrome://setting#tabs'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#keyboard', 'chrome://setting#keyboard'], ['chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/settings.html#extensions', 'chrome://setting#extensions']]);
 
 const convertUrlReg = /^chrome\-extension:\/\/dckpbojndfoinamcdamhkjhnjnmjkfjd\/(video|ace|bind)\.html\?url=([^&]+)/;
 const convertUrlPdfReg = /^chrome\-extension:\/\/jdbefljfgobbmcidnmpjamcbhnbphjnb\/content\/web\/viewer\.html\?file=(.+?)$/;
@@ -34008,6 +34008,7 @@ class TopMenu extends _infernoCompat2.default.Component {
             onMouseDown: e => e.target.addEventListener('mouseup', e => _ipcRenderer.ipcRenderer.send('send-to-host', e.button == 0 && !e.ctrlKey ? 'load-url' : this.props.oppositeGlobal ? 'open-tab-opposite' : 'open-tab', this.props.useChromeBookmarkPage ? 'chrome://bookmarks/' : 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/favorite.html', true, !this.props.oppositeGlobal && (e.button == 1 || e.ctrlKey)), { once: true }) }),
           _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html', id: 'history-link', key: 'history', name: _l10n2.default.translation('history') }),
           _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/download.html`, key: 'download', name: _l10n2.default.translation('downloads') }),
+          _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/video_controller.html`, key: 'video-controller', name: 'Video Controller' }),
           _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/note.html`, key: 'note', name: _l10n2.default.translation('note') }),
           _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/settings.html`, key: 'settings', name: _l10n2.default.translation('settings') }),
           _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/explorer.html`, key: 'file-explorer', name: _l10n2.default.translation('fileExplorer') }),
@@ -34315,7 +34316,7 @@ const App = props => {
   );
 };
 
-__webpack_require__(908)('themeTopPage');
+__webpack_require__(909)('themeTopPage');
 
 const key = Math.random().toString();
 _ipcRenderer.ipcRenderer.send("get-main-state", key, ['bookmarkbarLink', 'bookmarkBar', 'bookmarkBarTopPage', 'useChromeBookmarkPage', 'oppositeGlobal']);
@@ -49689,6 +49690,7 @@ class App extends _infernoCompat2.default.Component {
             _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { key: 'favorite', icon: 'star', active: true }),
             _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/history_sidebar.html`, key: 'history', icon: 'history' }),
             _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/download_sidebar.html`, key: 'download', icon: 'download' }),
+            _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/video_controller_sidebar.html`, key: 'video-controller', icon: 'play' }),
             _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/note_sidebar.html`, key: 'note', icon: 'sticky note' }),
             _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/saved_state_sidebar.html`, key: 'database', icon: 'database' }),
             _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/tab_trash_sidebar.html`, key: 'trash', icon: 'trash' }),
@@ -49710,6 +49712,7 @@ class App extends _infernoCompat2.default.Component {
             _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { key: 'favorite', name: l10n.translation('bookmarks'), active: true }),
             _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: 'chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/history.html', id: 'history-link', key: 'history', name: l10n.translation('history') }),
             _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/download.html`, key: 'download', name: l10n.translation('downloads') }),
+            _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/video_controller.html`, key: 'video-controller', name: 'Video Controller' }),
             _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/note.html`, key: 'note', name: l10n.translation('note') }),
             _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/settings.html`, key: 'settings', name: l10n.translation('settings') }),
             _infernoCompat2.default.createElement(_semanticUiReact.Menu.Item, { as: 'a', href: `${baseURL}/explorer.html`, key: 'file-explorer', name: l10n.translation('fileExplorer') }),
@@ -80281,6 +80284,107 @@ if (window.__started_) {
     ipc.send('fullscreen-change', document.fullscreenElement !== null);
   };
 
+  const videoThumbnail = async (isCapture, isDownload, imageWidth) => {
+    function getTime(seconds) {
+      return `${seconds > 3600 ? Math.floor(seconds / 3600).toString().padStart(2, '0') + ':' : ''}${Math.floor(seconds % 3600 / 60).toString().padStart(2, '0')}:${Math.floor(seconds % 60).toString().padStart(2, '0')}`;
+    }
+
+    function fillText(context, text, width, height) {
+      const fontSize = 16;
+      const margin = 2;
+      context.font = `${fontSize}px Arial`;
+      const mText = context.measureText(text);
+      context.fillStyle = 'rgba(0,0,0,.6)';
+      context.fillRect(width - mText.width - margin * 3, height - fontSize - margin * 3, mText.width + margin * 2, fontSize + margin * 2);
+      context.fillRect(width - mText.width - margin * 3, height - fontSize - margin * 3, mText.width + margin * 2, fontSize + margin * 2);
+
+      context.textBaseline = 'bottom';
+      context.textAlign = 'end';
+      context.fillStyle = '#fff';
+      context.fillText(text, width - margin * 2, height - margin * 2 + 2);
+    }
+
+    const video = document.querySelector('video._video-controlled-elem__');
+    const vWidth = video.videoWidth;
+    const vHeight = video.videoHeight;
+
+    if (imageWidth == null) imageWidth = video.videoWidth;
+
+    const canvas = document.querySelector('#_thumbnail__') || document.createElement('canvas');
+    canvas.id = '_thumbnail__';
+    canvas.width = imageWidth;
+    canvas.height = imageWidth / vWidth * vHeight;
+
+    const context = canvas.getContext('2d');
+
+    const currentTime = video.currentTime;
+    const duration = video.duration;
+
+    if (isCapture) {
+      context.drawImage(video, 0, 0, vWidth, vHeight, 0, 0, canvas.width, canvas.height);
+      const imgUrl = canvas.toDataURL();
+
+      if (isDownload) {
+        return [imgUrl];
+      } else {
+        const div = document.createElement('div');
+        const rect = video.getBoundingClientRect();
+        div.style.left = `${Math.round(rect.left) + window.scrollX}px`;
+        div.style.top = `${Math.round(rect.top + rect.height) + 60 + window.scrollY}px`;
+        div.style.position = 'fixed';
+        div.style.maxWidth = '1300px';
+        div.style.zIndex = 2147483647;
+        div.addEventListener('click', () => document.body.removeChild(div));
+
+        const img = document.createElement('img');
+        img.src = imgUrl;
+        img.style.width = `${imageWidth}px`;
+        img.style.height = 'auto';
+        div.appendChild(img);
+        document.body.insertBefore(div, document.body.firstChild);
+      }
+    } else {
+      const SPLIT_NUM = 10;
+      const imgUrls = [];
+      const div = document.createElement('div');
+
+      for (let i = 0; i < SPLIT_NUM; i++) {
+        const imgUrl = await new Promise(r => {
+          const time = duration / SPLIT_NUM * i || 1;
+          video.currentTime = time;
+          video.addEventListener('seeked', () => {
+            context.drawImage(video, 0, 0, vWidth, vHeight, 0, 0, canvas.width, canvas.height);
+            fillText(context, getTime(time), canvas.width, canvas.height);
+            r(canvas.toDataURL());
+          });
+        });
+
+        if (isDownload) {
+          imgUrls.push(imgUrl);
+        } else {
+          const img = document.createElement('img');
+          img.src = imgUrl;
+          img.style.width = `${imageWidth}px`;
+          img.style.height = 'auto';
+          div.appendChild(img);
+        }
+      }
+      video.currentTime = currentTime;
+      if (isDownload) {
+        return imgUrls;
+      } else {
+        const rect = video.getBoundingClientRect();
+        div.style.left = `${Math.round(rect.left) + window.scrollX}px`;
+        div.style.top = `${Math.round(rect.top + rect.height) + 60 + window.scrollY}px`;
+        div.style.position = 'fixed';
+        div.style.maxWidth = '1300px';
+        div.style.zIndex = 2147483647;
+        div.addEventListener('click', () => document.body.removeChild(div));
+        document.body.insertBefore(div, document.body.firstChild);
+      }
+    }
+  };
+
   document.addEventListener('fullscreenchange', fullscreenListener);
   document.addEventListener('webkitfullscreenchange', fullscreenListener);
 
@@ -80388,8 +80492,6 @@ if (window.__started_) {
     });
   }, 100);
 
-  let preAElemsLength = 0;
-  const openTime = Date.now();
   const ResizeEventMap = new Map();
   const funcPlay = e => e.target.pause();
   const funcPause = e => e.target.play();
@@ -80410,13 +80512,6 @@ if (window.__started_) {
 
       document.addEventListener('mouseup', e => {
         ipc.send('send-to-host', 'webview-mouseup', e.button);
-        // if(mdownEvent && e.target == mdownEvent.target &&
-        //   e.button == mdownEvent.button && (e.button == 0 || e.button == 1)){
-        //   const ele = e.target.closest('a')
-        //   if(ele && ele.href.startsWith('http')){
-        //     setTimeout(()=>setVisitedLinkColor(true),200)
-        //   }
-        // }
       }, { passive: true, capture: true });
 
       document.addEventListener('mouseleave', e => {
@@ -80428,43 +80523,6 @@ if (window.__started_) {
         ipc.send('fullscreen-change', false, 1000);
         ipc.send('send-to-host', 'scroll-position', { x: window.scrollX, y: window.scrollY });
         ipc.send('contextmenu-webContents-close');
-      });
-
-      document.addEventListener("DOMContentLoaded", _ => {
-        if (location.href.startsWith('https://chrome.google.com/webstore')) {
-          setInterval(_ => {
-            const ele = document.querySelector(".h-e-f-Ra-c.e-f-oh-Md-zb-k");
-            if (ele && !ele.innerHTML) {
-              ele.innerHTML = `<div role="button" class="dd-Va g-c-wb g-eg-ua-Uc-c-za g-c-Oc-td-jb-oa g-c g-c-Sc-ci" aria-label="add to chrome" tabindex="0" style="user-select: none;"><div class="g-c-Hf"><div class="g-c-x"><div class="g-c-R webstore-test-button-label">add to chrome</div></div></div></div>`;
-              ele.querySelector(".dd-Va.g-c-wb.g-eg-ua-Uc-c-za.g-c-Oc-td-jb-oa.g-c.g-c-Sc-ci").addEventListener('click', _ => ipc.send('add-extension', { id: location.href.split("/").slice(-1)[0].split("?")[0] }));
-            }
-            let buttons = document.querySelectorAll(".dd-Va.g-c-wb.g-eg-ua-Kb-c-za.g-c-Oc-td-jb-oa.g-c");
-            if (buttons && buttons.length) {
-              for (let button of buttons) {
-                const loc = button.parentNode.parentNode.parentNode.parentNode.href.split("/").slice(-1)[0].split("?")[0];
-                const parent = button.parentNode;
-                parent.innerHTML = `<div role="button" class="dd-Va g-c-wb g-eg-ua-Kb-c-za g-c-Oc-td-jb-oa g-c" aria-label="add to chrome" tabindex="0" style="user-select: none;"><div class="g-c-Hf"><div class="g-c-x"><div class="g-c-R webstore-test-button-label">add to chrome</div></div></div></div>`;
-                parent.querySelector(".dd-Va.g-c-wb.g-eg-ua-Kb-c-za.g-c-Oc-td-jb-oa.g-c").addEventListener('click', e => {
-                  e.stopImmediatePropagation();
-                  e.preventDefault();
-                  ipc.send('add-extension', { id: loc });
-                }, true);
-              }
-            }
-          }, 1000);
-        } else if (location.href.match(/^https:\/\/addons\.mozilla\.org\/.+?\/firefox/) && !document.querySelector('.Badge.Badge-not-compatible')) {
-          let url;
-          const func = _ => ipc.send('add-extension', { url });
-          setInterval(_ => {
-            const b = document.querySelector('.Button--action.Button--puffy:not(.Button--disabled)');
-            if (!b) return;
-            if (b.href != 'javascript:void(0)') url = b.href;
-
-            b.innerText = 'Add to Sushi';
-            b.addEventListener('click', func);
-            b.href = 'javascript:void(0)';
-          }, 1000);
-        }
       });
     }
 
@@ -80492,16 +80550,23 @@ if (window.__started_) {
 
     const resizeEvent = v => {
 
-      let x, y;
+      let x, y, totalMoveX, totalMoveY;
       const mmove = e => {
-        clickEventCancel = true;
+
+        totalMoveX += Math.abs(e.movementX);
+        totalMoveY += Math.abs(e.movementY);
+
+        if (totalMoveX > 10 || totalMoveY > 10) {
+          clickEventCancel = true;
+        }
+
         const val = parseInt(v.style.width);
         if (val != 100 && !isNaN(val)) {
           const moveX = e.pageX - x;
           x = e.pageX;
           const moveY = e.pageY - y;
           y = e.pageY;
-          const xVal = parseInt(v.style.left) + moveX * 3;
+          const xVal = v.style.left == 'auto' ? 0 : parseInt(v.style.left) + moveX * 3;
           const yVal = parseInt(v.style.top) + moveY * 3;
           v.style.setProperty('left', `${xVal}px`, 'important');
           v.style.setProperty('top', `${yVal}px`, 'important');
@@ -80520,15 +80585,29 @@ if (window.__started_) {
 
       const mdown = e => {
         if (e.button != 0) return;
-        x = e.pageX1;
+        totalMoveX = 0;
+        totalMoveY = 0;
+        x = e.pageX;
         y = e.pageY;
         v.addEventListener("mousemove", mmove, false);
         v.addEventListener("mouseleave", mup, false);
         v.addEventListener("mouseup", mup, false);
       };
       v.addEventListener('mousedown', mdown, false);
+      v._mdown_ = mdown;
 
       return mdown;
+    };
+
+    const removeSpan = (v, span, beforeRemoveIds) => {
+      beforeRemoveIds.set(v, setTimeout(_ => {
+        if (!document.querySelector('._maximize_span_:hover')) {
+          document.documentElement.removeChild(span);
+        } else {
+          clearTimeout(beforeRemoveIds.get(v));
+          removeSpan(v, span, beforeRemoveIds);
+        }
+      }, 2000));
     };
 
     setInterval(() => {
@@ -80551,7 +80630,7 @@ if (window.__started_) {
     background-color: #cccccc;
     height: 12px;
     border-radius: 3px;
-    width: 100px;
+    width: 110px;
     display: block;
     margin: 4px auto;
     outline: none;
@@ -80572,18 +80651,13 @@ if (window.__started_) {
     `;
             s.appendChild(document.createTextNode(style));
             document.head.appendChild(s);
-
-            const s2 = document.createElement('style');
-            s2.setAttribute('type', 'text/css');
-            s2.setAttribute('id', 'style_element2_');
-            document.head.appendChild(s2);
           }
 
           console.log('func');
           const existElement = document.querySelector(`#maximize-org-video${id}`);
           if (existElement) {
             clearTimeout(beforeRemoveIds.get(v));
-            beforeRemoveIds.set(v, setTimeout(_ => document.documentElement.removeChild(existElement), 2000));
+            removeSpan(v, existElement, beforeRemoveIds);
             return;
           }
 
@@ -80671,7 +80745,18 @@ if (window.__started_) {
           span.addEventListener('mouseenter', () => span.style.background = 'rgba(80,80,80,0.9)');
           span.addEventListener('mouseleave', () => span.style.background = 'rgba(50,50,50,0.9)');
 
-          beforeRemoveIds.set(v, setTimeout(_ => document.documentElement.removeChild(span), 2000));
+          removeSpan(v, span, beforeRemoveIds);
+
+          const func = (v, span, beforeRemoveIds) => {
+            beforeRemoveIds.set(v, setTimeout(_ => {
+              if (!document.querySelector('._maximize_span_:hover')) {
+                document.documentElement.removeChild(span);
+              } else {
+                clearTimeout(beforeRemoveIds.get(v));
+                func();
+              }
+            }, 2000));
+          };
         };
 
         let mouseMoveEvent = {};
@@ -80747,6 +80832,7 @@ if (window.__started_) {
       v._olds_.outline = v.style.outline;
       v._olds_.transform = v.style.transform;
       v._olds_.opacity = v.style.opacity;
+      v._olds_.objectFit = v.style.objectFit;
 
       if (_v) {
         _v._olds_ = {};
@@ -80766,14 +80852,26 @@ if (window.__started_) {
       }
 
       if (!isIframe) {
-        ;(_v || v)._clickCallback_ = async () => {
-          for (let i = 0; i < 10; i++) {
-            ;(_v || v).setAttribute('controls', true);
-            await new Promise(r => setTimeout(r, 100));
-          }
-        };(_v || v).addEventListener('click', (_v || v)._clickCallback_);
-
-        if (!_v) v.setAttribute('controls', true);
+        if (!_v) {
+          v._clickCallback_ = e => {
+            e.preventDefault();(async () => {
+              for (let i = 0; i < 10; i++) {
+                if (v.controls) break;
+                v.setAttribute('controls', true);
+                await new Promise(r => setTimeout(r, 100));
+              }
+            })();
+          };
+          v.setAttribute('controls', true);
+          v.addEventListener('click', v._clickCallback_);
+        } else {
+          v._clickCallback_ = e => {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            return false;
+          };
+          _v.addEventListener('click', v._clickCallback_);
+        }
       } else {
         v.setAttribute('_key_', 'video');
       }
@@ -80798,7 +80896,8 @@ if (window.__started_) {
       v.style.setProperty('border', '0', 'important');
       v.style.setProperty('outline', '0', 'important');
       v.style.setProperty('transform', 'none', 'important');
-      v.style.setProperty('opacity', '1', 'important');(_v || v).classList.add('_maximize-org_');
+      v.style.setProperty('opacity', '1', 'important');
+      v.style.setProperty('object-fit', 'contain', 'important');(_v || v).classList.add('_maximize-org_');
 
       if (_v) {
         clearInterval(_v.intervalId);
@@ -80806,11 +80905,13 @@ if (window.__started_) {
           if (!_v.style.getPropertyPriority('top')) {
             _v.style.setProperty('width', '100vw', 'important');
             _v.style.setProperty('height', '100vh', 'important');
+            _v.style.setProperty('left', 'auto', 'important');
             _v.style.setProperty('top', '0px', 'important');
           }
         }, 50);
         _v.style.setProperty('width', '100vw', 'important');
         _v.style.setProperty('height', '100vh', 'important');
+        _v.style.setProperty('left', 'auto', 'important');
         _v.style.setProperty('top', '0px', 'important');
       }
 
@@ -80825,6 +80926,7 @@ if (window.__started_) {
         document.documentElement.insertBefore(v, document.body);
       }
     } else {
+      // document.removeEventListener('mousedown', v._mousedownCallback_, false)
       ;(_v || v).removeEventListener('click', v._clickCallback_);
 
       if (ResizeEventMap.has(_v || v)) {
@@ -80852,7 +80954,8 @@ if (window.__started_) {
       v.style.border = v._olds_.border;
       v.style.outline = v._olds_.outline;
       v.style.transform = v._olds_.transform;
-      v.style.opacity = v._olds_.opacity;(_v || v).classList.remove('_maximize-org_');
+      v.style.opacity = v._olds_.opacity;
+      v.style.objectFit = v._olds_.objectFit;(_v || v).classList.remove('_maximize-org_');
 
       if (_v) {
         clearInterval(_v.intervalId);
@@ -80880,7 +80983,8 @@ if (window.__started_) {
       }
 
       delete v._olds_;
-      delete (_v || v)._clickCallback_;
+      delete v._clickCallback_;
+      // delete (_v || v)._mousedownCallback_
     }
   }
 
@@ -80923,24 +81027,27 @@ if (window.__started_) {
     ipc.send('send-to-host', 'webview-keydown', { key: e.key, keyCode: e.keyCode, which: e.which, button: e.button, ctrlKey: e.ctrlKey, metaKey: e.metaKey, altKey: e.altKey });
   }, { capture: true });
 
-  function streamFunc(val) {
-    window._mediaElements_ = window._mediaElements_ || {};
+  function streamFunc(val, immediate, v) {
+    window._mediaElements_ = window._mediaElements_ || new Map();
     if (window._mediaIntervalId) clearInterval(window._mediaIntervalId);
-    window._mediaIntervalId = setInterval(_ => {
-      for (let stream of document.querySelectorAll('video,audio')) {
+
+    const func = _ => {
+      const streams = v ? [v] : document.querySelectorAll('video,audio');
+      for (let stream of streams) {
         const audioCtx = new window.AudioContext();
-        let gainNode = window._mediaElements_[stream];
+        let gainNode = window._mediaElements_.get(stream);
         if (!gainNode) {
           const source = audioCtx.createMediaElementSource(stream);
-          window._mediaElements_[stream] = source;
           gainNode = audioCtx.createGain();
-          window._mediaElements_[stream] = gainNode;
+          window._mediaElements_.set(stream, gainNode);
           source.connect(gainNode);
           gainNode.connect(audioCtx.destination);
         }
         if (gainNode.gain.value != val / 10.0) gainNode.gain.value = val / 10.0;
       }
-    }, 500);
+    };
+    if (immediate) func();
+    window._mediaIntervalId = setInterval(func, 500);
   }
 
   const key = Math.random().toString();
@@ -81105,12 +81212,21 @@ if (window.__started_) {
     if (data.inputHistory && !location.href.startsWith('chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd')) {
       __webpack_require__(904)(data.inputHistoryMaxChar);
     }
-    // if(data.hoverStatusBar || data.hoverBookmarkBar){
-    //   document.addEventListener('mousemove',e=>{
-    //     ipc.send('send-to-host', 'webview-mousemove',e.clientY)
-    //   },{passive:true})
-    // }
   });
+
+  const zoomVideo = async (v, name, value, isIncrement) => {
+    if (v._olds_) {
+      let resizer = document.querySelector('._maximize_resizer_');
+      if (!resizer) {
+        v.mouseMoveFunc();
+        await new Promise(r => setTimeout(r, 10));
+        resizer = document.querySelector('._maximize_resizer_');
+      }
+      const val = isIncrement ? parseInt(v.style.width) / 100.0 + value : value;
+      resizer.value = val;
+      v.inputFunc();
+    }
+  };
 
   let isFirst = true,
       clickEventCancel;
@@ -81140,73 +81256,18 @@ if (window.__started_) {
       setTimeout(_ => document.documentElement.removeChild(span), 2000);
     };
 
-    let nothing,
-        playOrPauseMap = new Map();
-    const eventHandler = async (e, name, target, isPaused, prevProcess) => {
+    let nothing;
+    const eventHandler = async (e, name, target, isPaused) => {
       let i = 0;
       const v = target || e.target;
 
-      if (prevProcess) {
-        if (name == 'playOrPause') {
-          const funcNoStartPlayOrPauseCancel = () => {
-            console.log('playOrPause1', isPaused);
-            isPaused ? v.pause() : v.play();
-          };
-          const funcPauseOrPauseCancel = () => {
-            console.log('playOrPause2', isPaused);
-            v.removeEventListener(isPaused ? 'pause' : 'play', funcPauseOrPauseCancel);
-            isPaused ? v.play() : v.pause();
-          };
-
-          if (playOrPauseMap.has(v)) {
-            const events = playOrPauseMap.get(v);
-            v.removeEventListener('play', events[0]);
-            v.removeEventListener('pause', events[0]);
-            v.removeEventListener('play', events[1]);
-            v.removeEventListener('pause', events[1]);
-          }
-          playOrPauseMap.set(v, [funcNoStartPlayOrPauseCancel, funcPauseOrPauseCancel]);
-          v.addEventListener(isPaused ? 'play' : 'pause', funcNoStartPlayOrPauseCancel);
-        }
-        return;
-      }
-
       if (name == 'playOrPause') {
         console.log('paused1', isPaused);
-
-        const events = playOrPauseMap.get(v);
-
-        v.addEventListener(isPaused ? 'pause' : 'play', events[1]);
-        setTimeout(() => v.removeEventListener(isPaused ? 'pause' : 'play', events[1]), 400);
-
-        if (clickEventCancel) {
-          setTimeout(() => v.removeEventListener(isPaused ? 'play' : 'pause', events[0]), 200);
-        } else {
-          v.removeEventListener(isPaused ? 'play' : 'pause', events[0]);
+        if (!clickEventCancel) {
           isPaused ? v.play() : v.pause();
         }
+        return;
       } else if (name == 'fullscreen') {
-        // if(location.href.startsWith('https://www.youtube.com')){
-        //   const newStyle = document.createElement('style')
-        //   newStyle.type = "text/css"
-        //   document.head.appendChild(newStyle)
-        //   const css = document.styleSheets[0]
-        //
-        //   const idx = document.styleSheets[0].cssRules.length;
-        //   css.insertRule(".ytp-popup.ytp-generic-popup { display: none; }", idx)
-        // }
-        // const isFullscreen = v.scrollWidth == window.innerWidth || v.scrollHeight == window.innerHeight
-        // const isFull = await new Promise(r=>{
-        //   const key = Math.random().toString()
-        //   ipc.send('toggle-fullscreen2',void 0, key)
-        //   ipc.once(`toggle-fullscreen2-reply_${key}`, (e,result) => r(result))
-        // })
-        // console.log(isFullscreen,isFull,v.offsetWidth, window.innerWidth,v.offsetHeight, window.innerHeight)
-        // if(isFullscreen == isFull){
-        //   e.preventDefault()
-        //   e.stopImmediatePropagation()
-        //   return
-        // }
         const fullscreenButton = document.querySelector('.ytp-fullscreen-button,.fullscreenButton,.button-bvuiFullScreenOn,.fullscreen-icon,.full-screen-button,.np_ButtonFullscreen,.vjs-fullscreen-control,.qa-fullscreen-button,[data-testid="fullscreen_control"],.vjs-fullscreen-control,.EnableFullScreenButton,.DisableFullScreenButton,.mhp1138_fullscreen,button.fullscreenh,.screenFullBtn,.player-fullscreenbutton');
         console.log(fullscreenButton, v.webkitDisplayingFullscreen);
         if (fullscreenButton) {
@@ -81220,13 +81281,6 @@ if (window.__started_) {
         }
         // maximizeInPanel(v)
       } else if (name == 'exitFullscreen') {
-        // const isFull = await new Promise(r=>{
-        //   const key = Math.random().toString()
-        //   ipc.send('toggle-fullscreen2',1, key)
-        //   ipc.once(`toggle-fullscreen2-reply_${key}`, (e,result) => r(result))
-        // })
-        // const isFullscreen = v.offsetWidth == window.innerWidth || v.offsetHeight == window.innerHeight
-        // if(isFullscreen == isFull) return
         const fullscreenButton = document.querySelector('.ytp-fullscreen-button,.fullscreenButton,.button-bvuiFullScreenOn,.fullscreen-icon,.full-screen-button,.np_ButtonFullscreen,.vjs-fullscreen-control,.qa-fullscreen-button,[data-testid="fullscreen_control"],.vjs-fullscreen-control,.EnableFullScreenButton,.DisableFullScreenButton,.mhp1138_fullscreen,button.fullscreenh,.screenFullBtn,.player-fullscreenbutton');
         if (fullscreenButton) {
           fullscreenButton.click();
@@ -81291,17 +81345,7 @@ if (window.__started_) {
         v.loop = !v.loop;
         popUp(v, `Loop: ${v.loop ? "ON" : "OFF"}`);
       } else if (name == 'zoomIn' || name == 'zoomOut') {
-        if (v._olds_) {
-          let resizer = document.querySelector('._maximize_resizer_');
-          if (!resizer) {
-            v.mouseMoveFunc();
-            await new Promise(r => setTimeout(r, 10));
-            resizer = document.querySelector('._maximize_resizer_');
-          }
-          const val = parseInt(v.style.width) / 100.0 + (name == 'zoomIn' ? 0.1 : -0.1);
-          resizer.value = val;
-          v.inputFunc();
-        }
+        zoomVideo(v, name, name == 'zoomIn' ? 0.1 : -0.1, true);
       } else {
         nothing = true;
       }
@@ -81315,7 +81359,9 @@ if (window.__started_) {
     if (inputs.click2 && matchReg('click')) {
       let isPaused = void 0,
           _target;
+
       document.addEventListener('mousedown', e => {
+        if (e.button != 0) return;
         console.log('moudedown');
         let target = e.target;
         if (e.target.tagName !== 'VIDEO') {
@@ -81334,11 +81380,19 @@ if (window.__started_) {
         }
         isPaused = target ? target.paused : void 0;
         _target = target;
-        eventHandler(e, inputs.click2, _target, isPaused, true);
+        if (target) {
+          target.classList.add('_mousedowned_');
+          ipc.send('cancel-pause-mode', isPaused);
+          if (target.classList.contains('_maximize-org_')) {
+            e.preventDefault();
+            e.stopPropagation();
+            target._mdown_(e);
+          }
+        }
       }, true);
       document.addEventListener('click', e => {
         console.log('click');
-        if (isPaused !== void 0 && e.button == 0 && _target) {
+        if (isPaused !== void 0 && _target) {
           eventHandler(e, inputs.click2, _target, isPaused);
         }
         _target = void 0;
@@ -81347,6 +81401,7 @@ if (window.__started_) {
 
     if (inputs.dbClick && matchReg('dbClick')) {
       document.addEventListener('dblclick', e => {
+        if (e.button != 0) return;
         console.log('dblclick');
         let target = e.target;
         if (e.target.tagName !== 'VIDEO') {
@@ -81450,11 +81505,26 @@ if (window.__started_) {
   ipc.on('on-stream-event', (e, val) => {
     chrome.runtime.sendMessage({ event: "stream-event", val });
   });
+
+  let equalizer;
   chrome.runtime.onMessage.addListener(inputs => {
     if (inputs.stream) {
       streamFunc(inputs.val);
     } else if (inputs.video) {
       videoFunc({}, inputs.val);
+      if (inputs.val.showCurrentTime) {
+        for (const v of document.querySelectorAll('video')) {
+          let preTime = 0;
+          v.addEventListener('timeupdate', () => {
+            const time = Math.floor(v.currentTime);
+            if (time - preTime >= 1) {
+              ipc.send('send-to-host', 'showCurrentTime', time);
+              preTime = time;
+            }
+          });
+        }
+        window.addEventListener("beforeunload", e => ipc.send('send-to-host', 'showCurrentTime', null));
+      }
     } else if (inputs.maximizeInPanel) {
       if (window == window.parent) {
         const iframes = document.querySelectorAll('iframe');
@@ -81471,6 +81541,62 @@ if (window.__started_) {
             return false;
           }
         }
+      }
+    } else if (inputs.controller) {
+      const name = inputs.name;
+      const val = inputs.val;
+
+      const v = document.querySelector('video._video-controlled-elem__');
+      if (!v) return;
+
+      if (name == 'boost') {
+        return streamFunc(val * 10, true, v);
+      }
+
+      if (name == 'seek') {
+        const type = val[0];
+        if (type == 'play') {
+          v[v.paused ? 'play' : 'pause']();
+        } else if (type == 'loop') {
+          v.loop = !v.loop;
+        } else {
+          v.currentTime += type == 'backward2' ? -parseInt(val[2]) : type == 'backward1' ? -parseInt(val[1]) : type == 'step-backward' ? -1 / 30 : type == 'forward2' ? parseInt(val[2]) : type == 'forward1' ? parseInt(val[1]) : 1 / 30;
+        }
+      } else if (name == 'mute') {
+        v.muted = !v.muted;
+      } else if (name == 'maximize') {
+        maximizeInPanel(v);
+      } else if (name == 'fullscreen') {
+        v.webkitRequestFullscreen();
+      } else if (name == 'zoom') {
+        zoomVideo(v, void 0, val);
+      } else if (name == 'filter') {
+        v.style.filter = val;
+      } else if (name == 'abRepeat') {
+        v._abRepeat_ = val[0];
+        v._abRepeatRange_ = val[1];
+        v.removeEventListener('timeupdate', v._abRepeatEvent_);
+        v._abRepeatEvent_ = null;
+
+        if (v._abRepeat_) {
+          v._abRepeatEvent_ = () => {
+            const currentTime = v.currentTime;
+            if (currentTime < v._abRepeatRange_[0] || currentTime > v._abRepeatRange_[1]) {
+              v.currentTime = v._abRepeatRange_[0];
+            }
+          };
+          v.addEventListener('timeupdate', v._abRepeatEvent_);
+        }
+      } else if (name == 'equalizer') {
+        if (!equalizer) {
+          const Equalizer = __webpack_require__(905);
+          equalizer = new Equalizer(v);
+        }
+        equalizer.set(val[1]);
+        v._preset_ = val[0];
+        v._equalizer_ = val[1];
+      } else {
+        v[name] = val;
       }
     }
     return false;
@@ -81514,6 +81640,11 @@ if (window.__started_) {
         window.__into_view__ = Date.now();
       }
     }
+  });
+
+  ipc.on('get-thumbnails', async (e, key, isCapture, isDownload, imageWidth) => {
+    const result = await videoThumbnail(isCapture, isDownload, imageWidth);
+    if (isDownload) ipc.send(`get-thumbnails-reply_${key}`, document.title, result);
   });
 
   ipc.on('execute-script-in-isolation-world', (e, key, code) => {
@@ -81615,8 +81746,6 @@ class SyncButton {
     const css = document.createElement('style');
     const rule = document.createTextNode(`
 div.drag-and-drop-inject {
-    padding: 0 !important;
-    margin: 0 !important;
     border: 0 !important;
     padding-bottom: 7px !important; 
     background: linear-gradient(rgba(120, 120, 120,0.2), rgba(100, 100, 100,0.2)) !important;
@@ -81629,6 +81758,7 @@ div.drag-and-drop-inject {
     border-radius: 5px !important;
     -webkit-box-sizing: content-box !important;
     box-sizing: content-box !important;
+    display: -webkit-box !important;
 }
 a.sync-button-inject {
   padding: 0 !important;
@@ -82166,13 +82296,82 @@ module.exports = exports['default'];
 /* 905 */
 /***/ (function(module, exports, __webpack_require__) {
 
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+const ipc = chrome.ipcRenderer;
+
+const EQ = [{ label: 'master', gain: 1 }, { label: '32', f: 32, gain: 0, type: 'lowshelf' }, { label: '64', f: 64, gain: 0, type: 'peaking' }, { label: '125', f: 125, gain: 0, type: 'peaking' }, { label: '250', f: 250, gain: 0, type: 'peaking' }, { label: '500', f: 500, gain: 0, type: 'peaking' }, { label: '1k', f: 1000, gain: 0, type: 'peaking' }, { label: '2k', f: 2000, gain: 0, type: 'peaking' }, { label: '4k', f: 4000, gain: 0, type: 'peaking' }, { label: '8k', f: 8000, gain: 0, type: 'peaking' }, { label: '16k', f: 16000, gain: 0, type: 'highshelf' }];
+
+class Equalizer {
+
+  constructor(stream) {
+    this.audioCtx = new window.AudioContext();
+    this.filters = [];
+    for (const node of EQ) {
+      let filter = false;
+      if (node.f) {
+        filter = this.createFilter(node.f, node.type);
+      } else {
+        window._mediaElements_ = window._mediaElements_ || new Map();
+        let gainNode = window._mediaElements_.get(stream);
+        if (!gainNode) {
+          gainNode = this.audioCtx.createGain();
+          window._mediaElements_.set(stream, gainNode);
+          const source = this.audioCtx.createMediaElementSource(stream);
+          source.connect(gainNode);
+        }
+        filter = gainNode;
+        // filter.gain.value = 1
+        filter.channelCountMode = "explicit";
+      }
+      this.filters.push(filter);
+    }
+
+    this.attach(stream);
+  }
+
+  createFilter(freq, type, gainValue) {
+    const filter = this.audioCtx.createBiquadFilter();
+    filter.type = type;
+    filter.gain.value = gainValue || 0;
+    filter.Q.value = 1;
+    filter.frequency.value = freq || 0;
+    return filter;
+  }
+
+  attach(stream) {
+    for (let i = 0; i < this.filters.length - 1; i++) {
+      const node = this.filters[i + 1];
+      this.filters[i].connect(node);
+    }
+    this.filters[this.filters.length - 1].connect(this.audioCtx.destination);
+  }
+
+  set(eq) {
+    this.filters.slice(1).forEach((filter, i) => {
+      filter.gain.value = eq[i];
+    });
+  }
+
+}
+exports.default = Equalizer;
+module.exports = exports['default'];
+
+/***/ }),
+/* 906 */
+/***/ (function(module, exports, __webpack_require__) {
+
 /**
  * This is the web browser implementation of `debug()`.
  *
  * Expose `debug()` as the module.
  */
 
-exports = module.exports = __webpack_require__(906);
+exports = module.exports = __webpack_require__(907);
 exports.log = log;
 exports.formatArgs = formatArgs;
 exports.save = save;
@@ -82364,7 +82563,7 @@ function localstorage() {
 
 
 /***/ }),
-/* 906 */
+/* 907 */
 /***/ (function(module, exports, __webpack_require__) {
 
 
@@ -82380,7 +82579,7 @@ exports.coerce = coerce;
 exports.disable = disable;
 exports.enable = enable;
 exports.enabled = enabled;
-exports.humanize = __webpack_require__(907);
+exports.humanize = __webpack_require__(908);
 
 /**
  * Active `debug` instances.
@@ -82595,7 +82794,7 @@ function coerce(val) {
 
 
 /***/ }),
-/* 907 */
+/* 908 */
 /***/ (function(module, exports) {
 
 /**
@@ -82753,7 +82952,7 @@ function plural(ms, n, name) {
 
 
 /***/ }),
-/* 908 */
+/* 909 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";

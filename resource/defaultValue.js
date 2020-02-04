@@ -120,6 +120,7 @@ const settingDefault =  {
   clearGeneralSettingsOnClose: false,
   clearSessionManagerOnClose: false,
   clearFaviconOnClose: false,
+  clearVideoControllerOnClose: false,
   clearAutomationOnClose: false,
   clearNoteOnClose: false,
   clearUserSessionOnClose: false,

@@ -1143,6 +1143,9 @@ const isWin = navigator.userAgent.includes('Windows')
             <Checkbox toggle onChange={this.onChange2.bind(this,'clearDownload')}/>
             <span className="toggle-label">{l10n.translation('downloadHistory')}</span>
             <br/>
+            <Checkbox toggle onChange={this.onChange2.bind(this,'clearVideoController')}/>
+            <span className="toggle-label">Video Controller</span>
+            <br/>
             <Checkbox toggle onChange={this.onChange2.bind(this,'clearAutomation')}/>
             <span className="toggle-label">{l10n.translation('automation')}</span>
             <br/>
@@ -1224,6 +1227,9 @@ const isWin = navigator.userAgent.includes('Windows')
             <br/>
             <Checkbox toggle onChange={this.onChange.bind(this,'clearDownloadOnClose')} defaultChecked={this.state.clearDownloadOnClose}/>
             <span className="toggle-label">{l10n.translation('downloadHistory')}</span>
+            <br/>
+            <Checkbox toggle onChange={this.onChange.bind(this,'clearVideoControllerOnClose')} defaultChecked={this.state.clearVideoControllerOnClose}/>
+            <span className="toggle-label">Video Controller</span>
             <br/>
             <Checkbox toggle onChange={this.onChange.bind(this,'clearAutomationOnClose')} defaultChecked={this.state.clearAutomationOnClose}/>
             <span className="toggle-label">{l10n.translation('automation')}</span>
@@ -2925,7 +2931,7 @@ const isWin = navigator.userAgent.includes('Windows')
     'maxrowLabel','orderOfAutoComplete','numOfSuggestion','numOfBookmark','numOfHistory','openTabNextLabel','rightClickTabAdd','middleClickTabAdd','altClickTabAdd','displayFullIcon','downloadPath','windowCustomIcon',
     'defaultDownloadPath','alwaysOpenLinkNewTab','openTabPosition','alwaysOpenLinkBackground','addressBarNewTab','oppositeGlobal','colorNormalText','colorNormalBackground','colorActiveText',
     'colorActiveBackground','colorTabDot','colorUnreadText','colorUnreadBackground','enableColorOfNoSelect','themeColorChange','showBorderActiveTab','historyBadget','colorTabMode','enableDownloadList','focusLocationBar',
-    'clearHistoryOnClose', 'clearDownloadOnClose', 'clearPasswordOnClose', 'clearGeneralSettingsOnClose', 'clearSessionManagerOnClose', 'clearFaviconOnClose', 'clearAutomationOnClose', 'clearNoteOnClose', 'clearUserSessionOnClose',
+    'clearHistoryOnClose', 'clearDownloadOnClose', 'clearPasswordOnClose', 'clearGeneralSettingsOnClose', 'clearSessionManagerOnClose', 'clearFaviconOnClose', 'clearAutomationOnClose', 'clearVideoControllerOnClose', 'clearNoteOnClose', 'clearUserSessionOnClose',
     'clearCookiesOnClose', 'clearFormDataOnClose', 'clearPluginDataOnClose', 'clearAppCacheOnClose', 'clearCacheOnClose', 'clearFileSystemsOnClose', 'clearLocalStorageOnClose', 'clearIndexedDBOnClose', 'clearWebSQLOnClose',
     'clearType','clearDays', 'enableWidevine','toolbarLink','sidebarLink','bookmarkbarLink','zoomBehavior','tabPreviewSizeWidth','tabPreviewSizeHeight','tabPreviewSlideHeight','tabPreviewWait','searchEngineDisplayType','tabPreviewRecent',
     'sendUrlContextMenus','extensions','tabBarMarginTop','removeTabBarMarginTop','enableTheme','themeTopPage','themeBookmark','themeHistory','themeDownloader','themeExplorer','themeBookmarkSidebar','themeHistorySidebar',

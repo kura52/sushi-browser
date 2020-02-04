@@ -18,7 +18,7 @@ const isWin7 = os.platform() == 'win32' && os.release().startsWith('6.1')
 
 const sanitizeFilename = require('./sanitizeFilename')
 const seq = require('./sequence')
-const {state,tabState,visit,savedState,automation,automationOrder,note,inputHistory} = require('./databaseFork')
+const {state,tabState,visit,savedState,automation,automationOrder,note,inputHistory,videoController} = require('./databaseFork')
 const db = require('./databaseFork')
 const FfmpegWrapper = require('./FfmpegWrapper')
 const defaultConf = require('./defaultConf')
@@ -1933,7 +1933,7 @@ ipcMain.on('get-extension-info',(e,key)=>{
   e.sender.send(`get-extension-info-reply_${key}`,extInfos)
 })
 
-ipcMain.on('get-sync-main-states',(e,keys,noSync)=>{
+ipcMain.on('get-sync-main-states',(e,keys,noSync,url)=>{
   const result = keys.map(key=>{
     if(key == 'inputsVideo'){
       const ret = {}
@@ -2000,7 +2000,25 @@ ipcMain.on('get-sync-main-states',(e,keys,noSync)=>{
   })
 
   if(noSync){
-    e.sender.send(`get-sync-main-states-reply_${noSync}`, result)
+    if(keys[0] == 'inputsVideo'){
+      videoController.find({url: {$in: ['_default_', url]}}).then(rec => {
+        let def, target
+        for(const vc of rec){
+          if(vc.url == '_default_'){
+            def = vc
+          }
+          else{
+            target = vc
+          }
+        }
+
+        result[0].videoController = def && target ? {...def, ...target} : target || def
+        e.sender.send(`get-sync-main-states-reply_${noSync}`, result)
+      })
+    }
+    else{
+      e.sender.send(`get-sync-main-states-reply_${noSync}`, result)
+    }
   }
   else{
     e.returnValue = result
@@ -2968,23 +2986,8 @@ ipcMain.on('cancel-pause-mode', (e, isPaused) => {
 function getVideoControlledElement(cont){
   return cont.executeJavaScriptInIsolate("("+ (() =>{
     let v = document.querySelector('video._video-controlled-elem__')
-    if(!v){
-      const videos = document.querySelectorAll('video')
-      if(!videos.length) return null
 
-      let isFirst = true
-      for(const _v of videos){
-        if(!_v.paused){
-          v = _v
-          break
-        }
-        if(isFirst){
-          v = _v
-          isFirst = false
-        }
-      }
-      v.classList.add('_video-controlled-elem__')
-    }
+    if(!v) return null
 
     let zoom = 1, maximize = false
     if(v.classList.contains('_maximize-org_')){
@@ -3009,7 +3012,9 @@ function getVideoControlledElement(cont){
       maximize,
       zoom,
       filter: getComputedStyle(v).filter,
-      title: document.title
+      title: document.title,
+      location: location.href,
+      resolution: `${v.videoWidth}x${v.videoHeight}`
     }
 
   }).toString() + ")()", void 0, void 0, true)
@@ -3068,7 +3073,9 @@ ipcMain.on('get-all-tabs-video-list', async (e, key) => {
   }
   // result.sort((x,y)=> (!x.active && !y.active) || (x.active && y.active) ? 0 : x.active ? -1 : 1)
 
-  e.sender.send(`get-all-tabs-video-list-reply_${key}`, result)
+  const presets = await videoController.findOne({url: '_preset_'})
+
+  e.sender.send(`get-all-tabs-video-list-reply_${key}`, result, presets ? presets.values : void 0)
 })
 
 
@@ -3083,27 +3090,49 @@ ipcMain.on('get-tab-video', async (e, key, tabId) => {
   e.sender.send(`get-tab-video-reply_${key}`, result)
 })
 
-ipcMain.on('change-video-value', async (e, tabId, name, val) => {
-  if(name == 'showCurrentTime'){
-    mainState[name] = !mainState[name]
-    for(let win of BrowserWindow.getAllWindows()) {
-      if(win.getTitle().includes('Sushi Browser')){
-        if(!win.webContents.isDestroyed()) win.webContents.send("update-mainstate",name,mainState[name])
-      }
+ipcMain.on('change-video-value', async (e, tabId, url, name, val) => {
+  if(url != '_default_'){
+    if(name == 'showCurrentTime'){
+      mainState[name] = !mainState[name]
+      return
     }
+
+    await Browser.bg.evaluate((tabId, name, val) => {
+      if(name == 'active'){
+        chrome.tabs.update(tabId, {active: true})
+      }
+      else{
+        chrome.tabs.sendMessage(tabId, {controller: true, name, val})
+      }
+    },tabId, name, val)
+  }
+
+  if(name == 'abRepeat' || name == 'equalizer' || name == 'filter'){
+    let rec = await videoController.findOne({url})
+    if(rec){
+      if(val == null){
+        delete rec.values[name]
+      }
+      else{
+        rec.values[name] = val
+      }
+      await videoController.update({_id:rec._id},rec)
+    }
+    else if(val != null){
+      rec = {url, values: {[name]: val}}
+      await videoController.insert(rec)
+    }
+  }
+})
+
+ipcMain.on('update-preset', async (e, type, presets) => {
+  if(presets == null){
+    videoController.remove({url: '_preset_'})
     return
   }
 
-  await Browser.bg.evaluate((tabId, name, val) => {
-    if(name == 'active'){
-      chrome.tabs.update(tabId, {active: true})
-    }
-    else{
-      chrome.tabs.sendMessage(tabId, {controller: true, name, val})
-    }
-  },tabId, name, val)
+  await videoController.update({url: '_preset_'},{url: '_preset_', values: presets}, {upsert: true})
 })
-
 
 ipcMain.on('get-thumbnails', async (e, tabId, isCapture, isDownload, imageWidth) => {
   const key = Math.random().toString()
@@ -3119,4 +3148,13 @@ ipcMain.on('get-thumbnails', async (e, tabId, isCapture, isDownload, imageWidth)
       shell.showItemInFolder(writePath)
     })
   }
+})
+
+ipcMain.on('on-video-event', async (e, tabId) => {
+  const cont = webContents.fromId(tabId)
+
+  const result = await new Promise(async r => {
+    ipcMain.emit('get-sync-main-states', {sender: {send(_, result){ r(result) } }}, ['inputsVideo'], true, await cont.getURL())
+  })
+  cont.send('on-video-event', result[0])
 })

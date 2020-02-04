@@ -179,6 +179,7 @@ Or, please use the Chromium bundled version.`
 
       args: [
         '--show-component-extension-options',
+        '--whitelisted-extension-id=dckpbojndfoinamcdamhkjhnjnmjkfjd',
         '--no-first-run',
         // '--enable-automation',
         '--metrics-recording-only',
@@ -1636,15 +1637,20 @@ class PopupPanel{
     return panel.getBrowserView({tabKey: this.tabKey}).webContents.focus()
   }
 
-  loadURL(url){
+  async loadURL(url){
     if (!this.panelKey) return
     console.log('loadURL')
     this.moveTop()
-    Browser.bg.evaluate((tabId, url) => {
-      return new Promise(resolve => {
-        chrome.tabs.update(tabId, {url}, tab => resolve(tab))
-      })
-    }, PopupPanel.tabId, url)
+
+
+    const page = await (Browser._pagePromises[PopupPanel.tabId])
+    page.goto(url)
+
+    // Browser.bg.evaluate((tabId, url) => {
+    //   return new Promise(resolve => {
+    //     chrome.tabs.update(tabId, {url}, tab => resolve(tab))
+    //   })
+    // }, PopupPanel.tabId, url)
   }
 
   async executeJavaScript(code, userGesture, callback, retry){

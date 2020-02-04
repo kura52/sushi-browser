@@ -30,6 +30,7 @@ async function clearDatas(){
   if(mainState.clearGeneralSettingsOnClose) targets.push('clearGeneralSettings')
   if(mainState.clearSessionManagerOnClose) targets.push('clearSessionManager')
   if(mainState.clearFaviconOnClose) targets.push('clearFavicon')
+  if(mainState.clearVideoControllerOnClose) targets.push('clearVideoController')
   if(mainState.clearAutomationOnClose) targets.push('clearAutomation')
   if(mainState.clearNoteOnClose) targets.push('clearNote')
   if(mainState.clearUserSessionOnClose) targets.push('clearUserSession')

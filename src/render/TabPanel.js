@@ -47,8 +47,8 @@ const REG_VIDEO = /^https:\/\/www\.(youtube)\.com\/watch\?v=(.+)&?|^http:\/\/www
 const REG_HIGHLIGHT_SITES = /www\.google\..+?q=|search\.yahoo\.c.+?p=|www\.baidu\.com.+?wd|\.baidu\.com.+?word=|www\.ask\.com.+?q=|\.bing\.com.+?q=|www\.youdao\.com.+?q=/
 sharedState.homeURL = topURL
 
-let [newTabMode,inputsVideo,disableTabContextMenus,priorityTabContextMenus,reloadIntervals,closeTabBehavior,keepWindowLabel31,multistageTabs,maxrowLabel,addressBarNewTab,alwaysOpenLinkBackground,adBlockEnable,searchWordHighlight,searchWordHighlightRecursive,openTabPosition,tabPreview,tabPreviewRecent,fullscreenTransition,showAddressBarFavicon,showAddressBarBookmarks,openTabNextLabel] =
-  ipc.sendSync('get-sync-main-states',['newTabMode','inputsVideo','disableTabContextMenus','priorityTabContextMenus','reloadIntervals','closeTabBehavior','keepWindowLabel31','multistageTabs','maxrowLabel','addressBarNewTab','alwaysOpenLinkBackground','adBlockEnable','searchWordHighlight','searchWordHighlightRecursive','openTabPosition','tabPreview','tabPreviewRecent','fullscreenTransition','showAddressBarFavicon','showAddressBarBookmarks','openTabNextLabel'])
+let [newTabMode,disableTabContextMenus,priorityTabContextMenus,reloadIntervals,closeTabBehavior,keepWindowLabel31,multistageTabs,maxrowLabel,addressBarNewTab,alwaysOpenLinkBackground,adBlockEnable,searchWordHighlight,searchWordHighlightRecursive,openTabPosition,tabPreview,tabPreviewRecent,fullscreenTransition,showAddressBarFavicon,showAddressBarBookmarks,openTabNextLabel] =
+  ipc.sendSync('get-sync-main-states',['newTabMode','disableTabContextMenus','priorityTabContextMenus','reloadIntervals','closeTabBehavior','keepWindowLabel31','multistageTabs','maxrowLabel','addressBarNewTab','alwaysOpenLinkBackground','adBlockEnable','searchWordHighlight','searchWordHighlightRecursive','openTabPosition','tabPreview','tabPreviewRecent','fullscreenTransition','showAddressBarFavicon','showAddressBarBookmarks','openTabNextLabel'])
 
 sharedState.tabPreview = tabPreview
 sharedState.tabPreviewRecent = tabPreviewRecent
@@ -90,9 +90,6 @@ function sameArray(arr1, arr2) {
 ipc.on('update-mainstate',(e,key,val)=>{
   if(key == 'myHomepage' || key == 'newTabMode'){
     getNewTabPage()
-  }
-  else if(key == 'showCurrentTime'){
-    inputsVideo.showCurrentTime = val
   }
 })
 getNewTabPage()
@@ -867,7 +864,7 @@ export default class TabPanel extends Component {
       const tab = this.state.tabs.find(t =>t.wvId == record.tabId)
       if(!tab) return
       if(!tab.videoEvent){
-        setTimeout(_=>tab.wv.send('on-video-event',inputsVideo),200)
+        setTimeout(_=>ipc.send('on-video-event', tab.wvId),200)
         tab.videoEvent = true
       }
       if(tab.page.navUrl.match(REG_VIDEO)){

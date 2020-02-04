@@ -308,3 +308,12 @@ input[type=range] {
     margin-left: auto;
     margin-right: auto;
 }
+
+.video.buttons{
+    white-space: pre;
+}
+
+.video.buttons.others{
+    vertical-align: -4px;
+    line-height: 32px;
+}
