@@ -169,7 +169,8 @@ class TopMenu extends React.Component {
             </Menu>
           </div>
         </Sticky> : null}
-        <VideoController word={this.state.word} videos={this.props.videos} data={this.props.data} sidebar={this.props.sidebar} toolPage={this.props.toolPage} tabId={this.props.tabId} setToken={::this.setToken}/>
+        <VideoController word={this.state.word} videos={this.props.videos} data={this.props.data} sidebar={this.props.sidebar}
+                         toolPage={this.props.toolPage} tabId={this.props.tabId} onClick={this.props.onClick} setToken={::this.setToken}/>
       </StickyContainer>
     )
   }
@@ -748,7 +749,10 @@ class VideoController extends React.Component {
         <span className='video buttons'>
           <Button compact primary onClick={()=>this.onClick('active')}>Focus</Button>
           <Button compact primary onClick={() => this.onClick('maximize')}>{v.maximize ? 'Normal' : 'Maximize'}</Button>
-          <Button compact primary onClick={() => setTimeout(()=>this.onClick('fullscreen'),100)}>Fullscreen</Button>
+          <Button compact primary onClick={() => {
+            this.onClick('fullscreen')
+            if(this.props.onClick) this.props.onClick()
+          }}>Fullscreen</Button>
         </span>
 
         <Divider/>
@@ -835,5 +839,5 @@ class VideoController extends React.Component {
 }
 
 export default (props) => (
-  <TopMenu videos={props.videos} data={props.data} sidebar={props.sidebar} toolPage={props.toolPage} l10n={props.l10n} tabId={props.tabId}/>
+  <TopMenu videos={props.videos} data={props.data} sidebar={props.sidebar} toolPage={props.toolPage} l10n={props.l10n} tabId={props.tabId} onClick={props.onClick}/>
 )

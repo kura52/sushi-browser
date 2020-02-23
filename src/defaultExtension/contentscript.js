@@ -426,10 +426,14 @@ if(window.__started_){
             xmod = parseInt(v.style.left) * -1
             ymod = parseInt(v.style.top) * -1
           }
-          const rStyle = `left:${Math.round(rect.left) + 10 + window.scrollX + xmod}px;top:${Math.round(rect.top) + 10 + window.scrollY + ymod}px`
 
-          const span = document.createElement("span")
-          span.appendChild(document.createTextNode(v._olds_ ? `Normal${widthVw == 100 ? '' : ` [${widthVw}%]`}` : 'Maximize'))
+          const isSmall = v.clientWidth <= 400
+          const margin = isSmall ? 3 : 10
+
+          const rStyle = `left:${Math.round(rect.left) + margin + window.scrollX + xmod}px;top:${Math.round(rect.top) + margin + window.scrollY + ymod}px`
+
+          const span =  document.createElement("span")
+          span.appendChild(document.createTextNode(v._olds_ ? `Normal${widthVw == 100 ? '' : ` [${widthVw}%]`}` : isSmall ? 'Max' : 'Maximize'))
 
           if(v._olds_){
             const input = document.createElement('input')

@@ -612,6 +612,8 @@ ipcMain.on('video-infos',(event,{url})=>{
     event.sender.send(`video-infos-reply_${url}`,{cache:true,...cache})
     return
   }
+  videoUrlsCache.set(url,{error:""})
+
   youtubedl.getInfo(url,void 0,{maxBuffer: 7000 * 1024}, async function(err, info) {
     if (err){
       console.log(err)
@@ -665,6 +667,7 @@ ipcMain.on('video-infos',(event,{url})=>{
 
 
 ipcMain.on('get-video-urls',(event,key,url)=>{
+  console.log(2223,url)
   youtubedl.getInfo(url,void 0,{maxBuffer: 7000 * 1024}, function(err, info) {
     console.log(err, info)
     if (err){
@@ -3110,6 +3113,14 @@ ipcMain.on('change-video-value', async (e, tabId, url, name, val) => {
         chrome.tabs.sendMessage(tabId, {controller: true, name, val})
       }
     },tabId, name, val)
+
+
+    if(name == 'fullscreen'){
+      // setTimeout(()=>{
+        const [_1, _2, panel, _3] = BrowserPanel.getBrowserPanelByTabId(tabId)
+        panel.moveTopNativeWindow()
+      // },200)
+    }
   }
 
   if(name == 'abRepeat' || name == 'equalizer' || name == 'filter'){
