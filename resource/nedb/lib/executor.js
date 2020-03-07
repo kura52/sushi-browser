@@ -1,11 +1,12 @@
+'use strict';
+
 /**
  * Responsible for sequentially executing actions on the database
  */
 
-var async = require('async')
-  ;
+var async = require('async');
 
-function Executor () {
+function Executor() {
   this.buffer = [];
   this.ready = false;
 
@@ -14,7 +15,9 @@ function Executor () {
     var newArguments = [];
 
     // task.arguments is an array-like object on which adding a new field doesn't work, so we transform it into a real array
-    for (var i = 0; i < task.arguments.length; i += 1) { newArguments.push(task.arguments[i]); }
+    for (var i = 0; i < task.arguments.length; i += 1) {
+      newArguments.push(task.arguments[i]);
+    }
     var lastArg = task.arguments[task.arguments.length - 1];
 
     // Always tell the queue task is complete. Execute callback if any was given.
@@ -22,7 +25,7 @@ function Executor () {
       // Callback was supplied
       newArguments[newArguments.length - 1] = function () {
         if (typeof setImmediate === 'function') {
-           setImmediate(cb);
+          setImmediate(cb);
         } else {
           process.nextTick(cb);
         }
@@ -30,17 +33,19 @@ function Executor () {
       };
     } else if (!lastArg && task.arguments.length !== 0) {
       // false/undefined/null supplied as callbback
-      newArguments[newArguments.length - 1] = function () { cb(); };
+      newArguments[newArguments.length - 1] = function () {
+        cb();
+      };
     } else {
       // Nothing supplied as callback
-      newArguments.push(function () { cb(); });
+      newArguments.push(function () {
+        cb();
+      });
     }
-
 
     task.fn.apply(task.this, newArguments);
   }, 1);
 }
-
 
 /**
  * If executor is ready, queue task (and process it immediately if executor was idle)
@@ -60,7 +65,6 @@ Executor.prototype.push = function (task, forceQueuing) {
   }
 };
 
-
 /**
  * Queue all tasks in buffer (in the same order they came in)
  * Automatically sets executor as ready
@@ -68,11 +72,11 @@ Executor.prototype.push = function (task, forceQueuing) {
 Executor.prototype.processBuffer = function () {
   var i;
   this.ready = true;
-  for (i = 0; i < this.buffer.length; i += 1) { this.queue.push(this.buffer[i]); }
+  for (i = 0; i < this.buffer.length; i += 1) {
+    this.queue.push(this.buffer[i]);
+  }
   this.buffer = [];
 };
-
-
 
 // Interface
 module.exports = Executor;

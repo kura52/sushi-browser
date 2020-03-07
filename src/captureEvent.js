@@ -77,7 +77,7 @@ async function captureCurrentPage(_id,pageUrl,loc,base64,sender,tabId,noActiveSk
 
 
 async function getFavicon(){
-  const favicons = await favicon.find_limit([{$and: [{data: { $exists: false }},{status: { $exists: false}}]}],[20])
+  const favicons = await favicon.find_limit([{$and: [{data: null},{status: null}]}],[20])
   for(let favi of favicons){
     const url = favi.url
     if(url == 'loading') continue

@@ -158,6 +158,7 @@ export default class Download {
       }
 
       console.log('chrome-download-start', item.id, Date.now(), item.url, _url, webContents)
+      item.id = `${item.id}\t${item.url}`
 
       const bw = (webContents && !webContents.isDestroyed() && BrowserWindow.fromWebContents(webContents.hostWebContents2)) ||
         Browser.getFocusedWindow()
@@ -334,7 +335,7 @@ export default class Download {
             set(this.videoConvert, url, videoConvert)
             if (overwrite) set(this.overwrite, url, true)
             // webContents.downloadURL(url, true)
-            Browser.bg.evaluate(downloadId => chrome.downloads.resume(downloadId), item.id)
+            Browser.bg.evaluate(downloadId => chrome.downloads.resume(downloadId), item.id && parseInt(item.id.split("\t")[0]))
             ipcMain.emit('chrome-download-start', null, item, void 0, webContents)
           }
           else{
@@ -410,7 +411,7 @@ export default class Download {
       console.log(111,audioExtract,videoConvert)
 
       if(item.status !='CANCEL' && item.status !='ERROR'){
-        Browser.bg.evaluate(downloadId => chrome.downloads.erase({id: downloadId}), item.key)
+        Browser.bg.evaluate(downloadId => chrome.downloads.erase({id: downloadId}), item.key && parseInt(item.key.split("\t")[0]))
       }
 
       if(audioExtract){

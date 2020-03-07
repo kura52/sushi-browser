@@ -29,33 +29,27 @@ const glob = require("glob")
 // Saba(Mackerel)
 // Hatahata(Sandfish)
 
-const BEFORE_CODE_NAME = 'Hatahata(Sandfish)'
-const CODE_NAME = 'Kue(Grouper)'
+const BEFORE_CODE_NAME = 'Kue(Grouper)'
+const CODE_NAME = 'Fugu(Pufferfish)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.30.1"
+const NEXT_APP_VERSION = "0.31.0"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH =`Fixed bug of video controller.
-Fixed a bug that the extension URL could not be opened.
-Added resolution to video controller.
-Changed to be able to set A-B repeat in 0.1 second unit.
-Added A-B repeat reset button.
-Changed to store A-B repeat, equalizer and video effects for each page.
-Added function to set default of equalizer and video effect.
-Added the function to add / save / delete equalizer presets.
-Updated Custom Chromium to 80.0.3987.85.
-Updated youtube-dl to 2020.01.24.`
+const CHANGE_ENGLISH =`* Note: In this version, the database migration is performed at the first startup.
+Changed database from nedb to SQLite3.(Improved stability)
+Fixed some bugs.
+Updated Electron to v6.1.9.
+Updated Custom Chromium to 80.0.3987.132.
+Updated Custom Brave to v1.4.96.
+Updated youtube-dl to 2020.03.06.`
 
-const CHANGE_JAPANESE = `ビデオコントローラの不具合を修正。
-拡張機能のURLを開けない不具合を修正。
-ビデオコントローラに解像度を追加。
-A-Bリピートを0.1秒単位で設定できるように変更。
-A-Bリピートのリセットボタンを追加。
-A-Bリピート、イコライザー、ビデオエフェクトをページごとに記憶するように変更。
-イコライザー、ビデオエフェクトのデフォルトを設定できるように機能追加。
-イコライザーのプリセットの追加・保存・削除機能を追加。
-Custom Chromiumを80.0.3987.85に更新。
-youtube-dlを2020.01.24に更新。`
+const CHANGE_JAPANESE = `※注意：本バージョンでは、初回起動時に、データベースの移行作業が実行されます。
+データベースをnedbからSQLite3に変更。（安定性の向上）
+いくつかの不具合を修正。
+Electronをv6.1.9に更新。
+Custom Chromiumを80.0.3987.132に更新。
+Custom Braveをv1.4.96に更新。
+youtube-dlを2020.03.06に更新。`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

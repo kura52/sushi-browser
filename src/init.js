@@ -349,7 +349,7 @@ app.on('before-quit', (e) => {
 
 app.on('window-all-closed', async function () {
   console.log('window-all-closed',2221)
-  // require('./databaseFork')._kill()
+  require('./databaseFork').close()
   if (!isDarwin || beforeQuit) {
     console.log(5556)
     for (let ptyProcess of ptyProcessSet){
@@ -404,7 +404,7 @@ app.on('will-quit',  (e) => {
     }
     ipcMain.emit('handbrake-stop',null)
     global.__CHILD__.normalKill = true
-    global.__CHILD__.kill()
+    // global.__CHILD__.kill()
   }
   console.log(22222)
 })

@@ -125,30 +125,26 @@ function handler(table){
   }
 }
 
-const dummy = {insert:'',update:'',find_count:'',find:'',count:'',findOne:'',remove:''}
+const dummy = {insert:'',update:'',findAll:'',find:'',count:'',findOne:'',remove:''}
 
 const db = new Proxy({
   get history(){return new Proxy(dummy, handler('history'))},
   get visit(){return new Proxy(dummy, handler('visit'))},
   get tabState(){return new Proxy(dummy, handler('tabState'))},
   // get historyFull(){return new Proxy(dummy, handler('historyFull'))},
-  get searchEngine(){return new Proxy(dummy, handler('searchEngine'))},
-  get favorite(){return new Proxy(dummy, handler('favorite'))},
+  get searchEngine( ){return new Proxy(dummy, handler('searchEngine'))},
   get note(){return new Proxy(dummy, handler('note'))},
   get download(){return new Proxy(dummy, handler('download'))},
   get downloader(){return new Proxy(dummy, handler('downloader'))},
   get state(){return new Proxy(dummy, handler('state'))},
   get syncReplace(){return new Proxy(dummy, handler('syncReplace'))},
-  get crypto(){return new Proxy(dummy, handler('crypto'))},
   get image(){return new Proxy(dummy, handler('image'))},
   get favicon(){return new Proxy(dummy, handler('favicon'))},
-  get token(){return new Proxy(dummy, handler('token'))},
   get savedState(){return new Proxy(dummy, handler('savedState'))},
   get windowState(){return new Proxy(dummy, handler('windowState'))},
   get automation(){return new Proxy(dummy, handler('automation'))},
   get automationOrder(){return new Proxy(dummy, handler('automationOrder'))},
   get inputHistory(){return new Proxy(dummy, handler('inputHistory'))},
-  get visitedStyle(){return new Proxy(dummy, handler('visitedStyle'))},
   get videoController(){return new Proxy(dummy, handler('videoController'))},
   get sock(){ return sock},
   _kill(){child.kill('SIGINT')}

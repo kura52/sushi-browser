@@ -40,7 +40,7 @@ function handler(table){
   }
 }
 
-const dummy = {insert:'',update:'',find_count:'',find:'',count:'',findOne:'',remove:''}
+const dummy = {insert:'',update:'',findAll:'',find:'',count:'',findOne:'',remove:''}
 
 const db = new Proxy({
   get history(){return new Proxy(dummy, handler('history'))},

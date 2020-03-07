@@ -2,6 +2,8 @@ let sock = require('axon').socket('rep')
 const fs = require('fs')
 const path = require('path')
 const url = require('url')
+const Sequelize = require('sequelize')
+const { Op } = Sequelize
 
 let app
 ;(function(){
@@ -28,6 +30,72 @@ const resizeFile = require('./resizeFile')
 //   }
 // }
 
+function keyTrans(key){
+  if(key == '$and'){
+    return Op.and
+  }
+  else if(key == '$or'){
+    return Op.or
+  }
+  else if(key == '$gte'){
+    return Op.gte
+  }
+  else if(key == '$gt'){
+    return Op.gt
+  }
+  else if(key == '$lte'){
+    return Op.lte
+  }
+  else if(key == '$lt'){
+    return Op.lt
+  }
+  else if(key == '$in'){
+    return Op.in
+  }
+  else if(key == '$not'){
+    return Op.not
+  }
+  else if(key == '$ne'){
+    return Op.ne
+  }
+  else{
+    return key
+  }
+}
+
+function transQuery(query, after = {}, pKeyTrans){
+  if(Array.isArray(query)){
+    let key = 0
+    if(pKeyTrans == null){
+      after = []
+    }
+    else{
+      after[pKeyTrans] = []
+    }
+    const after2 = pKeyTrans == null ? after : after[pKeyTrans]
+    for(const val of query){
+      transQuery(val, after2, key)
+      ++key
+    }
+  }
+  else if (typeof query === 'object' && query !== null) {
+    if(pKeyTrans == null){
+      after = {where: {}}
+    }
+    else{
+      after[pKeyTrans] = {}
+    }
+    const after2 = pKeyTrans == null ? after.where : after[pKeyTrans]
+    for(const [key, val] of Object.entries(query)) {
+      transQuery(val, after2, keyTrans(key))
+    }
+  }
+  else {
+    after[pKeyTrans] = query
+  }
+  return after
+}
+
 function getPortable(){
   const file = path.join(__dirname,'../resource/portable.txt').replace(/app.asar([\/\\])/,'app.asar.unpacked$1')
   return fs.existsSync(file) && fs.readFileSync(file).toString().replace(/[ \r\n]/g,'')
@@ -40,25 +108,9 @@ let result = _=>{
   const getFavicon = require('./captureFaviconEvent')
   // extensionServer(port2, key)
 
-  function strToReg(obj){
-    let match
-    if(Array.isArray(obj)){
-      obj = obj.map(ele=> strToReg(ele))
-    }
-    else if(Object.prototype.toString.call(obj)=="[object Object]"){
-      for(let [k,v] of Object.entries(obj)){
-        obj[k] = strToReg(v)
-      }
-    }
-    else if(typeof obj === "string" && (match = obj.match(/^\/(.+?)\/([gimuy])?$/))){
-      obj = new RegExp(match[1],match[2])
-    }
-    return obj
-  }
-
   dbPromise.then(db => {
     sock.connect(port,'127.0.0.1')
-    sock.on('message', function(msg,reply) {
+    sock.on('message', async function(msg,reply) {
       // if(msg.ping){
       //   pingTime = Date.now()
       //   return
@@ -73,7 +125,8 @@ let result = _=>{
           return
         }
 
-        if(msg.methods[1] != 'insert' && msg.methods[1] != 'delete' && msg.methods[1] != 'update') msg.args = strToReg(msg.args)
+        // console.log(434222,msg)
+        // if(msg.methods[1] != 'insert' && msg.methods[1] != 'remove' && msg.methods[1] != 'update') msg.args = strToReg(msg.args)
         // console.log(msg)
         let me = db
         const exeMethods = msg.methods[msg.methods.length - 1].split("_",-1)
@@ -83,20 +136,66 @@ let result = _=>{
 
         let ret = me
         if(exeMethods.length > 1 && Array.isArray(msg.args[0]) && msg.args.length == exeMethods.length){
+          let args = {}
           exeMethods.map((method,i)=>{
-            ret = ret[method](...msg.args[i])
+            if(method == 'find'){
+              args = transQuery(msg.args[i][0])
+            }
+            else if(method == 'limit'){
+              args.limit = msg.args[i][0]
+            }
+            else if(method == 'sort'){
+              const sortKeys = []
+              for(const [key,val] of Object.entries(msg.args[i][0])){
+                sortKeys.push([key, val == 1 ? 'ASC' : val == -1 ? 'DESC' : val])
+              }
+              args.order = sortKeys
+            }
           })
+          // console.log(97,args)
+          // console.log(977,ret)
+          ret = ret[exeMethods[0]](args)
         }
         else{
-          // console.log(43344,msg.methods.slice(0,msg.methods.length - 1)[0],exeMethods[0],msg.args)
-          ret = ret[exeMethods[0]](...msg.args)
+          if(exeMethods == 'find' || exeMethods == 'findOne' || exeMethods == 'remove'){
+            msg.args[0] = transQuery(msg.args[0])
+            // console.log(98,...msg.args)
+            // console.log(987,ret)
+            ret = ret[exeMethods](...msg.args)
+          }
+          else if(exeMethods == 'update'){
+            msg.args[0] = transQuery(msg.args[0])
+            if(msg.args[1].$push){
+              const target = msg.args[1].$push
+              const key = Object.keys(target)[0]
+              await ret.arrayPush(msg.args[0], key, target[key])
+            }
+            if(msg.args[1].$pull){
+              const target = msg.args[1].$pull
+              const key = Object.keys(target)[0]
+              await ret.arrayPull(msg.args[0], key, target[key])
+            }
+            if(msg.args[1].$merge){
+              const target = msg.args[1].$merge
+              const key = Object.keys(target)[0]
+              await ret.mergeJson(msg.args[0], key, target[key])
+            }
+            if(msg.args[1].$set) msg.args[1] = msg.args[1].$set
+            // console.log(99,...msg.args)
+            // console.log(997,ret)
+            // console.log('update',ret, ...msg.args)
+            ret = ret.update2(...msg.args)
+          }
+          else{
+            ret = ret[exeMethods](...msg.args)
+          }
         }
 
-        ;(ret.exec ? ret.exec() : ret).then(ret => {
+        ret.then(ret => {
           reply({ key: msg.key, result: ret })
         })
       }catch(e){
-        console.error(msg)
+        console.error(e,msg)
         reply({ key: msg && msg.key, result: null })
       }
     })

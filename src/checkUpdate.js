@@ -40,7 +40,7 @@ function checkUpdate(ver,checkedVersion){
 }
 
 state.findOne({key: 1}).then(rec=>{
-  const {checkedVersion} = rec || {}
+  const {checkedVersion} = (rec && rec.info) || {}
   const ver = fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString()
   setTimeout(_=>checkUpdate(ver,checkedVersion || '0.0.0'),4000)
   //

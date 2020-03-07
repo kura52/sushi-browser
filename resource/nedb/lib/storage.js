@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * Way data is stored for this database
  * For a Node.js/Node Webkit database it's the file system
@@ -7,12 +9,11 @@
  * It's essentially fs, mkdirp and crash safe write and read functions
  */
 
-var fs = require('fs')
-  , mkdirp = require('mkdirp')
-  , async = require('async')
-  , path = require('path')
-  , storage = {}
-;
+var fs = require('fs'),
+    mkdirp = require('mkdirp'),
+    async = require('async'),
+    path = require('path'),
+    storage = {};
 
 storage.exists = fs.exists;
 storage.rename = fs.rename;
@@ -22,18 +23,20 @@ storage.appendFile = fs.appendFile;
 storage.readFile = fs.readFile;
 storage.mkdirp = mkdirp;
 
-
 /**
  * Explicit name ...
  */
 storage.ensureFileDoesntExist = function (file, callback) {
   storage.exists(file, function (exists) {
-    if (!exists) { return callback(null); }
+    if (!exists) {
+      return callback(null);
+    }
 
-    storage.unlink(file, function (err) { return callback(err); });
+    storage.unlink(file, function (err) {
+      return callback(err);
+    });
   });
 };
-
 
 /**
  * Flush data in OS buffer to storage if corresponding option is set
@@ -53,10 +56,14 @@ storage.flushToStorage = function (options, callback) {
 
   // Windows can't fsync (FlushFileBuffers) directories. We can live with this as it cannot cause 100% dataloss
   // except in the very rare event of the first time database is loaded and a crash happens
-  if (flags === 'r' && (process.platform === 'win32' || process.platform === 'win64')) { return callback(null); }
+  if (flags === 'r' && (process.platform === 'win32' || process.platform === 'win64')) {
+    return callback(null);
+  }
 
   fs.open(filename, flags, function (err, fd) {
-    if (err) { return callback(err); }
+    if (err) {
+      return callback(err);
+    }
     fs.fsync(fd, function (errFS) {
       fs.close(fd, function (errC) {
         if (errFS || errC) {
@@ -72,7 +79,6 @@ storage.flushToStorage = function (options, callback) {
   });
 };
 
-
 /**
  * Fully write or rewrite the datafile, immune to crashes during the write operation (data will not be lost)
  * @param {String} filename
@@ -80,40 +86,40 @@ storage.flushToStorage = function (options, callback) {
  * @param {Function} cb Optional callback, signature: err
  */
 storage.crashSafeWriteFile = function (filename, data, cb) {
-  var callback = cb || function () {}
-    , tempFilename = filename + '~';
+  var callback = cb || function () {},
+      tempFilename = filename + '~';
 
-  async.waterfall([
-    async.apply(storage.flushToStorage, { filename: path.dirname(filename), isDir: true })
-    , function (cb) {
-      storage.exists(filename, function (exists) {
-        if (exists) {
-          storage.flushToStorage(filename, function (err) { return cb(err); });
-        } else {
-          return cb();
-        }
-      });
-    }
-    , function (cb) {
-      storage.writeFile(tempFilename, data, function (err) { return cb(err); });
-    }
-    , async.apply(storage.flushToStorage, tempFilename)
-    , function (cb) {
-      fs.stat(tempFilename, function (err, stats) {
-        storage.exists(filename, function (newFilenameExists) {
-          if (stats.size == 0 && newFilenameExists){
-            return storage.unlink(tempFilename, function (err) { return callback(err); });
-          }
-          storage.rename(tempFilename, filename, function (err) {
-            return cb(err);
+  async.waterfall([async.apply(storage.flushToStorage, { filename: path.dirname(filename), isDir: true }), function (cb) {
+    storage.exists(filename, function (exists) {
+      if (exists) {
+        storage.flushToStorage(filename, function (err) {
+          return cb(err);
+        });
+      } else {
+        return cb();
+      }
+    });
+  }, function (cb) {
+    storage.writeFile(tempFilename, data, function (err) {
+      return cb(err);
+    });
+  }, async.apply(storage.flushToStorage, tempFilename), function (cb) {
+    fs.stat(tempFilename, function (err, stats) {
+      storage.exists(filename, function (newFilenameExists) {
+        if (stats.size == 0 && newFilenameExists) {
+          return storage.unlink(tempFilename, function (err) {
+            return callback(err);
           });
-        })
-      })
-    }
-    , async.apply(storage.flushToStorage, { filename: path.dirname(filename), isDir: true })
-  ], function (err) { return callback(err); })
+        }
+        storage.rename(tempFilename, filename, function (err) {
+          return cb(err);
+        });
+      });
+    });
+  }, async.apply(storage.flushToStorage, { filename: path.dirname(filename), isDir: true })], function (err) {
+    return callback(err);
+  });
 };
-
 
 /**
  * Ensure the datafile contains all the data, even if there was a crash during a full file write
@@ -125,21 +131,25 @@ storage.ensureDatafileIntegrity = function (filename, callback) {
 
   storage.exists(filename, function (filenameExists) {
     // Write was successful
-    if (filenameExists) { return callback(null); }
+    if (filenameExists) {
+      return callback(null);
+    }
 
     storage.exists(tempFilename, function (oldFilenameExists) {
       // New database
       if (!oldFilenameExists) {
-        return storage.writeFile(filename, '', 'utf8', function (err) { callback(err); });
+        return storage.writeFile(filename, '', 'utf8', function (err) {
+          callback(err);
+        });
       }
 
       // Write failed, use old version
-      storage.rename(tempFilename, filename, function (err) { return callback(err); });
+      storage.rename(tempFilename, filename, function (err) {
+        return callback(err);
+      });
     });
   });
 };
-
-
 
 // Interface
 module.exports = storage;

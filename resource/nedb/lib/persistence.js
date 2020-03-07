@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * Handle every persistence-related task
  * The interface Datastore expects to be implemented is
@@ -5,14 +7,12 @@
  * * Persistence.persistNewState(newDocs, callback) where newDocs is an array of documents and callback has signature err
  */
 
-var storage = require('./storage')
-  , path = require('path')
-  , model = require('./model')
-  , async = require('async')
-  , customUtils = require('./customUtils')
-  , Index = require('./indexes')
-  ;
-
+var storage = require('./storage'),
+    path = require('path'),
+    model = require('./model'),
+    async = require('async'),
+    customUtils = require('./customUtils'),
+    Index = require('./indexes');
 
 /**
  * Create a new Persistence object for database options.db
@@ -20,7 +20,7 @@ var storage = require('./storage')
  * @param {Boolean} options.nodeWebkitAppName Optional, specify the name of your NW app if you want options.filename to be relative to the directory where
  *                                            Node Webkit stores application data such as cookies and local storage (the best place to store data in my opinion)
  */
-function Persistence (options) {
+function Persistence(options) {
   var i, j, randomString;
 
   this.db = options.db;
@@ -39,8 +39,12 @@ function Persistence (options) {
   if (!options.afterSerialization && options.beforeDeserialization) {
     throw new Error("Serialization hook undefined but deserialization hook defined, cautiously refusing to start NeDB to prevent dataloss");
   }
-  this.afterSerialization = options.afterSerialization || function (s) { return s; };
-  this.beforeDeserialization = options.beforeDeserialization || function (s) { return s; };
+  this.afterSerialization = options.afterSerialization || function (s) {
+    return s;
+  };
+  this.beforeDeserialization = options.beforeDeserialization || function (s) {
+    return s;
+  };
   for (i = 1; i < 30; i += 1) {
     for (j = 0; j < 10; j += 1) {
       randomString = customUtils.uid(i);
@@ -52,31 +56,28 @@ function Persistence (options) {
 
   // For NW apps, store data in the same directory where NW stores application data
   if (this.filename && options.nodeWebkitAppName) {
-    console.log("==================================================================");
-    console.log("WARNING: The nodeWebkitAppName option is deprecated");
-    console.log("To get the path to the directory where Node Webkit stores the data");
-    console.log("for your app, use the internal nw.gui module like this");
-    console.log("require('nw.gui').App.dataPath");
-    console.log("See https://github.com/rogerwang/node-webkit/issues/500");
-    console.log("==================================================================");
+    //debug("==================================================================");
+    //debug("WARNING: The nodeWebkitAppName option is deprecated");
+    //debug("To get the path to the directory where Node Webkit stores the data");
+    //debug("for your app, use the internal nw.gui module like this");
+    //debug("require('nw.gui').App.dataPath");
+    //debug("See https://github.com/rogerwang/node-webkit/issues/500");
+    //debug("==================================================================");
     this.filename = Persistence.getNWAppFilename(options.nodeWebkitAppName, this.filename);
   }
 };
-
 
 /**
  * Check if a directory exists and create it on the fly if it is not the case
  * cb is optional, signature: err
  */
 Persistence.ensureDirectoryExists = function (dir, cb) {
-  var callback = cb || function () {}
-    ;
+  var callback = cb || function () {};
 
-  storage.mkdirp(dir, function (err) { return callback(err); });
+  storage.mkdirp(dir, function (err) {
+    return callback(err);
+  });
 };
-
-
-
 
 /**
  * Return the path the datafile if the given filename is relative to the directory where Node Webkit stores
@@ -89,17 +90,23 @@ Persistence.getNWAppFilename = function (appName, relativeFilename) {
     case 'win32':
     case 'win64':
       home = process.env.LOCALAPPDATA || process.env.APPDATA;
-      if (!home) { throw new Error("Couldn't find the base application data folder"); }
+      if (!home) {
+        throw new Error("Couldn't find the base application data folder");
+      }
       home = path.join(home, appName);
       break;
     case 'darwin':
       home = process.env.HOME;
-      if (!home) { throw new Error("Couldn't find the base application data directory"); }
+      if (!home) {
+        throw new Error("Couldn't find the base application data directory");
+      }
       home = path.join(home, 'Library', 'Application Support', appName);
       break;
     case 'linux':
       home = process.env.HOME;
-      if (!home) { throw new Error("Couldn't find the base application data directory"); }
+      if (!home) {
+        throw new Error("Couldn't find the base application data directory");
+      }
       home = path.join(home, '.config', appName);
       break;
     default:
@@ -108,8 +115,7 @@ Persistence.getNWAppFilename = function (appName, relativeFilename) {
   }
 
   return path.join(home, 'nedb-data', relativeFilename);
-}
-
+};
 
 /**
  * Persist cached database
@@ -118,29 +124,32 @@ Persistence.getNWAppFilename = function (appName, relativeFilename) {
  * @param {Function} cb Optional callback, signature: err
  */
 Persistence.prototype.persistCachedDatabase = function (cb) {
-  var callback = cb || function () {}
-    , toPersist = ''
-    , self = this
-    ;
+  var callback = cb || function () {},
+      toPersist = '',
+      self = this;
 
-  if (this.inMemoryOnly) { return callback(null); }
+  if (this.inMemoryOnly) {
+    return callback(null);
+  }
 
   this.db.getAllData().forEach(function (doc) {
     toPersist += self.afterSerialization(model.serialize(doc)) + '\n';
   });
   Object.keys(this.db.indexes).forEach(function (fieldName) {
-    if (fieldName != "_id") {   // The special _id index is managed by datastore.js, the others need to be persisted
-      toPersist += self.afterSerialization(model.serialize({ $$indexCreated: { fieldName: fieldName, unique: self.db.indexes[fieldName].unique, sparse: self.db.indexes[fieldName].sparse }})) + '\n';
+    if (fieldName != "_id") {
+      // The special _id index is managed by datastore.js, the others need to be persisted
+      toPersist += self.afterSerialization(model.serialize({ $$indexCreated: { fieldName: fieldName, unique: self.db.indexes[fieldName].unique, sparse: self.db.indexes[fieldName].sparse } })) + '\n';
     }
   });
 
   storage.crashSafeWriteFile(this.filename, toPersist, function (err) {
-    if (err) { return callback(err); }
+    if (err) {
+      return callback(err);
+    }
     self.db.emit('compaction.done');
     return callback(null);
   });
 };
-
 
 /**
  * Queue a rewrite of the datafile
@@ -149,16 +158,14 @@ Persistence.prototype.compactDatafile = function () {
   this.db.executor.push({ this: this, fn: this.persistCachedDatabase, arguments: [] });
 };
 
-
 /**
  * Set automatic compaction every interval ms
  * @param {Number} interval in milliseconds, with an enforced minimum of 5 seconds
  */
 Persistence.prototype.setAutocompactionInterval = function (interval) {
-  var self = this
-    , minInterval = 5000
-    , realInterval = Math.max(interval || 0, minInterval)
-    ;
+  var self = this,
+      minInterval = 5000,
+      realInterval = Math.max(interval || 0, minInterval);
 
   this.stopAutocompaction();
 
@@ -167,14 +174,14 @@ Persistence.prototype.setAutocompactionInterval = function (interval) {
   }, realInterval);
 };
 
-
 /**
  * Stop autocompaction (do nothing if autocompaction was not running)
  */
 Persistence.prototype.stopAutocompaction = function () {
-  if (this.autocompactionIntervalId) { clearInterval(this.autocompactionIntervalId); }
+  if (this.autocompactionIntervalId) {
+    clearInterval(this.autocompactionIntervalId);
+  }
 };
-
 
 /**
  * Persist new state for the given newDocs (can be insertion, update or removal)
@@ -183,38 +190,40 @@ Persistence.prototype.stopAutocompaction = function () {
  * @param {Function} cb Optional, signature: err
  */
 Persistence.prototype.persistNewState = function (newDocs, cb) {
-  var self = this
-    , toPersist = ''
-    , callback = cb || function () {}
-    ;
+  var self = this,
+      toPersist = '',
+      callback = cb || function () {};
 
   // In-memory only datastore
-  if (self.inMemoryOnly) { return callback(null); }
+  if (self.inMemoryOnly) {
+    return callback(null);
+  }
 
   newDocs.forEach(function (doc) {
     toPersist += self.afterSerialization(model.serialize(doc)) + '\n';
   });
 
-  if (toPersist.length === 0) { return callback(null); }
+  if (toPersist.length === 0) {
+    return callback(null);
+  }
 
   storage.appendFile(self.filename, toPersist, 'utf8', function (err) {
     return callback(err);
   });
 };
 
-
 /**
  * From a database's raw data, return the corresponding
  * machine understandable collection
  */
 Persistence.prototype.treatRawData = function (rawData) {
-  var data = rawData.split('\n')
-    , dataById = {}
-    , tdata = []
-    , i
-    , indexes = {}
-    , corruptItems = -1   // Last line of every data file is usually blank so not really corrupt
-    ;
+  var data = rawData.split('\n'),
+      dataById = {},
+      tdata = [],
+      i,
+      indexes = {},
+      corruptItems = -1 // Last line of every data file is usually blank so not really corrupt
+  ;
 
   for (i = 0; i < data.length; i += 1) {
     var doc;
@@ -249,7 +258,6 @@ Persistence.prototype.treatRawData = function (rawData) {
   return { data: tdata, indexes: indexes };
 };
 
-
 /**
  * Load the database
  * 1) Create all indexes
@@ -261,54 +269,56 @@ Persistence.prototype.treatRawData = function (rawData) {
  * @param {Function} cb Optional callback, signature: err
  */
 Persistence.prototype.loadDatabase = function (cb) {
-  var callback = cb || function () {}
-    , self = this
-    ;
+  var callback = cb || function () {},
+      self = this;
 
   self.db.resetIndexes();
 
   // In-memory only datastore
-  if (self.inMemoryOnly) { return callback(null); }
+  if (self.inMemoryOnly) {
+    return callback(null);
+  }
 
-  async.waterfall([
-    function (cb) {
-      Persistence.ensureDirectoryExists(path.dirname(self.filename), function (err) {
-        storage.ensureDatafileIntegrity(self.filename, function (err) {
-          storage.readFile(self.filename, 'utf8', function (err, rawData) {
-            if (err) { return cb(err); }
+  async.waterfall([function (cb) {
+    Persistence.ensureDirectoryExists(path.dirname(self.filename), function (err) {
+      storage.ensureDatafileIntegrity(self.filename, function (err) {
+        storage.readFile(self.filename, 'utf8', function (err, rawData) {
+          if (err) {
+            return cb(err);
+          }
 
-            try {
-              var treatedData = self.treatRawData(rawData);
-            } catch (e) {
-              return cb(e);
-            }
+          try {
+            var treatedData = self.treatRawData(rawData);
+          } catch (e) {
+            return cb(e);
+          }
 
-            // Recreate all indexes in the datafile
-            Object.keys(treatedData.indexes).forEach(function (key) {
-              self.db.indexes[key] = new Index(treatedData.indexes[key]);
-            });
-
-            // Fill cached database (i.e. all indexes) with data
-            try {
-              self.db.resetIndexes(treatedData.data);
-            } catch (e) {
-              self.db.resetIndexes();   // Rollback any index which didn't fail
-              return cb(e);
-            }
-
-            self.db.persistence.persistCachedDatabase(cb);
+          // Recreate all indexes in the datafile
+          Object.keys(treatedData.indexes).forEach(function (key) {
+            self.db.indexes[key] = new Index(treatedData.indexes[key]);
           });
+
+          // Fill cached database (i.e. all indexes) with data
+          try {
+            self.db.resetIndexes(treatedData.data);
+          } catch (e) {
+            self.db.resetIndexes(); // Rollback any index which didn't fail
+            return cb(e);
+          }
+
+          self.db.persistence.persistCachedDatabase(cb);
         });
       });
+    });
+  }], function (err) {
+    if (err) {
+      return callback(err);
     }
-  ], function (err) {
-       if (err) { return callback(err); }
 
-       self.db.executor.processBuffer();
-       return callback(null);
-     });
+    self.db.executor.processBuffer();
+    return callback(null);
+  });
 };
-
 
 // Interface
 module.exports = Persistence;

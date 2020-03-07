@@ -295,7 +295,7 @@ export default class BrowserNavbarLocation extends Component {
           }))
           resolve({history: _.uniqBy(results.filter(x => x.title), x => x.title).slice(0, this.props.autoCompleteInfos.numOfHistory)})
         })
-        ipc.send('search-history-loc', key, _.escapeRegExp(this.props.page.location), 100)
+        ipc.send('search-history-loc', key, this.props.page.location, 100)
       }))
     }
 

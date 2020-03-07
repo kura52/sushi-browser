@@ -1094,7 +1094,7 @@ Or, please use the Chromium bundled version.`
         }
         else{
           console.log('history', 'onVisitRemoved', removed)
-          history.remove({location: {$in: removed.urls}}, { multi: true })
+          history.remove({location: {$in: removed.urls || []}}, { multi: true })
         }
       }
     })
@@ -1289,7 +1289,7 @@ Or, please use the Chromium bundled version.`
         return new Promise(async resolve => {
           chrome.downloads.search({id: retryKey}, results => resolve(results[0]))
         })
-      }, retryKey)
+      }, parseInt(retryKey.split("\t")[0]))
     }
 
     if(!item){

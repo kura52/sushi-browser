@@ -1,14 +1,14 @@
-var customUtils = require('./customUtils')
-  , model = require('./model')
-  , async = require('async')
-  , Executor = require('./executor')
-  , Index = require('./indexes')
-  , util = require('util')
-  , _ = require('underscore')
-  , Persistence = require('./persistence')
-  , Cursor = require('./cursor')
-  ;
+'use strict';
 
+var customUtils = require('./customUtils'),
+    model = require('./model'),
+    async = require('async'),
+    Executor = require('./executor'),
+    Index = require('./indexes'),
+    util = require('util'),
+    _ = require('underscore'),
+    Persistence = require('./persistence'),
+    Cursor = require('./cursor');
 
 /**
  * Create a new collection
@@ -26,13 +26,13 @@ var customUtils = require('./customUtils')
  * Event Emitter - Events
  * * compaction.done - Fired whenever a compaction operation was finished
  */
-function Datastore (options) {
+function Datastore(options) {
   var filename;
 
   // Retrocompatibility with v0.6 and before
   if (typeof options === 'string') {
     filename = options;
-    this.inMemoryOnly = false;   // Default
+    this.inMemoryOnly = false; // Default
   } else {
     options = options || {};
     filename = options.filename;
@@ -53,16 +53,18 @@ function Datastore (options) {
   this.compareStrings = options.compareStrings;
 
   // Persistence handling
-  this.persistence = new Persistence({ db: this, nodeWebkitAppName: options.nodeWebkitAppName
-                                      , afterSerialization: options.afterSerialization
-                                      , beforeDeserialization: options.beforeDeserialization
-                                      , corruptAlertThreshold: options.corruptAlertThreshold
-                                      });
+  this.persistence = new Persistence({ db: this, nodeWebkitAppName: options.nodeWebkitAppName,
+    afterSerialization: options.afterSerialization,
+    beforeDeserialization: options.beforeDeserialization,
+    corruptAlertThreshold: options.corruptAlertThreshold
+  });
 
   // This new executor is ready if we don't use persistence
   // If we do, it will only be ready once loadDatabase is called
   this.executor = new Executor();
-  if (this.inMemoryOnly) { this.executor.ready = true; }
+  if (this.inMemoryOnly) {
+    this.executor.ready = true;
+  }
 
   // Indexed by field name, dot notation can be used
   // _id is always indexed and since _ids are generated randomly the underlying
@@ -73,13 +75,16 @@ function Datastore (options) {
 
   // Queue a load of the database right away and call the onload handler
   // By default (no onload handler), if there is an error there, no operation will be possible so warn the user by throwing an exception
-  if (this.autoload) { this.loadDatabase(options.onload || function (err) {
-    if (err) { throw err; }
-  }); }
+  if (this.autoload) {
+    this.loadDatabase(options.onload || function (err) {
+      if (err) {
+        throw err;
+      }
+    });
+  }
 }
 
 util.inherits(Datastore, require('events').EventEmitter);
-
 
 /**
  * Load the database from the datafile, and trigger the execution of buffered commands if any
@@ -88,14 +93,12 @@ Datastore.prototype.loadDatabase = function () {
   this.executor.push({ this: this.persistence, fn: this.persistence.loadDatabase, arguments: arguments }, true);
 };
 
-
 /**
  * Get an array of all the data in the database
  */
 Datastore.prototype.getAllData = function () {
   return this.indexes._id.getAll();
 };
-
 
 /**
  * Reset all currently defined indexes
@@ -108,7 +111,6 @@ Datastore.prototype.resetIndexes = function (newData) {
   });
 };
 
-
 /**
  * Ensure an index is kept for this field. Same parameters as lib/indexes
  * For now this function is synchronous, we need to test how much time it takes
@@ -120,8 +122,8 @@ Datastore.prototype.resetIndexes = function (newData) {
  * @param {Function} cb Optional callback, signature: err
  */
 Datastore.prototype.ensureIndex = function (options, cb) {
-  var err
-    , callback = cb || function () {};
+  var err,
+      callback = cb || function () {};
 
   options = options || {};
 
@@ -130,10 +132,14 @@ Datastore.prototype.ensureIndex = function (options, cb) {
     err.missingFieldName = true;
     return callback(err);
   }
-  if (this.indexes[options.fieldName]) { return callback(null); }
+  if (this.indexes[options.fieldName]) {
+    return callback(null);
+  }
 
   this.indexes[options.fieldName] = new Index(options);
-  if (options.expireAfterSeconds !== undefined) { this.ttlIndexes[options.fieldName] = options.expireAfterSeconds; }   // With this implementation index creation is not necessary to ensure TTL but we stick with MongoDB's API here
+  if (options.expireAfterSeconds !== undefined) {
+    this.ttlIndexes[options.fieldName] = options.expireAfterSeconds;
+  } // With this implementation index creation is not necessary to ensure TTL but we stick with MongoDB's API here
 
   try {
     this.indexes[options.fieldName].insert(this.getAllData());
@@ -144,11 +150,12 @@ Datastore.prototype.ensureIndex = function (options, cb) {
 
   // We may want to force all options to be persisted including defaults, not just the ones passed the index creation function
   this.persistence.persistNewState([{ $$indexCreated: options }], function (err) {
-    if (err) { return callback(err); }
+    if (err) {
+      return callback(err);
+    }
     return callback(null);
   });
 };
-
 
 /**
  * Remove an index
@@ -161,19 +168,21 @@ Datastore.prototype.removeIndex = function (fieldName, cb) {
   delete this.indexes[fieldName];
 
   this.persistence.persistNewState([{ $$indexRemoved: fieldName }], function (err) {
-    if (err) { return callback(err); }
+    if (err) {
+      return callback(err);
+    }
     return callback(null);
   });
 };
-
 
 /**
  * Add one or several document(s) to all indexes
  */
 Datastore.prototype.addToIndexes = function (doc) {
-  var i, failingIndex, error
-    , keys = Object.keys(this.indexes)
-    ;
+  var i,
+      failingIndex,
+      error,
+      keys = Object.keys(this.indexes);
 
   for (i = 0; i < keys.length; i += 1) {
     try {
@@ -195,7 +204,6 @@ Datastore.prototype.addToIndexes = function (doc) {
   }
 };
 
-
 /**
  * Remove one or several document(s) from all indexes
  */
@@ -207,16 +215,16 @@ Datastore.prototype.removeFromIndexes = function (doc) {
   });
 };
 
-
 /**
  * Update one or several documents in all indexes
  * To update multiple documents, oldDoc must be an array of { oldDoc, newDoc } pairs
  * If one update violates a constraint, all changes are rolled back
  */
 Datastore.prototype.updateIndexes = function (oldDoc, newDoc) {
-  var i, failingIndex, error
-    , keys = Object.keys(this.indexes)
-    ;
+  var i,
+      failingIndex,
+      error,
+      keys = Object.keys(this.indexes);
 
   for (i = 0; i < keys.length; i += 1) {
     try {
@@ -238,7 +246,6 @@ Datastore.prototype.updateIndexes = function (oldDoc, newDoc) {
   }
 };
 
-
 /**
  * Return the list of candidates for a given query
  * Crude implementation for now, we return the candidates given by the first usable index if any
@@ -253,9 +260,9 @@ Datastore.prototype.updateIndexes = function (oldDoc, newDoc) {
  * @param {Function} callback Signature err, docs
  */
 Datastore.prototype.getCandidates = function (query, dontExpireStaleDocs, callback) {
-  var indexNames = Object.keys(this.indexes)
-    , self = this
-    , usableQueryKeys;
+  var indexNames = Object.keys(this.indexes),
+      self = this,
+      usableQueryKeys;
 
   if (typeof dontExpireStaleDocs === 'function') {
     callback = dontExpireStaleDocs;
@@ -306,23 +313,33 @@ Datastore.prototype.getCandidates = function (query, dontExpireStaleDocs, callba
   }
   // STEP 2: remove all expired documents
   , function (docs) {
-    if (dontExpireStaleDocs) { return callback(null, docs); }
+    if (dontExpireStaleDocs) {
+      return callback(null, docs);
+    }
 
-    var expiredDocsIds = [], validDocs = [], ttlIndexesFieldNames = Object.keys(self.ttlIndexes);
+    var expiredDocsIds = [],
+        validDocs = [],
+        ttlIndexesFieldNames = Object.keys(self.ttlIndexes);
 
     docs.forEach(function (doc) {
       var valid = true;
       ttlIndexesFieldNames.forEach(function (i) {
-        if (doc[i] !== undefined && util.isDate(doc[i]) && Date.now() > doc[i].getTime() + self.ttlIndexes[i] * 1000) {
+        if (doc[i] !== undefined && util.isDate(doc[i]) && Date.now() > doc[i].getTime() + self.ttlIndexes[i] * 1000) {
           valid = false;
         }
       });
-      if (valid) { validDocs.push(doc); } else { expiredDocsIds.push(doc._id); }
+      if (valid) {
+        validDocs.push(doc);
+      } else {
+        expiredDocsIds.push(doc._id);
+      }
     });
 
     async.eachSeries(expiredDocsIds, function (_id, cb) {
       self._remove({ _id: _id }, {}, function (err) {
-        if (err) { return callback(err); }
+        if (err) {
+          return callback(err);
+        }
         return cb();
       });
     }, function (err) {
@@ -331,7 +348,6 @@ Datastore.prototype.getCandidates = function (query, dontExpireStaleDocs, callba
   }]);
 };
 
-
 /**
  * Insert a new document
  * @param {Function} cb Optional callback, signature: err, insertedDoc
@@ -339,19 +355,20 @@ Datastore.prototype.getCandidates = function (query, dontExpireStaleDocs, callba
  * @api private Use Datastore.insert which has the same signature
  */
 Datastore.prototype._insert = function (newDoc, cb) {
-  var callback = cb || function () {}
-    , preparedDoc
-    ;
+  var callback = cb || function () {},
+      preparedDoc;
 
   try {
-    preparedDoc = this.prepareDocumentForInsertion(newDoc)
+    preparedDoc = this.prepareDocumentForInsertion(newDoc);
     this._insertInCache(preparedDoc);
   } catch (e) {
     return callback(e);
   }
 
   this.persistence.persistNewState(util.isArray(preparedDoc) ? preparedDoc : [preparedDoc], function (err) {
-    if (err) { return callback(err); }
+    if (err) {
+      return callback(err);
+    }
     return callback(null, model.deepCopy(preparedDoc));
   });
 };
@@ -374,17 +391,26 @@ Datastore.prototype.createNewId = function () {
  * @api private
  */
 Datastore.prototype.prepareDocumentForInsertion = function (newDoc) {
-  var preparedDoc, self = this;
+  var preparedDoc,
+      self = this;
 
   if (util.isArray(newDoc)) {
     preparedDoc = [];
-    newDoc.forEach(function (doc) { preparedDoc.push(self.prepareDocumentForInsertion(doc)); });
+    newDoc.forEach(function (doc) {
+      preparedDoc.push(self.prepareDocumentForInsertion(doc));
+    });
   } else {
     preparedDoc = model.deepCopy(newDoc);
-    if (preparedDoc._id === undefined) { preparedDoc._id = this.createNewId(); }
+    if (preparedDoc._id === undefined) {
+      preparedDoc._id = this.createNewId();
+    }
     var now = new Date();
-    if (this.timestampData && preparedDoc.createdAt === undefined) { preparedDoc.createdAt = now; }
-    if (this.timestampData && preparedDoc.updatedAt === undefined) { preparedDoc.updatedAt = now; }
+    if (this.timestampData && preparedDoc.createdAt === undefined) {
+      preparedDoc.createdAt = now;
+    }
+    if (this.timestampData && preparedDoc.updatedAt === undefined) {
+      preparedDoc.updatedAt = now;
+    }
     model.checkObject(preparedDoc);
   }
 
@@ -434,14 +460,15 @@ Datastore.prototype.insert = function () {
   this.executor.push({ this: this, fn: this._insert, arguments: arguments });
 };
 
-
 /**
  * Count all documents matching the query
  * @param {Object} query MongoDB-style query
  */
-Datastore.prototype.count = function(query, callback) {
-  var cursor = new Cursor(this, query, function(err, docs, callback) {
-    if (err) { return callback(err); }
+Datastore.prototype.count = function (query, callback) {
+  var cursor = new Cursor(this, query, function (err, docs, callback) {
+    if (err) {
+      return callback(err);
+    }
     return callback(null, docs.length);
   });
 
@@ -451,7 +478,6 @@ Datastore.prototype.count = function(query, callback) {
     return cursor;
   }
 };
-
 
 /**
  * Find all documents matching the query
@@ -469,14 +495,17 @@ Datastore.prototype.find = function (query, projection, callback) {
       if (typeof projection === 'function') {
         callback = projection;
         projection = {};
-      }   // If not assume projection is an object and callback undefined
+      } // If not assume projection is an object and callback undefined
       break;
   }
 
-  var cursor = new Cursor(this, query, function(err, docs, callback) {
-    var res = [], i;
+  var cursor = new Cursor(this, query, function (err, docs, callback) {
+    var res = [],
+        i;
 
-    if (err) { return callback(err); }
+    if (err) {
+      return callback(err);
+    }
 
     for (i = 0; i < docs.length; i += 1) {
       res.push(model.deepCopy(docs[i]));
@@ -491,7 +520,6 @@ Datastore.prototype.find = function (query, projection, callback) {
     return cursor;
   }
 };
-
 
 /**
  * Find one document matching the query
@@ -508,12 +536,14 @@ Datastore.prototype.findOne = function (query, projection, callback) {
       if (typeof projection === 'function') {
         callback = projection;
         projection = {};
-      }   // If not assume projection is an object and callback undefined
+      } // If not assume projection is an object and callback undefined
       break;
   }
 
-  var cursor = new Cursor(this, query, function(err, docs, callback) {
-    if (err) { return callback(err); }
+  var cursor = new Cursor(this, query, function (err, docs, callback) {
+    if (err) {
+      return callback(err);
+    }
     if (docs.length === 1) {
       return callback(null, model.deepCopy(docs[0]));
     } else {
@@ -528,7 +558,6 @@ Datastore.prototype.findOne = function (query, projection, callback) {
     return cursor;
   }
 };
-
 
 /**
  * Update all docs matching query
@@ -556,26 +585,32 @@ Datastore.prototype.findOne = function (query, projection, callback) {
  * @api private Use Datastore.update which has the same signature
  */
 Datastore.prototype._update = function (query, updateQuery, options, cb) {
-  var callback
-    , self = this
-    , numReplaced = 0
-    , multi, upsert
-    , i
-    ;
+  var callback,
+      self = this,
+      numReplaced = 0,
+      multi,
+      upsert,
+      i;
 
-  if (typeof options === 'function') { cb = options; options = {}; }
+  if (typeof options === 'function') {
+    cb = options;options = {};
+  }
   callback = cb || function () {};
   multi = options.multi !== undefined ? options.multi : false;
   upsert = options.upsert !== undefined ? options.upsert : false;
 
-  async.waterfall([
-  function (cb) {   // If upsert option is set, check whether we need to insert the doc
-    if (!upsert) { return cb(); }
+  async.waterfall([function (cb) {
+    // If upsert option is set, check whether we need to insert the doc
+    if (!upsert) {
+      return cb();
+    }
 
     // Need to use an internal function not tied to the executor to avoid deadlock
     var cursor = new Cursor(self, query);
     cursor.limit(1)._exec(function (err, docs) {
-      if (err) { return callback(err); }
+      if (err) {
+        return callback(err);
+      }
       if (docs.length === 1) {
         return cb();
       } else {
@@ -596,17 +631,23 @@ Datastore.prototype._update = function (query, updateQuery, options, cb) {
         }
 
         return self._insert(toBeInserted, function (err, newDoc) {
-          if (err) { return callback(err); }
+          if (err) {
+            return callback(err);
+          }
           return callback(null, 1, newDoc, true);
         });
       }
     });
-  }
-  , function () {   // Perform the update
-    var modifiedDoc , modifications = [], createdAt;
+  }, function () {
+    // Perform the update
+    var modifiedDoc,
+        modifications = [],
+        createdAt;
 
     self.getCandidates(query, function (err, candidates) {
-      if (err) { return callback(err); }
+      if (err) {
+        return callback(err);
+      }
 
       // Preparing update (if an error is thrown here neither the datafile nor
       // the in-memory indexes are affected)
@@ -614,7 +655,9 @@ Datastore.prototype._update = function (query, updateQuery, options, cb) {
         for (i = 0; i < candidates.length; i += 1) {
           if (model.match(candidates[i], query) && (multi || numReplaced === 0)) {
             numReplaced += 1;
-            if (self.timestampData) { createdAt = candidates[i].createdAt; }
+            if (self.timestampData) {
+              createdAt = candidates[i].createdAt;
+            }
             modifiedDoc = model.modify(candidates[i], updateQuery);
             if (self.timestampData) {
               modifiedDoc.createdAt = createdAt;
@@ -637,13 +680,19 @@ Datastore.prototype._update = function (query, updateQuery, options, cb) {
       // Update the datafile
       var updatedDocs = _.pluck(modifications, 'newDoc');
       self.persistence.persistNewState(updatedDocs, function (err) {
-        if (err) { return callback(err); }
+        if (err) {
+          return callback(err);
+        }
         if (!options.returnUpdatedDocs) {
           return callback(null, numReplaced);
         } else {
           var updatedDocsDC = [];
-          updatedDocs.forEach(function (doc) { updatedDocsDC.push(model.deepCopy(doc)); });
-          if (! multi) { updatedDocsDC = updatedDocsDC[0]; }
+          updatedDocs.forEach(function (doc) {
+            updatedDocsDC.push(model.deepCopy(doc));
+          });
+          if (!multi) {
+            updatedDocsDC = updatedDocsDC[0];
+          }
           return callback(null, numReplaced, updatedDocsDC);
         }
       });
@@ -654,7 +703,6 @@ Datastore.prototype._update = function (query, updateQuery, options, cb) {
 Datastore.prototype.update = function () {
   this.executor.push({ this: this, fn: this._update, arguments: arguments });
 };
-
 
 /**
  * Remove all docs matching the query
@@ -667,16 +715,22 @@ Datastore.prototype.update = function () {
  * @api private Use Datastore.remove which has the same signature
  */
 Datastore.prototype._remove = function (query, options, cb) {
-  var callback
-    , self = this, numRemoved = 0, removedDocs = [], multi
-    ;
+  var callback,
+      self = this,
+      numRemoved = 0,
+      removedDocs = [],
+      multi;
 
-  if (typeof options === 'function') { cb = options; options = {}; }
+  if (typeof options === 'function') {
+    cb = options;options = {};
+  }
   callback = cb || function () {};
   multi = options.multi !== undefined ? options.multi : false;
 
   this.getCandidates(query, true, function (err, candidates) {
-    if (err) { return callback(err); }
+    if (err) {
+      return callback(err);
+    }
 
     try {
       candidates.forEach(function (d) {
@@ -686,10 +740,14 @@ Datastore.prototype._remove = function (query, options, cb) {
           self.removeFromIndexes(d);
         }
       });
-    } catch (err) { return callback(err); }
+    } catch (err) {
+      return callback(err);
+    }
 
     self.persistence.persistNewState(removedDocs, function (err) {
-      if (err) { return callback(err); }
+      if (err) {
+        return callback(err);
+      }
       return callback(null, numRemoved);
     });
   });
@@ -698,7 +756,5 @@ Datastore.prototype._remove = function (query, options, cb) {
 Datastore.prototype.remove = function () {
   this.executor.push({ this: this, fn: this._remove, arguments: arguments });
 };
-
-
 
 module.exports = Datastore;

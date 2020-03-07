@@ -11,7 +11,7 @@ async function getState(){
   // }
   // const tokenData = await token.findOne({login: true})
   // if(tokenData) datas.emailSync = tokenData.email
-  return datas
+  return (datas && datas.info)
 }
 
 let val = (async ()=>{return (await getState()) || {}})()

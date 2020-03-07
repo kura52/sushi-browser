@@ -224,7 +224,7 @@ function tabAdd(self, url, isSelect=true,privateMode = false,guestInstanceId,mob
 
   if(openTabNextLabel || last == 'next'){
     const index = self.state.tabs.findIndex(t=>t.key == self.state.selectedTab)
-    if(index != null){
+    if(index != -1){
       self.state.tabs.splice(index + 1, 0, t)
     }
     else{
@@ -1250,7 +1250,7 @@ export default class TabPanel extends Component {
   _getPrevSelectedTab(key,tabs,closeTab,i){
     let ind,ret = null
     // console.log(key,this.state.prevAddKeyCount,this.state.selectedKeys)
-    if((ind = this.state.prevAddKeyCount[1].findIndex(k=>k==key))!= -1){
+    if((ind = this.state.prevAddKeyCount[1].indexOf(key))!= -1){
       if(ind == this.state.prevAddKeyCount[1].length -1){
         ret = [this.state.prevAddKeyCount[0],...this.state.prevAddKeyCount[1]][ind - 1 + 1]
       }

@@ -391,7 +391,7 @@ class Downloader extends React.Component {
       const v = ele.querySelector('virtual')
       if(v) {
         const key = v.dataset.key
-        const ind = this.state.selectedIds.findIndex(x => x == key)
+        const ind = this.state.selectedIds.indexOf(key)
         if (ind == -1) {
           cl.add('row-selected')
           this.state.selectedIds.push(key)

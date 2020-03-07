@@ -25,9 +25,7 @@ import {
   downloader,
   automation,
   automationOrder,
-  note,
-  token,
-  crypto
+  note
 } from './databaseFork'
 import favorite from './remoted-chrome/favorite'
 import {settingDefault} from "../resource/defaultValue";
@@ -104,8 +102,9 @@ ipcMain.on('export-setting', (e,exports) => {
       for(let name of exports){
         if(name == 'generalSettings'){
           results.state = await state.findOne({key: 1})
+          if(results.state) results.state = results.state.info
+
           results.searchEngine = await searchEngine.find({})
-          results.token = await token.find({})
         }
         // else if(name == 'bookmarks'){
         //   results.favorite = await favorite.find({})
@@ -146,9 +145,6 @@ ipcMain.on('export-setting', (e,exports) => {
         }
         else if(name == 'note'){
           results.note = await note.find({})
-        }
-        else if(name == 'password'){
-          results.password = await crypto.find({})
         }
       }
       fs.writeFileSync(fileName, JSON.stringify(results))
@@ -257,7 +253,8 @@ async function importData(imports, restoreDatas, all, ignoreToken) {
   for (let name of imports) {
     if (name == 'generalSettings' && restoreDatas.startsWith !== void 0) {
       const setting = restoreDatas
-      state.update({key: 1}, setting).then(_ => _)
+      await state.remove({key: 1})
+      state.insert({key: 1, info: {key:1, ...setting}, updated_at: setting.updated_at}).then(_ => _)
       // try {
       //   if (setting && setting.adBlockDisableSite.length) {
       //     setting.adBlockDisableSite = JSON.parse(setting.adBlockDisableSite)
@@ -272,7 +269,8 @@ async function importData(imports, restoreDatas, all, ignoreToken) {
     else if (name == 'generalSettings' && restoreDatas.state) {
       const setting = restoreDatas.state
       if (all) {
-        state.update({key: 1}, setting, {upsert: true}).then(_ => _)
+        await state.remove({key: 1})
+        state.insert({key: 1, info: {key:1, ...setting}, updated_at: setting.updated_at}).then(_ => _)
         // try {
         //   if (setting && setting.adBlockDisableSite.length) {
         //     setting.adBlockDisableSite = JSON.parse(setting.adBlockDisableSite)
@@ -291,12 +289,12 @@ async function importData(imports, restoreDatas, all, ignoreToken) {
             }
           }
         })
-        deleteInsert(token, restoreDatas.token).then(_ => _)
       }
       else {
         const orgState = await state.findOne({key: 1})
         if (orgState.updated_at > setting.updated_at) {
-          state.update({key: 1}, setting, {upsert: true}).then(_ => _)
+          await state.remove({key: 1})
+          state.insert({key: 1, info: {key:1, ...setting}, updated_at: setting.updated_at}).then(_ => _)
           // try {
           //   if (setting && setting.adBlockDisableSite.length) {
           //     setting.adBlockDisableSite = JSON.parse(setting.adBlockDisableSite)
@@ -309,9 +307,6 @@ async function importData(imports, restoreDatas, all, ignoreToken) {
           }
         }
         incrementalImport(searchEngine, restoreDatas.searchEngine, 'search', 'updated_at')
-        if(!ignoreToken){
-          incrementalImport(token, restoreDatas.token, 'email', 'updated_at')
-        }
       }
     }
     // else if (name == 'bookmarks') {
@@ -447,7 +442,7 @@ ipcMain.on('import-setting', (e,imports,all) => {
 })
 
 async function recurSelect(keys,indent){
-  const favorites = await favorite.find({key:{$in: keys}})
+  const favorites = await favorite.find({key:{$in: keys || []}})
   const space = '  '.repeat(indent)
   const ret = []
   for(let x of favorites){

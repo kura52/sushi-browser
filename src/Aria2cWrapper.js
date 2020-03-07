@@ -132,10 +132,16 @@ export default class Aria2cWrapper{
     }
   }
 
-  updateDownloader(){
+  async updateDownloader(){
+    if(this.updating){
+      clearTimeout(this.timeout)
+      this.timeout = setTimeout(()=>this.updateDownloader(), 200)
+    }
+    this.updating = true
+
     const item = this
     const est_end = Date.now() + (item.totalBytes - item.receivedBytes) / this.calcSpeedSec(item)
-    downloader.update({key:item.key},{
+    await downloader.update({key:item.key},{
       key: item.key,
       idForExtension: item.idForExtension,
       isPaused: item.isPaused(),
@@ -155,10 +161,12 @@ export default class Aria2cWrapper{
       ended: item.getState() == 'completed' ? Date.now() : null,
       now: Date.now()
     },{ upsert: true })
+
+    this.updating = false
   }
 
-  stdoutCallback(){
-    this.updateDownloader()
+  async stdoutCallback(){
+    await this.updateDownloader()
     for(let c of this.stdoutCallbacks){
       c()
     }
@@ -314,7 +322,7 @@ export default class Aria2cWrapper{
     this.stdoutCallback()
   }
   cancelChromeDownload(){
-    Browser.bg.evaluate(downloadId => chrome.downloads.cancel(downloadId), this.key)
+    Browser.bg.evaluate(downloadId => chrome.downloads.cancel(downloadId), this.key && parseInt(this.key.split("\t")[0]))
   }
 
   cancel(){

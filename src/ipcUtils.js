@@ -33,7 +33,7 @@ const isDarwin = process.platform === 'darwin'
 const meiryo = isWin && Intl.NumberFormat().resolvedOptions().locale == 'ja'
 import mainState from './mainState'
 import extensionInfos from "./extensionInfos";
-import {history, token, visitedStyle} from "./databaseFork";
+import {history, token} from "./databaseFork";
 import winctl from "../resource/winctl";
 const open = require('./open')
 const {readMacro,readMacroOff,readTargetSelector,readTargetSelectorOff,readComplexSearch,readFindAll} = require('./readMacro')
@@ -238,7 +238,7 @@ ipcMain.on('insert-favorite2',(event,key,writePath,dbKey,data,isNote)=>{
 
   const db = note
   db.findOne({key:writePath}).then(rec=>{
-    const ind = rec.children.findIndex(x=>x == dbKey)
+    const ind = rec.children.indexOf(dbKey)
     rec.children.splice(ind+1,0,key)
     console.log("insert2",rec)
     db.insert({key,...data,created_at: Date.now(), updated_at: Date.now()}).then(ret=>{
@@ -250,9 +250,19 @@ ipcMain.on('insert-favorite2',(event,key,writePath,dbKey,data,isNote)=>{
   })
 })
 
+function sortKeys(keys, collection){
+  const ret = []
+  for(const key of keys){
+    const x = collection.find(c=> c.key == key)
+    if(x) ret.push(x)
+  }
+  return ret
+}
+
 async function recurDelete(keys,list,isNote){
   const db = note
-  const ret = await db.find({key:{$in: keys}})
+  keys = keys || []
+  const ret = sortKeys(keys, await db.find({key:{$in: keys}}))
   const nextKeys = Array.prototype.concat.apply([],ret.map(ret=>ret.children)).filter(ret=>ret)
   list.splice(list.length,0,...nextKeys)
   if(nextKeys && nextKeys.length > 0) {
@@ -296,20 +306,29 @@ ipcMain.on('move-favorite',async (event,key,args,isNote)=>{
   if(!args[0][3]){
     for(let arg of args){
       const [dbKey,oldDirectory,newDirectory,dropKey] = arg
-      await db.update({ key: oldDirectory }, { $pull: { children: dbKey }, $set:{updated_at: Date.now()}})
-      await db.update({ key: newDirectory }, { $push: { children: dbKey }, $set:{updated_at: Date.now()}})
+      const r = await db.findOne({key: oldDirectory})
+      if(r && r.children.indexOf(dbKey) != -1){
+        await db.update({ key: oldDirectory }, { $pull: { children: dbKey }, $set:{updated_at: Date.now()}})
+        const r2 = await db.findOne({key: newDirectory})
+        if(r2 && r2.children.indexOf(dbKey) == -1){
+          await db.update({ key: newDirectory }, { $push: { children: dbKey }, $set:{updated_at: Date.now()}})
+        }
+      }
     }
   }
   else{
     for(let arg of args.reverse()){
       const [dbKey,oldDirectory,newDirectory,dropKey] = arg
-      await db.update({ key: oldDirectory }, { $pull: { children: dbKey }, $set:{updated_at: Date.now()}})
-      const ret2 = await db.findOne({key: newDirectory})
-      const children = ret2.children
-      const ind = children.findIndex(x=>x == dropKey)
-      children.splice(ind+1,0,dbKey)
-      console.log(88,children)
-      await db.update({ key: newDirectory }, { $set: {children, updated_at: Date.now()}})
+      const r = await db.findOne({key: oldDirectory})
+      if(r && r.children.indexOf(dbKey) != -1) {
+        await db.update({key: oldDirectory}, {$pull: {children: dbKey}, $set: {updated_at: Date.now()}})
+        const ret2 = await db.findOne({key: newDirectory})
+        const children = ret2.children.filter(c => c != dbKey)
+        const ind = children.indexOf(dropKey)
+        children.splice(ind + 1, 0, dbKey)
+        console.log(88, children)
+        await db.update({key: newDirectory}, {$set: {children, updated_at: Date.now()}})
+      }
     }
   }
   event.sender.send(`move-favorite-reply_${key}`,key)
@@ -333,7 +352,8 @@ ipcMain.on('rename-favorite',async (event,key,dbKey,newName,isNote)=>{
 
 async function recurGet(keys,num,isNote){
   const db = note
-  const ret = await db.find({key:{$in: keys}})
+  keys = keys || []
+  const ret = sortKeys(keys, await db.find({key:{$in: keys}}))
   const datas = []
   const promises = []
 
@@ -911,7 +931,7 @@ ipcMain.on('save-state',async (e,{tableName,key,val})=>{
       }
     }
     mainState[key] = val
-    state.update({ key: 1 }, { $set: {[key]: mainState[key], updated_at: Date.now()} }).then(_=>_)
+    state.update({ key: 1 }, { $merge: {info: {[key]: mainState[key], updated_at: Date.now()}}, $set: {updated_at: Date.now()} }).then(_=>_)
   }
   else{
     if(tableName　== "searchEngine"){
@@ -2034,8 +2054,13 @@ ipcMain.on('get-sync-main-state',(e,key)=>{
 })
 
 ipcMain.on('get-sync-rSession',(e,keys)=>{
-  tabState.find({tabKey:{$in:keys}}).then(rec=>{
-    e.returnValue = rec
+  tabState.find({tabKey:{$in:keys || []}}).then(rec=>{
+    const ret = []
+    for(const key of keys){
+      const x = rec.find(c=> c.tabKey == key)
+      if(x) ret.push(x)
+    }
+    e.returnValue = ret
   })
 })
 
@@ -2225,7 +2250,7 @@ ipcMain.on('history-pin',async (e,key,_id,val)=>{
     await history.update({_id}, {$unset:{pin: true}})
   }
   else{
-    for(let rec of (await history.find({pin: {$exists: true}}))){
+    for(let rec of (await history.find({pin: {$ne: null}}))){
       max = Math.max(rec.pin, max)
     }
     await history.update({_id}, {$set:{pin: max+1}})
@@ -2368,25 +2393,6 @@ ipcMain.on('set-zoom',(e,tabId,factor)=>{
   cont.setZoomFactor(factor)
 })
 
-ipcMain.on('install-from-local-file-extension', e=>{
-  dialog.showOpenDialog(getCurrentWindow(), {
-    defaultPath: app.getPath('downloads'),
-    properties: ['openFile'],
-    filters: [
-      {name: 'Chrome Extension File', extensions: ['crx']}
-    ],
-    includeAllFiles:false
-  }, async fileNames => {
-    if (fileNames && fileNames.length == 1) {
-      const {extInstall,extensionPath} = require('./chromeEvents')
-      const fPath = path.parse(fileNames[0])
-      const id = `${fPath.name}_chrome_`
-      const dest = path.join(extensionPath,`${id}.crx`)
-      fs.copySync(fileNames[0],dest)
-      extInstall(dest.replace(/\.crx$/,''),void 0, void 0, id)
-    }
-  })
-})
 
 ipcMain.on('get-vpn-list',(e,key)=> {
   request({url: `https://sushib.me/vpngate.json?a=${Math.floor(Date.now() / 1000 / 1800)}`}, (err, response, text) => {

@@ -35,7 +35,7 @@ class Selection extends React.Component {
       opacity: 0,
     }
   }
-  
+
   componentDidMount() {
     this._box = findDOMNode(this)
   }
@@ -60,6 +60,14 @@ class Selection extends React.Component {
 
     document.addEventListener('mousemove', this.mousemove, false)
     document.addEventListener('mouseup', this.mouseup, false)
+    window.selectMouseMove = this.mousemove
+    window.selectMouseUp = this.mouseup
+    window.selectClear = () => {
+      this.state.rectangleStyle = {
+        ...this.state.rectangleStyle,
+        opacity: 0,
+      }
+    }
   }
 
   afterSelect = ()=> {

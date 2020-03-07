@@ -146,7 +146,7 @@ export default class SearchAnything extends Component{
         results: _.uniqBy(results.filter(x => x.title), x => x.title).slice(0, 15)
       })
     })
-    ipc.send('search-history-loc', key,_.escapeRegExp(this.state.value), 100)
+    ipc.send('search-history-loc', key,this.state.value, 100)
   }
 
   onBlur(e){

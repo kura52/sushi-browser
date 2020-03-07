@@ -185,6 +185,7 @@ function deleteFavorite(dbKey,newName){
 function moveFavorite(args){
   return new Promise((resolve,reject)=>{
     const key = uuid.v4()
+    console.log('move-favorite',key,args,true)
     ipc.send('move-favorite',key,args,true)
     ipc.once(`move-favorite-reply_${key}`,(event,ret)=>{
       resolve(ret)
@@ -966,6 +967,11 @@ class Contents extends React.Component {
 
     this.onDragEnd = async (e) => {
       console.log('dragend',e)
+
+      document.removeEventListener('mousemove', window.selectMouseMove, false)
+      document.removeEventListener('mouseup', window.selectMouseUp, false)
+      window.selectClear()
+
       if(currentElement){
         console.log('dragend')
         console.log(e.target)
@@ -977,39 +983,47 @@ class Contents extends React.Component {
         const dragNode = tree.getNodeById(e.target.dataset.id)
 
         const dropClassList = dropElement.classList
+        console.log('drop1',dropNode)
 
         let newDirectory,next
         if(dropClassList.contains('folder-item')){
           newDirectory = this.getKey(dropNode)
           dropNode = (void 0)
+          console.log('drop2',newDirectory,dropNode)
         }
         else if(dropClassList.contains('top-overlap')){
           newDirectory = this.getKey(dropNode,2)
           const treePrev = dropNode.getPreviousSibling()
           if(treePrev){
             dropNode = treePrev
+            console.log('drop3',newDirectory,dropNode)
           }
           else{
             const prev = dropElement.previousSibling
             if(prev){
               dropNode = tree.getNodeById(prev.dataset.id)
+              console.log('drop4',newDirectory,dropNode)
             }
             else{
               dropNode = tree.getRootNode()
+              console.log('drop5',newDirectory,dropNode)
             }
           }
         }
         else if(!dropClassList.contains('middle') && dropElement.getElementsByClassName('folder-open').length !== 0 && dropNode.hasChildren()){
           newDirectory = this.getKey(dropNode)
+          console.log('drop7',newDirectory,dropNode)
         }
         else if(next = dropElement.nextSibling){
           dropNode = tree.getNodeById(next.dataset.id)
           newDirectory = this.getKey(dropNode,2)
           dropNode = dropNode.getPreviousSibling() || tree.getRootNode()
+          console.log('drop8',newDirectory,dropNode)
         }
         else{
           newDirectory = 'root'
           dropNode = tree.getRootNode().getLastChild()
+          console.log('drop9',newDirectory,dropNode)
         }
 
         const dropKey = dropNode && this.getKey(dropNode)
@@ -1022,7 +1036,7 @@ class Contents extends React.Component {
           if(dragKey === dropKey) continue
           renameArgs.push([dragKey,oldDirectory,newDirectory,dropKey])
         }
-        console.log('renameArgs',renameArgs)
+        console.log('drop10',renameArgs)
         if(renameArgs.length > 0){
           this.prevState = await localForage.getItem("note-sidebar-open-node")
           moveFavorite(renameArgs).then(_ =>{

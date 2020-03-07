@@ -34,7 +34,8 @@ export default class ChromeDownloadWrapper extends EventEmitter {
       return new Promise(resolve => {
         chrome.downloads.search({id: downloadId}, results => resolve(results[0]))
       })
-    }, this.item.id)
+    }, this.item.id && parseInt(this.item.id.split("\t")[0]))
+    item.id = this.item.id
     this.item = item
 
     downloader.update({key:item.id},{
@@ -82,7 +83,7 @@ export default class ChromeDownloadWrapper extends EventEmitter {
       return new Promise(resolve => {
         chrome.downloads.resume(downloadId, () => resolve())
       })
-    }, this.item.id)
+    }, this.item.id && parseInt(this.item.id.split("\t")[0]))
     this.startObserve()
   }
 
@@ -93,7 +94,7 @@ export default class ChromeDownloadWrapper extends EventEmitter {
       return new Promise(resolve => {
         chrome.downloads.pause(downloadId, () => resolve())
       })
-    }, this.item.id)
+    }, this.item.id && parseInt(this.item.id.split("\t")[0]))
     await this.updateState()
   }
 
@@ -108,7 +109,7 @@ export default class ChromeDownloadWrapper extends EventEmitter {
         // }
         )
       })
-    }, this.item.id)
+    }, this.item.id && parseInt(this.item.id.split("\t")[0]))
     await this.updateState()
     this.emit('done')
   }

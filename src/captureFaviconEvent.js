@@ -230,23 +230,23 @@ export default async function faviconUpdate(url) {
   fetchFavIcon(url).then(ret => {
     console.log(1,url)
     if (ret) {
-      favicon.update({url}, {$set: {data: ret, updated_at: Date.now()}}).then(_=>_)
+      favicon.update({data: ret, updated_at: Date.now()}, {where: {url}}).then(_=>_)
     }
     else {
-      favicon.update({url}, {$set: {status: "ERROR-NOREPLY", updated_at: Date.now()}}).then(_=>_)
+      favicon.update({status: "ERROR-NOREPLY", updated_at: Date.now()}, {where: {url}}).then(_=>_)
     }
   }).catch(err => {
     console.log(err)
     if (err.toString().match(/^\d{3}$/)) {
       if (err == "403" || err == "404" || err == "503") {
-        favicon.update({url}, {$set: {status: err, updated_at: Date.now()}}).then(_=>_)
+        favicon.update({status: err, updated_at: Date.now()}, {where: {url}}).then(_=>_)
       }
       else {
-        favicon.update({url}, {$set: {status: err, updated_at: Date.now()}}).then(_=>_)
+        favicon.update({status: err, updated_at: Date.now()}, {where: {url}}).then(_=>_)
       }
     }
     else {
-      favicon.update({url}, {$set: {status: "ERROR", updated_at: Date.now()}}).then(_=>_)
+      favicon.update({status: "ERROR", updated_at: Date.now()}, {where: {url}}).then(_=>_)
     }
   })
 };

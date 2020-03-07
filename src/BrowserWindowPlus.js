@@ -252,8 +252,8 @@ function create(args){
                 }
               }
 
-              state.update({ key: 1 }, { $set: {key: 1, ver:fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString(), ...bounds, maximize,maxBounds,
-                  toggleNav:mainState.toggleNav==2 || mainState.toggleNav==3 ? 0 :mainState.toggleNav,...saveState, updated_at: Date.now()} }, { upsert: true }).then(_=>{
+              state.update({ key: 1 }, { key: 1, info: {key: 1, ver:fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString(), ...bounds, maximize,maxBounds,
+                  toggleNav:mainState.toggleNav==2 || mainState.toggleNav==3 ? 0 :mainState.toggleNav,...saveState, updated_at: Date.now()}, updated_at: Date.now() }, { upsert: true }).then(_=>{
                 InitSetting.reload()
               })
 
@@ -584,6 +584,7 @@ export default {
 
       let rec
       if(mainState.startsWith == 'startsWithOptionLastTime' && (rec = await state.findOne({key: 2}))){
+        rec = rec.info
         await state.remove({key: 2}, { multi: true })
         const saveState = await savedState.findOne({ created_at: rec.created_at })
         if(saveState){
@@ -794,8 +795,8 @@ export default {
             saveState[key] = mainState[key]
           }
         }
-        state.update({ key: 1 }, { $set: {key: 1, ver:fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString(), ...bounds, maximize,maxBounds,
-            toggleNav:mainState.toggleNav==2 || mainState.toggleNav==3 ? 0 :mainState.toggleNav,...saveState,winState:ret, updated_at: Date.now()} }, { upsert: true }).then(_=>_)
+        state.update({ key: 1 }, { key: 1, info: {key: 1, ver:fs.readFileSync(path.join(__dirname,'../VERSION.txt')).toString(), ...bounds, maximize,maxBounds,
+            toggleNav:mainState.toggleNav==2 || mainState.toggleNav==3 ? 0 :mainState.toggleNav,...saveState,winState:ret, updated_at: Date.now()}, updated_at: Date.now() }, { upsert: true }).then(_=>_)
         saved = true
         console.log("getState")
       }catch(e){

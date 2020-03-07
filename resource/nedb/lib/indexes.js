@@ -1,29 +1,39 @@
-var BinarySearchTree = require('binary-search-tree').AVLTree
-  , model = require('./model')
-  , _ = require('underscore')
-  , util = require('util')
-  ;
+'use strict';
+
+var BinarySearchTree = require('binary-search-tree').AVLTree,
+    model = require('./model'),
+    _ = require('underscore'),
+    util = require('util');
 
 /**
  * Two indexed pointers are equal iif they point to the same place
  */
-function checkValueEquality (a, b) {
+function checkValueEquality(a, b) {
   return a === b;
 }
 
 /**
  * Type-aware projection
  */
-function projectForUnique (elt) {
-  if (elt === null) { return '$null'; }
-  if (typeof elt === 'string') { return '$string' + elt; }
-  if (typeof elt === 'boolean') { return '$boolean' + elt; }
-  if (typeof elt === 'number') { return '$number' + elt; }
-  if (util.isArray(elt)) { return '$date' + elt.getTime(); }
+function projectForUnique(elt) {
+  if (elt === null) {
+    return '$null';
+  }
+  if (typeof elt === 'string') {
+    return '$string' + elt;
+  }
+  if (typeof elt === 'boolean') {
+    return '$boolean' + elt;
+  }
+  if (typeof elt === 'number') {
+    return '$number' + elt;
+  }
+  if (util.isArray(elt)) {
+    return '$date' + elt.getTime();
+  }
 
-  return elt;   // Arrays and objects, will check for pointer equality
+  return elt; // Arrays and objects, will check for pointer equality
 }
-
 
 /**
  * Create a new index
@@ -33,16 +43,15 @@ function projectForUnique (elt) {
  * @param {Boolean} options.unique Optional, enforce a unique constraint (default: false)
  * @param {Boolean} options.sparse Optional, allow a sparse index (we can have documents for which fieldName is undefined) (default: false)
  */
-function Index (options) {
+function Index(options) {
   this.fieldName = options.fieldName;
   this.unique = options.unique || false;
   this.sparse = options.sparse || false;
 
   this.treeOptions = { unique: this.unique, compareKeys: model.compareThings, checkValueEquality: checkValueEquality };
 
-  this.reset();   // No data in the beginning
+  this.reset(); // No data in the beginning
 }
-
 
 /**
  * Reset an index
@@ -52,9 +61,10 @@ function Index (options) {
 Index.prototype.reset = function (newData) {
   this.tree = new BinarySearchTree(this.treeOptions);
 
-  if (newData) { this.insert(newData); }
+  if (newData) {
+    this.insert(newData);
+  }
 };
-
 
 /**
  * Insert a new document in the index
@@ -62,16 +72,23 @@ Index.prototype.reset = function (newData) {
  * O(log(n))
  */
 Index.prototype.insert = function (doc) {
-  var key, self = this
-    , keys, i, failingI, error
-    ;
+  var key,
+      self = this,
+      keys,
+      i,
+      failingI,
+      error;
 
-  if (util.isArray(doc)) { this.insertMultipleDocs(doc); return; }
+  if (util.isArray(doc)) {
+    this.insertMultipleDocs(doc);return;
+  }
 
   key = model.getDotValue(doc, this.fieldName);
 
   // We don't index documents that don't contain the field if the index is sparse
-  if (key === undefined && this.sparse) { return; }
+  if (key === undefined && this.sparse) {
+    return;
+  }
 
   if (!util.isArray(key)) {
     this.tree.insert(key, doc);
@@ -98,7 +115,6 @@ Index.prototype.insert = function (doc) {
     }
   }
 };
-
 
 /**
  * Insert an array of documents in the index
@@ -128,7 +144,6 @@ Index.prototype.insertMultipleDocs = function (docs) {
   }
 };
 
-
 /**
  * Remove a document from the index
  * If an array is passed, we remove all its elements
@@ -136,13 +151,20 @@ Index.prototype.insertMultipleDocs = function (docs) {
  * O(log(n))
  */
 Index.prototype.remove = function (doc) {
-  var key, self = this;
+  var key,
+      self = this;
 
-  if (util.isArray(doc)) { doc.forEach(function (d) { self.remove(d); }); return; }
+  if (util.isArray(doc)) {
+    doc.forEach(function (d) {
+      self.remove(d);
+    });return;
+  }
 
   key = model.getDotValue(doc, this.fieldName);
 
-  if (key === undefined && this.sparse) { return; }
+  if (key === undefined && this.sparse) {
+    return;
+  }
 
   if (!util.isArray(key)) {
     this.tree.delete(key, doc);
@@ -153,14 +175,15 @@ Index.prototype.remove = function (doc) {
   }
 };
 
-
 /**
  * Update a document in the index
  * If a constraint is violated, changes are rolled back and an error thrown
  * Naive implementation, still in O(log(n))
  */
 Index.prototype.update = function (oldDoc, newDoc) {
-  if (util.isArray(oldDoc)) { this.updateMultipleDocs(oldDoc); return; }
+  if (util.isArray(oldDoc)) {
+    this.updateMultipleDocs(oldDoc);return;
+  }
 
   this.remove(oldDoc);
 
@@ -171,7 +194,6 @@ Index.prototype.update = function (oldDoc, newDoc) {
     throw e;
   }
 };
-
 
 /**
  * Update multiple documents in the index
@@ -212,7 +234,6 @@ Index.prototype.updateMultipleDocs = function (pairs) {
   }
 };
 
-
 /**
  * Revert an update
  */
@@ -229,7 +250,6 @@ Index.prototype.revertUpdate = function (oldDoc, newDoc) {
   }
 };
 
-
 /**
  * Get all documents in index whose key match value (if it is a Thing) or one of the elements of value (if it is an array of Things)
  * @param {Thing} value Value to match the key against
@@ -241,7 +261,8 @@ Index.prototype.getMatching = function (value) {
   if (!util.isArray(value)) {
     return self.tree.search(value);
   } else {
-    var _res = {}, res = [];
+    var _res = {},
+        res = [];
 
     value.forEach(function (v) {
       self.getMatching(v).forEach(function (doc) {
@@ -257,7 +278,6 @@ Index.prototype.getMatching = function (value) {
   }
 };
 
-
 /**
  * Get all documents in index whose key is between bounds are they are defined by query
  * Documents are sorted by key
@@ -267,7 +287,6 @@ Index.prototype.getMatching = function (value) {
 Index.prototype.getBetweenBounds = function (query) {
   return this.tree.betweenBounds(query);
 };
-
 
 /**
  * Get all elements in the index
@@ -286,9 +305,6 @@ Index.prototype.getAll = function () {
 
   return res;
 };
-
-
-
 
 // Interface
 module.exports = Index;
