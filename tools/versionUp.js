@@ -29,27 +29,17 @@ const glob = require("glob")
 // Saba(Mackerel)
 // Hatahata(Sandfish)
 
-const BEFORE_CODE_NAME = 'Kue(Grouper)'
+const BEFORE_CODE_NAME = 'Fugu(Pufferfish)'
 const CODE_NAME = 'Fugu(Pufferfish)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.31.0"
+const NEXT_APP_VERSION = "0.31.1"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
-const CHANGE_ENGLISH =`* Note: In this version, the database migration is performed at the first startup.
-Changed database from nedb to SQLite3.(Improved stability)
-Fixed some bugs.
-Updated Electron to v6.1.9.
-Updated Custom Chromium to 80.0.3987.132.
-Updated Custom Brave to v1.4.96.
-Updated youtube-dl to 2020.03.06.`
+const CHANGE_ENGLISH =`Fixed Address bar bug.
+Fixed a problem when maximizing the screen.`
 
-const CHANGE_JAPANESE = `※注意：本バージョンでは、初回起動時に、データベースの移行作業が実行されます。
-データベースをnedbからSQLite3に変更。（安定性の向上）
-いくつかの不具合を修正。
-Electronをv6.1.9に更新。
-Custom Chromiumを80.0.3987.132に更新。
-Custom Braveをv1.4.96に更新。
-youtube-dlを2020.03.06に更新。`
+const CHANGE_JAPANESE = `アドレスバーの不具合修正
+画面最大化時の不具合を修正`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'
