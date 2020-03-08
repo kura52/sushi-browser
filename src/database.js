@@ -201,13 +201,12 @@ db.searchHistories = async (regText,limit,searchHistoryOrderCount) =>{
 
   const arr = []
   for (let e of cond) {
-    arr.push({ title: {[Op.like]: `%${e}%`}})
-    arr.push({ location: {[Op.like]: `%${e}%`}})
+    arr.push({ [Op.or]: [{ title: {[Op.like]: `%${e}%`}}, { location: {[Op.like]: `%${e}%`}}]})
   }
 
   const sort = searchHistoryOrderCount ? [ ['count', "DESC"], ['updated_at', "DESC"] ] : [ ['updated_at', "DESC"] ]
   const findOpt = {
-    where: {[Op.or]: arr},
+    where: arr.length == 0 ? arr : {[Op.and]: arr},
     limit,
     order: sort
   }
