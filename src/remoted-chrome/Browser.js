@@ -242,7 +242,8 @@ Or, please use the Chromium bundled version.`
       if(now - prevMove > 1){
         for(const browserPanel of Object.values(BrowserPanel.panelKeys)){
           if(browserPanel.browserWindow && browserPanel.browserWindow.id == browserWindowId){
-            ipcMain.emit('set-position-browser-view', {sender: browserPanel.browserWindow.webContents}, browserPanel.panelKey)
+            ipcMain.emit('set-position-browser-view',
+              {sender: browserPanel.browserWindow.webContents}, browserPanel.panelKey)
           }
         }
       }

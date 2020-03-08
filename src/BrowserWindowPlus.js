@@ -90,6 +90,42 @@ function startAutoSaveAllWindowsState(){
   autoSaveStarted = true
 }
 
+let browserWindowMaximizeObserved = false
+function browserWindowMaximizeObserve(){
+  if(browserWindowMaximizeObserved) return
+  setInterval(() =>{
+    for(let bw of BrowserWindow.getAllWindows()){
+      if(bw._isVirtualMaximized){
+        const b = bw.getBounds()
+        const ms = bw._maximizedSize
+        if(b.x != ms.x || b.y != ms.y || b.width != ms.width || b.height != ms.height){
+          bw._maximizedSize = b
+          bw.setResizable(true)
+          bw.webContents.send('adjust-maxmize-size', false)
+
+          const bounds = bw._isVirtualMaximized
+          bw.once('resize', ()=>{
+            console.log('resizee', bounds)
+            setTimeout(()=>{
+              bw.setResizable(false)
+              bw.setMovable(false)
+              bw.setBounds(bounds)
+              setTimeout(()=>{
+                bw.setResizable(true)
+                bw.setMovable(true)
+              },100)
+            },100)
+          })
+          bw._isVirtualMaximized = false
+          bw.webContents.send('maximize',false)
+          bw.webContents.send('re-render')
+        }
+      }
+    }
+  }, 500)
+  browserWindowMaximizeObserved = true
+}
+
 async function saveAllWindowsState(){
   const wins = []
   for(let bw of BrowserWindow.getAllWindows()){
@@ -134,6 +170,7 @@ ipcMain.on('save-all-windows-state',saveAllWindowsStateHandler)
 function create(args){
   // console.log(44421,args)
   startAutoSaveAllWindowsState()
+  browserWindowMaximizeObserve()
 
   let bw = new BrowserWindow(args)
   if(args.maximize){

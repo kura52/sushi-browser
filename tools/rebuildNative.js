@@ -22,8 +22,15 @@ function rebuild(lib){
 }
 
 `
-
-npm install sqlite3 --build-from-source --runtime=electron --target=6.1.9 --arch=x64 --dist-url=https://electronjs.org/headers
+D:
+cd D:\\web-dev-browser
+npm install sqlite3 --build-from-source --runtime=electron --target=6.1.9 --target_arch=x64 --dist-url=https://electronjs.org/headers
+cd D:\\web-dev-browser\\resource\\winctl
+node-gyp rebuild --target=6.1.9 --arch=x64 --dist-url=https://atom.io/download/electron
+cd D:\\web-dev-browser\\node_modules\\robotjs
+node-gyp rebuild --target=6.1.9 --arch=x64 --dist-url=https://atom.io/download/electron
+cd D:\\web-dev-browser\\node_modules\\node-pty
+node-gyp rebuild --target=6.1.9 --arch=x64 --dist-url=https://atom.io/download/electron
 `
 
 `

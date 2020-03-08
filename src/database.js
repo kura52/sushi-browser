@@ -23,7 +23,7 @@ const dbPromise = (async ()=>{
   const sequelize = new Sequelize({
     dialect: 'sqlite',
     storage: dbPath,
-    // logging: false,
+    logging: false,
     // benchmark: true,
     pool: {
       max: 10,
