@@ -27,7 +27,7 @@ export default class BrowserView {
     }
     this.newPanelCreateing = true
 
-    if(url) try{ new URL(url) }catch(e){ url = mainState.searchProviders[mainState.searchEngine].search.replace('%s',url) }
+    if(url) try{ new URL(url) }catch(e){ url = mainState.searchProviders[mainState.searchEngine].search.replace('%s',encodeURIComponent(url)) }
 
     if (panelKey) {
       const panel = BrowserPanel.getBrowserPanel(panelKey)

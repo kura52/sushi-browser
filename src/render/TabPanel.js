@@ -4806,10 +4806,10 @@ export default class TabPanel extends Component {
     const searchs = searchMethod.multiple
     let urls
     if(tab.privateMode == 'persist:tor'){
-      urls = searchs.map(engine=> searchProviders[engine].search.replace('www.google.com/search','duckduckgo.com/').replace('tbs=qdr:','df=').replace('%s',text))
+      urls = searchs.map(engine=> searchProviders[engine].search.replace('www.google.com/search','duckduckgo.com/').replace('tbs=qdr:','df=').replace('%s',encodeURIComponent(text)))
     }
     else{
-      urls = searchs.map(engine=> searchProviders[engine].search.replace('%s',text))
+      urls = searchs.map(engine=> searchProviders[engine].search.replace('%s',encodeURIComponent(text)))
     }
 
     if(searchMethod.type == 'basic' || searchMethod.type == 'two'){

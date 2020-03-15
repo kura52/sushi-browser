@@ -32,14 +32,16 @@ const glob = require("glob")
 const BEFORE_CODE_NAME = 'Fugu(Pufferfish)'
 const CODE_NAME = 'Fugu(Pufferfish)'
 const CURRENT_APP_VERSION = fs.readFileSync('../VERSION.txt').toString()
-const NEXT_APP_VERSION = "0.31.1"
+const NEXT_APP_VERSION = "0.31.2"
 const NEXT_APP_VERSION2 = `${NEXT_APP_VERSION.split(".").slice(0,-1).join('.')}${NEXT_APP_VERSION.split(".").slice(-1)[0]}`
 
 const CHANGE_ENGLISH =`Fixed Address bar bug.
-Fixed a problem when maximizing the screen.`
+Fixed a problem when maximizing the screen.
+Changing chrome startup parameters.`
 
 const CHANGE_JAPANESE = `アドレスバーの不具合修正
-画面最大化時の不具合を修正`
+画面最大化時の不具合を修正
+クロームの起動パラメータの変更`
 
 const isWindows = process.platform === 'win32'
 const isDarwin = process.platform === 'darwin'

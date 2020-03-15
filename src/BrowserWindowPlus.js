@@ -95,7 +95,7 @@ function browserWindowMaximizeObserve(){
   if(browserWindowMaximizeObserved) return
   setInterval(() =>{
     for(let bw of BrowserWindow.getAllWindows()){
-      if(bw._isVirtualMaximized){
+      if(bw._isVirtualMaximized && Date.now() - bw._isVirtualMaximizedTime > 1500){
         const b = bw.getBounds()
         const ms = bw._maximizedSize
         if(b.x != ms.x || b.y != ms.y || b.width != ms.width || b.height != ms.height){
@@ -423,6 +423,7 @@ function create(args){
         bw._isVirtualMaximized = false
       }
       else{
+        bw._isVirtualMaximizedTime = Date.now()
         bw._isVirtualMaximized = bw._initVirtualMaximized || bw.getNormalBounds()
         bw._initVirtualMaximized = void 0
 

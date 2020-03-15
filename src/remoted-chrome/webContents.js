@@ -422,7 +422,7 @@ export default class webContents extends EventEmitter {
       }
     }
 
-    try{ new URL(url) }catch(e){ url = mainState.searchProviders[mainState.searchEngine].search.replace('%s',url) }
+    try{ new URL(url) }catch(e){ url = mainState.searchProviders[mainState.searchEngine].search.replace('%s',encodeURIComponent(url)) }
     ;(await this._getPage()).goto(url)
 
     // Browser.bg.evaluate((tabId, url) => {
