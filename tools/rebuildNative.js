@@ -15,7 +15,7 @@ function rebuild(lib){
   sh.cd(lib)
 
   // node-gyp rebuild --target=6.1.5 --arch=ia32 --dist-url=https://atom.io/download/electron
-  if(sh.exec('node-gyp rebuild --target=6.1.9 --arch=x64 --dist-url=https://atom.io/download/electron').code !== 0) {
+  if(sh.exec('node-gyp rebuild --target=10.1.3 --arch=x64 --dist-url=https://atom.io/download/electron').code !== 0) {
     console.log("ERROR")
     process.exit()
   }
@@ -24,23 +24,23 @@ function rebuild(lib){
 `
 D:
 cd D:\\web-dev-browser
-npm install sqlite3 --build-from-source --runtime=electron --target=6.1.9 --target_arch=x64 --dist-url=https://electronjs.org/headers
+npm install sqlite3 --build-from-source --runtime=electron --target=10.1.3 --target_arch=x64 --dist-url=https://electronjs.org/headers
 cd D:\\web-dev-browser\\resource\\winctl
-node-gyp rebuild --target=6.1.9 --arch=x64 --dist-url=https://atom.io/download/electron
+node-gyp rebuild --target=10.1.3 --arch=x64 --dist-url=https://atom.io/download/electron
 cd D:\\web-dev-browser\\node_modules\\robotjs
-node-gyp rebuild --target=6.1.9 --arch=x64 --dist-url=https://atom.io/download/electron
+node-gyp rebuild --target=10.1.3 --arch=x64 --dist-url=https://atom.io/download/electron
 cd D:\\web-dev-browser\\node_modules\\node-pty
-node-gyp rebuild --target=6.1.9 --arch=x64 --dist-url=https://atom.io/download/electron
+node-gyp rebuild --target=10.1.3 --arch=x64 --dist-url=https://atom.io/download/electron
 `
 
 `
 D:
 cd D:\\sushi-browser-release32
-npm install sqlite3 --build-from-source --runtime=electron --target=6.1.9 --target_arch=ia32 --dist-url=https://electronjs.org/headers
+npm install sqlite3 --build-from-source --runtime=electron --target=10.1.3 --target_arch=ia32 --dist-url=https://electronjs.org/headers
 cd D:\\sushi-browser-release32\\resource\\winctl
-node-gyp rebuild --target=6.1.9 --arch=ia32 --dist-url=https://atom.io/download/electron
+node-gyp rebuild --target=10.1.3 --arch=ia32 --dist-url=https://atom.io/download/electron
 cd D:\\sushi-browser-release32\\node_modules\\robotjs
-node-gyp rebuild --target=6.1.9 --arch=ia32 --dist-url=https://atom.io/download/electron
+node-gyp rebuild --target=10.1.3 --arch=ia32 --dist-url=https://atom.io/download/electron
 cd D:\\sushi-browser-release32\\node_modules\\node-pty
-node-gyp rebuild --target=6.1.9 --arch=ia32 --dist-url=https://atom.io/download/electron
+node-gyp rebuild --target=10.1.3 --arch=ia32 --dist-url=https://atom.io/download/electron
 `

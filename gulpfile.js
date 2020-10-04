@@ -65,12 +65,12 @@ gulp.task('main-process3', function() {
 });
 
 gulp.task('watch', function() {
-    gulp.watch('src/**/*.js',['main-process','main-process2','main-process3'])
-    gulp.watch(['src/render/**/*.js','src/toolPages/**/*.js','src/defaultExtension/**/*.js'],['render-process'])
+    gulp.watch('src/**/*.js', gulp.parallel('main-process','main-process2','main-process3'))
+    gulp.watch(['src/render/**/*.js','src/toolPages/**/*.js','src/defaultExtension/**/*.js'], gulp.parallel('render-process'))
     // gulp.watch(['./src/*.js','./src/*.tag'], [/*'babel-for-flow','flow-typecheck','babel',*/'webpack'])
     // gulp.watch(['./dist/*.js','../index.html'], reload)
 });
 
 // gulp.task('default', [/*'babel-for-flow','flow-typecheck', 'babel',*/'webpack', 'browser-sync', 'watch']);
 
-gulp.task('default', [/*'dll-process',*/'main-process','main-process2','main-process3','render-process', 'watch']);
+gulp.task('default',  gulp.series( gulp.parallel(/*'dll-process',*/'main-process','main-process2','main-process3','render-process', 'watch')));

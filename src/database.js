@@ -14,6 +14,8 @@ if (!fs.existsSync(resourcePath)) {
 
 const db = {}
 
+let _sequelize;
+
 const dbPromise = (async ()=>{
   const dbPath = path.join(resourcePath,'db.sqlite')
   console.log(dbPath)
@@ -32,7 +34,7 @@ const dbPromise = (async ()=>{
       idle: 10000
     }
   })
-
+  _sequelize = sequelize
 
   // sequelize.query('PRAGMA LOCKING_MODE = EXCLUSIVE')
   sequelize.query('PRAGMA JOURNAL_MODE = WAL')
@@ -218,7 +220,7 @@ db.searchHistories = async (regText,limit,searchHistoryOrderCount) =>{
 
 db.close = () => {
   console.log('sequelize.close()')
-  sequelize.close()
+  _sequelize.close()
 }
 
 // db.getMediaList = async (limit) => {

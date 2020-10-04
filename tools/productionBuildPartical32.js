@@ -55,7 +55,7 @@ function filesContentsReplace(files,reg,after){
 
 function build(){
   const platform = isLinux ? 'darwin,linux' : isWindows ? 'win32' : isDarwin ? 'darwin' : 'mas'
-  const ret = sh.exec(`electron-packager . sushi-browser --electronVersion=${ELECTRON_VERSION} --platform=${platform} --arch=${arch} --overwrite --icon=${appIcon} --protocol="http" --protocol-name="HTTP Handler" --protocol="https" --protocol-name="HTTPS Handler" --appCopyright="Copyright 2017, Sushi Browser" --asar.unpackDir="{node_modules/{node-pty,iohook,youtube-dl/bin},node_modules/node-pty/**/*,node_modules/iohook/**/*,resource/{bin,extension}/**/*}" --ignore="\\.(cache|babelrc|gitattributes|githug|gitignore|gitattributes|gitignore|gitkeep|gitmodules)|node_modules/(electron-installer-squirrel-windows|electron-installer-debian|node-gyp|electron-download|electron-rebuild|electron-packager|electron-builder|electron-prebuilt|electron-rebuild|electron-winstaller-fixed|muon-winstaller|electron-installer-redhat|react-addons-perf|babel-polyfill|infinite-tree|babel-register|jsx-to-string|happypack|es5-ext|browser-sync-ui|gulp-uglify|devtron|electron$|deasync|webpack|babel-runtime|uglify-es|babel-plugin|7zip-bin|webdriverio|semantic-ui-react/(node_modules|src)|semantic-ui-react/dist/(commonjs|umd)|babili|babel-helper|react-dom|react|@types|@gulp-sourcemaps|js-beautify)|tools|sushi-browser-|release-packed|cppunitlite|happypack|es3ify"`)
+  const ret = sh.exec(`electron-packager . sushi-browser --download.cacheRoot=E:\\electron\\src\\out\\Release --electronVersion=${ELECTRON_VERSION} --platform=${platform} --arch=${arch} --overwrite --icon=${appIcon} --protocol="http" --protocol-name="HTTP Handler" --protocol="https" --protocol-name="HTTPS Handler" --appCopyright="Copyright 2017, Sushi Browser" --asar.unpackDir="{node_modules/{node-pty,iohook,youtube-dl/bin},node_modules/node-pty/**/*,node_modules/iohook/**/*,resource/{bin,extension}/**/*}" --ignore="\\.(cache|babelrc|gitattributes|githug|gitignore|gitattributes|gitignore|gitkeep|gitmodules)|node_modules/(electron-installer-squirrel-windows|electron-installer-debian|node-gyp|electron-download|electron-rebuild|electron-packager|electron-builder|electron-prebuilt|electron-rebuild|electron-winstaller-fixed|muon-winstaller|electron-installer-redhat|react-addons-perf|babel-polyfill|infinite-tree|babel-register|jsx-to-string|happypack|es5-ext|browser-sync-ui|gulp-uglify|devtron|electron$|deasync|webpack|babel-runtime|uglify-es|babel-plugin|7zip-bin|webdriverio|semantic-ui-react/(node_modules|src)|semantic-ui-react/dist/(commonjs|umd)|babili|babel-helper|react-dom|react|@types|@gulp-sourcemaps|js-beautify)|tools|sushi-browser-|release-packed|cppunitlite|happypack|es3ify"`)
 
   if(ret.code !== 0) {
     console.log("ERROR2")
@@ -110,7 +110,7 @@ for /f "tokens=1" %%i in (VERSION.txt) do (
   set ver=%%i
 )
 
-resources\\app.asar.unpacked\\resource\\bin\\aria2\\win\\aria2c.exe --check-certificate=false --auto-file-renaming=false --allow-overwrite=true https://sushib.me/check.json
+resources\\app.asar.unpacked\\resource\\bin\\aria2\\win\\aria2c.exe --check-certificate=false --auto-file-renaming=false --allow-overwrite=true https://sushi-browser.com/check.json
 
 for /f "tokens=1" %%j in (check.json) do (
   set ver2=%%j
@@ -199,7 +199,7 @@ pause`)
       loadingGif: 'res/install.gif',
       // loadingGif: 'res/brave_splash_installing.gif',
       setupIcon: 'res/app.ico',
-      iconUrl: 'https://sushib.me/favicon.ico',
+      iconUrl: 'https://sushi-browser.com/favicon.ico',
       // signWithParams: format('-a -fd sha256 -f "%s" -p "%s" -t http://timestamp.verisign.com/scripts/timstamp.dll', path.resolve(cert), certPassword),
       noMsi: true,
       exe: 'sushi-browser.exe'
@@ -216,66 +216,12 @@ function muonModify(){
   const pwd = sh.pwd().toString()
   dircs.push(buildDir)
   for(let dirc of dircs){
-    const paths = glob.sync(`${pwd}/${dirc}/**/electron.asar`)
+    const paths = glob.sync(`${pwd}/${dirc}/**/app.asar`)
     console.log(paths)
     if(paths.length == 1){
       const base = paths[0].split("/").slice(0,-1).join("/")
       sh.cd(`${base}`)
-      if(sh.exec('asar e electron.asar electron').code !== 0) {
-        console.log("ERROR3")
-        process.exit()
-      }
 
-      const initFile = path.join(sh.pwd().toString(),sh.ls('electron/browser/init.js')[0])
-      const contents2 = fs.readFileSync(initFile).toString()
-      const result2 = contents2
-        .replace('let packagePath = null',`if(process.platform === 'win32' && process.argv[1] == '--squirrel-install'){
-  var run = function(args, done) {
-    var updateExe = path.resolve(path.dirname(process.execPath), '..', 'Update.exe');
-    var spawn = require('child_process').spawn;
-    spawn(updateExe, args, {
-      detached: true
-    }).on('close', done);
-  };
-  var target = path.basename(process.execPath);
-  run(['--createShortcut=' + target + ''], app.quit);
-}
-let packagePath
-const basePath = path.join(__dirname,'../..')
-if(fs.existsSync(path.join(basePath,'app.asar.7z'))){
-  const binPath = path.join(basePath,\`7zip/\${process.platform === 'win32' ? 'win' : process.platform === 'darwin' ? 'mac' : 'linux'}/7za\`)
-  const execSync = require('child_process').execSync
-  const dataPath = path.join(basePath,'app.asar.unpacked.7z')
-  const result =  execSync(\`"\${binPath}" x -y -o"\${basePath}" "\${dataPath}"\`)
-  fs.unlinkSync(dataPath)
-  
-  const dataPath2 = path.join(basePath,'app.asar.7z')
-  const result2 =  execSync(\`"\${binPath}" x -y -o"\${basePath}" "\${dataPath2}"\`)
-  fs.unlinkSync(dataPath2)
-  
-  if(process.argv[1] == '--update-delete'){
-    const portablePath = path.join(basePath, 'app.asar.unpacked/resource', 'portable.txt')
-    fs.unlinkSync(portablePath)
-    
-    const portablePath2 = path.join(basePath,'portable.txt')
-    if(fs.existsSync(portablePath2)){
-      fs.renameSync(portablePath2,portablePath)
-    }
-  }
-  
-  if(fs.existsSync(path.join(basePath,'app'))){
-    fs.renameSync(path.join(basePath,'app'),path.join(basePath,'_app'))
-  }
-}
-const basePath2 = path.join(__dirname,'../../..')
-if(fs.existsSync(path.join(basePath2,'custom_chromium.7z'))){
-  const binPath = path.join(basePath,\`7zip/\${process.platform === 'win32' ? 'win' : process.platform === 'darwin' ? 'mac' : 'linux'}/7za\`)
-  const execSync = require('child_process').execSync
-  const dataPath = path.join(basePath2,'custom_chromium.7z')
-  const result =  execSync(\`"\${binPath}" x -y -o"\${basePath2}" "\${dataPath}"\`)
-  fs.unlinkSync(dataPath)
-}`)
-      fs.writeFileSync(initFile,result2)
       sh.mv('app.asar.unpacked/resource/bin/7zip','.')
 
       if(sh.exec(`${isWindows ? '"C:/Program Files/7-Zip/7z.exe"' : '7z'} a -t7z -mx=9 app.asar.unpacked.7z app.asar.unpacked`).code !== 0) {
@@ -292,13 +238,6 @@ if(fs.existsSync(path.join(basePath2,'custom_chromium.7z'))){
 
       sh.mkdir('app')
       sh.cp('../../package.json','app/.')
-
-      if(sh.exec('asar pack electron electron.asar').code !== 0) {
-        console.log("ERROR")
-        process.exit()
-      }
-      sh.rm('-rf','electron')
-
     }
 
   }
@@ -334,9 +273,12 @@ sh.mv('resource/bin/aria2/win32','resource/bin/aria2/win')
 sh.mv('resource/bin/ffmpeg/win32','resource/bin/ffmpeg/win')
 sh.mv('resource/bin/handbrake/win32','resource/bin/handbrake/win')
 
-filesContentsReplace(`${pwd}/node_modules/youtube-dl/lib/youtube-dl.js`,"path.join(__dirname, '..', 'bin/details')","path.join(__dirname, '..', 'bin/details').replace(/app.asar([\\/\\\\])/,'app.asar.unpacked$1')")
-filesContentsReplace(`${pwd}/node_modules/youtube-dl/lib/youtube-dl.js`,"(details.path) ? details.path : path.resolve(__dirname, '..', 'bin', details.exec)","((details.path) ? details.path : path.resolve(__dirname, '..', 'bin', details.exec)).replace(/app.asar([\\/\\\\])/,'app.asar.unpacked$1')")
-
+filesContentsReplace(`${pwd}/node_modules/youtube-dl/lib/get-binary.js`,"path.join(binPath, 'details')","path.join(binPath, 'details').replace(/app.asar([\\/\\\\])/,'app.asar.unpacked$1')")
+filesContentsReplace(`${pwd}/node_modules/youtube-dl/lib/get-binary.js`,"details.path\n" +
+  "    ? details.path\n" +
+  "    : path.resolve(__dirname, '..', 'bin', details.exec)","(details.path\n" +
+  "    ? details.path\n" +
+  "    : path.resolve(__dirname, '..', 'bin', details.exec)).replace(/app.asar([\\/\\\\])/,'app.asar.unpacked$1')")
 
 build()
 

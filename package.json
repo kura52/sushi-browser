@@ -1,6 +1,6 @@
 {
   "name": "sushi-browser",
-  "version": "0.31.2",
+  "version": "0.32.0",
   "description": "Sushi Browser",
   "main": "./lib/main.js",
   "author": "kura52",
@@ -81,7 +81,7 @@
     "fs-extra": "^4.0.2",
     "fs-plus": "3.0.1",
     "glob": "^7.1.0",
-    "gulp": "^3.9.1",
+    "gulp": "^4.0.2",
     "hjson": "^3.1.1",
     "icojs": "^0.9.1",
     "immutable": "^3.8.1",
@@ -129,13 +129,13 @@
     "react-virtualized": "^9.18.5",
     "resize-observer-polyfill": "^1.4.2",
     "rimraf": "^2.6.3",
-    "robotjs": "^0.5.1",
+    "robotjs": "^0.6.0",
     "semantic-ui-react": "^0.74.2",
     "sequelize": "^5.21.5",
     "shelljs": "^0.8.3",
     "sortablejs": "^1.5.1",
     "sprintf-js": "^1.0.3",
-    "sqlite3": "^4.1.1",
+    "sqlite3": "^4.2.0",
     "string.prototype.endswith": "^0.2.0",
     "string.prototype.startswith": "^0.2.0",
     "uglify-es": "^3.3.9",
@@ -144,6 +144,6 @@
     "winreg": "^1.2.4",
     "ws": "^7.0.0",
     "xterm": "^3.6.0",
-    "youtube-dl": "^1.11.1"
+    "youtube-dl": "^3.0.2"
   }
 }

@@ -57,7 +57,7 @@ Window::~Window() {}
 
 NAN_METHOD(Window::New) {
 	if (info.IsConstructCall()) {
-		Window *obj = new Window((HWND)info[0]->IntegerValue());
+		Window *obj = new Window((HWND)info[0]->IntegerValue(Nan::GetCurrentContext()).ToChecked());
 		obj->Wrap(info.This());
 		info.GetReturnValue().Set(info.This());
 	} else {
@@ -131,7 +131,8 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 
     v8::Local<v8::Value> callbackResult = Nan::MakeCallback(Nan::GetCurrentContext()->Global(), enumCallback, callbackArgc, callbackArgv);
 
-    return callbackResult->BooleanValue();
+    v8::Isolate *isolate = v8::Isolate::GetCurrent();
+    return callbackResult->BooleanValue(isolate);
 }
 
 
@@ -175,7 +176,7 @@ NAN_METHOD(Window::getClassName) {
 
 NAN_METHOD(Window::getWindowLongPtr) {
 	Window* obj = Nan::ObjectWrap::Unwrap<Window>(info.This());
-	LONG_PTR windowLongPtrLONG = GetWindowLongPtr(obj->windowHandle, info[0]->Int32Value());
+	LONG_PTR windowLongPtrLONG = GetWindowLongPtr(obj->windowHandle, info[0]->Int32Value(Nan::GetCurrentContext()).ToChecked());
 	if(windowLongPtrLONG != NULL) {
 		info.GetReturnValue().Set(Nan::New((int)windowLongPtrLONG));
 	}
@@ -235,12 +236,12 @@ NAN_METHOD(Window::setActiveWindow) {
 NAN_METHOD(Window::setWindowPos) {
 	Window* obj = Nan::ObjectWrap::Unwrap<Window>(info.This());
 
-	HWND hWndInsertAfter = (HWND)info[0]->IntegerValue();
-	int X = info[1]->Int32Value();
-	int Y = info[2]->Int32Value();
-	int cx = info[3]->Int32Value();
-	int cy = info[4]->Int32Value();
-	int uFlags = info[5]->Int32Value();
+	HWND hWndInsertAfter = (HWND)info[0]->IntegerValue(Nan::GetCurrentContext()).ToChecked();
+	int X = info[1]->Int32Value(Nan::GetCurrentContext()).ToChecked();
+	int Y = info[2]->Int32Value(Nan::GetCurrentContext()).ToChecked();
+	int cx = info[3]->Int32Value(Nan::GetCurrentContext()).ToChecked();
+	int cy = info[4]->Int32Value(Nan::GetCurrentContext()).ToChecked();
+	int uFlags = info[5]->Int32Value(Nan::GetCurrentContext()).ToChecked();
 
 	SetWindowPos(obj->windowHandle, hWndInsertAfter, X, Y, cx, cy, uFlags);
 }
@@ -255,7 +256,7 @@ NAN_METHOD(Window::moveTop) {
 NAN_METHOD(Window::setWindowLongPtr) {
 	Window* obj = Nan::ObjectWrap::Unwrap<Window>(info.This());
 
-	LONG_PTR value = (LONG_PTR)info[0]->IntegerValue();
+	LONG_PTR value = (LONG_PTR)info[0]->IntegerValue(Nan::GetCurrentContext()).ToChecked();
 
 	SetWindowLongPtr(obj->windowHandle, GWL_STYLE, ((GetWindowLongPtr(obj->windowHandle, GWL_STYLE) | (value))));
 }
@@ -264,7 +265,7 @@ NAN_METHOD(Window::setWindowLongPtr) {
 NAN_METHOD(Window::setWindowLongPtrRestore) {
 	Window* obj = Nan::ObjectWrap::Unwrap<Window>(info.This());
 
-	LONG_PTR value = (LONG_PTR)info[0]->IntegerValue();
+	LONG_PTR value = (LONG_PTR)info[0]->IntegerValue(Nan::GetCurrentContext()).ToChecked();
 
 	SetWindowLongPtr(obj->windowHandle, GWL_STYLE, ((GetWindowLongPtr(obj->windowHandle, GWL_STYLE) & (~value))));
 }
@@ -272,7 +273,7 @@ NAN_METHOD(Window::setWindowLongPtrRestore) {
 NAN_METHOD(Window::setWindowLongPtrParent) {
 	Window* obj = Nan::ObjectWrap::Unwrap<Window>(info.This());
 
-	LONG_PTR value = (LONG_PTR)info[0]->IntegerValue();
+	LONG_PTR value = (LONG_PTR)info[0]->IntegerValue(Nan::GetCurrentContext()).ToChecked();
 
 	SetWindowLongPtr(obj->windowHandle, -8, value);
 }
@@ -286,7 +287,7 @@ NAN_METHOD(Window::setWindowLongPtrParentRestore) {
 NAN_METHOD(Window::setWindowLongPtrEx) {
 	Window* obj = Nan::ObjectWrap::Unwrap<Window>(info.This());
 
-	LONG_PTR value = (LONG_PTR)info[0]->IntegerValue();
+	LONG_PTR value = (LONG_PTR)info[0]->IntegerValue(Nan::GetCurrentContext()).ToChecked();
 
 	SetWindowLongPtr(obj->windowHandle, GWL_EXSTYLE, ((GetWindowLongPtr(obj->windowHandle, GWL_EXSTYLE) | (value))));
 }
@@ -295,7 +296,7 @@ NAN_METHOD(Window::setWindowLongPtrEx) {
 NAN_METHOD(Window::setWindowLongPtrExRestore) {
 	Window* obj = Nan::ObjectWrap::Unwrap<Window>(info.This());
 
-	LONG_PTR value = (LONG_PTR)info[0]->IntegerValue();
+	LONG_PTR value = (LONG_PTR)info[0]->IntegerValue(Nan::GetCurrentContext()).ToChecked();
 
 	SetWindowLongPtr(obj->windowHandle, GWL_EXSTYLE, ((GetWindowLongPtr(obj->windowHandle, GWL_EXSTYLE) & (~value))));
 }
@@ -304,7 +305,7 @@ NAN_METHOD(Window::setWindowLongPtrExRestore) {
 NAN_METHOD(Window::setParent) {
 	Window* obj = Nan::ObjectWrap::Unwrap<Window>(info.This());
 
-	HWND hWndNewParent = (HWND)info[0]->IntegerValue();
+	HWND hWndNewParent = (HWND)info[0]->IntegerValue(Nan::GetCurrentContext()).ToChecked();
 
 	SetParent(obj->windowHandle, hWndNewParent);
 }
@@ -312,17 +313,17 @@ NAN_METHOD(Window::setParent) {
 NAN_METHOD(Window::showWindow) {
 	Window* obj = Nan::ObjectWrap::Unwrap<Window>(info.This());
 
-	const int nCmdShow = info[0]->Int32Value();
+	const int nCmdShow = info[0]->Int32Value(Nan::GetCurrentContext()).ToChecked();
 	ShowWindow(obj->windowHandle, nCmdShow);
 }
 
 NAN_METHOD(Window::move) {
 	Window* obj = Nan::ObjectWrap::Unwrap<Window>(info.This());
 
-	const size_t x = info[0]->Int32Value();
-	const size_t y = info[1]->Int32Value();
-	const size_t w = info[2]->Int32Value();
-	const size_t h = info[3]->Int32Value();
+	const size_t x = info[0]->Int32Value(Nan::GetCurrentContext()).ToChecked();
+	const size_t y = info[1]->Int32Value(Nan::GetCurrentContext()).ToChecked();
+	const size_t w = info[2]->Int32Value(Nan::GetCurrentContext()).ToChecked();
+	const size_t h = info[3]->Int32Value(Nan::GetCurrentContext()).ToChecked();
 
 //	SetWindowPos(obj->windowHandle, NULL, x, y, w, h, 0x0004 | 0x0010);
 //    SetWindowPos(obj->windowHandle, NULL, x, y, w, h, SWP_NOZORDER|SWP_NOOWNERZORDER|SWP_FRAMECHANGED);
@@ -346,10 +347,10 @@ NAN_METHOD(Window::moveRelative) {
 	RECT dim;
 	GetWindowRect(obj->windowHandle, &dim);
 
-	const size_t dx = info[0]->Int32Value();
-	const size_t dy = info[1]->Int32Value();
-	const size_t dw = info[2]->Int32Value();
-	const size_t dh = info[3]->Int32Value();
+	const size_t dx = info[0]->Int32Value(Nan::GetCurrentContext()).ToChecked();
+	const size_t dy = info[1]->Int32Value(Nan::GetCurrentContext()).ToChecked();
+	const size_t dw = info[2]->Int32Value(Nan::GetCurrentContext()).ToChecked();
+	const size_t dh = info[3]->Int32Value(Nan::GetCurrentContext()).ToChecked();
 
 	const size_t x = dim.left + dx;
 	const size_t y = dim.top + dy;

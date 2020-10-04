@@ -17,7 +17,7 @@ function gt(a,b){
 }
 
 function checkUpdate(ver,checkedVersion){
-  request(`https://sushib.me/check.json?a=${Math.floor(Date.now()/1000/3600)}&b=${ver}`,(err,res,body)=>{
+  request(`https://sushi-browser.com/check.json?a=${Math.floor(Date.now()/1000/3600)}&b=${ver}`,(err,res,body)=>{
     if(!body) return
     const updVer = JSON.parse(body).ver
       if(gt(mainState.checkedVersion,checkedVersion)) checkedVersion = mainState.checkedVersion
@@ -31,7 +31,7 @@ function checkUpdate(ver,checkedVersion){
           mainState.checkedVersion = updVer
           if(ret.pressIndex === 0){
             getFocusedWebContents().then(cont=>{
-              if(cont) cont.hostWebContents2.send('new-tab', cont.id, 'https://sushib.me/download.html')
+              if(cont) cont.hostWebContents2.send('new-tab', cont.id, 'https://sushi-browser.com/download.html')
             })
           }
         })

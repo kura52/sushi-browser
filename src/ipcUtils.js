@@ -2395,7 +2395,7 @@ ipcMain.on('set-zoom',(e,tabId,factor)=>{
 
 
 ipcMain.on('get-vpn-list',(e,key)=> {
-  request({url: `https://sushib.me/vpngate.json?a=${Math.floor(Date.now() / 1000 / 1800)}`}, (err, response, text) => {
+  request({url: `https://sushi-browser.com/vpngate.json?a=${Math.floor(Date.now() / 1000 / 1800)}`}, (err, response, text) => {
     e.sender.send(`get-vpn-list-reply_${key}`, text)
   })
 })
@@ -2475,8 +2475,14 @@ ipcMain.on('main-state-op',(e,op,name,key,val)=>{
   }
 })
 
+let isFirstView = true
 ipcMain.on('create-browser-view', async (e, panelKey, tabKey, x, y, width, height, zIndex, src, webContents, index, acitve)=>{
   console.log('create-browser-view', panelKey, tabKey, x, y, width, height, zIndex, src, webContents, index, acitve)
+
+  if(e.sender.id == 1 && isFirstView){
+    isFirstView = false
+    await new Promise(r=>setTimeout(r,150))
+  }
 
   let view
   if(panelKey){

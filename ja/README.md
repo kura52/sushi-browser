@@ -15,7 +15,7 @@ Webブラウジングの際、画面の一部しか利用できず、勿体無�
 
 [ダウンロード](#ダウンロード)
 
-![OverView](https://sushib.me/myimg/top.jpg)
+![OverView](https://sushi-browser.com/myimg/top.jpg)
 
 ## Table of Contents
 
@@ -40,9 +40,9 @@ Webブラウジングの際、画面の一部しか利用できず、勿体無�
 本ブラウザ最大の特徴は、マルチパネルでの表示・操作に特化していることにあります。  
 複数のwebページを並べて表示するだけでなく、様々な機能があります。
 
-詳細は、[こちら](https://sushib.me/ja/tips/#multi-panel/)をご確認ください。
+詳細は、[こちら](https://sushi-browser.com/ja/tips/#multi-panel/)をご確認ください。
 
-![multi-panel](https://sushib.me/myimg/multi-panel2.gif)
+![multi-panel](https://sushi-browser.com/myimg/multi-panel2.gif)
 
 #### 1. パネルを分割
 タブをパネルの端にドラッグすることでパネルを分割できます。  
@@ -82,9 +82,9 @@ Sushi Browserは、動画ダウンロードやマウス操作などの支援機�
 動画再生用ブラウザとして活用できます。  
 ※動画ダウンロードに関しては、Webサービスの規約違反とならないように自己責任での利用をお願いいたします。
 
-詳細は、[こちら](https://sushib.me/ja/tips/#video/)をご確認ください。
+詳細は、[こちら](https://sushi-browser.com/ja/tips/#video/)をご確認ください。
 
-![video](https://sushib.me/myimg/video.gif)
+![video](https://sushi-browser.com/myimg/video.gif)
 
 #### 1. 動画ダウンロード  
 
@@ -108,9 +108,9 @@ Webページに動画が存在することを検出すると、ツールバー�
 Sushi Browserはタブに関しても、画面の有効利用や便利機能の取り込みを積極的に行っています。  
 例えば、FirefoxのアドオンのTab Mix Plusに相当する機能を多数取り入れています。
 
-詳細は、[こちら](https://sushib.me/ja/tips/#tab/)をご確認ください。
+詳細は、[こちら](https://sushi-browser.com/ja/tips/#tab/)をご確認ください。
 
-![tabs](https://sushib.me/myimg/tabs.gif)
+![tabs](https://sushi-browser.com/myimg/tabs.gif)
 
 #### 1. 多段タブ
 Sushi Browserでは多段タブを利用でき、メインメニューから通常タブと多段タブを切り替えることができます。  
@@ -182,7 +182,7 @@ Puppeteer(ヘッドレスChromeでの自動化) APIと互換性のあるAPIを�
 
 
 ### 11. その他
-他の機能については、[こちら](https://sushib.me/ja/tips/)をご確認ください。
+他の機能については、[こちら](https://sushi-browser.com/ja/tips/)をご確認ください。
 
 
 ## Webテクノロジー
@@ -202,10 +202,10 @@ Puppeteer(ヘッドレスChromeでの自動化) APIと互換性のあるAPIを�
 
 各プラットフォームに対し、インストーラとポータブル版の両方がダウンロードできます。
 
-- [Windows Installer v0.31.2](https://github.com/kura52/sushi-browser/releases/download/0.31.2/sushi-browser-0.31.2-setup-x64.exe)
-- [Windows Portable v0.31.2(Chromium同梱)](https://github.com/kura52/sushi-browser/releases/download/0.31.2/sushi-browser-0.31.2-win-x64-chromium.zip)
-- [Windows Portable v0.31.2(Brave同梱)](https://github.com/kura52/sushi-browser/releases/download/0.31.2/sushi-browser-0.31.2-win-x64-brave.zip)
-- [Windows Portable v0.31.2](https://github.com/kura52/sushi-browser/releases/download/0.31.2/sushi-browser-0.31.2-win-x64.zip)
+- [Windows Installer v0.32.0](https://github.com/kura52/sushi-browser/releases/download/0.32.0/sushi-browser-0.32.0-setup-x64.exe)
+- [Windows Portable v0.32.0(Chromium同梱)](https://github.com/kura52/sushi-browser/releases/download/0.32.0/sushi-browser-0.32.0-win-x64-chromium.zip)
+<!-- - [Windows Portable v0.32.0(Brave同梱)](https://github.com/kura52/sushi-browser/releases/download/0.32.0/sushi-browser-0.32.0-win-x64-brave.zip) -->
+- [Windows Portable v0.32.0](https://github.com/kura52/sushi-browser/releases/download/0.32.0/sushi-browser-0.32.0-win-x64.zip)
 - [MacOS dmg v0.27.0](https://github.com/kura52/sushi-browser/releases/download/0.27.0/SushiBrowser-0.27.0.dmg)
 - [MacOS Portable v0.27.0](https://github.com/kura52/sushi-browser/releases/download/0.27.0/sushi-browser-0.27.0-mac-x64.zip)
 - [Linux rpm (for Fedora/CentOS) v0.29.1](https://github.com/kura52/sushi-browser/releases/download/0.29.1/sushi-browser-0.29.1-1.x86_64.rpm)

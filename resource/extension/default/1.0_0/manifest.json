@@ -9,7 +9,9 @@
          "matches": ["<all_urls>"],
          "run_at": "document_start",
          "exclude_globs": [
-            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/*"
+            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/*",
+            "chrome-extension://mnojpmjdmbbfmejpflffifhffcmidifd/*",
+            "chrome://adblock"
          ]
       },
       {
@@ -18,7 +20,9 @@
          "matches": ["<all_urls>"],
          "run_at": "document_end",
          "exclude_globs": [
-            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/*"
+            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/*",
+            "chrome-extension://mnojpmjdmbbfmejpflffifhffcmidifd/*",
+            "chrome://adblock"
          ]
       },
       {
@@ -39,7 +43,9 @@
             "chrome-extension://*"
          ],
          "exclude_globs": [
-            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/*"
+            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/*",
+            "chrome-extension://mnojpmjdmbbfmejpflffifhffcmidifd/*",
+            "chrome://adblock"
          ],
          "run_at": "document_start"
       },
@@ -61,7 +67,9 @@
             "chrome-extension://*"
          ],
          "exclude_globs": [
-            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/*"
+            "chrome-extension://dckpbojndfoinamcdamhkjhnjnmjkfjd/*",
+            "chrome-extension://mnojpmjdmbbfmejpflffifhffcmidifd/*",
+            "chrome://adblock"
          ],
          "run_at": "document_end"
       }

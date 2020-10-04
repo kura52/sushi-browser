@@ -30,4 +30,4 @@ gulp.task('main-process4', function() {
 });
 
 
-gulp.task('default', ['main-process','main-process2','main-process3','main-process4']);
+gulp.task('default', gulp.series(gulp.parallel('main-process','main-process2','main-process3','main-process4')));

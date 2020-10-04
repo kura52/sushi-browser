@@ -864,7 +864,7 @@ class BrowserNavbar extends Component{
 
       <div className="divider" />
       <NavbarMenuSubMenu text="About">
-        <NavbarMenuItem text={`${locale.translation("browserVersion")}: ${versions.browser}`} onClick={_=>this.navigate('https://sushib.me/download.html')}/>
+        <NavbarMenuItem text={`${locale.translation("browserVersion")}: ${versions.browser}`} onClick={_=>this.navigate('https://sushi-browser.com/download.html')}/>
         <NavbarMenuItem text={`${locale.translation("chromiumVersion")}: ${versions.chrome || (versions.chrome = ipc.sendSync('get-sync-main-states',['versions'])[0].chrome) }`}
                         onClick={_=>this.navigate('https://github.com/chromium/chromium/releases')}/>
       </NavbarMenuSubMenu>

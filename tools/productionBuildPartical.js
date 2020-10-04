@@ -104,7 +104,7 @@ for /f "tokens=1" %%i in (VERSION.txt) do (
   set ver=%%i
 )
 
-resources\\app.asar.unpacked\\resource\\bin\\aria2\\win\\aria2c.exe --check-certificate=false --auto-file-renaming=false --allow-overwrite=true https://sushib.me/check.json
+resources\\app.asar.unpacked\\resource\\bin\\aria2\\win\\aria2c.exe --check-certificate=false --auto-file-renaming=false --allow-overwrite=true https://sushi-browser.com/check.json
 
 for /f "tokens=1" %%j in (check.json) do (
   set ver2=%%j
@@ -193,7 +193,7 @@ pause`)
       loadingGif: 'res/install.gif',
       // loadingGif: 'res/brave_splash_installing.gif',
       setupIcon: 'res/app.ico',
-      iconUrl: 'https://sushib.me/favicon.ico',
+      iconUrl: 'https://sushi-browser.com/favicon.ico',
       // signWithParams: format('-a -fd sha256 -f "%s" -p "%s" -t http://timestamp.verisign.com/scripts/timstamp.dll', path.resolve(cert), certPassword),
       noMsi: true,
       exe: 'sushi-browser.exe'

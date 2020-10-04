@@ -431,7 +431,7 @@ function create(args){
         const b = bw.getBounds()
         if(bw.isMaximized()) bw.unmaximize()
 
-        const bounds = {x: b.x, y: b.y, width: b.width, height: b.height}
+        const bounds = {x: b.x, y: b.y - 7, width: b.width, height: b.height + 7}
         bw._maximizedSize = bounds
         // bw.normal()
         setTimeout(()=>{
@@ -677,6 +677,7 @@ export default {
       webPreferences: {
         // plugins: true,
         // sharedWorker: true,
+        enableRemoteModule: true,
         nodeIntegration: true,
         webSecurity: false,
         allowFileAccessFromFileUrls: true,
