@@ -53,7 +53,7 @@
     "cross-env": "^5.0.5",
     "eslint": "^5.15.1",
     "esprima": "^4.0.0",
-    "jpeg-js": "^0.3.4",
+    "jpeg-js": "^0.4.1",
     "minimist": "^1.2.0",
     "ncp": "^2.0.0",
     "pixelmatch": "^4.0.2",
